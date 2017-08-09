@@ -50,7 +50,7 @@ private:
     int sent_command_;
     int received_command_;
     vector<uchar> received_payload_;
-    function<void(Telegram*)> on_telegram;
+    vector<function<void(Telegram*)>> telegram_listeners_;
     
     void waitForResponse();
     FrameStatus checkFrame(vector<uchar> &data,
@@ -255,7 +255,7 @@ void WMBusIM871A::setLinkMode(LinkMode lm) {
 }
 
 void WMBusIM871A::onTelegram(function<void(Telegram*)> cb) {
-    on_telegram = cb;
+    telegram_listeners_.push_back(cb);
 }
 
 void WMBusIM871A::waitForResponse() {
@@ -394,7 +394,9 @@ void WMBusIM871A::handleRadioLink(int msgid, vector<uchar> &payload)
                 t.ci_field=payload[9];
                 t.payload.clear();
                 t.payload.insert(t.payload.end(), payload.begin()+10, payload.end());
-                if (on_telegram) on_telegram(&t);
+                for (auto f : telegram_listeners_) {
+                    if (f) f(&t);
+                }
             }
             break;
     default:
