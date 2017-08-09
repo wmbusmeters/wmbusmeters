@@ -38,7 +38,7 @@ struct MeterMultical21 : public Meter {
     string name();
     float totalWaterConsumption();
     string datetimeOfUpdate();
-    void onUpdate(function<void()> cb);
+    void onUpdate(function<void(Meter*)> cb);
     
 private:
     void handleTelegram(Telegram*t);
@@ -51,7 +51,7 @@ private:
     vector<uchar> id_;
     vector<uchar> key_;
     WMBus *bus_;
-    function<void()> on_update_;
+    function<void(Meter*)> on_update_;
 };
 
 MeterMultical21::MeterMultical21(WMBus *bus, const char *name, const char *id, const char *key) :
@@ -72,7 +72,7 @@ string MeterMultical21::name()
     return name_;
 }
 
-void MeterMultical21::onUpdate(function<void()> cb)
+void MeterMultical21::onUpdate(function<void(Meter*)> cb)
 {
     on_update_ = cb;
 }
@@ -163,7 +163,7 @@ void MeterMultical21::handleTelegram(Telegram *t) {
     total_water_consumption_ = processContent(dec);
     datetime_of_update_ = time(NULL);
 
-    if (on_update_) on_update_();
+    if (on_update_) on_update_(this);
 }
 
 float MeterMultical21::processContent(vector<uchar> &c) {

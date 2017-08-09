@@ -48,9 +48,9 @@ int main(int argc, char **argv)
     wmbus->setLinkMode(C1a);    
     if (wmbus->getLinkMode()!=C1a) error("Could not set link mode to C1a\n");
 
-    auto meter  = createMultical21(wmbus, "MyHouseWater", "12345678", "00112233445566778899AABBCCDDEEFF");
+    auto house  = createMultical21(wmbus, "MyHouseWater", "12345678", "00112233445566778899AABBCCDDEEFF");
 
-    meter->onUpdate([meter](){
+    house->onUpdate([](Meter*meter){
             printf("%s\t%s\t% 3.3f m3\t%s\n",
                    meter->name().c_str(),
                    meter->id().c_str(),

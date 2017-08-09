@@ -37,7 +37,7 @@ struct Meter {
     virtual float totalWaterConsumption() = 0;
     virtual string datetimeOfUpdate() = 0;
 
-    virtual void onUpdate(function<void()> cb) = 0;
+    virtual void onUpdate(function<void(Meter*)> cb) = 0;
 };
 
 Meter *createMultical21(WMBus *bus, const char *name, const char *id, const char *key);
