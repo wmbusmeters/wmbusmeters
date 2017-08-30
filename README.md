@@ -1,30 +1,33 @@
 # wmbusmeters
 The program receives and decodes C1 telegrams
 (using the wireless mbus protocol) to acquire
-utility meter readings. No configuration file
-exists, you change main.cc, recompile and run
-to output the values you are interested in,
-typically to log and be processed by another tool.
+utility meter readings. You configure multiple
+meters for reading by supplying triplets
+on the command line.
+
+wmbusmeters [usbdevice] [meter_name] [meter_id] [meter_ke]
+
+If you want to listen to more than one meter, simply add more triples.
 
 Builds and runs on GNU/Linux:
 
 make
 
-./build/wmbusmeters
+./build/wmbusmeters /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
 
-./build/wmbusmeters --verbose
+./build/wmbusmeters --verbose /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
 
 make HOST=arm
 
-./build_arm/wmbusmeters
+./build_arm/wmbusmeters /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
 
 make DEBUG=true
 
-./build_debug/wmbusmeters
+./build_debug/wmbusmeters /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
 
 make DEBUG=true HOST=arm
 
-./build_arm_debug/wmbusmeters
+./build_arm_debug/wmbusmeters /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
 
 (After you insert the im871A USB stick, do:
 
