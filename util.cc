@@ -23,6 +23,7 @@
 #include<signal.h>
 #include<stdarg.h>
 #include<stddef.h>
+#include<string.h>
 #include<string>
 
 using namespace std;
@@ -73,17 +74,21 @@ int char2int(char input)
     return -1;
 }
 
-void hex2bin(const char* src, vector<uchar> *target)
+bool hex2bin(const char* src, vector<uchar> *target)
 {
-    if (!src) return;
+    if (!src) return false;
     while(*src && src[1]) {
         if (*src == ' ') {
             src++;
         } else {
-            target->push_back(char2int(*src)*16 + char2int(src[1]));
+            int hi = char2int(*src);
+            int lo = char2int(src[1]);
+            if (hi<0 || lo<0) return false;
+            target->push_back(hi*16 + lo);
             src += 2;
         }
     }
+    return true;
 }
 
 char const hex[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A','B','C','D','E','F'};
@@ -125,4 +130,20 @@ void verbose(const char* fmt, ...) {
         vprintf(fmt, args);
         va_end(args);
     }
+}
+
+bool isValidId(char *id)
+{
+    if (strlen(id) != 8) return false;
+    for (int i=0; i<8; ++i) {
+        if (id[i]<'0' || id[i]>'9') return false;
+    }
+    return true;
+}
+
+bool isValidKey(char *key)
+{
+    if (strlen(key) != 32) return false;
+    vector<uchar> tmp;
+    return hex2bin(key, &tmp);
 }

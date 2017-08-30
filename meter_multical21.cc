@@ -101,12 +101,14 @@ void MeterMultical21::handleTelegram(Telegram *t) {
         t->a_field_address[1] != id_[1] ||
         t->a_field_address[0] != id_[0]) {
         
-        verbose("Ignoring meter %02x %02x %02x %02x \n",
-                t->a_field_address[3], t->a_field_address[2], t->a_field_address[1], t->a_field_address[0]);
+        verbose("Meter %s ignores message with id %02x%02x%02x%02x \n",
+                name_.c_str(),
+                t->a_field_address[0], t->a_field_address[1], t->a_field_address[2], t->a_field_address[3]);
         return;
     } else {
-        verbose("Update from meter %02x %02x %02x %02x!\n",
-               t->a_field_address[3], t->a_field_address[2], t->a_field_address[1], t->a_field_address[0]);
+        verbose("Meter %s receives update with id %02x%02x%02x%02x!\n",
+                name_.c_str(),
+               t->a_field_address[0], t->a_field_address[1], t->a_field_address[2], t->a_field_address[3]);
     }
        
     int cc_field = t->payload[0];

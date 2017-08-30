@@ -32,7 +32,7 @@ typedef unsigned char uchar;
 #define call(A,B) ([A](){A->B();})
 #define calll(A,B,T) ([A](T t){A->B(t);})
 
-void hex2bin(const char* src, std::vector<uchar> *target);
+bool hex2bin(const char* src, std::vector<uchar> *target);
 std::string bin2hex(std::vector<uchar> &target);
 
 void xorit(uchar *srca, uchar *srcb, uchar *dest, int len);
@@ -42,6 +42,8 @@ void verbose(const char* fmt, ...);
 
 void verboseEnabled(bool b);
 
+bool isValidId(char *id);
+bool isValidKey(char *key);
 
 #endif 
 
