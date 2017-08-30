@@ -46,6 +46,8 @@ https://www.infineon.com/dgdl/TDA5340_AN_WMBus_v1.0.pdf
 
 http://fastforward.ag/downloads/docu/FAST_EnergyCam-Protocol-wirelessMBUS.pdf
 
+http://www.multical.hu/WiredMBus-water.pdf
+
 The AES source code is copied from:
 
 https://github.com/kokke/tiny-AES128-C
@@ -55,6 +57,7 @@ The following two other github projects were of great help:
 https://github.com/ffcrg/ecpiww
 
 https://github.com/tobiasrask/wmbus-client
+
 
 Code can print total water consumption! But everything else is
 missing. CRC checks anyone? :-) Don't rely on these measurements

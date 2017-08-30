@@ -29,11 +29,19 @@
 using namespace std;
 
 void printMeter(Meter *meter) {
-    printf("%s\t%s\t% 3.3f m3\t%s\n",
+    printf("%s\t%s\t% 3.3f m3\t%s\t% 3.3f m3\t%s\n",
            meter->name().c_str(),
            meter->id().c_str(),
            meter->totalWaterConsumption(),
-           meter->datetimeOfUpdate().c_str());
+           meter->datetimeOfUpdate().c_str(),
+           meter->targetWaterConsumption(), 
+           meter->statusHumanReadable().c_str());
+
+
+// targetWaterConsumption: The total consumption at the start of the previous 30 day period.    
+// statusHumanReadable: DRY,REVERSED,LEAK,BURST if that status is detected right now, followed by
+//                      (dry 15-21 days) which means that, even it DRY is not active right now,
+//                      DRY has been active for 15-21 days during the last 30 days.    
 }
 
 int main(int argc, char **argv)
@@ -70,6 +78,9 @@ int main(int argc, char **argv)
     wmbus->setLinkMode(C1a);    
     if (wmbus->getLinkMode()!=C1a) error("Could not set link mode to C1a\n");
 
+    // We want the data visible in the log file asap!    
+    setbuf(stdout, NULL);
+    
     if (num_meters > 0) {
         Meter *meters[num_meters];
 

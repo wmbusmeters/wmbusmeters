@@ -45,5 +45,7 @@ void verboseEnabled(bool b);
 bool isValidId(char *id);
 bool isValidKey(char *key);
 
+void incrementIV(uchar *iv, size_t len);
+
 #endif 
 

@@ -35,6 +35,8 @@ struct Meter {
     virtual string id() = 0;
     virtual string name() = 0;
     virtual float totalWaterConsumption() = 0;
+    virtual float targetWaterConsumption() = 0;
+    virtual string statusHumanReadable() = 0;
     virtual string datetimeOfUpdate() = 0;
 
     virtual void onUpdate(function<void(Meter*)> cb) = 0;

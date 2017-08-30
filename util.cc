@@ -147,3 +147,17 @@ bool isValidKey(char *key)
     vector<uchar> tmp;
     return hex2bin(key, &tmp);
 }
+
+void incrementIV(uchar *iv, size_t len) {
+    uchar *p = iv+len-1;
+    while (p >= iv) {
+        int pp = *p;
+        (*p)++;
+        if (pp+1 <= 255) {
+            // Nice, no overflow. We are done here!
+            break;
+        }
+        // Move left add add one.
+        p--;
+    }
+}
