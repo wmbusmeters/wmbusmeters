@@ -37,7 +37,14 @@ struct Meter {
     virtual float totalWaterConsumption() = 0;
     virtual float targetWaterConsumption() = 0;
     virtual string statusHumanReadable() = 0;
-    virtual string datetimeOfUpdate() = 0;
+    virtual string status() = 0;
+    virtual string timeDry() = 0;
+    virtual string timeReversed() = 0;
+    virtual string timeLeaking() = 0;
+    virtual string timeBursting() = 0;
+    
+    virtual string datetimeOfUpdateHumanReadable() = 0;
+    virtual string datetimeOfUpdateRobot() = 0;
 
     virtual void onUpdate(function<void(Meter*)> cb) = 0;
 };

@@ -1,13 +1,12 @@
 # wmbusmeters
 The program receives and decodes C1 telegrams
 (using the wireless mbus protocol) to acquire
-utility meter readings. You configure multiple
-meters for reading by supplying triplets
-on the command line.
+utility meter readings. 
 
-wmbusmeters [usbdevice] [meter_name] [meter_id] [meter_ke]
+wmbusmeters [usbdevice] { [meter_name] [meter_id] [meter_key] }*
 
-If you want to listen to more than one meter, simply add more triples.
+If you want to listen to more than one meter, simply add more meter triplets.
+Add --robot to get JSON output.
 
 Builds and runs on GNU/Linux:
 
@@ -17,23 +16,21 @@ make
 
 ./build/wmbusmeters --verbose /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
 
+./build/wmbusmeters --robot /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
+
 make HOST=arm
 
-./build_arm/wmbusmeters /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
+Binary generated: ./build_arm/wmbusmeters
 
 make DEBUG=true
 
-./build_debug/wmbusmeters /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
+Binary generated: ./build_debug/wmbusmeters
 
 make DEBUG=true HOST=arm
 
-./build_arm_debug/wmbusmeters /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
+Binary generated: ./build_arm_debug/wmbusmeters
 
-(After you insert the im871A USB stick, do:
-
-chown me:me /dev/ttyUSB0
-
-to avoid having to run the program as root.)
+Add yourself to the dialout group to get access to the newly plugged in im87A USB stick.
 
 Currently only supports the USB stick receiver im871A
 and the water meter Multical21. The source code is modular
@@ -58,7 +55,6 @@ https://github.com/ffcrg/ecpiww
 
 https://github.com/tobiasrask/wmbus-client
 
-
-Code can print total water consumption! But everything else is
-missing. CRC checks anyone? :-) Don't rely on these measurements
-for anything really important!
+TODO: CRC checks are still missing. If the wrong AES key
+is supplied you probably get zero readings and
+sometimes warnings about wrong type of frames.

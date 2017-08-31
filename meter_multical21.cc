@@ -51,8 +51,14 @@ struct MeterMultical21 : public Meter {
     float totalWaterConsumption();
     float targetWaterConsumption();
     string statusHumanReadable();
+    string status();
+    string timeDry();
+    string timeReversed();
+    string timeLeaking();
+    string timeBursting();
     
-    string datetimeOfUpdate();
+    string datetimeOfUpdateHumanReadable();
+    string datetimeOfUpdateRobot();
     void onUpdate(function<void(Meter*)> cb);
     
 private:
@@ -106,11 +112,19 @@ float MeterMultical21::targetWaterConsumption()
     return target_volume_;
 }
 
-string MeterMultical21::datetimeOfUpdate()
+string MeterMultical21::datetimeOfUpdateHumanReadable()
 {
-    char datetime[20];
+    char datetime[40];
     memset(datetime, 0, sizeof(datetime));
     strftime(datetime, 20, "%Y-%m-%d %H:%M.%S", localtime(&datetime_of_update_));
+    return string(datetime);
+}
+
+string MeterMultical21::datetimeOfUpdateRobot()
+{
+    char datetime[40];
+    memset(datetime, 0, sizeof(datetime));
+    strftime(datetime, sizeof(datetime), "%FT%TZ", gmtime(&datetime_of_update_));    
     return string(datetime);
 }
 
@@ -242,13 +256,14 @@ void MeterMultical21::processContent(vector<uchar> &c) {
         // The dif=0x04 vif=0x13 means current volume with scale factor .001
         total_water_consumption_ = ((float)consumption_raw) / ((float)1000);
 
-        // The short frame target volume supplies two low bytes, the remaining two hi bytes are picked from rec2.
+        // The short frame target volume supplies two low bytes,
+        // the remaining two hi bytes are >>probably<< picked from rec2!
         int target_volume_raw = rec2val3*256*256*256 + rec2val2*256*256 + rec3val1*256 + rec3val0;
         verbose("short rec3 (%02x %02x) %02x %02x = %d target volume\n", rec2val3, rec2val2, rec3val1, rec3val0, target_volume_raw); 
         target_volume_ = ((float)target_volume_raw) / ((float)1000);
 
-        // Which leaves one unknown byte.
-        verbose("short rec3 %02x = unknown\n", rec3val2);
+        // Which leaves one unknown byte. Takes on all possible values. 
+        verbose("short rec3 %02x = unknown\n", rec3val2); 
     } else
     if (frame_type == 0x78) {
         verbose("Full frame %d bytes\n", c.size());
@@ -310,10 +325,56 @@ void MeterMultical21::processContent(vector<uchar> &c) {
 
         target_volume_ = ((float)target_volume_raw) / ((float)1000);
 
+        // To unknown bytes, seems to be very constant.
         verbose("full rec4 %02x %02x = unknown\n", rec4val1, rec4val0);
     } else {
         fprintf(stderr, "Unknown frame %02x\n", frame_type);
     }
+}
+
+string MeterMultical21::status() {
+    string s;
+    if (info_codes_ & INFO_CODE_DRY) s.append("DRY ");
+    if (info_codes_ & INFO_CODE_REVERSE) s.append("REVERSED ");
+    if (info_codes_ & INFO_CODE_LEAK) s.append("LEAK ");
+    if (info_codes_ & INFO_CODE_BURST) s.append("BURST ");
+    if (s.length() > 0) {
+        s.pop_back(); // Remove final space
+        return s;
+    }
+    return s;
+}
+
+string MeterMultical21::timeDry() {
+    int time_dry = (info_codes_ >> INFO_CODE_DRY_SHIFT) & 7;
+    if (time_dry) {
+        return decodeTime(time_dry);
+    }
+    return "";
+}
+
+string MeterMultical21::timeReversed() {
+    int time_reversed = (info_codes_ >> INFO_CODE_REVERSE_SHIFT) & 7;
+    if (time_reversed) {
+        return decodeTime(time_reversed);
+    }
+    return "";
+}
+
+string MeterMultical21::timeLeaking() {
+    int time_leaking = (info_codes_ >> INFO_CODE_LEAK_SHIFT) & 7;
+    if (time_leaking) {
+        return decodeTime(time_leaking);
+    }
+    return "";
+}
+
+string MeterMultical21::timeBursting() {
+    int time_bursting = (info_codes_ >> INFO_CODE_BURST_SHIFT) & 7;
+    if (time_bursting) {
+        return decodeTime(time_bursting);
+    }
+    return "";
 }
 
 string MeterMultical21::statusHumanReadable() {
@@ -324,7 +385,7 @@ string MeterMultical21::statusHumanReadable() {
         if (dry) s.append("DRY");
         s.append("(dry ");
         s.append(decodeTime(time_dry));
-        s.append(")");
+        s.append(") ");
     }
 
     bool reversed = info_codes_ & INFO_CODE_REVERSE;
@@ -353,7 +414,11 @@ string MeterMultical21::statusHumanReadable() {
         s.append(decodeTime(time_burst));
         s.append(") ");
     }
-    return s;
+    if (s.length() > 0) {
+        s.pop_back();
+        return s;
+    }
+    return "OK";
 }
 
 string MeterMultical21::decodeTime(int time) {

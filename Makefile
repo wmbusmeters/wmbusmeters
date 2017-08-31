@@ -28,21 +28,21 @@ endif
 
 $(shell mkdir -p $(BUILD))
 
-
-CXXFLAGS := $(DEBUG_FLAGS) -Wall -fmessage-length=0 -std=c++11 -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.1\"" 
+CXXFLAGS := $(DEBUG_FLAGS) -Wall -fmessage-length=0 -std=c++11 -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.2\"" 
 
 $(BUILD)/%.o: %.cc $(wildcard %.h)
 	$(CXX) $(CXXFLAGS) $< -c -o $@
 
 METERS_OBJS:=\
-	$(BUILD)/main.o \
-	$(BUILD)/util.o \
 	$(BUILD)/aes.o \
+	$(BUILD)/cmdline.o \
+	$(BUILD)/main.o \
+	$(BUILD)/meters.o \
+	$(BUILD)/meter_multical21.o \
 	$(BUILD)/serial.o \
+	$(BUILD)/util.o \
 	$(BUILD)/wmbus.o \
 	$(BUILD)/wmbus_im871a.o \
-	$(BUILD)/meters.o \
-	$(BUILD)/meter_multical21.o
 
 all: $(BUILD)/wmbusmeters
 	$(STRIP_BINARY)

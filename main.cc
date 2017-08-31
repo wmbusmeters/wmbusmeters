@@ -17,12 +17,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
- 
-#include"util.h"
-#include"serial.h"
-#include"wmbus.h"
+
+#include"cmdline.h"
 #include"meters.h"
-#include"aes.h"
+#include"serial.h"
+#include"util.h"
+#include"wmbus.h"
 
 #include<string.h>
 
@@ -33,10 +33,9 @@ void printMeter(Meter *meter) {
            meter->name().c_str(),
            meter->id().c_str(),
            meter->totalWaterConsumption(),
-           meter->datetimeOfUpdate().c_str(),
+           meter->datetimeOfUpdateHumanReadable().c_str(),
            meter->targetWaterConsumption(), 
            meter->statusHumanReadable().c_str());
-
 
 // targetWaterConsumption: The total consumption at the start of the previous 30 day period.    
 // statusHumanReadable: DRY,REVERSED,LEAK,BURST if that status is detected right now, followed by
@@ -44,36 +43,55 @@ void printMeter(Meter *meter) {
 //                      DRY has been active for 15-21 days during the last 30 days.    
 }
 
+#define Q(x,y) "\""#x"\":"#y","
+#define QS(x,y) "\""#x"\":\""#y"\","
+#define QSE(x,y) "\""#x"\":\""#y"\""
+
+void printMeterJSON(Meter *meter) {
+    printf("{"
+           QS(name,%s)
+           QS(id,%s)
+           Q(total_m3,%.3f)
+           Q(target_m3,%.3f)
+           QS(current_status,%s)
+           QS(time_dry,%s)
+           QS(time_reversed,%s)
+           QS(time_leaking,%s)
+           QS(time_bursting,%s)
+           QSE(timestamp,%s)
+           "}\n",
+           meter->name().c_str(),
+           meter->id().c_str(),
+           meter->totalWaterConsumption(),
+           meter->targetWaterConsumption(), 
+           meter->status().c_str(), // DRY REVERSED LEAK BURST
+           meter->timeDry().c_str(),
+           meter->timeReversed().c_str(),
+           meter->timeLeaking().c_str(),
+           meter->timeBursting().c_str(),
+           meter->datetimeOfUpdateRobot().c_str());
+}
+
 int main(int argc, char **argv)
 {
-    if (argc < 2) {
-        printf("wmbusmeters version: " WMBUSMETERS_VERSION "\n\n");
-        printf("Usage: wmbusmeters [--verbose] [usbdevice] { [meter_name] [meter_id] [meter_key] }* \n");
+    CommandLine *c = parseCommandLine(argc, argv);
+    
+    if (c->need_help) {
+        printf("wmbusmeters version: " WMBUSMETERS_VERSION "\n");
+        printf("Usage: wmbusmeters [--verbose] [--robot] [usbdevice] { [meter_name] [meter_id] [meter_key] }* \n");
+        printf("\nAdd more meter triplets to listen to more meters.\n");
+        printf("Add --verbose for detailed debug information.\n");
+        printf("     --robot for json output.\n");
         exit(0);
     }
 
-    int i=1;
-    if (!strcmp(argv[i], "--verbose")) {
-        verboseEnabled(true);
-        i++;
-    }
-
-    char *usbdevice = argv[i];
-    i++;
-    if (!usbdevice) error("You must supply the usb device to which the wmbus dongle is connected.\n");
-    verbose("Using usbdevice: %s\n", usbdevice);
-
-    if ((argc-i) % 3 != 0) {
-        error("For each meter you must supply a: name,id and key.\n");
-    }
-    int num_meters = (argc-i)/3;
-    verbose("Number of meters: %d\n", num_meters);
-
+    verboseEnabled(c->verbose);
+    
     auto manager = createSerialCommunicationManager();
 
     onExit(call(manager,stop));
     
-    auto wmbus = openIM871A(usbdevice, manager);
+    auto wmbus = openIM871A(c->usb_device, manager);
 
     wmbus->setLinkMode(C1a);    
     if (wmbus->getLinkMode()!=C1a) error("Could not set link mode to C1a\n");
@@ -81,23 +99,15 @@ int main(int argc, char **argv)
     // We want the data visible in the log file asap!    
     setbuf(stdout, NULL);
     
-    if (num_meters > 0) {
-        Meter *meters[num_meters];
-
-        for (int m=0; m<num_meters; ++m) {
-            char *name = argv[m*3+i+0];
-            char *id = argv[m*3+i+1];
-            char *key = argv[m*3+i+2];
-
-            if (!isValidId(id)) error("Not a valid meter id \"%s\"\n", id);
-            if (!isValidKey(key)) error("Not a valid meter key \"%s\"\n", key);
-            
-            verbose("Configuring meter: \"%s\" \"%s\" \"%s\"\n", name, id, key);
-            meters[m] = createMultical21(wmbus, name, id, key);
-            meters[m]->onUpdate(printMeter);
+    if (c->meters.size() > 0) {
+        for (auto &m : c->meters) {
+            verbose("Configuring meter: \"%s\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+            Meter *meter=createMultical21(wmbus, m.name, m.id, m.key);
+            if (c->robot) meter->onUpdate(printMeterJSON);
+            else meter->onUpdate(printMeter);
         }
     } else {
-        printf("No meters configured. Printing id:s of all telegrams heard! Add --verbose to get more data.\n");
+        printf("No meters configured. Printing id:s of all telegrams heard! \n");
         printf("To configure a meter, add a triplet to the command line: name id key\n");
         printf("Where name is your string identifying the meter.\n");
         printf("      id is the 8 digits printed on the meter.\n");
