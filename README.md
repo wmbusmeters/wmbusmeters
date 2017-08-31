@@ -3,39 +3,51 @@ The program receives and decodes C1 telegrams
 (using the wireless mbus protocol) to acquire
 utility meter readings. 
 
-wmbusmeters [usbdevice] { [meter_name] [meter_id] [meter_key] }*
+```
+wmbusmeters version: 0.2
+Usage: wmbusmeters [--verbose] [--robot] [usbdevice] { [meter_name] [meter_id] [meter_key] }* 
 
-If you want to listen to more than one meter, simply add more meter triplets.
-Add --robot to get JSON output.
+Add more meter triplets to listen to more meters.
+Add --verbose for detailed debug information.
+     --robot for json output.
+```
+
+No meter triplets means listen for telegram traffic and print any id heard.
 
 Builds and runs on GNU/Linux:
-
+```
 make
-
 ./build/wmbusmeters /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
+```
 
-./build/wmbusmeters --verbose /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
+Example output:
+`MyTapWater     12345678         6.375 m3       2017-08-31 09:09.08      3.040 m3      DRY(dry 22-31 days)`
 
-./build/wmbusmeters --robot /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
+`./build/wmbusmeters --verbose /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF`
 
-make HOST=arm
+`./build/wmbusmeters --robot /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF`
 
-Binary generated: ./build_arm/wmbusmeters
+Robot output:
+`{"name":"MyTapWater","id":"12345678","total_m3":6.375,"target_m3":3.040,"current_status":"","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2017-08-31T09:07:18Z"}`
 
-make DEBUG=true
+`make HOST=arm`
 
-Binary generated: ./build_debug/wmbusmeters
+Binary generated: `./build_arm/wmbusmeters`
 
-make DEBUG=true HOST=arm
+`make DEBUG=true`
 
-Binary generated: ./build_arm_debug/wmbusmeters
+Binary generated: `./build_debug/wmbusmeters`
 
-Add yourself to the dialout group to get access to the newly plugged in im87A USB stick.
+`make DEBUG=true HOST=arm`
+
+Binary generated: `./build_arm_debug/wmbusmeters`
+
+Add yourself to the dialout group to get access to the newly plugged in im871A USB stick.
 
 Currently only supports the USB stick receiver im871A
 and the water meter Multical21. The source code is modular
 and it should be relatively straightforward to add
-more receivers (Amber anyone?) and meters.
+more receivers and meters.
 
 Good documents on the wireless mbus protocol:
 
