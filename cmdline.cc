@@ -47,6 +47,11 @@ CommandLine *parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strcmp(argv[i], "--meterfiles")) {
+            c->meterfiles = true;
+            i++;
+            continue;
+        }
         if (!strcmp(argv[i], "--")) {
             i++;
             break;

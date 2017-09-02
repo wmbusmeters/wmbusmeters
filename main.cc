@@ -28,6 +28,8 @@
 
 using namespace std;
 
+CommandLine *cmdline;
+
 void printMeter(Meter *meter) {
     printf("%s\t%s\t% 3.3f m3\t%s\t% 3.3f m3\t%s\n",
            meter->name().c_str(),
@@ -48,7 +50,15 @@ void printMeter(Meter *meter) {
 #define QSE(x,y) "\""#x"\":\""#y"\""
 
 void printMeterJSON(Meter *meter) {
-    printf("{"
+    FILE *output = stdout;
+
+    if (cmdline->meterfiles) {
+	char filename[128];
+	memset(filename, 0, sizeof(filename));
+	snprintf(filename, 127, "/tmp/%s", meter->name().c_str());
+	output = fopen(filename, "w");
+    }
+    fprintf(output, "{"
            QS(name,%s)
            QS(id,%s)
            Q(total_m3,%.3f)
@@ -70,28 +80,34 @@ void printMeterJSON(Meter *meter) {
            meter->timeLeaking().c_str(),
            meter->timeBursting().c_str(),
            meter->datetimeOfUpdateRobot().c_str());
+
+    if (cmdline->meterfiles) {
+	fclose(output);
+    }    
 }
 
 int main(int argc, char **argv)
 {
-    CommandLine *c = parseCommandLine(argc, argv);
+    cmdline = parseCommandLine(argc, argv);
     
-    if (c->need_help) {
+    if (cmdline->need_help) {
         printf("wmbusmeters version: " WMBUSMETERS_VERSION "\n");
         printf("Usage: wmbusmeters [--verbose] [--robot] [usbdevice] { [meter_name] [meter_id] [meter_key] }* \n");
-        printf("\nAdd more meter triplets to listen to more meters.\n");
+        printf("\nAdd more meter quadruplets to listen to more meters.\n");
         printf("Add --verbose for detailed debug information.\n");
         printf("     --robot for json output.\n");
+	printf("     --meterfiles to create status files below tmp,\n"
+	       "       named /tmp/meter_name, containing the latest reading.\n");
         exit(0);
     }
 
-    verboseEnabled(c->verbose);
+    verboseEnabled(cmdline->verbose);
     
     auto manager = createSerialCommunicationManager();
 
     onExit(call(manager,stop));
     
-    auto wmbus = openIM871A(c->usb_device, manager);
+    auto wmbus = openIM871A(cmdline->usb_device, manager);
 
     wmbus->setLinkMode(C1a);    
     if (wmbus->getLinkMode()!=C1a) error("Could not set link mode to C1a\n");
@@ -99,11 +115,11 @@ int main(int argc, char **argv)
     // We want the data visible in the log file asap!    
     setbuf(stdout, NULL);
     
-    if (c->meters.size() > 0) {
-        for (auto &m : c->meters) {
+    if (cmdline->meters.size() > 0) {
+        for (auto &m : cmdline->meters) {
             verbose("Configuring meter: \"%s\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
             Meter *meter=createMultical21(wmbus, m.name, m.id, m.key);
-            if (c->robot) meter->onUpdate(printMeterJSON);
+            if (cmdline->robot) meter->onUpdate(printMeterJSON);
             else meter->onUpdate(printMeter);
         }
     } else {

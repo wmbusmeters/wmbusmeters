@@ -38,6 +38,7 @@ struct MeterInfo {
 struct CommandLine {
     bool need_help;
     bool verbose;
+    bool meterfiles;
     bool robot;
     char *usb_device;
     vector<MeterInfo> meters;
