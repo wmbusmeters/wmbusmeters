@@ -11,9 +11,8 @@ ifeq "$(HOST)" "arm"
     STRIP=arm-linux-gnueabihf-strip
     BUILD=build_arm
 else
-    CXX=clang++
+    CXX=g++
     STRIP=strip
-    #CXX=g++
     BUILD=build
 endif
 

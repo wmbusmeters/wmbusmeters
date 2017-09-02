@@ -43,6 +43,12 @@ Binary generated: `./build_debug/wmbusmeters`
 Binary generated: `./build_arm_debug/wmbusmeters`
 
 Add yourself to the dialout group to get access to the newly plugged in im871A USB stick.
+Or even better, add this udev rule:
+Create the file: `/etc/udev/rules.d/99-usb-serial.rules` with the content
+```
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="im871a",MODE="0660", GROUP="yourowngroup"
+```
+This will create a symlink named `/dev/im871a` to the particular USB port that the dongle got assigned.
 
 Currently only supports the USB stick receiver im871A
 and the water meter Multical21. The source code is modular
