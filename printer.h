@@ -18,44 +18,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#ifndef METER_H_
-#define METER_H_
-
-#include"util.h"
-#include"wmbus.h"
-
-#include<string>
-#include<vector>
+#include"cmdline.h"
+#include"meters.h"
 
 using namespace std;
 
-typedef unsigned char uchar;
+struct Printer {
+    Printer(bool robot, bool meterfiles);
 
-struct Meter {
-    virtual string id() = 0;
-    virtual string name() = 0;
+    void print(Meter *meter);
 
-    virtual float totalWaterConsumption() = 0;
-    virtual bool  hasTotalWaterConsumption() = 0;
-    virtual float targetWaterConsumption() = 0;
-    virtual bool  hasTargetWaterConsumption() = 0;
-    virtual float maxFlow() = 0;
-    virtual bool  hasMaxFlow() = 0;    
+    private:
 
-    virtual string statusHumanReadable() = 0;
-    virtual string status() = 0;
-    virtual string timeDry() = 0;
-    virtual string timeReversed() = 0;
-    virtual string timeLeaking() = 0;
-    virtual string timeBursting() = 0;
+    bool robot_, meterfiles_;
     
-    virtual string datetimeOfUpdateHumanReadable() = 0;
-    virtual string datetimeOfUpdateRobot() = 0;
-
-    virtual void onUpdate(function<void(Meter*)> cb) = 0;
-    virtual int numUpdates() = 0;
+    void printMeterHumanReadable(FILE *output, Meter *meter);
+    void printMeterJSON(FILE *output, Meter *meter);
 };
-
-Meter *createMultical21(WMBus *bus, const char *name, const char *id, const char *key);
-
-#endif

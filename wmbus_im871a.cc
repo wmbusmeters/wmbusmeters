@@ -140,7 +140,7 @@ LinkMode WMBusIM871A::getLinkMode() {
     waitForResponse();
     LinkMode lm = UNKNOWN_LINKMODE;
     if (received_command_ == DEVMGMT_MSG_GET_CONFIG_RSP) {
-        verbose( "Receivd config size %zu\n", received_payload_.size());
+        verbose( "Received config size %zu\n", received_payload_.size());
         int iff1 = received_payload_[0];
         bool has_device_mode = (iff1&1)==1;
         bool has_link_mode = (iff1&2)==2;
@@ -380,9 +380,8 @@ void WMBusIM871A::handleRadioLink(int msgid, vector<uchar> &payload)
                 verbose("Radiolink received (%zu bytes): ", payload.size());
                 for (auto c : payload) verbose("%02x ", c);
                 verbose("\n");
-
                 t.c_field = payload[0];
-                t.m_field = payload[1]<<8 | payload[2];
+                t.m_field = payload[2]<<8 | payload[1];
                 t.a_field.resize(6);
                 t.a_field_address.resize(4);
                 for (int i=0; i<6; ++i) {
@@ -394,6 +393,12 @@ void WMBusIM871A::handleRadioLink(int msgid, vector<uchar> &payload)
                 t.ci_field=payload[9];
                 t.payload.clear();
                 t.payload.insert(t.payload.end(), payload.begin()+10, payload.end());
+		verbose("C field: %02x\n", t.c_field);
+		verbose("M field: %04x\n", t.m_field);
+                verbose("A field version: %02x\n", t.a_field_version);
+		verbose("A field dev type: %02x\n", t.a_field_device_type);
+		verbose("Ci field: %02x\n", t.ci_field);
+
                 for (auto f : telegram_listeners_) {
                     if (f) f(&t);
                 }

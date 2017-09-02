@@ -134,6 +134,7 @@ void verbose(const char* fmt, ...) {
 
 bool isValidId(char *id)
 {
+    if (strlen(id) == 0) return true;
     if (strlen(id) != 8) return false;
     for (int i=0; i<8; ++i) {
         if (id[i]<'0' || id[i]>'9') return false;
@@ -143,6 +144,7 @@ bool isValidId(char *id)
 
 bool isValidKey(char *key)
 {
+    if (strlen(key) == 0) return true;
     if (strlen(key) != 32) return false;
     vector<uchar> tmp;
     return hex2bin(key, &tmp);

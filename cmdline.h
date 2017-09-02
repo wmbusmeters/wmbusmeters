@@ -18,6 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#ifndef CMDLINE_H
+#define CMDLINE_H
+
+#include"meters.h"
 #include<string.h>
 #include<vector>
 
@@ -27,7 +31,8 @@ struct MeterInfo {
     char *name;
     char *id;
     char *key;
-
+    Meter *meter;
+    
     MeterInfo(char *n, char *i, char *k) {
         name = n;
         id = i;
@@ -40,9 +45,11 @@ struct CommandLine {
     bool verbose;
     bool meterfiles;
     bool robot;
+    bool oneshot;
     char *usb_device;
     vector<MeterInfo> meters;
 };
     
 CommandLine *parseCommandLine(int argc, char **argv);
         
+#endif

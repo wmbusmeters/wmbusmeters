@@ -21,6 +21,7 @@
 #ifndef WMBUS_H
 #define WMBUS_H
 
+#include"manufacturers.h"
 #include"serial.h"
 #include"util.h"
 
@@ -34,6 +35,17 @@ enum LinkMode {
 LIST_OF_LINK_MODES
 #undef X
 };
+
+#define CC_B_BIDIRECTIONAL_BIT 0x80
+#define CC_RD_RESPONSE_DELAY_BIT 0x40
+#define CC_S_SYNCH_FRAME_BIT 0x20
+#define CC_R_RELAYED_BIT 0x10
+#define CC_P_HIGH_PRIO_BIT 0x08
+
+// Bits 31-29 in SN, ie 0xc0 of the final byte in the stream,
+// since the bytes arrive with the least significant first
+// aka little endian.
+#define SN_ENC_BITS 0xc0
 
 using namespace std;
 
@@ -53,6 +65,8 @@ struct Telegram {
 
     // The id as written on the physical meter device.
     string id() { return bin2hex(a_field_address); }
+
+    void print();
 };
 
 struct WMBus {
@@ -65,5 +79,8 @@ struct WMBus {
 };
 
 WMBus *openIM871A(string device, SerialCommunicationManager *handler);
+
+string manufacturer(int m_field);
+string deviceType(int a_field, int );
 
 #endif

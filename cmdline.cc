@@ -52,6 +52,11 @@ CommandLine *parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strcmp(argv[i], "--oneshot")) {
+            c->oneshot = true;
+            i++;
+            continue;
+        }
         if (!strcmp(argv[i], "--")) {
             i++;
             break;

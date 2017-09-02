@@ -22,6 +22,7 @@
 #define UTIL_H
 
 #include<signal.h>
+#include<stdint.h>
 #include<functional>
 #include<vector>
 

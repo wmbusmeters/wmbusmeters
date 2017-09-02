@@ -48,8 +48,22 @@ struct MeterMultical21 : public Meter {
 
     string id();
     string name();
+    // Total water counted through the meter
     float totalWaterConsumption();
+    bool  hasTotalWaterConsumption();
+
+    // Meter sends target water consumption or max flow, depending on meter configuration
+    // We can see which was sent inside the wmbus message!
+    // Target water consumption: The total consumption at the start of the previous 30 day period.
     float targetWaterConsumption();
+    bool  hasTargetWaterConsumption();    
+    // Max flow during last month or last 24 hours depending on meter configuration.
+    float maxFlow();
+    bool  hasMaxFlow();
+    
+    // statusHumanReadable: DRY,REVERSED,LEAK,BURST if that status is detected right now, followed by
+    //                      (dry 15-21 days) which means that, even it DRY is not active right now,
+    //                      DRY has been active for 15-21 days during the last 30 days.    
     string statusHumanReadable();
     string status();
     string timeDry();
@@ -60,6 +74,7 @@ struct MeterMultical21 : public Meter {
     string datetimeOfUpdateHumanReadable();
     string datetimeOfUpdateRobot();
     void onUpdate(function<void(Meter*)> cb);
+    int numUpdates();
     
 private:
     void handleTelegram(Telegram*t);
@@ -68,22 +83,40 @@ private:
 
     int info_codes_; 
     float total_water_consumption_;
-    float target_volume_; 
+    bool has_total_water_consumption_;
+    float target_volume_;
+    bool has_target_volume_;
+    float max_flow_;
+    bool has_max_flow_;
+    
     time_t datetime_of_update_;
     
     string name_;
     vector<uchar> id_;
     vector<uchar> key_;
     WMBus *bus_;
-    function<void(Meter*)> on_update_;
-
+    vector<function<void(Meter*)>> on_update_;
+    int num_updates_;
+    bool matches_any_id_;
+    bool use_aes_;
 };
 
 MeterMultical21::MeterMultical21(WMBus *bus, const char *name, const char *id, const char *key) :
-    info_codes_(0), total_water_consumption_(0), target_volume_(0), name_(name), bus_(bus)
+    info_codes_(0), total_water_consumption_(0), has_total_water_consumption_(false),
+    target_volume_(0), has_target_volume_(false),
+    max_flow_(0), has_max_flow_(false), name_(name), bus_(bus), num_updates_(0),
+    matches_any_id_(false), use_aes_(true)
 {
-    hex2bin(id, &id_);
-    hex2bin(key, &key_);
+    if (strlen(id) == 0) {
+	matches_any_id_ = true;
+    } else {
+	hex2bin(id, &id_);	    
+    }
+    if (strlen(key) == 0) {
+	use_aes_ = false;
+    } else {
+	hex2bin(key, &key_);
+    }
     bus_->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
@@ -99,7 +132,12 @@ string MeterMultical21::name()
 
 void MeterMultical21::onUpdate(function<void(Meter*)> cb)
 {
-    on_update_ = cb;
+    on_update_.push_back(cb);
+}
+
+int MeterMultical21::numUpdates()
+{
+    return num_updates_;
 }
 
 float MeterMultical21::totalWaterConsumption()
@@ -107,9 +145,29 @@ float MeterMultical21::totalWaterConsumption()
     return total_water_consumption_;
 }
 
+bool MeterMultical21::hasTotalWaterConsumption()
+{
+    return has_total_water_consumption_;
+}
+
 float MeterMultical21::targetWaterConsumption()
 {
     return target_volume_;
+}
+
+bool MeterMultical21::hasTargetWaterConsumption()
+{
+    return has_target_volume_;
+}
+
+float MeterMultical21::maxFlow()
+{
+    return max_flow_;
+}
+
+bool MeterMultical21::hasMaxFlow()
+{
+    return has_max_flow_;
 }
 
 string MeterMultical21::datetimeOfUpdateHumanReadable()
@@ -124,6 +182,7 @@ string MeterMultical21::datetimeOfUpdateRobot()
 {
     char datetime[40];
     memset(datetime, 0, sizeof(datetime));
+    // This is the date time in the Greenwich timezone, dont get surprised!
     strftime(datetime, sizeof(datetime), "%FT%TZ", gmtime(&datetime_of_update_));    
     return string(datetime);
 }
@@ -134,38 +193,59 @@ Meter *createMultical21(WMBus *bus, const char *name, const char *id, const char
 
 void MeterMultical21::handleTelegram(Telegram *t) {
 
-    if (t->a_field_address[3] != id_[3] ||
-        t->a_field_address[2] != id_[2] ||
-        t->a_field_address[1] != id_[1] ||
-        t->a_field_address[0] != id_[0]) {
-        
-        verbose("Meter %s ignores message with id %02x%02x%02x%02x \n",
-                name_.c_str(),
-                t->a_field_address[0], t->a_field_address[1], t->a_field_address[2], t->a_field_address[3]);
-        return;
-    } else {
+    if (matches_any_id_ || (
+	    t->m_field == MANUFACTURER_KAM &&
+	    t->a_field_address[3] == id_[3] &&
+	    t->a_field_address[2] == id_[2] &&
+	    t->a_field_address[1] == id_[1] &&
+	    t->a_field_address[0] == id_[0])) {
         verbose("Meter %s receives update with id %02x%02x%02x%02x!\n",
                 name_.c_str(),
-               t->a_field_address[0], t->a_field_address[1], t->a_field_address[2], t->a_field_address[3]);
+               t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
+		t->a_field_address[3]);
+    } else {
+        verbose("Meter %s ignores message with id %02x%02x%02x%02x \n",
+                name_.c_str(),
+                t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
+		t->a_field_address[3]);
+        return;
     }
-       
-    int cc_field = t->payload[0];
-    //int acc = t->payload[1];
 
+    // This is part of the wmbus protocol, should be moved to wmbus source files!
+    int cc_field = t->payload[0];
+    verbose("CC field=%02x ( ", cc_field);
+    if (cc_field & CC_B_BIDIRECTIONAL_BIT) verbose("bidir ");
+    if (cc_field & CC_RD_RESPONSE_DELAY_BIT) verbose("fast_res ");
+    else verbose("slow_res ");
+    if (cc_field & CC_S_SYNCH_FRAME_BIT) verbose("synch ");
+    if (cc_field & CC_R_RELAYED_BIT) verbose("relayed "); // Relayed by a repeater
+    if (cc_field & CC_P_HIGH_PRIO_BIT) verbose("prio ");
+    verbose(")\n");
+    
+    int acc = t->payload[1];
+    verbose("ACC field=%02x\n", acc);
+    
     uchar sn[4];
     sn[0] = t->payload[2];
     sn[1] = t->payload[3];
     sn[2] = t->payload[4];
     sn[3] = t->payload[5];
 
+    verbose("SN=%02x%02x%02x%02x encrypted=", sn[3], sn[2], sn[1], sn[0]);
+    if ((sn[3] & SN_ENC_BITS) == 0) verbose("no\n");
+    else if ((sn[3] & SN_ENC_BITS) == 0x40) verbose("yes\n");
+    else verbose("? %d\n", sn[3] & SN_ENC_BITS);
+
+    // The content begins with the Payload CRC at offset 6.
     vector<uchar> content;
     content.insert(content.end(), t->payload.begin()+6, t->payload.end());
-    while (content.size() < 16) { content.push_back(0); }
+    size_t remaining = content.size();
+    if (remaining > 16) remaining = 16;
     
     uchar iv[16];
     int i=0;
     // M-field
-    iv[i++] = t->m_field>>8; iv[i++] = t->m_field&255;
+    iv[i++] = t->m_field&255; iv[i++] = t->m_field>>8;
     // A-field
     for (int j=0; j<6; ++j) { iv[i++] = t->a_field[j]; }
     // CC-field
@@ -177,62 +257,85 @@ void MeterMultical21::handleTelegram(Telegram *t) {
     // BC
     iv[i++] = 0;
 
-    vector<uchar> ivv(iv, iv+16);
-    string s = bin2hex(ivv);
-    verbose("IV %s\n", s.c_str());
 
-    uchar xordata[16];
-    AES_ECB_encrypt(iv, &key_[0], xordata, 16);
+    if (use_aes_) {
+	vector<uchar> ivv(iv, iv+16);
+	verbose("Decrypting\n");
 
-    uchar decrypt[16];
-    xorit(xordata, &content[0], decrypt, 16);
+	string s = bin2hex(ivv);
+	verbose("IV %s\n", s.c_str());
 
-    vector<uchar> dec(decrypt, decrypt+16);
-    string answer = bin2hex(dec);
-    verbose("Decrypted >%s<\n", answer.c_str());
+	uchar xordata[16];
+	AES_ECB_encrypt(iv, &key_[0], xordata, 16);
+	
+	uchar decrypt[16];
+	xorit(xordata, &content[0], decrypt, remaining);
+	
+	vector<uchar> dec(decrypt, decrypt+remaining);
+	string answer = bin2hex(dec);
+	verbose("Decrypted >%s<\n", answer.c_str());
+	
+	if (content.size() > 22) {
+	    fprintf(stderr, "Received too many bytes of content from a Multical21 meter!\n"
+		    "Got %zu bytes, expected at most 22.\n", content.size());
+	}
+	if (content.size() > 16) {
+	    // Yay! Lets decrypt a second block. Full frame content is 22 bytes.
+	    // So a second block should enough for everyone!
+            remaining = content.size()-16;
+	    if (remaining > 16) remaining = 16; // Should not happen.
+	    
+	    incrementIV(iv, sizeof(iv));
+	    vector<uchar> ivv2(iv, iv+16);
+	    string s2 = bin2hex(ivv2);
+	    verbose("IV+1 %s\n", s2.c_str());
+	    
+	    AES_ECB_encrypt(iv, &key_[0], xordata, 16);
+	    
+	    xorit(xordata, &content[16], decrypt, remaining);
+	    
+	    vector<uchar> dec2(decrypt, decrypt+remaining);
+	    string answer2 = bin2hex(dec2);
+	    verbose("Decrypted second block >%s<\n", answer2.c_str());
 
-    if (content.size() > 22) {
-        fprintf(stderr, "Received too many bytes of content from a Multical21 meter!\n"
-                "Got %zu bytes, expected at most 22.\n", content.size());
+	    // Append the second decrypted block to the first.
+	    dec.insert(dec.end(), dec2.begin(), dec2.end());
+	}
+	content.clear();
+	content.insert(content.end(), dec.begin(), dec.end());
     }
-    if (content.size() > 16) {
-        // Yay! Lets decrypt a second block. Full frame content is 22 bytes.
-        // So a second block should enough for everyone!
-        size_t remaining = content.size()-16;
-        if (remaining > 16) remaining = 16; // Should not happen.
-        
-        incrementIV(iv, sizeof(iv));
-        vector<uchar> ivv2(iv, iv+16);
-        string s2 = bin2hex(ivv2);
-        verbose("IV+1 %s\n", s2.c_str());
-        
-        AES_ECB_encrypt(iv, &key_[0], xordata, 16);
-        
-        xorit(xordata, &content[16], decrypt, remaining);
-        
-        vector<uchar> dec2(decrypt, decrypt+remaining);
-        string answer2 = bin2hex(dec2);
-        verbose("Decrypted second block >%s<\n", answer2.c_str());
 
-        // Append the second decrypted block to the first.
-        dec.insert(dec.end(), dec2.begin(), dec2.end());
-    }
-
-    processContent(dec);
+    processContent(content);
     datetime_of_update_ = time(NULL);
 
-    if (on_update_) on_update_(this);
+    num_updates_++;
+    for (auto &cb : on_update_) if (cb) cb(this);
+}
+
+float getScaleFactor(int vif) {
+    switch (vif) {
+    case 0x13: return 1000.0;
+    case 0x14: return 100.0;
+    case 0x15: return 10.0;
+    case 0x16: return 10.0;
+    }
+    fprintf(stderr, "Warning! Unknown vif code %d for scale factor.\n", vif);
+    return 1000.0;
 }
 
 void MeterMultical21::processContent(vector<uchar> &c) {
-    /* int crc0 = c[0];
-       int crc1 = c[1]; */
+    int crc0 = c[0];
+    int crc1 = c[1]; 
     int frame_type = c[2];
-
+    verbose("CRC16:      %02x%02x\n", crc1, crc0);
+    /*
+    uint16_t crc = crc16(&(c[2]), c.size()-2);
+    verbose("CRC16 calc: %04x\n", crc);
+    */
     if (frame_type == 0x79) {
         verbose("Short frame %d bytes\n", c.size());
-        if (c.size() != 16) {
-            fprintf(stderr, "Warning! Unexpected length of frame %zu. Expected 16 bytes!\n", c.size());
+        if (c.size() != 15) {
+            fprintf(stderr, "Warning! Unexpected length of frame %zu. Expected 15 bytes!\n", c.size());
         }
         /*int ecrc0 = c[3];
         int ecrc1 = c[4];
@@ -246,24 +349,24 @@ void MeterMultical21::processContent(vector<uchar> &c) {
         int rec2val3 = c[12];
         int rec3val0 = c[13];
         int rec3val1 = c[14];
-        int rec3val2 = c[15];
 
         info_codes_ = rec1val1*256+rec1val0;
         verbose("short rec1 %02x %02x info codes\n", rec1val1, rec1val0);
 
         int consumption_raw = rec2val3*256*256*256 + rec2val2*256*256 + rec2val1*256 + rec2val0;
         verbose("short rec2 %02x %02x %02x %02x = %d total consumption\n", rec2val3, rec2val2, rec2val1, rec2val0, consumption_raw);
+	
         // The dif=0x04 vif=0x13 means current volume with scale factor .001
         total_water_consumption_ = ((float)consumption_raw) / ((float)1000);
+	has_total_water_consumption_ = true;
 
         // The short frame target volume supplies two low bytes,
         // the remaining two hi bytes are >>probably<< picked from rec2!
         int target_volume_raw = rec2val3*256*256*256 + rec2val2*256*256 + rec3val1*256 + rec3val0;
         verbose("short rec3 (%02x %02x) %02x %02x = %d target volume\n", rec2val3, rec2val2, rec3val1, rec3val0, target_volume_raw); 
         target_volume_ = ((float)target_volume_raw) / ((float)1000);
-
-        // Which leaves one unknown byte. Takes on all possible values. 
-        verbose("short rec3 %02x = unknown\n", rec3val2); 
+	has_target_volume_ = true;
+	
     } else
     if (frame_type == 0x78) {
         verbose("Full frame %d bytes\n", c.size());
@@ -314,7 +417,8 @@ void MeterMultical21::processContent(vector<uchar> &c) {
         verbose("full rec2 %02x %02x %02x %02x = %d total consumption\n", rec2val3, rec2val2, rec2val1, rec2val0, consumption_raw);
         // The dif=0x04 vif=0x13 means current volume with scale factor .001
         total_water_consumption_ = ((float)consumption_raw) / ((float)1000);        
-        
+	has_total_water_consumption_ = true;
+	
         if (rec3dif != 0x44 || rec3vif != 0x13) {
             fprintf(stderr, "Warning unexpecte field! Expected target volume (ie volume recorded on first day of month)\n"
                     "with dif=0x44 vif=0x13 but got dif=%02x vif=%02x\n", rec3dif, rec3vif);
@@ -324,7 +428,8 @@ void MeterMultical21::processContent(vector<uchar> &c) {
         verbose("full rec3 %02x %02x %02x %02x = %d target volume\n", rec3val3, rec3val2, rec3val1, rec3val0, target_volume_raw); 
 
         target_volume_ = ((float)target_volume_raw) / ((float)1000);
-
+	has_target_volume_ = true;
+	
         // To unknown bytes, seems to be very constant.
         verbose("full rec4 %02x %02x = unknown\n", rec4val1, rec4val0);
     } else {

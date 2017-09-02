@@ -20,6 +20,7 @@
 
 #include"cmdline.h"
 #include"meters.h"
+#include"printer.h"
 #include"serial.h"
 #include"util.h"
 #include"wmbus.h"
@@ -28,76 +29,21 @@
 
 using namespace std;
 
-CommandLine *cmdline;
-
-void printMeter(Meter *meter) {
-    printf("%s\t%s\t% 3.3f m3\t%s\t% 3.3f m3\t%s\n",
-           meter->name().c_str(),
-           meter->id().c_str(),
-           meter->totalWaterConsumption(),
-           meter->datetimeOfUpdateHumanReadable().c_str(),
-           meter->targetWaterConsumption(), 
-           meter->statusHumanReadable().c_str());
-
-// targetWaterConsumption: The total consumption at the start of the previous 30 day period.    
-// statusHumanReadable: DRY,REVERSED,LEAK,BURST if that status is detected right now, followed by
-//                      (dry 15-21 days) which means that, even it DRY is not active right now,
-//                      DRY has been active for 15-21 days during the last 30 days.    
-}
-
-#define Q(x,y) "\""#x"\":"#y","
-#define QS(x,y) "\""#x"\":\""#y"\","
-#define QSE(x,y) "\""#x"\":\""#y"\""
-
-void printMeterJSON(Meter *meter) {
-    FILE *output = stdout;
-
-    if (cmdline->meterfiles) {
-	char filename[128];
-	memset(filename, 0, sizeof(filename));
-	snprintf(filename, 127, "/tmp/%s", meter->name().c_str());
-	output = fopen(filename, "w");
-    }
-    fprintf(output, "{"
-           QS(name,%s)
-           QS(id,%s)
-           Q(total_m3,%.3f)
-           Q(target_m3,%.3f)
-           QS(current_status,%s)
-           QS(time_dry,%s)
-           QS(time_reversed,%s)
-           QS(time_leaking,%s)
-           QS(time_bursting,%s)
-           QSE(timestamp,%s)
-           "}\n",
-           meter->name().c_str(),
-           meter->id().c_str(),
-           meter->totalWaterConsumption(),
-           meter->targetWaterConsumption(), 
-           meter->status().c_str(), // DRY REVERSED LEAK BURST
-           meter->timeDry().c_str(),
-           meter->timeReversed().c_str(),
-           meter->timeLeaking().c_str(),
-           meter->timeBursting().c_str(),
-           meter->datetimeOfUpdateRobot().c_str());
-
-    if (cmdline->meterfiles) {
-	fclose(output);
-    }    
-}
+void oneshotCheck(CommandLine *cmdline, SerialCommunicationManager *manager, Meter *meter);
 
 int main(int argc, char **argv)
 {
-    cmdline = parseCommandLine(argc, argv);
+    CommandLine *cmdline = parseCommandLine(argc, argv);
     
     if (cmdline->need_help) {
         printf("wmbusmeters version: " WMBUSMETERS_VERSION "\n");
         printf("Usage: wmbusmeters [--verbose] [--robot] [usbdevice] { [meter_name] [meter_id] [meter_key] }* \n");
         printf("\nAdd more meter quadruplets to listen to more meters.\n");
         printf("Add --verbose for detailed debug information.\n");
-        printf("     --robot for json output.\n");
-	printf("     --meterfiles to create status files below tmp,\n"
+        printf("    --robot for json output.\n");
+	printf("    --meterfiles to create status files below tmp,\n"
 	       "       named /tmp/meter_name, containing the latest reading.\n");
+	printf("    --oneshot wait for an update from each meter, then quit.\n");
         exit(0);
     }
 
@@ -114,13 +60,15 @@ int main(int argc, char **argv)
 
     // We want the data visible in the log file asap!    
     setbuf(stdout, NULL);
+
+    Printer *output = new Printer(cmdline->robot, cmdline->meterfiles);
     
     if (cmdline->meters.size() > 0) {
         for (auto &m : cmdline->meters) {
             verbose("Configuring meter: \"%s\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
-            Meter *meter=createMultical21(wmbus, m.name, m.id, m.key);
-            if (cmdline->robot) meter->onUpdate(printMeterJSON);
-            else meter->onUpdate(printMeter);
+            m.meter = createMultical21(wmbus, m.name, m.id, m.key);
+            m.meter->onUpdate(calll(output,print,Meter*));
+	    m.meter->onUpdate([cmdline,manager](Meter*meter) { oneshotCheck(cmdline,manager,meter); });
         }
     } else {
         printf("No meters configured. Printing id:s of all telegrams heard! \n");
@@ -129,11 +77,19 @@ int main(int argc, char **argv)
         printf("      id is the 8 digits printed on the meter.\n");
         printf("      key is 32 hex digits with the aes key.\n\n");
 
-        wmbus->onTelegram([](Telegram *t){
-                printf("Received telegram from id: %02x%02x%02x%02x \n",
-                       t->a_field_address[0], t->a_field_address[1], t->a_field_address[2], t->a_field_address[3]);
-            });
+        wmbus->onTelegram([](Telegram *t){t->print();});
     }
 
     manager->waitForStop();    
+}
+
+void oneshotCheck(CommandLine *cmdline, SerialCommunicationManager *manager, Meter *meter)
+{
+    if (!cmdline->oneshot) return;
+    
+    for (auto &m : cmdline->meters) {
+	if (m.meter->numUpdates() == 0) return;
+    }
+    // All meters have received at least one update! Stop!
+    manager->stop();
 }
