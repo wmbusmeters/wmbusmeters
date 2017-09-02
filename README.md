@@ -10,6 +10,8 @@ Usage: wmbusmeters [--verbose] [--robot] [usbdevice] { [meter_name] [meter_id] [
 Add more meter triplets to listen to more meters.
 Add --verbose for detailed debug information.
      --robot for json output.
+     --meterfiles to create status files below tmp,
+          named /tmp/meter_name, containing the latest reading.
 ```
 
 No meter triplets means listen for telegram traffic and print any id heard.
