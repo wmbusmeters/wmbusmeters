@@ -5,7 +5,7 @@ utility meter readings.
 
 | OS/Compiler        | Status           |
 | ------------- |:-------------:|
-|Linux G++| [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master) |
+|Linux G++| [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master)](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master) |
 
 ```
 wmbusmeters version: 0.2
