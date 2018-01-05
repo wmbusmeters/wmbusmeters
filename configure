@@ -1,0 +1,4 @@
+#!/bin/sh
+echo Nothing here yet!
+echo "Run 'make'"
+echo "or  'make HOST=arm'"

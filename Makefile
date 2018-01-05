@@ -27,7 +27,7 @@ endif
 
 $(shell mkdir -p $(BUILD))
 
-CXXFLAGS := $(DEBUG_FLAGS) -Wall -fmessage-length=0 -std=c++11 -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.2\"" 
+CXXFLAGS := $(DEBUG_FLAGS) -Wall -fmessage-length=0 -std=c++11 -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.2\""
 
 $(BUILD)/%.o: %.cc $(wildcard %.h)
 	$(CXX) $(CXXFLAGS) $< -c -o $@
@@ -53,14 +53,17 @@ $(BUILD)/wmbusmeters: $(METERS_OBJS)
 clean:
 	rm -f build/* build_arm/* build_debug/* build_arm_debug/* *~
 
+test:
+	@echo No tests yet.
+
 update_manufacturers:
 	wget http://www.m-bus.de/man.html
 	echo '// Data downloaded from http://www.m-bus.de/man.html' > m.h
 	echo -n '// ' >> m.h
 	date --rfc-3339=date >> m.h
 	echo >> m.h
-	echo '#ifndef MANUFACTURERS_H' >> m.h	
-	echo '#define MANUFACTURERS_H' >> m.h	
+	echo '#ifndef MANUFACTURERS_H' >> m.h
+	echo '#define MANUFACTURERS_H' >> m.h
 	echo '#define MANFCODE(a,b,c) ((a-64)*1024+(b-64)*32+(c-64))' >> m.h
 	echo '#define LIST_OF_MANUFACTURERS \' >> m.h
 	cat man.html | tr -d '\r\n' | sed \
