@@ -1,11 +1,15 @@
 # wmbusmeters
 The program receives and decodes C1 telegrams
 (using the wireless mbus protocol) to acquire
-utility meter readings. 
+utility meter readings.
+
+| OS/Compiler        | Status           |
+| ------------- |:-------------:|
+|Linux G++| [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master) |
 
 ```
 wmbusmeters version: 0.2
-Usage: wmbusmeters [--verbose] [--robot] [usbdevice] { [meter_name] [meter_id] [meter_key] }* 
+Usage: wmbusmeters {options} [usbdevice] { [meter_name] [meter_id] [meter_key] }*
 
 Add more meter triplets to listen to more meters.
 Add --verbose for detailed debug information.
@@ -47,7 +51,7 @@ Binary generated: `./build_debug/wmbusmeters`
 Binary generated: `./build_arm_debug/wmbusmeters`
 
 If the meter does not use encryption of its meter data, then enter an empty key on the command line.
-(you must enter "") 
+(you must enter "")
 
 `./build/wmbusmeters --robot --meterfiles /dev/ttyUSB0 MyTapWater 12345678 ""`
 
@@ -85,11 +89,13 @@ The AES source code is copied from:
 
 https://github.com/kokke/tiny-AES128-C
 
-The following two other github projects were of great help:
+The following other github projects were of great help:
 
 https://github.com/ffcrg/ecpiww
 
 https://github.com/tobiasrask/wmbus-client
+
+https://github.com/CBrunsch/scambus/
 
 TODO: CRC checks are still missing. If the wrong AES key
 is supplied you probably get zero readings and
