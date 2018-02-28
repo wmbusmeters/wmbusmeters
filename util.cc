@@ -1,15 +1,15 @@
 // Copyright (c) 2017 Fredrik Öhrström
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in all
 // copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,6 +25,7 @@
 #include<stddef.h>
 #include<string.h>
 #include<string>
+#include<sys/stat.h>
 
 using namespace std;
 
@@ -42,7 +43,7 @@ void onExit(function<void()> cb)
 {
     exit_handler = cb;
     struct sigaction new_action, old_action;
-    
+
     new_action.sa_handler = exitHandler;
     sigemptyset (&new_action.sa_mask);
     new_action.sa_flags = 0;
@@ -117,14 +118,51 @@ void error(const char* fmt, ...) {
     exit(1);
 }
 
+bool warning_enabled_ = true;
 bool verbose_enabled_ = false;
+bool debug_enabled_ = false;
+
+void warningSilenced(bool b) {
+    warning_enabled_ = !b;
+}
 
 void verboseEnabled(bool b) {
     verbose_enabled_ = b;
 }
 
+void debugEnabled(bool b) {
+    debug_enabled_ = b;
+    if (debug_enabled_) verbose_enabled_ = true;
+}
+
+bool isVerboseEnabled() {
+    return verbose_enabled_;
+}
+
+bool isDebugEnabled() {
+    return debug_enabled_;
+}
+
+void warning(const char* fmt, ...) {
+    if (warning_enabled_) {
+        va_list args;
+        va_start(args, fmt);
+        vprintf(fmt, args);
+        va_end(args);
+    }
+}
+
 void verbose(const char* fmt, ...) {
     if (verbose_enabled_) {
+        va_list args;
+        va_start(args, fmt);
+        vprintf(fmt, args);
+        va_end(args);
+    }
+}
+
+void debug(const char* fmt, ...) {
+    if (debug_enabled_) {
         va_list args;
         va_start(args, fmt);
         vprintf(fmt, args);
@@ -161,5 +199,36 @@ void incrementIV(uchar *iv, size_t len) {
         }
         // Move left add add one.
         p--;
+    }
+}
+
+bool checkCharacterDeviceExists(const char *tty, bool fail_if_not)
+{
+    struct stat info;
+
+    int rc = stat(tty, &info);
+    if (rc != 0) {
+        if (fail_if_not) {
+            error("Device %s does not exist.\n", tty);
+        } else {
+            return false;
+        }
+    }
+    if (!S_ISCHR(info.st_mode)) {
+        if (fail_if_not) {
+            error("Device %s is not a character device.\n", tty);
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
+void debugPayload(string intro, vector<uchar> &payload)
+{
+    if (isDebugEnabled())
+    {
+        string msg = bin2hex(payload);
+        debug("%s payload \"%s\"\n", intro.c_str(), msg.c_str());
     }
 }

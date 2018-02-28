@@ -1,0 +1,9 @@
+
+
+Version 0.3:
+
+Added support for wmbus USB receiver Amber AMB8465.
+
+Version 0.2:
+
+Initial working release supporting wmbus USB receiver IMST im871a and the meter Multical21.

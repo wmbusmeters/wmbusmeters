@@ -27,7 +27,7 @@ endif
 
 $(shell mkdir -p $(BUILD))
 
-CXXFLAGS := $(DEBUG_FLAGS) -Wall -fmessage-length=0 -std=c++11 -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.2\""
+CXXFLAGS := $(DEBUG_FLAGS) -Wall -fmessage-length=0 -std=c++11 -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.3\""
 
 $(BUILD)/%.o: %.cc $(wildcard %.h)
 	$(CXX) $(CXXFLAGS) $< -c -o $@
@@ -42,6 +42,7 @@ METERS_OBJS:=\
 	$(BUILD)/serial.o \
 	$(BUILD)/util.o \
 	$(BUILD)/wmbus.o \
+	$(BUILD)/wmbus_amb8465.o \
 	$(BUILD)/wmbus_im871a.o \
 
 all: $(BUILD)/wmbusmeters

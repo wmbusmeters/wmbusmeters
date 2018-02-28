@@ -8,8 +8,8 @@ utility meter readings.
 |Linux G++| [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master)](https://travis-ci.org/weetmuts/wmbusmeters) |
 
 ```
-wmbusmeters version: 0.2
-Usage: wmbusmeters {options} [usbdevice] { [meter_name] [meter_id] [meter_key] }*
+wmbusmeters version: 0.3
+Usage: wmbusmeters {options} (auto | /dev/ttyUSBx)] { [meter_name] [meter_id] [meter_key] }*
 
 Add more meter triplets to listen to more meters.
 Add --verbose for detailed debug information.
@@ -17,6 +17,9 @@ Add --verbose for detailed debug information.
     --meterfiles to create status files below tmp,
           named /tmp/meter_name, containing the latest reading.
     --oneshot wait for an update from each meter, then quit.
+
+Specifying auto as the device will automatically look for usb
+wmbus dongles on /dev/im871a and /dev/amb8465
 ```
 
 No meter triplets means listen for telegram traffic and print any id heard.
@@ -28,15 +31,19 @@ make
 ./build/wmbusmeters /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
 ```
 
+wmbusmeters will detect which kind of dongle is connected to /dev/ttyUSB0. It can be either an IMST 871a dongle or an Amber Wireless AMB8465. If you have setup the udev rules below, then you can use auto instead of /dev/ttyUSB0.
+
 Example output:
 `MyTapWater     12345678         6.375 m3       2017-08-31 09:09.08      3.040 m3      DRY(dry 22-31 days)`
 
 `./build/wmbusmeters --verbose /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF`
 
-`./build/wmbusmeters --robot /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF`
+`./build/wmbusmeters --robot auto /dev/ttyUSB1 12345678 00112233445566778899AABBCCDDEEFF`
 
 Robot output:
 `{"name":"MyTapWater","id":"12345678","total_m3":6.375,"target_m3":3.040,"current_status":"","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2017-08-31T09:07:18Z"}`
+
+You can use `--debug` to get both verbose output and the actual data bytes sent back and forth with the wmbus usb dongle.
 
 `make HOST=arm`
 
@@ -63,15 +70,21 @@ Or even better, add this udev rule:
 Create the file: `/etc/udev/rules.d/99-usb-serial.rules` with the content
 ```
 SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="im871a",MODE="0660", GROUP="yourowngroup"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", SYMLINK+="amb8465",MODE="0660", GROUP="yourowngroup"
 ```
-This will create a symlink named `/dev/im871a` to the particular USB port that the dongle got assigned.
+
+When you insert the wmbus USB dongle, a properly named symlink will be
+created: either `/dev/im871a` or `/dev/amb8465`. These symlinks are
+necessary if you want to pass "auto" to wmbusmeters instead of the
+exact serial port /dev/ttyUSBx.
 
 # Limitations
 
-Currently only supports the USB stick receiver im871A
-and the water meter Multical21. The source code is modular
-and it should be relatively straightforward to add
-more receivers and meters.
+Two usb wmbus receivers are supported: IMST im871A and Amber Wireless AMB8465.
+
+One supported meter: Multical21.
+
+The source code is modular and it should be relatively straightforward to add more receivers and meters.
 
 # Good documents on the wireless mbus protocol:
 

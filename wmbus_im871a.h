@@ -1,7 +1,7 @@
 // Definitions and source code imported from WMBus_HCI_Spec_V1_6.pdf
 // Found here: https://wireless-solutions.de/products/gateways/wirelessadapter.html
 
-#define WMBUS_SERIAL_SOF 0xA5
+#define IM871A_SERIAL_SOF 0xA5
 
 #define DEVMGMT_ID 0x01
 #define RADIOLINK_ID 0x02
@@ -57,4 +57,11 @@
 #define HWTEST_MSG_RADIOTEST_REQ 0x01
 #define HWTEST_MSG_RADIOTEST_RSP 0x02
 
+#define LIST_OF_IM871A_LINK_MODES X(S1)X(S1m)X(S2)X(T1)X(T2)X(R2)X(C1a)X(C1b)X(C2a)X(C2b) \
+    X(N1A)X(N2A)X(N1B)X(N2B)X(N1C)X(N2C)X(N1D)X(N2D)X(N1E)X(N2E)X(N1F)X(N2F)X(UNKNOWN_LINKMODE)
 
+enum LinkModeIM871A {
+#define X(name) im871a_##name,
+LIST_OF_IM871A_LINK_MODES
+#undef X
+};
