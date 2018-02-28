@@ -38,7 +38,7 @@ Example output:
 
 `./build/wmbusmeters --verbose /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF`
 
-`./build/wmbusmeters --robot auto /dev/ttyUSB1 12345678 00112233445566778899AABBCCDDEEFF`
+`./build/wmbusmeters --robot auto 12345678 00112233445566778899AABBCCDDEEFF`
 
 Robot output:
 `{"name":"MyTapWater","id":"12345678","total_m3":6.375,"target_m3":3.040,"current_status":"","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2017-08-31T09:07:18Z"}`
