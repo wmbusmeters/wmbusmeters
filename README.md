@@ -20,7 +20,7 @@ Add --verbose for detailed debug information.
           named dir/meter_name, containing the latest reading.
     --meterfiles defaults dir to /tmp.
     --oneshot wait for an update from each meter, then quit.
-    --exitafter=23h program exits after running for twenty hours,
+    --exitafter=20h program exits after running for twenty hours,
           or 10m for ten minutes or 5s for five seconds.
 
 Specifying auto as the device will automatically look for usb
