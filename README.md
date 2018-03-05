@@ -28,8 +28,9 @@ Two meter types are supported: multical21 and multical302 (multical302 is still 
 
 Currently the meters are hardcoded for the European default setting that specifies what extra data
 is sent in the telegrams. If someone has a non-default meter that sends other extra data, then this
-will show up as a warning when a long telegram is received (but not in the short telegrams!).
-If this should happen, then we need to implement a way to pass the meter configuration as a parameter.
+will show up as a warning when a long telegram is received (but not in the short telegrams, where wrong
+values might be printed instead!).
+If this happens to someone, then we need to implement a way to pass the meter configuration as a parameter.
 
 No meter quadruplets means listen for telegram traffic and print any id heard.
 

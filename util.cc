@@ -133,7 +133,10 @@ void verboseEnabled(bool b) {
 
 void debugEnabled(bool b) {
     debug_enabled_ = b;
-    if (debug_enabled_) verbose_enabled_ = true;
+    if (debug_enabled_) {
+        verbose_enabled_ = true;
+        log_telegrams_enabled_ = true;
+    }
 }
 
 void logTelegramsEnabled(bool b) {

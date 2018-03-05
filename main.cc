@@ -56,8 +56,8 @@ int main(int argc, char **argv)
 
     warningSilenced(cmdline->silence);
     verboseEnabled(cmdline->verbose);
-    debugEnabled(cmdline->debug);
     logTelegramsEnabled(cmdline->logtelegrams);
+    debugEnabled(cmdline->debug);
 
     auto manager = createSerialCommunicationManager();
 
