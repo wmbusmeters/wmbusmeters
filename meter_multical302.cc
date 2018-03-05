@@ -172,7 +172,7 @@ void MeterMultical302::processContent(Telegram *t) {
                           rec1val0, rec1val1, current_power_raw);
     }
     else {
-        warning("(multical302) warning: unknown frame %02x\n", frame_type);
+        warning("(multical302) warning: unknown frame %02x (did you use the correct encryption key?)\n", frame_type);
     }
 }
 

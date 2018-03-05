@@ -44,9 +44,11 @@ int main(int argc, char **argv)
         printf("    --robot=fields for semicolon separated fields.\n");
         printf("    --separator=X change field separator to X.\n");
 	printf("    --meterfiles=dir to create status files below dir,\n"
-	       "       named dir/meter_name, containing the latest reading.\n");
+	       "        named dir/meter_name, containing the latest reading.\n");
 	printf("    --meterfiles defaults dir to /tmp.\n");
 	printf("    --oneshot wait for an update from each meter, then quit.\n\n");
+        printf("    --exitafter=20h program exits after running for twenty hoursh\n"
+               "        or 10m for ten minutes or 5s for five seconds.\n");
         printf("Specifying auto as the device will automatically look for usb\n");
         printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
         printf("Two meter types are supported: multical21 and multical302 (work in progress).\n\n");
@@ -60,7 +62,17 @@ int main(int argc, char **argv)
     logTelegramsEnabled(cmdline->logtelegrams);
     debugEnabled(cmdline->debug);
 
-    auto manager = createSerialCommunicationManager();
+    if (cmdline->exitafter != 0) {
+        verbose("(cmdline) wmbusmeters will exit after %d seconds\n", cmdline->exitafter);
+    }
+
+    if (cmdline->meterfiles) {
+        verbose("(cmdline) store meter files in: \"%s\"\n", cmdline->meterfiles_dir);
+    }
+    verbose("(cmdline) using usb device: %s\n", cmdline->usb_device);
+    verbose("(cmdline) number of meters: %d\n", cmdline->meters.size());
+
+    auto manager = createSerialCommunicationManager(cmdline->exitafter);
 
     onExit(call(manager,stop));
 

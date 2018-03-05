@@ -48,6 +48,6 @@ struct SerialCommunicationManager {
     virtual bool isRunning() = 0;
 };
 
-SerialCommunicationManager *createSerialCommunicationManager();
+SerialCommunicationManager *createSerialCommunicationManager(time_t exit_after_seconds);
 
 #endif

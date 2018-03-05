@@ -303,7 +303,7 @@ void MeterMultical21::processContent(Telegram *t) {
         // To unknown bytes, seems to be very constant.
         t->addExplanation(full_content, 2, "%02x%02x unknown", rec4val0, rec4val1);
     } else {
-        warning("(multical21) warning: Unknown frame %02x\n", frame_type);
+        warning("(multical21) warning: unknown frame %02x (did you use the correct encryption key?)\n", frame_type);
     }
 }
 

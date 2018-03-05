@@ -101,12 +101,22 @@ CommandLine *parseCommandLine(int argc, char **argv) {
             } else {
                 c->meterfiles_dir = "/tmp";
             }
-            verbose("Storing meter files here: %s\n", c->meterfiles_dir);
+            if (!checkIfDirExists(c->meterfiles_dir)) {
+                error("Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir);
+            }
             i++;
             continue;
         }
         if (!strcmp(argv[i], "--oneshot")) {
             c->oneshot = true;
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--exitafter=", 12) && strlen(argv[i]) > 12) {
+            c->exitafter = parseTime(argv[i]+12);
+            if (c->exitafter <= 0) {
+                error("Not a valid time to exit after. \"%s\"\n", argv[i]+12);
+            }
             i++;
             continue;
         }
@@ -120,13 +130,11 @@ CommandLine *parseCommandLine(int argc, char **argv) {
     c->usb_device = argv[i];
     i++;
     if (!c->usb_device) error("You must supply the usb device to which the wmbus dongle is connected.\n");
-    verbose("Using usb device: %s\n", c->usb_device);
 
     if ((argc-i) % 4 != 0) {
         error("For each meter you must supply a: name,type,id and key.\n");
     }
     int num_meters = (argc-i)/4;
-    verbose("Number of meters: %d\n", num_meters);
 
     for (int m=0; m<num_meters; ++m) {
         char *name = argv[m*4+i+0];

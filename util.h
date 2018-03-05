@@ -63,9 +63,12 @@ void incrementIV(uchar *iv, size_t len);
 
 bool checkCharacterDeviceExists(const char *tty, bool fail_if_not);
 bool checkIfSimulationFile(const char *file);
+bool checkIfDirExists(const char *dir);
 
 std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err);
 
 void padWithZeroesTo(std::vector<uchar> *content, size_t len, std::vector<uchar> *full_content);
+
+int parseTime(std::string time);
 
 #endif

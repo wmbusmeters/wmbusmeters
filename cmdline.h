@@ -54,6 +54,7 @@ struct CommandLine {
     bool fields {};
     char separator { ';' };
     bool oneshot {};
+    int  exitafter {}; // Seconds to exit.
     char *usb_device {};
     vector<MeterInfo> meters;
 };

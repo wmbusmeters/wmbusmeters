@@ -139,8 +139,11 @@ void debugEnabled(bool b) {
     }
 }
 
+time_t telegrams_start_time_;
+
 void logTelegramsEnabled(bool b) {
     log_telegrams_enabled_ = b;
+    telegrams_start_time_ = time(NULL);
 }
 
 bool isVerboseEnabled() {
@@ -260,6 +263,26 @@ bool checkIfSimulationFile(const char *file)
     return true;
 }
 
+bool checkIfDirExists(const char *dir)
+{
+    struct stat info;
+
+    int rc = stat(dir, &info);
+    if (rc != 0) {
+        return false;
+    }
+    if (!S_ISDIR(info.st_mode)) {
+        return false;
+    }
+    if (info.st_mode & S_IWUSR &&
+        info.st_mode & S_IRUSR &&
+        info.st_mode & S_IXUSR) {
+        // Check the directory is writeable.
+        return true;
+    }
+    return false;
+}
+
 void debugPayload(string intro, vector<uchar> &payload)
 {
     if (isDebugEnabled())
@@ -275,7 +298,8 @@ void logTelegram(string intro, vector<uchar> &header, vector<uchar> &content)
     {
         string h = bin2hex(header);
         string cntnt = bin2hex(content);
-        printf("%s \"telegram=|%s|%s|\"\n", intro.c_str(), h.c_str(), cntnt.c_str());
+        time_t diff = time(NULL)-telegrams_start_time_;
+        printf("%s \"telegram=|%s|%s|+%ld\"\n", intro.c_str(), h.c_str(), cntnt.c_str(), diff);
     }
 }
 
@@ -316,4 +340,22 @@ void padWithZeroesTo(vector<uchar> *content, size_t len, vector<uchar> *full_con
         }
         full_content->insert(full_content->end(), content->begin()+old_size, content->end());
     }
+}
+
+int parseTime(string time) {
+    int mul = 1;
+    if (time.back() == 'h') {
+        time.pop_back();
+        mul = 3600;
+    }
+    if (time.back() == 'm') {
+        time.pop_back();
+        mul = 60;
+    }
+    if (time.back() == 's') {
+        time.pop_back();
+        mul = 1;
+    }
+    int n = atoi(time.c_str());
+    return n*mul;
 }

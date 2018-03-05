@@ -144,14 +144,37 @@ int loadFile(string file, vector<string> *lines)
 
 void WMBusSimulator::simulate()
 {
+    time_t start_time = time(NULL);
+
     for (auto l : lines_) {
         string hex = "";
+        int found_time = 0;
+        time_t rel_time = 0;
         if (l.substr(0,9) == "telegram=") {
             for (size_t i=9; i<l.length(); ++i) {
                 if (l[i] == '|') continue;
+                if (l[i] == '+') {
+                    found_time = i;
+                    rel_time = atoi(&l[i+1]);
+                    printf("Found time %ld -%s-\n", rel_time, &l[i+1]);
+                    break;
+                }
                 hex += l[i];
             }
-            verbose("(simulator) from file \"%s\"\n", hex.c_str());
+            if (found_time) {
+                verbose("(simulator) from file \"%s\" to trigger at relative time %ld\n", hex.c_str(), rel_time);
+                time_t curr = time(NULL);
+                if (curr < start_time+rel_time) {
+                    verbose("(simulator) waiting %d seconds before simulating telegram.\n", (start_time+rel_time)-curr);
+                    for (;;) {
+                        curr = time(NULL);
+                        if (curr > start_time + rel_time) break;
+                        usleep(1000*1000);
+                    }
+                }
+            } else {
+                verbose("(simulator) from file \"%s\"\n", hex.c_str());
+            }
         } else {
             continue;
         }

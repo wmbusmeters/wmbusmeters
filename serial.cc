@@ -38,7 +38,7 @@ static int openSerialTTY(const char *tty, int baud_rate);
 struct SerialDeviceTTY;
 
 struct SerialCommunicationManagerImp : public SerialCommunicationManager {
-    SerialCommunicationManagerImp();
+    SerialCommunicationManagerImp(time_t exit_after_seconds);
     SerialDevice *createSerialDeviceTTY(string dev, int baud_rate);
     void listenTo(SerialDevice *sd, function<void()> cb);
     void stop();
@@ -56,6 +56,8 @@ private:
     pthread_t thread_;
     int max_fd_;
     vector<SerialDevice*> devices_;
+    time_t start_time_;
+    time_t exit_after_seconds_;
 };
 
 struct SerialDeviceImp : public SerialDevice {
@@ -180,12 +182,14 @@ int SerialDeviceTTY::receive(vector<uchar> *data)
     return num_read;
 }
 
-SerialCommunicationManagerImp::SerialCommunicationManagerImp()
+SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_seconds)
 {
     running_ = true;
     max_fd_ = 0;
     pthread_create(&thread_, NULL, startLoop, this);
     //running_ = (rc == 0);
+    start_time_ = time(NULL);
+    exit_after_seconds_ = exit_after_seconds;
 }
 
 void *SerialCommunicationManagerImp::startLoop(void *a) {
@@ -250,7 +254,20 @@ void *SerialCommunicationManagerImp::eventLoop() {
         for (SerialDevice *d : devices_) {
             FD_SET(d->fd(), &readfds);
         }
-        int activity = select(max_fd_+1 , &readfds , NULL , NULL , NULL);
+
+        struct timeval timeout { 3600, 0 };
+
+        if (exit_after_seconds_ > 0) {
+            time_t curr = time(NULL);
+            time_t diff = curr-start_time_;
+            if (diff > exit_after_seconds_) {
+                verbose("(serial) exit after %ld seconds\n", diff);
+                stop();
+                break;
+            }
+            timeout.tv_sec = exit_after_seconds_ - diff;
+        }
+        int activity = select(max_fd_+1 , &readfds , NULL , NULL, &timeout);
 
         if (!running_) break;
         if (activity < 0 && errno!=EINTR) {
@@ -269,9 +286,9 @@ void *SerialCommunicationManagerImp::eventLoop() {
     return NULL;
 }
 
-SerialCommunicationManager *createSerialCommunicationManager()
+SerialCommunicationManager *createSerialCommunicationManager(time_t exit_after_seconds)
 {
-    return new SerialCommunicationManagerImp();
+    return new SerialCommunicationManagerImp(exit_after_seconds);
 }
 
 static int openSerialTTY(const char *tty, int baud_rate)
