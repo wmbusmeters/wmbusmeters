@@ -109,7 +109,7 @@ exact serial port /dev/ttyUSBx.
 
 Two usb wmbus receivers are supported: IMST im871A and Amber Wireless AMB8465.
 
-Two supported meters: Multical21 (water meter) and Multical302 (power meter, work in progress).
+Two supported meters: Multical21 (water meter) and Multical302 (heat meter?, work in progress).
 
 The source code is modular and it should be relatively straightforward to add more receivers and meters.
 
