@@ -40,7 +40,9 @@ int main(int argc, char **argv)
         printf("Usage: wmbusmeters [options] (auto | /dev/ttyUSBx) { [meter_name] [meter_type] [meter_id] [meter_key] }* \n\n");
         printf("Add more meter quadruplets to listen to more meters.\n");
         printf("Add --verbose for more detailed information on communication.\n");
-        printf("    --robot for json output.\n");
+        printf("    --robot or --robot=json for json output.\n");
+        printf("    --robot=fields for semicolon separated fields.\n");
+        printf("    --separator=X change field separator to X.\n");
 	printf("    --meterfiles to create status files below tmp,\n"
 	       "       named /tmp/meter_name, containing the latest reading.\n");
 	printf("    --oneshot wait for an update from each meter, then quit.\n\n");

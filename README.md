@@ -14,8 +14,8 @@ Usage: wmbusmeters {options} (auto | /dev/ttyUSBx)] { [meter_name] [meter_type] 
 Add more meter quadruplets to listen to more meters.
 Add --verbose for detailed debug information.
     --robot or --robot=json for json output.
-    --robot=fields for semicolon separated fields
-    --separator=X change field separator to X
+    --robot=fields for semicolon separated fields.
+    --separator=X change field separator to X.
     --meterfiles to create status files below tmp,
           named /tmp/meter_name, containing the latest reading.
     --oneshot wait for an update from each meter, then quit.
