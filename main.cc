@@ -43,8 +43,9 @@ int main(int argc, char **argv)
         printf("    --robot or --robot=json for json output.\n");
         printf("    --robot=fields for semicolon separated fields.\n");
         printf("    --separator=X change field separator to X.\n");
-	printf("    --meterfiles to create status files below tmp,\n"
-	       "       named /tmp/meter_name, containing the latest reading.\n");
+	printf("    --meterfiles=dir to create status files below dir,\n"
+	       "       named dir/meter_name, containing the latest reading.\n");
+	printf("    --meterfiles defaults dir to /tmp.\n");
 	printf("    --oneshot wait for an update from each meter, then quit.\n\n");
         printf("Specifying auto as the device will automatically look for usb\n");
         printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
@@ -90,7 +91,7 @@ int main(int argc, char **argv)
     if (wmbus->getLinkMode()!=LinkModeC1) error("Could not set link mode to receive C1 telegrams.\n");
 
     Printer *output = new Printer(cmdline->json, cmdline->fields,
-                                  cmdline->separator, cmdline->meterfiles);
+                                  cmdline->separator, cmdline->meterfiles, cmdline->meterfiles_dir);
 
     if (cmdline->meters.size() > 0) {
         for (auto &m : cmdline->meters) {

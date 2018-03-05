@@ -16,8 +16,9 @@ Add --verbose for detailed debug information.
     --robot or --robot=json for json output.
     --robot=fields for semicolon separated fields.
     --separator=X change field separator to X.
-    --meterfiles to create status files below tmp,
-          named /tmp/meter_name, containing the latest reading.
+    --meterfiles=dir to create status files below dir,
+          named dir/meter_name, containing the latest reading.
+    --meterfiles defaults dir to /tmp.
     --oneshot wait for an update from each meter, then quit.
 
 Specifying auto as the device will automatically look for usb

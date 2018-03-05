@@ -88,8 +88,20 @@ CommandLine *parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strcmp(argv[i], "--meterfiles")) {
+        if (!strncmp(argv[i], "--meterfiles", 12)) {
             c->meterfiles = true;
+            if (strlen(argv[i]) > 12 && argv[i][12] == '=') {
+                size_t len = strlen(argv[i])-13;
+                if (len > 0) {
+                    c->meterfiles_dir = new char[len+1];
+                    strncpy((char*)c->meterfiles_dir, argv[i]+13, len);
+                } else {
+                    c->meterfiles_dir = "/tmp";
+                }
+            } else {
+                c->meterfiles_dir = "/tmp";
+            }
+            verbose("Storing meter files here: %s\n", c->meterfiles_dir);
             i++;
             continue;
         }
