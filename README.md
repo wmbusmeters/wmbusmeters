@@ -8,10 +8,10 @@ utility meter readings.
 |Linux G++| [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master)](https://travis-ci.org/weetmuts/wmbusmeters) |
 
 ```
-wmbusmeters version: 0.3
-Usage: wmbusmeters {options} (auto | /dev/ttyUSBx)] { [meter_name] [meter_id] [meter_key] }*
+wmbusmeters version: 0.4
+Usage: wmbusmeters {options} (auto | /dev/ttyUSBx)] { [meter_name] [meter_type] [meter_id] [meter_key] }*
 
-Add more meter triplets to listen to more meters.
+Add more meter quadruplets to listen to more meters.
 Add --verbose for detailed debug information.
     --robot for json output.
     --meterfiles to create status files below tmp,
@@ -19,16 +19,23 @@ Add --verbose for detailed debug information.
     --oneshot wait for an update from each meter, then quit.
 
 Specifying auto as the device will automatically look for usb
-wmbus dongles on /dev/im871a and /dev/amb8465
+wmbus dongles on /dev/im871a and /dev/amb8465.
+
+Two meter types are supported: multical21 and multical302 (multical302 is still work in progress).
 ```
 
-No meter triplets means listen for telegram traffic and print any id heard.
+Currently the meters are hardcoded for the European default setting that specifies what extra data
+is sent in the telegrams. If someone has a non-default meter that sends other extra data, then this
+will show up as a warning when a long telegram is received (but not in the short telegrams!).
+If this should happen, then we need to implement a way to pass the meter configuration as a parameter.
+
+No meter quadruplets means listen for telegram traffic and print any id heard.
 
 # Builds and runs on GNU/Linux:
 
 ```
 make
-./build/wmbusmeters /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF
+./build/wmbusmeters /dev/ttyUSB0 MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF
 ```
 
 wmbusmeters will detect which kind of dongle is connected to /dev/ttyUSB0. It can be either an IMST 871a dongle or an Amber Wireless AMB8465. If you have setup the udev rules below, then you can use auto instead of /dev/ttyUSB0.
@@ -36,9 +43,9 @@ wmbusmeters will detect which kind of dongle is connected to /dev/ttyUSB0. It ca
 Example output:
 `MyTapWater     12345678         6.375 m3       2017-08-31 09:09.08      3.040 m3      DRY(dry 22-31 days)`
 
-`./build/wmbusmeters --verbose /dev/ttyUSB0 MyTapWater 12345678 00112233445566778899AABBCCDDEEFF`
+`./build/wmbusmeters --verbose /dev/ttyUSB0 MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF`
 
-`./build/wmbusmeters --robot auto 12345678 00112233445566778899AABBCCDDEEFF`
+`./build/wmbusmeters --robot auto MyElectricity multical302 12345678 00112233445566778899AABBCCDDEEFF MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF`
 
 Robot output:
 `{"name":"MyTapWater","id":"12345678","total_m3":6.375,"target_m3":3.040,"current_status":"","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2017-08-31T09:07:18Z"}`
@@ -60,7 +67,11 @@ Binary generated: `./build_arm_debug/wmbusmeters`
 If the meter does not use encryption of its meter data, then enter an empty key on the command line.
 (you must enter "")
 
-`./build/wmbusmeters --robot --meterfiles /dev/ttyUSB0 MyTapWater 12345678 ""`
+`./build/wmbusmeters --robot --meterfiles /dev/ttyUSB0 MyTapWater multical21 12345678 ""`
+
+You can run wmbusmeters with --logtelegrams to get log output that can be placed in a simulation.txt
+file. You can then run wmbusmeter and instead of auto (or an usb device) provide the simulationt.xt
+file as argument. See test.sh for more info.
 
 # System configuration
 
@@ -82,7 +93,7 @@ exact serial port /dev/ttyUSBx.
 
 Two usb wmbus receivers are supported: IMST im871A and Amber Wireless AMB8465.
 
-One supported meter: Multical21.
+Two supported meters: Multical21 (water meter) and Multical302 (power meter, work in progress).
 
 The source code is modular and it should be relatively straightforward to add more receivers and meters.
 

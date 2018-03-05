@@ -1,4 +1,12 @@
 
+Version 0.4:
+
+Added initial support for power meter Multical302.
+Restructured to source to more easily support multiple meters.
+
+ATTENTION! There is a difference in the command line interface.
+You must now proved the meter type. Thus for each meter you
+supply quadruplets instead of triplets.
 
 Version 0.3:
 

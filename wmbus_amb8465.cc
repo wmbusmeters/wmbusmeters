@@ -41,6 +41,7 @@ struct WMBusAmber : public WMBus {
     void processSerialData();
     void getConfiguration();
     SerialDevice *serial() { return serial_; }
+    void simulate() { }
 
     WMBusAmber(SerialDevice *serial, SerialCommunicationManager *manager);
 private:
@@ -58,7 +59,7 @@ private:
     void waitForResponse();
     FrameStatus checkAMB8465Frame(vector<uchar> &data,
                            size_t *frame_length, int *msgid_out, int *payload_len_out, int *payload_offset);
-    void handleMessage(int msgid, vector<uchar> &payload);
+    void handleMessage(int msgid, vector<uchar> &frame);
 };
 
 WMBus *openAMB8465(string device, SerialCommunicationManager *manager)
@@ -182,7 +183,7 @@ void WMBusAmber::getConfiguration()
 }
 
 void WMBusAmber::setLinkMode(LinkMode lm) {
-    if (lm != LinkModeC1) {
+    if (lm != LinkModeC1 && lm != LinkModeT1) {
         error("LinkMode %d is not implemented\n", (int)lm);
     }
 
@@ -193,14 +194,18 @@ void WMBusAmber::setLinkMode(LinkMode lm) {
     msg[1] = CMD_SET_MODE_REQ;
     sent_command_ = msg[1];
     msg[2] = 1; // Len
-    msg[3] = 0x0E; // Reception of C1 and C2 messages
+    if (lm == LinkModeC1) {
+        msg[3] = 0x0E; // Reception of C1 and C2 messages
+    } else {
+        msg[3] = 0x05; // T1-Meter
+    }
     msg[4] = xorChecksum(msg, 4);
 
     verbose("(amb8465) set link mode %02x\n", msg[3]);
     serial()->send(msg);
 
     waitForResponse();
-    link_mode_ = LinkModeC1;
+    link_mode_ = lm;
     pthread_mutex_unlock(&command_lock_);
 }
 
@@ -274,7 +279,16 @@ void WMBusAmber::processSerialData()
 
         vector<uchar> payload;
         if (payload_len > 0) {
-            payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
+            uchar l = payload_len;
+            int minus = 0;
+            payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
+            if (msgid == 0) {
+                // Copy the telegram payload minus 4 bytes at the end. Could these extra bytes be some
+                // AMB8465 crc/rssi/else specific data that is dependent on the non-volatile
+                // bit settings in the usb stick? Perhaps.
+                minus = 4;
+            }
+            payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len-minus);
         }
 
         read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
@@ -283,34 +297,18 @@ void WMBusAmber::processSerialData()
     }
 }
 
-void WMBusAmber::handleMessage(int msgid, vector<uchar> &payload)
+void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
 {
     switch (msgid) {
     case (0):
     {
         Telegram t;
-        t.c_field = payload[0];
-        t.m_field = payload[2]<<8 | payload[1];
-        t.a_field.resize(6);
-        t.a_field_address.resize(4);
-        for (int i=0; i<6; ++i) {
-            t.a_field[i] = payload[3+i];
-            if (i<4) { t.a_field_address[i] = payload[3+3-i]; }
-        }
-        t.a_field_version = payload[3+4];
-        t.a_field_device_type=payload[3+5];
-        t.ci_field=payload[9];
-        t.payload.clear();
-        // TODO! Figure out why there are 4 extra bytes at the end which are not part
-        // of the message. Is it wmbus crc bytes that the imst dongle removes but
-        // the amber dongle allows to be visible? Or some other config specific setting?
-        t.payload.insert(t.payload.end(), payload.begin()+10, payload.end()-4);
-        verbose("(amb8465) received telegram");
-        t.verboseFields();
-        debugPayload("(amb8465) telegram", t.payload);
-
+        t.parse(frame);
         for (auto f : telegram_listeners_) {
             if (f) f(&t);
+            if (isVerboseEnabled() && !t.handled) {
+                verbose("(amb8465) telegram ignored by all configured meters!\n");
+            }
         }
         break;
     }
@@ -319,7 +317,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &payload)
         verbose("(amb8465) set link mode completed\n");
         received_command_ = msgid;
         received_payload_.clear();
-        received_payload_.insert(received_payload_.end(), payload.begin(), payload.end());
+        received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
         debugPayload("(amb8465) set link mode", received_payload_);
         sem_post(&command_wait_);
         break;
@@ -329,7 +327,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &payload)
         verbose("(amb8465) get config completed\n");
         received_command_ = msgid;
         received_payload_.clear();
-        received_payload_.insert(received_payload_.end(), payload.begin(), payload.end());
+        received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
         debugPayload("(amb8465) get config", received_payload_);
         sem_post(&command_wait_);
         break;
@@ -339,7 +337,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &payload)
         verbose("(amb8465) get device id completed\n");
         received_command_ = msgid;
         received_payload_.clear();
-        received_payload_.insert(received_payload_.end(), payload.begin(), payload.end());
+        received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
         debugPayload("(amb8465) get device id", received_payload_);
         sem_post(&command_wait_);
         break;
@@ -347,7 +345,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &payload)
     default:
         verbose("(amb8465) unhandled device message %d\n", msgid);
         received_payload_.clear();
-        received_payload_.insert(received_payload_.end(), payload.begin(), payload.end());
+        received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
         debugPayload("(amb8465) unknown", received_payload_);
     }
 }

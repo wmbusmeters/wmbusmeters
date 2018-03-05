@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Fredrik Öhrström
+// Copyright (c) 2017-2018 Fredrik Öhrström
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -18,18 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include"cmdline.h"
-#include"meters.h"
+#ifndef WMBUS_UTILS_H
+#define WMBUS_UTILS_H
 
-using namespace std;
+void decryptKamstrupC1(Telegram *t, vector<uchar> &aeskey);
+string frameTypeKamstrupC1(int ft);
 
-struct Printer {
-    Printer(bool json, bool fields, char separator, bool meterfiles);
-
-    void print(Meter *meter);
-
-    private:
-
-    bool json_, fields_, meterfiles_;
-    char separator_;
-};
+#endif

@@ -121,6 +121,7 @@ void error(const char* fmt, ...) {
 bool warning_enabled_ = true;
 bool verbose_enabled_ = false;
 bool debug_enabled_ = false;
+bool log_telegrams_enabled_ = false;
 
 void warningSilenced(bool b) {
     warning_enabled_ = !b;
@@ -135,12 +136,20 @@ void debugEnabled(bool b) {
     if (debug_enabled_) verbose_enabled_ = true;
 }
 
+void logTelegramsEnabled(bool b) {
+    log_telegrams_enabled_ = b;
+}
+
 bool isVerboseEnabled() {
     return verbose_enabled_;
 }
 
 bool isDebugEnabled() {
     return debug_enabled_;
+}
+
+bool isLogTelegramsEnabled() {
+    return log_telegrams_enabled_;
 }
 
 void warning(const char* fmt, ...) {
@@ -168,6 +177,13 @@ void debug(const char* fmt, ...) {
         vprintf(fmt, args);
         va_end(args);
     }
+}
+
+bool isValidType(char *type)
+{
+    if (!strcmp(type, "multical21")) return true;
+    if (!strcmp(type, "multical302")) return true;
+    return false;
 }
 
 bool isValidId(char *id)
@@ -224,11 +240,77 @@ bool checkCharacterDeviceExists(const char *tty, bool fail_if_not)
     return true;
 }
 
+bool checkIfSimulationFile(const char *file)
+{
+    struct stat info;
+
+    int rc = stat(file, &info);
+    if (rc != 0) {
+        return false;
+    }
+    if (!S_ISREG(info.st_mode)) {
+        return false;
+    }
+    if (strncmp(file, "simulation", 10)) {
+        return false;
+    }
+    return true;
+}
+
 void debugPayload(string intro, vector<uchar> &payload)
 {
     if (isDebugEnabled())
     {
         string msg = bin2hex(payload);
-        debug("%s payload \"%s\"\n", intro.c_str(), msg.c_str());
+        debug("%s \"%s\"\n", intro.c_str(), msg.c_str());
+    }
+}
+
+void logTelegram(string intro, vector<uchar> &header, vector<uchar> &content)
+{
+    if (isLogTelegramsEnabled())
+    {
+        string h = bin2hex(header);
+        string cntnt = bin2hex(content);
+        printf("%s \"telegram=|%s|%s|\"\n", intro.c_str(), h.c_str(), cntnt.c_str());
+    }
+}
+
+string eatTo(vector<uchar> &v, vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err)
+{
+    string s;
+
+    *eof = false;
+    *err = false;
+    while (max > 0 && i != v.end() && (c == -1 || *i != c))
+    {
+        s += *i;
+        i++;
+        max--;
+    }
+    if (c != -1 && *i != c)
+    {
+        *err = true;
+    }
+    if (i != v.end())
+    {
+        i++;
+    }
+    if (i == v.end()) {
+        *eof = true;
+    }
+    return s;
+}
+
+void padWithZeroesTo(vector<uchar> *content, size_t len, vector<uchar> *full_content)
+{
+    if (content->size() < len) {
+        warning("Padded with zeroes.", (int)len);
+        size_t old_size = content->size();
+        content->resize(len);
+        for(size_t i = old_size; i < len; ++i) {
+            (*content)[i] = 0;
+        }
+        full_content->insert(full_content->end(), content->begin()+old_size, content->end());
     }
 }

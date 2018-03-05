@@ -37,8 +37,8 @@ int main(int argc, char **argv)
 
     if (cmdline->need_help) {
         printf("wmbusmeters version: " WMBUSMETERS_VERSION "\n");
-        printf("Usage: wmbusmeters [options] (auto | /dev/ttyUSBx) { [meter_name] [meter_id] [meter_key] }* \n\n");
-        printf("Add more meter triplets to listen to more meters.\n");
+        printf("Usage: wmbusmeters [options] (auto | /dev/ttyUSBx) { [meter_name] [meter_type] [meter_id] [meter_key] }* \n\n");
+        printf("Add more meter quadruplets to listen to more meters.\n");
         printf("Add --verbose for more detailed information on communication.\n");
         printf("    --robot for json output.\n");
 	printf("    --meterfiles to create status files below tmp,\n"
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 	printf("    --oneshot wait for an update from each meter, then quit.\n\n");
         printf("Specifying auto as the device will automatically look for usb\n");
         printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
-
+        printf("Two meter types are supported: multical21 and multical302 (work in progress).\n\n");
         exit(0);
     }
     // We want the data visible in the log file asap!
@@ -55,6 +55,7 @@ int main(int argc, char **argv)
     warningSilenced(cmdline->silence);
     verboseEnabled(cmdline->verbose);
     debugEnabled(cmdline->debug);
+    logTelegramsEnabled(cmdline->logtelegrams);
 
     auto manager = createSerialCommunicationManager();
 
@@ -73,6 +74,10 @@ int main(int argc, char **argv)
         verbose("(amb8465) detected on %s\n", type_and_device.second.c_str());
         wmbus = openAMB8465(type_and_device.second, manager);
         break;
+    case DEVICE_SIMULATOR:
+        verbose("(simulator) found %s\n", type_and_device.second.c_str());
+        wmbus = openSimulator(type_and_device.second, manager);
+        break;
     case DEVICE_UNKNOWN:
         error("No wmbus device found!\n");
         exit(1);
@@ -82,19 +87,35 @@ int main(int argc, char **argv)
     wmbus->setLinkMode(LinkModeC1);
     if (wmbus->getLinkMode()!=LinkModeC1) error("Could not set link mode to receive C1 telegrams.\n");
 
-    Printer *output = new Printer(cmdline->robot, cmdline->meterfiles);
+    Printer *output = new Printer(cmdline->json, cmdline->fields,
+                                  cmdline->separator, cmdline->meterfiles);
 
     if (cmdline->meters.size() > 0) {
         for (auto &m : cmdline->meters) {
-            m.meter = createMultical21(wmbus, m.name, m.id, m.key);
-            verbose("(multical21) configured \"%s\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+            switch (toMeterType(m.type)) {
+            case MULTICAL21_METER:
+                m.meter = createMultical21(wmbus, m.name, m.id, m.key);
+                verbose("(multical21) configured \"%s\" \"multical21\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+                break;
+            case MULTICAL302_METER:
+                m.meter = createMultical302(wmbus, m.name, m.id, m.key);
+                verbose("(multical302) configured \"%s\" \"multical302\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+                break;
+            case UNKNOWN_METER:
+                error("No such meter type \"%s\"\n", m.type);
+                break;
+            }
             m.meter->onUpdate(calll(output,print,Meter*));
-	    m.meter->onUpdate([cmdline,manager](Meter*meter) { oneshotCheck(cmdline,manager,meter); });
+            m.meter->onUpdate([cmdline,manager](Meter*meter) { oneshotCheck(cmdline,manager,meter); });
         }
     } else {
         printf("No meters configured. Printing id:s of all telegrams heard!\n\n");
 
         wmbus->onTelegram([](Telegram *t){t->print();});
+    }
+
+    if (type_and_device.first == DEVICE_SIMULATOR) {
+        wmbus->simulate();
     }
 
     manager->waitForStop();

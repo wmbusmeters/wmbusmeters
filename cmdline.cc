@@ -52,8 +52,39 @@ CommandLine *parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strcmp(argv[i], "--robot")) {
-            c->robot = true;
+        if (!strcmp(argv[i], "--logtelegrams")) {
+            c->logtelegrams = true;
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--robot", 7)) {
+            if (strlen(argv[i]) == 7 ||
+                (strlen(argv[i]) == 12 &&
+                 !strncmp(argv[i]+7, "=json", 5)))
+            {
+                c->json = true;
+                c->fields = false;
+            }
+            else if (strlen(argv[i]) == 14 &&
+                     !strncmp(argv[i]+7, "=fields", 7))
+            {
+                c->json = false;
+                c->fields = true;
+                c->separator = ';';
+            } else {
+                error("Unknown output format: \"%s\"\n", argv[i]+7);
+            }
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--separator=", 12)) {
+            if (!c->fields) {
+                error("You must specify --robot=fields before --separator=X\n");
+            }
+            if (strlen(argv[i]) != 13) {
+                error("You must supply a single character as the field separator.\n");
+            }
+            c->separator = argv[i][12];
             i++;
             continue;
         }
@@ -79,20 +110,22 @@ CommandLine *parseCommandLine(int argc, char **argv) {
     if (!c->usb_device) error("You must supply the usb device to which the wmbus dongle is connected.\n");
     verbose("Using usb device: %s\n", c->usb_device);
 
-    if ((argc-i) % 3 != 0) {
-        error("For each meter you must supply a: name,id and key.\n");
+    if ((argc-i) % 4 != 0) {
+        error("For each meter you must supply a: name,type,id and key.\n");
     }
-    int num_meters = (argc-i)/3;
+    int num_meters = (argc-i)/4;
     verbose("Number of meters: %d\n", num_meters);
 
     for (int m=0; m<num_meters; ++m) {
-        char *name = argv[m*3+i+0];
-        char *id = argv[m*3+i+1];
-        char *key = argv[m*3+i+2];
+        char *name = argv[m*4+i+0];
+        char *type = argv[m*4+i+1];
+        char *id = argv[m*4+i+2];
+        char *key = argv[m*4+i+3];
 
+        if (!isValidType(type)) error("Not a valid meter type \"%s\"\n", type);
         if (!isValidId(id)) error("Not a valid meter id \"%s\"\n", id);
         if (!isValidKey(key)) error("Not a valid meter key \"%s\"\n", key);
-        c->meters.push_back(MeterInfo(name,id,key));
+        c->meters.push_back(MeterInfo(name,type,id,key));
     }
 
     return c;

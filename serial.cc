@@ -254,7 +254,7 @@ void *SerialCommunicationManagerImp::eventLoop() {
 
         if (!running_) break;
         if (activity < 0 && errno!=EINTR) {
-            error("(serial) internal error after select! errno=%d\n", errno);
+            warning("(serial) internal error after select! errno=%s\n", strerror(errno));
         }
         if (activity > 0) {
             for (SerialDevice *d : devices_) {

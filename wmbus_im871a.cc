@@ -40,6 +40,7 @@ struct WMBusIM871A : public WMBus {
 
     void processSerialData();
     SerialDevice *serial() { return serial_; }
+    void simulate() { }
 
     WMBusIM871A(SerialDevice *serial, SerialCommunicationManager *manager);
 private:
@@ -165,6 +166,9 @@ LinkMode WMBusIM871A::getLinkMode() {
             if (received_payload_[offset] == im871a_C1a) {
                 lm = LinkModeC1;
             }
+            if (received_payload_[offset] == im871a_T1) {
+                lm = LinkModeT1;
+            }
             offset++;
         }
         if (has_wmbus_c_field) {
@@ -245,7 +249,7 @@ LinkMode WMBusIM871A::getLinkMode() {
 
 void WMBusIM871A::setLinkMode(LinkMode lm)
 {
-    if (lm != LinkModeC1) {
+    if (lm != LinkModeC1 && lm != LinkModeT1) {
         error("LinkMode %d is not implemented\n", (int)lm);
     }
     pthread_mutex_lock(&command_lock_);
@@ -257,7 +261,11 @@ void WMBusIM871A::setLinkMode(LinkMode lm)
     msg[3] = 3; // Len
     msg[4] = 0; // Temporary
     msg[5] = 2; // iff1 bits: Set Radio Mode only
-    msg[6] = (int)im871a_C1a;
+    if (lm == LinkModeC1) {
+        msg[6] = (int)im871a_C1a;
+    } else {
+        msg[6] = (int)im871a_T1;
+    }
     msg[7] = 0; // iff2 bits: Set nothing
 
     verbose("(im871a) set link mode %02x\n", msg[6]);
@@ -338,12 +346,19 @@ void WMBusIM871A::processSerialData()
         string msg = bin2hex(read_buffer_);
         debug("(im871a) protocol error \"%s\"\n", msg.c_str());
         read_buffer_.clear();
-    } else
+    }
+    else
     if (status == FullFrame) {
 
         vector<uchar> payload;
         if (payload_len > 0) {
-            payload.insert(payload.begin(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_len);
+            if (endpoint == RADIOLINK_ID &&
+                msgid == RADIOLINK_MSG_WMBUSMSG_IND)
+            {
+                uchar l = payload_len;
+                payload.insert(payload.begin(), &l, &l+1); // Re-insert the len byte.
+            }
+            payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_len);
         }
 
         read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
@@ -399,24 +414,13 @@ void WMBusIM871A::handleRadioLink(int msgid, vector<uchar> &payload)
         case RADIOLINK_MSG_WMBUSMSG_IND: // 0x03
             {
                 Telegram t;
-                t.c_field = payload[0];
-                t.m_field = payload[2]<<8 | payload[1];
-                t.a_field.resize(6);
-                t.a_field_address.resize(4);
-                for (int i=0; i<6; ++i) {
-                    t.a_field[i] = payload[3+i];
-                    if (i<4) { t.a_field_address[i] = payload[3+3-i]; }
-                }
-                t.a_field_version = payload[3+4];
-                t.a_field_device_type=payload[3+5];
-                t.ci_field=payload[9];
-                t.payload.clear();
-                t.payload.insert(t.payload.end(), payload.begin()+10, payload.end());
-                verbose("(im871a) received telegram ");
-                t.verboseFields();
-                debugPayload("(im871a) telegram", t.payload);
+                t.parse(payload);
+
                 for (auto f : telegram_listeners_) {
                     if (f) f(&t);
+                }
+                if (isVerboseEnabled() && !t.handled) {
+                    verbose("(im871a) telegram ignored by all configured meters!\n");
                 }
             }
             break;

@@ -27,7 +27,7 @@ endif
 
 $(shell mkdir -p $(BUILD))
 
-CXXFLAGS := $(DEBUG_FLAGS) -Wall -fmessage-length=0 -std=c++11 -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.3\""
+CXXFLAGS := $(DEBUG_FLAGS) -Wall -fmessage-length=0 -std=c++11 -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.4\""
 
 $(BUILD)/%.o: %.cc $(wildcard %.h)
 	$(CXX) $(CXXFLAGS) $< -c -o $@
@@ -38,12 +38,15 @@ METERS_OBJS:=\
 	$(BUILD)/main.o \
 	$(BUILD)/meters.o \
 	$(BUILD)/meter_multical21.o \
+	$(BUILD)/meter_multical302.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/util.o \
 	$(BUILD)/wmbus.o \
 	$(BUILD)/wmbus_amb8465.o \
 	$(BUILD)/wmbus_im871a.o \
+	$(BUILD)/wmbus_simulator.o \
+	$(BUILD)/wmbus_utils.o
 
 all: $(BUILD)/wmbusmeters
 	$(STRIP_BINARY)
@@ -55,7 +58,7 @@ clean:
 	rm -f build/* build_arm/* build_debug/* build_arm_debug/* *~
 
 test:
-	@echo No tests yet.
+	./test.sh build/wmbusmeters
 
 update_manufacturers:
 	wget http://www.m-bus.de/man.html

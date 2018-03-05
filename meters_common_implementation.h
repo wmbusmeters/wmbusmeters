@@ -18,18 +18,49 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include"cmdline.h"
+#ifndef METERS_COMMON_IMPLEMENTATION_H_
+#define METERS_COMMON_IMPLEMENTATION_H_
+
 #include"meters.h"
 
-using namespace std;
+struct MeterCommonImplementation : public virtual Meter {
+    string id();
+    string name();
+    MeterType type();
+    int manufacturer();
+    int media();
+    WMBus *bus();
 
-struct Printer {
-    Printer(bool json, bool fields, char separator, bool meterfiles);
+    string datetimeOfUpdateHumanReadable();
+    string datetimeOfUpdateRobot();
 
-    void print(Meter *meter);
+    void onUpdate(function<void(Meter*)> cb);
+    int numUpdates();
 
-    private:
+    bool isTelegramForMe(Telegram *t);
+    bool useAes();
+    vector<uchar> key();
 
-    bool json_, fields_, meterfiles_;
-    char separator_;
+    MeterCommonImplementation(WMBus *bus, const char *name, const char *id, const char *key,
+                              MeterType type, int manufacturer, int media);
+
+protected:
+
+    void triggerUpdate(Telegram *t);
+
+private:
+
+    MeterType type_ {};
+    int manufacturer_ {};
+    int media_ {};
+    string name_;
+    vector<uchar> id_;
+    vector<uchar> key_;
+    WMBus *bus_ {};
+    vector<function<void(Meter*)>> on_update_;
+    int num_updates_ {};
+    bool use_aes_ {};
+    time_t datetime_of_update_ {};
 };
+
+#endif

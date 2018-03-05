@@ -27,7 +27,7 @@
 
 #include<inttypes.h>
 
-#define LIST_OF_LINK_MODES X(LinkModeC1)X(UNKNOWN_LINKMODE)
+#define LIST_OF_LINK_MODES X(LinkModeC1)X(LinkModeT1)X(UNKNOWN_LINKMODE)
 
 enum LinkMode {
 #define X(name) name,
@@ -48,9 +48,8 @@ LIST_OF_LINK_MODES
 
 using namespace std;
 
-//extern const char *LinkModeNames[];
-
 struct Telegram {
+    int len; // The length of the telegram, 1 byte.
     int c_field; // 1 byte (0x44=telegram, no response expected!)
     int m_field; // Manufacturer 2 bytes
     vector<uchar> a_field; // A field 6 bytes
@@ -58,15 +57,33 @@ struct Telegram {
     vector<uchar> a_field_address; // Address in BCD = 8 decimal 00000000...99999999 digits.
     int a_field_version; // 1 byte
     int a_field_device_type; // 1 byte
-    int ci_field; // 1 byte
 
-    vector<uchar> payload; // All payload data after the ci field byte.
+    int ci_field; // 1 byte
+    // When ci_field==0x8d then there are 8 extra header bytes (ELL header?)
+    int cc_field; // 1 byte
+    int acc; // 1 byte
+    uchar sn[4]; // 4 bytes
+    // That is 6 bytes (not 8), perhaps the next two bytes (the plcrc?) are
+    // part of this ELL header, even though they are inside the encrypted payload?
+
+    vector<uchar> parsed; // Parsed fields
+    vector<uchar> payload; // To be parsed.
+    vector<uchar> content; // Decrypted content.
+
+    bool handled {}; // Set to true, when a meter has accepted the telegram.
 
     // The id as written on the physical meter device.
     string id() { return bin2hex(a_field_address); }
 
+    void parse(vector<uchar> &payload);
     void print();
     void verboseFields();
+
+    // A vector of indentations and explanations, to be printed
+    // below the raw data bytes to explain the telegram content.
+    vector<pair<int,string>> explanations;
+    void addExplanation(vector<uchar> &payload, int len, const char* fmt, ...);
+    void explainParse(string intro, int from);
 };
 
 struct WMBus {
@@ -76,9 +93,10 @@ struct WMBus {
     virtual void setLinkMode(LinkMode lm) = 0;
     virtual void onTelegram(function<void(Telegram*)> cb) = 0;
     virtual SerialDevice *serial() = 0;
+    virtual void simulate() = 0;
 };
 
-#define LIST_OF_MBUS_DEVICES X(DEVICE_IM871A)X(DEVICE_AMB8465)X(DEVICE_UNKNOWN)
+#define LIST_OF_MBUS_DEVICES X(DEVICE_IM871A)X(DEVICE_AMB8465)X(DEVICE_SIMULATOR)X(DEVICE_UNKNOWN)
 
 enum MBusDeviceType {
 #define X(name) name,
@@ -92,9 +110,18 @@ pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationM
 
 WMBus *openIM871A(string device, SerialCommunicationManager *manager);
 WMBus *openAMB8465(string device, SerialCommunicationManager *manager);
+struct WMBusSimulator;
+WMBus *openSimulator(string file, SerialCommunicationManager *manager);
 
 string manufacturer(int m_field);
 string manufacturerFlag(int m_field);
-string deviceType(int a_field, int );
+string deviceType(int m_field, int a_field_device_type);
+string mediaType(int m_field, int a_field_device_type);
+string ciType(int ci_field);
+string cType(int c_field);
+string ccType(int cc_field);
+string difType(int dif);
+string vifType(int vif);
+string vifeType(int vif, int vife);
 
 #endif

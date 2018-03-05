@@ -46,18 +46,26 @@ void warning(const char* fmt, ...);
 void warningSilenced(bool b);
 void verboseEnabled(bool b);
 void debugEnabled(bool b);
+void logTelegramsEnabled(bool b);
 
 bool isVerboseEnabled();
 bool isDebugEnabled();
-
+bool isLogTelegramsEnabled();
 
 void debugPayload(std::string intro, std::vector<uchar> &payload);
+void logTelegram(std::string intro, std::vector<uchar> &header, std::vector<uchar> &content);
 
+bool isValidType(char *type);
 bool isValidId(char *id);
 bool isValidKey(char *key);
 
 void incrementIV(uchar *iv, size_t len);
 
 bool checkCharacterDeviceExists(const char *tty, bool fail_if_not);
+bool checkIfSimulationFile(const char *file);
+
+std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err);
+
+void padWithZeroesTo(std::vector<uchar> *content, size_t len, std::vector<uchar> *full_content);
 
 #endif

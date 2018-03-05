@@ -29,12 +29,14 @@ using namespace std;
 
 struct MeterInfo {
     char *name;
+    char *type;
     char *id;
     char *key;
     Meter *meter;
 
-    MeterInfo(char *n, char *i, char *k) {
+    MeterInfo(char *n, char *t, char *i, char *k) {
         name = n;
+        type = t;
         id = i;
         key = k;
     }
@@ -45,8 +47,11 @@ struct CommandLine {
     bool silence {};
     bool verbose {};
     bool debug {};
+    bool logtelegrams {};
     bool meterfiles {};
-    bool robot {};
+    bool json {};
+    bool fields {};
+    char separator { ';' };
     bool oneshot {};
     char *usb_device {};
     vector<MeterInfo> meters;
