@@ -143,7 +143,7 @@ void MeterMultical21::handleTelegram(Telegram *t) {
 
     if (t->a_field_device_type != 0x16) {
         warning("(multical21) expected telegram for water media, but got \"%s\"!\n",
-                mediaType(t->m_field, t->a_field_device_type));
+                mediaType(t->m_field, t->a_field_device_type).c_str());
     }
 
     if (t->m_field != manufacturer() ||
