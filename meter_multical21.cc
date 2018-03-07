@@ -441,7 +441,7 @@ void MeterMultical21::printMeterFields(FILE *output, char separator)
 	    totalWaterConsumption(), separator,
 	    targetWaterConsumption(), separator,
 	    statusHumanReadable().c_str(), separator,
-            datetimeOfUpdateHumanReadable().c_str());
+            datetimeOfUpdateRobot().c_str());
 }
 
 #define Q(x,y) "\""#x"\":"#y","

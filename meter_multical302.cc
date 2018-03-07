@@ -199,7 +199,7 @@ void MeterMultical302::printMeterFields(FILE *output, char separator)
 	    totalPowerConsumption(), separator,
             totalVolume(), separator,
 	    currentPowerConsumption(), separator,
-	    datetimeOfUpdateHumanReadable().c_str());
+	    datetimeOfUpdateRobot().c_str());
 }
 
 #define Q(x,y) "\""#x"\":"#y","
