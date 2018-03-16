@@ -55,7 +55,6 @@ bool isLogTelegramsEnabled();
 void debugPayload(std::string intro, std::vector<uchar> &payload);
 void logTelegram(std::string intro, std::vector<uchar> &header, std::vector<uchar> &content);
 
-bool isValidType(char *type);
 bool isValidId(char *id);
 bool isValidKey(char *key);
 
@@ -70,5 +69,7 @@ std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c,
 void padWithZeroesTo(std::vector<uchar> *content, size_t len, std::vector<uchar> *full_content);
 
 int parseTime(std::string time);
+
+uint16_t crc_16_EN_13757(uchar *data, size_t len);
 
 #endif

@@ -26,14 +26,32 @@ Add --verbose for detailed debug information.
 Specifying auto as the device will automatically look for usb
 wmbus dongles on /dev/im871a and /dev/amb8465.
 
-Two meter types are supported: multical21 and multical302 (multical302 is still work in progress).
+The meter type: multical21 (a water meter) is supported.
+The meter types: multical302 (heat) and omnipower (electricity)
+are work in progress.
 ```
 
-Currently the meters are hardcoded for the European default setting that specifies what extra data
-is sent in the telegrams. If someone has a non-default meter that sends other extra data, then this
-will show up as a warning when a long telegram is received (but not in the short telegrams, where wrong
-values might be printed instead!).
-If this happens to someone, then we need to implement a way to pass the meter configuration as a parameter.
+Currently the meters are hardcoded for the European default setting
+that specifies what extra data is sent in the telegrams. If someone
+has a non-default meter that sends other extra data, then this will
+show up as a warning when a long telegram is received (but not in the
+short telegrams, where wrong values might be printed instead!). If
+this happens to someone, then we need to implement a way to pass the
+meter configuration as a parameter.
+
+Actually, the mbus (and consequently the wmbus) protocol is a standard
+that is self-describing.  Thus in reality it should not be necessary
+to supply exactly which kind of meter we expect for a given id.  This
+should be possible to figure out when we receive the first telegram.
+
+Thus, strictly speaking, it should not be necessary to specify the
+exact meter type. A more generic meter type might be just "water",
+"heat" or electricity. But for the moment, the separation of meter
+types will remain in the code. Thus even though the meter type right
+now is named multical302, the other heat meters (multical-402 and
+multical-602) might be compatible as well. The same is true for the
+omnipower meter type, which might include the electricity meters
+Kamstrup-162 Kamstrup-382, Kamstrup-351 etc).
 
 No meter quadruplets means listen for telegram traffic and print any id heard.
 

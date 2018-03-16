@@ -77,11 +77,28 @@ void Telegram::verboseFields() {
             ci_field,
             ciType(ci_field).c_str());
 
+    if (ci_field == 0x78) {
+        // No data error and no encryption possible.
+    }
+
+    if (ci_field == 0x7a) {
+        // Short data header
+        verbose(" CC-field=%02x (%s) ACC=%02x ",
+                cc_field, ccType(cc_field).c_str(),
+                acc,
+                sn[3],sn[2],sn[1],sn[0]);
+    }
+
     if (ci_field == 0x8d) {
         verbose(" CC-field=%02x (%s) ACC=%02x SN=%02x%02x%02x%02x",
                 cc_field, ccType(cc_field).c_str(),
                 acc,
                 sn[3],sn[2],sn[1],sn[0]);
+    }
+    if (ci_field == 0x8c) {
+        verbose(" CC-field=%02x (%s) ACC=%02x",
+                cc_field, ccType(cc_field).c_str(),
+                acc);
     }
     verbose("\n");
 }
@@ -297,20 +314,39 @@ void Telegram::parse(vector<uchar> &frame)
     ci_field=frame[10];
     addExplanation(frame, 1, "%02x ci-field (%s)", ci_field, ciType(ci_field).c_str());
 
-    if (ci_field == 0x8d) {
+    int header_size = 0;
+    if (ci_field == 0x78) {
+        header_size = 0; // And no encryption possible.
+    } else
+    if (ci_field == 0x7a) {
+        acc = frame[11];
+        addExplanation(frame, 1, "%02x acc", acc);
+        status = frame[12];
+        addExplanation(frame, 1, "%02x status ()", status);
+        configuration = frame[13]<<8 | frame[14];
+        addExplanation(frame, 2, "%02x%02x configuration ()", frame[13], frame[14]);
+        header_size = 4;
+    } else
+    if (ci_field == 0x8d || ci_field == 0x8c) {
         cc_field = frame[11];
         addExplanation(frame, 1, "%02x cc-field (%s)", cc_field, ccType(cc_field).c_str());
         acc = frame[12];
         addExplanation(frame, 1, "%02x acc", acc);
-        sn[0] = frame[13];
-        sn[1] = frame[14];
-        sn[2] = frame[15];
-        sn[3] = frame[16];
-        addExplanation(frame, 4, "%02x%02x%02x%02x sn", sn[0], sn[1], sn[2], sn[3]);
+        header_size = 2;
+        if (ci_field == 0x8d) {
+            sn[0] = frame[13];
+            sn[1] = frame[14];
+            sn[2] = frame[15];
+            sn[3] = frame[16];
+            addExplanation(frame, 4, "%02x%02x%02x%02x sn", sn[0], sn[1], sn[2], sn[3]);
+            header_size = 6;
+        }
+    } else {
+        warning("Unknown ci-field %02x\n", ci_field);
     }
 
     payload.clear();
-    payload.insert(payload.end(), frame.begin()+17, frame.end());
+    payload.insert(payload.end(), frame.begin()+(11+header_size), frame.end());
     verbose("(wmbus) received telegram");
     verboseFields();
     debugPayload("(wmbus) frame", frame);
@@ -564,6 +600,9 @@ string vifeType(int vif, int vife)
     //int extension = vif & 0x80;
     //int t = vif & 0x7f;
 
+    if (vif == 0x83 && vife == 0x3b) {
+        return "Forward flow contribution only";
+    }
     if (vif == 0xff) {
         return "?";
     }

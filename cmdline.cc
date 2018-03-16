@@ -19,6 +19,7 @@
 // SOFTWARE.
 
 #include"cmdline.h"
+#include"meters.h"
 #include"util.h"
 
 using namespace std;
@@ -142,7 +143,9 @@ CommandLine *parseCommandLine(int argc, char **argv) {
         char *id = argv[m*4+i+2];
         char *key = argv[m*4+i+3];
 
-        if (!isValidType(type)) error("Not a valid meter type \"%s\"\n", type);
+        MeterType mt = toMeterType(type);
+
+        if (mt == UNKNOWN_METER) error("Not a valid meter type \"%s\"\n", type);
         if (!isValidId(id)) error("Not a valid meter id \"%s\"\n", id);
         if (!isValidKey(key)) error("Not a valid meter key \"%s\"\n", key);
         c->meters.push_back(MeterInfo(name,type,id,key));

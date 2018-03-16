@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Fredrik Öhrström
+// Copyright (c) 2018 Fredrik Öhrström
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,7 @@
 #include<string>
 #include<vector>
 
-#define LIST_OF_METERS X(MULTICAL21_METER)X(MULTICAL302_METER)X(UNKNOWN_METER)
+#define LIST_OF_METERS X(MULTICAL21_METER)X(MULTICAL302_METER)X(OMNIPOWER_METER)X(UNKNOWN_METER)
 
 enum MeterType {
 #define X(name) name,
@@ -79,14 +79,20 @@ struct WaterMeter : public virtual Meter {
 };
 
 struct HeatMeter : public virtual Meter {
-    virtual float totalPowerConsumption() = 0; // kwh
+    virtual float totalEnergyConsumption() = 0; // kwh
     virtual float currentPowerConsumption() = 0; // kw
     virtual float totalVolume() = 0; // m3
+};
+
+struct ElectricityMeter : public virtual Meter {
+    virtual float totalEnergyConsumption() = 0; // kwh
+    virtual float currentPowerConsumption() = 0; // kw
 };
 
 
 MeterType toMeterType(const char *type);
 WaterMeter *createMultical21(WMBus *bus, const char *name, const char *id, const char *key);
 HeatMeter *createMultical302(WMBus *bus, const char *name, const char *id, const char *key);
+ElectricityMeter *createOmnipower(WMBus *bus, const char *name, const char *id, const char *key);
 
 #endif

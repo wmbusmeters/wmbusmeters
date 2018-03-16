@@ -33,7 +33,7 @@
 struct MeterMultical302 : public virtual HeatMeter, public virtual MeterCommonImplementation {
     MeterMultical302(WMBus *bus, const char *name, const char *id, const char *key);
 
-    float totalPowerConsumption();
+    float totalEnergyConsumption();
     float currentPowerConsumption();
     float totalVolume();
 
@@ -45,7 +45,7 @@ private:
     void handleTelegram(Telegram *t);
     void processContent(Telegram *t);
 
-    float total_power_ {};
+    float total_energy_ {};
     float current_power_ {};
     float total_volume_ {};
 };
@@ -56,9 +56,9 @@ MeterMultical302::MeterMultical302(WMBus *bus, const char *name, const char *id,
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
-float MeterMultical302::totalPowerConsumption()
+float MeterMultical302::totalEnergyConsumption()
 {
-    return total_power_;
+    return total_energy_;
 }
 
 float MeterMultical302::currentPowerConsumption()
@@ -117,7 +117,7 @@ void MeterMultical302::processContent(Telegram *t) {
 
     int crc0 = t->content[0];
     int crc1 = t->content[1];
-    t->addExplanation(full_content, 2, "%02x%02x plcrc", crc0, crc1);
+    t->addExplanation(full_content, 2, "%02x%02x payload crc", crc0, crc1);
     int frame_type = t->content[2];
     t->addExplanation(full_content, 1, "%02x frame type (%s)", frame_type, frameTypeKamstrupC1(frame_type).c_str());
 
@@ -136,10 +136,10 @@ void MeterMultical302::processContent(Telegram *t) {
 
         t->addExplanation(full_content, 4, "%02x%02x%02x unknown", t->content[10], t->content[11], t->content[12]);
 
-        int total_power_raw  = rec1val2*256*256 + rec1val1*256 + rec1val0;
-	total_power_ = total_power_raw;
+        int total_energy_raw  = rec1val2*256*256 + rec1val1*256 + rec1val0;
+	total_energy_ = total_energy_raw;
         t->addExplanation(full_content, 3, "%02x%02x%02x total power (%d)",
-                          rec1val0, rec1val1, rec1val2, total_power_raw);
+                          rec1val0, rec1val1, rec1val2, total_energy_raw);
 
 	int rec2val0 = t->content[13];
         int rec2val1 = t->content[14];
@@ -185,7 +185,7 @@ void MeterMultical302::printMeterHumanReadable(FILE *output)
     fprintf(output, "%s\t%s\t% 3.3f kwh\t% 3.3f m3\t% 3.3f kwh\t%s\n",
 	    name().c_str(),
 	    id().c_str(),
-	    totalPowerConsumption(),
+	    totalEnergyConsumption(),
             totalVolume(),
 	    currentPowerConsumption(),
 	    datetimeOfUpdateHumanReadable().c_str());
@@ -196,7 +196,7 @@ void MeterMultical302::printMeterFields(FILE *output, char separator)
     fprintf(output, "%s%c%s%c%3.3f%c%3.3f%c%3.3f%c%s\n",
 	    name().c_str(), separator,
 	    id().c_str(), separator,
-	    totalPowerConsumption(), separator,
+	    totalEnergyConsumption(), separator,
             totalVolume(), separator,
 	    currentPowerConsumption(), separator,
 	    datetimeOfUpdateRobot().c_str());
@@ -218,7 +218,7 @@ void MeterMultical302::printMeterJSON(FILE *output)
 	    "}\n",
 	    name().c_str(),
 	    id().c_str(),
-	    totalPowerConsumption(),
+	    totalEnergyConsumption(),
             totalVolume(),
 	    currentPowerConsumption(),
 	    datetimeOfUpdateRobot().c_str());

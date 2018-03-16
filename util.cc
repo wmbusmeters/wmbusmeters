@@ -185,13 +185,6 @@ void debug(const char* fmt, ...) {
     }
 }
 
-bool isValidType(char *type)
-{
-    if (!strcmp(type, "multical21")) return true;
-    if (!strcmp(type, "multical302")) return true;
-    return false;
-}
-
 bool isValidId(char *id)
 {
     if (strlen(id) == 0) return true;
@@ -358,4 +351,35 @@ int parseTime(string time) {
     }
     int n = atoi(time.c_str());
     return n*mul;
+}
+
+#define CRC16_EN_13757 0x3D65
+
+uint16_t crc16_EN13757_per_byte(uint16_t crc, uchar b)
+{
+    unsigned char i;
+
+    for (i = 0; i < 8; i++) {
+
+        if (((crc & 0x8000) >> 8) ^ (b & 0x80)){
+            crc = (crc << 1)  ^ CRC16_EN_13757;
+        }else{
+            crc = (crc << 1);
+        }
+
+        b <<= 1;
+    }
+
+    return crc;
+}
+
+uint16_t crc16_EN13757(uchar *data, size_t len)
+{
+    uint16_t crc = 0x0000;
+
+    for (size_t i=0; i<len; ++i) {
+        crc = crc16_EN13757_per_byte(crc, data[i]);
+    }
+
+    return (~crc);
 }

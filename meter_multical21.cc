@@ -185,7 +185,8 @@ void MeterMultical21::processContent(Telegram *t) {
 
     int crc0 = t->content[0];
     int crc1 = t->content[1];
-    t->addExplanation(full_content, 2, "%02x%02x plcrc", crc0, crc1);
+    t->addExplanation(full_content, 2, "%02x%02x payload crc %02x%02x", crc0, crc1);
+
     int frame_type = t->content[2];
     t->addExplanation(full_content, 1, "%02x frame type (%s)", frame_type, frameTypeKamstrupC1(frame_type).c_str());
 

@@ -51,7 +51,9 @@ int main(int argc, char **argv)
                "        or 10m for ten minutes or 5s for five seconds.\n");
         printf("Specifying auto as the device will automatically look for usb\n");
         printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
-        printf("Two meter types are supported: multical21 and multical302 (work in progress).\n\n");
+        printf("The meter type: multical21 (a water meter) is supported.\n"
+               "The meter types: multical302 (heat) and omnipower (electricity)\n"
+               "are work in progress.\n\n");
         exit(0);
     }
     // We want the data visible in the log file asap!
@@ -115,6 +117,10 @@ int main(int argc, char **argv)
             case MULTICAL302_METER:
                 m.meter = createMultical302(wmbus, m.name, m.id, m.key);
                 verbose("(multical302) configured \"%s\" \"multical302\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+                break;
+            case OMNIPOWER_METER:
+                m.meter = createOmnipower(wmbus, m.name, m.id, m.key);
+                verbose("(omnipower) configured \"%s\" \"omnipower\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
                 break;
             case UNKNOWN_METER:
                 error("No such meter type \"%s\"\n", m.type);
