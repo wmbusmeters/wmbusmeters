@@ -199,6 +199,8 @@ void MeterMultical21::processContent(Telegram *t)
         int ecrc2 = t->content[5];
         int ecrc3 = t->content[6];
 
+        // But since the crc calculation is not yet functional. This functionality
+        // has to wait a bit.
         t->addExplanation(bytes, 4, "%02x%02x%02x%02x ecrc", ecrc0, ecrc1, ecrc2, ecrc3);
 
         vector<uchar>::iterator data = t->content.begin()+7;
