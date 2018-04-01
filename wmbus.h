@@ -26,6 +26,12 @@
 
 #define LIST_OF_LINK_MODES X(LinkModeC1)X(LinkModeT1)X(UNKNOWN_LINKMODE)
 
+// In link mode T1, the meter transmits a telegram every few seconds.
+// Suitable for drive-by/walk-by collection of meter values.
+
+// Link mode C1 is like T1 but uses less energy when transmitting due to
+// a different radio encoding. Suitable for battery powered meters.
+
 enum LinkMode {
 #define X(name) name,
 LIST_OF_LINK_MODES

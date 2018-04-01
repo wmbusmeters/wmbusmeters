@@ -27,7 +27,7 @@ endif
 
 $(shell mkdir -p $(BUILD))
 
-CXXFLAGS := $(DEBUG_FLAGS) -Wall -fmessage-length=0 -std=c++11 -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.4\""
+CXXFLAGS := $(DEBUG_FLAGS) -Wall -fmessage-length=0 -std=c++11 -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.5\""
 
 $(BUILD)/%.o: %.cc $(wildcard %.h)
 	$(CXX) $(CXXFLAGS) $< -c -o $@

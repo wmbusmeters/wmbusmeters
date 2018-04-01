@@ -170,6 +170,18 @@ void MeterMultical21::handleTelegram(Telegram *t)
 
 void MeterMultical21::processContent(Telegram *t)
 {
+    // Meter records:
+    // 02 dif (16 Bit Integer/Binary Instantaneous value)
+    // FF vif (vendor specific)
+    // 20 vife (vendor specific)
+    // xx xx (info codes)
+    // 04 dif (32 Bit Integer/Binary Instantaneous value)
+    // 13 vif (Volume l)
+    // xx xx xx xx (total volume)
+    // 44 dif (32 Bit Integer/Binary Instantaneous value KamstrupCombined)
+    // 13 vif (Volume l)
+    // xx xx (target volume in compact frame) but xx xx xx xx in full frame!
+
     vector<uchar>::iterator bytes = t->content.begin();
 
     int crc0 = t->content[0];

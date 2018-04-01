@@ -107,7 +107,8 @@ void MeterOmnipower::processContent(Telegram *t)
     // Meter record:
     // 04 dif (32 Bit Integer/Binary Instantaneous value)
     // 83 vif (Energy Wh)
-    // 3b vife
+    // 3b vife (Forward flow contribution only)
+    // xx xx xx xx (total energy)
 
     map<string,pair<int,string>> values;
     parseDV(t, t->content.begin(), t->content.size(), &values);

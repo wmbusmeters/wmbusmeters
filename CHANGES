@@ -1,7 +1,14 @@
 
+Version 0.5:
+
+Added difvif parser to extract as much as possible automatically
+from the the telegram.
+
+Added initial support for Omnipower electricity meter.
+
 Version 0.4:
 
-Added initial support for power meter Multical302.
+Added initial support for heat energy meter Multical302.
 Restructured to source to more easily support multiple meters.
 
 ATTENTION! There is a difference in the command line interface.
