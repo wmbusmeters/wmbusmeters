@@ -163,3 +163,7 @@ https://github.com/CBrunsch/scambus/
 TODO: CRC checks are still missing. If the wrong AES key
 is supplied you probably get zero readings and
 sometimes warnings about wrong type of frames.
+
+There is also a lot of wmbus protocol implementation details that
+probably are missing. They will be added to the program
+as we figure out how the meters send their data.
