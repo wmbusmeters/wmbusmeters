@@ -114,7 +114,7 @@ void MeterOmnipower::processContent(Telegram *t)
 
     int offset;
     extractDVfloat(&values, "04833B", &offset, &total_energy_);
-    t->addMoreExplanation(offset, " total power (%d kwh)", total_energy_);
+    t->addMoreExplanation(offset, " total power (%f kwh)", total_energy_);
 }
 
 ElectricityMeter *createOmnipower(WMBus *bus, const char *name, const char *id, const char *key)
