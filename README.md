@@ -146,6 +146,8 @@ http://www.multical.hu/WiredMBus-water.pdf
 
 http://uu.diva-portal.org/smash/get/diva2:847898/FULLTEXT02.pdf
 
+http://projekter.aau.dk/projekter/da/studentthesis/wireless-mbus-based-extremely-low-power-protocol-for-wireless-communication-with-water-meters(6e1139d5-6f24-4b8a-a727-9bc108012bcc).html
+
 The AES source code is copied from:
 
 https://github.com/kokke/tiny-AES128-C

@@ -1,22 +1,19 @@
-// Copyright (c) 2017 Fredrik Öhrström
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+/*
+ Copyright (C) 2017-2018 Fredrik Öhrström
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include"wmbus.h"
 #include<stdarg.h>
@@ -272,7 +269,22 @@ string ciType(int ci_field)
     return "?";
 }
 
-void Telegram::addExplanation(vector<uchar> &payload, int len, const char* fmt, ...)
+void Telegram::addExplanation(vector<uchar>::iterator &bytes, int len, const char* fmt, ...)
+{
+    char buf[1024];
+    buf[1023] = 0;
+
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, 1023, fmt, args);
+    va_end(args);
+
+    explanations.push_back({parsed.size(), buf});
+    parsed.insert(parsed.end(), bytes, bytes+len);
+    bytes += len;
+}
+
+void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
 {
     char buf[1024];
 
@@ -283,36 +295,46 @@ void Telegram::addExplanation(vector<uchar> &payload, int len, const char* fmt, 
     vsnprintf(buf, 1023, fmt, args);
     va_end(args);
 
-    explanations.push_back({parsed.size(), buf});
-    parsed.insert(parsed.end(), payload.begin()+parsed.size(), payload.begin()+parsed.size()+len);
+    bool found = false;
+    for (auto& p : explanations) {
+        if (p.first == pos) {
+            p.second += buf;
+            found = true;
+        }
+    }
+
+    if (!found) {
+        error("(wmbus) cannot find offset %d to add more explanation \"%s\"\n", pos, buf);
+    }
 }
 
 void Telegram::parse(vector<uchar> &frame)
 {
+    vector<uchar>::iterator bytes = frame.begin();
     parsed.clear();
     len = frame[0];
-    addExplanation(frame, 1, "%02x length (%d bytes)", len, len);
+    addExplanation(bytes, 1, "%02x length (%d bytes)", len, len);
     c_field = frame[1];
-    addExplanation(frame, 1, "%02x c-field (%s)", c_field, cType(c_field).c_str());
+    addExplanation(bytes, 1, "%02x c-field (%s)", c_field, cType(c_field).c_str());
     m_field = frame[3]<<8 | frame[2];
     string man = manufacturerFlag(m_field);
-    addExplanation(frame, 2, "%02x%02x m-field (%02x=%s)", frame[2], frame[3], m_field, man.c_str());
+    addExplanation(bytes, 2, "%02x%02x m-field (%02x=%s)", frame[2], frame[3], m_field, man.c_str());
     a_field.resize(6);
     a_field_address.resize(4);
     for (int i=0; i<6; ++i) {
         a_field[i] = frame[4+i];
         if (i<4) { a_field_address[i] = frame[4+3-i]; }
     }
-    addExplanation(frame, 4, "%02x%02x%02x%02x a-field-addr (%02x%02x%02x%02x)", frame[4], frame[5], frame[6], frame[7],
+    addExplanation(bytes, 4, "%02x%02x%02x%02x a-field-addr (%02x%02x%02x%02x)", frame[4], frame[5], frame[6], frame[7],
                    frame[7], frame[6], frame[5], frame[4]);
 
     a_field_version = frame[4+4];
     a_field_device_type = frame[4+5];
-    addExplanation(frame, 1, "%02x a-field-version", frame[8]);
-    addExplanation(frame, 1, "%02x a-field-type (%s)", frame[9], deviceType(m_field, a_field_device_type).c_str());
+    addExplanation(bytes, 1, "%02x a-field-version", frame[8]);
+    addExplanation(bytes, 1, "%02x a-field-type (%s)", frame[9], deviceType(m_field, a_field_device_type).c_str());
 
     ci_field=frame[10];
-    addExplanation(frame, 1, "%02x ci-field (%s)", ci_field, ciType(ci_field).c_str());
+    addExplanation(bytes, 1, "%02x ci-field (%s)", ci_field, ciType(ci_field).c_str());
 
     int header_size = 0;
     if (ci_field == 0x78) {
@@ -320,25 +342,25 @@ void Telegram::parse(vector<uchar> &frame)
     } else
     if (ci_field == 0x7a) {
         acc = frame[11];
-        addExplanation(frame, 1, "%02x acc", acc);
+        addExplanation(bytes, 1, "%02x acc", acc);
         status = frame[12];
-        addExplanation(frame, 1, "%02x status ()", status);
+        addExplanation(bytes, 1, "%02x status ()", status);
         configuration = frame[13]<<8 | frame[14];
-        addExplanation(frame, 2, "%02x%02x configuration ()", frame[13], frame[14]);
+        addExplanation(bytes, 2, "%02x%02x configuration ()", frame[13], frame[14]);
         header_size = 4;
     } else
     if (ci_field == 0x8d || ci_field == 0x8c) {
         cc_field = frame[11];
-        addExplanation(frame, 1, "%02x cc-field (%s)", cc_field, ccType(cc_field).c_str());
+        addExplanation(bytes, 1, "%02x cc-field (%s)", cc_field, ccType(cc_field).c_str());
         acc = frame[12];
-        addExplanation(frame, 1, "%02x acc", acc);
+        addExplanation(bytes, 1, "%02x acc", acc);
         header_size = 2;
         if (ci_field == 0x8d) {
             sn[0] = frame[13];
             sn[1] = frame[14];
             sn[2] = frame[15];
             sn[3] = frame[16];
-            addExplanation(frame, 4, "%02x%02x%02x%02x sn", sn[0], sn[1], sn[2], sn[3]);
+            addExplanation(bytes, 4, "%02x%02x%02x%02x sn", sn[0], sn[1], sn[2], sn[3]);
             header_size = 6;
         }
     } else {
@@ -394,6 +416,61 @@ string ccType(int cc_field)
     return s;
 }
 
+DIFTYPE difDataType(int dif)
+{
+    int t = dif & 0x0f;
+    switch (t) {
+    case 0x0: return DIF_INTEGER; // No data
+    case 0x1: return DIF_INTEGER; // 8 Bit Integer/Binary
+    case 0x2: return DIF_INTEGER; // 16 Bit Integer/Binary
+    case 0x3: return DIF_INTEGER; // 24 Bit Integer/Binary
+    case 0x4: return DIF_INTEGER; // 32 Bit Integer/Binary
+    case 0x5: return DIF_REAL; // 32 Bit Real
+    case 0x6: return DIF_INTEGER; // 48 Bit Integer/Binary
+    case 0x7: return DIF_INTEGER; // 64 Bit Integer/Binary
+    case 0x8: return DIF_INTEGER; // Selection for Readout (I do not know what this is)
+    case 0x9: return DIF_BCD; // 2 digit BCD
+    case 0xA: return DIF_BCD; // 4 digit BCD
+    case 0xB: return DIF_BCD; // 6 digit BCD
+    case 0xC: return DIF_BCD; // 8 digit BCD
+    case 0xD: return DIF_INTEGER; // variable length
+    case 0xE: return DIF_BCD; // 12 digit BCD
+    case 0xF: return DIF_INTEGER; // Special Functions
+    }
+    return DIF_INTEGER;
+}
+
+int difLenBytes(int dif)
+{
+    if (dif == 0x44) {
+        // Special functions: 0x0F, 0x1F, 0x2F, 0x7F or dif >= 0x3F and dif <= 0x6F
+        // 0x44 is used in the Kamstrup Multical21 for the lower 16 bits of data
+        // to be combined with the upper 16 bits of a previous value.
+        return 2;
+    }
+
+    int t = dif & 0x0f;
+    switch (t) {
+    case 0x0: return 0; // No data
+    case 0x1: return 1; // 8 Bit Integer/Binary
+    case 0x2: return 2; // 16 Bit Integer/Binary
+    case 0x3: return 3; // 24 Bit Integer/Binary
+    case 0x4: return 4; // 32 Bit Integer/Binary
+    case 0x5: return 4; // 32 Bit Real
+    case 0x6: return 6; // 48 Bit Integer/Binary
+    case 0x7: return 8; // 64 Bit Integer/Binary
+    case 0x8: return -1; // Selection for Readout (I do not know what this is)
+    case 0x9: return 1; // 2 digit BCD
+    case 0xA: return 2; // 4 digit BCD
+    case 0xB: return 3; // 6 digit BCD
+    case 0xC: return 4; // 8 digit BCD
+    case 0xD: return -1; // variable length
+    case 0xE: return 6; // 12 digit BCD
+    case 0xF: return -1; // Special Functions
+    }
+    return -1;
+}
+
 string difType(int dif)
 {
     string s;
@@ -422,10 +499,17 @@ string difType(int dif)
 
     switch (t) {
     case 0x00: s += " Instantaneous value"; break;
-    case 0x10: s += "Maximum value"; break;
-    case 0x20: s += "Minimum value"; break;
-    case 0x30: s+= "Value during error state"; break;
+    case 0x10: s += " Maximum value"; break;
+    case 0x20: s += " Minimum value"; break;
+    case 0x30: s+= " Value during error state"; break;
     default: s += "?"; break;
+    }
+
+    if (dif & 0x40) {
+        // Kamstrup uses this bit to signal that for the full 32 bits of data
+        // the lower 16 bits are from this difvif record, the higher 32 bits
+        // are from a different record.
+        s += " KamstrupCombined";
     }
     return s;
 }
@@ -440,6 +524,7 @@ string vifType(int vif)
         case 0xfb: return "First extension of VIF-codes";
         case 0xfd: return "Second extension of VIF-codes";
         case 0xef: return "Reserved extension";
+        case 0xff: return "Kamstrup extension";
         }
     }
 
@@ -592,6 +677,183 @@ string vifType(int vif)
     case 0x7E: return "Any VIF";
     case 0x7F: return "Manufacturer specific";
     default: return "?";
+    }
+}
+
+float vifScale(int vif)
+{
+    int t = vif & 0x7f;
+
+    switch (t) {
+        // wmbusmeters always returns enery as kwh
+    case 0x00: return 1000000.0; // Energy mWh
+    case 0x01: return 100000.0;  // Energy 10⁻² Wh
+    case 0x02: return 10000.0;   // Energy 10⁻¹ Wh
+    case 0x03: return 1000.0;    // Energy Wh
+    case 0x04: return 100.0;     // Energy 10¹ Wh
+    case 0x05: return 10.0;      // Energy 10² Wh
+    case 0x06: return 1.0;       // Energy kWh
+    case 0x07: return 0.1;       // Energy 10⁴ Wh
+
+        // or wmbusmeters always returns energy as MJ
+    case 0x08: return 1000000.0; // Energy J
+    case 0x09: return 100000.0;  // Energy 10¹ J
+    case 0x0A: return 10000.0;   // Energy 10² J
+    case 0x0B: return 1000.0;    // Energy kJ
+    case 0x0C: return 100.0;     // Energy 10⁴ J
+    case 0x0D: return 10.0;      // Energy 10⁵ J
+    case 0x0E: return 1.0;       // Energy MJ
+    case 0x0F: return 0.1;       // Energy 10⁷ J
+
+        // wmbusmeters always returns volume as m3
+    case 0x10: return 1000000.0; // Volume cm³
+    case 0x11: return 100000.0; // Volume 10⁻⁵ m³
+    case 0x12: return 10000.0; // Volume 10⁻⁴ m³
+    case 0x13: return 1000.0; // Volume l
+    case 0x14: return 100.0; // Volume 10⁻² m³
+    case 0x15: return 10.0; // Volume 10⁻¹ m³
+    case 0x16: return 1.0; // Volume m³
+    case 0x17: return 0.1; // Volume 10¹ m³
+
+        // wmbusmeters always returns weight in kg
+    case 0x18: return 1000.0; // Mass g
+    case 0x19: return 100.0;  // Mass 10⁻² kg
+    case 0x1A: return 10.0;   // Mass 10⁻¹ kg
+    case 0x1B: return 1.0;    // Mass kg
+    case 0x1C: return 0.1;    // Mass 10¹ kg
+    case 0x1D: return 0.01;   // Mass 10² kg
+    case 0x1E: return 0.001;  // Mass t
+    case 0x1F: return 0.0001; // Mass 10⁴ kg
+
+        // wmbusmeters always returns time in hours
+    case 0x20: return 3600.0;     // On time seconds
+    case 0x21: return 60.0;       // On time minutes
+    case 0x22: return 1.0;        // On time hours
+    case 0x23: return (1.0/24.0); // On time days
+
+    case 0x24: return 3600.0;     // Operating time seconds
+    case 0x25: return 60.0;       // Operating time minutes
+    case 0x26: return 1.0;        // Operating time hours
+    case 0x27: return (1.0/24.0); // Operating time days
+
+        // wmbusmeters always returns power in kw
+    case 0x28: return 1000000.0; // Power mW
+    case 0x29: return 100000.0; // Power 10⁻² W
+    case 0x2A: return 10000.0; // Power 10⁻¹ W
+    case 0x2B: return 1000.0; // Power W
+    case 0x2C: return 100.0; // Power 10¹ W
+    case 0x2D: return 10.0; // Power 10² W
+    case 0x2E: return 1.0; // Power kW
+    case 0x2F: return 0.1; // Power 10⁴ W
+
+        // or wmbusmeters always returns power in MJh
+    case 0x30: return 1000000.0; // Power J/h
+    case 0x31: return 100000.0; // Power 10¹ J/h
+    case 0x32: return 10000.0; // Power 10² J/h
+    case 0x33: return 1000.0; // Power kJ/h
+    case 0x34: return 100.0; // Power 10⁴ J/h
+    case 0x35: return 10.0; // Power 10⁵ J/h
+    case 0x36: return 1.0; // Power MJ/h
+    case 0x37: return 0.1; // Power 10⁷ J/h
+
+        // wmbusmeters always returns volume flow in m3h
+    case 0x38: return 1000000.0; // Volume flow cm³/h
+    case 0x39: return 100000.0; // Volume flow 10⁻⁵ m³/h
+    case 0x3A: return 10000.0; // Volume flow 10⁻⁴ m³/h
+    case 0x3B: return 1000.0; // Volume flow l/h
+    case 0x3C: return 100.0; // Volume flow 10⁻² m³/h
+    case 0x3D: return 10.0; // Volume flow 10⁻¹ m³/h
+    case 0x3E: return 1.0; // Volume flow m³/h
+    case 0x3F: return 0.1; // Volume flow 10¹ m³/h
+
+        // wmbusmeters always returns volume flow in m3h
+    case 0x40: return 600000000.0; // Volume flow ext. 10⁻⁷ m³/min
+    case 0x41: return 60000000.0; // Volume flow ext. cm³/min
+    case 0x42: return 6000000.0; // Volume flow ext. 10⁻⁵ m³/min
+    case 0x43: return 600000.0; // Volume flow ext. 10⁻⁴ m³/min
+    case 0x44: return 60000.0; // Volume flow ext. l/min
+    case 0x45: return 6000.0; // Volume flow ext. 10⁻² m³/min
+    case 0x46: return 600.0; // Volume flow ext. 10⁻¹ m³/min
+    case 0x47: return 60.0; // Volume flow ext. m³/min
+
+        // this flow numbers will be small in the m3h unit, but it
+        // does not matter since float stores the scale factor in its exponent.
+    case 0x48: return 1000000000.0*3600; // Volume flow ext. mm³/s
+    case 0x49: return 100000000.0*3600; // Volume flow ext. 10⁻⁸ m³/s
+    case 0x4A: return 10000000.0*3600; // Volume flow ext. 10⁻⁷ m³/s
+    case 0x4B: return 1000000.0*3600; // Volume flow ext. cm³/s
+    case 0x4C: return 100000.0*3600; // Volume flow ext. 10⁻⁵ m³/s
+    case 0x4D: return 10000.0*3600; // Volume flow ext. 10⁻⁴ m³/s
+    case 0x4E: return 1000.0*3600; // Volume flow ext. l/s
+    case 0x4F: return 100.0*3600; // Volume flow ext. 10⁻² m³/s
+
+        // wmbusmeters always returns mass flow as kgh
+    case 0x50: return 1000.0; // Mass g/h
+    case 0x51: return 100.0; // Mass 10⁻² kg/h
+    case 0x52: return 10.0; // Mass 10⁻¹ kg/h
+    case 0x53: return 1.0; // Mass kg/h
+    case 0x54: return 0.1; // Mass 10¹ kg/h
+    case 0x55: return 0.01; // Mass 10² kg/h
+    case 0x56: return 0.001; // Mass t/h
+    case 0x57: return 0.0001; // Mass 10⁴ kg/h
+
+        // wmbusmeters always returns temperature in °C
+    case 0x58: return 1000.0; // Flow temperature 10⁻³ °C
+    case 0x59: return 100.0; // Flow temperature 10⁻² °C
+    case 0x5A: return 10.0; // Flow temperature 10⁻¹ °C
+    case 0x5B: return 1.0; // Flow temperature °C
+
+        // wmbusmeters always returns temperature in c
+    case 0x5C: return 1000.0;  // Return temperature 10⁻³ °C
+    case 0x5D: return 100.0; // Return temperature 10⁻² °C
+    case 0x5E: return 10.0; // Return temperature 10⁻¹ °C
+    case 0x5F: return 1.0; // Return temperature °C
+
+        // or if Kelvin is used as a temperature, in K
+        // what kind of meter cares about -273.15 °C
+        // a flow pump for liquid helium perhaps?
+    case 0x60: return 1000.0; // Temperature difference mK
+    case 0x61: return 100.0; // Temperature difference 10⁻² K
+    case 0x62: return 10.0; // Temperature difference 10⁻¹ K
+    case 0x63: return 1.0; // Temperature difference K
+
+        // wmbusmeters always returns temperature in c
+    case 0x64: return 1000.0; // External temperature 10⁻³ °C
+    case 0x65: return 100.0; // External temperature 10⁻² °C
+    case 0x66: return 10.0; // External temperature 10⁻¹ °C
+    case 0x67: return 1.0; // External temperature °C
+
+        // wmbusmeters always returns pressure in bar
+    case 0x68: return 1000.0; // Pressure mbar
+    case 0x69: return 100.0; // Pressure 10⁻² bar
+    case 0x6A: return 10.0; // Pressure 10⁻1 bar
+    case 0x6B: return 1.0; // Pressure bar
+
+    case 0x6C: warning("(wmbus) warning: do not scale a date type!\n"); return -1.0; // Date type G
+    case 0x6E: warning("(wmbus) warning: do not scale a HCA type!\n"); return -1.0; // Units for H.C.A.
+    case 0x6F: warning("(wmbus) warning: do not scale a reserved type!\n"); return -1.0; // Reserved
+
+        // wmbusmeters always returns time in hours
+    case 0x70: return 3600.0; // Averaging duration seconds
+    case 0x71: return 60.0; // Averaging duration minutes
+    case 0x72: return 1.0; // Averaging duration hours
+    case 0x73: return (1.0/24.0); // Averaging duration days
+
+    case 0x74: return 3600.0; // Actuality duration seconds
+    case 0x75: return 60.0; // Actuality duration minutes
+    case 0x76: return 1.0; // Actuality duration hours
+    case 0x77: return (1.0/24.0); // Actuality duration days
+
+    case 0x78: // Fabrication no
+    case 0x79: // Enhanced identification
+    case 0x80: // Address
+
+    case 0x7C: // VIF in following string (length in first byte)
+    case 0x7E: // Any VIF
+    case 0x7F: // Manufacturer specific
+
+    default: warning("(wmbus) warning: type %d cannot be scaled!\n", t);
+        return -1;
     }
 }
 

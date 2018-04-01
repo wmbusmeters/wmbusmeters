@@ -1,29 +1,28 @@
-// Copyright (c) 2018 Fredrik Öhrström
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+/*
+ Copyright (C) 2018 Fredrik Öhrström
 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include"dvparser.h"
 #include"meters.h"
 #include"meters_common_implementation.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
 #include"util.h"
 
+#include<map>
 #include<memory.h>
 #include<stdio.h>
 #include<string>
@@ -103,30 +102,23 @@ void MeterOmnipower::handleTelegram(Telegram *t) {
     triggerUpdate(t);
 }
 
-void MeterOmnipower::processContent(Telegram *t) {
-    vector<uchar> full_content;
-    full_content.insert(full_content.end(), t->parsed.begin(), t->parsed.end());
-    full_content.insert(full_content.end(), t->content.begin(), t->content.end());
+void MeterOmnipower::processContent(Telegram *t)
+{
+    // Meter record:
+    // 04 dif (32 Bit Integer/Binary Instantaneous value)
+    // 83 vif (Energy Wh)
+    // 3b vife
 
-    int rec1dif = t->content[0];
-    t->addExplanation(full_content, 1, "%02x dif (%s)", rec1dif, difType(rec1dif).c_str());
-    int rec1vif = t->content[1];
-    t->addExplanation(full_content, 1, "%02x vif (%s)", rec1vif, vifType(rec1vif).c_str());
-    int rec1vife = t->content[2];
-    t->addExplanation(full_content, 1, "%02x vife (%s)", rec1vife, vifeType(rec1vif, rec1vife).c_str());
+    map<string,pair<int,string>> values;
+    parseDV(t, t->content.begin(), t->content.size(), &values);
 
-    int rec1val0 = t->content[3];
-    int rec1val1 = t->content[4];
-    int rec1val2 = t->content[5];
-    int rec1val3 = t->content[6];
-
-    int total_energy_raw = rec1val3*256*256*256 + rec1val2*256*256 + rec1val1*256 + rec1val0;
-    total_energy_ = ((float)total_energy_raw)/1000.0;
-    t->addExplanation(full_content, 4, "%02x%02x%02x%02x total power (%d)",
-                      rec1val0, rec1val1, rec1val2, rec1val3, total_energy_raw);
+    int offset;
+    extractDVfloat(&values, "04833B", &offset, &total_energy_);
+    t->addMoreExplanation(offset, " total power (%d kwh)", total_energy_);
 }
 
-ElectricityMeter *createOmnipower(WMBus *bus, const char *name, const char *id, const char *key) {
+ElectricityMeter *createOmnipower(WMBus *bus, const char *name, const char *id, const char *key)
+{
     return new MeterOmnipower(bus,name,id,key);
 }
 
@@ -142,7 +134,7 @@ void MeterOmnipower::printMeterHumanReadable(FILE *output)
 
 void MeterOmnipower::printMeterFields(FILE *output, char separator)
 {
-    fprintf(output, "%s%c%s%c%3.3f%c%3.3f%c%s\n",
+    fprintf(output, "%s%c%s%c%f%c%f%c%s\n",
 	    name().c_str(), separator,
 	    id().c_str(), separator,
 	    totalEnergyConsumption(), separator,
@@ -159,8 +151,8 @@ void MeterOmnipower::printMeterJSON(FILE *output)
     fprintf(output, "{media:\"electricity\",meter:\"omnipower\","
 	    QS(name,%s)
 	    QS(id,%s)
-	    Q(total_kwh,%.3f)
-	    QS(current_kw,%.3f)
+	    Q(total_kwh,%f)
+	    QS(current_kw,%f)
 	    QSE(timestamp,%s)
 	    "}\n",
 	    name().c_str(),

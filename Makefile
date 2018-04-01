@@ -35,6 +35,7 @@ $(BUILD)/%.o: %.cc $(wildcard %.h)
 METERS_OBJS:=\
 	$(BUILD)/aes.o \
 	$(BUILD)/cmdline.o \
+	$(BUILD)/dvparser.o \
 	$(BUILD)/main.o \
 	$(BUILD)/meters.o \
 	$(BUILD)/meter_multical21.o \

@@ -1,22 +1,19 @@
-// Copyright (c) 2018 Fredrik Öhrström
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
+/*
+ Copyright (C) 2018 Fredrik Öhrström
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include"meters.h"
 #include"meters_common_implementation.h"
@@ -111,34 +108,34 @@ void MeterMultical302::handleTelegram(Telegram *t) {
 }
 
 void MeterMultical302::processContent(Telegram *t) {
-    vector<uchar> full_content;
-    full_content.insert(full_content.end(), t->parsed.begin(), t->parsed.end());
-    full_content.insert(full_content.end(), t->content.begin(), t->content.end());
+    vector<uchar>::iterator bytes = t->content.begin();
 
     int crc0 = t->content[0];
     int crc1 = t->content[1];
-    t->addExplanation(full_content, 2, "%02x%02x payload crc", crc0, crc1);
+    t->addExplanation(bytes, 2, "%02x%02x payload crc", crc0, crc1);
     int frame_type = t->content[2];
-    t->addExplanation(full_content, 1, "%02x frame type (%s)", frame_type, frameTypeKamstrupC1(frame_type).c_str());
+    t->addExplanation(bytes, 1, "%02x frame type (%s)", frame_type, frameTypeKamstrupC1(frame_type).c_str());
 
     if (frame_type == 0x79) {
 	if (t->content.size() != 17) {
             fprintf(stderr, "(multical302) warning: Unexpected length of frame %zu. Expected 17 bytes! ", t->content.size());
-            padWithZeroesTo(&t->content, 17, &full_content);
+            padWithZeroesTo(&t->content, 17, &t->content);
             warning("\n");
         }
 
-        t->addExplanation(full_content, 4, "%02x%02x%02x%02x unknown", t->content[3], t->content[4], t->content[5], t->content[6]);
+        // This code should be rewritten to use parseDV see the Multical21 code.
+        // But I cannot do this without more examples of 302 telegrams.
+        t->addExplanation(bytes, 4, "%02x%02x%02x%02x unknown", t->content[3], t->content[4], t->content[5], t->content[6]);
 
         int rec1val0 = t->content[7];
         int rec1val1 = t->content[8];
         int rec1val2 = t->content[9];
 
-        t->addExplanation(full_content, 4, "%02x%02x%02x unknown", t->content[10], t->content[11], t->content[12]);
+        t->addExplanation(bytes, 4, "%02x%02x%02x unknown", t->content[10], t->content[11], t->content[12]);
 
         int total_energy_raw  = rec1val2*256*256 + rec1val1*256 + rec1val0;
 	total_energy_ = total_energy_raw;
-        t->addExplanation(full_content, 3, "%02x%02x%02x total power (%d)",
+        t->addExplanation(bytes, 3, "%02x%02x%02x total power (%d)",
                           rec1val0, rec1val1, rec1val2, total_energy_raw);
 
 	int rec2val0 = t->content[13];
@@ -147,28 +144,30 @@ void MeterMultical302::processContent(Telegram *t) {
 
         int total_volume_raw = rec2val2*256*256 + rec2val1*256 + rec2val0;
 	total_volume_ = total_volume_raw;
-        t->addExplanation(full_content, 3, "%02x%02x%02x total volume (%d)",
+        t->addExplanation(bytes, 3, "%02x%02x%02x total volume (%d)",
                           rec2val0, rec2val1, rec2val2, total_volume_raw);
     }
     else if (frame_type == 0x78)
     {
 	if (t->content.size() != 26) {
             fprintf(stderr, "(multical302) warning: Unexpected length of frame %zu. Expected 26 bytes! ", t->content.size());
-            padWithZeroesTo(&t->content, 26, &full_content);
+            padWithZeroesTo(&t->content, 26, &t->content);
             warning("\n");
         }
 
+        // This code should be rewritten to use parseDV see the Multical21 code.
+        // But I cannot do this without more examples of 302 telegrams.
         vector<uchar> unknowns;
         unknowns.insert(unknowns.end(), t->content.begin()+3, t->content.begin()+24);
         string hex = bin2hex(unknowns);
-        t->addExplanation(full_content, 23-2, "%s unknown", hex.c_str());
+        t->addExplanation(bytes, 23-2, "%s unknown", hex.c_str());
 
         int rec1val0 = t->content[24];
         int rec1val1 = t->content[25];
 
         int current_power_raw = (rec1val1*256 + rec1val0)*100;
         current_power_ = current_power_raw;
-        t->addExplanation(full_content, 2, "%02x%02x current power (%d)",
+        t->addExplanation(bytes, 2, "%02x%02x current power (%d)",
                           rec1val0, rec1val1, current_power_raw);
     }
     else {
@@ -193,7 +192,7 @@ void MeterMultical302::printMeterHumanReadable(FILE *output)
 
 void MeterMultical302::printMeterFields(FILE *output, char separator)
 {
-    fprintf(output, "%s%c%s%c%3.3f%c%3.3f%c%3.3f%c%s\n",
+    fprintf(output, "%s%c%s%c%f%c%f%c%f%c%s\n",
 	    name().c_str(), separator,
 	    id().c_str(), separator,
 	    totalEnergyConsumption(), separator,
@@ -211,9 +210,9 @@ void MeterMultical302::printMeterJSON(FILE *output)
     fprintf(output, "{media:\"heat\",meter:\"multical302\","
 	    QS(name,%s)
 	    QS(id,%s)
-	    Q(total_kwh,%.3f)
-            Q(total_volume_m3,%.3f)
-	    QS(current_kw,%.3f)
+	    Q(total_kwh,%f)
+            Q(total_volume_m3,%f)
+	    QS(current_kw,%f)
 	    QSE(timestamp,%s)
 	    "}\n",
 	    name().c_str(),

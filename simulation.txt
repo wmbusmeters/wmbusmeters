@@ -2,18 +2,18 @@
 
 # short telegram
 telegram=|23442D2C998734761B168D2093E13CBA20|967F79EDA8047B7100F4180000E918|
-{media:"cold water",meter:"multical21","name":"MyTapWater","id":"76348799","total_m3":6.388,"target_m3":6.377,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+{media:"cold water",meter:"multical21","name":"MyTapWater","id":"76348799","total_m3":6.388000,"target_m3":6.377000,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 
 # full telegram
 telegram=|2A442D2C998734761B168D2049F03FBA20|39A17802FF2071000413F41800004413E9180000615B|
-{media:"cold water",meter:"multical21","name":"MyTapWater","id":"76348799","total_m3":6.388,"target_m3":6.377,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+{media:"cold water",meter:"multical21","name":"MyTapWater","id":"76348799","total_m3":6.388000,"target_m3":6.377000,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 
 # Test Multical302 C1 telegrams
 
 # short telegram, this is not a proper telegram! Please provide the output from --logtelegrams for a Multical302 meter!
 
 telegram=|25442D2C785634121b048D2093E13CBA20|0000790000000000000000000000000000|
-{media:"heat",meter:"multical302","name":"MyHeater","id":"12345678","total_kwh":0.000,"total_volume_m3":0.000,"current_kw":"0.000","timestamp":"1111-11-11T11:11:11Z"}
+{media:"heat",meter:"multical302","name":"MyHeater","id":"12345678","total_kwh":0.000000,"total_volume_m3":0.000000,"current_kw":"0.000000","timestamp":"1111-11-11T11:11:11Z"}
 
 # full telegram
 
@@ -22,4 +22,4 @@ telegram=|25442D2C785634121b048D2093E13CBA20|0000790000000000000000000000000000|
 # Test Omnipower C1 telegrams
 
 telegram=|1E442D2C0771941501027A|B300108504833B08340500|
-{media:"electricity",meter:"omnipower","name":"MyElectricity","id":"15947107","total_kwh":341.000,"current_kw":"0.000","timestamp":"1111-11-11T11:11:11Z"}
+{media:"electricity",meter:"omnipower","name":"MyElectricity","id":"15947107","total_kwh":341.000000,"current_kw":"0.000000","timestamp":"1111-11-11T11:11:11Z"}
