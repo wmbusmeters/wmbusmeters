@@ -203,14 +203,13 @@ void MeterMultical21::processContent(Telegram *t)
         // has to wait a bit.
         t->addExplanation(bytes, 4, "%02x%02x%02x%02x ecrc", ecrc0, ecrc1, ecrc2, ecrc3);
 
-        vector<uchar>::iterator data = t->content.begin()+7;
-        size_t data_len = t->content.size()-7;
-        map<string,pair<int,string>> values;
-        uint16_t format_hash;
+        // So we hardcode the format string here.
         vector<uchar> format_bytes;
         hex2bin("02FF2004134413", &format_bytes);
         vector<uchar>::iterator format = format_bytes.begin();
-        parseDV(t, data, data_len, &values, &format, format_bytes.size(), &format_hash);
+
+        map<string,pair<int,string>> values;
+        parseDV(t, t->content.begin()+7, t->content.size()-7, &values, &format, format_bytes.size());
 
         int offset;
 
@@ -234,11 +233,8 @@ void MeterMultical21::processContent(Telegram *t)
             warning("\n");
         }
 
-        vector<uchar>::iterator data = t->content.begin()+3;
-        size_t data_len = t->content.size()-3-4; // Why this number?
         map<string,pair<int,string>> values;
-        uint16_t format_hash;
-        parseDV(t, data, data_len, &values, NULL, 0, &format_hash);
+        parseDV(t, t->content.begin()+3, t->content.size()-3-4, &values);
 
         // There are two more bytes in the data. Unknown purpose.
         int val0 = t->content[20];
@@ -258,7 +254,8 @@ void MeterMultical21::processContent(Telegram *t)
         t->addMoreExplanation(offset, " target consumption (%f m3)", target_volume_);
 
         // To unknown bytes, seems to be very constant.
-        t->addExplanation(data, 2, "%02x%02x unknown", val0, val1);
+        vector<uchar>::iterator unknowns = t->content.begin()+20;
+        t->addExplanation(unknowns, 2, "%02x%02x unknown", val0, val1);
     } else {
         warning("(multical21) warning: unknown frame %02x (did you use the correct encryption key?)\n", frame_type);
     }
