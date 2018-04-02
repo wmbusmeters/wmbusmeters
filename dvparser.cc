@@ -64,6 +64,11 @@ bool parseDV(Telegram *t,
     for (;;) {
         if (*format == format_end) break;
         uchar dif = **format;
+
+        if (dif == 0x2f) {
+            t->addExplanation(*format, 1, "%02X skip", dif);
+            continue;
+        }
         int len = difLenBytes(dif);
         if (full_header) {
             format_bytes.push_back(dif);
@@ -202,7 +207,7 @@ bool extractDVfloatCombined(std::map<std::string,std::pair<int,std::string>> *va
     vector<uchar> v;
     hex2bin(p.second, &v);
 
-    pair<int,string>&  pp = (*values)[key];
+    pair<int,string>&  pp = (*values)[key_high_bits];
     vector<uchar> v_high;
     hex2bin(pp.second, &v_high);
 
