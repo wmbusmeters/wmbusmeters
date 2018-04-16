@@ -34,7 +34,9 @@ bool parseDV(Telegram *t,
              std::map<std::string,std::pair<int,std::string>> *values,
              std::vector<uchar>::iterator *format = NULL,
              size_t format_len = 0,
-             uint16_t *format_hash = NULL);
+             uint16_t *format_hash = NULL,
+             std::function<int(int,int,int)> overrideDifLen = NULL
+             );
 
 bool extractDVuint16(std::map<std::string,std::pair<int,std::string>> *values,
                      std::string key,

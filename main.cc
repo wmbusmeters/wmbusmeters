@@ -48,7 +48,7 @@ int main(int argc, char **argv)
                "        or 10m for ten minutes or 5s for five seconds.\n");
         printf("Specifying auto as the device will automatically look for usb\n");
         printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
-        printf("The meter type: multical21 (a water meter) is supported.\n"
+        printf("The meter types: multical21 and flowiq3100 (water meters) are supported.\n"
                "The meter types: multical302 (heat) and omnipower (electricity)\n"
                "are work in progress.\n\n");
         exit(0);
@@ -108,8 +108,12 @@ int main(int argc, char **argv)
         for (auto &m : cmdline->meters) {
             switch (toMeterType(m.type)) {
             case MULTICAL21_METER:
-                m.meter = createMultical21(wmbus, m.name, m.id, m.key);
+                m.meter = createMultical21(wmbus, m.name, m.id, m.key, MULTICAL21_METER);
                 verbose("(multical21) configured \"%s\" \"multical21\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+                break;
+            case FLOWIQ3100_METER:
+                m.meter = createMultical21(wmbus, m.name, m.id, m.key, FLOWIQ3100_METER);
+                verbose("(flowiq3100) configured \"%s\" \"flowiq3100\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
                 break;
             case MULTICAL302_METER:
                 m.meter = createMultical302(wmbus, m.name, m.id, m.key);

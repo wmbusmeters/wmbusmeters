@@ -24,7 +24,7 @@
 #include<string>
 #include<vector>
 
-#define LIST_OF_METERS X(MULTICAL21_METER)X(MULTICAL302_METER)X(OMNIPOWER_METER)X(UNKNOWN_METER)
+#define LIST_OF_METERS X(MULTICAL21_METER)X(FLOWIQ3100_METER)X(MULTICAL302_METER)X(OMNIPOWER_METER)X(UNKNOWN_METER)
 
 enum MeterType {
 #define X(name) name,
@@ -88,7 +88,7 @@ struct ElectricityMeter : public virtual Meter {
 
 
 MeterType toMeterType(const char *type);
-WaterMeter *createMultical21(WMBus *bus, const char *name, const char *id, const char *key);
+WaterMeter *createMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt);
 HeatMeter *createMultical302(WMBus *bus, const char *name, const char *id, const char *key);
 ElectricityMeter *createOmnipower(WMBus *bus, const char *name, const char *id, const char *key);
 

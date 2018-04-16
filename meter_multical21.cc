@@ -45,7 +45,7 @@ using namespace std;
 #define INFO_CODE_BURST_SHIFT (4+9)
 
 struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterMultical21(WMBus *bus, const char *name, const char *id, const char *key);
+    MeterMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt);
 
     // Total water counted through the meter
     float totalWaterConsumption();
@@ -86,11 +86,23 @@ private:
     bool has_target_volume_ {};
     float max_flow_ {};
     bool has_max_flow_ {};
+
+    const char *meter_name_; // multical21 or flowiq3100
+    int expected_version_ {}; // 0x1b for Multical21 and 0x1d for FlowIQ3100
 };
 
-MeterMultical21::MeterMultical21(WMBus *bus, const char *name, const char *id, const char *key) :
-    MeterCommonImplementation(bus, name, id, key, MULTICAL21_METER, MANUFACTURER_KAM, 0x16)
+MeterMultical21::MeterMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt) :
+    MeterCommonImplementation(bus, name, id, key, mt, MANUFACTURER_KAM, 0x16)
 {
+    if (type() == MULTICAL21_METER) {
+        expected_version_ = 0x1b;
+        meter_name_ = "multical21";
+    } else if (type() == FLOWIQ3100_METER) {
+        expected_version_ = 0x1d;
+        meter_name_ = "flowiq3100";
+    } else {
+        assert(0);
+    }
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
@@ -125,9 +137,12 @@ bool MeterMultical21::hasMaxFlow()
     return has_max_flow_;
 }
 
-WaterMeter *createMultical21(WMBus *bus, const char *name, const char *id, const char *key)
+WaterMeter *createMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt)
 {
-    return new MeterMultical21(bus,name,id,key);
+    if (mt != MULTICAL21_METER && mt != FLOWIQ3100_METER) {
+        error("Internal error! Not a proper meter type when creating a multical21 style meter.\n");
+    }
+    return new MeterMultical21(bus,name,id,key,mt);
 }
 
 void MeterMultical21::handleTelegram(Telegram *t)
@@ -137,20 +152,23 @@ void MeterMultical21::handleTelegram(Telegram *t)
         return;
     }
 
-    verbose("(multical21) telegram for %s %02x%02x%02x%02x\n",
+    verbose("(%s) telegram for %s %02x%02x%02x%02x\n", meter_name_,
             name().c_str(),
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
     if (t->a_field_device_type != 0x16) {
-        warning("(multical21) expected telegram for water media, but got \"%s\"!\n",
+        warning("(%s) expected telegram for water media, but got \"%s\"!\n", meter_name_,
                 mediaType(t->m_field, t->a_field_device_type).c_str());
     }
 
     if (t->m_field != manufacturer() ||
-        t->a_field_version != 0x1b) {
-        warning("(multical21) expected telegram from KAM meter with version 0x1b, but got \"%s\" version 0x2x !\n",
-                manufacturerFlag(t->m_field).c_str(), t->a_field_version);
+        t->a_field_version != expected_version_) {
+        warning("(%s) expected telegram from KAM meter with version 0x%02x, "
+                "but got \"%s\" meter with version 0x%02x !\n", meter_name_,
+                expected_version_,
+                manufacturerFlag(t->m_field).c_str(),
+                t->a_field_version);
     }
 
     if (useAes()) {
@@ -159,11 +177,14 @@ void MeterMultical21::handleTelegram(Telegram *t)
     } else {
         t->content = t->payload;
     }
-    logTelegram("(multical21) log", t->parsed, t->content);
+    char log_prefix[256];
+    snprintf(log_prefix, 255, "(%s) log", meter_name_);
+    logTelegram(log_prefix, t->parsed, t->content);
     int content_start = t->parsed.size();
     processContent(t);
     if (isDebugEnabled()) {
-        t->explainParse("(multical21)", content_start);
+        snprintf(log_prefix, 255, "(%s)", meter_name_);
+        t->explainParse(log_prefix, content_start);
     }
     triggerUpdate(t);
 }
@@ -194,7 +215,7 @@ void MeterMultical21::processContent(Telegram *t)
     if (frame_type == 0x79)
     {
         if (t->content.size() != 15) {
-            warning("(multical21) warning: Unexpected length of short frame %zu. Expected 15 bytes! ",
+            warning("(%s) warning: Unexpected length of short frame %zu. Expected 15 bytes! ", meter_name_,
                     t->content.size());
             padWithZeroesTo(&t->content, 15, &t->content);
             warning("\n");
@@ -221,7 +242,13 @@ void MeterMultical21::processContent(Telegram *t)
         vector<uchar>::iterator format = format_bytes.begin();
 
         map<string,pair<int,string>> values;
-        parseDV(t, t->content.begin()+7, t->content.size()-7, &values, &format, format_bytes.size());
+        parseDV(t, t->content.begin()+7, t->content.size()-7, &values, &format, format_bytes.size(),
+                NULL,
+                [](int dif, int vif, int len) {
+                    // Override len for 4413 to len 2 for compact frame!
+                    if (dif==0x44 && vif==0x13) { return 2; }
+                    return len;
+                });
 
         int offset;
 
@@ -240,13 +267,13 @@ void MeterMultical21::processContent(Telegram *t)
     if (frame_type == 0x78)
     {
         if (t->content.size() != 22) {
-            warning("(multical21) warning: Unexpected length of long frame %zu. Expected 22 bytes! ", t->content.size());
+            warning("(%s) warning: Unexpected length of long frame %zu. Expected 22 bytes! ", meter_name_, t->content.size());
             padWithZeroesTo(&t->content, 22, &t->content);
             warning("\n");
         }
 
         map<string,pair<int,string>> values;
-        parseDV(t, t->content.begin()+3, t->content.size()-3-4, &values);
+        parseDV(t, t->content.begin()+3, t->content.size()-3-2, &values);
 
         // There are two more bytes in the data. Unknown purpose.
         int val0 = t->content[20];
@@ -269,7 +296,7 @@ void MeterMultical21::processContent(Telegram *t)
         vector<uchar>::iterator unknowns = t->content.begin()+20;
         t->addExplanation(unknowns, 2, "%02x%02x unknown", val0, val1);
     } else {
-        warning("(multical21) warning: unknown frame %02x (did you use the correct encryption key?)\n", frame_type);
+        warning("(%s) warning: unknown frame %02x (did you use the correct encryption key?)\n", meter_name_, frame_type);
     }
 }
 
@@ -371,7 +398,7 @@ string MeterMultical21::statusHumanReadable()
 string MeterMultical21::decodeTime(int time)
 {
     if (time>7) {
-        warning("(multical21) warning: Cannot decode time %d should be 0-7.\n", time);
+        warning("(%s) warning: Cannot decode time %d should be 0-7.\n", meter_name_, time);
     }
     switch (time) {
     case 0:

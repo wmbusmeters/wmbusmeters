@@ -4,9 +4,9 @@ PROG="$1"
 
 cat simulation.txt | grep '^{' > test_expected.txt
 $PROG --robot=json simulation.txt \
-      MyTapWater water 76348799 "" \
-      MyHeater heat 12345678 "" \
-      MyElectricity electricity 15947107 "" \
+      MyTapWater multical21 76348799 "" \
+      MyHeater multical302 12345678 "" \
+      MyElectricity omnipower 15947107 "" \
       > test_output.txt
 if [ "$?" == "0" ]
 then

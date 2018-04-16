@@ -26,7 +26,7 @@ Add --verbose for detailed debug information.
 Specifying auto as the device will automatically look for usb
 wmbus dongles on /dev/im871a and /dev/amb8465.
 
-The meter type: multical21 (a water meter) is supported.
+The meter types: multical21 and flowiq3100 (water meters) are supported.
 The meter types: multical302 (heat) and omnipower (electricity)
 are work in progress.
 ```
