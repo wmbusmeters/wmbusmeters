@@ -30,9 +30,9 @@
 struct MeterMultical302 : public virtual HeatMeter, public virtual MeterCommonImplementation {
     MeterMultical302(WMBus *bus, const char *name, const char *id, const char *key);
 
-    float totalEnergyConsumption();
-    float currentPowerConsumption();
-    float totalVolume();
+    double totalEnergyConsumption();
+    double currentPowerConsumption();
+    double totalVolume();
 
     void printMeterHumanReadable(FILE *output);
     void printMeterFields(FILE *output, char separator);
@@ -42,9 +42,9 @@ private:
     void handleTelegram(Telegram *t);
     void processContent(Telegram *t);
 
-    float total_energy_ {};
-    float current_power_ {};
-    float total_volume_ {};
+    double total_energy_ {};
+    double current_power_ {};
+    double total_volume_ {};
 };
 
 MeterMultical302::MeterMultical302(WMBus *bus, const char *name, const char *id, const char *key) :
@@ -53,17 +53,17 @@ MeterMultical302::MeterMultical302(WMBus *bus, const char *name, const char *id,
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
-float MeterMultical302::totalEnergyConsumption()
+double MeterMultical302::totalEnergyConsumption()
 {
     return total_energy_;
 }
 
-float MeterMultical302::currentPowerConsumption()
+double MeterMultical302::currentPowerConsumption()
 {
     return current_power_;
 }
 
-float MeterMultical302::totalVolume()
+double MeterMultical302::totalVolume()
 {
     return total_volume_;
 }

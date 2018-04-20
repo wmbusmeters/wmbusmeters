@@ -105,7 +105,7 @@ MeterType toMeterType(const char *type)
 
 bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
 {
-    return t->m_field == manufacturer_ &&
+    return (manufacturer_ == 0 || t->m_field == manufacturer_) &&
         t->a_field_address[3] == id_[3] &&
         t->a_field_address[2] == id_[2] &&
         t->a_field_address[1] == id_[1] &&
@@ -120,6 +120,26 @@ bool MeterCommonImplementation::useAes()
 vector<uchar> MeterCommonImplementation::key()
 {
     return key_;
+}
+
+vector<string> MeterCommonImplementation::getRecords()
+{
+    vector<string> recs;
+    for (auto& p : values_)
+    {
+        recs.push_back(p.first);
+    }
+    return recs;
+}
+
+double MeterCommonImplementation::getRecordAsDouble(string record)
+{
+    return 0.0;
+}
+
+uint16_t MeterCommonImplementation::getRecordAsUInt16(string record)
+{
+    return 0;
 }
 
 void MeterCommonImplementation::triggerUpdate(Telegram *t)

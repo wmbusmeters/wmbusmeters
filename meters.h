@@ -57,14 +57,19 @@ struct Meter {
     virtual bool isTelegramForMe(Telegram *t) = 0;
     virtual bool useAes() = 0;
     virtual vector<uchar> key() = 0;
+
+    // Dynamically access all data received for the meter.
+    virtual std::vector<std::string> getRecords() = 0;
+    virtual double getRecordAsDouble(std::string record) = 0;
+    virtual uint16_t getRecordAsUInt16(std::string record) = 0;
 };
 
 struct WaterMeter : public virtual Meter {
-    virtual float totalWaterConsumption() = 0; // m3
+    virtual double totalWaterConsumption() = 0; // m3
     virtual bool  hasTotalWaterConsumption() = 0;
-    virtual float targetWaterConsumption() = 0; // m3
+    virtual double targetWaterConsumption() = 0; // m3
     virtual bool  hasTargetWaterConsumption() = 0;
-    virtual float maxFlow() = 0;
+    virtual double maxFlow() = 0;
     virtual bool  hasMaxFlow() = 0;
 
     virtual string statusHumanReadable() = 0;
@@ -76,20 +81,23 @@ struct WaterMeter : public virtual Meter {
 };
 
 struct HeatMeter : public virtual Meter {
-    virtual float totalEnergyConsumption() = 0; // kwh
-    virtual float currentPowerConsumption() = 0; // kw
-    virtual float totalVolume() = 0; // m3
+    virtual double totalEnergyConsumption() = 0; // kwh
+    virtual double currentPowerConsumption() = 0; // kw
+    virtual double totalVolume() = 0; // m3
 };
 
 struct ElectricityMeter : public virtual Meter {
-    virtual float totalEnergyConsumption() = 0; // kwh
-    virtual float currentPowerConsumption() = 0; // kw
+    virtual double totalEnergyConsumption() = 0; // kwh
+    virtual double currentPowerConsumption() = 0; // kw
 };
 
+struct GenericMeter : public virtual Meter {
+};
 
 MeterType toMeterType(const char *type);
 WaterMeter *createMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt);
 HeatMeter *createMultical302(WMBus *bus, const char *name, const char *id, const char *key);
 ElectricityMeter *createOmnipower(WMBus *bus, const char *name, const char *id, const char *key);
+GenericMeter *createGeneric(WMBus *bus, const char *name, const char *id, const char *key);
 
 #endif

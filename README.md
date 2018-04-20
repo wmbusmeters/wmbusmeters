@@ -8,7 +8,7 @@ utility meter readings.
 |Linux G++| [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master)](https://travis-ci.org/weetmuts/wmbusmeters) |
 
 ```
-wmbusmeters version: 0.4
+wmbusmeters version: 0.5
 Usage: wmbusmeters {options} (auto | /dev/ttyUSBx)] { [meter_name] [meter_type] [meter_id] [meter_key] }*
 
 Add more meter quadruplets to listen to more meters.

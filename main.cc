@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 	printf("    --meterfiles defaults dir to /tmp.\n");
 	printf("    --oneshot wait for an update from each meter, then quit.\n\n");
         printf("    --exitafter=20h program exits after running for twenty hoursh\n"
-               "        or 10m for ten minutes or 5s for five seconds.\n");
+               "        or 10m for ten minutes or 5s for five seconds.\n\n");
         printf("Specifying auto as the device will automatically look for usb\n");
         printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
         printf("The meter types: multical21 and flowiq3100 (water meters) are supported.\n"

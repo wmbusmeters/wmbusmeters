@@ -130,17 +130,17 @@ string ciType(int ci_field);
 string cType(int c_field);
 string ccType(int cc_field);
 string difType(int dif);
-float vifScale(int vif);
-string vifType(int vif);
-string vifeType(int vif, int vife);
+double vifScale(int vif);
+string vifKey(int vif); // E.g. temperature energy power mass_flow volume_flow
+string vifUnit(int vif); // E.g. m3 c kwh kw MJ MJh
+string vifType(int vif); // Long description
+string vifeType(int vif, int vife); // Long description
+string formatData(int dif, int vif, int vife, string data);
 
-enum DIFTYPE {
-    DIF_INTEGER,
-    DIF_REAL,
-    DIF_BCD
-};
+double extract8bitAsDouble(int dif, int vif, int vife, string data);
+double extract16bitAsDouble(int dif, int vif, int vife, string data);
+double extract32bitAsDouble(int dif, int vif, int vife, string data);
 
 int difLenBytes(int dif);
-DIFTYPE difDataType(int dif);
 
 #endif

@@ -20,6 +20,8 @@
 
 #include"meters.h"
 
+#include<map>
+
 struct MeterCommonImplementation : public virtual Meter {
     string id();
     string name();
@@ -37,6 +39,10 @@ struct MeterCommonImplementation : public virtual Meter {
     bool isTelegramForMe(Telegram *t);
     bool useAes();
     vector<uchar> key();
+
+    std::vector<std::string> getRecords();
+    double getRecordAsDouble(std::string record);
+    uint16_t getRecordAsUInt16(std::string record);
 
     MeterCommonImplementation(WMBus *bus, const char *name, const char *id, const char *key,
                               MeterType type, int manufacturer, int media);
@@ -58,6 +64,9 @@ private:
     int num_updates_ {};
     bool use_aes_ {};
     time_t datetime_of_update_ {};
+
+protected:
+    std::map<std::string,std::pair<int,std::string>> values_;
 };
 
 #endif

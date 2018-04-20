@@ -32,8 +32,8 @@
 struct MeterOmnipower : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
     MeterOmnipower(WMBus *bus, const char *name, const char *id, const char *key);
 
-    float totalEnergyConsumption();
-    float currentPowerConsumption();
+    double totalEnergyConsumption();
+    double currentPowerConsumption();
 
     void printMeterHumanReadable(FILE *output);
     void printMeterFields(FILE *output, char separator);
@@ -43,8 +43,8 @@ private:
     void handleTelegram(Telegram *t);
     void processContent(Telegram *t);
 
-    float total_energy_ {};
-    float current_power_ {};
+    double total_energy_ {};
+    double current_power_ {};
 };
 
 MeterOmnipower::MeterOmnipower(WMBus *bus, const char *name, const char *id, const char *key) :
@@ -53,12 +53,12 @@ MeterOmnipower::MeterOmnipower(WMBus *bus, const char *name, const char *id, con
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
-float MeterOmnipower::totalEnergyConsumption()
+double MeterOmnipower::totalEnergyConsumption()
 {
     return total_energy_;
 }
 
-float MeterOmnipower::currentPowerConsumption()
+double MeterOmnipower::currentPowerConsumption()
 {
     return current_power_;
 }
@@ -114,7 +114,7 @@ void MeterOmnipower::processContent(Telegram *t)
     parseDV(t, t->content.begin(), t->content.size(), &values);
 
     int offset;
-    extractDVfloat(&values, "04833B", &offset, &total_energy_);
+    extractDVdouble(&values, "04833B", &offset, &total_energy_);
     t->addMoreExplanation(offset, " total power (%f kwh)", total_energy_);
 }
 

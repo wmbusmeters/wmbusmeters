@@ -416,29 +416,6 @@ string ccType(int cc_field)
     return s;
 }
 
-DIFTYPE difDataType(int dif)
-{
-    int t = dif & 0x0f;
-    switch (t) {
-    case 0x0: return DIF_INTEGER; // No data
-    case 0x1: return DIF_INTEGER; // 8 Bit Integer/Binary
-    case 0x2: return DIF_INTEGER; // 16 Bit Integer/Binary
-    case 0x3: return DIF_INTEGER; // 24 Bit Integer/Binary
-    case 0x4: return DIF_INTEGER; // 32 Bit Integer/Binary
-    case 0x5: return DIF_REAL; // 32 Bit Real
-    case 0x6: return DIF_INTEGER; // 48 Bit Integer/Binary
-    case 0x7: return DIF_INTEGER; // 64 Bit Integer/Binary
-    case 0x8: return DIF_INTEGER; // Selection for Readout (I do not know what this is)
-    case 0x9: return DIF_BCD; // 2 digit BCD
-    case 0xA: return DIF_BCD; // 4 digit BCD
-    case 0xB: return DIF_BCD; // 6 digit BCD
-    case 0xC: return DIF_BCD; // 8 digit BCD
-    case 0xD: return DIF_INTEGER; // variable length
-    case 0xE: return DIF_BCD; // 12 digit BCD
-    case 0xF: return DIF_INTEGER; // Special Functions
-    }
-    return DIF_INTEGER;
-}
 
 int difLenBytes(int dif)
 {
@@ -509,10 +486,10 @@ string difType(int dif)
     }
 
     if (dif & 0x40) {
-        // Kamstrup uses this bit to signal that for the full 32 bits of data
-        // the lower 16 bits are from this difvif record, the higher 32 bits
-        // are from a different record.
-        s += " KamstrupCombined";
+        // Kamstrup uses this bit in the Multical21 to signal that for the
+        // full 32 bits of data, the lower 16 bits are from this difvif record,
+        // and the high 16 bits are from a different record.
+        s += " VendorSpecific";
     }
     return s;
 }
@@ -683,7 +660,7 @@ string vifType(int vif)
     }
 }
 
-float vifScale(int vif)
+double vifScale(int vif)
 {
     int t = vif & 0x7f;
 
@@ -780,7 +757,7 @@ float vifScale(int vif)
     case 0x47: return 60.0; // Volume flow ext. m³/min
 
         // this flow numbers will be small in the m3h unit, but it
-        // does not matter since float stores the scale factor in its exponent.
+        // does not matter since double stores the scale factor in its exponent.
     case 0x48: return 1000000000.0*3600; // Volume flow ext. mm³/s
     case 0x49: return 100000000.0*3600; // Volume flow ext. 10⁻⁸ m³/s
     case 0x4A: return 10000000.0*3600; // Volume flow ext. 10⁻⁷ m³/s
@@ -860,6 +837,322 @@ float vifScale(int vif)
     }
 }
 
+string vifKey(int vif)
+{
+    int t = vif & 0x7f;
+
+    switch (t) {
+
+    case 0x00:
+    case 0x01:
+    case 0x02:
+    case 0x03:
+    case 0x04:
+    case 0x05:
+    case 0x06:
+    case 0x07: return "energy";
+
+    case 0x08:
+    case 0x09:
+    case 0x0A:
+    case 0x0B:
+    case 0x0C:
+    case 0x0D:
+    case 0x0E:
+    case 0x0F: return "energy";
+
+    case 0x10:
+    case 0x11:
+    case 0x12:
+    case 0x13:
+    case 0x14:
+    case 0x15:
+    case 0x16:
+    case 0x17: return "volume";
+
+    case 0x18:
+    case 0x19:
+    case 0x1A:
+    case 0x1B:
+    case 0x1C:
+    case 0x1D:
+    case 0x1E:
+    case 0x1F: return "mass";
+
+    case 0x20:
+    case 0x21:
+    case 0x22:
+    case 0x23: return "on_time";
+
+    case 0x24:
+    case 0x25:
+    case 0x26:
+    case 0x27: return "operating_time";
+
+    case 0x28:
+    case 0x29:
+    case 0x2A:
+    case 0x2B:
+    case 0x2C:
+    case 0x2D:
+    case 0x2E:
+    case 0x2F: return "power";
+
+    case 0x30:
+    case 0x31:
+    case 0x32:
+    case 0x33:
+    case 0x34:
+    case 0x35:
+    case 0x36:
+    case 0x37: return "power";
+
+    case 0x38:
+    case 0x39:
+    case 0x3A:
+    case 0x3B:
+    case 0x3C:
+    case 0x3D:
+    case 0x3E:
+    case 0x3F: return "volume_flow";
+
+    case 0x40:
+    case 0x41:
+    case 0x42:
+    case 0x43:
+    case 0x44:
+    case 0x45:
+    case 0x46:
+    case 0x47: return "volume_flow_ext";
+
+    case 0x48:
+    case 0x49:
+    case 0x4A:
+    case 0x4B:
+    case 0x4C:
+    case 0x4D:
+    case 0x4E:
+    case 0x4F: return "volume_flow_ext";
+
+    case 0x50:
+    case 0x51:
+    case 0x52:
+    case 0x53:
+    case 0x54:
+    case 0x55:
+    case 0x56:
+    case 0x57: return "mass_flow";
+
+    case 0x58:
+    case 0x59:
+    case 0x5A:
+    case 0x5B: return "flow_temperature";
+
+    case 0x5C:
+    case 0x5D:
+    case 0x5E:
+    case 0x5F: return "return_temperature";
+
+    case 0x60:
+    case 0x61:
+    case 0x62:
+    case 0x63: return "temperature_difference";
+
+    case 0x64:
+    case 0x65:
+    case 0x66:
+    case 0x67: return "external_temperature";
+
+    case 0x68:
+    case 0x69:
+    case 0x6A:
+    case 0x6B: return "pressure";
+
+    case 0x6C: return "date"; // Date type G
+    case 0x6E: return "hca"; // Units for H.C.A.
+    case 0x6F: return "reserved"; // Reserved
+
+    case 0x70:
+    case 0x71:
+    case 0x72:
+    case 0x73: return "average_duration";
+
+    case 0x74:
+    case 0x75:
+    case 0x76:
+    case 0x77: return "actual_duration";
+
+    case 0x78: return "fabrication_no"; // Fabrication no
+    case 0x79: return "enhanced_identification"; // Enhanced identification
+    case 0x80: return "address"; // Address
+
+    case 0x7C: // VIF in following string (length in first byte)
+    case 0x7E: // Any VIF
+    case 0x7F: // Manufacturer specific
+
+    default: warning("(wmbus) warning: generic type %d cannot be scaled!\n", t);
+        return "unknown";
+    }
+}
+
+string vifUnit(int vif)
+{
+    int t = vif & 0x7f;
+
+    switch (t) {
+
+    case 0x00:
+    case 0x01:
+    case 0x02:
+    case 0x03:
+    case 0x04:
+    case 0x05:
+    case 0x06:
+    case 0x07: return "kwh";
+
+    case 0x08:
+    case 0x09:
+    case 0x0A:
+    case 0x0B:
+    case 0x0C:
+    case 0x0D:
+    case 0x0E:
+    case 0x0F: return "MJ";
+
+    case 0x10:
+    case 0x11:
+    case 0x12:
+    case 0x13:
+    case 0x14:
+    case 0x15:
+    case 0x16:
+    case 0x17: return "m3";
+
+    case 0x18:
+    case 0x19:
+    case 0x1A:
+    case 0x1B:
+    case 0x1C:
+    case 0x1D:
+    case 0x1E:
+    case 0x1F: return "kg";
+
+    case 0x20:
+    case 0x21:
+    case 0x22:
+    case 0x23:
+    case 0x24:
+    case 0x25:
+    case 0x26:
+    case 0x27: return "h";
+
+    case 0x28:
+    case 0x29:
+    case 0x2A:
+    case 0x2B:
+    case 0x2C:
+    case 0x2D:
+    case 0x2E:
+    case 0x2F: return "kw";
+
+    case 0x30:
+    case 0x31:
+    case 0x32:
+    case 0x33:
+    case 0x34:
+    case 0x35:
+    case 0x36:
+    case 0x37: return "MJ";
+
+    case 0x38:
+    case 0x39:
+    case 0x3A:
+    case 0x3B:
+    case 0x3C:
+    case 0x3D:
+    case 0x3E:
+    case 0x3F: return "m3/h";
+
+    case 0x40:
+    case 0x41:
+    case 0x42:
+    case 0x43:
+    case 0x44:
+    case 0x45:
+    case 0x46:
+    case 0x47: return "m3/h";
+
+    case 0x48:
+    case 0x49:
+    case 0x4A:
+    case 0x4B:
+    case 0x4C:
+    case 0x4D:
+    case 0x4E:
+    case 0x4F: return "m3/h";
+
+    case 0x50:
+    case 0x51:
+    case 0x52:
+    case 0x53:
+    case 0x54:
+    case 0x55:
+    case 0x56:
+    case 0x57: return "kg/h";
+
+    case 0x58:
+    case 0x59:
+    case 0x5A:
+    case 0x5B: return "c";
+
+    case 0x5C:
+    case 0x5D:
+    case 0x5E:
+    case 0x5F: return "c";
+
+    case 0x60:
+    case 0x61:
+    case 0x62:
+    case 0x63: return "k";
+
+    case 0x64:
+    case 0x65:
+    case 0x66:
+    case 0x67: return "c";
+
+    case 0x68:
+    case 0x69:
+    case 0x6A:
+    case 0x6B: return "bar";
+
+    case 0x6C: return ""; // Date type G
+    case 0x6D: return ""; // ??
+    case 0x6E: return ""; // Units for H.C.A.
+    case 0x6F: return ""; // Reserved
+
+    case 0x70:
+    case 0x71:
+    case 0x72:
+    case 0x73: return "h";
+
+    case 0x74:
+    case 0x75:
+    case 0x76:
+    case 0x77: return "h";
+
+    case 0x78: return ""; // Fabrication no
+    case 0x79: return ""; // Enhanced identification
+    case 0x80: return ""; // Address
+
+    case 0x7C: // VIF in following string (length in first byte)
+    case 0x7E: // Any VIF
+    case 0x7F: // Manufacturer specific
+
+    default: warning("(wmbus) warning: generic type %d cannot be scaled!\n", t);
+        return "unknown";
+    }
+}
+
 string vifeType(int vif, int vife)
 {
     //int extension = vif & 0x80;
@@ -872,4 +1165,99 @@ string vifeType(int vif, int vife)
         return "?";
     }
     return "?";
+}
+
+double toDoubleFromBytes(vector<uchar> &bytes, int len) {
+    double d = 0;
+    for (int i=0; i<len; ++i) {
+        double x = bytes[i];
+        d += x*(256^i);
+    }
+    return d;
+}
+
+double toDoubleFromBCD(vector<uchar> &bytes, int len) {
+    double d = 0;
+    for (int i=0; i<len; ++i) {
+        double x = bytes[i]&0xf;
+        d += x*(10^(i*2));
+        double xx = bytes[i]>>4;
+        d += xx*(10^(1+i*2));
+    }
+    return d;
+}
+
+double dataAsDouble(int dif, int vif, int vife, string data)
+{
+    vector<uchar> bytes;
+    hex2bin(data, &bytes);
+
+    int t = dif & 0x0f;
+    switch (t) {
+    case 0x0: return 0.0;
+    case 0x1: return toDoubleFromBytes(bytes, 1);
+    case 0x2: return toDoubleFromBytes(bytes, 2);
+    case 0x3: return toDoubleFromBytes(bytes, 3);
+    case 0x4: return toDoubleFromBytes(bytes, 4);
+    case 0x5: return -1;  //  How is REAL stored?
+    case 0x6: return toDoubleFromBytes(bytes, 6);
+        // Note that for 64 bit data, storing it into a double might lose precision
+        // since the mantissa is less than 64 bit. It is unlikely that anyone
+        // really needs true 64 bit precision in their measurements from a physical meter though.
+    case 0x7: return toDoubleFromBytes(bytes, 8);
+    case 0x8: return -1; // Selection for Readout?
+    case 0x9: return toDoubleFromBCD(bytes, 1);
+    case 0xA: return toDoubleFromBCD(bytes, 2);
+    case 0xB: return toDoubleFromBCD(bytes, 3);
+    case 0xC: return toDoubleFromBCD(bytes, 4);
+    case 0xD: return -1; // variable length
+    case 0xE: return toDoubleFromBCD(bytes, 6);
+    case 0xF: return -1; // Special Functions
+    }
+    return -1;
+}
+
+uint64_t dataAsUint64(int dif, int vif, int vife, string data)
+{
+    vector<uchar> bytes;
+    hex2bin(data, &bytes);
+
+    int t = dif & 0x0f;
+    switch (t) {
+    case 0x0: return 0.0;
+    case 0x1: return toDoubleFromBytes(bytes, 1);
+    case 0x2: return toDoubleFromBytes(bytes, 2);
+    case 0x3: return toDoubleFromBytes(bytes, 3);
+    case 0x4: return toDoubleFromBytes(bytes, 4);
+    case 0x5: return -1;  //  How is REAL stored?
+    case 0x6: return toDoubleFromBytes(bytes, 6);
+        // Note that for 64 bit data, storing it into a double might lose precision
+        // since the mantissa is less than 64 bit. It is unlikely that anyone
+        // really needs true 64 bit precision in their measurements from a physical meter though.
+    case 0x7: return toDoubleFromBytes(bytes, 8);
+    case 0x8: return -1; // Selection for Readout?
+    case 0x9: return toDoubleFromBCD(bytes, 1);
+    case 0xA: return toDoubleFromBCD(bytes, 2);
+    case 0xB: return toDoubleFromBCD(bytes, 3);
+    case 0xC: return toDoubleFromBCD(bytes, 4);
+    case 0xD: return -1; // variable length
+    case 0xE: return toDoubleFromBCD(bytes, 6);
+    case 0xF: return -1; // Special Functions
+    }
+    return -1;
+}
+
+string formatData(int dif, int vif, int vife, string data)
+{
+    string r;
+
+    int t = vif & 0x7f;
+    if (t >= 0 && t <= 0x77 && !(t >= 0x6c && t<=0x6f)) {
+        // These are vif codes with an understandable key and unit.
+        double val = dataAsDouble(dif, vif, vife, data);
+        strprintf(r, "%d", val);
+        return r;
+    }
+
+    return data;
 }

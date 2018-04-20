@@ -43,16 +43,18 @@ bool extractDVuint16(std::map<std::string,std::pair<int,std::string>> *values,
                      int *offset,
                      uint16_t *value);
 
-bool extractDVfloat(std::map<std::string,std::pair<int,std::string>> *values,
+bool extractDVdouble(std::map<std::string,std::pair<int,std::string>> *values,
                     std::string key,
                     int *offset,
-                    float *value);
+                    double *value);
 
 // Extract low bits from primary entry and hight bits from secondary entry.
-bool extractDVfloatCombined(std::map<std::string,std::pair<int,std::string>> *values,
+bool extractDVdoubleCombined(std::map<std::string,std::pair<int,std::string>> *values,
                             std::string key_high_bits, // Which key to extract high bits from.
                             std::string key,
                             int *offset,
-                            float *value);
+                            double *value);
+
+void extractDV(string &s, uchar *dif, uchar *vif, uchar *vife);
 
 #endif

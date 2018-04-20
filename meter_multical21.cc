@@ -48,16 +48,16 @@ struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonIm
     MeterMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt);
 
     // Total water counted through the meter
-    float totalWaterConsumption();
+    double totalWaterConsumption();
     bool  hasTotalWaterConsumption();
 
     // Meter sends target water consumption or max flow, depending on meter configuration
     // We can see which was sent inside the wmbus message!
     // Target water consumption: The total consumption at the start of the previous 30 day period.
-    float targetWaterConsumption();
+    double targetWaterConsumption();
     bool  hasTargetWaterConsumption();
     // Max flow during last month or last 24 hours depending on meter configuration.
-    float maxFlow();
+    double maxFlow();
     bool  hasMaxFlow();
 
     // statusHumanReadable: DRY,REVERSED,LEAK,BURST if that status is detected right now, followed by
@@ -80,11 +80,11 @@ private:
     string decodeTime(int time);
 
     uint16_t info_codes_ {};
-    float total_water_consumption_ {};
+    double total_water_consumption_ {};
     bool has_total_water_consumption_ {};
-    float target_volume_ {};
+    double target_volume_ {};
     bool has_target_volume_ {};
-    float max_flow_ {};
+    double max_flow_ {};
     bool has_max_flow_ {};
 
     const char *meter_name_; // multical21 or flowiq3100
@@ -107,7 +107,7 @@ MeterMultical21::MeterMultical21(WMBus *bus, const char *name, const char *id, c
 }
 
 
-float MeterMultical21::totalWaterConsumption()
+double MeterMultical21::totalWaterConsumption()
 {
     return total_water_consumption_;
 }
@@ -117,7 +117,7 @@ bool MeterMultical21::hasTotalWaterConsumption()
     return has_total_water_consumption_;
 }
 
-float MeterMultical21::targetWaterConsumption()
+double MeterMultical21::targetWaterConsumption()
 {
     return target_volume_;
 }
@@ -127,7 +127,7 @@ bool MeterMultical21::hasTargetWaterConsumption()
     return has_target_volume_;
 }
 
-float MeterMultical21::maxFlow()
+double MeterMultical21::maxFlow()
 {
     return max_flow_;
 }
@@ -225,21 +225,24 @@ void MeterMultical21::processContent(Telegram *t)
         // The DRH is the dif(dife)vif(vife) bytes for all the records...
         // This hash should be used to pick up a suitable format string.
         // Below, DRH is hardcoded to 02FF2004134413
-        int ecrc0 = t->content[3];
-        int ecrc1 = t->content[4];
+        uchar ecrc0 = t->content[3];
+        uchar ecrc1 = t->content[4];
+        t->addExplanation(bytes, 2, "%02x%02x format signature", ecrc0, ecrc1);
+        uint16_t format_signature = ecrc0<<8 | ecrc1;
 
-        // 2,3 = crc for payload = hash over both DRH and data bytes.
+        // The format signature is used to find the proper format string.
+        // But since the crc calculation is not yet functional. This functionality
+        // has to wait a bit. So we hardcode the format string here.
+        vector<uchar> format_bytes;
+        hex2bin("02FF2004134413", &format_bytes); // Yes, the hash of this string should equal the format signature above.
+        uint16_t format_hash = crc16_EN13757(&format_bytes[0], 7);
+        debug("(multical21) format signature %4X format hash %4X\n", format_signature, format_hash);
+        vector<uchar>::iterator format = format_bytes.begin();
+
+        // 2,3 = crc for payload = hash over both DRH and data bytes. Or is it only over the data bytes?
         int ecrc2 = t->content[5];
         int ecrc3 = t->content[6];
-
-        // But since the crc calculation is not yet functional. This functionality
-        // has to wait a bit.
-        t->addExplanation(bytes, 4, "%02x%02x%02x%02x ecrc", ecrc0, ecrc1, ecrc2, ecrc3);
-
-        // So we hardcode the format string here.
-        vector<uchar> format_bytes;
-        hex2bin("02FF2004134413", &format_bytes);
-        vector<uchar>::iterator format = format_bytes.begin();
+        t->addExplanation(bytes, 2, "%02x%02x data crc", ecrc2, ecrc3);
 
         map<string,pair<int,string>> values;
         parseDV(t, t->content.begin()+7, t->content.size()-7, &values, &format, format_bytes.size(),
@@ -255,11 +258,11 @@ void MeterMultical21::processContent(Telegram *t)
         extractDVuint16(&values, "02FF20", &offset, &info_codes_);
         t->addMoreExplanation(offset, " info codes (%s)", statusHumanReadable().c_str());
 
-        extractDVfloat(&values, "0413", &offset, &total_water_consumption_);
+        extractDVdouble(&values, "0413", &offset, &total_water_consumption_);
         has_total_water_consumption_ = true;
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
 
-        extractDVfloatCombined(&values, "0413", "4413", &offset, &target_volume_);
+        extractDVdoubleCombined(&values, "0413", "4413", &offset, &target_volume_);
 	has_target_volume_ = true;
         t->addMoreExplanation(offset, " target consumption (%f m3)", target_volume_);
     }
@@ -284,11 +287,11 @@ void MeterMultical21::processContent(Telegram *t)
         extractDVuint16(&values, "02FF20", &offset, &info_codes_);
         t->addMoreExplanation(offset, " info codes (%s)", statusHumanReadable().c_str());
 
-        extractDVfloat(&values, "0413", &offset, &total_water_consumption_);
+        extractDVdouble(&values, "0413", &offset, &total_water_consumption_);
         has_total_water_consumption_ = true;
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
 
-        extractDVfloat(&values, "4413", &offset, &target_volume_);
+        extractDVdouble(&values, "4413", &offset, &target_volume_);
 	has_target_volume_ = true;
         t->addMoreExplanation(offset, " target consumption (%f m3)", target_volume_);
 

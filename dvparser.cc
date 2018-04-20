@@ -80,6 +80,10 @@ bool parseDV(Telegram *t,
         }
         int len = difLenBytes(dif);
         DEBUG_PARSER("len=%d\n", len);
+        if (len == -1) {
+            warning("(dvparser) cannot handle dif %2X\n", dif);
+            return false;
+        }
         if (full_header) {
             format_bytes.push_back(dif);
             t->addExplanation(*format, 1, "%02X dif (%s)", dif, difType(dif).c_str());
@@ -188,13 +192,13 @@ bool extractDVuint16(map<string,pair<int,string>> *values,
     return true;
 }
 
-bool extractDVfloat(map<string,pair<int,string>> *values,
+bool extractDVdouble(map<string,pair<int,string>> *values,
                     string key,
                     int *offset,
-                    float *value)
+                    double *value)
 {
     if ((*values).count(key) == 0) {
-        warning("(dvparser) warning: cannot extract float from non-existant key \"%s\"\n", key.c_str());
+        warning("(dvparser) warning: cannot extract double from non-existant key \"%s\"\n", key.c_str());
         *offset = 0;
         *value = 0;
         return false;
@@ -208,20 +212,20 @@ bool extractDVfloat(map<string,pair<int,string>> *values,
     hex2bin(p.second, &v);
 
     int raw = v[3]*256*256*256 + v[2]*256*256 + v[1]*256 + v[0];
-    float scale = vifScale(vif);
-    *value = ((float)raw) / scale;
+    double scale = vifScale(vif);
+    *value = ((double)raw) / scale;
 
     return true;
 }
 
-bool extractDVfloatCombined(std::map<std::string,std::pair<int,std::string>> *values,
+bool extractDVdoubleCombined(std::map<std::string,std::pair<int,std::string>> *values,
                             std::string key_high_bits, // Which key to extract high bits from.
                             std::string key,
                             int *offset,
-                            float *value)
+                            double *value)
 {
     if ((*values).count(key) == 0 || (*values).count(key_high_bits) == 0) {
-        warning("(dvparser) warning: cannot extract combined float since at least one key is missing \"%s\" \"%s\"\n", key.c_str(),
+        warning("(dvparser) warning: cannot extract combined double since at least one key is missing \"%s\" \"%s\"\n", key.c_str(),
                 key_high_bits.c_str());
         *offset = 0;
         *value = 0;
@@ -240,8 +244,8 @@ bool extractDVfloatCombined(std::map<std::string,std::pair<int,std::string>> *va
     hex2bin(pp.second, &v_high);
 
     int raw = v_high[3]*256*256*256 + v_high[2]*256*256 + v[1]*256 + v[0];
-    float scale = vifScale(vif);
-    *value = ((float)raw) / scale;
+    double scale = vifScale(vif);
+    *value = ((double)raw) / scale;
 
     return true;
 }

@@ -36,7 +36,6 @@ METERS_OBJS:=\
 	$(BUILD)/aes.o \
 	$(BUILD)/cmdline.o \
 	$(BUILD)/dvparser.o \
-	$(BUILD)/main.o \
 	$(BUILD)/meters.o \
 	$(BUILD)/meter_multical21.o \
 	$(BUILD)/meter_multical302.o \
@@ -50,16 +49,20 @@ METERS_OBJS:=\
 	$(BUILD)/wmbus_simulator.o \
 	$(BUILD)/wmbus_utils.o
 
-all: $(BUILD)/wmbusmeters
+all: $(BUILD)/wmbusmeters $(BUILD)/testinternals
 	$(STRIP_BINARY)
 
-$(BUILD)/wmbusmeters: $(METERS_OBJS)
-	$(CXX) -o $(BUILD)/wmbusmeters $(METERS_OBJS) -lpthread
+$(BUILD)/wmbusmeters: $(METERS_OBJS) $(BUILD)/main.o
+	$(CXX) -o $(BUILD)/wmbusmeters $(METERS_OBJS) $(BUILD)/main.o -lpthread
+
+$(BUILD)/testinternals: $(METERS_OBJS) $(BUILD)/testinternals.o
+	$(CXX) -o $(BUILD)/testinternals $(METERS_OBJS) $(BUILD)/testinternals.o -lpthread
 
 clean:
 	rm -f build/* build_arm/* build_debug/* build_arm_debug/* *~
 
 test:
+	./build/testinternals
 	./test.sh build/wmbusmeters
 
 update_manufacturers:
