@@ -126,14 +126,11 @@ created: either `/dev/im871a` or `/dev/amb8465`. These symlinks are
 necessary if you want to pass "auto" to wmbusmeters instead of the
 exact serial port /dev/ttyUSBx.
 
-# Limitations
-
-Two usb wmbus receivers are supported: IMST im871A and Amber Wireless AMB8465.
-
-One supported meter: Multical21 (water meter)
-And two meters that are work in progress: Multical302 (heat energy meter) and Omnipower (electricity meters).
+# Source code
 
 The source code is modular and it should be relatively straightforward to add more receivers and meters.
+
+Read for example the text file: HowToAddaNewMeter.txt
 
 # Good documents on the wireless mbus protocol:
 
