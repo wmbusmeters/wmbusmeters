@@ -207,7 +207,9 @@ void MeterMultical302::printMeterFields(FILE *output, char separator)
 
 void MeterMultical302::printMeterJSON(FILE *output)
 {
-    fprintf(output, "{media:\"heat\",meter:\"multical302\","
+    fprintf(output, "{"
+            QS(media,heat)
+            QS(meter,multical302)
 	    QS(name,%s)
 	    QS(id,%s)
 	    Q(total_kwh,%f)

@@ -149,7 +149,9 @@ void MeterOmnipower::printMeterFields(FILE *output, char separator)
 
 void MeterOmnipower::printMeterJSON(FILE *output)
 {
-    fprintf(output, "{media:\"electricity\",meter:\"omnipower\","
+    fprintf(output, "{"
+            QS(media,electricity)
+            QS(meter,omnipower)
 	    QS(name,%s)
 	    QS(id,%s)
 	    Q(total_kwh,%f)

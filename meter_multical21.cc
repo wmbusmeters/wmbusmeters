@@ -453,7 +453,9 @@ void MeterMultical21::printMeterFields(FILE *output, char separator)
 
 void MeterMultical21::printMeterJSON(FILE *output)
 {
-    fprintf(output, "{media:\"%s\",meter:\"multical21\","
+    fprintf(output, "{"
+            QS(media,%s)
+            QS(meter,multical21)
 	    QS(name,%s)
 	    QS(id,%s)
 	    Q(total_m3,%f)
