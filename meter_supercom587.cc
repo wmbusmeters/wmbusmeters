@@ -96,6 +96,8 @@ void MeterSupercom587::handleTelegram(Telegram *t)
                 mediaType(t->m_field, t->a_field_device_type).c_str());
     }
 
+    updateMedia(t->a_field_device_type);
+
     if (t->m_field != manufacturer() ||
         t->a_field_version != 0x3c) {
         warning("(%s) expected telegram from SON meter with version 0x%02x, "

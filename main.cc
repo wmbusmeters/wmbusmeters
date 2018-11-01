@@ -48,8 +48,8 @@ int main(int argc, char **argv)
                "        or 10m for ten minutes or 5s for five seconds.\n\n");
         printf("Specifying auto as the device will automatically look for usb\n");
         printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
-        printf("The meter types: multical21 and flowiq3100 (water meters) are supported.\n"
-               "The meter types: multical302 (heat) and omnipower (electricity) and supercom587 (water)\n"
+        printf("The meter types: multical21,flowiq3100,supercom587 (water meters) are supported.\n"
+               "The meter types: multical302 (heat) and omnipower (electricity)\n"
                "are work in progress.\n\n");
         exit(0);
     }

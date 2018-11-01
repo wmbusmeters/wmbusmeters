@@ -165,3 +165,8 @@ void MeterCommonImplementation::triggerUpdate(Telegram *t)
     for (auto &cb : on_update_) if (cb) cb(this);
     t->handled = true;
 }
+
+void MeterCommonImplementation::updateMedia(int media)
+{
+    media_ = media;
+}

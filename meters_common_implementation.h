@@ -52,6 +52,7 @@ struct MeterCommonImplementation : public virtual Meter {
 protected:
 
     void triggerUpdate(Telegram *t);
+    void updateMedia(int media);
 
 private:
 
