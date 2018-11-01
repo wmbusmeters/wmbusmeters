@@ -1,5 +1,5 @@
 # wmbusmeters
-The program receives and decodes C1 telegrams
+The program receives and decodes C1 or T1 telegrams
 (using the wireless mbus protocol) to acquire
 utility meter readings.
 
