@@ -446,7 +446,7 @@ int difLenBytes(int dif)
     case 0xC: return 4; // 8 digit BCD
     case 0xD: return -1; // variable length
     case 0xE: return 6; // 12 digit BCD
-    case 0xF: return -1; // Special Functions
+    case 0xF: return -2; // Special Functions
     }
     return -1;
 }

@@ -103,9 +103,7 @@ MeterType toMeterType(const char *type)
     if (!strcmp(type, "flowiq3100")) return FLOWIQ3100_METER;
     if (!strcmp(type, "multical302")) return MULTICAL302_METER;
     if (!strcmp(type, "omnipower")) return OMNIPOWER_METER;
-    if (!strcmp(type, "water")) return MULTICAL21_METER;
-    if (!strcmp(type, "heat")) return MULTICAL302_METER;
-    if (!strcmp(type, "electricity")) return OMNIPOWER_METER;
+    if (!strcmp(type, "supercom587")) return SUPERCOM587_METER;
     return UNKNOWN_METER;
 }
 

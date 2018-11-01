@@ -91,20 +91,19 @@ void MeterSupercom587::handleTelegram(Telegram *t)
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    if (t->a_field_device_type != 0x16) {
-        warning("(%s) expected telegram for water media, but got \"%s\"!\n", "supercom587",
+    if (t->a_field_device_type != 0x07 && t->a_field_device_type != 0x06) {
+        warning("(%s) expected telegram for cold or warm water media, but got \"%s\"!\n", "supercom587",
                 mediaType(t->m_field, t->a_field_device_type).c_str());
     }
 
-    /*
     if (t->m_field != manufacturer() ||
-        t->a_field_version != expected_version_) {
+        t->a_field_version != 0x3c) {
         warning("(%s) expected telegram from SON meter with version 0x%02x, "
-                "but got \"%s\" meter with version 0x%02x !\n", meter_name_,
-                expected_version_,
+                "but got \"%s\" meter with version 0x%02x !\n", "supercom587",
+                0x3c,
                 manufacturerFlag(t->m_field).c_str(),
                 t->a_field_version);
-                }*/
+    }
 
     if (useAes()) {
         vector<uchar> aeskey = key();
@@ -126,6 +125,15 @@ void MeterSupercom587::handleTelegram(Telegram *t)
 
 void MeterSupercom587::processContent(Telegram *t)
 {
+    // Meter record:
+
+    map<string,pair<int,string>> values;
+    parseDV(t, t->content.begin(), t->content.size(), &values);
+
+    int offset;
+
+    extractDVdouble(&values, "0C13", &offset, &total_water_consumption_);
+    t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
 }
 
 void MeterSupercom587::printMeterHumanReadable(FILE *output)

@@ -21,7 +21,7 @@
 // The parser should not crash on invalid data, but yeah, when I
 // need to debug it because it crashes on invalid data, then
 // I enable the following define...
-//#define DEBUG_PARSER(...) fprintf(stderr, __VA_ARGS__)
+//#define DEBUG_PARSER(...) fprintf(stdout, __VA_ARGS__)
 #define DEBUG_PARSER(...)
 
 using namespace std;
@@ -44,6 +44,7 @@ bool parseDV(Telegram *t,
     vector<uchar>::iterator data_end = data+data_len;
     vector<uchar>::iterator format_end;
     bool full_header = false;
+    bool variable_length = false;
 
     if (format == NULL) {
         format = &data;
@@ -73,7 +74,7 @@ bool parseDV(Telegram *t,
         if (*format == format_end) break;
         uchar dif = **format;
 
-        DEBUG_PARSER("dif=%02x\n", dif);
+        DEBUG_PARSER("dif=%02x \"%s\"\n", dif, difType(dif).c_str());
         if (dif == 0x2f) {
             t->addExplanation(*format, 1, "%02X skip", dif);
             continue;
@@ -81,6 +82,11 @@ bool parseDV(Telegram *t,
         int len = difLenBytes(dif);
         DEBUG_PARSER("len=%d\n", len);
         if (len == -1) {
+            variable_length = true;
+        } else {
+            variable_length = false;
+        }
+        if (len == -2) {
             warning("(dvparser) cannot handle dif %2X\n", dif);
             return false;
         }
@@ -94,20 +100,12 @@ bool parseDV(Telegram *t,
         if (*format == format_end) { warning("(dvparser) warning: unexpected end of data (vif expected)"); break; }
 
         uchar vif = **format;
-        DEBUG_PARSER("vif=%02x\n", vif);
+        DEBUG_PARSER("vif=%02x \"%s\"\n", vif, vifType(vif).c_str());
         if (full_header) {
             format_bytes.push_back(vif);
             t->addExplanation(*format, 1, "%02X vif (%s)", vif, vifType(vif).c_str());
         } else {
             (*format)++;
-        }
-
-        if (overrideDifLen) {
-            int new_len = overrideDifLen(dif, vif, len);
-            if (new_len != len) {
-                DEBUG_PARSER("changing len %d to %d for dif=%02x vif=%02x\n", len, new_len, dif, vif);
-                len = new_len;
-            }
         }
 
         strprintf(dv, "%02X%02X", dif, vif);
@@ -125,15 +123,26 @@ bool parseDV(Telegram *t,
             strprintf(dv, "%02X%02X%02X", dif, vif, vife);
         }
 
+        if (overrideDifLen) {
+            int new_len = overrideDifLen(dif, vif, len);
+            if (new_len != len) {
+                DEBUG_PARSER("changing len %d to %d for dif=%02x vif=%02x\n", len, new_len, dif, vif);
+                len = new_len;
+            }
+        }
+
         int count = ++dv_count[dv];
-        DEBUG_PARSER("DifVif key is %s and its count is %d\n", dv.c_str(), count);
         if (count > 1) {
             strprintf(key, "%s_%d", dv.c_str(), count);
         } else {
             strprintf(key, "%s", dv.c_str());
         }
+        DEBUG_PARSER("DifVif key is %s\n", key.c_str());
 
-        int remaining = std::distance(data,data_end);
+        int remaining = std::distance(data, data_end);
+        if (variable_length) {
+            len = remaining;
+        }
         DEBUG_PARSER("remaining data %d len=%d\n", remaining, len);
         if (remaining < len) {
             warning("(dvparser) warning: unexpected end of data\n");
