@@ -19,6 +19,7 @@ Add --verbose for detailed debug information.
     --meterfiles=dir to create status files below dir,
           named dir/meter_name, containing the latest reading.
     --meterfiles defaults dir to /tmp.
+    --c1 or --t1 listen to C1 or T1 messages
     --oneshot wait for an update from each meter, then quit.
     --exitafter=20h program exits after running for twenty hours,
           or 10m for ten minutes or 5s for five seconds.
@@ -53,7 +54,15 @@ multical-602) might be compatible as well. The same is true for the
 omnipower meter type, which might include the electricity meters
 Kamstrup-162 Kamstrup-382, Kamstrup-351 etc).
 
-No meter quadruplets means listen for telegram traffic and print any id heard.
+No meter quadruplets means listen for telegram traffic and print any id heard,
+but you have to specify if you want to listen using radio mode C1 or T1. E.g.
+
+```
+./build/wmbusmeters --t1 /dev/ttyUSB0
+```
+
+You can listen to multiple meters as long as they all require the same radio mode C1 or T1.
+So (currently) you cannot listen to a multical21 and a supercom587 with a single dongle at the same time.
 
 # Usage examples
 
