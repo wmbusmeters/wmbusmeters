@@ -53,6 +53,8 @@ struct CommandLine {
     bool oneshot {};
     int  exitafter {}; // Seconds to exit.
     char *usb_device {};
+    LinkMode link_mode {};
+    bool link_mode_set {};
     vector<MeterInfo> meters;
 };
 

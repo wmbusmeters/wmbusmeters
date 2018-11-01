@@ -1261,3 +1261,13 @@ string formatData(int dif, int vif, int vife, string data)
 
     return data;
 }
+
+string linkModeName(LinkMode link_mode)
+{
+    switch (link_mode) {
+    case LinkModeC1: return "C1";
+    case LinkModeT1: return "T1";
+    case UNKNOWN_LINKMODE: break;
+    }
+    return "UnknownLinkMode";
+}

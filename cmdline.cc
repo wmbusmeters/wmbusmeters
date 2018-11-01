@@ -50,6 +50,24 @@ CommandLine *parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strcmp(argv[i], "--c1")) {
+            if (c->link_mode_set) {
+                error("You have already specified a link mode!\n");
+            }
+            c->link_mode = LinkModeC1;
+            c->link_mode_set = true;
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--t1")) {
+            if (c->link_mode_set) {
+                error("You have already specified a link mode!\n");
+            }
+            c->link_mode = LinkModeT1;
+            c->link_mode_set = true;
+            i++;
+            continue;
+        }
         if (!strcmp(argv[i], "--logtelegrams")) {
             c->logtelegrams = true;
             i++;
