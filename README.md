@@ -60,7 +60,7 @@ No meter quadruplets means listen for telegram traffic and print any id heard,
 but you have to specify if you want to listen using radio mode C1 or T1. E.g.
 
 ```
-./build/wmbusmeters --t1 /dev/ttyUSB0
+wmbusmeters --t1 /dev/ttyUSB0
 ```
 
 You can listen to multiple meters as long as they all require the same radio mode C1 or T1.
@@ -69,7 +69,7 @@ So (currently) you cannot listen to a multical21 and a supercom587 with a single
 # Usage examples
 
 ```
-./build/wmbusmeters /dev/ttyUSB0 MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF
+wmbusmeters /dev/ttyUSB0 MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF
 ```
 
 wmbusmeters will detect which kind of dongle is connected to /dev/ttyUSB0. It can be either an IMST 871a dongle or an Amber Wireless AMB8465. If you have setup the udev rules below, then you can use auto instead of /dev/ttyUSB0.
@@ -80,7 +80,7 @@ Example output:
 
 Example robot json output:
 
-`./build/wmbusmeters --robot=json auto MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF MyHeater multical302 22222222 00112233445566778899AABBCCDDEEFF`
+`wmbusmeters --robot=json auto MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF MyHeater multical302 22222222 00112233445566778899AABBCCDDEEFF`
 
 `{media:"cold water",meter:"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z"}`
 
@@ -88,29 +88,27 @@ Example robot json output:
 
 Example robot fields output:
 
-`./build/wmbusmeters --robot=fields auto GreenhouseWater multical21 33333333 ""`
+`wmbusmeters --robot=fields auto GreenhouseWater multical21 33333333 ""`
 
 `GreenhouseTapWater;33333333;9999.099;77.712;;2018-03-05 12:10.24`
 
 Eaxmple of using the shell command to publish to MQTT:
 
-`./build/wmbusmeters --shell='mosquitto_pub -h localhost -t water -m "$METER_JSON"' auto GreenhouseWater multical21 33333333 ""`
+`wmbusmeters --shell='HOME=/home/you mosquitto_pub -h localhost -t water -m "$METER_JSON"' auto GreenhouseWater multical21 33333333 ""`
 
 Eaxmple of using the shell command to inject data into postgresql database:
 
-```
-./build_debug/wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$METER_ID',\$METER_TOTAL_M3,'\$METER_TIMESTAMP') \" " auto MyColdWater multical21 12345678 ""
-```
+`wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$METER_ID',\$METER_TOTAL_M3,'\$METER_TIMESTAMP') \" " auto MyColdWater multical21 12345678 ""`
 
-You can have multiple shell commands and they will be executed in the order you gave them on the commandline. Not that to single quotes around the command is
-necessary to pass the env variable names into wmbusmeters.
+You can have multiple shell commands and they will be executed in the order you gave them on the commandline.
+Note that to single quotes around the command is necessary to pass the env variable names into wmbusmeters.
 
 You can use `--debug` to get both verbose output and the actual data bytes sent back and forth with the wmbus usb dongle.
 
 If the meter does not use encryption of its meter data, then enter an empty key on the command line.
 (you must enter "")
 
-`./build/wmbusmeters --robot --meterfiles auto MyTapWater multical21 12345678 ""`
+`wmbusmeters --robot --meterfiles auto MyTapWater multical21 12345678 ""`
 
 You can run wmbusmeters with --logtelegrams to get log output that can be placed in a simulation.txt
 file. You can then run wmbusmeter and instead of auto (or an usb device) provide the simulationt.xt
