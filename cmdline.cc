@@ -123,6 +123,20 @@ CommandLine *parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--shell=", 8)) {
+            string cmd = string(argv[i]+8);
+            if (cmd == "") {
+                error("The shell command cannot be empty.\n");
+            }
+            c->shells.push_back(cmd);
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--shellenvs", 11)) {
+            c->list_shell_envs = true;
+            i++;
+            continue;
+        }
         if (!strcmp(argv[i], "--oneshot")) {
             c->oneshot = true;
             i++;

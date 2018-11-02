@@ -34,9 +34,11 @@ struct MeterMultical302 : public virtual HeatMeter, public virtual MeterCommonIm
     double currentPowerConsumption();
     double totalVolume();
 
-    void printMeterHumanReadable(FILE *output);
-    void printMeterFields(FILE *output, char separator);
-    void printMeterJSON(FILE *output);
+
+    void printMeter(string *human_readable,
+                    string *fields, char separator,
+                    string *json,
+                    vector<string> *envs);
 
 private:
     void handleTelegram(Telegram *t);
@@ -179,48 +181,62 @@ HeatMeter *createMultical302(WMBus *bus, const char *name, const char *id, const
     return new MeterMultical302(bus,name,id,key);
 }
 
-void MeterMultical302::printMeterHumanReadable(FILE *output)
+void MeterMultical302::printMeter(string *human_readable,
+                                  string *fields, char separator,
+                                  string *json,
+                                  vector<string> *envs)
 {
-    fprintf(output, "%s\t%s\t% 3.3f kwh\t% 3.3f m3\t% 3.3f kwh\t%s\n",
-	    name().c_str(),
-	    id().c_str(),
-	    totalEnergyConsumption(),
-            totalVolume(),
-	    currentPowerConsumption(),
-	    datetimeOfUpdateHumanReadable().c_str());
-}
+    char buf[65536];
+    buf[65535] = 0;
 
-void MeterMultical302::printMeterFields(FILE *output, char separator)
-{
-    fprintf(output, "%s%c%s%c%f%c%f%c%f%c%s\n",
-	    name().c_str(), separator,
-	    id().c_str(), separator,
-	    totalEnergyConsumption(), separator,
-            totalVolume(), separator,
-	    currentPowerConsumption(), separator,
-	    datetimeOfUpdateRobot().c_str());
-}
+    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f kwh\t% 3.3f m3\t% 3.3f kwh\t%s",
+             name().c_str(),
+             id().c_str(),
+             totalEnergyConsumption(),
+             totalVolume(),
+             currentPowerConsumption(),
+             datetimeOfUpdateHumanReadable().c_str());
+
+    *human_readable = buf;
+
+    snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%f%c%f%c%s",
+             name().c_str(), separator,
+             id().c_str(), separator,
+             totalEnergyConsumption(), separator,
+             totalVolume(), separator,
+             currentPowerConsumption(), separator,
+             datetimeOfUpdateRobot().c_str());
+
+    *fields = buf;
 
 #define Q(x,y) "\""#x"\":"#y","
 #define QS(x,y) "\""#x"\":\""#y"\","
 #define QSE(x,y) "\""#x"\":\""#y"\""
 
-void MeterMultical302::printMeterJSON(FILE *output)
-{
-    fprintf(output, "{"
-            QS(media,heat)
-            QS(meter,multical302)
-	    QS(name,%s)
-	    QS(id,%s)
-	    Q(total_kwh,%f)
-            Q(total_volume_m3,%f)
-	    QS(current_kw,%f)
-	    QSE(timestamp,%s)
-	    "}\n",
-	    name().c_str(),
-	    id().c_str(),
-	    totalEnergyConsumption(),
-            totalVolume(),
-	    currentPowerConsumption(),
-	    datetimeOfUpdateRobot().c_str());
+    snprintf(buf, sizeof(buf)-1, "{"
+             QS(media,heat)
+             QS(meter,multical302)
+             QS(name,%s)
+             QS(id,%s)
+             Q(total_kwh,%f)
+             Q(total_volume_m3,%f)
+             QS(current_kw,%f)
+             QSE(timestamp,%s)
+             "}",
+             name().c_str(),
+             id().c_str(),
+             totalEnergyConsumption(),
+             totalVolume(),
+             currentPowerConsumption(),
+             datetimeOfUpdateRobot().c_str());
+
+    *json = buf;
+
+    envs->push_back(string("METER_JSON=")+*json);
+    envs->push_back(string("METER_TYPE=multical302"));
+    envs->push_back(string("METER_ID=")+id());
+    envs->push_back(string("METER_TOTAL_KWH=")+to_string(totalEnergyConsumption()));
+    envs->push_back(string("METER_TOTAL_VOLUME_M3=")+to_string(totalVolume()));
+    envs->push_back(string("METER_CURRENT_KW=")+to_string(currentPowerConsumption()));
+    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017 Fredrik Öhrström
+ Copyright (C) 2017-2018 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,40 +16,67 @@
 */
 
 #include"printer.h"
+#include"shell.h"
 
 using namespace std;
 
-Printer::Printer(bool json, bool fields, char separator, bool meterfiles, const char *meterfiles_dir)
+Printer::Printer(bool json, bool fields, char separator, bool meterfiles, const char *meterfiles_dir,
+                 vector<string> shell_cmdlines)
 {
     json_ = json;
     fields_ = fields;
     separator_ = separator;
     meterfiles_ = meterfiles;
     meterfiles_dir_ = meterfiles_dir;
+    shell_cmdlines_ = shell_cmdlines;
 }
 
 void Printer::print(Meter *meter)
 {
+    string human_readable, fields, json;
+    vector<string> envs;
+
+    meter->printMeter(&human_readable, &fields, separator_, &json, &envs);
+
+    if (shell_cmdlines_.size() > 0) {
+        printShells(meter, envs);
+    } else {
+        printFiles(meter, human_readable, fields, json);
+    }
+}
+
+void Printer::printShells(Meter *meter, vector<string> &envs)
+{
+    for (auto &s : shell_cmdlines_) {
+        vector<string> args;
+        args.push_back("-c");
+        args.push_back(s);
+        invokeShell("/bin/sh", args, envs);
+    }
+}
+
+void Printer::printFiles(Meter *meter, string &human_readable, string &fields, string &json)
+{
     FILE *output = stdout;
 
     if (meterfiles_) {
-	char filename[128];
-	memset(filename, 0, sizeof(filename));
-	snprintf(filename, 127, "%s/%s", meterfiles_dir_, meter->name().c_str());
-	output = fopen(filename, "w");
+        char filename[128];
+        memset(filename, 0, sizeof(filename));
+        snprintf(filename, 127, "%s/%s", meterfiles_dir_, meter->name().c_str());
+        output = fopen(filename, "w");
     }
 
     if (json_) {
-        meter->printMeterJSON(output);
+        fprintf(stdout, "%s\n", json.c_str());
     }
     else if (fields_) {
-        meter->printMeterFields(output, separator_);
+        fprintf(stdout, "%s\n", fields.c_str());
     }
     else {
-        meter->printMeterHumanReadable(output);
+        fprintf(stdout, "%s\n", human_readable.c_str());
     }
 
     if (output != stdout) {
-	fclose(output);
+        fclose(output);
     }
 }

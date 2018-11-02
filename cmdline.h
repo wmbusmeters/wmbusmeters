@@ -50,6 +50,8 @@ struct CommandLine {
     bool json {};
     bool fields {};
     char separator { ';' };
+    vector<string> shells;
+    bool list_shell_envs {};
     bool oneshot {};
     int  exitafter {}; // Seconds to exit.
     char *usb_device {};
