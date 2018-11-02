@@ -70,9 +70,10 @@ struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonIm
     string timeLeaking();
     string timeBursting();
 
-    void printMeterHumanReadable(FILE *output);
-    void printMeterFields(FILE *output, char separator);
-    void printMeterJSON(FILE *output);
+    void printMeter(string *human_readable,
+                    string *fields, char separator,
+                    string *json,
+                    vector<string> *envs);
 
 private:
     void handleTelegram(Telegram *t);
@@ -425,57 +426,76 @@ string MeterMultical21::decodeTime(int time)
     }
 }
 
-void MeterMultical21::printMeterHumanReadable(FILE *output)
+void MeterMultical21::printMeter(string *human_readable,
+                                 string *fields, char separator,
+                                 string *json,
+                                 vector<string> *envs)
 {
-    fprintf(output, "%s\t%s\t% 3.3f m3\t% 3.3f m3\t%s\t%s\n",
-	    name().c_str(),
-	    id().c_str(),
-	    totalWaterConsumption(),
-	    targetWaterConsumption(),
-	    statusHumanReadable().c_str(),
-	    datetimeOfUpdateHumanReadable().c_str());
-}
+    char buf[65536];
+    buf[65535] = 0;
 
-void MeterMultical21::printMeterFields(FILE *output, char separator)
-{
-    fprintf(output, "%s%c%s%c%f%c%f%c%s%c%s\n",
-	    name().c_str(), separator,
-	    id().c_str(), separator,
-	    totalWaterConsumption(), separator,
-	    targetWaterConsumption(), separator,
-	    statusHumanReadable().c_str(), separator,
-            datetimeOfUpdateRobot().c_str());
-}
+    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f m3\t% 3.3f m3\t%s\t%s",
+             name().c_str(),
+             id().c_str(),
+             totalWaterConsumption(),
+             targetWaterConsumption(),
+             statusHumanReadable().c_str(),
+             datetimeOfUpdateHumanReadable().c_str());
+
+    *human_readable = buf;
+
+    snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%f%c%s%c%s",
+             name().c_str(), separator,
+             id().c_str(), separator,
+             totalWaterConsumption(), separator,
+             targetWaterConsumption(), separator,
+             statusHumanReadable().c_str(), separator,
+             datetimeOfUpdateRobot().c_str());
+
+    *fields = buf;
 
 #define Q(x,y) "\""#x"\":"#y","
 #define QS(x,y) "\""#x"\":\""#y"\","
 #define QSE(x,y) "\""#x"\":\""#y"\""
 
-void MeterMultical21::printMeterJSON(FILE *output)
-{
-    fprintf(output, "{"
-            QS(media,%s)
-            QS(meter,multical21)
-	    QS(name,%s)
-	    QS(id,%s)
-	    Q(total_m3,%f)
-	    Q(target_m3,%f)
-	    QS(current_status,%s)
-	    QS(time_dry,%s)
-	    QS(time_reversed,%s)
-	    QS(time_leaking,%s)
-	    QS(time_bursting,%s)
-	    QSE(timestamp,%s)
-	    "}\n",
-            mediaType(manufacturer(), media()).c_str(),
-	    name().c_str(),
-	    id().c_str(),
-	    totalWaterConsumption(),
-	    targetWaterConsumption(),
-	    status().c_str(), // DRY REVERSED LEAK BURST
-	    timeDry().c_str(),
-	    timeReversed().c_str(),
-	    timeLeaking().c_str(),
-	    timeBursting().c_str(),
-	    datetimeOfUpdateRobot().c_str());
+    snprintf(buf, sizeof(buf)-1, "{"
+             QS(media,%s)
+             QS(meter,%s)
+             QS(name,%s)
+             QS(id,%s)
+             Q(total_m3,%f)
+             Q(target_m3,%f)
+             QS(current_status,%s)
+             QS(time_dry,%s)
+             QS(time_reversed,%s)
+             QS(time_leaking,%s)
+             QS(time_bursting,%s)
+             QSE(timestamp,%s)
+             "}",
+             mediaType(manufacturer(), media()).c_str(),
+             meter_name_,
+             name().c_str(),
+             id().c_str(),
+             totalWaterConsumption(),
+             targetWaterConsumption(),
+             status().c_str(), // DRY REVERSED LEAK BURST
+             timeDry().c_str(),
+             timeReversed().c_str(),
+             timeLeaking().c_str(),
+             timeBursting().c_str(),
+             datetimeOfUpdateRobot().c_str());
+
+    *json = buf;
+
+    envs->push_back(string("METER_JSON=")+*json);
+    envs->push_back(string("METER_TYPE=")+meter_name_);
+    envs->push_back(string("METER_ID=")+id());
+    envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption()));
+    envs->push_back(string("METER_TARGET_M3=")+to_string(targetWaterConsumption()));
+    envs->push_back(string("METER_STATUS=")+status());
+    envs->push_back(string("METER_TIME_DRY=")+timeDry());
+    envs->push_back(string("METER_TIME_REVERSED=")+timeReversed());
+    envs->push_back(string("METER_TIME_LEAKING=")+timeLeaking());
+    envs->push_back(string("METER_TIME_BURSTING=")+timeBursting());
+    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }

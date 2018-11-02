@@ -19,6 +19,8 @@ Add --verbose for detailed debug information.
     --meterfiles=dir to create status files below dir,
           named dir/meter_name, containing the latest reading.
     --meterfiles defaults dir to /tmp.
+    --shell=cmd invokes cmd with env variables containing the latest reading.
+    --shellenvs list the env variables available for the meter.
     --oneshot wait for an update from each meter, then quit.
     --exitafter=20h program exits after running for twenty hours,
           or 10m for ten minutes or 5s for five seconds.
@@ -80,6 +82,19 @@ Example robot fields output:
 `./build/wmbusmeters --robot=fields auto GreenhouseWater multical21 33333333 ""`
 
 `GreenhouseTapWater;33333333;9999.099;77.712;;2018-03-05 12:10.24`
+
+Eaxmple of using the shell command to publish to MQTT:
+
+`./build/wmbusmeters --shell='mosquitto_pub -h localhost -t water -m "$METER_JSON"' auto GreenhouseWater multical21 33333333 ""`
+
+Eaxmple of using the shell command to inject data into postgresql database:
+
+```
+./build_debug/wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$METER_ID',\$METER_TOTAL_M3,'\$METER_TIMESTAMP') \" " auto MyColdWater multical21 12345678 ""
+```
+
+You can have multiple shell commands and they will be executed in the order you gave them on the commandline. Not that to single quotes around the command is
+necessary to pass the env variable names into wmbusmeters.
 
 You can use `--debug` to get both verbose output and the actual data bytes sent back and forth with the wmbus usb dongle.
 

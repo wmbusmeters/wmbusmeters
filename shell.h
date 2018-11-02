@@ -13,27 +13,11 @@
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
-#include"cmdline.h"
-#include"meters.h"
+#include<string>
+#include<vector>
 
 using namespace std;
 
-struct Printer {
-    Printer(bool json, bool fields, char separator, bool meterfiles, const char *meterfiles_dir,
-            vector<string> shell_cmdlines);
-
-    void print(Meter *meter);
-
-    private:
-
-    bool json_, fields_, meterfiles_;
-    const char *meterfiles_dir_;
-    char separator_;
-    vector<string> shell_cmdlines_;
-
-    void printShells(Meter *meter, vector<string> &envs);
-    void printFiles(Meter *meter, string &human_readable, string &fields, string &json);
-
-};
+void invokeShell(string program, vector<string> args, vector<string> envs);

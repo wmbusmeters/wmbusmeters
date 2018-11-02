@@ -40,10 +40,12 @@ int main(int argc, char **argv)
         printf("    --robot or --robot=json for json output.\n");
         printf("    --robot=fields for semicolon separated fields.\n");
         printf("    --separator=X change field separator to X.\n");
-	printf("    --meterfiles=dir to create status files below dir,\n"
-	       "        named dir/meter_name, containing the latest reading.\n");
-	printf("    --meterfiles defaults dir to /tmp.\n");
-	printf("    --oneshot wait for an update from each meter, then quit.\n\n");
+        printf("    --meterfiles=dir to create status files below dir,\n"
+               "        named dir/meter_name, containing the latest reading.\n");
+        printf("    --meterfiles defaults dir to /tmp.\n");
+        printf("    --shell=cmd invokes cmd with env variables containing the latest reading.\n");
+        printf("    --shellenvs list the env variables available for the meter.\n");
+        printf("    --oneshot wait for an update from each meter, then quit.\n\n");
         printf("    --exitafter=20h program exits after running for twenty hoursh\n"
                "        or 10m for ten minutes or 5s for five seconds.\n\n");
         printf("Specifying auto as the device will automatically look for usb\n");
@@ -53,6 +55,7 @@ int main(int argc, char **argv)
                "are work in progress.\n\n");
         exit(0);
     }
+
     // We want the data visible in the log file asap!
     setbuf(stdout, NULL);
 
@@ -102,7 +105,8 @@ int main(int argc, char **argv)
     if (wmbus->getLinkMode()!=LinkModeC1) error("Could not set link mode to receive C1 telegrams.\n");
 
     Printer *output = new Printer(cmdline->json, cmdline->fields,
-                                  cmdline->separator, cmdline->meterfiles, cmdline->meterfiles_dir);
+                                  cmdline->separator, cmdline->meterfiles, cmdline->meterfiles_dir,
+                                  cmdline->shells);
 
     if (cmdline->meters.size() > 0) {
         for (auto &m : cmdline->meters) {
@@ -126,6 +130,21 @@ int main(int argc, char **argv)
             case UNKNOWN_METER:
                 error("No such meter type \"%s\"\n", m.type);
                 break;
+            }
+            if (cmdline->list_shell_envs) {
+                string ignore1, ignore2, ignore3;
+                vector<string> envs;
+                m.meter->printMeter(&ignore1,
+                                    &ignore2, cmdline->separator,
+                                    &ignore3,
+                                    &envs);
+                printf("Environment variables provided to shell for meter %s:\n", m.type);
+                for (auto &e : envs) {
+                    int p = e.find('=');
+                    string key = e.substr(0,p);
+                    printf("%s\n", key.c_str());
+                }
+                exit(0);
             }
             m.meter->onUpdate(calll(output,print,Meter*));
             m.meter->onUpdate([cmdline,manager](Meter*meter) { oneshotCheck(cmdline,manager,meter); });

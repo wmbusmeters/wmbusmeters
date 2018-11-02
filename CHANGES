@@ -1,4 +1,9 @@
 
+Version 0.6: 2018-11-02
+
+Added --shell command to invoke for example: mosquitto to send an MQTT message
+or psql to insert received data into a database.
+
 Version 0.5:
 
 Added difvif parser to extract as much as possible automatically

@@ -50,9 +50,10 @@ struct Meter {
     virtual void onUpdate(function<void(Meter*)> cb) = 0;
     virtual int numUpdates() = 0;
 
-    virtual void printMeterHumanReadable(FILE *output) = 0;
-    virtual void printMeterFields(FILE *output, char separator) = 0;
-    virtual void printMeterJSON(FILE *output) = 0;
+    virtual void printMeter(string *human_readable,
+                            string *fields, char separator,
+                            string *json,
+                            vector<string> *envs) = 0;
 
     virtual bool isTelegramForMe(Telegram *t) = 0;
     virtual bool useAes() = 0;
