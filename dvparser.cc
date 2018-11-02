@@ -74,20 +74,20 @@ bool parseDV(Telegram *t,
         if (*format == format_end) break;
         uchar dif = **format;
 
-        DEBUG_PARSER("dif=%02x \"%s\"\n", dif, difType(dif).c_str());
+        int datalen = difLenBytes(dif);
+        DEBUG_PARSER("dif=%02x datalen=%d \"%s\"\n", dif, datalen, difType(dif).c_str());
         if (dif == 0x2f) {
             t->addExplanation(*format, 1, "%02X skip", dif);
             continue;
         }
-        int len = difLenBytes(dif);
-        DEBUG_PARSER("len=%d\n", len);
-        if (len == -1) {
+
+        if (datalen == -1) {
             variable_length = true;
         } else {
             variable_length = false;
         }
-        if (len == -2) {
-            warning("(dvparser) cannot handle dif %2X\n", dif);
+        if (datalen == -2) {
+            warning("(dvparser) cannot handle dif %02X ignoring rest of telegram.\n", dif);
             return false;
         }
         if (full_header) {
@@ -124,10 +124,10 @@ bool parseDV(Telegram *t,
         }
 
         if (overrideDifLen) {
-            int new_len = overrideDifLen(dif, vif, len);
-            if (new_len != len) {
-                DEBUG_PARSER("changing len %d to %d for dif=%02x vif=%02x\n", len, new_len, dif, vif);
-                len = new_len;
+            int new_len = overrideDifLen(dif, vif, datalen);
+            if (new_len != datalen) {
+                DEBUG_PARSER("changing len %d to %d for dif=%02x vif=%02x\n", datalen, new_len, dif, vif);
+                datalen = new_len;
             }
         }
 
@@ -141,18 +141,18 @@ bool parseDV(Telegram *t,
 
         int remaining = std::distance(data, data_end);
         if (variable_length) {
-            len = remaining;
+            datalen = remaining;
         }
-        DEBUG_PARSER("remaining data %d len=%d\n", remaining, len);
-        if (remaining < len) {
+        DEBUG_PARSER("remaining data %d len=%d\n", remaining, datalen);
+        if (remaining < datalen) {
             warning("(dvparser) warning: unexpected end of data\n");
-            len = remaining;
+            datalen = remaining;
         }
 
-        string value = bin2hex(data, len);
+        string value = bin2hex(data, datalen);
         (*values)[key] = { start_parse_here+data-data_start, value };
         if (value.length() > 0) {
-            t->addExplanation(data, len, "%s", value.c_str());
+            t->addExplanation(data, datalen, "%s", value.c_str());
         }
     }
 
