@@ -382,11 +382,7 @@ void Telegram::explainParse(string intro, int from)
 {
     for (auto& p : explanations) {
         if (p.first < from) continue;
-        printf("%s ", intro.c_str());
-        for (int i=0; i<p.first; ++i) {
-            printf("  ");
-        }
-        printf("%s\n", p.second.c_str());
+        printf("%s %02x: %s\n", intro.c_str(), p.first, p.second.c_str());
     }
     string hex = bin2hex(parsed);
     printf("%s %s\n", intro.c_str(), hex.c_str());
@@ -446,7 +442,7 @@ int difLenBytes(int dif)
     case 0xC: return 4; // 8 digit BCD
     case 0xD: return -1; // variable length
     case 0xE: return 6; // 12 digit BCD
-    case 0xF: return -1; // Special Functions
+    case 0xF: return -2; // Special Functions
     }
     return -1;
 }
@@ -1260,4 +1256,14 @@ string formatData(int dif, int vif, int vife, string data)
     }
 
     return data;
+}
+
+string linkModeName(LinkMode link_mode)
+{
+    switch (link_mode) {
+    case LinkModeC1: return "C1";
+    case LinkModeT1: return "T1";
+    case UNKNOWN_LINKMODE: break;
+    }
+    return "UnknownLinkMode";
 }

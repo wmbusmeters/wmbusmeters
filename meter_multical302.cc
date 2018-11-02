@@ -50,7 +50,7 @@ private:
 };
 
 MeterMultical302::MeterMultical302(WMBus *bus, const char *name, const char *id, const char *key) :
-    MeterCommonImplementation(bus, name, id, key, MULTICAL302_METER, MANUFACTURER_KAM, 0x04)
+    MeterCommonImplementation(bus, name, id, key, MULTICAL302_METER, MANUFACTURER_KAM, 0x04, LinkModeC1)
 {
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }

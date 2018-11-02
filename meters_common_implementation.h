@@ -29,6 +29,7 @@ struct MeterCommonImplementation : public virtual Meter {
     int manufacturer();
     int media();
     WMBus *bus();
+    LinkMode requiredLinkMode();
 
     string datetimeOfUpdateHumanReadable();
     string datetimeOfUpdateRobot();
@@ -45,11 +46,13 @@ struct MeterCommonImplementation : public virtual Meter {
     uint16_t getRecordAsUInt16(std::string record);
 
     MeterCommonImplementation(WMBus *bus, const char *name, const char *id, const char *key,
-                              MeterType type, int manufacturer, int media);
+                              MeterType type, int manufacturer, int media,
+                              LinkMode required_link_mode);
 
 protected:
 
     void triggerUpdate(Telegram *t);
+    void updateMedia(int media);
 
 private:
 
@@ -64,6 +67,7 @@ private:
     int num_updates_ {};
     bool use_aes_ {};
     time_t datetime_of_update_ {};
+    LinkMode required_link_mode_ {};
 
 protected:
     std::map<std::string,std::pair<int,std::string>> values_;

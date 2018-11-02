@@ -40,6 +40,7 @@ METERS_OBJS:=\
 	$(BUILD)/meter_multical21.o \
 	$(BUILD)/meter_multical302.o \
 	$(BUILD)/meter_omnipower.o \
+	$(BUILD)/meter_supercom587.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \

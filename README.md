@@ -1,5 +1,5 @@
 # wmbusmeters
-The program receives and decodes C1 telegrams
+The program receives and decodes C1 or T1 telegrams
 (using the wireless mbus protocol) to acquire
 utility meter readings.
 
@@ -19,6 +19,7 @@ Add --verbose for detailed debug information.
     --meterfiles=dir to create status files below dir,
           named dir/meter_name, containing the latest reading.
     --meterfiles defaults dir to /tmp.
+    --c1 or --t1 listen to C1 or T1 messages
     --shell=cmd invokes cmd with env variables containing the latest reading.
     --shellenvs list the env variables available for the meter.
     --oneshot wait for an update from each meter, then quit.
@@ -28,8 +29,8 @@ Add --verbose for detailed debug information.
 Specifying auto as the device will automatically look for usb
 wmbus dongles on /dev/im871a and /dev/amb8465.
 
-The meter types: multical21 and flowiq3100 (water meters) are supported.
-The meter types: multical302 (heat) and omnipower (electricity)
+The meter types: multical21,flowiq3100 (water meters) are supported.
+The meter types: multical302 (heat), omnipower (electricity) and supercom587 (water)
 are work in progress.
 ```
 
@@ -55,7 +56,15 @@ multical-602) might be compatible as well. The same is true for the
 omnipower meter type, which might include the electricity meters
 Kamstrup-162 Kamstrup-382, Kamstrup-351 etc).
 
-No meter quadruplets means listen for telegram traffic and print any id heard.
+No meter quadruplets means listen for telegram traffic and print any id heard,
+but you have to specify if you want to listen using radio mode C1 or T1. E.g.
+
+```
+./build/wmbusmeters --t1 /dev/ttyUSB0
+```
+
+You can listen to multiple meters as long as they all require the same radio mode C1 or T1.
+So (currently) you cannot listen to a multical21 and a supercom587 with a single dongle at the same time.
 
 # Usage examples
 

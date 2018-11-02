@@ -93,7 +93,7 @@ private:
 };
 
 MeterMultical21::MeterMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt) :
-    MeterCommonImplementation(bus, name, id, key, mt, MANUFACTURER_KAM, 0x16)
+    MeterCommonImplementation(bus, name, id, key, mt, MANUFACTURER_KAM, 0x16, LinkModeC1)
 {
     if (type() == MULTICAL21_METER) {
         expected_version_ = 0x1b;

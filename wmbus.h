@@ -143,4 +143,6 @@ double extract32bitAsDouble(int dif, int vif, int vife, string data);
 
 int difLenBytes(int dif);
 
+string linkModeName(LinkMode link_mode);
+
 #endif

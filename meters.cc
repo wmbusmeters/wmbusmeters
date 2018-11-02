@@ -21,8 +21,10 @@
 #include<memory.h>
 
 MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, const char *name, const char *id, const char *key,
-                                                     MeterType type, int manufacturer, int media) :
-    type_(type), manufacturer_(manufacturer), media_(media), name_(name), bus_(bus)
+                                                     MeterType type, int manufacturer, int media,
+                                                     LinkMode required_link_mode) :
+    type_(type), manufacturer_(manufacturer), media_(media), name_(name), bus_(bus),
+    required_link_mode_(required_link_mode)
 {
     use_aes_ = true;
     hex2bin(id, &id_);
@@ -63,6 +65,11 @@ WMBus *MeterCommonImplementation::bus()
     return bus_;
 }
 
+LinkMode MeterCommonImplementation::requiredLinkMode()
+{
+    return required_link_mode_;
+}
+
 void MeterCommonImplementation::onUpdate(function<void(Meter*)> cb)
 {
     on_update_.push_back(cb);
@@ -96,10 +103,19 @@ MeterType toMeterType(const char *type)
     if (!strcmp(type, "flowiq3100")) return FLOWIQ3100_METER;
     if (!strcmp(type, "multical302")) return MULTICAL302_METER;
     if (!strcmp(type, "omnipower")) return OMNIPOWER_METER;
-    if (!strcmp(type, "water")) return MULTICAL21_METER;
-    if (!strcmp(type, "heat")) return MULTICAL302_METER;
-    if (!strcmp(type, "electricity")) return OMNIPOWER_METER;
+    if (!strcmp(type, "supercom587")) return SUPERCOM587_METER;
     return UNKNOWN_METER;
+}
+
+LinkMode toMeterLinkMode(const char *type)
+{
+    if (!strcmp(type, "multical21")) return LinkModeC1;
+    if (!strcmp(type, "flowiq3100")) return LinkModeC1;
+    if (!strcmp(type, "multical302")) return LinkModeC1;
+    if (!strcmp(type, "omnipower")) return LinkModeC1;
+    if (!strcmp(type, "supercom587")) return LinkModeT1;
+
+    return UNKNOWN_LINKMODE;
 }
 
 
@@ -148,4 +164,9 @@ void MeterCommonImplementation::triggerUpdate(Telegram *t)
     num_updates_++;
     for (auto &cb : on_update_) if (cb) cb(this);
     t->handled = true;
+}
+
+void MeterCommonImplementation::updateMedia(int media)
+{
+    media_ = media;
 }

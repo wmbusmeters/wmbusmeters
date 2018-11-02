@@ -50,7 +50,7 @@ int main(int argc, char **argv)
                "        or 10m for ten minutes or 5s for five seconds.\n\n");
         printf("Specifying auto as the device will automatically look for usb\n");
         printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
-        printf("The meter types: multical21 and flowiq3100 (water meters) are supported.\n"
+        printf("The meter types: multical21,flowiq3100,supercom587 (water meters) are supported.\n"
                "The meter types: multical302 (heat) and omnipower (electricity)\n"
                "are work in progress.\n\n");
         exit(0);
@@ -101,8 +101,27 @@ int main(int argc, char **argv)
         break;
     }
 
-    wmbus->setLinkMode(LinkModeC1);
-    if (wmbus->getLinkMode()!=LinkModeC1) error("Could not set link mode to receive C1 telegrams.\n");
+    if (!cmdline->link_mode_set) {
+        // The link mode is not explicitly set. Examine the meters to see which
+        // link mode to use.
+        for (auto &m : cmdline->meters) {
+            if (!cmdline->link_mode_set) {
+                cmdline->link_mode = toMeterLinkMode(m.type);
+                cmdline->link_mode_set = true;
+            } else {
+                if (cmdline->link_mode != toMeterLinkMode(m.type)) {
+                    error("A different link mode has been set already.\n");
+                }
+            }
+        }
+    }
+    if (!cmdline->link_mode_set) {
+        error("If you specify no meters, you have to specify the link mode: --c1 or --t1\n");
+    }
+    wmbus->setLinkMode(cmdline->link_mode);
+    string using_link_mode = linkModeName(wmbus->getLinkMode());
+
+    verbose("(cmdline) using link mode: %s\n", using_link_mode.c_str());
 
     Printer *output = new Printer(cmdline->json, cmdline->fields,
                                   cmdline->separator, cmdline->meterfiles, cmdline->meterfiles_dir,
@@ -126,6 +145,10 @@ int main(int argc, char **argv)
             case OMNIPOWER_METER:
                 m.meter = createOmnipower(wmbus, m.name, m.id, m.key);
                 verbose("(omnipower) configured \"%s\" \"omnipower\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+                break;
+            case SUPERCOM587_METER:
+                m.meter = createSupercom587(wmbus, m.name, m.id, m.key);
+                verbose("(supercom587) configured \"%s\" \"supercom587\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
                 break;
             case UNKNOWN_METER:
                 error("No such meter type \"%s\"\n", m.type);
