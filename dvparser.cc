@@ -151,7 +151,9 @@ bool parseDV(Telegram *t,
 
         string value = bin2hex(data, len);
         (*values)[key] = { start_parse_here+data-data_start, value };
-        t->addExplanation(data, len, "%s", value.c_str());
+        if (value.length() > 0) {
+            t->addExplanation(data, len, "%s", value.c_str());
+        }
     }
 
     string format_string = bin2hex(format_bytes);

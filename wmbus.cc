@@ -382,11 +382,7 @@ void Telegram::explainParse(string intro, int from)
 {
     for (auto& p : explanations) {
         if (p.first < from) continue;
-        printf("%s ", intro.c_str());
-        for (int i=0; i<p.first; ++i) {
-            printf("  ");
-        }
-        printf("%s\n", p.second.c_str());
+        printf("%s %02x: %s\n", intro.c_str(), p.first, p.second.c_str());
     }
     string hex = bin2hex(parsed);
     printf("%s %s\n", intro.c_str(), hex.c_str());
