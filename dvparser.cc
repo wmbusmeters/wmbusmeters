@@ -204,9 +204,9 @@ bool extractDVuint16(map<string,pair<int,string>> *values,
 }
 
 bool extractDVdouble(map<string,pair<int,string>> *values,
-                    string key,
-                    int *offset,
-                    double *value)
+                     string key,
+                     int *offset,
+                     double *value)
 {
     if ((*values).count(key) == 0) {
         warning("(dvparser) warning: cannot extract double from non-existant key \"%s\"\n", key.c_str());
@@ -219,12 +219,73 @@ bool extractDVdouble(map<string,pair<int,string>> *values,
 
     pair<int,string>&  p = (*values)[key];
     *offset = p.first;
-    vector<uchar> v;
-    hex2bin(p.second, &v);
 
-    int raw = v[3]*256*256*256 + v[2]*256*256 + v[1]*256 + v[0];
-    double scale = vifScale(vif);
-    *value = ((double)raw) / scale;
+    int t = dif&0xf;
+    if (t == 0x1 || // 8 Bit Integer/Binary
+        t == 0x2 || // 16 Bit Integer/Binary
+        t == 0x3 || // 24 Bit Integer/Binary
+        t == 0x4 || // 32 Bit Integer/Binary
+        t == 0x6 || // 48 Bit Integer/Binary
+        t == 0x7)   // 64 Bit Integer/Binary
+    {
+        vector<uchar> v;
+        hex2bin(p.second, &v);
+        unsigned int raw = 0;
+        if (t == 0x1) {
+            raw = v[0];
+        } else if (t == 0x2) {
+            raw = v[1]*256 + v[0];
+        } else if (t == 0x3) {
+            raw = v[2]*256*256 + v[1]*256 + v[0];
+        } else if (t == 0x4) {
+            raw = ((unsigned int)v[3])*256*256*256
+                + ((unsigned int)v[2])*256*256
+                + ((unsigned int)v[1])*256
+                + ((unsigned int)v[0]);
+        }
+        double scale = vifScale(vif);
+        *value = ((double)raw) / scale;
+    }
+    else
+    if (t == 0x9 || // 2 digit BCD
+        t == 0xA || // 4 digit BCD
+        t == 0xB || // 6 digit BCD
+        t == 0xC || // 8 digit BCD
+        t == 0xE)   // 12 digit BCD
+    {
+        // 74140000 -> 00001474
+        string& v = p.second;
+        unsigned int raw = 0;
+        if (t == 0x9) {
+            raw = (v[0]-'0')*10 + (v[1]-'0');
+        } else if (t ==  0xA) {
+            raw = (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
+                + (v[0]-'0')*10 + (v[1]-'0');
+        } else if (t ==  0xB) {
+            raw = (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
+                + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
+                + (v[0]-'0')*10 + (v[1]-'0');
+        } else if (t ==  0xC) {
+            raw = (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
+                + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
+                + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
+                + (v[0]-'0')*10 + (v[1]-'0');
+        } else if (t ==  0xE) {
+            raw =(v[10]-'0')*10*10*10*10*10*10*10*10*10*10*10 + (v[11]-'0')*10*10*10*10*10*10*10*10*10*10
+                + (v[8]-'0')*10*10*10*10*10*10*10*10*10 + (v[9]-'0')*10*10*10*10*10*10*10*10
+                + (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
+                + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
+                + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
+                + (v[0]-'0')*10 + (v[1]-'0');
+        }
+
+        double scale = vifScale(vif);
+        *value = ((double)raw) / scale;
+    }
+    else
+    {
+        error("Unsupported dif format for extraction to double! dif=%02x\n", dif);
+    }
 
     return true;
 }
