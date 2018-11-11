@@ -83,6 +83,7 @@ bool parseDV(Telegram *t,
 
         if (datalen == -1) {
             variable_length = true;
+            warning("(dvparser) variable length dif %02X.\n", dif);
         } else {
             variable_length = false;
         }
