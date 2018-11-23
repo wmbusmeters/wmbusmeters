@@ -27,7 +27,7 @@ endif
 
 $(shell mkdir -p $(BUILD))
 
-CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-maybe-uninitialized -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.6\""
+CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-maybe-uninitialized -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.7\""
 
 $(BUILD)/%.o: %.cc $(wildcard %.h)
 	$(CXX) $(CXXFLAGS) $< -c -o $@
@@ -41,6 +41,7 @@ METERS_OBJS:=\
 	$(BUILD)/meter_multical302.o \
 	$(BUILD)/meter_omnipower.o \
 	$(BUILD)/meter_supercom587.o \
+	$(BUILD)/meter_iperl.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \

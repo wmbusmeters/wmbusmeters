@@ -24,7 +24,7 @@
 #include<string>
 #include<vector>
 
-#define LIST_OF_METERS X(MULTICAL21_METER)X(FLOWIQ3100_METER)X(MULTICAL302_METER)X(OMNIPOWER_METER)X(SUPERCOM587_METER)X(UNKNOWN_METER)
+#define LIST_OF_METERS X(MULTICAL21_METER)X(FLOWIQ3100_METER)X(MULTICAL302_METER)X(OMNIPOWER_METER)X(SUPERCOM587_METER)X(IPERL_METER)X(UNKNOWN_METER)
 
 enum MeterType {
 #define X(name) name,
@@ -102,6 +102,7 @@ WaterMeter *createMultical21(WMBus *bus, const char *name, const char *id, const
 HeatMeter *createMultical302(WMBus *bus, const char *name, const char *id, const char *key);
 ElectricityMeter *createOmnipower(WMBus *bus, const char *name, const char *id, const char *key);
 WaterMeter *createSupercom587(WMBus *bus, const char *name, const char *id, const char *key);
+WaterMeter *createIperl(WMBus *bus, const char *name, const char *id, const char *key);
 GenericMeter *createGeneric(WMBus *bus, const char *name, const char *id, const char *key);
 
 #endif

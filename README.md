@@ -8,7 +8,7 @@ utility meter readings.
 |Linux G++| [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master)](https://travis-ci.org/weetmuts/wmbusmeters) |
 
 ```
-wmbusmeters version: 0.6
+wmbusmeters version: 0.7
 Usage: wmbusmeters {options} (auto | /dev/ttyUSBx)] { [meter_name] [meter_type] [meter_id] [meter_key] }*
 
 Add more meter quadruplets to listen to more meters.
@@ -29,9 +29,8 @@ Add --verbose for detailed debug information.
 Specifying auto as the device will automatically look for usb
 wmbus dongles on /dev/im871a and /dev/amb8465.
 
-The meter types: multical21,flowiq3100 (water meters) are supported.
-The meter types: multical302 (heat), omnipower (electricity) and supercom587 (water)
-are work in progress.
+The meter types: multical21,flowiq3100,supercom587,iperl (water meters) are supported.
+The meter types: multical302 (heat), omnipower (electricity) are work in progress.
 ```
 
 Currently the meters are hardcoded for the European default setting

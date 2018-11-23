@@ -174,7 +174,7 @@ void MeterMultical21::handleTelegram(Telegram *t)
 
     if (useAes()) {
         vector<uchar> aeskey = key();
-        decryptKamstrupC1(t, aeskey);
+        decryptMode1_AES_CTR(t, aeskey, meter_name_);
     } else {
         t->content = t->payload;
     }

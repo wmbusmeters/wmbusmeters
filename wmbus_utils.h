@@ -18,7 +18,8 @@
 #ifndef WMBUS_UTILS_H
 #define WMBUS_UTILS_H
 
-void decryptKamstrupC1(Telegram *t, vector<uchar> &aeskey);
+void decryptMode1_AES_CTR(Telegram *t, vector<uchar> &aeskey, const char *meter_name);
+void decryptMode5_AES_CBC(Telegram *t, vector<uchar> &aeskey, const char *meter_name);
 string frameTypeKamstrupC1(int ft);
 
 #endif

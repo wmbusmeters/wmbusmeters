@@ -50,7 +50,7 @@ int main(int argc, char **argv)
                "        or 10m for ten minutes or 5s for five seconds.\n\n");
         printf("Specifying auto as the device will automatically look for usb\n");
         printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
-        printf("The meter types: multical21,flowiq3100,supercom587 (water meters) are supported.\n"
+        printf("The meter types: multical21,flowiq3100,supercom587,iperl (water meters) are supported.\n"
                "The meter types: multical302 (heat) and omnipower (electricity)\n"
                "are work in progress.\n\n");
         exit(0);
@@ -149,6 +149,10 @@ int main(int argc, char **argv)
             case SUPERCOM587_METER:
                 m.meter = createSupercom587(wmbus, m.name, m.id, m.key);
                 verbose("(supercom587) configured \"%s\" \"supercom587\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+                break;
+            case IPERL_METER:
+                m.meter = createIperl(wmbus, m.name, m.id, m.key);
+                verbose("(iperl) configured \"%s\" \"iperl\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
                 break;
             case UNKNOWN_METER:
                 error("No such meter type \"%s\"\n", m.type);

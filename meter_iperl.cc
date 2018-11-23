@@ -1,5 +1,6 @@
 /*
  Copyright (C) 2017-2018 Fredrik Öhrström
+ Copyright (C) 2018 David Mallon
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -32,8 +33,8 @@
 
 using namespace std;
 
-struct MeterSupercom587 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterSupercom587(WMBus *bus, const char *name, const char *id, const char *key);
+struct MeterIperl : public virtual WaterMeter, public virtual MeterCommonImplementation {
+    MeterIperl(WMBus *bus, const char *name, const char *id, const char *key);
 
     // Total water counted through the meter
     double totalWaterConsumption();
@@ -63,83 +64,85 @@ private:
     double total_water_consumption_ {};
 };
 
-MeterSupercom587::MeterSupercom587(WMBus *bus, const char *name, const char *id, const char *key) :
-    MeterCommonImplementation(bus, name, id, key, SUPERCOM587_METER, MANUFACTURER_SON, 0x16, LinkModeT1)
+MeterIperl::MeterIperl(WMBus *bus, const char *name, const char *id, const char *key) :
+    MeterCommonImplementation(bus, name, id, key, IPERL_METER, MANUFACTURER_SEN, 0x16, LinkModeT1)
 {
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 
-double MeterSupercom587::totalWaterConsumption()
+double MeterIperl::totalWaterConsumption()
 {
     return total_water_consumption_;
 }
 
-WaterMeter *createSupercom587(WMBus *bus, const char *name, const char *id, const char *key)
+WaterMeter *createIperl(WMBus *bus, const char *name, const char *id, const char *key)
 {
-    return new MeterSupercom587(bus,name,id,key);
+    return new MeterIperl(bus,name,id,key);
 }
 
-void MeterSupercom587::handleTelegram(Telegram *t)
+void MeterIperl::handleTelegram(Telegram *t)
 {
     if (!isTelegramForMe(t)) {
         // This telegram is not intended for this meter.
         return;
     }
 
-    verbose("(%s) telegram for %s %02x%02x%02x%02x\n", "supercom587",
+    verbose("(%s) telegram for %s %02x%02x%02x%02x\n", "iperl",
             name().c_str(),
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
     if (t->a_field_device_type != 0x07 && t->a_field_device_type != 0x06) {
-        warning("(%s) expected telegram for cold or warm water media, but got \"%s\"!\n", "supercom587",
+        warning("(%s) expected telegram for cold or warm water media, but got \"%s\"!\n", "iperl",
                 mediaType(t->m_field, t->a_field_device_type).c_str());
     }
 
     updateMedia(t->a_field_device_type);
 
     if (t->m_field != manufacturer() ||
-        t->a_field_version != 0x3c) {
-        warning("(%s) expected telegram from SON meter with version 0x%02x, "
-                "but got \"%s\" meter with version 0x%02x !\n", "supercom587",
-                0x3c,
+        t->a_field_version != 0x68) {
+        warning("(%s) expected telegram from SEN meter with version 0x%02x, "
+                "but got \"%s\" meter with version 0x%02x !\n", "iperl",
+                0x68,
                 manufacturerFlag(t->m_field).c_str(),
                 t->a_field_version);
     }
 
     if (useAes()) {
         vector<uchar> aeskey = key();
-        decryptMode1_AES_CTR(t, aeskey, "supercom587");
+		decryptMode5_AES_CBC(t, aeskey, "iperl");
+        verbose("$\n");
     } else {
         t->content = t->payload;
     }
     char log_prefix[256];
-    snprintf(log_prefix, 255, "(%s) log", "supercom587");
+    snprintf(log_prefix, 255, "(%s) log", "iperl");
     logTelegram(log_prefix, t->parsed, t->content);
     int content_start = t->parsed.size();
     processContent(t);
     if (isDebugEnabled()) {
-        snprintf(log_prefix, 255, "(%s)", "supercom587");
+        snprintf(log_prefix, 255, "(%s)", "iperl");
         t->explainParse(log_prefix, content_start);
     }
     triggerUpdate(t);
 }
 
-void MeterSupercom587::processContent(Telegram *t)
+void MeterIperl::processContent(Telegram *t)
 {
-    // Meter record:
+    vector<uchar>::iterator bytes = t->content.begin();
+
 
     map<string,pair<int,string>> values;
     parseDV(t, t->content.begin(), t->content.size(), &values);
 
     int offset;
 
-    extractDVdouble(&values, "0C13", &offset, &total_water_consumption_);
+    extractDVdouble(&values, "0413", &offset, &total_water_consumption_);
     t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
 }
 
-void MeterSupercom587::printMeter(string *human_readable,
+void MeterIperl::printMeter(string *human_readable,
                                   string *fields, char separator,
                                   string *json,
                                   vector<string> *envs)
@@ -177,7 +180,7 @@ void MeterSupercom587::printMeter(string *human_readable,
 
     snprintf(buf, sizeof(buf)-1, "{"
              QS(media,%s)
-             QS(meter,supercom587)
+             QS(meter,iperl)
              QS(name,%s)
              QS(id,%s)
              Q(total_m3,%f)
@@ -192,63 +195,63 @@ void MeterSupercom587::printMeter(string *human_readable,
     *json = buf;
 
     envs->push_back(string("METER_JSON=")+*json);
-    envs->push_back(string("METER_TYPE=supercom587"));
+    envs->push_back(string("METER_TYPE=iperl"));
     envs->push_back(string("METER_ID=")+id());
     envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption()));
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }
 
-bool MeterSupercom587::hasTotalWaterConsumption()
+bool MeterIperl::hasTotalWaterConsumption()
 {
     return true;
 }
 
-double MeterSupercom587::targetWaterConsumption()
+double MeterIperl::targetWaterConsumption()
 {
     return 0.0;
 }
 
-bool MeterSupercom587::hasTargetWaterConsumption()
+bool MeterIperl::hasTargetWaterConsumption()
 {
     return false;
 }
 
-double MeterSupercom587::maxFlow()
+double MeterIperl::maxFlow()
 {
     return 0.0;
 }
 
-bool MeterSupercom587::hasMaxFlow()
+bool MeterIperl::hasMaxFlow()
 {
     return false;
 }
 
-string MeterSupercom587::statusHumanReadable()
+string MeterIperl::statusHumanReadable()
 {
     return "";
 }
 
-string MeterSupercom587::status()
+string MeterIperl::status()
 {
     return "";
 }
 
-string MeterSupercom587::timeDry()
+string MeterIperl::timeDry()
 {
     return "";
 }
 
-string MeterSupercom587::timeReversed()
+string MeterIperl::timeReversed()
 {
     return "";
 }
 
-string MeterSupercom587::timeLeaking()
+string MeterIperl::timeLeaking()
 {
     return "";
 }
 
-string MeterSupercom587::timeBursting()
+string MeterIperl::timeBursting()
 {
     return "";
 }

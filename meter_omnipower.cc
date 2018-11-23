@@ -89,8 +89,7 @@ void MeterOmnipower::handleTelegram(Telegram *t) {
 
     if (useAes()) {
         vector<uchar> aeskey = key();
-        // Proper decryption not yet implemented!
-        decryptKamstrupC1(t, aeskey);
+        decryptMode5_AES_CBC(t, aeskey, "omnipower");
     } else {
         t->content = t->payload;
     }

@@ -104,6 +104,7 @@ MeterType toMeterType(const char *type)
     if (!strcmp(type, "multical302")) return MULTICAL302_METER;
     if (!strcmp(type, "omnipower")) return OMNIPOWER_METER;
     if (!strcmp(type, "supercom587")) return SUPERCOM587_METER;
+    if (!strcmp(type, "iperl")) return IPERL_METER;
     return UNKNOWN_METER;
 }
 
@@ -114,6 +115,7 @@ LinkMode toMeterLinkMode(const char *type)
     if (!strcmp(type, "multical302")) return LinkModeC1;
     if (!strcmp(type, "omnipower")) return LinkModeC1;
     if (!strcmp(type, "supercom587")) return LinkModeT1;
+    if (!strcmp(type, "iperl")) return LinkModeT1;
 
     return UNKNOWN_LINKMODE;
 }

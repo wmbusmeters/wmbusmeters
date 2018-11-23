@@ -96,7 +96,7 @@ void MeterMultical302::handleTelegram(Telegram *t) {
 
     if (useAes()) {
         vector<uchar> aeskey = key();
-        decryptKamstrupC1(t, aeskey);
+        decryptMode1_AES_CTR(t, aeskey, "multical302");
     } else {
         t->content = t->payload;
     }
