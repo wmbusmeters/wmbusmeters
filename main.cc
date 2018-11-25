@@ -129,30 +129,31 @@ int main(int argc, char **argv)
 
     if (cmdline->meters.size() > 0) {
         for (auto &m : cmdline->meters) {
+            const char *keymsg = (m.key[0] == 0) ? "not-encrypted" : "encrypted";
             switch (toMeterType(m.type)) {
             case MULTICAL21_METER:
                 m.meter = createMultical21(wmbus, m.name, m.id, m.key, MULTICAL21_METER);
-                verbose("(multical21) configured \"%s\" \"multical21\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+                verbose("(multical21) configured \"%s\" \"multical21\" \"%s\" %s\n", m.name, m.id, keymsg);
                 break;
             case FLOWIQ3100_METER:
                 m.meter = createMultical21(wmbus, m.name, m.id, m.key, FLOWIQ3100_METER);
-                verbose("(flowiq3100) configured \"%s\" \"flowiq3100\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+                verbose("(flowiq3100) configured \"%s\" \"flowiq3100\" \"%s\" %s\n", m.name, m.id, keymsg);
                 break;
             case MULTICAL302_METER:
                 m.meter = createMultical302(wmbus, m.name, m.id, m.key);
-                verbose("(multical302) configured \"%s\" \"multical302\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+                verbose("(multical302) configured \"%s\" \"multical302\" \"%s\" %s\n", m.name, m.id, keymsg);
                 break;
             case OMNIPOWER_METER:
                 m.meter = createOmnipower(wmbus, m.name, m.id, m.key);
-                verbose("(omnipower) configured \"%s\" \"omnipower\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+                verbose("(omnipower) configured \"%s\" \"omnipower\" \"%s\" %s\n", m.name, m.id, keymsg);
                 break;
             case SUPERCOM587_METER:
                 m.meter = createSupercom587(wmbus, m.name, m.id, m.key);
-                verbose("(supercom587) configured \"%s\" \"supercom587\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+                verbose("(supercom587) configured \"%s\" \"supercom587\" \"%s\" %s\n", m.name, m.id, keymsg);
                 break;
             case IPERL_METER:
                 m.meter = createIperl(wmbus, m.name, m.id, m.key);
-                verbose("(iperl) configured \"%s\" \"iperl\" \"%s\" \"%s\"\n", m.name, m.id, m.key);
+                verbose("(iperl) configured \"%s\" \"iperl\" \"%s\" %s\n", m.name, m.id, keymsg);
                 break;
             case UNKNOWN_METER:
                 error("No such meter type \"%s\"\n", m.type);

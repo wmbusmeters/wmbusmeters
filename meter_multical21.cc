@@ -174,7 +174,7 @@ void MeterMultical21::handleTelegram(Telegram *t)
 
     if (useAes()) {
         vector<uchar> aeskey = key();
-        decryptMode1_AES_CTR(t, aeskey, meter_name_);
+        decryptMode1_AES_CTR(t, aeskey);
     } else {
         t->content = t->payload;
     }
@@ -231,13 +231,13 @@ void MeterMultical21::processContent(Telegram *t)
         t->addExplanation(bytes, 2, "%02x%02x format signature", ecrc0, ecrc1);
         uint16_t format_signature = ecrc0<<8 | ecrc1;
 
-        // The format signature is used to find the proper format string.
-        // But since the crc calculation is not yet functional. This functionality
-        // has to wait a bit. So we hardcode the format string here.
         vector<uchar> format_bytes;
-        hex2bin("02FF2004134413", &format_bytes); // Yes, the hash of this string should equal the format signature above.
-        uint16_t format_hash = crc16_EN13757(&format_bytes[0], 7);
-        debug("(multical21) format signature %4X format hash %4X\n", format_signature, format_hash);
+        bool ok = loadFormatBytesFromSignature(format_signature, &format_bytes);
+        if (!ok) {
+            warning("(%s) warning: Unknown format signature hash 0x%02x! Cannot decode telegram.\n",
+                    meter_name_,  format_signature);
+            return;
+        }
         vector<uchar>::iterator format = format_bytes.begin();
 
         // 2,3 = crc for payload = hash over both DRH and data bytes. Or is it only over the data bytes?

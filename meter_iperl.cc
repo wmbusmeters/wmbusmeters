@@ -111,8 +111,7 @@ void MeterIperl::handleTelegram(Telegram *t)
 
     if (useAes()) {
         vector<uchar> aeskey = key();
-		decryptMode5_AES_CBC(t, aeskey, "iperl");
-        verbose("$\n");
+		decryptMode5_AES_CBC(t, aeskey);
     } else {
         t->content = t->payload;
     }

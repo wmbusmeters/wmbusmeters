@@ -70,26 +70,24 @@ bool parseDV(Telegram *t,
 
     format_bytes.clear();
     for (;;) {
-        DEBUG_PARSER("Remaining format data %ju\n", std::distance(*format,format_end));
+        DEBUG_PARSER("(dvparser debug) Remaining format data %ju\n", std::distance(*format,format_end));
         if (*format == format_end) break;
         uchar dif = **format;
 
         int datalen = difLenBytes(dif);
-        DEBUG_PARSER("dif=%02x datalen=%d \"%s\"\n", dif, datalen, difType(dif).c_str());
+        DEBUG_PARSER("(dvparser debug) dif=%02x datalen=%d \"%s\"\n", dif, datalen, difType(dif).c_str());
+        if (datalen == -2) {
+            warning("(dvparser) cannot handle dif %02X ignoring rest of telegram.\n", dif);
+            return false;
+        }
         if (dif == 0x2f) {
             t->addExplanation(*format, 1, "%02X skip", dif);
             continue;
         }
-
         if (datalen == -1) {
             variable_length = true;
-            warning("(dvparser) variable length dif %02X.\n", dif);
         } else {
             variable_length = false;
-        }
-        if (datalen == -2) {
-            warning("(dvparser) cannot handle dif %02X ignoring rest of telegram.\n", dif);
-            return false;
         }
         if (full_header) {
             format_bytes.push_back(dif);
@@ -101,7 +99,7 @@ bool parseDV(Telegram *t,
         if (*format == format_end) { warning("(dvparser) warning: unexpected end of data (vif expected)"); break; }
 
         uchar vif = **format;
-        DEBUG_PARSER("vif=%02x \"%s\"\n", vif, vifType(vif).c_str());
+        DEBUG_PARSER("(dvparser debug) vif=%02x \"%s\"\n", vif, vifType(vif).c_str());
         if (full_header) {
             format_bytes.push_back(vif);
             t->addExplanation(*format, 1, "%02X vif (%s)", vif, vifType(vif).c_str());
@@ -114,7 +112,7 @@ bool parseDV(Telegram *t,
             // vif extension
             if (*format == format_end) { warning("(dvparser) warning: unexpected end of data (vife expected)"); break; }
             uchar vife = **format;
-            DEBUG_PARSER("vife=%02x\n", vife);
+            DEBUG_PARSER("(dvparser debug) vife=%02x\n", vife);
             if (full_header) {
                 format_bytes.push_back(vife);
                 t->addExplanation(*format, 1, "%02X vife (%s)", vife, vifeType(vif, vife).c_str());
@@ -127,7 +125,7 @@ bool parseDV(Telegram *t,
         if (overrideDifLen) {
             int new_len = overrideDifLen(dif, vif, datalen);
             if (new_len != datalen) {
-                DEBUG_PARSER("changing len %d to %d for dif=%02x vif=%02x\n", datalen, new_len, dif, vif);
+                DEBUG_PARSER("(dvparser debug) changing len %d to %d for dif=%02x vif=%02x\n", datalen, new_len, dif, vif);
                 datalen = new_len;
             }
         }
@@ -138,13 +136,18 @@ bool parseDV(Telegram *t,
         } else {
             strprintf(key, "%s", dv.c_str());
         }
-        DEBUG_PARSER("DifVif key is %s\n", key.c_str());
+        DEBUG_PARSER("(dvparser debug) DifVif key is %s\n", key.c_str());
 
         int remaining = std::distance(data, data_end);
         if (variable_length) {
-            datalen = remaining;
+            debug("(dvparser) varlen %02x\n", *(data+0));
+            if (remaining > 2) {
+                datalen = *(data);
+            } else {
+                datalen = remaining;
+            }
         }
-        DEBUG_PARSER("remaining data %d len=%d\n", remaining, datalen);
+        DEBUG_PARSER("(dvparser debug) remaining data %d len=%d\n", remaining, datalen);
         if (remaining < datalen) {
             warning("(dvparser) warning: unexpected end of data\n");
             datalen = remaining;
@@ -153,7 +156,13 @@ bool parseDV(Telegram *t,
         string value = bin2hex(data, datalen);
         (*values)[key] = { start_parse_here+data-data_start, value };
         if (value.length() > 0) {
+            // Skip the length byte in the variable length data.
+            if (variable_length) {
+                data++;
+            }
+            // This call increments data with datalen.
             t->addExplanation(data, datalen, "%s", value.c_str());
+            DEBUG_PARSER("(dvparser debug) data \"%s\"\n", value.c_str());
         }
     }
 

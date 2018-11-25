@@ -435,16 +435,19 @@ int difLenBytes(int dif)
     case 0x5: return 4; // 32 Bit Real
     case 0x6: return 6; // 48 Bit Integer/Binary
     case 0x7: return 8; // 64 Bit Integer/Binary
-    case 0x8: return -1; // Selection for Readout (I do not know what this is)
+    case 0x8: return 0; // Selection for Readout
     case 0x9: return 1; // 2 digit BCD
     case 0xA: return 2; // 4 digit BCD
     case 0xB: return 3; // 6 digit BCD
     case 0xC: return 4; // 8 digit BCD
     case 0xD: return -1; // variable length
     case 0xE: return 6; // 12 digit BCD
-    case 0xF: return -2; // Special Functions
+    case 0xF: // Special Functions
+        if (dif == 0x2f) return 1; // The skip code 0x2f, used for padding.
+        return -2;
     }
-    return -1;
+    // Bad!
+    return -2;
 }
 
 string difType(int dif)
@@ -471,22 +474,26 @@ string difType(int dif)
     default: s+= "?"; break;
     }
 
-    t = dif & 0x30;
+    if (t != 0xf)
+    {
+        // Only print these suffixes when we have actual values.
+        t = dif & 0x30;
 
-    switch (t) {
-    case 0x00: s += " Instantaneous value"; break;
-    case 0x10: s += " Maximum value"; break;
-    case 0x20: s += " Minimum value"; break;
-    case 0x30: s+= " Value during error state"; break;
-    default: s += "?"; break;
+        switch (t) {
+        case 0x00: s += " Instantaneous value"; break;
+        case 0x10: s += " Maximum value"; break;
+        case 0x20: s += " Minimum value"; break;
+        case 0x30: s+= " Value during error state"; break;
+        default: s += "?"; break;
+        }
     }
-
+    /*
     if (dif & 0x40) {
         // Kamstrup uses this bit in the Multical21 to signal that for the
         // full 32 bits of data, the lower 16 bits are from this difvif record,
         // and the high 16 bits are from a different record.
         s += " VendorSpecific";
-    }
+        }*/
     return s;
 }
 

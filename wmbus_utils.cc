@@ -15,16 +15,17 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef WMBUS_UTILS_H
-#define WMBUS_UTILS_H
 
 #include"aes.h"
+#include"util.h"
 #include"wmbus.h"
 
-void decryptMode1_AES_CTR(Telegram *t, vector<uchar> &aeskey, const char *meter_name)
+void decryptMode1_AES_CTR(Telegram *t, vector<uchar> &aeskey)
 {
     vector<uchar> content;
     content.insert(content.end(), t->payload.begin(), t->payload.end());
+    debugPayload("(Mode1) decrypting", content);
+
     size_t remaining = content.size();
     if (remaining > 16) remaining = 16;
 
@@ -45,7 +46,7 @@ void decryptMode1_AES_CTR(Telegram *t, vector<uchar> &aeskey, const char *meter_
 
     vector<uchar> ivv(iv, iv+16);
     string s = bin2hex(ivv);
-    debug("(%s) IV   %s\n", meter_name, s.c_str());
+    debug("(Mode1) IV %s\n", s.c_str());
 
     uchar xordata[16];
     AES_ECB_encrypt(iv, &aeskey[0], xordata, 16);
@@ -54,11 +55,11 @@ void decryptMode1_AES_CTR(Telegram *t, vector<uchar> &aeskey, const char *meter_
     xorit(xordata, &content[0], decrypt, remaining);
 
     vector<uchar> dec(decrypt, decrypt+remaining);
-    debugPayload("(C1) decrypted", dec);
+    debugPayload("(Mode1) decrypted first block", dec);
 
     if (content.size() > 22) {
-        warning("(%s) warning: C1 decryption received too many bytes of content! "
-                "Got %zu bytes, expected at most 22.\n", meter_name, content.size());
+        warning("(Mode1) warning: decryption received too many bytes of content! "
+                "Got %zu bytes, expected at most 22.\n", content.size());
     }
     if (content.size() > 16) {
         // Yay! Lets decrypt a second block. Full frame content is 22 bytes.
@@ -69,20 +70,21 @@ void decryptMode1_AES_CTR(Telegram *t, vector<uchar> &aeskey, const char *meter_
         incrementIV(iv, sizeof(iv));
         vector<uchar> ivv2(iv, iv+16);
         string s2 = bin2hex(ivv2);
-        debug("(%s) IV+1 %s\n", meter_name, s2.c_str());
+        debug("(Mode1) IV+1 %s\n", s2.c_str());
 
         AES_ECB_encrypt(iv, &aeskey[0], xordata, 16);
 
         xorit(xordata, &content[16], decrypt, remaining);
 
         vector<uchar> dec2(decrypt, decrypt+remaining);
-        debugPayload("(C1) decrypted", dec2);
+        debugPayload("(Mode1) decrypted second block", dec2);
 
         // Append the second decrypted block to the first.
         dec.insert(dec.end(), dec2.begin(), dec2.end());
     }
     t->content.clear();
     t->content.insert(t->content.end(), dec.begin(), dec.end());
+    debugPayload("(Mode1) decrypted", t->content);
 }
 
 string frameTypeKamstrupC1(int ft) {
@@ -91,16 +93,18 @@ string frameTypeKamstrupC1(int ft) {
     return "?";
 }
 
-void decryptMode5_AES_CBC(Telegram *t, vector<uchar> &aeskey, const char *meter_name)
+void decryptMode5_AES_CBC(Telegram *t, vector<uchar> &aeskey)
 {
     vector<uchar> content;
     content.insert(content.end(), t->payload.begin(), t->payload.end());
+    debugPayload("(Mode5) decrypting", content);
+
     // The content should be a multiple of 16 since we are using AES CBC mode.
     if (content.size() % 16 != 0)
     {
-        warning("(%s) warning: T1 decryption received non-multiple of 16 bytes! "
+        warning("(Mode5) warning: decryption received non-multiple of 16 bytes! "
                 "Got %zu bytes shrinking message to %zu bytes.\n",
-                meter_name, content.size(), content.size() - content.size() % 16);
+                content.size(), content.size() - content.size() % 16);
         while (content.size() % 16 != 0)
         {
             content.pop_back();
@@ -114,29 +118,38 @@ void decryptMode5_AES_CBC(Telegram *t, vector<uchar> &aeskey, const char *meter_
     // A-field
     for (int j=0; j<6; ++j) { iv[i++] = t->a_field[j]; }
     // ACC
-    iv[i++] = t->acc;
-    // SN-field
-    for (int j=0; j<4; ++j) { iv[i++] = t->acc; }
-    // FN
-    iv[i++] = t->acc; iv[i++] = t->acc;
-    // BC
-    iv[i++] = t->acc;
+    for (int j=0; j<8; ++j) { iv[i++] = t->acc; }
 
     vector<uchar> ivv(iv, iv+16);
     string s = bin2hex(ivv);
-    verbose("(%s) IV   %s\n", meter_name, s.c_str());
+    debug("(Mode5) IV %s\n", s.c_str());
 
-    uchar decrypted_data[16];
-    AES_CBC_decrypt_buffer(decrypted_data, &content[0], 16, &aeskey[0], iv);
-    vector<uchar> decrypted(decrypted_data, decrypted_data+16);
+    uchar decrypted_data[content.size()];
+    AES_CBC_decrypt_buffer(decrypted_data, &content[0], content.size(), &aeskey[0], iv);
+    vector<uchar> decrypted(decrypted_data, decrypted_data+content.size());
 
     if (decrypted_data[0] != 0x2F || decrypted_data[1] != 0x2F) {
-        verbose("(%s) decrypt failed!\n", meter_name);
+        verbose("(Mode5) decrypt failed!\n");
     }
 
     t->content.clear();
     t->content.insert(t->content.end(), decrypted.begin(), decrypted.end());
-    debugPayload("(T1) decrypted", t->content);
+    debugPayload("(Mode5) decrypted", t->content);
 }
 
-#endif
+bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes)
+{
+    // The format signature is used to find the proper format string.
+    // But since the crc calculation is not yet functional. This functionality
+    // has to wait a bit. So we hardcode the format string here.
+    if (format_signature == 0xeda8)
+    {
+        hex2bin("02FF2004134413", format_bytes);
+        // The hash of this string should equal the format signature above.
+        uint16_t format_hash = crc16_EN13757(&(*format_bytes)[0], 7);
+        debug("(utils) format signature %4X format hash %4X\n", format_signature, format_hash);
+        return true;
+    }
+    // Unknown format signature.
+    return false;
+}
