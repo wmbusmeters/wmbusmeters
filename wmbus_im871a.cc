@@ -251,19 +251,21 @@ void WMBusIM871A::setLinkMode(LinkMode lm)
     }
     pthread_mutex_lock(&command_lock_);
 
-    vector<uchar> msg(8);
+    vector<uchar> msg(10);
     msg[0] = IM871A_SERIAL_SOF;
     msg[1] = DEVMGMT_ID;
     sent_command_ = msg[2] = DEVMGMT_MSG_SET_CONFIG_REQ;
-    msg[3] = 3; // Len
+    msg[3] = 6; // Len
     msg[4] = 0; // Temporary
-    msg[5] = 2; // iff1 bits: Set Radio Mode only
+    msg[5] = 2; // iff1 bits: Set Radio Mode
     if (lm == LinkModeC1) {
         msg[6] = (int)im871a_C1a;
     } else {
         msg[6] = (int)im871a_T1;
     }
-    msg[7] = 0; // iff2 bits: Set nothing
+    msg[7] = 16+32; // iff2 bits: Set rssi+timestamp
+    msg[8] = 1;  // Enable rssi
+    msg[9] = 1;  // Enable timestamp
 
     verbose("(im871a) set link mode %02x\n", msg[6]);
     serial()->send(msg);
@@ -293,6 +295,7 @@ FrameStatus WMBusIM871A::checkFrame(vector<uchar> &data,
 {
     if (data.size() == 0) return PartialFrame;
     if (data[0] != 0xa5) return ErrorInFrame;
+
     int ctrlbits = (data[1] & 0xf0) >> 4;
     if (ctrlbits & 1) return ErrorInFrame; // Bit 1 is reserved, we do not expect it....
     bool has_timestamp = ((ctrlbits&2)==2);
@@ -318,6 +321,35 @@ FrameStatus WMBusIM871A::checkFrame(vector<uchar> &data,
 
     *frame_length = *payload_offset+payload_len+(has_timestamp?4:0)+(has_rssi?1:0)+(has_crc16?2:0);
     if (data.size() < *frame_length) return PartialFrame;
+
+    int i = *payload_offset + payload_len;
+    if (has_timestamp) {
+        uint32_t a = data[i];
+        uint32_t b = data[i+1];
+        uint32_t c = data[i+2];
+        uint32_t d = data[i+3];
+
+        uint32_t ts = a+b*256+c*256*256+d*256*256*256;
+        debug("(im871a) timestamp %08x\n", ts);
+        i += 4;
+    }
+    if (has_rssi) {
+        uint32_t rssi = data[i];
+        debug("(im871a) rssi %02x\n", rssi);
+        i++;
+    }
+    if (has_crc16) {
+        uint32_t a = data[i];
+        uint32_t b = data[i+1];
+        uint32_t crc16 = a+b*256;
+        i+=2;
+        uint16_t gotcrc = ~crc16_CCITT(&data[1], i-1-2);
+        bool crcok = crc16_CCITT_check(&data[1], i-1);
+        debug("(im871a) got crc16 %04x expected %04x\n", crc16, gotcrc);
+        if (!crcok) {
+            warning("(im871a) warning: got wrong crc %04x expected %04x\n", gotcrc, crc16);
+        }
+    }
 
     return FullFrame;
 }
@@ -348,14 +380,18 @@ void WMBusIM871A::processSerialData()
     if (status == FullFrame) {
 
         vector<uchar> payload;
-        if (payload_len > 0) {
+        if (payload_len > 0)
+        {
             if (endpoint == RADIOLINK_ID &&
                 msgid == RADIOLINK_MSG_WMBUSMSG_IND)
             {
                 uchar l = payload_len;
                 payload.insert(payload.begin(), &l, &l+1); // Re-insert the len byte.
             }
-            payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_len);
+            // Insert the payload.
+            payload.insert(payload.end(),
+                           read_buffer_.begin()+payload_offset,
+                           read_buffer_.begin()+payload_offset+payload_len);
         }
 
         read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);

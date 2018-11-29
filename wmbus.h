@@ -26,7 +26,7 @@
 
 #define LIST_OF_LINK_MODES X(LinkModeC1)X(LinkModeT1)X(UNKNOWN_LINKMODE)
 
-// In link mode T1, the meter transmits a telegram every few seconds.
+// In link mode T1, the meter transmits a telegram every few seconds or minutes.
 // Suitable for drive-by/walk-by collection of meter values.
 
 // Link mode C1 is like T1 but uses less energy when transmitting due to

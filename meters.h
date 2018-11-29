@@ -73,6 +73,10 @@ struct WaterMeter : public virtual Meter {
     virtual bool  hasTargetWaterConsumption() = 0;
     virtual double maxFlow() = 0;
     virtual bool  hasMaxFlow() = 0;
+    virtual double flowTemperature() = 0; // °C
+    virtual bool hasFlowTemperature() = 0;
+    virtual double externalTemperature() = 0; // °C
+    virtual bool hasExternalTemperature() = 0;
 
     virtual string statusHumanReadable() = 0;
     virtual string status() = 0;

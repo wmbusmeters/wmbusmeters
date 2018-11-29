@@ -222,7 +222,10 @@ void WMBusAmber::waitForResponse() {
 }
 
 FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
-                                   size_t *frame_length, int *msgid_out, int *payload_len_out, int *payload_offset)
+                                          size_t *frame_length,
+                                          int *msgid_out,
+                                          int *payload_len_out,
+                                          int *payload_offset)
 {
     if (data.size() == 0) return PartialFrame;
     int payload_len = 0;
@@ -386,9 +389,6 @@ bool detectAMB8465(string device, SerialCommunicationManager *manager)
     }
 
     serial->close();
-
-    string sent = bin2hex(msg);
-    string recv = bin2hex(data);
 
     if (data.size() < 8 ||
         data[0] != 0xff ||

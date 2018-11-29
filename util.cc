@@ -406,3 +406,35 @@ uint16_t crc16_EN13757(uchar *data, size_t len)
 
     return (~crc);
 }
+
+#define CRC16_INIT_VALUE 0xFFFF
+#define CRC16_GOOD_VALUE 0x0F47
+#define CRC16_POLYNOM    0x8408
+
+uint16_t crc16_CCITT(uchar *data, uint16_t length)
+{
+    uint16_t initVal = CRC16_INIT_VALUE;
+    uint16_t crc = initVal;
+    while(length--)
+    {
+        int bits = 8;
+        uchar byte = *data++;
+        while(bits--)
+        {
+            if((byte & 1) ^ (crc & 1))
+            {
+                crc = (crc >> 1) ^ CRC16_POLYNOM;
+            }
+            else
+                crc >>= 1;
+            byte >>= 1;
+        }
+    }
+    return crc;
+}
+
+bool crc16_CCITT_check(uchar *data, uint16_t length)
+{
+    uint16_t crc = ~crc16_CCITT(data, length);
+    return crc == CRC16_GOOD_VALUE;
+}

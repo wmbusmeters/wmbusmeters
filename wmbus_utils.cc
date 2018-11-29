@@ -57,10 +57,6 @@ void decryptMode1_AES_CTR(Telegram *t, vector<uchar> &aeskey)
     vector<uchar> dec(decrypt, decrypt+remaining);
     debugPayload("(Mode1) decrypted first block", dec);
 
-    if (content.size() > 22) {
-        warning("(Mode1) warning: decryption received too many bytes of content! "
-                "Got %zu bytes, expected at most 22.\n", content.size());
-    }
     if (content.size() > 16) {
         // Yay! Lets decrypt a second block. Full frame content is 22 bytes.
         // So a second block should enough for everyone!
@@ -146,8 +142,10 @@ bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *form
     {
         hex2bin("02FF2004134413", format_bytes);
         // The hash of this string should equal the format signature above.
-        uint16_t format_hash = crc16_EN13757(&(*format_bytes)[0], 7);
-        debug("(utils) format signature %4X format hash %4X\n", format_signature, format_hash);
+        uint16_t format_hash1 = crc16_EN13757(&(*format_bytes)[0], 7);
+        uint16_t format_hash2 = ~crc16_CCITT(&(*format_bytes)[0], 7);
+        debug("(utils) format signature %4X format hash a=%4X b=%4X c=%4X d=%4X\n",
+              format_signature, format_hash1, (uint16_t)(~format_hash1), format_hash2, (uint16_t)(~format_hash2));
         return true;
     }
     // Unknown format signature.

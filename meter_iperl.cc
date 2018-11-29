@@ -43,6 +43,10 @@ struct MeterIperl : public virtual WaterMeter, public virtual MeterCommonImpleme
     bool  hasTargetWaterConsumption();
     double maxFlow();
     bool  hasMaxFlow();
+    double flowTemperature();
+    bool  hasFlowTemperature();
+    double externalTemperature();
+    bool  hasExternalTemperature();
 
     string statusHumanReadable();
     string status();
@@ -221,6 +225,26 @@ double MeterIperl::maxFlow()
 }
 
 bool MeterIperl::hasMaxFlow()
+{
+    return false;
+}
+
+double MeterIperl::flowTemperature()
+{
+    return 127;
+}
+
+bool MeterIperl::hasFlowTemperature()
+{
+    return false;
+}
+
+double MeterIperl::externalTemperature()
+{
+    return 127;
+}
+
+bool MeterIperl::hasExternalTemperature()
 {
     return false;
 }

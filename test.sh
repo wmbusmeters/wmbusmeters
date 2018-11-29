@@ -14,7 +14,7 @@ then
     diff test_expected.txt test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo OK
+        echo C1 OK
     fi
 else
     Failure.
@@ -24,7 +24,7 @@ cat simulation_t1.txt | grep '^{' > test_expected.txt
 $PROG --robot=json simulation_t1.txt \
       MyWarmWater supercom587 12345678 "" \
       MyColdWater supercom587 11111111 "" \
-      MoreWater   iperl       12345678 "1234567890ABCDEF1234567890ABCDEF" \
+      MoreWater   iperl       12345699 "" \
       > test_output.txt
 if [ "$?" == "0" ]
 then
@@ -32,7 +32,7 @@ then
     diff test_expected.txt test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo OK
+        echo T1 OK
     fi
 else
     Failure.

@@ -77,7 +77,7 @@ bool parseDV(Telegram *t,
         int datalen = difLenBytes(dif);
         DEBUG_PARSER("(dvparser debug) dif=%02x datalen=%d \"%s\"\n", dif, datalen, difType(dif).c_str());
         if (datalen == -2) {
-            warning("(dvparser) cannot handle dif %02X ignoring rest of telegram.\n", dif);
+            debug("(dvparser) cannot handle dif %02X ignoring rest of telegram.\n", dif);
             return false;
         }
         if (dif == 0x2f) {
@@ -96,7 +96,7 @@ bool parseDV(Telegram *t,
             (*format)++;
         }
 
-        if (*format == format_end) { warning("(dvparser) warning: unexpected end of data (vif expected)"); break; }
+        if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif expected)"); break; }
 
         uchar vif = **format;
         DEBUG_PARSER("(dvparser debug) vif=%02x \"%s\"\n", vif, vifType(vif).c_str());
@@ -110,7 +110,7 @@ bool parseDV(Telegram *t,
         strprintf(dv, "%02X%02X", dif, vif);
         if ((vif&0x80) == 0x80) {
             // vif extension
-            if (*format == format_end) { warning("(dvparser) warning: unexpected end of data (vife expected)"); break; }
+            if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vife expected)"); break; }
             uchar vife = **format;
             DEBUG_PARSER("(dvparser debug) vife=%02x\n", vife);
             if (full_header) {
@@ -140,7 +140,7 @@ bool parseDV(Telegram *t,
 
         int remaining = std::distance(data, data_end);
         if (variable_length) {
-            debug("(dvparser) varlen %02x\n", *(data+0));
+            debug("(dvparser debug) varlen %02x\n", *(data+0));
             if (remaining > 2) {
                 datalen = *(data);
             } else {
@@ -149,7 +149,7 @@ bool parseDV(Telegram *t,
         }
         DEBUG_PARSER("(dvparser debug) remaining data %d len=%d\n", remaining, datalen);
         if (remaining < datalen) {
-            warning("(dvparser) warning: unexpected end of data\n");
+            debug("(dvparser) warning: unexpected end of data\n");
             datalen = remaining;
         }
 
@@ -163,6 +163,10 @@ bool parseDV(Telegram *t,
             // This call increments data with datalen.
             t->addExplanation(data, datalen, "%s", value.c_str());
             DEBUG_PARSER("(dvparser debug) data \"%s\"\n", value.c_str());
+        }
+        if (remaining == datalen) {
+            // We are done here!
+            break;
         }
     }
 

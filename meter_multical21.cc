@@ -59,6 +59,12 @@ struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonIm
     // Max flow during last month or last 24 hours depending on meter configuration.
     double maxFlow();
     bool  hasMaxFlow();
+    // Water temperature
+    double flowTemperature();
+    bool  hasFlowTemperature();
+    // Surrounding temperature
+    double externalTemperature();
+    bool  hasExternalTemperature();
 
     // statusHumanReadable: DRY,REVERSED,LEAK,BURST if that status is detected right now, followed by
     //                      (dry 15-21 days) which means that, even it DRY is not active right now,
@@ -87,6 +93,10 @@ private:
     bool has_target_volume_ {};
     double max_flow_ {};
     bool has_max_flow_ {};
+    double flow_temperature_ { 127 };
+    bool has_flow_temperature_ {};
+    double external_temperature_ { 127 };
+    bool has_external_temperature_ {};
 
     const char *meter_name_; // multical21 or flowiq3100
     int expected_version_ {}; // 0x1b for Multical21 and 0x1d for FlowIQ3100
@@ -136,6 +146,26 @@ double MeterMultical21::maxFlow()
 bool MeterMultical21::hasMaxFlow()
 {
     return has_max_flow_;
+}
+
+double MeterMultical21::flowTemperature()
+{
+    return flow_temperature_;
+}
+
+bool MeterMultical21::hasFlowTemperature()
+{
+    return has_flow_temperature_;
+}
+
+double MeterMultical21::externalTemperature()
+{
+    return external_temperature_;
+}
+
+bool MeterMultical21::hasExternalTemperature()
+{
+    return has_external_temperature_;
 }
 
 WaterMeter *createMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt)
@@ -215,13 +245,6 @@ void MeterMultical21::processContent(Telegram *t)
 
     if (frame_type == 0x79)
     {
-        if (t->content.size() != 15) {
-            warning("(%s) warning: Unexpected length of short frame %zu. Expected 15 bytes! ", meter_name_,
-                    t->content.size());
-            padWithZeroesTo(&t->content, 15, &t->content);
-            warning("\n");
-        }
-
         // 0,1 = crc for format signature = hash over DRH (Data Record Header)
         // The DRH is the dif(dife)vif(vife) bytes for all the records...
         // This hash should be used to pick up a suitable format string.
@@ -270,18 +293,8 @@ void MeterMultical21::processContent(Telegram *t)
     else
     if (frame_type == 0x78)
     {
-        if (t->content.size() != 22) {
-            warning("(%s) warning: Unexpected length of long frame %zu. Expected 22 bytes! ", meter_name_, t->content.size());
-            padWithZeroesTo(&t->content, 22, &t->content);
-            warning("\n");
-        }
-
         map<string,pair<int,string>> values;
-        parseDV(t, t->content.begin()+3, t->content.size()-3-2, &values);
-
-        // There are two more bytes in the data. Unknown purpose.
-        int val0 = t->content[20];
-        int val1 = t->content[21];
+        parseDV(t, t->content.begin()+3, t->content.size()-3, &values);
 
         int offset;
 
@@ -293,13 +306,19 @@ void MeterMultical21::processContent(Telegram *t)
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
 
         extractDVdouble(&values, "4413", &offset, &target_volume_);
-	has_target_volume_ = true;
+        has_target_volume_ = true;
         t->addMoreExplanation(offset, " target consumption (%f m3)", target_volume_);
 
-        // To unknown bytes, seems to be very constant.
-        vector<uchar>::iterator unknowns = t->content.begin()+20;
-        t->addExplanation(unknowns, 2, "%02x%02x unknown", val0, val1);
-    } else {
+        extractDVdouble(&values, "615B", &offset, &flow_temperature_);
+        has_flow_temperature_ = true;
+        t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_);
+
+        extractDVdouble(&values, "6167", &offset, &external_temperature_);
+        has_external_temperature_ = true;
+        t->addMoreExplanation(offset, " external temperature (%f °C)", external_temperature_);
+    }
+    else
+    {
         warning("(%s) warning: unknown frame %02x (did you use the correct encryption key?)\n", meter_name_, frame_type);
     }
 }
@@ -434,21 +453,25 @@ void MeterMultical21::printMeter(string *human_readable,
     char buf[65536];
     buf[65535] = 0;
 
-    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f m3\t% 3.3f m3\t%s\t%s",
+    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f m3\t% 3.3f m3\t% 2.0f°C\t% 2.0f°C\t%s\t%s",
              name().c_str(),
              id().c_str(),
              totalWaterConsumption(),
              targetWaterConsumption(),
+             flowTemperature(),
+             externalTemperature(),
              statusHumanReadable().c_str(),
              datetimeOfUpdateHumanReadable().c_str());
 
     *human_readable = buf;
 
-    snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%f%c%s%c%s",
+    snprintf(buf, sizeof(buf)-1, "%s%c" "%s%c" "%f%c" "%f%c" "%.0f%c" "%.0f%c" "%s%c" "%s",
              name().c_str(), separator,
              id().c_str(), separator,
              totalWaterConsumption(), separator,
              targetWaterConsumption(), separator,
+             flowTemperature(), separator,
+             externalTemperature(), separator,
              statusHumanReadable().c_str(), separator,
              datetimeOfUpdateRobot().c_str());
 
@@ -465,6 +488,8 @@ void MeterMultical21::printMeter(string *human_readable,
              QS(id,%s)
              Q(total_m3,%f)
              Q(target_m3,%f)
+             Q(flow_temperature,%.0f)
+             Q(external_temperature,%.0f)
              QS(current_status,%s)
              QS(time_dry,%s)
              QS(time_reversed,%s)
@@ -478,6 +503,8 @@ void MeterMultical21::printMeter(string *human_readable,
              id().c_str(),
              totalWaterConsumption(),
              targetWaterConsumption(),
+             flowTemperature(),
+             externalTemperature(),
              status().c_str(), // DRY REVERSED LEAK BURST
              timeDry().c_str(),
              timeReversed().c_str(),
@@ -492,6 +519,8 @@ void MeterMultical21::printMeter(string *human_readable,
     envs->push_back(string("METER_ID=")+id());
     envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption()));
     envs->push_back(string("METER_TARGET_M3=")+to_string(targetWaterConsumption()));
+    envs->push_back(string("METER_FLOW_TEMPERATURE=")+to_string(flowTemperature()));
+    envs->push_back(string("METER_EXTERNAL_TEMPERATURE=")+to_string(externalTemperature()));
     envs->push_back(string("METER_STATUS=")+status());
     envs->push_back(string("METER_TIME_DRY=")+timeDry());
     envs->push_back(string("METER_TIME_REVERSED=")+timeReversed());

@@ -42,6 +42,10 @@ struct MeterSupercom587 : public virtual WaterMeter, public virtual MeterCommonI
     bool  hasTargetWaterConsumption();
     double maxFlow();
     bool  hasMaxFlow();
+    double flowTemperature();
+    bool  hasFlowTemperature();
+    double externalTemperature();
+    bool  hasExternalTemperature();
 
     string statusHumanReadable();
     string status();
@@ -219,6 +223,26 @@ double MeterSupercom587::maxFlow()
 }
 
 bool MeterSupercom587::hasMaxFlow()
+{
+    return false;
+}
+
+double MeterSupercom587::flowTemperature()
+{
+    return 127;
+}
+
+bool MeterSupercom587::hasFlowTemperature()
+{
+    return false;
+}
+
+double MeterSupercom587::externalTemperature()
+{
+    return 127;
+}
+
+bool MeterSupercom587::hasExternalTemperature()
 {
     return false;
 }

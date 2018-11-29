@@ -119,11 +119,12 @@ void MeterMultical302::processContent(Telegram *t) {
     t->addExplanation(bytes, 1, "%02x frame type (%s)", frame_type, frameTypeKamstrupC1(frame_type).c_str());
 
     if (frame_type == 0x79) {
-	if (t->content.size() != 17) {
+        /*if (t->content.size() != 17) {
+
             fprintf(stderr, "(multical302) warning: Unexpected length of frame %zu. Expected 17 bytes! ", t->content.size());
             padWithZeroesTo(&t->content, 17, &t->content);
             warning("\n");
-        }
+            }*/
 
         // This code should be rewritten to use parseDV see the Multical21 code.
         // But I cannot do this without more examples of 302 telegrams.
@@ -151,11 +152,11 @@ void MeterMultical302::processContent(Telegram *t) {
     }
     else if (frame_type == 0x78)
     {
-	if (t->content.size() != 26) {
+        /*if (t->content.size() != 26) {
             fprintf(stderr, "(multical302) warning: Unexpected length of frame %zu. Expected 26 bytes! ", t->content.size());
             padWithZeroesTo(&t->content, 26, &t->content);
             warning("\n");
-        }
+            }*/
 
         // This code should be rewritten to use parseDV see the Multical21 code.
         // But I cannot do this without more examples of 302 telegrams.
