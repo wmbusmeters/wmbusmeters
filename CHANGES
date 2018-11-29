@@ -1,4 +1,8 @@
 
+Version 0.8: 2018-11-29
+
+Multical21 now reports flow temperature and external temperature.
+
 Version 0.7: 2018-11-23
 
 David Mallon contributed the iPerl water meter! Thanks David!
@@ -9,6 +13,8 @@ Added --shell command to invoke for example: mosquitto to send an MQTT message
 or psql to insert received data into a database.
 
 Added proper T1 telegram support. First meter to use T1 is supercom587.
+A large part of the supercom587 message is not yet properly decoded.
+However the important part, the total consumption, is correct.
 
 Version 0.5:
 

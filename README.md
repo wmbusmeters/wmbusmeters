@@ -9,7 +9,7 @@ MQTT, inserted into a database or stored in a log file.
 |Linux G++| [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master)](https://travis-ci.org/weetmuts/wmbusmeters) |
 
 ```
-wmbusmeters version: 0.7
+wmbusmeters version: 0.8
 Usage: wmbusmeters {options} (auto | /dev/ttyUSBx)] { [meter_name] [meter_type] [meter_id] [meter_key] }*
 
 Add more meter quadruplets to listen to more meters.
@@ -54,13 +54,15 @@ wmbusmeters will detect which kind of dongle is connected to /dev/ttyUSB0. It ca
 
 Example output:
 
-`MyTapWater      12345678         6.388 m3        6.377 m3       DRY(dry 22-31 days)     2018-03-05 12:02.50`
+`MyTapWater   12345678     6.388 m3     6.377 m3    8°C    23°C   DRY(dry 22-31 days)     2018-03-05 12:02.50`
+
+(Temperature is only sent every 8 message. Until such a full message has been received, the temperature is set to 127°C.)
 
 Example robot json output:
 
 `wmbusmeters --robot=json auto MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF MyHeater multical302 22222222 00112233445566778899AABBCCDDEEFF`
 
-`{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z"}`
+`{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"flow_temperature":8,"external_temperature":23,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z"}`
 
 `{"media":"heat","meter":"multical302","name":"MyHeater","id":"22222222","total_kwh":0.000,"total_volume_m3":0.000,"current_kw":"0.000","timestamp":"2018-02-08T09:07:22Z"}`
 
@@ -68,7 +70,7 @@ Example robot fields output:
 
 `wmbusmeters --robot=fields auto GreenhouseWater multical21 33333333 ""`
 
-`GreenhouseTapWater;33333333;9999.099;77.712;;2018-03-05 12:10.24`
+`GreenhouseTapWater;33333333;9999.099;77.712;11;31;;2018-03-05 12:10.24`
 
 Eaxmple of using the shell command to publish to MQTT:
 
