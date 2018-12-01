@@ -56,7 +56,7 @@ Example output:
 
 `MyTapWater   12345678     6.388 m3     6.377 m3    8°C    23°C   DRY(dry 22-31 days)     2018-03-05 12:02.50`
 
-(Temperature is only sent every 8 message. Until such a full message has been received, the temperature is set to 127°C.)
+(Temperature is only sent every 8 message. Until such a full message has been received, the temperature is reported as 127°C.)
 
 Example robot json output:
 
@@ -155,8 +155,6 @@ https://github.com/kokke/tiny-AES128-C
 The following other github projects were of great help:
 
 https://github.com/ffcrg/ecpiww
-
-https://github.com/tobiasrask/wmbus-client
 
 https://github.com/CBrunsch/scambus/
 
