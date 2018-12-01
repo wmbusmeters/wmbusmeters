@@ -227,6 +227,7 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
                                           int *payload_len_out,
                                           int *payload_offset)
 {
+    // telegram=|2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B|+96
     if (data.size() == 0) return PartialFrame;
     int payload_len = 0;
     if (data[0] == 0xff) {
@@ -280,15 +281,8 @@ void WMBusAmber::processSerialData()
         vector<uchar> payload;
         if (payload_len > 0) {
             uchar l = payload_len;
-            int minus = 0;
             payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
-            if (msgid == 0) {
-                // Copy the telegram payload minus 4 bytes at the end. Could these extra bytes be some
-                // AMB8465 crc/rssi/else specific data that is dependent on the non-volatile
-                // bit settings in the usb stick? Perhaps.
-                minus = 4;
-            }
-            payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len-minus);
+            payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
         }
 
         read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);

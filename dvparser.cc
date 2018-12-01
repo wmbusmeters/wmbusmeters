@@ -200,7 +200,7 @@ bool extractDVuint16(map<string,pair<int,string>> *values,
                      uint16_t *value)
 {
     if ((*values).count(key) == 0) {
-        warning("(dvparser) warning: cannot extract uint16 from non-existant key \"%s\"\n", key.c_str());
+        verbose("(dvparser) warning: cannot extract uint16 from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
         *value = 0;
         return false;
@@ -223,7 +223,7 @@ bool extractDVdouble(map<string,pair<int,string>> *values,
                      double *value)
 {
     if ((*values).count(key) == 0) {
-        warning("(dvparser) warning: cannot extract double from non-existant key \"%s\"\n", key.c_str());
+        verbose("(dvparser) warning: cannot extract double from non-existant key \"%s\"\n", key.c_str());
         *offset = 0;
         *value = 0;
         return false;
@@ -233,6 +233,13 @@ bool extractDVdouble(map<string,pair<int,string>> *values,
 
     pair<int,string>&  p = (*values)[key];
     *offset = p.first;
+
+    if (p.second.length() == 0) {
+        verbose("(dvparser) warning: key found but no data  \"%s\"\n", key.c_str());
+        *offset = 0;
+        *value = 0;
+        return false;
+    }
 
     int t = dif&0xf;
     if (t == 0x1 || // 8 Bit Integer/Binary
@@ -311,7 +318,7 @@ bool extractDVdoubleCombined(std::map<std::string,std::pair<int,std::string>> *v
                             double *value)
 {
     if ((*values).count(key) == 0 || (*values).count(key_high_bits) == 0) {
-        warning("(dvparser) warning: cannot extract combined double since at least one key is missing \"%s\" \"%s\"\n", key.c_str(),
+        verbose("(dvparser) warning: cannot extract combined double since at least one key is missing \"%s\" \"%s\"\n", key.c_str(),
                 key_high_bits.c_str());
         *offset = 0;
         *value = 0;
@@ -321,6 +328,14 @@ bool extractDVdoubleCombined(std::map<std::string,std::pair<int,std::string>> *v
     extractDV(key, &dif, &vif, &vife);
 
     pair<int,string>&  p = (*values)[key];
+
+    if (p.second.length() == 0) {
+        verbose("(dvparser) warning: key found but no data  \"%s\"\n", key.c_str());
+        *offset = 0;
+        *value = 0;
+        return false;
+    }
+
     *offset = p.first;
     vector<uchar> v;
     hex2bin(p.second, &v);
