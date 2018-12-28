@@ -30,8 +30,15 @@ Add --verbose for detailed debug information.
 Specifying auto as the device will automatically look for usb
 wmbus dongles on /dev/im871a and /dev/amb8465.
 
-The meter types: multical21,flowiq3100,supercom587,iperl (water meters) are supported.
-The meter types: multical302 (heat), omnipower (electricity) are work in progress.
+Supported water meters:
+Kamstrup Multical 21 (multical21)
+Kamstrup flowIQ 3100 (flowiq3100)
+Sontex Supercom 587 (supercom587)
+Sensus iPERL (iperl)
+
+Work in progress:
+Heat meter Kamstrup Multical 302 (multical302)
+Electricity meter Kamstrup Omnipower (omnipower)
 ```
 
 No meter quadruplets means listen for telegram traffic and print any id heard,
@@ -142,6 +149,8 @@ Read for example the text file: HowToAddaNewMeter.txt
 
 # Good documents on the wireless mbus protocol:
 
+https://oms-group.org/download4all/
+
 http://www.m-bus.com/files/w4b21021.pdf
 
 https://www.infineon.com/dgdl/TDA5340_AN_WMBus_v1.0.pdf
@@ -157,12 +166,6 @@ http://projekter.aau.dk/projekter/da/studentthesis/wireless-mbus-based-extremely
 The AES source code is copied from:
 
 https://github.com/kokke/tiny-AES128-C
-
-The following other github projects were of great help:
-
-https://github.com/ffcrg/ecpiww
-
-https://github.com/CBrunsch/scambus/
 
 TODO: CRC checks are still missing. If the wrong AES key
 is supplied you probably get zero readings and
