@@ -56,7 +56,8 @@ Example output:
 
 `MyTapWater   12345678     6.388 m3     6.377 m3    8°C    23°C   DRY(dry 22-31 days)     2018-03-05 12:02.50`
 
-(Temperature is only sent every 8 message. Until such a full message has been received, the temperature is reported as 127°C.)
+(Temperature is only sent every 8 message. Until such a full message has been received, the temperature is reported as -°C
+in the human readable output, and as 127°C in the robot outputs and json.)
 
 Example robot json output:
 
@@ -89,6 +90,11 @@ If the meter does not use encryption of its meter data, then enter an empty key 
 (you must enter "")
 
 `wmbusmeters --robot --meterfiles auto MyTapWater multical21 12345678 ""`
+
+If you have a Multical21 meter and you have received a KEM file and its password,
+from your water municipality, then you can use the XMLExtract.java utility to get
+the meter key from the KEM file. You need to unzip the the KEM file first though,
+if it is zipped.
 
 You can run wmbusmeters with --logtelegrams to get log output that can be placed in a simulation.txt
 file. You can then run wmbusmeter and instead of auto (or an usb device) provide the simulationt.xt
