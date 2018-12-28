@@ -4,6 +4,8 @@ The program receives and decodes C1 or T1 telegrams
 utility meter readings. The readings can then be published using
 MQTT, inserted into a database or stored in a log file.
 
+The program runs on GNU/Linux (standard x86) and Raspberry Pi (arm).
+
 | OS/Compiler        | Status           |
 | ------------- |:-------------:|
 |Linux G++| [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master)](https://travis-ci.org/weetmuts/wmbusmeters) |
