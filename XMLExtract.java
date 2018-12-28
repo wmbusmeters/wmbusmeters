@@ -18,9 +18,9 @@ public class XMLExtract
 {
     static Cipher getCipherDecrypt(String password) throws Exception {
         byte[] key = Arrays.copyOf(password.toUpperCase().getBytes("UTF-8"), 16);
-        Cipher c = Cipher.getInstance("AES/CBC/NoPadding");
         SecretKeySpec sks = new SecretKeySpec(key, "AES");
         IvParameterSpec ips = new IvParameterSpec(key);
+        Cipher c = Cipher.getInstance("AES/CBC/NoPadding");
         c.init(Cipher.DECRYPT_MODE, sks, ips);
         return c;
     }
@@ -33,8 +33,8 @@ public class XMLExtract
         }
         Cipher c = getCipherDecrypt(args[0]);
         String xml = Files.lines(Paths.get(args[1])).collect(Collectors.joining(""));
-        String hex = xml.substring(xml.indexOf("<CipherValue>")+13, xml.indexOf("</CipherValue>"));
-        byte[] raw = Base64.getDecoder().decode(hex);
+        String b64 = xml.substring(xml.indexOf("<CipherValue>")+13, xml.indexOf("</CipherValue>"));
+        byte[] raw = Base64.getDecoder().decode(b64);
         String plain = new String(c.doFinal(raw));
         System.out.println(plain);
     }
