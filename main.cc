@@ -26,11 +26,11 @@
 
 using namespace std;
 
-void oneshotCheck(CommandLine *cmdline, SerialCommunicationManager *manager, Meter *meter);
+void oneshotCheck(CommandLine *cmdline, SerialCommunicationManager *manager, Meter *meter, vector<unique_ptr<Meter>> &meters);
 
 int main(int argc, char **argv)
 {
-    CommandLine *cmdline = parseCommandLine(argc, argv);
+    auto cmdline = parseCommandLine(argc, argv);
 
     if (cmdline->need_help) {
         printf("wmbusmeters version: " WMBUSMETERS_VERSION "\n");
@@ -76,24 +76,24 @@ int main(int argc, char **argv)
 
     auto manager = createSerialCommunicationManager(cmdline->exitafter);
 
-    onExit(call(manager,stop));
+    onExit(call(manager.get(),stop));
 
-    WMBus *wmbus = NULL;
+    unique_ptr<WMBus> wmbus;
 
-    auto type_and_device = detectMBusDevice(cmdline->usb_device, manager);
+    auto type_and_device = detectMBusDevice(cmdline->usb_device, manager.get());
 
     switch (type_and_device.first) {
     case DEVICE_IM871A:
         verbose("(im871a) detected on %s\n", type_and_device.second.c_str());
-        wmbus = openIM871A(type_and_device.second, manager);
+        wmbus = openIM871A(type_and_device.second, manager.get());
         break;
     case DEVICE_AMB8465:
         verbose("(amb8465) detected on %s\n", type_and_device.second.c_str());
-        wmbus = openAMB8465(type_and_device.second, manager);
+        wmbus = openAMB8465(type_and_device.second, manager.get());
         break;
     case DEVICE_SIMULATOR:
         verbose("(simulator) found %s\n", type_and_device.second.c_str());
-        wmbus = openSimulator(type_and_device.second, manager);
+        wmbus = openSimulator(type_and_device.second, manager.get());
         break;
     case DEVICE_UNKNOWN:
         error("No wmbus device found!\n");
@@ -123,36 +123,38 @@ int main(int argc, char **argv)
 
     verbose("(cmdline) using link mode: %s\n", using_link_mode.c_str());
 
-    Printer *output = new Printer(cmdline->json, cmdline->fields,
-                                  cmdline->separator, cmdline->meterfiles, cmdline->meterfiles_dir,
-                                  cmdline->shells);
+    auto output = unique_ptr<Printer>(new Printer(cmdline->json, cmdline->fields,
+                                                   cmdline->separator, cmdline->meterfiles, cmdline->meterfiles_dir,
+                                                   cmdline->shells));
+
+    vector<unique_ptr<Meter>> meters;
 
     if (cmdline->meters.size() > 0) {
         for (auto &m : cmdline->meters) {
             const char *keymsg = (m.key[0] == 0) ? "not-encrypted" : "encrypted";
             switch (toMeterType(m.type)) {
             case MULTICAL21_METER:
-                m.meter = createMultical21(wmbus, m.name, m.id, m.key, MULTICAL21_METER);
+                meters.push_back(createMultical21(wmbus.get(), m.name, m.id, m.key, MULTICAL21_METER));
                 verbose("(multical21) configured \"%s\" \"multical21\" \"%s\" %s\n", m.name, m.id, keymsg);
                 break;
             case FLOWIQ3100_METER:
-                m.meter = createMultical21(wmbus, m.name, m.id, m.key, FLOWIQ3100_METER);
+                meters.push_back(createMultical21(wmbus.get(), m.name, m.id, m.key, FLOWIQ3100_METER));
                 verbose("(flowiq3100) configured \"%s\" \"flowiq3100\" \"%s\" %s\n", m.name, m.id, keymsg);
                 break;
             case MULTICAL302_METER:
-                m.meter = createMultical302(wmbus, m.name, m.id, m.key);
+                meters.push_back(createMultical302(wmbus.get(), m.name, m.id, m.key));
                 verbose("(multical302) configured \"%s\" \"multical302\" \"%s\" %s\n", m.name, m.id, keymsg);
                 break;
             case OMNIPOWER_METER:
-                m.meter = createOmnipower(wmbus, m.name, m.id, m.key);
+                meters.push_back(createOmnipower(wmbus.get(), m.name, m.id, m.key));
                 verbose("(omnipower) configured \"%s\" \"omnipower\" \"%s\" %s\n", m.name, m.id, keymsg);
                 break;
             case SUPERCOM587_METER:
-                m.meter = createSupercom587(wmbus, m.name, m.id, m.key);
+                meters.push_back(createSupercom587(wmbus.get(), m.name, m.id, m.key));
                 verbose("(supercom587) configured \"%s\" \"supercom587\" \"%s\" %s\n", m.name, m.id, keymsg);
                 break;
             case IPERL_METER:
-                m.meter = createIperl(wmbus, m.name, m.id, m.key);
+                meters.push_back(createIperl(wmbus.get(), m.name, m.id, m.key));
                 verbose("(iperl) configured \"%s\" \"iperl\" \"%s\" %s\n", m.name, m.id, keymsg);
                 break;
             case UNKNOWN_METER:
@@ -162,10 +164,10 @@ int main(int argc, char **argv)
             if (cmdline->list_shell_envs) {
                 string ignore1, ignore2, ignore3;
                 vector<string> envs;
-                m.meter->printMeter(&ignore1,
-                                    &ignore2, cmdline->separator,
-                                    &ignore3,
-                                    &envs);
+                meters.back()->printMeter(&ignore1,
+                                          &ignore2, cmdline->separator,
+                                          &ignore3,
+                                          &envs);
                 printf("Environment variables provided to shell for meter %s:\n", m.type);
                 for (auto &e : envs) {
                     int p = e.find('=');
@@ -174,8 +176,8 @@ int main(int argc, char **argv)
                 }
                 exit(0);
             }
-            m.meter->onUpdate(calll(output,print,Meter*));
-            m.meter->onUpdate([cmdline,manager](Meter*meter) { oneshotCheck(cmdline,manager,meter); });
+            meters.back()->onUpdate(calll(output.get(),print,Meter*));
+            meters.back()->onUpdate([&](Meter*meter) { oneshotCheck(cmdline.get(), manager.get(), meter, meters); });
         }
     } else {
         printf("No meters configured. Printing id:s of all telegrams heard!\n\n");
@@ -190,12 +192,12 @@ int main(int argc, char **argv)
     manager->waitForStop();
 }
 
-void oneshotCheck(CommandLine *cmdline, SerialCommunicationManager *manager, Meter *meter)
+void oneshotCheck(CommandLine *cmdline, SerialCommunicationManager *manager, Meter *meter, vector<unique_ptr<Meter>> &meters)
 {
     if (!cmdline->oneshot) return;
 
-    for (auto &m : cmdline->meters) {
-	if (m.meter->numUpdates() == 0) return;
+    for (auto &m : meters) {
+        if (m->numUpdates() == 0) return;
     }
     // All meters have received at least one update! Stop!
     manager->stop();

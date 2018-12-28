@@ -21,6 +21,7 @@
 #include"util.h"
 
 #include<functional>
+#include<memory>
 #include<string>
 #include<vector>
 
@@ -38,13 +39,14 @@ struct SerialDevice {
 };
 
 struct SerialCommunicationManager {
-    virtual SerialDevice *createSerialDeviceTTY(string dev, int baud_rate) = 0;
+    virtual unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate) = 0;
     virtual void listenTo(SerialDevice *sd, function<void()> cb) = 0;
     virtual void stop() = 0;
     virtual void waitForStop() = 0;
     virtual bool isRunning() = 0;
+    virtual ~SerialCommunicationManager();
 };
 
-SerialCommunicationManager *createSerialCommunicationManager(time_t exit_after_seconds);
+unique_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t exit_after_seconds);
 
 #endif

@@ -1274,3 +1274,6 @@ string linkModeName(LinkMode link_mode)
     }
     return "UnknownLinkMode";
 }
+
+WMBus::~WMBus() {
+}

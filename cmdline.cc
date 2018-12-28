@@ -21,19 +21,19 @@
 
 using namespace std;
 
-CommandLine *parseCommandLine(int argc, char **argv) {
+unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
 
     CommandLine * c = new CommandLine;
 
     int i=1;
     if (argc < 2) {
         c->need_help = true;
-        return c;
+        return unique_ptr<CommandLine>(c);
     }
     while (argv[i] && argv[i][0] == '-') {
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "-help") || !strcmp(argv[i], "--help")) {
             c->need_help = true;
-            return c;
+            return unique_ptr<CommandLine>(c);
         }
         if (!strcmp(argv[i], "--silence")) {
             c->silence = true;
@@ -180,5 +180,5 @@ CommandLine *parseCommandLine(int argc, char **argv) {
         c->meters.push_back(MeterInfo(name,type,id,key));
     }
 
-    return c;
+    return unique_ptr<CommandLine>(c);
 }

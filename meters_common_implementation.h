@@ -22,7 +22,8 @@
 
 #include<map>
 
-struct MeterCommonImplementation : public virtual Meter {
+struct MeterCommonImplementation : public virtual Meter
+{
     string id();
     string name();
     MeterType type();
@@ -48,6 +49,8 @@ struct MeterCommonImplementation : public virtual Meter {
     MeterCommonImplementation(WMBus *bus, const char *name, const char *id, const char *key,
                               MeterType type, int manufacturer, int media,
                               LinkMode required_link_mode);
+
+    ~MeterCommonImplementation() = default;
 
 protected:
 

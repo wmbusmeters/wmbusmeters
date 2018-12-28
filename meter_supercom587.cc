@@ -79,9 +79,9 @@ double MeterSupercom587::totalWaterConsumption()
     return total_water_consumption_;
 }
 
-WaterMeter *createSupercom587(WMBus *bus, const char *name, const char *id, const char *key)
+unique_ptr<WaterMeter> createSupercom587(WMBus *bus, const char *name, const char *id, const char *key)
 {
-    return new MeterSupercom587(bus,name,id,key);
+    return unique_ptr<WaterMeter>(new MeterSupercom587(bus,name,id,key));
 }
 
 void MeterSupercom587::handleTelegram(Telegram *t)
@@ -135,7 +135,7 @@ void MeterSupercom587::processContent(Telegram *t)
     // Meter record:
 
     map<string,pair<int,string>> values;
-    parseDV(t, t->content.begin(), t->content.size(), &values);
+    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
 
     int offset;
 

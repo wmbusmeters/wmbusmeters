@@ -64,6 +64,8 @@ struct Meter {
     virtual std::vector<std::string> getRecords() = 0;
     virtual double getRecordAsDouble(std::string record) = 0;
     virtual uint16_t getRecordAsUInt16(std::string record) = 0;
+
+    virtual ~Meter() = default;
 };
 
 struct WaterMeter : public virtual Meter {
@@ -102,11 +104,11 @@ struct GenericMeter : public virtual Meter {
 
 MeterType toMeterType(const char *type);
 LinkMode toMeterLinkMode(const char *type);
-WaterMeter *createMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt);
-HeatMeter *createMultical302(WMBus *bus, const char *name, const char *id, const char *key);
-ElectricityMeter *createOmnipower(WMBus *bus, const char *name, const char *id, const char *key);
-WaterMeter *createSupercom587(WMBus *bus, const char *name, const char *id, const char *key);
-WaterMeter *createIperl(WMBus *bus, const char *name, const char *id, const char *key);
+unique_ptr<WaterMeter> createMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt);
+unique_ptr<HeatMeter> createMultical302(WMBus *bus, const char *name, const char *id, const char *key);
+unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, const char *name, const char *id, const char *key);
+unique_ptr<WaterMeter> createSupercom587(WMBus *bus, const char *name, const char *id, const char *key);
+unique_ptr<WaterMeter> createIperl(WMBus *bus, const char *name, const char *id, const char *key);
 GenericMeter *createGeneric(WMBus *bus, const char *name, const char *id, const char *key);
 
 #endif

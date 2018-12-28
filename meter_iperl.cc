@@ -80,9 +80,9 @@ double MeterIperl::totalWaterConsumption()
     return total_water_consumption_;
 }
 
-WaterMeter *createIperl(WMBus *bus, const char *name, const char *id, const char *key)
+unique_ptr<WaterMeter> createIperl(WMBus *bus, const char *name, const char *id, const char *key)
 {
-    return new MeterIperl(bus,name,id,key);
+    return unique_ptr<WaterMeter>(new MeterIperl(bus,name,id,key));
 }
 
 void MeterIperl::handleTelegram(Telegram *t)
@@ -137,7 +137,7 @@ void MeterIperl::processContent(Telegram *t)
 
 
     map<string,pair<int,string>> values;
-    parseDV(t, t->content.begin(), t->content.size(), &values);
+    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
 
     int offset;
 

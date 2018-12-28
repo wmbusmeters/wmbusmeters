@@ -27,8 +27,8 @@ void onExit(std::function<void()> cb);
 
 typedef unsigned char uchar;
 
-#define call(A,B) ([A](){A->B();})
-#define calll(A,B,T) ([A](T t){A->B(t);})
+#define call(A,B) ([&](){A->B();})
+#define calll(A,B,T) ([&](T t){A->B(t);})
 
 bool hex2bin(const char* src, std::vector<uchar> *target);
 bool hex2bin(std::string &src, std::vector<uchar> *target);

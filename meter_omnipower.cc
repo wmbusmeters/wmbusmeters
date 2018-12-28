@@ -111,16 +111,16 @@ void MeterOmnipower::processContent(Telegram *t)
     // xx xx xx xx (total energy)
 
     map<string,pair<int,string>> values;
-    parseDV(t, t->content.begin(), t->content.size(), &values);
+    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
 
     int offset;
     extractDVdouble(&values, "04833B", &offset, &total_energy_);
     t->addMoreExplanation(offset, " total power (%f kwh)", total_energy_);
 }
 
-ElectricityMeter *createOmnipower(WMBus *bus, const char *name, const char *id, const char *key)
+unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, const char *name, const char *id, const char *key)
 {
-    return new MeterOmnipower(bus,name,id,key);
+    return unique_ptr<ElectricityMeter>(new MeterOmnipower(bus,name,id,key));
 }
 
 void MeterOmnipower::printMeter(string *human_readable,

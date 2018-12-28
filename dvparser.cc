@@ -18,6 +18,8 @@
 #include"dvparser.h"
 #include"util.h"
 
+#include<assert.h>
+
 // The parser should not crash on invalid data, but yeah, when I
 // need to debug it because it crashes on invalid data, then
 // I enable the following define...
@@ -27,6 +29,7 @@
 using namespace std;
 
 bool parseDV(Telegram *t,
+             vector<uchar> &databytes,
              vector<uchar>::iterator data,
              size_t data_len,
              map<string,pair<int,string>> *values,
@@ -140,7 +143,7 @@ bool parseDV(Telegram *t,
 
         int remaining = std::distance(data, data_end);
         if (variable_length) {
-            debug("(dvparser debug) varlen %02x\n", *(data+0));
+            DEBUG_PARSER("(dvparser debug) varlen %02x\n", *(data+0));
             if (remaining > 2) {
                 datalen = *(data);
             } else {
@@ -159,7 +162,11 @@ bool parseDV(Telegram *t,
             // Skip the length byte in the variable length data.
             if (variable_length) {
                 data++;
+                datalen--;
             }
+
+            assert(data != databytes.end());
+            assert(data+datalen <= databytes.end());
             // This call increments data with datalen.
             t->addExplanation(data, datalen, "%s", value.c_str());
             DEBUG_PARSER("(dvparser debug) data \"%s\"\n", value.c_str());

@@ -103,6 +103,7 @@ struct WMBus {
     virtual void onTelegram(function<void(Telegram*)> cb) = 0;
     virtual SerialDevice *serial() = 0;
     virtual void simulate() = 0;
+    virtual ~WMBus() = 0;
 };
 
 #define LIST_OF_MBUS_DEVICES X(DEVICE_IM871A)X(DEVICE_AMB8465)X(DEVICE_SIMULATOR)X(DEVICE_UNKNOWN)
@@ -117,10 +118,10 @@ LIST_OF_MBUS_DEVICES
 // Returned is the type and the found device string.
 pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationManager *manager);
 
-WMBus *openIM871A(string device, SerialCommunicationManager *manager);
-WMBus *openAMB8465(string device, SerialCommunicationManager *manager);
+unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager);
+unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager);
 struct WMBusSimulator;
-WMBus *openSimulator(string file, SerialCommunicationManager *manager);
+unique_ptr<WMBus> openSimulator(string file, SerialCommunicationManager *manager);
 
 string manufacturer(int m_field);
 string manufacturerFlag(int m_field);

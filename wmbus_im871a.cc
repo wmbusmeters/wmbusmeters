@@ -36,12 +36,14 @@ struct WMBusIM871A : public WMBus {
     void onTelegram(function<void(Telegram*)> cb);
 
     void processSerialData();
-    SerialDevice *serial() { return serial_; }
+    SerialDevice *serial() { return serial_.get(); }
     void simulate() { }
 
-    WMBusIM871A(SerialDevice *serial, SerialCommunicationManager *manager);
+    WMBusIM871A(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    ~WMBusIM871A() { }
+
 private:
-    SerialDevice *serial_;
+    unique_ptr<SerialDevice> serial_;
     SerialCommunicationManager *manager_;
     vector<uchar> read_buffer_;
     pthread_mutex_t command_lock_ = PTHREAD_MUTEX_INITIALIZER;
@@ -62,18 +64,18 @@ private:
     void handleHWTest(int msgid, vector<uchar> &payload);
 };
 
-WMBus *openIM871A(string device, SerialCommunicationManager *manager)
+unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager)
 {
-    SerialDevice *serial = manager->createSerialDeviceTTY(device.c_str(), 57600);
-    WMBusIM871A *imp = new WMBusIM871A(serial, manager);
-    return imp;
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 57600);
+    WMBusIM871A *imp = new WMBusIM871A(std::move(serial), manager);
+    return unique_ptr<WMBus>(imp);
 }
 
-WMBusIM871A::WMBusIM871A(SerialDevice *serial, SerialCommunicationManager *manager) :
-    serial_(serial), manager_(manager)
+WMBusIM871A::WMBusIM871A(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
+    serial_(std::move(serial)), manager_(manager)
 {
     sem_init(&command_wait_, 0, 0);
-    manager_->listenTo(serial_,call(this,processSerialData));
+    manager_->listenTo(serial_.get(),call(this,processSerialData));
     serial_->open(true);
 }
 
@@ -335,7 +337,7 @@ FrameStatus WMBusIM871A::checkFrame(vector<uchar> &data,
     }
     if (has_rssi) {
         uint32_t rssi = data[i];
-        debug("(im871a) rssi %02x\n", rssi);
+        verbose("(im871a) rssi %02x\n", rssi);
         i++;
     }
     if (has_crc16) {
@@ -481,7 +483,7 @@ void WMBusIM871A::handleHWTest(int msgid, vector<uchar> &payload)
 bool detectIM871A(string device, SerialCommunicationManager *manager)
 {
     // Talk to the device and expect a very specific answer.
-    SerialDevice *serial = manager->createSerialDeviceTTY(device.c_str(), 57600);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 57600);
     bool ok = serial->open(false);
     if (!ok) return false;
 

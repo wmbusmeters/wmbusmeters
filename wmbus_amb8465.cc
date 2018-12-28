@@ -37,12 +37,14 @@ struct WMBusAmber : public WMBus {
 
     void processSerialData();
     void getConfiguration();
-    SerialDevice *serial() { return serial_; }
+    SerialDevice *serial() { return serial_.get(); }
     void simulate() { }
 
-    WMBusAmber(SerialDevice *serial, SerialCommunicationManager *manager);
+    WMBusAmber(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    ~WMBusAmber() { }
+
 private:
-    SerialDevice *serial_;
+    unique_ptr<SerialDevice> serial_;
     SerialCommunicationManager *manager_;
     vector<uchar> read_buffer_;
     pthread_mutex_t command_lock_ = PTHREAD_MUTEX_INITIALIZER;
@@ -52,30 +54,36 @@ private:
     LinkMode link_mode_ = UNKNOWN_LINKMODE;
     vector<uchar> received_payload_;
     vector<function<void(Telegram*)>> telegram_listeners_;
+    bool rssi_expected_;
 
     void waitForResponse();
     FrameStatus checkAMB8465Frame(vector<uchar> &data,
-                           size_t *frame_length, int *msgid_out, int *payload_len_out, int *payload_offset);
+                                  size_t *frame_length,
+                                  int *msgid_out,
+                                  int *payload_len_out,
+                                  int *payload_offset,
+                                  uchar *rssi);
     void handleMessage(int msgid, vector<uchar> &frame);
 };
 
-WMBus *openAMB8465(string device, SerialCommunicationManager *manager)
+unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager)
 {
-    SerialDevice *serial = manager->createSerialDeviceTTY(device.c_str(), 9600);
-    WMBusAmber *imp = new WMBusAmber(serial, manager);
-    return imp;
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600);
+    WMBusAmber *imp = new WMBusAmber(std::move(serial), manager);
+    return unique_ptr<WMBus>(imp);
 }
 
-WMBusAmber::WMBusAmber(SerialDevice *serial, SerialCommunicationManager *manager) :
-    serial_(serial), manager_(manager)
+WMBusAmber::WMBusAmber(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
+    serial_(std::move(serial)), manager_(manager)
 {
     sem_init(&command_wait_, 0, 0);
-    manager_->listenTo(serial_,call(this,processSerialData));
+    manager_->listenTo(serial_.get(),call(this,processSerialData));
     serial_->open(true);
-
+    rssi_expected_ = true;
 }
 
-uchar xorChecksum(vector<uchar> msg, int len) {
+uchar xorChecksum(vector<uchar> msg, int len)
+{
     uchar c = 0;
     for (int i=0; i<len; ++i) {
         c ^= msg[i];
@@ -83,7 +91,8 @@ uchar xorChecksum(vector<uchar> msg, int len) {
     return c;
 }
 
-bool WMBusAmber::ping() {
+bool WMBusAmber::ping()
+{
     pthread_mutex_lock(&command_lock_);
 
     /*
@@ -102,7 +111,8 @@ bool WMBusAmber::ping() {
     return true;
 }
 
-uint32_t WMBusAmber::getDeviceId() {
+uint32_t WMBusAmber::getDeviceId()
+{
     pthread_mutex_lock(&command_lock_);
 
     vector<uchar> msg(4);
@@ -172,7 +182,11 @@ void WMBusAmber::getConfiguration()
         // These are just some random config settings store in non-volatile memory.
         verbose("(amb8465) config: uart %02x\n", received_payload_[2]);
         verbose("(amb8465) config: radio Channel %02x\n", received_payload_[60+2]);
-        verbose("(amb8465) config: rssi enabled %02x\n", received_payload_[69+2]);
+        uchar re = received_payload_[69+2];
+        verbose("(amb8465) config: rssi enabled %02x\n", re);
+        if (re != 0) {
+            rssi_expected_ = true;
+        }
         verbose("(amb8465) config: mode Preselect %02x\n", received_payload_[70+2]);
     }
 
@@ -225,21 +239,25 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
                                           size_t *frame_length,
                                           int *msgid_out,
                                           int *payload_len_out,
-                                          int *payload_offset)
+                                          int *payload_offset,
+                                          uchar *rssi)
 {
     // telegram=|2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B|+96
     if (data.size() == 0) return PartialFrame;
     int payload_len = 0;
     if (data[0] == 0xff) {
+        if (data.size() < 3) return PartialFrame;
         // A command response begins with 0xff
         *msgid_out = data[1];
         payload_len = data[2];
         *payload_len_out = payload_len;
         *payload_offset = 3;
-        *frame_length = 3+payload_len+1; // expect device to have checksumbyte at end enabled.
-        // Check checksum here!
+        *frame_length = 3+payload_len + (int)rssi_expected_;
         if (data.size() < *frame_length) return PartialFrame;
 
+        if (rssi_expected_) {
+            *rssi = data[*frame_length-1];
+        }
         return FullFrame;
     }
     // If it is not a 0xff we assume it is a message beginning with a length.
@@ -267,8 +285,9 @@ void WMBusAmber::processSerialData()
     size_t frame_length;
     int msgid;
     int payload_len, payload_offset;
+    uchar rssi;
 
-    FrameStatus status = checkAMB8465Frame(read_buffer_, &frame_length, &msgid, &payload_len, &payload_offset);
+    FrameStatus status = checkAMB8465Frame(read_buffer_, &frame_length, &msgid, &payload_len, &payload_offset, &rssi);
 
     if (status == ErrorInFrame) {
         verbose("(amb8465) protocol error in message received!\n");
@@ -287,6 +306,9 @@ void WMBusAmber::processSerialData()
 
         read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
 
+        if (rssi_expected_) {
+            verbose("(amb8465) rssi %d\n", rssi);
+        }
         handleMessage(msgid, payload);
     }
 }
@@ -347,7 +369,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
 bool detectAMB8465(string device, SerialCommunicationManager *manager)
 {
     // Talk to the device and expect a very specific answer.
-    SerialDevice *serial = manager->createSerialDeviceTTY(device.c_str(), 9600);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600);
     bool ok = serial->open(false);
     if (!ok) return false;
 

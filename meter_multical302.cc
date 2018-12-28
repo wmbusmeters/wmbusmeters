@@ -178,8 +178,8 @@ void MeterMultical302::processContent(Telegram *t) {
     }
 }
 
-HeatMeter *createMultical302(WMBus *bus, const char *name, const char *id, const char *key) {
-    return new MeterMultical302(bus,name,id,key);
+unique_ptr<HeatMeter> createMultical302(WMBus *bus, const char *name, const char *id, const char *key) {
+    return unique_ptr<HeatMeter>(new MeterMultical302(bus,name,id,key));
 }
 
 void MeterMultical302::printMeter(string *human_readable,

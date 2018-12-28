@@ -17,9 +17,10 @@ else
 endif
 
 ifeq "$(DEBUG)" "true"
-    DEBUG_FLAGS=-O0 -g
+    DEBUG_FLAGS=-O0 -ggdb -fsanitize=address -fno-omit-frame-pointer
     STRIP_BINARY=
     BUILD:=$(BUILD)_debug
+    DEBUG_LDFLAGS=-lasan
 else
     DEBUG_FLAGS=-Os
     STRIP_BINARY=$(STRIP) $(BUILD)/wmbusmeters
@@ -56,10 +57,11 @@ all: $(BUILD)/wmbusmeters $(BUILD)/testinternals
 	$(STRIP_BINARY)
 
 $(BUILD)/wmbusmeters: $(METERS_OBJS) $(BUILD)/main.o
-	$(CXX) -o $(BUILD)/wmbusmeters $(METERS_OBJS) $(BUILD)/main.o -lpthread
+	$(CXX) -o $(BUILD)/wmbusmeters $(METERS_OBJS) $(BUILD)/main.o $(DEBUG_LDFLAGS) -lpthread
+
 
 $(BUILD)/testinternals: $(METERS_OBJS) $(BUILD)/testinternals.o
-	$(CXX) -o $(BUILD)/testinternals $(METERS_OBJS) $(BUILD)/testinternals.o -lpthread
+	$(CXX) -o $(BUILD)/testinternals $(METERS_OBJS) $(BUILD)/testinternals.o $(DEBUG_LDFLAGS) -lpthread
 
 clean:
 	rm -f build/* build_arm/* build_debug/* build_arm_debug/* *~

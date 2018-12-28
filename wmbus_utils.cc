@@ -58,8 +58,6 @@ void decryptMode1_AES_CTR(Telegram *t, vector<uchar> &aeskey)
     debugPayload("(Mode1) decrypted first block", dec);
 
     if (content.size() > 16) {
-        // Yay! Lets decrypt a second block. Full frame content is 22 bytes.
-        // So a second block should enough for everyone!
         remaining = content.size()-16;
         if (remaining > 16) remaining = 16; // Should not happen.
 

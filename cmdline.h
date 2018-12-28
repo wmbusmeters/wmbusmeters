@@ -19,6 +19,7 @@
 #define CMDLINE_H
 
 #include"meters.h"
+#include<memory>
 #include<string.h>
 #include<vector>
 
@@ -29,7 +30,6 @@ struct MeterInfo {
     char *type;
     char *id;
     char *key;
-    Meter *meter;
 
     MeterInfo(char *n, char *t, char *i, char *k) {
         name = n;
@@ -59,8 +59,10 @@ struct CommandLine {
     bool link_mode_set {};
     bool no_init {};
     vector<MeterInfo> meters;
+
+    ~CommandLine() = default;
 };
 
-CommandLine *parseCommandLine(int argc, char **argv);
+unique_ptr<CommandLine> parseCommandLine(int argc, char **argv);
 
 #endif

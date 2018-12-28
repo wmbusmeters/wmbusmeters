@@ -52,10 +52,10 @@ private:
 
 int loadFile(string file, vector<string> *lines);
 
-WMBus *openSimulator(string device, SerialCommunicationManager *manager)
+unique_ptr<WMBus> openSimulator(string device, SerialCommunicationManager *manager)
 {
     WMBusSimulator *imp = new WMBusSimulator(device, manager);
-    return imp;
+    return unique_ptr<WMBus>(imp);
 }
 
 WMBusSimulator::WMBusSimulator(string file, SerialCommunicationManager *manager)

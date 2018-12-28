@@ -168,12 +168,12 @@ bool MeterMultical21::hasExternalTemperature()
     return has_external_temperature_;
 }
 
-WaterMeter *createMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt)
+unique_ptr<WaterMeter> createMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt)
 {
     if (mt != MULTICAL21_METER && mt != FLOWIQ3100_METER) {
         error("Internal error! Not a proper meter type when creating a multical21 style meter.\n");
     }
-    return new MeterMultical21(bus,name,id,key,mt);
+    return unique_ptr<WaterMeter>(new MeterMultical21(bus,name,id,key,mt));
 }
 
 void MeterMultical21::handleTelegram(Telegram *t)
@@ -269,7 +269,7 @@ void MeterMultical21::processContent(Telegram *t)
         t->addExplanation(bytes, 2, "%02x%02x data crc", ecrc2, ecrc3);
 
         map<string,pair<int,string>> values;
-        parseDV(t, t->content.begin()+7, t->content.size()-7, &values, &format, format_bytes.size(),
+        parseDV(t, t->content, t->content.begin()+7, t->content.size()-7, &values, &format, format_bytes.size(),
                 NULL,
                 [](int dif, int vif, int len) {
                     // Override len for 4413 to len 2 for compact frame!
@@ -287,14 +287,14 @@ void MeterMultical21::processContent(Telegram *t)
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
 
         extractDVdoubleCombined(&values, "0413", "4413", &offset, &target_volume_);
-	has_target_volume_ = true;
+        has_target_volume_ = true;
         t->addMoreExplanation(offset, " target consumption (%f m3)", target_volume_);
     }
     else
     if (frame_type == 0x78)
     {
         map<string,pair<int,string>> values;
-        parseDV(t, t->content.begin()+3, t->content.size()-3, &values);
+        parseDV(t, t->content, t->content.begin()+3, t->content.size()-3, &values);
 
         int offset;
 
@@ -309,13 +309,15 @@ void MeterMultical21::processContent(Telegram *t)
         has_target_volume_ = true;
         t->addMoreExplanation(offset, " target consumption (%f m3)", target_volume_);
 
-        extractDVdouble(&values, "615B", &offset, &flow_temperature_);
-        has_flow_temperature_ = true;
-        t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_);
+        has_flow_temperature_ = extractDVdouble(&values, "615B", &offset, &flow_temperature_);
+        if (has_flow_temperature_) {
+            t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_);
+        }
 
-        extractDVdouble(&values, "6167", &offset, &external_temperature_);
-        has_external_temperature_ = true;
-        t->addMoreExplanation(offset, " external temperature (%f °C)", external_temperature_);
+        has_external_temperature_ = extractDVdouble(&values, "6167", &offset, &external_temperature_);
+        if (has_external_temperature_) {
+            t->addMoreExplanation(offset, " external temperature (%f °C)", external_temperature_);
+        }
     }
     else
     {
@@ -453,13 +455,31 @@ void MeterMultical21::printMeter(string *human_readable,
     char buf[65536];
     buf[65535] = 0;
 
-    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f m3\t% 3.3f m3\t% 2.0f°C\t% 2.0f°C\t%s\t%s",
+    char ft[10], et[10];
+    ft[9] = 0;
+    et[9] = 0;
+
+    if (hasFlowTemperature()) {
+        snprintf(ft, sizeof(ft)-1, "% 2.0f", flowTemperature());
+    } else {
+        ft[0] = '-';
+        ft[1] = 0;
+    }
+
+    if (hasExternalTemperature()) {
+        snprintf(et, sizeof(et)-1, "% 2.0f", externalTemperature());
+    } else {
+        et[0] = '-';
+        et[1] = 0;
+    }
+
+    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f m3\t% 3.3f m3\t%s°C\t%s°C\t%s\t%s",
              name().c_str(),
              id().c_str(),
              totalWaterConsumption(),
              targetWaterConsumption(),
-             flowTemperature(),
-             externalTemperature(),
+             ft,
+             et,
              statusHumanReadable().c_str(),
              datetimeOfUpdateHumanReadable().c_str());
 

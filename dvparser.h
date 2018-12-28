@@ -29,6 +29,7 @@
 // DV stands for DIF VIF
 
 bool parseDV(Telegram *t,
+             std::vector<uchar> &databytes,
              std::vector<uchar>::iterator data,
              size_t data_len,
              std::map<std::string,std::pair<int,std::string>> *values,

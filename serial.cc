@@ -36,7 +36,9 @@ struct SerialDeviceTTY;
 
 struct SerialCommunicationManagerImp : public SerialCommunicationManager {
     SerialCommunicationManagerImp(time_t exit_after_seconds);
-    SerialDevice *createSerialDeviceTTY(string dev, int baud_rate);
+    ~SerialCommunicationManagerImp() { }
+
+    unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate);
     void listenTo(SerialDevice *sd, function<void()> cb);
     void stop();
     void waitForStop();
@@ -66,6 +68,7 @@ struct SerialDeviceImp : public SerialDevice {
 
 struct SerialDeviceTTY : public SerialDeviceImp {
     SerialDeviceTTY(string device, int baud_rate, SerialCommunicationManagerImp *manager);
+    ~SerialDeviceTTY();
 
     bool open(bool fail_if_not_ok);
     void close();
@@ -89,6 +92,11 @@ SerialDeviceTTY::SerialDeviceTTY(string device, int baud_rate,
     device_ = device;
     baud_rate_ = baud_rate;
     manager_ = manager;
+}
+
+SerialDeviceTTY::~SerialDeviceTTY()
+{
+    close();
 }
 
 bool SerialDeviceTTY::open(bool fail_if_not_ok)
@@ -194,9 +202,8 @@ void *SerialCommunicationManagerImp::startLoop(void *a) {
     return t->eventLoop();
 }
 
-SerialDevice *SerialCommunicationManagerImp::createSerialDeviceTTY(string device, int baud_rate) {
-    SerialDevice *sd = new SerialDeviceTTY(device, baud_rate, this);
-    return sd;
+unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device, int baud_rate) {
+    return unique_ptr<SerialDevice>(new SerialDeviceTTY(device, baud_rate, this));
 }
 
 void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> cb) {
@@ -283,9 +290,9 @@ void *SerialCommunicationManagerImp::eventLoop() {
     return NULL;
 }
 
-SerialCommunicationManager *createSerialCommunicationManager(time_t exit_after_seconds)
+unique_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t exit_after_seconds)
 {
-    return new SerialCommunicationManagerImp(exit_after_seconds);
+    return unique_ptr<SerialCommunicationManager>(new SerialCommunicationManagerImp(exit_after_seconds));
 }
 
 static int openSerialTTY(const char *tty, int baud_rate)
@@ -348,4 +355,8 @@ static int openSerialTTY(const char *tty, int baud_rate)
 err:
     if (fd != -1) close(fd);
     return -1;
+}
+
+SerialCommunicationManager::~SerialCommunicationManager()
+{
 }
