@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class XMLExtract
 {
     static Cipher getCipherDecrypt(String password) throws Exception {
-        byte[] key = Arrays.copyOf(password.toUpperCase().getBytes("UTF-8"), 16);
+        byte[] key = Arrays.copyOf(password.getBytes("UTF-8"), 16);
         SecretKeySpec sks = new SecretKeySpec(key, "AES");
         IvParameterSpec ips = new IvParameterSpec(key);
         Cipher c = Cipher.getInstance("AES/CBC/NoPadding");
