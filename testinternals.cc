@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018 Fredrik Öhrström
+ Copyright (C) 2018-2019 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -170,9 +170,14 @@ int test_dvparser()
 
     testnr++;
     values.clear();
+    test_parse("82 04 6C 5f 1C", &values, testnr);
+    test_date(values, "82046C", 1293750000, testnr); // 2010-dec-31
+
+    testnr++;
+    values.clear();
     test_parse("0C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000", &values, testnr);
     test_double(values, "0C13", 5.548, testnr);
-    test_date(values, "426C", 4954431600, testnr);
-    test_date(values, "82106C", 946681200, testnr);
+    test_date(values, "426C", 4954431600, testnr); // 2127-jan-1
+    test_date(values, "82106C", 946681200, testnr); // 2000-jan-1
     return 0;
 }

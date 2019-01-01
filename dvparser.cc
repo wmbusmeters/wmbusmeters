@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018 Fredrik Öhrström
+ Copyright (C) 2018-2019 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -122,20 +122,39 @@ bool parseDV(Telegram *t,
             (*format)++;
         }
 
+
+        int difenr = 0;
+        int subunit = 0;
+        int tariff = 0;
+        int storage_nr = 0;
+
+        //int lsb_of_storage_nr = (dif & 0x40) >> 6;
         bool has_another_dife = (dif & 0x80) == 0x80;
+
         while (has_another_dife) {
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (dife expected)"); break; }
             uchar dife = **format;
-            DEBUG_PARSER("(dvparser debug) dife=%02x (%s)\n", dife, "?");
+            int subunit_bit = (dife & 0x40) >> 6;
+            subunit |= subunit_bit << difenr;
+            int tariff_bits = (dife & 0x30) >> 4;
+            tariff |= tariff_bits << (difenr*2);
+            int storage_nr_bits = (dife & 0x0f);
+            storage_nr |= storage_nr_bits << (difenr*4);
+
+            DEBUG_PARSER("(dvparser debug) dife=%02x (subunit=%d tariff=%d storagenr=%d)\n",
+                         dife, subunit, tariff, storage_nr);
             if (data_has_difvifs) {
                 format_bytes.push_back(dife);
                 id_bytes.push_back(dife);
-                t->addExplanation(*format, 1, "%02X dife (%s)", dife, "?");
+                t->addExplanation(*format, 1, "%02X dife (subunit=%d tariff=%d storagenr=%d)",
+                                  dife, subunit, tariff, storage_nr);
             } else {
                 id_bytes.push_back(**format);
                 (*format)++;
             }
+
             has_another_dife = (dife & 0x80) == 0x80;
+            difenr++;
         }
 
         if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif expected)"); break; }
@@ -155,11 +174,11 @@ bool parseDV(Telegram *t,
         while (has_another_vife) {
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vife expected)"); break; }
             uchar vife = **format;
-            DEBUG_PARSER("(dvparser debug) vife=%02x (%s)\n", vife, "?");
+            DEBUG_PARSER("(dvparser debug) vife=%02x (%s)\n", vife, vifeType(dif, vif, vife).c_str());
             if (data_has_difvifs) {
                 format_bytes.push_back(vife);
                 id_bytes.push_back(vife);
-                t->addExplanation(*format, 1, "%02X vife (%s)", vife, vifeType(vif, vife).c_str());
+                t->addExplanation(*format, 1, "%02X vife (%s)", vife, vifeType(dif, vif, vife).c_str());
             } else {
                 id_bytes.push_back(**format);
                 (*format)++;

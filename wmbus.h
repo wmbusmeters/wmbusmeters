@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2018 Fredrik Öhrström
+ Copyright (C) 2017-2019 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -135,7 +135,7 @@ double vifScale(int vif);
 string vifKey(int vif); // E.g. temperature energy power mass_flow volume_flow
 string vifUnit(int vif); // E.g. m3 c kwh kw MJ MJh
 string vifType(int vif); // Long description
-string vifeType(int vif, int vife); // Long description
+string vifeType(int dif, int vif, int vife); // Long description
 string formatData(int dif, int vif, int vife, string data);
 
 double extract8bitAsDouble(int dif, int vif, int vife, string data);

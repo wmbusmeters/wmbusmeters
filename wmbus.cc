@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2018 Fredrik Öhrström
+ Copyright (C) 2017-2019 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -638,6 +638,7 @@ string vifType(int vif)
     case 0x6B: return "Pressure bar";
 
     case 0x6C: return "Date type G";
+    case 0x6D: return "Date and time type";
 
     case 0x6E: return "Units for H.C.A.";
     case 0x6F: return "Reserved";
@@ -1156,13 +1157,472 @@ string vifUnit(int vif)
     }
 }
 
-string vifeType(int vif, int vife)
-{
-    //int extension = vif & 0x80;
-    //int t = vif & 0x7f;
+const char *timeNN(int nn) {
+    switch (nn) {
+    case 0: return "second(s)";
+    case 1: return "minute(s)";
+    case 2: return "hour(s)";
+    case 3: return "day(s)";
+    }
+    return "?";
+}
 
+const char *timePP(int nn) {
+    switch (nn) {
+    case 0: return "hour(s)";
+    case 1: return "day(s)";
+    case 2: return "month(s)";
+    case 3: return "year(s)";
+    }
+    return "?";
+}
+
+string vif_FD_ExtensionType(uchar dif, uchar vif, uchar vife)
+{
+    if ((vife & 0x7c) == 0x00) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Credit of 10^%d of the nominal local legal currency units", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x7c) == 0x04) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Debit of 10^%d of the nominal local legal currency units", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x7f) == 0x08) {
+        return "Access Number (transmission count)";
+    }
+
+    if ((vife & 0x7f) == 0x09) {
+        return "Medium (as in fixed header)";
+    }
+
+    if ((vife & 0x7f) == 0x0a) {
+        return "Manufacturer (as in fixed header)";
+    }
+
+    if ((vife & 0x7f) == 0x0b) {
+        return "Parameter set identification";
+    }
+
+    if ((vife & 0x7f) == 0x0c) {
+        return "Model/Version";
+    }
+
+    if ((vife & 0x7f) == 0x0d) {
+        return "Hardware version #";
+    }
+
+    if ((vife & 0x7f) == 0x0e) {
+        return "Firmware version #";
+    }
+
+    if ((vife & 0x7f) == 0x0f) {
+        return "Software version #";
+    }
+
+    if ((vife & 0x7f) == 0x10) {
+        return "Customer location";
+    }
+
+    if ((vife & 0x7f) == 0x11) {
+        return "Customer";
+    }
+
+    if ((vife & 0x7f) == 0x12) {
+        return "Access Code User";
+    }
+
+    if ((vife & 0x7f) == 0x13) {
+        return "Access Code Operator";
+    }
+
+    if ((vife & 0x7f) == 0x14) {
+        return "Access Code System Operator";
+    }
+
+    if ((vife & 0x7f) == 0x15) {
+        return "Access Code Developer";
+    }
+
+    if ((vife & 0x7f) == 0x16) {
+        return "Password";
+    }
+
+    if ((vife & 0x7f) == 0x17) {
+        return "Error flags (binary)";
+    }
+
+    if ((vife & 0x7f) == 0x18) {
+        return "Error mask";
+    }
+
+    if ((vife & 0x7f) == 0x19) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7f) == 0x1a) {
+        return "Digital Output (binary)";
+    }
+
+    if ((vife & 0x7f) == 0x1b) {
+        return "Digital Input (binary)";
+    }
+
+    if ((vife & 0x7f) == 0x1c) {
+        return "Baudrate [Baud]";
+    }
+
+    if ((vife & 0x7f) == 0x1d) {
+        return "Response delay time [bittimes]";
+    }
+
+    if ((vife & 0x7f) == 0x1e) {
+        return "Retry";
+    }
+
+    if ((vife & 0x7f) == 0x1f) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7f) == 0x20) {
+        return "First storage # for cyclic storage";
+    }
+
+    if ((vife & 0x7f) == 0x21) {
+        return "Last storage # for cyclic storage";
+    }
+
+    if ((vife & 0x7f) == 0x22) {
+        return "Size of storage block";
+    }
+
+    if ((vife & 0x7f) == 0x23) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7c) == 0x24) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Storage interval [%s]", timeNN(nn));
+        return s;
+    }
+
+    if ((vife & 0x7f) == 0x28) {
+        return "Storage interval month(s)";
+    }
+
+    if ((vife & 0x7f) == 0x29) {
+        return "Storage interval year(s)";
+    }
+
+    if ((vife & 0x7f) == 0x2a) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7f) == 0x2b) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7c) == 0x2c) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Duration since last readout [%s]", timeNN(nn));
+        return s;
+    }
+
+    if ((vife & 0x7f) == 0x30) {
+        return "Start (date/time) of tariff";
+    }
+
+    if ((vife & 0x7c) == 0x30) {
+        int nn = vife & 0x03;
+        string s;
+        // nn == 0 (seconds) is not expected here! According to m-bus spec.
+        strprintf(s, "Duration of tariff [%s]", timeNN(nn));
+        return s;
+    }
+
+    if ((vife & 0x7c) == 0x34) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Period of tariff [%s]", timeNN(nn));
+        return s;
+    }
+
+    if ((vife & 0x7f) == 0x38) {
+        return "Period of tariff months(s)";
+    }
+
+    if ((vife & 0x7f) == 0x39) {
+        return "Period of tariff year(s)";
+    }
+
+    if ((vife & 0x7f) == 0x3a) {
+        return "Dimensionless / no VIF";
+    }
+
+    if ((vife & 0x7f) == 0x3b) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7c) == 0x3c) {
+        // int xx = vife & 0x03;
+        return "Reserved";
+    }
+
+    if ((vife & 0x70) == 0x40) {
+        int nnnn = vife & 0x0f;
+        string s;
+        strprintf(s, "10^%d Volts", nnnn-9);
+        return s;
+    }
+
+    if ((vife & 0x70) == 0x50) {
+        int nnnn = vife & 0x0f;
+        string s;
+        strprintf(s, "10^%d Ampere", nnnn-12);
+    }
+
+    if ((vife & 0x7f) == 0x60) {
+        return "Reset counter";
+    }
+
+    if ((vife & 0x7f) == 0x61) {
+        return "Cumulation counter";
+    }
+
+    if ((vife & 0x7f) == 0x62) {
+        return "Control signal";
+    }
+
+    if ((vife & 0x7f) == 0x63) {
+        return "Day of week";
+    }
+
+    if ((vife & 0x7f) == 0x64) {
+        return "Week number";
+    }
+
+    if ((vife & 0x7f) == 0x65) {
+        return "Time point of day change";
+    }
+
+    if ((vife & 0x7f) == 0x66) {
+        return "State of parameter activation";
+    }
+
+    if ((vife & 0x7f) == 0x67) {
+        return "Special supplier information";
+    }
+
+    if ((vife & 0x7c) == 0x68) {
+        int pp = vife & 0x03;
+        string s;
+        strprintf(s, "Duration since last cumulation [%s]", timePP(pp));
+        return s;
+    }
+
+    if ((vife & 0x7c) == 0x6c) {
+        int pp = vife & 0x03;
+        string s;
+        strprintf(s, "Operating time battery [%s]", timePP(pp));
+        return s;
+    }
+
+    if ((vife & 0x7f) == 0x70) {
+        return "Date and time of battery change";
+    }
+
+    if ((vife & 0x7f) >= 0x70) {
+        return "Reserved";
+    }
+    return "?";
+}
+
+string vif_FB_ExtensionType(uchar dif, uchar vif, uchar vife)
+{
+    if ((vife & 0x7e) == 0x00) {
+        int n = vife & 0x01;
+        string s;
+        strprintf(s, "10^%d MWh", n-1);
+        return s;
+    }
+
+    if (((vife & 0x7e) == 0x02) ||
+        ((vife & 0x7c) == 0x04)) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7e) == 0x08) {
+        int n = vife & 0x01;
+        string s;
+        strprintf(s, "10^%d GJ", n-1);
+        return s;
+    }
+
+    if ((vife & 0x7e) == 0x0a ||
+        (vife & 0x7c) == 0x0c) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7e) == 0x10) {
+        int n = vife & 0x01;
+        string s;
+        strprintf(s, "10^%d m3", n+2);
+        return s;
+    }
+
+    if ((vife & 0x7e) == 0x12 ||
+        (vife & 0x7c) == 0x14) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7e) == 0x18) {
+        int n = vife & 0x01;
+        string s;
+        strprintf(s, "10^%d ton", n+2);
+        return s;
+    }
+
+    if ( (vif & 0x7e) >= 0x1a && (vif & 0x7e) <= 0x20) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7f) == 0x21) {
+        return "0.1 feet^3";
+    }
+
+    if ((vife & 0x7f) == 0x22) {
+        return "0.1 american gallon";
+    }
+
+    if ((vife & 0x7f) == 0x23) {
+        return "american gallon";
+    }
+
+    if ((vife & 0x7f) == 0x24) {
+        return "0.001 american gallon/min";
+    }
+
+    if ((vife & 0x7f) == 0x25) {
+        return "american gallon/min";
+    }
+
+    if ((vife & 0x7f) == 0x26) {
+        return "american gallon/h";
+    }
+
+    if ((vife & 0x7f) == 0x27) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7e) == 0x28) {
+        // Come again? A unit of 1MW...do they intend to use m-bus to track the
+        // output from a nuclear power plant?
+        int n = vife & 0x01;
+        string s;
+        strprintf(s, "10^%d MW", n-1);
+        return s;
+    }
+
+    if ((vife & 0x7e) == 0x29 ||
+        (vife & 0x7c) == 0x2c) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7e) == 0x30) {
+        int n = vife & 0x01;
+        string s;
+        strprintf(s, "10^%d GJ/h", n-1);
+        return s;
+    }
+
+    if ((vife & 0x7f) >= 0x32 && (vife & 0x7c) <= 0x57) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7c) == 0x58) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Flow temperature 10^%d Fahrenheit", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x7c) == 0x5c) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Return temperature 10^%d Fahrenheit", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x7c) == 0x60) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Temperature difference 10^%d Fahrenheit", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x7c) == 0x64) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "External temperature 10^%d Fahrenheit", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x78) == 0x68) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7c) == 0x70) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Cold / Warm Temperature Limit 10^%d Fahrenheit", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x7c) == 0x74) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Cold / Warm Temperature Limit 10^%d Celsius", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x78) == 0x78) {
+        int nnn = vife & 0x07;
+        string s;
+        strprintf(s, "Cumulative count max power 10^%d W", nnn-3);
+        return s;
+    }
+
+    return "?";
+}
+
+string vifeType(int dif, int vif, int vife)
+{
+    if ((dif & 0x0d) == 0x0d) {
+        if (vife == 0x1f) {
+            return "Compact profile without register";
+        }
+        if (vife == 0x13) {
+            return "Reverse compact profile without register";
+        }
+        if (vife == 0x1e) {
+            return "Compact profile with register";
+        }
+    }
     if (vif == 0x83 && vife == 0x3b) {
         return "Forward flow contribution only";
+    }
+    if (vif == 0xfb) {
+        return vif_FB_ExtensionType(dif, vif, vife);
+    }
+    if (vif == 0xfd) {
+        return vif_FD_ExtensionType(dif, vif, vife);
     }
     if (vif == 0xff) {
         return "?";
