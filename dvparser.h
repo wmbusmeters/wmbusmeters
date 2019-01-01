@@ -23,6 +23,7 @@
 
 #include<map>
 #include<stdint.h>
+#include<time.h>
 #include<functional>
 #include<vector>
 
@@ -44,6 +45,7 @@ bool extractDVuint16(std::map<std::string,std::pair<int,std::string>> *values,
                      int *offset,
                      uint16_t *value);
 
+// All volume values are scaled to cubic meters, m3.
 bool extractDVdouble(std::map<std::string,std::pair<int,std::string>> *values,
                     std::string key,
                     int *offset,
@@ -56,6 +58,16 @@ bool extractDVdoubleCombined(std::map<std::string,std::pair<int,std::string>> *v
                             int *offset,
                             double *value);
 
-void extractDV(string &s, uchar *dif, uchar *vif, uchar *vife);
+bool extractDVstring(std::map<std::string,std::pair<int,std::string>> *values,
+                     std::string key,
+                     int *offset,
+                     string *value);
+
+bool extractDVdate(std::map<std::string,std::pair<int,std::string>> *values,
+                   std::string key,
+                   int *offset,
+                   time_t *value);
+
+void extractDV(string &s, uchar *dif, uchar *vif);
 
 #endif

@@ -1,6 +1,12 @@
 #!/bin/bash
 
 PROG="$1"
+TESTINTERNAL=$(dirname $PROG)/testinternals
+
+$TESTINTERNAL
+if [ "$?" = "0" ]; then
+    echo Internal test OK
+fi
 
 cat simulation_c1.txt | grep '^{' > test_expected.txt
 $PROG --robot=json simulation_c1.txt \

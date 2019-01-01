@@ -21,16 +21,24 @@
 #include"serial.h"
 #include"util.h"
 #include"wmbus.h"
+#include"dvparser.h"
 
 #include<string.h>
 
 using namespace std;
 
 int test_crc();
+int test_dvparser();
 
 int main(int argc, char **argv)
 {
-    return test_crc();
+    if (argc > 1) {
+        // Supply --debug (oh well, anything works) to enable debug mode.
+        debugEnabled(true);
+    }
+    test_crc();
+    test_dvparser();
+    return 0;
 }
 
 int test_crc()
@@ -92,4 +100,79 @@ int test_crc()
         rc = -1;
     }
     return rc;
+}
+
+int test_parse(const char *data, std::map<std::string,std::pair<int,std::string>> *values, int testnr)
+{
+    debug("\n\nTest nr %d......\n\n", testnr);
+    bool b;
+    Telegram t;
+    vector<uchar> databytes;
+    hex2bin(data, &databytes);
+    vector<uchar>::iterator i = databytes.begin();
+
+    b = parseDV(&t, databytes, i, databytes.size(), values);
+
+    return b;
+}
+
+void test_double(map<string,pair<int,string>> &values, const char *key, double v, int testnr)
+{
+    int offset;
+    double value;
+    bool b =  extractDVdouble(&values,
+                              key,
+                              &offset,
+                              &value);
+
+    if (!b || value != v) {
+        fprintf(stderr, "Error in dvparser testnr %d: got %lf but expected value %lf for key %s\n", testnr, value, v, key);
+    }
+}
+
+void test_string(map<string,pair<int,string>> &values, const char *key, const char *v, int testnr)
+{
+    int offset;
+    string value;
+    bool b = extractDVstring(&values,
+                             key,
+                             &offset,
+                             &value);
+    if (!b || value != v) {
+        fprintf(stderr, "Error in dvparser testnr %d: got \"%s\" but expected value \"%s\" for key %s\n", testnr, value.c_str(), v, key);
+    }
+}
+
+void test_date(map<string,pair<int,string>> &values, const char *key, time_t v, int testnr)
+{
+    int offset;
+    time_t value;
+    bool b = extractDVdate(&values,
+                             key,
+                             &offset,
+                             &value);
+    if (!b || value != v) {
+        string date_expected = asctime(localtime(&v));
+        string date_got = asctime(localtime(&value));
+        fprintf(stderr, "Error in dvparser testnr %d:\ngot (%zu) %sbut expected (%zu) %sfor key %s\n\n", testnr, value, date_got.c_str(), v, date_expected.c_str(), key);
+    }
+}
+
+int test_dvparser()
+{
+    map<string,pair<int,string>> values;
+
+    int testnr = 1;
+    test_parse("2F 2F 0B 13 56 34 12 8B 82 00 93 3E 67 45 23 0D FD 10 0A 30 31 32 33 34 35 36 37 38 39 0F 88 2F", &values, testnr);
+    test_double(values, "0B13", 123.456, testnr);
+    test_double(values, "8B8200933E", 234.567, testnr);
+    test_string(values, "0DFD10", "30313233343536373839", testnr);
+
+    testnr++;
+    values.clear();
+    test_parse("0C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000", &values, testnr);
+    test_double(values, "0C13", 5.548, testnr);
+    test_date(values, "426C", 4954431600, testnr);
+    test_date(values, "82106C", 946681200, testnr);
+    return 0;
 }
