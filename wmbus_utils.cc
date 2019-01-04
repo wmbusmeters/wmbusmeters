@@ -20,6 +20,8 @@
 #include"util.h"
 #include"wmbus.h"
 
+#include<memory.h>
+
 void decryptMode1_AES_CTR(Telegram *t, vector<uchar> &aeskey)
 {
     vector<uchar> content;
@@ -118,8 +120,10 @@ void decryptMode5_AES_CBC(Telegram *t, vector<uchar> &aeskey)
     string s = bin2hex(ivv);
     debug("(Mode5) IV %s\n", s.c_str());
 
+    uchar content_data[content.size()];
+    memcpy(content_data, &content[0], content.size());
     uchar decrypted_data[content.size()];
-    AES_CBC_decrypt_buffer(decrypted_data, &content[0], content.size(), &aeskey[0], iv);
+    AES_CBC_decrypt_buffer(decrypted_data, content_data, content.size(), &aeskey[0], iv);
 
     if (decrypted_data[0] != 0x2F || decrypted_data[1] != 0x2F) {
         verbose("(Mode5) decrypt failed!\n");

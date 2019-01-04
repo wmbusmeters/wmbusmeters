@@ -49,8 +49,8 @@ private:
     vector<uchar> read_buffer_;
     pthread_mutex_t command_lock_ = PTHREAD_MUTEX_INITIALIZER;
     sem_t command_wait_;
-    int sent_command_;
-    int received_command_;
+    int sent_command_ {};
+    int received_command_ {};
     LinkMode link_mode_ = UNKNOWN_LINKMODE;
     vector<uchar> received_payload_;
     vector<function<void(Telegram*)>> telegram_listeners_;

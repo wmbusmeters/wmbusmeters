@@ -28,7 +28,9 @@
 void invokeShell(string program, vector<string> args, vector<string> envs)
 {
     vector<const char*> argv(args.size()+2);
-    argv[0] = program.c_str();
+    char *p = new char[program.length()+1];
+    strcpy(p, program.c_str());
+    argv[0] = p;
     int i = 1;
     debug("exec \"%s\"\n", program.c_str());
     for (auto &a : args) {
@@ -39,7 +41,7 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
     argv[i] = NULL;
 
     vector<const char*> env(envs.size()+1);
-    env[0] = program.c_str();
+    env[0] = p;
     i = 0;
     for (auto &e : envs) {
         env[i] = e.c_str();
@@ -53,6 +55,7 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
     if (pid == 0) {
         // I am the child!
         close(0); // Close stdin
+        delete[] p;
         execvpe(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
         perror("Execvp failed:");
         error("Invoking shell %s failed!\n", program.c_str());
@@ -72,4 +75,5 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
             }
         }
     }
+    delete[] p;
 }
