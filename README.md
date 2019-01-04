@@ -10,6 +10,11 @@ The program runs on GNU/Linux (standard x86) and Raspberry Pi (arm).
 | ------------- |:-------------:|
 |Linux G++| [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master)](https://travis-ci.org/weetmuts/wmbusmeters) |
 
+| Static Scan        | Status           |
+| ------------- |:-------------:|
+|Linux G++| [![Build Status](https://scan.coverity.com/projects/14774/badge.svg)](https://scan.coverity.com/projects/weetmuts-wmbusmeters) |
+
+
 ```
 wmbusmeters version: 0.8
 Usage: wmbusmeters {options} (auto | /dev/ttyUSBx)] { [meter_name] [meter_type] [meter_id] [meter_key] }*
