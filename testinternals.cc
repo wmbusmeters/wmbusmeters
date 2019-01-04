@@ -143,18 +143,18 @@ void test_string(map<string,pair<int,string>> &values, const char *key, const ch
     }
 }
 
-void test_date(map<string,pair<int,string>> &values, const char *key, time_t v, int testnr)
+void test_date(map<string,pair<int,string>> &values, const char *key, string date_expected, int testnr)
 {
     int offset;
     time_t value;
     bool b = extractDVdate(&values,
-                             key,
-                             &offset,
-                             &value);
-    if (!b || value != v) {
-        string date_expected = asctime(localtime(&v));
-        string date_got = asctime(localtime(&value));
-        fprintf(stderr, "Error in dvparser testnr %d:\ngot (%zu) %sbut expected (%zu) %sfor key %s\n\n", testnr, value, date_got.c_str(), v, date_expected.c_str(), key);
+                           key,
+                           &offset,
+                           &value);
+    string date_got = asctime(localtime(&value));
+    date_got.pop_back(); // Remove newline
+    if (!b || date_got != date_expected) {
+        fprintf(stderr, "Error in dvparser testnr %d:\ngot (%zu) >%s< but expected >%s< for key %s\n\n", testnr, value, date_got.c_str(), date_expected.c_str(), key);
     }
 }
 
@@ -171,13 +171,13 @@ int test_dvparser()
     testnr++;
     values.clear();
     test_parse("82 04 6C 5f 1C", &values, testnr);
-    test_date(values, "82046C", 1293750000, testnr); // 2010-dec-31
+    test_date(values, "82046C", "Fri Dec 31 00:00:00 2010", testnr); // 2010-dec-31
 
     testnr++;
     values.clear();
     test_parse("0C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000", &values, testnr);
     test_double(values, "0C13", 5.548, testnr);
-    test_date(values, "426C", 4954431600, testnr); // 2127-jan-1
-    test_date(values, "82106C", 946681200, testnr); // 2000-jan-1
+    test_date(values, "426C", "Wed Jan  1 00:00:00 2127", testnr); // 2127-jan-1
+    test_date(values, "82106C", "Sat Jan  1 00:00:00 2000", testnr); // 2000-jan-1
     return 0;
 }
