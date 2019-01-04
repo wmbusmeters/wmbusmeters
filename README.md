@@ -127,6 +127,11 @@ Binary generated: `./build_debug/wmbusmeters`
 
 Binary generated: `./build_arm_debug/wmbusmeters`
 
+`make HOST=arm dist`
+
+(Work in progress...)
+Binary generated: `./wmbusmeters_0.8_armhf.deb`
+
 # System configuration
 
 Add yourself to the dialout group to get access to the newly plugged in im871A USB stick.

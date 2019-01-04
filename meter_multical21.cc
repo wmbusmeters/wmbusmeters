@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2018 Fredrik Öhrström
+ Copyright (C) 2017-2019 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -245,8 +245,10 @@ void MeterMultical21::processContent(Telegram *t)
 
     if (frame_type == 0x79)
     {
+        // This is a "compact frame" in wmbus lingo.
+        // (Other such frame_types are Ci=0x69, 0x6a, 0x6b and Ci=0x79, 0x7b, compact frames and format frames)
         // 0,1 = crc for format signature = hash over DRH (Data Record Header)
-        // The DRH is the dif(dife)vif(vife) bytes for all the records...
+        // The DRH is the dif(difes)vif(vifes) bytes for all the records...
         // This hash should be used to pick up a suitable format string.
         // Below, DRH is hardcoded to 02FF2004134413
         uchar ecrc0 = t->content[3];
