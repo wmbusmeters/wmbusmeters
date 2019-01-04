@@ -36,6 +36,7 @@ struct SerialDevice {
     virtual int receive(std::vector<uchar> *data) = 0;
     virtual int fd() = 0;
     virtual SerialCommunicationManager *manager() = 0;
+    virtual ~SerialDevice() = default;
 };
 
 struct SerialCommunicationManager {

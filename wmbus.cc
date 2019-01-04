@@ -655,7 +655,6 @@ string vifType(int vif)
 
     case 0x78: return "Fabrication no";
     case 0x79: return "Enhanced identification";
-    case 0x80: return "Address";
 
     case 0x7C: return "VIF in following string (length in first byte)";
     case 0x7E: return "Any VIF";
@@ -988,7 +987,6 @@ string vifKey(int vif)
 
     case 0x78: return "fabrication_no"; // Fabrication no
     case 0x79: return "enhanced_identification"; // Enhanced identification
-    case 0x80: return "address"; // Address
 
     case 0x7C: // VIF in following string (length in first byte)
     case 0x7E: // Any VIF
@@ -1146,7 +1144,6 @@ string vifUnit(int vif)
 
     case 0x78: return ""; // Fabrication no
     case 0x79: return ""; // Enhanced identification
-    case 0x80: return ""; // Address
 
     case 0x7C: // VIF in following string (length in first byte)
     case 0x7E: // Any VIF
@@ -1530,7 +1527,7 @@ string vif_FB_ExtensionType(uchar dif, uchar vif, uchar vife)
         return s;
     }
 
-    if ((vife & 0x7e) == 0x29 ||
+    if ((vife & 0x7f) == 0x29 ||
         (vife & 0x7c) == 0x2c) {
         return "Reserved";
     }

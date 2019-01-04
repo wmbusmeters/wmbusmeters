@@ -43,3 +43,17 @@ then
 else
     Failure.
 fi
+
+$PROG --shell='echo "$METER_JSON"' simulation_shell.txt MWW supercom587 12345678 "" > test_output.txt
+if [ "$?" == "0" ]
+then
+    cat test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > test_responses.txt
+    echo '{"media":"warm water","meter":"supercom587","name":"MWW","id":"12345678","total_m3":5.548000,"timestamp":"1111-11-11T11:11:11Z"}' > test_expected.txt
+    diff test_expected.txt test_responses.txt
+    if [ "$?" == "0" ]
+    then
+        echo SHELL OK
+    fi
+else
+    Failure.
+fi

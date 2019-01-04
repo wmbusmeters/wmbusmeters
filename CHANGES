@@ -1,4 +1,12 @@
 
+Version 0.8.1: 2019-01-04
+
+Fixed memory leak in shell invocation.
+Improved dvparser to properly handle the supercom587 telegrams.
+(It still does not extract all the data, but the data is properly parsed and chunked.)
+Added address sanitizer to debug build.
+Added static analysis check.sh.
+
 Version 0.8: 2018-11-29
 
 Multical21 now reports flow temperature and external temperature.

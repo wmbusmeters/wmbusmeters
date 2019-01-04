@@ -80,8 +80,8 @@ struct SerialDeviceTTY : public SerialDeviceImp {
     private:
 
     string device_;
-    int baud_rate_;
-    int fd_;
+    int baud_rate_ {};
+    int fd_ {};
     pthread_mutex_t write_lock_ = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t read_lock_ = PTHREAD_MUTEX_INITIALIZER;
     SerialCommunicationManagerImp *manager_;
@@ -208,6 +208,9 @@ unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(st
 
 void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> cb) {
     SerialDeviceImp *si = dynamic_cast<SerialDeviceImp*>(sd);
+    if (!si) {
+        error("Internal error: Invalid serial device passed to listenTo.\n");
+    }
     si->on_data_ = cb;
 }
 

@@ -120,14 +120,13 @@ void decryptMode5_AES_CBC(Telegram *t, vector<uchar> &aeskey)
 
     uchar decrypted_data[content.size()];
     AES_CBC_decrypt_buffer(decrypted_data, &content[0], content.size(), &aeskey[0], iv);
-    vector<uchar> decrypted(decrypted_data, decrypted_data+content.size());
 
     if (decrypted_data[0] != 0x2F || decrypted_data[1] != 0x2F) {
         verbose("(Mode5) decrypt failed!\n");
     }
 
     t->content.clear();
-    t->content.insert(t->content.end(), decrypted.begin(), decrypted.end());
+    t->content.insert(t->content.end(), decrypted_data, decrypted_data+content.size());
     debugPayload("(Mode5) decrypted", t->content);
 }
 

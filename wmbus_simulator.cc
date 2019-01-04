@@ -45,8 +45,8 @@ private:
     vector<function<void(Telegram*)>> telegram_listeners_;
 
     string file_;
-    SerialCommunicationManager *manager_;
-    LinkMode link_mode_;
+    SerialCommunicationManager *manager_ {};
+    LinkMode link_mode_ {};
     vector<string> lines_;
 };
 

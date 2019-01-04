@@ -44,7 +44,7 @@ endif
 
 $(shell mkdir -p $(BUILD))
 
-CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-maybe-uninitialized -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.8\""
+CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-maybe-uninitialized -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.8.1\""
 
 $(BUILD)/%.o: %.cc $(wildcard %.h)
 	$(CXX) $(CXXFLAGS) $< -c -o $@
@@ -72,20 +72,20 @@ METERS_OBJS:=\
 all: $(BUILD)/wmbusmeters $(BUILD)/testinternals
 	@$(STRIP_BINARY)
 
-dist: wmbusmeters_0.8_$(DEBARCH).deb
+dist: wmbusmeters_0.8.1_$(DEBARCH).deb
 
-wmbusmeters_0.8_$(DEBARCH).deb:
+wmbusmeters_0.8.1_$(DEBARCH).deb:
 	@mkdir -p $(BUILD)/debian/wmbusmeters/DEBIAN
 	@mkdir -p $(BUILD)/debian/wmbusmeters/usr/local/bin
 	@cp $(BUILD)/wmbusmeters $(BUILD)/debian/wmbusmeters/usr/local/bin
 	@rm -f $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Package: wmbusmeters" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
-	@echo "Version: 0.8" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
+	@echo "Version: 0.8.1" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Maintainer: Fredrik Öhrström" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Architecture: $(DEBARCH)" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Description: A tool to read wireless mbus telegrams from utility meters." >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@(cd $(BUILD)/debian; dpkg-deb --build wmbusmeters .)
-	@mv $(BUILD)/debian/wmbusmeters_0.8_$(DEBARCH).deb .
+	@mv $(BUILD)/debian/wmbusmeters_0.8.1_$(DEBARCH).deb .
 	@echo Built package $@
 
 $(BUILD)/wmbusmeters: $(METERS_OBJS) $(BUILD)/main.o
@@ -96,7 +96,7 @@ $(BUILD)/testinternals: $(METERS_OBJS) $(BUILD)/testinternals.o
 	$(CXX) -o $(BUILD)/testinternals $(METERS_OBJS) $(BUILD)/testinternals.o $(DEBUG_LDFLAGS) -lpthread
 
 clean:
-	rm -f build/* build_arm/* build_debug/* build_arm_debug/* *~
+	rm -rf build/* build_arm/* build_debug/* build_arm_debug/* *~
 
 test:
 	./build/testinternals
