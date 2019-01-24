@@ -67,13 +67,13 @@ void Printer::printFiles(Meter *meter, string &human_readable, string &fields, s
     }
 
     if (json_) {
-        fprintf(stdout, "%s\n", json.c_str());
+        fprintf(output, "%s\n", json.c_str());
     }
     else if (fields_) {
-        fprintf(stdout, "%s\n", fields.c_str());
+        fprintf(output, "%s\n", fields.c_str());
     }
     else {
-        fprintf(stdout, "%s\n", human_readable.c_str());
+        fprintf(output, "%s\n", human_readable.c_str());
     }
 
     if (output != stdout) {

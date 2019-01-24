@@ -57,3 +57,26 @@ then
 else
     Failure.
 fi
+
+rm -f /tmp/MyTapWater
+cat simulation_c1.txt | grep '^{' | grep 76348799 | grep 23 > test_expected.txt
+$PROG --meterfiles --robot=json simulation_c1.txt MyTapWater multical21 76348799 ""
+cat /tmp/MyTapWater | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > test_response.txt
+diff test_expected.txt test_response.txt
+if [ "$?" == "0" ]
+then
+    echo Meterfiles OK
+    rm /tmp/MyTapWater
+fi
+
+rm -rf /tmp/testmeters
+mkdir /tmp/testmeters
+cat simulation_c1.txt | grep '^{' | grep 76348799 | grep 23 > test_expected.txt
+$PROG --meterfiles=/tmp/testmeters --robot=json simulation_c1.txt MyTapWater multical21 76348799 ""
+cat /tmp/testmeters/MyTapWater | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > test_response.txt
+diff test_expected.txt test_response.txt
+if [ "$?" == "0" ]
+then
+    echo Meterfiles dir OK
+    rm -rf /tmp/testmeters
+fi
