@@ -117,7 +117,7 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
                 c->meterfiles_dir = "/tmp";
             }
             if (!checkIfDirExists(c->meterfiles_dir.c_str())) {
-                error("Directory does not exist \"%s\"\n", c->meterfiles_dir);
+                error("Directory does not exist \"%s\"\n", c->meterfiles_dir.c_str());
             }
             i++;
             continue;
