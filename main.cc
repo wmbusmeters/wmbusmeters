@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     }
 
     if (cmdline->meterfiles) {
-        verbose("(cmdline) store meter files in: \"%s\"\n", cmdline->meterfiles_dir);
+        verbose("(cmdline) store meter files in: \"%s\"\n", cmdline->meterfiles_dir.c_str());
     }
     verbose("(cmdline) using usb device: %s\n", cmdline->usb_device);
     verbose("(cmdline) number of meters: %d\n", cmdline->meters.size());
