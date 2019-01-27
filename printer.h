@@ -21,7 +21,7 @@
 using namespace std;
 
 struct Printer {
-    Printer(bool json, bool fields, char separator, bool meterfiles, const char *meterfiles_dir,
+    Printer(bool json, bool fields, char separator, bool meterfiles, string &meterfiles_dir,
             vector<string> shell_cmdlines);
 
     void print(Meter *meter);
@@ -29,7 +29,7 @@ struct Printer {
     private:
 
     bool json_, fields_, meterfiles_;
-    const char *meterfiles_dir_;
+    string meterfiles_dir_;
     char separator_;
     vector<string> shell_cmdlines_;
 

@@ -109,16 +109,15 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
             if (strlen(argv[i]) > 12 && argv[i][12] == '=') {
                 size_t len = strlen(argv[i])-13;
                 if (len > 0) {
-                    c->meterfiles_dir = new char[len+1];
-                    strncpy((char*)c->meterfiles_dir, argv[i]+13, len);
+                    c->meterfiles_dir = argv[i]+13;
                 } else {
                     c->meterfiles_dir = "/tmp";
                 }
             } else {
                 c->meterfiles_dir = "/tmp";
             }
-            if (!checkIfDirExists(c->meterfiles_dir)) {
-                error("Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir);
+            if (!checkIfDirExists(c->meterfiles_dir.c_str())) {
+                error("Directory does not exist \"%s\"\n", c->meterfiles_dir);
             }
             i++;
             continue;

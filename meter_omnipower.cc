@@ -110,7 +110,7 @@ void MeterOmnipower::processContent(Telegram *t)
     // 3b vife (Forward flow contribution only)
     // xx xx xx xx (total energy)
 
-    map<string,pair<int,string>> values;
+    map<string,pair<int,DVEntry>> values;
     parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
 
     int offset;

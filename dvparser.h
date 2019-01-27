@@ -27,43 +27,71 @@
 #include<functional>
 #include<vector>
 
-// DV stands for DIF VIF
+#define LIST_OF_VALUETYPES \
+    X(Volume,0x10,0x17)       \
+    X(VolumeFlow,0x38,0x3F) \
+    X(FlowTemperature,0x58,0x5B) \
+    X(ExternalTemperature,0x64,0x67) \
+
+
+enum class ValueInformation
+{
+#define X(name,from,to) name,
+LIST_OF_VALUETYPES
+#undef X
+};
+
+const char *ValueInformatioName(ValueInformation v);
+
+struct DVEntry
+{
+    int value_information {};
+    int storagenr {};
+    int tariff {};
+    int subunit {};
+    string value;
+
+    DVEntry() {}
+    DVEntry(int vi, int st, int ta, int su, string &val) :
+        value_information(vi), storagenr(st), tariff(ta), subunit(su), value(val) {}
+};
+
+bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes);
 
 bool parseDV(Telegram *t,
              std::vector<uchar> &databytes,
              std::vector<uchar>::iterator data,
              size_t data_len,
-             std::map<std::string,std::pair<int,std::string>> *values,
+             std::map<std::string,std::pair<int,DVEntry>> *values,
              std::vector<uchar>::iterator *format = NULL,
              size_t format_len = 0,
              uint16_t *format_hash = NULL,
-             std::function<int(int,int,int)> overrideDifLen = NULL
-             );
+             function<int(int,int,int)> overrideDifLen = NULL);
 
-bool extractDVuint16(std::map<std::string,std::pair<int,std::string>> *values,
+// Instead of using a hardcoded difvif as key in the extractDV... below,
+// find an existing difvif entry in the values based on the desired value information type.
+// Like: Volume, VolumeFlow, FlowTemperature, ExternalTemperature etc
+// in combination with the storagenr. (Later I will add tariff/subunit)
+bool findKey(ValueInformation vi, int storagenr, std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
+#define ANY_STORAGENR -1
+
+bool extractDVuint16(std::map<std::string,std::pair<int,DVEntry>> *values,
                      std::string key,
                      int *offset,
                      uint16_t *value);
 
 // All volume values are scaled to cubic meters, m3.
-bool extractDVdouble(std::map<std::string,std::pair<int,std::string>> *values,
+bool extractDVdouble(std::map<std::string,std::pair<int,DVEntry>> *values,
                     std::string key,
                     int *offset,
                     double *value);
 
-// Extract low bits from primary entry and hight bits from secondary entry.
-bool extractDVdoubleCombined(std::map<std::string,std::pair<int,std::string>> *values,
-                            std::string key_high_bits, // Which key to extract high bits from.
-                            std::string key,
-                            int *offset,
-                            double *value);
-
-bool extractDVstring(std::map<std::string,std::pair<int,std::string>> *values,
+bool extractDVstring(std::map<std::string,std::pair<int,DVEntry>> *values,
                      std::string key,
                      int *offset,
                      string *value);
 
-bool extractDVdate(std::map<std::string,std::pair<int,std::string>> *values,
+bool extractDVdate(std::map<std::string,std::pair<int,DVEntry>> *values,
                    std::string key,
                    int *offset,
                    time_t *value);

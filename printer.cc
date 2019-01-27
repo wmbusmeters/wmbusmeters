@@ -20,7 +20,7 @@
 
 using namespace std;
 
-Printer::Printer(bool json, bool fields, char separator, bool meterfiles, const char *meterfiles_dir,
+Printer::Printer(bool json, bool fields, char separator, bool meterfiles, string &meterfiles_dir,
                  vector<string> shell_cmdlines)
 {
     json_ = json;
@@ -62,7 +62,7 @@ void Printer::printFiles(Meter *meter, string &human_readable, string &fields, s
     if (meterfiles_) {
         char filename[128];
         memset(filename, 0, sizeof(filename));
-        snprintf(filename, 127, "%s/%s", meterfiles_dir_, meter->name().c_str());
+        snprintf(filename, 127, "%s/%s", meterfiles_dir_.c_str(), meter->name().c_str());
         output = fopen(filename, "w");
     }
 

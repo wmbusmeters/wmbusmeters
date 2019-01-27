@@ -53,6 +53,7 @@ struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonIm
 
     // Meter sends target water consumption or max flow, depending on meter configuration
     // We can see which was sent inside the wmbus message!
+
     // Target water consumption: The total consumption at the start of the previous 30 day period.
     double targetWaterConsumption();
     bool  hasTargetWaterConsumption();
@@ -222,17 +223,44 @@ void MeterMultical21::handleTelegram(Telegram *t)
 
 void MeterMultical21::processContent(Telegram *t)
 {
-    // Meter records:
     // 02 dif (16 Bit Integer/Binary Instantaneous value)
-    // FF vif (vendor specific)
-    // 20 vife (vendor specific)
-    // xx xx (info codes)
+    // FF vif (Kamstrup extension)
+    // 20 vife (?)
+    // 7100 info codes (DRY(dry 22-31 days))
     // 04 dif (32 Bit Integer/Binary Instantaneous value)
     // 13 vif (Volume l)
-    // xx xx xx xx (total volume)
-    // 44 dif (32 Bit Integer/Binary Instantaneous value KamstrupCombined)
+    // F8180000 total consumption (6.392000 m3)
+    // 44 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
     // 13 vif (Volume l)
-    // xx xx (target volume in compact frame) but xx xx xx xx in full frame!
+    // F4180000 target consumption (6.388000 m3)
+    // 61 dif (8 Bit Integer/Binary Minimum value storagenr=1)
+    // 5B vif (Flow temperature °C)
+    // 7F flow temperature (127.000000 °C)
+    // 61 dif (8 Bit Integer/Binary Minimum value storagenr=1)
+    // 67 vif (External temperature °C)
+    // 17 external temperature (23.000000 °C)
+
+    // 02 dif (16 Bit Integer/Binary Instantaneous value)
+    // FF vif (Kamstrup extension)
+    // 20 vife (?)
+    // 0000 info codes (OK)
+    // 04 dif (32 Bit Integer/Binary Instantaneous value)
+    // 13 vif (Volume l)
+    // 2F4E0000 total consumption (20.015000 m3)
+    // 92 dif (16 Bit Integer/Binary Maximum value)
+    // 01 dife (subunit=0 tariff=0 storagenr=2)
+    // 3B vif (Volume flow l/h)
+    // 3D01 max flow (0.317000 m3/h)
+    // A1 dif (8 Bit Integer/Binary Minimum value)
+    // 01 dife (subunit=0 tariff=0 storagenr=2)
+    // 5B vif (Flow temperature °C)
+    // 02 flow temperature (2.000000 °C)
+    // 81 dif (8 Bit Integer/Binary Instantaneous value)
+    // 01 dife (subunit=0 tariff=0 storagenr=2)
+    // E7 vif (External temperature °C)
+    // FF vife (?)
+    // 0F vife (?)
+    // 03 external temperature (3.000000 °C)
 
     vector<uchar>::iterator bytes = t->content.begin();
 
@@ -243,25 +271,42 @@ void MeterMultical21::processContent(Telegram *t)
     int frame_type = t->content[2];
     t->addExplanation(bytes, 1, "%02x frame type (%s)", frame_type, frameTypeKamstrupC1(frame_type).c_str());
 
+    map<string,pair<int,DVEntry>> values;
+
     if (frame_type == 0x79)
     {
         // This is a "compact frame" in wmbus lingo.
         // (Other such frame_types are Ci=0x69, 0x6a, 0x6b and Ci=0x79, 0x7b, compact frames and format frames)
         // 0,1 = crc for format signature = hash over DRH (Data Record Header)
         // The DRH is the dif(difes)vif(vifes) bytes for all the records...
-        // This hash should be used to pick up a suitable format string.
-        // Below, DRH is hardcoded to 02FF2004134413
+        // This hash is used to find the suitable format string, that has been previously
+        // seen in a long frame telegram.
         uchar ecrc0 = t->content[3];
         uchar ecrc1 = t->content[4];
         t->addExplanation(bytes, 2, "%02x%02x format signature", ecrc0, ecrc1);
-        uint16_t format_signature = ecrc0<<8 | ecrc1;
+        uint16_t format_signature = ecrc1<<8 | ecrc0;
 
         vector<uchar> format_bytes;
         bool ok = loadFormatBytesFromSignature(format_signature, &format_bytes);
         if (!ok) {
-            warning("(%s) warning: Unknown format signature hash 0x%02x! Cannot decode telegram.\n",
-                    meter_name_,  format_signature);
-            return;
+            // We have not yet seen a long frame, but we know the formats for these
+            // particular hashes:
+            if (format_signature == 0xa8ed)
+            {
+                hex2bin("02FF2004134413615B6167", &format_bytes);
+                debug("(%s) using hard coded format for hash a8ed\n", meter_name_);
+            }
+            else if (format_signature == 0xc412)
+            {
+                hex2bin("02FF20041392013BA1015B8101E7FF0F", &format_bytes);
+                debug("(%s) using hard coded format for hash c412\n", meter_name_);
+            }
+            else
+            {
+                verbose("(%s) ignoring telegram since format signature hash 0x%02x is yet unknown.\n",
+                        meter_name_,  format_signature);
+                return;
+            }
         }
         vector<uchar>::iterator format = format_bytes.begin();
 
@@ -269,62 +314,53 @@ void MeterMultical21::processContent(Telegram *t)
         int ecrc2 = t->content[5];
         int ecrc3 = t->content[6];
         t->addExplanation(bytes, 2, "%02x%02x data crc", ecrc2, ecrc3);
-
-        map<string,pair<int,string>> values;
-        parseDV(t, t->content, t->content.begin()+7, t->content.size()-7, &values, &format, format_bytes.size(),
-                NULL,
-                [](int dif, int vif, int len) {
-                    // Override len for 4413 to len 2 for compact frame!
-                    if (dif==0x44 && vif==0x13) { return 2; }
-                    return len;
-                });
-
-        int offset;
-
-        extractDVuint16(&values, "02FF20", &offset, &info_codes_);
-        t->addMoreExplanation(offset, " info codes (%s)", statusHumanReadable().c_str());
-
-        extractDVdouble(&values, "0413", &offset, &total_water_consumption_);
-        has_total_water_consumption_ = true;
-        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
-
-        extractDVdoubleCombined(&values, "0413", "4413", &offset, &target_volume_);
-        has_target_volume_ = true;
-        t->addMoreExplanation(offset, " target consumption (%f m3)", target_volume_);
+        parseDV(t, t->content, t->content.begin()+7, t->content.size()-7, &values, &format, format_bytes.size());
     }
     else
     if (frame_type == 0x78)
     {
-        map<string,pair<int,string>> values;
         parseDV(t, t->content, t->content.begin()+3, t->content.size()-3, &values);
-
-        int offset;
-
-        extractDVuint16(&values, "02FF20", &offset, &info_codes_);
-        t->addMoreExplanation(offset, " info codes (%s)", statusHumanReadable().c_str());
-
-        extractDVdouble(&values, "0413", &offset, &total_water_consumption_);
-        has_total_water_consumption_ = true;
-        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
-
-        extractDVdouble(&values, "4413", &offset, &target_volume_);
-        has_target_volume_ = true;
-        t->addMoreExplanation(offset, " target consumption (%f m3)", target_volume_);
-
-        has_flow_temperature_ = extractDVdouble(&values, "615B", &offset, &flow_temperature_);
-        if (has_flow_temperature_) {
-            t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_);
-        }
-
-        has_external_temperature_ = extractDVdouble(&values, "6167", &offset, &external_temperature_);
-        if (has_external_temperature_) {
-            t->addMoreExplanation(offset, " external temperature (%f °C)", external_temperature_);
-        }
     }
     else
     {
         warning("(%s) warning: unknown frame %02x (did you use the correct encryption key?)\n", meter_name_, frame_type);
+        return;
     }
+
+    int offset;
+    string key;
+
+    extractDVuint16(&values, "02FF20", &offset, &info_codes_);
+    t->addMoreExplanation(offset, " info codes (%s)", statusHumanReadable().c_str());
+
+    if(findKey(ValueInformation::Volume, 0, &key, &values)) {
+        extractDVdouble(&values, key, &offset, &total_water_consumption_);
+        has_total_water_consumption_ = true;
+        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
+    }
+
+    if(findKey(ValueInformation::Volume, 1, &key, &values)) {
+        extractDVdouble(&values, key, &offset, &target_volume_);
+        has_target_volume_ = true;
+        t->addMoreExplanation(offset, " target consumption (%f m3)", target_volume_);
+    }
+
+    if(findKey(ValueInformation::VolumeFlow, ANY_STORAGENR, &key, &values)) {
+        extractDVdouble(&values, key, &offset, &max_flow_);
+        has_max_flow_ = true;
+        t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_);
+    }
+
+    if(findKey(ValueInformation::FlowTemperature, ANY_STORAGENR, &key, &values)) {
+        has_flow_temperature_ = extractDVdouble(&values, key, &offset, &flow_temperature_);
+        t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_);
+    }
+
+    if(findKey(ValueInformation::ExternalTemperature, ANY_STORAGENR, &key, &values)) {
+        has_external_temperature_ = extractDVdouble(&values, key, &offset, &external_temperature_);
+        t->addMoreExplanation(offset, " external temperature (%f °C)", external_temperature_);
+    }
+
 }
 
 string MeterMultical21::status()
@@ -475,11 +511,12 @@ void MeterMultical21::printMeter(string *human_readable,
         et[1] = 0;
     }
 
-    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f m3\t% 3.3f m3\t%s°C\t%s°C\t%s\t%s",
+    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f m3\t% 3.3f m3\t% 3.3f m3/h\t%s°C\t%s°C\t%s\t%s",
              name().c_str(),
              id().c_str(),
              totalWaterConsumption(),
              targetWaterConsumption(),
+             maxFlow(),
              ft,
              et,
              statusHumanReadable().c_str(),
@@ -487,11 +524,12 @@ void MeterMultical21::printMeter(string *human_readable,
 
     *human_readable = buf;
 
-    snprintf(buf, sizeof(buf)-1, "%s%c" "%s%c" "%f%c" "%f%c" "%.0f%c" "%.0f%c" "%s%c" "%s",
+    snprintf(buf, sizeof(buf)-1, "%s%c" "%s%c" "%f%c" "%f%c" "%f%c" "%.0f%c" "%.0f%c" "%s%c" "%s",
              name().c_str(), separator,
              id().c_str(), separator,
              totalWaterConsumption(), separator,
              targetWaterConsumption(), separator,
+             maxFlow(), separator,
              flowTemperature(), separator,
              externalTemperature(), separator,
              statusHumanReadable().c_str(), separator,
@@ -510,6 +548,7 @@ void MeterMultical21::printMeter(string *human_readable,
              QS(id,%s)
              Q(total_m3,%f)
              Q(target_m3,%f)
+             Q(max_flow_m3h,%f)
              Q(flow_temperature,%.0f)
              Q(external_temperature,%.0f)
              QS(current_status,%s)
@@ -525,6 +564,7 @@ void MeterMultical21::printMeter(string *human_readable,
              id().c_str(),
              totalWaterConsumption(),
              targetWaterConsumption(),
+             maxFlow(),
              flowTemperature(),
              externalTemperature(),
              status().c_str(), // DRY REVERSED LEAK BURST
@@ -541,6 +581,7 @@ void MeterMultical21::printMeter(string *human_readable,
     envs->push_back(string("METER_ID=")+id());
     envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption()));
     envs->push_back(string("METER_TARGET_M3=")+to_string(targetWaterConsumption()));
+    envs->push_back(string("METER_MAX_FLOW_M3H=")+to_string(maxFlow()));
     envs->push_back(string("METER_FLOW_TEMPERATURE=")+to_string(flowTemperature()));
     envs->push_back(string("METER_EXTERNAL_TEMPERATURE=")+to_string(externalTemperature()));
     envs->push_back(string("METER_STATUS=")+status());

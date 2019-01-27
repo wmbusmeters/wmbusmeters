@@ -487,13 +487,10 @@ string difType(int dif)
         default: s += "?"; break;
         }
     }
-    /*
     if (dif & 0x40) {
-        // Kamstrup uses this bit in the Multical21 to signal that for the
-        // full 32 bits of data, the lower 16 bits are from this difvif record,
-        // and the high 16 bits are from a different record.
-        s += " VendorSpecific";
-        }*/
+        // This is the lsb of the storage nr.
+        s += " storagenr=1";
+    }
     return s;
 }
 

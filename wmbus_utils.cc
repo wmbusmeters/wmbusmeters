@@ -133,22 +133,3 @@ void decryptMode5_AES_CBC(Telegram *t, vector<uchar> &aeskey)
     t->content.insert(t->content.end(), decrypted_data, decrypted_data+content.size());
     debugPayload("(Mode5) decrypted", t->content);
 }
-
-bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes)
-{
-    // The format signature is used to find the proper format string.
-    // But since the crc calculation is not yet functional. This functionality
-    // has to wait a bit. So we hardcode the format string here.
-    if (format_signature == 0xeda8)
-    {
-        hex2bin("02FF2004134413", format_bytes);
-        // The hash of this string should equal the format signature above.
-        uint16_t format_hash1 = crc16_EN13757(&(*format_bytes)[0], 7);
-        uint16_t format_hash2 = ~crc16_CCITT(&(*format_bytes)[0], 7);
-        debug("(utils) format signature %4X format hash a=%4X b=%4X c=%4X d=%4X\n",
-              format_signature, format_hash1, (uint16_t)(~format_hash1), format_hash2, (uint16_t)(~format_hash2));
-        return true;
-    }
-    // Unknown format signature.
-    return false;
-}

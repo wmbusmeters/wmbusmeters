@@ -29,11 +29,35 @@
 
 using namespace std;
 
+const char *ValueInformationName(ValueInformation v)
+{
+    switch (v) {
+#define X(name,from,to) case ValueInformation::name: return #name;
+LIST_OF_VALUETYPES
+#undef X
+    }
+    assert(0);
+}
+
+map<uint16_t,string> hash_to_format_;
+
+bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes)
+{
+    if (hash_to_format_.count(format_signature) > 0) {
+        debug("(dvparser) found remembered format for hash %x\n", format_signature);
+        // Return the proper hash!
+        hex2bin(hash_to_format_[format_signature], format_bytes);
+        return true;
+    }
+    // Unknown format signature.
+    return false;
+}
+
 bool parseDV(Telegram *t,
              vector<uchar> &databytes,
              vector<uchar>::iterator data,
              size_t data_len,
-             map<string,pair<int,string>> *values,
+             map<string,pair<int,DVEntry>> *values,
              vector<uchar>::iterator *format,
              size_t format_len,
              uint16_t *format_hash,
@@ -126,9 +150,9 @@ bool parseDV(Telegram *t,
         int difenr = 0;
         int subunit = 0;
         int tariff = 0;
-        int storage_nr = 0;
+        int lsb_of_storage_nr = (dif & 0x40) >> 6;
+        int storage_nr = lsb_of_storage_nr;
 
-        //int lsb_of_storage_nr = (dif & 0x40) >> 6;
         bool has_another_dife = (dif & 0x80) == 0x80;
 
         while (has_another_dife) {
@@ -139,7 +163,7 @@ bool parseDV(Telegram *t,
             int tariff_bits = (dife & 0x30) >> 4;
             tariff |= tariff_bits << (difenr*2);
             int storage_nr_bits = (dife & 0x0f);
-            storage_nr |= storage_nr_bits << (difenr*4);
+            storage_nr |= storage_nr_bits << (1+difenr*4);
 
             DEBUG_PARSER("(dvparser debug) dife=%02x (subunit=%d tariff=%d storagenr=%d)\n",
                          dife, subunit, tariff, storage_nr);
@@ -231,7 +255,7 @@ bool parseDV(Telegram *t,
             data++;
         }
         string value = bin2hex(data, datalen);
-        (*values)[key] = { start_parse_here+data-data_start, value };
+        (*values)[key] = { start_parse_here+data-data_start, DVEntry(vif&0x7f, storage_nr, tariff, subunit, value) };
         if (value.length() > 0) {
             assert(data != databytes.end());
             assert(data+datalen <= databytes.end());
@@ -249,10 +273,41 @@ bool parseDV(Telegram *t,
     uint16_t hash = crc16_EN13757(&format_bytes[0], format_bytes.size());
 
     if (data_has_difvifs) {
-        debug("(dvparser) found format \"%s\" with hash %x\n\n", format_string.c_str(), hash);
+        if (hash_to_format_.count(hash) == 0) {
+            hash_to_format_[hash] = format_string;
+            debug("(dvparser) found new format \"%s\" with hash %x, remembering!\n", format_string.c_str(), hash);
+        }
     }
 
     return true;
+}
+
+void valueInfoRange(ValueInformation v, int *low, int *hi)
+{
+    switch (v) {
+#define X(name,from,to) case ValueInformation::name: *low = from; *hi = to; break;
+LIST_OF_VALUETYPES
+#undef X
+    }
+}
+
+bool findKey(ValueInformation vif, int storagenr, std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values)
+{
+    int low, hi;
+    valueInfoRange(vif, &low, &hi);
+
+    for (auto& v : *values)
+    {
+        int vi = v.second.second.value_information;
+        int sn = v.second.second.storagenr;
+        if (vi >= low && vi <= hi && (storagenr == ANY_STORAGENR || storagenr == sn)) {
+            *key = v.first;
+            debug("(dvparser) found key %s for %s and storagenr=%d\n",
+                  v.first.c_str(), ValueInformationName(vif), storagenr);
+            return true;
+        }
+    }
+    return false;
 }
 
 void extractDV(string &s, uchar *dif, uchar *vif)
@@ -276,7 +331,7 @@ void extractDV(string &s, uchar *dif, uchar *vif)
     *vif = bytes[i];
 }
 
-bool extractDVuint16(map<string,pair<int,string>> *values,
+bool extractDVuint16(map<string,pair<int,DVEntry>> *values,
                      string key,
                      int *offset,
                      uint16_t *value)
@@ -290,16 +345,16 @@ bool extractDVuint16(map<string,pair<int,string>> *values,
     uchar dif, vif;
     extractDV(key, &dif, &vif);
 
-    pair<int,string>&  p = (*values)[key];
+    pair<int,DVEntry>&  p = (*values)[key];
     *offset = p.first;
     vector<uchar> v;
-    hex2bin(p.second, &v);
+    hex2bin(p.second.value, &v);
 
     *value = v[1]<<8 | v[0];
     return true;
 }
 
-bool extractDVdouble(map<string,pair<int,string>> *values,
+bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                      string key,
                      int *offset,
                      double *value)
@@ -313,10 +368,10 @@ bool extractDVdouble(map<string,pair<int,string>> *values,
     uchar dif, vif;
     extractDV(key, &dif, &vif);
 
-    pair<int,string>&  p = (*values)[key];
+    pair<int,DVEntry>&  p = (*values)[key];
     *offset = p.first;
 
-    if (p.second.length() == 0) {
+    if (p.second.value.length() == 0) {
         verbose("(dvparser) warning: key found but no data  \"%s\"\n", key.c_str());
         *offset = 0;
         *value = 0;
@@ -332,15 +387,19 @@ bool extractDVdouble(map<string,pair<int,string>> *values,
         t == 0x7)   // 64 Bit Integer/Binary
     {
         vector<uchar> v;
-        hex2bin(p.second, &v);
+        hex2bin(p.second.value, &v);
         unsigned int raw = 0;
         if (t == 0x1) {
+            assert(v.size() == 1);
             raw = v[0];
         } else if (t == 0x2) {
+            assert(v.size() == 2);
             raw = v[1]*256 + v[0];
         } else if (t == 0x3) {
+            assert(v.size() == 3);
             raw = v[2]*256*256 + v[1]*256 + v[0];
         } else if (t == 0x4) {
+            assert(v.size() == 4);
             raw = ((unsigned int)v[3])*256*256*256
                 + ((unsigned int)v[2])*256*256
                 + ((unsigned int)v[1])*256
@@ -357,23 +416,28 @@ bool extractDVdouble(map<string,pair<int,string>> *values,
         t == 0xE)   // 12 digit BCD
     {
         // 74140000 -> 00001474
-        string& v = p.second;
+        string& v = p.second.value;
         unsigned int raw = 0;
         if (t == 0x9) {
+            assert(v.size() == 2);
             raw = (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xA) {
+            assert(v.size() == 4);
             raw = (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xB) {
+            assert(v.size() == 6);
             raw = (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xC) {
+            assert(v.size() == 8);
             raw = (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
                 + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xE) {
+            assert(v.size() == 12);
             raw =(v[10]-'0')*10*10*10*10*10*10*10*10*10*10*10 + (v[11]-'0')*10*10*10*10*10*10*10*10*10*10
                 + (v[8]-'0')*10*10*10*10*10*10*10*10*10 + (v[9]-'0')*10*10*10*10*10*10*10*10
                 + (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
@@ -393,47 +457,7 @@ bool extractDVdouble(map<string,pair<int,string>> *values,
     return true;
 }
 
-bool extractDVdoubleCombined(std::map<std::string,std::pair<int,std::string>> *values,
-                            std::string key_high_bits, // Which key to extract high bits from.
-                            std::string key,
-                            int *offset,
-                            double *value)
-{
-    if ((*values).count(key) == 0 || (*values).count(key_high_bits) == 0) {
-        verbose("(dvparser) warning: cannot extract combined double since at least one key is missing \"%s\" \"%s\"\n", key.c_str(),
-                key_high_bits.c_str());
-        *offset = 0;
-        *value = 0;
-        return false;
-    }
-    uchar dif, vif;
-    extractDV(key, &dif, &vif);
-
-    pair<int,string>&  p = (*values)[key];
-
-    if (p.second.length() == 0) {
-        verbose("(dvparser) warning: key found but no data  \"%s\"\n", key.c_str());
-        *offset = 0;
-        *value = 0;
-        return false;
-    }
-
-    *offset = p.first;
-    vector<uchar> v;
-    hex2bin(p.second, &v);
-
-    pair<int,string>&  pp = (*values)[key_high_bits];
-    vector<uchar> v_high;
-    hex2bin(pp.second, &v_high);
-
-    int raw = v_high[3]*256*256*256 + v_high[2]*256*256 + v[1]*256 + v[0];
-    double scale = vifScale(vif);
-    *value = ((double)raw) / scale;
-
-    return true;
-}
-
-bool extractDVstring(map<string,pair<int,string>> *values,
+bool extractDVstring(map<string,pair<int,DVEntry>> *values,
                      string key,
                      int *offset,
                      string *value)
@@ -444,13 +468,13 @@ bool extractDVstring(map<string,pair<int,string>> *values,
         *value = "";
         return false;
     }
-    pair<int,string>&  p = (*values)[key];
+    pair<int,DVEntry>&  p = (*values)[key];
     *offset = p.first;
-    *value = p.second;
+    *value = p.second.value;
     return true;
 }
 
-bool extractDVdate(map<string,pair<int,string>> *values,
+bool extractDVdate(map<string,pair<int,DVEntry>> *values,
                    string key,
                    int *offset,
                    time_t *value)
@@ -464,10 +488,10 @@ bool extractDVdate(map<string,pair<int,string>> *values,
     uchar dif, vif;
     extractDV(key, &dif, &vif);
 
-    pair<int,string>&  p = (*values)[key];
+    pair<int,DVEntry>&  p = (*values)[key];
     *offset = p.first;
     vector<uchar> v;
-    hex2bin(p.second, &v);
+    hex2bin(p.second.value, &v);
 
     *value = v[1]<<8 | v[0];
 

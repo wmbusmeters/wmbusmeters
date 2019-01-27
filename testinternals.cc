@@ -102,7 +102,7 @@ int test_crc()
     return rc;
 }
 
-int test_parse(const char *data, std::map<std::string,std::pair<int,std::string>> *values, int testnr)
+int test_parse(const char *data, std::map<std::string,std::pair<int,DVEntry>> *values, int testnr)
 {
     debug("\n\nTest nr %d......\n\n", testnr);
     bool b;
@@ -116,7 +116,7 @@ int test_parse(const char *data, std::map<std::string,std::pair<int,std::string>
     return b;
 }
 
-void test_double(map<string,pair<int,string>> &values, const char *key, double v, int testnr)
+void test_double(map<string,pair<int,DVEntry>> &values, const char *key, double v, int testnr)
 {
     int offset;
     double value;
@@ -130,7 +130,7 @@ void test_double(map<string,pair<int,string>> &values, const char *key, double v
     }
 }
 
-void test_string(map<string,pair<int,string>> &values, const char *key, const char *v, int testnr)
+void test_string(map<string,pair<int,DVEntry>> &values, const char *key, const char *v, int testnr)
 {
     int offset;
     string value;
@@ -143,7 +143,7 @@ void test_string(map<string,pair<int,string>> &values, const char *key, const ch
     }
 }
 
-void test_date(map<string,pair<int,string>> &values, const char *key, string date_expected, int testnr)
+void test_date(map<string,pair<int,DVEntry>> &values, const char *key, string date_expected, int testnr)
 {
     int offset;
     time_t value;
@@ -160,7 +160,7 @@ void test_date(map<string,pair<int,string>> &values, const char *key, string dat
 
 int test_dvparser()
 {
-    map<string,pair<int,string>> values;
+    map<string,pair<int,DVEntry>> values;
 
     int testnr = 1;
     test_parse("2F 2F 0B 13 56 34 12 8B 82 00 93 3E 67 45 23 0D FD 10 0A 30 31 32 33 34 35 36 37 38 39 0F 88 2F", &values, testnr);

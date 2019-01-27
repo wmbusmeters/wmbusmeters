@@ -46,7 +46,7 @@ struct CommandLine {
     bool debug {};
     bool logtelegrams {};
     bool meterfiles {};
-    const char *meterfiles_dir {};
+    string meterfiles_dir;
     bool json {};
     bool fields {};
     char separator { ';' };

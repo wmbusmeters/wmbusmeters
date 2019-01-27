@@ -1,4 +1,16 @@
 
+Version 0.8.2: 2019-01-27
+
+Properly supports short C1 frames after it has received a long frame.
+(Ie the format signature hash is properly calculated and used.)
+Now properly extracts temperature from short frames!
+Added support for Multical21 meters with max flow configuration.
+
+Note! Since max flow was added to multical21, there is an extra
+column in the human output and --robot=fields output.
+There is also "max_flow_m3h"="123" in the json output, but that does not
+affect existing code depending on json.
+
 Version 0.8.1: 2019-01-04
 
 Fixed memory leak in shell invocation.

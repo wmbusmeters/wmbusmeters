@@ -21,6 +21,5 @@
 void decryptMode1_AES_CTR(Telegram *t, vector<uchar> &aeskey);
 void decryptMode5_AES_CBC(Telegram *t, vector<uchar> &aeskey);
 string frameTypeKamstrupC1(int ft);
-bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes);
 
 #endif
