@@ -24,7 +24,7 @@
 #include<string>
 #include<vector>
 
-#define LIST_OF_METERS X(MULTICAL21_METER)X(FLOWIQ3100_METER)X(MULTICAL302_METER)X(OMNIPOWER_METER)X(SUPERCOM587_METER)X(IPERL_METER)X(UNKNOWN_METER)
+#define LIST_OF_METERS X(MULTICAL21_METER)X(FLOWIQ3100_METER)X(MULTICAL302_METER)X(OMNIPOWER_METER)X(SUPERCOM587_METER)X(IPERL_METER)X(QCALORIC_METER)X(UNKNOWN_METER)
 
 enum MeterType {
 #define X(name) name,
@@ -99,6 +99,10 @@ struct ElectricityMeter : public virtual Meter {
     virtual double currentPowerConsumption() = 0; // kw
 };
 
+struct HeatCostMeter : public virtual Meter {
+    virtual double totalEnergyConsumption() = 0; // kwh
+};
+
 struct GenericMeter : public virtual Meter {
 };
 
@@ -109,6 +113,7 @@ unique_ptr<HeatMeter> createMultical302(WMBus *bus, const char *name, const char
 unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, const char *name, const char *id, const char *key);
 unique_ptr<WaterMeter> createSupercom587(WMBus *bus, const char *name, const char *id, const char *key);
 unique_ptr<WaterMeter> createIperl(WMBus *bus, const char *name, const char *id, const char *key);
+unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, const char *name, const char *id, const char *key);
 GenericMeter *createGeneric(WMBus *bus, const char *name, const char *id, const char *key);
 
 #endif

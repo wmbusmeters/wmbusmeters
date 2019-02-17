@@ -46,6 +46,7 @@ Sensus iPERL (iperl)
 Work in progress:
 Heat meter Kamstrup Multical 302 (multical302)
 Electricity meter Kamstrup Omnipower (omnipower)
+Heat cost allocator Qundis Q caloric (qcaloric)
 ```
 
 No meter quadruplets means listen for telegram traffic and print any id heard,

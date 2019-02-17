@@ -105,6 +105,7 @@ MeterType toMeterType(const char *type)
     if (!strcmp(type, "omnipower")) return OMNIPOWER_METER;
     if (!strcmp(type, "supercom587")) return SUPERCOM587_METER;
     if (!strcmp(type, "iperl")) return IPERL_METER;
+    if (!strcmp(type, "qcaloric")) return QCALORIC_METER;
     return UNKNOWN_METER;
 }
 

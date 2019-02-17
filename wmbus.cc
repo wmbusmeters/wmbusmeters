@@ -415,16 +415,6 @@ string ccType(int cc_field)
 
 int difLenBytes(int dif)
 {
-    if (dif == 0x44) {
-        // Special functions: 0x0F, 0x1F, 0x2F, 0x7F or dif >= 0x3F and dif <= 0x6F
-        // 0x44 is used in short frames in the Kamstrup Multical21/FlowIQ3100 to
-        // denote the lower 16 bits of data to be combined with the upper 16 bits of a previous value.
-        // For long frames in the same meters however, the full 32 bits are stored.
-        // Let us return 4 byte here and deal with the truncated version in the meter code for compact frames,
-        // through a length override.
-        return 4;
-    }
-
     int t = dif & 0x0f;
     switch (t) {
     case 0x0: return 0; // No data
@@ -504,7 +494,7 @@ string vifType(int vif)
         case 0xfb: return "First extension of VIF-codes";
         case 0xfd: return "Second extension of VIF-codes";
         case 0xef: return "Reserved extension";
-        case 0xff: return "Kamstrup extension";
+        case 0xff: return "Vendor extension";
         }
     }
 

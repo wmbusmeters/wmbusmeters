@@ -51,7 +51,7 @@ int main(int argc, char **argv)
         printf("Specifying auto as the device will automatically look for usb\n");
         printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
         printf("The meter types: multical21,flowiq3100,supercom587,iperl (water meters) are supported.\n"
-               "The meter types: multical302 (heat) and omnipower (electricity)\n"
+               "The meter types: multical302 (heat) and omnipower (electricity) qcaloric (heat cost)\n"
                "are work in progress.\n\n");
         exit(0);
     }
@@ -156,6 +156,10 @@ int main(int argc, char **argv)
             case IPERL_METER:
                 meters.push_back(createIperl(wmbus.get(), m.name, m.id, m.key));
                 verbose("(iperl) configured \"%s\" \"iperl\" \"%s\" %s\n", m.name, m.id, keymsg);
+                break;
+            case QCALORIC_METER:
+                meters.push_back(createQCaloric(wmbus.get(), m.name, m.id, m.key));
+                verbose("(qcaloric) configured \"%s\" \"qcaloric\" \"%s\" %s\n", m.name, m.id, keymsg);
                 break;
             case UNKNOWN_METER:
                 error("No such meter type \"%s\"\n", m.type);
