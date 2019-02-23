@@ -167,31 +167,31 @@ void startUsingCommandline(CommandLine *cmdline)
             switch (toMeterType(m.type)) {
             case MULTICAL21_METER:
                 meters.push_back(createMultical21(wmbus.get(), m.name, m.id, m.key, MULTICAL21_METER));
-                verbose("(multical21) configured \"%s\" \"multical21\" \"%s\" %s\n", m.name, m.id, keymsg);
+                verbose("(multical21) configured \"%s\" \"multical21\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
             case FLOWIQ3100_METER:
                 meters.push_back(createMultical21(wmbus.get(), m.name, m.id, m.key, FLOWIQ3100_METER));
-                verbose("(flowiq3100) configured \"%s\" \"flowiq3100\" \"%s\" %s\n", m.name, m.id, keymsg);
+                verbose("(flowiq3100) configured \"%s\" \"flowiq3100\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
             case MULTICAL302_METER:
                 meters.push_back(createMultical302(wmbus.get(), m.name, m.id, m.key));
-                verbose("(multical302) configured \"%s\" \"multical302\" \"%s\" %s\n", m.name, m.id, keymsg);
+                verbose("(multical302) configured \"%s\" \"multical302\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
             case OMNIPOWER_METER:
                 meters.push_back(createOmnipower(wmbus.get(), m.name, m.id, m.key));
-                verbose("(omnipower) configured \"%s\" \"omnipower\" \"%s\" %s\n", m.name, m.id, keymsg);
+                verbose("(omnipower) configured \"%s\" \"omnipower\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
             case SUPERCOM587_METER:
                 meters.push_back(createSupercom587(wmbus.get(), m.name, m.id, m.key));
-                verbose("(supercom587) configured \"%s\" \"supercom587\" \"%s\" %s\n", m.name, m.id, keymsg);
+                verbose("(supercom587) configured \"%s\" \"supercom587\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
             case IPERL_METER:
                 meters.push_back(createIperl(wmbus.get(), m.name, m.id, m.key));
-                verbose("(iperl) configured \"%s\" \"iperl\" \"%s\" %s\n", m.name, m.id, keymsg);
+                verbose("(iperl) configured \"%s\" \"iperl\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
             case QCALORIC_METER:
                 meters.push_back(createQCaloric(wmbus.get(), m.name, m.id, m.key));
-                verbose("(qcaloric) configured \"%s\" \"qcaloric\" \"%s\" %s\n", m.name, m.id, keymsg);
+                verbose("(qcaloric) configured \"%s\" \"qcaloric\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
             case UNKNOWN_METER:
                 error("No such meter type \"%s\"\n", m.type);
