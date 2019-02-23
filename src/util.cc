@@ -23,6 +23,7 @@
 #include<stddef.h>
 #include<string.h>
 #include<string>
+#include<sys/errno.h>
 #include<sys/stat.h>
 #include<syslog.h>
 #include<unistd.h>
