@@ -16,6 +16,7 @@
 */
 
 #include"cmdline.h"
+#include"config.h"
 #include"meters.h"
 #include"printer.h"
 #include"serial.h"
@@ -24,9 +25,22 @@
 
 #include<string.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+#include <syslog.h>
+#include <string.h>
+
 using namespace std;
 
 void oneshotCheck(CommandLine *cmdline, SerialCommunicationManager *manager, Meter *meter, vector<unique_ptr<Meter>> &meters);
+void startUsingCommandline(CommandLine *cmdline);
+void startUsingConfigFiles();
+void startDaemon(); // Will use config files.
 
 int main(int argc, char **argv)
 {
@@ -47,7 +61,9 @@ int main(int argc, char **argv)
         printf("    --shellenvs list the env variables available for the meter.\n");
         printf("    --oneshot wait for an update from each meter, then quit.\n\n");
         printf("    --exitafter=20h program exits after running for twenty hoursh\n"
-               "        or 10m for ten minutes or 5s for five seconds.\n\n");
+               "        or 10m for ten minutes or 5s for five seconds.\n");
+        printf("    --useconfig read from /etc/wmbusmeters.conf and /etc/wmbusmeters.d\n");
+        printf("        check the man page for how to write the config files.\n\n");
         printf("Specifying auto as the device will automatically look for usb\n");
         printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
         printf("The meter types: multical21,flowiq3100,supercom587,iperl (water meters) are supported.\n"
@@ -56,9 +72,25 @@ int main(int argc, char **argv)
         exit(0);
     }
 
+    if (cmdline->daemon) {
+        startDaemon();
+        exit(0);
+    }
+
+    if (cmdline->useconfig) {
+        startUsingConfigFiles();
+        exit(0);
+    }
+
     // We want the data visible in the log file asap!
     setbuf(stdout, NULL);
 
+    startUsingCommandline(cmdline.get());
+    exit(0);
+}
+
+void startUsingCommandline(CommandLine *cmdline)
+{
     warningSilenced(cmdline->silence);
     verboseEnabled(cmdline->verbose);
     logTelegramsEnabled(cmdline->logtelegrams);
@@ -71,7 +103,7 @@ int main(int argc, char **argv)
     if (cmdline->meterfiles) {
         verbose("(cmdline) store meter files in: \"%s\"\n", cmdline->meterfiles_dir.c_str());
     }
-    verbose("(cmdline) using usb device: %s\n", cmdline->usb_device);
+    verbose("(cmdline) using usb device: %s\n", cmdline->usb_device.c_str());
     verbose("(cmdline) number of meters: %d\n", cmdline->meters.size());
 
     auto manager = createSerialCommunicationManager(cmdline->exitafter);
@@ -172,7 +204,7 @@ int main(int argc, char **argv)
                                           &ignore2, cmdline->separator,
                                           &ignore3,
                                           &envs);
-                printf("Environment variables provided to shell for meter %s:\n", m.type);
+                printf("Environment variables provided to shell for meter %s:\n", m.type.c_str());
                 for (auto &e : envs) {
                     int p = e.find('=');
                     string key = e.substr(0,p);
@@ -181,7 +213,7 @@ int main(int argc, char **argv)
                 exit(0);
             }
             meters.back()->onUpdate(calll(output.get(),print,Meter*));
-            meters.back()->onUpdate([&](Meter*meter) { oneshotCheck(cmdline.get(), manager.get(), meter, meters); });
+            meters.back()->onUpdate([&](Meter*meter) { oneshotCheck(cmdline, manager.get(), meter, meters); });
         }
     } else {
         printf("No meters configured. Printing id:s of all telegrams heard!\n\n");
@@ -205,4 +237,52 @@ void oneshotCheck(CommandLine *cmdline, SerialCommunicationManager *manager, Met
     }
     // All meters have received at least one update! Stop!
     manager->stop();
+}
+
+void startDaemon()
+{
+    pid_t pid = fork();
+    if (pid < 0)
+    {
+        error("Could not fork.\n");
+    }
+    if (pid > 0)
+    {
+        // Parent returns to exit nicely.
+        return;
+    }
+
+    // Change the file mode mask
+    umask(0);
+
+    setlogmask(LOG_UPTO (LOG_NOTICE));
+    openlog("wmbusmetersd", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+
+    syslog(LOG_NOTICE, "wmbusmeters started by User %d", getuid ());
+
+    enableSyslog();
+
+    // Create a new SID for the daemon
+    pid_t sid = setsid();
+    if (sid < 0) {
+        // log
+        exit(-1);
+    }
+
+    if ((chdir("/")) < 0) {
+        error("Could not change to root as current working directory.");
+    }
+
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+
+    startUsingConfigFiles();
+}
+
+void startUsingConfigFiles()
+{
+    unique_ptr<CommandLine> cmdline = loadConfiguration();
+
+    startUsingCommandline(cmdline.get());
 }

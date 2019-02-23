@@ -20,7 +20,7 @@
 
 #include<memory.h>
 
-MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, const char *name, const char *id, const char *key,
+MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, string& name, string& id, string& key,
                                                      MeterType type, int manufacturer, int media,
                                                      LinkMode required_link_mode) :
     type_(type), manufacturer_(manufacturer), media_(media), name_(name), bus_(bus),
@@ -28,7 +28,7 @@ MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, const char *nam
 {
     use_aes_ = true;
     hex2bin(id, &id_);
-    if (strlen(key) == 0) {
+    if (key.length() == 0) {
 	use_aes_ = false;
     } else {
 	hex2bin(key, &key_);
@@ -97,26 +97,26 @@ string MeterCommonImplementation::datetimeOfUpdateRobot()
     return string(datetime);
 }
 
-MeterType toMeterType(const char *type)
+MeterType toMeterType(string& type)
 {
-    if (!strcmp(type, "multical21")) return MULTICAL21_METER;
-    if (!strcmp(type, "flowiq3100")) return FLOWIQ3100_METER;
-    if (!strcmp(type, "multical302")) return MULTICAL302_METER;
-    if (!strcmp(type, "omnipower")) return OMNIPOWER_METER;
-    if (!strcmp(type, "supercom587")) return SUPERCOM587_METER;
-    if (!strcmp(type, "iperl")) return IPERL_METER;
-    if (!strcmp(type, "qcaloric")) return QCALORIC_METER;
+    if (type == "multical21") return MULTICAL21_METER;
+    if (type == "flowiq3100") return FLOWIQ3100_METER;
+    if (type == "multical302") return MULTICAL302_METER;
+    if (type == "omnipower") return OMNIPOWER_METER;
+    if (type == "supercom587") return SUPERCOM587_METER;
+    if (type == "iperl") return IPERL_METER;
+    if (type == "qcaloric") return QCALORIC_METER;
     return UNKNOWN_METER;
 }
 
-LinkMode toMeterLinkMode(const char *type)
+LinkMode toMeterLinkMode(string& type)
 {
-    if (!strcmp(type, "multical21")) return LinkModeC1;
-    if (!strcmp(type, "flowiq3100")) return LinkModeC1;
-    if (!strcmp(type, "multical302")) return LinkModeC1;
-    if (!strcmp(type, "omnipower")) return LinkModeC1;
-    if (!strcmp(type, "supercom587")) return LinkModeT1;
-    if (!strcmp(type, "iperl")) return LinkModeT1;
+    if (type == "multical21") return LinkModeC1;
+    if (type == "flowiq3100") return LinkModeC1;
+    if (type == "multical302") return LinkModeC1;
+    if (type == "omnipower") return LinkModeC1;
+    if (type == "supercom587") return LinkModeT1;
+    if (type == "iperl") return LinkModeT1;
 
     return UNKNOWN_LINKMODE;
 }

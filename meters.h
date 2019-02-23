@@ -106,14 +106,14 @@ struct HeatCostMeter : public virtual Meter {
 struct GenericMeter : public virtual Meter {
 };
 
-MeterType toMeterType(const char *type);
-LinkMode toMeterLinkMode(const char *type);
-unique_ptr<WaterMeter> createMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt);
-unique_ptr<HeatMeter> createMultical302(WMBus *bus, const char *name, const char *id, const char *key);
-unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, const char *name, const char *id, const char *key);
-unique_ptr<WaterMeter> createSupercom587(WMBus *bus, const char *name, const char *id, const char *key);
-unique_ptr<WaterMeter> createIperl(WMBus *bus, const char *name, const char *id, const char *key);
-unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, const char *name, const char *id, const char *key);
-GenericMeter *createGeneric(WMBus *bus, const char *name, const char *id, const char *key);
+MeterType toMeterType(string& type);
+LinkMode toMeterLinkMode(string& type);
+unique_ptr<WaterMeter> createMultical21(WMBus *bus, string& name, string& id, string& key, MeterType mt);
+unique_ptr<HeatMeter> createMultical302(WMBus *bus, string& name, string& id, string& key);
+unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, string& name, string& id, string& key);
+unique_ptr<WaterMeter> createSupercom587(WMBus *bus, string& name, string& id, string& key);
+unique_ptr<WaterMeter> createIperl(WMBus *bus, string& name, string& id, string& key);
+unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, string& name, string& id, string& key);
+GenericMeter *createGeneric(WMBus *bus, string& name, string& id, string& key);
 
 #endif

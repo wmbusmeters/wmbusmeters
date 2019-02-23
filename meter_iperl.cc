@@ -34,7 +34,7 @@
 using namespace std;
 
 struct MeterIperl : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterIperl(WMBus *bus, const char *name, const char *id, const char *key);
+    MeterIperl(WMBus *bus, string& name, string& id, string& key);
 
     // Total water counted through the meter
     double totalWaterConsumption();
@@ -68,7 +68,7 @@ private:
     double total_water_consumption_ {};
 };
 
-MeterIperl::MeterIperl(WMBus *bus, const char *name, const char *id, const char *key) :
+MeterIperl::MeterIperl(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation(bus, name, id, key, IPERL_METER, MANUFACTURER_SEN, 0x16, LinkModeT1)
 {
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
@@ -80,7 +80,7 @@ double MeterIperl::totalWaterConsumption()
     return total_water_consumption_;
 }
 
-unique_ptr<WaterMeter> createIperl(WMBus *bus, const char *name, const char *id, const char *key)
+unique_ptr<WaterMeter> createIperl(WMBus *bus, string& name, string& id, string& key)
 {
     return unique_ptr<WaterMeter>(new MeterIperl(bus,name,id,key));
 }

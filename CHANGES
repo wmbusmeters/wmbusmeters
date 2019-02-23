@@ -1,4 +1,12 @@
 
+Version 0.8.4: 2019-02-23
+
+Add config files support and daemon mode.
+
+Version 0.8.3: 2019-02-17
+
+Add experimental support for qcaloric.
+
 Version 0.8.2: 2019-01-27
 
 Properly supports short C1 frames after it has received a long frame.

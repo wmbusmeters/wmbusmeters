@@ -16,6 +16,7 @@
 */
 
 #include"util.h"
+#include<dirent.h>
 #include<functional>
 #include<signal.h>
 #include<stdarg.h>
@@ -23,6 +24,10 @@
 #include<string.h>
 #include<string>
 #include<sys/stat.h>
+#include<syslog.h>
+#include<unistd.h>
+#include<sys/types.h>
+#include<fcntl.h>
 
 using namespace std;
 
@@ -141,6 +146,7 @@ void error(const char* fmt, ...) {
     exit(1);
 }
 
+bool syslog_enabled_ = false;
 bool warning_enabled_ = true;
 bool verbose_enabled_ = false;
 bool debug_enabled_ = false;
@@ -148,6 +154,10 @@ bool log_telegrams_enabled_ = false;
 
 void warningSilenced(bool b) {
     warning_enabled_ = !b;
+}
+
+void enableSyslog() {
+    syslog_enabled_ = true;
 }
 
 void verboseEnabled(bool b) {
@@ -185,7 +195,11 @@ void warning(const char* fmt, ...) {
     if (warning_enabled_) {
         va_list args;
         va_start(args, fmt);
-        vprintf(fmt, args);
+        if (syslog_enabled_) {
+            vsyslog(LOG_WARNING, fmt, args);
+        } else {
+            vprintf(fmt, args);
+        }
         va_end(args);
     }
 }
@@ -194,7 +208,11 @@ void verbose(const char* fmt, ...) {
     if (verbose_enabled_) {
         va_list args;
         va_start(args, fmt);
-        vprintf(fmt, args);
+        if (syslog_enabled_) {
+            vsyslog(LOG_INFO, fmt, args);
+        } else {
+            vprintf(fmt, args);
+        }
         va_end(args);
     }
 }
@@ -203,25 +221,28 @@ void debug(const char* fmt, ...) {
     if (debug_enabled_) {
         va_list args;
         va_start(args, fmt);
-        vprintf(fmt, args);
+        if (syslog_enabled_) {
+            vsyslog(LOG_INFO, fmt, args);
+        } else {
+            vprintf(fmt, args);
+        }
         va_end(args);
     }
 }
 
-bool isValidId(char *id)
+bool isValidId(string& id)
 {
-    if (strlen(id) == 0) return true;
-    if (strlen(id) != 8) return false;
+    if (id.length() != 8) return false;
     for (int i=0; i<8; ++i) {
         if (id[i]<'0' || id[i]>'9') return false;
     }
     return true;
 }
 
-bool isValidKey(char *key)
+bool isValidKey(string& key)
 {
-    if (strlen(key) == 0) return true;
-    if (strlen(key) != 32) return false;
+    if (key.length() == 0) return true;
+    if (key.length() != 32) return false;
     vector<uchar> tmp;
     return hex2bin(key, &tmp);
 }
@@ -437,4 +458,117 @@ bool crc16_CCITT_check(uchar *data, uint16_t length)
 {
     uint16_t crc = ~crc16_CCITT(data, length);
     return crc == CRC16_GOOD_VALUE;
+}
+
+bool listFiles(const char *dir, vector<string> *files)
+{
+    DIR *dp = NULL;
+    struct dirent *dptr = NULL;
+
+    if (NULL == (dp = opendir(dir)))
+    {
+        return false;
+    }
+    while(NULL != (dptr = ::readdir(dp)))
+    {
+        if (!strcmp(dptr->d_name,".") ||
+            !strcmp(dptr->d_name,".."))
+        {
+            // Ignore . ..  dirs.
+            continue;
+        }
+
+        files->push_back(string(dptr->d_name));
+    }
+    closedir(dp);
+
+    return true;
+}
+
+bool loadFile(const char *file, vector<char> *buf)
+{
+    int blocksize = 1024;
+    char block[blocksize];
+
+    int fd = open(file, O_RDONLY);
+    if (fd == -1) {
+        return false;
+    }
+    while (true) {
+        ssize_t n = read(fd, block, sizeof(block));
+        if (n == -1) {
+            if (errno == EINTR) {
+                continue;
+            }
+            warning("Could not read file %s errno=%d\n", file, errno);
+            close(fd);
+
+            return false;
+        }
+        buf->insert(buf->end(), block, block+n);
+        if (n < (ssize_t)sizeof(block)) {
+            break;
+        }
+    }
+    close(fd);
+    return true;
+}
+
+string eatToSkipWhitespace(vector<char> &v, vector<char>::iterator &i, int c, size_t max, bool *eof, bool *err)
+{
+    eatWhitespace(v, i, eof);
+    if (*eof) {
+        if (c != -1) {
+            *err = true;
+        }
+        return "";
+    }
+    string s = eatTo(v,i,c,max,eof,err);
+    trimWhitespace(&s);
+    return s;
+}
+
+string eatTo(vector<char> &v, vector<char>::iterator &i, int c, size_t max, bool *eof, bool *err)
+{
+    string s;
+
+    *eof = false;
+    *err = false;
+    while (max > 0 && i != v.end() && (c == -1 || *i != c))
+    {
+        s += *i;
+        i++;
+        max--;
+    }
+    if (c != -1 && (i == v.end() || *i != c))
+    {
+        *err = true;
+    }
+    if (i != v.end())
+    {
+        i++;
+    }
+    if (i == v.end()) {
+        *eof = true;
+    }
+    return s;
+}
+
+void eatWhitespace(vector<char> &v, vector<char>::iterator &i, bool *eof)
+{
+    *eof = false;
+    while (i != v.end() && (*i == ' ' || *i == '\t'))
+    {
+        i++;
+    }
+    if (i == v.end()) {
+        *eof = true;
+    }
+}
+
+void trimWhitespace(string *s)
+{
+    const char *ws = " \t";
+    s->erase(0, s->find_first_not_of(ws));
+    s->erase(s->find_last_not_of(ws) + 1);
 }

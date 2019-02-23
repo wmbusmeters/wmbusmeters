@@ -19,6 +19,8 @@
 #include"meters.h"
 #include"util.h"
 
+#include<string>
+
 using namespace std;
 
 unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
@@ -26,6 +28,14 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
     CommandLine * c = new CommandLine;
 
     int i=1;
+    const char *filename = strrchr(argv[0], '/')+1;
+    if (!strcmp(filename, "wmbusmetersd")) {
+        c->daemon = true;
+        if (argc > 1) {
+            error("Usage error: wmbusmetersd does not accept any arguments.\n");
+        }
+        return unique_ptr<CommandLine>(c);
+    }
     if (argc < 2) {
         c->need_help = true;
         return unique_ptr<CommandLine>(c);
@@ -73,6 +83,13 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strcmp(argv[i], "--useconfig")) {
+            c->useconfig = true;
+            if (i > 1 || argc > 2) {
+                error("Usage error: --useconfig implies no other arguments on the command line.\n");
+            }
+            return unique_ptr<CommandLine>(c);
+        }
         if (!strncmp(argv[i], "--robot", 7)) {
             if (strlen(argv[i]) == 7 ||
                 (strlen(argv[i]) == 12 &&
@@ -109,7 +126,7 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
             if (strlen(argv[i]) > 12 && argv[i][12] == '=') {
                 size_t len = strlen(argv[i])-13;
                 if (len > 0) {
-                    c->meterfiles_dir = argv[i]+13;
+                    c->meterfiles_dir = string(argv[i]+13, len);
                 } else {
                     c->meterfiles_dir = "/tmp";
                 }
@@ -117,7 +134,7 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
                 c->meterfiles_dir = "/tmp";
             }
             if (!checkIfDirExists(c->meterfiles_dir.c_str())) {
-                error("Directory does not exist \"%s\"\n", c->meterfiles_dir.c_str());
+                error("Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir);
             }
             i++;
             continue;
@@ -158,7 +175,7 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
 
     c->usb_device = argv[i];
     i++;
-    if (!c->usb_device) error("You must supply the usb device to which the wmbus dongle is connected.\n");
+    if (c->usb_device.length() == 0) error("You must supply the usb device to which the wmbus dongle is connected.\n");
 
     if ((argc-i) % 4 != 0) {
         error("For each meter you must supply a: name,type,id and key.\n");
@@ -166,16 +183,16 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
     int num_meters = (argc-i)/4;
 
     for (int m=0; m<num_meters; ++m) {
-        char *name = argv[m*4+i+0];
-        char *type = argv[m*4+i+1];
-        char *id = argv[m*4+i+2];
-        char *key = argv[m*4+i+3];
+        string name = argv[m*4+i+0];
+        string type = argv[m*4+i+1];
+        string id = argv[m*4+i+2];
+        string key = argv[m*4+i+3];
 
         MeterType mt = toMeterType(type);
 
-        if (mt == UNKNOWN_METER) error("Not a valid meter type \"%s\"\n", type);
-        if (!isValidId(id)) error("Not a valid meter id \"%s\"\n", id);
-        if (!isValidKey(key)) error("Not a valid meter key \"%s\"\n", key);
+        if (mt == UNKNOWN_METER) error("Not a valid meter type \"%s\"\n", type.c_str());
+        if (!isValidId(id)) error("Not a valid meter id \"%s\"\n", id.c_str());
+        if (!isValidKey(key)) error("Not a valid meter key \"%s\"\n", key.c_str());
         c->meters.push_back(MeterInfo(name,type,id,key));
     }
 

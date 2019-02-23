@@ -45,7 +45,7 @@ using namespace std;
 #define INFO_CODE_BURST_SHIFT (4+9)
 
 struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt);
+    MeterMultical21(WMBus *bus, string& name, string& id, string& key, MeterType mt);
 
     // Total water counted through the meter
     double totalWaterConsumption();
@@ -103,7 +103,7 @@ private:
     int expected_version_ {}; // 0x1b for Multical21 and 0x1d for FlowIQ3100
 };
 
-MeterMultical21::MeterMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt) :
+MeterMultical21::MeterMultical21(WMBus *bus, string& name, string& id, string& key, MeterType mt) :
     MeterCommonImplementation(bus, name, id, key, mt, MANUFACTURER_KAM, 0x16, LinkModeC1)
 {
     if (type() == MULTICAL21_METER) {
@@ -169,7 +169,7 @@ bool MeterMultical21::hasExternalTemperature()
     return has_external_temperature_;
 }
 
-unique_ptr<WaterMeter> createMultical21(WMBus *bus, const char *name, const char *id, const char *key, MeterType mt)
+unique_ptr<WaterMeter> createMultical21(WMBus *bus, string& name, string& id, string& key, MeterType mt)
 {
     if (mt != MULTICAL21_METER && mt != FLOWIQ3100_METER) {
         error("Internal error! Not a proper meter type when creating a multical21 style meter.\n");

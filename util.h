@@ -20,6 +20,7 @@
 
 #include<signal.h>
 #include<stdint.h>
+#include<string>
 #include<functional>
 #include<vector>
 
@@ -38,6 +39,7 @@ void strprintf(std::string &s, const char* fmt, ...);
 
 void xorit(uchar *srca, uchar *srcb, uchar *dest, int len);
 
+void enableSyslog();
 void error(const char* fmt, ...);
 void verbose(const char* fmt, ...);
 void debug(const char* fmt, ...);
@@ -55,14 +57,16 @@ bool isLogTelegramsEnabled();
 void debugPayload(std::string intro, std::vector<uchar> &payload);
 void logTelegram(std::string intro, std::vector<uchar> &header, std::vector<uchar> &content);
 
-bool isValidId(char *id);
-bool isValidKey(char *key);
+bool isValidId(std::string& id);
+bool isValidKey(std::string& key);
 
 void incrementIV(uchar *iv, size_t len);
 
 bool checkCharacterDeviceExists(const char *tty, bool fail_if_not);
 bool checkIfSimulationFile(const char *file);
 bool checkIfDirExists(const char *dir);
+bool listFiles(const char *dir, std::vector<std::string> *files);
+bool loadFile(const char *file, std::vector<char> *buf);
 
 std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err);
 
@@ -75,5 +79,17 @@ uint16_t crc16_EN13757(uchar *data, size_t len);
 // This crc is used by im871a for its serial communication.
 uint16_t crc16_CCITT(uchar *data, uint16_t length);
 bool     crc16_CCITT_check(uchar *data, uint16_t length);
+
+// Eat characters from the vector v, iterating using i, until the end char c is found.
+// If end char == -1, then do not expect any end char, get all until eof.
+// If the end char is not found, return error.
+// If the maximum length is reached without finding the end char, return error.
+std::string eatTo(std::vector<char> &v, std::vector<char>::iterator &i, int c, size_t max, bool *eof, bool *err);
+// Eat whitespace (space and tab, not end of lines).
+void eatWhitespace(std::vector<char> &v, std::vector<char>::iterator &i, bool *eof);
+// First eat whitespace, then start eating until c is found or eof. The found string is trimmed from beginning and ending whitespace.
+std::string eatToSkipWhitespace(std::vector<char> &v, std::vector<char>::iterator &i, int c, size_t max, bool *eof, bool *err);
+// Remove leading and trailing white space
+void trimWhitespace(std::string *s);
 
 #endif

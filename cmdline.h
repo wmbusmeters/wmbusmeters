@@ -18,50 +18,13 @@
 #ifndef CMDLINE_H
 #define CMDLINE_H
 
+#include"config.h"
 #include"meters.h"
 #include<memory>
 #include<string.h>
 #include<vector>
 
 using namespace std;
-
-struct MeterInfo {
-    char *name;
-    char *type;
-    char *id;
-    char *key;
-
-    MeterInfo(char *n, char *t, char *i, char *k) {
-        name = n;
-        type = t;
-        id = i;
-        key = k;
-    }
-};
-
-struct CommandLine {
-    bool need_help {};
-    bool silence {};
-    bool verbose {};
-    bool debug {};
-    bool logtelegrams {};
-    bool meterfiles {};
-    string meterfiles_dir;
-    bool json {};
-    bool fields {};
-    char separator { ';' };
-    vector<string> shells;
-    bool list_shell_envs {};
-    bool oneshot {};
-    int  exitafter {}; // Seconds to exit.
-    char *usb_device {};
-    LinkMode link_mode {};
-    bool link_mode_set {};
-    bool no_init {};
-    vector<MeterInfo> meters;
-
-    ~CommandLine() = default;
-};
 
 unique_ptr<CommandLine> parseCommandLine(int argc, char **argv);
 

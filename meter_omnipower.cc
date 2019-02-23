@@ -30,7 +30,7 @@
 #include<vector>
 
 struct MeterOmnipower : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
-    MeterOmnipower(WMBus *bus, const char *name, const char *id, const char *key);
+    MeterOmnipower(WMBus *bus, string& name, string& id, string& key);
 
     double totalEnergyConsumption();
     double currentPowerConsumption();
@@ -48,7 +48,7 @@ private:
     double current_power_ {};
 };
 
-MeterOmnipower::MeterOmnipower(WMBus *bus, const char *name, const char *id, const char *key) :
+MeterOmnipower::MeterOmnipower(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation(bus, name, id, key, OMNIPOWER_METER, MANUFACTURER_KAM, 0x04, LinkModeC1)
 {
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
@@ -118,7 +118,7 @@ void MeterOmnipower::processContent(Telegram *t)
     t->addMoreExplanation(offset, " total power (%f kwh)", total_energy_);
 }
 
-unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, const char *name, const char *id, const char *key)
+unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, string& name, string& id, string& key)
 {
     return unique_ptr<ElectricityMeter>(new MeterOmnipower(bus,name,id,key));
 }

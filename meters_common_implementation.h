@@ -46,7 +46,7 @@ struct MeterCommonImplementation : public virtual Meter
     double getRecordAsDouble(std::string record);
     uint16_t getRecordAsUInt16(std::string record);
 
-    MeterCommonImplementation(WMBus *bus, const char *name, const char *id, const char *key,
+    MeterCommonImplementation(WMBus *bus, string& name, string& id, string& key,
                               MeterType type, int manufacturer, int media,
                               LinkMode required_link_mode);
 

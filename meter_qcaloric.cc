@@ -30,7 +30,7 @@
 #include<vector>
 
 struct MeterQCaloric : public virtual HeatCostMeter, public virtual MeterCommonImplementation {
-    MeterQCaloric(WMBus *bus, const char *name, const char *id, const char *key);
+    MeterQCaloric(WMBus *bus, string& name, string& id, string& key);
 
     double totalEnergyConsumption();
 
@@ -46,7 +46,7 @@ private:
     double total_energy_ {};
 };
 
-MeterQCaloric::MeterQCaloric(WMBus *bus, const char *name, const char *id, const char *key) :
+MeterQCaloric::MeterQCaloric(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation(bus, name, id, key, QCALORIC_METER, MANUFACTURER_QDS, 0x08, LinkModeC1)
 {
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
@@ -101,7 +101,7 @@ void MeterQCaloric::processContent(Telegram *t)
     parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
 }
 
-unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, const char *name, const char *id, const char *key)
+unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, string& name, string& id, string& key)
 {
     return unique_ptr<HeatCostMeter>(new MeterQCaloric(bus,name,id,key));
 }

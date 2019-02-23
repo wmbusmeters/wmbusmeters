@@ -44,7 +44,7 @@ endif
 
 $(shell mkdir -p $(BUILD))
 
-CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-maybe-uninitialized -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.8.1\""
+CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-maybe-uninitialized -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.8.4\""
 
 $(BUILD)/%.o: %.cc $(wildcard %.h)
 	$(CXX) $(CXXFLAGS) $< -c -o $@
@@ -52,6 +52,7 @@ $(BUILD)/%.o: %.cc $(wildcard %.h)
 METERS_OBJS:=\
 	$(BUILD)/aes.o \
 	$(BUILD)/cmdline.o \
+	$(BUILD)/config.o \
 	$(BUILD)/dvparser.o \
 	$(BUILD)/meters.o \
 	$(BUILD)/meter_multical21.o \
@@ -72,6 +73,8 @@ METERS_OBJS:=\
 
 all: $(BUILD)/wmbusmeters $(BUILD)/testinternals
 	@$(STRIP_BINARY)
+	@rm -f $(BUILD)/wmbusmetersd
+	@cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd
 
 dist: wmbusmeters_0.8.1_$(DEBARCH).deb
 
