@@ -21,6 +21,7 @@
 
 #include<assert.h>
 #include<pthread.h>
+#include<sys/errno.h>
 #include<semaphore.h>
 #include<unistd.h>
 
