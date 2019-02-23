@@ -29,7 +29,8 @@ ifeq "$(HOST)" "arm"
 	DEBARCH=armhf
 else
     CXX=g++
-    STRIP=strip --strip-unneeded --remove-section=.comment --remove-section=.note
+    STRIP=strip
+#--strip-unneeded --remove-section=.comment --remove-section=.note
     BUILD=build
 	DEBARCH=amd64
 endif
