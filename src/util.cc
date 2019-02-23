@@ -501,7 +501,7 @@ bool loadFile(string file, vector<char> *buf)
             if (errno == EINTR) {
                 continue;
             }
-            warning("Could not read file %s errno=%d\n", file, errno);
+            warning("Could not read file %s errno=%d\n", file.c_str(), errno);
             close(fd);
 
             return false;
