@@ -134,7 +134,7 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
                 c->meterfiles_dir = "/tmp";
             }
             if (!checkIfDirExists(c->meterfiles_dir.c_str())) {
-                error("Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir);
+                error("Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir.c_str());
             }
             i++;
             continue;
