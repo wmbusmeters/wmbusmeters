@@ -166,11 +166,11 @@ void startUsingCommandline(CommandLine *cmdline)
             const char *keymsg = (m.key[0] == 0) ? "not-encrypted" : "encrypted";
             switch (toMeterType(m.type)) {
             case MULTICAL21_METER:
-                meters.push_back(createMultical21(wmbus.get(), m.name, m.id, m.key, MULTICAL21_METER));
+                meters.push_back(createMultical21(wmbus.get(), m.name, m.id, m.key));
                 verbose("(multical21) configured \"%s\" \"multical21\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
             case FLOWIQ3100_METER:
-                meters.push_back(createMultical21(wmbus.get(), m.name, m.id, m.key, FLOWIQ3100_METER));
+                meters.push_back(createMultical21(wmbus.get(), m.name, m.id, m.key));
                 verbose("(flowiq3100) configured \"%s\" \"flowiq3100\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
             case MULTICAL302_METER:

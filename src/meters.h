@@ -108,7 +108,8 @@ struct GenericMeter : public virtual Meter {
 
 MeterType toMeterType(string& type);
 LinkMode toMeterLinkMode(string& type);
-unique_ptr<WaterMeter> createMultical21(WMBus *bus, string& name, string& id, string& key, MeterType mt);
+unique_ptr<WaterMeter> createMultical21(WMBus *bus, string& name, string& id, string& key);
+unique_ptr<WaterMeter> createFlowIQ3100(WMBus *bus, string& name, string& id, string& key);
 unique_ptr<HeatMeter> createMultical302(WMBus *bus, string& name, string& id, string& key);
 unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, string& name, string& id, string& key);
 unique_ptr<WaterMeter> createSupercom587(WMBus *bus, string& name, string& id, string& key);
