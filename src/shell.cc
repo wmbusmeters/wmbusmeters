@@ -21,7 +21,11 @@
 #include <memory.h>
 #include <pthread.h>
 #include <sys/types.h>
+#if defined(__APPLE__) && defined(__MACH__)
+#include <sys/wait.h>
+#else
 #include <wait.h>
+#endif
 
 #include <unistd.h>
 
@@ -56,7 +60,12 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
         // I am the child!
         close(0); // Close stdin
         delete[] p;
+#if defined(__APPLE__) && defined(__MACH__)
+        execve(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
+#else
         execvpe(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
+#endif
+
         perror("Execvp failed:");
         error("Invoking shell %s failed!\n", program.c_str());
     } else {
