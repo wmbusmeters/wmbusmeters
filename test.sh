@@ -8,8 +8,8 @@ if [ "$?" = "0" ]; then
     echo Internal test OK
 fi
 
-cat simulation_c1.txt | grep '^{' > test_expected.txt
-$PROG --robot=json simulation_c1.txt \
+cat simulations/simulation_c1.txt | grep '^{' > test_expected.txt
+$PROG --robot=json simulations/simulation_c1.txt \
       MyHeater multical302 12345678 "" \
       MyTapWater multical21 76348799 "" \
       Vadden multical21 44556677 "" \
@@ -27,8 +27,8 @@ else
     Failure.
 fi
 
-cat simulation_t1.txt | grep '^{' > test_expected.txt
-$PROG --robot=json simulation_t1.txt \
+cat simulations/simulation_t1.txt | grep '^{' > test_expected.txt
+$PROG --robot=json simulations/simulation_t1.txt \
       MyWarmWater supercom587 12345678 "" \
       MyColdWater supercom587 11111111 "" \
       MoreWater   iperl       12345699 "" \
@@ -45,7 +45,7 @@ else
     Failure.
 fi
 
-$PROG --shell='echo "$METER_JSON"' simulation_shell.txt MWW supercom587 12345678 "" > test_output.txt
+$PROG --shell='echo "$METER_JSON"' simulations/simulation_shell.txt MWW supercom587 12345678 "" > test_output.txt
 if [ "$?" == "0" ]
 then
     cat test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > test_responses.txt
@@ -60,8 +60,8 @@ else
 fi
 
 rm -f /tmp/MyTapWater
-cat simulation_c1.txt | grep '^{' | grep 76348799 | tail -n 1 > test_expected.txt
-$PROG --meterfiles --robot=json simulation_c1.txt MyTapWater multical21 76348799 ""
+cat simulations/simulation_c1.txt | grep '^{' | grep 76348799 | tail -n 1 > test_expected.txt
+$PROG --meterfiles --robot=json simulations/simulation_c1.txt MyTapWater multical21 76348799 ""
 cat /tmp/MyTapWater | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > test_response.txt
 diff test_expected.txt test_response.txt
 if [ "$?" == "0" ]
@@ -72,8 +72,8 @@ fi
 
 rm -rf /tmp/testmeters
 mkdir /tmp/testmeters
-cat simulation_c1.txt | grep '^{' | grep 76348799 | tail -n 1 > test_expected.txt
-$PROG --meterfiles=/tmp/testmeters --robot=json simulation_c1.txt MyTapWater multical21 76348799 ""
+cat simulations/simulation_c1.txt | grep '^{' | grep 76348799 | tail -n 1 > test_expected.txt
+$PROG --meterfiles=/tmp/testmeters --robot=json simulations/simulation_c1.txt MyTapWater multical21 76348799 ""
 cat /tmp/testmeters/MyTapWater | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > test_response.txt
 diff test_expected.txt test_response.txt
 if [ "$?" == "0" ]
