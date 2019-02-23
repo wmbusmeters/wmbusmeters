@@ -41,6 +41,7 @@ struct MeterInfo {
 struct CommandLine {
     bool daemon {};
     bool useconfig {};
+    bool reload {};
     bool need_help {};
     bool silence {};
     bool verbose {};

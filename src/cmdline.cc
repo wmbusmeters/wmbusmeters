@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2018 Fredrik Öhrström
+ Copyright (C) 2017-2019 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -87,6 +87,13 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
             c->useconfig = true;
             if (i > 1 || argc > 2) {
                 error("Usage error: --useconfig implies no other arguments on the command line.\n");
+            }
+            return unique_ptr<CommandLine>(c);
+        }
+        if (!strcmp(argv[i], "--reload")) {
+            c->reload = true;
+            if (i > 1 || argc > 2) {
+                error("Usage error: --reload implies no other arguments on the command line.\n");
             }
             return unique_ptr<CommandLine>(c);
         }

@@ -3,4 +3,5 @@ build_debug
 build_arm/
 build_arm_debug/
 archive/
+testoutput/
 *~

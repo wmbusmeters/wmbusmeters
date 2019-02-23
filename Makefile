@@ -20,6 +20,8 @@
 # make DEBUG=true
 # make DEBUG=true HOST=arm
 
+VERSION=0.8.4
+
 ifeq "$(HOST)" "arm"
     CXX=arm-linux-gnueabihf-g++
     STRIP=arm-linux-gnueabihf-strip
@@ -44,7 +46,7 @@ endif
 
 $(shell mkdir -p $(BUILD))
 
-CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-maybe-uninitialized -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.8.4\""
+CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-maybe-uninitialized -Wno-unused-function "-DWMBUSMETERS_VERSION=\"$(VERSION)\""
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 	$(CXX) $(CXXFLAGS) $< -c -o $@
@@ -73,23 +75,27 @@ METERS_OBJS:=\
 
 all: $(BUILD)/wmbusmeters $(BUILD)/testinternals
 	@$(STRIP_BINARY)
-	@rm -f $(BUILD)/wmbusmetersd
-	@cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd
 
-dist: wmbusmeters_0.8.1_$(DEBARCH).deb
+dist: wmbusmeters_$(VERSION)_$(DEBARCH).deb
 
-wmbusmeters_0.8.1_$(DEBARCH).deb:
+install: $(BUILD)/wmbusmeters
+	@./install.sh $(BUILD)/wmbusmeters
+
+wmbusmeters_$(VERSION)_$(DEBARCH).deb:
+	@rm -rf $(BUILD)/debian/wmbusmeters
 	@mkdir -p $(BUILD)/debian/wmbusmeters/DEBIAN
-	@mkdir -p $(BUILD)/debian/wmbusmeters/usr/local/bin
-	@cp $(BUILD)/wmbusmeters $(BUILD)/debian/wmbusmeters/usr/local/bin
+	@mkdir -p $(BUILD)/debian/wmbusmeters/usr/bin
+	@mkdir -p $(BUILD)/debian/wmbusmeters/usr/sbin
+	@cp $(BUILD)/wmbusmeters $(BUILD)/debian/wmbusmeters/usr/bin/wmbusmeters
+	@ln $(BUILD)/debian/wmbusmeters/usr/bin/wmbusmeters $(BUILD)/debian/wmbusmeters/usr/sbin/wmbusmetersd
 	@rm -f $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Package: wmbusmeters" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
-	@echo "Version: 0.8.1" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
+	@echo "Version: $(VERSION)" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Maintainer: Fredrik Öhrström" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Architecture: $(DEBARCH)" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Description: A tool to read wireless mbus telegrams from utility meters." >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@(cd $(BUILD)/debian; dpkg-deb --build wmbusmeters .)
-	@mv $(BUILD)/debian/wmbusmeters_0.8.1_$(DEBARCH).deb .
+	@mv $(BUILD)/debian/wmbusmeters_$(VERSION)_$(DEBARCH).deb .
 	@echo Built package $@
 
 $(BUILD)/wmbusmeters: $(METERS_OBJS) $(BUILD)/main.o

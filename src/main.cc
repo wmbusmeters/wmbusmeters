@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2018 Fredrik Öhrström
+ Copyright (C) 2017-2019 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -63,30 +63,32 @@ int main(int argc, char **argv)
         printf("    --exitafter=20h program exits after running for twenty hoursh\n"
                "        or 10m for ten minutes or 5s for five seconds.\n");
         printf("    --useconfig read from /etc/wmbusmeters.conf and /etc/wmbusmeters.d\n");
-        printf("        check the man page for how to write the config files.\n\n");
+        printf("        check the man page for how to write the config files.\n");
+        printf("    --reload signals a running wmbusmeters daemon to reload the configuration,\n");
+        printf("        when you have modified config files and/or usb dongles.\n\n");
+
         printf("Specifying auto as the device will automatically look for usb\n");
         printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
         printf("The meter types: multical21,flowiq3100,supercom587,iperl (water meters) are supported.\n"
                "The meter types: multical302 (heat) and omnipower (electricity) qcaloric (heat cost)\n"
                "are work in progress.\n\n");
-        exit(0);
     }
-
+    else
     if (cmdline->daemon) {
         startDaemon();
         exit(0);
     }
-
+    else
     if (cmdline->useconfig) {
         startUsingConfigFiles();
         exit(0);
     }
+    else {
+        // We want the data visible in the log file asap!
+        setbuf(stdout, NULL);
 
-    // We want the data visible in the log file asap!
-    setbuf(stdout, NULL);
-
-    startUsingCommandline(cmdline.get());
-    exit(0);
+        startUsingCommandline(cmdline.get());
+    }
 }
 
 void startUsingCommandline(CommandLine *cmdline)

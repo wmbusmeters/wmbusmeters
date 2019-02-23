@@ -79,6 +79,7 @@ unique_ptr<CommandLine> loadConfiguration()
     auto i = global_conf.begin();
     string loglevel;
     string device;
+    string meterfiles_dir;
 
     for (;;) {
         auto p = getNextKeyValue(global_conf, i);
@@ -87,6 +88,7 @@ unique_ptr<CommandLine> loadConfiguration()
 
         if (p.first == "loglevel") loglevel = p.second;
         if (p.first == "device") device = p.second;
+        if (p.first == "meterfilesdir") meterfiles_dir = p.second;
     }
 
     if (loglevel == "verbose") {
@@ -104,6 +106,11 @@ unique_ptr<CommandLine> loadConfiguration()
         warning("No such log level: \"%s\"\n", loglevel.c_str());
     }
     // cmdline->logtelegrams
+
+    c->meterfiles_dir = meterfiles_dir;
+    if (!checkIfDirExists(c->meterfiles_dir.c_str())) {
+        warning("Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir.c_str());
+    }
 
     c->usb_device = device;
 
