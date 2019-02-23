@@ -194,7 +194,7 @@ void startUsingCommandline(CommandLine *cmdline)
                 verbose("(qcaloric) configured \"%s\" \"qcaloric\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
             case UNKNOWN_METER:
-                error("No such meter type \"%s\"\n", m.type);
+                error("No such meter type \"%s\"\n", m.type.c_str());
                 break;
             }
             if (cmdline->list_shell_envs) {
