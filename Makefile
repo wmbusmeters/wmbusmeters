@@ -46,7 +46,7 @@ $(shell mkdir -p $(BUILD))
 
 CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-maybe-uninitialized -Wno-unused-function "-DWMBUSMETERS_VERSION=\"0.8.4\""
 
-$(BUILD)/%.o: %.cc $(wildcard %.h)
+$(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 	$(CXX) $(CXXFLAGS) $< -c -o $@
 
 METERS_OBJS:=\
