@@ -200,7 +200,7 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
         if (mt == UNKNOWN_METER) error("Not a valid meter type \"%s\"\n", type.c_str());
         if (!isValidId(id)) error("Not a valid meter id \"%s\"\n", id.c_str());
         if (!isValidKey(key)) error("Not a valid meter key \"%s\"\n", key.c_str());
-        c->meters.push_back(MeterInfo(name,type,id,key));
+        c->meters.push_back(MeterInfo(name, type, id, key));
     }
 
     return unique_ptr<CommandLine>(c);

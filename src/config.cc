@@ -59,11 +59,23 @@ void parseMeterConfig(CommandLine *c, vector<char> &buf, string file)
     }
 
     MeterType mt = toMeterType(type);
-    if (mt == UNKNOWN_METER) error("Not a valid meter type \"%s\"\n", type.c_str());
-    if (!isValidId(id)) error("Not a valid meter id \"%s\"\n", id.c_str());
-    if (!isValidKey(key)) error("Not a valid meter key \"%s\"\n", key.c_str());
+    bool use = true;
+    if (mt == UNKNOWN_METER) {
+        warning("Not a valid meter type \"%s\"\n", type.c_str());
+        use = false;
+    }
+    if (!isValidId(id)) {
+        warning("Not a valid meter id \"%s\"\n", id.c_str());
+        use = false;
+    }
+    if (!isValidKey(key)) {
+        warning("Not a valid meter key \"%s\"\n", key.c_str());
+        use = false;
+    }
 
-    c->meters.push_back(MeterInfo(name, type, id, key));
+    if (use) {
+        c->meters.push_back(MeterInfo(name, type, id, key));
+    }
 
     return;
 
@@ -138,6 +150,7 @@ unique_ptr<CommandLine> loadConfiguration(string root)
 
     vector<char> global_conf;
     loadFile(root+"/etc/wmbusmeters.conf", &global_conf);
+    global_conf.push_back('\n');
 
     auto i = global_conf.begin();
 
@@ -165,6 +178,7 @@ unique_ptr<CommandLine> loadConfiguration(string root)
         vector<char> meter_conf;
         string file = root+"/etc/wmbusmeters.d/"+f;
         loadFile(file.c_str(), &meter_conf);
+        meter_conf.push_back('\n');
         parseMeterConfig(c, meter_conf, file);
     }
 

@@ -295,7 +295,8 @@ bool checkIfSimulationFile(const char *file)
     if (!S_ISREG(info.st_mode)) {
         return false;
     }
-    if (strncmp(file, "simulation", 10)) {
+    const char *filename = strrchr(file, '/')+1;
+    if (strncmp(filename, "simulation", 10)) {
         return false;
     }
     return true;

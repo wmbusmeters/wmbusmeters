@@ -29,9 +29,9 @@ MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, string& name, s
     use_aes_ = true;
     hex2bin(id, &id_);
     if (key.length() == 0) {
-	use_aes_ = false;
+        use_aes_ = false;
     } else {
-	hex2bin(key, &key_);
+        hex2bin(key, &key_);
     }
 }
 
