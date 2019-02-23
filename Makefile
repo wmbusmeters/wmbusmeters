@@ -29,7 +29,7 @@ ifeq "$(HOST)" "arm"
 	DEBARCH=armhf
 else
     CXX=g++
-    STRIP=strip
+    STRIP=strip --strip-unneeded --remove-section=.comment --remove-section=.note
     BUILD=build
 	DEBARCH=amd64
 endif
@@ -79,15 +79,15 @@ all: $(BUILD)/wmbusmeters $(BUILD)/testinternals
 dist: wmbusmeters_$(VERSION)_$(DEBARCH).deb
 
 install: $(BUILD)/wmbusmeters
-	@./install.sh $(BUILD)/wmbusmeters
+	@./install.sh $(BUILD)/wmbusmeters /
+
+uninstall:
+	@./uninstall.sh /
 
 wmbusmeters_$(VERSION)_$(DEBARCH).deb:
 	@rm -rf $(BUILD)/debian/wmbusmeters
 	@mkdir -p $(BUILD)/debian/wmbusmeters/DEBIAN
-	@mkdir -p $(BUILD)/debian/wmbusmeters/usr/bin
-	@mkdir -p $(BUILD)/debian/wmbusmeters/usr/sbin
-	@cp $(BUILD)/wmbusmeters $(BUILD)/debian/wmbusmeters/usr/bin/wmbusmeters
-	@ln $(BUILD)/debian/wmbusmeters/usr/bin/wmbusmeters $(BUILD)/debian/wmbusmeters/usr/sbin/wmbusmetersd
+	@./install.sh --no-adduser $(BUILD)/wmbusmeters $(BUILD)/debian/wmbusmeters
 	@rm -f $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Package: wmbusmeters" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Version: $(VERSION)" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control

@@ -2,8 +2,16 @@
 
 if [ "$1" = "" ]
 then
-    echo Usage: install.sh build/wmbusmeters
+    echo Usage: install.sh [binary] [root]
+    echo Example: install.sh build/wmbusmeters /
     exit 0
+fi
+
+ADDUSER=true
+if [ "$1" = "--no-adduser" ]
+then
+    ADDUSER=false
+    shift
 fi
 
 if [ ! $(basename "$1") = "wmbusmeters" ]
@@ -18,61 +26,67 @@ then
     exit 1
 fi
 
-if [ "$EUID" -ne 0 ]
-then echo "Please run as root."
-     exit
+if [ ! -d "$2" ]
+then
+    echo Oups, please supply a valid root directory.
+    exit 1
 fi
 
-rm -f /usr/bin/wmbusmeters /usr/sbin/wmbusmetersd
-cp "$1" /usr/bin/wmbusmeters
-ln -s /usr/bin/wmbusmeters /usr/sbin/wmbusmetersd
+ROOT="${2%/}"
 
-echo binaries: installed /usr/bin/wmbusmeters and /usr/sbin/wmbusmetersd
+rm -f $ROOT/usr/bin/wmbusmeters $ROOT/usr/sbin/wmbusmetersd
+mkdir -p $ROOT/usr/bin
+mkdir -p $ROOT/usr/sbin
+cp "$1" $ROOT/usr/bin/wmbusmeters
+ln -s $ROOT/usr/bin/wmbusmeters $ROOT/usr/sbin/wmbusmetersd
+
+echo binaries: installed $ROOT/usr/bin/wmbusmeters and $ROOT/usr/sbin/wmbusmetersd
 
 ID=$(id -u wmbusmeters 2>/dev/null)
 
-if [ "$ID" == "" ]
+if [ "$ADDUSER" = "true" ]
 then
-    # Create the wmbusmeters user
-    adduser --no-create-home --shell /usr/sbin/nologin --disabled-login --gecos "" wmbusmeters
-    echo user: added wmbusmeters
-else
-    echo user: wmbusmeters unmodified
+    if [ "$ID" = "" ]
+    then
+        # Create the wmbusmeters user
+        adduser --no-create-home --shell $ROOT/usr/sbin/nologin --disabled-login --gecos "" wmbusmeters
+        echo user: added wmbusmeters
+    else
+        echo user: wmbusmeters unmodified
+    fi
 fi
 
-if [ ! -f /etc/wmbusmeters.conf ]
+if [ ! -f $ROOT/etc/wmbusmeters.conf ]
 then
     # Create default configuration
-    cat <<EOF > /etc/wmbusmeters.conf
+    mkdir -p $ROOT/etc/
+    cat <<EOF > $ROOT/etc/wmbusmeters.conf
 loglevel=normal
 device=auto
 logtelegrams=false
 meterfiles=/tmp/wmbusmeters
 EOF
-    chown root:root /etc/wmbusmeters.conf
-    chmod 644 /etc/wmbusmeters.d
-    echo conf file: created /etc/wmbusmeters.conf
+    chmod 644 $ROOT/etc/wmbusmeters.conf
+    echo conf file: created $ROOT/etc/wmbusmeters.conf
 else
-    echo conf file: /etc/wmbusmeters.conf unchanged
+    echo conf file: $ROOT/etc/wmbusmeters.conf unchanged
 fi
 
-if [ ! -d /etc/wmbusmeters.d ]
+if [ ! -d $ROOT/etc/wmbusmeters.d ]
 then
     # Create the configuration directory
-    mkdir -p /etc/wmbusmeters.d
-    chown -R root:root /etc/wmbusmeters.d
-    chmod -R 644 /etc/wmbusmeters.d
-    echo conf dir: created /etc/wmbusmeters.d
+    mkdir -p $ROOT/etc/wmbusmeters.d
+    chmod -R 644 $ROOT/etc/wmbusmeters.d
+    echo conf dir: created $ROOT/etc/wmbusmeters.d
 else
-    echo conf dir: /etc/wmbusmeters.d unchanged
+    echo conf dir: $ROOT/etc/wmbusmeters.d unchanged
 fi
 
-if [ -d /etc/systemd/system ]
+if [ ! -f $ROOT/etc/systemd/system/wmbusmeters.service ]
 then
-    if [ ! -f /etc/systemd/system/wmbusmeters.service ]
-    then
-        # Create service file
-        cat <<EOF > /etc/systemd/system/wmbusmeters.service
+    mkdir -p $ROOT/etc/systemd/system/
+    # Create service file
+    cat <<EOF > $ROOT/etc/systemd/system/wmbusmeters.service
 [Unit]
 Description=wmbusmeters service
 After=network.target
@@ -88,8 +102,7 @@ ExecStart=/usr/sbin/wmbusmetersd
 WantedBy=multi-user.target
 EOF
 
-        echo systemd: installed /etc/systemd/system/wmbusmeters.service
-    else
-        echo systemd: /etc/systemd/system/wmbusmeters.service unchanged
-    fi
+    echo systemd: installed $ROOT/etc/systemd/system/wmbusmeters.service
+else
+    echo systemd: $ROOT/etc/systemd/system/wmbusmeters.service unchanged
 fi
