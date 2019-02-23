@@ -69,58 +69,101 @@ void parseMeterConfig(CommandLine *c, vector<char> &buf, string file)
 
 }
 
-unique_ptr<CommandLine> loadConfiguration()
+void handleLoglevel(CommandLine *c, string loglevel)
+{
+    if (loglevel == "verbose") { c->verbose = true; }
+    else if (loglevel == "debug") { c->debug = true; }
+    else if (loglevel == "silent") { c->silence = true; }
+    else if (loglevel == "normal") { }
+    else {
+        warning("No such log level: \"%s\"\n", loglevel.c_str());
+    }
+}
+
+void handleDevice(CommandLine *c, string device)
+{
+    c->usb_device = device;
+}
+
+void handleLogtelegrams(CommandLine *c, string logtelegrams)
+{
+    if (logtelegrams == "true") { c->logtelegrams = true; }
+    else if (logtelegrams == "false") { c->logtelegrams = false;}
+    else {
+        warning("No such logtelegrams setting: \"%s\"\n", logtelegrams.c_str());
+    }
+}
+
+void handleMeterfilesdir(CommandLine *c, string meterfilesdir)
+{
+    if (meterfilesdir.length() > 0)
+    {
+        c->meterfiles_dir = meterfilesdir;
+        c->meterfiles = true;
+        if (!checkIfDirExists(c->meterfiles_dir.c_str())) {
+            warning("Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir.c_str());
+        }
+    }
+}
+
+void handleRobot(CommandLine *c, string robot)
+{
+    if (robot == "json")
+    {
+        c->json = true;
+        c->fields = false;
+    }
+    else if (robot == "fields")
+    {
+        c->json = false;
+        c->fields = true;
+        c->separator = ';';
+    } else {
+        warning("Unknown output format: \"%s\"\n", robot.c_str());
+    }
+}
+
+void handleSeparator(CommandLine *c, string s)
+{
+    if (s.length() == 1) {
+        c->separator = s[0];
+    } else {
+        warning("Separator must be a single character.\n");
+    }
+}
+
+unique_ptr<CommandLine> loadConfiguration(string root)
 {
     CommandLine *c = new CommandLine;
 
     vector<char> global_conf;
-    loadFile("/etc/wmbusmeters.conf", &global_conf);
+    loadFile(root+"/etc/wmbusmeters.conf", &global_conf);
 
     auto i = global_conf.begin();
-    string loglevel;
-    string device;
-    string meterfiles_dir;
 
     for (;;) {
         auto p = getNextKeyValue(global_conf, i);
 
         if (p.first == "") break;
-
-        if (p.first == "loglevel") loglevel = p.second;
-        if (p.first == "device") device = p.second;
-        if (p.first == "meterfilesdir") meterfiles_dir = p.second;
+        if (p.first == "loglevel") handleLoglevel(c, p.second);
+        else if (p.first == "device") handleDevice(c, p.second);
+        else if (p.first == "logtelegrams") handleLogtelegrams(c, p.second);
+        else if (p.first == "meterfilesdir") handleMeterfilesdir(c, p.second);
+        else if (p.first == "robot") handleRobot(c, p.second);
+        else if (p.first == "separator") handleSeparator(c, p.second);
+        else
+        {
+            warning("No such key: %s\n", p.first.c_str());
+        }
     }
 
-    if (loglevel == "verbose") {
-        c->verbose = true;
-    } else
-    if (loglevel == "debug") {
-        c->debug = true;
-    } else
-    if (loglevel == "silent") {
-        c->silence = true;
-    } else
-    if (loglevel == "normal") {
-    } else
-    {
-        warning("No such log level: \"%s\"\n", loglevel.c_str());
-    }
-    // cmdline->logtelegrams
+    vector<string> meters;
+    listFiles(root+"/etc/wmbusmeters.d", &meters);
 
-    c->meterfiles_dir = meterfiles_dir;
-    if (!checkIfDirExists(c->meterfiles_dir.c_str())) {
-        warning("Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir.c_str());
-    }
-
-    c->usb_device = device;
-
-    vector<string> meter_files;
-    listFiles("/etc/wmbusmeters.d", &meter_files);
-
-    for (auto& f : meter_files)
+    for (auto& f : meters)
     {
         vector<char> meter_conf;
-        string file = string("/etc/wmbusmeters.d/")+f;
+        string file = root+"/etc/wmbusmeters.d/"+f;
         loadFile(file.c_str(), &meter_conf);
         parseMeterConfig(c, meter_conf, file);
     }

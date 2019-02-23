@@ -39,7 +39,7 @@ using namespace std;
 
 void oneshotCheck(CommandLine *cmdline, SerialCommunicationManager *manager, Meter *meter, vector<unique_ptr<Meter>> &meters);
 void startUsingCommandline(CommandLine *cmdline);
-void startUsingConfigFiles();
+void startUsingConfigFiles(string root);
 void startDaemon(); // Will use config files.
 
 int main(int argc, char **argv)
@@ -80,13 +80,18 @@ int main(int argc, char **argv)
     }
     else
     if (cmdline->useconfig) {
-        startUsingConfigFiles();
+        // This is primarily used for testing.
+        const char *r = getenv("WMBUSMETERS_CONFIG_ROOT");
+        string root = "";
+        if (r != NULL) {
+            root = r;
+        }
+        startUsingConfigFiles(root);
         exit(0);
     }
     else {
         // We want the data visible in the log file asap!
         setbuf(stdout, NULL);
-
         startUsingCommandline(cmdline.get());
     }
 }
@@ -279,12 +284,12 @@ void startDaemon()
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
 
-    startUsingConfigFiles();
+    startUsingConfigFiles("");
 }
 
-void startUsingConfigFiles()
+void startUsingConfigFiles(string root)
 {
-    unique_ptr<CommandLine> cmdline = loadConfiguration();
+    unique_ptr<CommandLine> cmdline = loadConfiguration(root);
 
     startUsingCommandline(cmdline.get());
 }

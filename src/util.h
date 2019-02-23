@@ -65,8 +65,8 @@ void incrementIV(uchar *iv, size_t len);
 bool checkCharacterDeviceExists(const char *tty, bool fail_if_not);
 bool checkIfSimulationFile(const char *file);
 bool checkIfDirExists(const char *dir);
-bool listFiles(const char *dir, std::vector<std::string> *files);
-bool loadFile(const char *file, std::vector<char> *buf);
+bool listFiles(std::string dir, std::vector<std::string> *files);
+bool loadFile(std::string file, std::vector<char> *buf);
 
 std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err);
 

@@ -460,12 +460,12 @@ bool crc16_CCITT_check(uchar *data, uint16_t length)
     return crc == CRC16_GOOD_VALUE;
 }
 
-bool listFiles(const char *dir, vector<string> *files)
+bool listFiles(string dir, vector<string> *files)
 {
     DIR *dp = NULL;
     struct dirent *dptr = NULL;
 
-    if (NULL == (dp = opendir(dir)))
+    if (NULL == (dp = opendir(dir.c_str())))
     {
         return false;
     }
@@ -485,12 +485,12 @@ bool listFiles(const char *dir, vector<string> *files)
     return true;
 }
 
-bool loadFile(const char *file, vector<char> *buf)
+bool loadFile(string file, vector<char> *buf)
 {
     int blocksize = 1024;
     char block[blocksize];
 
-    int fd = open(file, O_RDONLY);
+    int fd = open(file.c_str(), O_RDONLY);
     if (fd == -1) {
         return false;
     }

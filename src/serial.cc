@@ -26,6 +26,8 @@
 #include <sys/file.h>
 #include <sys/ioctl.h>
 #include <sys/select.h>
+#include <sys/errno.h>
+#include <sys/types.h>
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>

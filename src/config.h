@@ -65,6 +65,6 @@ struct CommandLine {
     ~CommandLine() = default;
 };
 
-unique_ptr<CommandLine> loadConfiguration();
+unique_ptr<CommandLine> loadConfiguration(string root);
 
 #endif
