@@ -192,6 +192,28 @@ bool isLogTelegramsEnabled() {
     return log_telegrams_enabled_;
 }
 
+void info(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    if (syslog_enabled_) {
+        vsyslog(LOG_INFO, fmt, args);
+    } else {
+        vprintf(fmt, args);
+    }
+    va_end(args);
+}
+
+void notice(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    if (syslog_enabled_) {
+        vsyslog(LOG_NOTICE, fmt, args);
+    } else {
+        vprintf(fmt, args);
+    }
+    va_end(args);
+}
+
 void warning(const char* fmt, ...) {
     if (warning_enabled_) {
         va_list args;

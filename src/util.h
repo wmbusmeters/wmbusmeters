@@ -44,6 +44,8 @@ void error(const char* fmt, ...);
 void verbose(const char* fmt, ...);
 void debug(const char* fmt, ...);
 void warning(const char* fmt, ...);
+void info(const char* fmt, ...);
+void notice(const char* fmt, ...);
 
 void warningSilenced(bool b);
 void verboseEnabled(bool b);

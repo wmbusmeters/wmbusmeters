@@ -96,7 +96,7 @@ Type=simple
 #Restart=always
 RestartSec=1
 User=wmbusmeters
-ExecStart=/usr/sbin/wmbusmetersd
+ExecStart=/usr/bin/wmbusmeters --useconfig
 
 [Install]
 WantedBy=multi-user.target

@@ -64,6 +64,9 @@ void Printer::printFiles(Meter *meter, string &human_readable, string &fields, s
         memset(filename, 0, sizeof(filename));
         snprintf(filename, 127, "%s/%s", meterfiles_dir_.c_str(), meter->name().c_str());
         output = fopen(filename, "w");
+        if (!output) {
+            warning("Could not open file \"%s\" for writing!\n", filename);
+        }
     }
 
     if (json_) {

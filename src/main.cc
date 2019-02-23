@@ -165,7 +165,6 @@ void startUsingCommandline(CommandLine *cmdline)
     auto output = unique_ptr<Printer>(new Printer(cmdline->json, cmdline->fields,
                                                    cmdline->separator, cmdline->meterfiles, cmdline->meterfiles_dir,
                                                    cmdline->shells));
-
     vector<unique_ptr<Meter>> meters;
 
     if (cmdline->meters.size() > 0) {
@@ -232,6 +231,7 @@ void startUsingCommandline(CommandLine *cmdline)
         wmbus->simulate();
     }
 
+    notice("wmbusmeters waiting for telegrams\n");
     manager->waitForStop();
 }
 
@@ -265,9 +265,9 @@ void startDaemon()
     setlogmask(LOG_UPTO (LOG_NOTICE));
     openlog("wmbusmetersd", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 
-    syslog(LOG_NOTICE, "wmbusmeters started by User %d", getuid ());
-
     enableSyslog();
+
+    notice("wmbusmeters started by user %d\n", getuid ());
 
     // Create a new SID for the daemon
     pid_t sid = setsid();
