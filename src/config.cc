@@ -118,6 +118,19 @@ void handleMeterfilesdir(Configuration *c, string meterfilesdir)
     }
 }
 
+void handleMeterfilestype(Configuration *c, string meterfilestype)
+{
+    if (meterfilestype == "overwrite")
+    {
+        c->meterfiles_type = MeterFileType::Overwrite;
+    } else if (meterfilestype == "append")
+    {
+        c->meterfiles_type = MeterFileType::Append;
+    } else {
+        warning("No such meter file type \"%s\"\n", meterfilestype.c_str());
+    }
+}
+
 void handleLogfile(Configuration *c, string logfile)
 {
     if (logfile.length() > 0)
@@ -153,6 +166,11 @@ void handleSeparator(Configuration *c, string s)
     }
 }
 
+void handleShell(Configuration *c, string cmdline)
+{
+    c->shells.push_back(cmdline);
+}
+
 unique_ptr<Configuration> loadConfiguration(string root)
 {
     Configuration *c = new Configuration;
@@ -171,9 +189,11 @@ unique_ptr<Configuration> loadConfiguration(string root)
         else if (p.first == "device") handleDevice(c, p.second);
         else if (p.first == "logtelegrams") handleLogtelegrams(c, p.second);
         else if (p.first == "meterfilesdir") handleMeterfilesdir(c, p.second);
+        else if (p.first == "meterfilestype") handleMeterfilestype(c, p.second);
         else if (p.first == "logfile") handleLogfile(c, p.second);
         else if (p.first == "robot") handleRobot(c, p.second);
         else if (p.first == "separator") handleSeparator(c, p.second);
+        else if (p.first == "shell") handleShell(c, p.second);
         else
         {
             warning("No such key: %s\n", p.first.c_str());

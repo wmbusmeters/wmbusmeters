@@ -123,11 +123,12 @@ then
     # Create default configuration
     mkdir -p $ROOT/etc/
     cat <<EOF > $ROOT/etc/wmbusmeters.conf
-loglevel=verbose
+loglevel=normal
 device=auto
 logtelegrams=false
 robot=json
 meterfilesdir=/var/log/wmbusmeters/meter_readings
+meterfilestype=overwrite
 logfile=/var/log/wmbusmeters/wmbusmeters.log
 EOF
     chmod 644 $ROOT/etc/wmbusmeters.conf

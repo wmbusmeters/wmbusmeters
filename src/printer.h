@@ -22,7 +22,7 @@ using namespace std;
 
 struct Printer {
     Printer(bool json, bool fields, char separator, bool meterfiles, string &meterfiles_dir,
-            vector<string> shell_cmdlines);
+            vector<string> shell_cmdlines, bool overwrite);
 
     void print(Meter *meter);
 
@@ -32,6 +32,7 @@ struct Printer {
     string meterfiles_dir_;
     char separator_;
     vector<string> shell_cmdlines_;
+    bool overwrite_;
 
     void printShells(Meter *meter, vector<string> &envs);
     void printFiles(Meter *meter, string &human_readable, string &fields, string &json);

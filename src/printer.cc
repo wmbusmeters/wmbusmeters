@@ -21,7 +21,7 @@
 using namespace std;
 
 Printer::Printer(bool json, bool fields, char separator, bool meterfiles, string &meterfiles_dir,
-                 vector<string> shell_cmdlines)
+                 vector<string> shell_cmdlines, bool overwrite)
 {
     json_ = json;
     fields_ = fields;
@@ -29,6 +29,7 @@ Printer::Printer(bool json, bool fields, char separator, bool meterfiles, string
     meterfiles_ = meterfiles;
     meterfiles_dir_ = meterfiles_dir;
     shell_cmdlines_ = shell_cmdlines;
+    overwrite_ = overwrite;
 }
 
 void Printer::print(Meter *meter)
@@ -63,7 +64,8 @@ void Printer::printFiles(Meter *meter, string &human_readable, string &fields, s
         char filename[128];
         memset(filename, 0, sizeof(filename));
         snprintf(filename, 127, "%s/%s", meterfiles_dir_.c_str(), meter->name().c_str());
-        output = fopen(filename, "w");
+        const char *mode = overwrite_ ? "w" : "a";
+        output = fopen(filename, mode);
         if (!output) {
             warning("Could not open file \"%s\" for writing!\n", filename);
         }

@@ -14,7 +14,7 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo Config files 1 OK
+        echo Config1 OK
     fi
 else
     Failure.

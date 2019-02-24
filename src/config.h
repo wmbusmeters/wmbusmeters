@@ -29,7 +29,6 @@ struct MeterInfo {
     string type;
     string id;
     string key;
-    std::vector<std::string> shells;
 
     MeterInfo(string& n, string& t, string& i, string& k) {
         name = n;
@@ -37,10 +36,11 @@ struct MeterInfo {
         id = i;
         key = k;
     }
+};
 
-    void addShellCommand(std::string s) {
-        shells.push_back(s);
-    }
+enum class MeterFileType
+{
+    Overwrite, Append
 };
 
 struct Configuration {
@@ -55,6 +55,7 @@ struct Configuration {
     bool logtelegrams {};
     bool meterfiles {};
     std::string meterfiles_dir;
+    MeterFileType meterfiles_type {};
     bool use_logfile {};
     std::string logfile;
     bool json {};

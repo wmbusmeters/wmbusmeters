@@ -168,8 +168,9 @@ void startUsingCommandline(Configuration *config)
     verbose("(config) using link mode: %s\n", using_link_mode.c_str());
 
     auto output = unique_ptr<Printer>(new Printer(config->json, config->fields,
-                                                   config->separator, config->meterfiles, config->meterfiles_dir,
-                                                   config->shells));
+                                                  config->separator, config->meterfiles, config->meterfiles_dir,
+                                                  config->shells,
+                                                  config->meterfiles_type == MeterFileType::Overwrite));
     vector<unique_ptr<Meter>> meters;
 
     if (config->meters.size() > 0) {
