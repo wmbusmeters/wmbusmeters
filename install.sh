@@ -164,6 +164,7 @@ then
 [Unit]
 Description=wmbusmeters service
 After=network.target
+StopWhenUnneeded=true
 
 [Service]
 Type=forking
@@ -204,8 +205,8 @@ then
     mkdir -p $ROOT/etc/udev/rules.d
     # Create service file
     cat <<EOF > $ROOT/etc/udev/rules.d/99-wmbus-usb-serial.rules
-SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="im871a",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", SYMLINK+="amb8465",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60",SYMLINK+="im871a",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001",SYMLINK+="amb8465",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
 EOF
     echo udev: installed $ROOT/etc/udev/rules.d/99-wmbus-usb-serial.rules
 else

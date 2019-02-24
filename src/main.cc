@@ -97,30 +97,30 @@ int main(int argc, char **argv)
     }
 }
 
-void startUsingCommandline(Configuration *cmdline)
+void startUsingCommandline(Configuration *config)
 {
-    warningSilenced(cmdline->silence);
-    verboseEnabled(cmdline->verbose);
-    logTelegramsEnabled(cmdline->logtelegrams);
-    debugEnabled(cmdline->debug);
+    warningSilenced(config->silence);
+    verboseEnabled(config->verbose);
+    logTelegramsEnabled(config->logtelegrams);
+    debugEnabled(config->debug);
 
-    if (cmdline->exitafter != 0) {
-        verbose("(cmdline) wmbusmeters will exit after %d seconds\n", cmdline->exitafter);
+    if (config->exitafter != 0) {
+        verbose("(config) wmbusmeters will exit after %d seconds\n", config->exitafter);
     }
 
-    if (cmdline->meterfiles) {
-        verbose("(cmdline) store meter files in: \"%s\"\n", cmdline->meterfiles_dir.c_str());
+    if (config->meterfiles) {
+        verbose("(config) store meter files in: \"%s\"\n", config->meterfiles_dir.c_str());
     }
-    verbose("(cmdline) using usb device: %s\n", cmdline->usb_device.c_str());
-    verbose("(cmdline) number of meters: %d\n", cmdline->meters.size());
+    verbose("(config) using usb device: %s\n", config->usb_device.c_str());
+    verbose("(config) number of meters: %d\n", config->meters.size());
 
-    auto manager = createSerialCommunicationManager(cmdline->exitafter);
+    auto manager = createSerialCommunicationManager(config->exitafter);
 
     onExit(call(manager.get(),stop));
 
     unique_ptr<WMBus> wmbus;
 
-    auto type_and_device = detectMBusDevice(cmdline->usb_device, manager.get());
+    auto type_and_device = detectMBusDevice(config->usb_device, manager.get());
 
     switch (type_and_device.first) {
     case DEVICE_IM871A:
@@ -137,7 +137,7 @@ void startUsingCommandline(Configuration *cmdline)
         break;
     case DEVICE_UNKNOWN:
         warning("No wmbus device found! Exiting!\n");
-        if (cmdline->daemon) {
+        if (config->daemon) {
             // If starting as a daemon, wait a bit so that systemd have time to catch up.
             sleep(1);
         }
@@ -145,35 +145,35 @@ void startUsingCommandline(Configuration *cmdline)
         break;
     }
 
-    if (!cmdline->link_mode_set) {
+    if (!config->link_mode_set) {
         // The link mode is not explicitly set. Examine the meters to see which
         // link mode to use.
-        for (auto &m : cmdline->meters) {
-            if (!cmdline->link_mode_set) {
-                cmdline->link_mode = toMeterLinkMode(m.type);
-                cmdline->link_mode_set = true;
+        for (auto &m : config->meters) {
+            if (!config->link_mode_set) {
+                config->link_mode = toMeterLinkMode(m.type);
+                config->link_mode_set = true;
             } else {
-                if (cmdline->link_mode != toMeterLinkMode(m.type)) {
+                if (config->link_mode != toMeterLinkMode(m.type)) {
                     error("A different link mode has been set already.\n");
                 }
             }
         }
     }
-    if (!cmdline->link_mode_set) {
+    if (!config->link_mode_set) {
         error("If you specify no meters, you have to specify the link mode: --c1 or --t1\n");
     }
-    wmbus->setLinkMode(cmdline->link_mode);
+    wmbus->setLinkMode(config->link_mode);
     string using_link_mode = linkModeName(wmbus->getLinkMode());
 
-    verbose("(cmdline) using link mode: %s\n", using_link_mode.c_str());
+    verbose("(config) using link mode: %s\n", using_link_mode.c_str());
 
-    auto output = unique_ptr<Printer>(new Printer(cmdline->json, cmdline->fields,
-                                                   cmdline->separator, cmdline->meterfiles, cmdline->meterfiles_dir,
-                                                   cmdline->shells));
+    auto output = unique_ptr<Printer>(new Printer(config->json, config->fields,
+                                                   config->separator, config->meterfiles, config->meterfiles_dir,
+                                                   config->shells));
     vector<unique_ptr<Meter>> meters;
 
-    if (cmdline->meters.size() > 0) {
-        for (auto &m : cmdline->meters) {
+    if (config->meters.size() > 0) {
+        for (auto &m : config->meters) {
             const char *keymsg = (m.key[0] == 0) ? "not-encrypted" : "encrypted";
             switch (toMeterType(m.type)) {
             case MULTICAL21_METER:
@@ -208,11 +208,11 @@ void startUsingCommandline(Configuration *cmdline)
                 error("No such meter type \"%s\"\n", m.type.c_str());
                 break;
             }
-            if (cmdline->list_shell_envs) {
+            if (config->list_shell_envs) {
                 string ignore1, ignore2, ignore3;
                 vector<string> envs;
                 meters.back()->printMeter(&ignore1,
-                                          &ignore2, cmdline->separator,
+                                          &ignore2, config->separator,
                                           &ignore3,
                                           &envs);
                 printf("Environment variables provided to shell for meter %s:\n", m.type.c_str());
@@ -224,7 +224,7 @@ void startUsingCommandline(Configuration *cmdline)
                 exit(0);
             }
             meters.back()->onUpdate(calll(output.get(),print,Meter*));
-            meters.back()->onUpdate([&](Meter*meter) { oneshotCheck(cmdline, manager.get(), meter, meters); });
+            meters.back()->onUpdate([&](Meter*meter) { oneshotCheck(config, manager.get(), meter, meters); });
         }
     } else {
         printf("No meters configured. Printing id:s of all telegrams heard!\n\n");
@@ -236,13 +236,19 @@ void startUsingCommandline(Configuration *cmdline)
         wmbus->simulate();
     }
 
-    notice("wmbusmeters waiting for telegrams\n");
+    if (config->daemon || config->use_logfile) {
+        notice("(wmbusmeters) waiting for telegrams\n");
+    }
     manager->waitForStop();
+
+    if (config->daemon || config->use_logfile) {
+        notice("(wmbusmeters) shutting down\n");
+    }
 }
 
-void oneshotCheck(Configuration *cmdline, SerialCommunicationManager *manager, Meter *meter, vector<unique_ptr<Meter>> &meters)
+void oneshotCheck(Configuration *config, SerialCommunicationManager *manager, Meter *meter, vector<unique_ptr<Meter>> &meters)
 {
-    if (!cmdline->oneshot) return;
+    if (!config->oneshot) return;
 
     for (auto &m : meters) {
         if (m->numUpdates() == 0) return;
@@ -259,10 +265,10 @@ void writePid(string pid_file, int pid)
     }
     if (pid > 0) {
         int n = fprintf(pidf, "%d\n", pid);
-        notice("writing pid %s\n", pid_file.c_str());
         if (!n) {
             error("Could not write pid (%d) to file \"%s\"!\n", pid, pid_file.c_str());
         }
+        notice("(wmbusmeters) started %s\n", pid_file.c_str());
     }
     fclose(pidf);
     return;
@@ -274,8 +280,6 @@ void startDaemon(string pid_file)
     openlog("wmbusmetersd", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
 
     enableSyslog();
-
-    notice("wmbusmeters starting...\n");
 
     // Pre check that the pid file can be writte to.
     // Exit before fork, if it fails.
