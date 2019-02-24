@@ -37,8 +37,8 @@
 
 using namespace std;
 
-void oneshotCheck(CommandLine *cmdline, SerialCommunicationManager *manager, Meter *meter, vector<unique_ptr<Meter>> &meters);
-void startUsingCommandline(CommandLine *cmdline);
+void oneshotCheck(Configuration *cmdline, SerialCommunicationManager *manager, Meter *meter, vector<unique_ptr<Meter>> &meters);
+void startUsingCommandline(Configuration *cmdline);
 void startUsingConfigFiles(string root, bool is_daemon);
 void startDaemon(string pid_file); // Will use config files.
 
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
     }
 }
 
-void startUsingCommandline(CommandLine *cmdline)
+void startUsingCommandline(Configuration *cmdline)
 {
     warningSilenced(cmdline->silence);
     verboseEnabled(cmdline->verbose);
@@ -239,7 +239,7 @@ void startUsingCommandline(CommandLine *cmdline)
     manager->waitForStop();
 }
 
-void oneshotCheck(CommandLine *cmdline, SerialCommunicationManager *manager, Meter *meter, vector<unique_ptr<Meter>> &meters)
+void oneshotCheck(Configuration *cmdline, SerialCommunicationManager *manager, Meter *meter, vector<unique_ptr<Meter>> &meters)
 {
     if (!cmdline->oneshot) return;
 
@@ -315,7 +315,7 @@ void startDaemon(string pid_file)
 
 void startUsingConfigFiles(string root, bool is_daemon)
 {
-    unique_ptr<CommandLine> cmdline = loadConfiguration(root);
+    unique_ptr<Configuration> cmdline = loadConfiguration(root);
     cmdline->daemon = is_daemon;
 
     startUsingCommandline(cmdline.get());

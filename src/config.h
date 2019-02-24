@@ -29,6 +29,7 @@ struct MeterInfo {
     string type;
     string id;
     string key;
+    std::vector<std::string> shells;
 
     MeterInfo(string& n, string& t, string& i, string& k) {
         name = n;
@@ -36,9 +37,13 @@ struct MeterInfo {
         id = i;
         key = k;
     }
+
+    void addShellCommand(std::string s) {
+        shells.push_back(s);
+    }
 };
 
-struct CommandLine {
+struct Configuration {
     bool daemon {};
     std::string pid_file;
     bool useconfig {};
@@ -63,9 +68,9 @@ struct CommandLine {
     bool no_init {};
     vector<MeterInfo> meters;
 
-    ~CommandLine() = default;
+    ~Configuration() = default;
 };
 
-unique_ptr<CommandLine> loadConfiguration(string root);
+unique_ptr<Configuration> loadConfiguration(string root);
 
 #endif

@@ -23,9 +23,9 @@
 
 using namespace std;
 
-unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
+unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
 
-    CommandLine * c = new CommandLine;
+    Configuration * c = new Configuration;
 
     int i=1;
     const char *filename = strrchr(argv[0], '/')+1;
@@ -35,16 +35,16 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
             error("Usage error: wmbusmetersd must have a single argument to the pid file.\n");
         }
         c->pid_file = argv[1];
-        return unique_ptr<CommandLine>(c);
+        return unique_ptr<Configuration>(c);
     }
     if (argc < 2) {
         c->need_help = true;
-        return unique_ptr<CommandLine>(c);
+        return unique_ptr<Configuration>(c);
     }
     while (argv[i] && argv[i][0] == '-') {
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "-help") || !strcmp(argv[i], "--help")) {
             c->need_help = true;
-            return unique_ptr<CommandLine>(c);
+            return unique_ptr<Configuration>(c);
         }
         if (!strcmp(argv[i], "--silence")) {
             c->silence = true;
@@ -89,14 +89,14 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
             if (i > 1 || argc > 2) {
                 error("Usage error: --useconfig implies no other arguments on the command line.\n");
             }
-            return unique_ptr<CommandLine>(c);
+            return unique_ptr<Configuration>(c);
         }
         if (!strcmp(argv[i], "--reload")) {
             c->reload = true;
             if (i > 1 || argc > 2) {
                 error("Usage error: --reload implies no other arguments on the command line.\n");
             }
-            return unique_ptr<CommandLine>(c);
+            return unique_ptr<Configuration>(c);
         }
         if (!strncmp(argv[i], "--robot", 7)) {
             if (strlen(argv[i]) == 7 ||
@@ -204,5 +204,5 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
         c->meters.push_back(MeterInfo(name, type, id, key));
     }
 
-    return unique_ptr<CommandLine>(c);
+    return unique_ptr<Configuration>(c);
 }

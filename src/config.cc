@@ -39,7 +39,7 @@ pair<string,string> getNextKeyValue(vector<char> &buf, vector<char>::iterator &i
     return { "", "" };
 }
 
-void parseMeterConfig(CommandLine *c, vector<char> &buf, string file)
+void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 {
     auto i = buf.begin();
     string name;
@@ -81,7 +81,7 @@ void parseMeterConfig(CommandLine *c, vector<char> &buf, string file)
 
 }
 
-void handleLoglevel(CommandLine *c, string loglevel)
+void handleLoglevel(Configuration *c, string loglevel)
 {
     if (loglevel == "verbose") { c->verbose = true; }
     else if (loglevel == "debug") { c->debug = true; }
@@ -92,12 +92,12 @@ void handleLoglevel(CommandLine *c, string loglevel)
     }
 }
 
-void handleDevice(CommandLine *c, string device)
+void handleDevice(Configuration *c, string device)
 {
     c->usb_device = device;
 }
 
-void handleLogtelegrams(CommandLine *c, string logtelegrams)
+void handleLogtelegrams(Configuration *c, string logtelegrams)
 {
     if (logtelegrams == "true") { c->logtelegrams = true; }
     else if (logtelegrams == "false") { c->logtelegrams = false;}
@@ -106,7 +106,7 @@ void handleLogtelegrams(CommandLine *c, string logtelegrams)
     }
 }
 
-void handleMeterfilesdir(CommandLine *c, string meterfilesdir)
+void handleMeterfilesdir(Configuration *c, string meterfilesdir)
 {
     if (meterfilesdir.length() > 0)
     {
@@ -118,7 +118,7 @@ void handleMeterfilesdir(CommandLine *c, string meterfilesdir)
     }
 }
 
-void handleRobot(CommandLine *c, string robot)
+void handleRobot(Configuration *c, string robot)
 {
     if (robot == "json")
     {
@@ -135,7 +135,7 @@ void handleRobot(CommandLine *c, string robot)
     }
 }
 
-void handleSeparator(CommandLine *c, string s)
+void handleSeparator(Configuration *c, string s)
 {
     if (s.length() == 1) {
         c->separator = s[0];
@@ -144,9 +144,9 @@ void handleSeparator(CommandLine *c, string s)
     }
 }
 
-unique_ptr<CommandLine> loadConfiguration(string root)
+unique_ptr<Configuration> loadConfiguration(string root)
 {
-    CommandLine *c = new CommandLine;
+    Configuration *c = new Configuration;
 
     vector<char> global_conf;
     loadFile(root+"/etc/wmbusmeters.conf", &global_conf);
@@ -182,5 +182,5 @@ unique_ptr<CommandLine> loadConfiguration(string root)
         parseMeterConfig(c, meter_conf, file);
     }
 
-    return unique_ptr<CommandLine>(c);
+    return unique_ptr<Configuration>(c);
 }

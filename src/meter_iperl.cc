@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2018 Fredrik Öhrström
+ Copyright (C) 2017-2019 Fredrik Öhrström
  Copyright (C) 2018 David Mallon
 
  This program is free software: you can redistribute it and/or modify
