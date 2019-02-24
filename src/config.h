@@ -55,6 +55,8 @@ struct Configuration {
     bool logtelegrams {};
     bool meterfiles {};
     std::string meterfiles_dir;
+    bool use_logfile {};
+    std::string logfile;
     bool json {};
     bool fields {};
     char separator { ';' };

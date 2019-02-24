@@ -54,6 +54,7 @@ int main(int argc, char **argv)
         printf("    --robot or --robot=json for json output.\n");
         printf("    --robot=fields for semicolon separated fields.\n");
         printf("    --separator=X change field separator to X.\n");
+        printf("    --logfile=file\n");
         printf("    --meterfiles=dir to create status files below dir,\n"
                "        named dir/meter_name, containing the latest reading.\n");
         printf("    --meterfiles defaults dir to /tmp.\n");
@@ -315,8 +316,19 @@ void startDaemon(string pid_file)
 
 void startUsingConfigFiles(string root, bool is_daemon)
 {
-    unique_ptr<Configuration> cmdline = loadConfiguration(root);
-    cmdline->daemon = is_daemon;
+    unique_ptr<Configuration> config = loadConfiguration(root);
+    config->daemon = is_daemon;
 
-    startUsingCommandline(cmdline.get());
+    if (config->use_logfile) {
+        bool ok = enableLogfile(config->logfile);
+        if (!ok) {
+            if (is_daemon) {
+                warning("Could not open log file, will use syslog instead.\n");
+            } else {
+                error("Could not open log file.\n");
+            }
+        }
+    }
+
+    startUsingCommandline(config.get());
 }

@@ -13,3 +13,4 @@ tests/test_t1_meters.sh $PROG
 tests/test_shell.sh $PROG
 tests/test_meterfiles.sh $PROG
 tests/test_config1.sh $PROG
+tests/test_logfile.sh $PROG

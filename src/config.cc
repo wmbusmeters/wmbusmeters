@@ -118,6 +118,15 @@ void handleMeterfilesdir(Configuration *c, string meterfilesdir)
     }
 }
 
+void handleLogfile(Configuration *c, string logfile)
+{
+    if (logfile.length() > 0)
+    {
+        c->use_logfile = true;
+        c->logfile = logfile;
+    }
+}
+
 void handleRobot(Configuration *c, string robot)
 {
     if (robot == "json")
@@ -162,6 +171,7 @@ unique_ptr<Configuration> loadConfiguration(string root)
         else if (p.first == "device") handleDevice(c, p.second);
         else if (p.first == "logtelegrams") handleLogtelegrams(c, p.second);
         else if (p.first == "meterfilesdir") handleMeterfilesdir(c, p.second);
+        else if (p.first == "logfile") handleLogfile(c, p.second);
         else if (p.first == "robot") handleRobot(c, p.second);
         else if (p.first == "separator") handleSeparator(c, p.second);
         else

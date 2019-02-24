@@ -24,6 +24,7 @@ Add --verbose for detailed debug information.
     --robot or --robot=json for json output.
     --robot=fields for semicolon separated fields.
     --separator=X change field separator to X.
+    --logfile=file
     --meterfiles=dir to create status files below dir,
           named dir/meter_name, containing the latest reading.
     --meterfiles defaults dir to /tmp.

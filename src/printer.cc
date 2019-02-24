@@ -68,18 +68,29 @@ void Printer::printFiles(Meter *meter, string &human_readable, string &fields, s
             warning("Could not open file \"%s\" for writing!\n", filename);
         }
     }
-
     if (json_) {
-        fprintf(output, "%s\n", json.c_str());
+        if (output) {
+            fprintf(output, "%s\n", json.c_str());
+        } else {
+            notice("%s\n", json.c_str());
+        }
     }
     else if (fields_) {
-        fprintf(output, "%s\n", fields.c_str());
+        if (output) {
+            fprintf(output, "%s\n", fields.c_str());
+        } else {
+            notice("%s\n", fields.c_str());
+        }
     }
     else {
-        fprintf(output, "%s\n", human_readable.c_str());
+        if (output) {
+            fprintf(output, "%s\n", human_readable.c_str());
+        } else {
+            notice("%s\n", human_readable.c_str());
+        }
     }
 
-    if (output != stdout) {
+    if (output != stdout && output) {
         fclose(output);
     }
 }

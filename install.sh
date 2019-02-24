@@ -128,6 +128,7 @@ device=auto
 logtelegrams=false
 robot=json
 meterfilesdir=/var/log/wmbusmeters/meter_readings
+logfile=/var/log/wmbusmeters/wmbusmeters.log
 EOF
     chmod 644 $ROOT/etc/wmbusmeters.conf
     echo conf file: created $ROOT/etc/wmbusmeters.conf

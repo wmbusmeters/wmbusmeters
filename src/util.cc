@@ -148,10 +148,13 @@ void error(const char* fmt, ...) {
 }
 
 bool syslog_enabled_ = false;
+bool logfile_enabled_ = false;
 bool warning_enabled_ = true;
 bool verbose_enabled_ = false;
 bool debug_enabled_ = false;
 bool log_telegrams_enabled_ = false;
+
+string log_file_;
 
 void warningSilenced(bool b) {
     warning_enabled_ = !b;
@@ -159,6 +162,26 @@ void warningSilenced(bool b) {
 
 void enableSyslog() {
     syslog_enabled_ = true;
+}
+
+bool enableLogfile(string logfile) {
+    log_file_ = logfile;
+    logfile_enabled_ = true;
+    FILE *output = fopen(log_file_.c_str(), "a");
+    if (output) {
+        char buf[256];
+        time_t now = time(NULL);
+        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localtime(&now));
+        int n = fprintf(output, "(wmbusmeters) logging started %s\n", buf);
+        fclose(output);
+        if (n == 0) {
+            logfile_enabled_ = false;
+            return false;
+        }
+        return true;
+    }
+    logfile_enabled_ = false;
+    return false;
 }
 
 void verboseEnabled(bool b) {
@@ -192,25 +215,47 @@ bool isLogTelegramsEnabled() {
     return log_telegrams_enabled_;
 }
 
+void outputStuff(int syslog_level, const char *fmt, va_list args)
+{
+    if (logfile_enabled_)
+    {
+        // Open close at every log occasion, should not be too big of
+        // a performance issue, since normal reception speed of
+        // wmbusmessages are quite low.
+        FILE *output = fopen(log_file_.c_str(), "a");
+        if (output) {
+            vfprintf(output, fmt, args);
+            fclose(output);
+        } else {
+            // Ouch, disable the log file.
+            // Reverting to syslog or stdout depending on settings.
+            logfile_enabled_ = false;
+            // This warning might be written in syslog or stdout.
+            warning("Log file could not be written!\n");
+            // Try again with logfile disabled.
+            outputStuff(syslog_level, fmt, args);
+            return;
+        }
+    } else
+    if (syslog_enabled_) {
+        vsyslog(syslog_level, fmt, args);
+    }
+    else {
+        vprintf(fmt, args);
+    }
+}
+
 void info(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    if (syslog_enabled_) {
-        vsyslog(LOG_NOTICE, fmt, args);
-    } else {
-        vprintf(fmt, args);
-    }
+    outputStuff(LOG_INFO, fmt, args);
     va_end(args);
 }
 
 void notice(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    if (syslog_enabled_) {
-        vsyslog(LOG_NOTICE, fmt, args);
-    } else {
-        vprintf(fmt, args);
-    }
+    outputStuff(LOG_NOTICE, fmt, args);
     va_end(args);
 }
 
@@ -218,11 +263,7 @@ void warning(const char* fmt, ...) {
     if (warning_enabled_) {
         va_list args;
         va_start(args, fmt);
-        if (syslog_enabled_) {
-            vsyslog(LOG_WARNING, fmt, args);
-        } else {
-            vprintf(fmt, args);
-        }
+        outputStuff(LOG_WARNING, fmt, args);
         va_end(args);
     }
 }
@@ -231,11 +272,7 @@ void verbose(const char* fmt, ...) {
     if (verbose_enabled_) {
         va_list args;
         va_start(args, fmt);
-        if (syslog_enabled_) {
-            vsyslog(LOG_NOTICE, fmt, args);
-        } else {
-            vprintf(fmt, args);
-        }
+        outputStuff(LOG_NOTICE, fmt, args);
         va_end(args);
     }
 }
@@ -244,11 +281,7 @@ void debug(const char* fmt, ...) {
     if (debug_enabled_) {
         va_list args;
         va_start(args, fmt);
-        if (syslog_enabled_) {
-            vsyslog(LOG_NOTICE, fmt, args);
-        } else {
-            vprintf(fmt, args);
-        }
+        outputStuff(LOG_NOTICE, fmt, args);
         va_end(args);
     }
 }

@@ -147,6 +147,19 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--logfile=", 10)) {
+            c->use_logfile = true;
+            if (strlen(argv[i]) > 10) {
+                size_t len = strlen(argv[i])-10;
+                if (len > 0) {
+                    c->logfile = string(argv[i]+10, len);
+                } else {
+                    error("Not a valid log file name.");
+                }
+            }
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--shell=", 8)) {
             string cmd = string(argv[i]+8);
             if (cmd == "") {
