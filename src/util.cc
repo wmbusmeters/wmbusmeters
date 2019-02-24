@@ -196,7 +196,7 @@ void info(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     if (syslog_enabled_) {
-        vsyslog(LOG_INFO, fmt, args);
+        vsyslog(LOG_NOTICE, fmt, args);
     } else {
         vprintf(fmt, args);
     }
@@ -232,7 +232,7 @@ void verbose(const char* fmt, ...) {
         va_list args;
         va_start(args, fmt);
         if (syslog_enabled_) {
-            vsyslog(LOG_INFO, fmt, args);
+            vsyslog(LOG_NOTICE, fmt, args);
         } else {
             vprintf(fmt, args);
         }
@@ -245,7 +245,7 @@ void debug(const char* fmt, ...) {
         va_list args;
         va_start(args, fmt);
         if (syslog_enabled_) {
-            vsyslog(LOG_INFO, fmt, args);
+            vsyslog(LOG_NOTICE, fmt, args);
         } else {
             vprintf(fmt, args);
         }

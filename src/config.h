@@ -40,6 +40,7 @@ struct MeterInfo {
 
 struct CommandLine {
     bool daemon {};
+    std::string pid_file;
     bool useconfig {};
     bool reload {};
     bool need_help {};

@@ -39,8 +39,8 @@ using namespace std;
 
 void oneshotCheck(CommandLine *cmdline, SerialCommunicationManager *manager, Meter *meter, vector<unique_ptr<Meter>> &meters);
 void startUsingCommandline(CommandLine *cmdline);
-void startUsingConfigFiles(string root);
-void startDaemon(); // Will use config files.
+void startUsingConfigFiles(string root, bool is_daemon);
+void startDaemon(string pid_file); // Will use config files.
 
 int main(int argc, char **argv)
 {
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
     }
     else
     if (cmdline->daemon) {
-        startDaemon();
+        startDaemon(cmdline->pid_file);
         exit(0);
     }
     else
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
         if (r != NULL) {
             root = r;
         }
-        startUsingConfigFiles(root);
+        startUsingConfigFiles(root, false);
         exit(0);
     }
     else {
@@ -135,7 +135,11 @@ void startUsingCommandline(CommandLine *cmdline)
         wmbus = openSimulator(type_and_device.second, manager.get());
         break;
     case DEVICE_UNKNOWN:
-        error("No wmbus device found!\n");
+        warning("No wmbus device found! Exiting!\n");
+        if (cmdline->daemon) {
+            // If starting as a daemon, wait a bit so that systemd have time to catch up.
+            sleep(1);
+        }
         exit(1);
         break;
     }
@@ -246,8 +250,36 @@ void oneshotCheck(CommandLine *cmdline, SerialCommunicationManager *manager, Met
     manager->stop();
 }
 
-void startDaemon()
+void writePid(string pid_file, int pid)
 {
+    FILE *pidf = fopen(pid_file.c_str(), "w");
+    if (!pidf) {
+        error("Could not open pid file \"%s\" for writing!\n", pid_file.c_str());
+    }
+    if (pid > 0) {
+        int n = fprintf(pidf, "%d\n", pid);
+        notice("writing pid %s\n", pid_file.c_str());
+        if (!n) {
+            error("Could not write pid (%d) to file \"%s\"!\n", pid, pid_file.c_str());
+        }
+    }
+    fclose(pidf);
+    return;
+}
+
+void startDaemon(string pid_file)
+{
+    setlogmask(LOG_UPTO (LOG_INFO));
+    openlog("wmbusmetersd", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+
+    enableSyslog();
+
+    notice("wmbusmeters starting...\n");
+
+    // Pre check that the pid file can be writte to.
+    // Exit before fork, if it fails.
+    writePid(pid_file, 0);
+
     pid_t pid = fork();
     if (pid < 0)
     {
@@ -255,19 +287,13 @@ void startDaemon()
     }
     if (pid > 0)
     {
-        // Parent returns to exit nicely.
+        // Success! The parent stores the pid and exits.
+        writePid(pid_file, pid);
         return;
     }
 
     // Change the file mode mask
     umask(0);
-
-    setlogmask(LOG_UPTO (LOG_NOTICE));
-    openlog("wmbusmetersd", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
-
-    enableSyslog();
-
-    notice("wmbusmeters started by user %d\n", getuid ());
 
     // Create a new SID for the daemon
     pid_t sid = setsid();
@@ -284,12 +310,13 @@ void startDaemon()
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
 
-    startUsingConfigFiles("");
+    startUsingConfigFiles("", true);
 }
 
-void startUsingConfigFiles(string root)
+void startUsingConfigFiles(string root, bool is_daemon)
 {
     unique_ptr<CommandLine> cmdline = loadConfiguration(root);
+    cmdline->daemon = is_daemon;
 
     startUsingCommandline(cmdline.get());
 }

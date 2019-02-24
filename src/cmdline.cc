@@ -31,9 +31,10 @@ unique_ptr<CommandLine> parseCommandLine(int argc, char **argv) {
     const char *filename = strrchr(argv[0], '/')+1;
     if (!strcmp(filename, "wmbusmetersd")) {
         c->daemon = true;
-        if (argc > 1) {
-            error("Usage error: wmbusmetersd does not accept any arguments.\n");
+        if (argc != 2) {
+            error("Usage error: wmbusmetersd must have a single argument to the pid file.\n");
         }
+        c->pid_file = argv[1];
         return unique_ptr<CommandLine>(c);
     }
     if (argc < 2) {
