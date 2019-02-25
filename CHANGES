@@ -1,4 +1,9 @@
 
+Version 0.9.0: 2019-02-24
+
+Running wmbusmeters as daemon is now supported.
+Updated README
+
 Version 0.8.4: 2019-02-23
 
 Add config files support and daemon mode.

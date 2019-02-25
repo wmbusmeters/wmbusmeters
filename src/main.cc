@@ -111,7 +111,10 @@ void startUsingCommandline(Configuration *config)
     if (config->meterfiles) {
         verbose("(config) store meter files in: \"%s\"\n", config->meterfiles_dir.c_str());
     }
-    verbose("(config) using usb device: %s\n", config->usb_device.c_str());
+    verbose("(config) using device: %s\n", config->device.c_str());
+    if (config->device_extra.length() > 0) {
+        verbose("(config) with: %s\n", config->device_extra.c_str());
+    }
     verbose("(config) number of meters: %d\n", config->meters.size());
 
     auto manager = createSerialCommunicationManager(config->exitafter);
@@ -120,7 +123,7 @@ void startUsingCommandline(Configuration *config)
 
     unique_ptr<WMBus> wmbus;
 
-    auto type_and_device = detectMBusDevice(config->usb_device, manager.get());
+    auto type_and_device = detectMBusDevice(config->device, manager.get());
 
     switch (type_and_device.first) {
     case DEVICE_IM871A:
@@ -135,6 +138,16 @@ void startUsingCommandline(Configuration *config)
         verbose("(simulator) found %s\n", type_and_device.second.c_str());
         wmbus = openSimulator(type_and_device.second, manager.get());
         break;
+    case DEVICE_RTLWMBUS:
+    {
+        verbose("(rtlwmbus) found %s\n", type_and_device.second.c_str());
+        string command = config->device_extra;
+        if (command == "") {
+            command = "/usr/bin/rtl_sdr -f 868.9M -s 16000000 | /usr/bin/rtl_wmbus";
+        }
+        wmbus = openRTLWMBUS(command, manager.get());
+        break;
+    }
     case DEVICE_UNKNOWN:
         warning("No wmbus device found! Exiting!\n");
         if (config->daemon) {

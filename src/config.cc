@@ -94,7 +94,19 @@ void handleLoglevel(Configuration *c, string loglevel)
 
 void handleDevice(Configuration *c, string device)
 {
-    c->usb_device = device;
+    // device can be:
+    // /dev/ttyUSB00
+    // auto
+    // rtlwmbus:/usr/bin/rtl_sdr -f 868.9M -s 1600000 - 2>/dev/null | /usr/bin/rtl_wmbus
+    // simulation....txt (read telegrams from file)
+    size_t p = device.find (':');
+    if (p != string::npos)
+    {
+        c->device_extra = device.substr(p+1);
+        c->device = device.substr(0,p);
+    } else {
+        c->device = device;
+    }
 }
 
 void handleLogtelegrams(Configuration *c, string logtelegrams)

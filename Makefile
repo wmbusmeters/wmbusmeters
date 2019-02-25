@@ -20,7 +20,7 @@
 # make DEBUG=true
 # make DEBUG=true HOST=arm
 
-VERSION=0.8.4
+VERSION=0.9.0
 
 ifeq "$(HOST)" "arm"
     CXX=arm-linux-gnueabihf-g++
@@ -73,6 +73,7 @@ METERS_OBJS:=\
 	$(BUILD)/wmbus.o \
 	$(BUILD)/wmbus_amb8465.o \
 	$(BUILD)/wmbus_im871a.o \
+	$(BUILD)/wmbus_rtlwmbus.o \
 	$(BUILD)/wmbus_simulator.o \
 	$(BUILD)/wmbus_utils.o
 

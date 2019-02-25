@@ -17,6 +17,7 @@
 
 #include"util.h"
 #include"serial.h"
+#include"shell.h"
 
 #include <algorithm>
 #include <fcntl.h>
@@ -34,20 +35,24 @@
 
 static int openSerialTTY(const char *tty, int baud_rate);
 
+struct SerialDeviceImp;
 struct SerialDeviceTTY;
+struct SerialDeviceCommand;
 
 struct SerialCommunicationManagerImp : public SerialCommunicationManager {
     SerialCommunicationManagerImp(time_t exit_after_seconds);
     ~SerialCommunicationManagerImp() { }
 
     unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate);
+    unique_ptr<SerialDevice> createSerialDeviceCommand(string command, vector<string> args, vector<string> envs);
+
     void listenTo(SerialDevice *sd, function<void()> cb);
     void stop();
     void waitForStop();
     bool isRunning();
 
-    void opened(SerialDeviceTTY *sd);
-    void closed(SerialDeviceTTY *sd);
+    void opened(SerialDeviceImp *sd);
+    void closed(SerialDeviceImp *sd);
 
 private:
     void *eventLoop();
@@ -62,8 +67,13 @@ private:
 };
 
 struct SerialDeviceImp : public SerialDevice {
-    private:
+
+    int fd() { return fd_; }
+
+    protected:
+
     function<void()> on_data_;
+    int fd_;
 
     friend struct SerialCommunicationManagerImp;
 };
@@ -76,14 +86,12 @@ struct SerialDeviceTTY : public SerialDeviceImp {
     void close();
     bool send(vector<uchar> &data);
     int receive(vector<uchar> *data);
-    int fd() { return fd_; }
     SerialCommunicationManager *manager() { return manager_; }
 
     private:
 
     string device_;
     int baud_rate_ {};
-    int fd_ {};
     pthread_mutex_t write_lock_ = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t read_lock_ = PTHREAD_MUTEX_INITIALIZER;
     SerialCommunicationManagerImp *manager_;
@@ -114,7 +122,7 @@ bool SerialDeviceTTY::open(bool fail_if_not_ok)
         }
     }
     manager_->opened(this);
-    verbose("(serial) opened %s\n", device_.c_str());
+    verbose("(serialtty) opened %s\n", device_.c_str());
     return true;
 }
 
@@ -124,7 +132,7 @@ void SerialDeviceTTY::close()
     ::close(fd_);
     fd_ = -1;
     manager_->closed(this);
-    verbose("(serial) closed %s\n", device_.c_str());
+    verbose("(serialtty) closed %s\n", device_.c_str());
 }
 
 bool SerialDeviceTTY::send(vector<uchar> &data)
@@ -189,6 +197,125 @@ int SerialDeviceTTY::receive(vector<uchar> *data)
     return num_read;
 }
 
+struct SerialDeviceCommand : public SerialDeviceImp {
+    SerialDeviceCommand(string command, vector<string> args, vector<string> envs, SerialCommunicationManagerImp *manager);
+    ~SerialDeviceCommand();
+
+    bool open(bool fail_if_not_ok);
+    void close();
+    bool send(vector<uchar> &data);
+    int receive(vector<uchar> *data);
+    int fd() { return fd_; }
+    SerialCommunicationManager *manager() { return manager_; }
+
+    private:
+
+    string command_;
+    int fd_ {};
+    int pid_ {};
+    vector<string> args_;
+    vector<string> envs_;
+
+    pthread_mutex_t write_lock_ = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t read_lock_ = PTHREAD_MUTEX_INITIALIZER;
+    SerialCommunicationManagerImp *manager_;
+};
+
+SerialDeviceCommand::SerialDeviceCommand(string command,
+                                         vector<string> args,
+                                         vector<string> envs,
+                                         SerialCommunicationManagerImp *manager) {
+    command_ = command;
+    args_ = args;
+    envs_ = envs;
+    manager_ = manager;
+}
+
+SerialDeviceCommand::~SerialDeviceCommand()
+{
+    close();
+}
+
+bool SerialDeviceCommand::open(bool fail_if_not_ok)
+{
+    bool ok = invokeBackgroundShell("/bin/sh", args_, envs_, &fd_, 0, &pid_);
+    if (!ok) return false;
+    manager_->opened(this);
+    verbose("(serialcmd) opened %s\n", command_.c_str());
+    return true;
+}
+
+void SerialDeviceCommand::close()
+{
+    ::flock(fd_, LOCK_UN);
+    ::close(fd_);
+    fd_ = -1;
+    manager_->closed(this);
+    verbose("(serialcmd) closed %s\n", command_.c_str());
+}
+
+bool SerialDeviceCommand::send(vector<uchar> &data)
+{
+    if (data.size() == 0) return true;
+
+    pthread_mutex_lock(&write_lock_);
+
+    bool rc = true;
+    int n = data.size();
+    int written = 0;
+    while (true) {
+        int nw = write(fd_, &data[written], n-written);
+        if (nw > 0) written += nw;
+        if (nw < 0) {
+            if (errno==EINTR) continue;
+            rc = false;
+            goto end;
+        }
+        if (written == n) break;
+    }
+
+    if (isDebugEnabled()) {
+        string msg = bin2hex(data);
+        debug("(serial %s) sent \"%s\"\n", command_.c_str(), msg.c_str());
+    }
+
+    end:
+    pthread_mutex_unlock(&write_lock_);
+    return rc;
+}
+
+int SerialDeviceCommand::receive(vector<uchar> *data)
+{
+    pthread_mutex_lock(&read_lock_);
+
+    data->clear();
+    int available = 0;
+    int num_read = 0;
+
+    ioctl(fd_, FIONREAD, &available);
+    if (!available) goto end;
+
+    data->resize(available);
+
+    while (true) {
+        int nr = read(fd_, &((*data)[num_read]), available-num_read);
+        if (nr > 0) num_read += nr;
+        if (nr < 0) {
+            if (errno==EINTR) continue;
+            goto end;
+        }
+        if (num_read == available) break;
+    }
+
+    if (isDebugEnabled()) {
+        string msg = bin2hex(*data);
+        debug("(serialcmd) received \"%s\"\n", msg.c_str());
+    }
+    end:
+    pthread_mutex_unlock(&read_lock_);
+    return num_read;
+}
+
 SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_seconds)
 {
     running_ = true;
@@ -206,6 +333,13 @@ void *SerialCommunicationManagerImp::startLoop(void *a) {
 
 unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device, int baud_rate) {
     return unique_ptr<SerialDevice>(new SerialDeviceTTY(device, baud_rate, this));
+}
+
+unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceCommand(string command,
+                                                                                  vector<string> args,
+                                                                                  vector<string> envs)
+{
+    return unique_ptr<SerialDevice>(new SerialDeviceCommand(command, args, envs, this));
 }
 
 void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> cb) {
@@ -236,13 +370,13 @@ bool SerialCommunicationManagerImp::isRunning()
     return running_;
 }
 
-void SerialCommunicationManagerImp::opened(SerialDeviceTTY *sd) {
+void SerialCommunicationManagerImp::opened(SerialDeviceImp *sd) {
     max_fd_ = max(sd->fd(), max_fd_);
     devices_.push_back(sd);
     pthread_kill(thread_, SIGUSR1);
 }
 
-void SerialCommunicationManagerImp::closed(SerialDeviceTTY *sd) {
+void SerialCommunicationManagerImp::closed(SerialDeviceImp *sd) {
     auto p = find(devices_.begin(), devices_.end(), sd);
     if (p != devices_.end()) {
         devices_.erase(p);
@@ -270,7 +404,7 @@ void *SerialCommunicationManagerImp::eventLoop() {
             time_t curr = time(NULL);
             time_t diff = curr-start_time_;
             if (diff > exit_after_seconds_) {
-                verbose("(serial) exit after %ld seconds\n", diff);
+                verbose("(serialtty) exit after %ld seconds\n", diff);
                 stop();
                 break;
             }
@@ -280,7 +414,7 @@ void *SerialCommunicationManagerImp::eventLoop() {
 
         if (!running_) break;
         if (activity < 0 && errno!=EINTR) {
-            warning("(serial) internal error after select! errno=%s\n", strerror(errno));
+            warning("(serialtty) internal error after select! errno=%s\n", strerror(errno));
         }
         if (activity > 0) {
             for (SerialDevice *d : devices_) {
@@ -291,7 +425,7 @@ void *SerialCommunicationManagerImp::eventLoop() {
             }
         }
     }
-    verbose("(serial) event loop stopped!\n");
+    verbose("(serialtty) event loop stopped!\n");
     return NULL;
 }
 

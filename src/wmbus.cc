@@ -183,6 +183,10 @@ pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationM
     // SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="im871a",MODE="0660", GROUP="yourowngroup"
     // SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", SYMLINK+="amb8465",MODE="0660", GROUP="yourowngroup"
 
+    if (device == "rtlwmbus")
+    {
+        return { DEVICE_RTLWMBUS, "" };
+    }
     if (device == "auto")
     {
         if (detectIM871A("/dev/im871a", handler))
@@ -1712,6 +1716,7 @@ string formatData(int dif, int vif, int vife, string data)
 string linkModeName(LinkMode link_mode)
 {
     switch (link_mode) {
+    case LinkModeAny: return "ANY";
     case LinkModeC1: return "C1";
     case LinkModeT1: return "T1";
     case UNKNOWN_LINKMODE: break;

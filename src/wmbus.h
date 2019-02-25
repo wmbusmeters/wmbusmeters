@@ -24,7 +24,7 @@
 
 #include<inttypes.h>
 
-#define LIST_OF_LINK_MODES X(LinkModeC1)X(LinkModeT1)X(UNKNOWN_LINKMODE)
+#define LIST_OF_LINK_MODES X(LinkModeAny)X(LinkModeC1)X(LinkModeT1)X(UNKNOWN_LINKMODE)
 
 // In link mode T1, the meter transmits a telegram every few seconds or minutes.
 // Suitable for drive-by/walk-by collection of meter values.
@@ -106,7 +106,7 @@ struct WMBus {
     virtual ~WMBus() = 0;
 };
 
-#define LIST_OF_MBUS_DEVICES X(DEVICE_IM871A)X(DEVICE_AMB8465)X(DEVICE_SIMULATOR)X(DEVICE_UNKNOWN)
+#define LIST_OF_MBUS_DEVICES X(DEVICE_IM871A)X(DEVICE_AMB8465)X(DEVICE_SIMULATOR)X(DEVICE_RTLWMBUS)X(DEVICE_UNKNOWN)
 
 enum MBusDeviceType {
 #define X(name) name,
@@ -121,6 +121,7 @@ pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationM
 unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager);
 unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager);
 struct WMBusSimulator;
+unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager);
 unique_ptr<WMBus> openSimulator(string file, SerialCommunicationManager *manager);
 
 string manufacturer(int m_field);

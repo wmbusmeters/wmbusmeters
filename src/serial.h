@@ -41,6 +41,7 @@ struct SerialDevice {
 
 struct SerialCommunicationManager {
     virtual unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate) = 0;
+    virtual unique_ptr<SerialDevice> createSerialDeviceCommand(string command, vector<string> args, vector<string> envs) = 0;
     virtual void listenTo(SerialDevice *sd, function<void()> cb) = 0;
     virtual void stop() = 0;
     virtual void waitForStop() = 0;

@@ -192,8 +192,3 @@ void WMBusSimulator::simulate()
     }
     manager_->stop();
 }
-
-bool detectSimulator(string device, SerialCommunicationManager *manager)
-{
-    return true;
-}

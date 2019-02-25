@@ -65,7 +65,9 @@ struct Configuration {
     bool list_shell_envs {};
     bool oneshot {};
     int  exitafter {}; // Seconds to exit.
-    string usb_device;
+    string device; // auto, /dev/ttyUSB0, simulation.txt, rtlwmbus
+    string device_extra; // The command line that will start rtlwmbus
+    string telegram_reader;
     LinkMode link_mode {};
     bool link_mode_set {};
     bool no_init {};

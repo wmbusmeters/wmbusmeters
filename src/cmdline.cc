@@ -194,9 +194,15 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         error("Unknown option \"%s\"\n", argv[i]);
     }
 
-    c->usb_device = argv[i];
+    char *extra = strchr(argv[i], ':');
+    if (extra) {
+        *extra = 0;
+        extra++;
+        c->device_extra = extra;
+    }
+    c->device = argv[i];
     i++;
-    if (c->usb_device.length() == 0) error("You must supply the usb device to which the wmbus dongle is connected.\n");
+    if (c->device.length() == 0) error("You must supply the usb device to which the wmbus dongle is connected.\n");
 
     if ((argc-i) % 4 != 0) {
         error("For each meter you must supply a: name,type,id and key.\n");

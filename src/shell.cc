@@ -18,6 +18,7 @@
 #include "shell.h"
 #include "util.h"
 
+#include <assert.h>
 #include <memory.h>
 #include <pthread.h>
 #include <sys/types.h>
@@ -85,4 +86,82 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
         }
     }
     delete[] p;
+}
+
+bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *out, int *err, int *pid)
+{
+    int link[2];
+    vector<const char*> argv(args.size()+2);
+    char *p = new char[program.length()+1];
+    strcpy(p, program.c_str());
+    argv[0] = p;
+    int i = 1;
+    debug("exec background \"%s\"\n", program.c_str());
+    for (auto &a : args) {
+        argv[i] = a.c_str();
+        i++;
+        debug("arg \"%s\"\n", a.c_str());
+    }
+    argv[i] = NULL;
+
+    vector<const char*> env(envs.size()+1);
+    env[0] = p;
+    i = 0;
+    for (auto &e : envs) {
+        env[i] = e.c_str();
+        i++;
+        debug("env \"%s\"\n", e.c_str());
+    }
+    env[i] = NULL;
+
+    if (pipe(link) == -1) {
+        error("Could not create pipe!\n");
+    }
+
+    *pid = fork();
+    if (*pid == 0) {
+        // I am the child!
+        // Redirect stdout and stderr to pipe
+        dup2 (link[1], STDOUT_FILENO);
+        dup2 (link[1], STDERR_FILENO);
+        // Close return pipe, not duped.
+        close(link[0]);
+        // Close old forward fd pipe.
+        close(link[1]);
+        close(0); // Close stdin
+
+        delete[] p;
+#if defined(__APPLE__) && defined(__MACH__)
+        execve(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
+#else
+        execvpe(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
+#endif
+
+        perror("Execvp failed:");
+        warning("Invoking shell %s failed!\n", program.c_str());
+        return false;
+    }
+
+    *out = link[0];
+    delete[] p;
+    return true;
+}
+
+void stopBackgroundShell(int pid)
+{
+    assert(pid > 0);
+
+    kill(pid, SIGINT);
+    int status;
+    debug("waiting for child %d.\n", pid);
+    // Wait for the child to finish!
+    waitpid(pid, &status, 0);
+    if (WIFEXITED(status)) {
+        // Child exited properly.
+        int rc = WEXITSTATUS(status);
+        debug("bgshell: return code %d\n", rc);
+        if (rc != 0) {
+            warning("bgshell: exited with non-zero return code: %d\n", rc);
+        }
+    }
 }

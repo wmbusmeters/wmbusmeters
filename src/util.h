@@ -33,6 +33,7 @@ typedef unsigned char uchar;
 
 bool hex2bin(const char* src, std::vector<uchar> *target);
 bool hex2bin(std::string &src, std::vector<uchar> *target);
+bool hex2bin(std::vector<uchar> &src, std::vector<uchar> *target);
 std::string bin2hex(std::vector<uchar> &target);
 std::string bin2hex(std::vector<uchar>::iterator data, int len);
 void strprintf(std::string &s, const char* fmt, ...);

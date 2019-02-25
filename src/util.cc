@@ -100,6 +100,20 @@ bool hex2bin(string &src, vector<uchar> *target)
     return hex2bin(src.c_str(), target);
 }
 
+bool hex2bin(vector<uchar> &src, vector<uchar> *target)
+{
+    if (src.size() % 2 == 1) return false;
+    for (size_t i=0; i<src.size(); i+=2) {
+        if (src[i] != ' ') {
+            int hi = char2int(src[i]);
+            int lo = char2int(src[i+1]);
+            if (hi<0 || lo<0) return false;
+            target->push_back(hi*16 + lo);
+        }
+    }
+    return true;
+}
+
 char const hex[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A','B','C','D','E','F'};
 
 std::string bin2hex(vector<uchar> &target) {

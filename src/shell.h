@@ -21,3 +21,5 @@
 using namespace std;
 
 void invokeShell(string program, vector<string> args, vector<string> envs);
+bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *out, int *err, int *pid);
+void stopBackgroundShell(int pid);
