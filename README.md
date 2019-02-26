@@ -19,7 +19,7 @@ The program runs on GNU/Linux (standard x86) and Raspberry Pi (arm).
 
 Remove the wmbus dongle (im871a or amb8465) from your computer.
 
-`sudo make install` will install wmbusmeters as a daemon that starts
+`make; sudo make install` will install wmbusmeters as a daemon that starts
 automatically when an appropriate wmbus usb dongle is inserted in the computer.
 
 Check the config file /etc/wmbusmeters.conf:
