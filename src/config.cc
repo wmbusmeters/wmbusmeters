@@ -118,11 +118,11 @@ void handleLogtelegrams(Configuration *c, string logtelegrams)
     }
 }
 
-void handleMeterfilesdir(Configuration *c, string meterfilesdir)
+void handleMeterfiles(Configuration *c, string meterfiles)
 {
-    if (meterfilesdir.length() > 0)
+    if (meterfiles.length() > 0)
     {
-        c->meterfiles_dir = meterfilesdir;
+        c->meterfiles_dir = meterfiles;
         c->meterfiles = true;
         if (!checkIfDirExists(c->meterfiles_dir.c_str())) {
             warning("Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir.c_str());
@@ -130,16 +130,16 @@ void handleMeterfilesdir(Configuration *c, string meterfilesdir)
     }
 }
 
-void handleMeterfilestype(Configuration *c, string meterfilestype)
+void handleMeterfilesAction(Configuration *c, string meterfilesaction)
 {
-    if (meterfilestype == "overwrite")
+    if (meterfilesaction == "overwrite")
     {
-        c->meterfiles_type = MeterFileType::Overwrite;
-    } else if (meterfilestype == "append")
+        c->meterfiles_action = MeterFileType::Overwrite;
+    } else if (meterfilesaction == "append")
     {
-        c->meterfiles_type = MeterFileType::Append;
+        c->meterfiles_action = MeterFileType::Append;
     } else {
-        warning("No such meter file type \"%s\"\n", meterfilestype.c_str());
+        warning("No such meter file action \"%s\"\n", meterfilesaction.c_str());
     }
 }
 
@@ -152,20 +152,24 @@ void handleLogfile(Configuration *c, string logfile)
     }
 }
 
-void handleRobot(Configuration *c, string robot)
+void handleFormat(Configuration *c, string format)
 {
-    if (robot == "json")
+    if (format == "hr")
+    {
+        c->json = false;
+        c->fields = false;
+    } else if (format == "json")
     {
         c->json = true;
         c->fields = false;
     }
-    else if (robot == "fields")
+    else if (format == "fields")
     {
         c->json = false;
         c->fields = true;
         c->separator = ';';
     } else {
-        warning("Unknown output format: \"%s\"\n", robot.c_str());
+        warning("Unknown output format: \"%s\"\n", format.c_str());
     }
 }
 
@@ -205,10 +209,10 @@ unique_ptr<Configuration> loadConfiguration(string root)
         if (p.first == "loglevel") handleLoglevel(c, p.second);
         else if (p.first == "device") handleDevice(c, p.second);
         else if (p.first == "logtelegrams") handleLogtelegrams(c, p.second);
-        else if (p.first == "meterfilesdir") handleMeterfilesdir(c, p.second);
-        else if (p.first == "meterfilestype") handleMeterfilestype(c, p.second);
+        else if (p.first == "meterfiles") handleMeterfiles(c, p.second);
+        else if (p.first == "meterfilesaction") handleMeterfilesAction(c, p.second);
         else if (p.first == "logfile") handleLogfile(c, p.second);
-        else if (p.first == "robot") handleRobot(c, p.second);
+        else if (p.first == "format") handleFormat(c, p.second);
         else if (p.first == "separator") handleSeparator(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);
         else

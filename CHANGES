@@ -7,6 +7,7 @@ Running wmbusmeters as daemon is now supported.
 Using rtl_wmbus to receive wmbus messages from
 rtl_sdr is work in progress.
 Updated README
+Updated some command line options robot is now format.
 
 Version 0.8.4: 2019-02-23
 
@@ -24,7 +25,7 @@ Now properly extracts temperature from short frames!
 Added support for Multical21 meters with max flow configuration.
 
 Note! Since max flow was added to multical21, there is an extra
-column in the human output and --robot=fields output.
+column in the human output and --format=fields output.
 There is also "max_flow_m3h"="123" in the json output, but that does not
 affect existing code depending on json.
 

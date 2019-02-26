@@ -115,29 +115,29 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             }
             return unique_ptr<Configuration>(c);
         }
-        if (!strncmp(argv[i], "--robot", 7)) {
-            if (strlen(argv[i]) == 7 ||
-                (strlen(argv[i]) == 12 &&
-                 !strncmp(argv[i]+7, "=json", 5)))
+        if (!strncmp(argv[i], "--format", 8)) {
+            if (strlen(argv[i]) == 8 ||
+                (strlen(argv[i]) == 13 &&
+                 !strncmp(argv[i]+8, "=json", 5)))
             {
                 c->json = true;
                 c->fields = false;
             }
-            else if (strlen(argv[i]) == 14 &&
+            else if (strlen(argv[i]) == 15 &&
                      !strncmp(argv[i]+7, "=fields", 7))
             {
                 c->json = false;
                 c->fields = true;
                 c->separator = ';';
             } else {
-                error("Unknown output format: \"%s\"\n", argv[i]+7);
+                error("Unknown output format: \"%s\"\n", argv[i]+8);
             }
             i++;
             continue;
         }
         if (!strncmp(argv[i], "--separator=", 12)) {
             if (!c->fields) {
-                error("You must specify --robot=fields before --separator=X\n");
+                error("You must specify --format=fields before --separator=X\n");
             }
             if (strlen(argv[i]) != 13) {
                 error("You must supply a single character as the field separator.\n");
@@ -160,6 +160,21 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             }
             if (!checkIfDirExists(c->meterfiles_dir.c_str())) {
                 error("Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir.c_str());
+            }
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--meterfilesaction", 18)) {
+            if (strlen(argv[i]) > 18 && argv[i][18] == '=') {
+                if (!strncmp(argv[i]+19, "overwrite", 9)) {
+                    c->meterfiles_action = MeterFileType::Overwrite;
+                } else if (!strncmp(argv[i]+19, "append", 6)) {
+                    c->meterfiles_action = MeterFileType::Append;
+                } else {
+                    error("No such meter file action %s\n", argv[i]+19);
+                }
+            } else {
+                error("Incorrect option %s\n", argv[i]);
             }
             i++;
             continue;

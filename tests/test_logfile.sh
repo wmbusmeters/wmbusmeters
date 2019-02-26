@@ -46,5 +46,5 @@ if [ "$ERRORS" = "true" ]
 then
     echo Failed config2 tests
 else
-    echo Config2 with logfile and meterfilesdir OK
+    echo Config2 with logfile and meterfiles OK
 fi

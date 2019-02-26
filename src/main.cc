@@ -48,37 +48,59 @@ int main(int argc, char **argv)
 
     if (cmdline->need_help) {
         printf("wmbusmeters version: " WMBUSMETERS_VERSION "\n");
-        printf("Usage: wmbusmeters [options] (auto | /dev/ttyUSBx) { [meter_name] [meter_type] [meter_id] [meter_key] }* \n\n");
-        printf("Add more meter quadruplets to listen to more meters.\n");
-        printf("Add --verbose for more detailed information on communication.\n");
-        printf("    --robot or --robot=json for json output.\n");
-        printf("    --robot=fields for semicolon separated fields.\n");
-        printf("    --separator=X change field separator to X.\n");
-        printf("    --logfile=file\n");
-        printf("    --meterfiles=dir to create status files below dir,\n"
-               "        named dir/meter_name, containing the latest reading.\n");
-        printf("    --meterfiles defaults dir to /tmp.\n");
-        printf("    --shell=cmd invokes cmd with env variables containing the latest reading.\n");
-        printf("    --shellenvs list the env variables available for the meter.\n");
-        printf("    --oneshot wait for an update from each meter, then quit.\n");
-        printf("    --useconfig=dir look for configuration file in dir/etc/wmbusmeters.conf and\n");
-        printf("        dir/etc/wmbusmeters.d\n");
-        printf("    --useconfig defaults to the root /etc\n");
-        printf("    --exitafter=20h program exits after running for twenty hoursh\n"
-               "        or 10m for ten minutes or 5s for five seconds.\n");
-        printf("    --useconfig read from /etc/wmbusmeters.conf and /etc/wmbusmeters.d\n");
-        printf("        check the man page for how to write the config files.\n");
-        printf("    --reload signals a running wmbusmeters daemon to reload the configuration,\n");
-        printf("        when you have modified config files and/or usb dongles.\n\n");
+        const char *msg = R"MANUAL(
+Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type] [meter_id] [meter_key] )*
 
-        printf("Specifying auto as the device will automatically look for usb\n");
-        printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
+As <options> you can use:
 
-        printf("You can specify the device rtlwmbus to have wmbusmeters spawn rtl_sdr|rtlwmbus\n\n");
+    --c1 or --t1 listen to C1 or T1 messages when no meters are supplied
+    --debug for a lot of information
+    --exitafter=<time> exit program after time, eg 20h, 10m 5s
+    --format=<hr/json/fields> for human readable, json or semicolon separated fields
+    --logfile=<file> use this file instead of stdout
+    --logtelegrams log the contents of the telegrams for easy replay
+    --meterfiles=<dir> store meter readings in dir
+    --meterfilesaction=(overwrite|append) overwrite or append to the meter readings file
+    --oneshot wait for an update from each meter, then quit
+    --separator=<c> change field separator to c
+    --shell=<cmdline> invokes cmdline with env variables containing the latest reading
+    --shellenvs list the env variables available for the meter
+    --useconfig=<dir> load config files from dir/etc
+    --verbose for more information
 
-        printf("The meter types: multical21,flowiq3100,supercom587,iperl (water meters) are supported.\n"
-               "The meter types: multical302 (heat) and omnipower (electricity) qcaloric (heat cost)\n"
-               "are work in progress.\n\n");
+As a <device> you can use:
+
+"/dev/ttyUSB" to which a im871a/amb8465 dongle is attached,
+or you can specify auto and wmbusmeters will look for a suitable dongle
+on the device links /dev/im871a and /dev/amb8465.
+
+"rtlwmbus:868.95M" to have wmbusmeters spawn:
+"rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus"
+(you might have to tweak 868.95M to nearby frequencies depending
+on the rtl-sdr dongle you are using)
+
+"rtlwmbus:<commandline>" to have wmbusmeters spawn
+that commandline instead, the output is expected to be like rtl_wmbus.
+
+As meter quadruples you specify:
+<meter_name> a mnemonic for this particular meter
+<meter_type> one of the supported meters
+<meter_id> an 8 digit mbus id, usually printed on the meter
+<meter_key> an encryption key unique for the meter
+    if the meter uses no encryption, then supply ""
+
+Supported water meters:
+Kamstrup Multical 21 (multical21)
+Kamstrup flowIQ 3100 (flowiq3100)
+Sontex Supercom 587 (supercom587)
+Sensus iPERL (iperl)
+
+Work in progress:
+Heat meter Kamstrup Multical 302 (multical302)
+Electricity meter Kamstrup Omnipower (omnipower)
+Heat cost allocator Qundis Q caloric (qcaloric)
+)MANUAL";
+        puts(msg);
     }
     else
     if (cmdline->daemon) {
@@ -183,7 +205,7 @@ void startUsingCommandline(Configuration *config)
     auto output = unique_ptr<Printer>(new Printer(config->json, config->fields,
                                                   config->separator, config->meterfiles, config->meterfiles_dir,
                                                   config->shells,
-                                                  config->meterfiles_type == MeterFileType::Overwrite));
+                                                  config->meterfiles_action == MeterFileType::Overwrite));
     vector<unique_ptr<Meter>> meters;
 
     if (config->meters.size() > 0) {

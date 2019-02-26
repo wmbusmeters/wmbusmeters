@@ -27,7 +27,7 @@ Check the config file /etc/wmbusmeters.conf:
 loglevel=normal
 device=auto
 logtelegrams=false
-meterfilesdir=/var/log/wmbusmeters/meter_readings
+meterfiles=/var/log/wmbusmeters/meter_readings
 logfile=/var/log/wmbusmeters/wmbusmeters.log
 shell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters -m "$METER_JSON"
 ```
@@ -66,31 +66,45 @@ The files/dir should then be located here:
 
 ```
 wmbusmeters version: 0.9
-Usage: wmbusmeters {options} (auto | /dev/ttyUSBx)] { [meter_name] [meter_type] [meter_id] [meter_key] }*
+Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type] [meter_id] [meter_key] )*
 
-Add more meter quadruplets to listen to more meters.
-Add --verbose for detailed debug information.
-    --robot or --robot=json for json output.
-    --robot=fields for semicolon separated fields.
-    --separator=X change field separator to X.
-    --logfile=file
-    --meterfiles=dir to create status files below dir,
-          named dir/meter_name, containing the latest reading.
-    --meterfiles defaults dir to /tmp.
-    --c1 or --t1 listen to C1 or T1 messages
-    --shell=cmd invokes cmd with env variables containing the latest reading.
-    --shellenvs list the env variables available for the meter.
-    --oneshot wait for an update from each meter, then quit.
-    --useconfig=dir look for configuration file in dir/etc/wmbusmeters.conf and
-          dir/etc/wmbusmeters.d
-    --useconfig defaults to the root /etc
-    --exitafter=20h program exits after running for twenty hours,
-          or 10m for ten minutes or 5s for five seconds.
+As <options> you can use:
 
-Specifying auto as the device will automatically look for usb
-wmbus dongles on /dev/im871a and /dev/amb8465.
+    --c1 or --t1 listen to C1 or T1 messages when no meters are supplied
+    --debug for a lot of information
+    --exitafter=<time> exit program after time, eg 20h, 10m 5s
+    --format=<hr/json/fields> for human readable, json or semicolon separated fields
+    --logfile=<file> use this file instead of stdout
+    --logtelegrams log the contents of the telegrams for easy replay
+    --meterfiles=<dir> store meter readings in dir
+    --meterfilesaction=(overwrite|append) overwrite or append to the meter readings file
+    --oneshot wait for an update from each meter, then quit
+    --separator=<c> change field separator to c
+    --shell=<cmdline> invokes cmdline with env variables containing the latest reading
+    --shellenvs list the env variables available for the meter
+    --useconfig=<dir> load config files from dir/etc
+    --verbose for more information
 
-You can specify the device rtlwmbus to have wmbusmeters spawn rtl_sdr|rtlwmbus
+As a <device> you can use:
+
+"/dev/ttyUSB" to which a im871a/amb8465 dongle is attached,
+or you can specify auto and wmbusmeters will look for a suitable dongle
+on the device links /dev/im871a and /dev/amb8465.
+
+"rtlwmbus:868.95M" to have wmbusmeters spawn:
+"rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus"
+(you might have to tweak 868.95M to nearby frequencies depending
+on the rtl-sdr dongle you are using)
+
+"rtlwmbus:<commandline>" to have wmbusmeters spawn
+that commandline instead, the output is expected to be like rtl_wmbus.
+
+As meter quadruples you specify:
+<meter_name> a mnemonic for this particular meter
+<meter_type> one of the supported meters
+<meter_id> an 8 digit mbus id, usually printed on the meter
+<meter_key> an encryption key unique for the meter
+    if the meter uses no encryption, then supply ""
 
 Supported water meters:
 Kamstrup Multical 21 (multical21)
@@ -102,13 +116,6 @@ Work in progress:
 Heat meter Kamstrup Multical 302 (multical302)
 Electricity meter Kamstrup Omnipower (omnipower)
 Heat cost allocator Qundis Q caloric (qcaloric)
-```
-
-No meter quadruplets means listen for telegram traffic and print any id heard,
-but you have to specify if you want to listen using radio mode C1 or T1. E.g.
-
-```
-wmbusmeters --t1 /dev/ttyUSB0
 ```
 
 You can listen to multiple meters as long as they all require the same radio mode C1 or T1.
@@ -128,17 +135,17 @@ Example output:
 
 (Here the multical21 itself, is configured to send target volume, therefore the max flow is 0.000 m3/h.)
 
-Example robot json output:
+Example format json output:
 
-`wmbusmeters --robot=json auto MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF MyHeater multical302 22222222 00112233445566778899AABBCCDDEEFF`
+`wmbusmeters --format=json auto MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF MyHeater multical302 22222222 00112233445566778899AABBCCDDEEFF`
 
 `{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"max_flow_m3h":0.000,"flow_temperature":8,"external_temperature":23,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z"}`
 
 `{"media":"heat","meter":"multical302","name":"MyHeater","id":"22222222","total_kwh":0.000,"total_volume_m3":0.000,"current_kw":"0.000","timestamp":"2018-02-08T09:07:22Z"}`
 
-Example robot fields output:
+Example format fields output:
 
-`wmbusmeters --robot=fields auto GreenhouseWater multical21 33333333 ""`
+`wmbusmeters --format=fields auto GreenhouseWater multical21 33333333 ""`
 
 `GreenhouseTapWater;33333333;9999.099;77.712;0.000;11;31;;2018-03-05 12:10.24`
 
@@ -158,7 +165,7 @@ You can use `--debug` to get both verbose output and the actual data bytes sent 
 If the meter does not use encryption of its meter data, then enter an empty key on the command line.
 (you must enter "")
 
-`wmbusmeters --robot --meterfiles auto MyTapWater multical21 12345678 ""`
+`wmbusmeters --format=json --meterfiles auto MyTapWater multical21 12345678 ""`
 
 If you have a Multical21 meter and you have received a KEM file and its password,
 from your water municipality, then you can use the XMLExtract.java utility to get
@@ -194,19 +201,19 @@ Binary generated: `./wmbusmeters_0.8_armhf.deb`
 
 # System configuration
 
-Add yourself to the dialout group to get access to the newly plugged in im871A USB stick.
-Or even better, add this udev rule:
+`make install` installs `/usr/bin/wmbusmeters`, `/usr/sbin/wmbusmetersd`, `wmbusmeters.service`
+and `99-wmbus-usb-serial.rules`.
 
-Create the file: `/etc/udev/rules.d/99-usb-serial.rules` with the content
-```
-SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="im871a",MODE="0660", GROUP="yourowngroup"
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", SYMLINK+="amb8465",MODE="0660", GROUP="yourowngroup"
-```
+This means that when a im871a/amb8465 dongle is inserted, then the appropriate /dev/im871a or
+/dev/amb8465 link is created. Also the wmbusmeters daemon will be automatically
+started/stopped whenever the im871a/amb8465 dongle is inserted/removed,
+and the daemon starts when the computer boots, if the dongle is already inserted.
 
-When you insert the wmbus USB dongle, a properly named symlink will be
-created: either `/dev/im871a` or `/dev/amb8465`. These symlinks are
-necessary if you want to pass "auto" to wmbusmeters instead of the
-exact serial port /dev/ttyUSBx.
+If you do not want the daemon to start automatically, simply edit
+/dev/udev/rules.d/99-wmbus-usb-serial.rules and remove `,TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"`
+from each line.
+
+You can also start/stop the daemon with `sudo systemctl start wmbusmeters`
 
 # Source code
 

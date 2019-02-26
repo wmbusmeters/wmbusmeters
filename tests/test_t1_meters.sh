@@ -7,7 +7,7 @@ mkdir -p testoutput
 TEST=testoutput
 
 cat simulations/simulation_t1.txt | grep '^{' > $TEST/test_expected.txt
-$PROG --robot=json simulations/simulation_t1.txt \
+$PROG --format=json simulations/simulation_t1.txt \
       MyWarmWater supercom587 12345678 "" \
       MyColdWater supercom587 11111111 "" \
       MoreWater   iperl       12345699 "" \

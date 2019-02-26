@@ -49,6 +49,17 @@ echo binaries: installed $ROOT/usr/bin/wmbusmeters and $ROOT/usr/sbin/wmbusmeter
 
 ####################################################################
 ##
+## Intall wmbusmeters manual page
+##
+
+rm -f $ROOT/usr/share/man/man1/wmbusmeters.1.gz
+mkdir -p $ROOT/usr/share/man/man1
+gzip -c wmbusmeters.1 > $ROOT/usr/share/man/man1/wmbusmeters.1.gz
+
+echo man page: installed $ROOT/usr/share/man/man1/wmbusmeters.1.gz
+
+####################################################################
+##
 ## Create wmbusmeters user
 ##
 
@@ -126,8 +137,8 @@ then
 loglevel=normal
 device=auto
 logtelegrams=false
-robot=json
-meterfilesdir=/var/log/wmbusmeters/meter_readings
+format=json
+meterfiles=/var/log/wmbusmeters/meter_readings
 meterfilestype=overwrite
 logfile=/var/log/wmbusmeters/wmbusmeters.log
 EOF

@@ -56,7 +56,7 @@ struct Configuration {
     bool logtelegrams {};
     bool meterfiles {};
     std::string meterfiles_dir;
-    MeterFileType meterfiles_type {};
+    MeterFileType meterfiles_action {};
     bool use_logfile {};
     std::string logfile;
     bool json {};

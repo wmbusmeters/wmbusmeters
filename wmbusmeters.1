@@ -1,0 +1,133 @@
+.TH BEAK 1
+.SH NAME
+wmbusmeters \- read the wireless mbus protocol to acquire and relay utility meter readings.
+
+.SH SYNOPSIS
+.B wmbusmeters [options] <device> (<meter_name> <meter_type> <meter_id> meter_key>)*
+
+.B wmbusmetersd <pid_file>
+
+.SH DESCRIPTION
+
+Wmbusmeters acquires wmbus telegrams, parses them and relays them to some other software for further processing.
+It can for example listen to radio traffic using dedicated wmbus dongles like (im871a/amb8465) or
+a generic software defined radio dongle (rtl_sdr).
+
+After the received telegram has been decrypted and parsed, it is relayed using a shell command, or stored in a log file.
+The shell commands can for example relay the telegram using MQTT (eg mqtt_publish) sent to a REST API (eg curl)
+or store it in a database (eg psql).
+
+.SH OPTIONS
+[\fB\--c1\fR] listen to C1 messages when no meters are supplied
+
+[\fB\--debug\fR] for a lot of information
+
+[\fB\--exitafter=\fR<time>] exit program after time, eg 20h, 10m 5s
+
+[\fB\--format=\fR(hr|json|fields)] for human readable, json or semicolon separated fields
+
+[\fB\--logfile=\fR<dir>] use this file instead of stdout
+
+[\fB\--logtelegrams\fR] log the contents of the telegrams for easy replay
+
+[\fB\--meterfiles=\fR<dir>] store meter readings in dir
+
+[\fB\--meterfilesaction=\fR(overwrite|append)] overwrite or append to the meter readings file
+
+[\fB\--oneshot\fR] wait for an update from each meter, then quit
+
+[\fB\--separator=\fR<c>] change field separator to c
+
+[\fB\--shell=\fR<cmdline>] invokes cmdline with env variables containing the latest reading
+
+[\fB\--shellenvs\fR] list the env variables available for the meter
+
+[\fB\--t1\fR] listen to T1 messages when no meters are supplied
+
+[\fB\--useconfig=\fR<dir>] load config files from dir/etc
+
+[\fB\--verbose\fR] for more information
+
+.SH DEVICES
+.TP
+[\fB/dev/ttyUSB0\fR] to which an im871a or amb8456 dongle is attached
+
+.TP
+[\fBauto\fR] look for /dev/im871a or /dev/amb8465
+
+.TP
+[\fBrtlwmbus:<freq>\fR] use software defined radio rtl_sdr|rtl_wmbus to received wmbus telegrams
+
+.TP
+[\fBsimulation.txt\fR] read telegrams from file to replay telegram feed (use --logtelegrams to acquire feed for replay)
+
+.SH METER QUADRUPLES
+.TP
+[\fBmeter_name\fR] a mnemonic for your utility meter
+.TP
+[\fBmeter_type\fR] multical21/flowiq3100/supercom587/iperl/multical302/omnipower/qcaloric
+.TP
+[\fBmeter_id\fR] an 8 digit number, usually printed on the meter
+.TP
+[\fBmeter_key\fR] a unique key for the meter, if meter telegrams are not encrypted, you must supply an empty key: ""
+
+.SH EXAMPLES
+.TP
+
+Listen to T1 traffic using a wmbus dongle attached to ttyUSB0.
+
+% wmbusmeters --t1 /dev/ttyUSB0
+
+.TP
+Listen to C1 traffic and assume that a wmbus dongle is either /dev/im871a or /dev/amb8465.
+
+% wmbusmeters --c1 auto
+
+.TP
+Listen to both T1 and C1 traffic using rtl_sdr|rtl_wmbus and the standard frequency 868.95M, which
+might need tweaking depending on the rtl_sdr dongle you are using.
+
+% wmbusmeters rtlwmbus:868.95M
+
+.TP
+Execute using config file /home/me/etc/wmbusmeters.conf and meter config files in /home/me/etc/wmbusmeters.d
+
+% wmbusmeters --useconfig=/home/me
+
+.TP
+Start a daemon using config file /etc/wmbusmeters.conf and meter config files in /etc/wmbusmeters.d
+
+% wmbusmetersd --useconfig=/
+
+.TP
+An example wmbusmeters.conf:
+
+.nf
+loglevel=normal
+device=auto
+logtelegrams=false
+meterfiles=/var/log/wmbusmeters/meter_readings
+logfile=/var/log/wmbusmeters/wmbusmeters.log
+shell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters -m "$METER_JSON"
+.fi
+
+.TP
+An example wmbusmeters.d file:
+
+.nf
+name=MyTapWater
+type=multical21
+id=12345678
+key=001122334455667788AABBCCDDEEFF
+
+.SH AUTHOR
+Written by Fredrik Öhrström.
+
+.SH COPYRIGHT
+Copyright \(co 2017-2019 Fredrik Öhrström.
+.br
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+.br
+This is free software: you are free to change and redistribute it.
+.br
+There is NO WARRANTY, to the extent permitted by law.
