@@ -47,6 +47,7 @@ struct Configuration {
     bool daemon {};
     std::string pid_file;
     bool useconfig {};
+    std::string config_root;
     bool reload {};
     bool need_help {};
     bool silence {};

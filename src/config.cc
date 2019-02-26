@@ -187,9 +187,14 @@ unique_ptr<Configuration> loadConfiguration(string root)
 {
     Configuration *c = new Configuration;
 
+    // JSon is default when configuring from config files.
+    c->json = true;
+
     vector<char> global_conf;
-    loadFile(root+"/etc/wmbusmeters.conf", &global_conf);
+    bool ok = loadFile(root+"/etc/wmbusmeters.conf", &global_conf);
     global_conf.push_back('\n');
+
+    if (!ok) exit(1);
 
     auto i = global_conf.begin();
 

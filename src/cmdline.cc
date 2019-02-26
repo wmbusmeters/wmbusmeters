@@ -84,12 +84,29 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strcmp(argv[i], "--useconfig")) {
-            c->useconfig = true;
+        if (!strncmp(argv[i], "--useconfig", 11)) {
+            if (strlen(argv[i]) == 11)
+            {
+                c->useconfig = true;
+                c->config_root = "";
+                return unique_ptr<Configuration>(c);
+            }
+            else if (strlen(argv[i]) > 12 && argv[i][11] == '=')
+            {
+                size_t len = strlen(argv[i]) - 12;
+                c->useconfig = true;
+                c->config_root = string(argv[i]+12, len);
+                return unique_ptr<Configuration>(c);
+            }
+            else
+            {
+                error("You must supply a directory to --useconfig=dir\n");
+            }
+            i++;
             if (i > 1 || argc > 2) {
                 error("Usage error: --useconfig implies no other arguments on the command line.\n");
             }
-            return unique_ptr<Configuration>(c);
+            continue;
         }
         if (!strcmp(argv[i], "--reload")) {
             c->reload = true;

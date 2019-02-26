@@ -2,7 +2,7 @@
 The program receives and decodes C1 or T1 telegrams
 (using the wireless mbus protocol) to acquire
 utility meter readings. The readings can then be published using
-MQTT, inserted into a database or stored in a log file.
+MQTT, curled to a REST api, inserted into a database or stored in a log file.
 
 The program runs on GNU/Linux (standard x86) and Raspberry Pi (arm).
 
@@ -15,8 +15,56 @@ The program runs on GNU/Linux (standard x86) and Raspberry Pi (arm).
 |Linux G++| [![Build Status](https://scan.coverity.com/projects/14774/badge.svg)](https://scan.coverity.com/projects/weetmuts-wmbusmeters) |
 
 
+# Run as a daemon
+
+Remove the wmbus dongle (im871a or amb8465) from your computer.
+
+`sudo make install` will install wmbusmeters as a daemon that starts
+automatically when an appropriate wmbus usb dongle is inserted in the computer.
+
+Check the config file /etc/wmbusmeters.conf:
 ```
-wmbusmeters version: 0.8
+loglevel=normal
+device=auto
+logtelegrams=false
+meterfilesdir=/var/log/wmbusmeters/meter_readings
+logfile=/var/log/wmbusmeters/wmbusmeters.log
+shell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters -m "$METER_JSON"
+```
+
+Then add a meter file in /etc/wmbusmeters.d/MyTapWater
+```
+name=MyTapWater
+type=multical21
+id=12345678
+key=00112233445566778899AABBCCDDEEFF
+```
+
+Now plugin your wmbus dongle. Wmbusmeters should start automatically,
+check with `tail -f /var/log/syslog` and `tail -f /var/log/wmbusmeters/wmbusmeters.log`
+
+The latest reading of the meter can also be found here: /var/log/wmbusmeters/meter_readings/MyTapWater
+
+# Run using config files
+
+If you cannot install as a daemon, then you can also start
+wmbusmeters in your terminal using the config files in /etc/wmbusmeters.
+```
+wmbusmeters --useconfig
+```
+
+Or you can start wmbusmeters with your own config files:
+```
+wmbusmeters --useconfig=/home/me/.config/wmbusmeters
+```
+
+The files/dir should then be located here:
+`/home/me/.config/wmbusmeters/etc/wmbusmeters.conf` and
+`/home/me/.config/wmbusmeters/etc/wmbusmeters.d`
+
+
+```
+wmbusmeters version: 0.9
 Usage: wmbusmeters {options} (auto | /dev/ttyUSBx)] { [meter_name] [meter_type] [meter_id] [meter_key] }*
 
 Add more meter quadruplets to listen to more meters.
@@ -32,11 +80,16 @@ Add --verbose for detailed debug information.
     --shell=cmd invokes cmd with env variables containing the latest reading.
     --shellenvs list the env variables available for the meter.
     --oneshot wait for an update from each meter, then quit.
+    --useconfig=dir look for configuration file in dir/etc/wmbusmeters.conf and
+          dir/etc/wmbusmeters.d
+    --useconfig defaults to the root /etc
     --exitafter=20h program exits after running for twenty hours,
           or 10m for ten minutes or 5s for five seconds.
 
 Specifying auto as the device will automatically look for usb
 wmbus dongles on /dev/im871a and /dev/amb8465.
+
+You can specify the device rtlwmbus to have wmbusmeters spawn rtl_sdr|rtlwmbus
 
 Supported water meters:
 Kamstrup Multical 21 (multical21)

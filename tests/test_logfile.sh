@@ -6,7 +6,7 @@ rm -f $TEST/thelog2.txt
 rm -rf $TEST/meter_readings2
 mkdir -p $TEST/meter_readings2
 
-WMBUSMETERS_CONFIG_ROOT=tests/config2 $PROG --useconfig
+$PROG --useconfig=tests/config2
 
 ERRORS=false
 

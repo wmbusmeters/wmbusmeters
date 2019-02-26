@@ -1,7 +1,11 @@
 
-Version 0.9.0: 2019-02-24
+Version 0.9.0: 2019-02-26
 
+Reading the meter settings from config files
+in /etc is now supported.
 Running wmbusmeters as daemon is now supported.
+Using rtl_wmbus to receive wmbus messages from
+rtl_sdr is work in progress.
 Updated README
 
 Version 0.8.4: 2019-02-23

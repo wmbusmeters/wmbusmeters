@@ -60,7 +60,10 @@ int main(int argc, char **argv)
         printf("    --meterfiles defaults dir to /tmp.\n");
         printf("    --shell=cmd invokes cmd with env variables containing the latest reading.\n");
         printf("    --shellenvs list the env variables available for the meter.\n");
-        printf("    --oneshot wait for an update from each meter, then quit.\n\n");
+        printf("    --oneshot wait for an update from each meter, then quit.\n");
+        printf("    --useconfig=dir look for configuration file in dir/etc/wmbusmeters.conf and\n");
+        printf("        dir/etc/wmbusmeters.d\n");
+        printf("    --useconfig defaults to the root /etc\n");
         printf("    --exitafter=20h program exits after running for twenty hoursh\n"
                "        or 10m for ten minutes or 5s for five seconds.\n");
         printf("    --useconfig read from /etc/wmbusmeters.conf and /etc/wmbusmeters.d\n");
@@ -70,6 +73,9 @@ int main(int argc, char **argv)
 
         printf("Specifying auto as the device will automatically look for usb\n");
         printf("wmbus dongles on /dev/im871a and /dev/amb8465\n\n");
+
+        printf("You can specify the device rtlwmbus to have wmbusmeters spawn rtl_sdr|rtlwmbus\n\n");
+
         printf("The meter types: multical21,flowiq3100,supercom587,iperl (water meters) are supported.\n"
                "The meter types: multical302 (heat) and omnipower (electricity) qcaloric (heat cost)\n"
                "are work in progress.\n\n");
@@ -81,13 +87,7 @@ int main(int argc, char **argv)
     }
     else
     if (cmdline->useconfig) {
-        // This is primarily used for testing.
-        const char *r = getenv("WMBUSMETERS_CONFIG_ROOT");
-        string root = "";
-        if (r != NULL) {
-            root = r;
-        }
-        startUsingConfigFiles(root, false);
+        startUsingConfigFiles(cmdline->config_root, false);
         exit(0);
     }
     else {

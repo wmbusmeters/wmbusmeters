@@ -6,7 +6,7 @@ mkdir -p $TEST
 
 cat simulations/simulation_c1.txt | grep '^{' > $TEST/test_expected.txt
 
-WMBUSMETERS_CONFIG_ROOT=tests/config1 $PROG --useconfig > $TEST/test_output.txt
+$PROG --useconfig=tests/config1 > $TEST/test_output.txt
 
 if [ "$?" == "0" ]
 then

@@ -563,6 +563,7 @@ bool loadFile(string file, vector<char> *buf)
 
     int fd = open(file.c_str(), O_RDONLY);
     if (fd == -1) {
+        warning("Could not open file %s errno=%d\n", file.c_str(), errno);
         return false;
     }
     while (true) {
