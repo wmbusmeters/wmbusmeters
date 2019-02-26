@@ -16,7 +16,10 @@
 */
 
 #include"wmbus.h"
+#include<grp.h>
 #include<stdarg.h>
+#include<sys/stat.h>
+#include<sys/types.h>
 #include<unistd.h>
 
 const char *LinkModeNames[] = {
@@ -52,12 +55,12 @@ Initializer::Initializer() {
 }
 
 void Telegram::print() {
-    printf("Received telegram from: %02x%02x%02x%02x\n",
+    verbose("Received telegram from: %02x%02x%02x%02x\n",
 	   a_field_address[0], a_field_address[1], a_field_address[2], a_field_address[3]);
-    printf("          manufacturer: (%s) %s\n",
+    verbose("          manufacturer: (%s) %s\n",
            manufacturerFlag(m_field).c_str(),
 	   manufacturer(m_field).c_str());
-    printf("           device type: %s\n",
+    verbose("           device type: %s\n",
 	   deviceType(m_field, a_field_device_type).c_str());
 }
 
@@ -176,6 +179,24 @@ string mediaType(int m_field, int a_field_device_type) {
 bool detectIM871A(string device, SerialCommunicationManager *handler);
 bool detectAMB8465(string device, SerialCommunicationManager *handler);
 
+bool existsButWrongGroup(string device)
+{
+    struct stat sb;
+
+    int ok = stat(device.c_str(), &sb);
+
+    // The file did not exist.
+    if (ok) return false;
+
+    struct group *g = getgrgid(sb.st_gid);
+    if (g && getegid() != g->gr_gid)
+    {
+        // Our group is not the same as the device.
+        return true;
+    }
+    return false;
+}
+
 pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationManager *handler)
 {
     // If auto, then assume that uev has been configured with
@@ -192,11 +213,17 @@ pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationM
         if (detectIM871A("/dev/im871a", handler))
         {
             return { DEVICE_IM871A, "/dev/im871a" };
+        } else if (existsButWrongGroup("/dev/im871a")) {
+            error("You are not in the same group as the device /dev/im871a\n");
         }
+
         if (detectAMB8465("/dev/amb8465", handler))
         {
             return { DEVICE_AMB8465, "/dev/amb8465" };
+        } else if (existsButWrongGroup("/dev/amb8465")) {
+            error("You are not in the same group as the device /dev/amb8465\n");
         }
+
         return { DEVICE_UNKNOWN, "" };
     }
 
@@ -227,6 +254,10 @@ pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationM
     {
         return { DEVICE_IM871A, device };
     }
+    if (existsButWrongGroup(device)) {
+        error("You are not in the same group as the device %s\n", device.c_str());
+    }
+
     return { DEVICE_UNKNOWN, "" };
 }
 
@@ -386,10 +417,10 @@ void Telegram::explainParse(string intro, int from)
 {
     for (auto& p : explanations) {
         if (p.first < from) continue;
-        printf("%s %02x: %s\n", intro.c_str(), p.first, p.second.c_str());
+        debug("%s %02x: %s\n", intro.c_str(), p.first, p.second.c_str());
     }
     string hex = bin2hex(parsed);
-    printf("%s %s\n", intro.c_str(), hex.c_str());
+    debug("%s %s\n", intro.c_str(), hex.c_str());
 }
 
 string cType(int c_field)

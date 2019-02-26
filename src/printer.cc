@@ -20,14 +20,18 @@
 
 using namespace std;
 
-Printer::Printer(bool json, bool fields, char separator, bool meterfiles, string &meterfiles_dir,
+Printer::Printer(bool json, bool fields, char separator,
+                 bool use_meterfiles, string &meterfiles_dir,
+                 bool use_logfile, string &logfile,
                  vector<string> shell_cmdlines, bool overwrite)
 {
     json_ = json;
     fields_ = fields;
     separator_ = separator;
-    meterfiles_ = meterfiles;
+    use_meterfiles_ = use_meterfiles;
     meterfiles_dir_ = meterfiles_dir;
+    use_logfile_ = use_logfile;
+    logfile_ = logfile;
     shell_cmdlines_ = shell_cmdlines;
     overwrite_ = overwrite;
 }
@@ -36,12 +40,20 @@ void Printer::print(Meter *meter)
 {
     string human_readable, fields, json;
     vector<string> envs;
+    bool printed = false;
 
     meter->printMeter(&human_readable, &fields, separator_, &json, &envs);
 
     if (shell_cmdlines_.size() > 0) {
         printShells(meter, envs);
-    } else {
+        printed = true;
+    }
+    if (use_meterfiles_) {
+        printFiles(meter, human_readable, fields, json);
+        printed = true;
+    }
+    if (!printed) {
+        // This will print on stdout or in the logfile.
         printFiles(meter, human_readable, fields, json);
     }
 }
@@ -60,7 +72,7 @@ void Printer::printFiles(Meter *meter, string &human_readable, string &fields, s
 {
     FILE *output = stdout;
 
-    if (meterfiles_) {
+    if (use_meterfiles_) {
         char filename[128];
         memset(filename, 0, sizeof(filename));
         snprintf(filename, 127, "%s/%s", meterfiles_dir_.c_str(), meter->name().c_str());
@@ -68,6 +80,13 @@ void Printer::printFiles(Meter *meter, string &human_readable, string &fields, s
         output = fopen(filename, mode);
         if (!output) {
             warning("Could not open file \"%s\" for writing!\n", filename);
+            return;
+        }
+    } else if (use_logfile_) {
+        output = fopen(logfile_.c_str(), "a");
+        if (!output) {
+            warning("Could not open file \"%s\" for writing!\n", logfile_.c_str());
+            return;
         }
     }
     if (json_) {

@@ -121,7 +121,7 @@ void MeterMultical302::processContent(Telegram *t) {
     if (frame_type == 0x79) {
         /*if (t->content.size() != 17) {
 
-            fprintf(stderr, "(multical302) warning: Unexpected length of frame %zu. Expected 17 bytes! ", t->content.size());
+            warning("(multical302) warning: Unexpected length of frame %zu. Expected 17 bytes! ", t->content.size());
             padWithZeroesTo(&t->content, 17, &t->content);
             warning("\n");
             }*/
@@ -153,7 +153,7 @@ void MeterMultical302::processContent(Telegram *t) {
     else if (frame_type == 0x78)
     {
         /*if (t->content.size() != 26) {
-            fprintf(stderr, "(multical302) warning: Unexpected length of frame %zu. Expected 26 bytes! ", t->content.size());
+            warning("(multical302) warning: Unexpected length of frame %zu. Expected 26 bytes! ", t->content.size());
             padWithZeroesTo(&t->content, 26, &t->content);
             warning("\n");
             }*/

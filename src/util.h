@@ -40,7 +40,7 @@ void strprintf(std::string &s, const char* fmt, ...);
 
 void xorit(uchar *srca, uchar *srcb, uchar *dest, int len);
 
-bool enableLogfile(std::string logfile);
+bool enableLogfile(std::string logfile, bool daemon);
 void enableSyslog();
 void error(const char* fmt, ...);
 void verbose(const char* fmt, ...);

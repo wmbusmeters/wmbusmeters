@@ -178,7 +178,7 @@ void enableSyslog() {
     syslog_enabled_ = true;
 }
 
-bool enableLogfile(string logfile) {
+bool enableLogfile(string logfile, bool daemon) {
     log_file_ = logfile;
     logfile_enabled_ = true;
     FILE *output = fopen(log_file_.c_str(), "a");
@@ -186,12 +186,15 @@ bool enableLogfile(string logfile) {
         char buf[256];
         time_t now = time(NULL);
         strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localtime(&now));
-        int n = fprintf(output, "(wmbusmeters) logging started %s\n", buf);
-        fclose(output);
-        if (n == 0) {
-            logfile_enabled_ = false;
-            return false;
+        int n = 0;
+        if (daemon) {
+            n = fprintf(output, "(wmbusmeters) logging started %s\n", buf);
+            if (n == 0) {
+                logfile_enabled_ = false;
+                return false;
+            }
         }
+        fclose(output);
         return true;
     }
     logfile_enabled_ = false;
@@ -418,7 +421,7 @@ void logTelegram(string intro, vector<uchar> &header, vector<uchar> &content)
         string h = bin2hex(header);
         string cntnt = bin2hex(content);
         time_t diff = time(NULL)-telegrams_start_time_;
-        printf("%s \"telegram=|%s|%s|+%ld\"\n", intro.c_str(), h.c_str(), cntnt.c_str(), diff);
+        notice("%s \"telegram=|%s|%s|+%ld\"\n", intro.c_str(), h.c_str(), cntnt.c_str(), diff);
     }
 }
 

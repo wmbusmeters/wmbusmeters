@@ -21,15 +21,23 @@
 using namespace std;
 
 struct Printer {
-    Printer(bool json, bool fields, char separator, bool meterfiles, string &meterfiles_dir,
-            vector<string> shell_cmdlines, bool overwrite);
+    Printer(bool json,
+            bool fields,
+            char separator,
+            bool meterfiles, string &meterfiles_dir,
+            bool use_logfile, string &logfile,
+            vector<string> shell_cmdlines,
+            bool overwrite);
 
     void print(Meter *meter);
 
     private:
 
-    bool json_, fields_, meterfiles_;
+    bool json_, fields_;
+    bool use_meterfiles_;
     string meterfiles_dir_;
+    bool use_logfile_;
+    string logfile_;
     char separator_;
     vector<string> shell_cmdlines_;
     bool overwrite_;

@@ -122,6 +122,18 @@ Heat cost allocator Qundis Q caloric (qcaloric)
 
 void startUsingCommandline(Configuration *config)
 {
+    if (config->use_logfile) {
+        verbose("(wmbusmeters) using log file %s\n", config->logfile.c_str());
+        bool ok = enableLogfile(config->logfile, config->daemon);
+        if (!ok) {
+            if (config->daemon) {
+                warning("Could not open log file, will use syslog instead.\n");
+            } else {
+                error("Could not open log file.\n");
+            }
+        }
+    }
+
     warningSilenced(config->silence);
     verboseEnabled(config->verbose);
     logTelegramsEnabled(config->logtelegrams);
@@ -216,6 +228,7 @@ void startUsingCommandline(Configuration *config)
 
     auto output = unique_ptr<Printer>(new Printer(config->json, config->fields,
                                                   config->separator, config->meterfiles, config->meterfiles_dir,
+                                                  config->use_logfile, config->logfile,
                                                   config->shells,
                                                   config->meterfiles_action == MeterFileType::Overwrite));
     vector<unique_ptr<Meter>> meters;
@@ -275,7 +288,7 @@ void startUsingCommandline(Configuration *config)
             meters.back()->onUpdate([&](Meter*meter) { oneshotCheck(config, manager.get(), meter, meters); });
         }
     } else {
-        printf("No meters configured. Printing id:s of all telegrams heard!\n\n");
+        notice("No meters configured. Printing id:s of all telegrams heard!\n\n");
 
         wmbus->onTelegram([](Telegram *t){t->print();});
     }
@@ -284,12 +297,13 @@ void startUsingCommandline(Configuration *config)
         wmbus->simulate();
     }
 
-    if (config->daemon || config->use_logfile) {
+    if (config->daemon) {
         notice("(wmbusmeters) waiting for telegrams\n");
     }
+
     manager->waitForStop();
 
-    if (config->daemon || config->use_logfile) {
+    if (config->daemon) {
         notice("(wmbusmeters) shutting down\n");
     }
 }
@@ -370,17 +384,6 @@ void startUsingConfigFiles(string root, bool is_daemon)
 {
     unique_ptr<Configuration> config = loadConfiguration(root);
     config->daemon = is_daemon;
-
-    if (config->use_logfile) {
-        bool ok = enableLogfile(config->logfile);
-        if (!ok) {
-            if (is_daemon) {
-                warning("Could not open log file, will use syslog instead.\n");
-            } else {
-                error("Could not open log file.\n");
-            }
-        }
-    }
 
     startUsingCommandline(config.get());
 }
