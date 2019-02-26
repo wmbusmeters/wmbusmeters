@@ -62,6 +62,7 @@ The files/dir should then be located here:
 `/home/me/.config/wmbusmeters/etc/wmbusmeters.conf` and
 `/home/me/.config/wmbusmeters/etc/wmbusmeters.d`
 
+# Running without config files, good for experimentation and test.
 
 ```
 wmbusmeters version: 0.9
