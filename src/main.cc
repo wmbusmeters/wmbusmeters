@@ -53,7 +53,7 @@ Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type] [meter_id] [me
 
 As <options> you can use:
 
-    --c1 or --t1 listen to C1 or T1 messages when no meters are supplied
+    --c1 or --t1 listen to C1 or T1 messages when no meters are supplied, not needed for rtlwmbus
     --debug for a lot of information
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
@@ -77,10 +77,11 @@ on the device links /dev/im871a and /dev/amb8465.
 "rtlwmbus:868.95M" to have wmbusmeters spawn:
 "rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus"
 (you might have to tweak 868.95M to nearby frequencies depending
-on the rtl-sdr dongle you are using)
+on the rtl-sdr dongle you are using, also when run as a daemon,
+it uses /usr/bin/rtl_sdr and /usr/bin/rtl_wmbus instead.)
 
 "rtlwmbus:<commandline>" to have wmbusmeters spawn
-that commandline instead, the output is expected to be like rtl_wmbus.
+that commandline instead, its output is expected to be like rtl_wmbus.
 
 As meter quadruples you specify:
 <meter_name> a mnemonic for this particular meter
@@ -162,11 +163,20 @@ void startUsingCommandline(Configuration *config)
         break;
     case DEVICE_RTLWMBUS:
     {
-        verbose("(rtlwmbus) found %s\n", type_and_device.second.c_str());
         string command = config->device_extra;
-        if (command == "") {
-            command = "/usr/bin/rtl_sdr -f 868.9M -s 16000000 | /usr/bin/rtl_wmbus";
+        string freq = "868.95M";
+        string prefix = "";
+        if (isFrequency(command)) {
+            freq = command;
+            command = "";
         }
+        if (config->daemon) {
+            prefix = "/usr/bin/";
+        }
+        if (command == "") {
+            command = prefix+"rtl_sdr -f "+freq+" -s 16000000 - 2>/dev/null | "+prefix+"rtl_wmbus";
+        }
+        verbose("(rtlwmbus) using command: %s\n", command.c_str());
         wmbus = openRTLWMBUS(command, manager.get());
         break;
     }
@@ -188,13 +198,15 @@ void startUsingCommandline(Configuration *config)
                 config->link_mode = toMeterLinkMode(m.type);
                 config->link_mode_set = true;
             } else {
-                if (config->link_mode != toMeterLinkMode(m.type)) {
+                if (config->link_mode != toMeterLinkMode(m.type) && type_and_device.first != DEVICE_RTLWMBUS) {
+                    // sdr_rtl|rtl_wmbus can listen to both C1 and T1 at the same time.
                     error("A different link mode has been set already.\n");
                 }
             }
         }
     }
-    if (!config->link_mode_set) {
+    if (!config->link_mode_set && type_and_device.first != DEVICE_RTLWMBUS) {
+        // sdr_rtl|rtl_wmbus can listen to both C1 and T1 at the same time.
         error("If you specify no meters, you have to specify the link mode: --c1 or --t1\n");
     }
     wmbus->setLinkMode(config->link_mode);

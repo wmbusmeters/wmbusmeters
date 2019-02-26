@@ -317,6 +317,17 @@ bool isValidKey(string& key)
     return hex2bin(key, &tmp);
 }
 
+bool isFrequency(std::string& fq)
+{
+    int len = fq.length();
+    if (len == 0) return false;
+    if (fq[len-1] == 'M') len--;
+    for (int i=0; i<len; ++i) {
+        if (!isdigit(fq[i]) && fq[i] != '.') return false;
+    }
+    return true;
+}
+
 void incrementIV(uchar *iv, size_t len) {
     uchar *p = iv+len-1;
     while (p >= iv) {

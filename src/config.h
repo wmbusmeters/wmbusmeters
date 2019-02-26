@@ -67,7 +67,7 @@ struct Configuration {
     bool oneshot {};
     int  exitafter {}; // Seconds to exit.
     string device; // auto, /dev/ttyUSB0, simulation.txt, rtlwmbus
-    string device_extra; // The command line that will start rtlwmbus
+    string device_extra; // The frequency or the command line that will start rtlwmbus
     string telegram_reader;
     LinkMode link_mode {};
     bool link_mode_set {};

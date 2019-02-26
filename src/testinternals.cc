@@ -154,7 +154,7 @@ void test_date(map<string,pair<int,DVEntry>> &values, const char *key, string da
     string date_got = asctime(localtime(&value));
     date_got.pop_back(); // Remove newline
     if (!b || date_got != date_expected) {
-        fprintf(stderr, "Error in dvparser testnr %d:\ngot (%zu) >%s< but expected >%s< for key %s\n\n", testnr, value, date_got.c_str(), date_expected.c_str(), key);
+        fprintf(stderr, "Error in dvparser testnr %d:\ngot (%ld) >%s< but expected >%s< for key %s\n\n", testnr, value, date_got.c_str(), date_expected.c_str(), key);
     }
 }
 

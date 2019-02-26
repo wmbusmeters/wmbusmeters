@@ -63,6 +63,7 @@ void logTelegram(std::string intro, std::vector<uchar> &header, std::vector<ucha
 
 bool isValidId(std::string& id);
 bool isValidKey(std::string& key);
+bool isFrequency(std::string& fq);
 
 void incrementIV(uchar *iv, size_t len);
 
