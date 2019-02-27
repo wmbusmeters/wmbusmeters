@@ -6,9 +6,18 @@ rm -f $TEST/thelog2.txt
 rm -rf $TEST/meter_readings2
 mkdir -p $TEST/meter_readings2
 
-$PROG --useconfig=tests/config2
-
 ERRORS=false
+
+RES=$($PROG --useconfig=tests/config2 2>&1)
+
+if [ ! "$RES" = "" ]
+then
+    ERRORS=true
+    echo Expected no output on stdout and stderr
+    echo but got------------------
+    echo $RES
+    echo ---------------------
+fi
 
 cat simulations/simulation_t1.txt | grep '^{' | grep 12345699 | tail -n 1 > $TEST/test_expected.txt
 cat $TEST/meter_readings2/MoreWater | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
@@ -34,7 +43,7 @@ then
     ERRORS=true
 fi
 
-RES=$(cat $TEST/thelog2.txt | grep -v "logging started" | grep -v "waiting for telegrams" | grep -v "shutting down")
+RES=$(cat $TEST/thelog2.txt)
 
 if [ ! "$RES" = "" ]
 then

@@ -18,58 +18,58 @@ The shell commands can for example relay the telegram using MQTT (eg mqtt_publis
 or store it in a database (eg psql).
 
 .SH OPTIONS
-[\fB\--c1\fR] listen to C1 messages when no meters are supplied
+\fB\--c1\fR listen to C1 messages when no meters are supplied
 
-[\fB\--debug\fR] for a lot of information
+\fB\--debug\fR for a lot of information
 
-[\fB\--exitafter=\fR<time>] exit program after time, eg 20h, 10m 5s
+\fB\--exitafter=\fR<time> exit program after time, eg 20h, 10m 5s
 
-[\fB\--format=\fR(hr|json|fields)] for human readable, json or semicolon separated fields
+\fB\--format=\fR(hr|json|fields) for human readable, json or semicolon separated fields
 
-[\fB\--logfile=\fR<dir>] use this file instead of stdout
+\fB\--logfile=\fR<dir> use this file instead of stdout
 
-[\fB\--logtelegrams\fR] log the contents of the telegrams for easy replay
+\fB\--logtelegrams\fR log the contents of the telegrams for easy replay
 
-[\fB\--meterfiles=\fR<dir>] store meter readings in dir
+\fB\--meterfiles=\fR<dir> store meter readings in dir
 
-[\fB\--meterfilesaction=\fR(overwrite|append)] overwrite or append to the meter readings file
+\fB\--meterfilesaction=\fR(overwrite|append) overwrite or append to the meter readings file
 
-[\fB\--oneshot\fR] wait for an update from each meter, then quit
+\fB\--oneshot\fR wait for an update from each meter, then quit
 
-[\fB\--separator=\fR<c>] change field separator to c
+\fB\--separator=\fR<c> change field separator to c
 
-[\fB\--shell=\fR<cmdline>] invokes cmdline with env variables containing the latest reading
+\fB\--shell=\fR<cmdline> invokes cmdline with env variables containing the latest reading
 
-[\fB\--shellenvs\fR] list the env variables available for the meter
+\fB\--shellenvs\fR list the env variables available for the meter
 
-[\fB\--t1\fR] listen to T1 messages when no meters are supplied
+\fB\--t1\fR listen to T1 messages when no meters are supplied
 
-[\fB\--useconfig=\fR<dir>] load config files from dir/etc
+\fB\--useconfig=\fR<dir> load config files from dir/etc
 
-[\fB\--verbose\fR] for more information
+\fB\--verbose\fR for more information
 
 .SH DEVICES
 .TP
-[\fB/dev/ttyUSB0\fR] to which an im871a or amb8456 dongle is attached
+\fB/dev/ttyUSB0\fR to which an im871a or amb8456 dongle is attached
 
 .TP
-[\fBauto\fR] look for /dev/im871a or /dev/amb8465
+\fBauto\fR look for /dev/im871a or /dev/amb8465
 
 .TP
-[\fBrtlwmbus:<freq>\fR] use software defined radio rtl_sdr|rtl_wmbus to received wmbus telegrams
+\fBrtlwmbus:<freq>\fR use software defined radio rtl_sdr|rtl_wmbus to receive wmbus telegrams
 
 .TP
-[\fBsimulation.txt\fR] read telegrams from file to replay telegram feed (use --logtelegrams to acquire feed for replay)
+\fBsimulation_xxx.txt\fR read telegrams from file to replay telegram feed (use --logtelegrams to acquire feed for replay)
 
 .SH METER QUADRUPLES
 .TP
-[\fBmeter_name\fR] a mnemonic for your utility meter
+\fBmeter_name\fR a mnemonic for your utility meter
 .TP
-[\fBmeter_type\fR] multical21/flowiq3100/supercom587/iperl/multical302/omnipower/qcaloric
+\fBmeter_type\fR multical21/flowiq3100/supercom587/iperl/multical302/omnipower/qcaloric
 .TP
-[\fBmeter_id\fR] an 8 digit number, usually printed on the meter
+\fBmeter_id\fR an 8 digit number, usually printed on the meter
 .TP
-[\fBmeter_key\fR] a unique key for the meter, if meter telegrams are not encrypted, you must supply an empty key: ""
+\fBmeter_key\fR a unique key for the meter, if meter telegrams are not encrypted, you must supply an empty key: ""
 
 .SH EXAMPLES
 .TP
@@ -97,7 +97,7 @@ Execute using config file /home/me/etc/wmbusmeters.conf and meter config files i
 .TP
 Start a daemon using config file /etc/wmbusmeters.conf and meter config files in /etc/wmbusmeters.d
 
-% wmbusmetersd --useconfig=/
+% wmbusmetersd --useconfig=/ /var/run/wmbusmeters/wmbusmeters.pid
 
 .TP
 An example wmbusmeters.conf:

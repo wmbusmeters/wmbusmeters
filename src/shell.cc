@@ -88,7 +88,7 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
     delete[] p;
 }
 
-bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *out, int *err, int *pid)
+bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *out, int *pid)
 {
     int link[2];
     vector<const char*> argv(args.size()+2);

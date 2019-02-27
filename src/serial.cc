@@ -238,7 +238,7 @@ SerialDeviceCommand::~SerialDeviceCommand()
 
 bool SerialDeviceCommand::open(bool fail_if_not_ok)
 {
-    bool ok = invokeBackgroundShell("/bin/sh", args_, envs_, &fd_, 0, &pid_);
+    bool ok = invokeBackgroundShell("/bin/sh", args_, envs_, &fd_, &pid_);
     if (!ok) return false;
     manager_->opened(this);
     verbose("(serialcmd) opened %s\n", command_.c_str());
@@ -289,13 +289,16 @@ int SerialDeviceCommand::receive(vector<uchar> *data)
     pthread_mutex_lock(&read_lock_);
 
     data->clear();
+    int total = 0;
     int available = 0;
     int num_read = 0;
 
     ioctl(fd_, FIONREAD, &available);
     if (!available) goto end;
 
-    data->resize(available);
+    again:
+    total += available;
+    data->resize(total);
 
     while (true) {
         int nr = read(fd_, &((*data)[num_read]), available-num_read);
@@ -311,6 +314,10 @@ int SerialDeviceCommand::receive(vector<uchar> *data)
         string msg = bin2hex(*data);
         debug("(serialcmd) received \"%s\"\n", msg.c_str());
     }
+
+    ioctl(fd_, FIONREAD, &available);
+    if (available) goto again;
+
     end:
     pthread_mutex_unlock(&read_lock_);
     return num_read;
