@@ -78,32 +78,6 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     }
 
     return;
-
-}
-
-bool parseUseConfig(string arg, Configuration *config)
-{
-    if (arg.substr(0, 2) == "--") {
-    }
-    if (arg.substr(0,11) == "--useconfig") {
-        if (strlen(argv[i]) == 11)
-            {
-                c->useconfig = true;
-                c->config_root = "";
-                return unique_ptr<Configuration>(c);
-            }
-            else if (strlen(argv[i]) > 12 && argv[i][11] == '=')
-            {
-                size_t len = strlen(argv[i]) - 12;
-                c->useconfig = true;
-                c->config_root = string(argv[i]+12, len);
-                return unique_ptr<Configuration>(c);
-            }
-            else
-            {
-                error("You must supply a directory to --useconfig=dir\n");
-            }
-
 }
 
 void handleLoglevel(Configuration *c, string loglevel)

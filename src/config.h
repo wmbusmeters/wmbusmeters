@@ -79,8 +79,4 @@ struct Configuration {
 
 unique_ptr<Configuration> loadConfiguration(string root);
 
-
-bool parseUseConfig(string arg, Configuration *config);
-
-
 #endif
