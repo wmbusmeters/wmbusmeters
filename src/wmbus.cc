@@ -55,12 +55,12 @@ Initializer::Initializer() {
 }
 
 void Telegram::print() {
-    verbose("Received telegram from: %02x%02x%02x%02x\n",
+    notice("Received telegram from: %02x%02x%02x%02x\n",
 	   a_field_address[0], a_field_address[1], a_field_address[2], a_field_address[3]);
-    verbose("          manufacturer: (%s) %s\n",
+    notice("          manufacturer: (%s) %s\n",
            manufacturerFlag(m_field).c_str(),
 	   manufacturer(m_field).c_str());
-    verbose("           device type: %s\n",
+    notice("           device type: %s\n",
 	   deviceType(m_field, a_field_device_type).c_str());
 }
 
