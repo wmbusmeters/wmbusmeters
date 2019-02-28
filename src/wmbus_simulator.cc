@@ -86,9 +86,6 @@ LinkMode WMBusSimulator::getLinkMode() {
 
 void WMBusSimulator::setLinkMode(LinkMode lm)
 {
-    if (lm != LinkModeC1 && lm != LinkModeT1) {
-        error("LinkMode %d is not implemented\n", (int)lm);
-    }
     link_mode_ = lm;
     verbose("(simulator) set link mode %02x\n", lm);
     verbose("(simulator) set link mode completed\n");

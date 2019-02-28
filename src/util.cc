@@ -379,6 +379,9 @@ bool checkIfSimulationFile(const char *file)
         return false;
     }
     const char *filename = strrchr(file, '/')+1;
+    // strrchr should really return NULL when not found, but
+    // on my Ubuntu it returns 1. Hmmmm.
+    if (filename < file) filename = file;
     if (strncmp(filename, "simulation", 10)) {
         return false;
     }

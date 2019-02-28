@@ -32,7 +32,7 @@
 struct MeterQCaloric : public virtual HeatCostMeter, public virtual MeterCommonImplementation {
     MeterQCaloric(WMBus *bus, string& name, string& id, string& key);
 
-    double totalEnergyConsumption();
+    double currentConsumption();
 
     void printMeter(string *human_readable,
                     string *fields, char separator,
@@ -43,7 +43,7 @@ private:
     void handleTelegram(Telegram *t);
     void processContent(Telegram *t);
 
-    double total_energy_ {};
+    double current_consumption_ {};
 };
 
 MeterQCaloric::MeterQCaloric(WMBus *bus, string& name, string& id, string& key) :
@@ -52,9 +52,9 @@ MeterQCaloric::MeterQCaloric(WMBus *bus, string& name, string& id, string& key) 
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
-double MeterQCaloric::totalEnergyConsumption()
+double MeterQCaloric::currentConsumption()
 {
-    return total_energy_;
+    return current_consumption_;
 }
 
 void MeterQCaloric::handleTelegram(Telegram *t) {
@@ -89,6 +89,7 @@ void MeterQCaloric::handleTelegram(Telegram *t) {
     logTelegram("(qcaloric) log", t->parsed, t->content);
     int content_start = t->parsed.size();
     processContent(t);
+
     if (isDebugEnabled()) {
         t->explainParse("(qcaloric)", content_start);
     }
@@ -99,6 +100,14 @@ void MeterQCaloric::processContent(Telegram *t)
 {
     map<string,pair<int,DVEntry>> values;
     parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
+
+    int offset;
+    string key;
+
+    if (findKey(ValueInformation::HeatCostAllocation, 0, &key, &values)) {
+        extractDVdouble(&values, key, &offset, &current_consumption_);
+        t->addMoreExplanation(offset, " current consumption (%f hca)", current_consumption_);
+    }
 }
 
 unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, string& name, string& id, string& key)
@@ -115,10 +124,10 @@ void MeterQCaloric::printMeter(string *human_readable,
     char buf[65536];
     buf[65535] = 0;
 
-    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f kwh\t%s",
+    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f hca\t%s",
              name().c_str(),
              id().c_str(),
-             totalEnergyConsumption(),
+             currentConsumption(),
              datetimeOfUpdateHumanReadable().c_str());
 
     *human_readable = buf;
@@ -126,7 +135,7 @@ void MeterQCaloric::printMeter(string *human_readable,
     snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%s",
              name().c_str(), separator,
              id().c_str(), separator,
-             totalEnergyConsumption(), separator,
+             currentConsumption(), separator,
              datetimeOfUpdateRobot().c_str());
 
     *fields = buf;
@@ -136,16 +145,16 @@ void MeterQCaloric::printMeter(string *human_readable,
 #define QSE(x,y) "\""#x"\":\""#y"\""
 
     snprintf(buf, sizeof(buf)-1, "{"
-             QS(media,electricity)
-             QS(meter,omnipower)
+             QS(media,heat_cost_allocation)
+             QS(meter,qcaloric)
              QS(name,%s)
              QS(id,%s)
-             Q(total_kwh,%f)
+             Q(current_consumption_hca,%f)
              QSE(timestamp,%s)
              "}",
              name().c_str(),
              id().c_str(),
-             totalEnergyConsumption(),
+             currentConsumption(),
              datetimeOfUpdateRobot().c_str());
 
     *json = buf;
@@ -153,6 +162,6 @@ void MeterQCaloric::printMeter(string *human_readable,
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=qcaloric"));
     envs->push_back(string("METER_ID=")+id());
-    envs->push_back(string("METER_TOTAL_KWH=")+to_string(totalEnergyConsumption()));
+    envs->push_back(string("METER_CURRENT_CONSUMPTION_HCA=")+to_string(currentConsumption()));
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }

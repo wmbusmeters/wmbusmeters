@@ -835,7 +835,7 @@ double vifScale(int vif)
     case 0x6B: return 1.0; // Pressure bar
 
     case 0x6C: warning("(wmbus) warning: do not scale a date type!\n"); return -1.0; // Date type G
-    case 0x6E: warning("(wmbus) warning: do not scale a HCA type!\n"); return -1.0; // Units for H.C.A.
+    case 0x6E: return 1.0; // Units for H.C.A. are never scaled
     case 0x6F: warning("(wmbus) warning: do not scale a reserved type!\n"); return -1.0; // Reserved
 
         // wmbusmeters always returns time in hours

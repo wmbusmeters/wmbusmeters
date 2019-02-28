@@ -27,3 +27,8 @@ telegram=|25442D2C785634121b048D2093E13CBA20|0000790000000000000000000000000000|
 
 telegram=|1E442D2C0771941501027A|B300108504833B08340500|
 {"media":"electricity","meter":"omnipower","name":"MyElectricity","id":"15947107","total_kwh":341.000000,"current_kw":"0.000000","timestamp":"1111-11-11T11:11:11Z"}
+
+# Test QCaloric C1 telegrams
+
+telegram=|314493441234567835087a740000200b6e2701004b6e450100426c5f2ccb086e790000c2086c7f21326cffff046d200b7422|
+{"media":"heat_cost_allocation","meter":"qcaloric","name":"MyElement","id":"78563412","current_consumption_hca":127.000000,"timestamp":"1111-11-11T11:11:11Z"}

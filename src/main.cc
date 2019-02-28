@@ -219,8 +219,9 @@ void startUsingCommandline(Configuration *config)
             }
         }
     }
-    if (!config->link_mode_set && type_and_device.first != DEVICE_RTLWMBUS) {
+    if (!config->link_mode_set && type_and_device.first != DEVICE_RTLWMBUS && type_and_device.first != DEVICE_SIMULATOR) {
         // sdr_rtl|rtl_wmbus can listen to both C1 and T1 at the same time.
+        // also using a simulator file, then you listen to all of the traffic in that file.
         error("If you specify no meters, you have to specify the link mode: --c1 or --t1\n");
     }
     wmbus->setLinkMode(config->link_mode);

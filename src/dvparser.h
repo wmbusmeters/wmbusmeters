@@ -32,6 +32,7 @@
     X(VolumeFlow,0x38,0x3F) \
     X(FlowTemperature,0x58,0x5B) \
     X(ExternalTemperature,0x64,0x67) \
+    X(HeatCostAllocation,0x6E,0x6E) \
     X(DateTime,0x6C,0x6D)          \
 
 enum class ValueInformation

@@ -117,6 +117,7 @@ LinkMode toMeterLinkMode(string& type)
     if (type == "omnipower") return LinkModeC1;
     if (type == "supercom587") return LinkModeT1;
     if (type == "iperl") return LinkModeT1;
+    if (type == "qcaloric") return LinkModeC1;
 
     return UNKNOWN_LINKMODE;
 }

@@ -100,7 +100,7 @@ struct ElectricityMeter : public virtual Meter {
 };
 
 struct HeatCostMeter : public virtual Meter {
-    virtual double totalEnergyConsumption() = 0; // kwh
+    virtual double currentConsumption() = 0; // ?
 };
 
 struct GenericMeter : public virtual Meter {
