@@ -1,6 +1,6 @@
 .TH BEAK 1
 .SH NAME
-wmbusmeters \- read the wireless mbus protocol to acquire and relay utility meter readings.
+wmbusmeters \- listen to wireless mbus radio traffic and relay the decoded telegrams to other software
 
 .SH SYNOPSIS
 .B wmbusmeters [options] <device> (<meter_name> <meter_type> <meter_id> meter_key>)*
@@ -9,13 +9,16 @@ wmbusmeters \- read the wireless mbus protocol to acquire and relay utility mete
 
 .SH DESCRIPTION
 
-Wmbusmeters acquires wmbus telegrams, parses them and relays them to some other software for further processing.
-It can for example listen to radio traffic using dedicated wmbus dongles like (im871a/amb8465) or
-a generic software defined radio dongle (rtl_sdr).
+Wmbusmeters acquires wmbus telegrams, decodes them and relays them to
+some other software for further processing.  It can for example listen
+to radio traffic using dedicated wmbus dongles like (im871a/amb8465)
+or a generic software defined radio dongle (rtl_sdr).
 
-After the received telegram has been decrypted and parsed, it is relayed using a shell command, or stored in a log file.
-The shell commands can for example relay the telegram using MQTT (eg mqtt_publish) sent to a REST API (eg curl)
-or store it in a database (eg psql).
+After the received telegram has been decrypted and parsed, it can then
+be relayed using a shell command, or stored in a log file.  The shell
+commands can for example relay the telegram using MQTT (eg
+mqtt_publish) sent to a REST API (eg curl) or store it in a database
+(eg psql).
 
 .SH OPTIONS
 \fB\--c1\fR listen to C1 messages when no meters are supplied

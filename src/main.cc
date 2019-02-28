@@ -139,6 +139,8 @@ void startUsingCommandline(Configuration *config)
     logTelegramsEnabled(config->logtelegrams);
     debugEnabled(config->debug);
 
+    debug("(wmbusmeters) version: " WMBUSMETERS_VERSION "\n");
+
     if (config->exitafter != 0) {
         verbose("(config) wmbusmeters will exit after %d seconds\n", config->exitafter);
     }

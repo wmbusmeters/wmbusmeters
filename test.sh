@@ -14,3 +14,5 @@ tests/test_shell.sh $PROG
 tests/test_meterfiles.sh $PROG
 tests/test_config1.sh $PROG
 tests/test_logfile.sh $PROG
+
+tests/test_listen_to_all.sh $PROG
