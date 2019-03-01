@@ -252,10 +252,11 @@ bool parseDV(Telegram *t,
 
         // Skip the length byte in the variable length data.
         if (variable_length) {
-            data++;
+            t->addExplanation(data, 1, "varlen=%d", datalen);
         }
         string value = bin2hex(data, datalen);
-        (*values)[key] = { start_parse_here+data-data_start, DVEntry(vif&0x7f, storage_nr, tariff, subunit, value) };
+        int offset = start_parse_here+data-data_start;
+        (*values)[key] = { offset, DVEntry(vif&0x7f, storage_nr, tariff, subunit, value) };
         if (value.length() > 0) {
             assert(data != databytes.end());
             assert(data+datalen <= databytes.end());
@@ -289,6 +290,11 @@ void valueInfoRange(ValueInformation v, int *low, int *hi)
 LIST_OF_VALUETYPES
 #undef X
     }
+}
+
+bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string key)
+{
+    return values->count(key) > 0;
 }
 
 bool findKey(ValueInformation vif, int storagenr, std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values)
@@ -474,17 +480,63 @@ bool extractDVstring(map<string,pair<int,DVEntry>> *values,
     return true;
 }
 
+bool extractDate(uchar hi, uchar lo, struct tm *date)
+{
+    // |     hi    |    lo     |
+    // | YYYY MMMM | YYY DDDDD |
+
+    int day   = (0x1f) & lo;
+    int year1 = ((0xe0) & lo) >> 5;
+    int month = (0x0f) & hi;
+    int year2 = ((0xf0) & hi) >> 1;
+    int year  = (2000 + year1 + year2);
+
+    date->tm_mday = day;         /* Day of the month (1-31) */
+    date->tm_mon = month - 1;    /* Month (0-11) */
+    date->tm_year = year - 1900; /* Year - 1900 */
+
+    if (month > 12) return false;
+    return true;
+}
+
+bool extractTime(uchar hi, uchar lo, struct tm *date)
+{
+    // |    hi    |    lo    |
+    // | ...hhhhh | ..mmmmmm |
+    int min  = (0x3f) & lo;
+    int hour = (0x1f) & hi;
+
+    date->tm_min = min;
+    date->tm_hour = hour;
+
+    if (min > 59) return false;
+    if (hour > 23) return false;
+    return true;
+}
+
 bool extractDVdate(map<string,pair<int,DVEntry>> *values,
                    string key,
                    int *offset,
-                   time_t *value)
+                   struct tm *value)
 {
-    if ((*values).count(key) == 0) {
+    if ((*values).count(key) == 0)
+    {
         verbose("(dvparser) warning: cannot extract date from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
-        *value = 0;
+        memset(value, 0, sizeof(struct tm));
         return false;
     }
+    // This will install the correct timezone
+    // offset tm_gmtoff into the timestamp.
+    time_t t = time(NULL);
+    localtime_r(&t, value);
+    value->tm_hour = 0;
+    value->tm_min = 0;
+    value->tm_sec = 0;
+    value->tm_mday = 0;
+    value->tm_mon = 0;
+    value->tm_year = 0;
+
     uchar dif, vif;
     extractDV(key, &dif, &vif);
 
@@ -493,20 +545,14 @@ bool extractDVdate(map<string,pair<int,DVEntry>> *values,
     vector<uchar> v;
     hex2bin(p.second.value, &v);
 
-    *value = v[1]<<8 | v[0];
+    bool ok = true;
+    if (v.size() == 2) {
+        ok &= extractDate(v[1], v[0], value);
+    }
+    else if (v.size() == 4) {
+        ok &= extractDate(v[3], v[2], value);
+        ok &= extractTime(v[1], v[0], value);
+    }
 
-    int day = (0x1f) & v[0];
-    int year1 = ((0xe0) & v[0]) >> 5;
-    int month = (0x0f) & v[1];
-    int year2 = ((0xf0) & v[1]) >> 1;
-    int year = (2000 + year1 + year2);
-
-    struct tm timestamp;
-    memset(&timestamp, 0, sizeof(timestamp));
-    timestamp.tm_mday = day;   /* Day of the month (1-31) */
-    timestamp.tm_mon = month-1;    /* Month (0-11) */
-    timestamp.tm_year = year -1900;   /* Year - 1900 */
-
-    *value = mktime(&timestamp);
-    return true;
+    return ok;
 }

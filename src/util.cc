@@ -661,3 +661,17 @@ void trimWhitespace(string *s)
     s->erase(0, s->find_first_not_of(ws));
     s->erase(s->find_last_not_of(ws) + 1);
 }
+
+string strdate(struct tm *date)
+{
+    char buf[256];
+    strftime(buf, sizeof(buf), "%Y-%m-%d", date);
+    return string(buf);
+}
+
+string strdatetime(struct tm *datetime)
+{
+    char buf[256];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M", datetime);
+    return string(buf);
+}

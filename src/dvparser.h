@@ -33,7 +33,8 @@
     X(FlowTemperature,0x58,0x5B) \
     X(ExternalTemperature,0x64,0x67) \
     X(HeatCostAllocation,0x6E,0x6E) \
-    X(DateTime,0x6C,0x6D)          \
+    X(Date,0x6C,0x6C) \
+    X(DateTime,0x6D,0x6D) \
 
 enum class ValueInformation
 {
@@ -76,6 +77,8 @@ bool parseDV(Telegram *t,
 bool findKey(ValueInformation vi, int storagenr, std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
 #define ANY_STORAGENR -1
 
+bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string key);
+
 bool extractDVuint16(std::map<std::string,std::pair<int,DVEntry>> *values,
                      std::string key,
                      int *offset,
@@ -95,7 +98,7 @@ bool extractDVstring(std::map<std::string,std::pair<int,DVEntry>> *values,
 bool extractDVdate(std::map<std::string,std::pair<int,DVEntry>> *values,
                    std::string key,
                    int *offset,
-                   time_t *value);
+                   struct tm *value);
 
 void extractDV(string &s, uchar *dif, uchar *vif);
 

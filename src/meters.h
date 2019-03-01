@@ -100,7 +100,9 @@ struct ElectricityMeter : public virtual Meter {
 };
 
 struct HeatCostMeter : public virtual Meter {
-    virtual double currentConsumption() = 0; // ?
+    virtual double currentConsumption() = 0;
+    virtual string setDate() = 0;
+    virtual double consumptionAtSetDate() = 0;
 };
 
 struct GenericMeter : public virtual Meter {

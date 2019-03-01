@@ -37,6 +37,10 @@ bool hex2bin(std::vector<uchar> &src, std::vector<uchar> *target);
 std::string bin2hex(std::vector<uchar> &target);
 std::string bin2hex(std::vector<uchar>::iterator data, int len);
 void strprintf(std::string &s, const char* fmt, ...);
+// Return for example: 2010-03-21
+std::string strdate(struct tm *date);
+// Return for example: 2010-03-21 15:22:03
+std::string strdatetime(struct tm *date);
 
 void xorit(uchar *srca, uchar *srcb, uchar *dest, int len);
 

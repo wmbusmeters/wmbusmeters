@@ -31,4 +31,4 @@ telegram=|1E442D2C0771941501027A|B300108504833B08340500|
 # Test QCaloric C1 telegrams
 
 telegram=|314493441234567835087a740000200b6e2701004b6e450100426c5f2ccb086e790000c2086c7f21326cffff046d200b7422|
-{"media":"heat_cost_allocation","meter":"qcaloric","name":"MyElement","id":"78563412","current_consumption_hca":127.000000,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"heat_cost_allocation","meter":"qcaloric","name":"MyElement","id":"78563412","current_consumption_hca":127.000000,"set_date":"2018-12-31","consumption_at_set_date_hca":145.000000,"set_date_17":"2019-01-31","consumption_at_set_date_17_hca":79.000000,"error_date":"2127-15-31","device_date_time":"2019-02-20 11:32","timestamp":"1111-11-11T11:11:11Z"}

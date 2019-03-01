@@ -50,7 +50,7 @@ The latest reading of the meter can also be found here: /var/log/wmbusmeters/met
 If you cannot install as a daemon, then you can also start
 wmbusmeters in your terminal using the config files in /etc/wmbusmeters.
 ```
-wmbusmeters --useconfig
+wmbusmeters --useconfig=/
 ```
 
 Or you can start wmbusmeters with your own config files:
