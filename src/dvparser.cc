@@ -252,7 +252,7 @@ bool parseDV(Telegram *t,
 
         // Skip the length byte in the variable length data.
         if (variable_length) {
-            t->addExplanation(data, 1, "varlen=%d", datalen);
+            t->addExplanation(data, 1, "%02X varlen=%d", datalen, datalen);
         }
         string value = bin2hex(data, datalen);
         int offset = start_parse_here+data-data_start;

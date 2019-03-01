@@ -333,13 +333,16 @@ void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
     bool found = false;
     for (auto& p : explanations) {
         if (p.first == pos) {
-            p.second += buf;
+            if (p.second[0] == '*') {
+                warning("(wmbus) warning! already added more explanations to offset %d!\n");
+            }
+            p.second = string("* ")+p.second+buf;
             found = true;
         }
     }
 
     if (!found) {
-        error("(wmbus) cannot find offset %d to add more explanation \"%s\"\n", pos, buf);
+        warning("(wmbus) warning! cannot find offset %d to add more explanation \"%s\"\n", pos, buf);
     }
 }
 

@@ -185,13 +185,6 @@ void MeterQCaloric::processContent(Telegram *t)
         t->addMoreExplanation(offset, " consumption at set date (%f hca)", consumption_at_set_date_);
     }
 
-    if (findKey(ValueInformation::Date, 1, &key, &values)) {
-        struct tm date;
-        extractDVdate(&values, key, &offset, &date);
-        set_date_ = strdate(&date);
-        t->addMoreExplanation(offset, " set date (%s)", set_date_.c_str());
-    }
-
     if (findKey(ValueInformation::HeatCostAllocation, 17, &key, &values)) {
         extractDVdouble(&values, key, &offset, &consumption_at_set_date_17_);
         t->addMoreExplanation(offset, " consumption at set date 17 (%f hca)", consumption_at_set_date_17_);
