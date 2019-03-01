@@ -112,10 +112,12 @@ Kamstrup flowIQ 3100 (flowiq3100)
 Sontex Supercom 587 (supercom587)
 Sensus iPERL (iperl)
 
+Supported heat cost allocator:
+Qundis Q caloric (qcaloric)
+
 Work in progress:
 Heat meter Kamstrup Multical 302 (multical302)
 Electricity meter Kamstrup Omnipower (omnipower)
-Heat cost allocator Qundis Q caloric (qcaloric)
 ```
 
 You can listen to multiple meters as long as they all require the same radio mode C1 or T1.
