@@ -28,7 +28,12 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
     Configuration * c = new Configuration;
 
     int i=1;
-    const char *filename = strrchr(argv[0], '/')+1;
+    const char *filename = strrchr(argv[0], '/');
+    if (filename) {
+        filename++;
+    } else {
+        filename = argv[0];
+    }
     if (!strcmp(filename, "wmbusmetersd")) {
         c->daemon = true;
         if (argc != 2) {
