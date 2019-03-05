@@ -105,7 +105,7 @@ private:
 };
 
 MeterMultical21::MeterMultical21(WMBus *bus, string& name, string& id, string& key, MeterType mt) :
-    MeterCommonImplementation(bus, name, id, key, mt, MANUFACTURER_KAM, LinkModeC1)
+    MeterCommonImplementation(bus, name, id, key, mt, MANUFACTURER_KAM, LinkMode::C1)
 {
     addMedia(0x16); // Water media
 

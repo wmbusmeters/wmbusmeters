@@ -66,20 +66,12 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strcmp(argv[i], "--c1")) {
+        LinkMode lm = isLinkMode(argv[i]);
+        if (lm != LinkMode::UNKNOWN) {
             if (c->link_mode_set) {
                 error("You have already specified a link mode!\n");
             }
-            c->link_mode = LinkModeC1;
-            c->link_mode_set = true;
-            i++;
-            continue;
-        }
-        if (!strcmp(argv[i], "--t1")) {
-            if (c->link_mode_set) {
-                error("You have already specified a link mode!\n");
-            }
-            c->link_mode = LinkModeT1;
+            c->link_mode = lm;
             c->link_mode_set = true;
             i++;
             continue;
@@ -231,15 +223,19 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         error("Unknown option \"%s\"\n", argv[i]);
     }
 
-    char *extra = strchr(argv[i], ':');
+    char *extra = argv[i] ? strchr(argv[i], ':') : NULL ;
     if (extra) {
         *extra = 0;
         extra++;
         c->device_extra = extra;
     }
-    c->device = argv[i];
+    if (argv[i]) {
+        c->device = argv[i];
+    }
     i++;
-    if (c->device.length() == 0) error("You must supply the usb device to which the wmbus dongle is connected.\n");
+    if (c->device.length() == 0) {
+        error("You must supply the usb device to which the wmbus dongle is connected.\n");
+    }
 
     if ((argc-i) % 4 != 0) {
         error("For each meter you must supply a: name,type,id and key.\n");

@@ -69,7 +69,7 @@ private:
 };
 
 MeterSupercom587::MeterSupercom587(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, SUPERCOM587_METER, MANUFACTURER_SON, LinkModeT1)
+    MeterCommonImplementation(bus, name, id, key, SUPERCOM587_METER, MANUFACTURER_SON, LinkMode::T1)
 {
     addMedia(0x06);
     addMedia(0x07);

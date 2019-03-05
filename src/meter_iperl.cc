@@ -70,7 +70,7 @@ private:
 };
 
 MeterIperl::MeterIperl(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, IPERL_METER, MANUFACTURER_SEN, LinkModeT1)
+    MeterCommonImplementation(bus, name, id, key, IPERL_METER, MANUFACTURER_SEN, LinkMode::T1)
 {
     addMedia(0x06);
     addMedia(0x07);

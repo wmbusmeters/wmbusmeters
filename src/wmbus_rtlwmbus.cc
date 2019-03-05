@@ -88,7 +88,7 @@ uint32_t WMBusRTLWMBUS::getDeviceId() {
 
 LinkMode WMBusRTLWMBUS::getLinkMode() {
 
-    return LinkModeAny;
+    return LinkMode::Any;
 }
 
 void WMBusRTLWMBUS::setLinkMode(LinkMode lm)

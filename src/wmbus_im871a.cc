@@ -144,7 +144,7 @@ LinkMode WMBusIM871A::getLinkMode() {
     serial()->send(msg);
 
     waitForResponse();
-    LinkMode lm = UNKNOWN_LINKMODE;
+    LinkMode lm = LinkMode::UNKNOWN;
     if (received_command_ == DEVMGMT_MSG_GET_CONFIG_RSP) {
         int iff1 = received_payload_[0];
         bool has_device_mode = (iff1&1)==1;
@@ -163,11 +163,29 @@ LinkMode WMBusIM871A::getLinkMode() {
         }
         if (has_link_mode) {
             verbose("(im871a) config: link mode %02x\n", received_payload_[offset]);
-            if (received_payload_[offset] == im871a_C1a) {
-                lm = LinkModeC1;
+            if (received_payload_[offset] == (int)LinkModeIM871A::C1a) {
+                lm = LinkMode::C1;
             }
-            if (received_payload_[offset] == im871a_T1) {
-                lm = LinkModeT1;
+            if (received_payload_[offset] == (int)LinkModeIM871A::T1) {
+                lm = LinkMode::T1;
+            }
+            if (received_payload_[offset] == (int)LinkModeIM871A::N1A) {
+                lm = LinkMode::N1a;
+            }
+            if (received_payload_[offset] == (int)LinkModeIM871A::N1B) {
+                lm = LinkMode::N1b;
+            }
+            if (received_payload_[offset] == (int)LinkModeIM871A::N1C) {
+                lm = LinkMode::N1c;
+            }
+            if (received_payload_[offset] == (int)LinkModeIM871A::N1D) {
+                lm = LinkMode::N1d;
+            }
+            if (received_payload_[offset] == (int)LinkModeIM871A::N1E) {
+                lm = LinkMode::N1e;
+            }
+            if (received_payload_[offset] == (int)LinkModeIM871A::N1F) {
+                lm = LinkMode::N1f;
             }
             offset++;
         }
@@ -249,8 +267,16 @@ LinkMode WMBusIM871A::getLinkMode() {
 
 void WMBusIM871A::setLinkMode(LinkMode lm)
 {
-    if (lm != LinkModeC1 && lm != LinkModeT1) {
-        error("LinkMode %d is not implemented\n", (int)lm);
+    if (lm != LinkMode::C1 &&
+        lm != LinkMode::T1 &&
+        lm != LinkMode::N1a &&
+        lm != LinkMode::N1b &&
+        lm != LinkMode::N1c &&
+        lm != LinkMode::N1d &&
+        lm != LinkMode::N1e &&
+        lm != LinkMode::N1f)
+    {
+        error("LinkMode %d is not implemented for im871a\n", (int)lm);
     }
     pthread_mutex_lock(&command_lock_);
 
@@ -261,11 +287,27 @@ void WMBusIM871A::setLinkMode(LinkMode lm)
     msg[3] = 6; // Len
     msg[4] = 0; // Temporary
     msg[5] = 2; // iff1 bits: Set Radio Mode
-    if (lm == LinkModeC1) {
-        msg[6] = (int)im871a_C1a;
+    if (lm == LinkMode::C1) {
+        msg[6] = (int)LinkModeIM871A::C1a;
+    } else if (lm == LinkMode::T1) {
+        msg[6] = (int)LinkModeIM871A::T1;
+    } else if (lm == LinkMode::N1a) {
+        msg[6] = (int)LinkModeIM871A::N1A;
+    } else if (lm == LinkMode::N1b) {
+        msg[6] = (int)LinkModeIM871A::N1B;
+    } else if (lm == LinkMode::N1c) {
+        msg[6] = (int)LinkModeIM871A::N1C;
+    } else if (lm == LinkMode::N1d) {
+        msg[6] = (int)LinkModeIM871A::N1D;
+    } else if (lm == LinkMode::N1e) {
+        msg[6] = (int)LinkModeIM871A::N1E;
+    } else if (lm == LinkMode::N1f) {
+        msg[6] = (int)LinkModeIM871A::N1F;
     } else {
-        msg[6] = (int)im871a_T1;
+        msg[6] = (int)LinkModeIM871A::C1a; // Defaults to C1a
     }
+
+
     msg[7] = 16+32; // iff2 bits: Set rssi+timestamp
     msg[8] = 1;  // Enable rssi
     msg[9] = 1;  // Enable timestamp

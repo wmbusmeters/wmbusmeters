@@ -18,15 +18,32 @@
 #include"wmbus.h"
 #include<grp.h>
 #include<stdarg.h>
+#include<string.h>
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<unistd.h>
 
-const char *LinkModeNames[] = {
-#define X(name) #name ,
+struct LinkModeInfo {
+    LinkMode mode;
+    const char *name;
+    const char *option;
+};
+
+LinkModeInfo link_modes_[] = {
+#define X(name,option) { LinkMode::name, #name , #option },
 LIST_OF_LINK_MODES
 #undef X
 };
+
+LinkMode isLinkMode(const char *arg)
+{
+    for (auto& s : link_modes_) {
+        if (!strcmp(arg, s.option)) {
+            return s.mode;
+        }
+    }
+    return LinkMode::UNKNOWN;
+}
 
 struct Manufacturer {
     char code[4];
@@ -350,10 +367,12 @@ void Telegram::parse(vector<uchar> &frame)
 {
     vector<uchar>::iterator bytes = frame.begin();
     parsed.clear();
+    if (frame.size() == 0) return;
     len = frame[0];
     addExplanation(bytes, 1, "%02x length (%d bytes)", len, len);
     c_field = frame[1];
     addExplanation(bytes, 1, "%02x c-field (%s)", c_field, cType(c_field).c_str());
+    if (frame.size() < 4) return;
     m_field = frame[3]<<8 | frame[2];
     string man = manufacturerFlag(m_field);
     addExplanation(bytes, 2, "%02x%02x m-field (%02x=%s)", frame[2], frame[3], m_field, man.c_str());
@@ -1750,11 +1769,11 @@ string formatData(int dif, int vif, int vife, string data)
 
 string linkModeName(LinkMode link_mode)
 {
-    switch (link_mode) {
-    case LinkModeAny: return "ANY";
-    case LinkModeC1: return "C1";
-    case LinkModeT1: return "T1";
-    case UNKNOWN_LINKMODE: break;
+
+    for (auto& s : link_modes_) {
+        if (link_mode == s.mode) {
+            return s.name;
+        }
     }
     return "UnknownLinkMode";
 }

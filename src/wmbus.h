@@ -24,7 +24,17 @@
 
 #include<inttypes.h>
 
-#define LIST_OF_LINK_MODES X(LinkModeAny)X(LinkModeC1)X(LinkModeT1)X(UNKNOWN_LINKMODE)
+#define LIST_OF_LINK_MODES \
+    X(Any,--anylinkmode) \
+    X(C1,--c1) \
+    X(T1,--t1) \
+    X(N1a,--n1a) \
+    X(N1b,--n1b) \
+    X(N1c,--n1c) \
+    X(N1d,--n1d) \
+    X(N1e,--n1e) \
+    X(N1f,--n1f) \
+    X(UNKNOWN,----)
 
 // In link mode T1, the meter transmits a telegram every few seconds or minutes.
 // Suitable for drive-by/walk-by collection of meter values.
@@ -32,11 +42,13 @@
 // Link mode C1 is like T1 but uses less energy when transmitting due to
 // a different radio encoding. Suitable for battery powered meters.
 
-enum LinkMode {
-#define X(name) name,
+enum class LinkMode {
+#define X(name,option) name,
 LIST_OF_LINK_MODES
 #undef X
 };
+
+LinkMode isLinkMode(const char *arg);
 
 #define CC_B_BIDIRECTIONAL_BIT 0x80
 #define CC_RD_RESPONSE_DELAY_BIT 0x40

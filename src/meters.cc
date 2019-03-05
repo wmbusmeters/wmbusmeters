@@ -116,15 +116,15 @@ MeterType toMeterType(string& type)
 
 LinkMode toMeterLinkMode(string& type)
 {
-    if (type == "multical21") return LinkModeC1;
-    if (type == "flowiq3100") return LinkModeC1;
-    if (type == "multical302") return LinkModeC1;
-    if (type == "omnipower") return LinkModeC1;
-    if (type == "supercom587") return LinkModeT1;
-    if (type == "iperl") return LinkModeT1;
-    if (type == "qcaloric") return LinkModeC1;
+    if (type == "multical21") return LinkMode::C1;
+    if (type == "flowiq3100") return LinkMode::C1;
+    if (type == "multical302") return LinkMode::C1;
+    if (type == "omnipower") return LinkMode::C1;
+    if (type == "supercom587") return LinkMode::T1;
+    if (type == "iperl") return LinkMode::T1;
+    if (type == "qcaloric") return LinkMode::C1;
 
-    return UNKNOWN_LINKMODE;
+    return LinkMode::UNKNOWN;
 }
 
 

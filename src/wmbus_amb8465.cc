@@ -52,7 +52,7 @@ private:
     sem_t command_wait_;
     int sent_command_ {};
     int received_command_ {};
-    LinkMode link_mode_ = UNKNOWN_LINKMODE;
+    LinkMode link_mode_ = LinkMode::UNKNOWN;
     vector<uchar> received_payload_;
     vector<function<void(Telegram*)>> telegram_listeners_;
     bool rssi_expected_;
@@ -195,8 +195,10 @@ void WMBusAmber::getConfiguration()
 }
 
 void WMBusAmber::setLinkMode(LinkMode lm) {
-    if (lm != LinkModeC1 && lm != LinkModeT1) {
-        error("LinkMode %d is not implemented\n", (int)lm);
+    if (lm != LinkMode::C1 &&
+        lm != LinkMode::T1)
+    {
+        error("LinkMode %d is not implemented for amb8465\n", (int)lm);
     }
 
     pthread_mutex_lock(&command_lock_);
@@ -206,9 +208,9 @@ void WMBusAmber::setLinkMode(LinkMode lm) {
     msg[1] = CMD_SET_MODE_REQ;
     sent_command_ = msg[1];
     msg[2] = 1; // Len
-    if (lm == LinkModeC1) {
+    if (lm == LinkMode::C1) {
         msg[3] = 0x0E; // Reception of C1 and C2 messages
-    } else {
+    } if (lm == LinkMode::T1) {
         msg[3] = 0x05; // T1-Meter
     }
     msg[4] = xorChecksum(msg, 4);
