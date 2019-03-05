@@ -366,6 +366,7 @@ void Telegram::parse(vector<uchar> &frame)
     addExplanation(bytes, 4, "%02x%02x%02x%02x a-field-addr (%02x%02x%02x%02x)", frame[4], frame[5], frame[6], frame[7],
                    frame[7], frame[6], frame[5], frame[4]);
 
+    strprintf(id, "%02x%02x%02x%02x", frame[7], frame[6], frame[5], frame[4]);
     a_field_version = frame[4+4];
     a_field_device_type = frame[4+5];
     addExplanation(bytes, 1, "%02x a-field-version", frame[8]);

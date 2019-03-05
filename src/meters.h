@@ -48,10 +48,11 @@ struct Meter {
     virtual string datetimeOfUpdateHumanReadable() = 0;
     virtual string datetimeOfUpdateRobot() = 0;
 
-    virtual void onUpdate(function<void(Meter*)> cb) = 0;
+    virtual void onUpdate(function<void(string id, Meter*)> cb) = 0;
     virtual int numUpdates() = 0;
 
-    virtual void printMeter(string *human_readable,
+    virtual void printMeter(string id,
+                            string *human_readable,
                             string *fields, char separator,
                             string *json,
                             vector<string> *envs) = 0;

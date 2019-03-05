@@ -27,7 +27,7 @@ MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, string& name, s
     required_link_mode_(required_link_mode)
 {
     use_aes_ = true;
-    hex2bin(id, &id_);
+    id_ = id;
     if (key.length() == 0) {
         use_aes_ = false;
     } else {
@@ -52,7 +52,7 @@ int MeterCommonImplementation::media()
 
 string MeterCommonImplementation::id()
 {
-    return bin2hex(id_);
+    return id_;
 }
 
 string MeterCommonImplementation::name()
@@ -70,7 +70,7 @@ LinkMode MeterCommonImplementation::requiredLinkMode()
     return required_link_mode_;
 }
 
-void MeterCommonImplementation::onUpdate(function<void(Meter*)> cb)
+void MeterCommonImplementation::onUpdate(function<void(string,Meter*)> cb)
 {
     on_update_.push_back(cb);
 }
@@ -125,11 +125,16 @@ LinkMode toMeterLinkMode(string& type)
 
 bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
 {
-    return (manufacturer_ == 0 || t->m_field == manufacturer_) &&
-        t->a_field_address[3] == id_[3] &&
-        t->a_field_address[2] == id_[2] &&
-        t->a_field_address[1] == id_[1] &&
-        t->a_field_address[0] == id_[0];
+    if (manufacturer_ != 0 && t->m_field != manufacturer_) {
+        return false;
+    }
+    if (id_ == t->id) {
+        return true;
+    }
+    if (id_ == "*") {
+        return true;
+    }
+    return false;
 }
 
 bool MeterCommonImplementation::useAes()
@@ -166,7 +171,7 @@ void MeterCommonImplementation::triggerUpdate(Telegram *t)
 {
     datetime_of_update_ = time(NULL);
     num_updates_++;
-    for (auto &cb : on_update_) if (cb) cb(this);
+    for (auto &cb : on_update_) if (cb) cb(t->id, this);
     t->handled = true;
 }
 

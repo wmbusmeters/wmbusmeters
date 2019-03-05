@@ -29,7 +29,7 @@ struct Printer {
             vector<string> shell_cmdlines,
             bool overwrite);
 
-    void print(Meter *meter);
+    void print(string id, Meter *meter);
 
     private:
 

@@ -36,7 +36,8 @@ struct MeterQCaloric : public virtual HeatCostMeter, public virtual MeterCommonI
     string setDate();
     double consumptionAtSetDate();
 
-    void printMeter(string *human_readable,
+    void printMeter(string id,
+                    string *human_readable,
                     string *fields, char separator,
                     string *json,
                     vector<string> *envs);
@@ -226,7 +227,8 @@ unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, string& name, string& id, s
     return unique_ptr<HeatCostMeter>(new MeterQCaloric(bus,name,id,key));
 }
 
-void MeterQCaloric::printMeter(string *human_readable,
+void MeterQCaloric::printMeter(string id,
+                               string *human_readable,
                                string *fields, char separator,
                                string *json,
                                vector<string> *envs)
@@ -235,9 +237,9 @@ void MeterQCaloric::printMeter(string *human_readable,
     char buf[65536];
     buf[65535] = 0;
 
-    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f hca\t%s\t% 3.3f hca\t%s",
+    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.0f hca\t%s\t% 3.0f hca\t%s",
              name().c_str(),
-             id().c_str(),
+             id.c_str(),
              currentConsumption(),
              setDate().c_str(),
              consumptionAtSetDate(),
@@ -247,7 +249,7 @@ void MeterQCaloric::printMeter(string *human_readable,
 
     snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%s%c%f%c%s",
              name().c_str(), separator,
-             id().c_str(), separator,
+             id.c_str(), separator,
              currentConsumption(), separator,
              setDate().c_str(), separator,
              consumptionAtSetDate(), separator,
@@ -274,7 +276,7 @@ void MeterQCaloric::printMeter(string *human_readable,
              QSE(timestamp,%s)
              "}",
              name().c_str(),
-             id().c_str(),
+             id.c_str(),
              currentConsumption(),
              setDate().c_str(),
              consumptionAtSetDate(),
@@ -288,7 +290,7 @@ void MeterQCaloric::printMeter(string *human_readable,
 
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=qcaloric"));
-    envs->push_back(string("METER_ID=")+id());
+    envs->push_back(string("METER_ID=")+id);
     envs->push_back(string("METER_CURRENT_CONSUMPTION_HCA=")+to_string(currentConsumption()));
     envs->push_back(string("METER_SET_DATE=")+setDate());
     envs->push_back(string("METER_CONSUMPTION_AT_SET_DATE_HCA=")+to_string(consumptionAtSetDate()));

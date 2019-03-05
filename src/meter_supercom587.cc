@@ -54,7 +54,8 @@ struct MeterSupercom587 : public virtual WaterMeter, public virtual MeterCommonI
     string timeLeaking();
     string timeBursting();
 
-    void printMeter(string *human_readable,
+    void printMeter(string id,
+                    string *human_readable,
                     string *fields, char separator,
                     string *json,
                     vector<string> *envs);
@@ -143,7 +144,8 @@ void MeterSupercom587::processContent(Telegram *t)
     t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
 }
 
-void MeterSupercom587::printMeter(string *human_readable,
+void MeterSupercom587::printMeter(string id,
+                                  string *human_readable,
                                   string *fields, char separator,
                                   string *json,
                                   vector<string> *envs)
@@ -157,7 +159,7 @@ void MeterSupercom587::printMeter(string *human_readable,
              "% 3.3f m3\t"
              "%s",
              name().c_str(),
-             id().c_str(),
+             id.c_str(),
              totalWaterConsumption(),
              datetimeOfUpdateHumanReadable().c_str());
 
@@ -169,7 +171,7 @@ void MeterSupercom587::printMeter(string *human_readable,
              "%f%c"
              "%s",
              name().c_str(), separator,
-             id().c_str(), separator,
+             id.c_str(), separator,
              totalWaterConsumption(), separator,
             datetimeOfUpdateRobot().c_str());
 
@@ -189,7 +191,7 @@ void MeterSupercom587::printMeter(string *human_readable,
              "}",
              mediaType(manufacturer(), media()).c_str(),
              name().c_str(),
-             id().c_str(),
+             id.c_str(),
              totalWaterConsumption(),
              datetimeOfUpdateRobot().c_str());
 
@@ -197,7 +199,7 @@ void MeterSupercom587::printMeter(string *human_readable,
 
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=supercom587"));
-    envs->push_back(string("METER_ID=")+id());
+    envs->push_back(string("METER_ID=")+id);
     envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption()));
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }

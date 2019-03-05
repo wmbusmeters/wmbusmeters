@@ -35,7 +35,8 @@ struct MeterOmnipower : public virtual ElectricityMeter, public virtual MeterCom
     double totalEnergyConsumption();
     double currentPowerConsumption();
 
-    void printMeter(string *human_readable,
+    void printMeter(string id,
+                    string *human_readable,
                     string *fields, char separator,
                     string *json,
                     vector<string> *envs);
@@ -123,7 +124,8 @@ unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, string& name, string& i
     return unique_ptr<ElectricityMeter>(new MeterOmnipower(bus,name,id,key));
 }
 
-void MeterOmnipower::printMeter(string *human_readable,
+void MeterOmnipower::printMeter(string id,
+                                string *human_readable,
                                 string *fields, char separator,
                                 string *json,
                                 vector<string> *envs)
@@ -134,7 +136,7 @@ void MeterOmnipower::printMeter(string *human_readable,
 
     snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f kwh\t% 3.3f kwh\t%s",
              name().c_str(),
-             id().c_str(),
+             id.c_str(),
              totalEnergyConsumption(),
              currentPowerConsumption(),
              datetimeOfUpdateHumanReadable().c_str());
@@ -143,7 +145,7 @@ void MeterOmnipower::printMeter(string *human_readable,
 
     snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%f%c%s",
              name().c_str(), separator,
-             id().c_str(), separator,
+             id.c_str(), separator,
              totalEnergyConsumption(), separator,
              currentPowerConsumption(), separator,
              datetimeOfUpdateRobot().c_str());
@@ -164,7 +166,7 @@ void MeterOmnipower::printMeter(string *human_readable,
              QSE(timestamp,%s)
              "}",
              name().c_str(),
-             id().c_str(),
+             id.c_str(),
              totalEnergyConsumption(),
              currentPowerConsumption(),
              datetimeOfUpdateRobot().c_str());
@@ -173,7 +175,7 @@ void MeterOmnipower::printMeter(string *human_readable,
 
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=omnipower"));
-    envs->push_back(string("METER_ID=")+id());
+    envs->push_back(string("METER_ID=")+id);
     envs->push_back(string("METER_TOTAL_KWH=")+to_string(totalEnergyConsumption()));
     envs->push_back(string("METER_CURRENT_KW=")+to_string(currentPowerConsumption()));
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());

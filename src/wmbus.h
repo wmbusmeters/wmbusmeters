@@ -58,6 +58,7 @@ struct Telegram {
     vector<uchar> a_field; // A field 6 bytes
     // The 6 a field bytes are composed of:
     vector<uchar> a_field_address; // Address in BCD = 8 decimal 00000000...99999999 digits.
+    string id; // the address as a string.
     int a_field_version {}; // 1 byte
     int a_field_device_type {}; // 1 byte
 
@@ -81,8 +82,7 @@ struct Telegram {
 
     bool handled {}; // Set to true, when a meter has accepted the telegram.
 
-    // The id as written on the physical meter device.
-    string id() { return bin2hex(a_field_address); }
+
     void parse(vector<uchar> &payload);
     void print();
     void verboseFields();

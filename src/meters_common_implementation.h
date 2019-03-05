@@ -35,7 +35,7 @@ struct MeterCommonImplementation : public virtual Meter
     string datetimeOfUpdateHumanReadable();
     string datetimeOfUpdateRobot();
 
-    void onUpdate(function<void(Meter*)> cb);
+    void onUpdate(function<void(string id, Meter*)> cb);
     int numUpdates();
 
     bool isTelegramForMe(Telegram *t);
@@ -63,10 +63,10 @@ private:
     int manufacturer_ {};
     int media_ {};
     string name_;
-    vector<uchar> id_;
+    string id_;
     vector<uchar> key_;
     WMBus *bus_ {};
-    vector<function<void(Meter*)>> on_update_;
+    vector<function<void(string,Meter*)>> on_update_;
     int num_updates_ {};
     bool use_aes_ {};
     time_t datetime_of_update_ {};

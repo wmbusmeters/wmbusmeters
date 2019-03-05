@@ -35,7 +35,8 @@ struct MeterMultical302 : public virtual HeatMeter, public virtual MeterCommonIm
     double totalVolume();
 
 
-    void printMeter(string *human_readable,
+    void printMeter(string id,
+                    string *human_readable,
                     string *fields, char separator,
                     string *json,
                     vector<string> *envs);
@@ -182,7 +183,8 @@ unique_ptr<HeatMeter> createMultical302(WMBus *bus, string& name, string& id, st
     return unique_ptr<HeatMeter>(new MeterMultical302(bus,name,id,key));
 }
 
-void MeterMultical302::printMeter(string *human_readable,
+void MeterMultical302::printMeter(string id,
+                                  string *human_readable,
                                   string *fields, char separator,
                                   string *json,
                                   vector<string> *envs)
@@ -192,7 +194,7 @@ void MeterMultical302::printMeter(string *human_readable,
 
     snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f kwh\t% 3.3f m3\t% 3.3f kwh\t%s",
              name().c_str(),
-             id().c_str(),
+             id.c_str(),
              totalEnergyConsumption(),
              totalVolume(),
              currentPowerConsumption(),
@@ -202,7 +204,7 @@ void MeterMultical302::printMeter(string *human_readable,
 
     snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%f%c%f%c%s",
              name().c_str(), separator,
-             id().c_str(), separator,
+             id.c_str(), separator,
              totalEnergyConsumption(), separator,
              totalVolume(), separator,
              currentPowerConsumption(), separator,
@@ -225,7 +227,7 @@ void MeterMultical302::printMeter(string *human_readable,
              QSE(timestamp,%s)
              "}",
              name().c_str(),
-             id().c_str(),
+             id.c_str(),
              totalEnergyConsumption(),
              totalVolume(),
              currentPowerConsumption(),
@@ -235,7 +237,7 @@ void MeterMultical302::printMeter(string *human_readable,
 
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=multical302"));
-    envs->push_back(string("METER_ID=")+id());
+    envs->push_back(string("METER_ID=")+id);
     envs->push_back(string("METER_TOTAL_KWH=")+to_string(totalEnergyConsumption()));
     envs->push_back(string("METER_TOTAL_VOLUME_M3=")+to_string(totalVolume()));
     envs->push_back(string("METER_CURRENT_KW=")+to_string(currentPowerConsumption()));

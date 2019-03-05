@@ -77,7 +77,8 @@ struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonIm
     string timeLeaking();
     string timeBursting();
 
-    void printMeter(string *human_readable,
+    void printMeter(string id,
+                    string *human_readable,
                     string *fields, char separator,
                     string *json,
                     vector<string> *envs);
@@ -495,7 +496,8 @@ string MeterMultical21::decodeTime(int time)
     }
 }
 
-void MeterMultical21::printMeter(string *human_readable,
+void MeterMultical21::printMeter(string id,
+                                 string *human_readable,
                                  string *fields, char separator,
                                  string *json,
                                  vector<string> *envs)
@@ -523,7 +525,7 @@ void MeterMultical21::printMeter(string *human_readable,
 
     snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f m3\t% 3.3f m3\t% 3.3f m3/h\t%s°C\t%s°C\t%s\t%s",
              name().c_str(),
-             id().c_str(),
+             id.c_str(),
              totalWaterConsumption(),
              targetWaterConsumption(),
              maxFlow(),
@@ -536,7 +538,7 @@ void MeterMultical21::printMeter(string *human_readable,
 
     snprintf(buf, sizeof(buf)-1, "%s%c" "%s%c" "%f%c" "%f%c" "%f%c" "%.0f%c" "%.0f%c" "%s%c" "%s",
              name().c_str(), separator,
-             id().c_str(), separator,
+             id.c_str(), separator,
              totalWaterConsumption(), separator,
              targetWaterConsumption(), separator,
              maxFlow(), separator,
@@ -571,7 +573,7 @@ void MeterMultical21::printMeter(string *human_readable,
              mediaType(manufacturer(), media()).c_str(),
              meter_name_,
              name().c_str(),
-             id().c_str(),
+             id.c_str(),
              totalWaterConsumption(),
              targetWaterConsumption(),
              maxFlow(),
@@ -588,7 +590,7 @@ void MeterMultical21::printMeter(string *human_readable,
 
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=")+meter_name_);
-    envs->push_back(string("METER_ID=")+id());
+    envs->push_back(string("METER_ID=")+id);
     envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption()));
     envs->push_back(string("METER_TARGET_M3=")+to_string(targetWaterConsumption()));
     envs->push_back(string("METER_MAX_FLOW_M3H=")+to_string(maxFlow()));

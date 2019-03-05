@@ -277,7 +277,8 @@ void startUsingCommandline(Configuration *config)
             if (config->list_shell_envs) {
                 string ignore1, ignore2, ignore3;
                 vector<string> envs;
-                meters.back()->printMeter(&ignore1,
+                meters.back()->printMeter("",
+                                          &ignore1,
                                           &ignore2, config->separator,
                                           &ignore3,
                                           &envs);
@@ -289,8 +290,8 @@ void startUsingCommandline(Configuration *config)
                 }
                 exit(0);
             }
-            meters.back()->onUpdate(calll(output.get(),print,Meter*));
-            meters.back()->onUpdate([&](Meter*meter) { oneshotCheck(config, manager.get(), meter, meters); });
+            meters.back()->onUpdate([&](string id, Meter* meter) { output->print(id,meter); });
+//            meters.back()->onUpdate([&](string id, Meter* meter) { oneshotCheck(config, manager.get(), meter, meters); });
         }
     } else {
         notice("No meters configured. Printing id:s of all telegrams heard!\n\n");

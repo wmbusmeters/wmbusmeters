@@ -305,6 +305,7 @@ void debug(const char* fmt, ...) {
 
 bool isValidId(string& id)
 {
+    if (id == "*") return true;
     if (id.length() != 8) return false;
     for (int i=0; i<8; ++i) {
         if (id[i]<'0' || id[i]>'9') return false;
