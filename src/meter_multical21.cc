@@ -77,7 +77,7 @@ struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonIm
     string timeLeaking();
     string timeBursting();
 
-    void printMeter(string id,
+    void printMeter(Telegram *t,
                     string *human_readable,
                     string *fields, char separator,
                     string *json,
@@ -105,8 +105,10 @@ private:
 };
 
 MeterMultical21::MeterMultical21(WMBus *bus, string& name, string& id, string& key, MeterType mt) :
-    MeterCommonImplementation(bus, name, id, key, mt, MANUFACTURER_KAM, 0x16, LinkModeC1)
+    MeterCommonImplementation(bus, name, id, key, mt, MANUFACTURER_KAM, LinkModeC1)
 {
+    addMedia(0x16); // Water media
+
     if (type() == MULTICAL21_METER) {
         expected_version_ = 0x1b;
         meter_name_ = "multical21";
@@ -200,13 +202,7 @@ void MeterMultical21::handleTelegram(Telegram *t)
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    if (t->a_field_device_type != 0x16) {
-        warning("(%s) expected telegram for water media, but got \"%s\"!\n", meter_name_,
-                mediaType(t->m_field, t->a_field_device_type).c_str());
-    }
-
-    if (t->m_field != manufacturer() ||
-        t->a_field_version != expected_version_) {
+    if (t->a_field_version != expected_version_) {
         warning("(%s) expected telegram from KAM meter with version 0x%02x, "
                 "but got \"%s\" meter with version 0x%02x !\n", meter_name_,
                 expected_version_,
@@ -496,7 +492,7 @@ string MeterMultical21::decodeTime(int time)
     }
 }
 
-void MeterMultical21::printMeter(string id,
+void MeterMultical21::printMeter(Telegram *t,
                                  string *human_readable,
                                  string *fields, char separator,
                                  string *json,
@@ -525,7 +521,7 @@ void MeterMultical21::printMeter(string id,
 
     snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f m3\t% 3.3f m3\t% 3.3f m3/h\t%s°C\t%s°C\t%s\t%s",
              name().c_str(),
-             id.c_str(),
+             t->id.c_str(),
              totalWaterConsumption(),
              targetWaterConsumption(),
              maxFlow(),
@@ -538,7 +534,7 @@ void MeterMultical21::printMeter(string id,
 
     snprintf(buf, sizeof(buf)-1, "%s%c" "%s%c" "%f%c" "%f%c" "%f%c" "%.0f%c" "%.0f%c" "%s%c" "%s",
              name().c_str(), separator,
-             id.c_str(), separator,
+             t->id.c_str(), separator,
              totalWaterConsumption(), separator,
              targetWaterConsumption(), separator,
              maxFlow(), separator,
@@ -570,10 +566,10 @@ void MeterMultical21::printMeter(string id,
              QS(time_bursting,%s)
              QSE(timestamp,%s)
              "}",
-             mediaType(manufacturer(), media()).c_str(),
+             mediaType(manufacturer(), t->a_field_device_type).c_str(),
              meter_name_,
              name().c_str(),
-             id.c_str(),
+             t->id.c_str(),
              totalWaterConsumption(),
              targetWaterConsumption(),
              maxFlow(),
@@ -590,7 +586,7 @@ void MeterMultical21::printMeter(string id,
 
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=")+meter_name_);
-    envs->push_back(string("METER_ID=")+id);
+    envs->push_back(string("METER_ID=")+t->id);
     envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption()));
     envs->push_back(string("METER_TARGET_M3=")+to_string(targetWaterConsumption()));
     envs->push_back(string("METER_MAX_FLOW_M3H=")+to_string(maxFlow()));

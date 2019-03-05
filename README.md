@@ -45,6 +45,9 @@ check with `tail -f /var/log/syslog` and `tail -f /var/log/wmbusmeters/wmbusmete
 
 The latest reading of the meter can also be found here: /var/log/wmbusmeters/meter_readings/MyTapWater
 
+You can use several ids using `id=1111111,2222222,3333333` or you can listen to all
+meters of a certain type `id=*`.
+
 # Run using config files
 
 If you cannot install as a daemon, then you can also start

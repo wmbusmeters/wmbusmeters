@@ -54,7 +54,7 @@ struct MeterSupercom587 : public virtual WaterMeter, public virtual MeterCommonI
     string timeLeaking();
     string timeBursting();
 
-    void printMeter(string id,
+    void printMeter(Telegram *t,
                     string *human_readable,
                     string *fields, char separator,
                     string *json,
@@ -69,8 +69,10 @@ private:
 };
 
 MeterSupercom587::MeterSupercom587(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, SUPERCOM587_METER, MANUFACTURER_SON, 0x16, LinkModeT1)
+    MeterCommonImplementation(bus, name, id, key, SUPERCOM587_METER, MANUFACTURER_SON, LinkModeT1)
 {
+    addMedia(0x06);
+    addMedia(0x07);
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
@@ -97,15 +99,7 @@ void MeterSupercom587::handleTelegram(Telegram *t)
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    if (t->a_field_device_type != 0x07 && t->a_field_device_type != 0x06) {
-        warning("(%s) expected telegram for cold or warm water media, but got \"%s\"!\n", "supercom587",
-                mediaType(t->m_field, t->a_field_device_type).c_str());
-    }
-
-    updateMedia(t->a_field_device_type);
-
-    if (t->m_field != manufacturer() ||
-        t->a_field_version != 0x3c) {
+    if (t->a_field_version != 0x3c) {
         warning("(%s) expected telegram from SON meter with version 0x%02x, "
                 "but got \"%s\" meter with version 0x%02x !\n", "supercom587",
                 0x3c,
@@ -144,7 +138,7 @@ void MeterSupercom587::processContent(Telegram *t)
     t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
 }
 
-void MeterSupercom587::printMeter(string id,
+void MeterSupercom587::printMeter(Telegram *t,
                                   string *human_readable,
                                   string *fields, char separator,
                                   string *json,
@@ -159,7 +153,7 @@ void MeterSupercom587::printMeter(string id,
              "% 3.3f m3\t"
              "%s",
              name().c_str(),
-             id.c_str(),
+             t->id.c_str(),
              totalWaterConsumption(),
              datetimeOfUpdateHumanReadable().c_str());
 
@@ -171,7 +165,7 @@ void MeterSupercom587::printMeter(string id,
              "%f%c"
              "%s",
              name().c_str(), separator,
-             id.c_str(), separator,
+             t->id.c_str(), separator,
              totalWaterConsumption(), separator,
             datetimeOfUpdateRobot().c_str());
 
@@ -189,9 +183,9 @@ void MeterSupercom587::printMeter(string id,
              Q(total_m3,%f)
              QSE(timestamp,%s)
              "}",
-             mediaType(manufacturer(), media()).c_str(),
+             mediaType(manufacturer(), t->a_field_device_type).c_str(),
              name().c_str(),
-             id.c_str(),
+             t->id.c_str(),
              totalWaterConsumption(),
              datetimeOfUpdateRobot().c_str());
 
@@ -199,7 +193,7 @@ void MeterSupercom587::printMeter(string id,
 
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=supercom587"));
-    envs->push_back(string("METER_ID=")+id);
+    envs->push_back(string("METER_ID=")+t->id);
     envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption()));
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }

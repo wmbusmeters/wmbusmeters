@@ -17,5 +17,6 @@ then
         echo SHELL OK
     fi
 else
-    Failure.
+    echo Failure.
+    exit 1
 fi

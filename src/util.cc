@@ -303,12 +303,17 @@ void debug(const char* fmt, ...) {
     }
 }
 
-bool isValidId(string& id)
+bool isValidId(string& ids)
 {
-    if (id == "*") return true;
-    if (id.length() != 8) return false;
-    for (int i=0; i<8; ++i) {
-        if (id[i]<'0' || id[i]>'9') return false;
+    vector<string> v = splitIds(ids);
+
+    for (auto id : v)
+    {
+        if (id == "*") return true;
+        if (id.length() != 8) return false;
+        for (int i=0; i<8; ++i) {
+            if (id[i]<'0' || id[i]>'9') return false;
+        }
     }
     return true;
 }
@@ -330,6 +335,23 @@ bool isFrequency(std::string& fq)
         if (!isdigit(fq[i]) && fq[i] != '.') return false;
     }
     return true;
+}
+
+vector<string> splitIds(string& ids)
+{
+    vector<string> r;
+    bool eof, err;
+    vector<uchar> v (ids.begin(), ids.end());
+    auto i = v.begin();
+
+    for (;;) {
+        auto id = eatTo(v, i, ',', 16, &eof, &err);
+        if (err) break;
+        trimWhitespace(&id);
+        r.push_back(id);
+        if (eof) break;
+    }
+    return r;
 }
 
 void incrementIV(uchar *iv, size_t len) {
@@ -444,7 +466,7 @@ string eatTo(vector<uchar> &v, vector<uchar>::iterator &i, int c, size_t max, bo
         i++;
         max--;
     }
-    if (c != -1 && *i != c)
+    if (c != -1 && i != v.end() && *i != c)
     {
         *err = true;
     }

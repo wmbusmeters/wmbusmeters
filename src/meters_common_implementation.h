@@ -24,18 +24,18 @@
 
 struct MeterCommonImplementation : public virtual Meter
 {
-    string id();
+    vector<string> ids();
     string name();
     MeterType type();
     int manufacturer();
-    int media();
+    vector<int> media();
     WMBus *bus();
     LinkMode requiredLinkMode();
 
     string datetimeOfUpdateHumanReadable();
     string datetimeOfUpdateRobot();
 
-    void onUpdate(function<void(string id, Meter*)> cb);
+    void onUpdate(function<void(Telegram*,Meter*)> cb);
     int numUpdates();
 
     bool isTelegramForMe(Telegram *t);
@@ -47,7 +47,7 @@ struct MeterCommonImplementation : public virtual Meter
     uint16_t getRecordAsUInt16(std::string record);
 
     MeterCommonImplementation(WMBus *bus, string& name, string& id, string& key,
-                              MeterType type, int manufacturer, int media,
+                              MeterType type, int manufacturer,
                               LinkMode required_link_mode);
 
     ~MeterCommonImplementation() = default;
@@ -55,18 +55,18 @@ struct MeterCommonImplementation : public virtual Meter
 protected:
 
     void triggerUpdate(Telegram *t);
-    void updateMedia(int media);
+    void addMedia(int media);
 
 private:
 
     MeterType type_ {};
     int manufacturer_ {};
-    int media_ {};
+    vector<int> media_ {};
     string name_;
-    string id_;
+    vector<string> ids_;
     vector<uchar> key_;
     WMBus *bus_ {};
-    vector<function<void(string,Meter*)>> on_update_;
+    vector<function<void(Telegram*,Meter*)>> on_update_;
     int num_updates_ {};
     bool use_aes_ {};
     time_t datetime_of_update_ {};

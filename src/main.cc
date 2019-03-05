@@ -37,7 +37,7 @@
 
 using namespace std;
 
-void oneshotCheck(Configuration *cmdline, SerialCommunicationManager *manager, Meter *meter, vector<unique_ptr<Meter>> &meters);
+void oneshotCheck(Configuration *cmdline, SerialCommunicationManager *manager, Telegram *t, Meter *meter, vector<unique_ptr<Meter>> &meters);
 void startUsingCommandline(Configuration *cmdline);
 void startUsingConfigFiles(string root, bool is_daemon);
 void startDaemon(string pid_file); // Will use config files.
@@ -277,7 +277,8 @@ void startUsingCommandline(Configuration *config)
             if (config->list_shell_envs) {
                 string ignore1, ignore2, ignore3;
                 vector<string> envs;
-                meters.back()->printMeter("",
+                Telegram t;
+                meters.back()->printMeter(&t,
                                           &ignore1,
                                           &ignore2, config->separator,
                                           &ignore3,
@@ -290,8 +291,8 @@ void startUsingCommandline(Configuration *config)
                 }
                 exit(0);
             }
-            meters.back()->onUpdate([&](string id, Meter* meter) { output->print(id,meter); });
-//            meters.back()->onUpdate([&](string id, Meter* meter) { oneshotCheck(config, manager.get(), meter, meters); });
+            meters.back()->onUpdate([&](Telegram*t,Meter* meter) { output->print(t,meter); });
+            meters.back()->onUpdate([&](Telegram*t, Meter* meter) { oneshotCheck(config, manager.get(), t, meter, meters); });
         }
     } else {
         notice("No meters configured. Printing id:s of all telegrams heard!\n\n");
@@ -314,7 +315,7 @@ void startUsingCommandline(Configuration *config)
     }
 }
 
-void oneshotCheck(Configuration *config, SerialCommunicationManager *manager, Meter *meter, vector<unique_ptr<Meter>> &meters)
+void oneshotCheck(Configuration *config, SerialCommunicationManager *manager, Telegram *t, Meter *meter, vector<unique_ptr<Meter>> &meters)
 {
     if (!config->oneshot) return;
 
@@ -322,6 +323,7 @@ void oneshotCheck(Configuration *config, SerialCommunicationManager *manager, Me
         if (m->numUpdates() == 0) return;
     }
     // All meters have received at least one update! Stop!
+    verbose("(main) all meters have received at least one update, stopping.\n");
     manager->stop();
 }
 

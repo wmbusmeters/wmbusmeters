@@ -69,6 +69,8 @@ bool isValidId(std::string& id);
 bool isValidKey(std::string& key);
 bool isFrequency(std::string& fq);
 
+std::vector<std::string> splitIds(std::string& id);
+
 void incrementIV(uchar *iv, size_t len);
 
 bool checkCharacterDeviceExists(const char *tty, bool fail_if_not);

@@ -35,7 +35,7 @@ struct MeterMultical302 : public virtual HeatMeter, public virtual MeterCommonIm
     double totalVolume();
 
 
-    void printMeter(string id,
+    void printMeter(Telegram *t,
                     string *human_readable,
                     string *fields, char separator,
                     string *json,
@@ -51,8 +51,9 @@ private:
 };
 
 MeterMultical302::MeterMultical302(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, MULTICAL302_METER, MANUFACTURER_KAM, 0x04, LinkModeC1)
+    MeterCommonImplementation(bus, name, id, key, MULTICAL302_METER, MANUFACTURER_KAM, LinkModeC1)
 {
+    addMedia(0x04); // Heat media
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
@@ -82,18 +83,6 @@ void MeterMultical302::handleTelegram(Telegram *t) {
             name().c_str(),
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
-
-    if (t->a_field_device_type != 0x04) {
-        warning("(multical302) expected telegram for heat media, but got \"%s\"!\n",
-                mediaType(t->m_field, t->a_field_device_type).c_str());
-    }
-
-    /*
-    if (t->m_field != manufacturer() ||
-        t->a_field_version != 0x1b) {
-        warning("(multical302) expected telegram from KAM meter with version 0x1b, but got \"%s\" version 0x2x !\n",
-                manufacturerFlag(t->m_field).c_str(), t->a_field_version);
-                }*/
 
     if (useAes()) {
         vector<uchar> aeskey = key();
@@ -183,7 +172,7 @@ unique_ptr<HeatMeter> createMultical302(WMBus *bus, string& name, string& id, st
     return unique_ptr<HeatMeter>(new MeterMultical302(bus,name,id,key));
 }
 
-void MeterMultical302::printMeter(string id,
+void MeterMultical302::printMeter(Telegram *t,
                                   string *human_readable,
                                   string *fields, char separator,
                                   string *json,
@@ -194,7 +183,7 @@ void MeterMultical302::printMeter(string id,
 
     snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f kwh\t% 3.3f m3\t% 3.3f kwh\t%s",
              name().c_str(),
-             id.c_str(),
+             t->id.c_str(),
              totalEnergyConsumption(),
              totalVolume(),
              currentPowerConsumption(),
@@ -204,7 +193,7 @@ void MeterMultical302::printMeter(string id,
 
     snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%f%c%f%c%s",
              name().c_str(), separator,
-             id.c_str(), separator,
+             t->id.c_str(), separator,
              totalEnergyConsumption(), separator,
              totalVolume(), separator,
              currentPowerConsumption(), separator,
@@ -227,7 +216,7 @@ void MeterMultical302::printMeter(string id,
              QSE(timestamp,%s)
              "}",
              name().c_str(),
-             id.c_str(),
+             t->id.c_str(),
              totalEnergyConsumption(),
              totalVolume(),
              currentPowerConsumption(),
@@ -237,7 +226,7 @@ void MeterMultical302::printMeter(string id,
 
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=multical302"));
-    envs->push_back(string("METER_ID=")+id);
+    envs->push_back(string("METER_ID=")+t->id);
     envs->push_back(string("METER_TOTAL_KWH=")+to_string(totalEnergyConsumption()));
     envs->push_back(string("METER_TOTAL_VOLUME_M3=")+to_string(totalVolume()));
     envs->push_back(string("METER_CURRENT_KW=")+to_string(currentPowerConsumption()));

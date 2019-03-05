@@ -37,21 +37,21 @@ using namespace std;
 typedef unsigned char uchar;
 
 struct Meter {
-    virtual string id() = 0;
+    virtual vector<string> ids() = 0;
     virtual string name() = 0;
     virtual MeterType type() = 0;
     virtual int manufacturer() = 0;
-    virtual int media() = 0;
+    virtual vector<int> media() = 0;
     virtual WMBus *bus() = 0;
     virtual LinkMode requiredLinkMode() = 0;
 
     virtual string datetimeOfUpdateHumanReadable() = 0;
     virtual string datetimeOfUpdateRobot() = 0;
 
-    virtual void onUpdate(function<void(string id, Meter*)> cb) = 0;
+    virtual void onUpdate(function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;
 
-    virtual void printMeter(string id,
+    virtual void printMeter(Telegram *t,
                             string *human_readable,
                             string *fields, char separator,
                             string *json,

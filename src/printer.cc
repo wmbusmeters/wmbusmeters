@@ -36,13 +36,13 @@ Printer::Printer(bool json, bool fields, char separator,
     overwrite_ = overwrite;
 }
 
-void Printer::print(string id, Meter *meter)
+void Printer::print(Telegram *t, Meter *meter)
 {
     string human_readable, fields, json;
     vector<string> envs;
     bool printed = false;
 
-    meter->printMeter(id, &human_readable, &fields, separator_, &json, &envs);
+    meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs);
 
     if (shell_cmdlines_.size() > 0) {
         printShells(meter, envs);

@@ -21,13 +21,13 @@
 #include<memory.h>
 
 MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, string& name, string& id, string& key,
-                                                     MeterType type, int manufacturer, int media,
+                                                     MeterType type, int manufacturer,
                                                      LinkMode required_link_mode) :
-    type_(type), manufacturer_(manufacturer), media_(media), name_(name), bus_(bus),
+    type_(type), manufacturer_(manufacturer), name_(name), bus_(bus),
     required_link_mode_(required_link_mode)
 {
     use_aes_ = true;
-    id_ = id;
+    ids_ = splitIds(id);
     if (key.length() == 0) {
         use_aes_ = false;
     } else {
@@ -45,14 +45,19 @@ int MeterCommonImplementation::manufacturer()
     return manufacturer_;
 }
 
-int MeterCommonImplementation::media()
+vector<int> MeterCommonImplementation::media()
 {
     return media_;
 }
 
-string MeterCommonImplementation::id()
+void MeterCommonImplementation::addMedia(int m)
 {
-    return id_;
+    media_.push_back(m);
+}
+
+vector<string> MeterCommonImplementation::ids()
+{
+    return ids_;
 }
 
 string MeterCommonImplementation::name()
@@ -70,7 +75,7 @@ LinkMode MeterCommonImplementation::requiredLinkMode()
     return required_link_mode_;
 }
 
-void MeterCommonImplementation::onUpdate(function<void(string,Meter*)> cb)
+void MeterCommonImplementation::onUpdate(function<void(Telegram*,Meter*)> cb)
 {
     on_update_.push_back(cb);
 }
@@ -125,16 +130,46 @@ LinkMode toMeterLinkMode(string& type)
 
 bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
 {
-    if (manufacturer_ != 0 && t->m_field != manufacturer_) {
+    debug("(meter) %s: for me? %s\n", name_.c_str(), t->id.c_str());
+
+    bool id_match = false;
+    for (auto id : ids_)
+    {
+        if (id == t->id) {
+            id_match = true;
+            break;
+        }
+        if (id == "*") {
+            id_match = true;
+            break;
+        }
+    }
+
+    if (!id_match) {
+        debug("(meter) %s: not for me: not my id\n", name_.c_str());
         return false;
     }
-    if (id_ == t->id) {
-        return true;
+
+    if (manufacturer_ != 0 && t->m_field != manufacturer_) {
+        debug("(meter) %s: not for me: manufacturer differs\n", name_.c_str());
+        return false;
     }
-    if (id_ == "*") {
-        return true;
+
+    bool media_match = false;
+    for (auto m : media_) {
+        if (m == t->a_field_device_type) {
+            media_match = true;
+            break;
+        }
     }
-    return false;
+
+    if (!media_match) {
+        debug("(meter) %s: not for me: no media match\n", name_.c_str());
+        return false;
+    }
+
+    debug("(meter) %s: yes for me\n", name_.c_str());
+    return true;
 }
 
 bool MeterCommonImplementation::useAes()
@@ -171,11 +206,6 @@ void MeterCommonImplementation::triggerUpdate(Telegram *t)
 {
     datetime_of_update_ = time(NULL);
     num_updates_++;
-    for (auto &cb : on_update_) if (cb) cb(t->id, this);
+    for (auto &cb : on_update_) if (cb) cb(t, this);
     t->handled = true;
-}
-
-void MeterCommonImplementation::updateMedia(int media)
-{
-    media_ = media;
 }

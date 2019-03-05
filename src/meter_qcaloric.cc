@@ -36,7 +36,7 @@ struct MeterQCaloric : public virtual HeatCostMeter, public virtual MeterCommonI
     string setDate();
     double consumptionAtSetDate();
 
-    void printMeter(string id,
+    void printMeter(Telegram *t,
                     string *human_readable,
                     string *fields, char separator,
                     string *json,
@@ -60,8 +60,9 @@ private:
 };
 
 MeterQCaloric::MeterQCaloric(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, QCALORIC_METER, MANUFACTURER_QDS, 0x08, LinkModeC1)
+    MeterCommonImplementation(bus, name, id, key, QCALORIC_METER, MANUFACTURER_QDS, LinkModeC1)
 {
+    addMedia(0x08);
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
@@ -92,14 +93,8 @@ void MeterQCaloric::handleTelegram(Telegram *t) {
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    if (t->a_field_device_type != 0x08) {
-        warning("(qcaloric) expected telegram for heat cost allocator, but got \"%s\"!\n",
-                mediaType(t->m_field, t->a_field_device_type).c_str());
-    }
-
-    if (t->m_field != manufacturer() ||
-        t->a_field_version != 0x35) {
-        warning("(qcaloric) expected telegram from QDS meter with version 0x01, but got \"%s\" version 0x%02x !\n",
+    if (t->a_field_version != 0x35) {
+        warning("(qcaloric) expected telegram from QDS meter with version 0x35, but got \"%s\" version 0x%02x !\n",
                 manufacturerFlag(t->m_field).c_str(), t->a_field_version);
     }
 
@@ -227,7 +222,7 @@ unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, string& name, string& id, s
     return unique_ptr<HeatCostMeter>(new MeterQCaloric(bus,name,id,key));
 }
 
-void MeterQCaloric::printMeter(string id,
+void MeterQCaloric::printMeter(Telegram *t,
                                string *human_readable,
                                string *fields, char separator,
                                string *json,
@@ -239,7 +234,7 @@ void MeterQCaloric::printMeter(string id,
 
     snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.0f hca\t%s\t% 3.0f hca\t%s",
              name().c_str(),
-             id.c_str(),
+             t->id.c_str(),
              currentConsumption(),
              setDate().c_str(),
              consumptionAtSetDate(),
@@ -249,7 +244,7 @@ void MeterQCaloric::printMeter(string id,
 
     snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%s%c%f%c%s",
              name().c_str(), separator,
-             id.c_str(), separator,
+             t->id.c_str(), separator,
              currentConsumption(), separator,
              setDate().c_str(), separator,
              consumptionAtSetDate(), separator,
@@ -276,7 +271,7 @@ void MeterQCaloric::printMeter(string id,
              QSE(timestamp,%s)
              "}",
              name().c_str(),
-             id.c_str(),
+             t->id.c_str(),
              currentConsumption(),
              setDate().c_str(),
              consumptionAtSetDate(),
@@ -290,7 +285,7 @@ void MeterQCaloric::printMeter(string id,
 
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=qcaloric"));
-    envs->push_back(string("METER_ID=")+id);
+    envs->push_back(string("METER_ID=")+t->id);
     envs->push_back(string("METER_CURRENT_CONSUMPTION_HCA=")+to_string(currentConsumption()));
     envs->push_back(string("METER_SET_DATE=")+setDate());
     envs->push_back(string("METER_CONSUMPTION_AT_SET_DATE_HCA=")+to_string(consumptionAtSetDate()));

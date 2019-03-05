@@ -17,5 +17,6 @@ then
         echo Config1 OK
     fi
 else
-    Failure.
+    echo Failure.
+    exit 1
 fi

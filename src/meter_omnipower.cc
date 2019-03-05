@@ -35,7 +35,7 @@ struct MeterOmnipower : public virtual ElectricityMeter, public virtual MeterCom
     double totalEnergyConsumption();
     double currentPowerConsumption();
 
-    void printMeter(string id,
+    void printMeter(Telegram *t,
                     string *human_readable,
                     string *fields, char separator,
                     string *json,
@@ -50,8 +50,9 @@ private:
 };
 
 MeterOmnipower::MeterOmnipower(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, OMNIPOWER_METER, MANUFACTURER_KAM, 0x04, LinkModeC1)
+    MeterCommonImplementation(bus, name, id, key, OMNIPOWER_METER, MANUFACTURER_KAM, LinkModeC1)
 {
+    addMedia(0x02);
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
@@ -77,13 +78,7 @@ void MeterOmnipower::handleTelegram(Telegram *t) {
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    if (t->a_field_device_type != 0x02) {
-        warning("(omnipower) expected telegram for electricity media, but got \"%s\"!\n",
-                mediaType(t->m_field, t->a_field_device_type).c_str());
-    }
-
-    if (t->m_field != manufacturer() ||
-        t->a_field_version != 0x01) {
+    if (t->a_field_version != 0x01) {
         warning("(omnipower) expected telegram from KAM meter with version 0x01, but got \"%s\" version 0x2x !\n",
                 manufacturerFlag(t->m_field).c_str(), t->a_field_version);
     }
@@ -124,7 +119,7 @@ unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, string& name, string& i
     return unique_ptr<ElectricityMeter>(new MeterOmnipower(bus,name,id,key));
 }
 
-void MeterOmnipower::printMeter(string id,
+void MeterOmnipower::printMeter(Telegram *t,
                                 string *human_readable,
                                 string *fields, char separator,
                                 string *json,
@@ -136,7 +131,7 @@ void MeterOmnipower::printMeter(string id,
 
     snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f kwh\t% 3.3f kwh\t%s",
              name().c_str(),
-             id.c_str(),
+             t->id.c_str(),
              totalEnergyConsumption(),
              currentPowerConsumption(),
              datetimeOfUpdateHumanReadable().c_str());
@@ -145,7 +140,7 @@ void MeterOmnipower::printMeter(string id,
 
     snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%f%c%s",
              name().c_str(), separator,
-             id.c_str(), separator,
+             t->id.c_str(), separator,
              totalEnergyConsumption(), separator,
              currentPowerConsumption(), separator,
              datetimeOfUpdateRobot().c_str());
@@ -166,7 +161,7 @@ void MeterOmnipower::printMeter(string id,
              QSE(timestamp,%s)
              "}",
              name().c_str(),
-             id.c_str(),
+             t->id.c_str(),
              totalEnergyConsumption(),
              currentPowerConsumption(),
              datetimeOfUpdateRobot().c_str());
@@ -175,7 +170,7 @@ void MeterOmnipower::printMeter(string id,
 
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=omnipower"));
-    envs->push_back(string("METER_ID=")+id);
+    envs->push_back(string("METER_ID=")+t->id);
     envs->push_back(string("METER_TOTAL_KWH=")+to_string(totalEnergyConsumption()));
     envs->push_back(string("METER_CURRENT_KW=")+to_string(currentPowerConsumption()));
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
