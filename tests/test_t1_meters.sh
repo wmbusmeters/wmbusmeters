@@ -11,6 +11,7 @@ $PROG --format=json simulations/simulation_t1.txt \
       MyWarmWater supercom587 12345678 "" \
       MyColdWater supercom587 11111111 "" \
       MoreWater   iperl       12345699 "" \
+      WaterWater  iperl       33225544 "" \
       > $TEST/test_output.txt
 if [ "$?" == "0" ]
 then

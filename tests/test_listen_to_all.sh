@@ -26,6 +26,9 @@ Received telegram from: 11111111
 Received telegram from: 12345699
           manufacturer: (SEN) Sensus GmbH
            device type: Water meter
+Received telegram from: 33225544
+          manufacturer: (SEN) Sensus GmbH
+           device type: Water meter
 EOF
            )
 
