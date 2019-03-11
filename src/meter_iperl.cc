@@ -114,9 +114,6 @@ void MeterIperl::handleTelegram(Telegram *t)
     } else {
         t->content = t->payload;
     }
-    if (t->content[0] != 0x2f || t->content[1] != 0x2f) {
-        warning("(meter_iperl) warning: telegram payload does not start with 2F2F (did you use the correct encryption key?)\n");
-    }
     char log_prefix[256];
     snprintf(log_prefix, 255, "(%s) log", "iperl");
     logTelegram(log_prefix, t->parsed, t->content);

@@ -126,7 +126,7 @@ void decryptMode5_AES_CBC(Telegram *t, vector<uchar> &aeskey)
     AES_CBC_decrypt_buffer(decrypted_data, content_data, content.size(), &aeskey[0], iv);
 
     if (decrypted_data[0] != 0x2F || decrypted_data[1] != 0x2F) {
-        verbose("(Mode5) decrypt failed!\n");
+        warning("(Mode5) warning: telegram payload does not start with 2F2F (did you use the correct encryption key?)\n");
     }
 
     t->content.clear();
