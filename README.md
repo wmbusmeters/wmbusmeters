@@ -124,8 +124,9 @@ Heat meter Kamstrup Multical 302 (multical302)
 Electricity meter Kamstrup Omnipower (omnipower)
 ```
 
-You can listen to multiple meters as long as they all require the same radio mode C1 or T1.
-So (currently) you cannot listen to a multical21 and a supercom587 with a single dongle at the same time.
+The wmbus dongles imst871a and amb8465 can only listen on one type of wmbus telegrams at a time.
+So you can listen to multiple meters as long as they all require the same radio mode C1 or T1.
+If you use rtl-sdr/rtl_wmbus, then you can listen to both C1 and T1 at the same time.
 
 # Usage examples
 
