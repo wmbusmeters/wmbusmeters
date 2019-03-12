@@ -519,7 +519,16 @@ void MeterMultical21::printMeter(Telegram *t,
         et[1] = 0;
     }
 
-    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f m3\t% 3.3f m3\t% 3.3f m3/h\t%s°C\t%s°C\t%s\t%s",
+    snprintf(buf, sizeof(buf)-1,
+             "%s\t"
+             "%s\t"
+             "% 3.3f m3\t"
+             "% 3.3f m3\t"
+             "% 3.3f m3/h\t"
+             "%s°C\t"
+             "%s°C\t"
+             "%s\t"
+             "%s",
              name().c_str(),
              t->id.c_str(),
              totalWaterConsumption(),
@@ -532,7 +541,16 @@ void MeterMultical21::printMeter(Telegram *t,
 
     *human_readable = buf;
 
-    snprintf(buf, sizeof(buf)-1, "%s%c" "%s%c" "%f%c" "%f%c" "%f%c" "%.0f%c" "%.0f%c" "%s%c" "%s",
+    snprintf(buf, sizeof(buf)-1,
+             "%s%c"
+             "%s%c"
+             "%f%c"
+             "%f%c"
+             "%f%c"
+             "%.0f%c"
+             "%.0f%c"
+             "%s%c"
+             "%s",
              name().c_str(), separator,
              t->id.c_str(), separator,
              totalWaterConsumption(), separator,

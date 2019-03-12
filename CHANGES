@@ -1,4 +1,24 @@
 
+Verison 0.9.2: 2019-03-12
+
+Add max_flow to the iperl meter. This is based
+on a guess that the flow value is actually the max
+flow.
+
+Note! Since max flow was added to iperl, there is an extra
+column in the human output and --format=fields output.
+There is also "max_flow_m3h"="123" in the json output, but that does not
+affect existing code depending on json.
+
+Verison 0.9.1: 2019-03-05
+
+Added support for listening to multiple meters
+with the same key (or no key). Simple use '*'
+as meter id, or make a comma separated list.
+
+Added experimental support for listening to
+--n1a to --n1f and an imst dongle. Might not work.
+
 Version 0.9.0: 2019-02-26
 
 Reading the meter settings from config files
@@ -8,6 +28,7 @@ Using rtl_wmbus to receive wmbus messages from
 rtl_sdr is work in progress.
 Updated README
 Updated some command line options robot is now format.
+Listening to qcaloric now seems to work.
 
 Version 0.8.4: 2019-02-23
 

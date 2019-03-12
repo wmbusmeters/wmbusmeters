@@ -67,6 +67,7 @@ private:
     string decodeTime(int time);
 
     double total_water_consumption_ {};
+    double max_flow_ {};
 };
 
 MeterIperl::MeterIperl(WMBus *bus, string& name, string& id, string& key) :
@@ -135,9 +136,17 @@ void MeterIperl::processContent(Telegram *t)
     parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
 
     int offset;
+    string key;
 
-    extractDVdouble(&values, "0413", &offset, &total_water_consumption_);
-    t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
+    if(findKey(ValueInformation::Volume, 0, &key, &values)) {
+        extractDVdouble(&values, key, &offset, &total_water_consumption_);
+        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
+    }
+
+    if(findKey(ValueInformation::VolumeFlow, ANY_STORAGENR, &key, &values)) {
+        extractDVdouble(&values, key, &offset, &max_flow_);
+        t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_);
+    }
 }
 
 void MeterIperl::printMeter(Telegram *t,
@@ -153,10 +162,12 @@ void MeterIperl::printMeter(Telegram *t,
              "%s\t"
              "%s\t"
              "% 3.3f m3\t"
+             "% 3.3f m3/h\t"
              "%s",
              name().c_str(),
              t->id.c_str(),
              totalWaterConsumption(),
+             maxFlow(),
              datetimeOfUpdateHumanReadable().c_str());
 
     *human_readable = buf;
@@ -165,10 +176,12 @@ void MeterIperl::printMeter(Telegram *t,
              "%s%c"
              "%s%c"
              "%f%c"
+             "%f%c"
              "%s",
              name().c_str(), separator,
              t->id.c_str(), separator,
              totalWaterConsumption(), separator,
+             maxFlow(), separator,
             datetimeOfUpdateRobot().c_str());
 
     *fields = buf;
@@ -183,12 +196,14 @@ void MeterIperl::printMeter(Telegram *t,
              QS(name,%s)
              QS(id,%s)
              Q(total_m3,%f)
+             Q(max_flow_m3h,%f)
              QSE(timestamp,%s)
              "}",
              mediaType(manufacturer(), t->a_field_device_type).c_str(),
              name().c_str(),
              t->id.c_str(),
              totalWaterConsumption(),
+             maxFlow(),
              datetimeOfUpdateRobot().c_str());
 
     *json = buf;
@@ -217,12 +232,12 @@ bool MeterIperl::hasTargetWaterConsumption()
 
 double MeterIperl::maxFlow()
 {
-    return 0.0;
+    return max_flow_;
 }
 
 bool MeterIperl::hasMaxFlow()
 {
-    return false;
+    return true;
 }
 
 double MeterIperl::flowTemperature()
