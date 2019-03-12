@@ -79,6 +79,7 @@ METERS_OBJS:=\
 
 all: $(BUILD)/wmbusmeters $(BUILD)/testinternals
 	@$(STRIP_BINARY)
+	@cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd
 
 dist: wmbusmeters_$(VERSION)_$(DEBARCH).deb
 
