@@ -211,6 +211,7 @@ void MeterIperl::printMeter(Telegram *t,
     envs->push_back(string("METER_TYPE=iperl"));
     envs->push_back(string("METER_ID=")+t->id);
     envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption()));
+    envs->push_back(string("METER_MAX_FLOW_M3H=")+to_string(maxFlow()));
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }
 

@@ -166,6 +166,18 @@ Eaxmple of using the shell command to inject data into postgresql database:
 
 You can have multiple shell commands and they will be executed in the order you gave them on the commandline.
 Note that to single quotes around the command is necessary to pass the env variable names into wmbusmeters.
+To list the shell env variables available for your meter, add --shellenvs to the commandline:
+`wmbusmeters --shellenvs auto Water iperl 12345678 ""`
+which outputs:
+```
+Environment variables provided to shell for meter iperl:
+METER_JSON
+METER_TYPE
+METER_ID
+METER_TOTAL_M3
+METER_MAX_FLOW_M3H
+METER_TIMESTAMP
+```
 
 You can use `--debug` to get both verbose output and the actual data bytes sent back and forth with the wmbus usb dongle.
 
