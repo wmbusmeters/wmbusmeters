@@ -136,7 +136,11 @@ If you use rtl-sdr/rtl_wmbus, then you can listen to both C1 and T1 at the same 
 wmbusmeters /dev/ttyUSB0 MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF
 ```
 
-wmbusmeters will detect which kind of dongle is connected to /dev/ttyUSB0. It can be either an IMST 871a dongle or an Amber Wireless AMB8465. If you have setup the udev rules below, then you can use auto instead of /dev/ttyUSB0.
+wmbusmeters will detect which kind of dongle is connected to
+/dev/ttyUSB0. It can be either an IMST 871a dongle or an Amber
+Wireless AMB8465. If you have performed `make install` or added the
+udev rules yourself, then you can use auto instead of the exact usb
+device.
 
 Example output:
 
