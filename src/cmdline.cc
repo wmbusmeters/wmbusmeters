@@ -93,6 +93,9 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
                 size_t len = strlen(argv[i]) - 12;
                 c->useconfig = true;
                 c->config_root = string(argv[i]+12, len);
+                if (c->config_root == "/") {
+                    c->config_root = "";
+                }
                 return unique_ptr<Configuration>(c);
             }
             else

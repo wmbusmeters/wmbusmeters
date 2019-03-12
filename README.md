@@ -4,7 +4,7 @@ The program receives and decodes C1 or T1 telegrams
 utility meter readings. The readings can then be published using
 MQTT, curled to a REST api, inserted into a database or stored in a log file.
 
-The program runs on GNU/Linux (standard x86) and Raspberry Pi (arm).
+The program runs on GNU/Linux, MacOSX and Raspberry Pi.
 
 | OS           | Status           |
 | ------------ |:-------------:|
@@ -68,7 +68,7 @@ The files/dir should then be located here:
 # Running without config files, good for experimentation and test.
 
 ```
-wmbusmeters version: 0.9
+wmbusmeters version: 0.9.2
 Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type] [meter_id] [meter_key] )*
 
 As <options> you can use:
@@ -81,6 +81,7 @@ As <options> you can use:
     --logtelegrams log the contents of the telegrams for easy replay
     --meterfiles=<dir> store meter readings in dir
     --meterfilesaction=(overwrite|append) overwrite or append to the meter readings file
+    --n1a to --n1f listen to N1 messages (perhaps)
     --oneshot wait for an update from each meter, then quit
     --separator=<c> change field separator to c
     --shell=<cmdline> invokes cmdline with env variables containing the latest reading
@@ -181,13 +182,13 @@ You can run wmbusmeters with --logtelegrams to get log output that can be placed
 file. You can then run wmbusmeter and instead of auto (or an usb device) provide the simulationt.xt
 file as argument. See test.sh for more info.
 
-# Builds and runs on GNU/Linux:
+# Builds and runs on GNU/Linux and MacOSX (with recent XCode)
 
 `make && make test`
 
 Binary generated: `./build/wmbusmeters`
 
-`make HOST=arm`
+`make HOST=arm` to cross compile from GNU/Linux to Raspberry PI.
 
 Binary generated: `./build_arm/wmbusmeters`
 

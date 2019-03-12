@@ -29,6 +29,7 @@ rtl_sdr is work in progress.
 Updated README
 Updated some command line options robot is now format.
 Listening to qcaloric now seems to work.
+Added support for MacOSX.
 
 Version 0.8.4: 2019-02-23
 
