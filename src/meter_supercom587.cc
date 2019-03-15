@@ -109,7 +109,7 @@ void MeterSupercom587::handleTelegram(Telegram *t)
 
     if (useAes()) {
         vector<uchar> aeskey = key();
-        decryptMode1_AES_CTR(t, aeskey);
+        decryptMode5_AES_CBC(t, aeskey);
     } else {
         t->content = t->payload;
     }
