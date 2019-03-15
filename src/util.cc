@@ -126,9 +126,9 @@ std::string bin2hex(vector<uchar> &target) {
     return str;
 }
 
-std::string bin2hex(vector<uchar>::iterator data, int len) {
+std::string bin2hex(vector<uchar>::iterator data, vector<uchar>::iterator end, int len) {
     std::string str;
-    while (len-- > 0) {
+    while (data != end && len-- > 0) {
         const char ch = *data;
         data++;
         str.append(&hex[(ch  & 0xF0) >> 4], 1);

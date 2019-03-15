@@ -87,7 +87,7 @@ bool parseDV(Telegram *t,
         // Since the data does not have the difvifs.
         data_has_difvifs = false;
         format_end = *format+format_len;
-        string s = bin2hex(*format, format_len);
+        string s = bin2hex(*format, format_end, format_len);
         debug("(dvparser) using format \"%s\"\n", s.c_str());
     }
 
@@ -247,24 +247,22 @@ bool parseDV(Telegram *t,
         DEBUG_PARSER("(dvparser debug) remaining data %d len=%d\n", remaining, datalen);
         if (remaining < datalen) {
             debug("(dvparser) warning: unexpected end of data\n");
-            datalen = remaining;
+            datalen = remaining-1;
         }
 
         // Skip the length byte in the variable length data.
         if (variable_length) {
             t->addExplanation(data, 1, "%02X varlen=%d", datalen, datalen);
         }
-        string value = bin2hex(data, datalen);
+        string value = bin2hex(data, data_end, datalen);
         int offset = start_parse_here+data-data_start;
         (*values)[key] = { offset, DVEntry(vif&0x7f, storage_nr, tariff, subunit, value) };
         if (value.length() > 0) {
-            assert(data != databytes.end());
-            assert(data+datalen <= databytes.end());
             // This call increments data with datalen.
             t->addExplanation(data, datalen, "%s", value.c_str());
             DEBUG_PARSER("(dvparser debug) data \"%s\"\n\n", value.c_str());
         }
-        if (remaining == datalen) {
+        if (remaining == datalen || data == databytes.end()) {
             // We are done here!
             break;
         }
