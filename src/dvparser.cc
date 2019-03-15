@@ -156,7 +156,7 @@ bool parseDV(Telegram *t,
         bool has_another_dife = (dif & 0x80) == 0x80;
 
         while (has_another_dife) {
-            if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (dife expected)"); break; }
+            if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (dife expected)\n"); break; }
             uchar dife = **format;
             int subunit_bit = (dife & 0x40) >> 6;
             subunit |= subunit_bit << difenr;
@@ -181,7 +181,7 @@ bool parseDV(Telegram *t,
             difenr++;
         }
 
-        if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif expected)"); break; }
+        if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif expected)\n"); break; }
 
         uchar vif = **format;
         DEBUG_PARSER("(dvparser debug) vif=%02x \"%s\"\n", vif, vifType(vif).c_str());
@@ -196,7 +196,7 @@ bool parseDV(Telegram *t,
 
         bool has_another_vife = (vif & 0x80) == 0x80;
         while (has_another_vife) {
-            if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vife expected)"); break; }
+            if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vife expected)\n"); break; }
             uchar vife = **format;
             DEBUG_PARSER("(dvparser debug) vife=%02x (%s)\n", vife, vifeType(dif, vif, vife).c_str());
             if (data_has_difvifs) {
