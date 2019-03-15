@@ -100,6 +100,7 @@ Supported heat cost allocator:
 Qundis Q caloric (qcaloric)
 
 Work in progress:
+Water meter Apator at-wmbus-16-2
 Heat meter Kamstrup Multical 302 (multical302)
 Electricity meter Kamstrup Omnipower (omnipower)
 )MANUAL";
@@ -269,6 +270,10 @@ void startUsingCommandline(Configuration *config)
             case QCALORIC_METER:
                 meters.push_back(createQCaloric(wmbus.get(), m.name, m.id, m.key));
                 verbose("(qcaloric) configured \"%s\" \"qcaloric\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
+                break;
+            case APATOR162_METER:
+                meters.push_back(createApator162(wmbus.get(), m.name, m.id, m.key));
+                verbose("(apator162) configured \"%s\" \"apator162\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
             case UNKNOWN_METER:
                 error("No such meter type \"%s\"\n", m.type.c_str());

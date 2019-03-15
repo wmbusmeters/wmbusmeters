@@ -111,6 +111,7 @@ MeterType toMeterType(string& type)
     if (type == "supercom587") return SUPERCOM587_METER;
     if (type == "iperl") return IPERL_METER;
     if (type == "qcaloric") return QCALORIC_METER;
+    if (type == "apator162") return APATOR162_METER;
     return UNKNOWN_METER;
 }
 
@@ -123,6 +124,7 @@ LinkMode toMeterLinkMode(string& type)
     if (type == "supercom587") return LinkMode::T1;
     if (type == "iperl") return LinkMode::T1;
     if (type == "qcaloric") return LinkMode::C1;
+    if (type == "apator162") return LinkMode::T1;
 
     return LinkMode::UNKNOWN;
 }

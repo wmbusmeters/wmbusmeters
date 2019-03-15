@@ -66,6 +66,7 @@ METERS_OBJS:=\
 	$(BUILD)/meter_supercom587.o \
 	$(BUILD)/meter_iperl.o \
 	$(BUILD)/meter_qcaloric.o \
+	$(BUILD)/meter_apator162.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \
@@ -148,6 +149,7 @@ update_manufacturers:
 	-e 's/<\/tr>/)\\\n/g' | \
 	grep -v '<caption>' | tr -s ' ' | tr -s '\t' | tr '\t' '|' > tmpfile
 	echo 'X(|QDS|QUNDIS GmbH)\' >> tmpfile
+	echo 'X(|APA|Apator Powogaz S.A)\' >> tmpfile
 	cat tmpfile | sed -e "s/X(|\(.\)\(.\)\(.\)/X(\1\2\3|MANFCODE('\1','\2','\3')|/g" | \
 	tr -s '|' ',' >> m.h
 	echo >> m.h
@@ -156,4 +158,4 @@ update_manufacturers:
 	echo >> m.h
 	echo '#endif' >> m.h
 	rm tmpfile
-	mv m.h manufacturers.h
+	mv m.h src/manufacturers.h

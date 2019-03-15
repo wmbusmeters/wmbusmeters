@@ -1,5 +1,5 @@
 // Data downloaded from http://www.m-bus.de/man.html
-// 2019-02-17
+// 2019-03-15
 
 #ifndef MANUFACTURERS_H
 #define MANUFACTURERS_H
@@ -116,6 +116,7 @@ X(ZAG,MANFCODE('Z','A','G'),Zellwerg Uster AG)\
 X(ZAP,MANFCODE('Z','A','P'),Zaptronix)\
 X(ZIV,MANFCODE('Z','I','V'),ZIV Aplicaciones y Tecnologia S.A.)\
 X(QDS,MANFCODE('Q','D','S'),QUNDIS GmbH)\
+X(APA,MANFCODE('A','P','A'),Apator Powogaz S.A)\
 
 #define MANUFACTURER_ABB MANFCODE('A','B','B')
 #define MANUFACTURER_ACE MANFCODE('A','C','E')
@@ -228,5 +229,6 @@ X(QDS,MANFCODE('Q','D','S'),QUNDIS GmbH)\
 #define MANUFACTURER_ZAP MANFCODE('Z','A','P')
 #define MANUFACTURER_ZIV MANFCODE('Z','I','V')
 #define MANUFACTURER_QDS MANFCODE('Q','D','S')
+#define MANUFACTURER_APA MANFCODE('A','P','A')
 
 #endif
