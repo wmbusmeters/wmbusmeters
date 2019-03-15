@@ -84,6 +84,9 @@ void MeterMultical302::handleTelegram(Telegram *t) {
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
+    if (t->isEncrypted() && !useAes()) {
+        warning("(multical302) warning: telegram is encrypted but no key supplied!\n");
+    }
     if (useAes()) {
         vector<uchar> aeskey = key();
         decryptMode1_AES_CTR(t, aeskey);

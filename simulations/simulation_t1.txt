@@ -8,7 +8,7 @@ telegram=|A244EE4D111111113C077AAC000000|0C1389490000426CE1F14C130000000082046C2
 
 # Test iPerl T1 telegram, after decryption, its got 2f2f markers.
 
-telegram=|1E44AE4C9956341268077A36001005|2F2F0413181E0000023B00002F2F2F2F|
+telegram=|1E44AE4C9956341268077A36001000|2F2F0413181E0000023B00002F2F2F2F|
 {"media":"water","meter":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704000,"max_flow_m3h":0.000000,"timestamp":"1111-11-11T11:11:11Z"}
 
 # Test iPerl T1 telegram not encrypted, no 2f2f markers.

@@ -100,7 +100,7 @@ Supported heat cost allocator:
 Qundis Q caloric (qcaloric)
 
 Work in progress:
-Water meter Apator at-wmbus-16-2
+Water meter Apator at-wmbus-16-2 (apator162)
 Heat meter Kamstrup Multical 302 (multical302)
 Electricity meter Kamstrup Omnipower (omnipower)
 )MANUAL";

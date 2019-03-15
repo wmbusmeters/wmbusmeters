@@ -351,7 +351,7 @@ void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
     for (auto& p : explanations) {
         if (p.first == pos) {
             if (p.second[0] == '*') {
-                warning("(wmbus) warning! already added more explanations to offset %d!\n");
+                debug("(wmbus) warning: already added more explanations to offset %d!\n");
             }
             p.second = string("* ")+p.second+buf;
             found = true;
@@ -359,7 +359,7 @@ void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
     }
 
     if (!found) {
-        warning("(wmbus) warning! cannot find offset %d to add more explanation \"%s\"\n", pos, buf);
+        debug("(wmbus) warning: cannot find offset %d to add more explanation \"%s\"\n", pos, buf);
     }
 }
 
@@ -403,8 +403,20 @@ void Telegram::parse(vector<uchar> &frame)
         addExplanation(bytes, 1, "%02x acc", acc);
         status = frame[12];
         addExplanation(bytes, 1, "%02x status ()", status);
-        configuration = frame[13]<<8 | frame[14];
-        addExplanation(bytes, 2, "%02x%02x configuration ()", frame[13], frame[14]);
+        config_field = frame[13]<<8 | frame[14];
+        string config_info = "";
+        if (config_field & 0x0f) {
+            config_info += "encrypted ";
+            is_encrypted_ = true;
+        }
+        if ((config_field & 0x0f) == 0 || (config_field & 0x0f) == 0x05) {
+            if ((config_field & 0x0f) == 0x05) config_info += "AES_CBC ";
+            if (config_field & 0x80) config_info += "bidirectional ";
+            if (config_field & 0x40) config_info += "accessibility ";
+            if (config_field & 0x20) config_info += "synchronous ";
+        }
+        if (config_info.length() > 0) config_info.pop_back();
+        addExplanation(bytes, 2, "%02x%02x config (%s)", frame[13], frame[14], config_info.c_str());
         header_size = 4;
     } else
     if (ci_field == 0x8d || ci_field == 0x8c) {

@@ -79,7 +79,7 @@ struct Telegram {
     // When ci_field==0x7a then there are 4 extra header bytes, short data header
     int acc {}; // 1 byte
     int status {}; // 1 byte
-    int configuration {}; // 2 bytes
+    int config_field {}; // 2 bytes
 
     // When ci_field==0x8d then there are 8 extra header bytes (ELL header)
     int cc_field {}; // 1 byte
@@ -105,6 +105,12 @@ struct Telegram {
     void addExplanation(vector<uchar>::iterator &bytes, int len, const char* fmt, ...);
     void addMoreExplanation(int pos, const char* fmt, ...);
     void explainParse(string intro, int from);
+
+    bool isEncrypted() { return is_encrypted_; }
+
+private:
+
+    bool is_encrypted_ {};
 };
 
 struct WMBus {

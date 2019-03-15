@@ -83,6 +83,9 @@ void MeterOmnipower::handleTelegram(Telegram *t) {
                 manufacturerFlag(t->m_field).c_str(), t->a_field_version);
     }
 
+    if (t->isEncrypted() && !useAes()) {
+        warning("(omnipower) warning: telegram is encrypted but no key supplied!\n");
+    }
     if (useAes()) {
         vector<uchar> aeskey = key();
         decryptMode5_AES_CBC(t, aeskey);
