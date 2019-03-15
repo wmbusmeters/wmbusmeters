@@ -17,3 +17,4 @@ tests/test_logfile.sh $PROG
 tests/test_listen_to_all.sh $PROG
 tests/test_multiple_ids.sh $PROG
 tests/test_oneshot.sh $PROG
+tests/test_wrongkeys.sh $PROG
