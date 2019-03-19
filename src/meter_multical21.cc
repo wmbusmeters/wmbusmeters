@@ -202,13 +202,7 @@ void MeterMultical21::handleTelegram(Telegram *t)
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    if (t->a_field_version != expected_version_) {
-        warning("(%s) expected telegram from KAM meter with version 0x%02x, "
-                "but got \"%s\" meter with version 0x%02x !\n", meter_name_,
-                expected_version_,
-                manufacturerFlag(t->m_field).c_str(),
-                t->a_field_version);
-    }
+    t->expectVersion(name().c_str(), expected_version_);
 
     if (useAes()) {
         vector<uchar> aeskey = key();

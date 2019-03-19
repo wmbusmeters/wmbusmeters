@@ -458,6 +458,13 @@ void Telegram::explainParse(string intro, int from)
     debug("%s %s\n", intro.c_str(), hex.c_str());
 }
 
+void Telegram::expectVersion(const char *info, int v)
+{
+    if (a_field_version != v) {
+        warning("(%s) expected telegram with version 0x%02x, but got version 0x%02x !\n", info, v, a_field_version);
+    }
+}
+
 string cType(int c_field)
 {
     switch (c_field) {

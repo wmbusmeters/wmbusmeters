@@ -111,6 +111,8 @@ struct Telegram {
 
     void markAsSimulated() { is_simulated_ = true; }
 
+    void expectVersion(const char *info, int v);
+
 private:
 
     bool is_encrypted_ {};

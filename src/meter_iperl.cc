@@ -101,13 +101,7 @@ void MeterIperl::handleTelegram(Telegram *t)
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    if (t->a_field_version != 0x68) {
-        warning("(%s) expected telegram from SEN meter with version 0x%02x, "
-                "but got \"%s\" meter with version 0x%02x !\n", "iperl",
-                0x68,
-                manufacturerFlag(t->m_field).c_str(),
-                t->a_field_version);
-    }
+    t->expectVersion("iperl", 0x68);
 
     if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
         warning("(iperl) warning: telegram is encrypted but no key supplied!\n");

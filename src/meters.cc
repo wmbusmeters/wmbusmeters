@@ -150,13 +150,15 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
     }
 
     if (!id_match) {
+        // The id must match.
         debug("(meter) %s: not for me: not my id\n", name_.c_str());
         return false;
     }
 
     if (manufacturer_ != 0 && t->m_field != manufacturer_) {
-        debug("(meter) %s: not for me: manufacturer differs\n", name_.c_str());
-        return false;
+        // We are not that strict for the manufacturer.
+        // Simply warn.
+        warning("(meter) %s: probably not for me since manufacturer differs\n", name_.c_str());
     }
 
     bool media_match = false;
@@ -168,8 +170,7 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
     }
 
     if (!media_match) {
-        debug("(meter) %s: not for me: no media match\n", name_.c_str());
-        return false;
+        warning("(meter) %s: probably not for me since media does not match\n", name_.c_str());
     }
 
     debug("(meter) %s: yes for me\n", name_.c_str());

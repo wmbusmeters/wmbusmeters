@@ -78,10 +78,7 @@ void MeterOmnipower::handleTelegram(Telegram *t) {
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    if (t->a_field_version != 0x01) {
-        warning("(omnipower) expected telegram from KAM meter with version 0x01, but got \"%s\" version 0x2x !\n",
-                manufacturerFlag(t->m_field).c_str(), t->a_field_version);
-    }
+    t->expectVersion("omnipower", 0x01);
 
     if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
         warning("(omnipower) warning: telegram is encrypted but no key supplied!\n");

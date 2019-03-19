@@ -99,13 +99,7 @@ void MeterApator162::handleTelegram(Telegram *t)
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    if (t->a_field_version != 0x05) {
-        warning("(%s) expected telegram from APA meter with version 0x%02x, "
-                "but got \"%s\" meter with version 0x%02x !\n", "apator162",
-                0x05,
-                manufacturerFlag(t->m_field).c_str(),
-                t->a_field_version);
-    }
+    t->expectVersion("apator162", 0x05);
 
     if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
         warning("(apator162) warning: telegram is encrypted but no key supplied!\n");

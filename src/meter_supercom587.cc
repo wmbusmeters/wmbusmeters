@@ -99,13 +99,7 @@ void MeterSupercom587::handleTelegram(Telegram *t)
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    if (t->a_field_version != 0x3c) {
-        warning("(%s) expected telegram from SON meter with version 0x%02x, "
-                "but got \"%s\" meter with version 0x%02x !\n", "supercom587",
-                0x3c,
-                manufacturerFlag(t->m_field).c_str(),
-                t->a_field_version);
-    }
+    t->expectVersion("supercom587", 0x3c);
 
     if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
         warning("(supercom587) warning: telegram is encrypted but no key supplied!\n");
