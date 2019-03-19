@@ -73,18 +73,18 @@ void MeterAmiplus::handleTelegram(Telegram *t) {
         return;
     }
 
-    verbose("(omnipower) %s %02x%02x%02x%02x ",
+    verbose("(amiplus) %s %02x%02x%02x%02x ",
             name().c_str(),
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    if (t->a_field_version != 0x01) {
-        warning("(omnipower) expected telegram from KAM meter with version 0x01, but got \"%s\" version 0x2x !\n",
+    if (t->a_field_version != 0x02) {
+        warning("(amiplus) expected telegram from APA meter with version 0x01, but got \"%s\" version 0x2x !\n",
                 manufacturerFlag(t->m_field).c_str(), t->a_field_version);
     }
 
     if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
-        warning("(omnipower) warning: telegram is encrypted but no key supplied!\n");
+        warning("(amiplus) warning: telegram is encrypted but no key supplied!\n");
     }
     if (useAes()) {
         vector<uchar> aeskey = key();
@@ -92,11 +92,11 @@ void MeterAmiplus::handleTelegram(Telegram *t) {
     } else {
         t->content = t->payload;
     }
-    logTelegram("(omnipower) log", t->parsed, t->content);
+    logTelegram("(amiplus) log", t->parsed, t->content);
     int content_start = t->parsed.size();
     processContent(t);
     if (isDebugEnabled()) {
-        t->explainParse("(omnipower)", content_start);
+        t->explainParse("(amiplus)", content_start);
     }
     triggerUpdate(t);
 }
@@ -150,7 +150,7 @@ void MeterAmiplus::printMeter(Telegram *t,
 
     snprintf(buf, sizeof(buf)-1, "{"
              QS(media,electricity)
-             QS(meter,omnipower)
+             QS(meter,amiplus)
              QS(name,%s)
              QS(id,%s)
              Q(total_kwh,%f)
@@ -166,7 +166,7 @@ void MeterAmiplus::printMeter(Telegram *t,
     *json = buf;
 
     envs->push_back(string("METER_JSON=")+*json);
-    envs->push_back(string("METER_TYPE=omnipower"));
+    envs->push_back(string("METER_TYPE=amiplus"));
     envs->push_back(string("METER_ID=")+t->id);
     envs->push_back(string("METER_TOTAL_KWH=")+to_string(totalEnergyConsumption()));
     envs->push_back(string("METER_CURRENT_KW=")+to_string(currentPowerConsumption()));
