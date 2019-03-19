@@ -107,7 +107,7 @@ void MeterApator162::handleTelegram(Telegram *t)
                 t->a_field_version);
     }
 
-    if (t->isEncrypted() && !useAes()) {
+    if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
         warning("(apator162) warning: telegram is encrypted but no key supplied!\n");
     }
     if (useAes()) {
@@ -135,10 +135,23 @@ void MeterApator162::processContent(Telegram *t)
     map<string,pair<int,DVEntry>> values;
     parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
 
+    // Unfortunately, the at-wmbus-16-2 is mostly a proprieatary protocol
+    // simple wrapped inside a wmbus telegram. Thus the parsing above ends
+    // immediately with a 0x0f dif which means: from now on, its vendor specific
+    // data structures.
+
+    // By examining some telegrams though, it looks like the total consumption
+    // counter is on offset 25. So we can fake a parse here, to make it easier
+    // to extract using the existing tools.
+    map<string,pair<int,DVEntry>> vendor_values;
+
+    string total;
+    strprintf(total, "%02x%02x%02x%02x", t->content[25], t->content[26], t->content[27], t->content[28]);
+    vendor_values["0413"] = { 25, DVEntry(0x13, 0, 0, 0, total) };
     int offset;
     string key;
-    if(findKey(ValueInformation::Volume, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &total_water_consumption_);
+    if(findKey(ValueInformation::Volume, 0, &key, &vendor_values)) {
+        extractDVdouble(&vendor_values, key, &offset, &total_water_consumption_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
     }
 }

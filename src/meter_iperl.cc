@@ -109,7 +109,7 @@ void MeterIperl::handleTelegram(Telegram *t)
                 t->a_field_version);
     }
 
-    if (t->isEncrypted() && !useAes()) {
+    if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
         warning("(iperl) warning: telegram is encrypted but no key supplied!\n");
     }
     if (useAes()) {

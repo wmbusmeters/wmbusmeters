@@ -107,10 +107,14 @@ struct Telegram {
     void explainParse(string intro, int from);
 
     bool isEncrypted() { return is_encrypted_; }
+    bool isSimulated() { return is_simulated_; }
+
+    void markAsSimulated() { is_simulated_ = true; }
 
 private:
 
     bool is_encrypted_ {};
+    bool is_simulated_ {};
 };
 
 struct WMBus {

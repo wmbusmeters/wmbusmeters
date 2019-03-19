@@ -180,6 +180,7 @@ void WMBusSimulator::simulate()
         }
         Telegram t;
         t.parse(payload);
+        t.markAsSimulated();
         for (auto f : telegram_listeners_) {
             if (f) f(&t);
         }
