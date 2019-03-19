@@ -124,7 +124,7 @@ Qundis Q caloric (qcaloric)
 Work in progress:
 Water meter Apator at-wmbus-16-2 (apator162)
 Heat meter Kamstrup Multical 302 (multical302)
-Electricity meter Kamstrup Omnipower (omnipower)
+Electricity meter Kamstrup Omnipower (omnipower) and Tauron Amiplus (amiplus)
 ```
 
 The wmbus dongles imst871a and amb8465 can only listen on one type of wmbus telegrams at a time.

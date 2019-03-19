@@ -67,6 +67,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_iperl.o \
 	$(BUILD)/meter_qcaloric.o \
 	$(BUILD)/meter_apator162.o \
+	$(BUILD)/meter_amiplus.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \

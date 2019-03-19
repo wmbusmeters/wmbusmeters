@@ -108,6 +108,7 @@ MeterType toMeterType(string& type)
     if (type == "flowiq3100") return FLOWIQ3100_METER;
     if (type == "multical302") return MULTICAL302_METER;
     if (type == "omnipower") return OMNIPOWER_METER;
+    if (type == "amiplus") return AMIPLUS_METER;
     if (type == "supercom587") return SUPERCOM587_METER;
     if (type == "iperl") return IPERL_METER;
     if (type == "qcaloric") return QCALORIC_METER;
@@ -121,6 +122,7 @@ LinkMode toMeterLinkMode(string& type)
     if (type == "flowiq3100") return LinkMode::C1;
     if (type == "multical302") return LinkMode::C1;
     if (type == "omnipower") return LinkMode::C1;
+    if (type == "amiplus") return LinkMode::T1;
     if (type == "supercom587") return LinkMode::T1;
     if (type == "iperl") return LinkMode::T1;
     if (type == "qcaloric") return LinkMode::C1;

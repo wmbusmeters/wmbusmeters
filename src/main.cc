@@ -102,7 +102,8 @@ Qundis Q caloric (qcaloric)
 Work in progress:
 Water meter Apator at-wmbus-16-2 (apator162)
 Heat meter Kamstrup Multical 302 (multical302)
-Electricity meter Kamstrup Omnipower (omnipower)
+Electricity meter Kamstrup Omnipower (omnipower) and Tauron Amiplus (amiplus)
+
 )MANUAL";
         puts(msg);
     }
@@ -258,6 +259,10 @@ void startUsingCommandline(Configuration *config)
             case OMNIPOWER_METER:
                 meters.push_back(createOmnipower(wmbus.get(), m.name, m.id, m.key));
                 verbose("(omnipower) configured \"%s\" \"omnipower\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
+                break;
+            case AMIPLUS_METER:
+                meters.push_back(createAmiplus(wmbus.get(), m.name, m.id, m.key));
+                verbose("(amiplus) configured \"%s\" \"amiplus\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
             case SUPERCOM587_METER:
                 meters.push_back(createSupercom587(wmbus.get(), m.name, m.id, m.key));
