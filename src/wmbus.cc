@@ -1582,6 +1582,14 @@ string vif_FB_ExtensionType(uchar dif, uchar vif, uchar vife)
         return "Reserved";
     }
 
+    if ((vife & 0x7f) == 0x20) {
+        return "Volume feet";
+    }
+
+    if ((vife & 0x7f) == 0x21) {
+        return "Volume 0.1 feet";
+    }
+
     if ((vife & 0x7e) == 0x28) {
         // Come again? A unit of 1MW...do they intend to use m-bus to track the
         // output from a nuclear power plant?
@@ -1665,28 +1673,206 @@ string vif_FB_ExtensionType(uchar dif, uchar vif, uchar vife)
 
 string vifeType(int dif, int vif, int vife)
 {
-    if ((dif & 0x0d) == 0x0d) {
-        if (vife == 0x1f) {
-            return "Compact profile without register";
-        }
-        if (vife == 0x13) {
-            return "Reverse compact profile without register";
-        }
-        if (vife == 0x1e) {
-            return "Compact profile with register";
-        }
-    }
-    if (vif == 0x83 && vife == 0x3b) {
-        return "Forward flow contribution only";
-    }
     if (vif == 0xfb) {
         return vif_FB_ExtensionType(dif, vif, vife);
     }
     if (vif == 0xfd) {
         return vif_FD_ExtensionType(dif, vif, vife);
     }
-    if (vif == 0xff) {
-        return "?";
+    vife = vife & 0x7f; // Strip the bit signifying more vifes after this.
+    if (vife == 0x1f) {
+        return "Compact profile without register";
+    }
+    if (vife == 0x13) {
+        return "Reverse compact profile without register";
+    }
+    if (vife == 0x1e) {
+        return "Compact profile with register";
+    }
+    if (vife == 0x20) {
+        return "per second";
+    }
+    if (vife == 0x21) {
+        return "per minute";
+    }
+    if (vife == 0x22) {
+        return "per hour";
+    }
+    if (vife == 0x23) {
+        return "per day";
+    }
+    if (vife == 0x24) {
+        return "per week";
+    }
+    if (vife == 0x25) {
+        return "per month";
+    }
+    if (vife == 0x26) {
+        return "per year";
+    }
+    if (vife == 0x27) {
+        return "per revolution/measurement";
+    }
+    if (vife == 0x28) {
+        return "incr per input pulse on input channel 0";
+    }
+    if (vife == 0x29) {
+        return "incr per input pulse on input channel 1";
+    }
+    if (vife == 0x2a) {
+        return "incr per output pulse on input channel 0";
+    }
+    if (vife == 0x2b) {
+        return "incr per output pulse on input channel 1";
+    }
+    if (vife == 0x2c) {
+        return "per litre";
+    }
+    if (vife == 0x2d) {
+        return "per m3";
+    }
+    if (vife == 0x2e) {
+        return "per kg";
+    }
+    if (vife == 0x2f) {
+        return "per kelvin";
+    }
+    if (vife == 0x30) {
+        return "per kWh";
+    }
+    if (vife == 0x31) {
+        return "per GJ";
+    }
+    if (vife == 0x32) {
+        return "per kW";
+    }
+    if (vife == 0x33) {
+        return "per kelvin*litre";
+    }
+    if (vife == 0x34) {
+        return "per volt";
+    }
+    if (vife == 0x35) {
+        return "per ampere";
+    }
+    if (vife == 0x36) {
+        return "multiplied by s";
+    }
+    if (vife == 0x37) {
+        return "multiplied by s/V";
+    }
+    if (vife == 0x38) {
+        return "multiplied by s/A";
+    }
+    if (vife == 0x39) {
+        return "start date/time of a,b";
+    }
+    if (vife == 0x3a) {
+        return "uncorrected meter unit";
+    }
+    if (vife == 0x3b) {
+        return "forward flow";
+    }
+    if (vife == 0x3c) {
+        return "backward flow";
+    }
+    if (vife == 0x3d) {
+        return "reserved for non-metric unit systems";
+    }
+    if (vife == 0x3e) {
+        return "value at base conditions c";
+    }
+    if (vife == 0x3f) {
+        return "obis-declaration";
+    }
+    if (vife == 0x40) {
+        return "obis-declaration";
+    }
+    if (vife == 0x40) {
+        return "lower limit";
+    }
+    if (vife == 0x48) {
+        return "upper limit";
+    }
+    if (vife == 0x41) {
+        return "number of exceeds of lower limit";
+    }
+    if (vife == 0x49) {
+        return "number of exceeds of upper limit";
+    }
+    if ((vife & 0x72) == 0x42) {
+        string msg = "date/time of ";
+        if (vife & 0x01) msg += "end ";
+        else msg += "beginning ";
+        msg +=" of ";
+        if (vife & 0x04) msg += "last ";
+        else msg += "first ";
+        if (vife & 0x08) msg += "upper ";
+        else msg += "lower ";
+        msg += "limit exceed";
+        return msg;
+    }
+    if ((vife & 0x70) == 0x50) {
+        string msg = "duration of limit exceed ";
+        if (vife & 0x04) msg += "last ";
+        else msg += "first ";
+        if (vife & 0x08) msg += "upper ";
+        else msg += "lower ";
+        int nn = vife & 0x03;
+        msg += " is "+to_string(nn);
+        return msg;
+    }
+    if ((vife & 0x78) == 0x60) {
+        string msg = "duration of a,b ";
+        if (vife & 0x04) msg += "last ";
+        else msg += "first ";
+        int nn = vife & 0x03;
+        msg += " is "+to_string(nn);
+        return msg;
+    }
+    if ((vife & 0x7B) == 0x68) {
+        string msg = "value during ";
+        if (vife & 0x04) msg += "upper ";
+        else msg += "lower ";
+        msg += "limit exceed";
+        return msg;
+    }
+    if (vife == 0x69) {
+        return "leakage values";
+    }
+    if (vife == 0x6d) {
+        return "overflow values";
+    }
+    if ((vife & 0x7a) == 0x6a) {
+        string msg = "date/time of a: ";
+        if (vife & 0x01) msg += "end ";
+        else msg += "beginning ";
+        msg +=" of ";
+        if (vife & 0x04) msg += "last ";
+        else msg += "first ";
+        if (vife & 0x08) msg += "upper ";
+        else msg += "lower ";
+        return msg;
+    }
+    if ((vife & 0x78) == 0x70) {
+        int nnn = vife & 0x07;
+        return "multiplicative correction factor: 10^"+to_string(nnn-6);
+    }
+    if ((vife & 0x78) == 0x78) {
+        int nn = vife & 0x03;
+        return "additive correction constant: unit of VIF * 10^"+to_string(nn-3);
+    }
+    if (vife == 0x7c) {
+        return "extension of combinable vife";
+    }
+    if (vife == 0x7d) {
+        return "multiplicative correction factor for value";
+    }
+    if (vife == 0x7e) {
+        return "future value";
+    }
+    if (vif == 0x7f) {
+        return "manufacturer specific";
     }
     return "?";
 }

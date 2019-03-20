@@ -9,9 +9,11 @@ SIM=simulations/simulation_c1.txt
 
 cat $SIM | grep '^{' > $TEST/test_expected.txt
 
-$PROG --oneshot --verbose $SIM MyHeater multical302 '*' '' MyTapWater multical21 76348799 '' > $TEST/test_output.txt
+$PROG --oneshot $SIM MyHeater multical302 '*' '' MyTapWater multical21 76348799 '' > $TEST/test_output.txt
 
 RES=$(cat $TEST/test_output.txt | grep -o "all meters have received at least one update, stopping.")
+
+cat $TEST/test_output.txt
 
 if [ "$RES" = "all meters have received at least one update, stopping." ]
 then

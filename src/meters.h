@@ -98,6 +98,8 @@ struct HeatMeter : public virtual Meter {
 struct ElectricityMeter : public virtual Meter {
     virtual double totalEnergyConsumption() = 0; // kwh
     virtual double currentPowerConsumption() = 0; // kw
+    virtual double totalEnergyProduction() = 0; // kwh
+    virtual double currentPowerProduction() = 0; // kw
 };
 
 struct HeatCostMeter : public virtual Meter {

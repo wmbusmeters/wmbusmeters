@@ -35,6 +35,8 @@
     X(HeatCostAllocation,0x6E,0x6E) \
     X(Date,0x6C,0x6C) \
     X(DateTime,0x6D,0x6D) \
+    X(EnergyWh,0x03,0x07) \
+    X(PowerW,0x28,0x2f) \
 
 enum class ValueInformation
 {

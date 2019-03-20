@@ -34,6 +34,8 @@ struct MeterAmiplus : public virtual ElectricityMeter, public virtual MeterCommo
 
     double totalEnergyConsumption();
     double currentPowerConsumption();
+    double totalEnergyProduction();
+    double currentPowerProduction();
 
     void printMeter(Telegram *t,
                     string *human_readable,
@@ -47,6 +49,9 @@ private:
 
     double total_energy_ {};
     double current_power_ {};
+    double total_energy_returned_ {};
+    double current_power_returned_ {};
+    string device_date_time_;
 };
 
 MeterAmiplus::MeterAmiplus(WMBus *bus, string& name, string& id, string& key) :
@@ -64,6 +69,16 @@ double MeterAmiplus::totalEnergyConsumption()
 double MeterAmiplus::currentPowerConsumption()
 {
     return current_power_;
+}
+
+double MeterAmiplus::totalEnergyProduction()
+{
+    return total_energy_returned_;
+}
+
+double MeterAmiplus::currentPowerProduction()
+{
+    return current_power_returned_;
 }
 
 void MeterAmiplus::handleTelegram(Telegram *t) {
@@ -104,8 +119,31 @@ void MeterAmiplus::processContent(Telegram *t)
     parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
 
     int offset;
-    extractDVdouble(&values, "04833B", &offset, &total_energy_);
-    t->addMoreExplanation(offset, " total power (%f kwh)", total_energy_);
+    string key;
+
+    if (findKey(ValueInformation::EnergyWh, 0, &key, &values)) {
+        extractDVdouble(&values, key, &offset, &total_energy_);
+        t->addMoreExplanation(offset, " total energy (%f kwh)", total_energy_);
+    }
+
+    if (findKey(ValueInformation::PowerW, 0, &key, &values)) {
+        extractDVdouble(&values, key, &offset, &current_power_);
+        t->addMoreExplanation(offset, " current power (%f kw)", current_power_);
+    }
+
+    extractDVdouble(&values, "0E833C", &offset, &total_energy_returned_);
+    t->addMoreExplanation(offset, " total energy returned (%f kwh)", total_energy_returned_);
+
+    extractDVdouble(&values, "0BAB3C", &offset, &current_power_returned_);
+    t->addMoreExplanation(offset, " current power returned (%f kw)", current_power_returned_);
+
+    if (findKey(ValueInformation::DateTime, 0, &key, &values)) {
+        struct tm datetime;
+        extractDVdate(&values, key, &offset, &datetime);
+        device_date_time_ = strdatetime(&datetime);
+        t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
+    }
+
 }
 
 unique_ptr<ElectricityMeter> createAmiplus(WMBus *bus, string& name, string& id, string& key)
@@ -123,20 +161,24 @@ void MeterAmiplus::printMeter(Telegram *t,
     char buf[65536];
     buf[65535] = 0;
 
-    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f kwh\t% 3.3f kwh\t%s",
+    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f kwh\t% 3.3f kw\t% 3.3f kwh\t% 3.3f kw\t%s",
              name().c_str(),
              t->id.c_str(),
              totalEnergyConsumption(),
              currentPowerConsumption(),
+             totalEnergyProduction(),
+             currentPowerProduction(),
              datetimeOfUpdateHumanReadable().c_str());
 
     *human_readable = buf;
 
-    snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%f%c%s",
+    snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%f%c%f%c%f%c%s",
              name().c_str(), separator,
              t->id.c_str(), separator,
              totalEnergyConsumption(), separator,
              currentPowerConsumption(), separator,
+             totalEnergyProduction(), separator,
+             currentPowerProduction(), separator,
              datetimeOfUpdateRobot().c_str());
 
     *fields = buf;
@@ -150,14 +192,20 @@ void MeterAmiplus::printMeter(Telegram *t,
              QS(meter,amiplus)
              QS(name,%s)
              QS(id,%s)
-             Q(total_kwh,%f)
-             QS(current_kw,%f)
+             Q(total_energy_consumption_kwh,%f)
+             Q(current_power_consumption_kw,%f)
+             Q(total_energy_production_kwh,%f)
+             Q(current_power_production_kw,%f)
+             QS(device_date_time,%s)
              QSE(timestamp,%s)
              "}",
              name().c_str(),
              t->id.c_str(),
              totalEnergyConsumption(),
              currentPowerConsumption(),
+             totalEnergyProduction(),
+             currentPowerProduction(),
+             device_date_time_.c_str(),
              datetimeOfUpdateRobot().c_str());
 
     *json = buf;
@@ -165,7 +213,9 @@ void MeterAmiplus::printMeter(Telegram *t,
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=amiplus"));
     envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_TOTAL_KWH=")+to_string(totalEnergyConsumption()));
-    envs->push_back(string("METER_CURRENT_KW=")+to_string(currentPowerConsumption()));
+    envs->push_back(string("METER_TOTAL_ENERGY_CONSUMPTION_KWH=")+to_string(totalEnergyConsumption()));
+    envs->push_back(string("METER_CURRENT_POWER_CONSUMPTION_KW=")+to_string(currentPowerConsumption()));
+    envs->push_back(string("METER_TOTAL_ENERGY_PRODUCTION_KWH=")+to_string(totalEnergyProduction()));
+    envs->push_back(string("METER_CURRENT_POWER_PRODUCTION_KW=")+to_string(currentPowerProduction()));
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }

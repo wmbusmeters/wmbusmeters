@@ -108,9 +108,11 @@ bool parseDV(Telegram *t,
 
     // A Dif(Difes)Vif(Vifes) identifier can be for example be the 02FF20 for the Multical21
     // vendor specific status bits. The parser then uses this identifier as a key to store the
-    // data bytes in a map. The same identifier can occur several times in a telegram,
+    // data bytes in a map. The same identifier could occur several times in a telegram,
     // even though it often don't. Since the first occurence is stored under 02FF20,
     // the second identical identifier stores its data under the key "02FF20_2" etc for 3 and forth...
+    // A proper meter would use storagenr etc to differentiate between different measurements of
+    // the same value.
 
     format_bytes.clear();
     id_bytes.clear();
@@ -550,6 +552,14 @@ bool extractDVdate(map<string,pair<int,DVEntry>> *values,
     else if (v.size() == 4) {
         ok &= extractDate(v[3], v[2], value);
         ok &= extractTime(v[1], v[0], value);
+    }
+    else if (v.size() == 6) {
+        ok &= extractDate(v[4], v[3], value);
+        ok &= extractTime(v[2], v[1], value);
+        // ..ss ssss
+        int sec  = (0x3f) & v[0];
+        value->tm_sec = sec;
+        // some daylight saving time decoding needed here....
     }
 
     return ok;

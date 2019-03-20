@@ -34,6 +34,8 @@ struct MeterOmnipower : public virtual ElectricityMeter, public virtual MeterCom
 
     double totalEnergyConsumption();
     double currentPowerConsumption();
+    double totalEnergyProduction();
+    double currentPowerProduction();
 
     void printMeter(Telegram *t,
                     string *human_readable,
@@ -64,6 +66,16 @@ double MeterOmnipower::totalEnergyConsumption()
 double MeterOmnipower::currentPowerConsumption()
 {
     return current_power_;
+}
+
+double MeterOmnipower::totalEnergyProduction()
+{
+    return 0.0;
+}
+
+double MeterOmnipower::currentPowerProduction()
+{
+    return 0.0;
 }
 
 void MeterOmnipower::handleTelegram(Telegram *t) {
@@ -156,8 +168,8 @@ void MeterOmnipower::printMeter(Telegram *t,
              QS(meter,omnipower)
              QS(name,%s)
              QS(id,%s)
-             Q(total_kwh,%f)
-             QS(current_kw,%f)
+             Q(total_energy_consumption_kwh,%f)
+             Q(current_power_consumption_kw,%f)
              QSE(timestamp,%s)
              "}",
              name().c_str(),
@@ -171,7 +183,7 @@ void MeterOmnipower::printMeter(Telegram *t,
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=omnipower"));
     envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_TOTAL_KWH=")+to_string(totalEnergyConsumption()));
-    envs->push_back(string("METER_CURRENT_KW=")+to_string(currentPowerConsumption()));
+    envs->push_back(string("METER_TOTAL_ENERGY_CONSUMPTION_KWH=")+to_string(totalEnergyConsumption()));
+    envs->push_back(string("METER_CURRENT_POWER_CONSUMPTION_KW=")+to_string(currentPowerConsumption()));
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }

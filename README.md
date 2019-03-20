@@ -117,14 +117,17 @@ Kamstrup Multical 21 (multical21)
 Kamstrup flowIQ 3100 (flowiq3100)
 Sontex Supercom 587 (supercom587)
 Sensus iPERL (iperl)
+Apator wt-wmbus-12-2 (apator162) (non-standard protocol)
 
 Supported heat cost allocator:
 Qundis Q caloric (qcaloric)
 
+Supported electricity meters:
+Tauron Amiplus (amiplus) (almost complete)
+
 Work in progress:
-Water meter Apator at-wmbus-16-2 (apator162)
 Heat meter Kamstrup Multical 302 (multical302)
-Electricity meter Kamstrup Omnipower (omnipower) and Tauron Amiplus (amiplus)
+Electricity meter Kamstrup Omnipower (omnipower)
 ```
 
 The wmbus dongles imst871a and amb8465 can only listen on one type of wmbus telegrams at a time.
