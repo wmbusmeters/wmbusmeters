@@ -117,7 +117,7 @@ Kamstrup Multical 21 (multical21)
 Kamstrup flowIQ 3100 (flowiq3100)
 Sontex Supercom 587 (supercom587)
 Sensus iPERL (iperl)
-Apator wt-wmbus-12-2 (apator162) (non-standard protocol)
+Apator at-wmbus-16-2 (apator162) (non-standard protocol)
 
 Supported heat cost allocator:
 Qundis Q caloric (qcaloric)
