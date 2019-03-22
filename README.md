@@ -230,17 +230,31 @@ Binary generated: `./wmbusmeters_0.8_armhf.deb`
 
 # System configuration
 
-`make install` installs `/usr/bin/wmbusmeters`, `/usr/sbin/wmbusmetersd`, `wmbusmeters.service`
-and `99-wmbus-usb-serial.rules`.
+`make install` installs the files:
 
-This means that when a im871a/amb8465 dongle is inserted, then the appropriate /dev/im871a or
-/dev/amb8465 link is created. Also the wmbusmeters daemon will be automatically
-started/stopped whenever the im871a/amb8465 dongle is inserted/removed,
-and the daemon starts when the computer boots, if the dongle is already inserted.
+`/etc/wmbusmeters.conf`
+`/usr/bin/wmbusmeters`
+`/usr/sbin/wmbusmetersd`
+`/etc/systemd/system/wmbusmeters.service`
+`/etc/udev/rules.d/99-wmbus-usb-serial.rules`
+`/etc/logrotate.d/wmbusmeters`
+
+creates these directories:
+`/etc/wmbusmeters.d`
+`/var/log/wmbusmeters/meter_readings`
+
+and adds the user `wmbusmeters` with no login account.
+
+This means that when a im871a/amb8465 dongle is inserted, then the
+appropriate /dev/im871a or /dev/amb8465 link is created. Also the
+wmbusmeters daemon will be automatically started/stopped whenever the
+im871a/amb8465 dongle is inserted/removed, and the daemon starts when
+the computer boots, if the dongle is already inserted.
 
 If you do not want the daemon to start automatically, simply edit
-/dev/udev/rules.d/99-wmbus-usb-serial.rules and remove `,TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"`
-from each line.
+/dev/udev/rules.d/99-wmbus-usb-serial.rules and remove
+`,TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"` from each
+line.
 
 You can also start/stop the daemon with `sudo systemctl start wmbusmeters`
 

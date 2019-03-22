@@ -1,4 +1,14 @@
 
+Verison 0.9.3: 2019-03-20
+
+Added initial support for the Tauron Amiplus electricity meter type (amiplus).
+
+Added support for the at-wmbus-16-2 snap on meter (apator162).
+Unfortunately it uses a vendor specific protocol,
+that is merely wrapped inside a wmbus telegram. Lets hope
+the offset to the consumption is stable between
+meters of this type.
+
 Verison 0.9.2: 2019-03-12
 
 Add max_flow to the iperl meter. This is based
