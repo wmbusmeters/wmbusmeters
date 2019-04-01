@@ -23,7 +23,7 @@
 MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, string& name, string& id, string& key,
                                                      MeterType type, int manufacturer,
                                                      LinkMode required_link_mode) :
-    type_(type), manufacturer_(manufacturer), name_(name), bus_(bus),
+    type_(type), name_(name), bus_(bus),
     required_link_mode_(required_link_mode)
 {
     use_aes_ = true;
@@ -33,16 +33,14 @@ MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, string& name, s
     } else {
         hex2bin(key, &key_);
     }
+    if (manufacturer) {
+        manufacturers_.insert(manufacturer);
+    }
 }
 
 MeterType MeterCommonImplementation::type()
 {
     return type_;
-}
-
-int MeterCommonImplementation::manufacturer()
-{
-    return manufacturer_;
 }
 
 vector<int> MeterCommonImplementation::media()
@@ -53,6 +51,11 @@ vector<int> MeterCommonImplementation::media()
 void MeterCommonImplementation::addMedia(int m)
 {
     media_.push_back(m);
+}
+
+void MeterCommonImplementation::addManufacturer(int m)
+{
+    manufacturers_.insert(m);
 }
 
 vector<string> MeterCommonImplementation::ids()
@@ -155,7 +158,7 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
         return false;
     }
 
-    if (manufacturer_ != 0 && t->m_field != manufacturer_) {
+    if (manufacturers_.count(t->m_field) == 0) {
         // We are not that strict for the manufacturer.
         // Simply warn.
         warning("(meter) %s: probably not for me since manufacturer differs\n", name_.c_str());

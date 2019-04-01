@@ -40,7 +40,6 @@ struct Meter {
     virtual vector<string> ids() = 0;
     virtual string name() = 0;
     virtual MeterType type() = 0;
-    virtual int manufacturer() = 0;
     virtual vector<int> media() = 0;
     virtual WMBus *bus() = 0;
     virtual LinkMode requiredLinkMode() = 0;

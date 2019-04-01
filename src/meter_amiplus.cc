@@ -55,9 +55,11 @@ private:
 };
 
 MeterAmiplus::MeterAmiplus(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, AMIPLUS_METER, MANUFACTURER_APA, LinkMode::T1)
+    MeterCommonImplementation(bus, name, id, key, AMIPLUS_METER, 0, LinkMode::T1)
 {
     addMedia(0x02);
+    addManufacturer(MANUFACTURER_APA);
+    addManufacturer(MANUFACTURER_DEV);
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 

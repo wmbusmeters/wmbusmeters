@@ -21,13 +21,13 @@
 #include"meters.h"
 
 #include<map>
+#include<set>
 
 struct MeterCommonImplementation : public virtual Meter
 {
     vector<string> ids();
     string name();
     MeterType type();
-    int manufacturer();
     vector<int> media();
     WMBus *bus();
     LinkMode requiredLinkMode();
@@ -56,12 +56,13 @@ protected:
 
     void triggerUpdate(Telegram *t);
     void addMedia(int media);
+    void addManufacturer(int m);
 
 private:
 
     MeterType type_ {};
-    int manufacturer_ {};
-    vector<int> media_ {};
+    vector<int> media_;
+    set<int> manufacturers_;
     string name_;
     vector<string> ids_;
     vector<uchar> key_;

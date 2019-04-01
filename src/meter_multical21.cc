@@ -578,7 +578,7 @@ void MeterMultical21::printMeter(Telegram *t,
              QS(time_bursting,%s)
              QSE(timestamp,%s)
              "}",
-             mediaType(manufacturer(), t->a_field_device_type).c_str(),
+             mediaType(t->a_field_device_type).c_str(),
              meter_name_,
              name().c_str(),
              t->id.c_str(),

@@ -166,7 +166,7 @@ string deviceType(int m_field, int a_field_device_type) {
     return "Unknown";
 }
 
-string mediaType(int m_field, int a_field_device_type) {
+string mediaType(int a_field_device_type) {
     switch (a_field_device_type) {
     case 0: return "other";
     case 1: return "oil";
