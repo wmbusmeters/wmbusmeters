@@ -18,22 +18,22 @@ EXPECTED=$(cat <<EOF
 No meters configured. Printing id:s of all telegrams heard!
 
 Received telegram from: 12345678
-          manufacturer: (SON) Sontex SA
+          manufacturer: (SON) Sontex, Switzerland
            device type: Warm Water (30°C-90°C) meter
 Received telegram from: 11111111
-          manufacturer: (SON) Sontex SA
+          manufacturer: (SON) Sontex, Switzerland
            device type: Water meter
 Received telegram from: 12345699
-          manufacturer: (SEN) Sensus GmbH
+          manufacturer: (SEN) Sensus Metering Systems, Germany
            device type: Water meter
 Received telegram from: 33225544
-          manufacturer: (SEN) Sensus GmbH
+          manufacturer: (SEN) Sensus Metering Systems, Germany
            device type: Water meter
 Received telegram from: 20202020
-          manufacturer: (APA) Apator Powogaz S.A
+          manufacturer: (APA) Apator, Poland
            device type: Water meter
 Received telegram from: 10101010
-          manufacturer: (APA) Apator Powogaz S.A
+          manufacturer: (APA) Apator, Poland
            device type: Electricity meter
 EOF
            )

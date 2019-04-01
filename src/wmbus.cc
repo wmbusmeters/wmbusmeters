@@ -46,29 +46,29 @@ LinkMode isLinkMode(const char *arg)
 }
 
 struct Manufacturer {
-    char code[4];
+    const char *code;
     int m_field;
-    char name[64];
+    const char *name;
+
+    Manufacturer(const char *c, int m, const char *n) {
+        code = c;
+        m_field = m;
+        name = n;
+    }
 };
 
-Manufacturer manufacturers[] = {
-#define X(key,code,name) {#key,code,#name},
-LIST_OF_MANUFACTURERS
-#undef X
-{"",0,""}
-};
+vector<Manufacturer> manufacturers_;
 
 struct Initializer { Initializer(); };
 
 static Initializer initializser_;
 
 Initializer::Initializer() {
-    for (auto &m : manufacturers) {
-	m.m_field = \
-	    (m.code[0]-64)*1024 +
-	    (m.code[1]-64)*32 +
-	    (m.code[2]-64);
-    }
+
+#define X(key,code,name) manufacturers_.push_back(Manufacturer(#key,code,name));
+LIST_OF_MANUFACTURERS
+#undef X
+
 }
 
 void Telegram::print() {
@@ -121,7 +121,7 @@ void Telegram::verboseFields() {
 }
 
 string manufacturer(int m_field) {
-    for (auto &m : manufacturers) {
+    for (auto &m : manufacturers_) {
 	if (m.m_field == m_field) return m.name;
     }
     return "Unknown";
