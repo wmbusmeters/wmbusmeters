@@ -25,6 +25,7 @@
 #include<vector>
 
 void onExit(std::function<void()> cb);
+void onChild(std::function<void()> cb);
 
 typedef unsigned char uchar;
 

@@ -39,7 +39,19 @@ void exitHandler(int signum)
     if (exit_handler) exit_handler();
 }
 
+function<void()> child_handler;
+
+void childProcessDied(int signum)
+{
+    if (child_handler) child_handler();
+}
+
 void doNothing(int signum) {
+}
+
+void onChild(function<void()> cb)
+{
+    child_handler = cb;
 }
 
 void onExit(function<void()> cb)
@@ -57,6 +69,10 @@ void onExit(function<void()> cb)
     if (old_action.sa_handler != SIG_IGN) sigaction (SIGHUP, &new_action, NULL);
     sigaction (SIGTERM, NULL, &old_action);
     if (old_action.sa_handler != SIG_IGN) sigaction (SIGTERM, &new_action, NULL);
+
+    new_action.sa_handler = childProcessDied;
+    sigaction (SIGCHLD, NULL, &old_action);
+    if (old_action.sa_handler != SIG_IGN) sigaction (SIGCHLD, &new_action, NULL);
 
     new_action.sa_handler = doNothing;
     sigemptyset (&new_action.sa_mask);

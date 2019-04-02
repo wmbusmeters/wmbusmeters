@@ -195,6 +195,11 @@ void startUsingCommandline(Configuration *config)
             command = prefix+"rtl_sdr -f "+freq+" -s 16000000 - 2>/dev/null | "+prefix+"rtl_wmbus";
         }
         verbose("(rtlwmbus) using command: %s\n", command.c_str());
+        onChild([command,&manager](){
+                warning("(rtlwmbus) child process exited! Command was: \"%s\"\n", command.c_str());
+                manager.get()->stop();
+            });
+
         wmbus = openRTLWMBUS(command, manager.get());
         break;
     }
