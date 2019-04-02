@@ -78,7 +78,7 @@ void Telegram::print() {
            manufacturerFlag(m_field).c_str(),
 	   manufacturer(m_field).c_str());
     notice("           device type: %s\n",
-	   deviceType(m_field, a_field_device_type).c_str());
+	   mediaType(a_field_device_type).c_str());
 }
 
 void Telegram::verboseFields() {
@@ -90,7 +90,7 @@ void Telegram::verboseFields() {
             man.c_str(),
             a_field_version,
             a_field_device_type,
-            deviceType(m_field, a_field_device_type).c_str(),
+            mediaType(a_field_device_type).c_str(),
             ci_field,
             ciType(ci_field).c_str());
 
@@ -139,7 +139,7 @@ string manufacturerFlag(int m_field) {
     return flag;
 }
 
-string deviceType(int m_field, int a_field_device_type) {
+string mediaType(int a_field_device_type) {
     switch (a_field_device_type) {
     case 0: return "Other";
     case 1: return "Oil meter";
@@ -162,11 +162,49 @@ string deviceType(int m_field, int a_field_device_type) {
     case 0x17: return "Hot/Cold water meter";
     case 0x18: return "Pressure meter";
     case 0x19: return "A/D converter";
+    case 0x1A: return "Smoke detector";
+    case 0x1B: return "Room sensor (eg temperature or humidity)";
+    case 0x1C: return "Gas detector";
+    case 0x1D: return "Reserved for sensors";
+    case 0x1F: return "Reserved for sensors";
+    case 0x20: return "Breaker (electricity)";
+    case 0x21: return "Valve (gas or water)";
+    case 0x22: return "Reserved for switching devices";
+    case 0x23: return "Reserved for switching devices";
+    case 0x24: return "Reserved for switching devices";
+    case 0x25: return "Customer unit (display device)";
+    case 0x26: return "Reserved for customer units";
+    case 0x27: return "Reserved for customer units";
+    case 0x28: return "Waste water";
+    case 0x29: return "Garbage";
+    case 0x2A: return "Reserved for Carbon dioxide";
+    case 0x2B: return "Reserved for environmental meter";
+    case 0x2C: return "Reserved for environmental meter";
+    case 0x2D: return "Reserved for environmental meter";
+    case 0x2E: return "Reserved for environmental meter";
+    case 0x2F: return "Reserved for environmental meter";
+    case 0x30: return "Reserved for system devices";
+    case 0x31: return "Reserved for communication controller";
+    case 0x32: return "Reserved for unidirectional repeater";
+    case 0x33: return "Reserved for bidirectional repeater";
+    case 0x34: return "Reserved for system devices";
+    case 0x35: return "Reserved for system devices";
+    case 0x36: return "Radio converter (system side)";
+    case 0x37: return "Radio converter (meter side)";
+    case 0x38: return "Reserved for system devices";
+    case 0x39: return "Reserved for system devices";
+    case 0x3A: return "Reserved for system devices";
+    case 0x3B: return "Reserved for system devices";
+    case 0x3C: return "Reserved for system devices";
+    case 0x3D: return "Reserved for system devices";
+    case 0x3E: return "Reserved for system devices";
+    case 0x3F: return "Reserved for system devices";
     }
     return "Unknown";
 }
 
-string mediaType(int a_field_device_type) {
+string mediaTypeJSON(int a_field_device_type)
+{
     switch (a_field_device_type) {
     case 0: return "other";
     case 1: return "oil";
@@ -189,9 +227,47 @@ string mediaType(int a_field_device_type) {
     case 0x17: return "hot/cold water";
     case 0x18: return "pressure";
     case 0x19: return "a/d converter";
+    case 0x1A: return "smoke detector";
+    case 0x1B: return "room sensor";
+    case 0x1C: return "gas detector";
+    case 0x1D: return "reserved";
+    case 0x1F: return "reserved";
+    case 0x20: return "breaker";
+    case 0x21: return "valve";
+    case 0x22: return "reserved";
+    case 0x23: return "reserved";
+    case 0x24: return "reserved";
+    case 0x25: return "customer unit (display device)";
+    case 0x26: return "reserved";
+    case 0x27: return "reserved";
+    case 0x28: return "waste water";
+    case 0x29: return "garbage";
+    case 0x2A: return "reserved";
+    case 0x2B: return "reserved";
+    case 0x2C: return "reserved";
+    case 0x2D: return "reserved";
+    case 0x2E: return "reserved";
+    case 0x2F: return "reserved";
+    case 0x30: return "reserved";
+    case 0x31: return "reserved";
+    case 0x32: return "reserved";
+    case 0x33: return "reserved";
+    case 0x34: return "reserved";
+    case 0x35: return "reserved";
+    case 0x36: return "radio converter (system side)";
+    case 0x37: return "radio converter (meter side)";
+    case 0x38: return "reserved";
+    case 0x39: return "reserved";
+    case 0x3A: return "reserved";
+    case 0x3B: return "reserved";
+    case 0x3C: return "reserved";
+    case 0x3D: return "reserved";
+    case 0x3E: return "reserved";
+    case 0x3F: return "reserved";
     }
     return "Unknown";
 }
+
 
 bool detectIM871A(string device, SerialCommunicationManager *handler);
 bool detectAMB8465(string device, SerialCommunicationManager *handler);
@@ -389,7 +465,7 @@ void Telegram::parse(vector<uchar> &frame)
     a_field_version = frame[4+4];
     a_field_device_type = frame[4+5];
     addExplanation(bytes, 1, "%02x a-field-version", frame[8]);
-    addExplanation(bytes, 1, "%02x a-field-type (%s)", frame[9], deviceType(m_field, a_field_device_type).c_str());
+    addExplanation(bytes, 1, "%02x a-field-type (%s)", frame[9], mediaType(a_field_device_type).c_str());
 
     ci_field=frame[10];
     addExplanation(bytes, 1, "%02x ci-field (%s)", ci_field, ciType(ci_field).c_str());

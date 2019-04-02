@@ -150,8 +150,8 @@ unique_ptr<WMBus> openSimulator(string file, SerialCommunicationManager *manager
 
 string manufacturer(int m_field);
 string manufacturerFlag(int m_field);
-string deviceType(int m_field, int a_field_device_type);
 string mediaType(int a_field_device_type);
+string mediaTypeJSON(int a_field_device_type);
 string ciType(int ci_field);
 string cType(int c_field);
 string ccType(int cc_field);

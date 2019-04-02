@@ -195,7 +195,7 @@ void MeterApator162::printMeter(Telegram *t,
              Q(total_m3,%f)
              QSE(timestamp,%s)
              "}",
-             mediaType(t->a_field_device_type).c_str(),
+             mediaTypeJSON(t->a_field_device_type).c_str(),
              name().c_str(),
              t->id.c_str(),
              totalWaterConsumption(),

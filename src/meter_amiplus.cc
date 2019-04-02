@@ -57,9 +57,15 @@ private:
 MeterAmiplus::MeterAmiplus(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation(bus, name, id, key, AMIPLUS_METER, 0, LinkMode::T1)
 {
-    addMedia(0x02);
+    // This is one manufacturer of Amiplus compatible meters.
     addManufacturer(MANUFACTURER_APA);
+    addMedia(0x02); // Electricity meter
+
+    // This is another manufacturer
     addManufacturer(MANUFACTURER_DEV);
+    // Oddly, this device has not been configured to send as a electricity meter,
+    // but instead a device/media type that is used for gateway or relays or something?
+    addMedia(0x37); // Radio converter (meter side)
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
