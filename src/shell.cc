@@ -37,11 +37,11 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
     strcpy(p, program.c_str());
     argv[0] = p;
     int i = 1;
-    debug("exec \"%s\"\n", program.c_str());
+    debug("(shell) exec \"%s\"\n", program.c_str());
     for (auto &a : args) {
         argv[i] = a.c_str();
         i++;
-        debug("arg \"%s\"\n", a.c_str());
+        debug("(shell) arg \"%s\"\n", a.c_str());
     }
     argv[i] = NULL;
 
@@ -51,7 +51,7 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
     for (auto &e : envs) {
         env[i] = e.c_str();
         i++;
-        debug("env \"%s\"\n", e.c_str());
+        debug("(shell) env \"%s\"\n", e.c_str());
     }
     env[i] = NULL;
 
@@ -68,20 +68,20 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
 #endif
 
         perror("Execvp failed:");
-        error("Invoking shell %s failed!\n", program.c_str());
+        error("(shell) invoking %s failed!\n", program.c_str());
     } else {
         if (pid == -1) {
-            error("Could not fork!\n");
+            error("(shell) could not fork!\n");
         }
-        debug("waiting for child %d.\n", pid);
+        debug("(shell) waiting for child %d to complete.\n", pid);
         // Wait for the child to finish!
         waitpid(pid, &status, 0);
         if (WIFEXITED(status)) {
             // Child exited properly.
             int rc = WEXITSTATUS(status);
-            debug("%s: return code %d\n", program.c_str(), rc);
+            debug("(shell) %s: return code %d\n", program.c_str(), rc);
             if (rc != 0) {
-                warning("%s exited with non-zero return code: %d\n", program.c_str(), rc);
+                warning("(shell) %s exited with non-zero return code: %d\n", program.c_str(), rc);
             }
         }
     }
@@ -96,11 +96,11 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
     strcpy(p, program.c_str());
     argv[0] = p;
     int i = 1;
-    debug("exec background \"%s\"\n", program.c_str());
+    debug("(bgshell) exec background \"%s\"\n", program.c_str());
     for (auto &a : args) {
         argv[i] = a.c_str();
         i++;
-        debug("arg \"%s\"\n", a.c_str());
+        debug("(bgshell) arg \"%s\"\n", a.c_str());
     }
     argv[i] = NULL;
 
@@ -110,12 +110,12 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
     for (auto &e : envs) {
         env[i] = e.c_str();
         i++;
-        debug("env \"%s\"\n", e.c_str());
+        debug("(bgshell) env \"%s\"\n", e.c_str());
     }
     env[i] = NULL;
 
     if (pipe(link) == -1) {
-        error("Could not create pipe!\n");
+        error("(bgshell) could not create pipe!\n");
     }
 
     *pid = fork();
@@ -138,7 +138,7 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
 #endif
 
         perror("Execvp failed:");
-        warning("Invoking shell %s failed!\n", program.c_str());
+        error("(bgshell) invoking %s failed!\n", program.c_str());
         return false;
     }
 
@@ -147,21 +147,65 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
     return true;
 }
 
+bool stillRunning(int pid)
+{
+    if (pid == 0) return false;
+    int status;
+    int p = waitpid(pid, &status, WNOHANG);
+    if (p == 0) {
+        // The pid has not exited yet.
+        return true;
+    }
+    if (p < 0) {
+        // No pid to wait for.
+        return false;
+    }
+    if (WIFEXITED(status)) {
+        // Child exited properly.
+        int rc = WEXITSTATUS(status);
+        debug("(bgshell) %d exited with return code %d\n", pid, rc);
+    }
+    else if (WIFSIGNALED(status)) {
+        // Child forcefully terminated
+        debug("(bgshell) %d terminated due to signal %d\n", pid,  WTERMSIG(status));
+    } else
+    {
+        // Exited for other reasons, whatever those may be.
+        debug("(bgshell) %d exited\n", pid);
+    }
+    return false;
+}
+
 void stopBackgroundShell(int pid)
 {
     assert(pid > 0);
 
-    kill(pid, SIGINT);
-    int status;
-    debug("waiting for child %d.\n", pid);
+    int rc = kill(pid, SIGINT);
+    if (rc < 0) {
+        debug("(bgshell) could not sigint pid %d, exited already?\n", pid);
+        return;
+    }
     // Wait for the child to finish!
-    waitpid(pid, &status, 0);
+    debug("(bgshell) sent sigint, now waiting for child %d to exit.\n", pid);
+    int status;
+    int p = waitpid(pid, &status, 0);
+    if (p < 0) {
+        debug("(bgshell) cannot stop pid %d, exited already?\n", pid);
+        return;
+    }
     if (WIFEXITED(status)) {
         // Child exited properly.
         int rc = WEXITSTATUS(status);
-        debug("bgshell: return code %d\n", rc);
+        debug("(bgshell) return code %d\n", rc);
         if (rc != 0) {
-            warning("bgshell: exited with non-zero return code: %d\n", rc);
+            warning("(bgshell) exited with non-zero return code: %d\n", rc);
         }
+    }
+    if (WIFSIGNALED(status)) {
+        // Child forcefully terminated
+        debug("(bgshell) %d terminated due to signal %d\n", pid,  WTERMSIG(status));
+    } else
+    {
+        debug("(bgshell) %d exited\n", pid);
     }
 }

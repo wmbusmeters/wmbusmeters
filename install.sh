@@ -181,10 +181,13 @@ StopWhenUnneeded=true
 [Service]
 Type=forking
 PrivateTmp=yes
-#Restart=always
-RestartSec=1
 User=wmbusmeters
 Group=wmbusmeters
+Restart=always
+RestartSec=1
+StartLimitIntervalSec=10
+StartLimitInterval=10
+StartLimitBurst=3
 
 # Run ExecStartPre with root-permissions
 
@@ -219,6 +222,7 @@ then
     cat <<EOF > $ROOT/etc/udev/rules.d/99-wmbus-usb-serial.rules
 SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60",SYMLINK+="im871a",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
 SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001",SYMLINK+="amb8465",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838",SYMLINK+="rtlsdr",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
 EOF
     echo udev: installed $ROOT/etc/udev/rules.d/99-wmbus-usb-serial.rules
 else

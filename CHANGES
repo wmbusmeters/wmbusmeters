@@ -1,7 +1,21 @@
 
-Verison 0.9.3: 2019-03-20
+Version 0.9.4: 2019-04-03
 
-Added initial support for the Tauron Amiplus electricity meter type (amiplus).
+The device auto can now detect an rtlsdr dongle and start
+rtl_sdr|rtl_wmbus properly. It can only detecht the rtlsdr
+dongle if the new udev rule has been installed, which will
+create the symlink /dev/rtlsdr when the dongle is inserted.
+
+Added the meter vendor Echelon to the generic amiplus meter type.
+(The Echelon meter seems to be a standard electricity meter with a
+wmbus addon sourced from Develco.)
+
+Version 0.9.3: 2019-03-20
+
+Added initial support for the generic Tauron Amiplus electricity meter type (amiplus).
+This is actually a generic meter type, that will match the meter vendors
+that provide meters under the Amiplus brand to Taurn. The first vendor to
+be supported is from Apator.
 
 Added support for the at-wmbus-16-2 snap on meter (apator162).
 Unfortunately it uses a vendor specific protocol,

@@ -271,6 +271,7 @@ string mediaTypeJSON(int a_field_device_type)
 
 bool detectIM871A(string device, SerialCommunicationManager *handler);
 bool detectAMB8465(string device, SerialCommunicationManager *handler);
+bool detectRTLSDR(string device, SerialCommunicationManager *handler);
 
 bool existsButWrongGroup(string device)
 {
@@ -315,6 +316,13 @@ pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationM
             return { DEVICE_AMB8465, "/dev/amb8465" };
         } else if (existsButWrongGroup("/dev/amb8465")) {
             error("You are not in the same group as the device /dev/amb8465\n");
+        }
+
+        if (detectRTLSDR("/dev/rtlsdr", handler))
+        {
+            return { DEVICE_RTLWMBUS, "rtlwmbus" };
+        } else if (existsButWrongGroup("/dev/rtlsdr")) {
+            error("You are not in the same group as the device /dev/rtlsdr\n");
         }
 
         return { DEVICE_UNKNOWN, "" };

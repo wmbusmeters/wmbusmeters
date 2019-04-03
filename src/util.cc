@@ -39,19 +39,22 @@ void exitHandler(int signum)
     if (exit_handler) exit_handler();
 }
 
-function<void()> child_handler;
+pthread_t wake_me_up_on_sig_chld_ {};
 
-void childProcessDied(int signum)
+void wakeMeUpOnSigChld(pthread_t t)
 {
-    if (child_handler) child_handler();
+    wake_me_up_on_sig_chld_ = t;
 }
 
-void doNothing(int signum) {
+void doNothing(int signum)
+{
 }
 
-void onChild(function<void()> cb)
+void signalMyself(int signum)
 {
-    child_handler = cb;
+    if (wake_me_up_on_sig_chld_) {
+        pthread_kill(wake_me_up_on_sig_chld_, SIGUSR1);
+    }
 }
 
 void onExit(function<void()> cb)
@@ -70,14 +73,15 @@ void onExit(function<void()> cb)
     sigaction (SIGTERM, NULL, &old_action);
     if (old_action.sa_handler != SIG_IGN) sigaction (SIGTERM, &new_action, NULL);
 
-    new_action.sa_handler = childProcessDied;
+    new_action.sa_handler = signalMyself;
+    sigemptyset (&new_action.sa_mask);
+    new_action.sa_flags = 0;
     sigaction (SIGCHLD, NULL, &old_action);
     if (old_action.sa_handler != SIG_IGN) sigaction (SIGCHLD, &new_action, NULL);
 
     new_action.sa_handler = doNothing;
     sigemptyset (&new_action.sa_mask);
     new_action.sa_flags = 0;
-
     sigaction (SIGUSR1, NULL, &old_action);
     if (old_action.sa_handler != SIG_IGN) sigaction(SIGUSR1, &new_action, NULL);
 

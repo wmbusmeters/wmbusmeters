@@ -29,19 +29,24 @@ using namespace std;
 
 struct SerialCommunicationManager;
 
-struct SerialDevice {
+struct SerialDevice
+{
     virtual bool open(bool fail_if_not_ok) = 0;
     virtual void close() = 0;
     virtual bool send(std::vector<uchar> &data) = 0;
     virtual int receive(std::vector<uchar> *data) = 0;
     virtual int fd() = 0;
+    virtual bool working() = 0;
     virtual SerialCommunicationManager *manager() = 0;
     virtual ~SerialDevice() = default;
 };
 
-struct SerialCommunicationManager {
+struct SerialCommunicationManager
+{
     virtual unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate) = 0;
-    virtual unique_ptr<SerialDevice> createSerialDeviceCommand(string command, vector<string> args, vector<string> envs) = 0;
+    virtual unique_ptr<SerialDevice> createSerialDeviceCommand(string command, vector<string> args,
+                                                               vector<string> envs,
+                                                               function<void()> on_exit) = 0;
     virtual void listenTo(SerialDevice *sd, function<void()> cb) = 0;
     virtual void stop() = 0;
     virtual void waitForStop() = 0;

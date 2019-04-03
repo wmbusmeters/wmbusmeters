@@ -145,7 +145,8 @@ pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationM
 unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager);
 unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager);
 struct WMBusSimulator;
-unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager);
+unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager,
+                               std::function<void()> on_exit);
 unique_ptr<WMBus> openSimulator(string file, SerialCommunicationManager *manager);
 
 string manufacturer(int m_field);

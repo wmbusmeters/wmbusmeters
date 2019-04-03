@@ -44,7 +44,8 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager {
     ~SerialCommunicationManagerImp() { }
 
     unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate);
-    unique_ptr<SerialDevice> createSerialDeviceCommand(string command, vector<string> args, vector<string> envs);
+    unique_ptr<SerialDevice> createSerialDeviceCommand(string command, vector<string> args, vector<string> envs,
+                                                       function<void()> on_exit);
 
     void listenTo(SerialDevice *sd, function<void()> cb);
     void stop();
@@ -69,6 +70,7 @@ private:
 struct SerialDeviceImp : public SerialDevice {
 
     int fd() { return fd_; }
+    bool working() { return true; }
 
     protected:
 
@@ -197,8 +199,11 @@ int SerialDeviceTTY::receive(vector<uchar> *data)
     return num_read;
 }
 
-struct SerialDeviceCommand : public SerialDeviceImp {
-    SerialDeviceCommand(string command, vector<string> args, vector<string> envs, SerialCommunicationManagerImp *manager);
+struct SerialDeviceCommand : public SerialDeviceImp
+{
+    SerialDeviceCommand(string command, vector<string> args, vector<string> envs,
+                        SerialCommunicationManagerImp *manager,
+                        function<void()> on_exit);
     ~SerialDeviceCommand();
 
     bool open(bool fail_if_not_ok);
@@ -206,6 +211,8 @@ struct SerialDeviceCommand : public SerialDeviceImp {
     bool send(vector<uchar> &data);
     int receive(vector<uchar> *data);
     int fd() { return fd_; }
+    bool working();
+
     SerialCommunicationManager *manager() { return manager_; }
 
     private:
@@ -219,16 +226,20 @@ struct SerialDeviceCommand : public SerialDeviceImp {
     pthread_mutex_t write_lock_ = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t read_lock_ = PTHREAD_MUTEX_INITIALIZER;
     SerialCommunicationManagerImp *manager_;
+    function<void()> on_exit_;
 };
 
 SerialDeviceCommand::SerialDeviceCommand(string command,
                                          vector<string> args,
                                          vector<string> envs,
-                                         SerialCommunicationManagerImp *manager) {
+                                         SerialCommunicationManagerImp *manager,
+                                         function<void()> on_exit)
+{
     command_ = command;
     args_ = args;
     envs_ = envs;
     manager_ = manager;
+    on_exit_ = on_exit;
 }
 
 SerialDeviceCommand::~SerialDeviceCommand()
@@ -247,11 +258,27 @@ bool SerialDeviceCommand::open(bool fail_if_not_ok)
 
 void SerialDeviceCommand::close()
 {
+    if (pid_ == 0 && fd_ == -1) return;
+    if (pid_ && stillRunning(pid_))
+    {
+        stopBackgroundShell(pid_);
+        pid_ = 0;
+    }
     ::flock(fd_, LOCK_UN);
     ::close(fd_);
     fd_ = -1;
     manager_->closed(this);
     verbose("(serialcmd) closed %s\n", command_.c_str());
+}
+
+bool SerialDeviceCommand::working()
+{
+    if (!pid_) return false;
+    bool r = stillRunning(pid_);
+    if (r) return true;
+    close();
+    on_exit_();
+    return false;
 }
 
 bool SerialDeviceCommand::send(vector<uchar> &data)
@@ -328,7 +355,7 @@ SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_s
     running_ = true;
     max_fd_ = 0;
     pthread_create(&thread_, NULL, startLoop, this);
-    //running_ = (rc == 0);
+    wakeMeUpOnSigChld(thread_);
     start_time_ = time(NULL);
     exit_after_seconds_ = exit_after_seconds;
 }
@@ -344,9 +371,10 @@ unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(st
 
 unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceCommand(string command,
                                                                                   vector<string> args,
-                                                                                  vector<string> envs)
+                                                                                  vector<string> envs,
+                                                                                  function<void()> on_exit)
 {
-    return unique_ptr<SerialDevice>(new SerialDeviceCommand(command, args, envs, this));
+    return unique_ptr<SerialDevice>(new SerialDeviceCommand(command, args, envs, this, on_exit));
 }
 
 void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> cb) {
@@ -364,7 +392,7 @@ void SerialCommunicationManagerImp::stop()
 
 void SerialCommunicationManagerImp::waitForStop()
 {
-    while (running_) { usleep(1000*1000);}
+    while (running_) { usleep(1000*1000); }
     pthread_kill(thread_, SIGUSR1);
     pthread_join(thread_, NULL);
     for (SerialDevice *d : devices_) {
@@ -405,7 +433,7 @@ void *SerialCommunicationManagerImp::eventLoop() {
             FD_SET(d->fd(), &readfds);
         }
 
-        struct timeval timeout { 3600, 0 };
+        struct timeval timeout { 10, 0 };
 
         if (exit_after_seconds_ > 0) {
             time_t curr = time(NULL);
@@ -429,6 +457,12 @@ void *SerialCommunicationManagerImp::eventLoop() {
                     SerialDeviceImp *si = dynamic_cast<SerialDeviceImp*>(d);
                     if (si->on_data_) si->on_data_();
                 }
+            }
+        }
+        for (SerialDevice *d : devices_) {
+            if (!d->working()) {
+                stop();
+                break;
             }
         }
     }

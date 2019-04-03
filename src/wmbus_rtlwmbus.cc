@@ -20,10 +20,12 @@
 
 #include<assert.h>
 #include<fcntl.h>
+#include<grp.h>
 #include<pthread.h>
 #include<semaphore.h>
 #include<string.h>
 #include<sys/errno.h>
+#include<sys/stat.h>
 #include<sys/types.h>
 #include<unistd.h>
 
@@ -60,13 +62,14 @@ private:
     SerialCommunicationManager *manager_ {};
 };
 
-unique_ptr<WMBus> openRTLWMBUS(string command, SerialCommunicationManager *manager)
+unique_ptr<WMBus> openRTLWMBUS(string command, SerialCommunicationManager *manager,
+                               function<void()> on_exit)
 {
     vector<string> args;
     vector<string> envs;
     args.push_back("-c");
     args.push_back(command);
-    auto serial = manager->createSerialDeviceCommand("/bin/sh", args, envs);
+    auto serial = manager->createSerialDeviceCommand("/bin/sh", args, envs, on_exit);
     WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(std::move(serial), manager);
     return unique_ptr<WMBus>(imp);
 }
@@ -188,4 +191,21 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     *hex_frame_length = eolp+1;
 
     return FullFrame;
+}
+
+bool detectRTLSDR(string device, SerialCommunicationManager *manager)
+{
+    // No more advanced test than that the /dev/rtlsdr link exists.
+    struct stat sb;
+    int rc = stat(device.c_str(), &sb);
+    if (rc) return false;
+
+    struct group *g = getgrgid(sb.st_gid);
+    if (g && getegid() != g->gr_gid)
+    {
+        // Our group is not the same as the device.
+        return false;
+    }
+
+    return true;
 }

@@ -22,4 +22,5 @@ using namespace std;
 
 void invokeShell(string program, vector<string> args, vector<string> envs);
 bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *out, int *pid);
+bool stillRunning(int pid);
 void stopBackgroundShell(int pid);

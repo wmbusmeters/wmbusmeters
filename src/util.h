@@ -25,7 +25,7 @@
 #include<vector>
 
 void onExit(std::function<void()> cb);
-void onChild(std::function<void()> cb);
+void wakeMeUpOnSigChld(pthread_t t);
 
 typedef unsigned char uchar;
 

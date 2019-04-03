@@ -20,7 +20,7 @@
 # make DEBUG=true
 # make DEBUG=true HOST=arm
 
-VERSION=0.9.2
+VERSION=0.9.4
 
 ifeq "$(HOST)" "arm"
     CXX=arm-linux-gnueabihf-g++
