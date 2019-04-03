@@ -733,7 +733,11 @@ AccessCheck checkIfExistsAndSameGroup(string device)
     // The file did not exist.
     if (ok) return AccessCheck::NotThere;
 
-    gid_t groups[256];
+#if defined(__APPLE__) && defined(__MACH__)
+        int groups[256];
+#else
+        gid_t groups[256];
+#endif
     int ngroups = 256;
 
     struct passwd *p = getpwuid(getuid());
