@@ -196,16 +196,6 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
 bool detectRTLSDR(string device, SerialCommunicationManager *manager)
 {
     // No more advanced test than that the /dev/rtlsdr link exists.
-    struct stat sb;
-    int rc = stat(device.c_str(), &sb);
-    if (rc) return false;
-
-    struct group *g = getgrgid(sb.st_gid);
-    if (g && getegid() != g->gr_gid)
-    {
-        // Our group is not the same as the device.
-        return false;
-    }
-
-    return true;
+    AccessCheck ac = checkIfExistsAndSameGroup(device);
+    return ac == AccessCheck::OK;
 }

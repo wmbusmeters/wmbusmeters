@@ -16,7 +16,6 @@
 */
 
 #include"wmbus.h"
-#include<grp.h>
 #include<stdarg.h>
 #include<string.h>
 #include<sys/stat.h>
@@ -273,24 +272,6 @@ bool detectIM871A(string device, SerialCommunicationManager *handler);
 bool detectAMB8465(string device, SerialCommunicationManager *handler);
 bool detectRTLSDR(string device, SerialCommunicationManager *handler);
 
-bool existsButWrongGroup(string device)
-{
-    struct stat sb;
-
-    int ok = stat(device.c_str(), &sb);
-
-    // The file did not exist.
-    if (ok) return false;
-
-    struct group *g = getgrgid(sb.st_gid);
-    if (g && getegid() != g->gr_gid)
-    {
-        // Our group is not the same as the device.
-        return true;
-    }
-    return false;
-}
-
 pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationManager *handler)
 {
     // If auto, then assume that uev has been configured with
@@ -307,22 +288,37 @@ pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationM
         if (detectIM871A("/dev/im871a", handler))
         {
             return { DEVICE_IM871A, "/dev/im871a" };
-        } else if (existsButWrongGroup("/dev/im871a")) {
-            error("You are not in the same group as the device /dev/im871a\n");
+        }
+        else
+        {
+            AccessCheck ac = checkIfExistsAndSameGroup("/dev/im871a");
+            if (ac == AccessCheck::NotSameGroup) {
+                error("You are not in the same group as the device /dev/im871a\n");
+            }
         }
 
         if (detectAMB8465("/dev/amb8465", handler))
         {
             return { DEVICE_AMB8465, "/dev/amb8465" };
-        } else if (existsButWrongGroup("/dev/amb8465")) {
-            error("You are not in the same group as the device /dev/amb8465\n");
+        }
+        else
+        {
+            AccessCheck ac = checkIfExistsAndSameGroup("/dev/amb8465");
+            if (ac == AccessCheck::NotSameGroup) {
+                error("You are not in the same group as the device /dev/amb8465\n");
+            }
         }
 
         if (detectRTLSDR("/dev/rtlsdr", handler))
         {
             return { DEVICE_RTLWMBUS, "rtlwmbus" };
-        } else if (existsButWrongGroup("/dev/rtlsdr")) {
-            error("You are not in the same group as the device /dev/rtlsdr\n");
+        }
+        else
+        {
+            AccessCheck ac = checkIfExistsAndSameGroup("/dev/amb8465");
+            if (ac == AccessCheck::NotSameGroup) {
+                error("You are not in the same group as the device /dev/rtlsdr\n");
+            }
         }
 
         return { DEVICE_UNKNOWN, "" };
@@ -354,9 +350,6 @@ pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationM
     if (detectIM871A(device, handler))
     {
         return { DEVICE_IM871A, device };
-    }
-    if (existsButWrongGroup(device)) {
-        error("You are not in the same group as the device %s\n", device.c_str());
     }
 
     return { DEVICE_UNKNOWN, "" };

@@ -103,5 +103,9 @@ void eatWhitespace(std::vector<char> &v, std::vector<char>::iterator &i, bool *e
 std::string eatToSkipWhitespace(std::vector<char> &v, std::vector<char>::iterator &i, int c, size_t max, bool *eof, bool *err);
 // Remove leading and trailing white space
 void trimWhitespace(std::string *s);
+// Returns true if device exists and this programs user, belongs
+// to the same group that the device belongs to.
+enum class AccessCheck { NotThere, NotSameGroup, OK };
+AccessCheck checkIfExistsAndSameGroup(std::string device);
 
 #endif

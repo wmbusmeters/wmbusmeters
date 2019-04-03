@@ -18,6 +18,8 @@
 #include"util.h"
 #include<dirent.h>
 #include<functional>
+#include<grp.h>
+#include<pwd.h>
 #include<signal.h>
 #include<stdarg.h>
 #include<stddef.h>
@@ -720,4 +722,33 @@ string strdatetime(struct tm *datetime)
     char buf[256];
     strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M", datetime);
     return string(buf);
+}
+
+AccessCheck checkIfExistsAndSameGroup(string device)
+{
+    struct stat sb;
+
+    int ok = stat(device.c_str(), &sb);
+
+    // The file did not exist.
+    if (ok) return AccessCheck::NotThere;
+
+    gid_t groups[256];
+    int ngroups = 256;
+
+    struct passwd *p = getpwuid(getuid());
+
+    int rc = getgrouplist(p->pw_name, p->pw_gid, groups, &ngroups);
+    if (rc < 0) {
+        error("(wmbusmeters) cannot handle users with more than 256 groups\n");
+    }
+    struct group *g = getgrgid(sb.st_gid);
+
+    for (int i=0; i<ngroups; ++i) {
+        if (groups[i] == g->gr_gid) {
+            return AccessCheck::OK;
+        }
+    }
+
+    return AccessCheck::NotSameGroup;
 }
