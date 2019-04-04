@@ -131,7 +131,18 @@ void WMBusRTLWMBUS::processSerialData()
         if (hex_payload_len > 0) {
             vector<uchar> hex;
             hex.insert(hex.end(), read_buffer_.begin()+hex_payload_offset, read_buffer_.begin()+hex_payload_offset+hex_payload_len);
-            hex2bin(hex, &payload);
+            bool ok = hex2bin(hex, &payload);
+            if (!ok) {
+                if (hex.size() % 2 == 1) {
+                    payload.clear();
+                    warning("(rtlwmbus) warning: the hex string is not an even multiple of two! Dropping last char.\n");
+                    hex.pop_back();
+                    ok = hex2bin(hex, &payload);
+                }
+                if (!ok) {
+                    warning("(rtlwmbus) warning: the hex string contains bad characters! Decode stopped partway.\n");
+                }
+            }
         }
 
         read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
@@ -158,10 +169,11 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
                                               int *hex_payload_offset)
 {
     //C1;1;1;2019-02-09 07:14:18.000;117;102;94740459;0x49449344590474943508780dff5f3500827f0000f10007b06effff530100005f2c620100007f2118010000008000800080008000000000000000000e003f005500d4ff2f046d10086922
+    // There might be a second telegram on the same line ;0x4944.......
     if (data.size() == 0) return PartialFrame;
     int payload_len = 0;
     size_t eolp = 0;
-    // Look for end of line.
+    // Look for end of line
     for (; eolp < data.size(); ++eolp) {
         if (data[eolp] == '\n') break;
     }
@@ -169,14 +181,15 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
 
     // We got a full line, but if it is too short, then
     // there is something wrong. Discard the data.
-    if (data.size() < 72) return ErrorInFrame;
+    if (data.size() < 10) return ErrorInFrame;
 
-    // Discard lines that are not T1 or C1 telegrams
-    if (data[0] != 'T' && data[0] != 'C') return ErrorInFrame;
+    if (data[0] != '0' || data[1] != 'x') {
+        // Discard lines that are not T1 or C1 telegrams
+        if (data[0] != 'T' && data[0] != 'C') return ErrorInFrame;
 
-    // And the checksums should match.
-    if (strncmp((const char*)&data[1], "1;1;1", 5)) return ErrorInFrame;
-
+        // And the checksums should match.
+        if (strncmp((const char*)&data[1], "1;1;1", 5)) return ErrorInFrame;
+    }
     // Look for start of telegram 0x
     size_t i = 0;
     for (; i+1 < data.size(); ++i) {
@@ -185,11 +198,19 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     if (i+1 >= data.size()) return ErrorInFrame; // No 0x found, then discard the frame.
     i+=2; // Skip 0x
 
+    // Look for end of line or semicolon.
+    for (eolp=i; eolp < data.size(); ++eolp) {
+        if (data[eolp] == '\n') break;
+        if (data[eolp] == ';' && data[eolp+1] == '0' && data[eolp+2] == 'x') break;
+    }
+    if (eolp >= data.size()) return PartialFrame;
+
     payload_len = eolp-i;
     *hex_payload_len_out = payload_len;
     *hex_payload_offset = i;
     *hex_frame_length = eolp+1;
 
+    debug("(rtlwmbus) got full frame\n");
     return FullFrame;
 }
 

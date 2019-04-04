@@ -159,6 +159,22 @@ std::string bin2hex(vector<uchar>::iterator data, vector<uchar>::iterator end, i
     return str;
 }
 
+std::string safeString(vector<uchar> &target) {
+    std::string str;
+    for (size_t i = 0; i < target.size(); ++i) {
+        const char ch = target[i];
+        if (ch >= 32 && ch < 127 && ch != '<' && ch != '>') {
+            str += ch;
+        } else {
+            str += '<';
+            str.append(&hex[(ch  & 0xF0) >> 4], 1);
+            str.append(&hex[ch & 0xF], 1);
+            str += '>';
+        }
+    }
+    return str;
+}
+
 void strprintf(std::string &s, const char* fmt, ...)
 {
     char buf[4096];

@@ -338,7 +338,7 @@ int SerialDeviceCommand::receive(vector<uchar> *data)
     }
 
     if (isDebugEnabled()) {
-        string msg = bin2hex(*data);
+        string msg = safeString(*data);
         debug("(serialcmd) received \"%s\"\n", msg.c_str());
     }
 
