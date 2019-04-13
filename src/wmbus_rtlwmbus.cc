@@ -121,9 +121,8 @@ void WMBusRTLWMBUS::processSerialData()
     FrameStatus status = checkRTLWMBUSFrame(read_buffer_, &frame_length, &hex_payload_len, &hex_payload_offset);
 
     if (status == ErrorInFrame) {
-        verbose("(rtl_wmbus) protocol error in message received!\n");
+        debug("(rtl_wmbus) error in received message.\n");
         string msg = bin2hex(read_buffer_);
-        debug("(rtl_wmbus) protocol error \"%s\"\n", msg.c_str());
         read_buffer_.clear();
     } else
     if (status == FullFrame) {
@@ -188,7 +187,15 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
         if (data[0] != 'T' && data[0] != 'C') return ErrorInFrame;
 
         // And the checksums should match.
-        if (strncmp((const char*)&data[1], "1;1;1", 5)) return ErrorInFrame;
+        if (strncmp((const char*)&data[1], "1;1", 3)) {
+            // Packages that begin with C1;1 or with T1;1 are good. The full format is:
+            // MODE;CRC_OK;3OUTOF6OK;TIMESTAMP;PACKET_RSSI;CURRENT_RSSI;LINK_LAYER_IDENT_NO;DATAGRAM_WITHOUT_CRC_BYTES.
+            // 3OUTOF6OK makes sense only with mode T1 and no sense with mode C1 (always set to 1).
+            if (!strncmp((const char*)&data[1], "1;0", 3)) {
+                verbose("(rtlwmbus) telegram received but incomplete or with errors, since CRC checks failed.");
+            }
+            return ErrorInFrame;
+        }
     }
     // Look for start of telegram 0x
     size_t i = 0;
