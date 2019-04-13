@@ -99,7 +99,7 @@ then
     # Create /var/run
     mkdir -p $ROOT/var/log/wmbusmeters/meter_readings
     chown -R wmbusmeters:wmbusmeters $ROOT/var/log/wmbusmeters
-    echo log: created /var/log/wmbusmeters/meter_readings
+    echo log: created $ROOT/var/log/wmbusmeters/meter_readings
 fi
 
 ####################################################################
@@ -121,7 +121,7 @@ then
     start-stop-daemon -K -p /var/run/wmbusmeters.pid -s HUP -x /usr/sbin/wmbusmeters -q
     endscript
 EOF
-    echo logrotate: created /etc/logrotate.d/wmbusmeters
+    echo logrotate: created $ROOT/etc/logrotate.d/wmbusmeters
 fi
 
 ####################################################################

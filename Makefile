@@ -20,7 +20,29 @@
 # make DEBUG=true
 # make DEBUG=true HOST=arm
 
-VERSION=0.9.4
+COMMIT_HASH:=$(shell git log --pretty=format:'%H' -n 1)
+TAG:=$(shell git describe --tags)
+CHANGES:=$(shell git status -s | grep -v '?? ')
+TAG_COMMIT_HASH:=$(shell git show-ref --tags | grep $(TAG) | cut -f 1 -d ' ')
+
+ifeq ($(COMMIT),$(TAG_COMMIT))
+  # Exactly on the tagged commit. The version is the tag!
+  VERSION:=$(TAG)
+  DEBVERSION:=$(TAG)
+else
+  VERSION:=$(TAG)++
+  DEBVERSION:=$(TAG)++
+endif
+
+ifneq ($(strip $(CHANGES)),)
+  # There are changes, signify that with a +changes
+  VERSION:=$(VERSION) with local changes
+  DEBVERSION:=$(DEBVERSION)l
+endif
+
+VERSION:=$(VERSION) $(COMMIT_HASH)
+
+$(info Building $(VERSION))
 
 ifeq "$(HOST)" "arm"
     CXX=arm-linux-gnueabihf-g++
@@ -83,7 +105,7 @@ all: $(BUILD)/wmbusmeters $(BUILD)/testinternals
 	@$(STRIP_BINARY)
 	@cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd
 
-dist: wmbusmeters_$(VERSION)_$(DEBARCH).deb
+dist: wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb
 
 install: $(BUILD)/wmbusmeters
 	@./install.sh $(BUILD)/wmbusmeters /
@@ -91,19 +113,20 @@ install: $(BUILD)/wmbusmeters
 uninstall:
 	@./uninstall.sh /
 
-wmbusmeters_$(VERSION)_$(DEBARCH).deb:
+wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb:
 	@rm -rf $(BUILD)/debian/wmbusmeters
 	@mkdir -p $(BUILD)/debian/wmbusmeters/DEBIAN
 	@./install.sh --no-adduser $(BUILD)/wmbusmeters $(BUILD)/debian/wmbusmeters
 	@rm -f $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Package: wmbusmeters" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
-	@echo "Version: $(VERSION)" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
+	@echo "Version: $(DEBVERSION)" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Maintainer: Fredrik Öhrström" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Architecture: $(DEBARCH)" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Description: A tool to read wireless mbus telegrams from utility meters." >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@(cd $(BUILD)/debian; dpkg-deb --build wmbusmeters .)
-	@mv $(BUILD)/debian/wmbusmeters_$(VERSION)_$(DEBARCH).deb .
+	@mv $(BUILD)/debian/wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb .
 	@echo Built package $@
+	@echo But the deb package is not yet working correctly! Work in progress.
 
 $(BUILD)/wmbusmeters: $(METER_OBJS) $(BUILD)/main.o
 	$(CXX) -o $(BUILD)/wmbusmeters $(METER_OBJS) $(BUILD)/main.o $(DEBUG_LDFLAGS) -lpthread
