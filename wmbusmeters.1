@@ -56,10 +56,10 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 \fB/dev/ttyUSB0\fR to which an im871a or amb8456 dongle is attached
 
 .TP
-\fBauto\fR look for /dev/im871a or /dev/amb8465
+\fBauto\fR look for /dev/im871a or /dev/amb8465 or /dev/rtlsdr (these will only show up automatically if the appropriate udev rules have been installed)
 
 .TP
-\fBrtlwmbus:<freq>\fR use software defined radio rtl_sdr|rtl_wmbus to receive wmbus telegrams
+\fBrtlwmbus\fR use software defined radio rtl_sdr|rtl_wmbus to receive wmbus telegrams.This defaults to 868.95MHz, use for example \fBrtlwmbus:868.9M\fR to tune the rtl_sdr dongle to slightly lower frequency.
 
 .TP
 \fBsimulation_xxx.txt\fR read telegrams from file to replay telegram feed (use --logtelegrams to acquire feed for replay)
@@ -82,7 +82,7 @@ Listen to T1 traffic using a wmbus dongle attached to ttyUSB0.
 % wmbusmeters --t1 /dev/ttyUSB0
 
 .TP
-Listen to C1 traffic and assume that a wmbus dongle is either /dev/im871a or /dev/amb8465.
+Listen to C1 traffic and assume that a wmbus dongle is either /dev/im871a or /dev/amb8465 or /dev/rtlsdr
 
 % wmbusmeters --c1 auto
 
@@ -110,8 +110,9 @@ loglevel=normal
 device=auto
 logtelegrams=false
 meterfiles=/var/log/wmbusmeters/meter_readings
+meterfilesaction=overwrite
 logfile=/var/log/wmbusmeters/wmbusmeters.log
-shell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters -m "$METER_JSON"
+shell=/usr/bin/mosquitto_pub -h localhost -t "wmbusmeters/$METER_ID" -m "$METER_JSON"
 .fi
 
 .TP
