@@ -21,6 +21,7 @@
 #include"printer.h"
 #include"serial.h"
 #include"util.h"
+#include"version.h"
 #include"wmbus.h"
 
 #include<string.h>
@@ -46,8 +47,38 @@ int main(int argc, char **argv)
 {
     auto cmdline = parseCommandLine(argc, argv);
 
+    if (cmdline->version) {
+        printf("wmbusmeters: " VERSION "\n");
+        printf(COMMIT "\n");
+        exit(0);
+    }
+    if (cmdline->license) {
+        const char * license = R"LICENSE(
+Copyright (C) 2017-2019 Fredrik Öhrström
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+You can download the source here: https://github.com/weetmuts/wmbusmeters
+But you can also request the source from the person/company that
+provided you with this binary. Read the full license for all details.
+
+)LICENSE";
+        puts(license);
+        exit(0);
+    }
     if (cmdline->need_help) {
-        printf("wmbusmeters version: " WMBUSMETERS_VERSION "\n");
+        printf("wmbusmeters version: " VERSION "\n");
         const char *msg = R"MANUAL(
 Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type] [meter_id] [meter_key] )*
 
@@ -141,7 +172,7 @@ void startUsingCommandline(Configuration *config)
     logTelegramsEnabled(config->logtelegrams);
     debugEnabled(config->debug);
 
-    debug("(wmbusmeters) version: " WMBUSMETERS_VERSION "\n");
+    debug("(wmbusmeters) version: " VERSION "\n");
 
     if (config->exitafter != 0) {
         verbose("(config) wmbusmeters will exit after %d seconds\n", config->exitafter);

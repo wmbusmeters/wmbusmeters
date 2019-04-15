@@ -66,8 +66,6 @@ ifneq ($(strip $(CHANGES)),)
   DEBVERSION:=$(DEBVERSION)l
 endif
 
-$(info Building $(VERSION))
-
 $(shell echo "#define VERSION \"$(VERSION)\"" > $(BUILD)/version.h.tmp)
 $(shell echo "#define COMMIT \"$(COMMIT_HASH)\"" >> $(BUILD)/version.h.tmp)
 
@@ -81,9 +79,7 @@ endif
 
 $(info Building $(VERSION))
 
-#EXTRAS=-Wno-maybe-uninitialized
-
-CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-unused-function "-DWMBUSMETERS_VERSION=\"$(VERSION)\""
+CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-unused-function -I$(BUILD)
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@

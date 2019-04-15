@@ -52,6 +52,8 @@ struct Configuration {
     bool need_help {};
     bool silence {};
     bool verbose {};
+    bool version {};
+    bool license {};
     bool debug {};
     bool logtelegrams {};
     bool meterfiles {};

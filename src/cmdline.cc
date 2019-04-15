@@ -61,6 +61,14 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strcmp(argv[i], "--version")) {
+            c->version = true;
+            return unique_ptr<Configuration>(c);
+        }
+        if (!strcmp(argv[i], "--license")) {
+            c->license = true;
+            return unique_ptr<Configuration>(c);
+        }
         if (!strcmp(argv[i], "--debug")) {
             c->debug = true;
             i++;
