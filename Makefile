@@ -20,30 +20,6 @@
 # make DEBUG=true
 # make DEBUG=true HOST=arm
 
-COMMIT_HASH:=$(shell git log --pretty=format:'%H' -n 1)
-TAG:=$(shell git describe --tags)
-CHANGES:=$(shell git status -s | grep -v '?? ')
-TAG_COMMIT_HASH:=$(shell git show-ref --tags | grep $(TAG) | cut -f 1 -d ' ')
-
-ifeq ($(COMMIT),$(TAG_COMMIT))
-  # Exactly on the tagged commit. The version is the tag!
-  VERSION:=$(TAG)
-  DEBVERSION:=$(TAG)
-else
-  VERSION:=$(TAG)++
-  DEBVERSION:=$(TAG)++
-endif
-
-ifneq ($(strip $(CHANGES)),)
-  # There are changes, signify that with a +changes
-  VERSION:=$(VERSION) with local changes
-  DEBVERSION:=$(DEBVERSION)l
-endif
-
-VERSION:=$(VERSION) $(COMMIT_HASH)
-
-$(info Building $(VERSION))
-
 ifeq "$(HOST)" "arm"
     CXX=arm-linux-gnueabihf-g++
     STRIP=arm-linux-gnueabihf-strip
@@ -68,6 +44,42 @@ else
 endif
 
 $(shell mkdir -p $(BUILD))
+
+COMMIT_HASH:=$(shell git log --pretty=format:'%H' -n 1)
+TAG:=$(shell git describe --tags)
+CHANGES:=$(shell git status -s | grep -v '?? ')
+TAG_COMMIT_HASH:=$(shell git show-ref --tags | grep $(TAG) | cut -f 1 -d ' ')
+
+ifeq ($(COMMIT),$(TAG_COMMIT))
+  # Exactly on the tagged commit. The version is the tag!
+  VERSION:=$(TAG)
+  DEBVERSION:=$(TAG)
+else
+  VERSION:=$(TAG)++
+  DEBVERSION:=$(TAG)++
+endif
+
+ifneq ($(strip $(CHANGES)),)
+  # There are changes, signify that with a +changes
+  VERSION:=$(VERSION) with local changes
+  COMMIT_HASH:=$(COMMIT_HASH) with local changes
+  DEBVERSION:=$(DEBVERSION)l
+endif
+
+$(info Building $(VERSION))
+
+$(shell echo "#define VERSION \"$(VERSION)\"" > $(BUILD)/version.h.tmp)
+$(shell echo "#define COMMIT \"$(COMMIT_HASH)\"" >> $(BUILD)/version.h.tmp)
+
+PREV_VERSION=$(shell cat -n $(BUILD)/version.h 2> /dev/null)
+CURR_VERSION=$(shell cat -n $(BUILD)/version.h.tmp 2>/dev/null)
+ifneq ($(PREV_VERSION),$(CURR_VERSION))
+$(shell mv $(BUILD)/version.h.tmp $(BUILD)/version.h)
+else
+$(shell rm $(BUILD)/version.h.tmp)
+endif
+
+$(info Building $(VERSION))
 
 #EXTRAS=-Wno-maybe-uninitialized
 
@@ -148,7 +160,6 @@ test:
 testd:
 	./build_debug/testinternals
 	./test.sh build_debug/wmbusmeters
-
 
 update_manufacturers:
 	iconv -f utf-8 -t ascii//TRANSLIT -c DLMS_Flagids.csv -o tmp.flags
