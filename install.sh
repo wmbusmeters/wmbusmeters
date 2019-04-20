@@ -139,7 +139,7 @@ device=auto
 logtelegrams=false
 format=json
 meterfiles=/var/log/wmbusmeters/meter_readings
-meterfilestype=overwrite
+meterfilesaction=overwrite
 logfile=/var/log/wmbusmeters/wmbusmeters.log
 EOF
     chmod 644 $ROOT/etc/wmbusmeters.conf
@@ -157,7 +157,7 @@ if [ ! -d $ROOT/etc/wmbusmeters.d ]
 then
     # Create the configuration directory
     mkdir -p $ROOT/etc/wmbusmeters.d
-    chmod -R 644 $ROOT/etc/wmbusmeters.d
+    chmod -R 655 $ROOT/etc/wmbusmeters.d
     echo conf dir: created $ROOT/etc/wmbusmeters.d
 else
     echo conf dir: $ROOT/etc/wmbusmeters.d unchanged
