@@ -1,17 +1,15 @@
 #!/bin/bash
 
-if [ "$1" = "" ]
+if [ "$1" == "" ] || [ "$1" == "-h" ]
 then
-    echo Usage: install.sh [binary] [root]
-    echo Example: install.sh build/wmbusmeters /
+    echo - n "Usage: install.sh [binary] [root] [OPTIONS]
+    Example: install.sh build/wmbusmeters /
+	
+	Options:
+	--no-adduser		Do not add wmbusmeters user
+	--no-udev-rules		Do not add udev rules
+	"
     exit 0
-fi
-
-ADDUSER=true
-if [ "$1" = "--no-adduser" ]
-then
-    ADDUSER=false
-    shift
 fi
 
 if [ ! $(basename "$1") = "wmbusmeters" ]
@@ -33,6 +31,24 @@ then
 fi
 
 ROOT="${2%/}"
+ADDUSER=true
+ADDUDEVRULES=true
+
+while [ $# -ne 0 ]
+do
+        ARG="$1"
+        shift 1
+        case "$ARG" in
+        --no-adduser)
+                ADDUSER=false
+        ;;
+        --no-udev-rules)
+                ADDUDEVRULES=false
+        shift
+        ;;
+        esac
+done
+
 
 ####################################################################
 ##
@@ -65,12 +81,22 @@ echo man page: installed $ROOT/usr/share/man/man1/wmbusmeters.1.gz
 
 ID=$(id -u wmbusmeters 2>/dev/null)
 
+if [ -f $ROOT/usr/sbin/nologin ]
+then
+	USERSHELL="$ROOT/usr/sbin/nologin"
+elif [ -f $ROOT/sbin/nologin ]
+then
+	USERSHELL="$ROOT/sbin/nologin"
+else
+	USERSHELL="/bin/false"
+fi
+
 if [ "$ADDUSER" = "true" ]
 then
     if [ "$ID" = "" ]
     then
         # Create the wmbusmeters user
-        adduser --no-create-home --shell $ROOT/usr/sbin/nologin --disabled-login --gecos "" wmbusmeters
+        useradd --system --shell $USERSHELL --groups dialout wmbusmeters
         echo user: added wmbusmeters
     else
         echo user: wmbusmeters unmodified
@@ -214,17 +240,19 @@ fi
 ##
 ## Create /etc/udev/rules.d/99-wmbus-usb-serial.rules
 ##
-
-if [ ! -f $ROOT/etc/udev/rules.d/99-wmbus-usb-serial.rules ]
+if [ "$ADDUDEVRULES" = "true" ]
 then
-    mkdir -p $ROOT/etc/udev/rules.d
-    # Create service file
-    cat <<EOF > $ROOT/etc/udev/rules.d/99-wmbus-usb-serial.rules
+	if [ ! -f $ROOT/etc/udev/rules.d/99-wmbus-usb-serial.rules ]
+	then
+		mkdir -p $ROOT/etc/udev/rules.d
+		# Create service file
+		cat <<EOF > $ROOT/etc/udev/rules.d/99-wmbus-usb-serial.rules
 SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60",SYMLINK+="im871a",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
 SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001",SYMLINK+="amb8465",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838",SYMLINK+="rtlsdr",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
 EOF
-    echo udev: installed $ROOT/etc/udev/rules.d/99-wmbus-usb-serial.rules
-else
-    echo systemd: $ROOT/etc/udev/rules.d/99-wmbus-usb-serial.rules unchanged
+		echo udev: installed $ROOT/etc/udev/rules.d/99-wmbus-usb-serial.rules
+	else
+		echo udev: $ROOT/etc/udev/rules.d/99-wmbus-usb-serial.rules unchanged
+	fi
 fi
