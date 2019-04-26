@@ -1,4 +1,10 @@
 
+Version 0.9.5: 2019-04-26
+
+Improved install/uninstall scripts. Thanks Bibo!
+
+Fixed wrong default sample frequency for rtl_wmbus. Thanks inc90!
+
 Version 0.9.4: 2019-04-03
 
 The device auto can now detect an rtlsdr dongle and start
