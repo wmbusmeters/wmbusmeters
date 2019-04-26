@@ -108,7 +108,7 @@ As a <device> you can also use: the exact /dev/ttyUSB0 to your dongle if you do 
 to install the udev rule.
 
 As a <device> you can also use: rtlwmbus
-to spawn the background process: \"rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus\"
+to spawn the background process: \"rtl_sdr -f 868.95M -s 1.6e6 - 2>/dev/null | rtl_wmbus\"
 You can also use: rtlwmbus:868.9M to use this fq instead. Fq tuning can sometimes
 be necessary. Or you can specify the entire background process command line: \"rtlwmbus:<commandline>\"
 
@@ -221,7 +221,7 @@ void startUsingCommandline(Configuration *config)
             prefix = "/usr/bin/";
         }
         if (command == "") {
-            command = prefix+"rtl_sdr -f "+freq+" -s 16000000 - 2>/dev/null | "+prefix+"rtl_wmbus";
+            command = prefix+"rtl_sdr -f "+freq+" -s 1.6e6 - 2>/dev/null | "+prefix+"rtl_wmbus";
         }
         verbose("(rtlwmbus) using command: %s\n", command.c_str());
 
