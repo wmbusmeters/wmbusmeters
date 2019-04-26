@@ -2,7 +2,7 @@
 
 if [ "$1" == "" ] || [ "$1" == "-h" ]
 then
-    echo - n "Usage: install.sh [binary] [root] [OPTIONS]
+    echo "Usage: install.sh [binary] [root] [OPTIONS]
     Example: install.sh build/wmbusmeters /
 	
 	Options:
@@ -30,6 +30,7 @@ then
     exit 1
 fi
 
+SRC=$1
 ROOT="${2%/}"
 ADDUSER=true
 ADDUDEVRULES=true
@@ -37,7 +38,7 @@ ADDUDEVRULES=true
 while [ $# -ne 0 ]
 do
         ARG="$1"
-        shift 1
+        shift
         case "$ARG" in
         --no-adduser)
                 ADDUSER=false
@@ -58,7 +59,7 @@ done
 rm -f $ROOT/usr/bin/wmbusmeters $ROOT/usr/sbin/wmbusmetersd
 mkdir -p $ROOT/usr/bin
 mkdir -p $ROOT/usr/sbin
-cp "$1" $ROOT/usr/bin/wmbusmeters
+cp $SRC $ROOT/usr/bin/wmbusmeters
 ln -s $ROOT/usr/bin/wmbusmeters $ROOT/usr/sbin/wmbusmetersd
 
 echo binaries: installed $ROOT/usr/bin/wmbusmeters and $ROOT/usr/sbin/wmbusmetersd
