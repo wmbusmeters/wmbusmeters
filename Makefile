@@ -98,6 +98,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_qcaloric.o \
 	$(BUILD)/meter_apator162.o \
 	$(BUILD)/meter_amiplus.o \
+	$(BUILD)/meter_mkradio3.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \
@@ -210,7 +211,7 @@ update_manufacturers:
 	echo '#define MANUFACTURERS_H' >> m.h
 	echo '#define MANFCODE(a,b,c) ((a-64)*1024+(b-64)*32+(c-64))' >> m.h
 	echo "#define LIST_OF_MANUFACTURERS \\" >> m.h
-	cat manufacturers.txt | sed -e "s/\(.\)\(.\)\(.\).\(.*\)/X(\1\2\3,MANFCODE('\1','\2','\3'),\"\4\")\\\\/g" >> m.h
+	cat manufacturers.txt | sed -e "s/\(.\)\(.\)\(.\).\(.*\)/X(\1\2\3,MANFCODE('\1','\2','\3'),\"\4\")\\\\/g" | sed 's/, ")/")/' >> m.h
 	echo >> m.h
 	cat manufacturers.txt | sed -e "s/\(.\)\(.\)\(.\).*/#define MANUFACTURER_\1\2\3 MANFCODE('\1','\2','\3')/g" >> m.h
 	echo >> m.h

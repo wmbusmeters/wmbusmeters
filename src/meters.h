@@ -24,7 +24,7 @@
 #include<string>
 #include<vector>
 
-#define LIST_OF_METERS X(MULTICAL21_METER)X(FLOWIQ3100_METER)X(MULTICAL302_METER)X(OMNIPOWER_METER)X(SUPERCOM587_METER)X(IPERL_METER)X(QCALORIC_METER)X(APATOR162_METER)X(AMIPLUS_METER)X(UNKNOWN_METER)
+#define LIST_OF_METERS X(MULTICAL21_METER)X(FLOWIQ3100_METER)X(MULTICAL302_METER)X(OMNIPOWER_METER)X(SUPERCOM587_METER)X(IPERL_METER)X(QCALORIC_METER)X(APATOR162_METER)X(AMIPLUS_METER)X(MKRADIO3_METER)X(UNKNOWN_METER)
 
 enum MeterType {
 #define X(name) name,
@@ -118,6 +118,7 @@ unique_ptr<HeatMeter> createMultical302(WMBus *bus, string& name, string& id, st
 unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, string& name, string& id, string& key);
 unique_ptr<ElectricityMeter> createAmiplus(WMBus *bus, string& name, string& id, string& key);
 unique_ptr<WaterMeter> createSupercom587(WMBus *bus, string& name, string& id, string& key);
+unique_ptr<WaterMeter> createMKRadio3(WMBus *bus, string& name, string& id, string& key);
 unique_ptr<WaterMeter> createApator162(WMBus *bus, string& name, string& id, string& key);
 unique_ptr<WaterMeter> createIperl(WMBus *bus, string& name, string& id, string& key);
 unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, string& name, string& id, string& key);

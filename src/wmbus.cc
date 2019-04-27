@@ -198,6 +198,10 @@ string mediaType(int a_field_device_type) {
     case 0x3D: return "Reserved for system devices";
     case 0x3E: return "Reserved for system devices";
     case 0x3F: return "Reserved for system devices";
+
+    // Techem MK Radio 3 manufacturer specific.
+    case 0x62: return "Warm water"; // MKRadio3
+    case 0x72: return "Cold water"; // MKRadio3
     }
     return "Unknown";
 }
@@ -263,6 +267,10 @@ string mediaTypeJSON(int a_field_device_type)
     case 0x3D: return "reserved";
     case 0x3E: return "reserved";
     case 0x3F: return "reserved";
+
+    // Techem MK Radio 3 manufacturer specific codes:
+    case 0x62: return "warm water";
+    case 0x72: return "cold water";
     }
     return "Unknown";
 }
@@ -510,7 +518,12 @@ void Telegram::parse(vector<uchar> &frame)
             addExplanation(bytes, 4, "%02x%02x%02x%02x sn", sn[0], sn[1], sn[2], sn[3]);
             header_size = 6;
         }
-    } else {
+    } else
+    if (ci_field == 0xa2) {
+        // Manufacturer specific telegram payload. Oh well....
+    }
+    else
+    {
         warning("Unknown ci-field %02x\n", ci_field);
     }
 

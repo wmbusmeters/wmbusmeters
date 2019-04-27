@@ -10,11 +10,12 @@ fi
 
 TEST=testoutput
 LOGFILE=$TEST/logfile
+LOGFILE_EXPECTED=$TEST/logfile.expected
 
 mkdir -p $TEST
 rm -f $LOGFILE
 
-EXPECTED=$(cat <<EOF
+cat > $LOGFILE_EXPECTED <<EOF
 No meters configured. Printing id:s of all telegrams heard!
 
 Received telegram from: 12345678
@@ -35,8 +36,12 @@ Received telegram from: 20202020
 Received telegram from: 10101010
           manufacturer: (APA) Apator, Poland
            device type: Electricity meter
+Received telegram from: 34333231
+          manufacturer: (TCH) Techem Service
+           device type: Warm water
 EOF
-           )
+
+EXPECTED=$(cat $LOGFILE_EXPECTED)
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)
 

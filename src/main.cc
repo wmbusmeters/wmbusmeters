@@ -298,6 +298,10 @@ void startUsingCommandline(Configuration *config)
                 meters.push_back(createAmiplus(wmbus.get(), m.name, m.id, m.key));
                 verbose("(amiplus) configured \"%s\" \"amiplus\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
+            case MKRADIO3_METER:
+                meters.push_back(createMKRadio3(wmbus.get(), m.name, m.id, m.key));
+                verbose("(mkradio3) configured \"%s\" \"mkradio3\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
+                break;
             case SUPERCOM587_METER:
                 meters.push_back(createSupercom587(wmbus.get(), m.name, m.id, m.key));
                 verbose("(supercom587) configured \"%s\" \"supercom587\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
