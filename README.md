@@ -121,6 +121,7 @@ Kamstrup flowIQ 3100 (flowiq3100)
 Sontex Supercom 587 (supercom587)
 Sensus iPERL (iperl)
 Apator at-wmbus-16-2 (apator162) (non-standard protocol)
+Water meter Techem MK Radio 3 (mkradio3)
 
 Supported heat cost allocator:
 Qundis Q caloric (qcaloric)
