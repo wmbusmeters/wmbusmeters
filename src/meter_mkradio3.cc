@@ -95,7 +95,7 @@ void MKRadio3::handleTelegram(Telegram *t)
         return;
     }
 
-    verbose("(%s) telegram for %s %02x%02x%02x%02x\n", "supercom587",
+    verbose("(%s) telegram for %s %02x%02x%02x%02x\n", "mkradio3",
             name().c_str(),
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
@@ -112,7 +112,7 @@ void MKRadio3::handleTelegram(Telegram *t)
         t->content = t->payload;
     }
     char log_prefix[256];
-    snprintf(log_prefix, 255, "(%s) log", "supercom587");
+    snprintf(log_prefix, 255, "(%s) log", "mkradio3");
     logTelegram(log_prefix, t->parsed, t->content);
     int content_start = t->parsed.size();
     processContent(t);
