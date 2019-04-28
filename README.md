@@ -3,7 +3,8 @@ The program receives and decodes C1 or T1 telegrams
 (using the wireless mbus protocol) to acquire
 utility meter readings. The readings can then be published using
 MQTT, curled to a REST api, inserted into a database or stored in a log file.
-[WIKI](https://weetmuts.github.io/wmbusmeterswiki/)
+
+[FAQ/WIKI/MANUAL pages](https://weetmuts.github.io/wmbusmeterswiki/)
 
 The program runs on GNU/Linux, MacOSX and Raspberry Pi.
 
