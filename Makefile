@@ -99,6 +99,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_apator162.o \
 	$(BUILD)/meter_amiplus.o \
 	$(BUILD)/meter_mkradio3.o \
+	$(BUILD)/meter_vario451.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \

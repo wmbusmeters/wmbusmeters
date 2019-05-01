@@ -291,6 +291,10 @@ void startUsingCommandline(Configuration *config)
                 meters.push_back(createMultical302(wmbus.get(), m.name, m.id, m.key));
                 verbose("(multical302) configured \"%s\" \"multical302\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
                 break;
+            case VARIO451_METER:
+                meters.push_back(createVario451(wmbus.get(), m.name, m.id, m.key));
+                verbose("(vario451) configured \"%s\" \"vario451\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
+                break;
             case OMNIPOWER_METER:
                 meters.push_back(createOmnipower(wmbus.get(), m.name, m.id, m.key));
                 verbose("(omnipower) configured \"%s\" \"omnipower\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
