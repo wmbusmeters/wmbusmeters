@@ -526,13 +526,13 @@ void Telegram::parse(vector<uchar> &frame)
             addExplanation(bytes, 4, "%02x%02x%02x%02x sn", sn[0], sn[1], sn[2], sn[3]);
             header_size = 6;
         }
-            } else
+    } else
     if (ci_field == 0xa2) {
         // Manufacturer specific telegram payload. Oh well....
     }
     else
     {
-        // Removed because it logs warning for every telegram, even if not for 'for me'
+        // Removed because it logs warning for every telegram, even if not 'for me'
         //warning("Unknown ci-field %02x\n", ci_field);
     }
 
