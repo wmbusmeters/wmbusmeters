@@ -134,6 +134,7 @@ Tauron Amiplus (amiplus) (includes vendor apator and echelon)
 Work in progress:
 Heat meter Kamstrup Multical 302 (multical302)
 Electricity meter Kamstrup Omnipower (omnipower)
+Techem Vario 4 Typ 4.5.1 (vario451)
 ```
 
 The wmbus dongles imst871a and amb8465 can only listen on one type of wmbus telegrams at a time.
