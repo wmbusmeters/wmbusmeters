@@ -133,3 +133,16 @@ Unit replaceWithConversionUnit(Unit u, vector<Unit> cs)
     }
     return u;
 }
+
+string valueToString(double v, Unit u)
+{
+    string s = to_string(v);
+    while (s.back() == '0') s.pop_back();
+    if (s.back() == '.') {
+        s.pop_back();
+        if (s.length() == 0) return "0";
+        return s;
+    }
+    if (s.length() == 0) return "0";
+    return s;
+}

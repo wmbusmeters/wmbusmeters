@@ -66,6 +66,9 @@ MeterAmiplus::MeterAmiplus(WMBus *bus, string& name, string& id, string& key) :
     // Oddly, this device has not been configured to send as a electricity meter,
     // but instead a device/media type that is used for gateway or relays or something?
     addMedia(0x37); // Radio converter (meter side)
+
+    setExpectedVersion(0x02);
+
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
@@ -100,8 +103,6 @@ void MeterAmiplus::handleTelegram(Telegram *t) {
             name().c_str(),
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
-
-    t->expectVersion("amiplus", 0x02);
 
     if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
         warning("(amiplus) warning: telegram is encrypted but no key supplied!\n");

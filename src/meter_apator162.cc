@@ -73,6 +73,9 @@ MeterApator162::MeterApator162(WMBus *bus, string& name, string& id, string& key
 {
     addMedia(0x06);
     addMedia(0x07);
+
+    setExpectedVersion(0x05);
+
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
@@ -99,7 +102,6 @@ void MeterApator162::handleTelegram(Telegram *t)
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    t->expectVersion("apator162", 0x05);
 
     if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
         warning("(apator162) warning: telegram is encrypted but no key supplied!\n");

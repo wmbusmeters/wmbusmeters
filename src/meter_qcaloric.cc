@@ -62,7 +62,12 @@ private:
 MeterQCaloric::MeterQCaloric(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation(bus, name, id, key, MeterType::QCALORIC, MANUFACTURER_QDS, LinkMode::C1)
 {
+    setEncryptionMode(EncryptionMode::None);
+
     addMedia(0x08);
+
+    setExpectedVersion(0x35);
+
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
@@ -92,8 +97,6 @@ void MeterQCaloric::handleTelegram(Telegram *t) {
             name().c_str(),
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
-
-    t->expectVersion("qcaloric", 0x35);
 
     if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
         warning("(qcaloric) warning: telegram is encrypted but no key supplied!\n");

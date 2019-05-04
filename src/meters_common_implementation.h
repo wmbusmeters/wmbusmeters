@@ -29,9 +29,11 @@ struct Print
     string vname; // Value name, like: total current previous target
     Quantity quantity; // Quantity: Energy, Volume
     Unit default_unit; // Default unit for above quantity: KWH, M3
-    function<double(Unit)> getValueFunc; // Callback to fetch the value from the meter.
+    function<double(Unit)> getValueDouble; // Callback to fetch the value from the meter.
+    function<string()> getValueString; // Callback to fetch the value from the meter.
     string help; // Helpful information on this meters use of this value.
     bool field; // If true, print in hr/fields output.
+    bool json; // If true, print in json and shell env variables.
 };
 
 struct MeterCommonImplementation : public virtual Meter
@@ -49,6 +51,7 @@ struct MeterCommonImplementation : public virtual Meter
     void onUpdate(function<void(Telegram*,Meter*)> cb);
     int numUpdates();
 
+    EncryptionMode encMode();
     bool isTelegramForMe(Telegram *t);
     bool useAes();
     vector<uchar> key();
@@ -68,10 +71,17 @@ struct MeterCommonImplementation : public virtual Meter
 protected:
 
     void triggerUpdate(Telegram *t);
+    void setExpectedVersion(int version);
+    int expectedVersion();
     void addConversions(std::vector<Unit> cs);
     void addMedia(int media);
     void addManufacturer(int m);
-    void addPrint(string vname, Quantity vquantity, function<double(Unit)> getValueFunc, string help, bool field);
+    void addPrint(string vname, Quantity vquantity,
+                  function<double(Unit)> getValueFunc, string help, bool field, bool json);
+    void addPrint(string vname, Quantity vquantity,
+                  function<std::string()> getValueFunc, string help, bool field, bool json);
+    void setEncryptionMode(EncryptionMode em);
+    EncryptionMode encryptionMode();
     void handleTelegram(Telegram *t);
     void printMeter(Telegram *t,
                     string *human_readable,
@@ -84,6 +94,7 @@ protected:
 private:
 
     MeterType type_ {};
+    int expected_meter_version_ {};
     vector<int> media_;
     set<int> manufacturers_;
     string name_;
@@ -95,6 +106,7 @@ private:
     bool use_aes_ {};
     time_t datetime_of_update_ {};
     LinkMode required_link_mode_ {};
+    EncryptionMode enc_mode_ {};
 
 protected:
     std::map<std::string,std::pair<int,std::string>> values_;

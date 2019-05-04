@@ -66,9 +66,16 @@ void MeterCommonImplementation::addMedia(int m)
 }
 
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
-                                         function<double(Unit)> getValueFunc, string help, bool field)
+                                         function<double(Unit)> getValueFunc, string help, bool field, bool json)
 {
-    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), getValueFunc, help, field });
+    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), getValueFunc, NULL, help, field, json });
+}
+
+void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
+                                         function<string()> getValueFunc,
+                                         string help, bool field, bool json)
+{
+    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), NULL, getValueFunc, help, field, json } );
 }
 
 void MeterCommonImplementation::addManufacturer(int m)
@@ -240,13 +247,20 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
     {
         if (p.field)
         {
-            Unit u = replaceWithConversionUnit(p.default_unit, cs);
-            double v = p.getValueFunc(u);
-            if (hr) {
-                s += format3fdot3f(v);
-                s += " "+unitToStringHR(u);
-            } else {
-                s += to_string(v);
+            if (p.getValueDouble)
+            {
+                Unit u = replaceWithConversionUnit(p.default_unit, cs);
+                double v = p.getValueDouble(u);
+                if (hr) {
+                    s += valueToString(v, u);
+                    s += " "+unitToStringHR(u);
+                } else {
+                    s += to_string(v);
+                }
+            }
+            if (p.getValueString)
+            {
+                s += p.getValueString();
             }
             s += c;
         }
@@ -268,7 +282,7 @@ void MeterCommonImplementation::handleTelegram(Telegram *t)
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    //t->expectVersion("mkradio3", 0x74);
+    t->expectVersion(meterName().c_str(), expectedVersion());
 
     if (t->isEncrypted() && !useAes() && !t->isSimulated())
     {
@@ -277,7 +291,12 @@ void MeterCommonImplementation::handleTelegram(Telegram *t)
     }
     if (useAes()) {
         vector<uchar> aeskey = key();
-        decryptMode1_AES_CTR(t, aeskey);
+        if (encryptionMode() == EncryptionMode::AES_CTR) {
+            decryptMode1_AES_CTR(t, aeskey);
+        }
+        if (encryptionMode() == EncryptionMode::AES_CBC) {
+            decryptMode1_AES_CTR(t, aeskey);
+        }
     } else {
         t->content = t->payload;
     }
@@ -317,17 +336,22 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     s += "\"id\":\""+t->id+"\",";
     for (Print p : prints_)
     {
-        if (p.field)
+        if (p.json)
         {
             string default_unit = unitToStringLowerCase(p.default_unit);
             string var = p.vname;
-            s += "\""+var+"_"+default_unit+"\":"+to_string(p.getValueFunc(p.default_unit))+",";
+            if (p.getValueString) {
+                s += "\""+var+"\":\""+p.getValueString()+"\",";
+            }
+            if (p.getValueDouble) {
+                s += "\""+var+"_"+default_unit+"\":"+valueToString(p.getValueDouble(p.default_unit), p.default_unit)+",";
 
-            Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
-            if (u != p.default_unit)
-            {
-                string unit = unitToStringLowerCase(u);
-                s += "\""+var+"_"+unit+"\":"+to_string(p.getValueFunc(u))+",";
+                Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
+                if (u != p.default_unit)
+                {
+                    string unit = unitToStringLowerCase(u);
+                    s += "\""+var+"_"+unit+"\":"+valueToString(p.getValueDouble(u), u)+",";
+                }
             }
         }
     }
@@ -341,20 +365,25 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
     for (Print p : prints_)
     {
-        if (p.field)
+        if (p.json)
         {
             string default_unit = unitToStringUpperCase(p.default_unit);
             string var = p.vname;
-            std::transform(var.begin(), var.end(), var.begin(), ::toupper);
-            string envvar = "METER_"+var+"_"+default_unit+"="+to_string(p.getValueFunc(p.default_unit));
-            envs->push_back(envvar);
-
-            Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
-            if (u != p.default_unit)
-            {
-                string unit = unitToStringUpperCase(u);
-                string envvar = "METER_"+var+"_"+unit+"="+to_string(p.getValueFunc(u));
+            if (p.getValueString) {
+                s += "\""+var+"\":\""+p.getValueString()+"\",";
+            }
+            if (p.getValueDouble) {
+                std::transform(var.begin(), var.end(), var.begin(), ::toupper);
+                string envvar = "METER_"+var+"_"+default_unit+"="+valueToString(p.getValueDouble(p.default_unit), p.default_unit);
                 envs->push_back(envvar);
+
+                Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
+                if (u != p.default_unit)
+                {
+                    string unit = unitToStringUpperCase(u);
+                    string envvar = "METER_"+var+"_"+unit+"="+valueToString(p.getValueDouble(u), u);
+                    envs->push_back(envvar);
+                }
             }
         }
     }
@@ -393,3 +422,23 @@ double ElectricityMeter::currentPowerProduction() { return -47.11; }
 double HeatCostMeter::currentConsumption() { return -47.11; }
 string HeatCostMeter::setDate() { return "47.11"; }
 double HeatCostMeter::consumptionAtSetDate() { return -47.11; }
+
+void MeterCommonImplementation::setEncryptionMode(EncryptionMode em)
+{
+    enc_mode_ = em;
+}
+
+EncryptionMode MeterCommonImplementation::encryptionMode()
+{
+    return enc_mode_;
+}
+
+void MeterCommonImplementation::setExpectedVersion(int version)
+{
+    expected_meter_version_ = version;
+}
+
+int MeterCommonImplementation::expectedVersion()
+{
+    return expected_meter_version_;
+}

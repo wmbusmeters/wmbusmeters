@@ -61,6 +61,13 @@ LinkMode isLinkMode(const char *arg);
 // aka little endian.
 #define SN_ENC_BITS 0xc0
 
+enum class EncryptionMode
+{
+    None,
+    AES_CBC,
+    AES_CTR
+};
+
 using namespace std;
 
 struct Telegram {

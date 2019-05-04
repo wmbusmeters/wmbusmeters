@@ -77,27 +77,21 @@ struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonIm
     string timeLeaking();
     string timeBursting();
 
-    void printMeter(Telegram *t,
-                    string *human_readable,
-                    string *fields, char separator,
-                    string *json,
-                    vector<string> *envs);
-
 private:
-    void handleTelegram(Telegram *t);
+
     void processContent(Telegram *t);
     string decodeTime(int time);
 
     uint16_t info_codes_ {};
-    double total_water_consumption_ {};
+    double total_water_consumption_m3_ {};
     bool has_total_water_consumption_ {};
-    double target_volume_ {};
-    bool has_target_volume_ {};
-    double max_flow_ {};
+    double target_water_consumption_m3_ {};
+    bool has_target_water_consumption_ {};
+    double max_flow_m3h_ {};
     bool has_max_flow_ {};
-    double flow_temperature_ { 127 };
+    double flow_temperature_c_ { 127 };
     bool has_flow_temperature_ {};
-    double external_temperature_ { 127 };
+    double external_temperature_c_ { 127 };
     bool has_external_temperature_ {};
 
     const char *meter_name_; // multical21 or flowiq3100
@@ -107,24 +101,80 @@ private:
 MeterMultical21::MeterMultical21(WMBus *bus, string& name, string& id, string& key, MeterType mt) :
     MeterCommonImplementation(bus, name, id, key, mt, MANUFACTURER_KAM, LinkMode::C1)
 {
+    setEncryptionMode(EncryptionMode::AES_CTR);
+
     addMedia(0x16); // Water media
 
     if (type() == MeterType::MULTICAL21) {
-        expected_version_ = 0x1b;
-        meter_name_ = "multical21";
+        setExpectedVersion(0x1b);
     } else if (type() == MeterType::FLOWIQ3100) {
-        expected_version_ = 0x1d;
-        meter_name_ = "flowiq3100";
+        setExpectedVersion(0x1d);
     } else {
         assert(0);
     }
+
+    addPrint("total", Quantity::Volume,
+             [&](Unit u){ return totalWaterConsumption(u); },
+             "The total water consumption recorded by this meter.",
+             true, true);
+
+    addPrint("target", Quantity::Volume,
+             [&](Unit u){ return targetWaterConsumption(u); },
+             "The total water consumption recorded at the beginning of this month.",
+             true, true);
+
+    addPrint("max_flow", Quantity::Flow,
+             [&](Unit u){ return maxFlow(u); },
+             "The maxium flow recorded during previous period.",
+             true, true);
+
+    addPrint("flow_temperature", Quantity::Temperature,
+             [&](Unit u){ return flowTemperature(u); },
+             "The water temperature.",
+             true, true);
+
+    addPrint("external_temperature", Quantity::Temperature,
+             [&](Unit u){ return externalTemperature(u); },
+             "The external temperature outside of the meter.",
+             true, true);
+
+    addPrint("", Quantity::Text,
+             [&](){ return statusHumanReadable(); },
+             "Status of meter.",
+             true, false);
+
+    addPrint("current_status", Quantity::Text,
+             [&](){ return status(); },
+             "Status of meter.",
+             false, true);
+
+    addPrint("time_dry", Quantity::Text,
+             [&](){ return timeDry(); },
+             "Amount of time the meter has been dry.",
+             false, true);
+
+    addPrint("time_reversed", Quantity::Text,
+             [&](){ return timeReversed(); },
+             "Amount of time the meter has been reversed.",
+             false, true);
+
+    addPrint("time_leaking", Quantity::Text,
+             [&](){ return timeLeaking(); },
+             "Amount of time the meter has been leaking.",
+             false, true);
+
+    addPrint("time_bursting", Quantity::Text,
+             [&](){ return timeBursting(); },
+             "Amount of time the meter has been bursting.",
+             false, true);
+
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
-
 double MeterMultical21::totalWaterConsumption(Unit u)
 {
-    return total_water_consumption_;
+    assertQuantity(u, Quantity::Volume);
+    return convert(total_water_consumption_m3_, Unit::M3, u);
 }
 
 bool MeterMultical21::hasTotalWaterConsumption()
@@ -134,17 +184,19 @@ bool MeterMultical21::hasTotalWaterConsumption()
 
 double MeterMultical21::targetWaterConsumption(Unit u)
 {
-    return target_volume_;
+    assertQuantity(u, Quantity::Volume);
+    return convert(target_water_consumption_m3_, Unit::M3, u);
 }
 
 bool MeterMultical21::hasTargetWaterConsumption()
 {
-    return has_target_volume_;
+    return has_target_water_consumption_;
 }
 
 double MeterMultical21::maxFlow(Unit u)
 {
-    return max_flow_;
+    assertQuantity(u, Quantity::Flow);
+    return convert(max_flow_m3h_, Unit::M3H, u);
 }
 
 bool MeterMultical21::hasMaxFlow()
@@ -154,7 +206,8 @@ bool MeterMultical21::hasMaxFlow()
 
 double MeterMultical21::flowTemperature(Unit u)
 {
-    return flow_temperature_;
+    assertQuantity(u, Quantity::Temperature);
+    return convert(flow_temperature_c_, Unit::C, u);
 }
 
 bool MeterMultical21::hasFlowTemperature()
@@ -164,7 +217,8 @@ bool MeterMultical21::hasFlowTemperature()
 
 double MeterMultical21::externalTemperature(Unit u)
 {
-    return external_temperature_;
+    assertQuantity(u, Quantity::Temperature);
+    return convert(external_temperature_c_, Unit::C, u);
 }
 
 bool MeterMultical21::hasExternalTemperature()
@@ -188,38 +242,6 @@ unique_ptr<WaterMeter> createMultical21(WMBus *bus, string& name, string& id, st
 unique_ptr<WaterMeter> createFlowIQ3100(WMBus *bus, string& name, string& id, string& key)
 {
     return createMulticalWaterMeter(bus, name, id, key, MeterType::FLOWIQ3100);
-}
-
-void MeterMultical21::handleTelegram(Telegram *t)
-{
-    if (!isTelegramForMe(t)) {
-        // This telegram is not intended for this meter.
-        return;
-    }
-
-    verbose("(%s) telegram for %s %02x%02x%02x%02x\n", meter_name_,
-            name().c_str(),
-            t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
-            t->a_field_address[3]);
-
-    t->expectVersion(name().c_str(), expected_version_);
-
-    if (useAes()) {
-        vector<uchar> aeskey = key();
-        decryptMode1_AES_CTR(t, aeskey);
-    } else {
-        t->content = t->payload;
-    }
-    char log_prefix[256];
-    snprintf(log_prefix, 255, "(%s) log", meter_name_);
-    logTelegram(log_prefix, t->parsed, t->content);
-    int content_start = t->parsed.size();
-    processContent(t);
-    if (isDebugEnabled()) {
-        snprintf(log_prefix, 255, "(%s)", meter_name_);
-        t->explainParse(log_prefix, content_start);
-    }
-    triggerUpdate(t);
 }
 
 void MeterMultical21::processContent(Telegram *t)
@@ -335,31 +357,31 @@ void MeterMultical21::processContent(Telegram *t)
     t->addMoreExplanation(offset, " info codes (%s)", statusHumanReadable().c_str());
 
     if(findKey(ValueInformation::Volume, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &total_water_consumption_);
+        extractDVdouble(&values, key, &offset, &total_water_consumption_m3_);
         has_total_water_consumption_ = true;
-        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
+        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
     if(findKey(ValueInformation::Volume, 1, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &target_volume_);
-        has_target_volume_ = true;
-        t->addMoreExplanation(offset, " target consumption (%f m3)", target_volume_);
+        extractDVdouble(&values, key, &offset, &target_water_consumption_m3_);
+        has_target_water_consumption_ = true;
+        t->addMoreExplanation(offset, " target consumption (%f m3)", target_water_consumption_m3_);
     }
 
     if(findKey(ValueInformation::VolumeFlow, ANY_STORAGENR, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &max_flow_);
+        extractDVdouble(&values, key, &offset, &max_flow_m3h_);
         has_max_flow_ = true;
-        t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_);
+        t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_m3h_);
     }
 
     if(findKey(ValueInformation::FlowTemperature, ANY_STORAGENR, &key, &values)) {
-        has_flow_temperature_ = extractDVdouble(&values, key, &offset, &flow_temperature_);
-        t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_);
+        has_flow_temperature_ = extractDVdouble(&values, key, &offset, &flow_temperature_c_);
+        t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_c_);
     }
 
     if(findKey(ValueInformation::ExternalTemperature, ANY_STORAGENR, &key, &values)) {
-        has_external_temperature_ = extractDVdouble(&values, key, &offset, &external_temperature_);
-        t->addMoreExplanation(offset, " external temperature (%f °C)", external_temperature_);
+        has_external_temperature_ = extractDVdouble(&values, key, &offset, &external_temperature_c_);
+        t->addMoreExplanation(offset, " external temperature (%f °C)", external_temperature_c_);
     }
 
 }
@@ -484,130 +506,4 @@ string MeterMultical21::decodeTime(int time)
     default:
         return "?";
     }
-}
-
-void MeterMultical21::printMeter(Telegram *t,
-                                 string *human_readable,
-                                 string *fields, char separator,
-                                 string *json,
-                                 vector<string> *envs)
-{
-    char buf[65536];
-    buf[65535] = 0;
-
-    char ft[10], et[10];
-    ft[9] = 0;
-    et[9] = 0;
-
-    if (hasFlowTemperature()) {
-        snprintf(ft, sizeof(ft)-1, "% 2.0f", flowTemperature(Unit::C));
-    } else {
-        ft[0] = '-';
-        ft[1] = 0;
-    }
-
-    if (hasExternalTemperature()) {
-        snprintf(et, sizeof(et)-1, "% 2.0f", externalTemperature(Unit::C));
-    } else {
-        et[0] = '-';
-        et[1] = 0;
-    }
-
-    snprintf(buf, sizeof(buf)-1,
-             "%s\t"
-             "%s\t"
-             "% 3.3f m3\t"
-             "% 3.3f m3\t"
-             "% 3.3f m3/h\t"
-             "%s°C\t"
-             "%s°C\t"
-             "%s\t"
-             "%s",
-             name().c_str(),
-             t->id.c_str(),
-             totalWaterConsumption(Unit::M3),
-             targetWaterConsumption(Unit::M3),
-             maxFlow(Unit::M3H),
-             ft,
-             et,
-             statusHumanReadable().c_str(),
-             datetimeOfUpdateHumanReadable().c_str());
-
-    *human_readable = buf;
-
-    snprintf(buf, sizeof(buf)-1,
-             "%s%c"
-             "%s%c"
-             "%f%c"
-             "%f%c"
-             "%f%c"
-             "%.0f%c"
-             "%.0f%c"
-             "%s%c"
-             "%s",
-             name().c_str(), separator,
-             t->id.c_str(), separator,
-             totalWaterConsumption(Unit::M3), separator,
-             targetWaterConsumption(Unit::M3), separator,
-             maxFlow(Unit::M3H), separator,
-             flowTemperature(Unit::C), separator,
-             externalTemperature(Unit::C), separator,
-             statusHumanReadable().c_str(), separator,
-             datetimeOfUpdateRobot().c_str());
-
-    *fields = buf;
-
-#define Q(x,y) "\""#x"\":"#y","
-#define QS(x,y) "\""#x"\":\""#y"\","
-#define QSE(x,y) "\""#x"\":\""#y"\""
-
-    snprintf(buf, sizeof(buf)-1, "{"
-             QS(media,%s)
-             QS(meter,%s)
-             QS(name,%s)
-             QS(id,%s)
-             Q(total_m3,%f)
-             Q(target_m3,%f)
-             Q(max_flow_m3h,%f)
-             Q(flow_temperature,%.0f)
-             Q(external_temperature,%.0f)
-             QS(current_status,%s)
-             QS(time_dry,%s)
-             QS(time_reversed,%s)
-             QS(time_leaking,%s)
-             QS(time_bursting,%s)
-             QSE(timestamp,%s)
-             "}",
-             mediaTypeJSON(t->a_field_device_type).c_str(),
-             meter_name_,
-             name().c_str(),
-             t->id.c_str(),
-             totalWaterConsumption(Unit::M3),
-             targetWaterConsumption(Unit::M3),
-             maxFlow(Unit::M3H),
-             flowTemperature(Unit::C),
-             externalTemperature(Unit::C),
-             status().c_str(), // DRY REVERSED LEAK BURST
-             timeDry().c_str(),
-             timeReversed().c_str(),
-             timeLeaking().c_str(),
-             timeBursting().c_str(),
-             datetimeOfUpdateRobot().c_str());
-
-    *json = buf;
-
-    envs->push_back(string("METER_JSON=")+*json);
-    envs->push_back(string("METER_TYPE=")+meter_name_);
-    envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption(Unit::M3)));
-    envs->push_back(string("METER_TARGET_M3=")+to_string(targetWaterConsumption(Unit::M3)));
-    envs->push_back(string("METER_MAX_FLOW_M3H=")+to_string(maxFlow(Unit::M3H)));
-    envs->push_back(string("METER_FLOW_TEMPERATURE=")+to_string(flowTemperature(Unit::C)));
-    envs->push_back(string("METER_EXTERNAL_TEMPERATURE=")+to_string(externalTemperature(Unit::C)));
-    envs->push_back(string("METER_STATUS=")+status());
-    envs->push_back(string("METER_TIME_DRY=")+timeDry());
-    envs->push_back(string("METER_TIME_REVERSED=")+timeReversed());
-    envs->push_back(string("METER_TIME_LEAKING=")+timeLeaking());
-    envs->push_back(string("METER_TIME_BURSTING=")+timeBursting());
-    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }

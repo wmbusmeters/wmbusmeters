@@ -55,6 +55,9 @@ MeterOmnipower::MeterOmnipower(WMBus *bus, string& name, string& id, string& key
     MeterCommonImplementation(bus, name, id, key, MeterType::OMNIPOWER, MANUFACTURER_KAM, LinkMode::C1)
 {
     addMedia(0x02);
+
+    setExpectedVersion(0x01);
+
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
@@ -90,7 +93,6 @@ void MeterOmnipower::handleTelegram(Telegram *t) {
             t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
             t->a_field_address[3]);
 
-    t->expectVersion("omnipower", 0x01);
 
     if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
         warning("(omnipower) warning: telegram is encrypted but no key supplied!\n");

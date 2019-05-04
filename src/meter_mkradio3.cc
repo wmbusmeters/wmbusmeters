@@ -51,18 +51,22 @@ private:
 MKRadio3::MKRadio3(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation(bus, name, id, key, MeterType::MKRADIO3, MANUFACTURER_TCH, LinkMode::T1)
 {
+    setEncryptionMode(EncryptionMode::None);
+
     addMedia(0x62);
     addMedia(0x72);
+
+    setExpectedVersion(0x74);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true);
+             true, true);
 
     addPrint("target", Quantity::Volume,
              [&](Unit u){ return targetWaterConsumption(u); },
              "The total water consumption recorded at the beginning of this month.",
-             true);
+             true, true);
 
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }

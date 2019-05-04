@@ -40,9 +40,7 @@ struct MeterSupercom587 : public virtual WaterMeter, public virtual MeterCommonI
     bool  hasTotalWaterConsumption();
 
 private:
-    void handleTelegram(Telegram *t);
     void processContent(Telegram *t);
-    string decodeTime(int time);
 
     double total_water_consumption_m3_ {};
 };
@@ -55,57 +53,19 @@ unique_ptr<WaterMeter> createSupercom587(WMBus *bus, string& name, string& id, s
 MeterSupercom587::MeterSupercom587(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation(bus, name, id, key, MeterType::SUPERCOM587, MANUFACTURER_SON, LinkMode::T1)
 {
+    setEncryptionMode(EncryptionMode::AES_CBC);
+
     addMedia(0x06);
     addMedia(0x07);
+
+    setExpectedVersion(0x3c);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true);
+             true, true);
 
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
-}
-
-double MeterSupercom587::totalWaterConsumption(Unit u)
-{
-    assertQuantity(u, Quantity::Volume);
-    return convert(total_water_consumption_m3_, Unit::M3, u);
-}
-
-
-void MeterSupercom587::handleTelegram(Telegram *t)
-{
-    if (!isTelegramForMe(t)) {
-        // This telegram is not intended for this meter.
-        return;
-    }
-
-    verbose("(%s) telegram for %s %02x%02x%02x%02x\n", "supercom587",
-            name().c_str(),
-            t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
-            t->a_field_address[3]);
-
-    t->expectVersion("supercom587", 0x3c);
-
-    if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
-        warning("(supercom587) warning: telegram is encrypted but no key supplied!\n");
-    }
-    if (useAes()) {
-        vector<uchar> aeskey = key();
-        decryptMode5_AES_CBC(t, aeskey);
-    } else {
-        t->content = t->payload;
-    }
-    char log_prefix[256];
-    snprintf(log_prefix, 255, "(%s) log", "supercom587");
-    logTelegram(log_prefix, t->parsed, t->content);
-    int content_start = t->parsed.size();
-    processContent(t);
-    if (isDebugEnabled()) {
-        snprintf(log_prefix, 255, "(%s)", "supercom587");
-        t->explainParse(log_prefix, content_start);
-    }
-    triggerUpdate(t);
 }
 
 void MeterSupercom587::processContent(Telegram *t)
@@ -119,6 +79,12 @@ void MeterSupercom587::processContent(Telegram *t)
 
     extractDVdouble(&values, "0C13", &offset, &total_water_consumption_m3_);
     t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
+}
+
+double MeterSupercom587::totalWaterConsumption(Unit u)
+{
+    assertQuantity(u, Quantity::Volume);
+    return convert(total_water_consumption_m3_, Unit::M3, u);
 }
 
 bool MeterSupercom587::hasTotalWaterConsumption()

@@ -1,35 +1,35 @@
 # Test Supercom587 T1 telegrams
 
 telegram=|A244EE4D785634123C067A8F000000|0C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000|
-{"media":"warm water","meter":"supercom587","name":"MyWarmWater","id":"12345678","total_m3":5.548000,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"warm water","meter":"supercom587","name":"MyWarmWater","id":"12345678","total_m3":5.548,"timestamp":"1111-11-11T11:11:11Z"}
 
 telegram=|A244EE4D111111113C077AAC000000|0C1389490000426CE1F14C130000000082046C21298C0413010000008D04931E3A3CFE0100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000001600000031130000046D0A0C5C2B03FD6C60150082206C5C290BFD0F0200018C4079629885238310FD3100000082106C01018110FD610002FD66020002FD170000|
-{"media":"water","meter":"supercom587","name":"MyColdWater","id":"11111111","total_m3":4.989000,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"supercom587","name":"MyColdWater","id":"11111111","total_m3":4.989,"timestamp":"1111-11-11T11:11:11Z"}
 
 # Test iPerl T1 telegram, after decryption, its got 2f2f markers.
 
 telegram=|1E44AE4C9956341268077A36001000|2F2F0413181E0000023B00002F2F2F2F|
-{"media":"water","meter":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704000,"max_flow_m3h":0.000000,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
 
 # Test iPerl T1 telegram not encrypted, no 2f2f markers.
 
 telegram=|1844AE4C4455223368077A55000000|041389E20100023B0000|
-{"media":"water","meter":"iperl","name":"WaterWater","id":"33225544","total_m3":123.529000,"max_flow_m3h":0.000000,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"iperl","name":"WaterWater","id":"33225544","total_m3":123.529,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
 
 # Test at-wmbus-16-2 T1 telegram
 
 telegram=|6E4401062020202005077A9A006085|2F2F0F0A734393CC0000435B0183001A54E06F630291342510030F00007B013E0B00003E0B00003E0B00003E0B00003E0B00003E0B00003E0B0000650000003D0000003D0000003D00000000000000A0910CB003FFFFFFFFFFFFFFFFFFFFA62B|
-{"media":"water","meter":"apator162","name":"Wasser","id":"20202020","total_m3":3.843000,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"apator162","name":"Wasser","id":"20202020","total_m3":3.843,"timestamp":"1111-11-11T11:11:11Z"}
 
 # Test amiplus/apator electricity meter
 
 telegram=|4E4401061010101002027A00004005|2F2F0E035040691500000B2B300300066D00790C7423400C78371204860BABC8FC100000000E833C8074000000000BAB3C0000000AFDC9FC0136022F2F2F2F2F|
-{"media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.050000,"current_power_consumption_kw":0.330000,"total_energy_production_kwh":7.480000,"current_power_production_kw":0.000000,"device_date_time":"2019-03-20 12:57","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.05,"current_power_consumption_kw":0.33,"total_energy_production_kwh":7.48,"current_power_production_kw":0,"device_date_time":"2019-03-20 12:57","timestamp":"1111-11-11T11:11:11Z"}
 
 # Test MKRadio3 T1 telegrams
 
 telegram=|2F446850313233347462A2|069F255900B029310000000306060906030609070606050509050505050407040605070500|
-{"media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.800000,"target_m3":8.900000,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"timestamp":"1111-11-11T11:11:11Z"}
 
 # Test vario451 T1 telegrams
 telegram=|374468506549235827C3A2|129F25383300A8622600008200800A2AF862115175552877A36F26C9AB1CB24400000004000000000004908002|

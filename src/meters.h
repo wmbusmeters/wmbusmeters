@@ -50,7 +50,8 @@ using namespace std;
 
 typedef unsigned char uchar;
 
-struct Meter {
+struct Meter
+{
     virtual vector<string> ids() = 0;
     virtual string meterName() = 0;
     virtual string name() = 0;
@@ -75,6 +76,8 @@ struct Meter {
     virtual bool isTelegramForMe(Telegram *t) = 0;
     virtual bool useAes() = 0;
     virtual vector<uchar> key() = 0;
+    virtual EncryptionMode encryptionMode() = 0;
+    virtual int expectedVersion() = 0;
 
     // Dynamically access all data received for the meter.
     virtual std::vector<std::string> getRecords() = 0;

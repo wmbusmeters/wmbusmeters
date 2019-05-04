@@ -27,6 +27,7 @@
     X(Volume,M3)           \
     X(Flow,M3H)            \
     X(Temperature,C)       \
+    X(Text,TXT)            \
 
 
 #define LIST_OF_UNITS \
@@ -36,7 +37,8 @@
     X(L,l,l,Volume,"litre")                 \
     X(KW,kw,kW,Power,"kilo Watt")           \
     X(M3H,m3h,m3/h,Flow,"cubic meters per hour")      \
-    X(C,c,°C,Temperature,"celsius")     \
+    X(C,c,°C,Temperature,"celsius")         \
+    X(TXT,txt,txt,Text,"text")              \
 
 enum class Unit
 {
@@ -63,6 +65,7 @@ Unit defaultUnitForQuantity(Quantity q);
 std::string unitToStringHR(Unit u);
 std::string unitToStringLowerCase(Unit u);
 std::string unitToStringUpperCase(Unit u);
+std::string valueToString(double v, Unit u);
 
 Unit replaceWithConversionUnit(Unit u, std::vector<Unit> cs);
 

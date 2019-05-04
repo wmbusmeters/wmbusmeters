@@ -51,23 +51,25 @@ unique_ptr<HeatMeter> createVario451(WMBus *bus, string& name, string& id, strin
 MeterVario451::MeterVario451(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation(bus, name, id, key, MeterType::VARIO451, MANUFACTURER_TCH, LinkMode::T1)
 {
+    setEncryptionMode(EncryptionMode::None);
+
     addMedia(0x04); // C telegrams
     addMedia(0xC3); // T telegrams
 
     addPrint("total", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
-             true);
+             true, true);
 
     addPrint("current", Quantity::Energy,
              [&](Unit u){ return currentPeriodEnergyConsumption(u); },
              "Energy consumption so far in this billing period.",
-             true);
+             true, true);
 
     addPrint("previous", Quantity::Energy,
              [&](Unit u){ return previousPeriodEnergyConsumption(u); },
              "Energy consumption in previous billing period.",
-             true);
+             true, true);
 
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }

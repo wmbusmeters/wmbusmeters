@@ -39,89 +39,42 @@ struct MeterIperl : public virtual WaterMeter, public virtual MeterCommonImpleme
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
     bool  hasTotalWaterConsumption();
-    double targetWaterConsumption(Unit u);
-    bool  hasTargetWaterConsumption();
     double maxFlow(Unit u);
     bool  hasMaxFlow();
-    double flowTemperature(Unit u);
-    bool  hasFlowTemperature();
-    double externalTemperature(Unit u);
-    bool  hasExternalTemperature();
-
-    string statusHumanReadable();
-    string status();
-    string timeDry();
-    string timeReversed();
-    string timeLeaking();
-    string timeBursting();
-
-    void printMeter(Telegram *t,
-                    string *human_readable,
-                    string *fields, char separator,
-                    string *json,
-                    vector<string> *envs);
 
 private:
-    void handleTelegram(Telegram *t);
     void processContent(Telegram *t);
-    string decodeTime(int time);
 
-    double total_water_consumption_ {};
-    double max_flow_ {};
+    double total_water_consumption_m3_ {};
+    double max_flow_m3h_ {};
 };
 
 MeterIperl::MeterIperl(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation(bus, name, id, key, MeterType::IPERL, MANUFACTURER_SEN, LinkMode::T1)
 {
+    setEncryptionMode(EncryptionMode::AES_CBC);
+
     addMedia(0x06);
     addMedia(0x07);
+
+    setExpectedVersion(0x68);
+
+    addPrint("total", Quantity::Volume,
+             [&](Unit u){ return totalWaterConsumption(u); },
+             "The total water consumption recorded by this meter.",
+             true, true);
+
+    addPrint("max_flow", Quantity::Flow,
+             [&](Unit u){ return maxFlow(u); },
+             "The maxium flow recorded during previous period.",
+             true, true);
+
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
-}
-
-
-double MeterIperl::totalWaterConsumption(Unit u)
-{
-    return total_water_consumption_;
 }
 
 unique_ptr<WaterMeter> createIperl(WMBus *bus, string& name, string& id, string& key)
 {
     return unique_ptr<WaterMeter>(new MeterIperl(bus,name,id,key));
-}
-
-void MeterIperl::handleTelegram(Telegram *t)
-{
-    if (!isTelegramForMe(t)) {
-        // This telegram is not intended for this meter.
-        return;
-    }
-
-    verbose("(%s) telegram for %s %02x%02x%02x%02x\n", "iperl",
-            name().c_str(),
-            t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
-            t->a_field_address[3]);
-
-    t->expectVersion("iperl", 0x68);
-
-    if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
-        warning("(iperl) warning: telegram is encrypted but no key supplied!\n");
-    }
-    if (useAes()) {
-        vector<uchar> aeskey = key();
-		decryptMode5_AES_CBC(t, aeskey);
-    } else {
-        t->content = t->payload;
-    }
-    char log_prefix[256];
-    snprintf(log_prefix, 255, "(%s) log", "iperl");
-    logTelegram(log_prefix, t->parsed, t->content);
-    int content_start = t->parsed.size();
-    processContent(t);
-    if (isDebugEnabled()) {
-        snprintf(log_prefix, 255, "(%s)", "iperl");
-        t->explainParse(log_prefix, content_start);
-    }
-    triggerUpdate(t);
 }
 
 void MeterIperl::processContent(Telegram *t)
@@ -133,81 +86,20 @@ void MeterIperl::processContent(Telegram *t)
     string key;
 
     if(findKey(ValueInformation::Volume, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &total_water_consumption_);
-        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
+        extractDVdouble(&values, key, &offset, &total_water_consumption_m3_);
+        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
     if(findKey(ValueInformation::VolumeFlow, ANY_STORAGENR, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &max_flow_);
-        t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_);
+        extractDVdouble(&values, key, &offset, &max_flow_m3h_);
+        t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_m3h_);
     }
 }
 
-void MeterIperl::printMeter(Telegram *t,
-                            string *human_readable,
-                            string *fields, char separator,
-                            string *json,
-                            vector<string> *envs)
+double MeterIperl::totalWaterConsumption(Unit u)
 {
-    char buf[65536];
-    buf[65535] = 0;
-
-    snprintf(buf, sizeof(buf)-1,
-             "%s\t"
-             "%s\t"
-             "% 3.3f m3\t"
-             "% 3.3f m3/h\t"
-             "%s",
-             name().c_str(),
-             t->id.c_str(),
-             totalWaterConsumption(Unit::M3),
-             maxFlow(Unit::M3H),
-             datetimeOfUpdateHumanReadable().c_str());
-
-    *human_readable = buf;
-
-    snprintf(buf, sizeof(buf)-1,
-             "%s%c"
-             "%s%c"
-             "%f%c"
-             "%f%c"
-             "%s",
-             name().c_str(), separator,
-             t->id.c_str(), separator,
-             totalWaterConsumption(Unit::M3), separator,
-             maxFlow(Unit::M3H), separator,
-            datetimeOfUpdateRobot().c_str());
-
-    *fields = buf;
-
-#define Q(x,y) "\""#x"\":"#y","
-#define QS(x,y) "\""#x"\":\""#y"\","
-#define QSE(x,y) "\""#x"\":\""#y"\""
-
-    snprintf(buf, sizeof(buf)-1, "{"
-             QS(media,%s)
-             QS(meter,iperl)
-             QS(name,%s)
-             QS(id,%s)
-             Q(total_m3,%f)
-             Q(max_flow_m3h,%f)
-             QSE(timestamp,%s)
-             "}",
-             mediaTypeJSON(t->a_field_device_type).c_str(),
-             name().c_str(),
-             t->id.c_str(),
-             totalWaterConsumption(Unit::M3),
-             maxFlow(Unit::M3H),
-             datetimeOfUpdateRobot().c_str());
-
-    *json = buf;
-
-    envs->push_back(string("METER_JSON=")+*json);
-    envs->push_back(string("METER_TYPE=iperl"));
-    envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption(Unit::M3)));
-    envs->push_back(string("METER_MAX_FLOW_M3H=")+to_string(maxFlow(Unit::M3H)));
-    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
+    assertQuantity(u, Quantity::Volume);
+    return convert(total_water_consumption_m3_, Unit::M3, u);
 }
 
 bool MeterIperl::hasTotalWaterConsumption()
@@ -215,72 +107,13 @@ bool MeterIperl::hasTotalWaterConsumption()
     return true;
 }
 
-double MeterIperl::targetWaterConsumption(Unit u)
-{
-    return 0.0;
-}
-
-bool MeterIperl::hasTargetWaterConsumption()
-{
-    return false;
-}
-
 double MeterIperl::maxFlow(Unit u)
 {
-    return max_flow_;
+    assertQuantity(u, Quantity::Flow);
+    return convert(max_flow_m3h_, Unit::M3H, u);
 }
 
 bool MeterIperl::hasMaxFlow()
 {
     return true;
-}
-
-double MeterIperl::flowTemperature(Unit u)
-{
-    return 127;
-}
-
-bool MeterIperl::hasFlowTemperature()
-{
-    return false;
-}
-
-double MeterIperl::externalTemperature(Unit u)
-{
-    return 127;
-}
-
-bool MeterIperl::hasExternalTemperature()
-{
-    return false;
-}
-
-string MeterIperl::statusHumanReadable()
-{
-    return "";
-}
-
-string MeterIperl::status()
-{
-    return "";
-}
-
-string MeterIperl::timeDry()
-{
-    return "";
-}
-
-string MeterIperl::timeReversed()
-{
-    return "";
-}
-
-string MeterIperl::timeLeaking()
-{
-    return "";
-}
-
-string MeterIperl::timeBursting()
-{
-    return "";
 }
