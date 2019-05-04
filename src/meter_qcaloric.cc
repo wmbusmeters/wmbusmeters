@@ -20,14 +20,6 @@
 #include"meters_common_implementation.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
-#include"util.h"
-
-#include<map>
-#include<memory.h>
-#include<stdio.h>
-#include<string>
-#include<time.h>
-#include<vector>
 
 struct MeterQCaloric : public virtual HeatCostMeter, public virtual MeterCommonImplementation {
     MeterQCaloric(WMBus *bus, string& name, string& id, string& key);

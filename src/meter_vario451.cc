@@ -23,9 +23,6 @@
 #include"units.h"
 #include"util.h"
 
-#include<string>
-#include<vector>
-
 struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImplementation
 {
     MeterVario451(WMBus *bus, string& name, string& id, string& key);

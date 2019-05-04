@@ -21,12 +21,6 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
-#include<memory.h>
-#include<stdio.h>
-#include<string>
-#include<time.h>
-#include<vector>
-
 struct MeterMultical302 : public virtual HeatMeter, public virtual MeterCommonImplementation {
     MeterMultical302(WMBus *bus, string& name, string& id, string& key);
 

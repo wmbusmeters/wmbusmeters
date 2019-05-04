@@ -22,13 +22,6 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
-#include<map>
-#include<memory.h>
-#include<stdio.h>
-#include<string>
-#include<time.h>
-#include<vector>
-
 struct MeterOmnipower : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
     MeterOmnipower(WMBus *bus, string& name, string& id, string& key);
 

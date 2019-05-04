@@ -22,14 +22,6 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
-#include<assert.h>
-#include<map>
-#include<memory.h>
-#include<stdio.h>
-#include<string>
-#include<time.h>
-#include<vector>
-
 using namespace std;
 
 struct MeterSupercom587 : public virtual WaterMeter, public virtual MeterCommonImplementation {

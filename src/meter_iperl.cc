@@ -21,15 +21,6 @@
 #include"meters_common_implementation.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
-#include"util.h"
-
-#include<assert.h>
-#include<map>
-#include<memory.h>
-#include<stdio.h>
-#include<string>
-#include<time.h>
-#include<vector>
 
 using namespace std;
 
