@@ -295,7 +295,7 @@ void MeterCommonImplementation::handleTelegram(Telegram *t)
             decryptMode1_AES_CTR(t, aeskey);
         }
         if (encryptionMode() == EncryptionMode::AES_CBC) {
-            decryptMode1_AES_CTR(t, aeskey);
+            decryptMode5_AES_CBC(t, aeskey);
         }
     } else {
         t->content = t->payload;
