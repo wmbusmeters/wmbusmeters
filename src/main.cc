@@ -265,7 +265,7 @@ void startUsingCommandline(Configuration *config)
     if (!config->link_mode_set && type_and_device.first != DEVICE_RTLWMBUS && type_and_device.first != DEVICE_SIMULATOR) {
         // sdr_rtl|rtl_wmbus can listen to both C1 and T1 at the same time.
         // also using a simulator file, then you listen to all of the traffic in that file.
-        error("If you specify no meters, you have to specify the link mode: --c1 or --t1\n");
+        error("(config) if you specify no meters, you have to specify the link mode: --c1 or --t1\n");
     }
     wmbus->setLinkMode(config->link_mode);
     string using_link_mode = linkModeName(wmbus->getLinkMode());
@@ -296,6 +296,7 @@ LIST_OF_METERS
                 error("No such meter type \"%s\"\n", m.type.c_str());
                 break;
             }
+
             if (config->list_shell_envs) {
                 string ignore1, ignore2, ignore3;
                 vector<string> envs;

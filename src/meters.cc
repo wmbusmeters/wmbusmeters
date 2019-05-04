@@ -314,7 +314,7 @@ void MeterCommonImplementation::handleTelegram(Telegram *t)
     {
         char log_prefix[256];
         snprintf(log_prefix, 255, "(%s)", meterName().c_str());
-        t->explainParse("(vario451)", content_start);
+        t->explainParse(log_prefix, content_start);
     }
     triggerUpdate(t);
 }

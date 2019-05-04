@@ -197,15 +197,6 @@ string format3fdot3f(double v)
     return r;
 }
 
-void error(const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    vfprintf(stderr, fmt, args);
-    va_end(args);
-    exitHandler(0);
-    exit(1);
-}
-
 bool syslog_enabled_ = false;
 bool logfile_enabled_ = false;
 bool warning_enabled_ = true;
@@ -223,7 +214,8 @@ void enableSyslog() {
     syslog_enabled_ = true;
 }
 
-bool enableLogfile(string logfile, bool daemon) {
+bool enableLogfile(string logfile, bool daemon)
+{
     log_file_ = logfile;
     logfile_enabled_ = true;
     FILE *output = fopen(log_file_.c_str(), "a");
@@ -346,6 +338,16 @@ void debug(const char* fmt, ...) {
         outputStuff(LOG_NOTICE, fmt, args);
         va_end(args);
     }
+}
+
+void error(const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    outputStuff(LOG_NOTICE, fmt, args);
+    va_end(args);
+    exitHandler(0);
+    exit(1);
 }
 
 bool isValidId(string& ids)
