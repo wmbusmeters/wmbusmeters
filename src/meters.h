@@ -19,6 +19,7 @@
 #define METER_H_
 
 #include"util.h"
+#include"units.h"
 #include"wmbus.h"
 
 #include<string>
@@ -103,11 +104,11 @@ struct WaterMeter : public virtual Meter {
 };
 
 struct HeatMeter : public virtual Meter {
-    virtual double totalEnergyConsumption() = 0; // kwh
-    virtual double currentPeriodEnergyConsumption() = 0; // kwh
-    virtual double previousPeriodEnergyConsumption() = 0; // kwh
-    virtual double currentPowerConsumption() = 0; // kw
-    virtual double totalVolume() = 0; // m3
+    virtual double totalEnergyConsumption(Unit u) = 0; // kwh
+    virtual double currentPeriodEnergyConsumption(Unit u) = 0; // kwh
+    virtual double previousPeriodEnergyConsumption(Unit u) = 0; // kwh
+    virtual double currentPowerConsumption(Unit u) = 0; // kw
+    virtual double totalVolume(Unit u) = 0; // m3
 };
 
 struct ElectricityMeter : public virtual Meter {

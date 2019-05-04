@@ -30,11 +30,11 @@
 struct MeterMultical302 : public virtual HeatMeter, public virtual MeterCommonImplementation {
     MeterMultical302(WMBus *bus, string& name, string& id, string& key);
 
-    double totalEnergyConsumption();
-    double currentPeriodEnergyConsumption();
-    double previousPeriodEnergyConsumption();
-    double currentPowerConsumption();
-    double totalVolume();
+    double totalEnergyConsumption(Unit u);
+    double currentPeriodEnergyConsumption(Unit u);
+    double previousPeriodEnergyConsumption(Unit u);
+    double currentPowerConsumption(Unit u);
+    double totalVolume(Unit u);
 
     void printMeter(Telegram *t,
                     string *human_readable,
@@ -46,9 +46,9 @@ private:
     void handleTelegram(Telegram *t);
     void processContent(Telegram *t);
 
-    double total_energy_ {};
-    double current_power_ {};
-    double total_volume_ {};
+    double total_energy_kwh_ {};
+    double current_power_kw_ {};
+    double total_volume_m3_ {};
 };
 
 MeterMultical302::MeterMultical302(WMBus *bus, string& name, string& id, string& key) :
@@ -58,29 +58,32 @@ MeterMultical302::MeterMultical302(WMBus *bus, string& name, string& id, string&
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
-double MeterMultical302::totalEnergyConsumption()
+double MeterMultical302::totalEnergyConsumption(Unit u)
 {
-    return total_energy_;
+    assertQuantity(u, Quantity::Energy);
+    return convert(total_energy_kwh_, Unit::KWH, u);
 }
 
-double MeterMultical302::currentPowerConsumption()
+double MeterMultical302::currentPowerConsumption(Unit u)
 {
-    return current_power_;
+    assertQuantity(u, Quantity::Power);
+    return convert(current_power_kw_, Unit::KW, u);
 }
 
-double MeterMultical302::currentPeriodEnergyConsumption()
+double MeterMultical302::currentPeriodEnergyConsumption(Unit u)
 {
     return 0;
 }
 
-double MeterMultical302::previousPeriodEnergyConsumption()
+double MeterMultical302::previousPeriodEnergyConsumption(Unit u)
 {
     return 0;
 }
 
-double MeterMultical302::totalVolume()
+double MeterMultical302::totalVolume(Unit u)
 {
-    return total_volume_;
+    assertQuantity(u, Quantity::Volume);
+    return convert(total_volume_m3_, Unit::M3, u);
 }
 
 void MeterMultical302::handleTelegram(Telegram *t) {
@@ -141,7 +144,7 @@ void MeterMultical302::processContent(Telegram *t) {
         t->addExplanation(bytes, 4, "%02x%02x%02x unknown", t->content[10], t->content[11], t->content[12]);
 
         int total_energy_raw  = rec1val2*256*256 + rec1val1*256 + rec1val0;
-	total_energy_ = total_energy_raw;
+        total_energy_kwh_ = total_energy_raw;
         t->addExplanation(bytes, 3, "%02x%02x%02x total power (%d)",
                           rec1val0, rec1val1, rec1val2, total_energy_raw);
 
@@ -150,7 +153,7 @@ void MeterMultical302::processContent(Telegram *t) {
 	int rec2val2 = t->content[15];
 
         int total_volume_raw = rec2val2*256*256 + rec2val1*256 + rec2val0;
-	total_volume_ = total_volume_raw;
+        total_volume_m3_ = total_volume_raw;
         t->addExplanation(bytes, 3, "%02x%02x%02x total volume (%d)",
                           rec2val0, rec2val1, rec2val2, total_volume_raw);
     }
@@ -173,7 +176,7 @@ void MeterMultical302::processContent(Telegram *t) {
         int rec1val1 = t->content[25];
 
         int current_power_raw = (rec1val1*256 + rec1val0)*100;
-        current_power_ = current_power_raw;
+        current_power_kw_ = current_power_raw;
         t->addExplanation(bytes, 2, "%02x%02x current power (%d)",
                           rec1val0, rec1val1, current_power_raw);
     }
@@ -198,9 +201,9 @@ void MeterMultical302::printMeter(Telegram *t,
     snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f kwh\t% 3.3f m3\t% 3.3f kwh\t%s",
              name().c_str(),
              t->id.c_str(),
-             totalEnergyConsumption(),
-             totalVolume(),
-             currentPowerConsumption(),
+             totalEnergyConsumption(Unit::KWH),
+             totalVolume(Unit::M3),
+             currentPowerConsumption(Unit::KW),
              datetimeOfUpdateHumanReadable().c_str());
 
     *human_readable = buf;
@@ -208,9 +211,9 @@ void MeterMultical302::printMeter(Telegram *t,
     snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%f%c%f%c%s",
              name().c_str(), separator,
              t->id.c_str(), separator,
-             totalEnergyConsumption(), separator,
-             totalVolume(), separator,
-             currentPowerConsumption(), separator,
+             totalEnergyConsumption(Unit::KWH), separator,
+             totalVolume(Unit::M3), separator,
+             currentPowerConsumption(Unit::KW), separator,
              datetimeOfUpdateRobot().c_str());
 
     *fields = buf;
@@ -231,9 +234,9 @@ void MeterMultical302::printMeter(Telegram *t,
              "}",
              name().c_str(),
              t->id.c_str(),
-             totalEnergyConsumption(),
-             totalVolume(),
-             currentPowerConsumption(),
+             totalEnergyConsumption(Unit::KWH),
+             totalVolume(Unit::M3),
+             currentPowerConsumption(Unit::KW),
              datetimeOfUpdateRobot().c_str());
 
     *json = buf;
@@ -241,8 +244,8 @@ void MeterMultical302::printMeter(Telegram *t,
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=multical302"));
     envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_TOTAL_KWH=")+to_string(totalEnergyConsumption()));
-    envs->push_back(string("METER_TOTAL_VOLUME_M3=")+to_string(totalVolume()));
-    envs->push_back(string("METER_CURRENT_KW=")+to_string(currentPowerConsumption()));
+    envs->push_back(string("METER_TOTAL_KWH=")+to_string(totalEnergyConsumption(Unit::KWH)));
+    envs->push_back(string("METER_TOTAL_VOLUME_M3=")+to_string(totalVolume(Unit::M3)));
+    envs->push_back(string("METER_CURRENT_KW=")+to_string(currentPowerConsumption(Unit::KW)));
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }

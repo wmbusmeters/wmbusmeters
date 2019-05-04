@@ -21,10 +21,10 @@
 using namespace std;
 
 #define LIST_OF_CONVERSIONS \
-    X(KWH,GJ, {vto=vfrom*0.0036;}) \
-    X(GJ,KWH, {vto=vfrom/0.0036;}) \
-    X(M3,L, {vto=vfrom*1000.0;}) \
-    X(L,M3, {vto=vfrom/1000.0;})
+    X(KWH, GJ, {vto=vfrom*0.0036;}) \
+    X(GJ,  KWH,{vto=vfrom/0.0036;}) \
+    X(M3,  L,  {vto=vfrom*1000.0;}) \
+    X(L,   M3, {vto=vfrom/1000.0;})
 
 bool canConvert(Unit ufrom, Unit uto)
 {
@@ -48,48 +48,56 @@ LIST_OF_CONVERSIONS
     return 0;
 }
 
-
-Unit toConversionUnit(string s)
+bool isQuantity(Unit u, Quantity q)
 {
-    if (s == "GJ") {
-        return Unit::GJ;
+#define X(cname,lcname,hrname,quantity,explanation) if (u == Unit::cname) return Quantity::quantity == q;
+LIST_OF_UNITS
+#undef X
+
+    return false;
+}
+
+void assertQuantity(Unit u, Quantity q)
+{
+    if (!isQuantity(u, q))
+    {
+        error("Internal error! Unit is not of this quantity.\n");
     }
-    if (s == "KWH") {
-        return Unit::KWH;
-    }
+}
+
+Unit toUnit(string s)
+{
+#define X(cname,lcname,hrname,quantity,explanation) if (s == #cname) return Unit::cname;
+LIST_OF_UNITS
+#undef X
+
     return Unit::Unknown;
 }
 
 string unitToStringHR(Unit u)
 {
-    if (u == Unit::GJ) {
-        return "GJ";
-    }
-    if (u == Unit::KWH) {
-        return "kWh";
-    }
+#define X(cname,lcname,hrname,quantity,explanation) if (u == Unit::cname) return #hrname;
+LIST_OF_UNITS
+#undef X
+
     return "?";
 }
 
 string unitToStringLowerCase(Unit u)
 {
-    if (u == Unit::GJ) {
-        return "gj";
-    }
-    if (u == Unit::KWH) {
-        return "kwh";
-    }
+#define X(cname,lcname,hrname,quantity,explanation) if (u == Unit::cname) return #lcname;
+LIST_OF_UNITS
+#undef X
+
     return "?";
 }
 
 string unitToStringUpperCase(Unit u)
 {
-    if (u == Unit::GJ) {
-        return "GJ";
-    }
-    if (u == Unit::KWH) {
-        return "KWH";
-    }
+#define X(cname,lcname,hrname,quantity,explanation) if (u == Unit::cname) return #cname;
+LIST_OF_UNITS
+#undef X
+
     return "?";
 }
 

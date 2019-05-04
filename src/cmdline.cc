@@ -16,6 +16,7 @@
 */
 
 #include"cmdline.h"
+#include"config.h"
 #include"meters.h"
 #include"util.h"
 
@@ -146,9 +147,8 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         if (!strncmp(argv[i], "--addconversion=", 16)) {
             if (strlen(argv[i]) > 16)
             {
-                const char *unit = argv[i]+16;
-                Unit u = toConversionUnit(unit);
-                c->conversions.push_back(u);
+                string s = string(argv[i]+16);
+                handleConversions(c, s);
             } else {
                 error("You must supply conversion units.\n");
             }

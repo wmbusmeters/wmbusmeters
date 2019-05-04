@@ -21,6 +21,7 @@
 
 #include<vector>
 #include<string>
+#include<string.h>
 
 using namespace std;
 
@@ -182,14 +183,21 @@ void handleSeparator(Configuration *c, string s)
     }
 }
 
-void handleConversion(Configuration *c, string s)
+void handleConversions(Configuration *c, string s)
 {
-    Unit u = toConversionUnit(s);
-    if (u == Unit::Unknown)
+    char buf[s.length()+1];
+    strcpy(buf, s.c_str());
+    const char *tok = strtok(buf, ",");
+    while (tok != NULL)
     {
-        warning("Not a valid conversion unit: %s\n", s.c_str());
+        Unit u = toUnit(tok);
+        if (u == Unit::Unknown)
+        {
+            warning("(warning) not a valid conversion unit: %s\n", tok);
+        }
+        c->conversions.push_back(u);
+        tok = strtok(NULL, ",");
     }
-    c->conversions.push_back(u);
 }
 
 void handleShell(Configuration *c, string cmdline)
@@ -224,6 +232,7 @@ unique_ptr<Configuration> loadConfiguration(string root)
         else if (p.first == "logfile") handleLogfile(c, p.second);
         else if (p.first == "format") handleFormat(c, p.second);
         else if (p.first == "separator") handleSeparator(c, p.second);
+        else if (p.first == "addconversions") handleConversions(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);
         else
         {

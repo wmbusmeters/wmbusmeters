@@ -21,15 +21,40 @@
 #include<string>
 #include<vector>
 
+#define LIST_OF_QUANTITIES \
+    X(Energy)  \
+    X(Power)   \
+    X(Volume)  \
+
+
+#define LIST_OF_UNITS \
+    X(KWH,kwh,kWh,Energy,"kilo Watt hour")  \
+    X(GJ,gj,GJ,Energy,"Giga Joule")         \
+    X(M3,m3,m3,Volume,"cubic meter")        \
+    X(L,l,l,Volume,"litre")                 \
+    X(KW,kw,kW,Power,"kilo Watt")           \
+
 enum class Unit
 {
-    Unknown, KWH, GJ, M3, L
+#define X(cname,lcname,hrname,quantity,explanation) cname,
+LIST_OF_UNITS
+#undef X
+    Unknown
+};
+
+enum class Quantity
+{
+#define X(quantity) quantity,
+LIST_OF_QUANTITIES
+#undef X
+    Unknown
 };
 
 bool canConvert(Unit from, Unit to);
 double convert(double v, Unit from, Unit to);
-
-Unit toConversionUnit(std::string s);
+Unit toUnit(std::string s);
+bool isQuantity(Unit u, Quantity q);
+void assertQuantity(Unit u, Quantity q);
 
 std::string strWithUnitHR(double v, Unit u);
 std::string strWithUnitLowerCase(double v, Unit u);

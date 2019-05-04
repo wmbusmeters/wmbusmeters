@@ -83,4 +83,6 @@ struct Configuration {
 
 unique_ptr<Configuration> loadConfiguration(string root);
 
+void handleConversions(Configuration *c, string s);
+
 #endif
