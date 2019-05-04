@@ -24,7 +24,10 @@ using namespace std;
     X(KWH, GJ, {vto=vfrom*0.0036;}) \
     X(GJ,  KWH,{vto=vfrom/0.0036;}) \
     X(M3,  L,  {vto=vfrom*1000.0;}) \
-    X(L,   M3, {vto=vfrom/1000.0;})
+    X(L,   M3, {vto=vfrom/1000.0;}) \
+    X(C,   F,  {vto=(vfrom*9.0/5.0)+32.0;}) \
+    X(F,   C,  {vto=(vfrom-32)*5.0/9.0;}) \
+
 
 bool canConvert(Unit ufrom, Unit uto)
 {

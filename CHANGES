@@ -1,3 +1,26 @@
+
+Version 0.9.7: 2019-05-04
+
+FeatureExpert added support for the Vario 451 heat meter. Thanks FeatureExpert!
+
+New feature: --addconversions=GJ,L
+
+This feature required a major rewrite of how meters print their data.
+When the new option --addconversion=<unit> is used, then
+any meter that outputs a compatible unit (like kWh) will have
+the additional unit (like GJ) also added to to the json.
+
+So if there is a total_energy_consumption_kwh in the json,
+there will now also be a total_energy_consumption_gj
+
+For the human readable output and the fields output, the kWh is replaced with GJ.
+
+ATTENTION! change in json keys!
+
+Some untyped json field names, like "flow_temperature":10 had to
+change name to "flow_temperature_c":0 (so that if --addconversions=F
+is used, then "flow_temperature_f":32 will be added.)
+
 Version 0.9.6: 2019-04-27
 
 Added support for the MK Radio 3 water meter. Thanks FeatureExpert!

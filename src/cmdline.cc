@@ -144,7 +144,7 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--addconversion=", 16)) {
+        if (!strncmp(argv[i], "--addconversions=", 16)) {
             if (strlen(argv[i]) > 16)
             {
                 string s = string(argv[i]+16);

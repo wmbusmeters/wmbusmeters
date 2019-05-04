@@ -20,4 +20,5 @@ tests/test_multiple_ids.sh $PROG
 tests/test_conversions.sh $PROG
 #tests/test_oneshot.sh $PROG broken test
 tests/test_wrongkeys.sh $PROG
+tests/test_config4.sh $PROG
 tests/test_rtlwmbus.sh $PROG

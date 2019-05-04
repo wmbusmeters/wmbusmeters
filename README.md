@@ -81,6 +81,7 @@ Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type] [meter_id] [me
 
 As <options> you can use:
 
+    --addconversions=<unit>,<unit> change/add units for the meter output
     --c1 or --t1 listen to C1 or T1 messages when no meters are supplied
     --debug for a lot of information
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
@@ -123,13 +124,13 @@ Kamstrup flowIQ 3100 (flowiq3100)
 Sontex Supercom 587 (supercom587)
 Sensus iPERL (iperl)
 Apator at-wmbus-16-2 (apator162) (non-standard protocol)
-Water meter Techem MK Radio 3 (mkradio3)
+Water meter Techem MK Radio 3 (mkradio3) (non-standard protocol)
 
 Supported heat cost allocator:
 Qundis Q caloric (qcaloric)
 
 Supported heat meter:
-Heat meter Techem Vario 4 (vario451)
+Heat meter Techem Vario 4 (vario451) (non-standard protocol)
 
 Supported electricity meters:
 Tauron Amiplus (amiplus) (includes vendor apator and echelon)
@@ -273,6 +274,12 @@ You can also start/stop the daemon with `sudo systemctl start wmbusmeters`
 The source code is modular and it should be relatively straightforward to add more receivers and meters.
 
 Read for example the text file: HowToAddaNewMeter.txt
+
+# Caveat
+
+If you do not get proper readings from the meters with non-standard protocols. apator162, mkradio3, vario451
+then you have to open an issue here and help out by logging a lot of messages and reverse engineer them
+even more..... :-/
 
 # Good documents on the wireless mbus protocol:
 

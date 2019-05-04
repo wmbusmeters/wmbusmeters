@@ -37,9 +37,10 @@
     X(M3,m3,m3,Volume,"cubic meter")        \
     X(L,l,l,Volume,"litre")                 \
     X(KW,kw,kW,Power,"kilo Watt")           \
-    X(M3H,m3h,m3/h,Flow,"cubic meters per hour")      \
+    X(M3H,m3h,m3/h,Flow,"cubic meters per hour") \
     X(C,c,°C,Temperature,"celsius")         \
-    X(HCA,hca,hca,HCA,"heat cost allocation")              \
+    X(F,f,°F,Temperature,"fahrenheit")      \
+    X(HCA,hca,hca,HCA,"heat cost allocation") \
     X(TXT,txt,txt,Text,"text")              \
 
 enum class Unit

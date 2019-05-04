@@ -255,7 +255,10 @@ void startUsingCommandline(Configuration *config)
                 config->link_mode = toMeterLinkMode(m.type);
                 config->link_mode_set = true;
             } else {
-                if (config->link_mode != toMeterLinkMode(m.type) && type_and_device.first != DEVICE_RTLWMBUS) {
+                if (config->link_mode != toMeterLinkMode(m.type)
+                    && type_and_device.first != DEVICE_RTLWMBUS
+                    && type_and_device.first != DEVICE_SIMULATOR)
+                {
                     // sdr_rtl|rtl_wmbus can listen to both C1 and T1 at the same time.
                     error("A different link mode has been set already.\n");
                 }
