@@ -66,9 +66,12 @@ void MeterSupercom587::processContent(Telegram *t)
     parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
 
     int offset;
+    string key;
 
-    extractDVdouble(&values, "0C13", &offset, &total_water_consumption_m3_);
-    t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
+    if(findKey(ValueInformation::Volume, 0, &key, &values)) {
+        extractDVdouble(&values, key, &offset, &total_water_consumption_m3_);
+        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
+    }
 }
 
 double MeterSupercom587::totalWaterConsumption(Unit u)

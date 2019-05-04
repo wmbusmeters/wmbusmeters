@@ -1,59 +1,13 @@
 
-To add a meter type, make a copy of meter_multical21.cc to
-meter_yourmeter.cc and add your meter to meters.h (eg
-X(YOURMETER_METER) then adjust main.cc and meters.cc to know about
-this new meter.
+To add a meter type, make a copy of meter_supercom587.cc to
+meter_yourmeter.cc and add your meter
+to LIST_OF_METERS in meters.h
 
-In meter_yourmeter.cc, search and replace multical21 for yourmeter,
+In meter_yourmeter.cc, search and replace supercom587 for yourmeter,
 possibly adding a new meter type in meters.h if your meter is not a
 water meter and inheriting from that new meter type instead.
 
-Then assuming that the payload is encrypted using the standard AES
-encryption, and the decrypted content follows the standard DifVif
-format, then you only have to change processContent in
-meter_yourmeter.cc. For Multical21 when the frame type is 0x78, it
-means that the content contains both headers and data. Thus after
-parseDV is called, you can access the extracted data from the map.
-
-For example: extractDVdouble(&values, "0413", &offset, &total_water_consumption_);
-will retrieve the DifVif data 0x04 0x13 which means: 32bit/integer
-storing Volume in litres.  (If there are multiple 0413 data fieds in
-the content, the second found will be stored under the key 0413_2,
-0413_3 etc. )
-
-When the frame is 0x79 it means a compact frame in the C1 protocol
-that leaves out the DifVif headers! You have to know the format to
-decode. Since I have yet to get the crc calculations to work, this
-means that the format for multical21 is currently hardcoded, as can be
-seen in the source line: hex2bin("02FF2004134413", &format_bytes); and
-the comments above it. (You can see 0413 in this string.)
-
-(The proper solution is to understand the crc and create a small
-database of crcs to headers encoded into wmbusmeters. Thus we can
-decode the compact frames immediately. Or if the crc is unknown we
-have to wait until the long frame arrives to gather the crc->header
-data and use that info for future compact frames.)
-
-There are also vendor allowed extension points, like 02FF20 above,
-that stores vendor specific bits of data, that happen to describe the
-status bits of the meter, DRY, BURST, etc. Fortunately, it is possible
-to parse and extract the data, even though you might not yet know what
-it is.
-
-Then unfortunately, in Multical21 it seems like they also truncate the
-format in a non-standard way.  The value 4413, is a vendor specific
-code point, that is 32 bits in the full frame, but 16 bits in the
-compact frame, even though the DifVif header is the same. I suppose
-that is typical vendor specific quirk that has to be found out simply
-by trial and error. The quirk is handled in the source code
-by passing a lambda to parseDV that will override the length calculation
-for a specific dif/vif combo.
-
-But if you are lucky, a new meter might be entirely compliant with the
-DifVif headers and makes no or very little use of vendor
-extensions. (There is a difference in the frame format between C1 and
-T1 see the omnipower stub). But as soon as you have found the difvif
-data, it should be straight forward.
+Change the constructor and processContent to do your bidding.
 
 If you pass --debug to the commandline, wmbusmeters will print the
 parse results of the data package on stdout. You can see what DifVif
