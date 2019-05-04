@@ -72,11 +72,14 @@ protected:
     void addMedia(int media);
     void addManufacturer(int m);
     void addPrint(string vname, Quantity vquantity, function<double(Unit)> getValueFunc, string help, bool field);
+    void handleTelegram(Telegram *t);
     void printMeter(Telegram *t,
                     string *human_readable,
                     string *fields, char separator,
                     string *json,
                     vector<string> *envs);
+
+    virtual void processContent(Telegram *t) = 0;
 
 private:
 

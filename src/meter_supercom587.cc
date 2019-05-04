@@ -36,56 +36,42 @@ struct MeterSupercom587 : public virtual WaterMeter, public virtual MeterCommonI
     MeterSupercom587(WMBus *bus, string& name, string& id, string& key);
 
     // Total water counted through the meter
-    double totalWaterConsumption();
+    double totalWaterConsumption(Unit u);
     bool  hasTotalWaterConsumption();
-    double targetWaterConsumption();
-    bool  hasTargetWaterConsumption();
-    double maxFlow();
-    bool  hasMaxFlow();
-    double flowTemperature();
-    bool  hasFlowTemperature();
-    double externalTemperature();
-    bool  hasExternalTemperature();
-
-    string statusHumanReadable();
-    string status();
-    string timeDry();
-    string timeReversed();
-    string timeLeaking();
-    string timeBursting();
-
-    void printMeter(Telegram *t,
-                    string *human_readable,
-                    string *fields, char separator,
-                    string *json,
-                    vector<string> *envs);
 
 private:
     void handleTelegram(Telegram *t);
     void processContent(Telegram *t);
     string decodeTime(int time);
 
-    double total_water_consumption_ {};
+    double total_water_consumption_m3_ {};
 };
+
+unique_ptr<WaterMeter> createSupercom587(WMBus *bus, string& name, string& id, string& key)
+{
+    return unique_ptr<WaterMeter>(new MeterSupercom587(bus,name,id,key));
+}
 
 MeterSupercom587::MeterSupercom587(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation(bus, name, id, key, MeterType::SUPERCOM587, MANUFACTURER_SON, LinkMode::T1)
 {
     addMedia(0x06);
     addMedia(0x07);
+
+    addPrint("total", Quantity::Volume,
+             [&](Unit u){ return totalWaterConsumption(u); },
+             "The total water consumption recorded by this meter.",
+             true);
+
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
-
-double MeterSupercom587::totalWaterConsumption()
+double MeterSupercom587::totalWaterConsumption(Unit u)
 {
-    return total_water_consumption_;
+    assertQuantity(u, Quantity::Volume);
+    return convert(total_water_consumption_m3_, Unit::M3, u);
 }
 
-unique_ptr<WaterMeter> createSupercom587(WMBus *bus, string& name, string& id, string& key)
-{
-    return unique_ptr<WaterMeter>(new MeterSupercom587(bus,name,id,key));
-}
 
 void MeterSupercom587::handleTelegram(Telegram *t)
 {
@@ -131,141 +117,11 @@ void MeterSupercom587::processContent(Telegram *t)
 
     int offset;
 
-    extractDVdouble(&values, "0C13", &offset, &total_water_consumption_);
-    t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
-}
-
-void MeterSupercom587::printMeter(Telegram *t,
-                                  string *human_readable,
-                                  string *fields, char separator,
-                                  string *json,
-                                  vector<string> *envs)
-{
-    char buf[65536];
-    buf[65535] = 0;
-
-    snprintf(buf, sizeof(buf)-1,
-             "%s\t"
-             "%s\t"
-             "% 3.3f m3\t"
-             "%s",
-             name().c_str(),
-             t->id.c_str(),
-             totalWaterConsumption(),
-             datetimeOfUpdateHumanReadable().c_str());
-
-    *human_readable = buf;
-
-    snprintf(buf, sizeof(buf)-1,
-             "%s%c"
-             "%s%c"
-             "%f%c"
-             "%s",
-             name().c_str(), separator,
-             t->id.c_str(), separator,
-             totalWaterConsumption(), separator,
-            datetimeOfUpdateRobot().c_str());
-
-    *fields = buf;
-
-#define Q(x,y) "\""#x"\":"#y","
-#define QS(x,y) "\""#x"\":\""#y"\","
-#define QSE(x,y) "\""#x"\":\""#y"\""
-
-    snprintf(buf, sizeof(buf)-1, "{"
-             QS(media,%s)
-             QS(meter,supercom587)
-             QS(name,%s)
-             QS(id,%s)
-             Q(total_m3,%f)
-             QSE(timestamp,%s)
-             "}",
-             mediaTypeJSON(t->a_field_device_type).c_str(),
-             name().c_str(),
-             t->id.c_str(),
-             totalWaterConsumption(),
-             datetimeOfUpdateRobot().c_str());
-
-    *json = buf;
-
-    envs->push_back(string("METER_JSON=")+*json);
-    envs->push_back(string("METER_TYPE=supercom587"));
-    envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption()));
-    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
+    extractDVdouble(&values, "0C13", &offset, &total_water_consumption_m3_);
+    t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
 }
 
 bool MeterSupercom587::hasTotalWaterConsumption()
 {
     return true;
-}
-
-double MeterSupercom587::targetWaterConsumption()
-{
-    return 0.0;
-}
-
-bool MeterSupercom587::hasTargetWaterConsumption()
-{
-    return false;
-}
-
-double MeterSupercom587::maxFlow()
-{
-    return 0.0;
-}
-
-bool MeterSupercom587::hasMaxFlow()
-{
-    return false;
-}
-
-double MeterSupercom587::flowTemperature()
-{
-    return 127;
-}
-
-bool MeterSupercom587::hasFlowTemperature()
-{
-    return false;
-}
-
-double MeterSupercom587::externalTemperature()
-{
-    return 127;
-}
-
-bool MeterSupercom587::hasExternalTemperature()
-{
-    return false;
-}
-
-string MeterSupercom587::statusHumanReadable()
-{
-    return "";
-}
-
-string MeterSupercom587::status()
-{
-    return "";
-}
-
-string MeterSupercom587::timeDry()
-{
-    return "";
-}
-
-string MeterSupercom587::timeReversed()
-{
-    return "";
-}
-
-string MeterSupercom587::timeLeaking()
-{
-    return "";
-}
-
-string MeterSupercom587::timeBursting()
-{
-    return "";
 }

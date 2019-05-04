@@ -71,6 +71,7 @@ struct Meter {
                             string *json,
                             vector<string> *envs) = 0;
 
+    void handleTelegram(Telegram *t);
     virtual bool isTelegramForMe(Telegram *t) = 0;
     virtual bool useAes() = 0;
     virtual vector<uchar> key() = 0;
@@ -86,44 +87,44 @@ struct Meter {
 };
 
 struct WaterMeter : public virtual Meter {
-    virtual double totalWaterConsumption() = 0; // m3
-    virtual bool  hasTotalWaterConsumption() = 0;
-    virtual double targetWaterConsumption() = 0; // m3
-    virtual bool  hasTargetWaterConsumption() = 0;
-    virtual double maxFlow() = 0;
-    virtual bool  hasMaxFlow() = 0;
-    virtual double flowTemperature() = 0; // °C
-    virtual bool hasFlowTemperature() = 0;
-    virtual double externalTemperature() = 0; // °C
-    virtual bool hasExternalTemperature() = 0;
+    virtual double totalWaterConsumption(Unit u); // m3
+    virtual bool  hasTotalWaterConsumption();
+    virtual double targetWaterConsumption(Unit u); // m3
+    virtual bool  hasTargetWaterConsumption();
+    virtual double maxFlow(Unit u); // m3/s
+    virtual bool  hasMaxFlow();
+    virtual double flowTemperature(Unit u); // °C
+    virtual bool hasFlowTemperature();
+    virtual double externalTemperature(Unit u); // °C
+    virtual bool hasExternalTemperature();
 
-    virtual string statusHumanReadable() = 0;
-    virtual string status() = 0;
-    virtual string timeDry() = 0;
-    virtual string timeReversed() = 0;
-    virtual string timeLeaking() = 0;
-    virtual string timeBursting() = 0;
+    virtual string statusHumanReadable();
+    virtual string status();
+    virtual string timeDry();
+    virtual string timeReversed();
+    virtual string timeLeaking();
+    virtual string timeBursting();
 };
 
 struct HeatMeter : public virtual Meter {
-    virtual double totalEnergyConsumption(Unit u) = 0; // kwh
-    virtual double currentPeriodEnergyConsumption(Unit u) = 0; // kwh
-    virtual double previousPeriodEnergyConsumption(Unit u) = 0; // kwh
-    virtual double currentPowerConsumption(Unit u) = 0; // kw
-    virtual double totalVolume(Unit u) = 0; // m3
+    virtual double totalEnergyConsumption(Unit u); // kwh
+    virtual double currentPeriodEnergyConsumption(Unit u); // kwh
+    virtual double previousPeriodEnergyConsumption(Unit u); // kwh
+    virtual double currentPowerConsumption(Unit u); // kw
+    virtual double totalVolume(Unit u); // m3
 };
 
 struct ElectricityMeter : public virtual Meter {
-    virtual double totalEnergyConsumption() = 0; // kwh
-    virtual double currentPowerConsumption() = 0; // kw
-    virtual double totalEnergyProduction() = 0; // kwh
-    virtual double currentPowerProduction() = 0; // kw
+    virtual double totalEnergyConsumption(); // kwh
+    virtual double currentPowerConsumption(); // kw
+    virtual double totalEnergyProduction(); // kwh
+    virtual double currentPowerProduction(); // kw
 };
 
 struct HeatCostMeter : public virtual Meter {
-    virtual double currentConsumption() = 0;
-    virtual string setDate() = 0;
-    virtual double consumptionAtSetDate() = 0;
+    virtual double currentConsumption();
+    virtual string setDate();
+    virtual double consumptionAtSetDate();
 };
 
 struct GenericMeter : public virtual Meter {

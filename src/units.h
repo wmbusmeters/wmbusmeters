@@ -25,6 +25,8 @@
     X(Energy,KWH)          \
     X(Power,KW)            \
     X(Volume,M3)           \
+    X(Flow,M3H)            \
+    X(Temperature,C)       \
 
 
 #define LIST_OF_UNITS \
@@ -33,6 +35,8 @@
     X(M3,m3,m3,Volume,"cubic meter")        \
     X(L,l,l,Volume,"litre")                 \
     X(KW,kw,kW,Power,"kilo Watt")           \
+    X(M3H,m3h,m3/h,Flow,"cubic meters per hour")      \
+    X(C,c,°C,Temperature,"celsius")     \
 
 enum class Unit
 {

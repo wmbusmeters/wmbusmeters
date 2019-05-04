@@ -48,23 +48,23 @@ struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonIm
     MeterMultical21(WMBus *bus, string& name, string& id, string& key, MeterType mt);
 
     // Total water counted through the meter
-    double totalWaterConsumption();
+    double totalWaterConsumption(Unit u);
     bool  hasTotalWaterConsumption();
 
     // Meter sends target water consumption or max flow, depending on meter configuration
     // We can see which was sent inside the wmbus message!
 
     // Target water consumption: The total consumption at the start of the previous 30 day period.
-    double targetWaterConsumption();
+    double targetWaterConsumption(Unit u);
     bool  hasTargetWaterConsumption();
     // Max flow during last month or last 24 hours depending on meter configuration.
-    double maxFlow();
+    double maxFlow(Unit u);
     bool  hasMaxFlow();
     // Water temperature
-    double flowTemperature();
+    double flowTemperature(Unit u);
     bool  hasFlowTemperature();
     // Surrounding temperature
-    double externalTemperature();
+    double externalTemperature(Unit u);
     bool  hasExternalTemperature();
 
     // statusHumanReadable: DRY,REVERSED,LEAK,BURST if that status is detected right now, followed by
@@ -122,7 +122,7 @@ MeterMultical21::MeterMultical21(WMBus *bus, string& name, string& id, string& k
 }
 
 
-double MeterMultical21::totalWaterConsumption()
+double MeterMultical21::totalWaterConsumption(Unit u)
 {
     return total_water_consumption_;
 }
@@ -132,7 +132,7 @@ bool MeterMultical21::hasTotalWaterConsumption()
     return has_total_water_consumption_;
 }
 
-double MeterMultical21::targetWaterConsumption()
+double MeterMultical21::targetWaterConsumption(Unit u)
 {
     return target_volume_;
 }
@@ -142,7 +142,7 @@ bool MeterMultical21::hasTargetWaterConsumption()
     return has_target_volume_;
 }
 
-double MeterMultical21::maxFlow()
+double MeterMultical21::maxFlow(Unit u)
 {
     return max_flow_;
 }
@@ -152,7 +152,7 @@ bool MeterMultical21::hasMaxFlow()
     return has_max_flow_;
 }
 
-double MeterMultical21::flowTemperature()
+double MeterMultical21::flowTemperature(Unit u)
 {
     return flow_temperature_;
 }
@@ -162,7 +162,7 @@ bool MeterMultical21::hasFlowTemperature()
     return has_flow_temperature_;
 }
 
-double MeterMultical21::externalTemperature()
+double MeterMultical21::externalTemperature(Unit u)
 {
     return external_temperature_;
 }
@@ -500,14 +500,14 @@ void MeterMultical21::printMeter(Telegram *t,
     et[9] = 0;
 
     if (hasFlowTemperature()) {
-        snprintf(ft, sizeof(ft)-1, "% 2.0f", flowTemperature());
+        snprintf(ft, sizeof(ft)-1, "% 2.0f", flowTemperature(Unit::C));
     } else {
         ft[0] = '-';
         ft[1] = 0;
     }
 
     if (hasExternalTemperature()) {
-        snprintf(et, sizeof(et)-1, "% 2.0f", externalTemperature());
+        snprintf(et, sizeof(et)-1, "% 2.0f", externalTemperature(Unit::C));
     } else {
         et[0] = '-';
         et[1] = 0;
@@ -525,9 +525,9 @@ void MeterMultical21::printMeter(Telegram *t,
              "%s",
              name().c_str(),
              t->id.c_str(),
-             totalWaterConsumption(),
-             targetWaterConsumption(),
-             maxFlow(),
+             totalWaterConsumption(Unit::M3),
+             targetWaterConsumption(Unit::M3),
+             maxFlow(Unit::M3H),
              ft,
              et,
              statusHumanReadable().c_str(),
@@ -547,11 +547,11 @@ void MeterMultical21::printMeter(Telegram *t,
              "%s",
              name().c_str(), separator,
              t->id.c_str(), separator,
-             totalWaterConsumption(), separator,
-             targetWaterConsumption(), separator,
-             maxFlow(), separator,
-             flowTemperature(), separator,
-             externalTemperature(), separator,
+             totalWaterConsumption(Unit::M3), separator,
+             targetWaterConsumption(Unit::M3), separator,
+             maxFlow(Unit::M3H), separator,
+             flowTemperature(Unit::C), separator,
+             externalTemperature(Unit::C), separator,
              statusHumanReadable().c_str(), separator,
              datetimeOfUpdateRobot().c_str());
 
@@ -582,11 +582,11 @@ void MeterMultical21::printMeter(Telegram *t,
              meter_name_,
              name().c_str(),
              t->id.c_str(),
-             totalWaterConsumption(),
-             targetWaterConsumption(),
-             maxFlow(),
-             flowTemperature(),
-             externalTemperature(),
+             totalWaterConsumption(Unit::M3),
+             targetWaterConsumption(Unit::M3),
+             maxFlow(Unit::M3H),
+             flowTemperature(Unit::C),
+             externalTemperature(Unit::C),
              status().c_str(), // DRY REVERSED LEAK BURST
              timeDry().c_str(),
              timeReversed().c_str(),
@@ -599,11 +599,11 @@ void MeterMultical21::printMeter(Telegram *t,
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=")+meter_name_);
     envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption()));
-    envs->push_back(string("METER_TARGET_M3=")+to_string(targetWaterConsumption()));
-    envs->push_back(string("METER_MAX_FLOW_M3H=")+to_string(maxFlow()));
-    envs->push_back(string("METER_FLOW_TEMPERATURE=")+to_string(flowTemperature()));
-    envs->push_back(string("METER_EXTERNAL_TEMPERATURE=")+to_string(externalTemperature()));
+    envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption(Unit::M3)));
+    envs->push_back(string("METER_TARGET_M3=")+to_string(targetWaterConsumption(Unit::M3)));
+    envs->push_back(string("METER_MAX_FLOW_M3H=")+to_string(maxFlow(Unit::M3H)));
+    envs->push_back(string("METER_FLOW_TEMPERATURE=")+to_string(flowTemperature(Unit::C)));
+    envs->push_back(string("METER_EXTERNAL_TEMPERATURE=")+to_string(externalTemperature(Unit::C)));
     envs->push_back(string("METER_STATUS=")+status());
     envs->push_back(string("METER_TIME_DRY=")+timeDry());
     envs->push_back(string("METER_TIME_REVERSED=")+timeReversed());

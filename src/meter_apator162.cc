@@ -36,15 +36,15 @@ struct MeterApator162 : public virtual WaterMeter, public virtual MeterCommonImp
     MeterApator162(WMBus *bus, string& name, string& id, string& key);
 
     // Total water counted through the meter
-    double totalWaterConsumption();
+    double totalWaterConsumption(Unit u);
     bool  hasTotalWaterConsumption();
-    double targetWaterConsumption();
+    double targetWaterConsumption(Unit u);
     bool  hasTargetWaterConsumption();
-    double maxFlow();
+    double maxFlow(Unit u);
     bool  hasMaxFlow();
-    double flowTemperature();
+    double flowTemperature(Unit u);
     bool  hasFlowTemperature();
-    double externalTemperature();
+    double externalTemperature(Unit u);
     bool  hasExternalTemperature();
 
     string statusHumanReadable();
@@ -77,7 +77,7 @@ MeterApator162::MeterApator162(WMBus *bus, string& name, string& id, string& key
 }
 
 
-double MeterApator162::totalWaterConsumption()
+double MeterApator162::totalWaterConsumption(Unit u)
 {
     return total_water_consumption_;
 }
@@ -166,7 +166,7 @@ void MeterApator162::printMeter(Telegram *t,
              "%s",
              name().c_str(),
              t->id.c_str(),
-             totalWaterConsumption(),
+             totalWaterConsumption(Unit::M3),
              datetimeOfUpdateHumanReadable().c_str());
 
     *human_readable = buf;
@@ -178,7 +178,7 @@ void MeterApator162::printMeter(Telegram *t,
              "%s",
              name().c_str(), separator,
              t->id.c_str(), separator,
-             totalWaterConsumption(), separator,
+             totalWaterConsumption(Unit::M3), separator,
             datetimeOfUpdateRobot().c_str());
 
     *fields = buf;
@@ -198,7 +198,7 @@ void MeterApator162::printMeter(Telegram *t,
              mediaTypeJSON(t->a_field_device_type).c_str(),
              name().c_str(),
              t->id.c_str(),
-             totalWaterConsumption(),
+             totalWaterConsumption(Unit::M3),
              datetimeOfUpdateRobot().c_str());
 
     *json = buf;
@@ -206,7 +206,7 @@ void MeterApator162::printMeter(Telegram *t,
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=apator162"));
     envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption()));
+    envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption(Unit::M3)));
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }
 
@@ -215,7 +215,7 @@ bool MeterApator162::hasTotalWaterConsumption()
     return true;
 }
 
-double MeterApator162::targetWaterConsumption()
+double MeterApator162::targetWaterConsumption(Unit u)
 {
     return 0.0;
 }
@@ -225,7 +225,7 @@ bool MeterApator162::hasTargetWaterConsumption()
     return false;
 }
 
-double MeterApator162::maxFlow()
+double MeterApator162::maxFlow(Unit u)
 {
     return 0.0;
 }
@@ -235,7 +235,7 @@ bool MeterApator162::hasMaxFlow()
     return false;
 }
 
-double MeterApator162::flowTemperature()
+double MeterApator162::flowTemperature(Unit u)
 {
     return 127;
 }
@@ -245,7 +245,7 @@ bool MeterApator162::hasFlowTemperature()
     return false;
 }
 
-double MeterApator162::externalTemperature()
+double MeterApator162::externalTemperature(Unit u)
 {
     return 127;
 }

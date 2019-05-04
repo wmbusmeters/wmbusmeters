@@ -18,6 +18,8 @@
 #include"meters.h"
 #include"meters_common_implementation.h"
 #include"units.h"
+#include"wmbus.h"
+#include"wmbus_utils.h"
 
 #include<algorithm>
 #include<memory.h>
@@ -253,6 +255,51 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
     return s;
 }
 
+void MeterCommonImplementation::handleTelegram(Telegram *t)
+{
+    if (!isTelegramForMe(t)) {
+        // This telegram is not intended for this meter.
+        return;
+    }
+
+    verbose("(%s) %s %02x%02x%02x%02x ",
+            meterName().c_str(),
+            name().c_str(),
+            t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
+            t->a_field_address[3]);
+
+    //t->expectVersion("mkradio3", 0x74);
+
+    if (t->isEncrypted() && !useAes() && !t->isSimulated())
+    {
+        warning("(%s) warning: telegram is encrypted but no key supplied!\n",
+                meterName().c_str());
+    }
+    if (useAes()) {
+        vector<uchar> aeskey = key();
+        decryptMode1_AES_CTR(t, aeskey);
+    } else {
+        t->content = t->payload;
+    }
+
+    char log_prefix[256];
+    snprintf(log_prefix, 255, "(%s) log", meterName().c_str());
+    logTelegram(log_prefix, t->parsed, t->content);
+    int content_start = t->parsed.size();
+
+    // Invoke meter specific parsing!
+    processContent(t);
+    // All done....
+
+    if (isDebugEnabled())
+    {
+        char log_prefix[256];
+        snprintf(log_prefix, 255, "(%s)", meterName().c_str());
+        t->explainParse("(vario451)", content_start);
+    }
+    triggerUpdate(t);
+}
+
 void MeterCommonImplementation::printMeter(Telegram *t,
                                            string *human_readable,
                                            string *fields, char separator,
@@ -313,3 +360,36 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     }
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }
+
+double WaterMeter::totalWaterConsumption(Unit u) { return -47.11; }
+bool  WaterMeter::hasTotalWaterConsumption() { return false; }
+double WaterMeter::targetWaterConsumption(Unit u) { return -47.11; }
+bool  WaterMeter::hasTargetWaterConsumption() { return false; }
+double WaterMeter::maxFlow(Unit u) { return -47.11; }
+bool  WaterMeter::hasMaxFlow() { return false; }
+double WaterMeter::flowTemperature(Unit u) { return -47.11; }
+bool WaterMeter::hasFlowTemperature() { return false; }
+double WaterMeter::externalTemperature(Unit u) { return -47.11; }
+bool WaterMeter::hasExternalTemperature() { return false; }
+
+string WaterMeter::statusHumanReadable() { return "-47.11"; }
+string WaterMeter::status() { return "-47.11"; }
+string WaterMeter::timeDry() { return "-47.11"; }
+string WaterMeter::timeReversed() { return "-47.11"; }
+string WaterMeter::timeLeaking() { return "-47.11"; }
+string WaterMeter::timeBursting() { return "-47.11"; }
+
+double HeatMeter::totalEnergyConsumption(Unit u) { return -47.11; }
+double HeatMeter::currentPeriodEnergyConsumption(Unit u) { return -47.11; }
+double HeatMeter::previousPeriodEnergyConsumption(Unit u) { return -47.11; }
+double HeatMeter::currentPowerConsumption(Unit u) { return -47.11; }
+double HeatMeter::totalVolume(Unit u) { return -47.11; }
+
+double ElectricityMeter::totalEnergyConsumption() { return -47.11; }
+double ElectricityMeter::currentPowerConsumption() { return -47.11; }
+double ElectricityMeter::totalEnergyProduction() { return -47.11; }
+double ElectricityMeter::currentPowerProduction() { return -47.11; }
+
+double HeatCostMeter::currentConsumption() { return -47.11; }
+string HeatCostMeter::setDate() { return "47.11"; }
+double HeatCostMeter::consumptionAtSetDate() { return -47.11; }

@@ -32,41 +32,20 @@
 
 using namespace std;
 
-struct MKRadio3 : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MKRadio3 : public virtual WaterMeter, public virtual MeterCommonImplementation
+{
     MKRadio3(WMBus *bus, string& name, string& id, string& key);
 
-    // Total water counted through the meter
-    double totalWaterConsumption();
+    double totalWaterConsumption(Unit u);
     bool  hasTotalWaterConsumption();
-    double targetWaterConsumption();
+    double targetWaterConsumption(Unit u);
     bool  hasTargetWaterConsumption();
-    double maxFlow();
-    bool  hasMaxFlow();
-    double flowTemperature();
-    bool  hasFlowTemperature();
-    double externalTemperature();
-    bool  hasExternalTemperature();
-
-    string statusHumanReadable();
-    string status();
-    string timeDry();
-    string timeReversed();
-    string timeLeaking();
-    string timeBursting();
-
-    void printMeter(Telegram *t,
-                    string *human_readable,
-                    string *fields, char separator,
-                    string *json,
-                    vector<string> *envs);
 
 private:
-    void handleTelegram(Telegram *t);
     void processContent(Telegram *t);
-    string decodeTime(int time);
 
-    double total_water_consumption_ {};
-    double target_water_consumption_ {};
+    double total_water_consumption_m3_ {};
+    double target_water_consumption_m3_ {};
 };
 
 MKRadio3::MKRadio3(WMBus *bus, string& name, string& id, string& key) :
@@ -74,53 +53,23 @@ MKRadio3::MKRadio3(WMBus *bus, string& name, string& id, string& key) :
 {
     addMedia(0x62);
     addMedia(0x72);
+
+    addPrint("total", Quantity::Volume,
+             [&](Unit u){ return totalWaterConsumption(u); },
+             "The total water consumption recorded by this meter.",
+             true);
+
+    addPrint("target", Quantity::Volume,
+             [&](Unit u){ return targetWaterConsumption(u); },
+             "The total water consumption recorded at the beginning of this month.",
+             true);
+
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
-}
-
-
-double MKRadio3::totalWaterConsumption()
-{
-    return total_water_consumption_;
 }
 
 unique_ptr<WaterMeter> createMKRadio3(WMBus *bus, string& name, string& id, string& key)
 {
     return unique_ptr<WaterMeter>(new MKRadio3(bus,name,id,key));
-}
-
-void MKRadio3::handleTelegram(Telegram *t)
-{
-    if (!isTelegramForMe(t)) {
-        // This telegram is not intended for this meter.
-        return;
-    }
-
-    verbose("(%s) telegram for %s %02x%02x%02x%02x\n", "mkradio3",
-            name().c_str(),
-            t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
-            t->a_field_address[3]);
-
-    t->expectVersion("mkradio3", 0x74);
-
-    if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
-        warning("(mkradio3) warning: telegram is encrypted but no key supplied!\n");
-    }
-    if (useAes()) {
-        vector<uchar> aeskey = key();
-        decryptMode5_AES_CBC(t, aeskey);
-    } else {
-        t->content = t->payload;
-    }
-    char log_prefix[256];
-    snprintf(log_prefix, 255, "(%s) log", "mkradio3");
-    logTelegram(log_prefix, t->parsed, t->content);
-    int content_start = t->parsed.size();
-    processContent(t);
-    if (isDebugEnabled()) {
-        snprintf(log_prefix, 255, "(%s)", "mkradio3");
-        t->explainParse(log_prefix, content_start);
-    }
-    triggerUpdate(t);
 }
 
 void MKRadio3::processContent(Telegram *t)
@@ -154,75 +103,14 @@ void MKRadio3::processContent(Telegram *t)
     t->explanations.push_back({ offset, currs });
     t->addMoreExplanation(offset, " curr consumption (%f m3)", curr);
 
-    total_water_consumption_ = prev+curr;
-    target_water_consumption_ = prev;
+    total_water_consumption_m3_ = prev+curr;
+    target_water_consumption_m3_ = prev;
 }
 
-void MKRadio3::printMeter(Telegram *t,
-                          string *human_readable,
-                          string *fields, char separator,
-                          string *json,
-                          vector<string> *envs)
+double MKRadio3::totalWaterConsumption(Unit u)
 {
-    char buf[65536];
-    buf[65535] = 0;
-
-    snprintf(buf, sizeof(buf)-1,
-             "%s\t"
-             "%s\t"
-             "% 3.3f m3\t"
-             "% 3.3f m3\t"
-             "%s",
-             name().c_str(),
-             t->id.c_str(),
-             totalWaterConsumption(),
-             targetWaterConsumption(),
-             datetimeOfUpdateHumanReadable().c_str());
-
-    *human_readable = buf;
-
-    snprintf(buf, sizeof(buf)-1,
-             "%s%c"
-             "%s%c"
-             "%f%c"
-             "%f%c"
-             "%s",
-             name().c_str(), separator,
-             t->id.c_str(), separator,
-             totalWaterConsumption(), separator,
-             targetWaterConsumption(), separator,
-            datetimeOfUpdateRobot().c_str());
-
-    *fields = buf;
-
-#define Q(x,y) "\""#x"\":"#y","
-#define QS(x,y) "\""#x"\":\""#y"\","
-#define QSE(x,y) "\""#x"\":\""#y"\""
-
-    snprintf(buf, sizeof(buf)-1, "{"
-             QS(media,%s)
-             QS(meter,mkradio3)
-             QS(name,%s)
-             QS(id,%s)
-             Q(total_m3,%f)
-             Q(target_m3,%f)
-             QSE(timestamp,%s)
-             "}",
-             mediaTypeJSON(t->a_field_device_type).c_str(),
-             name().c_str(),
-             t->id.c_str(),
-             totalWaterConsumption(),
-             targetWaterConsumption(),
-             datetimeOfUpdateRobot().c_str());
-
-    *json = buf;
-
-    envs->push_back(string("METER_JSON=")+*json);
-    envs->push_back(string("METER_TYPE=mkradio3"));
-    envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption()));
-    envs->push_back(string("METER_TARGET_M3=")+to_string(targetWaterConsumption()));
-    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
+    assertQuantity(u, Quantity::Volume);
+    return convert(total_water_consumption_m3_, Unit::M3, u);
 }
 
 bool MKRadio3::hasTotalWaterConsumption()
@@ -230,72 +118,12 @@ bool MKRadio3::hasTotalWaterConsumption()
     return true;
 }
 
-double MKRadio3::targetWaterConsumption()
+double MKRadio3::targetWaterConsumption(Unit u)
 {
-    return target_water_consumption_;
+    return target_water_consumption_m3_;
 }
 
 bool MKRadio3::hasTargetWaterConsumption()
 {
     return true;
-}
-
-double MKRadio3::maxFlow()
-{
-    return 0.0;
-}
-
-bool MKRadio3::hasMaxFlow()
-{
-    return false;
-}
-
-double MKRadio3::flowTemperature()
-{
-    return 127;
-}
-
-bool MKRadio3::hasFlowTemperature()
-{
-    return false;
-}
-
-double MKRadio3::externalTemperature()
-{
-    return 127;
-}
-
-bool MKRadio3::hasExternalTemperature()
-{
-    return false;
-}
-
-string MKRadio3::statusHumanReadable()
-{
-    return "";
-}
-
-string MKRadio3::status()
-{
-    return "";
-}
-
-string MKRadio3::timeDry()
-{
-    return "";
-}
-
-string MKRadio3::timeReversed()
-{
-    return "";
-}
-
-string MKRadio3::timeLeaking()
-{
-    return "";
-}
-
-string MKRadio3::timeBursting()
-{
-    return "";
 }

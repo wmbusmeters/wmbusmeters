@@ -23,11 +23,7 @@
 #include"units.h"
 #include"util.h"
 
-#include<algorithm>
-#include<memory.h>
-#include<stdio.h>
 #include<string>
-#include<time.h>
 #include<vector>
 
 struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImplementation
@@ -36,19 +32,21 @@ struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImple
 
     double totalEnergyConsumption(Unit u);
     double currentPeriodEnergyConsumption(Unit u);
-    double currentPowerConsumption(Unit u);
     double previousPeriodEnergyConsumption(Unit u);
-    double totalVolume(Unit u);
 
     private:
 
-    void handleTelegram(Telegram *t);
     void processContent(Telegram *t);
 
     double total_energy_gj_ {};
     double curr_energy_gj_ {};
     double prev_energy_gj_ {};
 };
+
+unique_ptr<HeatMeter> createVario451(WMBus *bus, string& name, string& id, string& key)
+{
+    return unique_ptr<HeatMeter>(new MeterVario451(bus,name,id,key));
+}
 
 MeterVario451::MeterVario451(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation(bus, name, id, key, MeterType::VARIO451, MANUFACTURER_TCH, LinkMode::T1)
@@ -86,56 +84,10 @@ double MeterVario451::currentPeriodEnergyConsumption(Unit u)
     return convert(curr_energy_gj_, Unit::GJ, u);
 }
 
-double MeterVario451::currentPowerConsumption(Unit u)
-{
-    return 0;
-}
-
 double MeterVario451::previousPeriodEnergyConsumption(Unit u)
 {
     assertQuantity(u, Quantity::Energy);
     return convert(prev_energy_gj_, Unit::GJ, u);
-}
-
-double MeterVario451::totalVolume(Unit u)
-{
-    return 0;
-}
-
-void MeterVario451::handleTelegram(Telegram *t) {
-
-    if (!isTelegramForMe(t)) {
-        // This telegram is not intended for this meter.
-        return;
-    }
-
-    verbose("(vario451) %s %02x%02x%02x%02x ",
-            name().c_str(),
-            t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
-            t->a_field_address[3]);
-
-    if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
-
-        // This is ugly but I have no idea how to do this proper way :/
-        // Techem Vario 4 Typ 4.5.1 sends T and also encrypted C telegrams
-        // We are intrested in T only (for now)
-
-        //warning("(vario451) warning: telegram is encrypted but no key supplied!\n");
-        return;
-    }
-    if (useAes()) {
-        vector<uchar> aeskey = key();
-        decryptMode1_AES_CTR(t, aeskey);
-    } else {
-        t->content = t->payload;
-    }
-    logTelegram("(vario451) log", t->parsed, t->content);
-    int content_start = t->parsed.size();
-    processContent(t);
-    if (isDebugEnabled()) {
-        t->explainParse("(vario451)", content_start);
-    }
-    triggerUpdate(t);
 }
 
 void MeterVario451::processContent(Telegram *t)
@@ -171,9 +123,4 @@ void MeterVario451::processContent(Telegram *t)
     total_energy_gj_ = prev+curr;
     curr_energy_gj_ = curr;
     prev_energy_gj_ = prev;
-}
-
-unique_ptr<HeatMeter> createVario451(WMBus *bus, string& name, string& id, string& key)
-{
-    return unique_ptr<HeatMeter>(new MeterVario451(bus,name,id,key));
 }
