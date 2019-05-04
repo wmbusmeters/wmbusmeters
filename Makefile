@@ -82,6 +82,7 @@ $(info Building $(VERSION))
 CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-unused-function -I$(BUILD)
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
+	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
 METER_OBJS:=\
@@ -141,7 +142,6 @@ wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb:
 
 $(BUILD)/wmbusmeters: $(METER_OBJS) $(BUILD)/main.o
 	$(CXX) -o $(BUILD)/wmbusmeters $(METER_OBJS) $(BUILD)/main.o $(DEBUG_LDFLAGS) -lpthread
-
 
 $(BUILD)/testinternals: $(METER_OBJS) $(BUILD)/testinternals.o
 	$(CXX) -o $(BUILD)/testinternals $(METER_OBJS) $(BUILD)/testinternals.o $(DEBUG_LDFLAGS) -lpthread

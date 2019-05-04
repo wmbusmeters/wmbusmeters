@@ -60,7 +60,7 @@ private:
 };
 
 MeterQCaloric::MeterQCaloric(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, QCALORIC_METER, MANUFACTURER_QDS, LinkMode::C1)
+    MeterCommonImplementation(bus, name, id, key, MeterType::QCALORIC, MANUFACTURER_QDS, LinkMode::C1)
 {
     addMedia(0x08);
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));

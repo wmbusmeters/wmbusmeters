@@ -24,12 +24,25 @@
 #include<string>
 #include<vector>
 
-#define LIST_OF_METERS X(MULTICAL21_METER)X(FLOWIQ3100_METER)X(MULTICAL302_METER)X(OMNIPOWER_METER)X(SUPERCOM587_METER)X(IPERL_METER)X(QCALORIC_METER)X(APATOR162_METER)X(AMIPLUS_METER)X(MKRADIO3_METER)X(VARIO451_METER)X(UNKNOWN_METER)
+#define LIST_OF_METERS \
+    X(amiplus,    T1, Electricity, AMIPLUS,     Amiplus)      \
+    X(apator162,  T1, Water,       APATOR162,   Apator162)    \
+    X(flowiq3100, C1, Water,       FLOWIQ3100,  Multical21)   \
+    X(iperl,      T1, Water,       IPERL,       Iperl)        \
+    X(mkradio3,   T1, Water,       MKRADIO3,    MKRadio3)     \
+    X(multical21, C1, Water,       MULTICAL21,  Multical21)   \
+    X(multical302,C1, Heat,        MULTICAL302, Multical302)  \
+    X(omnipower,  C1, Electricity, OMNIPOWER,   Omnipower)    \
+    X(qcaloric,   C1, HeatCostAllocation, QCALORIC, QCaloric) \
+    X(supercom587,T1, Water,       SUPERCOM587, Supercom587)  \
+    X(vario451,   T1, Heat,        VARIO451,    Vario451)     \
 
-enum MeterType {
-#define X(name) name,
+
+enum class MeterType {
+#define X(mname,linkmode,info,type,cname) type,
 LIST_OF_METERS
 #undef X
+    UNKNOWN
 };
 
 using namespace std;
@@ -38,6 +51,7 @@ typedef unsigned char uchar;
 
 struct Meter {
     virtual vector<string> ids() = 0;
+    virtual string meterName() = 0;
     virtual string name() = 0;
     virtual MeterType type() = 0;
     virtual vector<int> media() = 0;
@@ -112,6 +126,7 @@ struct HeatCostMeter : public virtual Meter {
 struct GenericMeter : public virtual Meter {
 };
 
+string toMeterName(MeterType mt);
 MeterType toMeterType(string& type);
 LinkMode toMeterLinkMode(string& type);
 unique_ptr<WaterMeter> createMultical21(WMBus *bus, string& name, string& id, string& key);

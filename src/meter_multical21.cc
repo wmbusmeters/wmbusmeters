@@ -109,10 +109,10 @@ MeterMultical21::MeterMultical21(WMBus *bus, string& name, string& id, string& k
 {
     addMedia(0x16); // Water media
 
-    if (type() == MULTICAL21_METER) {
+    if (type() == MeterType::MULTICAL21) {
         expected_version_ = 0x1b;
         meter_name_ = "multical21";
-    } else if (type() == FLOWIQ3100_METER) {
+    } else if (type() == MeterType::FLOWIQ3100) {
         expected_version_ = 0x1d;
         meter_name_ = "flowiq3100";
     } else {
@@ -174,7 +174,7 @@ bool MeterMultical21::hasExternalTemperature()
 
 unique_ptr<WaterMeter> createMulticalWaterMeter(WMBus *bus, string& name, string& id, string& key, MeterType mt)
 {
-    if (mt != MULTICAL21_METER && mt != FLOWIQ3100_METER) {
+    if (mt != MeterType::MULTICAL21 && mt != MeterType::FLOWIQ3100) {
         error("Internal error! Not a proper meter type when creating a multical21 style meter.\n");
     }
     return unique_ptr<WaterMeter>(new MeterMultical21(bus,name,id,key,mt));
@@ -182,12 +182,12 @@ unique_ptr<WaterMeter> createMulticalWaterMeter(WMBus *bus, string& name, string
 
 unique_ptr<WaterMeter> createMultical21(WMBus *bus, string& name, string& id, string& key)
 {
-    return createMulticalWaterMeter(bus, name, id, key, MULTICAL21_METER);
+    return createMulticalWaterMeter(bus, name, id, key, MeterType::MULTICAL21);
 }
 
 unique_ptr<WaterMeter> createFlowIQ3100(WMBus *bus, string& name, string& id, string& key)
 {
-    return createMulticalWaterMeter(bus, name, id, key, FLOWIQ3100_METER);
+    return createMulticalWaterMeter(bus, name, id, key, MeterType::FLOWIQ3100);
 }
 
 void MeterMultical21::handleTelegram(Telegram *t)

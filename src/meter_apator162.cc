@@ -69,7 +69,7 @@ private:
 };
 
 MeterApator162::MeterApator162(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, APATOR162_METER, MANUFACTURER_APA, LinkMode::T1)
+    MeterCommonImplementation(bus, name, id, key, MeterType::APATOR162, MANUFACTURER_APA, LinkMode::T1)
 {
     addMedia(0x06);
     addMedia(0x07);

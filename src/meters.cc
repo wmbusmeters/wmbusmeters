@@ -105,38 +105,29 @@ string MeterCommonImplementation::datetimeOfUpdateRobot()
     return string(datetime);
 }
 
-MeterType toMeterType(string& type)
+string toMeterName(MeterType mt)
 {
-    if (type == "multical21") return MULTICAL21_METER;
-    if (type == "flowiq3100") return FLOWIQ3100_METER;
-    if (type == "multical302") return MULTICAL302_METER;
-    if (type == "omnipower") return OMNIPOWER_METER;
-    if (type == "amiplus") return AMIPLUS_METER;
-    if (type == "supercom587") return SUPERCOM587_METER;
-    if (type == "iperl") return IPERL_METER;
-    if (type == "qcaloric") return QCALORIC_METER;
-    if (type == "apator162") return APATOR162_METER;
-    if (type == "mkradio3") return MKRADIO3_METER;
-    if (type == "vario451") return VARIO451_METER;
-    return UNKNOWN_METER;
+#define X(mname,link,info,type,cname) if (mt == MeterType::type) return #mname;
+LIST_OF_METERS
+#undef X
+    return "unknown";
 }
 
-LinkMode toMeterLinkMode(string& type)
+MeterType toMeterType(string& t)
 {
-    if (type == "multical21") return LinkMode::C1;
-    if (type == "flowiq3100") return LinkMode::C1;
-    if (type == "multical302") return LinkMode::C1;
-    if (type == "omnipower") return LinkMode::C1;
-    if (type == "amiplus") return LinkMode::T1;
-    if (type == "supercom587") return LinkMode::T1;
-    if (type == "iperl") return LinkMode::T1;
-    if (type == "qcaloric") return LinkMode::C1;
-    if (type == "apator162") return LinkMode::T1;
-    if (type == "mkradio3") return LinkMode::T1;
-    if (type == "vario451") return LinkMode::T1;
+#define X(mname,link,info,type,cname) if (t == #mname) return MeterType::type;
+LIST_OF_METERS
+#undef X
+    return MeterType::UNKNOWN;
+}
+
+LinkMode toMeterLinkMode(string& t)
+{
+#define X(mname,link,info,type,cname) if (t == #mname) return LinkMode::link;
+LIST_OF_METERS
+#undef X
     return LinkMode::UNKNOWN;
 }
-
 
 bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
 {

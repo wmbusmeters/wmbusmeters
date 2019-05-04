@@ -60,7 +60,7 @@ struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImple
 };
 
 MeterVario451::MeterVario451(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, VARIO451_METER, MANUFACTURER_TCH, LinkMode::T1)
+    MeterCommonImplementation(bus, name, id, key, MeterType::VARIO451, MANUFACTURER_TCH, LinkMode::T1)
 {
     addMedia(0x04); // C telegrams
     addMedia(0xC3); // T telegrams

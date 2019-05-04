@@ -55,7 +55,7 @@ private:
 };
 
 MeterAmiplus::MeterAmiplus(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, AMIPLUS_METER, 0, LinkMode::T1)
+    MeterCommonImplementation(bus, name, id, key, MeterType::AMIPLUS, 0, LinkMode::T1)
 {
     // This is one manufacturer of Amiplus compatible meters.
     addManufacturer(MANUFACTURER_APA);

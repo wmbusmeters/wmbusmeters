@@ -52,7 +52,7 @@ private:
 };
 
 MeterOmnipower::MeterOmnipower(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, OMNIPOWER_METER, MANUFACTURER_KAM, LinkMode::C1)
+    MeterCommonImplementation(bus, name, id, key, MeterType::OMNIPOWER, MANUFACTURER_KAM, LinkMode::C1)
 {
     addMedia(0x02);
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));

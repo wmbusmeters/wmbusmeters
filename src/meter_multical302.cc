@@ -52,7 +52,7 @@ private:
 };
 
 MeterMultical302::MeterMultical302(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, MULTICAL302_METER, MANUFACTURER_KAM, LinkMode::C1)
+    MeterCommonImplementation(bus, name, id, key, MeterType::MULTICAL302, MANUFACTURER_KAM, LinkMode::C1)
 {
     addMedia(0x04); // Heat media
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));

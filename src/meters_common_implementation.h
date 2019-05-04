@@ -53,6 +53,8 @@ struct MeterCommonImplementation : public virtual Meter
 
     ~MeterCommonImplementation() = default;
 
+    string meterName() { return toMeterName(type_); }
+
 protected:
 
     void triggerUpdate(Telegram *t);

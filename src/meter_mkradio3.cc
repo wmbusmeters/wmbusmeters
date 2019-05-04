@@ -70,7 +70,7 @@ private:
 };
 
 MKRadio3::MKRadio3(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, MKRADIO3_METER, MANUFACTURER_TCH, LinkMode::T1)
+    MeterCommonImplementation(bus, name, id, key, MeterType::MKRADIO3, MANUFACTURER_TCH, LinkMode::T1)
 {
     addMedia(0x62);
     addMedia(0x72);

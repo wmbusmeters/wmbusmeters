@@ -61,7 +61,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 
     MeterType mt = toMeterType(type);
     bool use = true;
-    if (mt == UNKNOWN_METER) {
+    if (mt == MeterType::UNKNOWN) {
         warning("Not a valid meter type \"%s\"\n", type.c_str());
         use = false;
     }

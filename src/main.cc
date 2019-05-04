@@ -283,51 +283,15 @@ void startUsingCommandline(Configuration *config)
         for (auto &m : config->meters) {
             const char *keymsg = (m.key[0] == 0) ? "not-encrypted" : "encrypted";
             switch (toMeterType(m.type)) {
-            case MULTICAL21_METER:
-                meters.push_back(createMultical21(wmbus.get(), m.name, m.id, m.key));
-                verbose("(multical21) configured \"%s\" \"multical21\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
+#define X(mname,link,info,type,cname) \
+                case MeterType::type: \
+                meters.push_back(create##cname(wmbus.get(), m.name, m.id, m.key)); \
+                verbose("(wmbusmeters) configured \"%s\" \"" #mname "\" \"%s\" %s\n", \
+                m.name.c_str(), m.id.c_str(), keymsg); \
                 break;
-            case FLOWIQ3100_METER:
-                meters.push_back(createMultical21(wmbus.get(), m.name, m.id, m.key));
-                verbose("(flowiq3100) configured \"%s\" \"flowiq3100\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
-                break;
-            case MULTICAL302_METER:
-                meters.push_back(createMultical302(wmbus.get(), m.name, m.id, m.key));
-                verbose("(multical302) configured \"%s\" \"multical302\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
-                break;
-            case VARIO451_METER:
-                meters.push_back(createVario451(wmbus.get(), m.name, m.id, m.key));
-                verbose("(vario451) configured \"%s\" \"vario451\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
-                break;
-            case OMNIPOWER_METER:
-                meters.push_back(createOmnipower(wmbus.get(), m.name, m.id, m.key));
-                verbose("(omnipower) configured \"%s\" \"omnipower\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
-                break;
-            case AMIPLUS_METER:
-                meters.push_back(createAmiplus(wmbus.get(), m.name, m.id, m.key));
-                verbose("(amiplus) configured \"%s\" \"amiplus\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
-                break;
-            case MKRADIO3_METER:
-                meters.push_back(createMKRadio3(wmbus.get(), m.name, m.id, m.key));
-                verbose("(mkradio3) configured \"%s\" \"mkradio3\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
-                break;
-            case SUPERCOM587_METER:
-                meters.push_back(createSupercom587(wmbus.get(), m.name, m.id, m.key));
-                verbose("(supercom587) configured \"%s\" \"supercom587\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
-                break;
-            case IPERL_METER:
-                meters.push_back(createIperl(wmbus.get(), m.name, m.id, m.key));
-                verbose("(iperl) configured \"%s\" \"iperl\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
-                break;
-            case QCALORIC_METER:
-                meters.push_back(createQCaloric(wmbus.get(), m.name, m.id, m.key));
-                verbose("(qcaloric) configured \"%s\" \"qcaloric\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
-                break;
-            case APATOR162_METER:
-                meters.push_back(createApator162(wmbus.get(), m.name, m.id, m.key));
-                verbose("(apator162) configured \"%s\" \"apator162\" \"%s\" %s\n", m.name.c_str(), m.id.c_str(), keymsg);
-                break;
-            case UNKNOWN_METER:
+LIST_OF_METERS
+#undef X
+            case MeterType::UNKNOWN:
                 error("No such meter type \"%s\"\n", m.type.c_str());
                 break;
             }
