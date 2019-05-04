@@ -144,10 +144,10 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--addconversions=", 16)) {
+        if (!strncmp(argv[i], "--addconversions=", 17)) {
             if (strlen(argv[i]) > 16)
             {
-                string s = string(argv[i]+16);
+                string s = string(argv[i]+17);
                 handleConversions(c, s);
             } else {
                 error("You must supply conversion units.\n");
