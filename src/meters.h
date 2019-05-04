@@ -118,16 +118,16 @@ struct HeatMeter : public virtual Meter {
 };
 
 struct ElectricityMeter : public virtual Meter {
-    virtual double totalEnergyConsumption(); // kwh
-    virtual double currentPowerConsumption(); // kw
-    virtual double totalEnergyProduction(); // kwh
-    virtual double currentPowerProduction(); // kw
+    virtual double totalEnergyConsumption(Unit u); // kwh
+    virtual double currentPowerConsumption(Unit u); // kw
+    virtual double totalEnergyProduction(Unit u); // kwh
+    virtual double currentPowerProduction(Unit u); // kw
 };
 
 struct HeatCostMeter : public virtual Meter {
-    virtual double currentConsumption();
+    virtual double currentConsumption(Unit u);
     virtual string setDate();
-    virtual double consumptionAtSetDate();
+    virtual double consumptionAtSetDate(Unit u);
 };
 
 struct GenericMeter : public virtual Meter {

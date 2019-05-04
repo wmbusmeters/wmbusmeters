@@ -32,84 +32,41 @@
 struct MeterOmnipower : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
     MeterOmnipower(WMBus *bus, string& name, string& id, string& key);
 
-    double totalEnergyConsumption();
-    double currentPowerConsumption();
-    double totalEnergyProduction();
-    double currentPowerProduction();
-
-    void printMeter(Telegram *t,
-                    string *human_readable,
-                    string *fields, char separator,
-                    string *json,
-                    vector<string> *envs);
+    double totalEnergyConsumption(Unit u);
 
 private:
-    void handleTelegram(Telegram *t);
+
     void processContent(Telegram *t);
 
-    double total_energy_ {};
-    double current_power_ {};
+    double total_energy_kwh_ {};
 };
+
+unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, string& name, string& id, string& key)
+{
+    return unique_ptr<ElectricityMeter>(new MeterOmnipower(bus,name,id,key));
+}
 
 MeterOmnipower::MeterOmnipower(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation(bus, name, id, key, MeterType::OMNIPOWER, MANUFACTURER_KAM, LinkMode::C1)
 {
+    setEncryptionMode(EncryptionMode::AES_CBC);
+
     addMedia(0x02);
 
     setExpectedVersion(0x01);
 
+    addPrint("total_energy_consumption", Quantity::Energy,
+             [&](Unit u){ return totalEnergyConsumption(u); },
+             "The total energy consumption recorded by this meter.",
+             true, true);
+
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
-double MeterOmnipower::totalEnergyConsumption()
+double MeterOmnipower::totalEnergyConsumption(Unit u)
 {
-    return total_energy_;
-}
-
-double MeterOmnipower::currentPowerConsumption()
-{
-    return current_power_;
-}
-
-double MeterOmnipower::totalEnergyProduction()
-{
-    return 0.0;
-}
-
-double MeterOmnipower::currentPowerProduction()
-{
-    return 0.0;
-}
-
-void MeterOmnipower::handleTelegram(Telegram *t) {
-
-    if (!isTelegramForMe(t)) {
-        // This telegram is not intended for this meter.
-        return;
-    }
-
-    verbose("(omnipower) %s %02x%02x%02x%02x ",
-            name().c_str(),
-            t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
-            t->a_field_address[3]);
-
-
-    if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
-        warning("(omnipower) warning: telegram is encrypted but no key supplied!\n");
-    }
-    if (useAes()) {
-        vector<uchar> aeskey = key();
-        decryptMode5_AES_CBC(t, aeskey);
-    } else {
-        t->content = t->payload;
-    }
-    logTelegram("(omnipower) log", t->parsed, t->content);
-    int content_start = t->parsed.size();
-    processContent(t);
-    if (isDebugEnabled()) {
-        t->explainParse("(omnipower)", content_start);
-    }
-    triggerUpdate(t);
+    assertQuantity(u, Quantity::Energy);
+    return convert(total_energy_kwh_, Unit::KWH, u);
 }
 
 void MeterOmnipower::processContent(Telegram *t)
@@ -124,68 +81,6 @@ void MeterOmnipower::processContent(Telegram *t)
     parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
 
     int offset;
-    extractDVdouble(&values, "04833B", &offset, &total_energy_);
-    t->addMoreExplanation(offset, " total power (%f kwh)", total_energy_);
-}
-
-unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, string& name, string& id, string& key)
-{
-    return unique_ptr<ElectricityMeter>(new MeterOmnipower(bus,name,id,key));
-}
-
-void MeterOmnipower::printMeter(Telegram *t,
-                                string *human_readable,
-                                string *fields, char separator,
-                                string *json,
-                                vector<string> *envs)
-{
-
-    char buf[65536];
-    buf[65535] = 0;
-
-    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.3f kwh\t% 3.3f kwh\t%s",
-             name().c_str(),
-             t->id.c_str(),
-             totalEnergyConsumption(),
-             currentPowerConsumption(),
-             datetimeOfUpdateHumanReadable().c_str());
-
-    *human_readable = buf;
-
-    snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%f%c%s",
-             name().c_str(), separator,
-             t->id.c_str(), separator,
-             totalEnergyConsumption(), separator,
-             currentPowerConsumption(), separator,
-             datetimeOfUpdateRobot().c_str());
-
-    *fields = buf;
-
-#define Q(x,y) "\""#x"\":"#y","
-#define QS(x,y) "\""#x"\":\""#y"\","
-#define QSE(x,y) "\""#x"\":\""#y"\""
-
-    snprintf(buf, sizeof(buf)-1, "{"
-             QS(media,electricity)
-             QS(meter,omnipower)
-             QS(name,%s)
-             QS(id,%s)
-             Q(total_energy_consumption_kwh,%f)
-             Q(current_power_consumption_kw,%f)
-             QSE(timestamp,%s)
-             "}",
-             name().c_str(),
-             t->id.c_str(),
-             totalEnergyConsumption(),
-             currentPowerConsumption(),
-             datetimeOfUpdateRobot().c_str());
-
-    *json = buf;
-
-    envs->push_back(string("METER_JSON=")+*json);
-    envs->push_back(string("METER_TYPE=omnipower"));
-    envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_TOTAL_ENERGY_CONSUMPTION_KWH=")+to_string(totalEnergyConsumption()));
-    envs->push_back(string("METER_CURRENT_POWER_CONSUMPTION_KW=")+to_string(currentPowerConsumption()));
-    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
+    extractDVdouble(&values, "04833B", &offset, &total_energy_kwh_);
+    t->addMoreExplanation(offset, " total power (%f kwh)", total_energy_kwh_);
 }

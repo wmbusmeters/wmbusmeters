@@ -369,11 +369,12 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         {
             string default_unit = unitToStringUpperCase(p.default_unit);
             string var = p.vname;
+            std::transform(var.begin(), var.end(), var.begin(), ::toupper);
             if (p.getValueString) {
-                s += "\""+var+"\":\""+p.getValueString()+"\",";
+                string envvar = "METER_"+var+"="+p.getValueString();
+                envs->push_back(envvar);
             }
             if (p.getValueDouble) {
-                std::transform(var.begin(), var.end(), var.begin(), ::toupper);
                 string envvar = "METER_"+var+"_"+default_unit+"="+valueToString(p.getValueDouble(p.default_unit), p.default_unit);
                 envs->push_back(envvar);
 
@@ -414,14 +415,14 @@ double HeatMeter::previousPeriodEnergyConsumption(Unit u) { return -47.11; }
 double HeatMeter::currentPowerConsumption(Unit u) { return -47.11; }
 double HeatMeter::totalVolume(Unit u) { return -47.11; }
 
-double ElectricityMeter::totalEnergyConsumption() { return -47.11; }
-double ElectricityMeter::currentPowerConsumption() { return -47.11; }
-double ElectricityMeter::totalEnergyProduction() { return -47.11; }
-double ElectricityMeter::currentPowerProduction() { return -47.11; }
+double ElectricityMeter::totalEnergyConsumption(Unit u) { return -47.11; }
+double ElectricityMeter::currentPowerConsumption(Unit u) { return -47.11; }
+double ElectricityMeter::totalEnergyProduction(Unit u) { return -47.11; }
+double ElectricityMeter::currentPowerProduction(Unit u) { return -47.11; }
 
-double HeatCostMeter::currentConsumption() { return -47.11; }
+double HeatCostMeter::currentConsumption(Unit u) { return -47.11; }
 string HeatCostMeter::setDate() { return "47.11"; }
-double HeatCostMeter::consumptionAtSetDate() { return -47.11; }
+double HeatCostMeter::consumptionAtSetDate(Unit u) { return -47.11; }
 
 void MeterCommonImplementation::setEncryptionMode(EncryptionMode em)
 {

@@ -70,8 +70,6 @@ MeterSupercom587::MeterSupercom587(WMBus *bus, string& name, string& id, string&
 
 void MeterSupercom587::processContent(Telegram *t)
 {
-    // Meter record:
-
     map<string,pair<int,DVEntry>> values;
     parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
 

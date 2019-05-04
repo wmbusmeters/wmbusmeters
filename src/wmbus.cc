@@ -221,7 +221,7 @@ string mediaTypeJSON(int a_field_device_type)
     case 5: return "steam";
     case 6: return "warm water";
     case 7: return "water";
-    case 8: return "heat cost";
+    case 8: return "heat cost allocation";
     case 9: return "compressed air";
     case 0x0a: return "cooling load volume at outlet";
     case 0x0b: return "cooling load volume at inlet";

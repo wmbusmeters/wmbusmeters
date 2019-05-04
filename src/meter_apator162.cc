@@ -38,90 +38,45 @@ struct MeterApator162 : public virtual WaterMeter, public virtual MeterCommonImp
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
     bool  hasTotalWaterConsumption();
-    double targetWaterConsumption(Unit u);
-    bool  hasTargetWaterConsumption();
-    double maxFlow(Unit u);
-    bool  hasMaxFlow();
-    double flowTemperature(Unit u);
-    bool  hasFlowTemperature();
-    double externalTemperature(Unit u);
-    bool  hasExternalTemperature();
-
-    string statusHumanReadable();
-    string status();
-    string timeDry();
-    string timeReversed();
-    string timeLeaking();
-    string timeBursting();
-
-    void printMeter(Telegram *t,
-                    string *human_readable,
-                    string *fields, char separator,
-                    string *json,
-                    vector<string> *envs);
 
 private:
-    void handleTelegram(Telegram *t);
+
     void processContent(Telegram *t);
-    string decodeTime(int time);
 
-    double total_water_consumption_ {};
+    double total_water_consumption_m3_ {};
 };
-
-MeterApator162::MeterApator162(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, MeterType::APATOR162, MANUFACTURER_APA, LinkMode::T1)
-{
-    addMedia(0x06);
-    addMedia(0x07);
-
-    setExpectedVersion(0x05);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
-}
-
-
-double MeterApator162::totalWaterConsumption(Unit u)
-{
-    return total_water_consumption_;
-}
 
 unique_ptr<WaterMeter> createApator162(WMBus *bus, string& name, string& id, string& key)
 {
     return unique_ptr<WaterMeter>(new MeterApator162(bus,name,id,key));
 }
 
-void MeterApator162::handleTelegram(Telegram *t)
+MeterApator162::MeterApator162(WMBus *bus, string& name, string& id, string& key) :
+    MeterCommonImplementation(bus, name, id, key, MeterType::APATOR162, MANUFACTURER_APA, LinkMode::T1)
 {
-    if (!isTelegramForMe(t)) {
-        // This telegram is not intended for this meter.
-        return;
-    }
+    setEncryptionMode(EncryptionMode::AES_CBC);
 
-    verbose("(%s) telegram for %s %02x%02x%02x%02x\n", "apator162",
-            name().c_str(),
-            t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
-            t->a_field_address[3]);
+    addMedia(0x06);
+    addMedia(0x07);
 
+    setExpectedVersion(0x05);
 
-    if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
-        warning("(apator162) warning: telegram is encrypted but no key supplied!\n");
-    }
-    if (useAes()) {
-        vector<uchar> aeskey = key();
-        decryptMode5_AES_CBC(t, aeskey);
-    } else {
-        t->content = t->payload;
-    }
-    char log_prefix[256];
-    snprintf(log_prefix, 255, "(%s) log", "apator162");
-    logTelegram(log_prefix, t->parsed, t->content);
-    int content_start = t->parsed.size();
-    processContent(t);
-    if (isDebugEnabled()) {
-        snprintf(log_prefix, 255, "(%s)", "apator162");
-        t->explainParse(log_prefix, content_start);
-    }
-    triggerUpdate(t);
+    addPrint("total", Quantity::Volume,
+             [&](Unit u){ return totalWaterConsumption(u); },
+             "The total water consumption recorded by this meter.",
+             true, true);
+
+    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
+}
+
+double MeterApator162::totalWaterConsumption(Unit u)
+{
+    return total_water_consumption_m3_;
+}
+
+bool MeterApator162::hasTotalWaterConsumption()
+{
+    return true;
 }
 
 void MeterApator162::processContent(Telegram *t)
@@ -147,142 +102,7 @@ void MeterApator162::processContent(Telegram *t)
     int offset;
     string key;
     if(findKey(ValueInformation::Volume, 0, &key, &vendor_values)) {
-        extractDVdouble(&vendor_values, key, &offset, &total_water_consumption_);
-        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_);
+        extractDVdouble(&vendor_values, key, &offset, &total_water_consumption_m3_);
+        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
-}
-
-void MeterApator162::printMeter(Telegram *t,
-                                  string *human_readable,
-                                  string *fields, char separator,
-                                  string *json,
-                                  vector<string> *envs)
-{
-    char buf[65536];
-    buf[65535] = 0;
-
-    snprintf(buf, sizeof(buf)-1,
-             "%s\t"
-             "%s\t"
-             "% 3.3f m3\t"
-             "%s",
-             name().c_str(),
-             t->id.c_str(),
-             totalWaterConsumption(Unit::M3),
-             datetimeOfUpdateHumanReadable().c_str());
-
-    *human_readable = buf;
-
-    snprintf(buf, sizeof(buf)-1,
-             "%s%c"
-             "%s%c"
-             "%f%c"
-             "%s",
-             name().c_str(), separator,
-             t->id.c_str(), separator,
-             totalWaterConsumption(Unit::M3), separator,
-            datetimeOfUpdateRobot().c_str());
-
-    *fields = buf;
-
-#define Q(x,y) "\""#x"\":"#y","
-#define QS(x,y) "\""#x"\":\""#y"\","
-#define QSE(x,y) "\""#x"\":\""#y"\""
-
-    snprintf(buf, sizeof(buf)-1, "{"
-             QS(media,%s)
-             QS(meter,apator162)
-             QS(name,%s)
-             QS(id,%s)
-             Q(total_m3,%f)
-             QSE(timestamp,%s)
-             "}",
-             mediaTypeJSON(t->a_field_device_type).c_str(),
-             name().c_str(),
-             t->id.c_str(),
-             totalWaterConsumption(Unit::M3),
-             datetimeOfUpdateRobot().c_str());
-
-    *json = buf;
-
-    envs->push_back(string("METER_JSON=")+*json);
-    envs->push_back(string("METER_TYPE=apator162"));
-    envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_TOTAL_M3=")+to_string(totalWaterConsumption(Unit::M3)));
-    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
-}
-
-bool MeterApator162::hasTotalWaterConsumption()
-{
-    return true;
-}
-
-double MeterApator162::targetWaterConsumption(Unit u)
-{
-    return 0.0;
-}
-
-bool MeterApator162::hasTargetWaterConsumption()
-{
-    return false;
-}
-
-double MeterApator162::maxFlow(Unit u)
-{
-    return 0.0;
-}
-
-bool MeterApator162::hasMaxFlow()
-{
-    return false;
-}
-
-double MeterApator162::flowTemperature(Unit u)
-{
-    return 127;
-}
-
-bool MeterApator162::hasFlowTemperature()
-{
-    return false;
-}
-
-double MeterApator162::externalTemperature(Unit u)
-{
-    return 127;
-}
-
-bool MeterApator162::hasExternalTemperature()
-{
-    return false;
-}
-
-string MeterApator162::statusHumanReadable()
-{
-    return "";
-}
-
-string MeterApator162::status()
-{
-    return "";
-}
-
-string MeterApator162::timeDry()
-{
-    return "";
-}
-
-string MeterApator162::timeReversed()
-{
-    return "";
-}
-
-string MeterApator162::timeLeaking()
-{
-    return "";
-}
-
-string MeterApator162::timeBursting()
-{
-    return "";
 }

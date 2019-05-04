@@ -32,26 +32,20 @@
 struct MeterQCaloric : public virtual HeatCostMeter, public virtual MeterCommonImplementation {
     MeterQCaloric(WMBus *bus, string& name, string& id, string& key);
 
-    double currentConsumption();
+    double currentConsumption(Unit u);
     string setDate();
-    double consumptionAtSetDate();
-
-    void printMeter(Telegram *t,
-                    string *human_readable,
-                    string *fields, char separator,
-                    string *json,
-                    vector<string> *envs);
+    double consumptionAtSetDate(Unit u);
 
 private:
-    void handleTelegram(Telegram *t);
+
     void processContent(Telegram *t);
 
     // Telegram type 1
-    double current_consumption_ {};
+    double current_consumption_hca_ {};
     string set_date_;
-    double consumption_at_set_date_ {};
+    double consumption_at_set_date_hca_ {};
     string set_date_17_;
-    double consumption_at_set_date_17_ {};
+    double consumption_at_set_date_17_hca_ {};
     string error_date_;
 
     // Telegram type 2
@@ -62,18 +56,58 @@ private:
 MeterQCaloric::MeterQCaloric(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation(bus, name, id, key, MeterType::QCALORIC, MANUFACTURER_QDS, LinkMode::C1)
 {
-    setEncryptionMode(EncryptionMode::None);
+    setEncryptionMode(EncryptionMode::AES_CBC); // Is it?
 
     addMedia(0x08);
 
     setExpectedVersion(0x35);
 
+    addPrint("current_consumption", Quantity::HCA,
+             [&](Unit u){ return currentConsumption(u); },
+             "The current heat cost allocation.",
+             true, true);
+
+    addPrint("set_date", Quantity::Text,
+             [&](){ return setDate(); },
+             "The most recent billing period date.",
+             true, true);
+
+    addPrint("consumption_at_set_date", Quantity::HCA,
+             [&](Unit u){ return consumptionAtSetDate(u); },
+             "Heat cost allocation at the most recent billing period date.",
+             true, true);
+
+    addPrint("set_date_17", Quantity::Text,
+             [&](){ return set_date_17_; },
+             "The 17 billing period date.",
+             false, true);
+
+    addPrint("consumption_at_set_date_17", Quantity::HCA,
+             [&](Unit u){ return consumption_at_set_date_17_hca_; },
+             "Heat cost allocation at the 17 billing period date.",
+             false, true);
+
+    addPrint("error_date", Quantity::Text,
+             [&](){ return error_date_; },
+             "Error date.",
+             false, true);
+
+    addPrint("device_date_time", Quantity::Text,
+             [&](){ return device_date_time_; },
+             "Device date time.",
+             false, true);
+
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
-double MeterQCaloric::currentConsumption()
+unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, string& name, string& id, string& key)
 {
-    return current_consumption_;
+    return unique_ptr<HeatCostMeter>(new MeterQCaloric(bus,name,id,key));
+}
+
+double MeterQCaloric::currentConsumption(Unit u)
+{
+    return current_consumption_hca_;
 }
 
 string MeterQCaloric::setDate()
@@ -81,40 +115,9 @@ string MeterQCaloric::setDate()
     return set_date_;
 }
 
-double MeterQCaloric::consumptionAtSetDate()
+double MeterQCaloric::consumptionAtSetDate(Unit u)
 {
-    return consumption_at_set_date_;
-}
-
-void MeterQCaloric::handleTelegram(Telegram *t) {
-
-    if (!isTelegramForMe(t)) {
-        // This telegram is not intended for this meter.
-        return;
-    }
-
-    verbose("(qcaloric) %s %02x%02x%02x%02x ",
-            name().c_str(),
-            t->a_field_address[0], t->a_field_address[1], t->a_field_address[2],
-            t->a_field_address[3]);
-
-    if (t->isEncrypted() && !useAes() && !t->isSimulated()) {
-        warning("(qcaloric) warning: telegram is encrypted but no key supplied!\n");
-    }
-    if (useAes()) {
-        vector<uchar> aeskey = key();
-        decryptMode5_AES_CBC(t, aeskey);
-    } else {
-        t->content = t->payload;
-    }
-    logTelegram("(qcaloric) log", t->parsed, t->content);
-    int content_start = t->parsed.size();
-    processContent(t);
-
-    if (isDebugEnabled()) {
-        t->explainParse("(qcaloric)", content_start);
-    }
-    triggerUpdate(t);
+    return consumption_at_set_date_hca_;
 }
 
 void MeterQCaloric::processContent(Telegram *t)
@@ -168,8 +171,8 @@ void MeterQCaloric::processContent(Telegram *t)
     string key;
 
     if (findKey(ValueInformation::HeatCostAllocation, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &current_consumption_);
-        t->addMoreExplanation(offset, " current consumption (%f hca)", current_consumption_);
+        extractDVdouble(&values, key, &offset, &current_consumption_hca_);
+        t->addMoreExplanation(offset, " current consumption (%f hca)", current_consumption_hca_);
     }
 
     if (findKey(ValueInformation::Date, 1, &key, &values)) {
@@ -180,13 +183,13 @@ void MeterQCaloric::processContent(Telegram *t)
     }
 
     if (findKey(ValueInformation::HeatCostAllocation, 1, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &consumption_at_set_date_);
-        t->addMoreExplanation(offset, " consumption at set date (%f hca)", consumption_at_set_date_);
+        extractDVdouble(&values, key, &offset, &consumption_at_set_date_hca_);
+        t->addMoreExplanation(offset, " consumption at set date (%f hca)", consumption_at_set_date_hca_);
     }
 
     if (findKey(ValueInformation::HeatCostAllocation, 17, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &consumption_at_set_date_17_);
-        t->addMoreExplanation(offset, " consumption at set date 17 (%f hca)", consumption_at_set_date_17_);
+        extractDVdouble(&values, key, &offset, &consumption_at_set_date_17_hca_);
+        t->addMoreExplanation(offset, " consumption at set date 17 (%f hca)", consumption_at_set_date_17_hca_);
     }
 
     if (findKey(ValueInformation::Date, 17, &key, &values)) {
@@ -218,82 +221,4 @@ void MeterQCaloric::processContent(Telegram *t)
         t->addMoreExplanation(offset, " vendor extension data");
         // This is not stored anywhere yet, we need to understand it, if necessary.
     }
-}
-
-unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, string& name, string& id, string& key)
-{
-    return unique_ptr<HeatCostMeter>(new MeterQCaloric(bus,name,id,key));
-}
-
-void MeterQCaloric::printMeter(Telegram *t,
-                               string *human_readable,
-                               string *fields, char separator,
-                               string *json,
-                               vector<string> *envs)
-{
-
-    char buf[65536];
-    buf[65535] = 0;
-
-    snprintf(buf, sizeof(buf)-1, "%s\t%s\t% 3.0f hca\t%s\t% 3.0f hca\t%s",
-             name().c_str(),
-             t->id.c_str(),
-             currentConsumption(),
-             setDate().c_str(),
-             consumptionAtSetDate(),
-             datetimeOfUpdateHumanReadable().c_str());
-
-    *human_readable = buf;
-
-    snprintf(buf, sizeof(buf)-1, "%s%c%s%c%f%c%s%c%f%c%s",
-             name().c_str(), separator,
-             t->id.c_str(), separator,
-             currentConsumption(), separator,
-             setDate().c_str(), separator,
-             consumptionAtSetDate(), separator,
-             datetimeOfUpdateRobot().c_str());
-
-    *fields = buf;
-
-#define Q(x,y)   "\""#x"\":"#y","
-#define QS(x,y)  "\""#x"\":\""#y"\","
-#define QSE(x,y) "\""#x"\":\""#y"\""
-
-    snprintf(buf, sizeof(buf)-1, "{"
-             QS(media,heat_cost_allocation)
-             QS(meter,qcaloric)
-             QS(name,%s)
-             QS(id,%s)
-             Q(current_consumption_hca,%f)
-             QS(set_date,%s)
-             Q(consumption_at_set_date_hca,%f)
-             QS(set_date_17,%s)
-             Q(consumption_at_set_date_17_hca,%f)
-             QS(error_date,%s)
-             QS(device_date_time,%s)
-             QSE(timestamp,%s)
-             "}",
-             name().c_str(),
-             t->id.c_str(),
-             currentConsumption(),
-             setDate().c_str(),
-             consumptionAtSetDate(),
-             set_date_17_.c_str(),
-             consumption_at_set_date_17_,
-             error_date_.c_str(),
-             device_date_time_.c_str(),
-             datetimeOfUpdateRobot().c_str());
-
-    *json = buf;
-
-    envs->push_back(string("METER_JSON=")+*json);
-    envs->push_back(string("METER_TYPE=qcaloric"));
-    envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_CURRENT_CONSUMPTION_HCA=")+to_string(currentConsumption()));
-    envs->push_back(string("METER_SET_DATE=")+setDate());
-    envs->push_back(string("METER_CONSUMPTION_AT_SET_DATE_HCA=")+to_string(consumptionAtSetDate()));
-    envs->push_back(string("METER_SET_DATE_17=")+set_date_17_);
-    envs->push_back(string("METER_CONSUMPTION_AT_SET_DATE_17_HCA=")+to_string(consumption_at_set_date_17_));
-    envs->push_back(string("METER_ERROR_DATE=")+error_date_);
-    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }
