@@ -214,29 +214,31 @@ void MeterVario451::printMeter(Telegram *t,
     *human_readable = concatFields(this, t, '\t', prints_, conversions_);
     *fields = concatFields(this, t, separator, prints_, conversions_);
 
-#define Q(x,y) "\""#x"\":"#y","
-#define QS(x,y) "\""#x"\":\""#y"\","
-#define QSE(x,y) "\""#x"\":\""#y"\""
+    string s;
+    s += "{";
+    s += "\"media\":\""+mediaTypeJSON(t->a_field_device_type)+"\",";
+    s += "\"meter\":\""+meterName()+"\",";
+    s += "\"name\":\""+name()+"\",";
+    s += "\"id\":\""+t->id+"\",";
+    for (Print p : prints_)
+    {
+        if (p.field)
+        {
+            string default_unit = unitToStringLowerCase(p.default_unit);
+            string var = p.vname;
+            s += "\""+var+"_"+default_unit+"\":"+to_string(p.getValueFunc(p.default_unit))+",";
 
-    char buf[65535];
-    snprintf(buf, sizeof(buf)-1, "{"
-             QS(media,heat)
-             QS(meter,vario451)
-             QS(name,%s)
-             QS(id,%s)
-             Q(total_kwh,%f)
-             Q(current_kwh,%f)
-             Q(previous_kwh,%f)
-             QSE(timestamp,%s)
-             "}",
-             name().c_str(),
-             t->id.c_str(),
-             totalEnergyConsumption(Unit::KWH),
-             currentPeriodEnergyConsumption(Unit::KWH),
-             previousPeriodEnergyConsumption(Unit::KWH),
-             datetimeOfUpdateRobot().c_str());
-
-    *json = buf;
+            Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
+            if (u != p.default_unit)
+            {
+                string unit = unitToStringLowerCase(u);
+                s += "\""+var+"_"+unit+"\":"+to_string(p.getValueFunc(u))+",";
+            }
+        }
+    }
+    s += "\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
+    s += "}";
+    *json = s;
 
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=")+meterName());
@@ -246,12 +248,19 @@ void MeterVario451::printMeter(Telegram *t,
     {
         if (p.field)
         {
-            Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
-            string unit = unitToStringUpperCase(u);
+            string default_unit = unitToStringUpperCase(p.default_unit);
             string var = p.vname;
             std::transform(var.begin(), var.end(), var.begin(), ::toupper);
-            string envvar = "METER_"+var+"_"+unit+"="+to_string(p.getValueFunc(u));
+            string envvar = "METER_"+var+"_"+default_unit+"="+to_string(p.getValueFunc(p.default_unit));
             envs->push_back(envvar);
+
+            Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
+            if (u != p.default_unit)
+            {
+                string unit = unitToStringUpperCase(u);
+                string envvar = "METER_"+var+"_"+unit+"="+to_string(p.getValueFunc(u));
+                envs->push_back(envvar);
+            }
         }
     }
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
