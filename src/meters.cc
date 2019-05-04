@@ -39,6 +39,14 @@ MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, string& name, s
     }
 }
 
+void MeterCommonImplementation::addConversions(std::vector<Unit> cs)
+{
+    for (Unit c : cs)
+    {
+        conversions_.push_back(c);
+    }
+}
+
 MeterType MeterCommonImplementation::type()
 {
     return type_;
@@ -52,6 +60,12 @@ vector<int> MeterCommonImplementation::media()
 void MeterCommonImplementation::addMedia(int m)
 {
     media_.push_back(m);
+}
+
+void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
+                                         function<double(Unit)> getValueFunc, string help, bool field)
+{
+    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), getValueFunc, help, field });
 }
 
 void MeterCommonImplementation::addManufacturer(int m)

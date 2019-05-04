@@ -22,9 +22,9 @@
 #include<vector>
 
 #define LIST_OF_QUANTITIES \
-    X(Energy)  \
-    X(Power)   \
-    X(Volume)  \
+    X(Energy,KWH)          \
+    X(Power,KW)            \
+    X(Volume,M3)           \
 
 
 #define LIST_OF_UNITS \
@@ -44,7 +44,7 @@ LIST_OF_UNITS
 
 enum class Quantity
 {
-#define X(quantity) quantity,
+#define X(quantity,default_unit) quantity,
 LIST_OF_QUANTITIES
 #undef X
     Unknown
@@ -55,8 +55,13 @@ double convert(double v, Unit from, Unit to);
 Unit toUnit(std::string s);
 bool isQuantity(Unit u, Quantity q);
 void assertQuantity(Unit u, Quantity q);
+Unit defaultUnitForQuantity(Quantity q);
+std::string unitToStringHR(Unit u);
+std::string unitToStringLowerCase(Unit u);
+std::string unitToStringUpperCase(Unit u);
 
 std::string strWithUnitHR(double v, Unit u);
 std::string strWithUnitLowerCase(double v, Unit u);
+Unit replaceWithConversionUnit(Unit u, std::vector<Unit> cs);
 
 #endif

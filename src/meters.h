@@ -80,6 +80,8 @@ struct Meter {
     virtual double getRecordAsDouble(std::string record) = 0;
     virtual uint16_t getRecordAsUInt16(std::string record) = 0;
 
+    virtual void addConversions(std::vector<Unit> cs) = 0;
+
     virtual ~Meter() = default;
 };
 

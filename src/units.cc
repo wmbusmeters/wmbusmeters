@@ -65,6 +65,16 @@ void assertQuantity(Unit u, Quantity q)
     }
 }
 
+Unit defaultUnitForQuantity(Quantity q)
+{
+#define X(quantity,default_unit) if (q == Quantity::quantity) return Unit::default_unit;
+LIST_OF_QUANTITIES
+#undef X
+
+    return Unit::Unknown;
+}
+
+
 Unit toUnit(string s)
 {
 #define X(cname,lcname,hrname,quantity,explanation) if (s == #cname) return Unit::cname;
@@ -113,4 +123,13 @@ string strWithUnitLowerCase(double v, Unit u)
     string r = format3fdot3f(v);
     r += " "+unitToStringLowerCase(u);
     return r;
+}
+
+Unit replaceWithConversionUnit(Unit u, vector<Unit> cs)
+{
+    for (Unit c : cs)
+    {
+        if (canConvert(u, c)) return c;
+    }
+    return u;
 }

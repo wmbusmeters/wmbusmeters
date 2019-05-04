@@ -288,6 +288,7 @@ void startUsingCommandline(Configuration *config)
                 meters.push_back(create##cname(wmbus.get(), m.name, m.id, m.key)); \
                 verbose("(wmbusmeters) configured \"%s\" \"" #mname "\" \"%s\" %s\n", \
                 m.name.c_str(), m.id.c_str(), keymsg); \
+                meters.back()->addConversions(config->conversions); \
                 break;
 LIST_OF_METERS
 #undef X

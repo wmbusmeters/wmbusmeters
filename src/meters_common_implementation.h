@@ -26,9 +26,12 @@
 
 struct Print
 {
-    string vname; // Value name, like: total current previous
-    Unit vunit;   // Value unit, like: Unit::KWH Unit::GJ Unit::M3 Unit::L
-
+    string vname; // Value name, like: total current previous target
+    Quantity quantity; // Quantity: Energy, Volume
+    Unit default_unit; // Default unit for above quantity: KWH, M3
+    function<double(Unit)> getValueFunc; // Callback to fetch the value from the meter.
+    string help; // Helpful information on this meters use of this value.
+    bool field; // If true, print in hr/fields output.
 };
 
 struct MeterCommonImplementation : public virtual Meter
@@ -65,8 +68,10 @@ struct MeterCommonImplementation : public virtual Meter
 protected:
 
     void triggerUpdate(Telegram *t);
+    void addConversions(std::vector<Unit> cs);
     void addMedia(int media);
     void addManufacturer(int m);
+    void addPrint(string vname, Quantity vquantity, function<double(Unit)> getValueFunc, string help, bool field);
 
 private:
 
@@ -82,10 +87,11 @@ private:
     bool use_aes_ {};
     time_t datetime_of_update_ {};
     LinkMode required_link_mode_ {};
-    vector<Unit> conversions_ {};
 
 protected:
     std::map<std::string,std::pair<int,std::string>> values_;
+    vector<Unit> conversions_;
+    vector<Print> prints_;
 };
 
 #endif

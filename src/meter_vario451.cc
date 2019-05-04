@@ -23,6 +23,7 @@
 #include"units.h"
 #include"util.h"
 
+#include<algorithm>
 #include<memory.h>
 #include<stdio.h>
 #include<string>
@@ -33,7 +34,6 @@
     X(total_kwh, totalEnergyConsumption, Unit::KWH)        \
     X(current_kwh, currentPeriodEnergyConsumption, Unit::KWH) \
     X(previous_kwh, previousPeriodEnergyConsumption, Unit::KWH) \
-
 
 struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImplementation {
     MeterVario451(WMBus *bus, string& name, string& id, string& key);
@@ -64,6 +64,22 @@ MeterVario451::MeterVario451(WMBus *bus, string& name, string& id, string& key) 
 {
     addMedia(0x04); // C telegrams
     addMedia(0xC3); // T telegrams
+
+    addPrint("total", Quantity::Energy,
+             [&](Unit u){ return totalEnergyConsumption(u); },
+             "The total energy consumption recorded by this meter.",
+             true);
+
+    addPrint("current", Quantity::Energy,
+             [&](Unit u){ return currentPeriodEnergyConsumption(u); },
+             "Energy consumption so far in this billing period.",
+             true);
+
+    addPrint("previous", Quantity::Energy,
+             [&](Unit u){ return previousPeriodEnergyConsumption(u); },
+             "Energy consumption in previous billing period.",
+             true);
+
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
@@ -165,10 +181,29 @@ void MeterVario451::processContent(Telegram *t) {
     prev_energy_gj_ = prev;
 }
 
-unique_ptr<HeatMeter> createVario451(WMBus *bus, string& name, string& id, string& key) {
+unique_ptr<HeatMeter> createVario451(WMBus *bus, string& name, string& id, string& key)
+{
     return unique_ptr<HeatMeter>(new MeterVario451(bus,name,id,key));
 }
 
+string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector<Unit> &cs)
+{
+    string s;
+    s = "";
+    s += m->name() + c;
+    s += t->id + c;
+    for (Print p : prints)
+    {
+        if (p.field)
+        {
+            Unit u = replaceWithConversionUnit(p.default_unit, cs);
+            double v = p.getValueFunc(u);
+            s += strWithUnitHR(v, u) + c;
+        }
+    }
+    s += m->datetimeOfUpdateHumanReadable();
+    return s;
+}
 
 void MeterVario451::printMeter(Telegram *t,
                                string *human_readable,
@@ -176,24 +211,8 @@ void MeterVario451::printMeter(Telegram *t,
                                string *json,
                                vector<string> *envs)
 {
-    string s;
-    s = "";
-    s += name() + "\t";
-    s += t->id + "\t";
-#define X(key,func,unit) {s+=strWithUnitHR(func(Unit::KWH),unit) + "\t";}
-    METER_OUTPUT
-#undef X
-    s += datetimeOfUpdateHumanReadable();
-    *human_readable = s;
-
-    s = "";
-    s += name() + "\t";
-    s += t->id + "\t";
-#define X(key,func,unit) {s+=strWithUnitLowerCase(func(Unit::KWH),unit) + separator;}
-    METER_OUTPUT
-#undef X
-    s += datetimeOfUpdateHumanReadable();
-    *fields = s;
+    *human_readable = concatFields(this, t, '\t', prints_, conversions_);
+    *fields = concatFields(this, t, separator, prints_, conversions_);
 
 #define Q(x,y) "\""#x"\":"#y","
 #define QS(x,y) "\""#x"\":\""#y"\","
@@ -220,10 +239,20 @@ void MeterVario451::printMeter(Telegram *t,
     *json = buf;
 
     envs->push_back(string("METER_JSON=")+*json);
-    envs->push_back(string("METER_TYPE=vario451"));
+    envs->push_back(string("METER_TYPE=")+meterName());
     envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_TOTAL_KWH=")+to_string(totalEnergyConsumption(Unit::KWH)));
-    envs->push_back(string("METER_CURRENT_KWH=")+to_string(currentPeriodEnergyConsumption(Unit::KWH)));
-    envs->push_back(string("METER_PREVIOUS_KWH=")+to_string(previousPeriodEnergyConsumption(Unit::KWH)));
+
+    for (Print p : prints_)
+    {
+        if (p.field)
+        {
+            Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
+            string unit = unitToStringUpperCase(u);
+            string var = p.vname;
+            std::transform(var.begin(), var.end(), var.begin(), ::toupper);
+            string envvar = "METER_"+var+"_"+unit+"="+to_string(p.getValueFunc(u));
+            envs->push_back(envvar);
+        }
+    }
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }
