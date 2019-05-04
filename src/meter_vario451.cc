@@ -30,12 +30,8 @@
 #include<time.h>
 #include<vector>
 
-#define METER_OUTPUT \
-    X(total_kwh, totalEnergyConsumption, Unit::KWH)        \
-    X(current_kwh, currentPeriodEnergyConsumption, Unit::KWH) \
-    X(previous_kwh, previousPeriodEnergyConsumption, Unit::KWH) \
-
-struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImplementation {
+struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImplementation
+{
     MeterVario451(WMBus *bus, string& name, string& id, string& key);
 
     double totalEnergyConsumption(Unit u);
@@ -44,13 +40,8 @@ struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImple
     double previousPeriodEnergyConsumption(Unit u);
     double totalVolume(Unit u);
 
-    void printMeter(Telegram *t,
-                    string *human_readable,
-                    string *fields, char separator,
-                    string *json,
-                    vector<string> *envs);
-
     private:
+
     void handleTelegram(Telegram *t);
     void processContent(Telegram *t);
 
@@ -147,7 +138,8 @@ void MeterVario451::handleTelegram(Telegram *t) {
     triggerUpdate(t);
 }
 
-void MeterVario451::processContent(Telegram *t) {
+void MeterVario451::processContent(Telegram *t)
+{
     map<string,pair<int,DVEntry>> vendor_values;
 
     // Unfortunately, the Techem Vario 4 Typ 4.5.1 is mostly a proprieatary protocol
@@ -184,84 +176,4 @@ void MeterVario451::processContent(Telegram *t) {
 unique_ptr<HeatMeter> createVario451(WMBus *bus, string& name, string& id, string& key)
 {
     return unique_ptr<HeatMeter>(new MeterVario451(bus,name,id,key));
-}
-
-string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector<Unit> &cs)
-{
-    string s;
-    s = "";
-    s += m->name() + c;
-    s += t->id + c;
-    for (Print p : prints)
-    {
-        if (p.field)
-        {
-            Unit u = replaceWithConversionUnit(p.default_unit, cs);
-            double v = p.getValueFunc(u);
-            s += strWithUnitHR(v, u) + c;
-        }
-    }
-    s += m->datetimeOfUpdateHumanReadable();
-    return s;
-}
-
-void MeterVario451::printMeter(Telegram *t,
-                               string *human_readable,
-                               string *fields, char separator,
-                               string *json,
-                               vector<string> *envs)
-{
-    *human_readable = concatFields(this, t, '\t', prints_, conversions_);
-    *fields = concatFields(this, t, separator, prints_, conversions_);
-
-    string s;
-    s += "{";
-    s += "\"media\":\""+mediaTypeJSON(t->a_field_device_type)+"\",";
-    s += "\"meter\":\""+meterName()+"\",";
-    s += "\"name\":\""+name()+"\",";
-    s += "\"id\":\""+t->id+"\",";
-    for (Print p : prints_)
-    {
-        if (p.field)
-        {
-            string default_unit = unitToStringLowerCase(p.default_unit);
-            string var = p.vname;
-            s += "\""+var+"_"+default_unit+"\":"+to_string(p.getValueFunc(p.default_unit))+",";
-
-            Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
-            if (u != p.default_unit)
-            {
-                string unit = unitToStringLowerCase(u);
-                s += "\""+var+"_"+unit+"\":"+to_string(p.getValueFunc(u))+",";
-            }
-        }
-    }
-    s += "\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
-    s += "}";
-    *json = s;
-
-    envs->push_back(string("METER_JSON=")+*json);
-    envs->push_back(string("METER_TYPE=")+meterName());
-    envs->push_back(string("METER_ID=")+t->id);
-
-    for (Print p : prints_)
-    {
-        if (p.field)
-        {
-            string default_unit = unitToStringUpperCase(p.default_unit);
-            string var = p.vname;
-            std::transform(var.begin(), var.end(), var.begin(), ::toupper);
-            string envvar = "METER_"+var+"_"+default_unit+"="+to_string(p.getValueFunc(p.default_unit));
-            envs->push_back(envvar);
-
-            Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
-            if (u != p.default_unit)
-            {
-                string unit = unitToStringUpperCase(u);
-                string envvar = "METER_"+var+"_"+unit+"="+to_string(p.getValueFunc(u));
-                envs->push_back(envvar);
-            }
-        }
-    }
-    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }

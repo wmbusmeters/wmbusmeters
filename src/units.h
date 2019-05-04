@@ -60,8 +60,6 @@ std::string unitToStringHR(Unit u);
 std::string unitToStringLowerCase(Unit u);
 std::string unitToStringUpperCase(Unit u);
 
-std::string strWithUnitHR(double v, Unit u);
-std::string strWithUnitLowerCase(double v, Unit u);
 Unit replaceWithConversionUnit(Unit u, std::vector<Unit> cs);
 
 #endif

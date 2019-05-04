@@ -19,6 +19,7 @@
 #include"meters_common_implementation.h"
 #include"units.h"
 
+#include<algorithm>
 #include<memory.h>
 
 MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, string& name, string& id, string& key,
@@ -225,4 +226,90 @@ void MeterCommonImplementation::triggerUpdate(Telegram *t)
     num_updates_++;
     for (auto &cb : on_update_) if (cb) cb(t, this);
     t->handled = true;
+}
+
+string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector<Unit> &cs, bool hr)
+{
+    string s;
+    s = "";
+    s += m->name() + c;
+    s += t->id + c;
+    for (Print p : prints)
+    {
+        if (p.field)
+        {
+            Unit u = replaceWithConversionUnit(p.default_unit, cs);
+            double v = p.getValueFunc(u);
+            if (hr) {
+                s += format3fdot3f(v);
+                s += " "+unitToStringHR(u);
+            } else {
+                s += to_string(v);
+            }
+            s += c;
+        }
+    }
+    s += m->datetimeOfUpdateHumanReadable();
+    return s;
+}
+
+void MeterCommonImplementation::printMeter(Telegram *t,
+                                           string *human_readable,
+                                           string *fields, char separator,
+                                           string *json,
+                                           vector<string> *envs)
+{
+    *human_readable = concatFields(this, t, '\t', prints_, conversions_, true);
+    *fields = concatFields(this, t, separator, prints_, conversions_, false);
+
+    string s;
+    s += "{";
+    s += "\"media\":\""+mediaTypeJSON(t->a_field_device_type)+"\",";
+    s += "\"meter\":\""+meterName()+"\",";
+    s += "\"name\":\""+name()+"\",";
+    s += "\"id\":\""+t->id+"\",";
+    for (Print p : prints_)
+    {
+        if (p.field)
+        {
+            string default_unit = unitToStringLowerCase(p.default_unit);
+            string var = p.vname;
+            s += "\""+var+"_"+default_unit+"\":"+to_string(p.getValueFunc(p.default_unit))+",";
+
+            Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
+            if (u != p.default_unit)
+            {
+                string unit = unitToStringLowerCase(u);
+                s += "\""+var+"_"+unit+"\":"+to_string(p.getValueFunc(u))+",";
+            }
+        }
+    }
+    s += "\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
+    s += "}";
+    *json = s;
+
+    envs->push_back(string("METER_JSON=")+*json);
+    envs->push_back(string("METER_TYPE=")+meterName());
+    envs->push_back(string("METER_ID=")+t->id);
+
+    for (Print p : prints_)
+    {
+        if (p.field)
+        {
+            string default_unit = unitToStringUpperCase(p.default_unit);
+            string var = p.vname;
+            std::transform(var.begin(), var.end(), var.begin(), ::toupper);
+            string envvar = "METER_"+var+"_"+default_unit+"="+to_string(p.getValueFunc(p.default_unit));
+            envs->push_back(envvar);
+
+            Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
+            if (u != p.default_unit)
+            {
+                string unit = unitToStringUpperCase(u);
+                string envvar = "METER_"+var+"_"+unit+"="+to_string(p.getValueFunc(u));
+                envs->push_back(envvar);
+            }
+        }
+    }
+    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }
