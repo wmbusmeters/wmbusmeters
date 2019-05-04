@@ -24,6 +24,13 @@
 #include<map>
 #include<set>
 
+struct Print
+{
+    string vname; // Value name, like: total current previous
+    Unit vunit;   // Value unit, like: Unit::KWH Unit::GJ Unit::M3 Unit::L
+
+};
+
 struct MeterCommonImplementation : public virtual Meter
 {
     vector<string> ids();

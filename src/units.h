@@ -23,7 +23,7 @@
 
 enum class Unit
 {
-    Unknown, KWH, GJ
+    Unknown, KWH, GJ, M3, L
 };
 
 bool canConvert(Unit from, Unit to);

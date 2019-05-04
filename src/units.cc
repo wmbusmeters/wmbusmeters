@@ -20,38 +20,34 @@
 
 using namespace std;
 
-double from_KWH_to_GJ(double d);
-double from_GJ_to_KWH(double d);
+#define LIST_OF_CONVERSIONS \
+    X(KWH,GJ, {vto=vfrom*0.0036;}) \
+    X(GJ,KWH, {vto=vfrom/0.0036;}) \
+    X(M3,L, {vto=vfrom*1000.0;}) \
+    X(L,M3, {vto=vfrom/1000.0;})
 
-bool canConvert(Unit from, Unit to)
+bool canConvert(Unit ufrom, Unit uto)
 {
-    if (from == to) return true;
-    if (from == Unit::KWH && to == Unit::GJ) return true;
-    if (from == Unit::GJ && to == Unit::KWH) return true;
+    if (ufrom == uto) return true;
+#define X(from,to,code) if (Unit::from == ufrom && Unit::to == uto) return true;
+LIST_OF_CONVERSIONS
+#undef X
     return false;
 }
 
-double convert(double v, Unit from, Unit to)
+double convert(double vfrom, Unit ufrom, Unit uto)
 {
-    if (from == Unit::KWH && to == Unit::GJ) {
-        return from_KWH_to_GJ(v);
-    }
-    if (from == Unit::GJ && to == Unit::KWH) {
-        return from_GJ_to_KWH(v);
-    }
+    double vto = -4711.0;
+    if (ufrom == uto) { { vto = vfrom; } return vto; }
+
+#define X(from,to,code) if (Unit::from == ufrom && Unit::to == uto) { code return vto; }
+LIST_OF_CONVERSIONS
+#undef X
+
     error("Cannot convert between units!\n");
     return 0;
 }
 
-double from_KWH_to_GJ(double kwh)
-{
-    return kwh * 0.0036;
-}
-
-double from_GJ_to_KWH(double gj)
-{
-    return gj / 0.0036;
-}
 
 Unit toConversionUnit(string s)
 {
