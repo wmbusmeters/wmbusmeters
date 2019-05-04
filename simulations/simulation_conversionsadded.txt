@@ -1,0 +1,19 @@
+# Test vario451 T1 telegrams with --addconversions=GJ
+telegram=|374468506549235827C3A2|129F25383300A8622600008200800A2AF862115175552877A36F26C9AB1CB24400000004000000000004908002|
+{"media":"heat","meter":"vario451","name":"Hettan","id":"58234965","total_kwh":6371.666667,"total_gj":22.938,"current_kwh":2729.444444,"current_gj":9.826,"previous_kwh":3642.222222,"previous_gj":13.112,"timestamp":"1111-11-11T11:11:11Z"}
+
+# Test Multical21 C1 telegrams with --addconversions=L,F
+telegram=|23442D2C998734761B168D208870F81821|09EA79EDA869F57100F8180000F41800000318|
+{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"76348799","total_m3":6.392,"total_l":6392,"target_m3":6.388,"target_l":6388,"max_flow_m3h":0,"flow_temperature_c":3,"flow_temperature_f":37.4,"external_temperature_c":24,"external_temperature_f":75.2,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+
+# Tets Multical21 C1 telegrams with maximum flow configuration with --addconversions=L,F
+telegram=|2D442D2C776655441B168D2083B48D3A20|46887802FF20000004132F4E000092013B3D01A1015B028101E7FF0F03|
+{"media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","total_m3":20.015,"total_l":20015,"target_m3":0,"target_l":0,"max_flow_m3h":0.317,"flow_temperature_c":2,"flow_temperature_f":35.6,"external_temperature_c":3,"external_temperature_f":37.4,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+
+# Tets Multical302 telegrams with --addconversions=GJ (not a proper telegram)
+telegram=|25442D2C785634121b048D2093E13CBA20|0000790000000000000000000000000000|
+{"media":"heat","meter":"multical302","name":"MyHeater","id":"12345678","total_kwh":0,"total_gj":0,"total_volume_m3":0,"total_volume_l":0,"current_kw":0,"timestamp":"1111-11-11T11:11:11Z"}
+
+# Test Omnipower C1 telegrams --addconversions=GJ
+telegram=|1E442D2C0771941501027AB3001080|04833B08340500|
+{"media":"electricity","meter":"omnipower","name":"MyElectricity","id":"15947107","total_energy_consumption_kwh":341,"total_energy_consumption_gj":1.2276,"timestamp":"1111-11-11T11:11:11Z"}
