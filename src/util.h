@@ -45,7 +45,7 @@ std::string strdate(struct tm *date);
 std::string strdatetime(struct tm *date);
 
 void xorit(uchar *srca, uchar *srcb, uchar *dest, int len);
-
+std::string format3fdot3f(double v);
 bool enableLogfile(std::string logfile, bool daemon);
 void enableSyslog();
 void error(const char* fmt, ...);

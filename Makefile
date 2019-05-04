@@ -104,6 +104,7 @@ METER_OBJS:=\
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \
 	$(BUILD)/util.o \
+	$(BUILD)/units.o \
 	$(BUILD)/wmbus.o \
 	$(BUILD)/wmbus_amb8465.o \
 	$(BUILD)/wmbus_im871a.o \

@@ -39,6 +39,9 @@ Received telegram from: 10101010
 Received telegram from: 34333231
           manufacturer: (TCH) Techem Service
            device type: Warm water
+Received telegram from: 58234965
+          manufacturer: (TCH) Techem Service
+           device type: Heat meter
 EOF
 
 EXPECTED=$(cat $LOGFILE_EXPECTED)

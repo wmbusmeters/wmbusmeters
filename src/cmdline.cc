@@ -143,6 +143,18 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--addconversion=", 16)) {
+            if (strlen(argv[i]) > 16)
+            {
+                const char *unit = argv[i]+16;
+                Unit u = toConversionUnit(unit);
+                c->conversions.push_back(u);
+            } else {
+                error("You must supply conversion units.\n");
+            }
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--separator=", 12)) {
             if (!c->fields) {
                 error("You must specify --format=fields before --separator=X\n");

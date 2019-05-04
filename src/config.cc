@@ -17,6 +17,7 @@
 
 #include"config.h"
 #include"meters.h"
+#include"units.h"
 
 #include<vector>
 #include<string>
@@ -179,6 +180,16 @@ void handleSeparator(Configuration *c, string s)
     } else {
         warning("Separator must be a single character.\n");
     }
+}
+
+void handleConversion(Configuration *c, string s)
+{
+    Unit u = toConversionUnit(s);
+    if (u == Unit::Unknown)
+    {
+        warning("Not a valid conversion unit: %s\n", s.c_str());
+    }
+    c->conversions.push_back(u);
 }
 
 void handleShell(Configuration *c, string cmdline)

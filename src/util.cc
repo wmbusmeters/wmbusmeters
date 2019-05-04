@@ -190,6 +190,13 @@ void xorit(uchar *srca, uchar *srcb, uchar *dest, int len)
     for (int i=0; i<len; ++i) { dest[i] = srca[i]^srcb[i]; }
 }
 
+string format3fdot3f(double v)
+{
+    string r;
+    strprintf(r, "%3.3f", v);
+    return r;
+}
+
 void error(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);

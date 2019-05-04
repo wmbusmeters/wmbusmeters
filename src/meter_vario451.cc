@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2019 Fredrik Öhrström
+ Copyright (C) 2019 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include"meters_common_implementation.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
+#include"units.h"
 #include"util.h"
 
 #include<memory.h>
@@ -28,12 +29,20 @@
 #include<time.h>
 #include<vector>
 
-struct MeterVario451 : public virtual TechemHeatMeter, public virtual MeterCommonImplementation {
+#define METER_OUTPUT \
+    X(total_kwh, totalEnergyConsumption(), Unit::KWH)        \
+    X(current_kwh, currentPeriodEnergyConsumption(), Unit::KWH) \
+    X(previous_kwh, previousPeriodEnergyConsumption(), Unit::KWH) \
+
+
+struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImplementation {
     MeterVario451(WMBus *bus, string& name, string& id, string& key);
 
     double totalEnergyConsumption();
-    double currentEnergyConsumption();
-    double previousEnergyConsumption();
+    double currentPeriodEnergyConsumption();
+    double currentPowerConsumption();
+    double previousPeriodEnergyConsumption();
+    double totalVolume();
 
     void printMeter(Telegram *t,
                     string *human_readable,
@@ -42,12 +51,12 @@ struct MeterVario451 : public virtual TechemHeatMeter, public virtual MeterCommo
                     vector<string> *envs);
 
     private:
-        void handleTelegram(Telegram *t);
-        void processContent(Telegram *t);
+    void handleTelegram(Telegram *t);
+    void processContent(Telegram *t);
 
-        double total_energy_ {};
-        double curr_energy_ {};
-        double prev_energy_ {};
+    double total_energy_kwh_ {};
+    double curr_energy_kwh_ {};
+    double prev_energy_kwh_ {};
 };
 
 MeterVario451::MeterVario451(WMBus *bus, string& name, string& id, string& key) :
@@ -60,19 +69,28 @@ MeterVario451::MeterVario451(WMBus *bus, string& name, string& id, string& key) 
 
 double MeterVario451::totalEnergyConsumption()
 {
-    return total_energy_;
+    return total_energy_kwh_;
 }
 
-double MeterVario451::currentEnergyConsumption()
+double MeterVario451::currentPeriodEnergyConsumption()
 {
-    return curr_energy_;
+    return curr_energy_kwh_;
 }
 
-double MeterVario451::previousEnergyConsumption()
+double MeterVario451::currentPowerConsumption()
 {
-    return prev_energy_;
+    return 0;
 }
 
+double MeterVario451::previousPeriodEnergyConsumption()
+{
+    return prev_energy_kwh_;
+}
+
+double MeterVario451::totalVolume()
+{
+    return 0;
+}
 
 void MeterVario451::handleTelegram(Telegram *t) {
 
@@ -139,74 +157,61 @@ void MeterVario451::processContent(Telegram *t) {
     t->explanations.push_back({ offset, currs });
     t->addMoreExplanation(offset, " energy used in current billing period (%f GJ)", curr);
 
-    total_energy_ = prev+curr;
-    curr_energy_ = curr;
-    prev_energy_ = prev;
+    total_energy_kwh_ = convert(prev+curr, Unit::GJ, Unit::KWH);
+    curr_energy_kwh_ = convert(curr, Unit::GJ, Unit::KWH);
+    prev_energy_kwh_ = convert(prev, Unit::GJ, Unit::KWH);
 }
 
-unique_ptr<TechemHeatMeter> createVario451(WMBus *bus, string& name, string& id, string& key) {
-    return unique_ptr<TechemHeatMeter>(new MeterVario451(bus,name,id,key));
+unique_ptr<HeatMeter> createVario451(WMBus *bus, string& name, string& id, string& key) {
+    return unique_ptr<HeatMeter>(new MeterVario451(bus,name,id,key));
 }
+
 
 void MeterVario451::printMeter(Telegram *t,
-                                  string *human_readable,
-                                  string *fields, char separator,
-                                  string *json,
-                                  vector<string> *envs)
+                               string *human_readable,
+                               string *fields, char separator,
+                               string *json,
+                               vector<string> *envs)
 {
-    char buf[65536];
-    buf[65535] = 0;
+    string s;
+    s = "";
+    s += name() + "\t";
+    s += t->id + "\t";
+#define X(key,func,unit) {s+=strWithUnitHR(func,unit) + "\t";}
+    METER_OUTPUT
+#undef X
+    s += datetimeOfUpdateHumanReadable();
+    *human_readable = s;
 
-    snprintf(buf, sizeof(buf)-1,
-             "%s\t"
-             "%s\t"
-             "% 3.3f GJ\t"
-             "% 3.3f GJ\t"
-             "% 3.3f GJ\t%s",
-             name().c_str(),
-             t->id.c_str(),
-             totalEnergyConsumption(),
-             currentEnergyConsumption(),
-             previousEnergyConsumption(),
-             datetimeOfUpdateHumanReadable().c_str());
-
-    *human_readable = buf;
-
-    snprintf(buf, sizeof(buf)-1,
-             "%s%c"
-             "%s%c"
-             "%f%c"
-             "%f%c"
-             "%f%c"
-             "%s",
-             name().c_str(), separator,
-             t->id.c_str(), separator,
-             totalEnergyConsumption(), separator,
-             currentEnergyConsumption(), separator,
-             previousEnergyConsumption(), separator,
-             datetimeOfUpdateRobot().c_str());
-
-    *fields = buf;
+    s = "";
+    s += name() + "\t";
+    s += t->id + "\t";
+#define X(key,func,unit) {s+=strWithUnitLowerCase(func,unit) + separator;}
+    METER_OUTPUT
+#undef X
+    s += datetimeOfUpdateHumanReadable();
+    *fields = s;
 
 #define Q(x,y) "\""#x"\":"#y","
 #define QS(x,y) "\""#x"\":\""#y"\","
 #define QSE(x,y) "\""#x"\":\""#y"\""
 
+    char buf[65535];
     snprintf(buf, sizeof(buf)-1, "{"
              QS(media,heat)
              QS(meter,vario451)
              QS(name,%s)
              QS(id,%s)
-             Q(total_gj,%f)
-             Q(current_gj,%f)
-             Q(previous_gj,%f)
+             Q(total_kwh,%f)
+             Q(current_kwh,%f)
+             Q(previous_kwh,%f)
              QSE(timestamp,%s)
              "}",
              name().c_str(),
              t->id.c_str(),
              totalEnergyConsumption(),
-             currentEnergyConsumption(),
-             previousEnergyConsumption(),
+             currentPeriodEnergyConsumption(),
+             previousPeriodEnergyConsumption(),
              datetimeOfUpdateRobot().c_str());
 
     *json = buf;
@@ -214,8 +219,8 @@ void MeterVario451::printMeter(Telegram *t,
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=vario451"));
     envs->push_back(string("METER_ID=")+t->id);
-    envs->push_back(string("METER_TOTAL_GJ=")+to_string(totalEnergyConsumption()));
-    envs->push_back(string("METER_CURRENT_GJ=")+to_string(currentEnergyConsumption()));
-    envs->push_back(string("METER_PREVIOUS_GJ=")+to_string(previousEnergyConsumption()));
+    envs->push_back(string("METER_TOTAL_KWH=")+to_string(totalEnergyConsumption()));
+    envs->push_back(string("METER_CURRENT_KWH=")+to_string(currentPeriodEnergyConsumption()));
+    envs->push_back(string("METER_PREVIOUS_KWH=")+to_string(previousPeriodEnergyConsumption()));
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
 }

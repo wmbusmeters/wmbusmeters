@@ -19,6 +19,7 @@
 #define METERS_COMMON_IMPLEMENTATION_H_
 
 #include"meters.h"
+#include"units.h"
 
 #include<map>
 #include<set>
@@ -72,6 +73,7 @@ private:
     bool use_aes_ {};
     time_t datetime_of_update_ {};
     LinkMode required_link_mode_ {};
+    vector<Unit> conversions_ {};
 
 protected:
     std::map<std::string,std::pair<int,std::string>> values_;

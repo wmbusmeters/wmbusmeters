@@ -18,6 +18,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include"units.h"
 #include"util.h"
 #include"wmbus.h"
 #include<vector>
@@ -74,6 +75,7 @@ struct Configuration {
     LinkMode link_mode {};
     bool link_mode_set {};
     bool no_init {};
+    std::vector<Unit> conversions;
     vector<MeterInfo> meters;
 
     ~Configuration() = default;

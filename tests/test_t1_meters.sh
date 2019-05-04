@@ -15,6 +15,7 @@ $PROG --format=json simulations/simulation_t1.txt \
       Wasser      apator162   20202020 "" \
       MyElectricity1 amiplus  10101010 "" \
       Duschen     mkradio3    34333231 "" \
+      HeatMeter   vario451    58234965 "" \
       > $TEST/test_output.txt
 if [ "$?" == "0" ]
 then

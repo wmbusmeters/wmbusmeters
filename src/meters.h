@@ -90,14 +90,10 @@ struct WaterMeter : public virtual Meter {
 
 struct HeatMeter : public virtual Meter {
     virtual double totalEnergyConsumption() = 0; // kwh
+    virtual double currentPeriodEnergyConsumption() = 0; // kwh
+    virtual double previousPeriodEnergyConsumption() = 0; // kwh
     virtual double currentPowerConsumption() = 0; // kw
     virtual double totalVolume() = 0; // m3
-};
-
-struct TechemHeatMeter : public virtual Meter {
-    virtual double totalEnergyConsumption() = 0; // GJ
-    virtual double currentEnergyConsumption() = 0; // GJ
-    virtual double previousEnergyConsumption() = 0; // GJ
 };
 
 struct ElectricityMeter : public virtual Meter {
@@ -121,7 +117,7 @@ LinkMode toMeterLinkMode(string& type);
 unique_ptr<WaterMeter> createMultical21(WMBus *bus, string& name, string& id, string& key);
 unique_ptr<WaterMeter> createFlowIQ3100(WMBus *bus, string& name, string& id, string& key);
 unique_ptr<HeatMeter> createMultical302(WMBus *bus, string& name, string& id, string& key);
-unique_ptr<TechemHeatMeter> createVario451(WMBus *bus, string& name, string& id, string& key);
+unique_ptr<HeatMeter> createVario451(WMBus *bus, string& name, string& id, string& key);
 unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, string& name, string& id, string& key);
 unique_ptr<ElectricityMeter> createAmiplus(WMBus *bus, string& name, string& id, string& key);
 unique_ptr<WaterMeter> createSupercom587(WMBus *bus, string& name, string& id, string& key);

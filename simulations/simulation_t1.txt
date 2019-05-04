@@ -33,4 +33,4 @@ telegram=|2F446850313233347462A2|069F255900B029310000000306060906030609070606050
 
 # Test vario451 T1 telegrams
 telegram=|374468506549235827C3A2|129F25383300A8622600008200800A2AF862115175552877A36F26C9AB1CB24400000004000000000004908002|
-{"media":"heat","meter":"vario451","name":"HeatMeter","id":"58234965","total_gj":22.938000,"current_gj":9.826000,"previous_gj":13.112000,"timestamp":"2019-05-01T15:06:31Z"}
+{"media":"heat","meter":"vario451","name":"HeatMeter","id":"58234965","total_gj":22.938000,"current_gj":9.826000,"previous_gj":13.112000,"timestamp":"1111-11-11T11:11:11Z"}

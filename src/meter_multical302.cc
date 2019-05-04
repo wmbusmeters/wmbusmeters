@@ -31,9 +31,10 @@ struct MeterMultical302 : public virtual HeatMeter, public virtual MeterCommonIm
     MeterMultical302(WMBus *bus, string& name, string& id, string& key);
 
     double totalEnergyConsumption();
+    double currentPeriodEnergyConsumption();
+    double previousPeriodEnergyConsumption();
     double currentPowerConsumption();
     double totalVolume();
-
 
     void printMeter(Telegram *t,
                     string *human_readable,
@@ -65,6 +66,16 @@ double MeterMultical302::totalEnergyConsumption()
 double MeterMultical302::currentPowerConsumption()
 {
     return current_power_;
+}
+
+double MeterMultical302::currentPeriodEnergyConsumption()
+{
+    return 0;
+}
+
+double MeterMultical302::previousPeriodEnergyConsumption()
+{
+    return 0;
 }
 
 double MeterMultical302::totalVolume()

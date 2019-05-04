@@ -84,6 +84,7 @@ Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type] [meter_id] [me
 
 As <options> you can use:
 
+    --addconversion=<unit>+ add conversion to these units to json and meter env variables (GJ)
     --c1 or --t1 listen to C1 or T1 messages when no meters are supplied, not needed for rtlwmbus
     --debug for a lot of information
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
@@ -128,6 +129,9 @@ Techem MK Radio 3 (mkradio3)
 
 Supported heat cost allocator:
 Qundis Q caloric (qcaloric)
+
+Supported heat meters:
+Techem Vario 4 (vario451)
 
 Work in progress:
 Water meter Apator at-wmbus-16-2 (apator162)
