@@ -22,7 +22,7 @@
 #include"util.h"
 
 struct MeterMultical302 : public virtual HeatMeter, public virtual MeterCommonImplementation {
-    MeterMultical302(WMBus *bus, string& name, string& id, string& key);
+    MeterMultical302(WMBus *bus, MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     double currentPowerConsumption(Unit u);
@@ -36,8 +36,8 @@ private:
     double total_volume_m3_ {};
 };
 
-MeterMultical302::MeterMultical302(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, MeterType::MULTICAL302, MANUFACTURER_KAM, LinkMode::C1)
+MeterMultical302::MeterMultical302(WMBus *bus, MeterInfo &mi) :
+    MeterCommonImplementation(bus, mi, MeterType::MULTICAL302, MANUFACTURER_KAM, LinkMode::C1)
 {
     setEncryptionMode(EncryptionMode::AES_CTR);
 
@@ -61,8 +61,8 @@ MeterMultical302::MeterMultical302(WMBus *bus, string& name, string& id, string&
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
-unique_ptr<HeatMeter> createMultical302(WMBus *bus, string& name, string& id, string& key) {
-    return unique_ptr<HeatMeter>(new MeterMultical302(bus,name,id,key));
+unique_ptr<HeatMeter> createMultical302(WMBus *bus, MeterInfo &mi) {
+    return unique_ptr<HeatMeter>(new MeterMultical302(bus, mi));
 }
 
 double MeterMultical302::totalEnergyConsumption(Unit u)

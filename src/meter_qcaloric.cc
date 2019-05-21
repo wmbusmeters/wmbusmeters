@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 
 struct MeterQCaloric : public virtual HeatCostMeter, public virtual MeterCommonImplementation {
-    MeterQCaloric(WMBus *bus, string& name, string& id, string& key);
+    MeterQCaloric(WMBus *bus, MeterInfo &mi);
 
     double currentConsumption(Unit u);
     string setDate();
@@ -45,8 +45,8 @@ private:
     string device_date_time_;
 };
 
-MeterQCaloric::MeterQCaloric(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, MeterType::QCALORIC, MANUFACTURER_QDS, LinkMode::C1)
+MeterQCaloric::MeterQCaloric(WMBus *bus, MeterInfo &mi) :
+    MeterCommonImplementation(bus, mi, MeterType::QCALORIC, MANUFACTURER_QDS, LinkMode::C1)
 {
     setEncryptionMode(EncryptionMode::AES_CBC); // Is it?
 
@@ -92,9 +92,9 @@ MeterQCaloric::MeterQCaloric(WMBus *bus, string& name, string& id, string& key) 
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
-unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, string& name, string& id, string& key)
+unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &mi)
 {
-    return unique_ptr<HeatCostMeter>(new MeterQCaloric(bus,name,id,key));
+    return unique_ptr<HeatCostMeter>(new MeterQCaloric(bus, mi));
 }
 
 double MeterQCaloric::currentConsumption(Unit u)

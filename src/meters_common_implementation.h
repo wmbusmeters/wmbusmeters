@@ -60,7 +60,7 @@ struct MeterCommonImplementation : public virtual Meter
     double getRecordAsDouble(std::string record);
     uint16_t getRecordAsUInt16(std::string record);
 
-    MeterCommonImplementation(WMBus *bus, string& name, string& id, string& key,
+    MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
                               MeterType type, int manufacturer,
                               LinkMode required_link_mode);
 
@@ -74,6 +74,8 @@ protected:
     void setExpectedVersion(int version);
     int expectedVersion();
     void addConversions(std::vector<Unit> cs);
+    void addShell(std::string cmdline);
+    std::vector<std::string> &shellCmdlines();
     void addMedia(int media);
     void addManufacturer(int m);
     void addPrint(string vname, Quantity vquantity,
@@ -107,6 +109,7 @@ private:
     time_t datetime_of_update_ {};
     LinkMode required_link_mode_ {};
     EncryptionMode enc_mode_ {};
+    vector<string> shell_cmdlines_;
 
 protected:
     std::map<std::string,std::pair<int,std::string>> values_;

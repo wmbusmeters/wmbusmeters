@@ -4,7 +4,7 @@ if [ "$1" == "" ] || [ "$1" == "-h" ]
 then
     echo "Usage: install.sh [binary] [root] [OPTIONS]
     Example: install.sh build/wmbusmeters /
-	
+
 	Options:
 	--no-adduser		Do not add wmbusmeters user
 	--no-udev-rules		Do not add udev rules
@@ -38,7 +38,7 @@ ADDUDEVRULES=true
 while [ $# -ne 0 ]
 do
         ARG="$1"
-        shift 
+        shift
         case "$ARG" in
         --no-adduser)
                 ADDUSER=false
@@ -123,7 +123,7 @@ fi
 
 if [ ! -d "$ROOT"/var/log/wmbusmeters/meter_readings ]
 then
-    # Create /var/run
+    # Create the log directories
     mkdir -p "$ROOT"/var/log/wmbusmeters/meter_readings
     chown -R wmbusmeters:wmbusmeters "$ROOT"/var/log/wmbusmeters
     echo log: created "$ROOT"/var/log/wmbusmeters/meter_readings

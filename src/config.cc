@@ -48,16 +48,34 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     string type;
     string id;
     string key;
+    vector<string> shells;
 
+    debug("(config) loading meter file %s\n", file.c_str());
     for (;;) {
         auto p = getNextKeyValue(buf, i);
 
         if (p.first == "") break;
 
         if (p.first == "name") name = p.second;
+        else
         if (p.first == "type") type = p.second;
+        else
         if (p.first == "id") id = p.second;
-        if (p.first == "key") key = p.second;
+        else
+        if (p.first == "key") {
+            key = p.second;
+            debug("(config) key=<notprinted>\n");
+        }
+        else
+        if (p.first == "shell") {
+            shells.push_back(p.second);
+        }
+        else
+            warning("Found invalid key \"%s\" in meter config file\n", p.first.c_str());
+
+        if (p.first != "key") {
+            debug("(config) %s=%s\n", p.first.c_str(), p.second.c_str());
+        }
     }
 
     MeterType mt = toMeterType(type);
@@ -74,9 +92,8 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         warning("Not a valid meter key \"%s\"\n", key.c_str());
         use = false;
     }
-
     if (use) {
-        c->meters.push_back(MeterInfo(name, type, id, key));
+        c->meters.push_back(MeterInfo(name, type, id, key, shells));
     }
 
     return;
@@ -85,7 +102,12 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 void handleLoglevel(Configuration *c, string loglevel)
 {
     if (loglevel == "verbose") { c->verbose = true; }
-    else if (loglevel == "debug") { c->debug = true; }
+    else if (loglevel == "debug")
+    {
+        c->debug = true;
+        // Kick in debug immediately.
+        debugEnabled(c->debug);
+    }
     else if (loglevel == "silent") { c->silence = true; }
     else if (loglevel == "normal") { }
     else {

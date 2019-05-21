@@ -23,7 +23,7 @@
 #include"util.h"
 
 struct MeterAmiplus : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
-    MeterAmiplus(WMBus *bus, string& name, string& id, string& key);
+    MeterAmiplus(WMBus *bus, MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     double currentPowerConsumption(Unit u);
@@ -41,8 +41,8 @@ private:
     string device_date_time_;
 };
 
-MeterAmiplus::MeterAmiplus(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, MeterType::AMIPLUS, 0, LinkMode::T1)
+MeterAmiplus::MeterAmiplus(WMBus *bus, MeterInfo &mi) :
+    MeterCommonImplementation(bus, mi, MeterType::AMIPLUS, 0, LinkMode::T1)
 {
     setEncryptionMode(EncryptionMode::AES_CBC);
 
@@ -86,9 +86,9 @@ MeterAmiplus::MeterAmiplus(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
-unique_ptr<ElectricityMeter> createAmiplus(WMBus *bus, string& name, string& id, string& key)
+unique_ptr<ElectricityMeter> createAmiplus(WMBus *bus, MeterInfo &mi)
 {
-    return unique_ptr<ElectricityMeter>(new MeterAmiplus(bus,name,id,key));
+    return unique_ptr<ElectricityMeter>(new MeterAmiplus(bus, mi));
 }
 
 double MeterAmiplus::totalEnergyConsumption(Unit u)

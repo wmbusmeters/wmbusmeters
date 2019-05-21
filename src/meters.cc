@@ -24,21 +24,24 @@
 #include<algorithm>
 #include<memory.h>
 
-MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, string& name, string& id, string& key,
+MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
                                                      MeterType type, int manufacturer,
                                                      LinkMode required_link_mode) :
-    type_(type), name_(name), bus_(bus),
+    type_(type), name_(mi.name), bus_(bus),
     required_link_mode_(required_link_mode)
 {
     use_aes_ = true;
-    ids_ = splitIds(id);
-    if (key.length() == 0) {
+    ids_ = splitIds(mi.id);
+    if (mi.key.length() == 0) {
         use_aes_ = false;
     } else {
-        hex2bin(key, &key_);
+        hex2bin(mi.key, &key_);
     }
     if (manufacturer) {
         manufacturers_.insert(manufacturer);
+    }
+    for (auto s : mi.shells) {
+        addShell(s);
     }
 }
 
@@ -48,6 +51,16 @@ void MeterCommonImplementation::addConversions(std::vector<Unit> cs)
     {
         conversions_.push_back(c);
     }
+}
+
+void MeterCommonImplementation::addShell(string cmdline)
+{
+    shell_cmdlines_.push_back(cmdline);
+}
+
+vector<string> &MeterCommonImplementation::shellCmdlines()
+{
+    return shell_cmdlines_;
 }
 
 MeterType MeterCommonImplementation::type()

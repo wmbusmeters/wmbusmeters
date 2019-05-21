@@ -50,6 +50,23 @@ using namespace std;
 
 typedef unsigned char uchar;
 
+struct MeterInfo
+{
+    string name;
+    string type;
+    string id;
+    string key;
+    vector<string> shells;
+
+    MeterInfo(string n, string t, string i, string k, vector<string> &s) {
+        name = n;
+        type = t;
+        id = i;
+        key = k;
+        shells = s;
+    }
+};
+
 struct Meter
 {
     virtual vector<string> ids() = 0;
@@ -85,6 +102,8 @@ struct Meter
     virtual uint16_t getRecordAsUInt16(std::string record) = 0;
 
     virtual void addConversions(std::vector<Unit> cs) = 0;
+    virtual void addShell(std::string cmdline) = 0;
+    virtual vector<string> &shellCmdlines() = 0;
 
     virtual ~Meter() = default;
 };
@@ -136,17 +155,17 @@ struct GenericMeter : public virtual Meter {
 string toMeterName(MeterType mt);
 MeterType toMeterType(string& type);
 LinkMode toMeterLinkMode(string& type);
-unique_ptr<WaterMeter> createMultical21(WMBus *bus, string& name, string& id, string& key);
-unique_ptr<WaterMeter> createFlowIQ3100(WMBus *bus, string& name, string& id, string& key);
-unique_ptr<HeatMeter> createMultical302(WMBus *bus, string& name, string& id, string& key);
-unique_ptr<HeatMeter> createVario451(WMBus *bus, string& name, string& id, string& key);
-unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, string& name, string& id, string& key);
-unique_ptr<ElectricityMeter> createAmiplus(WMBus *bus, string& name, string& id, string& key);
-unique_ptr<WaterMeter> createSupercom587(WMBus *bus, string& name, string& id, string& key);
-unique_ptr<WaterMeter> createMKRadio3(WMBus *bus, string& name, string& id, string& key);
-unique_ptr<WaterMeter> createApator162(WMBus *bus, string& name, string& id, string& key);
-unique_ptr<WaterMeter> createIperl(WMBus *bus, string& name, string& id, string& key);
-unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, string& name, string& id, string& key);
-GenericMeter *createGeneric(WMBus *bus, string& name, string& id, string& key);
+unique_ptr<WaterMeter> createMultical21(WMBus *bus, MeterInfo &m);
+unique_ptr<WaterMeter> createFlowIQ3100(WMBus *bus, MeterInfo &m);
+unique_ptr<HeatMeter> createMultical302(WMBus *bus, MeterInfo &m);
+unique_ptr<HeatMeter> createVario451(WMBus *bus, MeterInfo &m);
+unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, MeterInfo &m);
+unique_ptr<ElectricityMeter> createAmiplus(WMBus *bus, MeterInfo &m);
+unique_ptr<WaterMeter> createSupercom587(WMBus *bus, MeterInfo &m);
+unique_ptr<WaterMeter> createMKRadio3(WMBus *bus, MeterInfo &m);
+unique_ptr<WaterMeter> createApator162(WMBus *bus, MeterInfo &m);
+unique_ptr<WaterMeter> createIperl(WMBus *bus, MeterInfo &m);
+unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &m);
+GenericMeter *createGeneric(WMBus *bus, MeterInfo &m);
 
 #endif

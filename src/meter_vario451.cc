@@ -25,7 +25,7 @@
 
 struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImplementation
 {
-    MeterVario451(WMBus *bus, string& name, string& id, string& key);
+    MeterVario451(WMBus *bus, MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     double currentPeriodEnergyConsumption(Unit u);
@@ -40,13 +40,13 @@ struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImple
     double prev_energy_gj_ {};
 };
 
-unique_ptr<HeatMeter> createVario451(WMBus *bus, string& name, string& id, string& key)
+unique_ptr<HeatMeter> createVario451(WMBus *bus, MeterInfo &mi)
 {
-    return unique_ptr<HeatMeter>(new MeterVario451(bus,name,id,key));
+    return unique_ptr<HeatMeter>(new MeterVario451(bus, mi));
 }
 
-MeterVario451::MeterVario451(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, MeterType::VARIO451, MANUFACTURER_TCH, LinkMode::T1)
+MeterVario451::MeterVario451(WMBus *bus, MeterInfo &mi) :
+    MeterCommonImplementation(bus, mi, MeterType::VARIO451, MANUFACTURER_TCH, LinkMode::T1)
 {
     setEncryptionMode(EncryptionMode::None);
 

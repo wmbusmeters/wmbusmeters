@@ -39,7 +39,7 @@ using namespace std;
 #define INFO_CODE_BURST_SHIFT (4+9)
 
 struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterMultical21(WMBus *bus, string& name, string& id, string& key, MeterType mt);
+    MeterMultical21(WMBus *bus, MeterInfo &mi, MeterType mt);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -92,8 +92,8 @@ private:
     int expected_version_ {}; // 0x1b for Multical21 and 0x1d for FlowIQ3100
 };
 
-MeterMultical21::MeterMultical21(WMBus *bus, string& name, string& id, string& key, MeterType mt) :
-    MeterCommonImplementation(bus, name, id, key, mt, MANUFACTURER_KAM, LinkMode::C1)
+MeterMultical21::MeterMultical21(WMBus *bus, MeterInfo &mi, MeterType mt) :
+    MeterCommonImplementation(bus, mi, mt, MANUFACTURER_KAM, LinkMode::C1)
 {
     setEncryptionMode(EncryptionMode::AES_CTR);
 
@@ -220,22 +220,22 @@ bool MeterMultical21::hasExternalTemperature()
     return has_external_temperature_;
 }
 
-unique_ptr<WaterMeter> createMulticalWaterMeter(WMBus *bus, string& name, string& id, string& key, MeterType mt)
+unique_ptr<WaterMeter> createMulticalWaterMeter(WMBus *bus, MeterInfo &mi, MeterType mt)
 {
     if (mt != MeterType::MULTICAL21 && mt != MeterType::FLOWIQ3100) {
         error("Internal error! Not a proper meter type when creating a multical21 style meter.\n");
     }
-    return unique_ptr<WaterMeter>(new MeterMultical21(bus,name,id,key,mt));
+    return unique_ptr<WaterMeter>(new MeterMultical21(bus,mi,mt));
 }
 
-unique_ptr<WaterMeter> createMultical21(WMBus *bus, string& name, string& id, string& key)
+unique_ptr<WaterMeter> createMultical21(WMBus *bus, MeterInfo &mi)
 {
-    return createMulticalWaterMeter(bus, name, id, key, MeterType::MULTICAL21);
+    return createMulticalWaterMeter(bus, mi, MeterType::MULTICAL21);
 }
 
-unique_ptr<WaterMeter> createFlowIQ3100(WMBus *bus, string& name, string& id, string& key)
+unique_ptr<WaterMeter> createFlowIQ3100(WMBus *bus, MeterInfo &mi)
 {
-    return createMulticalWaterMeter(bus, name, id, key, MeterType::FLOWIQ3100);
+    return createMulticalWaterMeter(bus, mi, MeterType::FLOWIQ3100);
 }
 
 void MeterMultical21::processContent(Telegram *t)

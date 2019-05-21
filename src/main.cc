@@ -288,7 +288,7 @@ void startUsingCommandline(Configuration *config)
             switch (toMeterType(m.type)) {
 #define X(mname,link,info,type,cname) \
                 case MeterType::type: \
-                meters.push_back(create##cname(wmbus.get(), m.name, m.id, m.key)); \
+                meters.push_back(create##cname(wmbus.get(), m)); \
                 verbose("(wmbusmeters) configured \"%s\" \"" #mname "\" \"%s\" %s\n", \
                 m.name.c_str(), m.id.c_str(), keymsg); \
                 meters.back()->addConversions(config->conversions); \

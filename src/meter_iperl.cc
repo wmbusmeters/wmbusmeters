@@ -25,7 +25,7 @@
 using namespace std;
 
 struct MeterIperl : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterIperl(WMBus *bus, string& name, string& id, string& key);
+    MeterIperl(WMBus *bus, MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -40,8 +40,8 @@ private:
     double max_flow_m3h_ {};
 };
 
-MeterIperl::MeterIperl(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, MeterType::IPERL, MANUFACTURER_SEN, LinkMode::T1)
+MeterIperl::MeterIperl(WMBus *bus, MeterInfo &mi) :
+    MeterCommonImplementation(bus, mi, MeterType::IPERL, MANUFACTURER_SEN, LinkMode::T1)
 {
     setEncryptionMode(EncryptionMode::AES_CBC);
 
@@ -63,9 +63,9 @@ MeterIperl::MeterIperl(WMBus *bus, string& name, string& id, string& key) :
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
-unique_ptr<WaterMeter> createIperl(WMBus *bus, string& name, string& id, string& key)
+unique_ptr<WaterMeter> createIperl(WMBus *bus, MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterIperl(bus,name,id,key));
+    return unique_ptr<WaterMeter>(new MeterIperl(bus, mi));
 }
 
 void MeterIperl::processContent(Telegram *t)

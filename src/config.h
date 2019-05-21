@@ -21,23 +21,10 @@
 #include"units.h"
 #include"util.h"
 #include"wmbus.h"
+#include"meters.h"
 #include<vector>
 
 using namespace std;
-
-struct MeterInfo {
-    string name;
-    string type;
-    string id;
-    string key;
-
-    MeterInfo(string& n, string& t, string& i, string& k) {
-        name = n;
-        type = t;
-        id = i;
-        key = k;
-    }
-};
 
 enum class MeterFileType
 {

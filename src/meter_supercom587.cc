@@ -25,7 +25,7 @@
 using namespace std;
 
 struct MeterSupercom587 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterSupercom587(WMBus *bus, string& name, string& id, string& key);
+    MeterSupercom587(WMBus *bus, MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -37,13 +37,13 @@ private:
     double total_water_consumption_m3_ {};
 };
 
-unique_ptr<WaterMeter> createSupercom587(WMBus *bus, string& name, string& id, string& key)
+unique_ptr<WaterMeter> createSupercom587(WMBus *bus, MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterSupercom587(bus,name,id,key));
+    return unique_ptr<WaterMeter>(new MeterSupercom587(bus, mi));
 }
 
-MeterSupercom587::MeterSupercom587(WMBus *bus, string& name, string& id, string& key) :
-    MeterCommonImplementation(bus, name, id, key, MeterType::SUPERCOM587, MANUFACTURER_SON, LinkMode::T1)
+MeterSupercom587::MeterSupercom587(WMBus *bus, MeterInfo &mi) :
+    MeterCommonImplementation(bus, mi, MeterType::SUPERCOM587, MANUFACTURER_SON, LinkMode::T1)
 {
     setEncryptionMode(EncryptionMode::AES_CBC);
 
