@@ -56,6 +56,10 @@ The latest reading of the meter can also be found here: /var/log/wmbusmeters/met
 You can use several ids using `id=1111111,2222222,3333333` or you can listen to all
 meters of a certain type `id=*`.
 
+If you are running on a Raspberry PI with flash storage and you relay the data to
+another computer using a shell command (mosquitto_pub or curl or similar) then you might want to remove
+`meterfiles` and `meterfilesaction` to minimize the writes to the local flash file system.
+
 # Run using config files
 
 If you cannot install as a daemon, then you can also start
