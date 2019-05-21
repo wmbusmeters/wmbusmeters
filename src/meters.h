@@ -28,6 +28,7 @@
 #define LIST_OF_METERS \
     X(amiplus,    T1, Electricity, AMIPLUS,     Amiplus)      \
     X(apator162,  T1, Water,       APATOR162,   Apator162)    \
+    X(eurisii,    T1, HeatCostAllocation, EURISII, EurisII) \
     X(flowiq3100, C1, Water,       FLOWIQ3100,  Multical21)   \
     X(iperl,      T1, Water,       IPERL,       Iperl)        \
     X(mkradio3,   T1, Water,       MKRADIO3,    MKRadio3)     \
@@ -166,6 +167,7 @@ unique_ptr<WaterMeter> createMKRadio3(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createApator162(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createIperl(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &m);
+unique_ptr<HeatCostMeter> createEurisII(WMBus *bus, MeterInfo &m);
 GenericMeter *createGeneric(WMBus *bus, MeterInfo &m);
 
 #endif

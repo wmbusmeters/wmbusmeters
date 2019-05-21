@@ -136,6 +136,7 @@ Supported electricity meters:
 Tauron Amiplus (amiplus) (includes vendor apator and echelon)
 
 Work in progress:
+Heat Cost Allocator Innotas EurisII  (eurisii)
 Heat meter Kamstrup Multical 302 (multical302)
 Electricity meter Kamstrup Omnipower (omnipower)
 ```

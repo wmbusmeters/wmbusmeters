@@ -134,6 +134,7 @@ Supported heat meters:
 Techem Vario 4 (vario451)
 
 Work in progress:
+Heat Cost Allocator Innotas EurisII  (eurisii)
 Water meter Apator at-wmbus-16-2 (apator162)
 Heat meter Kamstrup Multical 302 (multical302)
 Electricity meter Kamstrup Omnipower (omnipower) and Tauron Amiplus (amiplus)

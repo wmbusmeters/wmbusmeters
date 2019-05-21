@@ -96,6 +96,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_omnipower.o \
 	$(BUILD)/meter_supercom587.o \
 	$(BUILD)/meter_iperl.o \
+	$(BUILD)/meter_eurisii.o \
 	$(BUILD)/meter_qcaloric.o \
 	$(BUILD)/meter_apator162.o \
 	$(BUILD)/meter_amiplus.o \

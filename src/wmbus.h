@@ -97,6 +97,11 @@ struct Telegram {
     // That is 6 bytes (not 8), the next two bytes, the payload crc
     // part of this ELL header, even though they are inside the encrypted payload.
 
+    // When ci_field==0x72 then there are 12 extra header bytes (LONG TPL header)
+    // Id(4bytes) Manuf(2bytes) Ver(1byte) Dev(1byte) Type(1byte) ACC(1byte) STS(1byte) CF/CFE(1byte)
+    int sts_field {};
+    int cf_cfe_field {};
+
     vector<uchar> parsed; // Parsed fields
     vector<uchar> payload; // To be parsed.
     vector<uchar> content; // Decrypted content.

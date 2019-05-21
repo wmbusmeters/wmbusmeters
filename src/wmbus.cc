@@ -97,16 +97,25 @@ void Telegram::verboseFields() {
         // No data error and no encryption possible.
     }
 
+    if (ci_field == 0x72) {
+        // Long tpl header
+        verbose(" CC-field=%02x (%s) long tpl header ACC=%02x SN=%02x%02x%02x%02x",
+                cc_field, ccType(cc_field).c_str(),
+                acc,
+                sn[3],sn[2],sn[1],sn[0]);
+    }
+
     if (ci_field == 0x7a) {
         // Short data header
-        verbose(" CC-field=%02x (%s) ACC=%02x ",
+        verbose(" CC-field=%02x (%s) short header ACC=%02x ",
                 cc_field, ccType(cc_field).c_str(),
                 acc,
                 sn[3],sn[2],sn[1],sn[0]);
     }
 
     if (ci_field == 0x8d) {
-        verbose(" CC-field=%02x (%s) ACC=%02x SN=%02x%02x%02x%02x",
+        // ELL header
+        verbose(" CC-field=%02x (%s) ell header ACC=%02x SN=%02x%02x%02x%02x",
                 cc_field, ccType(cc_field).c_str(),
                 acc,
                 sn[3],sn[2],sn[1],sn[0]);
@@ -490,6 +499,33 @@ void Telegram::parse(vector<uchar> &frame)
     int header_size = 0;
     if (ci_field == 0x78) {
         header_size = 0; // And no encryption possible.
+    } else
+    if (ci_field == 0x72) {
+        // Example, begins aith frame[11]: 99999999 MMMM VV TT 01 00 0000
+        // Ignore 4 id bytes for now, should perhaps check that they are identical with the id.
+        // But if they are not, what to do?
+        // Ignore 2 mfc bytes for now, check if same as above?
+        // Ignore 1 version byte.
+        // Ignore 1 dev type byte.
+        acc = frame[18];
+        addExplanation(bytes, 1, "%02x acc", acc);
+        status = frame[19];
+        addExplanation(bytes, 1, "%02x status ()", status);
+        config_field = frame[20]<<8 | frame[21];
+        string config_info = "";
+        if (config_field & 0x0f) {
+            config_info += "encrypted ";
+            is_encrypted_ = true;
+        }
+        if ((config_field & 0x0f) == 0 || (config_field & 0x0f) == 0x05) {
+            if ((config_field & 0x0f) == 0x05) config_info += "AES_CBC ";
+            if (config_field & 0x80) config_info += "bidirectional ";
+            if (config_field & 0x40) config_info += "accessibility ";
+            if (config_field & 0x20) config_info += "synchronous ";
+        }
+        if (config_info.length() > 0) config_info.pop_back();
+        addExplanation(bytes, 2, "%02x%02x config (%s)", frame[13], frame[14], config_info.c_str());
+        header_size = 4+8;
     } else
     if (ci_field == 0x7a) {
         acc = frame[11];
