@@ -166,6 +166,12 @@ LinkMode WMBusIM871A::getLinkMode() {
             if (received_payload_[offset] == (int)LinkModeIM871A::C1a) {
                 lm = LinkMode::C1;
             }
+            if (received_payload_[offset] == (int)LinkModeIM871A::S1) {
+                lm = LinkMode::S1;
+            }
+            if (received_payload_[offset] == (int)LinkModeIM871A::S1m) {
+                lm = LinkMode::S1m;
+            }
             if (received_payload_[offset] == (int)LinkModeIM871A::T1) {
                 lm = LinkMode::T1;
             }
@@ -268,6 +274,8 @@ LinkMode WMBusIM871A::getLinkMode() {
 void WMBusIM871A::setLinkMode(LinkMode lm)
 {
     if (lm != LinkMode::C1 &&
+        lm != LinkMode::S1 &&
+        lm != LinkMode::S1m &&
         lm != LinkMode::T1 &&
         lm != LinkMode::N1a &&
         lm != LinkMode::N1b &&
@@ -289,6 +297,10 @@ void WMBusIM871A::setLinkMode(LinkMode lm)
     msg[5] = 2; // iff1 bits: Set Radio Mode
     if (lm == LinkMode::C1) {
         msg[6] = (int)LinkModeIM871A::C1a;
+    } else if (lm == LinkMode::S1) {
+        msg[6] = (int)LinkModeIM871A::S1;
+    } else if (lm == LinkMode::S1m) {
+        msg[6] = (int)LinkModeIM871A::S1m;
     } else if (lm == LinkMode::T1) {
         msg[6] = (int)LinkModeIM871A::T1;
     } else if (lm == LinkMode::N1a) {

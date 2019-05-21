@@ -27,6 +27,8 @@
 #define LIST_OF_LINK_MODES \
     X(Any,--anylinkmode) \
     X(C1,--c1) \
+    X(S1,--s1) \
+    X(S1m,--s1m) \
     X(T1,--t1) \
     X(N1a,--n1a) \
     X(N1b,--n1b) \

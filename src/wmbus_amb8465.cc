@@ -196,6 +196,8 @@ void WMBusAmber::getConfiguration()
 
 void WMBusAmber::setLinkMode(LinkMode lm) {
     if (lm != LinkMode::C1 &&
+        lm != LinkMode::S1 &&
+        lm != LinkMode::S1m &&
         lm != LinkMode::T1)
     {
         error("LinkMode %d is not implemented for amb8465\n", (int)lm);
@@ -209,9 +211,16 @@ void WMBusAmber::setLinkMode(LinkMode lm) {
     sent_command_ = msg[1];
     msg[2] = 1; // Len
     if (lm == LinkMode::C1) {
-        msg[3] = 0x0E; // Reception of C1 and C2 messages
-    } if (lm == LinkMode::T1) {
-        msg[3] = 0x05; // T1-Meter
+        msg[3] = 0x0E;
+    } else
+    if (lm == LinkMode::S1) {
+        msg[3] = 0x01;
+    } else
+    if (lm == LinkMode::S1m) {
+        msg[3] = 0x02;
+    } else
+    if (lm == LinkMode::T1) {
+        msg[3] = 0x05;
     }
     msg[4] = xorChecksum(msg, 4);
 
