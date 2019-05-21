@@ -32,21 +32,17 @@ private:
 
     void processContent(Telegram *t);
 
-    // Telegram type 1
-    double current_consumption_hca_ {};
-    double consumption_at_set_date_hca_ {};
-    double consumption_at_set_date_17_hca_ {};
-    uint16_t error_flags_;
+    string errorFlagsHumanReadable();
 
-    // Telegram type 2
-    string vendor_proprietary_data_;
-    string device_date_time_;
+    double current_consumption_hca_ {};
+    double consumption_at_set_date_hca_[17]; // 1 to 17 store in index 0 to 16
+    uint16_t error_flags_;
 };
 
 MeterEurisII::MeterEurisII(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::EURISII, MANUFACTURER_INE, LinkMode::T1)
 {
-    setEncryptionMode(EncryptionMode::AES_CBC); // Is it?
+    setEncryptionMode(EncryptionMode::AES_CBC);
 
     addMedia(0x08);
 
@@ -58,14 +54,25 @@ MeterEurisII::MeterEurisII(WMBus *bus, MeterInfo &mi) :
              true, true);
 
     addPrint("consumption_at_set_date", Quantity::HCA,
-             [&](Unit u){ return consumption_at_set_date_hca_; },
+             [&](Unit u){ return consumption_at_set_date_hca_[0]; },
              "Heat cost allocation at the 1 billing period date.",
              false, true);
 
-    addPrint("consumption_at_set_date_17", Quantity::HCA,
-             [&](Unit u){ return consumption_at_set_date_17_hca_; },
-             "Heat cost allocation at the 17 billing period date.",
-             false, true);
+    for (int i=2; i<=17; ++i)
+    {
+        string msg, info;
+        strprintf(msg, "consumption_at_set_date_%d", i);
+        strprintf(info, "Heat cost allocation at the %d billing period date.", i);
+        addPrint(msg, Quantity::HCA,
+                 [this,i](Unit u){ return consumption_at_set_date_hca_[i-1]; },
+                 info,
+                 false, true);
+    }
+
+    addPrint("error_flags", Quantity::Text,
+             [&](){ return errorFlagsHumanReadable(); },
+             "Error flags of meter.",
+             true, true);
 
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
@@ -90,6 +97,13 @@ double MeterEurisII::consumptionAtSetDate(Unit u)
     return 0.0;
 }
 
+string MeterEurisII::errorFlagsHumanReadable()
+{
+    string s;
+    strprintf(s, "0x%04X", error_flags_);
+    return s;
+}
+
 void MeterEurisII::processContent(Telegram *t)
 {
     map<string,pair<int,DVEntry>> values;
@@ -98,19 +112,21 @@ void MeterEurisII::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(ValueInformation::HeatCostAllocation, 0, &key, &values)) {
+    if (findKey(ValueInformation::HeatCostAllocation, 0, &key, &values))
+    {
         extractDVdouble(&values, key, &offset, &current_consumption_hca_);
         t->addMoreExplanation(offset, " current consumption (%f hca)", current_consumption_hca_);
     }
 
-    if (findKey(ValueInformation::HeatCostAllocation, 1, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &consumption_at_set_date_hca_);
-        t->addMoreExplanation(offset, " consumption at set date (%f hca)", consumption_at_set_date_hca_);
-    }
-
-    if (findKey(ValueInformation::HeatCostAllocation, 17, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &consumption_at_set_date_17_hca_);
-        t->addMoreExplanation(offset, " consumption at set date 17 (%f hca)", consumption_at_set_date_17_hca_);
+    for (int i=1; i<=17; ++i)
+    {
+        if (findKey(ValueInformation::HeatCostAllocation, i, &key, &values))
+        {
+            string info;
+            strprintf(info, " consumption at set date %d (%%f hca)", i);
+            extractDVdouble(&values, key, &offset, &consumption_at_set_date_hca_[i-1]);
+            t->addMoreExplanation(offset, info.c_str(), consumption_at_set_date_hca_[i-1]);
+        }
     }
 
     key = "02FD17";
