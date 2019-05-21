@@ -201,6 +201,9 @@ METER_MAX_FLOW_M3H
 METER_TIMESTAMP
 ```
 
+You can add `shell=commandline` to a meter file stored in wmbusmeters.d, then this meter will use
+this shell command instead of the command stored in wmbusmeters.conf.
+
 You can use `--debug` to get both verbose output and the actual data bytes sent back and forth with the wmbus usb dongle.
 
 If the meter does not use encryption of its meter data, then enter an empty key on the command line.
