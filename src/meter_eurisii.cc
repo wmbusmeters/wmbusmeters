@@ -57,7 +57,7 @@ MeterEurisII::MeterEurisII(WMBus *bus, MeterInfo &mi) :
              "The current heat cost allocation.",
              true, true);
 
-    addPrint("consumption_at_set_date_1", Quantity::HCA,
+    addPrint("consumption_at_set_date", Quantity::HCA,
              [&](Unit u){ return consumption_at_set_date_hca_; },
              "Heat cost allocation at the 1 billing period date.",
              false, true);

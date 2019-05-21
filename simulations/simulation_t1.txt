@@ -38,4 +38,4 @@ telegram=|374468506549235827C3A2|129F25383300A8622600008200800A2AF86211517555287
 # Test EurisII T1 telegrams
 
 telegram=|7644C52501880188550872|01880188C5255508010000002F2F0B6E000000426E000082016E0000C2016E000082026E0000C2026E000082036E0000C2036E000082046E0000C2046E000082056E0000C2056E000082066E0000C2066E000082076E0000C2076E000082086E0000C2086E000002FD170000|
-{"media":"heat cost allocation","meter":"eurisii","name":"HeatMeter","id":"88018801","current_consumption_hca":0,"consumption_at_set_date_1_hca":0,"consumption_at_set_date_17_hca":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"heat cost allocation","meter":"eurisii","name":"HeatMeter","id":"88018801","current_consumption_hca":0,"consumption_at_set_date_hca":0,"consumption_at_set_date_17_hca":0,"timestamp":"1111-11-11T11:11:11Z"}
