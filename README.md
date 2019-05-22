@@ -130,8 +130,9 @@ Sensus iPERL (iperl)
 Apator at-wmbus-16-2 (apator162) (non-standard protocol)
 Water meter Techem MK Radio 3 (mkradio3) (non-standard protocol)
 
-Supported heat cost allocator:
+Supported heat cost allocators:
 Qundis Q caloric (qcaloric)
+Heat Cost Allocator Innotas EurisII  (eurisii)
 
 Supported heat meter:
 Heat meter Techem Vario 4 (vario451) (non-standard protocol)
@@ -140,7 +141,6 @@ Supported electricity meters:
 Tauron Amiplus (amiplus) (includes vendor apator and echelon)
 
 Work in progress:
-Heat Cost Allocator Innotas EurisII  (eurisii)
 Heat meter Kamstrup Multical 302 (multical302)
 Electricity meter Kamstrup Omnipower (omnipower)
 ```

@@ -1,4 +1,8 @@
 
+Version 0.9.8: 2019-05-22
+
+Added support for the EurisII heat cost allocator from Innotas.
+
 Version 0.9.7: 2019-05-04
 
 FeatureExpert added support for the Vario 451 heat meter. Thanks FeatureExpert!
