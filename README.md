@@ -157,7 +157,7 @@ If you use rtlwmbus, then you can listen to both C1 and T1 at the same time.
 # Usage examples
 
 ```
-wmbusmeters /dev/ttyUSB0 MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF
+wmbusmeters /dev/ttyUSB0 MyTapWater multical21:c1 12345678 00112233445566778899AABBCCDDEEFF
 ```
 
 wmbusmeters will detect which kind of dongle is connected to
@@ -165,6 +165,9 @@ wmbusmeters will detect which kind of dongle is connected to
 Wireless AMB8465. If you have performed `make install` or added the
 udev rules yourself, then you can use auto instead of the exact usb
 device.
+
+(The :c1 can be left out, since multical21 only transmits c1 telegrams. The suffix
+with the expected link mode might be necessary for other meters, like apator162 for example.)
 
 Example output:
 
