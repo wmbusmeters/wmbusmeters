@@ -76,6 +76,7 @@ void handleConversions(Configuration *c, string s);
 enum class LinkModeCalculationResultType
 {
     Success,
+    NoMetersMustSupplyModes,
     AutomaticDeductionFailed,
     DongleCannotListenTo,
     MightMissTelegrams

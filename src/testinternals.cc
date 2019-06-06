@@ -206,6 +206,25 @@ int test_linkmodes()
     unique_ptr<WMBus> wmbus_amb8465 = openAMB8465("", manager.get(), serial2.release());
     unique_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS("", manager.get(), serial3.release(), [](){});
 
+    Configuration nometers_config;
+    // Check that if no meters are supplied then you must set a link mode.
+    nometers_config.link_mode_configured = false;
+    lmcr = calculateLinkModes(&nometers_config, wmbus_im871a.get());
+    if (lmcr.type != LinkModeCalculationResultType::NoMetersMustSupplyModes)
+    {
+        printf("ERROR! Expected failure due to automatic deduction! Got instead:\n%s\n", lmcr.msg.c_str());
+    }
+    debug("test0 OK\n\n");
+
+    nometers_config.link_mode_configured = true;
+    nometers_config.listen_to_link_modes.addLinkMode(LinkMode::T1);
+    lmcr = calculateLinkModes(&nometers_config, wmbus_im871a.get());
+    if (lmcr.type != LinkModeCalculationResultType::Success)
+    {
+        printf("ERROR! Expected succcess! Got instead:\n%s\n", lmcr.msg.c_str());
+    }
+    debug("test0.0 OK\n\n");
+
     Configuration apator_config;
     string apator162 = "apator162";
     apator_config.meters.push_back(MeterInfo("m1", apator162, "12345678", "",
