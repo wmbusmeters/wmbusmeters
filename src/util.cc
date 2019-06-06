@@ -357,6 +357,7 @@ bool isValidId(string& ids)
     for (auto id : v)
     {
         if (id == "*") return true;
+        if (id.back() == '*') return true;
         if (id.length() != 8) return false;
         for (int i=0; i<8; ++i) {
             if (id[i]<'0' || id[i]>'9') return false;

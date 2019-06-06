@@ -54,7 +54,8 @@ check with `tail -f /var/log/syslog` and `tail -f /var/log/wmbusmeters/wmbusmete
 The latest reading of the meter can also be found here: /var/log/wmbusmeters/meter_readings/MyTapWater
 
 You can use several ids using `id=1111111,2222222,3333333` or you can listen to all
-meters of a certain type `id=*`.
+meters of a certain type `id=*` or you can suffix with star `id=8765*` to match
+all meters with a given prefix.
 
 If you are running on a Raspberry PI with flash storage and you relay the data to
 another computer using a shell command (mosquitto_pub or curl or similar) then you might want to remove

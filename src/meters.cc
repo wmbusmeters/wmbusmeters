@@ -180,6 +180,14 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
             id_match = true;
             break;
         }
+        if (id.length() > 1 && id.back() == '*')
+        {
+            if (t->id.length() >= id.length())
+            {
+                string prefix = t->id.substr(0, id.length()-1);
+                id_match = !strncmp(prefix.c_str(), id.c_str(), id.length()-1);
+            }
+        }
     }
 
     if (!id_match) {

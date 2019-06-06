@@ -84,7 +84,7 @@ Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type]{:<modes>} [met
 
 As <options> you can use:
 
-    --addconversion=<unit>+ add conversion to these units to json and meter env variables (GJ)
+    --addconversions=<unit>+ add conversion to these units to json and meter env variables (GJ)
     --debug for a lot of information
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
