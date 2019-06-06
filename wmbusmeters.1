@@ -1,9 +1,9 @@
-.TH BEAK 1
+.TH WMBUSMETERS 1
 .SH NAME
 wmbusmeters \- listen to wireless mbus radio traffic and relay the decoded telegrams to other software
 
 .SH SYNOPSIS
-.B wmbusmeters [options] <device> (<meter_name> <meter_type> <meter_id> meter_key>)*
+.B wmbusmeters [options] <device> (<meter_name> <meter_type>[:<mode>] <meter_id> meter_key>)*
 
 .B wmbusmetersd <pid_file>
 
@@ -21,13 +21,19 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 (eg psql).
 
 .SH OPTIONS
-\fB\--c1\fR listen to C1 messages when no meters are supplied
+\fB\--addconversions=\fR<unit>[,<unit>] add conversion to these units for json and shell envs (GJ,F)
 
 \fB\--debug\fR for a lot of information
 
 \fB\--exitafter=\fR<time> exit program after time, eg 20h, 10m 5s
 
 \fB\--format=\fR(hr|json|fields) for human readable, json or semicolon separated fields
+
+\fB\--listento=\fR<mode> listen to one of the c1,t1,s1,s1m,n1a-n1f link modes.
+
+\fB\--listento=\fR<mode>,<mode> listen to more than one link mode at the same time, assuming the dongle supports it.
+
+\fB\--c1 --t1 --s1 --s1m --n1a ... --n1f\fR listen to c1,t1,s1,s1m,n1a-n1f telegrams.
 
 \fB\--logfile=\fR<dir> use this file instead of stdout
 
@@ -44,8 +50,6 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 \fB\--shell=\fR<cmdline> invokes cmdline with env variables containing the latest reading
 
 \fB\--shellenvs\fR list the env variables available for the meter
-
-\fB\--t1\fR listen to T1 messages when no meters are supplied
 
 \fB\--useconfig=\fR<dir> load config files from dir/etc
 
@@ -69,8 +73,10 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 \fBmeter_name\fR a mnemonic for your utility meter
 .TP
 \fBmeter_type\fR multical21/flowiq3100/supercom587/iperl/multical302/omnipower/qcaloric/apator162/amiplus
+(Can be suffix with :<mode>, eg apator162:t1 to tell wmbusmeters that you expect only t1 telegrams.
+This is necessary since an apator162 can be configured to send either c1 or t1 telegrams.)
 .TP
-\fBmeter_id\fR one or more 8 digit numbers separated with commas, or a single '*' wildcard.
+\fBmeter_id\fR one or more 8 digit numbers separated with commas, a single '*' wildcard, or a prefix '76543*' with wildcard.
 .TP
 \fBmeter_key\fR a unique key for the meter, if meter telegrams are not encrypted, you must supply an empty key: ""
 
