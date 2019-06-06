@@ -88,7 +88,6 @@ private:
     double external_temperature_c_ { 127 };
     bool has_external_temperature_ {};
 
-    const char *meter_name_; // multical21 or flowiq3100
     int expected_version_ {}; // 0x1b for Multical21 and 0x1d for FlowIQ3100
 };
 
@@ -281,6 +280,7 @@ void MeterMultical21::processContent(Telegram *t)
     // 0F vife (?)
     // 03 external temperature (3.000000 °C)
 
+    string meter_name = toMeterName(type()).c_str();
     vector<uchar>::iterator bytes = t->content.begin();
 
     int crc0 = t->content[0];
@@ -313,17 +313,17 @@ void MeterMultical21::processContent(Telegram *t)
             if (format_signature == 0xa8ed)
             {
                 hex2bin("02FF2004134413615B6167", &format_bytes);
-                debug("(%s) using hard coded format for hash a8ed\n", meter_name_);
+                debug("(%s) using hard coded format for hash a8ed\n", meter_name.c_str());
             }
             else if (format_signature == 0xc412)
             {
                 hex2bin("02FF20041392013BA1015B8101E7FF0F", &format_bytes);
-                debug("(%s) using hard coded format for hash c412\n", meter_name_);
+                debug("(%s) using hard coded format for hash c412\n", meter_name.c_str());
             }
             else
             {
                 verbose("(%s) ignoring telegram since format signature hash 0x%02x is yet unknown.\n",
-                        meter_name_,  format_signature);
+                        meter_name.c_str(),  format_signature);
                 return;
             }
         }
@@ -342,7 +342,7 @@ void MeterMultical21::processContent(Telegram *t)
     }
     else
     {
-        warning("(%s) warning: unknown frame %02x (did you use the correct encryption key?)\n", meter_name_, frame_type);
+        warning("(%s) warning: unknown frame %02x (did you use the correct encryption key?)\n", meter_name.c_str(), frame_type);
         return;
     }
 
@@ -480,7 +480,8 @@ string MeterMultical21::statusHumanReadable()
 string MeterMultical21::decodeTime(int time)
 {
     if (time>7) {
-        warning("(%s) warning: Cannot decode time %d should be 0-7.\n", meter_name_, time);
+        string meter_name = toMeterName(type()).c_str();
+        warning("(%s) warning: Cannot decode time %d should be 0-7.\n", meter_name.c_str(), time);
     }
     switch (time) {
     case 0:
