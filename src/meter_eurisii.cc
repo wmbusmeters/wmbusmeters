@@ -42,11 +42,13 @@ private:
 };
 
 MeterEurisII::MeterEurisII(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::EURISII, MANUFACTURER_INE, LinkMode::T1)
+    MeterCommonImplementation(bus, mi, MeterType::EURISII, MANUFACTURER_INE)
 {
     setEncryptionMode(EncryptionMode::AES_CBC);
 
     addMedia(0x08);
+
+    addLinkMode(LinkMode::T1);
 
     setExpectedVersion(0x55);
 

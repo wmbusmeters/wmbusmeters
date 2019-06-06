@@ -26,18 +26,18 @@
 #include<vector>
 
 #define LIST_OF_METERS \
-    X(amiplus,    T1, Electricity, AMIPLUS,     Amiplus)      \
-    X(apator162,  T1, Water,       APATOR162,   Apator162)    \
-    X(eurisii,    T1, HeatCostAllocation, EURISII, EurisII) \
-    X(flowiq3100, C1, Water,       FLOWIQ3100,  Multical21)   \
-    X(iperl,      T1, Water,       IPERL,       Iperl)        \
-    X(mkradio3,   T1, Water,       MKRADIO3,    MKRadio3)     \
-    X(multical21, C1, Water,       MULTICAL21,  Multical21)   \
-    X(multical302,C1, Heat,        MULTICAL302, Multical302)  \
-    X(omnipower,  C1, Electricity, OMNIPOWER,   Omnipower)    \
-    X(qcaloric,   C1, HeatCostAllocation, QCALORIC, QCaloric) \
-    X(supercom587,T1, Water,       SUPERCOM587, Supercom587)  \
-    X(vario451,   T1, Heat,        VARIO451,    Vario451)     \
+    X(amiplus,    T1_bit, Electricity, AMIPLUS,     Amiplus)      \
+    X(apator162,  C1_bit|T1_bit, Water,       APATOR162,   Apator162)    \
+    X(eurisii,    T1_bit, HeatCostAllocation, EURISII, EurisII) \
+    X(flowiq3100, C1_bit, Water,       FLOWIQ3100,  Multical21)   \
+    X(iperl,      T1_bit, Water,       IPERL,       Iperl)        \
+    X(mkradio3,   T1_bit, Water,       MKRADIO3,    MKRadio3)     \
+    X(multical21, C1_bit, Water,       MULTICAL21,  Multical21)   \
+    X(multical302,C1_bit, Heat,        MULTICAL302, Multical302)  \
+    X(omnipower,  C1_bit, Electricity, OMNIPOWER,   Omnipower)    \
+    X(qcaloric,   C1_bit, HeatCostAllocation, QCALORIC, QCaloric) \
+    X(supercom587,T1_bit, Water,       SUPERCOM587, Supercom587)  \
+    X(vario451,   T1_bit, Heat,        VARIO451,    Vario451)     \
 
 
 enum class MeterType {
@@ -57,14 +57,17 @@ struct MeterInfo
     string type;
     string id;
     string key;
+    LinkModeSet link_modes;
     vector<string> shells;
 
-    MeterInfo(string n, string t, string i, string k, vector<string> &s) {
+    MeterInfo(string n, string t, string i, string k, LinkModeSet lms, vector<string> &s)
+    {
         name = n;
         type = t;
         id = i;
         key = k;
         shells = s;
+        link_modes = lms;
     }
 };
 
@@ -76,7 +79,6 @@ struct Meter
     virtual MeterType type() = 0;
     virtual vector<int> media() = 0;
     virtual WMBus *bus() = 0;
-    virtual LinkMode requiredLinkMode() = 0;
 
     virtual string datetimeOfUpdateHumanReadable() = 0;
     virtual string datetimeOfUpdateRobot() = 0;
@@ -155,7 +157,7 @@ struct GenericMeter : public virtual Meter {
 
 string toMeterName(MeterType mt);
 MeterType toMeterType(string& type);
-LinkMode toMeterLinkMode(string& type);
+LinkModeSet toMeterLinkModeSet(string& type);
 unique_ptr<WaterMeter> createMultical21(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createFlowIQ3100(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatMeter> createMultical302(WMBus *bus, MeterInfo &m);

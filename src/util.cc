@@ -422,7 +422,7 @@ bool checkCharacterDeviceExists(const char *tty, bool fail_if_not)
     int rc = stat(tty, &info);
     if (rc != 0) {
         if (fail_if_not) {
-            error("Device %s does not exist.\n", tty);
+            error("Device \"%s\" does not exist.\n", tty);
         } else {
             return false;
         }
@@ -780,4 +780,15 @@ AccessCheck checkIfExistsAndSameGroup(string device)
     }
 
     return AccessCheck::NotSameGroup;
+}
+
+int countSetBits(int v)
+{
+    int n = 0;
+    while (v)
+    {
+        v &= (v-1);
+        n++;
+    }
+    return n;
 }

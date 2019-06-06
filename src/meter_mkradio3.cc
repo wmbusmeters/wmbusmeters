@@ -41,12 +41,14 @@ private:
 };
 
 MKRadio3::MKRadio3(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::MKRADIO3, MANUFACTURER_TCH, LinkMode::T1)
+    MeterCommonImplementation(bus, mi, MeterType::MKRADIO3, MANUFACTURER_TCH)
 {
     setEncryptionMode(EncryptionMode::None);
 
     addMedia(0x62);
     addMedia(0x72);
+
+    addLinkMode(LinkMode::T1);
 
     setExpectedVersion(0x74);
 

@@ -48,6 +48,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     string type;
     string id;
     string key;
+    string linkmodes;
     vector<string> shells;
 
     debug("(config) loading meter file %s\n", file.c_str());
@@ -77,9 +78,40 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             debug("(config) %s=%s\n", p.first.c_str(), p.second.c_str());
         }
     }
-
     MeterType mt = toMeterType(type);
     bool use = true;
+
+    LinkModeSet modes;
+    size_t colon = type.find(':');
+    if (colon != string::npos)
+    {
+        // The config can be supplied after the type, like this:
+        // apator162:c1
+        string modess = type.substr(colon+1);
+        type = type.substr(0, colon);
+        mt = toMeterType(type);
+        if (mt == MeterType::UNKNOWN) {
+            warning("Not a valid meter type \"%s\"\n", type.c_str());
+            use = false;
+        }
+        modes = parseLinkModes(modess);
+        LinkModeSet default_modes = toMeterLinkModeSet(type);
+        if (!default_modes.hasAll(modes))
+        {
+            string want = modes.hr();
+            string has = default_modes.hr();
+            error("(cmdline) cannot set link modes to: %s because meter %s only transmits on: %s\n",
+                  want.c_str(), type.c_str(), has.c_str());
+        }
+
+        string modeshr = modes.hr();
+        debug("(cmdline) setting link modes to %s for meter %s\n",
+              modeshr.c_str(), name.c_str());
+    }
+    else {
+        modes = toMeterLinkModeSet(type);
+    }
+
     if (mt == MeterType::UNKNOWN) {
         warning("Not a valid meter type \"%s\"\n", type.c_str());
         use = false;
@@ -93,7 +125,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         use = false;
     }
     if (use) {
-        c->meters.push_back(MeterInfo(name, type, id, key, shells));
+        c->meters.push_back(MeterInfo(name, type, id, key, modes, shells));
     }
 
     return;
@@ -132,6 +164,18 @@ void handleDevice(Configuration *c, string device)
     }
 }
 
+void handleListenTo(Configuration *c, string mode)
+{
+    LinkMode lm = isLinkMode(mode.c_str());
+    if (lm == LinkMode::UNKNOWN) {
+        error("Unknown link mode \"%s\"!\n", mode.c_str());
+    }
+    if (c->link_mode_configured) {
+        error("You have already specified a link mode!\n");
+    }
+    c->listen_to_link_modes.addLinkMode(lm);
+    c->link_mode_configured = true;
+}
 void handleLogtelegrams(Configuration *c, string logtelegrams)
 {
     if (logtelegrams == "true") { c->logtelegrams = true; }
@@ -248,6 +292,7 @@ unique_ptr<Configuration> loadConfiguration(string root)
         if (p.first == "") break;
         if (p.first == "loglevel") handleLoglevel(c, p.second);
         else if (p.first == "device") handleDevice(c, p.second);
+        else if (p.first == "listento") handleListenTo(c, p.second);
         else if (p.first == "logtelegrams") handleLogtelegrams(c, p.second);
         else if (p.first == "meterfiles") handleMeterfiles(c, p.second);
         else if (p.first == "meterfilesaction") handleMeterfilesAction(c, p.second);
@@ -275,4 +320,78 @@ unique_ptr<Configuration> loadConfiguration(string root)
     }
 
     return unique_ptr<Configuration>(c);
+}
+
+LinkModeCalculationResult calculateLinkModes(Configuration *config, WMBus *wmbus)
+{
+    int n = wmbus->numConcurrentLinkModes();
+    string num = to_string(n);
+    if (n == 0) num = "any combination";
+    string dongles = wmbus->supportedLinkModes().hr();
+    string dongle;
+    strprintf(dongle, "%s of %s", num.c_str(), dongles.c_str());
+
+    // Calculate the possible listen_to linkmodes for this collection of meters.
+    LinkModeSet meters_union = UNKNOWN_bit;
+    for (auto &m : config->meters)
+    {
+        meters_union.unionLinkModeSet(m.link_modes);
+        string meter = m.link_modes.hr();
+        debug("(config) meter %s link mode(s): %s\n", m.type.c_str(), meter.c_str());
+    }
+    string metersu = meters_union.hr();
+    debug("(config) all possible link modes that the meters might transmit on: %s\n", metersu.c_str());
+
+    if (!config->link_mode_configured)
+    {
+        // A listen_to link mode has not been set explicitly. Pick a listen_to link
+        // mode that is supported by the wmbus dongle and works for the meters.
+        config->listen_to_link_modes = wmbus->supportedLinkModes();
+        config->listen_to_link_modes.disjunctionLinkModeSet(meters_union);
+        if (!wmbus->canSetLinkModes(config->listen_to_link_modes))
+        {
+            // The automatically calculated link modes cannot be set in the dongle.
+            // Ie the dongle needs help....
+            string msg;
+            strprintf(msg,"(config) Automatic deduction of which link mode to listen to failed since the meters might transmit using: %s\n"
+                      "(config) But the dongle can only listen to: %s Please supply the exact link mode(s) to listen to, eg: --listento=<mode>\n"
+                      "(config) and/or specify the expected transmit modes for the meters, eg: apator162:t1\n"
+                      "(config) or use a dongle that can listen to all the required link modes at the same time.",
+                      metersu.c_str(), dongle.c_str());
+
+            debug("%s\n", msg.c_str());
+            return { LinkModeCalculationResultType::AutomaticDeductionFailed , msg};
+        }
+        config->link_mode_configured = true;
+    }
+    else
+    {
+        string listen = config->listen_to_link_modes.hr();
+        debug("(config) explicitly listening to: %s\n", listen.c_str());
+    }
+
+    string listen = config->listen_to_link_modes.hr();
+    if (!wmbus->canSetLinkModes(config->listen_to_link_modes))
+    {
+        string msg;
+        strprintf(msg, "(config) You have specified to listen to the link modes: %s but the dongle can only listen to: %s",
+                  listen.c_str(), dongle.c_str());
+        debug("%s\n", msg.c_str());
+        return { LinkModeCalculationResultType::DongleCannotListenTo , msg};
+    }
+
+    if (!config->listen_to_link_modes.hasAll(meters_union))
+    {
+        string msg;
+        strprintf(msg, "(config) You have specified to listen to the link modes: %s but the meters might transmit on: %s\n"
+                  "(config) Therefore you might miss telegrams! Please specify the expected transmit mode for the meters, eg: apator162:t1\n"
+                  "(config) Or use a dongle that can listen to all the required link modes at the same time.",
+                  listen.c_str(), metersu.c_str());
+        debug("%s\n", msg.c_str());
+        return { LinkModeCalculationResultType::MightMissTelegrams, msg};
+    }
+
+    debug("(config) listen link modes calculated to be: %s\n", listen.c_str());
+
+    return { LinkModeCalculationResultType::Success, "" };
 }

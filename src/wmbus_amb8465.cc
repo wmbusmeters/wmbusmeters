@@ -32,8 +32,24 @@ enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame };
 struct WMBusAmber : public WMBus {
     bool ping();
     uint32_t getDeviceId();
-    LinkMode getLinkMode();
-    void setLinkMode(LinkMode lm);
+    LinkModeSet getLinkModes();
+    void setLinkModes(LinkModeSet lms);
+    LinkModeSet supportedLinkModes()
+    {
+        return
+            C1_bit |
+            S1_bit |
+            S1m_bit |
+            T1_bit;
+    }
+    int numConcurrentLinkModes() { return 1; }
+    bool canSetLinkModes(LinkModeSet lms)
+    {
+        if (!supportedLinkModes().supports(lms)) return false;
+        // Ok, the supplied link modes are compatible,
+        // but amb8465 can only listen to one at a time.
+        return 1 == countSetBits(lms.bits());
+    }
     void onTelegram(function<void(Telegram*)> cb);
 
     void processSerialData();
@@ -52,7 +68,7 @@ private:
     sem_t command_wait_;
     int sent_command_ {};
     int received_command_ {};
-    LinkMode link_mode_ = LinkMode::UNKNOWN;
+    LinkModeSet link_modes_;
     vector<uchar> received_payload_;
     vector<function<void(Telegram*)>> telegram_listeners_;
     bool rssi_expected_;
@@ -71,6 +87,12 @@ unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager
 {
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600);
     WMBusAmber *imp = new WMBusAmber(std::move(serial), manager);
+    return unique_ptr<WMBus>(imp);
+}
+
+unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager, SerialDevice *serial)
+{
+    WMBusAmber *imp = new WMBusAmber(unique_ptr<SerialDevice>(serial), manager);
     return unique_ptr<WMBus>(imp);
 }
 
@@ -143,12 +165,12 @@ uint32_t WMBusAmber::getDeviceId()
     return id;
 }
 
-LinkMode WMBusAmber::getLinkMode() {
-    // It is not possible to read the volatile mode set using setLinkMode below.
+LinkModeSet WMBusAmber::getLinkModes() {
+    // It is not possible to read the volatile mode set using setLinkModeSet below.
     // (It is possible to read the non-volatile settings, but this software
     // does not change those.) So we remember the state for the device.
     getConfiguration();
-    return link_mode_;
+    return link_modes_;
 }
 
 void WMBusAmber::getConfiguration()
@@ -194,13 +216,15 @@ void WMBusAmber::getConfiguration()
     pthread_mutex_unlock(&command_lock_);
 }
 
-void WMBusAmber::setLinkMode(LinkMode lm) {
-    if (lm != LinkMode::C1 &&
-        lm != LinkMode::S1 &&
-        lm != LinkMode::S1m &&
-        lm != LinkMode::T1)
+void WMBusAmber::setLinkModes(LinkModeSet lms)
+{
+    if (!canSetLinkModes(lms))
     {
-        error("LinkMode %d is not implemented for amb8465\n", (int)lm);
+        error("(amb8465) link mode(s) 0x%0x are not implemented for amb8465\n", lms.bits());
+    }
+    if (countSetBits(lms.bits()) != 1)
+    {
+        error("(amb8465) you can only set a single listen to link mode for amb8465!\n");
     }
 
     pthread_mutex_lock(&command_lock_);
@@ -210,16 +234,16 @@ void WMBusAmber::setLinkMode(LinkMode lm) {
     msg[1] = CMD_SET_MODE_REQ;
     sent_command_ = msg[1];
     msg[2] = 1; // Len
-    if (lm == LinkMode::C1) {
+    if (lms.has(LinkMode::C1)) {
         msg[3] = 0x0E;
     } else
-    if (lm == LinkMode::S1) {
+    if (lms.has(LinkMode::S1)) {
         msg[3] = 0x01;
     } else
-    if (lm == LinkMode::S1m) {
+    if (lms.has(LinkMode::S1m)) {
         msg[3] = 0x02;
     } else
-    if (lm == LinkMode::T1) {
+    if (lms.has(LinkMode::T1)) {
         msg[3] = 0x05;
     }
     msg[4] = xorChecksum(msg, 4);
@@ -228,7 +252,7 @@ void WMBusAmber::setLinkMode(LinkMode lm) {
     serial()->send(msg);
 
     waitForResponse();
-    link_mode_ = lm;
+    link_modes_ = lms;
     pthread_mutex_unlock(&command_lock_);
 }
 

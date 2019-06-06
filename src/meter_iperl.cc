@@ -41,12 +41,14 @@ private:
 };
 
 MeterIperl::MeterIperl(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::IPERL, MANUFACTURER_SEN, LinkMode::T1)
+    MeterCommonImplementation(bus, mi, MeterType::IPERL, MANUFACTURER_SEN)
 {
     setEncryptionMode(EncryptionMode::AES_CBC);
 
     addMedia(0x06);
     addMedia(0x07);
+
+    addLinkMode(LinkMode::T1);
 
     setExpectedVersion(0x68);
 

@@ -59,8 +59,9 @@ struct Configuration {
     string device; // auto, /dev/ttyUSB0, simulation.txt, rtlwmbus
     string device_extra; // The frequency or the command line that will start rtlwmbus
     string telegram_reader;
-    LinkMode link_mode {};
-    bool link_mode_set {};
+    // A set of all link modes (union) that the user requests the wmbus dongle to listen to.
+    LinkModeSet listen_to_link_modes;
+    bool link_mode_configured {};
     bool no_init {};
     std::vector<Unit> conversions;
     vector<MeterInfo> meters;
@@ -71,5 +72,21 @@ struct Configuration {
 unique_ptr<Configuration> loadConfiguration(string root);
 
 void handleConversions(Configuration *c, string s);
+
+enum class LinkModeCalculationResultType
+{
+    Success,
+    AutomaticDeductionFailed,
+    DongleCannotListenTo,
+    MightMissTelegrams
+};
+
+struct LinkModeCalculationResult
+{
+    LinkModeCalculationResultType type;
+    std::string msg;
+};
+
+LinkModeCalculationResult calculateLinkModes(Configuration *c, WMBus *wmbus);
 
 #endif

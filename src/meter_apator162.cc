@@ -43,12 +43,15 @@ unique_ptr<WaterMeter> createApator162(WMBus *bus, MeterInfo &mi)
 }
 
 MeterApator162::MeterApator162(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::APATOR162, MANUFACTURER_APA, LinkMode::T1)
+    MeterCommonImplementation(bus, mi, MeterType::APATOR162, MANUFACTURER_APA)
 {
     setEncryptionMode(EncryptionMode::AES_CBC);
 
     addMedia(0x06);
     addMedia(0x07);
+
+    addLinkMode(LinkMode::T1);
+    addLinkMode(LinkMode::C1);
 
     setExpectedVersion(0x05);
 

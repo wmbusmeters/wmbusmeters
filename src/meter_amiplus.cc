@@ -42,7 +42,7 @@ private:
 };
 
 MeterAmiplus::MeterAmiplus(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::AMIPLUS, 0, LinkMode::T1)
+    MeterCommonImplementation(bus, mi, MeterType::AMIPLUS, 0)
 {
     setEncryptionMode(EncryptionMode::AES_CBC);
 
@@ -55,6 +55,8 @@ MeterAmiplus::MeterAmiplus(WMBus *bus, MeterInfo &mi) :
     // Oddly, this device has not been configured to send as a electricity meter,
     // but instead a device/media type that is used for gateway or relays or something?
     addMedia(0x37); // Radio converter (meter side)
+
+    addLinkMode(LinkMode::T1);
 
     setExpectedVersion(0x02);
 

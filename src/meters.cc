@@ -25,10 +25,8 @@
 #include<memory.h>
 
 MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
-                                                     MeterType type, int manufacturer,
-                                                     LinkMode required_link_mode) :
-    type_(type), name_(mi.name), bus_(bus),
-    required_link_mode_(required_link_mode)
+                                                     MeterType type, int manufacturer) :
+    type_(type), name_(mi.name), bus_(bus)
 {
     use_aes_ = true;
     ids_ = splitIds(mi.id);
@@ -78,6 +76,11 @@ void MeterCommonImplementation::addMedia(int m)
     media_.push_back(m);
 }
 
+void MeterCommonImplementation::addLinkMode(LinkMode lm)
+{
+    link_modes_.addLinkMode(lm);
+}
+
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          function<double(Unit)> getValueFunc, string help, bool field, bool json)
 {
@@ -109,11 +112,6 @@ string MeterCommonImplementation::name()
 WMBus *MeterCommonImplementation::bus()
 {
     return bus_;
-}
-
-LinkMode MeterCommonImplementation::requiredLinkMode()
-{
-    return required_link_mode_;
 }
 
 void MeterCommonImplementation::onUpdate(function<void(Telegram*,Meter*)> cb)
@@ -153,18 +151,18 @@ LIST_OF_METERS
 
 MeterType toMeterType(string& t)
 {
-#define X(mname,link,info,type,cname) if (t == #mname) return MeterType::type;
+#define X(mname,linkmodes,info,type,cname) if (t == #mname) return MeterType::type;
 LIST_OF_METERS
 #undef X
     return MeterType::UNKNOWN;
 }
 
-LinkMode toMeterLinkMode(string& t)
+LinkModeSet toMeterLinkModeSet(string& t)
 {
-#define X(mname,link,info,type,cname) if (t == #mname) return LinkMode::link;
+#define X(mname,linkmodes,info,type,cname) if (t == #mname) return LinkModeSet(linkmodes);
 LIST_OF_METERS
 #undef X
-    return LinkMode::UNKNOWN;
+    return LinkModeSet();
 }
 
 bool MeterCommonImplementation::isTelegramForMe(Telegram *t)

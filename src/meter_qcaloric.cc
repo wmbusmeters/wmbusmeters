@@ -46,11 +46,13 @@ private:
 };
 
 MeterQCaloric::MeterQCaloric(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::QCALORIC, MANUFACTURER_QDS, LinkMode::C1)
+    MeterCommonImplementation(bus, mi, MeterType::QCALORIC, MANUFACTURER_QDS)
 {
     setEncryptionMode(EncryptionMode::AES_CBC); // Is it?
 
     addMedia(0x08);
+
+    addLinkMode(LinkMode::C1);
 
     setExpectedVersion(0x35);
 

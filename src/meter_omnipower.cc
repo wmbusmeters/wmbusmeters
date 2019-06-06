@@ -40,11 +40,13 @@ unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, MeterInfo &mi)
 }
 
 MeterOmnipower::MeterOmnipower(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::OMNIPOWER, MANUFACTURER_KAM, LinkMode::C1)
+    MeterCommonImplementation(bus, mi, MeterType::OMNIPOWER, MANUFACTURER_KAM)
 {
     setEncryptionMode(EncryptionMode::AES_CBC);
 
     addMedia(0x02);
+
+    addLinkMode(LinkMode::C1);
 
     setExpectedVersion(0x01);
 

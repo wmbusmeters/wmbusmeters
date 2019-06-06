@@ -93,11 +93,13 @@ private:
 };
 
 MeterMultical21::MeterMultical21(WMBus *bus, MeterInfo &mi, MeterType mt) :
-    MeterCommonImplementation(bus, mi, mt, MANUFACTURER_KAM, LinkMode::C1)
+    MeterCommonImplementation(bus, mi, mt, MANUFACTURER_KAM)
 {
     setEncryptionMode(EncryptionMode::AES_CTR);
 
     addMedia(0x16); // Water media
+
+    addLinkMode(LinkMode::C1);
 
     if (type() == MeterType::MULTICAL21) {
         setExpectedVersion(0x1b);

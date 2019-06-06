@@ -32,8 +32,29 @@ enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame };
 struct WMBusIM871A : public WMBus {
     bool ping();
     uint32_t getDeviceId();
-    LinkMode getLinkMode();
-    void setLinkMode(LinkMode lm);
+    LinkModeSet getLinkModes();
+    void setLinkModes(LinkModeSet lms);
+    LinkModeSet supportedLinkModes() {
+        return
+            C1_bit |
+            S1_bit |
+            S1m_bit |
+            T1_bit |
+            N1a_bit |
+            N1b_bit |
+            N1c_bit |
+            N1d_bit |
+            N1e_bit |
+            N1f_bit;
+    }
+    int numConcurrentLinkModes() { return 1; }
+    bool canSetLinkModes(LinkModeSet lms) {
+
+        if (!supportedLinkModes().supports(lms)) return false;
+        // Ok, the supplied link modes are compatible,
+        // but im871a can only listen to one at a time.
+        return 1 == countSetBits(lms.bits());
+    }
     void onTelegram(function<void(Telegram*)> cb);
 
     void processSerialData();
@@ -69,6 +90,12 @@ unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager)
 {
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 57600);
     WMBusIM871A *imp = new WMBusIM871A(std::move(serial), manager);
+    return unique_ptr<WMBus>(imp);
+}
+
+unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager, SerialDevice *serial)
+{
+    WMBusIM871A *imp = new WMBusIM871A(unique_ptr<SerialDevice>(serial), manager);
     return unique_ptr<WMBus>(imp);
 }
 
@@ -131,7 +158,7 @@ uint32_t WMBusIM871A::getDeviceId() {
     return id;
 }
 
-LinkMode WMBusIM871A::getLinkMode() {
+LinkModeSet WMBusIM871A::getLinkModes() {
     pthread_mutex_lock(&command_lock_);
 
     vector<uchar> msg(4);
@@ -268,24 +295,22 @@ LinkMode WMBusIM871A::getLinkMode() {
     }
 
     pthread_mutex_unlock(&command_lock_);
-    return lm;
+    LinkModeSet lms;
+    lms.addLinkMode(lm);
+    return lms;
 }
 
-void WMBusIM871A::setLinkMode(LinkMode lm)
+void WMBusIM871A::setLinkModes(LinkModeSet lms)
 {
-    if (lm != LinkMode::C1 &&
-        lm != LinkMode::S1 &&
-        lm != LinkMode::S1m &&
-        lm != LinkMode::T1 &&
-        lm != LinkMode::N1a &&
-        lm != LinkMode::N1b &&
-        lm != LinkMode::N1c &&
-        lm != LinkMode::N1d &&
-        lm != LinkMode::N1e &&
-        lm != LinkMode::N1f)
+    if (!canSetLinkModes(lms))
     {
-        error("LinkMode %d is not implemented for im871a\n", (int)lm);
+        error("(im871a) link mode(s) 0x%0x are not implemented for im871a\n", lms.bits());
     }
+    if (countSetBits(lms.bits()) != 1)
+    {
+        error("(im871a) you can only set a single listen to link mode for im871a!\n");
+    }
+
     pthread_mutex_lock(&command_lock_);
 
     vector<uchar> msg(10);
@@ -295,25 +320,25 @@ void WMBusIM871A::setLinkMode(LinkMode lm)
     msg[3] = 6; // Len
     msg[4] = 0; // Temporary
     msg[5] = 2; // iff1 bits: Set Radio Mode
-    if (lm == LinkMode::C1) {
+    if (lms.has(LinkMode::C1)) {
         msg[6] = (int)LinkModeIM871A::C1a;
-    } else if (lm == LinkMode::S1) {
+    } else if (lms.has(LinkMode::S1)) {
         msg[6] = (int)LinkModeIM871A::S1;
-    } else if (lm == LinkMode::S1m) {
+    } else if (lms.has(LinkMode::S1m)) {
         msg[6] = (int)LinkModeIM871A::S1m;
-    } else if (lm == LinkMode::T1) {
+    } else if (lms.has(LinkMode::T1)) {
         msg[6] = (int)LinkModeIM871A::T1;
-    } else if (lm == LinkMode::N1a) {
+    } else if (lms.has(LinkMode::N1a)) {
         msg[6] = (int)LinkModeIM871A::N1A;
-    } else if (lm == LinkMode::N1b) {
+    } else if (lms.has(LinkMode::N1b)) {
         msg[6] = (int)LinkModeIM871A::N1B;
-    } else if (lm == LinkMode::N1c) {
+    } else if (lms.has(LinkMode::N1c)) {
         msg[6] = (int)LinkModeIM871A::N1C;
-    } else if (lm == LinkMode::N1d) {
+    } else if (lms.has(LinkMode::N1d)) {
         msg[6] = (int)LinkModeIM871A::N1D;
-    } else if (lm == LinkMode::N1e) {
+    } else if (lms.has(LinkMode::N1e)) {
         msg[6] = (int)LinkModeIM871A::N1E;
-    } else if (lm == LinkMode::N1f) {
+    } else if (lms.has(LinkMode::N1f)) {
         msg[6] = (int)LinkModeIM871A::N1F;
     } else {
         msg[6] = (int)LinkModeIM871A::C1a; // Defaults to C1a

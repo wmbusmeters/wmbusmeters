@@ -81,15 +81,19 @@ The files/dir should then be located here:
 
 ```
 wmbusmeters version: 0.9.4
-Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type] [meter_id] [meter_key] )*
+Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type]{:<modes>} [meter_id] [meter_key] )*
 
 As <options> you can use:
 
     --addconversions=<unit>,<unit> change/add units for the meter output
-    --c1 or --t1 listen to C1 or T1 messages when no meters are supplied
     --debug for a lot of information
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
+    --listento=<mode> tell the wmbus dongle to listen to this single link mode where mode can be
+                      c1,t1,s1,s1m,n1a,n1b,n1c,n1d,n1e,n1f
+    --listento=c1,t1,s1 tell the wmbus dongle to listen to these link modes
+                      different dongles support different combinations of modes
+    --c1 --t1 --s1 --s1m ... another way to set the link mode for the dongle
     --logfile=<file> use this file instead of stdout
     --logtelegrams log the contents of the telegrams for easy replay
     --meterfiles=<dir> store meter readings in dir
@@ -118,6 +122,7 @@ be necessary. Or you can specify the entire background process command line: "rt
 As meter quadruples you specify:
 <meter_name> a mnemonic for this particular meter
 <meter_type> one of the supported meters
+(can be suffixed with :<mode> to specify which mode you expect the meter to use when transmitting)
 <meter_id> an 8 digit mbus id, usually printed on the meter
 <meter_key> an encryption key unique for the meter
     if the meter uses no encryption, then supply ""

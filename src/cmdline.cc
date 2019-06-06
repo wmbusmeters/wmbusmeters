@@ -75,13 +75,27 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        LinkMode lm = isLinkMode(argv[i]);
-        if (lm != LinkMode::UNKNOWN) {
-            if (c->link_mode_set) {
+        if (!strncmp(argv[i], "--listento=", 11)) {
+            LinkModeSet lms = parseLinkModes(argv[i]+11);
+            if (lms.bits() == 0) {
+                error("Unknown link mode \"%s\"!\n", argv[i]+11);
+            }
+            if (c->link_mode_configured) {
                 error("You have already specified a link mode!\n");
             }
-            c->link_mode = lm;
-            c->link_mode_set = true;
+            c->listen_to_link_modes = lms;
+            c->link_mode_configured = true;
+            i++;
+            continue;
+        }
+
+        LinkMode lm = isLinkModeOption(argv[i]);
+        if (lm != LinkMode::UNKNOWN) {
+            if (c->link_mode_configured) {
+                error("You have already specified a link mode!\n");
+            }
+            c->listen_to_link_modes.addLinkMode(lm);
+            c->link_mode_configured = true;
             i++;
             continue;
         }
@@ -270,14 +284,41 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         string type = argv[m*4+i+1];
         string id = argv[m*4+i+2];
         string key = argv[m*4+i+3];
-
+        LinkModeSet modes;
+        size_t colon = type.find(':');
         MeterType mt = toMeterType(type);
+        if (colon != string::npos)
+        {
+            // The config can be supplied after the type, like this:
+            // apator162:c1
+            string modess = type.substr(colon+1);
+            type = type.substr(0, colon);
+            mt = toMeterType(type);
+            if (mt == MeterType::UNKNOWN) error("Not a valid meter type \"%s\"\n", type.c_str());
+            modes = parseLinkModes(modess);
+            LinkModeSet default_modes = toMeterLinkModeSet(type);
+            if (!default_modes.hasAll(modes))
+            {
+                string want = modes.hr();
+                string has = default_modes.hr();
+                error("(cmdline) cannot set link modes to: %s because meter %s only transmits on: %s\n",
+                      want.c_str(), type.c_str(), has.c_str());
+            }
+            string modeshr = modes.hr();
+            debug("(cmdline) setting link modes to %s for meter %s\n",
+                  modeshr.c_str(), name.c_str());
+        }
+        else {
+            modes = toMeterLinkModeSet(type);
+        }
+
+        mt = toMeterType(type);
 
         if (mt == MeterType::UNKNOWN) error("Not a valid meter type \"%s\"\n", type.c_str());
         if (!isValidId(id)) error("Not a valid meter id \"%s\"\n", id.c_str());
         if (!isValidKey(key)) error("Not a valid meter key \"%s\"\n", key.c_str());
         vector<string> no_meter_shells;
-        c->meters.push_back(MeterInfo(name, type, id, key, no_meter_shells));
+        c->meters.push_back(MeterInfo(name, type, id, key, modes, no_meter_shells));
     }
 
     return unique_ptr<Configuration>(c);

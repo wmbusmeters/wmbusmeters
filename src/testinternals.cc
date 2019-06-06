@@ -16,6 +16,7 @@
 */
 
 #include"cmdline.h"
+#include"config.h"
 #include"meters.h"
 #include"printer.h"
 #include"serial.h"
@@ -29,6 +30,7 @@ using namespace std;
 
 int test_crc();
 int test_dvparser();
+int test_linkmodes();
 
 int main(int argc, char **argv)
 {
@@ -38,6 +40,7 @@ int main(int argc, char **argv)
     }
     test_crc();
     test_dvparser();
+    test_linkmodes();
     return 0;
 }
 
@@ -186,5 +189,112 @@ int test_dvparser()
     values.clear();
     test_parse("426C FE04", &values, testnr);
     test_date(values, "426C", "2007-04-30 00:00:00", testnr); // 2010-dec-31
+    return 0;
+}
+
+
+int test_linkmodes()
+{
+    LinkModeCalculationResult lmcr;
+    auto manager = createSerialCommunicationManager(0);
+    auto serial1 = manager->createSerialDeviceSimulator();
+    auto serial2 = manager->createSerialDeviceSimulator();
+    auto serial3 = manager->createSerialDeviceSimulator();
+    vector<string> no_meter_shells;
+
+    unique_ptr<WMBus> wmbus_im871a = openIM871A("", manager.get(), serial1.release());
+    unique_ptr<WMBus> wmbus_amb8465 = openAMB8465("", manager.get(), serial2.release());
+    unique_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS("", manager.get(), serial3.release(), [](){});
+
+    Configuration apator_config;
+    string apator162 = "apator162";
+    apator_config.meters.push_back(MeterInfo("m1", apator162, "12345678", "",
+                                             toMeterLinkModeSet(apator162),
+                                             no_meter_shells));
+
+    // Check that if no explicit link modes are provided to apator162, then
+    // automatic deduction will fail, since apator162 can be configured to transmit
+    // either C1 or T1 telegrams.
+    apator_config.link_mode_configured = false;
+    lmcr = calculateLinkModes(&apator_config, wmbus_im871a.get());
+    if (lmcr.type != LinkModeCalculationResultType::AutomaticDeductionFailed)
+    {
+        printf("ERROR! Expected failure due to automatic deduction! Got instead:\n%s\n", lmcr.msg.c_str());
+    }
+    debug("test1 OK\n\n");
+
+    // Check that if we supply the link mode T1 when using an apator162, then
+    // automatic deduction will succeeed.
+    apator_config.link_mode_configured = true;
+    apator_config.listen_to_link_modes = LinkModeSet();
+    apator_config.listen_to_link_modes.addLinkMode(LinkMode::T1);
+    apator_config.listen_to_link_modes.addLinkMode(LinkMode::C1);
+    lmcr = calculateLinkModes(&apator_config, wmbus_im871a.get());
+    if (lmcr.type != LinkModeCalculationResultType::DongleCannotListenTo)
+    {
+        printf("ERROR! Expected dongle cannot listen to! Got instead:\n%s\n", lmcr.msg.c_str());
+    }
+    debug("test2 OK\n\n");
+
+    lmcr = calculateLinkModes(&apator_config, wmbus_rtlwmbus.get());
+    if (lmcr.type != LinkModeCalculationResultType::Success)
+    {
+        printf("ERROR! Expected success! Got instead:\n%s\n", lmcr.msg.c_str());
+    }
+    debug("test3 OK\n\n");
+
+    Configuration multical21_and_supercom587_config;
+    string multical21 = "multical21";
+    string supercom587 = "supercom587";
+    multical21_and_supercom587_config.meters.push_back(MeterInfo("m1", multical21, "12345678", "",
+                                                                 toMeterLinkModeSet(multical21),
+                                                                 no_meter_shells));
+    multical21_and_supercom587_config.meters.push_back(MeterInfo("m2", supercom587, "12345678", "",
+                                                                 toMeterLinkModeSet(supercom587),
+                                                                 no_meter_shells));
+
+    // Check that meters that transmit on two different link modes cannot be listened to
+    // at the same time using im871a.
+    multical21_and_supercom587_config.link_mode_configured = false;
+    lmcr = calculateLinkModes(&multical21_and_supercom587_config, wmbus_im871a.get());
+    if (lmcr.type != LinkModeCalculationResultType::AutomaticDeductionFailed)
+    {
+        printf("ERROR! Expected failure due to automatic deduction! Got instead:\n%s\n", lmcr.msg.c_str());
+    }
+    debug("test4 OK\n\n");
+
+    // Explicitly set T1
+    multical21_and_supercom587_config.link_mode_configured = true;
+    multical21_and_supercom587_config.listen_to_link_modes = LinkModeSet();
+    multical21_and_supercom587_config.listen_to_link_modes.addLinkMode(LinkMode::T1);
+    lmcr = calculateLinkModes(&multical21_and_supercom587_config, wmbus_im871a.get());
+    if (lmcr.type != LinkModeCalculationResultType::MightMissTelegrams)
+    {
+        printf("ERROR! Expected might miss telegrams! Got instead:\n%s\n", lmcr.msg.c_str());
+    }
+    debug("test5 OK\n\n");
+
+    // Explicitly set N1a, but the meters transmit on C1 and T1.
+    multical21_and_supercom587_config.link_mode_configured = true;
+    multical21_and_supercom587_config.listen_to_link_modes = LinkModeSet();
+    multical21_and_supercom587_config.listen_to_link_modes.addLinkMode(LinkMode::N1a);
+    lmcr = calculateLinkModes(&multical21_and_supercom587_config, wmbus_im871a.get());
+    if (lmcr.type != LinkModeCalculationResultType::MightMissTelegrams)
+    {
+        printf("ERROR! Expected no meter can be heard! Got instead:\n%s\n", lmcr.msg.c_str());
+    }
+    debug("test6 OK\n\n");
+
+    // Explicitly set N1a, but it is an amber dongle.
+    multical21_and_supercom587_config.link_mode_configured = true;
+    multical21_and_supercom587_config.listen_to_link_modes = LinkModeSet();
+    multical21_and_supercom587_config.listen_to_link_modes.addLinkMode(LinkMode::N1a);
+    lmcr = calculateLinkModes(&multical21_and_supercom587_config, wmbus_amb8465.get());
+    if (lmcr.type != LinkModeCalculationResultType::DongleCannotListenTo)
+    {
+        printf("ERROR! Expected dongle cannot listen to! Got instead:\n%s\n", lmcr.msg.c_str());
+    }
+    debug("test7 OK\n\n");
+
     return 0;
 }

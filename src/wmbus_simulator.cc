@@ -31,8 +31,11 @@ using namespace std;
 struct WMBusSimulator : public WMBus {
     bool ping();
     uint32_t getDeviceId();
-    LinkMode getLinkMode();
-    void setLinkMode(LinkMode lm);
+    LinkModeSet getLinkModes();
+    void setLinkModes(LinkModeSet lms);
+    LinkModeSet supportedLinkModes() { return Any_bit; }
+    int numConcurrentLinkModes() { return 0; }
+    bool canSetLinkModes(LinkModeSet lms) { return true; }
     void onTelegram(function<void(Telegram*)> cb);
 
     void processSerialData();
@@ -47,7 +50,7 @@ private:
 
     string file_;
     SerialCommunicationManager *manager_ {};
-    LinkMode link_mode_ {};
+    LinkModeSet link_modes_;
     vector<string> lines_;
 };
 
@@ -78,16 +81,18 @@ uint32_t WMBusSimulator::getDeviceId() {
     return 0x11111111;
 }
 
-LinkMode WMBusSimulator::getLinkMode() {
+LinkModeSet WMBusSimulator::getLinkModes() {
     verbose("(simulator) get link mode\n");
-    verbose("(simulator) config: link mode %02x\n", link_mode_);
-    return link_mode_;
+    string hr = link_modes_.hr();
+    verbose("(simulator) config: link mode %s\n", hr.c_str());
+    return link_modes_;
 }
 
-void WMBusSimulator::setLinkMode(LinkMode lm)
+void WMBusSimulator::setLinkModes(LinkModeSet lms)
 {
-    link_mode_ = lm;
-    verbose("(simulator) set link mode %02x\n", lm);
+    link_modes_ = lms;
+    string hr = lms.hr();
+    verbose("(simulator) set link mode %s\n", hr.c_str());
     verbose("(simulator) set link mode completed\n");
 }
 

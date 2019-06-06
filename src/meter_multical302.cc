@@ -37,11 +37,13 @@ private:
 };
 
 MeterMultical302::MeterMultical302(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::MULTICAL302, MANUFACTURER_KAM, LinkMode::C1)
+    MeterCommonImplementation(bus, mi, MeterType::MULTICAL302, MANUFACTURER_KAM)
 {
     setEncryptionMode(EncryptionMode::AES_CTR);
 
     addMedia(0x04); // Heat media
+
+    addLinkMode(LinkMode::C1);
 
     addPrint("total", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },

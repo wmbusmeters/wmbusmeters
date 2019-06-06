@@ -43,7 +43,6 @@ struct MeterCommonImplementation : public virtual Meter
     MeterType type();
     vector<int> media();
     WMBus *bus();
-    LinkMode requiredLinkMode();
 
     string datetimeOfUpdateHumanReadable();
     string datetimeOfUpdateRobot();
@@ -61,8 +60,7 @@ struct MeterCommonImplementation : public virtual Meter
     uint16_t getRecordAsUInt16(std::string record);
 
     MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
-                              MeterType type, int manufacturer,
-                              LinkMode required_link_mode);
+                              MeterType type, int manufacturer);
 
     ~MeterCommonImplementation() = default;
 
@@ -77,6 +75,7 @@ protected:
     void addShell(std::string cmdline);
     std::vector<std::string> &shellCmdlines();
     void addMedia(int media);
+    void addLinkMode(LinkMode lm);
     void addManufacturer(int m);
     void addPrint(string vname, Quantity vquantity,
                   function<double(Unit)> getValueFunc, string help, bool field, bool json);
@@ -107,7 +106,7 @@ private:
     int num_updates_ {};
     bool use_aes_ {};
     time_t datetime_of_update_ {};
-    LinkMode required_link_mode_ {};
+    LinkModeSet link_modes_ {};
     EncryptionMode enc_mode_ {};
     vector<string> shell_cmdlines_;
 

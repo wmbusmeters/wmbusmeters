@@ -38,6 +38,7 @@ static int openSerialTTY(const char *tty, int baud_rate);
 struct SerialDeviceImp;
 struct SerialDeviceTTY;
 struct SerialDeviceCommand;
+struct SerialDeviceSimulator;
 
 struct SerialCommunicationManagerImp : public SerialCommunicationManager {
     SerialCommunicationManagerImp(time_t exit_after_seconds);
@@ -46,6 +47,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager {
     unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate);
     unique_ptr<SerialDevice> createSerialDeviceCommand(string command, vector<string> args, vector<string> envs,
                                                        function<void()> on_exit);
+    unique_ptr<SerialDevice> createSerialDeviceSimulator();
 
     void listenTo(SerialDevice *sd, function<void()> cb);
     void stop();
@@ -350,6 +352,26 @@ int SerialDeviceCommand::receive(vector<uchar> *data)
     return num_read;
 }
 
+struct SerialDeviceSimulator : public SerialDeviceImp
+{
+    SerialDeviceSimulator(SerialCommunicationManagerImp *m) :
+        manager_(m) {};
+    ~SerialDeviceSimulator() {};
+
+    bool open(bool fail_if_not_ok) { return true; };
+    void close() { };
+    bool send(vector<uchar> &data) { return true; };
+    int receive(vector<uchar> *data) { return 0; };
+    int fd() { return 0; }
+    bool working() { return true; }
+
+    SerialCommunicationManager *manager() { return manager_; }
+
+    private:
+
+    SerialCommunicationManagerImp *manager_;
+};
+
 SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_seconds)
 {
     running_ = true;
@@ -375,6 +397,11 @@ unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceComman
                                                                                   function<void()> on_exit)
 {
     return unique_ptr<SerialDevice>(new SerialDeviceCommand(command, args, envs, this, on_exit));
+}
+
+unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceSimulator()
+{
+    return unique_ptr<SerialDevice>(new SerialDeviceSimulator(this));
 }
 
 void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> cb) {

@@ -47,6 +47,7 @@ struct SerialCommunicationManager
     virtual unique_ptr<SerialDevice> createSerialDeviceCommand(string command, vector<string> args,
                                                                vector<string> envs,
                                                                function<void()> on_exit) = 0;
+    virtual unique_ptr<SerialDevice> createSerialDeviceSimulator() = 0;
     virtual void listenTo(SerialDevice *sd, function<void()> cb) = 0;
     virtual void stop() = 0;
     virtual void waitForStop() = 0;

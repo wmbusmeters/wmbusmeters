@@ -43,12 +43,14 @@ unique_ptr<WaterMeter> createSupercom587(WMBus *bus, MeterInfo &mi)
 }
 
 MeterSupercom587::MeterSupercom587(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::SUPERCOM587, MANUFACTURER_SON, LinkMode::T1)
+    MeterCommonImplementation(bus, mi, MeterType::SUPERCOM587, MANUFACTURER_SON)
 {
     setEncryptionMode(EncryptionMode::AES_CBC);
 
     addMedia(0x06);
     addMedia(0x07);
+
+    addLinkMode(LinkMode::T1);
 
     setExpectedVersion(0x3c);
 

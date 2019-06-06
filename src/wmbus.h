@@ -25,32 +25,78 @@
 #include<inttypes.h>
 
 #define LIST_OF_LINK_MODES \
-    X(Any,--anylinkmode) \
-    X(C1,--c1) \
-    X(S1,--s1) \
-    X(S1m,--s1m) \
-    X(T1,--t1) \
-    X(N1a,--n1a) \
-    X(N1b,--n1b) \
-    X(N1c,--n1c) \
-    X(N1d,--n1d) \
-    X(N1e,--n1e) \
-    X(N1f,--n1f) \
-    X(UNKNOWN,----)
+    X(Any,any,--anylinkmode,0xffff)             \
+    X(C1,c1,--c1,0x1)                           \
+    X(S1,s1,--s1,0x2)                           \
+    X(S1m,s1m,--s1m,0x4)                       \
+    X(T1,t1,--t1,0x8)                          \
+    X(N1a,n1a,--n1a,0x10)                      \
+    X(N1b,n1b,--n1b,0x20)                      \
+    X(N1c,n1c,--n1c,0x40)                      \
+    X(N1d,n1d,--n1d,0x80)                      \
+    X(N1e,n1e,--n1e,0x100)                     \
+    X(N1f,n1f,--n1f,0x200)                     \
+    X(UNKNOWN,unknown,----,0x0)
 
 // In link mode T1, the meter transmits a telegram every few seconds or minutes.
 // Suitable for drive-by/walk-by collection of meter values.
 
 // Link mode C1 is like T1 but uses less energy when transmitting due to
-// a different radio encoding. Suitable for battery powered meters.
+// a different radio encoding.
 
 enum class LinkMode {
-#define X(name,option) name,
+#define X(name,lcname,option,val) name,
+LIST_OF_LINK_MODES
+#undef X
+};
+
+enum LinkModeBits {
+#define X(name,lcname,option,val) name##_bit = val,
 LIST_OF_LINK_MODES
 #undef X
 };
 
 LinkMode isLinkMode(const char *arg);
+LinkMode isLinkModeOption(const char *arg);
+
+struct LinkModeSet
+{
+    // Add the link mode to the set of link modes.
+    void addLinkMode(LinkMode lm);
+    void unionLinkModeSet(LinkModeSet lms);
+    void disjunctionLinkModeSet(LinkModeSet lms);
+    // Does this set support listening to the given link mode set?
+    // If this set is C1 and T1 and the supplied set contains just C1,
+    // then supports returns true.
+    // Or if this set is just T1 and the supplied set contains just C1,
+    // then supports returns false.
+    // Or if this set is just C1 and the supplied set contains C1 and T1,
+    // then supports returns true.
+    // Or if this set is S1 and T1, and the supplied set contains C1 and T1,
+    // then supports returns true.
+    //
+    // It will do a bitwise and of the linkmode bits. If the result
+    // of the and is not zero, then support returns true.
+    bool supports(LinkModeSet lms);
+    // Check if this set contains the given link mode.
+    bool has(LinkMode lm);
+    // Check if all link modes are supported.
+    bool hasAll(LinkModeSet lms);
+
+    int bits() { return set_; }
+
+    // Return a human readable string.
+    std::string hr();
+
+    LinkModeSet() { }
+    LinkModeSet(int s) : set_(s) {}
+
+private:
+
+    int set_ {};
+};
+
+LinkModeSet parseLinkModes(string modes);
 
 #define CC_B_BIDIRECTIONAL_BIT 0x80
 #define CC_RD_RESPONSE_DELAY_BIT 0x40
@@ -136,8 +182,11 @@ private:
 struct WMBus {
     virtual bool ping() = 0;
     virtual uint32_t getDeviceId() = 0;
-    virtual LinkMode getLinkMode() = 0;
-    virtual void setLinkMode(LinkMode lm) = 0;
+    virtual LinkModeSet getLinkModes() = 0;
+    virtual LinkModeSet supportedLinkModes() = 0;
+    virtual int numConcurrentLinkModes() = 0;
+    virtual bool canSetLinkModes(LinkModeSet lms) = 0;
+    virtual void setLinkModes(LinkModeSet lms) = 0;
     virtual void onTelegram(function<void(Telegram*)> cb) = 0;
     virtual SerialDevice *serial() = 0;
     virtual void simulate() = 0;
@@ -157,10 +206,12 @@ LIST_OF_MBUS_DEVICES
 pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationManager *manager);
 
 unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager);
+unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager, SerialDevice *serial);
 unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager);
+unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager, SerialDevice *serial);
 struct WMBusSimulator;
-unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager,
-                               std::function<void()> on_exit);
+unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager, std::function<void()> on_exit);
+unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager, SerialDevice *serial, std::function<void()> on_exit);
 unique_ptr<WMBus> openSimulator(string file, SerialCommunicationManager *manager);
 
 string manufacturer(int m_field);

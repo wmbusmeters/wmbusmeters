@@ -16,6 +16,7 @@
 */
 
 #include"wmbus.h"
+#include<assert.h>
 #include<stdarg.h>
 #include<string.h>
 #include<sys/stat.h>
@@ -25,16 +26,47 @@
 struct LinkModeInfo {
     LinkMode mode;
     const char *name;
+    const char *lcname;
     const char *option;
+    int val;
 };
 
 LinkModeInfo link_modes_[] = {
-#define X(name,option) { LinkMode::name, #name , #option },
+#define X(name,lcname,option,val) { LinkMode::name, #name , #lcname, #option, val },
 LIST_OF_LINK_MODES
 #undef X
 };
 
-LinkMode isLinkMode(const char *arg)
+LinkModeInfo *getLinkModeInfo(LinkMode lm);
+LinkModeInfo *getLinkModeInfoFromBit(int bit);
+
+LinkModeInfo *getLinkModeInfo(LinkMode lm)
+{
+    for (auto& s : link_modes_)
+    {
+        if (s.mode == lm)
+        {
+            return &s;
+        }
+    }
+    assert(0);
+    return NULL;
+}
+
+LinkModeInfo *getLinkModeInfoFromBit(int bit)
+{
+    for (auto& s : link_modes_)
+    {
+        if (s.val == bit)
+        {
+            return &s;
+        }
+    }
+    assert(0);
+    return NULL;
+}
+
+LinkMode isLinkModeOption(const char *arg)
 {
     for (auto& s : link_modes_) {
         if (!strcmp(arg, s.option)) {
@@ -42,6 +74,89 @@ LinkMode isLinkMode(const char *arg)
         }
     }
     return LinkMode::UNKNOWN;
+}
+
+LinkMode isLinkMode(const char *arg)
+{
+    for (auto& s : link_modes_) {
+        if (!strcmp(arg, s.lcname)) {
+            return s.mode;
+        }
+    }
+    return LinkMode::UNKNOWN;
+}
+
+LinkModeSet parseLinkModes(string m)
+{
+    LinkModeSet lms;
+    char buf[m.length()+1];
+    strcpy(buf, m.c_str());
+    const char *tok = strtok(buf, ",");
+    while (tok != NULL)
+    {
+        LinkMode lm = isLinkMode(tok);
+        if (lm == LinkMode::UNKNOWN)
+        {
+            error("(wmbus) not a valid link mode: %s\n", tok);
+        }
+        lms.addLinkMode(lm);
+        tok = strtok(NULL, ",");
+    }
+    return lms;
+}
+
+void LinkModeSet::addLinkMode(LinkMode lm)
+{
+    for (auto& s : link_modes_) {
+        if (s.mode == lm) {
+            set_ |= s.val;
+        }
+    }
+}
+
+void LinkModeSet::unionLinkModeSet(LinkModeSet lms)
+{
+    set_ |= lms.set_;
+}
+
+void LinkModeSet::disjunctionLinkModeSet(LinkModeSet lms)
+{
+    set_ &= lms.set_;
+}
+
+bool LinkModeSet::supports(LinkModeSet lms)
+{
+    // Will return false, if lms is UKNOWN (=0).
+    return (set_ & lms.set_) != 0;
+}
+
+bool LinkModeSet::has(LinkMode lm)
+{
+    LinkModeInfo *lmi = getLinkModeInfo(lm);
+    return (set_ & lmi->val) != 0;
+}
+
+bool LinkModeSet::hasAll(LinkModeSet lms)
+{
+    return (set_ & lms.set_) == lms.set_;
+}
+
+string LinkModeSet::hr()
+{
+    string r;
+    if (set_ == Any_bit) return "any";
+    if (set_ == 0) return "none";
+    for (auto& s : link_modes_)
+    {
+        if (s.mode == LinkMode::Any) continue;
+        if (set_ & s.val)
+        {
+            r += s.lcname;
+            r += ",";
+        }
+    }
+    r.pop_back();
+    return r;
 }
 
 struct Manufacturer {

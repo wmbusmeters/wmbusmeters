@@ -36,8 +36,20 @@ enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame };
 struct WMBusRTLWMBUS : public WMBus {
     bool ping();
     uint32_t getDeviceId();
-    LinkMode getLinkMode();
-    void setLinkMode(LinkMode lm);
+    LinkModeSet getLinkModes();
+    void setLinkModes(LinkModeSet lms);
+    LinkModeSet supportedLinkModes() {
+        return
+            C1_bit |
+            T1_bit;
+    }
+    int numConcurrentLinkModes() { return 2; }
+    bool canSetLinkModes(LinkModeSet lms)
+    {
+        if (!supportedLinkModes().supports(lms)) return false;
+        // The rtlwmbus listens to both modes always.
+        return true;
+    }
     void onTelegram(function<void(Telegram*)> cb);
 
     void processSerialData();
@@ -74,6 +86,13 @@ unique_ptr<WMBus> openRTLWMBUS(string command, SerialCommunicationManager *manag
     return unique_ptr<WMBus>(imp);
 }
 
+unique_ptr<WMBus> openRTLWMBUS(string command, SerialCommunicationManager *manager, SerialDevice *serial,
+                               function<void()> on_exit)
+{
+    WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(unique_ptr<SerialDevice>(serial), manager);
+    return unique_ptr<WMBus>(imp);
+}
+
 WMBusRTLWMBUS::WMBusRTLWMBUS(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
     serial_(std::move(serial)), manager_(manager)
 {
@@ -89,12 +108,12 @@ uint32_t WMBusRTLWMBUS::getDeviceId() {
     return 0x11111111;
 }
 
-LinkMode WMBusRTLWMBUS::getLinkMode() {
+LinkModeSet WMBusRTLWMBUS::getLinkModes() {
 
-    return LinkMode::Any;
+    return Any_bit;
 }
 
-void WMBusRTLWMBUS::setLinkMode(LinkMode lm)
+void WMBusRTLWMBUS::setLinkModes(LinkModeSet lm)
 {
 }
 

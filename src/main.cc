@@ -80,15 +80,19 @@ provided you with this binary. Read the full license for all details.
     if (cmdline->need_help) {
         printf("wmbusmeters version: " VERSION "\n");
         const char *msg = R"MANUAL(
-Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type] [meter_id] [meter_key] )*
+Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type]{:<modes>} [meter_id] [meter_key] )*
 
 As <options> you can use:
 
     --addconversion=<unit>+ add conversion to these units to json and meter env variables (GJ)
-    --c1 or --t1 listen to C1 or T1 messages when no meters are supplied, not needed for rtlwmbus
     --debug for a lot of information
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
+    --listento=<mode> tell the wmbus dongle to listen to this single link mode where mode can be
+                      c1,t1,s1,s1m,n1a,n1b,n1c,n1d,n1e,n1f
+    --listento=c1,t1,s1 tell the wmbus dongle to listen to these link modes
+                      different dongles support different combinations of modes
+    --c1 --t1 --s1 --s1m ... another way to set the link mode for the dongle
     --logfile=<file> use this file instead of stdout
     --logtelegrams log the contents of the telegrams for easy replay
     --meterfiles=<dir> store meter readings in dir
@@ -116,6 +120,7 @@ be necessary. Or you can specify the entire background process command line: \"r
 As meter quadruples you specify:
 <meter_name> a mnemonic for this particular meter
 <meter_type> one of the supported meters
+(can be suffixed with :<modes> to specify which modes you expect the meter to use when transmitting)
 <meter_id> an 8 digit mbus id, usually printed on the meter
 <meter_key> an encryption key unique for the meter
     if the meter uses no encryption, then supply ""
@@ -248,33 +253,15 @@ void startUsingCommandline(Configuration *config)
         break;
     }
 
-    if (!config->link_mode_set) {
-        // The link mode is not explicitly set. Examine the meters to see which
-        // link mode to use.
-        for (auto &m : config->meters) {
-            if (!config->link_mode_set) {
-                config->link_mode = toMeterLinkMode(m.type);
-                config->link_mode_set = true;
-            } else {
-                if (config->link_mode != toMeterLinkMode(m.type)
-                    && type_and_device.first != DEVICE_RTLWMBUS
-                    && type_and_device.first != DEVICE_SIMULATOR)
-                {
-                    // sdr_rtl|rtl_wmbus can listen to both C1 and T1 at the same time.
-                    error("A different link mode has been set already.\n");
-                }
-            }
-        }
+    LinkModeCalculationResult lmcr = calculateLinkModes(config, wmbus.get());
+    if (lmcr.type != LinkModeCalculationResultType::Success) {
+        error("%s\n", lmcr.msg.c_str());
     }
-    if (!config->link_mode_set && type_and_device.first != DEVICE_RTLWMBUS && type_and_device.first != DEVICE_SIMULATOR) {
-        // sdr_rtl|rtl_wmbus can listen to both C1 and T1 at the same time.
-        // also using a simulator file, then you listen to all of the traffic in that file.
-        error("(config) if you specify no meters, you have to specify the link mode: --c1 or --t1\n");
-    }
-    wmbus->setLinkMode(config->link_mode);
-    string using_link_mode = linkModeName(wmbus->getLinkMode());
 
-    verbose("(config) using link mode: %s\n", using_link_mode.c_str());
+    wmbus->setLinkModes(config->listen_to_link_modes);
+    string using_link_modes = wmbus->getLinkModes().hr();
+
+    verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
 
     auto output = unique_ptr<Printer>(new Printer(config->json, config->fields,
                                                   config->separator, config->meterfiles, config->meterfiles_dir,
