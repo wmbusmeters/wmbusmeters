@@ -34,11 +34,20 @@
 
 using namespace std;
 
+// Sigint, sigterm will call the exit handler.
 function<void()> exit_handler;
+
+bool got_hupped_ {};
 
 void exitHandler(int signum)
 {
+    got_hupped_ = signum == SIGHUP;
     if (exit_handler) exit_handler();
+}
+
+bool gotHupped()
+{
+    return got_hupped_;
 }
 
 pthread_t wake_me_up_on_sig_chld_ {};
@@ -59,34 +68,41 @@ void signalMyself(int signum)
     }
 }
 
+struct sigaction old_int, old_hup, old_term, old_chld, old_usr1;
+
 void onExit(function<void()> cb)
 {
     exit_handler = cb;
-    struct sigaction new_action, old_action;
+    struct sigaction new_action;
 
     new_action.sa_handler = exitHandler;
     sigemptyset (&new_action.sa_mask);
     new_action.sa_flags = 0;
 
-    sigaction (SIGINT, NULL, &old_action);
-    if (old_action.sa_handler != SIG_IGN) sigaction(SIGINT, &new_action, NULL);
-    sigaction (SIGHUP, NULL, &old_action);
-    if (old_action.sa_handler != SIG_IGN) sigaction (SIGHUP, &new_action, NULL);
-    sigaction (SIGTERM, NULL, &old_action);
-    if (old_action.sa_handler != SIG_IGN) sigaction (SIGTERM, &new_action, NULL);
+    sigaction(SIGINT, &new_action, &old_int);
+    sigaction(SIGHUP, &new_action, &old_hup);
+    sigaction (SIGTERM, &new_action, &old_term);
 
     new_action.sa_handler = signalMyself;
     sigemptyset (&new_action.sa_mask);
     new_action.sa_flags = 0;
-    sigaction (SIGCHLD, NULL, &old_action);
-    if (old_action.sa_handler != SIG_IGN) sigaction (SIGCHLD, &new_action, NULL);
+    sigaction (SIGCHLD, &new_action, &old_chld);
 
     new_action.sa_handler = doNothing;
     sigemptyset (&new_action.sa_mask);
     new_action.sa_flags = 0;
-    sigaction (SIGUSR1, NULL, &old_action);
-    if (old_action.sa_handler != SIG_IGN) sigaction(SIGUSR1, &new_action, NULL);
+    sigaction(SIGUSR1, &new_action, &old_usr1);
+}
 
+void restoreSignalHandlers()
+{
+    exit_handler = NULL;
+
+    sigaction(SIGINT, &old_int, NULL);
+    sigaction(SIGHUP, &old_hup, NULL);
+    sigaction(SIGTERM, &old_term, NULL);
+    sigaction(SIGCHLD, &old_chld, NULL);
+    sigaction(SIGUSR1, &old_usr1, NULL);
 }
 
 int char2int(char input)
@@ -236,6 +252,11 @@ bool enableLogfile(string logfile, bool daemon)
     }
     logfile_enabled_ = false;
     return false;
+}
+
+void disableLogfile()
+{
+    logfile_enabled_ = false;
 }
 
 void verboseEnabled(bool b) {

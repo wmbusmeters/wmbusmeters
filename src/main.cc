@@ -39,7 +39,7 @@
 using namespace std;
 
 void oneshotCheck(Configuration *cmdline, SerialCommunicationManager *manager, Telegram *t, Meter *meter, vector<unique_ptr<Meter>> &meters);
-void startUsingCommandline(Configuration *cmdline);
+bool startUsingCommandline(Configuration *cmdline);
 void startUsingConfigFiles(string root, bool is_daemon);
 void startDaemon(string pid_file); // Will use config files.
 
@@ -164,9 +164,10 @@ Electricity meter Kamstrup Omnipower (omnipower) and Tauron Amiplus (amiplus)
     }
 }
 
-void startUsingCommandline(Configuration *config)
+bool startUsingCommandline(Configuration *config)
 {
-    if (config->use_logfile) {
+    if (config->use_logfile)
+    {
         verbose("(wmbusmeters) using log file %s\n", config->logfile.c_str());
         bool ok = enableLogfile(config->logfile, config->daemon);
         if (!ok) {
@@ -176,6 +177,10 @@ void startUsingCommandline(Configuration *config)
                 error("Could not open log file.\n");
             }
         }
+    }
+    else
+    {
+        disableLogfile();
     }
 
     warningSilenced(config->silence);
@@ -327,6 +332,9 @@ LIST_OF_METERS
     if (config->daemon) {
         notice("(wmbusmeters) shutting down\n");
     }
+
+    restoreSignalHandlers();
+    return gotHupped();
 }
 
 void oneshotCheck(Configuration *config, SerialCommunicationManager *manager, Telegram *t, Meter *meter, vector<unique_ptr<Meter>> &meters)
@@ -404,8 +412,16 @@ void startDaemon(string pid_file)
 
 void startUsingConfigFiles(string root, bool is_daemon)
 {
-    unique_ptr<Configuration> config = loadConfiguration(root);
-    config->daemon = is_daemon;
-
-    startUsingCommandline(config.get());
+    bool restart = false;
+    do
+    {
+        unique_ptr<Configuration> config = loadConfiguration(root);
+        config->daemon = is_daemon;
+        restart = startUsingCommandline(config.get());
+        if (restart)
+        {
+            notice("(wmbusmeters) HUP received, restarting and reloading config files.\n");
+        }
+    }
+    while (restart);
 }

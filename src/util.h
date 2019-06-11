@@ -25,6 +25,8 @@
 #include<vector>
 
 void onExit(std::function<void()> cb);
+void restoreSignalHandlers();
+bool gotHupped();
 void wakeMeUpOnSigChld(pthread_t t);
 
 typedef unsigned char uchar;
@@ -47,6 +49,7 @@ std::string strdatetime(struct tm *date);
 void xorit(uchar *srca, uchar *srcb, uchar *dest, int len);
 std::string format3fdot3f(double v);
 bool enableLogfile(std::string logfile, bool daemon);
+void disableLogfile();
 void enableSyslog();
 void error(const char* fmt, ...);
 void verbose(const char* fmt, ...);

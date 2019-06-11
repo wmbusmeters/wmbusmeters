@@ -132,6 +132,7 @@ bool SerialDeviceTTY::open(bool fail_if_not_ok)
 
 void SerialDeviceTTY::close()
 {
+    if (fd_ == -1) return;
     ::flock(fd_, LOCK_UN);
     ::close(fd_);
     fd_ = -1;
