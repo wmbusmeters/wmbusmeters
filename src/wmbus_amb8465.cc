@@ -43,12 +43,22 @@ struct WMBusAmber : public WMBus {
             T1_bit;
     }
     int numConcurrentLinkModes() { return 1; }
-    bool canSetLinkModes(LinkModeSet lms)
+    bool canSetLinkModes(LinkModeSet desired_modes)
     {
-        if (!supportedLinkModes().supports(lms)) return false;
-        // Ok, the supplied link modes are compatible,
-        // but amb8465 can only listen to one at a time.
-        return 1 == countSetBits(lms.bits());
+        if (0 == countSetBits(desired_modes.bits())) return false;
+        // Simple check first, are they all supported?
+        if (!supportedLinkModes().supports(desired_modes)) return false;
+        // So far so good, is the desired combination supported?
+        // If only a single bit is desired, then it is supported.
+        if (1 == countSetBits(desired_modes.bits())) return true;
+        // More than 2 listening modes at the same time will always fail.
+        if (2 != countSetBits(desired_modes.bits())) return false;
+        // C1 and T1 can be listened to at the same time!
+        if (desired_modes.has(LinkMode::C1) && desired_modes.has(LinkMode::T1)) return true;
+        // Likewise for S1 and S1-m
+        if (desired_modes.has(LinkMode::S1) || desired_modes.has(LinkMode::S1m)) return true;
+        // Any other combination is forbidden.
+        return false;
     }
     void onTelegram(function<void(Telegram*)> cb);
 
@@ -220,11 +230,8 @@ void WMBusAmber::setLinkModes(LinkModeSet lms)
 {
     if (!canSetLinkModes(lms))
     {
-        error("(amb8465) link mode(s) 0x%0x are not implemented for amb8465\n", lms.bits());
-    }
-    if (countSetBits(lms.bits()) != 1)
-    {
-        error("(amb8465) you can only set a single listen to link mode for amb8465!\n");
+        string modes = lms.hr();
+        error("(amb8465) setting link mode(s) %s is not supported for amb8465\n", modes.c_str());
     }
 
     pthread_mutex_lock(&command_lock_);
@@ -234,17 +241,25 @@ void WMBusAmber::setLinkModes(LinkModeSet lms)
     msg[1] = CMD_SET_MODE_REQ;
     sent_command_ = msg[1];
     msg[2] = 1; // Len
-    if (lms.has(LinkMode::C1)) {
+    if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1))
+    {
+        // Listening to both C1 and T1!
+        msg[3] = 0x09;
+    }
+    else if (lms.has(LinkMode::C1))
+    {
+        // Listening to only C1.
         msg[3] = 0x0E;
-    } else
-    if (lms.has(LinkMode::S1)) {
-        msg[3] = 0x01;
-    } else
-    if (lms.has(LinkMode::S1m)) {
-        msg[3] = 0x02;
-    } else
-    if (lms.has(LinkMode::T1)) {
-        msg[3] = 0x05;
+    }
+    else if (lms.has(LinkMode::T1))
+    {
+        // Listening to only T1.
+        msg[3] = 0x08;
+    }
+    else if (lms.has(LinkMode::S1) || lms.has(LinkMode::S1m))
+    {
+        // Listening only to S1 and S1-m
+        msg[3] = 0x03;
     }
     msg[4] = xorChecksum(msg, 4);
 

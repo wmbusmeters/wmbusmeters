@@ -50,6 +50,7 @@ struct WMBusIM871A : public WMBus {
     int numConcurrentLinkModes() { return 1; }
     bool canSetLinkModes(LinkModeSet lms) {
 
+        if (0 == countSetBits(lms.bits())) return false;
         if (!supportedLinkModes().supports(lms)) return false;
         // Ok, the supplied link modes are compatible,
         // but im871a can only listen to one at a time.
@@ -304,11 +305,8 @@ void WMBusIM871A::setLinkModes(LinkModeSet lms)
 {
     if (!canSetLinkModes(lms))
     {
-        error("(im871a) link mode(s) 0x%0x are not implemented for im871a\n", lms.bits());
-    }
-    if (countSetBits(lms.bits()) != 1)
-    {
-        error("(im871a) you can only set a single listen to link mode for im871a!\n");
+        string modes = lms.hr();
+        error("(im871a) setting link mode(s) %s is not supported for im871a\n", modes.c_str());
     }
 
     pthread_mutex_lock(&command_lock_);
