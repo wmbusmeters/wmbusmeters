@@ -1,3 +1,21 @@
+Version 0.9.9: 2019-06-11
+
+Added support for the signal HUP to trigger wmbusmeters(d)
+to reload config files.
+
+Added significantly better tracking of listening modes (C1,T1,S1 etc)
+and notify the user if the wmbusmeters configuration would not hear
+certain meters specified.
+
+The apator162 meter can send either on c1 or t1. Thus if you have
+an imst871a dongle that can only listen on one of c1/t1, then
+you have to specify which link mode you expect the meter to use.
+You do that by suffixing the meter type with the link mode, like
+this: `apator162:c1`
+
+If you do not do this, then wmbusmeters will assume that it must
+listen to both c1 and t1 at the same time. Which might
+be fine for amd8465 and rtlwmbus dongles, but not for imst871a.
 
 Version 0.9.8: 2019-05-22
 
