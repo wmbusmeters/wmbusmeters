@@ -85,7 +85,7 @@ depending on if you are running as a daemon or not.
 # Running without config files, good for experimentation and test.
 
 ```
-wmbusmeters version: 0.9.4
+wmbusmeters version: 0.9.9
 Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type]{:<modes>} [meter_id] [meter_key] )*
 
 As <options> you can use:
@@ -142,7 +142,7 @@ Water meter Techem MK Radio 3 (mkradio3) (non-standard protocol)
 
 Supported heat cost allocators:
 Qundis Q caloric (qcaloric)
-Heat Cost Allocator Innotas EurisII  (eurisii)
+Innotas EurisII  (eurisii)
 
 Supported heat meter:
 Heat meter Techem Vario 4 (vario451) (non-standard protocol)
@@ -237,6 +237,14 @@ if it is zipped.
 You can run wmbusmeters with --logtelegrams to get log output that can be placed in a simulation.txt
 file. You can then run wmbusmeter and instead of auto (or an usb device) provide the simulationt.xt
 file as argument. See test.sh for more info.
+
+If you do not specify any meters on the command line, then wmbusmeters
+will listen and print the header information of any telegram it hears.
+You must specify the listening mode.
+
+With an rtlwmbus or amb8465 dongle: `wmbusmeters --listento=c1,t1 auto`
+
+With an imst871a dongle: `wmbusmeters --listento=c1 auto`
 
 # Builds and runs on GNU/Linux and MacOSX (with recent XCode)
 
