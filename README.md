@@ -78,6 +78,10 @@ The files/dir should then be located here:
 `/home/me/.config/wmbusmeters/etc/wmbusmeters.conf` and
 `/home/me/.config/wmbusmeters/etc/wmbusmeters.d`
 
+When running using config files then you can trigger a reload of the config files
+using `sudo killall -HUP wmbusmetersd` or `sudo killall -HUP wmbusmeters`
+depending on if you are running as a daemon or not.
+
 # Running without config files, good for experimentation and test.
 
 ```
@@ -151,9 +155,10 @@ Heat meter Kamstrup Multical 302 (multical302)
 Electricity meter Kamstrup Omnipower (omnipower)
 ```
 
-The wmbus dongles imst871a and amb8465 can only listen on one type of wmbus telegrams at a time.
-So you can listen to multiple meters as long as they all require the same radio mode C1 or T1.
-If you use rtlwmbus, then you can listen to both C1 and T1 at the same time.
+The wmbus dongles imst871a can only listen on one type of wmbus telegrams at a time.
+Thus you can listen to multiple meters as long as they all require the same radio mode C1 or T1.
+
+However if you use amb8465 or rtlwmbus, then you can listen to both C1 and T1 telegrams at the same time.
 
 # Usage examples
 
