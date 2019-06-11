@@ -79,7 +79,7 @@ The files/dir should then be located here:
 `/home/me/.config/wmbusmeters/etc/wmbusmeters.d`
 
 When running using config files then you can trigger a reload of the config files
-using `sudo killall -HUP wmbusmetersd` or `sudo killall -HUP wmbusmeters`
+using `sudo killall -HUP wmbusmetersd` or `killall -HUP wmbusmeters`
 depending on if you are running as a daemon or not.
 
 # Running without config files, good for experimentation and test.
@@ -298,6 +298,7 @@ If you do not want the daemon to start automatically, simply edit
 line.
 
 You can also start/stop the daemon with `sudo systemctl start wmbusmeters`
+and trigger the daemon to reload the config files with `sudo killall -HUP wmbusmetersd`
 
 # Source code
 
