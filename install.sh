@@ -145,10 +145,12 @@ then
     compress
     missingok
     postrotate
-    start-stop-daemon -K -p /var/run/wmbusmeters.pid -s HUP -x /usr/sbin/wmbusmeters -q
+        /bin/kill -HUP `cat /var/run/wmbusmeters/wmbusmeters.pid 2> /dev/null` 2> /dev/null || true
     endscript
 EOF
     echo logrotate: created "$ROOT"/etc/logrotate.d/wmbusmeters
+else
+    echo conf file: "$ROOT"/etc/logrotate.d/wmbusmeters unchanged
 fi
 
 ####################################################################
@@ -225,6 +227,7 @@ ExecStartPre=-/bin/mkdir -p /var/run/wmbusmeters
 ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/run/wmbusmeters
 
 ExecStart=/usr/sbin/wmbusmetersd /var/run/wmbusmeters/wmbusmeters.pid
+ExecReload=/bin/kill -HUP `cat /var/run/wmbusmeters/wmbusmeters.pid 2> /dev/null` 2> /dev/null || true
 PIDFile=/var/run/wmbusmeters/wmbusmeters.pid
 
 [Install]
