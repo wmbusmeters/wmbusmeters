@@ -385,7 +385,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
         received_command_ = msgid;
         received_payload_.clear();
         received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
-        debugPayload("(amb8465) set link mode", received_payload_);
+        debugPayload("(amb8465) set link mode response", received_payload_);
         sem_post(&command_wait_);
         break;
     }
@@ -395,7 +395,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
         received_command_ = msgid;
         received_payload_.clear();
         received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
-        debugPayload("(amb8465) get config", received_payload_);
+        debugPayload("(amb8465) get config response", received_payload_);
         sem_post(&command_wait_);
         break;
     }
@@ -405,7 +405,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
         received_command_ = msgid;
         received_payload_.clear();
         received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
-        debugPayload("(amb8465) get device id", received_payload_);
+        debugPayload("(amb8465) get device id response", received_payload_);
         sem_post(&command_wait_);
         break;
     }
@@ -413,7 +413,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
         verbose("(amb8465) unhandled device message %d\n", msgid);
         received_payload_.clear();
         received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
-        debugPayload("(amb8465) unknown", received_payload_);
+        debugPayload("(amb8465) unknown response", received_payload_);
     }
 }
 
