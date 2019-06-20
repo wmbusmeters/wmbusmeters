@@ -1,4 +1,13 @@
-Version 0.9.10: 2019-6-13
+Version 0.9.11: 2019-06-20
+
+Added --meterfilesnaming=(name|id|name-id)
+to choose the file name written meter file.
+
+Naming using id or name-id is necessary when a meter
+specification listens to many different meters using id
+wildcards.
+
+Version 0.9.10: 2019-06-13
 
 Update logrotate to trigger HUP when rotating log files.
 This will re-initialize the serial connection to the usb dongle

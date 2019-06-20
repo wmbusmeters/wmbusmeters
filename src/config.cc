@@ -210,6 +210,26 @@ void handleMeterfilesAction(Configuration *c, string meterfilesaction)
     }
 }
 
+void handleMeterfilesNaming(Configuration *c, string type)
+{
+    if (type == "name")
+    {
+        c->meterfiles_naming = MeterFileNaming::Name;
+    }
+    else if (type == "id")
+    {
+        c->meterfiles_naming = MeterFileNaming::Id;
+    }
+    else if (type == "name-id")
+    {
+        c->meterfiles_naming = MeterFileNaming::NameId;
+    }
+    else
+    {
+        warning("No such meter file naming \"%s\"\n", type.c_str());
+    }
+}
+
 void handleLogfile(Configuration *c, string logfile)
 {
     if (logfile.length() > 0)
@@ -296,6 +316,7 @@ unique_ptr<Configuration> loadConfiguration(string root)
         else if (p.first == "logtelegrams") handleLogtelegrams(c, p.second);
         else if (p.first == "meterfiles") handleMeterfiles(c, p.second);
         else if (p.first == "meterfilesaction") handleMeterfilesAction(c, p.second);
+        else if (p.first == "meterfilesnaming") handleMeterfilesNaming(c, p.second);
         else if (p.first == "logfile") handleLogfile(c, p.second);
         else if (p.first == "format") handleFormat(c, p.second);
         else if (p.first == "separator") handleSeparator(c, p.second);

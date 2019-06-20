@@ -97,6 +97,7 @@ As <options> you can use:
     --logtelegrams log the contents of the telegrams for easy replay
     --meterfiles=<dir> store meter readings in dir
     --meterfilesaction=(overwrite|append) overwrite or append to the meter readings file
+    --meterfilesnaming=(name|id|name-id) the meter file is the meter's: name, id or name-id
     --oneshot wait for an update from each meter, then quit
     --separator=<c> change field separator to c
     --shell=<cmdline> invokes cmdline with env variables containing the latest reading
@@ -272,7 +273,8 @@ bool startUsingCommandline(Configuration *config)
                                                   config->separator, config->meterfiles, config->meterfiles_dir,
                                                   config->use_logfile, config->logfile,
                                                   config->shells,
-                                                  config->meterfiles_action == MeterFileType::Overwrite));
+                                                  config->meterfiles_action == MeterFileType::Overwrite,
+                                                  config->meterfiles_naming));
     vector<unique_ptr<Meter>> meters;
 
     if (config->meters.size() > 0) {

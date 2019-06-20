@@ -17,6 +17,7 @@
 
 #include"cmdline.h"
 #include"meters.h"
+#include"wmbus.h"
 
 using namespace std;
 
@@ -27,7 +28,8 @@ struct Printer {
             bool meterfiles, string &meterfiles_dir,
             bool use_logfile, string &logfile,
             vector<string> shell_cmdlines,
-            bool overwrite);
+            bool overwrite,
+            MeterFileNaming naming);
 
     void print(Telegram *t, Meter *meter);
 
@@ -41,8 +43,9 @@ struct Printer {
     char separator_;
     vector<string> shell_cmdlines_;
     bool overwrite_;
+    MeterFileNaming naming_;
 
     void printShells(Meter *meter, vector<string> &envs);
-    void printFiles(Meter *meter, string &human_readable, string &fields, string &json);
+    void printFiles(Meter *meter, Telegram *t, string &human_readable, string &fields, string &json);
 
 };

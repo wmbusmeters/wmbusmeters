@@ -23,7 +23,8 @@ using namespace std;
 Printer::Printer(bool json, bool fields, char separator,
                  bool use_meterfiles, string &meterfiles_dir,
                  bool use_logfile, string &logfile,
-                 vector<string> shell_cmdlines, bool overwrite)
+                 vector<string> shell_cmdlines, bool overwrite,
+                 MeterFileNaming naming)
 {
     json_ = json;
     fields_ = fields;
@@ -34,6 +35,7 @@ Printer::Printer(bool json, bool fields, char separator,
     logfile_ = logfile;
     shell_cmdlines_ = shell_cmdlines;
     overwrite_ = overwrite;
+    naming_ = naming;
 }
 
 void Printer::print(Telegram *t, Meter *meter)
@@ -49,12 +51,12 @@ void Printer::print(Telegram *t, Meter *meter)
         printed = true;
     }
     if (use_meterfiles_) {
-        printFiles(meter, human_readable, fields, json);
+        printFiles(meter, t, human_readable, fields, json);
         printed = true;
     }
     if (!printed) {
         // This will print on stdout or in the logfile.
-        printFiles(meter, human_readable, fields, json);
+        printFiles(meter, t, human_readable, fields, json);
     }
 }
 
@@ -72,14 +74,24 @@ void Printer::printShells(Meter *meter, vector<string> &envs)
     }
 }
 
-void Printer::printFiles(Meter *meter, string &human_readable, string &fields, string &json)
+void Printer::printFiles(Meter *meter, Telegram *t, string &human_readable, string &fields, string &json)
 {
     FILE *output = stdout;
 
     if (use_meterfiles_) {
         char filename[128];
         memset(filename, 0, sizeof(filename));
-        snprintf(filename, 127, "%s/%s", meterfiles_dir_.c_str(), meter->name().c_str());
+        switch (naming_) {
+        case MeterFileNaming::Name:
+            snprintf(filename, 127, "%s/%s", meterfiles_dir_.c_str(), meter->name().c_str());
+            break;
+        case MeterFileNaming::Id:
+            snprintf(filename, 127, "%s/%s", meterfiles_dir_.c_str(), t->id.c_str());
+            break;
+        case MeterFileNaming::NameId:
+            snprintf(filename, 127, "%s/%s-%s", meterfiles_dir_.c_str(), meter->name().c_str(), t->id.c_str());
+            break;
+        }
         const char *mode = overwrite_ ? "w" : "a";
         output = fopen(filename, mode);
         if (!output) {

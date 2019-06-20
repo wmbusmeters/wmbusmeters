@@ -31,6 +31,11 @@ enum class MeterFileType
     Overwrite, Append
 };
 
+enum class MeterFileNaming
+{
+    Name, Id, NameId
+};
+
 struct Configuration {
     bool daemon {};
     std::string pid_file;
@@ -47,6 +52,7 @@ struct Configuration {
     bool meterfiles {};
     std::string meterfiles_dir;
     MeterFileType meterfiles_action {};
+    MeterFileNaming meterfiles_naming {};
     bool use_logfile {};
     std::string logfile;
     bool json {};

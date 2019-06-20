@@ -34,6 +34,7 @@ logtelegrams=false
 format=json
 meterfiles=/var/log/wmbusmeters/meter_readings
 meterfilesaction=overwrite
+meterfilesnaming=name
 logfile=/var/log/wmbusmeters/wmbusmeters.log
 shell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters/$METER_ID -m "$METER_JSON"
 ```
@@ -103,6 +104,7 @@ As <options> you can use:
     --logtelegrams log the contents of the telegrams for easy replay
     --meterfiles=<dir> store meter readings in dir
     --meterfilesaction=(overwrite|append) overwrite or append to the meter readings file
+    --meterfilesnaming=(name|id|name-id) the meter file is the meter's: name, id or name-id
     --n1a to --n1f listen to N1 messages (perhaps)
     --oneshot wait for an update from each meter, then quit
     --separator=<c> change field separator to c

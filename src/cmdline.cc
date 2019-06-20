@@ -180,24 +180,6 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--meterfiles", 12)) {
-            c->meterfiles = true;
-            if (strlen(argv[i]) > 12 && argv[i][12] == '=') {
-                size_t len = strlen(argv[i])-13;
-                if (len > 0) {
-                    c->meterfiles_dir = string(argv[i]+13, len);
-                } else {
-                    c->meterfiles_dir = "/tmp";
-                }
-            } else {
-                c->meterfiles_dir = "/tmp";
-            }
-            if (!checkIfDirExists(c->meterfiles_dir.c_str())) {
-                error("Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir.c_str());
-            }
-            i++;
-            continue;
-        }
         if (!strncmp(argv[i], "--meterfilesaction", 18)) {
             if (strlen(argv[i]) > 18 && argv[i][18] == '=') {
                 if (!strncmp(argv[i]+19, "overwrite", 9)) {
@@ -209,6 +191,47 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
                 }
             } else {
                 error("Incorrect option %s\n", argv[i]);
+            }
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--meterfilesnaming", 18)) {
+            if (strlen(argv[i]) > 18 && argv[i][18] == '=') {
+                if (!strncmp(argv[i]+19, "name-id", 7))
+                {
+                    c->meterfiles_naming = MeterFileNaming::NameId;
+                }
+                else if (!strncmp(argv[i]+19, "name", 4))
+                {
+                    c->meterfiles_naming = MeterFileNaming::Name;
+                }
+                else if (!strncmp(argv[i]+19, "id", 2))
+                {
+                    c->meterfiles_naming = MeterFileNaming::Id;
+                } else
+                {
+                    error("No such meter file naming %s\n", argv[i]+19);
+                }
+            } else {
+                error("Incorrect option %s\n", argv[i]);
+            }
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--meterfiles") ||
+            (!strncmp(argv[i], "--meterfiles", 12) &&
+             strlen(argv[i]) > 12 &&
+             argv[i][12] == '='))
+        {
+            c->meterfiles = true;
+            size_t len = strlen(argv[i]);
+            if (len > 13) {
+                c->meterfiles_dir = string(argv[i]+13, len-13);
+            } else {
+                c->meterfiles_dir = "/tmp";
+            }
+            if (!checkIfDirExists(c->meterfiles_dir.c_str())) {
+                error("Cannot write meter files into dir \"%s\"\n", c->meterfiles_dir.c_str());
             }
             i++;
             continue;
