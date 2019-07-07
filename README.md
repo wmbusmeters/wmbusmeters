@@ -160,7 +160,7 @@ Electricity meter Kamstrup Omnipower (omnipower)
 The wmbus dongles imst871a can only listen on one type of wmbus telegrams at a time.
 Thus you can listen to multiple meters as long as they all require the same radio mode C1 or T1.
 
-However if you use amb8465 or rtlwmbus, then you can listen to both C1 and T1 telegrams at the same time.
+However if you use amb8465 or rtlwmbus, then you can listen to both C1 and T1 telegrams at the same time. Alas rtl_wmbus does have problems receiving C1 telegrams, T1 telegrams work ok though.
 
 # Usage examples
 
@@ -245,6 +245,7 @@ will listen and print the header information of any telegram it hears.
 You must specify the listening mode.
 
 With an rtlwmbus or amb8465 dongle: `wmbusmeters --listento=c1,t1 auto`
+(Alas rtl_wmbus does have problems receiving C1 telegrams, T1 telegrams work ok though.)
 
 With an imst871a dongle: `wmbusmeters --listento=c1 auto`
 
