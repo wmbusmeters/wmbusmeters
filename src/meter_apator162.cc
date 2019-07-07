@@ -65,7 +65,8 @@ MeterApator162::MeterApator162(WMBus *bus, MeterInfo &mi) :
 
 double MeterApator162::totalWaterConsumption(Unit u)
 {
-    return total_water_consumption_m3_;
+    assertQuantity(u, Quantity::Volume);
+    return convert(total_water_consumption_m3_, Unit::M3, u);
 }
 
 bool MeterApator162::hasTotalWaterConsumption()
