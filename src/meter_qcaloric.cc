@@ -71,6 +71,16 @@ MeterQCaloric::MeterQCaloric(WMBus *bus, MeterInfo &mi) :
              "Heat cost allocation at the most recent billing period date.",
              true, true);
 
+    addPrint("set_date_1", Quantity::Text,
+             [&](){ return setDate(); },
+             "The 1 billing period date.",
+             false, true);
+
+    addPrint("consumption_at_set_date_1", Quantity::HCA,
+             [&](Unit u){ return consumptionAtSetDate(u); },
+             "Heat cost allocation at the 1 billing period date.",
+             false, true);
+
     addPrint("set_date_17", Quantity::Text,
              [&](){ return set_date_17_; },
              "The 17 billing period date.",

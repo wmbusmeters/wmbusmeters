@@ -57,17 +57,17 @@ MeterEurisII::MeterEurisII(WMBus *bus, MeterInfo &mi) :
              "The current heat cost allocation.",
              true, true);
 
-    addPrint("consumption_at_set_date", Quantity::HCA,
-             [&](Unit u){ return consumption_at_set_date_hca_[0]; },
-             "Heat cost allocation at the most recent billing period date.",
-             false, true);
-
     addPrint("set_date", Quantity::Text,
              [&](){ return setDate(); },
              "The most recent billing period date.",
              true, true);
 
-    for (int i=2; i<=17; ++i)
+    addPrint("consumption_at_set_date", Quantity::HCA,
+             [&](Unit u){ return consumption_at_set_date_hca_[0]; },
+             "Heat cost allocation at the most recent billing period date.",
+             false, true);
+
+    for (int i=1; i<=17; ++i)
     {
         string msg, info;
         strprintf(msg, "consumption_at_set_date_%d", i);
