@@ -221,6 +221,9 @@ METER_MAX_FLOW_M3H
 METER_TIMESTAMP
 ```
 
+Note that the METER_TIMESTAMP and the timestamp in the json output, is in UTC format, this is not your localtime.
+However the hr and fields output will print your localtime.
+
 You can add `shell=commandline` to a meter file stored in wmbusmeters.d, then this meter will use
 this shell command instead of the command stored in wmbusmeters.conf.
 
