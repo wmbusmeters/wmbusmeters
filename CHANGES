@@ -1,3 +1,8 @@
+Version 0.9.12: 2019-08-12
+
+Added experimental detection for apator162 where the total water consumption
+is located within the proprietary data.
+
 Version 0.9.11: 2019-06-20
 
 Added --meterfilesnaming=(name|id|name-id)
