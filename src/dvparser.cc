@@ -60,8 +60,7 @@ bool parseDV(Telegram *t,
              map<string,pair<int,DVEntry>> *values,
              vector<uchar>::iterator *format,
              size_t format_len,
-             uint16_t *format_hash,
-             function<int(int,int,int)> overrideDifLen)
+             uint16_t *format_hash)
 {
     map<string,int> dv_count;
     vector<uchar> format_bytes;
@@ -220,14 +219,6 @@ bool parseDV(Telegram *t,
             dv.append(hex);
         }
         DEBUG_PARSER("(dvparser debug) key \"%s\"\n", dv.c_str());
-
-        if (overrideDifLen) {
-            int new_len = overrideDifLen(dif, vif, datalen);
-            if (new_len != datalen) {
-                DEBUG_PARSER("(dvparser debug) changing len %d to %d for dif=%02x vif=%02x\n", datalen, new_len, dif, vif);
-                datalen = new_len;
-            }
-        }
 
         int count = ++dv_count[dv];
         if (count > 1) {

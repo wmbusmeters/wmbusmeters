@@ -1749,7 +1749,7 @@ string vif_FD_ExtensionType(uchar dif, uchar vif, uchar vife)
         return "Date and time of battery change";
     }
 
-    if ((vife & 0x7f) >= 0x70) {
+    if ((vife & 0x7f) >= 0x71) {
         return "Reserved";
     }
     return "?";

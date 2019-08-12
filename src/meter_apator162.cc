@@ -87,17 +87,29 @@ void MeterApator162::processContent(Telegram *t)
     // data structures.
 
     // By examining some telegrams though, it looks like the total consumption
-    // counter is on offset 25. So we can fake a parse here, to make it easier
+    // counter is on offset 25 or 14. So we can fake a parse here, to make it easier
     // to extract using the existing tools.
     map<string,pair<int,DVEntry>> vendor_values;
 
     string total;
-    strprintf(total, "%02x%02x%02x%02x", t->content[25], t->content[26], t->content[27], t->content[28]);
+    // Current assumption of this proprietary protocol is that byte 13 tells
+    // us where the current total water consumption is located.
+    if (t->content[13] == 0x83) {
+        strprintf(total, "%02x%02x%02x%02x", t->content[25], t->content[26], t->content[27], t->content[28]);
+        debug("(apator162) Found 0x83 at offset 13 expect location of current total to be at offset 25: %s\n", total.c_str());
+    }
+    else if (t->content[13] == 0x10) {
+        strprintf(total, "%02x%02x%02x%02x", t->content[14], t->content[15], t->content[16], t->content[17]);
+        debug("(apator162) Found 0x10 at offset 13 expect location of current total to be at offset 14: %s\n", total.c_str());
+    } else {
+        warning("(apator162) Unknown value in proprietary(unknown) apator162 protocol. Found 0x%02x expected 0x10 or 0x83\n", t->content[13]);
+    }
     vendor_values["0413"] = { 25, DVEntry(0x13, 0, 0, 0, total) };
     int offset;
     string key;
     if(findKey(ValueInformation::Volume, 0, &key, &vendor_values)) {
         extractDVdouble(&vendor_values, key, &offset, &total_water_consumption_m3_);
-        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
+        //Adding explanation have to wait since it assumes that the dvparser could do something, but it could not here.
+        //t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 }

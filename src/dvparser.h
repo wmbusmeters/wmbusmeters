@@ -69,8 +69,7 @@ bool parseDV(Telegram *t,
              std::map<std::string,std::pair<int,DVEntry>> *values,
              std::vector<uchar>::iterator *format = NULL,
              size_t format_len = 0,
-             uint16_t *format_hash = NULL,
-             function<int(int,int,int)> overrideDifLen = NULL);
+             uint16_t *format_hash = NULL);
 
 // Instead of using a hardcoded difvif as key in the extractDV... below,
 // find an existing difvif entry in the values based on the desired value information type.
