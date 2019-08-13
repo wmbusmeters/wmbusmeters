@@ -180,7 +180,18 @@ void stopBackgroundShell(int pid)
 {
     assert(pid > 0);
 
-    int rc = kill(pid, SIGINT);
+    // This will actually stop the entire process group.
+    // But it is ok, for now, since this function is
+    // only called when wmbusmeters is exiting.
+
+    // If we send sigint only to pid, then this will
+    // not always propagate properly to the child processes
+    // of the bgshell, ie rtl_sdr and rtl_wmbus, thus
+    // leaving those hanging in limbo and messing everything up.
+    // The solution for now is to send sigint to 0, which
+    // menas send sigint to the whole process group that the
+    // sender belongs to.
+    int rc = kill(0, SIGINT);
     if (rc < 0) {
         debug("(bgshell) could not sigint pid %d, exited already?\n", pid);
         return;
