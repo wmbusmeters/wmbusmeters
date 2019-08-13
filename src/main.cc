@@ -409,6 +409,15 @@ void startDaemon(string pid_file)
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
 
+    if (open("/dev/null", O_RDONLY) == -1) {
+        error("Failed to reopen stdin while daemonising (errno=%d)",errno);
+    }
+    if (open("/dev/null", O_WRONLY) == -1) {
+        error("Failed to reopen stdout while daemonising (errno=%d)",errno);
+    }
+    if (open("/dev/null", O_RDWR) == -1) {
+        error("Failed to reopen stderr while daemonising (errno=%d)",errno);
+    }
     startUsingConfigFiles("", true);
 }
 
