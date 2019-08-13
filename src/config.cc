@@ -152,7 +152,7 @@ void handleDevice(Configuration *c, string device)
     // device can be:
     // /dev/ttyUSB00
     // auto
-    // rtlwmbus:/usr/bin/rtl_sdr -f 868.9M -s 1600000 - 2>/dev/null | /usr/bin/rtl_wmbus
+    // rtlwmbus:/usr/bin/rtl_sdr -f 868.9M -s 1600000 - | /usr/bin/rtl_wmbus
     // simulation....txt (read telegrams from file)
     size_t p = device.find (':');
     if (p != string::npos)

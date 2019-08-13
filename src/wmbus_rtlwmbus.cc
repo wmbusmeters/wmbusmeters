@@ -31,7 +31,7 @@
 
 using namespace std;
 
-enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame };
+enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
 
 struct WMBusRTLWMBUS : public WMBus {
     bool ping();
@@ -139,6 +139,10 @@ void WMBusRTLWMBUS::processSerialData()
 
     FrameStatus status = checkRTLWMBUSFrame(read_buffer_, &frame_length, &hex_payload_len, &hex_payload_offset);
 
+    if (status == TextAndNotFrame) {
+        // The buffer has already been printed by serial cmd.
+        read_buffer_.clear();
+    } else
     if (status == ErrorInFrame) {
         debug("(rtlwmbus) error in received message.\n");
         string msg = bin2hex(read_buffer_);
@@ -202,8 +206,10 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     if (data.size() < 10) return ErrorInFrame;
 
     if (data[0] != '0' || data[1] != 'x') {
-        // Discard lines that are not T1 or C1 telegrams
-        if (data[0] != 'T' && data[0] != 'C') return ErrorInFrame;
+        // Discard lines that do not begin with T1 or C1, these lines are probably
+        // stderr output from rtl_sdr/rtl_wmbus.
+        if (!(data[0] == 'T' && data[1] == '1') &&
+            !(data[0] == 'C' && data[1] == '1')) return TextAndNotFrame;
 
         // And the checksums should match.
         if (strncmp((const char*)&data[1], "1;1", 3)) {
