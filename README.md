@@ -86,12 +86,12 @@ depending on if you are running as a daemon or not.
 # Running without config files, good for experimentation and test.
 
 ```
-wmbusmeters version: 0.9.9
+wmbusmeters version: 0.9.13
 Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type]{:<modes>} [meter_id] [meter_key] )*
 
 As <options> you can use:
 
-    --addconversions=<unit>,<unit> change/add units for the meter output
+    --addconversions=<unit>+ add conversion to these units to json and meter env variables (GJ)
     --debug for a lot of information
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
@@ -105,7 +105,6 @@ As <options> you can use:
     --meterfiles=<dir> store meter readings in dir
     --meterfilesaction=(overwrite|append) overwrite or append to the meter readings file
     --meterfilesnaming=(name|id|name-id) the meter file is the meter's: name, id or name-id
-    --n1a to --n1f listen to N1 messages (perhaps)
     --oneshot wait for an update from each meter, then quit
     --separator=<c> change field separator to c
     --shell=<cmdline> invokes cmdline with env variables containing the latest reading
