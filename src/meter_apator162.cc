@@ -94,7 +94,7 @@ void MeterApator162::processContent(Telegram *t)
     string total;
     // Current assumption of this proprietary protocol is that byte 13 tells
     // us where the current total water consumption is located.
-    if (t->content[13] == 0x83) {
+    if (t->content[13] == 0x83 || t->content[13] == 0x82) {
         strprintf(total, "%02x%02x%02x%02x", t->content[25], t->content[26], t->content[27], t->content[28]);
         debug("(apator162) Found 0x83 at offset 13 expect location of current total to be at offset 25: %s\n", total.c_str());
     }
