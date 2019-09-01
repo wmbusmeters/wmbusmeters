@@ -280,6 +280,27 @@ void MeterMultical21::processContent(Telegram *t)
     // 0F vife (?)
     // 03 external temperature (3.000000 °C)
 
+    // 14: 02 dif (16 Bit Integer/Binary Instantaneous value)
+    // 15: FF vif (Vendor extension)
+    // 16: 20 vife (per second)
+    // 17: * 0008 info codes ((leak 9-24 hours))
+    // 19: 04 dif (32 Bit Integer/Binary Instantaneous value)
+    // 1a: 13 vif (Volume l)
+    // 1b: * 1F090100 total consumption (67.871000 m3)
+    // 1f: 44 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+    // 20: 13 vif (Volume l)
+    // 21: * EBF00000 target consumption (61.675000 m3)
+    // 25: A1 dif (8 Bit Integer/Binary Minimum value)
+    // 26: 01 dife (subunit=0 tariff=0 storagenr=2)
+    // 27: 5B vif (Flow temperature °C)
+    // 28: * 09 flow temperature (9.000000 °C)
+    // 29: 81 dif (8 Bit Integer/Binary Instantaneous value)
+    // 2a: 01 dife (subunit=0 tariff=0 storagenr=2)
+    // 2b: E7 vif (External temperature °C)
+    // 2c: FF vife (additive correction constant: unit of VIF * 10^0)
+    // 2d: 0F vife (?)
+    // 2e: * 0D external temperature (13.000000 °C)
+
     string meter_name = toMeterName(type()).c_str();
     vector<uchar>::iterator bytes = t->content.begin();
 
@@ -319,6 +340,11 @@ void MeterMultical21::processContent(Telegram *t)
             {
                 hex2bin("02FF20041392013BA1015B8101E7FF0F", &format_bytes);
                 debug("(%s) using hard coded format for hash c412\n", meter_name.c_str());
+            }
+            else if (format_signature == 0x61eb)
+            {
+                hex2bin("02FF2004134413A1015B8101E7FF0F", &format_bytes);
+                debug("(%s) using hard coded format for hash 61eb\n", meter_name.c_str());
             }
             else
             {
