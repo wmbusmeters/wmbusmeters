@@ -94,16 +94,30 @@ void MeterApator162::processContent(Telegram *t)
     string total;
     // Current assumption of this proprietary protocol is that byte 13 tells
     // us where the current total water consumption is located.
-    if ((t->content[13] & 0x80) == 0x80) {
-        strprintf(total, "%02x%02x%02x%02x", t->content[25], t->content[26], t->content[27], t->content[28]);
-        debug("(apator162) Found 0x80 bit set at offset 13 expect location of current total to be at offset 25: %s\n", total.c_str());
+    int o = 0;
+    if ((t->content[13] & 0x80) == 0x80)
+    {
+        o = 25;
     }
-    else if ((t->content[13] & 0x10) == 0x10) {
-        strprintf(total, "%02x%02x%02x%02x", t->content[14], t->content[15], t->content[16], t->content[17]);
-        debug("(apator162) Found bit 0x10 set at offset 13 expect location of current total to be at offset 14: %s\n", total.c_str());
-    } else {
-        warning("(apator162) Unknown value in proprietary(unknown) apator162 protocol. Found 0x%02x expected bit 0x10 or 0x80 to be set.\n", t->content[13]);
+    else
+    if ((t->content[13] & 0x40) == 0x40)
+    {
+        o = 22;
     }
+    else
+    if ((t->content[13] & 0x10) == 0x10)
+    {
+        o = 14;
+    }
+    else
+    {
+        warning("(apator162) Unknown value in proprietary(unknown) apator162 protocol. Ignoring telegram. Found 0x%02x expected bit 0x10, 0x40 or 0x80 to be set.\n", t->content[13]);
+        return;
+    }
+
+    strprintf(total, "%02x%02x%02x%02x", t->content[o], t->content[o+1], t->content[o+2], t->content[o+3]);
+    debug("(apator162) Guessing offset to be %d from byte 0x%02x: total %s\n", o, t->content[13], total.c_str());
+
     vendor_values["0413"] = { 25, DVEntry(0x13, 0, 0, 0, total) };
     int offset;
     string key;
