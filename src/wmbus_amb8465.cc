@@ -371,11 +371,16 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
     {
         Telegram t;
         t.parse(frame);
-        for (auto f : telegram_listeners_) {
-            if (f) f(&t);
-            if (isVerboseEnabled() && !t.handled) {
-                verbose("(amb8465) telegram ignored by all configured meters!\n");
-            }
+        bool handled = false;
+        for (auto f : telegram_listeners_)
+        {
+            Telegram copy = t;
+            if (f) f(&copy);
+            if (copy.handled) handled = true;
+        }
+        if (isVerboseEnabled() && !handled)
+        {
+            verbose("(amb8465) telegram ignored by all configured meters!\n");
         }
         break;
     }

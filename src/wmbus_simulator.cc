@@ -186,10 +186,14 @@ void WMBusSimulator::simulate()
         Telegram t;
         t.parse(payload);
         t.markAsSimulated();
+        bool handled = false;
         for (auto f : telegram_listeners_) {
-            if (f) f(&t);
+            Telegram copy = t;
+            if (f) f(&copy);
+            if (copy.handled) handled = true;
         }
-        if (isVerboseEnabled() && !t.handled) {
+        if (isVerboseEnabled() && !handled)
+        {
             verbose("(wmbus simulator) telegram ignored by all configured meters!\n");
         }
     }

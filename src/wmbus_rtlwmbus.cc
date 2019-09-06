@@ -176,12 +176,16 @@ void WMBusRTLWMBUS::handleMessage(vector<uchar> &frame)
 {
     Telegram t;
     t.parse(frame);
+    bool handled = false;
     for (auto f : telegram_listeners_)
     {
-        if (f) f(&t);
-        if (isVerboseEnabled() && !t.handled) {
-            verbose("(rtlwmbus) telegram ignored by all configured meters!\n");
-        }
+        Telegram copy = t;
+        if (f) f(&copy);
+        if (copy.handled) handled = true;
+    }
+    if (isVerboseEnabled() && !handled)
+    {
+        verbose("(rtlwmbus) telegram ignored by all configured meters!\n");
     }
 }
 
