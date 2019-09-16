@@ -82,3 +82,23 @@ else
     echo Failure. Multiple ids3 bad
     exit 1
 fi
+
+
+cat $SIM | grep '^{' | grep -v 88563414 | grep -v 78563413 > $TEST/test_expected.txt
+
+$PROG --format=json $SIM \
+      Element qcaloric '*,!88563414,!78563413' '' \
+      > $TEST/test_output.txt
+
+if [ "$?" == "0" ]
+then
+    cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
+    diff $TEST/test_expected.txt $TEST/test_responses.txt
+    if [ "$?" == "0" ]
+    then
+        echo Negated ids OK
+    fi
+else
+    echo Failure. Negated ids bad
+    exit 1
+fi
