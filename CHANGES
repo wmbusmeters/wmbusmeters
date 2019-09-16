@@ -1,3 +1,14 @@
+
+Version 0.9.14: 2019-09-16
+
+Added negative match rule for ids. You can now write:
+id=78*,!7812345*,!78222222
+which will match any meter whose id begins with 78
+but not match any meter whose id begins with 7812345,
+nor the meter with the exact id 78222222.
+
+The order of the match rules does not matter.
+
 Version 0.9.13: 2019-08-14
 
 Fix bug that prevented rtl_wmbus to run inside daemon.

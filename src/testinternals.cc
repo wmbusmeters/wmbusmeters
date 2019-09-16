@@ -31,6 +31,7 @@ using namespace std;
 int test_crc();
 int test_dvparser();
 int test_linkmodes();
+void test_ids();
 
 int main(int argc, char **argv)
 {
@@ -41,6 +42,7 @@ int main(int argc, char **argv)
     test_crc();
     test_dvparser();
     test_linkmodes();
+    test_ids();
     return 0;
 }
 
@@ -316,4 +318,69 @@ int test_linkmodes()
     debug("test7 OK\n\n");
 
     return 0;
+}
+
+void test_valid_match_expression(string s, bool expected)
+{
+    bool b = isValidMatchExpressions(s, false);
+    if (b == expected) return;
+    if (expected == true)
+    {
+        printf("ERROR! Expected \"%s\" to be valid! But it was not!\n", s.c_str());
+    }
+    else
+    {
+        printf("ERROR! Expected \"%s\" to be invalid! But it was reported as valid!\n", s.c_str());
+    }
+}
+
+void test_does_id_match_expression(string id, string mes, bool expected)
+{
+    vector<string> expressions = splitMatchExpressions(mes);
+    bool b = doesIdMatchExpressions(id, expressions);
+    if (b == expected) return;
+    if (expected == true)
+    {
+        printf("ERROR! Expected \"%s\" to match \"%s\" ! But it did not!\n", id.c_str(), mes.c_str());
+    }
+    else
+    {
+        printf("ERROR! Expected \"%s\" to NOT match \"%s\" ! But it did!\n", id.c_str(), mes.c_str());
+    }
+}
+
+void test_ids()
+{
+    test_valid_match_expression("12345678", true);
+    test_valid_match_expression("*", true);
+    test_valid_match_expression("!12345678", true);
+    test_valid_match_expression("12345*", true);
+    test_valid_match_expression("!123456*", true);
+
+    test_valid_match_expression("1234567", false);
+    test_valid_match_expression("", false);
+    test_valid_match_expression("z1234567", false);
+    test_valid_match_expression("123456789", false);
+    test_valid_match_expression("!!12345678", false);
+    test_valid_match_expression("12345678*", false);
+    test_valid_match_expression("**", false);
+    test_valid_match_expression("123**", false);
+
+    test_valid_match_expression("2222*,!22224444", true);
+
+    test_does_id_match_expression("12345678", "12345678", true);
+    test_does_id_match_expression("12345678", "*", true);
+    test_does_id_match_expression("12345678", "2*", false);
+
+    test_does_id_match_expression("12345678", "*,!2*", true);
+
+    test_does_id_match_expression("22222222", "22*,!22222222", false);
+    test_does_id_match_expression("22222223", "22*,!22222222", true);
+    test_does_id_match_expression("22222223", "*,!22*", false);
+    test_does_id_match_expression("12333333", "123*,!1234*,!1235*,!1236*", true);
+    test_does_id_match_expression("12366666", "123*,!1234*,!1235*,!1236*", false);
+    test_does_id_match_expression("11223344", "22*,33*,44*,55*", false);
+    test_does_id_match_expression("55223344", "22*,33*,44*,55*", true);
+
+    test_does_id_match_expression("78563413", "78563412,78563413", true);
 }

@@ -26,9 +26,11 @@ else
 fi
 
 cat $SIM | grep '^{' | grep 8856 > $TEST/test_expected.txt
+
 $PROG --format=json $SIM \
       Element qcaloric '8856*' '' \
       > $TEST/test_output.txt
+
 
 if [ "$?" == "0" ]
 then

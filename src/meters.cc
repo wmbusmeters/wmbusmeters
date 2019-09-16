@@ -29,7 +29,7 @@ MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
     type_(type), name_(mi.name), bus_(bus)
 {
     use_aes_ = true;
-    ids_ = splitIds(mi.id);
+    ids_ = splitMatchExpressions(mi.id);
     if (mi.key.length() == 0) {
         use_aes_ = false;
     } else {
@@ -169,26 +169,7 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
 {
     debug("(meter) %s: for me? %s\n", name_.c_str(), t->id.c_str());
 
-    bool id_match = false;
-    for (auto id : ids_)
-    {
-        if (id == t->id) {
-            id_match = true;
-            break;
-        }
-        if (id == "*") {
-            id_match = true;
-            break;
-        }
-        if (id.length() > 1 && id.back() == '*')
-        {
-            if (t->id.length() >= id.length())
-            {
-                string prefix = t->id.substr(0, id.length()-1);
-                id_match = !strncmp(prefix.c_str(), id.c_str(), id.length()-1);
-            }
-        }
-    }
+    bool id_match = doesIdMatchExpressions(t->id, ids_);
 
     if (!id_match) {
         // The id must match.

@@ -70,11 +70,15 @@ bool isLogTelegramsEnabled();
 void debugPayload(std::string intro, std::vector<uchar> &payload);
 void logTelegram(std::string intro, std::vector<uchar> &header, std::vector<uchar> &content);
 
-bool isValidId(std::string& id);
+bool isValidMatchExpression(std::string id, bool non_compliant);
+bool isValidMatchExpressions(std::string ids, bool non_compliant);
+bool doesIdMatchExpression(std::string id, std::string match);
+bool doesIdMatchExpressions(std::string& id, std::vector<std::string>& ids);
+
 bool isValidKey(std::string& key);
 bool isFrequency(std::string& fq);
 
-std::vector<std::string> splitIds(std::string& id);
+std::vector<std::string> splitMatchExpressions(std::string& mes);
 
 void incrementIV(uchar *iv, size_t len);
 

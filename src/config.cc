@@ -116,8 +116,8 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         warning("Not a valid meter type \"%s\"\n", type.c_str());
         use = false;
     }
-    if (!isValidId(id)) {
-        warning("Not a valid meter id \"%s\"\n", id.c_str());
+    if (!isValidMatchExpression(id, false)) {
+        warning("Not a valid meter id nor a valid meter match expression \"%s\"\n", id.c_str());
         use = false;
     }
     if (!isValidKey(key)) {

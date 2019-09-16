@@ -371,20 +371,163 @@ void error(const char* fmt, ...)
     exit(1);
 }
 
-bool isValidId(string& ids)
+bool isValidMatchExpression(string me, bool non_compliant)
 {
-    vector<string> v = splitIds(ids);
+    // Examples of valid match expressions:
+    //  12345678
+    //  *
+    //  123*
+    // !12345677
+    //  2222222*
+    // !22222222
 
-    for (auto id : v)
+    // A match expression cannot be empty.
+    if (me.length() == 0) return false;
+
+    // An me can be negated with an exclamation mark first.
+    if (me.front() == '!') me.erase(0, 1);
+
+    // A match expression cannot be only a negation mark.
+    if (me.length() == 0) return false;
+
+    int count = 0;
+    if (non_compliant)
     {
-        if (id == "*") return true;
-        if (id.back() == '*') return true;
-        if (id.length() != 8) return false;
-        for (int i=0; i<8; ++i) {
-            if (id[i]<'0' || id[i]>'9') return false;
+        // Some non-compliant meters have full hex in the me....
+        while (me.length() > 0 &&
+               ((me.front() >= '0' && me.front() <= '9') ||
+                (me.front() >= 'a' && me.front() <= 'f')))
+        {
+            me.erase(0,1);
+            count++;
         }
     }
+    else
+    {
+        // But compliant meters use only a bcd subset.
+        while (me.length() > 0 &&
+               (me.front() >= '0' && me.front() <= '9'))
+        {
+            me.erase(0,1);
+            count++;
+        }
+    }
+
+    bool wildcard_used = false;
+    // An expression can end with a *
+    if (me.length() > 0 && me.front() == '*')
+    {
+        me.erase(0,1);
+        wildcard_used = true;
+    }
+
+    // Now we should have eaten the whole expression.
+    if (me.length() > 0) return false;
+
+    // Check the length of the matching bcd/hex
+    // If no wildcard is used, then the match expression must be exactly 8 digits.
+    if (!wildcard_used) return count == 8;
+
+    // If wildcard is used, then the match expressions must be 7 or less digits,
+    // even zero is allowed which means a single *, which matches any bcd/hex id.
+    return count <= 7;
+}
+
+bool isValidMatchExpressions(string mes, bool non_compliant)
+{
+    vector<string> v = splitMatchExpressions(mes);
+
+    for (string me : v)
+    {
+        if (!isValidMatchExpression(me, non_compliant)) return false;
+    }
     return true;
+}
+
+bool doesIdMatchExpression(string id, string match)
+{
+    if (id.length() == 0) return false;
+
+    // Here we assume that the match expression has been
+    // verified to be valid.
+    bool can_match = true;
+
+    // Now match bcd/hex until end of id, or '*' in match.
+    while (id.length() > 0 && match.length() > 0 && match.front() != '*')
+    {
+        if (id.front() != match.front())
+        {
+            // We hit a difference, it cannot match.
+            can_match = false;
+            break;
+        }
+        id.erase(0,1);
+        match.erase(0,1);
+    }
+
+    bool wildcard_used = false;
+    if (match.front() == '*')
+    {
+        wildcard_used = true;
+        match.erase(0,1);
+    }
+
+    if (can_match)
+    {
+        // Ok, now the match expression should be empty.
+        // If wildcard is true, then the id can still have digits,
+        // otherwise it must also be empty.
+        if (wildcard_used)
+        {
+            can_match = match.length() == 0;
+        }
+        else
+        {
+            can_match = match.length() == 0 && id.length() == 0;
+        }
+    }
+
+    return can_match;
+}
+
+bool doesIdMatchExpressions(string& id, vector<string>& mes)
+{
+    bool found_match = false;
+    bool found_negative_match = false;
+
+    // Goes through all possible match expressions.
+    // If no expression matches, neither positive nor negative,
+    // then the result is false. (ie no match)
+
+    // If more than one positive match is found, and no negative,
+    // then the result is true.
+
+    // If more than one negative match is found, irrespective
+    // if there is any positive matches or not, then the result is false.
+
+    for (string me : mes)
+    {
+        bool is_negative_rule = (me.length() > 0 && me.front() == '!');
+        if (is_negative_rule)
+        {
+            me.erase(0, 1);
+        }
+
+        bool m = doesIdMatchExpression(id, me);
+
+        if (is_negative_rule)
+        {
+            if (m) found_negative_match = true;
+        }
+        else
+        {
+            if (m) found_match = true;
+        }
+    }
+
+    if (found_negative_match) return false;
+    if (found_match) return true;
+    return false;
 }
 
 bool isValidKey(string& key)
@@ -406,11 +549,11 @@ bool isFrequency(std::string& fq)
     return true;
 }
 
-vector<string> splitIds(string& ids)
+vector<string> splitMatchExpressions(string& mes)
 {
     vector<string> r;
     bool eof, err;
-    vector<uchar> v (ids.begin(), ids.end());
+    vector<uchar> v (mes.begin(), mes.end());
     auto i = v.begin();
 
     for (;;) {

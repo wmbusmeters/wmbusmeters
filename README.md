@@ -56,7 +56,9 @@ The latest reading of the meter can also be found here: /var/log/wmbusmeters/met
 
 You can use several ids using `id=1111111,2222222,3333333` or you can listen to all
 meters of a certain type `id=*` or you can suffix with star `id=8765*` to match
-all meters with a given prefix.
+all meters with a given prefix. If you supply at least one positive match rule, then you
+can add negative match rules as well. For example `id=*,!2222*`
+which will match all meter ids, except those that begin with 2222.
 
 If you are running on a Raspberry PI with flash storage and you relay the data to
 another computer using a shell command (mosquitto_pub or curl or similar) then you might want to remove

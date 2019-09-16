@@ -338,7 +338,7 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         mt = toMeterType(type);
 
         if (mt == MeterType::UNKNOWN) error("Not a valid meter type \"%s\"\n", type.c_str());
-        if (!isValidId(id)) error("Not a valid meter id \"%s\"\n", id.c_str());
+        if (!isValidMatchExpressions(id, false)) error("Not a valid id nor a valid meter match expression \"%s\"\n", id.c_str());
         if (!isValidKey(key)) error("Not a valid meter key \"%s\"\n", key.c_str());
         vector<string> no_meter_shells;
         c->meters.push_back(MeterInfo(name, type, id, key, modes, no_meter_shells));
