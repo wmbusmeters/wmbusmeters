@@ -166,6 +166,12 @@ However if you use amb8465 or rtlwmbus, then you can listen to both C1 and T1 te
 # Usage examples
 
 ```
+wmbusmeters --listento=t1 /dev/ttyUSB1
+```
+
+Simply runs a scan with mode T1 to search for meters and print the IDs
+
+```
 wmbusmeters /dev/ttyUSB0 MyTapWater multical21:c1 12345678 00112233445566778899AABBCCDDEEFF
 ```
 
