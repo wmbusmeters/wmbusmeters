@@ -354,7 +354,8 @@ bool extractDVuint16(map<string,pair<int,DVEntry>> *values,
 bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                      string key,
                      int *offset,
-                     double *value)
+                     double *value,
+                     bool auto_scale)
 {
     if ((*values).count(key) == 0) {
         verbose("(dvparser) warning: cannot extract double from non-existant key \"%s\"\n", key.c_str());
@@ -402,7 +403,8 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                 + ((unsigned int)v[1])*256
                 + ((unsigned int)v[0]);
         }
-        double scale = vifScale(vif);
+        double scale = 1.0;
+        if (auto_scale) scale = vifScale(vif);
         *value = ((double)raw) / scale;
     }
     else
@@ -443,7 +445,8 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                 + (v[0]-'0')*10 + (v[1]-'0');
         }
 
-        double scale = vifScale(vif);
+        double scale = 1.0;
+        if (auto_scale) scale = vifScale(vif);
         *value = ((double)raw) / scale;
     }
     else

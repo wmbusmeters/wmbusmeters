@@ -31,6 +31,7 @@
     X(eurisii,    T1_bit, HeatCostAllocation, EURISII, EurisII) \
     X(flowiq3100, C1_bit, Water,       FLOWIQ3100,  Multical21)   \
     X(iperl,      T1_bit, Water,       IPERL,       Iperl)        \
+    X(lansenth,   T1_bit, TempHygro,   LANSENTH,    LansenTH)     \
     X(mkradio3,   T1_bit, Water,       MKRADIO3,    MKRadio3)     \
     X(multical21, C1_bit, Water,       MULTICAL21,  Multical21)   \
     X(multical302,C1_bit, Heat,        MULTICAL302, Multical302)  \
@@ -152,6 +153,20 @@ struct HeatCostMeter : public virtual Meter {
     virtual double consumptionAtSetDate(Unit u);
 };
 
+struct TempMeter : public virtual Meter {
+    virtual double currentTemperature(Unit u) = 0; // °C
+    virtual ~TempMeter() = default;
+};
+
+struct HygroMeter : public virtual Meter {
+    virtual double currentRelativeHumidity() = 0; // RH
+    virtual ~HygroMeter() = default;
+};
+
+struct TempHygroMeter : public virtual TempMeter, public virtual HygroMeter {
+    virtual ~TempHygroMeter() = default;
+};
+
 struct GenericMeter : public virtual Meter {
 };
 
@@ -170,6 +185,7 @@ unique_ptr<WaterMeter> createApator162(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createIperl(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createEurisII(WMBus *bus, MeterInfo &m);
+unique_ptr<TempHygroMeter> createLansenTH(WMBus *bus, MeterInfo &m);
 GenericMeter *createGeneric(WMBus *bus, MeterInfo &m);
 
 #endif

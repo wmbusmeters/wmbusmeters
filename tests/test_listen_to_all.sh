@@ -51,6 +51,9 @@ Received telegram from: 58234965
 Received telegram from: 88018801
           manufacturer: (INE) INNOTAS Elektronik, Germany
            device type: Heat Cost Allocator
+Received telegram from: 00010203
+          manufacturer: (LAS) Lansen Systems, Sweden
+           device type: Room sensor (eg temperature or humidity)
 EOF
 
 EXPECTED=$(cat $LOGFILE_EXPECTED)

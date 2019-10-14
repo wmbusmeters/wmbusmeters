@@ -19,6 +19,7 @@ $PROG --format=json simulations/simulation_t1.txt \
       Duschen     mkradio3    34333231 "" \
       HeatMeter   vario451    58234965 "" \
       HeatMeter   eurisii     88018801 "" \
+      Tempoo      lansenth    00010203 "" \
       > $TEST/test_output.txt
 if [ "$?" == "0" ]
 then

@@ -48,3 +48,8 @@ telegram=|374468506549235827C3A2|129F25383300A8622600008200800A2AF86211517555287
 
 telegram=|7644C52501880188550872|01880188C5255508010000002F2F0B6E332211426E110182016E1102C2016E110382026E1104C2026E110582036E1106C2036E110782046E1108C2046E110982056E1110C2056E111182066E1112C2066E111382076E1114C2076E111582086E1116C2086E111702FD172100|
 {"media":"heat cost allocation","meter":"eurisii","name":"HeatMeter","id":"88018801","current_consumption_hca":112233,"set_date":"","consumption_at_set_date_hca":273,"consumption_at_set_date_1_hca":273,"consumption_at_set_date_2_hca":529,"consumption_at_set_date_3_hca":785,"consumption_at_set_date_4_hca":1041,"consumption_at_set_date_5_hca":1297,"consumption_at_set_date_6_hca":1553,"consumption_at_set_date_7_hca":1809,"consumption_at_set_date_8_hca":2065,"consumption_at_set_date_9_hca":2321,"consumption_at_set_date_10_hca":4113,"consumption_at_set_date_11_hca":4369,"consumption_at_set_date_12_hca":4625,"consumption_at_set_date_13_hca":4881,"consumption_at_set_date_14_hca":5137,"consumption_at_set_date_15_hca":5393,"consumption_at_set_date_16_hca":5649,"consumption_at_set_date_17_hca":5905,"error_flags":"MEASUREMENT RESET","timestamp":"1111-11-11T11:11:11Z"}
+
+# Test Lansen Temperature Hygrometer telegrsm
+
+telegram=|2e44333003020100071b7a634820252f2f0265840842658308820165950802fb1aae0142fb1aae018201fb1aa9012f|
+{"media":"room sensor","meter":"lansenth","name":"Tempoo","id":"00010203","current_temperature_c":21.8,"current_relative_humidity_rh":43,"temperature_at_set_date_1_c":21.79,"relative_humidity_at_set_date_1_rh":43,"temperature_at_set_date_2_c":21.97,"relative_humidity_at_set_date_2_rh":42.5,"timestamp":"1111-11-11T11:11:11Z"}

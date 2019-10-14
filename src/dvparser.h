@@ -89,7 +89,8 @@ bool extractDVuint16(std::map<std::string,std::pair<int,DVEntry>> *values,
 bool extractDVdouble(std::map<std::string,std::pair<int,DVEntry>> *values,
                     std::string key,
                     int *offset,
-                    double *value);
+                    double *value,
+                    bool auto_scale = true);
 
 bool extractDVstring(std::map<std::string,std::pair<int,DVEntry>> *values,
                      std::string key,
