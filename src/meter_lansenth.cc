@@ -131,7 +131,7 @@ void MeterLansenTH::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(ValueInformation::ExternalTemperature, 0, &key, &values))
+    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 0, &key, &values))
     {
         extractDVdouble(&values, key, &offset, &current_temperature_c_);
         t->addMoreExplanation(offset, " current temperature (%f C)", current_temperature_c_);
@@ -139,7 +139,7 @@ void MeterLansenTH::processContent(Telegram *t)
 
     for (int i=1; i<=2; ++i)
     {
-        if (findKey(ValueInformation::ExternalTemperature, i, &key, &values))
+        if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, i, &key, &values))
         {
             string info;
             strprintf(info, " temperature at set date %d (%%f c)", i);

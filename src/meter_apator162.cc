@@ -118,10 +118,10 @@ void MeterApator162::processContent(Telegram *t)
     strprintf(total, "%02x%02x%02x%02x", t->content[o], t->content[o+1], t->content[o+2], t->content[o+3]);
     debug("(apator162) Guessing offset to be %d from byte 0x%02x: total %s\n", o, t->content[13], total.c_str());
 
-    vendor_values["0413"] = { 25, DVEntry(0x13, 0, 0, 0, total) };
+    vendor_values["0413"] = { 25, DVEntry(MeasurementType::Instantaneous, 0x13, 0, 0, 0, total) };
     int offset;
     string key;
-    if(findKey(ValueInformation::Volume, 0, &key, &vendor_values)) {
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &vendor_values)) {
         extractDVdouble(&vendor_values, key, &offset, &total_water_consumption_m3_);
         //Adding explanation have to wait since it assumes that the dvparser could do something, but it could not here.
         //t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);

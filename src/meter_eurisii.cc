@@ -217,13 +217,13 @@ void MeterEurisII::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(ValueInformation::HeatCostAllocation, 0, &key, &values))
+    if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, 0, &key, &values))
     {
         extractDVdouble(&values, key, &offset, &current_consumption_hca_);
         t->addMoreExplanation(offset, " current consumption (%f hca)", current_consumption_hca_);
     }
 
-    if (findKey(ValueInformation::Date, 1, &key, &values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::Date, 1, &key, &values)) {
         struct tm date;
         extractDVdate(&values, key, &offset, &date);
         set_date_ = strdate(&date);
@@ -232,7 +232,7 @@ void MeterEurisII::processContent(Telegram *t)
 
     for (int i=1; i<=17; ++i)
     {
-        if (findKey(ValueInformation::HeatCostAllocation, i, &key, &values))
+        if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, i, &key, &values))
         {
             string info;
             strprintf(info, " consumption at set date %d (%%f hca)", i);

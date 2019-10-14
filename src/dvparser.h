@@ -49,6 +49,7 @@ const char *ValueInformatioName(ValueInformation v);
 
 struct DVEntry
 {
+    MeasurementType type {};
     int value_information {};
     int storagenr {};
     int tariff {};
@@ -56,8 +57,8 @@ struct DVEntry
     string value;
 
     DVEntry() {}
-    DVEntry(int vi, int st, int ta, int su, string &val) :
-        value_information(vi), storagenr(st), tariff(ta), subunit(su), value(val) {}
+    DVEntry(MeasurementType mt, int vi, int st, int ta, int su, string &val) :
+    type(mt), value_information(vi), storagenr(st), tariff(ta), subunit(su), value(val) {}
 };
 
 bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes);
@@ -75,7 +76,7 @@ bool parseDV(Telegram *t,
 // find an existing difvif entry in the values based on the desired value information type.
 // Like: Volume, VolumeFlow, FlowTemperature, ExternalTemperature etc
 // in combination with the storagenr. (Later I will add tariff/subunit)
-bool findKey(ValueInformation vi, int storagenr, std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
+bool findKey(MeasurementType mt, ValueInformation vi, int storagenr, std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
 #define ANY_STORAGENR -1
 
 bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string key);

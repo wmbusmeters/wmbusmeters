@@ -811,6 +811,18 @@ string difType(int dif)
     return s;
 }
 
+MeasurementType difMeasurementType(int dif)
+{
+    int t = dif & 0x30;
+    switch (t) {
+    case 0x00: return MeasurementType::Instantaneous;
+    case 0x10: return MeasurementType::Maximum;
+    case 0x20: return MeasurementType::Minimum;
+    case 0x30: return MeasurementType::AtError;
+    }
+    assert(0);
+}
+
 string vifType(int vif)
 {
     int extension = vif & 0x80;
@@ -2231,6 +2243,18 @@ string linkModeName(LinkMode link_mode)
         }
     }
     return "UnknownLinkMode";
+}
+
+string measurementTypeName(MeasurementType mt)
+{
+    switch (mt) {
+    case MeasurementType::Instantaneous: return "instantaneous";
+    case MeasurementType::Maximum: return "maximum";
+    case MeasurementType::Minimum: return "minimum";
+    case MeasurementType::AtError: return "aterror";
+    case MeasurementType::Unknown: return "unknown";
+    }
+    assert(0);
 }
 
 WMBus::~WMBus() {

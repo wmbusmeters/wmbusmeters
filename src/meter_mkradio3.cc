@@ -86,7 +86,7 @@ void MKRadio3::processContent(Telegram *t)
     string prevs;
     strprintf(prevs, "%02x%02x", prev_lo, prev_hi);
     int offset = t->parsed.size()+3;
-    vendor_values["0215"] = { offset, DVEntry(0x15, 0, 0, 0, prevs) };
+    vendor_values["0215"] = { offset, DVEntry(MeasurementType::Instantaneous, 0x15, 0, 0, 0, prevs) };
     t->explanations.push_back({ offset, prevs });
     t->addMoreExplanation(offset, " prev consumption (%f m3)", prev);
 
@@ -97,7 +97,7 @@ void MKRadio3::processContent(Telegram *t)
     string currs;
     strprintf(currs, "%02x%02x", curr_lo, curr_hi);
     offset = t->parsed.size()+7;
-    vendor_values["0215"] = { offset, DVEntry(0x15, 0, 0, 0, currs) };
+    vendor_values["0215"] = { offset, DVEntry(MeasurementType::Instantaneous, 0x15, 0, 0, 0, currs) };
     t->explanations.push_back({ offset, currs });
     t->addMoreExplanation(offset, " curr consumption (%f m3)", curr);
 

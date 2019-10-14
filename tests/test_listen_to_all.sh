@@ -54,6 +54,9 @@ Received telegram from: 88018801
 Received telegram from: 00010203
           manufacturer: (LAS) Lansen Systems, Sweden
            device type: Room sensor (eg temperature or humidity)
+Received telegram from: 11772288
+          manufacturer: (BMT) BMETERS, Italy
+           device type: Room sensor (eg temperature or humidity)
 EOF
 
 EXPECTED=$(cat $LOGFILE_EXPECTED)

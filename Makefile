@@ -103,6 +103,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_mkradio3.o \
 	$(BUILD)/meter_vario451.o \
 	$(BUILD)/meter_lansenth.o \
+	$(BUILD)/meter_rfmamb.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \

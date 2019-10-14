@@ -36,6 +36,7 @@
     X(multical21, C1_bit, Water,       MULTICAL21,  Multical21)   \
     X(multical302,C1_bit, Heat,        MULTICAL302, Multical302)  \
     X(omnipower,  C1_bit, Electricity, OMNIPOWER,   Omnipower)    \
+    X(rfmamb,     T1_bit, TempHygro,   RFMAMB,      RfmAmb)       \
     X(qcaloric,   C1_bit, HeatCostAllocation, QCALORIC, QCaloric) \
     X(supercom587,T1_bit, Water,       SUPERCOM587, Supercom587)  \
     X(vario451,   T1_bit, Heat,        VARIO451,    Vario451)     \
@@ -186,6 +187,7 @@ unique_ptr<WaterMeter> createIperl(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createEurisII(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createLansenTH(WMBus *bus, MeterInfo &m);
+unique_ptr<TempHygroMeter> createRfmAmb(WMBus *bus, MeterInfo &m);
 GenericMeter *createGeneric(WMBus *bus, MeterInfo &m);
 
 #endif

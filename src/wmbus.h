@@ -116,6 +116,15 @@ enum class EncryptionMode
     AES_CTR
 };
 
+enum class MeasurementType
+{
+    Unknown,
+    Instantaneous,
+    Minimum,
+    Maximum,
+    AtError
+};
+
 using namespace std;
 
 struct Telegram {
@@ -234,7 +243,9 @@ double extract16bitAsDouble(int dif, int vif, int vife, string data);
 double extract32bitAsDouble(int dif, int vif, int vife, string data);
 
 int difLenBytes(int dif);
+MeasurementType difMeasurementType(int dif);
 
 string linkModeName(LinkMode link_mode);
+string measurementTypeName(MeasurementType mt);
 
 #endif

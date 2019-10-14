@@ -70,7 +70,7 @@ void MeterSupercom587::processContent(Telegram *t)
     int offset;
     string key;
 
-    if(findKey(ValueInformation::Volume, 0, &key, &values)) {
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &values)) {
         extractDVdouble(&values, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }

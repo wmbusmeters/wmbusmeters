@@ -125,12 +125,12 @@ void MeterAmiplus::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(ValueInformation::EnergyWh, 0, &key, &values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::EnergyWh, 0, &key, &values)) {
         extractDVdouble(&values, key, &offset, &total_energy_kwh_);
         t->addMoreExplanation(offset, " total energy (%f kwh)", total_energy_kwh_);
     }
 
-    if (findKey(ValueInformation::PowerW, 0, &key, &values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::PowerW, 0, &key, &values)) {
         extractDVdouble(&values, key, &offset, &current_power_kw_);
         t->addMoreExplanation(offset, " current power (%f kw)", current_power_kw_);
     }
@@ -141,7 +141,7 @@ void MeterAmiplus::processContent(Telegram *t)
     extractDVdouble(&values, "0BAB3C", &offset, &current_power_returned_kw_);
     t->addMoreExplanation(offset, " current power returned (%f kw)", current_power_returned_kw_);
 
-    if (findKey(ValueInformation::DateTime, 0, &key, &values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, &key, &values)) {
         struct tm datetime;
         extractDVdate(&values, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);
