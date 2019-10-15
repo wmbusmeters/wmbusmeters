@@ -202,7 +202,7 @@ struct WMBus {
     virtual ~WMBus() = 0;
 };
 
-#define LIST_OF_MBUS_DEVICES X(DEVICE_IM871A)X(DEVICE_AMB8465)X(DEVICE_SIMULATOR)X(DEVICE_RTLWMBUS)X(DEVICE_UNKNOWN)
+#define LIST_OF_MBUS_DEVICES X(DEVICE_IM871A)X(DEVICE_AMB8465)X(DEVICE_SIMULATOR)X(DEVICE_RTLWMBUS)X(DEVICE_RAWTTY)X(DEVICE_UNKNOWN)
 
 enum MBusDeviceType {
 #define X(name) name,
@@ -212,7 +212,7 @@ LIST_OF_MBUS_DEVICES
 
 // The detect function can be supplied the device "auto" and will try default locations for the device.
 // Returned is the type and the found device string.
-pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationManager *manager);
+pair<MBusDeviceType,string> detectMBusDevice(string devstr, string suffix, SerialCommunicationManager *manager);
 
 unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager);
 unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager, SerialDevice *serial);
@@ -222,6 +222,8 @@ struct WMBusSimulator;
 unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager, std::function<void()> on_exit);
 unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager, SerialDevice *serial, std::function<void()> on_exit);
 unique_ptr<WMBus> openSimulator(string file, SerialCommunicationManager *manager);
+unique_ptr<WMBus> openRawTTY(string device, int baudrate, SerialCommunicationManager *manager);
+unique_ptr<WMBus> openRawTTY(string device, SerialCommunicationManager *manager, SerialDevice *serial);
 
 string manufacturer(int m_field);
 string manufacturerFlag(int m_field);

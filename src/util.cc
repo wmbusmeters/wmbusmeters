@@ -549,6 +549,16 @@ bool isFrequency(std::string& fq)
     return true;
 }
 
+bool isNumber(std::string& fq)
+{
+    int len = fq.length();
+    if (len == 0) return false;
+    for (int i=0; i<len; ++i) {
+        if (!isdigit(fq[i])) return false;
+    }
+    return true;
+}
+
 vector<string> splitMatchExpressions(string& mes)
 {
     vector<string> r;

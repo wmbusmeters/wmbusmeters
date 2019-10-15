@@ -44,7 +44,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager {
     SerialCommunicationManagerImp(time_t exit_after_seconds);
     ~SerialCommunicationManagerImp() { }
 
-    unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate);
+    unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate = 0);
     unique_ptr<SerialDevice> createSerialDeviceCommand(string command, vector<string> args, vector<string> envs,
                                                        function<void()> on_exit);
     unique_ptr<SerialDevice> createSerialDeviceSimulator();
@@ -388,7 +388,8 @@ void *SerialCommunicationManagerImp::startLoop(void *a) {
     return t->eventLoop();
 }
 
-unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device, int baud_rate) {
+unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device, int baud_rate)
+{
     return unique_ptr<SerialDevice>(new SerialDeviceTTY(device, baud_rate, this));
 }
 

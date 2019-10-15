@@ -210,7 +210,7 @@ bool startUsingCommandline(Configuration *config)
 
     unique_ptr<WMBus> wmbus;
 
-    auto type_and_device = detectMBusDevice(config->device, manager.get());
+    auto type_and_device = detectMBusDevice(config->device, config->device_extra, manager.get());
 
     switch (type_and_device.first) {
     case DEVICE_IM871A:
@@ -224,6 +224,10 @@ bool startUsingCommandline(Configuration *config)
     case DEVICE_SIMULATOR:
         verbose("(simulator) found %s\n", type_and_device.second.c_str());
         wmbus = openSimulator(type_and_device.second, manager.get());
+        break;
+    case DEVICE_RAWTTY:
+        verbose("(rawtty) found %s\n", type_and_device.second.c_str());
+        wmbus = openRawTTY(type_and_device.second, atoi(config->device_extra.c_str()), manager.get());
         break;
     case DEVICE_RTLWMBUS:
     {

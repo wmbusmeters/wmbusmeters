@@ -77,6 +77,7 @@ bool doesIdMatchExpressions(std::string& id, std::vector<std::string>& ids);
 
 bool isValidKey(std::string& key);
 bool isFrequency(std::string& fq);
+bool isNumber(std::string& fq);
 
 std::vector<std::string> splitMatchExpressions(std::string& mes);
 

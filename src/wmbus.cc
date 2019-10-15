@@ -412,13 +412,8 @@ bool detectIM871A(string device, SerialCommunicationManager *handler);
 bool detectAMB8465(string device, SerialCommunicationManager *handler);
 bool detectRTLSDR(string device, SerialCommunicationManager *handler);
 
-pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationManager *handler)
+pair<MBusDeviceType,string> detectMBusDevice(string device, string suffix, SerialCommunicationManager *handler)
 {
-    // If auto, then assume that uev has been configured with
-    // with the file: `/etc/udev/rules.d/99-usb-serial.rules` containing
-    // SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="im871a",MODE="0660", GROUP="yourowngroup"
-    // SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", SYMLINK+="amb8465",MODE="0660", GROUP="yourowngroup"
-
     if (device == "rtlwmbus")
     {
         return { DEVICE_RTLWMBUS, "" };
@@ -472,6 +467,16 @@ pair<MBusDeviceType,string> detectMBusDevice(string device, SerialCommunicationM
     // If not auto, then test the device, is it a character device?
     checkCharacterDeviceExists(device.c_str(), true);
 
+    if (suffix != "")
+    {
+        // There is a suffix, then we know what this is.
+        if (suffix == "amb8465") return { DEVICE_AMB8465, device };
+        if (suffix == "im871a") return { DEVICE_IM871A, device };
+        // If the suffix is a number, then assume that it is a baud rate
+        // for a raw tty setting.
+        if (isNumber(suffix)) return { DEVICE_RAWTTY, device };
+        error("Unknown device suffix %s\n", suffix.c_str());
+    }
     // If im87a is tested first, a delay of 1s must be inserted
     // before amb8465 is tested, lest it will not respond properly.
     // It really should not matter, but perhaps is the uart of the amber

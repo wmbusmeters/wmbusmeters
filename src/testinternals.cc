@@ -202,11 +202,13 @@ int test_linkmodes()
     auto serial1 = manager->createSerialDeviceSimulator();
     auto serial2 = manager->createSerialDeviceSimulator();
     auto serial3 = manager->createSerialDeviceSimulator();
+    auto serial4 = manager->createSerialDeviceSimulator();
     vector<string> no_meter_shells;
 
     unique_ptr<WMBus> wmbus_im871a = openIM871A("", manager.get(), serial1.release());
     unique_ptr<WMBus> wmbus_amb8465 = openAMB8465("", manager.get(), serial2.release());
     unique_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS("", manager.get(), serial3.release(), [](){});
+    unique_ptr<WMBus> wmbus_rawtty = openRawTTY("/dev/ttyACM", manager.get(), serial4.release());
 
     Configuration nometers_config;
     // Check that if no meters are supplied then you must set a link mode.
@@ -384,4 +386,20 @@ void test_ids()
 
     test_does_id_match_expression("78563413", "78563412,78563413", true);
     test_does_id_match_expression("78563413", "*,!00156327,!00048713", true);
+}
+
+void eq(string a, string b, const char *tn)
+{
+    if (a != b)
+    {
+        printf("ERROR in test %s expected \"%s\" to be equal to \"%s\"\n", tn, a.c_str(), b.c_str());
+    }
+}
+
+void eqn(int a, int b, const char *tn)
+{
+    if (a != b)
+    {
+        printf("ERROR in test %s expected %d to be equal to %d\n", tn, a, b);
+    }
 }
