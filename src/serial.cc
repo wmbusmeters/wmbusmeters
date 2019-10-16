@@ -41,10 +41,10 @@ struct SerialDeviceCommand;
 struct SerialDeviceSimulator;
 
 struct SerialCommunicationManagerImp : public SerialCommunicationManager {
-    SerialCommunicationManagerImp(time_t exit_after_seconds);
+    SerialCommunicationManagerImp(time_t exit_after_seconds, time_t reopen_after_seconds);
     ~SerialCommunicationManagerImp() { }
 
-    unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate = 0);
+    unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate);
     unique_ptr<SerialDevice> createSerialDeviceCommand(string command, vector<string> args, vector<string> envs,
                                                        function<void()> on_exit);
     unique_ptr<SerialDevice> createSerialDeviceSimulator();
@@ -57,6 +57,8 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager {
     void opened(SerialDeviceImp *sd);
     void closed(SerialDeviceImp *sd);
 
+    time_t reopenAfter() { return reopen_after_seconds_; }
+
 private:
     void *eventLoop();
     static void *startLoop(void *);
@@ -67,6 +69,7 @@ private:
     vector<SerialDevice*> devices_;
     time_t start_time_;
     time_t exit_after_seconds_;
+    time_t reopen_after_seconds_;
 };
 
 struct SerialDeviceImp : public SerialDevice {
@@ -88,6 +91,7 @@ struct SerialDeviceTTY : public SerialDeviceImp {
 
     bool open(bool fail_if_not_ok);
     void close();
+    void checkIfShouldReopen();
     bool send(vector<uchar> &data);
     int receive(vector<uchar> *data);
     SerialCommunicationManager *manager() { return manager_; }
@@ -99,13 +103,19 @@ struct SerialDeviceTTY : public SerialDeviceImp {
     pthread_mutex_t write_lock_ = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t read_lock_ = PTHREAD_MUTEX_INITIALIZER;
     SerialCommunicationManagerImp *manager_;
+    time_t start_since_reopen_;
+    int reopen_after_ {}; // Reopen the device repeatedly after this number of seconds.
+    // Necessary for some less than perfect dongles.
 };
 
 SerialDeviceTTY::SerialDeviceTTY(string device, int baud_rate,
-                                 SerialCommunicationManagerImp *manager) {
+                                 SerialCommunicationManagerImp *manager)
+{
     device_ = device;
     baud_rate_ = baud_rate;
     manager_ = manager;
+    start_since_reopen_ = time(NULL);
+    reopen_after_ = manager->reopenAfter();
 }
 
 SerialDeviceTTY::~SerialDeviceTTY()
@@ -138,6 +148,31 @@ void SerialDeviceTTY::close()
     fd_ = -1;
     manager_->closed(this);
     verbose("(serialtty) closed %s\n", device_.c_str());
+}
+
+void SerialDeviceTTY::checkIfShouldReopen()
+{
+    if (fd_ != -1)
+    {
+        time_t curr = time(NULL);
+        time_t diff = curr-start_since_reopen_;
+        int available = 0;
+
+        ioctl(fd_, FIONREAD, &available);
+        // Is it time to reopen AND there is no data available for reading?
+        if (diff > reopen_after_ && !available)
+        {
+            start_since_reopen_ = curr;
+
+            debug("(serialtty) reopened after %ld seconds\n", diff);
+            ::flock(fd_, LOCK_UN);
+            ::close(fd_);
+            fd_ = openSerialTTY(device_.c_str(), baud_rate_);
+            if (fd_ == -1) {
+                error("Could not re-open %s with %d baud N81\n", device_.c_str(), baud_rate_);
+            }
+        }
+    }
 }
 
 bool SerialDeviceTTY::send(vector<uchar> &data)
@@ -211,6 +246,7 @@ struct SerialDeviceCommand : public SerialDeviceImp
 
     bool open(bool fail_if_not_ok);
     void close();
+    void checkIfShouldReopen() {}
     bool send(vector<uchar> &data);
     int receive(vector<uchar> *data);
     int fd() { return fd_; }
@@ -361,6 +397,7 @@ struct SerialDeviceSimulator : public SerialDeviceImp
 
     bool open(bool fail_if_not_ok) { return true; };
     void close() { };
+    void checkIfShouldReopen() { }
     bool send(vector<uchar> &data) { return true; };
     int receive(vector<uchar> *data) { return 0; };
     int fd() { return 0; }
@@ -373,7 +410,8 @@ struct SerialDeviceSimulator : public SerialDeviceImp
     SerialCommunicationManagerImp *manager_;
 };
 
-SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_seconds)
+SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_seconds,
+                                                             time_t reopen_after_seconds)
 {
     running_ = true;
     max_fd_ = 0;
@@ -381,6 +419,7 @@ SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_s
     wakeMeUpOnSigChld(thread_);
     start_time_ = time(NULL);
     exit_after_seconds_ = exit_after_seconds;
+    reopen_after_seconds_ = reopen_after_seconds;
 }
 
 void *SerialCommunicationManagerImp::startLoop(void *a) {
@@ -388,7 +427,8 @@ void *SerialCommunicationManagerImp::startLoop(void *a) {
     return t->eventLoop();
 }
 
-unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device, int baud_rate)
+unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device,
+                                                                              int baud_rate)
 {
     return unique_ptr<SerialDevice>(new SerialDeviceTTY(device, baud_rate, this));
 }
@@ -474,6 +514,10 @@ void *SerialCommunicationManagerImp::eventLoop() {
             }
             timeout.tv_sec = exit_after_seconds_ - diff;
         }
+        for (SerialDevice *d : devices_) {
+            d->checkIfShouldReopen();
+        }
+
         int activity = select(max_fd_+1 , &readfds , NULL , NULL, &timeout);
 
         if (!running_) break;
@@ -499,9 +543,11 @@ void *SerialCommunicationManagerImp::eventLoop() {
     return NULL;
 }
 
-unique_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t exit_after_seconds)
+unique_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t exit_after_seconds,
+                                                                        time_t reopen_after_seconds)
 {
-    return unique_ptr<SerialCommunicationManager>(new SerialCommunicationManagerImp(exit_after_seconds));
+    return unique_ptr<SerialCommunicationManager>(new SerialCommunicationManagerImp(exit_after_seconds,
+                                                                                    reopen_after_seconds));
 }
 
 static int openSerialTTY(const char *tty, int baud_rate)

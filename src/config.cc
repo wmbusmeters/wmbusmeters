@@ -260,6 +260,22 @@ void handleFormat(Configuration *c, string format)
     }
 }
 
+void handleReopenAfter(Configuration *c, string s)
+{
+    if (s.length() >= 1)
+    {
+        c->reopenafter = parseTime(s.c_str());
+        if (c->reopenafter <= 0)
+        {
+            warning("Not a valid time to reopen after. \"%s\"\n", s.c_str());
+        }
+    }
+    else
+    {
+        warning("Reopen after must be a valid number of seconds.\n");
+    }
+}
+
 void handleSeparator(Configuration *c, string s)
 {
     if (s.length() == 1) {
@@ -319,6 +335,7 @@ unique_ptr<Configuration> loadConfiguration(string root)
         else if (p.first == "meterfilesnaming") handleMeterfilesNaming(c, p.second);
         else if (p.first == "logfile") handleLogfile(c, p.second);
         else if (p.first == "format") handleFormat(c, p.second);
+        else if (p.first == "reopenafter") handleReopenAfter(c, p.second);
         else if (p.first == "separator") handleSeparator(c, p.second);
         else if (p.first == "addconversions") handleConversions(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);

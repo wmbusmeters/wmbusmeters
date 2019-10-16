@@ -276,6 +276,14 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--reopenafter=", 12) && strlen(argv[i]) > 14) {
+            c->reopenafter = parseTime(argv[i]+14);
+            if (c->reopenafter <= 0) {
+                error("Not a valid time to reopen after. \"%s\"\n", argv[i]+14);
+            }
+            i++;
+            continue;
+        }
         if (!strcmp(argv[i], "--")) {
             i++;
             break;

@@ -33,6 +33,7 @@ struct SerialDevice
 {
     virtual bool open(bool fail_if_not_ok) = 0;
     virtual void close() = 0;
+    virtual void checkIfShouldReopen() = 0;
     virtual bool send(std::vector<uchar> &data) = 0;
     virtual int receive(std::vector<uchar> *data) = 0;
     virtual int fd() = 0;
@@ -55,6 +56,7 @@ struct SerialCommunicationManager
     virtual ~SerialCommunicationManager();
 };
 
-unique_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t exit_after_seconds);
+unique_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t exit_after_seconds = 0,
+                                                                        time_t reopen_after_seconds = 0);
 
 #endif

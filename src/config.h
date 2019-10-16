@@ -62,6 +62,7 @@ struct Configuration {
     bool list_shell_envs {};
     bool oneshot {};
     int  exitafter {}; // Seconds to exit.
+    int  reopenafter {}; // Re-open the serial device repeatedly. Silly dongle.
     string device; // auto, /dev/ttyUSB0, simulation.txt, rtlwmbus
     string device_extra; // The frequency or the command line that will start rtlwmbus
     string telegram_reader;

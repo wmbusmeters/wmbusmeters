@@ -195,6 +195,10 @@ bool startUsingCommandline(Configuration *config)
         verbose("(config) wmbusmeters will exit after %d seconds\n", config->exitafter);
     }
 
+    if (config->reopenafter != 0) {
+        verbose("(config) wmbusmeters close/open the wmbus dongle fd after every %d seconds\n", config->reopenafter);
+    }
+
     if (config->meterfiles) {
         verbose("(config) store meter files in: \"%s\"\n", config->meterfiles_dir.c_str());
     }
@@ -204,7 +208,7 @@ bool startUsingCommandline(Configuration *config)
     }
     verbose("(config) number of meters: %d\n", config->meters.size());
 
-    auto manager = createSerialCommunicationManager(config->exitafter);
+    auto manager = createSerialCommunicationManager(config->exitafter, config->reopenafter);
 
     onExit(call(manager.get(),stop));
 
