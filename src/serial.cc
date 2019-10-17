@@ -152,7 +152,7 @@ void SerialDeviceTTY::close()
 
 void SerialDeviceTTY::checkIfShouldReopen()
 {
-    if (fd_ != -1)
+    if (fd_ != -1 && reopen_after_ > 0)
     {
         time_t curr = time(NULL);
         time_t diff = curr-start_since_reopen_;
