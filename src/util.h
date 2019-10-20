@@ -119,4 +119,9 @@ AccessCheck checkIfExistsAndSameGroup(std::string device);
 // Count the number of 1:s in the binary number v.
 int countSetBits(int v);
 
+bool startsWith(std::string &s, const char *prefix);
+
+// Given alfa=beta it returns "alfa":"beta"
+std::string makeQuotedJson(std::string &s);
+
 #endif

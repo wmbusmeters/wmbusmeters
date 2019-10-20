@@ -31,7 +31,7 @@ struct Printer {
             bool overwrite,
             MeterFileNaming naming);
 
-    void print(Telegram *t, Meter *meter);
+    void print(Telegram *t, Meter *meter, vector<string> *more_json);
 
     private:
 

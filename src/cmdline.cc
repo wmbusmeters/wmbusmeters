@@ -258,6 +258,19 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--json_", 7))
+        {
+            // For example: --json_floor=42
+            string json = string(argv[i]+7);
+            if (json == "") {
+                error("The json command cannot be empty.\n");
+            }
+            // The extra "floor"="42" will be pushed to the json.
+            debug("Added json %s\n", json.c_str());
+            c->jsons.push_back(json);
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--shellenvs", 11)) {
             c->list_shell_envs = true;
             i++;
@@ -348,8 +361,8 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         if (mt == MeterType::UNKNOWN) error("Not a valid meter type \"%s\"\n", type.c_str());
         if (!isValidMatchExpressions(id, false)) error("Not a valid id nor a valid meter match expression \"%s\"\n", id.c_str());
         if (!isValidKey(key)) error("Not a valid meter key \"%s\"\n", key.c_str());
-        vector<string> no_meter_shells;
-        c->meters.push_back(MeterInfo(name, type, id, key, modes, no_meter_shells));
+        vector<string> no_meter_shells, no_meter_jsons;
+        c->meters.push_back(MeterInfo(name, type, id, key, modes, no_meter_shells, no_meter_jsons));
     }
 
     return unique_ptr<Configuration>(c);

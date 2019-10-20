@@ -41,6 +41,9 @@ MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
     for (auto s : mi.shells) {
         addShell(s);
     }
+    for (auto j : mi.jsons) {
+        addJson(j);
+    }
 }
 
 void MeterCommonImplementation::addConversions(std::vector<Unit> cs)
@@ -56,9 +59,19 @@ void MeterCommonImplementation::addShell(string cmdline)
     shell_cmdlines_.push_back(cmdline);
 }
 
+void MeterCommonImplementation::addJson(string json)
+{
+    jsons_.push_back(json);
+}
+
 vector<string> &MeterCommonImplementation::shellCmdlines()
 {
     return shell_cmdlines_;
+}
+
+vector<string> &MeterCommonImplementation::additionalJsons()
+{
+    return jsons_;
 }
 
 MeterType MeterCommonImplementation::type()
@@ -323,7 +336,8 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                                            string *human_readable,
                                            string *fields, char separator,
                                            string *json,
-                                           vector<string> *envs)
+                                           vector<string> *envs,
+                                           vector<string> *more_json)
 {
     *human_readable = concatFields(this, t, '\t', prints_, conversions_, true);
     *fields = concatFields(this, t, separator, prints_, conversions_, false);
@@ -356,6 +370,16 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         }
     }
     s += "\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
+    for (string add_json : additionalJsons())
+    {
+        s += ",";
+        s += makeQuotedJson(add_json);
+    }
+    for (string add_json : *more_json)
+    {
+        s += ",";
+        s += makeQuotedJson(add_json);
+    }
     s += "}";
     *json = s;
 
@@ -389,6 +413,16 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         }
     }
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
+    // If the configuration has supplied json_address=Roodroad 123
+    // then the env variable METER_address will available and have the content "Roodroad 123"
+    for (string add_json : additionalJsons())
+    {
+        envs->push_back(string("METER_")+add_json);
+    }
+    for (string add_json : *more_json)
+    {
+        envs->push_back(string("METER_")+add_json);
+    }
 }
 
 double WaterMeter::totalWaterConsumption(Unit u) { return -47.11; }

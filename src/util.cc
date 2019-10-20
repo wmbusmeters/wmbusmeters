@@ -967,3 +967,29 @@ int countSetBits(int v)
     }
     return n;
 }
+
+bool startsWith(string &s, const char *prefix)
+{
+    size_t len = strlen(prefix);
+    if (s.length() < len) return false;
+    if (s.length() == len) return s == prefix;
+    return !strncmp(&s[0], prefix, len);
+}
+
+string makeQuotedJson(string &s)
+{
+    size_t p = s.find('=');
+    string key, value;
+    if (p != string::npos)
+    {
+        key = s.substr(0,p);
+        value = s.substr(p+1);
+    }
+    else
+    {
+        key = s;
+        value = "";
+    }
+
+    return string("\"")+key+"\":\""+value+"\"";
+}

@@ -60,6 +60,15 @@ all meters with a given prefix. If you supply at least one positive match rule, 
 can add negative match rules as well. For example `id=*,!2222*`
 which will match all meter ids, except those that begin with 2222.
 
+You can add the static json data "address":"RoadenRd 456","city":"Stockholm" to every json message with the
+wmbusmeters.conf setting:
+```
+json_address=RoadenRd 456
+json_city=Stockholm
+```
+If you add `json_floor=5` to the meter file MyTapWater, then you can have the meter tailored
+static json "floor":"5" added to telegrams handled by that particular meter.
+
 If you are running on a Raspberry PI with flash storage and you relay the data to
 another computer using a shell command (mosquitto_pub or curl or similar) then you might want to remove
 `meterfiles` and `meterfilesaction` to minimize the writes to the local flash file system.
@@ -97,6 +106,7 @@ As <options> you can use:
     --debug for a lot of information
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
+    --json_xxx=yyy always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy
     --listento=<mode> tell the wmbus dongle to listen to this single link mode where mode can be
                       c1,t1,s1,s1m,n1a,n1b,n1c,n1d,n1e,n1f
     --listento=c1,t1,s1 tell the wmbus dongle to listen to these link modes
@@ -228,6 +238,7 @@ METER_TOTAL_M3
 METER_MAX_FLOW_M3H
 METER_TIMESTAMP
 ```
+(If you have supplied --json_floor=5 then you will also see METER_floor in the list)
 
 Note that the METER_TIMESTAMP and the timestamp in the json output, is in UTC format, this is not your localtime.
 However the hr and fields output will print your localtime.

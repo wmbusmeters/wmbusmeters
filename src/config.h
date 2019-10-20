@@ -36,7 +36,8 @@ enum class MeterFileNaming
     Name, Id, NameId
 };
 
-struct Configuration {
+struct Configuration
+{
     bool daemon {};
     std::string pid_file;
     bool useconfig {};
@@ -71,7 +72,8 @@ struct Configuration {
     bool link_mode_configured {};
     bool no_init {};
     std::vector<Unit> conversions;
-    vector<MeterInfo> meters;
+    std::vector<MeterInfo> meters;
+    std::vector<std::string> jsons; // Additional jsons to always add.
 
     ~Configuration() = default;
 };

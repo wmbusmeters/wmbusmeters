@@ -61,14 +61,16 @@ struct MeterInfo
     string key;
     LinkModeSet link_modes;
     vector<string> shells;
+    vector<string> jsons; // Additional static jsons that are added to each message.
 
-    MeterInfo(string n, string t, string i, string k, LinkModeSet lms, vector<string> &s)
+    MeterInfo(string n, string t, string i, string k, LinkModeSet lms, vector<string> &s, vector<string> &j)
     {
         name = n;
         type = t;
         id = i;
         key = k;
         shells = s;
+        jsons = j;
         link_modes = lms;
     }
 };
@@ -92,7 +94,8 @@ struct Meter
                             string *human_readable,
                             string *fields, char separator,
                             string *json,
-                            vector<string> *envs) = 0;
+                            vector<string> *envs,
+                            vector<string> *more_json) = 0;
 
     void handleTelegram(Telegram *t);
     virtual bool isTelegramForMe(Telegram *t) = 0;

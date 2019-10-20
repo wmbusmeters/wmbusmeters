@@ -73,7 +73,9 @@ protected:
     int expectedVersion();
     void addConversions(std::vector<Unit> cs);
     void addShell(std::string cmdline);
+    void addJson(std::string json);
     std::vector<std::string> &shellCmdlines();
+    std::vector<std::string> &additionalJsons();
     void addMedia(int media);
     void addLinkMode(LinkMode lm);
     void addManufacturer(int m);
@@ -88,7 +90,8 @@ protected:
                     string *human_readable,
                     string *fields, char separator,
                     string *json,
-                    vector<string> *envs);
+                    vector<string> *envs,
+                    vector<string> *more_json); // Add this json "key"="value" strings.
 
     virtual void processContent(Telegram *t) = 0;
 
@@ -109,6 +112,7 @@ private:
     LinkModeSet link_modes_ {};
     EncryptionMode enc_mode_ {};
     vector<string> shell_cmdlines_;
+    vector<string> jsons_;
 
 protected:
     std::map<std::string,std::pair<int,std::string>> values_;

@@ -88,6 +88,7 @@ As <options> you can use:
     --debug for a lot of information
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
+    --json_xxx=yyy always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy
     --listento=<mode> tell the wmbus dongle to listen to this single link mode where mode can be
                       c1,t1,s1,s1m,n1a,n1b,n1c,n1d,n1e,n1f
     --listento=c1,t1,s1 tell the wmbus dongle to listen to these link modes
@@ -311,7 +312,8 @@ LIST_OF_METERS
                                           &ignore1,
                                           &ignore2, config->separator,
                                           &ignore3,
-                                          &envs);
+                                          &envs,
+                                          &config->jsons);
                 printf("Environment variables provided to shell for meter %s:\n", m.type.c_str());
                 for (auto &e : envs) {
                     int p = e.find('=');
@@ -320,7 +322,7 @@ LIST_OF_METERS
                 }
                 exit(0);
             }
-            meters.back()->onUpdate([&](Telegram*t,Meter* meter) { output->print(t,meter); });
+            meters.back()->onUpdate([&](Telegram*t,Meter* meter) { output->print(t,meter,&config->jsons); });
             meters.back()->onUpdate([&](Telegram*t, Meter* meter) { oneshotCheck(config, manager.get(), t, meter, meters); });
         }
     } else {

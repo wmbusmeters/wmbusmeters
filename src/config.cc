@@ -50,10 +50,11 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     string key;
     string linkmodes;
     vector<string> shells;
+    vector<string> jsons;
 
     debug("(config) loading meter file %s\n", file.c_str());
     for (;;) {
-        auto p = getNextKeyValue(buf, i);
+        pair<string,string> p = getNextKeyValue(buf, i);
 
         if (p.first == "") break;
 
@@ -63,13 +64,20 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         else
         if (p.first == "id") id = p.second;
         else
-        if (p.first == "key") {
+        if (p.first == "key")
+        {
             key = p.second;
             debug("(config) key=<notprinted>\n");
         }
         else
         if (p.first == "shell") {
             shells.push_back(p.second);
+        }
+        else
+        if (startsWith(p.first, "json_"))
+        {
+            string keyvalue = p.first.substr(5)+"="+p.second;
+            jsons.push_back(keyvalue);
         }
         else
             warning("Found invalid key \"%s\" in meter config file\n", p.first.c_str());
@@ -125,7 +133,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         use = false;
     }
     if (use) {
-        c->meters.push_back(MeterInfo(name, type, id, key, modes, shells));
+        c->meters.push_back(MeterInfo(name, type, id, key, modes, shells, jsons));
     }
 
     return;
@@ -307,6 +315,11 @@ void handleShell(Configuration *c, string cmdline)
     c->shells.push_back(cmdline);
 }
 
+void handleJson(Configuration *c, string json)
+{
+    c->jsons.push_back(json);
+}
+
 unique_ptr<Configuration> loadConfiguration(string root)
 {
     Configuration *c = new Configuration;
@@ -339,6 +352,12 @@ unique_ptr<Configuration> loadConfiguration(string root)
         else if (p.first == "separator") handleSeparator(c, p.second);
         else if (p.first == "addconversions") handleConversions(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);
+        else if (startsWith(p.first, "json_"))
+        {
+            string s = p.first.substr(5);
+            string keyvalue = s+"="+p.second;
+            handleJson(c, keyvalue);
+        }
         else
         {
             warning("No such key: %s\n", p.first.c_str());

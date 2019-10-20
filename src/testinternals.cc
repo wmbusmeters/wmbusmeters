@@ -203,7 +203,7 @@ int test_linkmodes()
     auto serial2 = manager->createSerialDeviceSimulator();
     auto serial3 = manager->createSerialDeviceSimulator();
     auto serial4 = manager->createSerialDeviceSimulator();
-    vector<string> no_meter_shells;
+    vector<string> no_meter_shells, no_meter_jsons;
 
     unique_ptr<WMBus> wmbus_im871a = openIM871A("", manager.get(), serial1.release());
     unique_ptr<WMBus> wmbus_amb8465 = openAMB8465("", manager.get(), serial2.release());
@@ -233,7 +233,8 @@ int test_linkmodes()
     string apator162 = "apator162";
     apator_config.meters.push_back(MeterInfo("m1", apator162, "12345678", "",
                                              toMeterLinkModeSet(apator162),
-                                             no_meter_shells));
+                                             no_meter_shells,
+                                             no_meter_jsons));
 
     // Check that if no explicit link modes are provided to apator162, then
     // automatic deduction will fail, since apator162 can be configured to transmit
@@ -271,10 +272,12 @@ int test_linkmodes()
     string supercom587 = "supercom587";
     multical21_and_supercom587_config.meters.push_back(MeterInfo("m1", multical21, "12345678", "",
                                                                  toMeterLinkModeSet(multical21),
-                                                                 no_meter_shells));
+                                                                 no_meter_shells,
+                                                                 no_meter_jsons));
     multical21_and_supercom587_config.meters.push_back(MeterInfo("m2", supercom587, "12345678", "",
                                                                  toMeterLinkModeSet(supercom587),
-                                                                 no_meter_shells));
+                                                                 no_meter_shells,
+                                                                 no_meter_jsons));
 
     // Check that meters that transmit on two different link modes cannot be listened to
     // at the same time using im871a.
