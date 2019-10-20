@@ -40,18 +40,20 @@ private:
     void processContent(Telegram *t);
 
     double current_temperature_c_ {};
-    double temperature_at_set_date_c_[2]; // storage nr 1 and 2 stored at index 0 and 1.
-    double minimum_temperature_c_ {};
-    double maximum_temperature_c_ {};
-    double minimum_temperature_at_set_date_1_c_ {};
-    double maximum_temperature_at_set_date_1_c_ {};
+    double average_temperature_1h_c_ {};
+    double average_temperature_24h_c_ {};
+    double minimum_temperature_1h_c_ {};
+    double maximum_temperature_1h_c_ {};
+    double minimum_temperature_24h_c_ {};
+    double maximum_temperature_24h_c_ {};
 
     double current_relative_humidity_rh_ {};
-    double relative_humidity_at_set_date_rh_[2]; // storage nr 1 and 2 stored at index 0 and 1.
-    double minimum_relative_humidity_rh_ {};
-    double maximum_relative_humidity_rh_ {};
-    double minimum_relative_humidity_at_set_date_1_rh_ {};
-    double maximum_relative_humidity_at_set_date_1_rh_ {};
+    double average_relative_humidity_1h_rh_ {};
+    double average_relative_humidity_24h_rh_ {};
+    double minimum_relative_humidity_1h_rh_ {};
+    double maximum_relative_humidity_1h_rh_ {};
+    double minimum_relative_humidity_24h_rh_ {};
+    double maximum_relative_humidity_24h_rh_ {};
 
     string device_date_time_;
 };
@@ -72,22 +74,32 @@ MeterRfmAmb::MeterRfmAmb(WMBus *bus, MeterInfo &mi) :
              "The current temperature.",
              true, true);
 
-    addPrint("maximum_temperature", Quantity::Temperature,
+    addPrint("average_temperature_1h", Quantity::Temperature,
+             [this](Unit u){ return convert(average_temperature_1h_c_, Unit::C, u); },
+             "The average temperature for the last hour.",
+             false, true);
+
+    addPrint("average_temperature_24h", Quantity::Temperature,
+             [this](Unit u){ return convert(average_temperature_24h_c_, Unit::C, u); },
+             "The average temperature for the last 24 hours",
+             false, true);
+
+    addPrint("maximum_temperature_1h", Quantity::Temperature,
              [&](Unit u){ return maximumTemperature(u); },
              "The maximum temperature.",
-             true, true);
+             false, true);
 
-    addPrint("minimum_temperature", Quantity::Temperature,
+    addPrint("minimum_temperature_1h", Quantity::Temperature,
              [&](Unit u){ return minimumTemperature(u); },
              "The minimum temperature.",
              false, true);
 
-    addPrint("maximum_temperature_at_set_date_1", Quantity::Temperature,
+    addPrint("maximum_temperature_24h", Quantity::Temperature,
              [&](Unit u){ return maximumTemperatureAtSetDate1(u); },
              "The maximum temperature at set date 1.",
              false, true);
 
-    addPrint("minimum_temperature_at_set_date_1", Quantity::Temperature,
+    addPrint("minimum_temperature_24h", Quantity::Temperature,
              [&](Unit u){ return minimumTemperatureAtSetDate1(u); },
              "The minimum temperature at set date 1.",
              false, true);
@@ -97,43 +109,35 @@ MeterRfmAmb::MeterRfmAmb(WMBus *bus, MeterInfo &mi) :
              "The current relative humidity.",
              true, true);
 
-    addPrint("minimum_relative_humidity", Quantity::RelativeHumidity,
+    addPrint("average_relative_humidity_1h", Quantity::RelativeHumidity,
+             [this](Unit u){ return convert(average_relative_humidity_1h_rh_, Unit::RH, u); },
+             "The averate relative humidity for the last hours.",
+             false, true);
+
+    addPrint("average_relative_humidity_24h", Quantity::RelativeHumidity,
+             [this](Unit u){ return convert(average_relative_humidity_24h_rh_, Unit::RH, u); },
+             "The average relative humidity for the last 24 hours.",
+             false, true);
+
+    addPrint("minimum_relative_humidity_1h", Quantity::RelativeHumidity,
              [&](Unit u){ return minimumRelativeHumidity(); },
              "The minimum relative humidity.",
              false, true);
 
-    addPrint("maximum_relative_humidity", Quantity::RelativeHumidity,
+    addPrint("maximum_relative_humidity_1h", Quantity::RelativeHumidity,
              [&](Unit u){ return maximumRelativeHumidity(); },
              "The maximum relative humidity.",
              false, true);
 
-    addPrint("maximum_relative_humidity_at_set_date_1", Quantity::RelativeHumidity,
+    addPrint("maximum_relative_humidity_24h", Quantity::RelativeHumidity,
              [&](Unit u){ return maximumRelativeHumidityAtSetDate1(); },
              "The maximum relative humidity at set date 1.",
              false, true);
 
-    addPrint("minimum_relative_humidity_at_set_date_1", Quantity::RelativeHumidity,
+    addPrint("minimum_relative_humidity_24h", Quantity::RelativeHumidity,
              [&](Unit u){ return minimumRelativeHumidityAtSetDate1(); },
              "The minimum relative humidity at set date 1.",
              false, true);
-
-    for (int i=1; i<=2; ++i)
-    {
-        string msg, info;
-        strprintf(msg, "temperature_at_set_date_%d", i);
-        strprintf(info, "Temperature at the %d billing period date change.", i);
-        addPrint(msg, Quantity::Temperature,
-                 [this,i](Unit u){ return temperature_at_set_date_c_[i-1]; },
-                 info,
-                 false, true);
-
-        strprintf(msg, "relative_humidity_at_set_date_%d", i);
-        strprintf(info, "Relative humidity at the %d billing period date change.", i);
-        addPrint(msg, Quantity::RelativeHumidity,
-                 [this,i](Unit u){ return relative_humidity_at_set_date_rh_[i-1]; },
-                 info,
-                 false, true);
-    }
 
     addPrint("device_date_time", Quantity::Text,
              [&](){ return device_date_time_; },
@@ -157,25 +161,25 @@ double MeterRfmAmb::currentTemperature(Unit u)
 double MeterRfmAmb::maximumTemperature(Unit u)
 {
     assertQuantity(u, Quantity::Temperature);
-    return convert(maximum_temperature_c_, Unit::C, u);
+    return convert(maximum_temperature_1h_c_, Unit::C, u);
 }
 
 double MeterRfmAmb::minimumTemperature(Unit u)
 {
     assertQuantity(u, Quantity::Temperature);
-    return convert(minimum_temperature_c_, Unit::C, u);
+    return convert(minimum_temperature_1h_c_, Unit::C, u);
 }
 
 double MeterRfmAmb::maximumTemperatureAtSetDate1(Unit u)
 {
     assertQuantity(u, Quantity::Temperature);
-    return convert(maximum_temperature_at_set_date_1_c_, Unit::C, u);
+    return convert(maximum_temperature_24h_c_, Unit::C, u);
 }
 
 double MeterRfmAmb::minimumTemperatureAtSetDate1(Unit u)
 {
     assertQuantity(u, Quantity::Temperature);
-    return convert(minimum_temperature_at_set_date_1_c_, Unit::C, u);
+    return convert(minimum_temperature_24h_c_, Unit::C, u);
 }
 
 double MeterRfmAmb::currentRelativeHumidity()
@@ -185,22 +189,22 @@ double MeterRfmAmb::currentRelativeHumidity()
 
 double MeterRfmAmb::maximumRelativeHumidity()
 {
-    return maximum_relative_humidity_rh_;
+    return maximum_relative_humidity_1h_rh_;
 }
 
 double MeterRfmAmb::minimumRelativeHumidity()
 {
-    return minimum_relative_humidity_rh_;
+    return minimum_relative_humidity_1h_rh_;
 }
 
 double MeterRfmAmb::maximumRelativeHumidityAtSetDate1()
 {
-    return maximum_relative_humidity_at_set_date_1_rh_;
+    return maximum_relative_humidity_24h_rh_;
 }
 
 double MeterRfmAmb::minimumRelativeHumidityAtSetDate1()
 {
-    return minimum_relative_humidity_at_set_date_1_rh_;
+    return minimum_relative_humidity_24h_rh_;
 }
 
 void MeterRfmAmb::processContent(Telegram *t)
@@ -275,44 +279,45 @@ void MeterRfmAmb::processContent(Telegram *t)
 
     if (findKey(MeasurementType::Maximum, ValueInformation::ExternalTemperature, 0, &key, &values))
     {
-        extractDVdouble(&values, key, &offset, &maximum_temperature_c_);
-        t->addMoreExplanation(offset, " maximum temperature (%f C)", maximum_temperature_c_);
+        extractDVdouble(&values, key, &offset, &maximum_temperature_1h_c_);
+        t->addMoreExplanation(offset, " maximum temperature 1h (%f C)", maximum_temperature_1h_c_);
     }
 
     if (findKey(MeasurementType::Minimum, ValueInformation::ExternalTemperature, 0, &key, &values))
     {
-        extractDVdouble(&values, key, &offset, &minimum_temperature_c_);
-        t->addMoreExplanation(offset, " minimum temperature (%f C)", minimum_temperature_c_);
+        extractDVdouble(&values, key, &offset, &minimum_temperature_1h_c_);
+        t->addMoreExplanation(offset, " minimum temperature 1h (%f C)", minimum_temperature_1h_c_);
     }
 
     if (findKey(MeasurementType::Maximum, ValueInformation::ExternalTemperature, 1, &key, &values))
     {
-        extractDVdouble(&values, key, &offset, &maximum_temperature_at_set_date_1_c_);
-        t->addMoreExplanation(offset, " maximum temperature at set date 1 (%f C)",
-                              maximum_temperature_at_set_date_1_c_);
+        extractDVdouble(&values, key, &offset, &maximum_temperature_24h_c_);
+        t->addMoreExplanation(offset, " maximum temperature 24h (%f C)",
+                              maximum_temperature_24h_c_);
     }
 
     if (findKey(MeasurementType::Minimum, ValueInformation::ExternalTemperature, 1, &key, &values))
     {
-        extractDVdouble(&values, key, &offset, &minimum_temperature_at_set_date_1_c_);
-        t->addMoreExplanation(offset, " minimum temperature at set date 1 (%f C)",
-                              minimum_temperature_at_set_date_1_c_);
+        extractDVdouble(&values, key, &offset, &minimum_temperature_24h_c_);
+        t->addMoreExplanation(offset, " minimum temperature 24h (%f C)",
+                              minimum_temperature_24h_c_);
     }
 
-    for (int i=1; i<=2; ++i)
+    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 1, &key, &values))
     {
-        if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, i, &key, &values))
-        {
-            string info;
-            strprintf(info, " temperature at set date %d (%%f c)", i);
-            extractDVdouble(&values, key, &offset, &temperature_at_set_date_c_[i-1]);
-            t->addMoreExplanation(offset, info.c_str(), temperature_at_set_date_c_[i-1]);
-        }
+        extractDVdouble(&values, key, &offset, &average_temperature_1h_c_);
+        t->addMoreExplanation(offset, " average temperature 1h (%f C)", average_temperature_1h_c_);
+    }
+
+    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 2, &key, &values))
+    {
+        extractDVdouble(&values, key, &offset, &average_temperature_24h_c_);
+        t->addMoreExplanation(offset, " average temperature 24h (%f C)", average_temperature_24h_c_);
     }
 
     // Temporarily silly solution until the dvparser is upgraded with support for extension
 
-    key = "02FB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
+    key = "02FB1A"; // 02=current 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
     if (hasKey(&values, key))
     {
         double tmp;
@@ -320,53 +325,53 @@ void MeterRfmAmb::processContent(Telegram *t)
         current_relative_humidity_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " current relative humidity (%f RH)", current_relative_humidity_rh_);
     }
-    key = "22FB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
+    key = "22FB1A"; // 22=minimum 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
     if (hasKey(&values, key))
     {
         double tmp;
         extractDVdouble(&values, key, &offset, &tmp, false);
-        minimum_relative_humidity_rh_ = tmp / (double)10.0;
-        t->addMoreExplanation(offset, " minimum relative humidity (%f RH)", minimum_relative_humidity_rh_);
+        minimum_relative_humidity_1h_rh_ = tmp / (double)10.0;
+        t->addMoreExplanation(offset, " minimum relative humidity 1h (%f RH)", minimum_relative_humidity_1h_rh_);
     }
-    key = "12FB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
+    key = "12FB1A"; // 12=maximum 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
     if (hasKey(&values, key))
     {
         double tmp;
         extractDVdouble(&values, key, &offset, &tmp, false);
-        maximum_relative_humidity_rh_ = tmp / (double)10.0;
-        t->addMoreExplanation(offset, " maximum relative humidity (%f RH)", maximum_relative_humidity_rh_);
+        maximum_relative_humidity_1h_rh_ = tmp / (double)10.0;
+        t->addMoreExplanation(offset, " maximum relative humidity 1h (%f RH)", maximum_relative_humidity_1h_rh_);
     }
-    key = "42FB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
+    key = "42FB1A"; // 42=instant 1storage 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
     if (hasKey(&values, key))
     {
         double tmp;
         extractDVdouble(&values, key, &offset, &tmp, false);
-        relative_humidity_at_set_date_rh_[0] = tmp / (double)10.0;
-        t->addMoreExplanation(offset, " relative humidity at set date 1 (%f RH)", relative_humidity_at_set_date_rh_[0]);
+        average_relative_humidity_1h_rh_ = tmp / (double)10.0;
+        t->addMoreExplanation(offset, " average relative humidity 1h (%f RH)", average_relative_humidity_1h_rh_);
     }
-    key = "62FB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
+    key = "62FB1A"; // 62=minimum 1storage 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
     if (hasKey(&values, key))
     {
         double tmp;
         extractDVdouble(&values, key, &offset, &tmp, false);
-        minimum_relative_humidity_at_set_date_1_rh_ = tmp / (double)10.0;
-        t->addMoreExplanation(offset, " minimum relative humidity at set date 1 (%f RH)", minimum_relative_humidity_at_set_date_1_rh_);
+        minimum_relative_humidity_1h_rh_ = tmp / (double)10.0;
+        t->addMoreExplanation(offset, " minimum relative humidity 1h (%f RH)", minimum_relative_humidity_1h_rh_);
     }
-    key = "52FB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
+    key = "52FB1A"; // 52=maximum 1storage 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
     if (hasKey(&values, key))
     {
         double tmp;
         extractDVdouble(&values, key, &offset, &tmp, false);
-        maximum_relative_humidity_at_set_date_1_rh_ = tmp / (double)10.0;
-        t->addMoreExplanation(offset, " maximum relative humidity at set date 1 (%f RH)", maximum_relative_humidity_at_set_date_1_rh_);
+        maximum_relative_humidity_1h_rh_ = tmp / (double)10.0;
+        t->addMoreExplanation(offset, " maximum relative humidity 1h (%f RH)", maximum_relative_humidity_1h_rh_);
     }
-    key = "8201FB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
+    key = "8201FB1A"; // 8201=instant 2storage 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
     if (hasKey(&values, key))
     {
         double tmp;
         extractDVdouble(&values, key, &offset, &tmp, false);
-        relative_humidity_at_set_date_rh_[1] = tmp / (double)10.0;
-        t->addMoreExplanation(offset, " relative humidity at set date 2 (%f RH)", relative_humidity_at_set_date_rh_[1]);
+        average_relative_humidity_24h_rh_ = tmp / (double)10.0;
+        t->addMoreExplanation(offset, " relative humidity 24h (%f RH)", average_relative_humidity_24h_rh_);
     }
 
     if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, &key, &values)) {

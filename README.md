@@ -169,7 +169,8 @@ Supported heat meter:
 Heat meter Techem Vario 4 (vario451) (non-standard protocol)
 
 Supported room sensors:
-Lansen Thermo
+Lansen Thermometer/Hygrometer (lansenth)
+Bmeters RFM-AMB Thermometer/Hygrometer (rfmamb)
 
 Supported electricity meters:
 Tauron Amiplus (amiplus) (includes vendor apator and echelon)
