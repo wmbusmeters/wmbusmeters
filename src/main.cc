@@ -210,12 +210,11 @@ bool startUsingCommandline(Configuration *config)
     verbose("(config) number of meters: %d\n", config->meters.size());
 
     auto manager = createSerialCommunicationManager(config->exitafter, config->reopenafter);
-
     onExit(call(manager.get(),stop));
 
-    unique_ptr<WMBus> wmbus;
-
     auto type_and_device = detectMBusDevice(config->device, config->device_extra, manager.get());
+
+    unique_ptr<WMBus> wmbus;
 
     switch (type_and_device.first) {
     case DEVICE_IM871A:
@@ -233,6 +232,14 @@ bool startUsingCommandline(Configuration *config)
     case DEVICE_RAWTTY:
         verbose("(rawtty) found %s\n", type_and_device.second.c_str());
         wmbus = openRawTTY(type_and_device.second, atoi(config->device_extra.c_str()), manager.get());
+        break;
+    case DEVICE_RFMRX2:
+        verbose("(rfmrx2) detected on %s\n", type_and_device.second.c_str());
+        if (config->reopenafter == 0)
+        {
+            manager->setReopenAfter(600); // Close and reopen the fd, because of some bug in the device.
+        }
+        wmbus = openRawTTY(type_and_device.second, 38400, manager.get());
         break;
     case DEVICE_RTLWMBUS:
     {

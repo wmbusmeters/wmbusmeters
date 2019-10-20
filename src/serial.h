@@ -53,6 +53,7 @@ struct SerialCommunicationManager
     virtual void stop() = 0;
     virtual void waitForStop() = 0;
     virtual bool isRunning() = 0;
+    virtual void setReopenAfter(int seconds) = 0;
     virtual ~SerialCommunicationManager();
 };
 

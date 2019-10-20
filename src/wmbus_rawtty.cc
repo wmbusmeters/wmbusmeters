@@ -186,7 +186,7 @@ void WMBusRawTTY::handleMessage(vector<uchar> &frame)
     }
     if (isVerboseEnabled() && !handled)
     {
-        verbose("(dummyserial) telegram ignored by all configured meters!\n");
+        verbose("(rawtty) telegram ignored by all configured meters!\n");
     }
 }
 

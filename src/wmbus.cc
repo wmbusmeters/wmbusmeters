@@ -410,6 +410,7 @@ string mediaTypeJSON(int a_field_device_type)
 
 bool detectIM871A(string device, SerialCommunicationManager *handler);
 bool detectAMB8465(string device, SerialCommunicationManager *handler);
+bool detectRawTTY(string device, SerialCommunicationManager *handler);
 bool detectRTLSDR(string device, SerialCommunicationManager *handler);
 
 pair<MBusDeviceType,string> detectMBusDevice(string device, string suffix, SerialCommunicationManager *handler)
@@ -444,6 +445,18 @@ pair<MBusDeviceType,string> detectMBusDevice(string device, string suffix, Seria
             }
         }
 
+        if (detectRawTTY("/dev/rfmrx2", handler))
+        {
+            return { DEVICE_RFMRX2, "/dev/rfmrx2" };
+        }
+        else
+        {
+            AccessCheck ac = checkIfExistsAndSameGroup("/dev/rfmrx2");
+            if (ac == AccessCheck::NotSameGroup) {
+                error("You are not in the same group as the device /dev/rfmrx2\n");
+            }
+        }
+
         if (detectRTLSDR("/dev/rtlsdr", handler))
         {
             return { DEVICE_RTLWMBUS, "rtlwmbus" };
@@ -472,6 +485,7 @@ pair<MBusDeviceType,string> detectMBusDevice(string device, string suffix, Seria
         // There is a suffix, then we know what this is.
         if (suffix == "amb8465") return { DEVICE_AMB8465, device };
         if (suffix == "im871a") return { DEVICE_IM871A, device };
+        if (suffix == "rfmrx2") return { DEVICE_RFMRX2, device };
         // If the suffix is a number, then assume that it is a baud rate
         // for a raw tty setting.
         if (isNumber(suffix)) return { DEVICE_RAWTTY, device };

@@ -53,6 +53,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager {
     void stop();
     void waitForStop();
     bool isRunning();
+    void setReopenAfter(int seconds);
 
     void opened(SerialDeviceImp *sd);
     void closed(SerialDeviceImp *sd);
@@ -472,6 +473,11 @@ void SerialCommunicationManagerImp::waitForStop()
 bool SerialCommunicationManagerImp::isRunning()
 {
     return running_;
+}
+
+void SerialCommunicationManagerImp::setReopenAfter(int seconds)
+{
+    reopen_after_seconds_ = seconds;
 }
 
 void SerialCommunicationManagerImp::opened(SerialDeviceImp *sd) {
