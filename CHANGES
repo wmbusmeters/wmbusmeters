@@ -1,4 +1,12 @@
 
+Version 0.9.15: 2019-10-20
+
+Added Bmeter (rfmamb) and Lansen room sensors (lansenth).
+Added support for the rfmrx2 dongle.
+Added rawtty (eg /dev/ttyUSB0:38400) support for dongles
+that only transmit raw telegrams on the serial port.
+Added the ability to add static json data tailored for the meter.
+
 Version 0.9.14: 2019-09-16
 
 Added negative match rule for ids. You can now write:
