@@ -3,7 +3,7 @@
 wmbusmeters \- listen to wireless mbus radio traffic and relay the decoded telegrams to other software
 
 .SH SYNOPSIS
-.B wmbusmeters [options] <device> (<meter_name> <meter_type>[:<mode>] <meter_id> meter_key>)*
+.B wmbusmeters [options] <device>{:suffix} (<meter_name> <meter_type>[:<mode>] <meter_id> meter_key>)*
 
 .B wmbusmetersd <pid_file>
 
@@ -11,7 +11,7 @@ wmbusmeters \- listen to wireless mbus radio traffic and relay the decoded teleg
 
 Wmbusmeters acquires wmbus telegrams, decodes them and relays them to
 some other software for further processing.  It can for example listen
-to radio traffic using dedicated wmbus dongles like (im871a/amb8465)
+to radio traffic using dedicated wmbus dongles like (im871a/amb8465/rfmrx2)
 or a generic software defined radio dongle (rtl_sdr).
 
 After the received telegram has been decrypted and parsed, it can then
@@ -28,6 +28,8 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 \fB\--exitafter=\fR<time> exit program after time, eg 20h, 10m 5s
 
 \fB\--format=\fR(hr|json|fields) for human readable, json or semicolon separated fields
+
+\fB\--json_xxx=yyy\fR always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy
 
 \fB\--listento=\fR<mode> listen to one of the c1,t1,s1,s1m,n1a-n1f link modes.
 
@@ -47,6 +49,8 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 
 \fB\--oneshot\fR wait for an update from each meter, then quit
 
+\fB\--reopenafter=\fR<time> close/reopen dongle connection repeatedly every <time> seconds, eg 60s, 60m, 24h
+
 \fB\--separator=\fR<c> change field separator to c
 
 \fB\--shell=\fR<cmdline> invokes cmdline with env variables containing the latest reading
@@ -59,10 +63,13 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 
 .SH DEVICES
 .TP
-\fB/dev/ttyUSB0\fR to which an im871a or amb8456 dongle is attached
+\fB/dev/ttyUSB0\fR to which an im871a or amb8456 dongle is attached and let wmbusmeters detect the type.
 
 .TP
-\fBauto\fR look for /dev/im871a or /dev/amb8465 or /dev/rtlsdr (these will only show up automatically if the appropriate udev rules have been installed)
+\fB/dev/ttyACM0:rfmrx2\fR when an rfmrx2 dongle is attached to this tty.
+
+.TP
+\fBauto\fR look for /dev/im871a, /dev/amb8465, /dev/rfmrx2 or /dev/rtlsdr (these will only show up automatically if the appropriate udev rules have been installed)
 
 .TP
 \fBrtlwmbus\fR use software defined radio rtl_sdr|rtl_wmbus to receive wmbus telegrams.This defaults to 868.95MHz, use for example \fBrtlwmbus:868.9M\fR to tune the rtl_sdr dongle to slightly lower frequency.
@@ -85,12 +92,12 @@ This is necessary since an apator162 can be configured to send either c1 or t1 t
 .SH EXAMPLES
 .TP
 
-Listen to T1 traffic using a wmbus dongle attached to ttyUSB0.
+Listen to C1 and T1 traffic using a wmbus dongle attached to ttyUSB0.
 
-% wmbusmeters --t1 /dev/ttyUSB0
+% wmbusmeters --listento=c1,t1 /dev/ttyUSB0:amd8465
 
 .TP
-Listen to C1 traffic and assume that a wmbus dongle is either /dev/im871a or /dev/amb8465 or /dev/rtlsdr
+Listen to C1 traffic and assume that a wmbus dongle is either /dev/im871a, /dev/amb8465, /dev/rfmrx2 or /dev/rtlsdr
 
 % wmbusmeters --c1 auto
 
@@ -121,6 +128,7 @@ meterfiles=/var/log/wmbusmeters/meter_readings
 meterfilesaction=overwrite
 logfile=/var/log/wmbusmeters/wmbusmeters.log
 shell=/usr/bin/mosquitto_pub -h localhost -t "wmbusmeters/$METER_ID" -m "$METER_JSON"
+json_address=MyStreet 5
 .fi
 
 .TP
@@ -131,6 +139,7 @@ name=MyTapWater
 type=multical21
 id=12345678
 key=001122334455667788AABBCCDDEEFF
+json_floor=4
 
 .SH AUTHOR
 Written by Fredrik Öhrström.

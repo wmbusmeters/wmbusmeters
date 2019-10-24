@@ -82,7 +82,7 @@ $(info Building $(VERSION))
 CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-unused-function -I$(BUILD)
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
-	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
+	@#$(CXX) $(CXXFLAGS) $< -c -E > $@.src
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
 METER_OBJS:=\
@@ -144,8 +144,17 @@ wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb:
 	@echo Built package $@
 	@echo But the deb package is not yet working correctly! Work in progress.
 
-$(BUILD)/wmbusmeters: $(METER_OBJS) $(BUILD)/main.o
+$(BUILD)/main.o: $(BUILD)/short_manual.h
+
+$(BUILD)/wmbusmeters: $(METER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
 	$(CXX) -o $(BUILD)/wmbusmeters $(METER_OBJS) $(BUILD)/main.o $(DEBUG_LDFLAGS) -lpthread
+
+$(BUILD)/short_manual.h: README.md
+	echo 'R"MANUAL(' > $(BUILD)/short_manual.h
+	sed -n '/wmbusmeters version/,/```/p' README.md \
+	    | grep -v 'wmbusmeters version' \
+        | grep -v '```' >> $(BUILD)/short_manual.h
+	echo ')MANUAL";' >> $(BUILD)/short_manual.h
 
 $(BUILD)/testinternals: $(METER_OBJS) $(BUILD)/testinternals.o
 	$(CXX) -o $(BUILD)/testinternals $(METER_OBJS) $(BUILD)/testinternals.o $(DEBUG_LDFLAGS) -lpthread
