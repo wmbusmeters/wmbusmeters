@@ -174,16 +174,17 @@ void handleDevice(Configuration *c, string device)
 
 void handleListenTo(Configuration *c, string mode)
 {
-    LinkMode lm = isLinkMode(mode.c_str());
-    if (lm == LinkMode::UNKNOWN) {
+    LinkModeSet lms = parseLinkModes(mode.c_str());
+    if (lms.bits() == 0) {
         error("Unknown link mode \"%s\"!\n", mode.c_str());
     }
     if (c->link_mode_configured) {
         error("You have already specified a link mode!\n");
     }
-    c->listen_to_link_modes.addLinkMode(lm);
+    c->listen_to_link_modes = lms;
     c->link_mode_configured = true;
 }
+
 void handleLogtelegrams(Configuration *c, string logtelegrams)
 {
     if (logtelegrams == "true") { c->logtelegrams = true; }
