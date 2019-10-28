@@ -594,6 +594,9 @@ bool checkCharacterDeviceExists(const char *tty, bool fail_if_not)
 {
     struct stat info;
 
+    // Stdin always exists.
+    if (!strcmp(tty, "stdin")) return true;
+
     int rc = stat(tty, &info);
     if (rc != 0) {
         if (fail_if_not) {

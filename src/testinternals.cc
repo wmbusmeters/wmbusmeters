@@ -39,6 +39,7 @@ int main(int argc, char **argv)
         // Supply --debug (oh well, anything works) to enable debug mode.
         debugEnabled(true);
     }
+    onExit([](){});
     test_crc();
     test_dvparser();
     test_linkmodes();
@@ -208,7 +209,7 @@ int test_linkmodes()
     unique_ptr<WMBus> wmbus_im871a = openIM871A("", manager.get(), serial1.release());
     unique_ptr<WMBus> wmbus_amb8465 = openAMB8465("", manager.get(), serial2.release());
     unique_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS("", manager.get(), serial3.release(), [](){});
-    unique_ptr<WMBus> wmbus_rawtty = openRawTTY("/dev/ttyACM", manager.get(), serial4.release());
+    unique_ptr<WMBus> wmbus_rawtty = openRawTTY("", manager.get(), serial4.release());
 
     Configuration nometers_config;
     // Check that if no meters are supplied then you must set a link mode.

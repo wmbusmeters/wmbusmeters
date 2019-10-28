@@ -128,12 +128,49 @@ FrameStatus WMBusRawTTY::checkRawTTYFrame(vector<uchar> &data,
                                           int *payload_len_out,
                                           int *payload_offset)
 {
-    // telegram=|2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B|+96
+    // Nice clean: 2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B
+    // Ugly: 00615B2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B
+    // Here the frame is prefixed with some random data.
+
     if (data.size() == 0) return PartialFrame;
     int payload_len = data[0];
+    int type = data[1];
+    int offset = 1;
+
+    if (type != 0x44)
+    {
+        // Ouch, we are out of sync with the wmbus frames that we expect!
+        // Since we currently do not handle any other type of frame, we can
+        // look for the byte 0x44 in the buffer. If we find a 0x44 byte and
+        // the length byte before it maps to the end of the buffer,
+        // then we have found a valid telegram.
+        bool found = false;
+        for (size_t i = 0; i < data.size()-2; ++i)
+        {
+            if (data[i+1] == 0x44)
+            {
+                payload_len = data[i];
+                size_t remaining = data.size()-i;
+                if (data[i]+1 == (uchar)remaining && data[i+1] == 0x44)
+                {
+                    found = true;
+                    offset = i+1;
+                    verbose("(wmbus_rawtty) out of sync, skipping %d bytes.\n", (int)i);
+                    break;
+                }
+            }
+        }
+        if (!found)
+        {
+            // No sensible telegram in the buffer. Flush it!
+            verbose("(wmbus_rawtty) no sensible telegram found, clearing buffer.\n");
+            data.clear();
+            return ErrorInFrame;
+        }
+    }
     *payload_len_out = payload_len;
-    *payload_offset = 1;
-    *frame_length = payload_len+1;
+    *payload_offset = offset;
+    *frame_length = payload_len+offset;
     if (data.size() < *frame_length) return PartialFrame;
 
     return FullFrame;
@@ -148,28 +185,42 @@ void WMBusRawTTY::processSerialData()
 
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
-    size_t frame_length;
-    int payload_len, payload_offset;
+    for (;;)
+    {
+        size_t frame_length;
+        int payload_len, payload_offset;
 
-    FrameStatus status = checkRawTTYFrame(read_buffer_, &frame_length, &payload_len, &payload_offset);
+        FrameStatus status = checkRawTTYFrame(read_buffer_, &frame_length, &payload_len, &payload_offset);
 
-    if (status == ErrorInFrame) {
-        verbose("(rawtty) protocol error in message received!\n");
-        string msg = bin2hex(read_buffer_);
-        debug("(rawtty) protocol error \"%s\"\n", msg.c_str());
-        read_buffer_.clear();
-    } else
-    if (status == FullFrame) {
-
-        vector<uchar> payload;
-        if (payload_len > 0) {
-            uchar l = payload_len;
-            payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
-            payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
+        if (status == PartialFrame)
+        {
+            // Partial frame, stop eating.
+            break;
         }
-
-        read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
-        handleMessage(payload);
+        else if (status == ErrorInFrame)
+        {
+            verbose("(rawtty) protocol error in message received!\n");
+            string msg = bin2hex(read_buffer_);
+            debug("(rawtty) protocol error \"%s\"\n", msg.c_str());
+            read_buffer_.clear();
+            break;
+        }
+        else if (status == FullFrame)
+        {
+            vector<uchar> payload;
+            if (payload_len > 0)
+            {
+                uchar l = payload_len;
+                payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
+                payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
+            }
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            handleMessage(payload);
+        }
+        else
+        {
+            assert(0);
+        }
     }
 }
 

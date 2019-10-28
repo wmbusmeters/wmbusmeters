@@ -38,6 +38,7 @@ struct SerialDevice
     virtual int receive(std::vector<uchar> *data) = 0;
     virtual int fd() = 0;
     virtual bool working() = 0;
+    virtual void fill(std::vector<uchar> &data) = 0; // Fill buffer with raw data.
     virtual SerialCommunicationManager *manager() = 0;
     virtual ~SerialDevice() = default;
 };

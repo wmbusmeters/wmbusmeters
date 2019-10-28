@@ -40,7 +40,8 @@ struct SerialDeviceTTY;
 struct SerialDeviceCommand;
 struct SerialDeviceSimulator;
 
-struct SerialCommunicationManagerImp : public SerialCommunicationManager {
+struct SerialCommunicationManagerImp : public SerialCommunicationManager
+{
     SerialCommunicationManagerImp(time_t exit_after_seconds, time_t reopen_after_seconds);
     ~SerialCommunicationManagerImp() { }
 
@@ -77,6 +78,7 @@ struct SerialDeviceImp : public SerialDevice {
 
     int fd() { return fd_; }
     bool working() { return true; }
+    void fill(vector<uchar> &data) {};
 
     protected:
 
@@ -393,22 +395,33 @@ int SerialDeviceCommand::receive(vector<uchar> *data)
 struct SerialDeviceSimulator : public SerialDeviceImp
 {
     SerialDeviceSimulator(SerialCommunicationManagerImp *m) :
-        manager_(m) {};
+        manager_(m) {
+        manager_->opened(this);
+        verbose("(serialsimulator) opened\n");
+    };
     ~SerialDeviceSimulator() {};
 
     bool open(bool fail_if_not_ok) { return true; };
     void close() { };
     void checkIfShouldReopen() { }
     bool send(vector<uchar> &data) { return true; };
-    int receive(vector<uchar> *data) { return 0; };
+    void fill(vector<uchar> &data) { data_ = data; on_data_(); }; // Fill buffer and trigger callback.
+
+    int receive(vector<uchar> *data)
+    {
+        *data = data_;
+        data_.clear();
+        return data->size();
+    }
     int fd() { return 0; }
-    bool working() { return true; }
+    bool working() { return false; } // Only one message that has already been handled! So return false here.
 
     SerialCommunicationManager *manager() { return manager_; }
 
     private:
 
     SerialCommunicationManagerImp *manager_;
+    vector<uchar> data_;
 };
 
 SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_seconds,
@@ -431,6 +444,10 @@ void *SerialCommunicationManagerImp::startLoop(void *a) {
 unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device,
                                                                               int baud_rate)
 {
+    if (device == "stdin")
+    {
+        return unique_ptr<SerialDevice>(new SerialDeviceSimulator(this));
+    }
     return unique_ptr<SerialDevice>(new SerialDeviceTTY(device, baud_rate, this));
 }
 
@@ -525,7 +542,6 @@ void *SerialCommunicationManagerImp::eventLoop() {
         }
 
         int activity = select(max_fd_+1 , &readfds , NULL , NULL, &timeout);
-
         if (!running_) break;
         if (activity < 0 && errno!=EINTR) {
             warning("(serialtty) internal error after select! errno=%s\n", strerror(errno));
@@ -534,7 +550,9 @@ void *SerialCommunicationManagerImp::eventLoop() {
             for (SerialDevice *d : devices_) {
                 if (FD_ISSET(d->fd(), &readfds)) {
                     SerialDeviceImp *si = dynamic_cast<SerialDeviceImp*>(d);
-                    if (si->on_data_) si->on_data_();
+                    if (si->on_data_) {
+                        si->on_data_();
+                    }
                 }
             }
         }

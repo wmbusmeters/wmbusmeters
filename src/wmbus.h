@@ -212,7 +212,8 @@ LIST_OF_MBUS_DEVICES
 
 // The detect function can be supplied the device "auto" and will try default locations for the device.
 // Returned is the type and the found device string.
-pair<MBusDeviceType,string> detectMBusDevice(string devstr, string suffix, SerialCommunicationManager *manager);
+pair<MBusDeviceType,string> detectMBusDevice(string devstr, string suffix,
+                                             SerialCommunicationManager *manager);
 
 unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager);
 unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager, SerialDevice *serial);

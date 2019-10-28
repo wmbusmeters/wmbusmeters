@@ -166,11 +166,9 @@ clean:
 	rm -rf build/* build_arm/* build_debug/* build_arm_debug/* *~
 
 test:
-	./build/testinternals
 	./test.sh build/wmbusmeters
 
 testd:
-	./build_debug/testinternals
 	./test.sh build_debug/wmbusmeters
 
 update_manufacturers:

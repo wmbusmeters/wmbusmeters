@@ -413,7 +413,9 @@ bool detectAMB8465(string device, SerialCommunicationManager *handler);
 bool detectRawTTY(string device, SerialCommunicationManager *handler);
 bool detectRTLSDR(string device, SerialCommunicationManager *handler);
 
-pair<MBusDeviceType,string> detectMBusDevice(string device, string suffix, SerialCommunicationManager *handler)
+pair<MBusDeviceType,string> detectMBusDevice(string device,
+                                             string suffix,
+                                             SerialCommunicationManager *handler)
 {
     if (device == "rtlwmbus")
     {
@@ -477,8 +479,21 @@ pair<MBusDeviceType,string> detectMBusDevice(string device, string suffix, Seria
         return { DEVICE_SIMULATOR, device };
     }
 
-    // If not auto, then test the device, is it a character device?
-    checkCharacterDeviceExists(device.c_str(), true);
+    if (device == "stdin")
+    {
+        // The stdin device is only for testing (fuzzing).
+        if (suffix == "")
+        {
+            // Assuming rawtty.
+            return { DEVICE_RAWTTY, device };
+        }
+        // Otherwise check the suffix below.
+    }
+    else
+    {
+        // If not auto and not stdin, then test the device, is it a character device?
+        checkCharacterDeviceExists(device.c_str(), true);
+    }
 
     if (suffix != "")
     {

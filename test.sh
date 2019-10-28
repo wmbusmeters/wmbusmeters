@@ -24,4 +24,5 @@ tests/test_wrongkeys.sh $PROG
 tests/test_config4.sh $PROG
 tests/test_linkmodes.sh $PROG
 tests/test_additional_json.sh $PROG
+tests/test_serial_bads.sh $PROG
 tests/test_rtlwmbus.sh $PROG

@@ -143,6 +143,11 @@ bool startUsingCommandline(Configuration *config)
     }
     verbose("(config) number of meters: %d\n", config->meters.size());
 
+    bool use_stdin = false;
+    if (config->device == "stdin")
+    {
+        use_stdin = true;
+    }
     auto manager = createSerialCommunicationManager(config->exitafter, config->reopenafter);
     onExit(call(manager.get(),stop));
 
@@ -274,6 +279,28 @@ LIST_OF_METERS
 
     if (type_and_device.first == DEVICE_SIMULATOR) {
         wmbus->simulate();
+    }
+    if (use_stdin)
+    {
+        // It will only do a single read from stdin and then stop.
+        // This is for testing (fuzzing).
+        manager->stop();
+        vector<uchar> data;
+        data.resize(1024);
+        int n = read(0, &((data)[0]), 1024);
+        if (n > 0)
+        {
+            data.resize(n);
+            if (isDebugEnabled()) {
+                string msg = bin2hex(data);
+                debug("(serialstdin) received \"%s\"\n", msg.c_str());
+            }
+            wmbus->serial()->fill(data);
+        }
+        else
+        {
+            warning("(serialstdin) nothing received!\n");
+        }
     }
 
     if (config->daemon) {
