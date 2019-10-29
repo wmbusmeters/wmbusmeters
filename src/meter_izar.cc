@@ -34,6 +34,8 @@ struct MeterIzar : public virtual WaterMeter, public virtual MeterCommonImplemen
     double totalWaterConsumption(Unit u);
     bool  hasTotalWaterConsumption();
 
+    double lastMonthTotalWaterConsumption(Unit u);
+
 private:
 
     void processContent(Telegram *t);
@@ -43,6 +45,7 @@ private:
     vector<uchar> decodePrios(const vector<uchar> &payload, uint32_t key);
 
     double total_water_consumption_l_ {};
+    double last_month_total_water_consumption_l_ {};
 
     vector<uint32_t> keys;
 };
@@ -77,6 +80,11 @@ MeterIzar::MeterIzar(WMBus *bus, MeterInfo &mi) :
              "The total water consumption recorded by this meter.",
              true, true);
 
+    addPrint("last_month_total", Quantity::Volume,
+             [&](Unit u){ return lastMonthTotalWaterConsumption(u); },
+             "The total water consumption recorded by this meter around end of last month.",
+             true, true);
+
     MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
@@ -89,6 +97,12 @@ double MeterIzar::totalWaterConsumption(Unit u)
 bool MeterIzar::hasTotalWaterConsumption()
 {
     return true;
+}
+
+double MeterIzar::lastMonthTotalWaterConsumption(Unit u)
+{
+    assertQuantity(u, Quantity::Volume);
+    return convert(last_month_total_water_consumption_l_, Unit::L, u);
 }
 
 uint32_t MeterIzar::uint32FromBytes(const vector<uchar> &data, int offset, bool reverse)
@@ -143,6 +157,7 @@ void MeterIzar::processContent(Telegram *t)
     }
 
     total_water_consumption_l_ = uint32FromBytes(decoded_content, 1, true);
+    last_month_total_water_consumption_l_ = uint32FromBytes(decoded_content, 5, true);
 }
 
 vector<uchar> MeterIzar::decodePrios(const vector<uchar> &frame, uint32_t key)
