@@ -31,6 +31,7 @@
     X(eurisii,    T1_bit, HeatCostAllocation, EURISII, EurisII) \
     X(flowiq3100, C1_bit, Water,       FLOWIQ3100,  Multical21)   \
     X(iperl,      T1_bit, Water,       IPERL,       Iperl)        \
+    X(izar,       T1_bit, Water,       IZAR,        Izar)        \
     X(lansenth,   T1_bit, TempHygro,   LANSENTH,    LansenTH)     \
     X(mkradio3,   T1_bit, Water,       MKRADIO3,    MKRadio3)     \
     X(multical21, C1_bit, Water,       MULTICAL21,  Multical21)   \
@@ -187,6 +188,7 @@ unique_ptr<WaterMeter> createSupercom587(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createMKRadio3(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createApator162(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createIperl(WMBus *bus, MeterInfo &m);
+unique_ptr<WaterMeter> createIzar(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createEurisII(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createLansenTH(WMBus *bus, MeterInfo &m);

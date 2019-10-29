@@ -174,6 +174,7 @@ Tauron Amiplus (amiplus) (includes vendor apator and echelon)
 Work in progress:
 Heat meter Kamstrup Multical 302 (multical302)
 Electricity meter Kamstrup Omnipower (omnipower)
+Water meter Diehl/Sappel IZAR RC 868 I R4 PL (izar)
 ```
 
 The wmbus dongles imst871a can listen to one type of wmbus telegrams
