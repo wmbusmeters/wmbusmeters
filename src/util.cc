@@ -16,6 +16,7 @@
 */
 
 #include"util.h"
+#include"meters.h"
 #include<dirent.h>
 #include<functional>
 #include<grp.h>
@@ -530,10 +531,11 @@ bool doesIdMatchExpressions(string& id, vector<string>& mes)
     return false;
 }
 
-bool isValidKey(string& key)
+bool isValidKey(string& key, MeterType mt)
 {
     if (key.length() == 0) return true;
-    if (key.length() != 32) return false;
+    if ((mt == MeterType::IZAR && key.length() != 16) ||
+        (mt != MeterType::IZAR && key.length() != 32)) return false;
     vector<uchar> tmp;
     return hex2bin(key, &tmp);
 }

@@ -38,10 +38,13 @@ private:
 
     void processContent(Telegram *t);
     uint32_t convertKey(const char *hex);
+    uint32_t convertKey(const vector<uchar> &bytes);
     uint32_t uint32FromBytes(const vector<uchar> &data, int offset, bool reverse = false);
     vector<uchar> decodePrios(const vector<uchar> &payload, uint32_t key);
 
     double total_water_consumption_l_ {};
+
+    vector<uint32_t> keys;
 };
 
 unique_ptr<WaterMeter> createIzar(WMBus *bus, MeterInfo &mi)
@@ -52,6 +55,16 @@ unique_ptr<WaterMeter> createIzar(WMBus *bus, MeterInfo &mi)
 MeterIzar::MeterIzar(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::IZAR, MANUFACTURER_SAP)
 {
+    if (!key().empty())
+        keys.push_back(convertKey(key()));
+
+    // fallback to default keys if no custom key provided
+    if (keys.empty())
+    {
+        keys.push_back(convertKey(PRIOS_DEFAULT_KEY1));
+        keys.push_back(convertKey(PRIOS_DEFAULT_KEY2));
+    }
+
     addMedia(0x01); // Oil meter? why?
 
     addLinkMode(LinkMode::T1);
@@ -96,6 +109,11 @@ uint32_t MeterIzar::convertKey(const char *hex)
 {
     vector<uchar> bytes;
     hex2bin(hex, &bytes);
+    return convertKey(bytes);
+}
+
+uint32_t MeterIzar::convertKey(const vector<uchar> &bytes)
+{
     uint32_t key1 = uint32FromBytes(bytes, 0);
     uint32_t key2 = uint32FromBytes(bytes, 4);
     uint32_t key = key1 ^ key2;
@@ -108,10 +126,6 @@ void MeterIzar::processContent(Telegram *t)
     vector<uchar> frame;
     frame.insert(frame.end(), t->parsed.begin(), t->parsed.end());
     frame.insert(frame.end(), t->payload.begin(), t->payload.end());
-
-    vector<uint32_t> keys;
-    keys.push_back(convertKey(PRIOS_DEFAULT_KEY1));
-    keys.push_back(convertKey(PRIOS_DEFAULT_KEY2));
 
     vector<uchar> decoded_content;
     for (auto& key : keys) {
