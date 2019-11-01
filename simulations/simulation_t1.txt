@@ -61,4 +61,4 @@ telegram=|5744b40988227711101b7ab20800000265a00842658f088201659f08226589081265a0
 
 # Test IZAR RC 868 I R4 PL water meter telegram
 telegram=|1944304C72242421D401A2|013D4013DD8B46A4999C1293E582CC|
-{"media":"oil","meter":"izar","name":"IzarWater","id":"21242472","total_m3":3.488,"last_month_total_m3":3.486,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"izar","name":"IzarWater","id":"21242472","total_m3":3.488,"last_month_total_m3":3.486,"timestamp":"1111-11-11T11:11:11Z"}

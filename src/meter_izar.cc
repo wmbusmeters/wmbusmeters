@@ -158,6 +158,9 @@ void MeterIzar::processContent(Telegram *t)
 
     total_water_consumption_l_ = uint32FromBytes(decoded_content, 1, true);
     last_month_total_water_consumption_l_ = uint32FromBytes(decoded_content, 5, true);
+
+    // override incorrectly reported medium (oil)
+    t->a_field_device_type = 7;
 }
 
 vector<uchar> MeterIzar::decodePrios(const vector<uchar> &frame, uint32_t key)
