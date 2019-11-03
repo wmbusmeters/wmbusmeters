@@ -230,6 +230,7 @@ update_manufacturers:
 	echo >> m.h
 	echo '#endif' >> m.h
 	mv m.h src/manufacturers.h
+	rm *.flags manufacturers.txt
 
 build_fuzz:
 	@if [ "${AFLHOME}" = "" ]; then echo 'You must supply aflhome "make build_fuzz AFLHOME=/home/afl"'; exit 1; fi

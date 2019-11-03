@@ -29,15 +29,23 @@ using namespace std;
 
 struct SerialCommunicationManager;
 
+/**
+  A SerialDevice can be connected to a tty with a baudrate.
+  But can also be connected to stdin, a file, or the output from a subshell.
+  If you try to do send bytes to such a non-tty, then send will return false.
+*/
 struct SerialDevice
 {
     virtual bool open(bool fail_if_not_ok) = 0;
     virtual void close() = 0;
-    virtual void checkIfShouldReopen() = 0;
+    // Send will return true only if sending on a tty.
     virtual bool send(std::vector<uchar> &data) = 0;
+    // Receive returns the number of bytes received.
     virtual int receive(std::vector<uchar> *data) = 0;
     virtual int fd() = 0;
     virtual bool working() = 0;
+
+    virtual void checkIfShouldReopen() = 0;
     virtual void fill(std::vector<uchar> &data) = 0; // Fill buffer with raw data.
     virtual SerialCommunicationManager *manager() = 0;
     virtual ~SerialDevice() = default;
@@ -45,11 +53,18 @@ struct SerialDevice
 
 struct SerialCommunicationManager
 {
+    // Read from a /dev/ttyUSB0 or /dev/ttyACM0 device with baud settings.
     virtual unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate) = 0;
-    virtual unique_ptr<SerialDevice> createSerialDeviceCommand(string command, vector<string> args,
+    // Read from a sub shell.
+    virtual unique_ptr<SerialDevice> createSerialDeviceCommand(string command,
+                                                               vector<string> args,
                                                                vector<string> envs,
                                                                function<void()> on_exit) = 0;
+    // Read from stdin (file="stdin") or a specific file.
+    virtual unique_ptr<SerialDevice> createSerialDeviceFile(string file) = 0;
+    // A serial device simulator used for internal testing.
     virtual unique_ptr<SerialDevice> createSerialDeviceSimulator() = 0;
+
     virtual void listenTo(SerialDevice *sd, function<void()> cb) = 0;
     virtual void stop() = 0;
     virtual void waitForStop() = 0;

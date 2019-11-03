@@ -19,6 +19,7 @@
 #include "util.h"
 
 #include <assert.h>
+#include <fcntl.h>
 #include <memory.h>
 #include <pthread.h>
 #include <sys/types.h>
@@ -88,7 +89,7 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
     delete[] p;
 }
 
-bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *out, int *pid)
+bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *fd_out, int *pid)
 {
     int link[2];
     vector<const char*> argv(args.size()+2);
@@ -142,7 +143,12 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
         return false;
     }
 
-    *out = link[0];
+    // Make reads from the pipe non-blocking.
+    int flags = fcntl(link[0], F_GETFL);
+    flags |= O_NONBLOCK;
+    fcntl(link[0], F_SETFL, flags);
+
+    *fd_out = link[0];
     delete[] p;
     return true;
 }

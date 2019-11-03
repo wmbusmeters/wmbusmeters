@@ -56,7 +56,7 @@ private:
 
 int loadFile(string file, vector<string> *lines);
 
-unique_ptr<WMBus> openSimulator(string device, SerialCommunicationManager *manager)
+unique_ptr<WMBus> openSimulator(string device, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
 {
     WMBusSimulator *imp = new WMBusSimulator(device, manager);
     return unique_ptr<WMBus>(imp);

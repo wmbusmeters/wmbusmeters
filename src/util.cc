@@ -35,14 +35,14 @@
 using namespace std;
 
 // Sigint, sigterm will call the exit handler.
-function<void()> exit_handler;
+function<void()> exit_handler_;
 
 bool got_hupped_ {};
 
 void exitHandler(int signum)
 {
     got_hupped_ = signum == SIGHUP;
-    if (exit_handler) exit_handler();
+    if (exit_handler_) exit_handler_();
 }
 
 bool gotHupped()
@@ -63,16 +63,20 @@ void doNothing(int signum)
 
 void signalMyself(int signum)
 {
-    if (wake_me_up_on_sig_chld_) {
-        pthread_kill(wake_me_up_on_sig_chld_, SIGUSR1);
+    if (wake_me_up_on_sig_chld_)
+    {
+        if (signalsInstalled())
+        {
+            pthread_kill(wake_me_up_on_sig_chld_, SIGUSR1);
+        }
     }
 }
 
-struct sigaction old_int, old_hup, old_term, old_chld, old_usr1;
+struct sigaction old_int, old_hup, old_term, old_chld, old_usr1, old_usr2;
 
 void onExit(function<void()> cb)
 {
-    exit_handler = cb;
+    exit_handler_ = cb;
     struct sigaction new_action;
 
     new_action.sa_handler = exitHandler;
@@ -81,28 +85,39 @@ void onExit(function<void()> cb)
 
     sigaction(SIGINT, &new_action, &old_int);
     sigaction(SIGHUP, &new_action, &old_hup);
-    sigaction (SIGTERM, &new_action, &old_term);
+    sigaction(SIGTERM, &new_action, &old_term);
 
     new_action.sa_handler = signalMyself;
     sigemptyset (&new_action.sa_mask);
     new_action.sa_flags = 0;
-    sigaction (SIGCHLD, &new_action, &old_chld);
+    sigaction(SIGCHLD, &new_action, &old_chld);
 
     new_action.sa_handler = doNothing;
     sigemptyset (&new_action.sa_mask);
     new_action.sa_flags = 0;
     sigaction(SIGUSR1, &new_action, &old_usr1);
+
+    new_action.sa_handler = doNothing;
+    sigemptyset (&new_action.sa_mask);
+    new_action.sa_flags = 0;
+    sigaction(SIGUSR2, &new_action, &old_usr2);
+}
+
+bool signalsInstalled()
+{
+    return exit_handler_ != NULL;
 }
 
 void restoreSignalHandlers()
 {
-    exit_handler = NULL;
+    exit_handler_ = NULL;
 
     sigaction(SIGINT, &old_int, NULL);
     sigaction(SIGHUP, &old_hup, NULL);
     sigaction(SIGTERM, &old_term, NULL);
     sigaction(SIGCHLD, &old_chld, NULL);
     sigaction(SIGUSR1, &old_usr1, NULL);
+    sigaction(SIGUSR2, &old_usr2, NULL);
 }
 
 int char2int(char input)
@@ -594,9 +609,6 @@ bool checkCharacterDeviceExists(const char *tty, bool fail_if_not)
 {
     struct stat info;
 
-    // Stdin always exists.
-    if (!strcmp(tty, "stdin")) return true;
-
     int rc = stat(tty, &info);
     if (rc != 0) {
         if (fail_if_not) {
@@ -615,7 +627,7 @@ bool checkCharacterDeviceExists(const char *tty, bool fail_if_not)
     return true;
 }
 
-bool checkIfSimulationFile(const char *file)
+bool checkFileExists(const char *file)
 {
     struct stat info;
 
@@ -624,6 +636,15 @@ bool checkIfSimulationFile(const char *file)
         return false;
     }
     if (!S_ISREG(info.st_mode)) {
+        return false;
+    }
+    return true;
+}
+
+bool checkIfSimulationFile(const char *file)
+{
+    if (!checkFileExists(file))
+    {
         return false;
     }
     const char *filename = strrchr(file, '/');

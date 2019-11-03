@@ -143,65 +143,73 @@ bool startUsingCommandline(Configuration *config)
     }
     verbose("(config) number of meters: %d\n", config->meters.size());
 
-    bool use_stdin = false;
-    if (config->device == "stdin")
-    {
-        use_stdin = true;
-    }
     auto manager = createSerialCommunicationManager(config->exitafter, config->reopenafter);
     onExit(call(manager.get(),stop));
 
-    auto type_and_device = detectMBusDevice(config->device, config->device_extra, manager.get());
+    Detected settings = detectWMBusDeviceSetting(config->device, config->device_extra, manager.get());
+
+    unique_ptr<SerialDevice> serial_override;
+
+    if (settings.override_tty)
+    {
+        serial_override = manager->createSerialDeviceFile(settings.devicefile);
+        verbose("(serial) override with devicefile: %s\n", settings.devicefile.c_str());
+    }
 
     unique_ptr<WMBus> wmbus;
 
-    switch (type_and_device.first) {
+    switch (settings.type)
+    {
     case DEVICE_IM871A:
-        verbose("(im871a) detected on %s\n", type_and_device.second.c_str());
-        wmbus = openIM871A(type_and_device.second, manager.get());
+        verbose("(im871a) on %s\n", settings.devicefile.c_str());
+        wmbus = openIM871A(settings.devicefile, manager.get(), std::move(serial_override));
         break;
     case DEVICE_AMB8465:
-        verbose("(amb8465) detected on %s\n", type_and_device.second.c_str());
-        wmbus = openAMB8465(type_and_device.second, manager.get());
+        verbose("(amb8465) on %s\n", settings.devicefile.c_str());
+        wmbus = openAMB8465(settings.devicefile, manager.get(), std::move(serial_override));
         break;
     case DEVICE_SIMULATOR:
-        verbose("(simulator) found %s\n", type_and_device.second.c_str());
-        wmbus = openSimulator(type_and_device.second, manager.get());
+        verbose("(simulator) in %s\n", settings.devicefile.c_str());
+        wmbus = openSimulator(settings.devicefile, manager.get(), std::move(serial_override));
         break;
     case DEVICE_RAWTTY:
-        verbose("(rawtty) found %s\n", type_and_device.second.c_str());
-        wmbus = openRawTTY(type_and_device.second, atoi(config->device_extra.c_str()), manager.get());
+        verbose("(rawtty) on %s\n", settings.devicefile.c_str());
+        wmbus = openRawTTY(settings.devicefile, settings.baudrate, manager.get(), std::move(serial_override));
         break;
     case DEVICE_RFMRX2:
-        verbose("(rfmrx2) detected on %s\n", type_and_device.second.c_str());
+        verbose("(rfmrx2) on %s\n", settings.devicefile.c_str());
         if (config->reopenafter == 0)
         {
             manager->setReopenAfter(600); // Close and reopen the fd, because of some bug in the device.
         }
-        wmbus = openRawTTY(type_and_device.second, 38400, manager.get());
+        wmbus = openRawTTY(settings.devicefile, 38400, manager.get(), std::move(serial_override));
         break;
     case DEVICE_RTLWMBUS:
     {
-        string command = config->device_extra;
-        string freq = "868.95M";
-        string prefix = "";
-        if (isFrequency(command)) {
-            freq = command;
-            command = "";
+        string command;
+        if (!settings.override_tty)
+        {
+            command = config->device_extra;
+            string freq = "868.95M";
+            string prefix = "";
+            if (isFrequency(command)) {
+                freq = command;
+                command = "";
+            }
+            if (config->daemon) {
+                prefix = "/usr/bin/";
+            }
+            if (command == "") {
+                command = prefix+"rtl_sdr -f "+freq+" -s 1.6e6 - | "+prefix+"rtl_wmbus";
+            }
+            verbose("(rtlwmbus) using command: %s\n", command.c_str());
         }
-        if (config->daemon) {
-            prefix = "/usr/bin/";
-        }
-        if (command == "") {
-            command = prefix+"rtl_sdr -f "+freq+" -s 1.6e6 - | "+prefix+"rtl_wmbus";
-        }
-        verbose("(rtlwmbus) using command: %s\n", command.c_str());
-
         wmbus = openRTLWMBUS(command, manager.get(),
                              [command](){
                                  warning("(rtlwmbus) child process exited! "
                                          "Command was: \"%s\"\n", command.c_str());
-                             });
+                             },
+                             std::move(serial_override));
         break;
     }
     case DEVICE_UNKNOWN:
@@ -232,10 +240,13 @@ bool startUsingCommandline(Configuration *config)
                                                   config->meterfiles_naming));
     vector<unique_ptr<Meter>> meters;
 
-    if (config->meters.size() > 0) {
-        for (auto &m : config->meters) {
+    if (config->meters.size() > 0)
+    {
+        for (auto &m : config->meters)
+        {
             const char *keymsg = (m.key[0] == 0) ? "not-encrypted" : "encrypted";
-            switch (toMeterType(m.type)) {
+            switch (toMeterType(m.type))
+            {
 #define X(mname,link,info,type,cname) \
                 case MeterType::type: \
                 meters.push_back(create##cname(wmbus.get(), m)); \
@@ -250,7 +261,8 @@ LIST_OF_METERS
                 break;
             }
 
-            if (config->list_shell_envs) {
+            if (config->list_shell_envs)
+            {
                 string ignore1, ignore2, ignore3;
                 vector<string> envs;
                 Telegram t;
@@ -271,15 +283,18 @@ LIST_OF_METERS
             meters.back()->onUpdate([&](Telegram*t,Meter* meter) { output->print(t,meter,&config->jsons); });
             meters.back()->onUpdate([&](Telegram*t, Meter* meter) { oneshotCheck(config, manager.get(), t, meter, meters); });
         }
-    } else {
+    }
+    else
+    {
         notice("No meters configured. Printing id:s of all telegrams heard!\n\n");
 
         wmbus->onTelegram([](Telegram *t){t->print();});
     }
 
-    if (type_and_device.first == DEVICE_SIMULATOR) {
+    if (settings.type == DEVICE_SIMULATOR) {
         wmbus->simulate();
     }
+    /*
     if (use_stdin)
     {
         // It will only do a single read from stdin and then stop.
@@ -302,7 +317,7 @@ LIST_OF_METERS
             warning("(serialstdin) nothing received!\n");
         }
     }
-
+    */
     if (config->daemon) {
         notice("(wmbusmeters) waiting for telegrams\n");
     }

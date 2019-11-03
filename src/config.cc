@@ -399,7 +399,6 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, WMBus *wmbus
     }
     string metersu = meters_union.hr();
     debug("(config) all possible link modes that the meters might transmit on: %s\n", metersu.c_str());
-
     if (meters_union.bits() == 0) {
         if (!config->link_mode_configured)
         {

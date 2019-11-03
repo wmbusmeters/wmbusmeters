@@ -28,6 +28,7 @@ void onExit(std::function<void()> cb);
 void restoreSignalHandlers();
 bool gotHupped();
 void wakeMeUpOnSigChld(pthread_t t);
+bool signalsInstalled();
 
 typedef unsigned char uchar;
 
@@ -84,6 +85,7 @@ std::vector<std::string> splitMatchExpressions(std::string& mes);
 void incrementIV(uchar *iv, size_t len);
 
 bool checkCharacterDeviceExists(const char *tty, bool fail_if_not);
+bool checkFileExists(const char *file);
 bool checkIfSimulationFile(const char *file);
 bool checkIfDirExists(const char *dir);
 bool listFiles(std::string dir, std::vector<std::string> *files);

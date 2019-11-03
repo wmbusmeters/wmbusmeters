@@ -33,7 +33,8 @@ using namespace std;
 
 enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
 
-struct WMBusRTLWMBUS : public WMBus {
+struct WMBusRTLWMBUS : public WMBus
+{
     bool ping();
     uint32_t getDeviceId();
     LinkModeSet getLinkModes();
@@ -75,21 +76,19 @@ private:
 };
 
 unique_ptr<WMBus> openRTLWMBUS(string command, SerialCommunicationManager *manager,
-                               function<void()> on_exit)
+                               function<void()> on_exit, unique_ptr<SerialDevice> serial_override)
 {
     vector<string> args;
     vector<string> envs;
     args.push_back("-c");
     args.push_back(command);
+    if (serial_override)
+    {
+        WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(std::move(serial_override), manager);
+        return unique_ptr<WMBus>(imp);
+    }
     auto serial = manager->createSerialDeviceCommand("/bin/sh", args, envs, on_exit);
     WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
-}
-
-unique_ptr<WMBus> openRTLWMBUS(string command, SerialCommunicationManager *manager, SerialDevice *serial,
-                               function<void()> on_exit)
-{
-    WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(unique_ptr<SerialDevice>(serial), manager);
     return unique_ptr<WMBus>(imp);
 }
 
@@ -100,15 +99,18 @@ WMBusRTLWMBUS::WMBusRTLWMBUS(unique_ptr<SerialDevice> serial, SerialCommunicatio
     serial_->open(true);
 }
 
-bool WMBusRTLWMBUS::ping() {
+bool WMBusRTLWMBUS::ping()
+{
     return true;
 }
 
-uint32_t WMBusRTLWMBUS::getDeviceId() {
+uint32_t WMBusRTLWMBUS::getDeviceId()
+{
     return 0x11111111;
 }
 
-LinkModeSet WMBusRTLWMBUS::getLinkModes() {
+LinkModeSet WMBusRTLWMBUS::getLinkModes()
+{
 
     return Any_bit;
 }
@@ -131,7 +133,6 @@ void WMBusRTLWMBUS::processSerialData()
 
     // Receive and accumulated serial data until a full frame has been received.
     serial_->receive(&data);
-
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
     size_t frame_length;
@@ -194,7 +195,7 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
                                               int *hex_payload_len_out,
                                               int *hex_payload_offset)
 {
-    //C1;1;1;2019-02-09 07:14:18.000;117;102;94740459;0x49449344590474943508780dff5f3500827f0000f10007b06effff530100005f2c620100007f2118010000008000800080008000000000000000000e003f005500d4ff2f046d10086922
+    // C1;1;1;2019-02-09 07:14:18.000;117;102;94740459;0x49449344590474943508780dff5f3500827f0000f10007b06effff530100005f2c620100007f2118010000008000800080008000000000000000000e003f005500d4ff2f046d10086922
     // There might be a second telegram on the same line ;0x4944.......
     if (data.size() == 0) return PartialFrame;
     int payload_len = 0;

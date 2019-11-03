@@ -64,16 +64,15 @@ private:
     void handleMessage(vector<uchar> &frame);
 };
 
-unique_ptr<WMBus> openRawTTY(string device, int baudrate, SerialCommunicationManager *manager)
+unique_ptr<WMBus> openRawTTY(string device, int baudrate, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
 {
+    if (serial_override)
+    {
+        WMBusRawTTY *imp = new WMBusRawTTY(std::move(serial_override), manager);
+        return unique_ptr<WMBus>(imp);
+    }
     auto serial = manager->createSerialDeviceTTY(device.c_str(), baudrate);
     WMBusRawTTY *imp = new WMBusRawTTY(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
-}
-
-unique_ptr<WMBus> openRawTTY(string device, SerialCommunicationManager *manager, SerialDevice *serial)
-{
-    WMBusRawTTY *imp = new WMBusRawTTY(unique_ptr<SerialDevice>(serial), manager);
     return unique_ptr<WMBus>(imp);
 }
 
@@ -241,11 +240,11 @@ void WMBusRawTTY::handleMessage(vector<uchar> &frame)
     }
 }
 
-bool detectRawTTY(string device, SerialCommunicationManager *manager)
+bool detectRawTTY(string device, int baud, SerialCommunicationManager *manager)
 {
     // Since we do not know how to talk to the other end, it might not
     // even respond. The only thing we can do is to try to open the serial device.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), baud);
     bool ok = serial->open(false);
     if (!ok) return false;
 

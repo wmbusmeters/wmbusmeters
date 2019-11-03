@@ -93,16 +93,16 @@ private:
     void handleMessage(int msgid, vector<uchar> &frame);
 };
 
-unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager)
+unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
 {
+    if (serial_override)
+    {
+        WMBusAmber *imp = new WMBusAmber(std::move(serial_override), manager);
+        return unique_ptr<WMBus>(imp);
+    }
+
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600);
     WMBusAmber *imp = new WMBusAmber(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
-}
-
-unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager, SerialDevice *serial)
-{
-    WMBusAmber *imp = new WMBusAmber(unique_ptr<SerialDevice>(serial), manager);
     return unique_ptr<WMBus>(imp);
 }
 
@@ -158,17 +158,22 @@ uint32_t WMBusAmber::getDeviceId()
 
     sent_command_ = CMD_SERIALNO_REQ;
     verbose("(amb8465) get device id\n");
-    serial()->send(msg);
-
-    waitForResponse();
+    bool sent = serial()->send(msg);
 
     uint32_t id = 0;
-    if (received_command_ == (CMD_SERIALNO_REQ | 0x80)) {
-        id = received_payload_[4] << 24 |
-            received_payload_[5] << 16 |
-            received_payload_[6] << 8 |
-            received_payload_[7];
-        verbose("(amb8465) device id %08x\n", id);
+
+    if (sent)
+    {
+        waitForResponse();
+
+        if (received_command_ == (CMD_SERIALNO_REQ | 0x80))
+        {
+            id = received_payload_[4] << 24 |
+                received_payload_[5] << 16 |
+                received_payload_[6] << 8 |
+                received_payload_[7];
+            verbose("(amb8465) device id %08x\n", id);
+        }
     }
 
     pthread_mutex_unlock(&command_lock_);
@@ -198,7 +203,13 @@ void WMBusAmber::getConfiguration()
     assert(msg[5] == 0x77);
 
     verbose("(amb8465) get config\n");
-    serial()->send(msg);
+    bool sent = serial()->send(msg);
+
+    if (!sent)
+    {
+        pthread_mutex_unlock(&command_lock_);
+        return;
+    }
 
     waitForResponse();
 
@@ -264,9 +275,10 @@ void WMBusAmber::setLinkModes(LinkModeSet lms)
     msg[4] = xorChecksum(msg, 4);
 
     verbose("(amb8465) set link mode %02x\n", msg[3]);
-    serial()->send(msg);
+    bool sent = serial()->send(msg);
 
-    waitForResponse();
+    if (sent) waitForResponse();
+
     link_modes_ = lms;
     pthread_mutex_unlock(&command_lock_);
 }

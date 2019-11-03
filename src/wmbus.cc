@@ -410,102 +410,82 @@ string mediaTypeJSON(int a_field_device_type)
 
 bool detectIM871A(string device, SerialCommunicationManager *handler);
 bool detectAMB8465(string device, SerialCommunicationManager *handler);
-bool detectRawTTY(string device, SerialCommunicationManager *handler);
+bool detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
 bool detectRTLSDR(string device, SerialCommunicationManager *handler);
 
-pair<MBusDeviceType,string> detectMBusDevice(string device,
-                                             string suffix,
-                                             SerialCommunicationManager *handler)
+Detected detectAuto(string devicefile,
+                    string suffix,
+                    SerialCommunicationManager *handler)
 {
-    if (device == "rtlwmbus")
+    if (suffix != "")
     {
-        return { DEVICE_RTLWMBUS, "" };
-    }
-    if (device == "auto")
-    {
-        if (detectIM871A("/dev/im871a", handler))
-        {
-            return { DEVICE_IM871A, "/dev/im871a" };
-        }
-        else
-        {
-            AccessCheck ac = checkIfExistsAndSameGroup("/dev/im871a");
-            if (ac == AccessCheck::NotSameGroup) {
-                error("You are not in the same group as the device /dev/im871a\n");
-            }
-        }
-
-        if (detectAMB8465("/dev/amb8465", handler))
-        {
-            return { DEVICE_AMB8465, "/dev/amb8465" };
-        }
-        else
-        {
-            AccessCheck ac = checkIfExistsAndSameGroup("/dev/amb8465");
-            if (ac == AccessCheck::NotSameGroup) {
-                error("You are not in the same group as the device /dev/amb8465\n");
-            }
-        }
-
-        if (detectRawTTY("/dev/rfmrx2", handler))
-        {
-            return { DEVICE_RFMRX2, "/dev/rfmrx2" };
-        }
-        else
-        {
-            AccessCheck ac = checkIfExistsAndSameGroup("/dev/rfmrx2");
-            if (ac == AccessCheck::NotSameGroup) {
-                error("You are not in the same group as the device /dev/rfmrx2\n");
-            }
-        }
-
-        if (detectRTLSDR("/dev/rtlsdr", handler))
-        {
-            return { DEVICE_RTLWMBUS, "rtlwmbus" };
-        }
-        else
-        {
-            AccessCheck ac = checkIfExistsAndSameGroup("/dev/amb8465");
-            if (ac == AccessCheck::NotSameGroup) {
-                error("You are not in the same group as the device /dev/rtlsdr\n");
-            }
-        }
-
-        return { DEVICE_UNKNOWN, "" };
+        error("You cannot have a suffix appended to auto.\n");
     }
 
-    if (checkIfSimulationFile(device.c_str()))
+    if (detectIM871A("/dev/im871a", handler))
     {
-        return { DEVICE_SIMULATOR, device };
-    }
-
-    if (device == "stdin")
-    {
-        // The stdin device is only for testing (fuzzing).
-        if (suffix == "")
-        {
-            // Assuming rawtty.
-            return { DEVICE_RAWTTY, device };
-        }
-        // Otherwise check the suffix below.
+        return { DEVICE_IM871A, "/dev/im871a", 0, false };
     }
     else
     {
-        // If not auto and not stdin, then test the device, is it a character device?
-        checkCharacterDeviceExists(device.c_str(), true);
+        AccessCheck ac = checkIfExistsAndSameGroup("/dev/im871a");
+        if (ac == AccessCheck::NotSameGroup)
+        {
+            // The device exists but we cannot read it!
+            error("You are not in the same group as the device /dev/im871a\n");
+        }
     }
 
-    if (suffix != "")
+    if (detectAMB8465("/dev/amb8465", handler))
     {
-        // There is a suffix, then we know what this is.
-        if (suffix == "amb8465") return { DEVICE_AMB8465, device };
-        if (suffix == "im871a") return { DEVICE_IM871A, device };
-        if (suffix == "rfmrx2") return { DEVICE_RFMRX2, device };
-        // If the suffix is a number, then assume that it is a baud rate
-        // for a raw tty setting.
-        if (isNumber(suffix)) return { DEVICE_RAWTTY, device };
-        error("Unknown device suffix %s\n", suffix.c_str());
+        return { DEVICE_AMB8465, "/dev/amb8465", false };
     }
+    else
+    {
+        AccessCheck ac = checkIfExistsAndSameGroup("/dev/amb8465");
+        if (ac == AccessCheck::NotSameGroup)
+        {
+            // The device exists but we cannot read it!
+            error("You are not in the same group as the device /dev/amb8465\n");
+        }
+    }
+
+    if (detectRawTTY("/dev/rfmrx2", 38400, handler))
+    {
+        return { DEVICE_RFMRX2, "/dev/rfmrx2", false };
+    }
+    else
+    {
+        AccessCheck ac = checkIfExistsAndSameGroup("/dev/rfmrx2");
+        if (ac == AccessCheck::NotSameGroup)
+        {
+            // The device exists but we cannot read it!
+            error("You are not in the same group as the device /dev/rfmrx2\n");
+        }
+    }
+
+    if (detectRTLSDR("/dev/rtlsdr", handler))
+    {
+        return { DEVICE_RTLWMBUS, "rtlwmbus" };
+    }
+    else
+    {
+        AccessCheck ac = checkIfExistsAndSameGroup("/dev/amb8465");
+        if (ac == AccessCheck::NotSameGroup)
+        {
+            // The device exists but we cannot read it!
+            error("You are not in the same group as the device /dev/rtlsdr\n");
+        }
+    }
+
+    // We could not auto-detect any device.
+    return { DEVICE_UNKNOWN, "", false };
+}
+
+Detected detectImstOrAmber(string devicefile,
+                           string suffix,
+                           SerialCommunicationManager *handler)
+{
     // If im87a is tested first, a delay of 1s must be inserted
     // before amb8465 is tested, lest it will not respond properly.
     // It really should not matter, but perhaps is the uart of the amber
@@ -515,19 +495,103 @@ pair<MBusDeviceType,string> detectMBusDevice(string device,
 
     // Talk amb8465 with it...
     // assumes this device is configured for 9600 bps, which seems to be the default.
-    if (detectAMB8465(device, handler))
+    if (detectAMB8465(devicefile, handler))
     {
-        return { DEVICE_AMB8465, device };
+        return { DEVICE_AMB8465, devicefile, false };
     }
     // Talk im871a with it...
     // assumes this device is configured for 57600 bps, which seems to be the default.
-    if (detectIM871A(device, handler))
+    if (detectIM871A(devicefile, handler))
     {
-        return { DEVICE_IM871A, device };
+        return { DEVICE_IM871A, devicefile, false };
     }
 
-    return { DEVICE_UNKNOWN, "" };
+    // We could not auto-detect either.
+    return { DEVICE_UNKNOWN, "", false };
 }
+
+/**
+  The devicefile can be:
+
+  auto (to autodetect the device)
+  /dev/ttyUSB0 (to use this character device)
+  /home/me/simulation.txt or /home/me/simulation_foo.txt (to use the wmbusmeters telegram=|....|+32 format)
+  /home/me/telegram.raw (to read bytes from this file)
+  stdin (to read bytes from stdin)
+
+  If a suffix he suffix can be:
+  im871a
+  amb8465
+  rfmrx2
+  rtlwmbus: the devicefile produces rtlwmbus messages, ie. T1;1;1;2019-04-03 19:00:42.000;97;148;88888888;0x6e440106...ae03a77
+  simulation: assume the devicefile produces telegram=|....|+xx lines. This can also pace the simulated telegrams in time.
+  a baud rate like 38400: assume the devicefile is a raw tty character device.
+*/
+Detected detectWMBusDeviceSetting(string devicefile,
+                                  string suffix,
+                                  SerialCommunicationManager *handler)
+{
+    debug("(detect) \"%s\" \"%s\"\n", devicefile.c_str(), suffix.c_str());
+    // Look for /dev/im871a /dev/amb8465 /dev/rfmrx2 /dev/rtlsdr
+    if (devicefile == "auto")
+    {
+        debug("(detect) driver: auto\n");
+        return detectAuto(devicefile, suffix, handler);
+    }
+
+    // If the devicefile is rtlwmbus then the suffix can be a frequency
+    // or the actual command line to use.
+    // E.g. rtlwmbus rtlwmbux:868.95M rtlwmbus:rtl_sdr | rtl_wmbus
+    if (devicefile == "rtlwmbus")
+    {
+        debug("(detect) driver: rtlwmbus\n");
+        return { DEVICE_RTLWMBUS, "", false };
+    }
+
+    // Is it a file named simulation_xxx.txt ?
+    if (checkIfSimulationFile(devicefile.c_str()))
+    {
+        debug("(detect) driver: simulation file\n");
+        return { DEVICE_SIMULATOR, devicefile, false };
+    }
+
+    bool is_tty = checkCharacterDeviceExists(devicefile.c_str(), false);
+    bool is_stdin = devicefile == "stdin";
+    bool is_file = checkFileExists(devicefile.c_str());
+
+    debug("(detect) is_tty=%d is_stdin=%d is_file=%d\n", is_tty, is_stdin, is_file);
+    if (!is_tty && !is_stdin && !is_file)
+    {
+        debug("(detect) not a valid device file %s\n", devicefile.c_str());
+        // Oups, not a valid devicefile.
+        return { DEVICE_UNKNOWN, "", false };
+    }
+
+    bool override_tty = !is_tty;
+
+    if (suffix == "amb8465") return { DEVICE_AMB8465, devicefile, 0, override_tty };
+    if (suffix == "im871a") return { DEVICE_IM871A, devicefile, 0, override_tty };
+    if (suffix == "rfmrx2") return { DEVICE_RFMRX2, devicefile, 0, override_tty };
+    if (suffix == "rtlwmbus") return { DEVICE_RTLWMBUS, devicefile, 0, override_tty };
+    if (suffix == "simulation") return { DEVICE_SIMULATOR, devicefile, 0, override_tty };
+
+    // If the suffix is a number, then assume that it is a baud rate.
+    if (isNumber(suffix)) return { DEVICE_RAWTTY, devicefile, atoi(suffix.c_str()), override_tty };
+
+    // If the suffix is empty and its not a tty, then read raw telegrams from stdin or the file.
+    if (suffix == "" && !is_tty) return { DEVICE_RAWTTY, devicefile, 0, true };
+
+    if (suffix != "")
+    {
+        error("Unknown device suffix %s\n", suffix.c_str());
+    }
+
+    // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
+    // to figure out what is connected to it. We currently only
+    // know how to detect Imst or Amber dongles.
+    return detectImstOrAmber(devicefile, suffix, handler);
+}
+
 
 string ciType(int ci_field)
 {

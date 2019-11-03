@@ -210,21 +210,30 @@ LIST_OF_MBUS_DEVICES
 #undef X
 };
 
-// The detect function can be supplied the device "auto" and will try default locations for the device.
-// Returned is the type and the found device string.
-pair<MBusDeviceType,string> detectMBusDevice(string devstr, string suffix,
-                                             SerialCommunicationManager *manager);
+struct Detected
+{
+    MBusDeviceType type;  // IM871A, AMB8465 etc
+    string devicefile;    // /dev/ttyUSB0 /dev/ttyACM0 stdin simulation_abc.txt telegrams.raw
+    int baudrate;         // If the suffix is a number, store the number here.
+    // If the override_tty is true, then do not allow the wmbus driver to open the tty,
+    // instead open the devicefile first. This is to allow feeding the wmbus drivers using stdin
+    // or a file or for internal testing.
+    bool override_tty;
+};
 
-unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager);
-unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager, SerialDevice *serial);
-unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager);
-unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager, SerialDevice *serial);
-struct WMBusSimulator;
-unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager, std::function<void()> on_exit);
-unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager, SerialDevice *serial, std::function<void()> on_exit);
-unique_ptr<WMBus> openSimulator(string file, SerialCommunicationManager *manager);
-unique_ptr<WMBus> openRawTTY(string device, int baudrate, SerialCommunicationManager *manager);
-unique_ptr<WMBus> openRawTTY(string device, SerialCommunicationManager *manager, SerialDevice *serial);
+Detected detectWMBusDeviceSetting(string devicefile, string suffix,
+                                  SerialCommunicationManager *manager);
+
+unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager,
+                             unique_ptr<SerialDevice> serial_override);
+unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager,
+                              unique_ptr<SerialDevice> serial_override);
+unique_ptr<WMBus> openRawTTY(string device, int baudrate, SerialCommunicationManager *manager,
+                             unique_ptr<SerialDevice> serial_override);
+unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager, std::function<void()> on_exit,
+                               unique_ptr<SerialDevice> serial_override);
+unique_ptr<WMBus> openSimulator(string file, SerialCommunicationManager *manager,
+                                unique_ptr<SerialDevice> serial_override);
 
 string manufacturer(int m_field);
 string manufacturerFlag(int m_field);

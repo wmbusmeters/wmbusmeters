@@ -29,7 +29,8 @@ using namespace std;
 
 enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame };
 
-struct WMBusIM871A : public WMBus {
+struct WMBusIM871A : public WMBus
+{
     bool ping();
     uint32_t getDeviceId();
     LinkModeSet getLinkModes();
@@ -48,8 +49,8 @@ struct WMBusIM871A : public WMBus {
             N1f_bit;
     }
     int numConcurrentLinkModes() { return 1; }
-    bool canSetLinkModes(LinkModeSet lms) {
-
+    bool canSetLinkModes(LinkModeSet lms)
+    {
         if (0 == countSetBits(lms.bits())) return false;
         if (!supportedLinkModes().supports(lms)) return false;
         // Ok, the supplied link modes are compatible,
@@ -75,6 +76,7 @@ private:
     int received_command_ {};
     vector<uchar> received_payload_;
     vector<function<void(Telegram*)>> telegram_listeners_;
+    LinkModeSet link_modes_ {};
 
     void waitForResponse();
     static FrameStatus checkFrame(vector<uchar> &data,
@@ -87,16 +89,16 @@ private:
     void handleHWTest(int msgid, vector<uchar> &payload);
 };
 
-unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager)
+unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
 {
+    if (serial_override)
+    {
+        WMBusIM871A *imp = new WMBusIM871A(std::move(serial_override), manager);
+        return unique_ptr<WMBus>(imp);
+    }
+
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 57600);
     WMBusIM871A *imp = new WMBusIM871A(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
-}
-
-unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager, SerialDevice *serial)
-{
-    WMBusIM871A *imp = new WMBusIM871A(unique_ptr<SerialDevice>(serial), manager);
     return unique_ptr<WMBus>(imp);
 }
 
@@ -108,7 +110,8 @@ WMBusIM871A::WMBusIM871A(unique_ptr<SerialDevice> serial, SerialCommunicationMan
     serial_->open(true);
 }
 
-bool WMBusIM871A::ping() {
+bool WMBusIM871A::ping()
+{
     pthread_mutex_lock(&command_lock_);
 
     vector<uchar> msg(4);
@@ -119,15 +122,16 @@ bool WMBusIM871A::ping() {
 
     sent_command_ = DEVMGMT_MSG_PING_REQ;
     verbose("(im871a) ping\n");
-    serial()->send(msg);
+    bool sent = serial()->send(msg);
 
-    waitForResponse();
+    if (sent) waitForResponse();
 
     pthread_mutex_unlock(&command_lock_);
     return true;
 }
 
-uint32_t WMBusIM871A::getDeviceId() {
+uint32_t WMBusIM871A::getDeviceId()
+{
     pthread_mutex_lock(&command_lock_);
 
     vector<uchar> msg(4);
@@ -138,28 +142,37 @@ uint32_t WMBusIM871A::getDeviceId() {
 
     sent_command_ = DEVMGMT_MSG_GET_DEVICEINFO_REQ;
     verbose("(im871a) get device info\n");
-    serial()->send(msg);
-
-    waitForResponse();
+    bool sent = serial()->send(msg);
 
     uint32_t id = 0;
-    if (received_command_ == DEVMGMT_MSG_GET_DEVICEINFO_RSP) {
-        verbose("(im871a) device info: module Type %02x\n", received_payload_[0]);
-        verbose("(im871a) device info: device Mode %02x\n", received_payload_[1]);
-        verbose("(im871a) device info: firmware version %02x\n", received_payload_[2]);
-        verbose("(im871a) device info: hci protocol version %02x\n", received_payload_[3]);
-        id = received_payload_[4] << 24 |
-            received_payload_[5] << 16 |
-            received_payload_[6] << 8 |
-            received_payload_[7];
-        verbose("(im871a) devince info: id %08x\n", id);
+
+    if (sent)
+    {
+        waitForResponse();
+
+        if (received_command_ == DEVMGMT_MSG_GET_DEVICEINFO_RSP) {
+            verbose("(im871a) device info: module Type %02x\n", received_payload_[0]);
+            verbose("(im871a) device info: device Mode %02x\n", received_payload_[1]);
+            verbose("(im871a) device info: firmware version %02x\n", received_payload_[2]);
+            verbose("(im871a) device info: hci protocol version %02x\n", received_payload_[3]);
+            id = received_payload_[4] << 24 |
+                received_payload_[5] << 16 |
+                received_payload_[6] << 8 |
+                received_payload_[7];
+            verbose("(im871a) devince info: id %08x\n", id);
+        }
+    }
+    else
+    {
+        id = 0;
     }
 
     pthread_mutex_unlock(&command_lock_);
     return id;
 }
 
-LinkModeSet WMBusIM871A::getLinkModes() {
+LinkModeSet WMBusIM871A::getLinkModes()
+{
     pthread_mutex_lock(&command_lock_);
 
     vector<uchar> msg(4);
@@ -169,11 +182,19 @@ LinkModeSet WMBusIM871A::getLinkModes() {
     msg[3] = 0;
 
     verbose("(im871a) get config\n");
-    serial()->send(msg);
+    bool sent = serial()->send(msg);
+
+    if (!sent)
+    {
+        pthread_mutex_unlock(&command_lock_);
+        // Use the remembered link modes set before.
+        return link_modes_;
+    }
 
     waitForResponse();
     LinkMode lm = LinkMode::UNKNOWN;
-    if (received_command_ == DEVMGMT_MSG_GET_CONFIG_RSP) {
+    if (received_command_ == DEVMGMT_MSG_GET_CONFIG_RSP)
+    {
         int iff1 = received_payload_[0];
         bool has_device_mode = (iff1&1)==1;
         bool has_link_mode = (iff1&2)==2;
@@ -185,11 +206,13 @@ LinkModeSet WMBusIM871A::getLinkModes() {
         bool has_radio_channel = (iff1&128)==128;
 
         int offset = 1;
-        if (has_device_mode) {
+        if (has_device_mode)
+        {
             verbose("(im871a) config: device mode %02x\n", received_payload_[offset]);
             offset++;
         }
-        if (has_link_mode) {
+        if (has_link_mode)
+        {
             verbose("(im871a) config: link mode %02x\n", received_payload_[offset]);
             if (received_payload_[offset] == (int)LinkModeIM871A::C1a) {
                 lm = LinkMode::C1;
@@ -342,15 +365,17 @@ void WMBusIM871A::setLinkModes(LinkModeSet lms)
         msg[6] = (int)LinkModeIM871A::C1a; // Defaults to C1a
     }
 
-
     msg[7] = 16+32; // iff2 bits: Set rssi+timestamp
     msg[8] = 1;  // Enable rssi
     msg[9] = 1;  // Enable timestamp
 
     verbose("(im871a) set link mode %02x\n", msg[6]);
-    serial()->send(msg);
+    bool sent = serial()->send(msg);
 
-    waitForResponse();
+    if (sent) waitForResponse();
+
+    // Remember the link modes, necessary when using stdin or file.
+    link_modes_ = lms;
     pthread_mutex_unlock(&command_lock_);
 }
 
