@@ -4,6 +4,9 @@ PROG="$1"
 TEST=testoutput
 mkdir -p $TEST
 
+TESTNAME="Test additional json from cmdline"
+TESTRESULT="ERROR"
+
 cat simulations/simulation_additional_json.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json --json_floor=5 --json_address="RoodRd 42" simulations/simulation_additional_json.txt \
       MyTapWater multical21 76348799 "" \
@@ -15,16 +18,16 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo Additional json from cmdline OK
-    else
-        echo Failure!
-        exit 1
+        echo "OK: $TESTNAME"
+        TESTRESULT="OK"
     fi
-else
-    echo Failure.
-    exit 1
 fi
 
+if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+
+
+TESTNAME="Test additional shell envs from cmdline"
+TESTRESULT="ERROR"
 
 $PROG --format=json --json_floor=5 --json_house="alfa beta" --shellenvs --listento=c1 simulations/simulation_additional_json.txt \
       Vatten multical21 76348799 "" | grep METER_  > $TEST/test_output.txt
@@ -53,11 +56,14 @@ EOF
 diff $TEST/test_expected.txt $TEST/test_output.txt
 if [ "$?" == "0" ]
 then
-    echo Additional json in shell envs OK
-else
-    echo Failure!
-    exit 1
+    echo "OK: $TESTNAME"
+    TESTRESULT="OK"
 fi
+
+if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+
+TESTNAME="Test additional json from wmbusmeters.conf and from meter file"
+TESTRESULT="ERROR"
 
 $PROG --useconfig=tests/config6 > $TEST/test_output.txt
 
@@ -67,13 +73,9 @@ then
     EXPECTED=$(echo 'METER =={"media":"warm water","meter":"supercom587","name":"Water","id":"12345678","total_m3":5.548,"timestamp":"1111-11-11T11:11:11Z","floor":"5","address":"RoodRd 42"}== ==RoodRd 42== ==5==')
     if [ "$INFO" = "$EXPECTED" ]
     then
-        echo Additional json from config  OK
-    else
-        echo $INFO
-        echo $EXPECTED
-        exit 1
+        echo "OK: $TESTNAME"
+        TESTRESULT="OK"
     fi
-else
-    echo Failure.
-    exit 1
 fi
+
+if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi

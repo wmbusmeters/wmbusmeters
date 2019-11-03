@@ -40,11 +40,11 @@ int main(int argc, char **argv)
         debugEnabled(true);
     }
     onExit([](){});
-    /*
+
     test_crc();
     test_dvparser();
-*/    test_linkmodes();
-//    test_ids();
+    test_linkmodes();
+    test_ids();
     return 0;
 }
 
@@ -200,22 +200,21 @@ int test_dvparser()
 int test_linkmodes()
 {
     LinkModeCalculationResult lmcr;
-    auto manager = createSerialCommunicationManager(0, 0);
+    auto manager = createSerialCommunicationManager(0, 0, false);
 
     auto serial1 = manager->createSerialDeviceSimulator();
     auto serial2 = manager->createSerialDeviceSimulator();
     auto serial3 = manager->createSerialDeviceSimulator();
-    /*
-    auto serial4 = manager->createSerialDeviceSimulator();*/
-    /*
-    vector<string> no_meter_shells, no_meter_jsons;*/
-/*
+    auto serial4 = manager->createSerialDeviceSimulator();
+
+    vector<string> no_meter_shells, no_meter_jsons;
+
     unique_ptr<WMBus> wmbus_im871a = openIM871A("", manager.get(), std::move(serial1));
+
     unique_ptr<WMBus> wmbus_amb8465 = openAMB8465("", manager.get(), std::move(serial2));
     unique_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS("", manager.get(), [](){}, std::move(serial3));
     unique_ptr<WMBus> wmbus_rawtty = openRawTTY("", 0, manager.get(), std::move(serial4));
-*/
-/*
+
     Configuration nometers_config;
     // Check that if no meters are supplied then you must set a link mode.
     nometers_config.link_mode_configured = false;
@@ -327,7 +326,7 @@ int test_linkmodes()
         printf("ERROR! Expected dongle cannot listen to! Got instead:\n%s\n", lmcr.msg.c_str());
     }
     debug("test7 OK\n\n");
-*/
+
     return 0;
 }
 

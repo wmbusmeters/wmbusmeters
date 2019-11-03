@@ -3,8 +3,10 @@
 PROG="$1"
 
 mkdir -p testoutput
-
 TEST=testoutput
+
+TESTNAME="Test T1 meters"
+TESTRESULT="ERROR"
 
 cat simulations/simulation_t1.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_t1.txt \
@@ -28,9 +30,13 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo T1 OK
+        echo OK: $TESTNAME
+        TESTRESULT="OK"
     fi
-else
-    echo Failure.
+fi
+
+if [ "$TESTRESULT" = "ERROR" ]
+then
+    echo ERROR: $TESTNAME
     exit 1
 fi

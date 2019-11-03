@@ -4,6 +4,9 @@ PROG="$1"
 TEST=testoutput
 mkdir -p $TEST
 
+TESTNAME="Test shell in config file"
+TESTRESULT="ERROR"
+
 $PROG --useconfig=tests/config5 > $TEST/test_output.txt
 
 if [ "$?" == "0" ]
@@ -12,12 +15,13 @@ then
     EXPECTED=$(echo 'TESTING SHELL {"media":"warm water","meter":"supercom587","name":"Vatten","id":"12345678","total_m3":5.548,"timestamp":"1111-11-11T11:11:11Z"}')
     if [ "$INFO" = "$EXPECTED" ]
     then
-        echo meter shell OK
-    else
-        echo Failure.
-        exit 1
+        echo OK: $TESTNAME
+        TESTRESULT="OK"
     fi
-else
-    echo Failure.
+fi
+
+if [ "$TESTRESULT" = "ERROR" ]
+then
+    echo ERROR: $TESTNAME
     exit 1
 fi

@@ -4,8 +4,10 @@ PROG="$1"
 
 rm -rf testoutput
 mkdir -p testoutput
-
 TEST=testoutput
+
+TESTNAME="Test conversions of units"
+TESTRESULT="ERROR"
 
 cat simulations/simulation_conversionsadded.txt | grep '^{' | grep 58234965 > $TEST/test_expected.txt
 $PROG --addconversions=GJ,L --format=json simulations/simulation_conversionsadded.txt \
@@ -17,11 +19,9 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo Conversions OK
-    else
-        echo Failure. Conversions failed.
+        echo "OK: $TESTNAME"
+        TESTRESULT="OK"
     fi
-else
-    echo Failure. Conversions failed.
-    exit 1
 fi
+
+if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi

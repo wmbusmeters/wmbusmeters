@@ -4,6 +4,9 @@ PROG="$1"
 TEST=testoutput
 mkdir -p $TEST/meter_readings3
 
+TESTNAME="Test single meter conf file matches any id"
+TESTRESULT="ERROR"
+
 rm -f $TEST/meter_readings3/*
 cat simulations/simulation_multiple_qcalorics.txt | grep '^{' > $TEST/test_expected.txt
 
@@ -21,9 +24,13 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo Elements OK
+        echo OK: $TESTNAME
+        TESTRESULT="OK"
     fi
-else
-    echo Failure.
+fi
+
+if [ "$TESTRESULT" = "ERROR" ]
+then
+    echo ERROR: $TESTNAME
     exit 1
 fi

@@ -184,11 +184,11 @@ void WMBusRawTTY::processSerialData()
 
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
+    size_t frame_length;
+    int payload_len, payload_offset;
+
     for (;;)
     {
-        size_t frame_length;
-        int payload_len, payload_offset;
-
         FrameStatus status = checkRawTTYFrame(read_buffer_, &frame_length, &payload_len, &payload_offset);
 
         if (status == PartialFrame)
@@ -196,7 +196,7 @@ void WMBusRawTTY::processSerialData()
             // Partial frame, stop eating.
             break;
         }
-        else if (status == ErrorInFrame)
+        if (status == ErrorInFrame)
         {
             verbose("(rawtty) protocol error in message received!\n");
             string msg = bin2hex(read_buffer_);
@@ -204,7 +204,7 @@ void WMBusRawTTY::processSerialData()
             read_buffer_.clear();
             break;
         }
-        else if (status == FullFrame)
+        if (status == FullFrame)
         {
             vector<uchar> payload;
             if (payload_len > 0)
@@ -215,10 +215,6 @@ void WMBusRawTTY::processSerialData()
             }
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
             handleMessage(payload);
-        }
-        else
-        {
-            assert(0);
         }
     }
 }

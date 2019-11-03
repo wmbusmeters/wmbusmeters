@@ -3,8 +3,10 @@
 PROG="$1"
 
 mkdir -p testoutput
-
 TEST=testoutput
+
+TESTNAME="Test shell invocation"
+TESTRESULT="ERROR"
 
 $PROG --shell='echo "$METER_JSON"' simulations/simulation_shell.txt MWW supercom587 12345678 "" > $TEST/test_output.txt
 if [ "$?" == "0" ]
@@ -14,9 +16,13 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo SHELL OK
+        echo OK: $TESTNAME
+        TESTRESULT="OK"
     fi
-else
-    echo Failure.
+fi
+
+if [ "$TESTRESULT" = "ERROR" ]
+then
+    echo ERROR: $TESTNAME
     exit 1
 fi

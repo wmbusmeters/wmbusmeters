@@ -350,29 +350,40 @@ void WMBusAmber::processSerialData()
     int payload_len, payload_offset;
     uchar rssi;
 
-    FrameStatus status = checkAMB8465Frame(read_buffer_, &frame_length, &msgid, &payload_len, &payload_offset, &rssi);
+    for (;;)
+    {
+        FrameStatus status = checkAMB8465Frame(read_buffer_, &frame_length, &msgid, &payload_len, &payload_offset, &rssi);
 
-    if (status == ErrorInFrame) {
-        verbose("(amb8465) protocol error in message received!\n");
-        string msg = bin2hex(read_buffer_);
-        debug("(amb8465) protocol error \"%s\"\n", msg.c_str());
-        read_buffer_.clear();
-    } else
-    if (status == FullFrame) {
-
-        vector<uchar> payload;
-        if (payload_len > 0) {
-            uchar l = payload_len;
-            payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
-            payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
+        if (status == PartialFrame)
+        {
+            break;
         }
-
-        read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
-
-        if (rssi_expected_) {
-            verbose("(amb8465) rssi %d\n", rssi);
+        if (status == ErrorInFrame)
+        {
+            verbose("(amb8465) protocol error in message received!\n");
+            string msg = bin2hex(read_buffer_);
+            debug("(amb8465) protocol error \"%s\"\n", msg.c_str());
+            read_buffer_.clear();
+            break;
         }
-        handleMessage(msgid, payload);
+        if (status == FullFrame)
+        {
+            vector<uchar> payload;
+            if (payload_len > 0)
+            {
+                uchar l = payload_len;
+                payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
+                payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
+            }
+
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+
+            if (rssi_expected_)
+            {
+                verbose("(amb8465) rssi %d\n", rssi);
+            }
+            handleMessage(msgid, payload);
+        }
     }
 }
 

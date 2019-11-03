@@ -74,6 +74,7 @@ struct SerialCommunicationManager
 };
 
 unique_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t exit_after_seconds = 0,
-                                                                        time_t reopen_after_seconds = 0);
+                                                                        time_t reopen_after_seconds = 0,
+                                                                        bool start_event_loop = true);
 
 #endif

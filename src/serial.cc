@@ -43,7 +43,7 @@ struct SerialDeviceSimulator;
 
 struct SerialCommunicationManagerImp : public SerialCommunicationManager
 {
-    SerialCommunicationManagerImp(time_t exit_after_seconds, time_t reopen_after_seconds);
+    SerialCommunicationManagerImp(time_t exit_after_seconds, time_t reopen_after_seconds, bool start_event_loop);
     ~SerialCommunicationManagerImp();
 
     unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate);
@@ -157,7 +157,7 @@ int SerialDeviceImp::receive(vector<uchar> *data)
 
     if (isDebugEnabled())
     {
-        if (expecting_ascii_)
+        if (true) // expecting_ascii_)
         {
             string msg = safeString(*data);
             debug("(serial) received ascii %s\n", msg.c_str());
@@ -526,11 +526,17 @@ struct SerialDeviceSimulator : public SerialDeviceImp
 };
 
 SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_seconds,
-                                                             time_t reopen_after_seconds)
+                                                             time_t reopen_after_seconds,
+                                                             bool start_event_loop)
 {
     running_ = true;
     max_fd_ = 0;
-    pthread_create(&thread_, NULL, startLoop, this);
+    // Block the event loop until everything is configured.
+    if (start_event_loop)
+    {
+        pthread_mutex_lock(&event_loop_lock_);
+        pthread_create(&thread_, NULL, startLoop, this);
+    }
     wakeMeUpOnSigChld(thread_);
     start_time_ = time(NULL);
     exit_after_seconds_ = exit_after_seconds;
@@ -588,8 +594,8 @@ void SerialCommunicationManagerImp::stop()
         {
             if (signalsInstalled())
             {
-                pthread_kill(main_thread_, SIGUSR2);
-                pthread_kill(thread_, SIGUSR1);
+                if (main_thread_) pthread_kill(main_thread_, SIGUSR2);
+                if (thread_) pthread_kill(thread_, SIGUSR1);
             }
         }
     }
@@ -598,19 +604,20 @@ void SerialCommunicationManagerImp::stop()
 void SerialCommunicationManagerImp::waitForStop()
 {
     debug("(serial) waiting for stop\n");
+    // Release the event loop!
+    pthread_mutex_unlock(&event_loop_lock_);
+
     expect_devices_to_work_ = true;
     main_thread_ = pthread_self();
     while (running_) { usleep(1000*1000); }
     if (signalsInstalled())
     {
-        pthread_kill(thread_, SIGUSR1);
+        if (thread_) pthread_kill(thread_, SIGUSR1);
     }
     pthread_join(thread_, NULL);
-    debug("(serial) closing devices %d\n", devices_.size());
-    for (SerialDevice *d : devices_)
-    {
-        d->close();
-    }
+
+    debug("(serial) closing %d devices\n", devices_.size());
+    closeAll();
 }
 
 bool SerialCommunicationManagerImp::isRunning()
@@ -630,7 +637,7 @@ void SerialCommunicationManagerImp::opened(SerialDeviceImp *sd)
     devices_.push_back(sd);
     if (signalsInstalled())
     {
-        pthread_kill(thread_, SIGUSR1);
+        if (thread_) pthread_kill(thread_, SIGUSR1);
     }
     pthread_mutex_unlock(&devices_lock_);
 }
@@ -726,8 +733,9 @@ void *SerialCommunicationManagerImp::eventLoop()
             break;
         }
 
-        debug("(serial) select\n");
+        debug("(serial) select num_devies=%d running=%d expect_devices_to_work=%d\n", num_devices, running_, expect_devices_to_work_);
         int activity = select(max_fd_+1 , &readfds, NULL , NULL, &timeout);
+        debug("(serial) out of select\n");
         if (!running_) break;
         if (activity < 0 && errno!=EINTR)
         {
@@ -788,10 +796,12 @@ void *SerialCommunicationManagerImp::eventLoop()
 }
 
 unique_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t exit_after_seconds,
-                                                                        time_t reopen_after_seconds)
+                                                                        time_t reopen_after_seconds,
+                                                                        bool start_event_loop)
 {
     return unique_ptr<SerialCommunicationManager>(new SerialCommunicationManagerImp(exit_after_seconds,
-                                                                                    reopen_after_seconds));
+                                                                                    reopen_after_seconds,
+                                                                                    start_event_loop));
 }
 
 static int openSerialTTY(const char *tty, int baud_rate)

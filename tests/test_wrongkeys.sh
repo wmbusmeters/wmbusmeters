@@ -6,6 +6,9 @@ mkdir -p testoutput
 
 TEST=testoutput
 
+TESTNAME="Test incorrect decryption keys"
+TESTRESULT="ERROR"
+
 cat simulations/simulation_t1.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_t1.txt \
       MyWarmWater supercom587 12345678 11111111111111111111111111111111 \
@@ -30,9 +33,9 @@ then
     diff $TEST/test_expected.txt $TEST/test_output.txt
     if [ "$?" == "0" ]
     then
-        echo Random keys OK
+        echo "OK: $TESTNAME"
+        TESTRESULT="OK"
     fi
-else
-    echo Failure.
-    exit 1
 fi
+
+if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi

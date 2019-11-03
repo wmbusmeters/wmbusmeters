@@ -3,8 +3,11 @@
 PROG="$1"
 
 mkdir -p testoutput
-
 TEST=testoutput
+
+TESTNAME="Test listen to wildcard * id"
+TESTRESULT="ERROR"
+
 SIM=simulations/simulation_multiple_qcalorics.txt
 
 cat $SIM | grep '^{' > $TEST/test_expected.txt
@@ -18,12 +21,15 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo Wildcard \'\*\' id OK
+        echo "OK: $TESTNAME"
+        TESTRESULT="OK"
     fi
-else
-    echo Failure. Wildcard \'\*\' id bad
-    exit 1
 fi
+
+if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+
+TESTNAME="Test listen to wildcard suffix 8856* id"
+TESTRESULT="ERROR"
 
 cat $SIM | grep '^{' | grep 8856 > $TEST/test_expected.txt
 
@@ -38,12 +44,15 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo Wildcard \'8856\*\' id OK
+        echo "OK: $TESTNAME"
+        TESTRESULT="OK"
     fi
-else
-    echo Failure. Wildcard \'8856\*\' id bad
-    exit 1
 fi
+
+if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+
+TESTNAME="Test listen to two comma separted ids"
+TESTRESULT="ERROR"
 
 cat $SIM | grep '^{' | grep -v 88563414 > $TEST/test_expected.txt
 
@@ -57,12 +66,15 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo Multiple ids2 OK
+        echo "OK: $TESTNAME"
+        TESTRESULT="OK"
     fi
-else
-    echo Failure. Multiple ids2 bad
-    exit 1
 fi
+
+if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+
+TESTNAME="Test listen to three comma separted ids"
+TESTRESULT="ERROR"
 
 cat $SIM | grep '^{' > $TEST/test_expected.txt
 
@@ -76,13 +88,15 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo Multiple ids3 OK
+        echo "OK: $TESTNAME"
+        TESTRESULT="OK"
     fi
-else
-    echo Failure. Multiple ids3 bad
-    exit 1
 fi
 
+if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+
+TESTNAME="Test listen with negated ids"
+TESTRESULT="ERROR"
 
 cat $SIM | grep '^{' | grep -v 88563414 | grep -v 78563413 > $TEST/test_expected.txt
 
@@ -96,9 +110,9 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo Negated ids OK
+        echo "OK: $TESTNAME"
+        TESTRESULT="OK"
     fi
-else
-    echo Failure. Negated ids bad
-    exit 1
 fi
+
+if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi

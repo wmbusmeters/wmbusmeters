@@ -12,6 +12,9 @@ TEST=testoutput
 LOGFILE=$TEST/logfile
 LOGFILE_EXPECTED=$TEST/logfile.expected
 
+TESTNAME="Test listen and print any meter heard in logfile"
+TESTRESULT="ERROR"
+
 mkdir -p $TEST
 rm -f $LOGFILE
 
@@ -65,17 +68,19 @@ RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)
 
 if [ ! "$RES" = "" ]
 then
-    ERRORS=true
+    echo ERROR: $TESTNAME
     echo Expected no output on stdout and stderr
     echo but got------------------
     echo $RES
     echo ---------------------
+    exit 1
 fi
 
 GOT=$(cat $LOGFILE)
 
 if [ ! "$GOT" = "$EXPECTED" ]
 then
+    echo ERROR: $TESTNAME
     echo GOT--------------
     echo $GOT
     echo EXPECTED---------
@@ -83,14 +88,18 @@ then
     echo -----------------
     exit 1
 else
-    echo OK: listen to all with logfile
+    echo OK: $TESTNAME
 fi
 
+
+TESTNAME="Test listen and print any meter heard on stdout"
+TESTRESULT="ERROR"
 
 GOT=$($PROG --t1 simulations/simulation_t1.txt 2>&1)
 
 if [ ! "$GOT" = "$EXPECTED" ]
 then
+    echo ERROR: $TESTNAME
     echo GOT--------------
     echo $GOT
     echo EXPECTED---------
@@ -98,5 +107,5 @@ then
     echo -----------------
     exit 1
 else
-    echo OK: listen to all with stdout
+    echo OK: $TESTNAME
 fi

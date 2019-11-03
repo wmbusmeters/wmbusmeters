@@ -79,9 +79,9 @@ private:
     LinkModeSet link_modes_ {};
 
     void waitForResponse();
-    static FrameStatus checkFrame(vector<uchar> &data,
-                           size_t *frame_length, int *endpoint_out, int *msgid_out,
-                           int *payload_len_out, int *payload_offset);
+    static FrameStatus checkIM871AFrame(vector<uchar> &data,
+                                        size_t *frame_length, int *endpoint_out, int *msgid_out,
+                                        int *payload_len_out, int *payload_offset);
     friend bool detectIM871A(string device, SerialCommunicationManager *manager);
     void handleDevMgmt(int msgid, vector<uchar> &payload);
     void handleRadioLink(int msgid, vector<uchar> &payload);
@@ -394,9 +394,9 @@ void WMBusIM871A::waitForResponse() {
     }
 }
 
-FrameStatus WMBusIM871A::checkFrame(vector<uchar> &data,
-                                    size_t *frame_length, int *endpoint_out, int *msgid_out,
-                                    int *payload_len_out, int *payload_offset)
+FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,
+                                          size_t *frame_length, int *endpoint_out, int *msgid_out,
+                                          int *payload_len_out, int *payload_offset)
 {
     if (data.size() == 0) return PartialFrame;
     if (data[0] != 0xa5) return ErrorInFrame;
@@ -473,41 +473,48 @@ void WMBusIM871A::processSerialData()
     int msgid;
     int payload_len, payload_offset;
 
-    FrameStatus status = checkFrame(read_buffer_, &frame_length, &endpoint, &msgid, &payload_len, &payload_offset);
+    for (;;)
+    {
+        FrameStatus status = checkIM871AFrame(read_buffer_, &frame_length, &endpoint, &msgid, &payload_len, &payload_offset);
 
-    if (status == ErrorInFrame) {
-        verbose("(im871a) protocol error in message received!\n");
-        string msg = bin2hex(read_buffer_);
-        debug("(im871a) protocol error \"%s\"\n", msg.c_str());
-        read_buffer_.clear();
-    }
-    else
-    if (status == FullFrame) {
-
-        vector<uchar> payload;
-        if (payload_len > 0)
+        if (status == PartialFrame)
         {
-            if (endpoint == RADIOLINK_ID &&
-                msgid == RADIOLINK_MSG_WMBUSMSG_IND)
-            {
-                uchar l = payload_len;
-                payload.insert(payload.begin(), &l, &l+1); // Re-insert the len byte.
-            }
-            // Insert the payload.
-            payload.insert(payload.end(),
-                           read_buffer_.begin()+payload_offset,
-                           read_buffer_.begin()+payload_offset+payload_len);
+            break;
         }
+        if (status == ErrorInFrame)
+        {
+            verbose("(im871a) protocol error in message received!\n");
+            string msg = bin2hex(read_buffer_);
+            debug("(im871a) protocol error \"%s\"\n", msg.c_str());
+            read_buffer_.clear();
+            break;
+        }
+        if (status == FullFrame)
+        {
+            vector<uchar> payload;
+            if (payload_len > 0)
+            {
+                if (endpoint == RADIOLINK_ID &&
+                    msgid == RADIOLINK_MSG_WMBUSMSG_IND)
+                {
+                    uchar l = payload_len;
+                    payload.insert(payload.begin(), &l, &l+1); // Re-insert the len byte.
+                }
+                // Insert the payload.
+                payload.insert(payload.end(),
+                               read_buffer_.begin()+payload_offset,
+                               read_buffer_.begin()+payload_offset+payload_len);
+            }
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
 
-        read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
-
-        // We now have a proper message in payload. Let us trigger actions based on it.
-        // It can be wmbus receiver-dongle messages or wmbus remote meter messages received over the radio.
-        switch (endpoint) {
-        case DEVMGMT_ID: handleDevMgmt(msgid, payload); break;
-        case RADIOLINK_ID: handleRadioLink(msgid, payload); break;
-        case RADIOLINKTEST_ID: handleRadioLinkTest(msgid, payload); break;
-        case HWTEST_ID: handleHWTest(msgid, payload); break;
+            // We now have a proper message in payload. Let us trigger actions based on it.
+            // It can be wmbus receiver-dongle messages or wmbus remote meter messages received over the radio.
+            switch (endpoint) {
+            case DEVMGMT_ID: handleDevMgmt(msgid, payload); break;
+            case RADIOLINK_ID: handleRadioLink(msgid, payload); break;
+            case RADIOLINKTEST_ID: handleRadioLinkTest(msgid, payload); break;
+            case HWTEST_ID: handleHWTest(msgid, payload); break;
+            }
         }
     }
 }
@@ -618,9 +625,9 @@ bool detectIM871A(string device, SerialCommunicationManager *manager)
 
     size_t frame_length;
     int endpoint, msgid, payload_len, payload_offset;
-    FrameStatus status = WMBusIM871A::checkFrame(data,
-                                                 &frame_length, &endpoint, &msgid,
-                                                 &payload_len, &payload_offset);
+    FrameStatus status = WMBusIM871A::checkIM871AFrame(data,
+                                                       &frame_length, &endpoint, &msgid,
+                                                       &payload_len, &payload_offset);
     if (status != FullFrame ||
         endpoint != 1 ||
         msgid != 2)

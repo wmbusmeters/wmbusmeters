@@ -166,10 +166,10 @@ clean:
 	rm -rf build/* build_arm/* build_debug/* build_arm_debug/* *~
 
 test:
-	./test.sh build/wmbusmeters
+	@./test.sh build/wmbusmeters
 
 testd:
-	./test.sh build_debug/wmbusmeters
+	@./test.sh build_debug/wmbusmeters
 
 update_manufacturers:
 	iconv -f utf-8 -t ascii//TRANSLIT -c DLMS_Flagids.csv -o tmp.flags

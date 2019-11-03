@@ -138,38 +138,54 @@ void WMBusRTLWMBUS::processSerialData()
     size_t frame_length;
     int hex_payload_len, hex_payload_offset;
 
-    FrameStatus status = checkRTLWMBUSFrame(read_buffer_, &frame_length, &hex_payload_len, &hex_payload_offset);
+    for (;;)
+    {
+        FrameStatus status = checkRTLWMBUSFrame(read_buffer_, &frame_length, &hex_payload_len, &hex_payload_offset);
 
-    if (status == TextAndNotFrame) {
-        // The buffer has already been printed by serial cmd.
-        read_buffer_.clear();
-    } else
-    if (status == ErrorInFrame) {
-        debug("(rtlwmbus) error in received message.\n");
-        string msg = bin2hex(read_buffer_);
-        read_buffer_.clear();
-    } else
-    if (status == FullFrame) {
-        vector<uchar> payload;
-        if (hex_payload_len > 0) {
-            vector<uchar> hex;
-            hex.insert(hex.end(), read_buffer_.begin()+hex_payload_offset, read_buffer_.begin()+hex_payload_offset+hex_payload_len);
-            bool ok = hex2bin(hex, &payload);
-            if (!ok) {
-                if (hex.size() % 2 == 1) {
-                    payload.clear();
-                    warning("(rtlwmbus) warning: the hex string is not an even multiple of two! Dropping last char.\n");
-                    hex.pop_back();
-                    ok = hex2bin(hex, &payload);
-                }
-                if (!ok) {
-                    warning("(rtlwmbus) warning: the hex string contains bad characters! Decode stopped partway.\n");
+        if (status == PartialFrame)
+        {
+            break;
+        }
+        if (status == TextAndNotFrame)
+        {
+            // The buffer has already been printed by serial cmd.
+            read_buffer_.clear();
+            break;
+        }
+        if (status == ErrorInFrame)
+        {
+            debug("(rtlwmbus) error in received message.\n");
+            string msg = bin2hex(read_buffer_);
+            read_buffer_.clear();
+            break;
+        }
+        if (status == FullFrame)
+        {
+            vector<uchar> payload;
+            if (hex_payload_len > 0)
+            {
+                vector<uchar> hex;
+                hex.insert(hex.end(), read_buffer_.begin()+hex_payload_offset, read_buffer_.begin()+hex_payload_offset+hex_payload_len);
+                bool ok = hex2bin(hex, &payload);
+                if (!ok)
+                {
+                    if (hex.size() % 2 == 1)
+                    {
+                        payload.clear();
+                        warning("(rtlwmbus) warning: the hex string is not an even multiple of two! Dropping last char.\n");
+                        hex.pop_back();
+                        ok = hex2bin(hex, &payload);
+                    }
+                    if (!ok)
+                    {
+                        warning("(rtlwmbus) warning: the hex string contains bad characters! Decode stopped partway.\n");
+                    }
                 }
             }
-        }
 
-        read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
-        handleMessage(payload);
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            handleMessage(payload);
+        }
     }
 }
 

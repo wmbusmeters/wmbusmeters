@@ -6,6 +6,9 @@ mkdir -p testoutput
 
 TEST=testoutput
 
+TESTNAME="Test C1 meters"
+TESTRESULT="ERROR"
+
 cat simulations/simulation_c1.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_c1.txt \
       MyHeater multical302 12345678 "" \
@@ -21,9 +24,13 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo C1 OK
+        echo OK: $TESTNAME
+        TESTRESULT="OK"
     fi
-else
-    echo Failure.
+fi
+
+if [ "$TESTRESULT" = "ERROR" ]
+then
+    echo ERROR: $TESTNAME
     exit 1
 fi
