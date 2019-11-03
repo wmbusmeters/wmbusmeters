@@ -1,4 +1,13 @@
 
+Version 0.9.16: 2019-11-03
+
+Significant rewrite of serial.cc.
+WMBusmeters can now specify stdin as <device>
+and continuously read wmbus frames from stdin.
+Either raw, or rtlwmbus formatted if stdin:rtlwmbus
+is supplied as the <device>. Check the README for
+more additions.
+
 Version 0.9.15: 2019-10-20
 
 Added Bmeter (rfmamb) and Lansen room sensors (lansenth).
