@@ -67,6 +67,7 @@ struct SerialCommunicationManager
 
     virtual void listenTo(SerialDevice *sd, function<void()> cb) = 0;
     virtual void stop() = 0;
+    virtual void startEventLoop() = 0;
     virtual void waitForStop() = 0;
     virtual bool isRunning() = 0;
     virtual void setReopenAfter(int seconds) = 0;

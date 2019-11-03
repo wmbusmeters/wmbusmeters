@@ -227,11 +227,6 @@ bool startUsingCommandline(Configuration *config)
         error("%s\n", lmcr.msg.c_str());
     }
 
-    wmbus->setLinkModes(config->listen_to_link_modes);
-    string using_link_modes = wmbus->getLinkModes().hr();
-
-    verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
-
     auto output = unique_ptr<Printer>(new Printer(config->json, config->fields,
                                                   config->separator, config->meterfiles, config->meterfiles_dir,
                                                   config->use_logfile, config->logfile,
@@ -291,33 +286,16 @@ LIST_OF_METERS
         wmbus->onTelegram([](Telegram *t){t->print();});
     }
 
+    manager->startEventLoop();
+    wmbus->setLinkModes(config->listen_to_link_modes);
+    string using_link_modes = wmbus->getLinkModes().hr();
+
+    verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
+
     if (settings.type == DEVICE_SIMULATOR) {
         wmbus->simulate();
     }
-    /*
-    if (use_stdin)
-    {
-        // It will only do a single read from stdin and then stop.
-        // This is for testing (fuzzing).
-        manager->stop();
-        vector<uchar> data;
-        data.resize(1024);
-        int n = read(0, &((data)[0]), 1024);
-        if (n > 0)
-        {
-            data.resize(n);
-            if (isDebugEnabled()) {
-                string msg = bin2hex(data);
-                debug("(serialstdin) received \"%s\"\n", msg.c_str());
-            }
-            wmbus->serial()->fill(data);
-        }
-        else
-        {
-            warning("(serialstdin) nothing received!\n");
-        }
-    }
-    */
+
     if (config->daemon) {
         notice("(wmbusmeters) waiting for telegrams\n");
     }

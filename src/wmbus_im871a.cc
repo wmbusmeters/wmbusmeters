@@ -617,7 +617,6 @@ bool detectIM871A(string device, SerialCommunicationManager *manager)
     // Wait for 100ms so that the USB stick have time to prepare a response.
     usleep(1000*100);
     serial->receive(&data);
-
     serial->close();
 
     string sent = bin2hex(msg);

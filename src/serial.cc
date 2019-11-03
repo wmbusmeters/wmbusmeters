@@ -54,6 +54,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
 
     void listenTo(SerialDevice *sd, function<void()> cb);
     void stop();
+    void startEventLoop();
     void waitForStop();
     bool isRunning();
     void setReopenAfter(int seconds);
@@ -103,8 +104,9 @@ struct SerialDeviceImp : public SerialDevice
     bool working() { return fd_ != -1; }
     void expectAscii() { expecting_ascii_ = true; }
     void setIsFile() { is_file_ = true; }
+    void setIsStdin() { is_stdin_ = true; }
 
-    protected:
+protected:
 
     pthread_mutex_t read_lock_ = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t write_lock_ = PTHREAD_MUTEX_INITIALIZER;
@@ -112,6 +114,7 @@ struct SerialDeviceImp : public SerialDevice
     int fd_ = -1;
     bool expecting_ascii_ {}; // If true, print using safeString instead if bin2hex
     bool is_file_ = false;
+    bool is_stdin_ = false;
 
     friend struct SerialCommunicationManagerImp;
 
@@ -136,8 +139,11 @@ int SerialDeviceImp::receive(vector<uchar> *data)
         }
         if (nr == 0)
         {
-            debug("(serial) no more data on fd=%d\n", fd_);
-            close(); // No more data.
+            if (is_stdin_ || is_file_)
+            {
+                debug("(serial) no more data on fd=%d\n", fd_);
+                close_me = true;
+            }
             break;
         }
         if (nr < 0)
@@ -157,7 +163,7 @@ int SerialDeviceImp::receive(vector<uchar> *data)
 
     if (isDebugEnabled())
     {
-        if (true) // expecting_ascii_)
+        if (expecting_ascii_)
         {
             string msg = safeString(*data);
             debug("(serial) received ascii %s\n", msg.c_str());
@@ -172,11 +178,6 @@ int SerialDeviceImp::receive(vector<uchar> *data)
     pthread_mutex_unlock(&read_lock_);
 
     if (close_me) close();
-    if (is_file_)
-    {
-        debug("(serial) read all (%d bytes) of file %d\n", num_read, fd_);
-        close();
-    }
 
     return num_read;
 }
@@ -352,6 +353,7 @@ bool SerialDeviceCommand::open(bool fail_if_not_ok)
     bool ok = invokeBackgroundShell("/bin/sh", args_, envs_, &fd_, &pid_);
     if (!ok) return false;
     manager_->opened(this);
+    setIsStdin();
     verbose("(serialcmd) opened %s\n", command_.c_str());
     return true;
 }
@@ -448,6 +450,7 @@ bool SerialDeviceFile::open(bool fail_if_not_ok)
         int flags = fcntl(0, F_GETFL);
         flags |= O_NONBLOCK;
         fcntl(0, F_SETFL, flags);
+        setIsStdin();
         verbose("(serialfile) reading from stdin\n");
     }
     else
@@ -601,15 +604,29 @@ void SerialCommunicationManagerImp::stop()
     }
 }
 
+void SerialCommunicationManagerImp::startEventLoop()
+{
+    // Release the event loop!
+    pthread_mutex_unlock(&event_loop_lock_);
+}
+
 void SerialCommunicationManagerImp::waitForStop()
 {
     debug("(serial) waiting for stop\n");
-    // Release the event loop!
-    pthread_mutex_unlock(&event_loop_lock_);
 
     expect_devices_to_work_ = true;
     main_thread_ = pthread_self();
-    while (running_) { usleep(1000*1000); }
+    while (running_)
+    {
+        pthread_mutex_lock(&devices_lock_);
+        size_t s = devices_.size();
+        pthread_mutex_unlock(&devices_lock_);
+
+        if (s == 0) {
+            break;
+        }
+        usleep(1000*1000);
+    }
     if (signalsInstalled())
     {
         if (thread_) pthread_kill(thread_, SIGUSR1);
@@ -703,7 +720,7 @@ void *SerialCommunicationManagerImp::eventLoop()
             break;
         }
 
-        struct timeval timeout { 1, 0 };
+        struct timeval timeout { 10, 0 };
 
         if (exit_after_seconds_ > 0)
         {
@@ -733,9 +750,7 @@ void *SerialCommunicationManagerImp::eventLoop()
             break;
         }
 
-        debug("(serial) select num_devies=%d running=%d expect_devices_to_work=%d\n", num_devices, running_, expect_devices_to_work_);
         int activity = select(max_fd_+1 , &readfds, NULL , NULL, &timeout);
-        debug("(serial) out of select\n");
         if (!running_) break;
         if (activity < 0 && errno!=EINTR)
         {
@@ -753,12 +768,6 @@ void *SerialCommunicationManagerImp::eventLoop()
                     SerialDeviceImp *si = dynamic_cast<SerialDeviceImp*>(d);
                     to_be_notified.push_back(si);
                 }
-                /*if (FD_ISSET(d->fd(), &exceptfds))
-                {
-                    debug("(serial) select exception on fd=%d\n", d->fd());
-                    d->close();
-                    stop();
-                    }*/
             }
             pthread_mutex_unlock(&devices_lock_);
 

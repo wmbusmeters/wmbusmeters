@@ -131,7 +131,9 @@ FrameStatus WMBusRawTTY::checkRawTTYFrame(vector<uchar> &data,
     // Ugly: 00615B2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B
     // Here the frame is prefixed with some random data.
 
-    if (data.size() == 0) return PartialFrame;
+    if (data.size() == 0) {
+        return PartialFrame;
+    }
     int payload_len = data[0];
     int type = data[1];
     int offset = 1;
@@ -170,13 +172,15 @@ FrameStatus WMBusRawTTY::checkRawTTYFrame(vector<uchar> &data,
     *payload_len_out = payload_len;
     *payload_offset = offset;
     *frame_length = payload_len+offset;
-    if (data.size() < *frame_length) return PartialFrame;
-
+    if (data.size() < *frame_length) {
+        return PartialFrame;
+    }
     return FullFrame;
 }
 
 void WMBusRawTTY::processSerialData()
 {
+
     vector<uchar> data;
 
     // Receive and accumulated serial data until a full frame has been received.
@@ -227,7 +231,9 @@ void WMBusRawTTY::handleMessage(vector<uchar> &frame)
     for (auto f : telegram_listeners_)
     {
         Telegram copy = t;
-        if (f) f(&copy);
+        if (f) {
+            f(&copy);
+        }
         if (copy.handled) handled = true;
     }
     if (isVerboseEnabled() && !handled)

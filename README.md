@@ -141,14 +141,16 @@ rtlwmbus:868.9M, to tune to this fq instead.
 
 rtlwmbus:<commandline>, to specify the entire background process command line.
 
-stdin:raw, to read raw binary telegrams from stdin.
+stdin, to read raw binary telegrams from stdin.
 
-telegrams.txt:raw, to read raw wmbus telegrams from this file.
+telegrams.txt, to read raw wmbus telegrams from this file.
 
 stdin:rtlwmbus, to read telegrams formatted using the rtlwmbus format from stdin.
 
-simulation_abc.txt, to read telegrams from the file expecting the same format
-that is the output from --logtelegrams.
+telegrams.msg:rtlwmbus, to read rtlwmbus formatted telegrams from this file.
+
+simulation_abc.txt, to read telegrams from the file (which has a name beginning with simulation_)
+expecting the same format that is the output from --logtelegrams. This format also supports replay with timing.
 
 As meter quadruples you specify:
 

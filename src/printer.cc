@@ -57,6 +57,7 @@ void Printer::print(Telegram *t, Meter *meter, vector<string> *more_json)
     if (!printed) {
         // This will print on stdout or in the logfile.
         printFiles(meter, t, human_readable, fields, json);
+        fflush(stdout);
     }
 }
 
