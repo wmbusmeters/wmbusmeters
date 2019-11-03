@@ -44,7 +44,7 @@ struct SerialDeviceSimulator;
 struct SerialCommunicationManagerImp : public SerialCommunicationManager
 {
     SerialCommunicationManagerImp(time_t exit_after_seconds, time_t reopen_after_seconds);
-    ~SerialCommunicationManagerImp() { closeAll(); stop(); }
+    ~SerialCommunicationManagerImp();
 
     unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate);
     unique_ptr<SerialDevice> createSerialDeviceCommand(string command, vector<string> args, vector<string> envs,
@@ -78,9 +78,22 @@ private:
     time_t exit_after_seconds_ {};
     time_t reopen_after_seconds_ {};
 
+    pthread_mutex_t event_loop_lock_ = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t devices_lock_ = PTHREAD_MUTEX_INITIALIZER;
     vector<SerialDeviceImp*> devices_;
 };
+
+SerialCommunicationManagerImp::~SerialCommunicationManagerImp()
+{
+    // Close all managed devices (not yet closed)
+    closeAll();
+    // Stop the event loop.
+    stop();
+    // Grab the event_loop_lock. This can only be done when the eventLoop has stopped running.
+    pthread_mutex_lock(&event_loop_lock_);
+    // Now we can be sure the eventLoop has stopped and it is safe to
+    // free this Manager object.
+}
 
 struct SerialDeviceImp : public SerialDevice
 {
@@ -432,6 +445,9 @@ bool SerialDeviceFile::open(bool fail_if_not_ok)
     if (file_ == "stdin")
     {
         fd_ = 0;
+        int flags = fcntl(0, F_GETFL);
+        flags |= O_NONBLOCK;
+        fcntl(0, F_SETFL, flags);
         verbose("(serialfile) reading from stdin\n");
     }
     else
@@ -659,6 +675,8 @@ void *SerialCommunicationManagerImp::eventLoop()
 {
     fd_set readfds;
 
+    pthread_mutex_lock(&event_loop_lock_);
+
     while (running_)
     {
         FD_ZERO(&readfds);
@@ -708,6 +726,7 @@ void *SerialCommunicationManagerImp::eventLoop()
             break;
         }
 
+        debug("(serial) select\n");
         int activity = select(max_fd_+1 , &readfds, NULL , NULL, &timeout);
         if (!running_) break;
         if (activity < 0 && errno!=EINTR)
@@ -763,8 +782,8 @@ void *SerialCommunicationManagerImp::eventLoop()
             break;
         }
     }
-
     verbose("(serial) event loop stopped!\n");
+    pthread_mutex_unlock(&event_loop_lock_);
     return NULL;
 }
 
