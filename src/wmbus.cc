@@ -678,16 +678,30 @@ void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
     }
 }
 
-void Telegram::parse(vector<uchar> &frame)
+bool Telegram::parse(vector<uchar> &frame)
 {
     vector<uchar>::iterator bytes = frame.begin();
     parsed.clear();
-    if (frame.size() == 0) return;
+    if (frame.size() == 0) return false;
+    if (frame.size() < 11)
+    {
+        verbose("(wmbus) cannot parse telegram with length %zu\n", frame.size());
+        return false;
+    }
     len = frame[0];
+    if ((int)len+1 > (int)frame.size())
+    {
+        // I have some bad test data, that needs to be cleaned out...
+        verbose("(wmbus) error not enough bytes frame=%zu but len=%zu\n", frame.size(), len);
+    }
+    if ((int)len+1 != (int)frame.size())
+    {
+        // I have some bad test data, that needs to be cleaned out...
+        verbose("(wmbus) discrepancy frame=%zu should be len=%zu\n", frame.size(), len);
+    }
     addExplanation(bytes, 1, "%02x length (%d bytes)", len, len);
     c_field = frame[1];
     addExplanation(bytes, 1, "%02x c-field (%s)", c_field, cType(c_field).c_str());
-    if (frame.size() < 4) return;
     m_field = frame[3]<<8 | frame[2];
     string man = manufacturerFlag(m_field);
     addExplanation(bytes, 2, "%02x%02x m-field (%02x=%s)", frame[2], frame[3], m_field, man.c_str());
@@ -710,10 +724,18 @@ void Telegram::parse(vector<uchar> &frame)
     addExplanation(bytes, 1, "%02x ci-field (%s)", ci_field, ciType(ci_field).c_str());
 
     int header_size = 0;
-    if (ci_field == 0x78) {
+    if (ci_field == 0x78)
+    {
         header_size = 0; // And no encryption possible.
-    } else
-    if (ci_field == 0x72) {
+    }
+    else if (ci_field == 0x72)
+    {
+        if (frame.size() < 22)
+        {
+            verbose("(wmbus) cannot parse telegram ci=0x72 with length %zu\n", frame.size());
+            return false;
+        }
+
         // Example, begins aith frame[11]: 99999999 MMMM VV TT 01 00 0000
         // Ignore 4 id bytes for now, should perhaps check that they are identical with the id.
         // But if they are not, what to do?
@@ -739,8 +761,14 @@ void Telegram::parse(vector<uchar> &frame)
         if (config_info.length() > 0) config_info.pop_back();
         addExplanation(bytes, 2, "%02x%02x config (%s)", frame[13], frame[14], config_info.c_str());
         header_size = 4+8;
-    } else
-    if (ci_field == 0x7a) {
+    }
+    else if (ci_field == 0x7a)
+    {
+        if (frame.size() < 15)
+        {
+            verbose("(wmbus) cannot parse telegram ci=0x7a with length %zu\n", frame.size());
+            return false;
+        }
         acc = frame[11];
         addExplanation(bytes, 1, "%02x acc", acc);
         status = frame[12];
@@ -760,14 +788,27 @@ void Telegram::parse(vector<uchar> &frame)
         if (config_info.length() > 0) config_info.pop_back();
         addExplanation(bytes, 2, "%02x%02x config (%s)", frame[13], frame[14], config_info.c_str());
         header_size = 4;
-    } else
-    if (ci_field == 0x8d || ci_field == 0x8c) {
+    }
+    else if (ci_field == 0x8d || ci_field == 0x8c)
+    {
+        if (frame.size() < 13)
+        {
+            verbose("(wmbus) cannot parse telegram ci=0x8d or 0x8c with length %zu\n", frame.size());
+            return false;
+        }
         cc_field = frame[11];
         addExplanation(bytes, 1, "%02x cc-field (%s)", cc_field, ccType(cc_field).c_str());
         acc = frame[12];
         addExplanation(bytes, 1, "%02x acc", acc);
         header_size = 2;
-        if (ci_field == 0x8d) {
+        if (ci_field == 0x8d)
+        {
+            if (frame.size() < 17)
+            {
+                verbose("(wmbus) cannot parse telegram ci=0x8d with length %zu\n", frame.size());
+                return false;
+            }
+
             sn[0] = frame[13];
             sn[1] = frame[14];
             sn[2] = frame[15];
@@ -775,8 +816,9 @@ void Telegram::parse(vector<uchar> &frame)
             addExplanation(bytes, 4, "%02x%02x%02x%02x sn", sn[0], sn[1], sn[2], sn[3]);
             header_size = 6;
         }
-    } else
-    if (ci_field == 0xa2) {
+    }
+    else if (ci_field == 0xa2)
+    {
         // Manufacturer specific telegram payload. Oh well....
     }
     else
@@ -786,7 +828,13 @@ void Telegram::parse(vector<uchar> &frame)
     }
 
     payload.clear();
-    payload.insert(payload.end(), frame.begin()+(11+header_size), frame.end());
+    int skip = 11+header_size;
+    if (skip < (int)frame.size())
+    {
+        // The case 11+header_size larger than frame_size is probably due to bad input data
+        // that is currently allowed to pass, see above.
+        payload.insert(payload.end(), frame.begin()+skip, frame.end());
+    }
     verbose("(wmbus) received telegram");
     verboseFields();
     debugPayload("(wmbus) frame", frame);
@@ -794,6 +842,7 @@ void Telegram::parse(vector<uchar> &frame)
     if (isDebugEnabled()) {
         explainParse("(wmbus)", 0);
     }
+    return true;
 }
 
 void Telegram::explainParse(string intro, int from)

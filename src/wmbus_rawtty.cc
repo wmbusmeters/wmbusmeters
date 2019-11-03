@@ -131,7 +131,7 @@ FrameStatus WMBusRawTTY::checkRawTTYFrame(vector<uchar> &data,
     // Ugly: 00615B2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B
     // Here the frame is prefixed with some random data.
 
-    if (data.size() == 0) {
+    if (data.size() < 11) {
         return PartialFrame;
     }
     int payload_len = data[0];
@@ -226,19 +226,22 @@ void WMBusRawTTY::processSerialData()
 void WMBusRawTTY::handleMessage(vector<uchar> &frame)
 {
     Telegram t;
-    t.parse(frame);
-    bool handled = false;
-    for (auto f : telegram_listeners_)
+    bool ok = t.parse(frame);
+    if (ok)
     {
-        Telegram copy = t;
-        if (f) {
-            f(&copy);
+        bool handled = false;
+        for (auto f : telegram_listeners_)
+        {
+            Telegram copy = t;
+            if (f) {
+                f(&copy);
+            }
+            if (copy.handled) handled = true;
         }
-        if (copy.handled) handled = true;
-    }
-    if (isVerboseEnabled() && !handled)
-    {
-        verbose("(rawtty) telegram ignored by all configured meters!\n");
+        if (isVerboseEnabled() && !handled)
+        {
+            verbose("(rawtty) telegram ignored by all configured meters!\n");
+        }
     }
 }
 

@@ -559,17 +559,20 @@ void WMBusIM871A::handleRadioLink(int msgid, vector<uchar> &payload)
         case RADIOLINK_MSG_WMBUSMSG_IND: // 0x03
             {
                 Telegram t;
-                t.parse(payload);
-                bool handled = false;
-
-                for (auto f : telegram_listeners_) {
-                    Telegram copy = t;
-                    if (f) f(&copy);
-                    if (copy.handled) handled = true;
-                }
-                if (isVerboseEnabled() && !handled)
+                bool ok = t.parse(payload);
+                if (ok)
                 {
-                    verbose("(im871a) telegram ignored by all configured meters!\n");
+                    bool handled = false;
+
+                    for (auto f : telegram_listeners_) {
+                        Telegram copy = t;
+                        if (f) f(&copy);
+                        if (copy.handled) handled = true;
+                    }
+                    if (isVerboseEnabled() && !handled)
+                    {
+                        verbose("(im871a) telegram ignored by all configured meters!\n");
+                    }
                 }
             }
             break;

@@ -1,4 +1,16 @@
 
+Version 0.9.17: 2019-11-03
+
+Thanks to afl-fuzz I found and added
+some (in retrospect pretty obvious)
+missing checks to deal with
+corrupted telegrams that crashed
+wmbusmeters.
+
+Now afl-fuzz does not trigger any crash
+after running for a couple of minutes.
+Lets fuzz more....
+
 Version 0.9.16: 2019-11-03
 
 Significant rewrite of serial.cc.

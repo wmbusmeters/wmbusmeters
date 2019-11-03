@@ -164,7 +164,7 @@ struct Telegram {
     bool handled {}; // Set to true, when a meter has accepted the telegram.
 
 
-    void parse(vector<uchar> &payload);
+    bool parse(vector<uchar> &payload);
     void print();
     void verboseFields();
 
