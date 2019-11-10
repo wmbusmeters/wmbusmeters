@@ -24,6 +24,8 @@
 #include<functional>
 #include<vector>
 
+enum class MeterType;
+
 void onExit(std::function<void()> cb);
 void restoreSignalHandlers();
 bool gotHupped();
@@ -76,7 +78,7 @@ bool isValidMatchExpressions(std::string ids, bool non_compliant);
 bool doesIdMatchExpression(std::string id, std::string match);
 bool doesIdMatchExpressions(std::string& id, std::vector<std::string>& ids);
 
-bool isValidKey(std::string& key);
+bool isValidKey(std::string& key, MeterType mt);
 bool isFrequency(std::string& fq);
 bool isNumber(std::string& fq);
 
