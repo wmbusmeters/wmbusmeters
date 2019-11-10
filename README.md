@@ -173,7 +173,8 @@ Kamstrup flowIQ 3100 (flowiq3100)
 Sontex Supercom 587 (supercom587)
 Sensus iPERL (iperl)
 Apator at-wmbus-16-2 (apator162) (non-standard protocol)
-Water meter Techem MK Radio 3 (mkradio3) (non-standard protocol)
+Techem MK Radio 3 (mkradio3) (non-standard protocol)
+Diehl/Sappel IZAR RC 868 I R4 PL (izar)
 
 Supported heat cost allocators:
 Qundis Q caloric (qcaloric)
@@ -192,7 +193,6 @@ Tauron Amiplus (amiplus) (includes vendor apator and echelon)
 Work in progress:
 Heat meter Kamstrup Multical 302 (multical302)
 Electricity meter Kamstrup Omnipower (omnipower)
-Water meter Diehl/Sappel IZAR RC 868 I R4 PL (izar)
 ```
 
 The wmbus dongles imst871a can listen to one type of wmbus telegrams

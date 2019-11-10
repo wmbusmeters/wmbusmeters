@@ -1,4 +1,8 @@
 
+Version 0.9.18: 2019-11-10
+
+Jacek added support for the Sappel/IZAR 868 meter. Thanks Jacek!
+
 Version 0.9.17: 2019-11-03
 
 Thanks to afl-fuzz I found and added

@@ -60,6 +60,9 @@ Received telegram from: 00010203
 Received telegram from: 11772288
           manufacturer: (BMT) BMETERS, Italy
            device type: Room sensor (eg temperature or humidity)
+Received telegram from: 21242472
+          manufacturer: (SAP) Sappel
+           device type: Oil meter
 EOF
 
 EXPECTED=$(cat $LOGFILE_EXPECTED)
