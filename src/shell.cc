@@ -61,7 +61,6 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
     if (pid == 0) {
         // I am the child!
         close(0); // Close stdin
-        delete[] p;
 #if defined(__APPLE__) && defined(__MACH__)
         execve(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #else
@@ -131,7 +130,6 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
         close(link[1]);
         close(0); // Close stdin
 
-        delete[] p;
 #if defined(__APPLE__) && defined(__MACH__)
         execve(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #else
