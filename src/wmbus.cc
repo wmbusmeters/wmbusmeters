@@ -808,12 +808,26 @@ bool Telegram::parse(vector<uchar> &frame)
                 verbose("(wmbus) cannot parse telegram ci=0x8d with length %zu\n", frame.size());
                 return false;
             }
-
+            string sn_info;
             sn[0] = frame[13];
             sn[1] = frame[14];
             sn[2] = frame[15];
             sn[3] = frame[16];
-            addExplanation(bytes, 4, "%02x%02x%02x%02x sn", sn[0], sn[1], sn[2], sn[3]);
+            uint64_t sn_field = sn[3]<<24 | sn[2]<<16 | sn[1] << 8 | sn[0];
+
+            uchar session_field = (sn_field >> 0)  & 0x0f; // lowest 4 bits
+            uint64_t time_field = (sn_field >> 4)  & 0x1ffffff; // next 25 bits
+            uchar enc_field     = (sn_field >> 29) & 0x7; // next 3 bits.
+            if (enc_field != 0)
+            {
+                sn_info += "encrypted ";
+                is_encrypted_ = true;
+            }
+            sn_info += "session=";
+            sn_info += to_string(session_field)+" ";
+            sn_info += "time=";
+            sn_info += to_string(time_field);
+            addExplanation(bytes, 4, "%02x%02x%02x%02x sn (%s)", sn[0], sn[1], sn[2], sn[3], sn_info.c_str());
             header_size = 6;
         }
     }
