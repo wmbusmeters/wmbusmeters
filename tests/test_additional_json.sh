@@ -37,6 +37,7 @@ ENVS=$(cat $TEST/test_output.txt | tr '\n' ' ')
 cat > $TEST/test_expected.txt <<EOF
 METER_JSON
 METER_TYPE
+METER_NAME
 METER_ID
 METER_TOTAL_M3
 METER_TARGET_M3
