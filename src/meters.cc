@@ -385,6 +385,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=")+meterName());
+    envs->push_back(string("METER_NAME=")+name());
     envs->push_back(string("METER_ID=")+t->id);
 
     for (Print p : prints_)
