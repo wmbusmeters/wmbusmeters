@@ -412,6 +412,7 @@ bool detectIM871A(string device, SerialCommunicationManager *handler);
 bool detectAMB8465(string device, SerialCommunicationManager *handler);
 bool detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
 bool detectRTLSDR(string device, SerialCommunicationManager *handler);
+bool detectCUL(string device, SerialCommunicationManager *handler);
 
 Detected detectAuto(string devicefile,
                     string suffix,
@@ -478,13 +479,27 @@ Detected detectAuto(string devicefile,
         }
     }
 
+    if (detectCUL("/dev/ttyUSB0", handler))
+    {
+        return { DEVICE_CUL, "/dev/ttyUSB0" };
+    }
+    else
+    {
+        AccessCheck ac = checkIfExistsAndSameGroup("/dev/ttyUSB0");
+        if (ac == AccessCheck::NotSameGroup)
+        {
+            // The device exists but we cannot read it!
+            error("You are not in the same group as the device CUL\n");
+        }
+    }
+
     // We could not auto-detect any device.
     return { DEVICE_UNKNOWN, "", false };
 }
 
-Detected detectImstOrAmber(string devicefile,
-                           string suffix,
-                           SerialCommunicationManager *handler)
+Detected detectImstAmberCul(string devicefile,
+                            string suffix,
+                            SerialCommunicationManager *handler)
 {
     // If im87a is tested first, a delay of 1s must be inserted
     // before amb8465 is tested, lest it will not respond properly.
@@ -504,6 +519,12 @@ Detected detectImstOrAmber(string devicefile,
     if (detectIM871A(devicefile, handler))
     {
         return { DEVICE_IM871A, devicefile, false };
+    }
+    // Talk CUL with it...
+    // assumes this device is configured for 38400 bps, which seems to be the default.
+    if (detectCUL(devicefile, handler))
+    {
+        return { DEVICE_CUL, devicefile, false };
     }
 
     // We could not auto-detect either.
@@ -573,6 +594,7 @@ Detected detectWMBusDeviceSetting(string devicefile,
     if (suffix == "im871a") return { DEVICE_IM871A, devicefile, 0, override_tty };
     if (suffix == "rfmrx2") return { DEVICE_RFMRX2, devicefile, 0, override_tty };
     if (suffix == "rtlwmbus") return { DEVICE_RTLWMBUS, devicefile, 0, override_tty };
+    if (suffix == "cul") return { DEVICE_CUL, devicefile, 0, override_tty };
     if (suffix == "simulation") return { DEVICE_SIMULATOR, devicefile, 0, override_tty };
 
     // If the suffix is a number, then assume that it is a baud rate.
@@ -588,8 +610,8 @@ Detected detectWMBusDeviceSetting(string devicefile,
 
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
     // to figure out what is connected to it. We currently only
-    // know how to detect Imst or Amber dongles.
-    return detectImstOrAmber(devicefile, suffix, handler);
+    // know how to detect Imst, Amber or CUL dongles.
+    return detectImstAmberCul(devicefile, suffix, handler);
 }
 
 

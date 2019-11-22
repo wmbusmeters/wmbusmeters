@@ -212,6 +212,12 @@ bool startUsingCommandline(Configuration *config)
                              std::move(serial_override));
         break;
     }
+    case DEVICE_CUL:
+    {
+        verbose("(cul) on %s\n", settings.devicefile.c_str());
+        wmbus = openCUL(settings.devicefile, manager.get(), std::move(serial_override));
+        break;
+    }
     case DEVICE_UNKNOWN:
         warning("No wmbus device found! Exiting!\n");
         if (config->daemon) {
