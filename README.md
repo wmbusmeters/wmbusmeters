@@ -131,7 +131,7 @@ auto, to have wmbusmeters look for the links /dev/im871a, /dev/amb8465, /dev/rfm
 
 /dev/ttyUSB0:amb8465, if you have an amb8465 dongle assigned to ttyUSB0. Other suffixes are im871a,rfmrx2.
 
-/dev/ttyUSB0, to have wmbusmeters auto-detect amb8465 or im871a.
+/dev/ttyUSB0, to have wmbusmeters auto-detect amb8465, im871a or CUL device.
 
 /dev/ttyUSB0:38400, to have wmbusmeters set the baud rate to 38400 and listen for raw wmbus telegrams.
 
@@ -166,6 +166,7 @@ IMST 871a
 Amber 8465
 BMeters RFM-RX2
 rtl_sdr|rtl_wmbus
+CUL family
 
 Supported water meters:
 Kamstrup Multical 21 (multical21)
