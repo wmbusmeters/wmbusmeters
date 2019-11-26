@@ -24,6 +24,7 @@ $PROG --format=json simulations/simulation_t1.txt \
       Tempoo      lansenth    00010203 "" \
       Rummet      rfmamb      11772288 "" \
       IzarWater   izar        21242472 "" \
+      HydrusWater hydrus      64646464 "" \
       > $TEST/test_output.txt
 if [ "$?" == "0" ]
 then

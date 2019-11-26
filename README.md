@@ -176,6 +176,7 @@ Sensus iPERL (iperl)
 Apator at-wmbus-16-2 (apator162) (non-standard protocol)
 Techem MK Radio 3 (mkradio3) (non-standard protocol)
 Diehl/Sappel IZAR RC 868 I R4 PL (izar)
+Diehl HYDRUS (hydrus)
 
 Supported heat cost allocators:
 Qundis Q caloric (qcaloric)
