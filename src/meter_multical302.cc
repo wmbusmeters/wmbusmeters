@@ -172,9 +172,20 @@ void MeterMultical302::processContent(Telegram *t)
         vector<uchar> format_bytes;
         bool ok = loadFormatBytesFromSignature(format_signature, &format_bytes);
         if (!ok) {
-            verbose("(%s) ignoring telegram since format signature hash 0x%02x is yet unknown.\n",
-                    "multical302",  format_signature);
-            return;
+
+            // We have not yet seen a long frame, but we know the formats for these
+            // particular hashes:
+            if (format_signature == 0xf1e7)
+            {
+                hex2bin("030643060314426C022D01FF21", &format_bytes);
+                debug("(multical302) using hard coded format for hash f1e7\n");
+            }
+            else
+            {
+                verbose("(%s) ignoring telegram since format signature hash 0x%02x is yet unknown.\n",
+                        "multical302",  format_signature);
+                return;
+            }
         }
         vector<uchar>::iterator format = format_bytes.begin();
 
