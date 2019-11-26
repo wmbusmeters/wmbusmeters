@@ -81,6 +81,11 @@ bool findKey(MeasurementType mt, ValueInformation vi, int storagenr, std::string
 
 bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string key);
 
+bool extractDVuint8(std::map<std::string,std::pair<int,DVEntry>> *values,
+                    std::string key,
+                    int *offset,
+                    uchar *value);
+
 bool extractDVuint16(std::map<std::string,std::pair<int,DVEntry>> *values,
                      std::string key,
                      int *offset,

@@ -11,7 +11,7 @@ TESTRESULT="ERROR"
 
 cat simulations/simulation_c1.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_c1.txt \
-      MyHeater multical302 12345678 "" \
+      MyHeater multical302 67676767 "" \
       MyTapWater multical21 76348799 "" \
       Vadden multical21 44556677 "" \
       MyElectricity omnipower 15947107 "" \

@@ -16,12 +16,13 @@ telegram=|21442D2C776655441B168D2079CC8C3A20|F4307912C40DFF00002F4E00003D010203|
 
 # Test Multical302 C1 telegrams
 
-# short telegram, this is not a proper telegram! Please provide the output from --logtelegrams for a Multical302 meter!
-
-telegram=|25442D2C785634121b048D2093E13CBA20|0000790000000000000000000000000000|
-{"media":"heat","meter":"multical302","name":"MyHeater","id":"12345678","total_kwh":0,"total_volume_m3":0,"current_kw":0,"timestamp":"1111-11-11T11:11:11Z"}
-
 # full telegram
+telegram=|2E442D2C6767676730048D2039D1684020|BCDB7803062C000043060000000314630000426C7F2A022D130001FF2100|
+{"media":"heat","meter":"multical302","name":"MyHeater","id":"67676767","total_energy_consumption_kwh":44,"current_power_consumption_kw":1.9,"total_volume_m3":0.99,"at_date":"2019-10-31 00:00","total_energy_consumption_at_date_kwh":0,"current_status":"","timestamp":"1111-11-11T11:11:11Z"}
+
+# compressed telegram
+telegram=|25442D2C6767676730048D203AD2684020|D81579E7F1D5902C00000000006300007F2A130002|
+{"media":"heat","meter":"multical302","name":"MyHeater","id":"67676767","total_energy_consumption_kwh":44,"current_power_consumption_kw":1.9,"total_volume_m3":0.99,"at_date":"2019-10-31 00:00","total_energy_consumption_at_date_kwh":0,"current_status":"WRONG_FLOW_DIRECTION","timestamp":"1111-11-11T11:11:11Z"}
 
 # Test Omnipower C1 telegrams
 
