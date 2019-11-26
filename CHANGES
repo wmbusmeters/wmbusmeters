@@ -1,3 +1,9 @@
+Version 0.9.19: 2019-11-26
+
+Chester4444 added support for the nanoCUL usb stick. Thanks chester4444!
+Michal added a utility program (kem-import.py) to import KEM files. Thanks Michal!
+Added support for the Diehl HYDRUS watermeter.
+Added proper support for Multical302.
 
 Version 0.9.18: 2019-11-10
 
