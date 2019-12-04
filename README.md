@@ -1,3 +1,4 @@
+
 # wmbusmeters
 The program receives and decodes C1,T1 or S1 telegrams
 (using the wireless mbus protocol) to acquire
@@ -284,10 +285,7 @@ If the meter does not use encryption of its meter data, then enter an empty key 
 
 `wmbusmeters --format=json --meterfiles auto MyTapWater multical21 12345678 ""`
 
-If you have a Multical21 meter and you have received a KEM file and its password,
-from your water municipality, then you can use the utils/XMLExtract.java utility to get
-the meter key from the KEM file. You need to unzip the the KEM file first though,
-if it is zipped.
+If you have a Kamstrup meters and you have received a KEM file and its password from your supplier, then you can use [utils/kem-import.py](utils/kem-import.py) utility to extract meter information from that file (including the AES key) and to create corresponding meter files in wmbusmetrs' config directory.
 
 You can run wmbusmeters with --logtelegrams to get log output that can be placed in a simulation.txt
 file. You can then run wmbusmeter and instead of auto (or an usb device) provide the simulationt.xt
@@ -394,3 +392,4 @@ sometimes warnings about wrong type of frames.
 There is also a lot of wmbus protocol implementation details that
 probably are missing. They will be added to the program
 as we figure out how the meters send their data.
+
