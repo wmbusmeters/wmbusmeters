@@ -351,6 +351,11 @@ void MeterMultical21::processContent(Telegram *t)
                 hex2bin("02FF2004134413615B5167", &format_bytes);
                 debug("(%s) using hard coded format for hash d2f7\n", meter_name.c_str());
             }
+            else if (format_signature == 0xdd34)
+            {
+                hex2bin("02FF2004134413", &format_bytes);
+                debug("(%s) using hard coded format for hash dd34\n", meter_name.c_str());
+            }
             else
             {
                 verbose("(%s) ignoring telegram since format signature hash 0x%02x is yet unknown.\n",
