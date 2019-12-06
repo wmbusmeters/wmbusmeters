@@ -358,7 +358,10 @@ void MeterMultical21::processContent(Telegram *t)
             }
             else
             {
-                verbose("(%s) ignoring telegram since format signature hash 0x%02x is yet unknown.\n",
+                verbose("(%s) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
+                        "     this is not a problem, since you only need wait for at most 8 telegrams\n"
+                        "     (8*16 seconds) until an full length telegram arrives and then we know\n"
+                        "     the format giving this hash and start decoding the telegrams properly.\n",
                         meter_name.c_str(),  format_signature);
                 return;
             }

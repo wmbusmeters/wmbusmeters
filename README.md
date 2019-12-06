@@ -225,7 +225,10 @@ If you have performed `make install` or added the udev rules yourself, then you 
 auto instead of the exact usb device.
 
 (The :c1 can be left out, since multical21 only transmits c1 telegrams. The suffix
-with the expected link mode might be necessary for other meters, like apator162 for example.)
+with the expected link mode might be necessary for other meters, like apator162 for example.
+The Multical21 uses compressed telegrams, which means that you might have to wait up to 8 telegrams
+(8*16 seconds) until you receive a full length telegram which gives all the information needed
+to decode the compressed telegrams.)
 
 Example output:
 
@@ -392,4 +395,3 @@ sometimes warnings about wrong type of frames.
 There is also a lot of wmbus protocol implementation details that
 probably are missing. They will be added to the program
 as we figure out how the meters send their data.
-
