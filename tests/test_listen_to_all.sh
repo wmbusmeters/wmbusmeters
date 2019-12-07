@@ -66,6 +66,9 @@ Received telegram from: 21242472
 Received telegram from: 64646464
           manufacturer: (DME) DIEHL Metering, Germany
            device type: Water meter
+Received telegram from: 86868686
+          manufacturer: (BMT) BMETERS, Italy
+           device type: Water meter
 EOF
 
 EXPECTED=$(cat $LOGFILE_EXPECTED)

@@ -106,6 +106,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_rfmamb.o \
 	$(BUILD)/meter_izar.o \
 	$(BUILD)/meter_hydrus.o \
+	$(BUILD)/meter_hydrodigit.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \
