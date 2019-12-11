@@ -36,7 +36,7 @@ format=json
 meterfiles=/var/log/wmbusmeters/meter_readings
 meterfilesaction=overwrite
 meterfilesnaming=name
-meterfilestimestamp=daily
+meterfilestimestamp=day
 logfile=/var/log/wmbusmeters/wmbusmeters.log
 shell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters/$METER_ID -m "$METER_JSON"
 ```
