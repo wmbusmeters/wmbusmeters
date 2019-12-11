@@ -28,6 +28,7 @@
 #include<string>
 #include<sys/errno.h>
 #include<sys/stat.h>
+#include<sys/time.h>
 #include<syslog.h>
 #include<unistd.h>
 #include<sys/types.h>
@@ -1018,4 +1019,52 @@ string makeQuotedJson(string &s)
     }
 
     return string("\"")+key+"\":\""+value+"\"";
+}
+
+string currentDay()
+{
+    char datetime[40];
+    memset(datetime, 0, sizeof(datetime));
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    strftime(datetime, 20, "%Y-%m-%d", localtime(&tv.tv_sec));
+    return string(datetime);
+}
+
+string currentHour()
+{
+    char datetime[40];
+    memset(datetime, 0, sizeof(datetime));
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    strftime(datetime, 20, "%Y-%m-%d_%H", localtime(&tv.tv_sec));
+    return string(datetime);
+}
+
+string currentMinute()
+{
+    char datetime[40];
+    memset(datetime, 0, sizeof(datetime));
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    strftime(datetime, 20, "%Y-%m-%d_%H:%M", localtime(&tv.tv_sec));
+    return string(datetime);
+}
+
+string currentMicros()
+{
+    char datetime[40];
+    memset(datetime, 0, sizeof(datetime));
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    strftime(datetime, 20, "%Y-%m-%d_%H:%M:%S", localtime(&tv.tv_sec));
+    return string(datetime)+"."+to_string(tv.tv_usec);
 }

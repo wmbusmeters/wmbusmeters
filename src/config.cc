@@ -239,6 +239,34 @@ void handleMeterfilesNaming(Configuration *c, string type)
     }
 }
 
+void handleMeterfilesTimestamp(Configuration *c, string type)
+{
+    if (type == "day")
+    {
+        c->meterfiles_timestamp = MeterFileTimestamp::Day;
+    }
+    else if (type == "hour")
+    {
+        c->meterfiles_timestamp = MeterFileTimestamp::Hour;
+    }
+    else if (type == "minute")
+    {
+        c->meterfiles_timestamp = MeterFileTimestamp::Minute;
+    }
+    else if (type == "micros")
+    {
+        c->meterfiles_timestamp = MeterFileTimestamp::Micros;
+    }
+    else if (type == "never")
+    {
+        c->meterfiles_timestamp = MeterFileTimestamp::Never;
+    }
+    else
+    {
+        warning("No such meter file timestamp \"%s\"\n", type.c_str());
+    }
+}
+
 void handleLogfile(Configuration *c, string logfile)
 {
     if (logfile.length() > 0)
@@ -347,6 +375,7 @@ unique_ptr<Configuration> loadConfiguration(string root)
         else if (p.first == "meterfiles") handleMeterfiles(c, p.second);
         else if (p.first == "meterfilesaction") handleMeterfilesAction(c, p.second);
         else if (p.first == "meterfilesnaming") handleMeterfilesNaming(c, p.second);
+        else if (p.first == "meterfilestimestamp") handleMeterfilesTimestamp(c, p.second);
         else if (p.first == "logfile") handleLogfile(c, p.second);
         else if (p.first == "format") handleFormat(c, p.second);
         else if (p.first == "reopenafter") handleReopenAfter(c, p.second);

@@ -24,7 +24,8 @@ Printer::Printer(bool json, bool fields, char separator,
                  bool use_meterfiles, string &meterfiles_dir,
                  bool use_logfile, string &logfile,
                  vector<string> shell_cmdlines, bool overwrite,
-                 MeterFileNaming naming)
+                 MeterFileNaming naming,
+                 MeterFileTimestamp timestamp)
 {
     json_ = json;
     fields_ = fields;
@@ -36,6 +37,7 @@ Printer::Printer(bool json, bool fields, char separator,
     shell_cmdlines_ = shell_cmdlines;
     overwrite_ = overwrite;
     naming_ = naming;
+    timestamp_ = timestamp;
 }
 
 void Printer::print(Telegram *t, Meter *meter, vector<string> *more_json)
@@ -80,7 +82,7 @@ void Printer::printFiles(Meter *meter, Telegram *t, string &human_readable, stri
     FILE *output = stdout;
 
     if (use_meterfiles_) {
-        char filename[128];
+        char filename[256];
         memset(filename, 0, sizeof(filename));
         switch (naming_) {
         case MeterFileNaming::Name:
@@ -93,6 +95,33 @@ void Printer::printFiles(Meter *meter, Telegram *t, string &human_readable, stri
             snprintf(filename, 127, "%s/%s-%s", meterfiles_dir_.c_str(), meter->name().c_str(), t->id.c_str());
             break;
         }
+        string stamp;
+
+        switch (timestamp_) {
+        case MeterFileTimestamp::Never:
+            // Append nothing.
+            break;
+        case MeterFileTimestamp::Day:
+            stamp = currentDay();
+            break;
+        case MeterFileTimestamp::Hour:
+            stamp = currentHour();
+            break;
+        case MeterFileTimestamp::Minute:
+            stamp = currentMinute();
+            break;
+        case MeterFileTimestamp::Micros:
+            stamp = currentMicros();
+            break;
+        }
+
+        if (stamp.length() > 0)
+        {
+            // There is a timestamp, lets append it.
+            strcat(filename, "_");
+            strcat(filename, stamp.c_str());
+        }
+
         const char *mode = overwrite_ ? "w" : "a";
         output = fopen(filename, mode);
         if (!output) {

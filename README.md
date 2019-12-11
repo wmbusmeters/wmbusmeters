@@ -36,6 +36,7 @@ format=json
 meterfiles=/var/log/wmbusmeters/meter_readings
 meterfilesaction=overwrite
 meterfilesnaming=name
+meterfilestimestamp=daily
 logfile=/var/log/wmbusmeters/wmbusmeters.log
 shell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters/$METER_ID -m "$METER_JSON"
 ```
@@ -73,6 +74,11 @@ static json "floor":"5" added to telegrams handled by that particular meter.
 If you are running on a Raspberry PI with flash storage and you relay the data to
 another computer using a shell command (mosquitto_pub or curl or similar) then you might want to remove
 `meterfiles` and `meterfilesaction` to minimize the writes to the local flash file system.
+
+If you specify --metefilesaction=append --meterfilestimestamp=day then wmbusmeters will
+append all todays received telegrams in for example the file Water_2019-12-11, the day
+after the telegrams will be recorded in Water_2019-12-12. You can change the resolution
+to day,hour,minute and micros. Micros means that every telegram gets their own file.
 
 # Run using config files
 
@@ -117,6 +123,8 @@ As <options> you can use:
     --meterfiles=<dir> store meter readings in dir
     --meterfilesaction=(overwrite|append) overwrite or append to the meter readings file
     --meterfilesnaming=(name|id|name-id) the meter file is the meter's: name, id or name-id
+    --meterfilestimestamp=(never|day|hour|minute|micros) the meter file is suffixed with a
+                          timestamp (localtime) with the given resolution.
     --oneshot wait for an update from each meter, then quit
     --reopenafter=<time> close/reopen dongle connection repeatedly every <time> seconds, eg 60s, 60m, 24h
     --separator=<c> change field separator to c

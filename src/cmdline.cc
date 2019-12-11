@@ -218,6 +218,37 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--meterfilestimestamp", 21)) {
+            if (strlen(argv[i]) > 22 && argv[i][21] == '=') {
+                if (!strncmp(argv[i]+22, "day", 3))
+                {
+                    c->meterfiles_timestamp = MeterFileTimestamp::Day;
+                }
+                else if (!strncmp(argv[i]+22, "hour", 4))
+                {
+                    c->meterfiles_timestamp = MeterFileTimestamp::Hour;
+                }
+                else if (!strncmp(argv[i]+22, "minute", 6))
+                {
+                    c->meterfiles_timestamp = MeterFileTimestamp::Minute;
+                }
+                else if (!strncmp(argv[i]+22, "micros", 5))
+                {
+                    c->meterfiles_timestamp = MeterFileTimestamp::Micros;
+                }
+                else if (!strncmp(argv[i]+22, "never", 5))
+                {
+                    c->meterfiles_timestamp = MeterFileTimestamp::Never;
+                } else
+                {
+                    error("No such meter file timestamp \"%s\"\n", argv[i]+22);
+                }
+            } else {
+                error("Incorrect option %s\n", argv[i]);
+            }
+            i++;
+            continue;
+        }
         if (!strcmp(argv[i], "--meterfiles") ||
             (!strncmp(argv[i], "--meterfiles", 12) &&
              strlen(argv[i]) > 12 &&

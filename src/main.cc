@@ -238,7 +238,8 @@ bool startUsingCommandline(Configuration *config)
                                                   config->use_logfile, config->logfile,
                                                   config->shells,
                                                   config->meterfiles_action == MeterFileType::Overwrite,
-                                                  config->meterfiles_naming));
+                                                  config->meterfiles_naming,
+                                                  config->meterfiles_timestamp));
     vector<unique_ptr<Meter>> meters;
 
     if (config->meters.size() > 0)

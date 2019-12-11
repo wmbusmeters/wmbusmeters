@@ -1,3 +1,8 @@
+Version 0.9.20: 2019-12-11
+
+Added support for meterfilestimestamp
+to get the effect of log rotation of the meter files.
+
 Version 0.9.19: 2019-11-26
 
 Chester4444 added support for the nanoCUL usb stick. Thanks chester4444!

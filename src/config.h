@@ -36,6 +36,11 @@ enum class MeterFileNaming
     Name, Id, NameId
 };
 
+enum class MeterFileTimestamp
+{
+    Never, Day, Hour, Minute, Micros
+};
+
 struct Configuration
 {
     bool daemon {};
@@ -54,6 +59,7 @@ struct Configuration
     std::string meterfiles_dir;
     MeterFileType meterfiles_action {};
     MeterFileNaming meterfiles_naming {};
+    MeterFileTimestamp meterfiles_timestamp {}; // Default is never.
     bool use_logfile {};
     std::string logfile;
     bool json {};

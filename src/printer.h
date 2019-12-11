@@ -29,7 +29,8 @@ struct Printer {
             bool use_logfile, string &logfile,
             vector<string> shell_cmdlines,
             bool overwrite,
-            MeterFileNaming naming);
+            MeterFileNaming naming,
+            MeterFileTimestamp timestamp);
 
     void print(Telegram *t, Meter *meter, vector<string> *more_json);
 
@@ -44,6 +45,7 @@ struct Printer {
     vector<string> shell_cmdlines_;
     bool overwrite_;
     MeterFileNaming naming_;
+    MeterFileTimestamp timestamp_;
 
     void printShells(Meter *meter, vector<string> &envs);
     void printFiles(Meter *meter, Telegram *t, string &human_readable, string &fields, string &json);
