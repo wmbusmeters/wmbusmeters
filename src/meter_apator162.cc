@@ -110,8 +110,13 @@ void MeterApator162::processContent(Telegram *t)
         o = 14;
     }
     else
+    if ((t->content[13] & 0x01) == 0x01)
     {
-        warning("(apator162) Unknown value in proprietary(unknown) apator162 protocol. Ignoring telegram. Found 0x%02x expected bit 0x10, 0x40 or 0x80 to be set.\n", t->content[13]);
+        o = 11;
+    }
+    else
+    {
+        warning("(apator162) Unknown value in proprietary(unknown) apator162 protocol. Ignoring telegram. Found 0x%02x expected bit 0x01, 0x10, 0x40 or 0x80 to be set.\n", t->content[13]);
         return;
     }
 
