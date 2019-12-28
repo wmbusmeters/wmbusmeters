@@ -540,10 +540,12 @@ Detected detectImstAmberCul(string devicefile,
   /home/me/telegram.raw (to read bytes from this file)
   stdin (to read bytes from stdin)
 
-  If a suffix he suffix can be:
+  If a suffix the suffix can be:
   im871a
   amb8465
   rfmrx2
+  cul
+  d1tc
   rtlwmbus: the devicefile produces rtlwmbus messages, ie. T1;1;1;2019-04-03 19:00:42.000;97;148;88888888;0x6e440106...ae03a77
   simulation: assume the devicefile produces telegram=|....|+xx lines. This can also pace the simulated telegrams in time.
   a baud rate like 38400: assume the devicefile is a raw tty character device.
@@ -595,6 +597,7 @@ Detected detectWMBusDeviceSetting(string devicefile,
     if (suffix == "rfmrx2") return { DEVICE_RFMRX2, devicefile, 0, override_tty };
     if (suffix == "rtlwmbus") return { DEVICE_RTLWMBUS, devicefile, 0, override_tty };
     if (suffix == "cul") return { DEVICE_CUL, devicefile, 0, override_tty };
+    if (suffix == "d1tc") return { DEVICE_D1TC, devicefile, 0, override_tty };
     if (suffix == "simulation") return { DEVICE_SIMULATOR, devicefile, 0, override_tty };
 
     // If the suffix is a number, then assume that it is a baud rate.
