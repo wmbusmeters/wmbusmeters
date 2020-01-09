@@ -475,7 +475,7 @@ Detected detectAuto(string devicefile,
         if (ac == AccessCheck::NotSameGroup)
         {
             // The device exists but we cannot read it!
-            error("You are not in the same group as the device /dev/rtlsdr\n");
+            error("You are not in the same group as the device /dev/amb8465\n");
         }
     }
 

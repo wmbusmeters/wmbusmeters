@@ -214,10 +214,7 @@ multiple meters as long as they all require the same radio mode C1 or
 T1.
 
 However if you use amb8465 or rtlwmbus, then you can listen to both C1
-and T1 telegrams at the same time. Unfortunately the original version
-of rtl_wmbus (`https://github.com/xaelsouth/rtl-wmbus.git`) cannot
-reliably listen to C1 telegrams, but the fork
-`https://github.com/afflux/rtl-wmbus.git` can!
+and T1 telegrams at the same time.
 
 # Usage examples
 
