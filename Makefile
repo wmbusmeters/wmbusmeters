@@ -34,13 +34,15 @@ else
 endif
 
 ifeq "$(DEBUG)" "true"
-    DEBUG_FLAGS=-O0 -ggdb -fsanitize=address -fno-omit-frame-pointer
+    DEBUG_FLAGS=-O0 -ggdb -fsanitize=address -fno-omit-frame-pointer -fprofile-arcs -ftest-coverage
     STRIP_BINARY=
     BUILD:=$(BUILD)_debug
-    DEBUG_LDFLAGS=-lasan
+    DEBUG_LDFLAGS=-lasan -lgcov --coverage
+    GCOV=gcov
 else
     DEBUG_FLAGS=-Os
     STRIP_BINARY=$(STRIP) $(BUILD)/wmbusmeters
+    GCOV=To_run_gcov_add_DEBUG=true
 endif
 
 $(shell mkdir -p $(BUILD))
@@ -169,6 +171,14 @@ $(BUILD)/fuzz: $(METER_OBJS) $(BUILD)/fuzz.o
 
 clean:
 	rm -rf build/* build_arm/* build_debug/* build_arm_debug/* *~
+
+clean_cc:
+	find . -name "*.gcov" -delete
+	find . -name "*.gcda" -delete
+
+gcov:
+	$(GCOV) -o build_debug $(METER_OBJS)
+	mv *.gcov build_debug
 
 test:
 	@./test.sh build/wmbusmeters
