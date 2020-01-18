@@ -631,10 +631,6 @@ string ciType(int ci_field)
         return "Reserved";
     }
 
-    if (ci_field >= 0x6c && ci_field <= 0xff) {
-        return "Reserved";
-    }
-
     switch (ci_field) {
     case 0x50: return "Application reset or select to device (no tplh)";
     case 0x51: return "Command to device (no tplh)"; // Only for mbus, not wmbus.
