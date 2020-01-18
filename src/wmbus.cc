@@ -623,40 +623,108 @@ string ciType(int ci_field)
     if (ci_field >= 0xA0 && ci_field <= 0xB7) {
         return "Mfct specific";
     }
+    if (ci_field >= 0x00 && ci_field <= 0x1f) {
+        return "Reserved for DLMS";
+    }
+
+    if (ci_field >= 0x20 && ci_field <= 0x4f) {
+        return "Reserved";
+    }
+
+    if (ci_field >= 0x6c && ci_field <= 0xff) {
+        return "Reserved";
+    }
+
     switch (ci_field) {
-    case 0x60: return "COSEM Data sent by the Readout device to the meter with long Transport Layer";
-    case 0x61: return "COSEM Data sent by the Readout device to the meter with short Transport Layer";
-    case 0x64: return "Reserved for OBIS-based Data sent by the Readout device to the meter with long Transport Layer";
-    case 0x65: return "Reserved for OBIS-based Data sent by the Readout device to the meter with short Transport Layer";
-    case 0x69: return "EN 13757-3 Application Layer with Format frame and no Transport Layer";
-    case 0x6A: return "EN 13757-3 Application Layer with Format frame and with short Transport Layer";
-    case 0x6B: return "EN 13757-3 Application Layer with Format frame and with long Transport Layer";
-    case 0x6C: return "Clock synchronisation (absolute)";
-    case 0x6D: return "Clock synchronisation (relative)";
-    case 0x6E: return "Application error from device with short Transport Layer";
-    case 0x6F: return "Application error from device with long Transport Layer";
+    case 0x50: return "Application reset or select to device (no tplh)";
+    case 0x51: return "Command to device (no tplh)"; // Only for mbus, not wmbus.
+    case 0x52: return "Selection of device (no tplh)";
+    case 0x53: return "Application reset or select to device (long tplh)";
+    case 0x54: return "Request of selected application to device (no tplh)";
+    case 0x55: return "Request of selected application to device (long tplh)";
+    case 0x56: return "Reserved";
+    case 0x57: return "Reserved";
+    case 0x58: return "Reserved";
+    case 0x59: return "Reserved";
+    case 0x5a: return "Command to device (short tplh)";
+    case 0x5b: return "Command to device (long tplh)";
+    case 0x5c: return "Sync action (no tplh)";
+    case 0x5d: return "Reserved";
+    case 0x5e: return "Reserved";
+    case 0x5f: return "Specific usage";
+    case 0x60: return "COSEM Data sent by the Readout device to the meter (long tplh)";
+    case 0x61: return "COSEM Data sent by the Readout device to the meter (short tplh)";
+    case 0x62: return "?";
+    case 0x63: return "?";
+    case 0x64: return "Reserved for OBIS-based Data sent by the Readout device to the meter (long tplh)";
+    case 0x65: return "Reserved for OBIS-based Data sent by the Readout device to the meter (short tplh)";
+    case 0x66: return "Response of selected application from device (no tplh)";
+    case 0x67: return "Response of selected application from device (short tplh)";
+    case 0x68: return "Response of selected application from device (long tplh)";
+    case 0x69: return "EN 13757-3 Application Layer with Format frame (no tplh)";
+    case 0x6A: return "EN 13757-3 Application Layer with Format frame (short tplh)";
+    case 0x6B: return "EN 13757-3 Application Layer with Format frame (long tplh)";
+    case 0x6C: return "Clock synchronisation (absolute) (long tplh)";
+    case 0x6D: return "Clock synchronisation (relative) (long tplh)";
+    case 0x6E: return "Application error from device (short tplh)";
+    case 0x6F: return "Application error from device (long tplh)";
     case 0x70: return "Application error from device without Transport Layer";
     case 0x71: return "Reserved for Alarm Report";
-    case 0x72: return "EN 13757-3 Application Layer with long Transport Layer";
+    case 0x72: return "EN 13757-3 Application Layer (long tplh)";
     case 0x73: return "EN 13757-3 Application Layer with Compact frame and long Transport Layer";
-    case 0x74: return "Alarm from device with short Transport Layer";
-    case 0x75: return "Alarm from device with long Transport Layer";
+    case 0x74: return "Alarm from device (short tplh)";
+    case 0x75: return "Alarm from device (long tplh)";
+    case 0x76: return "?";
+    case 0x77: return "?";
     case 0x78: return "EN 13757-3 Application Layer without Transport Layer (to be defined)";
     case 0x79: return "EN 13757-3 Application Layer with Compact frame and no header";
-    case 0x7A: return "EN 13757-3 Application Layer with short Transport Layer";
+    case 0x7A: return "EN 13757-3 Application Layer (short tplh)";
     case 0x7B: return "EN 13757-3 Application Layer with Compact frame and short header";
-    case 0x7C: return "COSEM Application Layer with long Transport Layer";
-    case 0x7D: return "COSEM Application Layer with short Transport Layer";
-    case 0x7E: return "Reserved for OBIS-based Application Layer with long Transport Layer";
-    case 0x7F: return "Reserved for OBIS-based Application Layer with short Transport Layer";
-    case 0x80: return "EN 13757-3 Transport Layer (long) from other device to the meter";
+    case 0x7C: return "COSEM Application Layer (long tplh)";
+    case 0x7D: return "COSEM Application Layer (short tplh)";
+    case 0x7E: return "Reserved for OBIS-based Application Layer (long tplh)";
+    case 0x7F: return "Reserved for OBIS-based Application Layer (short tplh)";
+    case 0x80: return "EN 13757-3 Transport Layer (long tplh) from other device to the meter";
     case 0x81: return "Network Layer data";
-    case 0x82: return "For future use";
-    case 0x83: return "Network Management application";
-    case 0x8A: return "EN 13757-3 Transport Layer (short) from the meter to the other device";
-    case 0x8B: return "EN 13757-3 Transport Layer (long) from the meter to the other device";
-    case 0x8C: return "Extended Link Layer I (2 Byte)";
-    case 0x8D: return "Extended Link Layer II (8 Byte)";
+    case 0x82: return "Network management data to device (short tplh)";
+    case 0x83: return "Network Management data to device (no tplh)";
+    case 0x84: return "Transport layer to device (compact frame) (long tplh)";
+    case 0x85: return "Transport layer to device (format frame) (long tplh)";
+    case 0x86: return "Extended Link Layer V (variable length)";
+    case 0x87: return "Network management data from device (long tplh)";
+    case 0x88: return "Network management data from device (short tplh)";
+    case 0x89: return "Network management data from device (no tplh)";
+    case 0x8A: return "EN 13757-3 Transport Layer (short tplh) from the meter to the other device"; // No application layer, e.g. ACK
+    case 0x8B: return "EN 13757-3 Transport Layer (long tplh) from the meter to the other device"; // No application layer, e.g. ACK
+    case 0x8C: return "Extended Link Layer I (2 Byte)"; // CC, ACC
+    case 0x8D: return "Extended Link Layer II (8 Byte)"; // CC, ACC, SN, Payload CRC
+    case 0x8E: return "Extended Link Layer III (10 Byte)"; // CC, ACC, M2, A2
+    case 0x8F: return "Extended Link Layer IV (16 Byte)"; // CC, ACC, M2, A2, SN, Payload CRC
+    case 0x90: return "Authentication and Fragmentation Sublayer";
+    case 0x91: return "Reserved";
+    case 0x92: return "Reserved";
+    case 0x93: return "Reserved";
+    case 0x94: return "Reserved";
+    case 0x95: return "Reserved";
+    case 0x96: return "Reserved";
+    case 0x97: return "Reserved";
+    case 0x98: return "?";
+    case 0x99: return "?";
+
+    case 0xB8: return "Set baud rate to 300";
+    case 0xB9: return "Set baud rate to 600";
+    case 0xBA: return "Set baud rate to 1200";
+    case 0xBB: return "Set baud rate to 2400";
+    case 0xBC: return "Set baud rate to 4800";
+    case 0xBD: return "Set baud rate to 9600";
+    case 0xBE: return "Set baud rate to 19200";
+    case 0xBF: return "Set baud rate to 38400";
+    case 0xC0: return "Image transfer to device (long tplh)";
+    case 0xC1: return "Image transfer from device (short tplh)";
+    case 0xC2: return "Image transfer from device (long tplh)";
+    case 0xC3: return "Security info transfer to device (long tplh)";
+    case 0xC4: return "Security info transfer from device (short tplh)";
+    case 0xC5: return "Security info transfer from device (long tplh)";
     }
     return "?";
 }
