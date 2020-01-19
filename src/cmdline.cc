@@ -61,7 +61,7 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             }
             break;
         }
-        c->pid_file = argv[1];
+        c->pid_file = argv[i];
         return unique_ptr<Configuration>(c);
     }
     if (argc < 2) {
