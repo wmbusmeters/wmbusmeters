@@ -29,7 +29,7 @@
 #include <sys/select.h>
 #include <sys/errno.h>
 #include <sys/types.h>
-#include <sys/statvfs.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
@@ -304,9 +304,11 @@ bool SerialDeviceTTY::send(vector<uchar> &data)
 
 bool SerialDeviceTTY::working()
 {
+    if (fd_ == -1) return false;
+
     // test if the device is working by checking if the virtual file has been deleted using stat
-    struct statvfs sb;
-    int working = (statvfs(device_.c_str(), &sb) == 0);
+    struct stat sb;
+    int working = (fstat(fd_, &sb) == 0);
 
     if (!working) {
         debug("(serial) device %s is gone\n", device_.c_str());
