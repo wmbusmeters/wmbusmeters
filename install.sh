@@ -197,6 +197,26 @@ fi
 ## Create /etc/systemd/system/wmbusmeters.service
 ##
 
+SYSTEMD_NEEDS_RELOAD=false
+
+if [ -f "$ROOT"/etc/systemd/system/wmbusmeters.service ]
+then
+    echo systemd: removing "$ROOT"/etc/systemd/system/wmbusmeters.service
+    echo systemd: backup stored here: ~/old.wmbusmeters.service.backup
+    cp "$ROOT"/etc/systemd/system/wmbusmeters.service ~/old.wmbusmeters@.service.backup
+    rm "$ROOT"/etc/systemd/system/wmbusmeters.service
+    SYSTEMD_NEEDS_RELOAD=true
+fi
+
+if [ -f "$ROOT"/etc/systemd/system/wmbusmeters@.service ]
+then
+    echo systemd: removing "$ROOT"/etc/systemd/system/wmbusmeters@.service
+    echo systemd: backup stored here: ~/old.wmbusmeters@.service.backup
+    cp "$ROOT"/etc/systemd/system/wmbusmeters@.service ~/old.wmbusmeters@.service.backup
+    rm "$ROOT"/etc/systemd/system/wmbusmeters@.service
+    SYSTEMD_NEEDS_RELOAD=true
+fi
+
 if [ ! -f "$ROOT"/etc/systemd/system/wmbusmeters@.service ]
 then
     mkdir -p "$ROOT"/etc/systemd/system/
@@ -244,8 +264,21 @@ fi
 ##
 ## Create /etc/udev/rules.d/99-wmbus-usb-serial.rules
 ##
+
+UDEV_NEEDS_RELOAD=false
+
+
 if [ "$ADDUDEVRULES" = "true" ]
 then
+    if [ -f "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ]
+    then
+        echo udev: removing "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
+        echo udev: backup stored here: ~/old.wmbusmeters-wmbus-usb-serial.rules.backup
+        cp "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ~/old.wmbusmeters-wmbus-usb-serial.rules.backup
+        rm "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
+        UDEV_NEEDS_RELOAD=true
+    fi
+
 	if [ ! -f "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ]
 	then
 		mkdir -p "$ROOT"/etc/udev/rules.d
@@ -260,4 +293,29 @@ EOF
 	else
 		echo udev: "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules unchanged
 	fi
+fi
+
+if [ "$SYSTEMD_NEEDS_RELOAD" = "true" ]
+then
+    D=$(diff "$ROOT"/etc/systemd/system/wmbusmeters@.service ~/old.wmbusmeters@.service.backup)
+    if [ "$D" != "" ]
+    then
+        echo
+        echo
+        echo You need to reload systemd configuration! Please do:
+        echo sudo systemctl daemon-reload
+    fi
+fi
+
+if [ "$UDEV_NEEDS_RELOAD" = "true" ]
+then
+    D=$(diff "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ~/old.wmbusmeters-wmbus-usb-serial.rules.backup)
+    if [ "$D" != "" ]
+    then
+        echo
+        echo
+        echo You need to reload udev configuration! Please do:
+        echo "sudo udevadm control --reload-rules"
+        echo "sudo udevadm trigger"
+    fi
 fi
