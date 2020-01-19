@@ -25,7 +25,8 @@ Remove the wmbus dongle (im871a,amb8465,rfmrx2,cul,d1tc) or the generic rtlsdr d
 `make; sudo make install` will install wmbusmeters as a daemon that starts
 automatically when an appropriate wmbus usb dongle is inserted in the computer.
 (Note! make install only works for GNU/Linux. For MacOSX try to start
-`wmbusmetersd /tmp/thepidfile` from a script instead.)
+`wmbusmetersd /tmp/thepidfile` from a script instead. Here you can also override the device:
+`wmbusmetersd --device=/dev/ttyXXY --listento=t1 /tmp/thepidfile`)
 
 Check the config file /etc/wmbusmeters.conf:
 ```
@@ -91,6 +92,11 @@ wmbusmeters --useconfig=/
 Or you can start wmbusmeters with your own config files:
 ```
 wmbusmeters --useconfig=/home/me/.config/wmbusmeters
+```
+
+You can add --device and --listento to override the settings in the config. Like this:
+```
+wmbusmeters --useconfig=/home/me/.config/wmbusmeters --device=/dev/ttyXXY --listento=t1`
 ```
 
 The files/dir should then be located here:

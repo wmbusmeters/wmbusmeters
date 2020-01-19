@@ -1,3 +1,15 @@
+Version 0.9.21: 2020-01-19
+
+Michal Bursa helped improve detection of a failing USB device
+and added support for automatically starting multiple wmbusmeters
+daemons if several dongles are inserted at the same time.
+Thanks Michal!
+
+Note! The wmbusmeters.service file is replaced with wmbusmeters@.service
+and the contents of the udev file is changed. The install script
+will properly install the new files and copy the old ones to ~/old.xxxx.backup files,
+and tell the user how to reload the systemd and udev daemons.
+
 Version 0.9.20: 2019-12-11
 
 Added support for meterfilestimestamp
