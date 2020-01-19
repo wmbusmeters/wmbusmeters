@@ -29,6 +29,7 @@
 #include <sys/select.h>
 #include <sys/errno.h>
 #include <sys/types.h>
+#include <sys/statvfs.h>
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
@@ -191,6 +192,7 @@ struct SerialDeviceTTY : public SerialDeviceImp
     void close();
     void checkIfShouldReopen();
     bool send(vector<uchar> &data);
+    bool working();
     SerialCommunicationManager *manager() { return manager_; }
 
     private:
@@ -299,6 +301,20 @@ bool SerialDeviceTTY::send(vector<uchar> &data)
     pthread_mutex_unlock(&write_lock_);
     return rc;
 }
+
+bool SerialDeviceTTY::working()
+{
+    // test if the device is working by checking if the virtual file has been deleted using stat
+    struct statvfs sb;
+    int working = (statvfs(device_.c_str(), &sb) == 0);
+
+    if (!working) {
+        debug("(serial) device %s is gone\n", device_.c_str());
+    }
+
+    return working;
+}
+
 
 struct SerialDeviceCommand : public SerialDeviceImp
 {
