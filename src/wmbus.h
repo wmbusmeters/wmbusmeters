@@ -98,6 +98,21 @@ private:
 
 LinkModeSet parseLinkModes(string modes);
 
+enum class CONNECTION
+{
+    MBUS, WMBUS, BOTH
+};
+
+enum class CI_TYPE
+{
+    ELL, NWL, AFL, TPL
+};
+
+enum class TPL_LENGTH
+{
+    NONE, SHORT, LONG
+};
+
 #define CC_B_BIDIRECTIONAL_BIT 0x80
 #define CC_RD_RESPONSE_DELAY_BIT 0x40
 #define CC_S_SYNCH_FRAME_BIT 0x20
@@ -243,6 +258,7 @@ string manufacturer(int m_field);
 string manufacturerFlag(int m_field);
 string mediaType(int a_field_device_type);
 string mediaTypeJSON(int a_field_device_type);
+bool isCiFieldOfType(int ci_field, CI_TYPE type);
 string ciType(int ci_field);
 string cType(int c_field);
 string ccType(int cc_field);

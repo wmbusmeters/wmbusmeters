@@ -617,6 +617,35 @@ Detected detectWMBusDeviceSetting(string devicefile,
     return detectImstAmberCul(devicefile, suffix, handler);
 }
 
+/*
+    X(0x72, TPL_72,  "TPL: APL follows", return "EN 13757-3 Application Layer (long tplh)";
+    case 0x73: return "EN 13757-3 Application Layer with Compact frame and long Transport Layer";
+*/
+
+#define LIST_OF_CI_FIELDS \
+    X(0x51, TPL_51,  "TPL: APL follows", 0, CI_TYPE::TPL, "")       \
+    X(0x78, TPL_78,  "TPL: APL follows", 0, CI_TYPE::TPL, "") \
+    X(0x79, TPL_79,  "TPL: compact APL follows", 0, CI_TYPE::TPL, "") \
+    X(0x8C, ELL_I,   "ELL: I",    2, CI_TYPE::ELL, "CC, ACC") \
+    X(0x8D, ELL_II,  "ELL: II",   8, CI_TYPE::ELL, "CC, ACC, SN, Payload CRC") \
+    X(0x8E, ELL_III, "ELL: III", 10, CI_TYPE::ELL, "CC, ACC, M2, A2") \
+    X(0x8F, ELL_IV,  "ELL: IV",  16, CI_TYPE::ELL, "CC, ACC, M2, A2, SN, Payload CRC") \
+    X(0x86, ELL_V,   "ELL: V",   -1, CI_TYPE::ELL, "Variable length") \
+    X(0x90, AFL,     "AFL", 10, CI_TYPE::AFL, "")
+
+enum class CI_Field_Values {
+#define X(val,name,cname,len,citype,explain) name = val,
+LIST_OF_CI_FIELDS
+#undef X
+};
+
+bool isCiFieldOfType(int ci_field, CI_TYPE type)
+{
+#define X(val,name,cname,len,citype,explain) if (ci_field == val && type == citype) return true;
+LIST_OF_CI_FIELDS
+#undef X
+    return false;
+}
 
 string ciType(int ci_field)
 {
@@ -672,15 +701,16 @@ string ciType(int ci_field)
     case 0x75: return "Alarm from device (long tplh)";
     case 0x76: return "?";
     case 0x77: return "?";
-    case 0x78: return "EN 13757-3 Application Layer without Transport Layer (to be defined)";
-    case 0x79: return "EN 13757-3 Application Layer with Compact frame and no header";
+    case 0x78: return "EN 13757-3 Application Layer (no tplh)";
+    case 0x79: return "EN 13757-3 Application Layer with Compact frame (no tplh)";
     case 0x7A: return "EN 13757-3 Application Layer (short tplh)";
-    case 0x7B: return "EN 13757-3 Application Layer with Compact frame and short header";
+    case 0x7B: return "EN 13757-3 Application Layer with Compact frame (short tplh)";
     case 0x7C: return "COSEM Application Layer (long tplh)";
     case 0x7D: return "COSEM Application Layer (short tplh)";
     case 0x7E: return "Reserved for OBIS-based Application Layer (long tplh)";
     case 0x7F: return "Reserved for OBIS-based Application Layer (short tplh)";
     case 0x80: return "EN 13757-3 Transport Layer (long tplh) from other device to the meter";
+
     case 0x81: return "Network Layer data";
     case 0x82: return "Network management data to device (short tplh)";
     case 0x83: return "Network Management data to device (no tplh)";
@@ -692,11 +722,13 @@ string ciType(int ci_field)
     case 0x89: return "Network management data from device (no tplh)";
     case 0x8A: return "EN 13757-3 Transport Layer (short tplh) from the meter to the other device"; // No application layer, e.g. ACK
     case 0x8B: return "EN 13757-3 Transport Layer (long tplh) from the meter to the other device"; // No application layer, e.g. ACK
-    case 0x8C: return "Extended Link Layer I (2 Byte)"; // CC, ACC
-    case 0x8D: return "Extended Link Layer II (8 Byte)"; // CC, ACC, SN, Payload CRC
-    case 0x8E: return "Extended Link Layer III (10 Byte)"; // CC, ACC, M2, A2
-    case 0x8F: return "Extended Link Layer IV (16 Byte)"; // CC, ACC, M2, A2, SN, Payload CRC
-    case 0x90: return "Authentication and Fragmentation Sublayer";
+
+    case 0x8C: return "ELL: Extended Link Layer I (2 Byte)"; // CC, ACC
+    case 0x8D: return "ELL: Extended Link Layer II (8 Byte)"; // CC, ACC, SN, Payload CRC
+    case 0x8E: return "ELL: Extended Link Layer III (10 Byte)"; // CC, ACC, M2, A2
+    case 0x8F: return "ELL: Extended Link Layer IV (16 Byte)"; // CC, ACC, M2, A2, SN, Payload CRC
+
+    case 0x90: return "AFL: Authentication and Fragmentation Sublayer";
     case 0x91: return "Reserved";
     case 0x92: return "Reserved";
     case 0x93: return "Reserved";
@@ -777,6 +809,13 @@ bool Telegram::parse(vector<uchar> &frame)
         verbose("(wmbus) cannot parse telegram with length %zu\n", frame.size());
         return false;
     }
+
+    //     ┌──────────────────────────────────────────────┐
+    //     │                                              │
+    //     │ Parse DLL Data Link Layer for Wireless MBUS. │
+    //     │                                              │
+    //     └──────────────────────────────────────────────┘
+
     len = frame[0];
     if ((int)len+1 > (int)frame.size())
     {
@@ -811,6 +850,46 @@ bool Telegram::parse(vector<uchar> &frame)
 
     ci_field=frame[10];
     addExplanation(bytes, 1, "%02x ci-field (%s)", ci_field, ciType(ci_field).c_str());
+
+    //     ┌──────────────────────────────────────────────┐
+    //     │                                              │
+    //     │ Is this an ELL block?                        │
+    //     │                                              │
+    //     └──────────────────────────────────────────────┘
+
+    if (isCiFieldOfType(ci_field, CI_TYPE::ELL))
+    {
+    }
+
+    //     ┌──────────────────────────────────────────────┐
+    //     │                                              │
+    //     │ Is this an NWL block?                        │
+    //     │                                              │
+    //     └──────────────────────────────────────────────┘
+
+    if (isCiFieldOfType(ci_field, CI_TYPE::NWL))
+    {
+    }
+
+    //     ┌──────────────────────────────────────────────┐
+    //     │                                              │
+    //     │ Is this an AFL block?                        │
+    //     │                                              │
+    //     └──────────────────────────────────────────────┘
+
+    if (isCiFieldOfType(ci_field, CI_TYPE::AFL))
+    {
+    }
+
+    //     ┌──────────────────────────────────────────────┐
+    //     │                                              │
+    //     │ Is this a TPL block?                         │
+    //     │                                              │
+    //     └──────────────────────────────────────────────┘
+
+    if (isCiFieldOfType(ci_field, CI_TYPE::TPL))
+    {
+    }
 
     int header_size = 0;
     if (ci_field == 0x78)
