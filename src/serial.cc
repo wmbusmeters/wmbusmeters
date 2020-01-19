@@ -306,9 +306,7 @@ bool SerialDeviceTTY::working()
 {
     if (fd_ == -1) return false;
 
-    // test if the device is working by checking if the virtual file has been deleted using stat
-    struct stat sb;
-    int working = (fstat(fd_, &sb) == 0);
+    bool working = checkCharacterDeviceExists(device_.c_str(), false);
 
     if (!working) {
         debug("(serial) device %s is gone\n", device_.c_str());
