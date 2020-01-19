@@ -1,3 +1,8 @@
+Version 0.9.22: 2020-01-19
+
+Bibo added docker support. Thanks Bibo!
+Checkout https://hub.docker.com/repository/docker/weetmuts/wmbusmeters
+
 Version 0.9.21: 2020-01-19
 
 Michal Bursa helped improve detection of a failing USB device
