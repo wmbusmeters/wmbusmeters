@@ -197,13 +197,13 @@ fi
 ## Create /etc/systemd/system/wmbusmeters.service
 ##
 
-if [ ! -f "$ROOT"/etc/systemd/system/wmbusmeters.service ]
+if [ ! -f "$ROOT"/etc/systemd/system/wmbusmeters@.service ]
 then
     mkdir -p "$ROOT"/etc/systemd/system/
     # Create service file
-    cat <<EOF > "$ROOT"/etc/systemd/system/wmbusmeters.service
+    cat <<EOF > "$ROOT"/etc/systemd/system/wmbusmeters@.service
 [Unit]
-Description=wmbusmeters service
+Description="wmbusmeters service on %i"
 After=network.target
 StopWhenUnneeded=true
 
@@ -226,17 +226,17 @@ ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/log/wmbusmeters
 ExecStartPre=-/bin/mkdir -p /var/run/wmbusmeters
 ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/run/wmbusmeters
 
-ExecStart=/usr/sbin/wmbusmetersd /var/run/wmbusmeters/wmbusmeters.pid
-ExecReload=/bin/kill -HUP `cat /var/run/wmbusmeters/wmbusmeters.pid 2> /dev/null` 2> /dev/null || true
-PIDFile=/var/run/wmbusmeters/wmbusmeters.pid
+ExecStart=/usr/sbin/wmbusmetersd --device=/dev/%i /var/run/wmbusmeters/wmbusmeters-%i.pid
+ExecReload=/bin/kill -HUP `cat /var/run/wmbusmeters/wmbusmeters-%i.pid 2> /dev/null` 2> /dev/null || true
+PIDFile=/var/run/wmbusmeters/wmbusmeters-%i.pid
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-    echo systemd: installed "$ROOT"/etc/systemd/system/wmbusmeters.service
+    echo systemd: installed "$ROOT"/etc/systemd/system/wmbusmeters@.service
 else
-    echo systemd: "$ROOT"/etc/systemd/system/wmbusmeters.service unchanged
+    echo systemd: "$ROOT"/etc/systemd/system/wmbusmeters@.service unchanged
 fi
 
 
@@ -251,10 +251,10 @@ then
 		mkdir -p "$ROOT"/etc/udev/rules.d
 		# Create service file
 		cat <<EOF > "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
-SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60",SYMLINK+="im871a",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001",SYMLINK+="amb8465",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
-SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838",SYMLINK+="rtlsdr",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
-SUBSYSTEM=="usb", ATTRS{idVendor}=="2047", ATTRS{idProduct}=="0863",SYMLINK+="rfmrx2",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60",SYMLINK+="im871a",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@%k.service"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001",SYMLINK+="amb8465",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@%k.service"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838",SYMLINK+="rtlsdr",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@%k.service"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="2047", ATTRS{idProduct}=="0863",SYMLINK+="rfmrx2",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@%k.service"
 EOF
 		echo udev: installed "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
 	else
