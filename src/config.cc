@@ -349,7 +349,7 @@ void handleJson(Configuration *c, string json)
     c->jsons.push_back(json);
 }
 
-unique_ptr<Configuration> loadConfiguration(string root)
+unique_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override)
 {
     Configuration *c = new Configuration;
 
@@ -404,6 +404,16 @@ unique_ptr<Configuration> loadConfiguration(string root)
         loadFile(file.c_str(), &meter_conf);
         meter_conf.push_back('\n');
         parseMeterConfig(c, meter_conf, file);
+    }
+
+    if (device_override != "")
+    {
+        debug("(config) overriding device with \"%s\"\n", device_override.c_str());
+        handleDevice(c, device_override);
+    }
+    if (listento_override != "")
+    {
+        debug("(config) overriding listento with \"%s\"\n", listento_override.c_str());           handleListenTo(c, listento_override);
     }
 
     return unique_ptr<Configuration>(c);

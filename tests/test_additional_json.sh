@@ -66,7 +66,7 @@ if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
 TESTNAME="Test additional json from wmbusmeters.conf and from meter file"
 TESTRESULT="ERROR"
 
-$PROG --useconfig=tests/config6 > $TEST/test_output.txt
+$PROG --useconfig=tests/config6 --device=simulations/simulation_shell.txt --listento=t1 > $TEST/test_output.txt
 
 if [ "$?" == "0" ]
 then

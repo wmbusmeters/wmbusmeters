@@ -40,8 +40,8 @@ using namespace std;
 
 void oneshotCheck(Configuration *cmdline, SerialCommunicationManager *manager, Telegram *t, Meter *meter, vector<unique_ptr<Meter>> &meters);
 bool startUsingCommandline(Configuration *cmdline);
-void startUsingConfigFiles(string root, bool is_daemon);
-void startDaemon(string pid_file); // Will use config files.
+void startUsingConfigFiles(string root, bool is_daemon, string device_override, string listento_override);
+void startDaemon(string pid_file, string device_override, string listento_override); // Will use config files.
 
 int main(int argc, char **argv)
 {
@@ -85,12 +85,12 @@ provided you with this binary. Read the full license for all details.
     }
     else
     if (cmdline->daemon) {
-        startDaemon(cmdline->pid_file);
+        startDaemon(cmdline->pid_file, cmdline->device_override, cmdline->listento_override);
         exit(0);
     }
     else
     if (cmdline->useconfig) {
-        startUsingConfigFiles(cmdline->config_root, false);
+        startUsingConfigFiles(cmdline->config_root, false, cmdline->device_override, cmdline->listento_override);
         exit(0);
     }
     else {
@@ -352,7 +352,7 @@ void writePid(string pid_file, int pid)
     return;
 }
 
-void startDaemon(string pid_file)
+void startDaemon(string pid_file, string device_override, string listento_override)
 {
     setlogmask(LOG_UPTO (LOG_INFO));
     openlog("wmbusmetersd", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
@@ -402,15 +402,15 @@ void startDaemon(string pid_file)
     if (open("/dev/null", O_RDWR) == -1) {
         error("Failed to reopen stderr while daemonising (errno=%d)",errno);
     }
-    startUsingConfigFiles("", true);
+    startUsingConfigFiles("", true, device_override, listento_override);
 }
 
-void startUsingConfigFiles(string root, bool is_daemon)
+void startUsingConfigFiles(string root, bool is_daemon, string device_override, string listento_override)
 {
     bool restart = false;
     do
     {
-        unique_ptr<Configuration> config = loadConfiguration(root);
+        unique_ptr<Configuration> config = loadConfiguration(root, device_override, listento_override);
         config->daemon = is_daemon;
         restart = startUsingCommandline(config.get());
         if (restart)

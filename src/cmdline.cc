@@ -37,8 +37,29 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
     }
     if (!strcmp(filename, "wmbusmetersd")) {
         c->daemon = true;
-        if (argc != 2) {
-            error("Usage error: wmbusmetersd must have a single argument to the pid file.\n");
+        if (argc < 2) {
+            error("Usage error: wmbusmetersd must have at least a single argument to the pid file.\n"
+                  "But you can also supply --device= and --listento= to override the config files.\n");
+        }
+        int i = 1;
+        for (;;)
+        {
+            if (argv[i] == NULL) break;
+            if (!strncmp(argv[i], "--device=", 9))
+            {
+                c->device_override = string(argv[i]+9);
+                debug("(daemon) device override \"%s\"\n", c->device_override.c_str());
+                i++;
+                continue;
+            }
+            if (!strncmp(argv[i], "--listento=", 11))
+            {
+                c->listento_override = string(argv[i]+11);
+                debug("(daemon) listento override \"%s\"\n", c->listento_override.c_str());
+                i++;
+                continue;
+            }
+            break;
         }
         c->pid_file = argv[1];
         return unique_ptr<Configuration>(c);
@@ -119,16 +140,35 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
                 if (c->config_root == "/") {
                     c->config_root = "";
                 }
-                return unique_ptr<Configuration>(c);
             }
             else
             {
                 error("You must supply a directory to --useconfig=dir\n");
             }
             i++;
-            if (i > 1 || argc > 2) {
-                error("Usage error: --useconfig implies no other arguments on the command line.\n");
+            for (;;)
+            {
+                if (argv[i] == NULL) break;
+                if (!strncmp(argv[i], "--device=", 9))
+                {
+                    c->device_override = string(argv[i]+9);
+                    debug("(useconfig) device override \"%s\"\n", c->device_override.c_str());
+                    i++;
+                    continue;
+                }
+                if (!strncmp(argv[i], "--listento=", 11))
+                {
+                    c->listento_override = string(argv[i]+11);
+                    debug("(useconfig) listento override \"%s\"\n", c->listento_override.c_str());
+                    i++;
+                    continue;
+                }
+                break;
             }
+            if (i+1 < argc) {
+                error("Usage error: --useconfig can only be followed by --device= and --listento=\n");
+            }
+            return unique_ptr<Configuration>(c);
             continue;
         }
         if (!strcmp(argv[i], "--reload")) {

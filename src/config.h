@@ -45,6 +45,8 @@ struct Configuration
 {
     bool daemon {};
     std::string pid_file;
+    std::string device_override;
+    std::string listento_override;
     bool useconfig {};
     std::string config_root;
     bool reload {};
@@ -84,7 +86,7 @@ struct Configuration
     ~Configuration() = default;
 };
 
-unique_ptr<Configuration> loadConfiguration(string root);
+unique_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override);
 
 void handleConversions(Configuration *c, string s);
 
