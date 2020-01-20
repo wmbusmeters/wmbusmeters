@@ -24,11 +24,6 @@ telegram=|2E442D2C6767676730048D2039D1684020|BCDB7803062C00004306000000031463000
 telegram=|25442D2C6767676730048D203AD2684020|D81579E7F1D5902C00000000006300007F2A130002|
 {"media":"heat","meter":"multical302","name":"MyHeater","id":"67676767","total_energy_consumption_kwh":44,"current_power_consumption_kw":1.9,"total_volume_m3":0.99,"at_date":"2019-10-31 00:00","total_energy_consumption_at_date_kwh":0,"current_status":"WRONG_FLOW_DIRECTION","timestamp":"1111-11-11T11:11:11Z"}
 
-# Test Omnipower C1 telegrams
-
-telegram=|1E442D2C0771941501027AB3001080|04833B08340500|
-{"media":"electricity","meter":"omnipower","name":"MyElectricity","id":"15947107","total_energy_consumption_kwh":341,"timestamp":"1111-11-11T11:11:11Z"}
-
 # Test QCaloric C1 telegrams
 
 telegram=|314493441234567835087a740000200b6e2701004b6e450100426c5f2ccb086e790000c2086c7f21326cffff046d200b7422|

@@ -142,7 +142,8 @@ enum class MeasurementType
 
 using namespace std;
 
-struct Telegram {
+struct Telegram
+{
     int len {}; // The length of the telegram, 1 byte.
     int c_field {}; // 1 byte (0x44=telegram, no response expected!)
     int m_field {}; // Manufacturer 2 bytes
@@ -186,7 +187,7 @@ struct Telegram {
     // A vector of indentations and explanations, to be printed
     // below the raw data bytes to explain the telegram content.
     vector<pair<int,string>> explanations;
-    void addExplanation(vector<uchar>::iterator &bytes, int len, const char* fmt, ...);
+    void addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int len, const char* fmt, ...);
     void addMoreExplanation(int pos, const char* fmt, ...);
     void explainParse(string intro, int from);
 
@@ -201,6 +202,12 @@ private:
 
     bool is_encrypted_ {};
     bool is_simulated_ {};
+
+    bool parseDLL(std::vector<uchar> &frame, std::vector<uchar>::iterator &pos);
+    bool parseELL(std::vector<uchar> &frame, std::vector<uchar>::iterator &pos);
+    bool parseNWL(std::vector<uchar> &frame, std::vector<uchar>::iterator &pos);
+    bool parseAFL(std::vector<uchar> &frame, std::vector<uchar>::iterator &pos);
+    bool parseTPL(std::vector<uchar> &frame, std::vector<uchar>::iterator &pos);
 };
 
 struct WMBus {

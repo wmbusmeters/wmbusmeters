@@ -757,7 +757,7 @@ string ciType(int ci_field)
     return "?";
 }
 
-void Telegram::addExplanation(vector<uchar>::iterator &bytes, int len, const char* fmt, ...)
+void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int len, const char* fmt, ...)
 {
     char buf[1024];
     buf[1023] = 0;
@@ -768,8 +768,8 @@ void Telegram::addExplanation(vector<uchar>::iterator &bytes, int len, const cha
     va_end(args);
 
     explanations.push_back({parsed.size(), buf});
-    parsed.insert(parsed.end(), bytes, bytes+len);
-    bytes += len;
+    parsed.insert(parsed.end(), pos, pos+len);
+    pos += len;
 }
 
 void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
@@ -799,16 +799,75 @@ void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
     }
 }
 
-bool Telegram::parse(vector<uchar> &frame)
+bool Telegram::parseDLL(vector<uchar> &frame, vector<uchar>::iterator &pos)
 {
-    vector<uchar>::iterator bytes = frame.begin();
-    parsed.clear();
-    if (frame.size() == 0) return false;
-    if (frame.size() < 11)
+    if (frame.size() < 11) return false;
+
+    int remaining = distance(pos, frame.end());
+    assert(remaining > 0);
+
+    int len = *pos;
+    if (remaining < len)
     {
-        verbose("(wmbus) cannot parse telegram with length %zu\n", frame.size());
+        verbose("(wmbus) error not enough bytes frame=%zu but len=%zu\n", frame.size(), len);
         return false;
     }
+    addExplanationAndIncrementPos(pos, 1, "%02x length (%d bytes)", len, len);
+
+    c_field = *pos;
+    addExplanationAndIncrementPos(pos, 1, "%02x c-field (%s)", c_field, cType(c_field).c_str());
+
+    m_field = *(pos+1)<<8 | *pos;
+    string man = manufacturerFlag(m_field);
+    addExplanationAndIncrementPos(pos, 2, "%02x%02x m-field (%02x=%s)", frame[2], frame[3], m_field, man.c_str());
+
+    a_field.resize(6);
+    a_field_address.resize(4);
+    for (int i=0; i<6; ++i)
+    {
+        a_field[i] = *(pos+i);
+        if (i<4) { a_field_address[i] = *(pos+3-i); }
+    }
+    strprintf(id, "%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
+    addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x a-field-addr (%s)",
+                                  *(pos+0), *(pos+1), *(pos+2), *(pos+3), id.c_str());
+
+    a_field_version = *(pos+0);
+    a_field_device_type = *(pos+1);
+    addExplanationAndIncrementPos(pos, 1, "%02x a-field-version", a_field_version);
+    addExplanationAndIncrementPos(pos, 1, "%02x a-field-type (%s)", a_field_device_type,
+                                  mediaType(a_field_device_type).c_str());
+
+    ci_field=frame[10];
+    addExplanationAndIncrementPos(pos, 1, "%02x ci-field (%s)", ci_field, ciType(ci_field).c_str());
+    return true;
+}
+
+bool Telegram::parseELL(vector<uchar> &frame, vector<uchar>::iterator &pos)
+{
+    return true;
+}
+
+bool Telegram::parseNWL(vector<uchar> &frame, vector<uchar>::iterator &pos)
+{
+    return true;
+}
+
+bool Telegram::parseAFL(vector<uchar> &frame, vector<uchar>::iterator &pos)
+{
+    return true;
+}
+
+bool Telegram::parseTPL(vector<uchar> &frame, vector<uchar>::iterator &pos)
+{
+    return true;
+}
+
+bool Telegram::parse(vector<uchar> &frame)
+{
+    bool ok;
+    vector<uchar>::iterator pos = frame.begin();
+    parsed.clear();
 
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
@@ -816,40 +875,8 @@ bool Telegram::parse(vector<uchar> &frame)
     //     │                                              │
     //     └──────────────────────────────────────────────┘
 
-    len = frame[0];
-    if ((int)len+1 > (int)frame.size())
-    {
-        // I have some bad test data, that needs to be cleaned out...
-        verbose("(wmbus) error not enough bytes frame=%zu but len=%zu\n", frame.size(), len);
-    }
-    if ((int)len+1 != (int)frame.size())
-    {
-        // I have some bad test data, that needs to be cleaned out...
-        verbose("(wmbus) discrepancy frame=%zu should be len=%zu\n", frame.size(), len);
-    }
-    addExplanation(bytes, 1, "%02x length (%d bytes)", len, len);
-    c_field = frame[1];
-    addExplanation(bytes, 1, "%02x c-field (%s)", c_field, cType(c_field).c_str());
-    m_field = frame[3]<<8 | frame[2];
-    string man = manufacturerFlag(m_field);
-    addExplanation(bytes, 2, "%02x%02x m-field (%02x=%s)", frame[2], frame[3], m_field, man.c_str());
-    a_field.resize(6);
-    a_field_address.resize(4);
-    for (int i=0; i<6; ++i) {
-        a_field[i] = frame[4+i];
-        if (i<4) { a_field_address[i] = frame[4+3-i]; }
-    }
-    addExplanation(bytes, 4, "%02x%02x%02x%02x a-field-addr (%02x%02x%02x%02x)", frame[4], frame[5], frame[6], frame[7],
-                   frame[7], frame[6], frame[5], frame[4]);
-
-    strprintf(id, "%02x%02x%02x%02x", frame[7], frame[6], frame[5], frame[4]);
-    a_field_version = frame[4+4];
-    a_field_device_type = frame[4+5];
-    addExplanation(bytes, 1, "%02x a-field-version", frame[8]);
-    addExplanation(bytes, 1, "%02x a-field-type (%s)", frame[9], mediaType(a_field_device_type).c_str());
-
-    ci_field=frame[10];
-    addExplanation(bytes, 1, "%02x ci-field (%s)", ci_field, ciType(ci_field).c_str());
+    ok = parseDLL(frame, pos);
+    if (!ok) return false;
 
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
@@ -911,9 +938,9 @@ bool Telegram::parse(vector<uchar> &frame)
         // Ignore 1 version byte.
         // Ignore 1 dev type byte.
         acc = frame[18];
-        addExplanation(bytes, 1, "%02x acc", acc);
+        addExplanationAndIncrementPos(pos, 1, "%02x acc", acc);
         status = frame[19];
-        addExplanation(bytes, 1, "%02x status ()", status);
+        addExplanationAndIncrementPos(pos, 1, "%02x status ()", status);
         config_field = frame[20]<<8 | frame[21];
         string config_info = "";
         if (config_field & 0x0f) {
@@ -927,7 +954,7 @@ bool Telegram::parse(vector<uchar> &frame)
             if (config_field & 0x20) config_info += "synchronous ";
         }
         if (config_info.length() > 0) config_info.pop_back();
-        addExplanation(bytes, 2, "%02x%02x config (%s)", frame[13], frame[14], config_info.c_str());
+        addExplanationAndIncrementPos(pos, 2, "%02x%02x config (%s)", frame[13], frame[14], config_info.c_str());
         header_size = 4+8;
     }
     else if (ci_field == 0x7a)
@@ -938,9 +965,9 @@ bool Telegram::parse(vector<uchar> &frame)
             return false;
         }
         acc = frame[11];
-        addExplanation(bytes, 1, "%02x acc", acc);
+        addExplanationAndIncrementPos(pos, 1, "%02x acc", acc);
         status = frame[12];
-        addExplanation(bytes, 1, "%02x status ()", status);
+        addExplanationAndIncrementPos(pos, 1, "%02x status ()", status);
         config_field = frame[13]<<8 | frame[14];
         string config_info = "";
         if (config_field & 0x0f) {
@@ -954,7 +981,7 @@ bool Telegram::parse(vector<uchar> &frame)
             if (config_field & 0x20) config_info += "synchronous ";
         }
         if (config_info.length() > 0) config_info.pop_back();
-        addExplanation(bytes, 2, "%02x%02x config (%s)", frame[13], frame[14], config_info.c_str());
+        addExplanationAndIncrementPos(pos, 2, "%02x%02x config (%s)", frame[13], frame[14], config_info.c_str());
         header_size = 4;
     }
     else if (ci_field == 0x8d || ci_field == 0x8c)
@@ -965,9 +992,9 @@ bool Telegram::parse(vector<uchar> &frame)
             return false;
         }
         cc_field = frame[11];
-        addExplanation(bytes, 1, "%02x cc-field (%s)", cc_field, ccType(cc_field).c_str());
+        addExplanationAndIncrementPos(pos, 1, "%02x cc-field (%s)", cc_field, ccType(cc_field).c_str());
         acc = frame[12];
-        addExplanation(bytes, 1, "%02x acc", acc);
+        addExplanationAndIncrementPos(pos, 1, "%02x acc", acc);
         header_size = 2;
         if (ci_field == 0x8d)
         {
@@ -995,7 +1022,7 @@ bool Telegram::parse(vector<uchar> &frame)
             sn_info += to_string(session_field)+" ";
             sn_info += "time=";
             sn_info += to_string(time_field);
-            addExplanation(bytes, 4, "%02x%02x%02x%02x sn (%s)", sn[0], sn[1], sn[2], sn[3], sn_info.c_str());
+            addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x sn (%s)", sn[0], sn[1], sn[2], sn[3], sn_info.c_str());
             header_size = 6;
         }
     }

@@ -306,10 +306,10 @@ void MeterMultical21::processContent(Telegram *t)
 
     int crc0 = t->content[0];
     int crc1 = t->content[1];
-    t->addExplanation(bytes, 2, "%02x%02x payload crc", crc0, crc1);
+    t->addExplanationAndIncrementPos(bytes, 2, "%02x%02x payload crc", crc0, crc1);
 
     int frame_type = t->content[2];
-    t->addExplanation(bytes, 1, "%02x frame type (%s)", frame_type, frameTypeKamstrupC1(frame_type).c_str());
+    t->addExplanationAndIncrementPos(bytes, 1, "%02x frame type (%s)", frame_type, frameTypeKamstrupC1(frame_type).c_str());
 
     map<string,pair<int,DVEntry>> values;
 
@@ -323,7 +323,7 @@ void MeterMultical21::processContent(Telegram *t)
         // seen in a long frame telegram.
         uchar ecrc0 = t->content[3];
         uchar ecrc1 = t->content[4];
-        t->addExplanation(bytes, 2, "%02x%02x format signature", ecrc0, ecrc1);
+        t->addExplanationAndIncrementPos(bytes, 2, "%02x%02x format signature", ecrc0, ecrc1);
         uint16_t format_signature = ecrc1<<8 | ecrc0;
 
         vector<uchar> format_bytes;
@@ -371,7 +371,7 @@ void MeterMultical21::processContent(Telegram *t)
         // 2,3 = crc for payload = hash over both DRH and data bytes. Or is it only over the data bytes?
         int ecrc2 = t->content[5];
         int ecrc3 = t->content[6];
-        t->addExplanation(bytes, 2, "%02x%02x data crc", ecrc2, ecrc3);
+        t->addExplanationAndIncrementPos(bytes, 2, "%02x%02x data crc", ecrc2, ecrc3);
         parseDV(t, t->content, t->content.begin()+7, t->content.size()-7, &values, &format, format_bytes.size());
     }
     else
