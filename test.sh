@@ -15,6 +15,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_t1_meters.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_aes.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_shell.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
