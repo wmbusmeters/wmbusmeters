@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2019 Fredrik Öhrström
+ Copyright (C) 2018-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -44,16 +44,18 @@ struct MeterCommonImplementation : public virtual Meter
     vector<int> media();
     WMBus *bus();
 
+    ELLSecurityMode expectedELLSecurityMode();
+    TPLSecurityMode expectedTPLSecurityMode();
+
     string datetimeOfUpdateHumanReadable();
     string datetimeOfUpdateRobot();
 
     void onUpdate(function<void(Telegram*,Meter*)> cb);
     int numUpdates();
 
-    EncryptionMode encMode();
     bool isTelegramForMe(Telegram *t);
     bool useAes();
-    vector<uchar> key();
+    MeterKeys *meterKeys();
 
     std::vector<std::string> getRecords();
     double getRecordAsDouble(std::string record);
@@ -70,6 +72,8 @@ protected:
 
     void triggerUpdate(Telegram *t);
     void setExpectedVersion(int version);
+    void setExpectedELLSecurityMode(ELLSecurityMode dsm);
+    void setExpectedTPLSecurityMode(TPLSecurityMode tsm);
     int expectedVersion();
     void addConversions(std::vector<Unit> cs);
     void addShell(std::string cmdline);
@@ -83,9 +87,7 @@ protected:
                   function<double(Unit)> getValueFunc, string help, bool field, bool json);
     void addPrint(string vname, Quantity vquantity,
                   function<std::string()> getValueFunc, string help, bool field, bool json);
-    void setEncryptionMode(EncryptionMode em);
-    EncryptionMode encryptionMode();
-    void handleTelegram(Telegram *t);
+    bool handleTelegram(vector<uchar> frame);
     void printMeter(Telegram *t,
                     string *human_readable,
                     string *fields, char separator,
@@ -98,19 +100,20 @@ protected:
 private:
 
     MeterType type_ {};
+    MeterKeys meter_keys_ {};
+    ELLSecurityMode expected_ell_sec_mode_ {};
+    TPLSecurityMode expected_tpl_sec_mode_ {};
     int expected_meter_version_ {};
     vector<int> media_;
     set<int> manufacturers_;
     string name_;
     vector<string> ids_;
-    vector<uchar> key_;
     WMBus *bus_ {};
     vector<function<void(Telegram*,Meter*)>> on_update_;
     int num_updates_ {};
     bool use_aes_ {};
     time_t datetime_of_update_ {};
     LinkModeSet link_modes_ {};
-    EncryptionMode enc_mode_ {};
     vector<string> shell_cmdlines_;
     vector<string> jsons_;
 

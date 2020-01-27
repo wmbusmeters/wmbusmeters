@@ -44,7 +44,7 @@ private:
 MeterEurisII::MeterEurisII(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::EURISII, MANUFACTURER_INE)
 {
-    setEncryptionMode(EncryptionMode::AES_CBC);
+    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addMedia(0x08);
 
@@ -82,8 +82,6 @@ MeterEurisII::MeterEurisII(WMBus *bus, MeterInfo &mi) :
              [&](){ return errorFlagsHumanReadable(); },
              "Error flags.",
              true, true);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 unique_ptr<HeatCostMeter> createEurisII(WMBus *bus, MeterInfo &mi)
@@ -211,39 +209,36 @@ void MeterEurisII::processContent(Telegram *t)
     // (eurisii) 6c: 17 vife (Error flags (binary))
     // (eurisii) 6d: * 0000 error flags (0000)
 
-    map<string,pair<int,DVEntry>> values;
-    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
-
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, 0, &key, &values))
+    if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, 0, &key, &t->values))
     {
-        extractDVdouble(&values, key, &offset, &current_consumption_hca_);
+        extractDVdouble(&t->values, key, &offset, &current_consumption_hca_);
         t->addMoreExplanation(offset, " current consumption (%f hca)", current_consumption_hca_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::Date, 1, &key, &values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::Date, 1, &key, &t->values)) {
         struct tm date;
-        extractDVdate(&values, key, &offset, &date);
+        extractDVdate(&t->values, key, &offset, &date);
         set_date_ = strdate(&date);
         t->addMoreExplanation(offset, " set date (%s)", set_date_.c_str());
     }
 
     for (int i=1; i<=17; ++i)
     {
-        if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, i, &key, &values))
+        if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, i, &key, &t->values))
         {
             string info;
             strprintf(info, " consumption at set date %d (%%f hca)", i);
-            extractDVdouble(&values, key, &offset, &consumption_at_set_date_hca_[i-1]);
+            extractDVdouble(&t->values, key, &offset, &consumption_at_set_date_hca_[i-1]);
             t->addMoreExplanation(offset, info.c_str(), consumption_at_set_date_hca_[i-1]);
         }
     }
 
     key = "02FD17";
-    if (hasKey(&values, key)) {
-        extractDVuint16(&values, "02FD17", &offset, &error_flags_);
+    if (hasKey(&t->values, key)) {
+        extractDVuint16(&t->values, "02FD17", &offset, &error_flags_);
         t->addMoreExplanation(offset, " error flags (%04X)", error_flags_);
     }
 }

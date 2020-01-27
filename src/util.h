@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -71,7 +71,8 @@ bool isDebugEnabled();
 bool isLogTelegramsEnabled();
 
 void debugPayload(std::string intro, std::vector<uchar> &payload);
-void logTelegram(std::string intro, std::vector<uchar> &header, std::vector<uchar> &content);
+void debugPayload(std::string intro, std::vector<uchar> &payload, std::vector<uchar>::iterator &pos);
+void logTelegram(std::string intro, std::vector<uchar> &parsed, int header_size, int suffix_size);
 
 bool isValidMatchExpression(std::string id, bool non_compliant);
 bool isValidMatchExpressions(std::string ids, bool non_compliant);

@@ -48,8 +48,6 @@ unique_ptr<HeatMeter> createVario451(WMBus *bus, MeterInfo &mi)
 MeterVario451::MeterVario451(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::VARIO451, MANUFACTURER_TCH)
 {
-    setEncryptionMode(EncryptionMode::None);
-
     addMedia(0x04); // C telegrams
     addMedia(0xC3); // T telegrams
 
@@ -70,8 +68,6 @@ MeterVario451::MeterVario451(WMBus *bus, MeterInfo &mi) :
              [&](Unit u){ return previousPeriodEnergyConsumption(u); },
              "Energy consumption in previous billing period.",
              true, true);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 double MeterVario451::totalEnergyConsumption(Unit u)
@@ -94,14 +90,16 @@ double MeterVario451::previousPeriodEnergyConsumption(Unit u)
 
 void MeterVario451::processContent(Telegram *t)
 {
-    map<string,pair<int,DVEntry>> vendor_values;
-
     // Unfortunately, the Techem Vario 4 Typ 4.5.1 is mostly a proprieatary protocol
     // simple wrapped inside a wmbus telegram since the ci-field is 0xa2.
     // Which means that the entire payload is manufacturer specific.
 
-    uchar prev_lo = t->content[3];
-    uchar prev_hi = t->content[4];
+    map<string,pair<int,DVEntry>> vendor_values;
+    vector<uchar> content;
+
+    t->extractPayload(&content);
+    uchar prev_lo = content[3];
+    uchar prev_hi = content[4];
     double prev = (256.0*prev_hi+prev_lo)/1000;
 
     string prevs;
@@ -111,8 +109,8 @@ void MeterVario451::processContent(Telegram *t)
     t->explanations.push_back({ offset, prevs });
     t->addMoreExplanation(offset, " energy used in previous billing period (%f GJ)", prev);
 
-    uchar curr_lo = t->content[7];
-    uchar curr_hi = t->content[8];
+    uchar curr_lo = content[7];
+    uchar curr_hi = content[8];
     double curr = (256.0*curr_hi+curr_lo)/1000;
 
     string currs;

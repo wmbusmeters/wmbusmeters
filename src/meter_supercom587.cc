@@ -45,7 +45,7 @@ unique_ptr<WaterMeter> createSupercom587(WMBus *bus, MeterInfo &mi)
 MeterSupercom587::MeterSupercom587(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::SUPERCOM587, MANUFACTURER_SON)
 {
-    setEncryptionMode(EncryptionMode::AES_CBC);
+    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addMedia(0x06);
     addMedia(0x07);
@@ -59,19 +59,15 @@ MeterSupercom587::MeterSupercom587(WMBus *bus, MeterInfo &mi) :
              "The total water consumption recorded by this meter.",
              true, true);
 
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 void MeterSupercom587::processContent(Telegram *t)
 {
-    map<string,pair<int,DVEntry>> values;
-    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
-
     int offset;
     string key;
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &total_water_consumption_m3_);
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 }

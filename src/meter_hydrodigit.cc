@@ -46,7 +46,7 @@ unique_ptr<WaterMeter> createHydrodigit(WMBus *bus, MeterInfo &mi)
 MeterHydrodigit::MeterHydrodigit(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::HYDRODIGIT, MANUFACTURER_BMT)
 {
-    setEncryptionMode(EncryptionMode::AES_CBC);
+    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addMedia(0x07);
 
@@ -61,26 +61,21 @@ MeterHydrodigit::MeterHydrodigit(WMBus *bus, MeterInfo &mi) :
              [&](){ return meter_datetime_; },
              "A date.....",
              true, true);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 void MeterHydrodigit::processContent(Telegram *t)
 {
-    map<string,pair<int,DVEntry>> values;
-    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
-
     int offset;
     string key;
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &total_water_consumption_m3_);
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, &key, &values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, &key, &t->values)) {
         struct tm datetime;
-        extractDVdate(&values, key, &offset, &datetime);
+        extractDVdate(&t->values, key, &offset, &datetime);
         meter_datetime_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " meter_datetime (%s)", meter_datetime_.c_str());
     }

@@ -45,7 +45,7 @@ unique_ptr<WaterMeter> createApator162(WMBus *bus, MeterInfo &mi)
 MeterApator162::MeterApator162(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::APATOR162, MANUFACTURER_APA)
 {
-    setEncryptionMode(EncryptionMode::AES_CBC);
+    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addMedia(0x06);
     addMedia(0x07);
@@ -59,8 +59,6 @@ MeterApator162::MeterApator162(WMBus *bus, MeterInfo &mi) :
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
              true, true);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 double MeterApator162::totalWaterConsumption(Unit u)
@@ -76,57 +74,52 @@ bool MeterApator162::hasTotalWaterConsumption()
 
 void MeterApator162::processContent(Telegram *t)
 {
-    // Meter record:
+    // Unfortunately, the at-wmbus-16-2 is mostly a proprietary protocol
+    // simple wrapped inside a wmbus telegram. Naughty!
 
-    map<string,pair<int,DVEntry>> values;
-    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
+    vector<uchar> content;
 
-    // Unfortunately, the at-wmbus-16-2 is mostly a proprieatary protocol
-    // simple wrapped inside a wmbus telegram. Thus the parsing above ends
-    // immediately with a 0x0f dif which means: from now on, its vendor specific
-    // data structures.
+    t->extractPayload(&content);
 
-    // By examining some telegrams though, it looks like the total consumption
-    // counter is on offset 25 or 14. So we can fake a parse here, to make it easier
-    // to extract using the existing tools.
     map<string,pair<int,DVEntry>> vendor_values;
 
     string total;
     // Current assumption of this proprietary protocol is that byte 13 tells
     // us where the current total water consumption is located.
     int o = 0;
-    if ((t->content[13] & 0x80) == 0x80)
+    if ((content[11] & 0x80) == 0x80)
     {
-        o = 25;
+        o = 23;
     }
     else
-    if ((t->content[13] & 0x40) == 0x40)
+    if ((content[11] & 0x40) == 0x40)
     {
-        o = 22;
+        o = 20;
     }
     else
-    if ((t->content[13] & 0x10) == 0x10)
+    if ((content[11] & 0x10) == 0x10)
     {
-        o = 14;
+        o = 12;
     }
     else
-    if ((t->content[13] & 0x01) == 0x01)
+    if ((content[11] & 0x01) == 0x01)
     {
-        o = 11;
+        o = 9;
     }
     else
     {
-        warning("(apator162) Unknown value in proprietary(unknown) apator162 protocol. Ignoring telegram. Found 0x%02x expected bit 0x01, 0x10, 0x40 or 0x80 to be set.\n", t->content[13]);
+        warning("(apator162) Unknown value in proprietary(unknown) apator162 protocol. Ignoring telegram. Found 0x%02x expected bit 0x01, 0x10, 0x40 or 0x80 to be set.\n", content[13]);
         return;
     }
 
-    strprintf(total, "%02x%02x%02x%02x", t->content[o], t->content[o+1], t->content[o+2], t->content[o+3]);
-    debug("(apator162) Guessing offset to be %d from byte 0x%02x: total %s\n", o, t->content[13], total.c_str());
+    strprintf(total, "%02x%02x%02x%02x", content[o], content[o+1], content[o+2], content[o+3]);
+    debug("(apator162) Guessing offset to be %d from byte 0x%02x: total %s\n", o, content[13], total.c_str());
 
     vendor_values["0413"] = { 25, DVEntry(MeasurementType::Instantaneous, 0x13, 0, 0, 0, total) };
     int offset;
     string key;
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &vendor_values)) {
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &vendor_values))
+    {
         extractDVdouble(&vendor_values, key, &offset, &total_water_consumption_m3_);
         //Adding explanation have to wait since it assumes that the dvparser could do something, but it could not here.
         //t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);

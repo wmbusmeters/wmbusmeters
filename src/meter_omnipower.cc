@@ -42,7 +42,7 @@ unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, MeterInfo &mi)
 MeterOmnipower::MeterOmnipower(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::OMNIPOWER, MANUFACTURER_KAM)
 {
-    setEncryptionMode(EncryptionMode::AES_CBC);
+    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addMedia(0x02);
 
@@ -54,8 +54,6 @@ MeterOmnipower::MeterOmnipower(WMBus *bus, MeterInfo &mi) :
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
              true, true);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 double MeterOmnipower::totalEnergyConsumption(Unit u)
@@ -72,10 +70,7 @@ void MeterOmnipower::processContent(Telegram *t)
     // 3b vife (Forward flow contribution only)
     // xx xx xx xx (total energy)
 
-    map<string,pair<int,DVEntry>> values;
-    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
-
     int offset;
-    extractDVdouble(&values, "04833B", &offset, &total_energy_kwh_);
+    extractDVdouble(&t->values, "04833B", &offset, &total_energy_kwh_);
     t->addMoreExplanation(offset, " total power (%f kwh)", total_energy_kwh_);
 }

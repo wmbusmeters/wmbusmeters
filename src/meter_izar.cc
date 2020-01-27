@@ -58,8 +58,9 @@ unique_ptr<WaterMeter> createIzar(WMBus *bus, MeterInfo &mi)
 MeterIzar::MeterIzar(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::IZAR, MANUFACTURER_SAP)
 {
-    if (!key().empty())
-        keys.push_back(convertKey(key()));
+    MeterKeys *mk = meterKeys();
+    if (!mk->confidentiality_key.empty())
+        keys.push_back(convertKey(mk->confidentiality_key));
 
     // fallback to default keys if no custom key provided
     if (keys.empty())
@@ -84,8 +85,6 @@ MeterIzar::MeterIzar(WMBus *bus, MeterInfo &mi) :
              [&](Unit u){ return lastMonthTotalWaterConsumption(u); },
              "The total water consumption recorded by this meter around end of last month.",
              true, true);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 double MeterIzar::totalWaterConsumption(Unit u)
@@ -136,10 +135,8 @@ uint32_t MeterIzar::convertKey(const vector<uchar> &bytes)
 
 void MeterIzar::processContent(Telegram *t)
 {
-    // recover full frame content
     vector<uchar> frame;
-    frame.insert(frame.end(), t->parsed.begin(), t->parsed.end());
-    frame.insert(frame.end(), t->payload.begin(), t->payload.end());
+    t->extractFrame(&frame);
 
     vector<uchar> decoded_content;
     for (auto& key : keys) {
@@ -160,7 +157,7 @@ void MeterIzar::processContent(Telegram *t)
     last_month_total_water_consumption_l_ = uint32FromBytes(decoded_content, 5, true);
 
     // override incorrectly reported medium (oil)
-    t->a_field_device_type = 7;
+    t->dll_type = 7;
 }
 
 vector<uchar> MeterIzar::decodePrios(const vector<uchar> &frame, uint32_t key)

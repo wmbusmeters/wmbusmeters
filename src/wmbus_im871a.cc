@@ -16,6 +16,7 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_utils.h"
 #include"wmbus_im871a.h"
 #include"serial.h"
 
@@ -29,7 +30,7 @@ using namespace std;
 
 enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame };
 
-struct WMBusIM871A : public WMBus
+struct WMBusIM871A : public virtual WMBusCommonImplementation
 {
     bool ping();
     uint32_t getDeviceId();
@@ -57,8 +58,6 @@ struct WMBusIM871A : public WMBus
         // but im871a can only listen to one at a time.
         return 1 == countSetBits(lms.bits());
     }
-    void onTelegram(function<void(Telegram*)> cb);
-
     void processSerialData();
     SerialDevice *serial() { return serial_.get(); }
     void simulate() { }
@@ -75,7 +74,6 @@ private:
     int sent_command_ {};
     int received_command_ {};
     vector<uchar> received_payload_;
-    vector<function<void(Telegram*)>> telegram_listeners_;
     LinkModeSet link_modes_ {};
 
     void waitForResponse();
@@ -379,10 +377,6 @@ void WMBusIM871A::setLinkModes(LinkModeSet lms)
     pthread_mutex_unlock(&command_lock_);
 }
 
-void WMBusIM871A::onTelegram(function<void(Telegram*)> cb) {
-    telegram_listeners_.push_back(cb);
-}
-
 void WMBusIM871A::waitForResponse() {
     while (manager_->isRunning()) {
         int rc = sem_wait(&command_wait_);
@@ -553,29 +547,12 @@ void WMBusIM871A::handleDevMgmt(int msgid, vector<uchar> &payload)
     }
 }
 
-void WMBusIM871A::handleRadioLink(int msgid, vector<uchar> &payload)
+void WMBusIM871A::handleRadioLink(int msgid, vector<uchar> &frame)
 {
     switch (msgid) {
-        case RADIOLINK_MSG_WMBUSMSG_IND: // 0x03
-            {
-                Telegram t;
-                bool ok = t.parse(payload);
-                if (ok)
-                {
-                    bool handled = false;
-
-                    for (auto f : telegram_listeners_) {
-                        Telegram copy = t;
-                        if (f) f(&copy);
-                        if (copy.handled) handled = true;
-                    }
-                    if (isVerboseEnabled() && !handled)
-                    {
-                        verbose("(im871a) telegram ignored by all configured meters!\n");
-                    }
-                }
-            }
-            break;
+    case RADIOLINK_MSG_WMBUSMSG_IND: // 0x03
+        handleTelegram(frame);
+        break;
     default:
         verbose("(im871a) Unhandled radio link message %d\n", msgid);
     }

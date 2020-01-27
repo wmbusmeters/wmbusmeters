@@ -1,12 +1,12 @@
 # Test Multical21 C1 telegrams, with target volume configuration
 
 # full telegram, must come before short, so that the hash of the format signature can be remembered!
-telegram=|2A442D2C998734761B168D208971F81821|542F7802FF2071000413F81800004413F4180000615B05616717|
-{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"76348799","total_m3":6.392,"target_m3":6.388,"max_flow_m3h":0,"flow_temperature_c":5,"external_temperature_c":23,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+telegram=|2A442D2C998734761B168D2091D37CAC21576C78|02FF207100041308190000441308190000615B7F616713|
+{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"76348799","total_m3":6.408,"target_m3":6.408,"max_flow_m3h":0,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 
 # short telegram
-telegram=|23442D2C998734761B168D208870F81821|09EA79EDA869F57100F8180000F41800000318|
-{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"76348799","total_m3":6.392,"target_m3":6.388,"max_flow_m3h":0,"flow_temperature_c":3,"external_temperature_c":24,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+telegram=|23442D2C998734761B168D2087D19EAD217F1779EDA86AB6|710008190000081900007F13|
+{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"76348799","total_m3":6.408,"target_m3":6.408,"max_flow_m3h":0,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 
 # Tets Multical21 C1 telegrams with maximum flow configuration
 telegram=|2D442D2C776655441B168D2083B48D3A20|46887802FF20000004132F4E000092013B3D01A1015B028101E7FF0F03|
@@ -21,8 +21,8 @@ telegram=|2E442D2C6767676730048D2039D1684020|BCDB7803062C00004306000000031463000
 {"media":"heat","meter":"multical302","name":"MyHeater","id":"67676767","total_energy_consumption_kwh":44,"current_power_consumption_kw":1.9,"total_volume_m3":0.99,"at_date":"2019-10-31 00:00","total_energy_consumption_at_date_kwh":0,"current_status":"","timestamp":"1111-11-11T11:11:11Z"}
 
 # compressed telegram
-telegram=|25442D2C6767676730048D203AD2684020|D81579E7F1D5902C00000000006300007F2A130002|
-{"media":"heat","meter":"multical302","name":"MyHeater","id":"67676767","total_energy_consumption_kwh":44,"current_power_consumption_kw":1.9,"total_volume_m3":0.99,"at_date":"2019-10-31 00:00","total_energy_consumption_at_date_kwh":0,"current_status":"WRONG_FLOW_DIRECTION","timestamp":"1111-11-11T11:11:11Z"}
+telegram=|25442D2C6767676730048D203AD2684020|D81579E7F1D5902C00000000006300007F2A130000|
+{"media":"heat","meter":"multical302","name":"MyHeater","id":"67676767","total_energy_consumption_kwh":44,"current_power_consumption_kw":1.9,"total_volume_m3":0.99,"at_date":"2019-10-31 00:00","total_energy_consumption_at_date_kwh":0,"current_status":"","timestamp":"1111-11-11T11:11:11Z"}
 
 # Test QCaloric C1 telegrams
 

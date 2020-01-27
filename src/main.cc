@@ -296,9 +296,16 @@ LIST_OF_METERS
     {
         notice("No meters configured. Printing id:s of all telegrams heard!\n\n");
 
-        wmbus->onTelegram([](Telegram *t){t->print();});
+        wmbus->onTelegram([](vector<uchar> frame){
+                Telegram t;
+                MeterKeys mk;
+                t.parse(frame, &mk);
+                t.print();
+                return true;
+            });
     }
 
+    wmbus->setMeters(&meters);
     manager->startEventLoop();
     wmbus->setLinkModes(config->listen_to_link_modes);
     string using_link_modes = wmbus->getLinkModes().hr();

@@ -42,7 +42,7 @@ private:
 MeterLansenTH::MeterLansenTH(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::LANSENTH, MANUFACTURER_LAS)
 {
-    setEncryptionMode(EncryptionMode::AES_CBC);
+    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addMedia(0x1b);
 
@@ -79,8 +79,6 @@ MeterLansenTH::MeterLansenTH(WMBus *bus, MeterInfo &mi) :
              [&](Unit u){ return average_relative_humidity_24h_rh_; },
              "The average relative humidity over the last 24 hours.",
              false, true);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 unique_ptr<TempHygroMeter> createLansenTH(WMBus *bus, MeterInfo &mi)
@@ -129,53 +127,51 @@ void MeterLansenTH::processContent(Telegram *t)
       (lansenth) 2c: * A901 average relative humidity 24h (42.500000 RH)
       (lansenth) 2e: 2F skip
     */
-    map<string,pair<int,DVEntry>> values;
-    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
 
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 0, &key, &values))
+    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 0, &key, &t->values))
     {
-        extractDVdouble(&values, key, &offset, &current_temperature_c_);
+        extractDVdouble(&t->values, key, &offset, &current_temperature_c_);
         t->addMoreExplanation(offset, " current temperature (%f C)", current_temperature_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 1, &key, &values))
+    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 1, &key, &t->values))
     {
-        extractDVdouble(&values, key, &offset, &average_temperature_1h_c_);
+        extractDVdouble(&t->values, key, &offset, &average_temperature_1h_c_);
         t->addMoreExplanation(offset, " average temperature 1h (%f C))", average_temperature_1h_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 2, &key, &values))
+    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 2, &key, &t->values))
     {
-        extractDVdouble(&values, key, &offset, &average_temperature_24h_c_);
+        extractDVdouble(&t->values, key, &offset, &average_temperature_24h_c_);
         t->addMoreExplanation(offset, " average temperature 24h (%f C))", average_temperature_24h_c_);
     }
 
     // Temporarily silly solution until the dvparser is upgraded with support for extension
 
     key = "02FB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&values, key))
+    if (hasKey(&t->values, key))
     {
         double tmp;
-        extractDVdouble(&values, key, &offset, &tmp, false);
+        extractDVdouble(&t->values, key, &offset, &tmp, false);
         current_relative_humidity_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " current relative humidity (%f RH)", current_relative_humidity_rh_);
     }
     key = "42FB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&values, key))
+    if (hasKey(&t->values, key))
     {
         double tmp;
-        extractDVdouble(&values, key, &offset, &tmp, false);
+        extractDVdouble(&t->values, key, &offset, &tmp, false);
         average_relative_humidity_1h_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " average relative humidity 1h (%f RH)", average_relative_humidity_1h_rh_);
     }
     key = "8201FB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&values, key))
+    if (hasKey(&t->values, key))
     {
         double tmp;
-        extractDVdouble(&values, key, &offset, &tmp, false);
+        extractDVdouble(&t->values, key, &offset, &tmp, false);
         average_relative_humidity_24h_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " average relative humidity 24h (%f RH)", average_relative_humidity_24h_rh_);
     }

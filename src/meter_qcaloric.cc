@@ -48,7 +48,7 @@ private:
 MeterQCaloric::MeterQCaloric(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::QCALORIC, MANUFACTURER_QDS)
 {
-    setEncryptionMode(EncryptionMode::AES_CBC); // Is it?
+    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addMedia(0x08);
 
@@ -100,8 +100,6 @@ MeterQCaloric::MeterQCaloric(WMBus *bus, MeterInfo &mi) :
              [&](){ return device_date_time_; },
              "Device date time.",
              false, true);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &mi)
@@ -168,60 +166,57 @@ void MeterQCaloric::processContent(Telegram *t)
     // (qcaloric) 45: 6D vif (Date and time type)
     // (qcaloric) 46: 2D0B7422 device datetime (2019-02-20 11:45)
 
-    map<string,pair<int,DVEntry>> values;
-    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
-
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &current_consumption_hca_);
+    if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &current_consumption_hca_);
         t->addMoreExplanation(offset, " current consumption (%f hca)", current_consumption_hca_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::Date, 1, &key, &values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::Date, 1, &key, &t->values)) {
         struct tm date;
-        extractDVdate(&values, key, &offset, &date);
+        extractDVdate(&t->values, key, &offset, &date);
         set_date_ = strdate(&date);
         t->addMoreExplanation(offset, " set date (%s)", set_date_.c_str());
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, 1, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &consumption_at_set_date_hca_);
+    if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, 1, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &consumption_at_set_date_hca_);
         t->addMoreExplanation(offset, " consumption at set date (%f hca)", consumption_at_set_date_hca_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, 17, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &consumption_at_set_date_17_hca_);
+    if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, 17, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &consumption_at_set_date_17_hca_);
         t->addMoreExplanation(offset, " consumption at set date 17 (%f hca)", consumption_at_set_date_17_hca_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::Date, 17, &key, &values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::Date, 17, &key, &t->values)) {
         struct tm date;
-        extractDVdate(&values, key, &offset, &date);
+        extractDVdate(&t->values, key, &offset, &date);
         set_date_17_ = strdate(&date);
         t->addMoreExplanation(offset, " set date 17 (%s)", set_date_17_.c_str());
     }
 
     key = "326C";
-    if (hasKey(&values, key)) {
+    if (hasKey(&t->values, key)) {
         struct tm date;
-        extractDVdate(&values, key, &offset, &date);
+        extractDVdate(&t->values, key, &offset, &date);
         error_date_ = strdate(&date);
         t->addMoreExplanation(offset, " error date (%s)", error_date_.c_str());
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, &key, &values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, &key, &t->values)) {
         struct tm datetime;
-        extractDVdate(&values, key, &offset, &datetime);
+        extractDVdate(&t->values, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
     }
 
     key = "0DFF5F";
-    if (hasKey(&values, key)) {
+    if (hasKey(&t->values, key)) {
         string hex;
-        extractDVstring(&values, key, &offset, &hex);
+        extractDVstring(&t->values, key, &offset, &hex);
         t->addMoreExplanation(offset, " vendor extension data");
         // This is not stored anywhere yet, we need to understand it, if necessary.
     }

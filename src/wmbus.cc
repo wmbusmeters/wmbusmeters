@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,8 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_utils.h"
+#include"dvparser.h"
 #include<assert.h>
 #include<stdarg.h>
 #include<string.h>
@@ -23,7 +25,8 @@
 #include<sys/types.h>
 #include<unistd.h>
 
-struct LinkModeInfo {
+struct LinkModeInfo
+{
     LinkMode mode;
     const char *name;
     const char *lcname;
@@ -189,30 +192,103 @@ void Telegram::print() {
     notice("Received telegram from: %02x%02x%02x%02x\n",
 	   a_field_address[0], a_field_address[1], a_field_address[2], a_field_address[3]);
     notice("          manufacturer: (%s) %s\n",
-           manufacturerFlag(m_field).c_str(),
-	   manufacturer(m_field).c_str());
+           manufacturerFlag(dll_mft).c_str(),
+	   manufacturer(dll_mft).c_str());
     notice("           device type: %s\n",
-	   mediaType(a_field_device_type).c_str());
+	   mediaType(dll_type).c_str());
 }
 
-void Telegram::verboseFields() {
-    string man = manufacturerFlag(m_field);
-    verbose(" %02x%02x%02x%02x C-field=%02x M-field=%04x (%s) A-field-version=%02x A-field-dev-type=%02x (%s) Ci-field=%02x (%s)",
-            a_field_address[0], a_field_address[1], a_field_address[2], a_field_address[3],
-            c_field,
-            m_field,
+void Telegram::printDLL()
+{
+    string man = manufacturerFlag(dll_mft);
+    verbose("(telegram) DLL L=%02x C=%02x M=%04x (%s) A=%02x%02x%02x%02x VER=%02x TYPE=%02x (%s)\n",
+            dll_len,
+            dll_c,
+            dll_mft,
             man.c_str(),
-            a_field_version,
-            a_field_device_type,
-            mediaType(a_field_device_type).c_str(),
-            ci_field,
-            ciType(ci_field).c_str());
+            a_field_address[0], a_field_address[1], a_field_address[2], a_field_address[3],
+            dll_version,
+            dll_type,
+            mediaType(dll_type).c_str());
+}
 
-    if (ci_field == 0x78) {
-        // No data error and no encryption possible.
+void Telegram::printELL()
+{
+    if (ell_ci == 0) return;
+
+    string ell_cc_info = ccType(ell_cc);
+    verbose("(telegram) ELL CI=%02x CC=%02x (%s) ACC=%02x",
+            ell_ci, ell_cc, ell_cc_info.c_str(), ell_acc);
+
+    if (ell_ci == 0x8d || ell_ci == 0x8f)
+    {
+        string ell_sn_info = toStringFromELLSN(ell_sn);
+
+        verbose(" SN=%02x%02x%02x%02x (%s) CRC=%02x%02x",
+                ell_sn_b[0], ell_sn_b[1], ell_sn_b[2], ell_sn_b[3], ell_sn_info.c_str(),
+                ell_pl_crc_b[0], ell_pl_crc_b[1]);
+    }
+    if (ell_ci == 0x8e || ell_ci == 0x8f)
+    {
+        verbose(" M=%02x%02x A=%02x%02x%02x%02x%02x%02x",
+                ell_mfct_b[0], ell_mfct_b[1],
+                ell_addr_b[0], ell_addr_b[1], ell_addr_b[2], ell_addr_b[3], ell_addr_b[4], ell_addr_b[5]);
+    }
+    verbose("\n");
+}
+
+void Telegram::printNWL()
+{
+    if (nwl_ci == 0) return;
+
+    verbose("(telegram) NWL CI=%02x\n",
+            nwl_ci);
+}
+
+void Telegram::printAFL()
+{
+    if (afl_ci == 0) return;
+
+    verbose("(telegram) AFL CI=%02x\n",
+            afl_ci);
+
+}
+
+void Telegram::printTPL()
+{
+    if (tpl_ci == 0) return;
+
+    verbose("(telegram) TPL CI=%02x", tpl_ci);
+
+    if (tpl_ci == 0x7a || tpl_ci == 0x72)
+    {
+        string tpl_cfg_info = toStringFromTPLConfig(tpl_cfg);
+        verbose(" ACC=%02x STS=%02x CFG=%04x (%s)",
+                tpl_acc, tpl_sts, tpl_cfg, tpl_cfg_info.c_str());
     }
 
-    if (ci_field == 0x72) {
+    if (tpl_ci == 0x72)
+    {
+        string info = mediaType(tpl_type);
+        verbose(" ID=%02x%02x%02x%02x MFT=%02x%02x VER=%02x TYPE=%02x (%s)",
+                tpl_id_b[0], tpl_id_b[1], tpl_id_b[2], tpl_id_b[3],
+                tpl_mft_b[0], tpl_mft_b[1],
+                tpl_version, tpl_type, info.c_str());
+    }
+
+    verbose("\n");
+}
+
+void Telegram::verboseFields()
+{
+    printDLL();
+    printELL();
+    printNWL();
+    printAFL();
+    printTPL();
+
+    /*
+    if (ell_ci_field == 0x72) {
         // Long tpl header
         verbose(" CC-field=%02x (%s) long tpl header ACC=%02x SN=%02x%02x%02x%02x",
                 cc_field, ccType(cc_field).c_str(),
@@ -220,7 +296,7 @@ void Telegram::verboseFields() {
                 sn[3],sn[2],sn[1],sn[0]);
     }
 
-    if (ci_field == 0x7a) {
+    if (ell_ci_field == 0x7a) {
         // Short data header
         verbose(" CC-field=%02x (%s) short header ACC=%02x ",
                 cc_field, ccType(cc_field).c_str(),
@@ -228,19 +304,18 @@ void Telegram::verboseFields() {
                 sn[3],sn[2],sn[1],sn[0]);
     }
 
-    if (ci_field == 0x8d) {
+    if (ell_ci_field == 0x8d) {
         // ELL header
         verbose(" CC-field=%02x (%s) ell header ACC=%02x SN=%02x%02x%02x%02x",
                 cc_field, ccType(cc_field).c_str(),
                 acc,
                 sn[3],sn[2],sn[1],sn[0]);
     }
-    if (ci_field == 0x8c) {
+    if (ell_ci_field == 0x8c) {
         verbose(" CC-field=%02x (%s) ACC=%02x",
                 cc_field, ccType(cc_field).c_str(),
                 acc);
-    }
-    verbose("\n");
+                }*/
 }
 
 string manufacturer(int m_field) {
@@ -406,7 +481,6 @@ string mediaTypeJSON(int a_field_device_type)
     }
     return "Unknown";
 }
-
 
 bool detectIM871A(string device, SerialCommunicationManager *handler);
 bool detectAMB8465(string device, SerialCommunicationManager *handler);
@@ -624,16 +698,19 @@ Detected detectWMBusDeviceSetting(string devicefile,
 
 #define LIST_OF_CI_FIELDS \
     X(0x51, TPL_51,  "TPL: APL follows", 0, CI_TYPE::TPL, "")       \
-    X(0x78, TPL_78,  "TPL: APL follows", 0, CI_TYPE::TPL, "") \
+    X(0x72, TPL_72,  "TPL: long header APL follows", 0, CI_TYPE::TPL, "") \
+    X(0x78, TPL_78,  "TPL: no header APL follows", 0, CI_TYPE::TPL, "") \
     X(0x79, TPL_79,  "TPL: compact APL follows", 0, CI_TYPE::TPL, "") \
+    X(0x7A, TPL_7A,  "TPL: short header APL follows", 0, CI_TYPE::TPL, "") \
     X(0x8C, ELL_I,   "ELL: I",    2, CI_TYPE::ELL, "CC, ACC") \
     X(0x8D, ELL_II,  "ELL: II",   8, CI_TYPE::ELL, "CC, ACC, SN, Payload CRC") \
     X(0x8E, ELL_III, "ELL: III", 10, CI_TYPE::ELL, "CC, ACC, M2, A2") \
     X(0x8F, ELL_IV,  "ELL: IV",  16, CI_TYPE::ELL, "CC, ACC, M2, A2, SN, Payload CRC") \
     X(0x86, ELL_V,   "ELL: V",   -1, CI_TYPE::ELL, "Variable length") \
-    X(0x90, AFL,     "AFL", 10, CI_TYPE::AFL, "")
+    X(0x90, AFL,     "AFL", 10, CI_TYPE::AFL, "") \
+    X(0xA2, MFCT_SPECIFIC, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "")
 
-enum class CI_Field_Values {
+enum CI_Field_Values {
 #define X(val,name,cname,len,citype,explain) name = val,
 LIST_OF_CI_FIELDS
 #undef X
@@ -645,6 +722,14 @@ bool isCiFieldOfType(int ci_field, CI_TYPE type)
 LIST_OF_CI_FIELDS
 #undef X
     return false;
+}
+
+int ciFieldLength(int ci_field)
+{
+#define X(val,name,cname,len,citype,explain) if (ci_field == val) return len;
+LIST_OF_CI_FIELDS
+#undef X
+    return -2;
 }
 
 string ciType(int ci_field)
@@ -799,74 +884,395 @@ void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
     }
 }
 
-bool Telegram::parseDLL(vector<uchar> &frame, vector<uchar>::iterator &pos)
+bool expectedMore(int line)
 {
-    if (frame.size() < 11) return false;
+    verbose("(wmbus) parser expected more data! (%d)\n", line);
+    return false;
+}
 
+bool Telegram::parseDLL(vector<uchar>::iterator &pos)
+{
     int remaining = distance(pos, frame.end());
-    assert(remaining > 0);
+    if (remaining == 0) return expectedMore(__LINE__);
 
-    int len = *pos;
-    if (remaining < len)
-    {
-        verbose("(wmbus) error not enough bytes frame=%zu but len=%zu\n", frame.size(), len);
-        return false;
-    }
-    addExplanationAndIncrementPos(pos, 1, "%02x length (%d bytes)", len, len);
+    dll_len = *pos;
+    if (remaining < dll_len) return expectedMore(__LINE__);
+    addExplanationAndIncrementPos(pos, 1, "%02x length (%d bytes)", dll_len, dll_len);
 
-    c_field = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x c-field (%s)", c_field, cType(c_field).c_str());
+    dll_c = *pos;
+    addExplanationAndIncrementPos(pos, 1, "%02x c-field (%s)", dll_c, cType(dll_c).c_str());
 
-    m_field = *(pos+1)<<8 | *pos;
-    string man = manufacturerFlag(m_field);
-    addExplanationAndIncrementPos(pos, 2, "%02x%02x m-field (%02x=%s)", frame[2], frame[3], m_field, man.c_str());
+    dll_mft = *(pos+1)<<8 | *pos;
+    string man = manufacturerFlag(dll_mft);
+    addExplanationAndIncrementPos(pos, 2, "%02x%02x m-field (%02x=%s)", frame[2], frame[3], dll_mft, man.c_str());
 
-    a_field.resize(6);
+    dll_a.resize(6);
     a_field_address.resize(4);
     for (int i=0; i<6; ++i)
     {
-        a_field[i] = *(pos+i);
+        dll_a[i] = *(pos+i);
         if (i<4) { a_field_address[i] = *(pos+3-i); }
     }
     strprintf(id, "%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
     addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x a-field-addr (%s)",
                                   *(pos+0), *(pos+1), *(pos+2), *(pos+3), id.c_str());
 
-    a_field_version = *(pos+0);
-    a_field_device_type = *(pos+1);
-    addExplanationAndIncrementPos(pos, 1, "%02x a-field-version", a_field_version);
-    addExplanationAndIncrementPos(pos, 1, "%02x a-field-type (%s)", a_field_device_type,
-                                  mediaType(a_field_device_type).c_str());
+    dll_version = *(pos+0);
+    dll_type = *(pos+1);
+    addExplanationAndIncrementPos(pos, 1, "%02x a-field-version", dll_version);
+    addExplanationAndIncrementPos(pos, 1, "%02x a-field-type (%s)", dll_type,
+                                  mediaType(dll_type).c_str());
 
-    ci_field=frame[10];
-    addExplanationAndIncrementPos(pos, 1, "%02x ci-field (%s)", ci_field, ciType(ci_field).c_str());
     return true;
 }
 
-bool Telegram::parseELL(vector<uchar> &frame, vector<uchar>::iterator &pos)
+string Telegram::toStringFromELLSN(int sn)
+{
+    int session = (sn >> 0)  & 0x0f; // lowest 4 bits
+    int time = (sn >> 4)  & 0x1ffffff; // next 25 bits
+    int sec  = (sn >> 29) & 0x7; // next 3 bits.
+    string info;
+    ELLSecurityMode esm = fromIntToELLSecurityMode(sec);
+    info += toString(esm);
+    info += " session=";
+    info += to_string(session);
+    info += " time=";
+    info += to_string(time);
+    return info;
+}
+
+bool Telegram::parseELL(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
+{
+    int remaining = distance(pos, frame.end());
+    if (remaining == 0) return false;
+
+    int ci_field = *pos;
+    if (!isCiFieldOfType(ci_field, CI_TYPE::ELL)) return true;
+    addExplanationAndIncrementPos(pos, 1, "%02x ell-ci-field (%s)",
+                                  ci_field, ciType(ci_field).c_str());
+    ell_ci = ci_field;
+    int len = ciFieldLength(ell_ci);
+
+    if (remaining < len+1) return expectedMore(__LINE__);
+
+    // All ELL:s (including ELL I) start with cc,acc.
+
+    ell_cc = *pos;
+    addExplanationAndIncrementPos(pos, 1, "%02x cc-field (%s)", ell_cc, ccType(ell_cc).c_str());
+
+    ell_acc = *pos;
+    addExplanationAndIncrementPos(pos, 1, "%02x ell-acc-field", ell_acc);
+
+    bool has_target_mft_address = false;
+    bool has_session_number_pl_crc = false;
+
+    switch (ell_ci)
+    {
+    case CI_Field_Values::ELL_I:
+        // Already handled above.
+        break;
+    case CI_Field_Values::ELL_II:
+        has_session_number_pl_crc = true;
+        break;
+    case CI_Field_Values::ELL_III:
+        has_target_mft_address = true;
+        break;
+    case CI_Field_Values::ELL_IV:
+        has_session_number_pl_crc = true;
+        has_target_mft_address = true;
+        break;
+    case CI_Field_Values::ELL_V:
+        verbose("ELL V not yet handled\n");
+        return false;
+    }
+
+    if (has_target_mft_address)
+    {
+        ell_mfct_b[0] = *(pos+0);
+        ell_mfct_b[1] = *(pos+1);
+
+        addExplanationAndIncrementPos(pos, 2, "%02x%02x mfct2", ell_mfct_b[0], ell_mfct_b[1]);
+
+        ell_addr_b[0] = *(pos+0);
+        ell_addr_b[1] = *(pos+1);
+        ell_addr_b[2] = *(pos+2);
+        ell_addr_b[3] = *(pos+3);
+        ell_addr_b[4] = *(pos+4);
+        ell_addr_b[5] = *(pos+5);
+
+        addExplanationAndIncrementPos(pos, 6, "%02x%02x%02x%02x%02x%02x adr2",
+                                      ell_addr_b[0], ell_addr_b[1], ell_addr_b[2],
+                                      ell_addr_b[3], ell_addr_b[4], ell_addr_b[5]);
+    }
+
+    if (has_session_number_pl_crc)
+    {
+        string sn_info;
+        ell_sn_b[0] = *(pos+0);
+        ell_sn_b[1] = *(pos+1);
+        ell_sn_b[2] = *(pos+2);
+        ell_sn_b[3] = *(pos+3);
+        ell_sn = ell_sn_b[3]<<24 | ell_sn_b[2]<<16 | ell_sn_b[1] << 8 | ell_sn_b[0];
+
+        ell_sn_session = (ell_sn >> 0)  & 0x0f; // lowest 4 bits
+        ell_sn_time = (ell_sn >> 4)  & 0x1ffffff; // next 25 bits
+        ell_sn_sec = (ell_sn >> 29) & 0x7; // next 3 bits.
+        ell_sec_mode = fromIntToELLSecurityMode(ell_sn_sec);
+        string info = toString(ell_sec_mode);
+        addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x sn (%s)",
+                                      ell_sn_b[0], ell_sn_b[1], ell_sn_b[2], ell_sn_b[3], info.c_str());
+
+        if (ell_sec_mode == ELLSecurityMode::AES_CTR)
+        {
+            bool ok = decrypt_ELL_AES_CTR(this, frame, pos, meter_keys->confidentiality_key);
+            if (!ok) return false;
+            // Now the frame from pos and onwards has been decrypted.
+        }
+
+        ell_pl_crc_b[0] = *(pos+0);
+        ell_pl_crc_b[1] = *(pos+1);
+        ell_pl_crc = (ell_pl_crc_b[1] << 8) | ell_pl_crc_b[0];
+
+        int dist = distance(frame.begin(), pos+2);
+        int len = distance(pos+2, frame.end());
+        uint16_t check = crc16_EN13757(&(frame[dist]), len);
+
+        addExplanationAndIncrementPos(pos, 2, "%02x%02x payload crc (calculated %02x%02x %s)",
+                                      ell_pl_crc_b[0], ell_pl_crc_b[1],
+                                      check  & 0xff, check >> 8, (ell_pl_crc==check?"OK":"ERROR"));
+
+        if (ell_pl_crc != check)
+        {
+            warning("(wmbus) payload crc error!\n");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool Telegram::parseNWL(vector<uchar>::iterator &pos)
 {
     return true;
 }
 
-bool Telegram::parseNWL(vector<uchar> &frame, vector<uchar>::iterator &pos)
+bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 {
     return true;
 }
 
-bool Telegram::parseAFL(vector<uchar> &frame, vector<uchar>::iterator &pos)
+string Telegram::toStringFromTPLConfig(int cfg)
 {
+    string info = "";
+    if (cfg & 0x1f00)
+    {
+        int m = (cfg >> 8) & 0x1f;
+        TPLSecurityMode tsm = fromIntToTPLSecurityMode(m);
+        info += toString(tsm);
+        info += " ";
+    }
+    if (cfg & 0x80) info += "bidirectional ";
+    if (cfg & 0x40) info += "accessibility ";
+    if (cfg & 0x20) info += "synchronous ";
+    if (info.length() > 0) info.pop_back();
+    return info;
+}
+
+bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
+{
+    uchar cfg1 = *(pos+0);
+    uchar cfg2 = *(pos+1);
+    tpl_cfg = cfg2 << 8 | cfg1;
+
+    if (tpl_cfg & 0x1f00)
+    {
+        int m = (tpl_cfg >> 8) & 0x1f;
+        tpl_sec_mode = fromIntToTPLSecurityMode(m);
+    }
+    string info = toStringFromTPLConfig(tpl_cfg);
+    addExplanationAndIncrementPos(pos, 2, "%02x%02x tpl-cfg (%s)", cfg1, cfg2, info.c_str());
+
     return true;
 }
 
-bool Telegram::parseTPL(vector<uchar> &frame, vector<uchar>::iterator &pos)
+bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
 {
+    int remaining = distance(pos, frame.end());
+    if (remaining == 0) return false;
+
+    tpl_acc = *pos;
+    addExplanationAndIncrementPos(pos, 1, "%02x tpl-acc-field", tpl_acc);
+
+    tpl_sts = *pos;
+    addExplanationAndIncrementPos(pos, 1, "%02x tpl-sts-field", tpl_sts);
+
+    bool ok = parseTPLConfig(pos);
+    if (!ok) return false;
+
     return true;
 }
 
-bool Telegram::parse(vector<uchar> &frame)
+bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
+{
+    tpl_id_b[0] = *(pos+0);
+    tpl_id_b[1] = *(pos+1);
+    tpl_id_b[2] = *(pos+2);
+    tpl_id_b[3] = *(pos+3);
+
+    addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x tpl-id", tpl_id_b[0], tpl_id_b[1], tpl_id_b[2], tpl_id_b[3]);
+
+    tpl_mft_b[0] = *(pos+0);
+    tpl_mft_b[1] = *(pos+1);
+
+    addExplanationAndIncrementPos(pos, 2, "%02x%02x tpl-mft", tpl_mft_b[0], tpl_mft_b[1]);
+
+    tpl_version = *(pos+0);
+    addExplanationAndIncrementPos(pos, 1, "%02x tpl-version", tpl_version);
+
+    tpl_type = *(pos+1);
+    string info = mediaType(tpl_type);
+    addExplanationAndIncrementPos(pos, 1, "%02x tpl-type (%s)", tpl_type, info.c_str());
+
+    bool ok = parseShortTPL(pos);
+
+    return ok;
+}
+
+bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes);
+
+bool Telegram::parse_TPL_72(vector<uchar>::iterator &pos)
+{
+    bool ok = parseLongTPL(pos);
+    if (!ok) return false;
+
+    header_size = distance(frame.begin(), pos);
+    int remaining = distance(pos, frame.end());
+    suffix_size = 0;
+    parseDV(this, frame, pos, remaining, &values);
+
+    return true;
+}
+
+bool Telegram::parse_TPL_78(vector<uchar>::iterator &pos)
+{
+    header_size = distance(frame.begin(), pos);
+    int remaining = distance(pos, frame.end());
+    suffix_size = 0;
+    parseDV(this, frame, pos, remaining, &values);
+
+    return true;
+}
+
+bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
+{
+    // Compact frame
+    uchar ecrc0 = *(pos+0);
+    uchar ecrc1 = *(pos+1);
+    addExplanationAndIncrementPos(pos, 2, "%02x%02x format signature", ecrc0, ecrc1);
+    format_signature = ecrc1<<8 | ecrc0;
+
+    vector<uchar> format_bytes;
+    bool ok = loadFormatBytesFromSignature(format_signature, &format_bytes);
+    if (!ok) {
+        // We have not yet seen a long frame, but we know the formats for some
+        // meter specific hashes.
+        ok = findFormatBytesFromKnownMeterSignatures(&format_bytes);
+        if (!ok)
+        {
+            verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
+                    "     this is not a problem, since you only need wait for at most 8 telegrams\n"
+                    "     (8*16 seconds) until an full length telegram arrives and then we know\n"
+                    "     the format giving this hash and start decoding the telegrams properly.\n",
+                    format_signature);
+            return false;
+        }
+    }
+    vector<uchar>::iterator format = format_bytes.begin();
+
+    // 2,3 = crc for payload = hash over both DRH and data bytes. Or is it only over the data bytes?
+    int ecrc2 = *(pos+0);
+    int ecrc3 = *(pos+1);
+    addExplanationAndIncrementPos(pos, 2, "%02x%02x data crc", ecrc2, ecrc3);
+
+    header_size = distance(frame.begin(), pos);
+    int remaining = distance(pos, frame.end());
+    suffix_size = 0;
+
+    parseDV(this, frame, pos, remaining, &values, &format, format_bytes.size());
+
+    return true;
+}
+
+bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
+{
+    bool ok = parseShortTPL(pos);
+    if (!ok) return false;
+
+    if (tpl_sec_mode == TPLSecurityMode::AES_CBC_IV)
+    {
+        bool ok = decrypt_TPL_AES_CBC_IV(this, frame, pos, meter_keys->confidentiality_key);
+        if (!ok) return false;
+        // Now the frame from pos and onwards has been decrypted.
+
+        if (*(pos+0) != 0x2f || *(pos+1) != 0x2f)
+        {
+            warning("(wmbus) decrypted content failed check, did you use the correct decryption key?\n");
+        }
+        addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
+    }
+
+    header_size = distance(frame.begin(), pos);
+    int remaining = distance(pos, frame.end());
+    suffix_size = 0;
+
+    parseDV(this, frame, pos, remaining, &values);
+    return true;
+}
+
+bool Telegram::parseTPL(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
+{
+    int remaining = distance(pos, frame.end());
+    if (remaining == 0) return false;
+
+    int ci_field = *pos;
+    if (!isCiFieldOfType(ci_field, CI_TYPE::TPL))
+    {
+        warning("(wmbus) Unknown tpl-ci-field %02x\n", tpl_ci);
+        return true;
+    }
+
+    addExplanationAndIncrementPos(pos, 1, "%02x tpl-ci-field (%s)",
+                                  ci_field, ciType(ci_field).c_str());
+    tpl_ci = ci_field;
+    int len = ciFieldLength(ell_ci);
+
+    if (remaining < len+1) return expectedMore(__LINE__);
+
+    switch (tpl_ci)
+    {
+    case CI_Field_Values::TPL_72: return parse_TPL_72(pos);
+    case CI_Field_Values::TPL_78: return parse_TPL_78(pos);
+    case CI_Field_Values::TPL_79: return parse_TPL_79(pos);
+    case CI_Field_Values::TPL_7A: return parse_TPL_7A(pos, meter_keys);
+    case CI_Field_Values::MFCT_SPECIFIC:
+    {
+            header_size = distance(frame.begin(), pos);
+            suffix_size = 0;
+            return true; // Manufacturer specific telegram payload. Oh well....
+    }
+    }
+
+    header_size = distance(frame.begin(), pos);
+    warning("(wmbus) Not implemented tpl-ci %02x\n", tpl_ci);
+    return false;
+}
+
+bool Telegram::parseHeader(vector<uchar> &input_frame)
 {
     bool ok;
+    frame = input_frame;
     vector<uchar>::iterator pos = frame.begin();
+    // Parsed accumulates parsed bytes.
     parsed.clear();
 
     //     ┌──────────────────────────────────────────────┐
@@ -875,7 +1281,27 @@ bool Telegram::parse(vector<uchar> &frame)
     //     │                                              │
     //     └──────────────────────────────────────────────┘
 
-    ok = parseDLL(frame, pos);
+    ok = parseDLL(pos);
+    if (!ok) return false;
+
+    return true;
+}
+
+bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *meter_keys)
+{
+    assert(meter_keys != NULL);
+    bool ok;
+    frame = input_frame;
+    vector<uchar>::iterator pos = frame.begin();
+    // Parsed accumulates parsed bytes.
+    parsed.clear();
+    //     ┌──────────────────────────────────────────────┐
+    //     │                                              │
+    //     │ Parse DLL Data Link Layer for Wireless MBUS. │
+    //     │                                              │
+    //     └──────────────────────────────────────────────┘
+
+    ok = parseDLL(pos);
     if (!ok) return false;
 
     //     ┌──────────────────────────────────────────────┐
@@ -884,9 +1310,8 @@ bool Telegram::parse(vector<uchar> &frame)
     //     │                                              │
     //     └──────────────────────────────────────────────┘
 
-    if (isCiFieldOfType(ci_field, CI_TYPE::ELL))
-    {
-    }
+    ok = parseELL(pos, meter_keys);
+    if (!ok) return false;
 
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
@@ -894,9 +1319,8 @@ bool Telegram::parse(vector<uchar> &frame)
     //     │                                              │
     //     └──────────────────────────────────────────────┘
 
-    if (isCiFieldOfType(ci_field, CI_TYPE::NWL))
-    {
-    }
+    ok = parseNWL(pos);
+    if (!ok) return false;
 
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
@@ -904,33 +1328,21 @@ bool Telegram::parse(vector<uchar> &frame)
     //     │                                              │
     //     └──────────────────────────────────────────────┘
 
-    if (isCiFieldOfType(ci_field, CI_TYPE::AFL))
-    {
-    }
+    ok = parseAFL(pos);
+    if (!ok) return false;
 
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
-    //     │ Is this a TPL block?                         │
+    //     │ Is this a TPL block? It ought to be!         │
     //     │                                              │
     //     └──────────────────────────────────────────────┘
 
-    if (isCiFieldOfType(ci_field, CI_TYPE::TPL))
-    {
-    }
+    ok = parseTPL(pos, meter_keys);
+    if (!ok) return false;
 
-    int header_size = 0;
-    if (ci_field == 0x78)
-    {
-        header_size = 0; // And no encryption possible.
-    }
+    /*
     else if (ci_field == 0x72)
     {
-        if (frame.size() < 22)
-        {
-            verbose("(wmbus) cannot parse telegram ci=0x72 with length %zu\n", frame.size());
-            return false;
-        }
-
         // Example, begins aith frame[11]: 99999999 MMMM VV TT 01 00 0000
         // Ignore 4 id bytes for now, should perhaps check that they are identical with the id.
         // But if they are not, what to do?
@@ -941,17 +1353,17 @@ bool Telegram::parse(vector<uchar> &frame)
         addExplanationAndIncrementPos(pos, 1, "%02x acc", acc);
         status = frame[19];
         addExplanationAndIncrementPos(pos, 1, "%02x status ()", status);
-        config_field = frame[20]<<8 | frame[21];
+        tpl_cfg = frame[20]<<8 | frame[21];
         string config_info = "";
-        if (config_field & 0x0f) {
+        if (tpl_cfg & 0x0f) {
             config_info += "encrypted ";
             is_encrypted_ = true;
         }
-        if ((config_field & 0x0f) == 0 || (config_field & 0x0f) == 0x05) {
-            if ((config_field & 0x0f) == 0x05) config_info += "AES_CBC ";
-            if (config_field & 0x80) config_info += "bidirectional ";
-            if (config_field & 0x40) config_info += "accessibility ";
-            if (config_field & 0x20) config_info += "synchronous ";
+        if ((tpl_cfg & 0x0f) == 0 || (tpl_cfg & 0x0f) == 0x05) {
+            if ((tpl_cfg & 0x0f) == 0x05) config_info += "AES_CBC ";
+            if (tpl_cfg & 0x80) config_info += "bidirectional ";
+            if (tpl_cfg & 0x40) config_info += "accessibility ";
+            if (tpl_cfg & 0x20) config_info += "synchronous ";
         }
         if (config_info.length() > 0) config_info.pop_back();
         addExplanationAndIncrementPos(pos, 2, "%02x%02x config (%s)", frame[13], frame[14], config_info.c_str());
@@ -968,63 +1380,21 @@ bool Telegram::parse(vector<uchar> &frame)
         addExplanationAndIncrementPos(pos, 1, "%02x acc", acc);
         status = frame[12];
         addExplanationAndIncrementPos(pos, 1, "%02x status ()", status);
-        config_field = frame[13]<<8 | frame[14];
+        tpl_cfg = frame[13]<<8 | frame[14];
         string config_info = "";
-        if (config_field & 0x0f) {
+        if (tpl_cfg & 0x0f) {
             config_info += "encrypted ";
             is_encrypted_ = true;
         }
-        if ((config_field & 0x0f) == 0 || (config_field & 0x0f) == 0x05) {
-            if ((config_field & 0x0f) == 0x05) config_info += "AES_CBC ";
-            if (config_field & 0x80) config_info += "bidirectional ";
-            if (config_field & 0x40) config_info += "accessibility ";
-            if (config_field & 0x20) config_info += "synchronous ";
+        if ((tpl_cfg & 0x0f) == 0 || (tpl_cfg & 0x0f) == 0x05) {
+            if ((tpl_cfg & 0x0f) == 0x05) config_info += "AES_CBC ";
+            if (tpl_cfg & 0x80) config_info += "bidirectional ";
+            if (tpl_cfg & 0x40) config_info += "accessibility ";
+            if (tpl_cfg & 0x20) config_info += "synchronous ";
         }
         if (config_info.length() > 0) config_info.pop_back();
         addExplanationAndIncrementPos(pos, 2, "%02x%02x config (%s)", frame[13], frame[14], config_info.c_str());
         header_size = 4;
-    }
-    else if (ci_field == 0x8d || ci_field == 0x8c)
-    {
-        if (frame.size() < 13)
-        {
-            verbose("(wmbus) cannot parse telegram ci=0x8d or 0x8c with length %zu\n", frame.size());
-            return false;
-        }
-        cc_field = frame[11];
-        addExplanationAndIncrementPos(pos, 1, "%02x cc-field (%s)", cc_field, ccType(cc_field).c_str());
-        acc = frame[12];
-        addExplanationAndIncrementPos(pos, 1, "%02x acc", acc);
-        header_size = 2;
-        if (ci_field == 0x8d)
-        {
-            if (frame.size() < 17)
-            {
-                verbose("(wmbus) cannot parse telegram ci=0x8d with length %zu\n", frame.size());
-                return false;
-            }
-            string sn_info;
-            sn[0] = frame[13];
-            sn[1] = frame[14];
-            sn[2] = frame[15];
-            sn[3] = frame[16];
-            uint64_t sn_field = sn[3]<<24 | sn[2]<<16 | sn[1] << 8 | sn[0];
-
-            uchar session_field = (sn_field >> 0)  & 0x0f; // lowest 4 bits
-            uint64_t time_field = (sn_field >> 4)  & 0x1ffffff; // next 25 bits
-            uchar enc_field     = (sn_field >> 29) & 0x7; // next 3 bits.
-            if (enc_field != 0)
-            {
-                sn_info += "encrypted ";
-                is_encrypted_ = true;
-            }
-            sn_info += "session=";
-            sn_info += to_string(session_field)+" ";
-            sn_info += "time=";
-            sn_info += to_string(time_field);
-            addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x sn (%s)", sn[0], sn[1], sn[2], sn[3], sn_info.c_str());
-            header_size = 6;
-        }
     }
     else if (ci_field == 0xa2)
     {
@@ -1035,22 +1405,28 @@ bool Telegram::parse(vector<uchar> &frame)
         // Removed because it logs warning for every telegram, even if not 'for me'
         //warning("Unknown ci-field %02x\n", ci_field);
     }
-
-    payload.clear();
-    int skip = 11+header_size;
-    if (skip < (int)frame.size())
+    */
+/*
+    if (t.tpl_sec_mode != TPLSecurityMode::None) && !useAes())
     {
-        // The case 11+header_size larger than frame_size is probably due to bad input data
-        // that is currently allowed to pass, see above.
-        payload.insert(payload.end(), frame.begin()+skip, frame.end());
+        warning("(%s) warning: telegram is encrypted but no key supplied!\n",
+                meterName().c_str());
     }
-    verbose("(wmbus) received telegram");
+    if (useAes()) {
+        vector<uchar> aeskey = meterKeys()->confidentiality_key;
+        if (encryptionMode() == EncryptionMode::AES_CTR) {
+            decryptMode1_AES_CTR(&t, aeskey);
+        }
+        if (encryptionMode() == EncryptionMode::AES_CBC) {
+            decryptMode5_AES_CBC(&t, aeskey);
+        }
+    } else {
+        t.apl_content = t.apl_payload;
+    }
+*/
     verboseFields();
     debugPayload("(wmbus) frame", frame);
-    debugPayload("(wmbus) payload", payload);
-    if (isDebugEnabled()) {
-        explainParse("(wmbus)", 0);
-    }
+
     return true;
 }
 
@@ -1061,13 +1437,12 @@ void Telegram::explainParse(string intro, int from)
         debug("%s %02x: %s\n", intro.c_str(), p.first, p.second.c_str());
     }
     string hex = bin2hex(parsed);
-    debug("%s %s\n", intro.c_str(), hex.c_str());
 }
 
 void Telegram::expectVersion(const char *info, int v)
 {
-    if (v != 0 && a_field_version != v) {
-        warning("(%s) expected telegram with version 0x%02x, but got version 0x%02x !\n", info, v, a_field_version);
+    if (v != 0 && dll_version != v) {
+        warning("(%s) expected telegram with version 0x%02x, but got version 0x%02x !\n", info, v, dll_version);
     }
 }
 
@@ -2614,4 +2989,153 @@ string measurementTypeName(MeasurementType mt)
 }
 
 WMBus::~WMBus() {
+}
+
+bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_bytes)
+{
+    bool ok = true;
+    if (format_signature == 0xa8ed)
+    {
+        hex2bin("02FF2004134413615B6167", format_bytes);
+        debug("(wmbus) using hard coded format for hash a8ed\n");
+    }
+    else if (format_signature == 0xc412)
+    {
+        hex2bin("02FF20041392013BA1015B8101E7FF0F", format_bytes);
+        debug("(wmbus) using hard coded format for hash c412\n");
+    }
+    else if (format_signature == 0x61eb)
+    {
+        hex2bin("02FF2004134413A1015B8101E7FF0F", format_bytes);
+        debug("(wmbus) using hard coded format for hash 61eb\n");
+    }
+    else if (format_signature == 0xd2f7)
+    {
+        hex2bin("02FF2004134413615B5167", format_bytes);
+        debug("(wmbus) using hard coded format for hash d2f7\n");
+    }
+    else if (format_signature == 0xdd34)
+    {
+        hex2bin("02FF2004134413", format_bytes);
+        debug("(wmbus) using hard coded format for hash dd34\n");
+    }
+    else
+    {
+        ok = false;
+    }
+    return ok;
+}
+
+void WMBusCommonImplementation::setMeters(vector<unique_ptr<Meter>> *meters)
+{
+    meters_ = meters;
+}
+
+void WMBusCommonImplementation::onTelegram(function<bool(vector<uchar>)> cb)
+{
+    telegram_listeners_.push_back(cb);
+}
+
+bool WMBusCommonImplementation::handleTelegram(vector<uchar> frame)
+{
+    bool handled = false;
+    for (auto f : telegram_listeners_)
+    {
+        if (f)
+        {
+            bool h = f(frame);
+            if (h) handled = true;
+        }
+    }
+    if (isVerboseEnabled() && !handled)
+    {
+        verbose("(wmbus) telegram ignored by all configured meters!\n");
+    }
+
+    return handled;
+}
+
+int toInt(TPLSecurityMode tsm)
+{
+    switch (tsm) {
+
+#define X(name,nr) case TPLSecurityMode::name : return nr;
+LIST_OF_TPL_SECURITY_MODES
+#undef X
+    }
+
+    return 16;
+}
+
+const char *toString(TPLSecurityMode tsm)
+{
+    switch (tsm) {
+
+#define X(name,nr) case TPLSecurityMode::name : return #name;
+LIST_OF_TPL_SECURITY_MODES
+#undef X
+    }
+
+    return "Reserved";
+}
+
+TPLSecurityMode fromIntToTPLSecurityMode(int i)
+{
+    switch (i) {
+
+#define X(name,nr) case nr: return TPLSecurityMode::name;
+LIST_OF_TPL_SECURITY_MODES
+#undef X
+    }
+
+    return TPLSecurityMode::SPECIFIC_16_31;
+}
+
+int toInt(ELLSecurityMode esm)
+{
+    switch (esm) {
+
+#define X(name,nr) case ELLSecurityMode::name : return nr;
+LIST_OF_ELL_SECURITY_MODES
+#undef X
+    }
+
+    return 2;
+}
+
+const char *toString(ELLSecurityMode esm)
+{
+    switch (esm) {
+
+#define X(name,nr) case ELLSecurityMode::name : return #name;
+LIST_OF_ELL_SECURITY_MODES
+#undef X
+    }
+
+    return "?";
+}
+
+ELLSecurityMode fromIntToELLSecurityMode(int i)
+{
+    switch (i) {
+
+#define X(name,nr) case nr: return ELLSecurityMode::name;
+LIST_OF_ELL_SECURITY_MODES
+#undef X
+    }
+
+    return ELLSecurityMode::RESERVED;
+}
+
+void Telegram::extractPayload(vector<uchar> *pl)
+{
+    pl->clear();
+    vector<uchar>::iterator from = frame.begin()+header_size;
+    vector<uchar>::iterator to = frame.end()-suffix_size;
+    pl->insert(pl->end(), from, to);
+}
+
+void Telegram::extractFrame(vector<uchar> *fr)
+{
+    *fr = frame;
 }

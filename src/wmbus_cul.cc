@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_utils.h"
 #include"wmbus_cul.h"
 #include"serial.h"
 
@@ -34,7 +35,7 @@ using namespace std;
 
 enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
 
-struct WMBusCUL : public WMBus
+struct WMBusCUL : public virtual WMBusCommonImplementation
 {
     bool ping();
     uint32_t getDeviceId();
@@ -52,8 +53,6 @@ struct WMBusCUL : public WMBus
         // The cul listens to both modes always.
         return true;
     }
-    void onTelegram(function<void(Telegram*)> cb);
-
     void processSerialData();
     SerialDevice *serial() { return serial_.get(); }
     void simulate();
@@ -66,13 +65,11 @@ private:
     SerialCommunicationManager *manager_;
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
-    vector<function<void(Telegram*)>> telegram_listeners_;
 
     FrameStatus checkCULFrame(vector<uchar> &data,
                                    size_t *hex_frame_length,
                                    int *hex_payload_len_out,
                                    int *hex_payload_offset);
-    void handleMessage(vector<uchar> &frame);
 
     string setup_;
 };
@@ -125,10 +122,10 @@ void WMBusCUL::setLinkModes(LinkModeSet lm)
     msg[2] = 'c';
     msg[3] = 0xa;
     msg[4] = 0xd;
- 
+
     serial()->send(msg);
     usleep(1000*100);
-    
+
     // TODO: CUL should answer with "CMODE" - check this
 
     // X01 - start the receiver
@@ -137,13 +134,9 @@ void WMBusCUL::setLinkModes(LinkModeSet lm)
     msg[2] = '1';
     msg[3] = 0xa;
     msg[4] = 0xd;
- 
+
     serial()->send(msg);
     usleep(1000*100);
-}
-
-void WMBusCUL::onTelegram(function<void(Telegram*)> cb) {
-    telegram_listeners_.push_back(cb);
 }
 
 void WMBusCUL::simulate()
@@ -212,28 +205,7 @@ void WMBusCUL::processSerialData()
 
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
 
-            handleMessage(payload);
-        }
-    }
-}
-
-void WMBusCUL::handleMessage(vector<uchar> &frame)
-{
-    Telegram t;
-    bool ok = t.parse(frame);
-
-    if (ok)
-    {
-        bool handled = false;
-        for (auto f : telegram_listeners_)
-        {
-            Telegram copy = t;
-            if (f) f(&copy);
-            if (copy.handled) handled = true;
-        }
-        if (isVerboseEnabled() && !handled)
-        {
-            verbose("(cul) telegram ignored by all configured meters!\n");
+            handleTelegram(payload);
         }
     }
 }
@@ -268,9 +240,9 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     // we received a full C1 frame, TODO check len
 
     // skip the crc bytes adjusting the length byte by 2
-    data[3] -= 2; 
+    data[3] -= 2;
 
-    // remove 8: 2 ('bY') + 4 (CRC) + 2 (CRLF) and start at 2 
+    // remove 8: 2 ('bY') + 4 (CRC) + 2 (CRLF) and start at 2
     *hex_frame_length = data.size();
     *hex_payload_len_out = data.size()-8;
     *hex_payload_offset = 2;
@@ -297,7 +269,7 @@ bool detectCUL(string device, SerialCommunicationManager *manager)
     serial->send(crlf);
     usleep(1000*100);
     serial->receive(&data);
-    
+
     if (data[0] != '?') {
        // no CUL device detected
        serial->close();
@@ -325,4 +297,3 @@ bool detectCUL(string device, SerialCommunicationManager *manager)
     serial->close();
     return true;
 }
-

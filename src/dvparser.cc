@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2019 Fredrik Öhrström
+ Copyright (C) 2018-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -127,7 +127,7 @@ bool parseDV(Telegram *t,
         DEBUG_PARSER("(dvparser debug) dif=%02x datalen=%d \"%s\" type=%s\n", dif, datalen, difType(dif).c_str(),
                      measurementTypeName(mt).c_str());
         if (datalen == -2) {
-            debug("(dvparser) cannot handle dif %02X ignoring rest of telegram.\n\n", dif);
+            debug("(dvparser) cannot handle dif %02X ignoring rest of telegram.\n", dif);
             break;
         }
         if (dif == 0x2f) {
@@ -295,24 +295,24 @@ bool findKey(MeasurementType mit, ValueInformation vif, int storagenr, std::stri
     int low, hi;
     valueInfoRange(vif, &low, &hi);
 
-    debug("(dvparser) looking for type=%s vif=%s storagenr=%d\n",
-          measurementTypeName(mit).c_str(), ValueInformationName(vif), storagenr);
+/*    debug("(dvparser) looking for type=%s vif=%s storagenr=%d\n",
+      measurementTypeName(mit).c_str(), ValueInformationName(vif), storagenr);*/
 
     for (auto& v : *values)
     {
         MeasurementType ty = v.second.second.type;
         int vi = v.second.second.value_information;
         int sn = v.second.second.storagenr;
-        debug("(dvparser) match? type=%s vif=%s and storagenr=%d\n",
-              measurementTypeName(ty).c_str(), ValueInformationName(vif), storagenr, sn);
+        /*debug("(dvparser) match? type=%s vif=%s and storagenr=%d\n",
+          measurementTypeName(ty).c_str(), ValueInformationName(vif), storagenr, sn);*/
 
         if (vi >= low && vi <= hi
             && (mit == MeasurementType::Unknown || mit == ty)
             && (storagenr == ANY_STORAGENR || storagenr == sn))
         {
             *key = v.first;
-            debug("(dvparser) found key %s for type=%s vif=%s storagenr=%d\n",
-                  v.first.c_str(), measurementTypeName(ty).c_str(), ValueInformationName(vif), storagenr);
+            /*debug("(dvparser) found key %s for type=%s vif=%s storagenr=%d\n",
+              v.first.c_str(), measurementTypeName(ty).c_str(), ValueInformationName(vif), storagenr);*/
             return true;
         }
     }

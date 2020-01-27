@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_utils.h"
 #include"serial.h"
 
 #include<assert.h>
@@ -33,7 +34,7 @@ using namespace std;
 
 enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
 
-struct WMBusRTLWMBUS : public WMBus
+struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
 {
     bool ping();
     uint32_t getDeviceId();
@@ -51,7 +52,6 @@ struct WMBusRTLWMBUS : public WMBus
         // The rtlwmbus listens to both modes always.
         return true;
     }
-    void onTelegram(function<void(Telegram*)> cb);
 
     void processSerialData();
     SerialDevice *serial() { return NULL; }
@@ -63,7 +63,6 @@ private:
     unique_ptr<SerialDevice> serial_;
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
-    vector<function<void(Telegram*)>> telegram_listeners_;
 
     FrameStatus checkRTLWMBUSFrame(vector<uchar> &data,
                                    size_t *hex_frame_length,
@@ -117,10 +116,6 @@ LinkModeSet WMBusRTLWMBUS::getLinkModes()
 
 void WMBusRTLWMBUS::setLinkModes(LinkModeSet lm)
 {
-}
-
-void WMBusRTLWMBUS::onTelegram(function<void(Telegram*)> cb) {
-    telegram_listeners_.push_back(cb);
 }
 
 void WMBusRTLWMBUS::simulate()
@@ -184,28 +179,7 @@ void WMBusRTLWMBUS::processSerialData()
             }
 
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
-            handleMessage(payload);
-        }
-    }
-}
-
-void WMBusRTLWMBUS::handleMessage(vector<uchar> &frame)
-{
-    Telegram t;
-    bool ok = t.parse(frame);
-
-    if (ok)
-    {
-        bool handled = false;
-        for (auto f : telegram_listeners_)
-        {
-            Telegram copy = t;
-            if (f) f(&copy);
-            if (copy.handled) handled = true;
-        }
-        if (isVerboseEnabled() && !handled)
-        {
-            verbose("(rtlwmbus) telegram ignored by all configured meters!\n");
+            handleTelegram(payload);
         }
     }
 }

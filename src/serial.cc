@@ -499,7 +499,7 @@ void SerialDeviceFile::close()
     ::close(fd_);
     fd_ = -1;
     manager_->closed(this);
-    verbose("(serialtty) WOHO? closed %s %d\n", file_.c_str(), fd_);
+    verbose("(serialtty) closed %s %d\n", file_.c_str(), fd_);
 }
 
 void SerialDeviceFile::checkIfShouldReopen()

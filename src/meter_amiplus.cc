@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ private:
 MeterAmiplus::MeterAmiplus(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::AMIPLUS, 0)
 {
-    setEncryptionMode(EncryptionMode::AES_CBC);
+    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     // This is one manufacturer of Amiplus compatible meters.
     addManufacturer(MANUFACTURER_APA);
@@ -84,8 +84,6 @@ MeterAmiplus::MeterAmiplus(WMBus *bus, MeterInfo &mi) :
              [&](){ return device_date_time_; },
              "Device date time.",
              false, true);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 unique_ptr<ElectricityMeter> createAmiplus(WMBus *bus, MeterInfo &mi)
@@ -119,31 +117,28 @@ double MeterAmiplus::currentPowerProduction(Unit u)
 
 void MeterAmiplus::processContent(Telegram *t)
 {
-    map<string,pair<int,DVEntry>> values;
-    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
-
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::EnergyWh, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &total_energy_kwh_);
+    if (findKey(MeasurementType::Unknown, ValueInformation::EnergyWh, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
         t->addMoreExplanation(offset, " total energy (%f kwh)", total_energy_kwh_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::PowerW, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &current_power_kw_);
+    if (findKey(MeasurementType::Unknown, ValueInformation::PowerW, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &current_power_kw_);
         t->addMoreExplanation(offset, " current power (%f kw)", current_power_kw_);
     }
 
-    extractDVdouble(&values, "0E833C", &offset, &total_energy_returned_kwh_);
+    extractDVdouble(&t->values, "0E833C", &offset, &total_energy_returned_kwh_);
     t->addMoreExplanation(offset, " total energy returned (%f kwh)", total_energy_returned_kwh_);
 
-    extractDVdouble(&values, "0BAB3C", &offset, &current_power_returned_kw_);
+    extractDVdouble(&t->values, "0BAB3C", &offset, &current_power_returned_kw_);
     t->addMoreExplanation(offset, " current power returned (%f kw)", current_power_returned_kw_);
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, &key, &values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, &key, &t->values)) {
         struct tm datetime;
-        extractDVdate(&values, key, &offset, &datetime);
+        extractDVdate(&t->values, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
     }

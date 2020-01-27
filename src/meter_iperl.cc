@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
  Copyright (C) 2018 David Mallon
 
  This program is free software: you can redistribute it and/or modify
@@ -43,7 +43,7 @@ private:
 MeterIperl::MeterIperl(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::IPERL, MANUFACTURER_SEN)
 {
-    setEncryptionMode(EncryptionMode::AES_CBC);
+    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addMedia(0x06);
     addMedia(0x07);
@@ -61,8 +61,6 @@ MeterIperl::MeterIperl(WMBus *bus, MeterInfo &mi) :
              [&](Unit u){ return maxFlow(u); },
              "The maxium flow recorded during previous period.",
              true, true);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 unique_ptr<WaterMeter> createIperl(WMBus *bus, MeterInfo &mi)
@@ -72,19 +70,16 @@ unique_ptr<WaterMeter> createIperl(WMBus *bus, MeterInfo &mi)
 
 void MeterIperl::processContent(Telegram *t)
 {
-    map<string,pair<int,DVEntry>> values;
-    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
-
     int offset;
     string key;
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &total_water_consumption_m3_);
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::VolumeFlow, ANY_STORAGENR, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &max_flow_m3h_);
+    if(findKey(MeasurementType::Unknown, ValueInformation::VolumeFlow, ANY_STORAGENR, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &max_flow_m3h_);
         t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_m3h_);
     }
 }

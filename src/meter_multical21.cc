@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -94,7 +94,7 @@ private:
 MeterMultical21::MeterMultical21(WMBus *bus, MeterInfo &mi, MeterType mt) :
     MeterCommonImplementation(bus, mi, mt, MANUFACTURER_KAM)
 {
-    setEncryptionMode(EncryptionMode::AES_CTR);
+    setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
     addMedia(0x16); // Water media
 
@@ -162,8 +162,6 @@ MeterMultical21::MeterMultical21(WMBus *bus, MeterInfo &mi, MeterType mt) :
              [&](){ return timeBursting(); },
              "Amount of time the meter has been bursting.",
              false, true);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 double MeterMultical21::totalWaterConsumption(Unit u)
@@ -302,120 +300,38 @@ void MeterMultical21::processContent(Telegram *t)
     // 2e: * 0D external temperature (13.000000 °C)
 
     string meter_name = toMeterName(type()).c_str();
-    vector<uchar>::iterator bytes = t->content.begin();
-
-    int crc0 = t->content[0];
-    int crc1 = t->content[1];
-    t->addExplanationAndIncrementPos(bytes, 2, "%02x%02x payload crc", crc0, crc1);
-
-    int frame_type = t->content[2];
-    t->addExplanationAndIncrementPos(bytes, 1, "%02x frame type (%s)", frame_type, frameTypeKamstrupC1(frame_type).c_str());
-
-    map<string,pair<int,DVEntry>> values;
-
-    if (frame_type == 0x79)
-    {
-        // This is a "compact frame" in wmbus lingo.
-        // (Other such frame_types are Ci=0x69, 0x6a, 0x6b and Ci=0x79, 0x7b, compact frames and format frames)
-        // 0,1 = crc for format signature = hash over DRH (Data Record Header)
-        // The DRH is the dif(difes)vif(vifes) bytes for all the records...
-        // This hash is used to find the suitable format string, that has been previously
-        // seen in a long frame telegram.
-        uchar ecrc0 = t->content[3];
-        uchar ecrc1 = t->content[4];
-        t->addExplanationAndIncrementPos(bytes, 2, "%02x%02x format signature", ecrc0, ecrc1);
-        uint16_t format_signature = ecrc1<<8 | ecrc0;
-
-        vector<uchar> format_bytes;
-        bool ok = loadFormatBytesFromSignature(format_signature, &format_bytes);
-        if (!ok) {
-            // We have not yet seen a long frame, but we know the formats for these
-            // particular hashes:
-            if (format_signature == 0xa8ed)
-            {
-                hex2bin("02FF2004134413615B6167", &format_bytes);
-                debug("(%s) using hard coded format for hash a8ed\n", meter_name.c_str());
-            }
-            else if (format_signature == 0xc412)
-            {
-                hex2bin("02FF20041392013BA1015B8101E7FF0F", &format_bytes);
-                debug("(%s) using hard coded format for hash c412\n", meter_name.c_str());
-            }
-            else if (format_signature == 0x61eb)
-            {
-                hex2bin("02FF2004134413A1015B8101E7FF0F", &format_bytes);
-                debug("(%s) using hard coded format for hash 61eb\n", meter_name.c_str());
-            }
-            else if (format_signature == 0xd2f7)
-            {
-                hex2bin("02FF2004134413615B5167", &format_bytes);
-                debug("(%s) using hard coded format for hash d2f7\n", meter_name.c_str());
-            }
-            else if (format_signature == 0xdd34)
-            {
-                hex2bin("02FF2004134413", &format_bytes);
-                debug("(%s) using hard coded format for hash dd34\n", meter_name.c_str());
-            }
-            else
-            {
-                verbose("(%s) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
-                        "     this is not a problem, since you only need wait for at most 8 telegrams\n"
-                        "     (8*16 seconds) until an full length telegram arrives and then we know\n"
-                        "     the format giving this hash and start decoding the telegrams properly.\n",
-                        meter_name.c_str(),  format_signature);
-                return;
-            }
-        }
-        vector<uchar>::iterator format = format_bytes.begin();
-
-        // 2,3 = crc for payload = hash over both DRH and data bytes. Or is it only over the data bytes?
-        int ecrc2 = t->content[5];
-        int ecrc3 = t->content[6];
-        t->addExplanationAndIncrementPos(bytes, 2, "%02x%02x data crc", ecrc2, ecrc3);
-        parseDV(t, t->content, t->content.begin()+7, t->content.size()-7, &values, &format, format_bytes.size());
-    }
-    else
-    if (frame_type == 0x78)
-    {
-        parseDV(t, t->content, t->content.begin()+3, t->content.size()-3, &values);
-    }
-    else
-    {
-        warning("(%s) warning: unknown frame %02x (did you use the correct encryption key?)\n", meter_name.c_str(), frame_type);
-        return;
-    }
 
     int offset;
     string key;
 
-    extractDVuint16(&values, "02FF20", &offset, &info_codes_);
+    extractDVuint16(&t->values, "02FF20", &offset, &info_codes_);
     t->addMoreExplanation(offset, " info codes (%s)", statusHumanReadable().c_str());
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &total_water_consumption_m3_);
+    if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
         has_total_water_consumption_ = true;
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 1, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &target_water_consumption_m3_);
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 1, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &target_water_consumption_m3_);
         has_target_water_consumption_ = true;
         t->addMoreExplanation(offset, " target consumption (%f m3)", target_water_consumption_m3_);
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::VolumeFlow, ANY_STORAGENR, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &max_flow_m3h_);
+    if(findKey(MeasurementType::Unknown, ValueInformation::VolumeFlow, ANY_STORAGENR, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &max_flow_m3h_);
         has_max_flow_ = true;
         t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_m3h_);
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::FlowTemperature, ANY_STORAGENR, &key, &values)) {
-        has_flow_temperature_ = extractDVdouble(&values, key, &offset, &flow_temperature_c_);
+    if(findKey(MeasurementType::Unknown, ValueInformation::FlowTemperature, ANY_STORAGENR, &key, &t->values)) {
+        has_flow_temperature_ = extractDVdouble(&t->values, key, &offset, &flow_temperature_c_);
         t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_c_);
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, ANY_STORAGENR, &key, &values)) {
-        has_external_temperature_ = extractDVdouble(&values, key, &offset, &external_temperature_c_);
+    if(findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, ANY_STORAGENR, &key, &t->values)) {
+        has_external_temperature_ = extractDVdouble(&t->values, key, &offset, &external_temperature_c_);
         t->addMoreExplanation(offset, " external temperature (%f °C)", external_temperature_c_);
     }
 

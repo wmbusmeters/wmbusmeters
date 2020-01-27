@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2019 Fredrik Öhrström
+ Copyright (C) 2018-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -46,20 +46,6 @@ LIST_OF_VALUETYPES
 };
 
 const char *ValueInformatioName(ValueInformation v);
-
-struct DVEntry
-{
-    MeasurementType type {};
-    int value_information {};
-    int storagenr {};
-    int tariff {};
-    int subunit {};
-    string value;
-
-    DVEntry() {}
-    DVEntry(MeasurementType mt, int vi, int st, int ta, int su, string &val) :
-    type(mt), value_information(vi), storagenr(st), tariff(ta), subunit(su), value(val) {}
-};
 
 bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes);
 

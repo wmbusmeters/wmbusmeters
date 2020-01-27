@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -100,11 +100,9 @@ struct Meter
                             vector<string> *envs,
                             vector<string> *more_json) = 0;
 
-    void handleTelegram(Telegram *t);
+    bool handleTelegram(vector<uchar> input_frame);
     virtual bool isTelegramForMe(Telegram *t) = 0;
-    virtual bool useAes() = 0;
-    virtual vector<uchar> key() = 0;
-    virtual EncryptionMode encryptionMode() = 0;
+    virtual MeterKeys *meterKeys() = 0;
     virtual int expectedVersion() = 0;
 
     // Dynamically access all data received for the meter.
@@ -119,7 +117,8 @@ struct Meter
     virtual ~Meter() = default;
 };
 
-struct WaterMeter : public virtual Meter {
+struct WaterMeter : public virtual Meter
+{
     virtual double totalWaterConsumption(Unit u); // m3
     virtual bool  hasTotalWaterConsumption();
     virtual double targetWaterConsumption(Unit u); // m3
@@ -139,7 +138,8 @@ struct WaterMeter : public virtual Meter {
     virtual string timeBursting();
 };
 
-struct HeatMeter : public virtual Meter {
+struct HeatMeter : public virtual Meter
+{
     virtual double totalEnergyConsumption(Unit u); // kwh
     virtual double currentPeriodEnergyConsumption(Unit u); // kwh
     virtual double previousPeriodEnergyConsumption(Unit u); // kwh
@@ -147,30 +147,35 @@ struct HeatMeter : public virtual Meter {
     virtual double totalVolume(Unit u); // m3
 };
 
-struct ElectricityMeter : public virtual Meter {
+struct ElectricityMeter : public virtual Meter
+{
     virtual double totalEnergyConsumption(Unit u); // kwh
     virtual double currentPowerConsumption(Unit u); // kw
     virtual double totalEnergyProduction(Unit u); // kwh
     virtual double currentPowerProduction(Unit u); // kw
 };
 
-struct HeatCostMeter : public virtual Meter {
+struct HeatCostMeter : public virtual Meter
+{
     virtual double currentConsumption(Unit u);
     virtual string setDate();
     virtual double consumptionAtSetDate(Unit u);
 };
 
-struct TempMeter : public virtual Meter {
+struct TempMeter : public virtual Meter
+{
     virtual double currentTemperature(Unit u) = 0; // °C
     virtual ~TempMeter() = default;
 };
 
-struct HygroMeter : public virtual Meter {
+struct HygroMeter : public virtual Meter
+{
     virtual double currentRelativeHumidity() = 0; // RH
     virtual ~HygroMeter() = default;
 };
 
-struct TempHygroMeter : public virtual TempMeter, public virtual HygroMeter {
+struct TempHygroMeter : public virtual TempMeter, public virtual HygroMeter
+{
     virtual ~TempHygroMeter() = default;
 };
 

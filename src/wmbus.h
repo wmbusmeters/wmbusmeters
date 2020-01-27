@@ -23,6 +23,7 @@
 #include"util.h"
 
 #include<inttypes.h>
+#include<map>
 
 #define LIST_OF_LINK_MODES \
     X(Any,any,--anylinkmode,0xffff)             \
@@ -124,12 +125,49 @@ enum class TPL_LENGTH
 // aka little endian.
 #define SN_ENC_BITS 0xc0
 
-enum class EncryptionMode
-{
-    None,
-    AES_CBC,
-    AES_CTR
+#define LIST_OF_ELL_SECURITY_MODES \
+    X(NoSecurity, 0) \
+    X(AES_CTR, 1) \
+    X(RESERVED, 2)
+
+enum class ELLSecurityMode {
+#define X(name,nr) name,
+LIST_OF_ELL_SECURITY_MODES
+#undef X
 };
+
+int toInt(ELLSecurityMode esm);
+const char *toString(ELLSecurityMode esm);
+ELLSecurityMode fromIntToELLSecurityMode(int i);
+
+#define LIST_OF_TPL_SECURITY_MODES \
+    X(NoSecurity, 0) \
+    X(MFCT_SPECIFIC, 1) \
+    X(DES_NO_IV_DEPRECATED, 2) \
+    X(DES_IV_DEPRECATED, 3) \
+    X(SPECIFIC_4, 4) \
+    X(AES_CBC_IV, 5) \
+    X(RESERVED_6, 6) \
+    X(AES_CBC_NO_IV, 7) \
+    X(AES_CTR_CMAC, 8) \
+    X(AES_CGM, 9) \
+    X(AES_CCM, 10) \
+    X(RESERVED_11, 11) \
+    X(RESERVED_12, 12) \
+    X(SPECIFIC_13, 13) \
+    X(RESERVED_14, 14) \
+    X(SPECIFIC_15, 15) \
+    X(SPECIFIC_16_31, 16)
+
+enum class TPLSecurityMode {
+#define X(name,nr) name,
+LIST_OF_TPL_SECURITY_MODES
+#undef X
+};
+
+int toInt(TPLSecurityMode tsm);
+TPLSecurityMode fromIntToTPLSecurityMode(int i);
+const char *toString(TPLSecurityMode tsm);
 
 enum class MeasurementType
 {
@@ -140,47 +178,92 @@ enum class MeasurementType
     AtError
 };
 
+struct DVEntry
+{
+    MeasurementType type {};
+    int value_information {};
+    int storagenr {};
+    int tariff {};
+    int subunit {};
+    string value;
+
+    DVEntry() {}
+    DVEntry(MeasurementType mt, int vi, int st, int ta, int su, string &val) :
+    type(mt), value_information(vi), storagenr(st), tariff(ta), subunit(su), value(val) {}
+};
+
 using namespace std;
+
+struct MeterKeys
+{
+    vector<uchar> confidentiality_key;
+    vector<uchar> authentication_key;
+
+    bool hasConfidentialityKey() { return confidentiality_key.size() > 0; }
+    bool hasAuthenticationKey() { return authentication_key.size() > 0; }
+};
 
 struct Telegram
 {
-    int len {}; // The length of the telegram, 1 byte.
-    int c_field {}; // 1 byte (0x44=telegram, no response expected!)
-    int m_field {}; // Manufacturer 2 bytes
-    vector<uchar> a_field; // A field 6 bytes
+    // DLL
+    int dll_len {}; // The length of the telegram, 1 byte.
+    int dll_c {};   // 1 byte
+    int dll_mft {}; // Manufacturer 2 bytes
+    vector<uchar> dll_a; // A field 6 bytes
     // The 6 a field bytes are composed of:
     vector<uchar> a_field_address; // Address in BCD = 8 decimal 00000000...99999999 digits.
     string id; // the address as a string.
-    int a_field_version {}; // 1 byte
-    int a_field_device_type {}; // 1 byte
+    int dll_version {}; // 1 byte
+    int dll_type {}; // 1 byte
 
-    int ci_field {}; // 1 byte
+    // ELL
+    uchar ell_ci {}; // 1 byte
+    uchar ell_cc {}; // 1 byte
+    uchar ell_acc {}; // 1 byte
+    uchar ell_sn_b[4] {}; // 4 bytes
+    int   ell_sn {}; // 4 bytes
+    uchar ell_sn_session {}; // 4 bits
+    int   ell_sn_time {}; // 25 bits
+    uchar ell_sn_sec {}; // 3 bits
+    ELLSecurityMode ell_sec_mode {}; // Based on 3 bits from above.
+    uchar ell_pl_crc_b[2] {}; // 2 bytes
+    uint16_t ell_pl_crc {}; // 2 bytes
 
-    // When ci_field==0x7a then there are 4 extra header bytes, short data header
-    int acc {}; // 1 byte
-    int status {}; // 1 byte
-    int config_field {}; // 2 bytes
+    uchar ell_mfct_b[2] {}; // 2 bytes;
+    uchar ell_addr_b[6] {}; // 6 bytes;
 
-    // When ci_field==0x8d then there are 8 extra header bytes (ELL header)
-    int cc_field {}; // 1 byte
-    // acc; // 1 byte
-    uchar sn[4] {}; // 4 bytes
-    // That is 6 bytes (not 8), the next two bytes, the payload crc
-    // part of this ELL header, even though they are inside the encrypted payload.
+    // NWL
+    int nwl_ci {}; // 1 byte
 
-    // When ci_field==0x72 then there are 12 extra header bytes (LONG TPL header)
-    // Id(4bytes) Manuf(2bytes) Ver(1byte) Dev(1byte) Type(1byte) ACC(1byte) STS(1byte) CF/CFE(1byte)
-    int sts_field {};
-    int cf_cfe_field {};
+    // AFL
+    int afl_ci {}; // 1 byte
 
-    vector<uchar> parsed; // Parsed fields
-    vector<uchar> payload; // To be parsed.
-    vector<uchar> content; // Decrypted content.
+    // TPL
+    int tpl_ci {}; // 1 byte
+    int tpl_acc {}; // 1 byte
+    int tpl_sts {}; // 1 byte
+    int tpl_cfg {}; // 2 bytes
+    TPLSecurityMode tpl_sec_mode {}; // Based on 5 bits extracted from cfg.
+
+    uchar tpl_id_b[4]; // 4 bytes
+    uchar tpl_mft_b[2]; // 2 bytes
+    uchar tpl_version; // 1 bytes
+    uchar tpl_type; // 1 bytes
+
+    // The format signature is used for compact frames.
+    int format_signature {};
+
+    vector<uchar> frame; // Content of frame, potentially decrypted.
+    vector<uchar> parsed;  // Parsed bytes with explanations.
+    int header_size {}; // Size of headers before the APL content.
+    int suffix_size {}; // Size of suffix after the APL content. Usually empty, but can be MACs!
+    void extractFrame(vector<uchar> *fr); // Extract to full frame.
+    void extractPayload(vector<uchar> *pl); // Extract frame data containing the measurements, after the header and not the suffix.
 
     bool handled {}; // Set to true, when a meter has accepted the telegram.
 
-
-    bool parse(vector<uchar> &payload);
+    bool parseHeader(vector<uchar> &input_frame);
+    bool parse(vector<uchar> &input_frame, MeterKeys *mk);
     void print();
     void verboseFields();
 
@@ -191,24 +274,44 @@ struct Telegram
     void addMoreExplanation(int pos, const char* fmt, ...);
     void explainParse(string intro, int from);
 
-    bool isEncrypted() { return is_encrypted_; }
     bool isSimulated() { return is_simulated_; }
-
-    void markAsSimulated() { is_simulated_ = true; }
 
     void expectVersion(const char *info, int v);
 
+    // Extracted mbus values.
+    std::map<std::string,std::pair<int,DVEntry>> values;
+
 private:
 
-    bool is_encrypted_ {};
     bool is_simulated_ {};
 
-    bool parseDLL(std::vector<uchar> &frame, std::vector<uchar>::iterator &pos);
-    bool parseELL(std::vector<uchar> &frame, std::vector<uchar>::iterator &pos);
-    bool parseNWL(std::vector<uchar> &frame, std::vector<uchar>::iterator &pos);
-    bool parseAFL(std::vector<uchar> &frame, std::vector<uchar>::iterator &pos);
-    bool parseTPL(std::vector<uchar> &frame, std::vector<uchar>::iterator &pos);
+    bool parseDLL(std::vector<uchar>::iterator &pos);
+    bool parseELL(std::vector<uchar>::iterator &pos, MeterKeys *meter_keys);
+    bool parseNWL(std::vector<uchar>::iterator &pos);
+    bool parseAFL(std::vector<uchar>::iterator &pos);
+    bool parseTPL(std::vector<uchar>::iterator &pos, MeterKeys *meter_keys);
+
+    void printDLL();
+    void printELL();
+    void printNWL();
+    void printAFL();
+    void printTPL();
+
+    bool parse_TPL_72(vector<uchar>::iterator &pos);
+    bool parse_TPL_78(vector<uchar>::iterator &pos);
+    bool parse_TPL_79(vector<uchar>::iterator &pos);
+    bool parse_TPL_7A(vector<uchar>::iterator &pos, MeterKeys *meter_keys);
+
+    bool parseTPLConfig(std::vector<uchar>::iterator &pos);
+    static string toStringFromELLSN(int sn);
+    static string toStringFromTPLConfig(int cfg);
+    bool parseShortTPL(std::vector<uchar>::iterator &pos);
+    bool parseLongTPL(std::vector<uchar>::iterator &pos);
+
+    bool findFormatBytesFromKnownMeterSignatures(std::vector<uchar> *format_bytes);
 };
+
+struct Meter;
 
 struct WMBus {
     virtual bool ping() = 0;
@@ -217,8 +320,9 @@ struct WMBus {
     virtual LinkModeSet supportedLinkModes() = 0;
     virtual int numConcurrentLinkModes() = 0;
     virtual bool canSetLinkModes(LinkModeSet lms) = 0;
+    virtual void setMeters(vector<unique_ptr<Meter>> *meters) = 0;
     virtual void setLinkModes(LinkModeSet lms) = 0;
-    virtual void onTelegram(function<void(Telegram*)> cb) = 0;
+    virtual void onTelegram(function<bool(vector<uchar>)> cb) = 0;
     virtual SerialDevice *serial() = 0;
     virtual void simulate() = 0;
     virtual ~WMBus() = 0;
@@ -266,6 +370,7 @@ string manufacturerFlag(int m_field);
 string mediaType(int a_field_device_type);
 string mediaTypeJSON(int a_field_device_type);
 bool isCiFieldOfType(int ci_field, CI_TYPE type);
+int ciFieldLength(int ci_field);
 string ciType(int ci_field);
 string cType(int c_field);
 string ccType(int cc_field);

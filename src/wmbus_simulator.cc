@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_utils.h"
 #include"serial.h"
 
 #include<assert.h>
@@ -28,7 +29,8 @@
 
 using namespace std;
 
-struct WMBusSimulator : public WMBus {
+struct WMBusSimulator : public WMBusCommonImplementation
+{
     bool ping();
     uint32_t getDeviceId();
     LinkModeSet getLinkModes();
@@ -36,7 +38,6 @@ struct WMBusSimulator : public WMBus {
     LinkModeSet supportedLinkModes() { return Any_bit; }
     int numConcurrentLinkModes() { return 0; }
     bool canSetLinkModes(LinkModeSet lms) { return true; }
-    void onTelegram(function<void(Telegram*)> cb);
 
     void processSerialData();
     SerialDevice *serial() { return NULL; }
@@ -94,10 +95,6 @@ void WMBusSimulator::setLinkModes(LinkModeSet lms)
     string hr = lms.hr();
     verbose("(simulator) set link mode %s\n", hr.c_str());
     verbose("(simulator) set link mode completed\n");
-}
-
-void WMBusSimulator::onTelegram(function<void(Telegram*)> cb) {
-    telegram_listeners_.push_back(cb);
 }
 
 int loadFile(string file, vector<string> *lines)
@@ -183,19 +180,7 @@ void WMBusSimulator::simulate()
         if (!ok) {
             error("Not a valid string of hex bytes! \"%s\"\n", l.c_str());
         }
-        Telegram t;
-        t.parse(payload);
-        t.markAsSimulated();
-        bool handled = false;
-        for (auto f : telegram_listeners_) {
-            Telegram copy = t;
-            if (f) f(&copy);
-            if (copy.handled) handled = true;
-        }
-        if (isVerboseEnabled() && !handled)
-        {
-            verbose("(wmbus simulator) telegram ignored by all configured meters!\n");
-        }
+        handleTelegram(payload);
     }
     manager_->stop();
 }

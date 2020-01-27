@@ -17,6 +17,7 @@
 
 #include"util.h"
 #include"meters.h"
+#include<assert.h>
 #include<dirent.h>
 #include<functional>
 #include<grp.h>
@@ -692,14 +693,36 @@ void debugPayload(string intro, vector<uchar> &payload)
     }
 }
 
-void logTelegram(string intro, vector<uchar> &header, vector<uchar> &content)
+void debugPayload(string intro, vector<uchar> &payload, vector<uchar>::iterator &pos)
+{
+    if (isDebugEnabled())
+    {
+        string msg = bin2hex(pos, payload.end(), 1024);
+        debug("%s \"%s\"\n", intro.c_str(), msg.c_str());
+    }
+}
+
+void logTelegram(string intro, vector<uchar> &parsed, int header_size, int suffix_size)
 {
     if (isLogTelegramsEnabled())
     {
-        string h = bin2hex(header);
-        string cntnt = bin2hex(content);
         time_t diff = time(NULL)-telegrams_start_time_;
-        notice("%s \"telegram=|%s|%s|+%ld\"\n", intro.c_str(), h.c_str(), cntnt.c_str(), diff);
+        string parsed_hex = bin2hex(parsed);
+        string header = parsed_hex.substr(0, header_size*2);
+        string content = parsed_hex.substr(header_size*2);
+        if (suffix_size == 0)
+        {
+            notice("%s \"telegram=|%s|%s|+%ld\"\n", intro.c_str(),
+                   header.c_str(), content.c_str(), diff);
+        }
+        else
+        {
+            assert((suffix_size*2) < (int)content.size());
+            string content2 = content.substr(0, content.size()-suffix_size*2);
+            string suffix = content.substr(content.size()-suffix_size*2);
+            notice("%s \"telegram=|%s|%s|%s|+%ld\"\n", intro.c_str(),
+                   header.c_str(), content2.c_str(), suffix.c_str(), diff);
+        }
     }
 }
 

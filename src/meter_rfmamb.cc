@@ -61,7 +61,7 @@ private:
 MeterRfmAmb::MeterRfmAmb(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::RFMAMB, MANUFACTURER_BMT)
 {
-    setEncryptionMode(EncryptionMode::AES_CBC);
+    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addMedia(0x1b);
 
@@ -143,8 +143,6 @@ MeterRfmAmb::MeterRfmAmb(WMBus *bus, MeterInfo &mi) :
              [&](){ return device_date_time_; },
              "Device date time.",
              false, true);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 unique_ptr<TempHygroMeter> createRfmAmb(WMBus *bus, MeterInfo &mi)
@@ -265,118 +263,115 @@ void MeterRfmAmb::processContent(Telegram *t)
       (rfmamb) 51: 6D vif (Date and time type)
       (rfmamb) 52: * 3B3BB36B2A00 device datetime (2019-10-11 19:59)
     */
-    map<string,pair<int,DVEntry>> values;
-    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
-
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::ExternalTemperature, 0, &key, &values))
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::ExternalTemperature, 0, &key, &t->values))
     {
-        extractDVdouble(&values, key, &offset, &current_temperature_c_);
+        extractDVdouble(&t->values, key, &offset, &current_temperature_c_);
         t->addMoreExplanation(offset, " current temperature (%f C)", current_temperature_c_);
     }
 
-    if (findKey(MeasurementType::Maximum, ValueInformation::ExternalTemperature, 0, &key, &values))
+    if (findKey(MeasurementType::Maximum, ValueInformation::ExternalTemperature, 0, &key, &t->values))
     {
-        extractDVdouble(&values, key, &offset, &maximum_temperature_1h_c_);
+        extractDVdouble(&t->values, key, &offset, &maximum_temperature_1h_c_);
         t->addMoreExplanation(offset, " maximum temperature 1h (%f C)", maximum_temperature_1h_c_);
     }
 
-    if (findKey(MeasurementType::Minimum, ValueInformation::ExternalTemperature, 0, &key, &values))
+    if (findKey(MeasurementType::Minimum, ValueInformation::ExternalTemperature, 0, &key, &t->values))
     {
-        extractDVdouble(&values, key, &offset, &minimum_temperature_1h_c_);
+        extractDVdouble(&t->values, key, &offset, &minimum_temperature_1h_c_);
         t->addMoreExplanation(offset, " minimum temperature 1h (%f C)", minimum_temperature_1h_c_);
     }
 
-    if (findKey(MeasurementType::Maximum, ValueInformation::ExternalTemperature, 1, &key, &values))
+    if (findKey(MeasurementType::Maximum, ValueInformation::ExternalTemperature, 1, &key, &t->values))
     {
-        extractDVdouble(&values, key, &offset, &maximum_temperature_24h_c_);
+        extractDVdouble(&t->values, key, &offset, &maximum_temperature_24h_c_);
         t->addMoreExplanation(offset, " maximum temperature 24h (%f C)",
                               maximum_temperature_24h_c_);
     }
 
-    if (findKey(MeasurementType::Minimum, ValueInformation::ExternalTemperature, 1, &key, &values))
+    if (findKey(MeasurementType::Minimum, ValueInformation::ExternalTemperature, 1, &key, &t->values))
     {
-        extractDVdouble(&values, key, &offset, &minimum_temperature_24h_c_);
+        extractDVdouble(&t->values, key, &offset, &minimum_temperature_24h_c_);
         t->addMoreExplanation(offset, " minimum temperature 24h (%f C)",
                               minimum_temperature_24h_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 1, &key, &values))
+    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 1, &key, &t->values))
     {
-        extractDVdouble(&values, key, &offset, &average_temperature_1h_c_);
+        extractDVdouble(&t->values, key, &offset, &average_temperature_1h_c_);
         t->addMoreExplanation(offset, " average temperature 1h (%f C)", average_temperature_1h_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 2, &key, &values))
+    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 2, &key, &t->values))
     {
-        extractDVdouble(&values, key, &offset, &average_temperature_24h_c_);
+        extractDVdouble(&t->values, key, &offset, &average_temperature_24h_c_);
         t->addMoreExplanation(offset, " average temperature 24h (%f C)", average_temperature_24h_c_);
     }
 
     // Temporarily silly solution until the dvparser is upgraded with support for extension
 
     key = "02FB1A"; // 02=current 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&values, key))
+    if (hasKey(&t->values, key))
     {
         double tmp;
-        extractDVdouble(&values, key, &offset, &tmp, false);
+        extractDVdouble(&t->values, key, &offset, &tmp, false);
         current_relative_humidity_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " current relative humidity (%f RH)", current_relative_humidity_rh_);
     }
     key = "22FB1A"; // 22=minimum 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&values, key))
+    if (hasKey(&t->values, key))
     {
         double tmp;
-        extractDVdouble(&values, key, &offset, &tmp, false);
+        extractDVdouble(&t->values, key, &offset, &tmp, false);
         minimum_relative_humidity_1h_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " minimum relative humidity 1h (%f RH)", minimum_relative_humidity_1h_rh_);
     }
     key = "12FB1A"; // 12=maximum 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&values, key))
+    if (hasKey(&t->values, key))
     {
         double tmp;
-        extractDVdouble(&values, key, &offset, &tmp, false);
+        extractDVdouble(&t->values, key, &offset, &tmp, false);
         maximum_relative_humidity_1h_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " maximum relative humidity 1h (%f RH)", maximum_relative_humidity_1h_rh_);
     }
     key = "42FB1A"; // 42=instant 1storage 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&values, key))
+    if (hasKey(&t->values, key))
     {
         double tmp;
-        extractDVdouble(&values, key, &offset, &tmp, false);
+        extractDVdouble(&t->values, key, &offset, &tmp, false);
         average_relative_humidity_1h_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " average relative humidity 1h (%f RH)", average_relative_humidity_1h_rh_);
     }
     key = "62FB1A"; // 62=minimum 1storage 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&values, key))
+    if (hasKey(&t->values, key))
     {
         double tmp;
-        extractDVdouble(&values, key, &offset, &tmp, false);
+        extractDVdouble(&t->values, key, &offset, &tmp, false);
         minimum_relative_humidity_1h_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " minimum relative humidity 1h (%f RH)", minimum_relative_humidity_1h_rh_);
     }
     key = "52FB1A"; // 52=maximum 1storage 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&values, key))
+    if (hasKey(&t->values, key))
     {
         double tmp;
-        extractDVdouble(&values, key, &offset, &tmp, false);
+        extractDVdouble(&t->values, key, &offset, &tmp, false);
         maximum_relative_humidity_1h_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " maximum relative humidity 1h (%f RH)", maximum_relative_humidity_1h_rh_);
     }
     key = "8201FB1A"; // 8201=instant 2storage 16bit, 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&values, key))
+    if (hasKey(&t->values, key))
     {
         double tmp;
-        extractDVdouble(&values, key, &offset, &tmp, false);
+        extractDVdouble(&t->values, key, &offset, &tmp, false);
         average_relative_humidity_24h_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " relative humidity 24h (%f RH)", average_relative_humidity_24h_rh_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, &key, &values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, &key, &t->values)) {
         struct tm datetime;
-        extractDVdate(&values, key, &offset, &datetime);
+        extractDVdate(&t->values, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
     }

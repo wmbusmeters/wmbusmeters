@@ -47,7 +47,7 @@ private:
 MeterHydrus::MeterHydrus(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::HYDRUS, MANUFACTURER_DME)
 {
-    setEncryptionMode(EncryptionMode::AES_CBC);
+    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addMedia(0x07);
 
@@ -79,8 +79,6 @@ MeterHydrus::MeterHydrus(WMBus *bus, MeterInfo &mi) :
              [&](){ return at_date_; },
              "Date when total water consumption was recorded.",
              true, true);
-
-    MeterCommonImplementation::bus()->onTelegram(calll(this,handleTelegram,Telegram*));
 }
 
 unique_ptr<WaterMeter> createHydrus(WMBus *bus, MeterInfo &mi)
@@ -133,35 +131,32 @@ void MeterHydrus::processContent(Telegram *t)
     (hydrus) 4a: 13 vif (Volume l)
     (hydrus) 4b: 00020000
     */
-    map<string,pair<int,DVEntry>> values;
-    parseDV(t, t->content, t->content.begin(), t->content.size(), &values);
-
     int offset;
     string key;
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &total_water_consumption_m3_);
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::VolumeFlow, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &max_flow_m3h_);
+    if(findKey(MeasurementType::Unknown, ValueInformation::VolumeFlow, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &max_flow_m3h_);
         t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_m3h_);
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::FlowTemperature, 0, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &flow_temperature_c_);
+    if(findKey(MeasurementType::Unknown, ValueInformation::FlowTemperature, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &flow_temperature_c_);
         t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_c_);
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 3, &key, &values)) {
-        extractDVdouble(&values, key, &offset, &total_water_consumption_at_date_m3_);
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 3, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_water_consumption_at_date_m3_);
         t->addMoreExplanation(offset, " total consumption at date (%f m3)", total_water_consumption_at_date_m3_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 3, &key, &values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 3, &key, &t->values)) {
         struct tm datetime;
-        extractDVdate(&values, key, &offset, &datetime);
+        extractDVdate(&t->values, key, &offset, &datetime);
         at_date_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " at date (%s)", at_date_.c_str());
     }

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2019 Fredrik Öhrström
+ Copyright (C) 2018-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_utils.h"
 #include"wmbus_amb8465.h"
 #include"serial.h"
 
@@ -29,7 +30,8 @@ using namespace std;
 
 enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame };
 
-struct WMBusAmber : public WMBus {
+struct WMBusAmber : public virtual WMBusCommonImplementation
+{
     bool ping();
     uint32_t getDeviceId();
     LinkModeSet getLinkModes();
@@ -60,8 +62,6 @@ struct WMBusAmber : public WMBus {
         // Any other combination is forbidden.
         return false;
     }
-    void onTelegram(function<void(Telegram*)> cb);
-
     void processSerialData();
     void getConfiguration();
     SerialDevice *serial() { return serial_.get(); }
@@ -80,7 +80,6 @@ private:
     int received_command_ {};
     LinkModeSet link_modes_;
     vector<uchar> received_payload_;
-    vector<function<void(Telegram*)>> telegram_listeners_;
     bool rssi_expected_;
 
     void waitForResponse();
@@ -283,10 +282,6 @@ void WMBusAmber::setLinkModes(LinkModeSet lms)
     pthread_mutex_unlock(&command_lock_);
 }
 
-void WMBusAmber::onTelegram(function<void(Telegram*)> cb) {
-    telegram_listeners_.push_back(cb);
-}
-
 void WMBusAmber::waitForResponse() {
     while (manager_->isRunning()) {
         int rc = sem_wait(&command_wait_);
@@ -392,23 +387,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
     switch (msgid) {
     case (0):
     {
-        Telegram t;
-        bool ok = t.parse(frame);
-
-        if (ok)
-        {
-            bool handled = false;
-            for (auto f : telegram_listeners_)
-            {
-                Telegram copy = t;
-                if (f) f(&copy);
-                if (copy.handled) handled = true;
-            }
-            if (isVerboseEnabled() && !handled)
-            {
-                verbose("(amb8465) telegram ignored by all configured meters!\n");
-            }
-        }
+        handleTelegram(frame);
         break;
     }
     case (0x80|CMD_SET_MODE_REQ):

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_utils.h"
 #include"serial.h"
 
 #include<assert.h>
@@ -28,7 +29,7 @@ using namespace std;
 
 enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame };
 
-struct WMBusD1TC : public WMBus
+struct WMBusD1TC : public virtual WMBusCommonImplementation
 {
     bool ping();
     uint32_t getDeviceId();
@@ -37,7 +38,6 @@ struct WMBusD1TC : public WMBus
     LinkModeSet supportedLinkModes() { return Any_bit; }
     int numConcurrentLinkModes() { return 0; }
     bool canSetLinkModes(LinkModeSet desired_modes) { return true; }
-    void onTelegram(function<void(Telegram*)> cb);
 
     void processSerialData();
     void getConfiguration();
@@ -54,14 +54,12 @@ private:
     sem_t command_wait_;
     LinkModeSet link_modes_;
     vector<uchar> received_payload_;
-    vector<function<void(Telegram*)>> telegram_listeners_;
 
     void waitForResponse();
     FrameStatus checkD1TCFrame(vector<uchar> &data,
                                  size_t *frame_length,
                                  int *payload_len_out,
                                  int *payload_offset);
-    void handleMessage(vector<uchar> &frame);
 };
 
 unique_ptr<WMBus> openD1TC(string device, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
@@ -105,10 +103,6 @@ void WMBusD1TC::getConfiguration()
 void WMBusD1TC::setLinkModes(LinkModeSet lms)
 {
     link_modes_ = lms;
-}
-
-void WMBusD1TC::onTelegram(function<void(Telegram*)> cb) {
-    telegram_listeners_.push_back(cb);
 }
 
 void WMBusD1TC::waitForResponse() {
@@ -218,29 +212,7 @@ void WMBusD1TC::processSerialData()
                 payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
             }
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
-            handleMessage(payload);
-        }
-    }
-}
-
-void WMBusD1TC::handleMessage(vector<uchar> &frame)
-{
-    Telegram t;
-    bool ok = t.parse(frame);
-    if (ok)
-    {
-        bool handled = false;
-        for (auto f : telegram_listeners_)
-        {
-            Telegram copy = t;
-            if (f) {
-                f(&copy);
-            }
-            if (copy.handled) handled = true;
-        }
-        if (isVerboseEnabled() && !handled)
-        {
-            verbose("(d1tc) telegram ignored by all configured meters!\n");
+            handleTelegram(payload);
         }
     }
 }
