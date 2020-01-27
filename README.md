@@ -191,9 +191,10 @@ Sontex Supercom 587 (supercom587)
 Sensus iPERL (iperl)
 Apator at-wmbus-16-2 (apator162) (non-standard protocol)
 Techem MK Radio 3 (mkradio3) (non-standard protocol)
-Diehl/Sappel IZAR RC 868 I R4 PL (izar)
+Diehl/Sappel IZAR RC 868 I R4 PL (izar) (non-standard protocol)
 Diehl HYDRUS (hydrus)
 Bmeters Hydrodigit (hydrodigit) (partly non-standard protocol)
+Honeywell Q400 (q400)
 
 Supported heat cost allocators:
 Qundis Q caloric (qcaloric)
@@ -206,6 +207,7 @@ Heat meter Kamstrup Multical 302 (multical302) (in C1 mode, please open issue fo
 Supported room sensors:
 Lansen Thermometer/Hygrometer (lansenth)
 Bmeters RFM-AMB Thermometer/Hygrometer (rfmamb)
+Elvaco CMa12w Thermometer (cma12w)
 
 Supported electricity meters:
 Tauron Amiplus (amiplus) (includes vendor apator and echelon)

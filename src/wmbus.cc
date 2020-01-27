@@ -1043,7 +1043,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
 
         if (ell_pl_crc != check)
         {
-            warning("(wmbus) payload crc error!\n");
+            if (parser_warns_) warning("(wmbus) payload crc error!\n");
             return false;
         }
     }
@@ -1058,7 +1058,183 @@ bool Telegram::parseNWL(vector<uchar>::iterator &pos)
 
 bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 {
+    // 90 0F (len) 002C (fc) 25 (mc) 49EE 0A00 77C1 9D3D 1A08 ABCD --- 729067296179161102F
+    // 90 0F (len) 002C (fc) 25 (mc) 0C39 0000 ED17 6BBB B159 1ADB --- 7A1D003007103EA
+
+    int remaining = distance(pos, frame.end());
+    if (remaining == 0) return false;
+
+    int ci_field = *pos;
+    if (!isCiFieldOfType(ci_field, CI_TYPE::AFL)) return true;
+    addExplanationAndIncrementPos(pos, 1, "%02x afl-ci-field (%s)",
+                                  ci_field, ciType(ci_field).c_str());
+    afl_ci = ci_field;
+
+    afl_len = *pos;
+    addExplanationAndIncrementPos(pos, 1, "%02x afl-len (%d)",
+                                  afl_len, afl_len);
+
+    int len = ciFieldLength(ell_ci);
+    if (remaining < len) return expectedMore(__LINE__);
+
+    afl_fc_b[0] = *(pos+0);
+    afl_fc_b[1] = *(pos+1);
+    afl_fc = afl_fc_b[1] << 8 | afl_fc_b[0];
+    string afl_fc_info = toStringFromAFLFC(afl_fc);
+    addExplanationAndIncrementPos(pos, 2, "%02x%02x afl-fc (%s)",
+                                  afl_fc_b[0], afl_fc_b[1], afl_fc_info.c_str());
+
+    bool has_key_info = afl_fc & 0x0200;
+    bool has_mac = afl_fc & 0x0400;
+    bool has_counter = afl_fc & 0x0800;
+    //bool has_len = afl_fc & 0x1000;
+    bool has_control = afl_fc & 0x2000;
+    //bool has_more_fragments = afl_fc & 0x4000;
+
+    if (has_control)
+    {
+        afl_mc = *pos;
+        string afl_mc_info = toStringFromAFLMC(afl_mc);
+        addExplanationAndIncrementPos(pos, 1, "%02x afl-mc (%s)",
+                                      afl_mc, afl_mc_info.c_str());
+    }
+
+    if (has_key_info)
+    {
+        afl_ki_b[0] = *(pos+0);
+        afl_ki_b[1] = *(pos+1);
+        afl_ki = afl_ki_b[1] << 8 | afl_ki_b[0];
+        string afl_ki_info = "";
+        addExplanationAndIncrementPos(pos, 2, "%02x%02x afl-ki (%s)",
+                                      afl_ki_b[0], afl_ki_b[1], afl_ki_info.c_str());
+    }
+
+    if (has_counter)
+    {
+        afl_counter_b[0] = *(pos+0);
+        afl_counter_b[1] = *(pos+1);
+        afl_counter_b[2] = *(pos+2);
+        afl_counter_b[3] = *(pos+3);
+        afl_counter = afl_counter_b[0] << 24 |
+            afl_counter_b[1] << 16 |
+            afl_counter_b[2] << 8 |
+            afl_counter_b[3];
+
+        addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x afl-counter (%d)",
+                                      afl_counter_b[0],afl_counter_b[1],
+                                      afl_counter_b[2],afl_counter_b[3],
+                                      afl_counter);
+    }
+
+    if (has_mac)
+    {
+        int at = afl_mc & 0x0f;
+        AFLAuthenticationType aat = fromIntToAFLAuthenticationType(at);
+        int len = toLen(aat);
+        switch(len)
+        {
+        case 2:
+        {
+            uchar a = *(pos+0);
+            uchar b = *(pos+1);
+            addExplanationAndIncrementPos(pos, 2, "%02x%02x MAC", a, b);
+            break;
+        }
+        case 4:
+        {
+            uchar a = *(pos+0);
+            uchar b = *(pos+1);
+            uchar c = *(pos+2);
+            uchar d = *(pos+3);
+            addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x MAC", a, b, c, d);
+            break;
+        }
+        case 8:
+        {
+            uchar a = *(pos+0);
+            uchar b = *(pos+1);
+            uchar c = *(pos+2);
+            uchar d = *(pos+3);
+            uchar e = *(pos+4);
+            uchar f = *(pos+5);
+            uchar g = *(pos+6);
+            uchar h = *(pos+7);
+            addExplanationAndIncrementPos(pos, 8, "%02x%02x%02x%02x%02x%02x%02x%02x MAC", a, b, c, d, e, f, g, h);
+            break;
+        }
+        case 12:
+        {
+            uchar a = *(pos+0);
+            uchar b = *(pos+1);
+            uchar c = *(pos+2);
+            uchar d = *(pos+3);
+            uchar e = *(pos+4);
+            uchar f = *(pos+5);
+            uchar g = *(pos+6);
+            uchar h = *(pos+7);
+            uchar i = *(pos+8);
+            uchar j = *(pos+9);
+            uchar k = *(pos+10);
+            uchar l = *(pos+11);
+            addExplanationAndIncrementPos(pos, 8, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x MAC", a, b, c, d, e, f, g, h, i, j, k, l);
+            break;
+        }
+        case 16:
+        {
+            uchar a = *(pos+0);
+            uchar b = *(pos+1);
+            uchar c = *(pos+2);
+            uchar d = *(pos+3);
+            uchar e = *(pos+4);
+            uchar f = *(pos+5);
+            uchar g = *(pos+6);
+            uchar h = *(pos+7);
+            uchar i = *(pos+8);
+            uchar j = *(pos+9);
+            uchar k = *(pos+10);
+            uchar l = *(pos+11);
+            uchar m = *(pos+12);
+            uchar n = *(pos+13);
+            uchar o = *(pos+14);
+            uchar p = *(pos+15);
+            addExplanationAndIncrementPos(pos, 8, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x MAC", a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
+            break;
+        }
+        }
+    }
+
     return true;
+}
+
+string Telegram::toStringFromAFLFC(int fc)
+{
+    string info = "";
+    int fid = fc & 0x00ff; // Fragmend id
+    info += to_string(fid);
+    info += " ";
+    if (fc & 0x0200) info += "KeyInfoInFragment ";
+    if (fc & 0x0400) info += "MACInFragment ";
+    if (fc & 0x0800) info += "MessCounterInFragment ";
+    if (fc & 0x1000) info += "MessLenInFragment ";
+    if (fc & 0x2000) info += "MessControlInFragment ";
+    if (fc & 0x4000) info += "MoreFragments ";
+    else             info += "LastFragment ";
+    if (info.length() > 0) info.pop_back();
+    return info;
+}
+
+string Telegram::toStringFromAFLMC(int mc)
+{
+    string info = "";
+    int at = mc & 0x0f;
+    AFLAuthenticationType aat = fromIntToAFLAuthenticationType(at);
+    info += toString(aat);
+    info += " ";
+    if (mc & 0x10) info += "KeyInfo ";
+    if (mc & 0x20) info += "MessCounter ";
+    if (mc & 0x40) info += "MessLen ";
+    if (info.length() > 0) info.pop_back();
+    return info;
 }
 
 string Telegram::toStringFromTPLConfig(int cfg)
@@ -1216,7 +1392,19 @@ bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
 
         if (*(pos+0) != 0x2f || *(pos+1) != 0x2f)
         {
-            warning("(wmbus) decrypted content failed check, did you use the correct decryption key?\n");
+            if (parser_warns_) warning("(wmbus) decrypted content failed check, did you use the correct decryption key?\n");
+        }
+        addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
+    }
+    else if (tpl_sec_mode == TPLSecurityMode::AES_CBC_NO_IV)
+    {
+        bool ok = decrypt_TPL_AES_CBC_NO_IV(this, frame, pos, meter_keys->confidentiality_key);
+        if (!ok) return false;
+        // Now the frame from pos and onwards has been decrypted.
+
+        if (*(pos+0) != 0x2f || *(pos+1) != 0x2f)
+        {
+            if (parser_warns_) warning("(wmbus) decrypted content failed check, did you use the correct decryption key?\n");
         }
         addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
     }
@@ -3138,4 +3326,51 @@ void Telegram::extractPayload(vector<uchar> *pl)
 void Telegram::extractFrame(vector<uchar> *fr)
 {
     *fr = frame;
+}
+
+int toInt(AFLAuthenticationType aat)
+{
+    switch (aat) {
+
+#define X(name,nr,len) case AFLAuthenticationType::name : return nr;
+LIST_OF_AFL_AUTH_TYPES
+#undef X
+    }
+
+    return 16;
+}
+
+int toLen(AFLAuthenticationType aat)
+{
+    switch (aat) {
+
+#define X(name,nr,len) case AFLAuthenticationType::name : return len;
+LIST_OF_AFL_AUTH_TYPES
+#undef X
+    }
+
+    return 0;
+}
+
+const char *toString(AFLAuthenticationType tsm)
+{
+    switch (tsm) {
+
+#define X(name,nr,len) case AFLAuthenticationType::name : return #name;
+LIST_OF_AFL_AUTH_TYPES
+#undef X
+    }
+
+    return "Reserved";
+}
+
+AFLAuthenticationType fromIntToAFLAuthenticationType(int i)
+{
+    switch (i) {
+#define X(name,nr,len) case nr: return AFLAuthenticationType::name;
+LIST_OF_AFL_AUTH_TYPES
+#undef X
+    }
+
+    return AFLAuthenticationType::Reserved1;
 }

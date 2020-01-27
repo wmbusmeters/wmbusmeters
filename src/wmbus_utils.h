@@ -21,10 +21,9 @@
 #include "util.h"
 #include "wmbus.h"
 
-void decryptMode1_AES_CTR(Telegram *t, vector<uchar> &aeskey);
 bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey);
-void decryptMode5_AES_CBC(Telegram *t, vector<uchar> &aeskey);
 bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey);
+bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey);
 string frameTypeKamstrupC1(int ft);
 
 struct WMBusCommonImplementation : public virtual WMBus

@@ -109,6 +109,9 @@ METER_OBJS:=\
 	$(BUILD)/meter_izar.o \
 	$(BUILD)/meter_hydrus.o \
 	$(BUILD)/meter_hydrodigit.o \
+	$(BUILD)/meter_cma12w.o \
+	$(BUILD)/meter_q400.o \
+	$(BUILD)/meter_ehzp.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \

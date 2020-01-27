@@ -72,6 +72,9 @@ Received telegram from: 64646464
 Received telegram from: 86868686
           manufacturer: (BMT) BMETERS, Italy
            device type: Water meter
+Received telegram from: 72727272
+          manufacturer: (AXI) UAB Axis Industries, Lithuania
+           device type: Water meter
 EOF
 
 EXPECTED=$(cat $LOGFILE_EXPECTED)
@@ -89,6 +92,7 @@ then
 fi
 
 GOT=$(cat $LOGFILE)
+
 
 if [ ! "$GOT" = "$EXPECTED" ]
 then

@@ -295,16 +295,16 @@ bool findKey(MeasurementType mit, ValueInformation vif, int storagenr, std::stri
     int low, hi;
     valueInfoRange(vif, &low, &hi);
 
-/*    debug("(dvparser) looking for type=%s vif=%s storagenr=%d\n",
-      measurementTypeName(mit).c_str(), ValueInformationName(vif), storagenr);*/
+    /* debug("(dvparser) looking for type=%s vif=%s storagenr=%d\n",
+       measurementTypeName(mit).c_str(), ValueInformationName(vif), storagenr);*/
 
     for (auto& v : *values)
     {
         MeasurementType ty = v.second.second.type;
         int vi = v.second.second.value_information;
         int sn = v.second.second.storagenr;
-        /*debug("(dvparser) match? type=%s vif=%s and storagenr=%d\n",
-          measurementTypeName(ty).c_str(), ValueInformationName(vif), storagenr, sn);*/
+        /* debug("(dvparser) match? type=%s vif=%s and storagenr=%d\n",
+           measurementTypeName(ty).c_str(), ValueInformationName(vif), storagenr, sn); */
 
         if (vi >= low && vi <= hi
             && (mit == MeasurementType::Unknown || mit == ty)

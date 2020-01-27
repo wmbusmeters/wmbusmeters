@@ -28,3 +28,8 @@ telegram=|25442D2C6767676730048D203AD2684020|D81579E7F1D5902C00000000006300007F2
 
 telegram=|314493441234567835087a740000200b6e2701004b6e450100426c5f2ccb086e790000c2086c7f21326cffff046d200b7422|
 {"media":"heat cost allocation","meter":"qcaloric","name":"MyElement","id":"78563412","current_consumption_hca":127,"set_date":"2018-12-31","consumption_at_set_date_hca":145,"set_date_1":"2018-12-31","consumption_at_set_date_1_hca":145,"set_date_17":"2019-01-31","consumption_at_set_date_17_hca":79,"error_date":"2127-15-31","device_date_time":"2019-02-20 11:32","timestamp":"1111-11-11T11:11:11Z"}
+
+# Test CMa12w C1 telegrams
+
+telegram=|2744961566666666201B7AF9000020|2F2F02651E094265180902FD1B30030DFD0F05302E302E340F|
+{"media":"room sensor","meter":"cma12w","name":"Rum","id":"66666666","current_temperature_c":23.34,"average_temperature_1h_c":23.28,"timestamp":"1111-11-11T11:11:11Z"}

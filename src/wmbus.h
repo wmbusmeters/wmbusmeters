@@ -169,6 +169,28 @@ int toInt(TPLSecurityMode tsm);
 TPLSecurityMode fromIntToTPLSecurityMode(int i);
 const char *toString(TPLSecurityMode tsm);
 
+#define LIST_OF_AFL_AUTH_TYPES \
+    X(NoAuth, 0, 0)             \
+    X(Reserved1, 1, 0)          \
+    X(Reserved2, 2, 0)          \
+    X(AES_CMAC_128_2, 3, 2)     \
+    X(AES_CMAC_128_4, 4, 4)     \
+    X(AES_CMAC_128_8, 5, 8)     \
+    X(AES_CMAC_128_12, 6, 12)   \
+    X(AES_CMAC_128_16, 7, 16)   \
+    X(AES_GMAC_128_12, 8, 12)
+
+enum class AFLAuthenticationType {
+#define X(name,nr,len) name,
+LIST_OF_AFL_AUTH_TYPES
+#undef X
+};
+
+int toInt(AFLAuthenticationType aat);
+AFLAuthenticationType fromIntToAFLAuthenticationType(int i);
+const char *toString(AFLAuthenticationType aat);
+int toLen(AFLAuthenticationType aat);
+
 enum class MeasurementType
 {
     Unknown,
@@ -236,7 +258,18 @@ struct Telegram
     int nwl_ci {}; // 1 byte
 
     // AFL
-    int afl_ci {}; // 1 byte
+    uchar afl_ci {}; // 1 byte
+    uchar afl_len {}; // 1 byte
+    uchar afl_fc_b[2] {}; // 2 byte fragmentation control
+    uint16_t afl_fc {};
+    uchar afl_mc {}; // 1 byte message control
+    uchar afl_ki_b[2] {}; // 2 byte key information
+    uint16_t afl_ki {};
+    uchar afl_counter_b[4] {}; // 4 bytes
+    uint32_t afl_counter {};
+
+    int afl_mac_b[2] {};
+    uchar afl_ml_b[2] {};
 
     // TPL
     int tpl_ci {}; // 1 byte
@@ -264,6 +297,7 @@ struct Telegram
 
     bool parseHeader(vector<uchar> &input_frame);
     bool parse(vector<uchar> &input_frame, MeterKeys *mk);
+    void parserNoWarnings() { parser_warns_ = false; }
     void print();
     void verboseFields();
 
@@ -284,6 +318,7 @@ struct Telegram
 private:
 
     bool is_simulated_ {};
+    bool parser_warns_ = true;
 
     bool parseDLL(std::vector<uchar>::iterator &pos);
     bool parseELL(std::vector<uchar>::iterator &pos, MeterKeys *meter_keys);
@@ -305,6 +340,9 @@ private:
     bool parseTPLConfig(std::vector<uchar>::iterator &pos);
     static string toStringFromELLSN(int sn);
     static string toStringFromTPLConfig(int cfg);
+    static string toStringFromAFLFC(int fc);
+    static string toStringFromAFLMC(int mc);
+
     bool parseShortTPL(std::vector<uchar>::iterator &pos);
     bool parseLongTPL(std::vector<uchar>::iterator &pos);
 

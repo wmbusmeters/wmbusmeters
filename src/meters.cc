@@ -300,7 +300,7 @@ bool MeterCommonImplementation::handleTelegram(vector<uchar> input_frame)
 
     char log_prefix[256];
     snprintf(log_prefix, 255, "(%s) log", meterName().c_str());
-    logTelegram(log_prefix, t.parsed, t.header_size, t.suffix_size);
+    logTelegram(log_prefix, t.frame, t.header_size, t.suffix_size);
 
     // Invoke meter specific parsing!
     processContent(&t);

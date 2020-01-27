@@ -28,7 +28,9 @@
 #define LIST_OF_METERS \
     X(amiplus,    T1_bit, Electricity, AMIPLUS,     Amiplus)      \
     X(apator162,  C1_bit|T1_bit, Water,       APATOR162,   Apator162)    \
+    X(cma12w,     C1_bit|T1_bit, TempHygro,   CMA12W,      CMa12w)       \
     X(eurisii,    T1_bit, HeatCostAllocation, EURISII, EurisII)   \
+    X(ehzp,       T1_bit, Water,       EHZP,        EHZP) \
     X(flowiq3100, C1_bit, Water,       FLOWIQ3100,  Multical21)   \
     X(hydrus,     T1_bit, Water,       HYDRUS,      Hydrus)       \
     X(hydrodigit, T1_bit, Water,       HYDRODIGIT,  Hydrodigit)   \
@@ -40,6 +42,7 @@
     X(multical302,C1_bit, Heat,        MULTICAL302, Multical302)  \
     X(omnipower,  C1_bit, Electricity, OMNIPOWER,   Omnipower)    \
     X(rfmamb,     T1_bit, TempHygro,   RFMAMB,      RfmAmb)       \
+    X(q400,       T1_bit, Water,       Q400,        Q400)  \
     X(qcaloric,   C1_bit, HeatCostAllocation, QCALORIC, QCaloric) \
     X(supercom587,T1_bit, Water,       SUPERCOM587, Supercom587)  \
     X(vario451,   T1_bit, Heat,        VARIO451,    Vario451)     \
@@ -198,10 +201,13 @@ unique_ptr<WaterMeter> createIperl(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createHydrus(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createHydrodigit(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createIzar(WMBus *bus, MeterInfo &m);
+unique_ptr<WaterMeter> createQ400(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createEurisII(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createLansenTH(WMBus *bus, MeterInfo &m);
+unique_ptr<TempHygroMeter> createCMa12w(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createRfmAmb(WMBus *bus, MeterInfo &m);
+unique_ptr<ElectricityMeter> createEHZP(WMBus *bus, MeterInfo &m);
 GenericMeter *createGeneric(WMBus *bus, MeterInfo &m);
 
 #endif
