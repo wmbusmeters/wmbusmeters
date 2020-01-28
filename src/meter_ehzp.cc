@@ -38,7 +38,7 @@ private:
     double current_power_kw_ {};
     double total_energy_returned_kwh_ {};
     double current_power_returned_kw_ {};
-    string device_date_time_;
+    double on_time_h_ {};
 };
 
 MeterEHZP::MeterEHZP(WMBus *bus, MeterInfo &mi) :
@@ -75,15 +75,11 @@ MeterEHZP::MeterEHZP(WMBus *bus, MeterInfo &mi) :
              "The total energy production recorded by this meter.",
              true, true);
 
-    addPrint("current_power_production", Quantity::Power,
-             [&](Unit u){ return currentPowerProduction(u); },
-             "Current power production.",
+    addPrint("on_time", Quantity::Time,
+             [&](Unit u){ assertQuantity(u, Quantity::Time);
+                 return convert(on_time_h_, Unit::Hour, u); },
+             "Device on time.",
              true, true);
-
-    addPrint("device_date_time", Quantity::Text,
-             [&](){ return device_date_time_; },
-             "Device date time.",
-             false, true);
 }
 
 unique_ptr<ElectricityMeter> createEHZP(WMBus *bus, MeterInfo &mi)
@@ -120,26 +116,22 @@ void MeterEHZP::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::EnergyWh, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::EnergyWh, 0, &key, &t->values))
+    {
         extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
         t->addMoreExplanation(offset, " total energy (%f kwh)", total_energy_kwh_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::PowerW, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::PowerW, 0, &key, &t->values))
+    {
         extractDVdouble(&t->values, key, &offset, &current_power_kw_);
         t->addMoreExplanation(offset, " current power (%f kw)", current_power_kw_);
     }
 
-    extractDVdouble(&t->values, "0E833C", &offset, &total_energy_returned_kwh_);
+    extractDVdouble(&t->values, "07803C", &offset, &total_energy_returned_kwh_);
     t->addMoreExplanation(offset, " total energy returned (%f kwh)", total_energy_returned_kwh_);
 
-    extractDVdouble(&t->values, "0BAB3C", &offset, &current_power_returned_kw_);
-    t->addMoreExplanation(offset, " current power returned (%f kw)", current_power_returned_kw_);
+    extractDVdouble(&t->values, "0420", &offset, &on_time_h_);
+    t->addMoreExplanation(offset, " on time (%f h)", on_time_h_);
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, &key, &t->values)) {
-        struct tm datetime;
-        extractDVdate(&t->values, key, &offset, &datetime);
-        device_date_time_ = strdatetime(&datetime);
-        t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
-    }
 }

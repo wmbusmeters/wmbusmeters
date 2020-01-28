@@ -21,7 +21,9 @@
 using namespace std;
 
 #define LIST_OF_CONVERSIONS \
-    X(KWH, GJ, {vto=vfrom*0.0036;}) \
+    X(Second, Hour, {vto=vfrom/3600.0;}) \
+    X(Hour, Second, {vto=vfrom*3600.0;}) \
+    X(KWH, GJ, {vto=vfrom*0.0036;})     \
     X(GJ,  KWH,{vto=vfrom/0.0036;}) \
     X(M3,  L,  {vto=vfrom*1000.0;}) \
     X(L,   M3, {vto=vfrom/1000.0;}) \

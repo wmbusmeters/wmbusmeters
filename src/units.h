@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
     X(RelativeHumidity,RH) \
     X(HCA,HCA)             \
     X(Text,TXT)            \
-    X(Time,Seconds)           \
+    X(Time,Hour)           \
 
 #define LIST_OF_UNITS \
     X(KWH,kwh,kWh,Energy,"kilo Watt hour")  \
@@ -44,7 +44,8 @@
     X(RH,rh,RH,RelativeHumidity,"relative humidity")      \
     X(HCA,hca,hca,HCA,"heat cost allocation") \
     X(TXT,txt,txt,Text,"text")              \
-    X(Seconds,s,s,Time,"seconds")           \
+    X(Second,s,s,Time,"second")           \
+    X(Hour,h,h,Time,"hour")
 
 enum class Unit
 {

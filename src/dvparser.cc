@@ -29,7 +29,7 @@
 
 using namespace std;
 
-const char *ValueInformationName(ValueInformation v)
+const char *toString(ValueInformation v)
 {
     switch (v) {
 #define X(name,from,to) case ValueInformation::name: return #name;
@@ -37,6 +37,16 @@ LIST_OF_VALUETYPES
 #undef X
     }
     assert(0);
+}
+
+ValueInformation toValueInformation(int i)
+{
+    switch (i) {
+#define X(name,from,to) if (from >= i && i <= to) return ValueInformation::name;
+LIST_OF_VALUETYPES
+#undef X
+    }
+    return ValueInformation::None;
 }
 
 map<uint16_t,string> hash_to_format_;
@@ -279,10 +289,11 @@ bool parseDV(Telegram *t,
 void valueInfoRange(ValueInformation v, int *low, int *hi)
 {
     switch (v) {
-#define X(name,from,to) case ValueInformation::name: *low = from; *hi = to; break;
+#define X(name,from,to) case ValueInformation::name: *low = from; *hi = to; return;
 LIST_OF_VALUETYPES
 #undef X
     }
+    assert(0);
 }
 
 bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string key)
@@ -290,29 +301,33 @@ bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string ke
     return values->count(key) > 0;
 }
 
-bool findKey(MeasurementType mit, ValueInformation vif, int storagenr, std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values)
+bool findKey(MeasurementType mit, ValueInformation vif, int storagenr,
+             std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values)
 {
     int low, hi;
     valueInfoRange(vif, &low, &hi);
 
-    /* debug("(dvparser) looking for type=%s vif=%s storagenr=%d\n",
-       measurementTypeName(mit).c_str(), ValueInformationName(vif), storagenr);*/
+    debug("(dvparser) looking for type=%s vif=%s storagenr=%d value_ran_low=%02x value_ran_hi=%02x\n",
+          measurementTypeName(mit).c_str(), toString(vif), storagenr,
+          low, hi);
 
     for (auto& v : *values)
     {
         MeasurementType ty = v.second.second.type;
         int vi = v.second.second.value_information;
         int sn = v.second.second.storagenr;
-        /* debug("(dvparser) match? type=%s vif=%s and storagenr=%d\n",
-           measurementTypeName(ty).c_str(), ValueInformationName(vif), storagenr, sn); */
+        debug("(dvparser) match? %s type=%s vif=%02x (%s) and storagenr=%d\n",
+              v.first.c_str(),
+              measurementTypeName(ty).c_str(), vi, toString(toValueInformation(vi)), storagenr, sn);
 
         if (vi >= low && vi <= hi
             && (mit == MeasurementType::Unknown || mit == ty)
             && (storagenr == ANY_STORAGENR || storagenr == sn))
         {
             *key = v.first;
-            /*debug("(dvparser) found key %s for type=%s vif=%s storagenr=%d\n",
-              v.first.c_str(), measurementTypeName(ty).c_str(), ValueInformationName(vif), storagenr);*/
+            debug("(dvparser) found key %s for type=%s vif=%02x (%s) storagenr=%d\n",
+                  v.first.c_str(), measurementTypeName(ty).c_str(),
+                  vi, toString(toValueInformation(vi)), storagenr);
             return true;
         }
     }
@@ -437,6 +452,24 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                 + ((unsigned int)v[2])*256*256
                 + ((unsigned int)v[1])*256
                 + ((unsigned int)v[0]);
+        } else if (t == 0x6) {
+            assert(v.size() == 6);
+            raw = ((uint64_t)v[5])*256*256*256*256*256
+                + ((uint64_t)v[4])*256*256*256*256
+                + ((uint64_t)v[3])*256*256*256
+                + ((uint64_t)v[2])*256*256
+                + ((uint64_t)v[1])*256
+                + ((uint64_t)v[0]);
+        } else if (t == 0x7) {
+            assert(v.size() == 8);
+            raw = ((uint64_t)v[7])*256*256*256*256*256*256*256
+                + ((uint64_t)v[6])*256*256*256*256*256*256
+                + ((uint64_t)v[5])*256*256*256*256*256
+                + ((uint64_t)v[4])*256*256*256*256
+                + ((uint64_t)v[3])*256*256*256
+                + ((uint64_t)v[2])*256*256
+                + ((uint64_t)v[1])*256
+                + ((uint64_t)v[0]);
         }
         double scale = 1.0;
         if (auto_scale) scale = vifScale(vif);

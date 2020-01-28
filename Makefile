@@ -84,7 +84,7 @@ $(info Building $(VERSION))
 CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-unused-function -I$(BUILD)
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
-	@#$(CXX) $(CXXFLAGS) $< -c -E > $@.src
+	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
 METER_OBJS:=\

@@ -1384,7 +1384,6 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
     }
     else if (tpl_sec_mode == TPLSecurityMode::AES_CBC_NO_IV)
     {
-        fprintf(stderr, "BLALSALDLASDÖLAKDLAKDSÖLADS\n");
         bool ok = decrypt_TPL_AES_CBC_NO_IV(this, frame, pos, tpl_generated_key);
         if (!ok) return false;
         // Now the frame from pos and onwards has been decrypted.

@@ -28,6 +28,7 @@
 #include<vector>
 
 #define LIST_OF_VALUETYPES \
+    X(None,-1,-1)       \
     X(Volume,0x10,0x17)       \
     X(VolumeFlow,0x38,0x3F) \
     X(FlowTemperature,0x58,0x5B) \
@@ -35,7 +36,7 @@
     X(HeatCostAllocation,0x6E,0x6E) \
     X(Date,0x6C,0x6C) \
     X(DateTime,0x6D,0x6D) \
-    X(EnergyWh,0x03,0x07) \
+    X(EnergyWh,0x00,0x07) \
     X(PowerW,0x28,0x2f) \
 
 enum class ValueInformation
@@ -45,7 +46,8 @@ LIST_OF_VALUETYPES
 #undef X
 };
 
-const char *ValueInformatioName(ValueInformation v);
+const char *toString(ValueInformation v);
+ValueInformation toValueInformation(int i);
 
 bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes);
 
