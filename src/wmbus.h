@@ -233,7 +233,8 @@ struct Telegram
     int dll_mft {}; // Manufacturer 2 bytes
     vector<uchar> dll_a; // A field 6 bytes
     // The 6 a field bytes are composed of:
-    vector<uchar> a_field_address; // Address in BCD = 8 decimal 00000000...99999999 digits.
+    uchar dll_id_b[4] {};    // 4 bytes, address in BCD = 8 decimal 00000000...99999999 digits.
+    vector<uchar> dll_id; // 4 bytes, human readable order.
     string id; // the address as a string.
     int dll_version {}; // 1 byte
     int dll_type {}; // 1 byte
@@ -323,12 +324,13 @@ private:
 
     bool is_simulated_ {};
     bool parser_warns_ = true;
+    MeterKeys *meter_keys {};
 
     bool parseDLL(std::vector<uchar>::iterator &pos);
-    bool parseELL(std::vector<uchar>::iterator &pos, MeterKeys *meter_keys);
+    bool parseELL(std::vector<uchar>::iterator &pos);
     bool parseNWL(std::vector<uchar>::iterator &pos);
     bool parseAFL(std::vector<uchar>::iterator &pos);
-    bool parseTPL(std::vector<uchar>::iterator &pos, MeterKeys *meter_keys);
+    bool parseTPL(std::vector<uchar>::iterator &pos);
 
     void printDLL();
     void printELL();
@@ -336,11 +338,11 @@ private:
     void printAFL();
     void printTPL();
 
-    bool parse_TPL_72(vector<uchar>::iterator &pos, MeterKeys *meter_keys);
+    bool parse_TPL_72(vector<uchar>::iterator &pos);
     bool parse_TPL_78(vector<uchar>::iterator &pos);
     bool parse_TPL_79(vector<uchar>::iterator &pos);
-    bool parse_TPL_7A(vector<uchar>::iterator &pos, MeterKeys *meter_keys);
-    bool potentiallyDecrypt(vector<uchar>::iterator &pos, MeterKeys *meter_keys);
+    bool parse_TPL_7A(vector<uchar>::iterator &pos);
+    bool potentiallyDecrypt(vector<uchar>::iterator &pos);
     bool parseTPLConfig(std::vector<uchar>::iterator &pos);
     static string toStringFromELLSN(int sn);
     static string toStringFromTPLConfig(int cfg);

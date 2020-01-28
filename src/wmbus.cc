@@ -191,7 +191,7 @@ LIST_OF_MANUFACTURERS
 
 void Telegram::print() {
     notice("Received telegram from: %02x%02x%02x%02x\n",
-	   a_field_address[0], a_field_address[1], a_field_address[2], a_field_address[3]);
+	   dll_id[0], dll_id[1], dll_id[2], dll_id[3]);
     notice("          manufacturer: (%s) %s\n",
            manufacturerFlag(dll_mft).c_str(),
 	   manufacturer(dll_mft).c_str());
@@ -207,7 +207,7 @@ void Telegram::printDLL()
             dll_c,
             dll_mft,
             man.c_str(),
-            a_field_address[0], a_field_address[1], a_field_address[2], a_field_address[3],
+            dll_id[0], dll_id[1], dll_id[2], dll_id[3],
             dll_version,
             dll_type,
             mediaType(dll_type).c_str());
@@ -908,11 +908,15 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     addExplanationAndIncrementPos(pos, 2, "%02x%02x m-field (%02x=%s)", frame[2], frame[3], dll_mft, man.c_str());
 
     dll_a.resize(6);
-    a_field_address.resize(4);
+    dll_id.resize(4);
     for (int i=0; i<6; ++i)
     {
         dll_a[i] = *(pos+i);
-        if (i<4) { a_field_address[i] = *(pos+3-i); }
+        if (i<4)
+        {
+            dll_id_b[i] = *(pos+i);
+            dll_id[i] = *(pos+3-i);
+        }
     }
     strprintf(id, "%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
     addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x a-field-addr (%s)",
@@ -942,7 +946,7 @@ string Telegram::toStringFromELLSN(int sn)
     return info;
 }
 
-bool Telegram::parseELL(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
+bool Telegram::parseELL(vector<uchar>::iterator &pos)
 {
     int remaining = distance(pos, frame.end());
     if (remaining == 0) return false;
@@ -1288,14 +1292,28 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
 
         if (tpl_kdf_selection == 1)
         {
-            vector<uchar> key;
             vector<uchar> input;
             vector<uchar> mac;
-
             mac.resize(16);
 
+            // DC C ID 0x07 0x07 0x07 0x07 0x07 0x07 0x07
+            // Derivation Constant DC = 0x00 = encryption from meter.
+            //                          0x01 = mac from meter.
+            //                          0x10 = encryption from communication partner.
+            //                          0x11 = mac from communication partner.
+            input.insert(input.end(), 0);
+            // If there is a tpl_counter, then use it, else use afl_counter.
+            input.insert(input.end(), afl_counter_b, afl_counter_b+4);
+            // If there is a tpl_id, then use it, else use ddl_id.
+            input.insert(input.end(), dll_id_b, dll_id_b+4);
+            // Pad.
+            for (int i=0; i<7; ++i) input.insert(input.end(), 0x07);
 
-            AES_CMAC(&key[0], &input[0], 16, &mac[0]);
+            if (meter_keys->confidentiality_key.size() != 16)
+            {
+                return false;
+            }
+            AES_CMAC(&meter_keys->confidentiality_key[0], &input[0], 16, &mac[0]);
             string s = bin2hex(mac);
             tpl_generated_key.clear();
             tpl_generated_key.insert(tpl_generated_key.end(), mac.begin(), mac.end());
@@ -1350,7 +1368,7 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
 
 bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes);
 
-bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
+bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
 {
     if (tpl_sec_mode == TPLSecurityMode::AES_CBC_IV)
     {
@@ -1366,6 +1384,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos, MeterKeys *meter
     }
     else if (tpl_sec_mode == TPLSecurityMode::AES_CBC_NO_IV)
     {
+        fprintf(stderr, "BLALSALDLASDÖLAKDLAKDSÖLADS\n");
         bool ok = decrypt_TPL_AES_CBC_NO_IV(this, frame, pos, tpl_generated_key);
         if (!ok) return false;
         // Now the frame from pos and onwards has been decrypted.
@@ -1379,12 +1398,12 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos, MeterKeys *meter
     return true;
 }
 
-bool Telegram::parse_TPL_72(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
+bool Telegram::parse_TPL_72(vector<uchar>::iterator &pos)
 {
     bool ok = parseLongTPL(pos);
     if (!ok) return false;
 
-    potentiallyDecrypt(pos, meter_keys);
+    potentiallyDecrypt(pos);
 
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end());
@@ -1444,12 +1463,12 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
     return true;
 }
 
-bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
+bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos)
 {
     bool ok = parseShortTPL(pos);
     if (!ok) return false;
 
-    potentiallyDecrypt(pos, meter_keys);
+    potentiallyDecrypt(pos);
 
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end());
@@ -1459,7 +1478,7 @@ bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
     return true;
 }
 
-bool Telegram::parseTPL(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
+bool Telegram::parseTPL(vector<uchar>::iterator &pos)
 {
     int remaining = distance(pos, frame.end());
     if (remaining == 0) return false;
@@ -1480,10 +1499,10 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
 
     switch (tpl_ci)
     {
-    case CI_Field_Values::TPL_72: return parse_TPL_72(pos, meter_keys);
+    case CI_Field_Values::TPL_72: return parse_TPL_72(pos);
     case CI_Field_Values::TPL_78: return parse_TPL_78(pos);
     case CI_Field_Values::TPL_79: return parse_TPL_79(pos);
-    case CI_Field_Values::TPL_7A: return parse_TPL_7A(pos, meter_keys);
+    case CI_Field_Values::TPL_7A: return parse_TPL_7A(pos);
     case CI_Field_Values::MFCT_SPECIFIC:
     {
             header_size = distance(frame.begin(), pos);
@@ -1517,8 +1536,9 @@ bool Telegram::parseHeader(vector<uchar> &input_frame)
     return true;
 }
 
-bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *meter_keys)
+bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk)
 {
+    meter_keys = mk;
     assert(meter_keys != NULL);
     bool ok;
     frame = input_frame;
@@ -1540,7 +1560,7 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *meter_keys)
     //     │                                              │
     //     └──────────────────────────────────────────────┘
 
-    ok = parseELL(pos, meter_keys);
+    ok = parseELL(pos);
     if (!ok) return false;
 
     //     ┌──────────────────────────────────────────────┐
@@ -1567,7 +1587,7 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *meter_keys)
     //     │                                              │
     //     └──────────────────────────────────────────────┘
 
-    ok = parseTPL(pos, meter_keys);
+    ok = parseTPL(pos);
     if (!ok) return false;
 
     /*
