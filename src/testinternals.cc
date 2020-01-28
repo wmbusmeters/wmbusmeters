@@ -15,6 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"aescmac.h"
 #include"cmdline.h"
 #include"config.h"
 #include"meters.h"
@@ -32,6 +33,7 @@ int test_crc();
 int test_dvparser();
 int test_linkmodes();
 void test_ids();
+void test_kdf();
 
 int main(int argc, char **argv)
 {
@@ -45,6 +47,7 @@ int main(int argc, char **argv)
     test_dvparser();
     test_linkmodes();
     test_ids();
+    test_kdf();
     return 0;
 }
 
@@ -409,5 +412,35 @@ void eqn(int a, int b, const char *tn)
     if (a != b)
     {
         printf("ERROR in test %s expected %d to be equal to %d\n", tn, a, b);
+    }
+}
+
+void test_kdf()
+{
+    vector<uchar> key;
+    vector<uchar> input;
+    vector<uchar> mac;
+
+    hex2bin("2b7e151628aed2a6abf7158809cf4f3c", &key);
+    mac.resize(16);
+
+    AES_CMAC(&key[0], &input[0], 0, &mac[0]);
+    string s = bin2hex(mac);
+    string ex = "BB1D6929E95937287FA37D129B756746";
+    if (s != ex)
+    {
+        printf("ERROR in aes-cmac expected \"%s\" but got \"%s\"\n", ex.c_str(), s.c_str());
+    }
+
+
+    input.clear();
+    hex2bin("6bc1bee22e409f96e93d7e117393172a", &input);
+    AES_CMAC(&key[0], &input[0], 16, &mac[0]);
+    s = bin2hex(mac);
+    ex = "070A16B46B4D4144F79BDD9DD04A287C";
+
+    if (s != ex)
+    {
+        printf("ERROR in aes-cmac expected \"%s\" but got \"%s\"\n", ex.c_str(), s.c_str());
     }
 }

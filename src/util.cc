@@ -224,6 +224,19 @@ void xorit(uchar *srca, uchar *srcb, uchar *dest, int len)
     for (int i=0; i<len; ++i) { dest[i] = srca[i]^srcb[i]; }
 }
 
+void shiftLeft(uchar *srca, uchar *srcb, int len)
+{
+    uchar overflow = 0;
+
+    for (int i = len-1; i >= 0; i--)
+    {
+        srcb[i] = srca[i] << 1;
+        srcb[i] |= overflow;
+        overflow = (srca[i] & 0x80) >> 7;
+    }
+    return;
+}
+
 string format3fdot3f(double v)
 {
     string r;

@@ -277,6 +277,10 @@ struct Telegram
     int tpl_sts {}; // 1 byte
     int tpl_cfg {}; // 2 bytes
     TPLSecurityMode tpl_sec_mode {}; // Based on 5 bits extracted from cfg.
+    int tpl_num_encr_blocks {};
+    int tpl_cfg_ext {}; // 1 byte
+    int tpl_kdf_selection {}; // 1 byte
+    vector<uchar> tpl_generated_key; // 16 bytes
 
     uchar tpl_id_b[4]; // 4 bytes
     uchar tpl_mft_b[2]; // 2 bytes
@@ -332,11 +336,11 @@ private:
     void printAFL();
     void printTPL();
 
-    bool parse_TPL_72(vector<uchar>::iterator &pos);
+    bool parse_TPL_72(vector<uchar>::iterator &pos, MeterKeys *meter_keys);
     bool parse_TPL_78(vector<uchar>::iterator &pos);
     bool parse_TPL_79(vector<uchar>::iterator &pos);
     bool parse_TPL_7A(vector<uchar>::iterator &pos, MeterKeys *meter_keys);
-
+    bool potentiallyDecrypt(vector<uchar>::iterator &pos, MeterKeys *meter_keys);
     bool parseTPLConfig(std::vector<uchar>::iterator &pos);
     static string toStringFromELLSN(int sn);
     static string toStringFromTPLConfig(int cfg);

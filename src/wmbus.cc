@@ -15,6 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"aescmac.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
 #include"dvparser.h"
@@ -958,10 +959,10 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
     // All ELL:s (including ELL I) start with cc,acc.
 
     ell_cc = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x cc-field (%s)", ell_cc, ccType(ell_cc).c_str());
+    addExplanationAndIncrementPos(pos, 1, "%02x ell-cc (%s)", ell_cc, ccType(ell_cc).c_str());
 
     ell_acc = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x ell-acc-field", ell_acc);
+    addExplanationAndIncrementPos(pos, 1, "%02x ell-acc", ell_acc);
 
     bool has_target_mft_address = false;
     bool has_session_number_pl_crc = false;
@@ -991,7 +992,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
         ell_mfct_b[0] = *(pos+0);
         ell_mfct_b[1] = *(pos+1);
 
-        addExplanationAndIncrementPos(pos, 2, "%02x%02x mfct2", ell_mfct_b[0], ell_mfct_b[1]);
+        addExplanationAndIncrementPos(pos, 2, "%02x%02x ell-mfct2", ell_mfct_b[0], ell_mfct_b[1]);
 
         ell_addr_b[0] = *(pos+0);
         ell_addr_b[1] = *(pos+1);
@@ -1000,7 +1001,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
         ell_addr_b[4] = *(pos+4);
         ell_addr_b[5] = *(pos+5);
 
-        addExplanationAndIncrementPos(pos, 6, "%02x%02x%02x%02x%02x%02x adr2",
+        addExplanationAndIncrementPos(pos, 6, "%02x%02x%02x%02x%02x%02x ell-adr2",
                                       ell_addr_b[0], ell_addr_b[1], ell_addr_b[2],
                                       ell_addr_b[3], ell_addr_b[4], ell_addr_b[5]);
     }
@@ -1115,12 +1116,12 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
         afl_counter_b[1] = *(pos+1);
         afl_counter_b[2] = *(pos+2);
         afl_counter_b[3] = *(pos+3);
-        afl_counter = afl_counter_b[0] << 24 |
-            afl_counter_b[1] << 16 |
-            afl_counter_b[2] << 8 |
-            afl_counter_b[3];
+        afl_counter = afl_counter_b[3] << 24 |
+            afl_counter_b[2] << 16 |
+            afl_counter_b[1] << 8 |
+            afl_counter_b[0];
 
-        addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x afl-counter (%d)",
+        addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x afl-counter (%u)",
                                       afl_counter_b[0],afl_counter_b[1],
                                       afl_counter_b[2],afl_counter_b[3],
                                       afl_counter);
@@ -1265,8 +1266,41 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
         int m = (tpl_cfg >> 8) & 0x1f;
         tpl_sec_mode = fromIntToTPLSecurityMode(m);
     }
+    bool has_cfg_ext = false;
     string info = toStringFromTPLConfig(tpl_cfg);
+    info += " ";
+    if (tpl_sec_mode == TPLSecurityMode::AES_CBC_NO_IV) // Security mode 7
+    {
+        tpl_num_encr_blocks = (tpl_cfg >> 4) & 0x0f;
+        info += "NEB=";
+        info += to_string(tpl_num_encr_blocks);
+        info += " ";
+        has_cfg_ext = true;
+    }
     addExplanationAndIncrementPos(pos, 2, "%02x%02x tpl-cfg (%s)", cfg1, cfg2, info.c_str());
+
+    if (has_cfg_ext)
+    {
+        tpl_cfg_ext = *(pos+0);
+        tpl_kdf_selection = (tpl_cfg_ext >> 4) & 3;
+
+        addExplanationAndIncrementPos(pos, 1, "%02x tpl-cfg-ext (KDFS=%d)", tpl_cfg_ext, tpl_kdf_selection);
+
+        if (tpl_kdf_selection == 1)
+        {
+            vector<uchar> key;
+            vector<uchar> input;
+            vector<uchar> mac;
+
+            mac.resize(16);
+
+
+            AES_CMAC(&key[0], &input[0], 16, &mac[0]);
+            string s = bin2hex(mac);
+            tpl_generated_key.clear();
+            tpl_generated_key.insert(tpl_generated_key.end(), mac.begin(), mac.end());
+        }
+    }
 
     return true;
 }
@@ -1305,7 +1339,7 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     tpl_version = *(pos+0);
     addExplanationAndIncrementPos(pos, 1, "%02x tpl-version", tpl_version);
 
-    tpl_type = *(pos+1);
+    tpl_type = *(pos+0);
     string info = mediaType(tpl_type);
     addExplanationAndIncrementPos(pos, 1, "%02x tpl-type (%s)", tpl_type, info.c_str());
 
@@ -1316,10 +1350,41 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
 
 bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes);
 
-bool Telegram::parse_TPL_72(vector<uchar>::iterator &pos)
+bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
+{
+    if (tpl_sec_mode == TPLSecurityMode::AES_CBC_IV)
+    {
+        bool ok = decrypt_TPL_AES_CBC_IV(this, frame, pos, meter_keys->confidentiality_key);
+        if (!ok) return false;
+        // Now the frame from pos and onwards has been decrypted.
+
+        if (*(pos+0) != 0x2f || *(pos+1) != 0x2f)
+        {
+            if (parser_warns_) warning("(wmbus) decrypted content failed check, did you use the correct decryption key?\n");
+        }
+        addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
+    }
+    else if (tpl_sec_mode == TPLSecurityMode::AES_CBC_NO_IV)
+    {
+        bool ok = decrypt_TPL_AES_CBC_NO_IV(this, frame, pos, tpl_generated_key);
+        if (!ok) return false;
+        // Now the frame from pos and onwards has been decrypted.
+
+        if (*(pos+0) != 0x2f || *(pos+1) != 0x2f)
+        {
+            if (parser_warns_) warning("(wmbus) decrypted content failed check, did you use the correct decryption key?\n");
+        }
+        addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
+    }
+    return true;
+}
+
+bool Telegram::parse_TPL_72(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
 {
     bool ok = parseLongTPL(pos);
     if (!ok) return false;
+
+    potentiallyDecrypt(pos, meter_keys);
 
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end());
@@ -1384,30 +1449,7 @@ bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
     bool ok = parseShortTPL(pos);
     if (!ok) return false;
 
-    if (tpl_sec_mode == TPLSecurityMode::AES_CBC_IV)
-    {
-        bool ok = decrypt_TPL_AES_CBC_IV(this, frame, pos, meter_keys->confidentiality_key);
-        if (!ok) return false;
-        // Now the frame from pos and onwards has been decrypted.
-
-        if (*(pos+0) != 0x2f || *(pos+1) != 0x2f)
-        {
-            if (parser_warns_) warning("(wmbus) decrypted content failed check, did you use the correct decryption key?\n");
-        }
-        addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
-    }
-    else if (tpl_sec_mode == TPLSecurityMode::AES_CBC_NO_IV)
-    {
-        bool ok = decrypt_TPL_AES_CBC_NO_IV(this, frame, pos, meter_keys->confidentiality_key);
-        if (!ok) return false;
-        // Now the frame from pos and onwards has been decrypted.
-
-        if (*(pos+0) != 0x2f || *(pos+1) != 0x2f)
-        {
-            if (parser_warns_) warning("(wmbus) decrypted content failed check, did you use the correct decryption key?\n");
-        }
-        addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
-    }
+    potentiallyDecrypt(pos, meter_keys);
 
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end());
@@ -1438,7 +1480,7 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos, MeterKeys *meter_keys)
 
     switch (tpl_ci)
     {
-    case CI_Field_Values::TPL_72: return parse_TPL_72(pos);
+    case CI_Field_Values::TPL_72: return parse_TPL_72(pos, meter_keys);
     case CI_Field_Values::TPL_78: return parse_TPL_78(pos);
     case CI_Field_Values::TPL_79: return parse_TPL_79(pos);
     case CI_Field_Values::TPL_7A: return parse_TPL_7A(pos, meter_keys);

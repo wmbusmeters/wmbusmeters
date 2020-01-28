@@ -30,7 +30,7 @@
     X(RelativeHumidity,RH) \
     X(HCA,HCA)             \
     X(Text,TXT)            \
-
+    X(Time,Seconds)           \
 
 #define LIST_OF_UNITS \
     X(KWH,kwh,kWh,Energy,"kilo Watt hour")  \
@@ -44,6 +44,7 @@
     X(RH,rh,RH,RelativeHumidity,"relative humidity")      \
     X(HCA,hca,hca,HCA,"heat cost allocation") \
     X(TXT,txt,txt,Text,"text")              \
+    X(Seconds,s,s,Time,"seconds")           \
 
 enum class Unit
 {
