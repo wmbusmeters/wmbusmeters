@@ -301,7 +301,7 @@ bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string ke
     return values->count(key) > 0;
 }
 
-bool findKey(MeasurementType mit, ValueInformation vif, int storagenr,
+bool findKey(MeasurementType mit, ValueInformation vif, int storagenr, int tariffnr,
              std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values)
 {
     int low, hi;
@@ -316,13 +316,15 @@ bool findKey(MeasurementType mit, ValueInformation vif, int storagenr,
         MeasurementType ty = v.second.second.type;
         int vi = v.second.second.value_information;
         int sn = v.second.second.storagenr;
+        int tn = v.second.second.tariff;
         debug("(dvparser) match? %s type=%s vif=%02x (%s) and storagenr=%d\n",
               v.first.c_str(),
               measurementTypeName(ty).c_str(), vi, toString(toValueInformation(vi)), storagenr, sn);
 
         if (vi >= low && vi <= hi
             && (mit == MeasurementType::Unknown || mit == ty)
-            && (storagenr == ANY_STORAGENR || storagenr == sn))
+            && (storagenr == ANY_STORAGENR || storagenr == sn)
+            && (tariffnr == ANY_TARIFFNR || tariffnr == tn))
         {
             *key = v.first;
             debug("(dvparser) found key %s for type=%s vif=%02x (%s) storagenr=%d\n",

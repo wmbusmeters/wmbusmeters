@@ -131,19 +131,19 @@ void MeterLansenTH::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 0, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 0, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &current_temperature_c_);
         t->addMoreExplanation(offset, " current temperature (%f C)", current_temperature_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 1, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 1, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &average_temperature_1h_c_);
         t->addMoreExplanation(offset, " average temperature 1h (%f C))", average_temperature_1h_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 2, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 2, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &average_temperature_24h_c_);
         t->addMoreExplanation(offset, " average temperature 24h (%f C))", average_temperature_24h_c_);

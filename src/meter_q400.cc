@@ -100,17 +100,17 @@ void MeterQ400::processContent(Telegram *t)
     int offset;
     string key;
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 1, &key, &t->values)) {
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 1, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &consumption_at_set_date_m3_);
         t->addMoreExplanation(offset, " consumption at set date (%f m3)", consumption_at_set_date_m3_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 1, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 1, 0, &key, &t->values)) {
         struct tm date;
         extractDVdate(&t->values, key, &offset, &date);
         set_date_ = strdate(&date);

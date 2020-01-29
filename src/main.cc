@@ -302,7 +302,7 @@ LIST_OF_METERS
                 t.parserNoWarnings(); // Try a best effort parse, do not print any warnings.
                 t.parse(frame, &mk);
                 t.print();
-                t.explainParse("",0);
+                t.explainParse("(wmbus)",0);
                 logTelegram("(wmbus)", t.frame, 0, 0);
                 return true;
             });

@@ -118,7 +118,7 @@ void MeterApator162::processContent(Telegram *t)
     vendor_values["0413"] = { 25, DVEntry(MeasurementType::Instantaneous, 0x13, 0, 0, 0, total) };
     int offset;
     string key;
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &vendor_values))
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, 0, &key, &vendor_values))
     {
         extractDVdouble(&vendor_values, key, &offset, &total_water_consumption_m3_);
         //Adding explanation have to wait since it assumes that the dvparser could do something, but it could not here.

@@ -64,8 +64,11 @@ bool parseDV(Telegram *t,
 // find an existing difvif entry in the values based on the desired value information type.
 // Like: Volume, VolumeFlow, FlowTemperature, ExternalTemperature etc
 // in combination with the storagenr. (Later I will add tariff/subunit)
-bool findKey(MeasurementType mt, ValueInformation vi, int storagenr, std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
+bool findKey(MeasurementType mt, ValueInformation vi, int storagenr, int tariffnr,
+             std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
+
 #define ANY_STORAGENR -1
+#define ANY_TARIFFNR -1
 
 bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string key);
 

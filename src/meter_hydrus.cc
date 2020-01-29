@@ -134,27 +134,27 @@ void MeterHydrus::processContent(Telegram *t)
     int offset;
     string key;
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::VolumeFlow, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Unknown, ValueInformation::VolumeFlow, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &max_flow_m3h_);
         t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_m3h_);
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::FlowTemperature, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Unknown, ValueInformation::FlowTemperature, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &flow_temperature_c_);
         t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_c_);
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 3, &key, &t->values)) {
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 3, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_at_date_m3_);
         t->addMoreExplanation(offset, " total consumption at date (%f m3)", total_water_consumption_at_date_m3_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 3, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 3, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         at_date_ = strdatetime(&datetime);

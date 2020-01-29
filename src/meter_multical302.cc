@@ -151,27 +151,27 @@ void MeterMultical302::processContent(Telegram *t)
     extractDVuint8(&t->values, "01FF21", &offset, &info_codes_);
     t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
         t->addMoreExplanation(offset, " total energy consumption (%f kWh)", total_energy_kwh_);
     }
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_volume_m3_);
         t->addMoreExplanation(offset, " total volume (%f m3)", total_volume_m3_);
     }
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 1, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 1, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &target_energy_kwh_);
         t->addMoreExplanation(offset, " target energy consumption (%f kWh)", target_energy_kwh_);
     }
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::PowerW, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, ValueInformation::PowerW, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &current_power_kw_);
         t->addMoreExplanation(offset, " current power consumption (%f kW)", current_power_kw_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::Date, 1, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, ValueInformation::Date, 1, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         target_date_ = strdatetime(&datetime);

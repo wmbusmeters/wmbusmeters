@@ -1305,7 +1305,15 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
             // If there is a tpl_counter, then use it, else use afl_counter.
             input.insert(input.end(), afl_counter_b, afl_counter_b+4);
             // If there is a tpl_id, then use it, else use ddl_id.
-            input.insert(input.end(), dll_id_b, dll_id_b+4);
+            if (tpl_id_found)
+            {
+                input.insert(input.end(), tpl_id_b, tpl_id_b+4);
+            }
+            else
+            {
+                input.insert(input.end(), dll_id_b, dll_id_b+4);
+            }
+
             // Pad.
             for (int i=0; i<7; ++i) input.insert(input.end(), 0x07);
 
@@ -1342,6 +1350,7 @@ bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
 
 bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
 {
+    tpl_id_found = true;
     tpl_id_b[0] = *(pos+0);
     tpl_id_b[1] = *(pos+1);
     tpl_id_b[2] = *(pos+2);
@@ -1518,6 +1527,7 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
 bool Telegram::parseHeader(vector<uchar> &input_frame)
 {
     bool ok;
+    explanations.clear();
     frame = input_frame;
     vector<uchar>::iterator pos = frame.begin();
     // Parsed accumulates parsed bytes.
@@ -1537,6 +1547,7 @@ bool Telegram::parseHeader(vector<uchar> &input_frame)
 
 bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk)
 {
+    explanations.clear();
     meter_keys = mk;
     assert(meter_keys != NULL);
     bool ok;
@@ -1682,7 +1693,6 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk)
 void Telegram::explainParse(string intro, int from)
 {
     for (auto& p : explanations) {
-        if (p.first < from) continue;
         debug("%s %02x: %s\n", intro.c_str(), p.first, p.second.c_str());
     }
     string hex = bin2hex(parsed);

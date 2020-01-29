@@ -283,6 +283,7 @@ struct Telegram
     int tpl_kdf_selection {}; // 1 byte
     vector<uchar> tpl_generated_key; // 16 bytes
 
+    bool  tpl_id_found {}; // If set to true, then tpl_id_b contains valid values.
     uchar tpl_id_b[4]; // 4 bytes
     uchar tpl_mft_b[2]; // 2 bytes
     uchar tpl_version; // 1 bytes

@@ -212,6 +212,7 @@ Elvaco CMa12w Thermometer (cma12w)
 Supported electricity meters:
 Tauron Amiplus (amiplus) (includes vendor apator and echelon)
 EMH Metering (ehzp)
+Easy Meter ESYS-WM20 (esyswm)
 
 Work in progress:
 Electricity meter Kamstrup Omnipower (omnipower)

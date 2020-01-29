@@ -22,7 +22,8 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
-struct MeterEHZP : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
+struct MeterEHZP : public virtual ElectricityMeter, public virtual MeterCommonImplementation
+{
     MeterEHZP(WMBus *bus, MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
@@ -44,17 +45,9 @@ private:
 MeterEHZP::MeterEHZP(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::EHZP, MANUFACTURER_EMH)
 {
-    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
+    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 
-    // This is one manufacturer of EHZP compatible meters.
-    addManufacturer(MANUFACTURER_APA);
     addMedia(0x02); // Electricity meter
-
-    // This is another manufacturer
-    addManufacturer(MANUFACTURER_DEV);
-    // Oddly, this device has not been configured to send as a electricity meter,
-    // but instead a device/media type that is used for gateway or relays or something?
-    addMedia(0x37); // Radio converter (meter side)
 
     addLinkMode(LinkMode::T1);
 
@@ -113,16 +106,31 @@ double MeterEHZP::currentPowerProduction(Unit u)
 
 void MeterEHZP::processContent(Telegram *t)
 {
+    /*
+    (ehzp) 26: 07 dif (64 Bit Integer/Binary Instantaneous value)
+    (ehzp) 27: 00 vif (Energy mWh)
+    (ehzp) 28: * 583B740200000000 total energy (41.171800 kwh)
+    (ehzp) 30: 07 dif (64 Bit Integer/Binary Instantaneous value)
+    (ehzp) 31: 80 vif (Energy mWh)
+    (ehzp) 32: 3C vife (backward flow)
+    (ehzp) 33: * BCD7020000000000 total energy returned (0.186300 kwh)
+    (ehzp) 3b: 07 dif (64 Bit Integer/Binary Instantaneous value)
+    (ehzp) 3c: 28 vif (Power mW)
+    (ehzp) 3d: * B070200000000000 current power (2.126000 kw)
+    (ehzp) 45: 04 dif (32 Bit Integer/Binary Instantaneous value)
+    (ehzp) 46: 20 vif (On time seconds)
+    (ehzp) 47: * 92A40600 on time (120.929444 h)
+    */
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::EnergyWh, 0, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, ValueInformation::EnergyWh, 0, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
         t->addMoreExplanation(offset, " total energy (%f kwh)", total_energy_kwh_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::PowerW, 0, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, ValueInformation::PowerW, 0, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &current_power_kw_);
         t->addMoreExplanation(offset, " current power (%f kw)", current_power_kw_);
