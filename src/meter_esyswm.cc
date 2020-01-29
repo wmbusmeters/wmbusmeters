@@ -53,11 +53,9 @@ private:
 };
 
 MeterESYSWM::MeterESYSWM(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::ESYSWM, 0)
+    MeterCommonImplementation(bus, mi, MeterType::ESYSWM, MANUFACTURER_ESY)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
-
-    addManufacturer(MANUFACTURER_EMH);
 
     // The ESYS-WM-20 and ESYS-WM15 are addons to the electricity meters.
     addMedia(0x37); // Radio converter (meter side)
@@ -210,6 +208,27 @@ void MeterESYSWM::processContent(Telegram *t)
       (esyswm) 69: FF vife (additive correction constant: unit of VIF * 10^0)
       (esyswm) 6a: 03 vife (?)
       (esyswm) 6b: 38960000
+    */
+
+    /*
+      (esyswm) 2e: 0D dif (variable length Instantaneous value)
+      (esyswm) 2f: FD vif (Second extension of VIF-codes)
+      (esyswm) 30: 09 vife (Medium (as in fixed header))
+      (esyswm) 31: 0F varlen=15
+      (esyswm) 32:
+      (esyswm) 41: 0D dif (variable length Instantaneous value)
+      (esyswm) 42: 79 vif (Enhanced identification)
+      (esyswm) 43: 0E varlen=14
+      (esyswm) 44:
+      (esyswm) 52: 0D dif (variable length Instantaneous value)
+      (esyswm) 53: FD vif (Second extension of VIF-codes)
+      (esyswm) 54: 10 vife (Customer location)
+      (esyswm) 55: 0A varlen=10
+      (esyswm) 56:
+      (esyswm) 60: 0D dif (variable length Instantaneous value)
+      (esyswm) 61: 78 vif (Fabrication no)
+      (esyswm) 62: 0E varlen=14
+      (esyswm) 63:
     */
     int offset;
     string key;
