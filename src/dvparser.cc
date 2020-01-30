@@ -307,9 +307,9 @@ bool findKey(MeasurementType mit, ValueInformation vif, int storagenr, int tarif
     int low, hi;
     valueInfoRange(vif, &low, &hi);
 
-    debug("(dvparser) looking for type=%s vif=%s storagenr=%d value_ran_low=%02x value_ran_hi=%02x\n",
+    /*debug("(dvparser) looking for type=%s vif=%s storagenr=%d value_ran_low=%02x value_ran_hi=%02x\n",
           measurementTypeName(mit).c_str(), toString(vif), storagenr,
-          low, hi);
+          low, hi);*/
 
     for (auto& v : *values)
     {
@@ -317,9 +317,9 @@ bool findKey(MeasurementType mit, ValueInformation vif, int storagenr, int tarif
         int vi = v.second.second.value_information;
         int sn = v.second.second.storagenr;
         int tn = v.second.second.tariff;
-        debug("(dvparser) match? %s type=%s vif=%02x (%s) and storagenr=%d\n",
+        /*debug("(dvparser) match? %s type=%s vif=%02x (%s) and storagenr=%d\n",
               v.first.c_str(),
-              measurementTypeName(ty).c_str(), vi, toString(toValueInformation(vi)), storagenr, sn);
+              measurementTypeName(ty).c_str(), vi, toString(toValueInformation(vi)), storagenr, sn);*/
 
         if (vi >= low && vi <= hi
             && (mit == MeasurementType::Unknown || mit == ty)
@@ -327,9 +327,9 @@ bool findKey(MeasurementType mit, ValueInformation vif, int storagenr, int tarif
             && (tariffnr == ANY_TARIFFNR || tariffnr == tn))
         {
             *key = v.first;
-            debug("(dvparser) found key %s for type=%s vif=%02x (%s) storagenr=%d\n",
+            /*debug("(dvparser) found key %s for type=%s vif=%02x (%s) storagenr=%d\n",
                   v.first.c_str(), measurementTypeName(ty).c_str(),
-                  vi, toString(toValueInformation(vi)), storagenr);
+                  vi, toString(toValueInformation(vi)), storagenr);*/
             return true;
         }
     }

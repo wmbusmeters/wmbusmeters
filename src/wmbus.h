@@ -227,17 +227,22 @@ struct MeterKeys
 
 struct Telegram
 {
+    // The meter address as a string usually printed on the meter.
+    string id;
+
     // DLL
     int dll_len {}; // The length of the telegram, 1 byte.
-    int dll_c {};   // 1 byte
-    int dll_mft {}; // Manufacturer 2 bytes
+    int dll_c {};   // 1 byte control code, SND_NR=0x44
+
+    uchar dll_mfct_b[2]; //  2 bytes
+    int dll_mfct {};
+
     vector<uchar> dll_a; // A field 6 bytes
     // The 6 a field bytes are composed of:
     uchar dll_id_b[4] {};    // 4 bytes, address in BCD = 8 decimal 00000000...99999999 digits.
     vector<uchar> dll_id; // 4 bytes, human readable order.
-    string id; // the address as a string.
-    int dll_version {}; // 1 byte
-    int dll_type {}; // 1 byte
+    uchar dll_version {}; // 1 byte
+    uchar dll_type {}; // 1 byte
 
     // ELL
     uchar ell_ci {}; // 1 byte
@@ -253,7 +258,11 @@ struct Telegram
     uint16_t ell_pl_crc {}; // 2 bytes
 
     uchar ell_mfct_b[2] {}; // 2 bytes;
-    uchar ell_addr_b[6] {}; // 6 bytes;
+    int   ell_mfct {};
+    bool  ell_id_found {};
+    uchar ell_id_b[6] {}; // 4 bytes;
+    uchar ell_version {}; // 1 byte
+    uchar ell_type {};  // 1 byte
 
     // NWL
     int nwl_ci {}; // 1 byte
@@ -263,16 +272,24 @@ struct Telegram
     uchar afl_len {}; // 1 byte
     uchar afl_fc_b[2] {}; // 2 byte fragmentation control
     uint16_t afl_fc {};
-    uchar afl_mc {}; // 1 byte message control
+    uchar afl_mcl {}; // 1 byte message control
+
+    bool afl_ki_found {};
     uchar afl_ki_b[2] {}; // 2 byte key information
     uint16_t afl_ki {};
+
+    bool afl_counter_found {};
     uchar afl_counter_b[4] {}; // 4 bytes
     uint32_t afl_counter {};
 
-    int afl_mac_b[2] {};
-    uchar afl_ml_b[2] {};
+    bool afl_mlen_found {};
+    int afl_mlen {};
+
+    bool must_check_mac {};
+    vector<uchar> afl_mac_b;
 
     // TPL
+    vector<uchar>::iterator tpl_start;
     int tpl_ci {}; // 1 byte
     int tpl_acc {}; // 1 byte
     int tpl_sts {}; // 1 byte
@@ -282,12 +299,14 @@ struct Telegram
     int tpl_cfg_ext {}; // 1 byte
     int tpl_kdf_selection {}; // 1 byte
     vector<uchar> tpl_generated_key; // 16 bytes
+    vector<uchar> tpl_generated_mac_key; // 16 bytes
 
     bool  tpl_id_found {}; // If set to true, then tpl_id_b contains valid values.
-    uchar tpl_id_b[4]; // 4 bytes
-    uchar tpl_mft_b[2]; // 2 bytes
-    uchar tpl_version; // 1 bytes
-    uchar tpl_type; // 1 bytes
+    uchar tpl_id_b[4] {}; // 4 bytes
+    uchar tpl_mfct_b[2] {}; // 2 bytes
+    int   tpl_mfct {};
+    uchar tpl_version {}; // 1 bytes
+    uchar tpl_type {}; // 1 bytes
 
     // The format signature is used for compact frames.
     int format_signature {};
@@ -352,7 +371,11 @@ private:
 
     bool parseShortTPL(std::vector<uchar>::iterator &pos);
     bool parseLongTPL(std::vector<uchar>::iterator &pos);
-
+    bool checkMAC(std::vector<uchar> &frame,
+                  std::vector<uchar>::iterator from,
+                  std::vector<uchar>::iterator to,
+                  std::vector<uchar> &mac,
+                  std::vector<uchar> &mackey);
     bool findFormatBytesFromKnownMeterSignatures(std::vector<uchar> *format_bytes);
 };
 

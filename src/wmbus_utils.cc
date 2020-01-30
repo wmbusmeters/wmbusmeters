@@ -34,7 +34,7 @@ bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
     uchar iv[16];
     int i=0;
     // M-field
-    iv[i++] = t->dll_mft&255; iv[i++] = t->dll_mft>>8;
+    iv[i++] = t->dll_mfct_b[0]; iv[i++] = t->dll_mfct_b[1];
     // A-field
     for (int j=0; j<6; ++j) { iv[i++] = t->dll_a[j]; }
     // CC-field
@@ -120,7 +120,7 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::it
     uchar iv[16];
     int i=0;
     // M-field
-    iv[i++] = t->dll_mft&255; iv[i++] = t->dll_mft>>8;
+    iv[i++] = t->dll_mfct_b[0]; iv[i++] = t->dll_mfct_b[1];
     // A-field
     for (int j=0; j<6; ++j) { iv[i++] = t->dll_a[j]; }
     // ACC

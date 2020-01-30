@@ -193,19 +193,19 @@ void Telegram::print() {
     notice("Received telegram from: %02x%02x%02x%02x\n",
 	   dll_id[0], dll_id[1], dll_id[2], dll_id[3]);
     notice("          manufacturer: (%s) %s\n",
-           manufacturerFlag(dll_mft).c_str(),
-	   manufacturer(dll_mft).c_str());
+           manufacturerFlag(dll_mfct).c_str(),
+	   manufacturer(dll_mfct).c_str());
     notice("           device type: %s\n",
 	   mediaType(dll_type).c_str());
 }
 
 void Telegram::printDLL()
 {
-    string man = manufacturerFlag(dll_mft);
-    verbose("(telegram) DLL L=%02x C=%02x M=%04x (%s) A=%02x%02x%02x%02x VER=%02x TYPE=%02x (%s)\n",
+    string man = manufacturerFlag(dll_mfct);
+    verbose("(telegram) DLL L=%02x C=%02x (%s) M=%04x (%s) A=%02x%02x%02x%02x VER=%02x TYPE=%02x (%s)\n",
             dll_len,
-            dll_c,
-            dll_mft,
+            dll_c, cType(dll_c).c_str(),
+            dll_mfct,
             man.c_str(),
             dll_id[0], dll_id[1], dll_id[2], dll_id[3],
             dll_version,
@@ -231,9 +231,10 @@ void Telegram::printELL()
     }
     if (ell_ci == 0x8e || ell_ci == 0x8f)
     {
-        verbose(" M=%02x%02x A=%02x%02x%02x%02x%02x%02x",
-                ell_mfct_b[0], ell_mfct_b[1],
-                ell_addr_b[0], ell_addr_b[1], ell_addr_b[2], ell_addr_b[3], ell_addr_b[4], ell_addr_b[5]);
+        string man = manufacturerFlag(ell_mfct);
+        verbose(" M=%02x%02x (%s) ID=%02x%02x%02x%02x",
+                ell_mfct_b[0], ell_mfct_b[1], man.c_str(),
+                ell_id_b[0], ell_id_b[1], ell_id_b[2], ell_id_b[3]);
     }
     verbose("\n");
 }
@@ -273,7 +274,7 @@ void Telegram::printTPL()
         string info = mediaType(tpl_type);
         verbose(" ID=%02x%02x%02x%02x MFT=%02x%02x VER=%02x TYPE=%02x (%s)",
                 tpl_id_b[0], tpl_id_b[1], tpl_id_b[2], tpl_id_b[3],
-                tpl_mft_b[0], tpl_mft_b[1],
+                tpl_mfct_b[0], tpl_mfct_b[1],
                 tpl_version, tpl_type, info.c_str());
     }
 
@@ -903,9 +904,12 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     dll_c = *pos;
     addExplanationAndIncrementPos(pos, 1, "%02x c-field (%s)", dll_c, cType(dll_c).c_str());
 
-    dll_mft = *(pos+1)<<8 | *pos;
-    string man = manufacturerFlag(dll_mft);
-    addExplanationAndIncrementPos(pos, 2, "%02x%02x m-field (%02x=%s)", frame[2], frame[3], dll_mft, man.c_str());
+    dll_mfct_b[0] = *(pos+0);
+    dll_mfct_b[1] = *(pos+1);
+    dll_mfct = dll_mfct_b[1] <<8 | dll_mfct_b[0];
+    string man = manufacturerFlag(dll_mfct);
+    addExplanationAndIncrementPos(pos, 2, "%02x%02x m-field (%s)",
+                                  dll_mfct_b[0], dll_mfct_b[1], man.c_str());
 
     dll_a.resize(6);
     dll_id.resize(4);
@@ -995,19 +999,25 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
     {
         ell_mfct_b[0] = *(pos+0);
         ell_mfct_b[1] = *(pos+1);
+        ell_mfct = ell_mfct_b[1] << 8 | ell_mfct_b[0];
+        string man = manufacturerFlag(ell_mfct);
+        addExplanationAndIncrementPos(pos, 2, "%02x%02x ell-mfct (%s)",
+                                      ell_mfct_b[0], ell_mfct_b[1], man.c_str());
 
-        addExplanationAndIncrementPos(pos, 2, "%02x%02x ell-mfct2", ell_mfct_b[0], ell_mfct_b[1]);
+        ell_id_found = true;
+        ell_id_b[0] = *(pos+0);
+        ell_id_b[1] = *(pos+1);
+        ell_id_b[2] = *(pos+2);
+        ell_id_b[3] = *(pos+3);
 
-        ell_addr_b[0] = *(pos+0);
-        ell_addr_b[1] = *(pos+1);
-        ell_addr_b[2] = *(pos+2);
-        ell_addr_b[3] = *(pos+3);
-        ell_addr_b[4] = *(pos+4);
-        ell_addr_b[5] = *(pos+5);
+        addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x ell-id",
+                                      ell_id_b[0], ell_id_b[1], ell_id_b[2], ell_id_b[3]);
 
-        addExplanationAndIncrementPos(pos, 6, "%02x%02x%02x%02x%02x%02x ell-adr2",
-                                      ell_addr_b[0], ell_addr_b[1], ell_addr_b[2],
-                                      ell_addr_b[3], ell_addr_b[4], ell_addr_b[5]);
+        ell_version = *pos;
+        addExplanationAndIncrementPos(pos, 1, "%02x ell-version", ell_version);
+
+        ell_type = *pos;
+        addExplanationAndIncrementPos(pos, 1, "%02x ell-type");
     }
 
     if (has_session_number_pl_crc)
@@ -1098,10 +1108,10 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 
     if (has_control)
     {
-        afl_mc = *pos;
-        string afl_mc_info = toStringFromAFLMC(afl_mc);
-        addExplanationAndIncrementPos(pos, 1, "%02x afl-mc (%s)",
-                                      afl_mc, afl_mc_info.c_str());
+        afl_mcl = *pos;
+        string afl_mcl_info = toStringFromAFLMC(afl_mcl);
+        addExplanationAndIncrementPos(pos, 1, "%02x afl-mcl (%s)",
+                                      afl_mcl, afl_mcl_info.c_str());
     }
 
     if (has_key_info)
@@ -1133,79 +1143,25 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 
     if (has_mac)
     {
-        int at = afl_mc & 0x0f;
+        int at = afl_mcl & 0x0f;
         AFLAuthenticationType aat = fromIntToAFLAuthenticationType(at);
         int len = toLen(aat);
-        switch(len)
+        if (len != 2 &&
+            len != 4 &&
+            len != 8 &&
+            len != 12 &&
+            len != 16)
         {
-        case 2:
+            warning("(wmbus) bad length of mac\n");
+            return false;
+        }
+        for (int i=0; i<len; ++i)
         {
-            uchar a = *(pos+0);
-            uchar b = *(pos+1);
-            addExplanationAndIncrementPos(pos, 2, "%02x%02x MAC", a, b);
-            break;
+            afl_mac_b.insert(afl_mac_b.end(), *(pos+i));
         }
-        case 4:
-        {
-            uchar a = *(pos+0);
-            uchar b = *(pos+1);
-            uchar c = *(pos+2);
-            uchar d = *(pos+3);
-            addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x MAC", a, b, c, d);
-            break;
-        }
-        case 8:
-        {
-            uchar a = *(pos+0);
-            uchar b = *(pos+1);
-            uchar c = *(pos+2);
-            uchar d = *(pos+3);
-            uchar e = *(pos+4);
-            uchar f = *(pos+5);
-            uchar g = *(pos+6);
-            uchar h = *(pos+7);
-            addExplanationAndIncrementPos(pos, 8, "%02x%02x%02x%02x%02x%02x%02x%02x MAC", a, b, c, d, e, f, g, h);
-            break;
-        }
-        case 12:
-        {
-            uchar a = *(pos+0);
-            uchar b = *(pos+1);
-            uchar c = *(pos+2);
-            uchar d = *(pos+3);
-            uchar e = *(pos+4);
-            uchar f = *(pos+5);
-            uchar g = *(pos+6);
-            uchar h = *(pos+7);
-            uchar i = *(pos+8);
-            uchar j = *(pos+9);
-            uchar k = *(pos+10);
-            uchar l = *(pos+11);
-            addExplanationAndIncrementPos(pos, 8, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x MAC", a, b, c, d, e, f, g, h, i, j, k, l);
-            break;
-        }
-        case 16:
-        {
-            uchar a = *(pos+0);
-            uchar b = *(pos+1);
-            uchar c = *(pos+2);
-            uchar d = *(pos+3);
-            uchar e = *(pos+4);
-            uchar f = *(pos+5);
-            uchar g = *(pos+6);
-            uchar h = *(pos+7);
-            uchar i = *(pos+8);
-            uchar j = *(pos+9);
-            uchar k = *(pos+10);
-            uchar l = *(pos+11);
-            uchar m = *(pos+12);
-            uchar n = *(pos+13);
-            uchar o = *(pos+14);
-            uchar p = *(pos+15);
-            addExplanationAndIncrementPos(pos, 8, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x MAC", a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p);
-            break;
-        }
-        }
+        string s = bin2hex(afl_mac_b);
+        addExplanationAndIncrementPos(pos, len, "%s afl-mac %d bytes", s.c_str(), len);
+        must_check_mac = true;
     }
 
     return true;
@@ -1301,7 +1257,7 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
             //                          0x01 = mac from meter.
             //                          0x10 = encryption from communication partner.
             //                          0x11 = mac from communication partner.
-            input.insert(input.end(), 0);
+            input.insert(input.end(), 0x00); // DC 00 = generate ephemereal encryption key from meter.
             // If there is a tpl_counter, then use it, else use afl_counter.
             input.insert(input.end(), afl_counter_b, afl_counter_b+4);
             // If there is a tpl_id, then use it, else use ddl_id.
@@ -1323,8 +1279,18 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
             }
             AES_CMAC(&meter_keys->confidentiality_key[0], &input[0], 16, &mac[0]);
             string s = bin2hex(mac);
+            debug("(wmbus) ephemereal Kenc %s\n", s.c_str());
             tpl_generated_key.clear();
             tpl_generated_key.insert(tpl_generated_key.end(), mac.begin(), mac.end());
+
+            input[0] = 0x01; // DC 01 = generate ephemereal mac key from meter.
+            mac.clear();
+            mac.resize(16);
+            AES_CMAC(&meter_keys->confidentiality_key[0], &input[0], 16, &mac[0]);
+            s = bin2hex(mac);
+            debug("(wmbus) ephemereal Kmac %s\n", s.c_str());
+            tpl_generated_mac_key.clear();
+            tpl_generated_mac_key.insert(tpl_generated_mac_key.end(), mac.begin(), mac.end());
         }
     }
 
@@ -1358,10 +1324,11 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
 
     addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x tpl-id", tpl_id_b[0], tpl_id_b[1], tpl_id_b[2], tpl_id_b[3]);
 
-    tpl_mft_b[0] = *(pos+0);
-    tpl_mft_b[1] = *(pos+1);
-
-    addExplanationAndIncrementPos(pos, 2, "%02x%02x tpl-mft", tpl_mft_b[0], tpl_mft_b[1]);
+    tpl_mfct_b[0] = *(pos+0);
+    tpl_mfct_b[1] = *(pos+1);
+    tpl_mfct = tpl_mfct_b[1] << 8 | tpl_mfct_b[0];
+    string man = manufacturerFlag(tpl_mfct);
+    addExplanationAndIncrementPos(pos, 2, "%02x%02x tpl-mft (%s)", tpl_mfct_b[0], tpl_mfct_b[1], man.c_str());
 
     tpl_version = *(pos+0);
     addExplanationAndIncrementPos(pos, 1, "%02x tpl-version", tpl_version);
@@ -1372,6 +1339,36 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
 
     bool ok = parseShortTPL(pos);
 
+    return ok;
+}
+
+bool Telegram::checkMAC(std::vector<uchar> &frame,
+                        std::vector<uchar>::iterator from,
+                        std::vector<uchar>::iterator to,
+                        std::vector<uchar> &inmac,
+                        std::vector<uchar> &mackey)
+{
+    vector<uchar> input;
+    vector<uchar> mac;
+    mac.resize(16);
+
+    // AFL.MAC = CMAC (Kmac/Lmac,
+    //                 AFL.MCL || AFL.MCR || {AFL.ML || } NextCI || ... || Last Byte of message)
+
+    input.insert(input.end(), afl_mcl);
+    input.insert(input.end(), afl_counter_b, afl_counter_b+4);
+    input.insert(input.end(), from, to);
+    string s = bin2hex(input);
+    debug("(wmbus) input to mac %s\n", s.c_str());
+    AES_CMAC(&mackey[0], &input[0], input.size(), &mac[0]);
+    string calculated = bin2hex(mac);
+    debug("(wmbus) calculated mac %s\n", calculated.c_str());
+    string received = bin2hex(inmac);
+    debug("(wmbus) received   mac %s\n", received.c_str());
+    string truncated = calculated.substr(0, received.length());
+    bool ok = truncated == received;
+    if (ok) debug("(wmbus) mac ok!\n");
+    else    debug("(wmbus) mac NOT ok!\n");
     return ok;
 }
 
@@ -1393,6 +1390,15 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
     }
     else if (tpl_sec_mode == TPLSecurityMode::AES_CBC_NO_IV)
     {
+        bool mac_ok = checkMAC(frame, tpl_start, frame.end(), afl_mac_b, tpl_generated_mac_key);
+
+        // Do not attempt to decrypt if the mac has failed!
+        if (!mac_ok)
+        {
+            warning("(wmbus) mac check failed, did you use the correct decryption key?\n");
+            return false;
+        }
+
         bool ok = decrypt_TPL_AES_CBC_NO_IV(this, frame, pos, tpl_generated_key);
         if (!ok) return false;
         // Now the frame from pos and onwards has been decrypted.
@@ -1497,6 +1503,7 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
         warning("(wmbus) Unknown tpl-ci-field %02x\n", tpl_ci);
         return true;
     }
+    tpl_start = pos;
 
     addExplanationAndIncrementPos(pos, 1, "%02x tpl-ci-field (%s)",
                                   ci_field, ciType(ci_field).c_str());
@@ -1507,19 +1514,20 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
 
     switch (tpl_ci)
     {
-    case CI_Field_Values::TPL_72: return parse_TPL_72(pos);
-    case CI_Field_Values::TPL_78: return parse_TPL_78(pos);
-    case CI_Field_Values::TPL_79: return parse_TPL_79(pos);
-    case CI_Field_Values::TPL_7A: return parse_TPL_7A(pos);
-    case CI_Field_Values::MFCT_SPECIFIC:
-    {
+        case CI_Field_Values::TPL_72: return parse_TPL_72(pos);
+        case CI_Field_Values::TPL_78: return parse_TPL_78(pos);
+        case CI_Field_Values::TPL_79: return parse_TPL_79(pos);
+        case CI_Field_Values::TPL_7A: return parse_TPL_7A(pos);
+        case CI_Field_Values::MFCT_SPECIFIC:
+        {
             header_size = distance(frame.begin(), pos);
             suffix_size = 0;
             return true; // Manufacturer specific telegram payload. Oh well....
-    }
+        }
     }
 
     header_size = distance(frame.begin(), pos);
+    suffix_size = 0;
     warning("(wmbus) Not implemented tpl-ci %02x\n", tpl_ci);
     return false;
 }
@@ -1600,90 +1608,6 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk)
     ok = parseTPL(pos);
     if (!ok) return false;
 
-    /*
-    else if (ci_field == 0x72)
-    {
-        // Example, begins aith frame[11]: 99999999 MMMM VV TT 01 00 0000
-        // Ignore 4 id bytes for now, should perhaps check that they are identical with the id.
-        // But if they are not, what to do?
-        // Ignore 2 mfc bytes for now, check if same as above?
-        // Ignore 1 version byte.
-        // Ignore 1 dev type byte.
-        acc = frame[18];
-        addExplanationAndIncrementPos(pos, 1, "%02x acc", acc);
-        status = frame[19];
-        addExplanationAndIncrementPos(pos, 1, "%02x status ()", status);
-        tpl_cfg = frame[20]<<8 | frame[21];
-        string config_info = "";
-        if (tpl_cfg & 0x0f) {
-            config_info += "encrypted ";
-            is_encrypted_ = true;
-        }
-        if ((tpl_cfg & 0x0f) == 0 || (tpl_cfg & 0x0f) == 0x05) {
-            if ((tpl_cfg & 0x0f) == 0x05) config_info += "AES_CBC ";
-            if (tpl_cfg & 0x80) config_info += "bidirectional ";
-            if (tpl_cfg & 0x40) config_info += "accessibility ";
-            if (tpl_cfg & 0x20) config_info += "synchronous ";
-        }
-        if (config_info.length() > 0) config_info.pop_back();
-        addExplanationAndIncrementPos(pos, 2, "%02x%02x config (%s)", frame[13], frame[14], config_info.c_str());
-        header_size = 4+8;
-    }
-    else if (ci_field == 0x7a)
-    {
-        if (frame.size() < 15)
-        {
-            verbose("(wmbus) cannot parse telegram ci=0x7a with length %zu\n", frame.size());
-            return false;
-        }
-        acc = frame[11];
-        addExplanationAndIncrementPos(pos, 1, "%02x acc", acc);
-        status = frame[12];
-        addExplanationAndIncrementPos(pos, 1, "%02x status ()", status);
-        tpl_cfg = frame[13]<<8 | frame[14];
-        string config_info = "";
-        if (tpl_cfg & 0x0f) {
-            config_info += "encrypted ";
-            is_encrypted_ = true;
-        }
-        if ((tpl_cfg & 0x0f) == 0 || (tpl_cfg & 0x0f) == 0x05) {
-            if ((tpl_cfg & 0x0f) == 0x05) config_info += "AES_CBC ";
-            if (tpl_cfg & 0x80) config_info += "bidirectional ";
-            if (tpl_cfg & 0x40) config_info += "accessibility ";
-            if (tpl_cfg & 0x20) config_info += "synchronous ";
-        }
-        if (config_info.length() > 0) config_info.pop_back();
-        addExplanationAndIncrementPos(pos, 2, "%02x%02x config (%s)", frame[13], frame[14], config_info.c_str());
-        header_size = 4;
-    }
-    else if (ci_field == 0xa2)
-    {
-        // Manufacturer specific telegram payload. Oh well....
-    }
-    else
-    {
-        // Removed because it logs warning for every telegram, even if not 'for me'
-        //warning("Unknown ci-field %02x\n", ci_field);
-    }
-    */
-/*
-    if (t.tpl_sec_mode != TPLSecurityMode::None) && !useAes())
-    {
-        warning("(%s) warning: telegram is encrypted but no key supplied!\n",
-                meterName().c_str());
-    }
-    if (useAes()) {
-        vector<uchar> aeskey = meterKeys()->confidentiality_key;
-        if (encryptionMode() == EncryptionMode::AES_CTR) {
-            decryptMode1_AES_CTR(&t, aeskey);
-        }
-        if (encryptionMode() == EncryptionMode::AES_CBC) {
-            decryptMode5_AES_CBC(&t, aeskey);
-        }
-    } else {
-        t.apl_content = t.apl_payload;
-    }
-*/
     verboseFields();
     debugPayload("(wmbus) frame", frame);
 
@@ -1707,12 +1631,36 @@ void Telegram::expectVersion(const char *info, int v)
 
 string cType(int c_field)
 {
-    switch (c_field) {
-    case 0x44: return "SND_NR";
-    case 0x46: return "SND_IR";
-    case 0x48: return "RSP_UD";
+    string s;
+    if (c_field & 0x80)
+    {
+        s += "relayed ";
     }
-    return "?";
+
+    if (c_field & 0x40)
+    {
+        s += "from meter ";
+    }
+    else
+    {
+        s += "to meter ";
+    }
+
+    int code = c_field & 0x0f;
+
+    switch (code) {
+    case 0x0: s += "SND_NKE"; break; // to meter, link reset
+    case 0x3: s += "SND_UD2"; break; // to meter, command = user data
+    case 0x4: s += "SND_NR"; break; // from meter, unsolicited data, no response expected
+    case 0x5: s += "SND_UD3"; break; // to multiple meters, command = user data, no response expected
+    case 0x6: s += "SND_IR"; break; // from meter, installation request/data
+    case 0x7: s += "ACC_NR"; break; // from meter, unsolicited offers to access the meter
+    case 0x8: s += "ACC_DMD"; break; // from meter, unsolicited demand to access the meter
+    case 0xa: s += "REQ_UD1"; break; // to meter, alarm request
+    case 0xb: s += "REQ_UD2"; break; // to meter, data request
+    }
+
+    return s;
 }
 
 string ccType(int cc_field)
