@@ -50,6 +50,12 @@ private:
     double total_energy_returned_kwh_ {};
     double current_power_returned_kw_ {};
     string device_date_time_;
+
+    // Information sent more rarely and is static.
+
+    string version_;
+    string fabrication_;
+    string location_hex_;
 };
 
 MeterESYSWM::MeterESYSWM(WMBus *bus, MeterInfo &mi) :
@@ -104,6 +110,20 @@ MeterESYSWM::MeterESYSWM(WMBus *bus, MeterInfo &mi) :
              "Current power consumption phase 3.",
              false, true);
 
+    addPrint("version", Quantity::Text,
+             [&](){ return version_; },
+             "Static version information.",
+             false, true);
+
+    addPrint("fabrication", Quantity::Text,
+             [&](){ return fabrication_; },
+             "Static fabrication information.",
+             false, true);
+
+    addPrint("location_hex", Quantity::Text,
+             [&](){ return location_hex_; },
+             "Static location information.",
+             false, true);
 }
 
 unique_ptr<ElectricityMeter> createESYSWM(WMBus *bus, MeterInfo &mi)
@@ -265,4 +285,26 @@ void MeterESYSWM::processContent(Telegram *t)
     extractDVdouble(&t->values, "04A9FF03", &offset, &current_power_phase1_kw_);
     t->addMoreExplanation(offset, " current power phase 3 (%f kwh)", current_power_phase3_kw_);
 
+    string tmp;
+    extractDVstring(&t->values, "0DFD09", &offset, &tmp);
+    if (tmp.length() > 0) {
+        vector<uchar> bin;
+        hex2bin(tmp, &bin);
+        version_ = safeString(bin);
+    }
+    t->addMoreExplanation(offset, " version (%s)", version_.c_str());
+
+    extractDVstring(&t->values, "0D79", &offset, &tmp);
+    if (tmp.length() > 0) {
+        vector<uchar> bin;
+        hex2bin(tmp, &bin);
+        fabrication_ = safeString(bin);
+    }
+    t->addMoreExplanation(offset, " fabrication (%s)", fabrication_.c_str());
+
+    extractDVstring(&t->values, "0DFD10", &offset, &tmp);
+    if (tmp.length() > 0) {
+        location_hex_ = tmp;
+    }
+    t->addMoreExplanation(offset, " location (%s)", location_hex_.c_str());
 }

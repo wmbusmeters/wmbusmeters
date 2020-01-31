@@ -190,8 +190,15 @@ LIST_OF_MANUFACTURERS
 }
 
 void Telegram::print() {
-    notice("Received telegram from: %02x%02x%02x%02x\n",
-	   dll_id[0], dll_id[1], dll_id[2], dll_id[3]);
+    uchar a=0, b=0, c=0, d=0;
+    if (dll_id.size() >= 4)
+    {
+        a = dll_id[0];
+        b = dll_id[1];
+        c = dll_id[2];
+        d = dll_id[3];
+    }
+    notice("Received telegram from: %02x%02x%02x%02x\n", a,b,c,d);
     notice("          manufacturer: (%s) %s\n",
            manufacturerFlag(dll_mfct).c_str(),
 	   manufacturer(dll_mfct).c_str());
