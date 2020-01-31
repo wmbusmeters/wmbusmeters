@@ -1224,6 +1224,7 @@ string Telegram::toStringFromTPLConfig(int cfg)
 
 bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
 {
+    CHECK(2);
     uchar cfg1 = *(pos+0);
     uchar cfg2 = *(pos+1);
     tpl_cfg = cfg2 << 8 | cfg1;
@@ -1248,6 +1249,7 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
 
     if (has_cfg_ext)
     {
+        CHECK(1);
         tpl_cfg_ext = *(pos+0);
         tpl_kdf_selection = (tpl_cfg_ext >> 4) & 3;
 
@@ -1306,12 +1308,12 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
 
 bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
 {
-    int remaining = distance(pos, frame.end());
-    if (remaining == 0) return false;
+    CHECK(1);
 
     tpl_acc = *pos;
     addExplanationAndIncrementPos(pos, 1, "%02x tpl-acc-field", tpl_acc);
 
+    CHECK(1);
     tpl_sts = *pos;
     addExplanationAndIncrementPos(pos, 1, "%02x tpl-sts-field", tpl_sts);
 
@@ -1323,6 +1325,7 @@ bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
 
 bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
 {
+    CHECK(4);
     tpl_id_found = true;
     tpl_id_b[0] = *(pos+0);
     tpl_id_b[1] = *(pos+1);
@@ -1331,15 +1334,18 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
 
     addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x tpl-id", tpl_id_b[0], tpl_id_b[1], tpl_id_b[2], tpl_id_b[3]);
 
+    CHECK(2);
     tpl_mfct_b[0] = *(pos+0);
     tpl_mfct_b[1] = *(pos+1);
     tpl_mfct = tpl_mfct_b[1] << 8 | tpl_mfct_b[0];
     string man = manufacturerFlag(tpl_mfct);
     addExplanationAndIncrementPos(pos, 2, "%02x%02x tpl-mft (%s)", tpl_mfct_b[0], tpl_mfct_b[1], man.c_str());
 
+    CHECK(1);
     tpl_version = *(pos+0);
     addExplanationAndIncrementPos(pos, 1, "%02x tpl-version", tpl_version);
 
+    CHECK(1);
     tpl_type = *(pos+0);
     string info = mediaType(tpl_type);
     addExplanationAndIncrementPos(pos, 1, "%02x tpl-type (%s)", tpl_type, info.c_str());
@@ -1358,6 +1364,9 @@ bool Telegram::checkMAC(std::vector<uchar> &frame,
     vector<uchar> input;
     vector<uchar> mac;
     mac.resize(16);
+
+    if (mackey.size() != 16) return false;
+    if (inmac.size() == 0) return false;
 
     // AFL.MAC = CMAC (Kmac/Lmac,
     //                 AFL.MCL || AFL.MCR || {AFL.ML || } NextCI || ... || Last Byte of message)
@@ -1389,6 +1398,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         if (!ok) return false;
         // Now the frame from pos and onwards has been decrypted.
 
+        CHECK(2);
         if (*(pos+0) != 0x2f || *(pos+1) != 0x2f)
         {
             if (parser_warns_) warning("(wmbus) decrypted content failed check, did you use the correct decryption key?\n");
@@ -1408,8 +1418,9 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
 
         bool ok = decrypt_TPL_AES_CBC_NO_IV(this, frame, pos, tpl_generated_key);
         if (!ok) return false;
-        // Now the frame from pos and onwards has been decrypted.
 
+        // Now the frame from pos and onwards has been decrypted.
+        CHECK(2);
         if (*(pos+0) != 0x2f || *(pos+1) != 0x2f)
         {
             if (parser_warns_) warning("(wmbus) decrypted content failed check, did you use the correct decryption key?\n");
@@ -1447,6 +1458,7 @@ bool Telegram::parse_TPL_78(vector<uchar>::iterator &pos)
 bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
 {
     // Compact frame
+    CHECK(2);
     uchar ecrc0 = *(pos+0);
     uchar ecrc1 = *(pos+1);
     addExplanationAndIncrementPos(pos, 2, "%02x%02x format signature", ecrc0, ecrc1);
@@ -1471,6 +1483,7 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
     vector<uchar>::iterator format = format_bytes.begin();
 
     // 2,3 = crc for payload = hash over both DRH and data bytes. Or is it only over the data bytes?
+    CHECK(2);
     int ecrc2 = *(pos+0);
     int ecrc3 = *(pos+1);
     addExplanationAndIncrementPos(pos, 2, "%02x%02x data crc", ecrc2, ecrc3);
@@ -1504,6 +1517,7 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
     int remaining = distance(pos, frame.end());
     if (remaining == 0) return false;
 
+    CHECK(1);
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::TPL))
     {

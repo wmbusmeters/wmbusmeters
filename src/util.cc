@@ -1104,3 +1104,10 @@ string currentMicros()
     strftime(datetime, 20, "%Y-%m-%d_%H:%M:%S", localtime(&tv.tv_sec));
     return string(datetime)+"."+to_string(tv.tv_usec);
 }
+
+bool hasBytes(int n, vector<uchar>::iterator &pos, vector<uchar> &frame)
+{
+    int remaining = distance(pos, frame.end());
+    if (remaining < n) return false;
+    return true;
+}

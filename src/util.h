@@ -135,4 +135,8 @@ std::string currentHour();
 std::string currentMinute();
 std::string currentMicros();
 
+#define CHECK(n) if (!hasBytes(n, pos, frame)) return expectedMore(__LINE__);
+
+bool hasBytes(int n, std::vector<uchar>::iterator &pos, std::vector<uchar> &frame);
+
 #endif
