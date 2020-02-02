@@ -1,3 +1,15 @@
+Version 0.9.23: 2020-02-02
+
+Added the electricity meters:
+ESysWM-20 (esyswm) from EasyMeter
+eHZ Generation P (ehzp) from EMH Metering
+
+Added the water meter:
+Q400 (q400) from Axis Industries.
+
+Fixed a bug in the auto-start from udev that
+prevented rtlsdr/rtlwmbus to work properly.
+
 Version 0.9.22: 2020-01-19
 
 Bibo added docker support. Thanks Bibo!

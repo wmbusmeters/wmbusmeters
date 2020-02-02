@@ -497,84 +497,80 @@ bool detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
 bool detectRTLSDR(string device, SerialCommunicationManager *handler);
 bool detectCUL(string device, SerialCommunicationManager *handler);
 
+#define CHECK_SAME_GROUP \
+if (ac == AccessCheck::NotSameGroup) \
+{ \
+    /* The device exists and is not locked, but we cannot read it! */ \
+    error("You are not in the same group as the device %s\n", devicefile.c_str()); \
+}
+
 Detected detectAuto(string devicefile,
                     string suffix,
                     SerialCommunicationManager *handler)
 {
+    assert(devicefile == "auto");
+
     if (suffix != "")
     {
         error("You cannot have a suffix appended to auto.\n");
     }
 
-    if (detectIM871A("/dev/im871a", handler))
-    {
-        return { DEVICE_IM871A, "/dev/im871a", 0, false };
-    }
-    else
-    {
-        AccessCheck ac = checkIfExistsAndSameGroup("/dev/im871a");
-        if (ac == AccessCheck::NotSameGroup)
-        {
-            // The device exists but we cannot read it!
-            error("You are not in the same group as the device /dev/im871a\n");
-        }
-    }
+    AccessCheck ac;
 
-    if (detectAMB8465("/dev/amb8465", handler))
-    {
-        return { DEVICE_AMB8465, "/dev/amb8465", false };
-    }
-    else
-    {
-        AccessCheck ac = checkIfExistsAndSameGroup("/dev/amb8465");
-        if (ac == AccessCheck::NotSameGroup)
-        {
-            // The device exists but we cannot read it!
-            error("You are not in the same group as the device /dev/amb8465\n");
-        }
-    }
+    ac = findAndDetect(handler, &devicefile,
+                       [](string d, SerialCommunicationManager* m){ return detectIM871A(d, m);},
+                       "im871a",
+                       "/dev/im871a");
 
-    if (detectRawTTY("/dev/rfmrx2", 38400, handler))
+    if (ac == AccessCheck::OK)
     {
-        return { DEVICE_RFMRX2, "/dev/rfmrx2", false };
+        return { DEVICE_IM871A, devicefile, 0, false };
     }
-    else
-    {
-        AccessCheck ac = checkIfExistsAndSameGroup("/dev/rfmrx2");
-        if (ac == AccessCheck::NotSameGroup)
-        {
-            // The device exists but we cannot read it!
-            error("You are not in the same group as the device /dev/rfmrx2\n");
-        }
-    }
+    CHECK_SAME_GROUP
 
-    if (detectRTLSDR("/dev/rtlsdr", handler))
-    {
-        return { DEVICE_RTLWMBUS, "rtlwmbus" };
-    }
-    else
-    {
-        AccessCheck ac = checkIfExistsAndSameGroup("/dev/amb8465");
-        if (ac == AccessCheck::NotSameGroup)
-        {
-            // The device exists but we cannot read it!
-            error("You are not in the same group as the device /dev/amb8465\n");
-        }
-    }
+    ac = findAndDetect(handler, &devicefile,
+                       [](string d, SerialCommunicationManager* m){ return detectAMB8465(d, m);},
+                       "amb8465",
+                       "/dev/amb8465");
 
-    if (detectCUL("/dev/ttyUSB0", handler))
+    if (ac == AccessCheck::OK)
+    {
+        return { DEVICE_AMB8465, devicefile, false };
+    }
+    CHECK_SAME_GROUP
+
+    ac = findAndDetect(handler, &devicefile,
+                       [](string d, SerialCommunicationManager* m){ return detectRawTTY(d, 38400, m);},
+                       "rfmrx2",
+                       "/dev/rfmrx2");
+
+    if (ac == AccessCheck::OK)
+    {
+        return { DEVICE_RFMRX2, devicefile, false };
+    }
+    CHECK_SAME_GROUP
+
+    ac = findAndDetect(handler, &devicefile,
+                       [](string d, SerialCommunicationManager* m){ return detectCUL(d, m);},
+                       "cul",
+                       "/dev/ttyUSB0");
+
+    if (ac == AccessCheck::OK)
     {
         return { DEVICE_CUL, "/dev/ttyUSB0" };
     }
-    else
+    CHECK_SAME_GROUP
+
+    ac = findAndDetect(handler, &devicefile,
+                       [](string d, SerialCommunicationManager* m){ return detectRTLSDR(d, m);},
+                       "rtlsdr",
+                       "/dev/rtlsdr");
+
+    if (ac == AccessCheck::OK)
     {
-        AccessCheck ac = checkIfExistsAndSameGroup("/dev/ttyUSB0");
-        if (ac == AccessCheck::NotSameGroup)
-        {
-            // The device exists but we cannot read it!
-            error("You are not in the same group as the device CUL\n");
-        }
+        return { DEVICE_RTLWMBUS, "rtlwmbus" };
     }
+    CHECK_SAME_GROUP
 
     // We could not auto-detect any device.
     return { DEVICE_UNKNOWN, "", false };
@@ -3413,4 +3409,53 @@ LIST_OF_AFL_AUTH_TYPES
     }
 
     return AFLAuthenticationType::Reserved1;
+}
+
+AccessCheck findAndDetect(SerialCommunicationManager *manager, string *out_device,
+                          function<bool(string,SerialCommunicationManager*)> check,
+                          string dongle_name,
+                          string device_root)
+{
+    string dev = device_root;
+    debug("(%s) exists? %s\n", dongle_name.c_str(), dev.c_str());
+    AccessCheck ac = checkIfExistsAndSameGroup(dev);
+    *out_device = dev;
+    if (ac == AccessCheck::OK)
+    {
+        debug("(%s) checking %s\n", dongle_name.c_str(), dev.c_str());
+        if (detectIM871A(dev, manager)) return AccessCheck::OK;
+        return AccessCheck::NotThere;
+    }
+    if (ac == AccessCheck::NotSameGroup)
+    {
+        // Device exists, but you do not belong to its group!
+        // This will short circuit testing for other devices.
+        // But not being in the same group is such a problematic
+        // situation, that we can stop early.
+        return AccessCheck::NotSameGroup;
+    }
+
+    for (int n=0; n < 9; ++n)
+    {
+        dev = device_root+"_"+to_string(n);
+        debug("(%s) exists? %s\n", dongle_name.c_str(), dev.c_str());
+        AccessCheck ac = checkIfExistsAndSameGroup(dev);
+        *out_device = dev;
+        if (ac == AccessCheck::OK)
+        {
+            debug("(%s) checking %s\n", dongle_name.c_str(), dev.c_str());
+            if (detectIM871A(dev, manager)) return AccessCheck::OK;
+            // If we get here, the device /dev/im871a_0 could be locked
+            // try /dev/im871a_1 etc...
+        }
+        if (ac == AccessCheck::NotSameGroup)
+        {
+            // Device exists, but you do not belong to its group!
+            return AccessCheck::NotSameGroup;
+        }
+    }
+
+    *out_device = "";
+    // No device found!
+    return AccessCheck::NotThere;
 }

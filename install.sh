@@ -223,7 +223,7 @@ then
     # Create service file
     cat <<EOF > "$ROOT"/etc/systemd/system/wmbusmeters@.service
 [Unit]
-Description="wmbusmeters service on %i"
+Description="wmbusmeters service on %I"
 After=network.target
 StopWhenUnneeded=true
 
@@ -246,7 +246,7 @@ ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/log/wmbusmeters
 ExecStartPre=-/bin/mkdir -p /var/run/wmbusmeters
 ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/run/wmbusmeters
 
-ExecStart=/usr/sbin/wmbusmetersd --device=/dev/%i /var/run/wmbusmeters/wmbusmeters-%i.pid
+ExecStart=/usr/sbin/wmbusmetersd --device='%I' /var/run/wmbusmeters/wmbusmeters-%i.pid
 ExecReload=/bin/kill -HUP `cat /var/run/wmbusmeters/wmbusmeters-%i.pid 2> /dev/null` 2> /dev/null || true
 PIDFile=/var/run/wmbusmeters/wmbusmeters-%i.pid
 
@@ -284,10 +284,10 @@ then
 		mkdir -p "$ROOT"/etc/udev/rules.d
 		# Create service file
 		cat <<EOF > "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
-SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60",SYMLINK+="im871a",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@%k.service"
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001",SYMLINK+="amb8465",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@%k.service"
-SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838",SYMLINK+="rtlsdr",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@%k.service"
-SUBSYSTEM=="usb", ATTRS{idVendor}=="2047", ATTRS{idProduct}=="0863",SYMLINK+="rfmrx2",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@%k.service"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60",SYMLINK+="im871a_%n",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@/dev/im871a_%n.service"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001",SYMLINK+="amb8465_%n",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@/dev/amb8465_%n.service"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838",SYMLINK+="rtlsdr_%n",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@/dev/rtlsdr_%n.service"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="2047", ATTRS{idProduct}=="0863",SYMLINK+="rfmrx2_%n",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@/dev/rfmrx2_%n.service"
 EOF
 		echo udev: installed "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
 	else

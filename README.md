@@ -370,8 +370,10 @@ If you do not want the daemon to start automatically, simply edit
 `,TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"` from each
 line.
 
-You can also start/stop the daemon with `sudo systemctl start wmbusmeters`
+You can also start/stop the daemon with `sudo systemctl restart wmbusmeters@im871a_0`
 and trigger the daemon to reload the config files with `sudo killall -HUP wmbusmetersd`
+If you add more dongles, then more daemons gets started. Each daemon gets a unique name
+like `wmbusmeters@im871a_0 wmbusmeters@im871a_1`.
 
 # Source code
 

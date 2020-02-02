@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -357,7 +357,9 @@ unique_ptr<Configuration> loadConfiguration(string root, string device_override,
     c->json = true;
 
     vector<char> global_conf;
-    bool ok = loadFile(root+"/etc/wmbusmeters.conf", &global_conf);
+    string conf_file = root+"/etc/wmbusmeters.conf";
+    debug("(config) loading %s\n", conf_file.c_str());
+    bool ok = loadFile(conf_file, &global_conf);
     global_conf.push_back('\n');
 
     if (!ok) exit(1);
@@ -408,6 +410,11 @@ unique_ptr<Configuration> loadConfiguration(string root, string device_override,
 
     if (device_override != "")
     {
+        if (startsWith(device_override, "/dev/rtlsdr"))
+        {
+            debug("(config) use rtlwmbus instead of raw device %s\n", device_override.c_str());
+            device_override = "rtlwmbus";
+        }
         debug("(config) overriding device with \"%s\"\n", device_override.c_str());
         handleDevice(c, device_override);
     }

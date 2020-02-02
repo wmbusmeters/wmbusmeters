@@ -460,4 +460,10 @@ MeasurementType difMeasurementType(int dif);
 string linkModeName(LinkMode link_mode);
 string measurementTypeName(MeasurementType mt);
 
+AccessCheck findAndDetect(SerialCommunicationManager *manager,
+                          string *out_device,
+                          function<bool(string,SerialCommunicationManager*)> check,
+                          string dongle_name,
+                          string device_root);
+
 #endif
