@@ -46,12 +46,14 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
             C1_bit |
             T1_bit;
     }
-    int numConcurrentLinkModes() { return 2; }
+    int numConcurrentLinkModes() { return 1; }
     bool canSetLinkModes(LinkModeSet lms)
     {
+        if (0 == countSetBits(lms.bits())) return false;
         if (!supportedLinkModes().supports(lms)) return false;
-        // The cul listens to both modes always.
-        return true;
+        // Ok, the supplied link modes are compatible,
+        // but im871a can only listen to one at a time.
+        return 1 == countSetBits(lms.bits());
     }
     void processSerialData();
     SerialDevice *serial() { return serial_.get(); }
@@ -62,7 +64,8 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
 
 private:
     unique_ptr<SerialDevice> serial_;
-    SerialCommunicationManager *manager_;
+    SerialCommunicationManager *manager_ {};
+    LinkModeSet link_modes_ {};
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
 
@@ -108,25 +111,61 @@ uint32_t WMBusCUL::getDeviceId()
 
 LinkModeSet WMBusCUL::getLinkModes()
 {
-    return Any_bit;
+    return link_modes_;
 }
 
-void WMBusCUL::setLinkModes(LinkModeSet lm)
+void WMBusCUL::setLinkModes(LinkModeSet lms)
 {
-    verbose("(cul) setLinkModes\n");
-
+    if (!canSetLinkModes(lms))
+    {
+        string modes = lms.hr();
+        error("(cul) setting link mode(s) %s is not supported\n", modes.c_str());
+    }
     // 'brc' command: b - wmbus, r - receive, c - c mode (with t)
     vector<uchar> msg(5);
     msg[0] = 'b';
     msg[1] = 'r';
-    msg[2] = 'c';
+    if (lms.has(LinkMode::C1)) {
+        msg[2] = 'c';
+    } else if (lms.has(LinkMode::S1)) {
+        msg[2] = 's';
+    } else if (lms.has(LinkMode::T1)) {
+        msg[2] = 't';
+    }
     msg[3] = 0xa;
     msg[4] = 0xd;
 
     serial()->send(msg);
     usleep(1000*100);
 
-    // TODO: CUL should answer with "CMODE" - check this
+    verbose("(cul) set link mode %c\n", msg[2]);
+    bool sent = serial()->send(msg);
+
+    if (sent) {
+        // Wait for 100ms so that the USB stick have time to prepare a response.
+        usleep(1000*100);
+        vector<uchar> data;
+        serial_->receive(&data);
+        // TODO: CUL should answer with "CMODE" - check this
+        debugPayload("(cul) received", data);
+        string response = safeString(data);
+        bool ok = true;
+        if (lms.has(LinkMode::C1)) {
+            if (response != "CMODE") ok = false;
+        } else if (lms.has(LinkMode::S1)) {
+            if (response != "SMODE") ok = false;
+        } else if (lms.has(LinkMode::T1)) {
+            if (response != "TMODE") ok = false;
+        }
+        if (!ok)
+        {
+            string modes = lms.hr();
+            error("(cul) setting link mode(s) %s is not supported for this cul device!\n", modes.c_str());
+        }
+    }
+
+    // Remember the link modes, necessary when using stdin or file.
+    link_modes_ = lms;
 
     // X01 - start the receiver
     msg[0] = 'X';
@@ -135,8 +174,15 @@ void WMBusCUL::setLinkModes(LinkModeSet lm)
     msg[3] = 0xa;
     msg[4] = 0xd;
 
-    serial()->send(msg);
-    usleep(1000*100);
+    sent = serial()->send(msg);
+    if (sent) {
+        // Wait for 100ms so that the USB stick have time to prepare a response.
+        usleep(1000*100);
+        vector<uchar> data;
+        // Check response.
+        serial_->receive(&data);
+        debugPayload("(cul) received", data);
+    }
 }
 
 void WMBusCUL::simulate()
