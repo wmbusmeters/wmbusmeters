@@ -58,6 +58,8 @@ unique_ptr<WaterMeter> createIzar(WMBus *bus, MeterInfo &mi)
 MeterIzar::MeterIzar(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::IZAR, MANUFACTURER_SAP)
 {
+    addManufacturer(MANUFACTURER_DME);
+
     MeterKeys *mk = meterKeys();
     if (!mk->confidentiality_key.empty())
         keys.push_back(convertKey(mk->confidentiality_key));
@@ -70,6 +72,8 @@ MeterIzar::MeterIzar(WMBus *bus, MeterInfo &mi) :
     }
 
     addMedia(0x01); // Oil meter? why?
+    addMedia(0x15); // Hot water
+    addMedia(0x66); // Woot?
 
     addLinkMode(LinkMode::T1);
 
