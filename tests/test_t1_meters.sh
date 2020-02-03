@@ -25,6 +25,7 @@ $PROG --format=json simulations/simulation_t1.txt \
       Tempoo      lansenth    00010203 "" \
       Rummet      rfmamb      11772288 "" \
       IzarWater   izar        21242472 "" \
+      IzarWater2  izar        66290778 "" \
       HydrusWater hydrus      64646464 "" \
       HydrodigitWater hydrodigit 86868686 "" \
       Q400Water q400 72727272 AAA896100FED12DD614DD5D46369ACDD \

@@ -66,6 +66,9 @@ Received telegram from: 11772288
 Received telegram from: 21242472
           manufacturer: (SAP) Sappel
            device type: Oil meter
+Received telegram from: 66290778
+          manufacturer: (DME) DIEHL Metering, Germany
+           device type: Unknown
 Received telegram from: 64646464
           manufacturer: (DME) DIEHL Metering, Germany
            device type: Water meter
