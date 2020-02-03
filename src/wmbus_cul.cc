@@ -35,6 +35,9 @@ using namespace std;
 
 enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
 
+#define SET_LINK_MODE 1
+#define SET_X01_MODE 2
+
 struct WMBusCUL : public virtual WMBusCommonImplementation
 {
     bool ping();
@@ -44,6 +47,7 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
     LinkModeSet supportedLinkModes() {
         return
             C1_bit |
+            S1_bit |
             T1_bit;
     }
     int numConcurrentLinkModes() { return 1; }
@@ -68,6 +72,11 @@ private:
     LinkModeSet link_modes_ {};
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
+    sem_t command_wait_;
+    string sent_command_;
+    string received_response_;
+
+    void waitForResponse();
 
     FrameStatus checkCULFrame(vector<uchar> &data,
                                    size_t *hex_frame_length,
@@ -140,28 +149,27 @@ void WMBusCUL::setLinkModes(LinkModeSet lms)
 
     verbose("(cul) set link mode %c\n", msg[2]);
     bool sent = serial()->send(msg);
+    sent_command_ = string(&msg[0], &msg[3]);
+    received_response_ = "";
 
-    if (sent) {
-        // Wait for 100ms so that the USB stick have time to prepare a response.
-        usleep(1000*100);
-        vector<uchar> data;
-        serial_->receive(&data);
-        // TODO: CUL should answer with "CMODE" - check this
-        debugPayload("(cul) received", data);
-        string response = safeString(data);
-        bool ok = true;
-        if (lms.has(LinkMode::C1)) {
-            if (response != "CMODE") ok = false;
-        } else if (lms.has(LinkMode::S1)) {
-            if (response != "SMODE") ok = false;
-        } else if (lms.has(LinkMode::T1)) {
-            if (response != "TMODE") ok = false;
-        }
-        if (!ok)
-        {
-            string modes = lms.hr();
-            error("(cul) setting link mode(s) %s is not supported for this cul device!\n", modes.c_str());
-        }
+    if (sent) waitForResponse();
+
+    sent_command_ = "";
+    debug("(cul) received \"%s\"", received_response_.c_str());
+
+    bool ok = true;
+    if (lms.has(LinkMode::C1)) {
+        if (received_response_ != "CMODE") ok = false;
+    } else if (lms.has(LinkMode::S1)) {
+        if (received_response_ != "SMODE") ok = false;
+    } else if (lms.has(LinkMode::T1)) {
+        if (received_response_ != "TMODE") ok = false;
+    }
+
+    if (!ok)
+    {
+        string modes = lms.hr();
+        error("(cul) setting link mode(s) %s is not supported for this cul device!\n", modes.c_str());
     }
 
     // Remember the link modes, necessary when using stdin or file.
@@ -175,13 +183,20 @@ void WMBusCUL::setLinkModes(LinkModeSet lms)
     msg[4] = 0xd;
 
     sent = serial()->send(msg);
-    if (sent) {
-        // Wait for 100ms so that the USB stick have time to prepare a response.
-        usleep(1000*100);
-        vector<uchar> data;
-        // Check response.
-        serial_->receive(&data);
-        debugPayload("(cul) received", data);
+
+    // Any response here, or does it silently move into listening mode?
+}
+
+void WMBusCUL::waitForResponse()
+{
+    while (manager_->isRunning())
+    {
+        int rc = sem_wait(&command_wait_);
+        if (rc==0) break;
+        if (rc==-1) {
+            if (errno==EINTR) continue;
+            break;
+        }
     }
 }
 
@@ -189,11 +204,18 @@ void WMBusCUL::simulate()
 {
 }
 
+string expectedResponses(vector<uchar> &data)
+{
+    string safe = safeString(data);
+    if (safe.find("CMODE") != string::npos) return "CMODE";
+    if (safe.find("TMODE") != string::npos) return "TMODE";
+    if (safe.find("SMODE") != string::npos) return "SMODE";
+    return "";
+}
+
 void WMBusCUL::processSerialData()
 {
     vector<uchar> data;
-
-    //verbose("(cul) processSerialData 1\n");
 
     // Receive and accumulated serial data until a full frame has been received.
     serial_->receive(&data);
@@ -201,8 +223,6 @@ void WMBusCUL::processSerialData()
 
     size_t frame_length;
     int hex_payload_len, hex_payload_offset;
-
-    //verbose("(cul) processSerialData 2\n");
 
     for (;;)
     {
@@ -215,6 +235,15 @@ void WMBusCUL::processSerialData()
         if (status == TextAndNotFrame)
         {
             // The buffer has already been printed by serial cmd.
+            if (sent_command_ != "")
+            {
+                string r = expectedResponses(read_buffer_);
+                if (r != "")
+                {
+                    received_response_ = r;
+                    sem_post(&command_wait_);
+                }
+            }
             read_buffer_.clear();
             break;
         }
@@ -257,9 +286,9 @@ void WMBusCUL::processSerialData()
 }
 
 FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
-                                              size_t *hex_frame_length,
-                                              int *hex_payload_len_out,
-                                              int *hex_payload_offset)
+                                    size_t *hex_frame_length,
+                                    int *hex_payload_len_out,
+                                    int *hex_payload_offset)
 {
     if (data.size() == 0) return PartialFrame;
     size_t eolp = 0;
@@ -273,14 +302,17 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     // there is something wrong. Discard the data.
     if (data.size() < 10) return ErrorInFrame;
 
-    if (data[0] != 'b') {
+    if (data[0] != 'b')
+    {
         // C1 and T1 telegrams should start with a 'b'
-        return ErrorInFrame;
+        return TextAndNotFrame;
     }
 
-    if (data[1] != 'Y') {
-	verbose("(cul) T1 telegrams currently not supported\n");
-	return ErrorInFrame;
+    int fix = 0;
+    if (data[1] != 'Y')
+    {
+        // No Y means this is a T1 telegram.
+        fix = -1;
     }
 
     // we received a full C1 frame, TODO check len
@@ -289,9 +321,10 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     data[3] -= 2;
 
     // remove 8: 2 ('bY') + 4 (CRC) + 2 (CRLF) and start at 2
+    // remove 7: 1 ('b') + 4 (CRC) + 2 (CRLF) and start at 1
     *hex_frame_length = data.size();
-    *hex_payload_len_out = data.size()-8;
-    *hex_payload_offset = 2;
+    *hex_payload_len_out = data.size()-8+fix;
+    *hex_payload_offset = 2+fix;
 
     debug("(cul) got full frame\n");
     return FullFrame;
