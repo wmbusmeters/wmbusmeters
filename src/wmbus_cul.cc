@@ -35,6 +35,9 @@ using namespace std;
 
 enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
 
+#define SET_LINK_MODE 1
+#define SET_X01_MODE 2
+
 struct WMBusCUL : public virtual WMBusCommonImplementation
 {
     bool ping();
@@ -44,14 +47,17 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
     LinkModeSet supportedLinkModes() {
         return
             C1_bit |
+            S1_bit |
             T1_bit;
     }
-    int numConcurrentLinkModes() { return 2; }
+    int numConcurrentLinkModes() { return 1; }
     bool canSetLinkModes(LinkModeSet lms)
     {
+        if (0 == countSetBits(lms.bits())) return false;
         if (!supportedLinkModes().supports(lms)) return false;
-        // The cul listens to both modes always.
-        return true;
+        // Ok, the supplied link modes are compatible,
+        // but im871a can only listen to one at a time.
+        return 1 == countSetBits(lms.bits());
     }
     void processSerialData();
     SerialDevice *serial() { return serial_.get(); }
@@ -62,9 +68,15 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
 
 private:
     unique_ptr<SerialDevice> serial_;
-    SerialCommunicationManager *manager_;
+    SerialCommunicationManager *manager_ {};
+    LinkModeSet link_modes_ {};
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
+    sem_t command_wait_;
+    string sent_command_;
+    string received_response_;
+
+    void waitForResponse();
 
     FrameStatus checkCULFrame(vector<uchar> &data,
                                    size_t *hex_frame_length,
@@ -108,25 +120,60 @@ uint32_t WMBusCUL::getDeviceId()
 
 LinkModeSet WMBusCUL::getLinkModes()
 {
-    return Any_bit;
+    return link_modes_;
 }
 
-void WMBusCUL::setLinkModes(LinkModeSet lm)
+void WMBusCUL::setLinkModes(LinkModeSet lms)
 {
-    verbose("(cul) setLinkModes\n");
-
+    if (!canSetLinkModes(lms))
+    {
+        string modes = lms.hr();
+        error("(cul) setting link mode(s) %s is not supported\n", modes.c_str());
+    }
     // 'brc' command: b - wmbus, r - receive, c - c mode (with t)
     vector<uchar> msg(5);
     msg[0] = 'b';
     msg[1] = 'r';
-    msg[2] = 'c';
+    if (lms.has(LinkMode::C1)) {
+        msg[2] = 'c';
+    } else if (lms.has(LinkMode::S1)) {
+        msg[2] = 's';
+    } else if (lms.has(LinkMode::T1)) {
+        msg[2] = 't';
+    }
     msg[3] = 0xa;
     msg[4] = 0xd;
 
     serial()->send(msg);
     usleep(1000*100);
 
-    // TODO: CUL should answer with "CMODE" - check this
+    verbose("(cul) set link mode %c\n", msg[2]);
+    bool sent = serial()->send(msg);
+    sent_command_ = string(&msg[0], &msg[3]);
+    received_response_ = "";
+
+    if (sent) waitForResponse();
+
+    sent_command_ = "";
+    debug("(cul) received \"%s\"", received_response_.c_str());
+
+    bool ok = true;
+    if (lms.has(LinkMode::C1)) {
+        if (received_response_ != "CMODE") ok = false;
+    } else if (lms.has(LinkMode::S1)) {
+        if (received_response_ != "SMODE") ok = false;
+    } else if (lms.has(LinkMode::T1)) {
+        if (received_response_ != "TMODE") ok = false;
+    }
+
+    if (!ok)
+    {
+        string modes = lms.hr();
+        error("(cul) setting link mode(s) %s is not supported for this cul device!\n", modes.c_str());
+    }
+
+    // Remember the link modes, necessary when using stdin or file.
+    link_modes_ = lms;
 
     // X01 - start the receiver
     msg[0] = 'X';
@@ -135,19 +182,40 @@ void WMBusCUL::setLinkModes(LinkModeSet lm)
     msg[3] = 0xa;
     msg[4] = 0xd;
 
-    serial()->send(msg);
-    usleep(1000*100);
+    sent = serial()->send(msg);
+
+    // Any response here, or does it silently move into listening mode?
+}
+
+void WMBusCUL::waitForResponse()
+{
+    while (manager_->isRunning())
+    {
+        int rc = sem_wait(&command_wait_);
+        if (rc==0) break;
+        if (rc==-1) {
+            if (errno==EINTR) continue;
+            break;
+        }
+    }
 }
 
 void WMBusCUL::simulate()
 {
 }
 
+string expectedResponses(vector<uchar> &data)
+{
+    string safe = safeString(data);
+    if (safe.find("CMODE") != string::npos) return "CMODE";
+    if (safe.find("TMODE") != string::npos) return "TMODE";
+    if (safe.find("SMODE") != string::npos) return "SMODE";
+    return "";
+}
+
 void WMBusCUL::processSerialData()
 {
     vector<uchar> data;
-
-    //verbose("(cul) processSerialData 1\n");
 
     // Receive and accumulated serial data until a full frame has been received.
     serial_->receive(&data);
@@ -155,8 +223,6 @@ void WMBusCUL::processSerialData()
 
     size_t frame_length;
     int hex_payload_len, hex_payload_offset;
-
-    //verbose("(cul) processSerialData 2\n");
 
     for (;;)
     {
@@ -169,6 +235,15 @@ void WMBusCUL::processSerialData()
         if (status == TextAndNotFrame)
         {
             // The buffer has already been printed by serial cmd.
+            if (sent_command_ != "")
+            {
+                string r = expectedResponses(read_buffer_);
+                if (r != "")
+                {
+                    received_response_ = r;
+                    sem_post(&command_wait_);
+                }
+            }
             read_buffer_.clear();
             break;
         }
@@ -211,9 +286,9 @@ void WMBusCUL::processSerialData()
 }
 
 FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
-                                              size_t *hex_frame_length,
-                                              int *hex_payload_len_out,
-                                              int *hex_payload_offset)
+                                    size_t *hex_frame_length,
+                                    int *hex_payload_len_out,
+                                    int *hex_payload_offset)
 {
     if (data.size() == 0) return PartialFrame;
     size_t eolp = 0;
@@ -227,14 +302,17 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     // there is something wrong. Discard the data.
     if (data.size() < 10) return ErrorInFrame;
 
-    if (data[0] != 'b') {
+    if (data[0] != 'b')
+    {
         // C1 and T1 telegrams should start with a 'b'
-        return ErrorInFrame;
+        return TextAndNotFrame;
     }
 
-    if (data[1] != 'Y') {
-	verbose("(cul) T1 telegrams currently not supported\n");
-	return ErrorInFrame;
+    int fix = 0;
+    if (data[1] != 'Y')
+    {
+        // No Y means this is a T1 telegram.
+        fix = -1;
     }
 
     // we received a full C1 frame, TODO check len
@@ -243,9 +321,10 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     data[3] -= 2;
 
     // remove 8: 2 ('bY') + 4 (CRC) + 2 (CRLF) and start at 2
+    // remove 7: 1 ('b') + 4 (CRC) + 2 (CRLF) and start at 1
     *hex_frame_length = data.size();
-    *hex_payload_len_out = data.size()-8;
-    *hex_payload_offset = 2;
+    *hex_payload_len_out = data.size()-8+fix;
+    *hex_payload_offset = 2+fix;
 
     debug("(cul) got full frame\n");
     return FullFrame;
