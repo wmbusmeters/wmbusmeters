@@ -21,9 +21,9 @@ cat $TEST/test_input.txt | $PROG --format=json "stdin:rtlwmbus" \
 cat $TEST/test_output.txt | grep -v '{"media' > $TEST/test_response.txt
 
 cat <<EOF > $TEST/test_expected.txt
-(wmbus) decrypted content failed check, did you use the correct decryption key?
+(wmbus) decrypted content failed check, did you use the correct decryption key? Ignoring telegram.
 (wmbus) payload crc error!
-(wmbus) decrypted content failed check, did you use the correct decryption key?
+(wmbus) decrypted content failed check, did you use the correct decryption key? Ignoring telegram.
 EOF
 
 diff $TEST/test_expected.txt $TEST/test_response.txt
