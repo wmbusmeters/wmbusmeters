@@ -63,6 +63,7 @@ private:
     unique_ptr<SerialDevice> serial_;
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
+    bool warning_dll_len_printed_ {};
 
     FrameStatus checkRTLWMBUSFrame(vector<uchar> &data,
                                    size_t *hex_frame_length,
@@ -179,6 +180,18 @@ void WMBusRTLWMBUS::processSerialData()
             }
 
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            if (payload.size() > 0)
+            {
+                if (payload[0] != payload.size()-1)
+                {
+                    if (!warning_dll_len_printed_)
+                    {
+                        warning("(rtlwmbus) dll_len adjusted to %d from %d. Upgrade rtl_wmbus? This warning will not be printed again.\n", payload.size()-1, payload[0]);
+                        warning_dll_len_printed_ = true;
+                    }
+                    payload[0] = payload.size()-1;
+                }
+            }
             handleTelegram(payload);
         }
     }
