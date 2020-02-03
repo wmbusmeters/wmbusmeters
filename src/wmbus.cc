@@ -1061,7 +1061,10 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
 
         if (ell_pl_crc != check)
         {
-            if (parser_warns_) warning("(wmbus) payload crc error!\n");
+            if (parser_warns_)
+            {
+                warning("(wmbus) payload crc error!\n");
+            }
             return false;
         }
     }
@@ -1397,7 +1400,11 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         CHECK(2);
         if (*(pos+0) != 0x2f || *(pos+1) != 0x2f)
         {
-            if (parser_warns_) warning("(wmbus) decrypted content failed check, did you use the correct decryption key?\n");
+            if (parser_warns_)
+            {
+                warning("(wmbus) decrypted content failed check, did you use the correct decryption key? Ignoring telegram.\n");
+            }
+            return false;
         }
         addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
     }
@@ -1408,7 +1415,10 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         // Do not attempt to decrypt if the mac has failed!
         if (!mac_ok)
         {
-            warning("(wmbus) mac check failed, did you use the correct decryption key?\n");
+            if (parser_warns_)
+            {
+                warning("(wmbus) telegram mac check failed, did you use the correct decryption key? Ignoring telegram.\n");
+            }
             return false;
         }
 
@@ -1419,7 +1429,11 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         CHECK(2);
         if (*(pos+0) != 0x2f || *(pos+1) != 0x2f)
         {
-            if (parser_warns_) warning("(wmbus) decrypted content failed check, did you use the correct decryption key?\n");
+            if (parser_warns_)
+            {
+                warning("(wmbus) decrypted content failed check, did you use the correct decryption key? Ignoring telegram.\n");
+            }
+            return false;
         }
         addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
     }
@@ -1431,7 +1445,8 @@ bool Telegram::parse_TPL_72(vector<uchar>::iterator &pos)
     bool ok = parseLongTPL(pos);
     if (!ok) return false;
 
-    potentiallyDecrypt(pos);
+    ok = potentiallyDecrypt(pos);
+    if (!ok) return false;
 
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end());
@@ -1498,7 +1513,8 @@ bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos)
     bool ok = parseShortTPL(pos);
     if (!ok) return false;
 
-    potentiallyDecrypt(pos);
+    ok = potentiallyDecrypt(pos);
+    if (!ok) return false;
 
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end());

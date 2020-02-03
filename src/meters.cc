@@ -294,7 +294,12 @@ bool MeterCommonImplementation::handleTelegram(vector<uchar> input_frame)
         return false;
     }
 
-    t.parse(input_frame, &meter_keys_);
+    ok = t.parse(input_frame, &meter_keys_);
+    if (!ok)
+    {
+        // Ignoring telegram since it could not be parsed.
+        return false;
+    }
 
     t.expectVersion(meterName().c_str(), expectedVersion());
 
