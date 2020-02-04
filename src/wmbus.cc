@@ -905,13 +905,13 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     addExplanationAndIncrementPos(pos, 1, "%02x length (%d bytes)", dll_len, dll_len);
 
     dll_c = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x c-field (%s)", dll_c, cType(dll_c).c_str());
+    addExplanationAndIncrementPos(pos, 1, "%02x dll-c (%s)", dll_c, cType(dll_c).c_str());
 
     dll_mfct_b[0] = *(pos+0);
     dll_mfct_b[1] = *(pos+1);
     dll_mfct = dll_mfct_b[1] <<8 | dll_mfct_b[0];
     string man = manufacturerFlag(dll_mfct);
-    addExplanationAndIncrementPos(pos, 2, "%02x%02x m-field (%s)",
+    addExplanationAndIncrementPos(pos, 2, "%02x%02x dll-mfct (%s)",
                                   dll_mfct_b[0], dll_mfct_b[1], man.c_str());
 
     dll_a.resize(6);
@@ -926,13 +926,13 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
         }
     }
     strprintf(id, "%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
-    addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x a-field-addr (%s)",
+    addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x dll-id (%s)",
                                   *(pos+0), *(pos+1), *(pos+2), *(pos+3), id.c_str());
 
     dll_version = *(pos+0);
     dll_type = *(pos+1);
-    addExplanationAndIncrementPos(pos, 1, "%02x a-field-version", dll_version);
-    addExplanationAndIncrementPos(pos, 1, "%02x a-field-type (%s)", dll_type,
+    addExplanationAndIncrementPos(pos, 1, "%02x dll-version", dll_version);
+    addExplanationAndIncrementPos(pos, 1, "%02x dll-type (%s)", dll_type,
                                   mediaType(dll_type).c_str());
 
     return true;
@@ -1334,14 +1334,15 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     tpl_id_b[2] = *(pos+2);
     tpl_id_b[3] = *(pos+3);
 
-    addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x tpl-id", tpl_id_b[0], tpl_id_b[1], tpl_id_b[2], tpl_id_b[3]);
+    addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x tpl-id (%02x%02x%02x%02x)", tpl_id_b[0], tpl_id_b[1], tpl_id_b[2], tpl_id_b[3],
+                                  tpl_id_b[3], tpl_id_b[2], tpl_id_b[1], tpl_id_b[0]);
 
     CHECK(2);
     tpl_mfct_b[0] = *(pos+0);
     tpl_mfct_b[1] = *(pos+1);
     tpl_mfct = tpl_mfct_b[1] << 8 | tpl_mfct_b[0];
     string man = manufacturerFlag(tpl_mfct);
-    addExplanationAndIncrementPos(pos, 2, "%02x%02x tpl-mft (%s)", tpl_mfct_b[0], tpl_mfct_b[1], man.c_str());
+    addExplanationAndIncrementPos(pos, 2, "%02x%02x tpl-mfct (%s)", tpl_mfct_b[0], tpl_mfct_b[1], man.c_str());
 
     CHECK(1);
     tpl_version = *(pos+0);
