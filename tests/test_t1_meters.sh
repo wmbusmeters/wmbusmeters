@@ -18,6 +18,7 @@ $PROG --format=json simulations/simulation_t1.txt \
       MyTapWatera apator162   21202020 "" \
       MyTapWaterb apator162   22202020 "" \
       MyTapWaterc apator162   23202020 "" \
+      MyTapWaterd apator162   24202020 "" \
       MyElectricity1 amiplus  10101010 "" \
       Duschen     mkradio3    34333231 "" \
       HeatMeter   vario451    58234965 "" \

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -87,33 +87,39 @@ void MeterApator162::processContent(Telegram *t)
     // Current assumption of this proprietary protocol is that byte 13 tells
     // us where the current total water consumption is located.
     int o = 0;
-    if ((content[11] & 0x80) == 0x80)
+    uchar guess = content[11];
+    if ((guess & 0x83) == 0x83)
     {
         o = 23;
     }
     else
-    if ((content[11] & 0x40) == 0x40)
+    if ((guess & 0x81) == 0x81)
     {
         o = 20;
     }
     else
-    if ((content[11] & 0x10) == 0x10)
+    if ((guess & 0x40) == 0x40)
+    {
+        o = 20;
+    }
+    else
+    if ((guess & 0x10) == 0x10)
     {
         o = 12;
     }
     else
-    if ((content[11] & 0x01) == 0x01)
+    if ((guess & 0x01) == 0x01)
     {
         o = 9;
     }
     else
     {
-        warning("(apator162) Unknown value in proprietary(unknown) apator162 protocol. Ignoring telegram. Found 0x%02x expected bit 0x01, 0x10, 0x40 or 0x80 to be set.\n", content[13]);
+        warning("(apator162) Unknown value in proprietary(unknown) apator162 protocol. Ignoring telegram. Found 0x%02x expected bit 0x01, 0x10, 0x40 or 0x80 to be set.\n", guess);
         return;
     }
 
     strprintf(total, "%02x%02x%02x%02x", content[o], content[o+1], content[o+2], content[o+3]);
-    debug("(apator162) Guessing offset to be %d from byte 0x%02x: total %s\n", o, content[13], total.c_str());
+    debug("(apator162) Guessing offset to be %d from byte 0x%02x: total %s\n", o, guess, total.c_str());
 
     vendor_values["0413"] = { 25, DVEntry(MeasurementType::Instantaneous, 0x13, 0, 0, 0, total) };
     int offset;
