@@ -1281,6 +1281,8 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
             // Pad.
             for (int i=0; i<7; ++i) input.insert(input.end(), 0x07);
 
+            debugPayload("(wmbus) input to kdf for enc", input);
+
             if (meter_keys->confidentiality_key.size() != 16)
             {
                 return false;
@@ -1294,6 +1296,7 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
             input[0] = 0x01; // DC 01 = generate ephemereal mac key from meter.
             mac.clear();
             mac.resize(16);
+            debugPayload("(wmbus) input to kdf for mac", input);
             AES_CMAC(&meter_keys->confidentiality_key[0], &input[0], 16, &mac[0]);
             s = bin2hex(mac);
             debug("(wmbus) ephemereal Kmac %s\n", s.c_str());
@@ -1383,7 +1386,10 @@ bool Telegram::checkMAC(std::vector<uchar> &frame,
     string truncated = calculated.substr(0, received.length());
     bool ok = truncated == received;
     if (ok) debug("(wmbus) mac ok!\n");
-    else    debug("(wmbus) mac NOT ok!\n");
+    else {
+        debug("(wmbus) mac NOT ok!\n");
+        explainParse("BADMAC", 0);
+    }
     return ok;
 }
 
@@ -1652,7 +1658,6 @@ void Telegram::explainParse(string intro, int from)
     for (auto& p : explanations) {
         debug("%s %02x: %s\n", intro.c_str(), p.first, p.second.c_str());
     }
-    string hex = bin2hex(parsed);
 }
 
 void Telegram::expectVersion(const char *info, int v)
