@@ -13,22 +13,26 @@ public class Analyze {
                                             args[0]));
             String prevline = reader.readLine();
             String line = reader.readLine();
-            while (line != null) {
-                if (line.indexOf(match) >= 0) {
+            while (line != null)
+            {
+                if (line.indexOf(match) >= 0)
+                {
                     boolean space = false;
-                    for (int i=0; i<line.length()-4; i+=2) {
+                    for (int i=0; i<line.length()-4; i+=2)
+                    {
                         if (i < prevline.length()-1 && i < line.length()-1 &&
                             line.charAt(i) == prevline.charAt(i) &&
                             line.charAt(i+1) == prevline.charAt(i+1))
                         {
                             space = true;
+                            System.out.print("  ");
                         }
                         else
                         {
-                            if (space) {
+                            /*if (space) {
                                 System.out.print(" ("+i/2+")");
                                 space = false;
-                            }
+                                }*/
                             System.out.print(line.charAt(i));
                             System.out.print(line.charAt(i+1));
                         }

@@ -144,13 +144,10 @@ void WMBusCUL::setLinkModes(LinkModeSet lms)
     msg[3] = 0xa;
     msg[4] = 0xd;
 
-    serial()->send(msg);
-    usleep(1000*100);
-
     verbose("(cul) set link mode %c\n", msg[2]);
-    bool sent = serial()->send(msg);
     sent_command_ = string(&msg[0], &msg[3]);
     received_response_ = "";
+    bool sent = serial()->send(msg);
 
     if (sent) waitForResponse();
 
@@ -297,10 +294,6 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         if (data[eolp] == '\n') break;
     }
     if (eolp >= data.size()) return PartialFrame;
-
-    // We got a full line, but if it is too short, then
-    // there is something wrong. Discard the data.
-    if (data.size() < 10) return ErrorInFrame;
 
     if (data[0] != 'b')
     {

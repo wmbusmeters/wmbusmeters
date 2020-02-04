@@ -394,6 +394,7 @@ FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,
 {
     if (data.size() == 0) return PartialFrame;
     if (data[0] != 0xa5) return ErrorInFrame;
+    if (data.size() < 4) return PartialFrame;
 
     int ctrlbits = (data[1] & 0xf0) >> 4;
     if (ctrlbits & 1) return ErrorInFrame; // Bit 1 is reserved, we do not expect it....
