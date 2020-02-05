@@ -421,11 +421,15 @@ FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,
     }
 
     int ctrlbits = (data[1] & 0xf0) >> 4;
-    if (ctrlbits & 1) return ErrorInFrame; // Bit 1 is reserved, we do not expect it....
+    if (ctrlbits & 1) {
+        debug("(im871a) error in frame, bit 1 shoud not be set in data[1]\n");
+        return ErrorInFrame; // Bit 1 is reserved, we do not expect it....
+    }
     bool has_timestamp = ((ctrlbits&2)==2);
     bool has_rssi = ((ctrlbits&4)==4);
     bool has_crc16 = ((ctrlbits&8)==8);
     int endpoint = data[1] & 0x0f;
+    debug("(im871a) endpoint %d\n", endpoint);
     if (endpoint != DEVMGMT_ID &&
         endpoint != RADIOLINK_ID &&
         endpoint != RADIOLINKTEST_ID &&
@@ -433,10 +437,28 @@ FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,
     *endpoint_out = endpoint;
 
     int msgid = data[2];
-    if (endpoint == DEVMGMT_ID && (msgid<1 || msgid>0x27)) return ErrorInFrame;
-    if (endpoint == RADIOLINK_ID && (msgid<1 || msgid>0x05)) return ErrorInFrame;
-    if (endpoint == RADIOLINKTEST_ID && (msgid<1 || msgid>0x07)) return ErrorInFrame; // Are 5 and 6 disallowed?
-    if (endpoint == HWTEST_ID && (msgid<1 || msgid>0x02)) return ErrorInFrame;
+    debug("(im871a) msgid %d\n", msgid);
+    if (endpoint == DEVMGMT_ID && (msgid<1 || msgid>0x27))
+    {
+        debug("(im871a) DEVMGMT_ID ERROR unexpected msgid %d\n", msgid);
+        return ErrorInFrame;
+    }
+    if (endpoint == RADIOLINK_ID && (msgid<1 || msgid>0x05))
+    {
+        debug("(im871a) RADIOLINK_ID_ID ERROR unexpected msgid %d\n", msgid);
+        return ErrorInFrame;
+    }
+    if (endpoint == RADIOLINKTEST_ID && (msgid<1 || msgid>0x07))
+    {
+        debug("(im871a) RADIOLINKTEST_ID ERROR unexpected msgid %d\n", msgid);
+        return ErrorInFrame;
+    }
+    if (endpoint == HWTEST_ID && (msgid<1 || msgid>0x02))
+    {
+        debug("(im871a) HWTEST_ID ERROR unexpected msgid %d\n", msgid);
+        return ErrorInFrame;
+    }
+
     *msgid_out = msgid;
 
     int payload_len = data[3];
@@ -444,7 +466,10 @@ FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,
     *payload_offset = 4;
 
     *frame_length = *payload_offset+payload_len+(has_timestamp?4:0)+(has_rssi?1:0)+(has_crc16?2:0);
-    if (data.size() < *frame_length) return PartialFrame;
+    if (data.size() < *frame_length) {
+        debug("(im871a) not enough bytes yet, partial frame %d %d.\n", data.size(), *frame_length);
+        return PartialFrame;
+    }
 
     int i = *payload_offset + payload_len;
     if (has_timestamp) {
