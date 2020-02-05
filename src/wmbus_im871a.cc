@@ -393,8 +393,31 @@ FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,
                                           int *payload_len_out, int *payload_offset)
 {
     if (data.size() == 0) return PartialFrame;
-    if (data[0] != 0xa5) return ErrorInFrame;
-    if (data.size() < 4) return PartialFrame;
+    debugPayload("(im871a) checkIM871AFrame", data);
+    if (data[0] != 0xa5)
+    {
+        debugPayload("(im871a) frame does not start with a5", data);
+        size_t i;
+        for (i = 0; i < data.size(); ++i)
+        {
+            if (data[i] == 0xa5)
+            {
+                debug("(im871a) found a5 at pos %d\n", i);
+                data.erase(data.begin(), data.begin()+i);
+                break;
+            }
+        }
+        if (i == data.size())
+        {
+            debug("(im871a) no a5 found at all, drop frame packet.\n");
+            return ErrorInFrame;
+        }
+    }
+    if (data.size() < 4)
+    {
+        debug("(im871a) frame is less than 4 bytes, listen for more bytes.\n");
+        return PartialFrame;
+    }
 
     int ctrlbits = (data[1] & 0xf0) >> 4;
     if (ctrlbits & 1) return ErrorInFrame; // Bit 1 is reserved, we do not expect it....
@@ -474,13 +497,12 @@ void WMBusIM871A::processSerialData()
 
         if (status == PartialFrame)
         {
+            debug("(im871a) partial frame, expecting more.\n");
             break;
         }
         if (status == ErrorInFrame)
         {
-            verbose("(im871a) protocol error in message received!\n");
-            string msg = bin2hex(read_buffer_);
-            debug("(im871a) protocol error \"%s\"\n", msg.c_str());
+            debugPayload("(im871a) bad frame, clearing.", read_buffer_);
             read_buffer_.clear();
             break;
         }
