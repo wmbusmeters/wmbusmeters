@@ -530,7 +530,10 @@ void WMBusIM871A::processSerialData()
 
         if (status == PartialFrame)
         {
-            debug("(im871a) partial frame, expecting more.\n");
+            if (read_buffer_.size() > 0)
+            {
+                debugPayload("(im871a) partial frame, expecting more.", read_buffer_);
+            }
             break;
         }
         if (status == ErrorInFrame)
