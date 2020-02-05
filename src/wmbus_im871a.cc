@@ -428,12 +428,19 @@ FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,
     bool has_timestamp = ((ctrlbits&2)==2);
     bool has_rssi = ((ctrlbits&4)==4);
     bool has_crc16 = ((ctrlbits&8)==8);
+    debug("(im871a) has_timestamp=%d has_rssi=%d has_crc16=%d\n", has_timestamp, has_rssi, has_crc16);
+
     int endpoint = data[1] & 0x0f;
+
     debug("(im871a) endpoint %d\n", endpoint);
-    if (endpoint != DEVMGMT_ID &&
-        endpoint != RADIOLINK_ID &&
-        endpoint != RADIOLINKTEST_ID &&
-        endpoint != HWTEST_ID) return ErrorInFrame;
+    if (endpoint != DEVMGMT_ID &&  // 0x01
+        endpoint != RADIOLINK_ID && // 0x02
+        endpoint != RADIOLINKTEST_ID && // 0x03
+        endpoint != HWTEST_ID) // 0x04
+    {
+        debug("(im871a) Not a valid endpoint %d\n", endpoint);
+        return ErrorInFrame;
+    }
     *endpoint_out = endpoint;
 
     int msgid = data[2];
