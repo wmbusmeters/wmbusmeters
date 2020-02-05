@@ -397,17 +397,18 @@ FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,
     if (data[0] != 0xa5)
     {
         debugPayload("(im871a) frame does not start with a5", data);
-        size_t i;
-        for (i = 0; i < data.size(); ++i)
+        bool found_a5 = false;
+        for (size_t i = 0; i < data.size(); ++i)
         {
             if (data[i] == 0xa5)
             {
                 debug("(im871a) found a5 at pos %d\n", i);
                 data.erase(data.begin(), data.begin()+i);
+                found_a5 = true;;
                 break;
             }
         }
-        if (i == data.size())
+        if (!found_a5)
         {
             debug("(im871a) no a5 found at all, drop frame packet.\n");
             return ErrorInFrame;
