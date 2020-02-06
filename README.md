@@ -175,7 +175,7 @@ As meter quadruples you specify:
 (can be suffixed with :<mode> to specify which mode you expect the meter to use when transmitting)
 <meter_id> an 8 digit mbus id, usually printed on the meter
 <meter_key> an encryption key unique for the meter
-    if the meter uses no encryption, then supply ""
+    if the meter uses no encryption, then supply NOKEY
 
 Supported wmbus dongles:
 IMST 871a
@@ -262,22 +262,22 @@ Example format json output:
 Example format fields output and use rtlsdr dongle with rtlwmbus tuned to 868.9MHz instead of the
 default 868.95MHz.
 
-`wmbusmeters --format=fields rtlwmbus:868.9M GreenhouseWater multical21 33333333 ""`
+`wmbusmeters --format=fields rtlwmbus:868.9M GreenhouseWater multical21 33333333 NOKEY`
 
 `GreenhouseTapWater;33333333;9999.099;77.712;0.000;11;31;;2018-03-05 12:10.24`
 
 Eaxmple of using the shell command to publish to MQTT:
 
-`wmbusmeters --shell='HOME=/home/you mosquitto_pub -h localhost -t water -m "$METER_JSON"' auto GreenhouseWater multical21 33333333 ""`
+`wmbusmeters --shell='HOME=/home/you mosquitto_pub -h localhost -t water -m "$METER_JSON"' auto GreenhouseWater multical21 33333333 NOKEY`
 
 Eaxmple of using the shell command to inject data into postgresql database:
 
-`wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$METER_ID',\$METER_TOTAL_M3,'\$METER_TIMESTAMP') \" " auto MyColdWater multical21 12345678 ""`
+`wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$METER_ID',\$METER_TOTAL_M3,'\$METER_TIMESTAMP') \" " auto MyColdWater multical21 12345678 NOKEY`
 
 You can have multiple shell commands and they will be executed in the order you gave them on the commandline.
 Note that to single quotes around the command is necessary to pass the env variable names into wmbusmeters.
 To list the shell env variables available for your meter, add --shellenvs to the commandline:
-`wmbusmeters --shellenvs auto Water iperl 12345678 ""`
+`wmbusmeters --shellenvs auto Water iperl 12345678 NOKEY`
 which outputs:
 ```
 Environment variables provided to shell for meter iperl:
@@ -298,10 +298,9 @@ this shell command instead of the command stored in wmbusmeters.conf.
 
 You can use `--debug` to get both verbose output and the actual data bytes sent back and forth with the wmbus usb dongle.
 
-If the meter does not use encryption of its meter data, then enter an empty key on the command line.
-(you must enter "")
+If the meter does not use encryption of its meter data, then enter NOKEY on the command line.
 
-`wmbusmeters --format=json --meterfiles auto MyTapWater multical21 12345678 ""`
+`wmbusmeters --format=json --meterfiles auto MyTapWater multical21 12345678 NOKEY`
 
 If you have a Kamstrup meters and you have received a KEM file and its password from your supplier, then you can use [utils/kem-import.py](utils/kem-import.py) utility to extract meter information from that file (including the AES key) and to create corresponding meter files in wmbusmetrs' config directory.
 

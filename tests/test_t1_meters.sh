@@ -53,7 +53,7 @@ then
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" == "0" ]
     then
-        echo OK json: $TESTNAME
+        echo OK fields: $TESTNAME
         TESTRESULT="OK"
     fi
 fi
