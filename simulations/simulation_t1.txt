@@ -91,3 +91,7 @@ telegram=|4E44B4098686868613077AF0004005|2F2F0C1366380000046D27287E2A0F150E00000
 # Test Q400 water telegram (encrypted)
 telegram=|2E4409077272727210077AD7102005CC2FF08D057E306D8C3078AE44AD6E3D37F8515B92FB068347783DFBB25C3C28|
 {"media":"water","meter":"q400","name":"Q400Water","id":"72727272","total_m3":0,"set_date":"2019-12-01","consumption_at_set_date_m3":0,"timestamp":"1111-11-11T11:11:11Z"}
+
+# Test electricity meter with eBZ wMB E01.
+telegram=|5B445A149922992202378C20F6900F002C25BC9E0000BF48954821BC508D72992299225A140102F6003007102F2F040330F92A0004A9FF01FF24000004A9FF026A29000004A9FF03460600000DFD11063132333435362F2F2F2F2F2F|
+{"media":"radio converter (meter side)","meter":"ebzwmbe","name":"Elen1","id":"22992299","total_energy_consumption_kwh":2816.304,"current_power_consumption_phase1_kw":0.01606,"current_power_consumption_phase2_kw":0,"current_power_consumption_phase3_kw":0,"customer":"123456","timestamp":"1111-11-11T11:11:11Z"}

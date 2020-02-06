@@ -64,7 +64,7 @@ unique_ptr<WMBus> openSimulator(string device, SerialCommunicationManager *manag
 }
 
 WMBusSimulator::WMBusSimulator(string file, SerialCommunicationManager *manager)
-    : file_(file), manager_(manager)
+    : WMBusCommonImplementation(DEVICE_SIMULATOR), file_(file), manager_(manager)
 {
     vector<string> lines;
     loadFile(file, &lines_);

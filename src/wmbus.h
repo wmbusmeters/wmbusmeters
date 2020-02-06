@@ -220,9 +220,11 @@ struct MeterKeys
 {
     vector<uchar> confidentiality_key;
     vector<uchar> authentication_key;
+    bool simulation {};
 
     bool hasConfidentialityKey() { return confidentiality_key.size() > 0; }
     bool hasAuthenticationKey() { return authentication_key.size() > 0; }
+    bool isSimulation() { return simulation; }
 };
 
 struct Telegram
@@ -381,7 +383,16 @@ private:
 
 struct Meter;
 
+#define LIST_OF_MBUS_DEVICES X(DEVICE_UNKNOWN)X(DEVICE_CUL)X(DEVICE_D1TC)X(DEVICE_IM871A)X(DEVICE_AMB8465)X(DEVICE_RFMRX2)X(DEVICE_SIMULATOR)X(DEVICE_RTLWMBUS)X(DEVICE_RAWTTY)
+
+enum WMBusDeviceType {
+#define X(name) name,
+LIST_OF_MBUS_DEVICES
+#undef X
+};
+
 struct WMBus {
+    virtual WMBusDeviceType type() = 0;
     virtual bool ping() = 0;
     virtual uint32_t getDeviceId() = 0;
     virtual LinkModeSet getLinkModes() = 0;
@@ -396,17 +407,10 @@ struct WMBus {
     virtual ~WMBus() = 0;
 };
 
-#define LIST_OF_MBUS_DEVICES X(DEVICE_CUL)X(DEVICE_D1TC)X(DEVICE_IM871A)X(DEVICE_AMB8465)X(DEVICE_RFMRX2)X(DEVICE_SIMULATOR)X(DEVICE_RTLWMBUS)X(DEVICE_RAWTTY)X(DEVICE_UNKNOWN)
-
-enum MBusDeviceType {
-#define X(name) name,
-LIST_OF_MBUS_DEVICES
-#undef X
-};
 
 struct Detected
 {
-    MBusDeviceType type;  // IM871A, AMB8465 etc
+    WMBusDeviceType type;  // IM871A, AMB8465 etc
     string devicefile;    // /dev/ttyUSB0 /dev/ttyACM0 stdin simulation_abc.txt telegrams.raw
     int baudrate;         // If the suffix is a number, store the number here.
     // If the override_tty is true, then do not allow the wmbus driver to open the tty,

@@ -900,6 +900,7 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     int remaining = distance(pos, frame.end());
     if (remaining == 0) return expectedMore(__LINE__);
 
+    debug("(wmbus) parseDLL @%d %d\n", distance(frame.begin(), pos), remaining);
     dll_len = *pos;
     if (remaining < dll_len) return expectedMore(__LINE__);
     addExplanationAndIncrementPos(pos, 1, "%02x length (%d bytes)", dll_len, dll_len);
@@ -958,6 +959,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
     int remaining = distance(pos, frame.end());
     if (remaining == 0) return false;
 
+    debug("(wmbus) parseELL @%d %d\n", distance(frame.begin(), pos), remaining);
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::ELL)) return true;
     addExplanationAndIncrementPos(pos, 1, "%02x ell-ci-field (%s)",
@@ -1084,6 +1086,8 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 
     int remaining = distance(pos, frame.end());
     if (remaining == 0) return false;
+
+    debug("(wmbus) parseAFL @%d %d\n", distance(frame.begin(), pos), remaining);
 
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::AFL)) return true;
@@ -1285,6 +1289,10 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
 
             if (meter_keys->confidentiality_key.size() != 16)
             {
+                if (meter_keys->isSimulation()) {
+                    debug("(wmbus) simulation without keys, not generating Kmac and Kenc.\n");
+                    return true;
+                }
                 return false;
             }
             AES_CMAC(&meter_keys->confidentiality_key[0], &input[0], 16, &mac[0]);
@@ -1417,6 +1425,12 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
     }
     else if (tpl_sec_mode == TPLSecurityMode::AES_CBC_NO_IV)
     {
+        if (!meter_keys->hasConfidentialityKey() && meter_keys->isSimulation())
+        {
+            CHECK(2);
+            addExplanationAndIncrementPos(pos, 2, "%02x%02x (already) decrypted check bytes", *(pos+0), *(pos+1));
+            return true;
+        }
         bool mac_ok = checkMAC(frame, tpl_start, frame.end(), afl_mac_b, tpl_generated_mac_key);
 
         // Do not attempt to decrypt if the mac has failed!
@@ -1536,6 +1550,7 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
     int remaining = distance(pos, frame.end());
     if (remaining == 0) return false;
 
+    debug("(wmbus) parseTPL @%d %d\n", distance(frame.begin(), pos), remaining);
     CHECK(1);
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::TPL))
@@ -3270,6 +3285,15 @@ bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_byt
         ok = false;
     }
     return ok;
+}
+
+WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t) : type_(t)
+{
+}
+
+WMBusDeviceType WMBusCommonImplementation::type()
+{
+    return type_;
 }
 
 void WMBusCommonImplementation::setMeters(vector<unique_ptr<Meter>> *meters)

@@ -93,7 +93,7 @@ unique_ptr<WMBus> openRTLWMBUS(string command, SerialCommunicationManager *manag
 }
 
 WMBusRTLWMBUS::WMBusRTLWMBUS(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    serial_(std::move(serial)), manager_(manager)
+    WMBusCommonImplementation(DEVICE_RTLWMBUS), serial_(std::move(serial)), manager_(manager)
 {
     manager_->listenTo(serial_.get(),call(this,processSerialData));
     serial_->open(true);

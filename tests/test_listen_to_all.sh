@@ -81,6 +81,9 @@ Received telegram from: 86868686
 Received telegram from: 72727272
           manufacturer: (AXI) UAB Axis Industries, Lithuania
            device type: Water meter
+Received telegram from: 22992299
+          manufacturer: (EBZ) eBZ, Germany
+           device type: Radio converter (meter side)
 EOF
 
 EXPECTED=$(cat $LOGFILE_EXPECTED)

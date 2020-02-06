@@ -75,7 +75,7 @@ unique_ptr<WMBus> openRawTTY(string device, int baudrate, SerialCommunicationMan
 }
 
 WMBusRawTTY::WMBusRawTTY(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    serial_(std::move(serial)), manager_(manager)
+    WMBusCommonImplementation(DEVICE_RAWTTY), serial_(std::move(serial)), manager_(manager)
 {
     sem_init(&command_wait_, 0, 0);
     manager_->listenTo(serial_.get(),call(this,processSerialData));

@@ -75,7 +75,7 @@ unique_ptr<WMBus> openD1TC(string device, SerialCommunicationManager *manager, u
 }
 
 WMBusD1TC::WMBusD1TC(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    serial_(std::move(serial)), manager_(manager)
+    WMBusCommonImplementation(DEVICE_D1TC), serial_(std::move(serial)), manager_(manager)
 {
     sem_init(&command_wait_, 0, 0);
     manager_->listenTo(serial_.get(),call(this,processSerialData));

@@ -29,7 +29,8 @@ $PROG --format=json simulations/simulation_t1.txt \
       IzarWater2  izar        66290778 "" \
       HydrusWater hydrus      64646464 "" \
       HydrodigitWater hydrodigit 86868686 "" \
-      Q400Water q400 72727272 AAA896100FED12DD614DD5D46369ACDD \
+      Q400Water   q400        72727272 AAA896100FED12DD614DD5D46369ACDD \
+      Elen1       ebzwmbe     22992299 "" \
       > $TEST/test_output.txt
 if [ "$?" == "0" ]
 then

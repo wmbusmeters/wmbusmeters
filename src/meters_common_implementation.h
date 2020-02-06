@@ -54,7 +54,6 @@ struct MeterCommonImplementation : public virtual Meter
     int numUpdates();
 
     bool isTelegramForMe(Telegram *t);
-    bool useAes();
     MeterKeys *meterKeys();
 
     std::vector<std::string> getRecords();
@@ -111,7 +110,6 @@ private:
     WMBus *bus_ {};
     vector<function<void(Telegram*,Meter*)>> on_update_;
     int num_updates_ {};
-    bool use_aes_ {};
     time_t datetime_of_update_ {};
     LinkModeSet link_modes_ {};
     vector<string> shell_cmdlines_;

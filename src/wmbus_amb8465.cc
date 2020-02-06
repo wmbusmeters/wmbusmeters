@@ -106,7 +106,7 @@ unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager
 }
 
 WMBusAmber::WMBusAmber(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    serial_(std::move(serial)), manager_(manager)
+    WMBusCommonImplementation(DEVICE_AMB8465), serial_(std::move(serial)), manager_(manager)
 {
     sem_init(&command_wait_, 0, 0);
     manager_->listenTo(serial_.get(),call(this,processSerialData));

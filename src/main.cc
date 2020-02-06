@@ -157,6 +157,7 @@ bool startUsingCommandline(Configuration *config)
     }
 
     unique_ptr<WMBus> wmbus;
+    bool link_modes_matter = true;
 
     switch (settings.type)
     {
@@ -171,6 +172,7 @@ bool startUsingCommandline(Configuration *config)
     case DEVICE_SIMULATOR:
         verbose("(simulator) in %s\n", settings.devicefile.c_str());
         wmbus = openSimulator(settings.devicefile, manager.get(), std::move(serial_override));
+        link_modes_matter = false;
         break;
     case DEVICE_RAWTTY:
         verbose("(rawtty) on %s\n", settings.devicefile.c_str());
@@ -234,7 +236,7 @@ bool startUsingCommandline(Configuration *config)
         break;
     }
 
-    LinkModeCalculationResult lmcr = calculateLinkModes(config, wmbus.get());
+    LinkModeCalculationResult lmcr = calculateLinkModes(config, wmbus.get(), link_modes_matter);
     if (lmcr.type != LinkModeCalculationResultType::Success) {
         error("%s\n", lmcr.msg.c_str());
     }

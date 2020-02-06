@@ -94,26 +94,27 @@ METER_OBJS:=\
 	$(BUILD)/config.o \
 	$(BUILD)/dvparser.o \
 	$(BUILD)/meters.o \
-	$(BUILD)/meter_multical21.o \
-	$(BUILD)/meter_multical302.o \
-	$(BUILD)/meter_omnipower.o \
-	$(BUILD)/meter_supercom587.o \
-	$(BUILD)/meter_iperl.o \
-	$(BUILD)/meter_eurisii.o \
-	$(BUILD)/meter_qcaloric.o \
-	$(BUILD)/meter_apator162.o \
 	$(BUILD)/meter_amiplus.o \
-	$(BUILD)/meter_mkradio3.o \
-	$(BUILD)/meter_vario451.o \
-	$(BUILD)/meter_lansenth.o \
-	$(BUILD)/meter_rfmamb.o \
-	$(BUILD)/meter_izar.o \
-	$(BUILD)/meter_hydrus.o \
-	$(BUILD)/meter_hydrodigit.o \
+	$(BUILD)/meter_apator162.o \
 	$(BUILD)/meter_cma12w.o \
-	$(BUILD)/meter_q400.o \
+	$(BUILD)/meter_ebzwmbe.o \
 	$(BUILD)/meter_ehzp.o \
 	$(BUILD)/meter_esyswm.o \
+	$(BUILD)/meter_eurisii.o \
+	$(BUILD)/meter_hydrus.o \
+	$(BUILD)/meter_hydrodigit.o \
+    $(BUILD)/meter_iperl.o \
+	$(BUILD)/meter_izar.o \
+    $(BUILD)/meter_lansenth.o \
+	$(BUILD)/meter_mkradio3.o \
+    $(BUILD)/meter_multical21.o \
+	$(BUILD)/meter_multical302.o \
+	$(BUILD)/meter_omnipower.o \
+	$(BUILD)/meter_q400.o \
+	$(BUILD)/meter_qcaloric.o \
+	$(BUILD)/meter_rfmamb.o \
+	$(BUILD)/meter_supercom587.o \
+	$(BUILD)/meter_vario451.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \

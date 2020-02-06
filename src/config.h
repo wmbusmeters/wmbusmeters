@@ -105,6 +105,6 @@ struct LinkModeCalculationResult
     std::string msg;
 };
 
-LinkModeCalculationResult calculateLinkModes(Configuration *c, WMBus *wmbus);
+LinkModeCalculationResult calculateLinkModes(Configuration *c, WMBus *wmbus, bool link_modes_matter = true);
 
 #endif

@@ -28,12 +28,18 @@ string frameTypeKamstrupC1(int ft);
 
 struct WMBusCommonImplementation : public virtual WMBus
 {
-    vector<function<bool(vector<uchar>)>> telegram_listeners_;
-    vector<unique_ptr<Meter>> *meters_;
+    WMBusCommonImplementation(WMBusDeviceType t);
 
+    WMBusDeviceType type();
     void setMeters(vector<unique_ptr<Meter>> *meters);
     void onTelegram(function<bool(vector<uchar>)> cb);
     bool handleTelegram(vector<uchar> frame);
+
+    private:
+
+    vector<function<bool(vector<uchar>)>> telegram_listeners_;
+    vector<unique_ptr<Meter>> *meters_;
+    WMBusDeviceType type_ {};
 };
 
 #endif

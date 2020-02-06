@@ -29,6 +29,7 @@
     X(amiplus,    T1_bit, Electricity, AMIPLUS,     Amiplus)      \
     X(apator162,  C1_bit|T1_bit, Water,       APATOR162,   Apator162)    \
     X(cma12w,     C1_bit|T1_bit, TempHygro,   CMA12W,      CMa12w)       \
+    X(ebzwmbe,    T1_bit, Electricity, EBZWMBE, EBZWMBE)   \
     X(eurisii,    T1_bit, HeatCostAllocation, EURISII, EurisII)   \
     X(ehzp,       T1_bit, Electricity, EHZP,        EHZP)         \
     X(esyswm,     T1_bit, Electricity, ESYSWM,      ESYSWM)       \
@@ -210,6 +211,7 @@ unique_ptr<TempHygroMeter> createCMa12w(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createRfmAmb(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createEHZP(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createESYSWM(WMBus *bus, MeterInfo &m);
+unique_ptr<ElectricityMeter> createEBZWMBE(WMBus *bus, MeterInfo &m);
 GenericMeter *createGeneric(WMBus *bus, MeterInfo &m);
 
 #endif

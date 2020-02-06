@@ -28,12 +28,14 @@ MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
                                                      MeterType type, int manufacturer) :
     type_(type), name_(mi.name), bus_(bus)
 {
-    use_aes_ = true;
     ids_ = splitMatchExpressions(mi.id);
-    if (mi.key.length() == 0) {
-        use_aes_ = false;
-    } else {
+    if (mi.key.length() > 0)
+    {
         hex2bin(mi.key, &meter_keys_.confidentiality_key);
+    }
+    if (bus->type() == DEVICE_SIMULATOR)
+    {
+        meter_keys_.simulation = true;
     }
     if (manufacturer) {
         manufacturers_.insert(manufacturer);
@@ -211,11 +213,6 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
 
     debug("(meter) %s: yes for me\n", name_.c_str());
     return true;
-}
-
-bool MeterCommonImplementation::useAes()
-{
-    return use_aes_;
 }
 
 MeterKeys *MeterCommonImplementation::meterKeys()
