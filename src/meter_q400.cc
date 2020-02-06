@@ -66,12 +66,12 @@ MeterQ400::MeterQ400(WMBus *bus, MeterInfo &mi) :
     addPrint("set_date", Quantity::Text,
              [&](){ return setDate(); },
              "The most recent billing period date.",
-             true, true);
+             false, true);
 
     addPrint("consumption_at_set_date", Quantity::Volume,
              [&](Unit u){ return consumptionAtSetDate(u); },
              "The total water consumption at the most recent billing period date.",
-             true, true);
+             false, true);
 }
 
 void MeterQ400::processContent(Telegram *t)

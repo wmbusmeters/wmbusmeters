@@ -68,17 +68,17 @@ MeterHydrus::MeterHydrus(WMBus *bus, MeterInfo &mi) :
     addPrint("flow_temperature", Quantity::Temperature,
              [&](Unit u){ return flowTemperature(u); },
              "The water temperature.",
-             true, true);
+             false, true);
 
     addPrint("total_at_date", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumptionAtDate(u); },
              "The total water consumption recorded at date.",
-             true, true);
+             false, true);
 
     addPrint("at_date", Quantity::Text,
              [&](){ return at_date_; },
              "Date when total water consumption was recorded.",
-             true, true);
+             false, true);
 }
 
 unique_ptr<WaterMeter> createHydrus(WMBus *bus, MeterInfo &mi)

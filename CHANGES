@@ -1,3 +1,10 @@
+Version 0.9.24: 2020-02-06
+
+Added the electricity meter eBZ wMB-E01 (ebzwmbe)
+Fixed bugs with detecting the wmbus dongles.
+Fixed bug in im871a driver that could
+get out of sync and never receive any more telegrams.
+
 Version 0.9.23: 2020-02-02
 
 Added the electricity meters:

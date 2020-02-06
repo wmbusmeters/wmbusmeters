@@ -72,7 +72,7 @@ MeterEHZP::MeterEHZP(WMBus *bus, MeterInfo &mi) :
              [&](Unit u){ assertQuantity(u, Quantity::Time);
                  return convert(on_time_h_, Unit::Hour, u); },
              "Device on time.",
-             true, true);
+             false, true);
 }
 
 unique_ptr<ElectricityMeter> createEHZP(WMBus *bus, MeterInfo &mi)
