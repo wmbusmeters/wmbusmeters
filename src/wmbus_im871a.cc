@@ -507,6 +507,7 @@ FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,
         }
     }
 
+    debug("(im871a) received full frame\n");
     return FullFrame;
 }
 

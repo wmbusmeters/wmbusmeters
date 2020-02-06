@@ -289,16 +289,24 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
                                     int *hex_payload_offset)
 {
     if (data.size() == 0) return PartialFrame;
+
+    debugPayload("(cul) checkCULFrame", data);
+
     size_t eolp = 0;
     // Look for end of line
     for (; eolp < data.size(); ++eolp) {
         if (data[eolp] == '\n') break;
     }
-    if (eolp >= data.size()) return PartialFrame;
+    if (eolp >= data.size())
+    {
+        debug("(cul) no eol found yet, partial frame\n");
+        return PartialFrame;
+    }
 
     if (data[0] != 'b')
     {
         // C1 and T1 telegrams should start with a 'b'
+        debug("(cul) text and no frame\n");
         return TextAndNotFrame;
     }
 
@@ -320,7 +328,7 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     *hex_payload_len_out = data.size()-8+fix;
     *hex_payload_offset = 2+fix;
 
-    debug("(cul) got full frame\n");
+    debug("(cul) received full frame\n");
     return FullFrame;
 }
 

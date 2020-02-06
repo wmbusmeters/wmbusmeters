@@ -125,7 +125,11 @@ FrameStatus WMBusRawTTY::checkRawTTYFrame(vector<uchar> &data,
     // Ugly: 00615B2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B
     // Here the frame is prefixed with some random data.
 
-    if (data.size() < 11) {
+    debugPayload("(rawtty) checkRAWTTYFrame", data);
+
+    if (data.size() < 11)
+    {
+        debug("(rawtty) less than 11 bytes, partial frame");
         return PartialFrame;
     }
     int payload_len = data[0];
@@ -166,9 +170,13 @@ FrameStatus WMBusRawTTY::checkRawTTYFrame(vector<uchar> &data,
     *payload_len_out = payload_len;
     *payload_offset = offset;
     *frame_length = payload_len+offset;
-    if (data.size() < *frame_length) {
+    if (data.size() < *frame_length)
+    {
+        debug("(rawtty) not enough bytes, partial frame %d %d", data.size(), *frame_length);
         return PartialFrame;
     }
+
+    debug("(rawtty) received full frame\n");
     return FullFrame;
 }
 

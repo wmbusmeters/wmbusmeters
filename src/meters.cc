@@ -291,6 +291,12 @@ bool MeterCommonImplementation::handleTelegram(vector<uchar> input_frame)
         return false;
     }
 
+    if (isDebugEnabled())
+    {
+        string msg = bin2hex(input_frame);
+        debug("(meter) %s %s \"%s\"\n", name().c_str(), t.id.c_str(), msg.c_str());
+    }
+
     ok = t.parse(input_frame, &meter_keys_);
     if (!ok)
     {

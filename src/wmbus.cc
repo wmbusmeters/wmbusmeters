@@ -1664,7 +1664,6 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk)
     if (!ok) return false;
 
     verboseFields();
-    debugPayload("(wmbus) frame", frame);
 
     return true;
 }

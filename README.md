@@ -365,13 +365,17 @@ the computer boots, if the dongle is already inserted.
 
 If you do not want the daemon to start automatically, simply edit
 /dev/udev/rules.d/99-wmbus-usb-serial.rules and remove
-`,TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.service"` from each
+`,TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.@/dev/im871a_%n.service"` from each
 line.
 
-You can also start/stop the daemon with `sudo systemctl restart wmbusmeters@im871a_0`
-and trigger the daemon to reload the config files with `sudo killall -HUP wmbusmetersd`
-If you add more dongles, then more daemons gets started. Each daemon gets a unique name
-like `wmbusmeters@im871a_0 wmbusmeters@im871a_1`.
+You can start/stop the daemon with `sudo systemctl stop wmbusmeters@-dev-im871a_0.service`
+or `sudo systemctl stop wmbusmeters@-dev-amb8465_1.service` etc. Alas
+rtl_sdr does not play nice right now with wmbusmeters daemon. If you first do `sudo systemctl stop wmbusmeters@-dev-rtlsdr_3.service`
+it will hang, in a separate window do `sudo killall -9 rtl_sdr` to get rid of the spinning rtl_sdr process.
+
+You can trigger a reload of the config files with `sudo killall -HUP wmbusmetersd`
+
+If you add more dongles, then more daemons gets started, each with a unique name/nr.
 
 # Source code
 

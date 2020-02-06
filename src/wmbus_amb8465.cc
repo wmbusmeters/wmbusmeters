@@ -300,22 +300,31 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
                                           int *payload_offset,
                                           uchar *rssi)
 {
-    // telegram=|2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B|+96
     if (data.size() == 0) return PartialFrame;
+    debugPayload("(amb8465) checkIM871AFrame", data);
     int payload_len = 0;
     if (data[0] == 0xff) {
-        if (data.size() < 3) return PartialFrame;
+        if (data.size() < 3)
+        {
+            debug("(amb8465) not enough bytes yet for command.\n");
+            return PartialFrame;
+        }
         // A command response begins with 0xff
         *msgid_out = data[1];
         payload_len = data[2];
         *payload_len_out = payload_len;
         *payload_offset = 3;
         *frame_length = 3+payload_len + (int)rssi_expected_;
-        if (data.size() < *frame_length) return PartialFrame;
+        if (data.size() < *frame_length)
+        {
+            debug("(amb8465) not enough bytes yet, partial command response %d %d.\n", data.size(), *frame_length);
+            return PartialFrame;
+        }
 
         if (rssi_expected_) {
             *rssi = data[*frame_length-1];
         }
+        debug("(amb8465) received full command frame\n");
         return FullFrame;
     }
     // If it is not a 0xff we assume it is a message beginning with a length.
@@ -326,8 +335,13 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
     *payload_len_out = payload_len;
     *payload_offset = 1;
     *frame_length = payload_len+1;
-    if (data.size() < *frame_length) return PartialFrame;
+    if (data.size() < *frame_length)
+    {
+        debug("(amb8465) not enough bytes yet, partial frame %d %d.\n", data.size(), *frame_length);
+        return PartialFrame;
+    }
 
+    debug("(amb8465) received full frame\n");
     return FullFrame;
 }
 

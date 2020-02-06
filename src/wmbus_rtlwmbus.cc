@@ -205,26 +205,49 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     // C1;1;1;2019-02-09 07:14:18.000;117;102;94740459;0x49449344590474943508780dff5f3500827f0000f10007b06effff530100005f2c620100007f2118010000008000800080008000000000000000000e003f005500d4ff2f046d10086922
     // There might be a second telegram on the same line ;0x4944.......
     if (data.size() == 0) return PartialFrame;
+
+    if (isDebugEnabled())
+    {
+        string msg = safeString(data);
+        debug("(rtlwmbus) checkRTLWMBusFrame \"%s\"\n", msg.c_str());
+    }
+
     int payload_len = 0;
     size_t eolp = 0;
     // Look for end of line
     for (; eolp < data.size(); ++eolp) {
         if (data[eolp] == '\n') break;
     }
-    if (eolp >= data.size()) return PartialFrame;
+    if (eolp >= data.size())
+    {
+        debug("(rtlwmbus) no eol found, partial frame\n");
+        return PartialFrame;
+    }
 
     // We got a full line, but if it is too short, then
     // there is something wrong. Discard the data.
-    if (data.size() < 10) return ErrorInFrame;
+    if (data.size() < 10)
+    {
 
-    if (data[0] != '0' || data[1] != 'x') {
+        debug("(rtlwmbus) too short line\n");
+        return ErrorInFrame;
+    }
+
+    if (data[0] != '0' || data[1] != 'x')
+    {
         // Discard lines that do not begin with T1 or C1, these lines are probably
         // stderr output from rtl_sdr/rtl_wmbus.
         if (!(data[0] == 'T' && data[1] == '1') &&
-            !(data[0] == 'C' && data[1] == '1')) return TextAndNotFrame;
+            !(data[0] == 'C' && data[1] == '1'))
+        {
+
+            debug("(rtlwmbus) only text\n");
+            return TextAndNotFrame;
+        }
 
         // And the checksums should match.
-        if (strncmp((const char*)&data[1], "1;1", 3)) {
+        if (strncmp((const char*)&data[1], "1;1", 3))
+        {
             // Packages that begin with C1;1 or with T1;1 are good. The full format is:
             // MODE;CRC_OK;3OUTOF6OK;TIMESTAMP;PACKET_RSSI;CURRENT_RSSI;LINK_LAYER_IDENT_NO;DATAGRAM_WITHOUT_CRC_BYTES.
             // 3OUTOF6OK makes sense only with mode T1 and no sense with mode C1 (always set to 1).
@@ -239,7 +262,10 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     for (; i+1 < data.size(); ++i) {
         if (data[i] == '0' && data[i+1] == 'x') break;
     }
-    if (i+1 >= data.size()) return ErrorInFrame; // No 0x found, then discard the frame.
+    if (i+1 >= data.size())
+    {
+        return ErrorInFrame; // No 0x found, then discard the frame.
+    }
     i+=2; // Skip 0x
 
     // Look for end of line or semicolon.
@@ -247,14 +273,18 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
         if (data[eolp] == '\n') break;
         if (data[eolp] == ';' && data[eolp+1] == '0' && data[eolp+2] == 'x') break;
     }
-    if (eolp >= data.size()) return PartialFrame;
+    if (eolp >= data.size())
+    {
+        debug("(rtlwmbus) no eol or semicolon, partial frame\n");
+        return PartialFrame;
+    }
 
     payload_len = eolp-i;
     *hex_payload_len_out = payload_len;
     *hex_payload_offset = i;
     *hex_frame_length = eolp+1;
 
-    debug("(rtlwmbus) got full frame\n");
+    debug("(rtlwmbus) received full frame\n");
     return FullFrame;
 }
 
