@@ -90,6 +90,9 @@ Received telegram from: 77997799
 Received telegram from: 77997799
           manufacturer: (ESY) EasyMeter
            device type: Radio converter (meter side)
+Received telegram from: 55995599
+          manufacturer: (EMH) EMH metering formerly EMH Elektrizitatszahler
+           device type: Electricity meter
 EOF
 
 EXPECTED=$(cat $LOGFILE_EXPECTED)

@@ -564,6 +564,10 @@ bool doesIdMatchExpressions(string& id, vector<string>& mes)
 bool isValidKey(string& key, MeterType mt)
 {
     if (key.length() == 0) return true;
+    if (key == "NOKEY") {
+        key = "";
+        return true;
+    }
     if ((mt == MeterType::IZAR && key.length() != 16) ||
         (mt != MeterType::IZAR && key.length() != 32)) return false;
     vector<uchar> tmp;
