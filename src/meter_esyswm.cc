@@ -111,14 +111,14 @@ MeterESYSWM::MeterESYSWM(WMBus *bus, MeterInfo &mi) :
              "Current power consumption phase 3.",
              true, true);
 
-    addPrint("version", Quantity::Text,
-             [&](){ return version_; },
-             "Static version information.",
-             false, true);
-
     addPrint("enhanced_id", Quantity::Text,
              [&](){ return enhanced_id_; },
              "Static enhanced id information.",
+             true, true);
+
+    addPrint("version", Quantity::Text,
+             [&](){ return version_; },
+             "Static version information.",
              false, true);
 
     addPrint("location_hex", Quantity::Text,
@@ -197,43 +197,36 @@ void MeterESYSWM::processContent(Telegram *t)
       (esyswm) 2e: 07 dif (64 Bit Integer/Binary Instantaneous value)
       (esyswm) 2f: 02 vif (Energy 10⁻¹ Wh)
       (esyswm) 30: * F5C3FA0000000000 total energy (1643.416500 kwh)
-
       (esyswm) 38: 07 dif (64 Bit Integer/Binary Instantaneous value)
       (esyswm) 39: 82 vif (Energy 10⁻¹ Wh)
       (esyswm) 3a: 3C vife (backward flow)
       (esyswm) 3b: * 5407000000000000 total energy returned (0.187600 kwh)
-
       (esyswm) 43: 84 dif (32 Bit Integer/Binary Instantaneous value)
       (esyswm) 44: 10 dife (subunit=0 tariff=1 storagenr=0)
       (esyswm) 45: 04 vif (Energy 10¹ Wh)
       (esyswm) 46: * E0810200 total energy tariff 1 (1643.200000 kwh)
-
       (esyswm) 4a: 84 dif (32 Bit Integer/Binary Instantaneous value)
       (esyswm) 4b: 20 dife (subunit=0 tariff=2 storagenr=0)
       (esyswm) 4c: 04 vif (Energy 10¹ Wh)
       (esyswm) 4d: * 15000000 total energy tariff 2 (0.210000 kwh)
-
       (esyswm) 51: 04 dif (32 Bit Integer/Binary Instantaneous value)
       (esyswm) 52: 29 vif (Power 10⁻² W)
       (esyswm) 53: * 38AB0000 current power (0.438320 kw)
-
       (esyswm) 57: 04 dif (32 Bit Integer/Binary Instantaneous value)
       (esyswm) 58: A9 vif (Power 10⁻² W)
       (esyswm) 59: FF vife (additive correction constant: unit of VIF * 10^0)
       (esyswm) 5a: 01 vife (?)
-      (esyswm) 5b: FA0A0000
-
+      (esyswm) 5b: * FA0A0000 current power phase 1 (0.028100 kwh)
       (esyswm) 5f: 04 dif (32 Bit Integer/Binary Instantaneous value)
       (esyswm) 60: A9 vif (Power 10⁻² W)
       (esyswm) 61: FF vife (additive correction constant: unit of VIF * 10^0)
       (esyswm) 62: 02 vife (?)
-      (esyswm) 63: 050A0000
-
+      (esyswm) 63: * 050A0000 current power phase 2 (0.000000 kwh)
       (esyswm) 67: 04 dif (32 Bit Integer/Binary Instantaneous value)
       (esyswm) 68: A9 vif (Power 10⁻² W)
       (esyswm) 69: FF vife (additive correction constant: unit of VIF * 10^0)
       (esyswm) 6a: 03 vife (?)
-      (esyswm) 6b: 38960000
+      (esyswm) 6b: * 38960000 current power phase 3 (0.000000 kwh)
     */
 
     /*
@@ -256,6 +249,7 @@ void MeterESYSWM::processContent(Telegram *t)
       (esyswm) 62: 0E varlen=14
       (esyswm) 63:
     */
+
     int offset;
     string key;
 

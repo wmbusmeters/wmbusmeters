@@ -376,6 +376,18 @@ You can trigger a reload of the config files with `sudo killall -HUP wmbusmeters
 
 If you add more dongles, then more daemons gets started, each with a unique name/nr.
 
+# Common problems
+
+If the daemon has started then the wmbus device will be taken and you cannot start wmbusmeters manually.
+
+To run manually, first make sure the daemon is stopped `sudo stop wmbusmeters@-dev-im871a_0.server`
+if this hangs, then do `sudo killall -9 wmbusmetersd` and/or `sudo killall -9 wmbusmeters`.
+
+If you are using rtl_sdr/rtl_wmbus and you want to stop the daemon, do
+`sudo stop wmbusmeters@-dev-rtlsdr_3.server` followed by `sudo killall -9 rtl_sdr`.
+
+If you are using auto, then start manually with --debug to see how wmbusmeters goes looking for devices.
+
 # Source code
 
 The source code is modular and it should be relatively straightforward to add more receivers and meters.
