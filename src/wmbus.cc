@@ -3445,7 +3445,7 @@ AccessCheck findAndDetect(SerialCommunicationManager *manager, string *out_devic
     if (ac == AccessCheck::OK)
     {
         debug("(%s) checking %s\n", dongle_name.c_str(), dev.c_str());
-        if (detectIM871A(dev, manager)) return AccessCheck::OK;
+        if (check(dev, manager)) return AccessCheck::OK;
         return AccessCheck::NotThere;
     }
     if (ac == AccessCheck::NotSameGroup)
@@ -3466,7 +3466,7 @@ AccessCheck findAndDetect(SerialCommunicationManager *manager, string *out_devic
         if (ac == AccessCheck::OK)
         {
             debug("(%s) checking %s\n", dongle_name.c_str(), dev.c_str());
-            if (detectIM871A(dev, manager)) return AccessCheck::OK;
+            if (check(dev, manager)) return AccessCheck::OK;
             // If we get here, the device /dev/im871a_0 could be locked
             // try /dev/im871a_1 etc...
         }
