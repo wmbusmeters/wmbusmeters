@@ -84,6 +84,12 @@ Received telegram from: 72727272
 Received telegram from: 22992299
           manufacturer: (EBZ) eBZ, Germany
            device type: Radio converter (meter side)
+Received telegram from: 77997799
+          manufacturer: (ESY) EasyMeter
+           device type: Radio converter (meter side)
+Received telegram from: 77997799
+          manufacturer: (ESY) EasyMeter
+           device type: Radio converter (meter side)
 EOF
 
 EXPECTED=$(cat $LOGFILE_EXPECTED)

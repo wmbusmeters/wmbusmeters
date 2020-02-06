@@ -178,22 +178,30 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             }
             return unique_ptr<Configuration>(c);
         }
-        if (!strncmp(argv[i], "--format", 8)) {
-            if (strlen(argv[i]) == 8 ||
-                (strlen(argv[i]) == 13 &&
-                 !strncmp(argv[i]+8, "=json", 5)))
+        if (!strncmp(argv[i], "--format=", 9))
+        {
+            if (!strcmp(argv[i]+9, "json"))
             {
                 c->json = true;
                 c->fields = false;
             }
-            else if (strlen(argv[i]) == 15 &&
-                     !strncmp(argv[i]+7, "=fields", 7))
+            else
+            if (!strcmp(argv[i]+9, "fields"))
             {
                 c->json = false;
                 c->fields = true;
                 c->separator = ';';
-            } else {
-                error("Unknown output format: \"%s\"\n", argv[i]+8);
+            }
+            else
+            if (!strcmp(argv[i]+9, "hr"))
+            {
+                c->json = false;
+                c->fields = false;
+                c->separator = '\t';
+            }
+            else
+            {
+                error("Unknown output format: \"%s\"\n", argv[i]+9);
             }
             i++;
             continue;

@@ -54,8 +54,9 @@ private:
     // Information sent more rarely and is static.
 
     string version_;
-    string fabrication_;
+    string enhanced_id_;
     string location_hex_;
+    string fabrication_no_;
 };
 
 MeterESYSWM::MeterESYSWM(WMBus *bus, MeterInfo &mi) :
@@ -88,41 +89,46 @@ MeterESYSWM::MeterESYSWM(WMBus *bus, MeterInfo &mi) :
     addPrint("total_energy_consumption_tariff1", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumptionTariff1(u); },
              "The total energy consumption recorded by this meter on tariff 1.",
-             false, true);
+             true, true);
 
     addPrint("total_energy_consumption_tariff2", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumptionTariff2(u); },
              "The total energy consumption recorded by this meter on tariff 2.",
-             false, true);
+             true, true);
 
     addPrint("current_power_consumption_phase1", Quantity::Power,
              [&](Unit u){ return currentPowerConsumptionPhase1(u); },
              "Current power consumption phase 1.",
-             false, true);
+             true, true);
 
     addPrint("current_power_consumption_phase2", Quantity::Power,
              [&](Unit u){ return currentPowerConsumptionPhase2(u); },
              "Current power consumption phase 2.",
-             false, true);
+             true, true);
 
     addPrint("current_power_consumption_phase3", Quantity::Power,
              [&](Unit u){ return currentPowerConsumptionPhase3(u); },
              "Current power consumption phase 3.",
-             false, true);
+             true, true);
 
     addPrint("version", Quantity::Text,
              [&](){ return version_; },
              "Static version information.",
              false, true);
 
-    addPrint("fabrication", Quantity::Text,
-             [&](){ return fabrication_; },
-             "Static fabrication information.",
+    addPrint("enhanced_id", Quantity::Text,
+             [&](){ return enhanced_id_; },
+             "Static enhanced id information.",
              false, true);
 
     addPrint("location_hex", Quantity::Text,
              [&](){ return location_hex_; },
              "Static location information.",
+             false, true);
+
+    addPrint("fabrication_no", Quantity::Text,
+             [&](){ return fabrication_no_; },
+             "Static fabrication no information.",
              false, true);
 }
 
@@ -298,13 +304,22 @@ void MeterESYSWM::processContent(Telegram *t)
     if (tmp.length() > 0) {
         vector<uchar> bin;
         hex2bin(tmp, &bin);
-        fabrication_ = safeString(bin);
+        enhanced_id_ = safeString(bin);
     }
-    t->addMoreExplanation(offset, " fabrication (%s)", fabrication_.c_str());
+    t->addMoreExplanation(offset, " enhanced id (%s)", enhanced_id_.c_str());
 
     extractDVstring(&t->values, "0DFD10", &offset, &tmp);
     if (tmp.length() > 0) {
         location_hex_ = tmp;
     }
     t->addMoreExplanation(offset, " location (%s)", location_hex_.c_str());
+
+    extractDVstring(&t->values, "0D78", &offset, &tmp);
+    if (tmp.length() > 0) {
+        vector<uchar> bin;
+        hex2bin(tmp, &bin);
+        fabrication_no_ = safeString(bin);
+    }
+    t->addMoreExplanation(offset, " fabrication no (%s)", fabrication_no_.c_str());
+
 }

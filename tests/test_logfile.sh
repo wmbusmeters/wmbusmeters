@@ -31,7 +31,7 @@ then
     exit 1
 fi
 
-cat simulations/simulation_t1.txt | grep '^{' | grep 12345678 | tail -n 1 > $TEST/test_expected.txt
+cat simulations/simulation_t1.txt | grep '^{' | grep supercom | grep 12345678 | tail -n 1 > $TEST/test_expected.txt
 cat $TEST/meter_readings2/MyWarmWater | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ ! "$?" = "0" ]
