@@ -147,10 +147,10 @@ void MeterEBZWMBE::processContent(Telegram *t)
     extractDVdouble(&t->values, "04A9FF01", &offset, &current_power_phase1_kw_);
     t->addMoreExplanation(offset, " current power phase 1 (%f kwh)", current_power_phase1_kw_);
 
-    extractDVdouble(&t->values, "04A9FF02", &offset, &current_power_phase1_kw_);
+    extractDVdouble(&t->values, "04A9FF02", &offset, &current_power_phase2_kw_);
     t->addMoreExplanation(offset, " current power phase 2 (%f kwh)", current_power_phase2_kw_);
 
-    extractDVdouble(&t->values, "04A9FF03", &offset, &current_power_phase1_kw_);
+    extractDVdouble(&t->values, "04A9FF03", &offset, &current_power_phase3_kw_);
     t->addMoreExplanation(offset, " current power phase 3 (%f kwh)", current_power_phase3_kw_);
 
     string tmp;
