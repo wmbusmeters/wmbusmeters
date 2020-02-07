@@ -22,6 +22,8 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
+#include<algorithm>
+
 struct MeterESYSWM : public virtual ElectricityMeter, public virtual MeterCommonImplementation
 {
     MeterESYSWM(WMBus *bus, MeterInfo &mi);
@@ -298,6 +300,7 @@ void MeterESYSWM::processContent(Telegram *t)
     if (tmp.length() > 0) {
         vector<uchar> bin;
         hex2bin(tmp, &bin);
+        reverse(bin.begin(), bin.end());
         enhanced_id_ = safeString(bin);
     }
     t->addMoreExplanation(offset, " enhanced id (%s)", enhanced_id_.c_str());
@@ -312,6 +315,7 @@ void MeterESYSWM::processContent(Telegram *t)
     if (tmp.length() > 0) {
         vector<uchar> bin;
         hex2bin(tmp, &bin);
+        reverse(bin.begin(), bin.end());
         fabrication_no_ = safeString(bin);
     }
     t->addMoreExplanation(offset, " fabrication no (%s)", fabrication_no_.c_str());
