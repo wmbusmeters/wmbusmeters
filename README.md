@@ -199,6 +199,7 @@ Honeywell Q400 (q400)
 Supported heat cost allocators:
 Qundis Q caloric (qcaloric)
 Innotas EurisII  (eurisii)
+Techem FHKV data II/III (fhkvdataiii)
 
 Supported heat meter:
 Heat meter Techem Vario 4 (vario451) (non-standard protocol)

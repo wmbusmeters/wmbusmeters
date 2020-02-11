@@ -34,6 +34,7 @@
     X(ehzp,       T1_bit, Electricity, EHZP,        EHZP)         \
     X(esyswm,     T1_bit, Electricity, ESYSWM,      ESYSWM)       \
     X(flowiq3100, C1_bit, Water,       FLOWIQ3100,  Multical21)   \
+    X(fhkvdataiii,   T1_bit, HeatCostAllocation,        FHKVDATAIII,    FHKVDataIII)     \
     X(hydrus,     T1_bit, Water,       HYDRUS,      Hydrus)       \
     X(hydrodigit, T1_bit, Water,       HYDRODIGIT,  Hydrodigit)   \
     X(iperl,      T1_bit, Water,       IPERL,       Iperl)        \
@@ -206,6 +207,7 @@ unique_ptr<WaterMeter> createIzar(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createQ400(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createEurisII(WMBus *bus, MeterInfo &m);
+unique_ptr<HeatCostMeter> createFHKVDataIII(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createLansenTH(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createCMa12w(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createRfmAmb(WMBus *bus, MeterInfo &m);
