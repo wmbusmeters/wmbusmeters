@@ -101,6 +101,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_ehzp.o \
 	$(BUILD)/meter_esyswm.o \
 	$(BUILD)/meter_eurisii.o \
+	$(BUILD)/meter_fhkvdataiii.o \
 	$(BUILD)/meter_hydrus.o \
 	$(BUILD)/meter_hydrodigit.o \
     $(BUILD)/meter_iperl.o \
