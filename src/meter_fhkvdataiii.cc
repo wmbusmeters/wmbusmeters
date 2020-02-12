@@ -134,7 +134,7 @@ void MeterFHKVDataIII::processContent(Telegram *t)
     vector<uchar> content;
 
     t->extractPayload(&content);
-
+    
     // Consumption
     // Previous Consumption
     uchar prev_lo = content[14];
@@ -144,7 +144,8 @@ void MeterFHKVDataIII::processContent(Telegram *t)
 
     string prevs;
     strprintf(prevs, "%02x%02x", prev_lo, prev_hi);
-    //t->addMoreExplanation(14, " energy used in previous billing period (%f HCA)", prevs);
+    int offset = t->parsed.size()+4;
+    t->addMoreExplanation(offset, " energy used in previous billing period (%f HCA)", prevs);
 
     // Previous Date
     uchar date_prev_lo = content[12];
@@ -156,7 +157,8 @@ void MeterFHKVDataIII::processContent(Telegram *t)
     int year_prev = (date_prev >> 9) & 0x3F;
     prev_energy_hca_date = std::to_string((year_prev + 2000)) + "-" + leadingZeroString(month_prev) + "-" + leadingZeroString(day_prev) + "T02:00:00Z";
 
-    //t->addMoreExplanation(offset, " last date of previous billing period (%s)", prev_energy_hca_date);
+    offset = t->parsed.size()+2;
+    t->addMoreExplanation(offset, " last date of previous billing period (%s)", prev_energy_hca_date);    
 
     // Current Consumption
     uchar curr_lo = content[18];
@@ -166,7 +168,8 @@ void MeterFHKVDataIII::processContent(Telegram *t)
 
     string currs;
     strprintf(currs, "%02x%02x", curr_lo, curr_hi);
-    //t->addMoreExplanation(offset, " energy used in current billing period (%f HCA)", currs);
+    offset = t->parsed.size()+8;
+    t->addMoreExplanation(offset, " energy used in current billing period (%f HCA)", currs);
 
     // Current Date
     uchar date_curr_lo = content[16];
@@ -181,9 +184,10 @@ void MeterFHKVDataIII::processContent(Telegram *t)
     if (day_curr <= 0) day_curr = 1;
     int month_curr = (date_curr >> 9) & 0x0F;
     if (month_curr <= 0) month_curr = 12;
-    curr_energy_hca_date = to_string(year_curr) + "-" + leadingZeroString(month_curr) + "-" + leadingZeroString(day_curr) + "T02:00:00Z";
+    curr_energy_hca_date = year_curr + "-" + leadingZeroString(month_curr) + "-" + leadingZeroString(day_curr) + "T02:00:00Z";
 
-    // t->addMoreExplanation(offset, " last date of current billing period (%s)", curr_energy_hca_date);
+    offset = t->parsed.size()+6;
+    t->addMoreExplanation(offset, " last date of current billing period (%s)", curr_energy_hca_date);    
 
     // Temperature
     // Room Temperature
@@ -194,7 +198,8 @@ void MeterFHKVDataIII::processContent(Telegram *t)
 
     string room_ts;
     strprintf(room_ts, "%02x%02x", room_tlo, room_thi);
-    // t->addMoreExplanation(offset, " current room temparature (%f °C)", room_ts);
+    offset = t->parsed.size()+10;
+    t->addMoreExplanation(offset, " current room temparature (%f °C)", room_ts);
 
     // Radiator Temperature
     uchar radiator_tlo = content[22];
@@ -204,7 +209,8 @@ void MeterFHKVDataIII::processContent(Telegram *t)
 
     string radiator_ts;
     strprintf(radiator_ts, "%02x%02x", radiator_tlo, radiator_thi);
-    // t->addMoreExplanation(offset, " current radiator temparature (%f °C)", radiator_ts);
+    offset = t->parsed.size()+12;
+    t->addMoreExplanation(offset, " current radiator temparature (%f °C)", radiator_ts);
 }
 
 string MeterFHKVDataIII::leadingZeroString(int num) {
