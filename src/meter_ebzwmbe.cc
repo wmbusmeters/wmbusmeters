@@ -27,6 +27,7 @@ struct MeterEBZWMBE : public virtual ElectricityMeter, public virtual MeterCommo
     MeterEBZWMBE(WMBus *bus, MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
+    double currentPowerConsumption(Unit u);
     double currentPowerConsumptionPhase1(Unit u);
     double currentPowerConsumptionPhase2(Unit u);
     double currentPowerConsumptionPhase3(Unit u);
@@ -36,6 +37,7 @@ private:
     void processContent(Telegram *t);
 
     double total_energy_kwh_ {};
+    double current_power_kw_ {};
     double current_power_phase1_kw_ {};
     double current_power_phase2_kw_ {};
     double current_power_phase3_kw_ {};
@@ -57,6 +59,11 @@ MeterEBZWMBE::MeterEBZWMBE(WMBus *bus, MeterInfo &mi) :
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
+             true, true);
+
+    addPrint("current_power_consumption", Quantity::Power,
+             [&](Unit u){ return currentPowerConsumption(u); },
+             "Current power consumption.",
              true, true);
 
     addPrint("current_power_consumption_phase1", Quantity::Power,
@@ -89,6 +96,12 @@ double MeterEBZWMBE::totalEnergyConsumption(Unit u)
 {
     assertQuantity(u, Quantity::Energy);
     return convert(total_energy_kwh_, Unit::KWH, u);
+}
+
+double MeterEBZWMBE::currentPowerConsumption(Unit u)
+{
+    assertQuantity(u, Quantity::Power);
+    return convert(current_power_kw_, Unit::KW, u);
 }
 
 double MeterEBZWMBE::currentPowerConsumptionPhase1(Unit u)
@@ -152,6 +165,9 @@ void MeterEBZWMBE::processContent(Telegram *t)
 
     extractDVdouble(&t->values, "04A9FF03", &offset, &current_power_phase3_kw_);
     t->addMoreExplanation(offset, " current power phase 3 (%f kwh)", current_power_phase3_kw_);
+
+    current_power_kw_ = current_power_phase1_kw_ + current_power_phase2_kw_ + current_power_phase3_kw_;
+    t->addMoreExplanation(offset, " current power (%f kw)", current_power_kw_);
 
     string tmp;
     extractDVstring(&t->values, "0DFD11", &offset, &tmp);

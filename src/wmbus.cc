@@ -411,6 +411,9 @@ string mediaType(int a_field_device_type) {
     case 0x62: return "Warm water"; // MKRadio3
     case 0x72: return "Cold water"; // MKRadio3
 
+    // Techem FHKV.
+    case 0x80: return "Heat Cost Allocator"; // FHKV data ii/iii
+
     // Techem Vario 4 Typ 4.5.1 manufacturer specific.
     case 0xC3: return "Heat meter";
 
