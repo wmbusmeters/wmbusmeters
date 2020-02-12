@@ -57,6 +57,9 @@ Received telegram from: 34333231
 Received telegram from: 58234965
           manufacturer: (TCH) Techem Service
            device type: Heat meter
+Received telegram from: 11776622
+          manufacturer: (TCH) Techem Service
+           device type: Heat Cost Allocator
 Received telegram from: 88018801
           manufacturer: (INE) INNOTAS Elektronik, Germany
            device type: Heat Cost Allocator
