@@ -716,7 +716,8 @@ Detected detectWMBusDeviceSetting(string devicefile,
     X(0x8F, ELL_IV,  "ELL: IV",  16, CI_TYPE::ELL, "CC, ACC, M2, A2, SN, Payload CRC") \
     X(0x86, ELL_V,   "ELL: V",   -1, CI_TYPE::ELL, "Variable length") \
     X(0x90, AFL,     "AFL", 10, CI_TYPE::AFL, "") \
-    X(0xA2, MFCT_SPECIFIC, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "")
+    X(0xA0, MFCT_SPECIFIC_A0, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "") \
+    X(0xA2, MFCT_SPECIFIC_A2, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "")
 
 enum CI_Field_Values {
 #define X(val,name,cname,len,citype,explain) name = val,
@@ -1102,7 +1103,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
     addExplanationAndIncrementPos(pos, 1, "%02x afl-len (%d)",
                                   afl_len, afl_len);
 
-    int len = ciFieldLength(ell_ci);
+    int len = ciFieldLength(afl_ci);
     if (remaining < len) return expectedMore(__LINE__);
 
     afl_fc_b[0] = *(pos+0);
@@ -1558,15 +1559,15 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::TPL))
     {
-        warning("(wmbus) Unknown tpl-ci-field %02x\n", tpl_ci);
-        return true;
+        warning("(wmbus) Unknown tpl-ci-field %02x\n", ci_field);
+        return false;
     }
+    tpl_ci = ci_field;
     tpl_start = pos;
 
     addExplanationAndIncrementPos(pos, 1, "%02x tpl-ci-field (%s)",
-                                  ci_field, ciType(ci_field).c_str());
-    tpl_ci = ci_field;
-    int len = ciFieldLength(ell_ci);
+                                  tpl_ci, ciType(tpl_ci).c_str());
+    int len = ciFieldLength(tpl_ci);
 
     if (remaining < len+1) return expectedMore(__LINE__);
 
@@ -1576,7 +1577,8 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
         case CI_Field_Values::TPL_78: return parse_TPL_78(pos);
         case CI_Field_Values::TPL_79: return parse_TPL_79(pos);
         case CI_Field_Values::TPL_7A: return parse_TPL_7A(pos);
-        case CI_Field_Values::MFCT_SPECIFIC:
+        case CI_Field_Values::MFCT_SPECIFIC_A0:
+        case CI_Field_Values::MFCT_SPECIFIC_A2:
         {
             header_size = distance(frame.begin(), pos);
             suffix_size = 0;

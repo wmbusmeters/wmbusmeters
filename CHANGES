@@ -1,3 +1,8 @@
+Version 0.9.26: 2020-02-07
+
+Cinemarene added support for the Techem
+FHKV Data III heat cost allocator. Thanks cinemarene!
+
 Version 0.9.25: 2020-02-07
 
 Fix bug i esyswm and ebzwmbe that printed zero values
