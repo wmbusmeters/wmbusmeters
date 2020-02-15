@@ -110,6 +110,8 @@ WMBusIM871A::WMBusIM871A(unique_ptr<SerialDevice> serial, SerialCommunicationMan
 
 bool WMBusIM871A::ping()
 {
+    if (serial_->readonly()) return true; // Feeding from stdin or file.
+
     pthread_mutex_lock(&command_lock_);
 
     vector<uchar> msg(4);
@@ -130,6 +132,8 @@ bool WMBusIM871A::ping()
 
 uint32_t WMBusIM871A::getDeviceId()
 {
+    if (serial_->readonly()) return 0; // Feeding from stdin or file.
+
     pthread_mutex_lock(&command_lock_);
 
     vector<uchar> msg(4);
@@ -171,6 +175,8 @@ uint32_t WMBusIM871A::getDeviceId()
 
 LinkModeSet WMBusIM871A::getLinkModes()
 {
+    if (serial_->readonly()) { return Any_bit; }  // Feeding from stdin or file.
+
     pthread_mutex_lock(&command_lock_);
 
     vector<uchar> msg(4);
@@ -324,6 +330,8 @@ LinkModeSet WMBusIM871A::getLinkModes()
 
 void WMBusIM871A::setLinkModes(LinkModeSet lms)
 {
+    if (serial_->readonly()) return; // Feeding from stdin or file.
+
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
@@ -377,8 +385,10 @@ void WMBusIM871A::setLinkModes(LinkModeSet lms)
     pthread_mutex_unlock(&command_lock_);
 }
 
-void WMBusIM871A::waitForResponse() {
-    while (manager_->isRunning()) {
+void WMBusIM871A::waitForResponse()
+{
+    while (manager_->isRunning())
+    {
         int rc = sem_wait(&command_wait_);
         if (rc==0) break;
         if (rc==-1) {
@@ -393,6 +403,7 @@ FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,
                                           int *payload_len_out, int *payload_offset)
 {
     if (data.size() == 0) return PartialFrame;
+
     debugPayload("(im871a) checkIM871AFrame", data);
     if (data[0] != 0xa5)
     {

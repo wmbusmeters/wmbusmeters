@@ -79,9 +79,8 @@ private:
     void waitForResponse();
 
     FrameStatus checkCULFrame(vector<uchar> &data,
-                                   size_t *hex_frame_length,
-                                   int *hex_payload_len_out,
-                                   int *hex_payload_offset);
+                              size_t *hex_frame_length,
+                              vector<uchar> &payload);
 
     string setup_;
 };
@@ -126,6 +125,8 @@ LinkModeSet WMBusCUL::getLinkModes()
 
 void WMBusCUL::setLinkModes(LinkModeSet lms)
 {
+    if (serial_->readonly()) return; // Feeding from stdin or file.
+
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
@@ -220,11 +221,11 @@ void WMBusCUL::processSerialData()
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
     size_t frame_length;
-    int hex_payload_len, hex_payload_offset;
+    vector<uchar> payload;
 
     for (;;)
     {
-        FrameStatus status = checkCULFrame(read_buffer_, &frame_length, &hex_payload_len, &hex_payload_offset);
+        FrameStatus status = checkCULFrame(read_buffer_, &frame_length, payload);
 
         if (status == PartialFrame)
         {
@@ -254,28 +255,6 @@ void WMBusCUL::processSerialData()
         }
         if (status == FullFrame)
         {
-            vector<uchar> payload;
-            if (hex_payload_len > 0)
-            {
-                vector<uchar> hex;
-                hex.insert(hex.end(), read_buffer_.begin()+hex_payload_offset, read_buffer_.begin()+hex_payload_offset+hex_payload_len);
-                bool ok = hex2bin(hex, &payload);
-                if (!ok)
-                {
-                    if (hex.size() % 2 == 1)
-                    {
-                        payload.clear();
-                        warning("(cul) warning: the hex string is not an even multiple of two! Dropping last char.\n");
-                        hex.pop_back();
-                        ok = hex2bin(hex, &payload);
-                    }
-                    if (!ok)
-                    {
-                        warning("(cul) warning: the hex string contains bad characters! Decode stopped partway.\n");
-                    }
-                }
-            }
-
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
 
             handleTelegram(payload);
@@ -285,51 +264,80 @@ void WMBusCUL::processSerialData()
 
 FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
                                     size_t *hex_frame_length,
-                                    int *hex_payload_len_out,
-                                    int *hex_payload_offset)
+                                    vector<uchar> &payload)
 {
     if (data.size() == 0) return PartialFrame;
 
-    debugPayload("(cul) checkCULFrame", data);
+    if (isDebugEnabled())
+    {
+        string s  = safeString(data);
+        debug("(cul) checkCULFrame \"%s\"\n", s.c_str());
+    }
 
     size_t eolp = 0;
     // Look for end of line
     for (; eolp < data.size(); ++eolp) {
-        if (data[eolp] == '\n') break;
+        if (data[eolp] == '\n') break; // Expect CRLF, look for LF ('\n')
     }
     if (eolp >= data.size())
     {
         debug("(cul) no eol found yet, partial frame\n");
         return PartialFrame;
     }
-
+    eolp++; // Point to byte after CRLF.
     if (data[0] != 'b')
     {
         // C1 and T1 telegrams should start with a 'b'
-        debug("(cul) text and no frame\n");
+        debug("(cul) no leading 'b' so it is text and no frame\n");
         return TextAndNotFrame;
     }
 
-    int fix = 0;
-    if (data[1] != 'Y')
+    if (data[1] == 'Y')
     {
-        // No Y means this is a T1 telegram.
-        fix = -1;
+        // C1 telegram in frame format B
+        // bY..44............<CR><LF>
+        *hex_frame_length = eolp;
+        vector<uchar> hex;
+        hex.insert(hex.end(), data.begin()+2, data.begin()+eolp-2); // Remove CRLF
+        payload.clear();
+        bool ok = hex2bin(hex, &payload);
+        if (!ok)
+        {
+            warning("(cul) warning: the hex string is not proper! Ignoring telegram!\n");
+            return ErrorInFrame;
+        }
+        ok = trimCRCsFrameFormatB(payload);
+        if (!ok)
+        {
+            warning("(cul) dll C1 (frame b) crcs failed check! Ignoring telegram!\n");
+            return ErrorInFrame;
+        }
+        debug("(cul) received full C1 frame\n");
+        return FullFrame;
     }
-
-    // we received a full C1 frame, TODO check len
-
-    // skip the crc bytes adjusting the length byte by 2
-    data[3] -= 2;
-
-    // remove 8: 2 ('bY') + 4 (CRC) + 2 (CRLF) and start at 2
-    // remove 7: 1 ('b') + 4 (CRC) + 2 (CRLF) and start at 1
-    *hex_frame_length = data.size();
-    *hex_payload_len_out = data.size()-8+fix;
-    *hex_payload_offset = 2+fix;
-
-    debug("(cul) received full frame\n");
-    return FullFrame;
+    else
+    {
+        // T1 telegram in frame format A
+        // b..44..............<CR><LF>
+        *hex_frame_length = eolp;
+        vector<uchar> hex;
+        hex.insert(hex.end(), data.begin()+1, data.begin()+eolp-2-4); // Remove CUL specific 16 bit crc and CRLF
+        payload.clear();
+        bool ok = hex2bin(hex, &payload);
+        if (!ok)
+        {
+            warning("(cul) warning: the hex string is not proper! Ignoring telegram!\n");
+            return ErrorInFrame;
+        }
+        ok = trimCRCsFrameFormatA(payload);
+        if (!ok)
+        {
+            warning("(cul) dll T1 (frame a) crcs failed check! Ignoring telegram!\n");
+            return ErrorInFrame;
+        }
+        debug("(cul) received full T1 frame\n");
+        return FullFrame;
+    }
 }
 
 bool detectCUL(string device, SerialCommunicationManager *manager)

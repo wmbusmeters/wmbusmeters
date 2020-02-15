@@ -3509,3 +3509,136 @@ AccessCheck findAndDetect(SerialCommunicationManager *manager, string *out_devic
     // No device found!
     return AccessCheck::NotThere;
 }
+
+bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
+{
+    if (payload.size() < 12) {
+        debug("(wmbus) not enough bytes! expected at least 12 but got (%zu)!\n", payload.size());
+        return false;
+    }
+    size_t len = payload[0];
+    debugPayload("(wmbus) trimming frame A", payload);
+
+    if (len+1 > payload.size())
+    {
+        debug("(wmbus) not enough bytes! expected at least (%zu+1) but got (%zu)!\n", len, payload.size());
+        return false;
+    }
+
+    vector<uchar> out;
+
+    uint16_t calc_crc = crc16_EN13757(&payload[0], 10);
+    uint16_t check_crc = payload[10] << 8 | payload[11];
+
+    if (calc_crc != check_crc)
+    {
+        debug("(wmbus) ff a dll crc first (calculated %04x) did not match (expected %04x) for bytes 0-%zu!\n", calc_crc, check_crc, 10);
+        return false;
+    }
+    out.insert(out.end(), payload.begin(), payload.begin()+10);
+    debug("(wmbus) ff a dll crc 0-%zu %04x ok\n", 10-1, calc_crc);
+
+    size_t pos;
+    for (pos = 12; pos+18 <= len; pos += 18)
+    {
+        size_t to = pos+16;
+        calc_crc = crc16_EN13757(&payload[pos], 16);
+        check_crc = payload[to] << 8 | payload[to+1];
+        if (calc_crc != check_crc)
+        {
+            debug("(wmbus) ff a dll crc mid (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
+                  calc_crc, check_crc, pos, to-1);
+            return false;
+        }
+        out.insert(out.end(), payload.begin()+pos, payload.begin()+pos+16);
+        debug("(wmbus) ff a dll crc mid %zu-%zu %04x ok\n", pos, to-1, calc_crc);
+    }
+
+    size_t to = len-2;
+    size_t blen = (to-pos);
+    calc_crc = crc16_EN13757(&payload[pos], blen);
+    check_crc = payload[to] << 8 | payload[to+1];
+    if (calc_crc != check_crc)
+    {
+        debug("(wmbus) ff a dll crc final (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
+              calc_crc, check_crc, pos, to-1);
+        // return false;
+    }
+    out.insert(out.end(), payload.begin()+pos, payload.begin()+to);
+    debug("(wmbus) ff a dll crc final %zu-%zu %04x ok\n", pos, to-1, calc_crc);
+
+    out[0] = out.size()-1;
+    size_t new_len = out[0]+1;
+    size_t old_size = payload.size();
+    payload = out;
+    size_t new_size = payload.size();
+
+    debug("(wmbus) trimmed %zu crc bytes from frame a and ignored %zu suffix bytes.\n", (len-new_len), (old_size-new_size)-(len-new_len));
+
+    return true;
+}
+
+bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
+{
+    if (payload.size() < 12) {
+        debug("(wmbus) not enough bytes! expected at least 12 but got (%zu)!\n", payload.size());
+        return false;
+    }
+    size_t len = payload[0]+1;
+    debugPayload("(wmbus) trimming frame B", payload);
+
+    if (len > payload.size())
+    {
+        debug("(wmbus) not enough bytes! expected at least (%zu+1) but got (%zu)!\n", len, payload.size());
+        return false;
+    }
+
+    vector<uchar> out;
+    size_t crc1_pos, crc2_pos;
+    if (len <= 128)
+    {
+        crc1_pos = len-2;
+        crc2_pos = 0;
+    }
+    else
+    {
+        crc1_pos = 126;
+        crc2_pos = len-2;
+    }
+
+    uint16_t calc_crc = crc16_EN13757(&payload[0], crc1_pos);
+    uint16_t check_crc = payload[crc1_pos] << 8 | payload[crc1_pos+1];
+
+    if (calc_crc != check_crc)
+    {
+        debug("(wmbus) ff b dll crc (calculated %04x) did not match (expected %04x) for bytes 0-%zu!\n", calc_crc, check_crc, crc1_pos);
+        return false;
+    }
+
+    out.insert(out.end(), payload.begin(), payload.begin()+crc1_pos);
+
+    if (crc2_pos > 0)
+    {
+        calc_crc = crc16_EN13757(&payload[crc1_pos+2], crc2_pos);
+        check_crc = payload[crc2_pos] << 8 | payload[crc2_pos+1];
+
+        if (calc_crc != check_crc)
+        {
+            debug("(wmbus) ff b dll crc (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
+                  calc_crc, check_crc, crc1_pos+2, crc2_pos);
+            return false;
+        }
+
+        out.insert(out.end(), payload.begin()+crc1_pos+2, payload.begin()+crc2_pos);
+    }
+
+    out[0] = out.size()-1;
+    size_t new_len = out[0]+1;
+    size_t old_size = payload.size();
+    payload = out;
+    size_t new_size = payload.size();
+
+    debug("(wmbus) trimmed %zu crc bytes from frame b and ignored %zu suffix bytes.\n", (len-new_len), (old_size-new_size)-(len-new_len));
+
+    return true;
+}

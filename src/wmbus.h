@@ -25,6 +25,11 @@
 #include<inttypes.h>
 #include<map>
 
+// Check and remove the data link layer CRCs from a wmbus telegram.
+// If the CRCs do not pass the test, return false.
+bool trimCRCsFrameFormatA(std::vector<uchar> &payload);
+bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
+
 #define LIST_OF_LINK_MODES \
     X(Any,any,--anylinkmode,0xffff)             \
     X(C1,c1,--c1,0x1)                           \

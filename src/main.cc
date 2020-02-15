@@ -149,15 +149,16 @@ bool startUsingCommandline(Configuration *config)
     Detected settings = detectWMBusDeviceSetting(config->device, config->device_extra, manager.get());
 
     unique_ptr<SerialDevice> serial_override;
+    bool link_modes_matter = true;
 
     if (settings.override_tty)
     {
         serial_override = manager->createSerialDeviceFile(settings.devicefile);
         verbose("(serial) override with devicefile: %s\n", settings.devicefile.c_str());
+        link_modes_matter = false;
     }
 
     unique_ptr<WMBus> wmbus;
-    bool link_modes_matter = true;
 
     switch (settings.type)
     {
@@ -177,6 +178,7 @@ bool startUsingCommandline(Configuration *config)
     case DEVICE_RAWTTY:
         verbose("(rawtty) on %s\n", settings.devicefile.c_str());
         wmbus = openRawTTY(settings.devicefile, settings.baudrate, manager.get(), std::move(serial_override));
+        link_modes_matter = false;
         break;
     case DEVICE_RFMRX2:
         verbose("(rfmrx2) on %s\n", settings.devicefile.c_str());

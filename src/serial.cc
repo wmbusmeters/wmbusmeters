@@ -103,6 +103,7 @@ struct SerialDeviceImp : public SerialDevice
     void fill(vector<uchar> &data) {};
     int receive(vector<uchar> *data);
     bool working() { return fd_ != -1; }
+    bool readonly() { return is_stdin_ || is_file_; }
     void expectAscii() { expecting_ascii_ = true; }
     void setIsFile() { is_file_ = true; }
     void setIsStdin() { is_stdin_ = true; }

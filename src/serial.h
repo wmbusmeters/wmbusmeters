@@ -44,6 +44,8 @@ struct SerialDevice
     virtual int receive(std::vector<uchar> *data) = 0;
     virtual int fd() = 0;
     virtual bool working() = 0;
+    // Used when connecting stdin to a tty driver for testing.
+    virtual bool readonly() = 0;
 
     virtual void checkIfShouldReopen() = 0;
     virtual void fill(std::vector<uchar> &data) = 0; // Fill buffer with raw data.

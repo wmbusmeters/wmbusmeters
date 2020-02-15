@@ -125,26 +125,19 @@ uchar xorChecksum(vector<uchar> msg, int len)
 
 bool WMBusAmber::ping()
 {
+    if (serial_->readonly()) return true; // Feeding from stdin or file.
+
     pthread_mutex_lock(&command_lock_);
-
-    /*
-    vector<uchar> msg(4);
-    msg[0] = AMBER_SERIAL_SOF;
-    msg[1] = DEVMGMT_ID;
-    msg[2] = DEVMGMT_MSG_PING_REQ;
-    msg[3] = 0;
-
-    sent_command_ = DEVMGMT_MSG_PING_REQ;
-    serial()->send(msg);
-
-    waitForResponse();
-    */
+    // Ping it...
     pthread_mutex_unlock(&command_lock_);
+
     return true;
 }
 
 uint32_t WMBusAmber::getDeviceId()
 {
+    if (serial_->readonly()) { return 0; }  // Feeding from stdin or file.
+
     pthread_mutex_lock(&command_lock_);
 
     vector<uchar> msg(4);
@@ -179,7 +172,10 @@ uint32_t WMBusAmber::getDeviceId()
     return id;
 }
 
-LinkModeSet WMBusAmber::getLinkModes() {
+LinkModeSet WMBusAmber::getLinkModes()
+{
+    if (serial_->readonly()) { return Any_bit; }  // Feeding from stdin or file.
+
     // It is not possible to read the volatile mode set using setLinkModeSet below.
     // (It is possible to read the non-volatile settings, but this software
     // does not change those.) So we remember the state for the device.
@@ -238,6 +234,8 @@ void WMBusAmber::getConfiguration()
 
 void WMBusAmber::setLinkModes(LinkModeSet lms)
 {
+    if (serial_->readonly()) return; // Feeding from stdin or file.
+
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
@@ -282,11 +280,14 @@ void WMBusAmber::setLinkModes(LinkModeSet lms)
     pthread_mutex_unlock(&command_lock_);
 }
 
-void WMBusAmber::waitForResponse() {
-    while (manager_->isRunning()) {
+void WMBusAmber::waitForResponse()
+{
+    while (manager_->isRunning())
+    {
         int rc = sem_wait(&command_wait_);
         if (rc==0) break;
-        if (rc==-1) {
+        if (rc==-1)
+        {
             if (errno==EINTR) continue;
             break;
         }
@@ -301,7 +302,7 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
                                           uchar *rssi)
 {
     if (data.size() == 0) return PartialFrame;
-    debugPayload("(amb8465) checkIM871AFrame", data);
+    debugPayload("(amb8465) checkAMB8465Frame", data);
     int payload_len = 0;
     if (data[0] == 0xff) {
         if (data.size() < 3)

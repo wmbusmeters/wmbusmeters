@@ -106,6 +106,7 @@ struct Meter
                             vector<string> *envs,
                             vector<string> *more_json) = 0;
 
+    // The handleTelegram expects an input_frame where the DLL crcs have been removed.
     bool handleTelegram(vector<uchar> input_frame);
     virtual bool isTelegramForMe(Telegram *t) = 0;
     virtual MeterKeys *meterKeys() = 0;
