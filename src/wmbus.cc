@@ -3547,7 +3547,7 @@ bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
     out.insert(out.end(), payload.begin(), payload.begin()+10);
     debug("(wmbus) ff a dll crc 0-%zu %04x ok\n", 10-1, calc_crc);
 
-    size_t pos;
+    size_t pos = 12;
     for (pos = 12; pos+18 <= len; pos += 18)
     {
         size_t to = pos+16;
@@ -3563,18 +3563,21 @@ bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
         debug("(wmbus) ff a dll crc mid %zu-%zu %04x ok\n", pos, to-1, calc_crc);
     }
 
-    size_t to = len-2;
-    size_t blen = (to-pos);
-    calc_crc = crc16_EN13757(&payload[pos], blen);
-    check_crc = payload[to] << 8 | payload[to+1];
-    if (calc_crc != check_crc)
+    if (pos < len-2)
     {
-        debug("(wmbus) ff a dll crc final (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
-              calc_crc, check_crc, pos, to-1);
-        // return false;
+        size_t tto = len-2;
+        size_t blen = (tto-pos);
+        calc_crc = crc16_EN13757(&payload[pos], blen);
+        check_crc = payload[tto] << 8 | payload[tto+1];
+        if (calc_crc != check_crc)
+        {
+            debug("(wmbus) ff a dll crc final (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
+                  calc_crc, check_crc, pos, tto-1);
+            return false;
+        }
+        out.insert(out.end(), payload.begin()+pos, payload.begin()+tto);
+        debug("(wmbus) ff a dll crc final %zu-%zu %04x ok\n", pos, tto-1, calc_crc);
     }
-    out.insert(out.end(), payload.begin()+pos, payload.begin()+to);
-    debug("(wmbus) ff a dll crc final %zu-%zu %04x ok\n", pos, to-1, calc_crc);
 
     out[0] = out.size()-1;
     size_t new_len = out[0]+1;

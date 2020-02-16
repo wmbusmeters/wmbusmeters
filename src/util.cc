@@ -824,6 +824,8 @@ uint16_t crc16_EN13757(uchar *data, size_t len)
 {
     uint16_t crc = 0x0000;
 
+    assert(len == 0 || data != NULL);
+    assert(len < 1024);
     for (size_t i=0; i<len; ++i) {
         crc = crc16_EN13757_per_byte(crc, data[i]);
     }
