@@ -1255,7 +1255,7 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
         info += " ";
         has_cfg_ext = true;
     }
-    addExplanationAndIncrementPos(pos, 2, "%02x%02x tpl-cfg (%s)", cfg1, cfg2, info.c_str());
+    addExplanationAndIncrementPos(pos, 2, "%02x%02x tpl-cfg %04x (%s)", cfg1, cfg2, tpl_cfg, info.c_str());
 
     if (has_cfg_ext)
     {
@@ -3531,14 +3531,8 @@ bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
         debug("(wmbus) not enough bytes! expected at least 12 but got (%zu)!\n", payload.size());
         return false;
     }
-    size_t len = payload[0];
+    size_t len = payload.size();
     debugPayload("(wmbus) trimming frame A", payload);
-
-    if (len+1 > payload.size())
-    {
-        debug("(wmbus) not enough bytes! expected at least (%zu+1) but got (%zu)!\n", len, payload.size());
-        return false;
-    }
 
     vector<uchar> out;
 
@@ -3589,6 +3583,7 @@ bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
     size_t new_size = payload.size();
 
     debug("(wmbus) trimmed %zu crc bytes from frame a and ignored %zu suffix bytes.\n", (len-new_len), (old_size-new_size)-(len-new_len));
+    debugPayload("(wmbus) trimmed  frame A", payload);
 
     return true;
 }
@@ -3599,14 +3594,8 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
         debug("(wmbus) not enough bytes! expected at least 12 but got (%zu)!\n", payload.size());
         return false;
     }
-    size_t len = payload[0]+1;
+    size_t len = payload.size();
     debugPayload("(wmbus) trimming frame B", payload);
-
-    if (len > payload.size())
-    {
-        debug("(wmbus) not enough bytes! expected at least (%zu+1) but got (%zu)!\n", len, payload.size());
-        return false;
-    }
 
     vector<uchar> out;
     size_t crc1_pos, crc2_pos;
@@ -3631,6 +3620,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
     }
 
     out.insert(out.end(), payload.begin(), payload.begin()+crc1_pos);
+    debug("(wmbus) ff b dll crc first 0-%zu %04x ok\n", crc1_pos, calc_crc);
 
     if (crc2_pos > 0)
     {
@@ -3645,6 +3635,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
         }
 
         out.insert(out.end(), payload.begin()+crc1_pos+2, payload.begin()+crc2_pos);
+        debug("(wmbus) ff b dll crc final %zu-%zu %04x ok\n", crc1_pos+2, crc2_pos, calc_crc);
     }
 
     out[0] = out.size()-1;
@@ -3654,6 +3645,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
     size_t new_size = payload.size();
 
     debug("(wmbus) trimmed %zu crc bytes from frame b and ignored %zu suffix bytes.\n", (len-new_len), (old_size-new_size)-(len-new_len));
+    debugPayload("(wmbus) trimmed  frame B", payload);
 
     return true;
 }

@@ -285,6 +285,9 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         return PartialFrame;
     }
     eolp++; // Point to byte after CRLF.
+    // Normally it is CRLF, but enable code to handle single LF as well.
+    int eof_len = data[eolp-2] == '\r' ? 2 : 1;
+    // If it was a CRLF then eof_len == 2, else it is 1.
     if (data[0] != 'b')
     {
         // C1 and T1 telegrams should start with a 'b'
@@ -298,11 +301,16 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         // bY..44............<CR><LF>
         *hex_frame_length = eolp;
         vector<uchar> hex;
-        hex.insert(hex.end(), data.begin()+2, data.begin()+eolp-2); // Remove CRLF
+        // Why on earth do we need to remove the 4 hex chars (2 binary bytes)
+        // from the end of the bY C1 telegrams, but there are no such 4 hex chars
+        // to be removed for plain b T1 telegrams?????
+        hex.insert(hex.end(), data.begin()+2, data.begin()+eolp-eof_len-4); // Remove CRLF
         payload.clear();
         bool ok = hex2bin(hex, &payload);
         if (!ok)
         {
+            string s = safeString(hex);
+            debug("(cul) bad hex \"%s\"\n", s.c_str());
             warning("(cul) warning: the hex string is not proper! Ignoring telegram!\n");
             return ErrorInFrame;
         }
@@ -321,11 +329,13 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         // b..44..............<CR><LF>
         *hex_frame_length = eolp;
         vector<uchar> hex;
-        hex.insert(hex.end(), data.begin()+1, data.begin()+eolp-2-4); // Remove CUL specific 16 bit crc and CRLF
+        hex.insert(hex.end(), data.begin()+1, data.begin()+eolp-eof_len); // Remove CRLF
         payload.clear();
         bool ok = hex2bin(hex, &payload);
         if (!ok)
         {
+            string s = safeString(hex);
+            debug("(cul) bad hex \"%s\"\n", s.c_str());
             warning("(cul) warning: the hex string is not proper! Ignoring telegram!\n");
             return ErrorInFrame;
         }
