@@ -88,6 +88,11 @@ void MeterApator162::processContent(Telegram *t)
     // us where the current total water consumption is located.
     int o = 0;
     uchar guess = content[11];
+    if ((guess & 0x84) == 0x84)
+    {
+        o = 23;
+    }
+    else
     if ((guess & 0x83) == 0x83)
     {
         o = 23;

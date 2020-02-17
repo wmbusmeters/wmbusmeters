@@ -17,6 +17,7 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       MyTapWaterb apator162   22202020 NOKEY
       MyTapWaterc apator162   23202020 NOKEY
       MyTapWaterd apator162   24202020 NOKEY
+      MyTapWatere apator162   25202020 NOKEY
       MyElectricity1 amiplus  10101010 NOKEY
       Duschen     mkradio3    34333231 NOKEY
       HeatMeter   vario451    58234965 NOKEY

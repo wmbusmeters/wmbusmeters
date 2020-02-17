@@ -48,6 +48,9 @@ Received telegram from: 23202020
 Received telegram from: 24202020
           manufacturer: (APA) Apator, Poland
            device type: Water meter
+Received telegram from: 25202020
+          manufacturer: (APA) Apator, Poland
+           device type: Water meter
 Received telegram from: 10101010
           manufacturer: (APA) Apator, Poland
            device type: Electricity meter
