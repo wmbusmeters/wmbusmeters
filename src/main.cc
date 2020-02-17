@@ -205,11 +205,11 @@ bool startUsingCommandline(Configuration *config)
                 string rtlsdr = string(prefix)+"rtl_sdr";
                 if (!checkFileExists("/usr/bin/rtl_sdr"))
                 {
-                    error("When starting as daemon, wmbusmeters expects /usr/bin/rtl_sdr to exist!\n");
+                    error("(rtlwmbus) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_sdr to exist!\n");
                 }
                 if (!checkFileExists("/usr/bin/rtl_wmbus"))
                 {
-                    error("When starting as daemon, wmbusmeters expects /usr/bin/rtl_wmbus to exist!\n");
+                    error("(rtlwmbus) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_wmbus to exist!\n");
                 }
             }
             if (command == "") {

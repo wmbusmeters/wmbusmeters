@@ -53,7 +53,9 @@ key=00112233445566778899AABBCCDDEEFF
 Now plugin your wmbus dongle. Wmbusmeters should start automatically,
 check with `tail -f /var/log/syslog` and `tail -f /var/log/wmbusmeters/wmbusmeters.log`
 (If you are using an rtlsdr dongle, then make sure the binaries /usr/bin/rtl_sdr and
-/usr/bin/rtl_wmbus exists and are executable.)
+/usr/bin/rtl_wmbus exists and are executable. If not you will see the
+error message `(rtlwmbus) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_sdr to exist!`
+and the daemon will refuse to start.)
 
 The latest reading of the meter can also be found here: /var/log/wmbusmeters/meter_readings/MyTapWater
 
