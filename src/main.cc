@@ -202,6 +202,15 @@ bool startUsingCommandline(Configuration *config)
             }
             if (config->daemon) {
                 prefix = "/usr/bin/";
+                string rtlsdr = string(prefix)+"rtl_sdr";
+                if (!checkFileExists("/usr/bin/rtl_sdr"))
+                {
+                    error("When starting as daemon, wmbusmeters expects /usr/bin/rtl_sdr to exist!\n");
+                }
+                if (!checkFileExists("/usr/bin/rtl_wmbus"))
+                {
+                    error("When starting as daemon, wmbusmeters expects /usr/bin/rtl_wmbus to exist!\n");
+                }
             }
             if (command == "") {
                 command = prefix+"rtl_sdr -f "+freq+" -s 1.6e6 - | "+prefix+"rtl_wmbus";
