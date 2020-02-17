@@ -202,14 +202,17 @@ bool startUsingCommandline(Configuration *config)
             }
             if (config->daemon) {
                 prefix = "/usr/bin/";
-                string rtlsdr = string(prefix)+"rtl_sdr";
-                if (!checkFileExists("/usr/bin/rtl_sdr"))
+                if (command == "")
                 {
-                    error("(rtlwmbus) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_sdr to exist!\n");
-                }
-                if (!checkFileExists("/usr/bin/rtl_wmbus"))
-                {
-                    error("(rtlwmbus) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_wmbus to exist!\n");
+                    // Default command is used, check that the binaries are in place.
+                    if (!checkFileExists("/usr/bin/rtl_sdr"))
+                    {
+                        error("(rtlwmbus) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_sdr to exist!\n");
+                    }
+                    if (!checkFileExists("/usr/bin/rtl_wmbus"))
+                    {
+                        error("(rtlwmbus) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_wmbus to exist!\n");
+                    }
                 }
             }
             if (command == "") {
