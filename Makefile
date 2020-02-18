@@ -146,7 +146,7 @@ uninstall:
 wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb:
 	@rm -rf $(BUILD)/debian/wmbusmeters
 	@mkdir -p $(BUILD)/debian/wmbusmeters/DEBIAN
-	@./install.sh --no-adduser $(BUILD)/wmbusmeters $(BUILD)/debian/wmbusmeters
+	@./install.sh $(BUILD)/wmbusmeters $(BUILD)/debian/wmbusmeters --no-adduser
 	@rm -f $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Package: wmbusmeters" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Version: $(DEBVERSION)" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
