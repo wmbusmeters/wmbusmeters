@@ -304,7 +304,7 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         // Why on earth do we need to remove the 4 hex chars (2 binary bytes)
         // from the end of the bY C1 telegrams, but there are no such 4 hex chars
         // to be removed for plain b T1 telegrams?????
-        hex.insert(hex.end(), data.begin()+2, data.begin()+eolp-eof_len-4); // Remove CRLF
+        hex.insert(hex.end(), data.begin()+2, data.begin()+eolp-eof_len); // Remove CRLF
         payload.clear();
         bool ok = hex2bin(hex, &payload);
         if (!ok)
