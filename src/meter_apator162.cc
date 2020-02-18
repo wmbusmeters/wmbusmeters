@@ -87,44 +87,53 @@ void MeterApator162::processContent(Telegram *t)
     // Current assumption of this proprietary protocol is that byte 13 tells
     // us where the current total water consumption is located.
     int o = 0;
-    uchar guess = content[11];
-    if ((guess & 0x84) == 0x84)
+    uchar guess10 = content[10];
+    uchar guess11 = content[11];
+    uchar guess12 = content[12];
+    if ((guess11 & 0x84) == 0x84)
     {
         o = 23;
     }
     else
-    if ((guess & 0x83) == 0x83)
+    if ((guess11 & 0x83) == 0x83)
     {
         o = 23;
     }
     else
-    if ((guess & 0x81) == 0x81)
+    if ((guess11 & 0x81) == 0x81)
+    {
+        if (guess10 == 02)
+        {
+            o = 23;
+        }
+        else
+        {
+            o = 20;
+        }
+    }
+    else
+    if ((guess11 & 0x40) == 0x40)
     {
         o = 20;
     }
     else
-    if ((guess & 0x40) == 0x40)
-    {
-        o = 20;
-    }
-    else
-    if ((guess & 0x10) == 0x10)
+    if ((guess11 & 0x10) == 0x10)
     {
         o = 12;
     }
     else
-    if ((guess & 0x01) == 0x01)
+    if ((guess11 & 0x01) == 0x01)
     {
         o = 9;
     }
     else
     {
-        warning("(apator162) Unknown value in proprietary(unknown) apator162 protocol. Ignoring telegram. Found 0x%02x expected bit 0x01, 0x10, 0x40 or 0x80 to be set.\n", guess);
+        warning("(apator162) Unknown value in proprietary(unknown) apator162 protocol. Ignoring telegram. Found 0x%02x expected bit 0x01, 0x10, 0x40 or 0x80 to be set.\n", guess11);
         return;
     }
 
     strprintf(total, "%02x%02x%02x%02x", content[o], content[o+1], content[o+2], content[o+3]);
-    debug("(apator162) Guessing offset to be %d from byte 0x%02x: total %s\n", o, guess, total.c_str());
+    debug("\n(apator162) Guessing offset to be %d from byte >10=%02x 11=%02x 12=%02x<: total %s\n\n", o, guess10, guess11, guess12, total.c_str());
 
     vendor_values["0413"] = { 25, DVEntry(MeasurementType::Instantaneous, 0x13, 0, 0, 0, total) };
     int offset;
