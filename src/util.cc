@@ -249,6 +249,7 @@ bool logfile_enabled_ = false;
 bool warning_enabled_ = true;
 bool verbose_enabled_ = false;
 bool debug_enabled_ = false;
+bool stderr_enabled_ = false;
 bool log_telegrams_enabled_ = false;
 
 string log_file_;
@@ -302,6 +303,10 @@ void debugEnabled(bool b) {
     }
 }
 
+void stderrEnabled(bool b) {
+    stderr_enabled_ = b;
+}
+
 time_t telegrams_start_time_;
 
 void logTelegramsEnabled(bool b) {
@@ -346,8 +351,16 @@ void outputStuff(int syslog_level, const char *fmt, va_list args)
     if (syslog_enabled_) {
         vsyslog(syslog_level, fmt, args);
     }
-    else {
-        vprintf(fmt, args);
+    else
+    {
+        if (stderr_enabled_)
+        {
+            vfprintf(stderr, fmt, args);
+        }
+        else
+        {
+            vprintf(fmt, args);
+        }
     }
 }
 

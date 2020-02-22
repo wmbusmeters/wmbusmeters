@@ -53,7 +53,7 @@ MeterHydrus::MeterHydrus(WMBus *bus, MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    setExpectedVersion(0x70);
+    addExpectedVersion(0x70);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

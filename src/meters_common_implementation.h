@@ -70,10 +70,10 @@ struct MeterCommonImplementation : public virtual Meter
 protected:
 
     void triggerUpdate(Telegram *t);
-    void setExpectedVersion(int version);
+    void addExpectedVersion(int version);
     void setExpectedELLSecurityMode(ELLSecurityMode dsm);
     void setExpectedTPLSecurityMode(TPLSecurityMode tsm);
-    int expectedVersion();
+    bool isExpectedVersion(int version);
     void addConversions(std::vector<Unit> cs);
     void addShell(std::string cmdline);
     void addJson(std::string json);
@@ -102,7 +102,7 @@ private:
     MeterKeys meter_keys_ {};
     ELLSecurityMode expected_ell_sec_mode_ {};
     TPLSecurityMode expected_tpl_sec_mode_ {};
-    int expected_meter_version_ {};
+    set<int> expected_versions_;
     vector<int> media_;
     set<int> manufacturers_;
     string name_;

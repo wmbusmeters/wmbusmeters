@@ -102,6 +102,17 @@ then
     else
         echo user: wmbusmeters unmodified
     fi
+    if [ ! -z "$SUDO_USER" ]
+    then
+        if [ "$(groups $SUDO_USER | grep -o wmbusmeters)" = "" ]
+        then
+            # Add user to the wmbusmeters group.
+            usermod -a -G wmbusmeters $SUDO_USER
+            echo user: added $SUDO_USER to group wmbusmeters
+        else
+            echo user: user $SUDO_USER already added group wmbusmeters
+        fi
+    fi
 fi
 
 ####################################################################

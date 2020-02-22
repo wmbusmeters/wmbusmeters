@@ -1695,13 +1695,6 @@ void Telegram::explainParse(string intro, int from)
     }
 }
 
-void Telegram::expectVersion(const char *info, int v)
-{
-    if (v != 0 && dll_version != v) {
-        warning("(%s) expected telegram with version 0x%02x, but got version 0x%02x !\n", info, v, dll_version);
-    }
-}
-
 string cType(int c_field)
 {
     string s;

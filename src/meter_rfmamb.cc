@@ -67,7 +67,7 @@ MeterRfmAmb::MeterRfmAmb(WMBus *bus, MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    setExpectedVersion(0x10);
+    addExpectedVersion(0x10);
 
     addPrint("current_temperature", Quantity::Temperature,
              [&](Unit u){ return currentTemperature(u); },

@@ -53,7 +53,7 @@ MeterApator162::MeterApator162(WMBus *bus, MeterInfo &mi) :
     addLinkMode(LinkMode::T1);
     addLinkMode(LinkMode::C1);
 
-    setExpectedVersion(0x05);
+    addExpectedVersion(0x05);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

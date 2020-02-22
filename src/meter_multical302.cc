@@ -57,7 +57,7 @@ MeterMultical302::MeterMultical302(WMBus *bus, MeterInfo &mi) :
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
     addMedia(0x04); // Heat media
-
+    addExpectedVersion(0x30);
     addLinkMode(LinkMode::C1);
 
     addPrint("total_energy_consumption", Quantity::Energy,

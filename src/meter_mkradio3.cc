@@ -50,7 +50,7 @@ MKRadio3::MKRadio3(WMBus *bus, MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    setExpectedVersion(0x74);
+    addExpectedVersion(0x74);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

@@ -110,7 +110,7 @@ struct Meter
     bool handleTelegram(vector<uchar> input_frame);
     virtual bool isTelegramForMe(Telegram *t) = 0;
     virtual MeterKeys *meterKeys() = 0;
-    virtual int expectedVersion() = 0;
+    virtual bool isExpectedVersion(int version) = 0;
 
     // Dynamically access all data received for the meter.
     virtual std::vector<std::string> getRecords() = 0;

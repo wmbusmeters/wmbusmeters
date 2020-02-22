@@ -65,6 +65,7 @@ void notice(const char* fmt, ...);
 void warningSilenced(bool b);
 void verboseEnabled(bool b);
 void debugEnabled(bool b);
+void stderrEnabled(bool b);
 void logTelegramsEnabled(bool b);
 
 bool isVerboseEnabled();

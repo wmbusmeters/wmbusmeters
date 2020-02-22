@@ -49,7 +49,7 @@ MeterHydrodigit::MeterHydrodigit(WMBus *bus, MeterInfo &mi) :
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addMedia(0x07);
-
+    addExpectedVersion(0x13);
     addLinkMode(LinkMode::T1);
 
     addPrint("total", Quantity::Volume,

@@ -50,7 +50,7 @@ MeterEurisII::MeterEurisII(WMBus *bus, MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    setExpectedVersion(0x55);
+    addExpectedVersion(0x55);
 
     addPrint("current_consumption", Quantity::HCA,
              [&](Unit u){ return currentConsumption(u); },

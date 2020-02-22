@@ -58,7 +58,7 @@ MeterAmiplus::MeterAmiplus(WMBus *bus, MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    setExpectedVersion(0x02);
+    addExpectedVersion(0x02);
 
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },

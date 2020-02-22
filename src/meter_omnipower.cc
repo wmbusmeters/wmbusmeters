@@ -48,7 +48,7 @@ MeterOmnipower::MeterOmnipower(WMBus *bus, MeterInfo &mi) :
 
     addLinkMode(LinkMode::C1);
 
-    setExpectedVersion(0x01);
+    addExpectedVersion(0x01);
 
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },

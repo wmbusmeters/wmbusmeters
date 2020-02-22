@@ -54,7 +54,7 @@ MeterQCaloric::MeterQCaloric(WMBus *bus, MeterInfo &mi) :
 
     addLinkMode(LinkMode::C1);
 
-    setExpectedVersion(0x35);
+    addExpectedVersion(0x35);
 
     addPrint("current_consumption", Quantity::HCA,
              [&](Unit u){ return currentConsumption(u); },

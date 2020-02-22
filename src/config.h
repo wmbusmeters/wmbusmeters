@@ -63,6 +63,7 @@ struct Configuration
     MeterFileNaming meterfiles_naming {};
     MeterFileTimestamp meterfiles_timestamp {}; // Default is never.
     bool use_logfile {};
+    bool use_stderr {};
     std::string logfile;
     bool json {};
     bool fields {};

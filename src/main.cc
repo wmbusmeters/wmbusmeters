@@ -123,6 +123,7 @@ bool startUsingCommandline(Configuration *config)
     verboseEnabled(config->verbose);
     logTelegramsEnabled(config->logtelegrams);
     debugEnabled(config->debug);
+    stderrEnabled(config->use_stderr);
 
     debug("(wmbusmeters) version: " VERSION "\n");
 

@@ -54,6 +54,8 @@ MeterVario451::MeterVario451(WMBus *bus, MeterInfo &mi) :
     addLinkMode(LinkMode::C1);
     addLinkMode(LinkMode::T1);
 
+    addExpectedVersion(0x27);
+
     addPrint("total", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",

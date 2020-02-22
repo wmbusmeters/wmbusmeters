@@ -328,6 +328,11 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--usestderr=", 10)) {
+            c->use_stderr = true;
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--shell=", 8)) {
             string cmd = string(argv[i]+8);
             if (cmd == "") {

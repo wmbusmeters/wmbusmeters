@@ -50,7 +50,8 @@ MeterIperl::MeterIperl(WMBus *bus, MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    setExpectedVersion(0x68);
+    addExpectedVersion(0x68);
+    addExpectedVersion(0x7c); // Sensus 640
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

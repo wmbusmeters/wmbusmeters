@@ -304,7 +304,10 @@ bool MeterCommonImplementation::handleTelegram(vector<uchar> input_frame)
         return false;
     }
 
-    t.expectVersion(meterName().c_str(), expectedVersion());
+    if (!isExpectedVersion(t.dll_version))
+    {
+        warning("(%s) unexpected meter version 0x%02x !\n", meterName().c_str(), t.dll_version);
+    }
 
     char log_prefix[256];
     snprintf(log_prefix, 255, "(%s) log", meterName().c_str());
@@ -471,12 +474,12 @@ ELLSecurityMode MeterCommonImplementation::expectedELLSecurityMode()
     return expected_ell_sec_mode_;
 }
 
-void MeterCommonImplementation::setExpectedVersion(int version)
+void MeterCommonImplementation::addExpectedVersion(int version)
 {
-    expected_meter_version_ = version;
+    expected_versions_.insert(version);
 }
 
-int MeterCommonImplementation::expectedVersion()
+bool MeterCommonImplementation::isExpectedVersion(int version)
 {
-    return expected_meter_version_;
+    return expected_versions_.size() == 0 || expected_versions_.count(version) > 0;
 }

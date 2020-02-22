@@ -139,6 +139,7 @@ As <options> you can use:
     --shell=<cmdline> invokes cmdline with env variables containing the latest reading
     --shellenvs list the env variables available for the meter
     --useconfig=<dir> load config files from dir/etc
+    --usestderr write debug/verbose and logging output to stderr
     --verbose for more information
 
 As <device> you can use:

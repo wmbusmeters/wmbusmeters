@@ -77,8 +77,7 @@ MeterIzar::MeterIzar(WMBus *bus, MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    // meters with different versions exist, don't set any to avoid warnings
-    // setExpectedVersion(0xd4); // or 0xcc
+    // Meters with different versions exist, don't set any to avoid warnings
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

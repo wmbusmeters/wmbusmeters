@@ -52,7 +52,7 @@ MeterSupercom587::MeterSupercom587(WMBus *bus, MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    setExpectedVersion(0x3c);
+    addExpectedVersion(0x3c);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

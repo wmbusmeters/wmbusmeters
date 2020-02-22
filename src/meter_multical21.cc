@@ -101,9 +101,9 @@ MeterMultical21::MeterMultical21(WMBus *bus, MeterInfo &mi, MeterType mt) :
     addLinkMode(LinkMode::C1);
 
     if (type() == MeterType::MULTICAL21) {
-        setExpectedVersion(0x1b);
+        addExpectedVersion(0x1b);
     } else if (type() == MeterType::FLOWIQ3100) {
-        setExpectedVersion(0x1d);
+        addExpectedVersion(0x1d);
     } else {
         assert(0);
     }

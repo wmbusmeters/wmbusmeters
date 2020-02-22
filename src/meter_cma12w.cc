@@ -44,7 +44,7 @@ MeterCMa12w::MeterCMa12w(WMBus *bus, MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    setExpectedVersion(0x20);
+    addExpectedVersion(0x20);
 
     addPrint("current_temperature", Quantity::Temperature,
              [&](Unit u){ return currentTemperature(u); },

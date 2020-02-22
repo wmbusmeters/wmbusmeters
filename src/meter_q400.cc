@@ -56,7 +56,7 @@ MeterQ400::MeterQ400(WMBus *bus, MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    setExpectedVersion(0x10);
+    addExpectedVersion(0x10);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

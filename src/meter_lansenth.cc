@@ -48,7 +48,7 @@ MeterLansenTH::MeterLansenTH(WMBus *bus, MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    setExpectedVersion(0x07);
+    addExpectedVersion(0x07);
 
     addPrint("current_temperature", Quantity::Temperature,
              [&](Unit u){ return currentTemperature(u); },

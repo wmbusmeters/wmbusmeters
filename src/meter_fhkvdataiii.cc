@@ -59,7 +59,7 @@ MeterFHKVDataIII::MeterFHKVDataIII(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::FHKVDATAIII, MANUFACTURER_TCH)
 {
     addMedia(0x80); // T telegrams
-
+    addExpectedVersion(0x69);
     addLinkMode(LinkMode::T1);
 
     addPrint("current", Quantity::HCA,
