@@ -93,6 +93,9 @@ void MeterApator08::processContent(Telegram *t)
     if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, 0, &key, &vendor_values))
     {
         extractDVdouble(&vendor_values, key, &offset, &total_water_consumption_m3_);
+        // Now divide with 3! Is this the same for all apator08 meters? Time will tell.
+        total_water_consumption_m3_ /= 3.0;
+
         //Adding explanation have to wait since it assumes that the dvparser could do something, but it could not here.
         //t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }

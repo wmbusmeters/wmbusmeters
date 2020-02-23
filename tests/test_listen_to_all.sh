@@ -81,9 +81,10 @@ Received telegram from: 77997799
 Received telegram from: 55995599
           manufacturer: (EMH) EMH metering formerly EMH Elektrizitatszahler
            device type: Electricity meter
+Received telegram from: 004444dd
+          manufacturer: (APT) Unknown
+           device type: Gas meter
 EOF
-
-EXPECTED=$(cat $LOGFILE_EXPECTED)
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)
 
@@ -97,35 +98,31 @@ then
     exit 1
 fi
 
-GOT=$(cat $LOGFILE)
+RES=$(diff $LOGFILE $LOGFILE_EXPECTED)
 
-
-if [ ! "$GOT" = "$EXPECTED" ]
+if [ ! -z "$RES" ]
 then
     echo ERROR: $TESTNAME
-    echo GOT--------------
-    echo $GOT
-    echo EXPECTED---------
-    echo $EXPECTED
+    echo -----------------
+    diff $LOGFILE $LOGFILE_EXPECTED
     echo -----------------
     exit 1
 else
     echo OK: $TESTNAME
 fi
 
-
 TESTNAME="Test listen and print any meter heard on stdout"
 TESTRESULT="ERROR"
 
-GOT=$($PROG --t1 simulations/simulation_t1.txt 2>&1)
+$PROG --t1 simulations/simulation_t1.txt 2>&1 > $LOGFILE
 
-if [ ! "$GOT" = "$EXPECTED" ]
+RES=$(diff $LOGFILE $LOGFILE_EXPECTED)
+
+if [ ! -z "$RES"  ]
 then
     echo ERROR: $TESTNAME
-    echo GOT--------------
-    echo $GOT
-    echo EXPECTED---------
-    echo $EXPECTED
+    echo -----------------
+    diff $LOGFILE $LOGFILE_EXPECTED
     echo -----------------
     exit 1
 else
