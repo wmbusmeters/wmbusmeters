@@ -193,7 +193,8 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
         return false;
     }
 
-    if (manufacturers_.count(t->dll_mfct) == 0) {
+    if (manufacturers_.size() > 0 && manufacturers_.count(t->dll_mfct) == 0)
+    {
         // We are not that strict for the manufacturer.
         // Simply warn.
         warning("(meter) %s: probably not for me since manufacturer differs\n", name_.c_str());

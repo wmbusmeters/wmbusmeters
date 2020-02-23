@@ -27,8 +27,9 @@
 
 #define LIST_OF_METERS \
     X(amiplus,    T1_bit, Electricity, AMIPLUS,     Amiplus)      \
-    X(apator162,  C1_bit|T1_bit, Water,       APATOR162,   Apator162)    \
-    X(cma12w,     C1_bit|T1_bit, TempHygro,   CMA12W,      CMa12w)       \
+    X(apator08,   T1_bit,        Water,       APATOR08,    Apator08)    \
+    X(apator162,  C1_bit|T1_bit, Water,       APATOR162,   Apator162)   \
+    X(cma12w,     C1_bit|T1_bit, TempHygro,   CMA12W,      CMa12w)      \
     X(ebzwmbe,    T1_bit, Electricity, EBZWMBE, EBZWMBE)   \
     X(eurisii,    T1_bit, HeatCostAllocation, EURISII, EurisII)   \
     X(ehzp,       T1_bit, Electricity, EHZP,        EHZP)         \
@@ -200,6 +201,7 @@ unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createAmiplus(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createSupercom587(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createMKRadio3(WMBus *bus, MeterInfo &m);
+unique_ptr<WaterMeter> createApator08(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createApator162(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createIperl(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createHydrus(WMBus *bus, MeterInfo &m);

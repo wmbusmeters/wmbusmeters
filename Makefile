@@ -95,6 +95,7 @@ METER_OBJS:=\
 	$(BUILD)/dvparser.o \
 	$(BUILD)/meters.o \
 	$(BUILD)/meter_amiplus.o \
+	$(BUILD)/meter_apator08.o \
 	$(BUILD)/meter_apator162.o \
 	$(BUILD)/meter_cma12w.o \
 	$(BUILD)/meter_ebzwmbe.o \
