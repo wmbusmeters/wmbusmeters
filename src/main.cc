@@ -217,7 +217,7 @@ bool startUsingCommandline(Configuration *config)
                 }
             }
             if (command == "") {
-                command = prefix+"rtl_sdr -f "+freq+" -s 1.6e6 - | "+prefix+"rtl_wmbus";
+                command = prefix+"rtl_sdr -f "+freq+" -s 1.6e6 - 2>/dev/null | "+prefix+"rtl_wmbus";
             }
             verbose("(rtlwmbus) using command: %s\n", command.c_str());
         }

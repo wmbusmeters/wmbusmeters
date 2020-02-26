@@ -154,7 +154,7 @@ auto, to have wmbusmeters look for the links /dev/im871a, /dev/amb8465, /dev/rfm
 
 /dev/ttyUSB0:38400, to have wmbusmeters set the baud rate to 38400 and listen for raw wmbus telegrams.
 
-rtlwmbus, to spawn the background process: "rtl_sdr -f 868.95M -s 1600000 - | rtl_wmbus"
+rtlwmbus, to spawn the background process: "rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus"
 
 rtlwmbus:868.9M, to tune to this fq instead.
 
@@ -373,7 +373,7 @@ If you do not want the daemon to start automatically, simply edit
 line.
 
 You can start/stop the daemon with `sudo systemctl stop wmbusmeters@-dev-im871a_0.service`
-or `sudo systemctl stop wmbusmeters@-dev-amb8465_1.service` etc. Alas
+or `sudo systemctl stop wmbusmeters@-dev-amb8465_1.service` etc. Sometimes
 rtl_sdr does not play nice right now with wmbusmeters daemon. If you first do `sudo systemctl stop wmbusmeters@-dev-rtlsdr_3.service`
 it will hang, in a separate window do `sudo killall -9 rtl_sdr` to get rid of the spinning rtl_sdr process.
 
@@ -405,26 +405,10 @@ If you do not get proper readings from the meters with non-standard protocols. a
 then you have to open an issue here and help out by logging a lot of messages and reverse engineer them
 even more..... :-/
 
-# Good documents on the wireless mbus protocol:
+# Good free documents on the wireless mbus protocol standard EN 13757:
 
-https://oms-group.org/download4all/
-
-http://www.m-bus.com/files/w4b21021.pdf
-
-https://www.infineon.com/dgdl/TDA5340_AN_WMBus_v1.0.pdf
-
-http://fastforward.ag/downloads/docu/FAST_EnergyCam-Protocol-wirelessMBUS.pdf
-
-http://www.multical.hu/WiredMBus-water.pdf
-
-http://uu.diva-portal.org/smash/get/diva2:847898/FULLTEXT02.pdf
-
-http://projekter.aau.dk/projekter/da/studentthesis/wireless-mbus-based-extremely-low-power-protocol-for-wireless-communication-with-water-meters(6e1139d5-6f24-4b8a-a727-9bc108012bcc).html
-
-The AES source code is copied from:
-
-https://github.com/kokke/tiny-AES128-C
+https://oms-group.org/
 
 There is also a lot of wmbus protocol implementation details that
-probably are missing. They will be added to the program
-as we figure out how the meters send their data.
+are missing. They will be added to the program as we figure out
+how the meters send their data.
