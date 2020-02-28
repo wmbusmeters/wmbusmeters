@@ -33,19 +33,19 @@
     X(Time,Hour)           \
 
 #define LIST_OF_UNITS \
-    X(KWH,kwh,kWh,Energy,"kilo Watt hour")  \
-    X(GJ,gj,GJ,Energy,"Giga Joule")         \
-    X(M3,m3,m3,Volume,"cubic meter")        \
-    X(L,l,l,Volume,"litre")                 \
-    X(KW,kw,kW,Power,"kilo Watt")           \
-    X(M3H,m3h,m3/h,Flow,"cubic meters per hour") \
-    X(C,c,°C,Temperature,"celsius")         \
-    X(F,f,°F,Temperature,"fahrenheit")      \
-    X(RH,rh,RH,RelativeHumidity,"relative humidity")      \
-    X(HCA,hca,hca,HCA,"heat cost allocation") \
-    X(TXT,txt,txt,Text,"text")              \
-    X(Second,s,s,Time,"second")           \
-    X(Hour,h,h,Time,"hour")
+    X(KWH,kwh,"kWh",Energy,"kilo Watt hour")  \
+    X(GJ,gj,"GJ",Energy,"Giga Joule")         \
+    X(M3,m3,"m3",Volume,"cubic meter")        \
+    X(L,l,"l",Volume,"litre")                 \
+    X(KW,kw,"kW",Power,"kilo Watt")           \
+    X(M3H,m3h,"m3/h",Flow,"cubic meters per hour") \
+    X(C,c,"°C",Temperature,"celsius")         \
+    X(F,f,"°F",Temperature,"fahrenheit")      \
+    X(RH,rh,"RH",RelativeHumidity,"relative humidity")      \
+    X(HCA,hca,"hca",HCA,"heat cost allocation") \
+    X(TXT,txt,"txt",Text,"text")              \
+    X(Second,s,"s",Time,"second")           \
+    X(Hour,h,"h",Time,"hour")
 
 enum class Unit
 {
