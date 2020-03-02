@@ -20,14 +20,16 @@
 # make DEBUG=true
 # make DEBUG=true HOST=arm
 
+DESTDIR?=/
+
 ifeq "$(HOST)" "arm"
     CXX=arm-linux-gnueabihf-g++
-    STRIP=arm-linux-gnueabihf-strip
+    STRIP?=arm-linux-gnueabihf-strip
     BUILD=build_arm
 	DEBARCH=armhf
 else
     CXX=g++
-    STRIP=strip
+    STRIP?=strip
 #--strip-unneeded --remove-section=.comment --remove-section=.note
     BUILD=build
 	DEBARCH=amd64
@@ -47,10 +49,10 @@ endif
 
 $(shell mkdir -p $(BUILD))
 
-COMMIT_HASH:=$(shell git log --pretty=format:'%H' -n 1)
-TAG:=$(shell git describe --tags)
-CHANGES:=$(shell git status -s | grep -v '?? ')
-TAG_COMMIT_HASH:=$(shell git show-ref --tags | grep $(TAG) | cut -f 1 -d ' ')
+COMMIT_HASH?=$(shell git log --pretty=format:'%H' -n 1)
+TAG?=$(shell git describe --tags)
+CHANGES?=$(shell git status -s | grep -v '?? ')
+TAG_COMMIT_HASH?=$(shell git show-ref --tags | grep $(TAG) | cut -f 1 -d ' ')
 
 ifeq ($(COMMIT),$(TAG_COMMIT))
   # Exactly on the tagged commit. The version is the tag!
@@ -81,7 +83,10 @@ endif
 
 $(info Building $(VERSION))
 
-CXXFLAGS := $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-unused-function -I$(BUILD)
+CXXFLAGS ?= $(DEBUG_FLAGS) -fPIC -fmessage-length=0 -std=c++11 -Wall -Wno-unused-function
+CXXFLAGS += -I$(BUILD)
+
+LDFLAGS  ?= $(DEBUG_LDFLAGS)
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
@@ -139,7 +144,7 @@ all: $(BUILD)/wmbusmeters $(BUILD)/testinternals
 dist: wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb
 
 install: $(BUILD)/wmbusmeters
-	@./install.sh $(BUILD)/wmbusmeters /
+	@./install.sh $(BUILD)/wmbusmeters $(DESTDIR) $(EXTRA_INSTALL_OPTIONS)
 
 uninstall:
 	@./uninstall.sh /
@@ -162,7 +167,7 @@ wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb:
 $(BUILD)/main.o: $(BUILD)/short_manual.h
 
 $(BUILD)/wmbusmeters: $(METER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters $(METER_OBJS) $(BUILD)/main.o $(DEBUG_LDFLAGS) -lpthread
+	$(CXX) -o $(BUILD)/wmbusmeters $(METER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lpthread
 
 $(BUILD)/short_manual.h: README.md
 	echo 'R"MANUAL(' > $(BUILD)/short_manual.h
@@ -172,10 +177,10 @@ $(BUILD)/short_manual.h: README.md
 	echo ')MANUAL";' >> $(BUILD)/short_manual.h
 
 $(BUILD)/testinternals: $(METER_OBJS) $(BUILD)/testinternals.o
-	$(CXX) -o $(BUILD)/testinternals $(METER_OBJS) $(BUILD)/testinternals.o $(DEBUG_LDFLAGS) -lpthread
+	$(CXX) -o $(BUILD)/testinternals $(METER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS) -lpthread
 
 $(BUILD)/fuzz: $(METER_OBJS) $(BUILD)/fuzz.o
-	$(CXX) -o $(BUILD)/fuzz $(METER_OBJS) $(BUILD)/fuzz.o $(DEBUG_LDFLAGS) -lpthread
+	$(CXX) -o $(BUILD)/fuzz $(METER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lpthread
 
 clean:
 	rm -rf build/* build_arm/* build_debug/* build_arm_debug/* *~

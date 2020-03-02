@@ -205,34 +205,34 @@ fi
 
 ####################################################################
 ##
-## Create /etc/systemd/system/wmbusmeters.service
+## Create /lib/systemd/system/wmbusmeters.service
 ##
 
 SYSTEMD_NEEDS_RELOAD=false
 
-if [ -f "$ROOT"/etc/systemd/system/wmbusmeters.service ]
+if [ -f "$ROOT"/lib/systemd/system/wmbusmeters.service ]
 then
-    echo systemd: removing "$ROOT"/etc/systemd/system/wmbusmeters.service
+    echo systemd: removing "$ROOT"/lib/systemd/system/wmbusmeters.service
     echo systemd: backup stored here: ~/old.wmbusmeters.service.backup
-    cp "$ROOT"/etc/systemd/system/wmbusmeters.service ~/old.wmbusmeters@.service.backup
-    rm "$ROOT"/etc/systemd/system/wmbusmeters.service
+    cp "$ROOT"/lib/systemd/system/wmbusmeters.service ~/old.wmbusmeters@.service.backup
+    rm "$ROOT"/lib/systemd/system/wmbusmeters.service
     SYSTEMD_NEEDS_RELOAD=true
 fi
 
-if [ -f "$ROOT"/etc/systemd/system/wmbusmeters@.service ]
+if [ -f "$ROOT"/lib/systemd/system/wmbusmeters@.service ]
 then
-    echo systemd: removing "$ROOT"/etc/systemd/system/wmbusmeters@.service
+    echo systemd: removing "$ROOT"/lib/systemd/system/wmbusmeters@.service
     echo systemd: backup stored here: ~/old.wmbusmeters@.service.backup
-    cp "$ROOT"/etc/systemd/system/wmbusmeters@.service ~/old.wmbusmeters@.service.backup
-    rm "$ROOT"/etc/systemd/system/wmbusmeters@.service
+    cp "$ROOT"/lib/systemd/system/wmbusmeters@.service ~/old.wmbusmeters@.service.backup
+    rm "$ROOT"/lib/systemd/system/wmbusmeters@.service
     SYSTEMD_NEEDS_RELOAD=true
 fi
 
-if [ ! -f "$ROOT"/etc/systemd/system/wmbusmeters@.service ]
+if [ ! -f "$ROOT"/lib/systemd/system/wmbusmeters@.service ]
 then
-    mkdir -p "$ROOT"/etc/systemd/system/
+    mkdir -p "$ROOT"/lib/systemd/system/
     # Create service file
-    cat <<EOF > "$ROOT"/etc/systemd/system/wmbusmeters@.service
+    cat <<EOF > "$ROOT"/lib/systemd/system/wmbusmeters@.service
 [Unit]
 Description="wmbusmeters service on %I"
 After=network.target
@@ -265,9 +265,9 @@ PIDFile=/var/run/wmbusmeters/wmbusmeters-%i.pid
 WantedBy=multi-user.target
 EOF
 
-    echo systemd: installed "$ROOT"/etc/systemd/system/wmbusmeters@.service
+    echo systemd: installed "$ROOT"/lib/systemd/system/wmbusmeters@.service
 else
-    echo systemd: "$ROOT"/etc/systemd/system/wmbusmeters@.service unchanged
+    echo systemd: "$ROOT"/lib/systemd/system/wmbusmeters@.service unchanged
 fi
 
 
@@ -308,7 +308,7 @@ fi
 
 if [ "$SYSTEMD_NEEDS_RELOAD" = "true" ]
 then
-    D=$(diff "$ROOT"/etc/systemd/system/wmbusmeters@.service ~/old.wmbusmeters@.service.backup)
+    D=$(diff "$ROOT"/lib/systemd/system/wmbusmeters@.service ~/old.wmbusmeters@.service.backup)
     if [ "$D" != "" ]
     then
         echo
