@@ -510,7 +510,7 @@ bool doesIdMatchExpression(string id, string match)
     }
 
     bool wildcard_used = false;
-    if (match.front() == '*')
+    if (match.length() && match.front() == '*')
     {
         wildcard_used = true;
         match.erase(0,1);
