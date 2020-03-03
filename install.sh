@@ -197,7 +197,7 @@ if [ ! -d "$ROOT"/etc/wmbusmeters.d ]
 then
     # Create the configuration directory
     mkdir -p "$ROOT"/etc/wmbusmeters.d
-    chmod -R 655 "$ROOT"/etc/wmbusmeters.d
+    chmod -R 755 "$ROOT"/etc/wmbusmeters.d
     echo conf dir: created "$ROOT"/etc/wmbusmeters.d
 else
     echo conf dir: "$ROOT"/etc/wmbusmeters.d unchanged
