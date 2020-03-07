@@ -393,6 +393,14 @@ If you are using rtl_sdr/rtl_wmbus and you want to stop the daemon, do
 
 If you are using auto, then start manually with --debug to see how wmbusmeters goes looking for devices.
 
+## AMB8465 USB stick
+
+The AMB8465 interface code expects the dongle to be factory reset before use. You can do this by sending the following hex strings to the stick before attempting to use it with this software:
+ * Factory reset of the settings: `0xFF1100EE`
+ * Reset the stick to apply the factory defaults: `0xFF0500FA`
+After this, the stick is communicating at 9600 bps and the wmbusmeters software will configure it to receive wireless mbus packets.
+
+
 # Source code
 
 The source code is modular and it should be relatively straightforward to add more receivers and meters.
