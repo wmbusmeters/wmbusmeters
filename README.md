@@ -186,6 +186,7 @@ Amber 8465
 BMeters RFM-RX2
 rtl_sdr|rtl_wmbus
 CUL family
+WMB13U-868 (start wmbusmeters with the device /dev/ttyUSB0:19200)
 
 Supported water meters:
 Kamstrup Multical 21 (multical21)
