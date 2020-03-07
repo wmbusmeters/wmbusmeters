@@ -401,6 +401,9 @@ The AMB8465 interface code expects the dongle to be factory reset before use. Yo
  * Reset the stick to apply the factory defaults: `0xFF0500FA`
 After this, the stick is communicating at 9600 bps and the wmbusmeters software will configure it to receive wireless mbus packets.
 
+# Docker
+
+Experimental docker containers are available here: https://hub.docker.com/repository/docker/weetmuts/wmbusmeters
 
 # Source code
 
