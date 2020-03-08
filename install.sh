@@ -117,7 +117,7 @@ fi
 
 ####################################################################
 ##
-## Prepare for  /var/run/wmbusmeters.pid
+## Prepare for  /run/wmbusmeters.pid
 ##
 
 #if [ ! -d "$ROOT"/var/run ]
@@ -156,7 +156,7 @@ then
     compress
     missingok
     postrotate
-        /bin/kill -HUP `cat /var/run/wmbusmeters/wmbusmeters.pid 2> /dev/null` 2> /dev/null || true
+        /bin/kill -HUP `cat /run/wmbusmeters/wmbusmeters.pid 2> /dev/null` 2> /dev/null || true
     endscript
 EOF
     echo logrotate: created "$ROOT"/etc/logrotate.d/wmbusmeters
@@ -232,11 +232,15 @@ if [ ! -f "$ROOT"/lib/systemd/system/wmbusmeters@.service ]
 then
     mkdir -p "$ROOT"/lib/systemd/system/
     # Create service file
-    cat <<EOF > "$ROOT"/lib/systemd/system/wmbusmeters@.service
+    cat <<'EOF' > "$ROOT"/lib/systemd/system/wmbusmeters@.service
 [Unit]
 Description="wmbusmeters service on %I"
+Documentation=https://github.com/weetmuts/wmbusmeters
+Documentation=man:wmbusmeters(1)
 After=network.target
-StopWhenUnneeded=true
+StartLimitIntervalSec=10
+StartLimitInterval=10
+StartLimitBurst=3
 
 [Service]
 Type=forking
@@ -245,21 +249,18 @@ User=wmbusmeters
 Group=wmbusmeters
 Restart=always
 RestartSec=1
-StartLimitIntervalSec=10
-StartLimitInterval=10
-StartLimitBurst=3
 
 # Run ExecStartPre with root-permissions
 
 PermissionsStartOnly=true
 ExecStartPre=-/bin/mkdir -p /var/log/wmbusmeters/meter_readings
 ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/log/wmbusmeters
-ExecStartPre=-/bin/mkdir -p /var/run/wmbusmeters
-ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/run/wmbusmeters
+ExecStartPre=-/bin/mkdir -p /run/wmbusmeters
+ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /run/wmbusmeters
 
-ExecStart=/usr/sbin/wmbusmetersd --device='%I' /var/run/wmbusmeters/wmbusmeters-%i.pid
-ExecReload=/bin/kill -HUP `cat /var/run/wmbusmeters/wmbusmeters-%i.pid 2> /dev/null` 2> /dev/null || true
-PIDFile=/var/run/wmbusmeters/wmbusmeters-%i.pid
+ExecStart=/usr/sbin/wmbusmetersd --device='%I' /run/wmbusmeters/wmbusmeters-%i.pid
+ExecReload=/bin/kill -HUP $MAINPID
+PIDFile=/run/wmbusmeters/wmbusmeters-%i.pid
 
 [Install]
 WantedBy=multi-user.target
