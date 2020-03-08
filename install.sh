@@ -238,6 +238,7 @@ Description="wmbusmeters service on %I"
 Documentation=https://github.com/weetmuts/wmbusmeters
 Documentation=man:wmbusmeters(1)
 After=network.target
+StopWhenUnneeded=true
 StartLimitIntervalSec=10
 StartLimitInterval=10
 StartLimitBurst=3

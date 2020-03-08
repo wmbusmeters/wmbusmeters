@@ -371,7 +371,7 @@ the computer boots, if the dongle is already inserted.
 If you do not want the daemon to start automatically, simply edit
 /dev/udev/rules.d/99-wmbus-usb-serial.rules and remove
 `,TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.@/dev/im871a_%n.service"` from each
-line.
+line. You must then also remove `StopWhenUnneeded=true` from `install.sh`
 
 You can start/stop the daemon with `sudo systemctl stop wmbusmeters@-dev-im871a_0.service`
 or `sudo systemctl stop wmbusmeters@-dev-amb8465_1.service` etc. Sometimes

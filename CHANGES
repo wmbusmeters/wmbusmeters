@@ -1,3 +1,9 @@
+Version 0.9.28: 2020-03-08
+
+Improved docker work, thanks Bibo!
+Better shell scripts for installing and daemon mode,
+in preparation for rpm packaging. Thanks Damian!
+
 Version 0.9.27: 2020-02-26
 
 Added support for the apator08 meter.
