@@ -720,6 +720,7 @@ Detected detectWMBusDeviceSetting(string devicefile,
     X(0x86, ELL_V,   "ELL: V",   -1, CI_TYPE::ELL, "Variable length") \
     X(0x90, AFL,     "AFL", 10, CI_TYPE::AFL, "") \
     X(0xA0, MFCT_SPECIFIC_A0, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "") \
+    X(0xA1, MFCT_SPECIFIC_A1, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "") \
     X(0xA2, MFCT_SPECIFIC_A2, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "")
 
 enum CI_Field_Values {
@@ -1580,6 +1581,7 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
         case CI_Field_Values::TPL_78: return parse_TPL_78(pos);
         case CI_Field_Values::TPL_79: return parse_TPL_79(pos);
         case CI_Field_Values::TPL_7A: return parse_TPL_7A(pos);
+        case CI_Field_Values::MFCT_SPECIFIC_A1:
         case CI_Field_Values::MFCT_SPECIFIC_A0: {
             bool _ignore_header_change = false;
 
