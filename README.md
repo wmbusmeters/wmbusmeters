@@ -403,7 +403,7 @@ After this, the stick is communicating at 9600 bps and the wmbusmeters software 
 
 # Docker
 
-Experimental docker containers are available here: https://hub.docker.com/repository/docker/weetmuts/wmbusmeters
+Experimental docker containers are available here: https://hub.docker.com/r/weetmuts/wmbusmeters
 
 # Source code
 
