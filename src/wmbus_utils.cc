@@ -20,16 +20,18 @@
 #include"util.h"
 #include"wmbus.h"
 
+#include<assert.h>
 #include<memory.h>
 
 bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey)
 {
     if (aeskey.size() == 0) return true;
 
-    vector<uchar> content;
-    content.insert(content.end(), pos, frame.end());
+    vector<uchar> encrypted_bytes;
+    vector<uchar> decrypted_bytes;
+    encrypted_bytes.insert(encrypted_bytes.end(), pos, frame.end());
     frame.erase(pos, frame.end());
-    debugPayload("(ELL) decrypting", content);
+    debugPayload("(ELL) decrypting", encrypted_bytes);
 
     uchar iv[16];
     int i=0;
@@ -50,43 +52,37 @@ bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
     string s = bin2hex(ivv);
     debug("(ELL) IV %s\n", s.c_str());
 
-    uchar xordata[16];
-    AES_ECB_encrypt(iv, &aeskey[0], xordata, 16);
-
-    size_t remaining = content.size();
-    if (remaining > 16) remaining = 16;
-
-    uchar decrypt[16];
-    xorit(xordata, &content[0], decrypt, remaining);
-
-    vector<uchar> dec(decrypt, decrypt+remaining);
-    debugPayload("(ELL) decrypted first block", dec);
-
-    frame.insert(frame.end(), dec.begin(), dec.end());
-
-    if (content.size() > 16)
+    int block = 0;
+    for (size_t offset = 0; offset < encrypted_bytes.size(); offset += 16)
     {
-        remaining = content.size()-16;
-        if (remaining > 16) remaining = 16; // Should not happen.
+        size_t block_size = 16;
+        if (offset + block_size > encrypted_bytes.size())
+        {
+            block_size = encrypted_bytes.size() - offset;
+        }
 
-        incrementIV(iv, sizeof(iv));
-        vector<uchar> ivv2(iv, iv+16);
-        string s2 = bin2hex(ivv2);
-        debug("(ELL) IV+1 %s\n", s2.c_str());
+        assert(block_size > 0 && block_size <= 16);
 
+        // Generate the pseudo-random bits from the IV and the key.
+        uchar xordata[16];
         AES_ECB_encrypt(iv, &aeskey[0], xordata, 16);
 
-        xorit(xordata, &content[16], decrypt, remaining);
+        // Xor the data with the pseudo-random bits to decrypt into tmp.
+        uchar tmp[block_size];
+        xorit(xordata, &encrypted_bytes[offset], tmp, block_size);
 
-        vector<uchar> dec2(decrypt, decrypt+remaining);
-        debugPayload("(ELL) decrypted second block", dec2);
+        debug("(ELL) block %d block_size %d offset %zu\n", block, block_size, offset);
+        block++;
 
-        // Append the second decrypted block to the first.
-        dec.clear();
-        dec.insert(dec.end(), dec2.begin(), dec2.end());
-        frame.insert(frame.end(), dec.begin(), dec.end());
+        vector<uchar> tmpv(tmp, tmp+block_size);
+        debugPayload("(ELL) decrypted", tmpv);
+
+        decrypted_bytes.insert(decrypted_bytes.end(), tmpv.begin(), tmpv.end());
+
+        incrementIV(iv, sizeof(iv));
     }
-    debugPayload("(ELL) decrypted", content);
+    debugPayload("(ELL) decrypted", decrypted_bytes);
+    frame.insert(frame.end(), decrypted_bytes.begin(), decrypted_bytes.end());
     return true;
 }
 

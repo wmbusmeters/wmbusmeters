@@ -57,6 +57,7 @@ MeterMultical302::MeterMultical302(WMBus *bus, MeterInfo &mi) :
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
     addMedia(0x04); // Heat media
+    addMedia(0x0d); // Heat/Cooling load
     addExpectedVersion(0x30);
     addLinkMode(LinkMode::C1);
 
