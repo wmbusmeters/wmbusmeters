@@ -181,12 +181,12 @@ As meter quadruples you specify:
     if the meter uses no encryption, then supply NOKEY
 
 Supported wmbus dongles:
-IMST 871a
-Amber 8465
-BMeters RFM-RX2
-rtl_sdr|rtl_wmbus
-CUL family
-WMB13U-868 (start wmbusmeters with the device /dev/ttyUSB0:19200)
+IMST 871a (im871a)
+Amber 8465 (amb8465)
+BMeters RFM-RX2 (rfmrx2)
+rtl_sdr|rtl_wmbus (rtlwmbus)
+CUL family (cul)
+WMB13U-868 (wmb13u)
 
 Supported water meters:
 Kamstrup Multical 21 (multical21)

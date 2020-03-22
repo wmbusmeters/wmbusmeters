@@ -241,6 +241,12 @@ bool startUsingCommandline(Configuration *config)
         wmbus = openD1TC(settings.devicefile, manager.get(), std::move(serial_override));
         break;
     }
+    case DEVICE_WMB13U:
+    {
+        verbose("(wmb13u) on %s\n", settings.devicefile.c_str());
+        wmbus = openWMB13U(settings.devicefile, manager.get(), std::move(serial_override));
+        break;
+    }
     case DEVICE_UNKNOWN:
         warning("No wmbus device found! Exiting!\n");
         if (config->daemon) {

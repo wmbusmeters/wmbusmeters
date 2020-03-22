@@ -683,6 +683,7 @@ Detected detectWMBusDeviceSetting(string devicefile,
     if (suffix == "rtlwmbus") return { DEVICE_RTLWMBUS, devicefile, 0, override_tty };
     if (suffix == "cul") return { DEVICE_CUL, devicefile, 0, override_tty };
     if (suffix == "d1tc") return { DEVICE_D1TC, devicefile, 0, override_tty };
+    if (suffix == "wmb13u") return { DEVICE_WMB13U, devicefile, 0, override_tty };
     if (suffix == "simulation") return { DEVICE_SIMULATOR, devicefile, 0, override_tty };
 
     // If the suffix is a number, then assume that it is a baud rate.

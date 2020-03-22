@@ -388,7 +388,17 @@ private:
 
 struct Meter;
 
-#define LIST_OF_MBUS_DEVICES X(DEVICE_UNKNOWN)X(DEVICE_CUL)X(DEVICE_D1TC)X(DEVICE_IM871A)X(DEVICE_AMB8465)X(DEVICE_RFMRX2)X(DEVICE_SIMULATOR)X(DEVICE_RTLWMBUS)X(DEVICE_RAWTTY)
+#define LIST_OF_MBUS_DEVICES \
+    X(DEVICE_UNKNOWN) \
+    X(DEVICE_CUL)\
+    X(DEVICE_D1TC)\
+    X(DEVICE_IM871A)\
+    X(DEVICE_AMB8465)\
+    X(DEVICE_RFMRX2)\
+    X(DEVICE_SIMULATOR)\
+    X(DEVICE_RTLWMBUS)\
+    X(DEVICE_RAWTTY)\
+    X(DEVICE_WMB13U)
 
 enum WMBusDeviceType {
 #define X(name) name,
@@ -439,6 +449,8 @@ unique_ptr<WMBus> openCUL(string device, SerialCommunicationManager *manager,
                               unique_ptr<SerialDevice> serial_override);
 unique_ptr<WMBus> openD1TC(string device, SerialCommunicationManager *manager,
                            unique_ptr<SerialDevice> serial_override);
+unique_ptr<WMBus> openWMB13U(string device, SerialCommunicationManager *manager,
+                             unique_ptr<SerialDevice> serial_override);
 unique_ptr<WMBus> openSimulator(string file, SerialCommunicationManager *manager,
                                 unique_ptr<SerialDevice> serial_override);
 
