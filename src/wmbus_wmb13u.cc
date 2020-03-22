@@ -185,15 +185,17 @@ void WMBusWMB13U::processSerialData()
             vector<uchar> payload;
             if (payload_len > 0)
             {
-                uchar l = payload_len;
+                // It appens RSSI and 2 CRC bytes. Remove those.
+                uchar l = payload_len - 3;
                 payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
-                payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
+                payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len-3);
             }
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
             handleTelegram(payload);
         }
     }
 }
+
 
 bool detectWMB13U(string device, SerialCommunicationManager *manager)
 {
@@ -205,63 +207,44 @@ bool detectWMB13U(string device, SerialCommunicationManager *manager)
     verbose("(wmb13u) are you there?\n");
 
     vector<uchar> data;
+
+    // send 0xFF to wake up, if sleeping, just to be sure.
+    vector<uchar> wakeup(1);
+    wakeup[0] = 0xff;
+
+    serial->send(wakeup);
+    usleep(1000*200);
+    data.clear();
+    serial->receive(&data);
+
+    usleep(1000*200);
     // send 'AT' to enter configuration mode, expects OK.
-    vector<uchar> at(3);
+    vector<uchar> at(2);
     at[0] = 'A';
     at[1] = 'T';
-    at[2] = 0x0d; // CR
 
     serial->send(at);
-    usleep(1000*100);
-    data.clear();
+    usleep(1000*200);
     serial->receive(&data);
 
-    if (data.size() < 2 || data[0] != 'O' || data[1] != 'K')
-    {
-       // No WBM13U device detected
-       serial->close();
-       return false;
-    }
-
-    // send 'ATY<35>' to read register describing frame format.
-    vector<uchar> aty(5);
+    // send 'AT0' to  get 130 bytes of configuration.
+    vector<uchar> at0(3);
     at[0] = 'A';
     at[1] = 'T';
-    at[2] = 'Y';
-    at[3] = 0x35;
-    at[4] = 0x0d; // CR
+    at[2] = '0';
 
     serial->send(at);
-    usleep(1000*100);
-    data.clear();
+    usleep(1000*200);
     serial->receive(&data);
 
-    if (data.size() < 1)
-    {
-       // No WBM13U device detected
-       serial->close();
-       return false;
-    }
-
-    verbose("(wmb13u) frame format %02x\n", data[0]);
-
-    vector<uchar> atq(4);
+    vector<uchar> atq(3);
     atq[0] = 'A';
     atq[1] = 'T';
     atq[2] = 'Q';
-    atq[3] = 0x0d; // CR
 
     serial->send(atq);
-    usleep(1000*100);
-    data.clear();
+    usleep(1000*200);
     serial->receive(&data);
-
-    if (data.size() < 2 || data[0] != 'O' || data[1] != 'K')
-    {
-       // No WBM13U device detected
-       serial->close();
-       return false;
-    }
 
     serial->close();
     return true;
