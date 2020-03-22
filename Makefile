@@ -51,16 +51,23 @@ $(shell mkdir -p $(BUILD))
 
 COMMIT_HASH?=$(shell git log --pretty=format:'%H' -n 1)
 TAG?=$(shell git describe --tags)
+BRANCH?=$(shell git rev-parse --abbrev-ref HEAD)
 CHANGES?=$(shell git status -s | grep -v '?? ')
 TAG_COMMIT_HASH?=$(shell git show-ref --tags | grep $(TAG) | cut -f 1 -d ' ')
 
+ifeq ($(BRANCH),master)
+  BRANCH:=
+else
+  BRANCH:=$(BRANCH)_
+endif
+
 ifeq ($(COMMIT),$(TAG_COMMIT))
   # Exactly on the tagged commit. The version is the tag!
-  VERSION:=$(TAG)
-  DEBVERSION:=$(TAG)
+  VERSION:=$(BRANCH)$(TAG)
+  DEBVERSION:=$(BRANCH)$(TAG)
 else
-  VERSION:=$(TAG)++
-  DEBVERSION:=$(TAG)++
+  VERSION:=$(BRANCH)$(TAG)++
+  DEBVERSION:=$(BRANCH)$(TAG)++
 endif
 
 ifneq ($(strip $(CHANGES)),)
