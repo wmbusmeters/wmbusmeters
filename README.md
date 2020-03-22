@@ -153,6 +153,7 @@ auto, to have wmbusmeters look for the links /dev/im871a, /dev/amb8465, /dev/rfm
 (The rfmrx2 and the d1tc device cannot be autodetected right now, you have to specify it as a suffix on the device.)
 
 /dev/ttyUSB0:38400, to have wmbusmeters set the baud rate to 38400 and listen for raw wmbus telegrams.
+These telegrams are expected to have the data link layer crc bytes removed already!
 
 rtlwmbus, to spawn the background process: "rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus"
 
@@ -161,8 +162,10 @@ rtlwmbus:868.9M, to tune to this fq instead.
 rtlwmbus:<commandline>, to specify the entire background process command line.
 
 stdin, to read raw binary telegrams from stdin.
+These telegrams are expected to have the data link layer crc bytes removed already!
 
-telegrams.txt, to read raw wmbus telegrams from this file.
+telegrams.bin, to read raw wmbus telegrams from this file.
+These telegrams are expected to have the data link layer crc bytes removed already!
 
 stdin:rtlwmbus, to read telegrams formatted using the rtlwmbus format from stdin.
 

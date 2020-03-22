@@ -487,4 +487,19 @@ AccessCheck findAndDetect(SerialCommunicationManager *manager,
                           string dongle_name,
                           string device_root);
 
+enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
+
+
+FrameStatus checkWMBusFrame(vector<uchar> &data,
+                            size_t *frame_length,
+                            int *payload_len_out,
+                            int *payload_offset);
+
+bool detectIM871A(string device, SerialCommunicationManager *handler);
+bool detectAMB8465(string device, SerialCommunicationManager *handler);
+bool detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
+bool detectRTLSDR(string device, SerialCommunicationManager *handler);
+bool detectCUL(string device, SerialCommunicationManager *handler);
+bool detectWMB13U(string device, SerialCommunicationManager *handler);
+
 #endif

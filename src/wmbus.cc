@@ -497,12 +497,6 @@ string mediaTypeJSON(int a_field_device_type)
     return "Unknown";
 }
 
-bool detectIM871A(string device, SerialCommunicationManager *handler);
-bool detectAMB8465(string device, SerialCommunicationManager *handler);
-bool detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
-bool detectRTLSDR(string device, SerialCommunicationManager *handler);
-bool detectCUL(string device, SerialCommunicationManager *handler);
-
 #define CHECK_SAME_GROUP \
 if (ac == AccessCheck::NotSameGroup) \
 { \
@@ -3647,4 +3641,68 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
     debugPayload("(wmbus) trimmed  frame B", payload);
 
     return true;
+}
+
+FrameStatus checkWMBusFrame(vector<uchar> &data,
+                            size_t *frame_length,
+                            int *payload_len_out,
+                            int *payload_offset)
+{
+    // Nice clean: 2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B
+    // Ugly: 00615B2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B
+    // Here the frame is prefixed with some random data.
+
+    debugPayload("(rawtty) checkRAWTTYFrame", data);
+
+    if (data.size() < 11)
+    {
+        debug("(rawtty) less than 11 bytes, partial frame");
+        return PartialFrame;
+    }
+    int payload_len = data[0];
+    int type = data[1];
+    int offset = 1;
+
+    if (type != 0x44)
+    {
+        // Ouch, we are out of sync with the wmbus frames that we expect!
+        // Since we currently do not handle any other type of frame, we can
+        // look for the byte 0x44 in the buffer. If we find a 0x44 byte and
+        // the length byte before it maps to the end of the buffer,
+        // then we have found a valid telegram.
+        bool found = false;
+        for (size_t i = 0; i < data.size()-2; ++i)
+        {
+            if (data[i+1] == 0x44)
+            {
+                payload_len = data[i];
+                size_t remaining = data.size()-i;
+                if (data[i]+1 == (uchar)remaining && data[i+1] == 0x44)
+                {
+                    found = true;
+                    offset = i+1;
+                    verbose("(wmbus_rawtty) out of sync, skipping %d bytes.\n", (int)i);
+                    break;
+                }
+            }
+        }
+        if (!found)
+        {
+            // No sensible telegram in the buffer. Flush it!
+            verbose("(wmbus_rawtty) no sensible telegram found, clearing buffer.\n");
+            data.clear();
+            return ErrorInFrame;
+        }
+    }
+    *payload_len_out = payload_len;
+    *payload_offset = offset;
+    *frame_length = payload_len+offset;
+    if (data.size() < *frame_length)
+    {
+        debug("(rawtty) not enough bytes, partial frame %d %d", data.size(), *frame_length);
+        return PartialFrame;
+    }
+
+    debug("(rawtty) received full frame\n");
+    return FullFrame;
 }
