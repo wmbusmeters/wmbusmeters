@@ -140,4 +140,6 @@ std::string currentMicros();
 
 bool hasBytes(int n, std::vector<uchar>::iterator &pos, std::vector<uchar> &frame);
 
+bool startsWith(std::string s, std::vector<uchar> &data);
+
 #endif

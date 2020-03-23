@@ -32,6 +32,7 @@ using namespace std;
 const char *toString(ValueInformation v)
 {
     switch (v) {
+        case ValueInformation::None: return "None";
 #define X(name,from,to) case ValueInformation::name: return #name;
 LIST_OF_VALUETYPES
 #undef X
@@ -41,11 +42,9 @@ LIST_OF_VALUETYPES
 
 ValueInformation toValueInformation(int i)
 {
-    switch (i) {
 #define X(name,from,to) if (from >= i && i <= to) return ValueInformation::name;
 LIST_OF_VALUETYPES
 #undef X
-    }
     return ValueInformation::None;
 }
 
@@ -289,6 +288,7 @@ bool parseDV(Telegram *t,
 void valueInfoRange(ValueInformation v, int *low, int *hi)
 {
     switch (v) {
+    case ValueInformation::None: *low = 0; *hi = 0; return;
 #define X(name,from,to) case ValueInformation::name: *low = from; *hi = to; return;
 LIST_OF_VALUETYPES
 #undef X

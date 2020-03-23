@@ -69,18 +69,15 @@ private:
     SerialCommunicationManager *manager_ {};
     LinkModeSet link_modes_ {};
     vector<uchar> read_buffer_;
-    vector<uchar> received_payload_;
-    sem_t command_wait_;
-    string sent_command_;
-    string received_response_;
-
-    void waitForResponse();
+    pthread_mutex_t serial_lock_ = PTHREAD_MUTEX_INITIALIZER;
 
     FrameStatus checkWMB13UFrame(vector<uchar> &data,
                                  size_t *frame_length,
                                  vector<uchar> &payload);
-
-    string setup_;
+    bool getConfiguration();
+    bool enterConfigMode();
+    bool exitConfigMode();
+    vector<uchar> config_;
 };
 
 unique_ptr<WMBus> openWMB13U(string device, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
@@ -99,7 +96,6 @@ unique_ptr<WMBus> openWMB13U(string device, SerialCommunicationManager *manager,
 WMBusWMB13U::WMBusWMB13U(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
     WMBusCommonImplementation(DEVICE_WMB13U), serial_(std::move(serial)), manager_(manager)
 {
-    sem_init(&command_wait_, 0, 0);
     manager_->listenTo(serial_.get(),call(this,processSerialData));
     serial_->open(true);
 }
@@ -109,41 +105,69 @@ bool WMBusWMB13U::ping()
     if (serial_->readonly()) return true; // Feeding from stdin or file.
 
     verbose("(wmb13u) ping\n");
+
+    if (!enterConfigMode()) return false;
+    if (!exitConfigMode()) return false;
+
     return true;
 }
 
 uint32_t WMBusWMB13U::getDeviceId()
 {
-    verbose("(cul) getDeviceId\n");
-    return 0x11111111;
+    getConfiguration();
+    uchar a = config_[0x22];
+    uchar b = config_[0x23];
+    uchar c = config_[0x24];
+    uchar d = config_[0x25];
+    return a << 24 | b << 16 | c << 8 | d;
 }
 
 LinkModeSet WMBusWMB13U::getLinkModes()
 {
+    if (serial_->readonly()) { return Any_bit; }  // Feeding from stdin or file.
+
+    getConfiguration();
     return link_modes_;
 }
 
 void WMBusWMB13U::setLinkModes(LinkModeSet lms)
 {
     if (serial_->readonly()) return; // Feeding from stdin or file.
-    // AT<CR> -> OK<CR>      Enter config mode.
-    // ATG<01> -> OK<CR>     for T1
-    // ATG<03> -> OK<CR>     for S1
-    // ATG<10> -> OK<CR>     for C1
-    // ATQ<CR> -> OK<CR>     Exit config mode.
-}
 
-void WMBusWMB13U::waitForResponse()
-{
-    while (manager_->isRunning())
+    if (!canSetLinkModes(lms))
     {
-        int rc = sem_wait(&command_wait_);
-        if (rc==0) break;
-        if (rc==-1) {
-            if (errno==EINTR) continue;
-            break;
-        }
+        string modes = lms.hr();
+        error("(wmb13u) setting link mode(s) %s is not supported for wmb13u\n", modes.c_str());
     }
+
+    if (!enterConfigMode()) return;
+
+    vector<uchar> atg(4);
+    atg[0] = 'A';
+    atg[1] = 'T';
+    atg[2] = 'G';
+    if (lms.has(LinkMode::C1))
+    {
+        // Listening to only C1.
+        atg[3] = 0x10;
+    }
+    else if (lms.has(LinkMode::T1))
+    {
+        // Listening to only T1.
+        atg[3] = 0x01;
+    }
+    else if (lms.has(LinkMode::S1))
+    {
+        // Listening to only S1.
+        atg[3] = 0x03;
+    }
+
+    verbose("(wmb13u) set link mode %02x\n", atg[3]);
+    serial_->send(atg);
+
+    link_modes_ = lms;
+
+    exitConfigMode();
 }
 
 void WMBusWMB13U::simulate()
@@ -152,11 +176,15 @@ void WMBusWMB13U::simulate()
 
 void WMBusWMB13U::processSerialData()
 {
-
     vector<uchar> data;
 
+    // Try to get the serial lock, if not possible, then we
+    // are in config mode. Stop this processing.
+    if (pthread_mutex_trylock(&serial_lock_) != 0) return;
     // Receive and accumulated serial data until a full frame has been received.
     serial_->receive(&data);
+    // Unlock the serial lock.
+    pthread_mutex_unlock(&serial_lock_);
 
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
@@ -196,6 +224,101 @@ void WMBusWMB13U::processSerialData()
     }
 }
 
+bool WMBusWMB13U::enterConfigMode()
+{
+    pthread_mutex_lock(&serial_lock_);
+
+    vector<uchar> data;
+
+    // send 0xFF to wake up, if sleeping, just to be sure.
+    vector<uchar> wakeup(1), at(2);
+    wakeup[0] = 0xff;
+
+    serial_->send(wakeup);
+    usleep(1000*100);
+    serial_->receive(&data);
+
+    if (!startsWith("OK", data)) goto fail;
+
+    // send AT to enter configuration mode.
+    at[0] = 'A';
+    at[1] = 'T';
+
+    serial_->send(at);
+    usleep(1000*100);
+    serial_->receive(&data);
+
+    if (!startsWith("OK", data)) goto fail;
+
+    return true;
+
+fail:
+    pthread_mutex_unlock(&serial_lock_);
+    return false;
+}
+
+bool WMBusWMB13U::exitConfigMode()
+{
+    vector<uchar> data;
+
+    // send ATQ to exit config mode.
+    vector<uchar> atq(3);
+    atq[0] = 'A';
+    atq[1] = 'T';
+    atq[2] = 'Q';
+
+    serial_->send(atq);
+    usleep(1000*100);
+    serial_->receive(&data);
+
+    // Always unlock....
+    pthread_mutex_unlock(&serial_lock_);
+
+    if (!startsWith("OK", data)) return false;
+
+    return true;
+}
+
+const char *lmname(int i)
+{
+    switch (i)
+    {
+    case 0x00: return "S2";
+    case 0x01: return "T1";
+    case 0x02: return "T2";
+    case 0x03: return "S1";
+    case 0x04: return "R2";
+    case 0x10: return "C1";
+    case 0x11: return "C2";
+    }
+    return "?";
+}
+
+bool WMBusWMB13U::getConfiguration()
+{
+    bool ok;
+
+    ok = enterConfigMode();
+    if (!ok) return false;
+
+    // send AT0 to acquire configuration.
+    vector<uchar> at0(3);
+    at0[0] = 'A';
+    at0[1] = 'T';
+    at0[2] = '0';
+
+    serial_->send(at0);
+    usleep(1000*100);
+    serial_->receive(&config_);
+
+    verbose("(wmb13u) config: link mode %02x (%s)\n", config_[0x01], lmname(config_[0x01]));
+    verbose("(wmb13u) config: data frame format %02x\n", config_[0x35]);
+
+    ok = exitConfigMode();
+    if (!ok) return false;
+
+    return true;
+}
 
 bool detectWMB13U(string device, SerialCommunicationManager *manager)
 {
@@ -213,39 +336,24 @@ bool detectWMB13U(string device, SerialCommunicationManager *manager)
     wakeup[0] = 0xff;
 
     serial->send(wakeup);
-    usleep(1000*200);
-    data.clear();
+    usleep(1000*100);
     serial->receive(&data);
 
-    usleep(1000*200);
-    // send 'AT' to enter configuration mode, expects OK.
+    if (!startsWith("OK", data)) return false;
+
+    // send AT to enter configuration mode.
     vector<uchar> at(2);
     at[0] = 'A';
     at[1] = 'T';
 
     serial->send(at);
-    usleep(1000*200);
+    usleep(1000*100);
     serial->receive(&data);
 
-    // send 'AT0' to  get 130 bytes of configuration.
-    vector<uchar> at0(3);
-    at0[0] = 'A';
-    at0[1] = 'T';
-    at0[2] = '0';
+    if (!startsWith("OK", data)) return false;
 
-    serial->send(at0);
-    usleep(1000*200);
-    serial->receive(&data);
-
-    vector<uchar> atq(3);
-    atq[0] = 'A';
-    atq[1] = 'T';
-    atq[2] = 'Q';
-
-    serial->send(atq);
-    usleep(1000*200);
-    serial->receive(&data);
+    return true;
 
     serial->close();
-    return true;
+    return ok;
 }
