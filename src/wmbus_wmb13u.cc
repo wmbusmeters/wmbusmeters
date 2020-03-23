@@ -229,11 +229,11 @@ bool detectWMB13U(string device, SerialCommunicationManager *manager)
 
     // send 'AT0' to  get 130 bytes of configuration.
     vector<uchar> at0(3);
-    at[0] = 'A';
-    at[1] = 'T';
-    at[2] = '0';
+    at0[0] = 'A';
+    at0[1] = 'T';
+    at0[2] = '0';
 
-    serial->send(at);
+    serial->send(at0);
     usleep(1000*200);
     serial->receive(&data);
 
