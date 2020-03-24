@@ -27,8 +27,6 @@
 
 using namespace std;
 
-enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame };
-
 struct WMBusD1TC : public virtual WMBusCommonImplementation
 {
     bool ping();

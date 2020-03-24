@@ -28,7 +28,6 @@
 #include<vector>
 
 #define LIST_OF_VALUETYPES \
-    X(None,-1,-1)       \
     X(Volume,0x10,0x17)       \
     X(VolumeFlow,0x38,0x3F) \
     X(FlowTemperature,0x58,0x5B) \
@@ -41,6 +40,7 @@
 
 enum class ValueInformation
 {
+    None,
 #define X(name,from,to) name,
 LIST_OF_VALUETYPES
 #undef X

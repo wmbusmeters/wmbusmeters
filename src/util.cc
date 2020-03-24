@@ -1130,3 +1130,14 @@ bool hasBytes(int n, vector<uchar>::iterator &pos, vector<uchar> &frame)
     if (remaining < n) return false;
     return true;
 }
+
+bool startsWith(string s, std::vector<uchar> &data)
+{
+    if (s.length() > data.size()) return false;
+
+    for (size_t i=0; i<s.length(); ++i)
+    {
+        if (s[i] != data[i]) return false;
+    }
+    return true;
+}

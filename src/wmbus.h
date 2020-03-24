@@ -388,7 +388,17 @@ private:
 
 struct Meter;
 
-#define LIST_OF_MBUS_DEVICES X(DEVICE_UNKNOWN)X(DEVICE_CUL)X(DEVICE_D1TC)X(DEVICE_IM871A)X(DEVICE_AMB8465)X(DEVICE_RFMRX2)X(DEVICE_SIMULATOR)X(DEVICE_RTLWMBUS)X(DEVICE_RAWTTY)
+#define LIST_OF_MBUS_DEVICES \
+    X(DEVICE_UNKNOWN) \
+    X(DEVICE_CUL)\
+    X(DEVICE_D1TC)\
+    X(DEVICE_IM871A)\
+    X(DEVICE_AMB8465)\
+    X(DEVICE_RFMRX2)\
+    X(DEVICE_SIMULATOR)\
+    X(DEVICE_RTLWMBUS)\
+    X(DEVICE_RAWTTY)\
+    X(DEVICE_WMB13U)
 
 enum WMBusDeviceType {
 #define X(name) name,
@@ -439,6 +449,8 @@ unique_ptr<WMBus> openCUL(string device, SerialCommunicationManager *manager,
                               unique_ptr<SerialDevice> serial_override);
 unique_ptr<WMBus> openD1TC(string device, SerialCommunicationManager *manager,
                            unique_ptr<SerialDevice> serial_override);
+unique_ptr<WMBus> openWMB13U(string device, SerialCommunicationManager *manager,
+                             unique_ptr<SerialDevice> serial_override);
 unique_ptr<WMBus> openSimulator(string file, SerialCommunicationManager *manager,
                                 unique_ptr<SerialDevice> serial_override);
 
@@ -474,5 +486,20 @@ AccessCheck findAndDetect(SerialCommunicationManager *manager,
                           function<bool(string,SerialCommunicationManager*)> check,
                           string dongle_name,
                           string device_root);
+
+enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
+
+
+FrameStatus checkWMBusFrame(vector<uchar> &data,
+                            size_t *frame_length,
+                            int *payload_len_out,
+                            int *payload_offset);
+
+bool detectIM871A(string device, SerialCommunicationManager *handler);
+bool detectAMB8465(string device, SerialCommunicationManager *handler);
+bool detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
+bool detectRTLSDR(string device, SerialCommunicationManager *handler);
+bool detectCUL(string device, SerialCommunicationManager *handler);
+bool detectWMB13U(string device, SerialCommunicationManager *handler);
 
 #endif

@@ -32,8 +32,6 @@
 
 using namespace std;
 
-enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
-
 struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
 {
     bool ping();

@@ -91,7 +91,7 @@ LIST_OF_UNITS
 
 string unitToStringHR(Unit u)
 {
-#define X(cname,lcname,hrname,quantity,explanation) if (u == Unit::cname) return #hrname;
+#define X(cname,lcname,hrname,quantity,explanation) if (u == Unit::cname) return hrname;
 LIST_OF_UNITS
 #undef X
 

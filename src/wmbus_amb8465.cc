@@ -28,8 +28,6 @@
 
 using namespace std;
 
-enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame };
-
 struct WMBusAmber : public virtual WMBusCommonImplementation
 {
     bool ping();

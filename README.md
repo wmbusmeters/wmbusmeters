@@ -153,6 +153,7 @@ auto, to have wmbusmeters look for the links /dev/im871a, /dev/amb8465, /dev/rfm
 (The rfmrx2 and the d1tc device cannot be autodetected right now, you have to specify it as a suffix on the device.)
 
 /dev/ttyUSB0:38400, to have wmbusmeters set the baud rate to 38400 and listen for raw wmbus telegrams.
+These telegrams are expected to have the data link layer crc bytes removed already!
 
 rtlwmbus, to spawn the background process: "rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus"
 
@@ -161,8 +162,10 @@ rtlwmbus:868.9M, to tune to this fq instead.
 rtlwmbus:<commandline>, to specify the entire background process command line.
 
 stdin, to read raw binary telegrams from stdin.
+These telegrams are expected to have the data link layer crc bytes removed already!
 
-telegrams.txt, to read raw wmbus telegrams from this file.
+telegrams.bin, to read raw wmbus telegrams from this file.
+These telegrams are expected to have the data link layer crc bytes removed already!
 
 stdin:rtlwmbus, to read telegrams formatted using the rtlwmbus format from stdin.
 
@@ -181,12 +184,12 @@ As meter quadruples you specify:
     if the meter uses no encryption, then supply NOKEY
 
 Supported wmbus dongles:
-IMST 871a
-Amber 8465
-BMeters RFM-RX2
-rtl_sdr|rtl_wmbus
-CUL family
-WMB13U-868 (start wmbusmeters with the device /dev/ttyUSB0:19200)
+IMST 871a (im871a)
+Amber 8465 (amb8465)
+BMeters RFM-RX2 (rfmrx2)
+rtl_sdr|rtl_wmbus (rtlwmbus)
+CUL family (cul)
+WMB13U-868 (wmb13u) Not quite supported yet.
 
 Supported water meters:
 Kamstrup Multical 21 (multical21)
