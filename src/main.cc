@@ -244,7 +244,6 @@ bool startUsingCommandline(Configuration *config)
     case DEVICE_WMB13U:
     {
         verbose("(wmb13u) on %s\n", settings.devicefile.c_str());
-        detectWMB13U(settings.devicefile, manager.get());
         wmbus = openWMB13U(settings.devicefile, manager.get(), std::move(serial_override));
         break;
     }
