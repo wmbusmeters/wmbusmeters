@@ -189,7 +189,7 @@ Amber 8465 (amb8465)
 BMeters RFM-RX2 (rfmrx2)
 rtl_sdr|rtl_wmbus (rtlwmbus)
 CUL family (cul)
-WMB13U-868 (wmb13u)
+WMB13U-868 (wmb13u) Not quite supported yet.
 
 Supported water meters:
 Kamstrup Multical 21 (multical21)
