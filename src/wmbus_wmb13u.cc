@@ -33,9 +33,21 @@
 
 using namespace std;
 
-#define SET_LINK_MODE 1
-#define SET_X01_MODE 2
+/*
+ Sadly, the WMB13U-868 dongle uses a prolific pl2303 USB2Serial converter
+ and it seems like there are bugs in the linux drivers for this converter.
+ Or the device itself is buggy....
+ Anyway, the dongle works when first plugged in, but if
+ the ttyUSB0 is closed and then opened again, it most likely
+ stops working.
 
+ So the dongle can perhaps be used like this:
+ configure the dongle using the Windows software to use your
+ desired C1 or T1 mode. Then plug it into your linux box.
+ This driver intentionally does not write to the dongle,
+ if you are lucky, the dongle might receive nicely and
+ not hang.
+*/
 struct WMBusWMB13U : public virtual WMBusCommonImplementation
 {
     bool ping();
@@ -74,9 +86,9 @@ private:
     FrameStatus checkWMB13UFrame(vector<uchar> &data,
                                  size_t *frame_length,
                                  vector<uchar> &payload);
-    bool getConfiguration();
-    bool enterConfigMode();
-    bool exitConfigMode();
+    bool getConfigurationn();
+    bool enterConfigModee();
+    bool exitConfigModee();
     vector<uchar> config_;
 };
 
@@ -104,10 +116,9 @@ bool WMBusWMB13U::ping()
 {
     if (serial_->readonly()) return true; // Feeding from stdin or file.
 
-    verbose("(wmb13u) ping\n");
-
+    /*
     if (!enterConfigMode()) return false;
-    if (!exitConfigMode()) return false;
+    if (!exitConfigMode()) return false;*/
 
     return true;
 }
@@ -226,7 +237,7 @@ void WMBusWMB13U::processSerialData()
     }
 }
 
-bool WMBusWMB13U::enterConfigMode()
+bool WMBusWMB13U::enterConfigModee()
 {
     pthread_mutex_lock(&serial_lock_);
 
@@ -259,7 +270,7 @@ fail:
     return false;
 }
 
-bool WMBusWMB13U::exitConfigMode()
+bool WMBusWMB13U::exitConfigModee()
 {
     vector<uchar> data;
 
@@ -296,11 +307,11 @@ const char *lmname(int i)
     return "?";
 }
 
-bool WMBusWMB13U::getConfiguration()
+bool WMBusWMB13U::getConfigurationn()
 {
     bool ok;
 
-    ok = enterConfigMode();
+    ok = enterConfigModee();
     if (!ok) return false;
 
     // send AT0 to acquire configuration.
@@ -316,7 +327,7 @@ bool WMBusWMB13U::getConfiguration()
     verbose("(wmb13u) config: link mode %02x (%s)\n", config_[0x01], lmname(config_[0x01]));
     verbose("(wmb13u) config: data frame format %02x\n", config_[0x35]);
 
-    ok = exitConfigMode();
+    ok = exitConfigModee();
     if (!ok) return false;
 
     return true;

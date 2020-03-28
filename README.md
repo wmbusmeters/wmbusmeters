@@ -189,7 +189,6 @@ Amber 8465 (amb8465)
 BMeters RFM-RX2 (rfmrx2)
 rtl_sdr|rtl_wmbus (rtlwmbus)
 CUL family (cul)
-WMB13U-868 (wmb13u) Not quite supported yet.
 
 Supported water meters:
 Kamstrup Multical 21 (multical21)
@@ -403,6 +402,10 @@ The AMB8465 interface code expects the dongle to be factory reset before use. Yo
  * Factory reset of the settings: `0xFF1100EE`
  * Reset the stick to apply the factory defaults: `0xFF0500FA`
 After this, the stick is communicating at 9600 bps and the wmbusmeters software will configure it to receive wireless mbus packets.
+
+## WMB13U-868, WMB14UE-868 USB sticks
+
+These dongles do not seem to work with Linux, perhaps problems with the usb2serial pl2303 driver?
 
 # Docker
 
