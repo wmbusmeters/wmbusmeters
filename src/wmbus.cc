@@ -3652,11 +3652,11 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
     // Ugly: 00615B2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B
     // Here the frame is prefixed with some random data.
 
-    debugPayload("(rawtty) checkRAWTTYFrame", data);
+    debugPayload("(wmbus) checkWMBUSFrame\n", data);
 
     if (data.size() < 11)
     {
-        debug("(rawtty) less than 11 bytes, partial frame");
+        debug("(wmbus) less than 11 bytes, partial frame\n");
         return PartialFrame;
     }
     int payload_len = data[0];
@@ -3681,7 +3681,7 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
                 {
                     found = true;
                     offset = i+1;
-                    verbose("(wmbus_rawtty) out of sync, skipping %d bytes.\n", (int)i);
+                    verbose("(wmbus) out of sync, skipping %d bytes.\n", (int)i);
                     break;
                 }
             }
@@ -3689,7 +3689,7 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
         if (!found)
         {
             // No sensible telegram in the buffer. Flush it!
-            verbose("(wmbus_rawtty) no sensible telegram found, clearing buffer.\n");
+            verbose("(wmbus) no sensible telegram found, clearing buffer.\n");
             data.clear();
             return ErrorInFrame;
         }
@@ -3699,10 +3699,10 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
     *frame_length = payload_len+offset;
     if (data.size() < *frame_length)
     {
-        debug("(rawtty) not enough bytes, partial frame %d %d", data.size(), *frame_length);
+        debug("(wmbus) not enough bytes, partial frame %d %d\n", data.size(), *frame_length);
         return PartialFrame;
     }
 
-    debug("(rawtty) received full frame\n");
+    debug("(wmbus) received full frame.\n");
     return FullFrame;
 }
