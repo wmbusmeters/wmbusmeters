@@ -3406,6 +3406,16 @@ LIST_OF_ELL_SECURITY_MODES
     return ELLSecurityMode::RESERVED;
 }
 
+void Telegram::extractMfctData(vector<uchar> *pl)
+{
+    pl->clear();
+    if (mfct_0f_index == -1) return;
+
+    vector<uchar>::iterator from = frame.begin()+header_size+mfct_0f_index;
+    vector<uchar>::iterator to = frame.end()-suffix_size;
+    pl->insert(pl->end(), from, to);
+}
+
 void Telegram::extractPayload(vector<uchar> *pl)
 {
     pl->clear();

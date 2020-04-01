@@ -322,8 +322,10 @@ struct Telegram
     vector<uchar> parsed;  // Parsed bytes with explanations.
     int header_size {}; // Size of headers before the APL content.
     int suffix_size {}; // Size of suffix after the APL content. Usually empty, but can be MACs!
+    int mfct_0f_index = -1; // -1 if not found, else index of the 0f byte, if found, inside the difvif data after the header.
     void extractFrame(vector<uchar> *fr); // Extract to full frame.
     void extractPayload(vector<uchar> *pl); // Extract frame data containing the measurements, after the header and not the suffix.
+    void extractMfctData(vector<uchar> *pl); // Extract frame data after the DIF 0x0F.
 
     bool handled {}; // Set to true, when a meter has accepted the telegram.
 

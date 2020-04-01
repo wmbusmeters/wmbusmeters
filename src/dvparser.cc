@@ -135,7 +135,18 @@ bool parseDV(Telegram *t,
         int datalen = difLenBytes(dif);
         DEBUG_PARSER("(dvparser debug) dif=%02x datalen=%d \"%s\" type=%s\n", dif, datalen, difType(dif).c_str(),
                      measurementTypeName(mt).c_str());
-        if (datalen == -2) {
+        if (datalen == -2)
+        {
+            if (dif == 0x0f)
+            {
+                DEBUG_PARSER("(dvparser) reached manufacturer specific data 0f, parsing is done.\n");
+                datalen = std::distance(data,data_end);
+                string value = bin2hex(data+1, data_end, datalen-1);
+                t->mfct_0f_index = 1+std::distance(data_start, data);
+                assert(t->mfct_0f_index >= 0);
+                t->addExplanationAndIncrementPos(data, datalen, "%02X manufacturer specific data %s", dif, value.c_str());
+                break;
+            }
             debug("(dvparser) cannot handle dif %02X ignoring rest of telegram.\n", dif);
             break;
         }

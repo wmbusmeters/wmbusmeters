@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ MeterHydrodigit::MeterHydrodigit(WMBus *bus, MeterInfo &mi) :
 
     addPrint("meter_datetime", Quantity::Text,
              [&](){ return meter_datetime_; },
-             "A date.....",
+             "Meter timestamp for measurement.",
              true, true);
 }
 
@@ -79,6 +79,9 @@ void MeterHydrodigit::processContent(Telegram *t)
         meter_datetime_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " meter_datetime (%s)", meter_datetime_.c_str());
     }
+
+    vector<uchar> data;
+    t->extractMfctData(&data);
 }
 
 double MeterHydrodigit::totalWaterConsumption(Unit u)
