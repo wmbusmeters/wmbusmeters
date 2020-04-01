@@ -17,6 +17,12 @@ The program runs on GNU/Linux, MacOSX and Raspberry Pi.
 | ------------- |:-------------:|
 |Linux G++| [![Build Status](https://scan.coverity.com/projects/14774/badge.svg)](https://scan.coverity.com/projects/weetmuts-wmbusmeters) |
 
+# Distributions
+**wmbusmeters** package is available on [Fedora](https://src.fedoraproject.org/rpms/wmbusmeters) _(version 31 or newer)_ and can be simply installed by using:
+```
+# dnf install wmbusmeters
+```
+Availability of **wmbusmeters** for other Linux distributions can be checked on [release-monitoring](https://release-monitoring.org/project/88654/) project page.
 
 # Run as a daemon
 
