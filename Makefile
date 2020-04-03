@@ -146,7 +146,7 @@ METER_OBJS:=\
 	$(BUILD)/wmbus_wmb13u.o \
 	$(BUILD)/wmbus_utils.o
 
-all: $(BUILD)/wmbusmeters $(BUILD)/testinternals
+all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals
 	@$(STRIP_BINARY)
 	@cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd
 
@@ -177,6 +177,9 @@ $(BUILD)/main.o: $(BUILD)/short_manual.h
 
 $(BUILD)/wmbusmeters: $(METER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
 	$(CXX) -o $(BUILD)/wmbusmeters $(METER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lpthread
+
+$(BUILD)/wmbusmeters-admin: $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/short_manual.h
+	$(CXX) -o $(BUILD)/wmbusmeters-admin $(METER_OBJS) $(BUILD)/admin.o $(LDFLAGS) -lmenu -lncurses -lpthread
 
 $(BUILD)/short_manual.h: README.md
 	echo 'R"MANUAL(' > $(BUILD)/short_manual.h
