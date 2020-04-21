@@ -7,7 +7,7 @@ MQTT, curled to a REST api, inserted into a database or stored in a log file.
 
 [FAQ/WIKI/MANUAL pages](https://weetmuts.github.io/wmbusmeterswiki/)
 
-The program runs on GNU/Linux, MacOSX and Raspberry Pi.
+The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 
 | OS           | Status           |
 | ------------ |:-------------:|
@@ -321,7 +321,7 @@ With an rtlwmbus or amb8465 dongle: `wmbusmeters --listento=c1,t1 auto`
 
 With an imst871a dongle: `wmbusmeters --listento=c1 auto`
 
-# Builds and runs on GNU/Linux and MacOSX (with recent XCode)
+# Builds and runs on GNU/Linux MacOSX (with recent XCode), and FreeBSD
 
 `make && make test`
 
@@ -334,6 +334,8 @@ Binary generated: `./build_arm/wmbusmeters`
 `make DEBUG=true`
 
 Binary generated: `./build_debug/wmbusmeters`
+
+Debug builds only work on FreeBSD if the compiler is LLVM. If your system default compiler is gcc, set `CXX=clang++` to the build environment to force LLVM to be used.
 
 `make DEBUG=true HOST=arm`
 

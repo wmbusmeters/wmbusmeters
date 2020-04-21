@@ -21,12 +21,12 @@
 # make DEBUG=true HOST=arm
 
 ifeq "$(HOST)" "arm"
-    CXX=arm-linux-gnueabihf-g++
+    CXX?=arm-linux-gnueabihf-g++
     STRIP=arm-linux-gnueabihf-strip
     BUILD=build_arm
 	DEBARCH=armhf
 else
-    CXX=g++
+    CXX?=g++
     STRIP=strip
 #--strip-unneeded --remove-section=.comment --remove-section=.note
     BUILD=build
@@ -37,8 +37,13 @@ ifeq "$(DEBUG)" "true"
     DEBUG_FLAGS=-O0 -ggdb -fsanitize=address -fno-omit-frame-pointer -fprofile-arcs -ftest-coverage
     STRIP_BINARY=
     BUILD:=$(BUILD)_debug
-    DEBUG_LDFLAGS=-lasan -lgcov --coverage
-    GCOV=gcov
+    ifeq '' '$(findstring clang++,$(CXX))'
+		DEBUG_LDFLAGS=-fsanitize=address --coverage
+		GCOV?=llvm-cov gcov
+	else
+		DEBUG_LDFLAGS=-lasan -lgcov --coverage
+		GCOV?=gcov
+    endif
 else
     DEBUG_FLAGS=-Os
     STRIP_BINARY=$(STRIP) $(BUILD)/wmbusmeters
