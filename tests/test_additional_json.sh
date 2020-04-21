@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 PROG="$1"
 TEST=testoutput
