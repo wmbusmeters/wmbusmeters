@@ -60,7 +60,7 @@ rm -f "$ROOT"/usr/bin/wmbusmeters "$ROOT"/usr/sbin/wmbusmetersd
 mkdir -p "$ROOT"/usr/bin
 mkdir -p "$ROOT"/usr/sbin
 cp "$SRC" "$ROOT"/usr/bin/wmbusmeters
-ln -s "$ROOT"/usr/bin/wmbusmeters "$ROOT"/usr/sbin/wmbusmetersd
+ln -s /usr/bin/wmbusmeters "$ROOT"/usr/sbin/wmbusmetersd
 
 echo binaries: installed "$ROOT"/usr/bin/wmbusmeters and "$ROOT"/usr/sbin/wmbusmetersd
 
@@ -117,7 +117,7 @@ fi
 
 ####################################################################
 ##
-## Prepare for  /var/run/wmbusmeters.pid
+## Prepare for  /run/wmbusmeters.pid
 ##
 
 #if [ ! -d "$ROOT"/var/run ]
@@ -156,7 +156,7 @@ then
     compress
     missingok
     postrotate
-        /bin/kill -HUP `cat /var/run/wmbusmeters/wmbusmeters.pid 2> /dev/null` 2> /dev/null || true
+        /bin/kill -HUP `cat /run/wmbusmeters/wmbusmeters.pid 2> /dev/null` 2> /dev/null || true
     endscript
 EOF
     echo logrotate: created "$ROOT"/etc/logrotate.d/wmbusmeters
@@ -197,7 +197,7 @@ if [ ! -d "$ROOT"/etc/wmbusmeters.d ]
 then
     # Create the configuration directory
     mkdir -p "$ROOT"/etc/wmbusmeters.d
-    chmod -R 655 "$ROOT"/etc/wmbusmeters.d
+    chmod -R 755 "$ROOT"/etc/wmbusmeters.d
     echo conf dir: created "$ROOT"/etc/wmbusmeters.d
 else
     echo conf dir: "$ROOT"/etc/wmbusmeters.d unchanged
@@ -205,38 +205,32 @@ fi
 
 ####################################################################
 ##
-## Create /etc/systemd/system/wmbusmeters.service
+## Create /lib/systemd/system/wmbusmeters.service
 ##
 
 SYSTEMD_NEEDS_RELOAD=false
+mkdir -p "$ROOT"/lib/systemd/system/
 
-if [ -f "$ROOT"/etc/systemd/system/wmbusmeters.service ]
+OLD_WMBS=~/old.wmbusmeters.service.backup
+CURR_WMBS="$ROOT"/lib/systemd/system/wmbusmeters.service
+if [ -f $CURR_WMBS ]
 then
-    echo systemd: removing "$ROOT"/etc/systemd/system/wmbusmeters.service
-    echo systemd: backup stored here: ~/old.wmbusmeters.service.backup
-    cp "$ROOT"/etc/systemd/system/wmbusmeters.service ~/old.wmbusmeters@.service.backup
-    rm "$ROOT"/etc/systemd/system/wmbusmeters.service
-    SYSTEMD_NEEDS_RELOAD=true
+    echo systemd: backing up $CURR_WMBS to here: $OLD_WMBS
+    cp $CURR_WMBS $OLD_WMBS 2>/dev/null
 fi
 
-if [ -f "$ROOT"/etc/systemd/system/wmbusmeters@.service ]
-then
-    echo systemd: removing "$ROOT"/etc/systemd/system/wmbusmeters@.service
-    echo systemd: backup stored here: ~/old.wmbusmeters@.service.backup
-    cp "$ROOT"/etc/systemd/system/wmbusmeters@.service ~/old.wmbusmeters@.service.backup
-    rm "$ROOT"/etc/systemd/system/wmbusmeters@.service
-    SYSTEMD_NEEDS_RELOAD=true
-fi
-
-if [ ! -f "$ROOT"/etc/systemd/system/wmbusmeters@.service ]
-then
-    mkdir -p "$ROOT"/etc/systemd/system/
-    # Create service file
-    cat <<EOF > "$ROOT"/etc/systemd/system/wmbusmeters@.service
+# Create service file for starting daemon without explicit device.
+# This means that wmbusmeters will rely on the conf file device setting.
+cat <<'EOF' > $CURR_WMBS
 [Unit]
-Description="wmbusmeters service on %I"
+Description="wmbusmeters service (no udev trigger)"
+Documentation=https://github.com/weetmuts/wmbusmeters
+Documentation=man:wmbusmeters(1)
 After=network.target
-StopWhenUnneeded=true
+StopWhenUnneeded=false
+StartLimitIntervalSec=10
+StartLimitInterval=10
+StartLimitBurst=3
 
 [Service]
 Type=forking
@@ -245,31 +239,83 @@ User=wmbusmeters
 Group=wmbusmeters
 Restart=always
 RestartSec=1
-StartLimitIntervalSec=10
-StartLimitInterval=10
-StartLimitBurst=3
 
 # Run ExecStartPre with root-permissions
 
 PermissionsStartOnly=true
 ExecStartPre=-/bin/mkdir -p /var/log/wmbusmeters/meter_readings
 ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/log/wmbusmeters
-ExecStartPre=-/bin/mkdir -p /var/run/wmbusmeters
-ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/run/wmbusmeters
+ExecStartPre=-/bin/mkdir -p /run/wmbusmeters
+ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /run/wmbusmeters
 
-ExecStart=/usr/sbin/wmbusmetersd --device='%I' /var/run/wmbusmeters/wmbusmeters-%i.pid
-ExecReload=/bin/kill -HUP `cat /var/run/wmbusmeters/wmbusmeters-%i.pid 2> /dev/null` 2> /dev/null || true
-PIDFile=/var/run/wmbusmeters/wmbusmeters-%i.pid
+ExecStart=/usr/sbin/wmbusmetersd /run/wmbusmeters/wmbusmeters.pid
+ExecReload=/bin/kill -HUP $MAINPID
+PIDFile=/run/wmbusmeters/wmbusmeters.pid
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-    echo systemd: installed "$ROOT"/etc/systemd/system/wmbusmeters@.service
+if diff $OLD_WMBS $CURR_WMBS 1>/dev/null
+then
+    echo systemd: no changes to $CURR_WMBS
 else
-    echo systemd: "$ROOT"/etc/systemd/system/wmbusmeters@.service unchanged
+    echo systemd: updated $CURR_WMBS
+    SYSTEMD_NEEDS_RELOAD=true
 fi
 
+OLD_WMBAS=~/old.wmbusmeters@.service.backup
+CURR_WMBAS="$ROOT"/lib/systemd/system/wmbusmeters@.service
+if [ -f $CURR_WMBAS ]
+then
+    echo systemd: backing up $CURR_WMBAS to here: $OLD_WMBAS
+    cp $CURR_WMBAS $OLD_WMBAS 2>/dev/null
+fi
+
+# Create service file that needs an argument eg.
+# sudo systemctl start wmbusmeters@/dev/im871a_1.service
+cat <<'EOF' > "$ROOT"/lib/systemd/system/wmbusmeters@.service
+[Unit]
+Description="wmbusmeters service (udev triggered by %I)"
+Documentation=https://github.com/weetmuts/wmbusmeters
+Documentation=man:wmbusmeters(1)
+After=network.target
+StopWhenUnneeded=true
+StartLimitIntervalSec=10
+StartLimitInterval=10
+StartLimitBurst=3
+
+[Service]
+Type=forking
+PrivateTmp=yes
+User=wmbusmeters
+Group=wmbusmeters
+Restart=always
+RestartSec=1
+
+# Run ExecStartPre with root-permissions
+
+PermissionsStartOnly=true
+ExecStartPre=-/bin/mkdir -p /var/log/wmbusmeters/meter_readings
+ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/log/wmbusmeters
+ExecStartPre=-/bin/mkdir -p /run/wmbusmeters
+ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /run/wmbusmeters
+
+ExecStart=/usr/sbin/wmbusmetersd --device='%I' /run/wmbusmeters/wmbusmeters-%i.pid
+ExecReload=/bin/kill -HUP $MAINPID
+PIDFile=/run/wmbusmeters/wmbusmeters-%i.pid
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+if diff $OLD_WMBAS $CURR_WMBAS 1>/dev/null
+then
+    echo systemd: no changes to $CURR_WMBAS
+else
+    echo systemd: updated $CURR_WMBAS
+    SYSTEMD_NEEDS_RELOAD=true
+fi
 
 ####################################################################
 ##
@@ -308,14 +354,10 @@ fi
 
 if [ "$SYSTEMD_NEEDS_RELOAD" = "true" ]
 then
-    D=$(diff "$ROOT"/etc/systemd/system/wmbusmeters@.service ~/old.wmbusmeters@.service.backup)
-    if [ "$D" != "" ]
-    then
-        echo
-        echo
-        echo You need to reload systemd configuration! Please do:
-        echo sudo systemctl daemon-reload
-    fi
+    echo
+    echo
+    echo You need to reload systemd configuration! Please do:
+    echo sudo systemctl daemon-reload
 fi
 
 if [ "$UDEV_NEEDS_RELOAD" = "true" ]

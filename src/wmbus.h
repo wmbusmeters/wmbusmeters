@@ -322,8 +322,10 @@ struct Telegram
     vector<uchar> parsed;  // Parsed bytes with explanations.
     int header_size {}; // Size of headers before the APL content.
     int suffix_size {}; // Size of suffix after the APL content. Usually empty, but can be MACs!
+    int mfct_0f_index = -1; // -1 if not found, else index of the 0f byte, if found, inside the difvif data after the header.
     void extractFrame(vector<uchar> *fr); // Extract to full frame.
     void extractPayload(vector<uchar> *pl); // Extract frame data containing the measurements, after the header and not the suffix.
+    void extractMfctData(vector<uchar> *pl); // Extract frame data after the DIF 0x0F.
 
     bool handled {}; // Set to true, when a meter has accepted the telegram.
 
@@ -388,7 +390,17 @@ private:
 
 struct Meter;
 
-#define LIST_OF_MBUS_DEVICES X(DEVICE_UNKNOWN)X(DEVICE_CUL)X(DEVICE_D1TC)X(DEVICE_IM871A)X(DEVICE_AMB8465)X(DEVICE_RFMRX2)X(DEVICE_SIMULATOR)X(DEVICE_RTLWMBUS)X(DEVICE_RAWTTY)
+#define LIST_OF_MBUS_DEVICES \
+    X(DEVICE_UNKNOWN) \
+    X(DEVICE_CUL)\
+    X(DEVICE_D1TC)\
+    X(DEVICE_IM871A)\
+    X(DEVICE_AMB8465)\
+    X(DEVICE_RFMRX2)\
+    X(DEVICE_SIMULATOR)\
+    X(DEVICE_RTLWMBUS)\
+    X(DEVICE_RAWTTY)\
+    X(DEVICE_WMB13U)
 
 enum WMBusDeviceType {
 #define X(name) name,
@@ -439,6 +451,8 @@ unique_ptr<WMBus> openCUL(string device, SerialCommunicationManager *manager,
                               unique_ptr<SerialDevice> serial_override);
 unique_ptr<WMBus> openD1TC(string device, SerialCommunicationManager *manager,
                            unique_ptr<SerialDevice> serial_override);
+unique_ptr<WMBus> openWMB13U(string device, SerialCommunicationManager *manager,
+                             unique_ptr<SerialDevice> serial_override);
 unique_ptr<WMBus> openSimulator(string file, SerialCommunicationManager *manager,
                                 unique_ptr<SerialDevice> serial_override);
 
@@ -474,5 +488,20 @@ AccessCheck findAndDetect(SerialCommunicationManager *manager,
                           function<bool(string,SerialCommunicationManager*)> check,
                           string dongle_name,
                           string device_root);
+
+enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
+
+
+FrameStatus checkWMBusFrame(vector<uchar> &data,
+                            size_t *frame_length,
+                            int *payload_len_out,
+                            int *payload_offset);
+
+bool detectIM871A(string device, SerialCommunicationManager *handler);
+bool detectAMB8465(string device, SerialCommunicationManager *handler);
+bool detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
+bool detectRTLSDR(string device, SerialCommunicationManager *handler);
+bool detectCUL(string device, SerialCommunicationManager *handler);
+bool detectWMB13U(string device, SerialCommunicationManager *handler);
 
 #endif

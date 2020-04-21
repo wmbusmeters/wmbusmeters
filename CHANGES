@@ -1,3 +1,24 @@
+Version 0.9.29: 2020-04-03
+
+Re-add the wmbusmeters.service file so
+that the daemon can be easily started without
+udev rules. Check the README.
+
+Version 0.9.28: 2020-03-08
+
+Improved docker work, thanks Bibo!
+Better shell scripts for installing and daemon mode,
+in preparation for rpm packaging. Thanks Damian!
+
+Version 0.9.27: 2020-02-26
+
+Added support for the apator08 meter.
+Fixed important bug that caused rtl_sdr to hang
+when daemon was stopped/restarted.
+Added support for both T1 and S1 modes for the CUL-dongle.
+Added helpful messages when startup of daemon using rtl_wmbus
+fails because /usr/bin/rtl_sdr or /usr/bin/rtl_wmbus are missing.
+
 Version 0.9.26: 2020-02-07
 
 Cinemarene added support for the Techem

@@ -52,10 +52,10 @@ then
     echo conf dir: removed "$ROOT"/etc/wmbusmeters.d
 fi
 
-if [ -f "$ROOT"/etc/systemd/system/wmbusmeters.service ]
+if [ -f "$ROOT"/lib/systemd/system/wmbusmeters.service ]
 then
-    rm "$ROOT"/etc/systemd/system/wmbusmeters.service
-    echo systemd: removed "$ROOT"/etc/systemd/system/wmbusmeters.service
+    rm "$ROOT"/lib/systemd/system/wmbusmeters.service
+    echo systemd: removed "$ROOT"/lib/systemd/system/wmbusmeters.service
 fi
 
 if [ -f "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ]

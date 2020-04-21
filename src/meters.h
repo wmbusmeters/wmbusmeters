@@ -46,6 +46,7 @@
     X(multical302,C1_bit, Heat,        MULTICAL302, Multical302)  \
     X(omnipower,  C1_bit, Electricity, OMNIPOWER,   Omnipower)    \
     X(rfmamb,     T1_bit, TempHygro,   RFMAMB,      RfmAmb)       \
+    X(rfmtx1,     T1_bit, Water,       RFMTX1,      RfmTX1)       \
     X(q400,       T1_bit, Water,       Q400,        Q400)  \
     X(qcaloric,   C1_bit, HeatCostAllocation, QCALORIC, QCaloric) \
     X(supercom587,T1_bit, Water,       SUPERCOM587, Supercom587)  \
@@ -214,6 +215,7 @@ unique_ptr<HeatCostMeter> createFHKVDataIII(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createLansenTH(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createCMa12w(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createRfmAmb(WMBus *bus, MeterInfo &m);
+unique_ptr<WaterMeter> createRfmTX1(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createEHZP(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createESYSWM(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createEBZWMBE(WMBus *bus, MeterInfo &m);

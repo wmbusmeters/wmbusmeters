@@ -33,8 +33,6 @@
 
 using namespace std;
 
-enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
-
 #define SET_LINK_MODE 1
 #define SET_X01_MODE 2
 
@@ -301,9 +299,9 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         // bY..44............<CR><LF>
         *hex_frame_length = eolp;
         vector<uchar> hex;
-        // Why on earth do we need to remove the 4 hex chars (2 binary bytes)
-        // from the end of the bY C1 telegrams, but there are no such 4 hex chars
-        // to be removed for plain b T1 telegrams?????
+        // If reception is started with X01, then there are no RSSI bytes.
+        // If started with X21, then there are two RSSI bytes (4 hex digits at the end).
+        // Now we always start with X01.
         hex.insert(hex.end(), data.begin()+2, data.begin()+eolp-eof_len); // Remove CRLF
         payload.clear();
         bool ok = hex2bin(hex, &payload);
@@ -329,6 +327,9 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         // b..44..............<CR><LF>
         *hex_frame_length = eolp;
         vector<uchar> hex;
+        // If reception is started with X01, then there are no RSSI bytes.
+        // If started with X21, then there are two RSSI bytes (4 hex digits at the end).
+        // Now we always start with X01.
         hex.insert(hex.end(), data.begin()+1, data.begin()+eolp-eof_len); // Remove CRLF
         payload.clear();
         bool ok = hex2bin(hex, &payload);

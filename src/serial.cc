@@ -168,12 +168,12 @@ int SerialDeviceImp::receive(vector<uchar> *data)
         if (expecting_ascii_)
         {
             string msg = safeString(*data);
-            debug("(serial) received ascii %s\n", msg.c_str());
+            debug("(serial) received ascii \"%s\"\n", msg.c_str());
         }
         else
         {
             string msg = bin2hex(*data);
-            debug("(serial) received binary %s\n", msg.c_str());
+            debug("(serial) received binary \"%s\"\n", msg.c_str());
         }
     }
 

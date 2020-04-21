@@ -497,12 +497,6 @@ string mediaTypeJSON(int a_field_device_type)
     return "Unknown";
 }
 
-bool detectIM871A(string device, SerialCommunicationManager *handler);
-bool detectAMB8465(string device, SerialCommunicationManager *handler);
-bool detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
-bool detectRTLSDR(string device, SerialCommunicationManager *handler);
-bool detectCUL(string device, SerialCommunicationManager *handler);
-
 #define CHECK_SAME_GROUP \
 if (ac == AccessCheck::NotSameGroup) \
 { \
@@ -683,6 +677,7 @@ Detected detectWMBusDeviceSetting(string devicefile,
     if (suffix == "rtlwmbus") return { DEVICE_RTLWMBUS, devicefile, 0, override_tty };
     if (suffix == "cul") return { DEVICE_CUL, devicefile, 0, override_tty };
     if (suffix == "d1tc") return { DEVICE_D1TC, devicefile, 0, override_tty };
+    if (suffix == "wmb13u") return { DEVICE_WMB13U, devicefile, 0, override_tty };
     if (suffix == "simulation") return { DEVICE_SIMULATOR, devicefile, 0, override_tty };
 
     // If the suffix is a number, then assume that it is a baud rate.
@@ -720,6 +715,7 @@ Detected detectWMBusDeviceSetting(string devicefile,
     X(0x86, ELL_V,   "ELL: V",   -1, CI_TYPE::ELL, "Variable length") \
     X(0x90, AFL,     "AFL", 10, CI_TYPE::AFL, "") \
     X(0xA0, MFCT_SPECIFIC_A0, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "") \
+    X(0xA1, MFCT_SPECIFIC_A1, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "") \
     X(0xA2, MFCT_SPECIFIC_A2, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "")
 
 enum CI_Field_Values {
@@ -1580,6 +1576,7 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
         case CI_Field_Values::TPL_78: return parse_TPL_78(pos);
         case CI_Field_Values::TPL_79: return parse_TPL_79(pos);
         case CI_Field_Values::TPL_7A: return parse_TPL_7A(pos);
+        case CI_Field_Values::MFCT_SPECIFIC_A1:
         case CI_Field_Values::MFCT_SPECIFIC_A0: {
             bool _ignore_header_change = false;
 
@@ -3409,6 +3406,16 @@ LIST_OF_ELL_SECURITY_MODES
     return ELLSecurityMode::RESERVED;
 }
 
+void Telegram::extractMfctData(vector<uchar> *pl)
+{
+    pl->clear();
+    if (mfct_0f_index == -1) return;
+
+    vector<uchar>::iterator from = frame.begin()+header_size+mfct_0f_index;
+    vector<uchar>::iterator to = frame.end()-suffix_size;
+    pl->insert(pl->end(), from, to);
+}
+
 void Telegram::extractPayload(vector<uchar> *pl)
 {
     pl->clear();
@@ -3644,4 +3651,68 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
     debugPayload("(wmbus) trimmed  frame B", payload);
 
     return true;
+}
+
+FrameStatus checkWMBusFrame(vector<uchar> &data,
+                            size_t *frame_length,
+                            int *payload_len_out,
+                            int *payload_offset)
+{
+    // Nice clean: 2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B
+    // Ugly: 00615B2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B
+    // Here the frame is prefixed with some random data.
+
+    debugPayload("(wmbus) checkWMBUSFrame\n", data);
+
+    if (data.size() < 11)
+    {
+        debug("(wmbus) less than 11 bytes, partial frame\n");
+        return PartialFrame;
+    }
+    int payload_len = data[0];
+    int type = data[1];
+    int offset = 1;
+
+    if (type != 0x44)
+    {
+        // Ouch, we are out of sync with the wmbus frames that we expect!
+        // Since we currently do not handle any other type of frame, we can
+        // look for the byte 0x44 in the buffer. If we find a 0x44 byte and
+        // the length byte before it maps to the end of the buffer,
+        // then we have found a valid telegram.
+        bool found = false;
+        for (size_t i = 0; i < data.size()-2; ++i)
+        {
+            if (data[i+1] == 0x44)
+            {
+                payload_len = data[i];
+                size_t remaining = data.size()-i;
+                if (data[i]+1 == (uchar)remaining && data[i+1] == 0x44)
+                {
+                    found = true;
+                    offset = i+1;
+                    verbose("(wmbus) out of sync, skipping %d bytes.\n", (int)i);
+                    break;
+                }
+            }
+        }
+        if (!found)
+        {
+            // No sensible telegram in the buffer. Flush it!
+            verbose("(wmbus) no sensible telegram found, clearing buffer.\n");
+            data.clear();
+            return ErrorInFrame;
+        }
+    }
+    *payload_len_out = payload_len;
+    *payload_offset = offset;
+    *frame_length = payload_len+offset;
+    if (data.size() < *frame_length)
+    {
+        debug("(wmbus) not enough bytes, partial frame %d %d\n", data.size(), *frame_length);
+        return PartialFrame;
+    }
+
+    debug("(wmbus) received full frame.\n");
+    return FullFrame;
 }

@@ -1,0 +1,108 @@
+version: 2
+jobs:
+  amd64:
+    machine:
+      enabled: true
+    steps:
+      - checkout  
+      - run:
+          command: |
+            if [[ ! $CIRCLE_BRANCH ]]
+            then
+              DOCKER_TAG=release-$CIRCLE_TAG
+            else
+              DOCKER_TAG=latest
+            fi
+            sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
+            sudo docker build --pull -t $DOCKERHUB_REPO:$DOCKER_TAG-amd64 -f docker/Dockerfile .
+            sudo docker push $DOCKERHUB_REPO:$DOCKER_TAG-amd64
+  armhf:
+    machine:
+      enabled: true
+    steps:
+      - checkout  
+      - run:
+          command: |
+            if [[ ! $CIRCLE_BRANCH ]]
+            then
+              DOCKER_TAG=release-$CIRCLE_TAG
+            else
+              DOCKER_TAG=latest
+            fi
+            sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
+            sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
+            sudo docker build --pull -t $DOCKERHUB_REPO:$DOCKER_TAG-armhf -f docker/Dockerfile.armhf .
+            sudo docker push $DOCKERHUB_REPO:$DOCKER_TAG-armhf
+  arm64v8:
+    machine:
+      enabled: true
+    steps:
+      - checkout  
+      - run:
+          command: |
+            if [[ ! $CIRCLE_BRANCH ]]
+            then
+              DOCKER_TAG=release-$CIRCLE_TAG
+            else
+              DOCKER_TAG=latest
+            fi
+            sudo docker run --rm --privileged multiarch/qemu-user-static:register --reset
+            sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
+            sudo docker build --pull -t $DOCKERHUB_REPO:$DOCKER_TAG-arm64v8 -f docker/Dockerfile.arm64v8 .
+            sudo docker push $DOCKERHUB_REPO:$DOCKER_TAG-arm64v8
+  multiarch:
+    machine:
+      enabled: true
+      image: circleci/classic:201808-01
+    steps:
+      - run:
+          command: |
+            if [[ ! $CIRCLE_BRANCH ]]
+            then
+              DOCKER_TAG=release-$CIRCLE_TAG
+            else
+              DOCKER_TAG=latest
+            fi
+            # Turn on Experimental features
+            sudo mkdir $HOME/.docker
+            sudo sh -c 'echo "{ \"experimental\": \"enabled\" }" >> $HOME/.docker/config.json'
+            #
+            sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
+            #
+            sudo docker manifest create --amend $DOCKERHUB_REPO:$DOCKER_TAG $DOCKERHUB_REPO:$DOCKER_TAG-amd64 $DOCKERHUB_REPO:$DOCKER_TAG-armhf $DOCKERHUB_REPO:$DOCKER_TAG-arm64v8
+            sudo docker manifest annotate $DOCKERHUB_REPO:$DOCKER_TAG $DOCKERHUB_REPO:$DOCKER_TAG-amd64 --os linux --arch amd64
+            sudo docker manifest annotate $DOCKERHUB_REPO:$DOCKER_TAG $DOCKERHUB_REPO:$DOCKER_TAG-armhf --os linux --arch arm --variant v7
+            sudo docker manifest annotate $DOCKERHUB_REPO:$DOCKER_TAG $DOCKERHUB_REPO:$DOCKER_TAG-arm64v8 --os linux --arch arm64 --variant v8
+            sudo docker manifest push $DOCKERHUB_REPO:$DOCKER_TAG -p
+workflows:
+  version: 2
+  publish:
+    jobs:
+      - amd64:
+          filters:
+            branches:
+              only: master
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+      - armhf:
+          filters:
+            branches:
+              only: master
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+      - arm64v8:
+          filters:
+            branches:
+              only: master
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+      - multiarch:
+          requires:
+            - amd64
+            - armhf
+            - arm64v8
+          filters:
+            branches:
+              only: master
+            tags:
+              only: /^\d+\.\d+\.\d+$/

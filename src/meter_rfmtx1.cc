@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2020 Fredrik Öhrström
+ Copyright (C) 2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -24,8 +24,8 @@
 
 using namespace std;
 
-struct MeterHydrodigit : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterHydrodigit(WMBus *bus, MeterInfo &mi);
+struct MeterRfmTX1 : public virtual WaterMeter, public virtual MeterCommonImplementation {
+    MeterRfmTX1(WMBus *bus, MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -38,18 +38,18 @@ private:
     string meter_datetime_;
 };
 
-unique_ptr<WaterMeter> createHydrodigit(WMBus *bus, MeterInfo &mi)
+unique_ptr<WaterMeter> createRfmTX1(WMBus *bus, MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterHydrodigit(bus, mi));
+    return unique_ptr<WaterMeter>(new MeterRfmTX1(bus, mi));
 }
 
-MeterHydrodigit::MeterHydrodigit(WMBus *bus, MeterInfo &mi) :
+MeterRfmTX1::MeterRfmTX1(WMBus *bus, MeterInfo &mi) :
     MeterCommonImplementation(bus, mi, MeterType::HYDRODIGIT, MANUFACTURER_BMT)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addMedia(0x07);
-    addExpectedVersion(0x13);
+    addExpectedVersion(0x05);
     addLinkMode(LinkMode::T1);
 
     addPrint("total", Quantity::Volume,
@@ -59,11 +59,11 @@ MeterHydrodigit::MeterHydrodigit(WMBus *bus, MeterInfo &mi) :
 
     addPrint("meter_datetime", Quantity::Text,
              [&](){ return meter_datetime_; },
-             "Meter timestamp for measurement.",
+             "A date.....",
              true, true);
 }
 
-void MeterHydrodigit::processContent(Telegram *t)
+void MeterRfmTX1::processContent(Telegram *t)
 {
     int offset;
     string key;
@@ -79,18 +79,15 @@ void MeterHydrodigit::processContent(Telegram *t)
         meter_datetime_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " meter_datetime (%s)", meter_datetime_.c_str());
     }
-
-    vector<uchar> data;
-    t->extractMfctData(&data);
 }
 
-double MeterHydrodigit::totalWaterConsumption(Unit u)
+double MeterRfmTX1::totalWaterConsumption(Unit u)
 {
     assertQuantity(u, Quantity::Volume);
     return convert(total_water_consumption_m3_, Unit::M3, u);
 }
 
-bool MeterHydrodigit::hasTotalWaterConsumption()
+bool MeterRfmTX1::hasTotalWaterConsumption()
 {
     return true;
 }
