@@ -37,7 +37,7 @@ ifeq "$(DEBUG)" "true"
     DEBUG_FLAGS=-O0 -ggdb -fsanitize=address -fno-omit-frame-pointer -fprofile-arcs -ftest-coverage
     STRIP_BINARY=
     BUILD:=$(BUILD)_debug
-    ifeq '' '$(findstring clang++,$(CXX))'
+    ifneq '' '$(findstring clang++,$(CXX))'
 		DEBUG_LDFLAGS=-fsanitize=address --coverage
 		GCOV?=llvm-cov gcov
 	else
