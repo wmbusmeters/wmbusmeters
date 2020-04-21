@@ -26,13 +26,13 @@ ifeq "$(HOST)" "arm"
     CXX?=arm-linux-gnueabihf-g++
     STRIP?=arm-linux-gnueabihf-strip
     BUILD=build_arm
-	DEBARCH=armhf
+    DEBARCH=armhf
 else
     CXX?=g++
     STRIP?=strip
 #--strip-unneeded --remove-section=.comment --remove-section=.note
     BUILD=build
-	DEBARCH=amd64
+    DEBARCH=amd64
 endif
 
 ifeq "$(DEBUG)" "true"
@@ -40,11 +40,11 @@ ifeq "$(DEBUG)" "true"
     STRIP_BINARY=
     BUILD:=$(BUILD)_debug
     ifneq '' '$(findstring clang++,$(CXX))'
-		DEBUG_LDFLAGS=-fsanitize=address --coverage
-		GCOV?=llvm-cov gcov
-	else
-		DEBUG_LDFLAGS=-lasan -lgcov --coverage
-		GCOV?=gcov
+        DEBUG_LDFLAGS=-fsanitize=address --coverage
+        GCOV?=llvm-cov gcov
+    else
+        DEBUG_LDFLAGS=-lasan -lgcov --coverage
+        GCOV?=gcov
     endif
 else
     DEBUG_FLAGS=-Os
