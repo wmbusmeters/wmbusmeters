@@ -23,6 +23,7 @@
 
 #include<algorithm>
 #include<memory.h>
+#include<time.h>
 
 MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
                                                      MeterType type, int manufacturer) :

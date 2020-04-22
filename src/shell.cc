@@ -23,7 +23,7 @@
 #include <memory.h>
 #include <pthread.h>
 #include <sys/types.h>
-#if defined(__APPLE__) && defined(__MACH__)
+#if defined(__APPLE__) && defined(__MACH__) or defined(__FreeBSD__)
 #include <sys/wait.h>
 #else
 #include <wait.h>
@@ -61,7 +61,7 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
     if (pid == 0) {
         // I am the child!
         close(0); // Close stdin
-#if defined(__APPLE__) && defined(__MACH__)
+#if (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
         execve(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #else
         execvpe(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
@@ -130,7 +130,7 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
         close(link[1]);
         close(0); // Close stdin
 
-#if defined(__APPLE__) && defined(__MACH__)
+#if (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
         execve(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #else
         execvpe(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
