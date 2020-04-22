@@ -45,6 +45,7 @@ private:
     uint32_t uint32FromBytes(const vector<uchar> &data, int offset, bool reverse = false);
     vector<uchar> decodePrios(const vector<uchar> &payload, uint32_t key);
 
+    double remaining_battery_life;
     uint16_t h0_year;
     uint8_t h0_month;
     uint8_t h0_day;
@@ -96,6 +97,11 @@ MeterIzar::MeterIzar(WMBus *bus, MeterInfo &mi) :
     addPrint("last_month_measure_date", Quantity::Text,
              [&](){ return setH0Date(); },
              "The date when the meter recorded the most recent billing value.",
+             true, true);
+
+    addPrint("remaining_battery_life", Quantity::Time, Unit::Year,
+             [&](Unit u){ return convert(remaining_battery_life, Unit::Year, u); },
+             "How many more years the battery is expected to last",
              true, true);
 
 }
@@ -172,6 +178,9 @@ void MeterIzar::processContent(Telegram *t)
         warning("(izar) Decoding PRIOS data failed. Ignoring telegram.\n");
         return;
     }
+
+    // get the remaining battery life (in year)
+    remaining_battery_life = (frame[12] & 0x1F) / 2.0;
 
     total_water_consumption_l_ = uint32FromBytes(decoded_content, 1, true);
     last_month_total_water_consumption_l_ = uint32FromBytes(decoded_content, 5, true);

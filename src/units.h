@@ -45,7 +45,8 @@
     X(HCA,hca,"hca",HCA,"heat cost allocation") \
     X(TXT,txt,"txt",Text,"text")              \
     X(Second,s,"s",Time,"second")           \
-    X(Hour,h,"h",Time,"hour")
+    X(Hour,h,"h",Time,"hour") \
+    X(Year,y,"y",Time,"year")
 
 enum class Unit
 {
