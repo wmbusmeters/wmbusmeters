@@ -35,6 +35,7 @@ struct MeterIzar : public virtual WaterMeter, public virtual MeterCommonImplemen
     bool  hasTotalWaterConsumption();
 
     double lastMonthTotalWaterConsumption(Unit u);
+    string setH0Date();
 
 private:
 
@@ -44,6 +45,9 @@ private:
     uint32_t uint32FromBytes(const vector<uchar> &data, int offset, bool reverse = false);
     vector<uchar> decodePrios(const vector<uchar> &payload, uint32_t key);
 
+    uint16_t h0_year;
+    uint8_t h0_month;
+    uint8_t h0_day;
     double total_water_consumption_l_ {};
     double last_month_total_water_consumption_l_ {};
 
@@ -88,6 +92,12 @@ MeterIzar::MeterIzar(WMBus *bus, MeterInfo &mi) :
              [&](Unit u){ return lastMonthTotalWaterConsumption(u); },
              "The total water consumption recorded by this meter around end of last month.",
              true, true);
+
+    addPrint("last_month_measure_date", Quantity::Text,
+             [&](){ return setH0Date(); },
+             "The date when the meter recorded the most recent billing value.",
+             true, true);
+
 }
 
 double MeterIzar::totalWaterConsumption(Unit u)
@@ -105,6 +115,13 @@ double MeterIzar::lastMonthTotalWaterConsumption(Unit u)
 {
     assertQuantity(u, Quantity::Volume);
     return convert(last_month_total_water_consumption_l_, Unit::L, u);
+}
+
+string MeterIzar::setH0Date()
+{
+    char result[11];
+    snprintf(result, sizeof(result), "%04d-%02d-%02d", h0_year, h0_month, h0_day);
+    return result;
 }
 
 uint32_t MeterIzar::uint32FromBytes(const vector<uchar> &data, int offset, bool reverse)
@@ -158,6 +175,16 @@ void MeterIzar::processContent(Telegram *t)
 
     total_water_consumption_l_ = uint32FromBytes(decoded_content, 1, true);
     last_month_total_water_consumption_l_ = uint32FromBytes(decoded_content, 5, true);
+
+    // get the date when the second measurement was taken
+    h0_year = ((decoded_content[10] & 0xF0) >> 1) + ((decoded_content[9] & 0xE0) >> 5);
+    if (h0_year > 80) {
+        h0_year += 1900;
+    } else {
+        h0_year += 2000;
+    }
+    h0_month = decoded_content[10] & 0xF;
+    h0_day = decoded_content[9] & 0x1F;
 
     // override incorrectly reported medium (oil)
     t->dll_type = 7;
