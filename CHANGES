@@ -1,3 +1,7 @@
+Version 0.9.30: 2020-04-22
+
+Erwan added support for building on FreeBSD. Thanks Erwan!
+
 Version 0.9.29: 2020-04-03
 
 Re-add the wmbusmeters.service file so
