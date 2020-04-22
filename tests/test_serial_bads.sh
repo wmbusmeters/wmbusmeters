@@ -22,11 +22,11 @@ xxd -r -p simulations/serial_rawtty_ok.hex | \
     | grep Rummet > $TEST/test_output.txt
 
 
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo "OK: $TESTNAME"
         TESTRESULT="OK"
@@ -45,11 +45,11 @@ EOF
 
 xxd -r -p simulations/serial_rawtty_bad.hex | $PROG --format=json --listento=any stdin Rummet1 lansenth 00010203 "" Rummet2 rfmamb 11772288 "" | grep Rummet > $TEST/test_output.txt
 
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo "OK: $TESTNAME"
         TESTRESULT="OK"

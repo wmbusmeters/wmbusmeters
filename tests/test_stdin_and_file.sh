@@ -22,11 +22,11 @@ xxd -r -p simulations/serial_rawtty_ok.hex | \
     | grep Rummet > $TEST/test_output.txt
 
 
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo "OK: $TESTNAME"
         TESTRESULT="OK"
@@ -51,11 +51,11 @@ $PROG --format=json --listento=any $TEST/test_raw \
           Rummet2 rfmamb 11772288 "" \
     | grep Rummet > $TEST/test_output.txt
 
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo OK: $TESTNAME
         TESTRESULT="OK"
@@ -79,11 +79,11 @@ cat simulations/serial_rtlwmbus_ok.msg | \
           Rummet2 rfmamb 11772288 "" \
     | grep Rummet > $TEST/test_output.txt
 
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo "OK: $TESTNAME"
         TESTRESULT="OK"
@@ -106,11 +106,11 @@ $PROG --format=json --listento=any simulations/serial_rtlwmbus_ok.msg:rtlwmbus \
           Rummet2 rfmamb 11772288 "" \
     | grep Rummet > $TEST/test_output.txt
 
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo "OK: $TESTNAME"
         TESTRESULT="OK"

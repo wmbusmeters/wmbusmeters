@@ -15,11 +15,11 @@ $PROG --format=json $SIM \
       Element qcaloric '*' '' \
       > $TEST/test_output.txt
 
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo "OK: $TESTNAME"
         TESTRESULT="OK"
@@ -38,11 +38,11 @@ $PROG --format=json $SIM \
       > $TEST/test_output.txt
 
 
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo "OK: $TESTNAME"
         TESTRESULT="OK"
@@ -60,11 +60,11 @@ $PROG --format=json $SIM \
       Element qcaloric '78563412,78563413' '' \
       > $TEST/test_output.txt
 
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo "OK: $TESTNAME"
         TESTRESULT="OK"
@@ -82,11 +82,11 @@ $PROG --format=json $SIM \
       Element qcaloric '78563412,78563413,88563414' '' \
       > $TEST/test_output.txt
 
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo "OK: $TESTNAME"
         TESTRESULT="OK"
@@ -104,11 +104,11 @@ $PROG --format=json $SIM \
       Element qcaloric '*,!88563414,!78563413' '' \
       > $TEST/test_output.txt
 
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo "OK: $TESTNAME"
         TESTRESULT="OK"

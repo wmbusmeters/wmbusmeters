@@ -31,11 +31,11 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
 
 cat simulations/simulation_t1.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_t1.txt $METERS  > $TEST/test_output.txt
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo OK json: $TESTNAME
         TESTRESULT="OK"
@@ -44,11 +44,11 @@ fi
 
 cat simulations/simulation_t1.txt | grep '^|' | sed 's/^|//' > $TEST/test_expected.txt
 $PROG --format=fields simulations/simulation_t1.txt $METERS  > $TEST/test_output.txt
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9].[0-9][0-9]$/1111-11-11 11:11.11/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo OK fields: $TESTNAME
         TESTRESULT="OK"
