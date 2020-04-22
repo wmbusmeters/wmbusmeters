@@ -71,7 +71,7 @@ $PROG --useconfig=tests/config6 --device=simulations/simulation_shell.txt --list
 if [ "$?" = "0" ]
 then
     INFO=$(cat /tmp/wmbusmeters_meter_additional_json_test | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/')
-    EXPECTED=$(echo 'METER ={"media":"warm water","meter":"supercom587","name":"Water","id":"12345678","total_m3":5.548,"timestamp":"1111-11-11T11:11:11Z","floor":"5","address":"RoodRd 42"}= =RoodRd 42= =5=')
+    EXPECTED=$(echo 'METER =={"media":"warm water","meter":"supercom587","name":"Water","id":"12345678","total_m3":5.548,"timestamp":"1111-11-11T11:11:11Z","floor":"5","address":"RoodRd 42"}== ==RoodRd 42== ==5==')
     if [ "$INFO" = "$EXPECTED" ]
     then
         echo "OK: $TESTNAME"
