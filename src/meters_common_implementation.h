@@ -84,6 +84,8 @@ protected:
     void addManufacturer(int m);
     void addPrint(string vname, Quantity vquantity,
                   function<double(Unit)> getValueFunc, string help, bool field, bool json);
+    void addPrint(string vname, Quantity vquantity, Unit unit,
+                  function<double(Unit)> getValueFunc, string help, bool field, bool json);
     void addPrint(string vname, Quantity vquantity,
                   function<std::string()> getValueFunc, string help, bool field, bool json);
     bool handleTelegram(vector<uchar> frame);

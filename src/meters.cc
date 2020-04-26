@@ -104,6 +104,12 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
     prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), getValueFunc, NULL, help, field, json });
 }
 
+void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit unit,
+                                         function<double(Unit)> getValueFunc, string help, bool field, bool json)
+{
+    prints_.push_back( { vname, vquantity, unit, getValueFunc, NULL, help, field, json });
+}
+
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          function<string()> getValueFunc,
                                          string help, bool field, bool json)
