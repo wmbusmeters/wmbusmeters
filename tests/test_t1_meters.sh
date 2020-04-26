@@ -39,6 +39,8 @@ then
     then
         echo OK json: $TESTNAME
         TESTRESULT="OK"
+    else
+        TESTRESULT="ERROR"
     fi
 fi
 
@@ -52,6 +54,8 @@ then
     then
         echo OK fields: $TESTNAME
         TESTRESULT="OK"
+    else
+        TESTRESULT="ERROR"
     fi
 fi
 
