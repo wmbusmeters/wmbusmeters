@@ -14,7 +14,8 @@ METERS="Wasser      apator162   20202020 NOKEY
       MyTapWaterc apator162   23202020 NOKEY
       MyTapWaterd apator162   24202020 NOKEY
       MyTapWatere apator162   25202020 NOKEY
-      MyTapWatere apator162   26202020 NOKEY"
+      MyTapWatere apator162   26202020 NOKEY
+      MyTapWatere apator162   27202020 NOKEY"
 
 cat simulations/simulation_apas.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_apas.txt $METERS  > $TEST/test_output.txt
