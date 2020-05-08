@@ -222,9 +222,7 @@ void WMBusAmber::getConfiguration()
         verbose("(amb8465) config: radio Channel %02x\n", received_payload_[60+2]);
         uchar re = received_payload_[69+2];
         verbose("(amb8465) config: rssi enabled %02x\n", re);
-        if (re != 0) {
-            rssi_expected_ = true;
-        }
+        rssi_expected_ = (re != 0) ? true : false;
         verbose("(amb8465) config: mode Preselect %02x\n", received_payload_[70+2]);
     }
 
