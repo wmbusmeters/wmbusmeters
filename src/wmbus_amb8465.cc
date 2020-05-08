@@ -307,20 +307,25 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
             debug("(amb8465) not enough bytes yet for command.\n");
             return PartialFrame;
         }
+
+        // Only response from CMD_DATA_IND has rssi
+        int rssi_len = (rssi_expected_ && data[1] == (0x80|CMD_DATA_IND)) ? 1 : 0;
+
         // A command response begins with 0xff
         *msgid_out = data[1];
         payload_len = data[2];
         *payload_len_out = payload_len;
         *payload_offset = 3;
-        *frame_length = 3+payload_len + (int)rssi_expected_;
+        // FF CMD len payload [RSSI] CS
+        *frame_length = 4 + payload_len + rssi_len;
         if (data.size() < *frame_length)
         {
             debug("(amb8465) not enough bytes yet, partial command response %d %d.\n", data.size(), *frame_length);
             return PartialFrame;
         }
 
-        if (rssi_expected_) {
-            *rssi = data[*frame_length-1];
+        if (rssi_len) {
+            *rssi = data[*frame_length-2];
         }
         debug("(amb8465) received full command frame\n");
         return FullFrame;
