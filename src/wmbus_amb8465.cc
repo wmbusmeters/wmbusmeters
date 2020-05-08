@@ -324,6 +324,12 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
             *rssi = data[*frame_length-1];
         }
         debug("(amb8465) received full command frame\n");
+
+        uchar cs = xorChecksum(data, *frame_length-1);
+        if (data[*frame_length-1] != cs) {
+            verbose("(amb8465) checksum error %02x (should %02x)\n", data[*frame_length-1], cs);
+        }
+
         return FullFrame;
     }
     // If it is not a 0xff we assume it is a message beginning with a length.
