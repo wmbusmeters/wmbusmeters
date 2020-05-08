@@ -326,6 +326,7 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
 
         if (rssi_len) {
             *rssi = data[*frame_length-2];
+            verbose("(amb8465) rssi %d\n", *rssi);
         }
         debug("(amb8465) received full command frame\n");
         return FullFrame;
@@ -345,6 +346,13 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
     }
 
     debug("(amb8465) received full frame\n");
+
+    if (rssi_expected_)
+    {
+        *rssi = data[*frame_length-1];
+        verbose("(amb8465) rssi %d\n", *rssi);
+    }
+
     return FullFrame;
 }
 
@@ -390,10 +398,6 @@ void WMBusAmber::processSerialData()
 
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
 
-            if (rssi_expected_)
-            {
-                verbose("(amb8465) rssi %d\n", rssi);
-            }
             handleMessage(msgid, payload);
         }
     }
