@@ -218,6 +218,7 @@ void WMBusAmber::getConfiguration()
         //
         // These are just some random config settings store in non-volatile memory.
         verbose("(amb8465) config: uart %02x\n", received_payload_[2]);
+        verbose("(amb8465) config: IND output enabled %02x\n", received_payload_[5+2]);
         verbose("(amb8465) config: radio Channel %02x\n", received_payload_[60+2]);
         uchar re = received_payload_[69+2];
         verbose("(amb8465) config: rssi enabled %02x\n", re);
