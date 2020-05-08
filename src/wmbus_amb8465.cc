@@ -326,7 +326,8 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
 
         if (rssi_len) {
             *rssi = data[*frame_length-2];
-            verbose("(amb8465) rssi %d\n", *rssi);
+            signed int dbm = (*rssi >= 128) ? (*rssi - 256) / 2 - 74 : *rssi / 2 - 74;
+            verbose("(amb8465) rssi %d (%d dBm)\n", *rssi, dbm);
         }
         debug("(amb8465) received full command frame\n");
         return FullFrame;
@@ -350,7 +351,8 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
     if (rssi_expected_)
     {
         *rssi = data[*frame_length-1];
-        verbose("(amb8465) rssi %d\n", *rssi);
+        signed int dbm = (*rssi >= 128) ? (*rssi - 256) / 2 - 74 : *rssi / 2 - 74;
+        verbose("(amb8465) rssi %d (%d dBm)\n", *rssi, dbm);
     }
 
     return FullFrame;
