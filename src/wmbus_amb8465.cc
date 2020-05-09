@@ -326,12 +326,18 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
 
         debug("(amb8465) received full command frame\n");
 
-        if (rssi_len) {
+        uchar cs = xorChecksum(data, *frame_length-1);
+        if (data[*frame_length-1] != cs) {
+            verbose("(amb8465) checksum error %02x (should %02x)\n", data[*frame_length-1], cs);
+        }
+
+      if (rssi_len) {
             *rssi = data[*frame_length-2];
             signed int dbm = (*rssi >= 128) ? (*rssi - 256) / 2 - 74 : *rssi / 2 - 74;
             verbose("(amb8465) rssi %d (%d dBm)\n", *rssi, dbm);
         }
-        return FullFrame;
+
+      return FullFrame;
     }
     // If it is not a 0xff we assume it is a message beginning with a length.
     // There might be a different mode where the data is wrapped in 0xff. But for the moment
