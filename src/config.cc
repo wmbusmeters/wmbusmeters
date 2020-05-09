@@ -58,6 +58,9 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 
         if (p.first == "") break;
 
+        // If the key starts with # then the line is a comment. Ignore it.
+        if (p.first.length() > 0 && p.first[0] == '#') continue;
+
         if (p.first == "name") name = p.second;
         else
         if (p.first == "type") type = p.second;
@@ -370,6 +373,8 @@ unique_ptr<Configuration> loadConfiguration(string root, string device_override,
         auto p = getNextKeyValue(global_conf, i);
 
         if (p.first == "") break;
+        // If the key starts with # then the line is a comment. Ignore it.
+        if (p.first.length() > 0 && p.first[0] == '#') continue;
         if (p.first == "loglevel") handleLoglevel(c, p.second);
         else if (p.first == "device") handleDevice(c, p.second);
         else if (p.first == "listento") handleListenTo(c, p.second);

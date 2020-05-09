@@ -23,6 +23,10 @@ using namespace std;
 #define LIST_OF_CONVERSIONS \
     X(Second, Hour, {vto=vfrom/3600.0;}) \
     X(Hour, Second, {vto=vfrom*3600.0;}) \
+    X(Year, Second, {vto=vfrom*3600.0*24.0*365;}) \
+    X(Second, Year, {vto=vfrom/3600.0/24.0/365;}) \
+    X(Hour, Year, {vto=vfrom/24.0/365;}) \
+    X(Year, Hour, {vto=vfrom*24.0*365;}) \
     X(KWH, GJ, {vto=vfrom*0.0036;})     \
     X(GJ,  KWH,{vto=vfrom/0.0036;}) \
     X(M3,  L,  {vto=vfrom*1000.0;}) \

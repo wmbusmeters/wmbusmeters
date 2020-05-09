@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 PROG="$1"
 
@@ -27,7 +27,7 @@ cat <<EOF > $TEST/test_expected.txt
 EOF
 
 diff $TEST/test_expected.txt $TEST/test_response.txt
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     echo "OK: $TESTNAME"
     TESTRESULT="OK"

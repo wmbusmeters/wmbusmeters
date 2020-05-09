@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 PROG="$1"
 
@@ -14,15 +14,16 @@ METERS="Wasser      apator162   20202020 NOKEY
       MyTapWaterc apator162   23202020 NOKEY
       MyTapWaterd apator162   24202020 NOKEY
       MyTapWatere apator162   25202020 NOKEY
-      MyTapWatere apator162   26202020 NOKEY"
+      MyTapWatere apator162   26202020 NOKEY
+      MyTapWatere apator162   27202020 NOKEY"
 
 cat simulations/simulation_apas.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_apas.txt $METERS  > $TEST/test_output.txt
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo OK json: $TESTNAME
         TESTRESULT="OK"
@@ -31,11 +32,11 @@ fi
 
 cat simulations/simulation_apas.txt | grep '^|' | sed 's/^|//' > $TEST/test_expected.txt
 $PROG --format=fields simulations/simulation_apas.txt $METERS  > $TEST/test_output.txt
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9].[0-9][0-9]$/1111-11-11 11:11.11/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
-    if [ "$?" == "0" ]
+    if [ "$?" = "0" ]
     then
         echo OK fields: $TESTNAME
         TESTRESULT="OK"

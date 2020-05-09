@@ -7,7 +7,7 @@ MQTT, curled to a REST api, inserted into a database or stored in a log file.
 
 [FAQ/WIKI/MANUAL pages](https://weetmuts.github.io/wmbusmeterswiki/)
 
-The program runs on GNU/Linux, MacOSX and Raspberry Pi.
+The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 
 | OS           | Status           |
 | ------------ |:-------------:|
@@ -34,10 +34,11 @@ automatically when an appropriate wmbus usb dongle is inserted in the computer.
 `wmbusmetersd /tmp/thepidfile` from a script instead. Here you can also override the device:
 `wmbusmetersd --device=/dev/ttyXXY --listento=t1 /tmp/thepidfile`)
 
-Check the config file /etc/wmbusmeters.conf:
+Check the config file /etc/wmbusmeters.conf and edit the device to
+point to your dongle.
 ```
 loglevel=normal
-device=auto
+device=/dev/ttyUSB0:im871a
 logtelegrams=false
 format=json
 meterfiles=/var/log/wmbusmeters/meter_readings
@@ -250,8 +251,6 @@ Simply runs a scan with mode T1 to search for meters and print the IDs
 wmbusmeters /dev/ttyUSB0:im871a MyTapWater multical21:c1 12345678 00112233445566778899AABBCCDDEEFF
 ```
 
-If you have performed `make install` or added the udev rules yourself, then you can use
-auto instead of the exact usb device.
 
 (The :c1 can be left out, since multical21 only transmits c1 telegrams. The suffix
 with the expected link mode might be necessary for other meters, like apator162 for example.
@@ -267,7 +266,7 @@ Example output:
 
 Example format json output:
 
-`wmbusmeters --format=json auto MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF MyHeater multical302 22222222 00112233445566778899AABBCCDDEEFF`
+`wmbusmeters --format=json /dev/ttyUSB0:im871a MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF MyHeater multical302 22222222 00112233445566778899AABBCCDDEEFF`
 
 `{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"max_flow_m3h":0.000,"flow_temperature":8,"external_temperature":23,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z"}`
 
@@ -282,16 +281,16 @@ default 868.95MHz.
 
 Eaxmple of using the shell command to publish to MQTT:
 
-`wmbusmeters --shell='HOME=/home/you mosquitto_pub -h localhost -t water -m "$METER_JSON"' auto GreenhouseWater multical21 33333333 NOKEY`
+`wmbusmeters --shell='HOME=/home/you mosquitto_pub -h localhost -t water -m "$METER_JSON"' /dev/ttyUSB0:im871a GreenhouseWater multical21 33333333 NOKEY`
 
 Eaxmple of using the shell command to inject data into postgresql database:
 
-`wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$METER_ID',\$METER_TOTAL_M3,'\$METER_TIMESTAMP') \" " auto MyColdWater multical21 12345678 NOKEY`
+`wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$METER_ID',\$METER_TOTAL_M3,'\$METER_TIMESTAMP') \" " /dev/ttyUSB0:amb8465 MyColdWater multical21 12345678 NOKEY`
 
 You can have multiple shell commands and they will be executed in the order you gave them on the commandline.
 Note that to single quotes around the command is necessary to pass the env variable names into wmbusmeters.
 To list the shell env variables available for your meter, add --shellenvs to the commandline:
-`wmbusmeters --shellenvs auto Water iperl 12345678 NOKEY`
+`wmbusmeters --shellenvs /dev/ttyUSB1:cul Water iperl 12345678 NOKEY`
 which outputs:
 ```
 Environment variables provided to shell for meter iperl:
@@ -314,23 +313,23 @@ You can use `--debug` to get both verbose output and the actual data bytes sent 
 
 If the meter does not use encryption of its meter data, then enter NOKEY on the command line.
 
-`wmbusmeters --format=json --meterfiles auto MyTapWater multical21 12345678 NOKEY`
+`wmbusmeters --format=json --meterfiles /dev/ttyUSB0:im871a MyTapWater multical21 12345678 NOKEY`
 
 If you have a Kamstrup meters and you have received a KEM file and its password from your supplier, then you can use [utils/kem-import.py](utils/kem-import.py) utility to extract meter information from that file (including the AES key) and to create corresponding meter files in wmbusmetrs' config directory.
 
 You can run wmbusmeters with --logtelegrams to get log output that can be placed in a simulation.txt
-file. You can then run wmbusmeter and instead of auto (or an usb device) provide the simulationt.xt
+file. You can then run wmbusmeter and instead of an usb device, you provide the simulationt.xt
 file as argument. See test.sh for more info.
 
 If you do not specify any meters on the command line, then wmbusmeters
 will listen and print the header information of any telegram it hears.
 You must specify the listening mode.
 
-With an rtlwmbus or amb8465 dongle: `wmbusmeters --listento=c1,t1 auto`
+With an rtlwmbus or amb8465 dongle: `wmbusmeters --listento=c1,t1 /dev/ttyUSB0:amb8465`
 
-With an imst871a dongle: `wmbusmeters --listento=c1 auto`
+With an imst871a dongle: `wmbusmeters --listento=c1 /dev/ttyUSB0:im871a`
 
-# Builds and runs on GNU/Linux and MacOSX (with recent XCode)
+# Builds and runs on GNU/Linux MacOSX (with recent XCode), and FreeBSD
 
 `make && make test`
 
@@ -343,6 +342,8 @@ Binary generated: `./build_arm/wmbusmeters`
 `make DEBUG=true`
 
 Binary generated: `./build_debug/wmbusmeters`
+
+Debug builds only work on FreeBSD if the compiler is LLVM. If your system default compiler is gcc, set `CXX=clang++` to the build environment to force LLVM to be used.
 
 `make DEBUG=true HOST=arm`
 
@@ -376,19 +377,27 @@ wmbusmeters daemon will be automatically started/stopped whenever the
 im871a/amb8465 dongle is inserted/removed, and the daemon starts when
 the computer boots, if the dongle is already inserted.
 
-If you do not want the daemon to start automatically, simply edit
-/dev/udev/rules.d/99-wmbus-usb-serial.rules and remove
-`,TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters.@/dev/im871a_%n.service"` from each
-line. You must then also remove `StopWhenUnneeded=true` from `install.sh`
-
 You can start/stop the daemon with `sudo systemctl stop wmbusmeters@-dev-im871a_0.service`
-or `sudo systemctl stop wmbusmeters@-dev-amb8465_1.service` etc. Sometimes
-rtl_sdr does not play nice right now with wmbusmeters daemon. If you first do `sudo systemctl stop wmbusmeters@-dev-rtlsdr_3.service`
-it will hang, in a separate window do `sudo killall -9 rtl_sdr` to get rid of the spinning rtl_sdr process.
+or `sudo systemctl stop wmbusmeters@-dev-amb8465_1.service` etc.
 
 You can trigger a reload of the config files with `sudo killall -HUP wmbusmetersd`
 
 If you add more dongles, then more daemons gets started, each with a unique name/nr.
+
+# Daemon without udev rules
+
+To start the daemon without the udev rules. Then do:
+`make install EXTRA_INSTALL_OPTIONS='--no-udev-rules'`
+then no udev rules will be added.
+
+(If you have already installed once before you might have to remove
+/dev/udev/rules.d/99-wmbus-usb-serial.rules)
+
+You can now start/stop the daemon with `sudo systemctl stop wmbusmeters`
+the device must of course be correct in the /etc/wmbusmeters.conf file.
+
+To have wmbusmeters start automatically when the computer boots do:
+`sudo systemctl enable wmbusmeters`
 
 # Common problems
 
@@ -399,8 +408,6 @@ if this hangs, then do `sudo killall -9 wmbusmetersd` and/or `sudo killall -9 wm
 
 If you are using rtl_sdr/rtl_wmbus and you want to stop the daemon, do
 `sudo stop wmbusmeters@-dev-rtlsdr_3.server` followed by `sudo killall -9 rtl_sdr`.
-
-If you are using auto, then start manually with --debug to see how wmbusmeters goes looking for devices.
 
 ## AMB8465 USB stick
 

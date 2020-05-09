@@ -218,12 +218,11 @@ void WMBusAmber::getConfiguration()
         //
         // These are just some random config settings store in non-volatile memory.
         verbose("(amb8465) config: uart %02x\n", received_payload_[2]);
+        verbose("(amb8465) config: IND output enabled %02x\n", received_payload_[5+2]);
         verbose("(amb8465) config: radio Channel %02x\n", received_payload_[60+2]);
         uchar re = received_payload_[69+2];
         verbose("(amb8465) config: rssi enabled %02x\n", re);
-        if (re != 0) {
-            rssi_expected_ = true;
-        }
+        rssi_expected_ = (re != 0) ? true : false;
         verbose("(amb8465) config: mode Preselect %02x\n", received_payload_[70+2]);
     }
 
@@ -308,23 +307,37 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
             debug("(amb8465) not enough bytes yet for command.\n");
             return PartialFrame;
         }
+
+        // Only response from CMD_DATA_IND has rssi
+        int rssi_len = (rssi_expected_ && data[1] == (0x80|CMD_DATA_IND)) ? 1 : 0;
+
         // A command response begins with 0xff
         *msgid_out = data[1];
         payload_len = data[2];
         *payload_len_out = payload_len;
         *payload_offset = 3;
-        *frame_length = 3+payload_len + (int)rssi_expected_;
+        // FF CMD len payload [RSSI] CS
+        *frame_length = 4 + payload_len + rssi_len;
         if (data.size() < *frame_length)
         {
             debug("(amb8465) not enough bytes yet, partial command response %d %d.\n", data.size(), *frame_length);
             return PartialFrame;
         }
 
-        if (rssi_expected_) {
-            *rssi = data[*frame_length-1];
-        }
         debug("(amb8465) received full command frame\n");
-        return FullFrame;
+
+        uchar cs = xorChecksum(data, *frame_length-1);
+        if (data[*frame_length-1] != cs) {
+            verbose("(amb8465) checksum error %02x (should %02x)\n", data[*frame_length-1], cs);
+        }
+
+      if (rssi_len) {
+            *rssi = data[*frame_length-2];
+            signed int dbm = (*rssi >= 128) ? (*rssi - 256) / 2 - 74 : *rssi / 2 - 74;
+            verbose("(amb8465) rssi %d (%d dBm)\n", *rssi, dbm);
+        }
+
+      return FullFrame;
     }
     // If it is not a 0xff we assume it is a message beginning with a length.
     // There might be a different mode where the data is wrapped in 0xff. But for the moment
@@ -341,6 +354,14 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
     }
 
     debug("(amb8465) received full frame\n");
+
+    if (rssi_expected_)
+    {
+        *rssi = data[*frame_length-1];
+        signed int dbm = (*rssi >= 128) ? (*rssi - 256) / 2 - 74 : *rssi / 2 - 74;
+        verbose("(amb8465) rssi %d (%d dBm)\n", *rssi, dbm);
+    }
+
     return FullFrame;
 }
 
@@ -386,10 +407,6 @@ void WMBusAmber::processSerialData()
 
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
 
-            if (rssi_expected_)
-            {
-                verbose("(amb8465) rssi %d\n", rssi);
-            }
             handleMessage(msgid, payload);
         }
     }

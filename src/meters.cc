@@ -23,6 +23,7 @@
 
 #include<algorithm>
 #include<memory.h>
+#include<time.h>
 
 MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
                                                      MeterType type, int manufacturer) :
@@ -101,6 +102,12 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          function<double(Unit)> getValueFunc, string help, bool field, bool json)
 {
     prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), getValueFunc, NULL, help, field, json });
+}
+
+void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit unit,
+                                         function<double(Unit)> getValueFunc, string help, bool field, bool json)
+{
+    prints_.push_back( { vname, vquantity, unit, getValueFunc, NULL, help, field, json });
 }
 
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,

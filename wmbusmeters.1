@@ -11,7 +11,7 @@ wmbusmeters \- listen to wireless mbus radio traffic and relay the decoded teleg
 
 Wmbusmeters acquires wmbus telegrams, decodes them and relays them to
 some other software for further processing.  It can for example listen
-to radio traffic using dedicated wmbus dongles like (im871a/amb8465/rfmrx2)
+to radio traffic using dedicated wmbus dongles like (im871a amb8465 rfmrx2 cul d1tc)
 or a generic software defined radio dongle (rtl_sdr).
 
 After the received telegram has been decrypted and parsed, it can then
@@ -46,6 +46,8 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 \fB\--meterfilesaction=\fR(overwrite|append) overwrite or append to the meter readings file
 
 \fB\--meterfilesnaming=\fR(name|id|name-id) the meter file is the meter's: name, id or name-id
+
+\fB\--meterfilestimestamp=\fR(never|day|hour|minute|micros) the meter file is suffixed with a timestamp (localtime) with the given resolution.
 
 \fB\--oneshot\fR wait for an update from each meter, then quit
 
@@ -122,7 +124,7 @@ An example wmbusmeters.conf:
 
 .nf
 loglevel=normal
-device=auto
+device=/dev/ttyUSB0:im871a
 logtelegrams=false
 meterfiles=/var/log/wmbusmeters/meter_readings
 meterfilesaction=overwrite
@@ -136,7 +138,7 @@ An example wmbusmeters.d file:
 
 .nf
 name=MyTapWater
-type=multical21
+type=multical21:c1
 id=12345678
 key=001122334455667788AABBCCDDEEFF
 json_floor=4
@@ -145,7 +147,7 @@ json_floor=4
 Written by Fredrik Öhrström.
 
 .SH COPYRIGHT
-Copyright \(co 2017-2019 Fredrik Öhrström.
+Copyright \(co 2017-2020 Fredrik Öhrström.
 .br
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 .br

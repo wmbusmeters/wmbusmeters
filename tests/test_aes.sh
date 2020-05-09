@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 PROG="$1"
 
@@ -20,7 +20,7 @@ cat $TEST/test_input.txt | $PROG --format=json "stdin:rtlwmbus" \
 
 cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
 diff $TEST/test_expected.txt $TEST/test_response.txt
-if [ "$?" == "0" ]
+if [ "$?" = "0" ]
 then
     echo "OK: $TESTNAME"
     TESTRESULT="OK"
