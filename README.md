@@ -133,6 +133,8 @@ As <options> you can use:
     --listento=c1,t1,s1 tell the wmbus dongle to listen to these link modes
                       different dongles support different combinations of modes
     --c1 --t1 --s1 --s1m ... another way to set the link mode for the dongle
+    --listenvs list the env variables available for the meter
+    --listfields list the fields selectable for the meter
     --logfile=<file> use this file instead of stdout
     --logtelegrams log the contents of the telegrams for easy replay
     --meterfiles=<dir> store meter readings in dir
@@ -142,9 +144,9 @@ As <options> you can use:
                           timestamp (localtime) with the given resolution.
     --oneshot wait for an update from each meter, then quit
     --reopenafter=<time> close/reopen dongle connection repeatedly every <time> seconds, eg 60s, 60m, 24h
+    --selectfields=id,timestamp,total_m3 select fields to be printed
     --separator=<c> change field separator to c
     --shell=<cmdline> invokes cmdline with env variables containing the latest reading
-    --shellenvs list the env variables available for the meter
     --useconfig=<dir> load config files from dir/etc
     --usestderr write debug/verbose and logging output to stderr
     --verbose for more information
@@ -279,6 +281,14 @@ default 868.95MHz.
 
 `GreenhouseTapWater;33333333;9999.099;77.712;0.000;11;31;;2018-03-05 12:10.24`
 
+You can select a subset of all available fields:
+
+`wmbusmeters --format=fields --selectfields=id,total_m3 /dev/ttyUSB0:im871a GreenhouseWater multical21 33333333 NOKEY`
+
+`33333333;9999.099`
+
+You can list all available fields for the meter by adding `--listfields` to the command line.
+
 Eaxmple of using the shell command to publish to MQTT:
 
 `wmbusmeters --shell='HOME=/home/you mosquitto_pub -h localhost -t water -m "$METER_JSON"' /dev/ttyUSB0:im871a GreenhouseWater multical21 33333333 NOKEY`
@@ -289,8 +299,8 @@ Eaxmple of using the shell command to inject data into postgresql database:
 
 You can have multiple shell commands and they will be executed in the order you gave them on the commandline.
 Note that to single quotes around the command is necessary to pass the env variable names into wmbusmeters.
-To list the shell env variables available for your meter, add --shellenvs to the commandline:
-`wmbusmeters --shellenvs /dev/ttyUSB1:cul Water iperl 12345678 NOKEY`
+To list the shell env variables available for your meter, add --listenvs to the commandline:
+`wmbusmeters --listenvs /dev/ttyUSB1:cul Water iperl 12345678 NOKEY`
 which outputs:
 ```
 Environment variables provided to shell for meter iperl:

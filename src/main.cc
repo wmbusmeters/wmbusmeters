@@ -302,7 +302,8 @@ LIST_OF_METERS
                                           &ignore2, config->separator,
                                           &ignore3,
                                           &envs,
-                                          &config->jsons);
+                                          &config->jsons,
+                                          &config->selected_fields);
                 printf("Environment variables provided to shell for meter %s:\n", m.type.c_str());
                 for (auto &e : envs) {
                     int p = e.find('=');
@@ -311,8 +312,28 @@ LIST_OF_METERS
                 }
                 exit(0);
             }
-            meters.back()->onUpdate([&](Telegram*t,Meter* meter) { output->print(t,meter,&config->jsons); });
-            meters.back()->onUpdate([&](Telegram*t, Meter* meter) { oneshotCheck(config, manager.get(), t, meter, meters); });
+
+            if (config->list_fields)
+            {
+                printf("Fields produced by meter %s:\n", m.type.c_str());
+                printf("id\n");
+                printf("name\n");
+                printf("timestamp\n");
+                for (auto &f : meters.back()->fields())
+                {
+                    printf("%s\n", f.c_str());
+                }
+                exit(0);
+            }
+
+            meters.back()->onUpdate([&](Telegram*t,Meter* meter)
+                                    {
+                                        output->print(t,meter,&config->jsons,&config->selected_fields);
+                                    });
+            meters.back()->onUpdate([&](Telegram*t, Meter* meter)
+                                    {
+                                        oneshotCheck(config, manager.get(), t, meter, meters);
+                                    });
         }
     }
     else

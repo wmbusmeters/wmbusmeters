@@ -39,6 +39,7 @@ struct Print
 struct MeterCommonImplementation : public virtual Meter
 {
     vector<string> ids();
+    vector<string> fields();
     string name();
     MeterType type();
     vector<int> media();
@@ -94,7 +95,8 @@ protected:
                     string *fields, char separator,
                     string *json,
                     vector<string> *envs,
-                    vector<string> *more_json); // Add this json "key"="value" strings.
+                    vector<string> *more_json, // Add this json "key"="value" strings.
+                    vector<string> *selected_fields); // Only print these fields. Json always everything.
 
     virtual void processContent(Telegram *t) = 0;
 
@@ -121,6 +123,7 @@ protected:
     std::map<std::string,std::pair<int,std::string>> values_;
     vector<Unit> conversions_;
     vector<Print> prints_;
+    vector<string> fields_;
 };
 
 #endif

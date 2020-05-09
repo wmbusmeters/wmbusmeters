@@ -1,3 +1,16 @@
+Version 0.9.31: 2020-05-09
+
+You can add comments in the conf and meter files.
+A comment is a line that starts with #.
+
+When using --format=fields you can now supply
+--selectfields=id,total_m3 to print only the selected fields.
+Run with --listfields to see all the avilable fields from a meter.
+
+Improvements in the izar driver. Thanks Erwan!
+
+Bug fixes in the amd8465 driver. Thanks Henry N.!
+
 Version 0.9.30: 2020-04-22
 
 Erwan added support for building on FreeBSD. Thanks Erwan!

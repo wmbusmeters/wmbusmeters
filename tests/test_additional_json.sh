@@ -29,7 +29,7 @@ if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
 TESTNAME="Test additional shell envs from cmdline"
 TESTRESULT="ERROR"
 
-$PROG --format=json --json_floor=5 --json_house="alfa beta" --shellenvs --listento=c1 simulations/simulation_additional_json.txt \
+$PROG --format=json --json_floor=5 --json_house="alfa beta" --listenvs --listento=c1 simulations/simulation_additional_json.txt \
       Vatten multical21 76348799 "" | grep METER_  > $TEST/test_output.txt
 
 ENVS=$(cat $TEST/test_output.txt | tr '\n' ' ')

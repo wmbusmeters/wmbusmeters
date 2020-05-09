@@ -342,6 +342,18 @@ void handleConversions(Configuration *c, string s)
     }
 }
 
+void handleSelectedFields(Configuration *c, string s)
+{
+    char buf[s.length()+1];
+    strcpy(buf, s.c_str());
+    const char *tok = strtok(buf, ",");
+    while (tok != NULL)
+    {
+        c->selected_fields.push_back(tok);
+        tok = strtok(NULL, ",");
+    }
+}
+
 void handleShell(Configuration *c, string cmdline)
 {
     c->shells.push_back(cmdline);
@@ -388,6 +400,7 @@ unique_ptr<Configuration> loadConfiguration(string root, string device_override,
         else if (p.first == "reopenafter") handleReopenAfter(c, p.second);
         else if (p.first == "separator") handleSeparator(c, p.second);
         else if (p.first == "addconversions") handleConversions(c, p.second);
+        else if (p.first == "selectfields") handleSelectedFields(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);
         else if (startsWith(p.first, "json_"))
         {

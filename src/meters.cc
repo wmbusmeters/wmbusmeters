@@ -101,6 +101,8 @@ void MeterCommonImplementation::addLinkMode(LinkMode lm)
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          function<double(Unit)> getValueFunc, string help, bool field, bool json)
 {
+    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
+    fields_.push_back(vname+"_"+default_unit);
     prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), getValueFunc, NULL, help, field, json });
 }
 
@@ -125,6 +127,11 @@ void MeterCommonImplementation::addManufacturer(int m)
 vector<string> MeterCommonImplementation::ids()
 {
     return ids_;
+}
+
+vector<string> MeterCommonImplementation::fields()
+{
+    return fields_;
 }
 
 string MeterCommonImplementation::name()
@@ -256,7 +263,7 @@ void MeterCommonImplementation::triggerUpdate(Telegram *t)
     t->handled = true;
 }
 
-string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector<Unit> &cs, bool hr)
+string concatAllFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector<Unit> &cs, bool hr)
 {
     string s;
     s = "";
@@ -285,6 +292,71 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
         }
     }
     s += m->datetimeOfUpdateHumanReadable();
+    return s;
+}
+
+string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector<Unit> &cs, bool hr,
+                    vector<string> *selected_fields)
+{
+    if (selected_fields == NULL || selected_fields->size() == 0)
+    {
+        return concatAllFields(m, t, c, prints, cs, hr);
+    }
+    string s;
+    s = "";
+
+    for (string field : *selected_fields)
+    {
+        if (field == "name")
+        {
+            s += m->name() + c;
+            continue;
+        }
+        if (field == "id")
+        {
+            s += t->id + c;
+            continue;
+        }
+        if (field == "timestamp")
+        {
+            s += m->datetimeOfUpdateHumanReadable() + c;
+            continue;
+        }
+
+        for (Print p : prints)
+        {
+            if (p.getValueString)
+            {
+                if (field == p.vname)
+                {
+                    s += p.getValueString() + c;
+                }
+            }
+            else if (p.getValueDouble)
+            {
+                string default_unit = unitToStringLowerCase(p.default_unit);
+                string var = p.vname+"_"+default_unit;
+                if (field == var)
+                {
+                    s += valueToString(p.getValueDouble(p.default_unit), p.default_unit) + c;
+                }
+                else
+                {
+                    Unit u = replaceWithConversionUnit(p.default_unit, cs);
+                    if (u != p.default_unit)
+                    {
+                        string unit = unitToStringLowerCase(u);
+                        string var = p.vname+"_"+unit;
+                        if (field == var)
+                        {
+                            s += valueToString(p.getValueDouble(u), u) + c;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if (s.back() == c) s.pop_back();
     return s;
 }
 
@@ -340,10 +412,11 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                                            string *fields, char separator,
                                            string *json,
                                            vector<string> *envs,
-                                           vector<string> *more_json)
+                                           vector<string> *more_json,
+                                           vector<string> *selected_fields)
 {
-    *human_readable = concatFields(this, t, '\t', prints_, conversions_, true);
-    *fields = concatFields(this, t, separator, prints_, conversions_, false);
+    *human_readable = concatFields(this, t, '\t', prints_, conversions_, true, selected_fields);
+    *fields = concatFields(this, t, separator, prints_, conversions_, false, selected_fields);
 
     string s;
     s += "{";

@@ -217,6 +217,18 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--selectfields=", 15)) {
+            if (strlen(argv[i]) > 15)
+            {
+                string s = string(argv[i]+15);
+                handleSelectedFields(c, s);
+            } else {
+                error("You must supply fields to be selected.\n");
+            }
+            i++;
+            continue;
+        }
+
         if (!strncmp(argv[i], "--separator=", 12)) {
             if (!c->fields) {
                 error("You must specify --format=fields before --separator=X\n");
@@ -355,8 +367,13 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--shellenvs", 11)) {
+        if (!strncmp(argv[i], "--listenvs", 10)) {
             c->list_shell_envs = true;
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--listfields", 12)) {
+            c->list_fields = true;
             i++;
             continue;
         }

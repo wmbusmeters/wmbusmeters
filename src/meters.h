@@ -88,7 +88,10 @@ struct MeterInfo
 
 struct Meter
 {
+    // This meter listens to these ids.
     virtual vector<string> ids() = 0;
+    // This meter can report these fields, like total_m3, temp_c.
+    virtual vector<string> fields() = 0;
     virtual string meterName() = 0;
     virtual string name() = 0;
     virtual MeterType type() = 0;
@@ -106,7 +109,8 @@ struct Meter
                             string *fields, char separator,
                             string *json,
                             vector<string> *envs,
-                            vector<string> *more_json) = 0;
+                            vector<string> *more_json,
+                            vector<string> *selected_fields) = 0;
 
     // The handleTelegram expects an input_frame where the DLL crcs have been removed.
     bool handleTelegram(vector<uchar> input_frame);

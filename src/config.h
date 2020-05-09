@@ -70,6 +70,7 @@ struct Configuration
     char separator { ';' };
     std::vector<std::string> shells;
     bool list_shell_envs {};
+    bool list_fields {};
     bool oneshot {};
     int  exitafter {}; // Seconds to exit.
     int  reopenafter {}; // Re-open the serial device repeatedly. Silly dongle.
@@ -81,6 +82,7 @@ struct Configuration
     bool link_mode_configured {};
     bool no_init {};
     std::vector<Unit> conversions;
+    std::vector<std::string> selected_fields;
     std::vector<MeterInfo> meters;
     std::vector<std::string> jsons; // Additional jsons to always add.
 
@@ -90,6 +92,7 @@ struct Configuration
 unique_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override);
 
 void handleConversions(Configuration *c, string s);
+void handleSelectedFields(Configuration *c, string s);
 
 enum class LinkModeCalculationResultType
 {

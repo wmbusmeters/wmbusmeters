@@ -32,7 +32,7 @@ struct Printer {
             MeterFileNaming naming,
             MeterFileTimestamp timestamp);
 
-    void print(Telegram *t, Meter *meter, vector<string> *more_json);
+    void print(Telegram *t, Meter *meter, vector<string> *more_json, vector<string> *selected_fields);
 
     private:
 
