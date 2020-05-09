@@ -16,7 +16,6 @@
 */
 
 #include<curses.h>
-#include<malloc.h>
 #include<menu.h>
 #include<string.h>
 #include<stdio.h>
