@@ -522,7 +522,7 @@ Detected detectAuto(string devicefile,
                        "im871a",
                        "/dev/im871a");
 
-    if (ac == AccessCheck::OK)
+    if (ac == AccessCheck::AccessOK)
     {
         return { DEVICE_IM871A, devicefile, 0, false };
     }
@@ -533,7 +533,7 @@ Detected detectAuto(string devicefile,
                        "amb8465",
                        "/dev/amb8465");
 
-    if (ac == AccessCheck::OK)
+    if (ac == AccessCheck::AccessOK)
     {
         return { DEVICE_AMB8465, devicefile, false };
     }
@@ -544,7 +544,7 @@ Detected detectAuto(string devicefile,
                        "rfmrx2",
                        "/dev/rfmrx2");
 
-    if (ac == AccessCheck::OK)
+    if (ac == AccessCheck::AccessOK)
     {
         return { DEVICE_RFMRX2, devicefile, false };
     }
@@ -555,7 +555,7 @@ Detected detectAuto(string devicefile,
                        "cul",
                        "/dev/ttyUSB0");
 
-    if (ac == AccessCheck::OK)
+    if (ac == AccessCheck::AccessOK)
     {
         return { DEVICE_CUL, "/dev/ttyUSB0" };
     }
@@ -566,7 +566,7 @@ Detected detectAuto(string devicefile,
                        "rtlsdr",
                        "/dev/rtlsdr");
 
-    if (ac == AccessCheck::OK)
+    if (ac == AccessCheck::AccessOK)
     {
         return { DEVICE_RTLWMBUS, "rtlwmbus" };
     }
@@ -589,19 +589,19 @@ Detected detectImstAmberCul(string devicefile,
 
     // Talk amb8465 with it...
     // assumes this device is configured for 9600 bps, which seems to be the default.
-    if (detectAMB8465(devicefile, handler))
+    if (detectAMB8465(devicefile, handler) == AccessCheck::AccessOK)
     {
         return { DEVICE_AMB8465, devicefile, false };
     }
     // Talk im871a with it...
     // assumes this device is configured for 57600 bps, which seems to be the default.
-    if (detectIM871A(devicefile, handler))
+    if (detectIM871A(devicefile, handler) == AccessCheck::AccessOK)
     {
         return { DEVICE_IM871A, devicefile, false };
     }
     // Talk CUL with it...
     // assumes this device is configured for 38400 bps, which seems to be the default.
-    if (detectCUL(devicefile, handler))
+    if (detectCUL(devicefile, handler) == AccessCheck::AccessOK)
     {
         return { DEVICE_CUL, devicefile, false };
     }
@@ -3476,8 +3476,9 @@ LIST_OF_AFL_AUTH_TYPES
     return AFLAuthenticationType::Reserved1;
 }
 
-AccessCheck findAndDetect(SerialCommunicationManager *manager, string *out_device,
-                          function<bool(string,SerialCommunicationManager*)> check,
+AccessCheck findAndDetect(SerialCommunicationManager *manager,
+                          string *out_device,
+                          function<AccessCheck(string,SerialCommunicationManager*)> check,
                           string dongle_name,
                           string device_root)
 {
@@ -3485,11 +3486,11 @@ AccessCheck findAndDetect(SerialCommunicationManager *manager, string *out_devic
     debug("(%s) exists? %s\n", dongle_name.c_str(), dev.c_str());
     AccessCheck ac = checkIfExistsAndSameGroup(dev);
     *out_device = dev;
-    if (ac == AccessCheck::OK)
+    if (ac == AccessCheck::AccessOK)
     {
         debug("(%s) checking %s\n", dongle_name.c_str(), dev.c_str());
-        if (check(dev, manager)) return AccessCheck::OK;
-        return AccessCheck::NotThere;
+        AccessCheck rc = check(dev, manager);
+        if (rc == AccessCheck::AccessOK) return AccessCheck::AccessOK;
     }
     if (ac == AccessCheck::NotSameGroup)
     {
@@ -3506,10 +3507,11 @@ AccessCheck findAndDetect(SerialCommunicationManager *manager, string *out_devic
         debug("(%s) exists? %s\n", dongle_name.c_str(), dev.c_str());
         AccessCheck ac = checkIfExistsAndSameGroup(dev);
         *out_device = dev;
-        if (ac == AccessCheck::OK)
+        if (ac == AccessCheck::AccessOK)
         {
             debug("(%s) checking %s\n", dongle_name.c_str(), dev.c_str());
-            if (check(dev, manager)) return AccessCheck::OK;
+            AccessCheck rc = check(dev, manager);
+            if (rc == AccessCheck::AccessOK) return AccessCheck::AccessOK;
             // If we get here, the device /dev/im871a_0 could be locked
             // try /dev/im871a_1 etc...
         }
@@ -3521,6 +3523,30 @@ AccessCheck findAndDetect(SerialCommunicationManager *manager, string *out_devic
     }
 
     *out_device = "";
+    // No device found!
+    return AccessCheck::NotThere;
+}
+
+AccessCheck checkAccessAndDetect(SerialCommunicationManager *manager,
+                                 function<AccessCheck(string,SerialCommunicationManager*)> check,
+                                 string dongle_name,
+                                 string device)
+{
+    debug("(%s) exists? %s\n", dongle_name.c_str(), device.c_str());
+    AccessCheck ac = checkIfExistsAndSameGroup(device);
+    if (ac == AccessCheck::AccessOK)
+    {
+        debug("(%s) checking %s\n", dongle_name.c_str(), device.c_str());
+        AccessCheck rc = check(device, manager);
+        if (rc == AccessCheck::AccessOK) return AccessCheck::AccessOK;
+        return AccessCheck::NotThere;
+    }
+    if (ac == AccessCheck::NotSameGroup)
+    {
+        // Device exists, but you do not belong to its group!
+        return AccessCheck::NotSameGroup;
+    }
+
     // No device found!
     return AccessCheck::NotThere;
 }

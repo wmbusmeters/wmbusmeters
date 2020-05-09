@@ -286,9 +286,8 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     return FullFrame;
 }
 
-bool detectRTLSDR(string device, SerialCommunicationManager *manager)
+AccessCheck detectRTLSDR(string device, SerialCommunicationManager *manager)
 {
     // No more advanced test than that the /dev/rtlsdr link exists.
-    AccessCheck ac = checkIfExistsAndSameGroup(device);
-    return ac == AccessCheck::OK;
+    return checkIfExistsAndSameGroup(device);
 }

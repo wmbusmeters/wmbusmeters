@@ -333,12 +333,12 @@ bool WMBusWMB13U::getConfigurationn()
     return true;
 }
 
-bool detectWMB13U(string device, SerialCommunicationManager *manager)
+AccessCheck detectWMB13U(string device, SerialCommunicationManager *manager)
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200);
-    bool ok = serial->open(false);
-    if (!ok) return false;
+    AccessCheck rc = serial->open(false);
+    if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
     verbose("(wmb13u) are you there?\n");
 
@@ -352,7 +352,7 @@ bool detectWMB13U(string device, SerialCommunicationManager *manager)
     usleep(1000*100);
     serial->receive(&data);
 
-    if (!startsWith("OK", data)) return false;
+    if (!startsWith("OK", data)) return AccessCheck::NotThere;
 
     // send AT to enter configuration mode.
     vector<uchar> at(2);
@@ -363,10 +363,8 @@ bool detectWMB13U(string device, SerialCommunicationManager *manager)
     usleep(1000*100);
     serial->receive(&data);
 
-    if (!startsWith("OK", data)) return false;
-
-    return true;
+    if (!startsWith("OK", data)) return AccessCheck::NotThere;
 
     serial->close();
-    return ok;
+    return AccessCheck::AccessOK;
 }

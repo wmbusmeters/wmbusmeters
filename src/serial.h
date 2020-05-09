@@ -36,7 +36,7 @@ struct SerialCommunicationManager;
 */
 struct SerialDevice
 {
-    virtual bool open(bool fail_if_not_ok) = 0;
+    virtual AccessCheck open(bool fail_if_not_ok) = 0;
     virtual void close() = 0;
     // Send will return true only if sending on a tty.
     virtual bool send(std::vector<uchar> &data) = 0;
@@ -73,6 +73,9 @@ struct SerialCommunicationManager
     virtual void waitForStop() = 0;
     virtual bool isRunning() = 0;
     virtual void setReopenAfter(int seconds) = 0;
+
+    // List all real serial devices.
+    virtual std::vector<std::string> listSerialDevices() = 0;
     virtual ~SerialCommunicationManager();
 };
 

@@ -1032,7 +1032,7 @@ AccessCheck checkIfExistsAndSameGroup(string device)
 
     for (int i=0; i<ngroups; ++i) {
         if (groups[i] == g->gr_gid) {
-            return AccessCheck::OK;
+            return AccessCheck::AccessOK;
         }
     }
 

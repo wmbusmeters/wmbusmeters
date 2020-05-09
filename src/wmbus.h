@@ -485,9 +485,14 @@ string measurementTypeName(MeasurementType mt);
 
 AccessCheck findAndDetect(SerialCommunicationManager *manager,
                           string *out_device,
-                          function<bool(string,SerialCommunicationManager*)> check,
+                          function<AccessCheck(string,SerialCommunicationManager*)> check,
                           string dongle_name,
                           string device_root);
+
+AccessCheck checkAccessAndDetect(SerialCommunicationManager *manager,
+                                 function<AccessCheck(string,SerialCommunicationManager*)> check,
+                                 string dongle_name,
+                                 string device);
 
 enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
 
@@ -497,11 +502,11 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
                             int *payload_len_out,
                             int *payload_offset);
 
-bool detectIM871A(string device, SerialCommunicationManager *handler);
-bool detectAMB8465(string device, SerialCommunicationManager *handler);
-bool detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
-bool detectRTLSDR(string device, SerialCommunicationManager *handler);
-bool detectCUL(string device, SerialCommunicationManager *handler);
-bool detectWMB13U(string device, SerialCommunicationManager *handler);
+AccessCheck detectIM871A(string device, SerialCommunicationManager *handler);
+AccessCheck detectAMB8465(string device, SerialCommunicationManager *handler);
+AccessCheck detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
+AccessCheck detectRTLSDR(string device, SerialCommunicationManager *handler);
+AccessCheck detectCUL(string device, SerialCommunicationManager *handler);
+AccessCheck detectWMB13U(string device, SerialCommunicationManager *handler);
 
 #endif

@@ -222,14 +222,14 @@ void WMBusD1TC::processSerialData()
     }
 }
 
-bool detectD1TC(string device, int baud, SerialCommunicationManager *manager)
+AccessCheck detectD1TC(string device, int baud, SerialCommunicationManager *manager)
 {
     // Since we do not know how to talk to the other end, it might not
     // even respond. The only thing we can do is to try to open the serial device.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), baud);
-    bool ok = serial->open(false);
-    if (!ok) return false;
+    AccessCheck rc = serial->open(false);
+    if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
     serial->close();
-    return true;
+    return AccessCheck::AccessOK;
 }

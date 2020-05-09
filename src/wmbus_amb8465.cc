@@ -458,12 +458,12 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
     }
 }
 
-bool detectAMB8465(string device, SerialCommunicationManager *manager)
+AccessCheck detectAMB8465(string device, SerialCommunicationManager *manager)
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600);
-    bool ok = serial->open(false);
-    if (!ok) return false;
+    AccessCheck rc = serial->open(false);
+    if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
     vector<uchar> data;
     // First clear out any data in the queue.
@@ -503,7 +503,7 @@ bool detectAMB8465(string device, SerialCommunicationManager *manager)
         data[1] != (0x80 | msg[1]) ||
         data[2] != 0x04 ||
         data[7] != xorChecksum(data, 7)) {
-        return false;
+        return AccessCheck::NotThere;
     }
-    return true;
+    return AccessCheck::AccessOK;
 }

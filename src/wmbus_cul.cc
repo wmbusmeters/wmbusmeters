@@ -351,12 +351,12 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     }
 }
 
-bool detectCUL(string device, SerialCommunicationManager *manager)
+AccessCheck detectCUL(string device, SerialCommunicationManager *manager)
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400);
-    bool ok = serial->open(false);
-    if (!ok) return false;
+    AccessCheck rc = serial->open(false);
+    if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
     vector<uchar> data;
     // send '-'+CRLF -> should be an unsupported command for CUL
@@ -373,7 +373,7 @@ bool detectCUL(string device, SerialCommunicationManager *manager)
     if (data[0] != '?') {
        // no CUL device detected
        serial->close();
-       return false;
+       return AccessCheck::NotThere;
     }
 
     data.clear();
@@ -395,5 +395,5 @@ bool detectCUL(string device, SerialCommunicationManager *manager)
     // TODO: check version string somehow
 
     serial->close();
-    return true;
+    return AccessCheck::AccessOK;
 }

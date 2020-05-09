@@ -78,7 +78,7 @@ private:
     static FrameStatus checkIM871AFrame(vector<uchar> &data,
                                         size_t *frame_length, int *endpoint_out, int *msgid_out,
                                         int *payload_len_out, int *payload_offset);
-    friend bool detectIM871A(string device, SerialCommunicationManager *manager);
+    friend AccessCheck detectIM871A(string device, SerialCommunicationManager *manager);
     void handleDevMgmt(int msgid, vector<uchar> &payload);
     void handleRadioLink(int msgid, vector<uchar> &payload);
     void handleRadioLinkTest(int msgid, vector<uchar> &payload);
@@ -643,12 +643,12 @@ void WMBusIM871A::handleHWTest(int msgid, vector<uchar> &payload)
     }
 }
 
-bool detectIM871A(string device, SerialCommunicationManager *manager)
+AccessCheck detectIM871A(string device, SerialCommunicationManager *manager)
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 57600);
-    bool ok = serial->open(false);
-    if (!ok) return false;
+    AccessCheck rc = serial->open(false);
+    if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
     vector<uchar> data;
     // First clear out any data in the queue.
@@ -680,7 +680,7 @@ bool detectIM871A(string device, SerialCommunicationManager *manager)
         endpoint != 1 ||
         msgid != 2)
     {
-        return false;
+        return AccessCheck::NotThere;
     }
-    return true;
+    return AccessCheck::AccessOK;
 }

@@ -20,6 +20,7 @@
 #include"shell.h"
 
 #include <algorithm>
+#include <dirent.h>
 #include <fcntl.h>
 #include <functional>
 #include <memory.h>
@@ -33,6 +34,10 @@
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
+
+#if defined(__linux__)
+#include <linux/serial.h>
+#endif
 
 static int openSerialTTY(const char *tty, int baud_rate);
 
@@ -65,6 +70,8 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     void closeAll();
 
     time_t reopenAfter() { return reopen_after_seconds_; }
+
+    vector<string> listSerialDevices();
 
 private:
 
@@ -189,7 +196,7 @@ struct SerialDeviceTTY : public SerialDeviceImp
     SerialDeviceTTY(string device, int baud_rate, SerialCommunicationManagerImp *manager);
     ~SerialDeviceTTY();
 
-    bool open(bool fail_if_not_ok);
+    AccessCheck open(bool fail_if_not_ok);
     void close();
     void checkIfShouldReopen();
     bool send(vector<uchar> &data);
@@ -221,21 +228,39 @@ SerialDeviceTTY::~SerialDeviceTTY()
     close();
 }
 
-bool SerialDeviceTTY::open(bool fail_if_not_ok)
+AccessCheck SerialDeviceTTY::open(bool fail_if_not_ok)
 {
     bool ok = checkCharacterDeviceExists(device_.c_str(), fail_if_not_ok);
-    if (!ok) return false;
+    if (!ok) return AccessCheck::NotThere;
     fd_ = openSerialTTY(device_.c_str(), baud_rate_);
-    if (fd_ == -1) {
-        if (fail_if_not_ok) {
-            error("Could not open %s with %d baud N81\n", device_.c_str(), baud_rate_);
-        } else {
-            return false;
+    if (fd_ < 0)
+    {
+        if (fail_if_not_ok)
+        {
+            if (fd_ == -1)
+            {
+                error("Could not open %s with %d baud N81\n", device_.c_str(), baud_rate_);
+            }
+            else if (fd_ == -2)
+            {
+                error("Device %s is already in use and locked.\n", device_.c_str());
+            }
+        }
+        else
+        {
+            if (fd_ == -1)
+            {
+                return AccessCheck::NotThere;
+            }
+            else if (fd_ == -2)
+            {
+                return AccessCheck::NotSameGroup;
+            }
         }
     }
     manager_->opened(this);
     verbose("(serialtty) opened %s\n", device_.c_str());
-    return true;
+    return AccessCheck::AccessOK;
 }
 
 void SerialDeviceTTY::close()
@@ -324,7 +349,7 @@ struct SerialDeviceCommand : public SerialDeviceImp
                         function<void()> on_exit);
     ~SerialDeviceCommand();
 
-    bool open(bool fail_if_not_ok);
+    AccessCheck open(bool fail_if_not_ok);
     void close();
     void checkIfShouldReopen() {}
     bool send(vector<uchar> &data);
@@ -364,15 +389,15 @@ SerialDeviceCommand::~SerialDeviceCommand()
     close();
 }
 
-bool SerialDeviceCommand::open(bool fail_if_not_ok)
+AccessCheck SerialDeviceCommand::open(bool fail_if_not_ok)
 {
     expectAscii();
     bool ok = invokeBackgroundShell("/bin/sh", args_, envs_, &fd_, &pid_);
-    if (!ok) return false;
+    if (!ok) return AccessCheck::NotThere;
     manager_->opened(this);
     setIsStdin();
     verbose("(serialcmd) opened %s\n", command_.c_str());
-    return true;
+    return AccessCheck::AccessOK;
 }
 
 void SerialDeviceCommand::close()
@@ -434,7 +459,7 @@ struct SerialDeviceFile : public SerialDeviceImp
     SerialDeviceFile(string file, SerialCommunicationManagerImp *manager);
     ~SerialDeviceFile();
 
-    bool open(bool fail_if_not_ok);
+    AccessCheck open(bool fail_if_not_ok);
     void close();
     void checkIfShouldReopen();
     bool send(vector<uchar> &data);
@@ -459,7 +484,7 @@ SerialDeviceFile::~SerialDeviceFile()
     close();
 }
 
-bool SerialDeviceFile::open(bool fail_if_not_ok)
+AccessCheck SerialDeviceFile::open(bool fail_if_not_ok)
 {
     if (file_ == "stdin")
     {
@@ -473,7 +498,7 @@ bool SerialDeviceFile::open(bool fail_if_not_ok)
     else
     {
         bool ok = checkFileExists(file_.c_str());
-        if (!ok) return false;
+        if (!ok) return AccessCheck::NotThere;
         fd_ = ::open(file_.c_str(), O_RDONLY | O_NONBLOCK);
         if (fd_ == -1)
         {
@@ -483,14 +508,14 @@ bool SerialDeviceFile::open(bool fail_if_not_ok)
             }
             else
             {
-                return false;
+                return AccessCheck::NotThere;
             }
         }
         setIsFile();
         verbose("(serialfile) reading from file %s\n", file_.c_str());
     }
     manager_->opened(this);
-    return true;
+    return AccessCheck::AccessOK;
 }
 
 void SerialDeviceFile::close()
@@ -521,7 +546,7 @@ struct SerialDeviceSimulator : public SerialDeviceImp
     };
     ~SerialDeviceSimulator() { close(); };
 
-    bool open(bool fail_if_not_ok) { return true; };
+    AccessCheck open(bool fail_if_not_ok) { return AccessCheck::AccessOK; };
     void close() { manager_->closed(this); };
     void checkIfShouldReopen() { }
     bool send(vector<uchar> &data) { return true; };
@@ -846,7 +871,7 @@ static int openSerialTTY(const char *tty, int baud_rate)
     if (rc == -1)
     {
         // It is already locked by another wmbusmeter process.
-        warning("Device %s is already in use and locked.\n", tty);
+        fd = -2;
         goto err;
     }
 
@@ -890,10 +915,124 @@ static int openSerialTTY(const char *tty, int baud_rate)
     return fd;
 
 err:
-    if (fd != -1) close(fd);
-    return -1;
+    if (fd > 0)
+    {
+        close(fd);
+        fd = -1;
+    }
+    return fd;
 }
 
 SerialCommunicationManager::~SerialCommunicationManager()
 {
 }
+
+#if defined(__APPLE__)
+vector<string> SerialCommunicationManagerImp::listSerialDevices()
+{
+    vector<string> list;
+    list.push_back("Please add code here!");
+    return list;
+}
+#endif
+
+#if defined(__linux__)
+
+static string lookup_device_driver(string tty)
+{
+    struct stat st;
+    tty += "/device";
+    int rc = lstat(tty.c_str(), &st);
+    if (rc==0 && S_ISLNK(st.st_mode))
+    {
+        tty += "/driver";
+        char buffer[1024];
+        memset(buffer, 0, sizeof(buffer));
+        int rc = readlink(tty.c_str(), buffer, sizeof(buffer));
+        if (rc > 0)
+        {
+            return basename(buffer);
+        }
+    }
+    return "";
+}
+
+static void check_if_serial(string tty, vector<string> *found_serials, vector<string> *found_8250s)
+{
+    string driver = lookup_device_driver(tty);
+
+    if (driver.size() > 0)
+    {
+        string dev = string("/dev/") + basename(tty.c_str());
+
+        if (driver == "serial8250")
+        {
+            found_8250s->push_back(dev);
+        }
+        else
+        {
+            found_serials->push_back(dev);
+        }
+    }
+}
+
+static void check_serial8250s(vector<string> *found_serials, vector<string> &found_8250s)
+{
+    struct serial_struct serinfo;
+
+    for (string dev : found_8250s)
+    {
+        int fd = open(dev.c_str(), O_RDWR | O_NONBLOCK | O_NOCTTY);
+
+        if (fd >= 0)
+        {
+            int rc = ioctl(fd, TIOCGSERIAL, &serinfo);
+            if (rc == 0)
+            {
+                if (serinfo.type != PORT_UNKNOWN)
+                {
+                    found_serials->push_back(dev);
+                }
+                close(fd);
+            }
+        }
+    }
+}
+
+int sorty(const struct dirent **a, const struct dirent **b)
+{
+    return strcmp((*a)->d_name, (*b)->d_name);
+}
+
+vector<string> SerialCommunicationManagerImp::listSerialDevices()
+{
+    struct dirent **entries;
+    vector<string> found_serials;
+    vector<string> found_8250s;
+    string sysdir = "/sys/class/tty/";
+
+    int n = scandir(sysdir.c_str(), &entries, NULL, sorty);
+    if (n < 0)
+    {
+        perror("scandir");
+        return found_serials;
+    }
+
+    for (int i=0; i<n; ++i)
+    {
+        string name = entries[i]->d_name;
+
+        if (name ==  ".." || name == ".") continue;
+
+        string tty = sysdir+name;
+        check_if_serial(tty, &found_serials, &found_8250s);
+        free(entries[i]);
+    }
+    free(entries);
+
+    check_serial8250s(&found_serials, found_8250s);
+
+    return found_serials;
+}
+
+#endif
