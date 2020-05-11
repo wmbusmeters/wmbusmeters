@@ -23,12 +23,13 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <functional>
+#include <libgen.h>
 #include <memory.h>
 #include <pthread.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
 #include <sys/select.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
@@ -963,7 +964,11 @@ static void check_if_serial(string tty, vector<string> *found_serials, vector<st
 
     if (driver.size() > 0)
     {
-        string dev = string("/dev/") + basename(tty.c_str());
+        char buffer[1024];
+        memset(buffer, 0, sizeof(buffer));
+        strncpy(buffer, tty.c_str(), sizeof(buffer)-1);
+
+        string dev = string("/dev/") + buffer;
 
         if (driver == "serial8250")
         {

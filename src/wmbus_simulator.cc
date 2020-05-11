@@ -23,7 +23,7 @@
 #include<fcntl.h>
 #include<pthread.h>
 #include<semaphore.h>
-#include<sys/errno.h>
+#include<errno.h>
 #include<sys/types.h>
 #include<unistd.h>
 

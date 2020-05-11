@@ -27,7 +27,7 @@
 #include<stddef.h>
 #include<string.h>
 #include<string>
-#include<sys/errno.h>
+#include<errno.h>
 #include<sys/stat.h>
 #include<sys/time.h>
 #include<syslog.h>
