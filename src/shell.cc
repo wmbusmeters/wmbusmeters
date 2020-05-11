@@ -23,12 +23,7 @@
 #include <memory.h>
 #include <pthread.h>
 #include <sys/types.h>
-#if defined(__APPLE__) && defined(__MACH__) or defined(__FreeBSD__)
 #include <sys/wait.h>
-#else
-#include <wait.h>
-#endif
-
 #include <unistd.h>
 
 void invokeShell(string program, vector<string> args, vector<string> envs)

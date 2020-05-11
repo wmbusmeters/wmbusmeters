@@ -9,7 +9,7 @@ RUN make release && chmod 755 build/rtl_wmbus
 
 FROM multiarch/alpine:amd64-latest-stable as scratch
 ENV QEMU_EXECVE=1
-RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb rtl-sdr ncurses
+RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb rtl-sdr
 WORKDIR /wmbusmeters
 COPY --from=build /wmbusmeters/build/wmbusmeters /wmbusmeters/wmbusmeters
 COPY --from=build /rtl-wmbus/build/rtl_wmbus /usr/bin/rtl_wmbus
