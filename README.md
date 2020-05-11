@@ -13,6 +13,9 @@ The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 | ------------ |:-------------:|
 |GNU/Linux & MacOSX| [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master)](https://travis-ci.org/weetmuts/wmbusmeters) |
 
+|arm versions|[![CircleCI>](https://circleci.com/gh/weetmuts/wmbusmeters.svg?style=svg)](https://circleci.com/gh/weetmuts/workflows/wmbusmeters)|
+
+
 | Static Scan        | Status           |
 | ------------- |:-------------:|
 |Linux G++| [![Build Status](https://scan.coverity.com/projects/14774/badge.svg)](https://scan.coverity.com/projects/weetmuts-wmbusmeters) |
