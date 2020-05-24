@@ -364,7 +364,7 @@ void WMBusAmber::processSerialData()
         timersub(&timestamp, &timestamp_last_rx_, &chunk_time);
 
         if (chunk_time.tv_sec >= 2) {
-            debug("(amb8465) rx long delay, clean start\n");
+            verbose("(amb8465) rx long delay (%lds), drop incomplete telegram\n", chunk_time.tv_sec);
             read_buffer_.clear();
         }
         else
