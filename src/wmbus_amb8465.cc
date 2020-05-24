@@ -357,20 +357,20 @@ void WMBusAmber::processSerialData()
 
     struct timeval timestamp;
 
-    // Check long delay beetween rx shunks
+    // Check long delay beetween rx chunks
     gettimeofday(&timestamp, NULL);
     if (read_buffer_.size() > 0 && timerisset(&timestamp_last_rx_)) {
-        struct timeval shunk_time;
-        timersub(&timestamp, &timestamp_last_rx_, &shunk_time);
+        struct timeval chunk_time;
+        timersub(&timestamp, &timestamp_last_rx_, &chunk_time);
 
-        if (shunk_time.tv_sec >= 2) {
+        if (chunk_time.tv_sec >= 2) {
             debug("(amb8465) rx long delay, clean start\n");
             read_buffer_.clear();
         }
         else
         {
-            unsigned long shunk_time_ms = 1000 * shunk_time.tv_sec + shunk_time.tv_usec / 1000;
-            debug("(amb8465) shunk time %ld msec\n", shunk_time_ms);
+            unsigned long chunk_time_ms = 1000 * chunk_time.tv_sec + chunk_time.tv_usec / 1000;
+            debug("(amb8465) chunk time %ld msec\n", chunk_time_ms);
         }
     }
 
@@ -388,7 +388,7 @@ void WMBusAmber::processSerialData()
         if (status == PartialFrame)
         {
             if (read_buffer_.size() > 0) {
-                // Save timestamp of this shunk
+                // Save timestamp of this chunk
                 timestamp_last_rx_ = timestamp;
             }
             else
