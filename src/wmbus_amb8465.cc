@@ -302,10 +302,11 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
                                           int *payload_offset,
                                           uchar *rssi)
 {
-    if (data.size() == 0) return PartialFrame;
+    if (data.size() < 2) return PartialFrame;
     debugPayload("(amb8465) checkAMB8465Frame", data);
     int payload_len = 0;
-    if (data[0] == 0xff) {
+    if (data[0] == 0xff)
+    {
         if (data.size() < 3)
         {
             debug("(amb8465) not enough bytes yet for command.\n");
@@ -335,7 +336,8 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
             verbose("(amb8465) checksum error %02x (should %02x)\n", data[*frame_length-1], cs);
         }
 
-      if (rssi_len) {
+      if (rssi_len)
+      {
             *rssi = data[*frame_length-2];
             signed int dbm = (*rssi >= 128) ? (*rssi - 256) / 2 - 74 : *rssi / 2 - 74;
             verbose("(amb8465) rssi %d (%d dBm)\n", *rssi, dbm);
@@ -347,6 +349,12 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
     // There might be a different mode where the data is wrapped in 0xff. But for the moment
     // this is what I see.
     payload_len = data[0];
+    if (payload_len < 10 || data[1] != 0x44)
+    {
+        // The data[0] must be at least 10 bytes. C MM AAAA V T Ci
+        // And C must be 0x44.
+        return ErrorInFrame;
+    }
     *msgid_out = 0; // 0 is used to signal
     *payload_len_out = payload_len;
     *payload_offset = 1;
@@ -380,6 +388,7 @@ void WMBusAmber::processSerialData()
 
     // Check long delay beetween rx chunks
     gettimeofday(&timestamp, NULL);
+
     if (read_buffer_.size() > 0 && timerisset(&timestamp_last_rx_)) {
         struct timeval chunk_time;
         timersub(&timestamp, &timestamp_last_rx_, &chunk_time);

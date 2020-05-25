@@ -77,13 +77,16 @@ void probeFor(string type, AccessCheck(*func)(string,SerialCommunicationManager*
 void printAt(WINDOW *win, int y, int x, const char *str, chtype color);
 void printMiddle(WINDOW *win, int y, int width, const char *str, chtype color);
 
-int screen_width, screen_height;
-
 int selectFromMenu(const char *title, const char *menu[]);
-void displayInformation(const char *title, const char *limes[]);
+void displayInformation(string title, vector<string> entries, int px=-1, int py=-1);
+
+int screen_width, screen_height;
+unique_ptr<SerialCommunicationManager> handler;
 
 int main()
 {
+    handler = createSerialCommunicationManager(0, 0, false);
+
 	initscr();
     getmaxyx(stdscr, screen_height, screen_width);
 	start_color();
@@ -181,6 +184,12 @@ int maxWidth(vector<string> entries)
     return max;
 }
 
+void updateStatus()
+{
+    vector<string> devices = handler->listSerialDevices();
+    displayInformation("Serial ports", devices, 1, 1);
+}
+
 int selectFromMenu(const char *title, const char *entries[])
 {
     int selected  = -1;
@@ -238,14 +247,20 @@ int selectFromMenu(const char *title, const char *entries[])
 	post_menu(menu);
 	wrefresh(frame_window);
 
+    wtimeout(frame_window, 1000);
+
     bool running = true;
     do
     {
+        fprintf(stderr, "GURKA");
         c = wgetch(frame_window);
         ITEM *cur = current_item(menu);
         selected = item_index(cur);
         switch(c)
         {
+        case ERR:
+            updateStatus();
+            break;
         case KEY_DOWN:
             if (selected < n_choices-2)
             {
@@ -286,7 +301,7 @@ int selectFromMenu(const char *title, const char *entries[])
     return selected;
 }
 
-void displayInformation(string title, vector<string> entries)
+void displayInformation(string title, vector<string> entries, int px, int py)
 {
     WINDOW *frame_window;
 
@@ -300,6 +315,14 @@ void displayInformation(string title, vector<string> entries)
     }
     int x = screen_width/2-w/2;
     int y = screen_height/2-h/2;
+    if (px != -1)
+    {
+        x = px;
+    }
+    if (py != -1)
+    {
+        y = py;
+    }
     frame_window = newwin(h, w, y, x);
 
     keypad(frame_window, TRUE);
@@ -359,8 +382,6 @@ void detectWMBUSReceivers()
 
 void probeFor(string type, AccessCheck (*check)(string,SerialCommunicationManager*))
 {
-    auto handler = createSerialCommunicationManager(0,0,false);
-
     vector<string> devices = handler->listSerialDevices();
     vector<string> entries;
     for (string& device : devices)
