@@ -25,6 +25,8 @@
 #include<semaphore.h>
 #include<errno.h>
 #include<unistd.h>
+#include<sys/time.h>
+#include<time.h>
 
 using namespace std;
 
@@ -79,6 +81,7 @@ private:
     LinkModeSet link_modes_;
     vector<uchar> received_payload_;
     bool rssi_expected_;
+    struct timeval timestamp_last_rx_;
 
     void waitForResponse();
     FrameStatus checkAMB8465Frame(vector<uchar> &data,
@@ -110,6 +113,7 @@ WMBusAmber::WMBusAmber(unique_ptr<SerialDevice> serial, SerialCommunicationManag
     manager_->listenTo(serial_.get(),call(this,processSerialData));
     serial_->open(true);
     rssi_expected_ = true;
+    timerclear(&timestamp_last_rx_);
 }
 
 uchar xorChecksum(vector<uchar> msg, int len)
@@ -372,6 +376,25 @@ void WMBusAmber::processSerialData()
     // Receive and accumulated serial data until a full frame has been received.
     serial_->receive(&data);
 
+    struct timeval timestamp;
+
+    // Check long delay beetween rx chunks
+    gettimeofday(&timestamp, NULL);
+    if (read_buffer_.size() > 0 && timerisset(&timestamp_last_rx_)) {
+        struct timeval chunk_time;
+        timersub(&timestamp, &timestamp_last_rx_, &chunk_time);
+
+        if (chunk_time.tv_sec >= 2) {
+            verbose("(amb8465) rx long delay (%lds), drop incomplete telegram\n", chunk_time.tv_sec);
+            read_buffer_.clear();
+        }
+        else
+        {
+            unsigned long chunk_time_ms = 1000 * chunk_time.tv_sec + chunk_time.tv_usec / 1000;
+            debug("(amb8465) chunk time %ld msec\n", chunk_time_ms);
+        }
+    }
+
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
     size_t frame_length;
@@ -385,6 +408,15 @@ void WMBusAmber::processSerialData()
 
         if (status == PartialFrame)
         {
+            if (read_buffer_.size() > 0) {
+                // Save timestamp of this chunk
+                timestamp_last_rx_ = timestamp;
+            }
+            else
+            {
+                // Clean and empty
+                timerclear(&timestamp_last_rx_);
+            }
             break;
         }
         if (status == ErrorInFrame)
