@@ -336,8 +336,8 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
             verbose("(amb8465) checksum error %02x (should %02x)\n", data[*frame_length-1], cs);
         }
 
-      if (rssi_len)
-      {
+        if (rssi_len)
+        {
             *rssi = data[*frame_length-2];
             signed int dbm = (*rssi >= 128) ? (*rssi - 256) / 2 - 74 : *rssi / 2 - 74;
             verbose("(amb8465) rssi %d (%d dBm)\n", *rssi, dbm);
