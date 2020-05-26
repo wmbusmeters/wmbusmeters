@@ -155,9 +155,9 @@ double MeterIzar::lastMonthTotalWaterConsumption(Unit u)
 
 string MeterIzar::setH0Date()
 {
-    string date;
-    strprintf(date, "%04d-%02d-%02d", h0_year, h0_month, h0_day);
-    return date;
+    char result[sizeof "65536-255-255" + 1];
+    snprintf(result, sizeof(result), "%04d-%02d-%02d", h0_year, h0_month, h0_day);
+    return result;
 }
 
 string MeterIzar::currentAlarmsText()
