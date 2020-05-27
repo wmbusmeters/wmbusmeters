@@ -348,23 +348,37 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
     // If it is not a 0xff we assume it is a message beginning with a length.
     // There might be a different mode where the data is wrapped in 0xff. But for the moment
     // this is what I see.
-    payload_len = data[0];
-    if (payload_len < 10 || data[1] != 0x44)
+    size_t offset = 0;
+
+    // The data[0] must be at least 10 bytes. C MM AAAA V T Ci
+    // And C must be 0x44.
+    while ((payload_len = data[offset]) < 10 || data[offset+1] != 0x44)
     {
-        // The data[0] must be at least 10 bytes. C MM AAAA V T Ci
-        // And C must be 0x44.
-        return ErrorInFrame;
+        offset++;
+        if (offset + 2 >= data.size()) {
+            // No sensible telegram in the buffer. Flush it!
+            // But not the last char, because the next char could be a 0x44
+            verbose("(amb8465) no sensible telegram found, clearing buffer.\n");
+            uchar last = data[data.size()-1];
+            data.clear();
+            data.insert(data.end(), &last, &last+1); // Re-insert the last byte.
+            return PartialFrame;
+        }
     }
     *msgid_out = 0; // 0 is used to signal
     *payload_len_out = payload_len;
-    *payload_offset = 1;
-    *frame_length = payload_len+1;
+    *payload_offset = offset+1;
+    *frame_length = payload_len+offset+1;
     if (data.size() < *frame_length)
     {
         debug("(amb8465) not enough bytes yet, partial frame %d %d.\n", data.size(), *frame_length);
         return PartialFrame;
     }
 
+    if (offset > 0)
+    {
+        verbose("(amb8465) out of sync, skipping %d bytes.\n", offset);
+    }
     debug("(amb8465) received full frame\n");
 
     if (rssi_expected_)
