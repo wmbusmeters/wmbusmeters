@@ -122,11 +122,11 @@ METER_OBJS:=\
 	$(BUILD)/meter_fhkvdataiii.o \
 	$(BUILD)/meter_hydrus.o \
 	$(BUILD)/meter_hydrodigit.o \
-    $(BUILD)/meter_iperl.o \
+	$(BUILD)/meter_iperl.o \
 	$(BUILD)/meter_izar.o \
-    $(BUILD)/meter_lansenth.o \
+	$(BUILD)/meter_lansenth.o \
 	$(BUILD)/meter_mkradio3.o \
-    $(BUILD)/meter_multical21.o \
+	$(BUILD)/meter_multical21.o \
 	$(BUILD)/meter_multical302.o \
 	$(BUILD)/meter_omnipower.o \
 	$(BUILD)/meter_q400.o \
@@ -189,8 +189,8 @@ $(BUILD)/wmbusmeters-admin: $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/short_manual
 $(BUILD)/short_manual.h: README.md
 	echo 'R"MANUAL(' > $(BUILD)/short_manual.h
 	sed -n '/wmbusmeters version/,/```/p' README.md \
-	    | grep -v 'wmbusmeters version' \
-        | grep -v '```' >> $(BUILD)/short_manual.h
+	| grep -v 'wmbusmeters version' \
+	| grep -v '```' >> $(BUILD)/short_manual.h
 	echo ')MANUAL";' >> $(BUILD)/short_manual.h
 
 $(BUILD)/testinternals: $(METER_OBJS) $(BUILD)/testinternals.o
