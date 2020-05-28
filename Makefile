@@ -178,6 +178,9 @@ wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb:
 	@echo Built package $@
 	@echo But the deb package is not yet working correctly! Work in progress.
 
+snapcraft:
+	snapcraft --config snap/snapcraft.yaml
+
 $(BUILD)/main.o: $(BUILD)/short_manual.h $(BUILD)/version.h
 
 $(BUILD)/wmbusmeters: $(METER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h

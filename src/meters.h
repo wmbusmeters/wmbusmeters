@@ -34,7 +34,7 @@
     X(eurisii,    T1_bit, HeatCostAllocation, EURISII, EurisII)   \
     X(ehzp,       T1_bit, Electricity, EHZP,        EHZP)         \
     X(esyswm,     T1_bit, Electricity, ESYSWM,      ESYSWM)       \
-    X(flowiq3100, C1_bit, Water,       FLOWIQ3100,  Multical21)   \
+    X(flowiq3100, C1_bit, Water,       FLOWIQ3100,  FlowIQ3100)   \
     X(fhkvdataiii,   T1_bit, HeatCostAllocation,        FHKVDATAIII,    FHKVDataIII)     \
     X(hydrus,     T1_bit, Water,       HYDRUS,      Hydrus)       \
     X(hydrodigit, T1_bit, Water,       HYDRODIGIT,  Hydrodigit)   \
