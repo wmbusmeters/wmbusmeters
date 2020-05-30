@@ -27,7 +27,8 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       Elen1       ebzwmbe     22992299 NOKEY
       Elen2       esyswm      77997799 NOKEY
       Elen3       ehzp        55995599 NOKEY
-      Vatten      apator08    004444dd NOKEY"
+      Vatten      apator08    004444dd NOKEY
+      Wasser      rfmtx1      74737271 NOKEY"
 
 cat simulations/simulation_t1.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_t1.txt $METERS  > $TEST/test_output.txt

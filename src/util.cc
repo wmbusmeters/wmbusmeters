@@ -134,6 +134,23 @@ int char2int(char input)
     return -1;
 }
 
+// The byte 0x13 i converted into the integer value 13.
+uchar bcd2bin(uchar c)
+{
+    return (c&15)+(c>>4)*10;
+}
+
+// The byte 0x13 is converted into the integer value 31.
+uchar revbcd2bin(uchar c)
+{
+    return (c&15)*10+(c>>4);
+}
+
+uchar reverse(uchar c)
+{
+    return ((c&15)<<4) | (c>>4);
+}
+
 bool hex2bin(const char* src, vector<uchar> *target)
 {
     if (!src) return false;

@@ -44,7 +44,7 @@ unique_ptr<WaterMeter> createRfmTX1(WMBus *bus, MeterInfo &mi)
 }
 
 MeterRfmTX1::MeterRfmTX1(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::HYDRODIGIT, MANUFACTURER_BMT)
+    MeterCommonImplementation(bus, mi, MeterType::RFMTX1, MANUFACTURER_BMT)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -63,10 +63,50 @@ MeterRfmTX1::MeterRfmTX1(WMBus *bus, MeterInfo &mi) :
              true, true);
 }
 
+uchar decode_vectors_[16][6] = { { 117, 150, 122, 16, 26, 10 }, { 91, 127, 112, 19, 34, 19 }, { 179, 24, 185, 11, 142, 153 }, { 142, 125, 121, 7, 74, 22 }, { 181, 145, 7, 154, 203, 105 }, { 184, 163, 50, 161, 57, 14 }, { 189, 128, 156, 126, 96, 153 }, { 39, 92, 180, 196, 128, 163 }, { 48, 208, 10, 206, 25, 3 }, { 194, 76, 240, 5, 165, 134 }, { 84, 75, 22, 152, 17, 94 }, { 75, 238, 12, 201, 125, 162 }, { 135, 202, 74, 72, 228, 31 }, { 196, 135, 119, 46, 138, 232 }, { 227, 48, 189, 120, 87, 140 }, { 164, 154, 57, 111, 40, 5 } };
+
 void MeterRfmTX1::processContent(Telegram *t)
 {
     int offset;
     string key;
+
+    if (t->tpl_cfg == 0x1006)
+    {
+        // This is the old type of meter and some values needs to be de-obfuscated.
+        vector<uchar> frame;
+        t->extractFrame(&frame);
+
+        debugPayload("(rftx1) decoding raw frame", frame);
+
+        uchar decoded_total[6];
+
+        for (int i = 0; i < 6; ++i)
+        {
+            decoded_total[i] = (uchar)(frame[0xf + i] ^ frame[0xb] ^ decode_vectors_[frame[0xb] & 0x0f][i]);
+        }
+
+        double total = 0;
+        double mul = 1;
+        for (int i = 2; i < 6; ++i)
+        {
+            total += mul*bcd2bin(decoded_total[i]);
+            mul *= 100;
+        }
+        total_water_consumption_m3_ = total/1000.0;
+
+        int o = 28; // Offset to datetime.
+        int y = 2000+bcd2bin(frame[o+5]);
+        int M = bcd2bin(frame[o+4]);
+        int d = bcd2bin(frame[o+3]);
+        int H = bcd2bin(frame[o+2]);
+        int m = bcd2bin(frame[o+1]);
+        int s = bcd2bin(frame[o+0]);
+
+        strprintf(meter_datetime_, "%d-%02d-%02d %02d:%02d:%02d",
+                  y, M%99, d%99, H%99, m%99, s%99);
+
+        return;
+    }
 
     if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);

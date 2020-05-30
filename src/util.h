@@ -37,6 +37,9 @@ typedef unsigned char uchar;
 #define call(A,B) ([&](){A->B();})
 #define calll(A,B,T) ([&](T t){A->B(t);})
 
+uchar bcd2bin(uchar c);
+uchar revbcd2bin(uchar c);
+uchar reverse(uchar c);
 bool hex2bin(const char* src, std::vector<uchar> *target);
 bool hex2bin(std::string &src, std::vector<uchar> *target);
 bool hex2bin(std::vector<uchar> &src, std::vector<uchar> *target);
