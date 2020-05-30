@@ -84,6 +84,9 @@ Received telegram from: 55995599
 Received telegram from: 004444dd
           manufacturer: (APT) Unknown
            device type: Gas meter
+Received telegram from: 74737271
+          manufacturer: (BMT) BMETERS, Italy
+           device type: Water meter
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)
