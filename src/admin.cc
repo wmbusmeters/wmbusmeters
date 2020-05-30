@@ -204,11 +204,12 @@ int maxWidth(vector<string> entries)
     return max;
 }
 
-int count = 0;
 void alwaysOnScreen()
 {
+    static uchar ticktock = 0;
+
     vector<string> info;
-    count++;
+    ticktock++;
 
     if (running_as_root_ == false)
     {
@@ -244,7 +245,7 @@ void alwaysOnScreen()
         }
     }
 
-    displayInformationNoWait(&status_window, (count%2==0)?"Status ":"Status.", info, 1, 1);
+    displayInformationNoWait(&status_window, (ticktock%2==0)?"Status ":"Status.", info, 1, 1);
 
     vector<string> devices = handler->listSerialDevices();
     if (devices.size() == 0)
