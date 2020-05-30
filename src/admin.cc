@@ -22,6 +22,7 @@
 #include<stdlib.h>
 
 #include"serial.h"
+#include"shell.h"
 #include"wmbus.h"
 
 #define BG_PAIR 1
@@ -30,6 +31,8 @@
 #define HILIGHT_PAIR 4
 
 #include <menu.h>
+
+bool running_as_root_ = false;
 
 #define LIST_OF_MAIN_MENU \
     X(DETECT_WMBUS_RECEIVERS, "Detect wmbus receivers") \
@@ -71,20 +74,35 @@ LIST_OF_WMBUS_RECEIVERS
     (char *)NULL,
 };
 
+bool detectIfRoot();
+void detectProcesses(string cmd, vector<int> *pids);
 void detectWMBUSReceivers();
 void probeFor(string type, AccessCheck(*func)(string,SerialCommunicationManager*));
 
 void printAt(WINDOW *win, int y, int x, const char *str, chtype color);
 void printMiddle(WINDOW *win, int y, int width, const char *str, chtype color);
 
+void alwaysOnScreen();
 int selectFromMenu(const char *title, const char *menu[]);
-void displayInformation(string title, vector<string> entries, int px=-1, int py=-1);
+void displayInformationAndWait(string title, vector<string> entries, int px=-1, int py=-1);
+void displayInformationNoWait(WINDOW **win, string title, vector<string> entries, int px=-1, int py=-1);
 
 int screen_width, screen_height;
 unique_ptr<SerialCommunicationManager> handler;
 
-int main()
+WINDOW *status_window;
+WINDOW *serial_ports_window;
+WINDOW *processes_window;
+
+int main(int argc, char **argv)
 {
+    if (argc == 2 && !strcmp(argv[1], "--debug"))
+    {
+        debugEnabled(true);
+    }
+
+    running_as_root_ = detectIfRoot();
+
     handler = createSerialCommunicationManager(0, 0, false);
 
 	initscr();
@@ -102,6 +120,8 @@ int main()
     wbkgd(stdscr, COLOR_PAIR(BG_PAIR));
 
     bool running = true;
+
+    alwaysOnScreen();
 
     do
     {
@@ -184,10 +204,60 @@ int maxWidth(vector<string> entries)
     return max;
 }
 
-void updateStatus()
+int count = 0;
+void alwaysOnScreen()
 {
+    vector<string> info;
+    count++;
+
+    if (running_as_root_ == false)
+    {
+        info.push_back("Not running as root!");
+        info.push_back("Limited functionality.");
+        info.push_back("----------------------");
+    }
+    vector<int> daemons;
+    detectProcesses("wmbusmetersd", &daemons);
+    if (daemons.size() == 0)
+    {
+        info.push_back("No daemons running.");
+    }
+    else
+    {
+        for (int i : daemons)
+        {
+            info.push_back("Daemon "+to_string(i));
+        }
+    }
+
+    vector<int> processes;
+    detectProcesses("wmbusmeters", &processes);
+
+    if (processes.size() == 0)
+    {
+    }
+    else
+    {
+        for (int i : processes)
+        {
+            info.push_back("Process "+to_string(i));
+        }
+    }
+
+    displayInformationNoWait(&status_window, (count%2==0)?"Status ":"Status.", info, 1, 1);
+
     vector<string> devices = handler->listSerialDevices();
-    displayInformation("Serial ports", devices, 1, 1);
+    if (devices.size() == 0)
+    {
+        devices.push_back("No serial ports found!");
+    }
+    //info.insert(info.end(), devices.begin(), devices.end());
+
+    displayInformationNoWait(&serial_ports_window, "Serial ports", devices, 1, 15);
+
+    erase();
+    redrawwin(status_window);
+    redrawwin(serial_ports_window);
 }
 
 int selectFromMenu(const char *title, const char *entries[])
@@ -247,19 +317,21 @@ int selectFromMenu(const char *title, const char *entries[])
 	post_menu(menu);
 	wrefresh(frame_window);
 
+    alwaysOnScreen();
+
     wtimeout(frame_window, 1000);
 
     bool running = true;
     do
     {
-        fprintf(stderr, "GURKA");
         c = wgetch(frame_window);
         ITEM *cur = current_item(menu);
         selected = item_index(cur);
         switch(c)
         {
         case ERR:
-            updateStatus();
+            alwaysOnScreen();
+            redrawwin(frame_window);
             break;
         case KEY_DOWN:
             if (selected < n_choices-2)
@@ -301,9 +373,11 @@ int selectFromMenu(const char *title, const char *entries[])
     return selected;
 }
 
-void displayInformation(string title, vector<string> entries, int px, int py)
+void displayInformationAndWait(string title, vector<string> entries, int px, int py)
 {
     WINDOW *frame_window;
+
+    alwaysOnScreen();
 
     int mw = maxWidth(entries)+1;
     int mh = entries.size();
@@ -334,7 +408,7 @@ void displayInformation(string title, vector<string> entries, int px, int py)
 	mvwaddch(frame_window, 2, 0, ACS_LTEE);
 	mvwhline(frame_window, 2, 1, ACS_HLINE, 38);
 	mvwaddch(frame_window, 2, w-1, ACS_RTEE);
-	refresh();
+	//refresh();
 
     int r = 3;
     for (string e : entries)
@@ -343,6 +417,7 @@ void displayInformation(string title, vector<string> entries, int px, int py)
         r++;
     }
 	wrefresh(frame_window);
+    wtimeout(frame_window, 1000);
 
     bool running = true;
     do
@@ -350,6 +425,10 @@ void displayInformation(string title, vector<string> entries, int px, int py)
         int c = wgetch(frame_window);
         switch(c)
         {
+        case ERR:
+            alwaysOnScreen();
+            redrawwin(frame_window);
+            break;
         case 27:
         case '\n':
             running = false;
@@ -361,6 +440,54 @@ void displayInformation(string title, vector<string> entries, int px, int py)
     delwin(frame_window);
     erase();
     refresh();
+}
+
+void displayInformationNoWait(WINDOW **winp, string title, vector<string> entries, int px, int py)
+{
+    WINDOW *win = *winp;
+
+    if (win != NULL)
+    {
+        delwin(win);
+        *winp = NULL;
+    }
+    int mw = maxWidth(entries)+1;
+    int mh = entries.size();
+    int w = mw+2;
+    int h = mh+4;
+    if (w-2 < (int)title.length())
+    {
+        w = (int)title.length()+2;
+    }
+    int x = screen_width/2-w/2;
+    int y = screen_height/2-h/2;
+    if (px != -1)
+    {
+        x = px;
+    }
+    if (py != -1)
+    {
+        y = py;
+    }
+    win = newwin(h, w, y, x);
+    *winp = win;
+
+    box(win, 0, 0);
+    wbkgd(win, COLOR_PAIR(WIN_PAIR));
+
+    printMiddle(win, 1, w, title.c_str(), COLOR_PAIR(WIN_PAIR));
+	mvwaddch(win, 2, 0, ACS_LTEE);
+	mvwhline(win, 2, 1, ACS_HLINE, 38);
+	mvwaddch(win, 2, w-1, ACS_RTEE);
+//	refresh();
+
+    int r = 3;
+    for (string e : entries)
+    {
+        printAt(win, r, 1, e.c_str(), COLOR_PAIR(WIN_PAIR));
+        r++;
+    }
+	wrefresh(win);
 }
 
 void detectWMBUSReceivers()
@@ -411,5 +538,35 @@ void probeFor(string type, AccessCheck (*check)(string,SerialCommunicationManage
     {
         entries.push_back("No serial devices found.");
     }
-    displayInformation("Probed serial devices", entries);
+    displayInformationAndWait("Probed serial devices", entries);
+}
+
+bool detectIfRoot()
+{
+    vector<string> args;
+    vector<string> envs;
+    args.push_back("-u");
+    string out;
+    invokeShellCaptureOutput("/usr/bin/id", args, envs, &out, true);
+
+    return out == "0\n";
+}
+
+void detectProcesses(string cmd, vector<int> *pids)
+{
+    vector<string> args;
+    vector<string> envs;
+    args.push_back(cmd);
+    string out;
+    invokeShellCaptureOutput("/bin/pidof", args, envs, &out, true);
+
+    char buf[out.size()+1];
+    strcpy(buf, out.c_str());
+    char *pch;
+    pch = strtok (buf," \n");
+    while (pch != NULL)
+    {
+        pids->push_back(atoi(pch));
+        pch = strtok (NULL, " \n");
+    }
 }

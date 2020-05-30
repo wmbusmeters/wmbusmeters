@@ -968,7 +968,7 @@ static void check_if_serial(string tty, vector<string> *found_serials, vector<st
         memset(buffer, 0, sizeof(buffer));
         strncpy(buffer, tty.c_str(), sizeof(buffer)-1);
 
-        string dev = string("/dev/") + buffer;
+        string dev = buffer;
 
         if (driver == "serial8250")
         {
@@ -976,6 +976,11 @@ static void check_if_serial(string tty, vector<string> *found_serials, vector<st
         }
         else
         {
+            // The dev is now something like: /sys/class/tty/ttyUSB0
+            // Drop the /sys/class/tty/ prefix and replace with /dev/
+            if (dev.rfind("/sys/class/tty/", 0) == 0) {
+                dev = string("/dev/")+dev.substr(15);
+            }
             found_serials->push_back(dev);
         }
     }
