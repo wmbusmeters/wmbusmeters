@@ -228,6 +228,9 @@ Lansen Thermometer/Hygrometer (lansenth)
 Bmeters RFM-AMB Thermometer/Hygrometer (rfmamb)
 Elvaco CMa12w Thermometer (cma12w)
 
+Supported smoke detectors:
+Lansen Smoke Detector (lansensm)
+
 Supported electricity meters:
 Tauron Amiplus (amiplus) (includes vendor apator and echelon)
 EMH Metering (ehzp)

@@ -48,6 +48,12 @@ Received telegram from: 11776622
 Received telegram from: 88018801
           manufacturer: (INE) INNOTAS Elektronik, Germany
            device type: Heat Cost Allocator
+Received telegram from: 00010204
+          manufacturer: (LAS) Lansen Systems, Sweden
+           device type: Smoke detector
+Received telegram from: 00010204
+          manufacturer: (LAS) Lansen Systems, Sweden
+           device type: Smoke detector
 Received telegram from: 00010203
           manufacturer: (LAS) Lansen Systems, Sweden
            device type: Room sensor (eg temperature or humidity)

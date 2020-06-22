@@ -40,6 +40,7 @@
     X(hydrodigit, T1_bit, Water,       HYDRODIGIT,  Hydrodigit)   \
     X(iperl,      T1_bit, Water,       IPERL,       Iperl)        \
     X(izar,       T1_bit, Water,       IZAR,        Izar)         \
+    X(lansensm,   T1_bit, SmokeDetector,  LANSENSM,    LansenSM)     \
     X(lansenth,   T1_bit, TempHygro,   LANSENTH,    LansenTH)     \
     X(mkradio3,   T1_bit, Water,       MKRADIO3,    MKRadio3)     \
     X(multical21, C1_bit, Water,       MULTICAL21,  Multical21)   \
@@ -192,6 +193,12 @@ struct TempHygroMeter : public virtual TempMeter, public virtual HygroMeter
     virtual ~TempHygroMeter() = default;
 };
 
+struct SmokeDetector : public virtual Meter
+{
+    virtual bool smokeDetected() = 0;
+    virtual ~SmokeDetector() = default;
+};
+
 struct GenericMeter : public virtual Meter {
 };
 
@@ -217,6 +224,7 @@ unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createEurisII(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createFHKVDataIII(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createLansenTH(WMBus *bus, MeterInfo &m);
+unique_ptr<SmokeDetector> createLansenSM(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createCMa12w(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createRfmAmb(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createRfmTX1(WMBus *bus, MeterInfo &m);
