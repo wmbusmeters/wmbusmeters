@@ -562,3 +562,78 @@ AccessCheck detectAMB8465(string device, SerialCommunicationManager *manager)
     }
     return AccessCheck::AccessOK;
 }
+
+static AccessCheck tryResetAMB8465(string device, SerialCommunicationManager *manager, int baud)
+{
+    // Talk to the device and expect a very specific answer.
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), baud);
+    AccessCheck rc = serial->open(false);
+    if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
+
+    vector<uchar> data;
+    // First clear out any data in the queue.
+    serial->receive(&data);
+    data.clear();
+
+    vector<uchar> msg(4);
+    msg[0] = AMBER_SERIAL_SOF;
+    msg[1] = CMD_FACTORYRESET_REQ;
+    msg[2] = 0; // No payload
+    msg[3] = xorChecksum(msg, 3);
+
+    assert(msg[3] == 0xee);
+
+    verbose("(amb8465) try factory reset using baud %d\n", baud);
+    serial->send(msg);
+    // Wait for 100ms so that the USB stick have time to prepare a response.
+    usleep(1000*100);
+    serial->receive(&data);
+    int limit = 0;
+    while (data.size() > 8 && data[0] != 0xff)
+    {
+        // Eat bytes until a 0xff appears to get in sync with the proper response.
+        // Extraneous bytes might be due to a partially read telegram.
+        data.erase(data.begin());
+        vector<uchar> more;
+        serial->receive(&more);
+        if (more.size() > 0) {
+            data.insert(data.end(), more.begin(), more.end());
+        }
+        if (limit++ > 100) break; // Do not wait too long.
+    }
+
+    serial->close();
+
+    debugPayload("(amb8465) reset response", data);
+
+    if (data.size() < 8 ||
+        data[0] != 0xff ||
+        data[1] != 0x90 ||
+        data[2] != 0x01 ||
+        data[3] != 0x00 || // Status should be 0.
+        data[4] != xorChecksum(data, 4))
+    {
+        verbose("(amb8465) no response to factory reset using baud %d\n", baud);
+        return AccessCheck::NotThere;
+    }
+    verbose("(amb8465) received proper factory reset response using baud %d\n", baud);
+    return AccessCheck::AccessOK;
+}
+
+int bauds[] = { 1200, 2400, 4800, 9600, 19200, 38400, 56000, 115200, 0 };
+
+AccessCheck resetAMB8465(string device, SerialCommunicationManager *manager, int *was_baud)
+{
+    AccessCheck rc = AccessCheck::NotThere;
+
+    for (int i=0; bauds[i] != 0; ++i)
+    {
+        rc = tryResetAMB8465(device, manager, bauds[i]);
+        if (rc == AccessCheck::AccessOK) {
+            *was_baud = bauds[i];
+            return AccessCheck::AccessOK;
+        }
+    }
+    *was_baud = 0;
+    return AccessCheck::NotThere;
+}

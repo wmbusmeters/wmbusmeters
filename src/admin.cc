@@ -20,6 +20,7 @@
 #include<string.h>
 #include<stdio.h>
 #include<stdlib.h>
+#include <syslog.h>
 
 #include"serial.h"
 #include"shell.h"
@@ -35,7 +36,8 @@
 bool running_as_root_ = false;
 
 #define LIST_OF_MAIN_MENU \
-    X(DETECT_WMBUS_RECEIVERS, "Detect wmbus receivers") \
+    X(DETECT_WMBUS_RECEIVERS, "Detect wmbus receiver") \
+    X(RESET_WMBUS_RECEIVERS, "Reset wmbus receiver") \
     X(LISTEN_FOR_METERS, "Listen for meters") \
     X(EDIT_CONFIG, "Edit config") \
     X(EDIT_METERS, "Edit meters") \
@@ -76,7 +78,8 @@ LIST_OF_WMBUS_RECEIVERS
 
 bool detectIfRoot();
 void detectProcesses(string cmd, vector<int> *pids);
-void detectWMBUSReceivers();
+void detectWMBUSReceiver();
+void resetWMBUSReceiver();
 void probeFor(string type, AccessCheck(*func)(string,SerialCommunicationManager*));
 
 void printAt(WINDOW *win, int y, int x, const char *str, chtype color);
@@ -84,8 +87,11 @@ void printMiddle(WINDOW *win, int y, int width, const char *str, chtype color);
 
 void alwaysOnScreen();
 int selectFromMenu(const char *title, const char *menu[]);
+int selectFromMenu(const char *title, vector<string> menu);
 void displayInformationAndWait(string title, vector<string> entries, int px=-1, int py=-1);
 void displayInformationNoWait(WINDOW **win, string title, vector<string> entries, int px=-1, int py=-1);
+
+void notImplementedYet(string msg);
 
 int screen_width, screen_height;
 unique_ptr<SerialCommunicationManager> handler;
@@ -99,6 +105,9 @@ int main(int argc, char **argv)
     if (argc == 2 && !strcmp(argv[1], "--debug"))
     {
         debugEnabled(true);
+        setlogmask(LOG_UPTO (LOG_INFO));
+        openlog("wmbusmeters-admin", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
+        enableSyslog();
     }
 
     running_as_root_ = detectIfRoot();
@@ -130,17 +139,25 @@ int main(int argc, char **argv)
         switch (static_cast<MainMenuType>(c))
         {
         case MainMenuType::DETECT_WMBUS_RECEIVERS:
-            detectWMBUSReceivers();
+            detectWMBUSReceiver();
+            break;
+        case MainMenuType::RESET_WMBUS_RECEIVERS:
+            resetWMBUSReceiver();
             break;
         case MainMenuType::LISTEN_FOR_METERS:
+            notImplementedYet("Listen for meters");
             break;
         case MainMenuType::EDIT_CONFIG:
+            notImplementedYet("Edit config");
             break;
         case MainMenuType::EDIT_METERS:
+            notImplementedYet("Edit meters");
             break;
         case MainMenuType::STOP_DAEMON:
+            notImplementedYet("Stop daemon");
             break;
         case MainMenuType::START_DAEMON:
+            notImplementedYet("Start daemon");
             break;
         case MainMenuType::EXIT_ADMIN:
             running = false;
@@ -263,6 +280,19 @@ void alwaysOnScreen()
 
 int selectFromMenu(const char *title, const char *entries[])
 {
+    vector<string> menu;
+    int n_choices = countEntries(entries);
+
+    for (int i=0; i<n_choices; ++i)
+    {
+        if (entries[i] == NULL) break;
+        menu.push_back(entries[i]);
+    }
+    return selectFromMenu(title, menu);
+}
+
+int selectFromMenu(const char *title, vector<string> entries)
+{
     int selected  = -1;
     ITEM **menu_items;
 	int c;
@@ -270,12 +300,13 @@ int selectFromMenu(const char *title, const char *entries[])
     WINDOW *frame_window, *menu_window;
     int n_choices, i;
 
-    n_choices = countEntries(entries);
+    n_choices = entries.size()+1;
     menu_items = (ITEM **)calloc(n_choices, sizeof(ITEM *));
-    for(i = 0; i < n_choices; ++i)
+    for(i = 0; i < n_choices-1; ++i)
     {
-        menu_items[i] = new_item(entries[i], NULL);
+        menu_items[i] = new_item(entries[i].c_str(), NULL);
     }
+    menu_items[n_choices-1] = NULL;
 
 	menu = new_menu(menu_items);
     int mw = 0;
@@ -491,7 +522,7 @@ void displayInformationNoWait(WINDOW **winp, string title, vector<string> entrie
 	wrefresh(win);
 }
 
-void detectWMBUSReceivers()
+void detectWMBUSReceiver()
 {
     int c = selectFromMenu("Select your wmbus radio device", receivers_menu);
     switch (static_cast<ReceiversType>(c))
@@ -506,6 +537,54 @@ void detectWMBUSReceivers()
         probeFor("im871a", detectIM871A);
         break;
     }
+}
+
+void resetWMBUSReceiver()
+{
+    int c = selectFromMenu("Select your wmbus radio device", receivers_menu);
+    switch (static_cast<ReceiversType>(c))
+    {
+    case ReceiversType::AMB8465:
+    {
+        vector<string> devices = handler->listSerialDevices();
+        if (devices.size() == 0)
+        {
+            vector<string> entries;
+            displayInformationAndWait("No serial ports!", entries);
+            return;
+        }
+        int c = selectFromMenu("Select device", devices);
+        string device = devices[c];
+        int was_baud = 0;
+        AccessCheck ac = resetAMB8465(device, handler.get(), &was_baud);
+        if (ac == AccessCheck::AccessOK)
+        {
+            vector<string> entries;
+            entries.push_back("amb8465 "+device+" using "+to_string(was_baud));
+            displayInformationAndWait("Factory reset successful", entries);
+        }
+        else
+        {
+            vector<string> entries;
+            entries.push_back(device);
+            displayInformationAndWait("No amb8465 response from", entries);
+        }
+        break;
+    }
+    case ReceiversType::CUL:
+        notImplementedYet("Resetting cul");
+        break;
+    case ReceiversType::IM871A:
+        notImplementedYet("Resetting im871a");
+        break;
+    }
+}
+
+void notImplementedYet(string msg)
+{
+    vector<string> entries;
+    entries.push_back(msg);
+    displayInformationAndWait("Not implemented yet", entries);
 }
 
 void probeFor(string type, AccessCheck (*check)(string,SerialCommunicationManager*))

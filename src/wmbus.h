@@ -504,6 +504,7 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
 
 AccessCheck detectIM871A(string device, SerialCommunicationManager *handler);
 AccessCheck detectAMB8465(string device, SerialCommunicationManager *handler);
+AccessCheck resetAMB8465(string device, SerialCommunicationManager *handler, int *was_baud);
 AccessCheck detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
 AccessCheck detectRTLSDR(string device, SerialCommunicationManager *handler);
 AccessCheck detectCUL(string device, SerialCommunicationManager *handler);
