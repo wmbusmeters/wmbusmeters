@@ -568,7 +568,10 @@ static AccessCheck tryResetAMB8465(string device, SerialCommunicationManager *ma
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), baud);
     AccessCheck rc = serial->open(false);
-    if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
+    if (rc != AccessCheck::AccessOK) {
+        verbose("(amb8465) could not open device %s using baud %d\n", device.c_str(), baud);
+        return AccessCheck::NotThere;
+    }
 
     vector<uchar> data;
     // First clear out any data in the queue.
@@ -583,7 +586,7 @@ static AccessCheck tryResetAMB8465(string device, SerialCommunicationManager *ma
 
     assert(msg[3] == 0xee);
 
-    verbose("(amb8465) try factory reset using baud %d\n", baud);
+    verbose("(amb8465) try factory reset %s using baud %d\n", device.c_str(), baud);
     serial->send(msg);
     // Wait for 100ms so that the USB stick have time to prepare a response.
     usleep(1000*100);
@@ -613,10 +616,10 @@ static AccessCheck tryResetAMB8465(string device, SerialCommunicationManager *ma
         data[3] != 0x00 || // Status should be 0.
         data[4] != xorChecksum(data, 4))
     {
-        verbose("(amb8465) no response to factory reset using baud %d\n", baud);
+        verbose("(amb8465) no response to factory reset %s using baud %d\n", device.c_str(), baud);
         return AccessCheck::NotThere;
     }
-    verbose("(amb8465) received proper factory reset response using baud %d\n", baud);
+    verbose("(amb8465) received proper factory reset response %s using baud %d\n", device.c_str(), baud);
     return AccessCheck::AccessOK;
 }
 
@@ -629,7 +632,8 @@ AccessCheck resetAMB8465(string device, SerialCommunicationManager *manager, int
     for (int i=0; bauds[i] != 0; ++i)
     {
         rc = tryResetAMB8465(device, manager, bauds[i]);
-        if (rc == AccessCheck::AccessOK) {
+        if (rc == AccessCheck::AccessOK)
+        {
             *was_baud = bauds[i];
             return AccessCheck::AccessOK;
         }
