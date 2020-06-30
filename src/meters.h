@@ -40,9 +40,10 @@
     X(hydrodigit, T1_bit, Water,       HYDRODIGIT,  Hydrodigit)   \
     X(iperl,      T1_bit, Water,       IPERL,       Iperl)        \
     X(izar,       T1_bit, Water,       IZAR,        Izar)         \
-    X(lansensm,   T1_bit, SmokeDetector,  LANSENSM,    LansenSM)     \
+    X(lansensm,   T1_bit, Smoke,       LANSENSM,    LansenSM)     \
     X(lansenth,   T1_bit, TempHygro,   LANSENTH,    LansenTH)     \
     X(lansendw,   T1_bit, DoorWindow,  LANSENDW,    LansenDW)     \
+    X(lansenpu,   T1_bit, Pulse,       LANSENPU,    LansenPU)     \
     X(mkradio3,   T1_bit, Water,       MKRADIO3,    MKRadio3)     \
     X(multical21, C1_bit, Water,       MULTICAL21,  Multical21)   \
     X(multical302,C1_bit, Heat,        MULTICAL302, Multical302)  \
@@ -206,6 +207,13 @@ struct DoorWindowDetector : public virtual Meter
     virtual ~DoorWindowDetector() = default;
 };
 
+struct PulseCounter : public virtual Meter
+{
+    virtual double counterA() = 0;
+    virtual double counterB() = 0;
+    virtual ~PulseCounter() = default;
+};
+
 struct GenericMeter : public virtual Meter {
 };
 
@@ -232,6 +240,7 @@ unique_ptr<HeatCostMeter> createEurisII(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createFHKVDataIII(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createLansenTH(WMBus *bus, MeterInfo &m);
 unique_ptr<SmokeDetector> createLansenSM(WMBus *bus, MeterInfo &m);
+unique_ptr<PulseCounter> createLansenPU(WMBus *bus, MeterInfo &m);
 unique_ptr<DoorWindowDetector> createLansenDW(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createCMa12w(WMBus *bus, MeterInfo &m);
 unique_ptr<TempHygroMeter> createRfmAmb(WMBus *bus, MeterInfo &m);

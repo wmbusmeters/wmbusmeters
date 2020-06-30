@@ -127,6 +127,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_lansendw.o \
 	$(BUILD)/meter_lansensm.o \
 	$(BUILD)/meter_lansenth.o \
+	$(BUILD)/meter_lansenpu.o \
 	$(BUILD)/meter_mkradio3.o \
 	$(BUILD)/meter_multical21.o \
 	$(BUILD)/meter_multical302.o \

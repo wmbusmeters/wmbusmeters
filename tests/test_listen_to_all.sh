@@ -63,6 +63,9 @@ Received telegram from: 00010205
 Received telegram from: 00010205
           manufacturer: (LAS) Lansen Systems, Sweden
            device type: Reserved for sensors
+Received telegram from: 00010206
+          manufacturer: (LAS) Lansen Systems, Sweden
+           device type: Other
 Received telegram from: 11772288
           manufacturer: (BMT) BMETERS, Italy
            device type: Room sensor (eg temperature or humidity)

@@ -30,6 +30,7 @@
     X(RelativeHumidity,RH) \
     X(HCA,HCA)             \
     X(Text,TXT)            \
+    X(Counter,INT)         \
     X(Time,Hour)           \
 
 #define LIST_OF_UNITS \
@@ -44,6 +45,7 @@
     X(RH,rh,"RH",RelativeHumidity,"relative humidity")      \
     X(HCA,hca,"hca",HCA,"heat cost allocation") \
     X(TXT,txt,"txt",Text,"text")              \
+    X(INT,int,"int",Counter,"int")              \
     X(Second,s,"s",Time,"second")           \
     X(Hour,h,"h",Time,"hour") \
     X(Year,y,"y",Time,"year")

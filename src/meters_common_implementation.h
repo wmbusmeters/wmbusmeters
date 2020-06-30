@@ -83,10 +83,13 @@ protected:
     void addMedia(int media);
     void addLinkMode(LinkMode lm);
     void addManufacturer(int m);
+    // Print with the default unit for this quantity.
     void addPrint(string vname, Quantity vquantity,
                   function<double(Unit)> getValueFunc, string help, bool field, bool json);
+    // Print with exactly this unit for this quantity.
     void addPrint(string vname, Quantity vquantity, Unit unit,
                   function<double(Unit)> getValueFunc, string help, bool field, bool json);
+    // Print the dimensionless Text quantity, no unit is needed.
     void addPrint(string vname, Quantity vquantity,
                   function<std::string()> getValueFunc, string help, bool field, bool json);
     bool handleTelegram(vector<uchar> frame);
