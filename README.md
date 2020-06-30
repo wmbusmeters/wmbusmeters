@@ -231,6 +231,9 @@ Elvaco CMa12w Thermometer (cma12w)
 Supported smoke detectors:
 Lansen Smoke Detector (lansensm)
 
+Supported door/window detectors:
+Lansen Door/Window Detector (lansendw)
+
 Supported electricity meters:
 Tauron Amiplus (amiplus) (includes vendor apator and echelon)
 EMH Metering (ehzp)

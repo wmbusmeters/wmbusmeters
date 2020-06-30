@@ -223,7 +223,7 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
     }
 
     if (!media_match) {
-        warning("(meter) %s: probably not for me since media does not match\n", name_.c_str());
+        warning("(meter) %s: probably not for me since received media 0x%02x does not match\n", name_.c_str(), t->dll_type);
     }
 
     debug("(meter) %s: yes for me\n", name_.c_str());

@@ -124,6 +124,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_hydrodigit.o \
 	$(BUILD)/meter_iperl.o \
 	$(BUILD)/meter_izar.o \
+	$(BUILD)/meter_lansendw.o \
 	$(BUILD)/meter_lansensm.o \
 	$(BUILD)/meter_lansenth.o \
 	$(BUILD)/meter_mkradio3.o \

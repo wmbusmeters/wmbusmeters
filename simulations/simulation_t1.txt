@@ -64,6 +64,16 @@ telegram=|2e44333003020100071b7a634820252f2f0265840842658308820165950802fb1aae01
 {"media":"room sensor","meter":"lansenth","name":"Tempoo","id":"00010203","current_temperature_c":21.8,"current_relative_humidity_rh":43,"average_temperature_1h_c":21.79,"average_relative_humidity_1h_rh":43,"average_temperature_24h_c":21.97,"average_relative_humidity_24h_rh":42.5,"timestamp":"1111-11-11T11:11:11Z"}
 |Tempoo;00010203;21.800000;43.000000;1111-11-11 11:11.11
 
+# Test Lansen door window telegram
+
+telegram=|2e44333005020100071d7ab54800002f2f02fd1b110002fd971d01000efd3a2200000000008e40fd3a000000000000|
+{"media":"reserved","meter":"lansensm","name":"Dooro","id":"00010205","status":"CLOSED","timestamp":"1111-11-11T11:11:11Z"}
+|Dooro;00010205;CLOSED;1111-11-11 11:11.11
+
+telegram=|2e44333005020100071d7ab66800002f2f02fd1b550002fd971d01000efd3a2300000000008e40fd3a000000000000|
+{"media":"reserved","meter":"lansensm","name":"Dooro","id":"00010205","status":"OPEN","timestamp":"1111-11-11T11:11:11Z"}
+|Dooro;00010205;OPEN;1111-11-11 11:11.11
+
 # Test BMEters RFM-AMB Temperature Hygrometer telegram
 
 telegram=|5744b40988227711101b7ab20800000265a00842658f088201659f08226589081265a0086265510852652b0902fb1aba0142fb1ab0018201fb1abd0122fb1aa90112fb1aba0162fb1aa60152fb1af501066d3b3bb36b2a00|
