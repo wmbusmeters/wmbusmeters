@@ -424,12 +424,18 @@ if this hangs, then do `sudo killall -9 wmbusmetersd` and/or `sudo killall -9 wm
 If you are using rtl_sdr/rtl_wmbus and you want to stop the daemon, do
 `sudo stop wmbusmeters@-dev-rtlsdr_3.server` followed by `sudo killall -9 rtl_sdr`.
 
-## AMB8465 USB stick
+## Non-standard baud rate set for AMB8465 USB stick
 
-The AMB8465 interface code expects the dongle to be factory reset before use. You can do this by sending the following hex strings to the stick before attempting to use it with this software:
+Wmbusmeters expects the serial baud rate for the AMB8465 USB stick to be 9600 8n1.
+If you have used another tool and changed the baud rate to something else
+you need to restore the baud rate to 9600 8n1. You can do that with that other tool,
+or you can try wmbusmeters-admin and select `Reset wmbus receives`
+this command try all potential baud rates and send the factory reset command.
+Then you have to unplug and reinsert the dongle.
+
+If you like to send the bytes manually, the correct bytes are:
  * Factory reset of the settings: `0xFF1100EE`
- * Reset the stick to apply the factory defaults: `0xFF0500FA`
-After this, the stick is communicating at 9600 bps and the wmbusmeters software will configure it to receive wireless mbus packets.
+ * Reset the stick to apply the factory defaults: `0xFF0500FA` this is not necessary if you unplug and reinsert the dongle.
 
 ## WMB13U-868, WMB14UE-868 USB sticks
 
