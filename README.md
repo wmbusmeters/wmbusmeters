@@ -424,6 +424,25 @@ if this hangs, then do `sudo killall -9 wmbusmetersd` and/or `sudo killall -9 wm
 If you are using rtl_sdr/rtl_wmbus and you want to stop the daemon, do
 `sudo stop wmbusmeters@-dev-rtlsdr_3.server` followed by `sudo killall -9 rtl_sdr`.
 
+## How to receive telegrams over longer distances.
+
+I only have personal experience of the im871a,amb8465 and an rtlsdr
+compatible dongle.  The commercial dongles (im871a,amb8464) receive
+well despite having tiny antennas inside the dongle. However the
+reception range is limited by walls and you must definitely get quite
+close to the meter if it is mounted underground in a concrete tube.
+
+The rtlsdr/rtl-wmbus solution seems to work for a lot of users, but it
+does use more cpu-power since it decodes the radio traffic in
+software. Range seems to be similar to the other dongles, despite the
+antenna being much larger.
+
+At least one professional collector use the same commercial dongles,
+but the versions with an external antenna connector, into which they
+attach a radio amplifier for the proper frequency, and then a larger
+antennna. This makes it possible to receive telegrams from meters
+underground and over larger distances.
+
 ## Non-standard baud rate set for AMB8465 USB stick
 
 Wmbusmeters expects the serial baud rate for the AMB8465 USB stick to be 9600 8n1.
