@@ -1,3 +1,10 @@
+Version 0.9.32: 2020-06-30
+
+Added support for the Lansen Smoke detector, Door/Window sensor
+and Pulse counter.
+
+The tool wmbusmeters-admin can now factory reset your amb8465 dongle.
+
 Version 0.9.31: 2020-05-09
 
 You can add comments in the conf and meter files.
