@@ -234,6 +234,9 @@ Lansen Smoke Detector (lansensm)
 Supported door/window detectors:
 Lansen Door/Window Detector (lansendw)
 
+Supported pulse counter:
+Lansen Pulse Counter (lansenpu)
+
 Supported electricity meters:
 Tauron Amiplus (amiplus) (includes vendor apator and echelon)
 EMH Metering (ehzp)
