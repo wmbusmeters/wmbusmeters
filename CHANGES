@@ -1,3 +1,8 @@
+Version 0.9.33: 2020-07-01
+
+Bibo made docker fixes. Now rtl_sdr, rtl_wmbus
+and rtl_433 are part of the docker image. Thanks Bibo!
+
 Version 0.9.32: 2020-06-30
 
 Added support for the Lansen Smoke detector, Door/Window sensor
