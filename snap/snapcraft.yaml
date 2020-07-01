@@ -1,0 +1,58 @@
+name: wmbusmeters
+adopt-info: wmbusmeters
+summary: "Program receives and decodes WMBus telegrams"
+description: |
+  The program receives and decodes C1, T1 or S1 telegrams
+  (using the wireless mbus protocol) to acquire utility meter readings.
+  The readings can then be published using MQTT, curled to a REST api,
+  inserted into a database or stored in a log file.
+  Following must be executed "sudo snap connect wmbusmeters:raw-usb core:raw-usb"
+  to allow snap read USB devices and check that root user of your system is 
+  added to group that can read USB devices
+
+base: core18
+confinement: strict
+
+parts:
+  script:
+    plugin: dump
+    source: snap/local/
+    prime:
+      - launcher.sh
+
+  wmbusmeters:
+    source: "https://github.com/weetmuts/wmbusmeters.git"
+    source-type: git
+    override-pull: |
+      snapcraftctl pull
+      if [ -n $(git describe --tags | grep -) ]; then
+        GIT_REV="$(git describe --tags | cut -f1,2 -d'-')"
+        snapcraftctl set-version "$GIT_REV"
+        snapcraftctl set-grade devel
+      else
+        GIT_VER="$(git describe --tags)"
+        snapcraftctl set-version "$GIT_VER"
+        snapcraftctl set-grade stable
+      fi
+    plugin: autotools
+    build-packages:
+      - g++
+      - make
+    stage-packages:
+      - mosquitto-clients
+      - curl
+    prime:
+      - usr/bin/
+      - usr/lib/
+      - lib/
+      - etc/wmbusmeters.conf
+
+apps:
+  wmbusmeters:
+    command: launcher.sh
+    daemon: simple
+    restart-condition: always
+    plugs:
+      - network
+      - network-bind
+      - raw-usb
