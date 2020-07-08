@@ -54,6 +54,7 @@
     X(qcaloric,   C1_bit, HeatCostAllocation, QCALORIC, QCaloric) \
     X(supercom587,T1_bit, Water,       SUPERCOM587, Supercom587)  \
     X(vario451,   T1_bit, Heat,        VARIO451,    Vario451)     \
+    X(waterstarm, C1_bit|T1_bit, Water,WATERSTARM,  WaterstarM)   \
 
 
 enum class MeterType {
@@ -224,6 +225,7 @@ unique_ptr<WaterMeter> createMultical21(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createFlowIQ3100(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatMeter> createMultical302(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatMeter> createVario451(WMBus *bus, MeterInfo &m);
+unique_ptr<WaterMeter> createWaterstarM(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createAmiplus(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createSupercom587(WMBus *bus, MeterInfo &m);

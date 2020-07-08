@@ -138,6 +138,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_rfmtx1.o \
 	$(BUILD)/meter_supercom587.o \
 	$(BUILD)/meter_vario451.o \
+	$(BUILD)/meter_waterstarm.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \

@@ -1214,16 +1214,28 @@ string Telegram::toStringFromAFLMC(int mc)
 string Telegram::toStringFromTPLConfig(int cfg)
 {
     string info = "";
+    if (cfg & 0x8000) info += "bidirectional ";
+    if (cfg & 0x4000) info += "accessibility ";
+    if (cfg & 0x2000) info += "synchronous ";
     if (cfg & 0x1f00)
     {
         int m = (cfg >> 8) & 0x1f;
         TPLSecurityMode tsm = fromIntToTPLSecurityMode(m);
         info += toString(tsm);
         info += " ";
+        if (tsm == TPLSecurityMode::AES_CBC_IV)
+        {
+            int num_blocks = (cfg & 0x00f0) >> 4;
+            int cntn = (cfg & 0x000c) >> 2;
+            int ra = (cfg & 0x0002) >> 1;
+            int hc = cfg & 0x0001;
+            info += "nb="+to_string(num_blocks);
+            info += " cntn="+to_string(cntn);
+            info += " ra="+to_string(ra);
+            info += " hc="+to_string(hc);
+            info += " ";
+        }
     }
-    if (cfg & 0x80) info += "bidirectional ";
-    if (cfg & 0x40) info += "accessibility ";
-    if (cfg & 0x20) info += "synchronous ";
     if (info.length() > 0) info.pop_back();
     return info;
 }
