@@ -101,16 +101,24 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::it
     frame.erase(pos, frame.end());
     debugPayload("(TPL) decrypting", buffer);
 
+    size_t len = buffer.size();
+
+    if (t->tpl_num_encr_blocks)
+    {
+        len = t->tpl_num_encr_blocks*16;
+    }
+
+    debug("(TPL) num encrypted blocks %d (%d bytes and remaining unencrypted %d bytes)\n",
+          t->tpl_num_encr_blocks, len, buffer.size()-len);
+
     // The content should be a multiple of 16 since we are using AES CBC mode.
-    if (buffer.size() % 16 != 0)
+    if (len % 16 != 0)
     {
         warning("(TPL) warning: decryption received non-multiple of 16 bytes! "
                 "Got %zu bytes shrinking message to %zu bytes.\n",
-                buffer.size(), buffer.size() - buffer.size() % 16);
-        while (buffer.size() % 16 != 0)
-        {
-            buffer.pop_back();
-        }
+                len, len - len % 16);
+        len -= len % 16;
+        assert (len % 16 == 0);
     }
 
     uchar iv[16];
@@ -129,10 +137,16 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::it
     uchar buffer_data[buffer.size()];
     memcpy(buffer_data, &buffer[0], buffer.size());
     uchar decrypted_data[buffer.size()];
-    AES_CBC_decrypt_buffer(decrypted_data, buffer_data, buffer.size(), &aeskey[0], iv);
+    AES_CBC_decrypt_buffer(decrypted_data, buffer_data, len, &aeskey[0], iv);
 
-    frame.insert(frame.end(), decrypted_data, decrypted_data+buffer.size());
-    debugPayload("(TPL) decrypted", frame, pos);
+    frame.insert(frame.end(), decrypted_data, decrypted_data+len);
+    debugPayload("(TPL) decrypted ", frame, pos);
+
+    if (len < buffer.size())
+    {
+        frame.insert(frame.end(), buffer_data+len, buffer_data+buffer.size());
+        debugPayload("(TPL) appended  ", frame, pos);
+    }
     return true;
 }
 
@@ -145,16 +159,24 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>:
     frame.erase(pos, frame.end());
     debugPayload("(TPL) decrypting", buffer);
 
+    size_t len = buffer.size();
+
+    if (t->tpl_num_encr_blocks)
+    {
+        len = t->tpl_num_encr_blocks*16;
+    }
+
+    debug("(TPL) num encrypted blocks %d (%d bytes and remaining unencrypted %d bytes)\n",
+          t->tpl_num_encr_blocks, len, buffer.size()-len);
+
     // The content should be a multiple of 16 since we are using AES CBC mode.
-    if (buffer.size() % 16 != 0)
+    if (len % 16 != 0)
     {
         warning("(TPL) warning: decryption received non-multiple of 16 bytes! "
                 "Got %zu bytes shrinking message to %zu bytes.\n",
-                buffer.size(), buffer.size() - buffer.size() % 16);
-        while (buffer.size() % 16 != 0)
-        {
-            buffer.pop_back();
-        }
+                len, len - len % 16);
+        len -= len % 16;
+        assert (len % 16 == 0);
     }
 
     uchar iv[16];
@@ -170,6 +192,13 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>:
     AES_CBC_decrypt_buffer(decrypted_data, buffer_data, buffer.size(), &aeskey[0], iv);
 
     frame.insert(frame.end(), decrypted_data, decrypted_data+buffer.size());
-    debugPayload("(TPL) decrypted", frame, pos);
+    debugPayload("(TPL) decrypted ", frame, pos);
+
+    if (len < buffer.size())
+    {
+        frame.insert(frame.end(), buffer_data+len, buffer_data+buffer.size());
+        debugPayload("(TPL) appended  ", frame, pos);
+    }
+
     return true;
 }

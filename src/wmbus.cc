@@ -1255,12 +1255,13 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
     bool has_cfg_ext = false;
     string info = toStringFromTPLConfig(tpl_cfg);
     info += " ";
+    if (tpl_sec_mode == TPLSecurityMode::AES_CBC_IV) // Security mode 5
+    {
+        tpl_num_encr_blocks = (tpl_cfg >> 4) & 0x0f;
+    }
     if (tpl_sec_mode == TPLSecurityMode::AES_CBC_NO_IV) // Security mode 7
     {
         tpl_num_encr_blocks = (tpl_cfg >> 4) & 0x0f;
-        info += "NEB=";
-        info += to_string(tpl_num_encr_blocks);
-        info += " ";
         has_cfg_ext = true;
     }
     addExplanationAndIncrementPos(pos, 2, "%02x%02x tpl-cfg %04x (%s)", cfg1, cfg2, tpl_cfg, info.c_str());
