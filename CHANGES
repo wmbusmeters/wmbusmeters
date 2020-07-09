@@ -1,3 +1,13 @@
+Version 0.9.34: 2020-07-09
+
+Wmbusmeters should now properly handle
+partially encrypted telegrams in mode 5 and 7.
+
+The docker image now builds rtl_wmbus from the weetmuts
+fork.
+
+Bibo supplied code to auto-update the Docker hub README.
+
 Version 0.9.33: 2020-07-01
 
 Bibo made docker fixes. Now rtl_sdr, rtl_wmbus
