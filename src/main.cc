@@ -265,7 +265,7 @@ bool startUsingCommandline(Configuration *config)
     auto output = unique_ptr<Printer>(new Printer(config->json, config->fields,
                                                   config->separator, config->meterfiles, config->meterfiles_dir,
                                                   config->use_logfile, config->logfile,
-                                                  config->shells,
+                                                  config->telegram_shells,
                                                   config->meterfiles_action == MeterFileType::Overwrite,
                                                   config->meterfiles_naming,
                                                   config->meterfiles_timestamp));

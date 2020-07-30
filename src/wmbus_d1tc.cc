@@ -41,6 +41,7 @@ struct WMBusD1TC : public virtual WMBusCommonImplementation
     void getConfiguration();
     SerialDevice *serial() { return serial_.get(); }
     void simulate() { }
+    bool reset();
 
     WMBusD1TC(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
     ~WMBusD1TC() { }
@@ -220,6 +221,11 @@ void WMBusD1TC::processSerialData()
             handleTelegram(payload);
         }
     }
+}
+
+bool WMBusD1TC::reset()
+{
+    return false;
 }
 
 AccessCheck detectD1TC(string device, int baud, SerialCommunicationManager *manager)

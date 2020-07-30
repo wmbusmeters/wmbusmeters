@@ -556,7 +556,7 @@ void resetWMBUSReceiver()
         int c = selectFromMenu("Select device", devices);
         string device = devices[c];
         int was_baud = 0;
-        AccessCheck ac = resetAMB8465(device, handler.get(), &was_baud);
+        AccessCheck ac = factoryResetAMB8465(device, handler.get(), &was_baud);
         if (ac == AccessCheck::AccessOK)
         {
             vector<string> entries;

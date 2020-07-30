@@ -47,6 +47,8 @@ using namespace std;
  This driver intentionally does not write to the dongle,
  if you are lucky, the dongle might receive nicely and
  not hang.
+
+ Update! It seems like the dongle will hang eventually anyway. :-(
 */
 struct WMBusWMB13U : public virtual WMBusCommonImplementation
 {
@@ -72,6 +74,7 @@ struct WMBusWMB13U : public virtual WMBusCommonImplementation
     void processSerialData();
     SerialDevice *serial() { return serial_.get(); }
     void simulate();
+    bool reset() { return false; }
 
     WMBusWMB13U(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
     ~WMBusWMB13U() { }

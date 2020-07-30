@@ -49,7 +49,8 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     string id;
     string key;
     string linkmodes;
-    vector<string> shells;
+    vector<string> telegram_shells;
+    vector<string> alarm_shells;
     vector<string> jsons;
 
     debug("(config) loading meter file %s\n", file.c_str());
@@ -74,7 +75,11 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         }
         else
         if (p.first == "shell") {
-            shells.push_back(p.second);
+            telegram_shells.push_back(p.second);
+        }
+        else
+        if (p.first == "alarm") {
+            alarm_shells.push_back(p.second);
         }
         else
         if (startsWith(p.first, "json_"))
@@ -136,7 +141,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         use = false;
     }
     if (use) {
-        c->meters.push_back(MeterInfo(name, type, id, key, modes, shells, jsons));
+        c->meters.push_back(MeterInfo(name, type, id, key, modes, telegram_shells, jsons));
     }
 
     return;
@@ -356,7 +361,7 @@ void handleSelectedFields(Configuration *c, string s)
 
 void handleShell(Configuration *c, string cmdline)
 {
-    c->shells.push_back(cmdline);
+    c->telegram_shells.push_back(cmdline);
 }
 
 void handleJson(Configuration *c, string json)

@@ -54,6 +54,7 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
     void processSerialData();
     SerialDevice *serial() { return NULL; }
     void simulate();
+    bool reset();
 
     WMBusRTLWMBUS(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
 
@@ -284,6 +285,11 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
 
     debug("(rtlwmbus) received full frame\n");
     return FullFrame;
+}
+
+bool WMBusRTLWMBUS::reset()
+{
+    return false;
 }
 
 AccessCheck detectRTLSDR(string device, SerialCommunicationManager *manager)

@@ -42,6 +42,7 @@ struct WMBusSimulator : public WMBusCommonImplementation
     void processSerialData();
     SerialDevice *serial() { return NULL; }
     void simulate();
+    bool reset() { return true; }
 
     WMBusSimulator(string file, SerialCommunicationManager *manager);
 

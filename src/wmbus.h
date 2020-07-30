@@ -408,7 +408,8 @@ LIST_OF_MBUS_DEVICES
 #undef X
 };
 
-struct WMBus {
+struct WMBus
+{
     virtual WMBusDeviceType type() = 0;
     virtual bool ping() = 0;
     virtual uint32_t getDeviceId() = 0;
@@ -421,6 +422,9 @@ struct WMBus {
     virtual void onTelegram(function<bool(vector<uchar>)> cb) = 0;
     virtual SerialDevice *serial() = 0;
     virtual void simulate() = 0;
+    // Close any underlying ttys or software and restart/reinitialize.
+    // Return true if ok.
+    virtual bool reset() = 0;
     virtual ~WMBus() = 0;
 };
 
@@ -504,10 +508,13 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
 
 AccessCheck detectIM871A(string device, SerialCommunicationManager *handler);
 AccessCheck detectAMB8465(string device, SerialCommunicationManager *handler);
-AccessCheck resetAMB8465(string device, SerialCommunicationManager *handler, int *was_baud);
 AccessCheck detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
 AccessCheck detectRTLSDR(string device, SerialCommunicationManager *handler);
 AccessCheck detectCUL(string device, SerialCommunicationManager *handler);
 AccessCheck detectWMB13U(string device, SerialCommunicationManager *handler);
+
+// Try to factory reset an AMB8465 by trying all possible serial speeds and
+// restore to factory settings.
+AccessCheck factoryResetAMB8465(string device, SerialCommunicationManager *handler, int *was_baud);
 
 #endif

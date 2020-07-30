@@ -48,6 +48,7 @@ struct SerialDevice
     virtual bool readonly() = 0;
 
     virtual void checkIfShouldReopen() = 0;
+    virtual bool reopen() = 0;
     virtual void fill(std::vector<uchar> &data) = 0; // Fill buffer with raw data.
     virtual SerialCommunicationManager *manager() = 0;
     virtual ~SerialDevice() = default;

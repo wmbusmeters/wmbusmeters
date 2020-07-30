@@ -41,6 +41,7 @@ struct WMBusRawTTY : public virtual WMBusCommonImplementation
     void getConfiguration();
     SerialDevice *serial() { return serial_.get(); }
     void simulate() { }
+    bool reset();
 
     WMBusRawTTY(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
     ~WMBusRawTTY() { }
@@ -153,6 +154,14 @@ void WMBusRawTTY::processSerialData()
             handleTelegram(payload);
         }
     }
+}
+
+bool WMBusRawTTY::reset()
+{
+    serial_->close();
+    serial_->reopen();
+
+    return true;
 }
 
 AccessCheck detectRawTTY(string device, int baud, SerialCommunicationManager *manager)

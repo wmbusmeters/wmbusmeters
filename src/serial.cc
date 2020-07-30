@@ -200,6 +200,7 @@ struct SerialDeviceTTY : public SerialDeviceImp
     AccessCheck open(bool fail_if_not_ok);
     void close();
     void checkIfShouldReopen();
+    bool reopen() { return false; }
     bool send(vector<uchar> &data);
     bool working();
     SerialCommunicationManager *manager() { return manager_; }
@@ -299,6 +300,19 @@ void SerialDeviceTTY::checkIfShouldReopen()
     }
 }
 
+/*
+void SerialDeviceTTY::forceReopen()
+{
+    debug("(serialtty) forced reopen and reset!\n", diff);
+    ::flock(fd_, LOCK_UN);
+    ::close(fd_);
+    fd_ = openSerialTTY(device_.c_str(), baud_rate_);
+    if (fd_ == -1)
+    {
+        error("Could not re-open %s with %d baud N81\n", device_.c_str(), baud_rate_);
+    }
+}
+*/
 bool SerialDeviceTTY::send(vector<uchar> &data)
 {
     if (data.size() == 0) return true;
@@ -353,6 +367,7 @@ struct SerialDeviceCommand : public SerialDeviceImp
     AccessCheck open(bool fail_if_not_ok);
     void close();
     void checkIfShouldReopen() {}
+    bool reopen() { return false; }
     bool send(vector<uchar> &data);
     int available();
     bool working();
@@ -463,6 +478,7 @@ struct SerialDeviceFile : public SerialDeviceImp
     AccessCheck open(bool fail_if_not_ok);
     void close();
     void checkIfShouldReopen();
+    bool reopen() { return false; }
     bool send(vector<uchar> &data);
     int available();
     SerialCommunicationManager *manager() { return manager_; }
@@ -550,6 +566,7 @@ struct SerialDeviceSimulator : public SerialDeviceImp
     AccessCheck open(bool fail_if_not_ok) { return AccessCheck::AccessOK; };
     void close() { manager_->closed(this); };
     void checkIfShouldReopen() { }
+    bool reopen() { return true; }
     bool send(vector<uchar> &data) { return true; };
     void fill(vector<uchar> &data) { data_ = data; on_data_(); }; // Fill buffer and trigger callback.
 

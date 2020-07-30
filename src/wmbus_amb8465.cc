@@ -66,22 +66,24 @@ struct WMBusAmber : public virtual WMBusCommonImplementation
     void getConfiguration();
     SerialDevice *serial() { return serial_.get(); }
     void simulate() { }
+    bool reset();
 
     WMBusAmber(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
     ~WMBusAmber() { }
 
 private:
     unique_ptr<SerialDevice> serial_;
-    SerialCommunicationManager *manager_;
+    SerialCommunicationManager *manager_ {};
     vector<uchar> read_buffer_;
     pthread_mutex_t command_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    sem_t command_wait_;
+    sem_t command_wait_ {};
     int sent_command_ {};
     int received_command_ {};
-    LinkModeSet link_modes_;
+    LinkModeSet link_modes_ {};
     vector<uchar> received_payload_;
-    bool rssi_expected_;
-    struct timeval timestamp_last_rx_;
+    bool rssi_expected_ {};
+    struct timeval timestamp_last_rx_ {};
+    int protocol_error_count_ {};
 
     void waitForResponse();
     FrameStatus checkAMB8465Frame(vector<uchar> &data,
@@ -410,6 +412,10 @@ void WMBusAmber::processSerialData()
         if (chunk_time.tv_sec >= 2) {
             verbose("(amb8465) rx long delay (%lds), drop incomplete telegram\n", chunk_time.tv_sec);
             read_buffer_.clear();
+            if (++protocol_error_count_ >= 20)
+            {
+                error("(amb8465) to many protocol errors.\n");
+            }
         }
         else
         {
@@ -448,6 +454,10 @@ void WMBusAmber::processSerialData()
             string msg = bin2hex(read_buffer_);
             debug("(amb8465) protocol error \"%s\"\n", msg.c_str());
             read_buffer_.clear();
+            if (++protocol_error_count_ >= 20)
+            {
+                error("(amb8465) to many protocol errors.\n");
+            }
             break;
         }
         if (status == FullFrame)
@@ -513,6 +523,16 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
     }
 }
 
+bool WMBusAmber::reset()
+{
+    serial_->close();
+    bool rc = serial_->reopen();
+    if (!rc) return false;
+    getConfiguration();
+    setLinkModes(link_modes_);
+    return true;
+}
+
 AccessCheck detectAMB8465(string device, SerialCommunicationManager *manager)
 {
     // Talk to the device and expect a very specific answer.
@@ -563,7 +583,7 @@ AccessCheck detectAMB8465(string device, SerialCommunicationManager *manager)
     return AccessCheck::AccessOK;
 }
 
-static AccessCheck tryResetAMB8465(string device, SerialCommunicationManager *manager, int baud)
+static AccessCheck tryFactoryResetAMB8465(string device, SerialCommunicationManager *manager, int baud)
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), baud);
@@ -625,13 +645,13 @@ static AccessCheck tryResetAMB8465(string device, SerialCommunicationManager *ma
 
 int bauds[] = { 1200, 2400, 4800, 9600, 19200, 38400, 56000, 115200, 0 };
 
-AccessCheck resetAMB8465(string device, SerialCommunicationManager *manager, int *was_baud)
+AccessCheck factoryResetAMB8465(string device, SerialCommunicationManager *manager, int *was_baud)
 {
     AccessCheck rc = AccessCheck::NotThere;
 
     for (int i=0; bauds[i] != 0; ++i)
     {
-        rc = tryResetAMB8465(device, manager, bauds[i]);
+        rc = tryFactoryResetAMB8465(device, manager, bauds[i]);
         if (rc == AccessCheck::AccessOK)
         {
             *was_baud = bauds[i];

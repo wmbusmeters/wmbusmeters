@@ -348,9 +348,18 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         if (!strncmp(argv[i], "--shell=", 8)) {
             string cmd = string(argv[i]+8);
             if (cmd == "") {
-                error("The shell command cannot be empty.\n");
+                error("The telegram shell command cannot be empty.\n");
             }
-            c->shells.push_back(cmd);
+            c->telegram_shells.push_back(cmd);
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--alarm=", 8)) {
+            string cmd = string(argv[i]+8);
+            if (cmd == "") {
+                error("The alarm shell command cannot be empty.\n");
+            }
+            c->alarm_shells.push_back(cmd);
             i++;
             continue;
         }

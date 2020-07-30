@@ -59,6 +59,7 @@ struct WMBusIM871A : public virtual WMBusCommonImplementation
     void processSerialData();
     SerialDevice *serial() { return serial_.get(); }
     void simulate() { }
+    bool reset();
 
     WMBusIM871A(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
     ~WMBusIM871A() { }
@@ -641,6 +642,11 @@ void WMBusIM871A::handleHWTest(int msgid, vector<uchar> &payload)
     default:
         verbose("(im871a) Unhandled hw test message %d\n", msgid);
     }
+}
+
+bool WMBusIM871A::reset()
+{
+    return false;
 }
 
 AccessCheck detectIM871A(string device, SerialCommunicationManager *manager)

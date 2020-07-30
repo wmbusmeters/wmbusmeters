@@ -60,6 +60,7 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
     void processSerialData();
     SerialDevice *serial() { return serial_.get(); }
     void simulate();
+    bool reset();
 
     WMBusCUL(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
     ~WMBusCUL() { }
@@ -258,6 +259,11 @@ void WMBusCUL::processSerialData()
             handleTelegram(payload);
         }
     }
+}
+
+bool WMBusCUL::reset()
+{
+    return false;
 }
 
 FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,

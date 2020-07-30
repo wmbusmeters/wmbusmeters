@@ -68,7 +68,8 @@ struct Configuration
     bool json {};
     bool fields {};
     char separator { ';' };
-    std::vector<std::string> shells;
+    std::vector<std::string> telegram_shells;
+    std::vector<std::string> alarm_shells;
     bool list_shell_envs {};
     bool list_fields {};
     bool oneshot {};
