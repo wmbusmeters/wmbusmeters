@@ -102,6 +102,9 @@ Received telegram from: 004444dd
 Received telegram from: 74737271
           manufacturer: (BMT) BMETERS, Italy
            device type: Water meter
+Received telegram from: 20096221
+          manufacturer: (DWZ) Lorenz, Germany
+           device type: Warm Water (30°C-90°C) meter
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)

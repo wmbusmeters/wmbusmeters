@@ -213,6 +213,7 @@ Diehl/Sappel IZAR RC 868 I R4 PL (izar) (non-standard protocol)
 Diehl HYDRUS (hydrus)
 Bmeters Hydrodigit (hydrodigit) (partly non-standard protocol)
 Honeywell Q400 (q400)
+Waterstar M (waterstarm)
 
 Supported heat cost allocators:
 Qundis Q caloric (qcaloric)
