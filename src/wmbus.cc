@@ -3439,7 +3439,7 @@ void WMBusCommonImplementation::checkStatus()
         }
 
         strprintf(msg, "Failed to reset wmbus device %s %s! Emergency exit!", toString(type()), device().c_str());
-        logAlarm("PROTOCOL_ERROR", msg);
+        logAlarm("WMBUS_DEVICE_ERROR", msg);
         manager_->stop();
         return;
     }
@@ -3454,7 +3454,8 @@ void WMBusCommonImplementation::checkStatus()
     }
 
     // The timeout has expired! But is the timeout expected because there should be no activity now?
-    // Also, do not alarm unless we actually have a possible timeout within the expected activity.
+    // Also, do not sound the alarm unless we actually have a possible timeout within the expected activity,
+    // otherwise we will always get an alarm when we enter the expected activity period.
     if (isInsideTimePeriod(now, expected_activity_) &&
         isInsideTimePeriod(then, expected_activity_))
     {
@@ -3471,7 +3472,7 @@ void WMBusCommonImplementation::checkStatus()
                   timeout_, now.c_str(), expected_activity_.c_str(),
                   since, toString(type()), device().c_str());
 
-        logAlarm("PROTOCOL_ERROR", msg);
+        logAlarm("TIMEOUT_ERROR", msg);
 
         bool ok = reset();
         if (ok)
@@ -3481,7 +3482,7 @@ void WMBusCommonImplementation::checkStatus()
         else
         {
             strprintf(msg, "Failed to reset wmbus device %s %s! Emergency exit!", toString(type()), device().c_str());
-            logAlarm("TIMEOUT_ERROR", msg);
+            logAlarm("WMBUS_DEVICE_ERROR", msg);
             manager_->stop();
         }
     }
