@@ -32,23 +32,20 @@ struct WMBusD1TC : public virtual WMBusCommonImplementation
     bool ping();
     uint32_t getDeviceId();
     LinkModeSet getLinkModes();
-    void setLinkModes(LinkModeSet lms);
+    void deviceReset();
+    void deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() { return Any_bit; }
     int numConcurrentLinkModes() { return 0; }
     bool canSetLinkModes(LinkModeSet desired_modes) { return true; }
 
     void processSerialData();
-    void getConfiguration();
-    SerialDevice *serial() { return serial_.get(); }
     void simulate() { }
-    bool reset();
 
     WMBusD1TC(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
     ~WMBusD1TC() { }
 
 private:
-    unique_ptr<SerialDevice> serial_;
-    SerialCommunicationManager *manager_;
+
     vector<uchar> read_buffer_;
     sem_t command_wait_;
     LinkModeSet link_modes_;
@@ -74,11 +71,11 @@ unique_ptr<WMBus> openD1TC(string device, SerialCommunicationManager *manager, u
 }
 
 WMBusD1TC::WMBusD1TC(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_D1TC), serial_(std::move(serial)), manager_(manager)
+    WMBusCommonImplementation(DEVICE_D1TC, manager, std::move(serial))
 {
     sem_init(&command_wait_, 0, 0);
-    manager_->listenTo(serial_.get(),call(this,processSerialData));
-    serial_->open(true);
+    manager_->listenTo(this->serial(),call(this,processSerialData));
+    reset();
 }
 
 bool WMBusD1TC::ping()
@@ -95,13 +92,17 @@ LinkModeSet WMBusD1TC::getLinkModes() {
     return link_modes_;
 }
 
-void WMBusD1TC::getConfiguration()
+void WMBusD1TC::deviceReset()
 {
+    // No device specific settings needed right now.
+    // The common code in wmbus.cc reset()
+    // will open the serial device and potentially
+    // set the link modes properly.
 }
 
-void WMBusD1TC::setLinkModes(LinkModeSet lms)
+void WMBusD1TC::deviceSetLinkModes(LinkModeSet lms)
 {
-    link_modes_ = lms;
+    // Need manual for d1tc!!!
 }
 
 void WMBusD1TC::waitForResponse() {
@@ -184,7 +185,7 @@ void WMBusD1TC::processSerialData()
     vector<uchar> data;
 
     // Receive and accumulated serial data until a full frame has been received.
-    serial_->receive(&data);
+    serial()->receive(&data);
 
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
@@ -221,11 +222,6 @@ void WMBusD1TC::processSerialData()
             handleTelegram(payload);
         }
     }
-}
-
-bool WMBusD1TC::reset()
-{
-    return false;
 }
 
 AccessCheck detectD1TC(string device, int baud, SerialCommunicationManager *manager)

@@ -75,4 +75,7 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_serial_bads.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_alarm.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 exit $RC

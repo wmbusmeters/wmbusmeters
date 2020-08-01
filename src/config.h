@@ -56,6 +56,8 @@ struct Configuration
     bool version {};
     bool license {};
     bool debug {};
+    bool trace {};
+    bool internaltesting {}; // Only for testing! When true, shorten all timeouts.
     bool logtelegrams {};
     bool meterfiles {};
     std::string meterfiles_dir;
@@ -70,6 +72,8 @@ struct Configuration
     char separator { ';' };
     std::vector<std::string> telegram_shells;
     std::vector<std::string> alarm_shells;
+    int alarm_timeout {}; // Maximum number of seconds between dongle receiving two telegrams.
+    std::string alarm_expected_activity; // Only warn when within these time periods.
     bool list_shell_envs {};
     bool list_fields {};
     bool oneshot {};

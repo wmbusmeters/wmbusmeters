@@ -408,9 +408,12 @@ LIST_OF_MBUS_DEVICES
 #undef X
 };
 
+const char *toString(WMBusDeviceType t);
+
 struct WMBus
 {
     virtual WMBusDeviceType type() = 0;
+    virtual std::string device() = 0;
     virtual bool ping() = 0;
     virtual uint32_t getDeviceId() = 0;
     virtual LinkModeSet getLinkModes() = 0;
@@ -422,9 +425,15 @@ struct WMBus
     virtual void onTelegram(function<bool(vector<uchar>)> cb) = 0;
     virtual SerialDevice *serial() = 0;
     virtual void simulate() = 0;
+    // This will check if the wmbus devices needs reset.
+    virtual void checkStatus() = 0;
     // Close any underlying ttys or software and restart/reinitialize.
     // Return true if ok.
     virtual bool reset() = 0;
+    // Set a dead-mans grip timeout, if no telegram is received
+    // within seconds, then invoke reset(). However do not reset
+    // when no activity is expected.
+    virtual void setTimeout(int seconds, std::string expected_activity) = 0;
     virtual ~WMBus() = 0;
 };
 

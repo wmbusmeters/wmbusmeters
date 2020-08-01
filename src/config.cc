@@ -29,7 +29,12 @@ pair<string,string> getNextKeyValue(vector<char> &buf, vector<char>::iterator &i
 {
     bool eof, err;
     string key, value;
-    key = eatToSkipWhitespace(buf, i, '=', 64, &eof, &err);
+    if (*i == '#')
+    {
+        string comment = eatToSkipWhitespace(buf, i, '\n', 4096, &eof, &err);
+        return { comment, "" };
+    }
+    key = eatToSkipWhitespace(buf, i, '=', 4096, &eof, &err);
     if (eof || err) goto nomore;
     value = eatToSkipWhitespace(buf, i, '\n', 4096, &eof, &err);
     if (err) goto nomore;
@@ -78,7 +83,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             telegram_shells.push_back(p.second);
         }
         else
-        if (p.first == "alarm") {
+        if (p.first == "alarmshell") {
             alarm_shells.push_back(p.second);
         }
         else
@@ -156,10 +161,31 @@ void handleLoglevel(Configuration *c, string loglevel)
         // Kick in debug immediately.
         debugEnabled(c->debug);
     }
+    else if (loglevel == "trace")
+    {
+        c->trace = true;
+        // Kick in trace immediately.
+        traceEnabled(c->trace);
+    }
     else if (loglevel == "silent") { c->silence = true; }
     else if (loglevel == "normal") { }
     else {
         warning("No such log level: \"%s\"\n", loglevel.c_str());
+    }
+}
+
+void handleInternalTesting(Configuration *c, string value)
+{
+    if (value == "true")
+    {
+        c->internaltesting = true;
+    }
+    else if (value == "false")
+    {
+        c->internaltesting = false;
+    }
+    else {
+        warning("Internaltesting should be either true or false, not \"%s\"\n", value.c_str());
     }
 }
 
@@ -321,6 +347,34 @@ void handleReopenAfter(Configuration *c, string s)
     }
 }
 
+void handleAlarmTimeout(Configuration *c, string s)
+{
+    if (s.length() >= 1)
+    {
+        c->alarm_timeout = parseTime(s.c_str());
+        if (c->alarm_timeout <= 0)
+        {
+            warning("Not a valid time for alarm timeout. \"%s\"\n", s.c_str());
+        }
+    }
+    else
+    {
+        warning("Alarm timeout must be a valid number of seconds.\n");
+    }
+}
+
+void handleAlarmExpectedActivity(Configuration *c, string s)
+{
+    if (!isValidTimePeriod(s))
+    {
+        warning("Not a valid time period string. \"%s\"\n", s.c_str());
+    }
+    else
+    {
+        c->alarm_expected_activity = s;
+    }
+}
+
 void handleSeparator(Configuration *c, string s)
 {
     if (s.length() == 1) {
@@ -334,7 +388,8 @@ void handleConversions(Configuration *c, string s)
 {
     char buf[s.length()+1];
     strcpy(buf, s.c_str());
-    const char *tok = strtok(buf, ",");
+    char *saveptr  {};
+    const char *tok = strtok_r(buf, ",", &saveptr);
     while (tok != NULL)
     {
         Unit u = toUnit(tok);
@@ -343,7 +398,7 @@ void handleConversions(Configuration *c, string s)
             warning("(warning) not a valid conversion unit: %s\n", tok);
         }
         c->conversions.push_back(u);
-        tok = strtok(NULL, ",");
+        tok = strtok_r(NULL, ",", &saveptr);
     }
 }
 
@@ -351,17 +406,23 @@ void handleSelectedFields(Configuration *c, string s)
 {
     char buf[s.length()+1];
     strcpy(buf, s.c_str());
-    const char *tok = strtok(buf, ",");
+    char *saveptr {};
+    const char *tok = strtok_r(buf, ",", &saveptr);
     while (tok != NULL)
     {
         c->selected_fields.push_back(tok);
-        tok = strtok(NULL, ",");
+        tok = strtok_r(NULL, ",", &saveptr);
     }
 }
 
 void handleShell(Configuration *c, string cmdline)
 {
     c->telegram_shells.push_back(cmdline);
+}
+
+void handleAlarmShell(Configuration *c, string cmdline)
+{
+    c->alarm_shells.push_back(cmdline);
 }
 
 void handleJson(Configuration *c, string json)
@@ -389,10 +450,12 @@ unique_ptr<Configuration> loadConfiguration(string root, string device_override,
     for (;;) {
         auto p = getNextKeyValue(global_conf, i);
 
+        debug("(config) \"%s\" \"%s\"\n", p.first.c_str(), p.second.c_str());
         if (p.first == "") break;
         // If the key starts with # then the line is a comment. Ignore it.
         if (p.first.length() > 0 && p.first[0] == '#') continue;
         if (p.first == "loglevel") handleLoglevel(c, p.second);
+        else if (p.first == "internaltesting") handleInternalTesting(c, p.second);
         else if (p.first == "device") handleDevice(c, p.second);
         else if (p.first == "listento") handleListenTo(c, p.second);
         else if (p.first == "logtelegrams") handleLogtelegrams(c, p.second);
@@ -403,10 +466,13 @@ unique_ptr<Configuration> loadConfiguration(string root, string device_override,
         else if (p.first == "logfile") handleLogfile(c, p.second);
         else if (p.first == "format") handleFormat(c, p.second);
         else if (p.first == "reopenafter") handleReopenAfter(c, p.second);
+        else if (p.first == "alarmtimeout") handleAlarmTimeout(c, p.second);
+        else if (p.first == "alarmexpectedactivity") handleAlarmExpectedActivity(c, p.second);
         else if (p.first == "separator") handleSeparator(c, p.second);
         else if (p.first == "addconversions") handleConversions(c, p.second);
         else if (p.first == "selectfields") handleSelectedFields(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);
+        else if (p.first == "alarmshell") handleAlarmShell(c, p.second);
         else if (startsWith(p.first, "json_"))
         {
             string s = p.first.substr(5);

@@ -18,6 +18,7 @@
 #include"util.h"
 #include"serial.h"
 #include"shell.h"
+#include"timings.h"
 
 #include <algorithm>
 #include <dirent.h>
@@ -47,6 +48,19 @@ struct SerialDeviceTTY;
 struct SerialDeviceCommand;
 struct SerialDeviceFile;
 struct SerialDeviceSimulator;
+struct Timer
+{
+    int id;
+    int seconds;
+    time_t last_call;
+    function<void()> callback;
+    string name;
+
+    bool isTime(time_t now)
+    {
+        return (last_call+seconds) <= now;
+    }
+};
 
 struct SerialCommunicationManagerImp : public SerialCommunicationManager
 {
@@ -71,12 +85,15 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     void closeAll();
 
     time_t reopenAfter() { return reopen_after_seconds_; }
+    int startRegularCallback(int seconds, function<void()> callback, string name);
+    void stopRegularCallback(int id);
 
     vector<string> listSerialDevices();
 
 private:
 
     void *eventLoop();
+    time_t calculateTimeToNearestTimerCallback(time_t now);
     static void *startLoop(void *);
 
     bool running_ {};
@@ -91,6 +108,7 @@ private:
     pthread_mutex_t event_loop_lock_ = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t devices_lock_ = PTHREAD_MUTEX_INITIALIZER;
     vector<SerialDeviceImp*> devices_;
+    vector<Timer> timers_;
 };
 
 SerialCommunicationManagerImp::~SerialCommunicationManagerImp()
@@ -115,6 +133,7 @@ struct SerialDeviceImp : public SerialDevice
     void expectAscii() { expecting_ascii_ = true; }
     void setIsFile() { is_file_ = true; }
     void setIsStdin() { is_stdin_ = true; }
+    string device() { return ""; }
 
 protected:
 
@@ -200,10 +219,10 @@ struct SerialDeviceTTY : public SerialDeviceImp
     AccessCheck open(bool fail_if_not_ok);
     void close();
     void checkIfShouldReopen();
-    bool reopen() { return false; }
     bool send(vector<uchar> &data);
     bool working();
     SerialCommunicationManager *manager() { return manager_; }
+    string device() { return device_; }
 
     private:
 
@@ -367,10 +386,10 @@ struct SerialDeviceCommand : public SerialDeviceImp
     AccessCheck open(bool fail_if_not_ok);
     void close();
     void checkIfShouldReopen() {}
-    bool reopen() { return false; }
     bool send(vector<uchar> &data);
     int available();
     bool working();
+    string device() { return command_; }
 
     SerialCommunicationManager *manager() { return manager_; }
 
@@ -478,9 +497,9 @@ struct SerialDeviceFile : public SerialDeviceImp
     AccessCheck open(bool fail_if_not_ok);
     void close();
     void checkIfShouldReopen();
-    bool reopen() { return false; }
     bool send(vector<uchar> &data);
     int available();
+    string device() { return file_; }
     SerialCommunicationManager *manager() { return manager_; }
 
     private:
@@ -566,7 +585,7 @@ struct SerialDeviceSimulator : public SerialDeviceImp
     AccessCheck open(bool fail_if_not_ok) { return AccessCheck::AccessOK; };
     void close() { manager_->closed(this); };
     void checkIfShouldReopen() { }
-    bool reopen() { return true; }
+    bool readonly() { return true; }
     bool send(vector<uchar> &data) { return true; };
     void fill(vector<uchar> &data) { data_ = data; on_data_(); }; // Fill buffer and trigger callback.
 
@@ -638,6 +657,7 @@ unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceSimula
 
 void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> cb)
 {
+    if (sd == NULL) return;
     SerialDeviceImp *si = dynamic_cast<SerialDeviceImp*>(sd);
     if (!si)
     {
@@ -755,6 +775,22 @@ void SerialCommunicationManagerImp::closeAll()
     }
 }
 
+time_t SerialCommunicationManagerImp::calculateTimeToNearestTimerCallback(time_t now)
+{
+    time_t r = 1024*1024*1024;
+    for (Timer &t : timers_)
+    {
+        // Expected time when to trigger in the future.
+        // Well, could be in the past as well, if we are unlucky.
+        time_t done = t.last_call+t.seconds;
+        // Now how long time is it left....could be negative
+        // if we are late.
+        time_t remaining = done-now;
+        if (remaining < r) r = remaining;
+    }
+    return r;
+}
+
 void *SerialCommunicationManagerImp::eventLoop()
 {
     fd_set readfds;
@@ -780,11 +816,19 @@ void *SerialCommunicationManagerImp::eventLoop()
             break;
         }
 
-        struct timeval timeout { 10, 0 };
+        int default_timeout = isInternalTestingEnabled() ? CHECKSTATUS_TIMER_INTERNAL_TESTING : CHECKSTATUS_TIMER;
 
+        struct timeval timeout { default_timeout, 0 };
+        time_t curr = time(NULL);
+
+        // Default timeout is once every 10 seconds. See timings.h
+        // This means that we will poll the status of tty:s and commands
+        // once every 10 seconds.
+
+        // However sometimes the timeout should be shorter.
+        // We might have an exit coming up...
         if (exit_after_seconds_ > 0)
         {
-            time_t curr = time(NULL);
             time_t diff = curr-start_time_;
             if (diff > exit_after_seconds_) {
                 verbose("(serial) exit after %ld seconds\n", diff);
@@ -792,7 +836,18 @@ void *SerialCommunicationManagerImp::eventLoop()
                 break;
             }
             timeout.tv_sec = exit_after_seconds_ - diff;
+            if (timeout.tv_sec < 0) timeout.tv_sec = 0;
         }
+
+        // We might have a regular timer callback coming up.
+        if (timers_.size() > 0)
+        {
+            time_t remaining = calculateTimeToNearestTimerCallback(curr);
+            if (remaining < 0) remaining = 0;
+            if (timeout.tv_sec > remaining) timeout.tv_sec = remaining;
+        }
+
+        trace("(trace serial) select timeout %d s\n", timeout.tv_sec);
 
         bool num_devices = 0;
         pthread_mutex_lock(&devices_lock_);
@@ -853,6 +908,17 @@ void *SerialCommunicationManagerImp::eventLoop()
             debug("(serial) closing non working fd=%d\n", d->fd());
             d->close();
         }
+
+        for (Timer &t : timers_)
+        {
+            if (t.isTime(curr))
+            {
+                trace("(trace serial) invoking callback %d %s\n", t.id, t.name.c_str());
+                t.last_call = curr;
+                t.callback();
+            }
+        }
+
         if (non_working.size() > 0)
         {
             stop();
@@ -943,6 +1009,26 @@ err:
 
 SerialCommunicationManager::~SerialCommunicationManager()
 {
+}
+
+int SerialCommunicationManagerImp::startRegularCallback(int seconds, function<void()> callback, string name)
+{
+    Timer t = { (int)timers_.size(), seconds, time(NULL), callback, name };
+    timers_.push_back(t);
+    debug("(serial) registered regular callback %d %s every %d seconds\n", t.id, name.c_str(), seconds);
+    return t.id;
+}
+
+void SerialCommunicationManagerImp::stopRegularCallback(int id)
+{
+    for (auto i = timers_.begin(); i != timers_.end(); ++i)
+    {
+        if ((*i).id == id)
+        {
+            timers_.erase(i);
+            return;
+        }
+    }
 }
 
 #if defined(__APPLE__)

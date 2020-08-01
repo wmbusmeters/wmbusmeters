@@ -55,7 +55,8 @@ struct WMBusWMB13U : public virtual WMBusCommonImplementation
     bool ping();
     uint32_t getDeviceId();
     LinkModeSet getLinkModes();
-    void setLinkModes(LinkModeSet lms);
+    void deviceReset();
+    void deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() {
         return
             C1_bit |
@@ -72,15 +73,13 @@ struct WMBusWMB13U : public virtual WMBusCommonImplementation
         return 1 == countSetBits(lms.bits());
     }
     void processSerialData();
-    SerialDevice *serial() { return serial_.get(); }
     void simulate();
-    bool reset() { return false; }
 
     WMBusWMB13U(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
     ~WMBusWMB13U() { }
 
 private:
-    unique_ptr<SerialDevice> serial_;
+
     SerialCommunicationManager *manager_ {};
     LinkModeSet link_modes_ {};
     vector<uchar> read_buffer_;
@@ -89,7 +88,7 @@ private:
     FrameStatus checkWMB13UFrame(vector<uchar> &data,
                                  size_t *frame_length,
                                  vector<uchar> &payload);
-    bool getConfigurationn();
+    bool getConfiguration();
     bool enterConfigModee();
     bool exitConfigModee();
     vector<uchar> config_;
@@ -109,15 +108,15 @@ unique_ptr<WMBus> openWMB13U(string device, SerialCommunicationManager *manager,
 }
 
 WMBusWMB13U::WMBusWMB13U(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_WMB13U), serial_(std::move(serial)), manager_(manager)
+    WMBusCommonImplementation(DEVICE_WMB13U, manager, std::move(serial))
 {
-    manager_->listenTo(serial_.get(),call(this,processSerialData));
-    serial_->open(true);
+    manager_->listenTo(this->serial(),call(this,processSerialData));
+    reset();
 }
 
 bool WMBusWMB13U::ping()
 {
-    if (serial_->readonly()) return true; // Feeding from stdin or file.
+    if (serial()->readonly()) return true; // Feeding from stdin or file.
 
     /*
     if (!enterConfigMode()) return false;
@@ -139,15 +138,19 @@ uint32_t WMBusWMB13U::getDeviceId()
 
 LinkModeSet WMBusWMB13U::getLinkModes()
 {
-    if (serial_->readonly()) { return Any_bit; }  // Feeding from stdin or file.
+    if (serial()->readonly()) { return Any_bit; }  // Feeding from stdin or file.
 
     // getConfiguration();
     return link_modes_;
 }
 
-void WMBusWMB13U::setLinkModes(LinkModeSet lms)
+void WMBusWMB13U::deviceReset()
 {
-    if (serial_->readonly()) return; // Feeding from stdin or file.
+}
+
+void WMBusWMB13U::deviceSetLinkModes(LinkModeSet lms)
+{
+    if (serial()->readonly()) return; // Feeding from stdin or file.
 
     if (!canSetLinkModes(lms))
     {
@@ -198,7 +201,7 @@ void WMBusWMB13U::processSerialData()
     // are in config mode. Stop this processing.
     if (pthread_mutex_trylock(&serial_lock_) != 0) return;
     // Receive and accumulated serial data until a full frame has been received.
-    serial_->receive(&data);
+    serial()->receive(&data);
     // Unlock the serial lock.
     pthread_mutex_unlock(&serial_lock_);
 
@@ -250,9 +253,9 @@ bool WMBusWMB13U::enterConfigModee()
     vector<uchar> wakeup(1), at(2);
     wakeup[0] = 0xff;
 
-    serial_->send(wakeup);
+    serial()->send(wakeup);
     usleep(1000*100);
-    serial_->receive(&data);
+    serial()->receive(&data);
 
     if (!startsWith("OK", data)) goto fail;
 
@@ -260,9 +263,9 @@ bool WMBusWMB13U::enterConfigModee()
     at[0] = 'A';
     at[1] = 'T';
 
-    serial_->send(at);
+    serial()->send(at);
     usleep(1000*100);
-    serial_->receive(&data);
+    serial()->receive(&data);
 
     if (!startsWith("OK", data)) goto fail;
 
@@ -283,9 +286,9 @@ bool WMBusWMB13U::exitConfigModee()
     atq[1] = 'T';
     atq[2] = 'Q';
 
-    serial_->send(atq);
+    serial()->send(atq);
     usleep(1000*100);
-    serial_->receive(&data);
+    serial()->receive(&data);
 
     // Always unlock....
     pthread_mutex_unlock(&serial_lock_);
@@ -310,7 +313,7 @@ const char *lmname(int i)
     return "?";
 }
 
-bool WMBusWMB13U::getConfigurationn()
+bool WMBusWMB13U::getConfiguration()
 {
     bool ok;
 
@@ -323,9 +326,9 @@ bool WMBusWMB13U::getConfigurationn()
     at0[1] = 'T';
     at0[2] = '0';
 
-    serial_->send(at0);
+    serial()->send(at0);
     usleep(1000*100);
-    serial_->receive(&config_);
+    serial()->receive(&config_);
 
     verbose("(wmb13u) config: link mode %02x (%s)\n", config_[0x01], lmname(config_[0x01]));
     verbose("(wmb13u) config: data frame format %02x\n", config_[0x35]);

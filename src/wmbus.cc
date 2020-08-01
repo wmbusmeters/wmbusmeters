@@ -16,6 +16,7 @@
 */
 
 #include"aescmac.h"
+#include"timings.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
 #include"dvparser.h"
@@ -95,7 +96,8 @@ LinkModeSet parseLinkModes(string m)
     LinkModeSet lms;
     char buf[m.length()+1];
     strcpy(buf, m.c_str());
-    const char *tok = strtok(buf, ",");
+    char *saveptr {};
+    const char *tok = strtok_r(buf, ",", &saveptr);
     while (tok != NULL)
     {
         LinkMode lm = isLinkMode(tok);
@@ -104,7 +106,7 @@ LinkModeSet parseLinkModes(string m)
             error("(wmbus) not a valid link mode: %s\n", tok);
         }
         lms.addLinkMode(lm);
-        tok = strtok(NULL, ",");
+        tok = strtok_r(NULL, ",", &saveptr);
     }
     return lms;
 }
@@ -3309,8 +3311,19 @@ bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_byt
     return ok;
 }
 
-WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t) : type_(t)
+WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
+                                                     SerialCommunicationManager *manager,
+                                                     unique_ptr<SerialDevice> serial)
+    : manager_(manager),
+      type_(t),
+      serial_(std::move(serial))
 {
+    // Initialize timeout from now.
+    last_received_ = time(NULL);
+
+    // Invoke the check status once per minute. Unless internal testing, then it is every 2 seconds.
+    int default_timer = isInternalTestingEnabled() ? CHECKSTATUS_TIMER_INTERNAL_TESTING : CHECKSTATUS_TIMER;
+    manager_->startRegularCallback(default_timer, call(this,checkStatus), toString(t));
 }
 
 WMBusDeviceType WMBusCommonImplementation::type()
@@ -3331,6 +3344,9 @@ void WMBusCommonImplementation::onTelegram(function<bool(vector<uchar>)> cb)
 bool WMBusCommonImplementation::handleTelegram(vector<uchar> frame)
 {
     bool handled = false;
+
+    last_received_ = time(NULL);
+
     for (auto f : telegram_listeners_)
     {
         if (f)
@@ -3345,6 +3361,143 @@ bool WMBusCommonImplementation::handleTelegram(vector<uchar> frame)
     }
 
     return handled;
+}
+
+void WMBusCommonImplementation::protocolErrorDetected()
+{
+    protocol_error_count_++;
+}
+
+void WMBusCommonImplementation::resetProtocolErrorCount()
+{
+    protocol_error_count_ = 0;
+}
+
+void WMBusCommonImplementation::setLinkModes(LinkModeSet lms)
+{
+    link_modes_ = lms;
+    deviceSetLinkModes(lms);
+    link_modes_configured_ = true;
+}
+
+bool WMBusCommonImplementation::areLinkModesConfigured()
+{
+    return link_modes_configured_;
+}
+
+LinkModeSet WMBusCommonImplementation::protectedGetLinkModes()
+{
+    return link_modes_;
+}
+
+bool WMBusCommonImplementation::reset()
+{
+    if (serial())
+    {
+        if (serial()->working())
+        {
+            // This is a reset, not an init. Close the serial device.
+            serial()->close();
+            usleep(1000*1000); // Sleep for a second.
+        }
+
+        AccessCheck rc = serial()->open(false);
+
+        if (rc != AccessCheck::AccessOK)
+        {
+            // Ouch....
+            return false;
+        }
+    }
+
+    // Invoke any other device specific resets for this device.
+    deviceReset();
+
+    // If init, then no link modes are configured.
+    // If reset, re-initialize the link modes.
+    if (areLinkModesConfigured())
+    {
+        deviceSetLinkModes(protectedGetLinkModes());
+    }
+
+    return true;
+}
+
+void WMBusCommonImplementation::checkStatus()
+{
+    if (protocol_error_count_ >= 20)
+    {
+        string msg;
+        strprintf(msg, "Hit max protocol errors(%d)! Resetting device %s %s!", protocol_error_count_, toString(type()), device().c_str());
+        logAlarm("PROTOCOL_ERROR", msg);
+        bool ok = reset();
+        if (ok)
+        {
+            warning("(wmbus) successfully reset wmbus device\n");
+            resetProtocolErrorCount();
+            return;
+        }
+
+        strprintf(msg, "Failed to reset wmbus device %s %s! Emergency exit!", toString(type()), device().c_str());
+        logAlarm("PROTOCOL_ERROR", msg);
+        manager_->stop();
+        return;
+    }
+
+    time_t now = time(NULL);
+    time_t then = now - timeout_;
+    time_t since = now-last_received_;
+    if (timeout_ > 0 && since < timeout_)
+    {
+        trace("(trace wmbus) No timeout. All ok. (%d s) Now %d seconds since last telegram was received.\n", since);
+        return;
+    }
+
+    // The timeout has expired! But is the timeout expected because there should be no activity now?
+    // Also, do not alarm unless we actually have a possible timeout within the expected activity.
+    if (isInsideTimePeriod(now, expected_activity_) &&
+        isInsideTimePeriod(then, expected_activity_))
+    {
+
+        time_t nowt = time(NULL);
+        struct tm nowtm;
+        localtime_r(&nowt, &nowtm);
+
+        string now = strdatetime(&nowtm);
+
+        string msg;
+        strprintf(msg, "Hit timeout(%d s) and %s is within expected activity (%s)!"
+                  " Now %d seconds since last telegram was received! Resetting device %s %s!",
+                  timeout_, now.c_str(), expected_activity_.c_str(),
+                  since, toString(type()), device().c_str());
+
+        logAlarm("PROTOCOL_ERROR", msg);
+
+        bool ok = reset();
+        if (ok)
+        {
+            warning("(wmbus) successfully reset wmbus device\n");
+        }
+        else
+        {
+            strprintf(msg, "Failed to reset wmbus device %s %s! Emergency exit!", toString(type()), device().c_str());
+            logAlarm("TIMEOUT_ERROR", msg);
+            manager_->stop();
+        }
+    }
+    else
+    {
+        debug("(wmbus) Hit timeout(%d s) but no expected activity!\n", timeout_);
+    }
+    // Fake last received to restart the timeout.
+    last_received_ = time(NULL);
+}
+
+void WMBusCommonImplementation::setTimeout(int seconds, string expected_activity)
+{
+    timeout_ = seconds;
+    expected_activity_ = expected_activity;
+    debug("(wmbus) set timeout %s to \"%d\" with expected activity \"%s\"\n", toString(type_), timeout_, expected_activity_.c_str());
 }
 
 int toInt(TPLSecurityMode tsm)
@@ -3754,4 +3907,16 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
 
     debug("(wmbus) received full frame.\n");
     return FullFrame;
+}
+
+const char *toString(WMBusDeviceType t)
+{
+    switch (t)
+    {
+#define X(name) case name: return #name;
+LIST_OF_MBUS_DEVICES
+#undef X
+
+    }
+    return "?";
 }

@@ -32,23 +32,20 @@ struct WMBusRawTTY : public virtual WMBusCommonImplementation
     bool ping();
     uint32_t getDeviceId();
     LinkModeSet getLinkModes();
-    void setLinkModes(LinkModeSet lms);
+    void deviceReset();
+    void deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() { return Any_bit; }
     int numConcurrentLinkModes() { return 0; }
     bool canSetLinkModes(LinkModeSet desired_modes) { return true; }
 
     void processSerialData();
-    void getConfiguration();
-    SerialDevice *serial() { return serial_.get(); }
     void simulate() { }
-    bool reset();
 
     WMBusRawTTY(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
     ~WMBusRawTTY() { }
 
 private:
-    unique_ptr<SerialDevice> serial_;
-    SerialCommunicationManager *manager_;
+
     vector<uchar> read_buffer_;
     sem_t command_wait_;
     LinkModeSet link_modes_;
@@ -70,11 +67,11 @@ unique_ptr<WMBus> openRawTTY(string device, int baudrate, SerialCommunicationMan
 }
 
 WMBusRawTTY::WMBusRawTTY(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_RAWTTY), serial_(std::move(serial)), manager_(manager)
+    WMBusCommonImplementation(DEVICE_RAWTTY, manager, std::move(serial))
 {
     sem_init(&command_wait_, 0, 0);
-    manager_->listenTo(serial_.get(),call(this,processSerialData));
-    serial_->open(true);
+    manager_->listenTo(this->serial(),call(this,processSerialData));
+    reset();
 }
 
 bool WMBusRawTTY::ping()
@@ -91,13 +88,12 @@ LinkModeSet WMBusRawTTY::getLinkModes() {
     return link_modes_;
 }
 
-void WMBusRawTTY::getConfiguration()
+void WMBusRawTTY::deviceReset()
 {
 }
 
-void WMBusRawTTY::setLinkModes(LinkModeSet lms)
+void WMBusRawTTY::deviceSetLinkModes(LinkModeSet lms)
 {
-    link_modes_ = lms;
 }
 
 void WMBusRawTTY::waitForResponse() {
@@ -117,7 +113,7 @@ void WMBusRawTTY::processSerialData()
     vector<uchar> data;
 
     // Receive and accumulated serial data until a full frame has been received.
-    serial_->receive(&data);
+    serial()->receive(&data);
 
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
@@ -154,14 +150,6 @@ void WMBusRawTTY::processSerialData()
             handleTelegram(payload);
         }
     }
-}
-
-bool WMBusRawTTY::reset()
-{
-    serial_->close();
-    serial_->reopen();
-
-    return true;
 }
 
 AccessCheck detectRawTTY(string device, int baud, SerialCommunicationManager *manager)

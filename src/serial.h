@@ -47,8 +47,10 @@ struct SerialDevice
     // Used when connecting stdin to a tty driver for testing.
     virtual bool readonly() = 0;
 
+    // Return underlying device as string.
+    virtual std::string device() = 0;
+
     virtual void checkIfShouldReopen() = 0;
-    virtual bool reopen() = 0;
     virtual void fill(std::vector<uchar> &data) = 0; // Fill buffer with raw data.
     virtual SerialCommunicationManager *manager() = 0;
     virtual ~SerialDevice() = default;
@@ -74,7 +76,10 @@ struct SerialCommunicationManager
     virtual void waitForStop() = 0;
     virtual bool isRunning() = 0;
     virtual void setReopenAfter(int seconds) = 0;
-
+    // Register a new timer that regularly, every seconds, invokes the callback.
+    // Returns an id for the timer.
+    virtual int startRegularCallback(int seconds, function<void()> callback, std::string name) = 0;
+    virtual void stopRegularCallback(int id) = 0;
     // List all real serial devices.
     virtual std::vector<std::string> listSerialDevices() = 0;
     virtual ~SerialCommunicationManager();

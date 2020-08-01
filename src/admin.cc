@@ -102,9 +102,9 @@ WINDOW *processes_window;
 
 int main(int argc, char **argv)
 {
-    if (argc == 2 && !strcmp(argv[1], "--debug"))
+    if (argc == 2 && (!strcmp(argv[1], "--debug") || !strcmp(argv[1], "--trace")))
     {
-        debugEnabled(true);
+        if (!strcmp(argv[1], "--trace")) traceEnabled(true); else debugEnabled(true);
         setlogmask(LOG_UPTO (LOG_INFO));
         openlog("wmbusmeters-admin", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
         enableSyslog();

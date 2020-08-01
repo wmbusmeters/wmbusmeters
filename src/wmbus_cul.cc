@@ -41,7 +41,8 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
     bool ping();
     uint32_t getDeviceId();
     LinkModeSet getLinkModes();
-    void setLinkModes(LinkModeSet lms);
+    void deviceReset();
+    void deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() {
         return
             C1_bit |
@@ -58,16 +59,13 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
         return 1 == countSetBits(lms.bits());
     }
     void processSerialData();
-    SerialDevice *serial() { return serial_.get(); }
     void simulate();
-    bool reset();
 
     WMBusCUL(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
     ~WMBusCUL() { }
 
 private:
-    unique_ptr<SerialDevice> serial_;
-    SerialCommunicationManager *manager_ {};
+
     LinkModeSet link_modes_ {};
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
@@ -98,11 +96,11 @@ unique_ptr<WMBus> openCUL(string device, SerialCommunicationManager *manager, un
 }
 
 WMBusCUL::WMBusCUL(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_CUL), serial_(std::move(serial)), manager_(manager)
+    WMBusCommonImplementation(DEVICE_CUL, manager, std::move(serial))
 {
     sem_init(&command_wait_, 0, 0);
-    manager_->listenTo(serial_.get(),call(this,processSerialData));
-    serial_->open(true);
+    manager_->listenTo(this->serial(),call(this,processSerialData));
+    reset();
 }
 
 bool WMBusCUL::ping()
@@ -122,9 +120,17 @@ LinkModeSet WMBusCUL::getLinkModes()
     return link_modes_;
 }
 
-void WMBusCUL::setLinkModes(LinkModeSet lms)
+void WMBusCUL::deviceReset()
 {
-    if (serial_->readonly()) return; // Feeding from stdin or file.
+    // No device specific settings needed right now.
+    // The common code in wmbus.cc reset()
+    // will open the serial device and potentially
+    // set the link modes properly.
+}
+
+void WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
+{
+    if (serial()->readonly()) return; // Feeding from stdin or file.
 
     if (!canSetLinkModes(lms))
     {
@@ -170,9 +176,6 @@ void WMBusCUL::setLinkModes(LinkModeSet lms)
         error("(cul) setting link mode(s) %s is not supported for this cul device!\n", modes.c_str());
     }
 
-    // Remember the link modes, necessary when using stdin or file.
-    link_modes_ = lms;
-
     // X01 - start the receiver
     msg[0] = 'X';
     msg[1] = '0';
@@ -216,7 +219,7 @@ void WMBusCUL::processSerialData()
     vector<uchar> data;
 
     // Receive and accumulated serial data until a full frame has been received.
-    serial_->receive(&data);
+    serial()->receive(&data);
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
     size_t frame_length;
@@ -259,11 +262,6 @@ void WMBusCUL::processSerialData()
             handleTelegram(payload);
         }
     }
-}
-
-bool WMBusCUL::reset()
-{
-    return false;
 }
 
 FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,

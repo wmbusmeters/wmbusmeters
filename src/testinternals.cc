@@ -34,6 +34,7 @@ int test_dvparser();
 int test_linkmodes();
 void test_ids();
 void test_kdf();
+void test_periods();
 
 int main(int argc, char **argv)
 {
@@ -48,6 +49,7 @@ int main(int argc, char **argv)
     test_linkmodes();
     test_ids();
     test_kdf();
+    test_periods();
     return 0;
 }
 
@@ -213,7 +215,6 @@ int test_linkmodes()
     vector<string> no_meter_shells, no_meter_jsons;
 
     unique_ptr<WMBus> wmbus_im871a = openIM871A("", manager.get(), std::move(serial1));
-
     unique_ptr<WMBus> wmbus_amb8465 = openAMB8465("", manager.get(), std::move(serial2));
     unique_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS("", manager.get(), [](){}, std::move(serial3));
     unique_ptr<WMBus> wmbus_rawtty = openRawTTY("", 0, manager.get(), std::move(serial4));
@@ -443,4 +444,36 @@ void test_kdf()
     {
         printf("ERROR in aes-cmac expected \"%s\" but got \"%s\"\n", ex.c_str(), s.c_str());
     }
+}
+
+void testp(time_t now, string period, bool expected)
+{
+    bool rc = isInsideTimePeriod(now, period);
+
+    char buf[256];
+    struct tm now_tm {};
+    localtime_r(&now, &now_tm);
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M %A", &now_tm);
+    string nows = buf;
+
+    if (expected == true && rc == false)
+    {
+        printf("ERROR in period test is \"%s\" in period \"%s\"? Expected true but got false!\n", nows.c_str(), period.c_str());
+    }
+    if (expected == false && rc == true)
+    {
+        printf("ERROR in period test is \"%s\" in period \"%s\"? Expected false but got true!\n", nows.c_str(), period.c_str());
+    }
+}
+
+void test_periods()
+{
+    // 0 means 1970-01-01 01:00 Thursday"
+    testp(0, "mon-sun(00-23)", true);
+    testp(0, "mon(00-23)", false);
+    testp(0, "thu-fri(01-01)", true);
+    testp(0, "mon-wed(00-23),thu(02-23),fri-sun(00-23)", false);
+    testp(0, "mon-wed(00-23),thu(01-23),fri-sun(00-23)", true);
+    testp(0, "thu(00-00)", false);
+    testp(0, "thu(01-01)", true);
 }

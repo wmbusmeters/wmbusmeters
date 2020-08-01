@@ -96,6 +96,11 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strcmp(argv[i], "--internaltesting")) {
+            c->internaltesting = true;
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--listento=", 11)) {
             LinkModeSet lms = parseLinkModes(argv[i]+11);
             if (lms.bits() == 0) {
@@ -354,8 +359,8 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--alarm=", 8)) {
-            string cmd = string(argv[i]+8);
+        if (!strncmp(argv[i], "--alarmshell=", 13)) {
+            string cmd = string(argv[i]+13);
             if (cmd == "") {
                 error("The alarm shell command cannot be empty.\n");
             }
@@ -407,6 +412,25 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--alarmtimeout=", 15)) {
+            c->alarm_timeout = parseTime(argv[i]+15);
+            if (c->alarm_timeout <= 0) {
+                error("Not a valid alarm timeout. \"%s\"\n", argv[i]+15);
+            }
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--alarmexpectedactivity=", 24)) {
+            string ea = string(argv[i]+24);
+            if (!isValidTimePeriod(ea))
+            {
+                error("Not a valid time period string. \"%s\"\n", ea.c_str());
+            }
+            c->alarm_expected_activity = ea;
+            i++;
+            continue;
+        }
+
         if (!strcmp(argv[i], "--")) {
             i++;
             break;
