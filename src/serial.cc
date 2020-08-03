@@ -93,13 +93,16 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
 private:
 
     void *eventLoop();
+    void *executeTimerCallbacks();
     time_t calculateTimeToNearestTimerCallback(time_t now);
     static void *startLoop(void *);
+    static void *runTimers(void *);
 
     bool running_ {};
     bool expect_devices_to_work_ {}; // false during detection phase, true when running.
     pthread_t main_thread_ {};
-    pthread_t thread_ {};
+    pthread_t select_thread_ {};
+    pthread_t timer_thread_ {};
     int max_fd_ {};
     time_t start_time_ {};
     time_t exit_after_seconds_ {};
@@ -617,9 +620,9 @@ SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_s
     if (start_event_loop)
     {
         pthread_mutex_lock(&event_loop_lock_);
-        pthread_create(&thread_, NULL, startLoop, this);
+        pthread_create(&select_thread_, NULL, startLoop, this);
     }
-    wakeMeUpOnSigChld(thread_);
+    wakeMeUpOnSigChld(select_thread_);
     start_time_ = time(NULL);
     exit_after_seconds_ = exit_after_seconds;
     reopen_after_seconds_ = reopen_after_seconds;
@@ -629,6 +632,12 @@ void *SerialCommunicationManagerImp::startLoop(void *a)
 {
     auto t = (SerialCommunicationManagerImp*)a;
     return t->eventLoop();
+}
+
+void *SerialCommunicationManagerImp::runTimers(void *a)
+{
+    auto t = (SerialCommunicationManagerImp*)a;
+    return t->executeTimerCallbacks();
 }
 
 unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device,
@@ -678,7 +687,7 @@ void SerialCommunicationManagerImp::stop()
             if (signalsInstalled())
             {
                 if (main_thread_) pthread_kill(main_thread_, SIGUSR2);
-                if (thread_) pthread_kill(thread_, SIGUSR1);
+                if (select_thread_) pthread_kill(select_thread_, SIGUSR1);
             }
         }
     }
@@ -709,9 +718,9 @@ void SerialCommunicationManagerImp::waitForStop()
     }
     if (signalsInstalled())
     {
-        if (thread_) pthread_kill(thread_, SIGUSR1);
+        if (select_thread_) pthread_kill(select_thread_, SIGUSR1);
     }
-    pthread_join(thread_, NULL);
+    pthread_join(select_thread_, NULL);
 
     debug("(serial) closing %d devices\n", devices_.size());
     closeAll();
@@ -734,7 +743,7 @@ void SerialCommunicationManagerImp::opened(SerialDeviceImp *sd)
     devices_.push_back(sd);
     if (signalsInstalled())
     {
-        if (thread_) pthread_kill(thread_, SIGUSR1);
+        if (select_thread_) pthread_kill(select_thread_, SIGUSR1);
     }
     pthread_mutex_unlock(&devices_lock_);
 }
@@ -773,6 +782,21 @@ void SerialCommunicationManagerImp::closeAll()
     {
         closed(d);
     }
+}
+
+void *SerialCommunicationManagerImp::executeTimerCallbacks()
+{
+    time_t curr = time(NULL);
+    for (Timer &t : timers_)
+    {
+        if (t.isTime(curr))
+        {
+            trace("(trace serial) invoking callback %d %s\n", t.id, t.name.c_str());
+            t.last_call = curr;
+            t.callback();
+        }
+    }
+    return NULL;
 }
 
 time_t SerialCommunicationManagerImp::calculateTimeToNearestTimerCallback(time_t now)
@@ -909,14 +933,15 @@ void *SerialCommunicationManagerImp::eventLoop()
             d->close();
         }
 
+        bool timer_found = false;
         for (Timer &t : timers_)
         {
-            if (t.isTime(curr))
-            {
-                trace("(trace serial) invoking callback %d %s\n", t.id, t.name.c_str());
-                t.last_call = curr;
-                t.callback();
-            }
+            timer_found |= t.isTime(curr);
+        }
+
+        if (timer_found)
+        {
+            pthread_create(&timer_thread_, NULL, runTimers, this);
         }
 
         if (non_working.size() > 0)
