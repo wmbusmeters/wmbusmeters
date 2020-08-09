@@ -190,7 +190,7 @@ void stopBackgroundShell(int pid)
     // The solution for now is to send sigint to 0, which
     // means send sigint to the whole process group that the
     // sender belongs to.
-    int rc = kill(0, SIGINT);
+    int rc = kill(pid, SIGTERM);
     if (rc < 0) {
         debug("(bgshell) could not sigint pid %d, exited already?\n", pid);
         return;

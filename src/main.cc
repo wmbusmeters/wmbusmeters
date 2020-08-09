@@ -97,7 +97,9 @@ provided you with this binary. Read the full license for all details.
         // We want the data visible in the log file asap!
         setbuf(stdout, NULL);
         startUsingCommandline(cmdline.get());
+        exit(0);
     }
+    error("(main) internal error\n");
 }
 
 bool startUsingCommandline(Configuration *config)
@@ -368,7 +370,6 @@ LIST_OF_METERS
     }
 
     manager->waitForStop();
-
     if (config->daemon) {
         notice("(wmbusmeters) shutting down\n");
     }
