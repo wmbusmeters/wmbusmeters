@@ -969,6 +969,7 @@ static int openSerialTTY(const char *tty, int baud_rate)
     int rc = 0;
     speed_t speed = 0;
     struct termios tios;
+    //int DTR_flag = TIOCM_DTR;
 
     int fd = open(tty, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (fd == -1) {
@@ -1020,6 +1021,11 @@ static int openSerialTTY(const char *tty, int baud_rate)
 
     rc = tcsetattr(fd, TCSANOW, &tios);
     if (rc < 0) goto err;
+
+    // This code can toggle DTR... maybe necessary
+    // for the pl2303 usb2serial driver/device.
+    //rc = ioctl(fd, TIOCMBIC, &DTR_flag);
+    //if (rc != 0) goto err;
 
     return fd;
 
