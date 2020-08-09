@@ -179,17 +179,8 @@ void stopBackgroundShell(int pid)
 {
     assert(pid > 0);
 
-    // This will actually stop the entire process group.
-    // But it is ok, for now, since this function is
-    // only called when wmbusmeters is exiting.
-
-    // If we send sigint only to pid, then this will
-    // not always propagate properly to the child processes
-    // of the bgshell, ie rtl_sdr and rtl_wmbus, thus
-    // leaving those hanging in limbo and messing everything up.
-    // The solution for now is to send sigint to 0, which
-    // means send sigint to the whole process group that the
-    // sender belongs to.
+    // Sending SIGTERM to the pid will properly shut down the subshell
+    // and its contents.
     int rc = kill(pid, SIGTERM);
     if (rc < 0) {
         debug("(bgshell) could not sigint pid %d, exited already?\n", pid);
