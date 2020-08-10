@@ -37,7 +37,8 @@ struct WMBusRTL433 : public virtual WMBusCommonImplementation
     bool ping();
     uint32_t getDeviceId();
     LinkModeSet getLinkModes();
-    void setLinkModes(LinkModeSet lms);
+    void deviceReset();
+    void deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() {
         return
             C1_bit |
@@ -52,9 +53,7 @@ struct WMBusRTL433 : public virtual WMBusCommonImplementation
     }
 
     void processSerialData();
-    SerialDevice *serial() { return NULL; }
     void simulate();
-    bool reset();
 
     WMBusRTL433(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
 
@@ -71,7 +70,6 @@ private:
     void handleMessage(vector<uchar> &frame);
 
     string setup_;
-    SerialCommunicationManager *manager_ {};
 };
 
 unique_ptr<WMBus> openRTL433(string command, SerialCommunicationManager *manager,
@@ -92,10 +90,10 @@ unique_ptr<WMBus> openRTL433(string command, SerialCommunicationManager *manager
 }
 
 WMBusRTL433::WMBusRTL433(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_RTL433), serial_(std::move(serial)), manager_(manager)
+    WMBusCommonImplementation(DEVICE_RTL433, manager, std::move(serial))
 {
-    manager_->listenTo(serial_.get(),call(this,processSerialData));
-    serial_->open(true);
+    manager_->listenTo(this->serial(),call(this,processSerialData));
+    reset();
 }
 
 bool WMBusRTL433::ping()
@@ -114,7 +112,11 @@ LinkModeSet WMBusRTL433::getLinkModes()
     return Any_bit;
 }
 
-void WMBusRTL433::setLinkModes(LinkModeSet lm)
+void WMBusRTL433::deviceReset()
+{
+}
+
+void WMBusRTL433::deviceSetLinkModes(LinkModeSet lm)
 {
 }
 
@@ -127,7 +129,7 @@ void WMBusRTL433::processSerialData()
     vector<uchar> data;
 
     // Receive and accumulated serial data until a full frame has been received.
-    serial_->receive(&data);
+    serial()->receive(&data);
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
     size_t frame_length;
@@ -292,9 +294,4 @@ FrameStatus WMBusRTL433::checkRTL433Frame(vector<uchar> &data,
     *hex_payload_offset = i;
 
     return FullFrame;
-}
-
-bool WMBusRTL433::reset()
-{
-    return false;
 }
