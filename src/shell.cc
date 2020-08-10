@@ -116,6 +116,13 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
     *pid = fork();
     if (*pid == 0) {
         // I am the child!
+        // Restore the handlers in the child.
+        restoreSignalHandlers();
+
+        // Make this child a process group leader,
+        // so that we can easily terminate it and all its
+        // subprocesses later one!
+        setpgid(0, 0);
         // Redirect stdout and stderr to pipe
         dup2 (link[1], STDOUT_FILENO);
         dup2 (link[1], STDERR_FILENO);
@@ -181,13 +188,17 @@ void stopBackgroundShell(int pid)
 
     // Sending SIGTERM to the pid will properly shut down the subshell
     // and its contents.
-    int rc = kill(pid, SIGTERM);
+    // You can check process group ids for rtl_sdr|rtl_wmbus using this command,
+    // replace rtl with whatever it is that you start inside the subshell.
+    //    ps -axcf -o pid,ppid,pgid,comm  | grep -B 10 -A 10 rtl
+    debug("(shell) sending SIGTERM to process group %d\n", pid);
+    int rc = kill(-pid, SIGTERM);
     if (rc < 0) {
-        debug("(bgshell) could not sigint pid %d, exited already?\n", pid);
+        debug("(bgshell) could not sigterm -%d, exited already?\n", pid);
         return;
     }
     // Wait for the child to finish!
-    debug("(bgshell) sent sigint, now waiting for child %d to exit.\n", pid);
+    debug("(bgshell) sent sigterm, now waiting for child %d to exit.\n", pid);
     int status;
     int p = waitpid(pid, &status, 0);
     if (p < 0) {
