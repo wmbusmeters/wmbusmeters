@@ -152,7 +152,6 @@ void WMBusRTLWMBUS::processSerialData()
         if (status == ErrorInFrame)
         {
             debug("(rtlwmbus) error in received message.\n");
-            string msg = bin2hex(read_buffer_);
             read_buffer_.clear();
             break;
         }

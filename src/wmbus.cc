@@ -628,6 +628,7 @@ Detected detectImstAmberCul(string devicefile,
   cul
   d1tc
   rtlwmbus: the devicefile produces rtlwmbus messages, ie. T1;1;1;2019-04-03 19:00:42.000;97;148;88888888;0x6e440106...ae03a77
+  rtl433: the devicefile produces rtl433 csv lines, ie. 2020-08-10 20:40:47,,,Wireless-MBus,,22232425,,,,CRC, ,25442d...23411d,,,,
   simulation: assume the devicefile produces telegram=|....|+xx lines. This can also pace the simulated telegrams in time.
   a baud rate like 38400: assume the devicefile is a raw tty character device.
 */
@@ -650,6 +651,12 @@ Detected detectWMBusDeviceSetting(string devicefile,
     {
         debug("(detect) driver: rtlwmbus\n");
         return { DEVICE_RTLWMBUS, "", false };
+    }
+
+    if (devicefile == "rtl433")
+    {
+        debug("(detect) driver: rtl433\n");
+        return { DEVICE_RTL433, "", false };
     }
 
     // Is it a file named simulation_xxx.txt ?
@@ -677,6 +684,7 @@ Detected detectWMBusDeviceSetting(string devicefile,
     if (suffix == "im871a") return { DEVICE_IM871A, devicefile, 0, override_tty };
     if (suffix == "rfmrx2") return { DEVICE_RFMRX2, devicefile, 0, override_tty };
     if (suffix == "rtlwmbus") return { DEVICE_RTLWMBUS, devicefile, 0, override_tty };
+    if (suffix == "rtl433") return { DEVICE_RTL433, devicefile, 0, override_tty };
     if (suffix == "cul") return { DEVICE_CUL, devicefile, 0, override_tty };
     if (suffix == "d1tc") return { DEVICE_D1TC, devicefile, 0, override_tty };
     if (suffix == "wmb13u") return { DEVICE_WMB13U, devicefile, 0, override_tty };
