@@ -694,7 +694,6 @@ void SerialCommunicationManagerImp::stop()
     {
         debug("(serial) stopping manager\n");
         running_ = false;
-        assert(0);
         if (main_thread_ != 0)
         {
             if (signalsInstalled())
@@ -846,8 +845,9 @@ void *SerialCommunicationManagerImp::eventLoop()
         }
         pthread_mutex_unlock(&devices_lock_);
 
-        if (!all_working)
+        if (!all_working && resetting_ == false)
         {
+            debug("(serial) not all devices working, emergency exit!\n");
             stop();
             break;
         }
@@ -968,8 +968,9 @@ void *SerialCommunicationManagerImp::eventLoop()
             }
         }
 
-        if (non_working.size() > 0)
+        if (non_working.size() > 0 && resetting_ == false)
         {
+            debug("(serial) non working devices found, exiting.\n");
             stop();
             break;
         }

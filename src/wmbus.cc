@@ -3401,9 +3401,8 @@ bool WMBusCommonImplementation::reset()
             resetting = true;
             serial()->manager()->resetInitiated();
             serial()->close();
-            fprintf(stderr, "STOPPED serial, sleeping....\n");
-            usleep(3000*1000); // Sleep for two seconds.
-            fprintf(stderr, "DONE sleeping\n");
+            // Give the device 3 seconds to shut down properly.
+            usleep(3000*1000);
         }
 
         AccessCheck rc = serial()->open(false);
@@ -3418,7 +3417,6 @@ bool WMBusCommonImplementation::reset()
     // Invoke any other device specific resets for this device.
     deviceReset();
 
-    debug("(GURKA) %d\n", resetting);
     if (resetting) serial()->manager()->resetCompleted();
 
     // If init, then no link modes are configured.
@@ -3437,7 +3435,7 @@ void WMBusCommonImplementation::checkStatus()
     {
         string msg;
         strprintf(msg, "Hit max protocol errors(%d)! Resetting device %s %s!", protocol_error_count_, toString(type()), device().c_str());
-        logAlarm("PROTOCOL_ERROR", msg);
+        logAlarm("device_failure", msg);
         bool ok = reset();
         if (ok)
         {
@@ -3447,7 +3445,7 @@ void WMBusCommonImplementation::checkStatus()
         }
 
         strprintf(msg, "Failed to reset wmbus device %s %s! Emergency exit!", toString(type()), device().c_str());
-        logAlarm("WMBUS_DEVICE_ERROR", msg);
+        logAlarm("device_failure", msg);
         manager_->stop();
         return;
     }
@@ -3480,7 +3478,7 @@ void WMBusCommonImplementation::checkStatus()
                   timeout_, now.c_str(), expected_activity_.c_str(),
                   since, toString(type()), device().c_str());
 
-        logAlarm("TIMEOUT_ERROR", msg);
+        logAlarm("inactivity", msg);
 
         bool ok = reset();
         if (ok)
@@ -3490,7 +3488,7 @@ void WMBusCommonImplementation::checkStatus()
         else
         {
             strprintf(msg, "Failed to reset wmbus device %s %s! Emergency exit!", toString(type()), device().c_str());
-            logAlarm("WMBUS_DEVICE_ERROR", msg);
+            logAlarm("device_failure", msg);
             manager_->stop();
         }
     }
