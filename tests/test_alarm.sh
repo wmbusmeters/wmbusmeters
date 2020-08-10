@@ -15,7 +15,7 @@ echo "RUNNING $TESTNAME ..."
 $PROG --useconfig=tests/config7 --device=simulations/simulation_alarm.txt | sed 's/....-..-.. ..:../1111-11-11 11:11/' > $TEST/test_output.txt
 
 cat > $TEST/test_expected.txt <<EOF
-(alarm) TIMEOUT_ERROR Hit timeout(1 s) and 1111-11-11 11:11 is within expected activity (mon-sun(00-23))! Now 2 seconds since last telegram was received! Resetting device DEVICE_SIMULATOR simulations/simulation_alarm.txt!
+(alarm) inactivity: 2 seconds of inactivity resetting simulations/simulation_alarm.txt DEVICE_SIMULATOR (timeout 1s expected mon-sun(00-23) now 1111-11-11 11:11)
 (wmbus) successfully reset wmbus device
 EOF
 
@@ -25,7 +25,7 @@ METER =={"media":"cold water","meter":"multical21","name":"Water","id":"76348799
 EOF
 
 cat > /tmp/wmbusmeters_alarm_expected <<EOF
-ALARM_SHELL TIMEOUT_ERROR Hit timeout(1 s) and 1111-11-11 11:11 is within expected activity (mon-sun(00-23))! Now 2 seconds since last telegram was received! Resetting device DEVICE_SIMULATOR simulations/simulation_alarm.txt!
+ALARM_SHELL inactivity 2 seconds of inactivity resetting simulations/simulation_alarm.txt DEVICE_SIMULATOR (timeout 1s expected mon-sun(00-23) now 1111-11-11 11:11)
 EOF
 
 REST=$(diff $TEST/test_output.txt $TEST/test_expected.txt)

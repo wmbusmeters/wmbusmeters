@@ -3434,7 +3434,7 @@ void WMBusCommonImplementation::checkStatus()
     if (protocol_error_count_ >= 20)
     {
         string msg;
-        strprintf(msg, "Hit max protocol errors(%d)! Resetting device %s %s!", protocol_error_count_, toString(type()), device().c_str());
+        strprintf(msg, "too many protocol errors(%d) resetting %s %s", protocol_error_count_, device().c_str(), toString(type()));
         logAlarm("device_failure", msg);
         bool ok = reset();
         if (ok)
@@ -3444,7 +3444,7 @@ void WMBusCommonImplementation::checkStatus()
             return;
         }
 
-        strprintf(msg, "Failed to reset wmbus device %s %s! Emergency exit!", toString(type()), device().c_str());
+        strprintf(msg, "failed to reset wmbus device %s %s exiting wmbusmeters", device().c_str(), toString(type()));
         logAlarm("device_failure", msg);
         manager_->stop();
         return;
@@ -3473,10 +3473,10 @@ void WMBusCommonImplementation::checkStatus()
         string now = strdatetime(&nowtm);
 
         string msg;
-        strprintf(msg, "Hit timeout(%d s) and %s is within expected activity (%s)!"
-                  " Now %d seconds since last telegram was received! Resetting device %s %s!",
-                  timeout_, now.c_str(), expected_activity_.c_str(),
-                  since, toString(type()), device().c_str());
+        strprintf(msg, "%d seconds of inactivity resetting %s %s "
+                  "(timeout %ds expected %s now %s)",
+                  since, device().c_str(), toString(type()),
+                  timeout_, expected_activity_.c_str(), now.c_str());
 
         logAlarm("inactivity", msg);
 
@@ -3487,7 +3487,7 @@ void WMBusCommonImplementation::checkStatus()
         }
         else
         {
-            strprintf(msg, "Failed to reset wmbus device %s %s! Emergency exit!", toString(type()), device().c_str());
+            strprintf(msg, "failed to reset wmbus device %s %s exiting wmbusmeters", device().c_str(), toString(type()));
             logAlarm("device_failure", msg);
             manager_->stop();
         }

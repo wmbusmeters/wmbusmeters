@@ -1360,7 +1360,7 @@ void logAlarm(string type, string msg)
     envs.push_back("ALARM_TYPE="+type);
     envs.push_back("ALARM_MESSAGE="+msg);
 
-    warning("(alarm) %s %s\n", type.c_str(), msg.c_str());
+    warning("(alarm) %s: %s\n", type.c_str(), msg.c_str());
 
     for (auto &s : alarm_shells_)
     {
