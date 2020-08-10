@@ -399,6 +399,7 @@ struct Meter;
     X(DEVICE_RFMRX2)\
     X(DEVICE_SIMULATOR)\
     X(DEVICE_RTLWMBUS)\
+    X(DEVICE_RTL433)\
     X(DEVICE_RAWTTY)\
     X(DEVICE_WMB13U)
 
@@ -451,6 +452,8 @@ unique_ptr<WMBus> openRawTTY(string device, int baudrate, SerialCommunicationMan
                              unique_ptr<SerialDevice> serial_override);
 unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager, std::function<void()> on_exit,
                                unique_ptr<SerialDevice> serial_override);
+unique_ptr<WMBus> openRTL433(string device, SerialCommunicationManager *manager, std::function<void()> on_exit,
+                             unique_ptr<SerialDevice> serial_override);
 unique_ptr<WMBus> openCUL(string device, SerialCommunicationManager *manager,
                               unique_ptr<SerialDevice> serial_override);
 unique_ptr<WMBus> openD1TC(string device, SerialCommunicationManager *manager,

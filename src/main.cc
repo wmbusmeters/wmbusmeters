@@ -231,6 +231,42 @@ bool startUsingCommandline(Configuration *config)
                              std::move(serial_override));
         break;
     }
+    case DEVICE_RTL433:
+    {
+        string command;
+        if (!settings.override_tty)
+        {
+            command = config->device_extra;
+            string freq = "868.95M";
+            string prefix = "";
+            if (isFrequency(command)) {
+                freq = command;
+                command = "";
+            }
+            if (config->daemon) {
+                prefix = "/usr/bin/";
+                if (command == "")
+                {
+                    // Default command is used, check that the binaries are in place.
+                    if (!checkFileExists("/usr/bin/rtl_433"))
+                    {
+                        error("(rtl433) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_433 to exist!\n");
+                    }
+                }
+            }
+            if (command == "") {
+                command = prefix+"rtl_433 -F csv -f "+freq;
+            }
+            verbose("(rtl433) using command: %s\n", command.c_str());
+        }
+        wmbus = openRTL433(command, manager.get(),
+                             [command](){
+                                 warning("(rtl433) child process exited! "
+                                         "Command was: \"%s\"\n", command.c_str());
+                             },
+                             std::move(serial_override));
+        break;
+    }
     case DEVICE_CUL:
     {
         verbose("(cul) on %s\n", settings.devicefile.c_str());

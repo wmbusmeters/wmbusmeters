@@ -32,7 +32,7 @@
 
 using namespace std;
 
-struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
+struct WMBusRTL433 : public virtual WMBusCommonImplementation
 {
     bool ping();
     uint32_t getDeviceId();
@@ -47,7 +47,7 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
     bool canSetLinkModes(LinkModeSet lms)
     {
         if (!supportedLinkModes().supports(lms)) return false;
-        // The rtlwmbus listens to both modes always.
+        // The rtl433 listens to both modes always.
         return true;
     }
 
@@ -56,7 +56,7 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
     void simulate();
     bool reset();
 
-    WMBusRTLWMBUS(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    WMBusRTL433(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
 
 private:
     unique_ptr<SerialDevice> serial_;
@@ -64,7 +64,7 @@ private:
     vector<uchar> received_payload_;
     bool warning_dll_len_printed_ {};
 
-    FrameStatus checkRTLWMBUSFrame(vector<uchar> &data,
+    FrameStatus checkRTL433Frame(vector<uchar> &data,
                                    size_t *hex_frame_length,
                                    int *hex_payload_len_out,
                                    int *hex_payload_offset);
@@ -74,7 +74,7 @@ private:
     SerialCommunicationManager *manager_ {};
 };
 
-unique_ptr<WMBus> openRTLWMBUS(string command, SerialCommunicationManager *manager,
+unique_ptr<WMBus> openRTL433(string command, SerialCommunicationManager *manager,
                                function<void()> on_exit, unique_ptr<SerialDevice> serial_override)
 {
     vector<string> args;
@@ -83,46 +83,46 @@ unique_ptr<WMBus> openRTLWMBUS(string command, SerialCommunicationManager *manag
     args.push_back(command);
     if (serial_override)
     {
-        WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(std::move(serial_override), manager);
+        WMBusRTL433 *imp = new WMBusRTL433(std::move(serial_override), manager);
         return unique_ptr<WMBus>(imp);
     }
     auto serial = manager->createSerialDeviceCommand("/bin/sh", args, envs, on_exit);
-    WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(std::move(serial), manager);
+    WMBusRTL433 *imp = new WMBusRTL433(std::move(serial), manager);
     return unique_ptr<WMBus>(imp);
 }
 
-WMBusRTLWMBUS::WMBusRTLWMBUS(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_RTLWMBUS), serial_(std::move(serial)), manager_(manager)
+WMBusRTL433::WMBusRTL433(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
+    WMBusCommonImplementation(DEVICE_RTL433), serial_(std::move(serial)), manager_(manager)
 {
     manager_->listenTo(serial_.get(),call(this,processSerialData));
     serial_->open(true);
 }
 
-bool WMBusRTLWMBUS::ping()
+bool WMBusRTL433::ping()
 {
     return true;
 }
 
-uint32_t WMBusRTLWMBUS::getDeviceId()
+uint32_t WMBusRTL433::getDeviceId()
 {
     return 0x11111111;
 }
 
-LinkModeSet WMBusRTLWMBUS::getLinkModes()
+LinkModeSet WMBusRTL433::getLinkModes()
 {
 
     return Any_bit;
 }
 
-void WMBusRTLWMBUS::setLinkModes(LinkModeSet lm)
+void WMBusRTL433::setLinkModes(LinkModeSet lm)
 {
 }
 
-void WMBusRTLWMBUS::simulate()
+void WMBusRTL433::simulate()
 {
 }
 
-void WMBusRTLWMBUS::processSerialData()
+void WMBusRTL433::processSerialData()
 {
     vector<uchar> data;
 
@@ -135,7 +135,7 @@ void WMBusRTLWMBUS::processSerialData()
 
     for (;;)
     {
-        FrameStatus status = checkRTLWMBUSFrame(read_buffer_, &frame_length, &hex_payload_len, &hex_payload_offset);
+        FrameStatus status = checkRTL433Frame(read_buffer_, &frame_length, &hex_payload_len, &hex_payload_offset);
 
         if (status == PartialFrame)
         {
@@ -144,14 +144,30 @@ void WMBusRTLWMBUS::processSerialData()
         if (status == TextAndNotFrame)
         {
             // The buffer has already been printed by serial cmd.
-            read_buffer_.clear();
-            break;
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            if (read_buffer_.size() == 0)
+            {
+                break;
+            }
+            else
+            {
+                // Decode next line.
+                continue;
+            }
         }
         if (status == ErrorInFrame)
         {
-            debug("(rtlwmbus) error in received message.\n");
-            read_buffer_.clear();
-            break;
+            debug("(rtl433) error in received message.\n");
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
+            if (read_buffer_.size() == 0)
+            {
+                break;
+            }
+            else
+            {
+                // Decode next line.
+                continue;
+            }
         }
         if (status == FullFrame)
         {
@@ -166,13 +182,13 @@ void WMBusRTLWMBUS::processSerialData()
                     if (hex.size() % 2 == 1)
                     {
                         payload.clear();
-                        warning("(rtlwmbus) warning: the hex string is not an even multiple of two! Dropping last char.\n");
+                        warning("(rtl433) warning: the hex string is not an even multiple of two! Dropping last char.\n");
                         hex.pop_back();
                         ok = hex2bin(hex, &payload);
                     }
                     if (!ok)
                     {
-                        warning("(rtlwmbus) warning: the hex string contains bad characters! Decode stopped partway.\n");
+                        warning("(rtl433) warning: the hex string contains bad characters! Decode stopped partway.\n");
                     }
                 }
             }
@@ -184,7 +200,7 @@ void WMBusRTLWMBUS::processSerialData()
                 {
                     if (!warning_dll_len_printed_)
                     {
-                        warning("(rtlwmbus) dll_len adjusted to %d from %d. Upgrade rtl_wmbus? This warning will not be printed again.\n", payload.size()-1, payload[0]);
+                        warning("(rtl433) dll_len adjusted to %d from %d. Fix rtl_433? This warning will not be printed again.\n", payload.size()-1, payload[0]);
                         warning_dll_len_printed_ = true;
                     }
                     payload[0] = payload.size()-1;
@@ -195,104 +211,90 @@ void WMBusRTLWMBUS::processSerialData()
     }
 }
 
-FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
-                                              size_t *hex_frame_length,
-                                              int *hex_payload_len_out,
-                                              int *hex_payload_offset)
+FrameStatus WMBusRTL433::checkRTL433Frame(vector<uchar> &data,
+                                          size_t *hex_frame_length,
+                                          int *hex_payload_len_out,
+                                          int *hex_payload_offset)
 {
-    // C1;1;1;2019-02-09 07:14:18.000;117;102;94740459;0x49449344590474943508780dff5f3500827f0000f10007b06effff530100005f2c620100007f2118010000008000800080008000000000000000000e003f005500d4ff2f046d10086922
-    // There might be a second telegram on the same line ;0x4944.......
+    // 2020-08-10 20:40:47,,,Wireless-MBus,,22232425,,,,CRC,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,25442d2c252423221b168d209f38810821c3f371825d5c25b5bdea9821786aec9e2d,,,,,22,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,C,27,Cold Water,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+
     if (data.size() == 0) return PartialFrame;
 
     if (isDebugEnabled())
     {
         string msg = safeString(data);
-        debug("(rtlwmbus) checkRTLWMBusFrame \"%s\"\n", msg.c_str());
+        debug("(rtl433) checkRTL433Frame \"%s\"\n", msg.c_str());
     }
 
     int payload_len = 0;
     size_t eolp = 0;
     // Look for end of line
-    for (; eolp < data.size(); ++eolp) {
-        if (data[eolp] == '\n') break;
+    for (; eolp < data.size(); ++eolp)
+    {
+        if (data[eolp] == '\n')
+        {
+            data[eolp] = 0;
+            break;
+        }
     }
     if (eolp >= data.size())
     {
-        debug("(rtlwmbus) no eol found, partial frame\n");
         return PartialFrame;
     }
 
-    // We got a full line, but if it is too short, then
-    // there is something wrong. Discard the data.
-    if (data.size() < 10)
-    {
-
-        debug("(rtlwmbus) too short line\n");
-        return ErrorInFrame;
-    }
-
-    if (data[0] != '0' || data[1] != 'x')
-    {
-        // Discard lines that do not begin with T1 or C1, these lines are probably
-        // stderr output from rtl_sdr/rtl_wmbus.
-        if (!(data[0] == 'T' && data[1] == '1') &&
-            !(data[0] == 'C' && data[1] == '1'))
-        {
-
-            debug("(rtlwmbus) only text\n");
-            return TextAndNotFrame;
-        }
-
-        // And the checksums should match.
-        if (strncmp((const char*)&data[1], "1;1", 3))
-        {
-            // Packages that begin with C1;1 or with T1;1 are good. The full format is:
-            // MODE;CRC_OK;3OUTOF6OK;TIMESTAMP;PACKET_RSSI;CURRENT_RSSI;LINK_LAYER_IDENT_NO;DATAGRAM_WITHOUT_CRC_BYTES.
-            // 3OUTOF6OK makes sense only with mode T1 and no sense with mode C1 (always set to 1).
-            if (!strncmp((const char*)&data[1], "1;0", 3)) {
-                verbose("(rtlwmbus) telegram received but incomplete or with errors, since rtl_wmbus reports that CRC checks failed.\n");
-            }
-            return ErrorInFrame;
-        }
-    }
-    // Look for start of telegram 0x
-    size_t i = 0;
-    for (; i+1 < data.size(); ++i) {
-        if (data[i] == '0' && data[i+1] == 'x') break;
-    }
-    if (i+1 >= data.size())
-    {
-        return ErrorInFrame; // No 0x found, then discard the frame.
-    }
-    i+=2; // Skip 0x
-
-    // Look for end of line or semicolon.
-    for (eolp=i; eolp < data.size(); ++eolp) {
-        if (data[eolp] == '\n') break;
-        if (data[eolp] == ';' && data[eolp+1] == '0' && data[eolp+2] == 'x') break;
-    }
-    if (eolp >= data.size())
-    {
-        debug("(rtlwmbus) no eol or semicolon, partial frame\n");
-        return PartialFrame;
-    }
-
-    payload_len = eolp-i;
-    *hex_payload_len_out = payload_len;
-    *hex_payload_offset = i;
     *hex_frame_length = eolp+1;
 
-    debug("(rtlwmbus) received full frame\n");
+    const char *needle = strstr((const char*)&data[0], "Wireless-MBus");
+    if (needle == NULL)
+    {
+        // rtl_433 found some other protocol on 868.95Mhz
+        return TextAndNotFrame;
+    }
+
+    // Look for start of telegram ,..44..........,
+    // This works right now because wmbusmeters currently only listens for 44 SND_NR
+    size_t i = 0;
+    for (; i+4 < data.size(); ++i) {
+        if (data[i] == ',' && data[i+3] == '4' && data[i+4] == '4')
+        {
+            size_t j = i+1;
+            for (; j<data.size(); ++j)
+            {
+                if (data[j] == ',') break;
+            }
+            if (j-i < 20)
+            {
+                // Oups, too short sequence of hex chars, this cannot be a proper telegram.
+                continue;
+            }
+            break;
+        }
+    }
+
+    if (i+4 >= data.size())
+    {
+        return ErrorInFrame; // No ,  44 found, then discard the frame.
+    }
+    i+=1; // Skip the comma ,
+
+    // Look for end of line or semicolon.
+    size_t nextcomma = i;
+    for (; nextcomma < data.size(); ++nextcomma) {
+        if (data[nextcomma] == ',') break;
+    }
+    if (nextcomma >= data.size())
+    {
+        return PartialFrame;
+    }
+
+    payload_len = nextcomma-i;
+    *hex_payload_len_out = payload_len;
+    *hex_payload_offset = i;
+
     return FullFrame;
 }
 
-bool WMBusRTLWMBUS::reset()
+bool WMBusRTL433::reset()
 {
     return false;
-}
-
-AccessCheck detectRTLSDR(string device, SerialCommunicationManager *manager)
-{
-    // No more advanced test than that the /dev/rtlsdr link exists.
-    return checkIfExistsAndSameGroup(device);
 }
