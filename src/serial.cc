@@ -21,6 +21,7 @@
 #include"timings.h"
 
 #include <algorithm>
+#include <assert.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <functional>
@@ -88,18 +89,22 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     int startRegularCallback(int seconds, function<void()> callback, string name);
     void stopRegularCallback(int id);
 
+    void resetInitiated() { debug("(serial) initiate reset\n"); resetting_ = true; }
+    void resetCompleted() { debug("(serial) reset completed\n"); resetting_ = false; }
     vector<string> listSerialDevices();
+
 
 private:
 
     void *eventLoop();
-    void *executeTimerCallbacks();
+    void executeTimerCallbacks();
     time_t calculateTimeToNearestTimerCallback(time_t now);
     static void *startLoop(void *);
     static void *runTimers(void *);
 
     bool running_ {};
     bool expect_devices_to_work_ {}; // false during detection phase, true when running.
+    bool resetting_ {}; // Set to true while resetting.
     pthread_t main_thread_ {};
     pthread_t select_thread_ {};
     pthread_t timer_thread_ {};
@@ -112,6 +117,8 @@ private:
     pthread_mutex_t devices_lock_ = PTHREAD_MUTEX_INITIALIZER;
     vector<SerialDeviceImp*> devices_;
     vector<Timer> timers_;
+    pthread_mutex_t timer_lock_ = PTHREAD_MUTEX_INITIALIZER;
+    bool calling_timers_ {};
 };
 
 SerialCommunicationManagerImp::~SerialCommunicationManagerImp()
@@ -133,6 +140,7 @@ struct SerialDeviceImp : public SerialDevice
     int receive(vector<uchar> *data);
     bool working() { return fd_ != -1; }
     bool readonly() { return is_stdin_ || is_file_; }
+
     void expectAscii() { expecting_ascii_ = true; }
     void setIsFile() { is_file_ = true; }
     void setIsStdin() { is_stdin_ = true; }
@@ -434,12 +442,13 @@ AccessCheck SerialDeviceCommand::open(bool fail_if_not_ok)
     if (!ok) return AccessCheck::NotThere;
     manager_->opened(this);
     setIsStdin();
-    verbose("(serialcmd) opened %s\n", command_.c_str());
+    verbose("(serialcmd) opened %s pid %d fd %d\n", command_.c_str(), pid_, fd_);
     return AccessCheck::AccessOK;
 }
 
 void SerialDeviceCommand::close()
 {
+    int p = pid_, f = fd_;
     if (pid_ == 0 && fd_ == -1) return;
     if (pid_ && stillRunning(pid_))
     {
@@ -450,7 +459,7 @@ void SerialDeviceCommand::close()
     ::close(fd_);
     fd_ = -1;
     manager_->closed(this);
-    verbose("(serialcmd) closed %s\n", command_.c_str());
+    verbose("(serialcmd) closed %s pid=%d fd=%d\n", command_.c_str(), p, f);
 }
 
 bool SerialDeviceCommand::working()
@@ -637,7 +646,10 @@ void *SerialCommunicationManagerImp::startLoop(void *a)
 void *SerialCommunicationManagerImp::runTimers(void *a)
 {
     auto t = (SerialCommunicationManagerImp*)a;
-    return t->executeTimerCallbacks();
+    t->executeTimerCallbacks();
+    t->calling_timers_ = false;
+    pthread_mutex_unlock(&t->timer_lock_);
+    return NULL;
 }
 
 unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device,
@@ -682,6 +694,7 @@ void SerialCommunicationManagerImp::stop()
     {
         debug("(serial) stopping manager\n");
         running_ = false;
+        assert(0);
         if (main_thread_ != 0)
         {
             if (signalsInstalled())
@@ -764,9 +777,9 @@ void SerialCommunicationManagerImp::closed(SerialDeviceImp *sd)
             max_fd_ = d->fd();
         }
     }
-    if (devices_.size() == 0 && expect_devices_to_work_)
+    if (devices_.size() == 0 && expect_devices_to_work_ && resetting_ == false)
     {
-        debug("(serial) no devices working\n");
+        debug("(serial) no devices working emergency exit!\n");
         stop();
     }
     pthread_mutex_unlock(&devices_lock_);
@@ -784,7 +797,7 @@ void SerialCommunicationManagerImp::closeAll()
     }
 }
 
-void *SerialCommunicationManagerImp::executeTimerCallbacks()
+void SerialCommunicationManagerImp::executeTimerCallbacks()
 {
     time_t curr = time(NULL);
     for (Timer &t : timers_)
@@ -796,7 +809,6 @@ void *SerialCommunicationManagerImp::executeTimerCallbacks()
             t.callback();
         }
     }
-    return NULL;
 }
 
 time_t SerialCommunicationManagerImp::calculateTimeToNearestTimerCallback(time_t now)
@@ -864,10 +876,10 @@ void *SerialCommunicationManagerImp::eventLoop()
         }
 
         // We might have a regular timer callback coming up.
-        if (timers_.size() > 0)
+        if (timers_.size() > 0 && !calling_timers_)
         {
             time_t remaining = calculateTimeToNearestTimerCallback(curr);
-            if (remaining < 0) remaining = 0;
+            if (remaining < 0) remaining = 1;
             if (timeout.tv_sec > remaining) timeout.tv_sec = remaining;
         }
 
@@ -882,7 +894,7 @@ void *SerialCommunicationManagerImp::eventLoop()
         num_devices = devices_.size();
         pthread_mutex_unlock(&devices_lock_);
 
-        if (num_devices == 0 && expect_devices_to_work_)
+        if (num_devices == 0 && expect_devices_to_work_ && resetting_ == false)
         {
             debug("(serial) no working devices, stopping before entering select.\n");
             stop();
@@ -941,7 +953,19 @@ void *SerialCommunicationManagerImp::eventLoop()
 
         if (timer_found)
         {
-            pthread_create(&timer_thread_, NULL, runTimers, this);
+            int rc = pthread_mutex_trylock(&timer_lock_);
+            // Only start timer thread if it is not running already.
+            if (rc == 0)
+            {
+                // Lock acquired start timer thread.
+                // Lock will be released by this newly started thread.
+                calling_timers_ = true;
+                pthread_create(&timer_thread_, NULL, runTimers, this);
+            }
+            else
+            {
+                debug("(serial) not starting timer thread since it is already running.\n");
+            }
         }
 
         if (non_working.size() > 0)

@@ -80,6 +80,10 @@ struct SerialCommunicationManager
     // Returns an id for the timer.
     virtual int startRegularCallback(int seconds, function<void()> callback, std::string name) = 0;
     virtual void stopRegularCallback(int id) = 0;
+
+    virtual void resetInitiated() = 0;
+    virtual void resetCompleted() = 0;
+
     // List all real serial devices.
     virtual std::vector<std::string> listSerialDevices() = 0;
     virtual ~SerialCommunicationManager();

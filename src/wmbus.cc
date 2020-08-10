@@ -3392,13 +3392,18 @@ LinkModeSet WMBusCommonImplementation::protectedGetLinkModes()
 
 bool WMBusCommonImplementation::reset()
 {
+    bool resetting = false;
     if (serial())
     {
         if (serial()->working())
         {
             // This is a reset, not an init. Close the serial device.
+            resetting = true;
+            serial()->manager()->resetInitiated();
             serial()->close();
-            usleep(1000*1000); // Sleep for a second.
+            fprintf(stderr, "STOPPED serial, sleeping....\n");
+            usleep(3000*1000); // Sleep for two seconds.
+            fprintf(stderr, "DONE sleeping\n");
         }
 
         AccessCheck rc = serial()->open(false);
@@ -3412,6 +3417,9 @@ bool WMBusCommonImplementation::reset()
 
     // Invoke any other device specific resets for this device.
     deviceReset();
+
+    debug("(GURKA) %d\n", resetting);
+    if (resetting) serial()->manager()->resetCompleted();
 
     // If init, then no link modes are configured.
     // If reset, re-initialize the link modes.
