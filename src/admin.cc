@@ -34,6 +34,7 @@
 #include <menu.h>
 
 bool running_as_root_ = false;
+bool member_of_dialout_ = false;
 
 #define LIST_OF_MAIN_MENU \
     X(DETECT_WMBUS_RECEIVERS, "Detect wmbus receiver") \
@@ -77,6 +78,7 @@ LIST_OF_WMBUS_RECEIVERS
 };
 
 bool detectIfRoot();
+bool detectIfMemberOfGroup(string group);
 void detectProcesses(string cmd, vector<int> *pids);
 void detectWMBUSReceiver();
 void resetWMBUSReceiver();
@@ -111,6 +113,7 @@ int main(int argc, char **argv)
     }
 
     running_as_root_ = detectIfRoot();
+    member_of_dialout_ = detectIfMemberOfGroup("dialout");
 
     handler = createSerialCommunicationManager(0, 0, false);
 
@@ -231,9 +234,12 @@ void alwaysOnScreen()
     if (running_as_root_ == false)
     {
         info.push_back("Not running as root!");
-        info.push_back("Limited functionality.");
-        info.push_back("----------------------");
     }
+    if (member_of_dialout_ == false)
+    {
+        info.push_back("Not member of dialout!");
+    }
+
     vector<int> daemons;
     detectProcesses("wmbusmetersd", &daemons);
     if (daemons.size() == 0)
@@ -630,6 +636,24 @@ bool detectIfRoot()
     invokeShellCaptureOutput("/usr/bin/id", args, envs, &out, true);
 
     return out == "0\n";
+}
+
+bool detectIfMemberOfGroup(string group)
+{
+    vector<string> args;
+    vector<string> envs;
+    string out;
+    invokeShellCaptureOutput("/usr/bin/groups", args, envs, &out, true);
+
+    out = out+" "; // Guarantee that the line ends with space.
+
+    size_t p = out.find(group+" ");
+    if (p == 0) return true;
+
+    p = out.find(" "+group+" ");
+    if (p != string::npos) return true;
+
+    return false;
 }
 
 void detectProcesses(string cmd, vector<int> *pids)
