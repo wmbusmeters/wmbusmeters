@@ -1080,13 +1080,11 @@ vector<string> SerialCommunicationManagerImp::listSerialDevices()
 
 #endif
 
-#define CHECK_SPEED(x) { if (bits == x) return #x; }
+#define CHECK_SPEED(x) { if (speed == x) return #x; }
 
-string lookupSpeed(tcflag_t bits)
+string translateSpeed(speed_t speed)
 {
     string flags;
-
-    bits &= CBAUD;
 
 	CHECK_SPEED(B50)
 	CHECK_SPEED(B75)
@@ -1149,10 +1147,23 @@ string lookupSpeed(tcflag_t bits)
 	CHECK_SPEED(B4000000)
 #endif
 
-   return "UnknownSpeed";
+    return "UnknownSpeed";
 };
 
 #undef CHECK_SPEED
+
+string lookupSpeed(struct termios *tios)
+{
+    speed_t in = cfgetispeed(tios);
+    speed_t out = cfgetispeed(tios);
+
+    if (in == out)
+    {
+        return translateSpeed(in);
+    }
+
+    return translateSpeed(in)+","+translateSpeed(out);
+}
 
 #define CHECK_FLAG(x) { if (bits & x) flags += #x "|"; }
 
@@ -1211,8 +1222,7 @@ string cflags(tcflag_t bits)
 	CHECK_FLAG(CSTOPB)
 	CHECK_FLAG(HUPCL)
 
-    flags += lookupSpeed(bits);
-
+    if (flags.length() > 0) flags.pop_back();
     return flags;
 };
 
@@ -1274,6 +1284,7 @@ static string showTTYSettings(int fd)
     int rc = tcgetattr(fd, &tios);
     if (rc != 0) goto err;
 
+    info += "speed("+lookupSpeed(&tios)+") ";
     info += "input("+iflags(tios.c_iflag) + ") ";
     info += "output("+oflags(tios.c_oflag) + ") ";
     info += "control("+cflags(tios.c_cflag) + ") ";
