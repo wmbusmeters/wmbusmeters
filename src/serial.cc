@@ -41,7 +41,7 @@
 #endif
 
 static int openSerialTTY(const char *tty, int baud_rate);
-static string showTTYSettings(int fd);
+string showTTYSettings(int fd);
 
 struct SerialDeviceImp;
 struct SerialDeviceTTY;
