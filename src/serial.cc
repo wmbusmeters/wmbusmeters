@@ -1078,6 +1078,8 @@ vector<string> SerialCommunicationManagerImp::listSerialDevices()
     return found_serials;
 }
 
+#endif
+
 #define CHECK_SPEED(x) { if (bits == x) return #x; }
 
 string lookupSpeed(tcflag_t bits)
@@ -1299,5 +1301,3 @@ err:
 
     return "error";
 }
-
-#endif
