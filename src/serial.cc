@@ -41,7 +41,7 @@
 #endif
 
 static int openSerialTTY(const char *tty, int baud_rate);
-string showTTYSettings(int fd);
+static string showTTYSettings(int fd);
 
 struct SerialDeviceImp;
 struct SerialDeviceTTY;
@@ -1261,7 +1261,7 @@ string showSpecialChars(struct termios *tios)
     return s;
 }
 
-string showTTYSettings(int fd)
+static string showTTYSettings(int fd)
 {
     string info;
     string bits;
