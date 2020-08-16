@@ -43,6 +43,7 @@
 #endif
 
 static int openSerialTTY(const char *tty, int baud_rate);
+static string showTTYSettings(int fd);
 
 struct SerialDeviceImp;
 struct SerialDeviceTTY;
@@ -994,6 +995,7 @@ static int openSerialTTY(const char *tty, int baud_rate)
     int rc = 0;
     speed_t speed = 0;
     struct termios tios;
+    string tty_info;
     //int DTR_flag = TIOCM_DTR;
 
     int fd = open(tty, O_RDWR | O_NOCTTY | O_NONBLOCK);
@@ -1009,6 +1011,9 @@ static int openSerialTTY(const char *tty, int baud_rate)
         fd = -2;
         goto err;
     }
+
+    tty_info = showTTYSettings(fd);
+    debug("(serial) before config: %s %s\n",  tty, tty_info.c_str());
 
     switch (baud_rate)
     {
@@ -1029,6 +1034,7 @@ static int openSerialTTY(const char *tty, int baud_rate)
     if (rc < 0) goto err;
 
 
+    // CREAD=Enable receive CLOCAL=Ignore any Carrier Detect signal.
     tios.c_cflag |= (CREAD | CLOCAL);
     tios.c_cflag &= ~CSIZE;
     tios.c_cflag |= CS8;
@@ -1047,10 +1053,14 @@ static int openSerialTTY(const char *tty, int baud_rate)
     rc = tcsetattr(fd, TCSANOW, &tios);
     if (rc < 0) goto err;
 
+
     // This code can toggle DTR... maybe necessary
     // for the pl2303 usb2serial driver/device.
     //rc = ioctl(fd, TIOCMBIC, &DTR_flag);
     //if (rc != 0) goto err;
+
+    tty_info = showTTYSettings(fd);
+    debug("(serial) after config:  %s %s\n",  tty, tty_info.c_str());
 
     return fd;
 
@@ -1205,3 +1215,236 @@ vector<string> SerialCommunicationManagerImp::listSerialDevices()
 }
 
 #endif
+
+#define CHECK_SPEED(x) { if (speed == x) return #x; }
+
+string translateSpeed(speed_t speed)
+{
+    string flags;
+
+	CHECK_SPEED(B50)
+	CHECK_SPEED(B75)
+	CHECK_SPEED(B110)
+	CHECK_SPEED(B134)
+	CHECK_SPEED(B150)
+	CHECK_SPEED(B200)
+	CHECK_SPEED(B300)
+	CHECK_SPEED(B600)
+	CHECK_SPEED(B1200)
+	CHECK_SPEED(B1800)
+	CHECK_SPEED(B2400)
+	CHECK_SPEED(B4800)
+	CHECK_SPEED(B9600)
+#ifdef B57600
+	CHECK_SPEED(B57600)
+#endif
+#ifdef B115200
+	CHECK_SPEED(B115200)
+#endif
+	CHECK_SPEED(B19200)
+#ifdef B230400
+	CHECK_SPEED(B230400)
+#endif
+	CHECK_SPEED(B38400)
+#ifdef B460800
+	CHECK_SPEED(B460800)
+#endif
+#ifdef B500000
+	CHECK_SPEED(B500000)
+#endif
+#ifdef B57600
+	CHECK_SPEED(B57600)
+#endif
+#ifdef B921600
+	CHECK_SPEED(B921600)
+#endif
+#ifdef B1000000
+	CHECK_SPEED(B1000000)
+#endif
+#ifdef B1152000
+	CHECK_SPEED(B1152000)
+#endif
+#ifdef B1500000
+	CHECK_SPEED(B1500000)
+#endif
+#ifdef B2000000
+	CHECK_SPEED(B2000000)
+#endif
+#ifdef B2500000
+	CHECK_SPEED(B2500000)
+#endif
+#ifdef B3000000
+	CHECK_SPEED(B3000000)
+#endif
+#ifdef B3500000
+	CHECK_SPEED(B3500000)
+#endif
+#ifdef B4000000
+	CHECK_SPEED(B4000000)
+#endif
+
+    return "UnknownSpeed";
+};
+
+#undef CHECK_SPEED
+
+string lookupSpeed(struct termios *tios)
+{
+    speed_t in = cfgetispeed(tios);
+    speed_t out = cfgetispeed(tios);
+
+    if (in == out)
+    {
+        return translateSpeed(in);
+    }
+
+    return translateSpeed(in)+","+translateSpeed(out);
+}
+
+#define CHECK_FLAG(x) { if (bits & x) flags += #x "|"; }
+
+string iflags(tcflag_t bits)
+{
+    string flags;
+
+    CHECK_FLAG(BRKINT)
+	CHECK_FLAG(ICRNL)
+	CHECK_FLAG(IGNBRK)
+	CHECK_FLAG(IGNCR)
+	CHECK_FLAG(IGNPAR)
+#ifdef IMAXBEL
+	CHECK_FLAG(IMAXBEL)
+#endif
+	CHECK_FLAG(INLCR)
+	CHECK_FLAG(ISTRIP)
+#ifdef IUTF8
+	CHECK_FLAG(IUTF8)
+#endif
+	CHECK_FLAG(IXANY)
+	CHECK_FLAG(IXOFF)
+	CHECK_FLAG(IXON)
+	CHECK_FLAG(PARMRK)
+
+    if (flags.length() > 0) flags.pop_back();
+    return flags;
+};
+
+string oflags(tcflag_t bits)
+{
+    string flags;
+
+	CHECK_FLAG(BS1)
+	CHECK_FLAG(NL1)
+	CHECK_FLAG(ONLCR)
+#ifdef ONOEOT
+	CHECK_FLAG(ONOEOT)
+#endif
+	CHECK_FLAG(OPOST)
+#ifdef OXTABS
+	CHECK_FLAG(OXTABS)
+#endif
+
+    if (flags.length() > 0) flags.pop_back();
+    return flags;
+};
+
+string cflags(tcflag_t bits)
+{
+    string flags;
+
+	CHECK_FLAG(CLOCAL)
+	CHECK_FLAG(CREAD)
+	CHECK_FLAG(CSIZE)
+	CHECK_FLAG(CSTOPB)
+	CHECK_FLAG(HUPCL)
+
+    if (flags.length() > 0) flags.pop_back();
+    return flags;
+};
+
+string lflags(tcflag_t bits)
+{
+    string flags;
+
+	CHECK_FLAG(ECHO)
+	CHECK_FLAG(ECHOCTL)
+	CHECK_FLAG(ECHOE)
+	CHECK_FLAG(ECHOK)
+	CHECK_FLAG(ECHOKE)
+	CHECK_FLAG(ECHONL)
+	CHECK_FLAG(ECHOPRT)
+	CHECK_FLAG(FLUSHO)
+	CHECK_FLAG(ICANON)
+	CHECK_FLAG(IEXTEN)
+	CHECK_FLAG(ISIG)
+	CHECK_FLAG(NOFLSH)
+	CHECK_FLAG(PENDIN)
+	CHECK_FLAG(TOSTOP)
+#ifdef XCASE
+	CHECK_FLAG(XCASE)
+#endif
+
+    if (flags.length() > 0) flags.pop_back();
+    return flags;
+};
+
+#undef CHECK_FLAG
+
+string showSpecialChars(struct termios *tios)
+{
+    string s;
+
+    int n = sizeof(tios->c_cc)/sizeof(cc_t);
+	for (int i=0; i<n; ++i)
+    {
+        cc_t c = tios->c_cc[i];
+        if (c != 0)
+        {
+            string cc;
+            strprintf(cc, "%u", c);
+            s += cc+",";
+        }
+    }
+    if (s.length() > 0) s.pop_back();
+    return s;
+}
+
+static string showTTYSettings(int fd)
+{
+    string info;
+    string bits;
+
+    struct termios tios;
+    int modem_bits;
+
+    int rc = tcgetattr(fd, &tios);
+    if (rc != 0) goto err;
+
+    info += "speed("+lookupSpeed(&tios)+") ";
+    info += "input("+iflags(tios.c_iflag) + ") ";
+    info += "output("+oflags(tios.c_oflag) + ") ";
+    info += "control("+cflags(tios.c_cflag) + ") ";
+    info += "local("+lflags(tios.c_lflag) + ") ";
+    info += "special_chars("+showSpecialChars(&tios)+") ";
+
+    rc = ioctl(fd, TIOCMGET, &modem_bits);
+    if (rc != 0) goto err;
+
+    if (modem_bits & TIOCM_LE) bits += "LE|"; // Line Enabled (same as DSR below?)
+    if (modem_bits & TIOCM_DTR) bits += "DTR|"; // Data Terminal Ready (Computer is ready.)
+    if (modem_bits & TIOCM_RTS) bits += "RTS|"; // Request to send (hardware flow control)
+    if (modem_bits & TIOCM_ST) bits += "ST|";
+    if (modem_bits & TIOCM_SR) bits += "SR|";
+    if (modem_bits & TIOCM_CTS) bits += "CTS|"; // Clear to Send (hardware flow control)
+    if (modem_bits & TIOCM_CD) bits += "CD|"; // Data Carrier Detected (Modem is connected to another modem)
+    if (modem_bits & TIOCM_RI) bits += "RING|"; // Ring Indicator
+    if (modem_bits & TIOCM_DSR) bits += "DSR|"; // Data Set Ready (Modem is ready.)
+
+    if (bits.length() > 0) bits.pop_back();
+    info += "modem("+bits+")";
+    return info;
+
+err:
+
+    return "error";
+}
