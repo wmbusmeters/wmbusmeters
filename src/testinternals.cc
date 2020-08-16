@@ -468,12 +468,26 @@ void testp(time_t now, string period, bool expected)
 
 void test_periods()
 {
-    // 0 means 1970-01-01 01:00 Thursday"
-    testp(0, "mon-sun(00-23)", true);
-    testp(0, "mon(00-23)", false);
-    testp(0, "thu-fri(01-01)", true);
-    testp(0, "mon-wed(00-23),thu(02-23),fri-sun(00-23)", false);
-    testp(0, "mon-wed(00-23),thu(01-23),fri-sun(00-23)", true);
-    testp(0, "thu(00-00)", false);
-    testp(0, "thu(01-01)", true);
+    // 3600*24*7+3600 means 1970-01-08 01:00 Thursday in Greenwich.
+    // However your local time is adjusted with your timezone.
+    // Get your timezone offset tm_gmtoff into the value.
+    time_t t = 3600*24*7+3600;
+    struct tm value {};
+    localtime_r(&t, &value);
+
+    // if tm_gmtoff is zero, then we are in Greenwich!
+    // if tm_gmtoff is 3600 then we are in Stockholm!
+
+    t -= value.tm_gmtoff;
+
+    // We have now adjusted the t so that it should be thursday at 1 am.
+    // The following test should therefore work inependently on
+    // where in the world this test is run.
+    testp(t, "mon-sun(00-23)", true);
+    testp(t, "mon(00-23)", false);
+    testp(t, "thu-fri(01-01)", true);
+    testp(t, "mon-wed(00-23),thu(02-23),fri-sun(00-23)", false);
+    testp(t, "mon-wed(00-23),thu(01-23),fri-sun(00-23)", true);
+    testp(t, "thu(00-00)", false);
+    testp(t, "thu(01-01)", true);
 }
