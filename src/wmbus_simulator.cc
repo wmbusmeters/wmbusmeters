@@ -34,15 +34,15 @@ struct WMBusSimulator : public WMBusCommonImplementation
     bool ping();
     uint32_t getDeviceId();
     LinkModeSet getLinkModes();
-    void setLinkModes(LinkModeSet lms);
+    void deviceReset();
+    void deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() { return Any_bit; }
     int numConcurrentLinkModes() { return 0; }
     bool canSetLinkModes(LinkModeSet lms) { return true; }
 
     void processSerialData();
-    SerialDevice *serial() { return NULL; }
     void simulate();
-    bool reset() { return true; }
+    string device() { return file_; }
 
     WMBusSimulator(string file, SerialCommunicationManager *manager);
 
@@ -51,7 +51,6 @@ private:
     vector<function<void(Telegram*)>> telegram_listeners_;
 
     string file_;
-    SerialCommunicationManager *manager_ {};
     LinkModeSet link_modes_;
     vector<string> lines_;
 };
@@ -65,7 +64,7 @@ unique_ptr<WMBus> openSimulator(string device, SerialCommunicationManager *manag
 }
 
 WMBusSimulator::WMBusSimulator(string file, SerialCommunicationManager *manager)
-    : WMBusCommonImplementation(DEVICE_SIMULATOR), file_(file), manager_(manager)
+    : WMBusCommonImplementation(DEVICE_SIMULATOR, manager, NULL), file_(file)
 {
     vector<string> lines;
     loadFile(file, &lines_);
@@ -90,7 +89,11 @@ LinkModeSet WMBusSimulator::getLinkModes() {
     return link_modes_;
 }
 
-void WMBusSimulator::setLinkModes(LinkModeSet lms)
+void WMBusSimulator::deviceReset()
+{
+}
+
+void WMBusSimulator::deviceSetLinkModes(LinkModeSet lms)
 {
     link_modes_ = lms;
     string hr = lms.hr();
@@ -144,41 +147,54 @@ void WMBusSimulator::simulate()
 {
     time_t start_time = time(NULL);
 
-    for (auto l : lines_) {
+    for (auto l : lines_)
+    {
         string hex = "";
         int found_time = 0;
         time_t rel_time = 0;
-        if (l.substr(0,9) == "telegram=") {
-            for (size_t i=9; i<l.length(); ++i) {
+        if (l.substr(0,9) == "telegram=")
+        {
+            for (size_t i=9; i<l.length(); ++i)
+            {
                 if (l[i] == '|') continue;
-                if (l[i] == '+') {
+                if (l[i] == '+')
+                {
                     found_time = i;
                     rel_time = atoi(&l[i+1]);
                     break;
                 }
                 hex += l[i];
             }
-            if (found_time) {
+            if (found_time)
+            {
                 debug("(simulator) from file \"%s\" to trigger at relative time %ld\n", hex.c_str(), rel_time);
                 time_t curr = time(NULL);
-                if (curr < start_time+rel_time) {
+                if (curr < start_time+rel_time)
+                {
                     debug("(simulator) waiting %d seconds before simulating telegram.\n", (start_time+rel_time)-curr);
-                    for (;;) {
+                    for (;;)
+                    {
                         curr = time(NULL);
                         if (curr > start_time + rel_time) break;
                         usleep(1000*1000);
+                        if (!manager_->isRunning()) break;
                     }
                 }
-            } else {
+            }
+            else
+            {
                 debug("(simulator) from file \"%s\"\n", hex.c_str());
             }
-        } else {
+        }
+        else
+        {
             continue;
         }
 
         vector<uchar> payload;
         bool ok = hex2bin(hex.c_str(), &payload);
-        if (!ok) {
+        if (!ok)
+        {
             error("Not a valid string of hex bytes! \"%s\"\n", l.c_str());
         }
         handleTelegram(payload);

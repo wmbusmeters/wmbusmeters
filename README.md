@@ -49,6 +49,9 @@ meterfilesnaming=name
 meterfilestimestamp=day
 logfile=/var/log/wmbusmeters/wmbusmeters.log
 shell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters/$METER_ID -m "$METER_JSON"
+alarmshell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters_alarm -m "$ALARM_TYPE $ALARM_MESSAGE"
+alarmtimeout=1h
+alarmexpectedactivity=mon-sun(00-23)
 ```
 
 Then add a meter file in /etc/wmbusmeters.d/MyTapWater

@@ -35,7 +35,8 @@ struct WMBusAmber : public virtual WMBusCommonImplementation
     bool ping();
     uint32_t getDeviceId();
     LinkModeSet getLinkModes();
-    void setLinkModes(LinkModeSet lms);
+    void deviceSetLinkModes(LinkModeSet lms);
+    void deviceReset();
     LinkModeSet supportedLinkModes()
     {
         return
@@ -64,16 +65,12 @@ struct WMBusAmber : public virtual WMBusCommonImplementation
     }
     void processSerialData();
     void getConfiguration();
-    SerialDevice *serial() { return serial_.get(); }
     void simulate() { }
-    bool reset();
 
     WMBusAmber(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
     ~WMBusAmber() { }
 
 private:
-    unique_ptr<SerialDevice> serial_;
-    SerialCommunicationManager *manager_ {};
     vector<uchar> read_buffer_;
     pthread_mutex_t command_lock_ = PTHREAD_MUTEX_INITIALIZER;
     sem_t command_wait_ {};
@@ -83,7 +80,6 @@ private:
     vector<uchar> received_payload_;
     bool rssi_expected_ {};
     struct timeval timestamp_last_rx_ {};
-    int protocol_error_count_ {};
 
     void waitForResponse();
     FrameStatus checkAMB8465Frame(vector<uchar> &data,
@@ -109,13 +105,18 @@ unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager
 }
 
 WMBusAmber::WMBusAmber(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_AMB8465), serial_(std::move(serial)), manager_(manager)
+    WMBusCommonImplementation(DEVICE_AMB8465, manager, std::move(serial))
 {
     sem_init(&command_wait_, 0, 0);
-    manager_->listenTo(serial_.get(),call(this,processSerialData));
-    serial_->open(true);
+    manager_->listenTo(this->serial(),call(this,processSerialData));
     rssi_expected_ = true;
+    reset();
+}
+
+void WMBusAmber::deviceReset()
+{
     timerclear(&timestamp_last_rx_);
+    getConfiguration();
 }
 
 uchar xorChecksum(vector<uchar> msg, int len)
@@ -129,7 +130,7 @@ uchar xorChecksum(vector<uchar> msg, int len)
 
 bool WMBusAmber::ping()
 {
-    if (serial_->readonly()) return true; // Feeding from stdin or file.
+    if (serial()->readonly()) return true; // Feeding from stdin or file.
 
     pthread_mutex_lock(&command_lock_);
     // Ping it...
@@ -140,7 +141,7 @@ bool WMBusAmber::ping()
 
 uint32_t WMBusAmber::getDeviceId()
 {
-    if (serial_->readonly()) { return 0; }  // Feeding from stdin or file.
+    if (serial()->readonly()) { return 0; }  // Feeding from stdin or file.
 
     pthread_mutex_lock(&command_lock_);
 
@@ -178,17 +179,18 @@ uint32_t WMBusAmber::getDeviceId()
 
 LinkModeSet WMBusAmber::getLinkModes()
 {
-    if (serial_->readonly()) { return Any_bit; }  // Feeding from stdin or file.
+    if (serial()->readonly()) { return Any_bit; }  // Feeding from stdin or file.
 
     // It is not possible to read the volatile mode set using setLinkModeSet below.
     // (It is possible to read the non-volatile settings, but this software
     // does not change those.) So we remember the state for the device.
-    getConfiguration();
     return link_modes_;
 }
 
 void WMBusAmber::getConfiguration()
 {
+    if (serial()->readonly()) { return; }  // Feeding from stdin or file.
+
     pthread_mutex_lock(&command_lock_);
 
     vector<uchar> msg(6);
@@ -235,9 +237,9 @@ void WMBusAmber::getConfiguration()
     pthread_mutex_unlock(&command_lock_);
 }
 
-void WMBusAmber::setLinkModes(LinkModeSet lms)
+void WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
 {
-    if (serial_->readonly()) return; // Feeding from stdin or file.
+    if (serial()->readonly()) return; // Feeding from stdin or file.
 
     if (!canSetLinkModes(lms))
     {
@@ -398,7 +400,7 @@ void WMBusAmber::processSerialData()
     vector<uchar> data;
 
     // Receive and accumulated serial data until a full frame has been received.
-    serial_->receive(&data);
+    serial()->receive(&data);
 
     struct timeval timestamp;
 
@@ -412,10 +414,7 @@ void WMBusAmber::processSerialData()
         if (chunk_time.tv_sec >= 2) {
             verbose("(amb8465) rx long delay (%lds), drop incomplete telegram\n", chunk_time.tv_sec);
             read_buffer_.clear();
-            if (++protocol_error_count_ >= 20)
-            {
-                error("(amb8465) to many protocol errors.\n");
-            }
+            protocolErrorDetected();
         }
         else
         {
@@ -454,10 +453,7 @@ void WMBusAmber::processSerialData()
             string msg = bin2hex(read_buffer_);
             debug("(amb8465) protocol error \"%s\"\n", msg.c_str());
             read_buffer_.clear();
-            if (++protocol_error_count_ >= 20)
-            {
-                error("(amb8465) to many protocol errors.\n");
-            }
+            protocolErrorDetected();
             break;
         }
         if (status == FullFrame)
@@ -521,16 +517,6 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
         received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
         debugPayload("(amb8465) unknown response", received_payload_);
     }
-}
-
-bool WMBusAmber::reset()
-{
-    serial_->close();
-    bool rc = serial_->reopen();
-    if (!rc) return false;
-    getConfiguration();
-    setLinkModes(link_modes_);
-    return true;
 }
 
 AccessCheck detectAMB8465(string device, SerialCommunicationManager *manager)

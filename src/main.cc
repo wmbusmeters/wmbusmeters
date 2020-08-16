@@ -125,7 +125,10 @@ bool startUsingCommandline(Configuration *config)
     verboseEnabled(config->verbose);
     logTelegramsEnabled(config->logtelegrams);
     debugEnabled(config->debug);
+    internalTestingEnabled(config->internaltesting);
+    traceEnabled(config->trace);
     stderrEnabled(config->use_stderr);
+    setAlarmShells(config->alarm_shells);
 
     debug("(wmbusmeters) version: " VERSION "\n");
 
@@ -391,6 +394,7 @@ LIST_OF_METERS
     }
 
     wmbus->setMeters(&meters);
+    wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
     manager->startEventLoop();
     wmbus->setLinkModes(config->listen_to_link_modes);
     string using_link_modes = wmbus->getLinkModes().hr();

@@ -60,6 +60,7 @@ void disableLogfile();
 void enableSyslog();
 void error(const char* fmt, ...);
 void verbose(const char* fmt, ...);
+void trace(const char* fmt, ...);
 void debug(const char* fmt, ...);
 void warning(const char* fmt, ...);
 void info(const char* fmt, ...);
@@ -68,8 +69,11 @@ void notice(const char* fmt, ...);
 void warningSilenced(bool b);
 void verboseEnabled(bool b);
 void debugEnabled(bool b);
+void traceEnabled(bool b);
 void stderrEnabled(bool b);
 void logTelegramsEnabled(bool b);
+void internalTestingEnabled(bool b);
+bool isInternalTestingEnabled();
 
 bool isVerboseEnabled();
 bool isDebugEnabled();
@@ -78,6 +82,9 @@ bool isLogTelegramsEnabled();
 void debugPayload(std::string intro, std::vector<uchar> &payload);
 void debugPayload(std::string intro, std::vector<uchar> &payload, std::vector<uchar>::iterator &pos);
 void logTelegram(std::string intro, std::vector<uchar> &parsed, int header_size, int suffix_size);
+
+void logAlarm(std::string type, std::string msg);
+void setAlarmShells(std::vector<std::string> &alarm_shells);
 
 bool isValidMatchExpression(std::string id, bool non_compliant);
 bool isValidMatchExpressions(std::string ids, bool non_compliant);
@@ -103,7 +110,15 @@ std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c,
 
 void padWithZeroesTo(std::vector<uchar> *content, size_t len, std::vector<uchar> *full_content);
 
+// Parse text string into seconds, 5h = (3600*5) 2m = (60*2) 1s = 1
 int parseTime(std::string time);
+
+// Test if current time is inside any of the specified periods.
+// For example: mon-sun(00-24) is always true!
+//              mon-fri(08-20) is true monday to friday from 08.00 to 19.59
+//              tue(09-10),sat(00-24) is true tuesday 09.00 to 09.59 and whole of saturday.
+bool isInsideTimePeriod(time_t now, std::string periods);
+bool isValidTimePeriod(std::string periods);
 
 uint16_t crc16_EN13757(uchar *data, size_t len);
 
@@ -144,5 +159,8 @@ std::string currentMicros();
 bool hasBytes(int n, std::vector<uchar>::iterator &pos, std::vector<uchar> &frame);
 
 bool startsWith(std::string s, std::vector<uchar> &data);
+
+// Sum the memory used by the heap and stack.
+size_t memoryUsage();
 
 #endif

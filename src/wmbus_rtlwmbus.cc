@@ -37,7 +37,8 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
     bool ping();
     uint32_t getDeviceId();
     LinkModeSet getLinkModes();
-    void setLinkModes(LinkModeSet lms);
+    void deviceReset();
+    void deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() {
         return
             C1_bit |
@@ -52,14 +53,12 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
     }
 
     void processSerialData();
-    SerialDevice *serial() { return NULL; }
     void simulate();
-    bool reset();
 
     WMBusRTLWMBUS(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
 
 private:
-    unique_ptr<SerialDevice> serial_;
+
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
     bool warning_dll_len_printed_ {};
@@ -71,7 +70,6 @@ private:
     void handleMessage(vector<uchar> &frame);
 
     string setup_;
-    SerialCommunicationManager *manager_ {};
 };
 
 unique_ptr<WMBus> openRTLWMBUS(string command, SerialCommunicationManager *manager,
@@ -92,10 +90,10 @@ unique_ptr<WMBus> openRTLWMBUS(string command, SerialCommunicationManager *manag
 }
 
 WMBusRTLWMBUS::WMBusRTLWMBUS(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_RTLWMBUS), serial_(std::move(serial)), manager_(manager)
+    WMBusCommonImplementation(DEVICE_RTLWMBUS, manager, std::move(serial))
 {
-    manager_->listenTo(serial_.get(),call(this,processSerialData));
-    serial_->open(true);
+    manager_->listenTo(this->serial(),call(this,processSerialData));
+    reset();
 }
 
 bool WMBusRTLWMBUS::ping()
@@ -114,7 +112,11 @@ LinkModeSet WMBusRTLWMBUS::getLinkModes()
     return Any_bit;
 }
 
-void WMBusRTLWMBUS::setLinkModes(LinkModeSet lm)
+void WMBusRTLWMBUS::deviceReset()
+{
+}
+
+void WMBusRTLWMBUS::deviceSetLinkModes(LinkModeSet lm)
 {
 }
 
@@ -127,7 +129,7 @@ void WMBusRTLWMBUS::processSerialData()
     vector<uchar> data;
 
     // Receive and accumulated serial data until a full frame has been received.
-    serial_->receive(&data);
+    serial()->receive(&data);
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
     size_t frame_length;
@@ -284,11 +286,6 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
 
     debug("(rtlwmbus) received full frame\n");
     return FullFrame;
-}
-
-bool WMBusRTLWMBUS::reset()
-{
-    return false;
 }
 
 AccessCheck detectRTLSDR(string device, SerialCommunicationManager *manager)

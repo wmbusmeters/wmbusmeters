@@ -17,6 +17,8 @@
 
 #include"util.h"
 #include"meters.h"
+#include"shell.h"
+
 #include<assert.h>
 #include<dirent.h>
 #include<functional>
@@ -266,8 +268,10 @@ bool logfile_enabled_ = false;
 bool warning_enabled_ = true;
 bool verbose_enabled_ = false;
 bool debug_enabled_ = false;
+bool trace_enabled_ = false;
 bool stderr_enabled_ = false;
 bool log_telegrams_enabled_ = false;
+bool internal_testing_enabled_ = false;
 
 string log_file_;
 
@@ -320,6 +324,15 @@ void debugEnabled(bool b) {
     }
 }
 
+void traceEnabled(bool b) {
+    trace_enabled_ = b;
+    if (trace_enabled_) {
+        debug_enabled_ = b;
+        verbose_enabled_ = true;
+        log_telegrams_enabled_ = true;
+    }
+}
+
 void stderrEnabled(bool b) {
     stderr_enabled_ = b;
 }
@@ -329,6 +342,16 @@ time_t telegrams_start_time_;
 void logTelegramsEnabled(bool b) {
     log_telegrams_enabled_ = b;
     telegrams_start_time_ = time(NULL);
+}
+
+void internalTestingEnabled(bool b)
+{
+    internal_testing_enabled_ = b;
+}
+
+bool isInternalTestingEnabled()
+{
+    return internal_testing_enabled_;
 }
 
 bool isVerboseEnabled() {
@@ -415,6 +438,15 @@ void verbose(const char* fmt, ...) {
 
 void debug(const char* fmt, ...) {
     if (debug_enabled_) {
+        va_list args;
+        va_start(args, fmt);
+        outputStuff(LOG_NOTICE, fmt, args);
+        va_end(args);
+    }
+}
+
+void trace(const char* fmt, ...) {
+    if (trace_enabled_) {
         va_list args;
         va_start(args, fmt);
         outputStuff(LOG_NOTICE, fmt, args);
@@ -1157,4 +1189,189 @@ bool startsWith(string s, std::vector<uchar> &data)
         if (s[i] != data[i]) return false;
     }
     return true;
+}
+
+struct TimePeriod
+{
+    int day_in_week_from {}; // 0 = mon 6 = sun
+    int day_in_week_to {}; // 0 = mon 6 = sun
+    int hour_from {}; // Greater than or equal.
+    int hour_to {}; // Less than.
+};
+
+bool is_inside(struct tm *nowt, TimePeriod *tp)
+{
+    int day = nowt->tm_wday-1; // tm_wday 0=sun
+    if (day == -1) day = 6;    // adjust so 0=mon and 6=sun
+    int hour = nowt->tm_hour;  // hours since midnight 0-23
+
+    // Test is inclusive. mon-sun(00-23) will cover whole week all hours.
+    // mon-tue(00-00) will cover mon and tue one hour after midnight.
+    if (day >= tp->day_in_week_from && day <= tp->day_in_week_to && hour >= tp->hour_from && hour <= tp->hour_to)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool extract_times(const char *p, TimePeriod *tp)
+{
+    if (strlen(p) != 7) return false; // Expect (00-23)
+    if (p[3] != '-') return false; // Must have - in middle.
+    int fa = p[1]-48;
+    if (fa < 0 || fa > 9) return false;
+    int fb = p[2]-48;
+    if (fb < 0 || fb > 9) return false;
+    int ta = p[4]-48;
+    if (ta < 0 || ta > 9) return false;
+    int tb = p[5]-48;
+    if (tb < 0 || tb > 9) return false;
+    tp->hour_from = fa*10+fb;
+    tp->hour_to = ta*10+tb;
+    if (tp->hour_from > 23) return false; // Hours are 00-23
+    if (tp->hour_to > 23) return false;   // Ditto.
+    if (tp->hour_to < tp->hour_from) return false; // To must be strictly larger than from, hence the need for 23.
+
+    return true;
+}
+
+int day_name_to_nr(const string& name)
+{
+    if (name == "mon") return 0;
+    if (name == "tue") return 1;
+    if (name == "wed") return 2;
+    if (name == "thu") return 3;
+    if (name == "fri") return 4;
+    if (name == "say") return 5;
+    if (name == "sun") return 6;
+    return -1;
+}
+
+bool extract_days(char *p, TimePeriod *tp)
+{
+    if (strlen(p) == 3)
+    {
+        string s = p;
+        int d = day_name_to_nr(s);
+        if (d == -1) return false;
+        tp->day_in_week_from = d;
+        tp->day_in_week_to = d;
+        return true;
+    }
+
+    if (strlen(p) != 7) return false; // Expect mon-fri
+    if (p[3] != '-') return false; // Must have - in middle.
+    string from = string(p, p+3);
+    string to = string(p+4, p+7);
+
+    int f = day_name_to_nr(from);
+    int t = day_name_to_nr(to);
+    if (f == -1 || t == -1) return false;
+    if (f >= t) return false;
+    tp->day_in_week_from = f;
+    tp->day_in_week_to = t;
+    return true;
+}
+
+bool extract_single_period(char *tok, TimePeriod *tp)
+{
+    // Minimum length is 8 chars, eg "1(00-23)"
+    size_t len = strlen(tok);
+    if (len < 8) return false;
+    // tok is for example: mon-fri(00-23) or tue(18-19) or 1(00-23)
+    char *p = strchr(tok, '(');
+    if (p == NULL) return false; // There must be a (
+    if (tok[len-1] != ')') return false; // Must end in )
+    bool ok = extract_times(p, tp);
+    if (!ok) return false;
+    *p = (char)NULL; // Terminate in the middle of tok.
+    ok = extract_days(tok, tp);
+    if (!ok) return false;
+
+    return true;
+}
+
+bool extract_periods(string periods, vector<TimePeriod> *period_structs)
+{
+    if (periods.length() == 0) return false;
+
+    char buf[periods.length()+1];
+    strcpy(buf, periods.c_str());
+
+    char *saveptr {};
+    char *tok = strtok_r(buf, ",", &saveptr);
+    if (tok == NULL)
+    {
+        // No comma found.
+        TimePeriod tp {};
+        bool ok = extract_single_period(tok, &tp);
+        if (!ok) return false;
+        period_structs->push_back(tp);
+        return true;
+    }
+
+    while (tok != NULL)
+    {
+        TimePeriod tp {};
+        bool ok = extract_single_period(tok, &tp);
+        if (!ok) return false;
+        period_structs->push_back(tp);
+        tok = strtok_r(NULL, ",", &saveptr);
+    }
+
+    return true;
+}
+
+bool isValidTimePeriod(std::string periods)
+{
+    vector<TimePeriod> period_structs;
+    bool ok = extract_periods(periods, &period_structs);
+    return ok;
+}
+
+bool isInsideTimePeriod(time_t now, std::string periods)
+{
+    struct tm nowt {};
+    localtime_r(&now, &nowt);
+
+    vector<TimePeriod> period_structs;
+
+    bool ok = extract_periods(periods, &period_structs);
+    if (!ok) return false;
+
+    for (auto &tp : period_structs)
+    {
+        //debug("period %d %d %d %d\n", tp.day_in_week_from, tp.day_in_week_to, tp.hour_from, tp.hour_to);
+        if (is_inside(&nowt, &tp)) return true;
+    }
+    return false;
+}
+
+size_t memoryUsage()
+{
+    return 0;
+}
+
+vector<string> alarm_shells_;
+
+void logAlarm(string type, string msg)
+{
+    vector<string> envs;
+    envs.push_back("ALARM_TYPE="+type);
+    envs.push_back("ALARM_MESSAGE="+msg);
+
+    warning("(alarm) %s: %s\n", type.c_str(), msg.c_str());
+
+    for (auto &s : alarm_shells_)
+    {
+        vector<string> args;
+        args.push_back("-c");
+        args.push_back(s);
+        invokeShell("/bin/sh", args, envs);
+    }
+}
+
+void setAlarmShells(vector<string> &alarm_shells)
+{
+    alarm_shells_ = alarm_shells;
 }

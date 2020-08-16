@@ -33,7 +33,8 @@ struct WMBusIM871A : public virtual WMBusCommonImplementation
     bool ping();
     uint32_t getDeviceId();
     LinkModeSet getLinkModes();
-    void setLinkModes(LinkModeSet lms);
+    void deviceReset();
+    void deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() {
         return
             C1_bit |
@@ -57,23 +58,19 @@ struct WMBusIM871A : public virtual WMBusCommonImplementation
         return 1 == countSetBits(lms.bits());
     }
     void processSerialData();
-    SerialDevice *serial() { return serial_.get(); }
     void simulate() { }
-    bool reset();
 
     WMBusIM871A(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
     ~WMBusIM871A() { }
 
 private:
-    unique_ptr<SerialDevice> serial_;
-    SerialCommunicationManager *manager_;
+
     vector<uchar> read_buffer_;
     pthread_mutex_t command_lock_ = PTHREAD_MUTEX_INITIALIZER;
     sem_t command_wait_;
     int sent_command_ {};
     int received_command_ {};
     vector<uchar> received_payload_;
-    LinkModeSet link_modes_ {};
 
     void waitForResponse();
     static FrameStatus checkIM871AFrame(vector<uchar> &data,
@@ -100,16 +97,16 @@ unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager,
 }
 
 WMBusIM871A::WMBusIM871A(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_IM871A), serial_(std::move(serial)), manager_(manager)
+    WMBusCommonImplementation(DEVICE_IM871A, manager,std::move(serial))
 {
     sem_init(&command_wait_, 0, 0);
-    manager_->listenTo(serial_.get(),call(this,processSerialData));
-    serial_->open(true);
+    manager_->listenTo(this->serial(),call(this,processSerialData));
+    reset();
 }
 
 bool WMBusIM871A::ping()
 {
-    if (serial_->readonly()) return true; // Feeding from stdin or file.
+    if (serial()->readonly()) return true; // Feeding from stdin or file.
 
     pthread_mutex_lock(&command_lock_);
 
@@ -131,7 +128,7 @@ bool WMBusIM871A::ping()
 
 uint32_t WMBusIM871A::getDeviceId()
 {
-    if (serial_->readonly()) return 0; // Feeding from stdin or file.
+    if (serial()->readonly()) return 0; // Feeding from stdin or file.
 
     pthread_mutex_lock(&command_lock_);
 
@@ -174,7 +171,7 @@ uint32_t WMBusIM871A::getDeviceId()
 
 LinkModeSet WMBusIM871A::getLinkModes()
 {
-    if (serial_->readonly()) { return Any_bit; }  // Feeding from stdin or file.
+    if (serial()->readonly()) { return Any_bit; }  // Feeding from stdin or file.
 
     pthread_mutex_lock(&command_lock_);
 
@@ -189,9 +186,11 @@ LinkModeSet WMBusIM871A::getLinkModes()
 
     if (!sent)
     {
+        // If we are using a serial override that will not respond,
+        // then just return a value.
         pthread_mutex_unlock(&command_lock_);
         // Use the remembered link modes set before.
-        return link_modes_;
+        return protectedGetLinkModes();
     }
 
     waitForResponse();
@@ -327,9 +326,17 @@ LinkModeSet WMBusIM871A::getLinkModes()
     return lms;
 }
 
-void WMBusIM871A::setLinkModes(LinkModeSet lms)
+void WMBusIM871A::deviceReset()
 {
-    if (serial_->readonly()) return; // Feeding from stdin or file.
+    // No device specific settings needed right now.
+    // The common code in wmbus.cc reset()
+    // will open the serial device and potentially
+    // set the link modes properly.
+}
+
+void WMBusIM871A::deviceSetLinkModes(LinkModeSet lms)
+{
+    if (serial()->readonly()) return; // Feeding from stdin or file.
 
     if (!canSetLinkModes(lms))
     {
@@ -379,8 +386,6 @@ void WMBusIM871A::setLinkModes(LinkModeSet lms)
 
     if (sent) waitForResponse();
 
-    // Remember the link modes, necessary when using stdin or file.
-    link_modes_ = lms;
     pthread_mutex_unlock(&command_lock_);
 }
 
@@ -526,7 +531,7 @@ void WMBusIM871A::processSerialData()
     vector<uchar> data;
 
     // Receive and accumulated serial data until a full frame has been received.
-    serial_->receive(&data);
+    serial()->receive(&data);
 
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
@@ -642,11 +647,6 @@ void WMBusIM871A::handleHWTest(int msgid, vector<uchar> &payload)
     default:
         verbose("(im871a) Unhandled hw test message %d\n", msgid);
     }
-}
-
-bool WMBusIM871A::reset()
-{
-    return false;
 }
 
 AccessCheck detectIM871A(string device, SerialCommunicationManager *manager)
