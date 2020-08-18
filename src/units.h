@@ -35,6 +35,7 @@
 
 #define LIST_OF_UNITS \
     X(KWH,kwh,"kWh",Energy,"kilo Watt hour")  \
+    X(MJ,mj,"MJ",Energy,"Mega Joule")         \
     X(GJ,gj,"GJ",Energy,"Giga Joule")         \
     X(M3,m3,"m3",Volume,"cubic meter")        \
     X(L,l,"l",Volume,"litre")                 \

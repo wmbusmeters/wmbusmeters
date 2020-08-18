@@ -28,7 +28,11 @@ using namespace std;
     X(Hour, Year, {vto=vfrom/24.0/365;}) \
     X(Year, Hour, {vto=vfrom*24.0*365;}) \
     X(KWH, GJ, {vto=vfrom*0.0036;})     \
+    X(KWH, MJ, {vto=vfrom*0.0036*1000.0;})     \
     X(GJ,  KWH,{vto=vfrom/0.0036;}) \
+    X(MJ,  GJ,  {vto=vfrom/1000.0;}) \
+    X(MJ,  KWH,{vto=vfrom/1000.0/0.0036;}) \
+    X(GJ,  MJ,  {vto=vfrom*1000.0;}) \
     X(M3,  L,  {vto=vfrom*1000.0;}) \
     X(L,   M3, {vto=vfrom/1000.0;}) \
     X(C,   F,  {vto=(vfrom*9.0/5.0)+32.0;}) \

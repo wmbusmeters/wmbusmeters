@@ -131,6 +131,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_mkradio3.o \
 	$(BUILD)/meter_multical21.o \
 	$(BUILD)/meter_multical302.o \
+	$(BUILD)/meter_multical403.o \
 	$(BUILD)/meter_omnipower.o \
 	$(BUILD)/meter_q400.o \
 	$(BUILD)/meter_qcaloric.o \
