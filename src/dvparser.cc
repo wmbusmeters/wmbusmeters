@@ -328,9 +328,9 @@ bool findKey(MeasurementType mit, ValueInformation vif, int storagenr, int tarif
         int vi = v.second.second.value_information;
         int sn = v.second.second.storagenr;
         int tn = v.second.second.tariff;
-        debug("(dvparser) match? %s type=%s vif=%02x (%s) and storagenr=%d\n",
+        /*debug("(dvparser) match? %s type=%s vif=%02x (%s) and storagenr=%d\n",
               v.first.c_str(),
-              measurementTypeName(ty).c_str(), vi, toString(toValueInformation(vi)), storagenr, sn);
+              measurementTypeName(ty).c_str(), vi, toString(toValueInformation(vi)), storagenr, sn);*/
 
         if (vi >= low && vi <= hi
             && (mit == MeasurementType::Unknown || mit == ty)
