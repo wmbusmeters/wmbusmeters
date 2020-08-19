@@ -1,5 +1,6 @@
 /*
- Copyright (C) 2018-2019 Fredrik Öhrström
+ Copyright (C) 2018-2020 Fredrik Öhrström
+                    2020 Eric Bus
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -49,7 +50,6 @@ private:
     void processContent(Telegram *t);
 
     uchar info_codes_ {};
-    double total_energy_kwh_ {};
     double total_energy_mj_ {};
     double total_volume_m3_ {};
     double volume_flow_m3h_ {};

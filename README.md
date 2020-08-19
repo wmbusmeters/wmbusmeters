@@ -173,7 +173,12 @@ rtlwmbus, to spawn the background process: "rtl_sdr -f 868.95M -s 1600000 - 2>/d
 
 rtlwmbus:868.9M, to tune to this fq instead.
 
-rtlwmbus:<commandline>, to specify the entire background process command line.
+rtl433, to spawn the background process: "rtl_433 -F csv -f 868.95M"
+
+rtl433:868.9M, to tune to this fq instead.
+
+rtlwmbus:<commandline>, to specify the entire background process command line that is expected to produce rtlwbus compatible output.
+Likewise for rtl433.
 
 stdin, to read raw binary telegrams from stdin.
 These telegrams are expected to have the data link layer crc bytes removed already!
@@ -181,9 +186,9 @@ These telegrams are expected to have the data link layer crc bytes removed alrea
 telegrams.bin, to read raw wmbus telegrams from this file.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
-stdin:rtlwmbus, to read telegrams formatted using the rtlwmbus format from stdin.
+stdin:rtlwmbus, to read telegrams formatted using the rtlwmbus format from stdin. Works for rtl433 as well.
 
-telegrams.msg:rtlwmbus, to read rtlwmbus formatted telegrams from this file.
+telegrams.msg:rtlwmbus, to read rtlwmbus formatted telegrams from this file. Works for rtl433 as well.
 
 simulation_abc.txt, to read telegrams from the file (which has a name beginning with simulation_)
 expecting the same format that is the output from --logtelegrams. This format also supports replay with timing.
@@ -201,8 +206,9 @@ Supported wmbus dongles:
 IMST 871a (im871a)
 Amber 8465 (amb8465)
 BMeters RFM-RX2 (rfmrx2)
-rtl_sdr|rtl_wmbus (rtlwmbus)
 CUL family (cul)
+rtl_wmbus (rtlwmbus)
+rtl_433 (rtl433)
 
 Supported water meters:
 Kamstrup Multical 21 (multical21)
