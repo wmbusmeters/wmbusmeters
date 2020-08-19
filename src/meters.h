@@ -47,6 +47,7 @@
     X(mkradio3,   T1_bit, Water,       MKRADIO3,    MKRadio3)     \
     X(multical21, C1_bit, Water,       MULTICAL21,  Multical21)   \
     X(multical302,C1_bit, Heat,        MULTICAL302, Multical302)  \
+    X(multical403,C1_bit, Heat,        MULTICAL403, Multical403)  \
     X(omnipower,  C1_bit, Electricity, OMNIPOWER,   Omnipower)    \
     X(rfmamb,     T1_bit, TempHygro,   RFMAMB,      RfmAmb)       \
     X(rfmtx1,     T1_bit, Water,       RFMTX1,      RfmTX1)       \
@@ -224,6 +225,7 @@ LinkModeSet toMeterLinkModeSet(string& type);
 unique_ptr<WaterMeter> createMultical21(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createFlowIQ3100(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatMeter> createMultical302(WMBus *bus, MeterInfo &m);
+unique_ptr<HeatMeter> createMultical403(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatMeter> createVario451(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createWaterstarM(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, MeterInfo &m);
