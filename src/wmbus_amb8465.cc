@@ -116,7 +116,6 @@ WMBusAmber::WMBusAmber(unique_ptr<SerialDevice> serial, SerialCommunicationManag
 void WMBusAmber::deviceReset()
 {
     timerclear(&timestamp_last_rx_);
-    getConfiguration();
 }
 
 uchar xorChecksum(vector<uchar> msg, int len)

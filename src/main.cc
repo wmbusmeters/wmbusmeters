@@ -152,8 +152,6 @@ bool startUsingCommandline(Configuration *config)
     auto manager = createSerialCommunicationManager(config->exitafter, config->reopenafter);
     onExit(call(manager.get(),stop));
 
-    manager->startEventLoop();
-
     Detected settings = detectWMBusDeviceSetting(config->device, config->device_extra, manager.get());
 
     unique_ptr<SerialDevice> serial_override;
@@ -397,6 +395,7 @@ LIST_OF_METERS
 
     wmbus->setMeters(&meters);
     wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
+    manager->startEventLoop();
     wmbus->setLinkModes(config->listen_to_link_modes);
     string using_link_modes = wmbus->getLinkModes().hr();
 
