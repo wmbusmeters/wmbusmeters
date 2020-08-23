@@ -7,7 +7,7 @@ description: |
   The readings can then be published using MQTT, curled to a REST api,
   inserted into a database or stored in a log file.
   Following must be executed "sudo snap connect wmbusmeters:raw-usb core:raw-usb"
-  to allow snap read USB devices and check that root user of your system is 
+  to allow snap read USB devices and check that root user of your system is
   added to group that can read USB devices
 
 base: core18
@@ -48,19 +48,40 @@ parts:
     build-packages:
       - g++
       - make
-      - libncurses-dev
+      - librtlsdr-dev
+      - libncurses5-dev
     stage-packages:
       - mosquitto-clients
       - curl
+      - libusb-1.0-0
+      - rtl-sdr
     prime:
       - usr/bin/
       - usr/lib/
       - lib/
       - etc/wmbusmeters.conf
 
+  rtl-wmbus:
+    source: "https://github.com/weetmuts/rtl-wmbus.git"
+    plugin: make
+    artifacts:
+      - build/rtl_wmbus
+    organize:
+      build/rtl_wmbus: usr/bin/rtl_wmbus
+    prime:
+      - usr/bin/rtl_wmbus
+
+  rtl-433:
+    source: "https://github.com/merbanan/rtl_433.git"
+    plugin: cmake
+    organize:
+      bin/rtl_433: usr/bin/rtl_433
+    prime:
+      - usr/bin/rtl_433
+
 apps:
   wmbusmeters:
-    command: launcher.sh
+    command: /bin/sh $SNAP/launcher.sh
     daemon: simple
     restart-condition: always
     plugs:
