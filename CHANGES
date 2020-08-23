@@ -1,3 +1,19 @@
+Version 0.9.35: 2020-08-23
+
+Added support for alarms (shell command triggered)
+and resetting of dongle when no telegrams have been received
+for a preset time, or if there are communication errors
+with the dongle.
+
+Added support for the Waterstar M meter.
+
+Bug fix for long term problem where wmbusmeters did not properly
+shut down background rtl_sdr|rtl_wmbus pipeline.
+
+Eric added support for the Multical 403. Thanks Eric!
+
+Bibo made snapcraft fixes. The snap now builds properly! Thanks Bibo!
+
 Version 0.9.34: 2020-07-09
 
 Wmbusmeters should now properly handle
