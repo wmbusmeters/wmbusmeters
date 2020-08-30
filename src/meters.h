@@ -30,6 +30,7 @@
     X(apator08,   T1_bit,        Water,       APATOR08,    Apator08)    \
     X(apator162,  C1_bit|T1_bit, Water,       APATOR162,   Apator162)   \
     X(cma12w,     C1_bit|T1_bit, TempHygro,   CMA12W,      CMa12w)      \
+    X(compact5,   T1_bit, Heat,        COMPACT5,    Compact5)     \
     X(ebzwmbe,    T1_bit, Electricity, EBZWMBE, EBZWMBE)   \
     X(eurisii,    T1_bit, HeatCostAllocation, EURISII, EurisII)   \
     X(ehzp,       T1_bit, Electricity, EHZP,        EHZP)         \
@@ -221,12 +222,14 @@ struct GenericMeter : public virtual Meter {
 string toMeterName(MeterType mt);
 MeterType toMeterType(string& type);
 LinkModeSet toMeterLinkModeSet(string& type);
+
 unique_ptr<WaterMeter> createMultical21(MeterInfo &m);
 unique_ptr<WaterMeter> createFlowIQ3100(MeterInfo &m);
 unique_ptr<HeatMeter> createMultical302(MeterInfo &m);
 unique_ptr<HeatMeter> createMultical403(MeterInfo &m);
 unique_ptr<HeatMeter> createVario451(MeterInfo &m);
 unique_ptr<WaterMeter> createWaterstarM(MeterInfo &m);
+unique_ptr<HeatMeter> createCompact5(MeterInfo &m);
 unique_ptr<ElectricityMeter> createOmnipower(MeterInfo &m);
 unique_ptr<ElectricityMeter> createAmiplus(MeterInfo &m);
 unique_ptr<WaterMeter> createSupercom587(MeterInfo &m);
