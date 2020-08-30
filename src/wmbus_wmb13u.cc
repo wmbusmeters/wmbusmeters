@@ -203,7 +203,7 @@ void WMBusWMB13U::processSerialData()
     // Receive and accumulated serial data until a full frame has been received.
     serial()->receive(&data);
     // Unlock the serial lock.
-    pthread_mutex_unlock(&serial_lock_);
+    UNLOCK("(wmb13u)", "processSerialData", serial_lock_);
 
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
@@ -245,7 +245,7 @@ void WMBusWMB13U::processSerialData()
 
 bool WMBusWMB13U::enterConfigModee()
 {
-    pthread_mutex_lock(&serial_lock_);
+    LOCK("(wmb13u)", "enterConfigMode", serial_lock_);
 
     vector<uchar> data;
 
@@ -272,7 +272,8 @@ bool WMBusWMB13U::enterConfigModee()
     return true;
 
 fail:
-    pthread_mutex_unlock(&serial_lock_);
+
+    UNLOCK("(wmb13u)", "enterConfigMode", serial_lock_);
     return false;
 }
 
@@ -291,7 +292,7 @@ bool WMBusWMB13U::exitConfigModee()
     serial()->receive(&data);
 
     // Always unlock....
-    pthread_mutex_unlock(&serial_lock_);
+    UNLOCK("(wmb13u)", "exitConfigMode", serial_lock_);
 
     if (!startsWith("OK", data)) return false;
 

@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 
 struct MeterCMa12w : public virtual TempHygroMeter, public virtual MeterCommonImplementation {
-    MeterCMa12w(WMBus *bus, MeterInfo &mi);
+    MeterCMa12w(MeterInfo &mi);
 
     double currentTemperature(Unit u);
     double currentRelativeHumidity();
@@ -35,8 +35,8 @@ private:
     double average_temperature_1h_c_;
 };
 
-MeterCMa12w::MeterCMa12w(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::CMA12W, MANUFACTURER_ELV)
+MeterCMa12w::MeterCMa12w(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::CMA12W, MANUFACTURER_ELV)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -57,9 +57,9 @@ MeterCMa12w::MeterCMa12w(WMBus *bus, MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<TempHygroMeter> createCMa12w(WMBus *bus, MeterInfo &mi)
+unique_ptr<TempHygroMeter> createCMa12w(MeterInfo &mi)
 {
-    return unique_ptr<TempHygroMeter>(new MeterCMa12w(bus, mi));
+    return unique_ptr<TempHygroMeter>(new MeterCMa12w(mi));
 }
 
 double MeterCMa12w::currentTemperature(Unit u)

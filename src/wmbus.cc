@@ -512,6 +512,9 @@ Detected detectAuto(string devicefile,
 {
     assert(devicefile == "auto");
 
+    Detected detected;
+    detected.device = { devicefile, suffix };
+
     if (suffix != "")
     {
         error("You cannot have a suffix appended to auto.\n");
@@ -520,68 +523,71 @@ Detected detectAuto(string devicefile,
     AccessCheck ac;
 
     ac = findAndDetect(handler, &devicefile,
-                       [](string d, SerialCommunicationManager* m){ return detectIM871A(d, m);},
+                       [&](string d, SerialCommunicationManager* m){ return detectIM871A(d, &detected, m);},
                        "im871a",
                        "/dev/im871a");
 
     if (ac == AccessCheck::AccessOK)
     {
-        return { DEVICE_IM871A, devicefile, 0, false };
+        return detected;
     }
     CHECK_SAME_GROUP
 
     ac = findAndDetect(handler, &devicefile,
-                       [](string d, SerialCommunicationManager* m){ return detectAMB8465(d, m);},
+                       [&](string d, SerialCommunicationManager* m){ return detectAMB8465(d, &detected, m);},
                        "amb8465",
                        "/dev/amb8465");
 
     if (ac == AccessCheck::AccessOK)
     {
-        return { DEVICE_AMB8465, devicefile, false };
+        return detected;
     }
     CHECK_SAME_GROUP
 
     ac = findAndDetect(handler, &devicefile,
-                       [](string d, SerialCommunicationManager* m){ return detectRawTTY(d, 38400, m);},
+                       [&](string d, SerialCommunicationManager* m){ return detectRawTTY(d, 38400, &detected, m);},
                        "rfmrx2",
                        "/dev/rfmrx2");
 
     if (ac == AccessCheck::AccessOK)
     {
-        return { DEVICE_RFMRX2, devicefile, false };
+        return detected;
     }
     CHECK_SAME_GROUP
 
     ac = findAndDetect(handler, &devicefile,
-                       [](string d, SerialCommunicationManager* m){ return detectCUL(d, m);},
+                       [&](string d, SerialCommunicationManager* m){ return detectCUL(d, &detected, m);},
                        "cul",
                        "/dev/ttyUSB0");
 
     if (ac == AccessCheck::AccessOK)
     {
-        return { DEVICE_CUL, "/dev/ttyUSB0" };
+        return detected;
     }
     CHECK_SAME_GROUP
 
     ac = findAndDetect(handler, &devicefile,
-                       [](string d, SerialCommunicationManager* m){ return detectRTLSDR(d, m);},
+                       [&](string d, SerialCommunicationManager* m){ return detectRTLSDR(d, &detected, m);},
                        "rtlsdr",
                        "/dev/rtlsdr");
 
     if (ac == AccessCheck::AccessOK)
     {
-        return { DEVICE_RTLWMBUS, "rtlwmbus" };
+        return detected;
     }
     CHECK_SAME_GROUP
 
     // We could not auto-detect any device.
-    return { DEVICE_UNKNOWN, "", false };
+    return { { devicefile, "", ""}, DEVICE_UNKNOWN, 0, false };
 }
 
-Detected detectImstAmberCul(string devicefile,
+Detected detectImstAmberCul(string file,
                             string suffix,
                             SerialCommunicationManager *handler)
 {
+    Detected detected {};
+    detected.device = { file, suffix };
+
     // If im87a is tested first, a delay of 1s must be inserted
     // before amb8465 is tested, lest it will not respond properly.
     // It really should not matter, but perhaps is the uart of the amber
@@ -591,35 +597,37 @@ Detected detectImstAmberCul(string devicefile,
 
     // Talk amb8465 with it...
     // assumes this device is configured for 9600 bps, which seems to be the default.
-    if (detectAMB8465(devicefile, handler) == AccessCheck::AccessOK)
+    if (detectAMB8465(file, &detected, handler) == AccessCheck::AccessOK)
     {
-        return { DEVICE_AMB8465, devicefile, false };
+        return detected;
     }
     // Talk im871a with it...
     // assumes this device is configured for 57600 bps, which seems to be the default.
-    if (detectIM871A(devicefile, handler) == AccessCheck::AccessOK)
+    if (detectIM871A(file, &detected, handler) == AccessCheck::AccessOK)
     {
-        return { DEVICE_IM871A, devicefile, false };
+        return detected;
     }
     // Talk CUL with it...
     // assumes this device is configured for 38400 bps, which seems to be the default.
-    if (detectCUL(devicefile, handler) == AccessCheck::AccessOK)
+    if (detectCUL(file, &detected, handler) == AccessCheck::AccessOK)
     {
-        return { DEVICE_CUL, devicefile, false };
+        return detected;
     }
 
     // We could not auto-detect either.
-    return { DEVICE_UNKNOWN, "", false };
+    return { { file, suffix }, DEVICE_UNKNOWN, 0, false };
 }
 
 /**
   The devicefile can be:
 
-  auto (to autodetect the device)
-  /dev/ttyUSB0 (to use this character device)
+  auto (to autodetect the devices)
+
+  /dev/ttyUSB0 (to use this serial device, probe for the exact device.)
+  /dev/ttyUSB0:9600 (listen to this serial device set to this baudrate N81, no probing.)
   /home/me/simulation.txt or /home/me/simulation_foo.txt (to use the wmbusmeters telegram=|....|+32 format)
-  /home/me/telegram.raw (to read bytes from this file)
-  stdin (to read bytes from stdin)
+  /home/me/telegram.raw (to read raw binary wmbus bytes from this file)
+  stdin (to read raw binary wmbus bytes from stdin)
 
   If a suffix the suffix can be:
   im871a
@@ -632,69 +640,69 @@ Detected detectImstAmberCul(string devicefile,
   simulation: assume the devicefile produces telegram=|....|+xx lines. This can also pace the simulated telegrams in time.
   a baud rate like 38400: assume the devicefile is a raw tty character device.
 */
-Detected detectWMBusDeviceSetting(string devicefile,
+Detected detectWMBusDeviceSetting(string file,
                                   string suffix,
                                   SerialCommunicationManager *handler)
 {
-    debug("(detect) \"%s\" \"%s\"\n", devicefile.c_str(), suffix.c_str());
+    debug("(detect) \"%s\" \"%s\"\n", file.c_str(), suffix.c_str());
     // Look for /dev/im871a /dev/amb8465 /dev/rfmrx2 /dev/rtlsdr
-    if (devicefile == "auto")
+    if (file == "auto")
     {
         debug("(detect) driver: auto\n");
-        return detectAuto(devicefile, suffix, handler);
+        return detectAuto(file, suffix, handler);
     }
 
     // If the devicefile is rtlwmbus then the suffix can be a frequency
     // or the actual command line to use.
     // E.g. rtlwmbus rtlwmbux:868.95M rtlwmbus:rtl_sdr | rtl_wmbus
-    if (devicefile == "rtlwmbus")
+    if (file == "rtlwmbus")
     {
         debug("(detect) driver: rtlwmbus\n");
-        return { DEVICE_RTLWMBUS, "", false };
+        return { { file, suffix }, DEVICE_RTLWMBUS, 0, false };
     }
 
-    if (devicefile == "rtl433")
+    if (file == "rtl433")
     {
         debug("(detect) driver: rtl433\n");
-        return { DEVICE_RTL433, "", false };
+        return { { file, suffix}, DEVICE_RTL433, 0, false };
     }
 
     // Is it a file named simulation_xxx.txt ?
-    if (checkIfSimulationFile(devicefile.c_str()))
+    if (checkIfSimulationFile(file.c_str()))
     {
         debug("(detect) driver: simulation file\n");
-        return { DEVICE_SIMULATOR, devicefile, false };
+        return { { file, suffix }, DEVICE_SIMULATOR, 0, false };
     }
 
-    bool is_tty = checkCharacterDeviceExists(devicefile.c_str(), false);
-    bool is_stdin = devicefile == "stdin";
-    bool is_file = checkFileExists(devicefile.c_str());
+    bool is_tty = checkCharacterDeviceExists(file.c_str(), false);
+    bool is_stdin = file == "stdin";
+    bool is_file = checkFileExists(file.c_str());
 
     debug("(detect) is_tty=%d is_stdin=%d is_file=%d\n", is_tty, is_stdin, is_file);
     if (!is_tty && !is_stdin && !is_file)
     {
-        debug("(detect) not a valid device file %s\n", devicefile.c_str());
+        debug("(detect) not a valid device file %s\n", file.c_str());
         // Oups, not a valid devicefile.
-        return { DEVICE_UNKNOWN, "", false };
+        return { { file, suffix }, DEVICE_UNKNOWN, 0, false };
     }
 
     bool override_tty = !is_tty;
 
-    if (suffix == "amb8465") return { DEVICE_AMB8465, devicefile, 0, override_tty };
-    if (suffix == "im871a") return { DEVICE_IM871A, devicefile, 0, override_tty };
-    if (suffix == "rfmrx2") return { DEVICE_RFMRX2, devicefile, 0, override_tty };
-    if (suffix == "rtlwmbus") return { DEVICE_RTLWMBUS, devicefile, 0, override_tty };
-    if (suffix == "rtl433") return { DEVICE_RTL433, devicefile, 0, override_tty };
-    if (suffix == "cul") return { DEVICE_CUL, devicefile, 0, override_tty };
-    if (suffix == "d1tc") return { DEVICE_D1TC, devicefile, 0, override_tty };
-    if (suffix == "wmb13u") return { DEVICE_WMB13U, devicefile, 0, override_tty };
-    if (suffix == "simulation") return { DEVICE_SIMULATOR, devicefile, 0, override_tty };
+    if (suffix == "amb8465") return { { file, suffix }, DEVICE_AMB8465, 0, override_tty };
+    if (suffix == "im871a") return { { file, suffix }, DEVICE_IM871A, 0, override_tty };
+    if (suffix == "rfmrx2") return { { file, suffix }, DEVICE_RFMRX2, 0, override_tty };
+    if (suffix == "rtlwmbus") return { { file, suffix }, DEVICE_RTLWMBUS, 0, override_tty };
+    if (suffix == "rtl433") return { { file, suffix}, DEVICE_RTL433, 0, override_tty };
+    if (suffix == "cul") return { { file, suffix}, DEVICE_CUL, 0, override_tty };
+    if (suffix == "d1tc") return { { file, suffix}, DEVICE_D1TC, 0, override_tty };
+    if (suffix == "wmb13u") return { { file, suffix}, DEVICE_WMB13U, 0, override_tty };
+    if (suffix == "simulation") return { { file, suffix}, DEVICE_SIMULATOR, 0, override_tty };
 
     // If the suffix is a number, then assume that it is a baud rate.
-    if (isNumber(suffix)) return { DEVICE_RAWTTY, devicefile, atoi(suffix.c_str()), override_tty };
+    if (isNumber(suffix)) return { { file, suffix} , DEVICE_RAWTTY, atoi(suffix.c_str()), override_tty };
 
     // If the suffix is empty and its not a tty, then read raw telegrams from stdin or the file.
-    if (suffix == "" && !is_tty) return { DEVICE_RAWTTY, devicefile, 0, true };
+    if (suffix == "" && !is_tty) return { { file, suffix}, DEVICE_RAWTTY, 0, true };
 
     if (suffix != "")
     {
@@ -704,7 +712,7 @@ Detected detectWMBusDeviceSetting(string devicefile,
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
     // to figure out what is connected to it. We currently only
     // know how to detect Imst, Amber or CUL dongles.
-    return detectImstAmberCul(devicefile, suffix, handler);
+    return detectImstAmberCul(file, suffix, handler);
 }
 
 /*
@@ -3319,10 +3327,16 @@ bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_byt
     return ok;
 }
 
+WMBusCommonImplementation::~WMBusCommonImplementation()
+{
+    info("(wmbus) deleted %s\n", toString(type()));
+}
+
 WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
                                                      SerialCommunicationManager *manager,
                                                      unique_ptr<SerialDevice> serial)
     : manager_(manager),
+      is_working_(true),
       type_(t),
       serial_(std::move(serial))
 {
@@ -3331,7 +3345,7 @@ WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
 
     // Invoke the check status once per minute. Unless internal testing, then it is every 2 seconds.
     int default_timer = isInternalTestingEnabled() ? CHECKSTATUS_TIMER_INTERNAL_TESTING : CHECKSTATUS_TIMER;
-    manager_->startRegularCallback(default_timer, call(this,checkStatus), toString(t));
+    manager_->startRegularCallback(toString(t), default_timer, call(this,checkStatus));
 }
 
 WMBusDeviceType WMBusCommonImplementation::type()
@@ -3435,6 +3449,20 @@ bool WMBusCommonImplementation::reset()
     }
 
     return true;
+}
+
+void WMBusCommonImplementation::disconnectedFromDevice()
+{
+    if (is_working_)
+    {
+        info("(wmbus) lost %s closing %s\n", device().c_str(), toString(type()));
+        is_working_ = false;
+    }
+}
+
+bool WMBusCommonImplementation::isWorking()
+{
+    return is_working_;
 }
 
 void WMBusCommonImplementation::checkStatus()
@@ -3673,6 +3701,7 @@ AccessCheck findAndDetect(SerialCommunicationManager *manager,
         AccessCheck rc = check(dev, manager);
         if (rc == AccessCheck::AccessOK) return AccessCheck::AccessOK;
     }
+
     if (ac == AccessCheck::NotSameGroup)
     {
         // Device exists, but you do not belong to its group!
@@ -3680,27 +3709,6 @@ AccessCheck findAndDetect(SerialCommunicationManager *manager,
         // But not being in the same group is such a problematic
         // situation, that we can stop early.
         return AccessCheck::NotSameGroup;
-    }
-
-    for (int n=0; n < 9; ++n)
-    {
-        dev = device_root+"_"+to_string(n);
-        debug("(%s) exists? %s\n", dongle_name.c_str(), dev.c_str());
-        AccessCheck ac = checkIfExistsAndSameGroup(dev);
-        *out_device = dev;
-        if (ac == AccessCheck::AccessOK)
-        {
-            debug("(%s) checking %s\n", dongle_name.c_str(), dev.c_str());
-            AccessCheck rc = check(dev, manager);
-            if (rc == AccessCheck::AccessOK) return AccessCheck::AccessOK;
-            // If we get here, the device /dev/im871a_0 could be locked
-            // try /dev/im871a_1 etc...
-        }
-        if (ac == AccessCheck::NotSameGroup)
-        {
-            // Device exists, but you do not belong to its group!
-            return AccessCheck::NotSameGroup;
-        }
     }
 
     *out_device = "";
@@ -3934,4 +3942,34 @@ LIST_OF_MBUS_DEVICES
 
     }
     return "?";
+}
+
+bool isPossibleDevice(string arg, Device *device)
+{
+    size_t colon = arg.find(":");
+
+    if (colon == string::npos)
+    {
+
+        device->file = arg;
+        device->suffix = "";
+        device->linkmodes = "";
+        return true;
+    }
+
+    device->file = arg.substr(0, colon);
+    string rest = arg.substr(colon+1);
+
+    colon = rest.find(":");
+    if (colon == string::npos)
+    {
+        device->suffix = rest;
+        device->linkmodes = "";
+        return true;
+    }
+
+    device->suffix = rest.substr(0, colon);
+    device->linkmodes = rest.substr(colon+1);
+
+    return true;
 }

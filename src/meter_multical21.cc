@@ -39,7 +39,7 @@ using namespace std;
 #define INFO_CODE_BURST_SHIFT (4+9)
 
 struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterMultical21(WMBus *bus, MeterInfo &mi, MeterType mt);
+    MeterMultical21(MeterInfo &mi, MeterType mt);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -91,8 +91,8 @@ private:
     int expected_version_ {}; // 0x1b for Multical21 and 0x1d for FlowIQ3100
 };
 
-MeterMultical21::MeterMultical21(WMBus *bus, MeterInfo &mi, MeterType mt) :
-    MeterCommonImplementation(bus, mi, mt, MANUFACTURER_KAM)
+MeterMultical21::MeterMultical21(MeterInfo &mi, MeterType mt) :
+    MeterCommonImplementation(mi, mt, MANUFACTURER_KAM)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
@@ -219,22 +219,22 @@ bool MeterMultical21::hasExternalTemperature()
     return has_external_temperature_;
 }
 
-unique_ptr<WaterMeter> createMulticalWaterMeter(WMBus *bus, MeterInfo &mi, MeterType mt)
+unique_ptr<WaterMeter> createMulticalWaterMeter(MeterInfo &mi, MeterType mt)
 {
     if (mt != MeterType::MULTICAL21 && mt != MeterType::FLOWIQ3100) {
         error("Internal error! Not a proper meter type when creating a multical21 style meter.\n");
     }
-    return unique_ptr<WaterMeter>(new MeterMultical21(bus,mi,mt));
+    return unique_ptr<WaterMeter>(new MeterMultical21(mi,mt));
 }
 
-unique_ptr<WaterMeter> createMultical21(WMBus *bus, MeterInfo &mi)
+unique_ptr<WaterMeter> createMultical21(MeterInfo &mi)
 {
-    return createMulticalWaterMeter(bus, mi, MeterType::MULTICAL21);
+    return createMulticalWaterMeter(mi, MeterType::MULTICAL21);
 }
 
-unique_ptr<WaterMeter> createFlowIQ3100(WMBus *bus, MeterInfo &mi)
+unique_ptr<WaterMeter> createFlowIQ3100(MeterInfo &mi)
 {
-    return createMulticalWaterMeter(bus, mi, MeterType::FLOWIQ3100);
+    return createMulticalWaterMeter(mi, MeterType::FLOWIQ3100);
 }
 
 void MeterMultical21::processContent(Telegram *t)

@@ -7,7 +7,6 @@ then
 
 	Options:
 	--no-adduser		Do not add wmbusmeters user
-	--no-udev-rules		Do not add udev rules
 	"
     exit 0
 fi
@@ -33,7 +32,6 @@ fi
 SRC=$1
 ROOT="${2%/}"
 ADDUSER=true
-ADDUDEVRULES=true
 
 while [ $# -ne 0 ]
 do
@@ -42,10 +40,6 @@ do
         case "$ARG" in
         --no-adduser)
                 ADDUSER=false
-        ;;
-        --no-udev-rules)
-                ADDUDEVRULES=false
-        shift
         ;;
         esac
 done
@@ -94,13 +88,22 @@ fi
 
 if [ "$ADDUSER" = "true" ]
 then
-    if [ "$ID" = "" ]
+    if [ -z "$ID" ]
     then
         # Create the wmbusmeters user
         useradd --system --shell $USERSHELL --groups dialout wmbusmeters
         echo user: added wmbusmeters
     else
         echo user: wmbusmeters unmodified
+    fi
+
+    if [ "$(groups wmbusmeters | grep -o dialout)" = "" ]
+    then
+        # Add the wmbusmeters user to dialout
+        usermod -a -G dialout wmbusmeters
+        echo user: added wmbusmeters to dialout group
+    else
+        echo user: wmbusmeters already added to dialout
     fi
     if [ ! -z "$SUDO_USER" ]
     then
@@ -110,7 +113,15 @@ then
             usermod -a -G wmbusmeters $SUDO_USER
             echo user: added $SUDO_USER to group wmbusmeters
         else
-            echo user: user $SUDO_USER already added group wmbusmeters
+            echo user: $SUDO_USER already added group wmbusmeters
+        fi
+        if [ "$(groups $SUDO_USER | grep -o dialout)" = "" ]
+        then
+            # Add user to the dialout group.
+            usermod -a -G dialout $SUDO_USER
+            echo user: added $SUDO_USER to group dialout
+        else
+            echo user: $SUDO_USER already added group dialout
         fi
     fi
 fi
@@ -268,88 +279,26 @@ OLD_WMBAS=~/old.wmbusmeters@.service.backup
 CURR_WMBAS="$ROOT"/lib/systemd/system/wmbusmeters@.service
 if [ -f $CURR_WMBAS ]
 then
+    echo systemd: removing $CURR_WMBAS
     echo systemd: backing up $CURR_WMBAS to here: $OLD_WMBAS
     cp $CURR_WMBAS $OLD_WMBAS 2>/dev/null
-fi
-
-# Create service file that needs an argument eg.
-# sudo systemctl start wmbusmeters@/dev/im871a_1.service
-cat <<'EOF' > "$ROOT"/lib/systemd/system/wmbusmeters@.service
-[Unit]
-Description="wmbusmeters service (udev triggered by %I)"
-Documentation=https://github.com/weetmuts/wmbusmeters
-Documentation=man:wmbusmeters(1)
-After=network.target
-StopWhenUnneeded=true
-StartLimitIntervalSec=10
-StartLimitInterval=10
-StartLimitBurst=3
-
-[Service]
-Type=forking
-PrivateTmp=yes
-User=wmbusmeters
-Group=wmbusmeters
-Restart=always
-RestartSec=1
-
-# Run ExecStartPre with root-permissions
-
-PermissionsStartOnly=true
-ExecStartPre=-/bin/mkdir -p /var/log/wmbusmeters/meter_readings
-ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/log/wmbusmeters
-ExecStartPre=-/bin/mkdir -p /run/wmbusmeters
-ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /run/wmbusmeters
-
-ExecStart=/usr/sbin/wmbusmetersd --device='%I' /run/wmbusmeters/wmbusmeters-%i.pid
-ExecReload=/bin/kill -HUP $MAINPID
-PIDFile=/run/wmbusmeters/wmbusmeters-%i.pid
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-if diff $OLD_WMBAS $CURR_WMBAS 1>/dev/null
-then
-    echo systemd: no changes to $CURR_WMBAS
-else
-    echo systemd: updated $CURR_WMBAS
+    rm $CURR_WMBAS
     SYSTEMD_NEEDS_RELOAD=true
 fi
 
 ####################################################################
 ##
-## Create /etc/udev/rules.d/99-wmbus-usb-serial.rules
+## Remove any existing /etc/udev/rules.d/99-wmbus-usb-serial.rules
+## The new wmbuseters daemon is not going to use these.
 ##
 
-UDEV_NEEDS_RELOAD=false
-
-
-if [ "$ADDUDEVRULES" = "true" ]
+if [ -f "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ]
 then
-    if [ -f "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ]
-    then
-        echo udev: removing "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
-        echo udev: backup stored here: ~/old.wmbusmeters-wmbus-usb-serial.rules.backup
-        cp "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ~/old.wmbusmeters-wmbus-usb-serial.rules.backup
-        rm "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
-        UDEV_NEEDS_RELOAD=true
-    fi
-
-	if [ ! -f "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ]
-	then
-		mkdir -p "$ROOT"/etc/udev/rules.d
-		# Create service file
-		cat <<EOF > "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
-SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60",SYMLINK+="im871a_%n",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@/dev/im871a_%n.service"
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001",SYMLINK+="amb8465_%n",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@/dev/amb8465_%n.service"
-SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838",SYMLINK+="rtlsdr_%n",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@/dev/rtlsdr_%n.service"
-SUBSYSTEM=="usb", ATTRS{idVendor}=="2047", ATTRS{idProduct}=="0863",SYMLINK+="rfmrx2_%n",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@/dev/rfmrx2_%n.service"
-EOF
-		echo udev: installed "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
-	else
-		echo udev: "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules unchanged
-	fi
+    echo udev: removing "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
+    echo udev: backup stored here: ~/old.wmbusmeters-wmbus-usb-serial.rules.backup
+    cp "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ~/old.wmbusmeters-wmbus-usb-serial.rules.backup
+    rm "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
+    UDEV_NEEDS_RELOAD=true
 fi
 
 if [ "$SYSTEMD_NEEDS_RELOAD" = "true" ]
@@ -362,13 +311,9 @@ fi
 
 if [ "$UDEV_NEEDS_RELOAD" = "true" ]
 then
-    D=$(diff "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ~/old.wmbusmeters-wmbus-usb-serial.rules.backup)
-    if [ "$D" != "" ]
-    then
-        echo
-        echo
-        echo You need to reload udev configuration! Please do:
-        echo "sudo udevadm control --reload-rules"
-        echo "sudo udevadm trigger"
-    fi
+    echo
+    echo
+    echo You need to reload udev configuration! Please do:
+    echo "sudo udevadm control --reload-rules"
+    echo "sudo udevadm trigger"
 fi

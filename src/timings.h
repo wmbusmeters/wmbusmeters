@@ -18,10 +18,8 @@
 #ifndef TIMINGS_H
 #define TIMINGS_H
 
-// Default select timeout, every 10 seconds if no other timer/timeout cuts it short.
-#define SELECT_TIMEOUT 10
-// When running internal tests on timeouts use 5 seconds instead.
-#define SELECT_TIMEOUT_INTERNAL_TESTING 5
+// Default select timeout one second.
+#define SELECT_TIMEOUT 1
 
 // Default checkStatus callback frequency every 60 seconds, when an alarmtimeout has been set.
 #define CHECKSTATUS_TIMER 60

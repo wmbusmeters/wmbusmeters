@@ -192,8 +192,8 @@ $(BUILD)/main.o: $(BUILD)/short_manual.h $(BUILD)/version.h
 $(BUILD)/wmbusmeters: $(METER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
 	$(CXX) -o $(BUILD)/wmbusmeters $(METER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lpthread
 
-$(BUILD)/wmbusmeters-admin: $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters-admin $(METER_OBJS) $(BUILD)/admin.o $(LDFLAGS) -lmenu -lncurses -lpthread
+$(BUILD)/wmbusmeters-admin: $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(BUILD)/short_manual.h
+	$(CXX) -o $(BUILD)/wmbusmeters-admin $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -lpthread
 
 $(BUILD)/short_manual.h: README.md
 	echo 'R"MANUAL(' > $(BUILD)/short_manual.h

@@ -23,7 +23,7 @@
 #include"util.h"
 
 struct MeterOmnipower : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
-    MeterOmnipower(WMBus *bus, MeterInfo &mi);
+    MeterOmnipower(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
 
@@ -34,13 +34,13 @@ private:
     double total_energy_kwh_ {};
 };
 
-unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, MeterInfo &mi)
+unique_ptr<ElectricityMeter> createOmnipower(MeterInfo &mi)
 {
-    return unique_ptr<ElectricityMeter>(new MeterOmnipower(bus, mi));
+    return unique_ptr<ElectricityMeter>(new MeterOmnipower(mi));
 }
 
-MeterOmnipower::MeterOmnipower(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::OMNIPOWER, MANUFACTURER_KAM)
+MeterOmnipower::MeterOmnipower(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::OMNIPOWER, MANUFACTURER_KAM)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

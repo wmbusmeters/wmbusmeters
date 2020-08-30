@@ -25,7 +25,7 @@
 using namespace std;
 
 struct MeterQ400 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterQ400(WMBus *bus, MeterInfo &mi);
+    MeterQ400(MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -42,13 +42,13 @@ private:
     double consumption_at_set_date_m3_ {};
 };
 
-unique_ptr<WaterMeter> createQ400(WMBus *bus, MeterInfo &mi)
+unique_ptr<WaterMeter> createQ400(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterQ400(bus, mi));
+    return unique_ptr<WaterMeter>(new MeterQ400(mi));
 }
 
-MeterQ400::MeterQ400(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::Q400, MANUFACTURER_AXI)
+MeterQ400::MeterQ400(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::Q400, MANUFACTURER_AXI)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

@@ -1055,6 +1055,13 @@ string strdatetime(struct tm *datetime)
     return string(buf);
 }
 
+string strdatetimesec(struct tm *datetime)
+{
+    char buf[256];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", datetime);
+    return string(buf);
+}
+
 AccessCheck checkIfExistsAndSameGroup(string device)
 {
     struct stat sb;

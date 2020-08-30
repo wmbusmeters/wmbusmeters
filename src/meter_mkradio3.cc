@@ -26,7 +26,7 @@ using namespace std;
 
 struct MKRadio3 : public virtual WaterMeter, public virtual MeterCommonImplementation
 {
-    MKRadio3(WMBus *bus, MeterInfo &mi);
+    MKRadio3(MeterInfo &mi);
 
     double totalWaterConsumption(Unit u);
     bool  hasTotalWaterConsumption();
@@ -40,8 +40,8 @@ private:
     double target_water_consumption_m3_ {};
 };
 
-MKRadio3::MKRadio3(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::MKRADIO3, MANUFACTURER_TCH)
+MKRadio3::MKRadio3(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::MKRADIO3, MANUFACTURER_TCH)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -63,9 +63,9 @@ MKRadio3::MKRadio3(WMBus *bus, MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<WaterMeter> createMKRadio3(WMBus *bus, MeterInfo &mi)
+unique_ptr<WaterMeter> createMKRadio3(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MKRadio3(bus, mi));
+    return unique_ptr<WaterMeter>(new MKRadio3(mi));
 }
 
 void MKRadio3::processContent(Telegram *t)

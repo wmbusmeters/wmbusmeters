@@ -24,7 +24,7 @@
 using namespace std;
 
 struct MeterHydrus : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterHydrus(WMBus *bus, MeterInfo &mi);
+    MeterHydrus(MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -44,8 +44,8 @@ private:
     double flow_temperature_c_ { 127 };
 };
 
-MeterHydrus::MeterHydrus(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::HYDRUS, MANUFACTURER_DME)
+MeterHydrus::MeterHydrus(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::HYDRUS, MANUFACTURER_DME)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -81,9 +81,9 @@ MeterHydrus::MeterHydrus(WMBus *bus, MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<WaterMeter> createHydrus(WMBus *bus, MeterInfo &mi)
+unique_ptr<WaterMeter> createHydrus(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterHydrus(bus, mi));
+    return unique_ptr<WaterMeter>(new MeterHydrus(mi));
 }
 
 void MeterHydrus::processContent(Telegram *t)

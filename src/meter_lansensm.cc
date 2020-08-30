@@ -25,7 +25,7 @@
 #define INFO_CODE_TEST  0x0008
 
 struct MeterLansenSM : public virtual SmokeDetector, public virtual MeterCommonImplementation {
-    MeterLansenSM(WMBus *bus, MeterInfo &mi);
+    MeterLansenSM(MeterInfo &mi);
 
     string status();
     bool smokeDetected();
@@ -40,8 +40,8 @@ private:
 
 };
 
-MeterLansenSM::MeterLansenSM(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::LANSENSM, MANUFACTURER_LAS)
+MeterLansenSM::MeterLansenSM(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::LANSENSM, MANUFACTURER_LAS)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -57,9 +57,9 @@ MeterLansenSM::MeterLansenSM(WMBus *bus, MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<SmokeDetector> createLansenSM(WMBus *bus, MeterInfo &mi)
+unique_ptr<SmokeDetector> createLansenSM(MeterInfo &mi)
 {
-    return unique_ptr<SmokeDetector>(new MeterLansenSM(bus, mi));
+    return unique_ptr<SmokeDetector>(new MeterLansenSM(mi));
 }
 
 bool MeterLansenSM::smokeDetected()

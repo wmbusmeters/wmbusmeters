@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 
 struct MeterEurisII : public virtual HeatCostMeter, public virtual MeterCommonImplementation {
-    MeterEurisII(WMBus *bus, MeterInfo &mi);
+    MeterEurisII(MeterInfo &mi);
 
     double currentConsumption(Unit u);
     string setDate();
@@ -41,8 +41,8 @@ private:
     uint16_t error_flags_;
 };
 
-MeterEurisII::MeterEurisII(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::EURISII, MANUFACTURER_INE)
+MeterEurisII::MeterEurisII(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::EURISII, MANUFACTURER_INE)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -84,9 +84,9 @@ MeterEurisII::MeterEurisII(WMBus *bus, MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<HeatCostMeter> createEurisII(WMBus *bus, MeterInfo &mi)
+unique_ptr<HeatCostMeter> createEurisII(MeterInfo &mi)
 {
-    return unique_ptr<HeatCostMeter>(new MeterEurisII(bus, mi));
+    return unique_ptr<HeatCostMeter>(new MeterEurisII(mi));
 }
 
 double MeterEurisII::currentConsumption(Unit u)

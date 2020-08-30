@@ -33,7 +33,7 @@
 #define INFO_CODE_TEMP_DIFF_WRONG_POLARITY 128
 
 struct MeterMultical403 : public virtual HeatMeter, public virtual MeterCommonImplementation {
-    MeterMultical403(WMBus *bus, MeterInfo &mi);
+    MeterMultical403(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     string status();
@@ -60,8 +60,8 @@ private:
     string target_date_ {};
 };
 
-MeterMultical403::MeterMultical403(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::MULTICAL403, MANUFACTURER_KAM)
+MeterMultical403::MeterMultical403(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::MULTICAL403, MANUFACTURER_KAM)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
@@ -108,8 +108,8 @@ MeterMultical403::MeterMultical403(WMBus *bus, MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<HeatMeter> createMultical403(WMBus *bus, MeterInfo &mi) {
-    return unique_ptr<HeatMeter>(new MeterMultical403(bus, mi));
+unique_ptr<HeatMeter> createMultical403(MeterInfo &mi) {
+    return unique_ptr<HeatMeter>(new MeterMultical403(mi));
 }
 
 double MeterMultical403::totalEnergyConsumption(Unit u)

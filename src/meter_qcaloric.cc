@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 
 struct MeterQCaloric : public virtual HeatCostMeter, public virtual MeterCommonImplementation {
-    MeterQCaloric(WMBus *bus, MeterInfo &mi);
+    MeterQCaloric(MeterInfo &mi);
 
     double currentConsumption(Unit u);
     string setDate();
@@ -45,8 +45,8 @@ private:
     string device_date_time_;
 };
 
-MeterQCaloric::MeterQCaloric(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::QCALORIC, MANUFACTURER_QDS)
+MeterQCaloric::MeterQCaloric(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::QCALORIC, MANUFACTURER_QDS)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -102,9 +102,9 @@ MeterQCaloric::MeterQCaloric(WMBus *bus, MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &mi)
+unique_ptr<HeatCostMeter> createQCaloric(MeterInfo &mi)
 {
-    return unique_ptr<HeatCostMeter>(new MeterQCaloric(bus, mi));
+    return unique_ptr<HeatCostMeter>(new MeterQCaloric(mi));
 }
 
 double MeterQCaloric::currentConsumption(Unit u)

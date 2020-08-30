@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 
 struct MeterRfmAmb : public virtual TempHygroMeter, public virtual MeterCommonImplementation {
-    MeterRfmAmb(WMBus *bus, MeterInfo &mi);
+    MeterRfmAmb(MeterInfo &mi);
 
     double currentTemperature(Unit u);
     double maximumTemperature(Unit u);
@@ -58,8 +58,8 @@ private:
     string device_date_time_;
 };
 
-MeterRfmAmb::MeterRfmAmb(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::RFMAMB, MANUFACTURER_BMT)
+MeterRfmAmb::MeterRfmAmb(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::RFMAMB, MANUFACTURER_BMT)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -145,9 +145,9 @@ MeterRfmAmb::MeterRfmAmb(WMBus *bus, MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<TempHygroMeter> createRfmAmb(WMBus *bus, MeterInfo &mi)
+unique_ptr<TempHygroMeter> createRfmAmb(MeterInfo &mi)
 {
-    return unique_ptr<TempHygroMeter>(new MeterRfmAmb(bus, mi));
+    return unique_ptr<TempHygroMeter>(new MeterRfmAmb(mi));
 }
 
 double MeterRfmAmb::currentTemperature(Unit u)

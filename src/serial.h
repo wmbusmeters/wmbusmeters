@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ struct SerialCommunicationManager;
 */
 struct SerialDevice
 {
+    // If fail_if_not_ok then forcefully exit the program if cannot be opened.
     virtual AccessCheck open(bool fail_if_not_ok) = 0;
     virtual void close() = 0;
     // Send will return true only if sending on a tty.
@@ -46,6 +47,9 @@ struct SerialDevice
     virtual bool working() = 0;
     // Used when connecting stdin to a tty driver for testing.
     virtual bool readonly() = 0;
+    // Mark this device so that it is ignored by the select/callback event loop.
+    virtual void doNotUseCallbacks() = 0;
+    virtual bool skippingCallbacks() = 0;
 
     // Return underlying device as string.
     virtual std::string device() = 0;
@@ -70,7 +74,10 @@ struct SerialCommunicationManager
     // A serial device simulator used for internal testing.
     virtual unique_ptr<SerialDevice> createSerialDeviceSimulator() = 0;
 
+    // Invoke cb callback when data arrives on the serial device.
     virtual void listenTo(SerialDevice *sd, function<void()> cb) = 0;
+    // Invoke cb callback when the serial device has disappeared!
+    virtual void onDisappear(SerialDevice *sd, function<void()> cb) = 0;
     virtual void stop() = 0;
     virtual void startEventLoop() = 0;
     virtual void waitForStop() = 0;
@@ -78,7 +85,7 @@ struct SerialCommunicationManager
     virtual void setReopenAfter(int seconds) = 0;
     // Register a new timer that regularly, every seconds, invokes the callback.
     // Returns an id for the timer.
-    virtual int startRegularCallback(int seconds, function<void()> callback, std::string name) = 0;
+    virtual int startRegularCallback(std::string name, int seconds, function<void()> callback) = 0;
     virtual void stopRegularCallback(int id) = 0;
 
     virtual void resetInitiated() = 0;
@@ -86,6 +93,8 @@ struct SerialCommunicationManager
 
     // List all real serial devices.
     virtual std::vector<std::string> listSerialDevices() = 0;
+    // Return a serial device for the given device, if it exists! Otherwise NULL.
+    virtual SerialDevice *lookup(std::string device) = 0;
     virtual ~SerialCommunicationManager();
 };
 

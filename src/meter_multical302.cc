@@ -31,7 +31,7 @@
 #define INFO_CODE_VOLTAGE_TOO_LOW 128
 
 struct MeterMultical302 : public virtual HeatMeter, public virtual MeterCommonImplementation {
-    MeterMultical302(WMBus *bus, MeterInfo &mi);
+    MeterMultical302(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     double targetEnergyConsumption(Unit u);
@@ -51,8 +51,8 @@ private:
     string target_date_ {};
 };
 
-MeterMultical302::MeterMultical302(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::MULTICAL302, MANUFACTURER_KAM)
+MeterMultical302::MeterMultical302(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::MULTICAL302, MANUFACTURER_KAM)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
@@ -92,8 +92,8 @@ MeterMultical302::MeterMultical302(WMBus *bus, MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<HeatMeter> createMultical302(WMBus *bus, MeterInfo &mi) {
-    return unique_ptr<HeatMeter>(new MeterMultical302(bus, mi));
+unique_ptr<HeatMeter> createMultical302(MeterInfo &mi) {
+    return unique_ptr<HeatMeter>(new MeterMultical302(mi));
 }
 
 double MeterMultical302::totalEnergyConsumption(Unit u)

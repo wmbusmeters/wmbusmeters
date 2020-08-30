@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 
 struct MeterLansenPU : public virtual PulseCounter, public virtual MeterCommonImplementation {
-    MeterLansenPU(WMBus *bus, MeterInfo &mi);
+    MeterLansenPU(MeterInfo &mi);
 
     double counterA();
     double counterB();
@@ -38,8 +38,8 @@ private:
 
 };
 
-MeterLansenPU::MeterLansenPU(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::LANSENPU, MANUFACTURER_LAS)
+MeterLansenPU::MeterLansenPU(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::LANSENPU, MANUFACTURER_LAS)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -60,9 +60,9 @@ MeterLansenPU::MeterLansenPU(WMBus *bus, MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<PulseCounter> createLansenPU(WMBus *bus, MeterInfo &mi)
+unique_ptr<PulseCounter> createLansenPU(MeterInfo &mi)
 {
-    return unique_ptr<PulseCounter>(new MeterLansenPU(bus, mi));
+    return unique_ptr<PulseCounter>(new MeterLansenPU(mi));
 }
 
 double MeterLansenPU::counterA()

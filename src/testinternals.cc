@@ -35,6 +35,7 @@ int test_linkmodes();
 void test_ids();
 void test_kdf();
 void test_periods();
+void test_devices();
 
 int main(int argc, char **argv)
 {
@@ -50,6 +51,7 @@ int main(int argc, char **argv)
     test_ids();
     test_kdf();
     test_periods();
+    test_devices();
     return 0;
 }
 
@@ -490,4 +492,29 @@ void test_periods()
     testp(t, "mon-wed(00-23),thu(01-23),fri-sun(00-23)", true);
     testp(t, "thu(00-00)", false);
     testp(t, "thu(01-01)", true);
+}
+
+void testd(string arg, string xf, string xs, string xl, bool xok)
+{
+    Device d;
+    bool ok = isPossibleDevice(arg, &d);
+    if (ok != xok)
+    {
+        printf("ERROR in device parsing \"%s\"\n", arg.c_str());
+        return;
+    }
+    if (ok == false) return;
+    if (xf != d.file ||
+        xs != d.suffix ||
+        xl != d.linkmodes)
+    {
+        printf("ERROR in device parsing parts \"%s\"\n", arg.c_str());
+    }
+}
+
+void test_devices()
+{
+    testd("auto", "auto", "", "", true);
+    testd("/dev/ttyUSB0:9600", "/dev/ttyUSB0", "9600", "", true);
+    testd("auto:gurka", "", "", "", false);
 }

@@ -24,7 +24,7 @@
 
 struct MeterEHZP : public virtual ElectricityMeter, public virtual MeterCommonImplementation
 {
-    MeterEHZP(WMBus *bus, MeterInfo &mi);
+    MeterEHZP(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     double currentPowerConsumption(Unit u);
@@ -42,8 +42,8 @@ private:
     double on_time_h_ {};
 };
 
-MeterEHZP::MeterEHZP(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::EHZP, MANUFACTURER_EMH)
+MeterEHZP::MeterEHZP(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::EHZP, MANUFACTURER_EMH)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 
@@ -75,9 +75,9 @@ MeterEHZP::MeterEHZP(WMBus *bus, MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<ElectricityMeter> createEHZP(WMBus *bus, MeterInfo &mi)
+unique_ptr<ElectricityMeter> createEHZP(MeterInfo &mi)
 {
-    return unique_ptr<ElectricityMeter>(new MeterEHZP(bus, mi));
+    return unique_ptr<ElectricityMeter>(new MeterEHZP(mi));
 }
 
 double MeterEHZP::totalEnergyConsumption(Unit u)

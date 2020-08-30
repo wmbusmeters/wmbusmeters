@@ -45,7 +45,7 @@ typedef struct _izar_alarms {
 } izar_alarms;
 
 struct MeterIzar : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterIzar(WMBus *bus, MeterInfo &mi);
+    MeterIzar(MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -75,13 +75,13 @@ private:
     vector<uint32_t> keys;
 };
 
-unique_ptr<WaterMeter> createIzar(WMBus *bus, MeterInfo &mi)
+unique_ptr<WaterMeter> createIzar(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterIzar(bus, mi));
+    return unique_ptr<WaterMeter>(new MeterIzar(mi));
 }
 
-MeterIzar::MeterIzar(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::IZAR, MANUFACTURER_SAP)
+MeterIzar::MeterIzar(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::IZAR, MANUFACTURER_SAP)
 {
     addManufacturer(MANUFACTURER_DME);
 

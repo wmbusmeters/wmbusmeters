@@ -25,7 +25,7 @@
 
 struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImplementation
 {
-    MeterVario451(WMBus *bus, MeterInfo &mi);
+    MeterVario451(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     double currentPeriodEnergyConsumption(Unit u);
@@ -40,13 +40,13 @@ struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImple
     double prev_energy_gj_ {};
 };
 
-unique_ptr<HeatMeter> createVario451(WMBus *bus, MeterInfo &mi)
+unique_ptr<HeatMeter> createVario451(MeterInfo &mi)
 {
-    return unique_ptr<HeatMeter>(new MeterVario451(bus, mi));
+    return unique_ptr<HeatMeter>(new MeterVario451(mi));
 }
 
-MeterVario451::MeterVario451(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::VARIO451, MANUFACTURER_TCH)
+MeterVario451::MeterVario451(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::VARIO451, MANUFACTURER_TCH)
 {
     addMedia(0x04); // C telegrams
     addMedia(0xC3); // T telegrams

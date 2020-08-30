@@ -79,8 +79,8 @@ struct Configuration
     bool oneshot {};
     int  exitafter {}; // Seconds to exit.
     int  reopenafter {}; // Re-open the serial device repeatedly. Silly dongle.
-    string device; // auto, /dev/ttyUSB0, simulation.txt, rtlwmbus
-    string device_extra; // The frequency or the command line that will start rtlwmbus
+    std::vector<Device> wmbus_devices; // auto, /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600
+    std::vector<Device> mbus_devices; // auto, /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600
     string telegram_reader;
     // A set of all link modes (union) that the user requests the wmbus dongle to listen to.
     LinkModeSet listen_to_link_modes;

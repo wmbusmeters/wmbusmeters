@@ -189,20 +189,18 @@ void handleInternalTesting(Configuration *c, string value)
     }
 }
 
-void handleDevice(Configuration *c, string device)
+void handleDevice(Configuration *c, string devicefile)
 {
     // device can be:
     // /dev/ttyUSB00
     // auto
     // rtlwmbus:/usr/bin/rtl_sdr -f 868.9M -s 1600000 - | /usr/bin/rtl_wmbus
     // simulation....txt (read telegrams from file)
-    size_t p = device.find (':');
-    if (p != string::npos)
+    Device device;
+    bool ok = isPossibleDevice(devicefile, &device);
+    if (ok)
     {
-        c->device_extra = device.substr(p+1);
-        c->device = device.substr(0,p);
-    } else {
-        c->device = device;
+        c->wmbus_devices.push_back(device);
     }
 }
 

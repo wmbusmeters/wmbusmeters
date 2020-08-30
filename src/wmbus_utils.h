@@ -29,14 +29,17 @@ string frameTypeKamstrupC1(int ft);
 struct WMBusCommonImplementation : public virtual WMBus
 {
     WMBusCommonImplementation(WMBusDeviceType t, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override);
+    ~WMBusCommonImplementation();
 
     WMBusDeviceType type();
     void setMeters(vector<unique_ptr<Meter>> *meters);
     void onTelegram(function<bool(vector<uchar>)> cb);
     bool handleTelegram(vector<uchar> frame);
     void checkStatus();
+    bool isWorking();
     void setTimeout(int seconds, std::string expected_activity);
     void setLinkModes(LinkModeSet lms);
+    void disconnectedFromDevice();
     bool reset();
     SerialDevice *serial() { if (serial_) return serial_.get(); else return NULL; }
     string device() { if (serial_) return serial_->device(); else return "?"; }
@@ -55,6 +58,7 @@ struct WMBusCommonImplementation : public virtual WMBus
 
     private:
 
+    bool is_working_ {};
     vector<function<bool(vector<uchar>)>> telegram_listeners_;
     vector<unique_ptr<Meter>> *meters_;
     WMBusDeviceType type_ {};

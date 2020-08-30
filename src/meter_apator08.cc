@@ -25,7 +25,7 @@ using namespace std;
 
 struct MeterApator08 : public virtual WaterMeter, public virtual MeterCommonImplementation
 {
-    MeterApator08(WMBus *bus, MeterInfo &mi);
+    MeterApator08(MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -38,13 +38,13 @@ private:
     double total_water_consumption_m3_ {};
 };
 
-unique_ptr<WaterMeter> createApator08(WMBus *bus, MeterInfo &mi)
+unique_ptr<WaterMeter> createApator08(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterApator08(bus, mi));
+    return unique_ptr<WaterMeter>(new MeterApator08(mi));
 }
 
-MeterApator08::MeterApator08(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::APATOR08, 0x8614) // Not compliant! Will decode to APT.
+MeterApator08::MeterApator08(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::APATOR08, 0x8614) // Not compliant! Will decode to APT.
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

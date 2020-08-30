@@ -152,7 +152,7 @@ void WMBusRawTTY::processSerialData()
     }
 }
 
-AccessCheck detectRawTTY(string device, int baud, SerialCommunicationManager *manager)
+AccessCheck detectRawTTY(string device, int baud, Detected *detected, SerialCommunicationManager *manager)
 {
     // Since we do not know how to talk to the other end, it might not
     // even respond. The only thing we can do is to try to open the serial device.
@@ -161,5 +161,8 @@ AccessCheck detectRawTTY(string device, int baud, SerialCommunicationManager *ma
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
     serial->close();
+
+    detected->set(WMBusDeviceType::DEVICE_RAWTTY, baud, false);
+
     return AccessCheck::AccessOK;
 }

@@ -26,7 +26,7 @@
 
 struct MeterFHKVDataIII : public virtual HeatCostMeter, public virtual MeterCommonImplementation
 {
-    MeterFHKVDataIII(WMBus *bus, MeterInfo &mi);
+    MeterFHKVDataIII(MeterInfo &mi);
 
     double currentPeriodEnergyConsumption(Unit u);
     string currentPeriodDate();
@@ -49,14 +49,14 @@ struct MeterFHKVDataIII : public virtual HeatCostMeter, public virtual MeterComm
     double temp_radiator_ {};
 };
 
-unique_ptr<HeatCostMeter> createFHKVDataIII(WMBus *bus, MeterInfo &mi)
+unique_ptr<HeatCostMeter> createFHKVDataIII(MeterInfo &mi)
 {
-    return unique_ptr<HeatCostMeter>(new MeterFHKVDataIII(bus, mi));
+    return unique_ptr<HeatCostMeter>(new MeterFHKVDataIII(mi));
 }
 
 
-MeterFHKVDataIII::MeterFHKVDataIII(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::FHKVDATAIII, MANUFACTURER_TCH)
+MeterFHKVDataIII::MeterFHKVDataIII(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::FHKVDATAIII, MANUFACTURER_TCH)
 {
     addMedia(0x80); // T telegrams
     addExpectedVersion(0x69);

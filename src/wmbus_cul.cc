@@ -100,6 +100,7 @@ WMBusCUL::WMBusCUL(unique_ptr<SerialDevice> serial, SerialCommunicationManager *
 {
     sem_init(&command_wait_, 0, 0);
     manager_->listenTo(this->serial(),call(this,processSerialData));
+    manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
     reset();
 }
 
@@ -355,10 +356,11 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     }
 }
 
-AccessCheck detectCUL(string device, SerialCommunicationManager *manager)
+AccessCheck detectCUL(string device, Detected *detected, SerialCommunicationManager *manager)
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400);
+    serial->doNotUseCallbacks();
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
@@ -399,5 +401,8 @@ AccessCheck detectCUL(string device, SerialCommunicationManager *manager)
     // TODO: check version string somehow
 
     serial->close();
+
+    detected->set(WMBusDeviceType::DEVICE_CUL, 38400, false);
+
     return AccessCheck::AccessOK;
 }

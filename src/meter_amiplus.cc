@@ -23,7 +23,7 @@
 #include"util.h"
 
 struct MeterAmiplus : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
-    MeterAmiplus(WMBus *bus, MeterInfo &mi);
+    MeterAmiplus(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     double currentPowerConsumption(Unit u);
@@ -41,8 +41,8 @@ private:
     string device_date_time_;
 };
 
-MeterAmiplus::MeterAmiplus(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::AMIPLUS, 0)
+MeterAmiplus::MeterAmiplus(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::AMIPLUS, 0)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -86,9 +86,9 @@ MeterAmiplus::MeterAmiplus(WMBus *bus, MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<ElectricityMeter> createAmiplus(WMBus *bus, MeterInfo &mi)
+unique_ptr<ElectricityMeter> createAmiplus(MeterInfo &mi)
 {
-    return unique_ptr<ElectricityMeter>(new MeterAmiplus(bus, mi));
+    return unique_ptr<ElectricityMeter>(new MeterAmiplus(mi));
 }
 
 double MeterAmiplus::totalEnergyConsumption(Unit u)

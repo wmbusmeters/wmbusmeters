@@ -25,7 +25,7 @@
 using namespace std;
 
 struct MeterIperl : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterIperl(WMBus *bus, MeterInfo &mi);
+    MeterIperl(MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -40,8 +40,8 @@ private:
     double max_flow_m3h_ {};
 };
 
-MeterIperl::MeterIperl(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::IPERL, MANUFACTURER_SEN)
+MeterIperl::MeterIperl(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::IPERL, MANUFACTURER_SEN)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -64,9 +64,9 @@ MeterIperl::MeterIperl(WMBus *bus, MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<WaterMeter> createIperl(WMBus *bus, MeterInfo &mi)
+unique_ptr<WaterMeter> createIperl(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterIperl(bus, mi));
+    return unique_ptr<WaterMeter>(new MeterIperl(mi));
 }
 
 void MeterIperl::processContent(Telegram *t)

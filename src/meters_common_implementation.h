@@ -43,7 +43,6 @@ struct MeterCommonImplementation : public virtual Meter
     string name();
     MeterType type();
     vector<int> media();
-    WMBus *bus();
 
     ELLSecurityMode expectedELLSecurityMode();
     TPLSecurityMode expectedTPLSecurityMode();
@@ -61,8 +60,7 @@ struct MeterCommonImplementation : public virtual Meter
     double getRecordAsDouble(std::string record);
     uint16_t getRecordAsUInt16(std::string record);
 
-    MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
-                              MeterType type, int manufacturer);
+    MeterCommonImplementation(MeterInfo &mi, MeterType type, int manufacturer);
 
     ~MeterCommonImplementation() = default;
 

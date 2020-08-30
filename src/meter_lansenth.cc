@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 
 struct MeterLansenTH : public virtual TempHygroMeter, public virtual MeterCommonImplementation {
-    MeterLansenTH(WMBus *bus, MeterInfo &mi);
+    MeterLansenTH(MeterInfo &mi);
 
     double currentTemperature(Unit u);
     double currentRelativeHumidity();
@@ -39,8 +39,8 @@ private:
     double average_relative_humidity_24h_rh_ {};
 };
 
-MeterLansenTH::MeterLansenTH(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::LANSENTH, MANUFACTURER_LAS)
+MeterLansenTH::MeterLansenTH(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::LANSENTH, MANUFACTURER_LAS)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -81,9 +81,9 @@ MeterLansenTH::MeterLansenTH(WMBus *bus, MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<TempHygroMeter> createLansenTH(WMBus *bus, MeterInfo &mi)
+unique_ptr<TempHygroMeter> createLansenTH(MeterInfo &mi)
 {
-    return unique_ptr<TempHygroMeter>(new MeterLansenTH(bus, mi));
+    return unique_ptr<TempHygroMeter>(new MeterLansenTH(mi));
 }
 
 double MeterLansenTH::currentTemperature(Unit u)

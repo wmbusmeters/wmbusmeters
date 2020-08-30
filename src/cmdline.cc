@@ -16,7 +16,6 @@
 */
 
 #include"cmdline.h"
-#include"config.h"
 #include"meters.h"
 #include"util.h"
 
@@ -68,7 +67,8 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         c->need_help = true;
         return unique_ptr<Configuration>(c);
     }
-    while (argv[i] && argv[i][0] == '-') {
+    while (argv[i] && argv[i][0] == '-')
+    {
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "-help") || !strcmp(argv[i], "--help")) {
             c->need_help = true;
             return unique_ptr<Configuration>(c);
@@ -93,6 +93,12 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         }
         if (!strcmp(argv[i], "--debug")) {
             c->debug = true;
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--trace")) {
+            c->debug = true;
+            c->trace = true;
             i++;
             continue;
         }
@@ -438,18 +444,17 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         error("Unknown option \"%s\"\n", argv[i]);
     }
 
-    char *extra = argv[i] ? strchr(argv[i], ':') : NULL ;
-    if (extra) {
-        *extra = 0;
-        extra++;
-        c->device_extra = extra;
+    while (argv[i])
+    {
+        Device device;
+        bool ok = isPossibleDevice(argv[i], &device);
+        if (!ok) break;
+        c->wmbus_devices.push_back(device);
+        i++;
     }
-    if (argv[i]) {
-        c->device = argv[i];
-    }
-    i++;
-    if (c->device.length() == 0) {
-        error("You must supply the usb device to which the wmbus dongle is connected.\n");
+
+    if (c->wmbus_devices.size() == 0) {
+        error("You must supply at least one device to receive wmbus telegrams.\n");
     }
 
     if ((argc-i) % 4 != 0) {

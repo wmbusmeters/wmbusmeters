@@ -25,19 +25,20 @@
 #include<memory.h>
 #include<time.h>
 
-MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
-                                                     MeterType type, int manufacturer) :
-    type_(type), name_(mi.name), bus_(bus)
+MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
+                                                     MeterType type,
+                                                     int manufacturer) :
+    type_(type), name_(mi.name)
 {
     ids_ = splitMatchExpressions(mi.id);
     if (mi.key.length() > 0)
     {
         hex2bin(mi.key, &meter_keys_.confidentiality_key);
     }
-    if (bus->type() == DEVICE_SIMULATOR)
+    /*if (bus->type() == DEVICE_SIMULATOR)
     {
         meter_keys_.simulation = true;
-    }
+        }*/
     if (manufacturer) {
         manufacturers_.insert(manufacturer);
     }
@@ -47,7 +48,7 @@ MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
     for (auto j : mi.jsons) {
         addJson(j);
     }
-    MeterCommonImplementation::bus()->onTelegram([this](vector<uchar>input_frame){return this->handleTelegram(input_frame);});
+    //MeterCommonImplementation::bus()->onTelegram([this](vector<uchar>input_frame){return this->handleTelegram(input_frame);});
 }
 
 void MeterCommonImplementation::addConversions(std::vector<Unit> cs)
@@ -137,11 +138,6 @@ vector<string> MeterCommonImplementation::fields()
 string MeterCommonImplementation::name()
 {
     return name_;
-}
-
-WMBus *MeterCommonImplementation::bus()
-{
-    return bus_;
 }
 
 void MeterCommonImplementation::onUpdate(function<void(Telegram*,Meter*)> cb)

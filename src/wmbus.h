@@ -30,6 +30,56 @@
 bool trimCRCsFrameFormatA(std::vector<uchar> &payload);
 bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
 
+struct Device
+{
+    // A typical device is:
+    //     /dev/ttyUSB0:im871a:c1,t1
+    //     /dev/ttyUSB1:amb8465
+    //     /rtlwmbus::any
+    std::string file; // /dev/ttyUSB0, simulation_meter.txt, stdin file.raw
+    std::string suffix; // rtlwmbus im871a amb8465 38400 rtl433
+    std::string linkmodes; // c1,t1,s1
+};
+
+#define LIST_OF_MBUS_DEVICES \
+    X(DEVICE_UNKNOWN) \
+    X(DEVICE_CUL)\
+    X(DEVICE_D1TC)\
+    X(DEVICE_IM871A)\
+    X(DEVICE_AMB8465)\
+    X(DEVICE_RFMRX2)\
+    X(DEVICE_SIMULATOR)\
+    X(DEVICE_RTLWMBUS)\
+    X(DEVICE_RTL433)\
+    X(DEVICE_RAWTTY)\
+    X(DEVICE_WMB13U)
+
+enum WMBusDeviceType {
+#define X(name) name,
+LIST_OF_MBUS_DEVICES
+#undef X
+};
+
+const char *toString(WMBusDeviceType t);
+
+struct Detected
+{
+    Device device; // Device information.
+    WMBusDeviceType type;  // IM871A, AMB8465 etc.
+    int baudrate; // Baudrate to tty.
+    // If the override_tty is true, then do not allow the wmbus driver to open the device->file as a tty,
+    // instead open the device->file as a file instead . This is to allows feeding the wmbus drivers
+    // using stdin or a file. This is primarily used for internal testing.
+    bool override_tty;
+
+    void set(WMBusDeviceType t, int br, bool ot)
+    {
+        type = t;
+        baudrate = br;
+        override_tty = ot;
+    }
+};
+
 #define LIST_OF_LINK_MODES \
     X(Any,any,--anylinkmode,0xffff)             \
     X(C1,c1,--c1,0x1)                           \
@@ -390,27 +440,6 @@ private:
 
 struct Meter;
 
-#define LIST_OF_MBUS_DEVICES \
-    X(DEVICE_UNKNOWN) \
-    X(DEVICE_CUL)\
-    X(DEVICE_D1TC)\
-    X(DEVICE_IM871A)\
-    X(DEVICE_AMB8465)\
-    X(DEVICE_RFMRX2)\
-    X(DEVICE_SIMULATOR)\
-    X(DEVICE_RTLWMBUS)\
-    X(DEVICE_RTL433)\
-    X(DEVICE_RAWTTY)\
-    X(DEVICE_WMB13U)
-
-enum WMBusDeviceType {
-#define X(name) name,
-LIST_OF_MBUS_DEVICES
-#undef X
-};
-
-const char *toString(WMBusDeviceType t);
-
 struct WMBus
 {
     virtual WMBusDeviceType type() = 0;
@@ -426,7 +455,9 @@ struct WMBus
     virtual void onTelegram(function<bool(vector<uchar>)> cb) = 0;
     virtual SerialDevice *serial() = 0;
     virtual void simulate() = 0;
-    // This will check if the wmbus devices needs reset.
+    // Return true if underlying device is ok and device in general seems to be working.
+    virtual bool isWorking() = 0;
+    // This will check if the wmbus devices needs a reset and then immediately perform the reset.
     virtual void checkStatus() = 0;
     // Close any underlying ttys or software and restart/reinitialize.
     // Return true if ok.
@@ -438,20 +469,11 @@ struct WMBus
     virtual ~WMBus() = 0;
 };
 
-
-struct Detected
-{
-    WMBusDeviceType type;  // IM871A, AMB8465 etc
-    string devicefile;    // /dev/ttyUSB0 /dev/ttyACM0 stdin simulation_abc.txt telegrams.raw
-    int baudrate;         // If the suffix is a number, store the number here.
-    // If the override_tty is true, then do not allow the wmbus driver to open the tty,
-    // instead open the devicefile first. This is to allow feeding the wmbus drivers using stdin
-    // or a file or for internal testing.
-    bool override_tty;
-};
-
 Detected detectWMBusDeviceSetting(string devicefile, string suffix,
                                   SerialCommunicationManager *manager);
+
+
+bool isPossibleDevice(string arg, Device *device);
 
 unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager,
                              unique_ptr<SerialDevice> serial_override);
@@ -518,15 +540,19 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
                             int *payload_len_out,
                             int *payload_offset);
 
-AccessCheck detectIM871A(string device, SerialCommunicationManager *handler);
-AccessCheck detectAMB8465(string device, SerialCommunicationManager *handler);
-AccessCheck detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
-AccessCheck detectRTLSDR(string device, SerialCommunicationManager *handler);
-AccessCheck detectCUL(string device, SerialCommunicationManager *handler);
-AccessCheck detectWMB13U(string device, SerialCommunicationManager *handler);
+AccessCheck detectIM871A(string file, Detected *detected, SerialCommunicationManager *handler);
+AccessCheck detectAMB8465(string file, Detected *detected, SerialCommunicationManager *handler);
+AccessCheck detectRawTTY(string file, int baud, Detected *detected, SerialCommunicationManager *handler);
+AccessCheck detectRTLSDR(string file, Detected *detected, SerialCommunicationManager *handler);
+AccessCheck detectCUL(string file, Detected *detected, SerialCommunicationManager *handler);
+AccessCheck detectWMB13U(string file, Detected *detected, SerialCommunicationManager *handler);
 
 // Try to factory reset an AMB8465 by trying all possible serial speeds and
 // restore to factory settings.
 AccessCheck factoryResetAMB8465(string device, SerialCommunicationManager *handler, int *was_baud);
+
+Detected detectImstAmberCul(string file,
+                            string suffix,
+                            SerialCommunicationManager *handler);
 
 #endif

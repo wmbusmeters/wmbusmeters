@@ -25,7 +25,7 @@
 #define INFO_CODE_OPEN   0x0055
 
 struct MeterLansenDW : public virtual DoorWindowDetector, public virtual MeterCommonImplementation {
-    MeterLansenDW(WMBus *bus, MeterInfo &mi);
+    MeterLansenDW(MeterInfo &mi);
 
     string status();
     bool open();
@@ -40,8 +40,8 @@ private:
 
 };
 
-MeterLansenDW::MeterLansenDW(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::LANSENSM, MANUFACTURER_LAS)
+MeterLansenDW::MeterLansenDW(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::LANSENSM, MANUFACTURER_LAS)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -57,9 +57,9 @@ MeterLansenDW::MeterLansenDW(WMBus *bus, MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<DoorWindowDetector> createLansenDW(WMBus *bus, MeterInfo &mi)
+unique_ptr<DoorWindowDetector> createLansenDW(MeterInfo &mi)
 {
-    return unique_ptr<DoorWindowDetector>(new MeterLansenDW(bus, mi));
+    return unique_ptr<DoorWindowDetector>(new MeterLansenDW(mi));
 }
 
 bool MeterLansenDW::open()

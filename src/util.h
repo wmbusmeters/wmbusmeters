@@ -49,8 +49,11 @@ std::string safeString(std::vector<uchar> &target);
 void strprintf(std::string &s, const char* fmt, ...);
 // Return for example: 2010-03-21
 std::string strdate(struct tm *date);
-// Return for example: 2010-03-21 15:22:03
+// Return for example: 2010-03-21 15:22
 std::string strdatetime(struct tm *date);
+// Return for example: 2010-03-21 15:22:03
+std::string strdatetimesec(struct tm *date);
+
 
 void xorit(uchar *srca, uchar *srcb, uchar *dest, int len);
 void shiftLeft(uchar *srca, uchar *srcb, int len);
@@ -162,5 +165,8 @@ bool startsWith(std::string s, std::vector<uchar> &data);
 
 // Sum the memory used by the heap and stack.
 size_t memoryUsage();
+
+#define LOCK(module,func,x) { trace("TRACE                     " module " " func " locking " #x "\n"); pthread_mutex_lock(&x); trace(module " " func " locked " #x "\n"); }
+#define UNLOCK(module,func,x) { trace("TRACE                     " module " " func " unlocking " #x "\n"); pthread_mutex_unlock(&x); trace(module " " func " unlocked " #x "\n"); }
 
 #endif
