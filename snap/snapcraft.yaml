@@ -35,7 +35,7 @@ parts:
     source-type: git
     override-pull: |
       snapcraftctl pull
-      if [ -n $(git describe --tags | grep -) ]; then
+      if [ -n "$(git describe --tags | grep -)" ]; then
         GIT_REV="$(git describe --tags | cut -f1,2 -d'-')"
         snapcraftctl set-version "$GIT_REV"
         snapcraftctl set-grade devel
