@@ -276,7 +276,8 @@ unique_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *confi
     }
 
     LinkModeCalculationResult lmcr = calculateLinkModes(config, wmbus.get(), link_modes_matter);
-    if (lmcr.type != LinkModeCalculationResultType::Success) {
+    if (lmcr.type != LinkModeCalculationResultType::Success)
+    {
         error("%s\n", lmcr.msg.c_str());
     }
     return wmbus;

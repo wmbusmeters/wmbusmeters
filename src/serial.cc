@@ -812,6 +812,7 @@ void SerialCommunicationManagerImp::closeAll()
 {
     LOCK("(serial)", "closeAll", devices_lock_);
     vector<SerialDeviceImp*> copy = devices_;
+    devices_.clear();
     UNLOCK("(serial)", "closeAll", devices_lock_);
 
     for (SerialDeviceImp *d : copy)
