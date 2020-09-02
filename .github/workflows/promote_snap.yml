@@ -1,0 +1,26 @@
+name: Promote snap from edge to stable channel
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  initial_sleep:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Sleep for 30 minutes
+      uses: jakejarvis/wait-action@master
+      with:
+        time: '30m'
+  promote:
+    needs: initial_sleep
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: git fetch --prune --unshallow
+    - name: Install Snapcraft
+      uses: samuelmeuli/action-snapcraft@v1
+      with:
+        snapcraft_token: ${{ secrets.snapcraft_token }}
+    - name: Run promote script
+      run: bash snap/promote_snap.sh

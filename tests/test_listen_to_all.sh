@@ -105,6 +105,9 @@ Received telegram from: 74737271
 Received telegram from: 20096221
           manufacturer: (DWZ) Lorenz, Germany
            device type: Warm Water (30°C-90°C) meter
+Received telegram from: 78563412
+          manufacturer: (AMT) INTEGRA METERING
+           device type: Water meter
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)

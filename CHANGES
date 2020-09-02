@@ -1,3 +1,12 @@
+
+Avandorp added support for the AquaMetro / Integra Topas Es Kr water meter.
+Thanks Avandorp!
+
+IzeCube added the Techem Compact V heatmeter!
+Thanks IzeCube! Though we still need an example telegram for
+testing this meter to prevent regressions. So it is currently
+not as well supported as the other meters.
+
 Version 0.9.35: 2020-08-23
 
 Added support for alarms (shell command triggered)

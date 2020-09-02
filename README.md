@@ -222,34 +222,36 @@ rtl_wmbus (rtlwmbus)
 rtl_433 (rtl433)
 
 Supported water meters:
+Apator at-wmbus-08   (apator08) (non-standard protocol)
+Apator at-wmbus-16-2 (apator162) (non-standard protocol)
+Aquametro/Integra Topas Es Kr (topaseskr)
+Bmeters Hydrodigit (hydrodigit) (partly non-standard protocol)
+Diehl/Sappel IZAR RC 868 I R4 PL (izar) (non-standard protocol)
+Diehl HYDRUS (hydrus)
+Honeywell Q400 (q400)
 Kamstrup Multical 21 (multical21)
 Kamstrup flowIQ 3100 (flowiq3100)
 Sontex Supercom 587 (supercom587)
 Sensus iPERL (iperl)
-Apator at-wmbus-08   (apator08) (non-standard protocol)
-Apator at-wmbus-16-2 (apator162) (non-standard protocol)
 Techem MK Radio 3 (mkradio3) (non-standard protocol)
-Diehl/Sappel IZAR RC 868 I R4 PL (izar) (non-standard protocol)
-Diehl HYDRUS (hydrus)
-Bmeters Hydrodigit (hydrodigit) (partly non-standard protocol)
-Honeywell Q400 (q400)
 Waterstar M (waterstarm)
 
 Supported heat cost allocators:
-Qundis Q caloric (qcaloric)
 Innotas EurisII  (eurisii)
+Qundis Q caloric (qcaloric)
 Techem FHKV data II/III (fhkvdataiii)
 
 Supported heat meter:
 Heat meter Techem Compact V (compact5) (non-standard protocol)
+(compact5 is unfortunately not quite supported since we lack a test telegram to prevent regressions)
 Heat meter Techem Vario 4 (vario451) (non-standard protocol)
 Heat meter Kamstrup Multical 302 (multical302) (in C1 mode, please open issue for T1 mode)
 Heat and Cooling meter Kamstrup Multical 403 (multical403) (in C1 mode)
 
 Supported room sensors:
-Lansen Thermometer/Hygrometer (lansenth)
 Bmeters RFM-AMB Thermometer/Hygrometer (rfmamb)
 Elvaco CMa12w Thermometer (cma12w)
+Lansen Thermometer/Hygrometer (lansenth)
 
 Supported smoke detectors:
 Lansen Smoke Detector (lansensm)
@@ -261,10 +263,10 @@ Supported pulse counter:
 Lansen Pulse Counter (lansenpu)
 
 Supported electricity meters:
-Tauron Amiplus (amiplus) (includes vendor apator and echelon)
-EMH Metering (ehzp)
 Easy Meter ESYS-WM20 (esyswm)
 eBZ wMB-E01 (ebzwmbe)
+EMH Metering (ehzp)
+Tauron Amiplus (amiplus) (includes vendor apator and echelon)
 ```
 
 The wmbus dongles imst871a can listen to one type of wmbus telegrams
