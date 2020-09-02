@@ -57,6 +57,8 @@
     X(supercom587,T1_bit, Water,       SUPERCOM587, Supercom587)  \
     X(vario451,   T1_bit, Heat,        VARIO451,    Vario451)     \
     X(waterstarm, C1_bit|T1_bit, Water,WATERSTARM,  WaterstarM)   \
+    X(topaseskr, T1_bit, Water,   TOPASESKR, TopasEsKr)  \
+
 
 
 enum class MeterType {
@@ -254,6 +256,7 @@ unique_ptr<WaterMeter> createRfmTX1(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createEHZP(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createESYSWM(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createEBZWMBE(WMBus *bus, MeterInfo &m);
+unique_ptr<WaterMeter> createTopasEsKr(WMBus *bus, MeterInfo &m);
 GenericMeter *createGeneric(WMBus *bus, MeterInfo &m);
 
 #endif
