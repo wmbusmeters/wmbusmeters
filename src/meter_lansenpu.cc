@@ -43,6 +43,8 @@ MeterLansenPU::MeterLansenPU(WMBus *bus, MeterInfo &mi) :
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
+    // version 0x14 for which we have a test telegram
+    // other version 0x0b reported, but we lack telegram
     addLinkMode(LinkMode::T1);
 
     addPrint("counter_a", Quantity::Counter,
