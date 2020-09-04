@@ -225,6 +225,9 @@ Sensus iPERL (iperl)
 Techem MK Radio 3 (mkradio3) (non-standard protocol)
 Waterstar M (waterstarm)
 
+Currently not supported, please help!
+Diehl/Sappel ACQUARIUS/IZAR R3 (izar3)
+
 Supported heat cost allocators:
 Innotas EurisII  (eurisii)
 Qundis Q caloric (qcaloric)

@@ -41,6 +41,7 @@
     X(hydrodigit, T1_bit, Water,       HYDRODIGIT,  Hydrodigit)   \
     X(iperl,      T1_bit, Water,       IPERL,       Iperl)        \
     X(izar,       T1_bit, Water,       IZAR,        Izar)         \
+    X(izar3,      T1_bit, Water,       IZAR3,       Izar3)        \
     X(lansensm,   T1_bit, Smoke,       LANSENSM,    LansenSM)     \
     X(lansenth,   T1_bit, TempHygro,   LANSENTH,    LansenTH)     \
     X(lansendw,   T1_bit, DoorWindow,  LANSENDW,    LansenDW)     \
@@ -97,6 +98,7 @@
     X(IZAR,      MANUFACTURER_SAP,  0x15,    -1) \
     X(IZAR,      MANUFACTURER_SAP,  0x66,    -1) \
     X(IZAR,      MANUFACTURER_DME,  0x66,    -1) \
+    X(IZAR3,     MANUFACTURER_SAP,  0x00,  0x88) \
     X(LANSENSM,  MANUFACTURER_LAS,  0x1a,  0x03) \
     X(LANSENTH,  MANUFACTURER_LAS,  0x1b,  0x07) \
     X(LANSENDW,  MANUFACTURER_LAS,  0x1d,  0x07) \
@@ -317,6 +319,7 @@ unique_ptr<WaterMeter> createIperl(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createHydrus(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createHydrodigit(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createIzar(WMBus *bus, MeterInfo &m);
+unique_ptr<WaterMeter> createIzar3(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createQ400(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &m);
 unique_ptr<HeatCostMeter> createEurisII(WMBus *bus, MeterInfo &m);
