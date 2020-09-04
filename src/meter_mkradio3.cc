@@ -41,16 +41,11 @@ private:
 };
 
 MKRadio3::MKRadio3(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::MKRADIO3, MANUFACTURER_TCH)
+    MeterCommonImplementation(mi, MeterType::MKRADIO3)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x62);
-    addMedia(0x72);
-
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x74);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

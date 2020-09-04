@@ -45,16 +45,14 @@ private:
 };
 
 MeterEBZWMBE::MeterEBZWMBE(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::EBZWMBE, MANUFACTURER_EBZ)
+    MeterCommonImplementation(mi, MeterType::EBZWMBE)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 
     // The eBZ wWMB E01 is an addons to the electricity meters
-    addMedia(0x37); // Radio converter (meter side)
+    // media 0x37 Radio converter (meter side)
 
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x02);
 
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },

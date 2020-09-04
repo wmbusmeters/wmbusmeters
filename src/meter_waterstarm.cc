@@ -50,16 +50,12 @@ unique_ptr<WaterMeter> createWaterstarM(MeterInfo &mi)
 }
 
 MeterWaterstarM::MeterWaterstarM(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::WATERSTARM, MANUFACTURER_DWZ)
+    MeterCommonImplementation(mi, MeterType::WATERSTARM)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x06);
-
     addLinkMode(LinkMode::T1);
     addLinkMode(LinkMode::C1);
-
-    addExpectedVersion(0x02);
 
     addPrint("meter_timestamp", Quantity::Text,
              [&](){ return meter_timestamp_; },

@@ -45,15 +45,11 @@ private:
 };
 
 MeterHydrus::MeterHydrus(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::HYDRUS, MANUFACTURER_DME)
+    MeterCommonImplementation(mi, MeterType::HYDRUS)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x07);
-
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x70);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

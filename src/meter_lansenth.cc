@@ -40,15 +40,11 @@ private:
 };
 
 MeterLansenTH::MeterLansenTH(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::LANSENTH, MANUFACTURER_LAS)
+    MeterCommonImplementation(mi, MeterType::LANSENTH)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x1b);
-
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x07);
 
     addPrint("current_temperature", Quantity::Temperature,
              [&](Unit u){ return currentTemperature(u); },

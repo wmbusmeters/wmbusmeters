@@ -43,15 +43,11 @@ private:
 };
 
 MeterEHZP::MeterEHZP(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::EHZP, MANUFACTURER_EMH)
+    MeterCommonImplementation(mi, MeterType::EHZP)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 
-    addMedia(0x02); // Electricity meter
-
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x02);
 
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },

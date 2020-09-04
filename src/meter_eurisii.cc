@@ -42,15 +42,11 @@ private:
 };
 
 MeterEurisII::MeterEurisII(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::EURISII, MANUFACTURER_INE)
+    MeterCommonImplementation(mi, MeterType::EURISII)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x08);
-
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x55);
 
     addPrint("current_consumption", Quantity::HCA,
              [&](Unit u){ return currentConsumption(u); },

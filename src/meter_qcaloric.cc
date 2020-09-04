@@ -46,15 +46,11 @@ private:
 };
 
 MeterQCaloric::MeterQCaloric(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::QCALORIC, MANUFACTURER_QDS)
+    MeterCommonImplementation(mi, MeterType::QCALORIC)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x08);
-
     addLinkMode(LinkMode::C1);
-
-    addExpectedVersion(0x35);
 
     addPrint("current_consumption", Quantity::HCA,
              [&](Unit u){ return currentConsumption(u); },

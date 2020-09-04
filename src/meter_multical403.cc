@@ -61,15 +61,10 @@ private:
 };
 
 MeterMultical403::MeterMultical403(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::MULTICAL403, MANUFACTURER_KAM)
+    MeterCommonImplementation(mi, MeterType::MULTICAL403)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
-    addMedia(0x0a); // Heat/Cooling load
-    addMedia(0x0b); // Heat/Cooling load
-    addMedia(0x0c); // Heat/Cooling load
-    addMedia(0x0d); // Heat/Cooling load
-    addExpectedVersion(0x34);
     addLinkMode(LinkMode::C1);
 
     addPrint("total_energy_consumption", Quantity::Energy,

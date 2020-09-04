@@ -72,16 +72,14 @@ unique_ptr<WaterMeter> createTopasEsKr(MeterInfo &mi)
 }
 
 MeterTopasEsKr::MeterTopasEsKr(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::TOPASESKR, MANUFACTURER_AMT)
+    MeterCommonImplementation(mi, MeterType::TOPASESKR)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x06); // specified temperature range is 0°C to 50 °C, not sure it ever reports 0x06 for warm water, possibly configurable
-    addMedia(0x07);
+    // media 0x06 specified temperature range is 0°C to 50 °C, not sure it ever reports 0x06 for warm water, possibly configurable
+    // media 0x07 used
 
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0xf1);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

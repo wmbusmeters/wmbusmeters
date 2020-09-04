@@ -52,13 +52,10 @@ private:
 };
 
 MeterMultical302::MeterMultical302(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::MULTICAL302, MANUFACTURER_KAM)
+    MeterCommonImplementation(mi, MeterType::MULTICAL302)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
-    addMedia(0x04); // Heat media
-    addMedia(0x0d); // Heat/Cooling load
-    addExpectedVersion(0x30);
     addLinkMode(LinkMode::C1);
 
     addPrint("total_energy_consumption", Quantity::Energy,

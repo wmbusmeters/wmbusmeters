@@ -39,15 +39,13 @@ private:
 };
 
 MeterLansenPU::MeterLansenPU(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::LANSENPU, MANUFACTURER_LAS)
+    MeterCommonImplementation(mi, MeterType::LANSENPU)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x00);
-
+    // version 0x14 for which we have a test telegram
+    // other version 0x0b reported, but we lack telegram
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x14);
 
     addPrint("counter_a", Quantity::Counter,
              [&](Unit u) { assertQuantity(u, Quantity::Counter); return counterA(); },

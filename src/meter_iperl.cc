@@ -41,17 +41,14 @@ private:
 };
 
 MeterIperl::MeterIperl(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::IPERL, MANUFACTURER_SEN)
+    MeterCommonImplementation(mi, MeterType::IPERL)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x06);
-    addMedia(0x07);
-
     addLinkMode(LinkMode::T1);
 
-    addExpectedVersion(0x68);
-    addExpectedVersion(0x7c); // Sensus 640
+    // version 0x68
+    // version 0x7c Sensus 640
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

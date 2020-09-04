@@ -92,21 +92,11 @@ private:
 };
 
 MeterMultical21::MeterMultical21(MeterInfo &mi, MeterType mt) :
-    MeterCommonImplementation(mi, mt, MANUFACTURER_KAM)
+    MeterCommonImplementation(mi, mt)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
-    addMedia(0x16); // Water media
-
     addLinkMode(LinkMode::C1);
-
-    if (type() == MeterType::MULTICAL21) {
-        addExpectedVersion(0x1b);
-    } else if (type() == MeterType::FLOWIQ3100) {
-        addExpectedVersion(0x1d);
-    } else {
-        assert(0);
-    }
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

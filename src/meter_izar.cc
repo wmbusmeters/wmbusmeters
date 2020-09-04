@@ -81,10 +81,8 @@ unique_ptr<WaterMeter> createIzar(MeterInfo &mi)
 }
 
 MeterIzar::MeterIzar(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::IZAR, MANUFACTURER_SAP)
+    MeterCommonImplementation(mi, MeterType::IZAR)
 {
-    addManufacturer(MANUFACTURER_DME);
-
     MeterKeys *mk = meterKeys();
     if (!mk->confidentiality_key.empty())
         keys.push_back(convertKey(mk->confidentiality_key));
@@ -96,9 +94,9 @@ MeterIzar::MeterIzar(MeterInfo &mi) :
         keys.push_back(convertKey(PRIOS_DEFAULT_KEY2));
     }
 
-    addMedia(0x01); // Oil meter? why?
-    addMedia(0x15); // Hot water
-    addMedia(0x66); // Woot?
+    // media 0x01 Oil meter? why?
+    // media 0x15 Hot water
+    // medua 0x66 Woot?
 
     addLinkMode(LinkMode::T1);
 

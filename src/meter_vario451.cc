@@ -46,15 +46,13 @@ unique_ptr<HeatMeter> createVario451(MeterInfo &mi)
 }
 
 MeterVario451::MeterVario451(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::VARIO451, MANUFACTURER_TCH)
+    MeterCommonImplementation(mi, MeterType::VARIO451)
 {
-    addMedia(0x04); // C telegrams
-    addMedia(0xC3); // T telegrams
+    // media 0x04 C telegrams
+    // media 0xC3 T telegrams
 
     addLinkMode(LinkMode::C1);
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x27);
 
     addPrint("total", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },

@@ -1,4 +1,9 @@
 
+Added support for detection of the proper driver
+based on the manufacturer, media and version fields in the telegram.
+This driver is printed when listening without specifying any meters.
+The driver will be reported as unknown! for meters not yet supported by wmbusmeters.
+
 Avandorp added support for the AquaMetro / Integra Topas Es Kr water meter.
 Thanks Avandorp!
 

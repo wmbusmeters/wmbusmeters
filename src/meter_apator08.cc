@@ -44,15 +44,13 @@ unique_ptr<WaterMeter> createApator08(MeterInfo &mi)
 }
 
 MeterApator08::MeterApator08(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::APATOR08, 0x8614) // Not compliant! Will decode to APT.
+    MeterCommonImplementation(mi, MeterType::APATOR08)
 {
+    // manufacturer 0x8614 is not compliant with flags encoding.
+    // forced decode will decode to APT.
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x03);
-
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x03);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

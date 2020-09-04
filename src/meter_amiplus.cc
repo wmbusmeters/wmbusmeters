@@ -42,23 +42,11 @@ private:
 };
 
 MeterAmiplus::MeterAmiplus(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::AMIPLUS, 0)
+    MeterCommonImplementation(mi, MeterType::AMIPLUS)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    // This is one manufacturer of Amiplus compatible meters.
-    addManufacturer(MANUFACTURER_APA);
-    addMedia(0x02); // Electricity meter
-
-    // This is another manufacturer
-    addManufacturer(MANUFACTURER_DEV);
-    // Oddly, this device has not been configured to send as a electricity meter,
-    // but instead a device/media type that is used for gateway or relays or something?
-    addMedia(0x37); // Radio converter (meter side)
-
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x02);
 
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },

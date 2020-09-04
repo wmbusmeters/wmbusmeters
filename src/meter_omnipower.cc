@@ -40,15 +40,11 @@ unique_ptr<ElectricityMeter> createOmnipower(MeterInfo &mi)
 }
 
 MeterOmnipower::MeterOmnipower(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::OMNIPOWER, MANUFACTURER_KAM)
+    MeterCommonImplementation(mi, MeterType::OMNIPOWER)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x02);
-
     addLinkMode(LinkMode::C1);
-
-    addExpectedVersion(0x01);
 
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },

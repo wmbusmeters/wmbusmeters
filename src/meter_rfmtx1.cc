@@ -44,12 +44,10 @@ unique_ptr<WaterMeter> createRfmTX1(MeterInfo &mi)
 }
 
 MeterRfmTX1::MeterRfmTX1(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::RFMTX1, MANUFACTURER_BMT)
+    MeterCommonImplementation(mi, MeterType::RFMTX1)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x07);
-    addExpectedVersion(0x05);
     addLinkMode(LinkMode::T1);
 
     addPrint("total", Quantity::Volume,
