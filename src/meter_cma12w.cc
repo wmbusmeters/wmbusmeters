@@ -36,15 +36,11 @@ private:
 };
 
 MeterCMa12w::MeterCMa12w(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::CMA12W, MANUFACTURER_ELV)
+    MeterCommonImplementation(bus, mi, MeterType::CMA12W)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x1b);
-
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x20);
 
     addPrint("current_temperature", Quantity::Temperature,
              [&](Unit u){ return currentTemperature(u); },

@@ -48,15 +48,11 @@ unique_ptr<WaterMeter> createQ400(WMBus *bus, MeterInfo &mi)
 }
 
 MeterQ400::MeterQ400(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::Q400, MANUFACTURER_AXI)
+    MeterCommonImplementation(bus, mi, MeterType::Q400)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x07);
-
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x10);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

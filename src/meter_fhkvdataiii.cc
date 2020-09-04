@@ -56,10 +56,9 @@ unique_ptr<HeatCostMeter> createFHKVDataIII(WMBus *bus, MeterInfo &mi)
 
 
 MeterFHKVDataIII::MeterFHKVDataIII(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::FHKVDATAIII, MANUFACTURER_TCH)
+    MeterCommonImplementation(bus, mi, MeterType::FHKVDATAIII)
 {
-    addMedia(0x80); // T telegrams
-    addExpectedVersion(0x69);
+    // media 0x80 T telegrams
     addLinkMode(LinkMode::T1);
 
     addPrint("current", Quantity::HCA,

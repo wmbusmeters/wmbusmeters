@@ -67,11 +67,11 @@ telegram=|2e44333003020100071b7a634820252f2f0265840842658308820165950802fb1aae01
 # Test Lansen door window telegram
 
 telegram=|2e44333005020100071d7ab54800002f2f02fd1b110002fd971d01000efd3a2200000000008e40fd3a000000000000|
-{"media":"reserved","meter":"lansensm","name":"Dooro","id":"00010205","status":"CLOSED","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"CLOSED","timestamp":"1111-11-11T11:11:11Z"}
 |Dooro;00010205;CLOSED;1111-11-11 11:11.11
 
 telegram=|2e44333005020100071d7ab66800002f2f02fd1b550002fd971d01000efd3a2300000000008e40fd3a000000000000|
-{"media":"reserved","meter":"lansensm","name":"Dooro","id":"00010205","status":"OPEN","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"OPEN","timestamp":"1111-11-11T11:11:11Z"}
 |Dooro;00010205;OPEN;1111-11-11 11:11.11
 
 # Test Lansen pulse counter

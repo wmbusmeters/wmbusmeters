@@ -43,16 +43,11 @@ unique_ptr<WaterMeter> createSupercom587(WMBus *bus, MeterInfo &mi)
 }
 
 MeterSupercom587::MeterSupercom587(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::SUPERCOM587, MANUFACTURER_SON)
+    MeterCommonImplementation(bus, mi, MeterType::SUPERCOM587)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x06);
-    addMedia(0x07);
-
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x3c);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

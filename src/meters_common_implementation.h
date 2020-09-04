@@ -42,7 +42,6 @@ struct MeterCommonImplementation : public virtual Meter
     vector<string> fields();
     string name();
     MeterType type();
-    vector<int> media();
     WMBus *bus();
 
     ELLSecurityMode expectedELLSecurityMode();
@@ -62,7 +61,7 @@ struct MeterCommonImplementation : public virtual Meter
     uint16_t getRecordAsUInt16(std::string record);
 
     MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
-                              MeterType type, int manufacturer);
+                              MeterType type);
 
     ~MeterCommonImplementation() = default;
 
@@ -71,18 +70,14 @@ struct MeterCommonImplementation : public virtual Meter
 protected:
 
     void triggerUpdate(Telegram *t);
-    void addExpectedVersion(int version);
     void setExpectedELLSecurityMode(ELLSecurityMode dsm);
     void setExpectedTPLSecurityMode(TPLSecurityMode tsm);
-    bool isExpectedVersion(int version);
     void addConversions(std::vector<Unit> cs);
     void addShell(std::string cmdline);
     void addJson(std::string json);
     std::vector<std::string> &shellCmdlines();
     std::vector<std::string> &additionalJsons();
-    void addMedia(int media);
     void addLinkMode(LinkMode lm);
-    void addManufacturer(int m);
     // Print with the default unit for this quantity.
     void addPrint(string vname, Quantity vquantity,
                   function<double(Unit)> getValueFunc, string help, bool field, bool json);
@@ -109,9 +104,6 @@ private:
     MeterKeys meter_keys_ {};
     ELLSecurityMode expected_ell_sec_mode_ {};
     TPLSecurityMode expected_tpl_sec_mode_ {};
-    set<int> expected_versions_;
-    vector<int> media_;
-    set<int> manufacturers_;
     string name_;
     vector<string> ids_;
     WMBus *bus_ {};

@@ -59,15 +59,11 @@ private:
 };
 
 MeterRfmAmb::MeterRfmAmb(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::RFMAMB, MANUFACTURER_BMT)
+    MeterCommonImplementation(bus, mi, MeterType::RFMAMB)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x1b);
-
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x10);
 
     addPrint("current_temperature", Quantity::Temperature,
              [&](Unit u){ return currentTemperature(u); },

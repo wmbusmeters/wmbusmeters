@@ -60,6 +60,68 @@
     X(topaseskr, T1_bit, Water,   TOPASESKR, TopasEsKr)  \
 
 
+// List of numbers that can be used to detect the meter driver
+// from a telegram. Currently these values are checked against
+// the outermost DLL layer. Thus this cannot handle if a telegram
+// is relayed and the meter telegram is wrapped in an outer
+// DLL which identifies the relayer. Something to fix in the future
+// is someone reports problems using a relay.
+//
+// The future solution might have RELAY_DETECTION and
+// for such telegrams it will strip the outer layer and
+// recreate the inner telegram.
+//
+//    meter driver,       manufacturer,  media,  version
+//
+#define METER_DETECTION \
+    X(AMIPLUS,   MANUFACTURER_APA,  0x02,  0x02) \
+    X(AMIPLUS,   MANUFACTURER_DEV,  0x37,  0x02) \
+    X(APATOR08,  0x8614/*APT?*/,    0x03,  0x03) \
+    X(APATOR162, MANUFACTURER_APA,  0x06,  0x05) \
+    X(APATOR162, MANUFACTURER_APA,  0x07,  0x05) \
+    X(CMA12W,    MANUFACTURER_ELV,  0x1b,  0x20) \
+    X(COMPACT5,  MANUFACTURER_TCH,  0x04,  0x45) \
+    X(COMPACT5,  MANUFACTURER_TCH,  0xc3,  0x45) \
+    X(EBZWMBE,   MANUFACTURER_EBZ,  0x37,  0x02) \
+    X(EURISII,   MANUFACTURER_INE,  0x08,  0x55) \
+    X(EHZP,      MANUFACTURER_EMH,  0x02,  0x02) \
+    X(ESYSWM,    MANUFACTURER_ESY,  0x37,  0x30) \
+    X(FLOWIQ3100,MANUFACTURER_KAM,  0x16,  0x1d) \
+    X(FHKVDATAIII,MANUFACTURER_TCH, 0x80,  0x69) \
+    X(HYDRUS,    MANUFACTURER_DME,  0x07,  0x70) \
+    X(HYDRODIGIT,MANUFACTURER_BMT,  0x07,  0x13) \
+    X(IPERL,     MANUFACTURER_SEN,  0x06,  0x68) \
+    X(IPERL,     MANUFACTURER_SEN,  0x07,  0x68) \
+    X(IPERL,     MANUFACTURER_SEN,  0x07,  0x7c) \
+    X(IZAR,      MANUFACTURER_SAP,  0x01,    -1) \
+    X(IZAR,      MANUFACTURER_SAP,  0x15,    -1) \
+    X(IZAR,      MANUFACTURER_SAP,  0x66,    -1) \
+    X(IZAR,      MANUFACTURER_DME,  0x66,    -1) \
+    X(LANSENSM,  MANUFACTURER_LAS,  0x1a,  0x03) \
+    X(LANSENTH,  MANUFACTURER_LAS,  0x1b,  0x07) \
+    X(LANSENDW,  MANUFACTURER_LAS,  0x1d,  0x07) \
+    X(LANSENPU,  MANUFACTURER_LAS,  0x00,  0x14) \
+    X(MKRADIO3,  MANUFACTURER_TCH, 0x62,  0x74) \
+    X(MKRADIO3,  MANUFACTURER_TCH, 0x72,  0x74) \
+    X(MULTICAL21, MANUFACTURER_KAM,  0x16,  0x1b) \
+    X(MULTICAL302,MANUFACTURER_KAM, 0x04,  0x30) \
+    X(MULTICAL302,MANUFACTURER_KAM, 0x0d,  0x30) \
+    X(MULTICAL403,MANUFACTURER_KAM, 0x0a,  0x34) \
+    X(MULTICAL403,MANUFACTURER_KAM, 0x0b,  0x34) \
+    X(MULTICAL403,MANUFACTURER_KAM, 0x0c,  0x34) \
+    X(MULTICAL403,MANUFACTURER_KAM, 0x0d,  0x34) \
+    X(OMNIPOWER,  MANUFACTURER_KAM, 0x02,  0x01) \
+    X(RFMAMB,     MANUFACTURER_BMT, 0x1b,  0x10) \
+    X(RFMTX1,     MANUFACTURER_BMT, 0x07,  0x05) \
+    X(Q400,       MANUFACTURER_AXI, 0x07,  0x10) \
+    X(QCALORIC,   MANUFACTURER_QDS, 0x08,  0x35) \
+    X(SUPERCOM587,MANUFACTURER_SON, 0x06,  0x3c) \
+    X(SUPERCOM587,MANUFACTURER_SON, 0x07,  0x3c) \
+    X(VARIO451,   MANUFACTURER_TCH, 0x04,  0x27) \
+    X(VARIO451,   MANUFACTURER_TCH, 0xc3,  0x27) \
+    X(WATERSTARM, MANUFACTURER_DWZ, 0x06,  0x02) \
+    X(TOPASESKR,  MANUFACTURER_AMT, 0x06,  0xf1) \
+    X(TOPASESKR,  MANUFACTURER_AMT, 0x07,  0xf1) \
 
 enum class MeterType {
 #define X(mname,linkmode,info,type,cname) type,
@@ -67,6 +129,20 @@ LIST_OF_METERS
 #undef X
     UNKNOWN
 };
+
+struct MeterMatch
+{
+    MeterType driver;
+    int manufacturer;
+    int media;
+    int version;
+};
+
+// Return a list of matching drivers, like: multical21
+void detectMeterDriver(int manufacturer, int media, int version, std::vector<std::string> *drivers);
+// When entering the driver, check that the telegram is indeed known to be
+// compatible with the driver(type), if not then print a warning.
+bool isMeterDriverValid(MeterType type, int manufacturer, int media, int version);
 
 using namespace std;
 
@@ -103,7 +179,6 @@ struct Meter
     virtual string meterName() = 0;
     virtual string name() = 0;
     virtual MeterType type() = 0;
-    virtual vector<int> media() = 0;
     virtual WMBus *bus() = 0;
 
     virtual string datetimeOfUpdateHumanReadable() = 0;
@@ -124,7 +199,6 @@ struct Meter
     bool handleTelegram(vector<uchar> input_frame);
     virtual bool isTelegramForMe(Telegram *t) = 0;
     virtual MeterKeys *meterKeys() = 0;
-    virtual bool isExpectedVersion(int version) = 0;
 
     // Dynamically access all data received for the meter.
     virtual std::vector<std::string> getRecords() = 0;

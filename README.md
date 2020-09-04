@@ -272,12 +272,21 @@ and T1 telegrams at the same time.
 wmbusmeters --listento=t1 /dev/ttyUSB1:amb8465
 ```
 
-Simply runs a scan with mode T1 to search for meters and print the IDs
+Simply runs a scan with mode T1 to search for meters and print the IDs and any detected driver,
+for example:
+```
+Received telegram from: 18472139
+          manufacturer: (KAM) Kamstrup Energi (0x2c2d)
+           device type: Cold water meter (0x16)
+            device ver: 0x1d
+         device driver: flowiq3100
+```
+
+Now listen to a specific meter.
 
 ```
 wmbusmeters /dev/ttyUSB0:im871a MyTapWater multical21:c1 12345678 00112233445566778899AABBCCDDEEFF
 ```
-
 
 (The :c1 can be left out, since multical21 only transmits c1 telegrams. The suffix
 with the expected link mode might be necessary for other meters, like apator162 for example.

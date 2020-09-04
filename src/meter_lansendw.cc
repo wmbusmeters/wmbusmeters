@@ -41,15 +41,11 @@ private:
 };
 
 MeterLansenDW::MeterLansenDW(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::LANSENSM, MANUFACTURER_LAS)
+    MeterCommonImplementation(bus, mi, MeterType::LANSENDW)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x1d);
-
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x07);
 
     addPrint("status", Quantity::Text,
              [&](){ return status(); },

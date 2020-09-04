@@ -17,6 +17,7 @@
 
 #include"aescmac.h"
 #include"timings.h"
+#include"meters.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
 #include"dvparser.h"
@@ -191,7 +192,8 @@ LIST_OF_MANUFACTURERS
 
 }
 
-void Telegram::print() {
+void Telegram::print()
+{
     uchar a=0, b=0, c=0, d=0;
     if (dll_id.size() >= 4)
     {
@@ -201,17 +203,24 @@ void Telegram::print() {
         d = dll_id[3];
     }
     notice("Received telegram from: %02x%02x%02x%02x\n", a,b,c,d);
-    notice("          manufacturer: (%s) %s\n",
+    notice("          manufacturer: (%s) %s (0x%02x)\n",
            manufacturerFlag(dll_mfct).c_str(),
-	   manufacturer(dll_mfct).c_str());
-    notice("           device type: %s\n",
-	   mediaType(dll_type).c_str());
+           manufacturer(dll_mfct).c_str(),
+           dll_mfct);
+    notice("           device type: %s (0x%02x)\n", mediaType(dll_type).c_str(), dll_type);
+
+    notice("            device ver: 0x%02x\n", dll_version);
+
+    string possible_drivers = autoDetectPossibleDrivers();
+    notice("         device driver: %s\n", possible_drivers.c_str());
 }
 
 void Telegram::printDLL()
 {
+    string possible_drivers = autoDetectPossibleDrivers();
+
     string man = manufacturerFlag(dll_mfct);
-    verbose("(telegram) DLL L=%02x C=%02x (%s) M=%04x (%s) A=%02x%02x%02x%02x VER=%02x TYPE=%02x (%s)\n",
+    verbose("(telegram) DLL L=%02x C=%02x (%s) M=%04x (%s) A=%02x%02x%02x%02x VER=%02x TYPE=%02x (%s) (driver %s)\n",
             dll_len,
             dll_c, cType(dll_c).c_str(),
             dll_mfct,
@@ -219,7 +228,8 @@ void Telegram::printDLL()
             dll_id[0], dll_id[1], dll_id[2], dll_id[3],
             dll_version,
             dll_type,
-            mediaType(dll_type).c_str());
+            mediaType(dll_type).c_str(),
+            possible_drivers.c_str());
 }
 
 void Telegram::printELL()
@@ -288,45 +298,6 @@ void Telegram::printTPL()
     }
 
     verbose("\n");
-}
-
-void Telegram::verboseFields()
-{
-    printDLL();
-    printELL();
-    printNWL();
-    printAFL();
-    printTPL();
-
-    /*
-    if (ell_ci_field == 0x72) {
-        // Long tpl header
-        verbose(" CC-field=%02x (%s) long tpl header ACC=%02x SN=%02x%02x%02x%02x",
-                cc_field, ccType(cc_field).c_str(),
-                acc,
-                sn[3],sn[2],sn[1],sn[0]);
-    }
-
-    if (ell_ci_field == 0x7a) {
-        // Short data header
-        verbose(" CC-field=%02x (%s) short header ACC=%02x ",
-                cc_field, ccType(cc_field).c_str(),
-                acc,
-                sn[3],sn[2],sn[1],sn[0]);
-    }
-
-    if (ell_ci_field == 0x8d) {
-        // ELL header
-        verbose(" CC-field=%02x (%s) ell header ACC=%02x SN=%02x%02x%02x%02x",
-                cc_field, ccType(cc_field).c_str(),
-                acc,
-                sn[3],sn[2],sn[1],sn[0]);
-    }
-    if (ell_ci_field == 0x8c) {
-        verbose(" CC-field=%02x (%s) ACC=%02x",
-                cc_field, ccType(cc_field).c_str(),
-                acc);
-                }*/
 }
 
 string manufacturer(int m_field) {
@@ -1667,6 +1638,8 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk)
     ok = parseDLL(pos);
     if (!ok) return false;
 
+    printDLL();
+
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
     //     │ Is this an ELL block?                        │
@@ -1675,6 +1648,8 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk)
 
     ok = parseELL(pos);
     if (!ok) return false;
+
+    printELL();
 
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
@@ -1685,6 +1660,8 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk)
     ok = parseNWL(pos);
     if (!ok) return false;
 
+    printNWL();
+
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
     //     │ Is this an AFL block?                        │
@@ -1693,6 +1670,8 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk)
 
     ok = parseAFL(pos);
     if (!ok) return false;
+
+    printAFL();
 
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
@@ -1703,7 +1682,7 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk)
     ok = parseTPL(pos);
     if (!ok) return false;
 
-    verboseFields();
+    printTPL();
 
     return true;
 }
@@ -1713,6 +1692,18 @@ void Telegram::explainParse(string intro, int from)
     for (auto& p : explanations) {
         debug("%s %02x: %s\n", intro.c_str(), p.first, p.second.c_str());
     }
+}
+
+string Telegram::autoDetectPossibleDrivers()
+{
+    vector<string> drivers;
+    detectMeterDriver(dll_mfct, dll_type, dll_version, &drivers);
+    string possibles;
+    for (string d : drivers) possibles = possibles+d+" ";
+    if (possibles != "") possibles.pop_back();
+    else possibles = "unknown!";
+
+    return possibles;
 }
 
 string cType(int c_field)

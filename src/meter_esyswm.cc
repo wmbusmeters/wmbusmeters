@@ -62,16 +62,14 @@ private:
 };
 
 MeterESYSWM::MeterESYSWM(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::ESYSWM, MANUFACTURER_ESY)
+    MeterCommonImplementation(bus, mi, MeterType::ESYSWM)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 
     // The ESYS-WM-20 and ESYS-WM15 are addons to the electricity meters.
-    addMedia(0x37); // Radio converter (meter side)
+    // media 0x37 Radio converter (meter side)
 
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x30);
 
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },

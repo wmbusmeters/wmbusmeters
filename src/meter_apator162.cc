@@ -43,17 +43,12 @@ unique_ptr<WaterMeter> createApator162(WMBus *bus, MeterInfo &mi)
 }
 
 MeterApator162::MeterApator162(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::APATOR162, MANUFACTURER_APA)
+    MeterCommonImplementation(bus, mi, MeterType::APATOR162)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x06);
-    addMedia(0x07);
-
     addLinkMode(LinkMode::T1);
     addLinkMode(LinkMode::C1);
-
-    addExpectedVersion(0x05);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },

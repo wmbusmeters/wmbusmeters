@@ -26,7 +26,7 @@
 #include<time.h>
 
 MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
-                                                     MeterType type, int manufacturer) :
+                                                     MeterType type) :
     type_(type), name_(mi.name), bus_(bus)
 {
     ids_ = splitMatchExpressions(mi.id);
@@ -37,9 +37,6 @@ MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
     if (bus->type() == DEVICE_SIMULATOR)
     {
         meter_keys_.simulation = true;
-    }
-    if (manufacturer) {
-        manufacturers_.insert(manufacturer);
     }
     for (auto s : mi.shells) {
         addShell(s);
@@ -83,16 +80,6 @@ MeterType MeterCommonImplementation::type()
     return type_;
 }
 
-vector<int> MeterCommonImplementation::media()
-{
-    return media_;
-}
-
-void MeterCommonImplementation::addMedia(int m)
-{
-    media_.push_back(m);
-}
-
 void MeterCommonImplementation::addLinkMode(LinkMode lm)
 {
     link_modes_.addLinkMode(lm);
@@ -117,11 +104,6 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          string help, bool field, bool json)
 {
     prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), NULL, getValueFunc, help, field, json } );
-}
-
-void MeterCommonImplementation::addManufacturer(int m)
-{
-    manufacturers_.insert(m);
 }
 
 vector<string> MeterCommonImplementation::ids()
@@ -207,23 +189,16 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
         return false;
     }
 
-    if (manufacturers_.size() > 0 && manufacturers_.count(t->dll_mfct) == 0)
+    if (!isMeterDriverValid(type_, t->dll_mfct, t->dll_type, t->dll_version))
     {
-        // We are not that strict for the manufacturer.
-        // Simply warn.
-        warning("(meter) %s: probably not for me since manufacturer differs\n", name_.c_str());
-    }
-
-    bool media_match = false;
-    for (auto m : media_) {
-        if (m == t->dll_type) {
-            media_match = true;
-            break;
-        }
-    }
-
-    if (!media_match) {
-        warning("(meter) %s: probably not for me since received media 0x%02x does not match\n", name_.c_str(), t->dll_type);
+        // Are we using the right driver? Perhaps not since
+        // this particular driver, mfct, media, version combo
+        // is not registered in the METER_DETECTION list in meters.h
+        string possible_drivers = t->autoDetectPossibleDrivers();
+        warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n",
+                name_.c_str(),
+                toMeterName(type()).c_str(),
+                possible_drivers.c_str());
     }
 
     debug("(meter) %s: yes for me\n", name_.c_str());
@@ -382,11 +357,6 @@ bool MeterCommonImplementation::handleTelegram(vector<uchar> input_frame)
     {
         // Ignoring telegram since it could not be parsed.
         return false;
-    }
-
-    if (!isExpectedVersion(t.dll_version))
-    {
-        warning("(%s) unexpected meter version 0x%02x !\n", meterName().c_str(), t.dll_version);
     }
 
     char log_prefix[256];
@@ -555,12 +525,19 @@ ELLSecurityMode MeterCommonImplementation::expectedELLSecurityMode()
     return expected_ell_sec_mode_;
 }
 
-void MeterCommonImplementation::addExpectedVersion(int version)
+void detectMeterDriver(int manufacturer, int media, int version, vector<string> *drivers)
 {
-    expected_versions_.insert(version);
+    drivers->clear();
+#define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { drivers->push_back(toMeterName(MeterType::TY)); }}
+METER_DETECTION
+#undef X
 }
 
-bool MeterCommonImplementation::isExpectedVersion(int version)
+bool isMeterDriverValid(MeterType type, int manufacturer, int media, int version)
 {
-    return expected_versions_.size() == 0 || expected_versions_.count(version) > 0;
+#define X(TY,MA,ME,VE) { if (type == MeterType::TY && manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { return true; }}
+METER_DETECTION
+#undef X
+
+    return false;
 }

@@ -333,7 +333,6 @@ struct Telegram
     bool parse(vector<uchar> &input_frame, MeterKeys *mk);
     void parserNoWarnings() { parser_warns_ = false; }
     void print();
-    void verboseFields();
 
     // A vector of indentations and explanations, to be printed
     // below the raw data bytes to explain the telegram content.
@@ -344,10 +343,10 @@ struct Telegram
 
     bool isSimulated() { return is_simulated_; }
 
-    void expectVersion(const char *info, int v);
-
     // Extracted mbus values.
     std::map<std::string,std::pair<int,DVEntry>> values;
+
+    string autoDetectPossibleDrivers();
 
 private:
 

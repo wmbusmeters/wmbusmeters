@@ -39,15 +39,11 @@ private:
 };
 
 MeterLansenPU::MeterLansenPU(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::LANSENPU, MANUFACTURER_LAS)
+    MeterCommonImplementation(bus, mi, MeterType::LANSENPU)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x00);
-
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x14);
 
     addPrint("counter_a", Quantity::Counter,
              [&](Unit u) { assertQuantity(u, Quantity::Counter); return counterA(); },

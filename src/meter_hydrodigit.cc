@@ -44,12 +44,10 @@ unique_ptr<WaterMeter> createHydrodigit(WMBus *bus, MeterInfo &mi)
 }
 
 MeterHydrodigit::MeterHydrodigit(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::HYDRODIGIT, MANUFACTURER_BMT)
+    MeterCommonImplementation(bus, mi, MeterType::HYDRODIGIT)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
-    addMedia(0x07);
-    addExpectedVersion(0x13);
     addLinkMode(LinkMode::T1);
 
     addPrint("total", Quantity::Volume,

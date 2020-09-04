@@ -46,15 +46,13 @@ unique_ptr<HeatMeter> createCompact5(WMBus *bus, MeterInfo &mi)
 }
 
 MeterCompact5::MeterCompact5(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::COMPACT5, MANUFACTURER_TCH)
+    MeterCommonImplementation(bus, mi, MeterType::COMPACT5)
 {
-    addMedia(0x04); // C telegrams
-    addMedia(0xC3); // T telegrams
+    // media 0x04 is used for C telegrams
+    // media 0xC3 is used for T telegrams
 
     addLinkMode(LinkMode::C1);
     addLinkMode(LinkMode::T1);
-
-    addExpectedVersion(0x45);
 
     addPrint("total", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
