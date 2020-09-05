@@ -286,6 +286,8 @@ struct Telegram
 {
     // The meter address as a string usually printed on the meter.
     string id;
+    // If decryption failed, set this to true, to prevent further processing.
+    bool decryption_failed {};
 
     // DLL
     int dll_len {}; // The length of the telegram, 1 byte.

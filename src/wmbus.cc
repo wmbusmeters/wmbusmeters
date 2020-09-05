@@ -1036,9 +1036,14 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
 
         if (ell_sec_mode == ELLSecurityMode::AES_CTR)
         {
-            bool ok = decrypt_ELL_AES_CTR(this, frame, pos, meter_keys->confidentiality_key);
-            if (!ok) return false;
-            // Now the frame from pos and onwards has been decrypted.
+            bool decrypt_ok = decrypt_ELL_AES_CTR(this, frame, pos, meter_keys->confidentiality_key);
+            // Actually this ctr decryption always succeeds, if wrong key, it will decrypt to garbage.
+            if (!decrypt_ok)
+            {
+                decryption_failed = true;
+                return true;
+            }
+            // Now the frame from pos and onwards has been decrypted, perhaps.
         }
 
         ell_pl_crc_b[0] = *(pos+0);
@@ -1055,11 +1060,13 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
 
         if (ell_pl_crc != check)
         {
+            // Ouch, checksum of the payload does not match.
+            // A wrong key was probably used for decryption.
+            decryption_failed = true;
             if (parser_warns_)
             {
-                warning("(wmbus) payload crc error!\n");
+                warning("(wmbus) decrypted payload crc failed check, did you use the correct decryption key? Ignoring telegram.\n");
             }
-            return false;
         }
     }
 
@@ -1471,13 +1478,20 @@ bool Telegram::parse_TPL_72(vector<uchar>::iterator &pos)
     bool ok = parseLongTPL(pos);
     if (!ok) return false;
 
-    ok = potentiallyDecrypt(pos);
-    if (!ok) return false;
+    bool decrypt_ok = potentiallyDecrypt(pos);
 
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end());
     suffix_size = 0;
-    parseDV(this, frame, pos, remaining, &values);
+
+    if (decrypt_ok)
+    {
+        parseDV(this, frame, pos, remaining, &values);
+    }
+    else
+    {
+        decryption_failed = true;
+    }
 
     return true;
 }
@@ -1539,14 +1553,20 @@ bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos)
     bool ok = parseShortTPL(pos);
     if (!ok) return false;
 
-    ok = potentiallyDecrypt(pos);
-    if (!ok) return false;
+    bool decrypt_ok = potentiallyDecrypt(pos);
 
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end());
     suffix_size = 0;
 
-    parseDV(this, frame, pos, remaining, &values);
+    if (decrypt_ok)
+    {
+        parseDV(this, frame, pos, remaining, &values);
+    }
+    else
+    {
+        decryption_failed = true;
+    }
     return true;
 }
 
@@ -1658,6 +1678,7 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk)
     if (!ok) return false;
 
     printELL();
+    if (decryption_failed) return false;
 
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
@@ -1691,6 +1712,7 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk)
     if (!ok) return false;
 
     printTPL();
+    if (decryption_failed) return false;
 
     return true;
 }
