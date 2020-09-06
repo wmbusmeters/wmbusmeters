@@ -71,6 +71,8 @@ struct WMBusCommonImplementation : public virtual WMBus
     bool link_modes_configured_ {};
     LinkModeSet link_modes_ {};
 
+    int regular_cb_id_;
+
     unique_ptr<SerialDevice> serial_;
 };
 

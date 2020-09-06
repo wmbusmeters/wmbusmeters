@@ -77,6 +77,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
 
     void listenTo(SerialDevice *sd, function<void()> cb);
     void onDisappear(SerialDevice *sd, function<void()> cb);
+    void expectDevicesToWork();
     void stop();
     void startEventLoop();
     void waitForStop();
@@ -709,6 +710,12 @@ void SerialCommunicationManagerImp::onDisappear(SerialDevice *sd, function<void(
         error("Internal error: Invalid serial device passed to onDisappear.\n");
     }
     si->on_disappear_ = cb;
+}
+
+void SerialCommunicationManagerImp::expectDevicesToWork()
+{
+    debug("(serial) expecting devices to work\n");
+    expect_devices_to_work_ = true;
 }
 
 void SerialCommunicationManagerImp::stop()

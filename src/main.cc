@@ -266,7 +266,7 @@ unique_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *confi
         break;
     }
     case DEVICE_UNKNOWN:
-        warning("No wmbus device found! Exiting!\n");
+        verbose("(main) internal error! cannot create an unknown device! exiting!\n");
         if (config->daemon) {
             // If starting as a daemon, wait a bit so that systemd have time to catch up.
             sleep(1);
@@ -408,7 +408,7 @@ void detectAndConfigureWMBusDevices(Configuration *config, SerialCommunicationMa
     {
         if (!printed_warning_)
         {
-            info("(main) no wmbus devices detected.\n");
+            info("(main) no wmbus device detected, waiting for a device to be plugged in.\n");
             printed_warning_ = true;
         }
     }
@@ -522,11 +522,11 @@ bool start(Configuration *config)
 
     if (devices_.size() == 0)
     {
-        info("(main) no wmbus devices detected.\n");
+        info("(main) no wmbus device detected, waiting for a device to be plugged in.\n");
     }
 
-    // Every 2 seconds, perform the exact same call again and again.
-    manager_->startRegularCallback("device_detector",
+    // Every 2 seconds detect any plugged in or removed wmbus devices.
+    manager_->startRegularCallback("HOT_PLUG_DETECTOR",
                                   2,
                                   [&](){
                                       detectAndConfigureWMBusDevices(config, manager_.get(), &devices_);

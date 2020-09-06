@@ -3342,7 +3342,8 @@ bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_byt
 
 WMBusCommonImplementation::~WMBusCommonImplementation()
 {
-    info("(wmbus) deleted %s\n", toString(type()));
+    manager_->stopRegularCallback(regular_cb_id_);
+    debug("(wmbus) deleted %s\n", toString(type()));
 }
 
 WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
@@ -3358,7 +3359,8 @@ WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
 
     // Invoke the check status once per minute. Unless internal testing, then it is every 2 seconds.
     int default_timer = isInternalTestingEnabled() ? CHECKSTATUS_TIMER_INTERNAL_TESTING : CHECKSTATUS_TIMER;
-    manager_->startRegularCallback(toString(t), default_timer, call(this,checkStatus));
+    string alarm_id = "CHECK_STATUS "+string(toString(t))+":"+serial_->device();
+    regular_cb_id_ = manager_->startRegularCallback(alarm_id, default_timer, call(this,checkStatus));
 }
 
 WMBusDeviceType WMBusCommonImplementation::type()

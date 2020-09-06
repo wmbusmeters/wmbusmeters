@@ -97,7 +97,7 @@ unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager,
 }
 
 WMBusIM871A::WMBusIM871A(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_IM871A, manager,std::move(serial))
+    WMBusCommonImplementation(DEVICE_IM871A, manager, std::move(serial))
 {
     sem_init(&command_wait_, 0, 0);
     manager_->listenTo(this->serial(),call(this,processSerialData));
