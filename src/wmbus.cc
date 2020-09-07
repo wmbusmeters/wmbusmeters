@@ -3992,5 +3992,5 @@ bool isPossibleDevice(string arg, Device *device)
         checkFileExists(device->file.c_str()) ||
         checkIfSimulationFile(device->file.c_str())) return true;
 
-    return true;
+    return false;
 }
