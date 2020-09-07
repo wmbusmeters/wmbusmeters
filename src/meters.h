@@ -23,6 +23,7 @@
 #include"wmbus.h"
 
 #include<string>
+#include<functional>
 #include<vector>
 
 #define LIST_OF_METERS \
@@ -187,7 +188,7 @@ struct Meter
     virtual string datetimeOfUpdateHumanReadable() = 0;
     virtual string datetimeOfUpdateRobot() = 0;
 
-    virtual void onUpdate(function<void(Telegram*t,Meter*)> cb) = 0;
+    virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;
 
     virtual void printMeter(Telegram *t,
@@ -199,7 +200,8 @@ struct Meter
                             vector<string> *selected_fields) = 0;
 
     // The handleTelegram expects an input_frame where the DLL crcs have been removed.
-    bool handleTelegram(vector<uchar> input_frame);
+    // Returns true of this meter handled this telegram!
+    virtual bool handleTelegram(vector<uchar> input_frame) = 0;
     virtual bool isTelegramForMe(Telegram *t) = 0;
     virtual MeterKeys *meterKeys() = 0;
 
@@ -214,6 +216,18 @@ struct Meter
 
     virtual ~Meter() = default;
 };
+
+struct MeterManager
+{
+    virtual void addMeter(unique_ptr<Meter> meter) = 0;
+    virtual void removeAllMeters() = 0;
+    virtual void forEachMeter(std::function<void(Meter*)> cb) = 0;
+    virtual bool handleTelegram(vector<uchar> data) = 0;
+    virtual bool hasAllMetersReceivedATelegram() = 0;
+    virtual ~MeterManager() = default;
+};
+
+unique_ptr<MeterManager> createMeterManager();
 
 struct WaterMeter : public virtual Meter
 {

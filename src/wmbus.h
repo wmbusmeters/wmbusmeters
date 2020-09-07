@@ -451,7 +451,6 @@ struct WMBus
     virtual LinkModeSet supportedLinkModes() = 0;
     virtual int numConcurrentLinkModes() = 0;
     virtual bool canSetLinkModes(LinkModeSet lms) = 0;
-    virtual void setMeters(vector<unique_ptr<Meter>> *meters) = 0;
     virtual void setLinkModes(LinkModeSet lms) = 0;
     virtual void onTelegram(function<bool(vector<uchar>)> cb) = 0;
     virtual SerialDevice *serial() = 0;

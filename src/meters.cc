@@ -25,6 +25,63 @@
 #include<memory.h>
 #include<time.h>
 
+struct MeterManagerImplementation : public virtual MeterManager
+{
+    void addMeter(unique_ptr<Meter> meter)
+    {
+        meters_.push_back(std::move(meter));
+    }
+
+    void removeAllMeters()
+    {
+        meters_.clear();
+    }
+
+    void forEachMeter(std::function<void(Meter*)> cb)
+    {
+        for (auto &meter : meters_)
+        {
+            cb(meter.get());
+        }
+    }
+
+    bool hasAllMetersReceivedATelegram()
+    {
+        for (auto &meter : meters_)
+        {
+            if (meter->numUpdates() == 0) return false;
+        }
+
+        return true;
+    }
+
+    bool handleTelegram(vector<uchar> data)
+    {
+        bool handled = false;
+
+        for (auto &m : meters_)
+        {
+            bool h = m->handleTelegram(data);
+            if (h) handled = true;
+        }
+        if (isVerboseEnabled() && !handled)
+        {
+            verbose("(wmbus) telegram ignored by all configured meters!\n");
+        }
+        return handled;
+    }
+    ~MeterManagerImplementation() {}
+
+private:
+
+    vector<unique_ptr<Meter>> meters_;
+};
+
+unique_ptr<MeterManager> createMeterManager()
+{
+    return unique_ptr<MeterManager>(new MeterManagerImplementation);
+}
+
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
                                                      MeterType type) :
     type_(type), name_(mi.name)
@@ -44,7 +101,6 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     for (auto j : mi.jsons) {
         addJson(j);
     }
-    //MeterCommonImplementation::bus()->onTelegram([this](vector<uchar>input_frame){return this->handleTelegram(input_frame);});
 }
 
 void MeterCommonImplementation::addConversions(std::vector<Unit> cs)
@@ -194,6 +250,12 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
                 name_.c_str(),
                 toMeterName(type()).c_str(),
                 possible_drivers.c_str());
+
+        if (possible_drivers == "unknown!")
+        {
+            warning("(meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/\n");
+            warning("(meter) to add support for this unknown mfct,media,version combination\n");
+        }
     }
 
     debug("(meter) %s: yes for me\n", name_.c_str());

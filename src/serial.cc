@@ -845,7 +845,7 @@ void SerialCommunicationManagerImp::executeTimerCallbacks()
     {
         if (t.isTime(curr))
         {
-            trace("(trace serial) invoking callback %d %s\n", t.id, t.name.c_str());
+            trace("[SERIAL] invoking callback %d %s\n", t.id, t.name.c_str());
             t.last_call = curr;
             t.callback();
         }
@@ -913,7 +913,7 @@ void *SerialCommunicationManagerImp::eventLoop()
             }
         }
 
-        trace("(trace serial) select timeout %d s\n", timeout.tv_sec);
+        trace("[SERIAL] select timeout %d s\n", timeout.tv_sec);
 
         bool num_devices = 0;
         LOCK("(serial)", "eventLoop2", devices_lock_);

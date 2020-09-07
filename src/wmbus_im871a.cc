@@ -395,9 +395,9 @@ void WMBusIM871A::waitForResponse()
 {
     while (manager_->isRunning())
     {
-        trace("(im871) waitForResponse sem_wait command_wait_\n");
+        trace("[IM871A] waitForResponse sem_wait command_wait_\n");
         int rc = sem_wait(&command_wait_);
-        trace("(im871) waitForResponse waited command_wait_\n");
+        trace("[IM871A] waitForResponse waited command_wait_\n");
         if (rc==0) break;
         if (rc==-1) {
             if (errno==EINTR) continue;

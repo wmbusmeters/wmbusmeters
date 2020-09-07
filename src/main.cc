@@ -34,14 +34,14 @@
 #include <unistd.h>
 #include <syslog.h>
 #include <string.h>
+#include <set>
 
 using namespace std;
 
-void oneshotCheck(Configuration *config, SerialCommunicationManager *manager, Telegram *t, Meter *meter, vector<unique_ptr<Meter>> *meters);
+void oneshotCheck(Configuration *config, Telegram *t, Meter *meter);
 void setupLogFile(Configuration *config);
-void setupMeters(Configuration *config, vector<unique_ptr<Meter>> *meters);
-void attachMetersToPrinter(Configuration *config, vector<unique_ptr<Meter>> *meters, Printer *printer);
-void detectAndConfigureWMBusDevices(Configuration *config, SerialCommunicationManager *manager, vector<unique_ptr<WMBus>> *devices);
+void setupMeters(Configuration *config, MeterManager *manager);
+void detectAndConfigureWMBusDevices(Configuration *config);
 unique_ptr<Printer> createPrinter(Configuration *config);
 void logStartInformation(Configuration *config);
 bool start(Configuration *config);
@@ -52,16 +52,19 @@ void startDaemon(string pid_file, string device_override, string listento_overri
 // monitoring the file descrtiptors for the ttys,
 // background shells. It also invokes regular callbacks
 // used for monitoring alarms and detecting new devices.
-unique_ptr<SerialCommunicationManager> manager_;
+unique_ptr<SerialCommunicationManager> serial_manager_;
 
-// Registered meters to decode and relay.
-// This does not change during runtime.
-vector<unique_ptr<Meter>> meters_;
+// Manage registered meters to decode and relay.
+unique_ptr<MeterManager> meter_manager_;
 
 // Current active set of wmbus devices that can receive telegrams.
 // This can change during runtime, plugging/unplugging wmbus dongles.
-vector<unique_ptr<WMBus>> devices_;
+vector<unique_ptr<WMBus>> wmbus_devices_;
 pthread_mutex_t devices_lock_ = PTHREAD_MUTEX_INITIALIZER;
+
+// Remember devices that were not detected as wmbus devices.
+// To avoid probing them again and again.
+set<string> not_wmbus_devices_;
 
 // Rendering the telegrams to json,fields or shell calls is
 // done by the printer.
@@ -303,7 +306,7 @@ void setupLogFile(Configuration *config)
     }
 }
 
-void setupMeters(Configuration *config, vector<unique_ptr<Meter>> *meters)
+void setupMeters(Configuration *config, MeterManager *manager)
 {
     for (auto &m : config->meters)
     {
@@ -312,10 +315,13 @@ void setupMeters(Configuration *config, vector<unique_ptr<Meter>> *meters)
         {
 #define X(mname,link,info,type,cname) \
                 case MeterType::type: \
-                meters->push_back(create##cname(m)); \
+                { \
+                auto newm = create##cname(m); \
+                newm->addConversions(config->conversions); \
+                manager->addMeter(std::move(newm)); \
                 verbose("(wmbusmeters) configured \"%s\" \"" #mname "\" \"%s\" %s\n", \
                 m.name.c_str(), m.id.c_str(), keymsg); \
-                meters->back()->addConversions(config->conversions); \
+                } \
                 break;
 LIST_OF_METERS
 #undef X
@@ -324,6 +330,7 @@ LIST_OF_METERS
             break;
         }
 
+        /*
         if (config->list_shell_envs)
         {
             string ignore1, ignore2, ignore3;
@@ -345,6 +352,7 @@ LIST_OF_METERS
             exit(0);
         }
 
+
         if (config->list_fields)
         {
             printf("Fields produced by meter %s:\n", m.type.c_str());
@@ -357,31 +365,41 @@ LIST_OF_METERS
             }
             exit(0);
         }
+        */
     }
 }
 
-void attachMetersToPrinter(Configuration *config, vector<unique_ptr<Meter>> *meters, Printer *printer)
+void remove_lost_devices_from_nots(vector<string> &devices)
 {
-    for (auto &meter : *meters)
+    vector<string> to_be_removed;
+
+    // Iterate over the devices known to NOT be wmbus devices.
+    for (const string& nots : not_wmbus_devices_)
     {
-        meter->onUpdate([&](Telegram*t,Meter* meter)
-                       {
-                           printer->print(t,meter,&config->jsons,&config->selected_fields);
-                       });
-        meter->onUpdate([&](Telegram*t, Meter* meter)
-                       {
-                           oneshotCheck(config, manager_.get(), t, meter, meters);
-                       });
+        auto i = std::find(devices.begin(), devices.end(), nots);
+        if (i == devices.end())
+        {
+            // The device has been removed, therefore
+            // we have to forget that the device was not a wmbus device.
+            // Since next time someone plugs in a device, it might be a different
+            // one getting the same /dev/ttyUSBxx
+            to_be_removed.push_back(nots);
+        }
+    }
+
+    for (string& r : to_be_removed)
+    {
+        not_wmbus_devices_.erase(r);
     }
 }
 
-void detectAndConfigureWMBusDevices(Configuration *config, SerialCommunicationManager *manager, vector<unique_ptr<WMBus>> *devices)
+void detectAndConfigureWMBusDevices(Configuration *config)
 {
-    trace("(trace main) checking for dead wmbus devices...\n");
+    trace("[MAIN] checking for dead wmbus devices...\n");
 
     LOCK("(main)", "detectAndConfigureWMBusDevices", devices_lock_);
     vector<WMBus*> not_working;
-    for (auto &w : devices_)
+    for (auto &w : wmbus_devices_)
     {
         if (!w->isWorking())
         {
@@ -391,20 +409,20 @@ void detectAndConfigureWMBusDevices(Configuration *config, SerialCommunicationMa
 
     for (auto w : not_working)
     {
-        auto i = devices_.begin();
-        while (i != devices_.end())
+        auto i = wmbus_devices_.begin();
+        while (i != wmbus_devices_.end())
         {
             if (w == (*i).get())
             {
                 // The erased unique_ptr will delete the WMBus object.
-                devices_.erase(i);
+                wmbus_devices_.erase(i);
                 break;
             }
             i++;
         }
     }
 
-    if (devices_.size() == 0)
+    if (wmbus_devices_.size() == 0)
     {
         if (!printed_warning_)
         {
@@ -419,27 +437,46 @@ void detectAndConfigureWMBusDevices(Configuration *config, SerialCommunicationMa
 
     UNLOCK("(main)", "detectAndConfigureWMBusDevices", devices_lock_);
 
-    trace("(trace main) checking for new wmbus devices...\n");
+    trace("[MAIN] checking for new wmbus devices...\n");
 
-    vector<string> ds = manager->listSerialDevices();
+    vector<string> ds = serial_manager_->listSerialDevices();
+
+    // Did an non-wmbus-device get unplugged? Then remove it from the known-not-wmbus-device set.
+    remove_lost_devices_from_nots(ds);
+
     for (string& device : ds)
     {
-        trace("(trace main) serial device %s\n", device.c_str());
-        SerialDevice *sd = manager->lookup(device);
+        trace("[MAIN] serial device %s\n", device.c_str());
+        if (not_wmbus_devices_.count(device) > 0)
+        {
+            trace("[MAIN] skipping already probed not wmbus serial device %s\n", device.c_str());
+            continue;
+        }
+        SerialDevice *sd = serial_manager_->lookup(device);
         if (sd == NULL)
         {
             debug("(main) device %s not currently used, detect contents...\n", device.c_str());
             // This serial device is not in use.
-            Detected detected = detectImstAmberCul(device, "", manager);
-            if (detected.type != DEVICE_UNKNOWN)
+            Detected detected = detectImstAmberCul(device, "", serial_manager_.get());
+            if (detected.type == DEVICE_UNKNOWN)
             {
+                // This serial device was something that we could not recognize.
+                // A modem, an android phone, a teletype Model 33, etc....
+                // Mark this serial device as unknown, to avoid repeated detection attempts.
+                not_wmbus_devices_.insert(device);
+                info("(main) ignoring %s, it does respond as any of the supported wmbus devices.\n", device.c_str());
+            }
+            else
+            {
+                // A newly plugged in device has been detected! Start using it!
                 info("(main) detected %s on %s\n", toString(detected.type), device.c_str());
                 LOCK("(main)", "detectAndConfigureWMBusDevices", devices_lock_);
-                unique_ptr<WMBus> w = createWMBusDeviceFrom(&detected, config, manager);
-                devices->push_back(std::move(w));
-                WMBus *wmbus = devices->back().get();
+                unique_ptr<WMBus> w = createWMBusDeviceFrom(&detected, config, serial_manager_.get());
+                wmbus_devices_.push_back(std::move(w));
+                WMBus *wmbus = wmbus_devices_.back().get();
                 UNLOCK("(main)", "detectAndConfigureWMBusDevices", devices_lock_);
                 wmbus->setLinkModes(config->listen_to_link_modes);
+                wmbus->onTelegram([&](vector<uchar> data){return meter_manager_->handleTelegram(data);});
             }
         }
     }
@@ -497,39 +534,51 @@ bool start(Configuration *config)
     logStartInformation(config);
 
     // Create the manager monitoring all filedescriptors and invoking callbacks.
-    manager_ = createSerialCommunicationManager(config->exitafter, config->reopenafter);
+    serial_manager_ = createSerialCommunicationManager(config->exitafter, config->reopenafter);
     // If our software unexpectedly exits, then stop the manager, to try
     // to achive a nice shutdown.
-    onExit(call(manager_.get(),stop));
+    onExit(call(serial_manager_.get(),stop));
 
     // Create the printer object that knows how to translate
     // telegrams into json, fields that are written into log files
     // or sent to shell invocations.
     printer_ = createPrinter(config);
 
+    meter_manager_ = createMeterManager();
+
     // Create the Meter objects from the configuration.
-    setupMeters(config, &meters_);
+    setupMeters(config, meter_manager_.get());
+
     // Attach a received-telegram-callback from the meter and
     // attach it to the printer.
-    attachMetersToPrinter(config, &meters_, printer_.get());
+    meter_manager_->forEachMeter(
+        [&](Meter *meter)
+        {
+            meter->onUpdate([&](Telegram *t,Meter *meter)
+                            {
+                                printer_->print(t, meter, &config->jsons, &config->selected_fields);
+                                oneshotCheck(config, t, meter);
+                            });
+        }
+        );
 
-    manager_->startEventLoop();
+    serial_manager_->startEventLoop();
 
     // Detect and initialize any devices.
     // Future changes are triggered through this callback.
     printed_warning_ = true;
-    detectAndConfigureWMBusDevices(config, manager_.get(), &devices_);
+    detectAndConfigureWMBusDevices(config);
 
-    if (devices_.size() == 0)
+    if (wmbus_devices_.size() == 0)
     {
         info("(main) no wmbus device detected, waiting for a device to be plugged in.\n");
     }
 
     // Every 2 seconds detect any plugged in or removed wmbus devices.
-    manager_->startRegularCallback("HOT_PLUG_DETECTOR",
+    serial_manager_->startRegularCallback("HOT_PLUG_DETECTOR",
                                   2,
                                   [&](){
-                                      detectAndConfigureWMBusDevices(config, manager_.get(), &devices_);
+                                      detectAndConfigureWMBusDevices(config);
                                   });
 
     //wmbus->setMeters(&meters);
@@ -552,7 +601,7 @@ bool start(Configuration *config)
     // to decoding the telegrams, finally invoking the printer.
     // The regular callback invoked to detect changes in the wmbus devices and
     // the alarm checks, is started in a separate thread.
-    manager_->waitForStop();
+    serial_manager_->waitForStop();
 
     if (config->daemon)
     {
@@ -560,26 +609,25 @@ bool start(Configuration *config)
     }
 
     // Destroy any remaining allocated objects.
-    devices_.clear();
-    meters_.clear();
+    wmbus_devices_.clear();
+    meter_manager_->removeAllMeters();
     printer_.reset();
-    manager_.reset();
+    serial_manager_.reset();
 
     restoreSignalHandlers();
     return gotHupped();
 }
 
-void oneshotCheck(Configuration *config, SerialCommunicationManager *manager, Telegram *t, Meter *meter, vector<unique_ptr<Meter>> *meters)
+void oneshotCheck(Configuration *config, Telegram *t, Meter *meter)
 {
     if (!config->oneshot) return;
 
-    for (auto &m : *meters)
+    if (meter_manager_->hasAllMetersReceivedATelegram())
     {
-        if (m->numUpdates() == 0) return;
+        // All meters have received at least one update! Stop!
+        verbose("(main) all meters have received at least one update, stopping.\n");
+        serial_manager_->stop();
     }
-    // All meters have received at least one update! Stop!
-    verbose("(main) all meters have received at least one update, stopping.\n");
-    manager->stop();
 }
 
 void writePid(string pid_file, int pid)

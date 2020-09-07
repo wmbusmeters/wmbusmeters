@@ -32,7 +32,6 @@ struct WMBusCommonImplementation : public virtual WMBus
     ~WMBusCommonImplementation();
 
     WMBusDeviceType type();
-    void setMeters(vector<unique_ptr<Meter>> *meters);
     void onTelegram(function<bool(vector<uchar>)> cb);
     bool handleTelegram(vector<uchar> frame);
     void checkStatus();
@@ -60,7 +59,7 @@ struct WMBusCommonImplementation : public virtual WMBus
 
     bool is_working_ {};
     vector<function<bool(vector<uchar>)>> telegram_listeners_;
-    vector<unique_ptr<Meter>> *meters_;
+//    vector<unique_ptr<Meter>> *meters_;
     WMBusDeviceType type_ {};
     int protocol_error_count_ {};
     time_t timeout_ {}; // If longer silence than timeout, then reset dongle! It might have hanged!

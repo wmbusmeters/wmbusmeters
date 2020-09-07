@@ -166,7 +166,11 @@ bool startsWith(std::string s, std::vector<uchar> &data);
 // Sum the memory used by the heap and stack.
 size_t memoryUsage();
 
-#define LOCK(module,func,x) { trace("TRACE                     " module " " func " locking " #x "\n"); pthread_mutex_lock(&x); trace(module " " func " locked " #x "\n"); }
-#define UNLOCK(module,func,x) { trace("TRACE                     " module " " func " unlocking " #x "\n"); pthread_mutex_unlock(&x); trace(module " " func " unlocked " #x "\n"); }
+#define LOCK(module,func,x) { trace("[LOCKING] " module " " func " " #x "\n"); \
+                              pthread_mutex_lock(&x); \
+                              trace("[LOCKED] "  module " " func " " #x "\n"); }
+#define UNLOCK(module,func,x) { trace("[UNLOCKING] " module " " func " " #x "\n"); \
+                                pthread_mutex_unlock(&x); \
+                                trace("[UNLOCKED] "  module " " func " " #x "\n"); }
 
 #endif

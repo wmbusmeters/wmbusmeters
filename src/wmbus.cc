@@ -3368,11 +3368,6 @@ WMBusDeviceType WMBusCommonImplementation::type()
     return type_;
 }
 
-void WMBusCommonImplementation::setMeters(vector<unique_ptr<Meter>> *meters)
-{
-    meters_ = meters;
-}
-
 void WMBusCommonImplementation::onTelegram(function<bool(vector<uchar>)> cb)
 {
     telegram_listeners_.push_back(cb);
@@ -3381,7 +3376,6 @@ void WMBusCommonImplementation::onTelegram(function<bool(vector<uchar>)> cb)
 bool WMBusCommonImplementation::handleTelegram(vector<uchar> frame)
 {
     bool handled = false;
-
     last_received_ = time(NULL);
 
     for (auto f : telegram_listeners_)
@@ -3391,10 +3385,6 @@ bool WMBusCommonImplementation::handleTelegram(vector<uchar> frame)
             bool h = f(frame);
             if (h) handled = true;
         }
-    }
-    if (isVerboseEnabled() && !handled)
-    {
-        verbose("(wmbus) telegram ignored by all configured meters!\n");
     }
 
     return handled;
@@ -3506,7 +3496,7 @@ void WMBusCommonImplementation::checkStatus()
     time_t since = now-last_received_;
     if (timeout_ > 0 && since < timeout_)
     {
-        trace("(trace wmbus) No timeout. All ok. (%d s) Now %d seconds since last telegram was received.\n", since);
+        trace("[WMBUS] No timeout. All ok. (%d s) Now %d seconds since last telegram was received.\n", since);
         return;
     }
 
@@ -3959,13 +3949,12 @@ LIST_OF_MBUS_DEVICES
     return "?";
 }
 
-bool isPossibleDevice(string arg, Device *device)
+bool is_formatted_as_device(string arg, Device *device)
 {
     size_t colon = arg.find(":");
 
     if (colon == string::npos)
     {
-
         device->file = arg;
         device->suffix = "";
         device->linkmodes = "";
@@ -3985,6 +3974,23 @@ bool isPossibleDevice(string arg, Device *device)
 
     device->suffix = rest.substr(0, colon);
     device->linkmodes = rest.substr(colon+1);
+
+    return true;
+}
+
+bool isPossibleDevice(string arg, Device *device)
+{
+    bool ok = is_formatted_as_device(arg, device);
+
+    if (!ok) return false;
+
+    if (device->file == "auto") return true;
+    if (device->file == "stdin") return true;
+    if (device->file == "rtlwmbus") return true;
+    if (device->file == "rtl433") return true;
+    if (checkCharacterDeviceExists(device->file.c_str(), false) ||
+        checkFileExists(device->file.c_str()) ||
+        checkIfSimulationFile(device->file.c_str())) return true;
 
     return true;
 }
