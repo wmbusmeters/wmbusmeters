@@ -12,7 +12,7 @@ else
         echo "This is release - $GIT_VER"
 fi
 
-if $(timeout 5 snapcraft status wmbusmeters-test2 >/dev/null); then
+if $(timeout 5 snapcraft status $SNAP_NAME >/dev/null); then
         echo "snapcraft login sucessfull, continuing"
 else
         echo "Looks like snapcraft login is not sucessfull, exiting...."
