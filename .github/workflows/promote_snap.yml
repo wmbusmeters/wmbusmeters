@@ -23,4 +23,4 @@ jobs:
       with:
         snapcraft_token: ${{ secrets.snapcraft_token }}
     - name: Run promote script
-      run: bash snap/promote_snap.sh
+      run: bash .github/workflows/promote_snap.sh

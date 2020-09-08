@@ -13,6 +13,7 @@ The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 | ------------ |:-------------:|
 |GNU/Linux & MacOSX| [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master)](https://travis-ci.org/weetmuts/wmbusmeters) |
 |Docker build status|[![CircleCI>](https://circleci.com/gh/weetmuts/wmbusmeters.svg?style=shield)](https://circleci.com/gh/weetmuts/wmbusmeters)|
+|Snap status|[![wmbusmeters](https://snapcraft.io//wmbusmeters/badge.svg)](https://snapcraft.io/wmbusmeters)|
 
 
 | Static Scan        | Status           |
