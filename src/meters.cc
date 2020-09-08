@@ -55,8 +55,22 @@ struct MeterManagerImplementation : public virtual MeterManager
         return true;
     }
 
+    bool hasMeters()
+    {
+        return meters_.size() != 0;
+    }
+
     bool handleTelegram(vector<uchar> data)
     {
+        if (!hasMeters())
+        {
+            if (on_telegram_)
+            {
+                on_telegram_(data);
+            }
+            return true;
+        }
+
         bool handled = false;
 
         for (auto &m : meters_)
@@ -70,11 +84,17 @@ struct MeterManagerImplementation : public virtual MeterManager
         }
         return handled;
     }
+
+    void onTelegram(function<void(vector<uchar>)> cb)
+    {
+        on_telegram_ = cb;
+    }
     ~MeterManagerImplementation() {}
 
 private:
 
     vector<unique_ptr<Meter>> meters_;
+    function<void(vector<uchar>)> on_telegram_;
 };
 
 unique_ptr<MeterManager> createMeterManager()

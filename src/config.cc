@@ -189,19 +189,22 @@ void handleInternalTesting(Configuration *c, string value)
     }
 }
 
-void handleDevice(Configuration *c, string devicefile)
+bool handleDevice(Configuration *c, string devicefile)
 {
-    // device can be:
-    // /dev/ttyUSB00
-    // auto
-    // rtlwmbus:/usr/bin/rtl_sdr -f 868.9M -s 1600000 - | /usr/bin/rtl_wmbus
-    // simulation....txt (read telegrams from file)
     Device device;
     bool ok = isPossibleDevice(devicefile, &device);
     if (ok)
     {
-        c->wmbus_devices.push_back(device);
+        if (device.file == "auto")
+        {
+            c->use_auto_detect = true;
+        }
+        else
+        {
+            c->supplied_wmbus_devices.push_back(device);
+        }
     }
+    return ok;
 }
 
 void handleListenTo(Configuration *c, string mode)

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -79,8 +79,9 @@ struct Configuration
     bool oneshot {};
     int  exitafter {}; // Seconds to exit.
     int  reopenafter {}; // Re-open the serial device repeatedly. Silly dongle.
-    std::vector<Device> wmbus_devices; // auto, /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600
-    std::vector<Device> mbus_devices; // auto, /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600
+    std::vector<Device> supplied_wmbus_devices; // /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600
+    bool use_auto_detect {}; // Set to true if auto was supplied as device.
+    std::vector<Device> supplied_mbus_devices; // /dev/ttyACM0
     string telegram_reader;
     // A set of all link modes (union) that the user requests the wmbus dongle to listen to.
     LinkModeSet listen_to_link_modes;
@@ -98,6 +99,7 @@ unique_ptr<Configuration> loadConfiguration(string root, string device_override,
 
 void handleConversions(Configuration *c, string s);
 void handleSelectedFields(Configuration *c, string s);
+bool handleDevice(Configuration *c, string devicefile);
 
 enum class LinkModeCalculationResultType
 {

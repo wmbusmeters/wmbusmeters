@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -32,13 +32,32 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
 
 struct Device
 {
-    // A typical device is:
-    //     /dev/ttyUSB0:im871a:c1,t1
-    //     /dev/ttyUSB1:amb8465
-    //     /rtlwmbus::any
-    std::string file; // /dev/ttyUSB0, simulation_meter.txt, stdin file.raw
-    std::string suffix; // rtlwmbus im871a amb8465 38400 rtl433
+    // A typical device is: FILE : SUFFIX : LINKMODES
+    //
+    //     FILE
+    //     auto
+    //     simulation_foo.txt
+    //     rtlwmbus
+    //     stdin
+    //
+    //     FILE : SUFFIX
+    //     /dev/ttyUSB0:im871a
+    //     /dev/ttyUSB1:9600
+    //     rtlwmbus:434M
+    //
+    //     FILE : SUFFIX : LINKMODES
+    //     /dev/ttyUSB0:amb8465:c1,t1
+    //
+    std::string file; // auto simulation_meter.txt, stdin, file.raw, rtlwmbus, /dev/ttyUSB0
+    std::string suffix; // im871a, rtlwmbus, 9600, 868.9M, rtlwmbus-command line
     std::string linkmodes; // c1,t1,s1
+
+    void clear()
+    {
+        file = "";
+        suffix = "";
+        linkmodes = "";
+    }
 };
 
 #define LIST_OF_MBUS_DEVICES \
@@ -469,7 +488,9 @@ struct WMBus
     virtual ~WMBus() = 0;
 };
 
-Detected detectWMBusDeviceSetting(string devicefile, string suffix,
+Detected detectWMBusDeviceSetting(string devicefile,
+                                  string suffix,
+                                  string linkmodes,
                                   SerialCommunicationManager *manager);
 
 
@@ -553,6 +574,7 @@ AccessCheck factoryResetAMB8465(string device, SerialCommunicationManager *handl
 
 Detected detectImstAmberCul(string file,
                             string suffix,
+                            string linkmodes,
                             SerialCommunicationManager *handler);
 
 #endif

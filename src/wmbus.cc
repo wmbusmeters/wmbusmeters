@@ -470,94 +470,13 @@ string mediaTypeJSON(int a_field_device_type)
     return "Unknown";
 }
 
-#define CHECK_SAME_GROUP \
-if (ac == AccessCheck::NotSameGroup) \
-{ \
-    /* The device exists and is not locked, but we cannot read it! */ \
-    error("You are not in the same group as the device %s\n", devicefile.c_str()); \
-}
-
-Detected detectAuto(string devicefile,
-                    string suffix,
-                    SerialCommunicationManager *handler)
-{
-    assert(devicefile == "auto");
-
-    Detected detected;
-    detected.device = { devicefile, suffix };
-
-    if (suffix != "")
-    {
-        error("You cannot have a suffix appended to auto.\n");
-    }
-
-    AccessCheck ac;
-
-    ac = findAndDetect(handler, &devicefile,
-                       [&](string d, SerialCommunicationManager* m){ return detectIM871A(d, &detected, m);},
-                       "im871a",
-                       "/dev/im871a");
-
-    if (ac == AccessCheck::AccessOK)
-    {
-        return detected;
-    }
-    CHECK_SAME_GROUP
-
-    ac = findAndDetect(handler, &devicefile,
-                       [&](string d, SerialCommunicationManager* m){ return detectAMB8465(d, &detected, m);},
-                       "amb8465",
-                       "/dev/amb8465");
-
-    if (ac == AccessCheck::AccessOK)
-    {
-        return detected;
-    }
-    CHECK_SAME_GROUP
-
-    ac = findAndDetect(handler, &devicefile,
-                       [&](string d, SerialCommunicationManager* m){ return detectRawTTY(d, 38400, &detected, m);},
-                       "rfmrx2",
-                       "/dev/rfmrx2");
-
-    if (ac == AccessCheck::AccessOK)
-    {
-        return detected;
-    }
-    CHECK_SAME_GROUP
-
-    ac = findAndDetect(handler, &devicefile,
-                       [&](string d, SerialCommunicationManager* m){ return detectCUL(d, &detected, m);},
-                       "cul",
-                       "/dev/ttyUSB0");
-
-    if (ac == AccessCheck::AccessOK)
-    {
-        return detected;
-    }
-    CHECK_SAME_GROUP
-
-    ac = findAndDetect(handler, &devicefile,
-                       [&](string d, SerialCommunicationManager* m){ return detectRTLSDR(d, &detected, m);},
-                       "rtlsdr",
-                       "/dev/rtlsdr");
-
-    if (ac == AccessCheck::AccessOK)
-    {
-        return detected;
-    }
-    CHECK_SAME_GROUP
-
-    // We could not auto-detect any device.
-    return { { devicefile, "", ""}, DEVICE_UNKNOWN, 0, false };
-}
-
 Detected detectImstAmberCul(string file,
                             string suffix,
+                            string linkmodes,
                             SerialCommunicationManager *handler)
 {
     Detected detected {};
-    detected.device = { file, suffix };
+    detected.device = { file, suffix, "" };
 
     // If im87a is tested first, a delay of 1s must be inserted
     // before amb8465 is tested, lest it will not respond properly.
@@ -613,15 +532,10 @@ Detected detectImstAmberCul(string file,
 */
 Detected detectWMBusDeviceSetting(string file,
                                   string suffix,
+                                  string linkmodes,
                                   SerialCommunicationManager *handler)
 {
     debug("(detect) \"%s\" \"%s\"\n", file.c_str(), suffix.c_str());
-    // Look for /dev/im871a /dev/amb8465 /dev/rfmrx2 /dev/rtlsdr
-    if (file == "auto")
-    {
-        debug("(detect) driver: auto\n");
-        return detectAuto(file, suffix, handler);
-    }
 
     // If the devicefile is rtlwmbus then the suffix can be a frequency
     // or the actual command line to use.
@@ -683,7 +597,7 @@ Detected detectWMBusDeviceSetting(string file,
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
     // to figure out what is connected to it. We currently only
     // know how to detect Imst, Amber or CUL dongles.
-    return detectImstAmberCul(file, suffix, handler);
+    return detectImstAmberCul(file, suffix, linkmodes, handler);
 }
 
 /*
@@ -3359,7 +3273,9 @@ WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
 
     // Invoke the check status once per minute. Unless internal testing, then it is every 2 seconds.
     int default_timer = isInternalTestingEnabled() ? CHECKSTATUS_TIMER_INTERNAL_TESTING : CHECKSTATUS_TIMER;
-    string alarm_id = "CHECK_STATUS "+string(toString(t))+":"+serial_->device();
+    string info = "simulator";
+    if (serial != NULL) info = serial_->device();
+    string alarm_id = "CHECK_STATUS "+string(toString(t))+":"+info;
     regular_cb_id_ = manager_->startRegularCallback(alarm_id, default_timer, call(this,checkStatus));
 }
 
@@ -3949,7 +3865,7 @@ LIST_OF_MBUS_DEVICES
     return "?";
 }
 
-bool is_formatted_as_device(string arg, Device *device)
+bool split_string_at_colons(string arg, Device *device)
 {
     size_t colon = arg.find(":");
 
@@ -3980,17 +3896,30 @@ bool is_formatted_as_device(string arg, Device *device)
 
 bool isPossibleDevice(string arg, Device *device)
 {
-    bool ok = is_formatted_as_device(arg, device);
-
+    device->clear();
+    bool ok = split_string_at_colons(arg, device);
     if (!ok) return false;
 
-    if (device->file == "auto") return true;
-    if (device->file == "stdin") return true;
-    if (device->file == "rtlwmbus") return true;
+    if (device->file == "auto")
+    {
+        // No colons allowed.
+        if (device->suffix != "" || device->linkmodes != "") return false;
+        return true;
+    }
+
+    if (device->file == "stdin") return true; // Suffix like rtlwmbus is allowed.
+    if (device->file == "rtlwmbus") return true; // Both device=commandline and linkmodes are allowed.
     if (device->file == "rtl433") return true;
     if (checkCharacterDeviceExists(device->file.c_str(), false) ||
         checkFileExists(device->file.c_str()) ||
         checkIfSimulationFile(device->file.c_str())) return true;
+
+    if (device->file.find('/') != string::npos)
+    {
+        // Meter names are forbidden to have slashes in their names.
+        // This is probably a path to /dev/ttyUSB0 that does not exist right now.
+        return true;
+    }
 
     return false;
 }

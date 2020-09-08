@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -446,14 +446,12 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
 
     while (argv[i])
     {
-        Device device;
-        bool ok = isPossibleDevice(argv[i], &device);
+        bool ok = handleDevice(c, argv[i]);
         if (!ok) break;
-        c->wmbus_devices.push_back(device);
         i++;
     }
 
-    if (c->wmbus_devices.size() == 0) {
+    if (c->supplied_wmbus_devices.size() == 0) {
         error("You must supply at least one device to receive wmbus telegrams.\n");
     }
 

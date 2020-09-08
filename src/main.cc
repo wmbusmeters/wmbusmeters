@@ -50,8 +50,9 @@ void startDaemon(string pid_file, string device_override, string listento_overri
 
 // The serial communication manager takes care of
 // monitoring the file descrtiptors for the ttys,
-// background shells. It also invokes regular callbacks
-// used for monitoring alarms and detecting new devices.
+// background shells, files and stdin. It also invokes
+// regular callbacks used for monitoring alarms and
+// detecting new devices.
 unique_ptr<SerialCommunicationManager> serial_manager_;
 
 // Manage registered meters to decode and relay.
@@ -369,7 +370,7 @@ LIST_OF_METERS
     }
 }
 
-void remove_lost_devices_from_nots(vector<string> &devices)
+void remove_lost_devices_from_ignore_list(vector<string> &devices)
 {
     vector<string> to_be_removed;
 
@@ -393,11 +394,11 @@ void remove_lost_devices_from_nots(vector<string> &devices)
     }
 }
 
-void detectAndConfigureWMBusDevices(Configuration *config)
+void check_for_dead_wmbus_devices(Configuration *config)
 {
     trace("[MAIN] checking for dead wmbus devices...\n");
 
-    LOCK("(main)", "detectAndConfigureWMBusDevices", devices_lock_);
+    LOCK("(main)", "check_for_dead_wmbus_devices", devices_lock_);
     vector<WMBus*> not_working;
     for (auto &w : wmbus_devices_)
     {
@@ -435,16 +436,18 @@ void detectAndConfigureWMBusDevices(Configuration *config)
         printed_warning_ = false;
     }
 
-    UNLOCK("(main)", "detectAndConfigureWMBusDevices", devices_lock_);
+    UNLOCK("(main)", "check_for_dead_wmbus_devices", devices_lock_);
+}
 
-    trace("[MAIN] checking for new wmbus devices...\n");
+void perform_auto_scan_of_devices(Configuration *config)
+{
+    // Enumerate all serial, and other devices that might connect to a wmbus device.
+    vector<string> devices = serial_manager_->listSerialDevices();
 
-    vector<string> ds = serial_manager_->listSerialDevices();
+    // Did a non-wmbus-device get unplugged? Then remove it from the known-not-wmbus-device set.
+    remove_lost_devices_from_ignore_list(devices);
 
-    // Did an non-wmbus-device get unplugged? Then remove it from the known-not-wmbus-device set.
-    remove_lost_devices_from_nots(ds);
-
-    for (string& device : ds)
+    for (string& device : devices)
     {
         trace("[MAIN] serial device %s\n", device.c_str());
         if (not_wmbus_devices_.count(device) > 0)
@@ -457,28 +460,72 @@ void detectAndConfigureWMBusDevices(Configuration *config)
         {
             debug("(main) device %s not currently used, detect contents...\n", device.c_str());
             // This serial device is not in use.
-            Detected detected = detectImstAmberCul(device, "", serial_manager_.get());
+            Detected detected = detectImstAmberCul(device, "", "", serial_manager_.get());
             if (detected.type == DEVICE_UNKNOWN)
             {
                 // This serial device was something that we could not recognize.
                 // A modem, an android phone, a teletype Model 33, etc....
                 // Mark this serial device as unknown, to avoid repeated detection attempts.
                 not_wmbus_devices_.insert(device);
-                info("(main) ignoring %s, it does respond as any of the supported wmbus devices.\n", device.c_str());
+                info("(main) ignoring %s, it does not respond as any of the supported wmbus devices.\n", device.c_str());
             }
             else
             {
                 // A newly plugged in device has been detected! Start using it!
                 info("(main) detected %s on %s\n", toString(detected.type), device.c_str());
-                LOCK("(main)", "detectAndConfigureWMBusDevices", devices_lock_);
+                LOCK("(main)", "perform_auto_scan_of_devices", devices_lock_);
                 unique_ptr<WMBus> w = createWMBusDeviceFrom(&detected, config, serial_manager_.get());
                 wmbus_devices_.push_back(std::move(w));
                 WMBus *wmbus = wmbus_devices_.back().get();
-                UNLOCK("(main)", "detectAndConfigureWMBusDevices", devices_lock_);
+                UNLOCK("(main)", "perform_auto_scan_of_devices", devices_lock_);
                 wmbus->setLinkModes(config->listen_to_link_modes);
+                //string using_link_modes = wmbus->getLinkModes().hr();
+                //verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
                 wmbus->onTelegram([&](vector<uchar> data){return meter_manager_->handleTelegram(data);});
+                wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
             }
         }
+    }
+}
+
+
+void detectAndConfigureWMBusDevices(Configuration *config)
+{
+    check_for_dead_wmbus_devices(config);
+
+    for (auto &device : config->supplied_wmbus_devices)
+    {
+        SerialDevice *sd = serial_manager_->lookup(device.file);
+        if (sd != NULL)
+        {
+            trace("(main) %s already configured\n", sd->device().c_str());
+            continue;
+        }
+
+        Detected detected = detectWMBusDeviceSetting(device.file,
+                                                     device.suffix,
+                                                     device.linkmodes,
+                                                     serial_manager_.get());
+
+        if (detected.type != DEVICE_UNKNOWN)
+        {
+            verbose("(main) configured and detected %s on %s\n", toString(detected.type), device.file.c_str());
+            LOCK("(main)", "detectAndConfigureWMBusDevices", devices_lock_);
+            unique_ptr<WMBus> w = createWMBusDeviceFrom(&detected, config, serial_manager_.get());
+            wmbus_devices_.push_back(std::move(w));
+            WMBus *wmbus = wmbus_devices_.back().get();
+            UNLOCK("(main)", "detectAndConfigureWMBusDevices", devices_lock_);
+            wmbus->setLinkModes(config->listen_to_link_modes);
+            //string using_link_modes = wmbus->getLinkModes().hr();
+            //verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
+            wmbus->onTelegram([&](vector<uchar> data){return meter_manager_->handleTelegram(data);});
+            wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
+        }
+    }
+
+    if (config->use_auto_detect)
+    {
+        perform_auto_scan_of_devices(config);
     }
 }
 
@@ -509,7 +556,7 @@ void logStartInformation(Configuration *config)
         verbose("(config) store meter files in: \"%s\"\n", config->meterfiles_dir.c_str());
     }
 
-    for (auto &device : config->wmbus_devices)
+    for (auto &device : config->supplied_wmbus_devices)
     {
         verbose("(config) using device: %s %s\n", device.file.c_str(), device.suffix.c_str());
     }
@@ -581,19 +628,31 @@ bool start(Configuration *config)
                                       detectAndConfigureWMBusDevices(config);
                                   });
 
-    //wmbus->setMeters(&meters);
-    //wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
-    //wmbus->setLinkModes(config->listen_to_link_modes);
-    //string using_link_modes = wmbus->getLinkModes().hr();
-
-    //verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
-
-    //if (detected.type == DEVICE_SIMULATOR) {
-        //wmbus->simulate();
-    //}
     if (config->daemon)
     {
         notice("(wmbusmeters) waiting for telegrams\n");
+    }
+
+    if (!meter_manager_->hasMeters())
+    {
+        notice("No meters configured. Printing id:s of all telegrams heard!\n\n");
+
+        meter_manager_->onTelegram([](vector<uchar> frame) {
+                Telegram t;
+                MeterKeys mk;
+                t.parserNoWarnings(); // Try a best effort parse, do not print any warnings.
+                t.parse(frame, &mk);
+                t.print();
+                t.explainParse("(wmbus)",0);
+                logTelegram("(wmbus)", t.frame, 0, 0);
+                return true;
+            });
+    }
+
+    for (auto &w : wmbus_devices_)
+    {
+        // Real devices do nothing, but the simulator device will simulate.
+        w->simulate();
     }
 
     // This thread now sleeps waiting for the serial communication manager to stop.

@@ -224,6 +224,8 @@ struct MeterManager
     virtual void forEachMeter(std::function<void(Meter*)> cb) = 0;
     virtual bool handleTelegram(vector<uchar> data) = 0;
     virtual bool hasAllMetersReceivedATelegram() = 0;
+    virtual bool hasMeters() = 0;
+    virtual void onTelegram(function<void(vector<uchar>)> cb) = 0;
     virtual ~MeterManager() = default;
 };
 
