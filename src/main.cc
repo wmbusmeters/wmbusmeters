@@ -481,7 +481,8 @@ void perform_auto_scan_of_devices(Configuration *config)
                 wmbus->setLinkModes(config->listen_to_link_modes);
                 //string using_link_modes = wmbus->getLinkModes().hr();
                 //verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
-                wmbus->onTelegram([&](vector<uchar> data){return meter_manager_->handleTelegram(data);});
+                bool simulated = detected.type == WMBusDeviceType::DEVICE_SIMULATOR;
+                wmbus->onTelegram([&, simulated](vector<uchar> data){return meter_manager_->handleTelegram(data, simulated);});
                 wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
             }
         }
@@ -518,8 +519,10 @@ void detectAndConfigureWMBusDevices(Configuration *config)
             wmbus->setLinkModes(config->listen_to_link_modes);
             //string using_link_modes = wmbus->getLinkModes().hr();
             //verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
-            wmbus->onTelegram([&](vector<uchar> data){return meter_manager_->handleTelegram(data);});
+            bool simulated = detected.type == WMBusDeviceType::DEVICE_SIMULATOR;
+            wmbus->onTelegram([&, simulated](vector<uchar> data){return meter_manager_->handleTelegram(data, simulated);});
             wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
+            serial_manager_->expectDevicesToWork();
         }
     }
 

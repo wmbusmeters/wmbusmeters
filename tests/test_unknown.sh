@@ -14,6 +14,8 @@ Forren lansensm 00010206 NOKEY
 
 cat > $TEST/test_expected.txt <<EOF
 (meter) Dorren: meter detection did not match the selected driver lansendw! correct driver is: unknown!
+(meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/
+(meter) to add support for this unknown mfct,media,version combination
 {"media":"Unknown","meter":"lansendw","name":"Dorren","id":"00010205","status":"OPEN","timestamp":"1111-11-11T11:11:11Z"}
 (meter) Forren: meter detection did not match the selected driver lansensm! correct driver is: lansendw
 {"media":"reserved","meter":"lansensm","name":"Forren","id":"00010206","status":"OK","timestamp":"1111-11-11T11:11:11Z"}

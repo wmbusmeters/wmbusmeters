@@ -60,7 +60,7 @@ struct MeterManagerImplementation : public virtual MeterManager
         return meters_.size() != 0;
     }
 
-    bool handleTelegram(vector<uchar> data)
+    bool handleTelegram(vector<uchar> data, bool simulated)
     {
         if (!hasMeters())
         {
@@ -75,7 +75,7 @@ struct MeterManagerImplementation : public virtual MeterManager
 
         for (auto &m : meters_)
         {
-            bool h = m->handleTelegram(data);
+            bool h = m->handleTelegram(data, simulated);
             if (h) handled = true;
         }
         if (isVerboseEnabled() && !handled)
@@ -412,10 +412,12 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
     return s;
 }
 
-bool MeterCommonImplementation::handleTelegram(vector<uchar> input_frame)
+bool MeterCommonImplementation::handleTelegram(vector<uchar> input_frame, bool simulated)
 {
     Telegram t;
     bool ok = t.parseHeader(input_frame);
+
+    if (simulated) t.markAsSimulated();
 
     if (!ok || !isTelegramForMe(&t))
     {

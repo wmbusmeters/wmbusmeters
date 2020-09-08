@@ -1215,10 +1215,12 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
 
             if (meter_keys->confidentiality_key.size() != 16)
             {
-                if (meter_keys->isSimulation()) {
+                if (isSimulated())
+                {
                     debug("(wmbus) simulation without keys, not generating Kmac and Kenc.\n");
                     return true;
                 }
+                debug("(wmbus) no key, thus cannot execute kdf.\n");
                 return false;
             }
             AES_CMAC(&meter_keys->confidentiality_key[0], &input[0], 16, &mac[0]);
@@ -1351,7 +1353,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
     }
     else if (tpl_sec_mode == TPLSecurityMode::AES_CBC_NO_IV)
     {
-        if (!meter_keys->hasConfidentialityKey() && meter_keys->isSimulation())
+        if (!meter_keys->hasConfidentialityKey() && isSimulated())
         {
             CHECK(2);
             addExplanationAndIncrementPos(pos, 2, "%02x%02x (already) decrypted check bytes", *(pos+0), *(pos+1));

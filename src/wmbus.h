@@ -294,11 +294,9 @@ struct MeterKeys
 {
     vector<uchar> confidentiality_key;
     vector<uchar> authentication_key;
-    bool simulation {};
 
     bool hasConfidentialityKey() { return confidentiality_key.size() > 0; }
     bool hasAuthenticationKey() { return authentication_key.size() > 0; }
-    bool isSimulation() { return simulation; }
 };
 
 struct Telegram
@@ -413,6 +411,7 @@ struct Telegram
     void explainParse(string intro, int from);
 
     bool isSimulated() { return is_simulated_; }
+    void markAsSimulated() { is_simulated_ = true; }
 
     // Extracted mbus values.
     std::map<std::string,std::pair<int,DVEntry>> values;
