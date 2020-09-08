@@ -1,3 +1,4 @@
+Version 0.9.36: 2020-09-08
 
 Added support for detection of the proper driver
 based on the manufacturer, media and version fields in the telegram.

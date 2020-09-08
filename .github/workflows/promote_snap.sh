@@ -12,6 +12,13 @@ else
         echo "This is release - $GIT_VER"
 fi
 
+if $(timeout 5 snapcraft status $SNAP_NAME >/dev/null); then
+        echo "snapcraft login sucessfull, continuing"
+else
+        echo "Looks like snapcraft login is not sucessfull, exiting...."
+        exit 1
+fi
+
 for arch in $ARCH_LIST
 do
         snap_build_version="$(snapcraft status --arch $arch $SNAP_NAME | grep edge | awk '{print $2}')"
