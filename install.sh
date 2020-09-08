@@ -90,8 +90,10 @@ if [ "$ADDUSER" = "true" ]
 then
     if [ -z "$ID" ]
     then
+        # Create the wmbusmeters group, if it does not already exist.
+        groupadd -f wmbusmeters
         # Create the wmbusmeters user
-        useradd --system --shell $USERSHELL --groups dialout wmbusmeters
+        useradd --system --shell $USERSHELL -g wmbusmeters --groups dialout wmbusmeters
         echo user: added wmbusmeters
     else
         echo user: wmbusmeters unmodified

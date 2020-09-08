@@ -454,6 +454,7 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
     }
 
     if (c->supplied_wmbus_devices.size() == 0 &&
+        c->use_auto_detect == false &&
         !c->list_shell_envs &&
         !c->list_fields)
     {
