@@ -40,13 +40,16 @@ using namespace std;
 
 void oneshotCheck(Configuration *config, Telegram *t, Meter *meter);
 void setupLogFile(Configuration *config);
-void setupMeters(Configuration *config, MeterManager *manager);
+void setup_meters(Configuration *config, MeterManager *manager);
 void detectAndConfigureWMBusDevices(Configuration *config);
 unique_ptr<Printer> createPrinter(Configuration *config);
 void logStartInformation(Configuration *config);
 bool start(Configuration *config);
 void startUsingConfigFiles(string root, bool is_daemon, string device_override, string listento_override);
 void startDaemon(string pid_file, string device_override, string listento_override); // Will use config files.
+void list_shell_envs(Configuration *config, string meter_type);
+void list_fields(Configuration *config, string meter_type);
+unique_ptr<Meter> create_meter(Configuration *config, MeterType type, MeterInfo *mi, const char *keymsg);
 
 // The serial communication manager takes care of
 // monitoring the file descrtiptors for the ttys,
@@ -78,12 +81,15 @@ int main(int argc, char **argv)
 {
     auto config = parseCommandLine(argc, argv);
 
-    if (config->version) {
+    if (config->version)
+    {
         printf("wmbusmeters: " VERSION "\n");
         printf(COMMIT "\n");
         exit(0);
     }
-    if (config->license) {
+
+    if (config->license)
+    {
         const char * license = R"LICENSE(
 Copyright (C) 2017-2020 Fredrik Öhrström
 
@@ -108,23 +114,40 @@ provided you with this binary. Read the full license for all details.
         puts(license);
         exit(0);
     }
-    if (config->need_help) {
+
+    if (config->list_shell_envs)
+    {
+        list_shell_envs(config.get(), config->list_meter);
+        exit(0);
+    }
+
+    if (config->list_fields)
+    {
+        list_fields(config.get(), config->list_meter);
+        exit(0);
+    }
+
+    if (config->need_help)
+    {
         printf("wmbusmeters version: " VERSION "\n");
         const char *short_manual =
 #include"short_manual.h"
         puts(short_manual);
     }
     else
-    if (config->daemon) {
+    if (config->daemon)
+    {
         startDaemon(config->pid_file, config->device_override, config->listento_override);
         exit(0);
     }
     else
-    if (config->useconfig) {
+    if (config->useconfig)
+    {
         startUsingConfigFiles(config->config_root, false, config->device_override, config->listento_override);
         exit(0);
     }
-    else {
+    else
+    {
         // We want the data visible in the log file asap!
         setbuf(stdout, NULL);
         start(config.get());
@@ -287,6 +310,56 @@ unique_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *confi
     return wmbus;
 }
 
+void list_shell_envs(Configuration *config, string meter_type)
+{
+    string ignore1, ignore2, ignore3;
+    vector<string> envs;
+    Telegram t;
+    MeterInfo mi;
+    unique_ptr<Meter> meter = create_meter(config, toMeterType(meter_type), &mi, "");
+    meter->printMeter(&t,
+                      &ignore1,
+                      &ignore2, config->separator,
+                      &ignore3,
+                      &envs,
+                      &config->jsons,
+                      &config->selected_fields);
+
+    for (auto &e : envs) {
+        int p = e.find('=');
+        string key = e.substr(0,p);
+        printf("%s\n", key.c_str());
+    }
+}
+
+void list_fields(Configuration *config, string meter_type)
+{
+    MeterInfo mi;
+    unique_ptr<Meter> meter = create_meter(config, toMeterType(meter_type), &mi, "");
+
+    int width = 0;
+    for (auto &p : meter->prints())
+    {
+        if ((int)p.field_name.size() > width) width = p.field_name.size();
+    }
+
+    string id = padLeft("id", width);
+    printf("%s  The meter id number.\n", id.c_str());
+    string name = padLeft("name", width);
+    printf("%s  Your name for the meter.\n", name.c_str());
+    string type = padLeft("type", width);
+    printf("%s  Meter type/driver.\n", type.c_str());
+    string timestamp = padLeft("timestamp", width);
+    printf("%s  Timestamp when wmbusmeters received the telegram.\n", timestamp.c_str());
+    for (auto &p : meter->prints())
+    {
+        if (p.vname == "") continue;
+        string fn = padLeft(p.field_name, width);
+        printf("%s  %s\n", fn.c_str(), p.help.c_str());
+    }
+}
+
+
 void setupLogFile(Configuration *config)
 {
     if (config->use_logfile)
@@ -307,66 +380,38 @@ void setupLogFile(Configuration *config)
     }
 }
 
-void setupMeters(Configuration *config, MeterManager *manager)
+unique_ptr<Meter> create_meter(Configuration *config, MeterType type, MeterInfo *mi, const char *keymsg)
+{
+    unique_ptr<Meter> newm;
+
+    switch (type)
+    {
+#define X(mname,link,info,type,cname) \
+        case MeterType::type:                              \
+        {                                                  \
+            newm = create##cname(*mi);                      \
+            newm->addConversions(config->conversions);     \
+            verbose("(main) configured \"%s\" \"" #mname "\" \"%s\" %s\n", \
+                    mi->name.c_str(), mi->id.c_str(), keymsg);              \
+            return newm;                                                \
+        }                                                               \
+        break;
+LIST_OF_METERS
+#undef X
+    case MeterType::UNKNOWN:
+        error("No such meter type \"%s\"\n", mi->type.c_str());
+        break;
+    }
+    return newm;
+}
+
+void setup_meters(Configuration *config, MeterManager *manager)
 {
     for (auto &m : config->meters)
     {
         const char *keymsg = (m.key[0] == 0) ? "not-encrypted" : "encrypted";
-        switch (toMeterType(m.type))
-        {
-#define X(mname,link,info,type,cname) \
-                case MeterType::type: \
-                { \
-                auto newm = create##cname(m); \
-                newm->addConversions(config->conversions); \
-                manager->addMeter(std::move(newm)); \
-                verbose("(wmbusmeters) configured \"%s\" \"" #mname "\" \"%s\" %s\n", \
-                m.name.c_str(), m.id.c_str(), keymsg); \
-                } \
-                break;
-LIST_OF_METERS
-#undef X
-        case MeterType::UNKNOWN:
-            error("No such meter type \"%s\"\n", m.type.c_str());
-            break;
-        }
-
-        /*
-        if (config->list_shell_envs)
-        {
-            string ignore1, ignore2, ignore3;
-            vector<string> envs;
-            Telegram t;
-            meters->back()->printMeter(&t,
-                                      &ignore1,
-                                      &ignore2, config->separator,
-                                      &ignore3,
-                                      &envs,
-                                      &config->jsons,
-                                      &config->selected_fields);
-            printf("Environment variables provided to shell for meter %s:\n", m.type.c_str());
-            for (auto &e : envs) {
-                int p = e.find('=');
-                    string key = e.substr(0,p);
-                    printf("%s\n", key.c_str());
-            }
-            exit(0);
-        }
-
-
-        if (config->list_fields)
-        {
-            printf("Fields produced by meter %s:\n", m.type.c_str());
-            printf("id\n");
-            printf("name\n");
-            printf("timestamp\n");
-            for (auto &f : meters->back()->fields())
-            {
-                printf("%s\n", f.c_str());
-            }
-            exit(0);
-        }
-        */
+        auto meter = create_meter(config, toMeterType(m.type), &m, keymsg);
+        manager->addMeter(std::move(meter));
     }
 }
 
@@ -597,7 +642,7 @@ bool start(Configuration *config)
     meter_manager_ = createMeterManager();
 
     // Create the Meter objects from the configuration.
-    setupMeters(config, meter_manager_.get());
+    setup_meters(config, meter_manager_.get());
 
     // Attach a received-telegram-callback from the meter and
     // attach it to the printer.

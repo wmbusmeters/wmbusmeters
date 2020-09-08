@@ -1,3 +1,7 @@
+
+To list the shell envs for a meter do --listenvs=multical21
+To list the fields avilable for a meter do --listfields=multical21
+
 Version 0.9.36: 2020-09-08
 
 Added support for detection of the proper driver

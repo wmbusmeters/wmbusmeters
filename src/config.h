@@ -76,6 +76,8 @@ struct Configuration
     std::string alarm_expected_activity; // Only warn when within these time periods.
     bool list_shell_envs {};
     bool list_fields {};
+    // When asking for envs or fields, this is the meter type to list for.
+    std::string list_meter;
     bool oneshot {};
     int  exitafter {}; // Seconds to exit.
     int  reopenafter {}; // Re-open the serial device repeatedly. Silly dongle.

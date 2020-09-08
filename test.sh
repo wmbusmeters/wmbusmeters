@@ -54,8 +54,8 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_fields.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
-#tests/test_oneshot.sh $PROG broken test
-#if [ "$?" != "0" ]; then RC="1"; fi
+tests/test_oneshot.sh $PROG broken test
+if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_wrongkeys.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi

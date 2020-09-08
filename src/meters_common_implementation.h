@@ -24,22 +24,11 @@
 #include<map>
 #include<set>
 
-struct Print
-{
-    string vname; // Value name, like: total current previous target
-    Quantity quantity; // Quantity: Energy, Volume
-    Unit default_unit; // Default unit for above quantity: KWH, M3
-    function<double(Unit)> getValueDouble; // Callback to fetch the value from the meter.
-    function<string()> getValueString; // Callback to fetch the value from the meter.
-    string help; // Helpful information on this meters use of this value.
-    bool field; // If true, print in hr/fields output.
-    bool json; // If true, print in json and shell env variables.
-};
-
 struct MeterCommonImplementation : public virtual Meter
 {
     vector<string> ids();
     vector<string> fields();
+    vector<Print> prints();
     string name();
     MeterType type();
 

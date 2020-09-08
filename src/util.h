@@ -112,6 +112,7 @@ bool loadFile(std::string file, std::vector<char> *buf);
 std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err);
 
 void padWithZeroesTo(std::vector<uchar> *content, size_t len, std::vector<uchar> *full_content);
+std::string padLeft(std::string input, int width);
 
 // Parse text string into seconds, 5h = (3600*5) 2m = (60*2) 1s = 1
 int parseTime(std::string time);

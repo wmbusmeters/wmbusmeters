@@ -844,6 +844,15 @@ void padWithZeroesTo(vector<uchar> *content, size_t len, vector<uchar> *full_con
     }
 }
 
+static string space = "                                                   ";
+string padLeft(string input, int width)
+{
+    int w = width-input.size();
+    if (w < 0) return input;
+    assert(w < (int)space.length());
+    return space.substr(0, w)+input;
+}
+
 int parseTime(string time) {
     int mul = 1;
     if (time.back() == 'h') {

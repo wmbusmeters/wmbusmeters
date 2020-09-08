@@ -163,6 +163,10 @@ struct MeterInfo
     vector<string> shells;
     vector<string> jsons; // Additional static jsons that are added to each message.
 
+    MeterInfo()
+    {
+    }
+
     MeterInfo(string n, string t, string i, string k, LinkModeSet lms, vector<string> &s, vector<string> &j)
     {
         name = n;
@@ -175,12 +179,26 @@ struct MeterInfo
     }
 };
 
+struct Print
+{
+    string vname; // Value name, like: total current previous target
+    Quantity quantity; // Quantity: Energy, Volume
+    Unit default_unit; // Default unit for above quantity: KWH, M3
+    function<double(Unit)> getValueDouble; // Callback to fetch the value from the meter.
+    function<string()> getValueString; // Callback to fetch the value from the meter.
+    string help; // Helpful information on this meters use of this value.
+    bool field; // If true, print in hr/fields output.
+    bool json; // If true, print in json and shell env variables.
+    string field_name; // Field name for default unit.
+};
+
 struct Meter
 {
     // This meter listens to these ids.
     virtual vector<string> ids() = 0;
     // This meter can report these fields, like total_m3, temp_c.
     virtual vector<string> fields() = 0;
+    virtual vector<Print> prints() = 0;
     virtual string meterName() = 0;
     virtual string name() = 0;
     virtual MeterType type() = 0;
@@ -220,6 +238,7 @@ struct Meter
 struct MeterManager
 {
     virtual void addMeter(unique_ptr<Meter> meter) = 0;
+    virtual Meter*lastAddedMeter() = 0;
     virtual void removeAllMeters() = 0;
     virtual void forEachMeter(std::function<void(Meter*)> cb) = 0;
     virtual bool handleTelegram(vector<uchar> data, bool simulated) = 0;

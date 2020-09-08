@@ -32,6 +32,11 @@ struct MeterManagerImplementation : public virtual MeterManager
         meters_.push_back(std::move(meter));
     }
 
+    Meter *lastAddedMeter()
+    {
+        return meters_.back().get();
+    }
+
     void removeAllMeters()
     {
         meters_.clear();
@@ -165,21 +170,25 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          function<double(Unit)> getValueFunc, string help, bool field, bool json)
 {
     string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
-    fields_.push_back(vname+"_"+default_unit);
-    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), getValueFunc, NULL, help, field, json });
+    string field_name = vname+"_"+default_unit;
+    fields_.push_back(field_name);
+    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), getValueFunc, NULL, help, field, json, field_name });
 }
 
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit unit,
                                          function<double(Unit)> getValueFunc, string help, bool field, bool json)
 {
-    prints_.push_back( { vname, vquantity, unit, getValueFunc, NULL, help, field, json });
+    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
+    string field_name = vname+"_"+default_unit;
+    fields_.push_back(field_name);
+    prints_.push_back( { vname, vquantity, unit, getValueFunc, NULL, help, field, json, field_name });
 }
 
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          function<string()> getValueFunc,
                                          string help, bool field, bool json)
 {
-    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), NULL, getValueFunc, help, field, json } );
+    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), NULL, getValueFunc, help, field, json, vname } );
 }
 
 vector<string> MeterCommonImplementation::ids()
@@ -190,6 +199,11 @@ vector<string> MeterCommonImplementation::ids()
 vector<string> MeterCommonImplementation::fields()
 {
     return fields_;
+}
+
+vector<Print> MeterCommonImplementation::prints()
+{
+    return prints_;
 }
 
 string MeterCommonImplementation::name()

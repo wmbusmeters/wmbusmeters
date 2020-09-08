@@ -136,7 +136,7 @@ depending on if you are running as a daemon or not.
 
 # Running without config files, good for experimentation and test.
 ```
-wmbusmeters version: 0.9.15
+wmbusmeters version: 0.9.36
 Usage: wmbusmeters {options} <device>{:suffix} ( [meter_name] [meter_type]{:<modes>} [meter_id] [meter_key] )*
 
 As <options> you can use:
@@ -151,8 +151,8 @@ As <options> you can use:
     --listento=c1,t1,s1 tell the wmbus dongle to listen to these link modes
                       different dongles support different combinations of modes
     --c1 --t1 --s1 --s1m ... another way to set the link mode for the dongle
-    --listenvs list the env variables available for the meter
-    --listfields list the fields selectable for the meter
+    --listenvs=<meter_type> list the env variables available for the given meter type
+    --listfields=<meter_type> list the fields selectable for the given meter type
     --logfile=<file> use this file instead of stdout
     --logtelegrams log the contents of the telegrams for easy replay
     --meterfiles=<dir> store meter readings in dir
