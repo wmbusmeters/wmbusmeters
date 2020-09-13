@@ -19,6 +19,7 @@
 #include"meters.h"
 #include"shell.h"
 
+#include<algorithm>
 #include<assert.h>
 #include<dirent.h>
 #include<functional>
@@ -1390,4 +1391,18 @@ void logAlarm(string type, string msg)
 void setAlarmShells(vector<string> &alarm_shells)
 {
     alarm_shells_ = alarm_shells;
+}
+
+bool stringFoundCaseIgnored(string haystack, string needle)
+{
+    // Modify haystack and needle, in place, to become lowercase.
+    std::for_each(haystack.begin(), haystack.end(), [](char & c) {
+        c = ::tolower(c);
+    });
+    std::for_each(needle.begin(), needle.end(), [](char & c) {
+        c = ::tolower(c);
+    });
+
+    // Now use default c++ find, return true if needle was found in haystack.
+    return haystack.find(needle) != string::npos;
 }

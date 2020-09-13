@@ -76,6 +76,8 @@ struct Configuration
     std::string alarm_expected_activity; // Only warn when within these time periods.
     bool list_shell_envs {};
     bool list_fields {};
+    bool list_meters {};
+    std::string list_meters_search;
     // When asking for envs or fields, this is the meter type to list for.
     std::string list_meter;
     bool oneshot {};

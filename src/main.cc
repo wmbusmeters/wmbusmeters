@@ -51,6 +51,7 @@ void startUsingConfigFiles(string root, bool is_daemon, string device_override, 
 void startDaemon(string pid_file, string device_override, string listento_override); // Will use config files.
 void list_shell_envs(Configuration *config, string meter_type);
 void list_fields(Configuration *config, string meter_type);
+void list_meters(Configuration *config);
 unique_ptr<Meter> create_meter(Configuration *config, MeterType type, MeterInfo *mi, const char *keymsg);
 
 // The serial communication manager takes care of
@@ -126,6 +127,12 @@ provided you with this binary. Read the full license for all details.
     if (config->list_fields)
     {
         list_fields(config.get(), config->list_meter);
+        exit(0);
+    }
+
+    if (config->list_meters)
+    {
+        list_meters(config.get());
         exit(0);
     }
 
@@ -359,6 +366,17 @@ void list_fields(Configuration *config, string meter_type)
         string fn = padLeft(p.field_name, width);
         printf("%s  %s\n", fn.c_str(), p.help.c_str());
     }
+}
+
+void list_meters(Configuration *config)
+{
+#define X(mname,link,info,type,cname) \
+    if (config->list_meters_search == "" || \
+        stringFoundCaseIgnored(#info, config->list_meters_search) || \
+        stringFoundCaseIgnored(#mname, config->list_meters_search)) \
+            printf("%-14s %s\n", #mname, #info);
+LIST_OF_METERS
+#undef X
 }
 
 

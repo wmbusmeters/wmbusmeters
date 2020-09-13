@@ -54,6 +54,7 @@ std::string strdatetime(struct tm *date);
 // Return for example: 2010-03-21 15:22:03
 std::string strdatetimesec(struct tm *date);
 
+bool stringFoundCaseIgnored(std::string haystack, std::string needle);
 
 void xorit(uchar *srca, uchar *srcb, uchar *dest, int len);
 void shiftLeft(uchar *srca, uchar *srcb, int len);

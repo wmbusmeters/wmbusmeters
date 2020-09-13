@@ -399,6 +399,18 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--listmeters=", 13)) {
+            c->list_meters = true;
+            c->list_meters_search = string(argv[i]+13);
+            i++;
+            continue;
+        }
+        else if (!strncmp(argv[i], "--listmeters", 12)) {
+            c->list_meters = true;
+            c->list_meters_search = "";
+            i++;
+            continue;
+        }
         if (!strcmp(argv[i], "--oneshot")) {
             c->oneshot = true;
             i++;
@@ -456,7 +468,8 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
     if (c->supplied_wmbus_devices.size() == 0 &&
         c->use_auto_detect == false &&
         !c->list_shell_envs &&
-        !c->list_fields)
+        !c->list_fields &&
+        !c->list_meters)
     {
         error("You must supply at least one device to receive wmbus telegrams.\n");
     }
