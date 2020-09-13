@@ -218,7 +218,7 @@ int test_linkmodes()
 
     unique_ptr<WMBus> wmbus_im871a = openIM871A("", manager.get(), std::move(serial1));
     unique_ptr<WMBus> wmbus_amb8465 = openAMB8465("", manager.get(), std::move(serial2));
-    unique_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS("", manager.get(), [](){}, std::move(serial3));
+    unique_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS("", "", manager.get(), [](){}, std::move(serial3));
     unique_ptr<WMBus> wmbus_rawtty = openRawTTY("", 0, manager.get(), std::move(serial4));
 
     Configuration nometers_config;

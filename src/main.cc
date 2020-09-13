@@ -71,7 +71,11 @@ pthread_mutex_t devices_lock_ = PTHREAD_MUTEX_INITIALIZER;
 
 // Remember devices that were not detected as wmbus devices.
 // To avoid probing them again and again.
-set<string> not_wmbus_devices_;
+set<string> not_serial_wmbus_devices_;
+
+// The software radio devices are always swradio devices
+// but they might not be available for wmbusmeters.
+set<string> not_swradio_wmbus_devices_;
 
 // Rendering the telegrams to json,fields or shell calls is
 // done by the printer.
@@ -239,7 +243,7 @@ unique_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *confi
             }
             verbose("(rtlwmbus) using command: %s\n", command.c_str());
         }
-        wmbus = openRTLWMBUS(command, manager,
+        wmbus = openRTLWMBUS(detected->device.file, command, manager,
                              [command](){
                                  warning("(rtlwmbus) child process exited! "
                                          "Command was: \"%s\"\n", command.c_str());
@@ -275,7 +279,7 @@ unique_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *confi
             }
             verbose("(rtl433) using command: %s\n", command.c_str());
         }
-        wmbus = openRTL433(command, manager,
+        wmbus = openRTL433(detected->device.file, command, manager,
                              [command](){
                                  warning("(rtl433) child process exited! "
                                          "Command was: \"%s\"\n", command.c_str());
@@ -435,12 +439,12 @@ void setup_meters(Configuration *config, MeterManager *manager)
     }
 }
 
-void remove_lost_devices_from_ignore_list(vector<string> &devices)
+void remove_lost_serial_devices_from_ignore_list(vector<string> &devices)
 {
     vector<string> to_be_removed;
 
     // Iterate over the devices known to NOT be wmbus devices.
-    for (const string& nots : not_wmbus_devices_)
+    for (const string& nots : not_serial_wmbus_devices_)
     {
         auto i = std::find(devices.begin(), devices.end(), nots);
         if (i == devices.end())
@@ -455,7 +459,31 @@ void remove_lost_devices_from_ignore_list(vector<string> &devices)
 
     for (string& r : to_be_removed)
     {
-        not_wmbus_devices_.erase(r);
+        not_serial_wmbus_devices_.erase(r);
+    }
+}
+
+void remove_lost_swradio_devices_from_ignore_list(vector<string> &devices)
+{
+    vector<string> to_be_removed;
+
+    // Iterate over the devices known to NOT be wmbus devices.
+    for (const string& nots : not_swradio_wmbus_devices_)
+    {
+        auto i = std::find(devices.begin(), devices.end(), nots);
+        if (i == devices.end())
+        {
+            // The device has been removed, therefore
+            // we have to forget that the device was not a wmbus device.
+            // Since next time someone plugs in a device, it might be a different
+            // one getting the same /dev/ttyUSBxx
+            to_be_removed.push_back(nots);
+        }
+    }
+
+    for (string& r : to_be_removed)
+    {
+        not_swradio_wmbus_devices_.erase(r);
     }
 }
 
@@ -504,18 +532,36 @@ void check_for_dead_wmbus_devices(Configuration *config)
     UNLOCK("(main)", "check_for_dead_wmbus_devices", devices_lock_);
 }
 
-void perform_auto_scan_of_devices(Configuration *config)
+void open_wmbus_device(Configuration *config, string how, string device, Detected *detected)
 {
-    // Enumerate all serial, and other devices that might connect to a wmbus device.
+    // A newly plugged in device has been manually configured or automatically detected! Start using it!
+    info("(main) %s %s on %s\n", how.c_str(), toString(detected->type), device.c_str());
+
+    LOCK("(main)", "perform_auto_scan_of_devices", devices_lock_);
+    unique_ptr<WMBus> w = createWMBusDeviceFrom(detected, config, serial_manager_.get());
+    wmbus_devices_.push_back(std::move(w));
+    WMBus *wmbus = wmbus_devices_.back().get();
+    wmbus->setLinkModes(config->listen_to_link_modes);
+    //string using_link_modes = wmbus->getLinkModes().hr();
+    //verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
+    bool simulated = detected->type == WMBusDeviceType::DEVICE_SIMULATOR;
+    wmbus->onTelegram([&, simulated](vector<uchar> data){return meter_manager_->handleTelegram(data, simulated);});
+    wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
+    UNLOCK("(main)", "perform_auto_scan_of_devices", devices_lock_);
+}
+
+void perform_auto_scan_of_serial_devices(Configuration *config)
+{
+    // Enumerate all serial devices that might connect to a wmbus device.
     vector<string> devices = serial_manager_->listSerialDevices();
 
     // Did a non-wmbus-device get unplugged? Then remove it from the known-not-wmbus-device set.
-    remove_lost_devices_from_ignore_list(devices);
+    remove_lost_serial_devices_from_ignore_list(devices);
 
     for (string& device : devices)
     {
         trace("[MAIN] serial device %s\n", device.c_str());
-        if (not_wmbus_devices_.count(device) > 0)
+        if (not_serial_wmbus_devices_.count(device) > 0)
         {
             trace("[MAIN] skipping already probed not wmbus serial device %s\n", device.c_str());
             continue;
@@ -531,29 +577,60 @@ void perform_auto_scan_of_devices(Configuration *config)
                 // This serial device was something that we could not recognize.
                 // A modem, an android phone, a teletype Model 33, etc....
                 // Mark this serial device as unknown, to avoid repeated detection attempts.
-                not_wmbus_devices_.insert(device);
+                not_serial_wmbus_devices_.insert(device);
                 info("(main) ignoring %s, it does not respond as any of the supported wmbus devices.\n", device.c_str());
             }
             else
             {
-                // A newly plugged in device has been detected! Start using it!
-                info("(main) detected %s on %s\n", toString(detected.type), device.c_str());
-                LOCK("(main)", "perform_auto_scan_of_devices", devices_lock_);
-                unique_ptr<WMBus> w = createWMBusDeviceFrom(&detected, config, serial_manager_.get());
-                wmbus_devices_.push_back(std::move(w));
-                WMBus *wmbus = wmbus_devices_.back().get();
-                UNLOCK("(main)", "perform_auto_scan_of_devices", devices_lock_);
-                wmbus->setLinkModes(config->listen_to_link_modes);
-                //string using_link_modes = wmbus->getLinkModes().hr();
-                //verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
-                bool simulated = detected.type == WMBusDeviceType::DEVICE_SIMULATOR;
-                wmbus->onTelegram([&, simulated](vector<uchar> data){return meter_manager_->handleTelegram(data, simulated);});
-                wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
+                open_wmbus_device(config, "auto scan detected", device, &detected);
             }
         }
     }
 }
 
+void perform_auto_scan_of_swradio_devices(Configuration *config)
+{
+    // Enumerate all swradio devices, that can be used.
+    vector<string> devices = serial_manager_->listSWRadioDevices();
+
+    // Did an unavailable swradio-device get unplugged? Then remove it from the known-not-swradio-device set.
+    remove_lost_swradio_devices_from_ignore_list(devices);
+
+    for (string& device : devices)
+    {
+        trace("[MAIN] swradio device %s\n", device.c_str());
+        if (not_swradio_wmbus_devices_.count(device) > 0)
+        {
+            trace("[MAIN] skipping already probed swradio device %s\n", device.c_str());
+            continue;
+        }
+        SerialDevice *sd = serial_manager_->lookup(device);
+        if (sd == NULL)
+        {
+            debug("(main) swradio device %s not currently used, detect contents...\n", device.c_str());
+            // This serial device is not in use.
+            Detected detected;
+            AccessCheck ac = detectRTLSDR(device, &detected, serial_manager_.get());
+            if (ac != AccessCheck::AccessOK)
+            {
+                // We cannot access this swradio device.
+                not_swradio_wmbus_devices_.insert(device);
+                info("(main) ignoring swradio %s since it is unavailable.\n", device.c_str());
+            }
+            else
+            {
+                detected.device.file = device;
+                open_wmbus_device(config, "auto scan detected", device, &detected);
+            }
+        }
+    }
+}
+
+void perform_auto_scan_of_devices(Configuration *config)
+{
+    perform_auto_scan_of_serial_devices(config);
+    perform_auto_scan_of_swradio_devices(config);
+}
 
 void detectAndConfigureWMBusDevices(Configuration *config)
 {
@@ -575,19 +652,7 @@ void detectAndConfigureWMBusDevices(Configuration *config)
 
         if (detected.type != DEVICE_UNKNOWN)
         {
-            verbose("(main) configured and detected %s on %s\n", toString(detected.type), device.file.c_str());
-            LOCK("(main)", "detectAndConfigureWMBusDevices", devices_lock_);
-            unique_ptr<WMBus> w = createWMBusDeviceFrom(&detected, config, serial_manager_.get());
-            wmbus_devices_.push_back(std::move(w));
-            WMBus *wmbus = wmbus_devices_.back().get();
-            UNLOCK("(main)", "detectAndConfigureWMBusDevices", devices_lock_);
-            wmbus->setLinkModes(config->listen_to_link_modes);
-            //string using_link_modes = wmbus->getLinkModes().hr();
-            //verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
-            bool simulated = detected.type == WMBusDeviceType::DEVICE_SIMULATOR;
-            wmbus->onTelegram([&, simulated](vector<uchar> data){return meter_manager_->handleTelegram(data, simulated);});
-            wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
-            serial_manager_->expectDevicesToWork();
+            open_wmbus_device(config, "manual configuration", device.str(), &detected);
         }
     }
 

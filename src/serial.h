@@ -65,7 +65,8 @@ struct SerialCommunicationManager
     // Read from a /dev/ttyUSB0 or /dev/ttyACM0 device with baud settings.
     virtual unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate) = 0;
     // Read from a sub shell.
-    virtual unique_ptr<SerialDevice> createSerialDeviceCommand(string command,
+    virtual unique_ptr<SerialDevice> createSerialDeviceCommand(string device,
+                                                               string command,
                                                                vector<string> args,
                                                                vector<string> envs,
                                                                function<void()> on_exit) = 0;
@@ -95,8 +96,10 @@ struct SerialCommunicationManager
     virtual void resetInitiated() = 0;
     virtual void resetCompleted() = 0;
 
-    // List all real serial devices.
+    // List all real serial devices (avoid pseudo ttys)
     virtual std::vector<std::string> listSerialDevices() = 0;
+    // List all all rtlsdr swradio devices
+    virtual std::vector<std::string> listSWRadioDevices() = 0;
     // Return a serial device for the given device, if it exists! Otherwise NULL.
     virtual SerialDevice *lookup(std::string device) = 0;
     virtual ~SerialCommunicationManager();

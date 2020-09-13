@@ -72,7 +72,7 @@ private:
     string setup_;
 };
 
-unique_ptr<WMBus> openRTLWMBUS(string command, SerialCommunicationManager *manager,
+unique_ptr<WMBus> openRTLWMBUS(string device, string command, SerialCommunicationManager *manager,
                                function<void()> on_exit, unique_ptr<SerialDevice> serial_override)
 {
     vector<string> args;
@@ -84,7 +84,7 @@ unique_ptr<WMBus> openRTLWMBUS(string command, SerialCommunicationManager *manag
         WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(std::move(serial_override), manager);
         return unique_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceCommand("/bin/sh", args, envs, on_exit);
+    auto serial = manager->createSerialDeviceCommand(device, "/bin/sh", args, envs, on_exit);
     WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(std::move(serial), manager);
     return unique_ptr<WMBus>(imp);
 }
@@ -93,6 +93,7 @@ WMBusRTLWMBUS::WMBusRTLWMBUS(unique_ptr<SerialDevice> serial, SerialCommunicatio
     WMBusCommonImplementation(DEVICE_RTLWMBUS, manager, std::move(serial))
 {
     manager_->listenTo(this->serial(),call(this,processSerialData));
+    manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
     reset();
 }
 

@@ -70,7 +70,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     ~SerialCommunicationManagerImp();
 
     unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate);
-    unique_ptr<SerialDevice> createSerialDeviceCommand(string command, vector<string> args, vector<string> envs,
+    unique_ptr<SerialDevice> createSerialDeviceCommand(string device, string command, vector<string> args, vector<string> envs,
                                                        function<void()> on_exit);
     unique_ptr<SerialDevice> createSerialDeviceFile(string file);
     unique_ptr<SerialDevice> createSerialDeviceSimulator();
@@ -95,6 +95,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     void resetInitiated() { debug("(serial) initiate reset\n"); resetting_ = true; }
     void resetCompleted() { debug("(serial) reset completed\n"); resetting_ = false; }
     vector<string> listSerialDevices();
+    vector<string> listSWRadioDevices();
     SerialDevice *lookup(std::string device);
 
 private:
@@ -402,7 +403,7 @@ bool SerialDeviceTTY::working()
 
 struct SerialDeviceCommand : public SerialDeviceImp
 {
-    SerialDeviceCommand(string command, vector<string> args, vector<string> envs,
+    SerialDeviceCommand(string device, string command, vector<string> args, vector<string> envs,
                         SerialCommunicationManagerImp *manager,
                         function<void()> on_exit);
     ~SerialDeviceCommand();
@@ -413,12 +414,13 @@ struct SerialDeviceCommand : public SerialDeviceImp
     bool send(vector<uchar> &data);
     int available();
     bool working();
-    string device() { return command_; }
-
+    string device() { return device_; }
+    string command() { return command_; }
     SerialCommunicationManager *manager() { return manager_; }
 
     private:
 
+    string device_;
     string command_;
     int pid_ {};
     vector<string> args_;
@@ -430,12 +432,15 @@ struct SerialDeviceCommand : public SerialDeviceImp
     function<void()> on_exit_;
 };
 
-SerialDeviceCommand::SerialDeviceCommand(string command,
+SerialDeviceCommand::SerialDeviceCommand(string device,
+                                         string command,
                                          vector<string> args,
                                          vector<string> envs,
                                          SerialCommunicationManagerImp *manager,
                                          function<void()> on_exit)
 {
+    assert(device != "");
+    device_ = device;
     command_ = command;
     args_ = args;
     envs_ = envs;
@@ -467,6 +472,11 @@ void SerialDeviceCommand::close()
     {
         stopBackgroundShell(pid_);
         pid_ = 0;
+    }
+    if (on_disappear_)
+    {
+        on_disappear_();
+        on_disappear_ = NULL;
     }
     ::flock(fd_, LOCK_UN);
     ::close(fd_);
@@ -672,12 +682,13 @@ unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(st
     return unique_ptr<SerialDevice>(new SerialDeviceTTY(device, baud_rate, this));
 }
 
-unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceCommand(string command,
+unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceCommand(string device,
+                                                                                  string command,
                                                                                   vector<string> args,
                                                                                   vector<string> envs,
                                                                                   function<void()> on_exit)
 {
-    return unique_ptr<SerialDevice>(new SerialDeviceCommand(command, args, envs, this, on_exit));
+    return unique_ptr<SerialDevice>(new SerialDeviceCommand(device, command, args, envs, this, on_exit));
 }
 
 unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceFile(string file)
@@ -1149,6 +1160,12 @@ vector<string> SerialCommunicationManagerImp::listSerialDevices()
     list.push_back("Please add code here!");
     return list;
 }
+vector<string> SerialCommunicationManagerImp::listSWRadioDevices()
+{
+    vector<string> list;
+    list.push_back("Please add code here!");
+    return list;
+}
 #endif
 
 #if defined(__linux__)
@@ -1261,6 +1278,44 @@ vector<string> SerialCommunicationManagerImp::listSerialDevices()
     check_serial8250s(&found_serials, found_8250s);
 
     return found_serials;
+}
+
+vector<string> SerialCommunicationManagerImp::listSWRadioDevices()
+{
+    struct dirent **entries;
+    vector<string> found_swradios;
+    string devdir = "/dev/";
+
+    int n = scandir(devdir.c_str(), &entries, NULL, sorty);
+    if (n < 0)
+    {
+        perror("scandir");
+        return found_swradios;
+    }
+
+    for (int i=0; i<n; ++i)
+    {
+        string name = entries[i]->d_name;
+
+        if (name ==  ".." || name == ".")
+        {
+            free(entries[i]);
+            continue;
+        }
+        // swradio0 swradio1 swradio2 ...
+        if (name.length() > 7 &&
+            !strncmp(name.c_str(), "swradio", 7) &&
+            name[7] >= '0' &&
+            name[7] <= '9')
+        {
+            string rtlsdr = devdir+name;
+            found_swradios.push_back(rtlsdr);
+        }
+        free(entries[i]);
+    }
+    free(entries);
+
+    return found_swradios;
 }
 
 #endif

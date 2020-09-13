@@ -58,6 +58,13 @@ struct Device
         suffix = "";
         linkmodes = "";
     }
+
+    string str()
+    {
+        if (linkmodes != "") return file+":"+suffix+":"+linkmodes;
+        if (suffix != "") return file+":"+suffix;
+        return file;
+    }
 };
 
 #define LIST_OF_MBUS_DEVICES \
@@ -501,9 +508,9 @@ unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager
                               unique_ptr<SerialDevice> serial_override);
 unique_ptr<WMBus> openRawTTY(string device, int baudrate, SerialCommunicationManager *manager,
                              unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager, std::function<void()> on_exit,
+unique_ptr<WMBus> openRTLWMBUS(string device, string command, SerialCommunicationManager *manager, std::function<void()> on_exit,
                                unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openRTL433(string device, SerialCommunicationManager *manager, std::function<void()> on_exit,
+unique_ptr<WMBus> openRTL433(string device, string command, SerialCommunicationManager *manager, std::function<void()> on_exit,
                              unique_ptr<SerialDevice> serial_override);
 unique_ptr<WMBus> openCUL(string device, SerialCommunicationManager *manager,
                               unique_ptr<SerialDevice> serial_override);
