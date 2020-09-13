@@ -44,7 +44,7 @@ fi
 TESTNAME="Test that setting multical21 to t1 fails"
 TESTRESULT="ERROR"
 
-MSG=$($PROG --listento=c1,t1 simulations/simulation_t1_and_c1.txt \
+MSG=$($PROG --listento=c1,t1 --usestdoutforlog simulations/simulation_t1_and_c1.txt \
       MyTapWater multical21:t1 76348799 "" \
       Wasser      apator162:c1   20202020 "")
 
@@ -60,7 +60,7 @@ fi
 TESTNAME="Test that the warning for missed telegrams work"
 TESTRESULT="ERROR"
 
-MSG=$($PROG --s1 simulations/simulation_t1_and_c1.txt \
+MSG=$($PROG --s1 --usestdoutforlog simulations/simulation_t1_and_c1.txt \
       MyTapWater multical21:c1 76348799 "" \
       Wasser      apator162:t1   20202020 "" | tr -d ' \n')
 

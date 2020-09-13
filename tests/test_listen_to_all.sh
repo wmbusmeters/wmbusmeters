@@ -196,7 +196,7 @@ fi
 TESTNAME="Test listen and print any meter heard on stdout"
 TESTRESULT="ERROR"
 
-$PROG --t1 simulations/simulation_t1.txt 2>&1 > $LOGFILE
+$PROG --t1 simulations/simulation_t1.txt 2> $LOGFILE
 
 RES=$(diff $LOGFILE $LOGFILE_EXPECTED)
 

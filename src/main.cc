@@ -77,6 +77,10 @@ set<string> not_serial_wmbus_devices_;
 // but they might not be available for wmbusmeters.
 set<string> not_swradio_wmbus_devices_;
 
+// When manually supplying stdin or a file, then, after
+// it has been read, do not open it again!
+set<string> do_not_open_file_again_;
+
 // Rendering the telegrams to json,fields or shell calls is
 // done by the printer.
 unique_ptr<Printer> printer_;
@@ -338,7 +342,8 @@ void list_shell_envs(Configuration *config, string meter_type)
                       &config->jsons,
                       &config->selected_fields);
 
-    for (auto &e : envs) {
+    for (auto &e : envs)
+    {
         int p = e.find('=');
         string key = e.substr(0,p);
         printf("%s\n", key.c_str());
@@ -498,6 +503,10 @@ void check_for_dead_wmbus_devices(Configuration *config)
         if (!w->isWorking())
         {
             not_working.push_back(w.get());
+            if (!config->use_auto_detect)
+            {
+                notice("Lost %s closing %s\n", w->device().c_str(), toString(w->type()));
+            }
         }
     }
 
@@ -535,8 +544,14 @@ void check_for_dead_wmbus_devices(Configuration *config)
 void open_wmbus_device(Configuration *config, string how, string device, Detected *detected)
 {
     // A newly plugged in device has been manually configured or automatically detected! Start using it!
-    info("(main) %s %s on %s\n", how.c_str(), toString(detected->type), device.c_str());
-
+    if (config->use_auto_detect)
+    {
+        notice("Detected %s %s on %s\n", how.c_str(), toString(detected->type), device.c_str());
+    }
+    else
+    {
+        verbose("(main) %s %s on %s\n", how.c_str(), toString(detected->type), device.c_str());
+    }
     LOCK("(main)", "perform_auto_scan_of_devices", devices_lock_);
     unique_ptr<WMBus> w = createWMBusDeviceFrom(detected, config, serial_manager_.get());
     wmbus_devices_.push_back(std::move(w));
@@ -571,7 +586,7 @@ void perform_auto_scan_of_serial_devices(Configuration *config)
         {
             debug("(main) device %s not currently used, detect contents...\n", device.c_str());
             // This serial device is not in use.
-            Detected detected = detectImstAmberCul(device, "", "", serial_manager_.get());
+            Detected detected = detectImstAmberCul(device, "", "", serial_manager_.get(), true, false, false);
             if (detected.type == DEVICE_UNKNOWN)
             {
                 // This serial device was something that we could not recognize.
@@ -645,14 +660,26 @@ void detectAndConfigureWMBusDevices(Configuration *config)
             continue;
         }
 
-        Detected detected = detectWMBusDeviceSetting(device.file,
-                                                     device.suffix,
-                                                     device.linkmodes,
-                                                     serial_manager_.get());
-
-        if (detected.type != DEVICE_UNKNOWN)
+        if (do_not_open_file_again_.count(device.file) == 0)
         {
-            open_wmbus_device(config, "manual configuration", device.str(), &detected);
+            Detected detected = detectWMBusDeviceSetting(device.file,
+                                                         device.suffix,
+                                                         device.linkmodes,
+                                                         serial_manager_.get());
+
+            if (detected.type != DEVICE_UNKNOWN)
+            {
+                if (detected.is_stdin || detected.is_file)
+                {
+                    // Only read stdin and files once!
+                    do_not_open_file_again_.insert(device.file);
+                }
+                open_wmbus_device(config, "manual configuration", device.str(), &detected);
+            }
+        }
+        else
+        {
+            trace("(MAIN) ignoring handled file %s\n", device.file.c_str());
         }
     }
 
@@ -708,7 +735,7 @@ bool start(Configuration *config)
     debugEnabled(config->debug);
     internalTestingEnabled(config->internaltesting);
     traceEnabled(config->trace);
-    stderrEnabled(config->use_stderr);
+    stderrEnabled(config->use_stderr_for_log);
     setAlarmShells(config->alarm_shells);
 
     logStartInformation(config);
@@ -749,16 +776,29 @@ bool start(Configuration *config)
     printed_warning_ = true;
     detectAndConfigureWMBusDevices(config);
 
-    if (wmbus_devices_.size() == 0)
+    if (!config->use_auto_detect)
     {
-        info("(main) no wmbus device detected, waiting for a device to be plugged in.\n");
+        serial_manager_->expectDevicesToWork();
+        if (wmbus_devices_.size() == 0)
+        {
+            notice("(main) no wmbus device configured! Exiting.\n");
+            serial_manager_->stop();
+        }
+    }
+    else
+    {
+        if (wmbus_devices_.size() == 0)
+        {
+            notice("(main) no wmbus device detected, waiting for a device to be plugged in.\n");
+        }
     }
 
     // Every 2 seconds detect any plugged in or removed wmbus devices.
     serial_manager_->startRegularCallback("HOT_PLUG_DETECTOR",
                                   2,
                                   [&](){
-                                      detectAndConfigureWMBusDevices(config);
+                                      if (serial_manager_ && config)
+                                          detectAndConfigureWMBusDevices(config);
                                   });
 
     if (config->daemon)

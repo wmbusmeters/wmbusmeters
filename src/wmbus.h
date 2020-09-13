@@ -97,12 +97,16 @@ struct Detected
     // instead open the device->file as a file instead . This is to allows feeding the wmbus drivers
     // using stdin or a file. This is primarily used for internal testing.
     bool override_tty;
+    bool is_tty;
+    bool is_file;
+    bool is_stdin;
 
     void set(WMBusDeviceType t, int br, bool ot)
     {
         type = t;
         baudrate = br;
         override_tty = ot;
+        is_tty = is_file = is_stdin = false;
     }
 };
 
@@ -581,6 +585,9 @@ AccessCheck factoryResetAMB8465(string device, SerialCommunicationManager *handl
 Detected detectImstAmberCul(string file,
                             string suffix,
                             string linkmodes,
-                            SerialCommunicationManager *handler);
+                            SerialCommunicationManager *handler,
+                            bool is_tty,
+                            bool is_stdin,
+                            bool is_file);
 
 #endif

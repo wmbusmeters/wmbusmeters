@@ -596,7 +596,7 @@ void SerialDeviceFile::close()
     ::close(fd_);
     fd_ = -1;
     manager_->closed(this);
-    verbose("(serialtty) closed %s %d\n", file_.c_str(), fd_);
+    verbose("(serialfile) closed %s %d\n", file_.c_str(), fd_);
 }
 
 void SerialDeviceFile::checkIfShouldReopen()
@@ -895,6 +895,7 @@ void *SerialCommunicationManagerImp::eventLoop()
         {
             if (!d->skippingCallbacks())
             {
+                trace("(SERIAL) select read on fd %d\n", d->fd());
                 FD_SET(d->fd(), &readfds);
             }
             if (!d->working()) all_working = false;

@@ -7,7 +7,7 @@ mkdir -p $TEST
 TESTNAME="Test shell in config file"
 TESTRESULT="ERROR"
 
-$PROG --useconfig=tests/config5 > $TEST/test_output.txt
+$PROG --useconfig=tests/config5 > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 
 if [ "$?" = "0" ]
 then

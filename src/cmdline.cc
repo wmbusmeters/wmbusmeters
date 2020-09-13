@@ -351,8 +351,13 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--usestderr=", 10)) {
-            c->use_stderr = true;
+        if (!strncmp(argv[i], "--usestderr", 11)) {
+            c->use_stderr_for_log = true;
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--usestdoutforlogging", 13)) {
+            c->use_stderr_for_log = false;
             i++;
             continue;
         }

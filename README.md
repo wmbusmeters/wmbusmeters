@@ -166,7 +166,8 @@ As <options> you can use:
     --separator=<c> change field separator to c
     --shell=<cmdline> invokes cmdline with env variables containing the latest reading
     --useconfig=<dir> load config files from dir/etc
-    --usestderr write debug/verbose and logging output to stderr
+    --usestderr write notices/debug/verbose and other logging output to stderr (the default)
+    --usestdoutforlogging write debug/verbose and logging output to stdout
     --verbose for more information
 
 As <device> you can use:

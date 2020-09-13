@@ -9,7 +9,7 @@ TESTRESULT="ERROR"
 
 cat simulations/simulation_conversionsadded.txt | grep '^{' > $TEST/test_expected.txt
 
-$PROG --useconfig=tests/config4 > $TEST/test_output.txt
+$PROG --useconfig=tests/config4 > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 
 if [ "$?" = "0" ]
 then

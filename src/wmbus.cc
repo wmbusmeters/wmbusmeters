@@ -473,7 +473,10 @@ string mediaTypeJSON(int a_field_device_type)
 Detected detectImstAmberCul(string file,
                             string suffix,
                             string linkmodes,
-                            SerialCommunicationManager *handler)
+                            SerialCommunicationManager *handler,
+                            bool is_tty,
+                            bool is_stdin,
+                            bool is_file)
 {
     Detected detected {};
     detected.device = { file, suffix, "" };
@@ -505,7 +508,7 @@ Detected detectImstAmberCul(string file,
     }
 
     // We could not auto-detect either.
-    return { { file, suffix }, DEVICE_UNKNOWN, 0, false };
+    return { { file, suffix }, DEVICE_UNKNOWN, 0, false, is_tty, is_stdin, is_file };
 }
 
 /**
@@ -564,6 +567,7 @@ Detected detectWMBusDeviceSetting(string file,
     bool is_file = checkFileExists(file.c_str());
 
     debug("(detect) is_tty=%d is_stdin=%d is_file=%d\n", is_tty, is_stdin, is_file);
+
     if (!is_tty && !is_stdin && !is_file)
     {
         debug("(detect) not a valid device file %s\n", file.c_str());
@@ -573,21 +577,21 @@ Detected detectWMBusDeviceSetting(string file,
 
     bool override_tty = !is_tty;
 
-    if (suffix == "amb8465") return { { file, suffix }, DEVICE_AMB8465, 0, override_tty };
-    if (suffix == "im871a") return { { file, suffix }, DEVICE_IM871A, 0, override_tty };
-    if (suffix == "rfmrx2") return { { file, suffix }, DEVICE_RFMRX2, 0, override_tty };
-    if (suffix == "rtlwmbus") return { { file, suffix }, DEVICE_RTLWMBUS, 0, override_tty };
-    if (suffix == "rtl433") return { { file, suffix}, DEVICE_RTL433, 0, override_tty };
-    if (suffix == "cul") return { { file, suffix}, DEVICE_CUL, 0, override_tty };
-    if (suffix == "d1tc") return { { file, suffix}, DEVICE_D1TC, 0, override_tty };
-    if (suffix == "wmb13u") return { { file, suffix}, DEVICE_WMB13U, 0, override_tty };
-    if (suffix == "simulation") return { { file, suffix}, DEVICE_SIMULATOR, 0, override_tty };
+    if (suffix == "amb8465") return { { file, suffix }, DEVICE_AMB8465, 0, override_tty, is_tty, is_stdin, is_file };
+    if (suffix == "im871a") return { { file, suffix }, DEVICE_IM871A, 0, override_tty, is_tty, is_stdin, is_file };
+    if (suffix == "rfmrx2") return { { file, suffix }, DEVICE_RFMRX2, 0, override_tty, is_tty, is_stdin, is_file };
+    if (suffix == "rtlwmbus") return { { file, suffix }, DEVICE_RTLWMBUS, 0, override_tty, is_tty, is_stdin, is_file };
+    if (suffix == "rtl433") return { { file, suffix}, DEVICE_RTL433, 0, override_tty, is_tty, is_stdin, is_file };
+    if (suffix == "cul") return { { file, suffix}, DEVICE_CUL, 0, override_tty, is_tty, is_stdin, is_file };
+    if (suffix == "d1tc") return { { file, suffix}, DEVICE_D1TC, 0, override_tty, is_tty, is_stdin, is_file };
+    if (suffix == "wmb13u") return { { file, suffix}, DEVICE_WMB13U, 0, override_tty, is_tty, is_stdin, is_file };
+    if (suffix == "simulation") return { { file, suffix}, DEVICE_SIMULATOR, 0, override_tty, is_tty, is_stdin, is_file };
 
     // If the suffix is a number, then assume that it is a baud rate.
-    if (isNumber(suffix)) return { { file, suffix} , DEVICE_RAWTTY, atoi(suffix.c_str()), override_tty };
+    if (isNumber(suffix)) return { { file, suffix} , DEVICE_RAWTTY, atoi(suffix.c_str()), override_tty, is_tty, is_stdin, is_file };
 
     // If the suffix is empty and its not a tty, then read raw telegrams from stdin or the file.
-    if (suffix == "" && !is_tty) return { { file, suffix}, DEVICE_RAWTTY, 0, true };
+    if (suffix == "" && !is_tty) return { { file, suffix}, DEVICE_RAWTTY, 0, true, is_tty, is_stdin, is_file };
 
     if (suffix != "")
     {
@@ -597,7 +601,7 @@ Detected detectWMBusDeviceSetting(string file,
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
     // to figure out what is connected to it. We currently only
     // know how to detect Imst, Amber or CUL dongles.
-    return detectImstAmberCul(file, suffix, linkmodes, handler);
+    return detectImstAmberCul(file, suffix, linkmodes, handler, is_tty, is_stdin, is_file);
 }
 
 /*
@@ -3378,7 +3382,7 @@ void WMBusCommonImplementation::disconnectedFromDevice()
 {
     if (is_working_)
     {
-        info("(wmbus) lost %s closing %s\n", device().c_str(), toString(type()));
+        debug("(wmbus) disconnect %s closing %s\n", device().c_str(), toString(type()));
         is_working_ = false;
     }
 }
