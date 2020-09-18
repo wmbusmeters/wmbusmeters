@@ -56,6 +56,11 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
     void simulate();
 
     WMBusRTLWMBUS(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    ~WMBusRTLWMBUS()
+    {
+        manager_->listenTo(this->serial(), NULL);
+        manager_->onDisappear(this->serial(), NULL);
+    }
 
 private:
 

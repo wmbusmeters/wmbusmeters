@@ -61,7 +61,9 @@ struct WMBusIM871A : public virtual WMBusCommonImplementation
     void simulate() { }
 
     WMBusIM871A(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
-    ~WMBusIM871A() { }
+    ~WMBusIM871A() {
+        manager_->onDisappear(this->serial(), NULL);
+    }
 
 private:
 

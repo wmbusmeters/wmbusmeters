@@ -333,6 +333,7 @@ int test_linkmodes()
     }
     debug("test7 OK\n\n");
 
+    manager->stop();
     return 0;
 }
 

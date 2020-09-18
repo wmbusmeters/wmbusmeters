@@ -74,8 +74,6 @@ echo man page: installed "$ROOT"/usr/share/man/man1/wmbusmeters.1.gz
 ## Create wmbusmeters user
 ##
 
-ID=$(id -u wmbusmeters 2>/dev/null)
-
 if [ -f "$ROOT"/usr/sbin/nologin ]
 then
 	USERSHELL="$ROOT/usr/sbin/nologin"
@@ -88,15 +86,17 @@ fi
 
 if [ "$ADDUSER" = "true" ]
 then
+    # Create the wmbusmeters group, if it does not already exist.
+    groupadd -f wmbusmeters
+
+    ID=$(id -u wmbusmeters 2>/dev/null)
     if [ -z "$ID" ]
     then
-        # Create the wmbusmeters group, if it does not already exist.
-        groupadd -f wmbusmeters
         # Create the wmbusmeters user
-        useradd --system --shell $USERSHELL -g wmbusmeters --groups dialout wmbusmeters
+        useradd --system --shell $USERSHELL -g wmbusmeters wmbusmeters
         echo user: added wmbusmeters
     else
-        echo user: wmbusmeters unmodified
+        echo user: wmbusmeters already exists
     fi
 
     if [ "$(groups wmbusmeters | grep -o dialout)" = "" ]
@@ -107,6 +107,16 @@ then
     else
         echo user: wmbusmeters already added to dialout
     fi
+
+    if [ "$(groups wmbusmeters | grep -o plugdev)" = "" ]
+    then
+        # Add the wmbusmeters user to plugdev
+        usermod -a -G plugdev wmbusmeters
+        echo user: added wmbusmeters to plugdev group
+    else
+        echo user: wmbusmeters already added to plugdev
+    fi
+
     if [ ! -z "$SUDO_USER" ]
     then
         if [ "$(groups $SUDO_USER | grep -o wmbusmeters)" = "" ]
@@ -236,7 +246,7 @@ fi
 # This means that wmbusmeters will rely on the conf file device setting.
 cat <<'EOF' > $CURR_WMBS
 [Unit]
-Description="wmbusmeters service (no udev trigger)"
+Description="wmbusmeters service"
 Documentation=https://github.com/weetmuts/wmbusmeters
 Documentation=man:wmbusmeters(1)
 After=network.target

@@ -72,7 +72,6 @@ LIST_OF_WMBUS_RECEIVERS
 bool detectIfRoot();
 string userName();
 bool detectIfMemberOfGroup(string group);
-void detectProcesses(string cmd, vector<int> *pids);
 void detectWMBUSReceiver();
 void resetWMBUSReceiver();
 void probeFor(string type, AccessCheck(*func)(string,Detected*,SerialCommunicationManager*));
@@ -359,24 +358,6 @@ bool detectIfMemberOfGroup(string group)
     return false;
 }
 
-void detectProcesses(string cmd, vector<int> *pids)
-{
-    vector<string> args;
-    vector<string> envs;
-    args.push_back(cmd);
-    string out;
-    invokeShellCaptureOutput("/bin/pidof", args, envs, &out, true);
-
-    char buf[out.size()+1];
-    strcpy(buf, out.c_str());
-    char *pch;
-    pch = strtok (buf," \n");
-    while (pch != NULL)
-    {
-        pids->push_back(atoi(pch));
-        pch = strtok (NULL, " \n");
-    }
-}
 
 void stopDaemon()
 {

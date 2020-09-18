@@ -177,7 +177,11 @@ void WMBusSimulator::simulate()
                         curr = time(NULL);
                         if (curr > start_time + rel_time) break;
                         usleep(1000*1000);
-                        if (!manager_->isRunning()) break;
+                        if (!manager_->isRunning())
+                        {
+                            debug("(simulator) exiting early\n");
+                            break;
+                        }
                     }
                 }
             }

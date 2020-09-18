@@ -25,3 +25,4 @@ bool invokeShellCaptureOutput(string program, vector<string> args, vector<string
 bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *out, int *pid);
 bool stillRunning(int pid);
 void stopBackgroundShell(int pid);
+void detectProcesses(string cmd, vector<int> *pids);

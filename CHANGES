@@ -1,6 +1,32 @@
 
+IMPORTANT CHANGES THAT MIGHT AFFECT YOU!
+
+** No udev rules
+
+Wmbusmeters new default behaviour is to NOT exit if no wmbus
+device is found. It stays running all the time even if no
+wmbus device is detected. As soon as a device is inserted
+it will detect/configure and start using the device.
+
+When reading stdin and files, then wmbusmeters will exit
+as soon as there is no more data.
+
+This means that the udev rules no longer are needed and must be
+removed. This will be done automatically by the install script.
+
+** Use stderr for logging, stdout for data.
+
+wmbusmeters now uses STDERR as default for info/verbose/debug/trace output.
+This will not affect you if you run wmbusmeters as a daemon,
+but if you start wmbusmeters yourself you should check where stderr is going.
+To use the old style add --usestdoutforlogging.
+
+** New features
+
 To list the shell envs for a meter do --listenvs=multical21
 To list the fields avilable for a meter do --listfields=multical21
+To list all meters do --listmeters
+To search for a meter do --listmeters=water or --listmeters=multi
 
 Version 0.9.36: 2020-09-08
 

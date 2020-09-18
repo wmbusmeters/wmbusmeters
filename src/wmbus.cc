@@ -3262,7 +3262,6 @@ bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_byt
 
 WMBusCommonImplementation::~WMBusCommonImplementation()
 {
-    manager_->stopRegularCallback(regular_cb_id_);
     debug("(wmbus) deleted %s\n", toString(type()));
 }
 
@@ -3277,12 +3276,14 @@ WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
     // Initialize timeout from now.
     last_received_ = time(NULL);
 
+    /*
     // Invoke the check status once per minute. Unless internal testing, then it is every 2 seconds.
-    int default_timer = isInternalTestingEnabled() ? CHECKSTATUS_TIMER_INTERNAL_TESTING : CHECKSTATUS_TIMER;
+    int default_timer = CHECKSTATUS_TIMER;
     string info = "simulator";
     if (serial != NULL) info = serial_->device();
     string alarm_id = "CHECK_STATUS "+string(toString(t))+":"+info;
     regular_cb_id_ = manager_->startRegularCallback(alarm_id, default_timer, call(this,checkStatus));
+    */
 }
 
 WMBusDeviceType WMBusCommonImplementation::type()
@@ -3394,6 +3395,7 @@ bool WMBusCommonImplementation::isWorking()
 
 void WMBusCommonImplementation::checkStatus()
 {
+    trace("[ALARM] check status\n");
     if (protocol_error_count_ >= 20)
     {
         string msg;
@@ -3416,58 +3418,73 @@ void WMBusCommonImplementation::checkStatus()
     time_t now = time(NULL);
     time_t then = now - timeout_;
     time_t since = now-last_received_;
-    if (timeout_ > 0 && since < timeout_)
+
+    // If no timeout set, just return.
+    if (timeout_ == 0) return;
+
+    if (since < timeout_)
     {
-        trace("[WMBUS] No timeout. All ok. (%d s) Now %d seconds since last telegram was received.\n", since);
+        trace("[WMBUS] No timeout since=%d timeout=%d. All ok.\n", since, timeout_);
         return;
     }
+
+    last_received_ = time(NULL);
 
     // The timeout has expired! But is the timeout expected because there should be no activity now?
     // Also, do not sound the alarm unless we actually have a possible timeout within the expected activity,
     // otherwise we will always get an alarm when we enter the expected activity period.
-    if (isInsideTimePeriod(now, expected_activity_) &&
-        isInsideTimePeriod(then, expected_activity_))
+    if (!(isInsideTimePeriod(now, expected_activity_) &&
+          isInsideTimePeriod(then, expected_activity_)))
     {
+        trace("[WMBUS] hit timeout(%d s) but this is ok, since there is no expected activity.\n", timeout_);
+        return;
+    }
 
-        time_t nowt = time(NULL);
-        struct tm nowtm;
-        localtime_r(&nowt, &nowtm);
+    // Ok, timeout has triggered for real! Deal with it!
+    struct tm nowtm;
+    localtime_r(&now, &nowtm);
 
-        string now = strdatetime(&nowtm);
+    string nowtxt = strdatetime(&nowtm);
 
-        string msg;
-        strprintf(msg, "%d seconds of inactivity resetting %s %s "
-                  "(timeout %ds expected %s now %s)",
-                  since, device().c_str(), toString(type()),
-                  timeout_, expected_activity_.c_str(), now.c_str());
+    string msg;
+    strprintf(msg, "%d seconds of inactivity resetting %s %s "
+              "(timeout %ds expected %s now %s)",
+              since, device().c_str(), toString(type()),
+              timeout_, expected_activity_.c_str(), nowtxt.c_str());
 
-        logAlarm("inactivity", msg);
+    logAlarm("inactivity", msg);
 
-        bool ok = reset();
-        if (ok)
-        {
-            warning("(wmbus) successfully reset wmbus device\n");
-        }
-        else
-        {
-            strprintf(msg, "failed to reset wmbus device %s %s exiting wmbusmeters", device().c_str(), toString(type()));
-            logAlarm("device_failure", msg);
-            manager_->stop();
-        }
+    bool ok = reset();
+    if (ok)
+    {
+        warning("(wmbus) successfully reset wmbus device\n");
     }
     else
     {
-        debug("(wmbus) Hit timeout(%d s) but no expected activity!\n", timeout_);
+        strprintf(msg, "failed to reset wmbus device %s %s exiting wmbusmeters", device().c_str(), toString(type()));
+        logAlarm("device_failure", msg);
+        manager_->stop();
     }
-    // Fake last received to restart the timeout.
-    last_received_ = time(NULL);
 }
 
 void WMBusCommonImplementation::setTimeout(int seconds, string expected_activity)
 {
+    assert(seconds >= 0);
+
     timeout_ = seconds;
+    if (expected_activity == "")
+    {
+        expected_activity = "mon-sun(00-23)";
+    }
     expected_activity_ = expected_activity;
-    debug("(wmbus) set timeout %s to \"%d\" with expected activity \"%s\"\n", toString(type_), timeout_, expected_activity_.c_str());
+    if (seconds > 0)
+    {
+        debug("(wmbus) set timeout %s to \"%d\" with expected activity \"%s\"\n", toString(type_), timeout_, expected_activity_.c_str());
+    }
+    else
+    {
+        debug("(wmbus) no alarm (expected activity) for %s\n", toString(type_));
+    }
 }
 
 int toInt(TPLSecurityMode tsm)

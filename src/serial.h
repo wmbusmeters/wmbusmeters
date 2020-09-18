@@ -79,6 +79,8 @@ struct SerialCommunicationManager
     virtual void listenTo(SerialDevice *sd, function<void()> cb) = 0;
     // Invoke cb callback when the serial device has disappeared!
     virtual void onDisappear(SerialDevice *sd, function<void()> cb) = 0;
+    // Invoke once every select loop, typically once per second.
+    virtual void eachEventLooping(function<void()> cb) = 0;
     // Normally the communication mananager runs for ever.
     // But if you expect configured devices to work, then
     // the manager will exit when there are no working devices.

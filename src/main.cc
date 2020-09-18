@@ -20,6 +20,7 @@
 #include"meters.h"
 #include"printer.h"
 #include"serial.h"
+#include"shell.h"
 #include"util.h"
 #include"version.h"
 #include"wmbus.h"
@@ -49,6 +50,7 @@ void logStartInformation(Configuration *config);
 bool start(Configuration *config);
 void startUsingConfigFiles(string root, bool is_daemon, string device_override, string listento_override);
 void startDaemon(string pid_file, string device_override, string listento_override); // Will use config files.
+void checkIfMultipleWmbusmetersRunning();
 void list_shell_envs(Configuration *config, string meter_type);
 void list_fields(Configuration *config, string meter_type);
 void list_meters(Configuration *config);
@@ -80,6 +82,9 @@ set<string> not_swradio_wmbus_devices_;
 // When manually supplying stdin or a file, then, after
 // it has been read, do not open it again!
 set<string> do_not_open_file_again_;
+
+// Store simulation files here.
+set<string> simulation_files_;
 
 // Rendering the telegrams to json,fields or shell calls is
 // done by the printer.
@@ -150,14 +155,15 @@ provided you with this binary. Read the full license for all details.
         const char *short_manual =
 #include"short_manual.h"
         puts(short_manual);
+        exit(0);
     }
-    else
+
     if (config->daemon)
     {
         startDaemon(config->pid_file, config->device_override, config->listento_override);
         exit(0);
     }
-    else
+
     if (config->useconfig)
     {
         startUsingConfigFiles(config->config_root, false, config->device_override, config->listento_override);
@@ -492,6 +498,20 @@ void remove_lost_swradio_devices_from_ignore_list(vector<string> &devices)
     }
 }
 
+void check_statuses()
+{
+    LOCK("(main)", "check_statuses", devices_lock_);
+    vector<WMBus*> not_working;
+    for (auto &w : wmbus_devices_)
+    {
+        if (w->isWorking())
+        {
+            w->checkStatus();
+        }
+    }
+    UNLOCK("(main)", "check_statuses", devices_lock_);
+}
+
 void check_for_dead_wmbus_devices(Configuration *config)
 {
     trace("[MAIN] checking for dead wmbus devices...\n");
@@ -503,9 +523,9 @@ void check_for_dead_wmbus_devices(Configuration *config)
         if (!w->isWorking())
         {
             not_working.push_back(w.get());
-            if (!config->use_auto_detect)
+            if (config->use_auto_detect)
             {
-                notice("Lost %s closing %s\n", w->device().c_str(), toString(w->type()));
+                info("Lost %s closing %s\n", w->device().c_str(), toString(w->type()));
             }
         }
     }
@@ -529,7 +549,8 @@ void check_for_dead_wmbus_devices(Configuration *config)
     {
         if (!printed_warning_)
         {
-            info("(main) no wmbus device detected, waiting for a device to be plugged in.\n");
+            info("No wmbus device detected, waiting for a device to be plugged in.\n");
+            checkIfMultipleWmbusmetersRunning();
             printed_warning_ = true;
         }
     }
@@ -546,7 +567,7 @@ void open_wmbus_device(Configuration *config, string how, string device, Detecte
     // A newly plugged in device has been manually configured or automatically detected! Start using it!
     if (config->use_auto_detect)
     {
-        notice("Detected %s %s on %s\n", how.c_str(), toString(detected->type), device.c_str());
+        notice("Configure %s on %s\n", how.c_str(), toString(detected->type), device.c_str());
     }
     else
     {
@@ -562,6 +583,11 @@ void open_wmbus_device(Configuration *config, string how, string device, Detecte
     bool simulated = detected->type == WMBusDeviceType::DEVICE_SIMULATOR;
     wmbus->onTelegram([&, simulated](vector<uchar> data){return meter_manager_->handleTelegram(data, simulated);});
     wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
+    if (detected->type == DEVICE_SIMULATOR)
+    {
+        debug("(main) added %s to files\n", detected->device.file.c_str());
+        simulation_files_.insert(detected->device.file);
+    }
     UNLOCK("(main)", "perform_auto_scan_of_devices", devices_lock_);
 }
 
@@ -593,11 +619,11 @@ void perform_auto_scan_of_serial_devices(Configuration *config)
                 // A modem, an android phone, a teletype Model 33, etc....
                 // Mark this serial device as unknown, to avoid repeated detection attempts.
                 not_serial_wmbus_devices_.insert(device);
-                info("(main) ignoring %s, it does not respond as any of the supported wmbus devices.\n", device.c_str());
+                verbose("(main) ignoring %s, it does not respond as any of the supported wmbus devices.\n", device.c_str());
             }
             else
             {
-                open_wmbus_device(config, "auto scan detected", device, &detected);
+                open_wmbus_device(config, "during auto scan", device, &detected);
             }
         }
     }
@@ -630,12 +656,12 @@ void perform_auto_scan_of_swradio_devices(Configuration *config)
             {
                 // We cannot access this swradio device.
                 not_swradio_wmbus_devices_.insert(device);
-                info("(main) ignoring swradio %s since it is unavailable.\n", device.c_str());
+                verbose("(main) ignoring swradio %s since it is unavailable.\n", device.c_str());
             }
             else
             {
                 detected.device.file = device;
-                open_wmbus_device(config, "auto scan detected", device, &detected);
+                open_wmbus_device(config, "during auto scan", device, &detected);
             }
         }
     }
@@ -659,7 +685,11 @@ void detectAndConfigureWMBusDevices(Configuration *config)
             trace("(main) %s already configured\n", sd->device().c_str());
             continue;
         }
-
+        if (simulation_files_.count(device.file) > 0)
+        {
+            debug("(main) %s already configured as simulation\n", device.file.c_str());
+            continue;
+        }
         if (do_not_open_file_again_.count(device.file) == 0)
         {
             Detected detected = detectWMBusDeviceSetting(device.file,
@@ -674,7 +704,7 @@ void detectAndConfigureWMBusDevices(Configuration *config)
                     // Only read stdin and files once!
                     do_not_open_file_again_.insert(device.file);
                 }
-                open_wmbus_device(config, "manual configuration", device.str(), &detected);
+                open_wmbus_device(config, "using manual setting", device.str(), &detected);
             }
         }
         else
@@ -745,6 +775,7 @@ bool start(Configuration *config)
     // If our software unexpectedly exits, then stop the manager, to try
     // to achive a nice shutdown.
     onExit(call(serial_manager_.get(),stop));
+    serial_manager_->eachEventLooping([]() { check_statuses(); });
 
     // Create the printer object that knows how to translate
     // telegrams into json, fields that are written into log files
@@ -778,10 +809,14 @@ bool start(Configuration *config)
 
     if (!config->use_auto_detect)
     {
-        serial_manager_->expectDevicesToWork();
+        if (simulation_files_.size() == 0)
+        {
+            serial_manager_->expectDevicesToWork();
+        }
         if (wmbus_devices_.size() == 0)
         {
-            notice("(main) no wmbus device configured! Exiting.\n");
+            notice("No wmbus device configured! Exiting.\n");
+            checkIfMultipleWmbusmetersRunning();
             serial_manager_->stop();
         }
     }
@@ -789,7 +824,8 @@ bool start(Configuration *config)
     {
         if (wmbus_devices_.size() == 0)
         {
-            notice("(main) no wmbus device detected, waiting for a device to be plugged in.\n");
+            notice("No wmbus device detected, waiting for a device to be plugged in.\n");
+            checkIfMultipleWmbusmetersRunning();
         }
     }
 
@@ -946,4 +982,30 @@ void startUsingConfigFiles(string root, bool is_daemon, string device_override, 
         }
     }
     while (restart);
+}
+
+
+void checkIfMultipleWmbusmetersRunning()
+{
+    pid_t my_pid = getpid();
+    vector<int> daemons;
+    detectProcesses("wmbusmetersd", &daemons);
+    for (int i : daemons)
+    {
+        if (i != my_pid)
+        {
+            info("Notice! Wmbusmeters daemon (pid %d) is running and it might hog any wmbus devices.\n", i);
+        }
+    }
+
+    vector<int> processes;
+    detectProcesses("wmbusmeters", &processes);
+
+    for (int i : processes)
+    {
+        if (i != my_pid)
+        {
+            info("Notice! Other wmbusmeters (pid %d) is running and it might hog any wmbus devices.\n", i);
+        }
+    }
 }

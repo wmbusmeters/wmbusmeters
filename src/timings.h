@@ -21,9 +21,7 @@
 // Default select timeout one second.
 #define SELECT_TIMEOUT 1
 
-// Default checkStatus callback frequency every 60 seconds, when an alarmtimeout has been set.
-#define CHECKSTATUS_TIMER 60
-// When running internal tests on timeouts use 2 seconds instead.
-#define CHECKSTATUS_TIMER_INTERNAL_TESTING 2
+// Default checkStatus callback frequency every 2 seconds, when an alarmtimeout has been set.
+#define CHECKSTATUS_TIMER 2
 
 #endif

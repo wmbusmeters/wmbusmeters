@@ -77,6 +77,8 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
 
     void listenTo(SerialDevice *sd, function<void()> cb);
     void onDisappear(SerialDevice *sd, function<void()> cb);
+    void eachEventLooping(function<void()> cb);
+
     void expectDevicesToWork();
     void stop();
     void startEventLoop();
@@ -121,17 +123,18 @@ private:
     pthread_mutex_t devices_lock_ = PTHREAD_MUTEX_INITIALIZER;
     vector<SerialDeviceImp*> devices_;
     vector<Timer> timers_;
-    pthread_mutex_t timers_lock_ = PTHREAD_MUTEX_INITIALIZER;
+//    pthread_mutex_t timers_lock_ = PTHREAD_MUTEX_INITIALIZER;
     bool calling_timers_ {};
-    pthread_mutex_t timer_thread_lock_ = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t timer_thread_lock_ = PTHREAD_MUTEX_INITIALIZER; // Only have one regular callback thread running.
+    function<void()> on_event_looping_;
 };
 
 SerialCommunicationManagerImp::~SerialCommunicationManagerImp()
 {
+    // Stop the loop.
+    stop();
     // Close all managed devices (not yet closed)
     closeAll();
-    // Stop the event loop.
-    stop();
     // Grab the event_loop_lock. This can only be done when the eventLoop has stopped running.
     LOCK("(serial)", "destructor", event_loop_lock_);
     // Now we can be sure the eventLoop has stopped and it is safe to
@@ -723,6 +726,11 @@ void SerialCommunicationManagerImp::onDisappear(SerialDevice *sd, function<void(
     si->on_disappear_ = cb;
 }
 
+void SerialCommunicationManagerImp::eachEventLooping(function<void()> cb)
+{
+    on_event_looping_ = cb;
+}
+
 void SerialCommunicationManagerImp::expectDevicesToWork()
 {
     debug("(serial) expecting devices to work\n");
@@ -770,14 +778,15 @@ void SerialCommunicationManagerImp::waitForStop()
         }
         usleep(1000*1000);
     }
+    debug("(serial) closing %d devices\n", devices_.size());
+    closeAll();
+
     if (signalsInstalled())
     {
         if (select_thread_) pthread_kill(select_thread_, SIGUSR1);
     }
     pthread_join(select_thread_, NULL);
 
-    debug("(serial) closing %d devices\n", devices_.size());
-    closeAll();
 }
 
 bool SerialCommunicationManagerImp::isRunning()
@@ -848,19 +857,28 @@ void SerialCommunicationManagerImp::closeAll()
 void SerialCommunicationManagerImp::executeTimerCallbacks()
 {
     time_t curr = time(NULL);
-    LOCK("(serial)", "executeTimerCallbacks", timers_lock_);
-    vector<Timer> timers_copy = timers_;
-    UNLOCK("(serial)", "executeTimerCallbacks", timers_lock_);
+    vector<Timer> to_be_called;
 
-    for (Timer &t : timers_copy)
+    LOCK("(serial)", "executeTimerCallbacks", devices_lock_);
+
+    for (Timer &t : timers_)
     {
         if (t.isTime(curr))
         {
-            trace("[SERIAL] invoking callback %d %s\n", t.id, t.name.c_str());
+            trace("[SERIAL] timer isTime! %d %s\n", t.id, t.name.c_str());
             t.last_call = curr;
-            t.callback();
+            to_be_called.push_back(t);
         }
     }
+
+    UNLOCK("(serial)", "executeTimerCallbacks", devices_lock_);
+
+    for (Timer &t : to_be_called)
+    {
+        trace("[SERIAL] invoking callback %s(%d)\n", t.name.c_str(), t.id);
+        t.callback();
+    }
+
 }
 
 time_t SerialCommunicationManagerImp::calculateTimeToNearestTimerCallback(time_t now)
@@ -1006,9 +1024,12 @@ void *SerialCommunicationManagerImp::eventLoop()
             }
             else
             {
-                debug("(serial) not starting timer thread since it is already running.\n");
+                trace("(serial) not starting timer thread since it is already running.\n");
             }
         }
+
+        // Invoke callback every event looping....
+        if (on_event_looping_) on_event_looping_();
 
         if (non_working.size() > 0 && expect_devices_to_work_ && resetting_ == false)
         {
@@ -1121,17 +1142,17 @@ SerialCommunicationManager::~SerialCommunicationManager()
 int SerialCommunicationManagerImp::startRegularCallback(string name, int seconds, function<void()> callback)
 {
     Timer t = { (int)timers_.size(), seconds, time(NULL), callback, name };
-    LOCK("(serial)", "startRegularCallback", timers_lock_);
+    LOCK("(serial)", "startRegularCallback", devices_lock_);
     timers_.push_back(t);
-    UNLOCK("(serial)", "startRegularCallback", timers_lock_);
-    debug("(serial) registered regular callback %d %s every %d seconds\n", t.id, name.c_str(), seconds);
+    UNLOCK("(serial)", "startRegularCallback", devices_lock_);
+    debug("(serial) registered regular callback %s(%d) every %d seconds\n", name.c_str(), t.id, seconds);
     return t.id;
 }
 
 void SerialCommunicationManagerImp::stopRegularCallback(int id)
 {
     debug("(serial) stopping regular callback %d\n", id);
-    LOCK("(serial)", "stopRegularCallback", timers_lock_);
+    LOCK("(serial)", "stopRegularCallback", devices_lock_);
     for (auto i = timers_.begin(); i != timers_.end(); ++i)
     {
         if ((*i).id == id)
@@ -1140,7 +1161,7 @@ void SerialCommunicationManagerImp::stopRegularCallback(int id)
             break;
         }
     }
-    UNLOCK("(serial)", "startRegularCallback", timers_lock_);
+    UNLOCK("(serial)", "stopRegularCallback", devices_lock_);
 }
 
 

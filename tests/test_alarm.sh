@@ -12,10 +12,10 @@ echo "RUNNING $TESTNAME ..."
 > /tmp/wmbusmeters_telegram_test
 > /tmp/wmbusmeters_alarm_test
 
-$PROG --useconfig=tests/config7 --device=simulations/simulation_alarm.txt | sed 's/....-..-.. ..:../1111-11-11 11:11/' > $TEST/test_output.txt
+$PROG --useconfig=tests/config7 --device=simulations/simulation_alarm.txt 2> $TEST/test_stderr.txt | sed 's/....-..-..T..:..:..Z/1111-11-11T11:11:11Z/' > $TEST/test_output.txt
 
 cat > $TEST/test_expected.txt <<EOF
-(alarm) inactivity: 2 seconds of inactivity resetting simulations/simulation_alarm.txt DEVICE_SIMULATOR (timeout 1s expected mon-sun(00-23) now 1111-11-11 11:11)
+(alarm) inactivity: 4 seconds of inactivity resetting simulations/simulation_alarm.txt DEVICE_SIMULATOR (timeout 4s expected mon-sun(00-23) now 1111-11-11 11:11)
 (wmbus) successfully reset wmbus device
 EOF
 
@@ -25,16 +25,18 @@ METER =={"media":"cold water","meter":"multical21","name":"Water","id":"76348799
 EOF
 
 cat > /tmp/wmbusmeters_alarm_expected <<EOF
-ALARM_SHELL inactivity 2 seconds of inactivity resetting simulations/simulation_alarm.txt DEVICE_SIMULATOR (timeout 1s expected mon-sun(00-23) now 1111-11-11 11:11)
+ALARM_SHELL inactivity 4 seconds of inactivity resetting simulations/simulation_alarm.txt DEVICE_SIMULATOR (timeout 4s expected mon-sun(00-23) now 1111-11-11 11:11)
 EOF
 
-REST=$(diff $TEST/test_output.txt $TEST/test_expected.txt)
+cat $TEST/test_stderr.txt | sed 's/now ....-..-.. ..:../now 1111-11-11 11:11/' > $TEST/test_responses.txt
+
+REST=$(diff $TEST/test_responses.txt $TEST/test_expected.txt)
 
 if [ ! -z "$REST" ]
 then
-    echo ERROR STDOUT: $TESTNAME
+    echo ERROR STDERR: $TESTNAME
     echo -----------------
-    diff $TEST/test_output.txt $TEST/test_expected.txt
+    diff $TEST/test_responses.txt $TEST/test_expected.txt
     echo -----------------
     TESTRESULT="ERROR"
 fi
