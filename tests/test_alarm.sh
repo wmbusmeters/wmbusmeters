@@ -12,13 +12,17 @@ echo "RUNNING $TESTNAME ..."
 > /tmp/wmbusmeters_telegram_test
 > /tmp/wmbusmeters_alarm_test
 
-echo "$PROG --useconfig=tests/config7 --device=simulations/simulation_alarm.txt 2> $TEST/test_stderr.txt | sed 's/....-..-..T..:..:..Z/1111-11-11T11:11:11Z/' > $TEST/test_output.txt"
-
-ls -l simulations/simulation_alarm.txt
-
 $PROG --useconfig=tests/config7 --device=simulations/simulation_alarm.txt 2> $TEST/test_stderr.txt | sed 's/....-..-..T..:..:..Z/1111-11-11T11:11:11Z/' > $TEST/test_output.txt
 
-echo "DONE $PROG"
+echo "STDERR---------------------------------"
+cat $TEST/test_stderr.txt
+echo "STDOUT---------------------------------"
+cat $TEST/test_output.txt
+echo "TMP/OUTPUT-----------------------------"
+cat /tmp/wmbusmeters_telegram_test
+echo "TMP/ALARM------------------------------"
+cat /tmp/wmbusmeters_alarm_test
+echo "---------------------------------------"
 
 cat > $TEST/test_expected.txt <<EOF
 (alarm) inactivity: 4 seconds of inactivity resetting simulations/simulation_alarm.txt DEVICE_SIMULATOR (timeout 4s expected mon-sun(00-23) now 1111-11-11 11:11)

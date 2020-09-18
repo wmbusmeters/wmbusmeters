@@ -20,7 +20,6 @@
 # make DEBUG=true
 # make DEBUG=true HOST=arm
 
-DEBUG:=true
 DESTDIR?=/
 
 ifeq "$(HOST)" "arm"
@@ -223,10 +222,10 @@ gcov:
 	$(GCOV) -o build_debug $(METER_OBJS)
 	mv *.gcov build_debug
 
-testd:
+test:
 	@./test.sh build/wmbusmeters
 
-test:
+testd:
 	@./test.sh build_debug/wmbusmeters
 
 update_manufacturers:
