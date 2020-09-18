@@ -83,7 +83,8 @@ private:
     SerialCommunicationManager *manager_ {};
     LinkModeSet link_modes_ {};
     vector<uchar> read_buffer_;
-    pthread_mutex_t serial_lock_ = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t wmb13u_serial_lock_ = PTHREAD_MUTEX_INITIALIZER;
+    const char *wmb13u_serial_lock_who_ = "";
 
     FrameStatus checkWMB13UFrame(vector<uchar> &data,
                                  size_t *frame_length,
@@ -199,11 +200,11 @@ void WMBusWMB13U::processSerialData()
 
     // Try to get the serial lock, if not possible, then we
     // are in config mode. Stop this processing.
-    if (pthread_mutex_trylock(&serial_lock_) != 0) return;
+    if (pthread_mutex_trylock(&wmb13u_serial_lock_) != 0) return;
     // Receive and accumulated serial data until a full frame has been received.
     serial()->receive(&data);
     // Unlock the serial lock.
-    UNLOCK("(wmb13u)", "processSerialData", serial_lock_);
+    UNLOCK("(wmb13u)", "processSerialData", wmb13u_serial_lock_);
 
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
@@ -245,7 +246,7 @@ void WMBusWMB13U::processSerialData()
 
 bool WMBusWMB13U::enterConfigModee()
 {
-    LOCK("(wmb13u)", "enterConfigMode", serial_lock_);
+    LOCK("(wmb13u)", "enterConfigMode", wmb13u_serial_lock_);
 
     vector<uchar> data;
 
@@ -273,7 +274,7 @@ bool WMBusWMB13U::enterConfigModee()
 
 fail:
 
-    UNLOCK("(wmb13u)", "enterConfigMode", serial_lock_);
+    UNLOCK("(wmb13u)", "enterConfigMode", wmb13u_serial_lock_);
     return false;
 }
 
@@ -292,7 +293,7 @@ bool WMBusWMB13U::exitConfigModee()
     serial()->receive(&data);
 
     // Always unlock....
-    UNLOCK("(wmb13u)", "exitConfigMode", serial_lock_);
+    UNLOCK("(wmb13u)", "exitConfigMode", wmb13u_serial_lock_);
 
     if (!startsWith("OK", data)) return false;
 

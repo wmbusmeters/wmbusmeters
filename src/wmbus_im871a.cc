@@ -68,7 +68,8 @@ struct WMBusIM871A : public virtual WMBusCommonImplementation
 private:
 
     vector<uchar> read_buffer_;
-    pthread_mutex_t command_lock_ = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t im871a_command_lock_ = PTHREAD_MUTEX_INITIALIZER;
+    const char *im871a_command_lock_who_ = "";
     sem_t command_wait_;
     int sent_command_ {};
     int received_command_ {};
@@ -111,7 +112,7 @@ bool WMBusIM871A::ping()
 {
     if (serial()->readonly()) return true; // Feeding from stdin or file.
 
-    LOCK("(im871)", "ping", command_lock_);
+    LOCK("(im871)", "ping", im871a_command_lock_);
 
     vector<uchar> msg(4);
     msg[0] = IM871A_SERIAL_SOF;
@@ -125,7 +126,7 @@ bool WMBusIM871A::ping()
 
     if (sent) waitForResponse();
 
-    UNLOCK("(im871)", "ping", command_lock_);
+    UNLOCK("(im871)", "ping", im871a_command_lock_);
     return true;
 }
 
@@ -133,7 +134,7 @@ uint32_t WMBusIM871A::getDeviceId()
 {
     if (serial()->readonly()) return 0; // Feeding from stdin or file.
 
-    LOCK("(im871)", "getDeviceId", command_lock_);
+    LOCK("(im871)", "getDeviceId", im871a_command_lock_);
 
     vector<uchar> msg(4);
     msg[0] = IM871A_SERIAL_SOF;
@@ -168,7 +169,7 @@ uint32_t WMBusIM871A::getDeviceId()
         id = 0;
     }
 
-    UNLOCK("(im871)", "getDeviceId", command_lock_);
+    UNLOCK("(im871)", "getDeviceId", im871a_command_lock_);
     return id;
 }
 
@@ -176,7 +177,7 @@ LinkModeSet WMBusIM871A::getLinkModes()
 {
     if (serial()->readonly()) { return Any_bit; }  // Feeding from stdin or file.
 
-    LOCK("(im871)", "getLinkModes", command_lock_);
+    LOCK("(im871)", "getLinkModes", im871a_command_lock_);
 
     vector<uchar> msg(4);
     msg[0] = IM871A_SERIAL_SOF;
@@ -191,7 +192,7 @@ LinkModeSet WMBusIM871A::getLinkModes()
     {
         // If we are using a serial override that will not respond,
         // then just return a value.
-        UNLOCK("(im871)", "getLinkModes", command_lock_);
+        UNLOCK("(im871)", "getLinkModes", im871a_command_lock_);
         // Use the remembered link modes set before.
         return protectedGetLinkModes();
     }
@@ -323,7 +324,7 @@ LinkModeSet WMBusIM871A::getLinkModes()
         }
     }
 
-    UNLOCK("(im871)", "getLinkModes", command_lock_);
+    UNLOCK("(im871)", "getLinkModes", im871a_command_lock_);
 
     LinkModeSet lms;
     lms.addLinkMode(lm);
@@ -348,7 +349,7 @@ void WMBusIM871A::deviceSetLinkModes(LinkModeSet lms)
         error("(im871a) setting link mode(s) %s is not supported for im871a\n", modes.c_str());
     }
 
-    LOCK("(im871)", "deviceSetLinkModes", command_lock_);
+    LOCK("(im871)", "deviceSetLinkModes", im871a_command_lock_);
 
     vector<uchar> msg(10);
     msg[0] = IM871A_SERIAL_SOF;
@@ -390,7 +391,7 @@ void WMBusIM871A::deviceSetLinkModes(LinkModeSet lms)
 
     if (sent) waitForResponse();
 
-    UNLOCK("(im871)", "deviceSetLinkModes", command_lock_);
+    UNLOCK("(im871)", "deviceSetLinkModes", im871a_command_lock_);
 }
 
 void WMBusIM871A::waitForResponse()

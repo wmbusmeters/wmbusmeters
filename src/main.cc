@@ -69,7 +69,8 @@ unique_ptr<MeterManager> meter_manager_;
 // Current active set of wmbus devices that can receive telegrams.
 // This can change during runtime, plugging/unplugging wmbus dongles.
 vector<unique_ptr<WMBus>> wmbus_devices_;
-pthread_mutex_t devices_lock_ = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t wmbus_devices_lock_ = PTHREAD_MUTEX_INITIALIZER;
+const char *wmbus_devices_lock_who_ = "";
 
 // Remember devices that were not detected as wmbus devices.
 // To avoid probing them again and again.
@@ -500,23 +501,27 @@ void remove_lost_swradio_devices_from_ignore_list(vector<string> &devices)
 
 void check_statuses()
 {
-    LOCK("(main)", "check_statuses", devices_lock_);
-    vector<WMBus*> not_working;
-    for (auto &w : wmbus_devices_)
+    int rc = pthread_mutex_trylock(&wmbus_devices_lock_);
+    if (rc == 0)
     {
-        if (w->isWorking())
+        trace("[TRYLOCKED] wmbus_devices_lock_ check_statuses\n");
+        vector<WMBus*> not_working;
+        for (auto &w : wmbus_devices_)
         {
-            w->checkStatus();
+            if (w->isWorking())
+            {
+                w->checkStatus();
+            }
         }
+        UNLOCK("(main)", "check_statuses", wmbus_devices_lock_);
     }
-    UNLOCK("(main)", "check_statuses", devices_lock_);
 }
 
 void check_for_dead_wmbus_devices(Configuration *config)
 {
     trace("[MAIN] checking for dead wmbus devices...\n");
 
-    LOCK("(main)", "check_for_dead_wmbus_devices", devices_lock_);
+    LOCK("(main)", "check_for_dead_wmbus_devices", wmbus_devices_lock_);
     vector<WMBus*> not_working;
     for (auto &w : wmbus_devices_)
     {
@@ -559,7 +564,7 @@ void check_for_dead_wmbus_devices(Configuration *config)
         printed_warning_ = false;
     }
 
-    UNLOCK("(main)", "check_for_dead_wmbus_devices", devices_lock_);
+    UNLOCK("(main)", "check_for_dead_wmbus_devices", wmbus_devices_lock_);
 }
 
 void open_wmbus_device(Configuration *config, string how, string device, Detected *detected)
@@ -567,28 +572,29 @@ void open_wmbus_device(Configuration *config, string how, string device, Detecte
     // A newly plugged in device has been manually configured or automatically detected! Start using it!
     if (config->use_auto_detect)
     {
-        notice("Configure %s on %s\n", how.c_str(), toString(detected->type), device.c_str());
+        notice("Started %s on %s (%s)\n", toString(detected->type), device.c_str(), how.c_str());
     }
     else
     {
-        verbose("(main) %s %s on %s\n", how.c_str(), toString(detected->type), device.c_str());
+        verbose("(main) started %s on %s (%s)\n", toString(detected->type), device.c_str(), how.c_str());
     }
-    LOCK("(main)", "perform_auto_scan_of_devices", devices_lock_);
+    LOCK("(main)", "perform_auto_scan_of_devices", wmbus_devices_lock_);
     unique_ptr<WMBus> w = createWMBusDeviceFrom(detected, config, serial_manager_.get());
     wmbus_devices_.push_back(std::move(w));
     WMBus *wmbus = wmbus_devices_.back().get();
     wmbus->setLinkModes(config->listen_to_link_modes);
     //string using_link_modes = wmbus->getLinkModes().hr();
     //verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
-    bool simulated = detected->type == WMBusDeviceType::DEVICE_SIMULATOR;
-    wmbus->onTelegram([&, simulated](vector<uchar> data){return meter_manager_->handleTelegram(data, simulated);});
-    wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
+    bool simulated = false;
     if (detected->type == DEVICE_SIMULATOR)
     {
+        simulated = true;
         debug("(main) added %s to files\n", detected->device.file.c_str());
         simulation_files_.insert(detected->device.file);
     }
-    UNLOCK("(main)", "perform_auto_scan_of_devices", devices_lock_);
+    wmbus->onTelegram([&, simulated](vector<uchar> data){return meter_manager_->handleTelegram(data, simulated);});
+    wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
+    UNLOCK("(main)", "perform_auto_scan_of_devices", wmbus_devices_lock_);
 }
 
 void perform_auto_scan_of_serial_devices(Configuration *config)
@@ -623,7 +629,7 @@ void perform_auto_scan_of_serial_devices(Configuration *config)
             }
             else
             {
-                open_wmbus_device(config, "during auto scan", device, &detected);
+                open_wmbus_device(config, "auto", device, &detected);
             }
         }
     }
@@ -661,7 +667,7 @@ void perform_auto_scan_of_swradio_devices(Configuration *config)
             else
             {
                 detected.device.file = device;
-                open_wmbus_device(config, "during auto scan", device, &detected);
+                open_wmbus_device(config, "auto", device, &detected);
             }
         }
     }
@@ -704,7 +710,7 @@ void detectAndConfigureWMBusDevices(Configuration *config)
                     // Only read stdin and files once!
                     do_not_open_file_again_.insert(device.file);
                 }
-                open_wmbus_device(config, "using manual setting", device.str(), &detected);
+                open_wmbus_device(config, "config", device.str(), &detected);
             }
         }
         else

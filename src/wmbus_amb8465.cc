@@ -72,7 +72,8 @@ struct WMBusAmber : public virtual WMBusCommonImplementation
 
 private:
     vector<uchar> read_buffer_;
-    pthread_mutex_t command_lock_ = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_t amb8465_command_lock_ = PTHREAD_MUTEX_INITIALIZER;
+    const char *amb8465_command_lock_who_ = "";
     sem_t command_wait_ {};
     int sent_command_ {};
     int received_command_ {};
@@ -132,9 +133,9 @@ bool WMBusAmber::ping()
 {
     if (serial()->readonly()) return true; // Feeding from stdin or file.
 
-    LOCK("(amb8465)", "ping", command_lock_);
+    LOCK("(amb8465)", "ping", amb8465_command_lock_);
     // Ping it...
-    UNLOCK("(amb8465)", "ping", command_lock_);
+    UNLOCK("(amb8465)", "ping", amb8465_command_lock_);
 
     return true;
 }
@@ -143,7 +144,7 @@ uint32_t WMBusAmber::getDeviceId()
 {
     if (serial()->readonly()) { return 0; }  // Feeding from stdin or file.
 
-    LOCK("(amb8465)", "getDeviceId", command_lock_);
+    LOCK("(amb8465)", "getDeviceId", amb8465_command_lock_);
 
     vector<uchar> msg(4);
     msg[0] = AMBER_SERIAL_SOF;
@@ -173,7 +174,7 @@ uint32_t WMBusAmber::getDeviceId()
         }
     }
 
-    UNLOCK("(amb8465)", "getDeviceId", command_lock_);
+    UNLOCK("(amb8465)", "getDeviceId", amb8465_command_lock_);
     return id;
 }
 
@@ -191,7 +192,7 @@ void WMBusAmber::getConfiguration()
 {
     if (serial()->readonly()) { return; }  // Feeding from stdin or file.
 
-    LOCK("(amb8465)", "getConfiguration", command_lock_);
+    LOCK("(amb8465)", "getConfiguration", amb8465_command_lock_);
 
     vector<uchar> msg(6);
     msg[0] = AMBER_SERIAL_SOF;
@@ -208,7 +209,7 @@ void WMBusAmber::getConfiguration()
 
     if (!sent)
     {
-        UNLOCK("(amb8465)", "getConfiguration", command_lock_);
+        UNLOCK("(amb8465)", "getConfiguration", amb8465_command_lock_);
         return;
     }
 
@@ -234,7 +235,7 @@ void WMBusAmber::getConfiguration()
         verbose("(amb8465) config: mode Preselect %02x\n", received_payload_[70+2]);
     }
 
-    UNLOCK("(amb8465)", "getConfiguration", command_lock_);
+    UNLOCK("(amb8465)", "getConfiguration", amb8465_command_lock_);
 }
 
 void WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
@@ -247,7 +248,7 @@ void WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
         error("(amb8465) setting link mode(s) %s is not supported for amb8465\n", modes.c_str());
     }
 
-    LOCK("(amb8465)", "deviceSetLinkModes", command_lock_);
+    LOCK("(amb8465)", "deviceSetLinkModes", amb8465_command_lock_);
 
     vector<uchar> msg(8);
     msg[0] = AMBER_SERIAL_SOF;
@@ -282,7 +283,7 @@ void WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
     if (sent) waitForResponse();
 
     link_modes_ = lms;
-    UNLOCK("(amb8465)", "deviceSetLinkModes", command_lock_);
+    UNLOCK("(amb8465)", "deviceSetLinkModes", amb8465_command_lock_);
 }
 
 void WMBusAmber::waitForResponse()

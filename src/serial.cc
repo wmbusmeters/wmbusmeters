@@ -120,12 +120,15 @@ private:
     time_t reopen_after_seconds_ {};
 
     pthread_mutex_t event_loop_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    pthread_mutex_t devices_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    vector<SerialDeviceImp*> devices_;
+    const char *event_loop_lock_who_ = "";
+    pthread_mutex_t serial_devices_lock_ = PTHREAD_MUTEX_INITIALIZER;
+    const char *serial_devices_lock_who_ = "";
+    vector<SerialDeviceImp*> serial_devices_;
     vector<Timer> timers_;
 //    pthread_mutex_t timers_lock_ = PTHREAD_MUTEX_INITIALIZER;
     bool calling_timers_ {};
     pthread_mutex_t timer_thread_lock_ = PTHREAD_MUTEX_INITIALIZER; // Only have one regular callback thread running.
+    const char *timer_thread_lock_who_ = "";
     function<void()> on_event_looping_;
 };
 
@@ -159,7 +162,9 @@ struct SerialDeviceImp : public SerialDevice
 protected:
 
     pthread_mutex_t read_lock_ = PTHREAD_MUTEX_INITIALIZER;
+    const char *read_lock_who_ = "";
     pthread_mutex_t write_lock_ = PTHREAD_MUTEX_INITIALIZER;
+    const char *write_lock_who_ = "";
     function<void()> on_data_;
     function<void()> on_disappear_;
     int fd_ = -1;
@@ -769,17 +774,20 @@ void SerialCommunicationManagerImp::waitForStop()
     main_thread_ = pthread_self();
     while (running_)
     {
-        LOCK("(serial)", "waitForStop", devices_lock_);
-        size_t s = devices_.size();
-        UNLOCK("(serial)", "waitForStop", devices_lock_);
+        LOCK("(serial)", "waitForStop", serial_devices_lock_);
+        size_t s = serial_devices_.size();
+        UNLOCK("(serial)", "waitForStop", serial_devices_lock_);
 
         if (s == 0) {
             break;
         }
         usleep(1000*1000);
     }
-    debug("(serial) closing %d devices\n", devices_.size());
-    closeAll();
+    if (serial_devices_.size() > 0)
+    {
+        debug("(serial) closing %d devices\n", serial_devices_.size());
+        closeAll();
+    }
 
     if (signalsInstalled())
     {
@@ -801,46 +809,46 @@ void SerialCommunicationManagerImp::setReopenAfter(int seconds)
 
 void SerialCommunicationManagerImp::opened(SerialDeviceImp *sd)
 {
-    LOCK("(serial)", "opened", devices_lock_);
+    LOCK("(serial)", "opened", serial_devices_lock_);
     max_fd_ = max(sd->fd(), max_fd_);
-    devices_.push_back(sd);
+    serial_devices_.push_back(sd);
     if (signalsInstalled())
     {
         if (select_thread_) pthread_kill(select_thread_, SIGUSR1);
     }
-    UNLOCK("(serial)", "opened", devices_lock_);
+    UNLOCK("(serial)", "opened", serial_devices_lock_);
 }
 
 void SerialCommunicationManagerImp::closed(SerialDeviceImp *sd)
 {
-    LOCK("(serial)", "closed", devices_lock_);
-    auto p = find(devices_.begin(), devices_.end(), sd);
-    if (p != devices_.end())
+    LOCK("(serial)", "closed", serial_devices_lock_);
+    auto p = find(serial_devices_.begin(), serial_devices_.end(), sd);
+    if (p != serial_devices_.end())
     {
-        devices_.erase(p);
+        serial_devices_.erase(p);
     }
     max_fd_ = 0;
-    for (SerialDevice *d : devices_)
+    for (SerialDevice *d : serial_devices_)
     {
         if (d->fd() > max_fd_)
         {
             max_fd_ = d->fd();
         }
     }
-    if (devices_.size() == 0 && expect_devices_to_work_ && resetting_ == false)
+    if (serial_devices_.size() == 0 && expect_devices_to_work_ && resetting_ == false)
     {
         debug("(serial) no devices working emergency exit!\n");
         stop();
     }
-    UNLOCK("(serial)", "opened", devices_lock_);
+    UNLOCK("(serial)", "opened", serial_devices_lock_);
 }
 
 void SerialCommunicationManagerImp::closeAll()
 {
-    LOCK("(serial)", "closeAll", devices_lock_);
-    vector<SerialDeviceImp*> copy = devices_;
-    devices_.clear();
-    UNLOCK("(serial)", "closeAll", devices_lock_);
+    LOCK("(serial)", "closeAll", serial_devices_lock_);
+    vector<SerialDeviceImp*> copy = serial_devices_;
+    serial_devices_.clear();
+    UNLOCK("(serial)", "closeAll", serial_devices_lock_);
 
     for (SerialDeviceImp *d : copy)
     {
@@ -859,7 +867,7 @@ void SerialCommunicationManagerImp::executeTimerCallbacks()
     time_t curr = time(NULL);
     vector<Timer> to_be_called;
 
-    LOCK("(serial)", "executeTimerCallbacks", devices_lock_);
+    LOCK("(serial)", "executeTimerCallbacks", serial_devices_lock_);
 
     for (Timer &t : timers_)
     {
@@ -871,7 +879,7 @@ void SerialCommunicationManagerImp::executeTimerCallbacks()
         }
     }
 
-    UNLOCK("(serial)", "executeTimerCallbacks", devices_lock_);
+    UNLOCK("(serial)", "executeTimerCallbacks", serial_devices_lock_);
 
     for (Timer &t : to_be_called)
     {
@@ -908,8 +916,8 @@ void *SerialCommunicationManagerImp::eventLoop()
         FD_ZERO(&readfds);
 
         bool all_working = true;
-        LOCK("(serial)", "opened", devices_lock_);
-        for (SerialDevice *d : devices_)
+        LOCK("(serial)", "opened", serial_devices_lock_);
+        for (SerialDevice *d : serial_devices_)
         {
             if (!d->skippingCallbacks())
             {
@@ -918,7 +926,7 @@ void *SerialCommunicationManagerImp::eventLoop()
             }
             if (!d->working()) all_working = false;
         }
-        UNLOCK("(serial)", "opened", devices_lock_);
+        UNLOCK("(serial)", "opened", serial_devices_lock_);
 
         if (!all_working && expect_devices_to_work_ && resetting_ == false)
         {
@@ -946,13 +954,13 @@ void *SerialCommunicationManagerImp::eventLoop()
         trace("[SERIAL] select timeout %d s\n", timeout.tv_sec);
 
         bool num_devices = 0;
-        LOCK("(serial)", "eventLoop2", devices_lock_);
-        for (SerialDevice *d : devices_)
+        LOCK("(serial)", "eventLoop2", serial_devices_lock_);
+        for (SerialDevice *d : serial_devices_)
         {
             d->checkIfShouldReopen();
         }
-        num_devices = devices_.size();
-        UNLOCK("(serial)", "eventLoop2", devices_lock_);
+        num_devices = serial_devices_.size();
+        UNLOCK("(serial)", "eventLoop2", serial_devices_lock_);
 
         if (num_devices == 0 && expect_devices_to_work_ && resetting_ == false)
         {
@@ -967,12 +975,13 @@ void *SerialCommunicationManagerImp::eventLoop()
         {
             warning("(serial) internal error after select! errno=%s\n", strerror(errno));
         }
+
         if (activity > 0)
         {
             // Something has happened that caused the sleeping select to wake up.
             vector<SerialDeviceImp*> to_be_notified;
-            LOCK("(serial)", "eventLoop3", devices_lock_);
-            for (SerialDevice *d : devices_)
+            LOCK("(serial)", "eventLoop3", serial_devices_lock_);
+            for (SerialDevice *d : serial_devices_)
             {
                 if (FD_ISSET(d->fd(), &readfds))
                 {
@@ -980,7 +989,7 @@ void *SerialCommunicationManagerImp::eventLoop()
                     to_be_notified.push_back(si);
                 }
             }
-            UNLOCK("(serial)", "eventLoop3", devices_lock_);
+            UNLOCK("(serial)", "eventLoop3", serial_devices_lock_);
 
             for (SerialDeviceImp *si : to_be_notified)
             {
@@ -992,12 +1001,12 @@ void *SerialCommunicationManagerImp::eventLoop()
         }
         vector<SerialDeviceImp*> non_working;
 
-        LOCK("(serial)", "eventLoop4", devices_lock_);
-        for (SerialDeviceImp *d : devices_)
+        LOCK("(serial)", "eventLoop4", serial_devices_lock_);
+        for (SerialDeviceImp *d : serial_devices_)
         {
             if (!d->working()) non_working.push_back(d);
         }
-        UNLOCK("(serial)", "eventLoop4", devices_lock_);
+        UNLOCK("(serial)", "eventLoop4", serial_devices_lock_);
 
         for (SerialDeviceImp *d : non_working)
         {
@@ -1142,9 +1151,9 @@ SerialCommunicationManager::~SerialCommunicationManager()
 int SerialCommunicationManagerImp::startRegularCallback(string name, int seconds, function<void()> callback)
 {
     Timer t = { (int)timers_.size(), seconds, time(NULL), callback, name };
-    LOCK("(serial)", "startRegularCallback", devices_lock_);
+    LOCK("(serial)", "startRegularCallback", serial_devices_lock_);
     timers_.push_back(t);
-    UNLOCK("(serial)", "startRegularCallback", devices_lock_);
+    UNLOCK("(serial)", "startRegularCallback", serial_devices_lock_);
     debug("(serial) registered regular callback %s(%d) every %d seconds\n", name.c_str(), t.id, seconds);
     return t.id;
 }
@@ -1152,7 +1161,7 @@ int SerialCommunicationManagerImp::startRegularCallback(string name, int seconds
 void SerialCommunicationManagerImp::stopRegularCallback(int id)
 {
     debug("(serial) stopping regular callback %d\n", id);
-    LOCK("(serial)", "stopRegularCallback", devices_lock_);
+    LOCK("(serial)", "stopRegularCallback", serial_devices_lock_);
     for (auto i = timers_.begin(); i != timers_.end(); ++i)
     {
         if ((*i).id == id)
@@ -1161,13 +1170,13 @@ void SerialCommunicationManagerImp::stopRegularCallback(int id)
             break;
         }
     }
-    UNLOCK("(serial)", "stopRegularCallback", devices_lock_);
+    UNLOCK("(serial)", "stopRegularCallback", serial_devices_lock_);
 }
 
 
 SerialDevice *SerialCommunicationManagerImp::lookup(string device)
 {
-    for (auto sd : devices_)
+    for (auto sd : serial_devices_)
     {
         if (sd->device() == device) return sd;
     }
