@@ -3,6 +3,12 @@
 PROG="$1"
 TESTINTERNAL=$(dirname $PROG)/testinternals
 
+if [ ! -x $PROG ]
+then
+    echo No such executable \"$PROG\"
+    exit 1
+fi
+
 $TESTINTERNAL
 if [ "$?" = "0" ]; then
     echo OK: test internals
