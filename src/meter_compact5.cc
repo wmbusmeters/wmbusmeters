@@ -40,9 +40,9 @@ struct MeterCompact5 : public virtual HeatMeter, public virtual MeterCommonImple
     double prev_energy_kwh_ {};
 };
 
-unique_ptr<HeatMeter> createCompact5(MeterInfo &mi)
+shared_ptr<HeatMeter> createCompact5(MeterInfo &mi)
 {
-    return unique_ptr<HeatMeter>(new MeterCompact5(mi));
+    return shared_ptr<HeatMeter>(new MeterCompact5(mi));
 }
 
 MeterCompact5::MeterCompact5(MeterInfo &mi) :

@@ -98,9 +98,9 @@ MeterQCaloric::MeterQCaloric(MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<HeatCostMeter> createQCaloric(MeterInfo &mi)
+shared_ptr<HeatCostMeter> createQCaloric(MeterInfo &mi)
 {
-    return unique_ptr<HeatCostMeter>(new MeterQCaloric(mi));
+    return shared_ptr<HeatCostMeter>(new MeterQCaloric(mi));
 }
 
 double MeterQCaloric::currentConsumption(Unit u)

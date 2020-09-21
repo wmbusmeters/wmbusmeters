@@ -237,7 +237,7 @@ struct Meter
 
 struct MeterManager
 {
-    virtual void addMeter(unique_ptr<Meter> meter) = 0;
+    virtual void addMeter(shared_ptr<Meter> meter) = 0;
     virtual Meter*lastAddedMeter() = 0;
     virtual void removeAllMeters() = 0;
     virtual void forEachMeter(std::function<void(Meter*)> cb) = 0;
@@ -248,7 +248,7 @@ struct MeterManager
     virtual ~MeterManager() = default;
 };
 
-unique_ptr<MeterManager> createMeterManager();
+shared_ptr<MeterManager> createMeterManager();
 
 struct WaterMeter : public virtual Meter
 {
@@ -338,39 +338,39 @@ string toMeterName(MeterType mt);
 MeterType toMeterType(string& type);
 LinkModeSet toMeterLinkModeSet(string& type);
 
-unique_ptr<WaterMeter> createMultical21(MeterInfo &m);
-unique_ptr<WaterMeter> createFlowIQ3100(MeterInfo &m);
-unique_ptr<HeatMeter> createMultical302(MeterInfo &m);
-unique_ptr<HeatMeter> createMultical403(MeterInfo &m);
-unique_ptr<HeatMeter> createVario451(MeterInfo &m);
-unique_ptr<WaterMeter> createWaterstarM(MeterInfo &m);
-unique_ptr<HeatMeter> createCompact5(MeterInfo &m);
-unique_ptr<ElectricityMeter> createOmnipower(MeterInfo &m);
-unique_ptr<ElectricityMeter> createAmiplus(MeterInfo &m);
-unique_ptr<WaterMeter> createSupercom587(MeterInfo &m);
-unique_ptr<WaterMeter> createMKRadio3(MeterInfo &m);
-unique_ptr<WaterMeter> createApator08(MeterInfo &m);
-unique_ptr<WaterMeter> createApator162(MeterInfo &m);
-unique_ptr<WaterMeter> createIperl(MeterInfo &m);
-unique_ptr<WaterMeter> createHydrus(MeterInfo &m);
-unique_ptr<WaterMeter> createHydrodigit(MeterInfo &m);
-unique_ptr<WaterMeter> createIzar(MeterInfo &m);
-unique_ptr<WaterMeter> createIzar3(MeterInfo &m);
-unique_ptr<WaterMeter> createQ400(MeterInfo &m);
-unique_ptr<HeatCostMeter> createQCaloric(MeterInfo &m);
-unique_ptr<HeatCostMeter> createEurisII(MeterInfo &m);
-unique_ptr<HeatCostMeter> createFHKVDataIII(MeterInfo &m);
-unique_ptr<TempHygroMeter> createLansenTH(MeterInfo &m);
-unique_ptr<SmokeDetector> createLansenSM(MeterInfo &m);
-unique_ptr<PulseCounter> createLansenPU(MeterInfo &m);
-unique_ptr<DoorWindowDetector> createLansenDW(MeterInfo &m);
-unique_ptr<TempHygroMeter> createCMa12w(MeterInfo &m);
-unique_ptr<TempHygroMeter> createRfmAmb(MeterInfo &m);
-unique_ptr<WaterMeter> createRfmTX1(MeterInfo &m);
-unique_ptr<ElectricityMeter> createEHZP(MeterInfo &m);
-unique_ptr<ElectricityMeter> createESYSWM(MeterInfo &m);
-unique_ptr<ElectricityMeter> createEBZWMBE(MeterInfo &m);
-unique_ptr<WaterMeter> createTopasEsKr(MeterInfo &m);
+shared_ptr<WaterMeter> createMultical21(MeterInfo &m);
+shared_ptr<WaterMeter> createFlowIQ3100(MeterInfo &m);
+shared_ptr<HeatMeter> createMultical302(MeterInfo &m);
+shared_ptr<HeatMeter> createMultical403(MeterInfo &m);
+shared_ptr<HeatMeter> createVario451(MeterInfo &m);
+shared_ptr<WaterMeter> createWaterstarM(MeterInfo &m);
+shared_ptr<HeatMeter> createCompact5(MeterInfo &m);
+shared_ptr<ElectricityMeter> createOmnipower(MeterInfo &m);
+shared_ptr<ElectricityMeter> createAmiplus(MeterInfo &m);
+shared_ptr<WaterMeter> createSupercom587(MeterInfo &m);
+shared_ptr<WaterMeter> createMKRadio3(MeterInfo &m);
+shared_ptr<WaterMeter> createApator08(MeterInfo &m);
+shared_ptr<WaterMeter> createApator162(MeterInfo &m);
+shared_ptr<WaterMeter> createIperl(MeterInfo &m);
+shared_ptr<WaterMeter> createHydrus(MeterInfo &m);
+shared_ptr<WaterMeter> createHydrodigit(MeterInfo &m);
+shared_ptr<WaterMeter> createIzar(MeterInfo &m);
+shared_ptr<WaterMeter> createIzar3(MeterInfo &m);
+shared_ptr<WaterMeter> createQ400(MeterInfo &m);
+shared_ptr<HeatCostMeter> createQCaloric(MeterInfo &m);
+shared_ptr<HeatCostMeter> createEurisII(MeterInfo &m);
+shared_ptr<HeatCostMeter> createFHKVDataIII(MeterInfo &m);
+shared_ptr<TempHygroMeter> createLansenTH(MeterInfo &m);
+shared_ptr<SmokeDetector> createLansenSM(MeterInfo &m);
+shared_ptr<PulseCounter> createLansenPU(MeterInfo &m);
+shared_ptr<DoorWindowDetector> createLansenDW(MeterInfo &m);
+shared_ptr<TempHygroMeter> createCMa12w(MeterInfo &m);
+shared_ptr<TempHygroMeter> createRfmAmb(MeterInfo &m);
+shared_ptr<WaterMeter> createRfmTX1(MeterInfo &m);
+shared_ptr<ElectricityMeter> createEHZP(MeterInfo &m);
+shared_ptr<ElectricityMeter> createESYSWM(MeterInfo &m);
+shared_ptr<ElectricityMeter> createEBZWMBE(MeterInfo &m);
+shared_ptr<WaterMeter> createTopasEsKr(MeterInfo &m);
 GenericMeter *createGeneric(MeterInfo &m);
 
 #endif

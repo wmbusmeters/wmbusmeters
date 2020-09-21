@@ -38,9 +38,9 @@ private:
     string meter_datetime_;
 };
 
-unique_ptr<WaterMeter> createRfmTX1(MeterInfo &mi)
+shared_ptr<WaterMeter> createRfmTX1(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterRfmTX1(mi));
+    return shared_ptr<WaterMeter>(new MeterRfmTX1(mi));
 }
 
 MeterRfmTX1::MeterRfmTX1(MeterInfo &mi) :

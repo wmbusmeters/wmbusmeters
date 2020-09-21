@@ -26,6 +26,6 @@
 
 using namespace std;
 
-unique_ptr<Configuration> parseCommandLine(int argc, char **argv);
+shared_ptr<Configuration> parseCommandLine(int argc, char **argv);
 
 #endif

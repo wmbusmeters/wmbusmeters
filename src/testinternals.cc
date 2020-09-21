@@ -31,6 +31,7 @@ using namespace std;
 
 int test_crc();
 int test_dvparser();
+int test_test();
 int test_linkmodes();
 void test_ids();
 void test_kdf();
@@ -40,18 +41,27 @@ void test_devices();
 int main(int argc, char **argv)
 {
     if (argc > 1) {
-        // Supply --debug (oh well, anything works) to enable debug mode.
-        debugEnabled(true);
+        if (!strcmp(argv[1], "--debug"))
+        {
+            debugEnabled(true);
+        }
+        if (!strcmp(argv[1], "--trace"))
+        {
+            debugEnabled(true);
+            traceEnabled(true);
+        }
     }
     onExit([](){});
 
     test_crc();
     test_dvparser();
+    test_test();
+    /*
     test_linkmodes();
     test_ids();
     test_kdf();
     test_periods();
-    test_devices();
+    test_devices();*/
     return 0;
 }
 
@@ -203,6 +213,17 @@ int test_dvparser()
     return 0;
 }
 
+int test_test()
+{
+    shared_ptr<SerialCommunicationManager> manager = createSerialCommunicationManager(0, 0, false);
+
+    shared_ptr<SerialDevice> serial1 = manager->createSerialDeviceSimulator();
+
+    /*
+    shared_ptr<WMBus> wmbus_im871a = openIM871A("", manager, serial1);
+    manager->stop();*/
+    return 0;
+}
 
 int test_linkmodes()
 {
@@ -216,10 +237,10 @@ int test_linkmodes()
 
     vector<string> no_meter_shells, no_meter_jsons;
 
-    unique_ptr<WMBus> wmbus_im871a = openIM871A("", manager.get(), std::move(serial1));
-    unique_ptr<WMBus> wmbus_amb8465 = openAMB8465("", manager.get(), std::move(serial2));
-    unique_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS("", "", manager.get(), [](){}, std::move(serial3));
-    unique_ptr<WMBus> wmbus_rawtty = openRawTTY("", 0, manager.get(), std::move(serial4));
+    shared_ptr<WMBus> wmbus_im871a = openIM871A("", manager, serial1);
+    shared_ptr<WMBus> wmbus_amb8465 = openAMB8465("", manager, serial2);
+    shared_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS("", "", manager, [](){}, serial3);
+    shared_ptr<WMBus> wmbus_rawtty = openRawTTY("", 0, manager, serial4);
 
     Configuration nometers_config;
     // Check that if no meters are supplied then you must set a link mode.

@@ -71,9 +71,9 @@ MeterEHZP::MeterEHZP(MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<ElectricityMeter> createEHZP(MeterInfo &mi)
+shared_ptr<ElectricityMeter> createEHZP(MeterInfo &mi)
 {
-    return unique_ptr<ElectricityMeter>(new MeterEHZP(mi));
+    return shared_ptr<ElectricityMeter>(new MeterEHZP(mi));
 }
 
 double MeterEHZP::totalEnergyConsumption(Unit u)

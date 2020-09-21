@@ -77,9 +77,9 @@ MeterHydrus::MeterHydrus(MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<WaterMeter> createHydrus(MeterInfo &mi)
+shared_ptr<WaterMeter> createHydrus(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterHydrus(mi));
+    return shared_ptr<WaterMeter>(new MeterHydrus(mi));
 }
 
 void MeterHydrus::processContent(Telegram *t)

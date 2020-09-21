@@ -27,9 +27,9 @@
 
 struct MeterManagerImplementation : public virtual MeterManager
 {
-    void addMeter(unique_ptr<Meter> meter)
+    void addMeter(shared_ptr<Meter> meter)
     {
-        meters_.push_back(std::move(meter));
+        meters_.push_back(meter);
     }
 
     Meter *lastAddedMeter()
@@ -98,13 +98,13 @@ struct MeterManagerImplementation : public virtual MeterManager
 
 private:
 
-    vector<unique_ptr<Meter>> meters_;
+    vector<shared_ptr<Meter>> meters_;
     function<void(vector<uchar>)> on_telegram_;
 };
 
-unique_ptr<MeterManager> createMeterManager()
+shared_ptr<MeterManager> createMeterManager()
 {
-    return unique_ptr<MeterManager>(new MeterManagerImplementation);
+    return shared_ptr<MeterManager>(new MeterManagerImplementation);
 }
 
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,

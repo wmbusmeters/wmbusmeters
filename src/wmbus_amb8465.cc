@@ -19,6 +19,7 @@
 #include"wmbus_utils.h"
 #include"wmbus_amb8465.h"
 #include"serial.h"
+#include"threads.h"
 
 #include<assert.h>
 #include<pthread.h>
@@ -67,13 +68,14 @@ struct WMBusAmber : public virtual WMBusCommonImplementation
     void getConfiguration();
     void simulate() { }
 
-    WMBusAmber(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    WMBusAmber(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusAmber() { }
 
 private:
     vector<uchar> read_buffer_;
     pthread_mutex_t amb8465_command_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    const char *amb8465_command_lock_who_ = "";
+    const char *amb8465_command_lock_func_ = "";
+    pid_t       amb8465_command_lock_pid_ {};
     sem_t command_wait_ {};
     int sent_command_ {};
     int received_command_ {};
@@ -92,21 +94,21 @@ private:
     void handleMessage(int msgid, vector<uchar> &frame);
 };
 
-unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     if (serial_override)
     {
-        WMBusAmber *imp = new WMBusAmber(std::move(serial_override), manager);
-        return unique_ptr<WMBus>(imp);
+        WMBusAmber *imp = new WMBusAmber(serial_override, manager);
+        return shared_ptr<WMBus>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600);
-    WMBusAmber *imp = new WMBusAmber(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
+    WMBusAmber *imp = new WMBusAmber(serial, manager);
+    return shared_ptr<WMBus>(imp);
 }
 
-WMBusAmber::WMBusAmber(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_AMB8465, manager, std::move(serial))
+WMBusAmber::WMBusAmber(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_AMB8465, manager, serial)
 {
     sem_init(&command_wait_, 0, 0);
     manager_->listenTo(this->serial(),call(this,processSerialData));
@@ -520,7 +522,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
     }
 }
 
-AccessCheck detectAMB8465(string device, Detected *detected, SerialCommunicationManager *manager)
+AccessCheck detectAMB8465(string device, Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600);
@@ -574,7 +576,7 @@ AccessCheck detectAMB8465(string device, Detected *detected, SerialCommunication
     return AccessCheck::AccessOK;
 }
 
-static AccessCheck tryFactoryResetAMB8465(string device, SerialCommunicationManager *manager, int baud)
+static AccessCheck tryFactoryResetAMB8465(string device, shared_ptr<SerialCommunicationManager> manager, int baud)
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), baud);
@@ -636,7 +638,7 @@ static AccessCheck tryFactoryResetAMB8465(string device, SerialCommunicationMana
 
 int bauds[] = { 1200, 2400, 4800, 9600, 19200, 38400, 56000, 115200, 0 };
 
-AccessCheck factoryResetAMB8465(string device, SerialCommunicationManager *manager, int *was_baud)
+AccessCheck factoryResetAMB8465(string device, shared_ptr<SerialCommunicationManager> manager, int *was_baud)
 {
     AccessCheck rc = AccessCheck::NotThere;
 

@@ -44,9 +44,9 @@ private:
     string parameter_set_ {};
 };
 
-unique_ptr<WaterMeter> createWaterstarM(MeterInfo &mi)
+shared_ptr<WaterMeter> createWaterstarM(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterWaterstarM(mi));
+    return shared_ptr<WaterMeter>(new MeterWaterstarM(mi));
 }
 
 MeterWaterstarM::MeterWaterstarM(MeterInfo &mi) :

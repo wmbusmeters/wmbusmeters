@@ -146,6 +146,7 @@ METER_OBJS:=\
 	$(BUILD)/printer.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \
+	$(BUILD)/threads.o \
 	$(BUILD)/util.o \
 	$(BUILD)/units.o \
 	$(BUILD)/wmbus.o \

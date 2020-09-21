@@ -38,9 +38,9 @@ private:
     double total_water_consumption_m3_ {};
 };
 
-unique_ptr<WaterMeter> createApator08(MeterInfo &mi)
+shared_ptr<WaterMeter> createApator08(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterApator08(mi));
+    return shared_ptr<WaterMeter>(new MeterApator08(mi));
 }
 
 MeterApator08::MeterApator08(MeterInfo &mi) :

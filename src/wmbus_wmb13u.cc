@@ -19,6 +19,7 @@
 #include"wmbus_utils.h"
 #include"wmbus_cul.h"
 #include"serial.h"
+#include"threads.h"
 
 #include<assert.h>
 #include<fcntl.h>
@@ -75,16 +76,16 @@ struct WMBusWMB13U : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate();
 
-    WMBusWMB13U(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    WMBusWMB13U(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusWMB13U() { }
 
 private:
 
-    SerialCommunicationManager *manager_ {};
     LinkModeSet link_modes_ {};
     vector<uchar> read_buffer_;
     pthread_mutex_t wmb13u_serial_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    const char *wmb13u_serial_lock_who_ = "";
+    const char *wmb13u_serial_lock_func_ = "";
+    pid_t       wmb13u_serial_lock_pid_ {};
 
     FrameStatus checkWMB13UFrame(vector<uchar> &data,
                                  size_t *frame_length,
@@ -95,21 +96,21 @@ private:
     vector<uchar> config_;
 };
 
-unique_ptr<WMBus> openWMB13U(string device, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openWMB13U(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     if (serial_override)
     {
-        WMBusWMB13U *imp = new WMBusWMB13U(std::move(serial_override), manager);
-        return unique_ptr<WMBus>(imp);
+        WMBusWMB13U *imp = new WMBusWMB13U(serial_override, manager);
+        return shared_ptr<WMBus>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200);
-    WMBusWMB13U *imp = new WMBusWMB13U(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
+    WMBusWMB13U *imp = new WMBusWMB13U(serial, manager);
+    return shared_ptr<WMBus>(imp);
 }
 
-WMBusWMB13U::WMBusWMB13U(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_WMB13U, manager, std::move(serial))
+WMBusWMB13U::WMBusWMB13U(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_WMB13U, manager, serial)
 {
     manager_->listenTo(this->serial(),call(this,processSerialData));
     reset();
@@ -341,7 +342,7 @@ bool WMBusWMB13U::getConfiguration()
     return true;
 }
 
-AccessCheck detectWMB13U(string device, SerialCommunicationManager *manager)
+AccessCheck detectWMB13U(string device, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200);

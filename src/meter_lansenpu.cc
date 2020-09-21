@@ -58,9 +58,9 @@ MeterLansenPU::MeterLansenPU(MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<PulseCounter> createLansenPU(MeterInfo &mi)
+shared_ptr<PulseCounter> createLansenPU(MeterInfo &mi)
 {
-    return unique_ptr<PulseCounter>(new MeterLansenPU(mi));
+    return shared_ptr<PulseCounter>(new MeterLansenPU(mi));
 }
 
 double MeterLansenPU::counterA()

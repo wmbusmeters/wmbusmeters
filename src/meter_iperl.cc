@@ -61,9 +61,9 @@ MeterIperl::MeterIperl(MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<WaterMeter> createIperl(MeterInfo &mi)
+shared_ptr<WaterMeter> createIperl(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterIperl(mi));
+    return shared_ptr<WaterMeter>(new MeterIperl(mi));
 }
 
 void MeterIperl::processContent(Telegram *t)

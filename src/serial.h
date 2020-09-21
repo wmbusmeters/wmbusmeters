@@ -63,24 +63,22 @@ struct SerialDevice
 struct SerialCommunicationManager
 {
     // Read from a /dev/ttyUSB0 or /dev/ttyACM0 device with baud settings.
-    virtual unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate) = 0;
+    virtual shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate) = 0;
     // Read from a sub shell.
-    virtual unique_ptr<SerialDevice> createSerialDeviceCommand(string device,
+    virtual shared_ptr<SerialDevice> createSerialDeviceCommand(string device,
                                                                string command,
                                                                vector<string> args,
                                                                vector<string> envs,
                                                                function<void()> on_exit) = 0;
     // Read from stdin (file="stdin") or a specific file.
-    virtual unique_ptr<SerialDevice> createSerialDeviceFile(string file) = 0;
+    virtual shared_ptr<SerialDevice> createSerialDeviceFile(string file) = 0;
     // A serial device simulator used for internal testing.
-    virtual unique_ptr<SerialDevice> createSerialDeviceSimulator() = 0;
+    virtual shared_ptr<SerialDevice> createSerialDeviceSimulator() = 0;
 
     // Invoke cb callback when data arrives on the serial device.
     virtual void listenTo(SerialDevice *sd, function<void()> cb) = 0;
     // Invoke cb callback when the serial device has disappeared!
     virtual void onDisappear(SerialDevice *sd, function<void()> cb) = 0;
-    // Invoke once every select loop, typically once per second.
-    virtual void eachEventLooping(function<void()> cb) = 0;
     // Normally the communication mananager runs for ever.
     // But if you expect configured devices to work, then
     // the manager will exit when there are no working devices.
@@ -103,11 +101,11 @@ struct SerialCommunicationManager
     // List all all rtlsdr swradio devices
     virtual std::vector<std::string> listSWRadioDevices() = 0;
     // Return a serial device for the given device, if it exists! Otherwise NULL.
-    virtual SerialDevice *lookup(std::string device) = 0;
+    virtual std::shared_ptr<SerialDevice> lookup(std::string device) = 0;
     virtual ~SerialCommunicationManager();
 };
 
-unique_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t exit_after_seconds = 0,
+shared_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t exit_after_seconds = 0,
                                                                         time_t reopen_after_seconds = 0,
                                                                         bool start_event_loop = true);
 

@@ -501,29 +501,29 @@ struct WMBus
 Detected detectWMBusDeviceSetting(string devicefile,
                                   string suffix,
                                   string linkmodes,
-                                  SerialCommunicationManager *manager);
+                                  shared_ptr<SerialCommunicationManager> manager);
 
 
 bool isPossibleDevice(string arg, Device *device);
 
-unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager,
-                             unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager,
-                              unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openRawTTY(string device, int baudrate, SerialCommunicationManager *manager,
-                             unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openRTLWMBUS(string device, string command, SerialCommunicationManager *manager, std::function<void()> on_exit,
-                               unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openRTL433(string device, string command, SerialCommunicationManager *manager, std::function<void()> on_exit,
-                             unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openCUL(string device, SerialCommunicationManager *manager,
-                              unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openD1TC(string device, SerialCommunicationManager *manager,
-                           unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openWMB13U(string device, SerialCommunicationManager *manager,
-                             unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openSimulator(string file, SerialCommunicationManager *manager,
-                                unique_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openIM871A(string device, shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManager> manager,
+                              shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openRTLWMBUS(string device, string command, shared_ptr<SerialCommunicationManager> manager, std::function<void()> on_exit,
+                               shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openRTL433(string device, string command, shared_ptr<SerialCommunicationManager> manager, std::function<void()> on_exit,
+                             shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> manager,
+                              shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openD1TC(string device, shared_ptr<SerialCommunicationManager> manager,
+                           shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openWMB13U(string device, shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openSimulator(string file, shared_ptr<SerialCommunicationManager> manager,
+                                shared_ptr<SerialDevice> serial_override);
 
 string manufacturer(int m_field);
 string manufacturerFlag(int m_field);
@@ -552,14 +552,14 @@ MeasurementType difMeasurementType(int dif);
 string linkModeName(LinkMode link_mode);
 string measurementTypeName(MeasurementType mt);
 
-AccessCheck findAndDetect(SerialCommunicationManager *manager,
+AccessCheck findAndDetect(shared_ptr<SerialCommunicationManager> manager,
                           string *out_device,
-                          function<AccessCheck(string,SerialCommunicationManager*)> check,
+                          function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> check,
                           string dongle_name,
                           string device_root);
 
-AccessCheck checkAccessAndDetect(SerialCommunicationManager *manager,
-                                 function<AccessCheck(string,SerialCommunicationManager*)> check,
+AccessCheck checkAccessAndDetect(shared_ptr<SerialCommunicationManager> manager,
+                                 function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> check,
                                  string dongle_name,
                                  string device);
 
@@ -571,21 +571,21 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
                             int *payload_len_out,
                             int *payload_offset);
 
-AccessCheck detectIM871A(string file, Detected *detected, SerialCommunicationManager *handler);
-AccessCheck detectAMB8465(string file, Detected *detected, SerialCommunicationManager *handler);
-AccessCheck detectRawTTY(string file, int baud, Detected *detected, SerialCommunicationManager *handler);
-AccessCheck detectRTLSDR(string file, Detected *detected, SerialCommunicationManager *handler);
-AccessCheck detectCUL(string file, Detected *detected, SerialCommunicationManager *handler);
-AccessCheck detectWMB13U(string file, Detected *detected, SerialCommunicationManager *handler);
+AccessCheck detectIM871A(string file, Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectAMB8465(string file, Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectRawTTY(string file, int baud, Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectRTLSDR(string file, Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectCUL(string file, Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectWMB13U(string file, Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 
 // Try to factory reset an AMB8465 by trying all possible serial speeds and
 // restore to factory settings.
-AccessCheck factoryResetAMB8465(string device, SerialCommunicationManager *handler, int *was_baud);
+AccessCheck factoryResetAMB8465(string device, shared_ptr<SerialCommunicationManager> handler, int *was_baud);
 
 Detected detectImstAmberCul(string file,
                             string suffix,
                             string linkmodes,
-                            SerialCommunicationManager *handler,
+                            shared_ptr<SerialCommunicationManager> handler,
                             bool is_tty,
                             bool is_stdin,
                             bool is_file);

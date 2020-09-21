@@ -99,7 +99,7 @@ struct Configuration
     ~Configuration() = default;
 };
 
-unique_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override);
+shared_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override);
 
 void handleConversions(Configuration *c, string s);
 void handleSelectedFields(Configuration *c, string s);

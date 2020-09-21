@@ -55,10 +55,10 @@ struct WMBusRTL433 : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate();
 
-    WMBusRTL433(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    WMBusRTL433(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
 
 private:
-    unique_ptr<SerialDevice> serial_;
+    shared_ptr<SerialDevice> serial_;
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
     bool warning_dll_len_printed_ {};
@@ -72,8 +72,8 @@ private:
     string setup_;
 };
 
-unique_ptr<WMBus> openRTL433(string device, string command, SerialCommunicationManager *manager,
-                             function<void()> on_exit, unique_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openRTL433(string device, string command, shared_ptr<SerialCommunicationManager> manager,
+                             function<void()> on_exit, shared_ptr<SerialDevice> serial_override)
 {
     vector<string> args;
     vector<string> envs;
@@ -81,16 +81,16 @@ unique_ptr<WMBus> openRTL433(string device, string command, SerialCommunicationM
     args.push_back(command);
     if (serial_override)
     {
-        WMBusRTL433 *imp = new WMBusRTL433(std::move(serial_override), manager);
-        return unique_ptr<WMBus>(imp);
+        WMBusRTL433 *imp = new WMBusRTL433(serial_override, manager);
+        return shared_ptr<WMBus>(imp);
     }
     auto serial = manager->createSerialDeviceCommand(device, "/bin/sh", args, envs, on_exit);
-    WMBusRTL433 *imp = new WMBusRTL433(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
+    WMBusRTL433 *imp = new WMBusRTL433(serial, manager);
+    return shared_ptr<WMBus>(imp);
 }
 
-WMBusRTL433::WMBusRTL433(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_RTL433, manager, std::move(serial))
+WMBusRTL433::WMBusRTL433(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_RTL433, manager, serial)
 {
     manager_->listenTo(this->serial(),call(this,processSerialData));
     reset();

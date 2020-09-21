@@ -28,7 +28,7 @@ string frameTypeKamstrupC1(int ft);
 
 struct WMBusCommonImplementation : public virtual WMBus
 {
-    WMBusCommonImplementation(WMBusDeviceType t, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override);
+    WMBusCommonImplementation(WMBusDeviceType t, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override);
     ~WMBusCommonImplementation();
 
     WMBusDeviceType type();
@@ -45,7 +45,7 @@ struct WMBusCommonImplementation : public virtual WMBus
 
     protected:
 
-    SerialCommunicationManager *manager_ {};
+    shared_ptr<SerialCommunicationManager> manager_;
     void protocolErrorDetected();
     void resetProtocolErrorCount();
     bool areLinkModesConfigured();
@@ -59,7 +59,7 @@ struct WMBusCommonImplementation : public virtual WMBus
 
     bool is_working_ {};
     vector<function<bool(vector<uchar>)>> telegram_listeners_;
-//    vector<unique_ptr<Meter>> *meters_;
+//    vector<shared_ptr<Meter>> *meters_;
     WMBusDeviceType type_ {};
     int protocol_error_count_ {};
     time_t timeout_ {}; // If longer silence than timeout, then reset dongle! It might have hanged!
@@ -70,7 +70,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     bool link_modes_configured_ {};
     LinkModeSet link_modes_ {};
 
-    unique_ptr<SerialDevice> serial_;
+    shared_ptr<SerialDevice> serial_;
 };
 
 #endif

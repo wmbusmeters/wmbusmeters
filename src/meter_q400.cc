@@ -42,9 +42,9 @@ private:
     double consumption_at_set_date_m3_ {};
 };
 
-unique_ptr<WaterMeter> createQ400(MeterInfo &mi)
+shared_ptr<WaterMeter> createQ400(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterQ400(mi));
+    return shared_ptr<WaterMeter>(new MeterQ400(mi));
 }
 
 MeterQ400::MeterQ400(MeterInfo &mi) :

@@ -19,6 +19,7 @@
 #include"wmbus_utils.h"
 #include"wmbus_im871a.h"
 #include"serial.h"
+#include"threads.h"
 
 #include<assert.h>
 #include<pthread.h>
@@ -60,7 +61,7 @@ struct WMBusIM871A : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate() { }
 
-    WMBusIM871A(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    WMBusIM871A(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusIM871A() {
         manager_->onDisappear(this->serial(), NULL);
     }
@@ -69,8 +70,9 @@ private:
 
     vector<uchar> read_buffer_;
     pthread_mutex_t im871a_command_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    const char *im871a_command_lock_who_ = "";
-    sem_t command_wait_;
+    const char *im871a_command_lock_func_ = "";
+    pid_t       im871a_command_lock_pid_ {};
+    sem_t im871a_command_wait_;
     int sent_command_ {};
     int received_command_ {};
     vector<uchar> received_payload_;
@@ -79,30 +81,30 @@ private:
     static FrameStatus checkIM871AFrame(vector<uchar> &data,
                                         size_t *frame_length, int *endpoint_out, int *msgid_out,
                                         int *payload_len_out, int *payload_offset);
-    friend AccessCheck detectIM871A(string device, Detected *detected, SerialCommunicationManager *manager);
+    friend AccessCheck detectIM871A(string device, Detected *detected, shared_ptr<SerialCommunicationManager> manager);
     void handleDevMgmt(int msgid, vector<uchar> &payload);
     void handleRadioLink(int msgid, vector<uchar> &payload);
     void handleRadioLinkTest(int msgid, vector<uchar> &payload);
     void handleHWTest(int msgid, vector<uchar> &payload);
 };
 
-unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openIM871A(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     if (serial_override)
     {
-        WMBusIM871A *imp = new WMBusIM871A(std::move(serial_override), manager);
-        return unique_ptr<WMBus>(imp);
+        WMBusIM871A *imp = new WMBusIM871A(serial_override, manager);
+        return shared_ptr<WMBus>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 57600);
-    WMBusIM871A *imp = new WMBusIM871A(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
+    WMBusIM871A *imp = new WMBusIM871A(serial, manager);
+    return shared_ptr<WMBus>(imp);
 }
 
-WMBusIM871A::WMBusIM871A(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_IM871A, manager, std::move(serial))
+WMBusIM871A::WMBusIM871A(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_IM871A, manager, serial)
 {
-    sem_init(&command_wait_, 0, 0);
+    sem_init(&im871a_command_wait_, 0, 0);
     manager_->listenTo(this->serial(),call(this,processSerialData));
     manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
     reset();
@@ -398,9 +400,9 @@ void WMBusIM871A::waitForResponse()
 {
     while (manager_->isRunning())
     {
-        trace("[IM871A] waitForResponse sem_wait command_wait_\n");
-        int rc = sem_wait(&command_wait_);
-        trace("[IM871A] waitForResponse waited command_wait_\n");
+        trace("[IM871A] waitForResponse sem_wait im871a_command_wait_\n");
+        int rc = sem_wait(&im871a_command_wait_);
+        trace("[IM871A] waitForResponse waited im871a_command_wait_\n");
         if (rc==0) break;
         if (rc==-1) {
             if (errno==EINTR) continue;
@@ -601,28 +603,28 @@ void WMBusIM871A::handleDevMgmt(int msgid, vector<uchar> &payload)
         case DEVMGMT_MSG_PING_RSP: // 0x02
             verbose("(im871a) pong\n");
             received_command_ = msgid;
-            sem_post(&command_wait_);
+            sem_post(&im871a_command_wait_);
             break;
         case DEVMGMT_MSG_SET_CONFIG_RSP: // 0x04
             verbose("(im871a) set config completed\n");
             received_command_ = msgid;
             received_payload_.clear();
             received_payload_.insert(received_payload_.end(), payload.begin(), payload.end());
-            sem_post(&command_wait_);
+            sem_post(&im871a_command_wait_);
             break;
         case DEVMGMT_MSG_GET_CONFIG_RSP: // 0x06
             verbose("(im871a) get config completed\n");
             received_command_ = msgid;
             received_payload_.clear();
             received_payload_.insert(received_payload_.end(), payload.begin(), payload.end());
-            sem_post(&command_wait_);
+            sem_post(&im871a_command_wait_);
             break;
         case DEVMGMT_MSG_GET_DEVICEINFO_RSP: // 0x10
             verbose("(im871a) device info completed\n");
             received_command_ = msgid;
             received_payload_.clear();
             received_payload_.insert(received_payload_.end(), payload.begin(), payload.end());
-            sem_post(&command_wait_);
+            sem_post(&im871a_command_wait_);
             break;
     default:
         verbose("(im871a) Unhandled device management message %d\n", msgid);
@@ -656,7 +658,7 @@ void WMBusIM871A::handleHWTest(int msgid, vector<uchar> &payload)
     }
 }
 
-AccessCheck detectIM871A(string file, Detected *detected, SerialCommunicationManager *manager)
+AccessCheck detectIM871A(string file, Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(file.c_str(), 57600);

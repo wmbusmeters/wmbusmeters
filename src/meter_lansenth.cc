@@ -77,9 +77,9 @@ MeterLansenTH::MeterLansenTH(MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<TempHygroMeter> createLansenTH(MeterInfo &mi)
+shared_ptr<TempHygroMeter> createLansenTH(MeterInfo &mi)
 {
-    return unique_ptr<TempHygroMeter>(new MeterLansenTH(mi));
+    return shared_ptr<TempHygroMeter>(new MeterLansenTH(mi));
 }
 
 double MeterLansenTH::currentTemperature(Unit u)

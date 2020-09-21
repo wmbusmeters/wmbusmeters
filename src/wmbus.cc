@@ -473,7 +473,7 @@ string mediaTypeJSON(int a_field_device_type)
 Detected detectImstAmberCul(string file,
                             string suffix,
                             string linkmodes,
-                            SerialCommunicationManager *handler,
+                            shared_ptr<SerialCommunicationManager> handler,
                             bool is_tty,
                             bool is_stdin,
                             bool is_file)
@@ -536,7 +536,7 @@ Detected detectImstAmberCul(string file,
 Detected detectWMBusDeviceSetting(string file,
                                   string suffix,
                                   string linkmodes,
-                                  SerialCommunicationManager *handler)
+                                  shared_ptr<SerialCommunicationManager> handler)
 {
     debug("(detect) \"%s\" \"%s\"\n", file.c_str(), suffix.c_str());
 
@@ -3266,12 +3266,12 @@ WMBusCommonImplementation::~WMBusCommonImplementation()
 }
 
 WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
-                                                     SerialCommunicationManager *manager,
-                                                     unique_ptr<SerialDevice> serial)
+                                                     shared_ptr<SerialCommunicationManager> manager,
+                                                     shared_ptr<SerialDevice> serial)
     : manager_(manager),
       is_working_(true),
       type_(t),
-      serial_(std::move(serial))
+      serial_(serial)
 {
     // Initialize timeout from now.
     last_received_ = time(NULL);
@@ -3429,6 +3429,7 @@ void WMBusCommonImplementation::checkStatus()
     }
 
     last_received_ = time(NULL);
+    debug("(wmbus) updated_last received for %s (%s)\n", toString(type()), device().c_str());
 
     // The timeout has expired! But is the timeout expected because there should be no activity now?
     // Also, do not sound the alarm unless we actually have a possible timeout within the expected activity,
@@ -3629,9 +3630,9 @@ LIST_OF_AFL_AUTH_TYPES
     return AFLAuthenticationType::Reserved1;
 }
 
-AccessCheck findAndDetect(SerialCommunicationManager *manager,
+AccessCheck findAndDetect(shared_ptr<SerialCommunicationManager> manager,
                           string *out_device,
-                          function<AccessCheck(string,SerialCommunicationManager*)> check,
+                          function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> check,
                           string dongle_name,
                           string device_root)
 {
@@ -3660,8 +3661,8 @@ AccessCheck findAndDetect(SerialCommunicationManager *manager,
     return AccessCheck::NotThere;
 }
 
-AccessCheck checkAccessAndDetect(SerialCommunicationManager *manager,
-                                 function<AccessCheck(string,SerialCommunicationManager*)> check,
+AccessCheck checkAccessAndDetect(shared_ptr<SerialCommunicationManager> manager,
+                                 function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> check,
                                  string dongle_name,
                                  string device)
 {

@@ -34,9 +34,9 @@ private:
     double total_energy_kwh_ {};
 };
 
-unique_ptr<ElectricityMeter> createOmnipower(MeterInfo &mi)
+shared_ptr<ElectricityMeter> createOmnipower(MeterInfo &mi)
 {
-    return unique_ptr<ElectricityMeter>(new MeterOmnipower(mi));
+    return shared_ptr<ElectricityMeter>(new MeterOmnipower(mi));
 }
 
 MeterOmnipower::MeterOmnipower(MeterInfo &mi) :

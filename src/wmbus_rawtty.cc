@@ -41,7 +41,7 @@ struct WMBusRawTTY : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate() { }
 
-    WMBusRawTTY(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    WMBusRawTTY(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusRawTTY() { }
 
 private:
@@ -54,20 +54,20 @@ private:
     void waitForResponse();
 };
 
-unique_ptr<WMBus> openRawTTY(string device, int baudrate, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     if (serial_override)
     {
-        WMBusRawTTY *imp = new WMBusRawTTY(std::move(serial_override), manager);
-        return unique_ptr<WMBus>(imp);
+        WMBusRawTTY *imp = new WMBusRawTTY(serial_override, manager);
+        return shared_ptr<WMBus>(imp);
     }
     auto serial = manager->createSerialDeviceTTY(device.c_str(), baudrate);
-    WMBusRawTTY *imp = new WMBusRawTTY(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
+    WMBusRawTTY *imp = new WMBusRawTTY(serial, manager);
+    return shared_ptr<WMBus>(imp);
 }
 
-WMBusRawTTY::WMBusRawTTY(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_RAWTTY, manager, std::move(serial))
+WMBusRawTTY::WMBusRawTTY(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_RAWTTY, manager, serial)
 {
     sem_init(&command_wait_, 0, 0);
     manager_->listenTo(this->serial(),call(this,processSerialData));
@@ -152,7 +152,7 @@ void WMBusRawTTY::processSerialData()
     }
 }
 
-AccessCheck detectRawTTY(string device, int baud, Detected *detected, SerialCommunicationManager *manager)
+AccessCheck detectRawTTY(string device, int baud, Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // Since we do not know how to talk to the other end, it might not
     // even respond. The only thing we can do is to try to open the serial device.

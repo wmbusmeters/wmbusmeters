@@ -53,9 +53,9 @@ MeterLansenDW::MeterLansenDW(MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<DoorWindowDetector> createLansenDW(MeterInfo &mi)
+shared_ptr<DoorWindowDetector> createLansenDW(MeterInfo &mi)
 {
-    return unique_ptr<DoorWindowDetector>(new MeterLansenDW(mi));
+    return shared_ptr<DoorWindowDetector>(new MeterLansenDW(mi));
 }
 
 bool MeterLansenDW::open()

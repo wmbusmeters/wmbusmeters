@@ -85,9 +85,9 @@ MeterEBZWMBE::MeterEBZWMBE(MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<ElectricityMeter> createEBZWMBE(MeterInfo &mi)
+shared_ptr<ElectricityMeter> createEBZWMBE(MeterInfo &mi)
 {
-    return unique_ptr<ElectricityMeter>(new MeterEBZWMBE(mi));
+    return shared_ptr<ElectricityMeter>(new MeterEBZWMBE(mi));
 }
 
 double MeterEBZWMBE::totalEnergyConsumption(Unit u)

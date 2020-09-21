@@ -66,9 +66,9 @@ private:
     string meter_month_period_datetime_;
 };
 
-unique_ptr<WaterMeter> createTopasEsKr(MeterInfo &mi)
+shared_ptr<WaterMeter> createTopasEsKr(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterTopasEsKr(mi));
+    return shared_ptr<WaterMeter>(new MeterTopasEsKr(mi));
 }
 
 MeterTopasEsKr::MeterTopasEsKr(MeterInfo &mi) :

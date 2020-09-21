@@ -18,6 +18,7 @@
 #include"util.h"
 #include"serial.h"
 #include"shell.h"
+#include"threads.h"
 #include"timings.h"
 
 #include <algorithm>
@@ -69,15 +70,14 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     SerialCommunicationManagerImp(time_t exit_after_seconds, time_t reopen_after_seconds, bool start_event_loop);
     ~SerialCommunicationManagerImp();
 
-    unique_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate);
-    unique_ptr<SerialDevice> createSerialDeviceCommand(string device, string command, vector<string> args, vector<string> envs,
+    shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate);
+    shared_ptr<SerialDevice> createSerialDeviceCommand(string device, string command, vector<string> args, vector<string> envs,
                                                        function<void()> on_exit);
-    unique_ptr<SerialDevice> createSerialDeviceFile(string file);
-    unique_ptr<SerialDevice> createSerialDeviceSimulator();
+    shared_ptr<SerialDevice> createSerialDeviceFile(string file);
+    shared_ptr<SerialDevice> createSerialDeviceSimulator();
 
     void listenTo(SerialDevice *sd, function<void()> cb);
     void onDisappear(SerialDevice *sd, function<void()> cb);
-    void eachEventLooping(function<void()> cb);
 
     void expectDevicesToWork();
     void stop();
@@ -86,9 +86,9 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     bool isRunning();
     void setReopenAfter(int seconds);
 
-    void opened(SerialDeviceImp *sd);
-    void closed(SerialDeviceImp *sd);
-    void closeAll();
+    shared_ptr<SerialDevice> addSerialDeviceForManagement(SerialDevice *sd);
+    void removeNonWorkingSerialDevices();
+    void closeAllDoNotRemove();
 
     time_t reopenAfter() { return reopen_after_seconds_; }
     int startRegularCallback(string name, int seconds, function<void()> callback);
@@ -98,48 +98,46 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     void resetCompleted() { debug("(serial) reset completed\n"); resetting_ = false; }
     vector<string> listSerialDevices();
     vector<string> listSWRadioDevices();
-    SerialDevice *lookup(std::string device);
+    shared_ptr<SerialDevice> lookup(std::string device);
 
 private:
 
     void *eventLoop();
+    void *timerLoop();
+
     void executeTimerCallbacks();
     time_t calculateTimeToNearestTimerCallback(time_t now);
-    static void *startLoop(void *);
-    static void *runTimers(void *);
 
     bool running_ {};
     bool expect_devices_to_work_ {}; // false during detection phase, true when running.
     bool resetting_ {}; // Set to true while resetting.
-    pthread_t main_thread_ {};
-    pthread_t select_thread_ {};
-    pthread_t timer_thread_ {};
     int max_fd_ {};
     time_t start_time_ {};
     time_t exit_after_seconds_ {};
     time_t reopen_after_seconds_ {};
 
-    pthread_mutex_t event_loop_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    const char *event_loop_lock_who_ = "";
-    pthread_mutex_t serial_devices_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    const char *serial_devices_lock_who_ = "";
-    vector<SerialDeviceImp*> serial_devices_;
-    vector<Timer> timers_;
-//    pthread_mutex_t timers_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    bool calling_timers_ {};
-    pthread_mutex_t timer_thread_lock_ = PTHREAD_MUTEX_INITIALIZER; // Only have one regular callback thread running.
-    const char *timer_thread_lock_who_ = "";
-    function<void()> on_event_looping_;
+    vector<shared_ptr<SerialDevice>> serial_devices_; // Protected by LOCK_SERIAL_DEVICES()
+    RecursiveMutex serial_devices_mutex_ = { "serial_devices_mutex" };
+#define LOCK_SERIAL_DEVICES(where) WITH(serial_devices_mutex_, where)
+
+    RecursiveMutex event_loop_mutex_ = {"event_loop_mutex" };
+#define LOCK_EVENT_LOOP(where) WITH(event_loop_mutex_, where)
+
+    vector<Timer> timers_;  // Protected by LOCK_TIMERS
+    RecursiveMutex timers_mutex_ = { "timers_mutex" };
+#define LOCK_TIMERS(where) WITH(timers_mutex_, where)
 };
 
 SerialCommunicationManagerImp::~SerialCommunicationManagerImp()
 {
     // Stop the loop.
     stop();
-    // Close all managed devices (not yet closed)
-    closeAll();
     // Grab the event_loop_lock. This can only be done when the eventLoop has stopped running.
-    LOCK("(serial)", "destructor", event_loop_lock_);
+    event_loop_mutex_.lock();
+    // Close all managed devices (not yet closed)
+    closeAllDoNotRemove();
+    // Remove all closed devices.
+    removeNonWorkingSerialDevices();
     // Now we can be sure the eventLoop has stopped and it is safe to
     // free this Manager object.
 }
@@ -158,13 +156,22 @@ struct SerialDeviceImp : public SerialDevice
     void setIsStdin() { is_stdin_ = true; }
     string device() { return ""; }
     int fd() { return fd_; }
+    SerialCommunicationManager *manager() { return manager_; }
+
+    SerialDeviceImp(SerialCommunicationManagerImp *manager)
+    {
+        manager_ = manager;
+    }
+    ~SerialDeviceImp() = default;
 
 protected:
 
-    pthread_mutex_t read_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    const char *read_lock_who_ = "";
-    pthread_mutex_t write_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    const char *write_lock_who_ = "";
+    RecursiveMutex read_mutex_ = { "read_mutex" };
+#define LOCK_READ_SERIAL(where) WITH(read_mutex_, where)
+
+    RecursiveMutex write_mutex_ = { "write_mutex" };
+#define LOCK_WRITE_SERIAL(where) WITH(write_mutex_, where)
+
     function<void()> on_data_;
     function<void()> on_disappear_;
     int fd_ = -1;
@@ -172,17 +179,17 @@ protected:
     bool is_file_ = false;
     bool is_stdin_ = false;
     bool no_callbacks_ = false;
+    SerialCommunicationManagerImp *manager_;
 
     friend struct SerialCommunicationManagerImp;
-
-    ~SerialDeviceImp() = default;
 };
 
 int SerialDeviceImp::receive(vector<uchar> *data)
 {
+    LOCK_READ_SERIAL(receive);
+
     bool close_me = false;
 
-    LOCK("(serial)", "receive", read_lock_);
     data->clear();
     int num_read = 0;
 
@@ -232,8 +239,6 @@ int SerialDeviceImp::receive(vector<uchar> *data)
         }
     }
 
-    UNLOCK("(serial)", "receive", read_lock_);
-
     if (close_me) close();
 
     return num_read;
@@ -241,7 +246,7 @@ int SerialDeviceImp::receive(vector<uchar> *data)
 
 struct SerialDeviceTTY : public SerialDeviceImp
 {
-    SerialDeviceTTY(string device, int baud_rate, SerialCommunicationManagerImp *manager);
+    SerialDeviceTTY(string device, int baud_rate, SerialCommunicationManagerImp * manager);
     ~SerialDeviceTTY();
 
     AccessCheck open(bool fail_if_not_ok);
@@ -249,14 +254,12 @@ struct SerialDeviceTTY : public SerialDeviceImp
     void checkIfShouldReopen();
     bool send(vector<uchar> &data);
     bool working();
-    SerialCommunicationManager *manager() { return manager_; }
     string device() { return device_; }
 
     private:
 
     string device_;
     int baud_rate_ {};
-    SerialCommunicationManagerImp *manager_;
     time_t start_since_reopen_;
     int reopen_after_ {}; // Reopen the device repeatedly after this number of seconds.
     // Necessary for some less than perfect dongles.
@@ -264,10 +267,10 @@ struct SerialDeviceTTY : public SerialDeviceImp
 
 SerialDeviceTTY::SerialDeviceTTY(string device, int baud_rate,
                                  SerialCommunicationManagerImp *manager)
+    : SerialDeviceImp(manager)
 {
     device_ = device;
     baud_rate_ = baud_rate;
-    manager_ = manager;
     start_since_reopen_ = time(NULL);
     reopen_after_ = manager->reopenAfter();
 }
@@ -307,7 +310,6 @@ AccessCheck SerialDeviceTTY::open(bool fail_if_not_ok)
             }
         }
     }
-    manager_->opened(this);
     verbose("(serialtty) opened %s\n", device_.c_str());
     return AccessCheck::AccessOK;
 }
@@ -323,7 +325,6 @@ void SerialDeviceTTY::close()
         on_disappear_();
         on_disappear_ = NULL;
     }
-    manager_->closed(this);
     verbose("(serialtty) closed %s\n", device_.c_str());
 }
 
@@ -367,9 +368,9 @@ void SerialDeviceTTY::forceReopen()
 */
 bool SerialDeviceTTY::send(vector<uchar> &data)
 {
-    if (data.size() == 0) return true;
+    LOCK_WRITE_SERIAL(send);
 
-    LOCK("(serial)", "send", write_lock_);
+    assert(data.size() > 0);
 
     bool rc = true;
     int n = data.size();
@@ -391,7 +392,6 @@ bool SerialDeviceTTY::send(vector<uchar> &data)
     }
 
     end:
-    UNLOCK("(serial)", "send", write_lock_);
     return rc;
 }
 
@@ -424,7 +424,6 @@ struct SerialDeviceCommand : public SerialDeviceImp
     bool working();
     string device() { return device_; }
     string command() { return command_; }
-    SerialCommunicationManager *manager() { return manager_; }
 
     private:
 
@@ -436,7 +435,6 @@ struct SerialDeviceCommand : public SerialDeviceImp
 
     pthread_mutex_t write_lock_ = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t read_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    SerialCommunicationManagerImp *manager_;
     function<void()> on_exit_;
 };
 
@@ -446,13 +444,13 @@ SerialDeviceCommand::SerialDeviceCommand(string device,
                                          vector<string> envs,
                                          SerialCommunicationManagerImp *manager,
                                          function<void()> on_exit)
+    : SerialDeviceImp(manager)
 {
     assert(device != "");
     device_ = device;
     command_ = command;
     args_ = args;
     envs_ = envs;
-    manager_ = manager;
     on_exit_ = on_exit;
 }
 
@@ -466,7 +464,6 @@ AccessCheck SerialDeviceCommand::open(bool fail_if_not_ok)
     expectAscii();
     bool ok = invokeBackgroundShell("/bin/sh", args_, envs_, &fd_, &pid_);
     if (!ok) return AccessCheck::NotThere;
-    manager_->opened(this);
     setIsStdin();
     verbose("(serialcmd) opened %s pid %d fd %d\n", command_.c_str(), pid_, fd_);
     return AccessCheck::AccessOK;
@@ -489,7 +486,6 @@ void SerialDeviceCommand::close()
     ::flock(fd_, LOCK_UN);
     ::close(fd_);
     fd_ = -1;
-    manager_->closed(this);
     verbose("(serialcmd) closed %s pid=%d fd=%d\n", command_.c_str(), p, f);
 }
 
@@ -504,9 +500,9 @@ bool SerialDeviceCommand::working()
 
 bool SerialDeviceCommand::send(vector<uchar> &data)
 {
-    if (data.size() == 0) return true;
+    LOCK_WRITE_SERIAL(sendcmd);
 
-    LOCK("(serial)", "sendcmd", write_lock_);
+    assert(data.size() > 0);
 
     bool rc = true;
     int n = data.size();
@@ -528,7 +524,6 @@ bool SerialDeviceCommand::send(vector<uchar> &data)
     }
 
     end:
-    UNLOCK("(serial)", "sendcmd", write_lock_);
     return rc;
 }
 
@@ -543,19 +538,17 @@ struct SerialDeviceFile : public SerialDeviceImp
     bool send(vector<uchar> &data);
     int available();
     string device() { return file_; }
-    SerialCommunicationManager *manager() { return manager_; }
 
     private:
 
     string file_;
-    SerialCommunicationManagerImp *manager_;
 };
 
 SerialDeviceFile::SerialDeviceFile(string file,
                                    SerialCommunicationManagerImp *manager)
+    : SerialDeviceImp(manager)
 {
     file_ = file;
-    manager_ = manager;
 }
 
 SerialDeviceFile::~SerialDeviceFile()
@@ -593,7 +586,6 @@ AccessCheck SerialDeviceFile::open(bool fail_if_not_ok)
         setIsFile();
         verbose("(serialfile) reading from file %s\n", file_.c_str());
     }
-    manager_->opened(this);
     return AccessCheck::AccessOK;
 }
 
@@ -603,7 +595,6 @@ void SerialDeviceFile::close()
     ::flock(fd_, LOCK_UN);
     ::close(fd_);
     fd_ = -1;
-    manager_->closed(this);
     verbose("(serialfile) closed %s %d\n", file_.c_str(), fd_);
 }
 
@@ -619,14 +610,14 @@ bool SerialDeviceFile::send(vector<uchar> &data)
 struct SerialDeviceSimulator : public SerialDeviceImp
 {
     SerialDeviceSimulator(SerialCommunicationManagerImp *m) :
-        manager_(m) {
-        manager_->opened(this);
+        SerialDeviceImp(m)
+    {
         verbose("(serialsimulator) opened\n");
     };
-    ~SerialDeviceSimulator() { close(); };
+    ~SerialDeviceSimulator() { };
 
     AccessCheck open(bool fail_if_not_ok) { return AccessCheck::AccessOK; };
-    void close() { manager_->closed(this); };
+    void close() { };
     void checkIfShouldReopen() { }
     bool readonly() { return true; }
     bool send(vector<uchar> &data) { return true; };
@@ -642,11 +633,8 @@ struct SerialDeviceSimulator : public SerialDeviceImp
     int fd() { return -1; }
     bool working() { return false; } // Only one message that has already been handled! So return false here.
 
-    SerialCommunicationManager *manager() { return manager_; }
-
     private:
 
-    SerialCommunicationManagerImp *manager_;
     vector<uchar> data_;
 };
 
@@ -659,54 +647,39 @@ SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_s
     // Block the event loop until everything is configured.
     if (start_event_loop)
     {
-        LOCK("(serial)", "constructor", event_loop_lock_);
-        pthread_create(&select_thread_, NULL, startLoop, this);
+        event_loop_mutex_.lock();
+        startEventLoopThread(call(this, eventLoop));
+        startTimerLoopThread(call(this, timerLoop));
     }
-    wakeMeUpOnSigChld(select_thread_);
+    wakeMeUpOnSigChld(getEventLoopThread());
     start_time_ = time(NULL);
     exit_after_seconds_ = exit_after_seconds;
     reopen_after_seconds_ = reopen_after_seconds;
 }
 
-void *SerialCommunicationManagerImp::startLoop(void *a)
-{
-    auto t = (SerialCommunicationManagerImp*)a;
-    return t->eventLoop();
-}
-
-void *SerialCommunicationManagerImp::runTimers(void *a)
-{
-    auto t = (SerialCommunicationManagerImp*)a;
-    t->executeTimerCallbacks();
-    t->calling_timers_ = false;
-    // Now unlock the previously trylocked mutex.
-    UNLOCK("(serial)", "runTimers", t->timer_thread_lock_);
-    return NULL;
-}
-
-unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device,
+shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device,
                                                                               int baud_rate)
 {
-    return unique_ptr<SerialDevice>(new SerialDeviceTTY(device, baud_rate, this));
+    return addSerialDeviceForManagement(new SerialDeviceTTY(device, baud_rate, this));
 }
 
-unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceCommand(string device,
+shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceCommand(string device,
                                                                                   string command,
                                                                                   vector<string> args,
                                                                                   vector<string> envs,
                                                                                   function<void()> on_exit)
 {
-    return unique_ptr<SerialDevice>(new SerialDeviceCommand(device, command, args, envs, this, on_exit));
+    return addSerialDeviceForManagement(new SerialDeviceCommand(device, command, args, envs, this, on_exit));
 }
 
-unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceFile(string file)
+shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceFile(string file)
 {
-    return unique_ptr<SerialDevice>(new SerialDeviceFile(file, this));
+    return addSerialDeviceForManagement(new SerialDeviceFile(file, this));
 }
 
-unique_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceSimulator()
+shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceSimulator()
 {
-    return unique_ptr<SerialDevice>(new SerialDeviceSimulator(this));
+    return addSerialDeviceForManagement(new SerialDeviceSimulator(this));
 }
 
 void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> cb)
@@ -731,11 +704,6 @@ void SerialCommunicationManagerImp::onDisappear(SerialDevice *sd, function<void(
     si->on_disappear_ = cb;
 }
 
-void SerialCommunicationManagerImp::eachEventLooping(function<void()> cb)
-{
-    on_event_looping_ = cb;
-}
-
 void SerialCommunicationManagerImp::expectDevicesToWork()
 {
     debug("(serial) expecting devices to work\n");
@@ -749,12 +717,12 @@ void SerialCommunicationManagerImp::stop()
     {
         debug("(serial) stopping manager\n");
         running_ = false;
-        if (main_thread_ != 0)
+        if (getMainThread() != 0)
         {
             if (signalsInstalled())
             {
-                if (main_thread_) pthread_kill(main_thread_, SIGUSR2);
-                if (select_thread_) pthread_kill(select_thread_, SIGUSR1);
+                if (getMainThread()) pthread_kill(getMainThread(), SIGUSR2);
+                if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
             }
         }
     }
@@ -763,38 +731,32 @@ void SerialCommunicationManagerImp::stop()
 void SerialCommunicationManagerImp::startEventLoop()
 {
     // Release the event loop!
-    UNLOCK("(serial)", "startEventLoop", event_loop_lock_);
+    event_loop_mutex_.unlock();
 }
 
 void SerialCommunicationManagerImp::waitForStop()
 {
     debug("(serial) waiting for stop\n");
 
-    //expect_devices_to_work_ = true;
-    main_thread_ = pthread_self();
+    recordMyselfAsMainThread();
     while (running_)
     {
-        LOCK("(serial)", "waitForStop", serial_devices_lock_);
-        size_t s = serial_devices_.size();
-        UNLOCK("(serial)", "waitForStop", serial_devices_lock_);
-
-        if (s == 0) {
-            break;
+        {
+            LOCK_SERIAL_DEVICES(wait_for_stop);
+            if (serial_devices_.size() == 0) break;
         }
         usleep(1000*1000);
     }
-    if (serial_devices_.size() > 0)
-    {
-        debug("(serial) closing %d devices\n", serial_devices_.size());
-        closeAll();
-    }
+
+    closeAllDoNotRemove();
 
     if (signalsInstalled())
     {
-        if (select_thread_) pthread_kill(select_thread_, SIGUSR1);
+        if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
     }
-    pthread_join(select_thread_, NULL);
 
+    pthread_join(getEventLoopThread(), NULL);
+    pthread_join(getTimerLoopThread(), NULL);
 }
 
 bool SerialCommunicationManagerImp::isRunning()
@@ -807,32 +769,42 @@ void SerialCommunicationManagerImp::setReopenAfter(int seconds)
     reopen_after_seconds_ = seconds;
 }
 
-void SerialCommunicationManagerImp::opened(SerialDeviceImp *sd)
+shared_ptr<SerialDevice> SerialCommunicationManagerImp::addSerialDeviceForManagement(SerialDevice *sd)
 {
-    LOCK("(serial)", "opened", serial_devices_lock_);
+    LOCK_SERIAL_DEVICES(opened);
+
     max_fd_ = max(sd->fd(), max_fd_);
-    serial_devices_.push_back(sd);
+    shared_ptr<SerialDevice> ptr = shared_ptr<SerialDevice>(sd);
+    serial_devices_.push_back(ptr);
     if (signalsInstalled())
     {
-        if (select_thread_) pthread_kill(select_thread_, SIGUSR1);
+        if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
     }
-    UNLOCK("(serial)", "opened", serial_devices_lock_);
+    return ptr;
 }
 
-void SerialCommunicationManagerImp::closed(SerialDeviceImp *sd)
+void SerialCommunicationManagerImp::removeNonWorkingSerialDevices()
 {
-    LOCK("(serial)", "closed", serial_devices_lock_);
-    auto p = find(serial_devices_.begin(), serial_devices_.end(), sd);
-    if (p != serial_devices_.end())
+    LOCK_SERIAL_DEVICES(remove_non_working_serial_devices);
+
+    for (auto i = serial_devices_.begin(); i != serial_devices_.end(); )
     {
-        serial_devices_.erase(p);
-    }
-    max_fd_ = 0;
-    for (SerialDevice *d : serial_devices_)
-    {
-        if (d->fd() > max_fd_)
+        if (!(*i)->working())
         {
-            max_fd_ = d->fd();
+            i = serial_devices_.erase(i);
+        }
+        else
+        {
+            i++;
+        }
+    }
+
+    max_fd_ = 0;
+    for (shared_ptr<SerialDevice> &sp : serial_devices_)
+    {
+        if (sp->fd() > max_fd_)
+        {
+            max_fd_ = sp->fd();
         }
     }
     if (serial_devices_.size() == 0 && expect_devices_to_work_ && resetting_ == false)
@@ -840,25 +812,19 @@ void SerialCommunicationManagerImp::closed(SerialDeviceImp *sd)
         debug("(serial) no devices working emergency exit!\n");
         stop();
     }
-    UNLOCK("(serial)", "opened", serial_devices_lock_);
 }
 
-void SerialCommunicationManagerImp::closeAll()
+void SerialCommunicationManagerImp::closeAllDoNotRemove()
 {
-    LOCK("(serial)", "closeAll", serial_devices_lock_);
-    vector<SerialDeviceImp*> copy = serial_devices_;
-    serial_devices_.clear();
-    UNLOCK("(serial)", "closeAll", serial_devices_lock_);
+    LOCK_SERIAL_DEVICES(close_all_do_not_remove);
 
-    for (SerialDeviceImp *d : copy)
+    if (serial_devices_.size() == 0) return;
+
+    debug("(serial) closing %d devices\n", serial_devices_.size());
+
+    for (auto i = serial_devices_.begin(); i != serial_devices_.end(); i++)
     {
-        if (d->on_disappear_)
-        {
-            d->on_disappear_();
-            d->on_disappear_ = NULL;
-        }
-
-        closed(d);
+        (*i)->close();
     }
 }
 
@@ -867,26 +833,25 @@ void SerialCommunicationManagerImp::executeTimerCallbacks()
     time_t curr = time(NULL);
     vector<Timer> to_be_called;
 
-    LOCK("(serial)", "executeTimerCallbacks", serial_devices_lock_);
-
-    for (Timer &t : timers_)
     {
-        if (t.isTime(curr))
+        LOCK_TIMERS(execute_timer_callbacks);
+
+        for (Timer &t : timers_)
         {
-            trace("[SERIAL] timer isTime! %d %s\n", t.id, t.name.c_str());
-            t.last_call = curr;
-            to_be_called.push_back(t);
+            if (t.isTime(curr))
+            {
+                trace("[SERIAL] timer isTime! %d %s\n", t.id, t.name.c_str());
+                t.last_call = curr;
+                to_be_called.push_back(t);
+            }
         }
     }
-
-    UNLOCK("(serial)", "executeTimerCallbacks", serial_devices_lock_);
 
     for (Timer &t : to_be_called)
     {
         trace("[SERIAL] invoking callback %s(%d)\n", t.name.c_str(), t.id);
         t.callback();
     }
-
 }
 
 time_t SerialCommunicationManagerImp::calculateTimeToNearestTimerCallback(time_t now)
@@ -905,38 +870,12 @@ time_t SerialCommunicationManagerImp::calculateTimeToNearestTimerCallback(time_t
     return r;
 }
 
-void *SerialCommunicationManagerImp::eventLoop()
+void *SerialCommunicationManagerImp::timerLoop()
 {
-    fd_set readfds;
-
-    LOCK("(serial)", "eventLoop", event_loop_lock_);
-
     while (running_)
     {
-        FD_ZERO(&readfds);
+        usleep(1000*1000);
 
-        bool all_working = true;
-        LOCK("(serial)", "opened", serial_devices_lock_);
-        for (SerialDevice *d : serial_devices_)
-        {
-            if (!d->skippingCallbacks())
-            {
-                trace("(SERIAL) select read on fd %d\n", d->fd());
-                FD_SET(d->fd(), &readfds);
-            }
-            if (!d->working()) all_working = false;
-        }
-        UNLOCK("(serial)", "opened", serial_devices_lock_);
-
-        if (!all_working && expect_devices_to_work_ && resetting_ == false)
-        {
-            debug("(serial) not all devices working, emergency exit!\n");
-            stop();
-            break;
-        }
-
-        // Perform a select call every second.
-        struct timeval timeout { 1, 0 };
         time_t curr = time(NULL);
 
         if (exit_after_seconds_ > 0)
@@ -951,16 +890,63 @@ void *SerialCommunicationManagerImp::eventLoop()
             }
         }
 
+        executeTimerCallbacks();
+
+        {
+            LOCK_SERIAL_DEVICES(check_for_reopens);
+
+            for (shared_ptr<SerialDevice> &sd : serial_devices_)
+            {
+                sd->checkIfShouldReopen();
+            }
+        }
+    }
+    return NULL;
+}
+
+void *SerialCommunicationManagerImp::eventLoop()
+{
+    LOCK_EVENT_LOOP(eventLoop);
+
+    fd_set readfds;
+
+    while (running_)
+    {
+        FD_ZERO(&readfds);
+
+        bool all_working = true;
+
+        {
+            LOCK_SERIAL_DEVICES(list_file_descriptiors_to_listen_to);
+
+            for (shared_ptr<SerialDevice> &sd : serial_devices_)
+            {
+                if (!sd->skippingCallbacks())
+                {
+                    trace("(SERIAL) select read on fd %d\n", sd->fd());
+                    FD_SET(sd->fd(), &readfds);
+                }
+                if (!sd->working()) all_working = false;
+            }
+        }
+
+        if (!all_working && expect_devices_to_work_ && resetting_ == false)
+        {
+            debug("(serial) not all devices working, emergency exit!\n");
+            stop();
+            break;
+        }
+
+        // Perform a select call every second.
+        struct timeval timeout { 1, 0 };
+
         trace("[SERIAL] select timeout %d s\n", timeout.tv_sec);
 
         bool num_devices = 0;
-        LOCK("(serial)", "eventLoop2", serial_devices_lock_);
-        for (SerialDevice *d : serial_devices_)
         {
-            d->checkIfShouldReopen();
+            LOCK_SERIAL_DEVICES(cound_serial_devices);
+            num_devices = serial_devices_.size();
         }
-        num_devices = serial_devices_.size();
-        UNLOCK("(serial)", "eventLoop2", serial_devices_lock_);
 
         if (num_devices == 0 && expect_devices_to_work_ && resetting_ == false)
         {
@@ -979,66 +965,46 @@ void *SerialCommunicationManagerImp::eventLoop()
         if (activity > 0)
         {
             // Something has happened that caused the sleeping select to wake up.
-            vector<SerialDeviceImp*> to_be_notified;
-            LOCK("(serial)", "eventLoop3", serial_devices_lock_);
-            for (SerialDevice *d : serial_devices_)
+            vector<shared_ptr<SerialDevice>> to_be_notified;
             {
-                if (FD_ISSET(d->fd(), &readfds))
+                LOCK_SERIAL_DEVICES(find_triggering_file_descriptions);
+
+                for (shared_ptr<SerialDevice> &sd : serial_devices_)
                 {
-                    SerialDeviceImp *si = dynamic_cast<SerialDeviceImp*>(d);
-                    to_be_notified.push_back(si);
+                    if (FD_ISSET(sd->fd(), &readfds))
+                    {
+                        to_be_notified.push_back(sd);
+                    }
                 }
             }
-            UNLOCK("(serial)", "eventLoop3", serial_devices_lock_);
 
-            for (SerialDeviceImp *si : to_be_notified)
+            for (shared_ptr<SerialDevice> &sd : to_be_notified)
             {
+                SerialDeviceImp *si = dynamic_cast<SerialDeviceImp*>(sd.get());
                 if (si->on_data_)
                 {
                     si->on_data_();
                 }
             }
         }
-        vector<SerialDeviceImp*> non_working;
 
-        LOCK("(serial)", "eventLoop4", serial_devices_lock_);
-        for (SerialDeviceImp *d : serial_devices_)
+        vector<shared_ptr<SerialDevice>> non_working;
         {
-            if (!d->working()) non_working.push_back(d);
-        }
-        UNLOCK("(serial)", "eventLoop4", serial_devices_lock_);
+            LOCK_SERIAL_DEVICES(find_non_working_serial_devices);
 
-        for (SerialDeviceImp *d : non_working)
-        {
-            debug("(serial) closing non working fd=%d\n", d->fd());
-            d->close();
-        }
-
-        bool timer_found = false;
-        for (Timer &t : timers_)
-        {
-            timer_found |= t.isTime(curr);
-        }
-
-        if (timer_found)
-        {
-            int rc = pthread_mutex_trylock(&timer_thread_lock_);
-            // Only start timer thread if it is not running already.
-            if (rc == 0)
+            for (shared_ptr<SerialDevice> &sd : serial_devices_)
             {
-                // Lock acquired start timer thread.
-                // Lock will be released by this newly started thread.
-                calling_timers_ = true;
-                pthread_create(&timer_thread_, NULL, runTimers, this);
-            }
-            else
-            {
-                trace("(serial) not starting timer thread since it is already running.\n");
+                if (!sd->working()) non_working.push_back(sd);
             }
         }
 
-        // Invoke callback every event looping....
-        if (on_event_looping_) on_event_looping_();
+        for (shared_ptr<SerialDevice> &sd : non_working)
+        {
+            debug("(serial) closing non working fd=%d\n", sd->fd());
+            sd->close();
+        }
+
+        removeNonWorkingSerialDevices();
 
         if (non_working.size() > 0 && expect_devices_to_work_ && resetting_ == false)
         {
@@ -1048,15 +1014,15 @@ void *SerialCommunicationManagerImp::eventLoop()
         }
     }
     verbose("(serial) event loop stopped!\n");
-    UNLOCK("(serial)", "eventLoop", event_loop_lock_);
+
     return NULL;
 }
 
-unique_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t exit_after_seconds,
+shared_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t exit_after_seconds,
                                                                         time_t reopen_after_seconds,
                                                                         bool start_event_loop)
 {
-    return unique_ptr<SerialCommunicationManager>(new SerialCommunicationManagerImp(exit_after_seconds,
+    return shared_ptr<SerialCommunicationManager>(new SerialCommunicationManagerImp(exit_after_seconds,
                                                                                     reopen_after_seconds,
                                                                                     start_event_loop));
 }
@@ -1150,18 +1116,20 @@ SerialCommunicationManager::~SerialCommunicationManager()
 
 int SerialCommunicationManagerImp::startRegularCallback(string name, int seconds, function<void()> callback)
 {
+    LOCK_TIMERS(start_regular_callback);
+
     Timer t = { (int)timers_.size(), seconds, time(NULL), callback, name };
-    LOCK("(serial)", "startRegularCallback", serial_devices_lock_);
     timers_.push_back(t);
-    UNLOCK("(serial)", "startRegularCallback", serial_devices_lock_);
     debug("(serial) registered regular callback %s(%d) every %d seconds\n", name.c_str(), t.id, seconds);
+
     return t.id;
 }
 
 void SerialCommunicationManagerImp::stopRegularCallback(int id)
 {
+    LOCK_TIMERS(stop_regular_callback);
+
     debug("(serial) stopping regular callback %d\n", id);
-    LOCK("(serial)", "stopRegularCallback", serial_devices_lock_);
     for (auto i = timers_.begin(); i != timers_.end(); ++i)
     {
         if ((*i).id == id)
@@ -1170,15 +1138,16 @@ void SerialCommunicationManagerImp::stopRegularCallback(int id)
             break;
         }
     }
-    UNLOCK("(serial)", "stopRegularCallback", serial_devices_lock_);
 }
 
 
-SerialDevice *SerialCommunicationManagerImp::lookup(string device)
+shared_ptr<SerialDevice> SerialCommunicationManagerImp::lookup(string device)
 {
+    LOCK_SERIAL_DEVICES(lookup);
+
     for (auto sd : serial_devices_)
     {
-        if (sd->device() == device) return sd;
+        if (sd->device() == device) return shared_ptr<SerialDevice>(sd);
     }
     return NULL;
 }

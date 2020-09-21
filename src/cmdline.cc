@@ -23,7 +23,7 @@
 
 using namespace std;
 
-unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
+shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
 
     Configuration * c = new Configuration;
 
@@ -61,17 +61,17 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             break;
         }
         c->pid_file = argv[i];
-        return unique_ptr<Configuration>(c);
+        return shared_ptr<Configuration>(c);
     }
     if (argc < 2) {
         c->need_help = true;
-        return unique_ptr<Configuration>(c);
+        return shared_ptr<Configuration>(c);
     }
     while (argv[i] && argv[i][0] == '-')
     {
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "-help") || !strcmp(argv[i], "--help")) {
             c->need_help = true;
-            return unique_ptr<Configuration>(c);
+            return shared_ptr<Configuration>(c);
         }
         if (!strcmp(argv[i], "--silence")) {
             c->silence = true;
@@ -85,11 +85,11 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         }
         if (!strcmp(argv[i], "--version")) {
             c->version = true;
-            return unique_ptr<Configuration>(c);
+            return shared_ptr<Configuration>(c);
         }
         if (!strcmp(argv[i], "--license")) {
             c->license = true;
-            return unique_ptr<Configuration>(c);
+            return shared_ptr<Configuration>(c);
         }
         if (!strcmp(argv[i], "--debug")) {
             c->debug = true;
@@ -141,7 +141,7 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             {
                 c->useconfig = true;
                 c->config_root = "";
-                return unique_ptr<Configuration>(c);
+                return shared_ptr<Configuration>(c);
             }
             else if (strlen(argv[i]) > 12 && argv[i][11] == '=')
             {
@@ -179,7 +179,7 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             if (i+1 < argc) {
                 error("Usage error: --useconfig can only be followed by --device= and --listento=\n");
             }
-            return unique_ptr<Configuration>(c);
+            return shared_ptr<Configuration>(c);
             continue;
         }
         if (!strcmp(argv[i], "--reload")) {
@@ -187,7 +187,7 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             if (i > 1 || argc > 2) {
                 error("Usage error: --reload implies no other arguments on the command line.\n");
             }
-            return unique_ptr<Configuration>(c);
+            return shared_ptr<Configuration>(c);
         }
         if (!strncmp(argv[i], "--format=", 9))
         {
@@ -526,5 +526,5 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         c->meters.push_back(MeterInfo(name, type, id, key, modes, no_meter_shells, no_meter_jsons));
     }
 
-    return unique_ptr<Configuration>(c);
+    return shared_ptr<Configuration>(c);
 }

@@ -141,9 +141,9 @@ MeterRfmAmb::MeterRfmAmb(MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<TempHygroMeter> createRfmAmb(MeterInfo &mi)
+shared_ptr<TempHygroMeter> createRfmAmb(MeterInfo &mi)
 {
-    return unique_ptr<TempHygroMeter>(new MeterRfmAmb(mi));
+    return shared_ptr<TempHygroMeter>(new MeterRfmAmb(mi));
 }
 
 double MeterRfmAmb::currentTemperature(Unit u)

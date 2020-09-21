@@ -49,9 +49,9 @@ struct MeterFHKVDataIII : public virtual HeatCostMeter, public virtual MeterComm
     double temp_radiator_ {};
 };
 
-unique_ptr<HeatCostMeter> createFHKVDataIII(MeterInfo &mi)
+shared_ptr<HeatCostMeter> createFHKVDataIII(MeterInfo &mi)
 {
-    return unique_ptr<HeatCostMeter>(new MeterFHKVDataIII(mi));
+    return shared_ptr<HeatCostMeter>(new MeterFHKVDataIII(mi));
 }
 
 

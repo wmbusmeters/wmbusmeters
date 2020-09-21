@@ -431,7 +431,7 @@ void handleJson(Configuration *c, string json)
     c->jsons.push_back(json);
 }
 
-unique_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override)
+shared_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override)
 {
     Configuration *c = new Configuration;
 
@@ -513,7 +513,7 @@ unique_ptr<Configuration> loadConfiguration(string root, string device_override,
         debug("(config) overriding listento with \"%s\"\n", listento_override.c_str());           handleListenTo(c, listento_override);
     }
 
-    return unique_ptr<Configuration>(c);
+    return shared_ptr<Configuration>(c);
 }
 
 LinkModeCalculationResult calculateLinkModes(Configuration *config, WMBus *wmbus, bool link_modes_matter)

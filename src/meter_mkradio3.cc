@@ -58,9 +58,9 @@ MKRadio3::MKRadio3(MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<WaterMeter> createMKRadio3(MeterInfo &mi)
+shared_ptr<WaterMeter> createMKRadio3(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MKRadio3(mi));
+    return shared_ptr<WaterMeter>(new MKRadio3(mi));
 }
 
 void MKRadio3::processContent(Telegram *t)

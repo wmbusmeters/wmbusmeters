@@ -74,12 +74,12 @@ string userName();
 bool detectIfMemberOfGroup(string group);
 void detectWMBUSReceiver();
 void resetWMBUSReceiver();
-void probeFor(string type, AccessCheck(*func)(string,Detected*,SerialCommunicationManager*));
+void probeFor(string type, AccessCheck(*func)(string,Detected*,shared_ptr<SerialCommunicationManager>));
 
 void stopDaemon();
 void startDaemon();
 
-unique_ptr<SerialCommunicationManager> handler;
+shared_ptr<SerialCommunicationManager> handler;
 
 WINDOW *status_window;
 WINDOW *serial_ports_window;
@@ -258,7 +258,7 @@ void resetWMBUSReceiver()
         int c = selectFromMenu("Select device", devices);
         string device = devices[c];
         int was_baud = 0;
-        AccessCheck ac = factoryResetAMB8465(device, handler.get(), &was_baud);
+        AccessCheck ac = factoryResetAMB8465(device, handler, &was_baud);
         if (ac == AccessCheck::AccessOK)
         {
             vector<string> entries;
@@ -282,7 +282,7 @@ void resetWMBUSReceiver()
     }
 }
 
-void probeFor(string type, AccessCheck (*check)(string,Detected*,SerialCommunicationManager*))
+void probeFor(string type, AccessCheck (*check)(string,Detected*,shared_ptr<SerialCommunicationManager>))
 {
     Detected detected {};
     vector<string> devices = handler->listSerialDevices();
@@ -291,8 +291,8 @@ void probeFor(string type, AccessCheck (*check)(string,Detected*,SerialCommunica
     {
         string tty = "?";
         AccessCheck ac = checkAccessAndDetect(
-            handler.get(),
-            [&](string d, SerialCommunicationManager* m){ return check(d, &detected, m);},
+            handler,
+            [&](string d, shared_ptr<SerialCommunicationManager> m){ return check(d, &detected, m);},
             type,
             device);
 

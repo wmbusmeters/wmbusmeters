@@ -37,9 +37,9 @@ private:
     double total_water_consumption_l_ {};
 };
 
-unique_ptr<WaterMeter> createIzar3(MeterInfo &mi)
+shared_ptr<WaterMeter> createIzar3(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterIzar3(mi));
+    return shared_ptr<WaterMeter>(new MeterIzar3(mi));
 }
 
 MeterIzar3::MeterIzar3(MeterInfo &mi) :

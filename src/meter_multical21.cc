@@ -209,20 +209,20 @@ bool MeterMultical21::hasExternalTemperature()
     return has_external_temperature_;
 }
 
-unique_ptr<WaterMeter> createMulticalWaterMeter(MeterInfo &mi, MeterType mt)
+shared_ptr<WaterMeter> createMulticalWaterMeter(MeterInfo &mi, MeterType mt)
 {
     if (mt != MeterType::MULTICAL21 && mt != MeterType::FLOWIQ3100) {
         error("Internal error! Not a proper meter type when creating a multical21 style meter.\n");
     }
-    return unique_ptr<WaterMeter>(new MeterMultical21(mi,mt));
+    return shared_ptr<WaterMeter>(new MeterMultical21(mi,mt));
 }
 
-unique_ptr<WaterMeter> createMultical21(MeterInfo &mi)
+shared_ptr<WaterMeter> createMultical21(MeterInfo &mi)
 {
     return createMulticalWaterMeter(mi, MeterType::MULTICAL21);
 }
 
-unique_ptr<WaterMeter> createFlowIQ3100(MeterInfo &mi)
+shared_ptr<WaterMeter> createFlowIQ3100(MeterInfo &mi)
 {
     return createMulticalWaterMeter(mi, MeterType::FLOWIQ3100);
 }

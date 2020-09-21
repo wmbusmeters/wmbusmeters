@@ -61,7 +61,7 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate();
 
-    WMBusCUL(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    WMBusCUL(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusCUL() { }
 
 private:
@@ -82,21 +82,21 @@ private:
     string setup_;
 };
 
-unique_ptr<WMBus> openCUL(string device, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     if (serial_override)
     {
-        WMBusCUL *imp = new WMBusCUL(std::move(serial_override), manager);
-        return unique_ptr<WMBus>(imp);
+        WMBusCUL *imp = new WMBusCUL(serial_override, manager);
+        return shared_ptr<WMBus>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400);
-    WMBusCUL *imp = new WMBusCUL(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
+    WMBusCUL *imp = new WMBusCUL(serial, manager);
+    return shared_ptr<WMBus>(imp);
 }
 
-WMBusCUL::WMBusCUL(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_CUL, manager, std::move(serial))
+WMBusCUL::WMBusCUL(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_CUL, manager, serial)
 {
     sem_init(&command_wait_, 0, 0);
     manager_->listenTo(this->serial(),call(this,processSerialData));
@@ -356,7 +356,7 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     }
 }
 
-AccessCheck detectCUL(string device, Detected *detected, SerialCommunicationManager *manager)
+AccessCheck detectCUL(string device, Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400);

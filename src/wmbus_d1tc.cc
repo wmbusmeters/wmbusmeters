@@ -41,7 +41,7 @@ struct WMBusD1TC : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate() { }
 
-    WMBusD1TC(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    WMBusD1TC(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusD1TC() { }
 
 private:
@@ -58,20 +58,20 @@ private:
                                  int *payload_offset);
 };
 
-unique_ptr<WMBus> openD1TC(string device, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openD1TC(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     if (serial_override)
     {
-        WMBusD1TC *imp = new WMBusD1TC(std::move(serial_override), manager);
-        return unique_ptr<WMBus>(imp);
+        WMBusD1TC *imp = new WMBusD1TC(serial_override, manager);
+        return shared_ptr<WMBus>(imp);
     }
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 115200);
-    WMBusD1TC *imp = new WMBusD1TC(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
+    WMBusD1TC *imp = new WMBusD1TC(serial, manager);
+    return shared_ptr<WMBus>(imp);
 }
 
-WMBusD1TC::WMBusD1TC(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_D1TC, manager, std::move(serial))
+WMBusD1TC::WMBusD1TC(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_D1TC, manager, serial)
 {
     sem_init(&command_wait_, 0, 0);
     manager_->listenTo(this->serial(),call(this,processSerialData));
@@ -224,7 +224,7 @@ void WMBusD1TC::processSerialData()
     }
 }
 
-AccessCheck detectD1TC(string device, int baud, SerialCommunicationManager *manager)
+AccessCheck detectD1TC(string device, int baud, shared_ptr<SerialCommunicationManager> manager)
 {
     // Since we do not know how to talk to the other end, it might not
     // even respond. The only thing we can do is to try to open the serial device.

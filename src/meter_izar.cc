@@ -75,9 +75,9 @@ private:
     vector<uint32_t> keys;
 };
 
-unique_ptr<WaterMeter> createIzar(MeterInfo &mi)
+shared_ptr<WaterMeter> createIzar(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterIzar(mi));
+    return shared_ptr<WaterMeter>(new MeterIzar(mi));
 }
 
 MeterIzar::MeterIzar(MeterInfo &mi) :

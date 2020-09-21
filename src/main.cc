@@ -21,6 +21,7 @@
 #include"printer.h"
 #include"serial.h"
 #include"shell.h"
+#include"threads.h"
 #include"util.h"
 #include"version.h"
 #include"wmbus.h"
@@ -45,7 +46,7 @@ void oneshotCheck(Configuration *config, Telegram *t, Meter *meter);
 void setupLogFile(Configuration *config);
 void setup_meters(Configuration *config, MeterManager *manager);
 void detectAndConfigureWMBusDevices(Configuration *config);
-unique_ptr<Printer> createPrinter(Configuration *config);
+shared_ptr<Printer> createPrinter(Configuration *config);
 void logStartInformation(Configuration *config);
 bool start(Configuration *config);
 void startUsingConfigFiles(string root, bool is_daemon, string device_override, string listento_override);
@@ -54,23 +55,23 @@ void checkIfMultipleWmbusmetersRunning();
 void list_shell_envs(Configuration *config, string meter_type);
 void list_fields(Configuration *config, string meter_type);
 void list_meters(Configuration *config);
-unique_ptr<Meter> create_meter(Configuration *config, MeterType type, MeterInfo *mi, const char *keymsg);
+shared_ptr<Meter> create_meter(Configuration *config, MeterType type, MeterInfo *mi, const char *keymsg);
 
 // The serial communication manager takes care of
 // monitoring the file descrtiptors for the ttys,
 // background shells, files and stdin. It also invokes
 // regular callbacks used for monitoring alarms and
 // detecting new devices.
-unique_ptr<SerialCommunicationManager> serial_manager_;
+shared_ptr<SerialCommunicationManager> serial_manager_;
 
 // Manage registered meters to decode and relay.
-unique_ptr<MeterManager> meter_manager_;
+shared_ptr<MeterManager> meter_manager_;
 
 // Current active set of wmbus devices that can receive telegrams.
 // This can change during runtime, plugging/unplugging wmbus dongles.
-vector<unique_ptr<WMBus>> wmbus_devices_;
-pthread_mutex_t wmbus_devices_lock_ = PTHREAD_MUTEX_INITIALIZER;
-const char *wmbus_devices_lock_who_ = "";
+vector<shared_ptr<WMBus>> wmbus_devices_;
+RecursiveMutex wmbus_devices_mutex_("wmbus_devices_mutex"); // Protected by macro LOCK_WMBUS_DEVICES
+#define LOCK_WMBUS_DEVICES(where) WITH(wmbus_devices_mutex_, where)
 
 // Remember devices that were not detected as wmbus devices.
 // To avoid probing them again and again.
@@ -89,7 +90,7 @@ set<string> simulation_files_;
 
 // Rendering the telegrams to json,fields or shell calls is
 // done by the printer.
-unique_ptr<Printer> printer_;
+shared_ptr<Printer> printer_;
 
 // Set as true when the warning for no detected wmbus devices has been printed.
 bool printed_warning_ = false;
@@ -180,11 +181,11 @@ provided you with this binary. Read the full license for all details.
     error("(main) internal error\n");
 }
 
-unique_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *config, SerialCommunicationManager *manager)
+shared_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *config, shared_ptr<SerialCommunicationManager> manager)
 {
-    unique_ptr<WMBus> wmbus;
+    shared_ptr<WMBus> wmbus;
 
-    unique_ptr<SerialDevice> serial_override;
+    shared_ptr<SerialDevice> serial_override;
     bool link_modes_matter = true;
 
     if (detected->override_tty)
@@ -198,20 +199,20 @@ unique_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *confi
     {
     case DEVICE_IM871A:
         verbose("(im871a) on %s\n", detected->device.file.c_str());
-        wmbus = openIM871A(detected->device.file, manager, std::move(serial_override));
+        wmbus = openIM871A(detected->device.file, manager, serial_override);
         break;
     case DEVICE_AMB8465:
         verbose("(amb8465) on %s\n", detected->device.file.c_str());
-        wmbus = openAMB8465(detected->device.file, manager, std::move(serial_override));
+        wmbus = openAMB8465(detected->device.file, manager, serial_override);
         break;
     case DEVICE_SIMULATOR:
         verbose("(simulator) in %s\n", detected->device.file.c_str());
-        wmbus = openSimulator(detected->device.file, manager, std::move(serial_override));
+        wmbus = openSimulator(detected->device.file, manager, serial_override);
         link_modes_matter = false;
         break;
     case DEVICE_RAWTTY:
         verbose("(rawtty) on %s\n", detected->device.file.c_str());
-        wmbus = openRawTTY(detected->device.file, detected->baudrate, manager, std::move(serial_override));
+        wmbus = openRawTTY(detected->device.file, detected->baudrate, manager, serial_override);
         link_modes_matter = false;
         break;
     case DEVICE_RFMRX2:
@@ -220,7 +221,7 @@ unique_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *confi
         {
             manager->setReopenAfter(600); // Close and reopen the fd, because of some bug in the device.
         }
-        wmbus = openRawTTY(detected->device.file, 38400, manager, std::move(serial_override));
+        wmbus = openRawTTY(detected->device.file, 38400, manager, serial_override);
         break;
     case DEVICE_RTLWMBUS:
     {
@@ -259,7 +260,7 @@ unique_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *confi
                                  warning("(rtlwmbus) child process exited! "
                                          "Command was: \"%s\"\n", command.c_str());
                              },
-                             std::move(serial_override));
+                             serial_override);
         break;
     }
     case DEVICE_RTL433:
@@ -295,25 +296,25 @@ unique_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *confi
                                  warning("(rtl433) child process exited! "
                                          "Command was: \"%s\"\n", command.c_str());
                              },
-                             std::move(serial_override));
+                             serial_override);
         break;
     }
     case DEVICE_CUL:
     {
         verbose("(cul) on %s\n", detected->device.file.c_str());
-        wmbus = openCUL(detected->device.file, manager, std::move(serial_override));
+        wmbus = openCUL(detected->device.file, manager, serial_override);
         break;
     }
     case DEVICE_D1TC:
     {
         verbose("(d1tc) on %s\n", detected->device.file.c_str());
-        wmbus = openD1TC(detected->device.file, manager, std::move(serial_override));
+        wmbus = openD1TC(detected->device.file, manager, serial_override);
         break;
     }
     case DEVICE_WMB13U:
     {
         verbose("(wmb13u) on %s\n", detected->device.file.c_str());
-        wmbus = openWMB13U(detected->device.file, manager, std::move(serial_override));
+        wmbus = openWMB13U(detected->device.file, manager, serial_override);
         break;
     }
     case DEVICE_UNKNOWN:
@@ -340,7 +341,7 @@ void list_shell_envs(Configuration *config, string meter_type)
     vector<string> envs;
     Telegram t;
     MeterInfo mi;
-    unique_ptr<Meter> meter = create_meter(config, toMeterType(meter_type), &mi, "");
+    shared_ptr<Meter> meter = create_meter(config, toMeterType(meter_type), &mi, "");
     meter->printMeter(&t,
                       &ignore1,
                       &ignore2, config->separator,
@@ -360,7 +361,7 @@ void list_shell_envs(Configuration *config, string meter_type)
 void list_fields(Configuration *config, string meter_type)
 {
     MeterInfo mi;
-    unique_ptr<Meter> meter = create_meter(config, toMeterType(meter_type), &mi, "");
+    shared_ptr<Meter> meter = create_meter(config, toMeterType(meter_type), &mi, "");
 
     int width = 0;
     for (auto &p : meter->prints())
@@ -416,9 +417,9 @@ void setupLogFile(Configuration *config)
     }
 }
 
-unique_ptr<Meter> create_meter(Configuration *config, MeterType type, MeterInfo *mi, const char *keymsg)
+shared_ptr<Meter> create_meter(Configuration *config, MeterType type, MeterInfo *mi, const char *keymsg)
 {
-    unique_ptr<Meter> newm;
+    shared_ptr<Meter> newm;
 
     switch (type)
     {
@@ -447,7 +448,7 @@ void setup_meters(Configuration *config, MeterManager *manager)
     {
         const char *keymsg = (m.key[0] == 0) ? "not-encrypted" : "encrypted";
         auto meter = create_meter(config, toMeterType(m.type), &m, keymsg);
-        manager->addMeter(std::move(meter));
+        manager->addMeter(meter);
     }
 }
 
@@ -501,27 +502,21 @@ void remove_lost_swradio_devices_from_ignore_list(vector<string> &devices)
 
 void check_statuses()
 {
+    /*
     int rc = pthread_mutex_trylock(&wmbus_devices_lock_);
     if (rc == 0)
     {
         trace("[TRYLOCKED] wmbus_devices_lock_ check_statuses\n");
-        vector<WMBus*> not_working;
-        for (auto &w : wmbus_devices_)
-        {
-            if (w->isWorking())
-            {
-                w->checkStatus();
-            }
-        }
         UNLOCK("(main)", "check_statuses", wmbus_devices_lock_);
-    }
+        }*/
 }
 
 void check_for_dead_wmbus_devices(Configuration *config)
 {
+    LOCK_WMBUS_DEVICES(check_for_wmbus_devices);
+
     trace("[MAIN] checking for dead wmbus devices...\n");
 
-    LOCK("(main)", "check_for_dead_wmbus_devices", wmbus_devices_lock_);
     vector<WMBus*> not_working;
     for (auto &w : wmbus_devices_)
     {
@@ -542,7 +537,7 @@ void check_for_dead_wmbus_devices(Configuration *config)
         {
             if (w == (*i).get())
             {
-                // The erased unique_ptr will delete the WMBus object.
+                // The erased shared_ptr will delete the WMBus object.
                 wmbus_devices_.erase(i);
                 break;
             }
@@ -563,12 +558,12 @@ void check_for_dead_wmbus_devices(Configuration *config)
     {
         printed_warning_ = false;
     }
-
-    UNLOCK("(main)", "check_for_dead_wmbus_devices", wmbus_devices_lock_);
 }
 
 void open_wmbus_device(Configuration *config, string how, string device, Detected *detected)
 {
+    LOCK_WMBUS_DEVICES(open_wmbus_device);
+
     // A newly plugged in device has been manually configured or automatically detected! Start using it!
     if (config->use_auto_detect)
     {
@@ -578,9 +573,9 @@ void open_wmbus_device(Configuration *config, string how, string device, Detecte
     {
         verbose("(main) started %s on %s (%s)\n", toString(detected->type), device.c_str(), how.c_str());
     }
-    LOCK("(main)", "perform_auto_scan_of_devices", wmbus_devices_lock_);
-    unique_ptr<WMBus> w = createWMBusDeviceFrom(detected, config, serial_manager_.get());
-    wmbus_devices_.push_back(std::move(w));
+
+    shared_ptr<WMBus> w = createWMBusDeviceFrom(detected, config, serial_manager_);
+    wmbus_devices_.push_back(w);
     WMBus *wmbus = wmbus_devices_.back().get();
     wmbus->setLinkModes(config->listen_to_link_modes);
     //string using_link_modes = wmbus->getLinkModes().hr();
@@ -594,7 +589,6 @@ void open_wmbus_device(Configuration *config, string how, string device, Detecte
     }
     wmbus->onTelegram([&, simulated](vector<uchar> data){return meter_manager_->handleTelegram(data, simulated);});
     wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
-    UNLOCK("(main)", "perform_auto_scan_of_devices", wmbus_devices_lock_);
 }
 
 void perform_auto_scan_of_serial_devices(Configuration *config)
@@ -613,23 +607,23 @@ void perform_auto_scan_of_serial_devices(Configuration *config)
             trace("[MAIN] skipping already probed not wmbus serial device %s\n", device.c_str());
             continue;
         }
-        SerialDevice *sd = serial_manager_->lookup(device);
-        if (sd == NULL)
+        shared_ptr<SerialDevice> sd = serial_manager_->lookup(device);
+        if (!sd)
         {
             debug("(main) device %s not currently used, detect contents...\n", device.c_str());
             // This serial device is not in use.
-            Detected detected = detectImstAmberCul(device, "", "", serial_manager_.get(), true, false, false);
-            if (detected.type == DEVICE_UNKNOWN)
+            Detected detected = detectImstAmberCul(device, "", "", serial_manager_, true, false, false);
+            if (detected.type != DEVICE_UNKNOWN)
+            {
+                open_wmbus_device(config, "auto", device, &detected);
+            }
+            else
             {
                 // This serial device was something that we could not recognize.
                 // A modem, an android phone, a teletype Model 33, etc....
                 // Mark this serial device as unknown, to avoid repeated detection attempts.
                 not_serial_wmbus_devices_.insert(device);
                 verbose("(main) ignoring %s, it does not respond as any of the supported wmbus devices.\n", device.c_str());
-            }
-            else
-            {
-                open_wmbus_device(config, "auto", device, &detected);
             }
         }
     }
@@ -651,13 +645,13 @@ void perform_auto_scan_of_swradio_devices(Configuration *config)
             trace("[MAIN] skipping already probed swradio device %s\n", device.c_str());
             continue;
         }
-        SerialDevice *sd = serial_manager_->lookup(device);
-        if (sd == NULL)
+        shared_ptr<SerialDevice> sd = serial_manager_->lookup(device);
+        if (!sd)
         {
             debug("(main) swradio device %s not currently used, detect contents...\n", device.c_str());
             // This serial device is not in use.
             Detected detected;
-            AccessCheck ac = detectRTLSDR(device, &detected, serial_manager_.get());
+            AccessCheck ac = detectRTLSDR(device, &detected, serial_manager_);
             if (ac != AccessCheck::AccessOK)
             {
                 // We cannot access this swradio device.
@@ -685,7 +679,7 @@ void detectAndConfigureWMBusDevices(Configuration *config)
 
     for (auto &device : config->supplied_wmbus_devices)
     {
-        SerialDevice *sd = serial_manager_->lookup(device.file);
+        shared_ptr<SerialDevice> sd = serial_manager_->lookup(device.file);
         if (sd != NULL)
         {
             trace("(main) %s already configured\n", sd->device().c_str());
@@ -701,7 +695,7 @@ void detectAndConfigureWMBusDevices(Configuration *config)
             Detected detected = detectWMBusDeviceSetting(device.file,
                                                          device.suffix,
                                                          device.linkmodes,
-                                                         serial_manager_.get());
+                                                         serial_manager_);
 
             if (detected.type != DEVICE_UNKNOWN)
             {
@@ -725,9 +719,9 @@ void detectAndConfigureWMBusDevices(Configuration *config)
     }
 }
 
-unique_ptr<Printer> createPrinter(Configuration *config)
+shared_ptr<Printer> createPrinter(Configuration *config)
 {
-    return unique_ptr<Printer>(new Printer(config->json, config->fields,
+    return shared_ptr<Printer>(new Printer(config->json, config->fields,
                                            config->separator, config->meterfiles, config->meterfiles_dir,
                                            config->use_logfile, config->logfile,
                                            config->telegram_shells,
@@ -759,6 +753,26 @@ void logStartInformation(Configuration *config)
     verbose("(config) number of meters: %d\n", config->meters.size());
 }
 
+void regularCheckup(Configuration *config)
+{
+    if (serial_manager_ && config)
+    {
+        detectAndConfigureWMBusDevices(config);
+    }
+
+    {
+        LOCK_WMBUS_DEVICES(regular_checkup);
+
+        for (auto &w : wmbus_devices_)
+        {
+            if (w->isWorking())
+            {
+                w->checkStatus();
+            }
+        }
+    }
+}
+
 bool start(Configuration *config)
 {
     // Configure where the logging information should end up.
@@ -781,7 +795,7 @@ bool start(Configuration *config)
     // If our software unexpectedly exits, then stop the manager, to try
     // to achive a nice shutdown.
     onExit(call(serial_manager_.get(),stop));
-    serial_manager_->eachEventLooping([]() { check_statuses(); });
+    //serial_manager_->eachEventLooping([]() { check_statuses(); });
 
     // Create the printer object that knows how to translate
     // telegrams into json, fields that are written into log files
@@ -839,8 +853,7 @@ bool start(Configuration *config)
     serial_manager_->startRegularCallback("HOT_PLUG_DETECTOR",
                                   2,
                                   [&](){
-                                      if (serial_manager_ && config)
-                                          detectAndConfigureWMBusDevices(config);
+                                      regularCheckup(config);
                                   });
 
     if (config->daemon)
@@ -979,7 +992,7 @@ void startUsingConfigFiles(string root, bool is_daemon, string device_override, 
     bool restart = false;
     do
     {
-        unique_ptr<Configuration> config = loadConfiguration(root, device_override, listento_override);
+        shared_ptr<Configuration> config = loadConfiguration(root, device_override, listento_override);
         config->daemon = is_daemon;
         restart = start(config.get());
         if (restart)

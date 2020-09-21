@@ -74,9 +74,9 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<ElectricityMeter> createAmiplus(MeterInfo &mi)
+shared_ptr<ElectricityMeter> createAmiplus(MeterInfo &mi)
 {
-    return unique_ptr<ElectricityMeter>(new MeterAmiplus(mi));
+    return shared_ptr<ElectricityMeter>(new MeterAmiplus(mi));
 }
 
 double MeterAmiplus::totalEnergyConsumption(Unit u)

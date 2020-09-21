@@ -80,9 +80,9 @@ MeterEurisII::MeterEurisII(MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<HeatCostMeter> createEurisII(MeterInfo &mi)
+shared_ptr<HeatCostMeter> createEurisII(MeterInfo &mi)
 {
-    return unique_ptr<HeatCostMeter>(new MeterEurisII(mi));
+    return shared_ptr<HeatCostMeter>(new MeterEurisII(mi));
 }
 
 double MeterEurisII::currentConsumption(Unit u)

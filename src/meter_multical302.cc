@@ -89,8 +89,8 @@ MeterMultical302::MeterMultical302(MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<HeatMeter> createMultical302(MeterInfo &mi) {
-    return unique_ptr<HeatMeter>(new MeterMultical302(mi));
+shared_ptr<HeatMeter> createMultical302(MeterInfo &mi) {
+    return shared_ptr<HeatMeter>(new MeterMultical302(mi));
 }
 
 double MeterMultical302::totalEnergyConsumption(Unit u)

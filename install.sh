@@ -19,7 +19,7 @@ fi
 
 if [ ! -x "$1" ]
 then
-    echo This is not an executable.
+    echo This is not an executable: \"$1\"
     exit 1
 fi
 

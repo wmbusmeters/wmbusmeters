@@ -53,9 +53,9 @@ MeterCMa12w::MeterCMa12w(MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<TempHygroMeter> createCMa12w(MeterInfo &mi)
+shared_ptr<TempHygroMeter> createCMa12w(MeterInfo &mi)
 {
-    return unique_ptr<TempHygroMeter>(new MeterCMa12w(mi));
+    return shared_ptr<TempHygroMeter>(new MeterCMa12w(mi));
 }
 
 double MeterCMa12w::currentTemperature(Unit u)

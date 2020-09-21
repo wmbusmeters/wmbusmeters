@@ -132,9 +132,9 @@ MeterESYSWM::MeterESYSWM(MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<ElectricityMeter> createESYSWM(MeterInfo &mi)
+shared_ptr<ElectricityMeter> createESYSWM(MeterInfo &mi)
 {
-    return unique_ptr<ElectricityMeter>(new MeterESYSWM(mi));
+    return shared_ptr<ElectricityMeter>(new MeterESYSWM(mi));
 }
 
 double MeterESYSWM::totalEnergyConsumption(Unit u)

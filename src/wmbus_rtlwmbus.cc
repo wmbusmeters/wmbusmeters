@@ -55,7 +55,7 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate();
 
-    WMBusRTLWMBUS(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    WMBusRTLWMBUS(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusRTLWMBUS()
     {
         manager_->listenTo(this->serial(), NULL);
@@ -77,8 +77,8 @@ private:
     string setup_;
 };
 
-unique_ptr<WMBus> openRTLWMBUS(string device, string command, SerialCommunicationManager *manager,
-                               function<void()> on_exit, unique_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openRTLWMBUS(string device, string command, shared_ptr<SerialCommunicationManager> manager,
+                               function<void()> on_exit, shared_ptr<SerialDevice> serial_override)
 {
     vector<string> args;
     vector<string> envs;
@@ -86,16 +86,16 @@ unique_ptr<WMBus> openRTLWMBUS(string device, string command, SerialCommunicatio
     args.push_back(command);
     if (serial_override)
     {
-        WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(std::move(serial_override), manager);
-        return unique_ptr<WMBus>(imp);
+        WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(serial_override, manager);
+        return shared_ptr<WMBus>(imp);
     }
     auto serial = manager->createSerialDeviceCommand(device, "/bin/sh", args, envs, on_exit);
-    WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
+    WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(serial, manager);
+    return shared_ptr<WMBus>(imp);
 }
 
-WMBusRTLWMBUS::WMBusRTLWMBUS(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_RTLWMBUS, manager, std::move(serial))
+WMBusRTLWMBUS::WMBusRTLWMBUS(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_RTLWMBUS, manager, serial)
 {
     manager_->listenTo(this->serial(),call(this,processSerialData));
     manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
@@ -294,7 +294,7 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     return FullFrame;
 }
 
-AccessCheck detectRTLSDR(string device, Detected *detected, SerialCommunicationManager *manager)
+AccessCheck detectRTLSDR(string device, Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // No more advanced test than that the /dev/rtlsdr link exists.
     AccessCheck rc = checkIfExistsAndSameGroup(device);
