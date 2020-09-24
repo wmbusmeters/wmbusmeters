@@ -260,6 +260,7 @@ Easy Meter ESYS-WM20 (esyswm)
 eBZ wMB-E01 (ebzwmbe)
 EMH Metering (ehzp)
 Tauron Amiplus (amiplus) (includes vendor apator and echelon)
+Gavazzi EM24 (em24)
 ```
 
 The wmbus dongles imst871a can listen to one type of wmbus telegrams

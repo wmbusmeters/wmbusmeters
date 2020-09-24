@@ -21,22 +21,24 @@
 #include<string>
 #include<vector>
 
-#define LIST_OF_QUANTITIES \
-    X(Energy,KWH)          \
-    X(Power,KW)            \
-    X(Volume,M3)           \
-    X(Flow,M3H)            \
-    X(Temperature,C)       \
-    X(RelativeHumidity,RH) \
-    X(HCA,HCA)             \
-    X(Text,TXT)            \
-    X(Counter,INT)         \
-    X(Time,Hour)           \
+#define LIST_OF_QUANTITIES   \
+    X(Energy,KWH)            \
+    X(Reactive_Energy,KVARH) \
+    X(Power,KW)              \
+    X(Volume,M3)             \
+    X(Flow,M3H)              \
+    X(Temperature,C)         \
+    X(RelativeHumidity,RH)   \
+    X(HCA,HCA)               \
+    X(Text,TXT)              \
+    X(Counter,INT)           \
+    X(Time,Hour)             \
 
 #define LIST_OF_UNITS \
     X(KWH,kwh,"kWh",Energy,"kilo Watt hour")  \
     X(MJ,mj,"MJ",Energy,"Mega Joule")         \
     X(GJ,gj,"GJ",Energy,"Giga Joule")         \
+    X(KVARH,kvarh,"kVARh",Reactive_Energy,"kilo volt amperes reactive hour")  \
     X(M3,m3,"m3",Volume,"cubic meter")        \
     X(L,l,"l",Volume,"litre")                 \
     X(KW,kw,"kW",Power,"kilo Watt")           \
