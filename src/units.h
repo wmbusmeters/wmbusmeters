@@ -24,6 +24,7 @@
 #define LIST_OF_QUANTITIES   \
     X(Energy,KWH)            \
     X(Reactive_Energy,KVARH) \
+    X(Apparent_Energy,KVAH)  \
     X(Power,KW)              \
     X(Volume,M3)             \
     X(Flow,M3H)              \
@@ -39,6 +40,7 @@
     X(MJ,mj,"MJ",Energy,"Mega Joule")         \
     X(GJ,gj,"GJ",Energy,"Giga Joule")         \
     X(KVARH,kvarh,"kVARh",Reactive_Energy,"kilo volt amperes reactive hour")  \
+    X(KVAH,kvah,"kVAh",Apparent_Energy,"kilo volt amperes hour")  \
     X(M3,m3,"m3",Volume,"cubic meter")        \
     X(L,l,"l",Volume,"litre")                 \
     X(KW,kw,"kW",Power,"kilo Watt")           \

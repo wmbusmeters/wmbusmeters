@@ -22,18 +22,20 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
+#include<cmath>
+
 using namespace std;
 
 
-#define ERROR_CODE_VOLTAGE_PHASE_1_OVERFLOW 0x01
-#define ERROR_CODE_VOLTAGE_PHASE_2_OVERFLOW 0x02
-#define ERROR_CODE_VOLTAGE_PHASE_3_OVERFLOW 0x04
+constexpr uint8_t ERROR_CODE_VOLTAGE_PHASE_1_OVERFLOW=0x01;
+constexpr uint8_t ERROR_CODE_VOLTAGE_PHASE_2_OVERFLOW=0x02;
+constexpr uint8_t ERROR_CODE_VOLTAGE_PHASE_3_OVERFLOW=0x04;
 
-#define ERROR_CODE_CURRENT_PHASE_1_OVERFLOW 0x08
-#define ERROR_CODE_CURRENT_PHASE_2_OVERFLOW 0x10
-#define ERROR_CODE_CURRENT_PHASE_3_OVERFLOW 0x20
+constexpr uint8_t ERROR_CODE_CURRENT_PHASE_1_OVERFLOW=0x08;
+constexpr uint8_t ERROR_CODE_CURRENT_PHASE_2_OVERFLOW=0x10;
+constexpr uint8_t ERROR_CODE_CURRENT_PHASE_3_OVERFLOW=0x20;
 
-#define ERROR_CODE_FREQUENCY_OUT_OF_RANGE 0x40
+constexpr uint8_t ERROR_CODE_FREQUENCY_OUT_OF_RANGE=0x40;
 
 
 struct MeterEM24 : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
@@ -44,6 +46,9 @@ struct MeterEM24 : public virtual ElectricityMeter, public virtual MeterCommonIm
 
     double totalReactiveEnergyConsumption(Unit u);
     double totalReactiveEnergyProduction(Unit u);
+
+    double totalApparentEnergyConsumption(Unit u);
+    double totalApparentEnergyProduction(Unit u);
 
     string status();
 
@@ -91,6 +96,16 @@ MeterEM24::MeterEM24(WMBus *bus, MeterInfo &mi) :
              "The total reactive energy production recorded by this meter.",
              true, true);
 
+    addPrint("total_apparent_energy_consumption", Quantity::Apparent_Energy,
+             [&](Unit u){ return totalApparentEnergyConsumption(u); },
+             "The total apparent energy consumption by calculation.",
+             true, true);
+
+    addPrint("total_apparent_energy_production", Quantity::Apparent_Energy,
+             [&](Unit u){ return totalApparentEnergyProduction(u); },
+             "The total apparent energy production by calculation.",
+             true, true);
+
     addPrint("errors", Quantity::Text,
              [&](){ return status(); },
              "Any errors currently being reported.",
@@ -121,6 +136,27 @@ double MeterEM24::totalReactiveEnergyProduction(Unit u)
     return convert(total_reactive_energy_production_kvarh_, Unit::KVARH, u);
 }
 
+double MeterEM24::totalApparentEnergyConsumption(Unit u)
+{
+    assertQuantity(u, Quantity::Apparent_Energy);
+    return convert(
+        sqrt(
+            pow(total_true_energy_consumption_kwh_, 2) +
+            pow(total_reactive_energy_consumption_kvarh_, 2)
+        )
+    , Unit::KVAH, u);
+}
+
+double MeterEM24::totalApparentEnergyProduction(Unit u)
+{
+    assertQuantity(u, Quantity::Apparent_Energy);
+    return convert(
+        sqrt(
+            pow(total_true_energy_production_kwh_, 2) +
+            pow(total_reactive_energy_production_kvarh_, 2)
+        )
+    , Unit::KVAH, u);
+}
 
 void MeterEM24::processContent(Telegram *t)
 {
@@ -175,4 +211,3 @@ string MeterEM24::status()
     }
     return s;
 }
-

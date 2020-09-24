@@ -252,8 +252,15 @@ struct HeatMeter : public virtual Meter
 struct ElectricityMeter : public virtual Meter
 {
     virtual double totalEnergyConsumption(Unit u); // kwh
-    virtual double currentPowerConsumption(Unit u); // kw
     virtual double totalEnergyProduction(Unit u); // kwh
+
+    virtual double totalReactiveEnergyConsumption(Unit u); // kvarh
+    virtual double totalReactiveEnergyProduction(Unit u); // kvarh
+
+    virtual double totalApparentEnergyConsumption(Unit u); // kvah
+    virtual double totalApparentEnergyProduction(Unit u); // kvah
+
+    virtual double currentPowerConsumption(Unit u); // kw
     virtual double currentPowerProduction(Unit u); // kw
 };
 

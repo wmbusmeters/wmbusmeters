@@ -24,6 +24,7 @@
 #include<algorithm>
 #include<memory.h>
 #include<time.h>
+#include<cmath>
 
 MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
                                                      MeterType type) :
@@ -472,38 +473,43 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     }
 }
 
-double WaterMeter::totalWaterConsumption(Unit u) { return -47.11; }
+double WaterMeter::totalWaterConsumption(Unit u) { return -NAN; }
 bool  WaterMeter::hasTotalWaterConsumption() { return false; }
-double WaterMeter::targetWaterConsumption(Unit u) { return -47.11; }
+double WaterMeter::targetWaterConsumption(Unit u) { return -NAN; }
 bool  WaterMeter::hasTargetWaterConsumption() { return false; }
-double WaterMeter::maxFlow(Unit u) { return -47.11; }
+double WaterMeter::maxFlow(Unit u) { return -NAN; }
 bool  WaterMeter::hasMaxFlow() { return false; }
-double WaterMeter::flowTemperature(Unit u) { return -47.11; }
+double WaterMeter::flowTemperature(Unit u) { return -NAN; }
 bool WaterMeter::hasFlowTemperature() { return false; }
-double WaterMeter::externalTemperature(Unit u) { return -47.11; }
+double WaterMeter::externalTemperature(Unit u) { return -NAN; }
 bool WaterMeter::hasExternalTemperature() { return false; }
 
-string WaterMeter::statusHumanReadable() { return "-47.11"; }
-string WaterMeter::status() { return "-47.11"; }
-string WaterMeter::timeDry() { return "-47.11"; }
-string WaterMeter::timeReversed() { return "-47.11"; }
-string WaterMeter::timeLeaking() { return "-47.11"; }
-string WaterMeter::timeBursting() { return "-47.11"; }
+string WaterMeter::statusHumanReadable() { return "-NAN"; }
+string WaterMeter::status() { return "-NAN"; }
+string WaterMeter::timeDry() { return "-NAN"; }
+string WaterMeter::timeReversed() { return "-NAN"; }
+string WaterMeter::timeLeaking() { return "-NAN"; }
+string WaterMeter::timeBursting() { return "-NAN"; }
 
-double HeatMeter::totalEnergyConsumption(Unit u) { return -47.11; }
-double HeatMeter::currentPeriodEnergyConsumption(Unit u) { return -47.11; }
-double HeatMeter::previousPeriodEnergyConsumption(Unit u) { return -47.11; }
-double HeatMeter::currentPowerConsumption(Unit u) { return -47.11; }
-double HeatMeter::totalVolume(Unit u) { return -47.11; }
+double HeatMeter::totalEnergyConsumption(Unit u) { return -NAN; }
+double HeatMeter::currentPeriodEnergyConsumption(Unit u) { return -NAN; }
+double HeatMeter::previousPeriodEnergyConsumption(Unit u) { return -NAN; }
+double HeatMeter::currentPowerConsumption(Unit u) { return -NAN; }
+double HeatMeter::totalVolume(Unit u) { return -NAN; }
 
-double ElectricityMeter::totalEnergyConsumption(Unit u) { return -47.11; }
-double ElectricityMeter::currentPowerConsumption(Unit u) { return -47.11; }
-double ElectricityMeter::totalEnergyProduction(Unit u) { return -47.11; }
-double ElectricityMeter::currentPowerProduction(Unit u) { return -47.11; }
+double ElectricityMeter::totalEnergyConsumption(Unit u) { return -NAN; }
+double ElectricityMeter::totalEnergyProduction(Unit u) { return -NAN; }
+double ElectricityMeter::totalReactiveEnergyConsumption(Unit u) { return -NAN; }
+double ElectricityMeter::totalReactiveEnergyProduction(Unit u) { return -NAN; }
+double ElectricityMeter::totalApparentEnergyConsumption(Unit u) { return -NAN; }
+double ElectricityMeter::totalApparentEnergyProduction(Unit u) { return -NAN; }
 
-double HeatCostMeter::currentConsumption(Unit u) { return -47.11; }
-string HeatCostMeter::setDate() { return "47.11"; }
-double HeatCostMeter::consumptionAtSetDate(Unit u) { return -47.11; }
+double ElectricityMeter::currentPowerConsumption(Unit u) { return -NAN; }
+double ElectricityMeter::currentPowerProduction(Unit u) { return -NAN; }
+
+double HeatCostMeter::currentConsumption(Unit u) { return -NAN; }
+string HeatCostMeter::setDate() { return "NAN"; }
+double HeatCostMeter::consumptionAtSetDate(Unit u) { return -NAN; }
 
 void MeterCommonImplementation::setExpectedTPLSecurityMode(TPLSecurityMode tsm)
 {
