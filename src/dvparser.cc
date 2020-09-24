@@ -437,6 +437,29 @@ bool extractDVuint24(map<string,pair<int,DVEntry>> *values,
     return true;
 }
 
+bool extractDVuint32(map<string,pair<int,DVEntry>> *values,
+                     string key,
+                     int *offset,
+                     uint32_t *value)
+{
+    if ((*values).count(key) == 0) {
+        verbose("(dvparser) warning: cannot extract uint32 from non-existant key \"%s\"\n", key.c_str());
+        *offset = -1;
+        *value = 0;
+        return false;
+    }
+    uchar dif, vif;
+    extractDV(key, &dif, &vif);
+
+    pair<int,DVEntry>&  p = (*values)[key];
+    *offset = p.first;
+    vector<uchar> v;
+    hex2bin(p.second.value, &v);
+
+    *value = v[2] << 16 | v[1]<<8 | v[0];
+    return true;
+}
+
 bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                      string key,
                      int *offset,
