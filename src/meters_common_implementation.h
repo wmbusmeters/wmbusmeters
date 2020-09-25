@@ -74,7 +74,7 @@ protected:
     // Print the dimensionless Text quantity, no unit is needed.
     void addPrint(string vname, Quantity vquantity,
                   function<std::string()> getValueFunc, string help, bool field, bool json);
-    bool handleTelegram(vector<uchar> frame, bool simulated);
+    bool handleTelegram(vector<uchar> frame, bool simulated, string *id);
     void printMeter(Telegram *t,
                     string *human_readable,
                     string *fields, char separator,

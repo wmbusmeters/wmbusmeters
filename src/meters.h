@@ -222,7 +222,7 @@ struct Meter
 
     // The handleTelegram expects an input_frame where the DLL crcs have been removed.
     // Returns true of this meter handled this telegram!
-    virtual bool handleTelegram(vector<uchar> input_frame, bool simulated) = 0;
+    virtual bool handleTelegram(vector<uchar> input_frame, bool simulated, string *id) = 0;
     virtual bool isTelegramForMe(Telegram *t) = 0;
     virtual MeterKeys *meterKeys() = 0;
 

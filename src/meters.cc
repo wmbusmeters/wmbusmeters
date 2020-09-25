@@ -79,14 +79,15 @@ struct MeterManagerImplementation : public virtual MeterManager
 
         bool handled = false;
 
+        string id;
         for (auto &m : meters_)
         {
-            bool h = m->handleTelegram(data, simulated);
+            bool h = m->handleTelegram(data, simulated, &id);
             if (h) handled = true;
         }
         if (isVerboseEnabled() && !handled)
         {
-            verbose("(wmbus) telegram ignored by all configured meters!\n");
+            verbose("(wmbus) telegram from %s ignored by all configured meters!\n", id.c_str());
         }
         return handled;
     }
@@ -427,18 +428,22 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
     return s;
 }
 
-bool MeterCommonImplementation::handleTelegram(vector<uchar> input_frame, bool simulated)
+bool MeterCommonImplementation::handleTelegram(vector<uchar> input_frame, bool simulated, string *id)
 {
     Telegram t;
     bool ok = t.parseHeader(input_frame);
 
     if (simulated) t.markAsSimulated();
 
+    *id = t.id;
+
     if (!ok || !isTelegramForMe(&t))
     {
         // This telegram is not intended for this meter.
         return false;
     }
+
+    verbose("(meter) %s %s handling telegram from %s\n", name().c_str(), meterName().c_str(), t.id.c_str());
 
     if (isDebugEnabled())
     {
