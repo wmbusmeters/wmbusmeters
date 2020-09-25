@@ -119,6 +119,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_ebzwmbe.o \
 	$(BUILD)/meter_ehzp.o \
 	$(BUILD)/meter_esyswm.o \
+	$(BUILD)/meter_em24.o \
 	$(BUILD)/meter_eurisii.o \
 	$(BUILD)/meter_fhkvdataiii.o \
 	$(BUILD)/meter_hydrus.o \
