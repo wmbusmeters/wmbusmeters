@@ -87,8 +87,6 @@ private:
     bool has_flow_temperature_ {};
     double external_temperature_c_ { 127 };
     bool has_external_temperature_ {};
-
-    int expected_version_ {}; // 0x1b for Multical21 and 0x1d for FlowIQ3100
 };
 
 MeterMultical21::MeterMultical21(MeterInfo &mi, MeterType mt) :

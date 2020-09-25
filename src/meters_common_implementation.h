@@ -93,7 +93,6 @@ private:
     TPLSecurityMode expected_tpl_sec_mode_ {};
     string name_;
     vector<string> ids_;
-    WMBus *bus_ {};
     vector<function<void(Telegram*,Meter*)>> on_update_;
     int num_updates_ {};
     time_t datetime_of_update_ {};
