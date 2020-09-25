@@ -545,6 +545,7 @@ struct SerialDeviceFile : public SerialDeviceImp
 
     AccessCheck open(bool fail_if_not_ok);
     void close();
+    bool working();
     void checkIfShouldReopen();
     bool send(vector<uchar> &data);
     int available();
@@ -597,6 +598,12 @@ AccessCheck SerialDeviceFile::open(bool fail_if_not_ok)
         setIsFile();
         verbose("(serialfile) reading from file %s\n", file_.c_str());
     }
+    if (signalsInstalled())
+    {
+        // Tickle the event loop to use the new file descriptor in the select.
+        if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
+    }
+
     return AccessCheck::AccessOK;
 }
 
@@ -607,6 +614,22 @@ void SerialDeviceFile::close()
     ::close(fd_);
     fd_ = -1;
     verbose("(serialfile) closed %s %d\n", file_.c_str(), fd_);
+}
+
+bool SerialDeviceFile::working()
+{
+    if (fd_ == -1) return false;
+    int n = -1;
+    int rc = ioctl(fd_, FIONREAD, &n);
+    // The file descriptor was bad.
+    if (rc != 0) return false;
+
+    // There is still data available for reading.
+    if (n > 0) return true;
+
+    // Oh it is still open, lets continue use it.
+    // This could be stdin for example.
+    return true;
 }
 
 void SerialDeviceFile::checkIfShouldReopen()
@@ -794,11 +817,6 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::addSerialDeviceForManage
     max_fd_ = max(sd->fd(), max_fd_);
     shared_ptr<SerialDevice> ptr = shared_ptr<SerialDevice>(sd);
     serial_devices_.push_back(ptr);
-    if (signalsInstalled())
-    {
-        // Tickle the event loop to use the new file descriptor in the select.
-        if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
-    }
     return ptr;
 }
 
