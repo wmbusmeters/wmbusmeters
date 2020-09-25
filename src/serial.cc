@@ -116,7 +116,7 @@ private:
     time_t exit_after_seconds_ {};
     time_t reopen_after_seconds_ {};
 
-    vector<shared_ptr<SerialDevice>> serial_devices_; // Protected by LOCK_SERIAL_DEVICES()
+    vector<shared_ptr<SerialDevice>> serial_devices_;
     RecursiveMutex serial_devices_mutex_ = { "serial_devices_mutex" };
 #define LOCK_SERIAL_DEVICES(where) WITH(serial_devices_mutex_, where)
 
@@ -494,7 +494,16 @@ void SerialDeviceCommand::close()
 bool SerialDeviceCommand::working()
 {
     if (fd_ == -1) return false;
+    int n = -1;
+    int rc = ioctl(fd_, FIONREAD, &n);
+    if (rc != 0) return false;
+    // There is still data available for reading,
+    // even though the child-process might have ended.
+    if (n > 0) return true;
+
+    // No data and no pid. For sure its not working.
     if (!pid_) return false;
+    // Ok check the pid, still running?
     bool r = stillRunning(pid_);
     if (r) return true;
     return false;
@@ -725,6 +734,7 @@ void SerialCommunicationManagerImp::stop()
             {
                 if (getMainThread()) pthread_kill(getMainThread(), SIGUSR2);
                 if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
+                if (getTimerLoopThread()) pthread_kill(getTimerLoopThread(), SIGUSR1);
             }
         }
     }
@@ -747,7 +757,12 @@ void SerialCommunicationManagerImp::waitForStop()
             LOCK_SERIAL_DEVICES(wait_for_stop);
             if (serial_devices_.size() == 0) break;
         }
-        usleep(1000*1000);
+        int rc = usleep(1000*1000);
+        if (rc == -1 && errno == EINTR)
+        {
+            debug("(serial) MAIN thread interrupted\n");
+            continue;
+        }
     }
 
     closeAllDoNotRemove();
@@ -755,6 +770,7 @@ void SerialCommunicationManagerImp::waitForStop()
     if (signalsInstalled())
     {
         if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
+        if (getTimerLoopThread()) pthread_kill(getTimerLoopThread(), SIGUSR1);
     }
 
     pthread_join(getEventLoopThread(), NULL);
@@ -780,6 +796,7 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::addSerialDeviceForManage
     serial_devices_.push_back(ptr);
     if (signalsInstalled())
     {
+        // Tickle the event loop to use the new file descriptor in the select.
         if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
     }
     return ptr;
@@ -876,7 +893,12 @@ void *SerialCommunicationManagerImp::timerLoop()
 {
     while (running_)
     {
-        usleep(1000*1000);
+        int rc = usleep(0000*1000);
+        if (rc == -1 && errno == EINTR)
+        {
+            debug("(serial) TIMER thread interrupted\n");
+            continue;
+        }
 
         time_t curr = time(NULL);
 
@@ -958,6 +980,11 @@ void *SerialCommunicationManagerImp::eventLoop()
         }
 
         int activity = select(max_fd_+1 , &readfds, NULL , NULL, &timeout);
+
+        if (activity == -1 && errno == EINTR)
+        {
+            debug("(serial) EVENT thread interrupted\n");
+        }
         if (!running_) break;
         if (activity < 0 && errno!=EINTR)
         {

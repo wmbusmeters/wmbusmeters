@@ -20,7 +20,6 @@ rm -f $LOGFILE
 
 cat > $LOGFILE_EXPECTED <<EOF
 No meters configured. Printing id:s of all telegrams heard!
-
 Received telegram from: 12345678
           manufacturer: (SON) Sontex, Switzerland (0x4dee)
            device type: Warm Water (30°C-90°C) meter (0x06)
