@@ -154,6 +154,14 @@ struct SerialDeviceImp : public SerialDevice
     SerialCommunicationManager *manager() { return manager_; }
     void resetInitiated() { debug("(serial) initiate reset\n"); resetting_ = true; }
     void resetCompleted() { debug("(serial) reset completed\n"); resetting_ = false; }
+    bool checkIfDataIsPending()
+    {
+        if (!opened() || !working()) return false; // No data can be pending if device is not opened nor working.
+        int available = -1;
+        int rc = ioctl(fd_, FIONREAD, &available);
+        if (rc == -1) return false;
+        return available > 0;
+    }
 
     SerialDeviceImp(SerialCommunicationManagerImp *manager)
     {
@@ -249,7 +257,6 @@ struct SerialDeviceTTY : public SerialDeviceImp
 
     AccessCheck open(bool fail_if_not_ok);
     void close();
-    void checkIfShouldReopen();
     bool send(vector<uchar> &data);
     bool working();
     string device() { return device_; }
@@ -321,32 +328,6 @@ void SerialDeviceTTY::close()
     verbose("(serialtty) closed %s\n", device_.c_str());
 }
 
-void SerialDeviceTTY::checkIfShouldReopen()
-{
-    assert(0);
-/*    if (fd_ != -1 && reopen_after_ > 0)
-    {
-        time_t curr = time(NULL);
-        time_t diff = curr-start_since_reopen_;
-        int available = 0;
-
-        ioctl(fd_, FIONREAD, &available);
-        // Is it time to reopen AND there is no data available for reading?
-        if (diff > reopen_after_ && !available)
-        {
-            start_since_reopen_ = curr;
-
-            debug("(serialtty) reopened after %ld seconds\n", diff);
-            ::flock(fd_, LOCK_UN);
-            ::close(fd_);
-            fd_ = openSerialTTY(device_.c_str(), baud_rate_);
-            if (fd_ == -1) {
-                error("Could not re-open %s with %d baud N81\n", device_.c_str(), baud_rate_);
-            }
-        }
-        }*/
-}
-
 bool SerialDeviceTTY::send(vector<uchar> &data)
 {
     LOCK_WRITE_SERIAL(send);
@@ -400,7 +381,6 @@ struct SerialDeviceCommand : public SerialDeviceImp
 
     AccessCheck open(bool fail_if_not_ok);
     void close();
-    void checkIfShouldReopen() {}
     bool send(vector<uchar> &data);
     int available();
     bool working();
@@ -528,7 +508,6 @@ struct SerialDeviceFile : public SerialDeviceImp
     AccessCheck open(bool fail_if_not_ok);
     void close();
     bool working();
-    void checkIfShouldReopen();
     bool send(vector<uchar> &data);
     int available();
     string device() { return file_; }
@@ -615,10 +594,6 @@ bool SerialDeviceFile::working()
     return true;
 }
 
-void SerialDeviceFile::checkIfShouldReopen()
-{
-}
-
 bool SerialDeviceFile::send(vector<uchar> &data)
 {
     return true;
@@ -635,7 +610,6 @@ struct SerialDeviceSimulator : public SerialDeviceImp
 
     AccessCheck open(bool fail_if_not_ok) { return AccessCheck::AccessOK; };
     void close() { };
-    void checkIfShouldReopen() { }
     bool readonly() { return true; }
     bool send(vector<uchar> &data) { return true; };
     void fill(vector<uchar> &data) { data_ = data; on_data_(); }; // Fill buffer and trigger callback.

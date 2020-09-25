@@ -429,6 +429,14 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--resetafter=", 13) && strlen(argv[i]) > 13) {
+            c->resetafter = parseTime(argv[i]+13);
+            if (c->resetafter <= 0) {
+                error("Not a valid time to regularly reset after. \"%s\"\n", argv[i]+13);
+            }
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--alarmtimeout=", 15)) {
             c->alarm_timeout = parseTime(argv[i]+15);
             if (c->alarm_timeout <= 0) {

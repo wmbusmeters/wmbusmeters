@@ -55,7 +55,7 @@ struct SerialDevice
     // Return underlying device as string.
     virtual std::string device() = 0;
 
-    virtual void checkIfShouldReopen() = 0;
+    virtual bool checkIfDataIsPending() = 0;
     virtual void fill(std::vector<uchar> &data) = 0; // Fill buffer with raw data.
     virtual SerialCommunicationManager *manager() = 0;
     virtual void resetInitiated() = 0;

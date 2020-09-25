@@ -495,6 +495,9 @@ struct WMBus
     // within seconds, then invoke reset(). However do not reset
     // when no activity is expected.
     virtual void setTimeout(int seconds, std::string expected_activity) = 0;
+    // Set a regular interval for resetting the wmbus device.
+    // Default is once ever 24 hours.
+    virtual void setResetInterval(int seconds) = 0;
     virtual ~WMBus() = 0;
 };
 

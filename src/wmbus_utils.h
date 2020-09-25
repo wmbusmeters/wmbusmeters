@@ -39,6 +39,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     void checkStatus();
     bool isWorking();
     void setTimeout(int seconds, std::string expected_activity);
+    void setResetInterval(int seconds);
     void setLinkModes(LinkModeSet lms);
     virtual void processSerialData() = 0;
     void disconnectedFromDevice();
@@ -69,7 +70,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     string expected_activity_ {}; // During which times should we care about timeouts?
     time_t last_received_ {}; // When as the last telegram reception?
     time_t last_reset_ {}; // When did we last attempt a reset of the dongle?
-
+    int    reset_timeout_ {}; // When set to 24*3600 reset the device once every 24 hours.
     bool link_modes_configured_ {};
     LinkModeSet link_modes_ {};
 

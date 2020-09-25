@@ -563,8 +563,14 @@ void open_wmbus_device(Configuration *config, string how, string device, Detecte
     wmbus_devices_.push_back(w);
     WMBus *wmbus = wmbus_devices_.back().get();
     wmbus->setLinkModes(config->listen_to_link_modes);
-    //string using_link_modes = wmbus->getLinkModes().hr();
-    //verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
+
+    // By default, reset your dongle once every day.
+    int regular_reset = 24*3600;
+    if (config->resetafter != 0) regular_reset = config->resetafter;
+    wmbus->setResetInterval(regular_reset);
+
+    string using_link_modes = wmbus->getLinkModes().hr();
+    verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
     bool simulated = false;
     if (detected->type == DEVICE_SIMULATOR)
     {

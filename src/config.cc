@@ -189,6 +189,22 @@ void handleInternalTesting(Configuration *c, string value)
     }
 }
 
+void handleResetAfter(Configuration *c, string s)
+{
+    if (s.length() >= 1)
+    {
+        c->resetafter = parseTime(s.c_str());
+        if (c->resetafter <= 0)
+        {
+            warning("Not a valid time to reset wmbus devices after. \"%s\"\n", s.c_str());
+        }
+    }
+    else
+    {
+        warning("Reset after must be a valid number of seconds.\n");
+    }
+}
+
 bool handleDevice(Configuration *c, string devicefile)
 {
     Device device;
@@ -456,6 +472,7 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
         else if (p.first == "addconversions") handleConversions(c, p.second);
         else if (p.first == "selectfields") handleSelectedFields(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);
+        else if (p.first == "resetafter") handleResetAfter(c, p.second);
         else if (p.first == "alarmshell") handleAlarmShell(c, p.second);
         else if (startsWith(p.first, "json_"))
         {

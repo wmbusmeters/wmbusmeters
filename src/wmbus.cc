@@ -3278,6 +3278,7 @@ WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
 {
     // Initialize timeout from now.
     last_received_ = time(NULL);
+    last_reset_ = time(NULL);
     sem_init(&command_wait_, 0, 0);
     manager_->listenTo(this->serial(),call(this,processSerialData));
     manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
@@ -3339,6 +3340,7 @@ LinkModeSet WMBusCommonImplementation::protectedGetLinkModes()
 
 bool WMBusCommonImplementation::reset()
 {
+    last_reset_ = time(NULL);
     bool resetting = false;
     if (serial())
     {
@@ -3393,6 +3395,22 @@ bool WMBusCommonImplementation::isWorking()
 void WMBusCommonImplementation::checkStatus()
 {
     trace("[ALARM] check status\n");
+
+    time_t since_last_reset = time(NULL) - last_reset_;
+    if (reset_timeout_ > 1 &&
+        since_last_reset > reset_timeout_ &&
+        !serial()->checkIfDataIsPending() &&
+        !serial()->readonly())
+    {
+        verbose("(wmbus) regular reset of %s %s\n", device().c_str(), toString(type()));
+        bool ok = reset();
+        if (ok) return;
+        string msg;
+        strprintf(msg, "failed regular reset of %s %s", device().c_str(), toString(type()));
+        logAlarm("regular_reset", msg);
+        return;
+    }
+
     if (protocol_error_count_ >= 20)
     {
         string msg;
@@ -3463,6 +3481,11 @@ void WMBusCommonImplementation::checkStatus()
         logAlarm("device_failure", msg);
         manager_->stop();
     }
+}
+
+void WMBusCommonImplementation::setResetInterval(int seconds)
+{
+    reset_timeout_ = seconds;
 }
 
 void WMBusCommonImplementation::setTimeout(int seconds, string expected_activity)
