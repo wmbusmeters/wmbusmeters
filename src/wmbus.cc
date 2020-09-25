@@ -3383,7 +3383,7 @@ void WMBusCommonImplementation::disconnectedFromDevice()
 {
     if (is_working_)
     {
-        debug("(wmbus) disconnect %s closing %s\n", device().c_str(), toString(type()));
+        debug("(wmbus) disconnected %s %s\n", device().c_str(), toString(type()));
         is_working_ = false;
     }
 }

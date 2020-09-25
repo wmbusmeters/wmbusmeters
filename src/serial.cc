@@ -464,6 +464,7 @@ AccessCheck SerialDeviceCommand::open(bool fail_if_not_ok)
 {
     expectAscii();
     bool ok = invokeBackgroundShell("/bin/sh", args_, envs_, &fd_, &pid_);
+    assert(fd_ >= 0);
     if (!ok) return AccessCheck::NotThere;
     setIsStdin();
     verbose("(serialcmd) opened %s pid %d fd %d\n", command_.c_str(), pid_, fd_);
@@ -790,7 +791,7 @@ void SerialCommunicationManagerImp::removeNonWorkingSerialDevices()
 
     for (auto i = serial_devices_.begin(); i != serial_devices_.end(); )
     {
-        if (!(*i)->working())
+        if ((*i)->opened() && !(*i)->working())
         {
             i = serial_devices_.erase(i);
         }
@@ -927,7 +928,7 @@ void *SerialCommunicationManagerImp::eventLoop()
                     trace("(SERIAL) select read on fd %d\n", sd->fd());
                     FD_SET(sd->fd(), &readfds);
                 }
-                if (!sd->working()) all_working = false;
+                if (sd->opened() && !sd->working()) all_working = false;
             }
         }
 
@@ -995,13 +996,13 @@ void *SerialCommunicationManagerImp::eventLoop()
 
             for (shared_ptr<SerialDevice> &sd : serial_devices_)
             {
-                if (!sd->working()) non_working.push_back(sd);
+                if (sd->opened() && !sd->working()) non_working.push_back(sd);
             }
         }
 
         for (shared_ptr<SerialDevice> &sd : non_working)
         {
-            debug("(serial) closing non working fd=%d\n", sd->fd());
+            debug("(serial) closing non working fd=%d \"%s\"\n", sd->fd(), sd->device().c_str());
             sd->close();
         }
 

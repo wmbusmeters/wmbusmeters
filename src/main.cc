@@ -525,7 +525,7 @@ void check_for_dead_wmbus_devices(Configuration *config)
             not_working.push_back(w.get());
             if (config->use_auto_detect)
             {
-                info("Lost %s closing %s\n", w->device().c_str(), toString(w->type()));
+                notice("Lost %s closing %s\n", w->device().c_str(), toString(w->type()));
             }
         }
     }
@@ -863,7 +863,7 @@ bool start(Configuration *config)
 
     if (!meter_manager_->hasMeters())
     {
-        notice("No meters configured. Printing id:s of all telegrams heard!\n\n");
+        notice("No meters configured. Printing id:s of all telegrams heard!\n");
 
         meter_manager_->onTelegram([](vector<uchar> frame) {
                 Telegram t;
