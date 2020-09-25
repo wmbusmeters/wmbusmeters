@@ -22,6 +22,7 @@
 #include"wmbus_utils.h"
 #include"dvparser.h"
 #include<assert.h>
+#include<semaphore.h>
 #include<stdarg.h>
 #include<string.h>
 #include<sys/stat.h>
@@ -3275,7 +3276,7 @@ WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
 {
     // Initialize timeout from now.
     last_received_ = time(NULL);
-
+    sem_init(&command_wait_, 0, 0);
 }
 
 WMBusDeviceType WMBusCommonImplementation::type()

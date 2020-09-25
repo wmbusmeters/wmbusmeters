@@ -47,7 +47,6 @@ struct WMBusD1TC : public virtual WMBusCommonImplementation
 private:
 
     vector<uchar> read_buffer_;
-    sem_t command_wait_;
     LinkModeSet link_modes_;
     vector<uchar> received_payload_;
 
@@ -73,7 +72,6 @@ shared_ptr<WMBus> openD1TC(string device, shared_ptr<SerialCommunicationManager>
 WMBusD1TC::WMBusD1TC(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
     WMBusCommonImplementation(DEVICE_D1TC, manager, serial)
 {
-    sem_init(&command_wait_, 0, 0);
     manager_->listenTo(this->serial(),call(this,processSerialData));
     reset();
 }

@@ -21,6 +21,8 @@
 #include "util.h"
 #include "wmbus.h"
 
+#include<semaphore.h>
+
 bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey);
 bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey);
 bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey);
@@ -71,6 +73,10 @@ struct WMBusCommonImplementation : public virtual WMBus
     LinkModeSet link_modes_ {};
 
     shared_ptr<SerialDevice> serial_;
+
+protected:
+
+    sem_t command_wait_;
 };
 
 #endif

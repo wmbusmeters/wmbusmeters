@@ -78,7 +78,6 @@ private:
     pthread_mutex_t amb8465_command_lock_ = PTHREAD_MUTEX_INITIALIZER;
     const char *amb8465_command_lock_func_ = "";
     pid_t       amb8465_command_lock_pid_ {};
-    sem_t command_wait_ {};
     int sent_command_ {};
     int received_command_ {};
     LinkModeSet link_modes_ {};
@@ -112,7 +111,6 @@ shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManag
 WMBusAmber::WMBusAmber(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
     WMBusCommonImplementation(DEVICE_AMB8465, manager, serial)
 {
-    sem_init(&command_wait_, 0, 0);
     manager_->listenTo(this->serial(),call(this,processSerialData));
     manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
     rssi_expected_ = true;

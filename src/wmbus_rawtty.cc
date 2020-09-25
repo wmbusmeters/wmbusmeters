@@ -47,7 +47,6 @@ struct WMBusRawTTY : public virtual WMBusCommonImplementation
 private:
 
     vector<uchar> read_buffer_;
-    sem_t command_wait_;
     LinkModeSet link_modes_;
     vector<uchar> received_payload_;
 
@@ -69,7 +68,6 @@ shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommu
 WMBusRawTTY::WMBusRawTTY(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
     WMBusCommonImplementation(DEVICE_RAWTTY, manager, serial)
 {
-    sem_init(&command_wait_, 0, 0);
     manager_->listenTo(this->serial(),call(this,processSerialData));
     reset();
 }

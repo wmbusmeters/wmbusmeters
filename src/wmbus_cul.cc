@@ -69,7 +69,6 @@ private:
     LinkModeSet link_modes_ {};
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
-    sem_t command_wait_;
     string sent_command_;
     string received_response_;
 
@@ -98,7 +97,6 @@ shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> 
 WMBusCUL::WMBusCUL(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
     WMBusCommonImplementation(DEVICE_CUL, manager, serial)
 {
-    sem_init(&command_wait_, 0, 0);
     manager_->listenTo(this->serial(),call(this,processSerialData));
     manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
     reset();
