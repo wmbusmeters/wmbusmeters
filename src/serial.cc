@@ -149,6 +149,7 @@ struct SerialDeviceImp : public SerialDevice
     void fill(vector<uchar> &data) {};
     int receive(vector<uchar> *data);
     bool working() { return fd_ != -1; }
+    bool opened() { return fd_ != -2; }
     bool readonly() { return is_stdin_ || is_file_; }
 
     void expectAscii() { expecting_ascii_ = true; }
@@ -174,7 +175,7 @@ protected:
 
     function<void()> on_data_;
     function<void()> on_disappear_;
-    int fd_ = -1;
+    int fd_ = -2; // -2 not yet opened, -1 not working
     bool expecting_ascii_ {}; // If true, print using safeString instead if bin2hex
     bool is_file_ = false;
     bool is_stdin_ = false;

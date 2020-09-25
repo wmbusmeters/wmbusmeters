@@ -3345,7 +3345,7 @@ bool WMBusCommonImplementation::reset()
     bool resetting = false;
     if (serial())
     {
-        if (serial()->working())
+        if (serial()->opened() && serial()->working())
         {
             // This is a reset, not an init. Close the serial device.
             resetting = true;

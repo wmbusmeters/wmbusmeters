@@ -39,7 +39,7 @@ constexpr uint8_t ERROR_CODE_FREQUENCY_OUT_OF_RANGE=0x40;
 
 
 struct MeterEM24 : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
-    MeterEM24(WMBus *bus, MeterInfo &mi);
+    MeterEM24(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     double totalEnergyProduction(Unit u);
@@ -64,13 +64,13 @@ private:
     uint8_t error_codes_ {};
 };
 
-unique_ptr<ElectricityMeter> createEM24(WMBus *bus, MeterInfo &mi)
+shared_ptr<ElectricityMeter> createEM24(MeterInfo &mi)
 {
-    return unique_ptr<ElectricityMeter>(new MeterEM24(bus, mi));
+    return shared_ptr<ElectricityMeter>(new MeterEM24(mi));
 }
 
-MeterEM24::MeterEM24(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::EM24)
+MeterEM24::MeterEM24(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::EM24)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
@@ -173,7 +173,7 @@ void MeterEM24::processContent(Telegram *t)
     // 75 vife (Cold / Warm Temperature Limit 10^-2 Celsius)
     extractDVdouble(&t->values, "04FB8275", &offset, &total_reactive_energy_consumption_kvarh_);
     t->addMoreExplanation(offset, " total reactive power (%f kvarh)", total_reactive_energy_consumption_kvarh_);
-    
+
     // 04 dif (32 Bit Integer/Binary Instantaneous value)
     // 85 vif (Energy 10² Wh)
     // 3C vife (backward flow)
@@ -187,7 +187,7 @@ void MeterEM24::processContent(Telegram *t)
     // 3C vife (Reserved)
     extractDVdouble(&t->values, "04FB82F53C", &offset, &total_reactive_energy_production_kvarh_);
     t->addMoreExplanation(offset, " total reactive power (%f kvarh)", total_reactive_energy_production_kvarh_);
- 
+
     // 01 dif (8 Bit Integer/Binary Instantaneous value)
     // FD vif (Second extension of VIF-codes)
     // 17 vife (Error flags (binary))

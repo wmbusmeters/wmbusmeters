@@ -44,6 +44,7 @@ struct SerialDevice
     // Receive returns the number of bytes received.
     virtual int receive(std::vector<uchar> *data) = 0;
     virtual int fd() = 0;
+    virtual bool opened() = 0;
     virtual bool working() = 0;
     // Used when connecting stdin to a tty driver for testing.
     virtual bool readonly() = 0;
