@@ -85,7 +85,6 @@ private:
     bool rssi_expected_ {};
     struct timeval timestamp_last_rx_ {};
 
-    void waitForResponse();
     FrameStatus checkAMB8465Frame(vector<uchar> &data,
                                   size_t *frame_length,
                                   int *msgid_out,
@@ -284,20 +283,6 @@ void WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
 
     link_modes_ = lms;
     UNLOCK("(amb8465)", "deviceSetLinkModes", amb8465_command_lock_);
-}
-
-void WMBusAmber::waitForResponse()
-{
-    while (manager_->isRunning())
-    {
-        int rc = sem_wait(&command_wait_);
-        if (rc==0) break;
-        if (rc==-1)
-        {
-            if (errno==EINTR) continue;
-            break;
-        }
-    }
 }
 
 FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,

@@ -3508,6 +3508,25 @@ void WMBusCommonImplementation::setTimeout(int seconds, string expected_activity
     }
 }
 
+bool WMBusCommonImplementation::waitForResponse()
+{
+    while (manager_->isRunning())
+    {
+        // 5 second timeout.
+        const struct timespec timeout { 5, 0 };
+        trace("[IM871A] waitForResponse sem_wait command_wait_\n");
+        int rc = sem_timedwait(&command_wait_, &timeout);
+        trace("[IM871A] waitForResponse waited command_wait_\n");
+        if (rc==0) break;
+        if (rc==-1) {
+            if (errno==EINTR) continue;
+            if (errno==ETIMEDOUT) return false;
+            break;
+        }
+    }
+    return true;
+}
+
 int toInt(TPLSecurityMode tsm)
 {
     switch (tsm) {

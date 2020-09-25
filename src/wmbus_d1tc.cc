@@ -50,7 +50,6 @@ private:
     LinkModeSet link_modes_;
     vector<uchar> received_payload_;
 
-    void waitForResponse();
     FrameStatus checkD1TCFrame(vector<uchar> &data,
                                  size_t *frame_length,
                                  int *payload_len_out,
@@ -100,17 +99,6 @@ void WMBusD1TC::deviceReset()
 void WMBusD1TC::deviceSetLinkModes(LinkModeSet lms)
 {
     // Need manual for d1tc!!!
-}
-
-void WMBusD1TC::waitForResponse() {
-    while (manager_->isRunning()) {
-        int rc = sem_wait(&command_wait_);
-        if (rc==0) break;
-        if (rc==-1) {
-            if (errno==EINTR) continue;
-            break;
-        }
-    }
 }
 
 FrameStatus WMBusD1TC::checkD1TCFrame(vector<uchar> &data,

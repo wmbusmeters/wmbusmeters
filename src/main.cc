@@ -568,6 +568,7 @@ void open_wmbus_device(Configuration *config, string how, string device, Detecte
     int regular_reset = 24*3600;
     if (config->resetafter != 0) regular_reset = config->resetafter;
     wmbus->setResetInterval(regular_reset);
+    verbose("(main) regular reset %d\n", regular_reset);
 
     string using_link_modes = wmbus->getLinkModes().hr();
     verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());

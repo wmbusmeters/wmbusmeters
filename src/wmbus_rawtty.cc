@@ -49,8 +49,6 @@ private:
     vector<uchar> read_buffer_;
     LinkModeSet link_modes_;
     vector<uchar> received_payload_;
-
-    void waitForResponse();
 };
 
 shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
@@ -91,17 +89,6 @@ void WMBusRawTTY::deviceReset()
 
 void WMBusRawTTY::deviceSetLinkModes(LinkModeSet lms)
 {
-}
-
-void WMBusRawTTY::waitForResponse() {
-    while (manager_->isRunning()) {
-        int rc = sem_wait(&command_wait_);
-        if (rc==0) break;
-        if (rc==-1) {
-            if (errno==EINTR) continue;
-            break;
-        }
-    }
 }
 
 void WMBusRawTTY::processSerialData()

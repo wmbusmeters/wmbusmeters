@@ -72,8 +72,6 @@ private:
     string sent_command_;
     string received_response_;
 
-    void waitForResponse();
-
     FrameStatus checkCULFrame(vector<uchar> &data,
                               size_t *hex_frame_length,
                               vector<uchar> &payload);
@@ -183,19 +181,6 @@ void WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     sent = serial()->send(msg);
 
     // Any response here, or does it silently move into listening mode?
-}
-
-void WMBusCUL::waitForResponse()
-{
-    while (manager_->isRunning())
-    {
-        int rc = sem_wait(&command_wait_);
-        if (rc==0) break;
-        if (rc==-1) {
-            if (errno==EINTR) continue;
-            break;
-        }
-    }
 }
 
 void WMBusCUL::simulate()

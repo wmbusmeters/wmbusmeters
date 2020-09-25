@@ -75,7 +75,6 @@ private:
     int received_command_ {};
     vector<uchar> received_payload_;
 
-    void waitForResponse();
     static FrameStatus checkIM871AFrame(vector<uchar> &data,
                                         size_t *frame_length, int *endpoint_out, int *msgid_out,
                                         int *payload_len_out, int *payload_offset);
@@ -389,21 +388,6 @@ void WMBusIM871A::deviceSetLinkModes(LinkModeSet lms)
     if (sent) waitForResponse();
 
     UNLOCK("(im871)", "deviceSetLinkModes", im871a_command_lock_);
-}
-
-void WMBusIM871A::waitForResponse()
-{
-    while (manager_->isRunning())
-    {
-        trace("[IM871A] waitForResponse sem_wait command_wait_\n");
-        int rc = sem_wait(&command_wait_);
-        trace("[IM871A] waitForResponse waited command_wait_\n");
-        if (rc==0) break;
-        if (rc==-1) {
-            if (errno==EINTR) continue;
-            break;
-        }
-    }
 }
 
 FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,

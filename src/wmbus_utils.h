@@ -46,6 +46,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     bool reset();
     SerialDevice *serial() { if (serial_) return serial_.get(); else return NULL; }
     string device() { if (serial_) return serial_->device(); else return "?"; }
+    bool waitForResponse();
 
     protected:
 
