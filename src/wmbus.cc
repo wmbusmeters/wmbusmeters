@@ -3349,7 +3349,7 @@ bool WMBusCommonImplementation::reset()
         {
             // This is a reset, not an init. Close the serial device.
             resetting = true;
-            serial()->manager()->resetInitiated();
+            serial()->resetInitiated();
             serial()->close();
             // Give the device 3 seconds to shut down properly.
             usleep(3000*1000);
@@ -3367,7 +3367,7 @@ bool WMBusCommonImplementation::reset()
     // Invoke any other device specific resets for this device.
     deviceReset();
 
-    if (resetting) serial()->manager()->resetCompleted();
+    if (resetting) serial()->resetCompleted();
 
     // If init, then no link modes are configured.
     // If reset, re-initialize the link modes.

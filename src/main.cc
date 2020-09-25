@@ -500,17 +500,6 @@ void remove_lost_swradio_devices_from_ignore_list(vector<string> &devices)
     }
 }
 
-void check_statuses()
-{
-    /*
-    int rc = pthread_mutex_trylock(&wmbus_devices_lock_);
-    if (rc == 0)
-    {
-        trace("[TRYLOCKED] wmbus_devices_lock_ check_statuses\n");
-        UNLOCK("(main)", "check_statuses", wmbus_devices_lock_);
-        }*/
-}
-
 void check_for_dead_wmbus_devices(Configuration *config)
 {
     LOCK_WMBUS_DEVICES(check_for_wmbus_devices);

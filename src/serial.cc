@@ -94,8 +94,6 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     int startRegularCallback(string name, int seconds, function<void()> callback);
     void stopRegularCallback(int id);
 
-    void resetInitiated() { debug("(serial) initiate reset\n"); resetting_ = true; }
-    void resetCompleted() { debug("(serial) reset completed\n"); resetting_ = false; }
     vector<string> listSerialDevices();
     vector<string> listSWRadioDevices();
     shared_ptr<SerialDevice> lookup(std::string device);
@@ -110,7 +108,6 @@ private:
 
     bool running_ {};
     bool expect_devices_to_work_ {}; // false during detection phase, true when running.
-    bool resetting_ {}; // Set to true while resetting.
     int max_fd_ {};
     time_t start_time_ {};
     time_t exit_after_seconds_ {};
@@ -148,8 +145,8 @@ struct SerialDeviceImp : public SerialDevice
     bool skippingCallbacks() { return no_callbacks_; }
     void fill(vector<uchar> &data) {};
     int receive(vector<uchar> *data);
-    bool working() { return fd_ != -1; }
-    bool opened() { return fd_ != -2; }
+    bool working() { return resetting_ || fd_ != -1; }
+    bool opened() { return resetting_ || fd_ != -2; }
     bool readonly() { return is_stdin_ || is_file_; }
 
     void expectAscii() { expecting_ascii_ = true; }
@@ -158,6 +155,8 @@ struct SerialDeviceImp : public SerialDevice
     string device() { return ""; }
     int fd() { return fd_; }
     SerialCommunicationManager *manager() { return manager_; }
+    void resetInitiated() { debug("(serial) initiate reset\n"); resetting_ = true; }
+    void resetCompleted() { debug("(serial) reset completed\n"); resetting_ = false; }
 
     SerialDeviceImp(SerialCommunicationManagerImp *manager)
     {
@@ -181,6 +180,7 @@ protected:
     bool is_stdin_ = false;
     bool no_callbacks_ = false;
     SerialCommunicationManagerImp *manager_;
+    bool resetting_ {}; // Set to true while resetting.
 
     friend struct SerialCommunicationManagerImp;
 };
@@ -321,7 +321,7 @@ void SerialDeviceTTY::close()
     ::flock(fd_, LOCK_UN);
     ::close(fd_);
     fd_ = -1;
-    if (on_disappear_)
+    if (on_disappear_ && !resetting_)
     {
         on_disappear_();
         on_disappear_ = NULL;
@@ -398,6 +398,7 @@ bool SerialDeviceTTY::send(vector<uchar> &data)
 
 bool SerialDeviceTTY::working()
 {
+    if (resetting_) return true;
     if (fd_ == -1) return false;
 
     bool working = checkCharacterDeviceExists(device_.c_str(), false);
@@ -480,7 +481,7 @@ void SerialDeviceCommand::close()
         stopBackgroundShell(pid_);
         pid_ = 0;
     }
-    if (on_disappear_)
+    if (on_disappear_ && !resetting_)
     {
         on_disappear_();
         on_disappear_ = NULL;
@@ -493,6 +494,7 @@ void SerialDeviceCommand::close()
 
 bool SerialDeviceCommand::working()
 {
+    if (resetting_) return true;
     if (fd_ == -1) return false;
     int n = -1;
     int rc = ioctl(fd_, FIONREAD, &n);
@@ -618,6 +620,7 @@ void SerialDeviceFile::close()
 
 bool SerialDeviceFile::working()
 {
+    if (resetting_) return true;
     if (fd_ == -1) return false;
     int n = -1;
     int rc = ioctl(fd_, FIONREAD, &n);
@@ -844,7 +847,7 @@ void SerialCommunicationManagerImp::removeNonWorkingSerialDevices()
             max_fd_ = sp->fd();
         }
     }
-    if (serial_devices_.size() == 0 && expect_devices_to_work_ && resetting_ == false)
+    if (serial_devices_.size() == 0 && expect_devices_to_work_)
     {
         debug("(serial) no devices working emergency exit!\n");
         stop();
@@ -972,7 +975,7 @@ void *SerialCommunicationManagerImp::eventLoop()
             }
         }
 
-        if (!all_working && expect_devices_to_work_ && resetting_ == false)
+        if (!all_working && expect_devices_to_work_)
         {
             debug("(serial) not all devices working, emergency exit!\n");
             stop();
@@ -990,7 +993,7 @@ void *SerialCommunicationManagerImp::eventLoop()
             num_devices = serial_devices_.size();
         }
 
-        if (num_devices == 0 && expect_devices_to_work_ && resetting_ == false)
+        if (num_devices == 0 && expect_devices_to_work_)
         {
             debug("(serial) no working devices, stopping before entering select.\n");
             stop();
@@ -1054,7 +1057,7 @@ void *SerialCommunicationManagerImp::eventLoop()
 
         removeNonWorkingSerialDevices();
 
-        if (non_working.size() > 0 && expect_devices_to_work_ && resetting_ == false)
+        if (non_working.size() > 0 && expect_devices_to_work_)
         {
             debug("(serial) non working devices found, exiting.\n");
             stop();

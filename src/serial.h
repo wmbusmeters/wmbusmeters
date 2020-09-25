@@ -58,6 +58,9 @@ struct SerialDevice
     virtual void checkIfShouldReopen() = 0;
     virtual void fill(std::vector<uchar> &data) = 0; // Fill buffer with raw data.
     virtual SerialCommunicationManager *manager() = 0;
+    virtual void resetInitiated() = 0;
+    virtual void resetCompleted() = 0;
+
     virtual ~SerialDevice() = default;
 };
 
@@ -93,9 +96,6 @@ struct SerialCommunicationManager
     // Returns an id for the timer.
     virtual int startRegularCallback(std::string name, int seconds, function<void()> callback) = 0;
     virtual void stopRegularCallback(int id) = 0;
-
-    virtual void resetInitiated() = 0;
-    virtual void resetCompleted() = 0;
 
     // List all real serial devices (avoid pseudo ttys)
     virtual std::vector<std::string> listSerialDevices() = 0;
