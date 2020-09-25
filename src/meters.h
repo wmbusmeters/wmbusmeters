@@ -36,6 +36,7 @@
     X(ehzp,       T1_bit, Electricity, EHZP,        EHZP)         \
     X(esyswm,     T1_bit, Electricity, ESYSWM,      ESYSWM)       \
     X(flowiq3100, C1_bit, Water,       FLOWIQ3100,  FlowIQ3100)   \
+    X(em24,       C1_bit, Electricity, EM24,        EM24)         \
     X(fhkvdataiii,   T1_bit, HeatCostAllocation,        FHKVDATAIII,    FHKVDataIII)     \
     X(hydrus,     T1_bit, Water,       HYDRUS,      Hydrus)       \
     X(hydrodigit, T1_bit, Water,       HYDRODIGIT,  Hydrodigit)   \
@@ -88,6 +89,7 @@
     X(EHZP,      MANUFACTURER_EMH,  0x02,  0x02) \
     X(ESYSWM,    MANUFACTURER_ESY,  0x37,  0x30) \
     X(FLOWIQ3100,MANUFACTURER_KAM,  0x16,  0x1d) \
+    X(EM24,      MANUFACTURER_KAM,  0x02,  0x33) \
     X(FHKVDATAIII,MANUFACTURER_TCH, 0x80,  0x69) \
     X(HYDRUS,    MANUFACTURER_DME,  0x07,  0x70) \
     X(HYDRUS,    MANUFACTURER_HYD,  0x07,  0x24) \
@@ -107,6 +109,7 @@
     X(LANSENPU,  MANUFACTURER_LAS,  0x00,  0x0b) \
     X(MKRADIO3,  MANUFACTURER_TCH, 0x62,  0x74) \
     X(MKRADIO3,  MANUFACTURER_TCH, 0x72,  0x74) \
+    X(MULTICAL21, MANUFACTURER_KAM,  0x06,  0x1b) \
     X(MULTICAL21, MANUFACTURER_KAM,  0x16,  0x1b) \
     X(MULTICAL302,MANUFACTURER_KAM, 0x04,  0x30) \
     X(MULTICAL302,MANUFACTURER_KAM, 0x0d,  0x30) \
@@ -249,8 +252,15 @@ struct HeatMeter : public virtual Meter
 struct ElectricityMeter : public virtual Meter
 {
     virtual double totalEnergyConsumption(Unit u); // kwh
-    virtual double currentPowerConsumption(Unit u); // kw
     virtual double totalEnergyProduction(Unit u); // kwh
+
+    virtual double totalReactiveEnergyConsumption(Unit u); // kvarh
+    virtual double totalReactiveEnergyProduction(Unit u); // kvarh
+
+    virtual double totalApparentEnergyConsumption(Unit u); // kvah
+    virtual double totalApparentEnergyProduction(Unit u); // kvah
+
+    virtual double currentPowerConsumption(Unit u); // kw
     virtual double currentPowerProduction(Unit u); // kw
 };
 
@@ -312,6 +322,7 @@ unique_ptr<HeatMeter> createCompact5(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createWaterstarM(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, MeterInfo &m);
 unique_ptr<ElectricityMeter> createAmiplus(WMBus *bus, MeterInfo &m);
+unique_ptr<ElectricityMeter> createEM24(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createSupercom587(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createMKRadio3(WMBus *bus, MeterInfo &m);
 unique_ptr<WaterMeter> createApator08(WMBus *bus, MeterInfo &m);
