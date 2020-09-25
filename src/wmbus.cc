@@ -3263,6 +3263,8 @@ bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_byt
 
 WMBusCommonImplementation::~WMBusCommonImplementation()
 {
+    manager_->listenTo(this->serial(), NULL);
+    manager_->onDisappear(this->serial(), NULL);
     debug("(wmbus) deleted %s\n", toString(type()));
 }
 
@@ -3277,6 +3279,8 @@ WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
     // Initialize timeout from now.
     last_received_ = time(NULL);
     sem_init(&command_wait_, 0, 0);
+    manager_->listenTo(this->serial(),call(this,processSerialData));
+    manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
 }
 
 WMBusDeviceType WMBusCommonImplementation::type()

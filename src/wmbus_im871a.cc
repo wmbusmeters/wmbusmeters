@@ -63,7 +63,6 @@ struct WMBusIM871A : public virtual WMBusCommonImplementation
 
     WMBusIM871A(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusIM871A() {
-        manager_->onDisappear(this->serial(), NULL);
     }
 
 private:
@@ -103,8 +102,6 @@ shared_ptr<WMBus> openIM871A(string device, shared_ptr<SerialCommunicationManage
 WMBusIM871A::WMBusIM871A(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
     WMBusCommonImplementation(DEVICE_IM871A, manager, serial)
 {
-    manager_->listenTo(this->serial(),call(this,processSerialData));
-    manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
     reset();
 }
 

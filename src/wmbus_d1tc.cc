@@ -72,7 +72,6 @@ shared_ptr<WMBus> openD1TC(string device, shared_ptr<SerialCommunicationManager>
 WMBusD1TC::WMBusD1TC(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
     WMBusCommonImplementation(DEVICE_D1TC, manager, serial)
 {
-    manager_->listenTo(this->serial(),call(this,processSerialData));
     reset();
 }
 

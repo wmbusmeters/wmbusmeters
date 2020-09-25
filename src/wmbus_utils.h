@@ -40,6 +40,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     bool isWorking();
     void setTimeout(int seconds, std::string expected_activity);
     void setLinkModes(LinkModeSet lms);
+    virtual void processSerialData() = 0;
     void disconnectedFromDevice();
     bool reset();
     SerialDevice *serial() { if (serial_) return serial_.get(); else return NULL; }

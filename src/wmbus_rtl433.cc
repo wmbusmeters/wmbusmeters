@@ -92,7 +92,6 @@ shared_ptr<WMBus> openRTL433(string device, string command, shared_ptr<SerialCom
 WMBusRTL433::WMBusRTL433(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
     WMBusCommonImplementation(DEVICE_RTL433, manager, serial)
 {
-    manager_->listenTo(this->serial(),call(this,processSerialData));
     reset();
 }
 

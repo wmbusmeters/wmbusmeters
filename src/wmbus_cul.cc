@@ -97,8 +97,6 @@ shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> 
 WMBusCUL::WMBusCUL(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
     WMBusCommonImplementation(DEVICE_CUL, manager, serial)
 {
-    manager_->listenTo(this->serial(),call(this,processSerialData));
-    manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
     reset();
 }
 

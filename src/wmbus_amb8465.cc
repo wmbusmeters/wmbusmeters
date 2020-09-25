@@ -111,8 +111,6 @@ shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManag
 WMBusAmber::WMBusAmber(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
     WMBusCommonImplementation(DEVICE_AMB8465, manager, serial)
 {
-    manager_->listenTo(this->serial(),call(this,processSerialData));
-    manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
     rssi_expected_ = true;
     reset();
 }

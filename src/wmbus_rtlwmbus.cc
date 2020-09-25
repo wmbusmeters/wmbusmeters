@@ -56,11 +56,7 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
     void simulate();
 
     WMBusRTLWMBUS(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
-    ~WMBusRTLWMBUS()
-    {
-        manager_->listenTo(this->serial(), NULL);
-        manager_->onDisappear(this->serial(), NULL);
-    }
+    ~WMBusRTLWMBUS() { }
 
 private:
 
@@ -97,8 +93,6 @@ shared_ptr<WMBus> openRTLWMBUS(string device, string command, shared_ptr<SerialC
 WMBusRTLWMBUS::WMBusRTLWMBUS(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
     WMBusCommonImplementation(DEVICE_RTLWMBUS, manager, serial)
 {
-    manager_->listenTo(this->serial(),call(this,processSerialData));
-    manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
     reset();
 }
 

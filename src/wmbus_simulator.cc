@@ -143,6 +143,11 @@ int loadFile(string file, vector<string> *lines)
     return 0;
 }
 
+void WMBusSimulator::processSerialData()
+{
+    assert(0);
+}
+
 void WMBusSimulator::simulate()
 {
     time_t start_time = time(NULL);

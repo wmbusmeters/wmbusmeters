@@ -68,7 +68,6 @@ shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommu
 WMBusRawTTY::WMBusRawTTY(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
     WMBusCommonImplementation(DEVICE_RAWTTY, manager, serial)
 {
-    manager_->listenTo(this->serial(),call(this,processSerialData));
     reset();
 }
 
@@ -107,7 +106,6 @@ void WMBusRawTTY::waitForResponse() {
 
 void WMBusRawTTY::processSerialData()
 {
-
     vector<uchar> data;
 
     // Receive and accumulated serial data until a full frame has been received.

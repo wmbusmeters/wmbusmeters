@@ -112,7 +112,6 @@ shared_ptr<WMBus> openWMB13U(string device, shared_ptr<SerialCommunicationManage
 WMBusWMB13U::WMBusWMB13U(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
     WMBusCommonImplementation(DEVICE_WMB13U, manager, serial)
 {
-    manager_->listenTo(this->serial(),call(this,processSerialData));
     reset();
 }
 
