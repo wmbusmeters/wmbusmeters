@@ -156,6 +156,8 @@ As <options> you can use:
     --c1 --t1 --s1 --s1m ... another way to set the link mode for the dongle
     --listenvs=<meter_type> list the env variables available for the given meter type
     --listfields=<meter_type> list the fields selectable for the given meter type
+    --listmeters list all meter types
+    --listmeters=<search> list all meter types containing the text <search>
     --logfile=<file> use this file instead of stdout
     --logtelegrams log the contents of the telegrams for easy replay
     --meterfiles=<dir> store meter readings in dir

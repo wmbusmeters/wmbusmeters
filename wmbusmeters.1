@@ -23,6 +23,12 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 .SH OPTIONS
 \fB\--addconversions=\fR<unit>[,<unit>] add conversion to these units for json and shell envs (GJ,F)
 
+\fB\--alarmexpectedactivity=\fRmon-fri(08-17),sat-sun(09-12) Specify when the timeout is tested, default is mon-sun(00-23)
+
+\fB\--alarmshell=\fR<cmdline> invokes cmdline when an alarm triggers
+
+\fB\--alarmtimeout=\fR<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity.
+
 \fB\--debug\fR for a lot of information
 
 \fB\--exitafter=\fR<time> exit program after time, eg 20h, 10m 5s
@@ -36,6 +42,14 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 \fB\--listento=\fR<mode>,<mode> listen to more than one link mode at the same time, assuming the dongle supports it.
 
 \fB\--c1 --t1 --s1 --s1m --n1a ... --n1f\fR listen to c1,t1,s1,s1m,n1a-n1f telegrams.
+
+\fB\--listenvs=\fR<meter_type> list the env variables available for the given meter type
+
+\fB\--listfields=\fR<meter_type> list the fields selectable for the given meter type
+
+\fB\--listmeters\fR list all meter types
+
+\fB\--listmeters=\fR<search> list all meter types containing the text <search>
 
 \fB\--logfile=\fR<dir> use this file instead of stdout
 
@@ -55,23 +69,29 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 
 \fB\--separator=\fR<c> change field separator to c
 
+\fB\--selectfields=\fRid,timestamp,total_m3 select fields to be printed (--listfields=<meter> to list available fields)
+
+\fB\--separator=\fR<c> change field separator to c
+
 \fB\--shell=\fR<cmdline> invokes cmdline with env variables containing the latest reading
 
-\fB\--listenvs\fR list the env variables available for the meter
-
 \fB\--useconfig=\fR<dir> load config files from dir/etc
+
+\fB\--usestderr\fR write notices/debug/verbose and other logging output to stderr (the default)
+
+\fB\--usestdoutforlogging\fR write debug/verbose and logging output to stdout
 
 \fB\--verbose\fR for more information
 
 .SH DEVICES
 .TP
-\fB/dev/ttyUSB0\fR to which an im871a or amb8456 dongle is attached and let wmbusmeters detect the type.
+\fB/dev/ttyUSB0\fR to which an im871a,amb8456 or cul dongle is attached and let wmbusmeters detect the type.
 
 .TP
 \fB/dev/ttyACM0:rfmrx2\fR when an rfmrx2 dongle is attached to this tty.
 
 .TP
-\fBauto\fR look for /dev/im871a, /dev/amb8465, /dev/rfmrx2 or /dev/rtlsdr (these will only show up automatically if the appropriate udev rules have been installed)
+\fBauto\fR detect any serially connected wmbus dongles and rtl_sdr dongles.
 
 .TP
 \fBrtlwmbus\fR use software defined radio rtl_sdr|rtl_wmbus to receive wmbus telegrams.This defaults to 868.95MHz, use for example \fBrtlwmbus:868.9M\fR to tune the rtl_sdr dongle to slightly lower frequency.
@@ -83,9 +103,7 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 .TP
 \fBmeter_name\fR a mnemonic for your utility meter
 .TP
-\fBmeter_type\fR multical21/flowiq3100/supercom587/iperl/multical302/multical403/omnipower/qcaloric/apator162/amiplus
-(Can be suffix with :<mode>, eg apator162:t1 to tell wmbusmeters that you expect only t1 telegrams.
-This is necessary since an apator162 can be configured to send either c1 or t1 telegrams.)
+\fBmeter_type\fR for example multical21:t1 (suffix means that we expect this meter to transmit t1 telegrams)
 .TP
 \fBmeter_id\fR one or more 8 digit numbers separated with commas, a single '*' wildcard, or a prefix '76543*' with wildcard.
 .TP
@@ -94,14 +112,15 @@ This is necessary since an apator162 can be configured to send either c1 or t1 t
 .SH EXAMPLES
 .TP
 
+.TP
+Wait for wmbus dongles to be inserted and then listen for c1 telegrams.
+Print a summary of the telegram and whether wmbusmeters has a driver for decoding it.
+
+% wmbusmeters --c1 auto
+
 Listen to C1 and T1 traffic using a wmbus dongle attached to ttyUSB0.
 
 % wmbusmeters --listento=c1,t1 /dev/ttyUSB0:amd8465
-
-.TP
-Listen to C1 traffic and assume that a wmbus dongle is either /dev/im871a, /dev/amb8465, /dev/rfmrx2 or /dev/rtlsdr
-
-% wmbusmeters --c1 auto
 
 .TP
 Listen to both T1 and C1 traffic using rtl_sdr|rtl_wmbus and the standard frequency 868.95M, which
