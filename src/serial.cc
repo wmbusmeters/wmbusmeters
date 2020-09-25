@@ -84,13 +84,11 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     void startEventLoop();
     void waitForStop();
     bool isRunning();
-    void setReopenAfter(int seconds);
 
     shared_ptr<SerialDevice> addSerialDeviceForManagement(SerialDevice *sd);
     void removeNonWorkingSerialDevices();
     void closeAllDoNotRemove();
 
-    time_t reopenAfter() { return reopen_after_seconds_; }
     int startRegularCallback(string name, int seconds, function<void()> callback);
     void stopRegularCallback(int id);
 
@@ -111,7 +109,6 @@ private:
     int max_fd_ {};
     time_t start_time_ {};
     time_t exit_after_seconds_ {};
-    time_t reopen_after_seconds_ {};
 
     vector<shared_ptr<SerialDevice>> serial_devices_;
     RecursiveMutex serial_devices_mutex_ = { "serial_devices_mutex" };
@@ -261,9 +258,6 @@ struct SerialDeviceTTY : public SerialDeviceImp
 
     string device_;
     int baud_rate_ {};
-    time_t start_since_reopen_;
-    int reopen_after_ {}; // Reopen the device repeatedly after this number of seconds.
-    // Necessary for some less than perfect dongles.
 };
 
 SerialDeviceTTY::SerialDeviceTTY(string device, int baud_rate,
@@ -272,8 +266,6 @@ SerialDeviceTTY::SerialDeviceTTY(string device, int baud_rate,
 {
     device_ = device;
     baud_rate_ = baud_rate;
-    start_since_reopen_ = time(NULL);
-    reopen_after_ = manager->reopenAfter();
 }
 
 SerialDeviceTTY::~SerialDeviceTTY()
@@ -332,7 +324,7 @@ void SerialDeviceTTY::close()
 void SerialDeviceTTY::checkIfShouldReopen()
 {
     assert(0);
-    if (fd_ != -1 && reopen_after_ > 0)
+/*    if (fd_ != -1 && reopen_after_ > 0)
     {
         time_t curr = time(NULL);
         time_t diff = curr-start_since_reopen_;
@@ -352,7 +344,7 @@ void SerialDeviceTTY::checkIfShouldReopen()
                 error("Could not re-open %s with %d baud N81\n", device_.c_str(), baud_rate_);
             }
         }
-    }
+        }*/
 }
 
 bool SerialDeviceTTY::send(vector<uchar> &data)
@@ -678,7 +670,6 @@ SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_s
     wakeMeUpOnSigChld(getEventLoopThread());
     start_time_ = time(NULL);
     exit_after_seconds_ = exit_after_seconds;
-    reopen_after_seconds_ = 0;
 }
 
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device,
@@ -793,11 +784,6 @@ void SerialCommunicationManagerImp::waitForStop()
 bool SerialCommunicationManagerImp::isRunning()
 {
     return running_;
-}
-
-void SerialCommunicationManagerImp::setReopenAfter(int seconds)
-{
-    reopen_after_seconds_ = seconds;
 }
 
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::addSerialDeviceForManagement(SerialDevice *sd)

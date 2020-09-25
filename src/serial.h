@@ -91,7 +91,6 @@ struct SerialCommunicationManager
     virtual void startEventLoop() = 0;
     virtual void waitForStop() = 0;
     virtual bool isRunning() = 0;
-    virtual void setReopenAfter(int seconds) = 0;
     // Register a new timer that regularly, every seconds, invokes the callback.
     // Returns an id for the timer.
     virtual int startRegularCallback(std::string name, int seconds, function<void()> callback) = 0;

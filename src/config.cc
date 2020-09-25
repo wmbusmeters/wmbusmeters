@@ -332,22 +332,6 @@ void handleFormat(Configuration *c, string format)
     }
 }
 
-void handleReopenAfter(Configuration *c, string s)
-{
-    if (s.length() >= 1)
-    {
-        c->reopenafter = parseTime(s.c_str());
-        if (c->reopenafter <= 0)
-        {
-            warning("Not a valid time to reopen after. \"%s\"\n", s.c_str());
-        }
-    }
-    else
-    {
-        warning("Reopen after must be a valid number of seconds.\n");
-    }
-}
-
 void handleAlarmTimeout(Configuration *c, string s)
 {
     if (s.length() >= 1)
@@ -466,7 +450,6 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
         else if (p.first == "meterfilestimestamp") handleMeterfilesTimestamp(c, p.second);
         else if (p.first == "logfile") handleLogfile(c, p.second);
         else if (p.first == "format") handleFormat(c, p.second);
-        else if (p.first == "reopenafter") handleReopenAfter(c, p.second);
         else if (p.first == "alarmtimeout") handleAlarmTimeout(c, p.second);
         else if (p.first == "alarmexpectedactivity") handleAlarmExpectedActivity(c, p.second);
         else if (p.first == "separator") handleSeparator(c, p.second);

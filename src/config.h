@@ -82,7 +82,6 @@ struct Configuration
     std::string list_meter;
     bool oneshot {};
     int  exitafter {}; // Seconds to exit.
-    int  reopenafter {}; // Re-open the serial device repeatedly. Silly dongle.
     std::vector<Device> supplied_wmbus_devices; // /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600
     bool use_auto_detect {}; // Set to true if auto was supplied as device.
     std::vector<Device> supplied_mbus_devices; // /dev/ttyACM0
