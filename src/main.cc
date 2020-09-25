@@ -217,10 +217,6 @@ shared_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *confi
         break;
     case DEVICE_RFMRX2:
         verbose("(rfmrx2) on %s\n", detected->device.file.c_str());
-        if (config->reopenafter == 0)
-        {
-            manager->setReopenAfter(600); // Close and reopen the fd, because of some bug in the device.
-        }
         wmbus = openRawTTY(detected->device.file, 38400, manager, serial_override);
         break;
     case DEVICE_RTLWMBUS:
@@ -727,10 +723,6 @@ void logStartInformation(Configuration *config)
         verbose("(config) wmbusmeters will exit after %d seconds\n", config->exitafter);
     }
 
-    if (config->reopenafter != 0) {
-        verbose("(config) wmbusmeters close/open the wmbus dongle fd after every %d seconds\n", config->reopenafter);
-    }
-
     if (config->meterfiles) {
         verbose("(config) store meter files in: \"%s\"\n", config->meterfiles_dir.c_str());
     }
@@ -785,7 +777,7 @@ bool start(Configuration *config)
     logStartInformation(config);
 
     // Create the manager monitoring all filedescriptors and invoking callbacks.
-    serial_manager_ = createSerialCommunicationManager(config->exitafter, config->reopenafter);
+    serial_manager_ = createSerialCommunicationManager(config->exitafter, true);
     // If our software unexpectedly exits, then stop the manager, to try
     // to achive a nice shutdown.
     onExit(call(serial_manager_.get(),stop));

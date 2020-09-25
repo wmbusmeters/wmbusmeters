@@ -67,7 +67,7 @@ struct Timer
 
 struct SerialCommunicationManagerImp : public SerialCommunicationManager
 {
-    SerialCommunicationManagerImp(time_t exit_after_seconds, time_t reopen_after_seconds, bool start_event_loop);
+    SerialCommunicationManagerImp(time_t exit_after_seconds, bool start_event_loop);
     ~SerialCommunicationManagerImp();
 
     shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate);
@@ -331,6 +331,7 @@ void SerialDeviceTTY::close()
 
 void SerialDeviceTTY::checkIfShouldReopen()
 {
+    assert(0);
     if (fd_ != -1 && reopen_after_ > 0)
     {
         time_t curr = time(NULL);
@@ -354,19 +355,6 @@ void SerialDeviceTTY::checkIfShouldReopen()
     }
 }
 
-/*
-void SerialDeviceTTY::forceReopen()
-{
-    debug("(serialtty) forced reopen and reset!\n", diff);
-    ::flock(fd_, LOCK_UN);
-    ::close(fd_);
-    fd_ = openSerialTTY(device_.c_str(), baud_rate_);
-    if (fd_ == -1)
-    {
-        error("Could not re-open %s with %d baud N81\n", device_.c_str(), baud_rate_);
-    }
-}
-*/
 bool SerialDeviceTTY::send(vector<uchar> &data)
 {
     LOCK_WRITE_SERIAL(send);
@@ -676,7 +664,6 @@ struct SerialDeviceSimulator : public SerialDeviceImp
 };
 
 SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_seconds,
-                                                             time_t reopen_after_seconds,
                                                              bool start_event_loop)
 {
     running_ = true;
@@ -691,7 +678,7 @@ SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_s
     wakeMeUpOnSigChld(getEventLoopThread());
     start_time_ = time(NULL);
     exit_after_seconds_ = exit_after_seconds;
-    reopen_after_seconds_ = reopen_after_seconds;
+    reopen_after_seconds_ = 0;
 }
 
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device,
@@ -936,15 +923,6 @@ void *SerialCommunicationManagerImp::timerLoop()
         }
 
         executeTimerCallbacks();
-
-        {
-            LOCK_SERIAL_DEVICES(check_for_reopens);
-
-            for (shared_ptr<SerialDevice> &sd : serial_devices_)
-            {
-                sd->checkIfShouldReopen();
-            }
-        }
     }
     return NULL;
 }
@@ -1070,11 +1048,9 @@ void *SerialCommunicationManagerImp::eventLoop()
 }
 
 shared_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t exit_after_seconds,
-                                                                        time_t reopen_after_seconds,
                                                                         bool start_event_loop)
 {
     return shared_ptr<SerialCommunicationManager>(new SerialCommunicationManagerImp(exit_after_seconds,
-                                                                                    reopen_after_seconds,
                                                                                     start_event_loop));
 }
 

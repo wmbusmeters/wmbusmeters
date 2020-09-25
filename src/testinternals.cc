@@ -215,7 +215,7 @@ int test_dvparser()
 
 int test_test()
 {
-    shared_ptr<SerialCommunicationManager> manager = createSerialCommunicationManager(0, 0, false);
+    shared_ptr<SerialCommunicationManager> manager = createSerialCommunicationManager(0, false);
 
     shared_ptr<SerialDevice> serial1 = manager->createSerialDeviceSimulator();
 
@@ -228,7 +228,7 @@ int test_test()
 int test_linkmodes()
 {
     LinkModeCalculationResult lmcr;
-    auto manager = createSerialCommunicationManager(0, 0, false);
+    auto manager = createSerialCommunicationManager(0, false);
 
     auto serial1 = manager->createSerialDeviceSimulator();
     auto serial2 = manager->createSerialDeviceSimulator();
