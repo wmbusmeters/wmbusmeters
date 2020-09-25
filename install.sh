@@ -44,6 +44,13 @@ do
         esac
 done
 
+## If your OS does not have the dialout group (Arch Linux for example)
+## then use uucp instead.
+SERIALGROUP=dialout
+if [ "$(getent group ${SERIALGROUP})" = "" ]
+then
+    SERIALGROUP=uucp
+fi
 
 ####################################################################
 ##
@@ -99,13 +106,13 @@ then
         echo user: wmbusmeters already exists
     fi
 
-    if [ "$(groups wmbusmeters | grep -o dialout)" = "" ]
+    if [ "$(groups wmbusmeters | grep -o ${SERIALGROUP})" = "" ]
     then
-        # Add the wmbusmeters user to dialout
-        usermod -a -G dialout wmbusmeters
-        echo user: added wmbusmeters to dialout group
+        # Add the wmbusmeters user to dialout/uucp
+        usermod -a -G ${SERIALGROUP} wmbusmeters
+        echo user: added wmbusmeters to ${SERIALGROUP} group
     else
-        echo user: wmbusmeters already added to dialout
+        echo user: wmbusmeters already added to ${SERIALGROUP}
     fi
 
     if [ "$(groups wmbusmeters | grep -o plugdev)" = "" ]
@@ -127,13 +134,13 @@ then
         else
             echo user: $SUDO_USER already added group wmbusmeters
         fi
-        if [ "$(groups $SUDO_USER | grep -o dialout)" = "" ]
+        if [ "$(groups $SUDO_USER | grep -o ${SERIALGROUP})" = "" ]
         then
-            # Add user to the dialout group.
-            usermod -a -G dialout $SUDO_USER
-            echo user: added $SUDO_USER to group dialout
+            # Add user to the dialout/uucp group.
+            usermod -a -G ${SERIALGROUP} $SUDO_USER
+            echo user: added $SUDO_USER to group ${SERIALGROUP}
         else
-            echo user: $SUDO_USER already added group dialout
+            echo user: $SUDO_USER already added group ${SERIALGROUP}
         fi
     fi
 fi
@@ -238,7 +245,6 @@ OLD_WMBS=~/old.wmbusmeters.service.backup
 CURR_WMBS="$ROOT"/lib/systemd/system/wmbusmeters.service
 if [ -f $CURR_WMBS ]
 then
-    echo systemd: backing up $CURR_WMBS to here: $OLD_WMBS
     cp $CURR_WMBS $OLD_WMBS 2>/dev/null
 fi
 
@@ -282,6 +288,7 @@ EOF
 if diff $OLD_WMBS $CURR_WMBS 1>/dev/null
 then
     echo systemd: no changes to $CURR_WMBS
+    rm -f $OLD_WMBS
 else
     echo systemd: updated $CURR_WMBS
     SYSTEMD_NEEDS_RELOAD=true
