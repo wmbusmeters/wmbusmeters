@@ -69,7 +69,9 @@ struct WMBusAmber : public virtual WMBusCommonImplementation
     void simulate() { }
 
     WMBusAmber(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
-    ~WMBusAmber() { }
+    ~WMBusAmber() {
+        manager_->onDisappear(this->serial(), NULL);
+    }
 
 private:
     vector<uchar> read_buffer_;

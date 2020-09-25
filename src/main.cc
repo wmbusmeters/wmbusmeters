@@ -767,6 +767,11 @@ bool start(Configuration *config)
     // Configure where the logging information should end up.
     setupLogFile(config);
 
+    if (config->meters.size() == 0 && !config->link_mode_configured)
+    {
+        error("No meters supplied. You must supply which link modes to listen to. Eg. --listento=<modes>\n");
+    }
+
     // Configure settings.
     warningSilenced(config->silence);
     verboseEnabled(config->verbose);

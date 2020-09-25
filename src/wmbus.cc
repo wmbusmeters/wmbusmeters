@@ -3276,14 +3276,6 @@ WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
     // Initialize timeout from now.
     last_received_ = time(NULL);
 
-    /*
-    // Invoke the check status once per minute. Unless internal testing, then it is every 2 seconds.
-    int default_timer = CHECKSTATUS_TIMER;
-    string info = "simulator";
-    if (serial != NULL) info = serial_->device();
-    string alarm_id = "CHECK_STATUS "+string(toString(t))+":"+info;
-    regular_cb_id_ = manager_->startRegularCallback(alarm_id, default_timer, call(this,checkStatus));
-    */
 }
 
 WMBusDeviceType WMBusCommonImplementation::type()

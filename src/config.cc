@@ -510,7 +510,8 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
     }
     if (listento_override != "")
     {
-        debug("(config) overriding listento with \"%s\"\n", listento_override.c_str());           handleListenTo(c, listento_override);
+        debug("(config) overriding listento with \"%s\"\n", listento_override.c_str());
+        handleListenTo(c, listento_override);
     }
 
     return shared_ptr<Configuration>(c);
