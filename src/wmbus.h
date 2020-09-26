@@ -75,6 +75,7 @@ struct Device
     X(DEVICE_AMB8465)\
     X(DEVICE_RFMRX2)\
     X(DEVICE_SIMULATOR)\
+    X(DEVICE_RC1180)\
     X(DEVICE_RTLWMBUS)\
     X(DEVICE_RTL433)\
     X(DEVICE_RAWTTY)\
@@ -515,6 +516,8 @@ shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManag
                               shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openRC1180(string device, shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRTLWMBUS(string device, string command, shared_ptr<SerialCommunicationManager> manager, std::function<void()> on_exit,
                                shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRTL433(string device, string command, shared_ptr<SerialCommunicationManager> manager, std::function<void()> on_exit,
@@ -577,6 +580,7 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
 AccessCheck detectIM871A(string file, Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectAMB8465(string file, Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRawTTY(string file, int baud, Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectRC1180(string file, Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRTLSDR(string file, Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectCUL(string file, Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectWMB13U(string file, Detected *detected, shared_ptr<SerialCommunicationManager> handler);
@@ -585,7 +589,7 @@ AccessCheck detectWMB13U(string file, Detected *detected, shared_ptr<SerialCommu
 // restore to factory settings.
 AccessCheck factoryResetAMB8465(string device, shared_ptr<SerialCommunicationManager> handler, int *was_baud);
 
-Detected detectImstAmberCul(string file,
+Detected detectImstAmberCulRC(string file,
                             string suffix,
                             string linkmodes,
                             shared_ptr<SerialCommunicationManager> handler,

@@ -70,10 +70,10 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     SerialCommunicationManagerImp(time_t exit_after_seconds, bool start_event_loop);
     ~SerialCommunicationManagerImp();
 
-    shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate);
+    shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate, string purpose);
     shared_ptr<SerialDevice> createSerialDeviceCommand(string device, string command, vector<string> args, vector<string> envs,
-                                                       function<void()> on_exit);
-    shared_ptr<SerialDevice> createSerialDeviceFile(string file);
+                                                       function<void()> on_exit, string purpose);
+    shared_ptr<SerialDevice> createSerialDeviceFile(string file, string purpose);
     shared_ptr<SerialDevice> createSerialDeviceSimulator();
 
     void listenTo(SerialDevice *sd, function<void()> cb);
@@ -86,6 +86,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     bool isRunning();
 
     shared_ptr<SerialDevice> addSerialDeviceForManagement(SerialDevice *sd);
+    void tickleEventLoop();
     void removeNonWorkingSerialDevices();
     void closeAllDoNotRemove();
 
@@ -106,7 +107,6 @@ private:
 
     bool running_ {};
     bool expect_devices_to_work_ {}; // false during detection phase, true when running.
-    int max_fd_ {};
     time_t start_time_ {};
     time_t exit_after_seconds_ {};
 
@@ -144,6 +144,7 @@ struct SerialDeviceImp : public SerialDevice
     int receive(vector<uchar> *data);
     bool working() { return resetting_ || fd_ != -1; }
     bool opened() { return resetting_ || fd_ != -2; }
+    bool isClosed() { return fd_ == -1 && !resetting_; }
     bool readonly() { return is_stdin_ || is_file_; }
 
     void expectAscii() { expecting_ascii_ = true; }
@@ -163,9 +164,10 @@ struct SerialDeviceImp : public SerialDevice
         return available > 0;
     }
 
-    SerialDeviceImp(SerialCommunicationManagerImp *manager)
+    SerialDeviceImp(SerialCommunicationManagerImp *manager, string purpose)
     {
         manager_ = manager;
+        purpose_ = purpose;
     }
     ~SerialDeviceImp() = default;
 
@@ -186,6 +188,7 @@ protected:
     bool no_callbacks_ = false;
     SerialCommunicationManagerImp *manager_;
     bool resetting_ {}; // Set to true while resetting.
+    string purpose_; // Can be set to identify a serial device purose.
 
     friend struct SerialCommunicationManagerImp;
 };
@@ -252,7 +255,7 @@ int SerialDeviceImp::receive(vector<uchar> *data)
 
 struct SerialDeviceTTY : public SerialDeviceImp
 {
-    SerialDeviceTTY(string device, int baud_rate, SerialCommunicationManagerImp * manager);
+    SerialDeviceTTY(string device, int baud_rate, SerialCommunicationManagerImp * manager, string purpose);
     ~SerialDeviceTTY();
 
     AccessCheck open(bool fail_if_not_ok);
@@ -268,8 +271,9 @@ struct SerialDeviceTTY : public SerialDeviceImp
 };
 
 SerialDeviceTTY::SerialDeviceTTY(string device, int baud_rate,
-                                 SerialCommunicationManagerImp *manager)
-    : SerialDeviceImp(manager)
+                                 SerialCommunicationManagerImp *manager,
+                                 string purpose)
+    : SerialDeviceImp(manager, purpose)
 {
     device_ = device;
     baud_rate_ = baud_rate;
@@ -310,7 +314,7 @@ AccessCheck SerialDeviceTTY::open(bool fail_if_not_ok)
             }
         }
     }
-    verbose("(serialtty) opened %s\n", device_.c_str());
+    verbose("(serialtty) opened %s %d (%s)\n", device_.c_str(), fd_, purpose_.c_str());
     return AccessCheck::AccessOK;
 }
 
@@ -325,7 +329,9 @@ void SerialDeviceTTY::close()
         on_disappear_();
         on_disappear_ = NULL;
     }
-    verbose("(serialtty) closed %s\n", device_.c_str());
+    manager_->tickleEventLoop();
+
+    verbose("(serialtty) closed %s (%s)\n", device_.c_str(), purpose_.c_str());
 }
 
 bool SerialDeviceTTY::send(vector<uchar> &data)
@@ -376,7 +382,8 @@ struct SerialDeviceCommand : public SerialDeviceImp
 {
     SerialDeviceCommand(string device, string command, vector<string> args, vector<string> envs,
                         SerialCommunicationManagerImp *manager,
-                        function<void()> on_exit);
+                        function<void()> on_exit,
+                        string purpose);
     ~SerialDeviceCommand();
 
     AccessCheck open(bool fail_if_not_ok);
@@ -405,8 +412,9 @@ SerialDeviceCommand::SerialDeviceCommand(string device,
                                          vector<string> args,
                                          vector<string> envs,
                                          SerialCommunicationManagerImp *manager,
-                                         function<void()> on_exit)
-    : SerialDeviceImp(manager)
+                                         function<void()> on_exit,
+                                         string purpose)
+    : SerialDeviceImp(manager, purpose)
 {
     assert(device != "");
     device_ = device;
@@ -428,7 +436,7 @@ AccessCheck SerialDeviceCommand::open(bool fail_if_not_ok)
     assert(fd_ >= 0);
     if (!ok) return AccessCheck::NotThere;
     setIsStdin();
-    verbose("(serialcmd) opened %s pid %d fd %d\n", command_.c_str(), pid_, fd_);
+    verbose("(serialcmd) opened %s pid %d fd %d (%s)\n", command_.c_str(), pid_, fd_, purpose_.c_str());
     return AccessCheck::AccessOK;
 }
 
@@ -449,7 +457,10 @@ void SerialDeviceCommand::close()
     ::flock(fd_, LOCK_UN);
     ::close(fd_);
     fd_ = -1;
-    verbose("(serialcmd) closed %s pid=%d fd=%d\n", command_.c_str(), p, f);
+
+    manager_->tickleEventLoop();
+
+    verbose("(serialcmd) closed %s pid=%d fd=%d (%s)\n", command_.c_str(), p, f, purpose_.c_str());
 }
 
 bool SerialDeviceCommand::working()
@@ -502,7 +513,7 @@ bool SerialDeviceCommand::send(vector<uchar> &data)
 
 struct SerialDeviceFile : public SerialDeviceImp
 {
-    SerialDeviceFile(string file, SerialCommunicationManagerImp *manager);
+    SerialDeviceFile(string file, SerialCommunicationManagerImp *manager, string purpose);
     ~SerialDeviceFile();
 
     AccessCheck open(bool fail_if_not_ok);
@@ -518,8 +529,9 @@ struct SerialDeviceFile : public SerialDeviceImp
 };
 
 SerialDeviceFile::SerialDeviceFile(string file,
-                                   SerialCommunicationManagerImp *manager)
-    : SerialDeviceImp(manager)
+                                   SerialCommunicationManagerImp *manager,
+                                   string purpose)
+    : SerialDeviceImp(manager, purpose)
 {
     file_ = file;
 }
@@ -538,7 +550,7 @@ AccessCheck SerialDeviceFile::open(bool fail_if_not_ok)
         flags |= O_NONBLOCK;
         fcntl(0, F_SETFL, flags);
         setIsStdin();
-        verbose("(serialfile) reading from stdin\n");
+        verbose("(serialfile) reading from stdin (%s)\n", purpose_.c_str());
     }
     else
     {
@@ -557,13 +569,9 @@ AccessCheck SerialDeviceFile::open(bool fail_if_not_ok)
             }
         }
         setIsFile();
-        verbose("(serialfile) reading from file %s\n", file_.c_str());
+        verbose("(serialfile) reading from file %s (%s)\n", file_.c_str(), purpose_.c_str());
     }
-    if (signalsInstalled())
-    {
-        // Tickle the event loop to use the new file descriptor in the select.
-        if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
-    }
+    manager_->tickleEventLoop();
 
     return AccessCheck::AccessOK;
 }
@@ -574,7 +582,10 @@ void SerialDeviceFile::close()
     ::flock(fd_, LOCK_UN);
     ::close(fd_);
     fd_ = -1;
-    verbose("(serialfile) closed %s %d\n", file_.c_str(), fd_);
+
+    manager_->tickleEventLoop();
+
+    verbose("(serialfile) closed %s %d (%s)\n", file_.c_str(), fd_, purpose_.c_str());
 }
 
 bool SerialDeviceFile::working()
@@ -601,10 +612,10 @@ bool SerialDeviceFile::send(vector<uchar> &data)
 
 struct SerialDeviceSimulator : public SerialDeviceImp
 {
-    SerialDeviceSimulator(SerialCommunicationManagerImp *m) :
-        SerialDeviceImp(m)
+    SerialDeviceSimulator(SerialCommunicationManagerImp *m, string purpose) :
+        SerialDeviceImp(m, purpose)
     {
-        verbose("(serialsimulator) opened\n");
+        verbose("(serialsimulator) opened (%s)\n", purpose_.c_str());
     };
     ~SerialDeviceSimulator() { };
 
@@ -633,7 +644,6 @@ SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_s
                                                              bool start_event_loop)
 {
     running_ = true;
-    max_fd_ = 0;
     // Block the event loop until everything is configured.
     if (start_event_loop)
     {
@@ -647,28 +657,30 @@ SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_s
 }
 
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device,
-                                                                              int baud_rate)
+                                                                              int baud_rate,
+                                                                              string purpose)
 {
-    return addSerialDeviceForManagement(new SerialDeviceTTY(device, baud_rate, this));
+    return addSerialDeviceForManagement(new SerialDeviceTTY(device, baud_rate, this, purpose));
 }
 
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceCommand(string device,
                                                                                   string command,
                                                                                   vector<string> args,
                                                                                   vector<string> envs,
-                                                                                  function<void()> on_exit)
+                                                                                  function<void()> on_exit,
+                                                                                  string purpose)
 {
-    return addSerialDeviceForManagement(new SerialDeviceCommand(device, command, args, envs, this, on_exit));
+    return addSerialDeviceForManagement(new SerialDeviceCommand(device, command, args, envs, this, on_exit, purpose));
 }
 
-shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceFile(string file)
+shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceFile(string file, string purpose)
 {
-    return addSerialDeviceForManagement(new SerialDeviceFile(file, this));
+    return addSerialDeviceForManagement(new SerialDeviceFile(file, this, purpose));
 }
 
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceSimulator()
 {
-    return addSerialDeviceForManagement(new SerialDeviceSimulator(this));
+    return addSerialDeviceForManagement(new SerialDeviceSimulator(this, ""));
 }
 
 void SerialCommunicationManagerImp::listenTo(SerialDevice *sd, function<void()> cb)
@@ -764,10 +776,22 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::addSerialDeviceForManage
 {
     LOCK_SERIAL_DEVICES(opened);
 
-    max_fd_ = max(sd->fd(), max_fd_);
     shared_ptr<SerialDevice> ptr = shared_ptr<SerialDevice>(sd);
     serial_devices_.push_back(ptr);
+
+    tickleEventLoop();
     return ptr;
+}
+
+void SerialCommunicationManagerImp::tickleEventLoop()
+{
+    LOCK_SERIAL_DEVICES(tickle);
+
+    if (signalsInstalled())
+    {
+        // Tickle the event loop to use the new file descriptor in the select.
+        if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
+    }
 }
 
 void SerialCommunicationManagerImp::removeNonWorkingSerialDevices()
@@ -786,14 +810,6 @@ void SerialCommunicationManagerImp::removeNonWorkingSerialDevices()
         }
     }
 
-    max_fd_ = 0;
-    for (shared_ptr<SerialDevice> &sp : serial_devices_)
-    {
-        if (sp->fd() > max_fd_)
-        {
-            max_fd_ = sp->fd();
-        }
-    }
     if (serial_devices_.size() == 0 && expect_devices_to_work_)
     {
         debug("(serial) no devices working emergency exit!\n");
@@ -938,7 +954,16 @@ void *SerialCommunicationManagerImp::eventLoop()
             break;
         }
 
-        int activity = select(max_fd_+1 , &readfds, NULL , NULL, &timeout);
+        int max_fd = 0;
+        for (shared_ptr<SerialDevice> &sp : serial_devices_)
+        {
+            if (sp->fd() > max_fd)
+            {
+                max_fd = sp->fd();
+            }
+        }
+
+        int activity = select(max_fd+1 , &readfds, NULL , NULL, &timeout);
 
         if (activity == -1 && errno == EINTR)
         {
@@ -983,7 +1008,7 @@ void *SerialCommunicationManagerImp::eventLoop()
 
             for (shared_ptr<SerialDevice> &sd : serial_devices_)
             {
-                if (sd->opened() && !sd->working()) non_working.push_back(sd);
+                if (sd->opened() && !sd->working() && !sd->isClosed()) non_working.push_back(sd);
             }
         }
 

@@ -471,7 +471,7 @@ string mediaTypeJSON(int a_field_device_type)
     return "Unknown";
 }
 
-Detected detectImstAmberCul(string file,
+Detected detectImstAmberCulRC(string file,
                             string suffix,
                             string linkmodes,
                             shared_ptr<SerialCommunicationManager> handler,
@@ -489,18 +489,28 @@ Detected detectImstAmberCul(string file,
     // Anyway by testing for the amb8465 first, we can immediately continue
     // with the test for the im871a, without the need for a 1s delay.
 
+
     // Talk amb8465 with it...
     // assumes this device is configured for 9600 bps, which seems to be the default.
     if (detectAMB8465(file, &detected, handler) == AccessCheck::AccessOK)
     {
         return detected;
     }
+
+    // Talk RC1180 with it...
+    // assumes this device is configured for 19200 bps, which seems to be the default.
+    if (detectRC1180(file, &detected, handler) == AccessCheck::AccessOK)
+    {
+        return detected;
+    }
+
     // Talk im871a with it...
     // assumes this device is configured for 57600 bps, which seems to be the default.
     if (detectIM871A(file, &detected, handler) == AccessCheck::AccessOK)
     {
         return detected;
     }
+
     // Talk CUL with it...
     // assumes this device is configured for 38400 bps, which seems to be the default.
     if (detectCUL(file, &detected, handler) == AccessCheck::AccessOK)
@@ -580,6 +590,7 @@ Detected detectWMBusDeviceSetting(string file,
 
     if (suffix == "amb8465") return { { file, suffix }, DEVICE_AMB8465, 0, override_tty, is_tty, is_stdin, is_file };
     if (suffix == "im871a") return { { file, suffix }, DEVICE_IM871A, 0, override_tty, is_tty, is_stdin, is_file };
+    if (suffix == "rc1180") return { { file, suffix }, DEVICE_RC1180, 0, override_tty, is_tty, is_stdin, is_file };
     if (suffix == "rfmrx2") return { { file, suffix }, DEVICE_RFMRX2, 0, override_tty, is_tty, is_stdin, is_file };
     if (suffix == "rtlwmbus") return { { file, suffix }, DEVICE_RTLWMBUS, 0, override_tty, is_tty, is_stdin, is_file };
     if (suffix == "rtl433") return { { file, suffix}, DEVICE_RTL433, 0, override_tty, is_tty, is_stdin, is_file };
@@ -602,7 +613,7 @@ Detected detectWMBusDeviceSetting(string file,
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
     // to figure out what is connected to it. We currently only
     // know how to detect Imst, Amber or CUL dongles.
-    return detectImstAmberCul(file, suffix, linkmodes, handler, is_tty, is_stdin, is_file);
+    return detectImstAmberCulRC(file, suffix, linkmodes, handler, is_tty, is_stdin, is_file);
 }
 
 /*

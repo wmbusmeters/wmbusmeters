@@ -84,7 +84,7 @@ shared_ptr<WMBus> openRTL433(string device, string command, shared_ptr<SerialCom
         WMBusRTL433 *imp = new WMBusRTL433(serial_override, manager);
         return shared_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceCommand(device, "/bin/sh", args, envs, on_exit);
+    auto serial = manager->createSerialDeviceCommand(device, "/bin/sh", args, envs, on_exit, "rtl433");
     WMBusRTL433 *imp = new WMBusRTL433(serial, manager);
     return shared_ptr<WMBus>(imp);
 }

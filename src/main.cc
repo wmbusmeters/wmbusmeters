@@ -190,7 +190,7 @@ shared_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *confi
 
     if (detected->override_tty)
     {
-        serial_override = manager->createSerialDeviceFile(detected->device.file);
+        serial_override = manager->createSerialDeviceFile(detected->device.file, string("override ")+detected->device.file.c_str());
         verbose("(serial) override with devicefile: %s\n", detected->device.file.c_str());
         link_modes_matter = false;
     }
@@ -305,6 +305,12 @@ shared_ptr<WMBus> createWMBusDeviceFrom(Detected *detected, Configuration *confi
     {
         verbose("(d1tc) on %s\n", detected->device.file.c_str());
         wmbus = openD1TC(detected->device.file, manager, serial_override);
+        break;
+    }
+    case DEVICE_RC1180:
+    {
+        verbose("(rc1180) on %s\n", detected->device.file.c_str());
+        wmbus = openRC1180(detected->device.file, manager, serial_override);
         break;
     }
     case DEVICE_WMB13U:
@@ -556,7 +562,14 @@ void open_wmbus_device(Configuration *config, string how, string device, Detecte
     }
     else
     {
-        verbose("(main) started %s on %s (%s)\n", toString(detected->type), device.c_str(), how.c_str());
+        if (detected->type != DEVICE_SIMULATOR)
+        {
+            notice("Started %s on %s (%s)\n", toString(detected->type), device.c_str(), how.c_str());
+        }
+        else
+        {
+            verbose("Started %s on %s (%s)\n", toString(detected->type), device.c_str(), how.c_str());
+        }
     }
 
     shared_ptr<WMBus> w = createWMBusDeviceFrom(detected, config, serial_manager_);
@@ -564,11 +577,12 @@ void open_wmbus_device(Configuration *config, string how, string device, Detecte
     WMBus *wmbus = wmbus_devices_.back().get();
     wmbus->setLinkModes(config->listen_to_link_modes);
 
-    // By default, reset your dongle once every day.
-    int regular_reset = 24*3600;
+    // By default, reset your dongle once every 23 hours,
+    // so that the reset is not at the exact same time every day.
+    int regular_reset = 23*3600;
     if (config->resetafter != 0) regular_reset = config->resetafter;
     wmbus->setResetInterval(regular_reset);
-    verbose("(main) regular reset %d\n", regular_reset);
+    verbose("(main) regular reset of %s %s will happen every %d seconds\n", toString(detected->type), device.c_str(),  regular_reset);
 
     string using_link_modes = wmbus->getLinkModes().hr();
     verbose("(config) listen to link modes: %s\n", using_link_modes.c_str());
@@ -604,7 +618,7 @@ void perform_auto_scan_of_serial_devices(Configuration *config)
         {
             debug("(main) device %s not currently used, detect contents...\n", device.c_str());
             // This serial device is not in use.
-            Detected detected = detectImstAmberCul(device, "", "", serial_manager_, true, false, false);
+            Detected detected = detectImstAmberCulRC(device, "", "", serial_manager_, true, false, false);
             if (detected.type != DEVICE_UNKNOWN)
             {
                 open_wmbus_device(config, "auto", device, &detected);

@@ -93,7 +93,7 @@ shared_ptr<WMBus> openIM871A(string device, shared_ptr<SerialCommunicationManage
         return shared_ptr<WMBus>(imp);
     }
 
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 57600);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 57600, "im871a");
     WMBusIM871A *imp = new WMBusIM871A(serial, manager);
     return shared_ptr<WMBus>(imp);
 }
@@ -640,7 +640,7 @@ void WMBusIM871A::handleHWTest(int msgid, vector<uchar> &payload)
 AccessCheck detectIM871A(string file, Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(file.c_str(), 57600);
+    auto serial = manager->createSerialDeviceTTY(file.c_str(), 57600, "detect im871a");
     serial->doNotUseCallbacks();
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;

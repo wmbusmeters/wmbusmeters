@@ -104,7 +104,7 @@ shared_ptr<WMBus> openWMB13U(string device, shared_ptr<SerialCommunicationManage
         return shared_ptr<WMBus>(imp);
     }
 
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200, "wmb13u");
     WMBusWMB13U *imp = new WMBusWMB13U(serial, manager);
     return shared_ptr<WMBus>(imp);
 }
@@ -344,7 +344,7 @@ bool WMBusWMB13U::getConfiguration()
 AccessCheck detectWMB13U(string device, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200, "detect wmb13u");
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 

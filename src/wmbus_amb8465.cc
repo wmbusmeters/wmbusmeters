@@ -102,7 +102,7 @@ shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManag
         return shared_ptr<WMBus>(imp);
     }
 
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600, "amb8465");
     WMBusAmber *imp = new WMBusAmber(serial, manager);
     return shared_ptr<WMBus>(imp);
 }
@@ -508,7 +508,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
 AccessCheck detectAMB8465(string device, Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600, "detect amb8465");
     serial->doNotUseCallbacks();
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
@@ -562,7 +562,7 @@ AccessCheck detectAMB8465(string device, Detected *detected, shared_ptr<SerialCo
 static AccessCheck tryFactoryResetAMB8465(string device, shared_ptr<SerialCommunicationManager> manager, int baud)
 {
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), baud);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), baud, "reset amb8465");
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) {
         verbose("(amb8465) could not open device %s using baud %d\n", device.c_str(), baud);

@@ -29,12 +29,12 @@ Availability of **wmbusmeters** for other Linux distributions can be checked on 
 
 # Run as a daemon
 
-Remove the wmbus dongle (im871a,amb8465,rfmrx2,cul,d1tc) or the generic rtlsdr dongle (RTL2838) from your computer.
+Remove the wmbus dongle (im871a,amb8465,cul,rc1180,rfmrx2,d1tc) or the generic rtlsdr dongle (RTL2838) from your computer.
 
 `make; sudo make install` will install wmbusmeters as a daemon.
 
 Check the contents of your `/etc/wmbusmeters.conf` file, assuming it
-has `device=auto` and you are using a im871a,amb8465 or cul device,
+has `device=auto` and you are using a im871a,amb8465,rc1180 or cul device,
 then you can now start the daemon with `sudo systemctl start wmbusmeters`.
 
 When the daemon is running it will scan for wmbus devices every few seconds
@@ -166,7 +166,7 @@ As <options> you can use:
     --meterfilestimestamp=(never|day|hour|minute|micros) the meter file is suffixed with a
                           timestamp (localtime) with the given resolution.
     --oneshot wait for an update from each meter, then quit
-    --resetafter=<time> reset the wmbus dongle regularly, default is 24h
+    --resetafter=<time> reset the wmbus dongle regularly, default is 23h
     --selectfields=id,timestamp,total_m3 select fields to be printed
     --separator=<c> change field separator to c
     --shell=<cmdline> invokes cmdline with env variables containing the latest reading
@@ -223,10 +223,11 @@ As meter quadruples you specify:
 Supported wmbus dongles:
 IMST 871a (im871a)
 Amber 8465 (amb8465)
-BMeters RFM-RX2 (rfmrx2)
 CUL family (cul)
+Radiocraft (RC1180) work in progress
 rtl_wmbus (rtlwmbus)
 rtl_433 (rtl433)
+BMeters RFM-RX2 (rfmrx2)
 
 Supported water meters:
 Apator at-wmbus-08   (apator08) (non-standard protocol)

@@ -39,6 +39,8 @@ struct SerialDevice
     // If fail_if_not_ok then forcefully exit the program if cannot be opened.
     virtual AccessCheck open(bool fail_if_not_ok) = 0;
     virtual void close() = 0;
+    // Explicitly closed fd == -1
+    virtual bool isClosed() = 0;
     // Send will return true only if sending on a tty.
     virtual bool send(std::vector<uchar> &data) = 0;
     // Receive returns the number of bytes received.
@@ -67,15 +69,16 @@ struct SerialDevice
 struct SerialCommunicationManager
 {
     // Read from a /dev/ttyUSB0 or /dev/ttyACM0 device with baud settings.
-    virtual shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate) = 0;
+    virtual shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate, string purpose) = 0;
     // Read from a sub shell.
     virtual shared_ptr<SerialDevice> createSerialDeviceCommand(string device,
                                                                string command,
                                                                vector<string> args,
                                                                vector<string> envs,
-                                                               function<void()> on_exit) = 0;
+                                                               function<void()> on_exit,
+                                                               string purpose) = 0;
     // Read from stdin (file="stdin") or a specific file.
-    virtual shared_ptr<SerialDevice> createSerialDeviceFile(string file) = 0;
+    virtual shared_ptr<SerialDevice> createSerialDeviceFile(string file, string purpose) = 0;
     // A serial device simulator used for internal testing.
     virtual shared_ptr<SerialDevice> createSerialDeviceSimulator() = 0;
 

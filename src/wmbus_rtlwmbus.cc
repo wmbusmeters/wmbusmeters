@@ -85,7 +85,7 @@ shared_ptr<WMBus> openRTLWMBUS(string device, string command, shared_ptr<SerialC
         WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(serial_override, manager);
         return shared_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceCommand(device, "/bin/sh", args, envs, on_exit);
+    auto serial = manager->createSerialDeviceCommand(device, "/bin/sh", args, envs, on_exit, "rtlwmbus");
     WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(serial, manager);
     return shared_ptr<WMBus>(imp);
 }

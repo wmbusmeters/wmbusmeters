@@ -63,7 +63,7 @@ shared_ptr<WMBus> openD1TC(string device, shared_ptr<SerialCommunicationManager>
         WMBusD1TC *imp = new WMBusD1TC(serial_override, manager);
         return shared_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 115200);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 115200, "d1tc");
     WMBusD1TC *imp = new WMBusD1TC(serial, manager);
     return shared_ptr<WMBus>(imp);
 }
@@ -213,7 +213,7 @@ AccessCheck detectD1TC(string device, int baud, shared_ptr<SerialCommunicationMa
 {
     // Since we do not know how to talk to the other end, it might not
     // even respond. The only thing we can do is to try to open the serial device.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), baud);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), baud, "detect d1tc");
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 

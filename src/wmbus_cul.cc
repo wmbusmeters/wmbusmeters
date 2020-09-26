@@ -87,7 +87,7 @@ shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> 
         return shared_ptr<WMBus>(imp);
     }
 
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400, "cul");
     WMBusCUL *imp = new WMBusCUL(serial, manager);
     return shared_ptr<WMBus>(imp);
 }
@@ -340,7 +340,7 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
 AccessCheck detectCUL(string device, Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400, "detect cul");
     serial->doNotUseCallbacks();
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
