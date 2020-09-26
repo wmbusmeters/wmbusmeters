@@ -52,6 +52,7 @@
     X(multical21, C1_bit, Water,       MULTICAL21,  Multical21)   \
     X(multical302,C1_bit, Heat,        MULTICAL302, Multical302)  \
     X(multical403,C1_bit, Heat,        MULTICAL403, Multical403)  \
+    X(multical603,C1_bit, Heat,        MULTICAL603, Multical603)  \
     X(omnipower,  C1_bit, Electricity, OMNIPOWER,   Omnipower)    \
     X(rfmamb,     T1_bit, TempHygro,   RFMAMB,      RfmAmb)       \
     X(rfmtx1,     T1_bit, Water,       RFMTX1,      RfmTX1)       \
@@ -118,6 +119,7 @@
     X(MULTICAL403,MANUFACTURER_KAM, 0x0b,  0x34) \
     X(MULTICAL403,MANUFACTURER_KAM, 0x0c,  0x34) \
     X(MULTICAL403,MANUFACTURER_KAM, 0x0d,  0x34) \
+    X(MULTICAL603,MANUFACTURER_KAM, 0x04,  0x35) \
     X(OMNIPOWER,  MANUFACTURER_KAM, 0x02,  0x01) \
     X(RFMAMB,     MANUFACTURER_BMT, 0x1b,  0x10) \
     X(RFMTX1,     MANUFACTURER_BMT, 0x07,  0x05) \
@@ -352,6 +354,7 @@ shared_ptr<WaterMeter> createMultical21(MeterInfo &m);
 shared_ptr<WaterMeter> createFlowIQ3100(MeterInfo &m);
 shared_ptr<HeatMeter> createMultical302(MeterInfo &m);
 shared_ptr<HeatMeter> createMultical403(MeterInfo &m);
+shared_ptr<HeatMeter> createMultical603(MeterInfo &m);
 shared_ptr<HeatMeter> createVario451(MeterInfo &m);
 shared_ptr<WaterMeter> createWaterstarM(MeterInfo &m);
 shared_ptr<HeatMeter> createCompact5(MeterInfo &m);
@@ -382,6 +385,7 @@ shared_ptr<ElectricityMeter> createEHZP(MeterInfo &m);
 shared_ptr<ElectricityMeter> createESYSWM(MeterInfo &m);
 shared_ptr<ElectricityMeter> createEBZWMBE(MeterInfo &m);
 shared_ptr<WaterMeter> createTopasEsKr(MeterInfo &m);
-GenericMeter *createGeneric(MeterInfo &m);
+
+GenericMeter *createGeneric(WMBus *bus, MeterInfo &m);
 
 #endif
