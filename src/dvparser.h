@@ -89,6 +89,11 @@ bool extractDVuint24(std::map<std::string,std::pair<int,DVEntry>> *values,
                      int *offset,
                      uint32_t *value);
 
+bool extractDVuint32(std::map<std::string,std::pair<int,DVEntry>> *values,
+                     std::string key,
+                     int *offset,
+                     uint32_t *value);
+
 // All volume values are scaled to cubic meters, m3.
 bool extractDVdouble(std::map<std::string,std::pair<int,DVEntry>> *values,
                     std::string key,

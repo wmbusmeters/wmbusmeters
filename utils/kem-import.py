@@ -159,6 +159,8 @@ for e in xmldoc.getElementsByTagName('Meter'):
         wmbusmeters_driver = 'multical403'
     elif (meterName == 'MC21') and (meterModel.startswith('021')): 
         wmbusmeters_driver = 'multical21'
+    elif (meterName == 'MC603') and (meterModel.startswith('603')): 
+        wmbusmeters_driver = 'multical603'
     else:
         wmbusmeters_driver = None
     
