@@ -1,0 +1,14 @@
+X:=
+SPACE:=$(X) $(X)
+COMMA:=,
+HASH:=\#
+SQUOTE:='
+#'
+DQUOTE:="
+#"
+define NEWLINE
+
+
+endef
+
+CONF_NAME:=@CONF_NAME@

@@ -16,6 +16,7 @@
 */
 
 #include"util.h"
+#include"rtlsdr.h"
 #include"serial.h"
 #include"shell.h"
 #include"threads.h"
@@ -94,7 +95,6 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     void stopRegularCallback(int id);
 
     vector<string> listSerialDevices();
-    vector<string> listSWRadioDevices();
     shared_ptr<SerialDevice> lookup(std::string device);
 
 private:
@@ -1172,12 +1172,6 @@ vector<string> SerialCommunicationManagerImp::listSerialDevices()
     list.push_back("Please add code here!");
     return list;
 }
-vector<string> SerialCommunicationManagerImp::listSWRadioDevices()
-{
-    vector<string> list;
-    list.push_back("Please add code here!");
-    return list;
-}
 #endif
 
 #if defined(__linux__)
@@ -1290,44 +1284,6 @@ vector<string> SerialCommunicationManagerImp::listSerialDevices()
     check_serial8250s(&found_serials, found_8250s);
 
     return found_serials;
-}
-
-vector<string> SerialCommunicationManagerImp::listSWRadioDevices()
-{
-    struct dirent **entries;
-    vector<string> found_swradios;
-    string devdir = "/dev/";
-
-    int n = scandir(devdir.c_str(), &entries, NULL, sorty);
-    if (n < 0)
-    {
-        perror("scandir");
-        return found_swradios;
-    }
-
-    for (int i=0; i<n; ++i)
-    {
-        string name = entries[i]->d_name;
-
-        if (name ==  ".." || name == ".")
-        {
-            free(entries[i]);
-            continue;
-        }
-        // swradio0 swradio1 swradio2 ...
-        if (name.length() > 7 &&
-            !strncmp(name.c_str(), "swradio", 7) &&
-            name[7] >= '0' &&
-            name[7] <= '9')
-        {
-            string rtlsdr = devdir+name;
-            found_swradios.push_back(rtlsdr);
-        }
-        free(entries[i]);
-    }
-    free(entries);
-
-    return found_swradios;
 }
 
 #endif

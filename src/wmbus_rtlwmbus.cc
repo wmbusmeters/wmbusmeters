@@ -287,16 +287,3 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     debug("(rtlwmbus) received full frame\n");
     return FullFrame;
 }
-
-AccessCheck detectRTLSDR(string device, Detected *detected, shared_ptr<SerialCommunicationManager> manager)
-{
-    // No more advanced test than that the /dev/rtlsdr link exists.
-    AccessCheck rc = checkIfExistsAndSameGroup(device);
-
-    if (rc == AccessCheck::AccessOK)
-    {
-        detected->set(WMBusDeviceType::DEVICE_RTLWMBUS,0, false);
-    }
-
-    return rc;
-}

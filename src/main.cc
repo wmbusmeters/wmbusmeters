@@ -19,6 +19,7 @@
 #include"config.h"
 #include"meters.h"
 #include"printer.h"
+#include"rtlsdr.h"
 #include"serial.h"
 #include"shell.h"
 #include"threads.h"
@@ -638,31 +639,31 @@ void perform_auto_scan_of_serial_devices(Configuration *config)
 void perform_auto_scan_of_swradio_devices(Configuration *config)
 {
     // Enumerate all swradio devices, that can be used.
-    vector<string> devices = serial_manager_->listSWRadioDevices();
+    vector<string> devices = listRtlSdrDevices();
 
     // Did an unavailable swradio-device get unplugged? Then remove it from the known-not-swradio-device set.
     remove_lost_swradio_devices_from_ignore_list(devices);
 
     for (string& device : devices)
     {
-        trace("[MAIN] swradio device %s\n", device.c_str());
+        trace("[MAIN] rtlsdr device %s\n", device.c_str());
         if (not_swradio_wmbus_devices_.count(device) > 0)
         {
-            trace("[MAIN] skipping already probed swradio device %s\n", device.c_str());
+            trace("[MAIN] skipping already probed rtlsdr device %s\n", device.c_str());
             continue;
         }
         shared_ptr<SerialDevice> sd = serial_manager_->lookup(device);
         if (!sd)
         {
-            debug("(main) swradio device %s not currently used, detect contents...\n", device.c_str());
+            debug("(main) rtlsdr device %s not currently used.\n", device.c_str());
             // This serial device is not in use.
             Detected detected;
-            AccessCheck ac = detectRTLSDR(device, &detected, serial_manager_);
+            AccessCheck ac = detectRTLSDR(device, &detected);
             if (ac != AccessCheck::AccessOK)
             {
                 // We cannot access this swradio device.
                 not_swradio_wmbus_devices_.insert(device);
-                verbose("(main) ignoring swradio %s since it is unavailable.\n", device.c_str());
+                verbose("(main) ignoring rtlsdr %s since it is unavailable.\n", device.c_str());
             }
             else
             {
