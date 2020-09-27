@@ -19,9 +19,8 @@
 #define WMBUS_UTILS_H
 
 #include "util.h"
+#include "threads.h"
 #include "wmbus.h"
-
-#include<semaphore.h>
 
 bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey);
 bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey);
@@ -79,7 +78,7 @@ struct WMBusCommonImplementation : public virtual WMBus
 
 protected:
 
-    sem_t command_wait_;
+    Semaphore command_wait_;
 };
 
 #endif

@@ -23,7 +23,6 @@
 
 #include<assert.h>
 #include<pthread.h>
-#include<semaphore.h>
 #include<errno.h>
 #include<unistd.h>
 #include<sys/time.h>
@@ -474,7 +473,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
         received_payload_.clear();
         received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
         debugPayload("(amb8465) set link mode response", received_payload_);
-        sem_post(&command_wait_);
+        command_wait_.notify();
         break;
     }
     case (0x80|CMD_GET_REQ):
@@ -484,7 +483,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
         received_payload_.clear();
         received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
         debugPayload("(amb8465) get config response", received_payload_);
-        sem_post(&command_wait_);
+        command_wait_.notify();
         break;
     }
     case (0x80|CMD_SERIALNO_REQ):
@@ -494,7 +493,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
         received_payload_.clear();
         received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
         debugPayload("(amb8465) get device id response", received_payload_);
-        sem_post(&command_wait_);
+        command_wait_.notify();
         break;
     }
     default:

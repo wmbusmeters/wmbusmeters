@@ -224,7 +224,7 @@ void WMBusCUL::processSerialData()
                 if (r != "")
                 {
                     received_response_ = r;
-                    sem_post(&command_wait_);
+                    command_wait_.notify();
                 }
             }
             read_buffer_.clear();

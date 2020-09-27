@@ -582,28 +582,28 @@ void WMBusIM871A::handleDevMgmt(int msgid, vector<uchar> &payload)
         case DEVMGMT_MSG_PING_RSP: // 0x02
             verbose("(im871a) pong\n");
             received_command_ = msgid;
-            sem_post(&command_wait_);
+            command_wait_.notify();
             break;
         case DEVMGMT_MSG_SET_CONFIG_RSP: // 0x04
             verbose("(im871a) set config completed\n");
             received_command_ = msgid;
             received_payload_.clear();
             received_payload_.insert(received_payload_.end(), payload.begin(), payload.end());
-            sem_post(&command_wait_);
+            command_wait_.notify();
             break;
         case DEVMGMT_MSG_GET_CONFIG_RSP: // 0x06
             verbose("(im871a) get config completed\n");
             received_command_ = msgid;
             received_payload_.clear();
             received_payload_.insert(received_payload_.end(), payload.begin(), payload.end());
-            sem_post(&command_wait_);
+            command_wait_.notify();
             break;
         case DEVMGMT_MSG_GET_DEVICEINFO_RSP: // 0x10
             verbose("(im871a) device info completed\n");
             received_command_ = msgid;
             received_payload_.clear();
             received_payload_.insert(received_payload_.end(), payload.begin(), payload.end());
-            sem_post(&command_wait_);
+            command_wait_.notify();
             break;
     default:
         verbose("(im871a) Unhandled device management message %d\n", msgid);

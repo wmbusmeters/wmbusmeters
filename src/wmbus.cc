@@ -3285,12 +3285,12 @@ WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
     : manager_(manager),
       is_working_(true),
       type_(t),
-      serial_(serial)
+      serial_(serial),
+      command_wait_("command_wait")
 {
     // Initialize timeout from now.
     last_received_ = time(NULL);
     last_reset_ = time(NULL);
-    sem_init(&command_wait_, 0, 0);
     manager_->listenTo(this->serial(),call(this,processSerialData));
     manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
 }
@@ -3524,9 +3524,9 @@ bool WMBusCommonImplementation::waitForResponse()
     while (manager_->isRunning())
     {
         // 5 second timeout.
-        const struct timespec timeout { 5, 0 };
         trace("[IM871A] waitForResponse sem_wait command_wait_\n");
-        int rc = sem_timedwait(&command_wait_, &timeout);
+        command_wait_.wait();
+        int rc = 0;
         trace("[IM871A] waitForResponse waited command_wait_\n");
         if (rc==0) break;
         if (rc==-1) {

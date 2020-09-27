@@ -20,6 +20,7 @@
 
 #include "util.h"
 
+#include <assert.h>
 #include <pthread.h>
 #include <functional>
 #include <sys/types.h>
@@ -127,6 +128,59 @@ struct Lock
         rmutex_->locked_by_pid_ = 0;
         trace("[UNLOCKED]  %s %s (%s %d)\n", rmutex_->name_, func_name_, rmutex_->locked_in_func_, rmutex_->locked_by_pid_);
     }
+};
+
+struct Semaphore
+{
+    Semaphore(const char *name)
+    : name_(name)
+    {
+        pthread_cond_init(&condition_, NULL);
+        pthread_mutex_init(&mutex_, NULL);
+    }
+
+    ~Semaphore()
+    {
+        pthread_mutex_destroy(&mutex_);
+        pthread_cond_destroy(&condition_);
+    }
+
+    bool wait()
+    {
+        pthread_mutex_lock(&mutex_);
+        struct timespec max_wait = {100, 0};
+        int rc = 0;
+        for (;;)
+        {
+            rc = pthread_cond_timedwait(&condition_, &mutex_, &max_wait);
+            if (!rc) break;
+            if (rc == EINTR) continue;
+            if (rc == ETIMEDOUT) break;
+            fprintf(stderr, "GURKA %d %d %d %d\n", rc, errno, EINTR, ETIMEDOUT);
+            assert(0);
+            error("(thread) pthread cond timedwait ERROR\n");
+        }
+
+        pthread_mutex_unlock(&mutex_);
+
+        // Return true if proper wait.
+        // Return false if timeout!!!!
+        return rc != ETIMEDOUT;
+    }
+
+    void notify()
+    {
+        int rc = pthread_cond_signal(&condition_);
+        if (rc)
+        {
+            error("(thread) pthread cond signal ERROR\n");
+        }
+    }
+
+private:
+    const char *name_;
+    pthread_mutex_t mutex_;
+    pthread_cond_t condition_;
 };
 
 #endif
