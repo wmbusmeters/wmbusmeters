@@ -148,6 +148,8 @@ struct Semaphore
 
     bool wait()
     {
+        trace("[WAITING] %s\n", name_);
+
         pthread_mutex_lock(&mutex_);
         struct timespec max_wait = {100, 0};
         int rc = 0;
@@ -162,6 +164,8 @@ struct Semaphore
 
         pthread_mutex_unlock(&mutex_);
 
+        trace("[WAITED] %s %s\n", name_, (rc==ETIMEDOUT)?"TIMEOUT":"OK");
+
         // Return true if proper wait.
         // Return false if timeout!!!!
         return rc != ETIMEDOUT;
@@ -169,6 +173,7 @@ struct Semaphore
 
     void notify()
     {
+        trace("[NOTIFY] %s\n", name_);
         int rc = pthread_cond_signal(&condition_);
         if (rc)
         {
