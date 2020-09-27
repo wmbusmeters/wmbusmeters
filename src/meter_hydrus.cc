@@ -42,7 +42,7 @@ private:
     string at_date_;
     double max_flow_m3h_ {};
     double flow_temperature_c_ { 127 };
-    uint16_t battery_life_days_ {};
+    double remaining_battery_life_year_;
     string status_; // TPL STS
 
     map<int,string> error_codes_;
@@ -88,9 +88,9 @@ MeterHydrus::MeterHydrus(WMBus *bus, MeterInfo &mi) :
              "Date when total water consumption was recorded.",
              false, true);
 
-    addPrint("battery_life_days", Quantity::Text,
-             [&](){ return to_string(battery_life_days_); },
-             "Number of days remaining for battery.",
+    addPrint("remaining_battery_life", Quantity::Time, Unit::Year,
+             [&](Unit u){ return convert(remaining_battery_life_year_, Unit::Year, u); },
+             "How many more years the battery is expected to last",
              false, true);
 
     addPrint("status", Quantity::Text,
@@ -225,8 +225,10 @@ void MeterHydrus::processContent(Telegram *t)
         t->addMoreExplanation(offset, " at date (%s)", at_date_.c_str());
     }
 
-    extractDVuint16(&t->values, "02FD74", &offset, &battery_life_days_);
-    t->addMoreExplanation(offset, " battery life days (%d)", battery_life_days_);
+    uint16_t days {};
+    extractDVuint16(&t->values, "02FD74", &offset, &days);
+    remaining_battery_life_year_ = ((double)days) / 365.25;
+    t->addMoreExplanation(offset, " battery life (%d days %f years)", days, remaining_battery_life_year_);
 
     status_ = decodeTPLStatusByte(t->tpl_sts, error_codes_);
 }
