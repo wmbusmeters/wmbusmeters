@@ -1,6 +1,9 @@
-language: cpp
-dist: bionic
-
 os:
   - linux
   - osx
+
+language: cpp
+sudo: required
+dist: bionic
+before_install:
+  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install librtlsdr-dev; else brew install librtlsdr; fi
