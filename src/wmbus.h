@@ -490,6 +490,10 @@ string vifType(int vif); // Long description
 string vifeType(int dif, int vif, int vife); // Long description
 string formatData(int dif, int vif, int vife, string data);
 
+// Decode the status byte in the TPL with a map that gives the
+// translations for the 3 vendor specific high bits.
+string decodeTPLStatusByte(uchar sts, std::map<int,std::string> vendor_lookup);
+
 double extract8bitAsDouble(int dif, int vif, int vife, string data);
 double extract16bitAsDouble(int dif, int vif, int vife, string data);
 double extract32bitAsDouble(int dif, int vif, int vife, string data);

@@ -116,6 +116,11 @@ Received telegram from: 64646464
            device type: Water meter (0x07)
             device ver: 0x70
          device driver: hydrus
+Received telegram from: 65656565
+          manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
+           device type: Warm Water (30°C-90°C) meter (0x06)
+            device ver: 0x70
+         device driver: hydrus
 Received telegram from: 86868686
           manufacturer: (BMT) BMETERS, Italy (0x9b4)
            device type: Water meter (0x07)
