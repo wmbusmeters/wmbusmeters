@@ -3997,3 +3997,38 @@ bool isPossibleDevice(string arg, Device *device)
 
     return false;
 }
+
+string decodeTPLStatusByte(uchar sts, map<int,string> vendor_lookup)
+{
+    string s;
+
+    if (sts == 0) return "OK";
+    if ((sts & 0x03) == 0x01) s += "BUSY ";
+    if ((sts & 0x03) == 0x02) s += "ERROR ";
+    if ((sts & 0x03) == 0x03) s += "ALARM ";
+
+    if ((sts & 0x04) == 0x04) s += "POWER_LOW ";
+    if ((sts & 0x08) == 0x08) s += "PERMANENT_ERROR ";
+    if ((sts & 0x10) == 0x10) s += "TEMPORARY_ERROR ";
+
+    if ((sts & 0xe0) != 0)
+    {
+        // Vendor specific bits are set, lets translate them.
+        int v = sts & 0xf8; // Zero the 3 lowest bits.
+        if (vendor_lookup.count(v) != 0)
+        {
+            s += vendor_lookup[v];
+            s += " ";
+        }
+        else
+        {
+            // We could not translate, just print the bits.
+            string tmp;
+            strprintf(tmp, "%02x ", sts);
+            s += tmp;
+        }
+    }
+
+    s.pop_back();
+    return s;
+}

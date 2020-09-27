@@ -21,6 +21,7 @@
 #include "util.h"
 
 #include <assert.h>
+#include <errno.h>
 #include <pthread.h>
 #include <functional>
 #include <sys/types.h>
@@ -156,9 +157,7 @@ struct Semaphore
             if (!rc) break;
             if (rc == EINTR) continue;
             if (rc == ETIMEDOUT) break;
-            fprintf(stderr, "GURKA %d %d %d %d\n", rc, errno, EINTR, ETIMEDOUT);
-            assert(0);
-            error("(thread) pthread cond timedwait ERROR\n");
+            error("(thread) pthread cond timedwait ERROR %d\n", rc);
         }
 
         pthread_mutex_unlock(&mutex_);
