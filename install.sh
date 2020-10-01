@@ -90,10 +90,10 @@ if [ "$ADDUSER" = "true" ]
 then
     if [ $(getent group wmbusmeters) ]
     then
-		groupadd -f wmbusmeters
-		echo "group: added wmbusmeters"
+	echo "group: wmbusmeters unmodified"
     else
-        echo "group: wmbusmeters unmodified"
+ 	groupadd -f wmbusmeters
+	echo "group: added wmbusmeters"
     fi
 	
     if [ -z "$ID" ]
@@ -107,28 +107,28 @@ then
 
     if [ $(getent group dialout) ]
     then
-		if [ "$(groups wmbusmeters | grep -o dialout)" = "" ]
-		then
-			# Add the wmbusmeters user to dialout
-			usermod -a -G dialout wmbusmeters
-			echo "user: added wmbusmeters to dialout group"
-		else
-			echo "user: wmbusmeters already added to dialout"
-		fi
+	if [ "$(groups wmbusmeters | grep -o dialout)" = "" ]
+	then
+		# Add the wmbusmeters user to dialout
+		usermod -a -G dialout wmbusmeters
+		echo "user: added wmbusmeters to dialout group"
+	else
+		echo "user: wmbusmeters already added to dialout"
+	fi
     else
         echo "dialout group does not exist"
     fi
 
     if [ $(getent group uucp) ]
     then
-		if [ "$(groups wmbusmeters | grep -o uucp)" = "" ]
-		then
-			# Add the wmbusmeters user to uucp
-			usermod -a -G uucp wmbusmeters
-			echo "user: added wmbusmeters to uucp group"
-		else
-			echo "user: wmbusmeters already added to uucp"
-		fi
+	if [ "$(groups wmbusmeters | grep -o uucp)" = "" ]
+	then
+		# Add the wmbusmeters user to uucp
+		usermod -a -G uucp wmbusmeters
+		echo "user: added wmbusmeters to uucp group"
+	else
+		echo "user: wmbusmeters already added to uucp"
+	fi
     else
         echo "uucp group does not exist"
     fi
