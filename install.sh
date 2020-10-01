@@ -88,41 +88,49 @@ fi
 
 if [ "$ADDUSER" = "true" ]
 then
+    if [ $(getent group wmbusmeters) ]
+    then
+		groupadd -f wmbusmeters
+		echo "group: added wmbusmeters"
+    else
+        echo "group: wmbusmeters unmodified"
+    fi
+	
     if [ -z "$ID" ]
     then
         # Create the wmbusmeters user
-        useradd --system --shell $USERSHELL --groups dialout wmbusmeters
-        echo user: added wmbusmeters
+        useradd --system --shell $USERSHELL -g wmbusmeters wmbusmeters
+        echo "user: added wmbusmeters"
     else
-        echo user: wmbusmeters unmodified
+        echo "user: wmbusmeters unmodified"
     fi
 
-    if [ "$(groups wmbusmeters | grep -o dialout)" = "" ]
+    if [ $(getent group dialout) ]
     then
-        # Add the wmbusmeters user to dialout
-        usermod -a -G dialout wmbusmeters
-        echo user: added wmbusmeters to dialout group
+		if [ "$(groups wmbusmeters | grep -o dialout)" = "" ]
+		then
+			# Add the wmbusmeters user to dialout
+			usermod -a -G dialout wmbusmeters
+			echo "user: added wmbusmeters to dialout group"
+		else
+			echo "user: wmbusmeters already added to dialout"
+		fi
     else
-        echo user: wmbusmeters already added to dialout
+        echo "dialout group does not exist"
     fi
-    if [ ! -z "$SUDO_USER" ]
+
+    if [ $(getent group uucp) ]
     then
-        if [ "$(groups $SUDO_USER | grep -o wmbusmeters)" = "" ]
-        then
-            # Add user to the wmbusmeters group.
-            usermod -a -G wmbusmeters $SUDO_USER
-            echo user: added $SUDO_USER to group wmbusmeters
-        else
-            echo user: $SUDO_USER already added group wmbusmeters
-        fi
-        if [ "$(groups $SUDO_USER | grep -o dialout)" = "" ]
-        then
-            # Add user to the dialout group.
-            usermod -a -G dialout $SUDO_USER
-            echo user: added $SUDO_USER to group dialout
-        else
-            echo user: $SUDO_USER already added group dialout
-        fi
+		if [ "$(groups wmbusmeters | grep -o uucp)" = "" ]
+		then
+			# Add the wmbusmeters user to uucp
+			usermod -a -G uucp wmbusmeters
+			echo "user: added wmbusmeters to uucp group"
+		else
+			echo "user: wmbusmeters already added to uucp"
+		fi
+    else
+        echo "uucp group does not exist"
     fi
 fi
 

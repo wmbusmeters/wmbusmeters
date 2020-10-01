@@ -24,7 +24,7 @@ ID=$(id -u wmbusmeters 2>/dev/null)
 
 if [ ! "$ID" = "" ]
 then
-    deluser wmbusmeters
+    userdel wmbusmeters
     echo user: removed wmbusmeters
 fi
 
