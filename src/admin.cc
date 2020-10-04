@@ -75,7 +75,7 @@ string userName();
 bool detectIfMemberOfGroup(string group);
 void detectWMBUSReceiver();
 void resetWMBUSReceiver();
-void probeFor(string type, AccessCheck(*func)(string,Detected*,shared_ptr<SerialCommunicationManager>));
+void probeFor(string type, AccessCheck(*func)(Detected*,shared_ptr<SerialCommunicationManager>));
 
 void stopDaemon();
 void startDaemon();
@@ -211,7 +211,7 @@ void alwaysOnScreen()
 
     displayInformationNoWait(&status_window, "Problems", info, 2, 2);
 
-    vector<string> devices = handler->listSerialDevices();
+    vector<string> devices = handler->listSerialTTYs();
     if (devices.size() == 0)
     {
         devices.push_back("No serial ports found!");
@@ -252,7 +252,7 @@ void resetWMBUSReceiver()
     {
     case ReceiversType::AMB8465:
     {
-        vector<string> devices = handler->listSerialDevices();
+        vector<string> devices = handler->listSerialTTYs();
         if (devices.size() == 0)
         {
             vector<string> entries;
@@ -289,17 +289,17 @@ void resetWMBUSReceiver()
     }
 }
 
-void probeFor(string type, AccessCheck (*check)(string,Detected*,shared_ptr<SerialCommunicationManager>))
+void probeFor(string type, AccessCheck (*check)(Detected*,shared_ptr<SerialCommunicationManager>))
 {
     Detected detected {};
-    vector<string> devices = handler->listSerialDevices();
+    vector<string> devices = handler->listSerialTTYs();
     vector<string> entries;
     for (string& device : devices)
     {
         string tty = "?";
         AccessCheck ac = checkAccessAndDetect(
             handler,
-            [&](string d, shared_ptr<SerialCommunicationManager> m){ return check(d, &detected, m);},
+            [&](string d, shared_ptr<SerialCommunicationManager> m){ detected.specified_device.file=d; return check(&detected, m);},
             type,
             device);
 

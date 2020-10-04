@@ -94,7 +94,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     int startRegularCallback(string name, int seconds, function<void()> callback);
     void stopRegularCallback(int id);
 
-    vector<string> listSerialDevices();
+    vector<string> listSerialTTYs();
     shared_ptr<SerialDevice> lookup(std::string device);
 
 private:
@@ -286,6 +286,7 @@ SerialDeviceTTY::~SerialDeviceTTY()
 
 AccessCheck SerialDeviceTTY::open(bool fail_if_not_ok)
 {
+    assert(device_ != "");
     bool ok = checkCharacterDeviceExists(device_.c_str(), fail_if_not_ok);
     if (!ok) return AccessCheck::NotThere;
     fd_ = openSerialTTY(device_.c_str(), baud_rate_);
@@ -314,7 +315,7 @@ AccessCheck SerialDeviceTTY::open(bool fail_if_not_ok)
             }
         }
     }
-    verbose("(serialtty) opened %s %d (%s)\n", device_.c_str(), fd_, purpose_.c_str());
+    verbose("(serialtty) opened %s fd %d (%s)\n", device_.c_str(), fd_, purpose_.c_str());
     return AccessCheck::AccessOK;
 }
 
@@ -343,10 +344,12 @@ bool SerialDeviceTTY::send(vector<uchar> &data)
     bool rc = true;
     int n = data.size();
     int written = 0;
-    while (true) {
+    while (true)
+    {
         int nw = write(fd_, &data[written], n-written);
         if (nw > 0) written += nw;
-        if (nw < 0) {
+        if (nw < 0)
+        {
             if (errno==EINTR) continue;
             rc = false;
             goto end;
@@ -357,6 +360,11 @@ bool SerialDeviceTTY::send(vector<uchar> &data)
     if (isDebugEnabled()) {
         string msg = bin2hex(data);
         debug("(serial %s) sent \"%s\"\n", device_.c_str(), msg.c_str());
+    }
+
+    if (signalsInstalled())
+    {
+        if (getEventLoopThread()) pthread_kill(getEventLoopThread(), SIGUSR1);
     }
 
     end:
@@ -1166,7 +1174,7 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::lookup(string device)
 
 
 #if defined(__APPLE__)
-vector<string> SerialCommunicationManagerImp::listSerialDevices()
+vector<string> SerialCommunicationManagerImp::listSerialTTYs()
 {
     vector<string> list;
     list.push_back("Please add code here!");
@@ -1251,7 +1259,7 @@ int sorty(const struct dirent **a, const struct dirent **b)
     return strcmp((*a)->d_name, (*b)->d_name);
 }
 
-vector<string> SerialCommunicationManagerImp::listSerialDevices()
+vector<string> SerialCommunicationManagerImp::listSerialTTYs()
 {
     struct dirent **entries;
     vector<string> found_serials;

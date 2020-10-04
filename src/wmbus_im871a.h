@@ -58,11 +58,35 @@
 #define HWTEST_MSG_RADIOTEST_RSP 0x02
 
 // LinkModeIM871A::S1 is 0, S1m is 1 etc. These numbers are what the dongle requires.
-#define LIST_OF_IM871A_LINK_MODES X(S1)X(S1m)X(S2)X(T1)X(T2)X(R2)X(C1a)X(C1b)X(C2a)X(C2b) \
-    X(N1A)X(N2A)X(N1B)X(N2B)X(N1C)X(N2C)X(N1D)X(N2D)X(N1E)X(N2E)X(N1F)X(N2F)X(UNKNOWN)
+#define LIST_OF_IM871A_LINK_MODES \
+    X(S1,s1)\
+    X(S1m,s1m)\
+    X(S2,s2)\
+    X(T1,t1)\
+    X(T2,t2)\
+    X(R2,r2)\
+    X(C1a,c1a)\
+    X(C1b,cab)\
+    X(C2a,c2a)\
+    X(C2b,c2b)\
+    X(N1A,n1a)\
+    X(N2A,n2a)\
+    X(N1B,n1b)\
+    X(N2B,n2b)\
+    X(N1C,n1c)\
+    X(N2C,n2c)\
+    X(N1D,n1d)\
+    X(N2D,n2d)\
+    X(N1E,n1e)\
+    X(N2E,n2e)\
+    X(N1F,n1f)\
+    X(N2F,n2f)\
+    X(UNKNOWN,unknown)
 
 enum class LinkModeIM871A {
-#define X(name) name,
+#define X(name,text) name,
 LIST_OF_IM871A_LINK_MODES
 #undef X
 };
+
+string toString(LinkModeIM871A lm);

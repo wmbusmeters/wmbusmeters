@@ -39,7 +39,7 @@ using namespace std;
 struct WMBusRC1180 : public virtual WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -81,6 +81,8 @@ private:
 
 shared_ptr<WMBus> openRC1180(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
+    assert(device != "");
+
     if (serial_override)
     {
         WMBusRC1180 *imp = new WMBusRC1180(serial_override, manager);
@@ -104,10 +106,10 @@ bool WMBusRC1180::ping()
     return true;
 }
 
-uint32_t WMBusRC1180::getDeviceId()
+string WMBusRC1180::getDeviceId()
 {
     verbose("(rc1180) getDeviceId\n");
-    return 0x11111111;
+    return "?";
 }
 
 LinkModeSet WMBusRC1180::getLinkModes()
@@ -153,7 +155,7 @@ void WMBusRC1180::deviceSetLinkModes(LinkModeSet lms)
     received_response_ = "";
     bool sent = serial()->send(msg);
 
-    if (sent) waitForResponse();
+    if (sent) waitForResponse(0);
 
     sent_command_ = "";
     debug("(rc1180) received \"%s\"", received_response_.c_str());
@@ -233,15 +235,13 @@ void WMBusRC1180::processSerialData()
     }
 }
 
-AccessCheck detectRC1180(string device, Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200, "detect rc1180");
+    auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 19200, "detect rc1180");
     serial->doNotUseCallbacks();
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
-
-    verbose("(rc1180) are you there?\n");
 
     vector<uchar> data;
     vector<uchar> msg(1);
@@ -257,6 +257,7 @@ AccessCheck detectRC1180(string device, Detected *detected, shared_ptr<SerialCom
     if (data[0] != '>') {
        // no RC1180 device detected
        serial->close();
+       verbose("(rc1180) are you there? no.\n");
        return AccessCheck::NotThere;
     }
 
@@ -277,7 +278,9 @@ AccessCheck detectRC1180(string device, Detected *detected, shared_ptr<SerialCom
 
     serial->close();
 
-    detected->set(WMBusDeviceType::DEVICE_RC1180, 19200, false);
+    detected->setAsFound("12345678", WMBusDeviceType::DEVICE_RC1180, 19200, false);
+
+    verbose("(rc1180) are you there? yes xxxxxx\n");
 
     return AccessCheck::AccessOK;
 }

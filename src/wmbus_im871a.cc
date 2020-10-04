@@ -24,15 +24,137 @@
 #include<assert.h>
 #include<pthread.h>
 #include<errno.h>
+#include<memory.h>
 #include<semaphore.h>
 #include<unistd.h>
 
 using namespace std;
 
+struct DeviceInfo
+{
+    uchar module_type; // 0x33 = im871a 0x36 = im170a
+    uchar device_mode; // 0 = other 1 = meter
+    uchar firmware_version;
+    uchar hci_version;  // serial protocol?
+    uint32_t uid;
+
+    string str()
+    {
+        string s;
+        if (module_type == 0x33) s+="im871a ";
+        else if (module_type == 0x36) s+="im170a ";
+        else s+="unknown_type("+to_string(module_type)+") ";
+
+        if (device_mode == 0) s+="other ";
+        else if (device_mode == 1) s+="meter ";
+        else s+="unknown_mode("+to_string(device_mode)+") ";
+
+        string ss;
+        strprintf(ss, "firmware=%02x hci=%02x uid=%08x", firmware_version, hci_version, uid);
+        return s+ss;
+    }
+
+    bool decode(vector<uchar> &bytes)
+    {
+        if (bytes.size() < 8) return false;
+        int i = 0;
+        module_type = bytes[i++];
+        device_mode = bytes[i++];
+        firmware_version = bytes[i++];
+        hci_version = bytes[i++];
+        uid = bytes[i+3]<<24|bytes[i+2]<<16|bytes[i+1]<<8|bytes[i]; i+=4;
+        return true;
+    }
+};
+
+struct Config
+{
+    // first variable group
+    uchar device_mode;
+    uchar link_mode;
+    uchar c_field;
+    uint16_t mfct;
+    uint32_t id;
+    uchar version;
+    uchar media;
+    uchar radio_channel;
+
+    // second variable group
+    uchar radio_power_level;
+    uchar radio_data_rate;
+    uchar radio_rx_window;
+    uchar auto_power_saving;
+    uchar auto_rssi;
+    uchar auto_rx_timestamp;
+    uchar led_control;
+    uchar rtc_control;
+
+    string dongleId()
+    {
+        string s;
+        strprintf(s, "%08x", id);
+        return s;
+    }
+
+    string str()
+    {
+        string s;
+
+        if (device_mode == 0) s+="other ";
+        else if (device_mode == 1) s+="meter ";
+        else s+="unknown_mode("+to_string(device_mode)+") ";
+
+        s += "link_mode="+toString(LinkModeIM871A(link_mode));
+
+        string ids;
+        strprintf(ids, " id=%08x media=%02x version=%02x c_field=%02x", id, media, version, c_field);
+
+        return s+ids;
+    }
+
+    bool decode(vector<uchar> &bytes)
+    {
+        if (bytes.size() < 2) return false;
+        size_t i = 0;
+        uchar iiflag1 = bytes[i++]; if (i >= bytes.size()) return false;
+        if (iiflag1 & 0x01) { device_mode = bytes[i++]; } if (i >= bytes.size()) return false;
+        if (iiflag1 & 0x02) { link_mode = bytes[i++]; } if (i >= bytes.size()) return false;
+        if (iiflag1 & 0x04) { c_field = bytes[i++]; } if (i+1 >= bytes.size()) return false;
+        if (iiflag1 & 0x08) { mfct = bytes[i+1]<<8|bytes[i]; i+=2; } if (i+3 >= bytes.size()) return false;
+        if (iiflag1 & 0x10) { id = bytes[i+3]<<24|bytes[i+2]<<16|bytes[i+1]<<8|bytes[i]; i+=4; } if (i >= bytes.size()) return false;
+        if (iiflag1 & 0x20) { version = bytes[i++]; } if (i >= bytes.size()) return false;
+        if (iiflag1 & 0x40) { media = bytes[i++]; } if (i >= bytes.size()) return false;
+        if (iiflag1 & 0x80) { radio_channel = bytes[i++]; } if (i >= bytes.size()) return false;
+
+        uchar iiflag2 = bytes[i++]; if (i >= bytes.size()) return false;
+        if (iiflag2 & 0x01) { radio_power_level = bytes[i++]; } if (i >= bytes.size()) return false;
+        if (iiflag2 & 0x02) { radio_data_rate = bytes[i++]; } if (i >= bytes.size()) return false;
+        if (iiflag2 & 0x04) { radio_rx_window = bytes[i++]; } if (i >= bytes.size()) return false;
+        if (iiflag2 & 0x08) { auto_power_saving = bytes[i++]; } if (i >= bytes.size()) return false;
+        if (iiflag2 & 0x10) { auto_rssi = bytes[i++]; } if (i >= bytes.size()) return false;
+        if (iiflag2 & 0x20) { auto_rx_timestamp = bytes[i++]; } if (i >= bytes.size()) return false;
+        if (iiflag2 & 0x40) { led_control = bytes[i++]; } if (i >= bytes.size()) return false;
+        if (iiflag2 & 0x80) { rtc_control = bytes[i++]; }
+
+        return true;
+    }
+};
+
+string toString(LinkModeIM871A lm)
+{
+    switch (lm)
+    {
+#define X(name,text) case LinkModeIM871A::name: return #text;
+LIST_OF_IM871A_LINK_MODES
+#undef X
+    }
+    return "unknown";
+}
+
 struct WMBusIM871A : public virtual WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -65,20 +187,23 @@ struct WMBusIM871A : public virtual WMBusCommonImplementation
     ~WMBusIM871A() {
     }
 
-private:
-
-    vector<uchar> read_buffer_;
-    pthread_mutex_t im871a_command_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    const char *im871a_command_lock_func_ = "";
-    pid_t       im871a_command_lock_pid_ {};
-    int sent_command_ {};
-    int received_command_ {};
-    vector<uchar> received_payload_;
-
     static FrameStatus checkIM871AFrame(vector<uchar> &data,
                                         size_t *frame_length, int *endpoint_out, int *msgid_out,
                                         int *payload_len_out, int *payload_offset);
-    friend AccessCheck detectIM871A(string device, Detected *detected, shared_ptr<SerialCommunicationManager> manager);
+
+private:
+
+    DeviceInfo device_info_ {};
+    Config     device_config_ {};
+
+    vector<uchar> read_buffer_;
+    vector<uchar> request_;
+    vector<uchar> response_;
+
+    bool getDeviceInfo(DeviceInfo *di, bool use_manager, int timeout, shared_ptr<SerialDevice> serial);
+    bool getConfig(Config *co, bool use_manager, int timeout, shared_ptr<SerialDevice> serial);
+
+    friend AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
     void handleDevMgmt(int msgid, vector<uchar> &payload);
     void handleRadioLink(int msgid, vector<uchar> &payload);
     void handleRadioLinkTest(int msgid, vector<uchar> &payload);
@@ -87,6 +212,7 @@ private:
 
 shared_ptr<WMBus> openIM871A(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
+    assert(device != "");
     if (serial_override)
     {
         WMBusIM871A *imp = new WMBusIM871A(serial_override, manager);
@@ -108,219 +234,208 @@ bool WMBusIM871A::ping()
 {
     if (serial()->readonly()) return true; // Feeding from stdin or file.
 
-    LOCK("(im871)", "ping", im871a_command_lock_);
+    LOCK_WMBUS_EXECUTING_COMMAND(ping);
 
-    vector<uchar> msg(4);
-    msg[0] = IM871A_SERIAL_SOF;
-    msg[1] = DEVMGMT_ID;
-    msg[2] = DEVMGMT_MSG_PING_REQ;
-    msg[3] = 0;
+    request_.resize(4);
+    request_[0] = IM871A_SERIAL_SOF;
+    request_[1] = DEVMGMT_ID;
+    request_[2] = DEVMGMT_MSG_PING_REQ;
+    request_[3] = 0;
 
-    sent_command_ = DEVMGMT_MSG_PING_REQ;
     verbose("(im871a) ping\n");
-    bool sent = serial()->send(msg);
+    bool sent = serial()->send(request_);
 
-    if (sent) waitForResponse();
+    if (sent) return waitForResponse(DEVMGMT_MSG_PING_RSP);
 
-    UNLOCK("(im871)", "ping", im871a_command_lock_);
     return true;
 }
 
-uint32_t WMBusIM871A::getDeviceId()
+string WMBusIM871A::getDeviceId()
 {
-    if (serial()->readonly()) return 0; // Feeding from stdin or file.
+    if (serial()->readonly()) return "?"; // Feeding from stdin or file.
+    if (cached_device_id_ != "") return cached_device_id_;
 
-    LOCK("(im871)", "getDeviceId", im871a_command_lock_);
+    LOCK_WMBUS_EXECUTING_COMMAND(getDeviceId);
 
-    vector<uchar> msg(4);
-    msg[0] = IM871A_SERIAL_SOF;
-    msg[1] = DEVMGMT_ID;
-    msg[2] = DEVMGMT_MSG_GET_DEVICEINFO_REQ;
-    msg[3] = 0;
+    request_.resize(4);
+    request_[0] = IM871A_SERIAL_SOF;
+    request_[1] = DEVMGMT_ID;
+    request_[2] = DEVMGMT_MSG_GET_CONFIG_REQ;
+    request_[3] = 0;
 
-    sent_command_ = DEVMGMT_MSG_GET_DEVICEINFO_REQ;
-    verbose("(im871a) get device info\n");
-    bool sent = serial()->send(msg);
+    verbose("(im871a) get config to get device id\n");
 
-    uint32_t id = 0;
+    bool sent = serial()->send(request_);
+    if (!sent) return "ERR";
 
-    if (sent)
-    {
-        waitForResponse();
+    bool ok = waitForResponse(DEVMGMT_MSG_GET_CONFIG_RSP);
+    if (!ok) return "ERR";
 
-        if (received_command_ == DEVMGMT_MSG_GET_DEVICEINFO_RSP) {
-            verbose("(im871a) device info: module Type %02x\n", received_payload_[0]);
-            verbose("(im871a) device info: device Mode %02x\n", received_payload_[1]);
-            verbose("(im871a) device info: firmware version %02x\n", received_payload_[2]);
-            verbose("(im871a) device info: hci protocol version %02x\n", received_payload_[3]);
-            id = received_payload_[4] << 24 |
-                received_payload_[5] << 16 |
-                received_payload_[6] << 8 |
-                received_payload_[7];
-            verbose("(im871a) devince info: id %08x\n", id);
-        }
-    }
-    else
-    {
-        id = 0;
-    }
+    device_config_.decode(response_);
 
-    UNLOCK("(im871)", "getDeviceId", im871a_command_lock_);
-    return id;
+    cached_device_id_ = tostrprintf("%08x", device_config_.id);
+
+    verbose("(im871a) got device id %s\n", cached_device_id_.c_str());
+
+    return cached_device_id_;
 }
 
 LinkModeSet WMBusIM871A::getLinkModes()
 {
     if (serial()->readonly()) { return Any_bit; }  // Feeding from stdin or file.
 
-    LOCK("(im871)", "getLinkModes", im871a_command_lock_);
+    LOCK_WMBUS_EXECUTING_COMMAND(get_link_modes);
 
-    vector<uchar> msg(4);
-    msg[0] = IM871A_SERIAL_SOF;
-    msg[1] = DEVMGMT_ID;
-    sent_command_ = msg[2] = DEVMGMT_MSG_GET_CONFIG_REQ;
-    msg[3] = 0;
+    request_.resize(4);
+    request_[0] = IM871A_SERIAL_SOF;
+    request_[1] = DEVMGMT_ID;
+    request_[2] = DEVMGMT_MSG_GET_CONFIG_REQ;
+    request_[3] = 0;
 
     verbose("(im871a) get config\n");
-    bool sent = serial()->send(msg);
+    bool sent = serial()->send(request_);
 
     if (!sent)
     {
         // If we are using a serial override that will not respond,
         // then just return a value.
-        UNLOCK("(im871)", "getLinkModes", im871a_command_lock_);
+
         // Use the remembered link modes set before.
         return protectedGetLinkModes();
     }
 
-    waitForResponse();
-    LinkMode lm = LinkMode::UNKNOWN;
-    if (received_command_ == DEVMGMT_MSG_GET_CONFIG_RSP)
-    {
-        int iff1 = received_payload_[0];
-        bool has_device_mode = (iff1&1)==1;
-        bool has_link_mode = (iff1&2)==2;
-        bool has_wmbus_c_field = (iff1&4)==4;
-        bool has_wmbus_man_id = (iff1&8)==8;
-        bool has_wmbus_device_id = (iff1&16)==16;
-        bool has_wmbus_version = (iff1&32)==32;
-        bool has_wmbus_device_type = (iff1&64)==64;
-        bool has_radio_channel = (iff1&128)==128;
+    bool ok = waitForResponse(DEVMGMT_MSG_GET_CONFIG_RSP);
 
-        int offset = 1;
-        if (has_device_mode)
-        {
-            verbose("(im871a) config: device mode %02x\n", received_payload_[offset]);
-            offset++;
-        }
-        if (has_link_mode)
-        {
-            verbose("(im871a) config: link mode %02x\n", received_payload_[offset]);
-            if (received_payload_[offset] == (int)LinkModeIM871A::C1a) {
-                lm = LinkMode::C1;
-            }
-            if (received_payload_[offset] == (int)LinkModeIM871A::S1) {
-                lm = LinkMode::S1;
-            }
-            if (received_payload_[offset] == (int)LinkModeIM871A::S1m) {
-                lm = LinkMode::S1m;
-            }
-            if (received_payload_[offset] == (int)LinkModeIM871A::T1) {
-                lm = LinkMode::T1;
-            }
-            if (received_payload_[offset] == (int)LinkModeIM871A::N1A) {
-                lm = LinkMode::N1a;
-            }
-            if (received_payload_[offset] == (int)LinkModeIM871A::N1B) {
-                lm = LinkMode::N1b;
-            }
-            if (received_payload_[offset] == (int)LinkModeIM871A::N1C) {
-                lm = LinkMode::N1c;
-            }
-            if (received_payload_[offset] == (int)LinkModeIM871A::N1D) {
-                lm = LinkMode::N1d;
-            }
-            if (received_payload_[offset] == (int)LinkModeIM871A::N1E) {
-                lm = LinkMode::N1e;
-            }
-            if (received_payload_[offset] == (int)LinkModeIM871A::N1F) {
-                lm = LinkMode::N1f;
-            }
-            offset++;
-        }
-        if (has_wmbus_c_field) {
-            verbose("(im871a) config: wmbus c-field %02x\n", received_payload_[offset]);
-            offset++;
-        }
-        if (has_wmbus_man_id) {
-            int flagid = 256*received_payload_[offset+1] +received_payload_[offset+0];
-            string flag = manufacturerFlag(flagid);
-            verbose("(im871a) config: wmbus mfg id %02x%02x (%s)\n", received_payload_[offset+1], received_payload_[offset+0],
-                    flag.c_str());
-            offset+=2;
-        }
-        if (has_wmbus_device_id) {
-            verbose("(im871a) config: wmbus device id %02x%02x%02x%02x\n", received_payload_[offset+3], received_payload_[offset+2],
-                    received_payload_[offset+1], received_payload_[offset+0]);
-            offset+=4;
-        }
-        if (has_wmbus_version) {
-            verbose("(im871a) config: wmbus version %02x\n", received_payload_[offset]);
-            offset++;
-        }
-        if (has_wmbus_device_type) {
-            verbose("(im871a) config: wmbus device type %02x\n", received_payload_[offset]);
-            offset++;
-        }
-        if (has_radio_channel) {
-            verbose("(im871a) config: radio channel %02x\n", received_payload_[offset]);
-            offset++;
-        }
-        int iff2 = received_payload_[offset];
-        offset++;
-        bool has_radio_power_level = (iff2&1)==1;
-        bool has_radio_data_rate = (iff2&2)==2;
-        bool has_radio_rx_window = (iff2&4)==4;
-        bool has_auto_power_saving = (iff2&8)==8;
-        bool has_auto_rssi_attachment = (iff2&16)==16;
-        bool has_auto_rx_timestamp_attachment = (iff2&32)==32;
-        bool has_led_control = (iff2&64)==64;
-        bool has_rtc_control = (iff2&128)==128;
-        if (has_radio_power_level) {
-            verbose("(im871a) config: radio power level %02x\n", received_payload_[offset]);
-            offset++;
-        }
-        if (has_radio_data_rate) {
-            verbose("(im871a) config: radio data rate %02x\n", received_payload_[offset]);
-            offset++;
-        }
-        if (has_radio_rx_window) {
-            verbose("(im871a) config: radio rx window %02x\n", received_payload_[offset]);
-            offset++;
-        }
-        if (has_auto_power_saving) {
-            verbose("(im871a) config: auto power saving %02x\n", received_payload_[offset]);
-            offset++;
-        }
-        if (has_auto_rssi_attachment) {
-            verbose("(im871a) config: auto RSSI attachment %02x\n", received_payload_[offset]);
-            offset++;
-        }
-        if (has_auto_rx_timestamp_attachment) {
-            verbose("(im871a) config: auto rx timestamp attachment %02x\n", received_payload_[offset]);
-            offset++;
-        }
-        if (has_led_control) {
-            verbose("(im871a) config: led control %02x\n", received_payload_[offset]);
-            offset++;
-        }
-        if (has_rtc_control) {
-            verbose("(im871a) config: rtc control %02x\n", received_payload_[offset]);
-            offset++;
-        }
+    if (!ok)
+    {
+        LinkModeSet lms;
+        return lms;
     }
 
-    UNLOCK("(im871)", "getLinkModes", im871a_command_lock_);
+    LinkMode lm = LinkMode::UNKNOWN;
+
+    int iff1 = response_[0];
+    bool has_device_mode = (iff1&1)==1;
+    bool has_link_mode = (iff1&2)==2;
+    bool has_wmbus_c_field = (iff1&4)==4;
+    bool has_wmbus_man_id = (iff1&8)==8;
+    bool has_wmbus_device_id = (iff1&16)==16;
+    bool has_wmbus_version = (iff1&32)==32;
+    bool has_wmbus_device_type = (iff1&64)==64;
+    bool has_radio_channel = (iff1&128)==128;
+
+    int offset = 1;
+    if (has_device_mode)
+    {
+        verbose("(im871a) config: device mode %02x\n", response_[offset]);
+        offset++;
+    }
+    if (has_link_mode)
+    {
+        verbose("(im871a) config: link mode %02x\n", response_[offset]);
+        if (response_[offset] == (int)LinkModeIM871A::C1a) {
+            lm = LinkMode::C1;
+        }
+        if (response_[offset] == (int)LinkModeIM871A::S1) {
+            lm = LinkMode::S1;
+        }
+        if (response_[offset] == (int)LinkModeIM871A::S1m) {
+            lm = LinkMode::S1m;
+        }
+        if (response_[offset] == (int)LinkModeIM871A::T1) {
+            lm = LinkMode::T1;
+        }
+        if (response_[offset] == (int)LinkModeIM871A::N1A) {
+            lm = LinkMode::N1a;
+        }
+        if (response_[offset] == (int)LinkModeIM871A::N1B) {
+            lm = LinkMode::N1b;
+        }
+        if (response_[offset] == (int)LinkModeIM871A::N1C) {
+            lm = LinkMode::N1c;
+        }
+        if (response_[offset] == (int)LinkModeIM871A::N1D) {
+            lm = LinkMode::N1d;
+        }
+        if (response_[offset] == (int)LinkModeIM871A::N1E) {
+            lm = LinkMode::N1e;
+        }
+        if (response_[offset] == (int)LinkModeIM871A::N1F) {
+            lm = LinkMode::N1f;
+        }
+        offset++;
+    }
+    if (has_wmbus_c_field) {
+        verbose("(im871a) config: wmbus c-field %02x\n", response_[offset]);
+        offset++;
+    }
+    if (has_wmbus_man_id) {
+        int flagid = 256*response_[offset+1] +response_[offset+0];
+        string flag = manufacturerFlag(flagid);
+        verbose("(im871a) config: wmbus mfg id %02x%02x (%s)\n", response_[offset+1], response_[offset+0],
+                flag.c_str());
+        offset+=2;
+    }
+    if (has_wmbus_device_id) {
+        verbose("(im871a) config: wmbus device id %02x%02x%02x%02x\n", response_[offset+3], response_[offset+2],
+                response_[offset+1], response_[offset+0]);
+        offset+=4;
+    }
+    if (has_wmbus_version) {
+        verbose("(im871a) config: wmbus version %02x\n", response_[offset]);
+        offset++;
+    }
+    if (has_wmbus_device_type) {
+        verbose("(im871a) config: wmbus device type %02x\n", response_[offset]);
+        offset++;
+    }
+    if (has_radio_channel) {
+        verbose("(im871a) config: radio channel %02x\n", response_[offset]);
+        offset++;
+    }
+    int iff2 = response_[offset];
+    offset++;
+    bool has_radio_power_level = (iff2&1)==1;
+    bool has_radio_data_rate = (iff2&2)==2;
+    bool has_radio_rx_window = (iff2&4)==4;
+    bool has_auto_power_saving = (iff2&8)==8;
+    bool has_auto_rssi_attachment = (iff2&16)==16;
+    bool has_auto_rx_timestamp_attachment = (iff2&32)==32;
+    bool has_led_control = (iff2&64)==64;
+    bool has_rtc_control = (iff2&128)==128;
+    if (has_radio_power_level) {
+        verbose("(im871a) config: radio power level %02x\n", response_[offset]);
+        offset++;
+    }
+    if (has_radio_data_rate) {
+        verbose("(im871a) config: radio data rate %02x\n", response_[offset]);
+        offset++;
+    }
+    if (has_radio_rx_window) {
+        verbose("(im871a) config: radio rx window %02x\n", response_[offset]);
+        offset++;
+    }
+    if (has_auto_power_saving) {
+        verbose("(im871a) config: auto power saving %02x\n", response_[offset]);
+        offset++;
+    }
+    if (has_auto_rssi_attachment) {
+        verbose("(im871a) config: auto RSSI attachment %02x\n", response_[offset]);
+        offset++;
+    }
+    if (has_auto_rx_timestamp_attachment) {
+        verbose("(im871a) config: auto rx timestamp attachment %02x\n", response_[offset]);
+        offset++;
+    }
+    if (has_led_control) {
+        verbose("(im871a) config: led control %02x\n", response_[offset]);
+        offset++;
+    }
+    if (has_rtc_control) {
+        verbose("(im871a) config: rtc control %02x\n", response_[offset]);
+        offset++;
+    }
+
 
     LinkModeSet lms;
     lms.addLinkMode(lm);
@@ -345,49 +460,54 @@ void WMBusIM871A::deviceSetLinkModes(LinkModeSet lms)
         error("(im871a) setting link mode(s) %s is not supported for im871a\n", modes.c_str());
     }
 
-    LOCK("(im871)", "deviceSetLinkModes", im871a_command_lock_);
+    LOCK_WMBUS_EXECUTING_COMMAND(set_link_modes);
 
-    vector<uchar> msg(10);
-    msg[0] = IM871A_SERIAL_SOF;
-    msg[1] = DEVMGMT_ID;
-    sent_command_ = msg[2] = DEVMGMT_MSG_SET_CONFIG_REQ;
-    msg[3] = 6; // Len
-    msg[4] = 0; // Temporary
-    msg[5] = 2; // iff1 bits: Set Radio Mode
+    request_.resize(10);
+    request_[0] = IM871A_SERIAL_SOF;
+    request_[1] = DEVMGMT_ID;
+    request_[2] = DEVMGMT_MSG_SET_CONFIG_REQ;
+    request_[3] = 6; // Len
+    request_[4] = 0; // Temporary
+    request_[5] = 2; // iff1 bits: Set Radio Mode
     if (lms.has(LinkMode::C1)) {
-        msg[6] = (int)LinkModeIM871A::C1a;
+        request_[6] = (int)LinkModeIM871A::C1a;
     } else if (lms.has(LinkMode::S1)) {
-        msg[6] = (int)LinkModeIM871A::S1;
+        request_[6] = (int)LinkModeIM871A::S1;
     } else if (lms.has(LinkMode::S1m)) {
-        msg[6] = (int)LinkModeIM871A::S1m;
+        request_[6] = (int)LinkModeIM871A::S1m;
     } else if (lms.has(LinkMode::T1)) {
-        msg[6] = (int)LinkModeIM871A::T1;
+        request_[6] = (int)LinkModeIM871A::T1;
     } else if (lms.has(LinkMode::N1a)) {
-        msg[6] = (int)LinkModeIM871A::N1A;
+        request_[6] = (int)LinkModeIM871A::N1A;
     } else if (lms.has(LinkMode::N1b)) {
-        msg[6] = (int)LinkModeIM871A::N1B;
+        request_[6] = (int)LinkModeIM871A::N1B;
     } else if (lms.has(LinkMode::N1c)) {
-        msg[6] = (int)LinkModeIM871A::N1C;
+        request_[6] = (int)LinkModeIM871A::N1C;
     } else if (lms.has(LinkMode::N1d)) {
-        msg[6] = (int)LinkModeIM871A::N1D;
+        request_[6] = (int)LinkModeIM871A::N1D;
     } else if (lms.has(LinkMode::N1e)) {
-        msg[6] = (int)LinkModeIM871A::N1E;
+        request_[6] = (int)LinkModeIM871A::N1E;
     } else if (lms.has(LinkMode::N1f)) {
-        msg[6] = (int)LinkModeIM871A::N1F;
+        request_[6] = (int)LinkModeIM871A::N1F;
     } else {
-        msg[6] = (int)LinkModeIM871A::C1a; // Defaults to C1a
+        request_[6] = (int)LinkModeIM871A::C1a; // Defaults to C1a
     }
 
-    msg[7] = 16+32; // iff2 bits: Set rssi+timestamp
-    msg[8] = 1;  // Enable rssi
-    msg[9] = 1;  // Enable timestamp
+    request_[7] = 16+32; // iff2 bits: Set rssi+timestamp
+    request_[8] = 1;  // Enable rssi
+    request_[9] = 1;  // Enable timestamp
 
-    verbose("(im871a) set link mode %02x\n", msg[6]);
-    bool sent = serial()->send(msg);
+    verbose("(im871a) set config to set link mode %02x\n", request_[6]);
+    bool sent = serial()->send(request_);
 
-    if (sent) waitForResponse();
-
-    UNLOCK("(im871)", "deviceSetLinkModes", im871a_command_lock_);
+    if (sent)
+    {
+        bool ok = waitForResponse(DEVMGMT_MSG_SET_CONFIG_RSP);
+        if (!ok)
+        {
+            warning("Warning! Did not get confirmation on set link mode for im871a\n");
+        }
+    }
 }
 
 FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,
@@ -581,29 +701,25 @@ void WMBusIM871A::handleDevMgmt(int msgid, vector<uchar> &payload)
     switch (msgid) {
         case DEVMGMT_MSG_PING_RSP: // 0x02
             verbose("(im871a) pong\n");
-            received_command_ = msgid;
-            command_wait_.notify();
+            notifyResponseIsHere(DEVMGMT_MSG_PING_RSP);
             break;
         case DEVMGMT_MSG_SET_CONFIG_RSP: // 0x04
             verbose("(im871a) set config completed\n");
-            received_command_ = msgid;
-            received_payload_.clear();
-            received_payload_.insert(received_payload_.end(), payload.begin(), payload.end());
-            command_wait_.notify();
+            response_.clear();
+            response_.insert(response_.end(), payload.begin(), payload.end());
+            notifyResponseIsHere(DEVMGMT_MSG_SET_CONFIG_RSP);
             break;
         case DEVMGMT_MSG_GET_CONFIG_RSP: // 0x06
             verbose("(im871a) get config completed\n");
-            received_command_ = msgid;
-            received_payload_.clear();
-            received_payload_.insert(received_payload_.end(), payload.begin(), payload.end());
-            command_wait_.notify();
+            response_.clear();
+            response_.insert(response_.end(), payload.begin(), payload.end());
+            notifyResponseIsHere(DEVMGMT_MSG_GET_CONFIG_RSP);
             break;
         case DEVMGMT_MSG_GET_DEVICEINFO_RSP: // 0x10
             verbose("(im871a) device info completed\n");
-            received_command_ = msgid;
-            received_payload_.clear();
-            received_payload_.insert(received_payload_.end(), payload.begin(), payload.end());
-            command_wait_.notify();
+            response_.clear();
+            response_.insert(response_.end(), payload.begin(), payload.end());
+            notifyResponseIsHere(DEVMGMT_MSG_GET_DEVICEINFO_RSP);
             break;
     default:
         verbose("(im871a) Unhandled device management message %d\n", msgid);
@@ -614,6 +730,7 @@ void WMBusIM871A::handleRadioLink(int msgid, vector<uchar> &frame)
 {
     switch (msgid) {
     case RADIOLINK_MSG_WMBUSMSG_IND: // 0x03
+        // Invoke common telegram reception code in WMBusCommonImplementation.
         handleTelegram(frame);
         break;
     default:
@@ -637,47 +754,124 @@ void WMBusIM871A::handleHWTest(int msgid, vector<uchar> &payload)
     }
 }
 
-AccessCheck detectIM871A(string file, Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+bool extract_response(vector<uchar> &data, vector<uchar> &response, int expected_endpoint, int expected_msgid)
 {
-    // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(file.c_str(), 57600, "detect im871a");
-    serial->doNotUseCallbacks();
-    AccessCheck rc = serial->open(false);
-    if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
-
-    vector<uchar> data;
-    // First clear out any data in the queue.
-    serial->receive(&data);
-    data.clear();
-
-    vector<uchar> msg(4);
-    msg[0] = IM871A_SERIAL_SOF;
-    msg[1] = DEVMGMT_ID;
-    msg[2] = DEVMGMT_MSG_PING_REQ;
-    msg[3] = 0;
-
-    verbose("(im871a) are you there?\n");
-    serial->send(msg);
-    // Wait for 100ms so that the USB stick have time to prepare a response.
-    usleep(1000*100);
-    serial->receive(&data);
-    serial->close();
-
-    string sent = bin2hex(msg);
-    string recv = bin2hex(data);
-
     size_t frame_length;
     int endpoint, msgid, payload_len, payload_offset;
     FrameStatus status = WMBusIM871A::checkIM871AFrame(data,
                                                        &frame_length, &endpoint, &msgid,
                                                        &payload_len, &payload_offset);
     if (status != FullFrame ||
-        endpoint != 1 ||
-        msgid != 2)
+        endpoint != expected_endpoint ||
+        msgid != expected_msgid)
     {
+        return false;
+    }
+
+    response.clear();
+    response.insert(data.end(), data.begin()+payload_offset, data.begin()+payload_offset+payload_len);
+    return true;
+}
+
+bool WMBusIM871A::getDeviceInfo(DeviceInfo *di, bool use_manager, int timeout, shared_ptr<SerialDevice> serial)
+{
+    LOCK_WMBUS_EXECUTING_COMMAND(get_device_info);
+
+    request_.resize(4);
+    request_[0] = IM871A_SERIAL_SOF;
+    request_[1] = DEVMGMT_ID;
+    request_[2] = DEVMGMT_MSG_GET_DEVICEINFO_REQ;
+    request_[3] = 0;
+
+    verbose("(im871a) get device info\n");
+
+    bool sent = serial->send(request_);
+
+    if (!sent) return false; // tty overridden with stdin/file
+
+    if (!use_manager)
+    {
+        // Wait for 100ms so that the USB stick have time to prepare a response.
+        usleep(1000*100);
+        vector<uchar> data;
+        serial->receive(&data);
+
+        bool ok = extract_response(data, response_, 1, 16);
+        if (!ok) return false;
+    }
+    else
+    {
+        bool ok = waitForResponse(DEVMGMT_MSG_GET_DEVICEINFO_RSP);
+        if (!ok) return false; // timeout
+    }
+
+    // Now device info response is in response_ vector.
+
+    di->decode(response_);
+
+    verbose("(im871a) device info: %s\n", di->str().c_str());
+
+    return true;
+}
+
+bool WMBusIM871A::getConfig(Config *co, bool use_manager, int timeout, shared_ptr<SerialDevice> serial)
+{
+    return false;
+}
+
+AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+{
+    // Talk to the device and expect a very specific answer.
+    auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 57600, "detect im871a");
+    serial->doNotUseCallbacks();
+    AccessCheck rc = serial->open(false);
+    if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
+
+    vector<uchar> response;
+    // First clear out any data in the queue.
+    serial->receive(&response);
+    response.clear();
+
+    vector<uchar> request;
+    request.resize(4);
+    request[0] = IM871A_SERIAL_SOF;
+    request[1] = DEVMGMT_ID;
+    request[2] = DEVMGMT_MSG_GET_CONFIG_REQ;
+    request[3] = 0;
+
+    serial->send(request);
+    // Wait for 100ms so that the USB stick have time to prepare a response.
+    usleep(1000*100);
+    serial->receive(&response);
+
+    size_t frame_length;
+    int endpoint, msgid, payload_len, payload_offset;
+    FrameStatus status = WMBusIM871A::checkIM871AFrame(response,
+                                                       &frame_length, &endpoint, &msgid,
+                                                       &payload_len, &payload_offset);
+    if (status != FullFrame ||
+        endpoint != 1 ||
+        msgid != DEVMGMT_MSG_GET_CONFIG_RSP)
+    {
+        verbose("(im871a) are you there? no.\n");
         return AccessCheck::NotThere;
     }
-    detected->set(WMBusDeviceType::DEVICE_IM871A, 57600, false);
+
+    serial->close();
+
+    vector<uchar> payload;
+    payload.insert(payload.end(), response.begin()+payload_offset, response.begin()+payload_offset+payload_len);
+
+    debugPayload("(device config bytes)", payload);
+
+    Config co;
+    co.decode(payload);
+
+    debug("(im871a) config: %s\n", co.str().c_str());
+
+    detected->setAsFound(co.dongleId(), WMBusDeviceType::DEVICE_IM871A, 57600, false);
+
+    verbose("(im871a) are you there? yes %08x\n", co.dongleId());
 
     return AccessCheck::AccessOK;
 }

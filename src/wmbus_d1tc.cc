@@ -30,7 +30,7 @@ using namespace std;
 struct WMBusD1TC : public virtual WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -79,9 +79,9 @@ bool WMBusD1TC::ping()
     return true;
 }
 
-uint32_t WMBusD1TC::getDeviceId()
+string WMBusD1TC::getDeviceId()
 {
-    return 0;
+    return "?";
 }
 
 LinkModeSet WMBusD1TC::getLinkModes() {
@@ -209,14 +209,20 @@ void WMBusD1TC::processSerialData()
     }
 }
 
-AccessCheck detectD1TC(string device, int baud, shared_ptr<SerialCommunicationManager> manager)
+AccessCheck detectD1TC(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
+    string tty = detected->specified_device.file;
+    int bps = atoi(detected->specified_device.bps.c_str());
+
     // Since we do not know how to talk to the other end, it might not
     // even respond. The only thing we can do is to try to open the serial device.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), baud, "detect d1tc");
+    auto serial = manager->createSerialDeviceTTY(tty, bps, "detect d1tc");
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
     serial->close();
+
+    detected->setAsFound("", WMBusDeviceType::DEVICE_D1TC, bps, false);
+
     return AccessCheck::AccessOK;
 }

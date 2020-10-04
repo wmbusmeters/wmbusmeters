@@ -25,7 +25,7 @@ cat /tmp/wmbusmeters_alarm_test
 echo "---------------------------------------"
 
 cat > $TEST/test_expected.txt <<EOF
-(alarm) inactivity: 4 seconds of inactivity resetting simulations/simulation_alarm.txt DEVICE_SIMULATOR (timeout 4s expected mon-sun(00-23) now 1111-11-11 11:11)
+(alarm) inactivity: 4 seconds of inactivity resetting simulations/simulation_alarm.txt SIMULATION (timeout 4s expected mon-sun(00-23) now 1111-11-11 11:11)
 (wmbus) successfully reset wmbus device
 EOF
 
@@ -35,7 +35,7 @@ METER =={"media":"cold water","meter":"multical21","name":"Water","id":"76348799
 EOF
 
 cat > /tmp/wmbusmeters_alarm_expected <<EOF
-ALARM_SHELL inactivity 4 seconds of inactivity resetting simulations/simulation_alarm.txt DEVICE_SIMULATOR (timeout 4s expected mon-sun(00-23) now 1111-11-11 11:11)
+ALARM_SHELL inactivity 4 seconds of inactivity resetting simulations/simulation_alarm.txt SIMULATION (timeout 4s expected mon-sun(00-23) now 1111-11-11 11:11)
 EOF
 
 cat $TEST/test_stderr.txt | sed 's/now ....-..-.. ..:../now 1111-11-11 11:11/' > $TEST/test_responses.txt

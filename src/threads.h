@@ -22,8 +22,8 @@
 
 #include <assert.h>
 #include <errno.h>
-#include <pthread.h>
 #include <functional>
+#include <pthread.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -70,32 +70,13 @@ struct Lock;
 
 struct RecursiveMutex
 {
-    RecursiveMutex(const char *name)
-    : name_(name), locked_in_func_(""), locked_by_pid_(0)
-    {
-        pthread_mutexattr_init(&attr_);
-        pthread_mutexattr_settype(&attr_, PTHREAD_MUTEX_RECURSIVE);
-        pthread_mutex_init(&mutex_, &attr_);
-    }
-
-    ~RecursiveMutex()
-    {
-        pthread_mutex_destroy(&mutex_);
-        pthread_mutexattr_destroy(&attr_);
-
-    }
-
-    void lock()
-    {
-        pthread_mutex_lock(&mutex_);
-    }
-
-    void unlock()
-    {
-        pthread_mutex_unlock(&mutex_);
-    }
+    RecursiveMutex(const char *name);
+    ~RecursiveMutex();
+    void lock();
+    void unlock();
 
 private:
+
     const char *name_;
     pthread_mutex_t mutex_;
     pthread_mutexattr_t attr_;
@@ -107,81 +88,24 @@ private:
 
 struct Lock
 {
+    Lock(RecursiveMutex *rmutex, const char *func_name);
+    ~Lock();
+
+private:
+
     RecursiveMutex  *rmutex_ {};
     const char *func_name_;
-
-    Lock(RecursiveMutex *rmutex, const char *func_name)
-    {
-        rmutex_ = rmutex;
-        func_name_ = func_name;
-        trace("[LOCKING] %s %s (%s %d)\n", rmutex_->name_, func_name_, rmutex_->locked_in_func_, rmutex->locked_by_pid_);
-        pthread_mutex_lock(&rmutex_->mutex_);
-        rmutex->locked_in_func_ = func_name;
-        rmutex->locked_by_pid_ = getpid();
-        trace("[LOCKED]  %s %s (%s %d)\n", rmutex_->name_, func_name_, rmutex_->locked_in_func_, rmutex->locked_by_pid_);
-    }
-
-    ~Lock()
-    {
-        trace("[UNLOCKING] %s %s (%s %d)\n", rmutex_->name_, func_name_, rmutex_->locked_in_func_, rmutex_->locked_by_pid_);
-        pthread_mutex_unlock(&rmutex_->mutex_);
-        rmutex_->locked_in_func_ = "";
-        rmutex_->locked_by_pid_ = 0;
-        trace("[UNLOCKED]  %s %s (%s %d)\n", rmutex_->name_, func_name_, rmutex_->locked_in_func_, rmutex_->locked_by_pid_);
-    }
 };
 
 struct Semaphore
 {
-    Semaphore(const char *name)
-    : name_(name)
-    {
-        pthread_cond_init(&condition_, NULL);
-        pthread_mutex_init(&mutex_, NULL);
-    }
-
-    ~Semaphore()
-    {
-        pthread_mutex_destroy(&mutex_);
-        pthread_cond_destroy(&condition_);
-    }
-
-    bool wait()
-    {
-        trace("[WAITING] %s\n", name_);
-
-        pthread_mutex_lock(&mutex_);
-        struct timespec max_wait = {100, 0};
-        int rc = 0;
-        for (;;)
-        {
-            rc = pthread_cond_timedwait(&condition_, &mutex_, &max_wait);
-            if (!rc) break;
-            if (rc == EINTR) continue;
-            if (rc == ETIMEDOUT) break;
-            error("(thread) pthread cond timedwait ERROR %d\n", rc);
-        }
-
-        pthread_mutex_unlock(&mutex_);
-
-        trace("[WAITED] %s %s\n", name_, (rc==ETIMEDOUT)?"TIMEOUT":"OK");
-
-        // Return true if proper wait.
-        // Return false if timeout!!!!
-        return rc != ETIMEDOUT;
-    }
-
-    void notify()
-    {
-        trace("[NOTIFY] %s\n", name_);
-        int rc = pthread_cond_signal(&condition_);
-        if (rc)
-        {
-            error("(thread) pthread cond signal ERROR\n");
-        }
-    }
+    Semaphore(const char *name);
+    ~Semaphore();
+    bool wait();
+    void notify();
 
 private:
+
     const char *name_;
     pthread_mutex_t mutex_;
     pthread_cond_t condition_;

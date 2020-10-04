@@ -207,17 +207,42 @@ void handleResetAfter(Configuration *c, string s)
 
 bool handleDevice(Configuration *c, string devicefile)
 {
-    Device device;
-    bool ok = isPossibleDevice(devicefile, &device);
+    SpecifiedDevice specified_device;
+    bool ok = specified_device.parse(devicefile);
     if (ok)
     {
-        if (device.file == "auto")
+        if (specified_device.linkmodes != "")
+        {
+            // Prevent an early warning in start
+            // since we at least have one configured linkmode.
+            c->linkmodes_configured = true;
+            c->linkmodes.unionLinkModeSet(parseLinkModes(specified_device.linkmodes));
+        }
+        else
+        {
+            // No linkmode set, but if simulation, stdin and file,
+            // then assume that it will produce telegrams on all linkmodes.
+            if (specified_device.is_simulation || specified_device.is_stdin || specified_device.is_file)
+            {
+                c->linkmodes_configured = true;
+                c->linkmodes.unionLinkModeSet(LinkModeBits::Any_bit);
+            }
+
+            if (specified_device.type == "rtlwmbus")
+            {
+                c->linkmodes_configured = true;
+                c->linkmodes.addLinkMode(LinkMode::C1);
+                c->linkmodes.addLinkMode(LinkMode::T1);
+            }
+        }
+
+        if (specified_device.type == "auto")
         {
             c->use_auto_detect = true;
         }
         else
         {
-            c->supplied_wmbus_devices.push_back(device);
+            c->supplied_wmbus_devices.push_back(specified_device);
         }
     }
     return ok;
@@ -229,11 +254,13 @@ void handleListenTo(Configuration *c, string mode)
     if (lms.bits() == 0) {
         error("Unknown link mode \"%s\"!\n", mode.c_str());
     }
-    if (c->link_mode_configured) {
-        error("You have already specified a link mode!\n");
-    }
-    c->listen_to_link_modes = lms;
-    c->link_mode_configured = true;
+/*   TODO HOW SHOULD THIS BE HANDLED?
+if (c->linkmodes_configured) {
+error("You have already specified a link mode!\n");
+}*/
+
+    c->linkmodes = lms;
+    c->linkmodes_configured = true;
 }
 
 void handleLogtelegrams(Configuration *c, string logtelegrams)
@@ -538,7 +565,7 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, WMBus *wmbus
     debug("(config) all possible link modes that the meters might transmit on: %s\n", metersu.c_str());
     if (meters_union.bits() == 0)
     {
-        if (link_modes_matter && !config->link_mode_configured)
+        if (link_modes_matter && !config->linkmodes_configured)
         {
             string msg;
             strprintf(msg,"(config) No meters supplied. You must supply which link modes to listen to. Eg. --listento=<modes>");
@@ -547,13 +574,13 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, WMBus *wmbus
         }
         return { LinkModeCalculationResultType::Success, "" };
     }
-    if (!config->link_mode_configured)
+    if (!config->linkmodes_configured)
     {
         // A listen_to link mode has not been set explicitly. Pick a listen_to link
         // mode that is supported by the wmbus dongle and works for the meters.
-        config->listen_to_link_modes = wmbus->supportedLinkModes();
-        config->listen_to_link_modes.disjunctionLinkModeSet(meters_union);
-        if (!wmbus->canSetLinkModes(config->listen_to_link_modes))
+        config->linkmodes = wmbus->supportedLinkModes();
+        config->linkmodes.disjunctionLinkModeSet(meters_union);
+        if (!wmbus->canSetLinkModes(config->linkmodes))
         {
             // The automatically calculated link modes cannot be set in the dongle.
             // Ie the dongle needs help....
@@ -567,16 +594,16 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, WMBus *wmbus
             debug("%s\n", msg.c_str());
             return { LinkModeCalculationResultType::AutomaticDeductionFailed , msg};
         }
-        config->link_mode_configured = true;
+        config->linkmodes_configured = true;
     }
     else
     {
-        string listen = config->listen_to_link_modes.hr();
+        string listen = config->linkmodes.hr();
         debug("(config) explicitly listening to: %s\n", listen.c_str());
     }
 
-    string listen = config->listen_to_link_modes.hr();
-    if (!wmbus->canSetLinkModes(config->listen_to_link_modes))
+    string listen = config->linkmodes.hr();
+    if (!wmbus->canSetLinkModes(config->linkmodes))
     {
         string msg;
         strprintf(msg, "(config) You have specified to listen to the link modes: %s but the dongle can only listen to: %s",
@@ -585,7 +612,7 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, WMBus *wmbus
         return { LinkModeCalculationResultType::DongleCannotListenTo , msg};
     }
 
-    if (!config->listen_to_link_modes.hasAll(meters_union))
+    if (!config->linkmodes.hasAll(meters_union))
     {
         string msg;
         strprintf(msg, "(config) You have specified to listen to the link modes: %s but the meters might transmit on: %s\n"

@@ -35,7 +35,7 @@ using namespace std;
 struct WMBusRTL433 : public virtual WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -100,9 +100,9 @@ bool WMBusRTL433::ping()
     return true;
 }
 
-uint32_t WMBusRTL433::getDeviceId()
+string WMBusRTL433::getDeviceId()
 {
-    return 0x11111111;
+    return "?";
 }
 
 LinkModeSet WMBusRTL433::getLinkModes()
@@ -293,4 +293,11 @@ FrameStatus WMBusRTL433::checkRTL433Frame(vector<uchar> &data,
     *hex_payload_offset = i;
 
     return FullFrame;
+}
+
+AccessCheck detectRTL433(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+{
+    detected->setAsFound("", WMBusDeviceType::DEVICE_RTLWMBUS, 0, false);
+
+    return AccessCheck::AccessOK;
 }

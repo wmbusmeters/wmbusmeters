@@ -35,7 +35,7 @@ using namespace std;
 struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -101,9 +101,9 @@ bool WMBusRTLWMBUS::ping()
     return true;
 }
 
-uint32_t WMBusRTLWMBUS::getDeviceId()
+string WMBusRTLWMBUS::getDeviceId()
 {
-    return 0x11111111;
+    return "?";
 }
 
 LinkModeSet WMBusRTLWMBUS::getLinkModes()
@@ -286,4 +286,11 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
 
     debug("(rtlwmbus) received full frame\n");
     return FullFrame;
+}
+
+AccessCheck detectRTLWMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+{
+    detected->setAsFound("", WMBusDeviceType::DEVICE_RTLWMBUS, 0, false);
+
+    return AccessCheck::AccessOK;
 }

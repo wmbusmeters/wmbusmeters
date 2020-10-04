@@ -100,7 +100,7 @@ struct SerialCommunicationManager
     virtual void stopRegularCallback(int id) = 0;
 
     // List all real serial devices (avoid pseudo ttys)
-    virtual std::vector<std::string> listSerialDevices() = 0;
+    virtual std::vector<std::string> listSerialTTYs() = 0;
     // Return a serial device for the given device, if it exists! Otherwise NULL.
     virtual std::shared_ptr<SerialDevice> lookup(std::string device) = 0;
     virtual ~SerialCommunicationManager();

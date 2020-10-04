@@ -112,22 +112,22 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             if (lms.bits() == 0) {
                 error("Unknown link mode \"%s\"!\n", argv[i]+11);
             }
-            if (c->link_mode_configured) {
+            if (c->linkmodes_configured) {
                 error("You have already specified a link mode!\n");
             }
-            c->listen_to_link_modes = lms;
-            c->link_mode_configured = true;
+            c->linkmodes = lms;
+            c->linkmodes_configured = true;
             i++;
             continue;
         }
 
         LinkMode lm = isLinkModeOption(argv[i]);
         if (lm != LinkMode::UNKNOWN) {
-            if (c->link_mode_configured) {
+            if (c->linkmodes_configured) {
                 error("You have already specified a link mode!\n");
             }
-            c->listen_to_link_modes.addLinkMode(lm);
-            c->link_mode_configured = true;
+            c->linkmodes.addLinkMode(lm);
+            c->linkmodes_configured = true;
             i++;
             continue;
         }
@@ -476,7 +476,7 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         !c->list_fields &&
         !c->list_meters)
     {
-        error("You must supply at least one device to receive wmbus telegrams.\n");
+        error("You must supply at least one device (eg auto:c1) to receive wmbus telegrams.\n");
     }
 
     if ((argc-i) % 4 != 0) {

@@ -54,7 +54,7 @@ using namespace std;
 struct WMBusWMB13U : public virtual WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -126,9 +126,9 @@ bool WMBusWMB13U::ping()
     return true;
 }
 
-uint32_t WMBusWMB13U::getDeviceId()
+string WMBusWMB13U::getDeviceId()
 {
-    return 0x11111111;
+    return "?";
     /*getConfiguration();
     uchar a = config_[0x22];
     uchar b = config_[0x23];
@@ -341,8 +341,9 @@ bool WMBusWMB13U::getConfiguration()
     return true;
 }
 
-AccessCheck detectWMB13U(string device, shared_ptr<SerialCommunicationManager> manager)
+AccessCheck detectWMB13U(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
+    /*
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200, "detect wmb13u");
     AccessCheck rc = serial->open(false);
@@ -373,6 +374,6 @@ AccessCheck detectWMB13U(string device, shared_ptr<SerialCommunicationManager> m
 
     if (!startsWith("OK", data)) return AccessCheck::NotThere;
 
-    serial->close();
-    return AccessCheck::AccessOK;
+    serial->close();*/
+    return AccessCheck::NotThere;
 }

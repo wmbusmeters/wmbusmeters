@@ -74,6 +74,7 @@ struct Configuration
     std::vector<std::string> alarm_shells;
     int alarm_timeout {}; // Maximum number of seconds between dongle receiving two telegrams.
     std::string alarm_expected_activity; // Only warn when within these time periods.
+    bool exit_instead_of_alarm_ {};
     bool list_shell_envs {};
     bool list_fields {};
     bool list_meters {};
@@ -83,13 +84,12 @@ struct Configuration
     bool oneshot {};
     int  exitafter {}; // Seconds to exit.
     int  resetafter {}; // Reset the wmbus devices regularly.
-    std::vector<Device> supplied_wmbus_devices; // /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600
+    std::vector<SpecifiedDevice> supplied_wmbus_devices; // /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600
     bool use_auto_detect {}; // Set to true if auto was supplied as device.
-    std::vector<Device> supplied_mbus_devices; // /dev/ttyACM0
+    LinkModeSet linkmodes; // If --c1 or auto:c1 then store c1 here.
+    bool linkmodes_configured {}; // Either auto:c1 or --c1 is specified.
     string telegram_reader;
     // A set of all link modes (union) that the user requests the wmbus dongle to listen to.
-    LinkModeSet listen_to_link_modes;
-    bool link_mode_configured {};
     bool no_init {};
     std::vector<Unit> conversions;
     std::vector<std::string> selected_fields;

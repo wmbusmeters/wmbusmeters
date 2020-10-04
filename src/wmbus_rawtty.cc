@@ -30,7 +30,7 @@ using namespace std;
 struct WMBusRawTTY : public virtual WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -53,6 +53,8 @@ private:
 
 shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
+    assert(device != "");
+
     if (serial_override)
     {
         WMBusRawTTY *imp = new WMBusRawTTY(serial_override, manager);
@@ -74,9 +76,9 @@ bool WMBusRawTTY::ping()
     return true;
 }
 
-uint32_t WMBusRawTTY::getDeviceId()
+string WMBusRawTTY::getDeviceId()
 {
-    return 0;
+    return "?";
 }
 
 LinkModeSet WMBusRawTTY::getLinkModes() {
@@ -135,17 +137,20 @@ void WMBusRawTTY::processSerialData()
     }
 }
 
-AccessCheck detectRawTTY(string device, int baud, Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+AccessCheck detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
+    string tty = detected->specified_device.file;
+    int bps = atoi(detected->specified_device.bps.c_str());
+
     // Since we do not know how to talk to the other end, it might not
     // even respond. The only thing we can do is to try to open the serial device.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), baud, "detect rawtty");
+    auto serial = manager->createSerialDeviceTTY(tty.c_str(), bps, "detect rawtty");
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
     serial->close();
 
-    detected->set(WMBusDeviceType::DEVICE_RAWTTY, baud, false);
+    detected->setAsFound("", WMBusDeviceType::DEVICE_RAWTTY, bps, false);
 
     return AccessCheck::AccessOK;
 }

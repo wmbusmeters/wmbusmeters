@@ -47,6 +47,8 @@ std::string bin2hex(std::vector<uchar> &target);
 std::string bin2hex(std::vector<uchar>::iterator data, std::vector<uchar>::iterator end, int len);
 std::string safeString(std::vector<uchar> &target);
 void strprintf(std::string &s, const char* fmt, ...);
+std::string tostrprintf(const char* fmt, ...);
+
 // Return for example: 2010-03-21
 std::string strdate(struct tm *date);
 // Return for example: 2010-03-21 15:22
@@ -94,12 +96,14 @@ bool isValidMatchExpression(std::string id, bool non_compliant);
 bool isValidMatchExpressions(std::string ids, bool non_compliant);
 bool doesIdMatchExpression(std::string id, std::string match);
 bool doesIdMatchExpressions(std::string& id, std::vector<std::string>& ids);
+bool isValidId(std::string id, bool accept_non_compliant);
 
 bool isValidKey(std::string& key, MeterType mt);
 bool isFrequency(std::string& fq);
 bool isNumber(std::string& fq);
 
 std::vector<std::string> splitMatchExpressions(std::string& mes);
+std::vector<std::string> splitString(std::string &s, char c);
 
 void incrementIV(uchar *iv, size_t len);
 
@@ -108,6 +112,7 @@ bool checkFileExists(const char *file);
 bool checkIfSimulationFile(const char *file);
 bool checkIfDirExists(const char *dir);
 bool listFiles(std::string dir, std::vector<std::string> *files);
+int loadFile(std::string file, std::vector<std::string> *lines);
 bool loadFile(std::string file, std::vector<char> *buf);
 
 std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err);

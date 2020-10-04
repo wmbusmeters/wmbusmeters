@@ -118,7 +118,7 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     {
         hex2bin(mi.key, &meter_keys_.confidentiality_key);
     }
-    /*if (bus->type() == DEVICE_SIMULATOR)
+    /*if (bus->type() == DEVICE_SIMULATION)
     {
         meter_keys_.simulation = true;
     }*/

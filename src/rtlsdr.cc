@@ -52,9 +52,9 @@ uint32_t index(string &s)
     return (uint32_t)atoi(n.c_str());
 }
 
-AccessCheck detectRTLSDR(string device, Detected *detected)
+AccessCheck detectRTLSDR(string id, Detected *detected)
 {
-    uint32_t i = index(device);
+    uint32_t i = index(id);
 
     uint32_t n = rtlsdr_get_device_count();
 
@@ -62,7 +62,7 @@ AccessCheck detectRTLSDR(string device, Detected *detected)
     // Would be nice to properly test if the device can be opened.
     if (i < n)
     {
-        detected->set(WMBusDeviceType::DEVICE_RTLWMBUS, 0, false);
+        detected->setAsFound(id, WMBusDeviceType::DEVICE_RTLWMBUS, 0, false);
         return AccessCheck::AccessOK;
     }
 

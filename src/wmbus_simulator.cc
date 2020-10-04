@@ -15,15 +15,16 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"serial.h"
+#include"util.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
-#include"serial.h"
 
 #include<assert.h>
+#include<errno.h>
 #include<fcntl.h>
 #include<pthread.h>
 #include<semaphore.h>
-#include<errno.h>
 #include<sys/types.h>
 #include<unistd.h>
 
@@ -32,7 +33,7 @@ using namespace std;
 struct WMBusSimulator : public WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -55,8 +56,6 @@ private:
     vector<string> lines_;
 };
 
-int loadFile(string file, vector<string> *lines);
-
 shared_ptr<WMBus> openSimulator(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     WMBusSimulator *imp = new WMBusSimulator(device, manager);
@@ -64,28 +63,25 @@ shared_ptr<WMBus> openSimulator(string device, shared_ptr<SerialCommunicationMan
 }
 
 WMBusSimulator::WMBusSimulator(string file, shared_ptr<SerialCommunicationManager> manager)
-    : WMBusCommonImplementation(DEVICE_SIMULATOR, manager, NULL), file_(file)
+    : WMBusCommonImplementation(DEVICE_SIMULATION, manager, NULL), file_(file)
 {
-    vector<string> lines;
+    assert(file != "");
     loadFile(file, &lines_);
 }
 
-bool WMBusSimulator::ping() {
-    verbose("(simulator) ping\n");
-    verbose("(simulator) pong\n");
+bool WMBusSimulator::ping()
+{
     return true;
 }
 
-uint32_t WMBusSimulator::getDeviceId() {
-    verbose("(simulator) get device info\n");
-    verbose("(simulator) device info: 11111111\n");
-    return 0x11111111;
+string WMBusSimulator::getDeviceId()
+{
+    return "?";
 }
 
-LinkModeSet WMBusSimulator::getLinkModes() {
-    verbose("(simulator) get link mode\n");
+LinkModeSet WMBusSimulator::getLinkModes()
+{
     string hr = link_modes_.hr();
-    verbose("(simulator) config: link mode %s\n", hr.c_str());
     return link_modes_;
 }
 
@@ -96,51 +92,6 @@ void WMBusSimulator::deviceReset()
 void WMBusSimulator::deviceSetLinkModes(LinkModeSet lms)
 {
     link_modes_ = lms;
-    string hr = lms.hr();
-    verbose("(simulator) set link mode %s\n", hr.c_str());
-    verbose("(simulator) set link mode completed\n");
-}
-
-int loadFile(string file, vector<string> *lines)
-{
-    char block[32768+1];
-    vector<uchar> buf;
-
-    int fd = open(file.c_str(), O_RDONLY);
-    if (fd == -1) {
-        return -1;
-    }
-    while (true) {
-        ssize_t n = read(fd, block, sizeof(block));
-        if (n == -1) {
-            if (errno == EINTR) {
-                continue;
-            }
-            error("Could not read file %s errno=%d\n", file.c_str(), errno);
-            close(fd);
-            return -1;
-        }
-        buf.insert(buf.end(), block, block+n);
-        if (n < (ssize_t)sizeof(block)) {
-            break;
-        }
-    }
-    close(fd);
-
-    bool eof, err;
-    auto i = buf.begin();
-    for (;;) {
-        string line = eatTo(buf, i, '\n', 32768, &eof, &err);
-        if (err) {
-            error("Error parsing simulation file.\n");
-        }
-        if (line.length() > 0) {
-            lines->push_back(line);
-        }
-        if (eof) break;
-    }
-
-    return 0;
 }
 
 void WMBusSimulator::processSerialData()
@@ -172,11 +123,11 @@ void WMBusSimulator::simulate()
             }
             if (found_time)
             {
-                debug("(simulator) from file \"%s\" to trigger at relative time %ld\n", hex.c_str(), rel_time);
+                debug("(simulation) from file \"%s\" to trigger at relative time %ld\n", hex.c_str(), rel_time);
                 time_t curr = time(NULL);
                 if (curr < start_time+rel_time)
                 {
-                    debug("(simulator) waiting %d seconds before simulating telegram.\n", (start_time+rel_time)-curr);
+                    debug("(simulation) waiting %d seconds before simulating telegram.\n", (start_time+rel_time)-curr);
                     for (;;)
                     {
                         curr = time(NULL);
@@ -184,7 +135,7 @@ void WMBusSimulator::simulate()
                         usleep(1000*1000);
                         if (!manager_->isRunning())
                         {
-                            debug("(simulator) exiting early\n");
+                            debug("(simulation) exiting early\n");
                             break;
                         }
                     }
@@ -192,7 +143,7 @@ void WMBusSimulator::simulate()
             }
             else
             {
-                debug("(simulator) from file \"%s\"\n", hex.c_str());
+                debug("(simulation) from file \"%s\"\n", hex.c_str());
             }
         }
         else

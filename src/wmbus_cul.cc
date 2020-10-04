@@ -39,7 +39,7 @@ using namespace std;
 struct WMBusCUL : public virtual WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -104,10 +104,10 @@ bool WMBusCUL::ping()
     return true;
 }
 
-uint32_t WMBusCUL::getDeviceId()
+string WMBusCUL::getDeviceId()
 {
     verbose("(cul) getDeviceId\n");
-    return 0x11111111;
+    return "?";
 }
 
 LinkModeSet WMBusCUL::getLinkModes()
@@ -151,7 +151,7 @@ void WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     received_response_ = "";
     bool sent = serial()->send(msg);
 
-    if (sent) waitForResponse();
+    if (sent) waitForResponse(0);
 
     sent_command_ = "";
     debug("(cul) received \"%s\"", received_response_.c_str());
@@ -224,7 +224,7 @@ void WMBusCUL::processSerialData()
                 if (r != "")
                 {
                     received_response_ = r;
-                    command_wait_.notify();
+                    waiting_for_response_sem_.notify();
                 }
             }
             read_buffer_.clear();
@@ -337,10 +337,10 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     }
 }
 
-AccessCheck detectCUL(string device, Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400, "detect cul");
+    auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 38400, "detect cul");
     serial->doNotUseCallbacks();
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
@@ -383,7 +383,7 @@ AccessCheck detectCUL(string device, Detected *detected, shared_ptr<SerialCommun
 
     serial->close();
 
-    detected->set(WMBusDeviceType::DEVICE_CUL, 38400, false);
+    detected->setAsFound("12345678", WMBusDeviceType::DEVICE_CUL, 38400, false);
 
     return AccessCheck::AccessOK;
 }

@@ -113,6 +113,26 @@ LinkModeSet parseLinkModes(string m)
     return lms;
 }
 
+bool isValidLinkModes(string m)
+{
+    LinkModeSet lms;
+    char buf[m.length()+1];
+    strcpy(buf, m.c_str());
+    char *saveptr {};
+    const char *tok = strtok_r(buf, ",", &saveptr);
+    while (tok != NULL)
+    {
+        LinkMode lm = isLinkMode(tok);
+        if (lm == LinkMode::UNKNOWN)
+        {
+            return false;
+        }
+        lms.addLinkMode(lm);
+        tok = strtok_r(NULL, ",", &saveptr);
+    }
+    return true;
+}
+
 void LinkModeSet::addLinkMode(LinkMode lm)
 {
     for (auto& s : link_modes_) {
@@ -469,151 +489,6 @@ string mediaTypeJSON(int a_field_device_type)
 
     }
     return "Unknown";
-}
-
-Detected detectImstAmberCulRC(string file,
-                            string suffix,
-                            string linkmodes,
-                            shared_ptr<SerialCommunicationManager> handler,
-                            bool is_tty,
-                            bool is_stdin,
-                            bool is_file)
-{
-    Detected detected {};
-    detected.device = { file, suffix, "" };
-
-    // If im87a is tested first, a delay of 1s must be inserted
-    // before amb8465 is tested, lest it will not respond properly.
-    // It really should not matter, but perhaps is the uart of the amber
-    // confused by the 57600 speed....or maybe there is some other reason.
-    // Anyway by testing for the amb8465 first, we can immediately continue
-    // with the test for the im871a, without the need for a 1s delay.
-
-
-    // Talk amb8465 with it...
-    // assumes this device is configured for 9600 bps, which seems to be the default.
-    if (detectAMB8465(file, &detected, handler) == AccessCheck::AccessOK)
-    {
-        return detected;
-    }
-
-    // Talk RC1180 with it...
-    // assumes this device is configured for 19200 bps, which seems to be the default.
-    if (detectRC1180(file, &detected, handler) == AccessCheck::AccessOK)
-    {
-        return detected;
-    }
-
-    // Talk im871a with it...
-    // assumes this device is configured for 57600 bps, which seems to be the default.
-    if (detectIM871A(file, &detected, handler) == AccessCheck::AccessOK)
-    {
-        return detected;
-    }
-
-    // Talk CUL with it...
-    // assumes this device is configured for 38400 bps, which seems to be the default.
-    if (detectCUL(file, &detected, handler) == AccessCheck::AccessOK)
-    {
-        return detected;
-    }
-
-    // We could not auto-detect either.
-    return { { file, suffix }, DEVICE_UNKNOWN, 0, false, is_tty, is_stdin, is_file };
-}
-
-/**
-  The devicefile can be:
-
-  auto (to autodetect the devices)
-
-  /dev/ttyUSB0 (to use this serial device, probe for the exact device.)
-  /dev/ttyUSB0:9600 (listen to this serial device set to this baudrate N81, no probing.)
-  /home/me/simulation.txt or /home/me/simulation_foo.txt (to use the wmbusmeters telegram=|....|+32 format)
-  /home/me/telegram.raw (to read raw binary wmbus bytes from this file)
-  stdin (to read raw binary wmbus bytes from stdin)
-
-  If a suffix the suffix can be:
-  im871a
-  amb8465
-  rfmrx2
-  cul
-  d1tc
-  rtlwmbus: the devicefile produces rtlwmbus messages, ie. T1;1;1;2019-04-03 19:00:42.000;97;148;88888888;0x6e440106...ae03a77
-  rtl433: the devicefile produces rtl433 csv lines, ie. 2020-08-10 20:40:47,,,Wireless-MBus,,22232425,,,,CRC, ,25442d...23411d,,,,
-  simulation: assume the devicefile produces telegram=|....|+xx lines. This can also pace the simulated telegrams in time.
-  a baud rate like 38400: assume the devicefile is a raw tty character device.
-*/
-Detected detectWMBusDeviceSetting(string file,
-                                  string suffix,
-                                  string linkmodes,
-                                  shared_ptr<SerialCommunicationManager> handler)
-{
-    debug("(detect) \"%s\" \"%s\"\n", file.c_str(), suffix.c_str());
-
-    // If the devicefile is rtlwmbus then the suffix can be a frequency
-    // or the actual command line to use.
-    // E.g. rtlwmbus rtlwmbux:868.95M rtlwmbus:rtl_sdr | rtl_wmbus
-    if (file == "rtlwmbus")
-    {
-        debug("(detect) driver: rtlwmbus\n");
-        return { { file, suffix }, DEVICE_RTLWMBUS, 0, false };
-    }
-
-    if (file == "rtl433")
-    {
-        debug("(detect) driver: rtl433\n");
-        return { { file, suffix}, DEVICE_RTL433, 0, false };
-    }
-
-    // Is it a file named simulation_xxx.txt ?
-    if (checkIfSimulationFile(file.c_str()))
-    {
-        debug("(detect) driver: simulation file\n");
-        return { { file, suffix }, DEVICE_SIMULATOR, 0, false };
-    }
-
-    bool is_tty = checkCharacterDeviceExists(file.c_str(), false);
-    bool is_stdin = file == "stdin";
-    bool is_file = checkFileExists(file.c_str());
-
-    debug("(detect) is_tty=%d is_stdin=%d is_file=%d\n", is_tty, is_stdin, is_file);
-
-    if (!is_tty && !is_stdin && !is_file)
-    {
-        debug("(detect) not a valid device file %s\n", file.c_str());
-        // Oups, not a valid devicefile.
-        return { { file, suffix }, DEVICE_UNKNOWN, 0, false };
-    }
-
-    bool override_tty = !is_tty;
-
-    if (suffix == "amb8465") return { { file, suffix }, DEVICE_AMB8465, 0, override_tty, is_tty, is_stdin, is_file };
-    if (suffix == "im871a") return { { file, suffix }, DEVICE_IM871A, 0, override_tty, is_tty, is_stdin, is_file };
-    if (suffix == "rc1180") return { { file, suffix }, DEVICE_RC1180, 0, override_tty, is_tty, is_stdin, is_file };
-    if (suffix == "rfmrx2") return { { file, suffix }, DEVICE_RFMRX2, 0, override_tty, is_tty, is_stdin, is_file };
-    if (suffix == "rtlwmbus") return { { file, suffix }, DEVICE_RTLWMBUS, 0, override_tty, is_tty, is_stdin, is_file };
-    if (suffix == "rtl433") return { { file, suffix}, DEVICE_RTL433, 0, override_tty, is_tty, is_stdin, is_file };
-    if (suffix == "cul") return { { file, suffix}, DEVICE_CUL, 0, override_tty, is_tty, is_stdin, is_file };
-    if (suffix == "d1tc") return { { file, suffix}, DEVICE_D1TC, 0, override_tty, is_tty, is_stdin, is_file };
-    if (suffix == "wmb13u") return { { file, suffix}, DEVICE_WMB13U, 0, override_tty, is_tty, is_stdin, is_file };
-    if (suffix == "simulation") return { { file, suffix}, DEVICE_SIMULATOR, 0, override_tty, is_tty, is_stdin, is_file };
-
-    // If the suffix is a number, then assume that it is a baud rate.
-    if (isNumber(suffix)) return { { file, suffix} , DEVICE_RAWTTY, atoi(suffix.c_str()), override_tty, is_tty, is_stdin, is_file };
-
-    // If the suffix is empty and its not a tty, then read raw telegrams from stdin or the file.
-    if (suffix == "" && !is_tty) return { { file, suffix}, DEVICE_RAWTTY, 0, true, is_tty, is_stdin, is_file };
-
-    if (suffix != "")
-    {
-        error("Unknown device suffix %s\n", suffix.c_str());
-    }
-
-    // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
-    // to figure out what is connected to it. We currently only
-    // know how to detect Imst, Amber or CUL dongles.
-    return detectImstAmberCulRC(file, suffix, linkmodes, handler, is_tty, is_stdin, is_file);
 }
 
 /*
@@ -3286,7 +3161,9 @@ WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
       is_working_(true),
       type_(t),
       serial_(serial),
-      command_wait_("command_wait")
+      cached_device_id_(""),
+      command_mutex_("wmbus_command_mutex"),
+      waiting_for_response_sem_("waiting_for_response_sem")
 {
     // Initialize timeout from now.
     last_received_ = time(NULL);
@@ -3519,22 +3396,22 @@ void WMBusCommonImplementation::setTimeout(int seconds, string expected_activity
     }
 }
 
-bool WMBusCommonImplementation::waitForResponse()
+bool WMBusCommonImplementation::waitForResponse(int id)
 {
-    while (manager_->isRunning())
-    {
-        // 5 second timeout.
-        trace("[IM871A] waitForResponse sem_wait command_wait_\n");
-        command_wait_.wait();
-        int rc = 0;
-        trace("[IM871A] waitForResponse waited command_wait_\n");
-        if (rc==0) break;
-        if (rc==-1) {
-            if (errno==EINTR) continue;
-            if (errno==ETIMEDOUT) return false;
-            break;
-        }
-    }
+    assert(waiting_for_response_id_ == 0 && id != 0);
+
+    waiting_for_response_id_ = id;
+
+    return waiting_for_response_sem_.wait();
+}
+
+bool WMBusCommonImplementation::notifyResponseIsHere(int id)
+{
+    if (id != waiting_for_response_id_) return false;
+
+    waiting_for_response_id_ = 0;
+    waiting_for_response_sem_.notify();
+
     return true;
 }
 
@@ -3927,77 +3804,6 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
     return FullFrame;
 }
 
-const char *toString(WMBusDeviceType t)
-{
-    switch (t)
-    {
-#define X(name) case name: return #name;
-LIST_OF_MBUS_DEVICES
-#undef X
-
-    }
-    return "?";
-}
-
-bool split_string_at_colons(string arg, Device *device)
-{
-    size_t colon = arg.find(":");
-
-    if (colon == string::npos)
-    {
-        device->file = arg;
-        device->suffix = "";
-        device->linkmodes = "";
-        return true;
-    }
-
-    device->file = arg.substr(0, colon);
-    string rest = arg.substr(colon+1);
-
-    colon = rest.find(":");
-    if (colon == string::npos)
-    {
-        device->suffix = rest;
-        device->linkmodes = "";
-        return true;
-    }
-
-    device->suffix = rest.substr(0, colon);
-    device->linkmodes = rest.substr(colon+1);
-
-    return true;
-}
-
-bool isPossibleDevice(string arg, Device *device)
-{
-    device->clear();
-    bool ok = split_string_at_colons(arg, device);
-    if (!ok) return false;
-
-    if (device->file == "auto")
-    {
-        // No colons allowed.
-        if (device->suffix != "" || device->linkmodes != "") return false;
-        return true;
-    }
-
-    if (device->file == "stdin") return true; // Suffix like rtlwmbus is allowed.
-    if (device->file == "rtlwmbus") return true; // Both device=commandline and linkmodes are allowed.
-    if (device->file == "rtl433") return true;
-    if (checkCharacterDeviceExists(device->file.c_str(), false) ||
-        checkFileExists(device->file.c_str()) ||
-        checkIfSimulationFile(device->file.c_str())) return true;
-
-    if (device->file.find('/') != string::npos)
-    {
-        // Meter names are forbidden to have slashes in their names.
-        // This is probably a path to /dev/ttyUSB0 that does not exist right now.
-        return true;
-    }
-
-    return false;
-}
-
 string decodeTPLStatusByte(uchar sts, map<int,string> vendor_lookup)
 {
     string s;
@@ -4031,4 +3837,369 @@ string decodeTPLStatusByte(uchar sts, map<int,string> vendor_lookup)
 
     s.pop_back();
     return s;
+}
+
+const char *toString(WMBusDeviceType t)
+{
+    switch (t)
+    {
+#define X(name,text) case DEVICE_ ## name: return #name;
+LIST_OF_MBUS_DEVICES
+#undef X
+
+    }
+    return "?";
+}
+
+const char *toLowerCaseString(WMBusDeviceType t)
+{
+    switch (t)
+    {
+#define X(name,text) case DEVICE_ ## name: return #text;
+LIST_OF_MBUS_DEVICES
+#undef X
+
+    }
+    return "?";
+}
+
+WMBusDeviceType toWMBusDeviceType(string &t)
+{
+#define X(name,text) if (t == #text) return DEVICE_ ## name;
+LIST_OF_MBUS_DEVICES
+#undef X
+    return DEVICE_UNKNOWN;
+}
+
+bool is_command(string b, string *cmd)
+{
+    // Check if CMD(.)
+    if (b.length() < 6) return false;
+    if (b.rfind("CMD(", 0) != 0) return false;
+    if (b.back() != ')') return false;
+    *cmd = b.substr(4, b.length()-5);
+    return true;
+}
+
+bool is_bps(string b)
+{
+    if (b == "300") return true;
+    if (b == "600") return true;
+    if (b == "1200") return true;
+    if (b == "2400") return true;
+    if (b == "4800") return true;
+    if (b == "9600") return true;
+    if (b == "14400") return true;
+    if (b == "19200") return true;
+    if (b == "38400") return true;
+    if (b == "57600") return true;
+    if (b == "115200") return true;
+    return false;
+}
+
+bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_simulation)
+{
+    *is_tty = *is_stdin = *is_file = *is_simulation = false;
+    if (f == "stdin")
+    {
+        *is_stdin = true;
+        return true;
+    }
+    if (checkIfSimulationFile(f.c_str()))
+    {
+        *is_simulation = true;
+        return true;
+    }
+    if (checkCharacterDeviceExists(f.c_str(), false))
+    {
+        *is_tty = true;
+        return true;
+    }
+    if (checkFileExists(f.c_str()))
+    {
+        *is_file = true;
+        return true;
+    }
+    if (f.find("/dev") != string::npos)
+    {
+        // Meter names are forbidden to have slashes in their names.
+        // This is probably a path to /dev/ttyUSB0 that does not exist right now.
+        *is_tty = true;
+        return true;
+    }
+    return false;
+}
+
+bool is_type_id(string t, string *out_type, string *out_id)
+{
+    // im871a im871a(12345678)
+    // auto
+    // rtlwmbus
+    if (t == "auto")
+    {
+        *out_type = t;
+        *out_id = "";
+        return true;
+    }
+
+    size_t pps = t.find('[');
+    size_t ppe = t.find(']');
+
+    if (pps == string::npos && ppe == string::npos)
+    {
+        // No parentheses found, is t a known wmbus device? like im871a amb8465 etc....
+        WMBusDeviceType tt = toWMBusDeviceType(t);
+        if (tt == DEVICE_UNKNOWN) return false;
+        *out_type = t;
+        *out_id = "";
+        return true;
+    }
+
+    if (pps != string::npos && ppe != string::npos &&
+        pps > 0  && pps < ppe && ppe == t.length()-1)
+    {
+        string type = t.substr(0, pps);
+        string id = t.substr(pps+1, ppe-pps-1);
+        WMBusDeviceType tt = toWMBusDeviceType(type);
+        if (tt == DEVICE_UNKNOWN) return false;
+        if (!isValidId(id, true)) return false;
+        *out_type = type;
+        *out_id = id;
+        return true;
+    }
+
+    // Some oddball combination of parentheses were found, give up.
+    return false;
+}
+
+void SpecifiedDevice::clear()
+{
+    file = "";
+    type = "";
+    id = "";
+    fq = "";
+    linkmodes = "";
+}
+
+string SpecifiedDevice::str()
+{
+    string r;
+    if (file != "") r += file+":";
+    if (type != "")
+    {
+        r += type;
+        if (id != "")
+        {
+            r += "["+id+"]";
+        }
+        r += ":";
+    }
+    if (bps != "") r += bps+":";
+    if (fq != "") r += fq+":";
+    if (linkmodes != "") r += linkmodes+":";
+    if (command != "") r += "CMD("+command+"):";
+
+    if (r.size() > 0) r.pop_back();
+
+    if (r == "") return "auto";
+
+    return r;
+}
+
+bool SpecifiedDevice::parse(string &arg)
+{
+    clear();
+
+    bool file_checked = false;
+    bool typeid_checked = false;
+    bool bps_checked = false;
+    bool fq_checked = false;
+    bool linkmodes_checked = false;
+    bool command_checked = false;
+
+    // For the moment the colon : is forbidden in file names and commands.
+    // It cannot occur in type,fq or bps.
+    vector<string> parts = splitString(arg, ':');
+
+    // Most maxed out device spec:
+    // Example /dev/ttyUSB0:im871a(12345678):9600:868.95M:c1,t1:CMD(rtl_433 -F csv -f 123M)
+
+    //         file         type   id        bps  fq     linkmodes command
+    for (auto& p : parts)
+    {
+        if (file_checked && typeid_checked && file == "" && type == "" && id == "")
+        {
+            // There must be either a file and/or type(id). If none are found,
+            // then the specified device string is faulty.
+            return false;
+        }
+        if (!file_checked && check_file(p, &is_tty, &is_stdin, &is_file, &is_simulation))
+        {
+            file_checked = true;
+            file = p;
+        }
+        else if (!typeid_checked && is_type_id(p, &type, &id))
+        {
+            file_checked = true;
+            typeid_checked = true;
+        }
+        else if (!bps_checked && is_bps(p))
+        {
+            file_checked = true;
+            typeid_checked = true;
+            bps_checked = true;
+            bps = p;
+        }
+        else if (!fq_checked && isFrequency(p))
+        {
+            file_checked = true;
+            typeid_checked = true;
+            bps_checked = true;
+            fq_checked = true;
+            fq = p;
+        }
+        else if (!linkmodes_checked && isValidLinkModes(p))
+        {
+            file_checked = true;
+            typeid_checked = true;
+            bps_checked = true;
+            fq_checked = true;
+            linkmodes_checked = true;
+            linkmodes = p;
+        }
+        else if (!command_checked && is_command(p, &command))
+        {
+            file_checked = true;
+            typeid_checked = true;
+            bps_checked = true;
+            fq_checked = true;
+            linkmodes_checked = true;
+            command_checked = true;
+        }
+        else
+        {
+            // Unknown part....
+            return false;
+        }
+    }
+
+    // Auto is only allowed to be combined with linkmodes and/or frequencies!
+    if (type == "auto" && (file != "" || bps != "")) return false;
+
+    return true;
+}
+
+Detected detectWMBusDeviceOnTTY(string tty, shared_ptr<SerialCommunicationManager> handler)
+{
+    Detected detected;
+    // Fake a specified device.
+    detected.found_file = tty;
+    detected.specified_device.is_tty = true;
+
+    // If im87a is tested first, a delay of 1s must be inserted
+    // before amb8465 is tested, lest it will not respond properly.
+    // It really should not matter, but perhaps is the uart of the amber
+    // confused by the 57600 speed....or maybe there is some other reason.
+    // Anyway by testing for the amb8465 first, we can immediately continue
+    // with the test for the im871a, without the need for a 1s delay.
+
+    // Talk amb8465 with it...
+    // assumes this device is configured for 9600 bps, which seems to be the default.
+    if (detectAMB8465(&detected, handler) == AccessCheck::AccessOK)
+    {
+        return detected;
+    }
+
+    // Talk RC1180 with it...
+    // assumes this device is configured for 19200 bps, which seems to be the default.
+    if (detectRC1180(&detected, handler) == AccessCheck::AccessOK)
+    {
+        return detected;
+    }
+
+    // Talk im871a with it...
+    // assumes this device is configured for 57600 bps, which seems to be the default.
+    if (detectIM871A(&detected, handler) == AccessCheck::AccessOK)
+    {
+        return detected;
+    }
+
+    // Talk CUL with it...
+    // assumes this device is configured for 38400 bps, which seems to be the default.
+    if (detectCUL(&detected, handler) == AccessCheck::AccessOK)
+    {
+        return detected;
+    }
+
+    // We could not auto-detect either. default is DEVICE_UNKNOWN.
+    return detected;
+}
+
+Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
+                                   shared_ptr<SerialCommunicationManager> handler)
+{
+    assert(specified_device.file != "");
+    debug("(lookup) \"%s\"\n", specified_device.str().c_str());
+
+    Detected detected;
+    detected.found_file = specified_device.file;
+    detected.setSpecifiedDevice(specified_device);
+
+    if (specified_device.is_simulation)
+    {
+        debug("(lookup) driver: simulation file\n");
+        detected.setAsFound("", DEVICE_SIMULATION, 0 , false);
+        specified_device.linkmodes = "any";
+        return detected;
+    }
+
+    // Special case to cater for /dev/ttyUSB0:9600, ie the rawtty is implicit.
+    if (specified_device.type == "" && specified_device.bps != "" && specified_device.is_tty)
+    {
+        debug("(lookup) driver: rawtty\n");
+        detected.setAsFound("", DEVICE_RAWTTY, atoi(specified_device.bps.c_str()), false );
+        return detected;
+    }
+
+    // Special case to cater for raw_data.bin, ie the rawtty is implicit.
+    if (specified_device.type == "" && !specified_device.is_tty)
+    {
+        debug("(lookup) driver: raw file\n");
+        detected.setAsFound("", DEVICE_RAWTTY, 0, true );
+        return detected;
+    }
+
+    // Now handle all files with specified type.
+    if (specified_device.type != "")
+    {
+        debug("(lookup) driver: %s\n", specified_device.type.c_str());
+        detected.setAsFound("", toWMBusDeviceType(specified_device.type), 0, true );
+        return detected;
+    }
+    // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
+    // to figure out what is connected to it.
+    return detectWMBusDeviceOnTTY(specified_device.file, handler);
+}
+
+AccessCheck detectUNKNOWN(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+{
+    return AccessCheck::NotThere;
+}
+
+AccessCheck detectSIMULATION(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+{
+    return AccessCheck::NotThere;
+}
+
+AccessCheck detectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+{
+    string type = detected->specified_device.type;
+
+#define X(name,text) if (type == #text) return detect ## name(detected,handler);
+LIST_OF_MBUS_DEVICES
+#undef X
+
+    assert(0);
+
+    return AccessCheck::NotThere;
 }
