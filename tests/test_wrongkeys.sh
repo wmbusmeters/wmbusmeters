@@ -27,7 +27,7 @@ then
 fi
 
 cat <<EOF > $TEST/test_expected.txt
-Started config rtlwmbus[] on stdin listening on any
+Started config rtlwmbus on stdin listening on any
 (wmbus) decrypted content failed check, did you use the correct decryption key? Ignoring telegram.
 (wmbus) decrypted payload crc failed check, did you use the correct decryption key? Ignoring telegram.
 (wmbus) decrypted content failed check, did you use the correct decryption key? Ignoring telegram.

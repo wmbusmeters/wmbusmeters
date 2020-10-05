@@ -593,8 +593,6 @@ AccessCheck detectRTL433(Detected *detected, shared_ptr<SerialCommunicationManag
 AccessCheck detectRTLWMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectWMB13U(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 
-AccessCheck detectRTLSDR(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
-
 // Try to factory reset an AMB8465 by trying all possible serial speeds and
 // restore to factory settings.
 AccessCheck factoryResetAMB8465(string tty, shared_ptr<SerialCommunicationManager> handler, int *was_baud);

@@ -73,9 +73,10 @@ private:
     string setup_;
 };
 
-shared_ptr<WMBus> openRTLWMBUS(string device, string command, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openRTLWMBUS(string identifier, string command, shared_ptr<SerialCommunicationManager> manager,
                                function<void()> on_exit, shared_ptr<SerialDevice> serial_override)
 {
+    debug("(rtlwmbus) opening %s\n", identifier.c_str());
     vector<string> args;
     vector<string> envs;
     args.push_back("-c");
@@ -85,7 +86,7 @@ shared_ptr<WMBus> openRTLWMBUS(string device, string command, shared_ptr<SerialC
         WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(serial_override, manager);
         return shared_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceCommand(device, "/bin/sh", args, envs, on_exit, "rtlwmbus");
+    auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, on_exit, "rtlwmbus");
     WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(serial, manager);
     return shared_ptr<WMBus>(imp);
 }
@@ -103,7 +104,7 @@ bool WMBusRTLWMBUS::ping()
 
 string WMBusRTLWMBUS::getDeviceId()
 {
-    return "?";
+    return "";
 }
 
 LinkModeSet WMBusRTLWMBUS::getLinkModes()
@@ -290,7 +291,6 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
 
 AccessCheck detectRTLWMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
-    detected->setAsFound("", WMBusDeviceType::DEVICE_RTLWMBUS, 0, false);
-
-    return AccessCheck::AccessOK;
+    assert(0);
+    return AccessCheck::NotThere;
 }

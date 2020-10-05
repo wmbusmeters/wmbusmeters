@@ -388,7 +388,7 @@ bool SerialDeviceTTY::working()
 
 struct SerialDeviceCommand : public SerialDeviceImp
 {
-    SerialDeviceCommand(string device, string command, vector<string> args, vector<string> envs,
+    SerialDeviceCommand(string identifier, string command, vector<string> args, vector<string> envs,
                         SerialCommunicationManagerImp *manager,
                         function<void()> on_exit,
                         string purpose);
@@ -399,12 +399,12 @@ struct SerialDeviceCommand : public SerialDeviceImp
     bool send(vector<uchar> &data);
     int available();
     bool working();
-    string device() { return device_; }
+    string device() { return identifier_; }
     string command() { return command_; }
 
     private:
 
-    string device_;
+    string identifier_;
     string command_;
     int pid_ {};
     vector<string> args_;
@@ -415,7 +415,7 @@ struct SerialDeviceCommand : public SerialDeviceImp
     function<void()> on_exit_;
 };
 
-SerialDeviceCommand::SerialDeviceCommand(string device,
+SerialDeviceCommand::SerialDeviceCommand(string identifier,
                                          string command,
                                          vector<string> args,
                                          vector<string> envs,
@@ -424,8 +424,8 @@ SerialDeviceCommand::SerialDeviceCommand(string device,
                                          string purpose)
     : SerialDeviceImp(manager, purpose)
 {
-    assert(device != "");
-    device_ = device;
+    assert(identifier != "");
+    identifier_ = identifier;
     command_ = command;
     args_ = args;
     envs_ = envs;
@@ -671,14 +671,14 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(st
     return addSerialDeviceForManagement(new SerialDeviceTTY(device, baud_rate, this, purpose));
 }
 
-shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceCommand(string device,
+shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceCommand(string identifier,
                                                                                   string command,
                                                                                   vector<string> args,
                                                                                   vector<string> envs,
                                                                                   function<void()> on_exit,
                                                                                   string purpose)
 {
-    return addSerialDeviceForManagement(new SerialDeviceCommand(device, command, args, envs, this, on_exit, purpose));
+    return addSerialDeviceForManagement(new SerialDeviceCommand(identifier, command, args, envs, this, on_exit, purpose));
 }
 
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceFile(string file, string purpose)

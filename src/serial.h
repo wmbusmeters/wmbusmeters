@@ -71,7 +71,7 @@ struct SerialCommunicationManager
     // Read from a /dev/ttyUSB0 or /dev/ttyACM0 device with baud settings.
     virtual shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate, string purpose) = 0;
     // Read from a sub shell.
-    virtual shared_ptr<SerialDevice> createSerialDeviceCommand(string device,
+    virtual shared_ptr<SerialDevice> createSerialDeviceCommand(string identifier,
                                                                string command,
                                                                vector<string> args,
                                                                vector<string> envs,

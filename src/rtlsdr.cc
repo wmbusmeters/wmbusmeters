@@ -44,17 +44,9 @@ vector<string> listRtlSdrDevices()
     return devices;
 }
 
-uint32_t index(string &s)
+AccessCheck detectRTLSDR(string device, Detected *detected)
 {
-    size_t p = s.find('_');
-    if (p == string::npos) return -1;
-    string n = s.substr(0, p);
-    return (uint32_t)atoi(n.c_str());
-}
-
-AccessCheck detectRTLSDR(string id, Detected *detected)
-{
-    uint32_t i = index(id);
+    uint32_t i = indexFromRtlSdrName(device);
 
     uint32_t n = rtlsdr_get_device_count();
 
@@ -62,7 +54,7 @@ AccessCheck detectRTLSDR(string id, Detected *detected)
     // Would be nice to properly test if the device can be opened.
     if (i < n)
     {
-        detected->setAsFound(id, WMBusDeviceType::DEVICE_RTLWMBUS, 0, false);
+        detected->setAsFound("", WMBusDeviceType::DEVICE_RTLWMBUS, 0, false);
         return AccessCheck::AccessOK;
     }
 

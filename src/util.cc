@@ -1506,3 +1506,11 @@ vector<string> splitString(string &s, char c)
     }
     return v;
 }
+
+uint32_t indexFromRtlSdrName(string &s)
+{
+    size_t p = s.find('_');
+    if (p == string::npos) return -1;
+    string n = s.substr(0, p);
+    return (uint32_t)atoi(n.c_str());
+}

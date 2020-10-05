@@ -231,10 +231,13 @@ void check_for_dead_wmbus_devices(Configuration *config)
         if (!w->isWorking())
         {
             not_working.push_back(w.get());
-            notice("Lost %s closing %s(%s)\n",
+            string id = w->getDeviceId();
+            if (id != "") id = "["+id+"]";
+
+            notice("Lost %s closing %s%s\n",
                    w->device().c_str(),
                    toLowerCaseString(w->type()),
-                   w->getDeviceId().c_str());
+                   id.c_str());
         }
     }
 
@@ -327,8 +330,13 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
     case DEVICE_RTLWMBUS:
     {
         string command;
+        string name = "";
+        int id = 0;
         if (!detected->found_tty_override)
         {
+            name = detected->found_file;
+            id = indexFromRtlSdrName(name);
+
             command = "";
             if (detected->specified_device.command != "")
             {
@@ -357,11 +365,11 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
                 }
             }
             if (command == "") {
-                command = prefix+"rtl_sdr -f "+freq+" -s 1.6e6 - 2>/dev/null | "+prefix+"rtl_wmbus";
+                command = prefix+"rtl_sdr -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+prefix+"rtl_wmbus";
             }
             verbose("(rtlwmbus) using command: %s\n", command.c_str());
         }
-        wmbus = openRTLWMBUS("rtlwmbus"/*detected->found_file*/, command, manager,
+        wmbus = openRTLWMBUS(name, command, manager,
                              [command](){
                                  warning("(rtlwmbus) child process exited! "
                                          "Command was: \"%s\"\n", command.c_str());
@@ -684,10 +692,13 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, stri
 
     string using_link_modes = lms.hr();
 
-    string started = tostrprintf("Started %s %s[%s] on %s listening on %s\n",
+    string id = detected->found_device_id.c_str();
+    if (id != "") id = "["+id+"]";
+
+    string started = tostrprintf("Started %s %s%s on %s listening on %s\n",
                                  how.c_str(),
                                  toLowerCaseString(detected->found_type),
-                                 detected->found_device_id.c_str(),
+                                 id.c_str(),
                                  device.c_str(),
                                  using_link_modes.c_str());
 
@@ -783,37 +794,38 @@ void perform_auto_scan_of_serial_devices(Configuration *config)
 void perform_auto_scan_of_swradio_devices(Configuration *config)
 {
     // Enumerate all swradio devices, that can be used.
-    vector<string> devices = listRtlSdrDevices();
+    vector<string> names = listRtlSdrDevices();
 
     // Did an unavailable swradio-device get unplugged? Then remove it from the known-not-swradio-device set.
-    remove_lost_swradio_devices_from_ignore_list(devices);
+    remove_lost_swradio_devices_from_ignore_list(names);
 
-    for (string& device : devices)
+    for (string& name : names)
     {
-        trace("[MAIN] rtlsdr device %s\n", device.c_str());
-        if (not_swradio_wmbus_devices_.count(device) > 0)
+        trace("[MAIN] rtlsdr device %s\n", name.c_str());
+        if (not_swradio_wmbus_devices_.count(name) > 0)
         {
-            trace("[MAIN] skipping already probed rtlsdr device %s\n", device.c_str());
+            trace("[MAIN] skipping already probed rtlsdr %s\n", name.c_str());
             continue;
         }
-        shared_ptr<SerialDevice> sd = serial_manager_->lookup(device);
+        shared_ptr<SerialDevice> sd = serial_manager_->lookup(name);
         if (!sd)
         {
-            debug("(main) rtlsdr device %s not currently used.\n", device.c_str());
-            // This serial device is not in use.
+            debug("(main) rtlsdr device %s not currently used.\n", name.c_str());
             Detected detected;
             detected.setSpecifiedDeviceAsAuto();
-            AccessCheck ac = detectRTLSDR(device, &detected);
+            AccessCheck ac = detectRTLSDR(name, &detected);
             if (ac != AccessCheck::AccessOK)
             {
                 // We cannot access this swradio device.
-                not_swradio_wmbus_devices_.insert(device);
-                verbose("(main) ignoring rtlsdr %s since it is unavailable.\n", device.c_str());
+                not_swradio_wmbus_devices_.insert(name);
+                verbose("(main) ignoring rtlsdr %s since it is unavailable.\n", name.c_str());
             }
             else
             {
+                // Use the name as the file.
+                detected.found_file = name;
                 find_specified_device_and_update_detected(config, &detected);
-                open_wmbus_device_and_set_linkmodes(config, "auto", device, &detected);
+                open_wmbus_device_and_set_linkmodes(config, "auto", name, &detected);
             }
         }
     }
