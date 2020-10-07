@@ -75,9 +75,8 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_additional_json.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
-#TODO not working right now
-#tests/test_rtlwmbus.sh $PROG
-#if [ "$?" != "0" ]; then RC="1"; fi
+tests/test_rtlwmbus.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_stdin_and_file.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi

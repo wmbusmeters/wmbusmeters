@@ -211,6 +211,9 @@ bool handleDevice(Configuration *c, string devicefile)
     bool ok = specified_device.parse(devicefile);
     if (ok)
     {
+        // Number the devices
+        specified_device.index = c->supplied_wmbus_devices.size();
+
         if (specified_device.linkmodes != "")
         {
             // Prevent an early warning in start
@@ -236,6 +239,22 @@ bool handleDevice(Configuration *c, string devicefile)
             }
         }
 
+        if (specified_device.is_stdin ||
+            specified_device.is_file ||
+            specified_device.is_simulation ||
+            specified_device.command != "")
+        {
+            if (c->single_device_override)
+            {
+                error("You can only specify one stdin or one file or one command!\n");
+            }
+            if (c->use_auto_detect)
+            {
+                error("You cannot mix auto with stdin or a file.\n");
+            }
+            if (specified_device.is_simulation) c->simulation_found = true;
+            c->single_device_override = true;
+        }
         if (specified_device.type == "auto")
         {
             c->use_auto_detect = true;

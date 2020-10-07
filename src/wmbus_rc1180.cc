@@ -278,7 +278,7 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
 
     serial->close();
 
-    detected->setAsFound("12345678", WMBusDeviceType::DEVICE_RC1180, 19200, false);
+    detected->setAsFound("12345678", WMBusDeviceType::DEVICE_RC1180, 19200, false, false);
 
     verbose("(rc1180) are you there? yes xxxxxx\n");
 

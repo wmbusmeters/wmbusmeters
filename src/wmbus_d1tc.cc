@@ -222,7 +222,7 @@ AccessCheck detectD1TC(Detected *detected, shared_ptr<SerialCommunicationManager
 
     serial->close();
 
-    detected->setAsFound("", WMBusDeviceType::DEVICE_D1TC, bps, false);
+    detected->setAsFound("", WMBusDeviceType::DEVICE_D1TC, bps, false, false);
 
     return AccessCheck::AccessOK;
 }

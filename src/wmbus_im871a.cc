@@ -869,7 +869,7 @@ AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManag
 
     debug("(im871a) config: %s\n", co.str().c_str());
 
-    detected->setAsFound(co.dongleId(), WMBusDeviceType::DEVICE_IM871A, 57600, false);
+    detected->setAsFound(co.dongleId(), WMBusDeviceType::DEVICE_IM871A, 57600, false, false);
 
     verbose("(im871a) are you there? yes %08x\n", co.dongleId());
 

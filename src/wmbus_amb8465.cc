@@ -548,7 +548,7 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
 
     string id = tostrprintf("%08x", idv);
 
-    detected->setAsFound(id, WMBusDeviceType::DEVICE_AMB8465, 9600, false);
+    detected->setAsFound(id, WMBusDeviceType::DEVICE_AMB8465, 9600, false, false);
 
     verbose("(amb8465) are you there? yes %08x\n", idv);
 

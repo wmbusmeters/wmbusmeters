@@ -72,7 +72,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     ~SerialCommunicationManagerImp();
 
     shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate, string purpose);
-    shared_ptr<SerialDevice> createSerialDeviceCommand(string device, string command, vector<string> args, vector<string> envs,
+    shared_ptr<SerialDevice> createSerialDeviceCommand(string identifier, string command, vector<string> args, vector<string> envs,
                                                        function<void()> on_exit, string purpose);
     shared_ptr<SerialDevice> createSerialDeviceFile(string file, string purpose);
     shared_ptr<SerialDevice> createSerialDeviceSimulator();
@@ -96,6 +96,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
 
     vector<string> listSerialTTYs();
     shared_ptr<SerialDevice> lookup(std::string device);
+    bool removeNonWorking(std::string device);
 
 private:
 
@@ -949,19 +950,6 @@ void *SerialCommunicationManagerImp::eventLoop()
 
         trace("[SERIAL] select timeout %d s\n", timeout.tv_sec);
 
-        bool num_devices = 0;
-        {
-            LOCK_SERIAL_DEVICES(cound_serial_devices);
-            num_devices = serial_devices_.size();
-        }
-
-        if (num_devices == 0 && expect_devices_to_work_)
-        {
-            debug("(serial) no working devices, stopping before entering select.\n");
-            stop();
-            break;
-        }
-
         int max_fd = 0;
         for (shared_ptr<SerialDevice> &sp : serial_devices_)
         {
@@ -1170,6 +1158,27 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::lookup(string device)
         if (sd->device() == device) return shared_ptr<SerialDevice>(sd);
     }
     return NULL;
+}
+
+bool SerialCommunicationManagerImp::removeNonWorking(string device)
+{
+    LOCK_SERIAL_DEVICES(remove_non_working);
+
+    bool found_and_removed = false;
+    for (auto i = serial_devices_.begin(); i != serial_devices_.end(); )
+    {
+        if ((*i)->opened() && !(*i)->working() && (*i)->device() == device)
+        {
+            i = serial_devices_.erase(i);
+            found_and_removed = true;
+        }
+        else
+        {
+            i++;
+        }
+    }
+
+    return found_and_removed;
 }
 
 

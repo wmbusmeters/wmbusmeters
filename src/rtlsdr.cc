@@ -20,9 +20,46 @@
 
 // Include rtl-sdr which is licensed under GPL v2 or later
 // so it happily relicenses with wmbusmeters under GPL v3 or later.
+
 #include<rtl-sdr.h>
 
+// Include libusb, we do not currently make use of this,
+// but the intention is to have better detection of usb
+// changes in the future. Perhaps even callbacks?
+
+#include<libusb-1.0/libusb.h>
+
 using namespace std;
+
+struct StaticLibUSB
+{
+    libusb_context *ctx_;
+
+    StaticLibUSB()
+    {
+        libusb_init(&ctx_);
+        libusb_device **list;
+        ssize_t count = libusb_get_device_list(ctx_, &list);
+
+        for (ssize_t idx = 0; idx < count; ++idx)
+        {
+            libusb_device *device = list[idx];
+            libusb_device_descriptor desc = {0};
+
+            libusb_get_device_descriptor(device, &desc);
+
+            printf("Vendor:Device = %04x:%04x\n", desc.idVendor, desc.idProduct);
+        }
+
+        libusb_free_device_list(list, true);
+    }
+    ~StaticLibUSB()
+    {
+        libusb_exit(ctx_);
+    }
+};
+
+//StaticLibUSB static_;
 
 vector<string> listRtlSdrDevices()
 {
@@ -54,7 +91,7 @@ AccessCheck detectRTLSDR(string device, Detected *detected)
     // Would be nice to properly test if the device can be opened.
     if (i < n)
     {
-        detected->setAsFound("", WMBusDeviceType::DEVICE_RTLWMBUS, 0, false);
+        detected->setAsFound("", WMBusDeviceType::DEVICE_RTLWMBUS, 0, false, false);
         return AccessCheck::AccessOK;
     }
 

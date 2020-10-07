@@ -34,6 +34,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
 // It has this format "file:type(id):fq:bps:linkmods:CMD(command)"
 struct SpecifiedDevice
 {
+    int index; // 0,1,2,3 the order on the command line / config file.
     std::string file; // simulation_meter.txt, stdin, file.raw, /dev/ttyUSB0
     bool is_tty{}, is_stdin{}, is_file{}, is_simulation{};
     std::string type; // im871a, rtlwmbus
@@ -44,6 +45,7 @@ struct SpecifiedDevice
     std::string command; // command line of background process that streams data into wmbusmeters
 
     bool handled {}; // Set to true when this device has been detected/handled.
+    time_t last_alarm {}; // Last time an alarm was sent for this device not being found.
 
     void clear();
     string str();
@@ -82,6 +84,8 @@ struct Detected
     WMBusDeviceType found_type {};  // IM871A, AMB8465 etc.
     int found_bps {}; // Serial speed of tty, overrides
     bool found_tty_override {}; // override tty
+    bool found_cmd_override {}; // override cmd
+    string found_command;
 
     void setSpecifiedDeviceAsAuto()
     {
@@ -93,12 +97,13 @@ struct Detected
         specified_device = sd;
     }
 
-    void setAsFound(string id, WMBusDeviceType t, int b, bool to)
+    void setAsFound(string id, WMBusDeviceType t, int b, bool to, bool co)
     {
         found_device_id = id;
         found_type = t;
         found_bps = b;
         found_tty_override = to;
+        found_cmd_override = co;
     }
 
     std::string str()
@@ -488,6 +493,8 @@ struct WMBus
     virtual void setLinkModes(LinkModeSet lms) = 0;
     virtual void onTelegram(function<bool(vector<uchar>)> cb) = 0;
     virtual SerialDevice *serial() = 0;
+    // Return true of the serial has been overridden, usually with stdin or a file.
+    virtual bool serialOverride() = 0;
     virtual void simulate() = 0;
     // Return true if underlying device is ok and device in general seems to be working.
     virtual bool isWorking() = 0;
@@ -503,11 +510,15 @@ struct WMBus
     // Set a regular interval for resetting the wmbus device.
     // Default is once ever 24 hours.
     virtual void setResetInterval(int seconds) = 0;
+    // Close this device.
+    virtual void close() = 0;
     virtual ~WMBus() = 0;
 };
 
 Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
                                    shared_ptr<SerialCommunicationManager> manager);
+Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
+                                      shared_ptr<SerialCommunicationManager> handler);
 
 
 shared_ptr<WMBus> openIM871A(string device, shared_ptr<SerialCommunicationManager> manager,
@@ -518,9 +529,9 @@ shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommu
                              shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRC1180(string device, shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openRTLWMBUS(string device, string command, shared_ptr<SerialCommunicationManager> manager, std::function<void()> on_exit,
+shared_ptr<WMBus> openRTLWMBUS(string identifier, string command, shared_ptr<SerialCommunicationManager> manager, std::function<void()> on_exit,
                                shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openRTL433(string device, string command, shared_ptr<SerialCommunicationManager> manager, std::function<void()> on_exit,
+shared_ptr<WMBus> openRTL433(string identifier, string command, shared_ptr<SerialCommunicationManager> manager, std::function<void()> on_exit,
                              shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> manager,
                               shared_ptr<SerialDevice> serial_override);

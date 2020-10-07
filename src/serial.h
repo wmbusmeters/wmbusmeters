@@ -103,6 +103,8 @@ struct SerialCommunicationManager
     virtual std::vector<std::string> listSerialTTYs() = 0;
     // Return a serial device for the given device, if it exists! Otherwise NULL.
     virtual std::shared_ptr<SerialDevice> lookup(std::string device) = 0;
+    // Remove a closed device, returns false and do not remove, if the device is still in use.
+    virtual bool removeNonWorking(std::string device) = 0;
     virtual ~SerialCommunicationManager();
 };
 

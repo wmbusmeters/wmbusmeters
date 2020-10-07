@@ -3226,6 +3226,28 @@ LinkModeSet WMBusCommonImplementation::protectedGetLinkModes()
     return link_modes_;
 }
 
+void WMBusCommonImplementation::deviceClose()
+{
+}
+
+void WMBusCommonImplementation::close()
+{
+    debug("(wmbus) closing....\n");
+    if (serial())
+    {
+        if (serial()->opened() && serial()->working())
+        {
+            debug("(wmbus) yes closing....\n");
+            serial()->close();
+            manager_->removeNonWorking(serial()->device());
+            serial_ = NULL;
+        }
+    }
+
+    // Invoke any other device specific close for this device.
+    deviceClose();
+}
+
 bool WMBusCommonImplementation::reset()
 {
     last_reset_ = time(NULL);
@@ -4021,7 +4043,7 @@ bool SpecifiedDevice::parse(string &arg)
     // It cannot occur in type,fq or bps.
     vector<string> parts = splitString(arg, ':');
 
-    // Most maxed out device spec:
+    // Most maxed out device spec, though not valid, since file+cmd is not allowed.
     // Example /dev/ttyUSB0:im871a(12345678):9600:868.95M:c1,t1:CMD(rtl_433 -F csv -f 123M)
 
     //         file         type   id        bps  fq     linkmodes command
@@ -4085,7 +4107,8 @@ bool SpecifiedDevice::parse(string &arg)
 
     // Auto is only allowed to be combined with linkmodes and/or frequencies!
     if (type == "auto" && (file != "" || bps != "")) return false;
-
+    // You cannot combine a file with a command.
+    if (file != "" && command != "") return false;
     return true;
 }
 
@@ -4139,7 +4162,8 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
                                    shared_ptr<SerialCommunicationManager> handler)
 {
     assert(specified_device.file != "");
-    debug("(lookup) \"%s\"\n", specified_device.str().c_str());
+    assert(specified_device.command == "");
+    debug("(lookup) with file \"%s\"\n", specified_device.str().c_str());
 
     Detected detected;
     detected.found_file = specified_device.file;
@@ -4148,7 +4172,7 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
     if (specified_device.is_simulation)
     {
         debug("(lookup) driver: simulation file\n");
-        detected.setAsFound("", DEVICE_SIMULATION, 0 , false);
+        detected.setAsFound("", DEVICE_SIMULATION, 0 , false, false);
         specified_device.linkmodes = "any";
         return detected;
     }
@@ -4157,7 +4181,7 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
     if (specified_device.type == "" && specified_device.bps != "" && specified_device.is_tty)
     {
         debug("(lookup) driver: rawtty\n");
-        detected.setAsFound("", DEVICE_RAWTTY, atoi(specified_device.bps.c_str()), false );
+        detected.setAsFound("", DEVICE_RAWTTY, atoi(specified_device.bps.c_str()), false, false);
         return detected;
     }
 
@@ -4165,7 +4189,7 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
     if (specified_device.type == "" && !specified_device.is_tty)
     {
         debug("(lookup) driver: raw file\n");
-        detected.setAsFound("", DEVICE_RAWTTY, 0, true );
+        detected.setAsFound("", DEVICE_RAWTTY, 0, true, false);
         return detected;
     }
 
@@ -4173,12 +4197,27 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
     if (specified_device.type != "")
     {
         debug("(lookup) driver: %s\n", specified_device.type.c_str());
-        detected.setAsFound("", toWMBusDeviceType(specified_device.type), 0, true );
+        detected.setAsFound("", toWMBusDeviceType(specified_device.type), 0, true, false);
         return detected;
     }
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
     // to figure out what is connected to it.
     return detectWMBusDeviceOnTTY(specified_device.file, handler);
+}
+
+Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
+                                      shared_ptr<SerialCommunicationManager> handler)
+{
+    assert(specified_device.file == "");
+    assert(specified_device.command != "");
+    debug("(lookup) with cmd \"%s\"\n", specified_device.str().c_str());
+
+    Detected detected;
+    detected.found_command = specified_device.command;
+    detected.setSpecifiedDevice(specified_device);
+    detected.setAsFound("", toWMBusDeviceType(specified_device.type), 0, false, true);
+
+    return detected;
 }
 
 AccessCheck detectUNKNOWN(Detected *detected, shared_ptr<SerialCommunicationManager> handler)

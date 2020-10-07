@@ -31,7 +31,10 @@ mkdir -p "$OUTPUT_ROOT"
 
 AC_LANG_PUSH([C++])
 
-AC_MSG_CHECKING([for rtlsdr])
+AC_CHECK_LIB(usb, usb_init, [],
+[
+  AC_MSG_ERROR([Could  not find libusb library. Try: sudo apt install libusb-dev])
+])
 
 AC_CHECK_LIB(rtlsdr, rtlsdr_get_device_count, [],
 [

@@ -45,11 +45,15 @@ struct WMBusCommonImplementation : public virtual WMBus
     void disconnectedFromDevice();
     bool reset();
     SerialDevice *serial() { if (serial_) return serial_.get(); else return NULL; }
+    bool serialOverride() { return serial_override_; }
+    void markSerialAsOverriden() { serial_override_ = true; }
+
     string device() { if (serial_) return serial_->device(); else return "?"; }
     // Wait for a response to arrive from the device.
     bool waitForResponse(int id);
     // Notify the waiter that the response has arrived.
     bool notifyResponseIsHere(int id);
+    void close();
 
     protected:
 
@@ -61,6 +65,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     virtual void deviceSetLinkModes(LinkModeSet lms) = 0;
     // Device specific reset code, apart from serial->open and setLinkModes.
     virtual void deviceReset() = 0;
+    virtual void deviceClose();
     LinkModeSet protectedGetLinkModes(); // Used to read private link_modes_ in subclass.
 
     private:
@@ -93,7 +98,7 @@ protected:
     // while the command_mutex_ is taken.
     int waiting_for_response_id_ {};
     Semaphore waiting_for_response_sem_;
-
+    bool serial_override_ {};
 };
 
 #endif

@@ -56,7 +56,7 @@ void list_shell_envs(Configuration *config, string meter_type);
 void list_meters(Configuration *config);
 void log_start_information(Configuration *config);
 void oneshot_check(Configuration *config, Telegram *t, Meter *meter);
-void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, string device, Detected *detected);
+void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Detected *detected);
 void perform_auto_scan_of_devices(Configuration *config);
 void perform_auto_scan_of_serial_devices(Configuration *config);
 void perform_auto_scan_of_swradio_devices(Configuration *config);
@@ -225,12 +225,20 @@ void check_for_dead_wmbus_devices(Configuration *config)
 
     trace("[MAIN] checking for dead wmbus devices...\n");
 
+    bool found_dead_rtlwmbus = false;
+
     vector<WMBus*> not_working;
     for (auto &w : wmbus_devices_)
     {
         if (!w->isWorking())
         {
             not_working.push_back(w.get());
+
+            if ((w->type() == DEVICE_RTLWMBUS || w->type() == DEVICE_RTL433)
+                && !w->serialOverride())
+            {
+                found_dead_rtlwmbus = true;
+            }
             string id = w->getDeviceId();
             if (id != "") id = "["+id+"]";
 
@@ -238,6 +246,32 @@ void check_for_dead_wmbus_devices(Configuration *config)
                    w->device().c_str(),
                    toLowerCaseString(w->type()),
                    id.c_str());
+        }
+    }
+
+    if (found_dead_rtlwmbus)
+    {
+        // Ok, unfortunately the device ids returned by librtlsdr
+        // are reshuffled when rtlsdr devices are unplugged!
+        // So we close all rtlwmbus devices (not overriden)
+        // and re-init them if an rtlwmbus device is lost.
+        for (auto &w : wmbus_devices_)
+        {
+            if (w->isWorking()
+                && (w->type() == DEVICE_RTLWMBUS || w->type() == DEVICE_RTL433)
+                && !w->serialOverride())
+            {
+                not_working.push_back(w.get());
+                string id = w->getDeviceId();
+                if (id != "") id = "["+id+"]";
+
+                notice("Force closing %s %s%s\n",
+                   w->device().c_str(),
+                   toLowerCaseString(w->type()),
+                   id.c_str());
+
+                w->close();
+            }
         }
     }
 
@@ -258,11 +292,23 @@ void check_for_dead_wmbus_devices(Configuration *config)
 
     if (wmbus_devices_.size() == 0)
     {
-        if (!printed_warning_)
+        if (config->single_device_override)
         {
-            info("No wmbus device detected, waiting for a device to be plugged in.\n");
-            check_if_multiple_wmbus_meters_running();
-            printed_warning_ = true;
+            if (!config->simulation_found)
+            {
+                // Expect stdin/file to work.
+                // Simulation is special since it will self stop the serial manager.
+                serial_manager_->expectDevicesToWork();
+            }
+        }
+        else
+        {
+            if (!printed_warning_)
+            {
+                info("No wmbus device detected, waiting for a device to be plugged in.\n");
+                check_if_multiple_wmbus_meters_running();
+                printed_warning_ = true;
+            }
         }
     }
     else
@@ -330,17 +376,18 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
     case DEVICE_RTLWMBUS:
     {
         string command;
-        string name = "";
+        string identifier = detected->found_file;
         int id = 0;
+
         if (!detected->found_tty_override)
         {
-            name = detected->found_file;
-            id = indexFromRtlSdrName(name);
+            id = indexFromRtlSdrName(identifier);
 
             command = "";
-            if (detected->specified_device.command != "")
+            if (detected->found_command != "")
             {
-                command = detected->specified_device.command;
+                command = detected->found_command;
+                identifier = "cmd_"+to_string(detected->specified_device.index);
             }
             string freq = "868.95M";
             if (detected->specified_device.fq != "")
@@ -369,7 +416,7 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
             }
             verbose("(rtlwmbus) using command: %s\n", command.c_str());
         }
-        wmbus = openRTLWMBUS(name, command, manager,
+        wmbus = openRTLWMBUS(identifier, command, manager,
                              [command](){
                                  warning("(rtlwmbus) child process exited! "
                                          "Command was: \"%s\"\n", command.c_str());
@@ -380,12 +427,16 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
     case DEVICE_RTL433:
     {
         string command;
+        string identifier = detected->found_file;
+        int id = 0;
         if (!detected->found_tty_override)
         {
+            id = indexFromRtlSdrName(identifier);
             command = "";
             if (detected->specified_device.command != "")
             {
                 command = detected->specified_device.command;
+                identifier = "cmd_"+to_string(detected->specified_device.index);
             }
             string freq = "868.95M";
             if (detected->specified_device.fq != "")
@@ -405,11 +456,11 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
                 }
             }
             if (command == "") {
-                command = prefix+"rtl_433 -F csv -f "+freq;
+                command = prefix+"rtl_433 -d "+to_string(id)+" -F csv -f "+freq;
             }
             verbose("(rtl433) using command: %s\n", command.c_str());
         }
-        wmbus = openRTL433("rtl433"/*detected->found_file*/, command, manager,
+        wmbus = openRTL433(identifier, command, manager,
                              [command](){
                                  warning("(rtl433) child process exited! "
                                          "Command was: \"%s\"\n", command.c_str());
@@ -481,43 +532,66 @@ void detect_and_configure_wmbus_devices(Configuration *config)
     bool must_auto_find = false;
     for (SpecifiedDevice &specified_device : config->supplied_wmbus_devices)
     {
-        if (specified_device.file == "")
+        specified_device.handled = false;
+        if (specified_device.file == "" && specified_device.command == "")
         {
-            // File/tty not specified, use auto scan later to find actual device file/tty.
+            // File/tty/command not specified, use auto scan later to find actual device file/tty.
             must_auto_find = true;
             continue;
         }
-        shared_ptr<SerialDevice> sd = serial_manager_->lookup(specified_device.file);
-        if (sd != NULL)
+        if (specified_device.command != "")
         {
-            trace("(main) %s already configured\n", sd->device().c_str());
-            continue;
+            string identifier = "cmd_"+to_string(specified_device.index);
+            shared_ptr<SerialDevice> sd = serial_manager_->lookup(identifier);
+            if (sd != NULL)
+            {
+                debug("(main) command %s already configured\n", identifier.c_str());
+                specified_device.handled = true;
+                continue;
+            }
+
+            Detected detected = detectWMBusDeviceWithCommand(specified_device, serial_manager_);
+            specified_device.handled = true;
+            open_wmbus_device_and_set_linkmodes(config, "config", &detected);
         }
-        if (simulation_files_.count(specified_device.file) > 0)
+        if (specified_device.file != "")
         {
-            debug("(main) %s already configured as simulation\n", specified_device.file.c_str());
-            continue;
-        }
-        if (do_not_open_file_again_.count(specified_device.file) > 0)
-        {
-            // This was stdin/file, it should only be opened once.
-            trace("(MAIN) ignoring handled file %s\n", specified_device.file.c_str());
-            continue;
+            shared_ptr<SerialDevice> sd = serial_manager_->lookup(specified_device.file);
+            if (sd != NULL)
+            {
+                debug("(main) %s already configured\n", sd->device().c_str());
+                specified_device.handled = true;
+                continue;
+            }
+            if (simulation_files_.count(specified_device.file) > 0)
+            {
+                debug("(main) %s already configured as simulation\n", specified_device.file.c_str());
+                specified_device.handled = true;
+                continue;
+            }
+            if (do_not_open_file_again_.count(specified_device.file) > 0)
+            {
+                // This was stdin/file, it should only be opened once.
+                debug("(MAIN) ignoring handled file %s\n", specified_device.file.c_str());
+                specified_device.handled = true;
+                continue;
+            }
+
+            Detected detected = detectWMBusDeviceWithFile(specified_device, serial_manager_);
+
+            if (detected.found_type == DEVICE_UNKNOWN)
+            {
+                warning("Warning! Unknown device %s\n", specified_device.str().c_str());
+            }
+
+            if (detected.specified_device.is_stdin || detected.specified_device.is_file || detected.specified_device.is_simulation)
+            {
+                // Only read stdin and files once!
+                do_not_open_file_again_.insert(specified_device.file);
+            }
+            open_wmbus_device_and_set_linkmodes(config, "config", &detected);
         }
 
-        Detected detected = detectWMBusDeviceWithFile(specified_device, serial_manager_);
-
-        if (detected.found_type == DEVICE_UNKNOWN)
-        {
-            warning("Warning! Unknown device %s\n", specified_device.str().c_str());
-        }
-
-        if (detected.specified_device.is_stdin || detected.specified_device.is_file || detected.specified_device.is_simulation)
-        {
-            // Only read stdin and files once!
-            do_not_open_file_again_.insert(specified_device.file);
-        }
-        open_wmbus_device_and_set_linkmodes(config, "config", specified_device.file, &detected);
         specified_device.handled = true;
     }
 
@@ -530,7 +604,14 @@ void detect_and_configure_wmbus_devices(Configuration *config)
     {
         if (!specified_device.handled)
         {
-            logAlarm("device_not_found", specified_device.str());
+            time_t last_alarm = specified_device.last_alarm;
+            time_t now = time(NULL);
+
+            if (now - last_alarm > 10)
+            {
+                specified_device.last_alarm = now;
+                logAlarm("device_not_found", specified_device.str());
+            }
         }
     }
 }
@@ -659,7 +740,7 @@ void oneshot_check(Configuration *config, Telegram *t, Meter *meter)
     }
 }
 
-void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, string device, Detected *detected)
+void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Detected *detected)
 {
     LOCK_WMBUS_DEVICES(open_wmbus_device);
 
@@ -694,13 +775,24 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, stri
 
     string id = detected->found_device_id.c_str();
     if (id != "") id = "["+id+"]";
+    string fq = detected->specified_device.fq;
+    if (fq != "") fq = " using fq "+fq;
+    string file = detected->found_file.c_str();
+    if (file != "") file = " on "+file;
+    string cmd = detected->found_command.c_str();
+    if (cmd != "")
+    {
+        cmd = " using CMD("+cmd+")";
+    }
 
-    string started = tostrprintf("Started %s %s%s on %s listening on %s\n",
+    string started = tostrprintf("Started %s %s%s%s listening on %s%s%s\n",
                                  how.c_str(),
                                  toLowerCaseString(detected->found_type),
                                  id.c_str(),
-                                 device.c_str(),
-                                 using_link_modes.c_str());
+                                 file.c_str(),
+                                 using_link_modes.c_str(),
+                                 fq.c_str(),
+                                 cmd.c_str());
 
     // A newly plugged in device has been manually configured or automatically detected! Start using it!
     if (config->use_auto_detect || detected->found_type != DEVICE_SIMULATION)
@@ -723,7 +815,8 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, stri
     int regular_reset = 23*3600;
     if (config->resetafter != 0) regular_reset = config->resetafter;
     wmbus->setResetInterval(regular_reset);
-    verbose("(main) regular reset of %s %s will happen every %d seconds\n", toString(detected->found_type), device.c_str(),  regular_reset);
+    verbose("(main) regular reset of %s %s%s will happen every %d seconds\n",
+            toString(detected->found_type), file.c_str(), cmd.c_str(), regular_reset);
 
     wmbus->setLinkModes(lms);
     /*
@@ -777,7 +870,7 @@ void perform_auto_scan_of_serial_devices(Configuration *config)
                 // See if we had a specified device without a file,
                 // that matches this detected device.
                 find_specified_device_and_update_detected(config, &detected);
-                open_wmbus_device_and_set_linkmodes(config, "auto", tty, &detected);
+                open_wmbus_device_and_set_linkmodes(config, "auto", &detected);
             }
             else
             {
@@ -801,10 +894,10 @@ void perform_auto_scan_of_swradio_devices(Configuration *config)
 
     for (string& name : names)
     {
-        trace("[MAIN] rtlsdr device %s\n", name.c_str());
+        debug("[MAIN] rtlsdr device %s\n", name.c_str());
         if (not_swradio_wmbus_devices_.count(name) > 0)
         {
-            trace("[MAIN] skipping already probed rtlsdr %s\n", name.c_str());
+            debug("[MAIN] skipping already probed rtlsdr %s\n", name.c_str());
             continue;
         }
         shared_ptr<SerialDevice> sd = serial_manager_->lookup(name);
@@ -825,7 +918,7 @@ void perform_auto_scan_of_swradio_devices(Configuration *config)
                 // Use the name as the file.
                 detected.found_file = name;
                 find_specified_device_and_update_detected(config, &detected);
-                open_wmbus_device_and_set_linkmodes(config, "auto", name, &detected);
+                open_wmbus_device_and_set_linkmodes(config, "auto", &detected);
             }
         }
     }
@@ -989,26 +1082,10 @@ bool start(Configuration *config)
 
     detect_and_configure_wmbus_devices(config);
 
-    if (!config->use_auto_detect)
+    if (wmbus_devices_.size() == 0)
     {
-        if (simulation_files_.size() == 0)
-        {
-            serial_manager_->expectDevicesToWork();
-        }
-        if (wmbus_devices_.size() == 0)
-        {
-            notice("No wmbus device configured! Exiting.\n");
-            check_if_multiple_wmbus_meters_running();
-            serial_manager_->stop();
-        }
-    }
-    else
-    {
-        if (wmbus_devices_.size() == 0)
-        {
-            notice("No wmbus device detected, waiting for a device to be plugged in.\n");
-            check_if_multiple_wmbus_meters_running();
-        }
+        notice("No wmbus device detected, waiting for a device to be plugged in.\n");
+        check_if_multiple_wmbus_meters_running();
     }
 
     // Every 2 seconds detect any plugged in or removed wmbus devices.

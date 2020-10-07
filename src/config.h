@@ -86,6 +86,8 @@ struct Configuration
     int  resetafter {}; // Reset the wmbus devices regularly.
     std::vector<SpecifiedDevice> supplied_wmbus_devices; // /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600
     bool use_auto_detect {}; // Set to true if auto was supplied as device.
+    bool single_device_override {}; // Set to true if there is a stdin/file or simulation device.
+    bool simulation_found {};
     LinkModeSet linkmodes; // If --c1 or auto:c1 then store c1 here.
     bool linkmodes_configured {}; // Either auto:c1 or --c1 is specified.
     string telegram_reader;

@@ -72,9 +72,10 @@ private:
     string setup_;
 };
 
-shared_ptr<WMBus> openRTL433(string device, string command, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openRTL433(string identifier, string command, shared_ptr<SerialCommunicationManager> manager,
                              function<void()> on_exit, shared_ptr<SerialDevice> serial_override)
 {
+    assert(identifier != "");
     vector<string> args;
     vector<string> envs;
     args.push_back("-c");
@@ -84,7 +85,7 @@ shared_ptr<WMBus> openRTL433(string device, string command, shared_ptr<SerialCom
         WMBusRTL433 *imp = new WMBusRTL433(serial_override, manager);
         return shared_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceCommand(device, "/bin/sh", args, envs, on_exit, "rtl433");
+    auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, on_exit, "rtl433");
     WMBusRTL433 *imp = new WMBusRTL433(serial, manager);
     return shared_ptr<WMBus>(imp);
 }
@@ -297,7 +298,7 @@ FrameStatus WMBusRTL433::checkRTL433Frame(vector<uchar> &data,
 
 AccessCheck detectRTL433(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
-    detected->setAsFound("", WMBusDeviceType::DEVICE_RTLWMBUS, 0, false);
+    detected->setAsFound("", WMBusDeviceType::DEVICE_RTLWMBUS, 0, false, false);
 
     return AccessCheck::AccessOK;
 }

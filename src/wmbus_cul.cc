@@ -383,7 +383,7 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
 
     serial->close();
 
-    detected->setAsFound("12345678", WMBusDeviceType::DEVICE_CUL, 38400, false);
+    detected->setAsFound("12345678", WMBusDeviceType::DEVICE_CUL, 38400, false, false);
 
     return AccessCheck::AccessOK;
 }
