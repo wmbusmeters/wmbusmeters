@@ -89,13 +89,13 @@ double MeterOmnipower::totalEnergyBackward(Unit u)
 
 double MeterOmnipower::powerConsumption(Unit u)
 {
-    assertQuantity(u, Quantity::Energy);
+    assertQuantity(u, Quantity::Power);
     return convert(power_kw_, Unit::KW, u);
 }
 
 double MeterOmnipower::powerBackward(Unit u)
 {
-    assertQuantity(u, Quantity::Energy);
+    assertQuantity(u, Quantity::Power);
     return convert(power_backward_kw_, Unit::KW, u);
 }
 
