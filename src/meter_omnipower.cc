@@ -105,5 +105,12 @@ void MeterOmnipower::processContent(Telegram *t)
     extractDVdouble(&t->values, "04833B", &offset, &total_energy_kwh_);
     t->addMoreExplanation(offset, " total power (%f kwh)", total_energy_kwh_);
 
-    std::cout << "Offset = " << offset << std::endl;
+    extractDVdouble(&t->values, "04833B", &offset, &total_energy_kwh_);
+    t->addMoreExplanation(offset, " total power (%f kwh)", total_energy_kwh_);
+
+    //std::cout << "Offset = " << offset << std::endl; // this is always 0
+
+    for (auto k: t->values) {
+        std::cout << k.first << ": " << k.second.first << ": " << "DVEntry here" << std::endl;
+    }
 }
