@@ -1514,3 +1514,46 @@ uint32_t indexFromRtlSdrName(string &s)
     string n = s.substr(0, p);
     return (uint32_t)atoi(n.c_str());
 }
+
+#define KB 1024ull
+
+string helper(size_t scale, size_t s, string suffix)
+{
+    size_t o = s;
+    s /= scale;
+    size_t diff = o-(s*scale);
+    if (diff == 0) {
+        return to_string(s) + ".00"+suffix;
+    }
+    size_t dec = (int)(100*(diff+1) / scale);
+    return to_string(s) + ((dec<10)?".0":".") + to_string(dec) + suffix;
+}
+
+string humanReadableTwoDecimals(size_t s)
+{
+    if (s < KB)
+    {
+        return to_string(s) + " B";
+    }
+    if (s < KB * KB)
+    {
+        return helper(KB, s, " KiB");
+    }
+    if (s < KB * KB * KB)
+    {
+        return helper(KB*KB, s, " MiB");
+    }
+#if SIZEOF_SIZE_T == 8
+    if (s < KB * KB * KB * KB)
+    {
+        return helper(KB*KB*KB, s, " GiB");
+    }
+    if (s < KB * KB * KB * KB * KB)
+    {
+        return helper(KB*KB*KB*KB, s, " TiB");
+    }
+    return helper(KB*KB*KB*KB*KB, s, " PiB");
+#else
+    return helper(KB*KB*KB, s, " GiB");
+#endif
+}

@@ -228,12 +228,12 @@ void Telegram::print()
            manufacturerFlag(dll_mfct).c_str(),
            manufacturer(dll_mfct).c_str(),
            dll_mfct);
-    notice("           device type: %s (0x%02x)\n", mediaType(dll_type).c_str(), dll_type);
+    notice("                  type: %s (0x%02x)\n", mediaType(dll_type).c_str(), dll_type);
 
-    notice("            device ver: 0x%02x\n", dll_version);
+    notice("                   ver: 0x%02x\n", dll_version);
 
     string possible_drivers = autoDetectPossibleDrivers();
-    notice("         device driver: %s\n", possible_drivers.c_str());
+    notice("                driver: %s\n", possible_drivers.c_str());
 }
 
 void Telegram::printDLL()

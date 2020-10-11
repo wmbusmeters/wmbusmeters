@@ -17,6 +17,10 @@
 
 #include "threads.h"
 
+#include <unistd.h>
+#include <sys/resource.h>
+#include <stdio.h>
+
 using namespace std;
 
 pthread_t main_thread_ {};
@@ -178,4 +182,52 @@ void Semaphore::notify()
     {
         error("(thread) pthread cond signal ERROR\n");
     }
+}
+
+size_t getPeakRSS()
+{
+    struct rusage rusage;
+
+    getrusage( RUSAGE_SELF, &rusage );
+
+#if defined(__APPLE__) && defined(__MACH__)
+    return (size_t)rusage.ru_maxrss;
+#else
+    return (size_t)(rusage.ru_maxrss * 1024L);
+#endif
+}
+
+size_t getCurrentRSS()
+{
+#if defined(__APPLE__) && defined(__MACH__)
+
+    struct mach_task_basic_info info;
+
+    mach_msg_type_number_t info_count = MACH_TASK_BASIC_INFO_COUNT;
+
+    int rc = task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&info, &info_count);
+    if (rc != KERN_SUCCESS)
+    {
+        return 0;
+    }
+    return (size_t)info.resident_size;
+
+#elif defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+
+    long rss = 0;
+    FILE *fp = fopen("/proc/self/statm", "r");
+    if (!fp)
+    {
+        return 0;
+    }
+    int rc = fscanf(fp, "%*s%ld", &rss);
+    if (rc != 1)
+    {
+        fclose(fp);
+        return 0;
+    }
+    fclose(fp);
+    return (size_t)rss * (size_t)sysconf( _SC_PAGESIZE);
+
+#endif
 }

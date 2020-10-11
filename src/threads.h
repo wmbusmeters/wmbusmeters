@@ -53,6 +53,10 @@ pthread_t getTimerLoopThread();
 void startTimerLoopThread(std::function<void()> cb);
 
 
+size_t getPeakRSS();
+size_t getCurrentRSS();
+
+
 #define LOCK(module,func,x) { trace("[LOCKING] " #x " " func " (%s %d)\n", x ## func_, x ## pid_); \
                               pthread_mutex_lock(&x); \
                               x ## func_ = func; \

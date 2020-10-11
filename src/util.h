@@ -173,6 +173,8 @@ bool startsWith(std::string s, std::vector<uchar> &data);
 // Sum the memory used by the heap and stack.
 size_t memoryUsage();
 
+std::string humanReadableTwoDecimals(size_t s);
+
 uint32_t indexFromRtlSdrName(std::string &s);
 
 #endif

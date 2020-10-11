@@ -926,6 +926,12 @@ void perform_auto_scan_of_swradio_devices(Configuration *config)
 
 void regular_checkup(Configuration *config)
 {
+    size_t peak_rss = getPeakRSS();
+    size_t curr_rss = getCurrentRSS();
+    string prss = humanReadableTwoDecimals(peak_rss);
+
+    debug("rss %zu peak %s\n", curr_rss, prss.c_str());
+
     if (serial_manager_ && config)
     {
         detect_and_configure_wmbus_devices(config);
