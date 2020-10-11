@@ -64,12 +64,12 @@ MeterOmnipower::MeterOmnipower(WMBus *bus, MeterInfo &mi) :
              "The total energy backward recorded by this meter.",
              true, true);
 
-    addPrint("power_consumption", Quantity::Energy,
+    addPrint("power_consumption", Quantity::Power,
              [&](Unit u){ return powerConsumption(u); },
              "The current power consumption on this meter.",
              true, true);
 
-    addPrint("power_backward", Quantity::Energy,
+    addPrint("power_backward", Quantity::Power,
              [&](Unit u){ return powerBackward(u); },
              "The current power backward on this meter.",
              true, true);
