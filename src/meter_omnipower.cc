@@ -29,7 +29,7 @@ struct MeterOmnipower : public virtual ElectricityMeter, public virtual MeterCom
     double totalEnergyConsumption(Unit u);
     double totalEnergyBackward(Unit u);
     double powerConsumption(Unit u);
-    double powerConsumptionBackward(Unit u);
+    double powerBackward(Unit u);
 
 private:
 
@@ -58,6 +58,21 @@ MeterOmnipower::MeterOmnipower(WMBus *bus, MeterInfo &mi) :
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
              true, true);
+
+    addPrint("total_energy_backward", Quantity::Energy,
+             [&](Unit u){ return totalEnergyBackward(u); },
+             "The total energy backward recorded by this meter.",
+             true, true);
+
+    addPrint("power_consumption", Quantity::Energy,
+             [&](Unit u){ return powerConsumption(u); },
+             "The current power consumption on this meter.",
+             true, true);
+
+    addPrint("power_backward", Quantity::Energy,
+             [&](Unit u){ return powerBackward(u); },
+             "The current power backward on this meter.",
+             true, true);
 }
 
 double MeterOmnipower::totalEnergyConsumption(Unit u)
@@ -78,7 +93,7 @@ double MeterOmnipower::powerConsumption(Unit u)
     return convert(power_kw_, Unit::KW, u);
 }
 
-double MeterOmnipower::powerConsumptionBackward(Unit u)
+double MeterOmnipower::powerBackward(Unit u)
 {
     assertQuantity(u, Quantity::Energy);
     return convert(power_backward_kw_, Unit::KW, u);
