@@ -27,21 +27,19 @@ struct MeterOmnipower : public virtual ElectricityMeter, public virtual MeterCom
     MeterOmnipower(WMBus *bus, MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
-
-    double unknownField1(Unit u);
-    double unknownField2(Unit u);
-    double unknownField3(Unit u);
-    double unknownField4(Unit u);
+    double totalEnergyBackward(Unit u);
+    double powerConsumption(Unit u);
+    double powerConsumptionBackward(Unit u);
 
 private:
 
     void processContent(Telegram *t);
 
     double total_energy_kwh_{};
-    double field_1_ {};
-    double field_2_ {};
-    double field_3_ {};
-    double field_4_ {};
+    double total_energy_backward_kwh_{};
+    double power_kw_{};
+    double power_backward_kw_{};
+
 };
 
 unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, MeterInfo &mi)
@@ -68,28 +66,22 @@ double MeterOmnipower::totalEnergyConsumption(Unit u)
     return convert(total_energy_kwh_, Unit::KWH, u);
 }
 
-double MeterOmnipower::unknownField1(Unit u)
+double MeterOmnipower::totalEnergyBackward(Unit u)
 {
     assertQuantity(u, Quantity::Energy);
-    return convert(field_1_, Unit::KWH, u);
+    return convert(total_energy_backward_kwh_, Unit::KWH, u);
 }
 
-double MeterOmnipower::unknownField2(Unit u)
+double MeterOmnipower::powerConsumption(Unit u)
 {
     assertQuantity(u, Quantity::Energy);
-    return convert(field_2_, Unit::KWH, u);
+    return convert(power_kw_, Unit::KW, u);
 }
 
-double MeterOmnipower::unknownField3(Unit u)
+double MeterOmnipower::powerConsumptionBackward(Unit u)
 {
     assertQuantity(u, Quantity::Energy);
-    return convert(field_3_, Unit::KWH, u);
-}
-
-double MeterOmnipower::unknownField4(Unit u)
-{
-    assertQuantity(u, Quantity::Energy);
-    return convert(field_4_, Unit::KWH, u);
+    return convert(power_backward_kw_, Unit::KW, u);
 }
 
 
@@ -104,16 +96,21 @@ void MeterOmnipower::processContent(Telegram *t)
     //"040404843C042B04AB3C"
 
     int offset;
-    //extractDVdouble(&t->values, "04833B", &offset, &total_energy_kwh_);
-    extractDVdouble(&t->values, "04843C", &offset, &total_energy_kwh_);
-    t->addMoreExplanation(offset, " total power (%f kwh)", total_energy_kwh_);
+    extractDVdouble(&t->values, "0404", &offset, &total_energy_kwh_);
+    t->addMoreExplanation(offset, " total energy (%f kwh)", total_energy_kwh_);
 
-    //extractDVdouble(&t->values, "04833B", &offset, &total_energy_kwh_);
-    //t->addMoreExplanation(offset, " total power (%f kwh)", total_energy_kwh_);
+    extractDVdouble(&t->values, "04843C", &offset, &total_energy_backward_kwh_);
+    t->addMoreExplanation(offset, " total energy backward (%f kwh)", total_energy_backward_kwh_);
+
+    extractDVdouble(&t->values, "042B", &offset, &power_kw_);
+    t->addMoreExplanation(offset, " current power (%f kw)", power_kw_);
+
+    extractDVdouble(&t->values, "042B", &offset, &power_backward_kw_);
+    t->addMoreExplanation(offset, " current power (%f kw)", power_backward_kw_);
 
     //std::cout << "Offset = " << offset << std::endl; // this is always 0
 
-    for (auto k: t->values) {
-        std::cout << k.first << ": " << k.second.first << ": " << "DVEntry here" << std::endl;
-    }
+//    for (auto k: t->values) {
+//        std::cout << k.first << ": " << k.second.first << ": " << "DVEntry here" << std::endl;
+//    }
 }
