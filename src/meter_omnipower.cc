@@ -108,7 +108,7 @@ void MeterOmnipower::processContent(Telegram *t)
     // 3b vife (Forward flow contribution only)
     // xx xx xx xx (total energy)
 
-    //"040404843C042B04AB3C"
+    // Correct field codes "040404843C042B04AB3C"
 
     int offset;
     extractDVdouble(&t->values, "0404", &offset, &total_energy_kwh_);
