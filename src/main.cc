@@ -51,6 +51,7 @@ shared_ptr<Printer> create_printer(Configuration *config);
 shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config, shared_ptr<SerialCommunicationManager> manager);
 void detect_and_configure_wmbus_devices(Configuration *config);
 bool find_specified_device_and_update_detected(Configuration *c, Detected *d);
+void find_specified_device_and_mark_as_handled(Configuration *c, Detected *d);
 void list_fields(Configuration *config, string meter_type);
 void list_shell_envs(Configuration *config, string meter_type);
 void list_meters(Configuration *config);
@@ -83,7 +84,7 @@ shared_ptr<MeterManager> meter_manager_;
 // Current active set of wmbus devices that can receive telegrams.
 // This can change during runtime, plugging/unplugging wmbus dongles.
 vector<shared_ptr<WMBus>> wmbus_devices_;
-RecursiveMutex wmbus_devices_mutex_("wmbus_devices_mutex"); // Protected by macro LOCK_WMBUS_DEVICES
+RecursiveMutex wmbus_devices_mutex_("wmbus_devices_mutex");
 #define LOCK_WMBUS_DEVICES(where) WITH(wmbus_devices_mutex_, where)
 
 // Remember devices that were not detected as wmbus devices.
@@ -252,7 +253,7 @@ void check_for_dead_wmbus_devices(Configuration *config)
     if (found_dead_rtlwmbus)
     {
         // Ok, unfortunately the device ids returned by librtlsdr
-        // are reshuffled when rtlsdr devices are unplugged!
+        // are reshuffled when an rtlsdr devices is unplugged!
         // So we close all rtlwmbus devices (not overriden)
         // and re-init them if an rtlwmbus device is lost.
         for (auto &w : wmbus_devices_)
@@ -511,6 +512,7 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
             return NULL;
         }
     }
+    wmbus->setDetected(*detected);
     return wmbus;
 }
 
@@ -600,6 +602,12 @@ void detect_and_configure_wmbus_devices(Configuration *config)
         perform_auto_scan_of_devices(config);
     }
 
+    for (shared_ptr<WMBus> &wmbus : wmbus_devices_)
+    {
+        assert(wmbus->getDetected() != NULL);
+        find_specified_device_and_mark_as_handled(config, wmbus->getDetected());
+    }
+
     for (SpecifiedDevice &specified_device : config->supplied_wmbus_devices)
     {
         if (!specified_device.handled)
@@ -607,10 +615,13 @@ void detect_and_configure_wmbus_devices(Configuration *config)
             time_t last_alarm = specified_device.last_alarm;
             time_t now = time(NULL);
 
-            if (now - last_alarm > 10)
+            // If the device is missing, warn once per minute.
+            if (now - last_alarm > 60)
             {
                 specified_device.last_alarm = now;
-                logAlarm("device_not_found", specified_device.str());
+                string device = specified_device.str();
+                string info = tostrprintf("the device %s is not working", device.c_str());
+                logAlarm(Alarm::SpecifiedDeviceNotFound, info);
             }
         }
     }
@@ -618,12 +629,12 @@ void detect_and_configure_wmbus_devices(Configuration *config)
 
 bool find_specified_device_and_update_detected(Configuration *c, Detected *d)
 {
-    // First look for exact type+id match.
+    // Iterate over the supplied devices and look for an exact type+id match.
+    // This will find specified devices like: im871a[12345678]
     for (SpecifiedDevice & sd : c->supplied_wmbus_devices)
     {
         if (sd.file == "" && sd.id != "" && sd.id == d->found_device_id && toWMBusDeviceType(sd.type) == d->found_type)
         {
-            sd.handled = true;
             d->specified_device = sd;
             debug("(main) found specified device (%s) that matches detected device (%s)\n",
                   sd.str().c_str(),
@@ -632,11 +643,12 @@ bool find_specified_device_and_update_detected(Configuration *c, Detected *d)
         }
     }
 
+    // Iterate over the supplied devices and look for a type match.
+    // This will find specified devices like: im871a, rtlwmbus
     for (SpecifiedDevice & sd : c->supplied_wmbus_devices)
     {
         if (sd.file == "" && sd.id == "" && toWMBusDeviceType(sd.type) == d->found_type)
         {
-            sd.handled = true;
             d->specified_device = sd;
             debug("(main) found specified device (%s) that matches detected device (%s)\n",
                   sd.str().c_str(),
@@ -646,6 +658,29 @@ bool find_specified_device_and_update_detected(Configuration *c, Detected *d)
     }
 
     return false;
+}
+
+void find_specified_device_and_mark_as_handled(Configuration *c, Detected *d)
+{
+    // Iterate over the supplied devices and look for an exact type+id match.
+    // This will find specified devices like: im871a[12345678]
+    for (SpecifiedDevice & sd : c->supplied_wmbus_devices)
+    {
+        if (sd.file == "" && sd.id != "" && sd.id == d->found_device_id && toWMBusDeviceType(sd.type) == d->found_type)
+        {
+            sd.handled = true;
+        }
+    }
+
+    // Iterate over the supplied devices and look for a type match.
+    // This will find specified devices like: im871a, rtlwmbus
+    for (SpecifiedDevice & sd : c->supplied_wmbus_devices)
+    {
+        if (sd.file == "" && sd.id == "" && toWMBusDeviceType(sd.type) == d->found_type)
+        {
+            sd.handled = true;
+        }
+    }
 }
 
 void list_shell_envs(Configuration *config, string meter_type)
@@ -805,10 +840,9 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Dete
         verbose("%s", started.c_str());
     }
 
-    shared_ptr<WMBus> w = create_wmbus_object(detected, config, serial_manager_);
-    if (w == NULL) return;
-    wmbus_devices_.push_back(w);
-    WMBus *wmbus = wmbus_devices_.back().get();
+    shared_ptr<WMBus> wmbus = create_wmbus_object(detected, config, serial_manager_);
+    if (wmbus == NULL) return;
+    wmbus_devices_.push_back(wmbus);
 
     // By default, reset your dongle once every 23 hours,
     // so that the reset is not at the exact same time every day.
@@ -924,13 +958,24 @@ void perform_auto_scan_of_swradio_devices(Configuration *config)
     }
 }
 
+time_t last_info_print_ = 0;
+
 void regular_checkup(Configuration *config)
 {
-    size_t peak_rss = getPeakRSS();
-    size_t curr_rss = getCurrentRSS();
-    string prss = humanReadableTwoDecimals(peak_rss);
+    if (config->daemon)
+    {
+        time_t now = time(NULL);
+        if (now - last_info_print_ > 3600*24)
+        {
+            last_info_print_= now;
+            size_t peak_rss = getPeakRSS();
+            size_t curr_rss = getCurrentRSS();
+            string prss = humanReadableTwoDecimals(peak_rss);
 
-    debug("rss %zu peak %s\n", curr_rss, prss.c_str());
+            // Log memory usage once per day.
+            notice("(memory) rss %zu peak %s\n", curr_rss, prss.c_str());
+        }
+    }
 
     if (serial_manager_ && config)
     {

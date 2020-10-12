@@ -54,6 +54,8 @@ struct WMBusCommonImplementation : public virtual WMBus
     // Notify the waiter that the response has arrived.
     bool notifyResponseIsHere(int id);
     void close();
+    void setDetected(Detected detected) { detected_ = detected; }
+    Detected *getDetected() { return &detected_; }
 
     protected:
 
@@ -81,6 +83,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     int reset_timeout_ {}; // When set to 24*3600 reset the device once every 24 hours.
     bool link_modes_configured_ {};
     LinkModeSet link_modes_ {};
+    Detected detected_ {}; // Used to remember how this device was setup.
 
     shared_ptr<SerialDevice> serial_;
 

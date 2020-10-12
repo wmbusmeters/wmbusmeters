@@ -89,7 +89,16 @@ void debugPayload(std::string intro, std::vector<uchar> &payload);
 void debugPayload(std::string intro, std::vector<uchar> &payload, std::vector<uchar>::iterator &pos);
 void logTelegram(std::string intro, std::vector<uchar> &parsed, int header_size, int suffix_size);
 
-void logAlarm(std::string type, std::string msg);
+enum class Alarm
+{
+    DeviceFailure,
+    RegularResetFailure,
+    DeviceInactivity,
+    SpecifiedDeviceNotFound
+};
+
+const char* toString(Alarm type);
+void logAlarm(Alarm type, std::string info);
 void setAlarmShells(std::vector<std::string> &alarm_shells);
 
 bool isValidMatchExpression(std::string id, bool non_compliant);

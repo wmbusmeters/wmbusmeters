@@ -3317,7 +3317,7 @@ void WMBusCommonImplementation::checkStatus()
         if (ok) return;
         string msg;
         strprintf(msg, "failed regular reset of %s %s", device().c_str(), toString(type()));
-        logAlarm("regular_reset", msg);
+        logAlarm(Alarm::RegularResetFailure, msg);
         return;
     }
 
@@ -3325,7 +3325,7 @@ void WMBusCommonImplementation::checkStatus()
     {
         string msg;
         strprintf(msg, "too many protocol errors(%d) resetting %s %s", protocol_error_count_, device().c_str(), toString(type()));
-        logAlarm("device_failure", msg);
+        logAlarm(Alarm::DeviceFailure, msg);
         bool ok = reset();
         if (ok)
         {
@@ -3335,7 +3335,7 @@ void WMBusCommonImplementation::checkStatus()
         }
 
         strprintf(msg, "failed to reset wmbus device %s %s exiting wmbusmeters", device().c_str(), toString(type()));
-        logAlarm("device_failure", msg);
+        logAlarm(Alarm::DeviceFailure, msg);
         manager_->stop();
         return;
     }
@@ -3378,7 +3378,7 @@ void WMBusCommonImplementation::checkStatus()
               since, device().c_str(), toString(type()),
               timeout_, expected_activity_.c_str(), nowtxt.c_str());
 
-    logAlarm("inactivity", msg);
+    logAlarm(Alarm::DeviceInactivity, msg);
 
     bool ok = reset();
     if (ok)
@@ -3388,7 +3388,7 @@ void WMBusCommonImplementation::checkStatus()
     else
     {
         strprintf(msg, "failed to reset wmbus device %s %s exiting wmbusmeters", device().c_str(), toString(type()));
-        logAlarm("device_failure", msg);
+        logAlarm(Alarm::DeviceFailure, msg);
         manager_->stop();
     }
 }

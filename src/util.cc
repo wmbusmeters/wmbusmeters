@@ -1442,13 +1442,28 @@ size_t memoryUsage()
 
 vector<string> alarm_shells_;
 
-void logAlarm(string type, string msg)
+const char* toString(Alarm type)
+{
+    switch (type)
+    {
+    case Alarm::DeviceFailure: return "DeviceFailure";
+    case Alarm::RegularResetFailure: return "RegularResetFailure";
+    case Alarm::DeviceInactivity: return "DeviceInactivity";
+    case Alarm::SpecifiedDeviceNotFound: return "SpecifiedDeviceNotFound";
+    }
+    return "?";
+}
+
+void logAlarm(Alarm type, string info)
 {
     vector<string> envs;
-    envs.push_back("ALARM_TYPE="+type);
+    string ts = toString(type);
+    envs.push_back("ALARM_TYPE="+ts);
+
+    string msg = tostrprintf("(alarm %s) %s", ts.c_str(), info.c_str());
     envs.push_back("ALARM_MESSAGE="+msg);
 
-    warning("(alarm) %s: %s\n", type.c_str(), msg.c_str());
+    warning("%s\n", msg.c_str());
 
     for (auto &s : alarm_shells_)
     {

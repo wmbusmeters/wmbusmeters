@@ -512,6 +512,9 @@ struct WMBus
     virtual void setResetInterval(int seconds) = 0;
     // Close this device.
     virtual void close() = 0;
+    // Remember how this device was detected.
+    virtual void setDetected(Detected detected) = 0;
+    virtual Detected *getDetected() = 0;
     virtual ~WMBus() = 0;
 };
 
