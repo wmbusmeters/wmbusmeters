@@ -67,32 +67,55 @@ vector<string> listRtlSdrDevices()
 
     uint32_t n = rtlsdr_get_device_count();
 
-    char  mfct[256];
+    char mfct[256];
     char product[256];
     char serial[256];
 
     for (uint32_t i=0; i<n; ++i)
     {
         rtlsdr_get_device_usb_strings(i, mfct, product, serial);
-        string name;
-        strprintf(name, "%d_%s_%s_%s", i, mfct, product, serial);
-        devices.push_back(name);
+        devices.push_back(serial);
     }
     return devices;
 }
 
-AccessCheck detectRTLSDR(string device, Detected *detected)
+int indexFromRtlSdrSerial(std::string serialnr)
 {
-    uint32_t i = indexFromRtlSdrName(device);
-
     uint32_t n = rtlsdr_get_device_count();
 
-    // Check that the index extracted exists in the device name.
-    // Would be nice to properly test if the device can be opened.
-    if (i < n)
+    char mfct[256];
+    char product[256];
+    char serial[256];
+
+    for (uint32_t i=0; i<n; ++i)
     {
-        detected->setAsFound("", WMBusDeviceType::DEVICE_RTLWMBUS, 0, false, false);
-        return AccessCheck::AccessOK;
+        rtlsdr_get_device_usb_strings(i, mfct, product, serial);
+        if (serialnr == serial)
+        {
+            return i;
+        }
+    }
+
+    // Something is wrong.
+    return -1;
+}
+
+AccessCheck detectRTLSDR(string serialnr, Detected *detected)
+{
+    uint32_t n = rtlsdr_get_device_count();
+
+    char mfct[256];
+    char product[256];
+    char serial[256];
+
+    for (uint32_t i=0; i<n; ++i)
+    {
+        rtlsdr_get_device_usb_strings(i, mfct, product, serial);
+        if (serialnr == serial)
+        {
+            detected->setAsFound(serialnr, WMBusDeviceType::DEVICE_RTLWMBUS, 0, false, false);
+            return AccessCheck::AccessOK;
+        }
     }
 
     // Something is wrong.

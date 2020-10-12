@@ -172,7 +172,14 @@ As <options> you can use:
 
 As <device> you can use:
 
-auto:c1, to have wmbusmeters look existing serial devices and probe them to detect: im871a, amb8465 or cul.
+auto:c1, to have wmbusmeters look existing serial devices and probe them to detect: im871a, amb8465, cul, rc1180 or rtlsdr.
+
+If you have two im871a you can supply both of them and set different listening modes:
+im871a[12345678]:c1 im871a[11223344]:t1
+
+You can also specify rtlwmbus and if you set the serial in the rtlsdr
+dongle using `rtl_eeprom -s 1234` you can also refer to a specific
+rtlsdr dongle like this `rtlwmbus[1234]`.
 
 /dev/ttyUSB0:amb8465, if you have an amb8465 dongle assigned to ttyUSB0. Other suffixes are im871a,rfmrx2,d1tc,cul.
 
