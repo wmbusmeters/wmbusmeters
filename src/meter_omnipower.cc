@@ -108,7 +108,7 @@ void MeterOmnipower::processContent(Telegram *t)
     // 3b vife (Forward flow contribution only)
     // xx xx xx xx (total energy)
 
-    // Correct field codes "040404843C042B04AB3C"
+    // Correct field codes "0404  04843C 042B 04AB3C"
 
     int offset;
     extractDVdouble(&t->values, "0404", &offset, &total_energy_kwh_);
@@ -120,7 +120,7 @@ void MeterOmnipower::processContent(Telegram *t)
     extractDVdouble(&t->values, "042B", &offset, &power_kw_);
     t->addMoreExplanation(offset, " current power (%f kw)", power_kw_);
 
-    extractDVdouble(&t->values, "042B", &offset, &power_backward_kw_);
+    extractDVdouble(&t->values, "04AB3C", &offset, &power_backward_kw_);
     t->addMoreExplanation(offset, " current power (%f kw)", power_backward_kw_);
 
     //std::cout << "Offset = " << offset << std::endl; // this is always 0
