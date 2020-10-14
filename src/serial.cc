@@ -886,7 +886,7 @@ void *SerialCommunicationManagerImp::timerLoop()
 {
     while (running_)
     {
-        int rc = usleep(0000*1000);
+        int rc = usleep(1000*1000);
         if (rc == -1 && errno == EINTR)
         {
             debug("(serial) TIMER thread interrupted\n");
