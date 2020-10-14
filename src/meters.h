@@ -225,7 +225,7 @@ struct Meter
 
     // The handleTelegram expects an input_frame where the DLL crcs have been removed.
     // Returns true of this meter handled this telegram!
-    virtual bool handleTelegram(vector<uchar> input_frame, bool simulated, string *id) = 0;
+    virtual bool handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated, string *id) = 0;
     virtual bool isTelegramForMe(Telegram *t) = 0;
     virtual MeterKeys *meterKeys() = 0;
 
@@ -247,10 +247,10 @@ struct MeterManager
     virtual Meter*lastAddedMeter() = 0;
     virtual void removeAllMeters() = 0;
     virtual void forEachMeter(std::function<void(Meter*)> cb) = 0;
-    virtual bool handleTelegram(vector<uchar> data, bool simulated) = 0;
+    virtual bool handleTelegram(AboutTelegram &about, vector<uchar> data, bool simulated) = 0;
     virtual bool hasAllMetersReceivedATelegram() = 0;
     virtual bool hasMeters() = 0;
-    virtual void onTelegram(function<void(vector<uchar>)> cb) = 0;
+    virtual void onTelegram(function<void(AboutTelegram&,vector<uchar>)> cb) = 0;
     virtual ~MeterManager() = default;
 };
 

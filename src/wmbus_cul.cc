@@ -241,7 +241,8 @@ void WMBusCUL::processSerialData()
         {
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
 
-            handleTelegram(payload);
+            AboutTelegram about("", 0);
+            handleTelegram(about, payload);
         }
     }
 }

@@ -66,13 +66,13 @@ struct MeterManagerImplementation : public virtual MeterManager
         return meters_.size() != 0;
     }
 
-    bool handleTelegram(vector<uchar> data, bool simulated)
+    bool handleTelegram(AboutTelegram &about, vector<uchar> data, bool simulated)
     {
         if (!hasMeters())
         {
             if (on_telegram_)
             {
-                on_telegram_(data);
+                on_telegram_(about, data);
             }
             return true;
         }
@@ -82,7 +82,7 @@ struct MeterManagerImplementation : public virtual MeterManager
         string id;
         for (auto &m : meters_)
         {
-            bool h = m->handleTelegram(data, simulated, &id);
+            bool h = m->handleTelegram(about, data, simulated, &id);
             if (h) handled = true;
         }
         if (isVerboseEnabled() && !handled)
@@ -92,7 +92,7 @@ struct MeterManagerImplementation : public virtual MeterManager
         return handled;
     }
 
-    void onTelegram(function<void(vector<uchar>)> cb)
+    void onTelegram(function<void(AboutTelegram &about, vector<uchar>)> cb)
     {
         on_telegram_ = cb;
     }
@@ -101,7 +101,7 @@ struct MeterManagerImplementation : public virtual MeterManager
 private:
 
     vector<shared_ptr<Meter>> meters_;
-    function<void(vector<uchar>)> on_telegram_;
+    function<void(AboutTelegram&,vector<uchar>)> on_telegram_;
 };
 
 shared_ptr<MeterManager> createMeterManager()
@@ -428,9 +428,10 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
     return s;
 }
 
-bool MeterCommonImplementation::handleTelegram(vector<uchar> input_frame, bool simulated, string *id)
+bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated, string *id)
 {
     Telegram t;
+    t.about = about;
     bool ok = t.parseHeader(input_frame);
 
     if (simulated) t.markAsSimulated();
@@ -515,6 +516,12 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         }
     }
     s += "\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
+    if (t->about.device != "")
+    {
+        s += ",";
+        s += "\"device\":\""+t->about.device+"\",";
+        s += "\"rssi_dbm\":"+to_string(t->about.rssi_dbm);
+    }
     for (string add_json : additionalJsons())
     {
         s += ",";

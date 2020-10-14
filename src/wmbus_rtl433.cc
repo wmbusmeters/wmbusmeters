@@ -208,7 +208,8 @@ void WMBusRTL433::processSerialData()
                     payload[0] = payload.size()-1;
                 }
             }
-            handleTelegram(payload);
+            AboutTelegram about("", 0);
+            handleTelegram(about, payload);
         }
     }
 }

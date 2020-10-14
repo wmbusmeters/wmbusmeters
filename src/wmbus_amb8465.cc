@@ -86,8 +86,8 @@ private:
                                   int *msgid_out,
                                   int *payload_len_out,
                                   int *payload_offset,
-                                  uchar *rssi);
-    void handleMessage(int msgid, vector<uchar> &frame);
+                                  int *rssi_dbm);
+    void handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm);
 };
 
 shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
@@ -279,7 +279,7 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
                                           int *msgid_out,
                                           int *payload_len_out,
                                           int *payload_offset,
-                                          uchar *rssi)
+                                          int *rssi_dbm)
 {
     if (data.size() < 2) return PartialFrame;
     debugPayload("(amb8465) checkAMB8465Frame", data);
@@ -317,9 +317,9 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
 
         if (rssi_len)
         {
-            *rssi = data[*frame_length-2];
-            signed int dbm = (*rssi >= 128) ? (*rssi - 256) / 2 - 74 : *rssi / 2 - 74;
-            verbose("(amb8465) rssi %d (%d dBm)\n", *rssi, dbm);
+            int rssi = (int)data[*frame_length-2];
+            *rssi_dbm = (rssi >= 128) ? (rssi - 256) / 2 - 74 : rssi / 2 - 74;
+            verbose("(amb8465) rssi %d (%d dBm)\n", rssi, *rssi_dbm);
         }
 
       return FullFrame;
@@ -362,9 +362,9 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
 
     if (rssi_expected_)
     {
-        *rssi = data[*frame_length-1];
-        signed int dbm = (*rssi >= 128) ? (*rssi - 256) / 2 - 74 : *rssi / 2 - 74;
-        verbose("(amb8465) rssi %d (%d dBm)\n", *rssi, dbm);
+        int rssi = data[*frame_length-1];
+        *rssi_dbm = (rssi >= 128) ? (rssi - 256) / 2 - 74 : rssi / 2 - 74;
+        verbose("(amb8465) rssi %d (%d dBm)\n", rssi, *rssi_dbm);
     }
 
     return FullFrame;
@@ -403,11 +403,11 @@ void WMBusAmber::processSerialData()
     size_t frame_length;
     int msgid;
     int payload_len, payload_offset;
-    uchar rssi;
+    int rssi_dbm;
 
     for (;;)
     {
-        FrameStatus status = checkAMB8465Frame(read_buffer_, &frame_length, &msgid, &payload_len, &payload_offset, &rssi);
+        FrameStatus status = checkAMB8465Frame(read_buffer_, &frame_length, &msgid, &payload_len, &payload_offset, &rssi_dbm);
 
         if (status == PartialFrame)
         {
@@ -443,17 +443,18 @@ void WMBusAmber::processSerialData()
 
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
 
-            handleMessage(msgid, payload);
+            handleMessage(msgid, payload, rssi_dbm);
         }
     }
 }
 
-void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
+void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm)
 {
     switch (msgid) {
     case (0):
     {
-        handleTelegram(frame);
+        AboutTelegram about("amb8465["+cached_device_id_+"]", rssi_dbm);
+        handleTelegram(about, frame);
         break;
     }
     case (0x80|CMD_SET_MODE_REQ):

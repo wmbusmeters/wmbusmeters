@@ -232,6 +232,11 @@ void Telegram::print()
 
     notice("                   ver: 0x%02x\n", dll_version);
 
+    if (about.device != "")
+    {
+        notice("                device: %s\n", about.device.c_str());
+        notice("                  rssi: %d dBm\n", about.rssi_dbm);
+    }
     string possible_drivers = autoDetectPossibleDrivers();
     notice("                driver: %s\n", possible_drivers.c_str());
 }
@@ -241,7 +246,7 @@ void Telegram::printDLL()
     string possible_drivers = autoDetectPossibleDrivers();
 
     string man = manufacturerFlag(dll_mfct);
-    verbose("(telegram) DLL L=%02x C=%02x (%s) M=%04x (%s) A=%02x%02x%02x%02x VER=%02x TYPE=%02x (%s) (driver %s)\n",
+    verbose("(telegram) DLL L=%02x C=%02x (%s) M=%04x (%s) A=%02x%02x%02x%02x VER=%02x TYPE=%02x (%s) (driver %s) DEV=%s RSSI=%d\n",
             dll_len,
             dll_c, cType(dll_c).c_str(),
             dll_mfct,
@@ -250,7 +255,9 @@ void Telegram::printDLL()
             dll_version,
             dll_type,
             mediaType(dll_type).c_str(),
-            possible_drivers.c_str());
+            possible_drivers.c_str(),
+            about.device.c_str(),
+            about.rssi_dbm);
 }
 
 void Telegram::printELL()
@@ -3177,12 +3184,12 @@ WMBusDeviceType WMBusCommonImplementation::type()
     return type_;
 }
 
-void WMBusCommonImplementation::onTelegram(function<bool(vector<uchar>)> cb)
+void WMBusCommonImplementation::onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb)
 {
     telegram_listeners_.push_back(cb);
 }
 
-bool WMBusCommonImplementation::handleTelegram(vector<uchar> frame)
+bool WMBusCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> frame)
 {
     bool handled = false;
     last_received_ = time(NULL);
@@ -3191,7 +3198,7 @@ bool WMBusCommonImplementation::handleTelegram(vector<uchar> frame)
     {
         if (f)
         {
-            bool h = f(frame);
+            bool h = f(about, frame);
             if (h) handled = true;
         }
     }

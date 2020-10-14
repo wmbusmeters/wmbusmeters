@@ -55,11 +55,12 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate();
 
-    WMBusRTLWMBUS(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
+    WMBusRTLWMBUS(string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusRTLWMBUS() { }
 
 private:
 
+    string serialnr_;
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
     bool warning_dll_len_printed_ {};
@@ -67,33 +68,35 @@ private:
     FrameStatus checkRTLWMBUSFrame(vector<uchar> &data,
                                    size_t *hex_frame_length,
                                    int *hex_payload_len_out,
-                                   int *hex_payload_offset);
+                                   int *hex_payload_offset,
+                                   double *rssi);
     void handleMessage(vector<uchar> &frame);
 
     string setup_;
 };
 
-shared_ptr<WMBus> openRTLWMBUS(string identifier, string command, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openRTLWMBUS(string serialnr, string command, shared_ptr<SerialCommunicationManager> manager,
                                function<void()> on_exit, shared_ptr<SerialDevice> serial_override)
 {
-    debug("(rtlwmbus) opening %s\n", identifier.c_str());
+    debug("(rtlwmbus) opening %s\n", serialnr.c_str());
+
     vector<string> args;
     vector<string> envs;
     args.push_back("-c");
     args.push_back(command);
     if (serial_override)
     {
-        WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(serial_override, manager);
+        WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(serialnr, serial_override, manager);
         imp->markSerialAsOverriden();
         return shared_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, on_exit, "rtlwmbus");
-    WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(serial, manager);
+    auto serial = manager->createSerialDeviceCommand(serialnr, "/bin/sh", args, envs, on_exit, "rtlwmbus");
+    WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(serialnr, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 
-WMBusRTLWMBUS::WMBusRTLWMBUS(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(DEVICE_RTLWMBUS, manager, serial)
+WMBusRTLWMBUS::WMBusRTLWMBUS(string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_RTLWMBUS, manager, serial), serialnr_(serialnr)
 {
     reset();
 }
@@ -105,7 +108,7 @@ bool WMBusRTLWMBUS::ping()
 
 string WMBusRTLWMBUS::getDeviceId()
 {
-    return "";
+    return serialnr_;
 }
 
 LinkModeSet WMBusRTLWMBUS::getLinkModes()
@@ -139,7 +142,8 @@ void WMBusRTLWMBUS::processSerialData()
 
     for (;;)
     {
-        FrameStatus status = checkRTLWMBUSFrame(read_buffer_, &frame_length, &hex_payload_len, &hex_payload_offset);
+        double rssi = 0;
+        FrameStatus status = checkRTLWMBUSFrame(read_buffer_, &frame_length, &hex_payload_len, &hex_payload_offset, &rssi);
 
         if (status == PartialFrame)
         {
@@ -194,7 +198,10 @@ void WMBusRTLWMBUS::processSerialData()
                     payload[0] = payload.size()-1;
                 }
             }
-            handleTelegram(payload);
+
+            string id = string("rtlwmbus[")+getDeviceId()+"]";
+            AboutTelegram about(id, rssi);
+            handleTelegram(about, payload);
         }
     }
 }
@@ -202,7 +209,8 @@ void WMBusRTLWMBUS::processSerialData()
 FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
                                               size_t *hex_frame_length,
                                               int *hex_payload_len_out,
-                                              int *hex_payload_offset)
+                                              int *hex_payload_offset,
+                                              double *rssi)
 {
     // C1;1;1;2019-02-09 07:14:18.000;117;102;94740459;0x49449344590474943508780dff5f3500827f0000f10007b06effff530100005f2c620100007f2118010000008000800080008000000000000000000e003f005500d4ff2f046d10086922
     // There might be a second telegram on the same line ;0x4944.......
@@ -259,8 +267,27 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
             return ErrorInFrame;
         }
     }
-    // Look for start of telegram 0x
     size_t i = 0;
+    int count = 0;
+    // Look for packet rssi
+    for (; i+1 < data.size(); ++i) {
+        if (data[i] == ';') count++;
+        if (count == 4) break;
+    }
+    if (count == 4)
+    {
+        size_t from = i+1;
+        for (i++; i<data.size(); ++i) {
+            if (data[i] == ';') break;
+        }
+        if ((i-from)<5)
+        {
+            string rssis = string(data.begin()+from,data.begin()+i);
+            *rssi = atof(rssis.c_str());
+        }
+    }
+
+    // Look for start of telegram 0x
     for (; i+1 < data.size(); ++i) {
         if (data[i] == '0' && data[i+1] == 'x') break;
     }

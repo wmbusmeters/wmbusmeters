@@ -31,6 +31,9 @@ To list the fields avilable for a meter do --listfields=multical21
 To list all meters do --listmeters
 To search for a meter do --listmeters=water or --listmeters=multi
 
+The wmbus device used to received the telegram and the rssi level
+is part of the json, eg: "device":"rtlwmbus[1234]","rssi_dbm":-47
+
 Version 0.9.36: 2020-09-08
 
 Added support for detection of the proper driver

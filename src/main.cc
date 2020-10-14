@@ -834,7 +834,7 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Dete
         debug("(main) added %s to files\n", detected->found_file.c_str());
         simulation_files_.insert(detected->specified_device.file);
     }
-    wmbus->onTelegram([&, simulated](vector<uchar> data){return meter_manager_->handleTelegram(data, simulated);});
+    wmbus->onTelegram([&, simulated](AboutTelegram &about,vector<uchar> data){return meter_manager_->handleTelegram(about, data, simulated);});
     wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
 }
 
@@ -1122,8 +1122,9 @@ bool start(Configuration *config)
     {
         notice("No meters configured. Printing id:s of all telegrams heard!\n");
 
-        meter_manager_->onTelegram([](vector<uchar> frame) {
+        meter_manager_->onTelegram([](AboutTelegram &about, vector<uchar> frame) {
                 Telegram t;
+                t.about = about;
                 MeterKeys mk;
                 t.parserNoWarnings(); // Try a best effort parse, do not print any warnings.
                 t.parse(frame, &mk);

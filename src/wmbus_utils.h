@@ -33,8 +33,8 @@ struct WMBusCommonImplementation : public virtual WMBus
     ~WMBusCommonImplementation();
 
     WMBusDeviceType type();
-    void onTelegram(function<bool(vector<uchar>)> cb);
-    bool handleTelegram(vector<uchar> frame);
+    void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb);
+    bool handleTelegram(AboutTelegram &about, vector<uchar> frame);
     void checkStatus();
     bool isWorking();
     string dongleId();
@@ -73,7 +73,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     private:
 
     bool is_working_ {};
-    vector<function<bool(vector<uchar>)>> telegram_listeners_;
+    vector<function<bool(AboutTelegram&,vector<uchar>)>> telegram_listeners_;
     WMBusDeviceType type_ {};
     int protocol_error_count_ {};
     time_t timeout_ {}; // If longer silence than timeout, then reset dongle! It might have hanged!

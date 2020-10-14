@@ -107,7 +107,7 @@ struct Config
         s += "link_mode="+toString(LinkModeIM871A(link_mode));
 
         string ids;
-        strprintf(ids, " id=%08x media=%02x version=%02x c_field=%02x", id, media, version, c_field);
+        strprintf(ids, " id=%08x media=%02x version=%02x c_field=%02x auto_rssi=%02x", id, media, version, c_field, auto_rssi);
 
         return s+ids;
     }
@@ -189,7 +189,8 @@ struct WMBusIM871A : public virtual WMBusCommonImplementation
 
     static FrameStatus checkIM871AFrame(vector<uchar> &data,
                                         size_t *frame_length, int *endpoint_out, int *msgid_out,
-                                        int *payload_len_out, int *payload_offset);
+                                        int *payload_len_out, int *payload_offset,
+                                        int *rssi_dbm);
 
 private:
 
@@ -205,10 +206,25 @@ private:
 
     friend AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
     void handleDevMgmt(int msgid, vector<uchar> &payload);
-    void handleRadioLink(int msgid, vector<uchar> &payload);
+    void handleRadioLink(int msgid, vector<uchar> &payload, int rssi_dbm);
     void handleRadioLinkTest(int msgid, vector<uchar> &payload);
     void handleHWTest(int msgid, vector<uchar> &payload);
 };
+
+
+int toDBM(int rssi)
+{
+    // Very course approximation of this graph:
+    // Figure 7-3: RSSI vs. Input Power (Silicon Labs Si1002 datasheet [3])
+    // Stronger rssi:s than 0 dbm will be reported as 0 dbm.
+    // rssi = >230 -> 0 dbm
+    // rssi = 205 -> -20 dbm
+    // rssi = 45  -> -100 dbm
+#define SLOPE (80.0/(205.0-45.0))
+    if (rssi >= 230) return 0;
+    int dbm = -100+SLOPE*(rssi-45);
+    return dbm;
+}
 
 shared_ptr<WMBus> openIM871A(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
@@ -493,9 +509,9 @@ void WMBusIM871A::deviceSetLinkModes(LinkModeSet lms)
         request_[6] = (int)LinkModeIM871A::C1a; // Defaults to C1a
     }
 
-    request_[7] = 16+32; // iff2 bits: Set rssi+timestamp
+    request_[7] = 0x10 | 0x20; // iff2 bits: Set rssi 0x10, timestamp 0x20
     request_[8] = 1;  // Enable rssi
-    request_[9] = 1;  // Enable timestamp
+    request_[9] = 0;  // Disable timestamp
 
     verbose("(im871a) set config to set link mode %02x\n", request_[6]);
     bool sent = serial()->send(request_);
@@ -512,7 +528,8 @@ void WMBusIM871A::deviceSetLinkModes(LinkModeSet lms)
 
 FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,
                                           size_t *frame_length, int *endpoint_out, int *msgid_out,
-                                          int *payload_len_out, int *payload_offset)
+                                          int *payload_len_out, int *payload_offset,
+                                          int *rssi_dbm)
 {
     if (data.size() == 0) return PartialFrame;
 
@@ -613,8 +630,9 @@ FrameStatus WMBusIM871A::checkIM871AFrame(vector<uchar> &data,
         i += 4;
     }
     if (has_rssi) {
-        uint32_t rssi = data[i];
-        verbose("(im871a) rssi %02x\n", rssi);
+        int rssi = data[i];
+        *rssi_dbm = toDBM(rssi);
+        debug("(im871a) rssi %d (%d dBm)\n", rssi, *rssi_dbm);
         i++;
     }
     if (has_crc16) {
@@ -647,10 +665,11 @@ void WMBusIM871A::processSerialData()
     int endpoint;
     int msgid;
     int payload_len, payload_offset;
+    int rssi_dbm = 0;
 
     for (;;)
     {
-        FrameStatus status = checkIM871AFrame(read_buffer_, &frame_length, &endpoint, &msgid, &payload_len, &payload_offset);
+        FrameStatus status = checkIM871AFrame(read_buffer_, &frame_length, &endpoint, &msgid, &payload_len, &payload_offset, &rssi_dbm);
 
         if (status == PartialFrame)
         {
@@ -688,7 +707,7 @@ void WMBusIM871A::processSerialData()
             // It can be wmbus receiver-dongle messages or wmbus remote meter messages received over the radio.
             switch (endpoint) {
             case DEVMGMT_ID: handleDevMgmt(msgid, payload); break;
-            case RADIOLINK_ID: handleRadioLink(msgid, payload); break;
+            case RADIOLINK_ID: handleRadioLink(msgid, payload, rssi_dbm); break;
             case RADIOLINKTEST_ID: handleRadioLinkTest(msgid, payload); break;
             case HWTEST_ID: handleHWTest(msgid, payload); break;
             }
@@ -726,13 +745,16 @@ void WMBusIM871A::handleDevMgmt(int msgid, vector<uchar> &payload)
     }
 }
 
-void WMBusIM871A::handleRadioLink(int msgid, vector<uchar> &frame)
+void WMBusIM871A::handleRadioLink(int msgid, vector<uchar> &frame, int rssi_dbm)
 {
     switch (msgid) {
     case RADIOLINK_MSG_WMBUSMSG_IND: // 0x03
+    {
         // Invoke common telegram reception code in WMBusCommonImplementation.
-        handleTelegram(frame);
-        break;
+        AboutTelegram about("im871a["+cached_device_id_+"]", rssi_dbm);
+        handleTelegram(about, frame);
+    }
+    break;
     default:
         verbose("(im871a) Unhandled radio link message %d\n", msgid);
     }
@@ -757,10 +779,10 @@ void WMBusIM871A::handleHWTest(int msgid, vector<uchar> &payload)
 bool extract_response(vector<uchar> &data, vector<uchar> &response, int expected_endpoint, int expected_msgid)
 {
     size_t frame_length;
-    int endpoint, msgid, payload_len, payload_offset;
+    int endpoint, msgid, payload_len, payload_offset, rssi_dbm;
     FrameStatus status = WMBusIM871A::checkIM871AFrame(data,
                                                        &frame_length, &endpoint, &msgid,
-                                                       &payload_len, &payload_offset);
+                                                       &payload_len, &payload_offset, &rssi_dbm);
     if (status != FullFrame ||
         endpoint != expected_endpoint ||
         msgid != expected_msgid)
@@ -845,10 +867,10 @@ AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManag
     serial->receive(&response);
 
     size_t frame_length;
-    int endpoint, msgid, payload_len, payload_offset;
+    int endpoint, msgid, payload_len, payload_offset, rssi_dbm;
     FrameStatus status = WMBusIM871A::checkIM871AFrame(response,
                                                        &frame_length, &endpoint, &msgid,
-                                                       &payload_len, &payload_offset);
+                                                       &payload_len, &payload_offset, &rssi_dbm);
     if (status != FullFrame ||
         endpoint != 1 ||
         msgid != DEVMGMT_MSG_GET_CONFIG_RSP)

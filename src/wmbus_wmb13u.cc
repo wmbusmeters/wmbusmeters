@@ -239,7 +239,8 @@ void WMBusWMB13U::processSerialData()
                 payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len-3);
             }
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
-            handleTelegram(payload);
+            AboutTelegram about("", 0);
+            handleTelegram(about, payload);
         }
     }
 }

@@ -320,8 +320,23 @@ struct MeterKeys
     bool hasAuthenticationKey() { return authentication_key.size() > 0; }
 };
 
+struct AboutTelegram
+{
+    // wmbus device used to receive this telegram.
+    string device;
+    // The device's opinion of the rssi, best effort conversion into the dbm scale.
+    // -100 dbm = 0.1 pico Watt to -20 dbm = 10 micro W
+    // Measurements smaller than -100 and larger than -10 are unlikely.
+    int rssi_dbm {};
+
+    AboutTelegram(string dv, int rs) : device(dv), rssi_dbm(rs) {}
+    AboutTelegram() {}
+};
+
 struct Telegram
 {
+    AboutTelegram about;
+
     // The meter address as a string usually printed on the meter.
     string id;
     // If decryption failed, set this to true, to prevent further processing.
@@ -491,7 +506,7 @@ struct WMBus
     virtual int numConcurrentLinkModes() = 0;
     virtual bool canSetLinkModes(LinkModeSet lms) = 0;
     virtual void setLinkModes(LinkModeSet lms) = 0;
-    virtual void onTelegram(function<bool(vector<uchar>)> cb) = 0;
+    virtual void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb) = 0;
     virtual SerialDevice *serial() = 0;
     // Return true of the serial has been overridden, usually with stdin or a file.
     virtual bool serialOverride() = 0;
