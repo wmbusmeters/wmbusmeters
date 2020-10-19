@@ -102,13 +102,12 @@ double MeterOmnipower::powerBackward(Unit u)
 
 void MeterOmnipower::processContent(Telegram *t)
 {
-    // Meter record:
-    // 04 dif (32 Bit Integer/Binary Instantaneous value)
-    // 83 vif (Energy Wh)
-    // 3b vife (Forward flow contribution only)
-    // xx xx xx xx (total energy)
 
-    // Correct field codes "0404  04843C 042B 04AB3C"
+    // Data Record header established from telegram analysis
+    // 04 04 (32 bit uint) Energy 10^1 Wh (consumption), A+
+    // 04 84 3C (32 bit uint) Energy 10^1 Wh (production), A-
+    // 04 2B (32 bit uint) Power 10^0 W (consumption), P+
+    // 04 AB 3C (32 bit uint) Power 10^0 W (production), P-
 
     int offset;
     extractDVdouble(&t->values, "0404", &offset, &total_energy_kwh_);
@@ -123,9 +122,5 @@ void MeterOmnipower::processContent(Telegram *t)
     extractDVdouble(&t->values, "04AB3C", &offset, &power_backward_kw_);
     t->addMoreExplanation(offset, " current power (%f kw)", power_backward_kw_);
 
-    //std::cout << "Offset = " << offset << std::endl; // this is always 0
-
-//    for (auto k: t->values) {
-//        std::cout << k.first << ": " << k.second.first << ": " << "DVEntry here" << std::endl;
-//    }
 }
+
