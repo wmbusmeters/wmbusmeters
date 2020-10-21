@@ -15,6 +15,16 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+Updated 2020 Janus Bo Andersen
+Implements Kamstrup OmniPower one-phase, with firmware version 0x30
+Meter uses AES-128 in CTR mode, which is the only mode supported by 
+the extended link layer (wm-bus), see EN 13757-4:2019.
+Security mode is set during instatiation as 
+TPLSecurityMode::AES_CBC_IV, but this is overridden anyway when 
+reading the 3 ENC bits in the wmbus.cc file.
+*/
+
 #include"dvparser.h"
 #include"meters.h"
 #include"meters_common_implementation.h"
