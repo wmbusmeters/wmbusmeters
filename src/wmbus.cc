@@ -4051,7 +4051,7 @@ bool SpecifiedDevice::parse(string &arg)
     vector<string> parts = splitString(arg, ':');
 
     // Most maxed out device spec, though not valid, since file+cmd is not allowed.
-    // Example /dev/ttyUSB0:im871a(12345678):9600:868.95M:c1,t1:CMD(rtl_433 -F csv -f 123M)
+    // Example /dev/ttyUSB0:im871a[12345678]:9600:868.95M:c1,t1:CMD(rtl_433 -F csv -f 123M)
 
     //         file         type   id        bps  fq     linkmodes command
     for (auto& p : parts)
