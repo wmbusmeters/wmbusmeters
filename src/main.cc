@@ -688,10 +688,16 @@ void list_fields(Configuration *config, string meter_type)
     printf("%s  The meter id number.\n", id.c_str());
     string name = padLeft("name", width);
     printf("%s  Your name for the meter.\n", name.c_str());
-    string type = padLeft("type", width);
-    printf("%s  Meter type/driver.\n", type.c_str());
+    string media = padLeft("media", width);
+    printf("%s  What does the meter measure?\n", media.c_str());
+    string meterr = padLeft("meter", width);
+    printf("%s  Meter driver.\n", meterr.c_str());
     string timestamp = padLeft("timestamp", width);
     printf("%s  Timestamp when wmbusmeters received the telegram.\n", timestamp.c_str());
+    string device = padLeft("device", width);
+    printf("%s  The wmbus device that received the telegram.\n", device.c_str());
+    string rssi = padLeft("rssi_dbm", width);
+    printf("%s  The rssi for the received telegram as reported by the device.\n", rssi.c_str());
     for (auto &p : meter->prints())
     {
         if (p.vname == "") continue;
