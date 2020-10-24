@@ -101,6 +101,7 @@ int main(int argc, char **argv)
     initUI();
     clear();
 
+    /*
     refresh();
     int x=0;
     int y=0;
@@ -113,12 +114,11 @@ int main(int argc, char **argv)
     for(;;) {}
 	endwin();
     return 0;
-
-    /*
+*/
     running_as_root_ = detectIfRoot();
     member_of_dialout_ = detectIfMemberOfGroup("dialout");
 
-    handler = createSerialCommunicationManager(0, 0, false);
+    handler = createSerialCommunicationManager(0, 0);
 
     initUI();
 
@@ -159,7 +159,6 @@ int main(int argc, char **argv)
             break;
         }
     } while (running);
-    */
 }
 
 void alwaysOnScreen()

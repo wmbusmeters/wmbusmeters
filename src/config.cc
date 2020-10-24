@@ -258,6 +258,9 @@ bool handleDevice(Configuration *c, string devicefile)
         if (specified_device.type == "auto")
         {
             c->use_auto_detect = true;
+#if defined(__APPLE__) && defined(__MACH__)
+            error("You cannot use auto on macosx. You must specify the device tty or rtlwmbus.\n");
+#endif
         }
         else
         {
@@ -270,13 +273,14 @@ bool handleDevice(Configuration *c, string devicefile)
 void handleListenTo(Configuration *c, string mode)
 {
     LinkModeSet lms = parseLinkModes(mode.c_str());
-    if (lms.bits() == 0) {
+    if (lms.bits() == 0)
+    {
         error("Unknown link mode \"%s\"!\n", mode.c_str());
     }
-/*   TODO HOW SHOULD THIS BE HANDLED?
-if (c->linkmodes_configured) {
-error("You have already specified a link mode!\n");
-}*/
+    if (c->linkmodes_configured)
+    {
+        error("You have already specified a link mode!\n");
+    }
 
     c->linkmodes = lms;
     c->linkmodes_configured = true;

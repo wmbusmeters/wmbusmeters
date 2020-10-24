@@ -226,7 +226,7 @@ Supported wmbus dongles:
 IMST 871a (im871a)
 Amber 8465 (amb8465)
 CUL family (cul)
-Radiocraft (RC1180) work in progress
+Radiocraft (RC1180) work in progress only T1 mode
 rtl_wmbus (rtlwmbus)
 rtl_433 (rtl433)
 BMeters RFM-RX2 (rfmrx2)
@@ -305,7 +305,9 @@ Received telegram from: 12345678
           manufacturer: (KAM) Kamstrup Energi (0x2c2d)
            device type: Cold water meter (0x16)
             device ver: 0x1b
-         device driver: multical21
+                device: im871a[12345678]
+                  rssi: -77 dBm
+                driver: multical21
 ```
 
 Now listen to this specific meter.
@@ -329,7 +331,7 @@ Example format json output:
 
 `wmbusmeters --format=json /dev/ttyUSB0:im871a MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF MyHeater multical302 22222222 00112233445566778899AABBCCDDEEFF`
 
-`{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"max_flow_m3h":0.000,"flow_temperature":8,"external_temperature":23,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z"}`
+`{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"max_flow_m3h":0.000,"flow_temperature":8,"external_temperature":23,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z","device":"im871a[1234567]","rssi_dbm":-40}`
 
 `{"media":"heat","meter":"multical302","name":"MyHeater","id":"22222222","total_kwh":0.000,"total_volume_m3":0.000,"current_kw":"0.000","timestamp":"2018-02-08T09:07:22Z"}`
 

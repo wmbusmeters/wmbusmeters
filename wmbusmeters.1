@@ -85,16 +85,32 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 
 .SH DEVICES
 .TP
-\fB/dev/ttyUSB0\fR to which an im871a,amb8456 or cul dongle is attached and let wmbusmeters detect the type.
+\fBauto:c1\fR detect any serially connected wmbus dongles and rtl_sdr dongles and configure them for c1 mode. (You do not need to use --c1 or --listento=c1 when suffixing the device with the linkmode.) Always try to use auto first.
 
 .TP
-\fB/dev/ttyACM0:rfmrx2\fR when an rfmrx2 dongle is attached to this tty.
+\fBim871a:t1\fR look for an im871a dongle attached to any of the serial ttys and configure it for t1 mode.
 
 .TP
-\fBauto\fR detect any serially connected wmbus dongles and rtl_sdr dongles.
+\fBim871a[12345678]:t1\fR look for the im871a dongle with this particular id.
+
+.TP
+\fB/dev/ttyUSB0:9600\fR read serial data from tty at 9600 bps, expects raw wmbus frames with the DLL crcs removed.
+
+.TP
+\fB/dev/ttyUSB0:amb8465:c1,t1\fR expect an amb8465 on this tty.
 
 .TP
 \fBrtlwmbus\fR use software defined radio rtl_sdr|rtl_wmbus to receive wmbus telegrams.This defaults to 868.95MHz, use for example \fBrtlwmbus:868.9M\fR to tune the rtl_sdr dongle to slightly lower frequency.
+
+.TP
+\fBrtlwmbus[alfa]:433M:c1,t1 rtlwmbus[beta]:868.9M:c1,t1\fR Use two rtlsdr dongles, one has its id set to alfa (using rtl_eeprom)
+and the other set to beta. Alfa has an antenna tuned for 433M, beta has an antenna suitable for 868.9M.
+
+.TP
+\fBstdin:rtlwmbus\fR read rtlwmbus formatted data from stdin.
+
+.TP
+\fBmyfile.txt:rtlwmbus\fR read rtlwmbus formatted data from this file instead.
 
 .TP
 \fBsimulation_xxx.txt\fR read telegrams from file to replay telegram feed (use --logtelegrams to acquire feed for replay)
@@ -116,17 +132,28 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 Wait for wmbus dongles to be inserted and then listen for c1 telegrams.
 Print a summary of the telegram and whether wmbusmeters has a driver for decoding it.
 
-% wmbusmeters --c1 auto
+% wmbusmeters auto:c1
 
-Listen to C1 and T1 traffic using a wmbus dongle attached to ttyUSB0.
+Listen to C1 traffic using an im871a dongle attached to some tty.
 
-% wmbusmeters --listento=c1,t1 /dev/ttyUSB0:amd8465
+% wmbusmeters im871a:c1
+
+The im871a dongles have an id number that is printed when the dongle is started.
+You can use this to specify which dongle to use for which linkmode.
+
+% wmbusmeters im871a[12345678]:c1 im871a[22334455]:t1
 
 .TP
 Listen to both T1 and C1 traffic using rtl_sdr|rtl_wmbus and the standard frequency 868.95M, which
 might need tweaking depending on the rtl_sdr dongle you are using.
 
 % wmbusmeters rtlwmbus:868.95M
+
+You can identify rtlsdr dongles this way as well. The id of the rtlsdr dongle is
+set using rtl_eeprom. Assuming you want to listen to multiple frequencies, one dongle
+has one type of antenna attached.
+
+% wmbusmeters rtlwmbus[alfa]:433M:t1 rtlwmbus[beta]:868.9M:c1
 
 .TP
 Execute using config file /home/me/etc/wmbusmeters.conf and meter config files in /home/me/etc/wmbusmeters.d
@@ -143,7 +170,8 @@ An example wmbusmeters.conf:
 
 .nf
 loglevel=normal
-device=/dev/ttyUSB0:im871a:c1
+device=im871a[12345678]:c1
+device=rtlwmbus:433M:c1,t1
 logtelegrams=false
 meterfiles=/var/log/wmbusmeters/meter_readings
 meterfilesaction=overwrite
