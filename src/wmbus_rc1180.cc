@@ -33,8 +33,69 @@
 
 using namespace std;
 
-#define SET_LINK_MODE 1
-#define SET_X01_MODE 2
+struct ConfigRC1180
+{
+    // first variable group
+    uchar radio_channel {}; // S=11 T1=12 R2=1-10
+    uchar radio_power {};
+    uchar radio_data_rate {}; // S=2 T1=3 R2=1
+    uchar mbus_mode {}; // S1=0 T1=1
+    uchar sleep_mode {}; // 0=disable sleep 1=enable sleep
+    uchar rssi_mode {}; // 0=disabled 1=enabled (append rssi to telegram)
+
+    uchar preamble_length {}; // S: 4(short) 70(long) T: 4(meter) 3(other) R: 10
+
+    uint16_t mfct {};
+    uint32_t id {};
+    uchar version {};
+    uchar media {};
+
+    uchar uart_bps {}; // 5=19200
+    uchar uart_flow_ctrl {}; // 0=None 1=CTS only 2=CTS/RTS 3=RXTX(RS485)
+    uchar data_interface {}; // 0=MBUS with DLL 1=App data without mbus header
+
+    string dongleId()
+    {
+        return tostrprintf("%08x", id);
+    }
+
+    string str()
+    {
+        string mfct_flag = manufacturerFlag(mfct);
+
+        return tostrprintf("id=%08x mfct=%04x (%s) media=%02x version=%02x rssi_mode=%02x "
+                           "uart_bps=%02x uart_flow_ctrl=%02x data_interface=%02x "
+                           "radio_channel=%02x radio_power=%02x radio_data_rate=%02x preamble_length=%02x mbus_mode=%02x",
+                           id, mfct, mfct_flag.c_str(), media, version, rssi_mode,
+                           uart_bps, uart_flow_ctrl, data_interface,
+                           radio_channel, radio_power, radio_data_rate, preamble_length, mbus_mode);
+    }
+
+    bool decode(vector<uchar> &bytes)
+    {
+        if (bytes.size() < 0x20) return false;
+
+        radio_channel = bytes[0];
+        radio_power = bytes[1];
+        radio_data_rate = bytes[2];
+        mbus_mode = bytes[3];
+        sleep_mode = bytes[4];
+        rssi_mode = bytes[5];
+
+        preamble_length = bytes[0x0a];
+
+        mfct = bytes[0x1a] << 8 | bytes[0x19];
+        id = bytes[0x1e] << 24 | bytes[0x1d] << 16 | bytes[0x1c] << 8 | bytes[0x1b];
+        version = bytes[0x1f];
+        media = bytes[0x20];
+
+        uart_bps = bytes[0x30];
+        uart_flow_ctrl = bytes[0x35];
+        data_interface = bytes[0x36];
+
+        return true;
+    }
+};
 
 struct WMBusRC1180 : public virtual WMBusCommonImplementation
 {
@@ -45,9 +106,16 @@ struct WMBusRC1180 : public virtual WMBusCommonImplementation
     void deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() {
         return
-            C1_bit |
-            S1_bit |
             T1_bit;
+        // This device can be set to S1,S1-m,S2,T1,T2,R2
+        // with a combination of radio_channel+radio_data_rate+mbus_mode+preamble_length.
+        // However it is unclear from the documentation if these
+        // settings are for transmission only or also for listening...?
+        // My dongle has mbus_mode=1 and hears T1 telegrams,
+        // even though the radio_channel and the preamble_length
+        // is wrongfor T1 mode. So I will leave this
+        // dongle in default mode, which seems to be T1
+        // until someone can double check with an s1 meter.
     }
     int numConcurrentLinkModes() { return 1; }
     bool canSetLinkModes(LinkModeSet lms)
@@ -55,7 +123,7 @@ struct WMBusRC1180 : public virtual WMBusCommonImplementation
         if (0 == countSetBits(lms.bits())) return false;
         if (!supportedLinkModes().supports(lms)) return false;
         // Ok, the supplied link modes are compatible,
-        // but im871a can only listen to one at a time.
+        // but rc1180 can only listen to one at a time.
         return 1 == countSetBits(lms.bits());
     }
     void processSerialData();
@@ -65,10 +133,13 @@ struct WMBusRC1180 : public virtual WMBusCommonImplementation
     ~WMBusRC1180() { }
 
 private:
+    ConfigRC1180 device_config_;
+
+    vector<uchar> read_buffer_;
+    vector<uchar> request_;
+    vector<uchar> response_;
 
     LinkModeSet link_modes_ {};
-    vector<uchar> read_buffer_;
-    vector<uchar> received_payload_;
     string sent_command_;
     string received_response_;
 
@@ -89,7 +160,7 @@ shared_ptr<WMBus> openRC1180(string device, shared_ptr<SerialCommunicationManage
         return shared_ptr<WMBus>(imp);
     }
 
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400, "rc1180");
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200, "rc1180");
     WMBusRC1180 *imp = new WMBusRC1180(serial, manager);
     return shared_ptr<WMBus>(imp);
 }
@@ -108,8 +179,65 @@ bool WMBusRC1180::ping()
 
 string WMBusRC1180::getDeviceId()
 {
-    verbose("(rc1180) getDeviceId\n");
-    return "?";
+    if (serial()->readonly()) return "?"; // Feeding from stdin or file.
+    if (cached_device_id_ != "") return cached_device_id_;
+
+    bool ok = false;
+    string hex;
+
+    LOCK_WMBUS_EXECUTING_COMMAND(getDeviceId);
+
+    serial()->disableCallbacks();
+
+    request_.resize(1);
+    request_[0] = 0;
+
+    verbose("(rc1180) get config to get device id\n");
+
+    // Enter config mode.
+    ok = serial()->send(request_);
+    if (!ok) goto err;
+
+    // Wait for the dongle to enter config mode.
+    usleep(200*1000);
+
+    // Config mode active....
+    ok = serial()->waitFor('>');
+    if (!ok) goto err;
+
+    response_.clear();
+
+    // send config command '0' to get all config data
+    request_[0] = '0';
+
+    ok = serial()->send(request_);
+    if (!ok) goto err;
+
+    // Wait for the dongle to respond.
+    usleep(200*1000);
+
+    ok = serial()->receive(&response_);
+    if (!ok) goto err;
+
+    device_config_.decode(response_);
+
+    cached_device_id_ = tostrprintf("%08x", device_config_.id);
+
+    verbose("(rc1180) got device id %s\n", cached_device_id_.c_str());
+
+    // Send config command 'X' to exit config mode.
+    request_[0] = 'X';
+    ok = serial()->send(request_);
+    if (!ok) goto err;
+
+    serial()->enableCallbacks();
+
+    return cached_device_id_;
+
+err:
+    serial()->enableCallbacks();
+
+    return "ERR";
 }
 
 LinkModeSet WMBusRC1180::getLinkModes()
@@ -129,62 +257,14 @@ void WMBusRC1180::deviceSetLinkModes(LinkModeSet lms)
 {
     if (serial()->readonly()) return; // Feeding from stdin or file.
 
-    return;
-
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
         error("(rc1180) setting link mode(s) %s is not supported\n", modes.c_str());
     }
-    // 'brc' command: b - wmbus, r - receive, c - c mode (with t)
-    vector<uchar> msg(5);
-    msg[0] = 'b';
-    msg[1] = 'r';
-    if (lms.has(LinkMode::C1)) {
-        msg[2] = 'c';
-    } else if (lms.has(LinkMode::S1)) {
-        msg[2] = 's';
-    } else if (lms.has(LinkMode::T1)) {
-        msg[2] = 't';
-    }
-    msg[3] = 0xa;
-    msg[4] = 0xd;
 
-    verbose("(rc1180) set link mode %c\n", msg[2]);
-    sent_command_ = string(&msg[0], &msg[3]);
-    received_response_ = "";
-    bool sent = serial()->send(msg);
-
-    if (sent) waitForResponse(0);
-
-    sent_command_ = "";
-    debug("(rc1180) received \"%s\"", received_response_.c_str());
-
-    bool ok = true;
-    if (lms.has(LinkMode::C1)) {
-        if (received_response_ != "CMODE") ok = false;
-    } else if (lms.has(LinkMode::S1)) {
-        if (received_response_ != "SMODE") ok = false;
-    } else if (lms.has(LinkMode::T1)) {
-        if (received_response_ != "TMODE") ok = false;
-    }
-
-    if (!ok)
-    {
-        string modes = lms.hr();
-        error("(rc1180) setting link mode(s) %s is not supported for this cul device!\n", modes.c_str());
-    }
-
-    // X01 - start the receiver
-    msg[0] = 'X';
-    msg[1] = '0';
-    msg[2] = '1';
-    msg[3] = 0xa;
-    msg[4] = 0xd;
-
-    sent = serial()->send(msg);
-
-    // Any response here, or does it silently move into listening mode?
+    // Do not actually try to change the link mode, we assume it is T1.
+    return;
 }
 
 void WMBusRC1180::simulate()
@@ -240,7 +320,7 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 19200, "detect rc1180");
-    serial->doNotUseCallbacks();
+    serial->disableCallbacks();
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
@@ -255,7 +335,8 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
     usleep(200*1000);
     serial->receive(&data);
 
-    if (data[0] != '>') {
+    if (data[0] != '>')
+    {
        // no RC1180 device detected
        serial->close();
        verbose("(rc1180) are you there? no.\n");
@@ -274,14 +355,21 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
     serial->receive(&data);
     string hex = bin2hex(data);
 
+    ConfigRC1180 co;
+    co.decode(data);
+
+    debug("(rc1180) config: %s\n", co.str().c_str());
+
     msg[0] = 'X';
     serial->send(msg);
 
+    usleep(1000*200);
+
     serial->close();
 
-    detected->setAsFound("12345678", WMBusDeviceType::DEVICE_RC1180, 19200, false, false);
+    detected->setAsFound(co.dongleId(), WMBusDeviceType::DEVICE_RC1180, 19200, false, false);
 
-    verbose("(rc1180) are you there? yes xxxxxx\n");
+    verbose("(rc1180) are you there? yes %s\n", co.dongleId().c_str());
 
     return AccessCheck::AccessOK;
 }

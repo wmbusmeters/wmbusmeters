@@ -819,7 +819,15 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Dete
     verbose("(main) regular reset of %s %s%s will happen every %d seconds\n",
             toString(detected->found_type), file.c_str(), cmd.c_str(), regular_reset);
 
-    wmbus->setLinkModes(lms);
+    if (wmbus->canSetLinkModes(lms))
+    {
+        wmbus->setLinkModes(lms);
+    }
+    else
+    {
+        warning("Warning! Desired link modes %s cannot be set for device %s\n",
+                lms.hr().c_str(), wmbus->hr().c_str());
+    }
     /*
     LinkModeCalculationResult lmcr = calculateLinkModes(config, wmbus.get(), link_modes_matter);
     if (lmcr.type != LinkModeCalculationResultType::Success)

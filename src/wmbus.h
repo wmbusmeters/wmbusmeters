@@ -497,11 +497,18 @@ struct Meter;
 
 struct WMBus
 {
-    virtual WMBusDeviceType type() = 0;
+    // I wmbus device identifier consists of:
+    // device:type[id] for example:
+    // /dev/ttyUSB1:im871a[12345678]
+
     virtual std::string device() = 0;
-    virtual bool ping() = 0;
+    virtual WMBusDeviceType type() = 0;
     virtual string getDeviceId() = 0;
+
+    virtual std::string hr() = 0;
+
     virtual LinkModeSet getLinkModes() = 0;
+    virtual bool ping() = 0;
     virtual LinkModeSet supportedLinkModes() = 0;
     virtual int numConcurrentLinkModes() = 0;
     virtual bool canSetLinkModes(LinkModeSet lms) = 0;

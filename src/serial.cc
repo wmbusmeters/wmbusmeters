@@ -139,10 +139,12 @@ SerialCommunicationManagerImp::~SerialCommunicationManagerImp()
 
 struct SerialDeviceImp : public SerialDevice
 {
-    void doNotUseCallbacks() { no_callbacks_ = true; }
+    void disableCallbacks() { no_callbacks_ = true; }
+    void enableCallbacks() { no_callbacks_ = false; }
     bool skippingCallbacks() { return no_callbacks_; }
     void fill(vector<uchar> &data) {};
     int receive(vector<uchar> *data);
+    bool waitFor(uchar c);
     bool working() { return resetting_ || fd_ != -1; }
     bool opened() { return resetting_ || fd_ != -2; }
     bool isClosed() { return fd_ == -1 && !resetting_; }
@@ -193,6 +195,18 @@ protected:
 
     friend struct SerialCommunicationManagerImp;
 };
+
+bool SerialDeviceImp::waitFor(uchar c)
+{
+    vector<uchar> data;
+    for (;;)
+    {
+        int n = receive(&data);
+        if (n == 0) break;
+        if (data.back() == c) return true;
+    }
+    return false;
+}
 
 int SerialDeviceImp::receive(vector<uchar> *data)
 {

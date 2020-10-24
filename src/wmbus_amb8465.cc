@@ -496,7 +496,7 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 9600, "detect amb8465");
-    serial->doNotUseCallbacks();
+    serial->disableCallbacks();
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 

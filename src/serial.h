@@ -45,13 +45,18 @@ struct SerialDevice
     virtual bool send(std::vector<uchar> &data) = 0;
     // Receive returns the number of bytes received.
     virtual int receive(std::vector<uchar> *data) = 0;
+    // Read and skip until the desired character is found
+    // and no further bytes can be read.
+    virtual bool waitFor(uchar c) = 0;
     virtual int fd() = 0;
     virtual bool opened() = 0;
     virtual bool working() = 0;
     // Used when connecting stdin to a tty driver for testing.
     virtual bool readonly() = 0;
     // Mark this device so that it is ignored by the select/callback event loop.
-    virtual void doNotUseCallbacks() = 0;
+    virtual void disableCallbacks() = 0;
+    // Enable this device to trigger callbacks from the event loop.
+    virtual void enableCallbacks() = 0;
     virtual bool skippingCallbacks() = 0;
 
     // Return underlying device as string.

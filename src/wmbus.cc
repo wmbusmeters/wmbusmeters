@@ -3179,6 +3179,17 @@ WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
     manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
 }
 
+string WMBusCommonImplementation::hr()
+{
+    if (cached_hr_ == "")
+    {
+        cached_hr_ = device()+":"+toString(type())+"["+getDeviceId()+"]";
+    }
+
+    return cached_hr_;
+}
+
+
 WMBusDeviceType WMBusCommonImplementation::type()
 {
     return type_;

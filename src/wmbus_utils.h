@@ -32,6 +32,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     WMBusCommonImplementation(WMBusDeviceType t, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override);
     ~WMBusCommonImplementation();
 
+    string hr();
     WMBusDeviceType type();
     void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb);
     bool handleTelegram(AboutTelegram &about, vector<uchar> frame);
@@ -91,6 +92,10 @@ protected:
 
     // When a wmbus dongle transmits a telegram, then it will use this id.
     string cached_device_id_;
+    // Generated human readable name: eg
+    // * /dev/ttyUSB0:im871a[12345678]
+    // * rtlmbus[longantenna]
+    string cached_hr_;
 
     // Lock this mutex when you sent a request to the wmbus device
     // Unlock when you received the response or it timedout.

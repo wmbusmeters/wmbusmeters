@@ -845,7 +845,7 @@ AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManag
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 57600, "detect im871a");
-    serial->doNotUseCallbacks();
+    serial->disableCallbacks();
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
@@ -893,7 +893,7 @@ AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManag
 
     detected->setAsFound(co.dongleId(), WMBusDeviceType::DEVICE_IM871A, 57600, false, false);
 
-    verbose("(im871a) are you there? yes %08x\n", co.dongleId());
+    verbose("(im871a) are you there? yes %s\n", co.dongleId().c_str());
 
     return AccessCheck::AccessOK;
 }

@@ -342,7 +342,7 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 38400, "detect cul");
-    serial->doNotUseCallbacks();
+    serial->disableCallbacks();
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
