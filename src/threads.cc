@@ -21,6 +21,10 @@
 #include <sys/resource.h>
 #include <stdio.h>
 
+#if defined(__APPLE__) && defined(__MACH__)
+#include <mach/mach.h>
+#endif
+
 using namespace std;
 
 pthread_t main_thread_ {};
