@@ -27,10 +27,11 @@
 // but the intention is to have better detection of usb
 // changes in the future. Perhaps even callbacks?
 
-#include<libusb-1.0/libusb.h>
+//#include<libusb-1.0/libusb.h>
 
 using namespace std;
 
+/*
 struct StaticLibUSB
 {
     libusb_context *ctx_;
@@ -58,7 +59,7 @@ struct StaticLibUSB
         libusb_exit(ctx_);
     }
 };
-
+*/
 //StaticLibUSB static_;
 
 vector<string> listRtlSdrDevices()

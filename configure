@@ -1915,6 +1915,11 @@ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ex
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
+#C_CHECK_LIB(usb, usb_init, [],
+#
+#  C_MSG_ERROR([Could  not find libusb library. Try: sudo apt install libusb-dev])
+#)
+
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -2421,56 +2426,6 @@ ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for usb_init in -lusb" >&5
-$as_echo_n "checking for usb_init in -lusb... " >&6; }
-if ${ac_cv_lib_usb_usb_init+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lusb  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char usb_init ();
-int
-main ()
-{
-return usb_init ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_usb_usb_init=yes
-else
-  ac_cv_lib_usb_usb_init=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_usb_usb_init" >&5
-$as_echo "$ac_cv_lib_usb_usb_init" >&6; }
-if test "x$ac_cv_lib_usb_usb_init" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBUSB 1
-_ACEOF
-
-  LIBS="-lusb $LIBS"
-
-else
-
-  as_fn_error $? "Could  not find libusb library. Try: sudo apt install libusb-dev" "$LINENO" 5
-
-fi
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for rtlsdr_get_device_count in -lrtlsdr" >&5
