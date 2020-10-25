@@ -16,9 +16,9 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 #include"serial.h"
-
 #include<assert.h>
 #include<pthread.h>
 #include<semaphore.h>

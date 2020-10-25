@@ -16,6 +16,7 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 #include"wmbus_im871a.h"
 #include"serial.h"

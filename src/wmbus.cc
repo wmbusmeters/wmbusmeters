@@ -19,6 +19,7 @@
 #include"timings.h"
 #include"meters.h"
 #include"wmbus.h"
+#include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 #include"dvparser.h"
 #include<assert.h>

@@ -18,6 +18,7 @@
 #include"serial.h"
 #include"util.h"
 #include"wmbus.h"
+#include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 
 #include<assert.h>
