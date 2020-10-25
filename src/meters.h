@@ -49,7 +49,7 @@
     X(lansendw,   T1_bit, DoorWindow,  LANSENDW,    LansenDW)     \
     X(lansenpu,   T1_bit, Pulse,       LANSENPU,    LansenPU)     \
     X(mkradio3,   T1_bit, Water,       MKRADIO3,    MKRadio3)     \
-    X(multical21, C1_bit, Water,       MULTICAL21,  Multical21)   \
+    X(multical21, C1_bit|T1_bit, Water,       MULTICAL21,  Multical21)   \
     X(multical302,C1_bit, Heat,        MULTICAL302, Multical302)  \
     X(multical403,C1_bit, Heat,        MULTICAL403, Multical403)  \
     X(multical603,C1_bit, Heat,        MULTICAL603, Multical603)  \
