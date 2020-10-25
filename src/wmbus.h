@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -30,6 +30,87 @@
 bool trimCRCsFrameFormatA(std::vector<uchar> &payload);
 bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
 
+// A wmbus specified device is supplied on the command line or in the config file.
+// It has this format "file:type(id):fq:bps:linkmods:CMD(command)"
+struct SpecifiedDevice
+{
+    int index; // 0,1,2,3 the order on the command line / config file.
+    std::string file; // simulation_meter.txt, stdin, file.raw, /dev/ttyUSB0
+    bool is_tty{}, is_stdin{}, is_file{}, is_simulation{};
+    std::string type; // im871a, rtlwmbus
+    std::string id; // 12345678 for wmbus dongles or 0,1 for rtlwmbus indexes.
+    std::string fq; // 868.95M
+    std::string bps; // 9600
+    std::string linkmodes; // c1,t1,s1
+    std::string command; // command line of background process that streams data into wmbusmeters
+
+    bool handled {}; // Set to true when this device has been detected/handled.
+    time_t last_alarm {}; // Last time an alarm was sent for this device not being found.
+
+    void clear();
+    string str();
+    bool parse(string &s);
+};
+
+#define LIST_OF_MBUS_DEVICES \
+    X(UNKNOWN,unknown)       \
+    X(AMB8465,amb8465)       \
+    X(CUL,cul)               \
+    X(D1TC,d1tc)             \
+    X(IM871A,im871a)         \
+    X(RAWTTY,rawtty)         \
+    X(RC1180,rc1180)         \
+    X(RTL433,rtl433)         \
+    X(RTLWMBUS,rtlwmbus)     \
+    X(SIMULATION,simulation)
+
+enum WMBusDeviceType {
+#define X(name,text) DEVICE_ ## name,
+LIST_OF_MBUS_DEVICES
+#undef X
+};
+
+const char *toString(WMBusDeviceType t);
+const char *toLowerCaseString(WMBusDeviceType t);
+WMBusDeviceType toWMBusDeviceType(string &t);
+
+struct Detected
+{
+    SpecifiedDevice specified_device {}; // Device as specified from the command line / config file.
+
+    string found_file; // The device file to use.
+    string found_device_id; // An "unique" identifier, typically the id used by the dongle as its own wmbus id, if it transmits.
+    WMBusDeviceType found_type {};  // IM871A, AMB8465 etc.
+    int found_bps {}; // Serial speed of tty, overrides
+    bool found_tty_override {}; // override tty
+    bool found_cmd_override {}; // override cmd
+    string found_command;
+
+    void setSpecifiedDeviceAsAuto()
+    {
+        specified_device.clear();
+    }
+
+    void setSpecifiedDevice(SpecifiedDevice sd)
+    {
+        specified_device = sd;
+    }
+
+    void setAsFound(string id, WMBusDeviceType t, int b, bool to, bool co)
+    {
+        found_device_id = id;
+        found_type = t;
+        found_bps = b;
+        found_tty_override = to;
+        found_cmd_override = co;
+    }
+
+    std::string str()
+    {
+        return found_file+":"+string(toString(found_type))+"["+found_device_id+"]"+":"+to_string(found_bps)+"/"+to_string(found_tty_override);
+    }
+};
+
 #define LIST_OF_LINK_MODES \
     X(Any,any,--anylinkmode,0xffff)             \
     X(C1,c1,--c1,0x1)                           \
@@ -44,11 +125,18 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
     X(N1f,n1f,--n1f,0x200)                     \
     X(UNKNOWN,unknown,----,0x0)
 
+// In link mode S1, is used when both the transmitter and receiver are stationary.
+// It can be transmitted relatively seldom.
+
 // In link mode T1, the meter transmits a telegram every few seconds or minutes.
 // Suitable for drive-by/walk-by collection of meter values.
 
 // Link mode C1 is like T1 but uses less energy when transmitting due to
-// a different radio encoding.
+// a different radio encoding. Also significant is:
+// S1/T1 usually uses the A format for the data link layer, more CRCs.
+// C1 usually uses the B format for the data link layer, less CRCs = less overhead.
+
+// The im871a can for example receive C1a, but it is unclear if there are any meters that use it.
 
 enum class LinkMode {
 #define X(name,lcname,option,val) name,
@@ -103,6 +191,7 @@ private:
 };
 
 LinkModeSet parseLinkModes(string modes);
+bool isValidLinkModes(string modes);
 
 enum class CONNECTION
 {
@@ -225,15 +314,28 @@ struct MeterKeys
 {
     vector<uchar> confidentiality_key;
     vector<uchar> authentication_key;
-    bool simulation {};
 
     bool hasConfidentialityKey() { return confidentiality_key.size() > 0; }
     bool hasAuthenticationKey() { return authentication_key.size() > 0; }
-    bool isSimulation() { return simulation; }
+};
+
+struct AboutTelegram
+{
+    // wmbus device used to receive this telegram.
+    string device;
+    // The device's opinion of the rssi, best effort conversion into the dbm scale.
+    // -100 dbm = 0.1 pico Watt to -20 dbm = 10 micro W
+    // Measurements smaller than -100 and larger than -10 are unlikely.
+    int rssi_dbm {};
+
+    AboutTelegram(string dv, int rs) : device(dv), rssi_dbm(rs) {}
+    AboutTelegram() {}
 };
 
 struct Telegram
 {
+    AboutTelegram about;
+
     // The meter address as a string usually printed on the meter.
     string id;
     // If decryption failed, set this to true, to prevent further processing.
@@ -344,6 +446,7 @@ struct Telegram
     void explainParse(string intro, int from);
 
     bool isSimulated() { return is_simulated_; }
+    void markAsSimulated() { is_simulated_ = true; }
 
     // Extracted mbus values.
     std::map<std::string,std::pair<int,DVEntry>> values;
@@ -391,43 +494,39 @@ private:
 
 struct Meter;
 
-#define LIST_OF_MBUS_DEVICES \
-    X(DEVICE_UNKNOWN) \
-    X(DEVICE_CUL)\
-    X(DEVICE_D1TC)\
-    X(DEVICE_IM871A)\
-    X(DEVICE_AMB8465)\
-    X(DEVICE_RFMRX2)\
-    X(DEVICE_SIMULATOR)\
-    X(DEVICE_RTLWMBUS)\
-    X(DEVICE_RTL433)\
-    X(DEVICE_RAWTTY)\
-    X(DEVICE_WMB13U)
-
-enum WMBusDeviceType {
-#define X(name) name,
-LIST_OF_MBUS_DEVICES
-#undef X
-};
-
-const char *toString(WMBusDeviceType t);
-
 struct WMBus
 {
-    virtual WMBusDeviceType type() = 0;
+    // I wmbus device identifier consists of:
+    // device:type[id] for example:
+    // /dev/ttyUSB1:im871a[12345678]
+
     virtual std::string device() = 0;
-    virtual bool ping() = 0;
-    virtual uint32_t getDeviceId() = 0;
+    virtual WMBusDeviceType type() = 0;
+    // The device id is the changeable id of the dongle.
+    // For im871a,amb8465 it is the transmit address.
+    // For rtlsdr it is the id set using rtl_eeprom.
+    // Not all dongles have this.
+    virtual string getDeviceId() = 0;
+    // The im871a and amb8465 dongles does have a unique, immutable id as well.
+    // Not all dongles have this.
+    virtual string getDeviceUniqueId() = 0;
+
+    virtual std::string hr() = 0;
+
     virtual LinkModeSet getLinkModes() = 0;
+    virtual bool ping() = 0;
     virtual LinkModeSet supportedLinkModes() = 0;
     virtual int numConcurrentLinkModes() = 0;
     virtual bool canSetLinkModes(LinkModeSet lms) = 0;
-    virtual void setMeters(vector<unique_ptr<Meter>> *meters) = 0;
     virtual void setLinkModes(LinkModeSet lms) = 0;
-    virtual void onTelegram(function<bool(vector<uchar>)> cb) = 0;
+    virtual void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb) = 0;
     virtual SerialDevice *serial() = 0;
+    // Return true of the serial has been overridden, usually with stdin or a file.
+    virtual bool serialOverride() = 0;
     virtual void simulate() = 0;
-    // This will check if the wmbus devices needs reset.
+    // Return true if underlying device is ok and device in general seems to be working.
+    virtual bool isWorking() = 0;
+    // This will check if the wmbus devices needs a reset and then immediately perform the reset.
     virtual void checkStatus() = 0;
     // Close any underlying ttys or software and restart/reinitialize.
     // Return true if ok.
@@ -436,42 +535,43 @@ struct WMBus
     // within seconds, then invoke reset(). However do not reset
     // when no activity is expected.
     virtual void setTimeout(int seconds, std::string expected_activity) = 0;
+    // Set a regular interval for resetting the wmbus device.
+    // Default is once ever 24 hours.
+    virtual void setResetInterval(int seconds) = 0;
+    // Close this device.
+    virtual void close() = 0;
+    // Remember how this device was detected.
+    virtual void setDetected(Detected detected) = 0;
+    virtual Detected *getDetected() = 0;
     virtual ~WMBus() = 0;
 };
 
+Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
+                                   shared_ptr<SerialCommunicationManager> manager);
+Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
+                                      shared_ptr<SerialCommunicationManager> handler);
 
-struct Detected
-{
-    WMBusDeviceType type;  // IM871A, AMB8465 etc
-    string devicefile;    // /dev/ttyUSB0 /dev/ttyACM0 stdin simulation_abc.txt telegrams.raw
-    int baudrate;         // If the suffix is a number, store the number here.
-    // If the override_tty is true, then do not allow the wmbus driver to open the tty,
-    // instead open the devicefile first. This is to allow feeding the wmbus drivers using stdin
-    // or a file or for internal testing.
-    bool override_tty;
-};
 
-Detected detectWMBusDeviceSetting(string devicefile, string suffix,
-                                  SerialCommunicationManager *manager);
-
-unique_ptr<WMBus> openIM871A(string device, SerialCommunicationManager *manager,
-                             unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager,
-                              unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openRawTTY(string device, int baudrate, SerialCommunicationManager *manager,
-                             unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openRTLWMBUS(string device, SerialCommunicationManager *manager, std::function<void()> on_exit,
-                               unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openRTL433(string device, SerialCommunicationManager *manager, std::function<void()> on_exit,
-                             unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openCUL(string device, SerialCommunicationManager *manager,
-                              unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openD1TC(string device, SerialCommunicationManager *manager,
-                           unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openWMB13U(string device, SerialCommunicationManager *manager,
-                             unique_ptr<SerialDevice> serial_override);
-unique_ptr<WMBus> openSimulator(string file, SerialCommunicationManager *manager,
-                                unique_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openIM871A(string device, shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManager> manager,
+                              shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openRC1180(string device, shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openRTLWMBUS(string identifier, string command, shared_ptr<SerialCommunicationManager> manager, std::function<void()> on_exit,
+                               shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openRTL433(string identifier, string command, shared_ptr<SerialCommunicationManager> manager, std::function<void()> on_exit,
+                             shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> manager,
+                              shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openD1TC(string device, shared_ptr<SerialCommunicationManager> manager,
+                           shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openWMB13U(string device, shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openSimulator(string file, shared_ptr<SerialCommunicationManager> manager,
+                                shared_ptr<SerialDevice> serial_override);
 
 string manufacturer(int m_field);
 string manufacturerFlag(int m_field);
@@ -504,14 +604,14 @@ MeasurementType difMeasurementType(int dif);
 string linkModeName(LinkMode link_mode);
 string measurementTypeName(MeasurementType mt);
 
-AccessCheck findAndDetect(SerialCommunicationManager *manager,
+AccessCheck findAndDetect(shared_ptr<SerialCommunicationManager> manager,
                           string *out_device,
-                          function<AccessCheck(string,SerialCommunicationManager*)> check,
+                          function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> check,
                           string dongle_name,
                           string device_root);
 
-AccessCheck checkAccessAndDetect(SerialCommunicationManager *manager,
-                                 function<AccessCheck(string,SerialCommunicationManager*)> check,
+AccessCheck checkAccessAndDetect(shared_ptr<SerialCommunicationManager> manager,
+                                 function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> check,
                                  string dongle_name,
                                  string device);
 
@@ -523,15 +623,22 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
                             int *payload_len_out,
                             int *payload_offset);
 
-AccessCheck detectIM871A(string device, SerialCommunicationManager *handler);
-AccessCheck detectAMB8465(string device, SerialCommunicationManager *handler);
-AccessCheck detectRawTTY(string device, int baud, SerialCommunicationManager *handler);
-AccessCheck detectRTLSDR(string device, SerialCommunicationManager *handler);
-AccessCheck detectCUL(string device, SerialCommunicationManager *handler);
-AccessCheck detectWMB13U(string device, SerialCommunicationManager *handler);
+AccessCheck detectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+
+AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectD1TC(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
+AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectRTL433(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectRTLWMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectWMB13U(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 
 // Try to factory reset an AMB8465 by trying all possible serial speeds and
 // restore to factory settings.
-AccessCheck factoryResetAMB8465(string device, SerialCommunicationManager *handler, int *was_baud);
+AccessCheck factoryResetAMB8465(string tty, shared_ptr<SerialCommunicationManager> handler, int *was_baud);
+
+Detected detectWMBusDeviceOnTTY(string tty, shared_ptr<SerialCommunicationManager> handler);
 
 #endif

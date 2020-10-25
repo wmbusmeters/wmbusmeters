@@ -33,7 +33,7 @@
 #define INFO_CODE_TEMP_DIFF_WRONG_POLARITY 128
 
 struct MeterMultical603 : public virtual HeatMeter, public virtual MeterCommonImplementation {
-    MeterMultical603(WMBus *bus, MeterInfo &mi);
+    MeterMultical603(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     string status();
@@ -50,7 +50,7 @@ private:
     void processContent(Telegram *t);
 
     uchar info_codes_ {};
-    double total_energy_mj_ {};
+    double total_energy_kwh_ {};
     double total_volume_m3_ {};
     double volume_flow_m3h_ {};
     double t1_temperature_c_ { 127 };
@@ -58,10 +58,13 @@ private:
     double t2_temperature_c_ { 127 };
     bool has_t2_temperature_ {};
     string target_date_ {};
+
+    uint32_t something_a_ {};
+    uint32_t something_b_ {};
 };
 
-MeterMultical603::MeterMultical603(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::MULTICAL603)
+MeterMultical603::MeterMultical603(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::MULTICAL603)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
@@ -101,16 +104,27 @@ MeterMultical603::MeterMultical603(WMBus *bus, MeterInfo &mi) :
              [&](){ return status(); },
              "Status of meter.",
              true, true);
+
+    addPrint("something_a", Quantity::Text,
+             [&](){ return to_string(something_a_); },
+             "Something A.",
+             true, true);
+
+    addPrint("something_b", Quantity::Text,
+             [&](){ return to_string(something_b_); },
+             "Something B.",
+             true, true);
+
 }
 
-unique_ptr<HeatMeter> createMultical603(WMBus *bus, MeterInfo &mi) {
-    return unique_ptr<HeatMeter>(new MeterMultical603(bus, mi));
+shared_ptr<HeatMeter> createMultical603(MeterInfo &mi) {
+    return shared_ptr<HeatMeter>(new MeterMultical603(mi));
 }
 
 double MeterMultical603::totalEnergyConsumption(Unit u)
 {
     assertQuantity(u, Quantity::Energy);
-    return convert(total_energy_mj_, Unit::MJ, u);
+    return convert(total_energy_kwh_, Unit::KWH, u);
 }
 
 double MeterMultical603::totalVolume(Unit u)
@@ -149,15 +163,51 @@ double MeterMultical603::volumeFlow(Unit u)
 
 void MeterMultical603::processContent(Telegram *t)
 {
+    /*
+      (multical603) 13: 78 tpl-ci-field (EN 13757-3 Application Layer (no tplh))
+      (multical603) 14: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical603) 15: 06 vif (Energy kWh)
+      (multical603) 16: * A5000000 total energy consumption (165.000000 kWh)
+      (multical603) 1a: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical603) 1b: FF vif (Vendor extension)
+      (multical603) 1c: 07 vife (?)
+      (multical603) 1d: 2B010000
+      (multical603) 21: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical603) 22: FF vif (Vendor extension)
+      (multical603) 23: 08 vife (?)
+      (multical603) 24: 9C000000
+      (multical603) 28: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical603) 29: 14 vif (Volume 10⁻² m³)
+      (multical603) 2a: * 21020000 total volume (5.450000 m3)
+      (multical603) 2e: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical603) 2f: 3B vif (Volume flow l/h)
+      (multical603) 30: * 12000000 volume flow (0.018000 m3/h)
+      (multical603) 34: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (multical603) 35: 59 vif (Flow temperature 10⁻² °C)
+      (multical603) 36: * D014 T1 flow temperature (53.280000 °C)
+      (multical603) 38: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (multical603) 39: 5D vif (Return temperature 10⁻² °C)
+      (multical603) 3a: * 0009 T2 flow temperature (23.040000 °C)
+      (multical603) 3c: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical603) 3d: FF vif (Vendor extension)
+      (multical603) 3e: 22 vife (per hour)
+      (multical603) 3f: * 00000000 info codes ()
+*/
     int offset;
     string key;
 
     extractDVuint8(&t->values, "04FF22", &offset, &info_codes_);
     t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyMJ, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_energy_mj_);
-        t->addMoreExplanation(offset, " total energy consumption (%f MJ)", total_energy_mj_);
+    extractDVuint32(&t->values, "04FF07", &offset, &something_a_);
+    t->addMoreExplanation(offset, " something A (%zu)", something_a_);
+
+    extractDVuint32(&t->values, "04FF08", &offset, &something_b_);
+    t->addMoreExplanation(offset, " something B (%zu)", something_b_);
+
+    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
+        t->addMoreExplanation(offset, " total energy consumption (%f kWh)", total_energy_kwh_);
     }
 
     if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, &key, &t->values)) {

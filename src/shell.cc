@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -324,4 +324,23 @@ bool invokeShellCaptureOutput(string program, vector<string> args, vector<string
     }
 
     return true;
+}
+
+void detectProcesses(string cmd, vector<int> *pids)
+{
+    vector<string> args;
+    vector<string> envs;
+    args.push_back(cmd);
+    string out;
+    invokeShellCaptureOutput("/bin/pidof", args, envs, &out, true);
+
+    char buf[out.size()+1];
+    strcpy(buf, out.c_str());
+    char *pch;
+    pch = strtok (buf," \n");
+    while (pch != NULL)
+    {
+        pids->push_back(atoi(pch));
+        pch = strtok (NULL, " \n");
+    }
 }

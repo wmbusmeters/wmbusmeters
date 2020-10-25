@@ -24,7 +24,7 @@
 
 struct MeterEBZWMBE : public virtual ElectricityMeter, public virtual MeterCommonImplementation
 {
-    MeterEBZWMBE(WMBus *bus, MeterInfo &mi);
+    MeterEBZWMBE(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     double currentPowerConsumption(Unit u);
@@ -44,8 +44,8 @@ private:
     string customer_;
 };
 
-MeterEBZWMBE::MeterEBZWMBE(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::EBZWMBE)
+MeterEBZWMBE::MeterEBZWMBE(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::EBZWMBE)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 
@@ -85,9 +85,9 @@ MeterEBZWMBE::MeterEBZWMBE(WMBus *bus, MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<ElectricityMeter> createEBZWMBE(WMBus *bus, MeterInfo &mi)
+shared_ptr<ElectricityMeter> createEBZWMBE(MeterInfo &mi)
 {
-    return unique_ptr<ElectricityMeter>(new MeterEBZWMBE(bus, mi));
+    return shared_ptr<ElectricityMeter>(new MeterEBZWMBE(mi));
 }
 
 double MeterEBZWMBE::totalEnergyConsumption(Unit u)

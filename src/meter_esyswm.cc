@@ -26,7 +26,7 @@
 
 struct MeterESYSWM : public virtual ElectricityMeter, public virtual MeterCommonImplementation
 {
-    MeterESYSWM(WMBus *bus, MeterInfo &mi);
+    MeterESYSWM(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     double totalEnergyConsumptionTariff1(Unit u);
@@ -61,8 +61,8 @@ private:
     string fabrication_no_;
 };
 
-MeterESYSWM::MeterESYSWM(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::ESYSWM)
+MeterESYSWM::MeterESYSWM(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::ESYSWM)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 
@@ -132,9 +132,9 @@ MeterESYSWM::MeterESYSWM(WMBus *bus, MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<ElectricityMeter> createESYSWM(WMBus *bus, MeterInfo &mi)
+shared_ptr<ElectricityMeter> createESYSWM(MeterInfo &mi)
 {
-    return unique_ptr<ElectricityMeter>(new MeterESYSWM(bus, mi));
+    return shared_ptr<ElectricityMeter>(new MeterESYSWM(mi));
 }
 
 double MeterESYSWM::totalEnergyConsumption(Unit u)

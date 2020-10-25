@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 
 struct MeterCompact5 : public virtual HeatMeter, public virtual MeterCommonImplementation
 {
-    MeterCompact5(WMBus *bus, MeterInfo &mi);
+    MeterCompact5(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     double currentPeriodEnergyConsumption(Unit u);
@@ -40,13 +40,13 @@ struct MeterCompact5 : public virtual HeatMeter, public virtual MeterCommonImple
     double prev_energy_kwh_ {};
 };
 
-unique_ptr<HeatMeter> createCompact5(WMBus *bus, MeterInfo &mi)
+shared_ptr<HeatMeter> createCompact5(MeterInfo &mi)
 {
-    return unique_ptr<HeatMeter>(new MeterCompact5(bus, mi));
+    return shared_ptr<HeatMeter>(new MeterCompact5(mi));
 }
 
-MeterCompact5::MeterCompact5(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::COMPACT5)
+MeterCompact5::MeterCompact5(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::COMPACT5)
 {
     // media 0x04 is used for C telegrams
     // media 0xC3 is used for T telegrams

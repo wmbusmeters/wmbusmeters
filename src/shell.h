@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -25,3 +25,4 @@ bool invokeShellCaptureOutput(string program, vector<string> args, vector<string
 bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *out, int *pid);
 bool stillRunning(int pid);
 void stopBackgroundShell(int pid);
+void detectProcesses(string cmd, vector<int> *pids);

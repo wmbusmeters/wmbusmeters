@@ -29,16 +29,28 @@ Availability of **wmbusmeters** for other Linux distributions can be checked on 
 
 # Run as a daemon
 
-Remove the wmbus dongle (im871a,amb8465,rfmrx2,cul,d1tc) or the generic rtlsdr dongle (RTL2838) from your computer.
+Remove the wmbus dongle (im871a,amb8465,cul,rc1180,rfmrx2,d1tc) or the generic rtlsdr dongle (RTL2838) from your computer.
 
-`make; sudo make install` will install wmbusmeters as a daemon that starts
-automatically when an appropriate wmbus usb dongle is inserted in the computer.
+`./configure; make; sudo make install` will install wmbusmeters as a daemon.
+
+Check the contents of your `/etc/wmbusmeters.conf` file, assuming it
+has `device=auto:c1` and you are using a im871a,amb8465,rc1180 or cul device,
+then you can now start the daemon with `sudo systemctl start wmbusmeters`
+or you can try it from the command line `wmbusmeters auto:c1`
+
+Wmbusmeters will scan for wmbus devices every few seconds and detect whenever
+a device is plugged in or removed.
+
+To have the wmbusmeters daemon start automatically when the computer boots do:
+`sudo systemctl enable wmbusmeters`
+
+You can trigger a reload of the config files with `sudo killall -HUP wmbusmetersd`
+
 (Note! make install only works for GNU/Linux. For MacOSX try to start
-`wmbusmetersd /tmp/thepidfile` from a script instead. Here you can also override the device:
-`wmbusmetersd --device=/dev/ttyXXY --listento=t1 /tmp/thepidfile`)
+`wmbusmetersd /tmp/thepidfile` from a script instead.)
 
 Check the config file /etc/wmbusmeters.conf and edit the device to
-point to your dongle.
+point to your dongle or use auto
 ```
 loglevel=normal
 device=/dev/ttyUSB0:im871a
@@ -109,9 +121,9 @@ Or you can start wmbusmeters with your own config files:
 wmbusmeters --useconfig=/home/me/.config/wmbusmeters
 ```
 
-You can add --device and --listento to override the settings in the config. Like this:
+You can add --device to override the settings in the config. Like this:
 ```
-wmbusmeters --useconfig=/home/me/.config/wmbusmeters --device=/dev/ttyXXY --listento=t1`
+wmbusmeters --useconfig=/home/me/.config/wmbusmeters --device=rtlwmbus
 ```
 
 The files/dir should then be located here:
@@ -124,23 +136,23 @@ depending on if you are running as a daemon or not.
 
 # Running without config files, good for experimentation and test.
 ```
-wmbusmeters version: 0.9.15
-Usage: wmbusmeters {options} <device>{:suffix} ( [meter_name] [meter_type]{:<modes>} [meter_id] [meter_key] )*
+wmbusmeters version: 0.9.36
+Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type]{:<modes>} [meter_id] [meter_key] )*
 
 As <options> you can use:
 
     --addconversions=<unit>+ add conversion to these units to json and meter env variables (GJ)
+    --alarmexpectedactivity=mon-fri(08-17),sat-sun(09-12) Specify when the timeout is tested, default is mon-sun(00-23)
+    --alarmshell=<cmdline> invokes cmdline when an alarm triggers
+    --alarmtimeout=<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity.
     --debug for a lot of information
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
     --json_xxx=yyy always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy
-    --listento=<mode> tell the wmbus dongle to listen to this single link mode where mode can be
-                      c1,t1,s1,s1m,n1a,n1b,n1c,n1d,n1e,n1f
-    --listento=c1,t1,s1 tell the wmbus dongle to listen to these link modes
-                      different dongles support different combinations of modes
-    --c1 --t1 --s1 --s1m ... another way to set the link mode for the dongle
-    --listenvs list the env variables available for the meter
-    --listfields list the fields selectable for the meter
+    --listenvs=<meter_type> list the env variables available for the given meter type
+    --listfields=<meter_type> list the fields selectable for the given meter type
+    --listmeters list all meter types
+    --listmeters=<search> list all meter types containing the text <search>
     --logfile=<file> use this file instead of stdout
     --logtelegrams log the contents of the telegrams for easy replay
     --meterfiles=<dir> store meter readings in dir
@@ -149,18 +161,25 @@ As <options> you can use:
     --meterfilestimestamp=(never|day|hour|minute|micros) the meter file is suffixed with a
                           timestamp (localtime) with the given resolution.
     --oneshot wait for an update from each meter, then quit
-    --reopenafter=<time> close/reopen dongle connection repeatedly every <time> seconds, eg 60s, 60m, 24h
+    --resetafter=<time> reset the wmbus dongle regularly, default is 23h
     --selectfields=id,timestamp,total_m3 select fields to be printed
     --separator=<c> change field separator to c
     --shell=<cmdline> invokes cmdline with env variables containing the latest reading
     --useconfig=<dir> load config files from dir/etc
-    --usestderr write debug/verbose and logging output to stderr
+    --usestderr write notices/debug/verbose and other logging output to stderr (the default)
+    --usestdoutforlogging write debug/verbose and logging output to stdout
     --verbose for more information
 
 As <device> you can use:
 
-auto, to have wmbusmeters look for the links /dev/im871a, /dev/amb8465, /dev/rfmrx2 and /dev/rtlsdr
-(the links are automatically generated by udev if you have run the install scripts)
+auto:c1, to have wmbusmeters look existing serial devices and probe them to detect: im871a, amb8465, cul, rc1180 or rtlsdr.
+
+If you have two im871a you can supply both of them and set different listening modes:
+im871a[12345678]:c1 im871a[11223344]:t1
+
+You can also specify rtlwmbus and if you set the serial in the rtlsdr
+dongle using `rtl_eeprom -s 1234` you can also refer to a specific
+rtlsdr dongle like this `rtlwmbus[1234]`.
 
 /dev/ttyUSB0:amb8465, if you have an amb8465 dongle assigned to ttyUSB0. Other suffixes are im871a,rfmrx2,d1tc,cul.
 
@@ -178,7 +197,7 @@ rtl433, to spawn the background process: "rtl_433 -F csv -f 868.95M"
 
 rtl433:868.9M, to tune to this fq instead.
 
-rtlwmbus:<commandline>, to specify the entire background process command line that is expected to produce rtlwbus compatible output.
+rtlwmbus:CMD(<commandline>), to specify the entire background process command line that is expected to produce rtlwbus compatible output.
 Likewise for rtl433.
 
 stdin, to read raw binary telegrams from stdin.
@@ -206,10 +225,11 @@ As meter quadruples you specify:
 Supported wmbus dongles:
 IMST 871a (im871a)
 Amber 8465 (amb8465)
-BMeters RFM-RX2 (rfmrx2)
 CUL family (cul)
+Radiocraft (RC1180) work in progress only T1 mode
 rtl_wmbus (rtlwmbus)
 rtl_433 (rtl433)
+BMeters RFM-RX2 (rfmrx2)
 
 Supported water meters:
 Apator at-wmbus-08   (apator08) (non-standard protocol)
@@ -275,29 +295,30 @@ and T1 telegrams at the same time.
 # Usage examples
 
 ```
-wmbusmeters --listento=c1 /dev/ttyUSB1:amb8465
+wmbusmeters /dev/ttyUSB1:amb8465:c1,t1
 ```
 
-Simply runs a scan with mode C1 to search for meters and print the IDs and any detected driver,
+Simply runs a scan with mode C1 and T1 to search for meters and print the IDs and any detected driver,
 for example:
 ```
 Received telegram from: 12345678
           manufacturer: (KAM) Kamstrup Energi (0x2c2d)
            device type: Cold water meter (0x16)
             device ver: 0x1b
-         device driver: multical21
+                device: im871a[12345678]
+                  rssi: -77 dBm
+                driver: multical21
 ```
 
 Now listen to this specific meter.
 
 ```
-wmbusmeters /dev/ttyUSB0:im871a MyTapWater multical21:c1 12345678 00112233445566778899AABBCCDDEEFF
+wmbusmeters /dev/ttyUSB0:im871a:c1 MyTapWater multical21:c1 12345678 00112233445566778899AABBCCDDEEFF
 ```
 
-(The :c1 can be left out, since multical21 only transmits c1 telegrams. The suffix
-with the expected link mode might be necessary for other meters, like apator162 for example.
-The Multical21 uses compressed telegrams, which means that you might have to wait up to 8 telegrams
-(8*16 seconds) until you receive a full length telegram which gives all the information needed
+(The Multical21 and other meters use compressed telegrams, which means
+that you might have to wait up to 8 telegrams (8*16 seconds) until you
+receive a full length telegram which gives all the information needed
 to decode the compressed telegrams.)
 
 Example output:
@@ -310,7 +331,7 @@ Example format json output:
 
 `wmbusmeters --format=json /dev/ttyUSB0:im871a MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF MyHeater multical302 22222222 00112233445566778899AABBCCDDEEFF`
 
-`{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"max_flow_m3h":0.000,"flow_temperature":8,"external_temperature":23,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z"}`
+`{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"max_flow_m3h":0.000,"flow_temperature":8,"external_temperature":23,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z","device":"im871a[1234567]","rssi_dbm":-40}`
 
 `{"media":"heat","meter":"multical302","name":"MyHeater","id":"22222222","total_kwh":0.000,"total_volume_m3":0.000,"current_kw":"0.000","timestamp":"2018-02-08T09:07:22Z"}`
 
@@ -373,11 +394,6 @@ file as argument. See test.sh for more info.
 
 If you do not specify any meters on the command line, then wmbusmeters
 will listen and print the header information of any telegram it hears.
-You must specify the listening mode.
-
-With an rtlwmbus or amb8465 dongle: `wmbusmeters --listento=c1,t1 /dev/ttyUSB0:amb8465`
-
-With an imst871a dongle: `wmbusmeters --listento=c1 /dev/ttyUSB0:im871a`
 
 # Builds and runs on GNU/Linux MacOSX (with recent XCode), and FreeBSD
 
@@ -412,7 +428,6 @@ Binary generated: `./wmbusmeters_0.8_armhf.deb`
 `/usr/bin/wmbusmeters`
 `/usr/sbin/wmbusmetersd`
 `/etc/systemd/system/wmbusmeters.service`
-`/etc/udev/rules.d/99-wmbus-usb-serial.rules`
 `/etc/logrotate.d/wmbusmeters`
 
 creates these directories:
@@ -420,34 +435,6 @@ creates these directories:
 `/var/log/wmbusmeters/meter_readings`
 
 and adds the user `wmbusmeters` with no login account.
-
-This means that when a im871a/amb8465 dongle is inserted, then the
-appropriate /dev/im871a or /dev/amb8465 link is created. Also the
-wmbusmeters daemon will be automatically started/stopped whenever the
-im871a/amb8465 dongle is inserted/removed, and the daemon starts when
-the computer boots, if the dongle is already inserted.
-
-You can start/stop the daemon with `sudo systemctl stop wmbusmeters@-dev-im871a_0.service`
-or `sudo systemctl stop wmbusmeters@-dev-amb8465_1.service` etc.
-
-You can trigger a reload of the config files with `sudo killall -HUP wmbusmetersd`
-
-If you add more dongles, then more daemons gets started, each with a unique name/nr.
-
-# Daemon without udev rules
-
-To start the daemon without the udev rules. Then do:
-`make install EXTRA_INSTALL_OPTIONS='--no-udev-rules'`
-then no udev rules will be added.
-
-(If you have already installed once before you might have to remove
-/dev/udev/rules.d/99-wmbus-usb-serial.rules)
-
-You can now start/stop the daemon with `sudo systemctl stop wmbusmeters`
-the device must of course be correct in the /etc/wmbusmeters.conf file.
-
-To have wmbusmeters start automatically when the computer boots do:
-`sudo systemctl enable wmbusmeters`
 
 # Common problems
 
@@ -490,10 +477,6 @@ Then you have to unplug and reinsert the dongle.
 If you like to send the bytes manually, the correct bytes are:
  * Factory reset of the settings: `0xFF1100EE`
  * Reset the stick to apply the factory defaults: `0xFF0500FA` this is not necessary if you unplug and reinsert the dongle.
-
-## WMB13U-868, WMB14UE-868 USB sticks
-
-These dongles do not seem to work with Linux, perhaps problems with the usb2serial pl2303 driver?
 
 # Docker
 

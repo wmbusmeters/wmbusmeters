@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 
 struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImplementation
 {
-    MeterVario451(WMBus *bus, MeterInfo &mi);
+    MeterVario451(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     double currentPeriodEnergyConsumption(Unit u);
@@ -40,13 +40,13 @@ struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImple
     double prev_energy_gj_ {};
 };
 
-unique_ptr<HeatMeter> createVario451(WMBus *bus, MeterInfo &mi)
+shared_ptr<HeatMeter> createVario451(MeterInfo &mi)
 {
-    return unique_ptr<HeatMeter>(new MeterVario451(bus, mi));
+    return shared_ptr<HeatMeter>(new MeterVario451(mi));
 }
 
-MeterVario451::MeterVario451(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::VARIO451)
+MeterVario451::MeterVario451(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::VARIO451)
 {
     // media 0x04 C telegrams
     // media 0xC3 T telegrams

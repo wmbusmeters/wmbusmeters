@@ -8,7 +8,7 @@ TEST=testoutput
 TESTNAME="Test shell invocation"
 TESTRESULT="ERROR"
 
-$PROG --shell='echo "$METER_JSON"' simulations/simulation_shell.txt MWW supercom587 12345678 "" > $TEST/test_output.txt
+$PROG --shell='echo "$METER_JSON"' simulations/simulation_shell.txt MWW supercom587 12345678 "" > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt

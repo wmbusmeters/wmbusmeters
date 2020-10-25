@@ -16,6 +16,7 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 #include"serial.h"
 
@@ -35,7 +36,8 @@ using namespace std;
 struct WMBusRTL433 : public virtual WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
+    string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -55,10 +57,10 @@ struct WMBusRTL433 : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate();
 
-    WMBusRTL433(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    WMBusRTL433(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
 
 private:
-    unique_ptr<SerialDevice> serial_;
+    shared_ptr<SerialDevice> serial_;
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
     bool warning_dll_len_printed_ {};
@@ -72,27 +74,27 @@ private:
     string setup_;
 };
 
-unique_ptr<WMBus> openRTL433(string command, SerialCommunicationManager *manager,
-                               function<void()> on_exit, unique_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openRTL433(string identifier, string command, shared_ptr<SerialCommunicationManager> manager,
+                             function<void()> on_exit, shared_ptr<SerialDevice> serial_override)
 {
+    assert(identifier != "");
     vector<string> args;
     vector<string> envs;
     args.push_back("-c");
     args.push_back(command);
     if (serial_override)
     {
-        WMBusRTL433 *imp = new WMBusRTL433(std::move(serial_override), manager);
-        return unique_ptr<WMBus>(imp);
+        WMBusRTL433 *imp = new WMBusRTL433(serial_override, manager);
+        return shared_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceCommand("/bin/sh", args, envs, on_exit);
-    WMBusRTL433 *imp = new WMBusRTL433(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
+    auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, on_exit, "rtl433");
+    WMBusRTL433 *imp = new WMBusRTL433(serial, manager);
+    return shared_ptr<WMBus>(imp);
 }
 
-WMBusRTL433::WMBusRTL433(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_RTL433, manager, std::move(serial))
+WMBusRTL433::WMBusRTL433(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_RTL433, manager, serial)
 {
-    manager_->listenTo(this->serial(),call(this,processSerialData));
     reset();
 }
 
@@ -101,14 +103,18 @@ bool WMBusRTL433::ping()
     return true;
 }
 
-uint32_t WMBusRTL433::getDeviceId()
+string WMBusRTL433::getDeviceId()
 {
-    return 0x11111111;
+    return "?";
+}
+
+string WMBusRTL433::getDeviceUniqueId()
+{
+    return "?";
 }
 
 LinkModeSet WMBusRTL433::getLinkModes()
 {
-
     return Any_bit;
 }
 
@@ -208,7 +214,8 @@ void WMBusRTL433::processSerialData()
                     payload[0] = payload.size()-1;
                 }
             }
-            handleTelegram(payload);
+            AboutTelegram about("", 0);
+            handleTelegram(about, payload);
         }
     }
 }
@@ -294,4 +301,11 @@ FrameStatus WMBusRTL433::checkRTL433Frame(vector<uchar> &data,
     *hex_payload_offset = i;
 
     return FullFrame;
+}
+
+AccessCheck detectRTL433(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+{
+    detected->setAsFound("", WMBusDeviceType::DEVICE_RTLWMBUS, 0, false, false);
+
+    return AccessCheck::AccessOK;
 }

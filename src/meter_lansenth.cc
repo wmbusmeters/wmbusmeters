@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 
 struct MeterLansenTH : public virtual TempHygroMeter, public virtual MeterCommonImplementation {
-    MeterLansenTH(WMBus *bus, MeterInfo &mi);
+    MeterLansenTH(MeterInfo &mi);
 
     double currentTemperature(Unit u);
     double currentRelativeHumidity();
@@ -39,8 +39,8 @@ private:
     double average_relative_humidity_24h_rh_ {};
 };
 
-MeterLansenTH::MeterLansenTH(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::LANSENTH)
+MeterLansenTH::MeterLansenTH(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::LANSENTH)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -77,9 +77,9 @@ MeterLansenTH::MeterLansenTH(WMBus *bus, MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<TempHygroMeter> createLansenTH(WMBus *bus, MeterInfo &mi)
+shared_ptr<TempHygroMeter> createLansenTH(MeterInfo &mi)
 {
-    return unique_ptr<TempHygroMeter>(new MeterLansenTH(bus, mi));
+    return shared_ptr<TempHygroMeter>(new MeterLansenTH(mi));
 }
 
 double MeterLansenTH::currentTemperature(Unit u)

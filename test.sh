@@ -3,6 +3,12 @@
 PROG="$1"
 TESTINTERNAL=$(dirname $PROG)/testinternals
 
+if [ ! -x $PROG ]
+then
+    echo No such executable \"$PROG\"
+    exit 1
+fi
+
 $TESTINTERNAL
 if [ "$?" = "0" ]; then
     echo OK: test internals
@@ -54,8 +60,8 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_fields.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
-#tests/test_oneshot.sh $PROG broken test
-#if [ "$?" != "0" ]; then RC="1"; fi
+tests/test_oneshot.sh $PROG broken test
+if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_wrongkeys.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi

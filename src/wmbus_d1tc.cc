@@ -16,9 +16,9 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 #include"serial.h"
-
 #include<assert.h>
 #include<pthread.h>
 #include<semaphore.h>
@@ -30,7 +30,8 @@ using namespace std;
 struct WMBusD1TC : public virtual WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
+    string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -41,40 +42,36 @@ struct WMBusD1TC : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate() { }
 
-    WMBusD1TC(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    WMBusD1TC(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusD1TC() { }
 
 private:
 
     vector<uchar> read_buffer_;
-    sem_t command_wait_;
     LinkModeSet link_modes_;
     vector<uchar> received_payload_;
 
-    void waitForResponse();
     FrameStatus checkD1TCFrame(vector<uchar> &data,
                                  size_t *frame_length,
                                  int *payload_len_out,
                                  int *payload_offset);
 };
 
-unique_ptr<WMBus> openD1TC(string device, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openD1TC(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     if (serial_override)
     {
-        WMBusD1TC *imp = new WMBusD1TC(std::move(serial_override), manager);
-        return unique_ptr<WMBus>(imp);
+        WMBusD1TC *imp = new WMBusD1TC(serial_override, manager);
+        return shared_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 115200);
-    WMBusD1TC *imp = new WMBusD1TC(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 115200, "d1tc");
+    WMBusD1TC *imp = new WMBusD1TC(serial, manager);
+    return shared_ptr<WMBus>(imp);
 }
 
-WMBusD1TC::WMBusD1TC(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_D1TC, manager, std::move(serial))
+WMBusD1TC::WMBusD1TC(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_D1TC, manager, serial)
 {
-    sem_init(&command_wait_, 0, 0);
-    manager_->listenTo(this->serial(),call(this,processSerialData));
     reset();
 }
 
@@ -83,9 +80,14 @@ bool WMBusD1TC::ping()
     return true;
 }
 
-uint32_t WMBusD1TC::getDeviceId()
+string WMBusD1TC::getDeviceId()
 {
-    return 0;
+    return "?";
+}
+
+string WMBusD1TC::getDeviceUniqueId()
+{
+    return "?";
 }
 
 LinkModeSet WMBusD1TC::getLinkModes() {
@@ -103,17 +105,6 @@ void WMBusD1TC::deviceReset()
 void WMBusD1TC::deviceSetLinkModes(LinkModeSet lms)
 {
     // Need manual for d1tc!!!
-}
-
-void WMBusD1TC::waitForResponse() {
-    while (manager_->isRunning()) {
-        int rc = sem_wait(&command_wait_);
-        if (rc==0) break;
-        if (rc==-1) {
-            if (errno==EINTR) continue;
-            break;
-        }
-    }
 }
 
 FrameStatus WMBusD1TC::checkD1TCFrame(vector<uchar> &data,
@@ -219,19 +210,26 @@ void WMBusD1TC::processSerialData()
                 payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
             }
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
-            handleTelegram(payload);
+            AboutTelegram about("", 0);
+            handleTelegram(about, payload);
         }
     }
 }
 
-AccessCheck detectD1TC(string device, int baud, SerialCommunicationManager *manager)
+AccessCheck detectD1TC(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
+    string tty = detected->specified_device.file;
+    int bps = atoi(detected->specified_device.bps.c_str());
+
     // Since we do not know how to talk to the other end, it might not
     // even respond. The only thing we can do is to try to open the serial device.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), baud);
+    auto serial = manager->createSerialDeviceTTY(tty, bps, "detect d1tc");
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
     serial->close();
+
+    detected->setAsFound("", WMBusDeviceType::DEVICE_D1TC, bps, false, false);
+
     return AccessCheck::AccessOK;
 }

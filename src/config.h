@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -65,7 +65,7 @@ struct Configuration
     MeterFileNaming meterfiles_naming {};
     MeterFileTimestamp meterfiles_timestamp {}; // Default is never.
     bool use_logfile {};
-    bool use_stderr {};
+    bool use_stderr_for_log = true; // Default is to use stderr for logging.
     std::string logfile;
     bool json {};
     bool fields {};
@@ -74,17 +74,24 @@ struct Configuration
     std::vector<std::string> alarm_shells;
     int alarm_timeout {}; // Maximum number of seconds between dongle receiving two telegrams.
     std::string alarm_expected_activity; // Only warn when within these time periods.
+    bool exit_instead_of_alarm_ {};
     bool list_shell_envs {};
     bool list_fields {};
+    bool list_meters {};
+    std::string list_meters_search;
+    // When asking for envs or fields, this is the meter type to list for.
+    std::string list_meter;
     bool oneshot {};
     int  exitafter {}; // Seconds to exit.
-    int  reopenafter {}; // Re-open the serial device repeatedly. Silly dongle.
-    string device; // auto, /dev/ttyUSB0, simulation.txt, rtlwmbus
-    string device_extra; // The frequency or the command line that will start rtlwmbus
+    int  resetafter {}; // Reset the wmbus devices regularly.
+    std::vector<SpecifiedDevice> supplied_wmbus_devices; // /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600
+    bool use_auto_detect {}; // Set to true if auto was supplied as device.
+    bool single_device_override {}; // Set to true if there is a stdin/file or simulation device.
+    bool simulation_found {};
+    LinkModeSet linkmodes; // If --c1 or auto:c1 then store c1 here.
+    bool linkmodes_configured {}; // Either auto:c1 or --c1 is specified.
     string telegram_reader;
     // A set of all link modes (union) that the user requests the wmbus dongle to listen to.
-    LinkModeSet listen_to_link_modes;
-    bool link_mode_configured {};
     bool no_init {};
     std::vector<Unit> conversions;
     std::vector<std::string> selected_fields;
@@ -94,10 +101,11 @@ struct Configuration
     ~Configuration() = default;
 };
 
-unique_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override);
+shared_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override);
 
 void handleConversions(Configuration *c, string s);
 void handleSelectedFields(Configuration *c, string s);
+bool handleDevice(Configuration *c, string devicefile);
 
 enum class LinkModeCalculationResultType
 {

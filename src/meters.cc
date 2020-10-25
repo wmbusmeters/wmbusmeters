@@ -26,26 +26,108 @@
 #include<time.h>
 #include<cmath>
 
-MeterCommonImplementation::MeterCommonImplementation(WMBus *bus, MeterInfo &mi,
+struct MeterManagerImplementation : public virtual MeterManager
+{
+    void addMeter(shared_ptr<Meter> meter)
+    {
+        meters_.push_back(meter);
+    }
+
+    Meter *lastAddedMeter()
+    {
+        return meters_.back().get();
+    }
+
+    void removeAllMeters()
+    {
+        meters_.clear();
+    }
+
+    void forEachMeter(std::function<void(Meter*)> cb)
+    {
+        for (auto &meter : meters_)
+        {
+            cb(meter.get());
+        }
+    }
+
+    bool hasAllMetersReceivedATelegram()
+    {
+        for (auto &meter : meters_)
+        {
+            if (meter->numUpdates() == 0) return false;
+        }
+
+        return true;
+    }
+
+    bool hasMeters()
+    {
+        return meters_.size() != 0;
+    }
+
+    bool handleTelegram(AboutTelegram &about, vector<uchar> data, bool simulated)
+    {
+        if (!hasMeters())
+        {
+            if (on_telegram_)
+            {
+                on_telegram_(about, data);
+            }
+            return true;
+        }
+
+        bool handled = false;
+
+        string id;
+        for (auto &m : meters_)
+        {
+            bool h = m->handleTelegram(about, data, simulated, &id);
+            if (h) handled = true;
+        }
+        if (isVerboseEnabled() && !handled)
+        {
+            verbose("(wmbus) telegram from %s ignored by all configured meters!\n", id.c_str());
+        }
+        return handled;
+    }
+
+    void onTelegram(function<void(AboutTelegram &about, vector<uchar>)> cb)
+    {
+        on_telegram_ = cb;
+    }
+    ~MeterManagerImplementation() {}
+
+private:
+
+    vector<shared_ptr<Meter>> meters_;
+    function<void(AboutTelegram&,vector<uchar>)> on_telegram_;
+};
+
+shared_ptr<MeterManager> createMeterManager()
+{
+    return shared_ptr<MeterManager>(new MeterManagerImplementation);
+}
+
+MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
                                                      MeterType type) :
-    type_(type), name_(mi.name), bus_(bus)
+    type_(type), name_(mi.name)
 {
     ids_ = splitMatchExpressions(mi.id);
     if (mi.key.length() > 0)
     {
         hex2bin(mi.key, &meter_keys_.confidentiality_key);
     }
-    if (bus->type() == DEVICE_SIMULATOR)
+    /*if (bus->type() == DEVICE_SIMULATION)
     {
         meter_keys_.simulation = true;
-    }
+    }*/
     for (auto s : mi.shells) {
         addShell(s);
     }
     for (auto j : mi.jsons) {
         addJson(j);
     }
-    MeterCommonImplementation::bus()->onTelegram([this](vector<uchar>input_frame){return this->handleTelegram(input_frame);});
 }
 
 void MeterCommonImplementation::addConversions(std::vector<Unit> cs)
@@ -90,21 +172,25 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          function<double(Unit)> getValueFunc, string help, bool field, bool json)
 {
     string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
-    fields_.push_back(vname+"_"+default_unit);
-    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), getValueFunc, NULL, help, field, json });
+    string field_name = vname+"_"+default_unit;
+    fields_.push_back(field_name);
+    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), getValueFunc, NULL, help, field, json, field_name });
 }
 
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit unit,
                                          function<double(Unit)> getValueFunc, string help, bool field, bool json)
 {
-    prints_.push_back( { vname, vquantity, unit, getValueFunc, NULL, help, field, json });
+    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
+    string field_name = vname+"_"+default_unit;
+    fields_.push_back(field_name);
+    prints_.push_back( { vname, vquantity, unit, getValueFunc, NULL, help, field, json, field_name });
 }
 
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          function<string()> getValueFunc,
                                          string help, bool field, bool json)
 {
-    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), NULL, getValueFunc, help, field, json } );
+    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), NULL, getValueFunc, help, field, json, vname } );
 }
 
 vector<string> MeterCommonImplementation::ids()
@@ -117,14 +203,14 @@ vector<string> MeterCommonImplementation::fields()
     return fields_;
 }
 
+vector<Print> MeterCommonImplementation::prints()
+{
+    return prints_;
+}
+
 string MeterCommonImplementation::name()
 {
     return name_;
-}
-
-WMBus *MeterCommonImplementation::bus()
-{
-    return bus_;
 }
 
 void MeterCommonImplementation::onUpdate(function<void(Telegram*,Meter*)> cb)
@@ -200,6 +286,12 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
                 name_.c_str(),
                 toMeterName(type()).c_str(),
                 possible_drivers.c_str());
+
+        if (possible_drivers == "unknown!")
+        {
+            warning("(meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/\n");
+            warning("(meter) to add support for this unknown mfct,media,version combination\n");
+        }
     }
 
     debug("(meter) %s: yes for me\n", name_.c_str());
@@ -336,16 +428,23 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
     return s;
 }
 
-bool MeterCommonImplementation::handleTelegram(vector<uchar> input_frame)
+bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated, string *id)
 {
     Telegram t;
+    t.about = about;
     bool ok = t.parseHeader(input_frame);
+
+    if (simulated) t.markAsSimulated();
+
+    *id = t.id;
 
     if (!ok || !isTelegramForMe(&t))
     {
         // This telegram is not intended for this meter.
         return false;
     }
+
+    verbose("(meter) %s %s handling telegram from %s\n", name().c_str(), meterName().c_str(), t.id.c_str());
 
     if (isDebugEnabled())
     {
@@ -417,6 +516,12 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         }
     }
     s += "\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
+    if (t->about.device != "")
+    {
+        s += ",";
+        s += "\"device\":\""+t->about.device+"\",";
+        s += "\"rssi_dbm\":"+to_string(t->about.rssi_dbm);
+    }
     for (string add_json : additionalJsons())
     {
         s += ",";

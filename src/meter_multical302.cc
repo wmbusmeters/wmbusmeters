@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2019 Fredrik Öhrström
+ Copyright (C) 2018-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 #define INFO_CODE_VOLTAGE_TOO_LOW 128
 
 struct MeterMultical302 : public virtual HeatMeter, public virtual MeterCommonImplementation {
-    MeterMultical302(WMBus *bus, MeterInfo &mi);
+    MeterMultical302(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     double targetEnergyConsumption(Unit u);
@@ -51,8 +51,8 @@ private:
     string target_date_ {};
 };
 
-MeterMultical302::MeterMultical302(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::MULTICAL302)
+MeterMultical302::MeterMultical302(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::MULTICAL302)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
@@ -89,8 +89,8 @@ MeterMultical302::MeterMultical302(WMBus *bus, MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<HeatMeter> createMultical302(WMBus *bus, MeterInfo &mi) {
-    return unique_ptr<HeatMeter>(new MeterMultical302(bus, mi));
+shared_ptr<HeatMeter> createMultical302(MeterInfo &mi) {
+    return shared_ptr<HeatMeter>(new MeterMultical302(mi));
 }
 
 double MeterMultical302::totalEnergyConsumption(Unit u)

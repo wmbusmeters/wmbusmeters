@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -26,6 +26,6 @@
 
 using namespace std;
 
-unique_ptr<Configuration> parseCommandLine(int argc, char **argv);
+shared_ptr<Configuration> parseCommandLine(int argc, char **argv);
 
 #endif

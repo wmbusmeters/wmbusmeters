@@ -16,6 +16,7 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 #include"serial.h"
 
@@ -30,7 +31,8 @@ using namespace std;
 struct WMBusRawTTY : public virtual WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
+    string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -41,36 +43,33 @@ struct WMBusRawTTY : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate() { }
 
-    WMBusRawTTY(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    WMBusRawTTY(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusRawTTY() { }
 
 private:
 
     vector<uchar> read_buffer_;
-    sem_t command_wait_;
     LinkModeSet link_modes_;
     vector<uchar> received_payload_;
-
-    void waitForResponse();
 };
 
-unique_ptr<WMBus> openRawTTY(string device, int baudrate, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
+    assert(device != "");
+
     if (serial_override)
     {
-        WMBusRawTTY *imp = new WMBusRawTTY(std::move(serial_override), manager);
-        return unique_ptr<WMBus>(imp);
+        WMBusRawTTY *imp = new WMBusRawTTY(serial_override, manager);
+        return shared_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), baudrate);
-    WMBusRawTTY *imp = new WMBusRawTTY(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), baudrate, "rawtty");
+    WMBusRawTTY *imp = new WMBusRawTTY(serial, manager);
+    return shared_ptr<WMBus>(imp);
 }
 
-WMBusRawTTY::WMBusRawTTY(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_RAWTTY, manager, std::move(serial))
+WMBusRawTTY::WMBusRawTTY(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_RAWTTY, manager, serial)
 {
-    sem_init(&command_wait_, 0, 0);
-    manager_->listenTo(this->serial(),call(this,processSerialData));
     reset();
 }
 
@@ -79,9 +78,14 @@ bool WMBusRawTTY::ping()
     return true;
 }
 
-uint32_t WMBusRawTTY::getDeviceId()
+string WMBusRawTTY::getDeviceId()
 {
-    return 0;
+    return "?";
+}
+
+string WMBusRawTTY::getDeviceUniqueId()
+{
+    return "?";
 }
 
 LinkModeSet WMBusRawTTY::getLinkModes() {
@@ -96,20 +100,8 @@ void WMBusRawTTY::deviceSetLinkModes(LinkModeSet lms)
 {
 }
 
-void WMBusRawTTY::waitForResponse() {
-    while (manager_->isRunning()) {
-        int rc = sem_wait(&command_wait_);
-        if (rc==0) break;
-        if (rc==-1) {
-            if (errno==EINTR) continue;
-            break;
-        }
-    }
-}
-
 void WMBusRawTTY::processSerialData()
 {
-
     vector<uchar> data;
 
     // Receive and accumulated serial data until a full frame has been received.
@@ -147,19 +139,26 @@ void WMBusRawTTY::processSerialData()
                 payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
             }
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
-            handleTelegram(payload);
+            AboutTelegram about("", 0);
+            handleTelegram(about, payload);
         }
     }
 }
 
-AccessCheck detectRawTTY(string device, int baud, SerialCommunicationManager *manager)
+AccessCheck detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
+    string tty = detected->specified_device.file;
+    int bps = atoi(detected->specified_device.bps.c_str());
+
     // Since we do not know how to talk to the other end, it might not
     // even respond. The only thing we can do is to try to open the serial device.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), baud);
+    auto serial = manager->createSerialDeviceTTY(tty.c_str(), bps, "detect rawtty");
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
     serial->close();
+
+    detected->setAsFound("", WMBusDeviceType::DEVICE_RAWTTY, bps, false, false);
+
     return AccessCheck::AccessOK;
 }

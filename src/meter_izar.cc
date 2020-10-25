@@ -1,5 +1,6 @@
 /*
  Copyright (C) 2019 Jacek Tomasiak
+               2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -45,7 +46,7 @@ typedef struct _izar_alarms {
 } izar_alarms;
 
 struct MeterIzar : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterIzar(WMBus *bus, MeterInfo &mi);
+    MeterIzar(MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -75,13 +76,13 @@ private:
     vector<uint32_t> keys;
 };
 
-unique_ptr<WaterMeter> createIzar(WMBus *bus, MeterInfo &mi)
+shared_ptr<WaterMeter> createIzar(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterIzar(bus, mi));
+    return shared_ptr<WaterMeter>(new MeterIzar(mi));
 }
 
-MeterIzar::MeterIzar(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::IZAR)
+MeterIzar::MeterIzar(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::IZAR)
 {
     MeterKeys *mk = meterKeys();
     if (!mk->confidentiality_key.empty())

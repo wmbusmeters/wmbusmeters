@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 
 struct MeterRfmAmb : public virtual TempHygroMeter, public virtual MeterCommonImplementation {
-    MeterRfmAmb(WMBus *bus, MeterInfo &mi);
+    MeterRfmAmb(MeterInfo &mi);
 
     double currentTemperature(Unit u);
     double maximumTemperature(Unit u);
@@ -58,8 +58,8 @@ private:
     string device_date_time_;
 };
 
-MeterRfmAmb::MeterRfmAmb(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::RFMAMB)
+MeterRfmAmb::MeterRfmAmb(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::RFMAMB)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -141,9 +141,9 @@ MeterRfmAmb::MeterRfmAmb(WMBus *bus, MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<TempHygroMeter> createRfmAmb(WMBus *bus, MeterInfo &mi)
+shared_ptr<TempHygroMeter> createRfmAmb(MeterInfo &mi)
 {
-    return unique_ptr<TempHygroMeter>(new MeterRfmAmb(bus, mi));
+    return shared_ptr<TempHygroMeter>(new MeterRfmAmb(mi));
 }
 
 double MeterRfmAmb::currentTemperature(Unit u)

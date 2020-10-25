@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ using namespace std;
 
 struct MKRadio3 : public virtual WaterMeter, public virtual MeterCommonImplementation
 {
-    MKRadio3(WMBus *bus, MeterInfo &mi);
+    MKRadio3(MeterInfo &mi);
 
     double totalWaterConsumption(Unit u);
     bool  hasTotalWaterConsumption();
@@ -40,8 +40,8 @@ private:
     double target_water_consumption_m3_ {};
 };
 
-MKRadio3::MKRadio3(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::MKRADIO3)
+MKRadio3::MKRadio3(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::MKRADIO3)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -58,9 +58,9 @@ MKRadio3::MKRadio3(WMBus *bus, MeterInfo &mi) :
              true, true);
 }
 
-unique_ptr<WaterMeter> createMKRadio3(WMBus *bus, MeterInfo &mi)
+shared_ptr<WaterMeter> createMKRadio3(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MKRadio3(bus, mi));
+    return shared_ptr<WaterMeter>(new MKRadio3(mi));
 }
 
 void MKRadio3::processContent(Telegram *t)

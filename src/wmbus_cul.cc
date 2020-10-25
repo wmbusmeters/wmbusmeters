@@ -16,6 +16,7 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 #include"wmbus_cul.h"
 #include"serial.h"
@@ -39,7 +40,8 @@ using namespace std;
 struct WMBusCUL : public virtual WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
+    string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -61,7 +63,7 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate();
 
-    WMBusCUL(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
+    WMBusCUL(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusCUL() { }
 
 private:
@@ -69,11 +71,8 @@ private:
     LinkModeSet link_modes_ {};
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
-    sem_t command_wait_;
     string sent_command_;
     string received_response_;
-
-    void waitForResponse();
 
     FrameStatus checkCULFrame(vector<uchar> &data,
                               size_t *hex_frame_length,
@@ -82,24 +81,22 @@ private:
     string setup_;
 };
 
-unique_ptr<WMBus> openCUL(string device, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     if (serial_override)
     {
-        WMBusCUL *imp = new WMBusCUL(std::move(serial_override), manager);
-        return unique_ptr<WMBus>(imp);
+        WMBusCUL *imp = new WMBusCUL(serial_override, manager);
+        return shared_ptr<WMBus>(imp);
     }
 
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400);
-    WMBusCUL *imp = new WMBusCUL(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400, "cul");
+    WMBusCUL *imp = new WMBusCUL(serial, manager);
+    return shared_ptr<WMBus>(imp);
 }
 
-WMBusCUL::WMBusCUL(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_CUL, manager, std::move(serial))
+WMBusCUL::WMBusCUL(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_CUL, manager, serial)
 {
-    sem_init(&command_wait_, 0, 0);
-    manager_->listenTo(this->serial(),call(this,processSerialData));
     reset();
 }
 
@@ -109,10 +106,16 @@ bool WMBusCUL::ping()
     return true;
 }
 
-uint32_t WMBusCUL::getDeviceId()
+string WMBusCUL::getDeviceId()
 {
     verbose("(cul) getDeviceId\n");
-    return 0x11111111;
+    return "?";
+}
+
+string WMBusCUL::getDeviceUniqueId()
+{
+    verbose("(cul) getDeviceUniqueId\n");
+    return "?";
 }
 
 LinkModeSet WMBusCUL::getLinkModes()
@@ -156,7 +159,7 @@ void WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     received_response_ = "";
     bool sent = serial()->send(msg);
 
-    if (sent) waitForResponse();
+    if (sent) waitForResponse(0);
 
     sent_command_ = "";
     debug("(cul) received \"%s\"", received_response_.c_str());
@@ -186,19 +189,6 @@ void WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     sent = serial()->send(msg);
 
     // Any response here, or does it silently move into listening mode?
-}
-
-void WMBusCUL::waitForResponse()
-{
-    while (manager_->isRunning())
-    {
-        int rc = sem_wait(&command_wait_);
-        if (rc==0) break;
-        if (rc==-1) {
-            if (errno==EINTR) continue;
-            break;
-        }
-    }
 }
 
 void WMBusCUL::simulate()
@@ -242,7 +232,7 @@ void WMBusCUL::processSerialData()
                 if (r != "")
                 {
                     received_response_ = r;
-                    sem_post(&command_wait_);
+                    waiting_for_response_sem_.notify();
                 }
             }
             read_buffer_.clear();
@@ -259,7 +249,8 @@ void WMBusCUL::processSerialData()
         {
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
 
-            handleTelegram(payload);
+            AboutTelegram about("", 0);
+            handleTelegram(about, payload);
         }
     }
 }
@@ -355,10 +346,11 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
     }
 }
 
-AccessCheck detectCUL(string device, SerialCommunicationManager *manager)
+AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400);
+    auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 38400, "detect cul");
+    serial->disableCallbacks();
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
@@ -399,5 +391,8 @@ AccessCheck detectCUL(string device, SerialCommunicationManager *manager)
     // TODO: check version string somehow
 
     serial->close();
+
+    detected->setAsFound("12345678", WMBusDeviceType::DEVICE_CUL, 38400, false, false);
+
     return AccessCheck::AccessOK;
 }

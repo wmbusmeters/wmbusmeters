@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 struct MeterFHKVDataIII : public virtual HeatCostMeter, public virtual MeterCommonImplementation
 {
-    MeterFHKVDataIII(WMBus *bus, MeterInfo &mi);
+    MeterFHKVDataIII(MeterInfo &mi);
 
     double currentPeriodEnergyConsumption(Unit u);
     string currentPeriodDate();
@@ -49,14 +49,14 @@ struct MeterFHKVDataIII : public virtual HeatCostMeter, public virtual MeterComm
     double temp_radiator_ {};
 };
 
-unique_ptr<HeatCostMeter> createFHKVDataIII(WMBus *bus, MeterInfo &mi)
+shared_ptr<HeatCostMeter> createFHKVDataIII(MeterInfo &mi)
 {
-    return unique_ptr<HeatCostMeter>(new MeterFHKVDataIII(bus, mi));
+    return shared_ptr<HeatCostMeter>(new MeterFHKVDataIII(mi));
 }
 
 
-MeterFHKVDataIII::MeterFHKVDataIII(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::FHKVDATAIII)
+MeterFHKVDataIII::MeterFHKVDataIII(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::FHKVDATAIII)
 {
     // media 0x80 T telegrams
     addLinkMode(LinkMode::T1);

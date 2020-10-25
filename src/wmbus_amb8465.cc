@@ -16,13 +16,14 @@
 */
 
 #include"wmbus.h"
+#include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 #include"wmbus_amb8465.h"
 #include"serial.h"
+#include"threads.h"
 
 #include<assert.h>
 #include<pthread.h>
-#include<semaphore.h>
 #include<errno.h>
 #include<unistd.h>
 #include<sys/time.h>
@@ -30,10 +31,56 @@
 
 using namespace std;
 
+struct ConfigAMB8465
+{
+    uchar uart_ctl0 {};
+    uchar uart_ctl1 {};
+    uchar received_frames_as_cmd {};
+    uchar c_field {};
+    uint16_t mfct {};
+    uint32_t id {};
+    uchar version {};
+    uchar media {};
+
+    uchar auto_rssi {};
+
+    string dongleId()
+    {
+        return tostrprintf("%08x", id);
+    }
+
+    string str()
+    {
+        string ids = tostrprintf("id=%08x media=%02x version=%02x c_field=%02x auto_rssi=%02x", id, media, version, c_field, auto_rssi);
+        return ids;
+    }
+
+    bool decode(vector<uchar> &bytes)
+    {
+        size_t o = 5;
+        if (bytes.size() < o) return false;
+
+        uart_ctl0 = bytes[0+o];
+        uart_ctl1 = bytes[0+o];
+
+        received_frames_as_cmd = bytes[5+o];
+        c_field = bytes[49+o];
+        id = bytes[51+o]<<8|bytes[50+o];
+        mfct = bytes[55+o]<<24|bytes[54+o]<<16|bytes[53+o]<<8|bytes[52+o];
+        version = bytes[56+o];
+        media = bytes[57+o];
+
+        auto_rssi = bytes[69+o];
+
+        return true;
+    }
+};
+
 struct WMBusAmber : public virtual WMBusCommonImplementation
 {
     bool ping();
-    uint32_t getDeviceId();
+    string getDeviceId();
+    string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceSetLinkModes(LinkModeSet lms);
     void deviceReset();
@@ -64,51 +111,52 @@ struct WMBusAmber : public virtual WMBusCommonImplementation
         return false;
     }
     void processSerialData();
-    void getConfiguration();
+    bool getConfiguration();
     void simulate() { }
 
-    WMBusAmber(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager);
-    ~WMBusAmber() { }
+    WMBusAmber(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
+    ~WMBusAmber() {
+        manager_->onDisappear(this->serial(), NULL);
+    }
 
 private:
     vector<uchar> read_buffer_;
-    pthread_mutex_t command_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    sem_t command_wait_ {};
-    int sent_command_ {};
-    int received_command_ {};
+    vector<uchar> request_;
+    vector<uchar> response_;
+
     LinkModeSet link_modes_ {};
-    vector<uchar> received_payload_;
     bool rssi_expected_ {};
     struct timeval timestamp_last_rx_ {};
 
-    void waitForResponse();
+    ConfigAMB8465 device_config_;
+
     FrameStatus checkAMB8465Frame(vector<uchar> &data,
                                   size_t *frame_length,
                                   int *msgid_out,
                                   int *payload_len_out,
                                   int *payload_offset,
-                                  uchar *rssi);
-    void handleMessage(int msgid, vector<uchar> &frame);
+                                  int *rssi_dbm);
+    void handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm);
 };
 
-unique_ptr<WMBus> openAMB8465(string device, SerialCommunicationManager *manager, unique_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
+    assert(device != "");
+
     if (serial_override)
     {
-        WMBusAmber *imp = new WMBusAmber(std::move(serial_override), manager);
-        return unique_ptr<WMBus>(imp);
+        WMBusAmber *imp = new WMBusAmber(serial_override, manager);
+        return shared_ptr<WMBus>(imp);
     }
 
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600);
-    WMBusAmber *imp = new WMBusAmber(std::move(serial), manager);
-    return unique_ptr<WMBus>(imp);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600, "amb8465");
+    WMBusAmber *imp = new WMBusAmber(serial, manager);
+    return shared_ptr<WMBus>(imp);
 }
 
-WMBusAmber::WMBusAmber(unique_ptr<SerialDevice> serial, SerialCommunicationManager *manager) :
-    WMBusCommonImplementation(DEVICE_AMB8465, manager, std::move(serial))
+WMBusAmber::WMBusAmber(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_AMB8465, manager, serial)
 {
-    sem_init(&command_wait_, 0, 0);
-    manager_->listenTo(this->serial(),call(this,processSerialData));
     rssi_expected_ = true;
     reset();
 }
@@ -118,10 +166,11 @@ void WMBusAmber::deviceReset()
     timerclear(&timestamp_last_rx_);
 }
 
-uchar xorChecksum(vector<uchar> msg, int len)
+uchar xorChecksum(vector<uchar> &msg, size_t len)
 {
+    assert(msg.size() >= len);
     uchar c = 0;
-    for (int i=0; i<len; ++i) {
+    for (size_t i=0; i<len; ++i) {
         c ^= msg[i];
     }
     return c;
@@ -131,49 +180,54 @@ bool WMBusAmber::ping()
 {
     if (serial()->readonly()) return true; // Feeding from stdin or file.
 
-    pthread_mutex_lock(&command_lock_);
-    // Ping it...
-    pthread_mutex_unlock(&command_lock_);
-
     return true;
 }
 
-uint32_t WMBusAmber::getDeviceId()
+string WMBusAmber::getDeviceId()
 {
-    if (serial()->readonly()) { return 0; }  // Feeding from stdin or file.
+    if (serial()->readonly()) { return "?"; }  // Feeding from stdin or file.
+    if (cached_device_id_ != "") return cached_device_id_;
 
-    pthread_mutex_lock(&command_lock_);
+    bool ok = getConfiguration();
+    if (!ok) return "ERR";
 
-    vector<uchar> msg(4);
-    msg[0] = AMBER_SERIAL_SOF;
-    msg[1] = CMD_SERIALNO_REQ;
-    msg[2] = 0; // No payload
-    msg[3] = xorChecksum(msg, 3);
+    cached_device_id_ = device_config_.dongleId();
 
-    assert(msg[3] == 0xf4);
+    return cached_device_id_;
+}
 
-    sent_command_ = CMD_SERIALNO_REQ;
-    verbose("(amb8465) get device id\n");
-    bool sent = serial()->send(msg);
+string WMBusAmber::getDeviceUniqueId()
+{
+    if (serial()->readonly()) { return "?"; }  // Feeding from stdin or file.
+    if (cached_device_unique_id_ != "") return cached_device_unique_id_;
 
-    uint32_t id = 0;
+    LOCK_WMBUS_EXECUTING_COMMAND(get_device_unique_id);
 
-    if (sent)
-    {
-        waitForResponse();
+    request_.resize(4);
+    request_[0] = AMBER_SERIAL_SOF;
+    request_[1] = CMD_SERIALNO_REQ;
+    request_[2] = 0; // No payload
+    request_[3] = xorChecksum(request_, 3);
 
-        if (received_command_ == (CMD_SERIALNO_REQ | 0x80))
-        {
-            id = received_payload_[4] << 24 |
-                received_payload_[5] << 16 |
-                received_payload_[6] << 8 |
-                received_payload_[7];
-            verbose("(amb8465) device id %08x\n", id);
-        }
-    }
+    verbose("(amb8465) get device unique id\n");
+    bool sent = serial()->send(request_);
+    if (!sent) return "?";
 
-    pthread_mutex_unlock(&command_lock_);
-    return id;
+    bool ok = waitForResponse(CMD_SERIALNO_REQ | 0x80);
+    if (!ok) return "?";
+
+    if (response_.size() < 5) return "ERR";
+
+    uint32_t idv =
+        response_[1] << 24 |
+        response_[2] << 16 |
+        response_[3] << 8 |
+        response_[4];
+
+    verbose("(amb8465) unique device id %08x\n", idv);
+
+    cached_device_unique_id_ = tostrprintf("%08x", idv);
+    return cached_device_unique_id_;
 }
 
 LinkModeSet WMBusAmber::getLinkModes()
@@ -186,54 +240,30 @@ LinkModeSet WMBusAmber::getLinkModes()
     return link_modes_;
 }
 
-void WMBusAmber::getConfiguration()
+bool WMBusAmber::getConfiguration()
 {
-    if (serial()->readonly()) { return; }  // Feeding from stdin or file.
+    if (serial()->readonly()) { return true; }  // Feeding from stdin or file.
 
-    pthread_mutex_lock(&command_lock_);
+    LOCK_WMBUS_EXECUTING_COMMAND(getConfiguration);
 
-    vector<uchar> msg(6);
-    msg[0] = AMBER_SERIAL_SOF;
-    msg[1] = CMD_GET_REQ;
-    msg[2] = 0x02;
-    msg[3] = 0x00;
-    msg[4] = 0x80;
-    msg[5] = xorChecksum(msg, 5);
+    request_.resize(6);
+    request_[0] = AMBER_SERIAL_SOF;
+    request_[1] = CMD_GET_REQ;
+    request_[2] = 0x02;
+    request_[3] = 0x00;
+    request_[4] = 0x80;
+    request_[5] = xorChecksum(request_, 5);
 
-    assert(msg[5] == 0x77);
+    assert(request_[5] == 0x77);
 
     verbose("(amb8465) get config\n");
-    bool sent = serial()->send(msg);
+    bool sent = serial()->send(request_);
+    if (!sent) return false;
 
-    if (!sent)
-    {
-        pthread_mutex_unlock(&command_lock_);
-        return;
-    }
+    bool ok = waitForResponse(CMD_GET_REQ | 0x80);
+    if (!ok) return false;
 
-    waitForResponse();
-
-    if (received_command_ == (0x80|CMD_GET_REQ))
-    {
-        // These are the non-volatile values stored inside the dongle.
-        // However the link mode, radio channel etc might not be the one
-        // that we are actually using! Since setting the link mode
-        // is possible without changing the non-volatile memory.
-        // But there seems to be no way of reading out the set link mode....???
-        // Ie there is a disconnect between the flash and the actual running dongle.
-        // Oh well.
-        //
-        // These are just some random config settings store in non-volatile memory.
-        verbose("(amb8465) config: uart %02x\n", received_payload_[2]);
-        verbose("(amb8465) config: IND output enabled %02x\n", received_payload_[5+2]);
-        verbose("(amb8465) config: radio Channel %02x\n", received_payload_[60+2]);
-        uchar re = received_payload_[69+2];
-        verbose("(amb8465) config: rssi enabled %02x\n", re);
-        rssi_expected_ = (re != 0) ? true : false;
-        verbose("(amb8465) config: mode Preselect %02x\n", received_payload_[70+2]);
-    }
-
-    pthread_mutex_unlock(&command_lock_);
+    return device_config_.decode(response_);
 }
 
 void WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
@@ -246,56 +276,47 @@ void WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
         error("(amb8465) setting link mode(s) %s is not supported for amb8465\n", modes.c_str());
     }
 
-    pthread_mutex_lock(&command_lock_);
+    LOCK_WMBUS_EXECUTING_COMMAND(devicesSetLinkModes);
 
-    vector<uchar> msg(8);
-    msg[0] = AMBER_SERIAL_SOF;
-    msg[1] = CMD_SET_MODE_REQ;
-    sent_command_ = msg[1];
-    msg[2] = 1; // Len
+    request_.resize(8);
+    request_[0] = AMBER_SERIAL_SOF;
+    request_[1] = CMD_SET_MODE_REQ;
+    request_[2] = 1; // Len
     if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1))
     {
         // Listening to both C1 and T1!
-        msg[3] = 0x09;
+        request_[3] = 0x09;
     }
     else if (lms.has(LinkMode::C1))
     {
         // Listening to only C1.
-        msg[3] = 0x0E;
+        request_[3] = 0x0E;
     }
     else if (lms.has(LinkMode::T1))
     {
         // Listening to only T1.
-        msg[3] = 0x08;
+        request_[3] = 0x08;
     }
     else if (lms.has(LinkMode::S1) || lms.has(LinkMode::S1m))
     {
         // Listening only to S1 and S1-m
-        msg[3] = 0x03;
+        request_[3] = 0x03;
     }
-    msg[4] = xorChecksum(msg, 4);
+    request_[4] = xorChecksum(request_, 4);
 
-    verbose("(amb8465) set link mode %02x\n", msg[3]);
-    bool sent = serial()->send(msg);
+    verbose("(amb8465) set link mode %02x\n", request_[3]);
+    bool sent = serial()->send(request_);
 
-    if (sent) waitForResponse();
-
-    link_modes_ = lms;
-    pthread_mutex_unlock(&command_lock_);
-}
-
-void WMBusAmber::waitForResponse()
-{
-    while (manager_->isRunning())
+    if (sent)
     {
-        int rc = sem_wait(&command_wait_);
-        if (rc==0) break;
-        if (rc==-1)
+        bool ok = waitForResponse(CMD_SET_MODE_REQ | 0x80);
+        if (!ok)
         {
-            if (errno==EINTR) continue;
-            break;
+            warning("Warning! Did not get confirmation on set link mode for amb8465\n");
         }
     }
+
+    link_modes_ = lms;
 }
 
 FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
@@ -303,7 +324,7 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
                                           int *msgid_out,
                                           int *payload_len_out,
                                           int *payload_offset,
-                                          uchar *rssi)
+                                          int *rssi_dbm)
 {
     if (data.size() < 2) return PartialFrame;
     debugPayload("(amb8465) checkAMB8465Frame", data);
@@ -341,9 +362,9 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
 
         if (rssi_len)
         {
-            *rssi = data[*frame_length-2];
-            signed int dbm = (*rssi >= 128) ? (*rssi - 256) / 2 - 74 : *rssi / 2 - 74;
-            verbose("(amb8465) rssi %d (%d dBm)\n", *rssi, dbm);
+            int rssi = (int)data[*frame_length-2];
+            *rssi_dbm = (rssi >= 128) ? (rssi - 256) / 2 - 74 : rssi / 2 - 74;
+            verbose("(amb8465) rssi %d (%d dBm)\n", rssi, *rssi_dbm);
         }
 
       return FullFrame;
@@ -386,9 +407,9 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
 
     if (rssi_expected_)
     {
-        *rssi = data[*frame_length-1];
-        signed int dbm = (*rssi >= 128) ? (*rssi - 256) / 2 - 74 : *rssi / 2 - 74;
-        verbose("(amb8465) rssi %d (%d dBm)\n", *rssi, dbm);
+        int rssi = data[*frame_length-1];
+        *rssi_dbm = (rssi >= 128) ? (rssi - 256) / 2 - 74 : rssi / 2 - 74;
+        verbose("(amb8465) rssi %d (%d dBm)\n", rssi, *rssi_dbm);
     }
 
     return FullFrame;
@@ -427,11 +448,11 @@ void WMBusAmber::processSerialData()
     size_t frame_length;
     int msgid;
     int payload_len, payload_offset;
-    uchar rssi;
+    int rssi_dbm;
 
     for (;;)
     {
-        FrameStatus status = checkAMB8465Frame(read_buffer_, &frame_length, &msgid, &payload_len, &payload_offset, &rssi);
+        FrameStatus status = checkAMB8465Frame(read_buffer_, &frame_length, &msgid, &payload_len, &payload_offset, &rssi_dbm);
 
         if (status == PartialFrame)
         {
@@ -467,111 +488,128 @@ void WMBusAmber::processSerialData()
 
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
 
-            handleMessage(msgid, payload);
+            handleMessage(msgid, payload, rssi_dbm);
         }
     }
 }
 
-void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame)
+void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm)
 {
     switch (msgid) {
     case (0):
     {
-        handleTelegram(frame);
+        AboutTelegram about("amb8465["+cached_device_id_+"]", rssi_dbm);
+        handleTelegram(about, frame);
         break;
     }
     case (0x80|CMD_SET_MODE_REQ):
     {
         verbose("(amb8465) set link mode completed\n");
-        received_command_ = msgid;
-        received_payload_.clear();
-        received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
-        debugPayload("(amb8465) set link mode response", received_payload_);
-        sem_post(&command_wait_);
+        response_.clear();
+        response_.insert(response_.end(), frame.begin(), frame.end());
+        debugPayload("(amb8465) set link mode response", response_);
+        notifyResponseIsHere(0x80|CMD_SET_MODE_REQ);
         break;
     }
     case (0x80|CMD_GET_REQ):
     {
         verbose("(amb8465) get config completed\n");
-        received_command_ = msgid;
-        received_payload_.clear();
-        received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
-        debugPayload("(amb8465) get config response", received_payload_);
-        sem_post(&command_wait_);
+        response_.clear();
+        response_.insert(response_.end(), frame.begin(), frame.end());
+        debugPayload("(amb8465) get config response", response_);
+        notifyResponseIsHere(0x80|CMD_GET_REQ);
         break;
     }
     case (0x80|CMD_SERIALNO_REQ):
     {
         verbose("(amb8465) get device id completed\n");
-        received_command_ = msgid;
-        received_payload_.clear();
-        received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
-        debugPayload("(amb8465) get device id response", received_payload_);
-        sem_post(&command_wait_);
+        response_.clear();
+        response_.insert(response_.end(), frame.begin(), frame.end());
+        debugPayload("(amb8465) get device id response", response_);
+        notifyResponseIsHere(0x80|CMD_SERIALNO_REQ);
         break;
     }
     default:
         verbose("(amb8465) unhandled device message %d\n", msgid);
-        received_payload_.clear();
-        received_payload_.insert(received_payload_.end(), frame.begin(), frame.end());
-        debugPayload("(amb8465) unknown response", received_payload_);
+        response_.clear();
+        response_.insert(response_.end(), frame.begin(), frame.end());
+        debugPayload("(amb8465) unknown response", response_);
     }
 }
 
-AccessCheck detectAMB8465(string device, SerialCommunicationManager *manager)
+AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600);
+    auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 9600, "detect amb8465");
+    serial->disableCallbacks();
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
-    vector<uchar> data;
+    vector<uchar> response;
     // First clear out any data in the queue.
-    serial->receive(&data);
-    data.clear();
+    serial->receive(&response);
+    response.clear();
 
-    vector<uchar> msg(4);
-    msg[0] = AMBER_SERIAL_SOF;
-    msg[1] = CMD_SERIALNO_REQ;
-    msg[2] = 0; // No payload
-    msg[3] = xorChecksum(msg, 3);
+    vector<uchar> request;
+    request.resize(6);
+    request[0] = AMBER_SERIAL_SOF;
+    request[1] = CMD_GET_REQ;
+    request[2] = 0x02;
+    request[3] = 0x00;
+    request[4] = 0x80;
+    request[5] = xorChecksum(request, 5);
 
-    assert(msg[3] == 0xf4);
+    assert(request[5] == 0x77);
 
-    verbose("(amb8465) are you there?\n");
-    serial->send(msg);
+    bool sent = serial->send(request);
+    if (!sent) return AccessCheck::NotThere;
+
+    serial->send(request);
     // Wait for 100ms so that the USB stick have time to prepare a response.
     usleep(1000*100);
-    serial->receive(&data);
-    int limit = 0;
-    while (data.size() > 8 && data[0] != 0xff) {
-        // Eat bytes until a 0xff appears to get in sync with the proper response.
-        // Extraneous bytes might be due to a partially read telegram.
-        data.erase(data.begin());
-        vector<uchar> more;
-        serial->receive(&more);
-        if (more.size() > 0) {
-            data.insert(data.end(), more.begin(), more.end());
+
+    vector<uchar> data;
+    int count = 0;
+    while (response.size() < 0x7E && count < 2)
+    {
+        size_t n = serial->receive(&data);
+        if (n == 0)
+        {
+            usleep(1000*100);
+            count++;
+            continue;
         }
-        if (limit++ > 100) break; // Do not wait too long.
+        response.insert(response.end(), data.begin(), data.end());
     }
 
     serial->close();
 
-    if (data.size() < 8 ||
-        data[0] != 0xff ||
-        data[1] != (0x80 | msg[1]) ||
-        data[2] != 0x04 ||
-        data[7] != xorChecksum(data, 7)) {
+    // FF8A7A00780080710200000000FFFFFA00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF003200021400FFFFFFFFFF010004000000FFFFFF01440000000000000000FFFF0B040100FFFFFFFFFF00030000FFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF17
+
+    if (response.size() < 8 ||
+        response[0] != 0xff ||
+        response[1] != (0x80 | request[1]) ||
+        response[2] != 0x7A)
+    {
+        verbose("(amb8465) are you there? no.\n");
         return AccessCheck::NotThere;
     }
+
+    ConfigAMB8465 config;
+    config.decode(response);
+
+    detected->setAsFound(config.dongleId(), WMBusDeviceType::DEVICE_AMB8465, 9600, false, false);
+
+    verbose("(amb8465) detect %s\n", config.str().c_str());
+    verbose("(amb8465) are you there? yes %s\n", config.dongleId().c_str());
+
     return AccessCheck::AccessOK;
 }
 
-static AccessCheck tryFactoryResetAMB8465(string device, SerialCommunicationManager *manager, int baud)
+static AccessCheck tryFactoryResetAMB8465(string device, shared_ptr<SerialCommunicationManager> manager, int baud)
 {
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), baud);
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), baud, "reset amb8465");
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) {
         verbose("(amb8465) could not open device %s using baud %d\n", device.c_str(), baud);
@@ -583,16 +621,17 @@ static AccessCheck tryFactoryResetAMB8465(string device, SerialCommunicationMana
     serial->receive(&data);
     data.clear();
 
-    vector<uchar> msg(4);
-    msg[0] = AMBER_SERIAL_SOF;
-    msg[1] = CMD_FACTORYRESET_REQ;
-    msg[2] = 0; // No payload
-    msg[3] = xorChecksum(msg, 3);
+    vector<uchar> request_;
+    request_.resize(4);
+    request_[0] = AMBER_SERIAL_SOF;
+    request_[1] = CMD_FACTORYRESET_REQ;
+    request_[2] = 0; // No payload
+    request_[3] = xorChecksum(request_, 3);
 
-    assert(msg[3] == 0xee);
+    assert(request_[3] == 0xee);
 
     verbose("(amb8465) try factory reset %s using baud %d\n", device.c_str(), baud);
-    serial->send(msg);
+    serial->send(request_);
     // Wait for 100ms so that the USB stick have time to prepare a response.
     usleep(1000*100);
     serial->receive(&data);
@@ -630,7 +669,7 @@ static AccessCheck tryFactoryResetAMB8465(string device, SerialCommunicationMana
 
 int bauds[] = { 1200, 2400, 4800, 9600, 19200, 38400, 56000, 115200, 0 };
 
-AccessCheck factoryResetAMB8465(string device, SerialCommunicationManager *manager, int *was_baud)
+AccessCheck factoryResetAMB8465(string device, shared_ptr<SerialCommunicationManager> manager, int *was_baud)
 {
     AccessCheck rc = AccessCheck::NotThere;
 

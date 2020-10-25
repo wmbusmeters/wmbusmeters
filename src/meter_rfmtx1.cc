@@ -25,7 +25,7 @@
 using namespace std;
 
 struct MeterRfmTX1 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterRfmTX1(WMBus *bus, MeterInfo &mi);
+    MeterRfmTX1(MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -38,13 +38,13 @@ private:
     string meter_datetime_;
 };
 
-unique_ptr<WaterMeter> createRfmTX1(WMBus *bus, MeterInfo &mi)
+shared_ptr<WaterMeter> createRfmTX1(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterRfmTX1(bus, mi));
+    return shared_ptr<WaterMeter>(new MeterRfmTX1(mi));
 }
 
-MeterRfmTX1::MeterRfmTX1(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::RFMTX1)
+MeterRfmTX1::MeterRfmTX1(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::RFMTX1)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 using namespace std;
 
 struct MeterSupercom587 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterSupercom587(WMBus *bus, MeterInfo &mi);
+    MeterSupercom587(MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -37,13 +37,13 @@ private:
     double total_water_consumption_m3_ {};
 };
 
-unique_ptr<WaterMeter> createSupercom587(WMBus *bus, MeterInfo &mi)
+shared_ptr<WaterMeter> createSupercom587(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterSupercom587(bus, mi));
+    return shared_ptr<WaterMeter>(new MeterSupercom587(mi));
 }
 
-MeterSupercom587::MeterSupercom587(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::SUPERCOM587)
+MeterSupercom587::MeterSupercom587(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::SUPERCOM587)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

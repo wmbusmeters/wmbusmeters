@@ -23,6 +23,7 @@
 #include"wmbus.h"
 
 #include<string>
+#include<functional>
 #include<vector>
 
 #define LIST_OF_METERS \
@@ -168,6 +169,10 @@ struct MeterInfo
     vector<string> shells;
     vector<string> jsons; // Additional static jsons that are added to each message.
 
+    MeterInfo()
+    {
+    }
+
     MeterInfo(string n, string t, string i, string k, LinkModeSet lms, vector<string> &s, vector<string> &j)
     {
         name = n;
@@ -180,21 +185,34 @@ struct MeterInfo
     }
 };
 
+struct Print
+{
+    string vname; // Value name, like: total current previous target
+    Quantity quantity; // Quantity: Energy, Volume
+    Unit default_unit; // Default unit for above quantity: KWH, M3
+    function<double(Unit)> getValueDouble; // Callback to fetch the value from the meter.
+    function<string()> getValueString; // Callback to fetch the value from the meter.
+    string help; // Helpful information on this meters use of this value.
+    bool field; // If true, print in hr/fields output.
+    bool json; // If true, print in json and shell env variables.
+    string field_name; // Field name for default unit.
+};
+
 struct Meter
 {
     // This meter listens to these ids.
     virtual vector<string> ids() = 0;
     // This meter can report these fields, like total_m3, temp_c.
     virtual vector<string> fields() = 0;
+    virtual vector<Print> prints() = 0;
     virtual string meterName() = 0;
     virtual string name() = 0;
     virtual MeterType type() = 0;
-    virtual WMBus *bus() = 0;
 
     virtual string datetimeOfUpdateHumanReadable() = 0;
     virtual string datetimeOfUpdateRobot() = 0;
 
-    virtual void onUpdate(function<void(Telegram*t,Meter*)> cb) = 0;
+    virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;
 
     virtual void printMeter(Telegram *t,
@@ -206,7 +224,8 @@ struct Meter
                             vector<string> *selected_fields) = 0;
 
     // The handleTelegram expects an input_frame where the DLL crcs have been removed.
-    bool handleTelegram(vector<uchar> input_frame);
+    // Returns true of this meter handled this telegram!
+    virtual bool handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated, string *id) = 0;
     virtual bool isTelegramForMe(Telegram *t) = 0;
     virtual MeterKeys *meterKeys() = 0;
 
@@ -221,6 +240,21 @@ struct Meter
 
     virtual ~Meter() = default;
 };
+
+struct MeterManager
+{
+    virtual void addMeter(shared_ptr<Meter> meter) = 0;
+    virtual Meter*lastAddedMeter() = 0;
+    virtual void removeAllMeters() = 0;
+    virtual void forEachMeter(std::function<void(Meter*)> cb) = 0;
+    virtual bool handleTelegram(AboutTelegram &about, vector<uchar> data, bool simulated) = 0;
+    virtual bool hasAllMetersReceivedATelegram() = 0;
+    virtual bool hasMeters() = 0;
+    virtual void onTelegram(function<void(AboutTelegram&,vector<uchar>)> cb) = 0;
+    virtual ~MeterManager() = default;
+};
+
+shared_ptr<MeterManager> createMeterManager();
 
 struct WaterMeter : public virtual Meter
 {
@@ -316,41 +350,43 @@ struct GenericMeter : public virtual Meter {
 string toMeterName(MeterType mt);
 MeterType toMeterType(string& type);
 LinkModeSet toMeterLinkModeSet(string& type);
-unique_ptr<WaterMeter> createMultical21(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createFlowIQ3100(WMBus *bus, MeterInfo &m);
-unique_ptr<HeatMeter> createMultical302(WMBus *bus, MeterInfo &m);
-unique_ptr<HeatMeter> createMultical403(WMBus *bus, MeterInfo &m);
-unique_ptr<HeatMeter> createMultical603(WMBus *bus, MeterInfo &m);
-unique_ptr<HeatMeter> createVario451(WMBus *bus, MeterInfo &m);
-unique_ptr<HeatMeter> createCompact5(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createWaterstarM(WMBus *bus, MeterInfo &m);
-unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, MeterInfo &m);
-unique_ptr<ElectricityMeter> createAmiplus(WMBus *bus, MeterInfo &m);
-unique_ptr<ElectricityMeter> createEM24(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createSupercom587(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createMKRadio3(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createApator08(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createApator162(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createIperl(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createHydrus(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createHydrodigit(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createIzar(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createIzar3(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createQ400(WMBus *bus, MeterInfo &m);
-unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &m);
-unique_ptr<HeatCostMeter> createEurisII(WMBus *bus, MeterInfo &m);
-unique_ptr<HeatCostMeter> createFHKVDataIII(WMBus *bus, MeterInfo &m);
-unique_ptr<TempHygroMeter> createLansenTH(WMBus *bus, MeterInfo &m);
-unique_ptr<SmokeDetector> createLansenSM(WMBus *bus, MeterInfo &m);
-unique_ptr<PulseCounter> createLansenPU(WMBus *bus, MeterInfo &m);
-unique_ptr<DoorWindowDetector> createLansenDW(WMBus *bus, MeterInfo &m);
-unique_ptr<TempHygroMeter> createCMa12w(WMBus *bus, MeterInfo &m);
-unique_ptr<TempHygroMeter> createRfmAmb(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createRfmTX1(WMBus *bus, MeterInfo &m);
-unique_ptr<ElectricityMeter> createEHZP(WMBus *bus, MeterInfo &m);
-unique_ptr<ElectricityMeter> createESYSWM(WMBus *bus, MeterInfo &m);
-unique_ptr<ElectricityMeter> createEBZWMBE(WMBus *bus, MeterInfo &m);
-unique_ptr<WaterMeter> createTopasEsKr(WMBus *bus, MeterInfo &m);
+
+shared_ptr<WaterMeter> createMultical21(MeterInfo &m);
+shared_ptr<WaterMeter> createFlowIQ3100(MeterInfo &m);
+shared_ptr<HeatMeter> createMultical302(MeterInfo &m);
+shared_ptr<HeatMeter> createMultical403(MeterInfo &m);
+shared_ptr<HeatMeter> createMultical603(MeterInfo &m);
+shared_ptr<HeatMeter> createVario451(MeterInfo &m);
+shared_ptr<WaterMeter> createWaterstarM(MeterInfo &m);
+shared_ptr<HeatMeter> createCompact5(MeterInfo &m);
+shared_ptr<ElectricityMeter> createOmnipower(MeterInfo &m);
+shared_ptr<ElectricityMeter> createAmiplus(MeterInfo &m);
+shared_ptr<ElectricityMeter> createEM24(MeterInfo &m);
+shared_ptr<WaterMeter> createSupercom587(MeterInfo &m);
+shared_ptr<WaterMeter> createMKRadio3(MeterInfo &m);
+shared_ptr<WaterMeter> createApator08(MeterInfo &m);
+shared_ptr<WaterMeter> createApator162(MeterInfo &m);
+shared_ptr<WaterMeter> createIperl(MeterInfo &m);
+shared_ptr<WaterMeter> createHydrus(MeterInfo &m);
+shared_ptr<WaterMeter> createHydrodigit(MeterInfo &m);
+shared_ptr<WaterMeter> createIzar(MeterInfo &m);
+shared_ptr<WaterMeter> createIzar3(MeterInfo &m);
+shared_ptr<WaterMeter> createQ400(MeterInfo &m);
+shared_ptr<HeatCostMeter> createQCaloric(MeterInfo &m);
+shared_ptr<HeatCostMeter> createEurisII(MeterInfo &m);
+shared_ptr<HeatCostMeter> createFHKVDataIII(MeterInfo &m);
+shared_ptr<TempHygroMeter> createLansenTH(MeterInfo &m);
+shared_ptr<SmokeDetector> createLansenSM(MeterInfo &m);
+shared_ptr<PulseCounter> createLansenPU(MeterInfo &m);
+shared_ptr<DoorWindowDetector> createLansenDW(MeterInfo &m);
+shared_ptr<TempHygroMeter> createCMa12w(MeterInfo &m);
+shared_ptr<TempHygroMeter> createRfmAmb(MeterInfo &m);
+shared_ptr<WaterMeter> createRfmTX1(MeterInfo &m);
+shared_ptr<ElectricityMeter> createEHZP(MeterInfo &m);
+shared_ptr<ElectricityMeter> createESYSWM(MeterInfo &m);
+shared_ptr<ElectricityMeter> createEBZWMBE(MeterInfo &m);
+shared_ptr<WaterMeter> createTopasEsKr(MeterInfo &m);
+
 GenericMeter *createGeneric(WMBus *bus, MeterInfo &m);
 
 #endif

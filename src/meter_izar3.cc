@@ -26,7 +26,7 @@
 using namespace std;
 
 struct MeterIzar3 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterIzar3(WMBus *bus, MeterInfo &mi);
+    MeterIzar3(MeterInfo &mi);
 
     double totalWaterConsumption(Unit u);
     bool  hasTotalWaterConsumption();
@@ -37,13 +37,13 @@ private:
     double total_water_consumption_l_ {};
 };
 
-unique_ptr<WaterMeter> createIzar3(WMBus *bus, MeterInfo &mi)
+shared_ptr<WaterMeter> createIzar3(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterIzar3(bus, mi));
+    return shared_ptr<WaterMeter>(new MeterIzar3(mi));
 }
 
-MeterIzar3::MeterIzar3(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::IZAR3)
+MeterIzar3::MeterIzar3(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::IZAR3)
 {
     // We do not know how to decode the IZAR r3 aka Diehl AQUARIUS!
     addLinkMode(LinkMode::T1);

@@ -25,7 +25,7 @@
 using namespace std;
 
 struct MeterHydrodigit : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterHydrodigit(WMBus *bus, MeterInfo &mi);
+    MeterHydrodigit(MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -38,13 +38,13 @@ private:
     string meter_datetime_;
 };
 
-unique_ptr<WaterMeter> createHydrodigit(WMBus *bus, MeterInfo &mi)
+shared_ptr<WaterMeter> createHydrodigit(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterHydrodigit(bus, mi));
+    return shared_ptr<WaterMeter>(new MeterHydrodigit(mi));
 }
 
-MeterHydrodigit::MeterHydrodigit(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::HYDRODIGIT)
+MeterHydrodigit::MeterHydrodigit(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::HYDRODIGIT)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

@@ -7,33 +7,31 @@ then
 
 	Options:
 	--no-adduser		Do not add wmbusmeters user
-	--no-udev-rules		Do not add udev rules
 	"
     exit 0
 fi
 
 if [ ! "$(basename "$1")" = "wmbusmeters" ]
 then
-    echo Oups, please only try to install wmbusmeters using this script.
+    echo "Oups, please only try to install wmbusmeters using this script."
     exit 1
 fi
 
 if [ ! -x "$1" ]
 then
-    echo This is not an executable.
+    echo "This is not an executable."
     exit 1
 fi
 
 if [ ! -d "$2" ]
 then
-    echo Oups, please supply a valid root directory.
+    echo "Oups, please supply a valid root directory."
     exit 1
 fi
 
 SRC=$1
 ROOT="${2%/}"
 ADDUSER=true
-ADDUDEVRULES=true
 
 while [ $# -ne 0 ]
 do
@@ -42,10 +40,6 @@ do
         case "$ARG" in
         --no-adduser)
                 ADDUSER=false
-        ;;
-        --no-udev-rules)
-                ADDUDEVRULES=false
-        shift
         ;;
         esac
 done
@@ -62,7 +56,7 @@ mkdir -p "$ROOT"/usr/sbin
 cp "$SRC" "$ROOT"/usr/bin/wmbusmeters
 ln -s /usr/bin/wmbusmeters "$ROOT"/usr/sbin/wmbusmetersd
 
-echo binaries: installed "$ROOT"/usr/bin/wmbusmeters and "$ROOT"/usr/sbin/wmbusmetersd
+echo "binaries: installed $ROOT/usr/bin/wmbusmeters and $ROOT/usr/sbin/wmbusmetersd"
 
 ####################################################################
 ##
@@ -73,7 +67,7 @@ rm -f "$ROOT"/usr/share/man/man1/wmbusmeters.1.gz
 mkdir -p "$ROOT"/usr/share/man/man1
 gzip -c wmbusmeters.1 > "$ROOT"/usr/share/man/man1/wmbusmeters.1.gz
 
-echo man page: installed "$ROOT"/usr/share/man/man1/wmbusmeters.1.gz
+echo "man page: installed $ROOT/usr/share/man/man1/wmbusmeters.1.gz"
 
 ####################################################################
 ##
@@ -94,24 +88,49 @@ fi
 
 if [ "$ADDUSER" = "true" ]
 then
-    if [ "$ID" = "" ]
+    if [ $(getent group wmbusmeters) ]
+    then
+	echo "group: wmbusmeters unmodified"
+    else
+ 	groupadd -f wmbusmeters
+	echo "group: added wmbusmeters"
+    fi
+
+    if [ -z "$ID" ]
     then
         # Create the wmbusmeters user
-        useradd --system --shell $USERSHELL --groups dialout wmbusmeters
-        echo user: added wmbusmeters
+        useradd --system --shell $USERSHELL -g wmbusmeters wmbusmeters
+        echo "user: added wmbusmeters"
     else
-        echo user: wmbusmeters unmodified
+        echo "user: wmbusmeters unmodified"
     fi
-    if [ ! -z "$SUDO_USER" ]
+
+    if [ $(getent group dialout) ]
     then
-        if [ "$(groups $SUDO_USER | grep -o wmbusmeters)" = "" ]
-        then
-            # Add user to the wmbusmeters group.
-            usermod -a -G wmbusmeters $SUDO_USER
-            echo user: added $SUDO_USER to group wmbusmeters
-        else
-            echo user: user $SUDO_USER already added group wmbusmeters
-        fi
+	if [ "$(groups wmbusmeters | grep -o dialout)" = "" ]
+	then
+		# Add the wmbusmeters user to dialout
+		usermod -a -G dialout wmbusmeters
+		echo "user: added wmbusmeters to dialout group"
+	else
+		echo "user: wmbusmeters already added to dialout"
+	fi
+    else
+        echo "dialout group does not exist"
+    fi
+
+    if [ $(getent group uucp) ]
+    then
+	if [ "$(groups wmbusmeters | grep -o uucp)" = "" ]
+	then
+		# Add the wmbusmeters user to uucp
+		usermod -a -G uucp wmbusmeters
+		echo "user: added wmbusmeters to uucp group"
+	else
+		echo "user: wmbusmeters already added to uucp"
+	fi
+    else
+        echo "uucp group does not exist"
     fi
 fi
 
@@ -137,7 +156,7 @@ then
     # Create the log directories
     mkdir -p "$ROOT"/var/log/wmbusmeters/meter_readings
     chown -R wmbusmeters:wmbusmeters "$ROOT"/var/log/wmbusmeters
-    echo log: created "$ROOT"/var/log/wmbusmeters/meter_readings
+    echo "log: created $ROOT/var/log/wmbusmeters/meter_readings"
 fi
 
 ####################################################################
@@ -159,9 +178,9 @@ then
         /bin/kill -HUP `cat /run/wmbusmeters/wmbusmeters.pid 2> /dev/null` 2> /dev/null || true
     endscript
 EOF
-    echo logrotate: created "$ROOT"/etc/logrotate.d/wmbusmeters
+    echo "logrotate: created $ROOT/etc/logrotate.d/wmbusmeters"
 else
-    echo conf file: "$ROOT"/etc/logrotate.d/wmbusmeters unchanged
+    echo "conf file: $ROOT/etc/logrotate.d/wmbusmeters unchanged"
 fi
 
 ####################################################################
@@ -183,9 +202,9 @@ meterfilesaction=overwrite
 logfile=/var/log/wmbusmeters/wmbusmeters.log
 EOF
     chmod 644 "$ROOT"/etc/wmbusmeters.conf
-    echo conf file: created "$ROOT"/etc/wmbusmeters.conf
+    echo "conf file: created $ROOT/etc/wmbusmeters.conf"
 else
-    echo conf file: "$ROOT"/etc/wmbusmeters.conf unchanged
+    echo "conf file: $ROOT/etc/wmbusmeters.conf unchanged"
 fi
 
 ####################################################################
@@ -198,9 +217,9 @@ then
     # Create the configuration directory
     mkdir -p "$ROOT"/etc/wmbusmeters.d
     chmod -R 755 "$ROOT"/etc/wmbusmeters.d
-    echo conf dir: created "$ROOT"/etc/wmbusmeters.d
+    echo "conf dir: created $ROOT/etc/wmbusmeters.d"
 else
-    echo conf dir: "$ROOT"/etc/wmbusmeters.d unchanged
+    echo "conf dir: $ROOT/etc/wmbusmeters.d unchanged"
 fi
 
 ####################################################################
@@ -215,7 +234,7 @@ OLD_WMBS=~/old.wmbusmeters.service.backup
 CURR_WMBS="$ROOT"/lib/systemd/system/wmbusmeters.service
 if [ -f $CURR_WMBS ]
 then
-    echo systemd: backing up $CURR_WMBS to here: $OLD_WMBS
+    echo "systemd: backing up $CURR_WMBS to here: $OLD_WMBS"
     cp $CURR_WMBS $OLD_WMBS 2>/dev/null
 fi
 
@@ -223,7 +242,7 @@ fi
 # This means that wmbusmeters will rely on the conf file device setting.
 cat <<'EOF' > $CURR_WMBS
 [Unit]
-Description="wmbusmeters service (no udev trigger)"
+Description="wmbusmeters service"
 Documentation=https://github.com/weetmuts/wmbusmeters
 Documentation=man:wmbusmeters(1)
 After=network.target
@@ -258,9 +277,9 @@ EOF
 
 if diff $OLD_WMBS $CURR_WMBS 1>/dev/null
 then
-    echo systemd: no changes to $CURR_WMBS
+    echo "systemd: no changes to $CURR_WMBS"
 else
-    echo systemd: updated $CURR_WMBS
+    echo "systemd: updated $CURR_WMBS"
     SYSTEMD_NEEDS_RELOAD=true
 fi
 
@@ -268,107 +287,41 @@ OLD_WMBAS=~/old.wmbusmeters@.service.backup
 CURR_WMBAS="$ROOT"/lib/systemd/system/wmbusmeters@.service
 if [ -f $CURR_WMBAS ]
 then
-    echo systemd: backing up $CURR_WMBAS to here: $OLD_WMBAS
+    echo "systemd: removing $CURR_WMBAS"
+    echo "systemd: backing up $CURR_WMBAS to here: $OLD_WMBAS"
     cp $CURR_WMBAS $OLD_WMBAS 2>/dev/null
-fi
-
-# Create service file that needs an argument eg.
-# sudo systemctl start wmbusmeters@/dev/im871a_1.service
-cat <<'EOF' > "$ROOT"/lib/systemd/system/wmbusmeters@.service
-[Unit]
-Description="wmbusmeters service (udev triggered by %I)"
-Documentation=https://github.com/weetmuts/wmbusmeters
-Documentation=man:wmbusmeters(1)
-After=network.target
-StopWhenUnneeded=true
-StartLimitIntervalSec=10
-StartLimitInterval=10
-StartLimitBurst=3
-
-[Service]
-Type=forking
-PrivateTmp=yes
-User=wmbusmeters
-Group=wmbusmeters
-Restart=always
-RestartSec=1
-
-# Run ExecStartPre with root-permissions
-
-PermissionsStartOnly=true
-ExecStartPre=-/bin/mkdir -p /var/log/wmbusmeters/meter_readings
-ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/log/wmbusmeters
-ExecStartPre=-/bin/mkdir -p /run/wmbusmeters
-ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /run/wmbusmeters
-
-ExecStart=/usr/sbin/wmbusmetersd --device='%I' /run/wmbusmeters/wmbusmeters-%i.pid
-ExecReload=/bin/kill -HUP $MAINPID
-PIDFile=/run/wmbusmeters/wmbusmeters-%i.pid
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-if diff $OLD_WMBAS $CURR_WMBAS 1>/dev/null
-then
-    echo systemd: no changes to $CURR_WMBAS
-else
-    echo systemd: updated $CURR_WMBAS
+    rm $CURR_WMBAS
     SYSTEMD_NEEDS_RELOAD=true
 fi
 
 ####################################################################
 ##
-## Create /etc/udev/rules.d/99-wmbus-usb-serial.rules
+## Remove any existing /etc/udev/rules.d/99-wmbus-usb-serial.rules
+## The new wmbuseters daemon is not going to use these.
 ##
 
-UDEV_NEEDS_RELOAD=false
-
-
-if [ "$ADDUDEVRULES" = "true" ]
+if [ -f "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ]
 then
-    if [ -f "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ]
-    then
-        echo udev: removing "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
-        echo udev: backup stored here: ~/old.wmbusmeters-wmbus-usb-serial.rules.backup
-        cp "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ~/old.wmbusmeters-wmbus-usb-serial.rules.backup
-        rm "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
-        UDEV_NEEDS_RELOAD=true
-    fi
-
-	if [ ! -f "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ]
-	then
-		mkdir -p "$ROOT"/etc/udev/rules.d
-		# Create service file
-		cat <<EOF > "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
-SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60",SYMLINK+="im871a_%n",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@/dev/im871a_%n.service"
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001",SYMLINK+="amb8465_%n",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@/dev/amb8465_%n.service"
-SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838",SYMLINK+="rtlsdr_%n",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@/dev/rtlsdr_%n.service"
-SUBSYSTEM=="usb", ATTRS{idVendor}=="2047", ATTRS{idProduct}=="0863",SYMLINK+="rfmrx2_%n",MODE="0660", GROUP="wmbusmeters",TAG+="systemd",ENV{SYSTEMD_WANTS}="wmbusmeters@/dev/rfmrx2_%n.service"
-EOF
-		echo udev: installed "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
-	else
-		echo udev: "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules unchanged
-	fi
+    echo "udev: removing "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules"
+    echo "udev: backup stored here: ~/old.wmbusmeters-wmbus-usb-serial.rules.backup"
+    cp "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ~/old.wmbusmeters-wmbus-usb-serial.rules.backup
+    rm "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules
+    UDEV_NEEDS_RELOAD=true
 fi
 
 if [ "$SYSTEMD_NEEDS_RELOAD" = "true" ]
 then
     echo
     echo
-    echo You need to reload systemd configuration! Please do:
-    echo sudo systemctl daemon-reload
+    echo "You need to reload systemd configuration! Please do:"
+    echo "sudo systemctl daemon-reload"
 fi
 
 if [ "$UDEV_NEEDS_RELOAD" = "true" ]
 then
-    D=$(diff "$ROOT"/etc/udev/rules.d/99-wmbus-usb-serial.rules ~/old.wmbusmeters-wmbus-usb-serial.rules.backup)
-    if [ "$D" != "" ]
-    then
-        echo
-        echo
-        echo You need to reload udev configuration! Please do:
-        echo "sudo udevadm control --reload-rules"
-        echo "sudo udevadm trigger"
-    fi
+    echo
+    echo
+    echo "You need to reload udev configuration! Please do:"
+    echo "sudo udevadm control --reload-rules"
+    echo "sudo udevadm trigger"
 fi

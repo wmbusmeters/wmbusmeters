@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2019 Fredrik Öhrström
+ Copyright (C) 2018-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #include"util.h"
 
 struct MeterOmnipower : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
-    MeterOmnipower(WMBus *bus, MeterInfo &mi);
+    MeterOmnipower(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
 
@@ -34,13 +34,13 @@ private:
     double total_energy_kwh_ {};
 };
 
-unique_ptr<ElectricityMeter> createOmnipower(WMBus *bus, MeterInfo &mi)
+shared_ptr<ElectricityMeter> createOmnipower(MeterInfo &mi)
 {
-    return unique_ptr<ElectricityMeter>(new MeterOmnipower(bus, mi));
+    return shared_ptr<ElectricityMeter>(new MeterOmnipower(mi));
 }
 
-MeterOmnipower::MeterOmnipower(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::OMNIPOWER)
+MeterOmnipower::MeterOmnipower(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::OMNIPOWER)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

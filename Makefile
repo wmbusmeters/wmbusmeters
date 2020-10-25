@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2019 Fredrik Öhrström
+# Copyright (C) 2017-2020 Fredrik Öhrström
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -146,8 +146,10 @@ METER_OBJS:=\
 	$(BUILD)/meter_vario451.o \
 	$(BUILD)/meter_waterstarm.o \
 	$(BUILD)/printer.o \
+	$(BUILD)/rtlsdr.o \
 	$(BUILD)/serial.o \
 	$(BUILD)/shell.o \
+	$(BUILD)/threads.o \
 	$(BUILD)/util.o \
 	$(BUILD)/units.o \
 	$(BUILD)/wmbus.o \
@@ -159,7 +161,7 @@ METER_OBJS:=\
 	$(BUILD)/wmbus_rtl433.o \
 	$(BUILD)/wmbus_simulator.o \
 	$(BUILD)/wmbus_rawtty.o \
-	$(BUILD)/wmbus_wmb13u.o \
+	$(BUILD)/wmbus_rc1180.o \
 	$(BUILD)/wmbus_utils.o
 
 all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals
@@ -195,10 +197,10 @@ snapcraft:
 $(BUILD)/main.o: $(BUILD)/short_manual.h $(BUILD)/version.h
 
 $(BUILD)/wmbusmeters: $(METER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters $(METER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lpthread
+	$(CXX) -o $(BUILD)/wmbusmeters $(METER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lrtlsdr -lusb-1.0 -lpthread
 
-$(BUILD)/wmbusmeters-admin: $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters-admin $(METER_OBJS) $(BUILD)/admin.o $(LDFLAGS) -lmenu -lncurses -lpthread
+$(BUILD)/wmbusmeters-admin: $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(BUILD)/short_manual.h
+	$(CXX) -o $(BUILD)/wmbusmeters-admin $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -lrtlsdr -lusb-1.0 -lpthread
 
 $(BUILD)/short_manual.h: README.md
 	echo 'R"MANUAL(' > $(BUILD)/short_manual.h
@@ -208,10 +210,10 @@ $(BUILD)/short_manual.h: README.md
 	echo ')MANUAL";' >> $(BUILD)/short_manual.h
 
 $(BUILD)/testinternals: $(METER_OBJS) $(BUILD)/testinternals.o
-	$(CXX) -o $(BUILD)/testinternals $(METER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS) -lpthread
+	$(CXX) -o $(BUILD)/testinternals $(METER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS) -lrtlsdr -lusb-1.0 -lpthread
 
 $(BUILD)/fuzz: $(METER_OBJS) $(BUILD)/fuzz.o
-	$(CXX) -o $(BUILD)/fuzz $(METER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lpthread
+	$(CXX) -o $(BUILD)/fuzz $(METER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lrtlsdr -lpthread
 
 clean:
 	rm -rf build/* build_arm/* build_debug/* build_arm_debug/* *~

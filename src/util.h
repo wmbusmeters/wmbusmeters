@@ -47,10 +47,16 @@ std::string bin2hex(std::vector<uchar> &target);
 std::string bin2hex(std::vector<uchar>::iterator data, std::vector<uchar>::iterator end, int len);
 std::string safeString(std::vector<uchar> &target);
 void strprintf(std::string &s, const char* fmt, ...);
+std::string tostrprintf(const char* fmt, ...);
+
 // Return for example: 2010-03-21
 std::string strdate(struct tm *date);
-// Return for example: 2010-03-21 15:22:03
+// Return for example: 2010-03-21 15:22
 std::string strdatetime(struct tm *date);
+// Return for example: 2010-03-21 15:22:03
+std::string strdatetimesec(struct tm *date);
+
+bool stringFoundCaseIgnored(std::string haystack, std::string needle);
 
 void xorit(uchar *srca, uchar *srcb, uchar *dest, int len);
 void shiftLeft(uchar *srca, uchar *srcb, int len);
@@ -83,19 +89,30 @@ void debugPayload(std::string intro, std::vector<uchar> &payload);
 void debugPayload(std::string intro, std::vector<uchar> &payload, std::vector<uchar>::iterator &pos);
 void logTelegram(std::string intro, std::vector<uchar> &parsed, int header_size, int suffix_size);
 
-void logAlarm(std::string type, std::string msg);
+enum class Alarm
+{
+    DeviceFailure,
+    RegularResetFailure,
+    DeviceInactivity,
+    SpecifiedDeviceNotFound
+};
+
+const char* toString(Alarm type);
+void logAlarm(Alarm type, std::string info);
 void setAlarmShells(std::vector<std::string> &alarm_shells);
 
 bool isValidMatchExpression(std::string id, bool non_compliant);
 bool isValidMatchExpressions(std::string ids, bool non_compliant);
 bool doesIdMatchExpression(std::string id, std::string match);
 bool doesIdMatchExpressions(std::string& id, std::vector<std::string>& ids);
+bool isValidId(std::string id, bool accept_non_compliant);
 
 bool isValidKey(std::string& key, MeterType mt);
 bool isFrequency(std::string& fq);
 bool isNumber(std::string& fq);
 
 std::vector<std::string> splitMatchExpressions(std::string& mes);
+std::vector<std::string> splitString(std::string &s, char c);
 
 void incrementIV(uchar *iv, size_t len);
 
@@ -104,11 +121,13 @@ bool checkFileExists(const char *file);
 bool checkIfSimulationFile(const char *file);
 bool checkIfDirExists(const char *dir);
 bool listFiles(std::string dir, std::vector<std::string> *files);
+int loadFile(std::string file, std::vector<std::string> *lines);
 bool loadFile(std::string file, std::vector<char> *buf);
 
 std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err);
 
 void padWithZeroesTo(std::vector<uchar> *content, size_t len, std::vector<uchar> *full_content);
+std::string padLeft(std::string input, int width);
 
 // Parse text string into seconds, 5h = (3600*5) 2m = (60*2) 1s = 1
 int parseTime(std::string time);
@@ -162,5 +181,9 @@ bool startsWith(std::string s, std::vector<uchar> &data);
 
 // Sum the memory used by the heap and stack.
 size_t memoryUsage();
+
+std::string humanReadableTwoDecimals(size_t s);
+
+uint32_t indexFromRtlSdrName(std::string &s);
 
 #endif

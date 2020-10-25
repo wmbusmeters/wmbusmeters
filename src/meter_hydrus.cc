@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 using namespace std;
 
 struct MeterHydrus : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterHydrus(WMBus *bus, MeterInfo &mi);
+    MeterHydrus(MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -48,8 +48,8 @@ private:
     map<int,string> error_codes_;
 };
 
-MeterHydrus::MeterHydrus(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::HYDRUS)
+MeterHydrus::MeterHydrus(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::HYDRUS)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -100,9 +100,9 @@ MeterHydrus::MeterHydrus(WMBus *bus, MeterInfo &mi) :
 
 }
 
-unique_ptr<WaterMeter> createHydrus(WMBus *bus, MeterInfo &mi)
+shared_ptr<WaterMeter> createHydrus(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterHydrus(bus, mi));
+    return shared_ptr<WaterMeter>(new MeterHydrus(mi));
 }
 
 void MeterHydrus::processContent(Telegram *t)

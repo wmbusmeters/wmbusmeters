@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 
 struct MeterQCaloric : public virtual HeatCostMeter, public virtual MeterCommonImplementation {
-    MeterQCaloric(WMBus *bus, MeterInfo &mi);
+    MeterQCaloric(MeterInfo &mi);
 
     double currentConsumption(Unit u);
     string setDate();
@@ -45,8 +45,8 @@ private:
     string device_date_time_;
 };
 
-MeterQCaloric::MeterQCaloric(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::QCALORIC)
+MeterQCaloric::MeterQCaloric(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::QCALORIC)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -98,9 +98,9 @@ MeterQCaloric::MeterQCaloric(WMBus *bus, MeterInfo &mi) :
              false, true);
 }
 
-unique_ptr<HeatCostMeter> createQCaloric(WMBus *bus, MeterInfo &mi)
+shared_ptr<HeatCostMeter> createQCaloric(MeterInfo &mi)
 {
-    return unique_ptr<HeatCostMeter>(new MeterQCaloric(bus, mi));
+    return shared_ptr<HeatCostMeter>(new MeterQCaloric(mi));
 }
 
 double MeterQCaloric::currentConsumption(Unit u)

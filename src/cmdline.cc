@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
 */
 
 #include"cmdline.h"
-#include"config.h"
 #include"meters.h"
 #include"util.h"
 
@@ -24,7 +23,7 @@
 
 using namespace std;
 
-unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
+shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
 
     Configuration * c = new Configuration;
 
@@ -62,16 +61,17 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             break;
         }
         c->pid_file = argv[i];
-        return unique_ptr<Configuration>(c);
+        return shared_ptr<Configuration>(c);
     }
     if (argc < 2) {
         c->need_help = true;
-        return unique_ptr<Configuration>(c);
+        return shared_ptr<Configuration>(c);
     }
-    while (argv[i] && argv[i][0] == '-') {
+    while (argv[i] && argv[i][0] == '-')
+    {
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "-help") || !strcmp(argv[i], "--help")) {
             c->need_help = true;
-            return unique_ptr<Configuration>(c);
+            return shared_ptr<Configuration>(c);
         }
         if (!strcmp(argv[i], "--silence")) {
             c->silence = true;
@@ -85,14 +85,20 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         }
         if (!strcmp(argv[i], "--version")) {
             c->version = true;
-            return unique_ptr<Configuration>(c);
+            return shared_ptr<Configuration>(c);
         }
         if (!strcmp(argv[i], "--license")) {
             c->license = true;
-            return unique_ptr<Configuration>(c);
+            return shared_ptr<Configuration>(c);
         }
         if (!strcmp(argv[i], "--debug")) {
             c->debug = true;
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--trace")) {
+            c->debug = true;
+            c->trace = true;
             i++;
             continue;
         }
@@ -106,22 +112,22 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             if (lms.bits() == 0) {
                 error("Unknown link mode \"%s\"!\n", argv[i]+11);
             }
-            if (c->link_mode_configured) {
+            if (c->linkmodes_configured) {
                 error("You have already specified a link mode!\n");
             }
-            c->listen_to_link_modes = lms;
-            c->link_mode_configured = true;
+            c->linkmodes = lms;
+            c->linkmodes_configured = true;
             i++;
             continue;
         }
 
         LinkMode lm = isLinkModeOption(argv[i]);
         if (lm != LinkMode::UNKNOWN) {
-            if (c->link_mode_configured) {
+            if (c->linkmodes_configured) {
                 error("You have already specified a link mode!\n");
             }
-            c->listen_to_link_modes.addLinkMode(lm);
-            c->link_mode_configured = true;
+            c->linkmodes.addLinkMode(lm);
+            c->linkmodes_configured = true;
             i++;
             continue;
         }
@@ -135,7 +141,7 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             {
                 c->useconfig = true;
                 c->config_root = "";
-                return unique_ptr<Configuration>(c);
+                return shared_ptr<Configuration>(c);
             }
             else if (strlen(argv[i]) > 12 && argv[i][11] == '=')
             {
@@ -173,7 +179,7 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             if (i+1 < argc) {
                 error("Usage error: --useconfig can only be followed by --device= and --listento=\n");
             }
-            return unique_ptr<Configuration>(c);
+            return shared_ptr<Configuration>(c);
             continue;
         }
         if (!strcmp(argv[i], "--reload")) {
@@ -181,7 +187,7 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             if (i > 1 || argc > 2) {
                 error("Usage error: --reload implies no other arguments on the command line.\n");
             }
-            return unique_ptr<Configuration>(c);
+            return shared_ptr<Configuration>(c);
         }
         if (!strncmp(argv[i], "--format=", 9))
         {
@@ -345,8 +351,13 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--usestderr=", 10)) {
-            c->use_stderr = true;
+        if (!strncmp(argv[i], "--usestderr", 11)) {
+            c->use_stderr_for_log = true;
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--usestdoutforlogging", 13)) {
+            c->use_stderr_for_log = false;
             i++;
             continue;
         }
@@ -381,13 +392,27 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--listenvs", 10)) {
+        if (!strncmp(argv[i], "--listenvs=", 11)) {
             c->list_shell_envs = true;
+            c->list_meter = string(argv[i]+11);
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--listfields", 12)) {
+        if (!strncmp(argv[i], "--listfields=", 13)) {
             c->list_fields = true;
+            c->list_meter = string(argv[i]+13);
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--listmeters=", 13)) {
+            c->list_meters = true;
+            c->list_meters_search = string(argv[i]+13);
+            i++;
+            continue;
+        }
+        else if (!strncmp(argv[i], "--listmeters", 12)) {
+            c->list_meters = true;
+            c->list_meters_search = "";
             i++;
             continue;
         }
@@ -404,10 +429,10 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--reopenafter=", 12) && strlen(argv[i]) > 14) {
-            c->reopenafter = parseTime(argv[i]+14);
-            if (c->reopenafter <= 0) {
-                error("Not a valid time to reopen after. \"%s\"\n", argv[i]+14);
+        if (!strncmp(argv[i], "--resetafter=", 13) && strlen(argv[i]) > 13) {
+            c->resetafter = parseTime(argv[i]+13);
+            if (c->resetafter <= 0) {
+                error("Not a valid time to regularly reset after. \"%s\"\n", argv[i]+13);
             }
             i++;
             continue;
@@ -438,18 +463,20 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         error("Unknown option \"%s\"\n", argv[i]);
     }
 
-    char *extra = argv[i] ? strchr(argv[i], ':') : NULL ;
-    if (extra) {
-        *extra = 0;
-        extra++;
-        c->device_extra = extra;
+    while (argv[i])
+    {
+        bool ok = handleDevice(c, argv[i]);
+        if (!ok) break;
+        i++;
     }
-    if (argv[i]) {
-        c->device = argv[i];
-    }
-    i++;
-    if (c->device.length() == 0) {
-        error("You must supply the usb device to which the wmbus dongle is connected.\n");
+
+    if (c->supplied_wmbus_devices.size() == 0 &&
+        c->use_auto_detect == false &&
+        !c->list_shell_envs &&
+        !c->list_fields &&
+        !c->list_meters)
+    {
+        error("You must supply at least one device (eg auto:c1) to receive wmbus telegrams.\n");
     }
 
     if ((argc-i) % 4 != 0) {
@@ -499,5 +526,5 @@ unique_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         c->meters.push_back(MeterInfo(name, type, id, key, modes, no_meter_shells, no_meter_jsons));
     }
 
-    return unique_ptr<Configuration>(c);
+    return shared_ptr<Configuration>(c);
 }

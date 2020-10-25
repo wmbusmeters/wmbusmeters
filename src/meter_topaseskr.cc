@@ -44,7 +44,7 @@ using namespace std;
  telegram=|4E44B40512345678F1077A310040052F2F|01FD08040C13991848004C1359423500CC101300000000CC201359423500426C7F2C0B3B00000002FD74DA10025AD300C4016D3B179F27CC011387124600|+2
 */
 struct MeterTopasEsKr : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterTopasEsKr(WMBus *bus, MeterInfo &mi);
+    MeterTopasEsKr(MeterInfo &mi);
 
     double totalWaterConsumption(Unit u);
     bool  hasTotalWaterConsumption();
@@ -66,13 +66,13 @@ private:
     string meter_month_period_datetime_;
 };
 
-unique_ptr<WaterMeter> createTopasEsKr(WMBus *bus, MeterInfo &mi)
+shared_ptr<WaterMeter> createTopasEsKr(MeterInfo &mi)
 {
-    return unique_ptr<WaterMeter>(new MeterTopasEsKr(bus, mi));
+    return shared_ptr<WaterMeter>(new MeterTopasEsKr(mi));
 }
 
-MeterTopasEsKr::MeterTopasEsKr(WMBus *bus, MeterInfo &mi) :
-    MeterCommonImplementation(bus, mi, MeterType::TOPASESKR)
+MeterTopasEsKr::MeterTopasEsKr(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::TOPASESKR)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

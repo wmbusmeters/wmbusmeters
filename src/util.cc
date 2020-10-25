@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2019 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 #include"meters.h"
 #include"shell.h"
 
+#include<algorithm>
 #include<assert.h>
 #include<dirent.h>
 #include<functional>
@@ -226,6 +227,18 @@ std::string safeString(vector<uchar> &target) {
         }
     }
     return str;
+}
+
+string tostrprintf(const char* fmt, ...)
+{
+    string s;
+    char buf[4096];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, 4095, fmt, args);
+    va_end(args);
+    s = buf;
+    return s;
 }
 
 void strprintf(std::string &s, const char* fmt, ...)
@@ -537,6 +550,22 @@ bool isValidMatchExpressions(string mes, bool non_compliant)
     return true;
 }
 
+bool isValidId(string id, bool accept_non_compliant)
+{
+
+    for (size_t i=0; i<id.length(); ++i)
+    {
+        if (id[i] >= '0' && id[i] <= '9') continue;
+        if (accept_non_compliant)
+        {
+            if (id[i] >= 'a' && id[i] <= 'f') continue;
+            if (id[i] >= 'A' && id[i] <= 'F') continue;
+        }
+        return false;
+    }
+    return true;
+}
+
 bool doesIdMatchExpression(string id, string match)
 {
     if (id.length() == 0) return false;
@@ -640,7 +669,8 @@ bool isFrequency(std::string& fq)
 {
     int len = fq.length();
     if (len == 0) return false;
-    if (fq[len-1] == 'M') len--;
+    if (fq[len-1] != 'M') return false;
+    len--;
     for (int i=0; i<len; ++i) {
         if (!isdigit(fq[i]) && fq[i] != '.') return false;
     }
@@ -844,6 +874,15 @@ void padWithZeroesTo(vector<uchar> *content, size_t len, vector<uchar> *full_con
     }
 }
 
+static string space = "                                                   ";
+string padLeft(string input, int width)
+{
+    int w = width-input.size();
+    if (w < 0) return input;
+    assert(w < (int)space.length());
+    return space.substr(0, w)+input;
+}
+
 int parseTime(string time) {
     int mul = 1;
     if (time.back() == 'h') {
@@ -952,6 +991,48 @@ bool listFiles(string dir, vector<string> *files)
     return true;
 }
 
+int loadFile(string file, vector<string> *lines)
+{
+    char block[32768+1];
+    vector<uchar> buf;
+
+    int fd = open(file.c_str(), O_RDONLY);
+    if (fd == -1) {
+        return -1;
+    }
+    while (true) {
+        ssize_t n = read(fd, block, sizeof(block));
+        if (n == -1) {
+            if (errno == EINTR) {
+                continue;
+            }
+            error("Could not read file %s errno=%d\n", file.c_str(), errno);
+            close(fd);
+            return -1;
+        }
+        buf.insert(buf.end(), block, block+n);
+        if (n < (ssize_t)sizeof(block)) {
+            break;
+        }
+    }
+    close(fd);
+
+    bool eof, err;
+    auto i = buf.begin();
+    for (;;) {
+        string line = eatTo(buf, i, '\n', 32768, &eof, &err);
+        if (err) {
+            error("Error parsing simulation file.\n");
+        }
+        if (line.length() > 0) {
+            lines->push_back(line);
+        }
+        if (eof) break;
+    }
+
+    return 0;
+}
+
 bool loadFile(string file, vector<char> *buf)
 {
     int blocksize = 1024;
@@ -1052,6 +1133,13 @@ string strdatetime(struct tm *datetime)
 {
     char buf[256];
     strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M", datetime);
+    return string(buf);
+}
+
+string strdatetimesec(struct tm *datetime)
+{
+    char buf[256];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", datetime);
     return string(buf);
 }
 
@@ -1354,13 +1442,28 @@ size_t memoryUsage()
 
 vector<string> alarm_shells_;
 
-void logAlarm(string type, string msg)
+const char* toString(Alarm type)
+{
+    switch (type)
+    {
+    case Alarm::DeviceFailure: return "DeviceFailure";
+    case Alarm::RegularResetFailure: return "RegularResetFailure";
+    case Alarm::DeviceInactivity: return "DeviceInactivity";
+    case Alarm::SpecifiedDeviceNotFound: return "SpecifiedDeviceNotFound";
+    }
+    return "?";
+}
+
+void logAlarm(Alarm type, string info)
 {
     vector<string> envs;
-    envs.push_back("ALARM_TYPE="+type);
+    string ts = toString(type);
+    envs.push_back("ALARM_TYPE="+ts);
+
+    string msg = tostrprintf("(alarm %s) %s", ts.c_str(), info.c_str());
     envs.push_back("ALARM_MESSAGE="+msg);
 
-    warning("(alarm) %s: %s\n", type.c_str(), msg.c_str());
+    warning("%s\n", msg.c_str());
 
     for (auto &s : alarm_shells_)
     {
@@ -1374,4 +1477,98 @@ void logAlarm(string type, string msg)
 void setAlarmShells(vector<string> &alarm_shells)
 {
     alarm_shells_ = alarm_shells;
+}
+
+bool stringFoundCaseIgnored(string haystack, string needle)
+{
+    // Modify haystack and needle, in place, to become lowercase.
+    std::for_each(haystack.begin(), haystack.end(), [](char & c) {
+        c = ::tolower(c);
+    });
+    std::for_each(needle.begin(), needle.end(), [](char & c) {
+        c = ::tolower(c);
+    });
+
+    // Now use default c++ find, return true if needle was found in haystack.
+    return haystack.find(needle) != string::npos;
+}
+
+vector<string> splitString(string &s, char c)
+{
+    auto end = s.cend();
+    auto start = end;
+
+    std::vector<std::string> v;
+    for (auto i = s.cbegin(); i != end; ++i)
+    {
+        if (*i != c)
+        {
+            if (start == end)
+            {
+                start = i;
+            }
+            continue;
+        }
+        if (start != end)
+        {
+            v.emplace_back(start, i);
+            start = end;
+        }
+    }
+    if (start != end)
+    {
+        v.emplace_back(start, end);
+    }
+    return v;
+}
+
+uint32_t indexFromRtlSdrName(string &s)
+{
+    size_t p = s.find('_');
+    if (p == string::npos) return -1;
+    string n = s.substr(0, p);
+    return (uint32_t)atoi(n.c_str());
+}
+
+#define KB 1024ull
+
+string helper(size_t scale, size_t s, string suffix)
+{
+    size_t o = s;
+    s /= scale;
+    size_t diff = o-(s*scale);
+    if (diff == 0) {
+        return to_string(s) + ".00"+suffix;
+    }
+    size_t dec = (int)(100*(diff+1) / scale);
+    return to_string(s) + ((dec<10)?".0":".") + to_string(dec) + suffix;
+}
+
+string humanReadableTwoDecimals(size_t s)
+{
+    if (s < KB)
+    {
+        return to_string(s) + " B";
+    }
+    if (s < KB * KB)
+    {
+        return helper(KB, s, " KiB");
+    }
+    if (s < KB * KB * KB)
+    {
+        return helper(KB*KB, s, " MiB");
+    }
+#if SIZEOF_SIZE_T == 8
+    if (s < KB * KB * KB * KB)
+    {
+        return helper(KB*KB*KB, s, " GiB");
+    }
+    if (s < KB * KB * KB * KB * KB)
+    {
+        return helper(KB*KB*KB*KB, s, " TiB");
+    }
+    return helper(KB*KB*KB*KB*KB, s, " PiB");
+#else
+    return helper(KB*KB*KB, s, " GiB");
+#endif
 }
