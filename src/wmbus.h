@@ -56,7 +56,6 @@ struct SpecifiedDevice
     X(UNKNOWN,unknown)       \
     X(AMB8465,amb8465)       \
     X(CUL,cul)               \
-    X(D1TC,d1tc)             \
     X(IM871A,im871a)         \
     X(RAWTTY,rawtty)         \
     X(RC1180,rc1180)         \

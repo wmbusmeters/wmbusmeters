@@ -442,12 +442,6 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
         wmbus = openCUL(detected->found_file, manager, serial_override);
         break;
     }
-    case DEVICE_D1TC:
-    {
-        verbose("(d1tc) on %s\n", detected->found_file.c_str());
-        wmbus = openD1TC(detected->found_file, manager, serial_override);
-        break;
-    }
     case DEVICE_RC1180:
     {
         verbose("(rc1180) on %s\n", detected->found_file.c_str());

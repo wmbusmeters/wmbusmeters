@@ -29,7 +29,7 @@ Availability of **wmbusmeters** for other Linux distributions can be checked on 
 
 # Run as a daemon
 
-Remove the wmbus dongle (im871a,amb8465,cul,rc1180,rfmrx2,d1tc) or the generic rtlsdr dongle (RTL2838) from your computer.
+Remove the wmbus dongle (im871a,amb8465,cul,rc1180) or the generic rtlsdr dongle (RTL2838) from your computer.
 
 `./configure; make; sudo make install` will install wmbusmeters as a daemon.
 
@@ -53,7 +53,7 @@ Check the config file /etc/wmbusmeters.conf and edit the device to
 point to your dongle or use auto
 ```
 loglevel=normal
-device=/dev/ttyUSB0:im871a
+device=im871a:c1
 logtelegrams=false
 format=json
 meterfiles=/var/log/wmbusmeters/meter_readings
@@ -137,7 +137,7 @@ depending on if you are running as a daemon or not.
 
 # Running without config files, good for experimentation and test.
 ```
-wmbusmeters version: 0.9.36
+wmbusmeters version: 1.0.0
 Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type]{:<modes>} [meter_id] [meter_key] )*
 
 As <options> you can use:
@@ -183,10 +183,9 @@ You can also specify rtlwmbus and if you set the serial in the rtlsdr
 dongle using `rtl_eeprom -s 1234` you can also refer to a specific
 rtlsdr dongle like this `rtlwmbus[1234]`.
 
-/dev/ttyUSB0:amb8465, if you have an amb8465 dongle assigned to ttyUSB0. Other suffixes are im871a,rfmrx2,d1tc,cul.
+/dev/ttyUSB0:amb8465, if you have an amb8465 dongle assigned to ttyUSB0. Other suffixes are im871a,cul.
 
-/dev/ttyUSB0, to have wmbusmeters auto-detect amb8465, im871a or CUL device.
-(The rfmrx2 and the d1tc device cannot be autodetected right now, you have to specify it as a suffix on the device.)
+/dev/ttyUSB0, to have wmbusmeters auto-detect amb8465, im871a, rc1180 or cul device.
 
 /dev/ttyUSB0:38400, to have wmbusmeters set the baud rate to 38400 and listen for raw wmbus telegrams.
 These telegrams are expected to have the data link layer crc bytes removed already!
@@ -231,7 +230,6 @@ CUL family (cul)
 Radiocraft (RC1180) work in progress only T1 mode
 rtl_wmbus (rtlwmbus)
 rtl_433 (rtl433)
-BMeters RFM-RX2 (rfmrx2)
 
 Supported water meters:
 Apator at-wmbus-08   (apator08) (non-standard protocol)
