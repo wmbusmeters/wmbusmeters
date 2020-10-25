@@ -36,6 +36,7 @@
     X(eurisii,    T1_bit, HeatCostAllocation, EURISII, EurisII)   \
     X(ehzp,       T1_bit, Electricity, EHZP,        EHZP)         \
     X(esyswm,     T1_bit, Electricity, ESYSWM,      ESYSWM)       \
+    X(flowiq2200, C1_bit, Water,       FLOWIQ2200,  FlowIQ2200)   \
     X(flowiq3100, C1_bit, Water,       FLOWIQ3100,  FlowIQ3100)   \
     X(em24,       C1_bit, Electricity, EM24,        EM24)         \
     X(fhkvdataiii,   T1_bit, HeatCostAllocation,        FHKVDATAIII,    FHKVDataIII)     \
@@ -90,6 +91,7 @@
     X(EURISII,   MANUFACTURER_INE,  0x08,  0x55) \
     X(EHZP,      MANUFACTURER_EMH,  0x02,  0x02) \
     X(ESYSWM,    MANUFACTURER_ESY,  0x37,  0x30) \
+    X(FLOWIQ2200,MANUFACTURER_KAW,  0x16,  0x3a) \
     X(FLOWIQ3100,MANUFACTURER_KAM,  0x16,  0x1d) \
     X(EM24,      MANUFACTURER_KAM,  0x02,  0x33) \
     X(FHKVDATAIII,MANUFACTURER_TCH, 0x80,  0x69) \
@@ -352,6 +354,7 @@ MeterType toMeterType(string& type);
 LinkModeSet toMeterLinkModeSet(string& type);
 
 shared_ptr<WaterMeter> createMultical21(MeterInfo &m);
+shared_ptr<WaterMeter> createFlowIQ2200(MeterInfo &m);
 shared_ptr<WaterMeter> createFlowIQ3100(MeterInfo &m);
 shared_ptr<HeatMeter> createMultical302(MeterInfo &m);
 shared_ptr<HeatMeter> createMultical403(MeterInfo &m);

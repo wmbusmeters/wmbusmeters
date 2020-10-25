@@ -13,6 +13,7 @@ cat simulations/simulation_c1.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_c1.txt \
       MyHeater multical302 67676767 "" \
       MyTapWater multical21 76348799 "" \
+      MyWater flowiq2200 52525252 "" \
       Vadden multical21 44556677 "" \
       MyElement qcaloric 78563412 "" \
       Rum cma12w 66666666 "" \

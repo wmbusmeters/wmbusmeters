@@ -1,3 +1,8 @@
+
+Add proper support for FlowIQ2200 water meter.
+Decode two vendor values in multical603 as energy forward and returned.
+Accept t1 and c1 as linkmodes for multical21 meters.
+
 Version 1.0.0: 2020-10-25
 
 IMPORTANT CHANGES THAT MIGHT AFFECT YOU!

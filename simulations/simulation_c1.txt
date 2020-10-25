@@ -14,6 +14,11 @@ telegram=|2D442D2C776655441B168D2083B48D3A20|46887802FF20000004132F4E000092013B3
 telegram=|21442D2C776655441B168D2079CC8C3A20|F4307912C40DFF00002F4E00003D010203|
 {"media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","total_m3":20.015,"target_m3":0,"max_flow_m3h":0.317,"flow_temperature_c":2,"external_temperature_c":3,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 
+# Test FlowIQ2200 C1 telegrams
+
+telegram=|4D44372C525252523A168D203894DF7920F93278|04FF23000000000413AEAC0000441364A80000426C812A023B000092013BEF01A2013B000006FF1B067000097000A1015B0C91015B14A1016713|
+{"media":"cold water","meter":"flowiq2200","name":"MyWater","id":"52525252","total_m3":44.206,"target_m3":43.108,"target_datetime":"2020-10-01 00:00","current_flow_m3h":0,"max_flow_m3h":0.495,"min_flow_m3h":0,"min_flow_temperature_c":12,"max_flow_temperature_c":20,"external_temperature_c":19,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+
 # Test Multical302 C1 telegrams
 
 # full telegram
