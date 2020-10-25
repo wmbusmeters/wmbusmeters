@@ -74,6 +74,8 @@ const char *toString(WMBusDeviceType t);
 const char *toLowerCaseString(WMBusDeviceType t);
 WMBusDeviceType toWMBusDeviceType(string &t);
 
+void setIgnoreDuplicateTelegrams(bool idt);
+
 struct Detected
 {
     SpecifiedDevice specified_device {}; // Device as specified from the command line / config file.

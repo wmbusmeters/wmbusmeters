@@ -1067,6 +1067,7 @@ bool start(Configuration *config)
     traceEnabled(config->trace);
     stderrEnabled(config->use_stderr_for_log);
     setAlarmShells(config->alarm_shells);
+    setIgnoreDuplicateTelegrams(config->ignore_duplicate_telegrams);
 
     log_start_information(config);
 

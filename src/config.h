@@ -66,6 +66,7 @@ struct Configuration
     MeterFileTimestamp meterfiles_timestamp {}; // Default is never.
     bool use_logfile {};
     bool use_stderr_for_log = true; // Default is to use stderr for logging.
+    bool ignore_duplicate_telegrams = false; // Default is to report all telegrams.
     std::string logfile;
     bool json {};
     bool fields {};

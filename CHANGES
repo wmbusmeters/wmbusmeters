@@ -1,4 +1,10 @@
 
+Add --ignoreduplicates (ignoreduplicates=true) to ignore
+any duplicates. It remembers a history of 10 telegrams.
+This is useful when you have multiple dongles for covering
+a larger area of reception, but sometimes telegrams arrive
+at multiple dongles at the same time.
+
 Add proper support for FlowIQ2200 water meter.
 Decode two vendor values in multical603 as energy forward and returned.
 Accept t1 and c1 as linkmodes for multical21 meters.

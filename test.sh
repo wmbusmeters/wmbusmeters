@@ -84,6 +84,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_serial_bads.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_ignore_duplicates.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 if [ "$(uname)" = "Linux" ]
 then
     tests/test_alarm.sh $PROG

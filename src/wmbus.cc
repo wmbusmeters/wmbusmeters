@@ -16,6 +16,7 @@
 */
 
 #include"aescmac.h"
+#include"sha256.h"
 #include"timings.h"
 #include"meters.h"
 #include"wmbus.h"
@@ -29,6 +30,9 @@
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<unistd.h>
+
+#include<deque>
+#include<algorithm>
 
 struct LinkModeInfo
 {
@@ -327,6 +331,31 @@ void Telegram::printTPL()
     }
 
     verbose("\n");
+}
+
+// Store the hashes of the last 10 telegrams here.
+deque<SHA256_HASH> seen_telegrams;
+
+bool seen_this_telegram_before(vector<uchar> &frame)
+{
+    SHA256_HASH hash;
+    Sha256Calculate(&frame[0], frame.size(), &hash);
+
+    auto i = std::find(seen_telegrams.begin(), seen_telegrams.end(), hash);
+
+    if (i != seen_telegrams.end())
+    {
+        // Found it!
+        return true;
+    }
+
+    if (seen_telegrams.size() >= 10)
+    {
+        seen_telegrams.pop_front();
+    }
+    seen_telegrams.push_back(hash);
+
+    return false;
 }
 
 string manufacturer(int m_field) {
@@ -3202,10 +3231,24 @@ void WMBusCommonImplementation::onTelegram(function<bool(AboutTelegram&,vector<u
     telegram_listeners_.push_back(cb);
 }
 
+
+static bool ignore_duplicate_telegrams_ = false;
+
+void setIgnoreDuplicateTelegrams(bool idt)
+{
+    ignore_duplicate_telegrams_ = idt;
+}
+
 bool WMBusCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> frame)
 {
     bool handled = false;
     last_received_ = time(NULL);
+
+    if (ignore_duplicate_telegrams_ && seen_this_telegram_before(frame))
+    {
+        verbose("(wmbus) skipping already handled telegram.\n");
+        return true;
+    }
 
     for (auto f : telegram_listeners_)
     {

@@ -189,6 +189,21 @@ void handleInternalTesting(Configuration *c, string value)
     }
 }
 
+void handleIgnoreDuplicateTelegrams(Configuration *c, string value)
+{
+    if (value == "true")
+    {
+        c->ignore_duplicate_telegrams = true;
+    }
+    else if (value == "false")
+    {
+        c->ignore_duplicate_telegrams = false;
+    }
+    else {
+        warning("ignoreduplicates should be either true or false, not \"%s\"\n", value.c_str());
+    }
+}
+
 void handleResetAfter(Configuration *c, string s)
 {
     if (s.length() >= 1)
@@ -507,6 +522,7 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
         if (p.first.length() > 0 && p.first[0] == '#') continue;
         if (p.first == "loglevel") handleLoglevel(c, p.second);
         else if (p.first == "internaltesting") handleInternalTesting(c, p.second);
+        else if (p.first == "ignoreduplicates") handleIgnoreDuplicateTelegrams(c, p.second);
         else if (p.first == "device") handleDevice(c, p.second);
         else if (p.first == "listento") handleListenTo(c, p.second);
         else if (p.first == "logtelegrams") handleLogtelegrams(c, p.second);
