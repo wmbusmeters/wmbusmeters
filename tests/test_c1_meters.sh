@@ -17,6 +17,7 @@ $PROG --format=json simulations/simulation_c1.txt \
       MyElement qcaloric 78563412 "" \
       Rum cma12w 66666666 "" \
       My403Cooling multical403 78780102 "" \
+      Heat multical603 36363636 "" \
       > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 
 if [ "$?" = "0" ]

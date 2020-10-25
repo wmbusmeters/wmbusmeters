@@ -59,8 +59,8 @@ private:
     bool has_t2_temperature_ {};
     string target_date_ {};
 
-    uint32_t something_a_ {};
-    uint32_t something_b_ {};
+    uint32_t energy_forward_kwh_ {};
+    uint32_t energy_returned_kwh_ {};
 };
 
 MeterMultical603::MeterMultical603(MeterInfo &mi) :
@@ -105,15 +105,15 @@ MeterMultical603::MeterMultical603(MeterInfo &mi) :
              "Status of meter.",
              true, true);
 
-    addPrint("something_a", Quantity::Text,
-             [&](){ return to_string(something_a_); },
-             "Something A.",
-             true, true);
+    addPrint("energy_forward_kwh", Quantity::Text,
+             [&](){ return to_string(energy_forward_kwh_); },
+             "Energy forward.",
+             false, true);
 
-    addPrint("something_b", Quantity::Text,
-             [&](){ return to_string(something_b_); },
-             "Something B.",
-             true, true);
+    addPrint("energy_returned_kwh", Quantity::Text,
+             [&](){ return to_string(energy_returned_kwh_); },
+             "Energy returned.",
+             false, true);
 
 }
 
@@ -199,11 +199,11 @@ void MeterMultical603::processContent(Telegram *t)
     extractDVuint8(&t->values, "04FF22", &offset, &info_codes_);
     t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
 
-    extractDVuint32(&t->values, "04FF07", &offset, &something_a_);
-    t->addMoreExplanation(offset, " something A (%zu)", something_a_);
+    extractDVuint32(&t->values, "04FF07", &offset, &energy_forward_kwh_);
+    t->addMoreExplanation(offset, " something A (%zu)", energy_forward_kwh_);
 
-    extractDVuint32(&t->values, "04FF08", &offset, &something_b_);
-    t->addMoreExplanation(offset, " something B (%zu)", something_b_);
+    extractDVuint32(&t->values, "04FF08", &offset, &energy_returned_kwh_);
+    t->addMoreExplanation(offset, " something B (%zu)", energy_returned_kwh_);
 
     if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);

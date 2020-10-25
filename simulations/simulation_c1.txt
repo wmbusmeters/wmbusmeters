@@ -42,3 +42,8 @@ telegram=|88442D2C02017878340A8D208D529C132037FC78|040E2D0A000004FF07F8FF000004F
 # compressed telegram
 telegram=|5B442D2C02017878340A8D2096809C1320EF2B7934147ED7|2D0A0000FAFF000043180100CE9005000000000000000000EE000000BA06CB07E7FFFFFF00000000000000000000000092285F030000960D020000000000000000008128|
 {"media":"cooling load volume at outlet","meter":"multical403","name":"My403Cooling","id":"78780102","total_energy_consumption_kwh":723.611111,"total_volume_m3":364.75,"volume_flow_m3h":0.238,"t1_temperature_c":17.22,"t2_temperature_c":19.95,"at_date":"2020-08-18 00:00","current_status":"","timestamp":"1111-11-11T11:11:11Z"}
+
+# Test Multical603 C1 telegram
+
+telegram=|42442D2C3636363635048D20E18025B62087D078|0406A500000004FF072B01000004FF089C000000041421020000043B120000000259D014025D000904FF2200000000|
+{"media":"heat","meter":"multical603","name":"Heat","id":"36363636","total_energy_consumption_kwh":165,"total_volume_m3":5.45,"volume_flow_m3h":0.018,"t1_temperature_c":53.28,"t2_temperature_c":23.04,"at_date":"","current_status":"","energy_forward_kwh":"299","energy_returned_kwh":"156","timestamp":"1111-11-11T11:11:11Z"}
