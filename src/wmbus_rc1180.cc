@@ -101,6 +101,7 @@ struct WMBusRC1180 : public virtual WMBusCommonImplementation
 {
     bool ping();
     string getDeviceId();
+    string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -238,6 +239,11 @@ err:
     serial()->enableCallbacks();
 
     return "ERR";
+}
+
+string WMBusRC1180::getDeviceUniqueId()
+{
+    return "?";
 }
 
 LinkModeSet WMBusRC1180::getLinkModes()

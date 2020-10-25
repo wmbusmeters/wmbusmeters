@@ -37,6 +37,7 @@ struct WMBusRTL433 : public virtual WMBusCommonImplementation
 {
     bool ping();
     string getDeviceId();
+    string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -107,9 +108,13 @@ string WMBusRTL433::getDeviceId()
     return "?";
 }
 
+string WMBusRTL433::getDeviceUniqueId()
+{
+    return "?";
+}
+
 LinkModeSet WMBusRTL433::getLinkModes()
 {
-
     return Any_bit;
 }
 

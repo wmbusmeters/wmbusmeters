@@ -162,7 +162,6 @@ METER_OBJS:=\
 	$(BUILD)/wmbus_simulator.o \
 	$(BUILD)/wmbus_rawtty.o \
 	$(BUILD)/wmbus_rc1180.o \
-	$(BUILD)/wmbus_wmb13u.o \
 	$(BUILD)/wmbus_utils.o
 
 all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals

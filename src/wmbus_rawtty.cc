@@ -32,6 +32,7 @@ struct WMBusRawTTY : public virtual WMBusCommonImplementation
 {
     bool ping();
     string getDeviceId();
+    string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -78,6 +79,11 @@ bool WMBusRawTTY::ping()
 }
 
 string WMBusRawTTY::getDeviceId()
+{
+    return "?";
+}
+
+string WMBusRawTTY::getDeviceUniqueId()
 {
     return "?";
 }

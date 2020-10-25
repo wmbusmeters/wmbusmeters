@@ -31,6 +31,7 @@ struct WMBusD1TC : public virtual WMBusCommonImplementation
 {
     bool ping();
     string getDeviceId();
+    string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -80,6 +81,11 @@ bool WMBusD1TC::ping()
 }
 
 string WMBusD1TC::getDeviceId()
+{
+    return "?";
+}
+
+string WMBusD1TC::getDeviceUniqueId()
 {
     return "?";
 }

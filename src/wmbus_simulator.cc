@@ -35,6 +35,7 @@ struct WMBusSimulator : public WMBusCommonImplementation
 {
     bool ping();
     string getDeviceId();
+    string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -76,6 +77,11 @@ bool WMBusSimulator::ping()
 }
 
 string WMBusSimulator::getDeviceId()
+{
+    return "?";
+}
+
+string WMBusSimulator::getDeviceUniqueId()
 {
     return "?";
 }

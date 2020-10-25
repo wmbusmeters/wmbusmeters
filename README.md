@@ -478,10 +478,6 @@ If you like to send the bytes manually, the correct bytes are:
  * Factory reset of the settings: `0xFF1100EE`
  * Reset the stick to apply the factory defaults: `0xFF0500FA` this is not necessary if you unplug and reinsert the dongle.
 
-## WMB13U-868, WMB14UE-868 USB sticks
-
-These dongles do not seem to work with Linux, perhaps problems with the usb2serial pl2303 driver?
-
 # Docker
 
 Experimental docker containers are available here: https://hub.docker.com/r/weetmuts/wmbusmeters

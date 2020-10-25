@@ -156,6 +156,7 @@ struct WMBusIM871A : public virtual WMBusCommonImplementation
 {
     bool ping();
     string getDeviceId();
+    string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -202,8 +203,8 @@ private:
     vector<uchar> request_;
     vector<uchar> response_;
 
-    bool getDeviceInfo(DeviceInfo *di, bool use_manager, int timeout, shared_ptr<SerialDevice> serial);
-    bool getConfig(Config *co, bool use_manager, int timeout, shared_ptr<SerialDevice> serial);
+    bool getDeviceInfo();
+    bool getConfig();
 
     friend AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
     void handleDevMgmt(int msgid, vector<uchar> &payload);
@@ -272,29 +273,29 @@ string WMBusIM871A::getDeviceId()
     if (serial()->readonly()) return "?"; // Feeding from stdin or file.
     if (cached_device_id_ != "") return cached_device_id_;
 
-    LOCK_WMBUS_EXECUTING_COMMAND(getDeviceId);
-
-    request_.resize(4);
-    request_[0] = IM871A_SERIAL_SOF;
-    request_[1] = DEVMGMT_ID;
-    request_[2] = DEVMGMT_MSG_GET_CONFIG_REQ;
-    request_[3] = 0;
-
-    verbose("(im871a) get config to get device id\n");
-
-    bool sent = serial()->send(request_);
-    if (!sent) return "ERR";
-
-    bool ok = waitForResponse(DEVMGMT_MSG_GET_CONFIG_RSP);
+    bool ok = getConfig();
     if (!ok) return "ERR";
-
-    device_config_.decode(response_);
 
     cached_device_id_ = tostrprintf("%08x", device_config_.id);
 
     verbose("(im871a) got device id %s\n", cached_device_id_.c_str());
 
     return cached_device_id_;
+}
+
+string WMBusIM871A::getDeviceUniqueId()
+{
+    if (serial()->readonly()) return "?"; // Feeding from stdin or file.
+    if (cached_device_unique_id_ != "") return cached_device_unique_id_;
+
+    bool ok = getDeviceInfo();
+    if (!ok) return "ERR";
+
+    cached_device_unique_id_ = tostrprintf("%08x", device_info_.uid);
+
+    verbose("(im871a) got device unique id %s\n", cached_device_unique_id_.c_str());
+
+    return cached_device_unique_id_;
 }
 
 LinkModeSet WMBusIM871A::getLinkModes()
@@ -796,7 +797,7 @@ bool extract_response(vector<uchar> &data, vector<uchar> &response, int expected
     return true;
 }
 
-bool WMBusIM871A::getDeviceInfo(DeviceInfo *di, bool use_manager, int timeout, shared_ptr<SerialDevice> serial)
+bool WMBusIM871A::getDeviceInfo()
 {
     LOCK_WMBUS_EXECUTING_COMMAND(get_device_info);
 
@@ -808,10 +809,11 @@ bool WMBusIM871A::getDeviceInfo(DeviceInfo *di, bool use_manager, int timeout, s
 
     verbose("(im871a) get device info\n");
 
-    bool sent = serial->send(request_);
+    bool sent = serial()->send(request_);
 
     if (!sent) return false; // tty overridden with stdin/file
 
+    /*
     if (!use_manager)
     {
         // Wait for 100ms so that the USB stick have time to prepare a response.
@@ -821,25 +823,40 @@ bool WMBusIM871A::getDeviceInfo(DeviceInfo *di, bool use_manager, int timeout, s
 
         bool ok = extract_response(data, response_, 1, 16);
         if (!ok) return false;
-    }
-    else
-    {
-        bool ok = waitForResponse(DEVMGMT_MSG_GET_DEVICEINFO_RSP);
-        if (!ok) return false; // timeout
-    }
+        }*/
+    bool ok = waitForResponse(DEVMGMT_MSG_GET_DEVICEINFO_RSP);
+    if (!ok) return false; // timeout
 
     // Now device info response is in response_ vector.
 
-    di->decode(response_);
+    device_info_.decode(response_);
 
-    verbose("(im871a) device info: %s\n", di->str().c_str());
+    verbose("(im871a) device info: %s\n", device_info_.str().c_str());
 
     return true;
 }
 
-bool WMBusIM871A::getConfig(Config *co, bool use_manager, int timeout, shared_ptr<SerialDevice> serial)
+bool WMBusIM871A::getConfig()
 {
-    return false;
+    if (serial()->readonly()) return true;
+
+    LOCK_WMBUS_EXECUTING_COMMAND(getConfig);
+
+    request_.resize(4);
+    request_[0] = IM871A_SERIAL_SOF;
+    request_[1] = DEVMGMT_ID;
+    request_[2] = DEVMGMT_MSG_GET_CONFIG_REQ;
+    request_[3] = 0;
+
+    verbose("(im871a) get config\n");
+
+    bool sent = serial()->send(request_);
+    if (!sent) return "ERR";
+
+    bool ok = waitForResponse(DEVMGMT_MSG_GET_CONFIG_RSP);
+    if (!ok) return "ERR";
+
+    return device_config_.decode(response_);
 }
 
 AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManager> manager)

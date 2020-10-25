@@ -454,12 +454,6 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
         wmbus = openRC1180(detected->found_file, manager, serial_override);
         break;
     }
-    case DEVICE_WMB13U:
-    {
-        verbose("(wmb13u) on %s\n", detected->found_file.c_str());
-        wmbus = openWMB13U(detected->found_file, manager, serial_override);
-        break;
-    }
     case DEVICE_UNKNOWN:
         warning("(main) internal error! cannot create an unknown device! exiting!\n");
         if (config->daemon) {

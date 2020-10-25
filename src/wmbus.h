@@ -62,8 +62,7 @@ struct SpecifiedDevice
     X(RC1180,rc1180)         \
     X(RTL433,rtl433)         \
     X(RTLWMBUS,rtlwmbus)     \
-    X(SIMULATION,simulation) \
-    X(WMB13U,wmb13u)
+    X(SIMULATION,simulation)
 
 enum WMBusDeviceType {
 #define X(name,text) DEVICE_ ## name,
@@ -503,7 +502,14 @@ struct WMBus
 
     virtual std::string device() = 0;
     virtual WMBusDeviceType type() = 0;
+    // The device id is the changeable id of the dongle.
+    // For im871a,amb8465 it is the transmit address.
+    // For rtlsdr it is the id set using rtl_eeprom.
+    // Not all dongles have this.
     virtual string getDeviceId() = 0;
+    // The im871a and amb8465 dongles does have a unique, immutable id as well.
+    // Not all dongles have this.
+    virtual string getDeviceUniqueId() = 0;
 
     virtual std::string hr() = 0;
 

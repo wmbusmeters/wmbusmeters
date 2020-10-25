@@ -1,4 +1,4 @@
-Version 1.0.0: 2020-10-21
+Version 1.0.0: 2020-10-25
 
 IMPORTANT CHANGES THAT MIGHT AFFECT YOU!
 
@@ -21,7 +21,7 @@ If you used your own command xxx to start rtlsdr+rtlwmbus then that command
 was previously supplied like this rtlwmbus:xxx
 You must now type rtlwmbus:CMD(xxx)
 
-** There is a possibility to identify some dongles with its id.
+** There is a possibility to identify some dongles with their id.
 
 The im871a/amb8465/rtlsdr dongles have an id. This id is printed when
 wmbusmeters starts using the dongle. You can later use the same id to

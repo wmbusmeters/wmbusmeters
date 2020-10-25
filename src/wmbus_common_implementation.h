@@ -76,7 +76,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     string expected_activity_ {}; // During which times should we care about timeouts?
     time_t last_received_ {}; // When as the last telegram reception?
     time_t last_reset_ {}; // When did we last attempt a reset of the dongle?
-    int reset_timeout_ {}; // When set to 24*3600 reset the device once every 24 hours.
+    int reset_timeout_ {}; // When set to 23*3600 reset the device once every 23 hours.
     bool link_modes_configured_ {};
     LinkModeSet link_modes_ {};
     Detected detected_ {}; // Used to remember how this device was setup.
@@ -86,11 +86,14 @@ struct WMBusCommonImplementation : public virtual WMBus
 protected:
 
     // When a wmbus dongle transmits a telegram, then it will use this id.
+    // It can often be changed by configuring the wmbud dongle.
     string cached_device_id_;
     // Generated human readable name: eg
     // * /dev/ttyUSB0:im871a[12345678]
     // * rtlmbus[longantenna]
     string cached_hr_;
+    // Some dongles have a unique id (that cannot be changed) in addition to the transmit id.
+    string cached_device_unique_id_;
 
     // Lock this mutex when you sent a request to the wmbus device
     // Unlock when you received the response or it timedout.

@@ -3170,6 +3170,7 @@ WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
       type_(t),
       serial_(serial),
       cached_device_id_(""),
+      cached_device_unique_id_(""),
       command_mutex_("wmbus_command_mutex"),
       waiting_for_response_sem_("waiting_for_response_sem")
 {

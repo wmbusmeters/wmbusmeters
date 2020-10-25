@@ -31,10 +31,56 @@
 
 using namespace std;
 
+struct ConfigAMB8465
+{
+    uchar uart_ctl0 {};
+    uchar uart_ctl1 {};
+    uchar received_frames_as_cmd {};
+    uchar c_field {};
+    uint16_t mfct {};
+    uint32_t id {};
+    uchar version {};
+    uchar media {};
+
+    uchar auto_rssi {};
+
+    string dongleId()
+    {
+        return tostrprintf("%08x", id);
+    }
+
+    string str()
+    {
+        string ids = tostrprintf("id=%08x media=%02x version=%02x c_field=%02x auto_rssi=%02x", id, media, version, c_field, auto_rssi);
+        return ids;
+    }
+
+    bool decode(vector<uchar> &bytes)
+    {
+        size_t o = 5;
+        if (bytes.size() < o) return false;
+
+        uart_ctl0 = bytes[0+o];
+        uart_ctl1 = bytes[0+o];
+
+        received_frames_as_cmd = bytes[5+o];
+        c_field = bytes[49+o];
+        id = bytes[51+o]<<8|bytes[50+o];
+        mfct = bytes[55+o]<<24|bytes[54+o]<<16|bytes[53+o]<<8|bytes[52+o];
+        version = bytes[56+o];
+        media = bytes[57+o];
+
+        auto_rssi = bytes[69+o];
+
+        return true;
+    }
+};
+
 struct WMBusAmber : public virtual WMBusCommonImplementation
 {
     bool ping();
     string getDeviceId();
+    string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceSetLinkModes(LinkModeSet lms);
     void deviceReset();
@@ -65,7 +111,7 @@ struct WMBusAmber : public virtual WMBusCommonImplementation
         return false;
     }
     void processSerialData();
-    void getConfiguration();
+    bool getConfiguration();
     void simulate() { }
 
     WMBusAmber(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
@@ -81,6 +127,8 @@ private:
     LinkModeSet link_modes_ {};
     bool rssi_expected_ {};
     struct timeval timestamp_last_rx_ {};
+
+    ConfigAMB8465 device_config_;
 
     FrameStatus checkAMB8465Frame(vector<uchar> &data,
                                   size_t *frame_length,
@@ -140,7 +188,20 @@ string WMBusAmber::getDeviceId()
     if (serial()->readonly()) { return "?"; }  // Feeding from stdin or file.
     if (cached_device_id_ != "") return cached_device_id_;
 
-    LOCK_WMBUS_EXECUTING_COMMAND(get_device_id);
+    bool ok = getConfiguration();
+    if (!ok) return "ERR";
+
+    cached_device_id_ = device_config_.dongleId();
+
+    return cached_device_id_;
+}
+
+string WMBusAmber::getDeviceUniqueId()
+{
+    if (serial()->readonly()) { return "?"; }  // Feeding from stdin or file.
+    if (cached_device_unique_id_ != "") return cached_device_unique_id_;
+
+    LOCK_WMBUS_EXECUTING_COMMAND(get_device_unique_id);
 
     request_.resize(4);
     request_[0] = AMBER_SERIAL_SOF;
@@ -148,7 +209,7 @@ string WMBusAmber::getDeviceId()
     request_[2] = 0; // No payload
     request_[3] = xorChecksum(request_, 3);
 
-    verbose("(amb8465) get device id\n");
+    verbose("(amb8465) get device unique id\n");
     bool sent = serial()->send(request_);
     if (!sent) return "?";
 
@@ -163,10 +224,10 @@ string WMBusAmber::getDeviceId()
         response_[3] << 8 |
         response_[4];
 
-    verbose("(amb8465) device id %08x\n", idv);
+    verbose("(amb8465) unique device id %08x\n", idv);
 
-    cached_device_id_ = tostrprintf("%08x", idv);
-    return cached_device_id_;
+    cached_device_unique_id_ = tostrprintf("%08x", idv);
+    return cached_device_unique_id_;
 }
 
 LinkModeSet WMBusAmber::getLinkModes()
@@ -179,9 +240,9 @@ LinkModeSet WMBusAmber::getLinkModes()
     return link_modes_;
 }
 
-void WMBusAmber::getConfiguration()
+bool WMBusAmber::getConfiguration()
 {
-    if (serial()->readonly()) { return; }  // Feeding from stdin or file.
+    if (serial()->readonly()) { return true; }  // Feeding from stdin or file.
 
     LOCK_WMBUS_EXECUTING_COMMAND(getConfiguration);
 
@@ -197,29 +258,12 @@ void WMBusAmber::getConfiguration()
 
     verbose("(amb8465) get config\n");
     bool sent = serial()->send(request_);
-
-    if (!sent) return;
+    if (!sent) return false;
 
     bool ok = waitForResponse(CMD_GET_REQ | 0x80);
+    if (!ok) return false;
 
-    if (!ok) return;
-
-    // These are the non-volatile values stored inside the dongle.
-    // However the link mode, radio channel etc might not be the one
-    // that we are actually using! Since setting the link mode
-    // is possible without changing the non-volatile memory.
-    // But there seems to be no way of reading out the set link mode....???
-    // Ie there is a disconnect between the flash and the actual running dongle.
-    // Oh well.
-    //
-    // These are just some random config settings store in non-volatile memory.
-    verbose("(amb8465) config: uart %02x\n", response_[2]);
-    verbose("(amb8465) config: IND output enabled %02x\n", response_[5+2]);
-    verbose("(amb8465) config: radio Channel %02x\n", response_[60+2]);
-    uchar re = response_[69+2];
-    verbose("(amb8465) config: rssi enabled %02x\n", re);
-    rssi_expected_ = (re != 0) ? true : false;
-    verbose("(amb8465) config: mode Preselect %02x\n", response_[70+2]);
+    return device_config_.decode(response_);
 }
 
 void WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
@@ -507,52 +551,57 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
     response.clear();
 
     vector<uchar> request;
-    request.resize(4);
+    request.resize(6);
     request[0] = AMBER_SERIAL_SOF;
-    request[1] = CMD_SERIALNO_REQ;
-    request[2] = 0; // No payload
-    request[3] = xorChecksum(request, 3);
+    request[1] = CMD_GET_REQ;
+    request[2] = 0x02;
+    request[3] = 0x00;
+    request[4] = 0x80;
+    request[5] = xorChecksum(request, 5);
+
+    assert(request[5] == 0x77);
+
+    bool sent = serial->send(request);
+    if (!sent) return AccessCheck::NotThere;
 
     serial->send(request);
     // Wait for 100ms so that the USB stick have time to prepare a response.
     usleep(1000*100);
-    serial->receive(&response);
-    int limit = 0;
-    while (response.size() > 8 && response[0] != 0xff) {
-        // Eat bytes until a 0xff appears to get in sync with the proper response.
-        // Extraneous bytes might be due to a partially read telegram.
-        response.erase(response.begin());
-        vector<uchar> more;
-        serial->receive(&more);
-        if (more.size() > 0) {
-            response.insert(response.end(), more.begin(), more.end());
+
+    vector<uchar> data;
+    int count = 0;
+    while (response.size() < 0x7E && count < 2)
+    {
+        size_t n = serial->receive(&data);
+        if (n == 0)
+        {
+            usleep(1000*100);
+            count++;
+            continue;
         }
-        if (limit++ > 300) break; // Do not wait too long.
+        response.insert(response.end(), data.begin(), data.end());
     }
 
     serial->close();
 
+    // FF8A7A00780080710200000000FFFFFA00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF003200021400FFFFFFFFFF010004000000FFFFFF01440000000000000000FFFF0B040100FFFFFFFFFF00030000FFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF17
+
     if (response.size() < 8 ||
         response[0] != 0xff ||
         response[1] != (0x80 | request[1]) ||
-        response[2] != 0x04 ||
-        response[7] != xorChecksum(response, 7))
+        response[2] != 0x7A)
     {
         verbose("(amb8465) are you there? no.\n");
         return AccessCheck::NotThere;
     }
 
-    uint32_t idv =
-        response[3] << 24 |
-        response[4] << 16 |
-        response[5] << 8 |
-        response[6];
+    ConfigAMB8465 config;
+    config.decode(response);
 
-    string id = tostrprintf("%08x", idv);
+    detected->setAsFound(config.dongleId(), WMBusDeviceType::DEVICE_AMB8465, 9600, false, false);
 
-    detected->setAsFound(id, WMBusDeviceType::DEVICE_AMB8465, 9600, false, false);
-
-    verbose("(amb8465) are you there? yes %08x\n", idv);
+    verbose("(amb8465) detect %s\n", config.str().c_str());
+    verbose("(amb8465) are you there? yes %s\n", config.dongleId().c_str());
 
     return AccessCheck::AccessOK;
 }

@@ -37,6 +37,7 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
 {
     bool ping();
     string getDeviceId();
+    string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -110,6 +111,11 @@ bool WMBusRTLWMBUS::ping()
 string WMBusRTLWMBUS::getDeviceId()
 {
     return serialnr_;
+}
+
+string WMBusRTLWMBUS::getDeviceUniqueId()
+{
+    return "?";
 }
 
 LinkModeSet WMBusRTLWMBUS::getLinkModes()

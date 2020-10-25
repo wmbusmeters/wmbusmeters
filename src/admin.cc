@@ -55,7 +55,7 @@ LIST_OF_MAIN_MENU
     X(AMB8465, "amb8465") \
     X(CUL, "cul") \
     X(IM871A, "im871a") \
-    X(RC1180, "rc1180") \
+    X(RC1180, "rc1180")
 
 enum class ReceiversType {
 #define X(name,description) name,
