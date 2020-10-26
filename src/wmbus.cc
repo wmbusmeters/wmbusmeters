@@ -4260,7 +4260,7 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
     if (specified_device.type != "")
     {
         debug("(lookup) driver: %s\n", specified_device.type.c_str());
-        detected.setAsFound("", toWMBusDeviceType(specified_device.type), 0, specified_device.is_file, false);
+        detected.setAsFound("", toWMBusDeviceType(specified_device.type), 0, specified_device.is_file || specified_device.is_stdin, false);
         return detected;
     }
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
