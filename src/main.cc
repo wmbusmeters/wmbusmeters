@@ -516,7 +516,7 @@ void detect_and_configure_wmbus_devices(Configuration *config)
             shared_ptr<SerialDevice> sd = serial_manager_->lookup(specified_device.file);
             if (sd != NULL)
             {
-                debug("(main) %s already configured\n", sd->device().c_str());
+                trace("(main) %s already configured\n", sd->device().c_str());
                 specified_device.handled = true;
                 continue;
             }
@@ -529,7 +529,7 @@ void detect_and_configure_wmbus_devices(Configuration *config)
             if (do_not_open_file_again_.count(specified_device.file) > 0)
             {
                 // This was stdin/file, it should only be opened once.
-                debug("(MAIN) ignoring handled file %s\n", specified_device.file.c_str());
+                trace("[MAIN] ignoring handled file %s\n", specified_device.file.c_str());
                 specified_device.handled = true;
                 continue;
             }

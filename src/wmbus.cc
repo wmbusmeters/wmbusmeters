@@ -4260,7 +4260,7 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
     if (specified_device.type != "")
     {
         debug("(lookup) driver: %s\n", specified_device.type.c_str());
-        detected.setAsFound("", toWMBusDeviceType(specified_device.type), 0, true, false);
+        detected.setAsFound("", toWMBusDeviceType(specified_device.type), 0, specified_device.is_file, false);
         return detected;
     }
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
@@ -4302,6 +4302,5 @@ LIST_OF_MBUS_DEVICES
 #undef X
 
     assert(0);
-
     return AccessCheck::NotThere;
 }
