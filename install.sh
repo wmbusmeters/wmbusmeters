@@ -5,9 +5,9 @@ then
     echo "Usage: install.sh [binary] [root] [OPTIONS]
     Example: install.sh build/wmbusmeters /
 
-	Options:
-	--no-adduser		Do not add wmbusmeters user
-	"
+    Options:
+    --no-adduser        Do not add wmbusmeters user
+    "
     exit 0
 fi
 
@@ -44,7 +44,6 @@ do
         esac
 done
 
-
 ####################################################################
 ##
 ## Intall binaries
@@ -78,22 +77,22 @@ ID=$(id -u wmbusmeters 2>/dev/null)
 
 if [ -f "$ROOT"/usr/sbin/nologin ]
 then
-	USERSHELL="$ROOT/usr/sbin/nologin"
+    USERSHELL="$ROOT/usr/sbin/nologin"
 elif [ -f "$ROOT"/sbin/nologin ]
 then
-	USERSHELL="$ROOT/sbin/nologin"
+    USERSHELL="$ROOT/sbin/nologin"
 else
-	USERSHELL="/bin/false"
+    USERSHELL="/bin/false"
 fi
 
 if [ "$ADDUSER" = "true" ]
 then
     if [ $(getent group wmbusmeters) ]
     then
-	echo "group: wmbusmeters unmodified"
+        echo "group: wmbusmeters unmodified"
     else
- 	groupadd -f wmbusmeters
-	echo "group: added wmbusmeters"
+        groupadd -f wmbusmeters
+        echo "group: added wmbusmeters"
     fi
 
     if [ -z "$ID" ]
@@ -107,30 +106,44 @@ then
 
     if [ $(getent group dialout) ]
     then
-	if [ "$(groups wmbusmeters | grep -o dialout)" = "" ]
-	then
-		# Add the wmbusmeters user to dialout
-		usermod -a -G dialout wmbusmeters
-		echo "user: added wmbusmeters to dialout group"
-	else
-		echo "user: wmbusmeters already added to dialout"
-	fi
+        if [ "$(groups wmbusmeters | grep -o dialout)" = "" ]
+        then
+            # Add the wmbusmeters user to dialout
+            usermod -a -G dialout wmbusmeters
+            echo "user: added wmbusmeters to dialout group"
+        else
+            echo "user: wmbusmeters already added to dialout"
+        fi
     else
         echo "dialout group does not exist"
     fi
 
     if [ $(getent group uucp) ]
     then
-	if [ "$(groups wmbusmeters | grep -o uucp)" = "" ]
-	then
-		# Add the wmbusmeters user to uucp
-		usermod -a -G uucp wmbusmeters
-		echo "user: added wmbusmeters to uucp group"
-	else
-		echo "user: wmbusmeters already added to uucp"
-	fi
+        if [ "$(groups wmbusmeters | grep -o uucp)" = "" ]
+        then
+            # Add the wmbusmeters user to uucp
+            usermod -a -G uucp wmbusmeters
+            echo "user: added wmbusmeters to uucp group"
+        else
+            echo "user: wmbusmeters already added to uucp"
+        fi
     else
         echo "uucp group does not exist"
+    fi
+
+    if [ $(getent group plugdev) ]
+    then
+        if [ "$(groups wmbusmeters | grep -o plugdev)" = "" ]
+        then
+            # Add the wmbusmeters user to plugdev
+            usermod -a -G plugdev wmbusmeters
+            echo "user: added wmbusmeters to plugdev group"
+        else
+            echo user: wmbusmeters already added to plugdev
+        fi
+    else
+        echo "plugdev group does not exist"
     fi
 fi
 
