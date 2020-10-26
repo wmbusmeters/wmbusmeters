@@ -562,7 +562,10 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
     assert(request[5] == 0x77);
 
     bool sent = serial->send(request);
-    if (!sent) return AccessCheck::NotThere;
+    if (!sent) {
+        serial->close();
+        return AccessCheck::NotThere;
+    }
 
     serial->send(request);
     // Wait for 100ms so that the USB stick have time to prepare a response.
@@ -592,8 +595,11 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
         response[2] != 0x7A)
     {
         verbose("(amb8465) are you there? no.\n");
+        serial->close();
         return AccessCheck::NotThere;
     }
+
+    serial->close();
 
     ConfigAMB8465 config;
     config.decode(response);

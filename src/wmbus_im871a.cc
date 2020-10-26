@@ -894,6 +894,7 @@ AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManag
         msgid != DEVMGMT_MSG_GET_CONFIG_RSP)
     {
         verbose("(im871a) are you there? no.\n");
+        serial->close();
         return AccessCheck::NotThere;
     }
 

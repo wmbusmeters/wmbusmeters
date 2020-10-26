@@ -354,41 +354,36 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 
-    vector<uchar> data;
-    // send '-'+CRLF -> should be an unsupported command for CUL
-    // it should respond with "? (- is unknown) Use one of ..."
-    vector<uchar> crlf(3);
-    crlf[0] = '-';
-    crlf[1] = 0x0d;
-    crlf[2] = 0x0a;
+    bool found = false;
+    for (int i=0; i<3; ++i)
+    {
+        verbose("(cul) get version\n");
+        // Try three times, it seems slow sometimes.
+        vector<uchar> data;
 
-    serial->send(crlf);
-    usleep(1000*200);
-    serial->receive(&data);
+        // get the version string: "V 1.67 nanoCUL868" or similar
+        vector<uchar> msg(3);
+        msg[0] = CMD_GET_VERSION; // V
+        msg[1] = 0x0a;
+        msg[2] = 0x0d;
 
-    if (data[0] != '?') {
-       // no CUL device detected
-       serial->close();
-       return AccessCheck::NotThere;
+        bool ok = serial->send(msg);
+        if (!ok) return AccessCheck::NotThere;
+
+        // Wait for 200ms so that the USB stick have time to prepare a response.
+        usleep(1000*200);
+        serial->receive(&data);
+        string resp(data.begin(), data.end());
+        debug("(cul) response \"%s\"\n", resp.c_str());
+        if (resp.find("CUL") != string::npos)
+        {
+            found = true;
+            break;
+        }
+        usleep(1000*500);
     }
 
-    data.clear();
-
-    // get the version string: "V 1.67 nanoCUL868" or similar
-    vector<uchar> msg(3);
-    msg[0] = CMD_GET_VERSION;
-    msg[1] = 0x0a;
-    msg[2] = 0x0d;
-
-    verbose("(cul) are you there?\n");
-    serial->send(msg);
-    // Wait for 200ms so that the USB stick have time to prepare a response.
-    usleep(1000*200);
-    serial->receive(&data);
-    string strC(data.begin(), data.end());
-    verbose("CUL answered: %s", strC.c_str());
-
-    // TODO: check version string somehow
+    if (!found) return AccessCheck::NotThere;
 
     serial->close();
 
