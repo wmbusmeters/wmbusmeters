@@ -109,13 +109,13 @@ bool WMBusCUL::ping()
 string WMBusCUL::getDeviceId()
 {
     verbose("(cul) getDeviceId\n");
-    return "?";
+    return "";
 }
 
 string WMBusCUL::getDeviceUniqueId()
 {
     verbose("(cul) getDeviceUniqueId\n");
-    return "?";
+    return "";
 }
 
 LinkModeSet WMBusCUL::getLinkModes()
@@ -159,7 +159,7 @@ void WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     received_response_ = "";
     bool sent = serial()->send(msg);
 
-    if (sent) waitForResponse(0);
+    if (sent) waitForResponse(1);
 
     sent_command_ = "";
     debug("(cul) received \"%s\"", received_response_.c_str());
@@ -181,8 +181,8 @@ void WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
 
     // X01 - start the receiver
     msg[0] = 'X';
-    msg[1] = '0';
-    msg[2] = '1';
+    msg[1] = '0'; // 6
+    msg[2] = '1'; // 7
     msg[3] = 0xa;
     msg[4] = 0xd;
 
@@ -232,7 +232,7 @@ void WMBusCUL::processSerialData()
                 if (r != "")
                 {
                     received_response_ = r;
-                    waiting_for_response_sem_.notify();
+                    notifyResponseIsHere(1);
                 }
             }
             read_buffer_.clear();
@@ -363,7 +363,7 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
     crlf[2] = 0x0a;
 
     serial->send(crlf);
-    usleep(1000*100);
+    usleep(1000*200);
     serial->receive(&data);
 
     if (data[0] != '?') {
@@ -392,7 +392,7 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
 
     serial->close();
 
-    detected->setAsFound("12345678", WMBusDeviceType::DEVICE_CUL, 38400, false, false);
+    detected->setAsFound("", WMBusDeviceType::DEVICE_CUL, 38400, false, false);
 
     return AccessCheck::AccessOK;
 }
