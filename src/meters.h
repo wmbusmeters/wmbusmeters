@@ -59,6 +59,7 @@
     X(rfmtx1,     T1_bit, Water,       RFMTX1,      RfmTX1)       \
     X(q400,       T1_bit, Water,       Q400,        Q400)  \
     X(qcaloric,   C1_bit, HeatCostAllocation, QCALORIC, QCaloric) \
+    X(sontex868,  T1_bit, HeatCostAllocation, SONTEX868, Sontex868) \
     X(supercom587,T1_bit, Water,       SUPERCOM587, Supercom587)  \
     X(vario451,   T1_bit, Heat,        VARIO451,    Vario451)     \
     X(waterstarm, C1_bit|T1_bit, Water,WATERSTARM,  WaterstarM)   \
@@ -131,6 +132,7 @@
     X(QCALORIC,   MANUFACTURER_QDS, 0x08,  0x35) \
     X(SUPERCOM587,MANUFACTURER_SON, 0x06,  0x3c) \
     X(SUPERCOM587,MANUFACTURER_SON, 0x07,  0x3c) \
+    X(SONTEX868,  MANUFACTURER_SON, 0x08,  0x16) \
     X(VARIO451,   MANUFACTURER_TCH, 0x04,  0x27) \
     X(VARIO451,   MANUFACTURER_TCH, 0xc3,  0x27) \
     X(WATERSTARM, MANUFACTURER_DWZ, 0x06,  0x02) \
@@ -379,6 +381,7 @@ shared_ptr<WaterMeter> createQ400(MeterInfo &m);
 shared_ptr<HeatCostMeter> createQCaloric(MeterInfo &m);
 shared_ptr<HeatCostMeter> createEurisII(MeterInfo &m);
 shared_ptr<HeatCostMeter> createFHKVDataIII(MeterInfo &m);
+shared_ptr<HeatCostMeter> createSontex868(MeterInfo &m);
 shared_ptr<TempHygroMeter> createLansenTH(MeterInfo &m);
 shared_ptr<SmokeDetector> createLansenSM(MeterInfo &m);
 shared_ptr<PulseCounter> createLansenPU(MeterInfo &m);

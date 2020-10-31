@@ -1133,7 +1133,7 @@ bool start(Configuration *config)
                 t.parse(frame, &mk);
                 t.print();
                 t.explainParse("(wmbus)",0);
-                logTelegram("(wmbus)", t.frame, 0, 0);
+                logTelegram(t.frame, 0, 0);
                 return true;
             });
     }

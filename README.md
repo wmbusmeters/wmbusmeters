@@ -71,7 +71,7 @@ ignoreduplicates=false
 Then add a meter file in /etc/wmbusmeters.d/MyTapWater
 ```
 name=MyTapWater
-type=multical21
+type=multical21:c1
 id=12345678
 key=00112233445566778899AABBCCDDEEFF
 ```
@@ -253,6 +253,7 @@ Diehl/Sappel ACQUARIUS/IZAR R3 (izar3)
 Supported heat cost allocators:
 Innotas EurisII  (eurisii)
 Qundis Q caloric (qcaloric)
+Sontex 868 (sontex868)
 Techem FHKV data II/III (fhkvdataiii)
 
 Supported heat meter:
@@ -330,7 +331,7 @@ Example output:
 
 Example format json output:
 
-`wmbusmeters --format=json /dev/ttyUSB0:im871a MyTapWater multical21 12345678 00112233445566778899AABBCCDDEEFF MyHeater multical302 22222222 00112233445566778899AABBCCDDEEFF`
+`wmbusmeters --format=json /dev/ttyUSB0:im871a MyTapWater multical21:c1 12345678 00112233445566778899AABBCCDDEEFF MyHeater multical302 22222222 00112233445566778899AABBCCDDEEFF`
 
 `{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"max_flow_m3h":0.000,"flow_temperature":8,"external_temperature":23,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z","device":"im871a[1234567]","rssi_dbm":-40}`
 
@@ -339,38 +340,48 @@ Example format json output:
 Example format fields output and use rtlsdr dongle with rtlwmbus tuned to 868.9MHz instead of the
 default 868.95MHz.
 
-`wmbusmeters --format=fields rtlwmbus:868.9M GreenhouseWater multical21 33333333 NOKEY`
+`wmbusmeters --format=fields rtlwmbus:868.9M GreenhouseWater multical21:c1 33333333 NOKEY`
 
 `GreenhouseTapWater;33333333;9999.099;77.712;0.000;11;31;;2018-03-05 12:10.24`
 
 You can select a subset of all available fields:
 
-`wmbusmeters --format=fields --selectfields=id,total_m3 /dev/ttyUSB0:im871a GreenhouseWater multical21 33333333 NOKEY`
+`wmbusmeters --format=fields --selectfields=id,total_m3 /dev/ttyUSB0:im871a GreenhouseWater multical21:c1 33333333 NOKEY`
 
 `33333333;9999.099`
 
-You can list all available fields for the meter by adding `--listfields` to the command line.
+You can list all available fields for a meter: `wmbusmeters --listfields=multical21`
+
+You can list all meters: `wmbusmeters --listmeters`
+
+You can search for meters: `wmbusmeters --listmeters=water` or `wmbusmteres --listmeters=q`
 
 Eaxmple of using the shell command to publish to MQTT:
 
-`wmbusmeters --shell='HOME=/home/you mosquitto_pub -h localhost -t water -m "$METER_JSON"' /dev/ttyUSB0:im871a GreenhouseWater multical21 33333333 NOKEY`
+`wmbusmeters --shell='HOME=/home/you mosquitto_pub -h localhost -t water -m "$METER_JSON"' /dev/ttyUSB0:im871a GreenhouseWater multical21:c1 33333333 NOKEY`
 
 Eaxmple of using the shell command to inject data into postgresql database:
 
-`wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$METER_ID',\$METER_TOTAL_M3,'\$METER_TIMESTAMP') \" " /dev/ttyUSB0:amb8465 MyColdWater multical21 12345678 NOKEY`
+`wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$METER_ID',\$METER_TOTAL_M3,'\$METER_TIMESTAMP') \" " /dev/ttyUSB0:amb8465 MyColdWater multical21:c1 12345678 NOKEY` (It is much easier to add shell commands in the conf file since you do not need to quote the quotes.)
 
 You can have multiple shell commands and they will be executed in the order you gave them on the commandline.
-Note that to single quotes around the command is necessary to pass the env variable names into wmbusmeters.
-To list the shell env variables available for your meter, add --listenvs to the commandline:
-`wmbusmeters --listenvs /dev/ttyUSB1:cul Water iperl 12345678 NOKEY`
-which outputs:
+
+To list the shell env variables available for a meter, run `wmbusmeters --listenvs=multical21` which outputs:
 ```
-Environment variables provided to shell for meter iperl:
 METER_JSON
 METER_TYPE
+METER_NAME
 METER_ID
 METER_TOTAL_M3
+METER_TARGET_M3
 METER_MAX_FLOW_M3H
+METER_FLOW_TEMPERATURE_C
+METER_EXTERNAL_TEMPERATURE_C
+METER_CURRENT_STATUS
+METER_TIME_DRY
+METER_TIME_REVERSED
+METER_TIME_LEAKING
+METER_TIME_BURSTING
 METER_TIMESTAMP
 ```
 (If you have supplied --json_floor=5 then you will also see METER_floor in the list)
@@ -385,13 +396,18 @@ You can use `--debug` to get both verbose output and the actual data bytes sent 
 
 If the meter does not use encryption of its meter data, then enter NOKEY on the command line.
 
-`wmbusmeters --format=json --meterfiles /dev/ttyUSB0:im871a MyTapWater multical21 12345678 NOKEY`
+`wmbusmeters --format=json --meterfiles /dev/ttyUSB0:im871a:c1 MyTapWater multical21:c1 12345678 NOKEY`
 
-If you have a Kamstrup meters and you have received a KEM file and its password from your supplier, then you can use [utils/kem-import.py](utils/kem-import.py) utility to extract meter information from that file (including the AES key) and to create corresponding meter files in wmbusmetrs' config directory.
+If you have a Kamstrup meters and you have received a KEM file and its
+password from your supplier, then you can use
+[utils/kem-import.py](utils/kem-import.py) utility to extract meter
+information from that file (including the AES key) and to create
+corresponding meter files in wmbusmetrs' config directory.
 
-You can run wmbusmeters with --logtelegrams to get log output that can be placed in a simulation.txt
-file. You can then run wmbusmeter and instead of an usb device, you provide the simulationt.xt
-file as argument. See test.sh for more info.
+You can run wmbusmeters with --logtelegrams to get log output that can
+be placed in a simulation.txt file. You can then run wmbusmeter and
+instead of an usb device, you provide the simulationt.xt file as
+argument. See test.sh for more info.
 
 If you do not specify any meters on the command line, then wmbusmeters
 will listen and print the header information of any telegram it hears.

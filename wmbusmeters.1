@@ -35,6 +35,8 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 
 \fB\--format=\fR(hr|json|fields) for human readable, json or semicolon separated fields
 
+\fB\--ignoreduplicates\fR ignore telegram duplicates (when using multiple receiving dongles or repeaters)
+
 \fB\--json_xxx=yyy\fR always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy
 
 \fB\--listento=\fR<mode> listen to one of the c1,t1,s1,s1m,n1a-n1f link modes.
@@ -175,13 +177,17 @@ loglevel=normal
 device=im871a[12345678]:c1
 device=rtlwmbus:433M:c1,t1
 logtelegrams=false
+format=json
 meterfiles=/var/log/wmbusmeters/meter_readings
 meterfilesaction=overwrite
+meterfilesnaming=name
+meterfilestimestamp=day
 logfile=/var/log/wmbusmeters/wmbusmeters.log
 shell=/usr/bin/mosquitto_pub -h localhost -t "wmbusmeters/$METER_ID" -m "$METER_JSON"
 alarmshell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters_alarm -m "$ALARM_TYPE $ALARM_MESSAGE"
 alarmtimeout=1h
 alarmexpectedactivity=mon-sun(00-23)
+ignoreduplicates=false
 json_address=MyStreet 5
 .fi
 

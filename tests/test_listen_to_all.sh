@@ -30,6 +30,11 @@ Received telegram from: 11111111
                   type: Water meter (0x07)
                    ver: 0x3c
                 driver: supercom587
+Received telegram from: 27282728
+          manufacturer: (SON) Sontex, Switzerland (0x4dee)
+                  type: Heat Cost Allocator (0x08)
+                   ver: 0x16
+                driver: sontex868
 Received telegram from: 12345699
           manufacturer: (SEN) Sensus Metering Systems, Germany (0x4cae)
                   type: Water meter (0x07)

@@ -10,6 +10,7 @@ TESTRESULT="ERROR"
 
 METERS="MyWarmWater supercom587 12345678 NOKEY
       MyColdWater supercom587 11111111 NOKEY
+      MyHeatCoster sontex868  27282728 NOKEY
       MoreWater   iperl       12345699 NOKEY
       WaterWater  iperl       33225544 NOKEY
       MyElectricity1 amiplus  10101010 NOKEY

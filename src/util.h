@@ -87,7 +87,7 @@ bool isLogTelegramsEnabled();
 
 void debugPayload(std::string intro, std::vector<uchar> &payload);
 void debugPayload(std::string intro, std::vector<uchar> &payload, std::vector<uchar>::iterator &pos);
-void logTelegram(std::string intro, std::vector<uchar> &parsed, int header_size, int suffix_size);
+void logTelegram(std::vector<uchar> &parsed, int header_size, int suffix_size);
 
 enum class Alarm
 {

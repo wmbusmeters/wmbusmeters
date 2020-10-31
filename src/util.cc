@@ -811,7 +811,7 @@ void debugPayload(string intro, vector<uchar> &payload, vector<uchar>::iterator 
     }
 }
 
-void logTelegram(string intro, vector<uchar> &parsed, int header_size, int suffix_size)
+void logTelegram(vector<uchar> &parsed, int header_size, int suffix_size)
 {
     if (isLogTelegramsEnabled())
     {
@@ -821,7 +821,7 @@ void logTelegram(string intro, vector<uchar> &parsed, int header_size, int suffi
         string content = parsed_hex.substr(header_size*2);
         if (suffix_size == 0)
         {
-            notice("%s \"telegram=|%s|%s|+%ld\"\n", intro.c_str(),
+            notice("telegram=|%s|%s|+%ld\n",
                    header.c_str(), content.c_str(), diff);
         }
         else
@@ -829,7 +829,7 @@ void logTelegram(string intro, vector<uchar> &parsed, int header_size, int suffi
             assert((suffix_size*2) < (int)content.size());
             string content2 = content.substr(0, content.size()-suffix_size*2);
             string suffix = content.substr(content.size()-suffix_size*2);
-            notice("%s \"telegram=|%s|%s|%s|+%ld\"\n", intro.c_str(),
+            notice("telegram=|%s|%s|%s|+%ld\n",
                    header.c_str(), content2.c_str(), suffix.c_str(), diff);
         }
     }
