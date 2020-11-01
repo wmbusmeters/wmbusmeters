@@ -341,7 +341,7 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
     usleep(200*1000);
     serial->receive(&data);
 
-    if (data[0] != '>')
+    if (!data.empty() && data[0] != '>')
     {
        // no RC1180 device detected
        serial->close();
