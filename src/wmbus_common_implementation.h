@@ -24,10 +24,14 @@
 
 struct WMBusCommonImplementation : public virtual WMBus
 {
-    WMBusCommonImplementation(WMBusDeviceType t, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override);
+    WMBusCommonImplementation(WMBusDeviceType t,
+                              shared_ptr<SerialCommunicationManager> manager,
+                              shared_ptr<SerialDevice> serial_override,
+                              bool is_serial);
     ~WMBusCommonImplementation();
 
     string hr();
+    bool isSerial();
     WMBusDeviceType type();
     void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb);
     bool handleTelegram(AboutTelegram &about, vector<uchar> frame);
@@ -52,6 +56,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     void close();
     void setDetected(Detected detected) { detected_ = detected; }
     Detected *getDetected() { return &detected_; }
+    void markAsNoLongerSerial();
 
     protected:
 
@@ -68,6 +73,8 @@ struct WMBusCommonImplementation : public virtual WMBus
 
     private:
 
+    // Uses a serial tty?
+    bool is_serial_ {};
     bool is_working_ {};
     vector<function<bool(AboutTelegram&,vector<uchar>)>> telegram_listeners_;
     WMBusDeviceType type_ {};

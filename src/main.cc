@@ -58,7 +58,6 @@ void list_meters(Configuration *config);
 void log_start_information(Configuration *config);
 void oneshot_check(Configuration *config, Telegram *t, Meter *meter);
 void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Detected *detected);
-void perform_auto_scan_of_devices(Configuration *config);
 void perform_auto_scan_of_serial_devices(Configuration *config);
 void perform_auto_scan_of_swradio_devices(Configuration *config);
 void regular_checkup(Configuration *config);
@@ -325,6 +324,10 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
 
     switch (detected->found_type)
     {
+    case DEVICE_AUTO:
+        assert(0);
+        error("Internal error DEVICE_AUTO should not be used here!\n");
+        break;
     case DEVICE_IM871A:
         verbose("(im871a) on %s\n", detected->found_file.c_str());
         wmbus = openIM871A(detected->found_file, manager, serial_override);
@@ -486,14 +489,24 @@ void detect_and_configure_wmbus_devices(Configuration *config)
 {
     check_for_dead_wmbus_devices(config);
 
-    bool must_auto_find = false;
+    bool must_auto_find_ttys = false;
+    bool must_auto_find_rtlsdrs = false;
+
+    // The device=auto has been specified....
+    if (config->use_auto_device_detect)
+    {
+        must_auto_find_ttys = true;
+        must_auto_find_rtlsdrs = true;
+    }
+
     for (SpecifiedDevice &specified_device : config->supplied_wmbus_devices)
     {
         specified_device.handled = false;
         if (specified_device.file == "" && specified_device.command == "")
         {
             // File/tty/command not specified, use auto scan later to find actual device file/tty.
-            must_auto_find = true;
+            must_auto_find_ttys |= usesTTY(specified_device.type);
+            must_auto_find_rtlsdrs |= usesRTLSDR(specified_device.type);
             continue;
         }
         if (specified_device.command != "")
@@ -506,8 +519,7 @@ void detect_and_configure_wmbus_devices(Configuration *config)
                 specified_device.handled = true;
                 continue;
             }
-
-            Detected detected = detectWMBusDeviceWithCommand(specified_device, serial_manager_);
+            Detected detected = detectWMBusDeviceWithCommand(specified_device, config->default_device_linkmodes, serial_manager_);
             specified_device.handled = true;
             open_wmbus_device_and_set_linkmodes(config, "config", &detected);
         }
@@ -534,7 +546,7 @@ void detect_and_configure_wmbus_devices(Configuration *config)
                 continue;
             }
 
-            Detected detected = detectWMBusDeviceWithFile(specified_device, serial_manager_);
+            Detected detected = detectWMBusDeviceWithFile(specified_device, config->default_device_linkmodes, serial_manager_);
 
             if (detected.found_type == DEVICE_UNKNOWN)
             {
@@ -552,9 +564,14 @@ void detect_and_configure_wmbus_devices(Configuration *config)
         specified_device.handled = true;
     }
 
-    if (config->use_auto_detect || must_auto_find)
+    if (must_auto_find_ttys)
     {
-        perform_auto_scan_of_devices(config);
+        perform_auto_scan_of_serial_devices(config);
+    }
+
+    if (must_auto_find_rtlsdrs)
+    {
+        perform_auto_scan_of_swradio_devices(config);
     }
 
     for (shared_ptr<WMBus> &wmbus : wmbus_devices_)
@@ -588,7 +605,7 @@ bool find_specified_device_and_update_detected(Configuration *c, Detected *d)
     // This will find specified devices like: im871a[12345678]
     for (SpecifiedDevice & sd : c->supplied_wmbus_devices)
     {
-        if (sd.file == "" && sd.id != "" && sd.id == d->found_device_id && toWMBusDeviceType(sd.type) == d->found_type)
+        if (sd.file == "" && sd.id != "" && sd.id == d->found_device_id && sd.type == d->found_type)
         {
             d->specified_device = sd;
             debug("(main) found specified device (%s) that matches detected device (%s)\n",
@@ -602,7 +619,7 @@ bool find_specified_device_and_update_detected(Configuration *c, Detected *d)
     // This will find specified devices like: im871a, rtlwmbus
     for (SpecifiedDevice & sd : c->supplied_wmbus_devices)
     {
-        if (sd.file == "" && sd.id == "" && toWMBusDeviceType(sd.type) == d->found_type)
+        if (sd.file == "" && sd.id == "" && sd.type == d->found_type)
         {
             d->specified_device = sd;
             debug("(main) found specified device (%s) that matches detected device (%s)\n",
@@ -621,7 +638,7 @@ void find_specified_device_and_mark_as_handled(Configuration *c, Detected *d)
     // This will find specified devices like: im871a[12345678]
     for (SpecifiedDevice & sd : c->supplied_wmbus_devices)
     {
-        if (sd.file == "" && sd.id != "" && sd.id == d->found_device_id && toWMBusDeviceType(sd.type) == d->found_type)
+        if (sd.file == "" && sd.id != "" && sd.id == d->found_device_id && sd.type == d->found_type)
         {
             sd.handled = true;
         }
@@ -631,7 +648,7 @@ void find_specified_device_and_mark_as_handled(Configuration *c, Detected *d)
     // This will find specified devices like: im871a, rtlwmbus
     for (SpecifiedDevice & sd : c->supplied_wmbus_devices)
     {
-        if (sd.file == "" && sd.id == "" && toWMBusDeviceType(sd.type) == d->found_type)
+        if (sd.file == "" && sd.id == "" && sd.type == d->found_type)
         {
             sd.handled = true;
         }
@@ -743,30 +760,14 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Dete
     if (detected->found_type == DEVICE_UNKNOWN)
     {
         // This is a manual config, lets detect and check the device properly.
-        AccessCheck ac = detectDevice(detected, serial_manager_);
+        AccessCheck ac = reDetectDevice(detected, serial_manager_);
         if (ac != AccessCheck::AccessOK)
         {
             error("Could not open device %s\n", detected->specified_device.str().c_str());
         }
     }
 
-    LinkModeSet lms {};
-    string linkmodes = detected->specified_device.linkmodes;
-    if (linkmodes != "")
-    {
-        lms = parseLinkModes(detected->specified_device.linkmodes);
-        debug("(main) parsed specified device link modes %s to %s\n",
-              linkmodes.c_str(), lms.hr().c_str());
-    }
-    else
-    {
-        lms = config->linkmodes;
-        debug("(main) using globally set link modes %s\n",
-              lms.hr().c_str());
-    }
-
-    assert(lms.bits() != 0);
-
+    LinkModeSet lms = detected->calculated_linkmodes;
     string using_link_modes = lms.hr();
 
     string id = detected->found_device_id.c_str();
@@ -791,7 +792,7 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Dete
                                  cmd.c_str());
 
     // A newly plugged in device has been manually configured or automatically detected! Start using it!
-    if (config->use_auto_detect || detected->found_type != DEVICE_SIMULATION)
+    if (config->use_auto_device_detect || detected->found_type != DEVICE_SIMULATION)
     {
         notice("%s", started.c_str());
     }
@@ -840,12 +841,6 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Dete
     wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
 }
 
-void perform_auto_scan_of_devices(Configuration *config)
-{
-    perform_auto_scan_of_serial_devices(config);
-    perform_auto_scan_of_swradio_devices(config);
-}
-
 void perform_auto_scan_of_serial_devices(Configuration *config)
 {
     // Enumerate all serial devices that might connect to a wmbus device.
@@ -862,12 +857,27 @@ void perform_auto_scan_of_serial_devices(Configuration *config)
             trace("[MAIN] skipping already probed not wmbus serial device %s\n", tty.c_str());
             continue;
         }
+        if (config->do_not_probe_ttys.count("all") > 0 ||
+            config->do_not_probe_ttys.count(tty) > 0)
+        {
+            trace("[MAIN] not probing forbidden tty %s\n", tty.c_str());
+            continue;
+        }
         shared_ptr<SerialDevice> sd = serial_manager_->lookup(tty);
         if (!sd)
         {
-            debug("(main) device %s not currently used, detect contents...\n", tty.c_str());
             // This serial device is not in use, but is there a device on it?
-            Detected detected = detectWMBusDeviceOnTTY(tty, serial_manager_);
+            debug("(main) device %s not currently used, detect contents...\n", tty.c_str());
+
+            // What should the desired linkmodes be? We have no specified device since this an auto detect.
+            // But we might have an auto linkmodes?
+            LinkModeSet desired_linkmodes = config->auto_device_linkmodes;
+            if (desired_linkmodes.empty())
+            {
+                // Nope, lets fall back on the default_linkmodes.
+                desired_linkmodes = config->default_device_linkmodes;
+            }
+            Detected detected = detectWMBusDeviceOnTTY(tty, desired_linkmodes, serial_manager_);
             if (detected.found_type != DEVICE_UNKNOWN)
             {
                 // See if we had a specified device without a file,
@@ -1047,9 +1057,9 @@ bool start(Configuration *config)
     // Configure where the logging information should end up.
     setup_log_file(config);
 
-    if (config->meters.size() == 0 && !config->linkmodes_configured)
+    if (config->meters.size() == 0 && config->all_device_linkmodes_specified.empty())
     {
-        error("No meters supplied. You must supply which link modes to listen to. Eg. --listento=<modes>\n");
+        error("No meters supplied. You must supply which link modes to listen to. 11 Eg. auto:c1\n");
     }
 
     // Configure settings.

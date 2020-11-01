@@ -65,7 +65,7 @@ shared_ptr<WMBus> openSimulator(string device, shared_ptr<SerialCommunicationMan
 }
 
 WMBusSimulator::WMBusSimulator(string file, shared_ptr<SerialCommunicationManager> manager)
-    : WMBusCommonImplementation(DEVICE_SIMULATION, manager, NULL), file_(file)
+    : WMBusCommonImplementation(DEVICE_SIMULATION, manager, NULL, false), file_(file)
 {
     assert(file != "");
     loadFile(file, &lines_);

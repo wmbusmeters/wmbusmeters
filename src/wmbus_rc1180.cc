@@ -131,11 +131,11 @@ struct WMBusRC1180 : public virtual WMBusCommonImplementation
     int numConcurrentLinkModes() { return 1; }
     bool canSetLinkModes(LinkModeSet lms)
     {
-        if (0 == countSetBits(lms.bits())) return false;
+        if (lms.empty()) return false;
         if (!supportedLinkModes().supports(lms)) return false;
         // Ok, the supplied link modes are compatible,
         // but rc1180 can only listen to one at a time.
-        return 1 == countSetBits(lms.bits());
+        return 1 == countSetBits(lms.asBits());
     }
     void processSerialData();
     void simulate();
@@ -168,6 +168,7 @@ shared_ptr<WMBus> openRC1180(string device, shared_ptr<SerialCommunicationManage
     if (serial_override)
     {
         WMBusRC1180 *imp = new WMBusRC1180(serial_override, manager);
+        imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
 
@@ -177,7 +178,7 @@ shared_ptr<WMBus> openRC1180(string device, shared_ptr<SerialCommunicationManage
 }
 
 WMBusRC1180::WMBusRC1180(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(DEVICE_RC1180, manager, serial)
+    WMBusCommonImplementation(DEVICE_RC1180, manager, serial, true)
 {
     reset();
 }
@@ -384,6 +385,22 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
 
     debug("(rc1180) config: %s\n", co.str().c_str());
 
+    /*
+      Modification of the non-volatile memory should be done using the
+      wmbusmeters-admin program. So this code should not execute here.
+    if (co.rssi_mode == 0)
+    {
+        // Change the config so that the device appends an rssi byte.
+        vector<uchar> updat(4);
+        update[0] = 'M';
+        update[1] = 0x05; // Register 5, rssi_mode
+        update[2] = 1;    // Set value to 1 = enabled.
+        update[3] = 0xff; // Stop modifying memory.
+        serial->send(update);
+        usleep(1000*200);
+        // Reboot dongle.
+    }
+    */
     // Now exit config mode and continue listeing.
     msg[0] = 'X';
     serial->send(msg);
@@ -392,7 +409,8 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
 
     serial->close();
 
-    detected->setAsFound(co.dongleId(), WMBusDeviceType::DEVICE_RC1180, 19200, false, false);
+    detected->setAsFound(co.dongleId(), WMBusDeviceType::DEVICE_RC1180, 19200, false, false,
+        detected->specified_device.linkmodes);
 
     verbose("(rc1180) are you there? yes %s\n", co.dongleId().c_str());
 

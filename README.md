@@ -49,11 +49,24 @@ You can trigger a reload of the config files with `sudo killall -HUP wmbusmeters
 (Note! make install only works for GNU/Linux. For MacOSX try to start
 `wmbusmetersd /tmp/thepidfile` from a script instead.)
 
-Check the config file /etc/wmbusmeters.conf and edit the device to
-point to your dongle or use auto
+Check the config file /etc/wmbusmeters.conf and edit the device. For example:
+`auto:c1` or `im871a:c1`
+
+Adding a device like auto or im871a will trigger an automatic probe of all serial ttys.
+
+If you specify a full device path like `/dev/ttyUSB0:im871a:c1` or `rtlwmbus` or `rtl433`
+then it will not probe the serial devices. If you must be really sure that it will not probe something
+you can add `donotprobe=/dev/ttyUSB0` or `donotprobe=all`.
+
+You can specify combinations like: `device=rc1180:t1` `device=auto:c1`
+to set the rc1180 dongle to t1 but any other auto-detected dongle to c1.
+
 ```
 loglevel=normal
-device=im871a:c1
+# Search for a wmbus device and set it to c1.
+device=auto:c1
+# But do not probe this serial tty.
+donotprobe=/dev/ttyACM2
 logtelegrams=false
 format=json
 meterfiles=/var/log/wmbusmeters/meter_readings
@@ -147,6 +160,7 @@ As <options> you can use:
     --alarmshell=<cmdline> invokes cmdline when an alarm triggers
     --alarmtimeout=<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity.
     --debug for a lot of information
+    --donotprobe=<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys.
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
     --json_xxx=yyy always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy

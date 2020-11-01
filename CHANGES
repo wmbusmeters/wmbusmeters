@@ -1,4 +1,12 @@
 
+Added --donotprobe=/dev/ttyUSB0
+
+(Also made sure that specifying only rtlwmbus/rtl433 will not probe
+serial ttys.  Specifying fully specified devices like
+/dev/ttyUSB0:im871a:c1 will also not probe the other serial ttys.
+Only specifying auto or a generic device type im871a that requires a
+serial tty, will probe the serial devices, exluding donotprobe ones.)
+
 Added support for the sontex868 heat cost allocator.
 
 Version 1.0.1: 2020-10-26

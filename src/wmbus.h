@@ -30,87 +30,44 @@
 bool trimCRCsFrameFormatA(std::vector<uchar> &payload);
 bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
 
-// A wmbus specified device is supplied on the command line or in the config file.
-// It has this format "file:type(id):fq:bps:linkmods:CMD(command)"
-struct SpecifiedDevice
-{
-    int index; // 0,1,2,3 the order on the command line / config file.
-    std::string file; // simulation_meter.txt, stdin, file.raw, /dev/ttyUSB0
-    bool is_tty{}, is_stdin{}, is_file{}, is_simulation{};
-    std::string type; // im871a, rtlwmbus
-    std::string id; // 12345678 for wmbus dongles or 0,1 for rtlwmbus indexes.
-    std::string fq; // 868.95M
-    std::string bps; // 9600
-    std::string linkmodes; // c1,t1,s1
-    std::string command; // command line of background process that streams data into wmbusmeters
-
-    bool handled {}; // Set to true when this device has been detected/handled.
-    time_t last_alarm {}; // Last time an alarm was sent for this device not being found.
-
-    void clear();
-    string str();
-    bool parse(string &s);
-};
-
 #define LIST_OF_MBUS_DEVICES \
-    X(UNKNOWN,unknown)       \
-    X(AMB8465,amb8465)       \
-    X(CUL,cul)               \
-    X(IM871A,im871a)         \
-    X(RAWTTY,rawtty)         \
-    X(RC1180,rc1180)         \
-    X(RTL433,rtl433)         \
-    X(RTLWMBUS,rtlwmbus)     \
-    X(SIMULATION,simulation)
+    X(UNKNOWN,unknown,false,false) \
+    X(AUTO,auto,false,false)       \
+    X(AMB8465,amb8465,true,false)  \
+    X(CUL,cul,true,false)          \
+    X(IM871A,im871a,true,false)    \
+    X(RAWTTY,rawtty,true,false)    \
+    X(RC1180,rc1180,true,false)    \
+    X(RTL433,rtl433,false,true)    \
+    X(RTLWMBUS,rtlwmbus,false,true)\
+    X(SIMULATION,simulation,false,false)
 
 enum WMBusDeviceType {
-#define X(name,text) DEVICE_ ## name,
+#define X(name,text,tty,rtlsdr) DEVICE_ ## name,
 LIST_OF_MBUS_DEVICES
 #undef X
 };
 
+bool usesTTY(WMBusDeviceType t);
+bool usesRTLSDR(WMBusDeviceType t);
 const char *toString(WMBusDeviceType t);
 const char *toLowerCaseString(WMBusDeviceType t);
 WMBusDeviceType toWMBusDeviceType(string &t);
 
 void setIgnoreDuplicateTelegrams(bool idt);
 
-struct Detected
-{
-    SpecifiedDevice specified_device {}; // Device as specified from the command line / config file.
+// In link mode S1, is used when both the transmitter and receiver are stationary.
+// It can be transmitted relatively seldom.
 
-    string found_file; // The device file to use.
-    string found_device_id; // An "unique" identifier, typically the id used by the dongle as its own wmbus id, if it transmits.
-    WMBusDeviceType found_type {};  // IM871A, AMB8465 etc.
-    int found_bps {}; // Serial speed of tty, overrides
-    bool found_tty_override {}; // override tty
-    bool found_cmd_override {}; // override cmd
-    string found_command;
+// In link mode T1, the meter transmits a telegram every few seconds or minutes.
+// Suitable for drive-by/walk-by collection of meter values.
 
-    void setSpecifiedDeviceAsAuto()
-    {
-        specified_device.clear();
-    }
+// Link mode C1 is like T1 but uses less energy when transmitting due to
+// a different radio encoding. Also significant is:
+// S1/T1 usually uses the A format for the data link layer, more CRCs.
+// C1 usually uses the B format for the data link layer, less CRCs = less overhead.
 
-    void setSpecifiedDevice(SpecifiedDevice sd)
-    {
-        specified_device = sd;
-    }
-
-    void setAsFound(string id, WMBusDeviceType t, int b, bool to, bool co)
-    {
-        found_device_id = id;
-        found_type = t;
-        found_bps = b;
-        found_tty_override = to;
-        found_cmd_override = co;
-    }
-
-    std::string str()
-    {
-        return found_file+":"+string(toString(found_type))+"["+found_device_id+"]"+":"+to_string(found_bps)+"/"+to_string(found_tty_override);
-    }
-};
+// The im871a can for example receive C1a, but it is unclear if there are any meters that use it.
 
 #define LIST_OF_LINK_MODES \
     X(Any,any,--anylinkmode,0xffff)             \
@@ -125,19 +82,6 @@ struct Detected
     X(N1e,n1e,--n1e,0x100)                     \
     X(N1f,n1f,--n1f,0x200)                     \
     X(UNKNOWN,unknown,----,0x0)
-
-// In link mode S1, is used when both the transmitter and receiver are stationary.
-// It can be transmitted relatively seldom.
-
-// In link mode T1, the meter transmits a telegram every few seconds or minutes.
-// Suitable for drive-by/walk-by collection of meter values.
-
-// Link mode C1 is like T1 but uses less energy when transmitting due to
-// a different radio encoding. Also significant is:
-// S1/T1 usually uses the A format for the data link layer, more CRCs.
-// C1 usually uses the B format for the data link layer, less CRCs = less overhead.
-
-// The im871a can for example receive C1a, but it is unclear if there are any meters that use it.
 
 enum class LinkMode {
 #define X(name,lcname,option,val) name,
@@ -157,7 +101,7 @@ LinkMode isLinkModeOption(const char *arg);
 struct LinkModeSet
 {
     // Add the link mode to the set of link modes.
-    void addLinkMode(LinkMode lm);
+    LinkModeSet &addLinkMode(LinkMode lm);
     void unionLinkModeSet(LinkModeSet lms);
     void disjunctionLinkModeSet(LinkModeSet lms);
     // Does this set support listening to the given link mode set?
@@ -177,8 +121,14 @@ struct LinkModeSet
     bool has(LinkMode lm);
     // Check if all link modes are supported.
     bool hasAll(LinkModeSet lms);
-
-    int bits() { return set_; }
+    // Check if any link mode has been set.
+    bool empty() { return set_ == 0; }
+    // Clear the set to empty.
+    void clear() { set_ = 0; }
+    // Mark set as all linkmodes!
+    void setAll() { set_ = (int)LinkMode::Any; }
+    // For bit counting etc.
+    int asBits() { return set_; }
 
     // Return a human readable string.
     std::string hr();
@@ -193,6 +143,67 @@ private:
 
 LinkModeSet parseLinkModes(string modes);
 bool isValidLinkModes(string modes);
+
+// A wmbus specified device is supplied on the command line or in the config file.
+// It has this format "file:type(id):fq:bps:linkmods:CMD(command)"
+struct SpecifiedDevice
+{
+    int index; // 0,1,2,3 the order on the command line / config file.
+    std::string file; // simulation_meter.txt, stdin, file.raw, /dev/ttyUSB0
+    bool is_tty{}, is_stdin{}, is_file{}, is_simulation{};
+    WMBusDeviceType type; // im871a, rtlwmbus
+    std::string id; // 12345678 for wmbus dongles or 0,1 for rtlwmbus indexes.
+    std::string fq; // 868.95M
+    std::string bps; // 9600
+    LinkModeSet linkmodes; // c1,t1,s1
+    std::string command; // command line of background process that streams data into wmbusmeters
+
+    bool handled {}; // Set to true when this device has been detected/handled.
+    time_t last_alarm {}; // Last time an alarm was sent for this device not being found.
+
+    void clear();
+    string str();
+    bool parse(string &s);
+};
+
+struct Detected
+{
+    SpecifiedDevice specified_device {}; // Device as specified from the command line / config file.
+
+    string found_file; // The device file to use.
+    string found_device_id; // An "unique" identifier, typically the id used by the dongle as its own wmbus id, if it transmits.
+    WMBusDeviceType found_type {};  // IM871A, AMB8465 etc.
+    int found_bps {}; // Serial speed of tty, overrides
+    bool found_tty_override {}; // override tty
+    bool found_cmd_override {}; // override cmd
+    string found_command;
+    LinkModeSet calculated_linkmodes; // Calculated from specified lms and default lms.
+
+     void setSpecifiedDeviceAsAuto()
+    {
+        specified_device.clear();
+    }
+
+    void setSpecifiedDevice(SpecifiedDevice sd)
+    {
+        specified_device = sd;
+    }
+
+    void setAsFound(string id, WMBusDeviceType t, int b, bool to, bool co, LinkModeSet clm)
+    {
+        found_device_id = id;
+        found_type = t;
+        found_bps = b;
+        found_tty_override = to;
+        found_cmd_override = co;
+        calculated_linkmodes = clm;
+    }
+
+    std::string str()
+    {
+        return found_file+":"+string(toString(found_type))+"["+found_device_id+"]"+":"+to_string(found_bps)+"/"+to_string(found_tty_override);
+    }
+};
 
 enum class CONNECTION
 {
@@ -511,8 +522,9 @@ struct WMBus
     // The im871a and amb8465 dongles does have a unique, immutable id as well.
     // Not all dongles have this.
     virtual string getDeviceUniqueId() = 0;
-
+    // Human readable explanation of this device, eg: /dev/ttysUB0:im871a[12345678]:t1
     virtual std::string hr() = 0;
+    virtual bool isSerial() = 0;
 
     virtual LinkModeSet getLinkModes() = 0;
     virtual bool ping() = 0;
@@ -548,8 +560,10 @@ struct WMBus
 };
 
 Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
+                                   LinkModeSet default_linkmodes,
                                    shared_ptr<SerialCommunicationManager> manager);
 Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
+                                      LinkModeSet default_linkmodes,
                                       shared_ptr<SerialCommunicationManager> handler);
 
 
@@ -624,8 +638,9 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
                             int *payload_len_out,
                             int *payload_offset);
 
-AccessCheck detectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck reDetectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 
+AccessCheck detectAUTO(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectD1TC(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
@@ -640,6 +655,8 @@ AccessCheck detectWMB13U(Detected *detected, shared_ptr<SerialCommunicationManag
 // restore to factory settings.
 AccessCheck factoryResetAMB8465(string tty, shared_ptr<SerialCommunicationManager> handler, int *was_baud);
 
-Detected detectWMBusDeviceOnTTY(string tty, shared_ptr<SerialCommunicationManager> handler);
+Detected detectWMBusDeviceOnTTY(string tty,
+                                LinkModeSet desired_linkmodes,
+                                shared_ptr<SerialCommunicationManager> handler);
 
 #endif

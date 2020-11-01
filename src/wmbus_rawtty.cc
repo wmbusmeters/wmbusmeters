@@ -60,6 +60,7 @@ shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommu
     if (serial_override)
     {
         WMBusRawTTY *imp = new WMBusRawTTY(serial_override, manager);
+        imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
     auto serial = manager->createSerialDeviceTTY(device.c_str(), baudrate, "rawtty");
@@ -68,7 +69,7 @@ shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommu
 }
 
 WMBusRawTTY::WMBusRawTTY(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(DEVICE_RAWTTY, manager, serial)
+    WMBusCommonImplementation(DEVICE_RAWTTY, manager, serial, true)
 {
     reset();
 }
@@ -158,7 +159,8 @@ AccessCheck detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManag
 
     serial->close();
 
-    detected->setAsFound("", WMBusDeviceType::DEVICE_RAWTTY, bps, false, false);
+    detected->setAsFound("", WMBusDeviceType::DEVICE_RAWTTY, bps, false, false,
+        detected->specified_device.linkmodes);
 
     return AccessCheck::AccessOK;
 }

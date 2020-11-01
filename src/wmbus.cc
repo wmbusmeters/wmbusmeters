@@ -138,13 +138,14 @@ bool isValidLinkModes(string m)
     return true;
 }
 
-void LinkModeSet::addLinkMode(LinkMode lm)
+LinkModeSet &LinkModeSet::addLinkMode(LinkMode lm)
 {
     for (auto& s : link_modes_) {
         if (s.mode == lm) {
             set_ |= s.val;
         }
     }
+    return *this;
 }
 
 void LinkModeSet::unionLinkModeSet(LinkModeSet lms)
@@ -3193,8 +3194,10 @@ WMBusCommonImplementation::~WMBusCommonImplementation()
 
 WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
                                                      shared_ptr<SerialCommunicationManager> manager,
-                                                     shared_ptr<SerialDevice> serial)
+                                                     shared_ptr<SerialDevice> serial,
+                                                     bool is_serial)
     : manager_(manager),
+      is_serial_(is_serial),
       is_working_(true),
       type_(t),
       serial_(serial),
@@ -3220,6 +3223,17 @@ string WMBusCommonImplementation::hr()
     return cached_hr_;
 }
 
+bool WMBusCommonImplementation::isSerial()
+{
+    return is_serial_;
+}
+
+void WMBusCommonImplementation::markAsNoLongerSerial()
+{
+    // When you override the serial device with a file for an im871a, then
+    // it is no longer a serial device.
+    is_serial_ = false;
+}
 
 WMBusDeviceType WMBusCommonImplementation::type()
 {
@@ -3928,7 +3942,7 @@ const char *toString(WMBusDeviceType t)
 {
     switch (t)
     {
-#define X(name,text) case DEVICE_ ## name: return #name;
+#define X(name,text,tty,rtlsdr) case DEVICE_ ## name: return #text;
 LIST_OF_MBUS_DEVICES
 #undef X
 
@@ -3940,7 +3954,7 @@ const char *toLowerCaseString(WMBusDeviceType t)
 {
     switch (t)
     {
-#define X(name,text) case DEVICE_ ## name: return #text;
+#define X(name,text,tty,rtlsdr) case DEVICE_ ## name: return #text;
 LIST_OF_MBUS_DEVICES
 #undef X
 
@@ -3950,7 +3964,7 @@ LIST_OF_MBUS_DEVICES
 
 WMBusDeviceType toWMBusDeviceType(string &t)
 {
-#define X(name,text) if (t == #text) return DEVICE_ ## name;
+#define X(name,text,tty,rtlsdr) if (t == #text) return DEVICE_ ## name;
 LIST_OF_MBUS_DEVICES
 #undef X
     return DEVICE_UNKNOWN;
@@ -4015,14 +4029,14 @@ bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_
     return false;
 }
 
-bool is_type_id(string t, string *out_type, string *out_id)
+bool is_type_id(string t, WMBusDeviceType *out_type, string *out_id)
 {
     // im871a im871a(12345678)
     // auto
     // rtlwmbus
     if (t == "auto")
     {
-        *out_type = t;
+        *out_type = WMBusDeviceType::DEVICE_AUTO;
         *out_id = "";
         return true;
     }
@@ -4035,7 +4049,7 @@ bool is_type_id(string t, string *out_type, string *out_id)
         // No parentheses found, is t a known wmbus device? like im871a amb8465 etc....
         WMBusDeviceType tt = toWMBusDeviceType(t);
         if (tt == DEVICE_UNKNOWN) return false;
-        *out_type = t;
+        *out_type = toWMBusDeviceType(t);
         *out_id = "";
         return true;
     }
@@ -4048,7 +4062,7 @@ bool is_type_id(string t, string *out_type, string *out_id)
         WMBusDeviceType tt = toWMBusDeviceType(type);
         if (tt == DEVICE_UNKNOWN) return false;
         if (!isValidId(id, true)) return false;
-        *out_type = type;
+        *out_type = toWMBusDeviceType(type);
         *out_id = id;
         return true;
     }
@@ -4060,17 +4074,17 @@ bool is_type_id(string t, string *out_type, string *out_id)
 void SpecifiedDevice::clear()
 {
     file = "";
-    type = "";
+    type = WMBusDeviceType::DEVICE_UNKNOWN;
     id = "";
     fq = "";
-    linkmodes = "";
+    linkmodes.clear();
 }
 
 string SpecifiedDevice::str()
 {
     string r;
     if (file != "") r += file+":";
-    if (type != "")
+    if (type != WMBusDeviceType::DEVICE_UNKNOWN)
     {
         r += type;
         if (id != "")
@@ -4081,7 +4095,7 @@ string SpecifiedDevice::str()
     }
     if (bps != "") r += bps+":";
     if (fq != "") r += fq+":";
-    if (linkmodes != "") r += linkmodes+":";
+    if (!linkmodes.empty()) r += linkmodes.hr()+":";
     if (command != "") r += "CMD("+command+"):";
 
     if (r.size() > 0) r.pop_back();
@@ -4112,7 +4126,7 @@ bool SpecifiedDevice::parse(string &arg)
     //         file         type   id        bps  fq     linkmodes command
     for (auto& p : parts)
     {
-        if (file_checked && typeid_checked && file == "" && type == "" && id == "")
+        if (file_checked && typeid_checked && file == "" && type == WMBusDeviceType::DEVICE_UNKNOWN && id == "")
         {
             // There must be either a file and/or type(id). If none are found,
             // then the specified device string is faulty.
@@ -4150,7 +4164,7 @@ bool SpecifiedDevice::parse(string &arg)
             bps_checked = true;
             fq_checked = true;
             linkmodes_checked = true;
-            linkmodes = p;
+            linkmodes = parseLinkModes(p);
         }
         else if (!command_checked && is_command(p, &command))
         {
@@ -4169,18 +4183,21 @@ bool SpecifiedDevice::parse(string &arg)
     }
 
     // Auto is only allowed to be combined with linkmodes and/or frequencies!
-    if (type == "auto" && (file != "" || bps != "")) return false;
+    if (type == WMBusDeviceType::DEVICE_AUTO && (file != "" || bps != "")) return false;
     // You cannot combine a file with a command.
     if (file != "" && command != "") return false;
     return true;
 }
 
-Detected detectWMBusDeviceOnTTY(string tty, shared_ptr<SerialCommunicationManager> handler)
+Detected detectWMBusDeviceOnTTY(string tty,
+                                LinkModeSet desired_linkmodes,
+                                shared_ptr<SerialCommunicationManager> handler)
 {
     Detected detected;
     // Fake a specified device.
     detected.found_file = tty;
     detected.specified_device.is_tty = true;
+    detected.specified_device.linkmodes = desired_linkmodes;
 
     // If im87a is tested first, a delay of 1s must be inserted
     // before amb8465 is tested, lest it will not respond properly.
@@ -4222,6 +4239,7 @@ Detected detectWMBusDeviceOnTTY(string tty, shared_ptr<SerialCommunicationManage
 }
 
 Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
+                                   LinkModeSet default_linkmodes,
                                    shared_ptr<SerialCommunicationManager> handler)
 {
     assert(specified_device.file != "");
@@ -4231,44 +4249,59 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
     Detected detected;
     detected.found_file = specified_device.file;
     detected.setSpecifiedDevice(specified_device);
-
+    // If <device>:c1 is missing :c1 then use --c1.
+    LinkModeSet lms = specified_device.linkmodes;
+    if (lms.empty())
+    {
+        lms = default_linkmodes;
+    }
     if (specified_device.is_simulation)
     {
         debug("(lookup) driver: simulation file\n");
-        detected.setAsFound("", DEVICE_SIMULATION, 0 , false, false);
-        specified_device.linkmodes = "any";
+        // A simulation file has a lms of all by default, eg no simulation_foo.txt:t1 nor --t1
+        if (specified_device.linkmodes.empty()) lms.setAll();
+        detected.setAsFound("", DEVICE_SIMULATION, 0 , false, false, lms);
         return detected;
     }
 
     // Special case to cater for /dev/ttyUSB0:9600, ie the rawtty is implicit.
-    if (specified_device.type == "" && specified_device.bps != "" && specified_device.is_tty)
+    if (specified_device.type == WMBusDeviceType::DEVICE_UNKNOWN && specified_device.bps != "" && specified_device.is_tty)
     {
         debug("(lookup) driver: rawtty\n");
-        detected.setAsFound("", DEVICE_RAWTTY, atoi(specified_device.bps.c_str()), false, false);
+        // A rawtty has a lms of all by default, eg no simulation_foo.txt:t1 nor --t1
+        if (specified_device.linkmodes.empty()) lms.setAll();
+        detected.setAsFound("", DEVICE_RAWTTY, atoi(specified_device.bps.c_str()), false, false, lms);
         return detected;
     }
 
     // Special case to cater for raw_data.bin, ie the rawtty is implicit.
-    if (specified_device.type == "" && !specified_device.is_tty)
+    if (specified_device.type == WMBusDeviceType::DEVICE_UNKNOWN && !specified_device.is_tty)
     {
         debug("(lookup) driver: raw file\n");
-        detected.setAsFound("", DEVICE_RAWTTY, 0, true, false);
+        // A rawtty has a lms of all by default, eg no simulation_foo.txt:t1 nor --t1
+        if (specified_device.linkmodes.empty()) lms.setAll();
+        detected.setAsFound("", DEVICE_RAWTTY, 0, true, false, lms);
         return detected;
     }
 
     // Now handle all files with specified type.
-    if (specified_device.type != "")
+    if (specified_device.type != WMBusDeviceType::DEVICE_UNKNOWN &&
+        specified_device.type != WMBusDeviceType::DEVICE_AUTO)
     {
-        debug("(lookup) driver: %s\n", specified_device.type.c_str());
-        detected.setAsFound("", toWMBusDeviceType(specified_device.type), 0, specified_device.is_file || specified_device.is_stdin, false);
+        debug("(lookup) driver: %s\n", toString(specified_device.type));
+        assert(!lms.empty());
+        detected.setAsFound("", specified_device.type, 0, specified_device.is_file || specified_device.is_stdin,
+                            false, lms);
         return detected;
     }
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
     // to figure out what is connected to it.
-    return detectWMBusDeviceOnTTY(specified_device.file, handler);
+    LinkModeSet desired_linkmodes = default_linkmodes;
+    return detectWMBusDeviceOnTTY(specified_device.file, desired_linkmodes, handler);
 }
 
 Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
+                                      LinkModeSet default_linkmodes,
                                       shared_ptr<SerialCommunicationManager> handler)
 {
     assert(specified_device.file == "");
@@ -4278,7 +4311,10 @@ Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
     Detected detected;
     detected.found_command = specified_device.command;
     detected.setSpecifiedDevice(specified_device);
-    detected.setAsFound("", toWMBusDeviceType(specified_device.type), 0, false, true);
+    LinkModeSet lms = specified_device.linkmodes;
+    // If the specified device did not set any linkmodes fall back on the default linkmodes.
+    if (lms.empty()) lms = default_linkmodes;
+    detected.setAsFound("", specified_device.type, 0, false, true, lms);
 
     return detected;
 }
@@ -4293,14 +4329,40 @@ AccessCheck detectSIMULATION(Detected *detected, shared_ptr<SerialCommunicationM
     return AccessCheck::NotThere;
 }
 
-AccessCheck detectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+AccessCheck detectAUTO(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
-    string type = detected->specified_device.type;
+    // Detection of auto is currently not implemented here, but elsewhere.
+    return AccessCheck::NotThere;
+}
 
-#define X(name,text) if (type == #text) return detect ## name(detected,handler);
+AccessCheck reDetectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+{
+    WMBusDeviceType type = detected->specified_device.type;
+
+#define X(name,text,tty,rtlsdr) if (type == WMBusDeviceType::DEVICE_ ## name) return detect ## name(detected,handler);
 LIST_OF_MBUS_DEVICES
 #undef X
 
     assert(0);
     return AccessCheck::NotThere;
+}
+
+bool usesRTLSDR(WMBusDeviceType t)
+{
+#define X(name,text,tty,rtlsdr) if (t == WMBusDeviceType::DEVICE_ ## name) return rtlsdr;
+LIST_OF_MBUS_DEVICES
+#undef X
+
+    assert(0);
+    return false;
+}
+
+bool usesTTY(WMBusDeviceType t)
+{
+#define X(name,text,tty,rtlsdr) if (t == WMBusDeviceType::DEVICE_ ## name) return tty;
+LIST_OF_MBUS_DEVICES
+#undef X
+
+    assert(0);
+    return false;
 }

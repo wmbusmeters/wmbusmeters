@@ -103,6 +103,11 @@ int indexFromRtlSdrSerial(std::string serialnr)
 
 AccessCheck detectRTLSDR(string serialnr, Detected *detected)
 {
+    if (detected->specified_device.type != WMBusDeviceType::DEVICE_RTLWMBUS ||
+        detected->specified_device.type != WMBusDeviceType::DEVICE_RTL433)
+    {
+        return AccessCheck::NotThere;
+    }
     uint32_t n = rtlsdr_get_device_count();
 
     char mfct[256];
@@ -112,9 +117,12 @@ AccessCheck detectRTLSDR(string serialnr, Detected *detected)
     for (uint32_t i=0; i<n; ++i)
     {
         rtlsdr_get_device_usb_strings(i, mfct, product, serial);
-        if (serialnr == serial)
+        if (serialnr == "" || serialnr == serial)
         {
-            detected->setAsFound(serialnr, WMBusDeviceType::DEVICE_RTLWMBUS, 0, false, false);
+            LinkModeSet lms;
+            lms.addLinkMode(LinkMode::C1);
+            lms.addLinkMode(LinkMode::T1);
+            detected->setAsFound(serialnr, detected->specified_device.type, 0, false, false, lms);
             return AccessCheck::AccessOK;
         }
     }

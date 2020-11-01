@@ -93,7 +93,7 @@ shared_ptr<WMBus> openRTL433(string identifier, string command, shared_ptr<Seria
 }
 
 WMBusRTL433::WMBusRTL433(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(DEVICE_RTL433, manager, serial)
+    WMBusCommonImplementation(DEVICE_RTL433, manager, serial, false)
 {
     reset();
 }
@@ -305,7 +305,8 @@ FrameStatus WMBusRTL433::checkRTL433Frame(vector<uchar> &data,
 
 AccessCheck detectRTL433(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
-    detected->setAsFound("", WMBusDeviceType::DEVICE_RTLWMBUS, 0, false, false);
+    detected->setAsFound("", WMBusDeviceType::DEVICE_RTL433, 0, false, false,
+                         detected->specified_device.linkmodes);
 
     return AccessCheck::AccessOK;
 }

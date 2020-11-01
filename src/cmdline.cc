@@ -107,27 +107,37 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--listento=", 11)) {
+        if (!strncmp(argv[i], "--donotprobe=", 13))
+        {
+            string df = string(argv[i]+13);
+            debug("(cmdline) do not probe \"%s\"\n", df.c_str());
+            c->do_not_probe_ttys.insert(df);
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--listento=", 11))
+        {
             LinkModeSet lms = parseLinkModes(argv[i]+11);
-            if (lms.bits() == 0) {
-                error("Unknown link mode \"%s\"!\n", argv[i]+11);
+            if (lms.empty())
+            {
+                error("Unknown default link mode \"%s\"!\n", argv[i]+11);
             }
-            if (c->linkmodes_configured) {
-                error("You have already specified a link mode!\n");
+            if (!c->default_device_linkmodes.empty()) {
+                error("You have already specified a default link mode!\n");
             }
-            c->linkmodes = lms;
-            c->linkmodes_configured = true;
+            c->default_device_linkmodes = lms;
             i++;
             continue;
         }
 
         LinkMode lm = isLinkModeOption(argv[i]);
         if (lm != LinkMode::UNKNOWN) {
-            if (c->linkmodes_configured) {
-                error("You have already specified a link mode!\n");
+            if (!c->default_device_linkmodes.empty())
+            {
+                error("You have already specified a default link mode!\n");
             }
-            c->linkmodes.addLinkMode(lm);
-            c->linkmodes_configured = true;
+            // Add to the empty set.
+            c->default_device_linkmodes.addLinkMode(lm);
             i++;
             continue;
         }
@@ -476,7 +486,7 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
     }
 
     if (c->supplied_wmbus_devices.size() == 0 &&
-        c->use_auto_detect == false &&
+        c->use_auto_device_detect == false &&
         !c->list_shell_envs &&
         !c->list_fields &&
         !c->list_meters)

@@ -54,11 +54,11 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
     int numConcurrentLinkModes() { return 1; }
     bool canSetLinkModes(LinkModeSet lms)
     {
-        if (0 == countSetBits(lms.bits())) return false;
+        if (lms.empty()) return false;
         if (!supportedLinkModes().supports(lms)) return false;
         // Ok, the supplied link modes are compatible,
         // but im871a can only listen to one at a time.
-        return 1 == countSetBits(lms.bits());
+        return 1 == countSetBits(lms.asBits());
     }
     void processSerialData();
     void simulate();
@@ -86,6 +86,7 @@ shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> 
     if (serial_override)
     {
         WMBusCUL *imp = new WMBusCUL(serial_override, manager);
+        imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
 
@@ -95,7 +96,7 @@ shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> 
 }
 
 WMBusCUL::WMBusCUL(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(DEVICE_CUL, manager, serial)
+    WMBusCommonImplementation(DEVICE_CUL, manager, serial, true)
 {
     reset();
 }
@@ -391,7 +392,7 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
         return AccessCheck::NotThere;
     }
 
-    detected->setAsFound("", WMBusDeviceType::DEVICE_CUL, 38400, false, false);
+    detected->setAsFound("", WMBusDeviceType::DEVICE_CUL, 38400, false, false, detected->specified_device.linkmodes);
 
     return AccessCheck::AccessOK;
 }

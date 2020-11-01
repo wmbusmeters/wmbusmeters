@@ -22,6 +22,7 @@
 #include"util.h"
 #include"wmbus.h"
 #include"meters.h"
+#include<set>
 #include<vector>
 
 using namespace std;
@@ -86,11 +87,17 @@ struct Configuration
     int  exitafter {}; // Seconds to exit.
     int  resetafter {}; // Reset the wmbus devices regularly.
     std::vector<SpecifiedDevice> supplied_wmbus_devices; // /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600
-    bool use_auto_detect {}; // Set to true if auto was supplied as device.
+    bool use_auto_device_detect {}; // Set to true if auto was supplied as device.
+    std::set<std::string> do_not_probe_ttys; // Do not probe these ttys! all = all of them.
+    LinkModeSet auto_device_linkmodes; // The linkmodes specified by auto:c1,t1
     bool single_device_override {}; // Set to true if there is a stdin/file or simulation device.
     bool simulation_found {};
-    LinkModeSet linkmodes; // If --c1 or auto:c1 then store c1 here.
-    bool linkmodes_configured {}; // Either auto:c1 or --c1 is specified.
+    LinkModeSet default_device_linkmodes; // Backwards compatible --listento=c1 or --c1 will set the default_linkmodes.
+                                          // A device without a :t1 suffix, will use this linkmode.
+                                          // Is empty when not set.
+    LinkModeSet all_device_linkmodes_specified; // A union of all device specified linkmodes.
+                                                // Eventually not all devices might be found, so a realtime check is done later.
+    LinkModeSet all_meters_linkmodes_specified; // A union of all meters linkmodes.
     string telegram_reader;
     // A set of all link modes (union) that the user requests the wmbus dongle to listen to.
     bool no_init {};

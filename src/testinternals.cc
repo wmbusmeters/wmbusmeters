@@ -244,7 +244,6 @@ int test_linkmodes()
 
     Configuration nometers_config;
     // Check that if no meters are supplied then you must set a link mode.
-    nometers_config.linkmodes_configured = false;
     lmcr = calculateLinkModes(&nometers_config, wmbus_im871a.get());
     if (lmcr.type != LinkModeCalculationResultType::NoMetersMustSupplyModes)
     {
@@ -252,8 +251,7 @@ int test_linkmodes()
     }
     debug("test0 OK\n\n");
 
-    nometers_config.linkmodes_configured = true;
-    nometers_config.linkmodes.addLinkMode(LinkMode::T1);
+    nometers_config.default_device_linkmodes.addLinkMode(LinkMode::T1);
     lmcr = calculateLinkModes(&nometers_config, wmbus_im871a.get());
     if (lmcr.type != LinkModeCalculationResultType::Success)
     {
@@ -271,7 +269,6 @@ int test_linkmodes()
     // Check that if no explicit link modes are provided to apator162, then
     // automatic deduction will fail, since apator162 can be configured to transmit
     // either C1 or T1 telegrams.
-    apator_config.linkmodes_configured = false;
     lmcr = calculateLinkModes(&apator_config, wmbus_im871a.get());
     if (lmcr.type != LinkModeCalculationResultType::AutomaticDeductionFailed)
     {
@@ -281,10 +278,9 @@ int test_linkmodes()
 
     // Check that if we supply the link mode T1 when using an apator162, then
     // automatic deduction will succeeed.
-    apator_config.linkmodes_configured = true;
-    apator_config.linkmodes = LinkModeSet();
-    apator_config.linkmodes.addLinkMode(LinkMode::T1);
-    apator_config.linkmodes.addLinkMode(LinkMode::C1);
+    apator_config.default_device_linkmodes = LinkModeSet();
+    apator_config.default_device_linkmodes.addLinkMode(LinkMode::T1);
+    apator_config.default_device_linkmodes.addLinkMode(LinkMode::C1);
     lmcr = calculateLinkModes(&apator_config, wmbus_im871a.get());
     if (lmcr.type != LinkModeCalculationResultType::DongleCannotListenTo)
     {
@@ -313,7 +309,6 @@ int test_linkmodes()
 
     // Check that meters that transmit on two different link modes cannot be listened to
     // at the same time using im871a.
-    multical21_and_supercom587_config.linkmodes_configured = false;
     lmcr = calculateLinkModes(&multical21_and_supercom587_config, wmbus_im871a.get());
     if (lmcr.type != LinkModeCalculationResultType::AutomaticDeductionFailed)
     {
@@ -322,9 +317,8 @@ int test_linkmodes()
     debug("test4 OK\n\n");
 
     // Explicitly set T1
-    multical21_and_supercom587_config.linkmodes_configured = true;
-    multical21_and_supercom587_config.linkmodes = LinkModeSet();
-    multical21_and_supercom587_config.linkmodes.addLinkMode(LinkMode::T1);
+    multical21_and_supercom587_config.default_device_linkmodes = LinkModeSet();
+    multical21_and_supercom587_config.default_device_linkmodes.addLinkMode(LinkMode::T1);
     lmcr = calculateLinkModes(&multical21_and_supercom587_config, wmbus_im871a.get());
     if (lmcr.type != LinkModeCalculationResultType::MightMissTelegrams)
     {
@@ -333,9 +327,8 @@ int test_linkmodes()
     debug("test5 OK\n\n");
 
     // Explicitly set N1a, but the meters transmit on C1 and T1.
-    multical21_and_supercom587_config.linkmodes_configured = true;
-    multical21_and_supercom587_config.linkmodes = LinkModeSet();
-    multical21_and_supercom587_config.linkmodes.addLinkMode(LinkMode::N1a);
+    multical21_and_supercom587_config.default_device_linkmodes = LinkModeSet();
+    multical21_and_supercom587_config.default_device_linkmodes.addLinkMode(LinkMode::N1a);
     lmcr = calculateLinkModes(&multical21_and_supercom587_config, wmbus_im871a.get());
     if (lmcr.type != LinkModeCalculationResultType::MightMissTelegrams)
     {
@@ -344,9 +337,8 @@ int test_linkmodes()
     debug("test6 OK\n\n");
 
     // Explicitly set N1a, but it is an amber dongle.
-    multical21_and_supercom587_config.linkmodes_configured = true;
-    multical21_and_supercom587_config.linkmodes = LinkModeSet();
-    multical21_and_supercom587_config.linkmodes.addLinkMode(LinkMode::N1a);
+    multical21_and_supercom587_config.default_device_linkmodes = LinkModeSet();
+    multical21_and_supercom587_config.default_device_linkmodes.addLinkMode(LinkMode::N1a);
     lmcr = calculateLinkModes(&multical21_and_supercom587_config, wmbus_amb8465.get());
     if (lmcr.type != LinkModeCalculationResultType::DongleCannotListenTo)
     {
@@ -526,12 +518,13 @@ void testd(string arg, bool xok, string xfile, string xtype, string xid, string 
         return;
     }
     if (ok == false) return;
+
     if (d.file != xfile ||
-        d.type != xtype ||
+        toString(d.type) != xtype ||
         d.id != xid ||
         d.fq != xfq ||
         d.bps != xbps ||
-        d.linkmodes != xlm ||
+        d.linkmodes.hr() != xlm ||
         d.command != xcmd)
     {
         printf("ERROR in device parsing parts \"%s\"\n", arg.c_str());
@@ -573,7 +566,7 @@ void test_devices()
           "", // id
           "", // fq
           "", // bps
-          "", // linkmodes
+          "none", // linkmodes
           ""); // command
 
     testd("/dev/ttyUSB0:rawtty:9600", true,
@@ -582,7 +575,7 @@ void test_devices()
           "", // id
           "", // fq
           "9600", // bps
-          "", // linkmodes
+          "none", // linkmodes
           ""); // command
 
     // testinternals must be run from a location where
@@ -593,7 +586,7 @@ void test_devices()
           "", // id
           "", // fq
           "", // bps
-          "", // linkmodes
+          "none", // linkmodes
           ""); // command
 
     testd("auto:c1,t1", true,
@@ -611,7 +604,7 @@ void test_devices()
           "", // id
           "", // fq
           "", // bps
-          "", // linkmodes
+          "none", // linkmodes
           ""); // command
 
     testd("Vatten", false,
@@ -620,7 +613,7 @@ void test_devices()
           "", // id
           "", // fq
           "", // bps
-          "", // linkmodes
+          "none", // linkmodes
           ""); // command
 
 

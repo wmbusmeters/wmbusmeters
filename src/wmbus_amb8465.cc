@@ -95,14 +95,14 @@ struct WMBusAmber : public virtual WMBusCommonImplementation
     int numConcurrentLinkModes() { return 1; }
     bool canSetLinkModes(LinkModeSet desired_modes)
     {
-        if (0 == countSetBits(desired_modes.bits())) return false;
+        if (desired_modes.empty()) return false;
         // Simple check first, are they all supported?
         if (!supportedLinkModes().supports(desired_modes)) return false;
         // So far so good, is the desired combination supported?
         // If only a single bit is desired, then it is supported.
-        if (1 == countSetBits(desired_modes.bits())) return true;
+        if (1 == countSetBits(desired_modes.asBits())) return true;
         // More than 2 listening modes at the same time will always fail.
-        if (2 != countSetBits(desired_modes.bits())) return false;
+        if (2 != countSetBits(desired_modes.asBits())) return false;
         // C1 and T1 can be listened to at the same time!
         if (desired_modes.has(LinkMode::C1) && desired_modes.has(LinkMode::T1)) return true;
         // Likewise for S1 and S1-m
@@ -146,6 +146,7 @@ shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManag
     if (serial_override)
     {
         WMBusAmber *imp = new WMBusAmber(serial_override, manager);
+        imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
 
@@ -155,7 +156,7 @@ shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManag
 }
 
 WMBusAmber::WMBusAmber(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(DEVICE_AMB8465, manager, serial)
+    WMBusCommonImplementation(DEVICE_AMB8465, manager, serial, true)
 {
     rssi_expected_ = true;
     reset();
@@ -604,7 +605,8 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
     ConfigAMB8465 config;
     config.decode(response);
 
-    detected->setAsFound(config.dongleId(), WMBusDeviceType::DEVICE_AMB8465, 9600, false, false);
+    detected->setAsFound(config.dongleId(), WMBusDeviceType::DEVICE_AMB8465, 9600, false, false,
+        detected->specified_device.linkmodes);
 
     verbose("(amb8465) detect %s\n", config.str().c_str());
     verbose("(amb8465) are you there? yes %s\n", config.dongleId().c_str());

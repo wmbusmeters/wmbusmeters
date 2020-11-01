@@ -98,7 +98,7 @@ shared_ptr<WMBus> openRTLWMBUS(string serialnr, string command, shared_ptr<Seria
 }
 
 WMBusRTLWMBUS::WMBusRTLWMBUS(string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(DEVICE_RTLWMBUS, manager, serial), serialnr_(serialnr)
+    WMBusCommonImplementation(DEVICE_RTLWMBUS, manager, serial, false), serialnr_(serialnr)
 {
     reset();
 }
