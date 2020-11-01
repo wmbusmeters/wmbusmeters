@@ -4086,7 +4086,7 @@ string SpecifiedDevice::str()
     if (file != "") r += file+":";
     if (type != WMBusDeviceType::DEVICE_UNKNOWN)
     {
-        r += type;
+        r += toString(type);
         if (id != "")
         {
             r += "["+id+"]";

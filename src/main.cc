@@ -918,7 +918,7 @@ void perform_auto_scan_of_swradio_devices(Configuration *config)
         {
             debug("(main) rtlsdr device %s not currently used.\n", serialnr.c_str());
             Detected detected;
-            detected.setSpecifiedDeviceAsAuto();
+            detected.specified_device.type = WMBusDeviceType::DEVICE_RTLWMBUS;
             AccessCheck ac = detectRTLSDR(serialnr, &detected);
             if (ac != AccessCheck::AccessOK)
             {

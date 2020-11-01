@@ -103,11 +103,12 @@ int indexFromRtlSdrSerial(std::string serialnr)
 
 AccessCheck detectRTLSDR(string serialnr, Detected *detected)
 {
-    if (detected->specified_device.type != WMBusDeviceType::DEVICE_RTLWMBUS ||
+    if (detected->specified_device.type != WMBusDeviceType::DEVICE_RTLWMBUS &&
         detected->specified_device.type != WMBusDeviceType::DEVICE_RTL433)
     {
         return AccessCheck::NotThere;
     }
+
     uint32_t n = rtlsdr_get_device_count();
 
     char mfct[256];

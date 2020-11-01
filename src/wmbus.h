@@ -179,11 +179,6 @@ struct Detected
     string found_command;
     LinkModeSet calculated_linkmodes; // Calculated from specified lms and default lms.
 
-     void setSpecifiedDeviceAsAuto()
-    {
-        specified_device.clear();
-    }
-
     void setSpecifiedDevice(SpecifiedDevice sd)
     {
         specified_device = sd;
