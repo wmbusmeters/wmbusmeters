@@ -142,6 +142,7 @@ in the config. Like this:
 ```
 wmbusmeters --useconfig=/home/me/.config/wmbusmeters --device=rtlwmbus
 ```
+You must have both --useconfig= and --device= for it to work.
 
 The files/dir should then be located here:
 `/home/me/.config/wmbusmeters/etc/wmbusmeters.conf` and
