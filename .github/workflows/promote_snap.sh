@@ -24,7 +24,7 @@ do
         snap_build_version="$(snapcraft status --arch $arch $SNAP_NAME | grep edge | awk '{print $2}')"
 
         c=0
-        while [[ "$GIT_VER" != "$snap_build_version" && $c -lt 10 ]]; do
+        while [[ "$GIT_VER" != "$snap_build_version" && $c -lt 30 ]]; do
                 echo "GIT release version "$GIT_VER" != snap latest edge version at snapcraft for $arch "$snap_build_version", iter : $c";
                 ((c = $c + 1));
                 sleep 300;
