@@ -4196,16 +4196,16 @@ Detected detectWMBusDeviceOnTTY(string tty, shared_ptr<SerialCommunicationManage
         return detected;
     }
 
-    // Talk RC1180 with it...
-    // assumes this device is configured for 19200 bps, which seems to be the default.
-    if (detectRC1180(&detected, handler) == AccessCheck::AccessOK)
+    // Talk im871a with it...
+    // assumes this device is configured for 57600 bps, which seems to be the default.
+    if (detectIM871A(&detected, handler) == AccessCheck::AccessOK)
     {
         return detected;
     }
 
-    // Talk im871a with it...
-    // assumes this device is configured for 57600 bps, which seems to be the default.
-    if (detectIM871A(&detected, handler) == AccessCheck::AccessOK)
+    // Talk RC1180 with it...
+    // assumes this device is configured for 19200 bps, which seems to be the default.
+    if (detectRC1180(&detected, handler) == AccessCheck::AccessOK)
     {
         return detected;
     }

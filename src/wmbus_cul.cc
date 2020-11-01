@@ -249,7 +249,8 @@ void WMBusCUL::processSerialData()
         {
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
 
-            AboutTelegram about("", 0);
+            // We do not currently know how to get the rssi out of the cul dongle.
+            AboutTelegram about("cul", 0);
             handleTelegram(about, payload);
         }
     }
@@ -373,8 +374,8 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
         // Wait for 200ms so that the USB stick have time to prepare a response.
         usleep(1000*200);
         serial->receive(&data);
-        string resp(data.begin(), data.end());
-        debug("(cul) response \"%s\"\n", resp.c_str());
+        string resp = safeString(data);
+        debug("(cul) probe response \"%s\"\n", resp.c_str());
         if (resp.find("CUL") != string::npos)
         {
             found = true;
@@ -383,9 +384,12 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
         usleep(1000*500);
     }
 
-    if (!found) return AccessCheck::NotThere;
-
     serial->close();
+
+    if (!found)
+    {
+        return AccessCheck::NotThere;
+    }
 
     detected->setAsFound("", WMBusDeviceType::DEVICE_CUL, 38400, false, false);
 

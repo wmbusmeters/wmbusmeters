@@ -227,7 +227,7 @@ Supported wmbus dongles:
 IMST 871a (im871a)
 Amber 8465 (amb8465)
 CUL family (cul)
-Radiocraft (RC1180) work in progress only T1 mode
+Radiocraft (RC1180)
 rtl_wmbus (rtlwmbus)
 rtl_433 (rtl433)
 

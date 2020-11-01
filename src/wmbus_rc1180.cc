@@ -73,8 +73,18 @@ struct ConfigRC1180
 
     bool decode(vector<uchar> &bytes)
     {
-        if (bytes.size() < 0x20) return false;
+        if (bytes.size() < 257) return false;
 
+        // Check that the returned memory here contains all 0xff bytes.
+        // Maybe there are dongles out there where this is not true?
+        // Anyway this is what it looks like for my dongle, so lets
+        // use that info to detect the dongle.
+        for (int i=128; i<256; ++i)
+        {
+            if (bytes[i] != 0xff) return false;
+        }
+        // And the last byte should be 0x3e.
+        if (bytes[256] != 0x3e) return false;
         radio_channel = bytes[0];
         radio_power = bytes[1];
         radio_data_rate = bytes[2];
@@ -316,7 +326,8 @@ void WMBusRC1180::processSerialData()
                 payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
             }
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
-            AboutTelegram about("", 0);
+            // It should be possible to get the rssi from the dongle.
+            AboutTelegram about("rc1180["+cached_device_id_+"]", 0);
             handleTelegram(about, payload);
         }
     }
@@ -351,7 +362,7 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
 
     data.clear();
 
-    // send '0' to get get the version string: "V 1.67 nanoRC1180868" or similar
+    // send '0' to get get the dongle configuration data.
     msg[0] = '0';
 
     serial->send(msg);
@@ -359,13 +370,21 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
     usleep(1000*200);
 
     serial->receive(&data);
-    string hex = bin2hex(data);
 
     ConfigRC1180 co;
-    co.decode(data);
+    bool ok = co.decode(data);
+    if (!ok || co.uart_bps != 5)
+    {
+        // Decode must be ok and the uart bps must be 5,
+        // 5 means 19200 bps, which is the speed we are using.
+        // If not 5, then this is not a rc1180 dongle.
+        serial->close();
+        return AccessCheck::NotThere;
+    }
 
     debug("(rc1180) config: %s\n", co.str().c_str());
 
+    // Now exit config mode and continue listeing.
     msg[0] = 'X';
     serial->send(msg);
 
