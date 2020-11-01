@@ -135,7 +135,10 @@ Or you can start wmbusmeters with your own config files:
 wmbusmeters --useconfig=/home/me/.config/wmbusmeters
 ```
 
-You can add --device to override the settings in the config. Like this:
+If you already have config with a device specified, and you want to use
+the config with another device. You might have multiple meters in the config
+that you want to listen to. Then you can add --device to override the settings
+in the config. Like this:
 ```
 wmbusmeters --useconfig=/home/me/.config/wmbusmeters --device=rtlwmbus
 ```
