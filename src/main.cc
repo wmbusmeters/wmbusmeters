@@ -50,6 +50,7 @@ shared_ptr<Meter> create_meter(Configuration *config, MeterType type, MeterInfo 
 shared_ptr<Printer> create_printer(Configuration *config);
 shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config, shared_ptr<SerialCommunicationManager> manager);
 void detect_and_configure_wmbus_devices(Configuration *config);
+SpecifiedDevice *find_specified_device_from_detected(Configuration *c, Detected *d);
 bool find_specified_device_and_update_detected(Configuration *c, Detected *d);
 void find_specified_device_and_mark_as_handled(Configuration *c, Detected *d);
 void list_fields(Configuration *config, string meter_type);
@@ -599,7 +600,7 @@ void detect_and_configure_wmbus_devices(Configuration *config)
     }
 }
 
-bool find_specified_device_and_update_detected(Configuration *c, Detected *d)
+SpecifiedDevice *find_specified_device_from_detected(Configuration *c, Detected *d)
 {
     // Iterate over the supplied devices and look for an exact type+id match.
     // This will find specified devices like: im871a[12345678]
@@ -607,11 +608,7 @@ bool find_specified_device_and_update_detected(Configuration *c, Detected *d)
     {
         if (sd.file == "" && sd.id != "" && sd.id == d->found_device_id && sd.type == d->found_type)
         {
-            d->specified_device = sd;
-            debug("(main) found specified device (%s) that matches detected device (%s)\n",
-                  sd.str().c_str(),
-                  d->str().c_str());
-            return true;
+            return &sd;
         }
     }
 
@@ -621,12 +618,24 @@ bool find_specified_device_and_update_detected(Configuration *c, Detected *d)
     {
         if (sd.file == "" && sd.id == "" && sd.type == d->found_type)
         {
-            d->specified_device = sd;
-            debug("(main) found specified device (%s) that matches detected device (%s)\n",
-                  sd.str().c_str(),
-                  d->str().c_str());
-            return true;
+            return &sd;
         }
+    }
+
+    return NULL;
+}
+
+bool find_specified_device_and_update_detected(Configuration *c, Detected *d)
+{
+    SpecifiedDevice *sd = find_specified_device_from_detected(c, d);
+
+    if (sd)
+    {
+        d->specified_device = *sd;
+        debug("(main) found specified device (%s) that matches detected device (%s)\n",
+              sd->str().c_str(),
+              d->str().c_str());
+        return true;
     }
 
     return false;
@@ -634,24 +643,11 @@ bool find_specified_device_and_update_detected(Configuration *c, Detected *d)
 
 void find_specified_device_and_mark_as_handled(Configuration *c, Detected *d)
 {
-    // Iterate over the supplied devices and look for an exact type+id match.
-    // This will find specified devices like: im871a[12345678]
-    for (SpecifiedDevice & sd : c->supplied_wmbus_devices)
-    {
-        if (sd.file == "" && sd.id != "" && sd.id == d->found_device_id && sd.type == d->found_type)
-        {
-            sd.handled = true;
-        }
-    }
+    SpecifiedDevice *sd = find_specified_device_from_detected(c, d);
 
-    // Iterate over the supplied devices and look for a type match.
-    // This will find specified devices like: im871a, rtlwmbus
-    for (SpecifiedDevice & sd : c->supplied_wmbus_devices)
+    if (sd)
     {
-        if (sd.file == "" && sd.id == "" && sd.type == d->found_type)
-        {
-            sd.handled = true;
-        }
+        sd->handled = true;
     }
 }
 
@@ -767,7 +763,18 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Dete
         }
     }
 
-    LinkModeSet lms = detected->calculated_linkmodes;
+    LinkModeSet lms = detected->specified_device.linkmodes;
+    if (lms.empty())
+    {
+        if (config->use_auto_device_detect)
+        {
+            lms = config->auto_device_linkmodes;
+        }
+        if (lms.empty())
+        {
+            lms = config->default_device_linkmodes;
+        }
+    }
     string using_link_modes = lms.hr();
 
     string id = detected->found_device_id.c_str();

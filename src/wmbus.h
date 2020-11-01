@@ -177,7 +177,6 @@ struct Detected
     bool found_tty_override {}; // override tty
     bool found_cmd_override {}; // override cmd
     string found_command;
-    LinkModeSet calculated_linkmodes; // Calculated from specified lms and default lms.
 
     void setSpecifiedDevice(SpecifiedDevice sd)
     {
@@ -191,7 +190,6 @@ struct Detected
         found_bps = b;
         found_tty_override = to;
         found_cmd_override = co;
-        calculated_linkmodes = clm;
     }
 
     std::string str()

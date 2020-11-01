@@ -49,7 +49,7 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
     int numConcurrentLinkModes() { return 2; }
     bool canSetLinkModes(LinkModeSet lms)
     {
-        if (!supportedLinkModes().supports(lms)) return false;
+        //if (!supportedLinkModes().supports(lms)) return false;
         // The rtlwmbus listens to both modes always.
         return true;
     }
@@ -66,6 +66,8 @@ private:
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
     bool warning_dll_len_printed_ {};
+
+    LinkModeSet device_link_modes_;
 
     FrameStatus checkRTLWMBUSFrame(vector<uchar> &data,
                                    size_t *hex_frame_length,
@@ -120,8 +122,7 @@ string WMBusRTLWMBUS::getDeviceUniqueId()
 
 LinkModeSet WMBusRTLWMBUS::getLinkModes()
 {
-
-    return Any_bit;
+    return device_link_modes_;
 }
 
 void WMBusRTLWMBUS::deviceReset()
@@ -130,6 +131,10 @@ void WMBusRTLWMBUS::deviceReset()
 
 void WMBusRTLWMBUS::deviceSetLinkModes(LinkModeSet lm)
 {
+    LinkModeSet lms;
+    lms.addLinkMode(LinkMode::C1);
+    lms.addLinkMode(LinkMode::T1);
+    device_link_modes_ = lms;
 }
 
 void WMBusRTLWMBUS::simulate()
