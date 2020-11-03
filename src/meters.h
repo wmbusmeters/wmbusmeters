@@ -57,10 +57,11 @@
     X(omnipower,  C1_bit, Electricity, OMNIPOWER,   Omnipower)    \
     X(rfmamb,     T1_bit, TempHygro,   RFMAMB,      RfmAmb)       \
     X(rfmtx1,     T1_bit, Water,       RFMTX1,      RfmTX1)       \
-    X(q400,       T1_bit, Water,       Q400,        Q400)  \
+    X(q400,       T1_bit, Water,       Q400,        Q400)         \
     X(qcaloric,   C1_bit, HeatCostAllocation, QCALORIC, QCaloric) \
     X(sontex868,  T1_bit, HeatCostAllocation, SONTEX868, Sontex868) \
     X(supercom587,T1_bit, Water,       SUPERCOM587, Supercom587)  \
+    X(ultrimis,   T1_bit, Water,       ULTRIMIS,    Ultrimis)     \
     X(vario451,   T1_bit, Heat,        VARIO451,    Vario451)     \
     X(waterstarm, C1_bit|T1_bit, Water,WATERSTARM,  WaterstarM)   \
     X(topaseskr, T1_bit, Water,   TOPASESKR, TopasEsKr)  \
@@ -133,11 +134,12 @@
     X(SUPERCOM587,MANUFACTURER_SON, 0x06,  0x3c) \
     X(SUPERCOM587,MANUFACTURER_SON, 0x07,  0x3c) \
     X(SONTEX868,  MANUFACTURER_SON, 0x08,  0x16) \
+    X(TOPASESKR,  MANUFACTURER_AMT, 0x06,  0xf1) \
+    X(TOPASESKR,  MANUFACTURER_AMT, 0x07,  0xf1) \
+    X(ULTRIMIS,   MANUFACTURER_APA, 0x16,  0x01) \
     X(VARIO451,   MANUFACTURER_TCH, 0x04,  0x27) \
     X(VARIO451,   MANUFACTURER_TCH, 0xc3,  0x27) \
     X(WATERSTARM, MANUFACTURER_DWZ, 0x06,  0x02) \
-    X(TOPASESKR,  MANUFACTURER_AMT, 0x06,  0xf1) \
-    X(TOPASESKR,  MANUFACTURER_AMT, 0x07,  0xf1) \
 
 enum class MeterType {
 #define X(mname,linkmode,info,type,cname) type,
@@ -393,6 +395,7 @@ shared_ptr<ElectricityMeter> createEHZP(MeterInfo &m);
 shared_ptr<ElectricityMeter> createESYSWM(MeterInfo &m);
 shared_ptr<ElectricityMeter> createEBZWMBE(MeterInfo &m);
 shared_ptr<WaterMeter> createTopasEsKr(MeterInfo &m);
+shared_ptr<WaterMeter> createUltrimis(MeterInfo &m);
 
 GenericMeter *createGeneric(WMBus *bus, MeterInfo &m);
 
