@@ -89,8 +89,12 @@ string MeterUltrimis::status()
        No water
        Low battery
     */
-
-    return tostrprintf("%03x", info_codes_);
+    string info = "OK";
+    if (info_codes_ != 0)
+    {
+        info = tostrprintf("ERR(%06x)", info_codes_);
+    }
+    return info;
 }
 
 void MeterUltrimis::processContent(Telegram *t)

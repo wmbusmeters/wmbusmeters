@@ -9,6 +9,9 @@ serial tty, will probe the serial devices, exluding donotprobe ones.)
 
 Added support for the sontex868 heat cost allocator.
 
+Jacek27 added support for the Ultrimis water meter.
+Thanks Jacek27!
+
 Version 1.0.1: 2020-10-26
 
 Fix bug that prevented /dev/ttyUSB0:im871a:c1 to work.

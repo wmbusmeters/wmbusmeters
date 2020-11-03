@@ -32,6 +32,7 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       Elen1       ebzwmbe     22992299 NOKEY
       Elen2       esyswm      77997799 NOKEY
       Elen3       ehzp        55995599 NOKEY
+      Uater       ultrimis    95969798 NOKEY
       Vatten      apator08    004444dd NOKEY
       Wasser      rfmtx1      74737271 NOKEY
       Woter       waterstarm  20096221 BEDB81B52C29B5C143388CBB0D15A051

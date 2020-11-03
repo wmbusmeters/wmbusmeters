@@ -175,6 +175,11 @@ Received telegram from: 78563412
                   type: Water meter (0x07)
                    ver: 0xf1
                 driver: topaseskr
+Received telegram from: 95969798
+          manufacturer: (APA) Apator, Poland (0x601)
+                  type: Cold water meter (0x16)
+                   ver: 0x01
+                driver: ultrimis
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)
