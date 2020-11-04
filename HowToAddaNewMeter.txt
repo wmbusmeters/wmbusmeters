@@ -6,7 +6,7 @@ the daemon when developing and testing for a new meter.
 This makes it much easier and faster.
 
 But first collect a few telegrams of your meter:
-wmbusmeters --logtelegrams auto:c1
+wmbusmeters --logtelegrams auto:t1
 
 Received telegram from: 12345678
           manufacturer: (MMC) My Meter Company (0x1234)
@@ -103,6 +103,13 @@ Now test your code:
 It should print at least:
 {"media":"cold water","meter":"mymeter","name":"Vatten","id":"12345678","total_m3":3.122,"timestamp":"2020-11-04T07:01:12Z"}
 and any other fields you have added.
+
+Now you can run it for real:
+./build_debug/wmbusmeters --format=json auto:t1 Water MyMeter 12345678 <key>
+
+Finally try the daemon: make; sudo make install
+(Do the daemon reload command if such is requested.)
+sudo systemctl start wmbusmeters.service
 
 Eventually we have to add a regression test for MyMeter. The regression tests
 are really really important! This is done by adding a telegram in simulations/simulation_t1.txt
