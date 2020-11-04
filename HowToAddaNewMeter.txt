@@ -1,29 +1,113 @@
 
-To add a meter type, make a copy of meter_supercom587.cc to
-meter_yourmeter.cc and add your meter
-to LIST_OF_METERS in meters.h
+So you want to add a new meter! Great!
 
-In meter_yourmeter.cc, search and replace supercom587 for yourmeter,
+Use the command line version of wmbusmeters instead of
+the daemon when developing and testing for a new meter.
+This makes it much easier and faster.
+
+But first collect a few telegrams of your meter:
+wmbusmeters --logtelegrams auto:c1
+
+Received telegram from: 12345678
+          manufacturer: (MMC) My Meter Company (0x1234)
+                  type: Cold water meter (0x16)
+                   ver: 0x01
+                device: im871a[01020304]
+                  rssi: -39 dBm
+                driver: unknown
+telegram=||2344xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|+24
+(The || means that the telegram is not decrypted. When you are actually decoding
+a specific meter the firs |...| will mark the header part of the telegram.)
+
+Now store the telegram=||xxxxx...| (skip the +24 at the end) into the file simulation_mymeter.txt
+
+Now you can re-run: wmbusmeters simulation_mymeter.txt
+And it will print the same output (minus the rssi/device).
+
+You can also do: wmbusmeters --debug simulation_mymeter.txt Wasser supercom587 12345678 <yourkey>
+It does not matter that your meter is not compatible with the supercom587, wmbusmeters
+will still decrypt and decode the OMS compliant wmbus encoded values as much as possible.
+
+In the long debug log you will see
+telegram=|2E44xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|+0
+(supercom587) 00: 2e length (46 bytes)
+(supercom587) 01: 44 dll-c (from meter SND_NR)
+(supercom587) 02: 3412 dll-mfct (MMC)
+(supercom587) 04: 78563412 dll-id (12345678)
+(supercom587) 08: 01 dll-version
+(supercom587) 09: 16 dll-type (Cold water meter)
+(supercom587) 0a: 7a tpl-ci-field (EN 13757-3 Application Layer (short tplh))
+(supercom587) 0b: 4b tpl-acc-field
+(supercom587) 0c: 03 tpl-sts-field
+(supercom587) 0d: 2005 tpl-cfg 0520 (AES_CBC_IV nb=2 cntn=0 ra=0 hc=0 )
+(supercom587) 0f: 2f2f decrypt check bytes
+(supercom587) 11: 04 dif (32 Bit Integer/Binary Instantaneous value)
+(supercom587) 12: 13 vif (Volume l)
+(supercom587) 13: * 320C0000 total consumption (3.122000 m3)
+(supercom587) 17: 03 dif (24 Bit Integer/Binary Instantaneous value)
+(supercom587) 18: FD vif (Second extension of VIF-codes)
+(supercom587) 19: 17 vife (Error flags (binary))
+(supercom587) 1a: 000000
+(supercom587) 1d: 44 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+(supercom587) 1e: 13 vif (Volume l)
+(supercom587) 1f: 21090000
+(supercom587) 23: 04 dif (32 Bit Integer/Binary Instantaneous value)
+(supercom587) 24: 93 vif (Volume l)
+(supercom587) 25: 3C vife (backward flow)
+(supercom587) 26: 05000000
+(supercom587) 2a: 2F skip
+(supercom587) 2b: 2F skip
+(supercom587) 2c: 2F skip
+(supercom587) 2d: 2F skip
+(supercom587) 2e: 2F skip
+
+You can see that the supercom587 driver already picked out the total consumption above.
+That value is marked with an '*' and there is an explanation after the value 320C0000
+to show in debug mode how it has been decoded and what it means. You can see
+that there are three more values 000000, 21090000 and 05000000. Your
+goal is to find/decode and print them.
+
+Ok, now it is time to program.
+
+To add a meter type, make a copy of meter_supercom587.cc to
+meter_mymeter.cc and add your meter to LIST_OF_METERS in meters.h
+and add the driver lookup values (mfct,type,ver) to METER_DETECTION.
+
+In meter_mymeter.cc, search and replace supercom587 for mymeter
 possibly adding a new meter type in meters.h if your meter is not a
 water meter and inheriting from that new meter type instead.
 
-Change the constructor and processContent to do your bidding.
+Build with adress sanitizer and gdb debug info:
+make DEBUG=true
 
-If you pass --debug to the commandline, wmbusmeters will print the
-parse results of the data package on stdout. You can see what DifVif
-data there is and adjust your code to fit. If your meter is using C1
-mode, then simply try the multical21 meter and --debug. It will print
-the parsing of the DifVif data and tell you the DifVif pairs
-(DifVifVife triplets, or DifDifeVifVife quadruplets (though
-quadruplets are not yet implemented)) even if the data comes from a
-different type of meter.
+Run your code:
+./build_debug/wmbusmeters simulation_mymeter.txt
 
-It is very helpful if you have problems to email me (oehrstroem@gmail.com)
-the --debug output, or just simply the telegram=|.........|.......| lines from the
-debug output. These contain the decrypted output from the meter and
-are very useful to replay the messages. The +... at the end can be
-used to replay with the same timing as the messages arrived when
-logging. This can be useful for testing the higher levels of the software
-stack where the data is actually displayed to the user or alarms triggered.
+Now its time to change processContent.
+Some meters contain values that can be found using findKey:
+    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
+        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
+    }
 
-Check in simulation.txt and test.sh for how to use this feature.
+Some meters use vendor proprietary fields, typically error codes,
+those are found with:
+    extractDVuint24(&t->values, "03FD17", &offset, &info_codes_);
+    t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
+
+Add any addPrint:s in the constructor to get your decoded values into the json.
+
+Now test your code:
+./build_debug/wmbusmeters --format=json simulation_mymeter.txt Water MyMeter 12345678 <key>
+
+It should print at least:
+{"media":"cold water","meter":"mymeter","name":"Vatten","id":"12345678","total_m3":3.122,"timestamp":"2020-11-04T07:01:12Z"}
+and any other fields you have added.
+
+Eventually we have to add a regression test for MyMeter. The regression tests
+are really really important! This is done by adding a telegram in simulations/simulation_t1.txt
+and typically updating tests/test_t1_meters.sh and tests/test_listen_to_all.sh
+
+You can always email me one of your telegrams and I can help you add it to the regression tests.
+I typically anonymize the telegram by changing the id to something random and it is stored
+decrypted in the simulations file, so no key sharing is necessary.
