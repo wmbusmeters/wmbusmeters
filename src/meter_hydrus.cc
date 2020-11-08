@@ -195,6 +195,67 @@ void MeterHydrus::processContent(Telegram *t)
      {"media":"water","meter":"hydrus","name":"Votten","id":"64646464","total_m3":1.174,"max_flow_m3h":0,"flow_temperature_c":10.4,"total_at_date_m3":0.2,"at_date":"2019-10-31 23:59","battery_life_days":"4999","status":"OK","timestamp":"2020-09-27T08:54:42Z"}
 
     */
+    /*
+      Yet another version telegram:
+      (hydrus) 0f: 2f2f decrypt check bytes
+      (hydrus) 11: 01 dif (8 Bit Integer/Binary Instantaneous value)
+      (hydrus) 12: FD vif (Second extension of VIF-codes)
+      (hydrus) 13: 08 vife (Access Number (transmission count))
+      (hydrus) 14: 88
+      (hydrus) 15: 0C dif (8 digit BCD Instantaneous value)
+      (hydrus) 16: 13 vif (Volume l)
+      (hydrus) 17: * 45911600 total consumption (169.145000 m3)
+      (hydrus) 1b: 8C dif (8 digit BCD Instantaneous value)
+      (hydrus) 1c: 10 dife (subunit=0 tariff=1 storagenr=0)
+      (hydrus) 1d: 05 vif (Energy 10² Wh)
+      (hydrus) 1e: 77900200
+      (hydrus) 22: 0B dif (6 digit BCD Instantaneous value)
+      (hydrus) 23: 3B vif (Volume flow l/h)
+      (hydrus) 24: * 000000 max flow (0.000000 m3/h)
+      (hydrus) 27: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (hydrus) 28: 5A vif (Flow temperature 10⁻¹ °C)
+      (hydrus) 29: * DD00 flow temperature (22.100000 °C)
+      (hydrus) 2b: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (hydrus) 2c: FD vif (Second extension of VIF-codes)
+      (hydrus) 2d: 17 vife (Error flags (binary))
+      (hydrus) 2e: 0000
+      (hydrus) 30: 0A dif (4 digit BCD Instantaneous value)
+      (hydrus) 31: A6 vif (Operating time hours)
+      (hydrus) 32: 18 vife (?)
+      (hydrus) 33: 0000
+      (hydrus) 35: 0B dif (6 digit BCD Instantaneous value)
+      (hydrus) 36: 26 vif (Operating time hours)
+      (hydrus) 37: 255802
+      (hydrus) 3a: 2B dif (6 digit BCD Minimum value)
+      (hydrus) 3b: 3B vif (Volume flow l/h)
+      (hydrus) 3c: 000000
+      (hydrus) 3f: C4 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+      (hydrus) 40: 01 dife (subunit=0 tariff=0 storagenr=3)
+      (hydrus) 41: 6D vif (Date and time type)
+      (hydrus) 42: * 3B179F2A at date (2020-10-31 23:59)
+      (hydrus) 46: CC dif (8 digit BCD Instantaneous value storagenr=1)
+      (hydrus) 47: 01 dife (subunit=0 tariff=0 storagenr=3)
+      (hydrus) 48: 13 vif (Volume l)
+      (hydrus) 49: * 14811600 total consumption at date (168.114000 m3)
+      (hydrus) 4d: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (hydrus) 4e: 66 vif (External temperature 10⁻¹ °C)
+      (hydrus) 4f: D400
+      (hydrus) 51: 2F skip
+      (hydrus) 52: 2F skip
+      (hydrus) 53: 2F skip
+      (hydrus) 54: 2F skip
+      (hydrus) 55: 2F skip
+      (hydrus) 56: 2F skip
+      (hydrus) 57: 2F skip
+      (hydrus) 58: 2F skip
+      (hydrus) 59: 2F skip
+      (hydrus) 5a: 2F skip
+      (hydrus) 5b: 2F skip
+      (hydrus) 5c: 2F skip
+      (hydrus) 5d: 2F skip
+      (hydrus) 5e: 2F skip
+    */
+
     int offset;
     string key;
 
@@ -226,9 +287,12 @@ void MeterHydrus::processContent(Telegram *t)
     }
 
     uint16_t days {};
-    extractDVuint16(&t->values, "02FD74", &offset, &days);
-    remaining_battery_life_year_ = ((double)days) / 365.25;
-    t->addMoreExplanation(offset, " battery life (%d days %f years)", days, remaining_battery_life_year_);
+    bool ok = extractDVuint16(&t->values, "02FD74", &offset, &days);
+    if (ok)
+    {
+        remaining_battery_life_year_ = ((double)days) / 365.25;
+        t->addMoreExplanation(offset, " battery life (%d days %f years)", days, remaining_battery_life_year_);
+    }
 
     status_ = decodeTPLStatusByte(t->tpl_sts, error_codes_);
 }
