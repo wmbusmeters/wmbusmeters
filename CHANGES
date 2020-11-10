@@ -12,6 +12,9 @@ Added support for the sontex868 heat cost allocator.
 Jacek27 added support for the Ultrimis water meter.
 Thanks Jacek27!
 
+psxde added support for the Sensostar 2 heat meter.
+Thanks psxde!
+
 Version 1.0.1: 2020-10-26
 
 Fix bug that prevented /dev/ttyUSB0:im871a:c1 to work.

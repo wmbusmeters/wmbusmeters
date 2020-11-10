@@ -180,6 +180,11 @@ Received telegram from: 95969798
                   type: Cold water meter (0x16)
                    ver: 0x01
                 driver: ultrimis
+Received telegram from: 12345679
+          manufacturer: (EFE) Engelmann Sensor, Germany (0x14c5)
+                  type: Heat meter (0x04)
+                   ver: 0x00
+                driver: sensostar
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)

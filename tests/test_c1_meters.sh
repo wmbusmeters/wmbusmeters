@@ -30,6 +30,10 @@ then
         echo OK: $TESTNAME
         TESTRESULT="OK"
     fi
+else
+    echo "wmbusmeters returned error code: $?"
+    cat $TEST/test_output.txt
+    cat $TEST/test_stderr.txt
 fi
 
 if [ "$TESTRESULT" = "ERROR" ]
