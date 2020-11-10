@@ -65,6 +65,7 @@
     X(vario451,   T1_bit, Heat,        VARIO451,    Vario451)     \
     X(waterstarm, C1_bit|T1_bit, Water,WATERSTARM,  WaterstarM)   \
     X(topaseskr, T1_bit, Water,   TOPASESKR, TopasEsKr)  \
+    X(sensostar, C1_bit|T1_bit, Heat,SENSOSTAR,  Sensostar)   \
 
 
 // List of numbers that can be used to detect the meter driver
@@ -141,6 +142,8 @@
     X(VARIO451,   MANUFACTURER_TCH, 0x04,  0x27) \
     X(VARIO451,   MANUFACTURER_TCH, 0xc3,  0x27) \
     X(WATERSTARM, MANUFACTURER_DWZ, 0x06,  0x02) \
+    X(WATERSTARM, MANUFACTURER_EFE, 0x07,  0x03) \
+    X(SENSOSTAR,  MANUFACTURER_EFE, 0x04,  0x00) \
 
 enum class MeterType {
 #define X(mname,linkmode,info,type,cname) type,
@@ -397,6 +400,7 @@ shared_ptr<ElectricityMeter> createESYSWM(MeterInfo &m);
 shared_ptr<ElectricityMeter> createEBZWMBE(MeterInfo &m);
 shared_ptr<WaterMeter> createTopasEsKr(MeterInfo &m);
 shared_ptr<WaterMeter> createUltrimis(MeterInfo &m);
+shared_ptr<HeatMeter> createSensostar(MeterInfo &m);
 
 GenericMeter *createGeneric(WMBus *bus, MeterInfo &m);
 
