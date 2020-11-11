@@ -51,6 +51,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_listen_to_all.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_driver_detection.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_multiple_ids.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
