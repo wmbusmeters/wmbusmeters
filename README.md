@@ -50,9 +50,10 @@ You can trigger a reload of the config files with `sudo killall -HUP wmbusmeters
 `wmbusmetersd /tmp/thepidfile` from a script instead.)
 
 Check the config file /etc/wmbusmeters.conf and edit the device. For example:
-`auto:c1` or `im871a:c1`
+`auto:c1` or `im871a:c1` or `im871a[457200101056]:t1` or `/dev/ttyUSB2:amb8465:c1,t1`
 
-Adding a device like auto or im871a will trigger an automatic probe of all serial ttys.
+Adding a device like auto or im871a will trigger an automatic probe of all serial ttys
+to auto find or to find on which tty the im871a resides.
 
 If you specify a full device path like `/dev/ttyUSB0:im871a:c1` or `rtlwmbus` or `rtl433`
 then it will not probe the serial devices. If you must be really sure that it will not probe something
@@ -154,7 +155,7 @@ depending on if you are running as a daemon or not.
 
 # Running without config files, good for experimentation and test.
 ```
-wmbusmeters version: 1.0.0
+wmbusmeters version: 1.0.2
 Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type]{:<modes>} [meter_id] [meter_key] )*
 
 As <options> you can use:
@@ -190,12 +191,17 @@ As <options> you can use:
     --usestderr write notices/debug/verbose and other logging output to stderr (the default)
     --usestdoutforlogging write debug/verbose and logging output to stdout
     --verbose for more information
+```
 
 As <device> you can use:
 
-auto:c1, to have wmbusmeters look existing serial devices and probe them to detect: im871a, amb8465, cul, rc1180 or rtlsdr.
+auto:c1, to have wmbusmeters probe for devices: im871a, amb8465, cul, rc1180 or rtlsdr (spawns rtlwmbus).
 
-If you have two im871a you can supply both of them and set different listening modes:
+im871a:c1 to start all connected im871a devices in c1 mode, ignore all other devices.
+
+/dev/ttyUSB1:amb8465:c1 to start only this device on this tty. Do not probe for other devices.
+
+If you have two im871a you can supply both of them with their unique id:s and set different listening modes:
 im871a[12345678]:c1 im871a[11223344]:t1
 
 You can also specify rtlwmbus and if you set the serial in the rtlsdr
@@ -210,6 +216,7 @@ rtlsdr dongle like this `rtlwmbus[1234]`.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
 rtlwmbus, to spawn the background process: "rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus"
+for each attached rtlsdr dongle.
 
 rtlwmbus:868.9M, to tune to this fq instead.
 
@@ -230,18 +237,19 @@ stdin:rtlwmbus, to read telegrams formatted using the rtlwmbus format from stdin
 
 telegrams.msg:rtlwmbus, to read rtlwmbus formatted telegrams from this file. Works for rtl433 as well.
 
-simulation_abc.txt, to read telegrams from the file (which has a name beginning with simulation_)
+simulation_abc.txt, to read telegrams from the file (the file must have a name beginning with simulation_....)
 expecting the same format that is the output from --logtelegrams. This format also supports replay with timing.
 
 As meter quadruples you specify:
 
-<meter_name> a mnemonic for this particular meter
+<meter_name> a mnemonic for this particular meter (!Must not contain a colon ':' character!)
 <meter_type> one of the supported meters
 (can be suffixed with :<mode> to specify which mode you expect the meter to use when transmitting)
 <meter_id> an 8 digit mbus id, usually printed on the meter
 <meter_key> an encryption key unique for the meter
     if the meter uses no encryption, then supply NOKEY
 
+```
 Supported wmbus dongles:
 IMST 871a (im871a)
 Amber 8465 (amb8465)

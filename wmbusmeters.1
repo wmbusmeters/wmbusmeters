@@ -102,9 +102,6 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 \fBim871a[12345678]:t1\fR look for the im871a dongle with this particular id.
 
 .TP
-\fB/dev/ttyUSB0:9600\fR read serial data from tty at 9600 bps, expects raw wmbus frames with the DLL crcs removed.
-
-.TP
 \fB/dev/ttyUSB0:amb8465:c1,t1\fR expect an amb8465 on this tty.
 
 .TP
@@ -113,6 +110,9 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 .TP
 \fBrtlwmbus[alfa]:433M:c1,t1 rtlwmbus[beta]:868.9M:c1,t1\fR Use two rtlsdr dongles, one has its id set to alfa (using rtl_eeprom)
 and the other set to beta. Alfa has an antenna tuned for 433M, beta has an antenna suitable for 868.9M.
+
+.TP
+\fB/dev/ttyUSB0:9600\fR read serial data from tty at 9600 bps, expects raw wmbus frames with the DLL crcs removed.
 
 .TP
 \fBstdin:rtlwmbus\fR read rtlwmbus formatted data from stdin.
