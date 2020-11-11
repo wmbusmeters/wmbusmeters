@@ -542,6 +542,15 @@ void test_devices()
           "c1,t1", // linkmodes
           ""); // command
 
+    testd("/dev/ttyUSB0:im871a:c1", true,
+          "/dev/ttyUSB0", // file
+          "im871a", // type
+          "", // id
+          "", // fq
+          "", // bps
+          "c1", // linkmodes
+          ""); // command
+
     testd("im871a[12345678]:c1", true,
           "", // file
           "im871a", // type
@@ -559,6 +568,15 @@ void test_devices()
           "", // bps
           "c1,t1", // linkmodes
           "gurka"); // command
+
+    testd("rtlwmbus[plast]:c1,t1", true,
+          "", // file
+          "rtlwmbus", // type
+          "plast", // id
+          "", // fq
+          "", // bps
+          "c1,t1", // linkmodes
+          ""); // command
 
     testd("stdin:rtlwmbus", true,
           "stdin", // file

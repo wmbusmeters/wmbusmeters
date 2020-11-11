@@ -4031,9 +4031,9 @@ bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_
 
 bool is_type_id(string t, WMBusDeviceType *out_type, string *out_id)
 {
-    // im871a im871a(12345678)
+    // im871a im871a[12345678]
     // auto
-    // rtlwmbus
+    // rtlwmbus rtlwmbus[plast123]
     if (t == "auto")
     {
         *out_type = WMBusDeviceType::DEVICE_AUTO;
@@ -4046,7 +4046,7 @@ bool is_type_id(string t, WMBusDeviceType *out_type, string *out_id)
 
     if (pps == string::npos && ppe == string::npos)
     {
-        // No parentheses found, is t a known wmbus device? like im871a amb8465 etc....
+        // No brackets found, is t a known wmbus device? like im871a amb8465 etc....
         WMBusDeviceType tt = toWMBusDeviceType(t);
         if (tt == DEVICE_UNKNOWN) return false;
         *out_type = toWMBusDeviceType(t);
@@ -4061,7 +4061,6 @@ bool is_type_id(string t, WMBusDeviceType *out_type, string *out_id)
         string id = t.substr(pps+1, ppe-pps-1);
         WMBusDeviceType tt = toWMBusDeviceType(type);
         if (tt == DEVICE_UNKNOWN) return false;
-        if (!isValidId(id, true)) return false;
         *out_type = toWMBusDeviceType(type);
         *out_id = id;
         return true;
@@ -4252,7 +4251,7 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
 {
     assert(specified_device.file != "");
     assert(specified_device.command == "");
-    debug("(lookup) with file \"%s\"\n", specified_device.str().c_str());
+    debug("(lookup) with file \"%s\"\n", specified_device.file.c_str());
 
     Detected detected;
     detected.found_file = specified_device.file;
@@ -4294,7 +4293,8 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
 
     // Now handle all files with specified type.
     if (specified_device.type != WMBusDeviceType::DEVICE_UNKNOWN &&
-        specified_device.type != WMBusDeviceType::DEVICE_AUTO)
+        specified_device.type != WMBusDeviceType::DEVICE_AUTO &&
+        !specified_device.is_tty)
     {
         debug("(lookup) driver: %s\n", toString(specified_device.type));
         assert(!lms.empty());
@@ -4304,8 +4304,18 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
     }
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
     // to figure out what is connected to it.
-    LinkModeSet desired_linkmodes = default_linkmodes;
-    return detectWMBusDeviceOnTTY(specified_device.file, desired_linkmodes, handler);
+    LinkModeSet desired_linkmodes = lms;
+    Detected d = detectWMBusDeviceOnTTY(specified_device.file, desired_linkmodes, handler);
+    if (specified_device.type != d.found_type)
+    {
+        warning("Expected %s on %s but found %s instead, ignoring it!\n",
+                toLowerCaseString(specified_device.type),
+                specified_device.file.c_str(),
+                toLowerCaseString(d.found_type));
+        d.found_file = specified_device.file;
+        d.found_type = WMBusDeviceType::DEVICE_UNKNOWN;
+    }
+    return d;
 }
 
 Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
