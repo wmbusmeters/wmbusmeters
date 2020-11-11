@@ -164,6 +164,7 @@ struct SpecifiedDevice
     void clear();
     string str();
     bool parse(string &s);
+    static bool isLikelyDevice(string &s);
 };
 
 struct Detected

@@ -4105,6 +4105,14 @@ string SpecifiedDevice::str()
     return r;
 }
 
+bool SpecifiedDevice::isLikelyDevice(string &arg)
+{
+    // Only devices are allowed to contain colons.
+    // Devices usually contain a colon!
+    if (arg.find(":") != string::npos) return true;
+    return false;
+}
+
 bool SpecifiedDevice::parse(string &arg)
 {
     clear();

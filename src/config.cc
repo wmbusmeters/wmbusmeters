@@ -224,6 +224,11 @@ bool handleDevice(Configuration *c, string devicefile)
 {
     SpecifiedDevice specified_device;
     bool ok = specified_device.parse(devicefile);
+    if (!ok && SpecifiedDevice::isLikelyDevice(devicefile))
+    {
+        error("Not a valid device \"%s\"\n", devicefile.c_str());
+    }
+
     if (ok)
     {
         // Number the devices

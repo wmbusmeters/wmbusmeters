@@ -889,8 +889,12 @@ void perform_auto_scan_of_serial_devices(Configuration *config)
             {
                 // See if we had a specified device without a file,
                 // that matches this detected device.
-                find_specified_device_and_update_detected(config, &detected);
-                open_wmbus_device_and_set_linkmodes(config, "auto", &detected);
+                bool found = find_specified_device_and_update_detected(config, &detected);
+                if (config->use_auto_device_detect || found)
+                {
+                    // Open the device, only if auto is enabled, or if the device was specified.
+                    open_wmbus_device_and_set_linkmodes(config, found?"config":"auto", &detected);
+                }
             }
             else
             {
@@ -937,8 +941,12 @@ void perform_auto_scan_of_swradio_devices(Configuration *config)
             {
                 // Use the serialnr as the id.
                 detected.found_device_id = serialnr;
-                find_specified_device_and_update_detected(config, &detected);
-                open_wmbus_device_and_set_linkmodes(config, "auto", &detected);
+                bool found = find_specified_device_and_update_detected(config, &detected);
+                if (config->use_auto_device_detect || found)
+                {
+                    // Open the device, only if auto is enabled, or if the device was specified.
+                    open_wmbus_device_and_set_linkmodes(config, found?"config":"auto", &detected);
+                }
             }
         }
     }
