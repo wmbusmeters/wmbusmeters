@@ -1,4 +1,10 @@
 
+Version 1.0.2: 2020-11-11
+
+Fixed bug that prevented rtlwmbus[1234] from working.
+Fixed a race that in one out of 100 runs, ignored a telegram
+on stdin and exited without decoding it.
+
 Added --donotprobe=/dev/ttyUSB0
 
 (Also made sure that specifying only rtlwmbus/rtl433 will not probe
