@@ -481,9 +481,20 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
     while (argv[i])
     {
         bool ok = handleDevice(c, argv[i]);
-        if (!ok) break;
+        if (!ok)
+        {
+            if (!argv[i+1])
+            {
+                // This was the last argument on the commandline.
+                // It should have been a device or a file.
+                error("Not a valid device \"%s\"\n", argv[i]);
+            }
+            // There are more arguments...
+            break;
+        }
         i++;
     }
+
 
     if (c->supplied_wmbus_devices.size() == 0 &&
         c->use_auto_device_detect == false &&

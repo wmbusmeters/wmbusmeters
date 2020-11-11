@@ -67,7 +67,16 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         // If the key starts with # then the line is a comment. Ignore it.
         if (p.first.length() > 0 && p.first[0] == '#') continue;
 
-        if (p.first == "name") name = p.second;
+        if (p.first == "name")
+        {
+            if (name.find(":") != string::npos)
+            {
+                // Oups, names are not allowed to contain the :
+                warning("Found invalid meter name \"%s\" in meter config file, must not contain a ':', skipping meter.\n", name.c_str());
+                return;
+            }
+            name = p.second;
+        }
         else
         if (p.first == "type") type = p.second;
         else

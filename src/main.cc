@@ -49,7 +49,8 @@ void check_for_dead_wmbus_devices(Configuration *config);
 shared_ptr<Meter> create_meter(Configuration *config, MeterType type, MeterInfo *mi, const char *keymsg);
 shared_ptr<Printer> create_printer(Configuration *config);
 shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config, shared_ptr<SerialCommunicationManager> manager);
-void detect_and_configure_wmbus_devices(Configuration *config);
+enum class DetectionType { STDIN_FILE_SIMULATION, ALL };
+void detect_and_configure_wmbus_devices(Configuration *config, DetectionType dt);
 SpecifiedDevice *find_specified_device_from_detected(Configuration *c, Detected *d);
 bool find_specified_device_and_update_detected(Configuration *c, Detected *d);
 void find_specified_device_and_mark_as_handled(Configuration *c, Detected *d);
@@ -310,7 +311,8 @@ LIST_OF_METERS
     return newm;
 }
 
-shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config, shared_ptr<SerialCommunicationManager> manager)
+shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
+                                      shared_ptr<SerialCommunicationManager> manager)
 {
     shared_ptr<WMBus> wmbus;
 
@@ -486,7 +488,7 @@ shared_ptr<Printer> create_printer(Configuration *config)
                                            config->meterfiles_timestamp));
 }
 
-void detect_and_configure_wmbus_devices(Configuration *config)
+void detect_and_configure_wmbus_devices(Configuration *config, DetectionType dt)
 {
     check_for_dead_wmbus_devices(config);
 
@@ -494,7 +496,7 @@ void detect_and_configure_wmbus_devices(Configuration *config)
     bool must_auto_find_rtlsdrs = false;
 
     // The device=auto has been specified....
-    if (config->use_auto_device_detect)
+    if (config->use_auto_device_detect && dt == DetectionType::ALL)
     {
         must_auto_find_ttys = true;
         must_auto_find_rtlsdrs = true;
@@ -503,6 +505,15 @@ void detect_and_configure_wmbus_devices(Configuration *config)
     for (SpecifiedDevice &specified_device : config->supplied_wmbus_devices)
     {
         specified_device.handled = false;
+        if (dt != DetectionType::ALL)
+        {
+            if (!specified_device.is_stdin && !specified_device.is_file && !specified_device.is_simulation)
+            {
+                // The event loop has not yet started and this is not stdin nor a file, nor a simulation file.
+                // Therefore, do not try to detect it yet!
+                continue;
+            }
+        }
         if (specified_device.file == "" && specified_device.command == "")
         {
             // File/tty/command not specified, use auto scan later to find actual device file/tty.
@@ -583,7 +594,7 @@ void detect_and_configure_wmbus_devices(Configuration *config)
 
     for (SpecifiedDevice &specified_device : config->supplied_wmbus_devices)
     {
-        if (!specified_device.handled)
+        if (dt == DetectionType::ALL && !specified_device.handled)
         {
             time_t last_alarm = specified_device.last_alarm;
             time_t now = time(NULL);
@@ -973,7 +984,7 @@ void regular_checkup(Configuration *config)
 
     if (serial_manager_ && config)
     {
-        detect_and_configure_wmbus_devices(config);
+        detect_and_configure_wmbus_devices(config, DetectionType::ALL);
     }
 
     {
@@ -1124,9 +1135,11 @@ bool start(Configuration *config)
     // Future changes are triggered through this callback.
     printed_warning_ = true;
 
-    detect_and_configure_wmbus_devices(config);
+    detect_and_configure_wmbus_devices(config, DetectionType::STDIN_FILE_SIMULATION);
 
     serial_manager_->startEventLoop();
+
+    detect_and_configure_wmbus_devices(config, DetectionType::ALL);
 
     if (wmbus_devices_.size() == 0)
     {

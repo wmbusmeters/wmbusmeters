@@ -16,7 +16,7 @@ cat > $TEST/test_expected.txt <<EOF
 EOF
 
 xxd -r -p simulations/serial_rawtty_ok.hex | \
-    $PROG --format=json --listento=any stdin \
+    $PROG --silent --format=json --listento=any stdin \
           Rummet1 lansenth 00010203 "" \
           Rummet2 rfmamb 11772288 "" \
     | grep Rummet > $TEST/test_output.txt
@@ -46,7 +46,7 @@ cat > $TEST/test_expected.txt <<EOF
 {"media":"room sensor","meter":"rfmamb","name":"Rummet2","id":"11772288","current_temperature_c":22.08,"average_temperature_1h_c":21.91,"average_temperature_24h_c":22.07,"maximum_temperature_1h_c":22.08,"minimum_temperature_1h_c":21.85,"maximum_temperature_24h_c":23.47,"minimum_temperature_24h_c":21.29,"current_relative_humidity_rh":44.2,"average_relative_humidity_1h_rh":43.2,"average_relative_humidity_24h_rh":44.5,"minimum_relative_humidity_1h_rh":42.2,"maximum_relative_humidity_1h_rh":50.1,"maximum_relative_humidity_24h_rh":0,"minimum_relative_humidity_24h_rh":0,"device_date_time":"2019-10-11 19:59","timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
-$PROG --format=json --listento=any $TEST/test_raw \
+$PROG --silent --format=json --listento=any $TEST/test_raw \
           Rummet1 lansenth 00010203 "" \
           Rummet2 rfmamb 11772288 "" \
     | grep Rummet > $TEST/test_output.txt
@@ -74,7 +74,7 @@ cat > $TEST/test_expected.txt <<EOF
 EOF
 
 cat simulations/serial_rtlwmbus_ok.msg | \
-    $PROG --format=json --listento=any stdin:rtlwmbus \
+    $PROG --silent --format=json --listento=any stdin:rtlwmbus \
           Rummet1 lansenth 00010203 "" \
           Rummet2 rfmamb 11772288 "" \
     | grep Rummet > $TEST/test_output.txt
@@ -101,7 +101,7 @@ cat > $TEST/test_expected.txt <<EOF
 {"media":"room sensor","meter":"rfmamb","name":"Rummet2","id":"11772288","current_temperature_c":22.08,"average_temperature_1h_c":21.91,"average_temperature_24h_c":22.07,"maximum_temperature_1h_c":22.08,"minimum_temperature_1h_c":21.85,"maximum_temperature_24h_c":23.47,"minimum_temperature_24h_c":21.29,"current_relative_humidity_rh":44.2,"average_relative_humidity_1h_rh":43.2,"average_relative_humidity_24h_rh":44.5,"minimum_relative_humidity_1h_rh":42.2,"maximum_relative_humidity_1h_rh":50.1,"maximum_relative_humidity_24h_rh":0,"minimum_relative_humidity_24h_rh":0,"device_date_time":"2019-10-11 19:59","timestamp":"1111-11-11T11:11:11Z","device":"rtlwmbus[]","rssi_dbm":97}
 EOF
 
-$PROG --format=json --listento=any simulations/serial_rtlwmbus_ok.msg:rtlwmbus \
+$PROG --silent --format=json --listento=any simulations/serial_rtlwmbus_ok.msg:rtlwmbus \
           Rummet1 lansenth 00010203 "" \
           Rummet2 rfmamb 11772288 "" \
     | grep Rummet > $TEST/test_output.txt
@@ -127,7 +127,7 @@ cat > $TEST/test_expected.txt <<EOF
 EOF
 
 cat simulations/serial_rtl433_ok.msg | \
-    $PROG --format=json --listento=any stdin:rtl433 \
+    $PROG --silent --format=json --listento=any stdin:rtl433 \
           Rummet1 lansenth 00010203 "" \
           Rummet2 rfmamb 11772288 "" \
     | grep Rummet > $TEST/test_output.txt
@@ -154,7 +154,7 @@ cat > $TEST/test_expected.txt <<EOF
 {"media":"room sensor","meter":"rfmamb","name":"Rummet2","id":"11772288","current_temperature_c":22.08,"average_temperature_1h_c":21.91,"average_temperature_24h_c":22.07,"maximum_temperature_1h_c":22.08,"minimum_temperature_1h_c":21.85,"maximum_temperature_24h_c":23.47,"minimum_temperature_24h_c":21.29,"current_relative_humidity_rh":44.2,"average_relative_humidity_1h_rh":43.2,"average_relative_humidity_24h_rh":44.5,"minimum_relative_humidity_1h_rh":42.2,"maximum_relative_humidity_1h_rh":50.1,"maximum_relative_humidity_24h_rh":0,"minimum_relative_humidity_24h_rh":0,"device_date_time":"2019-10-11 19:59","timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
-$PROG --format=json --listento=any simulations/serial_rtl433_ok.msg:rtl433 \
+$PROG --silent --format=json --listento=any simulations/serial_rtl433_ok.msg:rtl433 \
           Rummet1 lansenth 00010203 "" \
           Rummet2 rfmamb 11772288 "" \
     | grep Rummet > $TEST/test_output.txt
