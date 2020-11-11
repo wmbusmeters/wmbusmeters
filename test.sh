@@ -99,4 +99,11 @@ then
     if [ "$?" != "0" ]; then RC="1"; fi
 fi
 
+if [ "$RC" = "0" ]
+then
+    echo "All tests ok!"
+else
+    echo "Some tests failed!"
+fi
+
 exit $RC

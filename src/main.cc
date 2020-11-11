@@ -1120,13 +1120,13 @@ bool start(Configuration *config)
         }
         );
 
-    serial_manager_->startEventLoop();
-
     // Detect and initialize any devices.
     // Future changes are triggered through this callback.
     printed_warning_ = true;
 
     detect_and_configure_wmbus_devices(config);
+
+    serial_manager_->startEventLoop();
 
     if (wmbus_devices_.size() == 0)
     {
