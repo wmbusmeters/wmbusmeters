@@ -444,6 +444,11 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strcmp(argv[i], "--nodeviceexit")) {
+            c->nodeviceexit = true;
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--resetafter=", 13) && strlen(argv[i]) > 13) {
             c->resetafter = parseTime(argv[i]+13);
             if (c->resetafter <= 0) {

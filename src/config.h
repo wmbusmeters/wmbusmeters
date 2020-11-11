@@ -85,6 +85,7 @@ struct Configuration
     std::string list_meter;
     bool oneshot {};
     int  exitafter {}; // Seconds to exit.
+    bool nodeviceexit {}; // If no wmbus receiver device is found, then exit immediately!
     int  resetafter {}; // Reset the wmbus devices regularly.
     std::vector<SpecifiedDevice> supplied_wmbus_devices; // /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600
     bool use_auto_device_detect {}; // Set to true if auto was supplied as device.
