@@ -5,6 +5,15 @@ Fixed bug that prevented rtlwmbus[1234] from working.
 Fixed a race that in one out of 100 runs, ignored a telegram
 on stdin and exited without decoding it.
 
+Wmbusmeters now warns if you have specified /dev/ttyUSB0:im871a:c1
+but there is no /dev/ttyUSB0 or if there is an amb8465 on /dev/ttyUSB0.
+
+Added --nodeviceexit
+
+This option will force wmbusmeters to exit if no wmbus device is found.
+For example if you specify /dev/ttyUSB0:im871a:c1 and you want
+wmbusmeters to fail if there is no im871a on ttyUSB0.
+
 Added --donotprobe=/dev/ttyUSB0
 
 (Also made sure that specifying only rtlwmbus/rtl433 will not probe

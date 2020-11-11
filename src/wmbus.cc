@@ -4306,7 +4306,8 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
     // to figure out what is connected to it.
     LinkModeSet desired_linkmodes = lms;
     Detected d = detectWMBusDeviceOnTTY(specified_device.file, desired_linkmodes, handler);
-    if (specified_device.type != d.found_type)
+    if (specified_device.type != d.found_type &&
+        specified_device.type != DEVICE_UNKNOWN)
     {
         warning("Expected %s on %s but found %s instead, ignoring it!\n",
                 toLowerCaseString(specified_device.type),

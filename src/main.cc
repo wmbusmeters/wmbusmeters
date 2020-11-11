@@ -241,6 +241,8 @@ void check_for_dead_wmbus_devices(Configuration *config)
                    w->device().c_str(),
                    toLowerCaseString(w->type()),
                    id.c_str());
+
+            w->close();
         }
     }
 
@@ -272,11 +274,23 @@ void check_for_dead_wmbus_devices(Configuration *config)
         }
         else
         {
-            if (!printed_warning_)
+            if (config->nodeviceexit)
             {
-                info("No wmbus device detected, waiting for a device to be plugged in.\n");
-                check_if_multiple_wmbus_meters_running();
-                printed_warning_ = true;
+                if (!printed_warning_)
+                {
+                    notice("No wmbus device detected. Exiting!\n");
+                    serial_manager_->stop();
+                    printed_warning_ = true;
+                }
+            }
+            else
+            {
+                if (!printed_warning_)
+                {
+                    info("No wmbus device detected, waiting for a device to be plugged in.\n");
+                    check_if_multiple_wmbus_meters_running();
+                    printed_warning_ = true;
+                }
             }
         }
     }
@@ -507,7 +521,7 @@ void detect_and_configure_wmbus_devices(Configuration *config, DetectionType dt)
         specified_device.handled = false;
         if (dt != DetectionType::ALL)
         {
-            if (!specified_device.is_stdin && !specified_device.is_file && !specified_device.is_simulation)
+            if (specified_device.is_tty || (!specified_device.is_stdin && !specified_device.is_file && !specified_device.is_simulation))
             {
                 // The event loop has not yet started and this is not stdin nor a file, nor a simulation file.
                 // Therefore, do not try to detect it yet!
@@ -558,11 +572,38 @@ void detect_and_configure_wmbus_devices(Configuration *config, DetectionType dt)
                 continue;
             }
 
+            if (not_serial_wmbus_devices_.count(specified_device.file) > 0)
+            {
+                // Enumerate all serial devices that might connect to a wmbus device.
+                vector<string> ttys = serial_manager_->listSerialTTYs();
+                // Did a non-wmbus-device get unplugged? Then remove it from the known-not-wmbus-device set.
+                remove_lost_serial_devices_from_ignore_list(ttys);
+                if (not_serial_wmbus_devices_.count(specified_device.file) > 0)
+                {
+                    trace("[MAIN] ignoring failed file %s\n", specified_device.file.c_str());
+                    specified_device.handled = true;
+                    continue;
+                }
+            }
+
+            if (!checkCharacterDeviceExists(specified_device.file.c_str(), false) &&
+                !checkFileExists(specified_device.file.c_str()) &&
+                specified_device.file != "stdin")
+            {
+                trace("Cannot open %s, no such device.\n", specified_device.file.c_str(),
+                        specified_device.str().c_str());
+                continue;
+            }
+
             Detected detected = detectWMBusDeviceWithFile(specified_device, config->default_device_linkmodes, serial_manager_);
 
             if (detected.found_type == DEVICE_UNKNOWN)
             {
-                warning("Warning! Unknown device %s\n", specified_device.str().c_str());
+                if (checkCharacterDeviceExists(specified_device.file.c_str(), false))
+                {
+                    // Yes, this device actually exists, there is a need to ignore it.
+                    not_serial_wmbus_devices_.insert(specified_device.file);
+                }
             }
 
             if (detected.specified_device.is_stdin || detected.specified_device.is_file || detected.specified_device.is_simulation)
@@ -762,9 +803,17 @@ void oneshot_check(Configuration *config, Telegram *t, Meter *meter)
 
 void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Detected *detected)
 {
+    if (detected->found_type == WMBusDeviceType::DEVICE_UNKNOWN)
+    {
+        debug("(verbose) ignoring device %s\n", detected->specified_device.str().c_str());
+        return;
+    }
+
     LOCK_WMBUS_DEVICES(open_wmbus_device);
 
-    if (detected->found_type == DEVICE_UNKNOWN)
+    debug("(main) opening %s\n", detected->specified_device.str().c_str());
+
+/*    if (detected->found_type == DEVICE_UNKNOWN)
     {
         // This is a manual config, lets detect and check the device properly.
         AccessCheck ac = reDetectDevice(detected, serial_manager_);
@@ -773,7 +822,7 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Dete
             error("Could not open device %s\n", detected->specified_device.str().c_str());
         }
     }
-
+*/
     LinkModeSet lms = detected->specified_device.linkmodes;
     if (lms.empty())
     {
@@ -1138,13 +1187,20 @@ bool start(Configuration *config)
     detect_and_configure_wmbus_devices(config, DetectionType::STDIN_FILE_SIMULATION);
 
     serial_manager_->startEventLoop();
-
     detect_and_configure_wmbus_devices(config, DetectionType::ALL);
 
     if (wmbus_devices_.size() == 0)
     {
-        notice("No wmbus device detected, waiting for a device to be plugged in.\n");
-        check_if_multiple_wmbus_meters_running();
+        if (config->nodeviceexit)
+        {
+            notice("No wmbus device detected. Exiting!\n");
+            serial_manager_->stop();
+        }
+        else
+        {
+            notice("No wmbus device detected, waiting for a device to be plugged in.\n");
+            check_if_multiple_wmbus_meters_running();
+        }
     }
 
     // Every 2 seconds detect any plugged in or removed wmbus devices.
@@ -1159,7 +1215,7 @@ bool start(Configuration *config)
         notice("(wmbusmeters) waiting for telegrams\n");
     }
 
-    if (!meter_manager_->hasMeters())
+    if (!meter_manager_->hasMeters() && serial_manager_->isRunning())
     {
         notice("No meters configured. Printing id:s of all telegrams heard!\n");
 
