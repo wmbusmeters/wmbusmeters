@@ -188,6 +188,9 @@ protected:
     bool expecting_ascii_ {}; // If true, print using safeString instead if bin2hex
     bool is_file_ = false;
     bool is_stdin_ = false;
+    // When feeding from stdin, to prevent early exit, we want
+    // at least some data before leaving the loop!
+    // I.e. do not exit before we have received something!
     bool no_callbacks_ = false;
     SerialCommunicationManagerImp *manager_;
     bool resetting_ {}; // Set to true while resetting.
@@ -227,10 +230,18 @@ int SerialDeviceImp::receive(vector<uchar> *data)
         }
         if (nr == 0)
         {
-            if (is_stdin_ || is_file_)
+            if (is_file_)
             {
-                debug("(serial) no more data on fd=%d\n", fd_);
+                debug("(serial) no more data on file fd=%d\n", fd_);
                 close_me = true;
+            }
+            if (is_stdin_)
+            {
+                if (getchar() == EOF)
+                {
+                    debug("(serial) no more data on stdin fd=%d\n", fd_);
+                    close_me = true;
+                }
             }
             break;
         }

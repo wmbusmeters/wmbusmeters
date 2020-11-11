@@ -167,7 +167,7 @@ void handleLoglevel(Configuration *c, string loglevel)
         // Kick in trace immediately.
         traceEnabled(c->trace);
     }
-    else if (loglevel == "silent") { c->silence = true; }
+    else if (loglevel == "silent") { c->silent = true; }
     else if (loglevel == "normal") { }
     else {
         warning("No such log level: \"%s\"\n", loglevel.c_str());

@@ -278,7 +278,7 @@ string format3fdot3f(double v)
 
 bool syslog_enabled_ = false;
 bool logfile_enabled_ = false;
-bool warning_enabled_ = true;
+bool logging_silenced_ = false;
 bool verbose_enabled_ = false;
 bool debug_enabled_ = false;
 bool trace_enabled_ = false;
@@ -288,8 +288,8 @@ bool internal_testing_enabled_ = false;
 
 string log_file_;
 
-void warningSilenced(bool b) {
-    warning_enabled_ = !b;
+void silentLogging(bool b) {
+    logging_silenced_ = b;
 }
 
 void enableSyslog() {
@@ -418,21 +418,25 @@ void outputStuff(int syslog_level, const char *fmt, va_list args)
 }
 
 void info(const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    outputStuff(LOG_INFO, fmt, args);
-    va_end(args);
+    if (!logging_silenced_) {
+        va_list args;
+        va_start(args, fmt);
+        outputStuff(LOG_INFO, fmt, args);
+        va_end(args);
+    }
 }
 
 void notice(const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    outputStuff(LOG_NOTICE, fmt, args);
-    va_end(args);
+    if (!logging_silenced_) {
+        va_list args;
+        va_start(args, fmt);
+        outputStuff(LOG_NOTICE, fmt, args);
+        va_end(args);
+    }
 }
 
 void warning(const char* fmt, ...) {
-    if (warning_enabled_) {
+    if (!logging_silenced_) {
         va_list args;
         va_start(args, fmt);
         outputStuff(LOG_WARNING, fmt, args);

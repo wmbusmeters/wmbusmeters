@@ -185,6 +185,7 @@ As <options> you can use:
     --selectfields=id,timestamp,total_m3 select fields to be printed
     --separator=<c> change field separator to c
     --shell=<cmdline> invokes cmdline with env variables containing the latest reading
+    --silent do not print informational messages nor warnings
     --useconfig=<dir> load config files from dir/etc
     --usestderr write notices/debug/verbose and other logging output to stderr (the default)
     --usestdoutforlogging write debug/verbose and logging output to stdout

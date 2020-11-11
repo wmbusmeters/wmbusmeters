@@ -1078,7 +1078,7 @@ bool start(Configuration *config)
     }
 
     // Configure settings.
-    warningSilenced(config->silence);
+    silentLogging(config->silent);
     verboseEnabled(config->verbose);
     logTelegramsEnabled(config->logtelegrams);
     debugEnabled(config->debug);

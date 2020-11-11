@@ -72,7 +72,7 @@ void warning(const char* fmt, ...);
 void info(const char* fmt, ...);
 void notice(const char* fmt, ...);
 
-void warningSilenced(bool b);
+void silentLogging(bool b);
 void verboseEnabled(bool b);
 void debugEnabled(bool b);
 void traceEnabled(bool b);

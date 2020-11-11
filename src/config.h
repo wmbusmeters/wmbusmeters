@@ -52,7 +52,7 @@ struct Configuration
     std::string config_root;
     bool reload {};
     bool need_help {};
-    bool silence {};
+    bool silent {};
     bool verbose {};
     bool version {};
     bool license {};

@@ -73,8 +73,8 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             c->need_help = true;
             return shared_ptr<Configuration>(c);
         }
-        if (!strcmp(argv[i], "--silence")) {
-            c->silence = true;
+        if (!strcmp(argv[i], "--silent")) {
+            c->silent = true;
             i++;
             continue;
         }
