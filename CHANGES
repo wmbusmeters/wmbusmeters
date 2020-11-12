@@ -1,4 +1,8 @@
 
+Version 1.0.3: 2020-11-11
+
+Add missing files and update man page for --nodeviceexit
+
 Version 1.0.2: 2020-11-11
 
 Fixed bug that prevented rtlwmbus[1234] from working.

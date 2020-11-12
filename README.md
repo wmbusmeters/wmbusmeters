@@ -155,7 +155,7 @@ depending on if you are running as a daemon or not.
 
 # Running without config files, good for experimentation and test.
 ```
-wmbusmeters version: 1.0.2
+wmbusmeters version: 1.0.3
 Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type]{:<modes>} [meter_id] [meter_key] )*
 
 As <options> you can use:
@@ -181,6 +181,7 @@ As <options> you can use:
     --meterfilesnaming=(name|id|name-id) the meter file is the meter's: name, id or name-id
     --meterfilestimestamp=(never|day|hour|minute|micros) the meter file is suffixed with a
                           timestamp (localtime) with the given resolution.
+    --nodeviceexit if no wmbus devices are found, then exit immediately
     --oneshot wait for an update from each meter, then quit
     --resetafter=<time> reset the wmbus dongle regularly, default is 23h
     --selectfields=id,timestamp,total_m3 select fields to be printed
