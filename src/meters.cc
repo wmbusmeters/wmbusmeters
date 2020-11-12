@@ -390,7 +390,18 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
             s += m->datetimeOfUpdateHumanReadable() + c;
             continue;
         }
+        if (field == "device")
+        {
+            s += t->about.device + c;
+            continue;
+        }
+        if (field == "rssi_dbm")
+        {
+            s += to_string(t->about.rssi_dbm) + c;
+            continue;
+        }
 
+        bool handled = false;
         for (Print p : prints)
         {
             if (p.getValueString)
@@ -398,6 +409,7 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
                 if (field == p.vname)
                 {
                     s += p.getValueString() + c;
+                    handled = true;
                 }
             }
             else if (p.getValueDouble)
@@ -407,6 +419,7 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
                 if (field == var)
                 {
                     s += valueToString(p.getValueDouble(p.default_unit), p.default_unit) + c;
+                    handled = true;
                 }
                 else
                 {
@@ -418,10 +431,15 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
                         if (field == var)
                         {
                             s += valueToString(p.getValueDouble(u), u) + c;
+                            handled = true;
                         }
                     }
                 }
             }
+        }
+        if (!handled)
+        {
+            s += "?"+field+"?"+c;
         }
     }
     if (s.back() == c) s.pop_back();
