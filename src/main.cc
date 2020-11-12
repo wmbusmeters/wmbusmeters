@@ -541,7 +541,7 @@ void detect_and_configure_wmbus_devices(Configuration *config, DetectionType dt)
             shared_ptr<SerialDevice> sd = serial_manager_->lookup(identifier);
             if (sd != NULL)
             {
-                debug("(main) command %s already configured\n", identifier.c_str());
+                trace("(main) command %s already configured\n", identifier.c_str());
                 specified_device.handled = true;
                 continue;
             }
