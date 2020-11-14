@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterQCaloric : public virtual HeatCostMeter, public virtual MeterCommonImplementation {
+struct MeterQCaloric : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation {
     MeterQCaloric(MeterInfo &mi);
 
     double currentConsumption(Unit u);
@@ -98,9 +98,9 @@ MeterQCaloric::MeterQCaloric(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<HeatCostMeter> createQCaloric(MeterInfo &mi)
+shared_ptr<HeatCostAllocationMeter> createQCaloric(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostMeter>(new MeterQCaloric(mi));
+    return shared_ptr<HeatCostAllocationMeter>(new MeterQCaloric(mi));
 }
 
 double MeterQCaloric::currentConsumption(Unit u)

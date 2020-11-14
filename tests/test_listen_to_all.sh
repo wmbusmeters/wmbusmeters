@@ -185,6 +185,16 @@ Received telegram from: 12345679
                   type: Heat meter (0x04)
                    ver: 0x00
                 driver: sensostar
+Received telegram from: 99993030
+          manufacturer: (ELR) Elster Metering, United Kingdom (0x1592)
+                  type: Water meter (0x07)
+                   ver: 0x0d
+                driver: ev200
+Received telegram from: 95949392
+          manufacturer: (ELR) Elster Metering, United Kingdom (0x1592)
+                  type: Radio converter (meter side) (0x37)
+                   ver: 0x11
+                driver: emerlin868
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)

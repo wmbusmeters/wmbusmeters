@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterEurisII : public virtual HeatCostMeter, public virtual MeterCommonImplementation {
+struct MeterEurisII : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation {
     MeterEurisII(MeterInfo &mi);
 
     double currentConsumption(Unit u);
@@ -80,9 +80,9 @@ MeterEurisII::MeterEurisII(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<HeatCostMeter> createEurisII(MeterInfo &mi)
+shared_ptr<HeatCostAllocationMeter> createEurisII(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostMeter>(new MeterEurisII(mi));
+    return shared_ptr<HeatCostAllocationMeter>(new MeterEurisII(mi));
 }
 
 double MeterEurisII::currentConsumption(Unit u)

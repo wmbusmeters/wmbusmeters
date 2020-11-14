@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterSontex868 : public virtual HeatCostMeter, public virtual MeterCommonImplementation {
+struct MeterSontex868 : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation {
     MeterSontex868(MeterInfo &mi);
 
     double currentConsumption(Unit u);
@@ -101,9 +101,9 @@ MeterSontex868::MeterSontex868(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<HeatCostMeter> createSontex868(MeterInfo &mi)
+shared_ptr<HeatCostAllocationMeter> createSontex868(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostMeter>(new MeterSontex868(mi));
+    return shared_ptr<HeatCostAllocationMeter>(new MeterSontex868(mi));
 }
 
 double MeterSontex868::currentConsumption(Unit u)

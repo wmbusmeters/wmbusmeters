@@ -37,7 +37,9 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       Wasser      rfmtx1      74737271 NOKEY
       Woter       waterstarm  20096221 BEDB81B52C29B5C143388CBB0D15A051
       Witer       topaseskr   78563412 NOKEY
-      Heater      sensostar   12345679 NOKEY"
+      Heater      sensostar   12345679 NOKEY
+      Voda        ev200       99993030 NOKEY
+      Vodda       emerlin868  95949392 NOKEY"
 
 
 cat simulations/simulation_t1.txt | grep '^{' > $TEST/test_expected.txt

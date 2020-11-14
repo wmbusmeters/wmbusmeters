@@ -24,7 +24,7 @@
 #include"util.h"
 #include <ctime>
 
-struct MeterFHKVDataIII : public virtual HeatCostMeter, public virtual MeterCommonImplementation
+struct MeterFHKVDataIII : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation
 {
     MeterFHKVDataIII(MeterInfo &mi);
 
@@ -49,9 +49,9 @@ struct MeterFHKVDataIII : public virtual HeatCostMeter, public virtual MeterComm
     double temp_radiator_ {};
 };
 
-shared_ptr<HeatCostMeter> createFHKVDataIII(MeterInfo &mi)
+shared_ptr<HeatCostAllocationMeter> createFHKVDataIII(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostMeter>(new MeterFHKVDataIII(mi));
+    return shared_ptr<HeatCostAllocationMeter>(new MeterFHKVDataIII(mi));
 }
 
 

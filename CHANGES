@@ -1,4 +1,7 @@
 
+Mira added support for Elster V200H water meter and the Elster Merlin 868 addon.
+Thanks Mira!
+
 Version 1.0.3: 2020-11-11
 
 Add missing files and update man page for --nodeviceexit

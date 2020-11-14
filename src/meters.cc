@@ -630,9 +630,9 @@ double ElectricityMeter::totalApparentEnergyProduction(Unit u) { return -NAN; }
 double ElectricityMeter::currentPowerConsumption(Unit u) { return -NAN; }
 double ElectricityMeter::currentPowerProduction(Unit u) { return -NAN; }
 
-double HeatCostMeter::currentConsumption(Unit u) { return -NAN; }
-string HeatCostMeter::setDate() { return "NAN"; }
-double HeatCostMeter::consumptionAtSetDate(Unit u) { return -NAN; }
+double HeatCostAllocationMeter::currentConsumption(Unit u) { return -NAN; }
+string HeatCostAllocationMeter::setDate() { return "NAN"; }
+double HeatCostAllocationMeter::consumptionAtSetDate(Unit u) { return -NAN; }
 
 void MeterCommonImplementation::setExpectedTPLSecurityMode(TPLSecurityMode tsm)
 {
