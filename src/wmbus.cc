@@ -516,11 +516,11 @@ string mediaTypeJSON(int a_field_device_type)
     case 0x3F: return "reserved";
 
     // Techem MK Radio 3/4 manufacturer specific.
-    case 0x62: return "Warm water"; // MKRadio3/MKRadio4
-    case 0x72: return "Cold water"; // MKRadio3/MKRadio4
+    case 0x62: return "warm water"; // MKRadio3/MKRadio4
+    case 0x72: return "cold water"; // MKRadio3/MKRadio4
 
     // Techem FHKV.
-    case 0x80: return "Heat Cost Allocator"; // FHKV data ii/iii
+    case 0x80: return "heat cost allocator"; // FHKV data ii/iii
 
     // Techem Vario 4 Typ 4.5.1 manufacturer specific codes:
     case 0xC3: return "heat";
