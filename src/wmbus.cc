@@ -439,9 +439,9 @@ string mediaType(int a_field_device_type) {
     case 0x3E: return "Reserved for system devices";
     case 0x3F: return "Reserved for system devices";
 
-    // Techem MK Radio 3 manufacturer specific.
-    case 0x62: return "Warm water"; // MKRadio3
-    case 0x72: return "Cold water"; // MKRadio3
+    // Techem MK Radio 3/4 manufacturer specific.
+    case 0x62: return "Warm water"; // MKRadio3/MKRadio4
+    case 0x72: return "Cold water"; // MKRadio3/MKRadio4
 
     // Techem FHKV.
     case 0x80: return "Heat Cost Allocator"; // FHKV data ii/iii
@@ -515,9 +515,9 @@ string mediaTypeJSON(int a_field_device_type)
     case 0x3E: return "reserved";
     case 0x3F: return "reserved";
 
-    // Techem MK Radio 3 manufacturer specific codes:
-    case 0x62: return "warm water";
-    case 0x72: return "cold water";
+    // Techem MK Radio 3/4 manufacturer specific.
+    case 0x62: return "Warm water"; // MKRadio3/MKRadio4
+    case 0x72: return "Cold water"; // MKRadio3/MKRadio4
 
     // Techem FHKV.
     case 0x80: return "Heat Cost Allocator"; // FHKV data ii/iii
