@@ -275,7 +275,7 @@ Kamstrup flowIQ 2200 (flowiq2200)
 Kamstrup flowIQ 3100 (flowiq3100)
 Sontex Supercom 587 (supercom587)
 Sensus iPERL (iperl)
-Techem MK Radio 3 (mkradio3) (non-standard protocol)
+Techem MK Radio 3 and 4 (mkradio3,mkradio4) (non-standard protocols)
 Waterstar M (waterstarm)
 
 Currently not supported, please help!

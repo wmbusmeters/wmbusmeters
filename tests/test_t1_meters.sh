@@ -15,6 +15,7 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       WaterWater  iperl       33225544 NOKEY
       MyElectricity1 amiplus  10101010 NOKEY
       Duschen     mkradio3    34333231 NOKEY
+      Duschagain  mkradio4    02410120 NOKEY
       HeatMeter   vario451    58234965 NOKEY
       Room        fhkvdataiii 11776622 NOKEY
       HeatMeter   eurisii     88018801 NOKEY

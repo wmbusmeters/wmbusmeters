@@ -55,6 +55,11 @@ Received telegram from: 34333231
                   type: Warm water (0x62)
                    ver: 0x74
                 driver: mkradio3
+Received telegram from: 02410120
+          manufacturer: (TCH) Techem Service (0x5068)
+                  type: Warm water (0x62)
+                   ver: 0x95
+                driver: mkradio4
 Received telegram from: 58234965
           manufacturer: (TCH) Techem Service (0x5068)
                   type: Heat meter (0xc3)
