@@ -26,6 +26,7 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       Rummet      rfmamb      11772288 NOKEY
       IzarWater   izar        21242472 NOKEY
       IzarWater2  izar        66290778 NOKEY
+      IzarWater3  izar        19790778 NOKEY
       HydrusWater hydrus      64646464 NOKEY
       HydrusVater hydrus      65656565 NOKEY
       HydrodigitWater hydrodigit 86868686 NOKEY

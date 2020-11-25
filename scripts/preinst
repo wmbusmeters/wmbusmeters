@@ -1,3 +1,4 @@
 #!/bin/sh
 
 # Shutdown wmbusmeters service if it is running.
+systemctl stop wmbusmeters.service
