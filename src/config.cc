@@ -584,6 +584,11 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
 
     if (device_override != "")
     {
+        // There is an override, therefore we
+        // drop any already loaded devices from the config file.
+        c->use_auto_device_detect = false;
+        c->supplied_wmbus_devices.clear();
+
         if (startsWith(device_override, "/dev/rtlsdr"))
         {
             debug("(config) use rtlwmbus instead of raw device %s\n", device_override.c_str());
