@@ -328,11 +328,10 @@ and T1 telegrams at the same time.
 # Usage examples
 
 ```
-wmbusmeters /dev/ttyUSB1:amb8465:c1,t1
+wmbusmeters auto:c1
 ```
 
-Simply runs a scan with mode C1 and T1 to search for meters and print the IDs and any detected driver,
-for example:
+Listens for C1 telegrams using any of your available wmbus dongles:
 ```
 Received telegram from: 12345678
           manufacturer: (KAM) Kamstrup Energi (0x2c2d)
@@ -346,7 +345,7 @@ Received telegram from: 12345678
 Now listen to this specific meter.
 
 ```
-wmbusmeters /dev/ttyUSB0:im871a:c1 MyTapWater multical21:c1 12345678 00112233445566778899AABBCCDDEEFF
+wmbusmeters auto:c1 MyTapWater multical21:c1 12345678 00112233445566778899AABBCCDDEEFF
 ```
 
 (The Multical21 and other meters use compressed telegrams, which means
@@ -445,9 +444,11 @@ will listen and print the header information of any telegram it hears.
 
 # Builds and runs on GNU/Linux MacOSX (with recent XCode), and FreeBSD
 
-`make && make test`
+`./configure && make && make test`
 
 Binary generated: `./build/wmbusmeters`
+
+`make install` will install this binary.
 
 `make HOST=arm` to cross compile from GNU/Linux to Raspberry PI.
 
@@ -457,16 +458,15 @@ Binary generated: `./build_arm/wmbusmeters`
 
 Binary generated: `./build_debug/wmbusmeters`
 
-Debug builds only work on FreeBSD if the compiler is LLVM. If your system default compiler is gcc, set `CXX=clang++` to the build environment to force LLVM to be used.
+`make testd` to run all tests using the debug build.
+
+Debug builds only work on FreeBSD if the compiler is LLVM. If your
+system default compiler is gcc, set `CXX=clang++` to the build
+environment to force LLVM to be used.
 
 `make DEBUG=true HOST=arm`
 
 Binary generated: `./build_arm_debug/wmbusmeters`
-
-`make HOST=arm dist`
-
-(Work in progress...)
-Binary generated: `./wmbusmeters_0.8_armhf.deb`
 
 # System configuration
 
