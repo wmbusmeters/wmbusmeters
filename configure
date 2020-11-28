@@ -1915,6 +1915,14 @@ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ex
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
+case $host_os in
+freebsd*)
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	CXXFLAGS="$CXXFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+;;
+esac
+
 #C_CHECK_LIB(usb, usb_init, [],
 #
 #  C_MSG_ERROR([Could  not find libusb library. Try: sudo apt install libusb-dev])

@@ -1376,7 +1376,7 @@ bool extract_single_period(char *tok, TimePeriod *tp)
     if (tok[len-1] != ')') return false; // Must end in )
     bool ok = extract_times(p, tp);
     if (!ok) return false;
-    *p = (char)NULL; // Terminate in the middle of tok.
+    *p = 0; // Terminate in the middle of tok.
     ok = extract_days(tok, tp);
     if (!ok) return false;
 

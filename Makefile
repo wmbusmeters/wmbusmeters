@@ -97,8 +97,15 @@ $(info Building $(VERSION))
 
 CXXFLAGS ?= $(DEBUG_FLAGS) -fPIC -std=c++11 -Wall -Werror=format-security
 CXXFLAGS += -I$(BUILD)
-
 LDFLAGS  ?= $(DEBUG_LDFLAGS)
+
+USBLIB = -lusb-1.0
+
+ifeq ($(shell uname -s),FreeBSD)
+    CXXFLAGS += -I/usr/local/include
+    LDFLAGS  += -L/usr/local/lib
+    USBLIB    =  -lusb
+endif
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
@@ -208,10 +215,10 @@ snapcraft:
 $(BUILD)/main.o: $(BUILD)/short_manual.h $(BUILD)/version.h
 
 $(BUILD)/wmbusmeters: $(METER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters $(METER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lrtlsdr -lusb-1.0 -lpthread
+	$(CXX) -o $(BUILD)/wmbusmeters $(METER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lrtlsdr $(USBLIB) -lpthread
 
 $(BUILD)/wmbusmeters-admin: $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters-admin $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -lrtlsdr -lusb-1.0 -lpthread
+	$(CXX) -o $(BUILD)/wmbusmeters-admin $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -lrtlsdr $(USBLIB) -lpthread
 
 $(BUILD)/short_manual.h: README.md
 	echo 'R"MANUAL(' > $(BUILD)/short_manual.h
@@ -221,7 +228,7 @@ $(BUILD)/short_manual.h: README.md
 	echo ')MANUAL";' >> $(BUILD)/short_manual.h
 
 $(BUILD)/testinternals: $(METER_OBJS) $(BUILD)/testinternals.o
-	$(CXX) -o $(BUILD)/testinternals $(METER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS) -lrtlsdr -lusb-1.0 -lpthread
+	$(CXX) -o $(BUILD)/testinternals $(METER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS) -lrtlsdr $(USBLIB) -lpthread
 
 $(BUILD)/fuzz: $(METER_OBJS) $(BUILD)/fuzz.o
 	$(CXX) -o $(BUILD)/fuzz $(METER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lrtlsdr -lpthread
