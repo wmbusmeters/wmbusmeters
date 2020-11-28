@@ -19,6 +19,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<syslog.h>
+#include<time.h>
 
 #include"serial.h"
 #include"shell.h"

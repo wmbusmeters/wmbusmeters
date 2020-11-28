@@ -1207,7 +1207,7 @@ bool SerialCommunicationManagerImp::removeNonWorking(string device)
 }
 
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__FreeBSD__)
 vector<string> SerialCommunicationManagerImp::listSerialTTYs()
 {
     vector<string> list;
@@ -1447,8 +1447,12 @@ string oflags(tcflag_t bits)
 {
     string flags;
 
+#ifdef BS1
 	CHECK_FLAG(BS1)
+#endif
+#ifdef NL1
 	CHECK_FLAG(NL1)
+#endif
 	CHECK_FLAG(ONLCR)
 #ifdef ONOEOT
 	CHECK_FLAG(ONOEOT)

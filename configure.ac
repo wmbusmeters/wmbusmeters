@@ -31,6 +31,14 @@ mkdir -p "$OUTPUT_ROOT"
 
 AC_LANG_PUSH([C++])
 
+case $host_os in
+freebsd*)
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	CXXFLAGS="$CXXFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+;;
+esac
+
 #C_CHECK_LIB(usb, usb_init, [],
 #
 #  C_MSG_ERROR([Could  not find libusb library. Try: sudo apt install libusb-dev])
