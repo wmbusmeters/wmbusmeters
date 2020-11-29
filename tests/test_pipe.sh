@@ -9,7 +9,7 @@ then
 fi
 
 OUTPUT=$( \
-for ((i=1;i<=1000;i++)); \
+for i in $(seq 1 1000); \
 do \
     echo "T1;1;1;2019-04-03 19:00:42.000;97;148;88888888;0x2e44333003020100071b7a634820252f2f0265840842658308820165950802fb1aae0142fb1aae018201fb1aa9012f" \
         | $PROG --silent stdin:rtlwmbus rum lansenth 00010203 NOKEY \
