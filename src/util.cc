@@ -1576,3 +1576,45 @@ string humanReadableTwoDecimals(size_t s)
     return helper(KB*KB*KB, s, " GiB");
 #endif
 }
+
+bool check_if_rtlwmbus_exists_in_path()
+{
+    bool found = false;
+    vector<string> args;
+    args.push_back("-c");
+    args.push_back("rtl_wmbus < /dev/null");
+    vector<string> envs;
+    string out;
+    int rc = invokeShellCaptureOutput("/bin/sh", args, envs, &out, true);
+    if (rc == 2 && out.find("rtl_wmbus") == string::npos)
+    {
+        debug("(main) rtl_wmbus found in path\n");
+        found = true;
+    }
+    else
+    {
+        debug("(main) rtl_wmbus NOT found in path\n");
+    }
+    return found;
+}
+
+bool check_if_rtlsdr_exists_in_path()
+{
+    bool found = false;
+    vector<string> args;
+    args.push_back("-c");
+    args.push_back("rtl_sdr --help < /dev/null");
+    vector<string> envs;
+    string out;
+    invokeShellCaptureOutput("/bin/sh", args, envs, &out, true);
+    if (out.find("RTL2832") != string::npos)
+    {
+        debug("(main) rtl_srd found in path\n");
+        found = true;
+    }
+    else
+    {
+        debug("(main) rtl_sdr NOT found in path\n");
+    }
+    return found;
+}

@@ -21,7 +21,7 @@
 using namespace std;
 
 void invokeShell(string program, vector<string> args, vector<string> envs);
-bool invokeShellCaptureOutput(string program, vector<string> args, vector<string> envs, string *out, bool do_not_warn_if_fail);
+int  invokeShellCaptureOutput(string program, vector<string> args, vector<string> envs, string *out, bool do_not_warn_if_fail);
 bool invokeBackgroundShell(string program, vector<string> args, vector<string> envs, int *out, int *pid);
 bool stillRunning(int pid);
 void stopBackgroundShell(int pid);

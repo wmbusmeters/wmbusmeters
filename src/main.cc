@@ -110,6 +110,10 @@ shared_ptr<Printer> printer_;
 // Set as true when the warning for no detected wmbus devices has been printed.
 bool printed_warning_ = false;
 
+// Then check if the rtl_sdr and/or rtl_wmbus is in the path.
+bool rtlsdr_found_ = false;
+bool rtlwmbus_found_ = false;
+
 int main(int argc, char **argv)
 {
     auto config = parseCommandLine(argc, argv);
@@ -972,6 +976,26 @@ void perform_auto_scan_of_swradio_devices(Configuration *config)
 {
     // Enumerate all swradio devices, that can be used.
     vector<string> serialnrs = listRtlSdrDevices();
+
+    if (serialnrs.size() > 0)
+    {
+        if (!rtlsdr_found_ || !rtlwmbus_found_)
+        {
+            rtlsdr_found_ = check_if_rtlsdr_exists_in_path();
+            rtlwmbus_found_ = check_if_rtlwmbus_exists_in_path();
+        }
+        if (!rtlsdr_found_)
+        {
+            warning("Warning! Auto scan has found an rtl_sdr dongle, but you have no rtl_sdr in the path!\n");
+        }
+        if (!rtlwmbus_found_)
+        {
+            warning("Warning! Auto scan has found an rtl_sdr dongle, but you have no rtl_wmbus in the path!\n");
+        }
+    }
+
+    // We are missing rtl_sdr and/or rtl_wmbus, stop here.
+    if (!rtlsdr_found_ || !rtlwmbus_found_) return;
 
     // Did an unavailable swradio-device get unplugged? Then remove it from the known-not-swradio-device set.
     remove_lost_swradio_devices_from_ignore_list(serialnrs);

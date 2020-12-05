@@ -222,8 +222,9 @@ void stopBackgroundShell(int pid)
     }
 }
 
-bool invokeShellCaptureOutput(string program, vector<string> args, vector<string> envs, string *out, bool do_not_warn_if_fail)
+int invokeShellCaptureOutput(string program, vector<string> args, vector<string> envs, string *out, bool do_not_warn_if_fail)
 {
+    int rc = 0;
     int pid;
     int link[2];
     vector<const char*> argv(args.size()+2);
@@ -274,7 +275,7 @@ bool invokeShellCaptureOutput(string program, vector<string> args, vector<string
 
         perror("Execvp failed:");
         error("(shell) invoking %s failed!\n", program.c_str());
-        return false;
+        return 127;
     }
 
     close(link[1]);
@@ -302,11 +303,11 @@ bool invokeShellCaptureOutput(string program, vector<string> args, vector<string
     int pp = waitpid(pid, &status, 0);
     if (pp < 0) {
         debug("(shell) cannot stop pid %d, exited already?\n", pid);
-        return false;
+        return 127;
     }
     if (WIFEXITED(status)) {
         // Child exited properly.
-        int rc = WEXITSTATUS(status);
+        rc = WEXITSTATUS(status);
         debug("(shell) return code %d\n", rc);
         if (rc != 0) {
             if (!do_not_warn_if_fail)
@@ -323,7 +324,7 @@ bool invokeShellCaptureOutput(string program, vector<string> args, vector<string
         debug("(shell) %d exited\n", pid);
     }
 
-    return true;
+    return rc;
 }
 
 void detectProcesses(string cmd, vector<int> *pids)

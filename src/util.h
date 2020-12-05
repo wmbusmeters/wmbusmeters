@@ -186,4 +186,7 @@ std::string humanReadableTwoDecimals(size_t s);
 
 uint32_t indexFromRtlSdrName(std::string &s);
 
+bool check_if_rtlwmbus_exists_in_path();
+bool check_if_rtlsdr_exists_in_path();
+
 #endif

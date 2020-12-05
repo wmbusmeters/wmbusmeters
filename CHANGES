@@ -1,4 +1,7 @@
 
+Added a warning to be printed if an rtl_sdr dongle is found when using auto
+and either rtl_sdr or rtl_wmbus cannot be found in the path at startup.
+
 Cinemarene added support for the Techem MK Radio 4 water meter.
 Thanks Cinemarene!
 
