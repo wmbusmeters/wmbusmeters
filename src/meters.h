@@ -57,6 +57,7 @@
     X(multical302,C1_bit, HeatMeter,        MULTICAL302, Multical302)  \
     X(multical403,C1_bit, HeatMeter,        MULTICAL403, Multical403)  \
     X(multical603,C1_bit, HeatMeter,        MULTICAL603, Multical603)  \
+    X(multical803,C1_bit, HeatMeter,        MULTICAL803, Multical803)  \
     X(omnipower,  C1_bit, ElectricityMeter, OMNIPOWER,   Omnipower)    \
     X(rfmamb,     T1_bit, TempHygroMeter,   RFMAMB,      RfmAmb)       \
     X(rfmtx1,     T1_bit, WaterMeter,       RFMTX1,      RfmTX1)       \
@@ -137,6 +138,7 @@
     X(MULTICAL403,MANUFACTURER_KAM, 0x0c,  0x34) \
     X(MULTICAL403,MANUFACTURER_KAM, 0x0d,  0x34) \
     X(MULTICAL603,MANUFACTURER_KAM, 0x04,  0x35) \
+    X(MULTICAL803,MANUFACTURER_KAM, 0x04,  0x39) \
     X(OMNIPOWER,  MANUFACTURER_KAM, 0x02,  0x01) \
     X(RFMAMB,     MANUFACTURER_BMT, 0x1b,  0x10) \
     X(RFMTX1,     MANUFACTURER_BMT, 0x07,  0x05) \

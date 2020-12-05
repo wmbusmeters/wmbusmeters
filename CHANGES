@@ -1,4 +1,6 @@
 
+Nikodem added support for Multical803! Thanks Nikodem!
+
 Added a warning to be printed if an rtl_sdr dongle is found when using auto
 and either rtl_sdr or rtl_wmbus cannot be found in the path at startup.
 

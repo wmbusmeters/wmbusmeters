@@ -1,17 +1,16 @@
 /*
  Copyright (C) 2018-2020 Fredrik Öhrström
                     2020 Eric Bus
+                    2020 Nikodem Jędrzejczak
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
-
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
-
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -32,8 +31,8 @@
 #define INFO_CODE_SENSOR_T2_BELOW_MEASURING_RANGE 64
 #define INFO_CODE_TEMP_DIFF_WRONG_POLARITY 128
 
-struct MeterMultical603 : public virtual HeatMeter, public virtual MeterCommonImplementation {
-    MeterMultical603(MeterInfo &mi);
+struct MeterMultical803 : public virtual HeatMeter, public virtual MeterCommonImplementation {
+    MeterMultical803(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
     string status();
@@ -50,7 +49,7 @@ private:
     void processContent(Telegram *t);
 
     uchar info_codes_ {};
-    double total_energy_kwh_ {};
+    double total_energy_gj_ {};
     double total_volume_m3_ {};
     double volume_flow_m3h_ {};
     double t1_temperature_c_ { 127 };
@@ -59,12 +58,12 @@ private:
     bool has_t2_temperature_ {};
     string target_date_ {};
 
-    uint32_t energy_forward_kwh_ {};
-    uint32_t energy_returned_kwh_ {};
+    uint32_t energy_forward_gj_ {};
+    uint32_t energy_returned_gj_ {};
 };
 
-MeterMultical603::MeterMultical603(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::MULTICAL603)
+MeterMultical803::MeterMultical803(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterType::MULTICAL803)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
@@ -106,91 +105,91 @@ MeterMultical603::MeterMultical603(MeterInfo &mi) :
              true, true);
 
     addPrint("energy_forward", Quantity::Energy,
-             [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(energy_forward_kwh_, Unit::KWH, u); },
+             [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(energy_forward_gj_, Unit::GJ, u); },
              "Energy forward.",
              false, true);
 
     addPrint("energy_returned", Quantity::Energy,
-             [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(energy_returned_kwh_, Unit::KWH, u); },
+             [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(energy_returned_gj_, Unit::GJ, u); },
              "Energy returned.",
              false, true);
 }
 
-shared_ptr<HeatMeter> createMultical603(MeterInfo &mi) {
-    return shared_ptr<HeatMeter>(new MeterMultical603(mi));
+shared_ptr<HeatMeter> createMultical803(MeterInfo &mi) {
+    return shared_ptr<HeatMeter>(new MeterMultical803(mi));
 }
 
-double MeterMultical603::totalEnergyConsumption(Unit u)
+double MeterMultical803::totalEnergyConsumption(Unit u)
 {
     assertQuantity(u, Quantity::Energy);
-    return convert(total_energy_kwh_, Unit::KWH, u);
+    return convert(total_energy_gj_, Unit::KWH, u);
 }
 
-double MeterMultical603::totalVolume(Unit u)
+double MeterMultical803::totalVolume(Unit u)
 {
     assertQuantity(u, Quantity::Volume);
     return convert(total_volume_m3_, Unit::M3, u);
 }
 
-double MeterMultical603::t1Temperature(Unit u)
+double MeterMultical803::t1Temperature(Unit u)
 {
     assertQuantity(u, Quantity::Temperature);
     return convert(t1_temperature_c_, Unit::C, u);
 }
 
-bool MeterMultical603::hasT1Temperature()
+bool MeterMultical803::hasT1Temperature()
 {
     return has_t1_temperature_;
 }
 
-double MeterMultical603::t2Temperature(Unit u)
+double MeterMultical803::t2Temperature(Unit u)
 {
     assertQuantity(u, Quantity::Temperature);
     return convert(t2_temperature_c_, Unit::C, u);
 }
 
-bool MeterMultical603::hasT2Temperature()
+bool MeterMultical803::hasT2Temperature()
 {
     return has_t2_temperature_;
 }
 
-double MeterMultical603::volumeFlow(Unit u)
+double MeterMultical803::volumeFlow(Unit u)
 {
     assertQuantity(u, Quantity::Flow);
     return convert(volume_flow_m3h_, Unit::M3H, u);
 }
 
-void MeterMultical603::processContent(Telegram *t)
+void MeterMultical803::processContent(Telegram *t)
 {
     /*
-      (multical603) 13: 78 tpl-ci-field (EN 13757-3 Application Layer (no tplh))
-      (multical603) 14: 04 dif (32 Bit Integer/Binary Instantaneous value)
-      (multical603) 15: 06 vif (Energy kWh)
-      (multical603) 16: * A5000000 total energy consumption (165.000000 kWh)
-      (multical603) 1a: 04 dif (32 Bit Integer/Binary Instantaneous value)
-      (multical603) 1b: FF vif (Vendor extension)
-      (multical603) 1c: 07 vife (?)
-      (multical603) 1d: 2B010000
-      (multical603) 21: 04 dif (32 Bit Integer/Binary Instantaneous value)
-      (multical603) 22: FF vif (Vendor extension)
-      (multical603) 23: 08 vife (?)
-      (multical603) 24: 9C000000
-      (multical603) 28: 04 dif (32 Bit Integer/Binary Instantaneous value)
-      (multical603) 29: 14 vif (Volume 10⁻² m³)
-      (multical603) 2a: * 21020000 total volume (5.450000 m3)
-      (multical603) 2e: 04 dif (32 Bit Integer/Binary Instantaneous value)
-      (multical603) 2f: 3B vif (Volume flow l/h)
-      (multical603) 30: * 12000000 volume flow (0.018000 m3/h)
-      (multical603) 34: 02 dif (16 Bit Integer/Binary Instantaneous value)
-      (multical603) 35: 59 vif (Flow temperature 10⁻² °C)
-      (multical603) 36: * D014 T1 flow temperature (53.280000 °C)
-      (multical603) 38: 02 dif (16 Bit Integer/Binary Instantaneous value)
-      (multical603) 39: 5D vif (Return temperature 10⁻² °C)
-      (multical603) 3a: * 0009 T2 flow temperature (23.040000 °C)
-      (multical603) 3c: 04 dif (32 Bit Integer/Binary Instantaneous value)
-      (multical603) 3d: FF vif (Vendor extension)
-      (multical603) 3e: 22 vife (per hour)
-      (multical603) 3f: * 00000000 info codes ()
+      (multical803) 13: 78 tpl-ci-field (EN 13757-3 Application Layer (no tplh))
+      (multical803) 14: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical803) 15: 06 vif (Energy kWh)
+      (multical803) 16: * A5000000 total energy consumption (165.000000 kWh)
+      (multical803) 1a: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical803) 1b: FF vif (Vendor extension)
+      (multical803) 1c: 07 vife (?)
+      (multical803) 1d: 2B010000
+      (multical803) 21: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical803) 22: FF vif (Vendor extension)
+      (multical803) 23: 08 vife (?)
+      (multical803) 24: 9C000000
+      (multical803) 28: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical803) 29: 14 vif (Volume 10⁻² m³)
+      (multical803) 2a: * 21020000 total volume (5.450000 m3)
+      (multical803) 2e: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical803) 2f: 3B vif (Volume flow l/h)
+      (multical803) 30: * 12000000 volume flow (0.018000 m3/h)
+      (multical803) 34: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (multical803) 35: 59 vif (Flow temperature 10⁻² °C)
+      (multical803) 36: * D014 T1 flow temperature (53.280000 °C)
+      (multical803) 38: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (multical803) 39: 5D vif (Return temperature 10⁻² °C)
+      (multical803) 3a: * 0009 T2 flow temperature (23.040000 °C)
+      (multical803) 3c: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical803) 3d: FF vif (Vendor extension)
+      (multical803) 3e: 22 vife (per hour)
+      (multical803) 3f: * 00000000 info codes ()
 */
     int offset;
     string key;
@@ -198,15 +197,15 @@ void MeterMultical603::processContent(Telegram *t)
     extractDVuint8(&t->values, "04FF22", &offset, &info_codes_);
     t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
 
-    extractDVuint32(&t->values, "04FF07", &offset, &energy_forward_kwh_);
-    t->addMoreExplanation(offset, " energy forward kwh (%zu)", energy_forward_kwh_);
+    extractDVuint32(&t->values, "04FF07", &offset, &energy_forward_gj_);
+    t->addMoreExplanation(offset, " energy forward gj (%zu)", energy_forward_gj_);
 
-    extractDVuint32(&t->values, "04FF08", &offset, &energy_returned_kwh_);
-    t->addMoreExplanation(offset, " energy returned kwh (%zu)", energy_returned_kwh_);
+    extractDVuint32(&t->values, "04FF08", &offset, &energy_returned_gj_);
+    t->addMoreExplanation(offset, " energy returned gj (%zu)", energy_returned_gj_);
 
     if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
-        t->addMoreExplanation(offset, " total energy consumption (%f kWh)", total_energy_kwh_);
+        extractDVdouble(&t->values, key, &offset, &total_energy_gj_);
+        t->addMoreExplanation(offset, " total energy consumption (%f kWh)", total_energy_gj_);
     }
 
     if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, &key, &t->values)) {
@@ -237,7 +236,7 @@ void MeterMultical603::processContent(Telegram *t)
     }
 }
 
-string MeterMultical603::status()
+string MeterMultical803::status()
 {
     string s;
     if (info_codes_ & INFO_CODE_VOLTAGE_INTERRUPTED) s.append("VOLTAGE_INTERRUPTED ");

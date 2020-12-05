@@ -294,6 +294,7 @@ Heat meter Techem Vario 4 (vario451) (non-standard protocol)
 Heat meter Kamstrup Multical 302 (multical302) (in C1 mode, please open issue for T1 mode)
 Heat and Cooling meter Kamstrup Multical 403 (multical403) (in C1 mode)
 Heat and Cooling meter Kamstrup Multical 603 (multical603) (in C1 mode)
+Heat and Cooling meter Kamstrup Multical 803 (multical803) (in C1 mode)
 
 Supported room sensors:
 Bmeters RFM-AMB Thermometer/Hygrometer (rfmamb)
