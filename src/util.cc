@@ -1603,7 +1603,7 @@ bool check_if_rtlsdr_exists_in_path()
     bool found = false;
     vector<string> args;
     args.push_back("-c");
-    args.push_back("rtl_sdr --help < /dev/null");
+    args.push_back("rtl_sdr < /dev/null");
     vector<string> envs;
     string out;
     invokeShellCaptureOutput("/bin/sh", args, envs, &out, true);
