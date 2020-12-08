@@ -207,7 +207,7 @@ then
     mkdir -p "$ROOT"/etc/
     cat <<EOF > "$ROOT"/etc/wmbusmeters.conf
 loglevel=normal
-device=auto
+device=auto:t1
 logtelegrams=false
 format=json
 meterfiles=/var/log/wmbusmeters/meter_readings
