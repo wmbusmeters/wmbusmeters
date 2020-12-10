@@ -43,6 +43,7 @@
     X(ev200,      T1_bit, WaterMeter,       EV200,       EV200)        \
     X(fhkvdataiii,   T1_bit, HeatCostAllocationMeter,        FHKVDATAIII,    FHKVDataIII)     \
     X(hydrus,     T1_bit, WaterMeter,       HYDRUS,      Hydrus)       \
+    X(hydrocalm3, T1_bit, HeatMeter,        HYDROCALM3,  HydrocalM3)		 \
     X(hydrodigit, T1_bit, WaterMeter,       HYDRODIGIT,  Hydrodigit)   \
     X(iperl,      T1_bit, WaterMeter,       IPERL,       Iperl)        \
     X(izar,       T1_bit, WaterMeter,       IZAR,        Izar)         \
@@ -112,6 +113,7 @@
     X(HYDRUS,    MANUFACTURER_HYD,  0x07,  0x24) \
     X(HYDRUS,    MANUFACTURER_DME,  0x06,  0x70) \
     X(HYDRUS,    MANUFACTURER_DME,  0x16,  0x70) \
+    X(HYDROCALM3,MANUFACTURER_BMT,  0x0d,  0x0b) \
     X(HYDRODIGIT,MANUFACTURER_BMT,  0x07,  0x13) \
     X(IPERL,     MANUFACTURER_SEN,  0x06,  0x68) \
     X(IPERL,     MANUFACTURER_SEN,  0x07,  0x68) \
