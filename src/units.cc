@@ -34,7 +34,9 @@ using namespace std;
     X(MJ,  KWH,{vto=vfrom/1000.0/0.0036;}) \
     X(GJ,  MJ,  {vto=vfrom*1000.0;}) \
     X(M3,  L,  {vto=vfrom*1000.0;}) \
+    X(M3H, LH, {vto=vfrom*1000.0;}) \
     X(L,   M3, {vto=vfrom/1000.0;}) \
+    X(LH,  M3H,{vto=vfrom/1000.0;}) \
     X(C,   F,  {vto=(vfrom*9.0/5.0)+32.0;}) \
     X(F,   C,  {vto=(vfrom-32)*5.0/9.0;}) \
 

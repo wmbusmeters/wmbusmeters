@@ -45,6 +45,7 @@
     X(L,l,"l",Volume,"litre")                 \
     X(KW,kw,"kW",Power,"kilo Watt")           \
     X(M3H,m3h,"m3/h",Flow,"cubic meters per hour") \
+    X(LH,lh,"l/h",Flow,"liters per hour") \
     X(C,c,"°C",Temperature,"celsius")         \
     X(F,f,"°F",Temperature,"fahrenheit")      \
     X(RH,rh,"RH",RelativeHumidity,"relative humidity")      \
