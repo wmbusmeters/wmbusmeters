@@ -16,13 +16,28 @@
 */
 
 /*
-Updated 2020 Janus Bo Andersen
-Implements Kamstrup OmniPower one-phase, with firmware version 0x30
-Meter uses AES-128 in CTR mode, which is the only mode supported by 
+Implemented October 2020 Janus Bo Andersen:
+Implements Kamstrup OmniPower, energy meter.
+This C1 WM-Bus meter broadcasts:
+- Accumulated energy consumption (A+, kWh)
+- Accumulated energy production (A-, kWh)
+- Current power consumption (P+, kW)
+- Current power production (P-, kW)
+
+According to Kamstrup doc. 58101496_C1_GB_05.2018
+(Wireless M-Bus Module for OMNIPOWER), the single-phase,
+three-phase and CT meters send the same datagram.
+
+Meter version. Implementation tested against meter:
+Kamstrup one-phase with firmware version 0x30.
+
+Encryption:
+Meter uses AES-128 in CTR mode, which is the only mode supported by
 the extended link layer (wm-bus), see EN 13757-4:2019.
 Security mode is set during instatiation as 
 TPLSecurityMode::AES_CBC_IV, but this is overridden anyway when 
-reading the 3 ENC bits in the wmbus.cc file.
+reading the 3 ENC bits using the function in the wmbus.cc file.
+
 */
 
 #include"dvparser.h"
