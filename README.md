@@ -11,7 +11,7 @@ The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 
 | OS           | Status           |
 | ------------ |:-------------:|
-|GNU/Linux & MacOSX| [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master)](https://travis-ci.org/weetmuts/wmbusmeters) |
+|GNU/Linux | [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master)](https://travis-ci.org/weetmuts/wmbusmeters) |
 |Docker build status|[![CircleCI>](https://circleci.com/gh/weetmuts/wmbusmeters.svg?style=shield)](https://circleci.com/gh/weetmuts/wmbusmeters)|
 |Snap status|[![wmbusmeters](https://snapcraft.io//wmbusmeters/badge.svg)](https://snapcraft.io/wmbusmeters)|
 
@@ -445,6 +445,8 @@ If you do not specify any meters on the command line, then wmbusmeters
 will listen and print the header information of any telegram it hears.
 
 # Builds and runs on GNU/Linux MacOSX (with recent XCode), and FreeBSD
+(For MacOSX do `brew install librtlsdr libusb` which takes such a long
+time that the MacOSX travis build is disabled for the moment.)
 
 `./configure && make && make test`
 
