@@ -316,6 +316,7 @@ eBZ wMB-E01 (ebzwmbe)
 EMH Metering (ehzp)
 Tauron Amiplus (amiplus) (includes vendor apator and echelon)
 Gavazzi EM24 (em24)
+Kamstrup Omnipower (omnipower)
 ```
 
 The wmbus dongles imst871a can listen to one type of wmbus telegrams

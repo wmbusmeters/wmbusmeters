@@ -56,3 +56,12 @@ telegram=|42442D2C3636363635048D20E18025B62087D078|0406A500000004FF072B01000004F
 # Test Multical803 C1 telegram
 telegram=|88442D2C8180808039048D20864051322084C178|040F0000000004FF070000000004FF0800000000041400000000844014000000008480401400000000043B0000000002590000025D0000142D0000000084100F0000000084200F0000000004FF2260000100026C892B440F00000000441400000000C4401400000000C480401400000000426C812B|
 {"media":"heat","meter":"multical803","name":"Heater","id":"80808081","total_energy_consumption_kwh":0,"total_volume_m3":0,"volume_flow_m3h":0,"t1_temperature_c":0,"t2_temperature_c":0,"at_date":"2020-11-09 00:00","current_status":"SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE","energy_forward_kwh":0,"energy_returned_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}
+
+# Test Kamstrup OmniPower C1 tlg
+# Full tlg
+telegram=|2D442D2C5768663230028D20E4E2C81C20878C78|04041A03000004843C00000000042B0300000004AB3C00000000|
+{"media":"electricity","meter":"omnipower","name":"myomnipower","id":"32666857","total_energy_consumption_kwh":7.94,"total_energy_production_kwh":0,"current_power_consumption_kw":0.003,"current_power_production_kw":0,"timestamp":"1111-11-11T11:11:11Z"}
+
+# Compact tlg
+telegram=|27442D2C5768663230028D20E900C91C2011BA79138CCCFB|1A030000000000000300000000000000|
+{"media":"electricity","meter":"omnipower","name":"myomnipower","id":"32666857","total_energy_consumption_kwh":7.94,"total_energy_production_kwh":0,"current_power_consumption_kw":0.003,"current_power_production_kw":0,"timestamp":"1111-11-11T11:11:11Z"}
