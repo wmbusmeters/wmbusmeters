@@ -16,10 +16,15 @@
 
 AC_PREREQ([2.69])
 AC_INIT(wmbusmeters, wmbusmeters, oehrstroem@gmail.com,,https://github.com/weetmuts/wmbusmeters)
-AC_CONFIG_AUX_DIR([autoconf])
 
+AC_CONFIG_AUX_DIR([autoconf])
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
+
+m4_include([autoconf/pkg.m4])
+m4_include([autoconf/ax_with_curses.m4])
+
+PKG_PREREQ(0.29)
 
 SRC_ROOT="$(pwd -L)"
 
@@ -48,6 +53,14 @@ AC_CHECK_LIB(rtlsdr, rtlsdr_get_device_count, [],
 [
   AC_MSG_ERROR([Could  not find rtlsdr library. Try: sudo apt install librtlsdr-dev])
 ])
+
+AX_WITH_CURSES
+
+if test ! "$ax_cv_curses" = "yes"
+then
+    echo "Could not find ncurses library. Try: sudo apt install libncurses-dev"
+    exit 1
+fi
 
 AC_CONFIG_FILES([$OUTPUT_ROOT/spec.gmk:$SRC_ROOT/autoconf/spec.gmk.in])
 AC_CONFIG_FILES([$OUTPUT_ROOT/Makefile:$SRC_ROOT/autoconf/Makefile.in])
