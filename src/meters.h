@@ -69,8 +69,9 @@
     X(ultrimis,   T1_bit, WaterMeter,       ULTRIMIS,    Ultrimis)     \
     X(vario451,   T1_bit, HeatMeter,        VARIO451,    Vario451)     \
     X(waterstarm, C1_bit|T1_bit, WaterMeter,WATERSTARM,  WaterstarM)   \
-    X(topaseskr, T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)  \
-    X(sensostar, C1_bit|T1_bit, HeatMeter,SENSOSTAR,  Sensostar)   \
+    X(whe46x,     S1_bit, HeatCostAllocationMeter, WHE46X, Whe46x)     \
+    X(topaseskr, T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)           \
+    X(sensostar, C1_bit|T1_bit, HeatMeter,SENSOSTAR,  Sensostar)       \
 
 
 // List of numbers that can be used to detect the meter driver
@@ -161,6 +162,7 @@
     X(VARIO451,   MANUFACTURER_TCH, 0xc3,  0x27) \
     X(WATERSTARM, MANUFACTURER_DWZ, 0x06,  0x02) \
     X(WATERSTARM, MANUFACTURER_EFE, 0x07,  0x03) \
+    X(WHE46X,     MANUFACTURER_LSE, 0x08,  0x18) \
     X(SENSOSTAR,  MANUFACTURER_EFE, 0x04,  0x00) \
 
 enum class MeterType {

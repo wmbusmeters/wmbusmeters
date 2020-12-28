@@ -148,7 +148,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_multical302.o \
 	$(BUILD)/meter_multical403.o \
 	$(BUILD)/meter_multical603.o \
-        $(BUILD)/meter_multical803.o \
+    $(BUILD)/meter_multical803.o \
 	$(BUILD)/meter_omnipower.o \
 	$(BUILD)/meter_q400.o \
 	$(BUILD)/meter_qcaloric.o \
@@ -160,6 +160,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_ultrimis.o \
 	$(BUILD)/meter_vario451.o \
 	$(BUILD)/meter_waterstarm.o \
+	$(BUILD)/meter_whe46x.o \
 	$(BUILD)/meter_sensostar.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/rtlsdr.o \
