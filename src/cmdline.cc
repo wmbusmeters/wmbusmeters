@@ -34,13 +34,15 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
     } else {
         filename = argv[0];
     }
-    if (!strcmp(filename, "wmbusmetersd")) {
+    if (!strcmp(filename, "wmbusmetersd"))
+    {
         c->daemon = true;
         if (argc < 2) {
             error("Usage error: wmbusmetersd must have at least a single argument to the pid file.\n"
                   "But you can also supply --device= and --listento= to override the config files.\n");
         }
         int i = 1;
+        bool pid_file_found = false;
         for (;;)
         {
             if (argv[i] == NULL) break;
@@ -58,9 +60,14 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
                 i++;
                 continue;
             }
+            c->pid_file = argv[i];
+            pid_file_found = true;
             break;
         }
-        c->pid_file = argv[i];
+        if (!pid_file_found)
+        {
+            error("Usage error: you must supply the pid file as the argument to wmbusmetersd.\n");
+        }
         return shared_ptr<Configuration>(c);
     }
     if (argc < 2) {
