@@ -234,7 +234,7 @@ void Telegram::print()
            manufacturerFlag(dll_mfct).c_str(),
            manufacturer(dll_mfct).c_str(),
            dll_mfct);
-    notice("                  type: %s (0x%02x)\n", mediaType(dll_type).c_str(), dll_type);
+    notice("                  type: %s (0x%02x)\n", mediaType(dll_type, dll_mfct).c_str(), dll_type);
 
     notice("                   ver: 0x%02x\n", dll_version);
 
@@ -260,7 +260,7 @@ void Telegram::printDLL()
             dll_id[0], dll_id[1], dll_id[2], dll_id[3],
             dll_version,
             dll_type,
-            mediaType(dll_type).c_str(),
+            mediaType(dll_type, dll_mfct).c_str(),
             possible_drivers.c_str(),
             about.device.c_str(),
             about.rssi_dbm);
@@ -324,7 +324,7 @@ void Telegram::printTPL()
 
     if (tpl_ci == 0x72)
     {
-        string info = mediaType(tpl_type);
+        string info = mediaType(tpl_type, tpl_mfct);
         verbose(" ID=%02x%02x%02x%02x MFT=%02x%02x VER=%02x TYPE=%02x (%s)",
                 tpl_id_b[0], tpl_id_b[1], tpl_id_b[2], tpl_id_b[3],
                 tpl_mfct_b[0], tpl_mfct_b[1],
@@ -378,7 +378,7 @@ string manufacturerFlag(int m_field) {
     return flag;
 }
 
-string mediaType(int a_field_device_type) {
+string mediaType(int a_field_device_type, int m_field) {
     switch (a_field_device_type) {
     case 0: return "Other";
     case 1: return "Oil meter";
@@ -438,22 +438,25 @@ string mediaType(int a_field_device_type) {
     case 0x3D: return "Reserved for system devices";
     case 0x3E: return "Reserved for system devices";
     case 0x3F: return "Reserved for system devices";
+    }
 
-    // Techem MK Radio 3/4 manufacturer specific.
-    case 0x62: return "Warm water"; // MKRadio3/MKRadio4
-    case 0x72: return "Cold water"; // MKRadio3/MKRadio4
-
-    // Techem FHKV.
-    case 0x80: return "Heat Cost Allocator"; // FHKV data ii/iii
-
-    // Techem Vario 4 Typ 4.5.1 manufacturer specific.
-    case 0xC3: return "Heat meter";
-
+    if (m_field == MANUFACTURER_TCH)
+    {
+        switch (a_field_device_type) {
+        // Techem MK Radio 3/4 manufacturer specific.
+        case 0x62: return "Warm water"; // MKRadio3/MKRadio4
+        case 0x72: return "Cold water"; // MKRadio3/MKRadio4
+        // Techem FHKV.
+        case 0x80: return "Heat Cost Allocator"; // FHKV data ii/iii
+        // Techem Vario 4 Typ 4.5.1 manufacturer specific.
+        case 0xC3: return "Heat meter";
+        case 0xf0: return "Smoke detector";
+        }
     }
     return "Unknown";
 }
 
-string mediaTypeJSON(int a_field_device_type)
+string mediaTypeJSON(int a_field_device_type, int m_field)
 {
     switch (a_field_device_type) {
     case 0: return "other";
@@ -514,17 +517,20 @@ string mediaTypeJSON(int a_field_device_type)
     case 0x3D: return "reserved";
     case 0x3E: return "reserved";
     case 0x3F: return "reserved";
+    }
 
-    // Techem MK Radio 3/4 manufacturer specific.
-    case 0x62: return "warm water"; // MKRadio3/MKRadio4
-    case 0x72: return "cold water"; // MKRadio3/MKRadio4
-
-    // Techem FHKV.
-    case 0x80: return "heat cost allocator"; // FHKV data ii/iii
-
-    // Techem Vario 4 Typ 4.5.1 manufacturer specific codes:
-    case 0xC3: return "heat";
-
+    if (m_field == MANUFACTURER_TCH)
+    {
+        switch (a_field_device_type) {
+        // Techem MK Radio 3/4 manufacturer specific.
+        case 0x62: return "warm water"; // MKRadio3/MKRadio4
+        case 0x72: return "cold water"; // MKRadio3/MKRadio4
+        // Techem FHKV.
+        case 0x80: return "heat cost allocator"; // FHKV data ii/iii
+        // Techem Vario 4 Typ 4.5.1 manufacturer specific.
+        case 0xC3: return "heat";
+        case 0xf0: return "smoke detector";
+        }
     }
     return "Unknown";
 }
@@ -769,7 +775,7 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     dll_type = *(pos+1);
     addExplanationAndIncrementPos(pos, 1, "%02x dll-version", dll_version);
     addExplanationAndIncrementPos(pos, 1, "%02x dll-type (%s)", dll_type,
-                                  mediaType(dll_type).c_str());
+                                  mediaType(dll_type, dll_mfct).c_str());
 
     return true;
 }
@@ -1215,7 +1221,7 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
 
     CHECK(1);
     tpl_type = *(pos+0);
-    string info = mediaType(tpl_type);
+    string info = mediaType(tpl_type, tpl_mfct);
     addExplanationAndIncrementPos(pos, 1, "%02x tpl-type (%s)", tpl_type, info.c_str());
 
     bool ok = parseShortTPL(pos);

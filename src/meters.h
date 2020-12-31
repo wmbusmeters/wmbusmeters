@@ -62,6 +62,7 @@
     X(omnipower,  C1_bit, ElectricityMeter, OMNIPOWER,   Omnipower)    \
     X(rfmamb,     T1_bit, TempHygroMeter,   RFMAMB,      RfmAmb)       \
     X(rfmtx1,     T1_bit, WaterMeter,       RFMTX1,      RfmTX1)       \
+    X(tsd2,       T1_bit, SmokeDetector,    TSD2,        TSD2)         \
     X(q400,       T1_bit, WaterMeter,       Q400,        Q400)         \
     X(qcaloric,   C1_bit, HeatCostAllocationMeter, QCALORIC, QCaloric) \
     X(sontex868,  T1_bit, HeatCostAllocationMeter, SONTEX868, Sontex868) \
@@ -150,6 +151,7 @@
     X(OMNIPOWER,  MANUFACTURER_KAM, 0x02,  0x30) \
     X(RFMAMB,     MANUFACTURER_BMT, 0x1b,  0x10) \
     X(RFMTX1,     MANUFACTURER_BMT, 0x07,  0x05) \
+    X(TSD2,       MANUFACTURER_TCH, 0xf0,  0x76) \
     X(Q400,       MANUFACTURER_AXI, 0x07,  0x10) \
     X(QCALORIC,   MANUFACTURER_QDS, 0x08,  0x35) \
     X(SUPERCOM587,MANUFACTURER_SON, 0x06,  0x3c) \

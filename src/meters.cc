@@ -508,7 +508,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
     string s;
     s += "{";
-    s += "\"media\":\""+mediaTypeJSON(t->dll_type)+"\",";
+    s += "\"media\":\""+mediaTypeJSON(t->dll_type, t->dll_mfct)+"\",";
     s += "\"meter\":\""+meterName()+"\",";
     s += "\"name\":\""+name()+"\",";
     s += "\"id\":\""+t->id+"\",";

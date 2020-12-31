@@ -584,8 +584,8 @@ shared_ptr<WMBus> openSimulator(string file, shared_ptr<SerialCommunicationManag
 
 string manufacturer(int m_field);
 string manufacturerFlag(int m_field);
-string mediaType(int a_field_device_type);
-string mediaTypeJSON(int a_field_device_type);
+string mediaType(int a_field_device_type, int m_field);
+string mediaTypeJSON(int a_field_device_type, int m_field);
 bool isCiFieldOfType(int ci_field, CI_TYPE type);
 int ciFieldLength(int ci_field);
 string ciType(int ci_field);

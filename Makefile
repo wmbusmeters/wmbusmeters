@@ -157,6 +157,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_supercom587.o \
 	$(BUILD)/meter_sontex868.o \
 	$(BUILD)/meter_topaseskr.o \
+	$(BUILD)/meter_tsd2.o \
 	$(BUILD)/meter_ultrimis.o \
 	$(BUILD)/meter_vario451.o \
 	$(BUILD)/meter_waterstarm.o \

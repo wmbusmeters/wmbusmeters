@@ -205,6 +205,11 @@ Received telegram from: 95949392
                   type: Radio converter (meter side) (0x37)
                    ver: 0x11
                 driver: emerlin868
+Received telegram from: 91633569
+          manufacturer: (TCH) Techem Service (0x5068)
+                  type: Smoke detector (0xf0)
+                   ver: 0x76
+                driver: tsd2
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)
