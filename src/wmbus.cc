@@ -4004,6 +4004,13 @@ bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_
         *is_stdin = true;
         return true;
     }
+    if (f == "rtlwmbus" || f == "rlt433")
+    {
+        // Prevent wmbusmeters from finding a file named rtlwmbus or rtl433 since this is probably a usage error.
+        // Most likely the user accidentally created such a file. Without this test the existence of such
+        // a file will confuse the user to no end....
+        return false;
+    }
     if (checkIfSimulationFile(f.c_str()))
     {
         *is_simulation = true;
