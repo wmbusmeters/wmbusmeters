@@ -359,6 +359,30 @@ bool seen_this_telegram_before(vector<uchar> &frame)
     return false;
 }
 
+// Store the dll_a (6 bytes composed of 4 id + 1 ver + 1 media )
+// for telegrams that has been warned about!
+deque<vector<uchar>> warning_printed_for_telegrams;
+
+bool warned_for_telegram_before(vector<uchar> &dll_a)
+{
+    auto i = std::find(warning_printed_for_telegrams.begin(), warning_printed_for_telegrams.end(), dll_a);
+
+    if (i != warning_printed_for_telegrams.end())
+    {
+        // Found it!
+        return true;
+    }
+
+    // Limit size of memory to 100 odd meters...
+    if (warning_printed_for_telegrams.size() >= 100)
+    {
+        warning_printed_for_telegrams.pop_front();
+    }
+    warning_printed_for_telegrams.push_back(dll_a);
+
+    return false;
+}
+
 string manufacturer(int m_field) {
     for (auto &m : manufacturers_) {
 	if (m.m_field == m_field) return m.name;
@@ -914,7 +938,18 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
             decryption_failed = true;
             if (parser_warns_)
             {
-                warning("(wmbus) decrypted payload crc failed check, did you use the correct decryption key? Ignoring telegram.\n");
+                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(dll_a))
+                {
+                    // Print this warning only once! Unless you are using verbose or debug.
+                    warning("(wmbus) decrypted payload crc failed check, did you use the correct decryption key? "
+                            "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                            dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
+                            manufacturerFlag(dll_mfct).c_str(),
+                            manufacturer(dll_mfct).c_str(),
+                            dll_mfct,
+                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            dll_version);
+                }
             }
         }
     }
@@ -1280,7 +1315,18 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             if (parser_warns_)
             {
-                warning("(wmbus) decrypted content failed check, did you use the correct decryption key? Ignoring telegram.\n");
+                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(dll_a))
+                {
+                    // Print this warning only once! Unless you are using verbose or debug.
+                    warning("(wmbus) decrypted content failed check, did you use the correct decryption key? "
+                            "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                            dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
+                            manufacturerFlag(dll_mfct).c_str(),
+                            manufacturer(dll_mfct).c_str(),
+                            dll_mfct,
+                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            dll_version);
+                }
             }
             return false;
         }
@@ -1301,7 +1347,18 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             if (parser_warns_)
             {
-                warning("(wmbus) telegram mac check failed, did you use the correct decryption key? Ignoring telegram.\n");
+                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(dll_a))
+                {
+                    // Print this warning only once! Unless you are using verbose or debug.
+                    warning("(wmbus) telegram mac check failed, did you use the correct decryption key? "
+                            "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                            dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
+                            manufacturerFlag(dll_mfct).c_str(),
+                            manufacturer(dll_mfct).c_str(),
+                            dll_mfct,
+                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            dll_version);
+                }
             }
             return false;
         }
@@ -1315,7 +1372,18 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             if (parser_warns_)
             {
-                warning("(wmbus) decrypted content failed check, did you use the correct decryption key? Ignoring telegram.\n");
+                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(dll_a))
+                {
+                    // Print this warning only once! Unless you are using verbose or debug.
+                    warning("(wmbus) decrypted content failed check, did you use the correct decryption key? "
+                            "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                            dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
+                            manufacturerFlag(dll_mfct).c_str(),
+                            manufacturer(dll_mfct).c_str(),
+                            dll_mfct,
+                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            dll_version);
+                }
             }
             return false;
         }

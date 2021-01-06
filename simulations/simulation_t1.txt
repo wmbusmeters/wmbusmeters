@@ -50,9 +50,10 @@ telegram=|374468506549235827C3A2|129F25383300A8622600008200800A2AF86211517555287
 |HeatMeter;58234965;6371.666667;2729.444444;3642.222222;1111-11-11 11:11.11
 
 # Test FHKV data II/III
+# There is a problem in the decoding here, the data stored inside the telegram does not seem to properly encode/decode the year....
 telegram=|31446850226677116980A0119F27020480048300C408F709143C003D341A2B0B2A0707000000000000062D114457563D71A1850000|
-{"media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11776622","current_hca":131,"current_date":"2020-02-08T02:00:00Z","previous_hca":1026,"previous_date":"2019-12-31T02:00:00Z","temp_room_c":22.44,"temp_radiator_c":25.51,"timestamp":"1111-11-11T11:11:11Z"}
-|Room;11776622;131.000000;2020-02-08T02:00:00Z;1026.000000;2019-12-31T02:00:00Z;22.440000;25.510000;1111-11-11 11:11.11
+{"media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11776622","current_hca":131,"current_date":"2021-02-08T02:00:00Z","previous_hca":1026,"previous_date":"2019-12-31T02:00:00Z","temp_room_c":22.44,"temp_radiator_c":25.51,"timestamp":"1111-11-11T11:11:11Z"}
+|Room;11776622;131.000000;2021-02-08T02:00:00Z;1026.000000;2019-12-31T02:00:00Z;22.440000;25.510000;1111-11-11 11:11.11
 
 # Test EurisII T1 telegrams
 
