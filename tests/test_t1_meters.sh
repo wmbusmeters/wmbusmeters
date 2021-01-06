@@ -18,6 +18,7 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       Duschagain  mkradio4    02410120 NOKEY
       HeatMeter   vario451    58234965 NOKEY
       Room        fhkvdataiii 11776622 NOKEY
+      Rooom       fhkvdataiv  14542076 FCF41938F63432975B52505F547FCEDF
       HeatMeter   eurisii     88018801 NOKEY
       Smokeo      lansensm    00010204 NOKEY
       Tempoo      lansenth    00010203 NOKEY

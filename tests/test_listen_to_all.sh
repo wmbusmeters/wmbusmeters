@@ -70,6 +70,11 @@ Received telegram from: 11776622
                   type: Heat Cost Allocator (0x80)
                    ver: 0x69
                 driver: fhkvdataiii
+Received telegram from: 14542076
+          manufacturer: (TCH) Techem Service (0x5068)
+                  type: Heat Cost Allocator (0x08)
+                   ver: 0x94
+                driver: fhkvdataiv
 Received telegram from: 88018801
           manufacturer: (INE) INNOTAS Elektronik, Germany (0x25c5)
                   type: Heat Cost Allocator (0x08)

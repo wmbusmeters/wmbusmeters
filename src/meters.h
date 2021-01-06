@@ -41,16 +41,17 @@
     X(em24,       C1_bit, ElectricityMeter, EM24,        EM24)         \
     X(emerlin868, T1_bit, WaterMeter,       EMERLIN868,  EMerlin868)   \
     X(ev200,      T1_bit, WaterMeter,       EV200,       EV200)        \
-    X(fhkvdataiii,   T1_bit, HeatCostAllocationMeter,        FHKVDATAIII,    FHKVDataIII)     \
+    X(fhkvdataiii,T1_bit, HeatCostAllocationMeter,       FHKVDATAIII,   FHKVDataIII)    \
+    X(fhkvdataiv, T1_bit, HeatCostAllocationMeter,       FHKVDATAIV,    FHKVDataIV)     \
     X(hydrus,     T1_bit, WaterMeter,       HYDRUS,      Hydrus)       \
-    X(hydrocalm3, T1_bit, HeatMeter,        HYDROCALM3,  HydrocalM3)		 \
+    X(hydrocalm3, T1_bit, HeatMeter,        HYDROCALM3,  HydrocalM3)   \
     X(hydrodigit, T1_bit, WaterMeter,       HYDRODIGIT,  Hydrodigit)   \
     X(iperl,      T1_bit, WaterMeter,       IPERL,       Iperl)        \
     X(izar,       T1_bit, WaterMeter,       IZAR,        Izar)         \
     X(izar3,      T1_bit, WaterMeter,       IZAR3,       Izar3)        \
     X(lansensm,   T1_bit, SmokeDetector,    LANSENSM,    LansenSM)     \
     X(lansenth,   T1_bit, TempHygroMeter,   LANSENTH,    LansenTH)     \
-    X(lansendw,   T1_bit, DoorWindowDetector,  LANSENDW,    LansenDW)     \
+    X(lansendw,   T1_bit, DoorWindowDetector, LANSENDW,  LansenDW)     \
     X(lansenpu,   T1_bit, PulseCounter,     LANSENPU,    LansenPU)     \
     X(mkradio3,   T1_bit, WaterMeter,       MKRADIO3,    MKRadio3)     \
     X(mkradio4,   T1_bit, WaterMeter,       MKRADIO4,    MKRadio4)     \
@@ -109,8 +110,8 @@
     X(EV200,     MANUFACTURER_ELR,  0x07,  0x0d) \
     X(FHKVDATAIII,MANUFACTURER_TCH, 0x80,  0x69) \
     X(FHKVDATAIII,MANUFACTURER_TCH, 0x80,  0x94) \
-    X(FHKVDATAIII,MANUFACTURER_TCH, 0x08,  0x69) \
-    X(FHKVDATAIII,MANUFACTURER_TCH, 0x08,  0x94) \
+    X(FHKVDATAIV,MANUFACTURER_TCH,  0x08,  0x69) \
+    X(FHKVDATAIV,MANUFACTURER_TCH,  0x08,  0x94) \
     X(HYDRUS,    MANUFACTURER_DME,  0x07,  0x70) \
     X(HYDRUS,    MANUFACTURER_HYD,  0x07,  0x24) \
     X(HYDRUS,    MANUFACTURER_DME,  0x06,  0x70) \
