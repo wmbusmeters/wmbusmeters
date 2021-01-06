@@ -653,4 +653,7 @@ Detected detectWMBusDeviceOnTTY(string tty,
                                 LinkModeSet desired_linkmodes,
                                 shared_ptr<SerialCommunicationManager> handler);
 
+// Remember meters id/mfct/ver/type combos that we should only warn once for.
+bool warned_for_telegram_before(vector<uchar> &dll_a);
+
 #endif

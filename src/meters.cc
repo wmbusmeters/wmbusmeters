@@ -281,16 +281,26 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
         // Are we using the right driver? Perhaps not since
         // this particular driver, mfct, media, version combo
         // is not registered in the METER_DETECTION list in meters.h
-        string possible_drivers = t->autoDetectPossibleDrivers();
-        warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n",
-                name_.c_str(),
-                toMeterName(type()).c_str(),
-                possible_drivers.c_str());
-
-        if (possible_drivers == "unknown!")
+        if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(t->dll_a))
         {
-            warning("(meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/\n");
-            warning("(meter) to add support for this unknown mfct,media,version combination\n");
+            string possible_drivers = t->autoDetectPossibleDrivers();
+            warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n"
+                    "(meter) Not printing this warning agin for id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                    name_.c_str(),
+                    toMeterName(type()).c_str(),
+                    possible_drivers.c_str(),
+                    t->dll_id_b[3], t->dll_id_b[2], t->dll_id_b[1], t->dll_id_b[0],
+                    manufacturerFlag(t->dll_mfct).c_str(),
+                    manufacturer(t->dll_mfct).c_str(),
+                    t->dll_mfct,
+                    mediaType(t->dll_type, t->dll_mfct).c_str(), t->dll_type,
+                    t->dll_version);
+
+            if (possible_drivers == "unknown!")
+            {
+                warning("(meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/\n");
+                warning("(meter) to add support for this unknown mfct,media,version combination\n");
+            }
         }
     }
 
