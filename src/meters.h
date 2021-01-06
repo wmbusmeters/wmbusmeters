@@ -124,6 +124,7 @@
     X(IZAR,      MANUFACTURER_SAP,  0x01,    -1) \
     X(IZAR,      MANUFACTURER_SAP,  0x15,    -1) \
     X(IZAR,      MANUFACTURER_SAP,  0x66,    -1) \
+    X(IZAR,      MANUFACTURER_SAP,  0x04,    -1) \
     X(IZAR,      MANUFACTURER_DME,  0x66,    -1) \
     X(IZAR,      MANUFACTURER_DME,  0x19,  0x00) \
     X(IZAR,      MANUFACTURER_DME,  0x20,  0x48) \
