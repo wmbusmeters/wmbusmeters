@@ -29,7 +29,7 @@ Availability of **wmbusmeters** for other Linux distributions can be checked on 
 
 # Run as a daemon
 
-Remove the wmbus dongle (im871a,amb8465,cul,rc1180) or the generic rtlsdr dongle (RTL2838) from your computer.
+Remove the wmbus dongle (im871a,amb8465,cul,rc1180) or the generic rtlsdr dongle (RTL2832U) from your computer.
 
 `./configure; make; sudo make install` will install wmbusmeters as a daemon.
 
