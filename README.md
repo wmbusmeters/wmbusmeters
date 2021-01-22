@@ -243,12 +243,10 @@ expecting the same format that is the output from --logtelegrams. This format al
 
 As meter quadruples you specify:
 
-<meter_name> a mnemonic for this particular meter (!Must not contain a colon ':' character!)
-<meter_type> one of the supported meters
-(can be suffixed with :<mode> to specify which mode you expect the meter to use when transmitting)
-<meter_id> an 8 digit mbus id, usually printed on the meter
-<meter_key> an encryption key unique for the meter
-    if the meter uses no encryption, then supply NOKEY
+* <meter_name> a mnemonic for this particular meter (!Must not contain a colon ':' character!)
+* <meter_type> one of the supported meters (can be suffixed with :<mode> to specify which mode you expect the meter to use when transmitting)
+* <meter_id> an 8 digit mbus id, usually printed on the meter
+* <meter_key> an encryption key unique for the meter if the meter uses no encryption, then supply NOKEY
 
 ```
 Supported wmbus dongles:
@@ -288,7 +286,7 @@ Sontex 868 (sontex868)
 Techem FHKV data II/III (fhkvdataiii)
 
 Supported heat meter:
-Heat meter Techem Compact V (compact5) (non-standard protocol)
+Heat meter Techem Compact V /Compact Ve (compact5) (non-standard protocol)
 (compact5 is unfortunately not quite supported since we lack a test telegram to prevent regressions)
 Heat meter Techem Vario 4 (vario451) (non-standard protocol)
 Heat meter Kamstrup Multical 302 (multical302) (in C1 mode, please open issue for T1 mode)
