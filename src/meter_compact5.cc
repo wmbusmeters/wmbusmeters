@@ -100,7 +100,7 @@ void MeterCompact5::processContent(Telegram *t)
     t->extractPayload(&content);
     uchar prev_lo = content[3];
     uchar prev_hi = content[4];
-    double prev = (256.0*prev_hi+prev_lo)/1000;
+    double prev = (256.0*prev_hi+prev_lo);
 
     string prevs;
     strprintf(prevs, "%02x%02x", prev_lo, prev_hi);
@@ -111,7 +111,7 @@ void MeterCompact5::processContent(Telegram *t)
 
     uchar curr_lo = content[7];
     uchar curr_hi = content[8];
-    double curr = (256.0*curr_hi+curr_lo)/1000;
+    double curr = (256.0*curr_hi+curr_lo);
 
     string currs;
     strprintf(currs, "%02x%02x", curr_lo, curr_hi);
