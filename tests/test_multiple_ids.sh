@@ -116,3 +116,28 @@ then
 fi
 
 if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+
+TESTNAME="Test listen with wrong driver and wildcard"
+TESTRESULT="ERROR"
+
+cat > $TEST/test_expected.txt <<EOF
+(meter) ignoring telegram from 78563412 since it matched a wildcard id rule but driver does not match.
+(meter) ignoring telegram from 78563413 since it matched a wildcard id rule but driver does not match.
+(meter) ignoring telegram from 88563414 since it matched a wildcard id rule but driver does not match.
+EOF
+
+$PROG --verbose --format=json $SIM \
+      Element sontex868 '*' '' \
+      2>&1 | grep '(meter)' >  $TEST/test_output.txt
+
+if [ "$?" = "0" ]
+then
+    diff $TEST/test_expected.txt $TEST/test_output.txt
+    if [ "$?" = "0" ]
+    then
+        echo "OK: $TESTNAME"
+        TESTRESULT="OK"
+    fi
+fi
+
+if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi

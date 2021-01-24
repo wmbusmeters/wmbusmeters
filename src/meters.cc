@@ -268,7 +268,8 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
 {
     debug("(meter) %s: for me? %s\n", name_.c_str(), t->id.c_str());
 
-    bool id_match = doesIdMatchExpressions(t->id, ids_);
+    bool used_wildcard = false;
+    bool id_match = doesIdMatchExpressions(t->id, ids_, &used_wildcard);
 
     if (!id_match) {
         // The id must match.
@@ -276,11 +277,27 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
         return false;
     }
 
-    if (!isMeterDriverValid(type_, t->dll_mfct, t->dll_type, t->dll_version))
+    bool valid_driver = isMeterDriverValid(type_, t->dll_mfct, t->dll_type, t->dll_version);
+
+    if (!valid_driver)
     {
         // Are we using the right driver? Perhaps not since
         // this particular driver, mfct, media, version combo
         // is not registered in the METER_DETECTION list in meters.h
+
+        if (used_wildcard)
+        {
+            // The match for the id was not exact, thus the user is listening using a wildcard
+            // to many meters and some received matched meter telegrams are not from the right meter type,
+            // ie their driver does not match. Lets just ignore telegrams that probably cannot be decoded properly.
+            verbose("(meter) ignoring telegram from %s since it matched a wildcard id rule but driver does not match.\n",
+                    t->id.c_str());
+            return false;
+        }
+
+        // The match was exact, ie the user has actually specified 12345678 and foo as driver even
+        // though they do not match. Lets warn and then proceed. It is common that a user tries a
+        // new version of a meter with the old driver, thus it might not be a real error.
         if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(t->dll_a))
         {
             string possible_drivers = t->autoDetectPossibleDrivers();

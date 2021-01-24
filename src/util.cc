@@ -617,10 +617,17 @@ bool doesIdMatchExpression(string id, string match)
     return can_match;
 }
 
-bool doesIdMatchExpressions(string& id, vector<string>& mes)
+bool hasWildCard(string &mes)
+{
+    return mes.find('*') != string::npos;
+}
+
+bool doesIdMatchExpressions(string& id, vector<string>& mes, bool *used_wildcard)
 {
     bool found_match = false;
     bool found_negative_match = false;
+    bool exact_match = false;
+    *used_wildcard = false;
 
     // Goes through all possible match expressions.
     // If no expression matches, neither positive nor negative,
@@ -632,8 +639,12 @@ bool doesIdMatchExpressions(string& id, vector<string>& mes)
     // If more than one negative match is found, irrespective
     // if there is any positive matches or not, then the result is false.
 
+    // If a positive match is found, using a wildcard not any exact match,
+    // then *used_wildcard is set to true.
+
     for (string me : mes)
     {
+        bool has_wildcard = hasWildCard(me);
         bool is_negative_rule = (me.length() > 0 && me.front() == '!');
         if (is_negative_rule)
         {
@@ -648,12 +659,33 @@ bool doesIdMatchExpressions(string& id, vector<string>& mes)
         }
         else
         {
-            if (m) found_match = true;
+            if (m)
+            {
+                found_match = true;
+                if (!has_wildcard)
+                {
+                    exact_match = true;
+                }
+            }
         }
     }
 
-    if (found_negative_match) return false;
-    if (found_match) return true;
+    if (found_negative_match)
+    {
+        return false;
+    }
+    if (found_match)
+    {
+        if (exact_match)
+        {
+            *used_wildcard = false;
+        }
+        else
+        {
+            *used_wildcard = true;
+        }
+        return true;
+    }
     return false;
 }
 
