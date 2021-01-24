@@ -49,7 +49,7 @@ private:
     void processContent(Telegram *t);
 
     uchar info_codes_ {};
-    double total_energy_gj_ {};
+    double total_energy_mj_ {};
     double total_volume_m3_ {};
     double volume_flow_m3h_ {};
     double t1_temperature_c_ { 127 };
@@ -58,8 +58,8 @@ private:
     bool has_t2_temperature_ {};
     string target_date_ {};
 
-    uint32_t energy_forward_gj_ {};
-    uint32_t energy_returned_gj_ {};
+    uint32_t energy_forward_mj_ {};
+    uint32_t energy_returned_mj_ {};
 };
 
 MeterMultical803::MeterMultical803(MeterInfo &mi) :
@@ -105,12 +105,12 @@ MeterMultical803::MeterMultical803(MeterInfo &mi) :
              true, true);
 
     addPrint("energy_forward", Quantity::Energy,
-             [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(energy_forward_gj_, Unit::GJ, u); },
+             [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(energy_forward_mj_, Unit::MJ, u); },
              "Energy forward.",
              false, true);
 
     addPrint("energy_returned", Quantity::Energy,
-             [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(energy_returned_gj_, Unit::GJ, u); },
+             [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(energy_returned_mj_, Unit::MJ, u); },
              "Energy returned.",
              false, true);
 }
@@ -122,7 +122,7 @@ shared_ptr<HeatMeter> createMultical803(MeterInfo &mi) {
 double MeterMultical803::totalEnergyConsumption(Unit u)
 {
     assertQuantity(u, Quantity::Energy);
-    return convert(total_energy_gj_, Unit::KWH, u);
+    return convert(total_energy_mj_, Unit::MJ, u);
 }
 
 double MeterMultical803::totalVolume(Unit u)
@@ -162,50 +162,91 @@ double MeterMultical803::volumeFlow(Unit u)
 void MeterMultical803::processContent(Telegram *t)
 {
     /*
-      (multical803) 13: 78 tpl-ci-field (EN 13757-3 Application Layer (no tplh))
-      (multical803) 14: 04 dif (32 Bit Integer/Binary Instantaneous value)
-      (multical803) 15: 06 vif (Energy kWh)
-      (multical803) 16: * A5000000 total energy consumption (165.000000 kWh)
-      (multical803) 1a: 04 dif (32 Bit Integer/Binary Instantaneous value)
-      (multical803) 1b: FF vif (Vendor extension)
-      (multical803) 1c: 07 vife (?)
-      (multical803) 1d: 2B010000
-      (multical803) 21: 04 dif (32 Bit Integer/Binary Instantaneous value)
-      (multical803) 22: FF vif (Vendor extension)
-      (multical803) 23: 08 vife (?)
-      (multical803) 24: 9C000000
-      (multical803) 28: 04 dif (32 Bit Integer/Binary Instantaneous value)
-      (multical803) 29: 14 vif (Volume 10⁻² m³)
-      (multical803) 2a: * 21020000 total volume (5.450000 m3)
-      (multical803) 2e: 04 dif (32 Bit Integer/Binary Instantaneous value)
-      (multical803) 2f: 3B vif (Volume flow l/h)
-      (multical803) 30: * 12000000 volume flow (0.018000 m3/h)
-      (multical803) 34: 02 dif (16 Bit Integer/Binary Instantaneous value)
-      (multical803) 35: 59 vif (Flow temperature 10⁻² °C)
-      (multical803) 36: * D014 T1 flow temperature (53.280000 °C)
-      (multical803) 38: 02 dif (16 Bit Integer/Binary Instantaneous value)
-      (multical803) 39: 5D vif (Return temperature 10⁻² °C)
-      (multical803) 3a: * 0009 T2 flow temperature (23.040000 °C)
-      (multical803) 3c: 04 dif (32 Bit Integer/Binary Instantaneous value)
-      (multical803) 3d: FF vif (Vendor extension)
-      (multical803) 3e: 22 vife (per hour)
-      (multical803) 3f: * 00000000 info codes ()
-*/
+      (wmbus) 14: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (wmbus) 15: 0F vif (Energy 10⁷ J)
+      (wmbus) 16: 00000000
+      (wmbus) 1a: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (wmbus) 1b: FF vif (Vendor extension)
+      (wmbus) 1c: 07 vife (?)
+      (wmbus) 1d: 00000000
+      (wmbus) 21: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (wmbus) 22: FF vif (Vendor extension)
+      (wmbus) 23: 08 vife (?)
+      (wmbus) 24: 00000000
+      (wmbus) 28: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (wmbus) 29: 14 vif (Volume 10⁻² m³)
+      (wmbus) 2a: 00000000
+      (wmbus) 2e: 84 dif (32 Bit Integer/Binary Instantaneous value)
+      (wmbus) 2f: 40 dife (subunit=1 tariff=0 storagenr=0)
+      (wmbus) 30: 14 vif (Volume 10⁻² m³)
+      (wmbus) 31: 00000000
+      (wmbus) 35: 84 dif (32 Bit Integer/Binary Instantaneous value)
+      (wmbus) 36: 80 dife (subunit=0 tariff=0 storagenr=0)
+      (wmbus) 37: 40 dife (subunit=2 tariff=0 storagenr=0)
+      (wmbus) 38: 14 vif (Volume 10⁻² m³)
+      (wmbus) 39: 00000000
+      (wmbus) 3d: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (wmbus) 3e: 3B vif (Volume flow l/h)
+      (wmbus) 3f: 00000000
+      (wmbus) 43: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (wmbus) 44: 59 vif (Flow temperature 10⁻² °C)
+      (wmbus) 45: 0000
+      (wmbus) 47: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (wmbus) 48: 5D vif (Return temperature 10⁻² °C)
+      (wmbus) 49: 0000
+      (wmbus) 4b: 14 dif (32 Bit Integer/Binary Maximum value)
+      (wmbus) 4c: 2D vif (Power 10² W)
+      (wmbus) 4d: 00000000
+      (wmbus) 51: 84 dif (32 Bit Integer/Binary Instantaneous value)
+      (wmbus) 52: 10 dife (subunit=0 tariff=1 storagenr=0)
+      (wmbus) 53: 0F vif (Energy 10⁷ J)
+      (wmbus) 54: 00000000
+      (wmbus) 58: 84 dif (32 Bit Integer/Binary Instantaneous value)
+      (wmbus) 59: 20 dife (subunit=0 tariff=2 storagenr=0)
+      (wmbus) 5a: 0F vif (Energy 10⁷ J)
+      (wmbus) 5b: 00000000
+      (wmbus) 5f: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (wmbus) 60: FF vif (Vendor extension)
+      (wmbus) 61: 22 vife (per hour)
+      (wmbus) 62: 60000100
+      (wmbus) 66: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (wmbus) 67: 6C vif (Date type G)
+      (wmbus) 68: 892B
+      (wmbus) 6a: 44 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+      (wmbus) 6b: 0F vif (Energy 10⁷ J)
+      (wmbus) 6c: 00000000
+      (wmbus) 70: 44 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+      (wmbus) 71: 14 vif (Volume 10⁻² m³)
+      (wmbus) 72: 00000000
+      (wmbus) 76: C4 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+      (wmbus) 77: 40 dife (subunit=1 tariff=0 storagenr=1)
+      (wmbus) 78: 14 vif (Volume 10⁻² m³)
+      (wmbus) 79: 00000000
+      (wmbus) 7d: C4 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+      (wmbus) 7e: 80 dife (subunit=0 tariff=0 storagenr=1)
+      (wmbus) 7f: 40 dife (subunit=2 tariff=0 storagenr=1)
+      (wmbus) 80: 14 vif (Volume 10⁻² m³)
+      (wmbus) 81: 00000000
+      (wmbus) 85: 42 dif (16 Bit Integer/Binary Instantaneous value storagenr=1)
+      (wmbus) 86: 6C vif (Date type G)
+      (wmbus) 87: 812B
+    */
+
     int offset;
     string key;
 
     extractDVuint8(&t->values, "04FF22", &offset, &info_codes_);
     t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
 
-    extractDVuint32(&t->values, "04FF07", &offset, &energy_forward_gj_);
-    t->addMoreExplanation(offset, " energy forward gj (%zu)", energy_forward_gj_);
+    extractDVuint32(&t->values, "04FF07", &offset, &energy_forward_mj_);
+    t->addMoreExplanation(offset, " energy forward mj (%zu)", energy_forward_mj_);
 
-    extractDVuint32(&t->values, "04FF08", &offset, &energy_returned_gj_);
-    t->addMoreExplanation(offset, " energy returned gj (%zu)", energy_returned_gj_);
+    extractDVuint32(&t->values, "04FF08", &offset, &energy_returned_mj_);
+    t->addMoreExplanation(offset, " energy returned mj (%zu)", energy_returned_mj_);
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_energy_gj_);
-        t->addMoreExplanation(offset, " total energy consumption (%f kWh)", total_energy_gj_);
+    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyMJ, 0, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_energy_mj_);
+        t->addMoreExplanation(offset, " total energy consumption (%f MJ)", total_energy_mj_);
     }
 
     if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, &key, &t->values)) {

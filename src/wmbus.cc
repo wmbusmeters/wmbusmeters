@@ -946,7 +946,10 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
                     warning("(wmbus) decrypted payload crc failed check, did you use the correct decryption key? "
+                            "%02x%02x payload crc (calculated %02x%02x) "
                             "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                            ell_pl_crc_b[0], ell_pl_crc_b[1],
+                            check  & 0xff, check >> 8,
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
                             manufacturer(dll_mfct).c_str(),
