@@ -420,7 +420,7 @@ void test_ids()
     test_does_id_match_expression("11223344", "22*,33*,44*,55*", false, false);
     test_does_id_match_expression("55223344", "22*,33*,44*,55*", true, true);
 
-    test_does_id_match_expression("78563413", "78563412,78563413", true, true);
+    test_does_id_match_expression("78563413", "78563412,78563413", true, false);
     test_does_id_match_expression("78563413", "*,!00156327,!00048713", true, true);
 }
 
