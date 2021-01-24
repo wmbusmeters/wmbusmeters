@@ -34,7 +34,6 @@ struct MeterWaterstarM : public virtual WaterMeter, public virtual MeterCommonIm
 
 private:
     void processContent(Telegram *t);
-    string status();
 
     string meter_timestamp_;
     double total_water_consumption_m3_ {};
@@ -42,6 +41,9 @@ private:
     double total_water_backwards_m3_ {};
     string meter_version_ {};
     string parameter_set_ {};
+
+    string status_;
+    map<int,string> error_codes_;
 };
 
 shared_ptr<WaterMeter> createWaterstarM(MeterInfo &mi)
@@ -56,6 +58,18 @@ MeterWaterstarM::MeterWaterstarM(MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
     addLinkMode(LinkMode::C1);
+
+    error_codes_ = {
+             { 0x01, "SW_ERROR" },
+             { 0x02, "CRC_ERROR" },
+             { 0x04, "SENSOR_ERROR" },
+             { 0x08, "MEASUREMENT_ERROR" },
+             { 0x10, "BATTERY_VOLTAGE_ERROR" },
+             { 0x20, "MANIPULATION" },
+             { 0x40, "LEAKAGE_OR_NO_USAGE" },
+             { 0x80, "REVERSE_FLOW" },
+             { 0x100, "OVERLOAD" },
+    };
 
     addPrint("meter_timestamp", Quantity::Text,
              [&](){ return meter_timestamp_; },
@@ -73,8 +87,8 @@ MeterWaterstarM::MeterWaterstarM(MeterInfo &mi) :
              true, true);
 
     addPrint("current_status", Quantity::Text,
-             [&](){ return status(); },
-             "Status of meter.",
+             [&](){ return status_; },
+             "The status is OK or some error condition.",
              true, true);
 
     addPrint("meter_version", Quantity::Text,
@@ -136,7 +150,8 @@ void MeterWaterstarM::processContent(Telegram *t)
     }
 
     extractDVuint16(&t->values, "02FD17", &offset, &info_codes_);
-    t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
+    t->addMoreExplanation(offset, " info codes (%s)", status_);
+    status_ = decodeTPLStatusByte(info_codes_, error_codes_);
 
     extractDVdouble(&t->values, "04933C", &offset, &total_water_backwards_m3_);
     t->addMoreExplanation(offset, " total water backwards (%f m3)", total_water_backwards_m3_);
@@ -167,13 +182,4 @@ double MeterWaterstarM::totalWaterBackwards(Unit u)
 bool MeterWaterstarM::hasTotalWaterConsumption()
 {
     return true;
-}
-
-string MeterWaterstarM::status()
-{
-    if (info_codes_ == 0) return "OK";
-    string s;
-    // We would like to know what the bits mean, but currently we do not!
-    strprintf(s, "ERROR(%04x)", info_codes_);
-    return s;
 }

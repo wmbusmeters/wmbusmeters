@@ -474,6 +474,8 @@ string mediaType(int a_field_device_type, int m_field) {
         case 0x80: return "Heat Cost Allocator"; // FHKV data ii/iii
         // Techem Vario 4 Typ 4.5.1 manufacturer specific.
         case 0xC3: return "Heat meter";
+        // Techem V manufacturer specific.
+        case 0x43: return "Heat meter";
         case 0xf0: return "Smoke detector";
         }
     }
@@ -553,6 +555,8 @@ string mediaTypeJSON(int a_field_device_type, int m_field)
         case 0x80: return "heat cost allocator"; // FHKV data ii/iii
         // Techem Vario 4 Typ 4.5.1 manufacturer specific.
         case 0xC3: return "heat";
+        // Techem V manufacturer specific.
+        case 0x43: return "heat";
         case 0xf0: return "smoke detector";
         }
     }

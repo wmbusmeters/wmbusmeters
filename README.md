@@ -29,7 +29,7 @@ Availability of **wmbusmeters** for other Linux distributions can be checked on 
 
 # Run as a daemon
 
-Remove the wmbus dongle (im871a,amb8465,cul,rc1180) or the generic rtlsdr dongle (RTL2838) from your computer.
+Remove the wmbus dongle (im871a,amb8465,cul,rc1180) or the generic rtlsdr dongle (RTL2832U) from your computer.
 
 `./configure; make; sudo make install` will install wmbusmeters as a daemon.
 
@@ -285,9 +285,8 @@ Qundis Q caloric (qcaloric)
 Sontex 868 (sontex868)
 Techem FHKV data II/III (fhkvdataiii)
 
-Supported heat meter:
+Supported heat meters:
 Heat meter Techem Compact V / Compact Ve (compact5) (non-standard protocol)
-(compact5 is unfortunately not quite supported since we lack a test telegram to prevent regressions)
 Heat meter Techem Vario 4 (vario451) (non-standard protocol)
 Heat meter Kamstrup Multical 302 (multical302) (in C1 mode, please open issue for T1 mode)
 Heat and Cooling meter Kamstrup Multical 403 (multical403) (in C1 mode)

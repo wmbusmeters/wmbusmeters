@@ -215,6 +215,11 @@ Received telegram from: 91633569
                   type: Smoke detector (0xf0)
                    ver: 0x76
                 driver: tsd2
+Received telegram from: 62626262
+          manufacturer: (TCH) Techem Service (0x5068)
+                  type: Heat meter (0x43)
+                   ver: 0x45
+                driver: compact5
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)
