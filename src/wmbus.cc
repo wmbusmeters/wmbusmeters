@@ -363,13 +363,21 @@ bool seen_this_telegram_before(vector<uchar> &frame)
 // for telegrams that has been warned about!
 deque<vector<uchar>> warning_printed_for_telegrams;
 
-bool warned_for_telegram_before(vector<uchar> &dll_a)
+bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a)
 {
     auto i = std::find(warning_printed_for_telegrams.begin(), warning_printed_for_telegrams.end(), dll_a);
 
     if (i != warning_printed_for_telegrams.end())
     {
         // Found it!
+        if (t->triggered_warning)
+        {
+            // This is another warning for the same telegram, that triggered the first warning.
+            // We want to print all warnings for the first telegram, return false to print it.
+            return false;
+        }
+        // This is a second telegram, ie not the telegram that triggered the first warning.
+        // So lets report true, because we have warned for this telegram id before.
         return true;
     }
 
@@ -379,7 +387,8 @@ bool warned_for_telegram_before(vector<uchar> &dll_a)
         warning_printed_for_telegrams.pop_front();
     }
     warning_printed_for_telegrams.push_back(dll_a);
-
+    // Print all warnings for this telegram.
+    t->triggered_warning = true;
     return false;
 }
 
@@ -942,7 +951,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
             decryption_failed = true;
             if (parser_warns_)
             {
-                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(dll_a))
+                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
                     warning("(wmbus) decrypted payload crc failed check, did you use the correct decryption key? "
@@ -1322,7 +1331,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             if (parser_warns_)
             {
-                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(dll_a))
+                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
                     warning("(wmbus) decrypted content failed check, did you use the correct decryption key? "
@@ -1354,7 +1363,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             if (parser_warns_)
             {
-                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(dll_a))
+                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
                     warning("(wmbus) telegram mac check failed, did you use the correct decryption key? "
@@ -1379,7 +1388,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             if (parser_warns_)
             {
-                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(dll_a))
+                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
                     warning("(wmbus) decrypted content failed check, did you use the correct decryption key? "

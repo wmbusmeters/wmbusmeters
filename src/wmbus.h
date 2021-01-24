@@ -342,6 +342,9 @@ struct Telegram
 {
     AboutTelegram about;
 
+    // If a warning is printed mark this.
+    bool triggered_warning {};
+
     // The meter address as a string usually printed on the meter.
     string id;
     // If decryption failed, set this to true, to prevent further processing.
@@ -654,6 +657,6 @@ Detected detectWMBusDeviceOnTTY(string tty,
                                 shared_ptr<SerialCommunicationManager> handler);
 
 // Remember meters id/mfct/ver/type combos that we should only warn once for.
-bool warned_for_telegram_before(vector<uchar> &dll_a);
+bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a);
 
 #endif

@@ -298,7 +298,7 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
         // The match was exact, ie the user has actually specified 12345678 and foo as driver even
         // though they do not match. Lets warn and then proceed. It is common that a user tries a
         // new version of a meter with the old driver, thus it might not be a real error.
-        if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(t->dll_a))
+        if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(t, t->dll_a))
         {
             string possible_drivers = t->autoDetectPossibleDrivers();
             warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n"
