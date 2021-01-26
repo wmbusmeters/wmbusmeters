@@ -41,6 +41,7 @@
     X(em24,       C1_bit, ElectricityMeter, EM24,        EM24)         \
     X(emerlin868, T1_bit, WaterMeter,       EMERLIN868,  EMerlin868)   \
     X(ev200,      T1_bit, WaterMeter,       EV200,       EV200)        \
+    X(evo868,     T1_bit, WaterMeter,       EVO868,      EVO868)       \
     X(fhkvdataiii,T1_bit, HeatCostAllocationMeter,       FHKVDATAIII,   FHKVDataIII)    \
     X(fhkvdataiv, T1_bit, HeatCostAllocationMeter,       FHKVDATAIV,    FHKVDataIV)     \
     X(hydrus,     T1_bit, WaterMeter,       HYDRUS,      Hydrus)       \
@@ -111,6 +112,7 @@
     X(EM24,      MANUFACTURER_KAM,  0x02,  0x33) \
     X(EMERLIN868,MANUFACTURER_ELR,  0x37,  0x11) \
     X(EV200,     MANUFACTURER_ELR,  0x07,  0x0d) \
+    X(EVO868,    MANUFACTURER_MAD,  0x07,  0x50) \
     X(FHKVDATAIII,MANUFACTURER_TCH, 0x80,  0x69) \
     X(FHKVDATAIII,MANUFACTURER_TCH, 0x80,  0x94) \
     X(FHKVDATAIV,MANUFACTURER_TCH,  0x08,  0x69) \

@@ -1,4 +1,5 @@
 
+Added support for evo868 water meter addon module.
 Added support for whe542 heat cost allocator.
 
 Marc Kolly improved the Waterstar meter and added better error codes

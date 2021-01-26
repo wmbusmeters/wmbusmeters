@@ -55,6 +55,7 @@ std::string strdate(struct tm *date);
 std::string strdatetime(struct tm *date);
 // Return for example: 2010-03-21 15:22:03
 std::string strdatetimesec(struct tm *date);
+void addMonths(struct tm* date, int m);
 
 bool stringFoundCaseIgnored(std::string haystack, std::string needle);
 

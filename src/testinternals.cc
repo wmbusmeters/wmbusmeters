@@ -37,6 +37,7 @@ void test_ids();
 void test_kdf();
 void test_periods();
 void test_devices();
+void test_months();
 
 int main(int argc, char **argv)
 {
@@ -62,6 +63,7 @@ int main(int argc, char **argv)
     test_ids();
     test_kdf();
     test_periods();
+    test_months();
     return 0;
 }
 
@@ -643,4 +645,27 @@ void test_devices()
           ""); // command
 
 
+}
+
+void test_months()
+{
+    struct tm date;
+    date.tm_year  = 2020-1900;
+    date.tm_mon = 12-1;
+    date.tm_mday   = 31;
+
+    string s = strdate(&date);
+
+    struct tm d;
+    d = date;
+    addMonths(&d, -10);
+
+    string os = strdate(&d);
+
+    if (s != "2020-12-31" ||
+        os != "2020-02-29")
+    {
+        printf("ERROR! Expected 2020-12-31 - 10 months should be 2020-02-29\n"
+               "But got %s - 11 = %s\n", s.c_str(), os.c_str());
+    }
 }

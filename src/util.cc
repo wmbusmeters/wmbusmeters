@@ -1180,6 +1180,61 @@ string strdatetimesec(struct tm *datetime)
     return string(buf);
 }
 
+bool is_leap_year(int year)
+{
+    if (year % 4 != 0) return false;
+    if (year % 400 == 0) return true;
+    if (year % 100 == 0) return false;
+    return true;
+}
+
+int days_in_months[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+int get_days_in_month(int year, int month)
+{
+    assert(month >= 0);
+    assert(month < 12);
+
+    int days = days_in_months[month];
+
+    if (month == 1 && is_leap_year(year))
+    {
+        // Handle february in a leap year.
+        days += 1;
+    }
+
+    return days;
+}
+
+void addMonths(struct tm *date, int months)
+{
+    bool is_last_day_in_month = date->tm_mday == get_days_in_month(date->tm_year, date->tm_mon);
+
+    int year = date->tm_year + months / 12;
+    int month = date->tm_mon + months % 12;
+
+    if (month > 11)
+    {
+        year += 1;
+        month -= 12;
+    }
+
+    int day;
+
+    if (is_last_day_in_month)
+    {
+        day = get_days_in_month(year, month); // Last day of month maps to last day of result month
+    }
+    else
+    {
+        day = std::min(date->tm_mday, get_days_in_month(year, month));
+    }
+
+    date->tm_year = year;
+    date->tm_mon = month;
+    date->tm_mday = day;
+}
+
 AccessCheck checkIfExistsAndSameGroup(string device)
 {
     struct stat sb;

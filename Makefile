@@ -129,6 +129,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_em24.o \
 	$(BUILD)/meter_emerlin868.o \
 	$(BUILD)/meter_ev200.o \
+	$(BUILD)/meter_evo868.o \
 	$(BUILD)/meter_eurisii.o \
 	$(BUILD)/meter_fhkvdataiii.o \
 	$(BUILD)/meter_fhkvdataiv.o \
