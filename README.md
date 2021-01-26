@@ -284,6 +284,7 @@ Innotas EurisII  (eurisii)
 Qundis Q caloric (qcaloric)
 Sontex 868 (sontex868)
 Techem FHKV data II/III (fhkvdataiii)
+Siemens WHE542 (whe5x)
 
 Supported heat meters:
 Heat meter Techem Compact V / Compact Ve (compact5) (non-standard protocol)

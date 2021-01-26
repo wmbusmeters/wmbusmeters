@@ -1,4 +1,6 @@
 
+Added support for whe542 heat cost allocator.
+
 Marc Kolly improved the Waterstar meter and added better error codes
 and another type/version detection combo! Thanks Marc!
 

@@ -163,6 +163,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_vario451.o \
 	$(BUILD)/meter_waterstarm.o \
 	$(BUILD)/meter_whe46x.o \
+	$(BUILD)/meter_whe5x.o \
 	$(BUILD)/meter_sensostar.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/rtlsdr.o \
