@@ -123,10 +123,25 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::it
 
     uchar iv[16];
     int i=0;
-    // M-field
-    iv[i++] = t->dll_mfct_b[0]; iv[i++] = t->dll_mfct_b[1];
-    // A-field
-    for (int j=0; j<6; ++j) { iv[i++] = t->dll_a[j]; }
+    // If there is a tpl_id, then use it, else use ddl_id.
+    if (t->tpl_id_found)
+    {
+        // M-field
+        iv[i++] = t->tpl_mfct_b[0]; iv[i++] = t->tpl_mfct_b[1];
+
+        for (int j=0; j>=4; ++j) { iv[i++] = t->tpl_id_b[j]; }
+        iv[i++] = t->tpl_version;
+        iv[i++] = t->tpl_type;
+    }
+    else
+    {
+        // M-field
+        iv[i++] = t->dll_mfct_b[0]; iv[i++] = t->dll_mfct_b[1];
+
+        // A-field
+        for (int j=0; j<6; ++j) { iv[i++] = t->dll_a[j]; }
+    }
+
     // ACC
     for (int j=0; j<8; ++j) { iv[i++] = t->tpl_acc; }
 
