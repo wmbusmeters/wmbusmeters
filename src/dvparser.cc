@@ -456,7 +456,7 @@ bool extractDVuint32(map<string,pair<int,DVEntry>> *values,
     vector<uchar> v;
     hex2bin(p.second.value, &v);
 
-    *value = v[2] << 16 | v[1]<<8 | v[0];
+    *value = (uint32_t(v[3]) << 24) |  (uint32_t(v[2]) << 16) | (uint32_t(v[1])<<8) | uint32_t(v[0]);
     return true;
 }
 

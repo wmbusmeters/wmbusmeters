@@ -166,6 +166,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_whe46x.o \
 	$(BUILD)/meter_whe5x.o \
 	$(BUILD)/meter_sensostar.o \
+	$(BUILD)/meter_gransystems_ccx01.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/rtlsdr.o \
 	$(BUILD)/serial.o \

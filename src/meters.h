@@ -76,6 +76,7 @@
     X(whe5x,      S1_bit, HeatCostAllocationMeter, WHE5X, Whe5x)     \
     X(topaseskr, T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)           \
     X(sensostar, C1_bit|T1_bit, HeatMeter,SENSOSTAR,  Sensostar)       \
+    X(gransystems, T1_bit, ElectricityMeter, CCx01, CCx01)
 
 
 // List of numbers that can be used to detect the meter driver
@@ -175,6 +176,7 @@
     X(WHE46X,     MANUFACTURER_LSE, 0x08,  0x18) \
     X(WHE5X,      MANUFACTURER_LSE, 0x08,  0x34) \
     X(SENSOSTAR,  MANUFACTURER_EFE, 0x04,  0x00) \
+    X(CCx01, MANUFACTURER_GSS, 0x02,  0x01)
 
 enum class MeterType {
 #define X(mname,linkmode,info,type,cname) type,
