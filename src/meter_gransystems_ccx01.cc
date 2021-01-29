@@ -17,12 +17,19 @@
 
 /*
 Implemented January 2021 Xael South:
-Implements GSS, energy meter.
+Implements GSS, CC101 and CC301 energy meter.
 This T1 WM-Bus meter broadcasts:
-- Accumulated energy consumption (A+, kWh)
+- accumulated energy consumption
+- accumulated energy consumption till yesterday
+- current date
+- actually measured voltage
+- actually measured current
+- actually measured frequency
+- meter status and errors
 
 The single-phase and three-phase send apparently the same datagram:
-three-phase meter sends voltage values for phase 2 (L2) and phase 3 (L3).
+three-phase meter sends voltage and current values for every phase
+L1 .. L3.
 
 Meter version. Implementation tested against meters:
 - CC101 one-phase with firmware version 0x01.
@@ -39,9 +46,8 @@ Encryption: None.
 #include"util.h"
 #include<cmath>
 
-// === CC101 ===
-struct MeterGransystemsCC101: public virtual ElectricityMeter, public virtual MeterCommonImplementation {
-    MeterGransystemsCC101(MeterInfo &mi);
+struct MeterGransystemsCCx01: public virtual ElectricityMeter, public virtual MeterCommonImplementation {
+    MeterGransystemsCCx01(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
 
@@ -62,7 +68,7 @@ private:
     double last_day_tariff_energy_kwh_[MAX_TARIFFS] {};
 
     double voltage_L_[3]{-NAN, -NAN, -NAN};
-    double ampere_L_[3]{-NAN, -NAN, -NAN};
+    double current_L_[3]{-NAN, -NAN, -NAN};
     double frequency_{-NAN};
 
     bool single_phase_{};
@@ -73,10 +79,10 @@ private:
 
 shared_ptr<ElectricityMeter> createCCx01(MeterInfo &mi)
 {
-    return shared_ptr<ElectricityMeter>(new MeterGransystemsCC101(mi));
+    return shared_ptr<ElectricityMeter>(new MeterGransystemsCCx01(mi));
 }
 
-MeterGransystemsCC101::MeterGransystemsCC101(MeterInfo &mi) :
+MeterGransystemsCCx01::MeterGransystemsCCx01(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterType::CCx01)
 {
     addLinkMode(LinkMode::T1);
@@ -102,17 +108,17 @@ MeterGransystemsCC101::MeterGransystemsCC101(MeterInfo &mi) :
              true, true);
 
     addPrint("currrent at phase 1", Quantity::Current,
-             [&](Unit u){ return convert(ampere_L_[0], Unit::Ampere, u); },
+             [&](Unit u){ return convert(current_L_[0], Unit::Ampere, u); },
              "Current at phase L1.",
              true, true);
 
     addPrint("currrent at phase 2", Quantity::Current,
-             [&](Unit u){ return convert(ampere_L_[1], Unit::Ampere, u); },
+             [&](Unit u){ return convert(current_L_[1], Unit::Ampere, u); },
              "Current at phase L2.",
              true, true);
 
     addPrint("currrent at phase 3", Quantity::Current,
-             [&](Unit u){ return convert(ampere_L_[2], Unit::Ampere, u); },
+             [&](Unit u){ return convert(current_L_[2], Unit::Ampere, u); },
              "Current at phase L3.",
              true, true);
 
@@ -127,13 +133,13 @@ MeterGransystemsCC101::MeterGransystemsCC101(MeterInfo &mi) :
              true, true);
 }
 
-double MeterGransystemsCC101::totalEnergyConsumption(Unit u)
+double MeterGransystemsCCx01::totalEnergyConsumption(Unit u)
 {
     assertQuantity(u, Quantity::Energy);
     return convert(current_total_energy_kwh_, Unit::KWH, u);
 }
 
-void MeterGransystemsCC101::processContent(Telegram *t)
+void MeterGransystemsCCx01::processContent(Telegram *t)
 {
     int offset;
     string key;
@@ -202,7 +208,7 @@ void MeterGransystemsCC101::processContent(Telegram *t)
     }
 
     voltage_L_[0] = voltage_L_[1] = voltage_L_[2] = -NAN;
-    ampere_L_[0]  = ampere_L_[1]  = ampere_L_[2]  = -NAN;
+    current_L_[0]  = current_L_[1]  = current_L_[2]  = -NAN;
 
     if (single_phase_)
     {
@@ -212,10 +218,10 @@ void MeterGransystemsCC101::processContent(Telegram *t)
             t->addMoreExplanation(offset, " voltage (%f volts)", voltage_L_[0]);
         }
 
-        if (extractDVdouble(&t->values, "04FD5B", &offset, &ampere_L_[0], false))
+        if (extractDVdouble(&t->values, "04FD5B", &offset, &current_L_[0], false))
         {
-            ampere_L_[0] /= 10.;
-            t->addMoreExplanation(offset, " current (%f ampere)", ampere_L_[0]);
+            current_L_[0] /= 10.;
+            t->addMoreExplanation(offset, " current (%f ampere)", current_L_[0]);
         }
     }
     else if (three_phase_)
@@ -233,10 +239,10 @@ void MeterGransystemsCC101::processContent(Telegram *t)
         for (std::size_t i = 0; i < 3; i++)
         {
             static const std::string pattern[] = {"8440FD5B", "848040FD5B", "84C040FD5B"};
-            if (extractDVdouble(&t->values, pattern[i], &offset, &ampere_L_[i], false))
+            if (extractDVdouble(&t->values, pattern[i], &offset, &current_L_[i], false))
             {
-                ampere_L_[i] /= 10.;
-                t->addMoreExplanation(offset, " current L%d (%f ampere)", i + 1, ampere_L_[i]);
+                current_L_[i] /= 10.;
+                t->addMoreExplanation(offset, " current L%d (%f ampere)", i + 1, current_L_[i]);
             }
         }
     }
@@ -248,19 +254,28 @@ void MeterGransystemsCC101::processContent(Telegram *t)
     }
 }
 
-string MeterGransystemsCC101::status()
+string MeterGransystemsCCx01::status()
 {
     const uint16_t error_codes = status_ & 0xFFFFu;
     string s;
-    
+
     if (error_codes & 0x0001u)
     {
-        s.append("HARDWARE ERROR");
+        s.append("METER HARDWARE ERROR");
     }
 
     if (error_codes & 0x0002u)
     {
         s.append("RTC ERROR");
+    }
+
+    if (error_codes & 0x0100u)
+    {
+        s.append("DSP COMMUNICATION ERROR");
+    }
+    if (error_codes & 0x0200u)
+    {
+        s.append("DSP HARDWARE ERROR");
     }
 
     if (error_codes & 0x4000u)
@@ -273,6 +288,56 @@ string MeterGransystemsCC101::status()
         s.append("ROM ERROR");
     }
 
+    if (single_phase_)
+    {
+        if (error_codes & 0x0008u)
+        {
+            s.append("DEVICE NOT CONFIGURED");
+        }
+        if (error_codes & 0x0010u)
+        {
+            s.append("INTERNAL ERROR");
+        }
+        if (error_codes & 0x0020u)
+        {
+            s.append("BATTERIE LOW");
+        }
+        if (error_codes & 0x0040u)
+        {
+            s.append("MAGNETIC FRAUD PRESENT");
+        }
+        if (error_codes & 0x0080u)
+        {
+            s.append("MAGNETIC FRAUD PAST");
+        }
+        if (error_codes & 0x0400u)
+        {
+            s.append("CALIBRATION EEPROM ERROR");
+        }
+        if (error_codes & 0x0800u)
+        {
+            s.append("EEPROM1 ERROR");
+        }
+    }
+    else if (three_phase_)
+    {
+        if (error_codes & 0x0008u)
+        {
+            s.append("CALIBRATION EEPROM ERROR");
+        }
+        if (error_codes & 0x0010u)
+        {
+            s.append("NETWORK INTERFERENCE");
+        }
+        if (error_codes & 0x0800u)
+        {
+            s.append("CALIBRATION EEPROM ERROR");
+        }
+        if (error_codes & 0x1000u)
+        {
+            s.append("EEPROM1 ERROR");
+        }
+    }
+
     return s;
 }
-
