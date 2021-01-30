@@ -86,7 +86,7 @@ MeterWaterstarM::MeterWaterstarM(MeterInfo &mi) :
              "The total amount of water running backwards through meter.",
              true, true);
 
-    addPrint("current_status", Quantity::Text,
+    addPrint("status", Quantity::Text,
              [&](){ return status_; },
              "The status is OK or some error condition.",
              true, true);
