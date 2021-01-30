@@ -96,6 +96,11 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_ignore_duplicates.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_match_dll_and_tpl_id.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+echo Slower tests...
+
 tests/test_pipe.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 

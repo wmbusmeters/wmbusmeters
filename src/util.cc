@@ -622,7 +622,22 @@ bool hasWildCard(string &mes)
     return mes.find('*') != string::npos;
 }
 
-bool doesIdMatchExpressions(string& id, vector<string>& mes, bool *used_wildcard)
+bool doesIdsMatchExpressions(vector<string> &ids, vector<string>& mes, bool *used_wildcard)
+{
+    bool match = false;
+    for (string &id : ids)
+    {
+        if (doesIdMatchExpressions(id, mes, used_wildcard))
+        {
+            match = true;
+        }
+        // Go through all ids even though there is an early match.
+        // This way we can see if theres an exact match later.
+    }
+    return match;
+}
+
+bool doesIdMatchExpressions(string id, vector<string>& mes, bool *used_wildcard)
 {
     bool found_match = false;
     bool found_negative_match = false;

@@ -345,8 +345,11 @@ struct Telegram
     // If a warning is printed mark this.
     bool triggered_warning {};
 
-    // The meter address as a string usually printed on the meter.
-    string id;
+    // The different ids found, the first is th dll_id, ell_id, nwl_id, and the last is the tpl_id.
+    vector<string> ids;
+    // Ids separated by commas
+    string idsc;
+
     // If decryption failed, set this to true, to prevent further processing.
     bool decryption_failed {};
 
@@ -443,8 +446,7 @@ struct Telegram
     bool handled {}; // Set to true, when a meter has accepted the telegram.
 
     bool parseHeader(vector<uchar> &input_frame);
-    bool parse(vector<uchar> &input_frame, MeterKeys *mk);
-    void parserNoWarnings() { parser_warns_ = false; }
+    bool parse(vector<uchar> &input_frame, MeterKeys *mk, bool warn);
     void print();
 
     // A vector of indentations and explanations, to be printed

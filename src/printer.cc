@@ -91,10 +91,10 @@ void Printer::printFiles(Meter *meter, Telegram *t, string &human_readable, stri
             snprintf(filename, 127, "%s/%s", meterfiles_dir_.c_str(), meter->name().c_str());
             break;
         case MeterFileNaming::Id:
-            snprintf(filename, 127, "%s/%s", meterfiles_dir_.c_str(), t->id.c_str());
+            snprintf(filename, 127, "%s/%s", meterfiles_dir_.c_str(), t->ids.back().c_str());
             break;
         case MeterFileNaming::NameId:
-            snprintf(filename, 127, "%s/%s-%s", meterfiles_dir_.c_str(), meter->name().c_str(), t->id.c_str());
+            snprintf(filename, 127, "%s/%s-%s", meterfiles_dir_.c_str(), meter->name().c_str(), t->ids.back().c_str());
             break;
         }
         string stamp;

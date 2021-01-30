@@ -79,7 +79,11 @@ Received telegram from: 88018801
           manufacturer: (INE) INNOTAS Elektronik, Germany (0x25c5)
                   type: Heat Cost Allocator (0x08)
                    ver: 0x55
-                driver: eurisii
+      Concerning meter: 88018801
+          manufacturer: (INE) INNOTAS Elektronik, Germany (0x25c5)
+                  type: Heat Cost Allocator (0x08)
+                   ver: 0x55
+                driver: eurisii eurisii
 Received telegram from: 00010204
           manufacturer: (LAS) Lansen Systems, Sweden (0x3033)
                   type: Smoke detector (0x1a)
@@ -154,16 +158,28 @@ Received telegram from: 22992299
           manufacturer: (EBZ) eBZ, Germany (0x145a)
                   type: Radio converter (meter side) (0x37)
                    ver: 0x02
+      Concerning meter: 22992299
+          manufacturer: (EBZ) eBZ, Germany (0x145a)
+                  type: Electricity meter (0x02)
+                   ver: 0x01
                 driver: ebzwmbe
 Received telegram from: 77997799
           manufacturer: (ESY) EasyMeter (0x1679)
                   type: Radio converter (meter side) (0x37)
                    ver: 0x30
+      Concerning meter: 77997799
+          manufacturer: (ETY) Unknown (0x1699)
+                  type: Electricity meter (0x02)
+                   ver: 0x11
                 driver: esyswm
 Received telegram from: 77997799
           manufacturer: (ESY) EasyMeter (0x1679)
                   type: Radio converter (meter side) (0x37)
                    ver: 0x30
+      Concerning meter: 77997799
+          manufacturer: (ESY) EasyMeter (0x1679)
+                  type: Electricity meter (0x02)
+                   ver: 0x11
                 driver: esyswm
 Received telegram from: 55995599
           manufacturer: (EMH) EMH metering formerly EMH Elektrizitatszahler (0x15a8)

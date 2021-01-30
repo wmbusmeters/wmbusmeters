@@ -23,6 +23,7 @@
 
 #include<algorithm>
 #include<memory.h>
+#include<numeric>
 #include<time.h>
 #include<cmath>
 
@@ -79,15 +80,15 @@ struct MeterManagerImplementation : public virtual MeterManager
 
         bool handled = false;
 
-        string id;
+        string ids;
         for (auto &m : meters_)
         {
-            bool h = m->handleTelegram(about, data, simulated, &id);
+            bool h = m->handleTelegram(about, data, simulated, &ids);
             if (h) handled = true;
         }
         if (isVerboseEnabled() && !handled)
         {
-            verbose("(wmbus) telegram from %s ignored by all configured meters!\n", id.c_str());
+            verbose("(wmbus) telegram from %s ignored by all configured meters!\n", ids.c_str());
         }
         return handled;
     }
@@ -266,10 +267,10 @@ LIST_OF_METERS
 
 bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
 {
-    debug("(meter) %s: for me? %s\n", name_.c_str(), t->id.c_str());
+    debug("(meter) %s: for me? %s\n", name_.c_str(), t->idsc.c_str());
 
     bool used_wildcard = false;
-    bool id_match = doesIdMatchExpressions(t->id, ids_, &used_wildcard);
+    bool id_match = doesIdsMatchExpressions(t->ids, ids_, &used_wildcard);
 
     if (!id_match) {
         // The id must match.
@@ -278,6 +279,10 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
     }
 
     bool valid_driver = isMeterDriverValid(type_, t->dll_mfct, t->dll_type, t->dll_version);
+    if (!valid_driver && t->tpl_id_found)
+    {
+        valid_driver = isMeterDriverValid(type_, t->tpl_mfct, t->tpl_type, t->tpl_version);
+    }
 
     if (!valid_driver)
     {
@@ -291,7 +296,7 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
             // to many meters and some received matched meter telegrams are not from the right meter type,
             // ie their driver does not match. Lets just ignore telegrams that probably cannot be decoded properly.
             verbose("(meter) ignoring telegram from %s since it matched a wildcard id rule but driver does not match.\n",
-                    t->id.c_str());
+                    t->idsc.c_str());
             return false;
         }
 
@@ -363,7 +368,14 @@ string concatAllFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vec
     string s;
     s = "";
     s += m->name() + c;
-    s += t->id + c;
+    if (t->ids.size() > 0)
+    {
+        s += t->ids.back() + c;
+    }
+    else
+    {
+        s += c;
+    }
     for (Print p : prints)
     {
         if (p.field)
@@ -409,7 +421,7 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
         }
         if (field == "id")
         {
-            s += t->id + c;
+            s += t->ids.back() + c;
             continue;
         }
         if (field == "timestamp")
@@ -473,7 +485,7 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
     return s;
 }
 
-bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated, string *id)
+bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated, string *ids)
 {
     Telegram t;
     t.about = about;
@@ -481,7 +493,7 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
     if (simulated) t.markAsSimulated();
 
-    *id = t.id;
+    *ids = t.idsc;
 
     if (!ok || !isTelegramForMe(&t))
     {
@@ -489,15 +501,15 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
         return false;
     }
 
-    verbose("(meter) %s %s handling telegram from %s\n", name().c_str(), meterName().c_str(), t.id.c_str());
+    verbose("(meter) %s %s handling telegram from %s\n", name().c_str(), meterName().c_str(), t.ids.back().c_str());
 
     if (isDebugEnabled())
     {
         string msg = bin2hex(input_frame);
-        debug("(meter) %s %s \"%s\"\n", name().c_str(), t.id.c_str(), msg.c_str());
+        debug("(meter) %s %s \"%s\"\n", name().c_str(), t.ids.back().c_str(), msg.c_str());
     }
 
-    ok = t.parse(input_frame, &meter_keys_);
+    ok = t.parse(input_frame, &meter_keys_, true);
     if (!ok)
     {
         // Ignoring telegram since it could not be parsed.
@@ -533,12 +545,33 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     *human_readable = concatFields(this, t, '\t', prints_, conversions_, true, selected_fields);
     *fields = concatFields(this, t, separator, prints_, conversions_, false, selected_fields);
 
+    string mfct;
+    if (t->tpl_id_found)
+    {
+        mfct = mediaTypeJSON(t->tpl_type, t->tpl_mfct);
+    }
+    else if (t->ell_id_found)
+    {
+        mfct = mediaTypeJSON(t->ell_type, t->ell_mfct);
+    }
+    else
+    {
+        mfct = mediaTypeJSON(t->dll_type, t->dll_mfct);
+    }
+
     string s;
     s += "{";
-    s += "\"media\":\""+mediaTypeJSON(t->dll_type, t->dll_mfct)+"\",";
+    s += "\"media\":\""+mfct+"\",";
     s += "\"meter\":\""+meterName()+"\",";
     s += "\"name\":\""+name()+"\",";
-    s += "\"id\":\""+t->id+"\",";
+    if (t->ids.size() > 0)
+    {
+        s += "\"id\":\""+t->ids.back()+"\",";
+    }
+    else
+    {
+        s += "\"id\":\"\",";
+    }
     for (Print p : prints_)
     {
         if (p.json)
@@ -583,7 +616,14 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_TYPE=")+meterName());
     envs->push_back(string("METER_NAME=")+name());
-    envs->push_back(string("METER_ID=")+t->id);
+    if (t->ids.size() > 0)
+    {
+        envs->push_back(string("METER_ID=")+t->ids.back());
+    }
+    else
+    {
+        envs->push_back(string("METER_ID="));
+    }
 
     for (Print p : prints_)
     {
@@ -683,7 +723,6 @@ ELLSecurityMode MeterCommonImplementation::expectedELLSecurityMode()
 
 void detectMeterDriver(int manufacturer, int media, int version, vector<string> *drivers)
 {
-    drivers->clear();
 #define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { drivers->push_back(toMeterName(MeterType::TY)); }}
 METER_DETECTION
 #undef X

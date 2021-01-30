@@ -238,6 +238,18 @@ void Telegram::print()
 
     notice("                   ver: 0x%02x\n", dll_version);
 
+    if (tpl_id_found)
+    {
+        notice("      Concerning meter: %02x%02x%02x%02x\n", tpl_id_b[3],tpl_id_b[2],tpl_id_b[1],tpl_id_b[0]);
+        notice("          manufacturer: (%s) %s (0x%02x)\n",
+           manufacturerFlag(tpl_mfct).c_str(),
+           manufacturer(tpl_mfct).c_str(),
+           tpl_mfct);
+        notice("                  type: %s (0x%02x)\n", mediaType(tpl_type, dll_mfct).c_str(), tpl_type);
+
+        notice("                   ver: 0x%02x\n", tpl_version);
+
+    }
     if (about.device != "")
     {
         notice("                device: %s\n", about.device.c_str());
@@ -804,9 +816,12 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
             dll_id[i] = *(pos+3-i);
         }
     }
-    strprintf(id, "%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
+    // Add dll_id to ids.
+    string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
+    ids.push_back(id);
+    idsc = id;
     addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x dll-id (%s)",
-                                  *(pos+0), *(pos+1), *(pos+2), *(pos+3), id.c_str());
+                                  *(pos+0), *(pos+1), *(pos+2), *(pos+3), ids.back().c_str());
 
     dll_version = *(pos+0);
     dll_type = *(pos+1);
@@ -893,6 +908,10 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         ell_id_b[2] = *(pos+2);
         ell_id_b[3] = *(pos+3);
 
+        // Add ell_id to ids.
+        string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
+        ids.push_back(id);
+        idsc = idsc+","+id;
         addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x ell-id",
                                       ell_id_b[0], ell_id_b[1], ell_id_b[2], ell_id_b[3]);
 
@@ -922,12 +941,10 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
 
         if (ell_sec_mode == ELLSecurityMode::AES_CTR)
         {
-            bool decrypt_ok = decrypt_ELL_AES_CTR(this, frame, pos, meter_keys->confidentiality_key);
-            // Actually this ctr decryption always succeeds, if wrong key, it will decrypt to garbage.
-            if (!decrypt_ok)
+            if (meter_keys)
             {
-                decryption_failed = true;
-                return true;
+                decrypt_ELL_AES_CTR(this, frame, pos, meter_keys->confidentiality_key);
+                // Actually this ctr decryption always succeeds, if wrong key, it will decrypt to garbage.
             }
             // Now the frame from pos and onwards has been decrypted, perhaps.
         }
@@ -1199,7 +1216,7 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
 
             debugPayload("(wmbus) input to kdf for enc", input);
 
-            if (meter_keys->confidentiality_key.size() != 16)
+            if (meter_keys == NULL || meter_keys->confidentiality_key.size() != 16)
             {
                 if (isSimulated())
                 {
@@ -1256,6 +1273,10 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     tpl_id_b[2] = *(pos+2);
     tpl_id_b[3] = *(pos+3);
 
+    // Add the tpl_id to ids.
+    string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
+    ids.push_back(id);
+    idsc = idsc+","+id;
     addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x tpl-id (%02x%02x%02x%02x)", tpl_id_b[0], tpl_id_b[1], tpl_id_b[2], tpl_id_b[3],
                                   tpl_id_b[3], tpl_id_b[2], tpl_id_b[1], tpl_id_b[0]);
 
@@ -1322,6 +1343,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
 {
     if (tpl_sec_mode == TPLSecurityMode::AES_CBC_IV)
     {
+        if (!meter_keys) return false;
         bool ok = decrypt_TPL_AES_CBC_IV(this, frame, pos, meter_keys->confidentiality_key);
         if (!ok) return false;
         // Now the frame from pos and onwards has been decrypted.
@@ -1350,7 +1372,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
     }
     else if (tpl_sec_mode == TPLSecurityMode::AES_CBC_NO_IV)
     {
-        if (!meter_keys->hasConfidentialityKey() && isSimulated())
+        if (meter_keys == NULL || (!meter_keys->hasConfidentialityKey() && isSimulated()))
         {
             CHECK(2);
             addExplanationAndIncrementPos(pos, 2, "%02x%02x (already) decrypted check bytes", *(pos+0), *(pos+1));
@@ -1564,26 +1586,42 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
 bool Telegram::parseHeader(vector<uchar> &input_frame)
 {
     bool ok;
+    // Parsing the header is used to extract the ids, so that we can
+    // match the telegram towards any known ids and thus keys.
+    // No need to warn.
+    parser_warns_ = false;
+    decryption_failed = false;
     explanations.clear();
     frame = input_frame;
     vector<uchar>::iterator pos = frame.begin();
     // Parsed accumulates parsed bytes.
     parsed.clear();
 
-    //     ┌──────────────────────────────────────────────┐
-    //     │                                              │
-    //     │ Parse DLL Data Link Layer for Wireless MBUS. │
-    //     │                                              │
-    //     └──────────────────────────────────────────────┘
-
     ok = parseDLL(pos);
     if (!ok) return false;
+
+    // At the worst, only the DLL is parsed. That is fine.
+    ok = parseELL(pos);
+    if (!ok) return true;
+    // Could not decrypt stop here.
+    if (decryption_failed) return true;
+
+    ok = parseNWL(pos);
+    if (!ok) return true;
+
+    ok = parseAFL(pos);
+    if (!ok) return true;
+
+    ok = parseTPL(pos);
+    if (!ok) return true;
 
     return true;
 }
 
-bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk)
+bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
 {
+    parser_warns_ = warn;
+    decryption_failed = false;
     explanations.clear();
     meter_keys = mk;
     assert(meter_keys != NULL);
@@ -1663,6 +1701,10 @@ string Telegram::autoDetectPossibleDrivers()
 {
     vector<string> drivers;
     detectMeterDriver(dll_mfct, dll_type, dll_version, &drivers);
+    if (tpl_id_found)
+    {
+        detectMeterDriver(tpl_mfct, tpl_type, tpl_version, &drivers);
+    }
     string possibles;
     for (string d : drivers) possibles = possibles+d+" ";
     if (possibles != "") possibles.pop_back();

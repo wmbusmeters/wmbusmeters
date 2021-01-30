@@ -15,8 +15,7 @@ cat simulations/simulation_aes.msg | grep '^[CT]' | tr -d '#' > $TEST/test_input
 cat $TEST/test_input.txt | $PROG --format=json "stdin:rtlwmbus" \
       ApWater apator162   88888888 00000000000000000000000000000000 \
       Vatten  multical21  76348799 28F64A24988064A079AA2C807D6102AE \
-      Wasser  supercom587 77777777 5065747220486F6C79737A6577736B69 \
-      > $TEST/test_output.txt 2> $TEST/test_stderr.txt
+      Wasser  supercom587 77777777 5065747220486F6C79737A6577736B69 > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 
 cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
 diff $TEST/test_expected.txt $TEST/test_response.txt
