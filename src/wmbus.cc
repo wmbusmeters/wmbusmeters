@@ -2689,6 +2689,7 @@ string vif_FD_ExtensionType(uchar dif, uchar vif, uchar vife)
         int nnnn = vife & 0x0f;
         string s;
         strprintf(s, "10^%d Ampere", nnnn-12);
+        return s;
     }
 
     if ((vife & 0x7f) == 0x60) {

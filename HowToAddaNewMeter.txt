@@ -80,7 +80,7 @@ In meter_mymeter.cc, search and replace supercom587 for mymeter
 possibly adding a new meter type in meters.h if your meter is not a
 water meter and inheriting from that new meter type instead.
 
-Build with adress sanitizer and gdb debug info:
+Build with address sanitizer and gdb debug info:
 make DEBUG=true
 
 Run your code:
