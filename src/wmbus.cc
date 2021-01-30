@@ -1081,6 +1081,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
             warning("(wmbus) bad length of mac\n");
             return false;
         }
+        afl_mac_b.clear();
         for (int i=0; i<len; ++i)
         {
             afl_mac_b.insert(afl_mac_b.end(), *(pos+i));
