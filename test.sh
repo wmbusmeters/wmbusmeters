@@ -99,6 +99,11 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_match_dll_and_tpl_id.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+if [ -x ../additional_tests.sh ]
+then
+    (cd ..; ./additional_tests.sh)
+fi
+
 echo Slower tests...
 
 tests/test_pipe.sh $PROG
