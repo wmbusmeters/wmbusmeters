@@ -92,32 +92,32 @@ MeterGransystemsCCx01::MeterGransystemsCCx01(MeterInfo &mi) :
              "The total energy consumption recorded by this meter.",
              true, true);
 
-    addPrint("voltage at phase 1", Quantity::Voltage,
+    addPrint("voltage_at_phase_1", Quantity::Voltage,
              [&](Unit u){ return convert(voltage_L_[0], Unit::Volt, u); },
              "Voltage at phase L1.",
              true, true);
 
-    addPrint("voltage at phase 2", Quantity::Voltage,
+    addPrint("voltage_at_phase_2", Quantity::Voltage,
              [&](Unit u){ return convert(voltage_L_[1], Unit::Volt, u); },
              "Voltage at phase L2.",
              true, true);
 
-    addPrint("voltage at phase 3", Quantity::Voltage,
+    addPrint("voltage_at_phase_3", Quantity::Voltage,
              [&](Unit u){ return convert(voltage_L_[2], Unit::Volt, u); },
              "Voltage at phase L3.",
              true, true);
 
-    addPrint("currrent at phase 1", Quantity::Current,
+    addPrint("currrent_at_phase_1", Quantity::Current,
              [&](Unit u){ return convert(current_L_[0], Unit::Ampere, u); },
              "Current at phase L1.",
              true, true);
 
-    addPrint("currrent at phase 2", Quantity::Current,
+    addPrint("currrent_at_phase_2", Quantity::Current,
              [&](Unit u){ return convert(current_L_[1], Unit::Ampere, u); },
              "Current at phase L2.",
              true, true);
 
-    addPrint("currrent at phase 3", Quantity::Current,
+    addPrint("currrent_at_phase_3", Quantity::Current,
              [&](Unit u){ return convert(current_L_[2], Unit::Ampere, u); },
              "Current at phase L3.",
              true, true);
@@ -259,6 +259,10 @@ string MeterGransystemsCCx01::status()
     const uint16_t error_codes = status_ & 0xFFFFu;
     string s;
 
+    if (error_codes == 0)
+    {
+        s.append("OK");
+    }
     if (error_codes & 0x0001u)
     {
         s.append("METER HARDWARE ERROR");

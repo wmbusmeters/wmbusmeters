@@ -74,9 +74,9 @@
     X(waterstarm, C1_bit|T1_bit, WaterMeter,WATERSTARM,  WaterstarM)   \
     X(whe46x,     S1_bit, HeatCostAllocationMeter, WHE46X, Whe46x)     \
     X(whe5x,      S1_bit, HeatCostAllocationMeter, WHE5X, Whe5x)     \
-    X(topaseskr, T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)           \
-    X(sensostar, C1_bit|T1_bit, HeatMeter,SENSOSTAR,  Sensostar)       \
-    X(gransystems, T1_bit, ElectricityMeter, CCx01, CCx01)
+    X(topaseskr,  T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)           \
+    X(sensostar,  C1_bit|T1_bit, HeatMeter,SENSOSTAR,  Sensostar)       \
+    X(gransystems,T1_bit, ElectricityMeter, CCx01, CCx01)
 
 
 // List of numbers that can be used to detect the meter driver

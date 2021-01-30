@@ -19,6 +19,8 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       HeatMeter   vario451    58234965 NOKEY
       Room        fhkvdataiii 11776622 NOKEY
       Rooom       fhkvdataiv  14542076 FCF41938F63432975B52505F547FCEDF
+      Gran101     gransystems 18046178 NOKEY
+      Gran301     gransystems 20100117 NOKEY
       HeatMeter   eurisii     88018801 NOKEY
       Votchka     evo868      79787776 NOKEY
       Smokeo      lansensm    00010204 NOKEY

@@ -225,6 +225,16 @@ Received telegram from: 79787776
                   type: Water meter (0x07)
                    ver: 0x50
                 driver: evo868
+Received telegram from: 18046178
+          manufacturer: (GSS) R D Gran System S, Belarus (0x1e73)
+                  type: Electricity meter (0x02)
+                   ver: 0x01
+                driver: gransystems
+Received telegram from: 20100117
+          manufacturer: (GSS) R D Gran System S, Belarus (0x1e73)
+                  type: Electricity meter (0x02)
+                   ver: 0x01
+                driver: gransystems
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)

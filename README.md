@@ -315,6 +315,7 @@ eBZ wMB-E01 (ebzwmbe)
 EMH Metering (ehzp)
 Tauron Amiplus (amiplus) (includes vendor apator and echelon)
 Gavazzi EM24 (em24)
+Gransystems 301 and 303 (gransystems)
 Kamstrup Omnipower (omnipower)
 ```
 
