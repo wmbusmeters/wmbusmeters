@@ -1,4 +1,20 @@
 
+IMPORTANT CHANGES THAT MIGHT AFFECT YOU!
+
+Added support for telegrams with different dll id vs tpl id.
+
+Such telegrams can be generated when a standalone radio converter
+(with its own id) is attached to an mbus meter (with its own id).
+Ie there are two distinct ids. The id specified to wmbusmeters will
+be now tried both against the dll id and the tpl id, previously
+it was only tried against the dll id.
+
+Important! The meter id reported in the json "id":"........" will
+now always be the tpl id, if such an id was part of the telegram.
+For most meters this is not a problem, but if you have a standalone
+radio converter, or a meter with a wmbus plugin (radio converter meter side),
+then you might get a different id.
+
 Version 1.0.5: 2021-01-30
 
 Xael South added support for the Gran-System-S electricity meters!
