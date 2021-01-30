@@ -37,7 +37,7 @@
     X(Voltage,Volt)          \
     X(Current,Ampere)        \
     X(Frequency,Hz)
-    
+
 #define LIST_OF_UNITS \
     X(KWH,kwh,"kWh",Energy,"kilo Watt hour")  \
     X(MJ,mj,"MJ",Energy,"Mega Joule")         \
@@ -58,8 +58,8 @@
     X(Second,s,"s",Time,"second")           \
     X(Hour,h,"h",Time,"hour") \
     X(Year,y,"y",Time,"year") \
-    X(Volt,volt,"Volt",Voltage,"volt") \
-    X(Ampere,ampere,"Ampere",Current,"ampere") \
+    X(Volt,v,"V",Voltage,"volt") \
+    X(Ampere,a,"A",Current,"ampere") \
     X(Hz,hz,"Hz",Frequency,"hz")
 
 enum class Unit

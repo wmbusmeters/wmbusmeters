@@ -226,10 +226,10 @@ telegram=|aa4424347677787950077ac10000202f2f041306070000046d1e31b12104fd17000000
 
 # Test Gran-System-S electricity meter 101
 telegram=||7844731e78610418010278046d0f13bc21040394030000841003690300008420032b00000084300300000000848010030000000084016d0000bc2184010394030000841103690300008421032b00000084310300000000848110030000000004fd482e09000004fd5b0000000002fb2d861304fd1700000201|
-{"media":"electricity","meter":"gransystems","name":"Gran101","id":"18046178","total_energy_consumption_kwh":0.916,"voltage_at_phase_1_volt":235,"voltage_at_phase_2_volt":-nan,"voltage_at_phase_3_volt":-nan,"currrent_at_phase_1_ampere":0,"currrent_at_phase_2_ampere":-nan,"currrent_at_phase_3_ampere":-nan,"frequency_hz":49.98,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"electricity","meter":"gransystems","name":"Gran101","id":"18046178","total_energy_consumption_kwh":0.916,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":-nan,"voltage_at_phase_3_v":-nan,"currrent_at_phase_1_a":0,"currrent_at_phase_2_a":-nan,"currrent_at_phase_3_a":-nan,"frequency_hz":49.98,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |Gran101;18046178;0.916000;235.000000;-nan;-nan;0.000000;-nan;-nan;49.980000;OK;1111-11-11 11:11.11
 
 # Test Gran-System-S electricity meter 301
 telegram=||9e44731e17011020010278046d0813bc21040300000000841003000000008420030000000084300300000000848010030000000084016d0000bc218401030000000084110300000000842103000000008431030000000084811003000000008440fd4825090000848040fd480000000084c040fd48000000008440fd5b00000000848040fd5b0000000084c040fd5b0000000002fb2d881304fd1700000101|
-{"media":"electricity","meter":"gransystems","name":"Gran301","id":"20100117","total_energy_consumption_kwh":0,"voltage_at_phase_1_volt":234.1,"voltage_at_phase_2_volt":0,"voltage_at_phase_3_volt":0,"currrent_at_phase_1_ampere":0,"currrent_at_phase_2_ampere":0,"currrent_at_phase_3_ampere":0,"frequency_hz":50,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"electricity","meter":"gransystems","name":"Gran301","id":"20100117","total_energy_consumption_kwh":0,"voltage_at_phase_1_v":234.1,"voltage_at_phase_2_v":0,"voltage_at_phase_3_v":0,"currrent_at_phase_1_a":0,"currrent_at_phase_2_a":0,"currrent_at_phase_3_a":0,"frequency_hz":50,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |Gran301;20100117;0.000000;234.100000;0.000000;0.000000;0.000000;0.000000;0.000000;50.000000;OK;1111-11-11 11:11.11
