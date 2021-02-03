@@ -1,7 +1,15 @@
 os:
   - linux
+  - osx
+
+addons:
+  apt:
+    packages:
+    - librtlsdr-dev
+    - libusb-dev
+  homebrew:
+    packages:
+    - librtlsdr
+    - libusb
 
 language: cpp
-dist: bionic
-before_install:
-  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get install librtlsdr-dev libusb-dev; else brew install librtlsdr libusb; fi
