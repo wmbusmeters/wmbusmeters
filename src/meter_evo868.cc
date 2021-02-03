@@ -22,7 +22,8 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
-#include <bits/stdc++.h>
+#include <algorithm>
+
 using namespace std;
 
 struct MeterEvo868 : public virtual WaterMeter, public virtual MeterCommonImplementation {
