@@ -9,16 +9,11 @@ MQTT, curled to a REST api, inserted into a database or stored in a log file.
 
 The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 
-| OS           | Status           |
-| ------------ |:-------------:|
-|GNU/Linux | [![Build Status](https://travis-ci.org/weetmuts/wmbusmeters.svg?branch=master)](https://travis-ci.org/weetmuts/wmbusmeters) |
+|[![Build Ubunt Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20Ubuntu/badge.svg)](https://github.com/weetmuts/wmbusmeters/actions)|
+|[![Build MacOSX Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20MacOSX/badge.svg)](https://github.com/weetmuts/wmbusmeters/actions)|
+
 |Docker build status|[![CircleCI>](https://circleci.com/gh/weetmuts/wmbusmeters.svg?style=shield)](https://circleci.com/gh/weetmuts/wmbusmeters)|
 |Snap status|[![wmbusmeters](https://snapcraft.io//wmbusmeters/badge.svg)](https://snapcraft.io/wmbusmeters)|
-
-
-| Static Scan        | Status           |
-| ------------- |:-------------:|
-|Linux G++| [![Build Status](https://scan.coverity.com/projects/14774/badge.svg)](https://scan.coverity.com/projects/weetmuts-wmbusmeters) |
 
 # Distributions
 **wmbusmeters** package is available on [Fedora](https://src.fedoraproject.org/rpms/wmbusmeters) _(version 31 or newer)_ and can be simply installed by using:
