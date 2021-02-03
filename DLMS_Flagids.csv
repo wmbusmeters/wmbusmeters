@@ -1,5 +1,5 @@
 # Downloaded spreadsheet from https://www.dlms.com/flag-id/flag-id-list
-# and saved as tab separated list and added this header. 2019-04-01
+# and saved as tab separated list and added this header. 2021-02-03
 # FLAG ID <TAB> Manufacturer <TAB> Country <TAB> World Region
 AAA	Aventies GmbH	Germany	Europe
 ABB	ABB AB	Sweden	Europe
@@ -32,6 +32,7 @@ AEI	Ajay Electrical Industries	India	Asia
 AEL	Kohler	Turkey	Middle East
 AEM	S.C. AEM S.A.	Romania	Europe
 AER	Aerzener Maschinenfabrik GmbH	Germany	Europe
+AES	ALFANAR ELECTRICAL SYSTEM	Saudi Arabia	Middle East
 AFX	Alflex Products	Netherlands	Europe
 AGE	AccessGate AB	Sweden	Europe
 AGT	Agnitio Technologies Pvt Ltd	India	Asia
@@ -40,6 +41,7 @@ AIC	Avastu India Creations Pvt Ltd.	India	Asia
 ALC	Zenner Gas S.r.l.	Italy	Europe
 ALF	Alfatech – Elektromed Elektronik	Turkey	Middle East
 ALG	Algodue Elettronica srl	Italy	Europe
+ALH	ALFANAR ELECTRICAL SYSTEM	Saudi Arabia	Middle East
 ALK	Actislink Sp. z o.o.	Poland	Europe
 ALL	Allied Engineering Works Pvt. Ltd.	India	Asia
 ALR	Algorab S.R.L.	Italy	Europe
@@ -77,12 +79,15 @@ ARA	Aranha Ltd.	United Kingdom	Europe
 ARC	Arcelik AS	Turkey	Middle East
 ARD	Arad Group Ltd	Israel	Middle East
 ARF	ADEUNIS RF	France	Europe
+ARK	Arkon Flow Systems, s.r.o	Czech Republic	Europe
 ARM	Arivus metering GmbH	Germany	Europe
 ARS	ADD – Bulgaria Ltd	Bulgaria	Europe
 ART	Electrotécnica Arteche Smart Grid	Spain	Europe
 ARW	Arrow Electronics India Pvt. Ltd	India	Asia
 ASA	Asac srl	Italy	Europe
 ASC	A2A Smart City	Italy	Europe
+ASD	AS DAQ SYSTEMS PVT LTD	India	Asia
+ASG	Meter technology Company	Saudi Arabia	Middle East
 ASM	Adya Wifi Metering Pvt. Ltd.	India	Asia
 ASR	Erelsan Elektrik ve Elektronik	Turkey	Middle East
 AST	ASTINCO Inc.	Canada	North America
@@ -105,9 +110,11 @@ BBE	Bentec Bhartia Engineers Pvt. Ltd.	India	Asia
 BBS	BBS Electronics	Singapore	Asia
 BCE	ShenZhen B.C Electronic CO. Ltd.	China	Asia
 BCR	Jiangsu Bingchen Electronics Co Ltd.	China	Asia
+BEA	Baer Energy Automation GmbH	Germany	Europe
 BEE	Bentec India Limited	India	Asia
 BEF	BEFEGA GmbH	Germany	Europe
 BEG	begcomm Communication AB	Sweden	Europe
+BEL	Belassitsa AD	Bulgaria	Europe
 BER	Bernina Electronic AG	Switzerland	Europe
 BFW	BFW Buero fuer Waermemesstechnik OHG	Germany	Europe
 BHG	Brunata A/S	Denmark	Europe
@@ -115,14 +122,20 @@ BJY	Beijing JOYO smart water meter co.,ltd.	China	Asia
 BKB	Boendekomfort AB	Sweden	Europe
 BKO	Beko Elektronik AS	Turkey	Middle East
 BKT	Bekto Precisa	Bosnia and Herzegovina	Europe
+BLM	BELIMO Automation AG	Switzerland	Europe
 BLU	Bluering	Italy	Europe
 BME	Beifeng GmbH	Germany	Europe
 BMI	Badger Meter Inc., 6116 E 15th St.	United States of America	North America
 BMP	BMETERS Polska Sp.z.o.o.	Poland	Europe
 BMT	BMETERS  srl	Italy	Europe
 BNR	Beijing Banner Electric Co., Ltd.	China	Asia
+BOV	JiaXing Bove Intelligent Technology Co., Ltd	China	Asia
+BPM	Aadharshila Mobility Solutions Pvt Ltd	India	Asia
 BRA	Brandes GmbH	Germany	Europe
+BRN	Bruntab Energy LTD.	Iran	Middle East
+BRT	BEREKET TEKNOLOJİK ÖLÇÜM SİSTEMLERİ BİL.ELK.İNŞ.İTH.İHR.SAN VE TİC LTD.ŞTİ	Turkey	Middle East
 BSC	Sanaye Sanjesh Energy Behineh Sazan Toos	Iran	Middle East
+BSD	BSED UG	Germany	Europe
 BSE	Basari Elektronik A.S.	Turkey	Middle East
 BSM	Bluestar Electrical Meter Research Institute	China	Asia
 BSP	Byucksan Power Co. Ltd.	South Korea	Asia
@@ -162,10 +175,12 @@ CHM	Chung-Hsin Electric and Machinery Manufacturing Corp. 	Taiwan	Asia
 CHS	Smart Services International Sagl	Switzerland	Europe
 CIR	Circutor	Spain	Europe
 CJS	CJS Technology Ltd	United Kingdom	Europe
+CKT	CKT Elektrik Elektronik Sanayi ve Ticaret A.Ş	Turkey	Middle East
 CLA	3g celllabs private limited	India	Asia
 CLB	CMC S.r.l.	Italy	Europe
 CLE	Shen Zhen Clou Electronics Co Ltd. 	China	Asia
 CLO	Clorius  Raab Karcher Energi Service A/S
+CLS	Celsa Messgeräte GmbH	Germany	Europe
 CLT	Zhuhai S.E.Z. Calintech Electric Co., Ltd.	China	Asia
 CLY	Clayster AB	Sweden	Europe
 CMC	CMC EKOCON d.o.o.	Slovenia	Europe
@@ -185,6 +200,7 @@ CQC	Yueqing Qicheng Electric Co., Ltd	China	Asia
 CRD	CRDM DEVELOPPEMENTS	France	Europe
 CRT	CRDM Technology	France	Europe
 CRW	Xuzhou Runwu Science and Technology Development Co. Ltd.	China	Asia
+CRX	Corinex Communications Corp.	Canada	North America
 CRY	Crystal Power	India	Asia
 CSC	CHUBUSEIKI Co., LTD.	Japan	Asia
 CSL	Comsel System Ltd	Finland	Europe
@@ -216,11 +232,13 @@ DDL	DONGDO LMS	South Korea	Asia
 DEA	Dea HT srl	Italy	Europe
 DEC	DECODE d.o.o. Data Communications	Serbia	Europe
 DEL	DELTAMESS DWWF GmbH	Germany	Europe
+DEN	Ducati Energia	Italy	Europe
 DES	Desi (Alarms) Ltd	Turkey	Middle East
 DEV	Develco Products	Denmark	Europe
 DFE	Dongfang Electronics Co., Ltd.	China	Asia
 DFS	Danfoss A/S
 DGC	Digicom S.p.A.	Italy	Europe
+DGI	Digi International Inc.
 DGM	Diehl Gas Metering GmbH	Germany	Europe
 DGY	Discovergy GmbH	Germany	Europe
 DHA	Shanghai dahua measuring&auto control instruments manufactory	China	Asia
@@ -230,6 +248,7 @@ DIG	Digutal Request GmbH	Germany	Europe
 DIL	DECCAN INFRATECH LIMETED	India	Asia
 DJA	De Jaeger Automation bvba	Belgium	Europe
 DKY	Electric Power Research Institute of Guangdong Power Grid Corporation	China	Asia
+DLX	Delixi Group Instruments & Meters Co.,ltd	China	Asia
 DMC	DMC International	United Arab Emirates	Middle East
 DME	DIEHL Metering	Germany	Europe
 DMP	DM Power Co., Ltd	South Korea	Asia
@@ -287,9 +306,11 @@ EIT	EnergyICT NV	Belgium	Europe
 EKA	Eka Systems	United States of America	North America
 EKO	EKOLIS	France	Europe
 EKT	PA KVANT J.S.	Russian Federation	Europe
+ELC	"CJSC "" EMIS """	Russian Federation	Europe
 ELD	Elektromed Elektronik Ltd	Turkey	Middle East
 ELE	Elster Electricity LLC	United States of America	North America
 ELG	Elgas s.r.o.	Czech Republic	Europe
+ELL	Energy Plus	Russian Federation	Europe
 ELM	Elektromed Elektronik Ltd	Turkey	Middle East
 ELO	ELO Sistemas Eletronicos S.A.	Brazil	South America
 ELQ	ELEQ b.v.	Germany	Europe
@@ -332,13 +353,19 @@ ERN	Ericsson Telecomunicazioni S.p.A	Italy	Europe
 ERS	Eurosys OOD	Bulgaria	Europe
 ESA	ESAC srl	Italy	Europe
 ESC	EDMI (Shenzhen) CO., Ltd	China	Asia
+ESD	Edelstrom Electronic Devices and Designing LLC	United Arab Emirates	Middle East
 ESE	ESE Nordic AB	Sweden	Europe
 ESG	ESG CO.,LTD.	South Korea	Asia
+ESH	EMSYCON GmbH	Germany	Europe
 ESI	Monosan Monofaze Elektrik Motorlari	Turkey	Middle East
 ESM	Monosan Monofaze Elektrik Motorlari	Turkey	Middle East
 ESO	Monosan Monofaze Elektrik Motorlari	Turkey	Middle East
+ESR	Ensor AG	Switzerland	Europe
 ESS	Energy Saving Systems LTD.	Ukraine	Europe
+ESV	ESKA VALVE	Turkey	Middle East
 ESY	EasyMeter GmbH
+ETD	Energy Team S.p.A	Italy	Europe
+ETK	ELTEK BROJILA d.o.o.	Croatia	Europe
 ETO	Sphere of economical technologies LTd	Russian Federation	Europe
 EUE	E+E Electronic	Austria	Europe
 EUR	Eurometers Ltd
@@ -417,6 +444,7 @@ GPM	Gram Power (India) Pvt. Ltd.	India	Asia
 GRA	Grässlin GmbH	Germany	Europe
 GRE	GE2, Green Energy Electronics	Portugal	Europe
 GRI	Grinpal Energy Management	South Africa	Africa
+GRP	GlobalRnD sp. z o.o.	Poland	Europe
 GRS	Garderos GmbH	Germany	Europe
 GRX	Gurux Ltd	Finland	Europe
 GSP	Ingenieurbuero Gasperowicz
@@ -430,8 +458,10 @@ GUH	ShenZhen GuangNing  Industrial CO. Ltd.	China	Asia
 GWF	Gas- u. Wassermesserfabrik	Switzerland	Europe
 GWI	George Wilson Industries, Aldermans Green Industrial Estate	United Kingdom	Europe
 HAG	Hager Electro GmbH	Germany	Europe
+HAK	Hako, a.s.	Slovakia	Europe
 HBY	HENAN HUABIAO INSTRUMENT TECHNOLOGY Co., Ltd.	China	Asia
 HCE	Hsiang Cheng Electric Corp	China	Asia
+HDK	Hydroko NV	Belgium	Europe
 HDX	Beijing TianRuiXiangDe Measuring Technology Co.,Ltd.	China	Asia
 HDY	Dalian hundao instrument Co. Ltd.	China	Asia
 HEG	Hamburger Elektronik Gesellschaft
@@ -445,13 +475,17 @@ HEX	Shenzhen Hexcell Electronics Technology CO.,LTD	China	Asia
 HFI	Nanjing Huiran Measurement&Control Technology Co. Ltd.	China	Asia
 HFR	SAERI HEAT METERING TECHNOLOGY CO.,LTD.	China	Asia
 HGM	HG meter a/s	Denmark	Europe
+HHM	Chongqing Huahong Metering Co.,Ltd.	China	Asia
 HIE	Shenzhen Holley South Electronics Technology Co., Ltd.	China	Asia
+HIN	huebner Informationselektronik	Germany	Europe
 HIT	ABB Sp. z o.o.	Poland	Europe
+HJM	Huaihua Jiannan Machinery Factory Co.,Ltd	China	Asia
 HKK	Hokuriku Instrumentation Co. Inc.	Japan	Asia
 HLY	Holley Metering Ltd
 HMI	HMI Energy Co., Ltd.	Taiwan	Asia
 HML	Holley Technology Ltd., 181 WuChang Avenue	China	Asia
 HMS	Hermes Systems	Australia	Australia & Oceania
+HMT	Hangzhou Meteronic Technology Co., Ltd.	China	Asia
 HMU	Hugo Müller GmbH & Co KG	Germany	Europe
 HND	Shenzhen Hemei Group Co., Ltd.	China	Asia
 HOE	HOENTZSCH GMBH	Germany	Europe
@@ -505,6 +539,7 @@ IFX	Infineon Technologies	Germany	Europe
 IGR	iGridS GmbH, Hebelweg 2	Germany	Europe
 IGS	I.G.S.DATAFLOW S.r.l.	Italy	Europe
 IHM	Shenzhen Inhemeter Co., Ltd.	China	Asia
+IID	PT INDUSTRI TELEKOMUNIKASI INDONESIA (Persero)	Indonesia	Asia
 IIF	innogy Metering GmbH 	Germany	Europe
 IJE	ILJIN Electric	South Korea	Asia
 IJK	IJENKO SA	France	Europe
@@ -513,8 +548,10 @@ IKM	Ikom LTD	Croatia	Europe
 IKS	IKASIAN	Spain	Europe
 IMC	Iranmadar	Iran	Middle East
 IME	Fellows s.c.ul. 	Poland	Europe
+IMR	iMeter LLC	Ukraine	Europe
 IMS	IMST GmbH	Germany	Europe
 IMT	INTEGRA METERING AG	Switzerland	Europe
+IMZ	iMezr Innovations Pvt Ltd	India	Asia
 INC	Incotex	Russian Federation	Europe
 IND	INDRA SISTEMAS	Spain	Europe
 INE	INNOTAS Elektronik GmbH	Germany	Europe
@@ -530,6 +567,7 @@ INV	Sensus Metering Systems	Germany	Europe
 INX	Innolex Engineering BV	Netherlands	Europe
 IOT	Trilliant Networks Inc	Canada	North America
 IPD	IPD Industrial Products Australia	Australia	Australia & Oceania
+IQS	IQ Systems (Pty) Ltd	South Africa	Africa
 IRE	IREN Energia S.p.A.	Italy	Europe
 ISA	Isabellenhütte Heusler GmbH & Co. KG	Germany	Europe
 ISE	INESH SMART ENERGY (P) LTD.	India	Asia
@@ -557,6 +595,8 @@ ITW	ITRON (Water)	France	Europe
 ITX	IDEAL TECHNICAL SOLUTIONS	United Arab Emirates	Middle East
 ITZ	ITRON South Africa	South Africa	Africa
 IUS	IUSA SA DE CV 	Mexico	North America
+IVY	IVY-metering	China	Asia
+IWD	Inkwell Data	Ireland	Europe
 IWK	IWK Regler und Kompensatoren GmbH
 IYI	KAYI ENERGY Hacettepe Üniversitesi	Turkey	Middle East
 IZE	iZenze AB	Sweden	Europe
@@ -566,6 +606,7 @@ JCE	Janz – Contadores de Energia SA	Portugal	Europe
 JED	JED Co Ltd	South Korea	Asia
 JGD	tianjin guangdaweiye measuring instrument technology Co.,Ltd	China	Asia
 JGF	Janz – Contagem e Gestao de Fluidos SA	Portugal	Europe
+JGH	ITSQUARE CO.,LTD	South Korea	Asia
 JHA	Zhejiang JiaHe Instrument CO.,Ltd	China	Asia
 JHM	Changzhou Jianhu Intelligentize Meter Co.,Ltd.	China	Asia
 JJN	BeiJing Fine&Clean Enery Technology Co.,Ltd	China	Asia
@@ -582,6 +623,7 @@ JWR	Shandong jingwei telecommunications equipment co., LTD.	China	Asia
 JWS	Wesson energy-saving technology (tianjin) co., LTD.	China	Asia
 JYS	Beijing Jingyuan instrument limited company	China	Asia
 KAA	Kamstrup A/S	Denmark	Europe
+KAC	"АО ""КАСКАД"	Russian Federation	Europe
 KAM	Kamstrup Energi A/S
 KAR	Keskar Vana Metal Mak. Ltd. Sti.	Turkey	Middle East
 KAS	Kamstrup A/S	Denmark	Europe
@@ -625,6 +667,8 @@ LDE	Shenzhen Londian Electrics Co., Ltd.	China	Asia
 LEC	Lectrotek Systems Pvt Ltd.	India	Asia
 LEI	PCP International Ltd	India	Asia
 LEM	LEM HEME Ltd.	United Kingdom	Europe
+LES	Lakshmi Electrical Control Systems Limited	India	Asia
+LET	LAN ENGINEERING & TECHNOLOGIES	India	Asia
 LFS	Payolcer Metering Devices	Turkey	Middle East
 LGB	Landis+Gyr Ltd.	United Kingdom	Europe
 LGC	Landis+Gyr Equipamentos de Medição Ltda, Brasil	Brazil	South America
@@ -642,10 +686,12 @@ LLM	LianYunGang LianLi·First Meter CO. LTD.	China	Asia
 LMC 	Lumacol s.r.o.	Slovakia	Europe
 LMG	Luftmeister GmbH	Germany	Europe
 LML	LUMEL	Poland	Europe
+LMP	LIN MAN POWER TECHNOLOGY,INC.	Philippines	Asia
 LMS	LMS Services GmbH	Germany	Europe
 LNC	Lancier Monitoring GmbH	Germany	Europe
 LNK	Loenk F9	South Korea	Asia
-LNT	Larsen & Toubro Ltd	India	Asia
+LNT	Schneider Electric India Private Limited 	India	Asia
+LOB	Lobaro GmbH	Germany	Europe
 LOG	LOGAREX Smart Metering, s.r.o.	Czech Republic	Europe
 LOV	Lovato Electric S.p.A.	Italy	Europe
 LSC	Lund Science AB	Sweden	Europe
@@ -661,10 +707,12 @@ LYE	Jiangsu Linyang Electronics Co. Ltd.	China	Asia
 MAC	RUDNAP Group Meter & Control	Serbia	Europe
 MAD	Maddalena S.p.A.	Italy	Europe
 MAE	Mates Elektronik Metin Ates	Turkey	Middle East
+MAG	MAGNATECH Smart Grid Solutions Pvt. Ltd.	India	Asia
 MAN	Manthey GmbH	Germany	Europe
 MAT	Mitsubishi Electric Automation	Thailand	Asia
 MAX	MAXMET Inc	South Korea	Asia
 MBS	MBS AG	Germany	Europe
+MCP	MPSE	Germany	Europe
 MCR	MICRORISC	Czech Republic	Europe
 MCS	MetCom Solutions GmbH	Germany	Europe
 MDA	PT.MELCOINDA	Indonesia	Asia
@@ -677,6 +725,7 @@ MEH	Mueller-electronic GmbH	Germany	Europe
 MEI	Sensus Metering Systems	Germany	Europe
 MEL	Mikroelektronika a.d	Bosnia and Herzegovina	Europe
 MEM	MEMS AG	Switzerland	Europe
+MES	Electrometer Spain S.L.U.	Spain	Europe
 MET	METRA Energie-Messtechnik GmbH	Germany	Europe
 MHT	Mechatronic Meters srl	Italy	Europe
 MIC	Microtronics Engineering GmbH	Austria	Europe
@@ -684,28 +733,32 @@ MID	MiDo Srl	Italy	Europe
 MII	Apator Miitors ApS	Denmark	Europe
 MIJ	MAXWELL INDIA	India	Asia
 MIK	Mikroklima s.r.o.	Czech Republic	Europe
+MIL	Milur Smart System Limited liability company	Russian Federation	Europe
 MIM	Malaysian Intelligence Meters Sdn. Bhd.	Malaysia	Asia
 MIR	MIR Research and Production Association	Russian Federation	Europe
 MIS	Iskra MIS d.d	Slovenia	Europe
-MIT	Meter Italia S.p.A.	Italy	Europe
-MKA	mirakonta	Spain	Europe
+MIT	Sagemcom Energy & Telecom	France	Europe
+MKA	mirakonta	Germany	Europe
 MKE	MKEK Genel Mudurlugu Gazi Fisek (ELSA)	Turkey	Middle East
 MKL	MAKEL Elektrik Malzemeleri	Turkey	Middle East
 MKS	MAK-SAY Elektrik Elektronik	Turkey	Middle East
 MLQ	MeterLinq	Italy	Europe
 MLR	PKK Milandr	Russian Federation	Europe
 MMC	Modern Meters Co.	Syria	Middle East
+MMF	MEMF Electrical Industries Co.	Saudi Arabia	Middle East
 MMI	MyMeterInfo	France	Europe
 MMP	MATRIXMETERS PVT. LTD.	India	Asia
 MMS	Brunswick Bowling and Billiards UK Ltd	United Kingdom	Europe
 MMT	METMOTEC	United Kingdom	Europe
 MNS	MANAS Elektronik	Turkey	Middle East
 MNW	MENOWATT GE SRL	Italy	Europe
+MOJ	Mojec International	Nigeria	Africa
 MOS	MOMAS SYSTEMS NIGERIA LIMITED	Nigeria	Africa
 MOT	The Motwane Manufacturing Company Private Limited	India	Asia
 MPA	Mega Power Automation International Limited	Hong Kong	Asia
 MPR	Michael Rac GmbH	Germany	Europe
 MPS	Multiprocessor Systems Ltd	Bulgaria	Europe
+MRN	"LLC ""RPC ""MEtRON"	Ukraine	Europe
 MRT	MIRTEK LTD.	Russian Federation	Europe
 MSB	MISA SDN BHD	Malaysia	Asia
 MSE	Mahashakti Energy Limited	India	Asia
@@ -716,7 +769,7 @@ MSY	MAK-SAY Elektrik Elektronik Malzemeleri	Turkey	Middle East
 MTC	Metering Technology Corporation
 MTD	Removed - November 2006	United States of America	North America
 MTH	njmeter	China	Asia
-MTI	Micrtotech Industries Pakistan	Pakistan	Asia
+MTI	Microtech Industries Pakistan	Pakistan	Asia
 MTL	Advance Metering technology Limited	India	Asia
 MTM	Metrum Sweden AB	Sweden	Europe
 MTN	Merytronic 2012,S.L	Spain	Europe
@@ -725,16 +778,20 @@ MTR	METER	Russian Federation	Europe
 MTS	MeteRSit S.r.L.	Italy	Europe
 MTX	Matrix Energy Pvt. Ltd.	India	Asia
 MUK	Meters UK Ltd, Whitegate, White Lund Trading Estate	United Kingdom	Europe
+MWI	Magic Wand Intelligent Systems	India	Asia
 MWU	METRONA Union GmbH	Germany	Europe
 MXM	Maxim India Integrated Circuit Design Pvt Ltd.	India	Asia
 MYS	MODEMSYS S.L.	Spain	Europe
 NAE	Nanjing NengRui Automation Equipment Co., LTD.	China	Asia
 NAR	NARI Group Corporation-NARI Technology Development Co., Ltd	China	Asia
+NAS	NAS Instruments OÜ
+NAS	NAS Instruments OÜ	Estonia	Europe
 NAT	Natural Heat Ahorro Energetico SL	Spain	Europe
 NCK	NC Korea	South Korea	Asia
 NDF	NÚCLEO DURO FELGUERA	Spain	Europe
 NDM	Northern Design	United Kingdom	Europe
 NEE	Northern Electric Equipment Joint Stock Company	Vietnam	Asia
+NER	Nero Electronics Ltd	Belarus	Europe
 NES	NORA ELK. MALZ. SAN. ve TİC. A.Ş.	Turkey	Middle East
 NET	Netatmo	France	Europe
 NIK	NIK-ELEKTRONIKA	Ukraine	Europe
@@ -742,6 +799,7 @@ NIS	Nisko Industries	Israel	Middle East
 NJC	NAMJUN Co Ltd	South Korea	Asia
 NKS	N-ERGIE Kundenservice GmbH	Germany	Europe
 NLI	Next Level Integration GmbH	Germany	Europe
+NME	SI-ART LLC	Russian Federation	Europe
 NMG	NMG S.A.	Poland	Europe
 NMS	Nisko Advanced Metering Solutions	Israel	Middle East
 NMT	Nova-met s.r.o.	Czech Republic	Europe
@@ -753,11 +811,14 @@ NPT	CJSC PROGTECH	Russian Federation	Europe
 NRM	Norm Elektronik	Turkey	Middle East
 NRN	Neuron GmbH	Switzerland	Europe
 NSE	North Smart Equipment Co., Ltd	China	Asia
+NSP	M/S N S Power	India	Asia
 NTC	Nuri Telecom Co Ltd	South Korea	Asia
 NTM	Netinium	Netherlands	Europe
 NVD	METER Ltd
 NVN	NOVEN ENERGY AND ICT LTD.	Turkey	Middle East
+NWG	NINGBO WASSER GERAETE CO.,LTD.	China	Asia
 NWM	Ningbo Water Meter Co.Ltd.	China	Asia
+NXG	nexgen consultancy pvt ltd	India	Asia
 NXP	NXP Semiconductors	Netherlands	Europe
 NYG	Ningbo Yonggang Instrument Co. Ltd.	China	Asia
 NYN	Nanjing Yuneng Instrument Co Ltd.	China	Asia
@@ -778,6 +839,7 @@ ORB	ORBIS Tecnologia Electrica, SA	Spain	Europe
 ORM	Ormazabal	Spain	Europe
 OSA	Osaki Electric Co., Ltd.(Europe)	Japan	Asia
 OSK	Osaki Electric Co Ltd. (Japan)	Japan	Asia
+OTM	OTMetric	France	Europe
 OYK	GULLWING(TIANJIN)INDUSTRY DEVELOPMENGT CO.,LTD.	China	Asia
 OZK	Oz-kar Enerji	Turkey	Middle East
 PAD	PadMess GmbH	Germany	Europe
@@ -792,6 +854,8 @@ PEA	PEA J.V. Company	Ecuador	South America
 PEE	Prantech Energy Solutions	India	Asia
 PEL	Pak Elektron Ltd. (PEL)	Pakistan	Asia
 PEP	POWRTEC ENERGY PVT. LTD.	India	Asia
+PER	Perry Electric	Italy	Europe
+PGE	PayGo Energy, Inc
 PGP	P.G.P. - Smart Sensing s.a.	Belgium	Europe
 PHL	HangZhou PAX Electronic Technology Co., Ltd.	China	Asia
 PII	PiiGAB Processinformation i Goteborg AB	Sweden	Europe
@@ -800,20 +864,25 @@ PIL	Pilot Systems (London) Ltd	United Kingdom	Europe
 PIM	Power Innovation GmbH	Germany	Europe
 PIP	Hermann Pipersberg jr.	Germany	Europe
 PIV	Pivot Access Ltd.	Rwanda	Africa
+PLL	POLL, s.r.o.	Czech Republic	Europe
 PLN	Prolan Process Control Company	Hungary	Europe
 PLO	Weihai Ploumeter Co. Ltd.	China	Asia
 PLU	Plutus Smart Energy Solutions Pvt. Ltd.	India	Asia
+PME	Pal Mohan Electronics Pvt Ltd	India	Asia
 PMG	Sensus Metering Systems	Germany	Europe
-PMP	Phoenix Mecano Power Quality REDUR Messwandler	Germany	Europe
+PML	PROGRESSIVE METERS PVT LTD.	India	Asia
+PMP	REDUR GmbH & Co. KG	Germany	Europe
 PMS	PMS-Elektronik GmbH	Germany	Europe
-PMX	Dell'Anna Ing. Luca	Italy	Europe
+PMX	Dell`Anna Ing. Luca	Italy	Europe
 PNC	PNC Technology Co., Ltd	South Korea	Asia
 POD	PowerOneData	India	Asia
 POL	Pronal Sp. z o.o. sp.k.	Poland	Europe
 POW	PowerApp	Denmark	Europe
 POZ	ZEUP Pozyton sp. z o.o.	Poland	Europe
 PPC	Power Plus Communications AG	Germany	Europe
+PPL	Prompribor plant Limited	Russian Federation	Europe
 PPS	Palace Power Systems	South Africa	Africa
+PQP	PQ Plus GmbH	Germany	Europe
 PRE	Predicate Software	South Africa	Africa
 PRG	Paud Raad Industrial Group	Iran	Middle East
 PRI	Polymeters Response International Ltd.
@@ -833,6 +902,7 @@ PYU	PYUNGIL Co. Ltd	South Korea	Asia
 QDR	Quadrar Tecnologia	Brazil	South America
 QDS	Qundis GmbH	Germany	Europe
 QFP	QFP Engineering	Italy	Europe
+QSD	Quicksand	Belgium	Europe
 QTS	QT systems ab	Sweden	Europe
 RAC	Michael Rac GmbH	Germany	Europe
 RAD	Radiocrafts AS	Norway	Europe
@@ -841,6 +911,7 @@ RAS	Rubikon Apskaitos Sistemos	Lithuania	Europe
 RAY	Rayleigh Instruments Limited	United Kingdom	Europe
 RBM	R.B.M. S.p.A	Italy	Europe
 RCE	RC ENERGY METERING PVT,LTD.	India	Asia
+RDK	Wuhan Radarking Electronics Corp.	China	Asia
 REC	Zhejiang Reallin Electron Co. Ltd.	China	Asia
 REF	REFERANS ELEKTRIK SAYACLARI A.S.	Turkey	Middle East
 REI	RENESAS ELECTRONICS INDIA PRIVATE LIMITED	India	Asia
@@ -850,7 +921,7 @@ REP	Radiant Energy Solutions Pvt Ltd	India	Asia
 RES	Renesas Electronics Singapore Pte Ltd	Singapore	Asia
 RIC	Richa Equipments Pvt. Ltd.	India	Asia
 RIL	Rikken Instrumentation Limited	India	Asia
-RIM	"CJSC \""Radio and Microelectronics\"""	Russian Federation	Europe
+RIM	"CJSC \"Radio and Microelectronics\""	Russian Federation	Europe
 RIN	Rayleigh Instruments Ltd	United Kingdom	Europe
 RIT	Ritz Instrument Transformers GmbH	Germany	Europe
 RIX	Raonix Co., Ltd.	South Korea	Asia
@@ -862,13 +933,14 @@ RML	ROLEX METERS RPIVATE LIMITED	India	Asia
 RMR	Advanced Technology RAMAR	United Kingdom	Europe
 RMT	Richter Messtechnik GmbH & Co.KG	Germany	Europe
 RNW	Renergy Micro-Technologies	China	Asia
+ROK	“ROKIP” Limited Liability Company	Russian Federation	Europe
 RSA	Rahrovan Sepehr Andisheh  Pte. Co.
 RSM	Zhejiang Risesun Science and Technology Co.,Ltd.	China	Asia
 RSW	RSW Technik GmbH	Germany	Europe
 SAA	Sanjesh Afzar Asia Ltd. Co.	Iran	Middle East
 SAC	Sacofgas 1927 SpA	Italy	Europe
 SAE	SAE IT-systems GmbH & Co. KG	Germany	Europe
-SAG	SAGEM	France	Europe
+SAG	Sagemcom Energy & Telecom	France	Europe
 SAM	Siemens AG Österreich, AMIS (Automated Metering and Information System)	Austria	Europe
 SAN	SANN Stockholm AB	Sweden	Europe
 SAP	Sappel
@@ -888,7 +960,9 @@ SEC	Schneider Electric Canada	Canada	North America
 SEE	El Sewedy Electrometer Egypt	Egypt	Middle East
 SEH	SAMRAKSHANA ELECTRICALS LTD	India	Asia
 SEI	Sicom Electronics International S.A.	Chile	South America
+SEK	StroyEnergoKom Ltd.	Russian Federation	Europe
 SEL	Selec Controls Pvt Ltd	India	Asia
+SEM	Smart Meter Company Limited	Myanmar	Asia
 SEN	Sensus Metering Systems	Germany	Europe
 SEO	SENSOCO Greatech GmbH	Germany	Europe
 SET	Sagemcom Energy & Telecom	France	Europe
@@ -916,7 +990,9 @@ SKI	S.K.I. GmbH	Germany	Europe
 SKK	Shikoku Instrumentation Co.,Ltd.	Japan	Asia
 SKN	BENTEX CONTROL AND SWITCH GEAR CO.	India	Asia
 SKT	SkyToll a.s.	Slovakia	Europe
+SKY	SKYLARK SMARTMETERS PVT LTD	India	Asia
 SLB	Schlumberger Industries Ltd.	France	Europe
+SLG	Silergy Technologies
 SLP	Sylop spółka z ograniczoną odpowiedzialnością sp.k.	Poland	Europe
 SLV	Solvimus GmbH	Germany	Europe
 SLW	SOLID WAY SAS	France	Europe
@@ -931,12 +1007,15 @@ SMM	Smart Metering S.r.l.	Italy	Europe
 SMN	Saiman Corporation LLC	Kazakhstan	Asia
 SMP	LLC FIRM SEMPAL CO LTD	Ukraine	Europe
 SMQ	SMARTMETERQ srl	Italy	Europe
+SMR	Saudi Meters Company Ltd	Saudi Arabia	Middle East
 SMS	Smart Metering Solutions (Changsha) Co. Ltd.	China	Asia
 SMT	Smarteh d.o.o.	Slovenia	Europe
 SMX	Smart Meters Technologies Sdn Bhd	Malaysia	Asia
+SNB	Stromnetz Berlin GmbH	Germany	Europe
 SNM	ShenZhen Northmeter Co.Ltd 	China	Asia
 SNR	NTN-SNR	France	Europe
 SNS	Signals and Systems India Private Limited	India	Asia
+SNT	SensorNet s.r.l.	Italy	Europe
 SOC	SOCOMEC	France	Europe
 SOF	Softflow.de GmbH	Germany	Europe
 SOG	Sogecam Industrial, S.A.	Spain	Europe
@@ -957,8 +1036,10 @@ SRV	Servic LLC	Ukraine	Europe
 SSE	S&T Smart Energy GmbH	Austria	Europe
 SSG	Super Star Electronics Limited	Bangladesh	Asia
 SSI	Security Solutions Institute LTD	Bulgaria	Europe
+SSL	Synapsys Solutions Ltd.
 SSM	SCC METERS LTD.	Bangladesh	Asia
 SSN	Silver Spring Networks	United States of America	North America
+SSS	SUEZ SMART SOLUTIONS	France	Europe
 SST	Qingdao Haina Electric Automation Systems Co., Ltd.	China	Asia
 STA	Shenzhen Star Instrument Co Ltd	China	Asia
 STC	Sunrise Technology Co., Ltd	China	Asia
@@ -988,10 +1069,12 @@ TAN	Tianxin instrument group co. LTD	China	Asia
 TAS	Pouyeshgaran Tabriz Azma	Iran	Middle East
 TAT	Tatung Co.	Taiwan	Asia
 TAY	Taytech Otomasyon ve Bilisim Teknolojileri LTD. Sti	Turkey	Middle East
+TAZ	PoyeshGaran  Sahandzaran Tabrizazma	Iran	Middle East
 TBN	TBEA Nanjing Intelligent Electric Co., Ltd.	China	Asia
 TBS	TEBAŞ END. ISI SİS İNŞ TUR SAN VE TİC LTD ŞTİ	Turkey	Middle East
 TCE	Qingdao iTechene Technologies Co., Ltd.	China	Asia
 TCH	Techem Service AG & Co. KG
+TCM	TCOM doo	Serbia	Europe
 TCO	Teco a.s.	Czech Republic	Europe
 TCT	Tecnotel Srl	Italy	Europe
 TCX	Qingdao Topscomm Communication Co.,Ltd	China	Asia
@@ -999,19 +1082,21 @@ TCZ	Tianjin Chuangzhan Tongcheng Technology Development Co.,Ltd.	China	Asia
 TDC	Telecom Design	France	Europe
 TEA	TEAM-R
 TEC	TECSON Digital	Germany	Europe
+TEH	IOTech LTD
 TEI	Tohoku Electric Meter Industry Co.,Inc.	Japan	Asia
 TEK	Tekmar Regelsysteme GmbH	Germany	Europe
+TEN	TekhnoEnergo LLC	Russian Federation	Europe
 TEO	ubitricity Gesellschaft für verteilte Energiesysteme mbH	Germany	Europe
 TEP	TEPEECAL	France	Europe
 TEU	TOSHELECTROAPPARAT LLC FE	Uzbekistan	Asia
 TFC	Toos Fuse Co.	Iran	Middle East
+TFG	TERMICS s.r.l. Divisione FIMIGAS	Italy	Europe
 TGX	Tiesse Spa	Italy	Europe
 THE	Theben AG	Germany	Europe
 THW	TW-TEAMWARE	Italy	Europe
 TIC	TOKYO KEISO CO.,LTD.	Japan	Asia
 TID	TIDE Co.,Ltd	South Korea	Asia
 TIG	ZHONGHUAN-TIG CO.,LTD	China	Asia
-TII	Pal Mohan Electronics Pvt Ltd	India	Asia
 TIL	Thermal Integration Limited	United Kingdom	Europe
 TIP	TIP GmbH	Germany	Europe
 TIS	Texas Instruments (Hong Kong) Ltd.	Hong Kong	Asia
@@ -1022,6 +1107,7 @@ TLM	Theodor Lange Messgeräte GmbH	Germany	Europe
 TLR	Telereading srl	Italy	Europe
 TLS	TLS Energimätning AB	Sweden	Europe
 TLT	Telecommunication Technologies LLC	Ukraine	Europe
+TLY	LLC «SPE» Telemetry»	Ukraine	Europe
 TME	TECHNO METERS & ELECTRONICS	India	Asia
 TMK	Timi Kosova Sh.p.k.
 TMS	TEMASS IMALAT A.S	Turkey	Middle East
@@ -1043,6 +1129,7 @@ TRU	Truteq Wireless	South Africa	Africa
 TRV	Transvaro Elektron Aletleri A.S.	Turkey	Middle East
 TRX	Beijing TianRuiXiang Equipment Co.,Ltd.	China	Asia
 TSD	Theobroma Systems Design und Consulting GmbH	Austria	Europe
+TSE	Nichi Manufacturing Pvt. Ltd.	India	Asia
 TSG	Testo Sensor GmbH	Germany	Europe
 TTM	Toshiba Toko Meter Systems Co., Ltd.	Japan	Asia
 TTR	Tetraedre Sarl	Switzerland	Europe
@@ -1054,6 +1141,7 @@ UAG	Uher
 UBI	Ubitronix system solutions gmbh	Austria	Europe
 UBY	ubitricity - Gesellschaft für verteilte Energiesysteme mbH	Germany	Europe
 UEI	United Electrical Industries Limited	India	Asia
+UEL	united electrical industries ltd	India	Asia
 UGI	United Gas Industries
 UGT	DP UKRGAZTECH Ltd. (Ukrainian gas technologies)	Ukraine	Europe
 UHM	Micronics Ltd.	United Kingdom	Europe
@@ -1073,16 +1161,21 @@ VES	Viterra Energy Services
 VGO	Vango Technologies, Inc.	Taiwan	Asia
 VIE	Vientech	France	Europe
 VIK	VI-KO ELEKTRIK	Turkey	Middle East
+VIM	VİEN ENERJİ SİSTEMLERİ SANAYİ VE TİCARET LİMİTED ŞİRKETİ	Turkey	Middle East
 VIN	Vektor innovations private limited	India	Asia
 VIP	VIPA CZ s.r.o.	Czech Republic	Europe
 VLT	ABB s.r.o., EPMV Division	Czech Republic	Europe
 VMP	VAMP Oy.	Finland	Europe
 VNE	Vision Networks	India	Asia
 VPI	Van Putten Instruments B.V.
+VPL	Verticross India Private Limited	India	Asia
 VSE	Valenciana Smart Energy of Mediterranean Sea S.A	Spain	Europe
+VSN	Viewshine Ltd.	China	Asia
 VTC	Vitelec	Netherlands	Europe
 VTK	Linkwell Telesystems Pvt. Ltd.	India	Asia
+VTN	VITEX NOVA	Ukraine	Europe
 VTZ	VitzroSys Co., Ltd.	South Korea	Asia
+VVV	VIVAVIS GmbH
 WAD	Waher Data AB	Sweden	Europe
 WAH	WAHESOFT UG	Germany	Europe
 WAI	Chongqing WECAN Precision Instruments Co.,Ltd.	China	Asia
@@ -1094,6 +1187,7 @@ WEH	E. Wehrle GmbH	Germany	Europe
 WEL	WELLTECH automation	China	Asia
 WEP	Weptech elektronik GmbH	Germany	Europe
 WFT	Waft Embedded Circuit Solutions	India	Asia
+WGN	Wasser-Geräte GmbH	Germany	Europe
 WGP	GreenPoint sp. z o.o.	Poland	Europe
 WIG	Wigersma & Sikkema	Netherlands	Europe
 WIK	WIKON Kommunikationstechnik GmbH	Germany	Europe
@@ -1106,6 +1200,7 @@ WNW	Wistron NeWeb Corporation, Marketing Center	Taiwan	Asia
 WOW	Sciknow Techno Solutions Ltd	India	Asia
 WSD	Yantai Wisdom Electric Co., Ltd.	China	Asia
 WSE	Wasion Group Co.Ltd	China	Asia
+WSG	ZHEJIANG WELLSUN INTELLIGENT TECHNOLOGY CO., LTD	China	Asia
 WSM	winAMR Systems Private Limited	India	Asia
 WSR	OOO WESER	Russian Federation	Europe
 WTI	Weihai Sunts Electric Meter Co., Ltd.	China	Asia
@@ -1117,6 +1212,7 @@ WZG	Neumann & Co. Wasserzähler Glaubitz GmbH	Germany	Europe
 WZT	Wizit Co. Ltd.	South Korea	Asia
 XAO	Info Solution SpA	Italy	Europe
 XEM	XEMTEC AG	Switzerland	Europe
+XIO	XIOTA India Pvt. Ltd	India	Asia
 XJM	XJ Metering Co. Ltd.	China	Asia
 XMA	XMASTER s.c. ul.	Poland	Europe
 XMX	Xemex NV	Belgium	Europe
@@ -1128,6 +1224,7 @@ YDS	YIDU Smart Technology ( Beijing ) Co. Ltd.	China	Asia
 YFC	Yufeng Changhui Automation Instrument Co. Ltd.	China	Asia
 YGM	YGM, Shandong Yiguang heat metering technology CO. LTD.	China	Asia
 YHE	Youho Electric Co. Ltd.	South Korea	Asia
+YJZ	Zhuhai Yujian Science & Technology Co., Ltd	China	Asia
 YNP	Ningbo Yong Neng Power Technology Co. Ltd.	China	Asia
 YPP	YPP Corp	South Korea	Asia
 YSS	Yellowstone Soft	Germany	Europe
@@ -1138,11 +1235,13 @@ YZR	Cangzhou City Hebei Electronic Technology Co. Ltd.	China	Asia
 ZAG	Zellweger Uster AG	Switzerland	Europe
 ZAP	Zaptronix
 ZAR	SNC ZARALAB	Bulgaria	Europe
+ZCH	Zhejiang Chaorong Electric Technology Co., Ltd	China	Asia
 ZEL	Dr. techn. Josef Zelisko GmbH	Austria	Europe
 ZEN	ZenMeter Solutions Pvt. Ltd.	India	Asia
+ZEX	ZEXON ENERGY PRIVATE LIMITED	India	Asia
 ZFY	Hang Zhou Fu Yang Instrument General Factory	China	Asia
 ZGX	ZIGNUX TECHNOLOGY S.L.	Spain	Europe
-ZIP	St. Petersburg Meters\' Factory Co., Ltd.	Russian Federation	Europe
+ZIP	St. Petersburg Meters\` Factory Co., Ltd.	Russian Federation	Europe
 ZIV	ZIV Aplicaciones y Tecnologia, S.A.
 ZJY	Zhejiang Jiayou Thermal Technology Equipment Co. LTD.	China	Asia
 ZPA	ZPA Smart Energy a.s.	Czech Republic	Europe
