@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - id: WHATSUP
-      run: ls -l
+    - id: INSTALL ADDITIONAL BUILD DEPENDENCIES
+      run: sudo apt-get install librtlsdr-dev libusb-dev
     - id: CONFIGURE
       run: ./configure
     - id: MAKE
