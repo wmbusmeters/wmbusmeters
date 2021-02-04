@@ -130,7 +130,7 @@ MeterIzar::MeterIzar(MeterInfo &mi) :
 
     addPrint("previous_alarms", Quantity::Text,
              [&](){ return previousAlarmsText(); },
-             "Alarms currently reported by the meter.",
+             "Alarms previously reported by the meter.",
              true, true);
 
 }
