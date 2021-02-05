@@ -1251,8 +1251,7 @@ bool start(Configuration *config)
                 Telegram t;
                 t.about = about;
                 MeterKeys mk;
-                t.parserNoWarnings(); // Try a best effort parse, do not print any warnings.
-                t.parse(frame, &mk);
+                t.parse(frame, &mk); // Try a best effort parse, do not print any warnings.
                 t.print();
                 t.explainParse("(wmbus)",0);
                 logTelegram(t.frame, 0, 0);
