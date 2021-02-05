@@ -134,7 +134,8 @@ void WMBusRTLWMBUS::deviceSetLinkModes(LinkModeSet lm)
     LinkModeSet lms;
     lms.addLinkMode(LinkMode::C1);
     lms.addLinkMode(LinkMode::T1);
-    device_link_modes_ = lms;
+    lms.addLinkMode(LinkMode::S1);
+	device_link_modes_ = lms;
 }
 
 void WMBusRTLWMBUS::simulate()
@@ -257,10 +258,11 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
 
     if (data[0] != '0' || data[1] != 'x')
     {
-        // Discard lines that do not begin with T1 or C1, these lines are probably
+        // Discard lines that do not begin with T1, C1 or S1, these lines are probably
         // stderr output from rtl_sdr/rtl_wmbus.
         if (!(data[0] == 'T' && data[1] == '1') &&
-            !(data[0] == 'C' && data[1] == '1'))
+            !(data[0] == 'C' && data[1] == '1') &&
+            !(data[0] == 'S' && data[1] == '1'))
         {
 
             debug("(rtlwmbus) only text\n");
