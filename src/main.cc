@@ -381,10 +381,14 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
                 command = detected->found_command;
                 identifier = "cmd_"+to_string(detected->specified_device.index);
             }
-            string freq = "868.95M";
+            string freq = "868.7M";
+			string simultaneous_s1_c1_t1_flag=" -s";
             if (detected->specified_device.fq != "")
             {
                 freq = detected->specified_device.fq;
+				//todo: test if .fq <> 868,7 and set flag, otherwise unset
+				simultaneous_s1_c1_t1_flag= ""; //no simultaneus capture when frequency is supplied  
+				
             }
             string prefix = "";
             if (config->daemon)
@@ -404,7 +408,7 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
                 }
             }
             if (command == "") {
-                command = prefix+"rtl_sdr -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+prefix+"rtl_wmbus";
+                command = prefix+"rtl_sdr -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+prefix+"rtl_wmbus"+simultaneous_s1_c1_t1_flag;
             }
             verbose("(rtlwmbus) using command: %s\n", command.c_str());
         }
@@ -1247,7 +1251,8 @@ bool start(Configuration *config)
                 Telegram t;
                 t.about = about;
                 MeterKeys mk;
-                t.parse(frame, &mk, false); // Try a best effort parse, do not print any warnings.
+                t.parserNoWarnings(); // Try a best effort parse, do not print any warnings.
+                t.parse(frame, &mk);
                 t.print();
                 t.explainParse("(wmbus)",0);
                 logTelegram(t.frame, 0, 0);
