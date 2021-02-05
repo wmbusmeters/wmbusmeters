@@ -76,7 +76,8 @@ private:
 
     FrameStatus checkCULFrame(vector<uchar> &data,
                               size_t *hex_frame_length,
-                              vector<uchar> &payload);
+                              vector<uchar> &payload,
+                              int *rssi_dbm);
 
     string setup_;
 };
@@ -180,9 +181,10 @@ void WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
         error("(cul) setting link mode(s) %s is not supported for this cul device!\n", modes.c_str());
     }
 
-    // X01 - start the receiver
+    // X01 - start the receiver in normal mode
+    // X21 - start the receiver and report raw LQI and RSSI data
     msg[0] = 'X';
-    msg[1] = '0'; // 6
+    msg[1] = '2'; // 6
     msg[2] = '1'; // 7
     msg[3] = 0xa;
     msg[4] = 0xd;
@@ -215,10 +217,11 @@ void WMBusCUL::processSerialData()
 
     size_t frame_length;
     vector<uchar> payload;
+    int rssi_dbm;
 
     for (;;)
     {
-        FrameStatus status = checkCULFrame(read_buffer_, &frame_length, payload);
+        FrameStatus status = checkCULFrame(read_buffer_, &frame_length, payload, &rssi_dbm);
 
         if (status == PartialFrame)
         {
@@ -250,8 +253,7 @@ void WMBusCUL::processSerialData()
         {
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
 
-            // We do not currently know how to get the rssi out of the cul dongle.
-            AboutTelegram about("cul", 0);
+            AboutTelegram about("cul", rssi_dbm);
             handleTelegram(about, payload);
         }
     }
@@ -259,7 +261,8 @@ void WMBusCUL::processSerialData()
 
 FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
                                     size_t *hex_frame_length,
-                                    vector<uchar> &payload)
+                                    vector<uchar> &payload,
+                                    int *rssi_dbm)
 {
     if (data.size() == 0) return PartialFrame;
 
@@ -290,6 +293,30 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         return TextAndNotFrame;
     }
 
+    // Extract LQI and RSSI from message (appended 1 byte LQI and 1 byte RSSI at the end)
+    vector<uchar> hex_buffer;
+    vector<uchar> lqi_rssi;
+    hex_buffer.insert(hex_buffer.end(), data.begin()+eolp-eof_len-4, data.begin()+eolp-eof_len);
+    bool ok = hex2bin(hex_buffer, &lqi_rssi);
+    if(!ok)
+    {
+        string s = safeString(hex_buffer);
+        debug("(cul) bad hex for LQI and RSSI \"%s\"\n", s.c_str());
+        warning("(cul) warning: the LQI and RSSI hex string is not properly formatted!\n");
+    }
+    // LQI is 7 bits unsigned number and relative - range 0-127 lower is better
+    uint lqi = lqi_rssi[0]>>1;
+    // Raw RSSI value 8 bits 2's complement number
+    int8_t rssi_raw = lqi_rssi[1];
+    // Calculate dBm according to datasheet of CC1101 SWRS061I page 44
+    *rssi_dbm = rssi_raw/2 - 74;
+
+    if (isDebugEnabled())
+    {
+        debug("(cul) checkCULFrame RSSI_RAW=%d\n", rssi_raw);
+        debug("(cul) checkCULFrame LQI=%d\n", lqi);
+    }
+
     if (data[1] == 'Y')
     {
         // C1 telegram in frame format B
@@ -299,7 +326,7 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         // If reception is started with X01, then there are no RSSI bytes.
         // If started with X21, then there are two RSSI bytes (4 hex digits at the end).
         // Now we always start with X01.
-        hex.insert(hex.end(), data.begin()+2, data.begin()+eolp-eof_len); // Remove CRLF
+        hex.insert(hex.end(), data.begin()+2, data.begin()+eolp-eof_len-4); // Remove CRLF, RSSI and LQI
         payload.clear();
         bool ok = hex2bin(hex, &payload);
         if (!ok)
@@ -327,7 +354,7 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         // If reception is started with X01, then there are no RSSI bytes.
         // If started with X21, then there are two RSSI bytes (4 hex digits at the end).
         // Now we always start with X01.
-        hex.insert(hex.end(), data.begin()+1, data.begin()+eolp-eof_len); // Remove CRLF
+        hex.insert(hex.end(), data.begin()+1, data.begin()+eolp-eof_len-4); // Remove CRLF, RSSI and LQI
         payload.clear();
         bool ok = hex2bin(hex, &payload);
         if (!ok)
