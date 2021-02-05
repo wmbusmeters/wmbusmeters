@@ -213,7 +213,7 @@ rtlsdr dongle like this `rtlwmbus[1234]`.
 /dev/ttyUSB0:38400, to have wmbusmeters set the baud rate to 38400 and listen for raw wmbus telegrams.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
-rtlwmbus, to spawn the background process: "rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus"
+rtlwmbus, to spawn the background process: "rtl_sdr -f 868.7M -s 1600000 - 2>/dev/null | rtl_wmbus -s"
 for each attached rtlsdr dongle.
 
 rtlwmbus:868.9M, to tune to this fq instead.
@@ -321,7 +321,10 @@ at a time, ie either C1 or T1 telegrams. Thus you can listen to
 multiple meters as long as they all require the same radio mode C1 or
 T1.
 
-However if you use amb8465 or rtlwmbus, then you can listen to both C1
+If you use amb8465 then you can listen to both C1
+and T1 telegrams at the same time.
+
+However if you use rtlwmbus, then you can listen to S1, C1
 and T1 telegrams at the same time.
 
 # Usage examples
@@ -366,8 +369,11 @@ Example format json output:
 
 `{"media":"heat","meter":"multical302","name":"MyHeater","id":"22222222","total_kwh":0.000,"total_volume_m3":0.000,"current_kw":"0.000","timestamp":"2018-02-08T09:07:22Z"}`
 
+Example use rtlsdr with rtlwmbus to 868.3MHz to get S1 mode telegrams
+`wmbusmeters --format=fields rtlwmbus:868.3M GreenhouseWater qcaloric:s1 33333333 NOKEY`
+
 Example format fields output and use rtlsdr dongle with rtlwmbus tuned to 868.9MHz instead of the
-default 868.95MHz.
+default 868.95MHz. 
 
 `wmbusmeters --format=fields rtlwmbus:868.9M GreenhouseWater multical21:c1 33333333 NOKEY`
 
