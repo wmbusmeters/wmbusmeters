@@ -214,7 +214,7 @@ rtlsdr dongle like this `rtlwmbus[1234]`.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
 rtlwmbus, to spawn the background process: "rtl_sdr -f 868.7M -s 1600000 - 2>/dev/null | rtl_wmbus -s"
-for each attached rtlsdr dongle.
+for each attached rtlsdr dongle. 868,7 is an intermediate frequency betwen 868,3 and 868.95 to be able to capture both C1,T1 and S1 frequencies and decode all three types of telegrams at the same time.
 
 rtlwmbus:868.9M, to tune to this fq instead.
 
