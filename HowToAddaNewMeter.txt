@@ -20,6 +20,7 @@ telegram=||2344xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|+24
 a specific meter the firs |...| will mark the header part of the telegram.)
 
 Now store the telegram=||xxxxx...| (skip the +24 at the end) into the file simulation_mymeter.txt
+Be careful, the file must have a name beginning with "simulation_".
 
 Now you can re-run: wmbusmeters simulation_mymeter.txt
 And it will print the same output (minus the rssi/device).
