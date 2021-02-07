@@ -1249,7 +1249,7 @@ bool start(Configuration *config)
                 t.parse(frame, &mk, false); // Try a best effort parse, do not print any warnings.
                 t.print();
                 t.explainParse("(wmbus)",0);
-                logTelegram(t.frame, 0, 0);
+                logTelegram(t.original, t.frame, 0, 0);
                 return true;
             });
     }

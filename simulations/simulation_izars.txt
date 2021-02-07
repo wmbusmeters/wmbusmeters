@@ -1,8 +1,4 @@
-# The design philosophy of the izar water meters, is never ever let
-# a water meter report itself as a water meter....
-
-# Test IZAR RC 868 I R4 PL water meter telegram, it reports itself as an oil meter... duh?
-# But wmbusmeters politely translates this into water.
+# Test IZAR RC 868 I R4 PL water meter telegram
 
 telegram=|1944304C72242421D401A2|013D4013DD8B46A4999C1293E582CC|
 {"media":"water","meter":"izar","name":"IzarWater","id":"21242472","total_m3":3.488,"last_month_total_m3":3.486,"last_month_measure_date":"2019-09-30","remaining_battery_life_y":14.5,"current_alarms":"meter_blocked,underflow","previous_alarms":"no_alarm","timestamp":"1111-11-11T11:11:11Z"}
@@ -10,14 +6,14 @@ telegram=|1944304C72242421D401A2|013D4013DD8B46A4999C1293E582CC|
 # Test new version of IZAR
 
 telegram=|2944A511780729662366A20118001378D3B3DB8CEDD77731F25832AAF3DA8CADF9774EA673172E8C61F2|
-{"media":"water","meter":"izar","name":"IzarWater2","id":"66290778","total_m3":16.76,"last_month_total_m3":11.84,"last_month_measure_date":"2019-11-30","remaining_battery_life_y":12,"current_alarms":"no_alarm","previous_alarms":"no_alarm","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"izar","name":"IzarWater2","id":"23662907","total_m3":16.76,"last_month_total_m3":11.84,"last_month_measure_date":"2019-11-30","remaining_battery_life_y":12,"current_alarms":"no_alarm","previous_alarms":"no_alarm","timestamp":"1111-11-11T11:11:11Z"}
 
-# Yet another silly version of IZAR, come again, type 0x20 = Breaker (electricity) for a water meter!
+# Yet another version of IZAR
 
 telegram=|1944A511780779194820A1|21170013355F8EDB2D03C6912B1E37
-{"media":"water","meter":"izar","name":"IzarWater3","id":"19790778","total_m3":4.366,"last_month_total_m3":0,"last_month_measure_date":"2020-12-31","remaining_battery_life_y":11.5,"current_alarms":"no_alarm","previous_alarms":"no_alarm","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"izar","name":"IzarWater3","id":"48197907","total_m3":4.366,"last_month_total_m3":0,"last_month_measure_date":"2020-12-31","remaining_battery_life_y":11.5,"current_alarms":"no_alarm","previous_alarms":"no_alarm","timestamp":"1111-11-11T11:11:11Z"}
 
-# And another izar sillines, this time its a "heat meter" and a mfct specific tpl ci field a3.
+# And another izar, with a mfct specific tpl ci field a3.
 
 telegram=|1944304c9c5824210c04a363140013716577ec59e8663ab0d31c|
 {"media":"water","meter":"izar","name":"IzarWater4","id":"2124589c","total_m3":38.944,"last_month_total_m3":38.691,"last_month_measure_date":"2021-02-01","remaining_battery_life_y":10,"current_alarms":"no_alarm","previous_alarms":"no_alarm","timestamp":"1111-11-11T11:11:11Z"}

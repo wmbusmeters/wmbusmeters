@@ -14,8 +14,8 @@ mkdir -p $TEST
 rm -f $LOGFILE
 
 METERS="IzarWater   izar        21242472 NOKEY
-        IzarWater2  izar        66290778 NOKEY
-        IzarWater3  izar        19790778 NOKEY
+        IzarWater2  izar        23662907 NOKEY
+        IzarWater3  izar        48197907 NOKEY
         IzarWater4  izar        2124589c NOKEY"
 
 cat simulations/simulation_izars.txt | grep '^{' > $TEST/test_expected.txt
@@ -50,23 +50,23 @@ cat > $LOGFILE_EXPECTED <<EOF
 No meters configured. Printing id:s of all telegrams heard!
 Received telegram from: 21242472
           manufacturer: (SAP) Sappel (0x4c30)
-                  type: Oil meter (0x01)
-                   ver: 0xd4
+                  type: Water meter (0x07)
+                   ver: 0x00
                 driver: izar
-Received telegram from: 66290778
+Received telegram from: 23662907
           manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
-                  type: Unknown (0x66)
-                   ver: 0x23
+                  type: Water meter (0x07)
+                   ver: 0x78
                 driver: izar
-Received telegram from: 19790778
+Received telegram from: 48197907
           manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
-                  type: Breaker (electricity) (0x20)
-                   ver: 0x48
+                  type: Water meter (0x07)
+                   ver: 0x78
                 driver: izar
 Received telegram from: 2124589c
           manufacturer: (SAP) Sappel (0x4c30)
-                  type: Heat meter (0x04)
-                   ver: 0x0c
+                  type: Water meter (0x07)
+                   ver: 0x00
                 driver: izar
 EOF
 

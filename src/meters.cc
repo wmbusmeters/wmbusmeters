@@ -518,7 +518,7 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
     char log_prefix[256];
     snprintf(log_prefix, 255, "(%s) log", meterName().c_str());
-    logTelegram(t.frame, t.header_size, t.suffix_size);
+    logTelegram(t.original, t.frame, t.header_size, t.suffix_size);
 
     // Invoke meter specific parsing!
     processContent(&t);

@@ -23,6 +23,7 @@
 #include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
 #include"dvparser.h"
+#include"manufacturer_specificities.h"
 #include<assert.h>
 #include<semaphore.h>
 #include<stdarg.h>
@@ -1579,6 +1580,23 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
     return false;
 }
 
+void Telegram::preProcess()
+{
+    if (frame.size() >= 15)
+    {
+        uchar c_field = frame[1];
+        int m_field = frame[3] <<8 | frame[2];
+        uchar ci_field = frame[10];
+        int tpl_cfg = frame[14] <<8 | frame[13];
+        DiehlAddressTransformMethod diehl_method = mustTransformDiehlAddress(c_field, m_field, ci_field, tpl_cfg);
+        if (diehl_method != DiehlAddressTransformMethod::NONE)
+        {
+            original = vector<uchar>(frame.begin(), frame.begin() + 10);
+            transformDiehlAddress(frame, diehl_method);
+        }
+    }
+}
+
 bool Telegram::parseHeader(vector<uchar> &input_frame)
 {
     bool ok;
@@ -1592,6 +1610,8 @@ bool Telegram::parseHeader(vector<uchar> &input_frame)
     vector<uchar>::iterator pos = frame.begin();
     // Parsed accumulates parsed bytes.
     parsed.clear();
+    // Fixes quirks from non-compliant meters to make telegram compatible with the standard
+    preProcess();
 
     ok = parseDLL(pos);
     if (!ok) return false;
@@ -1626,6 +1646,8 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
     vector<uchar>::iterator pos = frame.begin();
     // Parsed accumulates parsed bytes.
     parsed.clear();
+    // Fixes quirks from non-compliant meters to make telegram compatible with the standard
+    preProcess();
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
     //     │ Parse DLL Data Link Layer for Wireless MBUS. │

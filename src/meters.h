@@ -118,13 +118,10 @@
     X(IPERL,     MANUFACTURER_SEN,  0x06,  0x68) \
     X(IPERL,     MANUFACTURER_SEN,  0x07,  0x68) \
     X(IPERL,     MANUFACTURER_SEN,  0x07,  0x7c) \
-    X(IZAR,      MANUFACTURER_SAP,  0x01,    -1) \
     X(IZAR,      MANUFACTURER_SAP,  0x15,    -1) \
-    X(IZAR,      MANUFACTURER_SAP,  0x66,    -1) \
     X(IZAR,      MANUFACTURER_SAP,  0x04,    -1) \
-    X(IZAR,      MANUFACTURER_DME,  0x66,    -1) \
-    X(IZAR,      MANUFACTURER_DME,  0x19,  0x00) \
-    X(IZAR,      MANUFACTURER_DME,  0x20,  0x48) \
+    X(IZAR,      MANUFACTURER_SAP,  0x07,  0x00) \
+    X(IZAR,      MANUFACTURER_DME,  0x07,  0x78) \
     X(IZAR3,     MANUFACTURER_SAP,  0x00,  0x88) \
     X(LANSENSM,  MANUFACTURER_LAS,  0x1a,  0x03) \
     X(LANSENTH,  MANUFACTURER_LAS,  0x1b,  0x07) \
