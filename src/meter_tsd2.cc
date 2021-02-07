@@ -29,6 +29,7 @@ struct MeterTSD2 : public virtual SmokeDetector, public virtual MeterCommonImple
 
     string status();
     bool smokeDetected();
+    string previousDate();
 
 private:
 
@@ -38,6 +39,7 @@ private:
 
     uint16_t info_codes_ {};
     bool error_ {};
+    string previous_date_ {};
 };
 
 MeterTSD2::MeterTSD2(MeterInfo &mi) :
@@ -50,6 +52,11 @@ MeterTSD2::MeterTSD2(MeterInfo &mi) :
     addPrint("status", Quantity::Text,
              [&](){ return status(); },
              "The current status: OK, SMOKE or ERROR.",
+             true, true);
+
+    addPrint("prev_date", Quantity::Text,
+             [&](){ return previousDate(); },
+             "Date of previous billing period.",
              true, true);
 }
 
@@ -68,16 +75,28 @@ void MeterTSD2::processContent(Telegram *t)
     vector<uchar> data;
     t->extractPayload(&data);
 
-    if (data.size() > 0)
-    {
-        info_codes_ = data[0];
-        error_ = false;
-        // Check CRC etc here....
-    }
-    else
+    if(data.empty())
     {
         error_ = true;
+        return;
     }
+
+    info_codes_ = data[0];
+    error_ = false;
+    // Check CRC etc here....
+
+    // Previous date
+    uint16_t prev_date = (data[2] << 8) | data[1];
+    uint prev_date_day = (prev_date >> 0) & 0x1F;
+    uint prev_date_month = (prev_date >> 5) & 0x0F;
+    uint prev_date_year = (prev_date >> 9) & 0x3F;
+    strprintf(previous_date_, "%d-%02d-%02dT02:00:00Z", prev_date_year+2000, prev_date_month, prev_date_day);
+
+    string prev_date_str;
+    strprintf(prev_date_str, "%04x", prev_date);
+    uint offset = t->parsed.size() + 1;
+    t->explanations.push_back({ offset, prev_date_str });
+    t->addMoreExplanation(offset, " previous date (%s)", previous_date_.c_str());
 }
 
 string MeterTSD2::status()
@@ -100,4 +119,8 @@ string MeterTSD2::status()
         return s;
     }
     return "OK";
+}
+
+string MeterTSD2::previousDate() {
+    return previous_date_;
 }
