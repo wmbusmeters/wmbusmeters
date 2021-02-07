@@ -30,6 +30,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_apas.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_izars.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_aes.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 

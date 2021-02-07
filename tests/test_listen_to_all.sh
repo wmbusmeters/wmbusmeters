@@ -119,21 +119,6 @@ Received telegram from: 11772288
                   type: Room sensor (eg temperature or humidity) (0x1b)
                    ver: 0x10
                 driver: rfmamb
-Received telegram from: 21242472
-          manufacturer: (SAP) Sappel (0x4c30)
-                  type: Oil meter (0x01)
-                   ver: 0xd4
-                driver: izar
-Received telegram from: 66290778
-          manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
-                  type: Unknown (0x66)
-                   ver: 0x23
-                driver: izar
-Received telegram from: 19790778
-          manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
-                  type: Breaker (electricity) (0x20)
-                   ver: 0x48
-                driver: izar
 Received telegram from: 64646464
           manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
                   type: Water meter (0x07)
