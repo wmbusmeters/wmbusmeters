@@ -79,16 +79,7 @@
     X(gransystems,T1_bit, ElectricityMeter, CCx01, CCx01)
 
 
-// List of numbers that can be used to detect the meter driver
-// from a telegram. Currently these values are checked against
-// the outermost DLL layer. Thus this cannot handle if a telegram
-// is relayed and the meter telegram is wrapped in an outer
-// DLL which identifies the relayer. Something to fix in the future
-// is someone reports problems using a relay.
-//
-// The future solution might have RELAY_DETECTION and
-// for such telegrams it will strip the outer layer and
-// recreate the inner telegram.
+// List of numbers that can be used to detect the meter driver from a telegram.
 //
 //    meter driver,       manufacturer,  media,  version
 //

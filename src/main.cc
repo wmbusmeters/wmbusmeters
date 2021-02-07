@@ -1179,7 +1179,6 @@ bool start(Configuration *config)
     // If our software unexpectedly exits, then stop the manager, to try
     // to achive a nice shutdown.
     onExit(call(serial_manager_.get(),stop));
-    //serial_manager_->eachEventLooping([]() { check_statuses(); });
 
     // Create the printer object that knows how to translate
     // telegrams into json, fields that are written into log files
