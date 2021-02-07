@@ -136,8 +136,8 @@ void MeterFHKVDataIII::processContent(Telegram *t)
 
     // Consumption
     // Previous Consumption
-    uchar prev_lo = content[14];
-    uchar prev_hi = content[15];
+    uchar prev_lo = content[3];
+    uchar prev_hi = content[4];
     double prev = (256.0*prev_hi+prev_lo);
     prev_energy_hca_ = prev;
 
@@ -146,8 +146,8 @@ void MeterFHKVDataIII::processContent(Telegram *t)
     //t->addMoreExplanation(14, " energy used in previous billing period (%f HCA)", prevs);
 
     // Previous Date
-    uchar date_prev_lo = content[12];
-    uchar date_prev_hi = content[13];
+    uchar date_prev_lo = content[1];
+    uchar date_prev_hi = content[2];
     int date_prev = (256.0*date_prev_hi+date_prev_lo);
 
     int day_prev = (date_prev >> 0) & 0x1F;
@@ -158,8 +158,8 @@ void MeterFHKVDataIII::processContent(Telegram *t)
     //t->addMoreExplanation(offset, " last date of previous billing period (%s)", prev_energy_hca_date);
 
     // Current Consumption
-    uchar curr_lo = content[18];
-    uchar curr_hi = content[19];
+    uchar curr_lo = content[7];
+    uchar curr_hi = content[8];
     double curr = (256.0*curr_hi+curr_lo);
     curr_energy_hca_ = curr;
 
@@ -168,8 +168,8 @@ void MeterFHKVDataIII::processContent(Telegram *t)
     //t->addMoreExplanation(offset, " energy used in current billing period (%f HCA)", currs);
 
     // Current Date
-    uchar date_curr_lo = content[16];
-    uchar date_curr_hi = content[17];
+    uchar date_curr_lo = content[5];
+    uchar date_curr_hi = content[6];
     int date_curr = (256.0*date_curr_hi+date_curr_lo);
 
     time_t now = time(0);
@@ -185,9 +185,25 @@ void MeterFHKVDataIII::processContent(Telegram *t)
     // t->addMoreExplanation(offset, " last date of current billing period (%s)", curr_energy_hca_date);
 
     // Temperature
+    uchar room_tlo;
+    uchar room_thi;
+    uchar radiator_tlo;
+    uchar radiator_thi;
+    if(t->dll_version == 0x94)
+    {
+        room_tlo = content[10];
+        room_thi = content[11];
+        radiator_tlo = content[12];
+        radiator_thi = content[13];
+    } else
+    {
+        room_tlo = content[9];
+        room_thi = content[10];
+        radiator_tlo = content[11];
+        radiator_thi = content[12];
+    }
+
     // Room Temperature
-    uchar room_tlo = content[20];
-    uchar room_thi = content[21];
     double room_t = (256.0*room_thi+room_tlo)/100;
     temp_room_ = room_t;
 
@@ -196,8 +212,6 @@ void MeterFHKVDataIII::processContent(Telegram *t)
     // t->addMoreExplanation(offset, " current room temparature (%f °C)", room_ts);
 
     // Radiator Temperature
-    uchar radiator_tlo = content[22];
-    uchar radiator_thi = content[23];
     double radiator_t = (256.0*radiator_thi+radiator_tlo)/100;
     temp_radiator_ = radiator_t;
 

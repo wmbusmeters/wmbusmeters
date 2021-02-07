@@ -1558,19 +1558,7 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
         case CI_Field_Values::TPL_79: return parse_TPL_79(pos);
         case CI_Field_Values::TPL_7A: return parse_TPL_7A(pos);
         case CI_Field_Values::MFCT_SPECIFIC_A1:
-        case CI_Field_Values::MFCT_SPECIFIC_A0: {
-            bool _ignore_header_change = false;
-
-            if(dll_type == 0x80 && dll_mfct == 0x5068) { // Techem Heat Cost Allocator
-                _ignore_header_change = true;
-            }
-
-            if(!_ignore_header_change) {
-                header_size = distance(frame.begin(), pos);
-            }
-            suffix_size = 0;
-            return true; // Manufacturer specific telegram payload. Oh well....
-        }
+        case CI_Field_Values::MFCT_SPECIFIC_A0:
         case CI_Field_Values::MFCT_SPECIFIC_A2:
         {
             header_size = distance(frame.begin(), pos);
