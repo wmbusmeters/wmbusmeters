@@ -603,7 +603,8 @@ string mediaTypeJSON(int a_field_device_type, int m_field)
     X(0x90, AFL,     "AFL", 10, CI_TYPE::AFL, "") \
     X(0xA0, MFCT_SPECIFIC_A0, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "") \
     X(0xA1, MFCT_SPECIFIC_A1, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "") \
-    X(0xA2, MFCT_SPECIFIC_A2, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "")
+    X(0xA2, MFCT_SPECIFIC_A2, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "") \
+    X(0xA3, MFCT_SPECIFIC_A3, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "")
 
 enum CI_Field_Values {
 #define X(val,name,cname,len,citype,explain) name = val,
@@ -1571,6 +1572,12 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
             return true; // Manufacturer specific telegram payload. Oh well....
         }
         case CI_Field_Values::MFCT_SPECIFIC_A2:
+        {
+            header_size = distance(frame.begin(), pos);
+            suffix_size = 0;
+            return true; // Manufacturer specific telegram payload. Oh well....
+        }
+        case CI_Field_Values::MFCT_SPECIFIC_A3: // Another stoopid non-conformat wmbus Diehl/Sappel/Izar water meter addon.
         {
             header_size = distance(frame.begin(), pos);
             suffix_size = 0;
