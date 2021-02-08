@@ -71,6 +71,7 @@ private:
     uint8_t h0_day;
     double total_water_consumption_l_ {};
     double last_month_total_water_consumption_l_ {};
+    uint32_t transmit_period_s_ {};
     izar_alarms alarms;
 
     vector<uint32_t> keys;
@@ -127,6 +128,10 @@ MeterIzar::MeterIzar(MeterInfo &mi) :
              "Alarms previously reported by the meter.",
              true, true);
 
+    addPrint("transmit_period", Quantity::Time, Unit::Second,
+             [&](Unit u){ return convert(transmit_period_s_, Unit::Second, u); },
+             "The period at which the meter transmits its data.",
+             true, true);
 }
 
 double MeterIzar::totalWaterConsumption(Unit u)
@@ -258,8 +263,9 @@ void MeterIzar::processContent(Telegram *t)
         return;
     }
 
-    // get the remaining battery life (in year)
+    // get the remaining battery life (in year) and transmission period (in seconds)
     remaining_battery_life = (frame[12] & 0x1F) / 2.0;
+    transmit_period_s_ = 1 << ((frame[11] & 0x0F) + 2);
 
     total_water_consumption_l_ = uint32FromBytes(decoded_content, 1, true);
     last_month_total_water_consumption_l_ = uint32FromBytes(decoded_content, 5, true);
