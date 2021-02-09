@@ -170,6 +170,7 @@ bool startsWith(std::string &s, const char *prefix);
 // Given alfa=beta it returns "alfa":"beta"
 std::string makeQuotedJson(std::string &s);
 
+std::string currentYear();
 std::string currentDay();
 std::string currentHour();
 std::string currentMinute();
