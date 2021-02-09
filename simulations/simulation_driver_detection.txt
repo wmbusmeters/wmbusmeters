@@ -2,5 +2,5 @@
 # that should be properly recognized and mapped to an existing driver.
 # I.e. check that a driver can be deduced from each telegram.
 
-# izar water meter with weird identification combo: mfct: DME (0x11a5) type: A/D converter (0x19) ver: 0x00
+# izar water meter with address swapping: mfct: DME (0x11a5) type: water meter (0x07) ver: 0x78
 telegram=||1944A511780758280019A2610F001328ACC7F38E4D812CFC0D36|

@@ -63,7 +63,7 @@ private:
     uint32_t convertKey(const char *hex);
     uint32_t convertKey(const vector<uchar> &bytes);
     uint32_t uint32FromBytes(const vector<uchar> &data, int offset, bool reverse = false);
-    vector<uchar> decodePrios(const vector<uchar> &payload, uint32_t key);
+    vector<uchar> decodePrios(const vector<uchar> &origin, const vector<uchar> &payload, uint32_t key);
 
     double remaining_battery_life;
     uint16_t h0_year;
@@ -95,13 +95,7 @@ MeterIzar::MeterIzar(MeterInfo &mi) :
         keys.push_back(convertKey(PRIOS_DEFAULT_KEY2));
     }
 
-    // media 0x01 Oil meter? why?
-    // media 0x15 Hot water
-    // medua 0x66 Woot?
-
     addLinkMode(LinkMode::T1);
-
-    // Meters with different versions exist, don't set any to avoid warnings
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
@@ -251,7 +245,7 @@ void MeterIzar::processContent(Telegram *t)
 
     vector<uchar> decoded_content;
     for (auto& key : keys) {
-        decoded_content = decodePrios(frame, key);
+        decoded_content = decodePrios(t->original.empty() ? frame : t->original, frame, key);
         if (!decoded_content.empty())
             break;
     }
@@ -293,16 +287,13 @@ void MeterIzar::processContent(Telegram *t)
     alarms.sensor_fraud_previously = frame[13] >> 2 & 0x1;
     alarms.mechanical_fraud_currently = frame[13] >> 1 & 0x1;
     alarms.mechanical_fraud_previously = frame[13] & 0x1;
-
-    // override incorrectly reported medium (oil)
-    t->dll_type = 7;
 }
 
-vector<uchar> MeterIzar::decodePrios(const vector<uchar> &frame, uint32_t key)
+vector<uchar> MeterIzar::decodePrios(const vector<uchar> &origin, const vector<uchar> &frame, uint32_t key)
 {
     // modify seed key with header values
-    key ^= uint32FromBytes(frame, 2); // manufacturer + address[0-1]
-    key ^= uint32FromBytes(frame, 6); // address[2-3] + version + type
+    key ^= uint32FromBytes(origin, 2); // manufacturer + address[0-1]
+    key ^= uint32FromBytes(origin, 6); // address[2-3] + version + type
     key ^= uint32FromBytes(frame, 10); // ci + some more bytes from the telegram...
 
     int size = frame.size() - 15;

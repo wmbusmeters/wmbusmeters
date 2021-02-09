@@ -464,11 +464,17 @@ struct Telegram
 
     string autoDetectPossibleDrivers();
 
+    // part of original telegram bytes, only filled if pre-processing modifies it
+    vector<uchar> original;
+
 private:
 
     bool is_simulated_ {};
     bool parser_warns_ = true;
     MeterKeys *meter_keys {};
+
+    // Fixes quirks from non-compliant meters to make telegram compatible with the standard
+    void preProcess();
 
     bool parseDLL(std::vector<uchar>::iterator &pos);
     bool parseELL(std::vector<uchar>::iterator &pos);

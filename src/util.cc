@@ -193,7 +193,7 @@ bool hex2bin(vector<uchar> &src, vector<uchar> *target)
 
 char const hex[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A','B','C','D','E','F'};
 
-std::string bin2hex(vector<uchar> &target) {
+std::string bin2hex(const vector<uchar> &target) {
     std::string str;
     for (size_t i = 0; i < target.size(); ++i) {
         const char ch = target[i];
@@ -863,12 +863,21 @@ void debugPayload(string intro, vector<uchar> &payload, vector<uchar>::iterator 
     }
 }
 
-void logTelegram(vector<uchar> &parsed, int header_size, int suffix_size)
+void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size, int suffix_size)
 {
     if (isLogTelegramsEnabled())
     {
+        vector<uchar> logged = parsed;
+        if (!original.empty())
+        {
+            logged = vector<uchar>(parsed);
+            for (unsigned int i = 0; i < original.size(); i++)
+            {
+                logged[i] = original[i];
+            }
+        }
         time_t diff = time(NULL)-telegrams_start_time_;
-        string parsed_hex = bin2hex(parsed);
+        string parsed_hex = bin2hex(logged);
         string header = parsed_hex.substr(0, header_size*2);
         string content = parsed_hex.substr(header_size*2);
         if (suffix_size == 0)

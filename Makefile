@@ -150,7 +150,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_multical302.o \
 	$(BUILD)/meter_multical403.o \
 	$(BUILD)/meter_multical603.o \
-    $(BUILD)/meter_multical803.o \
+	$(BUILD)/meter_multical803.o \
 	$(BUILD)/meter_omnipower.o \
 	$(BUILD)/meter_q400.o \
 	$(BUILD)/meter_qcaloric.o \
@@ -167,6 +167,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_whe5x.o \
 	$(BUILD)/meter_sensostar.o \
 	$(BUILD)/meter_gransystems_ccx01.o \
+	$(BUILD)/manufacturer_specificities.o \
 	$(BUILD)/printer.o \
 	$(BUILD)/rtlsdr.o \
 	$(BUILD)/serial.o \
