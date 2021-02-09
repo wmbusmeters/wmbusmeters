@@ -1,6 +1,14 @@
 
 IMPORTANT CHANGES THAT MIGHT AFFECT YOU!
 
+Vincent Privat added code for properly preprocessing izar meter headers.
+Thanks Vincent!
+
+Important! Since the new code decodes the correct meter id from the izar
+telegrams, therefore your current izar meter setup will break! You have
+to update your meter files with the new proper id. Hopefully the id will
+be the one that is actuall printed on the meter.
+
 Added support for telegrams with different dll id vs tpl id.
 
 Such telegrams can be generated when a standalone radio converter
