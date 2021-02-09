@@ -1689,7 +1689,9 @@ bool check_if_rtlwmbus_exists_in_path()
     vector<string> envs;
     string out;
     int rc = invokeShellCaptureOutput("/bin/sh", args, envs, &out, true);
-    if (rc == 2 && out.find("rtl_wmbus") == string::npos)
+    if ((rc == 0 || // Newest version of rtl_wmbus properly returns 0.
+         rc == 2)   // Older version returns 2.
+        && out.find("rtl_wmbus") == string::npos)
     {
         debug("(main) rtl_wmbus found in path\n");
         found = true;
