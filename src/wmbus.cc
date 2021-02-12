@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
+ Copyright (C) 2017-2021 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -1870,10 +1870,11 @@ string vifType(int vif)
 
     if (extension) {
         switch(vif) {
-        case 0xfb: return "First extension of VIF-codes";
-        case 0xfd: return "Second extension of VIF-codes";
-        case 0xef: return "Reserved extension";
+        case 0xfb: return "First extension FB of VIF-codes";
+        case 0xfd: return "Second extension FD of VIF-codes";
+        case 0xef: return "Third extension 6F of VIF-codes";
         case 0xff: return "Vendor extension";
+        case 0xfc: return "Combinable Extension VIF-codes";
         }
     }
 
@@ -2540,8 +2541,178 @@ const char *timePP(int nn) {
     return "?";
 }
 
-string vif_FD_ExtensionType(uchar dif, uchar vif, uchar vife)
+string vif_7B_FirstExtensionType(uchar dif, uchar vif, uchar vife)
 {
+    assert(vif == 0xfb);
+
+    if ((vife & 0x7e) == 0x00) {
+        int n = vife & 0x01;
+        string s;
+        strprintf(s, "10^%d MWh", n-1);
+        return s;
+    }
+
+    if (((vife & 0x7e) == 0x02) ||
+        ((vife & 0x7c) == 0x04)) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7e) == 0x08) {
+        int n = vife & 0x01;
+        string s;
+        strprintf(s, "10^%d GJ", n-1);
+        return s;
+    }
+
+    if ((vife & 0x7e) == 0x0a ||
+        (vife & 0x7c) == 0x0c) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7e) == 0x10) {
+        int n = vife & 0x01;
+        string s;
+        strprintf(s, "10^%d m3", n+2);
+        return s;
+    }
+
+    if ((vife & 0x7e) == 0x12 ||
+        (vife & 0x7c) == 0x14) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7e) == 0x18) {
+        int n = vife & 0x01;
+        string s;
+        strprintf(s, "10^%d ton", n+2);
+        return s;
+    }
+
+    if ( (vif & 0x7e) >= 0x1a && (vif & 0x7e) <= 0x20) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7f) == 0x21) {
+        return "0.1 feet^3";
+    }
+
+    if ((vife & 0x7f) == 0x22) {
+        return "0.1 american gallon";
+    }
+
+    if ((vife & 0x7f) == 0x23) {
+        return "american gallon";
+    }
+
+    if ((vife & 0x7f) == 0x24) {
+        return "0.001 american gallon/min";
+    }
+
+    if ((vife & 0x7f) == 0x25) {
+        return "american gallon/min";
+    }
+
+    if ((vife & 0x7f) == 0x26) {
+        return "american gallon/h";
+    }
+
+    if ((vife & 0x7f) == 0x27) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7f) == 0x20) {
+        return "Volume feet";
+    }
+
+    if ((vife & 0x7f) == 0x21) {
+        return "Volume 0.1 feet";
+    }
+
+    if ((vife & 0x7e) == 0x28) {
+        // Come again? A unit of 1MW...do they intend to use m-bus to track the
+        // output from a nuclear power plant?
+        int n = vife & 0x01;
+        string s;
+        strprintf(s, "10^%d MW", n-1);
+        return s;
+    }
+
+    if ((vife & 0x7f) == 0x29 ||
+        (vife & 0x7c) == 0x2c) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7e) == 0x30) {
+        int n = vife & 0x01;
+        string s;
+        strprintf(s, "10^%d GJ/h", n-1);
+        return s;
+    }
+
+    if ((vife & 0x7f) >= 0x32 && (vife & 0x7c) <= 0x57) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7c) == 0x58) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Flow temperature 10^%d Fahrenheit", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x7c) == 0x5c) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Return temperature 10^%d Fahrenheit", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x7c) == 0x60) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Temperature difference 10^%d Fahrenheit", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x7c) == 0x64) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "External temperature 10^%d Fahrenheit", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x78) == 0x68) {
+        return "Reserved";
+    }
+
+    if ((vife & 0x7c) == 0x70) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Cold / Warm Temperature Limit 10^%d Fahrenheit", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x7c) == 0x74) {
+        int nn = vife & 0x03;
+        string s;
+        strprintf(s, "Cold / Warm Temperature Limit 10^%d Celsius", nn-3);
+        return s;
+    }
+
+    if ((vife & 0x78) == 0x78) {
+        int nnn = vife & 0x07;
+        string s;
+        strprintf(s, "Cumulative count max power 10^%d W", nnn-3);
+        return s;
+    }
+
+    return "?";
+}
+
+string vif_7D_SecondExtensionType(uchar dif, uchar vif, uchar vife)
+{
+    assert(vif == 0xfd);
+
     if ((vife & 0x7c) == 0x00) {
         int nn = vife & 0x03;
         string s;
@@ -2808,179 +2979,22 @@ string vif_FD_ExtensionType(uchar dif, uchar vif, uchar vife)
     return "?";
 }
 
-string vif_FB_ExtensionType(uchar dif, uchar vif, uchar vife)
+string vif_6F_ThirdExtensionType(uchar dif, uchar vif, uchar vife)
 {
-    if ((vife & 0x7e) == 0x00) {
-        int n = vife & 0x01;
-        string s;
-        strprintf(s, "10^%d MWh", n-1);
-        return s;
-    }
-
-    if (((vife & 0x7e) == 0x02) ||
-        ((vife & 0x7c) == 0x04)) {
-        return "Reserved";
-    }
-
-    if ((vife & 0x7e) == 0x08) {
-        int n = vife & 0x01;
-        string s;
-        strprintf(s, "10^%d GJ", n-1);
-        return s;
-    }
-
-    if ((vife & 0x7e) == 0x0a ||
-        (vife & 0x7c) == 0x0c) {
-        return "Reserved";
-    }
-
-    if ((vife & 0x7e) == 0x10) {
-        int n = vife & 0x01;
-        string s;
-        strprintf(s, "10^%d m3", n+2);
-        return s;
-    }
-
-    if ((vife & 0x7e) == 0x12 ||
-        (vife & 0x7c) == 0x14) {
-        return "Reserved";
-    }
-
-    if ((vife & 0x7e) == 0x18) {
-        int n = vife & 0x01;
-        string s;
-        strprintf(s, "10^%d ton", n+2);
-        return s;
-    }
-
-    if ( (vif & 0x7e) >= 0x1a && (vif & 0x7e) <= 0x20) {
-        return "Reserved";
-    }
-
-    if ((vife & 0x7f) == 0x21) {
-        return "0.1 feet^3";
-    }
-
-    if ((vife & 0x7f) == 0x22) {
-        return "0.1 american gallon";
-    }
-
-    if ((vife & 0x7f) == 0x23) {
-        return "american gallon";
-    }
-
-    if ((vife & 0x7f) == 0x24) {
-        return "0.001 american gallon/min";
-    }
-
-    if ((vife & 0x7f) == 0x25) {
-        return "american gallon/min";
-    }
-
-    if ((vife & 0x7f) == 0x26) {
-        return "american gallon/h";
-    }
-
-    if ((vife & 0x7f) == 0x27) {
-        return "Reserved";
-    }
-
-    if ((vife & 0x7f) == 0x20) {
-        return "Volume feet";
-    }
-
-    if ((vife & 0x7f) == 0x21) {
-        return "Volume 0.1 feet";
-    }
-
-    if ((vife & 0x7e) == 0x28) {
-        // Come again? A unit of 1MW...do they intend to use m-bus to track the
-        // output from a nuclear power plant?
-        int n = vife & 0x01;
-        string s;
-        strprintf(s, "10^%d MW", n-1);
-        return s;
-    }
-
-    if ((vife & 0x7f) == 0x29 ||
-        (vife & 0x7c) == 0x2c) {
-        return "Reserved";
-    }
-
-    if ((vife & 0x7e) == 0x30) {
-        int n = vife & 0x01;
-        string s;
-        strprintf(s, "10^%d GJ/h", n-1);
-        return s;
-    }
-
-    if ((vife & 0x7f) >= 0x32 && (vife & 0x7c) <= 0x57) {
-        return "Reserved";
-    }
-
-    if ((vife & 0x7c) == 0x58) {
-        int nn = vife & 0x03;
-        string s;
-        strprintf(s, "Flow temperature 10^%d Fahrenheit", nn-3);
-        return s;
-    }
-
-    if ((vife & 0x7c) == 0x5c) {
-        int nn = vife & 0x03;
-        string s;
-        strprintf(s, "Return temperature 10^%d Fahrenheit", nn-3);
-        return s;
-    }
-
-    if ((vife & 0x7c) == 0x60) {
-        int nn = vife & 0x03;
-        string s;
-        strprintf(s, "Temperature difference 10^%d Fahrenheit", nn-3);
-        return s;
-    }
-
-    if ((vife & 0x7c) == 0x64) {
-        int nn = vife & 0x03;
-        string s;
-        strprintf(s, "External temperature 10^%d Fahrenheit", nn-3);
-        return s;
-    }
-
-    if ((vife & 0x78) == 0x68) {
-        return "Reserved";
-    }
-
-    if ((vife & 0x7c) == 0x70) {
-        int nn = vife & 0x03;
-        string s;
-        strprintf(s, "Cold / Warm Temperature Limit 10^%d Fahrenheit", nn-3);
-        return s;
-    }
-
-    if ((vife & 0x7c) == 0x74) {
-        int nn = vife & 0x03;
-        string s;
-        strprintf(s, "Cold / Warm Temperature Limit 10^%d Celsius", nn-3);
-        return s;
-    }
-
-    if ((vife & 0x78) == 0x78) {
-        int nnn = vife & 0x07;
-        string s;
-        strprintf(s, "Cumulative count max power 10^%d W", nnn-3);
-        return s;
-    }
-
+    assert(vif == 0xef);
     return "?";
 }
 
 string vifeType(int dif, int vif, int vife)
 {
-    if (vif == 0xfb) {
-        return vif_FB_ExtensionType(dif, vif, vife);
+    if (vif == 0xfb) { // 0x7b without high bit
+        return vif_7B_FirstExtensionType(dif, vif, vife);
     }
-    if (vif == 0xfd) {
-        return vif_FD_ExtensionType(dif, vif, vife);
+    if (vif == 0xfd) { // 0x7d without high bit
+        return vif_7D_SecondExtensionType(dif, vif, vife);
+    }
+    if (vif == 0xef) { // 0x6f without high bit
+        return vif_6F_ThirdExtensionType(dif, vif, vife);
     }
     vife = vife & 0x7f; // Strip the bit signifying more vifes after this.
     if (vife == 0x1f) {
