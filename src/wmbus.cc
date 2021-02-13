@@ -1276,6 +1276,12 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     tpl_id_b[2] = *(pos+2);
     tpl_id_b[3] = *(pos+3);
 
+    tpl_a.resize(6);
+    for (int i=0; i<4; ++i)
+    {
+        tpl_a[i] = *(pos+i);
+    }
+
     // Add the tpl_id to ids.
     string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
     ids.push_back(id);
@@ -1292,10 +1298,12 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
 
     CHECK(1);
     tpl_version = *(pos+0);
+    tpl_a[4] = *(pos+0);
     addExplanationAndIncrementPos(pos, 1, "%02x tpl-version", tpl_version);
 
     CHECK(1);
     tpl_type = *(pos+0);
+    tpl_a[5] = *(pos+0);
     string info = mediaType(tpl_type, tpl_mfct);
     addExplanationAndIncrementPos(pos, 1, "%02x tpl-type (%s)", tpl_type, info.c_str());
 

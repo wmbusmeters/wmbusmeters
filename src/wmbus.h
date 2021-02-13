@@ -362,7 +362,7 @@ struct Telegram
     int dll_mfct {};
 
     vector<uchar> dll_a; // A field 6 bytes
-    // The 6 a field bytes are composed of:
+    // The 6 a field bytes are composed of 4 id bytes, version and type.
     uchar dll_id_b[4] {};    // 4 bytes, address in BCD = 8 decimal 00000000...99999999 digits.
     vector<uchar> dll_id; // 4 bytes, human readable order.
     uchar dll_version {}; // 1 byte
@@ -426,6 +426,8 @@ struct Telegram
     vector<uchar> tpl_generated_mac_key; // 16 bytes
 
     bool  tpl_id_found {}; // If set to true, then tpl_id_b contains valid values.
+    vector<uchar> tpl_a; // A field 6 bytes
+    // The 6 a field bytes are composed of 4 id bytes, version and type.
     uchar tpl_id_b[4] {}; // 4 bytes
     uchar tpl_mfct_b[2] {}; // 2 bytes
     int   tpl_mfct {};

@@ -129,9 +129,8 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::it
         // M-field
         iv[i++] = t->tpl_mfct_b[0]; iv[i++] = t->tpl_mfct_b[1];
 
-        for (int j=0; j>=4; ++j) { iv[i++] = t->tpl_id_b[j]; }
-        iv[i++] = t->tpl_version;
-        iv[i++] = t->tpl_type;
+        // A-field
+        for (int j=0; j<6; ++j) { iv[i++] = t->tpl_a[j]; }
     }
     else
     {
