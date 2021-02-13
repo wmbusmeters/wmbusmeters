@@ -117,6 +117,7 @@ METER_OBJS:=\
 	$(BUILD)/cmdline.o \
 	$(BUILD)/config.o \
 	$(BUILD)/dvparser.o \
+	$(BUILD)/mbus_rawtty.o \
 	$(BUILD)/meters.o \
 	$(BUILD)/meter_amiplus.o \
 	$(BUILD)/meter_apator08.o \

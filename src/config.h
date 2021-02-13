@@ -87,7 +87,9 @@ struct Configuration
     int  exitafter {}; // Seconds to exit.
     bool nodeviceexit {}; // If no wmbus receiver device is found, then exit immediately!
     int  resetafter {}; // Reset the wmbus devices regularly.
-    std::vector<SpecifiedDevice> supplied_wmbus_devices; // /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600
+    std::vector<SpecifiedDevice> supplied_bus_devices; // /dev/ttyUSB0, simulation.txt, rtlwmbus, /dev/ttyUSB1:9600 /dev/ttyUSB2:mbus
+    int num_wmbus_devices {};
+    int num_mbus_devices {};
     bool use_auto_device_detect {}; // Set to true if auto was supplied as device.
     std::set<std::string> do_not_probe_ttys; // Do not probe these ttys! all = all of them.
     LinkModeSet auto_device_linkmodes; // The linkmodes specified by auto:c1,t1

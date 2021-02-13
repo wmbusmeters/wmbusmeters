@@ -4456,6 +4456,14 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
         return detected;
     }
 
+    // Special case to cater for /dev/ttyUSB0:mbus:9600, ie an mbus master device.
+    if (specified_device.type == WMBusDeviceType::DEVICE_MBUS)
+    {
+        debug("(lookup) driver: mbus\n");
+        detected.setAsFound("", DEVICE_MBUS, atoi(specified_device.bps.c_str()), false, false, lms);
+        return detected;
+    }
+
     // Special case to cater for raw_data.bin, ie the rawtty is implicit.
     if (specified_device.type == WMBusDeviceType::DEVICE_UNKNOWN && !specified_device.is_tty)
     {

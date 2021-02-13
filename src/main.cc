@@ -59,7 +59,7 @@ void list_shell_envs(Configuration *config, string meter_type);
 void list_meters(Configuration *config);
 void log_start_information(Configuration *config);
 void oneshot_check(Configuration *config, Telegram *t, Meter *meter);
-void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Detected *detected);
+void open_bus_device_and_potentially_set_linkmodes(Configuration *config, string how, Detected *detected);
 void perform_auto_scan_of_serial_devices(Configuration *config);
 void perform_auto_scan_of_swradio_devices(Configuration *config);
 void regular_checkup(Configuration *config);
@@ -84,9 +84,9 @@ shared_ptr<MeterManager> meter_manager_;
 
 // Current active set of wmbus devices that can receive telegrams.
 // This can change during runtime, plugging/unplugging wmbus dongles.
-vector<shared_ptr<WMBus>> wmbus_devices_;
-RecursiveMutex wmbus_devices_mutex_("wmbus_devices_mutex");
-#define LOCK_WMBUS_DEVICES(where) WITH(wmbus_devices_mutex_, where)
+vector<shared_ptr<WMBus>> bus_devices_;
+RecursiveMutex bus_devices_mutex_("bus_devices_mutex");
+#define LOCK_BUS_DEVICES(where) WITH(bus_devices_mutex_, where)
 
 // Remember devices that were not detected as wmbus devices.
 // To avoid probing them again and again.
@@ -227,12 +227,12 @@ void check_if_multiple_wmbus_meters_running()
 
 void check_for_dead_wmbus_devices(Configuration *config)
 {
-    LOCK_WMBUS_DEVICES(check_for_wmbus_devices);
+    LOCK_BUS_DEVICES(check_for_bus_devices);
 
     trace("[MAIN] checking for dead wmbus devices...\n");
 
     vector<WMBus*> not_working;
-    for (auto &w : wmbus_devices_)
+    for (auto &w : bus_devices_)
     {
         if (!w->isWorking())
         {
@@ -252,20 +252,20 @@ void check_for_dead_wmbus_devices(Configuration *config)
 
     for (auto w : not_working)
     {
-        auto i = wmbus_devices_.begin();
-        while (i != wmbus_devices_.end())
+        auto i = bus_devices_.begin();
+        while (i != bus_devices_.end())
         {
             if (w == (*i).get())
             {
                 // The erased shared_ptr will delete the WMBus object.
-                wmbus_devices_.erase(i);
+                bus_devices_.erase(i);
                 break;
             }
             i++;
         }
     }
 
-    if (wmbus_devices_.size() == 0)
+    if (bus_devices_.size() == 0)
     {
         if (config->single_device_override)
         {
@@ -348,6 +348,10 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
     case DEVICE_AUTO:
         assert(0);
         error("Internal error DEVICE_AUTO should not be used here!\n");
+        break;
+    case DEVICE_MBUS:
+        verbose("(mbus) on %s\n", detected->found_file.c_str());
+        wmbus = openMBUS(detected->found_file, detected->found_bps, manager, serial_override);
         break;
     case DEVICE_IM871A:
         verbose("(im871a) on %s\n", detected->found_file.c_str());
@@ -520,7 +524,7 @@ void detect_and_configure_wmbus_devices(Configuration *config, DetectionType dt)
         must_auto_find_rtlsdrs = true;
     }
 
-    for (SpecifiedDevice &specified_device : config->supplied_wmbus_devices)
+    for (SpecifiedDevice &specified_device : config->supplied_bus_devices)
     {
         specified_device.handled = false;
         if (dt != DetectionType::ALL)
@@ -551,7 +555,7 @@ void detect_and_configure_wmbus_devices(Configuration *config, DetectionType dt)
             }
             Detected detected = detectWMBusDeviceWithCommand(specified_device, config->default_device_linkmodes, serial_manager_);
             specified_device.handled = true;
-            open_wmbus_device_and_set_linkmodes(config, "config", &detected);
+            open_bus_device_and_potentially_set_linkmodes(config, "config", &detected);
         }
         if (specified_device.file != "")
         {
@@ -615,7 +619,7 @@ void detect_and_configure_wmbus_devices(Configuration *config, DetectionType dt)
                 // Only read stdin and files once!
                 do_not_open_file_again_.insert(specified_device.file);
             }
-            open_wmbus_device_and_set_linkmodes(config, "config", &detected);
+            open_bus_device_and_potentially_set_linkmodes(config, "config", &detected);
         }
 
         specified_device.handled = true;
@@ -631,13 +635,13 @@ void detect_and_configure_wmbus_devices(Configuration *config, DetectionType dt)
         perform_auto_scan_of_swradio_devices(config);
     }
 
-    for (shared_ptr<WMBus> &wmbus : wmbus_devices_)
+    for (shared_ptr<WMBus> &wmbus : bus_devices_)
     {
         assert(wmbus->getDetected() != NULL);
         find_specified_device_and_mark_as_handled(config, wmbus->getDetected());
     }
 
-    for (SpecifiedDevice &specified_device : config->supplied_wmbus_devices)
+    for (SpecifiedDevice &specified_device : config->supplied_bus_devices)
     {
         if (dt == DetectionType::ALL && !specified_device.handled)
         {
@@ -660,7 +664,7 @@ SpecifiedDevice *find_specified_device_from_detected(Configuration *c, Detected 
 {
     // Iterate over the supplied devices and look for an exact type+id match.
     // This will find specified devices like: im871a[12345678]
-    for (SpecifiedDevice & sd : c->supplied_wmbus_devices)
+    for (SpecifiedDevice & sd : c->supplied_bus_devices)
     {
         if (sd.file == "" && sd.id != "" && sd.id == d->found_device_id && sd.type == d->found_type)
         {
@@ -670,7 +674,7 @@ SpecifiedDevice *find_specified_device_from_detected(Configuration *c, Detected 
 
     // Iterate over the supplied devices and look for a type match.
     // This will find specified devices like: im871a, rtlwmbus
-    for (SpecifiedDevice & sd : c->supplied_wmbus_devices)
+    for (SpecifiedDevice & sd : c->supplied_bus_devices)
     {
         if (sd.file == "" && sd.id == "" && sd.type == d->found_type)
         {
@@ -786,7 +790,7 @@ void log_start_information(Configuration *config)
         verbose("(config) store meter files in: \"%s\"\n", config->meterfiles_dir.c_str());
     }
 
-    for (SpecifiedDevice &specified_device : config->supplied_wmbus_devices)
+    for (SpecifiedDevice &specified_device : config->supplied_bus_devices)
     {
         verbose("(config) using device: %s \n", specified_device.str().c_str());
     }
@@ -805,7 +809,7 @@ void oneshot_check(Configuration *config, Telegram *t, Meter *meter)
     }
 }
 
-void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Detected *detected)
+void open_bus_device_and_potentially_set_linkmodes(Configuration *config, string how, Detected *detected)
 {
     if (detected->found_type == WMBusDeviceType::DEVICE_UNKNOWN)
     {
@@ -813,20 +817,10 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Dete
         return;
     }
 
-    LOCK_WMBUS_DEVICES(open_wmbus_device);
+    LOCK_BUS_DEVICES(open_bus_device);
 
     debug("(main) opening %s\n", detected->specified_device.str().c_str());
 
-/*    if (detected->found_type == DEVICE_UNKNOWN)
-    {
-        // This is a manual config, lets detect and check the device properly.
-        AccessCheck ac = reDetectDevice(detected, serial_manager_);
-        if (ac != AccessCheck::AccessOK)
-        {
-            error("Could not open device %s\n", detected->specified_device.str().c_str());
-        }
-    }
-*/
     LinkModeSet lms = detected->specified_device.linkmodes;
     if (lms.empty())
     {
@@ -853,14 +847,20 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Dete
         cmd = " using CMD("+cmd+")";
     }
 
-    string started = tostrprintf("Started %s %s%s%s listening on %s%s%s\n",
+    string listening = "";
+    if (detected->found_type != WMBusDeviceType::DEVICE_MBUS)
+    {
+        listening = tostrprintf(" listening on %s%s%s",
+                                 using_link_modes.c_str(),
+                                 fq.c_str(),
+                                 cmd.c_str());
+    }
+    string started = tostrprintf("Started %s %s%s%s%s\n",
                                  how.c_str(),
                                  toLowerCaseString(detected->found_type),
                                  id.c_str(),
                                  file.c_str(),
-                                 using_link_modes.c_str(),
-                                 fq.c_str(),
-                                 cmd.c_str());
+                                 listening.c_str());
 
     // A newly plugged in device has been manually configured or automatically detected! Start using it!
     if (config->use_auto_device_detect || detected->found_type != DEVICE_SIMULATION)
@@ -875,7 +875,7 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Dete
 
     shared_ptr<WMBus> wmbus = create_wmbus_object(detected, config, serial_manager_);
     if (wmbus == NULL) return;
-    wmbus_devices_.push_back(wmbus);
+    bus_devices_.push_back(wmbus);
 
     // By default, reset your dongle once every 23 hours,
     // so that the reset is not at the exact same time every day.
@@ -894,13 +894,6 @@ void open_wmbus_device_and_set_linkmodes(Configuration *config, string how, Dete
         warning("Warning! Desired link modes %s cannot be set for device %s\n",
                 lms.hr().c_str(), wmbus->hr().c_str());
     }
-    /*
-    LinkModeCalculationResult lmcr = calculateLinkModes(config, wmbus.get(), link_modes_matter);
-    if (lmcr.type != LinkModeCalculationResultType::Success)
-    {
-        error("%s\n", lmcr.msg.c_str());
-        }*/
-
     bool simulated = false;
     if (detected->found_type == DEVICE_SIMULATION)
     {
@@ -957,7 +950,7 @@ void perform_auto_scan_of_serial_devices(Configuration *config)
                 if (config->use_auto_device_detect || found)
                 {
                     // Open the device, only if auto is enabled, or if the device was specified.
-                    open_wmbus_device_and_set_linkmodes(config, found?"config":"auto", &detected);
+                    open_bus_device_and_potentially_set_linkmodes(config, found?"config":"auto", &detected);
                 }
             }
             else
@@ -1029,7 +1022,7 @@ void perform_auto_scan_of_swradio_devices(Configuration *config)
                 if (config->use_auto_device_detect || found)
                 {
                     // Open the device, only if auto is enabled, or if the device was specified.
-                    open_wmbus_device_and_set_linkmodes(config, found?"config":"auto", &detected);
+                    open_bus_device_and_potentially_set_linkmodes(config, found?"config":"auto", &detected);
                 }
             }
         }
@@ -1061,9 +1054,9 @@ void regular_checkup(Configuration *config)
     }
 
     {
-        LOCK_WMBUS_DEVICES(regular_checkup);
+        LOCK_BUS_DEVICES(regular_checkup);
 
-        for (auto &w : wmbus_devices_)
+        for (auto &w : bus_devices_)
         {
             if (w->isWorking())
             {
@@ -1156,9 +1149,12 @@ bool start(Configuration *config)
     // Configure where the logging information should end up.
     setup_log_file(config);
 
-    if (config->meters.size() == 0 && config->all_device_linkmodes_specified.empty())
+    if (config->meters.size() == 0)
     {
-        error("No meters supplied. You must supply which link modes to listen to. 11 Eg. auto:c1\n");
+        if (config->num_wmbus_devices > 0 && config->all_device_linkmodes_specified.empty())
+        {
+            error("Wmbus devices found but no meters supplied. You must supply which link modes to listen to. Eg. auto:c1\n");
+        }
     }
 
     // Configure settings.
@@ -1212,7 +1208,7 @@ bool start(Configuration *config)
     serial_manager_->startEventLoop();
     detect_and_configure_wmbus_devices(config, DetectionType::ALL);
 
-    if (wmbus_devices_.size() == 0)
+    if (bus_devices_.size() == 0)
     {
         if (config->nodeviceexit)
         {
@@ -1254,7 +1250,8 @@ bool start(Configuration *config)
             });
     }
 
-    for (auto &w : wmbus_devices_)
+
+    for (auto &w : bus_devices_)
     {
         // Real devices do nothing, but the simulator device will simulate.
         w->simulate();
@@ -1273,7 +1270,7 @@ bool start(Configuration *config)
     }
 
     // Destroy any remaining allocated objects.
-    wmbus_devices_.clear();
+    bus_devices_.clear();
     meter_manager_->removeAllMeters();
     printer_.reset();
     serial_manager_.reset();

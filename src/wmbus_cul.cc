@@ -386,7 +386,6 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
     bool found = false;
     for (int i=0; i<3; ++i)
     {
-        verbose("(cul) get version\n");
         // Try three times, it seems slow sometimes.
         vector<uchar> data;
 
@@ -397,7 +396,11 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
         msg[2] = 0x0d;
 
         bool ok = serial->send(msg);
-        if (!ok) return AccessCheck::NotThere;
+        if (!ok)
+        {
+            verbose("(cul) are you there? no\n");
+            return AccessCheck::NotThere;
+        }
 
         // Wait for 200ms so that the USB stick have time to prepare a response.
         usleep(1000*200);
@@ -416,10 +419,13 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
 
     if (!found)
     {
+        verbose("(cul) are you there? no\n");
         return AccessCheck::NotThere;
     }
 
     detected->setAsFound("", WMBusDeviceType::DEVICE_CUL, 38400, false, false, detected->specified_device.linkmodes);
+
+    verbose("(cul) are you there? yes\n");
 
     return AccessCheck::AccessOK;
 }

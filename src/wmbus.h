@@ -32,6 +32,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
 
 #define LIST_OF_MBUS_DEVICES \
     X(UNKNOWN,unknown,false,false) \
+    X(MBUS,mbus,true,false)        \
     X(AUTO,auto,false,false)       \
     X(AMB8465,amb8465,true,false)  \
     X(CUL,cul,true,false)          \
@@ -578,6 +579,8 @@ shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManag
                               shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openMBUS(string device, int baudrate, shared_ptr<SerialCommunicationManager> manager,
+                           shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRC1180(string device, shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRTLWMBUS(string identifier, string command, shared_ptr<SerialCommunicationManager> manager, std::function<void()> on_exit,
@@ -651,6 +654,7 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
 AccessCheck detectD1TC(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
 AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRTL433(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRTLWMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler);

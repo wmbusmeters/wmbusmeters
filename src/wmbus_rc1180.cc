@@ -380,6 +380,7 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
         // 5 means 19200 bps, which is the speed we are using.
         // If not 5, then this is not a rc1180 dongle.
         serial->close();
+        verbose("(rc1180) are you there? no.\n");
         return AccessCheck::NotThere;
     }
 

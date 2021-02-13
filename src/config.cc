@@ -238,63 +238,79 @@ bool handleDevice(Configuration *c, string devicefile)
         error("Not a valid device \"%s\"\n", devicefile.c_str());
     }
 
-    if (ok)
+    if (!ok) return false;
+
+    // Number the devices
+    specified_device.index = c->supplied_bus_devices.size();
+
+    if (specified_device.type == WMBusDeviceType::DEVICE_MBUS)
     {
-        // Number the devices
-        specified_device.index = c->supplied_wmbus_devices.size();
-
-        if (specified_device.linkmodes.empty())
+        if (!specified_device.linkmodes.empty())
         {
-            // No linkmode set, but if simulation, stdin and file,
-            // then assume that it will produce telegrams on all linkmodes.
-            if (specified_device.is_simulation || specified_device.is_stdin || specified_device.is_file)
-            {
-                // Essentially link mode calculations are now irrelevant.
-                specified_device.linkmodes.addLinkMode(LinkMode::Any);
-            }
-            else
-            if (specified_device.type == WMBusDeviceType::DEVICE_RTLWMBUS ||
-                specified_device.type == WMBusDeviceType::DEVICE_RTL433)
-            {
-                c->all_device_linkmodes_specified.addLinkMode(LinkMode::C1);
-                c->all_device_linkmodes_specified.addLinkMode(LinkMode::T1);
-            }
+            error("An mbus device must not have linkmode set. \"%s\"\n", devicefile.c_str());
         }
+    }
 
-        c->all_device_linkmodes_specified.unionLinkModeSet(specified_device.linkmodes);
-
-        if (specified_device.is_stdin ||
-            specified_device.is_file ||
-            specified_device.is_simulation ||
-            specified_device.command != "")
+    if (specified_device.linkmodes.empty())
+    {
+        // No linkmode set, but if simulation, stdin and file,
+        // then assume that it will produce telegrams on all linkmodes.
+        if (specified_device.is_simulation || specified_device.is_stdin || specified_device.is_file)
         {
-            if (c->single_device_override)
-            {
-                error("You can only specify one stdin or one file or one command!\n");
-            }
-            if (c->use_auto_device_detect)
-            {
-                error("You cannot mix auto with stdin or a file.\n");
-            }
-            if (specified_device.is_simulation) c->simulation_found = true;
-            c->single_device_override = true;
+            // Essentially link mode calculations are now irrelevant.
+            specified_device.linkmodes.addLinkMode(LinkMode::Any);
         }
-
-        if (specified_device.type == WMBusDeviceType::DEVICE_AUTO)
+        else
+        if (specified_device.type == WMBusDeviceType::DEVICE_RTLWMBUS ||
+            specified_device.type == WMBusDeviceType::DEVICE_RTL433)
         {
-            c->use_auto_device_detect = true;
-            c->auto_device_linkmodes = specified_device.linkmodes;
+            c->all_device_linkmodes_specified.addLinkMode(LinkMode::C1);
+            c->all_device_linkmodes_specified.addLinkMode(LinkMode::T1);
+        }
+    }
+
+    c->all_device_linkmodes_specified.unionLinkModeSet(specified_device.linkmodes);
+
+    if (specified_device.is_stdin ||
+        specified_device.is_file ||
+        specified_device.is_simulation ||
+        specified_device.command != "")
+    {
+        if (c->single_device_override)
+        {
+            error("You can only specify one stdin or one file or one command!\n");
+        }
+        if (c->use_auto_device_detect)
+        {
+            error("You cannot mix auto with stdin or a file.\n");
+        }
+        if (specified_device.is_simulation) c->simulation_found = true;
+        c->single_device_override = true;
+    }
+
+    if (specified_device.type == WMBusDeviceType::DEVICE_AUTO)
+    {
+        c->use_auto_device_detect = true;
+        c->auto_device_linkmodes = specified_device.linkmodes;
 
 #if defined(__APPLE__) && defined(__MACH__)
-            error("You cannot use auto on macosx. You must specify the device tty or rtlwmbus.\n");
+        error("You cannot use auto on macosx. You must specify the device tty or rtlwmbus.\n");
 #endif
+    }
+    else
+    {
+        c->supplied_bus_devices.push_back(specified_device);
+        if (specified_device.type == WMBusDeviceType::DEVICE_MBUS)
+        {
+            c->num_mbus_devices++;
         }
         else
         {
-            c->supplied_wmbus_devices.push_back(specified_device);
+            c->num_wmbus_devices++;
         }
     }
-    return ok;
+
+    return true;
 }
 
 bool handleDoNotProbe(Configuration *c, string devicefile)
@@ -587,7 +603,7 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
         // There is an override, therefore we
         // drop any already loaded devices from the config file.
         c->use_auto_device_detect = false;
-        c->supplied_wmbus_devices.clear();
+        c->supplied_bus_devices.clear();
 
         if (startsWith(device_override, "/dev/rtlsdr"))
         {

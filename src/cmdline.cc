@@ -508,13 +508,13 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
     }
 
 
-    if (c->supplied_wmbus_devices.size() == 0 &&
+    if (c->supplied_bus_devices.size() == 0 &&
         c->use_auto_device_detect == false &&
         !c->list_shell_envs &&
         !c->list_fields &&
         !c->list_meters)
     {
-        error("You must supply at least one device (eg auto:c1) to receive wmbus telegrams.\n");
+        error("You must supply at least one device to communicate using (w)mbus.\n");
     }
 
     if ((argc-i) % 4 != 0) {
@@ -522,7 +522,8 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
     }
     int num_meters = (argc-i)/4;
 
-    for (int m=0; m<num_meters; ++m) {
+    for (int m=0; m<num_meters; ++m)
+    {
         string name = argv[m*4+i+0];
         string type = argv[m*4+i+1];
         string id = argv[m*4+i+2];

@@ -1329,7 +1329,8 @@ string makeQuotedJson(string &s)
     return string("\"")+key+"\":\""+value+"\"";
 }
 
-string currentYear() {
+string currentYear()
+{
     char datetime[40];
     memset(datetime, 0, sizeof(datetime));
 
@@ -1411,7 +1412,7 @@ struct TimePeriod
     int day_in_week_from {}; // 0 = mon 6 = sun
     int day_in_week_to {}; // 0 = mon 6 = sun
     int hour_from {}; // Greater than or equal.
-    int hour_to {}; // Less than.
+    int hour_to {}; // Less than or equal.
 };
 
 bool is_inside(struct tm *nowt, TimePeriod *tp)
