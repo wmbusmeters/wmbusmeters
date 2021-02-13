@@ -44,7 +44,7 @@
 #include <linux/serial.h>
 #endif
 
-static int openSerialTTY(const char *tty, int baud_rate);
+static int openSerialTTY(const char *tty, int baud_rate, PARITY parity);
 static string showTTYSettings(int fd);
 
 struct SerialDeviceImp;
@@ -71,7 +71,7 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     SerialCommunicationManagerImp(time_t exit_after_seconds, bool start_event_loop);
     ~SerialCommunicationManagerImp();
 
-    shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate, string purpose);
+    shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate, PARITY parity, string purpose);
     shared_ptr<SerialDevice> createSerialDeviceCommand(string identifier, string command, vector<string> args, vector<string> envs,
                                                        function<void()> on_exit, string purpose);
     shared_ptr<SerialDevice> createSerialDeviceFile(string file, string purpose);
@@ -281,7 +281,7 @@ int SerialDeviceImp::receive(vector<uchar> *data)
 
 struct SerialDeviceTTY : public SerialDeviceImp
 {
-    SerialDeviceTTY(string device, int baud_rate, SerialCommunicationManagerImp * manager, string purpose);
+    SerialDeviceTTY(string device, int baud_rate, PARITY parity, SerialCommunicationManagerImp * manager, string purpose);
     ~SerialDeviceTTY();
 
     AccessCheck open(bool fail_if_not_ok);
@@ -294,15 +294,17 @@ struct SerialDeviceTTY : public SerialDeviceImp
 
     string device_;
     int baud_rate_ {};
+    PARITY parity_ {};
 };
 
-SerialDeviceTTY::SerialDeviceTTY(string device, int baud_rate,
+SerialDeviceTTY::SerialDeviceTTY(string device, int baud_rate, PARITY parity,
                                  SerialCommunicationManagerImp *manager,
                                  string purpose)
     : SerialDeviceImp(manager, purpose)
 {
     device_ = device;
     baud_rate_ = baud_rate;
+    parity_ = parity;
 }
 
 SerialDeviceTTY::~SerialDeviceTTY()
@@ -315,7 +317,7 @@ AccessCheck SerialDeviceTTY::open(bool fail_if_not_ok)
     assert(device_ != "");
     bool ok = checkCharacterDeviceExists(device_.c_str(), fail_if_not_ok);
     if (!ok) return AccessCheck::NotThere;
-    fd_ = openSerialTTY(device_.c_str(), baud_rate_);
+    fd_ = openSerialTTY(device_.c_str(), baud_rate_, parity_);
     if (fd_ < 0)
     {
         if (fail_if_not_ok)
@@ -692,9 +694,10 @@ SerialCommunicationManagerImp::SerialCommunicationManagerImp(time_t exit_after_s
 
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceTTY(string device,
                                                                               int baud_rate,
+                                                                              PARITY parity,
                                                                               string purpose)
 {
-    return addSerialDeviceForManagement(new SerialDeviceTTY(device, baud_rate, this, purpose));
+    return addSerialDeviceForManagement(new SerialDeviceTTY(device, baud_rate, parity, this, purpose));
 }
 
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceCommand(string identifier,
@@ -1060,7 +1063,7 @@ shared_ptr<SerialCommunicationManager> createSerialCommunicationManager(time_t e
                                                                                     start_event_loop));
 }
 
-static int openSerialTTY(const char *tty, int baud_rate)
+static int openSerialTTY(const char *tty, int baud_rate, PARITY parity)
 {
     int rc = 0;
     speed_t speed = 0;
@@ -1087,6 +1090,11 @@ static int openSerialTTY(const char *tty, int baud_rate)
 
     switch (baud_rate)
     {
+    case 300:   speed = B300;  break;
+    case 600:   speed = B600;  break;
+    case 1200:   speed = B1200;  break;
+    case 2400:   speed = B2400;  break;
+    case 4800:   speed = B4800;  break;
     case 9600:   speed = B9600;  break;
     case 19200:  speed = B19200; break;
     case 38400:  speed = B38400; break;
@@ -1109,7 +1117,27 @@ static int openSerialTTY(const char *tty, int baud_rate)
     tios.c_cflag &= ~CSIZE;
     tios.c_cflag |= CS8;
     tios.c_cflag &=~ CSTOPB;
-    tios.c_cflag &=~ PARENB;
+    if (parity == PARITY::NONE)
+    {
+        // Disable parity bit.
+        tios.c_cflag &=~ PARENB;
+    }
+    else if (parity == PARITY::EVEN)
+    {
+        // Enable parity even, ie not odd.
+        tios.c_cflag |= PARENB;
+        tios.c_cflag &=~ PARODD;
+    }
+    else if (parity == PARITY::ODD)
+    {
+        // Enable parity odd.
+        tios.c_cflag |= PARENB;
+        tios.c_cflag |= PARODD;
+    }
+    else
+    {
+        assert(0);
+    }
 
     tios.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
     tios.c_iflag &= ~INPCK;
@@ -1475,6 +1503,8 @@ string cflags(tcflag_t bits)
 	CHECK_FLAG(CSIZE)
 	CHECK_FLAG(CSTOPB)
 	CHECK_FLAG(HUPCL)
+    CHECK_FLAG(PARENB)
+    CHECK_FLAG(PARODD)
 
     if (flags.length() > 0) flags.pop_back();
     return flags;

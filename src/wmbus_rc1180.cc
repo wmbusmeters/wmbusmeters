@@ -172,7 +172,7 @@ shared_ptr<WMBus> openRC1180(string device, shared_ptr<SerialCommunicationManage
         return shared_ptr<WMBus>(imp);
     }
 
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200, "rc1180");
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200, PARITY::NONE, "rc1180");
     WMBusRC1180 *imp = new WMBusRC1180(serial, manager);
     return shared_ptr<WMBus>(imp);
 }
@@ -337,7 +337,7 @@ void WMBusRC1180::processSerialData()
 AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 19200, "detect rc1180");
+    auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 19200, PARITY::NONE, "detect rc1180");
     serial->disableCallbacks();
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;

@@ -4460,7 +4460,13 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
     if (specified_device.type == WMBusDeviceType::DEVICE_MBUS)
     {
         debug("(lookup) driver: mbus\n");
-        detected.setAsFound("", DEVICE_MBUS, atoi(specified_device.bps.c_str()), false, false, lms);
+        int bps = atoi(specified_device.bps.c_str());
+        if (bps < 300)
+        {
+            // Default to 9600. This will be adjusted every time the meters are probed.
+            bps = 9600;
+        }
+        detected.setAsFound("", DEVICE_MBUS, bps, false, false, lms);
         return detected;
     }
 

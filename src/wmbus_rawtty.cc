@@ -63,7 +63,7 @@ shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommu
         imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), baudrate, "rawtty");
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), baudrate, PARITY::NONE, "rawtty");
     WMBusRawTTY *imp = new WMBusRawTTY(serial, manager);
     return shared_ptr<WMBus>(imp);
 }
@@ -153,7 +153,7 @@ AccessCheck detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManag
 
     // Since we do not know how to talk to the other end, it might not
     // even respond. The only thing we can do is to try to open the serial device.
-    auto serial = manager->createSerialDeviceTTY(tty.c_str(), bps, "detect rawtty");
+    auto serial = manager->createSerialDeviceTTY(tty.c_str(), bps, PARITY::NONE, "detect rawtty");
     AccessCheck rc = serial->open(false);
     if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
 

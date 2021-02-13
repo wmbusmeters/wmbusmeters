@@ -29,6 +29,8 @@ using namespace std;
 
 struct SerialCommunicationManager;
 
+enum class PARITY { NONE, EVEN, ODD };
+
 /**
   A SerialDevice can be connected to a tty with a baudrate.
   But can also be connected to stdin, a file, or the output from a subshell.
@@ -74,7 +76,7 @@ struct SerialDevice
 struct SerialCommunicationManager
 {
     // Read from a /dev/ttyUSB0 or /dev/ttyACM0 device with baud settings.
-    virtual shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate, string purpose) = 0;
+    virtual shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate, PARITY parity, string purpose) = 0;
     // Read from a sub shell.
     virtual shared_ptr<SerialDevice> createSerialDeviceCommand(string identifier,
                                                                string command,

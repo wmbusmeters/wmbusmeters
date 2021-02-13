@@ -203,6 +203,7 @@ struct MeterInfo
     vector<string> shells;
     vector<string> jsons; // Additional static jsons that are added to each message.
 
+
     MeterInfo()
     {
     }
