@@ -1350,11 +1350,23 @@ bool Telegram::checkMAC(std::vector<uchar> &frame,
 
 bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes);
 
+bool Telegram::alreadyDecryptedCBC(vector<uchar>::iterator &pos)
+{
+    if (*(pos+0) != 0x2f || *(pos+1) != 0x2f) return false;
+    addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
+    return true;
+}
+
 bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
 {
     if (tpl_sec_mode == TPLSecurityMode::AES_CBC_IV)
     {
+        if (alreadyDecryptedCBC(pos)) return true;
         if (!meter_keys) return false;
+        if (!meter_keys->hasConfidentialityKey())
+        {
+            addDefaultManufacturerKeyIfAny(frame, tpl_sec_mode, meter_keys);
+        }
         bool ok = decrypt_TPL_AES_CBC_IV(this, frame, pos, meter_keys->confidentiality_key);
         if (!ok) return false;
         // Now the frame from pos and onwards has been decrypted.
@@ -1383,6 +1395,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
     }
     else if (tpl_sec_mode == TPLSecurityMode::AES_CBC_NO_IV)
     {
+        if (alreadyDecryptedCBC(pos)) return true;
         if (meter_keys == NULL || (!meter_keys->hasConfidentialityKey() && isSimulated()))
         {
             CHECK(2);

@@ -495,6 +495,7 @@ private:
     bool parse_TPL_78(vector<uchar>::iterator &pos);
     bool parse_TPL_79(vector<uchar>::iterator &pos);
     bool parse_TPL_7A(vector<uchar>::iterator &pos);
+    bool alreadyDecryptedCBC(vector<uchar>::iterator &pos);
     bool potentiallyDecrypt(vector<uchar>::iterator &pos);
     bool parseTPLConfig(std::vector<uchar>::iterator &pos);
     static string toStringFromELLSN(int sn);

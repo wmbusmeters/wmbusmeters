@@ -56,6 +56,7 @@
     X(TXT,txt,"txt",Text,"text")              \
     X(INT,int,"int",Counter,"int")              \
     X(Second,s,"s",Time,"second")           \
+    X(Minute,m,"m",Time,"minute")           \
     X(Hour,h,"h",Time,"hour") \
     X(Day,d,"d",Time,"day") \
     X(Year,y,"y",Time,"year") \

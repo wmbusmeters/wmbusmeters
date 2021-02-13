@@ -21,10 +21,16 @@
 using namespace std;
 
 #define LIST_OF_CONVERSIONS \
+    X(Second, Minute, {vto=vfrom/60.0;}) \
+    X(Minute, Second, {vto=vfrom*60.0;}) \
     X(Second, Hour, {vto=vfrom/3600.0;}) \
     X(Hour, Second, {vto=vfrom*3600.0;}) \
     X(Year, Second, {vto=vfrom*3600.0*24.0*365;}) \
     X(Second, Year, {vto=vfrom/3600.0/24.0/365;}) \
+    X(Minute, Hour, {vto=vfrom/60.0;}) \
+    X(Hour, Minute, {vto=vfrom*60.0;}) \
+    X(Minute, Year, {vto=vfrom/60.0/24.0/365;}) \
+    X(Year, Minute, {vto=vfrom*60.0*24.0*365;}) \
     X(Hour, Year, {vto=vfrom/24.0/365;}) \
     X(Year, Hour, {vto=vfrom*24.0*365;}) \
     X(Hour,  Day, {vto=vfrom/24.0;}) \
