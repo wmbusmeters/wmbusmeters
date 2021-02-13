@@ -58,6 +58,9 @@ enum class DiehlAddressTransformMethod {
     SAP_PRIOS_STANDARD // ?
 };
 
+// Diehl: Determines how to interpret frame
+DiehlFrameInterpretation detectDiehlFrameInterpretation(const vector<uchar>& frame);
+
 // Diehl: Is "A field" coded differently from standard?
 DiehlAddressTransformMethod mustTransformDiehlAddress(const vector<uchar>& frame);
 

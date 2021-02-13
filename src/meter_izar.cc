@@ -49,6 +49,7 @@ struct MeterIzar : public virtual WaterMeter, public virtual MeterCommonImplemen
     double totalWaterConsumption(Unit u);
     bool  hasTotalWaterConsumption();
 
+    string serialNumber();
     double lastMonthTotalWaterConsumption(Unit u);
     string setH0Date();
     string currentAlarmsText();
@@ -59,6 +60,8 @@ private:
     void processContent(Telegram *t);
     vector<uchar> decodePrios(const vector<uchar> &origin, const vector<uchar> &payload, uint32_t key);
 
+    string prefix;
+    uint32_t serial_number {0};
     double remaining_battery_life;
     uint16_t h0_year;
     uint8_t h0_month;
@@ -66,6 +69,7 @@ private:
     double total_water_consumption_l_ {};
     double last_month_total_water_consumption_l_ {};
     uint32_t transmit_period_s_ {};
+    uint16_t manufacture_year {0};
     izar_alarms alarms;
 
     vector<uint32_t> keys;
@@ -81,6 +85,16 @@ MeterIzar::MeterIzar(MeterInfo &mi) :
 {
     initializeDiehlDefaultKeySupport(meterKeys()->confidentiality_key, keys);
     addLinkMode(LinkMode::T1);
+
+    addPrint("prefix", Quantity::Text,
+             [&](){ return prefix; },
+             "The alphanumeric prefix printed before serial number on device.",
+             true, true);
+
+    addPrint("serial_number", Quantity::Text,
+             [&](){ return serialNumber(); },
+             "The meter serial number.",
+             true, true);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
@@ -116,6 +130,11 @@ MeterIzar::MeterIzar(MeterInfo &mi) :
              [&](Unit u){ return convert(transmit_period_s_, Unit::Second, u); },
              "The period at which the meter transmits its data.",
              true, true);
+
+    addPrint("manufacture_year", Quantity::Text,
+             [&](){ return to_string(manufacture_year); },
+             "The year during which the meter was manufactured.",
+             true, true);
 }
 
 double MeterIzar::totalWaterConsumption(Unit u)
@@ -140,6 +159,13 @@ string MeterIzar::setH0Date()
     string date;
     strprintf(date, "%d-%02d-%02d", h0_year, h0_month%99, h0_day%99);
     return date;
+}
+
+string MeterIzar::serialNumber()
+{
+    string result;
+    strprintf(result, "%06d", serial_number);
+    return result;
 }
 
 string MeterIzar::currentAlarmsText()
@@ -202,10 +228,11 @@ void MeterIzar::processContent(Telegram *t)
 {
     vector<uchar> frame;
     t->extractFrame(&frame);
+    vector<uchar> origin = t->original.empty() ? frame : t->original;
 
     vector<uchar> decoded_content;
     for (auto& key : keys) {
-        decoded_content = decodePrios(t->original.empty() ? frame : t->original, frame, key);
+        decoded_content = decodePrios(origin, frame, key);
         if (!decoded_content.empty())
             break;
     }
@@ -216,6 +243,22 @@ void MeterIzar::processContent(Telegram *t)
     {
         warning("(izar) Decoding PRIOS data failed. Ignoring telegram.\n");
         return;
+    }
+
+    if (detectDiehlFrameInterpretation(frame) == DiehlFrameInterpretation::SAP_PRIOS)
+    {
+        string digits = to_string((origin[7] >> 5) << 24 | origin[6] << 16 | origin[5] << 8 | origin[4]);
+        // get the manufacture year
+        uint8_t yy = atoi(digits.substr(0, 2).c_str());
+        manufacture_year = yy > 70 ? (1900 + yy) : (2000 + yy); // Maybe to adjust in 2070, if this code stills lives :D
+        // get the serial number
+        serial_number = atoi(digits.substr(3, digits.size()).c_str());
+        // get letters
+        uchar supplier_code = '@' + (((origin[9] & 0x0F) << 1) | (origin[8] >> 7));
+        uchar meter_type = '@' + ((origin[8] & 0x7C) >> 2);
+        uchar diameter = '@' + (((origin[8] & 0x03) << 3) | (origin[7] >> 5));
+        // build the prefix
+        strprintf(prefix, "%c%02d%c%c", supplier_code, yy, meter_type, diameter);
     }
 
     // get the remaining battery life (in year) and transmission period (in seconds)
