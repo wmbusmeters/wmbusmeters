@@ -241,6 +241,11 @@ Received telegram from: 20100117
                   type: Electricity meter (0x02)
                    ver: 0x01
                 driver: gransystems
+Received telegram from: 68926025
+          manufacturer: (HYD) Hydrometer (0x2324)
+                  type: Heat meter (0x04)
+                   ver: 0x20
+                driver: sharky
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)

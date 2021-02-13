@@ -5,7 +5,7 @@ PROG="$1"
 mkdir -p testoutput
 TEST=testoutput
 
-TESTNAME="Test Izas meters"
+TESTNAME="Test Izars meters"
 TESTRESULT="ERROR"
 LOGFILE=$TEST/logfile
 LOGFILE_EXPECTED=$TEST/logfile_expected
@@ -14,8 +14,8 @@ mkdir -p $TEST
 rm -f $LOGFILE
 
 METERS="IzarWater   izar        21242472 NOKEY
-        IzarWater2  izar        23662907 NOKEY
-        IzarWater3  izar        48197907 NOKEY
+        IzarWater2  izar        66236629 NOKEY
+        IzarWater3  izar        20481979 NOKEY
         IzarWater4  izar        2124589c NOKEY"
 
 cat simulations/simulation_izars.txt | grep '^{' > $TEST/test_expected.txt
@@ -43,7 +43,7 @@ then
     exit 1
 fi
 
-TESTNAME="Test listen to all izas"
+TESTNAME="Test listen to all izars"
 TESTRESULT="ERROR"
 
 cat > $LOGFILE_EXPECTED <<EOF
@@ -53,12 +53,12 @@ Received telegram from: 21242472
                   type: Water meter (0x07)
                    ver: 0x00
                 driver: izar
-Received telegram from: 23662907
+Received telegram from: 66236629
           manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
                   type: Water meter (0x07)
                    ver: 0x78
                 driver: izar
-Received telegram from: 48197907
+Received telegram from: 20481979
           manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
                   type: Water meter (0x07)
                    ver: 0x78

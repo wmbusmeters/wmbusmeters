@@ -1430,6 +1430,16 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         }
         addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
     }
+    else if (tpl_sec_mode == TPLSecurityMode::SPECIFIC_16_31)
+    {
+        if (mustDecryptDiehlRealData(frame))
+        {
+            if (!meter_keys) return false;
+            bool ok = decryptDielhRealData(this, frame, pos, meter_keys->confidentiality_key);
+            if (!ok) return false;
+            // Now the frame from pos and onwards has been decrypted.
+        }
+    }
     return true;
 }
 
@@ -1582,18 +1592,11 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
 
 void Telegram::preProcess()
 {
-    if (frame.size() >= 15)
+    DiehlAddressTransformMethod diehl_method = mustTransformDiehlAddress(frame);
+    if (diehl_method != DiehlAddressTransformMethod::NONE)
     {
-        uchar c_field = frame[1];
-        int m_field = frame[3] <<8 | frame[2];
-        uchar ci_field = frame[10];
-        int tpl_cfg = frame[14] <<8 | frame[13];
-        DiehlAddressTransformMethod diehl_method = mustTransformDiehlAddress(c_field, m_field, ci_field, tpl_cfg);
-        if (diehl_method != DiehlAddressTransformMethod::NONE)
-        {
-            original = vector<uchar>(frame.begin(), frame.begin() + 10);
-            transformDiehlAddress(frame, diehl_method);
-        }
+        original = vector<uchar>(frame.begin(), frame.begin() + 10);
+        transformDiehlAddress(frame, diehl_method);
     }
 }
 

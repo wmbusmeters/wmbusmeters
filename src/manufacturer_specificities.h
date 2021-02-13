@@ -1,5 +1,6 @@
 /*
- Copyright (C) 2021 Vincent Privat
+ Copyright (C) 2019 Jacek Tomasiak
+               2021 Vincent Privat
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,18 +20,54 @@
 #define MANUFACTURER_SPECIFICITIES_H
 
 #include"util.h"
+#include"wmbus.h"
 
-enum class DiehlAddressTransformMethod {
-    NONE,
-    SWAPPING,
-    SAP_PRIOS,
-    SAP_PRIOS_STANDARD
+using namespace std;
+
+uint32_t uint32FromBytes(const vector<uchar> &data, int offset, bool reverse = false);
+
+// Diehl: initialize support of default keys in a meter
+void initializeDiehlDefaultKeySupport(const vector<uchar> &confidentiality_key, vector<uint32_t>& keys);
+
+// Diehl: check method of LFSR decryption algorithm
+enum class DiehlLfsrCheckMethod {
+     CHECKSUM_AND_0XEF,
+     HEADER_1_BYTE
 };
 
-// Diehl: Is "A field" coded as version/type/serialnumber instead of standard serialnumber/version/type?
-DiehlAddressTransformMethod mustTransformDiehlAddress(uchar c_field, int m_field, uchar ci_field, int tpl_cfg);
+// Diehl: decode LFSR encrypted data used in Izar/PRIOS and Sharky meters
+vector<uchar> decodeDiehlLfsr(const vector<uchar> &origin, const vector<uchar> &frame, uint32_t key, DiehlLfsrCheckMethod check_method, uint32_t check_value);
 
-// Diehl: swap "A field" to make it compliant to standard
-void transformDiehlAddress(std::vector<uchar>& frame, DiehlAddressTransformMethod method);
+// Diehl: frame interpretation
+enum class DiehlFrameInterpretation {
+    NA,                // N/A: not a Diehl frame
+    REAL_DATA,
+    OMS,
+    PRIOS,
+    SAP_PRIOS,
+    SAP_PRIOS_STD,
+    PRIOS_SCR,
+    RESERVED
+};
+
+// Diehl: address transformation method
+enum class DiehlAddressTransformMethod {
+    NONE,              // "A field" coded as per standard
+    SWAPPING,          // "A field" coded as version/type/serialnumber instead of standard serialnumber/version/type
+    SAP_PRIOS,         // Version and type not included in telegram. Must be hardcoded to 0 and 7
+    SAP_PRIOS_STANDARD // ?
+};
+
+// Diehl: Is "A field" coded differently from standard?
+DiehlAddressTransformMethod mustTransformDiehlAddress(const vector<uchar>& frame);
+
+// Diehl: transform "A field" to make it compliant to standard
+void transformDiehlAddress(vector<uchar>& frame, DiehlAddressTransformMethod method);
+
+// Diehl: Is payload real data crypted (LFSR)?
+bool mustDecryptDiehlRealData(const vector<uchar>& frame);
+
+// Diehl: decrypt real data payload (LFSR)
+bool decryptDielhRealData(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, const vector<uchar> &meterkey);
 
 #endif

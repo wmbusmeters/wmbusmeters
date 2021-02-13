@@ -1,6 +1,7 @@
 /*
  Copyright (C) 2019 Jacek Tomasiak
                2020 Fredrik Öhrström
+               2021 Vincent Privat
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,14 +21,10 @@
 #include"meters_common_implementation.h"
 #include"wmbus.h"
 #include"wmbus_utils.h"
+#include"manufacturer_specificities.h"
 
 #include<algorithm>
 #include<stdbool.h>
-
-using namespace std;
-
-#define PRIOS_DEFAULT_KEY1 "39BC8A10E66D83F8"
-#define PRIOS_DEFAULT_KEY2 "51728910E66D83F8"
 
 /** Contains all the booleans required to store the alarms of a PRIOS device. */
 typedef struct _izar_alarms {
@@ -60,9 +57,6 @@ struct MeterIzar : public virtual WaterMeter, public virtual MeterCommonImplemen
 private:
 
     void processContent(Telegram *t);
-    uint32_t convertKey(const char *hex);
-    uint32_t convertKey(const vector<uchar> &bytes);
-    uint32_t uint32FromBytes(const vector<uchar> &data, int offset, bool reverse = false);
     vector<uchar> decodePrios(const vector<uchar> &origin, const vector<uchar> &payload, uint32_t key);
 
     double remaining_battery_life;
@@ -85,17 +79,7 @@ shared_ptr<WaterMeter> createIzar(MeterInfo &mi)
 MeterIzar::MeterIzar(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterType::IZAR)
 {
-    MeterKeys *mk = meterKeys();
-    if (!mk->confidentiality_key.empty())
-        keys.push_back(convertKey(mk->confidentiality_key));
-
-    // fallback to default keys if no custom key provided
-    if (keys.empty())
-    {
-        keys.push_back(convertKey(PRIOS_DEFAULT_KEY1));
-        keys.push_back(convertKey(PRIOS_DEFAULT_KEY2));
-    }
-
+    initializeDiehlDefaultKeySupport(meterKeys()->confidentiality_key, keys);
     addLinkMode(LinkMode::T1);
 
     addPrint("total", Quantity::Volume,
@@ -214,35 +198,6 @@ string MeterIzar::previousAlarmsText()
     return "no_alarm";
 }
 
-uint32_t MeterIzar::uint32FromBytes(const vector<uchar> &data, int offset, bool reverse)
-{
-    if (reverse)
-        return ((uint32_t)data[offset + 3] << 24) |
-            ((uint32_t)data[offset + 2] << 16) |
-            ((uint32_t)data[offset + 1] << 8) |
-            (uint32_t)data[offset];
-    else
-        return ((uint32_t)data[offset] << 24) |
-            ((uint32_t)data[offset + 1] << 16) |
-            ((uint32_t)data[offset + 2] << 8) |
-            (uint32_t)data[offset + 3];
-}
-
-uint32_t MeterIzar::convertKey(const char *hex)
-{
-    vector<uchar> bytes;
-    hex2bin(hex, &bytes);
-    return convertKey(bytes);
-}
-
-uint32_t MeterIzar::convertKey(const vector<uchar> &bytes)
-{
-    uint32_t key1 = uint32FromBytes(bytes, 0);
-    uint32_t key2 = uint32FromBytes(bytes, 4);
-    uint32_t key = key1 ^ key2;
-    return key;
-}
-
 void MeterIzar::processContent(Telegram *t)
 {
     vector<uchar> frame;
@@ -297,31 +252,5 @@ void MeterIzar::processContent(Telegram *t)
 
 vector<uchar> MeterIzar::decodePrios(const vector<uchar> &origin, const vector<uchar> &frame, uint32_t key)
 {
-    // modify seed key with header values
-    key ^= uint32FromBytes(origin, 2); // manufacturer + address[0-1]
-    key ^= uint32FromBytes(origin, 6); // address[2-3] + version + type
-    key ^= uint32FromBytes(frame, 10); // ci + some more bytes from the telegram...
-
-    int size = frame.size() - 15;
-    vector<uchar> decoded(size);
-
-    for (int i = 0; i < size; ++i) {
-        // calculate new key (LFSR)
-        // https://en.wikipedia.org/wiki/Linear-feedback_shift_register
-        for (int j = 0; j < 8; ++j) {
-            // calculate new bit value (xor of selected bits from previous key)
-            uchar bit = ((key & 0x2) != 0) ^ ((key & 0x4) != 0) ^ ((key & 0x800) != 0) ^ ((key & 0x80000000) != 0);
-            // shift key bits and add new one at the end
-            key = (key << 1) | bit;
-        }
-        // decode i-th content byte with fresh/last 8-bits of key
-        decoded[i] = frame[i + 15] ^ (key & 0xFF);
-        // check-byte doesn't match?
-        if (decoded[0] != 0x4B) {
-            decoded.clear();
-            return decoded;
-        }
-    }
-
-    return decoded;
+    return decodeDiehlLfsr(origin, frame, key, DiehlLfsrCheckMethod::HEADER_1_BYTE, 0x4B);
 }
