@@ -127,6 +127,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_ebzwmbe.o \
 	$(BUILD)/meter_ehzp.o \
 	$(BUILD)/meter_esyswm.o \
+	$(BUILD)/meter_elf.o \
 	$(BUILD)/meter_em24.o \
 	$(BUILD)/meter_emerlin868.o \
 	$(BUILD)/meter_ev200.o \

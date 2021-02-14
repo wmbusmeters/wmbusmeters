@@ -226,3 +226,7 @@ telegram=|534424232004256092687A370045752235854DEEEA5939FAD81C25FEEF5A23C38FB916
 {"media":"heat","meter":"sharky","name":"Sharky775","id":"68926025","total_energy_consumption_kwh":2651,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":150.347,"total_volume_m3":0.018,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":42.3,"return_temperature_c":28.1,"temperature_difference_c":14.1,"timestamp":"1111-11-11T11:11:11Z"}
 |Sharky775;68926025;2651.000000;0.000000;150.347000;0.018000;0.000000;0.000000;42.300000;28.100000;14.100000;1111-11-11 11:11.11
 
+# Test Apator Elf Heat meter
+telegram=|51440186010905001837721956880101064004DA000020026CA9220E017799241103000C13641320000A2D00000A5A90060A5E800544050E77000001FD0C010A6564370AFD4731030A274907047F00000002|
+{"media":"heat","meter":"elf","name":"Hetta","id":"01885619","meter_date":"2021-02-09","total_energy_consumption_kwh":3112.49977,"current_power_consumption_kw":0,"total_volume_m3":201.364,"total_energy_consumption_at_date_kwh":3047.8,"flow_temperature_c":69,"return_temperature_c":58,"external_temperature_c":37.64,"status":"200000","operating_time_h":44760,"version":"1","battery_v":0,"timestamp":"1111-11-11T11:11:11Z"}
+|Hetta;01885619;3112.499770;0.000000;201.364000;69.000000;58.000000;37.640000;200000;1111-11-11 11:11.11

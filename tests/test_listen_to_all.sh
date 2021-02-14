@@ -246,6 +246,15 @@ Received telegram from: 68926025
                   type: Heat meter (0x04)
                    ver: 0x20
                 driver: sharky
+Received telegram from: 00050901
+          manufacturer: (APA) Unknown (0x8601)
+                  type: Radio converter (meter side) (0x37)
+                   ver: 0x18
+      Concerning meter: 01885619
+          manufacturer: (APA) Apator, Poland (0x601)
+                  type: Heat meter (0x04)
+                   ver: 0x40
+                driver: elf
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)

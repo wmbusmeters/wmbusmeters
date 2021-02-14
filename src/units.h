@@ -57,6 +57,7 @@
     X(INT,int,"int",Counter,"int")              \
     X(Second,s,"s",Time,"second")           \
     X(Hour,h,"h",Time,"hour") \
+    X(Day,d,"d",Time,"day") \
     X(Year,y,"y",Time,"year") \
     X(Volt,v,"V",Voltage,"volt") \
     X(Ampere,a,"A",Current,"ampere") \

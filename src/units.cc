@@ -27,6 +27,8 @@ using namespace std;
     X(Second, Year, {vto=vfrom/3600.0/24.0/365;}) \
     X(Hour, Year, {vto=vfrom/24.0/365;}) \
     X(Year, Hour, {vto=vfrom*24.0*365;}) \
+    X(Hour,  Day, {vto=vfrom/24.0;}) \
+    X(Day,  Hour, {vto=vfrom*24.0;}) \
     X(KWH, GJ, {vto=vfrom*0.0036;})     \
     X(KWH, MJ, {vto=vfrom*0.0036*1000.0;})     \
     X(GJ,  KWH,{vto=vfrom/0.0036;}) \

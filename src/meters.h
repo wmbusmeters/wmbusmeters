@@ -38,6 +38,7 @@
     X(esyswm,     T1_bit, ElectricityMeter, ESYSWM,      ESYSWM)       \
     X(flowiq2200, C1_bit, WaterMeter,       FLOWIQ2200,  FlowIQ2200)   \
     X(flowiq3100, C1_bit, WaterMeter,       FLOWIQ3100,  FlowIQ3100)   \
+    X(elf,        T1_bit, HeatMeter,        ELF,         Elf)          \
     X(em24,       C1_bit, ElectricityMeter, EM24,        EM24)         \
     X(emerlin868, T1_bit, WaterMeter,       EMERLIN868,  EMerlin868)   \
     X(ev200,      T1_bit, WaterMeter,       EV200,       EV200)        \
@@ -102,6 +103,7 @@
     X(ESYSWM,    MANUFACTURER_ESY,  0x37,  0x30) \
     X(FLOWIQ2200,MANUFACTURER_KAW,  0x16,  0x3a) \
     X(FLOWIQ3100,MANUFACTURER_KAM,  0x16,  0x1d) \
+    X(ELF,       MANUFACTURER_APA,  0x04,  0x40) \
     X(EM24,      MANUFACTURER_KAM,  0x02,  0x33) \
     X(EMERLIN868,MANUFACTURER_ELR,  0x37,  0x11) \
     X(EV200,     MANUFACTURER_ELR,  0x07,  0x0d) \
