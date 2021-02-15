@@ -47,6 +47,7 @@
     X(hydrus,     T1_bit, WaterMeter,       HYDRUS,      Hydrus)       \
     X(hydrocalm3, T1_bit, HeatMeter,        HYDROCALM3,  HydrocalM3)   \
     X(hydrodigit, T1_bit, WaterMeter,       HYDRODIGIT,  Hydrodigit)   \
+    X(ie6500,     T1_bit, SmokeDetector,    IE6500,      IE6500)       \
     X(iperl,      T1_bit, WaterMeter,       IPERL,       Iperl)        \
     X(izar,       T1_bit, WaterMeter,       IZAR,        Izar)         \
     X(izar3,      T1_bit, WaterMeter,       IZAR3,       Izar3)        \
@@ -115,6 +116,7 @@
     X(HYDRUS,    MANUFACTURER_DME,  0x16,  0x70) \
     X(HYDROCALM3,MANUFACTURER_BMT,  0x0d,  0x0b) \
     X(HYDRODIGIT,MANUFACTURER_BMT,  0x07,  0x13) \
+    X(IE6500,    MANUFACTURER_IE,  0x1a,  0x0c) \
     X(IPERL,     MANUFACTURER_SEN,  0x06,  0x68) \
     X(IPERL,     MANUFACTURER_SEN,  0x07,  0x68) \
     X(IPERL,     MANUFACTURER_SEN,  0x07,  0x7c) \
