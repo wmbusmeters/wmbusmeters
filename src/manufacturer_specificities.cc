@@ -16,6 +16,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include<cstring>
 #include<set>
 #include"manufacturers.h"
 #include"manufacturer_specificities.h"
@@ -237,6 +238,19 @@ uint32_t convertKey(const char *hex)
     vector<uchar> bytes;
     hex2bin(hex, &bytes);
     return convertKey(bytes);
+}
+
+// Common: add default manufacturers key if none specified and we know one for the given frame
+void addDefaultManufacturerKeyIfAny(const vector<uchar> &frame, TPLSecurityMode tpl_sec_mode, MeterKeys *meter_keys)
+{
+    if (!meter_keys->hasConfidentialityKey()
+        && tpl_sec_mode == TPLSecurityMode::AES_CBC_IV
+        && detectDiehlFrameInterpretation(frame) == DiehlFrameInterpretation::OMS)
+    {
+        vector<uchar> half; hex2bin(PRIOS_DEFAULT_KEY2, &half);
+        meter_keys->confidentiality_key = vector<uchar>(half.begin(), half.end());
+        meter_keys->confidentiality_key.insert(meter_keys->confidentiality_key.end(), half.begin(), half.end());
+    }
 }
 
 // Diehl: initialize support of default keys in a meter

@@ -24,6 +24,9 @@
 
 using namespace std;
 
+// Common: add default manufacturers key if none specified and we know one for the given frame
+void addDefaultManufacturerKeyIfAny(const vector<uchar> &frame, TPLSecurityMode tpl_sec_mode, MeterKeys *meter_keys);
+
 uint32_t uint32FromBytes(const vector<uchar> &data, int offset, bool reverse = false);
 
 // Diehl: initialize support of default keys in a meter

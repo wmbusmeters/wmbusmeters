@@ -111,13 +111,18 @@ telegram=|5744b40988227711101b7ab20800000265a00842658f088201659f08226589081265a0
 
 # Test Hydrus water meter telegram
 telegram=|4E44A5116464646470077AED004005|2F2F01FD08300C13741100007C1300000000FC101300000000FC201300000000726C00000B3B00000002FD748713025A6800C4016D3B177F2ACC011300020000|
-{"media":"water","meter":"hydrus","name":"HydrusWater","id":"64646464","total_m3":1.174,"max_flow_m3h":0,"flow_temperature_c":10.4,"total_at_date_m3":0.2,"at_date":"2019-10-31 23:59","remaining_battery_life_y":13.686516,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"hydrus","name":"HydrusWater","id":"64646464","total_m3":1.174,"total_tariff1_m3":0,"total_tariff2_m3":0,"max_flow_m3h":0,"flow_temperature_c":10.4,"external_temperature_c":0,"current_date":"","total_at_date_m3":0.2,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":0,"at_date":"2019-10-31 23:59","actuality_duration_s":0,"operating_time_h":0,"remaining_battery_life_y":13.686516,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |HydrusWater;64646464;1.174000;0.000000;OK;1111-11-11 11:11.11
 
 # Test Hydrus new version water meter telegram
 telegram=|3E44A5116565656570067AFB0030052F2F|0C13503400000DFD110A383731303134423032410B3B00000002FD74DC15C4016D3B178D29CC0113313400002F2F|
-{"media":"warm water","meter":"hydrus","name":"HydrusVater","id":"65656565","total_m3":3.45,"max_flow_m3h":0,"flow_temperature_c":127,"total_at_date_m3":3.431,"at_date":"2020-09-13 23:59","remaining_battery_life_y":15.321013,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"warm water","meter":"hydrus","name":"HydrusVater","id":"65656565","total_m3":3.45,"total_tariff1_m3":0,"total_tariff2_m3":0,"max_flow_m3h":0,"flow_temperature_c":127,"external_temperature_c":0,"current_date":"","total_at_date_m3":3.431,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":0,"at_date":"2020-09-13 23:59","actuality_duration_s":0,"operating_time_h":0,"remaining_battery_life_y":15.321013,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |HydrusVater;65656565;3.450000;0.000000;OK;1111-11-11 11:11.11
+
+# Test Hydrus with default AES encryption
+telegram=||6644242328001081640E7266567464A51170071F0050052C411A08674048DD6BA82A0DF79FFD401309179A893A1BE3CE8EDC50C2A45CD7AFEC3B4CE765820BE8056C124A17416C3722985FFFF7FCEB7094901AB3A16294B511B9A740C9F9911352B42A72FB3B0C|
+{"media":"water","meter":"hydrus","name":"HydrusAES","id":"64745666","total_m3":137.291,"total_tariff1_m3":0,"total_tariff2_m3":137.291,"max_flow_m3h":0,"flow_temperature_c":24.5,"external_temperature_c":23.9,"current_date":"2021-01-23 08:27","total_at_date_m3":128.638,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":128.638,"at_date":"2020-12-31 00:00","actuality_duration_s":6673,"operating_time_h":14678,"remaining_battery_life_y":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+|HydrusAES;64745666;137.291000;0.000000;OK;1111-11-11 11:11.11
 
 # Test BMeters HydroDigit water telegram
 telegram=|4E44B4098686868613077AF0004005|2F2F0C1366380000046D27287E2A0F150E00000000C10000D10000E60000FD00000C01002F0100410100540100680100890000A00000B30000002F2F2F2F2F2F|

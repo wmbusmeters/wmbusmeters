@@ -1,5 +1,6 @@
 /*
  Copyright (C) 2019-2020 Fredrik Öhrström
+                    2021 Vincent Privat
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -28,20 +29,33 @@ struct MeterHydrus : public virtual WaterMeter, public virtual MeterCommonImplem
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
+    double totalWaterConsumptionTariff1(Unit u);
+    double totalWaterConsumptionTariff2(Unit u);
     double totalWaterConsumptionAtDate(Unit u);
-    bool  hasTotalWaterConsumption();
+    double totalWaterConsumptionTariff1AtDate(Unit u);
+    double totalWaterConsumptionTariff2AtDate(Unit u);
+    bool   hasTotalWaterConsumption();
     double maxFlow(Unit u);
-    bool  hasMaxFlow();
+    bool   hasMaxFlow();
     double flowTemperature(Unit u);
+    double externalTemperature(Unit u);
 
 private:
     void processContent(Telegram *t);
 
     double total_water_consumption_m3_ {};
+    double total_water_consumption_tariff1_m3_ {};
+    double total_water_consumption_tariff2_m3_ {};
+    string current_date_;
     double total_water_consumption_at_date_m3_ {};
+    double total_water_consumption_tariff1_at_date_m3_ {};
+    double total_water_consumption_tariff2_at_date_m3_ {};
     string at_date_;
     double max_flow_m3h_ {};
     double flow_temperature_c_ { 127 };
+    double external_temperature_c_ {};
+    uint32_t actuality_duration_s_;
+    double operating_time_h_;
     double remaining_battery_life_year_;
     string status_; // TPL STS
 
@@ -68,9 +82,19 @@ MeterHydrus::MeterHydrus(MeterInfo &mi) :
              "The total water consumption recorded by this meter.",
              true, true);
 
+    addPrint("total_tariff1", Quantity::Volume,
+             [&](Unit u){ return totalWaterConsumptionTariff1(u); },
+             "The total water consumption recorded by this meter at tariff 1.",
+             false, true);
+
+    addPrint("total_tariff2", Quantity::Volume,
+             [&](Unit u){ return totalWaterConsumptionTariff2(u); },
+             "The total water consumption recorded by this meter at tariff 2.",
+             false, true);
+
     addPrint("max_flow", Quantity::Flow,
              [&](Unit u){ return maxFlow(u); },
-             "The maxium flow recorded during previous period.",
+             "The maximum flow recorded during previous period.",
              true, true);
 
     addPrint("flow_temperature", Quantity::Temperature,
@@ -78,14 +102,44 @@ MeterHydrus::MeterHydrus(MeterInfo &mi) :
              "The water temperature.",
              false, true);
 
+    addPrint("external_temperature", Quantity::Temperature,
+             [&](Unit u){ return externalTemperature(u); },
+             "The external temperature.",
+             false, true);
+
+    addPrint("current_date", Quantity::Text,
+             [&](){ return current_date_; },
+             "Current date of measurement.",
+             false, true);
+
     addPrint("total_at_date", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumptionAtDate(u); },
              "The total water consumption recorded at date.",
              false, true);
 
+    addPrint("total_tariff1_at_date", Quantity::Volume,
+             [&](Unit u){ return totalWaterConsumptionTariff1AtDate(u); },
+             "The total water consumption recorded at tariff 1 at date.",
+             false, true);
+
+    addPrint("total_tariff2_at_date", Quantity::Volume,
+             [&](Unit u){ return totalWaterConsumptionTariff2AtDate(u); },
+             "The total water consumption recorded at tariff 2 at date.",
+             false, true);
+
     addPrint("at_date", Quantity::Text,
              [&](){ return at_date_; },
              "Date when total water consumption was recorded.",
+             false, true);
+
+    addPrint("actuality_duration", Quantity::Time, Unit::Second,
+             [&](Unit u){ return convert(actuality_duration_s_, Unit::Second, u); },
+             "Elapsed time between measurement and transmission",
+             false, true);
+
+    addPrint("operating_time", Quantity::Time, Unit::Hour,
+             [&](Unit u){ return convert(operating_time_h_, Unit::Hour, u); },
+             "How long the meter is operating",
              false, true);
 
     addPrint("remaining_battery_life", Quantity::Time, Unit::Year,
@@ -97,7 +151,6 @@ MeterHydrus::MeterHydrus(MeterInfo &mi) :
              [&](){ return status_; },
              "The status is OK or some error condition.",
              true, true);
-
 }
 
 shared_ptr<WaterMeter> createHydrus(MeterInfo &mi)
@@ -256,39 +309,157 @@ void MeterHydrus::processContent(Telegram *t)
       (hydrus) 5e: 2F skip
     */
 
+    /* Another one for #216 / #223
+
+	(hydrus) 00: 66 length (102 bytes)
+	(hydrus) 01: 44 dll-c (from meter SND_NR)
+	(hydrus) 02: 2423 dll-mfct (HYD)
+	(hydrus) 04: 28001081 dll-id (81100028)
+	(hydrus) 08: 64 dll-version
+	(hydrus) 09: 0e dll-type (Bus/System component)
+	(hydrus) 0a: 72 tpl-ci-field (EN 13757-3 Application Layer (long tplh))
+	(hydrus) 0b: 66567464 tpl-id (64745666)
+	(hydrus) 0f: a511 tpl-mfct (DME)
+	(hydrus) 11: 70 tpl-version
+	(hydrus) 12: 07 tpl-type (Water meter)
+	(hydrus) 13: 1f tpl-acc-field
+	(hydrus) 14: 00 tpl-sts-field
+	(hydrus) 15: 5005 tpl-cfg 0550 (AES_CBC_IV nb=5 cntn=0 ra=0 hc=0 )
+	(hydrus) 17: 2f2f decrypt check bytes
+	(hydrus) 19: 03 dif (24 Bit Integer/Binary Instantaneous value)
+	(hydrus) 1a: 74 vif (Actuality duration seconds)
+	(hydrus) 1b: * 111A00 actuality duration (-0.000029 s)
+	(hydrus) 1e: 0C dif (8 digit BCD Instantaneous value)
+	(hydrus) 1f: 13 vif (Volume l)
+	(hydrus) 20: * 91721300 total consumption (137.291000 m3)
+	(hydrus) 24: 8C dif (8 digit BCD Instantaneous value)
+	(hydrus) 25: 10 dife (subunit=0 tariff=1 storagenr=0)
+	(hydrus) 26: 13 vif (Volume l)
+	(hydrus) 27: * 00000000 total consumption at tariff 1 (0.000000 m3)
+	(hydrus) 2b: 8C dif (8 digit BCD Instantaneous value)
+	(hydrus) 2c: 20 dife (subunit=0 tariff=2 storagenr=0)
+	(hydrus) 2d: 13 vif (Volume l)
+	(hydrus) 2e: * 91721300 total consumption at tariff 2 (137.291000 m3)
+	(hydrus) 32: 0B dif (6 digit BCD Instantaneous value)
+	(hydrus) 33: 3B vif (Volume flow l/h)
+	(hydrus) 34: * 000000 max flow (0.000000 m3/h)
+	(hydrus) 37: 0B dif (6 digit BCD Instantaneous value)
+	(hydrus) 38: 26 vif (Operating time hours)
+	(hydrus) 39: * 784601 operating time (14678.000000 h)
+	(hydrus) 3c: 02 dif (16 Bit Integer/Binary Instantaneous value)
+	(hydrus) 3d: 5A vif (Flow temperature 10⁻¹ °C)
+	(hydrus) 3e: * F500 flow temperature (24.500000 °C)
+	(hydrus) 40: 02 dif (16 Bit Integer/Binary Instantaneous value)
+	(hydrus) 41: 66 vif (External temperature 10⁻¹ °C)
+	(hydrus) 42: * EF00 external temperature (23.900000 °C)
+	(hydrus) 44: 04 dif (32 Bit Integer/Binary Instantaneous value)
+	(hydrus) 45: 6D vif (Date and time type)
+	(hydrus) 46: * 1B08B721 current date (2021-01-23 08:27)
+	(hydrus) 4a: 4C dif (8 digit BCD Instantaneous value storagenr=1)
+	(hydrus) 4b: 13 vif (Volume l)
+	(hydrus) 4c: * 38861200 total consumption at date (128.638000 m3)
+	(hydrus) 50: CC dif (8 digit BCD Instantaneous value storagenr=1)
+	(hydrus) 51: 10 dife (subunit=0 tariff=1 storagenr=1)
+	(hydrus) 52: 13 vif (Volume l)
+	(hydrus) 53: * 00000000 total consumption at tariff 1 at date (0.000000 m3)
+	(hydrus) 57: CC dif (8 digit BCD Instantaneous value storagenr=1)
+	(hydrus) 58: 20 dife (subunit=0 tariff=2 storagenr=1)
+	(hydrus) 59: 13 vif (Volume l)
+	(hydrus) 5a: * 38861200 total consumption at tariff 1 at date (128.638000 m3)
+	(hydrus) 5e: 42 dif (16 Bit Integer/Binary Instantaneous value storagenr=1)
+	(hydrus) 5f: 6C vif (Date type G)
+	(hydrus) 60: * 9F2C at date (2020-12-31 00:00)
+	(hydrus) 62: 42 dif (16 Bit Integer/Binary Instantaneous value storagenr=1)
+	(hydrus) 63: EC vif (Date type G)
+	(hydrus) 64: 7E vife (additive correction constant: unit of VIF * 10^-1)
+	(hydrus) 65: BF2C
+    */
+
     int offset;
     string key;
+    struct tm datetime;
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, 0, &key, &t->values)) {
+    // Container 0 : current / total
+
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::VolumeFlow, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 1, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_water_consumption_tariff1_m3_);
+        t->addMoreExplanation(offset, " total consumption at tariff 1 (%f m3)", total_water_consumption_tariff1_m3_);
+    }
+
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 2, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_water_consumption_tariff2_m3_);
+        t->addMoreExplanation(offset, " total consumption at tariff 2 (%f m3)", total_water_consumption_tariff2_m3_);
+    }
+
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::VolumeFlow, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &max_flow_m3h_);
         t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_m3h_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::FlowTemperature, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::FlowTemperature, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &flow_temperature_c_);
         t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::Volume, 3, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::ExternalTemperature, 0, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &external_temperature_c_);
+        t->addMoreExplanation(offset, " external temperature (%f °C)", external_temperature_c_);
+    }
+
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
+        extractDVdate(&t->values, key, &offset, &datetime);
+        current_date_ = strdatetime(&datetime);
+        t->addMoreExplanation(offset, " current date (%s)", current_date_.c_str());
+    }
+
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::ActualityDuration, 0, 0, &key, &t->values)) {
+        extractDVuint24(&t->values, key, &offset, &actuality_duration_s_);
+        t->addMoreExplanation(offset, " actuality duration (%f s)", actuality_duration_s_);
+    }
+
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::OperatingTime, 0, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &operating_time_h_);
+        t->addMoreExplanation(offset, " operating time (%f h)", operating_time_h_);
+    }
+
+    // Container 1/3 : past/future records
+
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 1, 0, &key, &t->values)
+     || findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 3, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_at_date_m3_);
         t->addMoreExplanation(offset, " total consumption at date (%f m3)", total_water_consumption_at_date_m3_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 3, 0, &key, &t->values)) {
-        struct tm datetime;
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 1, 1, &key, &t->values)
+     || findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 3, 1, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_water_consumption_tariff1_at_date_m3_);
+        t->addMoreExplanation(offset, " total consumption at tariff 1 at date (%f m3)", total_water_consumption_tariff1_at_date_m3_);
+    }
+
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 1, 2, &key, &t->values)
+     || findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 3, 2, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &total_water_consumption_tariff2_at_date_m3_);
+        t->addMoreExplanation(offset, " total consumption at tariff 1 at date (%f m3)", total_water_consumption_tariff2_at_date_m3_);
+    }
+
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::Date    , 1, 0, &key, &t->values)
+     || findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 3, 0, &key, &t->values)) {
         extractDVdate(&t->values, key, &offset, &datetime);
         at_date_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " at date (%s)", at_date_.c_str());
     }
 
+    // TODO: a date in the future is also transmitted with VIFE 7E in container 1
+
+    // custom
+
     uint16_t days {};
-    bool ok = extractDVuint16(&t->values, "02FD74", &offset, &days);
-    if (ok)
+    if (hasKey(&t->values, "02FD74") && extractDVuint16(&t->values, "02FD74", &offset, &days))
     {
         remaining_battery_life_year_ = ((double)days) / 365.25;
         t->addMoreExplanation(offset, " battery life (%d days %f years)", days, remaining_battery_life_year_);
@@ -303,10 +474,34 @@ double MeterHydrus::totalWaterConsumption(Unit u)
     return convert(total_water_consumption_m3_, Unit::M3, u);
 }
 
+double MeterHydrus::totalWaterConsumptionTariff1(Unit u)
+{
+    assertQuantity(u, Quantity::Volume);
+    return convert(total_water_consumption_tariff1_m3_, Unit::M3, u);
+}
+
+double MeterHydrus::totalWaterConsumptionTariff2(Unit u)
+{
+    assertQuantity(u, Quantity::Volume);
+    return convert(total_water_consumption_tariff2_m3_, Unit::M3, u);
+}
+
 double MeterHydrus::totalWaterConsumptionAtDate(Unit u)
 {
     assertQuantity(u, Quantity::Volume);
     return convert(total_water_consumption_at_date_m3_, Unit::M3, u);
+}
+
+double MeterHydrus::totalWaterConsumptionTariff1AtDate(Unit u)
+{
+    assertQuantity(u, Quantity::Volume);
+    return convert(total_water_consumption_tariff1_at_date_m3_, Unit::M3, u);
+}
+
+double MeterHydrus::totalWaterConsumptionTariff2AtDate(Unit u)
+{
+    assertQuantity(u, Quantity::Volume);
+    return convert(total_water_consumption_tariff2_at_date_m3_, Unit::M3, u);
 }
 
 bool MeterHydrus::hasTotalWaterConsumption()
@@ -329,4 +524,10 @@ double MeterHydrus::flowTemperature(Unit u)
 {
     assertQuantity(u, Quantity::Temperature);
     return convert(flow_temperature_c_, Unit::C, u);
+}
+
+double MeterHydrus::externalTemperature(Unit u)
+{
+    assertQuantity(u, Quantity::Temperature);
+    return convert(external_temperature_c_, Unit::C, u);
 }

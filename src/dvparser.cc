@@ -42,7 +42,7 @@ LIST_OF_VALUETYPES
 
 ValueInformation toValueInformation(int i)
 {
-#define X(name,from,to) if (from >= i && i <= to) return ValueInformation::name;
+#define X(name,from,to) if (from <= i && i <= to) return ValueInformation::name;
 LIST_OF_VALUETYPES
 #undef X
     return ValueInformation::None;

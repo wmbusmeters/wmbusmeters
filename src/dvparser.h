@@ -29,6 +29,7 @@
 
 #define LIST_OF_VALUETYPES \
     X(Volume,0x10,0x17)       \
+    X(OperatingTime,0x24,0x27) \
     X(VolumeFlow,0x38,0x3F) \
     X(FlowTemperature,0x58,0x5B) \
     X(ReturnTemperature,0x5C,0x5F) \
@@ -40,6 +41,7 @@
     X(EnergyMJ,0x0E,0x0F) \
     X(EnergyWh,0x00,0x07) \
     X(PowerW,0x28,0x2f) \
+    X(ActualityDuration,0x74,0x77) \
 
 enum class ValueInformation
 {
