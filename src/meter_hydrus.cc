@@ -54,7 +54,7 @@ private:
     double max_flow_m3h_ {};
     double flow_temperature_c_ { 127 };
     double external_temperature_c_ {};
-    uint32_t actuality_duration_s_;
+    uint32_t actuality_duration_s_ {};
     double operating_time_h_;
     double remaining_battery_life_year_;
     string status_; // TPL STS
