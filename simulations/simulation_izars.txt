@@ -17,3 +17,8 @@ telegram=|1944A511780779194820A1|21170013355F8EDB2D03C6912B1E37
 
 telegram=|1944304c9c5824210c04a363140013716577ec59e8663ab0d31c|
 {"media":"water","meter":"izar","name":"IzarWater4","id":"2124589c","prefix":"H19CA","serial_number":"059196","total_m3":38.944,"last_month_total_m3":38.691,"last_month_measure_date":"2021-02-01","remaining_battery_life_y":10,"current_alarms":"no_alarm","previous_alarms":"no_alarm","transmit_period_s":32,"manufacture_year":"2019","timestamp":"1111-11-11T11:11:11Z"}
+
+# Another test case to ensure non-regression on manufacture year parsing
+telegram=|1944304CDEFFE420CC01A2|63120013258F907B0AFF12529AC33B|
+{"media":"water","meter":"izar","name":"IzarWater5","id":"20e4ffde","prefix":"C15SA","serial_number":"007710","total_m3":159.832,"last_month_total_m3":157.76,"last_month_measure_date":"2021-02-01","remaining_battery_life_y":9,"current_alarms":"no_alarm","previous_alarms":"no_alarm","transmit_period_s":32,"manufacture_year":"2015","timestamp":"1111-11-11T11:11:11Z"}
+

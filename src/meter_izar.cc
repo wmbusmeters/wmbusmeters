@@ -247,7 +247,7 @@ void MeterIzar::processContent(Telegram *t)
 
     if (detectDiehlFrameInterpretation(frame) == DiehlFrameInterpretation::SAP_PRIOS)
     {
-        string digits = to_string((origin[7] >> 5) << 24 | origin[6] << 16 | origin[5] << 8 | origin[4]);
+        string digits = to_string((origin[7] & 0x03) << 24 | origin[6] << 16 | origin[5] << 8 | origin[4]);
         // get the manufacture year
         uint8_t yy = atoi(digits.substr(0, 2).c_str());
         manufacture_year = yy > 70 ? (1900 + yy) : (2000 + yy); // Maybe to adjust in 2070, if this code stills lives :D
