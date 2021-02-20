@@ -1,3 +1,4 @@
+Version 1.0.6: 2021-02-20
 
 Vincent Privat added code for properly decoding several types of izar meter.
 He also added full support for the heat meter sharky 775!
@@ -7,7 +8,7 @@ IMPORTANT CHANGES THAT MIGHT AFFECT YOU!vvvvvvvvvvvvvvvvvvvvvv
 
 Important! Since the new code decodes the correct meter id from the izar
 telegrams, therefore your current izar meter setup will break! You have
-to update your meter files with the new id. The id i still not
+to update your meter files with the new id. The id is still not
 the id that is printed on the meter. However, the numbers that are
 printed on the meter are now available in the json eg:
 "prefix":"H19CA","serial_number":"026273" which makes it easier

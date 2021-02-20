@@ -292,6 +292,7 @@ Heat and Cooling meter Kamstrup Multical 403 (multical403) (in C1 mode)
 Heat and Cooling meter Kamstrup Multical 603 (multical603) (in C1 mode)
 Heat and Cooling meter Kamstrup Multical 803 (multical803) (in C1 mode)
 Heat meter Apator Elf (elf)
+Heat meter Diehl Sharky 775 (sharky)
 
 Supported room sensors:
 Bmeters RFM-AMB Thermometer/Hygrometer (rfmamb)
