@@ -1,4 +1,4 @@
-Version 1.0.6: 2021-02-20
+Version 1.1.0: 2021-02-20
 
 Vincent Privat added code for properly decoding several types of izar meter.
 He also added full support for the heat meter sharky 775!
