@@ -46,7 +46,6 @@ using namespace std;
 int main(int argc, char **argv);
 void check_if_multiple_wmbus_meters_running();
 void check_for_dead_wmbus_devices(Configuration *config);
-shared_ptr<Meter> create_meter(Configuration *config, MeterType type, MeterInfo *mi, const char *keymsg);
 shared_ptr<Printer> create_printer(Configuration *config);
 shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config, shared_ptr<SerialCommunicationManager> manager);
 enum class DetectionType { STDIN_FILE_SIMULATION, ALL };
@@ -302,31 +301,6 @@ void check_for_dead_wmbus_devices(Configuration *config)
     {
         printed_warning_ = false;
     }
-}
-
-shared_ptr<Meter> create_meter(Configuration *config, MeterType type, MeterInfo *mi, const char *keymsg)
-{
-    shared_ptr<Meter> newm;
-
-    switch (type)
-    {
-#define X(mname,link,info,type,cname) \
-        case MeterType::type:                              \
-        {                                                  \
-            newm = create##cname(*mi);                      \
-            newm->addConversions(config->conversions);     \
-            verbose("(main) configured \"%s\" \"" #mname "\" \"%s\" %s\n", \
-                    mi->name.c_str(), mi->id.c_str(), keymsg);              \
-            return newm;                                                \
-        }                                                               \
-        break;
-LIST_OF_METERS
-#undef X
-    case MeterType::UNKNOWN:
-        error("No such meter type \"%s\"\n", mi->type.c_str());
-        break;
-    }
-    return newm;
 }
 
 shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
@@ -717,7 +691,7 @@ void list_shell_envs(Configuration *config, string meter_type)
     vector<string> envs;
     Telegram t;
     MeterInfo mi;
-    shared_ptr<Meter> meter = create_meter(config, toMeterType(meter_type), &mi, "");
+    shared_ptr<Meter> meter = createMeter(config, toMeterType(meter_type), &mi);
     meter->printMeter(&t,
                       &ignore1,
                       &ignore2, config->separator,
@@ -737,7 +711,7 @@ void list_shell_envs(Configuration *config, string meter_type)
 void list_fields(Configuration *config, string meter_type)
 {
     MeterInfo mi;
-    shared_ptr<Meter> meter = create_meter(config, toMeterType(meter_type), &mi, "");
+    shared_ptr<Meter> meter = createMeter(config, toMeterType(meter_type), &mi);
 
     int width = 0;
     for (auto &p : meter->prints())
@@ -1138,8 +1112,7 @@ void setup_meters(Configuration *config, MeterManager *manager)
 {
     for (auto &m : config->meters)
     {
-        const char *keymsg = (m.key[0] == 0) ? "not-encrypted" : "encrypted";
-        auto meter = create_meter(config, toMeterType(m.type), &m, keymsg);
+        auto meter = createMeter(config, toMeterType(m.type), &m);
         manager->addMeter(meter);
     }
 }

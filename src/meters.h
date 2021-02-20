@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
+ Copyright (C) 2017-2021 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -398,5 +398,9 @@ LIST_OF_METERS
 #undef X
 
 Generic *createGeneric(WMBus *bus, MeterInfo &m);
+
+struct Configuration;
+struct MeterInfo;
+shared_ptr<Meter> createMeter(Configuration *config, MeterType type, MeterInfo *mi);
 
 #endif
