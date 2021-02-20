@@ -59,7 +59,7 @@ if [ ! -z "$REST" ]
 then
     echo ERROR TELEGRAMS: $TESTNAME
     echo -----------------
-    diff /tmp/wmbusmeters_telegram_expected /tmp/wmbusmeters_telegram
+    diff /tmp/wmbusmeters_telegram_expected /tmp/wmbusmeters_telegram_output
     echo -----------------
     TESTRESULT="ERROR"
 fi

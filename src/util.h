@@ -108,6 +108,8 @@ bool isValidMatchExpressions(std::string ids, bool non_compliant);
 bool doesIdMatchExpression(std::string id, std::string match_rule);
 bool doesIdMatchExpressions(std::string id, std::vector<std::string>& match_rules, bool *used_wildcard);
 bool doesIdsMatchExpressions(std::vector<std::string> &ids, std::vector<std::string>& match_rules, bool *used_wildcard);
+std::string toIdsCommaSeparated(std::vector<std::string> &ids);
+
 bool isValidId(std::string id, bool accept_non_compliant);
 
 bool isValidKey(std::string& key, MeterType mt);

@@ -30,9 +30,23 @@
 
 struct MeterManagerImplementation : public virtual MeterManager
 {
+private:
+    bool is_daemon_ {};
+    vector<MeterInfo> meter_templates_;
+    vector<shared_ptr<Meter>> meters_;
+    function<void(AboutTelegram&,vector<uchar>)> on_telegram_;
+    function<void(Telegram*t,Meter*)> on_meter_updated_;
+
+public:
+    void addMeterTemplate(MeterInfo &mi)
+    {
+        meter_templates_.push_back(mi);
+    }
+
     void addMeter(shared_ptr<Meter> meter)
     {
         meters_.push_back(meter);
+        meter->setIndex(meters_.size());
     }
 
     Meter *lastAddedMeter()
@@ -65,27 +79,114 @@ struct MeterManagerImplementation : public virtual MeterManager
 
     bool hasMeters()
     {
-        return meters_.size() != 0;
+        return meters_.size() != 0 || meter_templates_.size() != 0;
     }
 
-    bool handleTelegram(AboutTelegram &about, vector<uchar> data, bool simulated)
+    bool handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated)
     {
         if (!hasMeters())
         {
             if (on_telegram_)
             {
-                on_telegram_(about, data);
+                on_telegram_(about, input_frame);
             }
             return true;
         }
 
         bool handled = false;
+        bool exact_id_match = false;
 
         string ids;
         for (auto &m : meters_)
         {
-            bool h = m->handleTelegram(about, data, simulated, &ids);
+            bool h = m->handleTelegram(about, input_frame, simulated, &ids, &exact_id_match);
             if (h) handled = true;
+        }
+
+        // If not properly handled, and there was no exact id match.
+        // then lets check if there is a template that can create a meter for it.
+        if (!handled && !exact_id_match)
+        {
+            debug("(meter) no meter handled %s checking %d templates.\n", ids.c_str(), meter_templates_.size());
+            // Not handled, maybe we have a template to create a new meter instance for this telegram?
+            Telegram t;
+            t.about = about;
+            bool ok = t.parseHeader(input_frame);
+            if (simulated) t.markAsSimulated();
+
+            if (ok)
+            {
+                ids = t.idsc;
+                for (auto &mi : meter_templates_)
+                {
+                    if (MeterCommonImplementation::isTelegramForMeter(&t, NULL, &mi))
+                    {
+                        // We found a match, make a copy of the meter info.
+                        MeterInfo tmp = mi;
+                        // Overwrite the wildcard pattern with the highest level id.
+                        // The last id in the t.ids is the highest level id.
+                        // For example: a telegram can have dll_id,tpl_id
+                        // This will pick the tpl_id.
+                        // Or a telegram can have a single dll_id,
+                        // then the dll_id will be picked.
+                        vector<string> tmp_ids;
+                        tmp_ids.push_back(t.ids.back());
+                        tmp.ids = tmp_ids;
+                        tmp.idsc = t.ids.back();
+                        // Now build a meter object with for this exact id.
+                        auto meter = createMeter(&tmp);
+                        meter->onUpdate(on_meter_updated_);
+
+                        addMeter(meter);
+                        string idsc = toIdsCommaSeparated(t.ids);
+                        verbose("(meter) used meter template %s %s %s to match %s\n",
+                                mi.name.c_str(),
+                                mi.idsc.c_str(),
+                                toMeterName(mi.type).c_str(),
+                                idsc.c_str());
+
+                        if (is_daemon_)
+                        {
+                            notice("(wmbusmeters) started meter %d (%s %s %s)\n",
+                                   meter->index(),
+                                   mi.name.c_str(),
+                                   tmp.idsc.c_str(),
+                                   toMeterName(mi.type).c_str());
+                        }
+                        else
+                        {
+                            verbose("(meter) started meter %d (%s %s %s)\n",
+                                   meter->index(),
+                                   mi.name.c_str(),
+                                   tmp.idsc.c_str(),
+                                   toMeterName(mi.type).c_str());
+                        }
+
+                        bool match = false;
+                        bool h = meter->handleTelegram(about, input_frame, simulated, &ids, &match);
+                        if (!match)
+                        {
+                            // Oups, we added a new meter object tailored for this telegram
+                            // but it still did not match! This is probably an error in wmbusmeters!
+                            warning("(meter) newly created meter (%s %s %s) did not match telegram! ",
+                                    "Please open an issue at https://github.com/weetmuts/wmbusmeters/\n",
+                                    meter->name().c_str(), meter->idsc().c_str(), toMeterName(meter->type()).c_str());
+                        }
+                        else if (!h)
+                        {
+                            // Oups, we added a new meter object tailored for this telegram
+                            // but it still did not handle it! This can happen if the wrong
+                            // decryption key was used.
+                            warning("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
+                                    meter->name().c_str(), meter->idsc().c_str(), toMeterName(meter->type()).c_str());
+                        }
+                        else
+                        {
+                            handled = true;
+                        }
+                    }
+                }
+            }
         }
         if (isVerboseEnabled() && !handled)
         {
@@ -98,32 +199,31 @@ struct MeterManagerImplementation : public virtual MeterManager
     {
         on_telegram_ = cb;
     }
+    void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb)
+    {
+        on_meter_updated_ = cb;
+    }
+
+    MeterManagerImplementation(bool daemon) : is_daemon_(daemon) {}
     ~MeterManagerImplementation() {}
-
-private:
-
-    vector<shared_ptr<Meter>> meters_;
-    function<void(AboutTelegram&,vector<uchar>)> on_telegram_;
 };
 
-shared_ptr<MeterManager> createMeterManager()
+shared_ptr<MeterManager> createMeterManager(bool daemon)
 {
-    return shared_ptr<MeterManager>(new MeterManagerImplementation);
+    return shared_ptr<MeterManager>(new MeterManagerImplementation(daemon));
 }
 
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
                                                      MeterType type) :
     type_(type), name_(mi.name)
 {
-    ids_ = splitMatchExpressions(mi.id);
+    ids_ = mi.ids;
+    idsc_ = toIdsCommaSeparated(ids_);
+
     if (mi.key.length() > 0)
     {
         hex2bin(mi.key, &meter_keys_.confidentiality_key);
     }
-    /*if (bus->type() == DEVICE_SIMULATION)
-    {
-        meter_keys_.simulation = true;
-    }*/
     for (auto s : mi.shells) {
         addShell(s);
     }
@@ -195,9 +295,14 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
     prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), NULL, getValueFunc, help, field, json, vname } );
 }
 
-vector<string> MeterCommonImplementation::ids()
+vector<string>& MeterCommonImplementation::ids()
 {
     return ids_;
+}
+
+string MeterCommonImplementation::idsc()
+{
+    return idsc_;
 }
 
 vector<string> MeterCommonImplementation::fields()
@@ -266,23 +371,46 @@ LIST_OF_METERS
     return LinkModeSet();
 }
 
-bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
+bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, MeterInfo *mi)
 {
-    debug("(meter) %s: for me? %s\n", name_.c_str(), t->idsc.c_str());
+    string name;
+    vector<string> ids;
+    string idsc;
+    MeterType type;
+
+    assert((meter && !mi) ||
+           (!meter && mi));
+
+    if (meter)
+    {
+        name = meter->name();
+        ids = meter->ids();
+        idsc = meter->idsc();
+        type = meter->type();
+    }
+    else
+    {
+        name = mi->name;
+        ids = mi->ids;
+        idsc = mi->idsc;
+        type = mi->type;
+    }
+
+    debug("(meter) %s: for me? %s\n", name.c_str(), idsc.c_str());
 
     bool used_wildcard = false;
-    bool id_match = doesIdsMatchExpressions(t->ids, ids_, &used_wildcard);
+    bool id_match = doesIdsMatchExpressions(t->ids, ids, &used_wildcard);
 
     if (!id_match) {
         // The id must match.
-        debug("(meter) %s: not for me: not my id\n", name_.c_str());
+        debug("(meter) %s: not for me: not my id\n", name.c_str());
         return false;
     }
 
-    bool valid_driver = isMeterDriverValid(type_, t->dll_mfct, t->dll_type, t->dll_version);
+    bool valid_driver = isMeterDriverValid(type, t->dll_mfct, t->dll_type, t->dll_version);
     if (!valid_driver && t->tpl_id_found)
     {
-        valid_driver = isMeterDriverValid(type_, t->tpl_mfct, t->tpl_type, t->tpl_version);
+        valid_driver = isMeterDriverValid(type, t->tpl_mfct, t->tpl_type, t->tpl_version);
     }
 
     if (!valid_driver)
@@ -309,8 +437,8 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
             string possible_drivers = t->autoDetectPossibleDrivers();
             warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n"
                     "(meter) Not printing this warning agin for id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
-                    name_.c_str(),
-                    toMeterName(type()).c_str(),
+                    name.c_str(),
+                    toMeterName(type).c_str(),
                     possible_drivers.c_str(),
                     t->dll_id_b[3], t->dll_id_b[2], t->dll_id_b[1], t->dll_id_b[0],
                     manufacturerFlag(t->dll_mfct).c_str(),
@@ -327,7 +455,7 @@ bool MeterCommonImplementation::isTelegramForMe(Telegram *t)
         }
     }
 
-    debug("(meter) %s: yes for me\n", name_.c_str());
+    debug("(meter) %s: yes for me\n", name.c_str());
     return true;
 }
 
@@ -354,6 +482,16 @@ double MeterCommonImplementation::getRecordAsDouble(string record)
 uint16_t MeterCommonImplementation::getRecordAsUInt16(string record)
 {
     return 0;
+}
+
+int MeterCommonImplementation::index()
+{
+    return index_;
+}
+
+void MeterCommonImplementation::setIndex(int i)
+{
+    index_ = i;
 }
 
 void MeterCommonImplementation::triggerUpdate(Telegram *t)
@@ -486,7 +624,7 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
     return s;
 }
 
-bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated, string *ids)
+bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated, string *ids, bool *id_match)
 {
     Telegram t;
     t.about = about;
@@ -496,12 +634,13 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
     *ids = t.idsc;
 
-    if (!ok || !isTelegramForMe(&t))
+    if (!ok || !isTelegramForMeter(&t, this, NULL))
     {
         // This telegram is not intended for this meter.
         return false;
     }
 
+    *id_match = true;
     verbose("(meter) %s %s handling telegram from %s\n", name().c_str(), meterName().c_str(), t.ids.back().c_str());
 
     if (isDebugEnabled())
@@ -738,28 +877,28 @@ METER_DETECTION
     return false;
 }
 
-shared_ptr<Meter> createMeter(Configuration *config, MeterType type, MeterInfo *mi)
+shared_ptr<Meter> createMeter(MeterInfo *mi)
 {
     shared_ptr<Meter> newm;
 
     const char *keymsg = (mi->key[0] == 0) ? "not-encrypted" : "encrypted";
 
-    switch (type)
+    switch (mi->type)
     {
 #define X(mname,link,info,type,cname) \
         case MeterType::type:                              \
-        {                                                  \
+        {                                                   \
             newm = create##cname(*mi);                      \
-            newm->addConversions(config->conversions);     \
-            verbose("(main) configured \"%s\" \"" #mname "\" \"%s\" %s\n", \
-                    mi->name.c_str(), mi->id.c_str(), keymsg);              \
+            newm->addConversions(mi->conversions);          \
+            verbose("(meter) created \"%s\" \"" #mname "\" \"%s\" %s\n", \
+                    mi->name.c_str(), mi->idsc.c_str(), keymsg);              \
             return newm;                                                \
         }                                                               \
         break;
 LIST_OF_METERS
 #undef X
     case MeterType::UNKNOWN:
-        error("No such meter type \"%s\"\n", mi->type.c_str());
+        error("No such meter type \"%s\"\n", toMeterName(mi->type).c_str());
         break;
     }
     return newm;

@@ -22,8 +22,9 @@
 #include"units.h"
 #include"wmbus.h"
 
-#include<string>
 #include<functional>
+#include<numeric>
+#include<string>
 #include<vector>
 
 #define LIST_OF_METERS \
@@ -201,24 +202,27 @@ struct MeterInfo
                  // A bus can be an mbus or a wmbus dongle.
                  // The bus can be the empty string, which means that it will fallback to the first defined bus.
     string name; // User specified name of this (group of) meters.
-    string type; // Driver
-    string id;   // How to identify the meter on the bus.
+    MeterType type {}; // Driver
+    vector<string> ids; // Match expressions for ids.
+    string idsc; // Comma separated ids.
     string key;  // Decryption key.
     LinkModeSet link_modes;
     int bps {};     // For mbus communication you need to know the baud rate.
     vector<string> shells;
     vector<string> jsons; // Additional static jsons that are added to each message.
+    vector<Unit> conversions; // Additional units desired in json.
 
     MeterInfo()
     {
     }
 
-    MeterInfo(string b, string n, string t, string i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j)
+    MeterInfo(string b, string n, MeterType t, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j)
     {
         bus = b;
         name = n;
         type = t;
-        id = i;
+        ids = i;
+        idsc = toIdsCommaSeparated(ids);
         key = k;
         shells = s;
         jsons = j;
@@ -242,8 +246,14 @@ struct Print
 
 struct Meter
 {
+    // Meters are instantiated on the fly from a template, when a telegram arrives
+    // and no exact meter exists. Index 1 is the first meter created etc.
+    virtual int index() = 0;
+    virtual void setIndex(int i) = 0;
     // This meter listens to these ids.
-    virtual vector<string> ids() = 0;
+    virtual vector<string> &ids() = 0;
+    // Comma separated ids.
+    virtual string idsc() = 0;
     // This meter can report these fields, like total_m3, temp_c.
     virtual vector<string> fields() = 0;
     virtual vector<Print> prints() = 0;
@@ -267,8 +277,8 @@ struct Meter
 
     // The handleTelegram expects an input_frame where the DLL crcs have been removed.
     // Returns true of this meter handled this telegram!
-    virtual bool handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated, string *id) = 0;
-    virtual bool isTelegramForMe(Telegram *t) = 0;
+    // Sets id_match to true, if there was an id match, even though the telegram could not be properly handled.
+    virtual bool handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated, string *id, bool *id_match) = 0;
     virtual MeterKeys *meterKeys() = 0;
 
     // Dynamically access all data received for the meter.
@@ -285,6 +295,7 @@ struct Meter
 
 struct MeterManager
 {
+    virtual void addMeterTemplate(MeterInfo &mi) = 0;
     virtual void addMeter(shared_ptr<Meter> meter) = 0;
     virtual Meter*lastAddedMeter() = 0;
     virtual void removeAllMeters() = 0;
@@ -293,10 +304,12 @@ struct MeterManager
     virtual bool hasAllMetersReceivedATelegram() = 0;
     virtual bool hasMeters() = 0;
     virtual void onTelegram(function<void(AboutTelegram&,vector<uchar>)> cb) = 0;
+    virtual void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb) = 0;
+
     virtual ~MeterManager() = default;
 };
 
-shared_ptr<MeterManager> createMeterManager();
+shared_ptr<MeterManager> createMeterManager(bool daemon);
 
 struct WaterMeter : public virtual Meter
 {
@@ -401,6 +414,6 @@ Generic *createGeneric(WMBus *bus, MeterInfo &m);
 
 struct Configuration;
 struct MeterInfo;
-shared_ptr<Meter> createMeter(Configuration *config, MeterType type, MeterInfo *mi);
+shared_ptr<Meter> createMeter(MeterInfo *mi);
 
 #endif

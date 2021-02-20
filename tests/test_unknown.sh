@@ -25,7 +25,7 @@ cat > $TEST/test_expected.txt <<EOF
 {"media":"reserved","meter":"lansensm","name":"Forren","id":"00010206","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
-$PROG --format=json --usestdoutforlogging simulations/simulation_unknown.txt $METERS  > $TEST/test_output.txt
+$PROG --format=json --ignoreduplicates=false --usestdoutforlogging simulations/simulation_unknown.txt $METERS  > $TEST/test_output.txt
 if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt

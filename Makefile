@@ -119,7 +119,26 @@ METER_OBJS:=\
 	$(BUILD)/dvparser.o \
 	$(BUILD)/mbus_rawtty.o \
 	$(BUILD)/meters.o \
+	$(BUILD)/manufacturer_specificities.o \
+	$(BUILD)/printer.o \
+	$(BUILD)/rtlsdr.o \
+	$(BUILD)/serial.o \
+	$(BUILD)/shell.o \
+	$(BUILD)/sha256.o \
+	$(BUILD)/threads.o \
+	$(BUILD)/util.o \
+	$(BUILD)/units.o \
+	$(BUILD)/wmbus.o \
 	$(BUILD)/meter_amiplus.o \
+	$(BUILD)/wmbus_amb8465.o \
+	$(BUILD)/wmbus_im871a.o \
+	$(BUILD)/wmbus_cul.o \
+	$(BUILD)/wmbus_rtlwmbus.o \
+	$(BUILD)/wmbus_rtl433.o \
+	$(BUILD)/wmbus_simulator.o \
+	$(BUILD)/wmbus_rawtty.o \
+	$(BUILD)/wmbus_rc1180.o \
+	$(BUILD)/wmbus_utils.o \
 	$(BUILD)/meter_apator08.o \
 	$(BUILD)/meter_apator162.o \
 	$(BUILD)/meter_cma12w.o \
@@ -170,25 +189,6 @@ METER_OBJS:=\
 	$(BUILD)/meter_whe5x.o \
 	$(BUILD)/meter_sensostar.o \
 	$(BUILD)/meter_gransystems_ccx01.o \
-	$(BUILD)/manufacturer_specificities.o \
-	$(BUILD)/printer.o \
-	$(BUILD)/rtlsdr.o \
-	$(BUILD)/serial.o \
-	$(BUILD)/shell.o \
-	$(BUILD)/sha256.o \
-	$(BUILD)/threads.o \
-	$(BUILD)/util.o \
-	$(BUILD)/units.o \
-	$(BUILD)/wmbus.o \
-	$(BUILD)/wmbus_amb8465.o \
-	$(BUILD)/wmbus_im871a.o \
-	$(BUILD)/wmbus_cul.o \
-	$(BUILD)/wmbus_rtlwmbus.o \
-	$(BUILD)/wmbus_rtl433.o \
-	$(BUILD)/wmbus_simulator.o \
-	$(BUILD)/wmbus_rawtty.o \
-	$(BUILD)/wmbus_rc1180.o \
-	$(BUILD)/wmbus_utils.o
 
 all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals
 	@$(STRIP_BINARY)

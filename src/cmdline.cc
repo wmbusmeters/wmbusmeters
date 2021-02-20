@@ -374,7 +374,25 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             continue;
         }
         if (!strncmp(argv[i], "--ignoreduplicates", 18)) {
-            c->ignore_duplicate_telegrams = true;
+            if (argv[i][18] == 0)
+            {
+                c->ignore_duplicate_telegrams = true;
+            }
+            else
+            {
+                if (!strcmp(argv[i]+18, "=true"))
+                {
+                    c->ignore_duplicate_telegrams = true;
+                }
+                else if (!strcmp(argv[i]+18, "=false"))
+                {
+                    c->ignore_duplicate_telegrams = false;
+                }
+                else
+                {
+                    error("You must specify true or false after --ignoreduplicates=\n");
+                }
+            }
             i++;
             continue;
         }
@@ -564,7 +582,8 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         if (!isValidMatchExpressions(id, true)) error("Not a valid id nor a valid meter match expression \"%s\"\n", id.c_str());
         if (!isValidKey(key, mt)) error("Not a valid meter key \"%s\"\n", key.c_str());
         vector<string> no_meter_shells, no_meter_jsons;
-        c->meters.push_back(MeterInfo(bus, name, type, id, key, modes, bps, no_meter_shells, no_meter_jsons));
+        vector<string> ids = splitMatchExpressions(id);
+        c->meters.push_back(MeterInfo(bus, name, mt, ids, key, modes, bps, no_meter_shells, no_meter_jsons));
     }
 
     return shared_ptr<Configuration>(c);

@@ -76,7 +76,7 @@ shell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters/$METER_ID -m "$METER_JS
 alarmshell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters_alarm -m "$ALARM_TYPE $ALARM_MESSAGE"
 alarmtimeout=1h
 alarmexpectedactivity=mon-sun(00-23)
-ignoreduplicates=false
+ignoreduplicates=true
 ```
 
 Then add a meter file in /etc/wmbusmeters.d/MyTapWater
@@ -172,7 +172,7 @@ As <options> you can use:
     --listmeters=<search> list all meter types containing the text <search>
     --logfile=<file> use this file instead of stdout
     --logtelegrams log the contents of the telegrams for easy replay
-    --ignoreduplicates ignore duplicate telegrams, remember the last 10 telegrams
+    --ignoreduplicates=<bool> ignore duplicate telegrams, remember the last 10 telegrams
     --meterfiles=<dir> store meter readings in dir
     --meterfilesaction=(overwrite|append) overwrite or append to the meter readings file
     --meterfilesnaming=(name|id|name-id) the meter file is the meter's: name, id or name-id

@@ -43,7 +43,7 @@ cat > $TEST/test_expected.txt <<EOF
 {"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
-$PROG --format=json simulations/simulation_duplicates.txt \
+$PROG --format=json --ignoreduplicates=false simulations/simulation_duplicates.txt \
           Rummet lansensm 01000273 "" \
     | grep Rummet > $TEST/test_output.txt
 
