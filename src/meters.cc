@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
+ Copyright (C) 2017-2021 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"config.h"
 #include"meters.h"
 #include"meters_common_implementation.h"
 #include"units.h"
@@ -735,4 +736,31 @@ METER_DETECTION
 #undef X
 
     return false;
+}
+
+shared_ptr<Meter> createMeter(Configuration *config, MeterType type, MeterInfo *mi)
+{
+    shared_ptr<Meter> newm;
+
+    const char *keymsg = (mi->key[0] == 0) ? "not-encrypted" : "encrypted";
+
+    switch (type)
+    {
+#define X(mname,link,info,type,cname) \
+        case MeterType::type:                              \
+        {                                                  \
+            newm = create##cname(*mi);                      \
+            newm->addConversions(config->conversions);     \
+            verbose("(main) configured \"%s\" \"" #mname "\" \"%s\" %s\n", \
+                    mi->name.c_str(), mi->id.c_str(), keymsg);              \
+            return newm;                                                \
+        }                                                               \
+        break;
+LIST_OF_METERS
+#undef X
+    case MeterType::UNKNOWN:
+        error("No such meter type \"%s\"\n", mi->type.c_str());
+        break;
+    }
+    return newm;
 }
