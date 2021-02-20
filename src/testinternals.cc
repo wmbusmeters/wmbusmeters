@@ -263,8 +263,9 @@ int test_linkmodes()
 
     Configuration apator_config;
     string apator162 = "apator162";
-    apator_config.meters.push_back(MeterInfo("m1", apator162, "12345678", "",
+    apator_config.meters.push_back(MeterInfo("", "m1", apator162, "12345678", "",
                                              toMeterLinkModeSet(apator162),
+                                             0,
                                              no_meter_shells,
                                              no_meter_jsons));
 
@@ -300,12 +301,14 @@ int test_linkmodes()
     Configuration multical21_and_supercom587_config;
     string multical21 = "multical21";
     string supercom587 = "supercom587";
-    multical21_and_supercom587_config.meters.push_back(MeterInfo("m1", multical21, "12345678", "",
+    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m1", multical21, "12345678", "",
                                                                  toMeterLinkModeSet(multical21),
+                                                                 0,
                                                                  no_meter_shells,
                                                                  no_meter_jsons));
-    multical21_and_supercom587_config.meters.push_back(MeterInfo("m2", supercom587, "12345678", "",
+    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m2", supercom587, "12345678", "",
                                                                  toMeterLinkModeSet(supercom587),
+                                                                 0,
                                                                  no_meter_shells,
                                                                  no_meter_jsons));
 
@@ -518,7 +521,7 @@ void test_periods()
     testp(t, "thu(01-01)", true);
 }
 
-void testd(string arg, bool xok, string xfile, string xtype, string xid, string xfq, string xbps, string xlm, string xcmd)
+void testd(string arg, bool xok, string xalias, string xfile, string xtype, string xid, string xfq, string xbps, string xlm, string xcmd)
 {
     SpecifiedDevice d;
     bool ok = d.parse(arg);
@@ -529,7 +532,8 @@ void testd(string arg, bool xok, string xfile, string xtype, string xid, string 
     }
     if (ok == false) return;
 
-    if (d.file != xfile ||
+    if (d.alias != xalias ||
+        d.file != xfile ||
         toString(d.type) != xtype ||
         d.id != xid ||
         d.fq != xfq ||
@@ -543,7 +547,8 @@ void testd(string arg, bool xok, string xfile, string xtype, string xid, string 
 
 void test_devices()
 {
-    testd("/dev/ttyUSB0:im871a[12345678]:9600:868.95M:c1,t1", true,
+    testd("Bus_4711=/dev/ttyUSB0:im871a[12345678]:9600:868.95M:c1,t1", true,
+          "Bus_4711", // alias
           "/dev/ttyUSB0", // file
           "im871a", // type
           "12345678", // id
@@ -553,6 +558,7 @@ void test_devices()
           ""); // command
 
     testd("/dev/ttyUSB0:im871a:c1", true,
+          "", // alias
           "/dev/ttyUSB0", // file
           "im871a", // type
           "", // id
@@ -562,6 +568,7 @@ void test_devices()
           ""); // command
 
     testd("im871a[12345678]:c1", true,
+          "", // alias
           "", // file
           "im871a", // type
           "12345678", // id
@@ -571,6 +578,7 @@ void test_devices()
           ""); // command
 
     testd("rtlwmbus:c1,t1:CMD(gurka)", true,
+          "", // alias
           "", // file
           "rtlwmbus", // type
           "", // id
@@ -580,6 +588,7 @@ void test_devices()
           "gurka"); // command
 
     testd("rtlwmbus[plast]:c1,t1", true,
+          "", // alias
           "", // file
           "rtlwmbus", // type
           "plast", // id
@@ -589,6 +598,7 @@ void test_devices()
           ""); // command
 
     testd("stdin:rtlwmbus", true,
+          "", // alias
           "stdin", // file
           "rtlwmbus", // type
           "", // id
@@ -598,6 +608,7 @@ void test_devices()
           ""); // command
 
     testd("/dev/ttyUSB0:rawtty:9600", true,
+          "", // alias
           "/dev/ttyUSB0", // file
           "rawtty", // type
           "", // id
@@ -609,6 +620,7 @@ void test_devices()
     // testinternals must be run from a location where
     // there is a Makefile.
     testd("Makefile:simulation", true,
+          "", // alias
           "Makefile", // file
           "simulation", // type
           "", // id
@@ -618,6 +630,7 @@ void test_devices()
           ""); // command
 
     testd("auto:c1,t1", true,
+          "", // alias
           "", // file
           "auto", // type
           "", // id
@@ -627,6 +640,7 @@ void test_devices()
           ""); // command
 
     testd("auto:Makefile:c1,t1", false,
+          "", // alias
           "", // file
           "", // type
           "", // id
@@ -636,11 +650,22 @@ void test_devices()
           ""); // command
 
     testd("Vatten", false,
+          "", // alias
           "", // file
           "", // type
           "", // id
           "", // fq
           "", // bps
+          "none", // linkmodes
+          ""); // command
+
+    testd("main=/dev/ttyUSB0:mbus:2400", true,
+          "main", // alias
+          "/dev/ttyUSB0", // file
+          "mbus", // type
+          "", // id
+          "", // fq
+          "2400", // bps
           "none", // linkmodes
           ""); // command
 

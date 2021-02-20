@@ -146,9 +146,10 @@ LinkModeSet parseLinkModes(string modes);
 bool isValidLinkModes(string modes);
 
 // A wmbus specified device is supplied on the command line or in the config file.
-// It has this format "file:type(id):fq:bps:linkmods:CMD(command)"
+// It has this format "alias=file:type(id):fq:bps:linkmods:CMD(command)"
 struct SpecifiedDevice
 {
+    std::string alias; // A bus alias, usually not necessary for wmbus but necessary for mbus.
     int index; // 0,1,2,3 the order on the command line / config file.
     std::string file; // simulation_meter.txt, stdin, file.raw, /dev/ttyUSB0
     bool is_tty{}, is_stdin{}, is_file{}, is_simulation{};
@@ -198,11 +199,6 @@ struct Detected
     {
         return found_file+":"+string(toString(found_type))+"["+found_device_id+"]"+":"+to_string(found_bps)+"/"+to_string(found_tty_override);
     }
-};
-
-enum class CONNECTION
-{
-    MBUS, WMBUS, BOTH
 };
 
 enum class CI_TYPE

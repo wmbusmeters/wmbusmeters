@@ -102,6 +102,7 @@ const char* toString(Alarm type);
 void logAlarm(Alarm type, std::string info);
 void setAlarmShells(std::vector<std::string> &alarm_shells);
 
+bool isValidAlias(std::string alias);
 bool isValidMatchExpression(std::string id, bool non_compliant);
 bool isValidMatchExpressions(std::string ids, bool non_compliant);
 bool doesIdMatchExpression(std::string id, std::string match_rule);

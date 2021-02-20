@@ -4312,6 +4312,22 @@ bool SpecifiedDevice::parse(string &arg)
 {
     clear();
 
+    size_t ep = arg.find("=");
+    if (ep != string::npos)
+    {
+        // Is there an alias first?
+        // BUS1=/dev/ttyUSB0
+        alias = arg.substr(0, ep);
+        if (isValidAlias(alias))
+        {
+            arg = arg.substr(ep+1);
+        }
+        else
+        {
+            alias = "";
+        }
+    }
+
     bool file_checked = false;
     bool typeid_checked = false;
     bool bps_checked = false;

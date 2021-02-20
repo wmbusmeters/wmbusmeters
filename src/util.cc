@@ -482,6 +482,27 @@ void error(const char* fmt, ...)
     exit(1);
 }
 
+bool is_ascii_alnum(char c)
+{
+    if (c >= 'A' && c <= 'Z') return true;
+    if (c >= 'a' && c <= 'z') return true;
+    if (c >= '0' && c <= '9') return true;
+    if (c == '_') return true;
+    return false;
+}
+
+bool isValidAlias(string alias)
+{
+    if (alias.length() == 0) return false;
+
+    for (char c : alias)
+    {
+        if (!is_ascii_alnum(c)) return false;
+    }
+
+    return true;
+}
+
 bool isValidMatchExpression(string me, bool non_compliant)
 {
     // Examples of valid match expressions:

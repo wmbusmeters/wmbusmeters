@@ -197,21 +197,25 @@ typedef unsigned char uchar;
 
 struct MeterInfo
 {
-    string name;
-    string type;
-    string id;
-    string key;
+    string bus;  // The bus used to communicate with this meter. A device like /dev/ttyUSB0 or an alias like BUS1.
+                 // A bus can be an mbus or a wmbus dongle.
+                 // The bus can be the empty string, which means that it will fallback to the first defined bus.
+    string name; // User specified name of this (group of) meters.
+    string type; // Driver
+    string id;   // How to identify the meter on the bus.
+    string key;  // Decryption key.
     LinkModeSet link_modes;
+    int bps {};     // For mbus communication you need to know the baud rate.
     vector<string> shells;
     vector<string> jsons; // Additional static jsons that are added to each message.
-
 
     MeterInfo()
     {
     }
 
-    MeterInfo(string n, string t, string i, string k, LinkModeSet lms, vector<string> &s, vector<string> &j)
+    MeterInfo(string b, string n, string t, string i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j)
     {
+        bus = b;
         name = n;
         type = t;
         id = i;
@@ -219,6 +223,7 @@ struct MeterInfo
         shells = s;
         jsons = j;
         link_modes = lms;
+        bps = baud;
     }
 };
 

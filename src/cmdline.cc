@@ -524,11 +524,13 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
 
     for (int m=0; m<num_meters; ++m)
     {
+        string bus;
         string name = argv[m*4+i+0];
         string type = argv[m*4+i+1];
         string id = argv[m*4+i+2];
         string key = argv[m*4+i+3];
         LinkModeSet modes;
+        int bps = 0;
         size_t colon = type.find(':');
         MeterType mt = toMeterType(type);
         if (colon != string::npos)
@@ -562,7 +564,7 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         if (!isValidMatchExpressions(id, true)) error("Not a valid id nor a valid meter match expression \"%s\"\n", id.c_str());
         if (!isValidKey(key, mt)) error("Not a valid meter key \"%s\"\n", key.c_str());
         vector<string> no_meter_shells, no_meter_jsons;
-        c->meters.push_back(MeterInfo(name, type, id, key, modes, no_meter_shells, no_meter_jsons));
+        c->meters.push_back(MeterInfo(bus, name, type, id, key, modes, bps, no_meter_shells, no_meter_jsons));
     }
 
     return shared_ptr<Configuration>(c);

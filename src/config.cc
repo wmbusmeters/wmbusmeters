@@ -49,11 +49,13 @@ pair<string,string> getNextKeyValue(vector<char> &buf, vector<char>::iterator &i
 void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 {
     auto i = buf.begin();
+    string bus;
     string name;
     string type;
     string id;
     string key;
     string linkmodes;
+    int bps {};
     vector<string> telegram_shells;
     vector<string> alarm_shells;
     vector<string> jsons;
@@ -67,15 +69,33 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         // If the key starts with # then the line is a comment. Ignore it.
         if (p.first.length() > 0 && p.first[0] == '#') continue;
 
+        if (p.first == "bus")
+        {
+            // Instead of specifying the exact mbus device /dev/ttyUSB17 for each meter,
+            // you specify the alias for the bus. Assuming you specified
+            // device=main=/dev/ttyUSB17:mbus:2400
+            // in the wmbusmeters.conf file, then
+            // you should specify bus=main in the meter file
+            // to use the main bus.
+            //
+            // For dual communication wmbus meters, you also have to specify
+            // the alias to the wmbus device that should be used to transmit to the meter.
+            bus = p.second;
+            if (!isValidAlias(bus))
+            {
+                warning("Found invalid meter bus \"%s\" in meter config file, skipping meter.\n", bus.c_str());
+                return;
+            }
+        }
         if (p.first == "name")
         {
+            name = p.second;
             if (name.find(":") != string::npos)
             {
                 // Oups, names are not allowed to contain the :
                 warning("Found invalid meter name \"%s\" in meter config file, must not contain a ':', skipping meter.\n", name.c_str());
                 return;
             }
-            name = p.second;
         }
         else
         if (p.first == "type") type = p.second;
@@ -117,6 +137,8 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     {
         // The config can be supplied after the type, like this:
         // apator162:c1
+        // or
+        // pith:mainbus:2400
         string modess = type.substr(colon+1);
         type = type.substr(0, colon);
         mt = toMeterType(type);
@@ -155,7 +177,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         use = false;
     }
     if (use) {
-        c->meters.push_back(MeterInfo(name, type, id, key, modes, telegram_shells, jsons));
+        c->meters.push_back(MeterInfo(bus, name, type, id, key, modes, bps, telegram_shells, jsons));
     }
 
     return;
