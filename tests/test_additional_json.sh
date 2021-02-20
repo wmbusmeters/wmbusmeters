@@ -26,6 +26,7 @@ fi
 if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
 
 
+
 TESTNAME="Test additional shell envs from cmdline"
 TESTRESULT="ERROR"
 

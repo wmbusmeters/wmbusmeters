@@ -691,7 +691,8 @@ void list_shell_envs(Configuration *config, string meter_type)
     vector<string> envs;
     Telegram t;
     MeterInfo mi;
-    shared_ptr<Meter> meter = createMeter(config, toMeterType(meter_type), &mi);
+    mi.type = toMeterType(meter_type);
+    shared_ptr<Meter> meter = createMeter(&mi);
     meter->printMeter(&t,
                       &ignore1,
                       &ignore2, config->separator,
@@ -711,7 +712,8 @@ void list_shell_envs(Configuration *config, string meter_type)
 void list_fields(Configuration *config, string meter_type)
 {
     MeterInfo mi;
-    shared_ptr<Meter> meter = createMeter(config, toMeterType(meter_type), &mi);
+    mi.type = toMeterType(meter_type);
+    shared_ptr<Meter> meter = createMeter(&mi);
 
     int width = 0;
     for (auto &p : meter->prints())
@@ -1112,8 +1114,8 @@ void setup_meters(Configuration *config, MeterManager *manager)
 {
     for (auto &m : config->meters)
     {
-        auto meter = createMeter(config, toMeterType(m.type), &m);
-        manager->addMeter(meter);
+        m.conversions = config->conversions;
+        manager->addMeterTemplate(m);
     }
 }
 
@@ -1154,23 +1156,19 @@ bool start(Configuration *config)
     // or sent to shell invocations.
     printer_ = create_printer(config);
 
-    meter_manager_ = createMeterManager();
+    meter_manager_ = createMeterManager(config->daemon);
+
+    // When a meter is updated, print it, shell it, log it, etc.
+    meter_manager_->whenMeterUpdated(
+        [&](Telegram *t,Meter *meter)
+        {
+            printer_->print(t, meter, &config->jsons, &config->selected_fields);
+            oneshot_check(config, t, meter);
+        }
+    );
 
     // Create the Meter objects from the configuration.
     setup_meters(config, meter_manager_.get());
-
-    // Attach a received-telegram-callback from the meter and
-    // attach it to the printer.
-    meter_manager_->forEachMeter(
-        [&](Meter *meter)
-        {
-            meter->onUpdate([&](Telegram *t,Meter *meter)
-                            {
-                                printer_->print(t, meter, &config->jsons, &config->selected_fields);
-                                oneshot_check(config, t, meter);
-                            });
-        }
-        );
 
     // Detect and initialize any devices.
     // Future changes are triggered through this callback.

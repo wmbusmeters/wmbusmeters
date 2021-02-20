@@ -725,6 +725,18 @@ bool doesIdMatchExpressions(string id, vector<string>& mes, bool *used_wildcard)
     return false;
 }
 
+string toIdsCommaSeparated(std::vector<std::string> &ids)
+{
+    string cs;
+    for (string& s: ids)
+    {
+        cs += s;
+        cs += ",";
+    }
+    if (cs.length() > 0) cs.pop_back();
+    return cs;
+}
+
 bool isValidKey(string& key, MeterType mt)
 {
     if (key.length() == 0) return true;

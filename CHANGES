@@ -1,4 +1,20 @@
-Version 1.0.6: 2021-02-20
+
+Ignore duplicates is now enabled by default. Turn it off with --ignoreduplicates=false
+
+Fixed problem with state maintaining meter drivers and wildcard ids.
+A HCA driver was producing telegrams with values that jumped up and down.
+This was due to the fact that the meter state in the driver was updated
+through multiple different telegrams (this is how the meter works).
+Clearly a single state object could not properly maintain the state for all
+possible meters matching the wildcard, the state became a random mix
+of whater telegrams arrived.
+
+The fix now, is that a meter C++ object for a uniqe id (not wildcard)
+is created only when the first telegram arrives that matches the wildcard.
+Thus each meter will have its own C++ object, in which the correct state
+is maintained.
+
+Version 1.1.0: 2021-02-20
 
 Vincent Privat added code for properly decoding several types of izar meter.
 He also added full support for the heat meter sharky 775!

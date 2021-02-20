@@ -263,11 +263,16 @@ int test_linkmodes()
 
     Configuration apator_config;
     string apator162 = "apator162";
-    apator_config.meters.push_back(MeterInfo("", "m1", apator162, "12345678", "",
-                                             toMeterLinkModeSet(apator162),
-                                             0,
-                                             no_meter_shells,
-                                             no_meter_jsons));
+    vector<string> ids = { "12345678" };
+    apator_config.meters.push_back(MeterInfo("", // bus
+                                             "m1", // name
+                                             MeterType::APATOR162, // driver/type
+                                             ids, // ids
+                                             "", // Key
+                                             toMeterLinkModeSet(apator162), // link mode set
+                                             0, // baud
+                                             no_meter_shells, // shells
+                                             no_meter_jsons)); // jsons
 
     // Check that if no explicit link modes are provided to apator162, then
     // automatic deduction will fail, since apator162 can be configured to transmit
@@ -301,12 +306,13 @@ int test_linkmodes()
     Configuration multical21_and_supercom587_config;
     string multical21 = "multical21";
     string supercom587 = "supercom587";
-    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m1", multical21, "12345678", "",
+
+    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m1", MeterType::MULTICAL21, ids, "",
                                                                  toMeterLinkModeSet(multical21),
                                                                  0,
                                                                  no_meter_shells,
                                                                  no_meter_jsons));
-    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m2", supercom587, "12345678", "",
+    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m2", MeterType::SUPERCOM587, ids, "",
                                                                  toMeterLinkModeSet(supercom587),
                                                                  0,
                                                                  no_meter_shells,

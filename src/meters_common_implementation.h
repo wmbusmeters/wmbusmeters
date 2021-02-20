@@ -26,9 +26,12 @@
 
 struct MeterCommonImplementation : public virtual Meter
 {
-    vector<string> ids();
-    vector<string> fields();
-    vector<Print> prints();
+    int index();
+    void setIndex(int i);
+    vector<string>& ids();
+    string idsc();
+    vector<string>  fields();
+    vector<Print>   prints();
     string name();
     MeterType type();
 
@@ -41,7 +44,7 @@ struct MeterCommonImplementation : public virtual Meter
     void onUpdate(function<void(Telegram*,Meter*)> cb);
     int numUpdates();
 
-    bool isTelegramForMe(Telegram *t);
+    static bool isTelegramForMeter(Telegram *t, Meter *meter, MeterInfo *mi);
     MeterKeys *meterKeys();
 
     std::vector<std::string> getRecords();
@@ -74,7 +77,7 @@ protected:
     // Print the dimensionless Text quantity, no unit is needed.
     void addPrint(string vname, Quantity vquantity,
                   function<std::string()> getValueFunc, string help, bool field, bool json);
-    bool handleTelegram(AboutTelegram &about, vector<uchar> frame, bool simulated, string *id);
+    bool handleTelegram(AboutTelegram &about, vector<uchar> frame, bool simulated, string *id, bool *id_match);
     void printMeter(Telegram *t,
                     string *human_readable,
                     string *fields, char separator,
@@ -87,12 +90,14 @@ protected:
 
 private:
 
+    int index_ {};
     MeterType type_ {};
     MeterKeys meter_keys_ {};
     ELLSecurityMode expected_ell_sec_mode_ {};
     TPLSecurityMode expected_tpl_sec_mode_ {};
     string name_;
     vector<string> ids_;
+    string idsc_;
     vector<function<void(Telegram*,Meter*)>> on_update_;
     int num_updates_ {};
     time_t datetime_of_update_ {};
