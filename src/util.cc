@@ -744,8 +744,20 @@ bool isValidKey(string& key, MeterType mt)
         key = "";
         return true;
     }
-    if ((mt == MeterType::IZAR && key.length() != 16) ||
-        (mt != MeterType::IZAR && key.length() != 32)) return false;
+    if (mt == MeterType::IZAR ||
+        mt == MeterType::HYDRUS)
+    {
+        // These meters can either be OMS compatible 128 bit key (32 hex).
+        // Or using an older proprietary encryption with 64 bit keys (16 hex)
+        if (key.length() != 16 && key.length() != 32) return false;
+    }
+    else
+    {
+        // OMS compliant meters have 128 bit AES keys (32 hex).
+        // There is a deprecated DES mode, but I have not yet
+        // seen any telegram using that mode.
+        if (key.length() != 32) return false;
+    }
     vector<uchar> tmp;
     return hex2bin(key, &tmp);
 }
