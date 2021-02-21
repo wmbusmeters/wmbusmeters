@@ -754,7 +754,7 @@ void WMBusIM871A::handleRadioLink(int msgid, vector<uchar> &frame, int rssi_dbm)
     case RADIOLINK_MSG_WMBUSMSG_IND: // 0x03
     {
         // Invoke common telegram reception code in WMBusCommonImplementation.
-        AboutTelegram about("im871a["+cached_device_id_+"]", rssi_dbm);
+        AboutTelegram about("im871a["+cached_device_id_+"]", rssi_dbm, FrameType::WMBUS);
         handleTelegram(about, frame);
     }
     break;

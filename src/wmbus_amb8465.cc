@@ -499,7 +499,7 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm)
     switch (msgid) {
     case (0):
     {
-        AboutTelegram about("amb8465["+cached_device_id_+"]", rssi_dbm);
+        AboutTelegram about("amb8465["+cached_device_id_+"]", rssi_dbm, FrameType::WMBUS);
         handleTelegram(about, frame);
         break;
     }

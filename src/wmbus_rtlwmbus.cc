@@ -212,7 +212,7 @@ void WMBusRTLWMBUS::processSerialData()
             }
 
             string id = string("rtlwmbus[")+getDeviceId()+"]";
-            AboutTelegram about(id, rssi);
+            AboutTelegram about(id, rssi, FrameType::WMBUS);
             handleTelegram(about, payload);
         }
     }

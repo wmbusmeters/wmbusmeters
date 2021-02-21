@@ -328,7 +328,7 @@ void WMBusRC1180::processSerialData()
             }
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
             // It should be possible to get the rssi from the dongle.
-            AboutTelegram about("rc1180["+cached_device_id_+"]", 0);
+            AboutTelegram about("rc1180["+cached_device_id_+"]", 0, FrameType::WMBUS);
             handleTelegram(about, payload);
         }
     }

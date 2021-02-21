@@ -322,6 +322,12 @@ struct MeterKeys
     bool hasAuthenticationKey() { return authentication_key.size() > 0; }
 };
 
+enum class FrameType
+{
+    WMBUS,
+    MBUS
+};
+
 struct AboutTelegram
 {
     // wmbus device used to receive this telegram.
@@ -330,8 +336,10 @@ struct AboutTelegram
     // -100 dbm = 0.1 pico Watt to -20 dbm = 10 micro W
     // Measurements smaller than -100 and larger than -10 are unlikely.
     int rssi_dbm {};
+    // WMBus or MBus
+    FrameType type {};
 
-    AboutTelegram(string dv, int rs) : device(dv), rssi_dbm(rs) {}
+    AboutTelegram(string dv, int rs, FrameType t) : device(dv), rssi_dbm(rs), type(t) {}
     AboutTelegram() {}
 };
 
@@ -644,6 +652,11 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
                             size_t *frame_length,
                             int *payload_len_out,
                             int *payload_offset);
+
+FrameStatus checkMBusFrame(vector<uchar> &data,
+                           size_t *frame_length,
+                           int *payload_len_out,
+                           int *payload_offset);
 
 AccessCheck reDetectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 

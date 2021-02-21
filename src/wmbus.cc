@@ -4092,6 +4092,79 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
     return FullFrame;
 }
 
+FrameStatus checkMBusFrame(vector<uchar> &data,
+                           size_t *frame_length,
+                           int *payload_len_out,
+                           int *payload_offset)
+{
+    // Example:
+    // E5
+    // 68383868 start length 0x38 = 56
+    // 56 bytes of payload data:
+    // 080072840200102941011B010000000265AE084265C208B20165000002FB1A450142FB1A4C01B201FB1A00000C788402001002FD0F21000F
+    // 5E checksum
+    // 16 stop
+
+    debugPayload("(wmbus) checkMBUSFrame\n", data);
+
+    if (data.size() > 0 && data[0] == 0xe5)
+    {
+        // Single character confirmation frame.
+        *payload_len_out = 0;
+        *payload_offset = 0;
+        *frame_length = 1;
+        debug("(wmbus) received E5 single byte frame.\n");
+        return FullFrame;
+    }
+    if (data.size() < 6)
+    {
+        // 4 byte start, 1 checksum, 1 stop
+        debug("(wmbus) less than 6 bytes, partial frame\n");
+        return PartialFrame;
+    }
+    if (data[0] != 0x68 && data[3] != 0x68)
+    {
+        verbose("(wmbus) no 0x68 byte found, clearing buffer.\n");
+        data.clear();
+        return ErrorInFrame;
+    }
+
+    if (data[1] != data[2])
+    {
+        verbose("(wmbus) lengths not matching, clearing buffer.\n");
+        data.clear();
+        return ErrorInFrame;
+    }
+    int payload_len = data[1];
+    *frame_length = payload_len+4+1+1; // start(4)+cs(1)+stop(1)
+    if (data.size() < *frame_length)
+    {
+        debug("(wmbus) not enough bytes, partial frame %d %d\n", data.size(), *frame_length);
+        return PartialFrame;
+    }
+    uchar stop = data[*frame_length-1];
+    if (stop != 0x16)
+    {
+        verbose("(wmbus) stop byte (0x%02x) at pos %d is not 0x16, clearing buffer.\n", stop, *frame_length-1);
+        data.clear();
+        return ErrorInFrame;
+    }
+    uchar csc = 0;
+    for (size_t i=4; i<(*frame_length-2); ++i) csc += data[i];
+    uchar cs = data[*frame_length-2];
+    if (cs != csc)
+    {
+        verbose("(wmbus) expected checksum 0x%02x but got 0x%02x, clearing buffer.\n", csc, cs);
+        data.clear();
+        return ErrorInFrame;
+    }
+
+    *payload_len_out = *frame_length-6;
+    *payload_offset = 4;
+    debug("(wmbus) received full frame.\n");
+    return FullFrame;
+}
+
 string decodeTPLStatusByte(uchar sts, map<int,string> vendor_lookup)
 {
     string s;

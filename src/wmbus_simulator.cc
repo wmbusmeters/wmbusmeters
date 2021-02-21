@@ -164,7 +164,7 @@ void WMBusSimulator::simulate()
         {
             error("Not a valid string of hex bytes! \"%s\"\n", l.c_str());
         }
-        AboutTelegram about("", 0);
+        AboutTelegram about("", 0, FrameType::WMBUS);
         handleTelegram(about, payload);
     }
     manager_->stop();
