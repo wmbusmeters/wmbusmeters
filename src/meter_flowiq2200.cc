@@ -316,7 +316,7 @@ void MeterFlowIQ2200::processContent(Telegram *t)
 (flowiq2200) 4c: 67 vif (External temperature °C)
 (flowiq2200) 4d: * 13 external temperature (19.000000 °C)
     */
-    string meter_name = toMeterName(type()).c_str();
+    string meter_name = toMeterDriver(type()).c_str();
 
     int offset;
     string key;
@@ -473,7 +473,7 @@ string MeterFlowIQ2200::statusHumanReadable()
 string MeterFlowIQ2200::decodeTime(int time)
 {
     if (time>7) {
-        string meter_name = toMeterName(type()).c_str();
+        string meter_name = toMeterDriver(type()).c_str();
         warning("(%s) warning: Cannot decode time %d should be 0-7.\n", meter_name.c_str(), time);
     }
     switch (time) {

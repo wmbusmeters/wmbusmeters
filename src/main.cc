@@ -690,6 +690,7 @@ void list_shell_envs(Configuration *config, string meter_type)
     string ignore1, ignore2, ignore3;
     vector<string> envs;
     Telegram t;
+    t.about.device = "?";
     MeterInfo mi;
     mi.type = toMeterType(meter_type);
     shared_ptr<Meter> meter = createMeter(&mi);

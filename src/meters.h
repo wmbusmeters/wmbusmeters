@@ -258,7 +258,7 @@ struct Meter
     // This meter can report these fields, like total_m3, temp_c.
     virtual vector<string> fields() = 0;
     virtual vector<Print> prints() = 0;
-    virtual string meterName() = 0;
+    virtual string meterDriver() = 0;
     virtual string name() = 0;
     virtual MeterType type() = 0;
 
@@ -403,7 +403,7 @@ struct PulseCounter : public virtual Meter
 struct Generic : public virtual Meter {
 };
 
-string toMeterName(MeterType mt);
+string toMeterDriver(MeterType mt);
 MeterType toMeterType(string& type);
 LinkModeSet toMeterLinkModeSet(string& type);
 

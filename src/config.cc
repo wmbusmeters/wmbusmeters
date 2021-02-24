@@ -660,7 +660,7 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, WMBus *wmbus
     {
         meters_union.unionLinkModeSet(m.link_modes);
         string meter = m.link_modes.hr();
-        debug("(config) meter %s link mode(s): %s\n", toMeterName(m.type).c_str(), meter.c_str());
+        debug("(config) meter %s link mode(s): %s\n", toMeterDriver(m.type).c_str(), meter.c_str());
     }
     string metersu = meters_union.hr();
     debug("(config) all possible link modes that the meters might transmit on: %s\n", metersu.c_str());

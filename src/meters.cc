@@ -142,7 +142,7 @@ public:
                         verbose("(meter) used meter template %s %s %s to match %s\n",
                                 mi.name.c_str(),
                                 mi.idsc.c_str(),
-                                toMeterName(mi.type).c_str(),
+                                toMeterDriver(mi.type).c_str(),
                                 idsc.c_str());
 
                         if (is_daemon_)
@@ -151,7 +151,7 @@ public:
                                    meter->index(),
                                    mi.name.c_str(),
                                    tmp.idsc.c_str(),
-                                   toMeterName(mi.type).c_str());
+                                   toMeterDriver(mi.type).c_str());
                         }
                         else
                         {
@@ -159,7 +159,7 @@ public:
                                    meter->index(),
                                    mi.name.c_str(),
                                    tmp.idsc.c_str(),
-                                   toMeterName(mi.type).c_str());
+                                   toMeterDriver(mi.type).c_str());
                         }
 
                         bool match = false;
@@ -170,7 +170,7 @@ public:
                             // but it still did not match! This is probably an error in wmbusmeters!
                             warning("(meter) newly created meter (%s %s %s) did not match telegram! ",
                                     "Please open an issue at https://github.com/weetmuts/wmbusmeters/\n",
-                                    meter->name().c_str(), meter->idsc().c_str(), toMeterName(meter->type()).c_str());
+                                    meter->name().c_str(), meter->idsc().c_str(), toMeterDriver(meter->type()).c_str());
                         }
                         else if (!h)
                         {
@@ -178,7 +178,7 @@ public:
                             // but it still did not handle it! This can happen if the wrong
                             // decryption key was used.
                             warning("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
-                                    meter->name().c_str(), meter->idsc().c_str(), toMeterName(meter->type()).c_str());
+                                    meter->name().c_str(), meter->idsc().c_str(), toMeterDriver(meter->type()).c_str());
                         }
                         else
                         {
@@ -347,7 +347,7 @@ string MeterCommonImplementation::datetimeOfUpdateRobot()
     return string(datetime);
 }
 
-string toMeterName(MeterType mt)
+string toMeterDriver(MeterType mt)
 {
 #define X(mname,link,info,type,cname) if (mt == MeterType::type) return #mname;
 LIST_OF_METERS
@@ -438,7 +438,7 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
             warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n"
                     "(meter) Not printing this warning agin for id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                     name.c_str(),
-                    toMeterName(type).c_str(),
+                    toMeterDriver(type).c_str(),
                     possible_drivers.c_str(),
                     t->dll_id_b[3], t->dll_id_b[2], t->dll_id_b[1], t->dll_id_b[0],
                     manufacturerFlag(t->dll_mfct).c_str(),
@@ -641,7 +641,7 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     }
 
     *id_match = true;
-    verbose("(meter) %s %s handling telegram from %s\n", name().c_str(), meterName().c_str(), t.ids.back().c_str());
+    verbose("(meter) %s %s handling telegram from %s\n", name().c_str(), meterDriver().c_str(), t.ids.back().c_str());
 
     if (isDebugEnabled())
     {
@@ -657,7 +657,7 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     }
 
     char log_prefix[256];
-    snprintf(log_prefix, 255, "(%s) log", meterName().c_str());
+    snprintf(log_prefix, 255, "(%s) log", meterDriver().c_str());
     logTelegram(t.original, t.frame, t.header_size, t.suffix_size);
 
     // Invoke meter specific parsing!
@@ -667,7 +667,7 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     if (isDebugEnabled())
     {
         char log_prefix[256];
-        snprintf(log_prefix, 255, "(%s)", meterName().c_str());
+        snprintf(log_prefix, 255, "(%s)", meterDriver().c_str());
         t.explainParse(log_prefix, 0);
     }
     triggerUpdate(&t);
@@ -685,24 +685,24 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     *human_readable = concatFields(this, t, '\t', prints_, conversions_, true, selected_fields);
     *fields = concatFields(this, t, separator, prints_, conversions_, false, selected_fields);
 
-    string mfct;
+    string media;
     if (t->tpl_id_found)
     {
-        mfct = mediaTypeJSON(t->tpl_type, t->tpl_mfct);
+        media = mediaTypeJSON(t->tpl_type, t->tpl_mfct);
     }
     else if (t->ell_id_found)
     {
-        mfct = mediaTypeJSON(t->ell_type, t->ell_mfct);
+        media = mediaTypeJSON(t->ell_type, t->ell_mfct);
     }
     else
     {
-        mfct = mediaTypeJSON(t->dll_type, t->dll_mfct);
+        media = mediaTypeJSON(t->dll_type, t->dll_mfct);
     }
 
     string s;
     s += "{";
-    s += "\"media\":\""+mfct+"\",";
-    s += "\"meter\":\""+meterName()+"\",";
+    s += "\"media\":\""+media+"\",";
+    s += "\"meter\":\""+meterDriver()+"\",";
     s += "\"name\":\""+name()+"\",";
     if (t->ids.size() > 0)
     {
@@ -754,8 +754,6 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     *json = s;
 
     envs->push_back(string("METER_JSON=")+*json);
-    envs->push_back(string("METER_TYPE=")+meterName());
-    envs->push_back(string("METER_NAME=")+name());
     if (t->ids.size() > 0)
     {
         envs->push_back(string("METER_ID=")+t->ids.back());
@@ -763,6 +761,15 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     else
     {
         envs->push_back(string("METER_ID="));
+    }
+    envs->push_back(string("METER_NAME=")+name());
+    envs->push_back(string("METER_MEDIA=")+media);
+    envs->push_back(string("METER_TYPE=")+meterDriver());
+    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
+    if (t->about.device != "")
+    {
+        envs->push_back(string("METER_DEVICE=")+t->about.device);
+        envs->push_back(string("METER_RSSI_DBM=")+to_string(t->about.rssi_dbm));
     }
 
     for (Print p : prints_)
@@ -790,7 +797,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
             }
         }
     }
-    envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
+
     // If the configuration has supplied json_address=Roodroad 123
     // then the env variable METER_address will available and have the content "Roodroad 123"
     for (string add_json : additionalJsons())
@@ -863,7 +870,7 @@ ELLSecurityMode MeterCommonImplementation::expectedELLSecurityMode()
 
 void detectMeterDriver(int manufacturer, int media, int version, vector<string> *drivers)
 {
-#define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { drivers->push_back(toMeterName(MeterType::TY)); }}
+#define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { drivers->push_back(toMeterDriver(MeterType::TY)); }}
 METER_DETECTION
 #undef X
 }
@@ -898,7 +905,7 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
 LIST_OF_METERS
 #undef X
     case MeterType::UNKNOWN:
-        error("No such meter type \"%s\"\n", toMeterName(mi->type).c_str());
+        error("No such meter type \"%s\"\n", toMeterDriver(mi->type).c_str());
         break;
     }
     return newm;
