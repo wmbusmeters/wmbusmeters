@@ -74,14 +74,15 @@ void setIgnoreDuplicateTelegrams(bool idt);
     X(Any,any,--anylinkmode,0xffff)             \
     X(C1,c1,--c1,0x1)                           \
     X(S1,s1,--s1,0x2)                           \
-    X(S1m,s1m,--s1m,0x4)                       \
-    X(T1,t1,--t1,0x8)                          \
-    X(N1a,n1a,--n1a,0x10)                      \
-    X(N1b,n1b,--n1b,0x20)                      \
-    X(N1c,n1c,--n1c,0x40)                      \
-    X(N1d,n1d,--n1d,0x80)                      \
-    X(N1e,n1e,--n1e,0x100)                     \
-    X(N1f,n1f,--n1f,0x200)                     \
+    X(S1m,s1m,--s1m,0x4)                        \
+    X(T1,t1,--t1,0x8)                           \
+    X(N1a,n1a,--n1a,0x10)                       \
+    X(N1b,n1b,--n1b,0x20)                       \
+    X(N1c,n1c,--n1c,0x40)                       \
+    X(N1d,n1d,--n1d,0x80)                       \
+    X(N1e,n1e,--n1e,0x100)                      \
+    X(N1f,n1f,--n1f,0x200)                      \
+    X(MBUS,mbus,--mbus,0x400)                   \
     X(UNKNOWN,unknown,----,0x0)
 
 enum class LinkMode {
@@ -454,6 +455,10 @@ struct Telegram
 
     bool parseHeader(vector<uchar> &input_frame);
     bool parse(vector<uchar> &input_frame, MeterKeys *mk, bool warn);
+
+    bool parseMBusHeader(vector<uchar> &input_frame);
+    bool parseMBus(vector<uchar> &input_frame, MeterKeys *mk, bool warn);
+
     void print();
 
     // A vector of indentations and explanations, to be printed
@@ -482,6 +487,8 @@ private:
 
     // Fixes quirks from non-compliant meters to make telegram compatible with the standard
     void preProcess();
+
+    bool parseMBusDLL(std::vector<uchar>::iterator &pos);
 
     bool parseDLL(std::vector<uchar>::iterator &pos);
     bool parseELL(std::vector<uchar>::iterator &pos);

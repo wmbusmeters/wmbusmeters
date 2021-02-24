@@ -173,6 +173,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_multical603.o \
 	$(BUILD)/meter_multical803.o \
 	$(BUILD)/meter_omnipower.o \
+	$(BUILD)/meter_piigth.o \
 	$(BUILD)/meter_q400.o \
 	$(BUILD)/meter_qcaloric.o \
 	$(BUILD)/meter_rfmamb.o \

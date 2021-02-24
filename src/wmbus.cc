@@ -787,6 +787,36 @@ bool expectedMore(int line)
     return false;
 }
 
+bool Telegram::parseMBusDLL(vector<uchar>::iterator &pos)
+{
+    int remaining = distance(pos, frame.end());
+    if (remaining == 0) return expectedMore(__LINE__);
+
+    debug("(wmbus) parseDLL @%d %d\n", distance(frame.begin(), pos), remaining);
+    dll_len = *pos;
+    if (remaining < dll_len) return expectedMore(__LINE__);
+    addExplanationAndIncrementPos(pos, 1, "%02x length (%d bytes)", dll_len, dll_len);
+
+    dll_c = *pos;
+    addExplanationAndIncrementPos(pos, 1, "%02x dll-c (%s)", dll_c, cType(dll_c).c_str());
+
+    dll_a.resize(6);
+    for (int i=0; i<6; ++i) dll_a[i] = 0;
+    dll_id.resize(4);
+    for (int i=0; i<4; ++i) dll_id[i] = 0;
+    dll_a[0] = *pos;
+    dll_id[0] = *pos;
+
+    addExplanationAndIncrementPos(pos, 1, "%02x dll-a (%d)", dll_a[0], dll_a[0]);
+
+    // Add dll_id to ids.
+    string id = tostrprintf("%02x", dll_a[0]);
+    ids.push_back(id);
+    idsc = id;
+
+    return true;
+}
+
 bool Telegram::parseDLL(vector<uchar>::iterator &pos)
 {
     int remaining = distance(pos, frame.end());
@@ -1728,6 +1758,56 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
 
     printTPL();
     if (decryption_failed) return false;
+
+    return true;
+}
+
+bool Telegram::parseMBusHeader(vector<uchar> &input_frame)
+{
+    bool ok;
+    assert(about.type == FrameType::MBUS);
+    // Parsing the header is used to extract the ids, so that we can
+    // match the telegram towards any known ids and thus keys.
+    // No need to warn.
+    parser_warns_ = false;
+    decryption_failed = false;
+    explanations.clear();
+    frame = input_frame;
+    vector<uchar>::iterator pos = frame.begin();
+    // Parsed accumulates parsed bytes.
+    parsed.clear();
+
+    ok = parseMBusDLL(pos);
+    if (!ok) return false;
+
+    return true;
+}
+
+bool Telegram::parseMBus(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
+{
+    assert(about.type == FrameType::MBUS);
+    parser_warns_ = warn;
+    decryption_failed = false;
+    explanations.clear();
+    meter_keys = mk;
+    assert(meter_keys != NULL);
+    bool ok;
+    frame = input_frame;
+    vector<uchar>::iterator pos = frame.begin();
+    // Parsed accumulates parsed bytes.
+    parsed.clear();
+    // Fixes quirks from non-compliant meters to make telegram compatible with the standard
+    preProcess();
+    //     ┌──────────────────────────────────────────────┐
+    //     │                                              │
+    //     │ Parse DLL Data Link Layer for Wireless MBUS. │
+    //     │                                              │
+    //     └──────────────────────────────────────────────┘
+
+    ok = parseMBusDLL(pos);
+    if (!ok) return false;
+
+    printDLL();
 
     return true;
 }
@@ -4566,15 +4646,15 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
         return detected;
     }
 
-    // Special case to cater for /dev/ttyUSB0:mbus:9600, ie an mbus master device.
+    // Special case to cater for /dev/ttyUSB0:mbus:2400, ie an mbus master device.
     if (specified_device.type == WMBusDeviceType::DEVICE_MBUS)
     {
         debug("(lookup) driver: mbus\n");
         int bps = atoi(specified_device.bps.c_str());
         if (bps < 300)
         {
-            // Default to 9600. This will be adjusted every time the meters are probed.
-            bps = 9600;
+            // Default to 2400. This will be adjusted every time the meters are probed.
+            bps = 2400;
         }
         detected.setAsFound("", DEVICE_MBUS, bps, false, false, lms);
         return detected;
