@@ -678,25 +678,45 @@ void test_devices()
 
 }
 
-void test_months()
+void test_month(int y, int m, int day, int mdiff, string from, string to)
 {
     struct tm date;
-    date.tm_year  = 2020-1900;
-    date.tm_mon = 12-1;
-    date.tm_mday   = 31;
+    date.tm_year  = y-1900;
+    date.tm_mon   = m-1;
+    date.tm_mday  = day;
 
     string s = strdate(&date);
 
     struct tm d;
     d = date;
-    addMonths(&d, -10);
+    addMonths(&d, mdiff);
 
     string os = strdate(&d);
 
-    if (s != "2020-12-31" ||
-        os != "2020-02-29")
+    if (s != from ||
+        os != to)
     {
-        printf("ERROR! Expected 2020-12-31 - 10 months should be 2020-02-29\n"
-               "But got %s - 11 = %s\n", s.c_str(), os.c_str());
+        printf("ERROR! Expected %s + %d months should be %s\n"
+               "But got %s - 11 = %s\n",
+               from.c_str(), mdiff, to.c_str(),
+               s.c_str(), os.c_str());
     }
+}
+
+void test_months()
+{
+    test_month(2020,12,31, 2, "2020-12-31", "2021-02-28");
+    test_month(2020,12,31,-10, "2020-12-31", "2020-02-29");
+    test_month(2021,01,31,-1,  "2021-01-31", "2020-12-31");
+    test_month(2021,01,31,-2,  "2021-01-31", "2020-11-30");
+    test_month(2021,01,31,-24, "2021-01-31", "2019-01-31");
+    test_month(2021,01,31, 24, "2021-01-31", "2023-01-31");
+    test_month(2021,01,31, 22, "2021-01-31", "2022-11-30");
+
+    // 2020 was a leap year.
+    test_month(2021,02,28, -12, "2021-02-28", "2020-02-29");
+    // 2000 was a leap year %100=0 but %400=0 overrides.
+    test_month(2001,02,28, -12, "2001-02-28", "2000-02-29");
+    // 2100 is not a leap year since %100=0 and not overriden %400 != 0.
+    test_month(2000,02,29, 12*100, "2000-02-29", "2100-02-28");
 }

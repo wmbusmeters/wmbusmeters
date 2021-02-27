@@ -1251,6 +1251,7 @@ string strdatetimesec(struct tm *datetime)
 
 bool is_leap_year(int year)
 {
+    year += 1900;
     if (year % 4 != 0) return false;
     if (year % 400 == 0) return true;
     if (year % 100 == 0) return false;
@@ -1282,10 +1283,16 @@ void addMonths(struct tm *date, int months)
     int year = date->tm_year + months / 12;
     int month = date->tm_mon + months % 12;
 
-    if (month > 11)
+    while (month > 11)
     {
         year += 1;
         month -= 12;
+    }
+
+    while (month < 0)
+    {
+        year -= 1;
+        month += 12;
     }
 
     int day;
