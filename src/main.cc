@@ -345,53 +345,8 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
         break;
     case DEVICE_RTLWMBUS:
     {
-        string command;
         string identifier = detected->found_device_id;
-        int id = 0;
-
-        if (!detected->found_tty_override)
-        {
-            id = indexFromRtlSdrSerial(identifier);
-
-            command = "";
-            if (detected->found_command != "")
-            {
-                command = detected->found_command;
-                identifier = "cmd_"+to_string(detected->specified_device.index);
-            }
-            string freq = "868.95M";
-            if (detected->specified_device.fq != "")
-            {
-                freq = detected->specified_device.fq;
-            }
-            string prefix = "";
-            if (config->daemon)
-            {
-                prefix = "/usr/bin/";
-                if (command == "")
-                {
-                    // Default command is used, check that the binaries are in place.
-                    if (!checkFileExists("/usr/bin/rtl_sdr"))
-                    {
-                        error("(rtlwmbus) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_sdr to exist!\n");
-                    }
-                    if (!checkFileExists("/usr/bin/rtl_wmbus"))
-                    {
-                        error("(rtlwmbus) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_wmbus to exist!\n");
-                    }
-                }
-            }
-            if (command == "") {
-                command = prefix+"rtl_sdr -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+prefix+"rtl_wmbus";
-            }
-            verbose("(rtlwmbus) using command: %s\n", command.c_str());
-        }
-        wmbus = openRTLWMBUS(identifier, command, manager,
-                             [command](){
-                                 warning("(rtlwmbus) child process exited! "
-                                         "Command was: \"%s\"\n", command.c_str());
-                             },
-                             serial_override);
+        wmbus = openRTLWMBUS(identifier, detected->specified_device, config->daemon, manager, serial_override);
         break;
     }
     case DEVICE_RTL433:
@@ -430,12 +385,7 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
             }
             verbose("(rtl433) using command: %s\n", command.c_str());
         }
-        wmbus = openRTL433(identifier, command, manager,
-                             [command](){
-                                 warning("(rtl433) child process exited! "
-                                         "Command was: \"%s\"\n", command.c_str());
-                             },
-                             serial_override);
+        wmbus = openRTL433(identifier, command, manager, serial_override);
         break;
     }
     case DEVICE_CUL:
@@ -818,7 +768,7 @@ void open_bus_device_and_potentially_set_linkmodes(Configuration *config, string
     if (fq != "") fq = " using fq "+fq;
     string file = detected->found_file.c_str();
     if (file != "") file = " on "+file;
-    string cmd = detected->found_command.c_str();
+    string cmd = detected->specified_device.command.c_str();
     if (cmd != "")
     {
         cmd = " using CMD("+cmd+")";

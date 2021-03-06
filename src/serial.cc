@@ -72,8 +72,8 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
     ~SerialCommunicationManagerImp();
 
     shared_ptr<SerialDevice> createSerialDeviceTTY(string dev, int baud_rate, PARITY parity, string purpose);
-    shared_ptr<SerialDevice> createSerialDeviceCommand(string identifier, string command, vector<string> args, vector<string> envs,
-                                                       function<void()> on_exit, string purpose);
+    shared_ptr<SerialDevice> createSerialDeviceCommand(string identifier, string command, vector<string> args,
+                                                       vector<string> envs, string purpose);
     shared_ptr<SerialDevice> createSerialDeviceFile(string file, string purpose);
     shared_ptr<SerialDevice> createSerialDeviceSimulator();
 
@@ -418,7 +418,6 @@ struct SerialDeviceCommand : public SerialDeviceImp
 {
     SerialDeviceCommand(string identifier, string command, vector<string> args, vector<string> envs,
                         SerialCommunicationManagerImp *manager,
-                        function<void()> on_exit,
                         string purpose);
     ~SerialDeviceCommand();
 
@@ -440,7 +439,6 @@ struct SerialDeviceCommand : public SerialDeviceImp
 
     pthread_mutex_t write_lock_ = PTHREAD_MUTEX_INITIALIZER;
     pthread_mutex_t read_lock_ = PTHREAD_MUTEX_INITIALIZER;
-    function<void()> on_exit_;
 };
 
 SerialDeviceCommand::SerialDeviceCommand(string identifier,
@@ -448,7 +446,6 @@ SerialDeviceCommand::SerialDeviceCommand(string identifier,
                                          vector<string> args,
                                          vector<string> envs,
                                          SerialCommunicationManagerImp *manager,
-                                         function<void()> on_exit,
                                          string purpose)
     : SerialDeviceImp(manager, purpose)
 {
@@ -457,7 +454,6 @@ SerialDeviceCommand::SerialDeviceCommand(string identifier,
     command_ = command;
     args_ = args;
     envs_ = envs;
-    on_exit_ = on_exit;
 }
 
 SerialDeviceCommand::~SerialDeviceCommand()
@@ -704,10 +700,9 @@ shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceComman
                                                                                   string command,
                                                                                   vector<string> args,
                                                                                   vector<string> envs,
-                                                                                  function<void()> on_exit,
                                                                                   string purpose)
 {
-    return addSerialDeviceForManagement(new SerialDeviceCommand(identifier, command, args, envs, this, on_exit, purpose));
+    return addSerialDeviceForManagement(new SerialDeviceCommand(identifier, command, args, envs, this, purpose));
 }
 
 shared_ptr<SerialDevice> SerialCommunicationManagerImp::createSerialDeviceFile(string file, string purpose)

@@ -18,6 +18,7 @@
 #include"wmbus.h"
 #include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
+#include"rtlsdr.h"
 #include"serial.h"
 
 #include<assert.h>
@@ -79,10 +80,52 @@ private:
     string setup_;
 };
 
-shared_ptr<WMBus> openRTLWMBUS(string serialnr, string command, shared_ptr<SerialCommunicationManager> manager,
-                               function<void()> on_exit, shared_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openRTLWMBUS(string identifier, SpecifiedDevice device, bool daemon,
+                               shared_ptr<SerialCommunicationManager> manager,
+                               shared_ptr<SerialDevice> serial_override)
 {
-    debug("(rtlwmbus) opening %s\n", serialnr.c_str());
+    string command;
+    int id = 0;
+
+    if (!serial_override)
+    {
+        id = indexFromRtlSdrSerial(identifier);
+
+        command = "";
+        if (device.command != "")
+        {
+            command = device.command;
+            identifier = "cmd_"+to_string(device.index);
+        }
+        string freq = "868.95M";
+        if (device.fq != "")
+        {
+            freq = device.fq;
+        }
+        string prefix = "";
+        if (daemon)
+        {
+            prefix = "/usr/bin/";
+            if (command == "")
+            {
+                // Default command is used, check that the binaries are in place.
+                if (!checkFileExists("/usr/bin/rtl_sdr"))
+                {
+                    error("(rtlwmbus) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_sdr to exist!\n");
+                }
+                if (!checkFileExists("/usr/bin/rtl_wmbus"))
+                {
+                    error("(rtlwmbus) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_wmbus to exist!\n");
+                }
+            }
+        }
+        if (command == "") {
+            command = prefix+"rtl_sdr -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+prefix+"rtl_wmbus";
+        }
+        verbose("(rtlwmbus) using command: %s\n", command.c_str());
+    }
+
+    debug("(rtlwmbus) opening %s\n", identifier.c_str());
 
     vector<string> args;
     vector<string> envs;
@@ -90,12 +133,12 @@ shared_ptr<WMBus> openRTLWMBUS(string serialnr, string command, shared_ptr<Seria
     args.push_back(command);
     if (serial_override)
     {
-        WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(serialnr, serial_override, manager);
+        WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(identifier, serial_override, manager);
         imp->markSerialAsOverriden();
         return shared_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceCommand(serialnr, "/bin/sh", args, envs, on_exit, "rtlwmbus");
-    WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(serialnr, serial, manager);
+    auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, "rtlwmbus");
+    WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(identifier, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 

@@ -75,7 +75,7 @@ private:
 };
 
 shared_ptr<WMBus> openRTL433(string identifier, string command, shared_ptr<SerialCommunicationManager> manager,
-                             function<void()> on_exit, shared_ptr<SerialDevice> serial_override)
+                             shared_ptr<SerialDevice> serial_override)
 {
     assert(identifier != "");
     vector<string> args;
@@ -87,7 +87,7 @@ shared_ptr<WMBus> openRTL433(string identifier, string command, shared_ptr<Seria
         WMBusRTL433 *imp = new WMBusRTL433(serial_override, manager);
         return shared_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, on_exit, "rtl433");
+    auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, "rtl433");
     WMBusRTL433 *imp = new WMBusRTL433(serial, manager);
     return shared_ptr<WMBus>(imp);
 }

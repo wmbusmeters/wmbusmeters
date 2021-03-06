@@ -156,6 +156,7 @@ struct SpecifiedDevice
     bool is_tty{}, is_stdin{}, is_file{}, is_simulation{};
     WMBusDeviceType type; // im871a, rtlwmbus
     std::string id; // 12345678 for wmbus dongles or 0,1 for rtlwmbus indexes.
+    std::string extras; // Extra device specific settings.
     std::string fq; // 868.95M
     std::string bps; // 9600
     LinkModeSet linkmodes; // c1,t1,s1
@@ -180,7 +181,6 @@ struct Detected
     int found_bps {}; // Serial speed of tty, overrides
     bool found_tty_override {}; // override tty
     bool found_cmd_override {}; // override cmd
-    string found_command;
 
     void setSpecifiedDevice(SpecifiedDevice sd)
     {
@@ -599,9 +599,9 @@ shared_ptr<WMBus> openMBUS(string device, int baudrate, shared_ptr<SerialCommuni
                            shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRC1180(string device, shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openRTLWMBUS(string identifier, string command, shared_ptr<SerialCommunicationManager> manager, std::function<void()> on_exit,
-                               shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openRTL433(string identifier, string command, shared_ptr<SerialCommunicationManager> manager, std::function<void()> on_exit,
+shared_ptr<WMBus> openRTLWMBUS(string identifier, SpecifiedDevice device, bool daemon,
+                               shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openRTL433(string identifier, string command, shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> manager,
                               shared_ptr<SerialDevice> serial_override);

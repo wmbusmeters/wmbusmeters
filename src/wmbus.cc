@@ -4378,11 +4378,11 @@ bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_
     return false;
 }
 
-bool is_type_id(string t, WMBusDeviceType *out_type, string *out_id)
+bool is_type_id_extras(string t, WMBusDeviceType *out_type, string *out_id, string *out_extras)
 {
-    // im871a im871a[12345678]
+    // im871a im871a[12345678] im871a(foo=123)
     // auto
-    // rtlwmbus rtlwmbus[plast123]
+    // rtlwmbus rtlwmbus[plast123] rtlwmbus(device extras) rtlwmbus[hej](extras)
     if (t == "auto")
     {
         *out_type = WMBusDeviceType::DEVICE_AUTO;
@@ -4390,12 +4390,20 @@ bool is_type_id(string t, WMBusDeviceType *out_type, string *out_id)
         return true;
     }
 
-    size_t pps = t.find('[');
-    size_t ppe = t.find(']');
+    size_t bs = t.find('[');
+    size_t be = t.find(']');
 
-    if (pps == string::npos && ppe == string::npos)
+    size_t ps = t.find('(');
+    size_t pe = t.find(')');
+
+    size_t te = 0; // Position after type end.
+
+    bool found_brackets = (bs != string::npos && be != string::npos);
+    bool found_parentheses = (ps != string::npos && pe != string::npos);
+
+    if (!found_brackets && !found_parentheses)
     {
-        // No brackets found, is t a known wmbus device? like im871a amb8465 etc....
+        // No brackets nor parentheses found, is t a known wmbus device? like im871a amb8465 etc....
         WMBusDeviceType tt = toWMBusDeviceType(t);
         if (tt == DEVICE_UNKNOWN) return false;
         *out_type = toWMBusDeviceType(t);
@@ -4403,20 +4411,47 @@ bool is_type_id(string t, WMBusDeviceType *out_type, string *out_id)
         return true;
     }
 
-    if (pps != string::npos && ppe != string::npos &&
-        pps > 0  && pps < ppe && ppe == t.length()-1)
+    if (found_brackets && !found_parentheses)
     {
-        string type = t.substr(0, pps);
-        string id = t.substr(pps+1, ppe-pps-1);
-        WMBusDeviceType tt = toWMBusDeviceType(type);
-        if (tt == DEVICE_UNKNOWN) return false;
-        *out_type = toWMBusDeviceType(type);
-        *out_id = id;
-        return true;
+        // Bracketed id must be last.
+        if (! (bs > 0 && bs < be && be == t.length()-1)) return false;
+        te = bs;
     }
 
-    // Some oddball combination of parentheses were found, give up.
-    return false;
+    if (found_brackets && found_parentheses)
+    {
+        // Bracketed id must be second last. Parentheses immediately after bracket.
+        if (! (bs > 0 && bs < be &&
+               ps == be+1 && ps < pe &&
+               pe == t.length()-1)) return false;
+        te = bs;
+    }
+
+    if (!found_brackets && found_parentheses)
+    {
+        // Parentheses must be last.
+        if (! (ps > 0 && ps < pe && pe == t.length()-1)) return false;
+        te = ps;
+    }
+
+    string type = t.substr(0, te);
+    WMBusDeviceType tt = toWMBusDeviceType(type);
+    if (tt == DEVICE_UNKNOWN) return false;
+    *out_type = toWMBusDeviceType(type);
+
+    if (found_brackets)
+    {
+        string id = t.substr(bs+1, be-bs-1);
+        *out_id = id;
+    }
+
+    if (found_parentheses)
+    {
+        string extras = t.substr(ps+1, pe-ps-1);
+        *out_extras = extras;
+    }
+
+    return true;
 }
 
 void SpecifiedDevice::clear()
@@ -4424,6 +4459,7 @@ void SpecifiedDevice::clear()
     file = "";
     type = WMBusDeviceType::DEVICE_UNKNOWN;
     id = "";
+    extras = "";
     fq = "";
     linkmodes.clear();
 }
@@ -4438,6 +4474,10 @@ string SpecifiedDevice::str()
         if (id != "")
         {
             r += "["+id+"]";
+        }
+        if (extras != "")
+        {
+            r += "("+extras+")";
         }
         r += ":";
     }
@@ -4482,7 +4522,7 @@ bool SpecifiedDevice::parse(string &arg)
     }
 
     bool file_checked = false;
-    bool typeid_checked = false;
+    bool typeidextras_checked = false;
     bool bps_checked = false;
     bool fq_checked = false;
     bool linkmodes_checked = false;
@@ -4493,12 +4533,12 @@ bool SpecifiedDevice::parse(string &arg)
     vector<string> parts = splitString(arg, ':');
 
     // Most maxed out device spec, though not valid, since file+cmd is not allowed.
-    // Example /dev/ttyUSB0:im871a[12345678]:9600:868.95M:c1,t1:CMD(rtl_433 -F csv -f 123M)
+    // Example /dev/ttyUSB0:im871a[12345678](device=extras):9600:868.95M:c1,t1:CMD(rtl_433 -F csv -f 123M)
 
     //         file         type   id        bps  fq     linkmodes command
     for (auto& p : parts)
     {
-        if (file_checked && typeid_checked && file == "" && type == WMBusDeviceType::DEVICE_UNKNOWN && id == "")
+        if (file_checked && typeidextras_checked && file == "" && type == WMBusDeviceType::DEVICE_UNKNOWN && id == "")
         {
             // There must be either a file and/or type(id). If none are found,
             // then the specified device string is faulty.
@@ -4509,22 +4549,22 @@ bool SpecifiedDevice::parse(string &arg)
             file_checked = true;
             file = p;
         }
-        else if (!typeid_checked && is_type_id(p, &type, &id))
+        else if (!typeidextras_checked && is_type_id_extras(p, &type, &id, &extras))
         {
             file_checked = true;
-            typeid_checked = true;
+            typeidextras_checked = true;
         }
         else if (!bps_checked && is_bps(p))
         {
             file_checked = true;
-            typeid_checked = true;
+            typeidextras_checked = true;
             bps_checked = true;
             bps = p;
         }
         else if (!fq_checked && isFrequency(p))
         {
             file_checked = true;
-            typeid_checked = true;
+            typeidextras_checked = true;
             bps_checked = true;
             fq_checked = true;
             fq = p;
@@ -4532,7 +4572,7 @@ bool SpecifiedDevice::parse(string &arg)
         else if (!linkmodes_checked && isValidLinkModes(p))
         {
             file_checked = true;
-            typeid_checked = true;
+            typeidextras_checked = true;
             bps_checked = true;
             fq_checked = true;
             linkmodes_checked = true;
@@ -4541,7 +4581,7 @@ bool SpecifiedDevice::parse(string &arg)
         else if (!command_checked && is_command(p, &command))
         {
             file_checked = true;
-            typeid_checked = true;
+            typeidextras_checked = true;
             bps_checked = true;
             fq_checked = true;
             linkmodes_checked = true;
@@ -4707,7 +4747,6 @@ Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
     debug("(lookup) with cmd \"%s\"\n", specified_device.str().c_str());
 
     Detected detected;
-    detected.found_command = specified_device.command;
     detected.setSpecifiedDevice(specified_device);
     LinkModeSet lms = specified_device.linkmodes;
     // If the specified device did not set any linkmodes fall back on the default linkmodes.

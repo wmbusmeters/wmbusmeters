@@ -82,7 +82,6 @@ struct SerialCommunicationManager
                                                                string command,
                                                                vector<string> args,
                                                                vector<string> envs,
-                                                               function<void()> on_exit,
                                                                string purpose) = 0;
     // Read from stdin (file="stdin") or a specific file.
     virtual shared_ptr<SerialDevice> createSerialDeviceFile(string file, string purpose) = 0;

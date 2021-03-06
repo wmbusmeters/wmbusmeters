@@ -241,7 +241,8 @@ int test_linkmodes()
 
     shared_ptr<WMBus> wmbus_im871a = openIM871A("", manager, serial1);
     shared_ptr<WMBus> wmbus_amb8465 = openAMB8465("", manager, serial2);
-    shared_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS("", "", manager, [](){}, serial3);
+    SpecifiedDevice sd;
+    shared_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS("", sd, false, manager, serial3);
     shared_ptr<WMBus> wmbus_rawtty = openRawTTY("", 0, manager, serial4);
 
     Configuration nometers_config;
@@ -527,7 +528,8 @@ void test_periods()
     testp(t, "thu(01-01)", true);
 }
 
-void testd(string arg, bool xok, string xalias, string xfile, string xtype, string xid, string xfq, string xbps, string xlm, string xcmd)
+void testd(string arg, bool xok, string xalias, string xfile, string xtype, string xid, string xextras,
+           string xfq, string xbps, string xlm, string xcmd)
 {
     SpecifiedDevice d;
     bool ok = d.parse(arg);
@@ -542,6 +544,7 @@ void testd(string arg, bool xok, string xalias, string xfile, string xtype, stri
         d.file != xfile ||
         toString(d.type) != xtype ||
         d.id != xid ||
+        d.extras != xextras ||
         d.fq != xfq ||
         d.bps != xbps ||
         d.linkmodes.hr() != xlm ||
@@ -558,6 +561,7 @@ void test_devices()
           "/dev/ttyUSB0", // file
           "im871a", // type
           "12345678", // id
+          "", // extras
           "868.95M", // fq
           "9600", // bps
           "c1,t1", // linkmodes
@@ -568,6 +572,7 @@ void test_devices()
           "/dev/ttyUSB0", // file
           "im871a", // type
           "", // id
+          "", // extras
           "", // fq
           "", // bps
           "c1", // linkmodes
@@ -578,6 +583,18 @@ void test_devices()
           "", // file
           "im871a", // type
           "12345678", // id
+          "", // extras
+          "", // fq
+          "", // bps
+          "c1", // linkmodes
+          ""); // command
+
+    testd("im871a(track=7,pi=3.14):c1", true,
+          "", // alias
+          "", // file
+          "im871a", // type
+          "", // id
+          "track=7,pi=3.14", // extras
           "", // fq
           "", // bps
           "c1", // linkmodes
@@ -588,6 +605,7 @@ void test_devices()
           "", // file
           "rtlwmbus", // type
           "", // id
+          "", // extras
           "", // fq
           "", // bps
           "c1,t1", // linkmodes
@@ -598,6 +616,18 @@ void test_devices()
           "", // file
           "rtlwmbus", // type
           "plast", // id
+          "", // extras
+          "", // fq
+          "", // bps
+          "c1,t1", // linkmodes
+          ""); // command
+
+    testd("ANTENNA1=rtlwmbus[plast](ppm=5):c1,t1", true,
+          "ANTENNA1", // alias
+          "", // file
+          "rtlwmbus", // type
+          "plast", // id
+          "ppm=5", // extras
           "", // fq
           "", // bps
           "c1,t1", // linkmodes
@@ -608,6 +638,7 @@ void test_devices()
           "stdin", // file
           "rtlwmbus", // type
           "", // id
+          "", // extras
           "", // fq
           "", // bps
           "none", // linkmodes
@@ -618,6 +649,7 @@ void test_devices()
           "/dev/ttyUSB0", // file
           "rawtty", // type
           "", // id
+          "", // extras
           "", // fq
           "9600", // bps
           "none", // linkmodes
@@ -630,6 +662,7 @@ void test_devices()
           "Makefile", // file
           "simulation", // type
           "", // id
+          "", // extras
           "", // fq
           "", // bps
           "none", // linkmodes
@@ -640,6 +673,7 @@ void test_devices()
           "", // file
           "auto", // type
           "", // id
+          "", // extras
           "", // fq
           "", // bps
           "c1,t1", // linkmodes
@@ -650,6 +684,7 @@ void test_devices()
           "", // file
           "", // type
           "", // id
+          "", // extras
           "", // fq
           "", // bps
           "none", // linkmodes
@@ -660,6 +695,7 @@ void test_devices()
           "", // file
           "", // type
           "", // id
+          "", // extras
           "", // fq
           "", // bps
           "none", // linkmodes
@@ -670,6 +706,7 @@ void test_devices()
           "/dev/ttyUSB0", // file
           "mbus", // type
           "", // id
+          "", // extras
           "", // fq
           "2400", // bps
           "none", // linkmodes
