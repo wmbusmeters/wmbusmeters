@@ -422,6 +422,8 @@ struct Telegram
     int tpl_ci {}; // 1 byte
     int tpl_acc {}; // 1 byte
     int tpl_sts {}; // 1 byte
+    int tpl_sts_offset {}; // Remember where the sts field is in the telegram, so
+                           // that we can add more vendor specific decodings to it.
     int tpl_cfg {}; // 2 bytes
     TPLSecurityMode tpl_sec_mode {}; // Based on 5 bits extracted from cfg.
     int tpl_num_encr_blocks {};
@@ -629,11 +631,7 @@ string formatData(int dif, int vif, int vife, string data);
 
 // Decode the status byte in the TPL with a map that gives the
 // translations for the 3 vendor specific high bits.
-string decodeTPLStatusByte(uchar sts, std::map<int,std::string> vendor_lookup);
-
-double extract8bitAsDouble(int dif, int vif, int vife, string data);
-double extract16bitAsDouble(int dif, int vif, int vife, string data);
-double extract32bitAsDouble(int dif, int vif, int vife, string data);
+string decodeTPLStatusByte(uchar sts, std::map<int,std::string> *vendor_lookup);
 
 int difLenBytes(int dif);
 MeasurementType difMeasurementType(int dif);

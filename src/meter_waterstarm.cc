@@ -150,7 +150,7 @@ void MeterWaterstarM::processContent(Telegram *t)
     }
 
     extractDVuint16(&t->values, "02FD17", &offset, &info_codes_);
-    status_ = decodeTPLStatusByte(info_codes_, error_codes_);
+    status_ = decodeTPLStatusByte(info_codes_, &error_codes_);
     t->addMoreExplanation(offset, " info codes (%s)", status_.c_str());
 
     extractDVdouble(&t->values, "04933C", &offset, &total_water_backwards_m3_);

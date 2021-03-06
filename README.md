@@ -301,6 +301,7 @@ Lansen Thermometer/Hygrometer (lansenth)
 
 Supported smoke detectors:
 Lansen Smoke Detector (lansensm)
+Ei Electronics Smoke Detector ei6500-oms (ei6500)
 
 Supported door/window detectors:
 Lansen Door/Window Detector (lansendw)

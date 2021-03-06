@@ -77,10 +77,11 @@
     X(vario451,   T1_bit, HeatMeter,        VARIO451,    Vario451)     \
     X(waterstarm, C1_bit|T1_bit, WaterMeter,WATERSTARM,  WaterstarM)   \
     X(whe46x,     S1_bit, HeatCostAllocationMeter, WHE46X, Whe46x)     \
-    X(whe5x,      S1_bit, HeatCostAllocationMeter, WHE5X, Whe5x)     \
-    X(topaseskr,  T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)           \
-    X(sensostar,  C1_bit|T1_bit, HeatMeter,SENSOSTAR,  Sensostar)       \
-    X(gransystems,T1_bit, ElectricityMeter, CCx01, CCx01)
+    X(whe5x,      S1_bit, HeatCostAllocationMeter, WHE5X, Whe5x)       \
+    X(topaseskr,  T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)          \
+    X(sensostar,  C1_bit|T1_bit, HeatMeter,SENSOSTAR,  Sensostar)      \
+    X(gransystems,T1_bit, ElectricityMeter, CCx01, CCx01) 		       \
+    X(ei6500,     C1_bit, SmokeDetector,    EI6500,      EI6500)
 
 
 // List of numbers that can be used to detect the meter driver from a telegram.
@@ -120,6 +121,7 @@
     X(HYDRUS,    MANUFACTURER_DME,  0x16,  0x70) \
     X(HYDROCALM3,MANUFACTURER_BMT,  0x0d,  0x0b) \
     X(HYDRODIGIT,MANUFACTURER_BMT,  0x07,  0x13) \
+    X(EI6500,    MANUFACTURER_EIE,  0x1a,  0x0c) \
     X(IPERL,     MANUFACTURER_SEN,  0x06,  0x68) \
     X(IPERL,     MANUFACTURER_SEN,  0x07,  0x68) \
     X(IPERL,     MANUFACTURER_SEN,  0x07,  0x7c) \

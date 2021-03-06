@@ -97,12 +97,18 @@ bool extractDVuint32(std::map<std::string,std::pair<int,DVEntry>> *values,
                      int *offset,
                      uint32_t *value);
 
-// All volume values are scaled to cubic meters, m3.
+// All values are scaled according to the vif and wmbusmeters scaling defaults.
 bool extractDVdouble(std::map<std::string,std::pair<int,DVEntry>> *values,
                     std::string key,
                     int *offset,
                     double *value,
                     bool auto_scale = true);
+
+// Extract a value without scaling. Works for 8bits to 64 bits, binary and bcd.
+bool extractDVlong(map<string,pair<int,DVEntry>> *values,
+                   string key,
+                   int *offset,
+                   uint64_t *value);
 
 bool extractDVstring(std::map<std::string,std::pair<int,DVEntry>> *values,
                      std::string key,

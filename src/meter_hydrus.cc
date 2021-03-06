@@ -465,7 +465,7 @@ void MeterHydrus::processContent(Telegram *t)
         t->addMoreExplanation(offset, " battery life (%d days %f years)", days, remaining_battery_life_year_);
     }
 
-    status_ = decodeTPLStatusByte(t->tpl_sts, error_codes_);
+    status_ = decodeTPLStatusByte(t->tpl_sts, &error_codes_);
 }
 
 double MeterHydrus::totalWaterConsumption(Unit u)

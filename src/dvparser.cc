@@ -584,6 +584,125 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
     return true;
 }
 
+bool extractDVlong(map<string,pair<int,DVEntry>> *values,
+                   string key,
+                   int *offset,
+                   uint64_t *value)
+{
+    if ((*values).count(key) == 0) {
+        verbose("(dvparser) warning: cannot extract long from non-existant key \"%s\"\n", key.c_str());
+        *offset = 0;
+        *value = 0;
+        return false;
+    }
+    uchar dif, vif;
+    extractDV(key, &dif, &vif);
+
+    pair<int,DVEntry>&  p = (*values)[key];
+    *offset = p.first;
+
+    if (p.second.value.length() == 0) {
+        verbose("(dvparser) warning: key found but no data  \"%s\"\n", key.c_str());
+        *offset = 0;
+        *value = 0;
+        return false;
+    }
+
+    int t = dif&0xf;
+    if (t == 0x1 || // 8 Bit Integer/Binary
+        t == 0x2 || // 16 Bit Integer/Binary
+        t == 0x3 || // 24 Bit Integer/Binary
+        t == 0x4 || // 32 Bit Integer/Binary
+        t == 0x6 || // 48 Bit Integer/Binary
+        t == 0x7)   // 64 Bit Integer/Binary
+    {
+        vector<uchar> v;
+        hex2bin(p.second.value, &v);
+        uint64_t raw = 0;
+        if (t == 0x1) {
+            assert(v.size() == 1);
+            raw = v[0];
+        } else if (t == 0x2) {
+            assert(v.size() == 2);
+            raw = v[1]*256 + v[0];
+        } else if (t == 0x3) {
+            assert(v.size() == 3);
+            raw = v[2]*256*256 + v[1]*256 + v[0];
+        } else if (t == 0x4) {
+            assert(v.size() == 4);
+            raw = ((unsigned int)v[3])*256*256*256
+                + ((unsigned int)v[2])*256*256
+                + ((unsigned int)v[1])*256
+                + ((unsigned int)v[0]);
+        } else if (t == 0x6) {
+            assert(v.size() == 6);
+            raw = ((uint64_t)v[5])*256*256*256*256*256
+                + ((uint64_t)v[4])*256*256*256*256
+                + ((uint64_t)v[3])*256*256*256
+                + ((uint64_t)v[2])*256*256
+                + ((uint64_t)v[1])*256
+                + ((uint64_t)v[0]);
+        } else if (t == 0x7) {
+            assert(v.size() == 8);
+            raw = ((uint64_t)v[7])*256*256*256*256*256*256*256
+                + ((uint64_t)v[6])*256*256*256*256*256*256
+                + ((uint64_t)v[5])*256*256*256*256*256
+                + ((uint64_t)v[4])*256*256*256*256
+                + ((uint64_t)v[3])*256*256*256
+                + ((uint64_t)v[2])*256*256
+                + ((uint64_t)v[1])*256
+                + ((uint64_t)v[0]);
+        }
+        *value = raw;
+    }
+    else
+    if (t == 0x9 || // 2 digit BCD
+        t == 0xA || // 4 digit BCD
+        t == 0xB || // 6 digit BCD
+        t == 0xC || // 8 digit BCD
+        t == 0xE)   // 12 digit BCD
+    {
+        // 74140000 -> 00001474
+        string& v = p.second.value;
+        uint64_t raw = 0;
+        if (t == 0x9) {
+            assert(v.size() == 2);
+            raw = (v[0]-'0')*10 + (v[1]-'0');
+        } else if (t ==  0xA) {
+            assert(v.size() == 4);
+            raw = (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
+                + (v[0]-'0')*10 + (v[1]-'0');
+        } else if (t ==  0xB) {
+            assert(v.size() == 6);
+            raw = (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
+                + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
+                + (v[0]-'0')*10 + (v[1]-'0');
+        } else if (t ==  0xC) {
+            assert(v.size() == 8);
+            raw = (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
+                + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
+                + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
+                + (v[0]-'0')*10 + (v[1]-'0');
+        } else if (t ==  0xE) {
+            assert(v.size() == 12);
+            raw =(v[10]-'0')*10*10*10*10*10*10*10*10*10*10*10 + (v[11]-'0')*10*10*10*10*10*10*10*10*10*10
+                + (v[8]-'0')*10*10*10*10*10*10*10*10*10 + (v[9]-'0')*10*10*10*10*10*10*10*10
+                + (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
+                + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
+                + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
+                + (v[0]-'0')*10 + (v[1]-'0');
+        }
+
+        *value = raw;
+    }
+    else
+    {
+        error("Unsupported dif format for extraction to long! dif=%02x\n", dif);
+    }
+
+    return true;
+}
+
 bool extractDVstring(map<string,pair<int,DVEntry>> *values,
                      string key,
                      int *offset,

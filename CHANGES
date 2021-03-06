@@ -1,4 +1,6 @@
 
+Rattinca helped add support for the EI Electronics smoke detector. Thanks Rattinca!
+
 Ignore duplicates is now enabled by default. Turn it off with --ignoreduplicates=false
 
 Fixed problem with state maintaining meter drivers and wildcard ids.

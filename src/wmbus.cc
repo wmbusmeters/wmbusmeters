@@ -1289,7 +1289,7 @@ bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
 
     CHECK(1);
     tpl_sts = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x tpl-sts-field", tpl_sts);
+    addExplanationAndIncrementPos(pos, 1, "%02x tpl-sts-field (%s)", tpl_sts, decodeTPLStatusByte(tpl_sts, NULL).c_str());
 
     bool ok = parseTPLConfig(pos);
     if (!ok) return false;
@@ -4245,7 +4245,7 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
     return FullFrame;
 }
 
-string decodeTPLStatusByte(uchar sts, map<int,string> vendor_lookup)
+string decodeTPLStatusByte(uchar sts, map<int,string> *vendor_lookup)
 {
     string s;
 
@@ -4262,9 +4262,9 @@ string decodeTPLStatusByte(uchar sts, map<int,string> vendor_lookup)
     {
         // Vendor specific bits are set, lets translate them.
         int v = sts & 0xf8; // Zero the 3 lowest bits.
-        if (vendor_lookup.count(v) != 0)
+        if (vendor_lookup != NULL && vendor_lookup->count(v) != 0)
         {
-            s += vendor_lookup[v];
+            s += (*vendor_lookup)[v];
             s += " ";
         }
         else
