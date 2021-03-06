@@ -346,7 +346,8 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
         // Discard lines that do not begin with T1 or C1, these lines are probably
         // stderr output from rtl_sdr/rtl_wmbus.
         if (!(data[0] == 'T' && data[1] == '1') &&
-            !(data[0] == 'C' && data[1] == '1'))
+            !(data[0] == 'C' && data[1] == '1') &&
+            !(data[0] == 'S' && data[1] == '1'))
         {
 
             debug("(rtlwmbus) only text\n");
@@ -356,7 +357,7 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
         // And the checksums should match.
         if (strncmp((const char*)&data[1], "1;1", 3))
         {
-            // Packages that begin with C1;1 or with T1;1 are good. The full format is:
+            // Packages that begin with C1;1 or with T1;1 or with S1;1 are good. The full format is:
             // MODE;CRC_OK;3OUTOF6OK;TIMESTAMP;PACKET_RSSI;CURRENT_RSSI;LINK_LAYER_IDENT_NO;DATAGRAM_WITHOUT_CRC_BYTES.
             // 3OUTOF6OK makes sense only with mode T1 and no sense with mode C1 (always set to 1).
             if (!strncmp((const char*)&data[1], "1;0", 3)) {
