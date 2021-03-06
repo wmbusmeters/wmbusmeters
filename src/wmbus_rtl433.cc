@@ -18,6 +18,7 @@
 #include"wmbus.h"
 #include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
+#include"rtlsdr.h"
 #include"serial.h"
 
 #include<assert.h>
@@ -57,9 +58,11 @@ struct WMBusRTL433 : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate();
 
-    WMBusRTL433(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
+    WMBusRTL433(string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
 
 private:
+
+    string serialnr_;
     shared_ptr<SerialDevice> serial_;
     vector<uchar> read_buffer_;
     vector<uchar> received_payload_;
@@ -74,26 +77,67 @@ private:
     string setup_;
 };
 
-shared_ptr<WMBus> openRTL433(string identifier, string command, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openRTL433(Detected detected, string bin_dir, bool daemon,
+                             shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override)
 {
-    assert(identifier != "");
+    string identifier = detected.found_device_id;
+    SpecifiedDevice &device = detected.specified_device;
+    string command;
+    int id = 0;
+
+    if (!serial_override)
+    {
+        id = indexFromRtlSdrSerial(identifier);
+
+        command = "";
+        if (device.command != "")
+        {
+            command = device.command;
+            identifier = "cmd_"+to_string(device.index);
+        }
+        string freq = "868.95M";
+        if (device.fq != "")
+        {
+            freq = device.fq;
+        }
+        string rtl_433 = lookForExecutable("rtl_433", bin_dir, "/usr/bin");
+        if (rtl_433 == "")
+        {
+            if (daemon)
+            {
+                error("(rtl433) error: when starting as daemon, wmbusmeters looked for %s/rtl_433 and %s/rtl_sdr, but found neither!\n",
+                      bin_dir.c_str(), "/usr/bin");
+            }
+            else
+            {
+                // Look for it in the PATH
+                rtl_433 = "rtl_433";
+            }
+        }
+        if (command == "")
+        {
+            command = rtl_433+" -d "+to_string(id)+" -F csv -f "+freq;
+        }
+        verbose("(rtl433) using command: %s\n", command.c_str());
+    }
+
     vector<string> args;
     vector<string> envs;
     args.push_back("-c");
     args.push_back(command);
     if (serial_override)
     {
-        WMBusRTL433 *imp = new WMBusRTL433(serial_override, manager);
+        WMBusRTL433 *imp = new WMBusRTL433(identifier, serial_override, manager);
         return shared_ptr<WMBus>(imp);
     }
     auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, "rtl433");
-    WMBusRTL433 *imp = new WMBusRTL433(serial, manager);
+    WMBusRTL433 *imp = new WMBusRTL433(identifier, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 
-WMBusRTL433::WMBusRTL433(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(DEVICE_RTL433, manager, serial, false)
+WMBusRTL433::WMBusRTL433(string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(DEVICE_RTL433, manager, serial, false), serialnr_(serialnr)
 {
     reset();
 }
@@ -105,7 +149,7 @@ bool WMBusRTL433::ping()
 
 string WMBusRTL433::getDeviceId()
 {
-    return "?";
+    return serialnr_;
 }
 
 string WMBusRTL433::getDeviceUniqueId()
@@ -305,8 +349,6 @@ FrameStatus WMBusRTL433::checkRTL433Frame(vector<uchar> &data,
 
 AccessCheck detectRTL433(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
-    detected->setAsFound("", WMBusDeviceType::DEVICE_RTL433, 0, false,
-                         detected->specified_device.linkmodes);
-
-    return AccessCheck::AccessOK;
+    assert(0);
+    return AccessCheck::NotThere;
 }

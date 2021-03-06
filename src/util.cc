@@ -1816,8 +1816,6 @@ std::string currentProcessExe()
         return "";
     }
     return buf;
-  }
-
 #else
 #  if (defined(__FreeBSD__))
         const char *self = "/proc/curproc/file";

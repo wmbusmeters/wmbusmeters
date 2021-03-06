@@ -109,9 +109,10 @@ shared_ptr<Printer> printer_;
 // Set as true when the warning for no detected wmbus devices has been printed.
 bool printed_warning_ = false;
 
-// Then check if the rtl_sdr and/or rtl_wmbus is in the path.
+// Then check if the rtl_sdr and/or rtl_wmbus and/or rtl_433 is available.
 bool rtlsdr_found_ = false;
 bool rtlwmbus_found_ = false;
+bool rtl433_found_ = false;
 
 int main(int argc, char **argv)
 {
@@ -347,44 +348,8 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
         wmbus = openRTLWMBUS(*detected, config->bin_dir, config->daemon, manager, serial_override);
         break;
     case DEVICE_RTL433:
-    {
-        string command;
-        string identifier = detected->found_file;
-        int id = 0;
-        if (!detected->found_tty_override)
-        {
-            id = indexFromRtlSdrName(identifier);
-            command = "";
-            if (detected->specified_device.command != "")
-            {
-                command = detected->specified_device.command;
-                identifier = "cmd_"+to_string(detected->specified_device.index);
-            }
-            string freq = "868.95M";
-            if (detected->specified_device.fq != "")
-            {
-                freq = detected->specified_device.fq;
-            }
-            string prefix = "";
-            if (config->daemon) {
-                prefix = "/usr/bin/";
-                if (command == "")
-                {
-                    // Default command is used, check that the binaries are in place.
-                    if (!checkFileExists("/usr/bin/rtl_433"))
-                    {
-                        error("(rtl433) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_433 to exist!\n");
-                    }
-                }
-            }
-            if (command == "") {
-                command = prefix+"rtl_433 -d "+to_string(id)+" -F csv -f "+freq;
-            }
-            verbose("(rtl433) using command: %s\n", command.c_str());
-        }
-        wmbus = openRTL433(identifier, command, manager, serial_override);
+        wmbus = openRTL433(*detected, config->bin_dir, config->daemon, manager, serial_override);
         break;
-    }
     case DEVICE_CUL:
     {
         verbose("(cul) on %s\n", detected->found_file.c_str());
@@ -587,7 +552,9 @@ SpecifiedDevice *find_specified_device_from_detected(Configuration *c, Detected 
     // This will find specified devices like: im871a[12345678]
     for (SpecifiedDevice & sd : c->supplied_bus_devices)
     {
-        if (sd.file == "" && sd.id != "" && sd.id == d->found_device_id && sd.type == d->found_type)
+        if (sd.file == "" && sd.id != "" && sd.id == d->found_device_id &&
+            (sd.type == d->found_type ||
+             (sd.type == DEVICE_RTL433 && d->found_type == DEVICE_RTLWMBUS)))
         {
             return &sd;
         }
@@ -597,7 +564,9 @@ SpecifiedDevice *find_specified_device_from_detected(Configuration *c, Detected 
     // This will find specified devices like: im871a, rtlwmbus
     for (SpecifiedDevice & sd : c->supplied_bus_devices)
     {
-        if (sd.file == "" && sd.id == "" && sd.type == d->found_type)
+        if (sd.file == "" && sd.id == "" &&
+            (sd.type == d->found_type ||
+             (sd.type == DEVICE_RTL433 && d->found_type == DEVICE_RTLWMBUS)))
         {
             return &sd;
         }
@@ -612,6 +581,11 @@ bool find_specified_device_and_update_detected(Configuration *c, Detected *d)
 
     if (sd)
     {
+        if (sd->type == DEVICE_RTL433 && d->found_type == DEVICE_RTLWMBUS)
+        {
+            d->found_type = DEVICE_RTL433;
+        }
+
         d->specified_device = *sd;
         debug("(main) found specified device (%s) that matches detected device (%s)\n",
               sd->str().c_str(),
@@ -900,6 +874,7 @@ void perform_auto_scan_of_swradio_devices(Configuration *config)
         {
             rtlsdr_found_ = check_if_rtlsdr_exists_in_path();
             rtlwmbus_found_ = check_if_rtlwmbus_exists_in_path();
+//            rtl433_found_ = check_if_rtl433_exists_in_path();
         }
         if (!rtlsdr_found_)
         {

@@ -602,7 +602,10 @@ shared_ptr<WMBus> openRTLWMBUS(Detected detected,
                                bool daemon,
                                shared_ptr<SerialCommunicationManager> manager,
                                shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openRTL433(string identifier, string command, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openRTL433(Detected detected,
+                             string bin_dir,
+                             bool daemon,
+                             shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> manager,
                               shared_ptr<SerialDevice> serial_override);
