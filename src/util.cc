@@ -1852,3 +1852,16 @@ string lookForExecutable(string prog, string bin_dir, string default_dir)
     }
     return "";
 }
+
+bool parseExtras(string s, map<string,string> *extras)
+{
+    vector<string> parts = splitString(s, ' ');
+
+    for (auto &p : parts)
+    {
+        vector<string> kv = splitString(p, '=');
+        if (kv.size() != 2) return false;
+        (*extras)[kv[0]] = kv[1];
+    }
+    return true;
+}

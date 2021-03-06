@@ -45,9 +45,10 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
     LinkModeSet supportedLinkModes() {
         return
             C1_bit |
+            S1_bit |
             T1_bit;
     }
-    int numConcurrentLinkModes() { return 2; }
+    int numConcurrentLinkModes() { return 3; }
     bool canSetLinkModes(LinkModeSet lms)
     {
         //if (!supportedLinkModes().supports(lms)) return false;
@@ -90,7 +91,21 @@ shared_ptr<WMBus> openRTLWMBUS(Detected detected,
     SpecifiedDevice &device = detected.specified_device;
     string command;
     int id = 0;
+    map<string,string> extras;
 
+    bool ok = parseExtras(detected.specified_device.extras, &extras);
+    if (!ok)
+    {
+        error("(rtlwmbus) invalid extra parameters to rtlwmbus (%s)\n", detected.specified_device.extras.c_str());
+    }
+    string ppm = "";
+    if (extras.size() > 0)
+    {
+        if (extras.count("ppm") > 0)
+        {
+            ppm = string("-p ")+extras["ppm"];
+        }
+    }
     if (!serial_override)
     {
         id = indexFromRtlSdrSerial(identifier);
@@ -101,10 +116,13 @@ shared_ptr<WMBus> openRTLWMBUS(Detected detected,
             command = device.command;
             identifier = "cmd_"+to_string(device.index);
         }
-        string freq = "868.95M";
+        string freq = "868.625M";
+        bool force_freq = false;
         if (device.fq != "")
         {
             freq = device.fq;
+            // This will disable the listen to s1,t1 and c1 at the same time setting.
+            force_freq = true;
         }
         string rtl_sdr;
         string rtl_wmbus;
@@ -138,7 +156,14 @@ shared_ptr<WMBus> openRTLWMBUS(Detected detected,
         }
         if (command == "")
         {
-            command = rtl_sdr+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+rtl_wmbus;
+            if (!force_freq)
+            {
+                command = rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+rtl_wmbus+" -s";
+            }
+            else
+            {
+                command = rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+rtl_wmbus;
+            }
         }
         verbose("(rtlwmbus) using command: %s\n", command.c_str());
     }

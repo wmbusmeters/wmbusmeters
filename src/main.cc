@@ -735,6 +735,8 @@ void open_bus_device_and_potentially_set_linkmodes(Configuration *config, string
 
     string id = detected->found_device_id.c_str();
     if (id != "") id = "["+id+"]";
+    string extras = detected->specified_device.extras.c_str();
+    if (extras != "") extras = "("+extras+")";
     string fq = detected->specified_device.fq;
     if (fq != "") fq = " using fq "+fq;
     string file = detected->found_file.c_str();
@@ -753,10 +755,11 @@ void open_bus_device_and_potentially_set_linkmodes(Configuration *config, string
                                  fq.c_str(),
                                  cmd.c_str());
     }
-    string started = tostrprintf("Started %s %s%s%s%s\n",
+    string started = tostrprintf("Started %s %s%s%s%s%s\n",
                                  how.c_str(),
                                  toLowerCaseString(detected->found_type),
                                  id.c_str(),
+                                 extras.c_str(),
                                  file.c_str(),
                                  listening.c_str());
 

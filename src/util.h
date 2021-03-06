@@ -22,6 +22,7 @@
 #include<stdint.h>
 #include<string>
 #include<functional>
+#include<map>
 #include<vector>
 
 enum class MeterType;
@@ -201,5 +202,8 @@ std::string currentProcessExe();
 std::string dirname(std::string p);
 
 std::string lookForExecutable(std::string prog, std::string bin_dir, std::string default_dir);
+
+// Extract from "ppm=5 radix=7" and put key values into map.
+bool parseExtras(std::string s, std::map<std::string,std::string> *extras);
 
 #endif

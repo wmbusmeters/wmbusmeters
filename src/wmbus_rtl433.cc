@@ -85,6 +85,21 @@ shared_ptr<WMBus> openRTL433(Detected detected, string bin_dir, bool daemon,
     SpecifiedDevice &device = detected.specified_device;
     string command;
     int id = 0;
+    map<string,string> extras;
+
+    bool ok = parseExtras(detected.specified_device.extras, &extras);
+    if (!ok)
+    {
+        error("(rtlwmbus) invalid extra parameters to rtlwmbus (%s)\n", detected.specified_device.extras.c_str());
+    }
+    string ppm = "";
+    if (extras.size() > 0)
+    {
+        if (extras.count("ppm") > 0)
+        {
+            ppm = string("-p ")+extras["ppm"];
+        }
+    }
 
     if (!serial_override)
     {
@@ -117,7 +132,7 @@ shared_ptr<WMBus> openRTL433(Detected detected, string bin_dir, bool daemon,
         }
         if (command == "")
         {
-            command = rtl_433+" -d "+to_string(id)+" -F csv -f "+freq;
+            command = rtl_433+" "+ppm+" -d "+to_string(id)+" -F csv -f "+freq;
         }
         verbose("(rtl433) using command: %s\n", command.c_str());
     }

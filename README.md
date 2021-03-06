@@ -214,12 +214,18 @@ rtlsdr dongle like this `rtlwmbus[1234]`.
 /dev/ttyUSB0:38400, to have wmbusmeters set the baud rate to 38400 and listen for raw wmbus telegrams.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
-rtlwmbus, to spawn the background process: "rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus"
-for each attached rtlsdr dongle.
+rtlwmbus, to spawn the background process: "rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s"
+for each attached rtlsdr dongle. This will listen to S1,T1 and C1 meters in parallel.
 
-rtlwmbus:868.9M, to tune to this fq instead.
+rtlwmbus(ppm=17), to tune your rtlsdr dongle accordingly. Use this to tune your dongle and at
+the same time listen to S1,T1 and C1.
+
+rtlwmbus:868.9M, to tune to this fq instead. This will listen to exactly to what is on this frequency,
+ie no more S1,T1 and C1 at the same time since they are on different frequencies.
 
 rtl433, to spawn the background process: "rtl_433 -F csv -f 868.95M"
+
+rtl433(ppm=17), to tune your rtlsdr dongle accordingly.
 
 rtl433:868.9M, to tune to this fq instead.
 
