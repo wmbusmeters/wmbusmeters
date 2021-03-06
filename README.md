@@ -220,14 +220,13 @@ for each attached rtlsdr dongle. This will listen to S1,T1 and C1 meters in para
 rtlwmbus(ppm=17), to tune your rtlsdr dongle accordingly. Use this to tune your dongle and at
 the same time listen to S1,T1 and C1.
 
-rtlwmbus:868.9M, to tune to this fq instead. This will listen to exactly to what is on this frequency,
-ie no more S1,T1 and C1 at the same time since they are on different frequencies.
+rtlwmbus:433M, to tune to this fq instead. This will listen to exactly to what is on this frequency.
 
 rtl433, to spawn the background process: "rtl_433 -F csv -f 868.95M"
 
 rtl433(ppm=17), to tune your rtlsdr dongle accordingly.
 
-rtl433:868.9M, to tune to this fq instead.
+rtl433:433M, to tune to this fq instead.
 
 rtlwmbus:CMD(<commandline>), to specify the entire background process command line that is expected to produce rtlwbus compatible output.
 Likewise for rtl433.
@@ -376,10 +375,9 @@ Example format json output:
 
 `{"media":"heat","meter":"multical302","name":"MyHeater","id":"22222222","total_kwh":0.000,"total_volume_m3":0.000,"current_kw":"0.000","timestamp":"2018-02-08T09:07:22Z"}`
 
-Example format fields output and use rtlsdr dongle with rtlwmbus tuned to 868.9MHz instead of the
-default 868.95MHz.
+Example format fields output and use tuned rtlsdr dongle with rtlwmbus.
 
-`wmbusmeters --format=fields rtlwmbus:868.9M GreenhouseWater multical21:c1 33333333 NOKEY`
+`wmbusmeters --format=fields 'rtlwmbus(ppm=72)' GreenhouseWater multical21:c1 33333333 NOKEY`
 
 `GreenhouseTapWater;33333333;9999.099;77.712;0.000;11;31;;2018-03-05 12:10.24`
 
