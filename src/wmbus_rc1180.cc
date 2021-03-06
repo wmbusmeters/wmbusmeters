@@ -410,7 +410,7 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
 
     serial->close();
 
-    detected->setAsFound(co.dongleId(), WMBusDeviceType::DEVICE_RC1180, 19200, false, false,
+    detected->setAsFound(co.dongleId(), WMBusDeviceType::DEVICE_RC1180, 19200, false,
         detected->specified_device.linkmodes);
 
     verbose("(rc1180) are you there? yes %s\n", co.dongleId().c_str());

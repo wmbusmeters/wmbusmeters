@@ -39,6 +39,10 @@
 #include<sys/types.h>
 #include<fcntl.h>
 
+#if defined(__APPLE__) && defined(__MACH__)
+#include <mach-o/dyld.h>
+#endif
+
 using namespace std;
 
 // Sigint, sigterm will call the exit handler.
@@ -1795,4 +1799,58 @@ bool check_if_rtlsdr_exists_in_path()
         debug("(main) rtl_sdr NOT found in path\n");
     }
     return found;
+}
+
+std::string currentProcessExe()
+{
+    char buf[1024];
+    memset(buf, 0, 1024);
+
+#if defined(__APPLE__) && defined(__MACH__)
+    uint32_t size = sizeof(buf);
+
+    int rs = _NSGetExecutablePath(buf,&size);
+    if (rs != 0)
+    {
+        // Buf not big enough.
+        return "";
+    }
+    return buf;
+  }
+
+#else
+#  if (defined(__FreeBSD__))
+        const char *self = "/proc/curproc/file";
+    #else
+        const char *self = "/proc/self/exe";
+    #endif
+
+    ssize_t s = readlink(self, buf, 1023);
+
+    if (s == 1023) return "";
+    if (s <= 0) return "";
+    return buf;
+#endif
+}
+
+string dirname(string p)
+{
+    size_t s = p.rfind('/');
+    if (s == string::npos) return "";
+    return p.substr(0, s);
+}
+
+string lookForExecutable(string prog, string bin_dir, string default_dir)
+{
+    string tmp = bin_dir+"/"+prog;
+    if (checkFileExists(tmp.c_str()))
+    {
+        return tmp;
+    }
+    tmp = default_dir+"/"+prog;
+    if (checkFileExists(tmp.c_str()))
+    {
+        return tmp;
+    }
+    return "";
 }

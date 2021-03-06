@@ -238,11 +238,11 @@ int test_linkmodes()
     auto serial4 = manager->createSerialDeviceSimulator();
 
     vector<string> no_meter_shells, no_meter_jsons;
-
-    shared_ptr<WMBus> wmbus_im871a = openIM871A("", manager, serial1);
-    shared_ptr<WMBus> wmbus_amb8465 = openAMB8465("", manager, serial2);
+    Detected de;
     SpecifiedDevice sd;
-    shared_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS("", sd, false, manager, serial3);
+    shared_ptr<WMBus> wmbus_im871a = openIM871A(de, manager, serial1);
+    shared_ptr<WMBus> wmbus_amb8465 = openAMB8465(de, manager, serial2);
+    shared_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS(de, "", false, manager, serial3);
     shared_ptr<WMBus> wmbus_rawtty = openRawTTY("", 0, manager, serial4);
 
     Configuration nometers_config;

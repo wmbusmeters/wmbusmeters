@@ -178,22 +178,20 @@ struct Detected
     string found_file; // The device file to use.
     string found_device_id; // An "unique" identifier, typically the id used by the dongle as its own wmbus id, if it transmits.
     WMBusDeviceType found_type {};  // IM871A, AMB8465 etc.
-    int found_bps {}; // Serial speed of tty, overrides
-    bool found_tty_override {}; // override tty
-    bool found_cmd_override {}; // override cmd
+    int found_bps {}; // Serial speed of tty.
+    bool found_tty_override {};
 
     void setSpecifiedDevice(SpecifiedDevice sd)
     {
         specified_device = sd;
     }
 
-    void setAsFound(string id, WMBusDeviceType t, int b, bool to, bool co, LinkModeSet clm)
+    void setAsFound(string id, WMBusDeviceType t, int b, bool to, LinkModeSet clm)
     {
         found_device_id = id;
         found_type = t;
         found_bps = b;
         found_tty_override = to;
-        found_cmd_override = co;
     }
 
     std::string str()
@@ -589,18 +587,21 @@ Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
                                       shared_ptr<SerialCommunicationManager> handler);
 
 
-shared_ptr<WMBus> openIM871A(string device, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openIM871A(Detected detected, shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openAMB8465(Detected detected, shared_ptr<SerialCommunicationManager> manager,
                               shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openMBUS(string device, int baudrate, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openMBUS(Detected detected, shared_ptr<SerialCommunicationManager> manager,
                            shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRC1180(string device, shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openRTLWMBUS(string identifier, SpecifiedDevice device, bool daemon,
-                               shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openRTLWMBUS(Detected detected,
+                               string bin_dir,
+                               bool daemon,
+                               shared_ptr<SerialCommunicationManager> manager,
+                               shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRTL433(string identifier, string command, shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> manager,

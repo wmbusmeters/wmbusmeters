@@ -159,7 +159,7 @@ AccessCheck detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManag
 
     serial->close();
 
-    detected->setAsFound("", WMBusDeviceType::DEVICE_RAWTTY, bps, false, false,
+    detected->setAsFound("", WMBusDeviceType::DEVICE_RAWTTY, false, bps,
         detected->specified_device.linkmodes);
 
     return AccessCheck::AccessOK;

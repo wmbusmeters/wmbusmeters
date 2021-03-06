@@ -228,9 +228,10 @@ int toDBM(int rssi)
     return dbm;
 }
 
-shared_ptr<WMBus> openIM871A(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openIM871A(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
-    assert(device != "");
+    string device_file = detected.found_file;
+    assert(device_file != "");
     if (serial_override)
     {
         WMBusIM871A *imp = new WMBusIM871A(serial_override, manager);
@@ -238,7 +239,7 @@ shared_ptr<WMBus> openIM871A(string device, shared_ptr<SerialCommunicationManage
         return shared_ptr<WMBus>(imp);
     }
 
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 57600, PARITY::NONE, "im871a");
+    auto serial = manager->createSerialDeviceTTY(device_file.c_str(), 57600, PARITY::NONE, "im871a");
     WMBusIM871A *imp = new WMBusIM871A(serial, manager);
     return shared_ptr<WMBus>(imp);
 }
@@ -911,7 +912,7 @@ AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManag
 
     debug("(im871a) config: %s\n", co.str().c_str());
 
-    detected->setAsFound(co.dongleId(), WMBusDeviceType::DEVICE_IM871A, 57600, false, false,
+    detected->setAsFound(co.dongleId(), WMBusDeviceType::DEVICE_IM871A, 57600, false,
         detected->specified_device.linkmodes);
 
     verbose("(im871a) are you there? yes %s\n", co.dongleId().c_str());

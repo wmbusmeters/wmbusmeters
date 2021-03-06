@@ -423,7 +423,7 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
         return AccessCheck::NotThere;
     }
 
-    detected->setAsFound("", WMBusDeviceType::DEVICE_CUL, 38400, false, false, detected->specified_device.linkmodes);
+    detected->setAsFound("", WMBusDeviceType::DEVICE_CUL, 38400, false, detected->specified_device.linkmodes);
 
     verbose("(cul) are you there? yes\n");
 

@@ -29,11 +29,15 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
 
     int i=1;
     const char *filename = strrchr(argv[0], '/');
-    if (filename) {
+    if (filename)
+    {
         filename++;
-    } else {
+    }
+    else
+    {
         filename = argv[0];
     }
+    c->bin_dir = dirname(currentProcessExe());
     if (!strcmp(filename, "wmbusmetersd"))
     {
         c->daemon = true;

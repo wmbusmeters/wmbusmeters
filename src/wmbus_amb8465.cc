@@ -139,8 +139,9 @@ private:
     void handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm);
 };
 
-shared_ptr<WMBus> openAMB8465(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openAMB8465(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
+    string device = detected.found_file;
     assert(device != "");
 
     if (serial_override)
@@ -605,7 +606,7 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
     ConfigAMB8465 config;
     config.decode(response);
 
-    detected->setAsFound(config.dongleId(), WMBusDeviceType::DEVICE_AMB8465, 9600, false, false,
+    detected->setAsFound(config.dongleId(), WMBusDeviceType::DEVICE_AMB8465, 9600, false,
         detected->specified_device.linkmodes);
 
     verbose("(amb8465) detect %s\n", config.str().c_str());

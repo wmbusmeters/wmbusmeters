@@ -195,4 +195,11 @@ uint32_t indexFromRtlSdrName(std::string &s);
 bool check_if_rtlwmbus_exists_in_path();
 bool check_if_rtlsdr_exists_in_path();
 
+// Return the actual executable binary that is running.
+std::string currentProcessExe();
+
+std::string dirname(std::string p);
+
+std::string lookForExecutable(std::string prog, std::string bin_dir, std::string default_dir);
+
 #endif

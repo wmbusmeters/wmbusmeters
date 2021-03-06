@@ -325,15 +325,15 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
         break;
     case DEVICE_MBUS:
         verbose("(mbus) on %s\n", detected->found_file.c_str());
-        wmbus = openMBUS(detected->found_file, detected->found_bps, manager, serial_override);
+        wmbus = openMBUS(*detected, manager, serial_override);
         break;
     case DEVICE_IM871A:
         verbose("(im871a) on %s\n", detected->found_file.c_str());
-        wmbus = openIM871A(detected->found_file, manager, serial_override);
+        wmbus = openIM871A(*detected, manager, serial_override);
         break;
     case DEVICE_AMB8465:
         verbose("(amb8465) on %s\n", detected->found_file.c_str());
-        wmbus = openAMB8465(detected->found_file, manager, serial_override);
+        wmbus = openAMB8465(*detected, manager, serial_override);
         break;
     case DEVICE_SIMULATION:
         verbose("(simulation) in %s\n", detected->found_file.c_str());
@@ -344,11 +344,8 @@ shared_ptr<WMBus> create_wmbus_object(Detected *detected, Configuration *config,
         wmbus = openRawTTY(detected->found_file, detected->found_bps, manager, serial_override);
         break;
     case DEVICE_RTLWMBUS:
-    {
-        string identifier = detected->found_device_id;
-        wmbus = openRTLWMBUS(identifier, detected->specified_device, config->daemon, manager, serial_override);
+        wmbus = openRTLWMBUS(*detected, config->bin_dir, config->daemon, manager, serial_override);
         break;
-    }
     case DEVICE_RTL433:
     {
         string command;

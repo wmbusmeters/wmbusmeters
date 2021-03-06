@@ -305,7 +305,7 @@ FrameStatus WMBusRTL433::checkRTL433Frame(vector<uchar> &data,
 
 AccessCheck detectRTL433(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
-    detected->setAsFound("", WMBusDeviceType::DEVICE_RTL433, 0, false, false,
+    detected->setAsFound("", WMBusDeviceType::DEVICE_RTL433, 0, false,
                          detected->specified_device.linkmodes);
 
     return AccessCheck::AccessOK;

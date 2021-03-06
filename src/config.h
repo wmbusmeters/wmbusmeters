@@ -44,6 +44,9 @@ enum class MeterFileTimestamp
 
 struct Configuration
 {
+    string bin_dir {}; // The wmbusmeters binary executed is located here.
+                       // Use this directory to look for other tools such as rtl_wmbus/rtl_sdr
+                       // inside the same directory.
     bool daemon {};
     std::string pid_file;
     std::string device_override;

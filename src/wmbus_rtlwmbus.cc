@@ -80,10 +80,14 @@ private:
     string setup_;
 };
 
-shared_ptr<WMBus> openRTLWMBUS(string identifier, SpecifiedDevice device, bool daemon,
+shared_ptr<WMBus> openRTLWMBUS(Detected detected,
+                               string bin_dir,
+                               bool daemon,
                                shared_ptr<SerialCommunicationManager> manager,
                                shared_ptr<SerialDevice> serial_override)
 {
+    string identifier = detected.found_device_id;
+    SpecifiedDevice &device = detected.specified_device;
     string command;
     int id = 0;
 
@@ -102,25 +106,39 @@ shared_ptr<WMBus> openRTLWMBUS(string identifier, SpecifiedDevice device, bool d
         {
             freq = device.fq;
         }
-        string prefix = "";
-        if (daemon)
+        string rtl_sdr;
+        string rtl_wmbus;
+        rtl_sdr = lookForExecutable("rtl_sdr", bin_dir, "/usr/bin");
+        if (rtl_sdr == "")
         {
-            prefix = "/usr/bin/";
-            if (command == "")
+            if (daemon)
             {
-                // Default command is used, check that the binaries are in place.
-                if (!checkFileExists("/usr/bin/rtl_sdr"))
-                {
-                    error("(rtlwmbus) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_sdr to exist!\n");
-                }
-                if (!checkFileExists("/usr/bin/rtl_wmbus"))
-                {
-                    error("(rtlwmbus) error: when starting as daemon, wmbusmeters expects /usr/bin/rtl_wmbus to exist!\n");
-                }
+                error("(rtlwmbus) error: when starting as daemon, wmbusmeters looked for %s/rtl_sdr and %s/rtl_sdr, but found neither!\n",
+                      bin_dir.c_str(), "/usr/bin");
+            }
+            else
+            {
+                // Look for it in the PATH
+                rtl_sdr = "rtl_sdr";
             }
         }
-        if (command == "") {
-            command = prefix+"rtl_sdr -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+prefix+"rtl_wmbus";
+        rtl_wmbus = lookForExecutable("rtl_wmbus", bin_dir, "/usr/bin");
+        if (rtl_wmbus == "")
+        {
+            if (daemon)
+            {
+                error("(rtlwmbus) error: when starting as daemon, wmbusmeters looked for %s/rtl_wmbus and %s/rtl_wmbus, but found neither!\n",
+                      bin_dir.c_str(), "/usr/bin");
+            }
+            else
+            {
+                // Look for it in the PATH
+                rtl_wmbus = "rtl_wmbus";
+            }
+        }
+        if (command == "")
+        {
+            command = rtl_sdr+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+rtl_wmbus;
         }
         verbose("(rtlwmbus) using command: %s\n", command.c_str());
     }

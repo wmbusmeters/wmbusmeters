@@ -53,8 +53,11 @@ private:
     vector<uchar> received_payload_;
 };
 
-shared_ptr<WMBus> openMBUS(string device, int baudrate, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openMBUS(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
+    string device = detected.found_file;
+    int bps = detected.found_bps;
+
     assert(device != "");
 
     if (serial_override)
@@ -63,7 +66,7 @@ shared_ptr<WMBus> openMBUS(string device, int baudrate, shared_ptr<SerialCommuni
         imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), baudrate, PARITY::EVEN, "mbus");
+    auto serial = manager->createSerialDeviceTTY(device.c_str(), bps, PARITY::EVEN, "mbus");
     MBusRawTTY *imp = new MBusRawTTY(serial, manager);
     return shared_ptr<WMBus>(imp);
 }
@@ -159,7 +162,7 @@ AccessCheck detectMBUS(Detected *detected, shared_ptr<SerialCommunicationManager
 
     serial->close();
 
-    detected->setAsFound("", WMBusDeviceType::DEVICE_MBUS, bps, false, false,
+    detected->setAsFound("", WMBusDeviceType::DEVICE_MBUS, bps, false,
         detected->specified_device.linkmodes);
 
     return AccessCheck::AccessOK;

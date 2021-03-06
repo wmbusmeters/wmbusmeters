@@ -123,7 +123,7 @@ AccessCheck detectRTLSDR(string serialnr, Detected *detected)
             LinkModeSet lms;
             lms.addLinkMode(LinkMode::C1);
             lms.addLinkMode(LinkMode::T1);
-            detected->setAsFound(serialnr, detected->specified_device.type, 0, false, false, lms);
+            detected->setAsFound(serialnr, detected->specified_device.type, 0, false, lms);
             return AccessCheck::AccessOK;
         }
     }

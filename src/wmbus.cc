@@ -4672,7 +4672,7 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
         debug("(lookup) driver: simulation file\n");
         // A simulation file has a lms of all by default, eg no simulation_foo.txt:t1 nor --t1
         if (specified_device.linkmodes.empty()) lms.setAll();
-        detected.setAsFound("", DEVICE_SIMULATION, 0 , false, false, lms);
+        detected.setAsFound("", DEVICE_SIMULATION, 0 , false, lms);
         return detected;
     }
 
@@ -4682,7 +4682,7 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
         debug("(lookup) driver: rawtty\n");
         // A rawtty has a lms of all by default, eg no simulation_foo.txt:t1 nor --t1
         if (specified_device.linkmodes.empty()) lms.setAll();
-        detected.setAsFound("", DEVICE_RAWTTY, atoi(specified_device.bps.c_str()), false, false, lms);
+        detected.setAsFound("", DEVICE_RAWTTY, atoi(specified_device.bps.c_str()), false, lms);
         return detected;
     }
 
@@ -4696,7 +4696,7 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
             // Default to 2400. This will be adjusted every time the meters are probed.
             bps = 2400;
         }
-        detected.setAsFound("", DEVICE_MBUS, bps, false, false, lms);
+        detected.setAsFound("", DEVICE_MBUS, bps, false, lms);
         return detected;
     }
 
@@ -4706,7 +4706,7 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
         debug("(lookup) driver: raw file\n");
         // A rawtty has a lms of all by default, eg no simulation_foo.txt:t1 nor --t1
         if (specified_device.linkmodes.empty()) lms.setAll();
-        detected.setAsFound("", DEVICE_RAWTTY, 0, true, false, lms);
+        detected.setAsFound("", DEVICE_RAWTTY, 0, true, lms);
         return detected;
     }
 
@@ -4717,8 +4717,7 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
     {
         debug("(lookup) driver: %s\n", toString(specified_device.type));
         assert(!lms.empty());
-        detected.setAsFound("", specified_device.type, 0, specified_device.is_file || specified_device.is_stdin,
-                            false, lms);
+        detected.setAsFound("", specified_device.type, 0, specified_device.is_file || specified_device.is_stdin, lms);
         return detected;
     }
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
@@ -4751,7 +4750,7 @@ Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
     LinkModeSet lms = specified_device.linkmodes;
     // If the specified device did not set any linkmodes fall back on the default linkmodes.
     if (lms.empty()) lms = default_linkmodes;
-    detected.setAsFound("", specified_device.type, 0, false, true, lms);
+    detected.setAsFound("", specified_device.type, 0, false, lms);
 
     return detected;
 }
