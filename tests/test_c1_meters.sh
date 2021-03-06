@@ -11,16 +11,17 @@ TESTRESULT="ERROR"
 
 cat simulations/simulation_c1.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_c1.txt \
-      MyHeater multical302 67676767 "" \
-      MyTapWater multical21 76348799 "" \
-      MyWater flowiq2200 52525252 "" \
-      Vadden multical21 44556677 "" \
-      MyElement qcaloric 78563412 "" \
-      Rum cma12w 66666666 "" \
-      My403Cooling multical403 78780102 "" \
-      Heat multical603 36363636 "" \
-      Heater multical803 80808081 "" \
-      myomnipower omnipower 32666857 "" \
+      MyHeater multical302 67676767 NOKEY \
+      MyTapWater multical21 76348799 NOKEY \
+      MyWater flowiq2200 52525252 NOKEY \
+      Vadden multical21 44556677 NOKEY \
+      MyElement qcaloric 78563412 NOKEY \
+      Rum cma12w 66666666 NOKEY \
+      My403Cooling multical403 78780102 NOKEY \
+      Heat multical603 36363636 NOKEY \
+      Heater multical803 80808081 NOKEY \
+      myomnipower omnipower 32666857 NOKEY \
+      Smokey ei6500 00012811 NOKEY \
       > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 
 if [ "$?" = "0" ]
