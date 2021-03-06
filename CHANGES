@@ -1,4 +1,12 @@
 
+IMPORTANT CHANGES THAT MIGHT AFFECT YOU!vvvvvvvvvvvvvvvvvvvvvv
+
+wmbusmeters now expects the latest version of rtl_wmbus with -s support.
+The default behaviour is to use -s to listen to S1,T1 and C1 at the same time.
+Check the README for more info.
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Rattinca helped add support for the EI Electronics smoke detector. Thanks Rattinca!
 
 Ignore duplicates is now enabled by default. Turn it off with --ignoreduplicates=false
