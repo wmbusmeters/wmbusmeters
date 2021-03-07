@@ -129,6 +129,8 @@ METER_OBJS:=\
 	$(BUILD)/util.o \
 	$(BUILD)/units.o \
 	$(BUILD)/wmbus.o \
+	$(BUILD)/meter_auto.o \
+	$(BUILD)/meter_unknown.o \
 	$(BUILD)/meter_amiplus.o \
 	$(BUILD)/wmbus_amb8465.o \
 	$(BUILD)/wmbus_im871a.o \

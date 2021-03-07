@@ -1822,10 +1822,10 @@ void Telegram::explainParse(string intro, int from)
 string Telegram::autoDetectPossibleDrivers()
 {
     vector<string> drivers;
-    detectMeterDriver(dll_mfct, dll_type, dll_version, &drivers);
+    detectMeterDrivers(dll_mfct, dll_type, dll_version, &drivers);
     if (tpl_id_found)
     {
-        detectMeterDriver(tpl_mfct, tpl_type, tpl_version, &drivers);
+        detectMeterDrivers(tpl_mfct, tpl_type, tpl_version, &drivers);
     }
     string possibles;
     for (string d : drivers) possibles = possibles+d+" ";

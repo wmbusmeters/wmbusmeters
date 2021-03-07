@@ -133,6 +133,12 @@ public:
                         tmp_ids.push_back(t.ids.back());
                         tmp.ids = tmp_ids;
                         tmp.idsc = t.ids.back();
+
+                        if (tmp.type == MeterType::AUTO)
+                        {
+                            // Look up the proper meter driver!
+                            tmp.type = pickMeterDriver(&t);
+                        }
                         // Now build a meter object with for this exact id.
                         auto meter = createMeter(&tmp);
                         meter->onUpdate(on_meter_updated_);
@@ -413,7 +419,7 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
         valid_driver = isMeterDriverValid(type, t->tpl_mfct, t->tpl_type, t->tpl_version);
     }
 
-    if (!valid_driver)
+    if (!valid_driver && type != MeterType::AUTO)
     {
         // Are we using the right driver? Perhaps not since
         // this particular driver, mfct, media, version combo
@@ -868,7 +874,7 @@ ELLSecurityMode MeterCommonImplementation::expectedELLSecurityMode()
     return expected_ell_sec_mode_;
 }
 
-void detectMeterDriver(int manufacturer, int media, int version, vector<string> *drivers)
+void detectMeterDrivers(int manufacturer, int media, int version, vector<string> *drivers)
 {
 #define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { drivers->push_back(toMeterDriver(MeterType::TY)); }}
 METER_DETECTION
@@ -882,6 +888,25 @@ METER_DETECTION
 #undef X
 
     return false;
+}
+
+MeterType pickMeterDriver(Telegram *t)
+{
+    int manufacturer = t->dll_mfct;
+    int media = t->dll_type;
+    int version = t->dll_version;
+
+    if (t->tpl_id_found)
+    {
+        manufacturer = t->dll_mfct;
+        media = t->dll_type;
+        version = t->dll_version;
+    }
+
+#define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { return MeterType::TY; }}
+METER_DETECTION
+#undef X
+    return MeterType::UNKNOWN;
 }
 
 shared_ptr<Meter> createMeter(MeterInfo *mi)
@@ -904,9 +929,6 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
         break;
 LIST_OF_METERS
 #undef X
-    case MeterType::UNKNOWN:
-        error("No such meter type \"%s\"\n", toMeterDriver(mi->type).c_str());
-        break;
     }
     return newm;
 }

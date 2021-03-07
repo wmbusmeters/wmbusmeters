@@ -28,6 +28,8 @@
 #include<vector>
 
 #define LIST_OF_METERS \
+    X(auto,       0,      UnknownMeter, AUTO, Auto) \
+    X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
     X(amiplus,    T1_bit, ElectricityMeter, AMIPLUS,     Amiplus)      \
     X(apator08,   T1_bit,        WaterMeter,       APATOR08,    Apator08)    \
     X(apator162,  C1_bit|T1_bit, WaterMeter,       APATOR162,   Apator162)   \
@@ -182,7 +184,6 @@ enum class MeterType {
 #define X(mname,linkmode,info,type,cname) type,
 LIST_OF_METERS
 #undef X
-    UNKNOWN
 };
 
 struct MeterMatch
@@ -194,10 +195,12 @@ struct MeterMatch
 };
 
 // Return a list of matching drivers, like: multical21
-void detectMeterDriver(int manufacturer, int media, int version, std::vector<std::string> *drivers);
+void detectMeterDrivers(int manufacturer, int media, int version, std::vector<std::string> *drivers);
 // When entering the driver, check that the telegram is indeed known to be
 // compatible with the driver(type), if not then print a warning.
 bool isMeterDriverValid(MeterType type, int manufacturer, int media, int version);
+// Return the best driver match for a telegram.
+MeterType pickMeterDriver(Telegram *t);
 
 using namespace std;
 
@@ -317,6 +320,10 @@ struct MeterManager
 };
 
 shared_ptr<MeterManager> createMeterManager(bool daemon);
+
+struct UnknownMeter : public virtual Meter
+{
+};
 
 struct WaterMeter : public virtual Meter
 {
