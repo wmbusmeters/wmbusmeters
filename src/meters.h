@@ -82,6 +82,7 @@
     X(waterstarm, C1_bit|T1_bit, WaterMeter,WATERSTARM,  WaterstarM)   \
     X(whe46x,     S1_bit, HeatCostAllocationMeter, WHE46X, Whe46x)     \
     X(whe5x,      S1_bit, HeatCostAllocationMeter, WHE5X, Whe5x)       \
+    X(lse_08,     S1_bit|C1_bit, HeatCostAllocationMeter, LSE_08, LSE_08) \
     X(weh_07,     C1_bit, WaterMeter,       WEH_07,       WEH_07)      \
 
 
@@ -170,11 +171,12 @@
     X(WATERSTARM, MANUFACTURER_DWZ, 0x06,  0x02) \
     X(WATERSTARM, MANUFACTURER_DWZ, 0x07,  0x02) \
     X(WATERSTARM, MANUFACTURER_EFE, 0x07,  0x03) \
-    X(WEH_07,     MANUFACTURER_WEH, 0x07,  0xfe) \
     X(WHE46X,     MANUFACTURER_LSE, 0x08,  0x18) \
     X(WHE5X,      MANUFACTURER_LSE, 0x08,  0x34) \
     X(SENSOSTAR,  MANUFACTURER_EFE, 0x04,  0x00) \
-    X(CCx01, MANUFACTURER_GSS, 0x02,  0x01)
+    X(CCx01,      MANUFACTURER_GSS, 0x02,  0x01) \
+    X(LSE_08,     MANUFACTURER_LSE, 0x08,  0x01) \
+    X(WEH_07,     MANUFACTURER_WEH, 0x07,  0xfe) \
 
 enum class MeterType {
 #define X(mname,linkmode,info,type,cname) type,

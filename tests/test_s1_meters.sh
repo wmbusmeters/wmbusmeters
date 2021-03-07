@@ -8,7 +8,8 @@ TEST=testoutput
 TESTNAME="Test S1 meters"
 TESTRESULT="ERROR"
 
-METERS="HCA whe5x 91835132 NOKEY"
+METERS="HCA whe5x 91835132 NOKEY \
+        HCA2 lse_08 04998541 NOKEY"
 
 cat simulations/simulation_s1.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_s1.txt $METERS > $TEST/test_output.txt 2> $TEST/test_stderr.txt
