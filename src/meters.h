@@ -39,6 +39,7 @@
     X(esyswm,     T1_bit, ElectricityMeter, ESYSWM,      ESYSWM)       \
     X(flowiq2200, C1_bit, WaterMeter,       FLOWIQ2200,  FlowIQ2200)   \
     X(flowiq3100, C1_bit, WaterMeter,       FLOWIQ3100,  FlowIQ3100)   \
+    X(ei6500,     C1_bit, SmokeDetector,    EI6500,      EI6500)       \
     X(elf,        T1_bit, HeatMeter,        ELF,         Elf)          \
     X(em24,       C1_bit, ElectricityMeter, EM24,        EM24)         \
     X(emerlin868, T1_bit, WaterMeter,       EMERLIN868,  EMerlin868)   \
@@ -46,6 +47,7 @@
     X(evo868,     T1_bit, WaterMeter,       EVO868,      EVO868)       \
     X(fhkvdataiii,T1_bit, HeatCostAllocationMeter,       FHKVDATAIII,   FHKVDataIII)    \
     X(fhkvdataiv, T1_bit, HeatCostAllocationMeter,       FHKVDATAIV,    FHKVDataIV)     \
+    X(gransystems,T1_bit, ElectricityMeter, CCx01, CCx01) 		       \
     X(hydrus,     T1_bit, WaterMeter,       HYDRUS,      Hydrus)       \
     X(hydrocalm3, T1_bit, HeatMeter,        HYDROCALM3,  HydrocalM3)   \
     X(hydrodigit, T1_bit, WaterMeter,       HYDRODIGIT,  Hydrodigit)   \
@@ -70,18 +72,17 @@
     X(tsd2,       T1_bit, SmokeDetector,    TSD2,        TSD2)         \
     X(q400,       T1_bit, WaterMeter,       Q400,        Q400)         \
     X(qcaloric,   C1_bit, HeatCostAllocationMeter, QCALORIC, QCaloric) \
+    X(sensostar,  C1_bit|T1_bit, HeatMeter,SENSOSTAR,  Sensostar)      \
     X(sharky,     T1_bit, HeatMeter,        SHARKY,      Sharky)       \
     X(sontex868,  T1_bit, HeatCostAllocationMeter, SONTEX868, Sontex868) \
     X(supercom587,T1_bit, WaterMeter,       SUPERCOM587, Supercom587)  \
+    X(topaseskr,  T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)          \
     X(ultrimis,   T1_bit, WaterMeter,       ULTRIMIS,    Ultrimis)     \
     X(vario451,   T1_bit, HeatMeter,        VARIO451,    Vario451)     \
     X(waterstarm, C1_bit|T1_bit, WaterMeter,WATERSTARM,  WaterstarM)   \
     X(whe46x,     S1_bit, HeatCostAllocationMeter, WHE46X, Whe46x)     \
     X(whe5x,      S1_bit, HeatCostAllocationMeter, WHE5X, Whe5x)       \
-    X(topaseskr,  T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)          \
-    X(sensostar,  C1_bit|T1_bit, HeatMeter,SENSOSTAR,  Sensostar)      \
-    X(gransystems,T1_bit, ElectricityMeter, CCx01, CCx01) 		       \
-    X(ei6500,     C1_bit, SmokeDetector,    EI6500,      EI6500)
+    X(weh_07,     C1_bit, WaterMeter,       WEH_07,       WEH_07)      \
 
 
 // List of numbers that can be used to detect the meter driver from a telegram.
@@ -169,6 +170,7 @@
     X(WATERSTARM, MANUFACTURER_DWZ, 0x06,  0x02) \
     X(WATERSTARM, MANUFACTURER_DWZ, 0x07,  0x02) \
     X(WATERSTARM, MANUFACTURER_EFE, 0x07,  0x03) \
+    X(WEH_07,     MANUFACTURER_WEH, 0x07,  0xfe) \
     X(WHE46X,     MANUFACTURER_LSE, 0x08,  0x18) \
     X(WHE5X,      MANUFACTURER_LSE, 0x08,  0x34) \
     X(SENSOSTAR,  MANUFACTURER_EFE, 0x04,  0x00) \
