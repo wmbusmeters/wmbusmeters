@@ -51,9 +51,9 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     auto i = buf.begin();
     string bus;
     string name;
-    string type;
+    string type = "auto";
     string id;
-    string key;
+    string key = "";
     string linkmodes;
     int bps {};
     vector<string> telegram_shells;

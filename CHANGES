@@ -1,3 +1,12 @@
+
+You can now use "auto" as a meter driver.
+Wmbusmeters will then pick the right driver when
+the first telegram arrives. A warning will be printed
+in the logs if no driver could be found.
+
+If you do not specify a type= in the meter config file,
+then it will default to auto.
+
 Version 1.2.0: 2021-03-07
 
 IMPORTANT CHANGES THAT MIGHT AFFECT YOU!vvvvvvvvvvvvvvvvvvvvvv

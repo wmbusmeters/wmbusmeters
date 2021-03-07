@@ -82,10 +82,13 @@ ignoreduplicates=true
 Then add a meter file in /etc/wmbusmeters.d/MyTapWater
 ```
 name=MyTapWater
-type=multical21:c1
 id=12345678
 key=00112233445566778899AABBCCDDEEFF
 ```
+
+Meter driver detection will be automatic. You can also provide an
+explicit driver name with: `type=multical21:c1` or explicitly state
+that driver detection is automatic: `type=auto`.
 
 Now plugin your wmbus dongle. Wmbusmeters should start automatically,
 check with `tail -f /var/log/syslog` and `tail -f /var/log/wmbusmeters/wmbusmeters.log`
@@ -350,10 +353,10 @@ Received telegram from: 12345678
                 driver: multical21
 ```
 
-Now listen to this specific meter.
+Now listen to this specific meter, since the driver is auto-detected, we can use `auto` for the meter driver.
 
 ```
-wmbusmeters auto:c1 MyTapWater multical21:c1 12345678 00112233445566778899AABBCCDDEEFF
+wmbusmeters auto:c1 MyTapWater auto 12345678 00112233445566778899AABBCCDDEEFF
 ```
 
 (The Multical21 and other meters use compressed telegrams, which means

@@ -92,9 +92,9 @@ public:
 
         if (t->tpl_id_found)
         {
-            mfct = t->dll_mfct;
-            media = t->dll_type;
-            version = t->dll_version;
+            mfct = t->tpl_mfct;
+            media = t->tpl_type;
+            version = t->tpl_version;
             id_b = t->tpl_id_b;
         }
 
@@ -933,9 +933,9 @@ MeterType pickMeterDriver(Telegram *t)
 
     if (t->tpl_id_found)
     {
-        manufacturer = t->dll_mfct;
-        media = t->dll_type;
-        version = t->dll_version;
+        manufacturer = t->tpl_mfct;
+        media = t->tpl_type;
+        version = t->tpl_version;
     }
 
 #define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { return MeterType::TY; }}
