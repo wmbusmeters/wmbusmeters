@@ -17,6 +17,7 @@
 
 #include"config.h"
 #include"meters.h"
+#include"meter_detection.h"
 #include"meters_common_implementation.h"
 #include"units.h"
 #include"wmbus.h"
@@ -82,6 +83,36 @@ public:
         return meters_.size() != 0 || meter_templates_.size() != 0;
     }
 
+    void warnForUnknownDriver(string name, Telegram *t)
+    {
+        int mfct = t->dll_mfct;
+        int media = t->dll_type;
+        int version = t->dll_version;
+        uchar *id_b = t->dll_id_b;
+
+        if (t->tpl_id_found)
+        {
+            mfct = t->dll_mfct;
+            media = t->dll_type;
+            version = t->dll_version;
+            id_b = t->tpl_id_b;
+        }
+
+        warning("(meter) %s: meter detection could not find driver for "
+                "id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                name.c_str(),
+                id_b[3], id_b[2], id_b[1], id_b[0],
+                manufacturerFlag(mfct).c_str(),
+                manufacturer(mfct).c_str(),
+                mfct,
+                mediaType(media, mfct).c_str(), media,
+                version);
+
+
+        warning("(meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/\n");
+        warning("(meter) to add support for this unknown mfct,media,version combination\n");
+    }
+
     bool handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated)
     {
         if (!hasMeters())
@@ -138,6 +169,10 @@ public:
                         {
                             // Look up the proper meter driver!
                             tmp.type = pickMeterDriver(&t);
+                            if (tmp.type == MeterType::UNKNOWN)
+                            {
+                                warnForUnknownDriver(mi.name, &t);
+                            }
                         }
                         // Now build a meter object with for this exact id.
                         auto meter = createMeter(&tmp);
