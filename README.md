@@ -195,7 +195,7 @@ As <options> you can use:
     --verbose for more information
 ```
 
-As <device> you can use:
+As device you can use:
 
 auto:c1, to have wmbusmeters probe for devices: im871a, amb8465, cul, rc1180 or rtlsdr (spawns rtlwmbus).
 
@@ -250,7 +250,7 @@ expecting the same format that is the output from --logtelegrams. This format al
 As meter quadruples you specify:
 
 * <meter_name> a mnemonic for this particular meter (!Must not contain a colon ':' character!)
-* <meter_type> one of the supported meters (can be suffixed with :<mode> to specify which mode you expect the meter to use when transmitting)
+* <meter_type> use "auto" or one of the supported meters (can be suffixed with :<mode> to specify which mode you expect the meter to use when transmitting)
 * <meter_id> an 8 digit mbus id, usually printed on the meter
 * <meter_key> an encryption key unique for the meter if the meter uses no encryption, then supply NOKEY
 
