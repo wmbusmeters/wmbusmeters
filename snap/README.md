@@ -22,6 +22,7 @@ Using the wmbusmeters Snap
 After installing the Snap, the privileged access to USB interfaces need to be configured:
 
     sudo snap connect wmbusmeters:raw-usb core:raw-usb
+	sudo snap connect wmbusmeters:system-observe core:system-observe
 
 Using wmbusmeters Daemon
 -------------------------------------------
@@ -52,13 +53,13 @@ When using rtlwmbus, rtl433 or shell commands then LD_LIBRARY_PATH and full path
 
 In case of rtlwmbus following configuration should be used:
 
-    device=rtlwmbus:LD_LIBRARY_PATH=/var/lib/snapd/lib/gl:/var/lib/snapd/lib/gl32:/var/lib/snapd/void:/snap/wmbusmeters/current/lib/x86_64-linux-gnu:/snap/wmbusmeters/current/usr/lib/x86_64-linux-gnu::/snap/wmbusmeters/current/lib:/snap/wmbusmeters/current/usr/lib:/snap/wmbusmeters/current/lib/x86_64-linux-gnu:/snap/wmbusmeters/current/usr/lib/x86_64-linux-gnu /snap/wmbusmeters/current/usr/bin/rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | /snap/wmbusmeters/current/usr/bin/rtl_wmbus
+    device=rtlwmbus:CMD(LD_LIBRARY_PATH=/var/lib/snapd/lib/gl:/var/lib/snapd/lib/gl32:/var/lib/snapd/void:/snap/wmbusmeters/current/lib/x86_64-linux-gnu:/snap/wmbusmeters/current/usr/lib/x86_64-linux-gnu:/snap/wmbusmeters/current/lib:/snap/wmbusmeters/current/usr/lib:/snap/wmbusmeters/current/usr/lib/arm-linux-gnueabihf /snap/wmbusmeters/current/usr/bin/rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | /snap/wmbusmeters/current/usr/bin/rtl_wmbus)
     
  or rtl433
  
-     device=rtl433:LD_LIBRARY_PATH=/var/lib/snapd/lib/gl:/var/lib/snapd/lib/gl32:/var/lib/snapd/void:/snap/wmbusmeters/current/lib/x86_64-linux-gnu:/snap/wmbusmeters/current/usr/lib/x86_64-linux-gnu::/snap/wmbusmeters/current/lib:/snap/wmbusmeters/current/usr/lib:/snap/wmbusmeters/current/lib/x86_64-linux-gnu:/snap/wmbusmeters/current/usr/lib/x86_64-linux-gnu /snap/wmbusmeters/current/usr/bin/rtl_433 -F csv -f 868.95M
+     device=rtl433:CMD(LD_LIBRARY_PATH=/var/lib/snapd/lib/gl:/var/lib/snapd/lib/gl32:/var/lib/snapd/void:/snap/wmbusmeters/current/lib/x86_64-linux-gnu:/snap/wmbusmeters/current/usr/lib/x86_64-linux-gnu:/snap/wmbusmeters/current/lib:/snap/wmbusmeters/current/usr/lib:/snap/wmbusmeters/current/usr/lib/arm-linux-gnueabihf /snap/wmbusmeters/current/usr/bin/rtl_433 -F csv -f 868.95M)
      
  or when shell command is being used 
  
-    shell=LD_LIBRARY_PATH=/var/lib/snapd/lib/gl:/var/lib/snapd/lib/gl32:/var/lib/snapd/void:/snap/wmbusmeters/current/lib/x86_64-linux-gnu:/snap/wmbusmeters/current/usr/lib/x86_64-linux-gnu::/snap/wmbusmeters/current/lib:/snap/wmbusmeters/current/usr/lib:/snap/wmbusmeters/current/lib/x86_64-linux-gnu:/snap/wmbusmeters/current/usr/lib/x86_64-linux-gnu /snap/wmbusmeters/current/usr/bin/mosquitto_pub -h localhost -t water -m '$METER_JSON'
+    shell=LD_LIBRARY_PATH=/var/lib/snapd/lib/gl:/var/lib/snapd/lib/gl32:/var/lib/snapd/void:/snap/wmbusmeters/current/lib/x86_64-linux-gnu:/snap/wmbusmeters/current/usr/lib/x86_64-linux-gnu:/snap/wmbusmeters/current/lib:/snap/wmbusmeters/current/usr/lib:/snap/wmbusmeters/current/usr/lib/arm-linux-gnueabihf /snap/wmbusmeters/current/usr/bin/mosquitto_pub -h localhost -t wmbusmeters/$METER_ID -m "$METER_JSON"
  

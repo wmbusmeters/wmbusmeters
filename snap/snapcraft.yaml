@@ -53,11 +53,15 @@ parts:
     stage-packages:
       - mosquitto-clients
       - curl
+      - dash
+      - sysvinit-utils
       - libusb-1.0-0
       - rtl-sdr
     prime:
+      - sbin/
       - usr/bin/
       - usr/lib/
+      - bin/
       - lib/
       - etc/wmbusmeters.conf
 
@@ -81,10 +85,15 @@ parts:
 
 apps:
   wmbusmeters:
-    command: /bin/sh $SNAP/launcher.sh
+    command: bin/sh $SNAP/launcher.sh
     daemon: simple
     restart-condition: always
     plugs:
       - network
       - network-bind
       - raw-usb
+      - system-observe
+
+layout:
+  /sbin/killall5:
+    bind-file: $SNAP/sbin/killall5
