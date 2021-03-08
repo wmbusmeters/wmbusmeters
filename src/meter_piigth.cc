@@ -28,7 +28,7 @@ struct MeterPIIGTH : public virtual TempHygroMeter, public virtual MeterCommonIm
     double currentRelativeHumidity();
 
 private:
-
+    void poll();
     void processContent(Telegram *t);
 
     double current_temperature_c_ {};
@@ -91,6 +91,33 @@ double MeterPIIGTH::currentTemperature(Unit u)
 double MeterPIIGTH::currentRelativeHumidity()
 {
     return current_relative_humidity_rh_;
+}
+
+void MeterPIIGTH::poll()
+{
+    fprintf(stderr, "SENDING Query...\n");
+    vector<uchar> buf(5);
+    buf[0] = 0x10; // Start
+    buf[1] = 0x40; // SND_NKE
+    buf[2] = 0x00; // address 0
+    uchar cs = 0;
+    for (int i=1; i<3; ++i) cs += buf[i];
+    buf[3] = cs; // checksum
+    buf[4] = 0x16; // Stop
+
+    bus()->serial()->send(buf);
+
+    sleep(2);
+
+    buf[0] = 0x10; // Start
+    buf[1] = 0x5b; // REQ_UD2
+    buf[2] = 0x00; // address 0
+    cs = 0;
+    for (int i=1; i<3; ++i) cs += buf[i];
+    buf[3] = cs; // checksum
+    buf[4] = 0x16; // Stop
+
+    bus()->serial()->send(buf);
 }
 
 void MeterPIIGTH::processContent(Telegram *t)

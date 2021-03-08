@@ -48,6 +48,7 @@ public:
     {
         meters_.push_back(meter);
         meter->setIndex(meters_.size());
+        meter->onUpdate(on_meter_updated_);
     }
 
     Meter *lastAddedMeter()
@@ -176,8 +177,6 @@ public:
                         }
                         // Now build a meter object with for this exact id.
                         auto meter = createMeter(&tmp);
-                        meter->onUpdate(on_meter_updated_);
-
                         addMeter(meter);
                         string idsc = toIdsCommaSeparated(t.ids);
                         verbose("(meter) used meter template %s %s %s to match %s\n",
@@ -240,9 +239,18 @@ public:
     {
         on_telegram_ = cb;
     }
+
     void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb)
     {
         on_meter_updated_ = cb;
+    }
+
+    void pollMeters()
+    {
+        for (auto &m : meters_)
+        {
+            m->poll();
+        }
     }
 
     MeterManagerImplementation(bool daemon) : is_daemon_(daemon) {}
@@ -256,7 +264,7 @@ shared_ptr<MeterManager> createMeterManager(bool daemon)
 
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
                                                      MeterDriver driver) :
-    driver_(driver), name_(mi.name)
+    driver_(driver), bus_(NULL), name_(mi.name)
 {
     ids_ = mi.ids;
     idsc_ = toIdsCommaSeparated(ids_);
@@ -336,6 +344,10 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
     prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), NULL, getValueFunc, help, field, json, vname } );
 }
 
+void MeterCommonImplementation::poll()
+{
+}
+
 vector<string>& MeterCommonImplementation::ids()
 {
     return ids_;
@@ -386,6 +398,14 @@ string MeterCommonImplementation::datetimeOfUpdateRobot()
     // This is the date time in the Greenwich timezone (Zulu time), dont get surprised!
     strftime(datetime, sizeof(datetime), "%FT%TZ", gmtime(&datetime_of_update_));
     return string(datetime);
+}
+
+bool needsPolling(MeterDriver d)
+{
+#define X(mname,linkmodes,info,driver,cname) if (d == MeterDriver::driver && 0 != ((linkmodes) & MBUS_bit)) return true;
+LIST_OF_METERS
+#undef X
+    return false;
 }
 
 string toMeterDriver(MeterDriver mt)
@@ -533,6 +553,11 @@ int MeterCommonImplementation::index()
 void MeterCommonImplementation::setIndex(int i)
 {
     index_ = i;
+}
+
+WMBus *MeterCommonImplementation::bus()
+{
+    return bus_;
 }
 
 void MeterCommonImplementation::triggerUpdate(Telegram *t)

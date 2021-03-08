@@ -3514,6 +3514,10 @@ void WMBusCommonImplementation::onTelegram(function<bool(AboutTelegram&,vector<u
     telegram_listeners_.push_back(cb);
 }
 
+void WMBusCommonImplementation::sendTelegram(Telegram *t)
+{
+    warning("(bus) Trying to send telegram to bus that has not implemented sending!\n");
+}
 
 static bool ignore_duplicate_telegrams_ = false;
 

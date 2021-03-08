@@ -553,6 +553,7 @@ struct WMBus
     virtual bool canSetLinkModes(LinkModeSet lms) = 0;
     virtual void setLinkModes(LinkModeSet lms) = 0;
     virtual void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb) = 0;
+    virtual void sendTelegram(Telegram *t) = 0;
     virtual SerialDevice *serial() = 0;
     // Return true of the serial has been overridden, usually with stdin or a file.
     virtual bool serialOverride() = 0;

@@ -102,6 +102,9 @@ struct MeterMatch
     int version;
 };
 
+// Return true for mbus and C2/T2 meters.
+bool needsPolling(MeterDriver driver);
+
 // Return a list of matching drivers, like: multical21
 void detectMeterDrivers(int manufacturer, int media, int version, std::vector<std::string> *drivers);
 // When entering the driver, check that the telegram is indeed known to be
@@ -130,6 +133,11 @@ struct MeterInfo
     vector<string> shells;
     vector<string> jsons; // Additional static jsons that are added to each message.
     vector<Unit> conversions; // Additional units desired in json.
+
+    // If this is a meter that needs to be polled.
+    int    poll_seconds; // Poll every x seconds.
+    int    poll_hour_offset; // Instead of
+    string poll_time_period; // Poll only during these hours.
 
     MeterInfo()
     {
@@ -169,6 +177,8 @@ struct Meter
     // and no exact meter exists. Index 1 is the first meter created etc.
     virtual int index() = 0;
     virtual void setIndex(int i) = 0;
+    // Use this bus to send messages to the meter.
+    virtual WMBus *bus() = 0;
     // This meter listens to these ids.
     virtual vector<string> &ids() = 0;
     // Comma separated ids.
@@ -208,6 +218,7 @@ struct Meter
     virtual void addConversions(std::vector<Unit> cs) = 0;
     virtual void addShell(std::string cmdline) = 0;
     virtual vector<string> &shellCmdlines() = 0;
+    virtual void poll() = 0;
 
     virtual ~Meter() = default;
 };
@@ -224,6 +235,7 @@ struct MeterManager
     virtual bool hasMeters() = 0;
     virtual void onTelegram(function<void(AboutTelegram&,vector<uchar>)> cb) = 0;
     virtual void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb) = 0;
+    virtual void pollMeters() = 0;
 
     virtual ~MeterManager() = default;
 };

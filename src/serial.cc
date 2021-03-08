@@ -113,14 +113,14 @@ private:
 
     vector<shared_ptr<SerialDevice>> serial_devices_;
     RecursiveMutex serial_devices_mutex_ = { "serial_devices_mutex" };
-#define LOCK_SERIAL_DEVICES(where) WITH(serial_devices_mutex_, where)
+#define LOCK_SERIAL_DEVICES(where) WITH(serial_devices_mutex_, serial_devices_mutex, where)
 
     RecursiveMutex event_loop_mutex_ = {"event_loop_mutex" };
-#define LOCK_EVENT_LOOP(where) WITH(event_loop_mutex_, where)
+#define LOCK_EVENT_LOOP(where) WITH(event_loop_mutex_, event_loop_mutex, where)
 
     vector<Timer> timers_;  // Protected by LOCK_TIMERS
     RecursiveMutex timers_mutex_ = { "timers_mutex" };
-#define LOCK_TIMERS(where) WITH(timers_mutex_, where)
+#define LOCK_TIMERS(where) WITH(timers_mutex_, timers_mutex, where)
 };
 
 SerialCommunicationManagerImp::~SerialCommunicationManagerImp()
@@ -177,10 +177,10 @@ struct SerialDeviceImp : public SerialDevice
 protected:
 
     RecursiveMutex read_mutex_ = { "read_mutex" };
-#define LOCK_READ_SERIAL(where) WITH(read_mutex_, where)
+#define LOCK_READ_SERIAL(where) WITH(read_mutex_, read_mutex, where)
 
     RecursiveMutex write_mutex_ = { "write_mutex" };
-#define LOCK_WRITE_SERIAL(where) WITH(write_mutex_, where)
+#define LOCK_WRITE_SERIAL(where) WITH(write_mutex_, write_mutex, where)
 
     function<void()> on_data_;
     function<void()> on_disappear_;

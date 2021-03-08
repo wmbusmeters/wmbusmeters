@@ -68,7 +68,7 @@ size_t getCurrentRSS();
                                 x ## pid_ = 0; \
                                 trace("[UNLOCKED] " #x " " func "\n"); }
 
-#define WITH(mutex,func) Lock local_ ## mutex (&mutex, #func)
+#define WITH(mutex,name,func) Lock local_ ## name (&mutex, #func)
 
 struct Lock;
 

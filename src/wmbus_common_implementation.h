@@ -34,6 +34,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     bool isSerial();
     WMBusDeviceType type();
     void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb);
+    void sendTelegram(Telegram *t);
     bool handleTelegram(AboutTelegram &about, vector<uchar> frame);
     void checkStatus();
     bool isWorking();
@@ -105,7 +106,7 @@ protected:
     // Lock this mutex when you sent a request to the wmbus device
     // Unlock when you received the response or it timedout.
     RecursiveMutex command_mutex_;
-#define LOCK_WMBUS_EXECUTING_COMMAND(where) WITH(command_mutex_, where)
+#define LOCK_WMBUS_EXECUTING_COMMAND(where) WITH(command_mutex_, command_mutex, where)
 
     // Use waitForRespones/notifyReponseIsHere to wait for a response
     // while the command_mutex_ is taken.

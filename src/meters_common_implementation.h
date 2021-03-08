@@ -28,6 +28,7 @@ struct MeterCommonImplementation : public virtual Meter
 {
     int index();
     void setIndex(int i);
+    WMBus *bus();
     vector<string>& ids();
     string idsc();
     vector<string>  fields();
@@ -77,6 +78,9 @@ protected:
     // Print the dimensionless Text quantity, no unit is needed.
     void addPrint(string vname, Quantity vquantity,
                   function<std::string()> getValueFunc, string help, bool field, bool json);
+    // The default implementation of poll does nothing.
+    // Override for mbus meters that need to be queried and likewise for C2/T2 wmbus-meters.
+    void poll();
     bool handleTelegram(AboutTelegram &about, vector<uchar> frame, bool simulated, string *id, bool *id_match);
     void printMeter(Telegram *t,
                     string *human_readable,
@@ -92,6 +96,7 @@ private:
 
     int index_ {};
     MeterDriver driver_ {};
+    WMBus *bus_ {};
     MeterKeys meter_keys_ {};
     ELLSecurityMode expected_ell_sec_mode_ {};
     TPLSecurityMode expected_tpl_sec_mode_ {};
