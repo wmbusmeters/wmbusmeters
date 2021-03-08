@@ -741,15 +741,15 @@ string toIdsCommaSeparated(std::vector<std::string> &ids)
     return cs;
 }
 
-bool isValidKey(string& key, MeterType mt)
+bool isValidKey(string& key, MeterDriver mt)
 {
     if (key.length() == 0) return true;
     if (key == "NOKEY") {
         key = "";
         return true;
     }
-    if (mt == MeterType::IZAR ||
-        mt == MeterType::HYDRUS)
+    if (mt == MeterDriver::IZAR ||
+        mt == MeterDriver::HYDRUS)
     {
         // These meters can either be OMS compatible 128 bit key (32 hex).
         // Or using an older proprietary encryption with 64 bit keys (16 hex)

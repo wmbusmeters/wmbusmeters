@@ -83,7 +83,7 @@ shared_ptr<ElectricityMeter> createCCx01(MeterInfo &mi)
 }
 
 MeterGransystemsCCx01::MeterGransystemsCCx01(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::CCx01)
+    MeterCommonImplementation(mi, MeterDriver::CCx01)
 {
     addLinkMode(LinkMode::T1);
 

@@ -42,7 +42,7 @@ private:
 };
 
 MeterAmiplus::MeterAmiplus(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::AMIPLUS)
+    MeterCommonImplementation(mi, MeterDriver::AMIPLUS)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

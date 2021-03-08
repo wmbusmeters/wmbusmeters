@@ -40,7 +40,7 @@ private:
 };
 
 MeterLansenTH::MeterLansenTH(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::LANSENTH)
+    MeterCommonImplementation(mi, MeterDriver::LANSENTH)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

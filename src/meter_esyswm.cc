@@ -62,7 +62,7 @@ private:
 };
 
 MeterESYSWM::MeterESYSWM(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::ESYSWM)
+    MeterCommonImplementation(mi, MeterDriver::ESYSWM)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 

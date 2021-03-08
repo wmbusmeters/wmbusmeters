@@ -41,7 +41,7 @@ private:
 };
 
 MKRadio4::MKRadio4(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::MKRADIO4)
+    MeterCommonImplementation(mi, MeterDriver::MKRADIO4)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

@@ -52,7 +52,7 @@ shared_ptr<WaterMeter> createWaterstarM(MeterInfo &mi)
 }
 
 MeterWaterstarM::MeterWaterstarM(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::WATERSTARM)
+    MeterCommonImplementation(mi, MeterDriver::WATERSTARM)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

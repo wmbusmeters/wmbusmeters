@@ -39,7 +39,7 @@ using namespace std;
 #define INFO_CODE_BURST_SHIFT (4+9)
 
 struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterMultical21(MeterInfo &mi, MeterType mt);
+    MeterMultical21(MeterInfo &mi, MeterDriver mt);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -89,7 +89,7 @@ private:
     bool has_external_temperature_ {};
 };
 
-MeterMultical21::MeterMultical21(MeterInfo &mi, MeterType mt) :
+MeterMultical21::MeterMultical21(MeterInfo &mi, MeterDriver mt) :
     MeterCommonImplementation(mi, mt)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
@@ -207,9 +207,9 @@ bool MeterMultical21::hasExternalTemperature()
     return has_external_temperature_;
 }
 
-shared_ptr<WaterMeter> createMulticalWaterMeter(MeterInfo &mi, MeterType mt)
+shared_ptr<WaterMeter> createMulticalWaterMeter(MeterInfo &mi, MeterDriver mt)
 {
-    if (mt != MeterType::MULTICAL21 && mt != MeterType::FLOWIQ3100) {
+    if (mt != MeterDriver::MULTICAL21 && mt != MeterDriver::FLOWIQ3100) {
         error("Internal error! Not a proper meter type when creating a multical21 style meter.\n");
     }
     return shared_ptr<WaterMeter>(new MeterMultical21(mi,mt));
@@ -217,12 +217,12 @@ shared_ptr<WaterMeter> createMulticalWaterMeter(MeterInfo &mi, MeterType mt)
 
 shared_ptr<WaterMeter> createMultical21(MeterInfo &mi)
 {
-    return createMulticalWaterMeter(mi, MeterType::MULTICAL21);
+    return createMulticalWaterMeter(mi, MeterDriver::MULTICAL21);
 }
 
 shared_ptr<WaterMeter> createFlowIQ3100(MeterInfo &mi)
 {
-    return createMulticalWaterMeter(mi, MeterType::FLOWIQ3100);
+    return createMulticalWaterMeter(mi, MeterDriver::FLOWIQ3100);
 }
 
 void MeterMultical21::processContent(Telegram *t)
@@ -287,7 +287,7 @@ void MeterMultical21::processContent(Telegram *t)
     // 2d: 0F vife (?)
     // 2e: * 0D external temperature (13.000000 °C)
 
-    string meter_name = toMeterDriver(type()).c_str();
+    string meter_name = toMeterDriver(driver()).c_str();
 
     int offset;
     string key;
@@ -423,7 +423,7 @@ string MeterMultical21::statusHumanReadable()
 string MeterMultical21::decodeTime(int time)
 {
     if (time>7) {
-        string meter_name = toMeterDriver(type()).c_str();
+        string meter_name = toMeterDriver(driver()).c_str();
         warning("(%s) warning: Cannot decode time %d should be 0-7.\n", meter_name.c_str(), time);
     }
     switch (time) {

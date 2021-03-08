@@ -43,7 +43,7 @@ shared_ptr<WaterMeter> createApator162(MeterInfo &mi)
 }
 
 MeterApator162::MeterApator162(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::APATOR162)
+    MeterCommonImplementation(mi, MeterDriver::APATOR162)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

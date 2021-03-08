@@ -44,7 +44,7 @@ shared_ptr<WaterMeter> createApator08(MeterInfo &mi)
 }
 
 MeterApator08::MeterApator08(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::APATOR08)
+    MeterCommonImplementation(mi, MeterDriver::APATOR08)
 {
     // manufacturer 0x8614 is not compliant with flags encoding.
     // forced decode will decode to APT.

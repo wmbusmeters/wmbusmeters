@@ -69,7 +69,7 @@ private:
 };
 
 MeterEI6500::MeterEI6500(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::EI6500)
+    MeterCommonImplementation(mi, MeterDriver::EI6500)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

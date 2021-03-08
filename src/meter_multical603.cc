@@ -64,7 +64,7 @@ private:
 };
 
 MeterMultical603::MeterMultical603(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::MULTICAL603)
+    MeterCommonImplementation(mi, MeterDriver::MULTICAL603)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 

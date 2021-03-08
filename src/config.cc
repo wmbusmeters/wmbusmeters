@@ -51,7 +51,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     auto i = buf.begin();
     string bus;
     string name;
-    string type = "auto";
+    string driver = "auto";
     string id;
     string key = "";
     string linkmodes;
@@ -98,7 +98,9 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             }
         }
         else
-        if (p.first == "type") type = p.second;
+        if (p.first == "type") driver = p.second;
+        else
+        if (p.first == "driver") driver = p.second;
         else
         if (p.first == "id") id = p.second;
         else
@@ -128,44 +130,46 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             debug("(config) %s=%s\n", p.first.c_str(), p.second.c_str());
         }
     }
-    MeterType mt = toMeterType(type);
     bool use = true;
 
     LinkModeSet modes;
-    size_t colon = type.find(':');
-    if (colon != string::npos)
+    MeterDriver mt = toMeterDriver(driver);
+    size_t colon = driver.find(':');
+    if (colon == string::npos)
     {
-        // The config can be supplied after the type, like this:
+        // No suffixes to control the driver.
+        modes = toMeterLinkModeSet(driver);
+    }
+    else
+    {
+        // The config can be supplied after the driver, like this:
         // apator162:c1
         // or
         // pith:mainbus:2400
-        string modess = type.substr(colon+1);
-        type = type.substr(0, colon);
-        mt = toMeterType(type);
-        if (mt == MeterType::UNKNOWN) {
-            warning("Not a valid meter type \"%s\"\n", type.c_str());
+        string modess = driver.substr(colon+1);
+        driver = driver.substr(0, colon);
+        mt = toMeterDriver(driver);
+        if (mt == MeterDriver::UNKNOWN) {
+            warning("Not a valid meter driver \"%s\"\n", driver.c_str());
             use = false;
         }
         modes = parseLinkModes(modess);
-        LinkModeSet default_modes = toMeterLinkModeSet(type);
-        if (!default_modes.hasAll(modes))
+        LinkModeSet default_modes = toMeterLinkModeSet(driver);
+        if (!modes.empty() && !default_modes.hasAll(modes))
         {
             string want = modes.hr();
             string has = default_modes.hr();
             error("(cmdline) cannot set link modes to: %s because meter %s only transmits on: %s\n",
-                  want.c_str(), type.c_str(), has.c_str());
+                  want.c_str(), driver.c_str(), has.c_str());
         }
 
         string modeshr = modes.hr();
         debug("(cmdline) setting link modes to %s for meter %s\n",
               modeshr.c_str(), name.c_str());
     }
-    else {
-        modes = toMeterLinkModeSet(type);
-    }
 
-    if (mt == MeterType::UNKNOWN) {
-        warning("Not a valid meter type \"%s\"\n", type.c_str());
+    if (mt == MeterDriver::UNKNOWN) {
+        warning("Not a valid meter driver \"%s\"\n", driver.c_str());
         use = false;
     }
     if (!isValidMatchExpressions(id, true)) {
@@ -660,7 +664,7 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, WMBus *wmbus
     {
         meters_union.unionLinkModeSet(m.link_modes);
         string meter = m.link_modes.hr();
-        debug("(config) meter %s link mode(s): %s\n", toMeterDriver(m.type).c_str(), meter.c_str());
+        debug("(config) meter %s link mode(s): %s\n", toMeterDriver(m.driver).c_str(), meter.c_str());
     }
     string metersu = meters_union.hr();
     debug("(config) all possible link modes that the meters might transmit on: %s\n", metersu.c_str());

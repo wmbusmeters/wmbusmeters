@@ -72,7 +72,7 @@ shared_ptr<WaterMeter> createTopasEsKr(MeterInfo &mi)
 }
 
 MeterTopasEsKr::MeterTopasEsKr(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::TOPASESKR)
+    MeterCommonImplementation(mi, MeterDriver::TOPASESKR)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

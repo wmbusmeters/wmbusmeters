@@ -48,7 +48,7 @@ shared_ptr<WaterMeter> createQ400(MeterInfo &mi)
 }
 
 MeterQ400::MeterQ400(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::Q400)
+    MeterCommonImplementation(mi, MeterDriver::Q400)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

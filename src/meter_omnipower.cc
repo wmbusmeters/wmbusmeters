@@ -72,7 +72,7 @@ shared_ptr<ElectricityMeter> createOmnipower(MeterInfo &mi)
 }
 
 MeterOmnipower::MeterOmnipower(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::OMNIPOWER)
+    MeterCommonImplementation(mi, MeterDriver::OMNIPOWER)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

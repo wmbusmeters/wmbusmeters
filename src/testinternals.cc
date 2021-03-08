@@ -267,7 +267,7 @@ int test_linkmodes()
     vector<string> ids = { "12345678" };
     apator_config.meters.push_back(MeterInfo("", // bus
                                              "m1", // name
-                                             MeterType::APATOR162, // driver/type
+                                             MeterDriver::APATOR162, // driver/type
                                              ids, // ids
                                              "", // Key
                                              toMeterLinkModeSet(apator162), // link mode set
@@ -308,12 +308,12 @@ int test_linkmodes()
     string multical21 = "multical21";
     string supercom587 = "supercom587";
 
-    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m1", MeterType::MULTICAL21, ids, "",
+    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m1", MeterDriver::MULTICAL21, ids, "",
                                                                  toMeterLinkModeSet(multical21),
                                                                  0,
                                                                  no_meter_shells,
                                                                  no_meter_jsons));
-    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m2", MeterType::SUPERCOM587, ids, "",
+    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m2", MeterDriver::SUPERCOM587, ids, "",
                                                                  toMeterLinkModeSet(supercom587),
                                                                  0,
                                                                  no_meter_shells,

@@ -46,7 +46,7 @@ shared_ptr<HeatMeter> createCompact5(MeterInfo &mi)
 }
 
 MeterCompact5::MeterCompact5(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::COMPACT5)
+    MeterCommonImplementation(mi, MeterDriver::COMPACT5)
 {
     // media 0x04 is used for C telegrams
     // media 0xC3 is used for T telegrams

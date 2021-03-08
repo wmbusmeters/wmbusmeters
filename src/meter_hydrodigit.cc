@@ -44,7 +44,7 @@ shared_ptr<WaterMeter> createHydrodigit(MeterInfo &mi)
 }
 
 MeterHydrodigit::MeterHydrodigit(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::HYDRODIGIT)
+    MeterCommonImplementation(mi, MeterDriver::HYDRODIGIT)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

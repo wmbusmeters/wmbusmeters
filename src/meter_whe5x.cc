@@ -42,7 +42,7 @@ private:
 };
 
 MeterWhe5x::MeterWhe5x(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::WHE5X)
+    MeterCommonImplementation(mi, MeterDriver::WHE5X)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

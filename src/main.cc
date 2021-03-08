@@ -606,14 +606,14 @@ void find_specified_device_and_mark_as_handled(Configuration *c, Detected *d)
     }
 }
 
-void list_shell_envs(Configuration *config, string meter_type)
+void list_shell_envs(Configuration *config, string meter_driver)
 {
     string ignore1, ignore2, ignore3;
     vector<string> envs;
     Telegram t;
     t.about.device = "?";
     MeterInfo mi;
-    mi.type = toMeterType(meter_type);
+    mi.driver = toMeterDriver(meter_driver);
     shared_ptr<Meter> meter = createMeter(&mi);
     meter->printMeter(&t,
                       &ignore1,
@@ -631,10 +631,10 @@ void list_shell_envs(Configuration *config, string meter_type)
     }
 }
 
-void list_fields(Configuration *config, string meter_type)
+void list_fields(Configuration *config, string meter_driver)
 {
     MeterInfo mi;
-    mi.type = toMeterType(meter_type);
+    mi.driver = toMeterDriver(meter_driver);
     shared_ptr<Meter> meter = createMeter(&mi);
 
     int width = 0;

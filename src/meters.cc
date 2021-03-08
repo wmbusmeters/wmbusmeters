@@ -165,11 +165,11 @@ public:
                         tmp.ids = tmp_ids;
                         tmp.idsc = t.ids.back();
 
-                        if (tmp.type == MeterType::AUTO)
+                        if (tmp.driver == MeterDriver::AUTO)
                         {
                             // Look up the proper meter driver!
-                            tmp.type = pickMeterDriver(&t);
-                            if (tmp.type == MeterType::UNKNOWN)
+                            tmp.driver = pickMeterDriver(&t);
+                            if (tmp.driver == MeterDriver::UNKNOWN)
                             {
                                 warnForUnknownDriver(mi.name, &t);
                             }
@@ -183,7 +183,7 @@ public:
                         verbose("(meter) used meter template %s %s %s to match %s\n",
                                 mi.name.c_str(),
                                 mi.idsc.c_str(),
-                                toMeterDriver(mi.type).c_str(),
+                                toMeterDriver(mi.driver).c_str(),
                                 idsc.c_str());
 
                         if (is_daemon_)
@@ -192,7 +192,7 @@ public:
                                    meter->index(),
                                    mi.name.c_str(),
                                    tmp.idsc.c_str(),
-                                   toMeterDriver(mi.type).c_str());
+                                   toMeterDriver(mi.driver).c_str());
                         }
                         else
                         {
@@ -200,7 +200,7 @@ public:
                                    meter->index(),
                                    mi.name.c_str(),
                                    tmp.idsc.c_str(),
-                                   toMeterDriver(mi.type).c_str());
+                                   toMeterDriver(mi.driver).c_str());
                         }
 
                         bool match = false;
@@ -211,7 +211,7 @@ public:
                             // but it still did not match! This is probably an error in wmbusmeters!
                             warning("(meter) newly created meter (%s %s %s) did not match telegram! ",
                                     "Please open an issue at https://github.com/weetmuts/wmbusmeters/\n",
-                                    meter->name().c_str(), meter->idsc().c_str(), toMeterDriver(meter->type()).c_str());
+                                    meter->name().c_str(), meter->idsc().c_str(), toMeterDriver(meter->driver()).c_str());
                         }
                         else if (!h)
                         {
@@ -219,7 +219,7 @@ public:
                             // but it still did not handle it! This can happen if the wrong
                             // decryption key was used.
                             warning("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
-                                    meter->name().c_str(), meter->idsc().c_str(), toMeterDriver(meter->type()).c_str());
+                                    meter->name().c_str(), meter->idsc().c_str(), toMeterDriver(meter->driver()).c_str());
                         }
                         else
                         {
@@ -255,8 +255,8 @@ shared_ptr<MeterManager> createMeterManager(bool daemon)
 }
 
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
-                                                     MeterType type) :
-    type_(type), name_(mi.name)
+                                                     MeterDriver driver) :
+    driver_(driver), name_(mi.name)
 {
     ids_ = mi.ids;
     idsc_ = toIdsCommaSeparated(ids_);
@@ -301,9 +301,9 @@ vector<string> &MeterCommonImplementation::additionalJsons()
     return jsons_;
 }
 
-MeterType MeterCommonImplementation::type()
+MeterDriver MeterCommonImplementation::driver()
 {
-    return type_;
+    return driver_;
 }
 
 void MeterCommonImplementation::addLinkMode(LinkMode lm)
@@ -388,20 +388,20 @@ string MeterCommonImplementation::datetimeOfUpdateRobot()
     return string(datetime);
 }
 
-string toMeterDriver(MeterType mt)
+string toMeterDriver(MeterDriver mt)
 {
-#define X(mname,link,info,type,cname) if (mt == MeterType::type) return #mname;
+#define X(mname,link,info,type,cname) if (mt == MeterDriver::type) return #mname;
 LIST_OF_METERS
 #undef X
     return "unknown";
 }
 
-MeterType toMeterType(string& t)
+MeterDriver toMeterDriver(string& t)
 {
-#define X(mname,linkmodes,info,type,cname) if (t == #mname) return MeterType::type;
+#define X(mname,linkmodes,info,type,cname) if (t == #mname) return MeterDriver::type;
 LIST_OF_METERS
 #undef X
-    return MeterType::UNKNOWN;
+    return MeterDriver::UNKNOWN;
 }
 
 LinkModeSet toMeterLinkModeSet(string& t)
@@ -417,7 +417,7 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
     string name;
     vector<string> ids;
     string idsc;
-    MeterType type;
+    MeterDriver driver;
 
     assert((meter && !mi) ||
            (!meter && mi));
@@ -427,14 +427,14 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
         name = meter->name();
         ids = meter->ids();
         idsc = meter->idsc();
-        type = meter->type();
+        driver = meter->driver();
     }
     else
     {
         name = mi->name;
         ids = mi->ids;
         idsc = mi->idsc;
-        type = mi->type;
+        driver = mi->driver;
     }
 
     debug("(meter) %s: for me? %s\n", name.c_str(), idsc.c_str());
@@ -448,13 +448,13 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
         return false;
     }
 
-    bool valid_driver = isMeterDriverValid(type, t->dll_mfct, t->dll_type, t->dll_version);
+    bool valid_driver = isMeterDriverValid(driver, t->dll_mfct, t->dll_type, t->dll_version);
     if (!valid_driver && t->tpl_id_found)
     {
-        valid_driver = isMeterDriverValid(type, t->tpl_mfct, t->tpl_type, t->tpl_version);
+        valid_driver = isMeterDriverValid(driver, t->tpl_mfct, t->tpl_type, t->tpl_version);
     }
 
-    if (!valid_driver && type != MeterType::AUTO)
+    if (!valid_driver && driver != MeterDriver::AUTO)
     {
         // Are we using the right driver? Perhaps not since
         // this particular driver, mfct, media, version combo
@@ -479,7 +479,7 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
             warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n"
                     "(meter) Not printing this warning agin for id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                     name.c_str(),
-                    toMeterDriver(type).c_str(),
+                    toMeterDriver(driver).c_str(),
                     possible_drivers.c_str(),
                     t->dll_id_b[3], t->dll_id_b[2], t->dll_id_b[1], t->dll_id_b[0],
                     manufacturerFlag(t->dll_mfct).c_str(),
@@ -911,21 +911,21 @@ ELLSecurityMode MeterCommonImplementation::expectedELLSecurityMode()
 
 void detectMeterDrivers(int manufacturer, int media, int version, vector<string> *drivers)
 {
-#define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { drivers->push_back(toMeterDriver(MeterType::TY)); }}
+#define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { drivers->push_back(toMeterDriver(MeterDriver::TY)); }}
 METER_DETECTION
 #undef X
 }
 
-bool isMeterDriverValid(MeterType type, int manufacturer, int media, int version)
+bool isMeterDriverValid(MeterDriver type, int manufacturer, int media, int version)
 {
-#define X(TY,MA,ME,VE) { if (type == MeterType::TY && manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { return true; }}
+#define X(TY,MA,ME,VE) { if (type == MeterDriver::TY && manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { return true; }}
 METER_DETECTION
 #undef X
 
     return false;
 }
 
-MeterType pickMeterDriver(Telegram *t)
+MeterDriver pickMeterDriver(Telegram *t)
 {
     int manufacturer = t->dll_mfct;
     int media = t->dll_type;
@@ -938,10 +938,10 @@ MeterType pickMeterDriver(Telegram *t)
         version = t->tpl_version;
     }
 
-#define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { return MeterType::TY; }}
+#define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { return MeterDriver::TY; }}
 METER_DETECTION
 #undef X
-    return MeterType::UNKNOWN;
+    return MeterDriver::UNKNOWN;
 }
 
 shared_ptr<Meter> createMeter(MeterInfo *mi)
@@ -950,10 +950,10 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
 
     const char *keymsg = (mi->key[0] == 0) ? "not-encrypted" : "encrypted";
 
-    switch (mi->type)
+    switch (mi->driver)
     {
-#define X(mname,link,info,type,cname) \
-        case MeterType::type:                              \
+#define X(mname,link,info,driver,cname) \
+        case MeterDriver::driver:                           \
         {                                                   \
             newm = create##cname(*mi);                      \
             newm->addConversions(mi->conversions);          \

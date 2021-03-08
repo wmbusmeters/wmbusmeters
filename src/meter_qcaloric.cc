@@ -46,7 +46,7 @@ private:
 };
 
 MeterQCaloric::MeterQCaloric(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::QCALORIC)
+    MeterCommonImplementation(mi, MeterDriver::QCALORIC)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

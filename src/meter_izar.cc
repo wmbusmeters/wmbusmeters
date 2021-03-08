@@ -81,7 +81,7 @@ shared_ptr<WaterMeter> createIzar(MeterInfo &mi)
 }
 
 MeterIzar::MeterIzar(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::IZAR)
+    MeterCommonImplementation(mi, MeterDriver::IZAR)
 {
     initializeDiehlDefaultKeySupport(meterKeys()->confidentiality_key, keys);
     addLinkMode(LinkMode::T1);

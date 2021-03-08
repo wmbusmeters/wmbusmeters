@@ -59,7 +59,7 @@ shared_ptr<WaterMeter> createEVO868(MeterInfo &mi)
 }
 
 MeterEvo868::MeterEvo868(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::EVO868)
+    MeterCommonImplementation(mi, MeterDriver::EVO868)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

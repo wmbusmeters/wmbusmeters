@@ -40,7 +40,7 @@ private:
 };
 
 MeterPIIGTH::MeterPIIGTH(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::PIIGTH)
+    MeterCommonImplementation(mi, MeterDriver::PIIGTH)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

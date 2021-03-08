@@ -33,7 +33,7 @@ struct MeterCommonImplementation : public virtual Meter
     vector<string>  fields();
     vector<Print>   prints();
     string name();
-    MeterType type();
+    MeterDriver driver();
 
     ELLSecurityMode expectedELLSecurityMode();
     TPLSecurityMode expectedTPLSecurityMode();
@@ -51,11 +51,11 @@ struct MeterCommonImplementation : public virtual Meter
     double getRecordAsDouble(std::string record);
     uint16_t getRecordAsUInt16(std::string record);
 
-    MeterCommonImplementation(MeterInfo &mi, MeterType type);
+    MeterCommonImplementation(MeterInfo &mi, MeterDriver driver);
 
     ~MeterCommonImplementation() = default;
 
-    string meterDriver() { return toMeterDriver(type_); }
+    string meterDriver() { return toMeterDriver(driver_); }
 
 protected:
 
@@ -91,7 +91,7 @@ protected:
 private:
 
     int index_ {};
-    MeterType type_ {};
+    MeterDriver driver_ {};
     MeterKeys meter_keys_ {};
     ELLSecurityMode expected_ell_sec_mode_ {};
     TPLSecurityMode expected_tpl_sec_mode_ {};

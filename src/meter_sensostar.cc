@@ -46,7 +46,7 @@ shared_ptr<HeatMeter> createSensostar(MeterInfo &mi)
 }
 
 MeterSensostar::MeterSensostar(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::SENSOSTAR)
+    MeterCommonImplementation(mi, MeterDriver::SENSOSTAR)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

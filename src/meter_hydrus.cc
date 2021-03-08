@@ -63,7 +63,7 @@ private:
 };
 
 MeterHydrus::MeterHydrus(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::HYDRUS)
+    MeterCommonImplementation(mi, MeterDriver::HYDRUS)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

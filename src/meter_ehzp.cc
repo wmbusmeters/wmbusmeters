@@ -43,7 +43,7 @@ private:
 };
 
 MeterEHZP::MeterEHZP(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::EHZP)
+    MeterCommonImplementation(mi, MeterDriver::EHZP)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 

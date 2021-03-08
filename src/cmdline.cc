@@ -554,15 +554,15 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         LinkModeSet modes;
         int bps = 0;
         size_t colon = type.find(':');
-        MeterType mt = toMeterType(type);
+        MeterDriver mt = toMeterDriver(type);
         if (colon != string::npos)
         {
             // The config can be supplied after the type, like this:
             // apator162:c1
             string modess = type.substr(colon+1);
             type = type.substr(0, colon);
-            mt = toMeterType(type);
-            if (mt == MeterType::UNKNOWN) error("Not a valid meter type \"%s\"\n", type.c_str());
+            mt = toMeterDriver(type);
+            if (mt == MeterDriver::UNKNOWN) error("Not a valid meter type \"%s\"\n", type.c_str());
             modes = parseLinkModes(modess);
             LinkModeSet default_modes = toMeterLinkModeSet(type);
             if (!default_modes.hasAll(modes))
@@ -580,9 +580,9 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             modes = toMeterLinkModeSet(type);
         }
 
-        mt = toMeterType(type);
+        mt = toMeterDriver(type);
 
-        if (mt == MeterType::UNKNOWN) error("Not a valid meter type \"%s\"\n", type.c_str());
+        if (mt == MeterDriver::UNKNOWN) error("Not a valid meter type \"%s\"\n", type.c_str());
         if (!isValidMatchExpressions(id, true)) error("Not a valid id nor a valid meter match expression \"%s\"\n", id.c_str());
         if (!isValidKey(key, mt)) error("Not a valid meter key \"%s\"\n", key.c_str());
         vector<string> no_meter_shells, no_meter_jsons;

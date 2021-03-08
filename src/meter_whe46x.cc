@@ -50,7 +50,7 @@ private:
 };
 
 MeterWhe46x::MeterWhe46x(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::WHE46X)
+    MeterCommonImplementation(mi, MeterDriver::WHE46X)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

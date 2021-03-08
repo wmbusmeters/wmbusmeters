@@ -41,7 +41,7 @@ using namespace std;
 #define INFO_CODE_BURST_SHIFT (4+9)
 
 struct MeterFlowIQ2200 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterFlowIQ2200(MeterInfo &mi, MeterType mt);
+    MeterFlowIQ2200(MeterInfo &mi, MeterDriver mt);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -104,7 +104,7 @@ private:
     string target_datetime_;
 };
 
-MeterFlowIQ2200::MeterFlowIQ2200(MeterInfo &mi, MeterType mt) :
+MeterFlowIQ2200::MeterFlowIQ2200(MeterInfo &mi, MeterDriver mt) :
     MeterCommonImplementation(mi, mt)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
@@ -269,7 +269,7 @@ bool MeterFlowIQ2200::hasExternalTemperature()
 
 shared_ptr<WaterMeter> createFlowIQ2200(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterFlowIQ2200(mi, MeterType::FLOWIQ2200));
+    return shared_ptr<WaterMeter>(new MeterFlowIQ2200(mi, MeterDriver::FLOWIQ2200));
 }
 
 void MeterFlowIQ2200::processContent(Telegram *t)
@@ -316,7 +316,7 @@ void MeterFlowIQ2200::processContent(Telegram *t)
 (flowiq2200) 4c: 67 vif (External temperature °C)
 (flowiq2200) 4d: * 13 external temperature (19.000000 °C)
     */
-    string meter_name = toMeterDriver(type()).c_str();
+    string meter_name = toMeterDriver(driver()).c_str();
 
     int offset;
     string key;
@@ -473,7 +473,7 @@ string MeterFlowIQ2200::statusHumanReadable()
 string MeterFlowIQ2200::decodeTime(int time)
 {
     if (time>7) {
-        string meter_name = toMeterDriver(type()).c_str();
+        string meter_name = toMeterDriver(driver()).c_str();
         warning("(%s) warning: Cannot decode time %d should be 0-7.\n", meter_name.c_str(), time);
     }
     switch (time) {

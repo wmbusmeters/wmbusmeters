@@ -54,7 +54,7 @@ private:
 };
 
 MeterSontex868::MeterSontex868(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::SONTEX868)
+    MeterCommonImplementation(mi, MeterDriver::SONTEX868)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

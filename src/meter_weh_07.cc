@@ -43,7 +43,7 @@ shared_ptr<WaterMeter> createWEH_07(MeterInfo &mi)
 }
 
 MeterWEH_07::MeterWEH_07(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::WEH_07)
+    MeterCommonImplementation(mi, MeterDriver::WEH_07)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

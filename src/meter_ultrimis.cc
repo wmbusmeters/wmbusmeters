@@ -50,7 +50,7 @@ shared_ptr<WaterMeter> createUltrimis(MeterInfo &mi)
 }
 
 MeterUltrimis::MeterUltrimis(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::ULTRIMIS)
+    MeterCommonImplementation(mi, MeterDriver::ULTRIMIS)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

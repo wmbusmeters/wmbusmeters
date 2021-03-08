@@ -36,7 +36,7 @@ private:
 };
 
 MeterCMa12w::MeterCMa12w(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::CMA12W)
+    MeterCommonImplementation(mi, MeterDriver::CMA12W)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

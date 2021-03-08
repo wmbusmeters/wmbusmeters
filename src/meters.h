@@ -88,7 +88,7 @@
     X(weh_07,     C1_bit, WaterMeter,       WEH_07,       WEH_07)      \
 
 
-enum class MeterType {
+enum class MeterDriver {
 #define X(mname,linkmode,info,type,cname) type,
 LIST_OF_METERS
 #undef X
@@ -96,7 +96,7 @@ LIST_OF_METERS
 
 struct MeterMatch
 {
-    MeterType driver;
+    MeterDriver driver;
     int manufacturer;
     int media;
     int version;
@@ -106,9 +106,9 @@ struct MeterMatch
 void detectMeterDrivers(int manufacturer, int media, int version, std::vector<std::string> *drivers);
 // When entering the driver, check that the telegram is indeed known to be
 // compatible with the driver(type), if not then print a warning.
-bool isMeterDriverValid(MeterType type, int manufacturer, int media, int version);
+bool isMeterDriverValid(MeterDriver type, int manufacturer, int media, int version);
 // Return the best driver match for a telegram.
-MeterType pickMeterDriver(Telegram *t);
+MeterDriver pickMeterDriver(Telegram *t);
 
 using namespace std;
 
@@ -120,7 +120,8 @@ struct MeterInfo
                  // A bus can be an mbus or a wmbus dongle.
                  // The bus can be the empty string, which means that it will fallback to the first defined bus.
     string name; // User specified name of this (group of) meters.
-    MeterType type {}; // Driver
+    MeterDriver driver {}; // Requested driver for decoding telegrams from this meter.
+    string extras; // Extra driver specific settings.
     vector<string> ids; // Match expressions for ids.
     string idsc; // Comma separated ids.
     string key;  // Decryption key.
@@ -134,11 +135,11 @@ struct MeterInfo
     {
     }
 
-    MeterInfo(string b, string n, MeterType t, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j)
+    MeterInfo(string b, string n, MeterDriver d, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j)
     {
         bus = b;
         name = n;
-        type = t;
+        driver = d;
         ids = i;
         idsc = toIdsCommaSeparated(ids);
         key = k;
@@ -177,7 +178,7 @@ struct Meter
     virtual vector<Print> prints() = 0;
     virtual string meterDriver() = 0;
     virtual string name() = 0;
-    virtual MeterType type() = 0;
+    virtual MeterDriver driver() = 0;
 
     virtual string datetimeOfUpdateHumanReadable() = 0;
     virtual string datetimeOfUpdateRobot() = 0;
@@ -324,9 +325,9 @@ struct PulseCounter : public virtual Meter
 struct Generic : public virtual Meter {
 };
 
-string toMeterDriver(MeterType mt);
-MeterType toMeterType(string& type);
-LinkModeSet toMeterLinkModeSet(string& type);
+string toMeterDriver(MeterDriver driver);
+MeterDriver toMeterDriver(string& driver);
+LinkModeSet toMeterLinkModeSet(string& driver);
 
 #define X(mname,linkmode,info,type,cname) shared_ptr<info> create##cname(MeterInfo &m);
 LIST_OF_METERS

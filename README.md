@@ -87,8 +87,8 @@ key=00112233445566778899AABBCCDDEEFF
 ```
 
 Meter driver detection will be automatic. You can also provide an
-explicit driver name with: `type=multical21:c1` or explicitly state
-that driver detection is automatic: `type=auto`.
+explicit driver name with: `driver=multical21:c1` or explicitly state
+that driver detection is automatic: `driver=auto`.
 
 Now plugin your wmbus dongle. Wmbusmeters should start automatically,
 check with `tail -f /var/log/syslog` and `tail -f /var/log/wmbusmeters/wmbusmeters.log`
@@ -157,7 +157,7 @@ depending on if you are running as a daemon or not.
 # Running without config files, good for experimentation and test.
 ```
 wmbusmeters version: 1.0.3
-Usage: wmbusmeters {options} <device> ( [meter_name] [meter_type]{:<modes>} [meter_id] [meter_key] )*
+Usage: wmbusmeters {options} <device> ( [meter_name] [meter_driver]{:<modes>} [meter_id] [meter_key] )*
 
 As <options> you can use:
 
@@ -170,10 +170,10 @@ As <options> you can use:
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
     --json_xxx=yyy always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy
-    --listenvs=<meter_type> list the env variables available for the given meter type
-    --listfields=<meter_type> list the fields selectable for the given meter type
-    --listmeters list all meter types
-    --listmeters=<search> list all meter types containing the text <search>
+    --listenvs=<meter_driver> list the env variables available for the given meter driver
+    --listfields=<meter_driver> list the fields selectable for the given meter driver
+    --listmeters list all meter drivers
+    --listmeters=<search> list all meter drivers containing the text <search>
     --logfile=<file> use this file instead of stdout
     --logtelegrams log the contents of the telegrams for easy replay
     --ignoreduplicates=<bool> ignore duplicate telegrams, remember the last 10 telegrams
@@ -250,7 +250,7 @@ expecting the same format that is the output from --logtelegrams. This format al
 As meter quadruples you specify:
 
 * <meter_name> a mnemonic for this particular meter (!Must not contain a colon ':' character!)
-* <meter_type> use "auto" or one of the supported meters (can be suffixed with :<mode> to specify which mode you expect the meter to use when transmitting)
+* <meter_driver> use "auto" or one of the supported meters (can be suffixed with :<mode> to specify which mode you expect the meter to use when transmitting)
 * <meter_id> an 8 digit mbus id, usually printed on the meter
 * <meter_key> an encryption key unique for the meter if the meter uses no encryption, then supply NOKEY
 

@@ -50,7 +50,7 @@ private:
 };
 
 MeterElf::MeterElf(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::ELF)
+    MeterCommonImplementation(mi, MeterDriver::ELF)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 

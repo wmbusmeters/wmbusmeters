@@ -39,7 +39,7 @@ private:
 };
 
 MeterLSE_08::MeterLSE_08(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::LSE_08)
+    MeterCommonImplementation(mi, MeterDriver::LSE_08)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

@@ -35,7 +35,7 @@ struct MeterAuto : public virtual UnknownMeter, public virtual MeterCommonImplem
 };
 
 MeterAuto::MeterAuto(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::AUTO)
+    MeterCommonImplementation(mi, MeterDriver::AUTO)
 {
     addPrint("meter_info", Quantity::Text,
              [&](){ return meter_info_; },

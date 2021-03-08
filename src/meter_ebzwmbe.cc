@@ -45,7 +45,7 @@ private:
 };
 
 MeterEBZWMBE::MeterEBZWMBE(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::EBZWMBE)
+    MeterCommonImplementation(mi, MeterDriver::EBZWMBE)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 

@@ -41,7 +41,7 @@ private:
 };
 
 MeterEMerlin868::MeterEMerlin868(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::EMERLIN868)
+    MeterCommonImplementation(mi, MeterDriver::EMERLIN868)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

@@ -43,7 +43,7 @@ shared_ptr<WaterMeter> createIzar3(MeterInfo &mi)
 }
 
 MeterIzar3::MeterIzar3(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::IZAR3)
+    MeterCommonImplementation(mi, MeterDriver::IZAR3)
 {
     // We do not know how to decode the IZAR r3 aka Diehl AQUARIUS!
     addLinkMode(LinkMode::T1);

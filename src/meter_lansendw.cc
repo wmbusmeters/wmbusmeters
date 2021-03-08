@@ -41,7 +41,7 @@ private:
 };
 
 MeterLansenDW::MeterLansenDW(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::LANSENDW)
+    MeterCommonImplementation(mi, MeterDriver::LANSENDW)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

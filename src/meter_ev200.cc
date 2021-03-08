@@ -41,7 +41,7 @@ private:
 };
 
 MeterEV200::MeterEV200(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::EV200)
+    MeterCommonImplementation(mi, MeterDriver::EV200)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

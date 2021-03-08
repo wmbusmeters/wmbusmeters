@@ -70,7 +70,7 @@ shared_ptr<ElectricityMeter> createEM24(MeterInfo &mi)
 }
 
 MeterEM24::MeterEM24(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::EM24)
+    MeterCommonImplementation(mi, MeterDriver::EM24)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 

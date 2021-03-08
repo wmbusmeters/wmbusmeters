@@ -41,7 +41,7 @@ private:
 };
 
 MeterIperl::MeterIperl(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::IPERL)
+    MeterCommonImplementation(mi, MeterDriver::IPERL)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

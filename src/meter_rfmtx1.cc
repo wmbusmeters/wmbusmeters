@@ -44,7 +44,7 @@ shared_ptr<WaterMeter> createRfmTX1(MeterInfo &mi)
 }
 
 MeterRfmTX1::MeterRfmTX1(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::RFMTX1)
+    MeterCommonImplementation(mi, MeterDriver::RFMTX1)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

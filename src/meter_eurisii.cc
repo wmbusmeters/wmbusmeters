@@ -42,7 +42,7 @@ private:
 };
 
 MeterEurisII::MeterEurisII(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::EURISII)
+    MeterCommonImplementation(mi, MeterDriver::EURISII)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

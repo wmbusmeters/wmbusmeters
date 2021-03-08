@@ -43,7 +43,7 @@ private:
 };
 
 MeterTSD2::MeterTSD2(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::TSD2)
+    MeterCommonImplementation(mi, MeterDriver::TSD2)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

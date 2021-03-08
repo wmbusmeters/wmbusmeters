@@ -46,7 +46,7 @@ shared_ptr<HeatMeter> createVario451(MeterInfo &mi)
 }
 
 MeterVario451::MeterVario451(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::VARIO451)
+    MeterCommonImplementation(mi, MeterDriver::VARIO451)
 {
     // media 0x04 C telegrams
     // media 0xC3 T telegrams

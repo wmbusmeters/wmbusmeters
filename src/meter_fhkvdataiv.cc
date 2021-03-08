@@ -46,7 +46,7 @@ private:
 };
 
 MeterFHKVDataIV::MeterFHKVDataIV(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::FHKVDATAIV)
+    MeterCommonImplementation(mi, MeterDriver::FHKVDATAIV)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

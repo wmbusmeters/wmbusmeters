@@ -56,7 +56,7 @@ shared_ptr<HeatCostAllocationMeter> createFHKVDataIII(MeterInfo &mi)
 
 
 MeterFHKVDataIII::MeterFHKVDataIII(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::FHKVDATAIII)
+    MeterCommonImplementation(mi, MeterDriver::FHKVDATAIII)
 {
     // media 0x80 T telegrams
     addLinkMode(LinkMode::T1);

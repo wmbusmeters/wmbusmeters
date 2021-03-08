@@ -49,7 +49,7 @@ private:
 };
 
 MeterSharky::MeterSharky(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::SHARKY)
+    MeterCommonImplementation(mi, MeterDriver::SHARKY)
 {
     addLinkMode(LinkMode::T1);
 

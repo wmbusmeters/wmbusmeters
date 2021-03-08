@@ -43,7 +43,7 @@ shared_ptr<WaterMeter> createSupercom587(MeterInfo &mi)
 }
 
 MeterSupercom587::MeterSupercom587(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::SUPERCOM587)
+    MeterCommonImplementation(mi, MeterDriver::SUPERCOM587)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

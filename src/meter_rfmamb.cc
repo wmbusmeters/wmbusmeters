@@ -59,7 +59,7 @@ private:
 };
 
 MeterRfmAmb::MeterRfmAmb(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::RFMAMB)
+    MeterCommonImplementation(mi, MeterDriver::RFMAMB)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 

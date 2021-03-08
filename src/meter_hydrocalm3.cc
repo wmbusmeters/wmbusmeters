@@ -51,7 +51,7 @@ private:
 };
 
 MeterHydrocalM3::MeterHydrocalM3(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterType::HYDROCALM3)
+    MeterCommonImplementation(mi, MeterDriver::HYDROCALM3)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
