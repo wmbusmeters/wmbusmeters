@@ -114,6 +114,7 @@ $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 METER_OBJS:=\
 	$(BUILD)/aes.o \
 	$(BUILD)/aescmac.o \
+	$(BUILD)/bus.o \
 	$(BUILD)/cmdline.o \
 	$(BUILD)/config.o \
 	$(BUILD)/dvparser.o \

@@ -1865,3 +1865,28 @@ bool parseExtras(string s, map<string,string> *extras)
     }
     return true;
 }
+
+void checkIfMultipleWmbusMetersRunning()
+{
+    pid_t my_pid = getpid();
+    vector<int> daemons;
+    detectProcesses("wmbusmetersd", &daemons);
+    for (int i : daemons)
+    {
+        if (i != my_pid)
+        {
+            info("Notice! Wmbusmeters daemon (pid %d) is running and it might hog any wmbus devices.\n", i);
+        }
+    }
+
+    vector<int> processes;
+    detectProcesses("wmbusmeters", &processes);
+
+    for (int i : processes)
+    {
+        if (i != my_pid)
+        {
+            info("Notice! Other wmbusmeters (pid %d) is running and it might hog any wmbus devices.\n", i);
+        }
+    }
+}

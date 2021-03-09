@@ -205,5 +205,6 @@ std::string lookForExecutable(std::string prog, std::string bin_dir, std::string
 
 // Extract from "ppm=5 radix=7" and put key values into map.
 bool parseExtras(std::string s, std::map<std::string,std::string> *extras);
+void checkIfMultipleWmbusMetersRunning();
 
 #endif
