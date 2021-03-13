@@ -113,6 +113,30 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--logtimestamps=", 16))
+        {
+            string ts = string(argv[i]+16);
+            debug("(cmdline) add log timestamps \"%s\"\n", ts.c_str());
+            if (ts == "never")
+            {
+                c->addtimestamps = AddLogTimestamps::Never;
+            }
+            else if (ts == "always")
+            {
+                c->addtimestamps = AddLogTimestamps::Always;
+            }
+            else if (ts == "important")
+            {
+                c->addtimestamps = AddLogTimestamps::Important;
+            }
+            else
+            {
+                error("No such timestamp setting \"%s\" possible values are: never always important\n",
+                      ts.c_str());
+            }
+            i++;
+            continue;
+        }
         if (!strcmp(argv[i], "--internaltesting")) {
             c->internaltesting = true;
             i++;

@@ -73,11 +73,19 @@ void debug(const char* fmt, ...);
 void warning(const char* fmt, ...);
 void info(const char* fmt, ...);
 void notice(const char* fmt, ...);
+void notice_timestamp(const char* fmt, ...);
 
 void silentLogging(bool b);
 void verboseEnabled(bool b);
 void debugEnabled(bool b);
 void traceEnabled(bool b);
+
+enum class AddLogTimestamps
+{
+    Never, Always, Important
+};
+
+void setLogTimestamps(AddLogTimestamps ts);
 void stderrEnabled(bool b);
 void logTelegramsEnabled(bool b);
 void internalTestingEnabled(bool b);
@@ -178,6 +186,7 @@ std::string currentYear();
 std::string currentDay();
 std::string currentHour();
 std::string currentMinute();
+std::string currentSeconds();
 std::string currentMicros();
 
 #define CHECK(n) if (!hasBytes(n, pos, frame)) return expectedMore(__LINE__);

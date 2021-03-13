@@ -528,6 +528,27 @@ void handleConversions(Configuration *c, string s)
     }
 }
 
+void handleLogTimestamps(Configuration *c, string ts)
+{
+    if (ts == "never")
+    {
+        c->addtimestamps = AddLogTimestamps::Never;
+    }
+    else if (ts == "always")
+    {
+        c->addtimestamps = AddLogTimestamps::Always;
+    }
+    else if (ts == "important")
+    {
+        c->addtimestamps = AddLogTimestamps::Important;
+    }
+    else
+    {
+        warning("(warning) No such timestamp setting \"%s\" possible values are: never always important\n",
+                ts.c_str());
+    }
+}
+
 void handleSelectedFields(Configuration *c, string s)
 {
     char buf[s.length()+1];
@@ -597,6 +618,7 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
         else if (p.first == "alarmexpectedactivity") handleAlarmExpectedActivity(c, p.second);
         else if (p.first == "separator") handleSeparator(c, p.second);
         else if (p.first == "addconversions") handleConversions(c, p.second);
+        else if (p.first == "logtimestamps") handleLogTimestamps(c, p.second);
         else if (p.first == "selectfields") handleSelectedFields(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);
         else if (p.first == "resetafter") handleResetAfter(c, p.second);

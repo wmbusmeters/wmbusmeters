@@ -24,7 +24,7 @@ The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 ```
 Availability of **wmbusmeters** for other Linux distributions can be checked on [release-monitoring](https://release-monitoring.org/project/88654/) project page.
 
-# Run as a daemon
+1# Run as a daemon
 
 Remove the wmbus dongle (im871a,amb8465,cul,rc1180) or the generic rtlsdr dongle (RTL2832U) from your computer.
 
@@ -162,6 +162,7 @@ Usage: wmbusmeters {options} <device> ( [meter_name] [meter_driver]{:<modes>} [m
 As <options> you can use:
 
     --addconversions=<unit>+ add conversion to these units to json and meter env variables (GJ)
+    --addtimestamps add a timestamp to each logged line
     --alarmexpectedactivity=mon-fri(08-17),sat-sun(09-12) Specify when the timeout is tested, default is mon-sun(00-23)
     --alarmshell=<cmdline> invokes cmdline when an alarm triggers
     --alarmtimeout=<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity.

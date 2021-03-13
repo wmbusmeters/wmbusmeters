@@ -289,7 +289,7 @@ void regular_checkup(Configuration *config)
             string prss = humanReadableTwoDecimals(peak_rss);
 
             // Log memory usage once per day.
-            notice("(memory) rss %zu peak %s\n", curr_rss, prss.c_str());
+            notice_timestamp("(memory) rss %zu peak %s\n", curr_rss, prss.c_str());
         }
     }
 
@@ -363,6 +363,7 @@ bool start(Configuration *config)
     verboseEnabled(config->verbose);
     logTelegramsEnabled(config->logtelegrams);
     debugEnabled(config->debug);
+    setLogTimestamps(config->addtimestamps);
     internalTestingEnabled(config->internaltesting);
     traceEnabled(config->trace);
     stderrEnabled(config->use_stderr_for_log);

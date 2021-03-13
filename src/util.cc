@@ -287,6 +287,7 @@ bool logging_silenced_ = false;
 bool verbose_enabled_ = false;
 bool debug_enabled_ = false;
 bool trace_enabled_ = false;
+AddLogTimestamps log_timestamps_ {};
 bool stderr_enabled_ = false;
 bool log_telegrams_enabled_ = false;
 bool internal_testing_enabled_ = false;
@@ -351,6 +352,10 @@ void traceEnabled(bool b) {
     }
 }
 
+void setLogTimestamps(AddLogTimestamps ts) {
+    log_timestamps_ = ts;
+}
+
 void stderrEnabled(bool b) {
     stderr_enabled_ = b;
 }
@@ -384,39 +389,57 @@ bool isLogTelegramsEnabled() {
     return log_telegrams_enabled_;
 }
 
-void outputStuff(int syslog_level, const char *fmt, va_list args)
+void output_stuff(int syslog_level, bool use_timestamp, const char *fmt, va_list args)
 {
+    string timestamp;
+    bool add_timestamp = false;
+
+    if (log_timestamps_ == AddLogTimestamps::Always ||
+        (log_timestamps_ == AddLogTimestamps::Important && use_timestamp))
+    {
+        timestamp = currentSeconds();
+        add_timestamp = true;
+    }
     if (logfile_enabled_)
     {
         // Open close at every log occasion, should not be too big of
         // a performance issue, since normal reception speed of
         // wmbusmessages are quite low.
         FILE *output = fopen(log_file_.c_str(), "a");
-        if (output) {
+        if (output)
+        {
+            if (add_timestamp) fprintf(output, "[%s] ", timestamp.c_str());
             vfprintf(output, fmt, args);
             fclose(output);
-        } else {
+        }
+        else
+        {
             // Ouch, disable the log file.
             // Reverting to syslog or stdout depending on settings.
             logfile_enabled_ = false;
             // This warning might be written in syslog or stdout.
             warning("Log file could not be written!\n");
             // Try again with logfile disabled.
-            outputStuff(syslog_level, fmt, args);
+            output_stuff(syslog_level, use_timestamp, fmt, args);
             return;
         }
-    } else
-    if (syslog_enabled_) {
+    }
+    else
+    if (syslog_enabled_)
+    {
+        // Do not print timestamps in the syslog since it already adds timestamps.
         vsyslog(syslog_level, fmt, args);
     }
     else
     {
         if (stderr_enabled_)
         {
+            if (add_timestamp) fprintf(stderr, "[%s] ", timestamp.c_str());
             vfprintf(stderr, fmt, args);
         }
         else
         {
+            if (add_timestamp) printf("[%s] ", timestamp.c_str());
             vprintf(fmt, args);
         }
     }
@@ -426,7 +449,7 @@ void info(const char* fmt, ...) {
     if (!logging_silenced_) {
         va_list args;
         va_start(args, fmt);
-        outputStuff(LOG_INFO, fmt, args);
+        output_stuff(LOG_INFO, false, fmt, args);
         va_end(args);
     }
 }
@@ -435,7 +458,16 @@ void notice(const char* fmt, ...) {
     if (!logging_silenced_) {
         va_list args;
         va_start(args, fmt);
-        outputStuff(LOG_NOTICE, fmt, args);
+        output_stuff(LOG_NOTICE, false, fmt, args);
+        va_end(args);
+    }
+}
+
+void notice_timestamp(const char* fmt, ...) {
+    if (!logging_silenced_) {
+        va_list args;
+        va_start(args, fmt);
+        output_stuff(LOG_NOTICE, true, fmt, args);
         va_end(args);
     }
 }
@@ -444,7 +476,7 @@ void warning(const char* fmt, ...) {
     if (!logging_silenced_) {
         va_list args;
         va_start(args, fmt);
-        outputStuff(LOG_WARNING, fmt, args);
+        output_stuff(LOG_WARNING, true, fmt, args);
         va_end(args);
     }
 }
@@ -453,7 +485,7 @@ void verbose(const char* fmt, ...) {
     if (verbose_enabled_) {
         va_list args;
         va_start(args, fmt);
-        outputStuff(LOG_NOTICE, fmt, args);
+        output_stuff(LOG_NOTICE, false, fmt, args);
         va_end(args);
     }
 }
@@ -462,7 +494,7 @@ void debug(const char* fmt, ...) {
     if (debug_enabled_) {
         va_list args;
         va_start(args, fmt);
-        outputStuff(LOG_NOTICE, fmt, args);
+        output_stuff(LOG_NOTICE, false, fmt, args);
         va_end(args);
     }
 }
@@ -471,7 +503,7 @@ void trace(const char* fmt, ...) {
     if (trace_enabled_) {
         va_list args;
         va_start(args, fmt);
-        outputStuff(LOG_NOTICE, fmt, args);
+        output_stuff(LOG_NOTICE, false, fmt, args);
         va_end(args);
     }
 }
@@ -480,7 +512,7 @@ void error(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    outputStuff(LOG_NOTICE, fmt, args);
+    output_stuff(LOG_NOTICE, true, fmt, args);
     va_end(args);
     exitHandler(0);
     exit(1);
@@ -1430,6 +1462,18 @@ string currentMinute()
     gettimeofday(&tv, NULL);
 
     strftime(datetime, 20, "%Y-%m-%d_%H:%M", localtime(&tv.tv_sec));
+    return string(datetime);
+}
+
+string currentSeconds()
+{
+    char datetime[40];
+    memset(datetime, 0, sizeof(datetime));
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    strftime(datetime, 20, "%Y-%m-%d_%H:%M:%S", localtime(&tv.tv_sec));
     return string(datetime);
 }
 

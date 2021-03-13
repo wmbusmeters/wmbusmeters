@@ -3610,6 +3610,8 @@ bool WMBusCommonImplementation::reset()
             resetting = true;
             serial()->resetInitiated();
             serial()->close();
+            notice_timestamp("(wmbus) resetting %s\n", device().c_str(), toString(type()));
+
             // Give the device 3 seconds to shut down properly.
             usleep(3000*1000);
         }

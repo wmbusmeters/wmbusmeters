@@ -123,7 +123,7 @@ void BusManager::openBusDeviceAndPotentiallySetLinkmodes(Configuration *config, 
     // A newly plugged in device has been manually configured or automatically detected! Start using it!
     if (config->use_auto_device_detect || detected->found_type != DEVICE_SIMULATION)
     {
-        notice("%s", started.c_str());
+        notice_timestamp("%s", started.c_str());
     }
     else
     {
@@ -259,7 +259,7 @@ void BusManager::checkForDeadWmbusDevices(Configuration *config)
             string id = w->getDeviceId();
             if (id != "") id = "["+id+"]";
 
-            notice("Lost %s closing %s%s\n",
+            notice_timestamp("Lost %s closing %s%s\n",
                    w->device().c_str(),
                    toLowerCaseString(w->type()),
                    id.c_str());

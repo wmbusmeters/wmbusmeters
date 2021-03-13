@@ -61,6 +61,7 @@ struct Configuration
     bool license {};
     bool debug {};
     bool trace {};
+    AddLogTimestamps addtimestamps {};
     bool internaltesting {}; // Only for testing! When true, shorten all timeouts.
     bool logtelegrams {};
     bool meterfiles {};
