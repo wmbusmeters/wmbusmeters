@@ -363,6 +363,11 @@ bool start(Configuration *config)
     verboseEnabled(config->verbose);
     logTelegramsEnabled(config->logtelegrams);
     debugEnabled(config->debug);
+    if (config->addtimestamps == AddLogTimestamps::NotSet)
+    {
+        // Default to important log timestamps when starting a daemon.
+        if (config->daemon) config->addtimestamps = AddLogTimestamps::Important;
+    }
     setLogTimestamps(config->addtimestamps);
     internalTestingEnabled(config->internaltesting);
     traceEnabled(config->trace);

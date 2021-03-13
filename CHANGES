@@ -7,6 +7,11 @@ in the logs if no driver could be found.
 If you do not specify a type= in the meter config file,
 then it will default to auto.
 
+Added --logtimestamps=important/never/always to prefix
+a logged line in the log file or stderr output with a timestamp.
+Important means timestamp warnings and device changes.
+Daemon mode defaults to important.
+
 Version 1.2.0: 2021-03-07
 
 IMPORTANT CHANGES THAT MIGHT AFFECT YOU!vvvvvvvvvvvvvvvvvvvvvv

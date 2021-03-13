@@ -82,7 +82,7 @@ void traceEnabled(bool b);
 
 enum class AddLogTimestamps
 {
-    Never, Always, Important
+    NotSet, Never, Always, Important
 };
 
 void setLogTimestamps(AddLogTimestamps ts);
