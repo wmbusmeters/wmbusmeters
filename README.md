@@ -162,7 +162,6 @@ Usage: wmbusmeters {options} <device> ( [meter_name] [meter_driver]{:<modes>} [m
 As <options> you can use:
 
     --addconversions=<unit>+ add conversion to these units to json and meter env variables (GJ)
-    --addtimestamps add a timestamp to each logged line
     --alarmexpectedactivity=mon-fri(08-17),sat-sun(09-12) Specify when the timeout is tested, default is mon-sun(00-23)
     --alarmshell=<cmdline> invokes cmdline when an alarm triggers
     --alarmtimeout=<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity.
@@ -177,6 +176,7 @@ As <options> you can use:
     --listmeters=<search> list all meter drivers containing the text <search>
     --logfile=<file> use this file instead of stdout
     --logtelegrams log the contents of the telegrams for easy replay
+    --logtimestamps=<when> add log timestamps: always never important
     --ignoreduplicates=<bool> ignore duplicate telegrams, remember the last 10 telegrams
     --meterfiles=<dir> store meter readings in dir
     --meterfilesaction=(overwrite|append) overwrite or append to the meter readings file
