@@ -37,7 +37,7 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 
 \fB\--format=\fR(hr|json|fields) for human readable, json or semicolon separated fields
 
-\fB\--ignoreduplicates\fR ignore telegram duplicates (when using multiple receiving dongles or repeaters)
+\fB\--ignoreduplicates\fR=true ignore telegram duplicates (when using multiple receiving dongles or repeaters)
 
 \fB\--json_xxx=yyy\fR always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy
 
@@ -60,8 +60,6 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 \fB\--logfile=\fR<dir> use this file instead of stdout
 
 \fB\--logtelegrams\fR log the contents of the telegrams for easy replay
-
-\fB\--ignoreduplicates\fR ignore duplicate telegrams, remember the last 10 telegrams
 
 \fB\--meterfiles=\fR<dir> store meter readings in dir
 

@@ -182,7 +182,7 @@ public:
                         verbose("(meter) used meter template %s %s %s to match %s\n",
                                 mi.name.c_str(),
                                 mi.idsc.c_str(),
-                                toMeterDriver(mi.driver).c_str(),
+                                toString(mi.driver).c_str(),
                                 idsc.c_str());
 
                         if (is_daemon_)
@@ -191,7 +191,7 @@ public:
                                    meter->index(),
                                    mi.name.c_str(),
                                    tmp.idsc.c_str(),
-                                   toMeterDriver(mi.driver).c_str());
+                                   toString(mi.driver).c_str());
                         }
                         else
                         {
@@ -199,7 +199,7 @@ public:
                                    meter->index(),
                                    mi.name.c_str(),
                                    tmp.idsc.c_str(),
-                                   toMeterDriver(mi.driver).c_str());
+                                   toString(mi.driver).c_str());
                         }
 
                         bool match = false;
@@ -210,7 +210,7 @@ public:
                             // but it still did not match! This is probably an error in wmbusmeters!
                             warning("(meter) newly created meter (%s %s %s) did not match telegram! ",
                                     "Please open an issue at https://github.com/weetmuts/wmbusmeters/\n",
-                                    meter->name().c_str(), meter->idsc().c_str(), toMeterDriver(meter->driver()).c_str());
+                                    meter->name().c_str(), meter->idsc().c_str(), toString(meter->driver()).c_str());
                         }
                         else if (!h)
                         {
@@ -218,7 +218,7 @@ public:
                             // but it still did not handle it! This can happen if the wrong
                             // decryption key was used.
                             warning("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
-                                    meter->name().c_str(), meter->idsc().c_str(), toMeterDriver(meter->driver()).c_str());
+                                    meter->name().c_str(), meter->idsc().c_str(), toString(meter->driver()).c_str());
                         }
                         else
                         {
@@ -408,7 +408,7 @@ LIST_OF_METERS
     return false;
 }
 
-string toMeterDriver(MeterDriver mt)
+string toString(MeterDriver mt)
 {
 #define X(mname,link,info,type,cname) if (mt == MeterDriver::type) return #mname;
 LIST_OF_METERS
@@ -427,6 +427,14 @@ LIST_OF_METERS
 LinkModeSet toMeterLinkModeSet(string& t)
 {
 #define X(mname,linkmodes,info,type,cname) if (t == #mname) return LinkModeSet(linkmodes);
+LIST_OF_METERS
+#undef X
+    return LinkModeSet();
+}
+
+LinkModeSet toMeterLinkModeSet(MeterDriver d)
+{
+#define X(mname,linkmodes,info,driver,cname) if (d == MeterDriver::driver) return LinkModeSet(linkmodes);
 LIST_OF_METERS
 #undef X
     return LinkModeSet();
@@ -499,7 +507,7 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
             warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n"
                     "(meter) Not printing this warning agin for id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                     name.c_str(),
-                    toMeterDriver(driver).c_str(),
+                    toString(driver).c_str(),
                     possible_drivers.c_str(),
                     t->dll_id_b[3], t->dll_id_b[2], t->dll_id_b[1], t->dll_id_b[0],
                     manufacturerFlag(t->dll_mfct).c_str(),
@@ -936,7 +944,7 @@ ELLSecurityMode MeterCommonImplementation::expectedELLSecurityMode()
 
 void detectMeterDrivers(int manufacturer, int media, int version, vector<string> *drivers)
 {
-#define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { drivers->push_back(toMeterDriver(MeterDriver::TY)); }}
+#define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { drivers->push_back(toString(MeterDriver::TY)); }}
 METER_DETECTION
 #undef X
 }
@@ -991,4 +999,123 @@ LIST_OF_METERS
 #undef X
     }
     return newm;
+}
+
+bool is_driver_extras(string t, MeterDriver *out_driver, string *out_extras)
+{
+    // piigth(jump=foo)
+    // multical21
+
+    size_t ps = t.find('(');
+    size_t pe = t.find(')');
+
+    size_t te = 0; // Position after type end.
+
+    bool found_parentheses = (ps != string::npos && pe != string::npos);
+
+    if (!found_parentheses)
+    {
+        // No brackets nor parentheses found, is t a known wmbus device? like im871a amb8465 etc....
+        MeterDriver md = toMeterDriver(t);
+        if (md == MeterDriver::UNKNOWN) return false;
+        *out_driver = md;
+        *out_extras = "";
+        return true;
+    }
+
+    // Parentheses must be last.
+    if (! (ps > 0 && ps < pe && pe == t.length()-1)) return false;
+    te = ps;
+
+    string type = t.substr(0, te);
+    MeterDriver md = toMeterDriver(type);
+    if (md == MeterDriver::UNKNOWN) return false;
+    *out_driver = md;
+
+    string extras = t.substr(ps+1, pe-ps-1);
+    *out_extras = extras;
+
+    return true;
+}
+
+string MeterInfo::str()
+{
+    string r;
+    r += toString(driver);
+    if (extras != "")
+    {
+        r += "("+extras+")";
+    }
+    r += ":";
+    if (bus != "") r += bus+":";
+    if (bps != 0) r += bps+":";
+    if (!link_modes.empty()) r += link_modes.hr()+":";
+    if (r.size() > 0) r.pop_back();
+
+    return r;
+}
+
+bool MeterInfo::parse(string n, string d, string i, string k)
+{
+    clear();
+
+    name = n;
+    ids = splitMatchExpressions(i);
+    key = k;
+    bool driverextras_checked = false;
+    bool bus_checked = false;
+    bool bps_checked = false;
+    bool link_modes_checked = false;
+
+    // For the moment the colon : is forbidden in file names and commands.
+    // It cannot occur in type,fq or bps.
+    vector<string> parts = splitString(d, ':');
+
+    // Example piigth:MAIN:2400
+    //         multical21:c1
+    //         telco:BUS2:c2
+    // driver ( extras ) : bus_alias : bps : linkmodes
+
+    for (auto& p : parts)
+    {
+        if (!driverextras_checked && is_driver_extras(p, &driver, &extras))
+        {
+            driverextras_checked = true;
+        }
+        else if (!bus_checked && isValidAlias(p) && !isValidBps(p) && !isValidLinkModes(p))
+        {
+            driverextras_checked = true;
+            bus_checked = true;
+            bus = p;
+        }
+        else if (!bps_checked && isValidBps(p) && !isValidLinkModes(p))
+        {
+            driverextras_checked = true;
+            bus_checked = true;
+            bps_checked = true;
+            bps = atoi(p.c_str());
+        }
+        else if (!link_modes_checked && isValidLinkModes(p))
+        {
+            driverextras_checked = true;
+            bus_checked = true;
+            bps_checked = true;
+            link_modes_checked = true;
+            link_modes = parseLinkModes(p);
+        }
+        else
+        {
+            // Unknown part....
+            return false;
+        }
+    }
+
+    if (!link_modes_checked)
+    {
+        // No explicit link mode set, set to the default link modes
+        // that the meter can transmit on.
+        link_modes = toMeterLinkModeSet(driver);
+    }
+
+    return true;
 }

@@ -143,11 +143,14 @@ struct MeterInfo
     {
     }
 
-    MeterInfo(string b, string n, MeterDriver d, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j)
+    string str();
+
+    MeterInfo(string b, string n, MeterDriver d, string e, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j)
     {
         bus = b;
         name = n;
         driver = d;
+        extras = e,
         ids = i;
         idsc = toIdsCommaSeparated(ids);
         key = k;
@@ -156,6 +159,22 @@ struct MeterInfo
         link_modes = lms;
         bps = baud;
     }
+
+    void clear()
+    {
+        bus = "";
+        name = "";
+        driver = MeterDriver::UNKNOWN;
+        ids.clear();
+        idsc = "";
+        key = "";
+        shells.clear();
+        jsons.clear();
+        link_modes.clear();
+        bps = 0;
+    }
+
+    bool parse(string name, string driver, string id, string key);
 };
 
 struct Print
@@ -337,9 +356,10 @@ struct PulseCounter : public virtual Meter
 struct Generic : public virtual Meter {
 };
 
-string toMeterDriver(MeterDriver driver);
+string toString(MeterDriver driver);
 MeterDriver toMeterDriver(string& driver);
 LinkModeSet toMeterLinkModeSet(string& driver);
+LinkModeSet toMeterLinkModeSet(MeterDriver driver);
 
 #define X(mname,linkmode,info,type,cname) shared_ptr<info> create##cname(MeterInfo &m);
 LIST_OF_METERS

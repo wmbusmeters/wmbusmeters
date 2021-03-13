@@ -287,7 +287,7 @@ void MeterMultical21::processContent(Telegram *t)
     // 2d: 0F vife (?)
     // 2e: * 0D external temperature (13.000000 °C)
 
-    string meter_name = toMeterDriver(driver()).c_str();
+    string meter_name = toString(driver()).c_str();
 
     int offset;
     string key;
@@ -423,7 +423,7 @@ string MeterMultical21::statusHumanReadable()
 string MeterMultical21::decodeTime(int time)
 {
     if (time>7) {
-        string meter_name = toMeterDriver(driver()).c_str();
+        string meter_name = toString(driver()).c_str();
         warning("(%s) warning: Cannot decode time %d should be 0-7.\n", meter_name.c_str(), time);
     }
     switch (time) {

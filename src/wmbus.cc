@@ -4328,22 +4328,6 @@ bool is_command(string b, string *cmd)
     return true;
 }
 
-bool is_bps(string b)
-{
-    if (b == "300") return true;
-    if (b == "600") return true;
-    if (b == "1200") return true;
-    if (b == "2400") return true;
-    if (b == "4800") return true;
-    if (b == "9600") return true;
-    if (b == "14400") return true;
-    if (b == "19200") return true;
-    if (b == "38400") return true;
-    if (b == "57600") return true;
-    if (b == "115200") return true;
-    return false;
-}
-
 bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_simulation)
 {
     *is_tty = *is_stdin = *is_file = *is_simulation = false;
@@ -4560,7 +4544,7 @@ bool SpecifiedDevice::parse(string &arg)
             file_checked = true;
             typeidextras_checked = true;
         }
-        else if (!bps_checked && is_bps(p))
+        else if (!bps_checked && isValidBps(p))
         {
             file_checked = true;
             typeidextras_checked = true;

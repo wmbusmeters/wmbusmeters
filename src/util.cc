@@ -527,9 +527,18 @@ bool is_ascii_alnum(char c)
     return false;
 }
 
+bool is_ascii(char c)
+{
+    if (c >= 'A' && c <= 'Z') return true;
+    if (c >= 'a' && c <= 'z') return true;
+    return false;
+}
+
 bool isValidAlias(string alias)
 {
     if (alias.length() == 0) return false;
+
+    if (!is_ascii(alias[0])) return false;
 
     for (char c : alias)
     {
@@ -1933,4 +1942,20 @@ void checkIfMultipleWmbusMetersRunning()
             info("Notice! Other wmbusmeters (pid %d) is running and it might hog any wmbus devices.\n", i);
         }
     }
+}
+
+bool isValidBps(string b)
+{
+    if (b == "300") return true;
+    if (b == "600") return true;
+    if (b == "1200") return true;
+    if (b == "2400") return true;
+    if (b == "4800") return true;
+    if (b == "9600") return true;
+    if (b == "14400") return true;
+    if (b == "19200") return true;
+    if (b == "38400") return true;
+    if (b == "57600") return true;
+    if (b == "115200") return true;
+    return false;
 }

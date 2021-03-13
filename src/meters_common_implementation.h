@@ -56,7 +56,7 @@ struct MeterCommonImplementation : public virtual Meter
 
     ~MeterCommonImplementation() = default;
 
-    string meterDriver() { return toMeterDriver(driver_); }
+    string meterDriver() { return toString(driver_); }
 
 protected:
 

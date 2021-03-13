@@ -182,7 +182,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     }
     if (use) {
         vector<string> ids = splitMatchExpressions(id);
-        c->meters.push_back(MeterInfo(bus, name, mt, ids, key, modes, bps, telegram_shells, jsons));
+        c->meters.push_back(MeterInfo(bus, name, mt, "", ids, key, modes, bps, telegram_shells, jsons));
     }
 
     return;
@@ -686,7 +686,7 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, WMBus *wmbus
     {
         meters_union.unionLinkModeSet(m.link_modes);
         string meter = m.link_modes.hr();
-        debug("(config) meter %s link mode(s): %s\n", toMeterDriver(m.driver).c_str(), meter.c_str());
+        debug("(config) meter %s link mode(s): %s\n", toString(m.driver).c_str(), meter.c_str());
     }
     string metersu = meters_union.hr();
     debug("(config) all possible link modes that the meters might transmit on: %s\n", metersu.c_str());

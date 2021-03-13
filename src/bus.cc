@@ -90,6 +90,11 @@ void BusManager::openBusDeviceAndPotentiallySetLinkmodes(Configuration *config, 
     }
     string using_link_modes = lms.hr();
 
+    string bus = detected->specified_device.alias.c_str();
+    if (bus != "")
+    {
+        bus = bus+" ";
+    }
     string id = detected->found_device_id.c_str();
     if (id != "") id = "["+id+"]";
     string extras = detected->specified_device.extras.c_str();
@@ -112,8 +117,9 @@ void BusManager::openBusDeviceAndPotentiallySetLinkmodes(Configuration *config, 
                                  fq.c_str(),
                                  cmd.c_str());
     }
-    string started = tostrprintf("Started %s %s%s%s%s%s\n",
+    string started = tostrprintf("Started %s %s%s%s%s%s%s\n",
                                  how.c_str(),
+                                 bus.c_str(),
                                  toLowerCaseString(detected->found_type),
                                  id.c_str(),
                                  extras.c_str(),

@@ -572,46 +572,31 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
     {
         string bus;
         string name = argv[m*4+i+0];
-        string type = argv[m*4+i+1];
+        string driver = argv[m*4+i+1];
         string id = argv[m*4+i+2];
         string key = argv[m*4+i+3];
-        LinkModeSet modes;
-        int bps = 0;
-        size_t colon = type.find(':');
-        MeterDriver mt = toMeterDriver(type);
-        if (colon != string::npos)
-        {
-            // The config can be supplied after the type, like this:
-            // apator162:c1
-            string modess = type.substr(colon+1);
-            type = type.substr(0, colon);
-            mt = toMeterDriver(type);
-            if (mt == MeterDriver::UNKNOWN) error("Not a valid meter type \"%s\"\n", type.c_str());
-            modes = parseLinkModes(modess);
-            LinkModeSet default_modes = toMeterLinkModeSet(type);
-            if (!default_modes.hasAll(modes))
-            {
-                string want = modes.hr();
-                string has = default_modes.hr();
-                error("(cmdline) cannot set link modes to: %s because meter %s only transmits on: %s\n",
-                      want.c_str(), type.c_str(), has.c_str());
-            }
-            string modeshr = modes.hr();
-            debug("(cmdline) setting link modes to %s for meter %s\n",
-                  modeshr.c_str(), name.c_str());
-        }
-        else {
-            modes = toMeterLinkModeSet(type);
-        }
 
-        mt = toMeterDriver(type);
+        MeterInfo mi;
+        mi.parse(name, driver, id, key);
 
-        if (mt == MeterDriver::UNKNOWN) error("Not a valid meter type \"%s\"\n", type.c_str());
+        if (mi.driver == MeterDriver::UNKNOWN) error("Not a valid meter driver \"%s\"\n", driver.c_str());
         if (!isValidMatchExpressions(id, true)) error("Not a valid id nor a valid meter match expression \"%s\"\n", id.c_str());
-        if (!isValidKey(key, mt)) error("Not a valid meter key \"%s\"\n", key.c_str());
-        vector<string> no_meter_shells, no_meter_jsons;
-        vector<string> ids = splitMatchExpressions(id);
-        c->meters.push_back(MeterInfo(bus, name, mt, ids, key, modes, bps, no_meter_shells, no_meter_jsons));
+        if (!isValidKey(key, mi.driver)) error("Not a valid meter key \"%s\"\n", key.c_str());
+
+        c->meters.push_back(mi);
+
+        LinkModeSet default_modes = toMeterLinkModeSet(mi.driver);
+        // Check if the devices can listen to the meter link mode(s).
+        if (!default_modes.hasAll(mi.link_modes))
+        {
+            string want = mi.link_modes.hr();
+            string has = default_modes.hr();
+            error("(cmdline) cannot set link modes to: %s because meter %s only transmits on: %s\n",
+                  want.c_str(), toString(mi.driver).c_str(), has.c_str());
+        }
+        string modeshr = mi.link_modes.hr();
+        debug("(cmdline) setting link modes to %s for meter %s\n",
+              mi.link_modes.hr().c_str(), name.c_str());
     }
 
     return shared_ptr<Configuration>(c);

@@ -37,6 +37,7 @@ void test_ids();
 void test_kdf();
 void test_periods();
 void test_devices();
+void test_meters();
 void test_months();
 
 int main(int argc, char **argv)
@@ -58,6 +59,7 @@ int main(int argc, char **argv)
     test_dvparser();
     test_test();
     test_devices();
+    test_meters();
     /*
       test_linkmodes();*/
     test_ids();
@@ -268,6 +270,7 @@ int test_linkmodes()
     apator_config.meters.push_back(MeterInfo("", // bus
                                              "m1", // name
                                              MeterDriver::APATOR162, // driver/type
+                                             "", // extras
                                              ids, // ids
                                              "", // Key
                                              toMeterLinkModeSet(apator162), // link mode set
@@ -308,12 +311,12 @@ int test_linkmodes()
     string multical21 = "multical21";
     string supercom587 = "supercom587";
 
-    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m1", MeterDriver::MULTICAL21, ids, "",
+    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m1", MeterDriver::MULTICAL21, "", ids, "",
                                                                  toMeterLinkModeSet(multical21),
                                                                  0,
                                                                  no_meter_shells,
                                                                  no_meter_jsons));
-    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m2", MeterDriver::SUPERCOM587, ids, "",
+    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m2", MeterDriver::SUPERCOM587, "", ids, "",
                                                                  toMeterLinkModeSet(supercom587),
                                                                  0,
                                                                  no_meter_shells,
@@ -756,4 +759,47 @@ void test_months()
     test_month(2001,02,28, -12, "2001-02-28", "2000-02-29");
     // 2100 is not a leap year since %100=0 and not overriden %400 != 0.
     test_month(2000,02,29, 12*100, "2000-02-29", "2100-02-28");
+}
+
+// Vatten    multical21:BUS1:c1 12345678 KEY
+// Tempmeter piigth(info=123):BUS2:2400   0        NOKEY
+
+void testm(string arg, bool xok,
+           string xdriver, string xextras, string xbus, string xbps, string xlm)
+{
+    MeterInfo mi;
+    bool ok = mi.parse("", arg, "12345678", "");
+    if (ok != xok)
+    {
+        printf("ERROR in meter parse test \"%s\" expected %s but got %s\n", arg.c_str(), xok?"OK":"FALSE", ok?"OK":"FALSE");
+        return;
+    }
+    if (ok == false) return;
+
+    if (toString(mi.driver) != xdriver,
+        mi.extras != xextras ||
+        mi.bus != xbus ||
+        to_string(mi.bps) != xbps ||
+        mi.link_modes.hr() != xlm)
+    {
+        printf("ERROR in meter parsing parts \"%s\"\n", arg.c_str());
+    }
+}
+
+void test_meters()
+{
+    testm("piigth:BUS1:2400", true,
+          "piigth", // driver
+          "", // extras
+          "BUS1", // bus
+          "2400", // bps
+          "mbus"); // linkmodes
+
+    testm("multical21:c1", true,
+          "multical21", // driver
+          "", // extras
+          "", // bus
+          "0", // bps
+          "c1"); // linkmodes
+
 }
