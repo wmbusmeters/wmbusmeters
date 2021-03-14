@@ -448,56 +448,15 @@ bool start(Configuration *config)
                 Telegram t;
                 t.about = about;
                 MeterKeys mk;
-                if (t.about.type == FrameType::WMBUS)
-                {
-                    t.parse(frame, &mk, false); // Try a best effort parse, do not print any warnings.
-                    t.print();
-                    t.explainParse("(wmbus)",0);
-                    logTelegram(t.original, t.frame, 0, 0);
-                }
-                else
-                {
-                    t.parseMBusHeader(frame); // Try a best effort parse, do not print any warnings.
-                    t.print();
-                    t.explainParse("(mbus)",0);
-                    logTelegram(t.original, t.frame, 0, 0);
-                }
+                t.parse(frame, &mk, false); // Try a best effort parse, do not print any warnings.
+                t.print();
+                string info = string("(")+toString(about.type)+")";
+                t.explainParse(info.c_str(), 0);
+                logTelegram(t.original, t.frame, 0, 0);
                 return true;
             });
     }
 
-    /*
-    for (auto &w : bus_manager_->bus_devices_)
-    {
-        if (w->type() == WMBusDeviceType::DEVICE_MBUS)
-        {
-            fprintf(stderr, "SENDING Query...\n");
-            vector<uchar> buf(5);
-            buf[0] = 0x10; // Start
-            buf[1] = 0x40; // SND_NKE
-            buf[2] = 0x00; // address 0
-            uchar cs = 0;
-            for (int i=1; i<3; ++i) cs += buf[i];
-            buf[3] = cs; // checksum
-            buf[4] = 0x16; // Stop
-
-            w->serial()->send(buf);
-
-            sleep(2);
-
-            buf[0] = 0x10; // Start
-            buf[1] = 0x5b; // REQ_UD2
-            buf[2] = 0x00; // address 0
-            cs = 0;
-            for (int i=1; i<3; ++i) cs += buf[i];
-            buf[3] = cs; // checksum
-            buf[4] = 0x16; // Stop
-
-            w->serial()->send(buf);
-
-        }
-    }
-    */
     bus_manager_->runAnySimulations();
 
     // This main thread now sleeps and waits for the serial communication manager to stop.

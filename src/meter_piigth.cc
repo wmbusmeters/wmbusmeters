@@ -105,7 +105,9 @@ void MeterPIIGTH::poll(shared_ptr<BusManager> bus_manager)
         fprintf(stderr, "Could not find bus from name %s\n", bus().c_str());
         return;
     }
+
     vector<uchar> buf(5);
+    /*
     buf[0] = 0x10; // Start
     buf[1] = 0x40; // SND_NKE
     buf[2] = 0x00; // address 0
@@ -117,11 +119,12 @@ void MeterPIIGTH::poll(shared_ptr<BusManager> bus_manager)
     dev->serial()->send(buf);
 
     sleep(2);
+    */
 
     buf[0] = 0x10; // Start
     buf[1] = 0x5b; // REQ_UD2
     buf[2] = 0x00; // address 0
-    cs = 0;
+    uchar cs = 0;
     for (int i=1; i<3; ++i) cs += buf[i];
     buf[3] = cs; // checksum
     buf[4] = 0x16; // Stop

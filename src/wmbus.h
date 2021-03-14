@@ -324,8 +324,11 @@ struct MeterKeys
 enum class FrameType
 {
     WMBUS,
-    MBUS
+    MBUS,
+    HAN
 };
+
+const char *toString(FrameType ft);
 
 struct AboutTelegram
 {
@@ -456,8 +459,14 @@ struct Telegram
     bool parseHeader(vector<uchar> &input_frame);
     bool parse(vector<uchar> &input_frame, MeterKeys *mk, bool warn);
 
-    bool parseMBusHeader(vector<uchar> &input_frame);
-    bool parseMBus(vector<uchar> &input_frame, MeterKeys *mk, bool warn);
+    bool parseMBUSHeader(vector<uchar> &input_frame);
+    bool parseMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn);
+
+    bool parseWMBUSHeader(vector<uchar> &input_frame);
+    bool parseWMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn);
+
+    bool parseHANHeader(vector<uchar> &input_frame);
+    bool parseHAN(vector<uchar> &input_frame, MeterKeys *mk, bool warn);
 
     void print();
 

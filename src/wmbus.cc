@@ -1650,8 +1650,34 @@ void Telegram::preProcess()
     }
 }
 
+bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
+{
+    switch (about.type)
+    {
+    case FrameType::WMBUS: return parseWMBUS(input_frame, mk, warn);
+    case FrameType::MBUS: return parseMBUS(input_frame, mk, warn);
+    case FrameType::HAN: return parseHAN(input_frame, mk, warn);
+    }
+    assert(0);
+    return false;
+}
+
 bool Telegram::parseHeader(vector<uchar> &input_frame)
 {
+    switch (about.type)
+    {
+    case FrameType::WMBUS: return parseWMBUSHeader(input_frame);
+    case FrameType::MBUS: return parseMBUSHeader(input_frame);
+    case FrameType::HAN: return parseHANHeader(input_frame);
+    }
+    assert(0);
+    return false;
+}
+
+bool Telegram::parseWMBUSHeader(vector<uchar> &input_frame)
+{
+    assert(about.type == FrameType::WMBUS);
+
     bool ok;
     // Parsing the header is used to extract the ids, so that we can
     // match the telegram towards any known ids and thus keys.
@@ -1687,8 +1713,10 @@ bool Telegram::parseHeader(vector<uchar> &input_frame)
     return true;
 }
 
-bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
+bool Telegram::parseWMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
 {
+    assert(about.type == FrameType::WMBUS);
+
     parser_warns_ = warn;
     decryption_failed = false;
     explanations.clear();
@@ -1761,10 +1789,11 @@ bool Telegram::parse(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
     return true;
 }
 
-bool Telegram::parseMBusHeader(vector<uchar> &input_frame)
+bool Telegram::parseMBUSHeader(vector<uchar> &input_frame)
 {
-    bool ok;
     assert(about.type == FrameType::MBUS);
+
+    bool ok;
     // Parsing the header is used to extract the ids, so that we can
     // match the telegram towards any known ids and thus keys.
     // No need to warn.
@@ -1782,9 +1811,10 @@ bool Telegram::parseMBusHeader(vector<uchar> &input_frame)
     return true;
 }
 
-bool Telegram::parseMBus(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
+bool Telegram::parseMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
 {
     assert(about.type == FrameType::MBUS);
+
     parser_warns_ = warn;
     decryption_failed = false;
     explanations.clear();
@@ -1809,6 +1839,20 @@ bool Telegram::parseMBus(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
     printDLL();
 
     return true;
+}
+
+bool Telegram::parseHANHeader(vector<uchar> &input_frame)
+{
+    assert(about.type == FrameType::HAN);
+
+    return false;
+}
+
+bool Telegram::parseHAN(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
+{
+    assert(about.type == FrameType::HAN);
+
+    return false;
 }
 
 void Telegram::explainParse(string intro, int from)
@@ -4799,4 +4843,14 @@ LIST_OF_MBUS_DEVICES
 
     assert(0);
     return false;
+}
+
+const char *toString(FrameType ft)
+{
+    switch (ft) {
+    case FrameType::WMBUS: return "wmbus";
+    case FrameType::MBUS: return "mbus";
+    case FrameType::HAN: return "han";
+    }
+    return "?";
 }

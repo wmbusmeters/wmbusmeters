@@ -580,12 +580,23 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         mi.parse(name, driver, id, key);
 
         if (mi.driver == MeterDriver::UNKNOWN) error("Not a valid meter driver \"%s\"\n", driver.c_str());
-        if (!isValidMatchExpressions(id, true)) error("Not a valid id nor a valid meter match expression \"%s\"\n", id.c_str());
+
+        LinkModeSet default_modes = toMeterLinkModeSet(mi.driver);
+
+        if (default_modes.has(LinkMode::MBUS))
+        {
+            // MBus primary address       0-250
+            //      secondary hex address iiiiiiiimmmmvvmm
+        }
+        else
+        {
+            // WMBus ids are 8 hex digits iiiiiiii
+            if (!isValidMatchExpressions(id, true)) error("Not a valid id nor a valid meter match expression \"%s\"\n", id.c_str());
+        }
         if (!isValidKey(key, mi.driver)) error("Not a valid meter key \"%s\"\n", key.c_str());
 
         c->meters.push_back(mi);
 
-        LinkModeSet default_modes = toMeterLinkModeSet(mi.driver);
         // Check if the devices can listen to the meter link mode(s).
         if (!default_modes.hasAll(mi.link_modes))
         {

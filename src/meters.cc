@@ -465,7 +465,7 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
         driver = mi->driver;
     }
 
-    debug("(meter) %s: for me? %s\n", name.c_str(), idsc.c_str());
+    debug("(meter) %s: for me? %s in %s\n", name.c_str(), t->idsc.c_str(), idsc.c_str());
 
     bool used_wildcard = false;
     bool id_match = doesIdsMatchExpressions(t->ids, ids, &used_wildcard);
