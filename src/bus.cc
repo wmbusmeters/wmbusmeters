@@ -202,11 +202,11 @@ shared_ptr<WMBus> BusManager::createWmbusObject(Detected *detected, Configuratio
         break;
     case DEVICE_SIMULATION:
         verbose("(simulation) in %s\n", detected->found_file.c_str());
-        wmbus = openSimulator(detected->found_file, serial_manager_, serial_override);
+        wmbus = openSimulator(*detected, serial_manager_, serial_override);
         break;
     case DEVICE_RAWTTY:
         verbose("(rawtty) on %s\n", detected->found_file.c_str());
-        wmbus = openRawTTY(detected->found_file, detected->found_bps, serial_manager_, serial_override);
+        wmbus = openRawTTY(*detected, serial_manager_, serial_override);
         break;
     case DEVICE_RTLWMBUS:
         wmbus = openRTLWMBUS(*detected, config->bin_dir, config->daemon, serial_manager_, serial_override);
@@ -217,13 +217,13 @@ shared_ptr<WMBus> BusManager::createWmbusObject(Detected *detected, Configuratio
     case DEVICE_CUL:
     {
         verbose("(cul) on %s\n", detected->found_file.c_str());
-        wmbus = openCUL(detected->found_file, serial_manager_, serial_override);
+        wmbus = openCUL(*detected, serial_manager_, serial_override);
         break;
     }
     case DEVICE_RC1180:
     {
         verbose("(rc1180) on %s\n", detected->found_file.c_str());
-        wmbus = openRC1180(detected->found_file, serial_manager_, serial_override);
+        wmbus = openRC1180(*detected, serial_manager_, serial_override);
         break;
     }
     case DEVICE_UNKNOWN:
@@ -732,5 +732,14 @@ SpecifiedDevice *BusManager::find_specified_device_from_detected(Configuration *
         }
     }
 
+    return NULL;
+}
+
+WMBus* BusManager::findBus(string name)
+{
+    for (auto &w : bus_devices_)
+    {
+        if (w->alias() == name) return w.get();
+    }
     return NULL;
 }

@@ -185,7 +185,7 @@ struct WMBusIM871A : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate() { }
 
-    WMBusIM871A(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
+    WMBusIM871A(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusIM871A() {
     }
 
@@ -230,22 +230,23 @@ int toDBM(int rssi)
 
 shared_ptr<WMBus> openIM871A(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
+    string alias = detected.specified_device.alias;
     string device_file = detected.found_file;
     assert(device_file != "");
     if (serial_override)
     {
-        WMBusIM871A *imp = new WMBusIM871A(serial_override, manager);
+        WMBusIM871A *imp = new WMBusIM871A(alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device_file.c_str(), 57600, PARITY::NONE, "im871a");
-    WMBusIM871A *imp = new WMBusIM871A(serial, manager);
+    WMBusIM871A *imp = new WMBusIM871A(alias, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 
-WMBusIM871A::WMBusIM871A(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(DEVICE_IM871A, manager, serial, true)
+WMBusIM871A::WMBusIM871A(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(alias, DEVICE_IM871A, manager, serial, true)
 {
     reset();
 }

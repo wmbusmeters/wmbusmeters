@@ -47,7 +47,7 @@ struct WMBusSimulator : public WMBusCommonImplementation
     void simulate();
     string device() { return file_; }
 
-    WMBusSimulator(string file, shared_ptr<SerialCommunicationManager> manager);
+    WMBusSimulator(string alias, string file, shared_ptr<SerialCommunicationManager> manager);
 
 private:
     vector<uchar> received_payload_;
@@ -58,14 +58,16 @@ private:
     vector<string> lines_;
 };
 
-shared_ptr<WMBus> openSimulator(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openSimulator(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
-    WMBusSimulator *imp = new WMBusSimulator(device, manager);
+    string alias = detected.specified_device.alias;
+    string device = detected.found_file;
+    WMBusSimulator *imp = new WMBusSimulator(alias, device, manager);
     return shared_ptr<WMBus>(imp);
 }
 
-WMBusSimulator::WMBusSimulator(string file, shared_ptr<SerialCommunicationManager> manager)
-    : WMBusCommonImplementation(DEVICE_SIMULATION, manager, NULL, false), file_(file)
+WMBusSimulator::WMBusSimulator(string alias, string file, shared_ptr<SerialCommunicationManager> manager)
+    : WMBusCommonImplementation(alias, DEVICE_SIMULATION, manager, NULL, false), file_(file)
 {
     assert(file != "");
     loadFile(file, &lines_);

@@ -18,7 +18,6 @@
 #include"aescmac.h"
 #include"sha256.h"
 #include"timings.h"
-#include"meters.h"
 #include"wmbus.h"
 #include"wmbus_common_implementation.h"
 #include"wmbus_utils.h"
@@ -1819,6 +1818,8 @@ void Telegram::explainParse(string intro, int from)
     }
 }
 
+void detectMeterDrivers(int manufacturer, int media, int version, std::vector<std::string> *drivers);
+
 string Telegram::autoDetectPossibleDrivers()
 {
     vector<string> drivers;
@@ -3461,11 +3462,13 @@ WMBusCommonImplementation::~WMBusCommonImplementation()
     debug("(wmbus) deleted %s\n", toString(type()));
 }
 
-WMBusCommonImplementation::WMBusCommonImplementation(WMBusDeviceType t,
+WMBusCommonImplementation::WMBusCommonImplementation(string alias,
+                                                     WMBusDeviceType t,
                                                      shared_ptr<SerialCommunicationManager> manager,
                                                      shared_ptr<SerialDevice> serial,
                                                      bool is_serial)
     : manager_(manager),
+      alias_(alias),
       is_serial_(is_serial),
       is_working_(true),
       type_(t),
@@ -3507,6 +3510,11 @@ void WMBusCommonImplementation::markAsNoLongerSerial()
 WMBusDeviceType WMBusCommonImplementation::type()
 {
     return type_;
+}
+
+string WMBusCommonImplementation::alias()
+{
+    return alias_;
 }
 
 void WMBusCommonImplementation::onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb)

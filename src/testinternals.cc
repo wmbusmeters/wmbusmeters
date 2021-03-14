@@ -245,7 +245,7 @@ int test_linkmodes()
     shared_ptr<WMBus> wmbus_im871a = openIM871A(de, manager, serial1);
     shared_ptr<WMBus> wmbus_amb8465 = openAMB8465(de, manager, serial2);
     shared_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS(de, "", false, manager, serial3);
-    shared_ptr<WMBus> wmbus_rawtty = openRawTTY("", 0, manager, serial4);
+    shared_ptr<WMBus> wmbus_rawtty = openRawTTY(de, manager, serial4);
 
     Configuration nometers_config;
     // Check that if no meters are supplied then you must set a link mode.

@@ -59,7 +59,7 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate();
 
-    WMBusRTLWMBUS(string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
+    WMBusRTLWMBUS(string alias, string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusRTLWMBUS() { }
 
 private:
@@ -87,6 +87,7 @@ shared_ptr<WMBus> openRTLWMBUS(Detected detected,
                                shared_ptr<SerialCommunicationManager> manager,
                                shared_ptr<SerialDevice> serial_override)
 {
+    string alias = detected.specified_device.alias;
     string identifier = detected.found_device_id;
     SpecifiedDevice &device = detected.specified_device;
     string command;
@@ -176,17 +177,17 @@ shared_ptr<WMBus> openRTLWMBUS(Detected detected,
     args.push_back(command);
     if (serial_override)
     {
-        WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(identifier, serial_override, manager);
+        WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(alias, identifier, serial_override, manager);
         imp->markSerialAsOverriden();
         return shared_ptr<WMBus>(imp);
     }
     auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, "rtlwmbus");
-    WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(identifier, serial, manager);
+    WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(alias, identifier, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 
-WMBusRTLWMBUS::WMBusRTLWMBUS(string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(DEVICE_RTLWMBUS, manager, serial, false), serialnr_(serialnr)
+WMBusRTLWMBUS::WMBusRTLWMBUS(string alias, string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(alias, DEVICE_RTLWMBUS, manager, serial, false), serialnr_(serialnr)
 {
     reset();
 }

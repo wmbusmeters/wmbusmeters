@@ -113,6 +113,8 @@ bool isMeterDriverValid(MeterDriver type, int manufacturer, int media, int versi
 // Return the best driver match for a telegram.
 MeterDriver pickMeterDriver(Telegram *t);
 
+bool isValidKey(string& key, MeterDriver mt);
+
 using namespace std;
 
 typedef unsigned char uchar;
@@ -190,6 +192,8 @@ struct Print
     string field_name; // Field name for default unit.
 };
 
+struct BusManager;
+
 struct Meter
 {
     // Meters are instantiated on the fly from a template, when a telegram arrives
@@ -197,7 +201,7 @@ struct Meter
     virtual int index() = 0;
     virtual void setIndex(int i) = 0;
     // Use this bus to send messages to the meter.
-    virtual WMBus *bus() = 0;
+    virtual string bus() = 0;
     // This meter listens to these ids.
     virtual vector<string> &ids() = 0;
     // Comma separated ids.
@@ -237,7 +241,7 @@ struct Meter
     virtual void addConversions(std::vector<Unit> cs) = 0;
     virtual void addShell(std::string cmdline) = 0;
     virtual vector<string> &shellCmdlines() = 0;
-    virtual void poll() = 0;
+    virtual void poll(shared_ptr<BusManager> bus) = 0;
 
     virtual ~Meter() = default;
 };
@@ -254,7 +258,7 @@ struct MeterManager
     virtual bool hasMeters() = 0;
     virtual void onTelegram(function<void(AboutTelegram&,vector<uchar>)> cb) = 0;
     virtual void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb) = 0;
-    virtual void pollMeters() = 0;
+    virtual void pollMeters(shared_ptr<BusManager> bus) = 0;
 
     virtual ~MeterManager() = default;
 };

@@ -24,12 +24,14 @@
 
 struct WMBusCommonImplementation : public virtual WMBus
 {
-    WMBusCommonImplementation(WMBusDeviceType t,
+    WMBusCommonImplementation(string alias,
+                              WMBusDeviceType t,
                               shared_ptr<SerialCommunicationManager> manager,
                               shared_ptr<SerialDevice> serial_override,
                               bool is_serial);
     ~WMBusCommonImplementation();
 
+    string alias();
     string hr();
     bool isSerial();
     WMBusDeviceType type();
@@ -74,6 +76,8 @@ struct WMBusCommonImplementation : public virtual WMBus
 
     private:
 
+    // Bus alias.
+    string alias_;
     // Uses a serial tty?
     bool is_serial_ {};
     bool is_working_ {};

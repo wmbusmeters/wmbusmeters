@@ -24,7 +24,14 @@
 #include"units.h"
 #include"wmbus.h"
 
+#include<memory>
+#include<set>
+#include<string>
+
 enum class DetectionType { STDIN_FILE_SIMULATION, ALL };
+
+struct MeterManager;
+struct Configuration;
 
 struct BusManager
 {
@@ -41,6 +48,7 @@ struct BusManager
     void regularCheckup();
 
     int numBusDevices() { return  bus_devices_.size(); }
+    WMBus *findBus(string name);
 
 private:
 
@@ -69,18 +77,18 @@ private:
 
     // Remember devices that were not detected as wmbus devices.
     // To avoid probing them again and again.
-    set<string> not_serial_wmbus_devices_;
+    std::set<std::string> not_serial_wmbus_devices_;
 
     // The software radio devices are always swradio devices
     // but they might not be available for wmbusmeters.
-    set<string> not_swradio_wmbus_devices_;
+    std::set<std::string> not_swradio_wmbus_devices_;
 
     // When manually supplying stdin or a file, then, after
     // it has been read, do not open it again!
-    set<string> do_not_open_file_again_;
+    std::set<std::string> do_not_open_file_again_;
 
     // Store simulation files here.
-    set<string> simulation_files_;
+    std::set<std::string> simulation_files_;
 
     // Set as true when the warning for no detected wmbus devices has been printed.
     bool printed_warning_ = false;

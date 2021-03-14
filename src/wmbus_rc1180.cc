@@ -140,7 +140,7 @@ struct WMBusRC1180 : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate();
 
-    WMBusRC1180(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
+    WMBusRC1180(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusRC1180() { }
 
 private:
@@ -161,24 +161,26 @@ private:
     string setup_;
 };
 
-shared_ptr<WMBus> openRC1180(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openRC1180(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
+    string alias = detected.specified_device.alias;
+    string device = detected.found_file;
     assert(device != "");
 
     if (serial_override)
     {
-        WMBusRC1180 *imp = new WMBusRC1180(serial_override, manager);
+        WMBusRC1180 *imp = new WMBusRC1180(alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200, PARITY::NONE, "rc1180");
-    WMBusRC1180 *imp = new WMBusRC1180(serial, manager);
+    WMBusRC1180 *imp = new WMBusRC1180(alias, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 
-WMBusRC1180::WMBusRC1180(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(DEVICE_RC1180, manager, serial, true)
+WMBusRC1180::WMBusRC1180(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(alias, DEVICE_RC1180, manager, serial, true)
 {
     reset();
 }

@@ -63,7 +63,7 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate();
 
-    WMBusCUL(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
+    WMBusCUL(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusCUL() { }
 
 private:
@@ -82,22 +82,24 @@ private:
     string setup_;
 };
 
-shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<WMBus> openCUL(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
+    string alias =  detected.specified_device.alias;
+    string device = detected.found_file;
     if (serial_override)
     {
-        WMBusCUL *imp = new WMBusCUL(serial_override, manager);
+        WMBusCUL *imp = new WMBusCUL(alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400, PARITY::NONE, "cul");
-    WMBusCUL *imp = new WMBusCUL(serial, manager);
+    WMBusCUL *imp = new WMBusCUL(alias, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 
-WMBusCUL::WMBusCUL(shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(DEVICE_CUL, manager, serial, true)
+WMBusCUL::WMBusCUL(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(alias, DEVICE_CUL, manager, serial, true)
 {
     reset();
 }

@@ -293,7 +293,7 @@ void regular_checkup(Configuration *config)
         }
     }
 
-    meter_manager_->pollMeters();
+    meter_manager_->pollMeters(bus_manager_);
 
     if (serial_manager_ && config)
     {

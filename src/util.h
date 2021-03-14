@@ -25,8 +25,6 @@
 #include<map>
 #include<vector>
 
-enum class MeterDriver;
-
 void onExit(std::function<void()> cb);
 void restoreSignalHandlers();
 bool gotHupped();
@@ -122,7 +120,6 @@ std::string toIdsCommaSeparated(std::vector<std::string> &ids);
 
 bool isValidId(std::string id, bool accept_non_compliant);
 
-bool isValidKey(std::string& key, MeterDriver mt);
 bool isFrequency(std::string& fq);
 bool isNumber(std::string& fq);
 

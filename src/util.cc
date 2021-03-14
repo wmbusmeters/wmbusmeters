@@ -16,7 +16,6 @@
 */
 
 #include"util.h"
-#include"meters.h"
 #include"shell.h"
 #include"version.h"
 
@@ -780,31 +779,6 @@ string toIdsCommaSeparated(std::vector<std::string> &ids)
     }
     if (cs.length() > 0) cs.pop_back();
     return cs;
-}
-
-bool isValidKey(string& key, MeterDriver mt)
-{
-    if (key.length() == 0) return true;
-    if (key == "NOKEY") {
-        key = "";
-        return true;
-    }
-    if (mt == MeterDriver::IZAR ||
-        mt == MeterDriver::HYDRUS)
-    {
-        // These meters can either be OMS compatible 128 bit key (32 hex).
-        // Or using an older proprietary encryption with 64 bit keys (16 hex)
-        if (key.length() != 16 && key.length() != 32) return false;
-    }
-    else
-    {
-        // OMS compliant meters have 128 bit AES keys (32 hex).
-        // There is a deprecated DES mode, but I have not yet
-        // seen any telegram using that mode.
-        if (key.length() != 32) return false;
-    }
-    vector<uchar> tmp;
-    return hex2bin(key, &tmp);
 }
 
 bool isFrequency(std::string& fq)

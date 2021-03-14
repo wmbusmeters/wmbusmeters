@@ -245,11 +245,11 @@ public:
         on_meter_updated_ = cb;
     }
 
-    void pollMeters()
+    void pollMeters(shared_ptr<BusManager> bus)
     {
         for (auto &m : meters_)
         {
-            m->poll();
+            m->poll(bus);
         }
     }
 
@@ -264,7 +264,7 @@ shared_ptr<MeterManager> createMeterManager(bool daemon)
 
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
                                                      MeterDriver driver) :
-    driver_(driver), bus_(NULL), name_(mi.name)
+    driver_(driver), bus_(mi.bus), name_(mi.name)
 {
     ids_ = mi.ids;
     idsc_ = toIdsCommaSeparated(ids_);
@@ -344,7 +344,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
     prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), NULL, getValueFunc, help, field, json, vname } );
 }
 
-void MeterCommonImplementation::poll()
+void MeterCommonImplementation::poll(shared_ptr<BusManager> bus)
 {
 }
 
@@ -563,7 +563,7 @@ void MeterCommonImplementation::setIndex(int i)
     index_ = i;
 }
 
-WMBus *MeterCommonImplementation::bus()
+string MeterCommonImplementation::bus()
 {
     return bus_;
 }
@@ -1118,4 +1118,29 @@ bool MeterInfo::parse(string n, string d, string i, string k)
     }
 
     return true;
+}
+
+bool isValidKey(string& key, MeterDriver mt)
+{
+    if (key.length() == 0) return true;
+    if (key == "NOKEY") {
+        key = "";
+        return true;
+    }
+    if (mt == MeterDriver::IZAR ||
+        mt == MeterDriver::HYDRUS)
+    {
+        // These meters can either be OMS compatible 128 bit key (32 hex).
+        // Or using an older proprietary encryption with 64 bit keys (16 hex)
+        if (key.length() != 16 && key.length() != 32) return false;
+    }
+    else
+    {
+        // OMS compliant meters have 128 bit AES keys (32 hex).
+        // There is a deprecated DES mode, but I have not yet
+        // seen any telegram using that mode.
+        if (key.length() != 32) return false;
+    }
+    vector<uchar> tmp;
+    return hex2bin(key, &tmp);
 }

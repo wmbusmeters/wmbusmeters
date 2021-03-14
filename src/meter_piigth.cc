@@ -15,6 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"bus.h"
 #include"dvparser.h"
 #include"meters.h"
 #include"meters_common_implementation.h"
@@ -28,7 +29,7 @@ struct MeterPIIGTH : public virtual TempHygroMeter, public virtual MeterCommonIm
     double currentRelativeHumidity();
 
 private:
-    void poll();
+    void poll(shared_ptr<BusManager> bus_manager);
     void processContent(Telegram *t);
 
     double current_temperature_c_ {};
@@ -93,9 +94,17 @@ double MeterPIIGTH::currentRelativeHumidity()
     return current_relative_humidity_rh_;
 }
 
-void MeterPIIGTH::poll()
+void MeterPIIGTH::poll(shared_ptr<BusManager> bus_manager)
 {
     fprintf(stderr, "SENDING Query...\n");
+
+    WMBus *dev = bus_manager->findBus(bus());
+
+    if (!dev)
+    {
+        fprintf(stderr, "Could not find bus from name %s\n", bus().c_str());
+        return;
+    }
     vector<uchar> buf(5);
     buf[0] = 0x10; // Start
     buf[1] = 0x40; // SND_NKE
@@ -105,7 +114,7 @@ void MeterPIIGTH::poll()
     buf[3] = cs; // checksum
     buf[4] = 0x16; // Stop
 
-    bus()->serial()->send(buf);
+    dev->serial()->send(buf);
 
     sleep(2);
 
@@ -117,7 +126,7 @@ void MeterPIIGTH::poll()
     buf[3] = cs; // checksum
     buf[4] = 0x16; // Stop
 
-    bus()->serial()->send(buf);
+    dev->serial()->send(buf);
 }
 
 void MeterPIIGTH::processContent(Telegram *t)

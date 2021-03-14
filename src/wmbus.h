@@ -528,6 +528,10 @@ struct Meter;
 
 struct WMBus
 {
+    // Each bus can be given an alias name to be
+    // referred to from meters.
+    virtual std::string alias() = 0;
+
     // I wmbus device identifier consists of:
     // device:type[id] for example:
     // /dev/ttyUSB1:im871a[12345678]
@@ -588,15 +592,20 @@ Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
                                       shared_ptr<SerialCommunicationManager> handler);
 
 
-shared_ptr<WMBus> openIM871A(Detected detected, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openIM871A(Detected detected,
+                             shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openAMB8465(Detected detected, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openAMB8465(Detected detected,
+                              shared_ptr<SerialCommunicationManager> manager,
                               shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openRawTTY(string device, int baudrate, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openRawTTY(Detected detected,
+                             shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openMBUS(Detected detected, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openMBUS(Detected detected,
+                           shared_ptr<SerialCommunicationManager> manager,
                            shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openRC1180(string device, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openRC1180(Detected detected,
+                             shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRTLWMBUS(Detected detected,
                                string bin_dir,
@@ -608,13 +617,11 @@ shared_ptr<WMBus> openRTL433(Detected detected,
                              bool daemon,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openCUL(string device, shared_ptr<SerialCommunicationManager> manager,
-                              shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openD1TC(string device, shared_ptr<SerialCommunicationManager> manager,
-                           shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openWMB13U(string device, shared_ptr<SerialCommunicationManager> manager,
-                             shared_ptr<SerialDevice> serial_override);
-shared_ptr<WMBus> openSimulator(string file, shared_ptr<SerialCommunicationManager> manager,
+shared_ptr<WMBus> openCUL(Detected detected,
+                          shared_ptr<SerialCommunicationManager> manager,
+                          shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openSimulator(Detected detected,
+                                shared_ptr<SerialCommunicationManager> manager,
                                 shared_ptr<SerialDevice> serial_override);
 
 string manufacturer(int m_field);
