@@ -237,7 +237,7 @@ void detectWMBUSReceiver()
         probeFor("cul", detectCUL);
         break;
     case ReceiversType::IM871A:
-        probeFor("im871a", detectIM871A);
+        probeFor("im871a/im170a", detectIM871AIM170A);
         break;
     case ReceiversType::RC1180:
         probeFor("rc1180", detectRC1180);

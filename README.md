@@ -329,13 +329,19 @@ Gransystems 301 and 303 (gransystems)
 Kamstrup Omnipower (omnipower)
 ```
 
-The wmbus dongles imst871a can listen to one type of wmbus telegrams
-at a time, ie either C1 or T1 telegrams. Thus you can listen to
-multiple meters as long as they all require the same radio mode C1 or
-T1.
+The wmbus dongle im871a can listen to either s1, c1 or t1.
+However with the latest firmware version (0x14) im871a can
+also listen to c1 and t1 telegrams at the same time.
+(Use --verbose to see your dongles firmware version.)
 
-However if you use amb8465 or rtlwmbus, then you can listen to both C1
-and T1 telegrams at the same time.
+The amb8465 dongle can listen to either s1, c1 or t1. However it
+can also listen to c1 and t1 at the same time.
+
+With the latest rtlwmbus you can listen to s1, c1 and t1 at
+the same time.
+
+The cul dongle can listen to either s1, c1 or t1, but only
+one at a time.
 
 # Usage examples
 

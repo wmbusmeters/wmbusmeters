@@ -791,22 +791,16 @@ bool Telegram::parseMBusDLL(vector<uchar>::iterator &pos)
     int remaining = distance(pos, frame.end());
     if (remaining == 0) return expectedMore(__LINE__);
 
-    debug("(wmbus) parseDLL @%d %d\n", distance(frame.begin(), pos), remaining);
+    debug("(wmbus) parse MBUS DLL @%d %d\n", distance(frame.begin(), pos), remaining);
     dll_len = *pos;
     if (remaining < dll_len) return expectedMore(__LINE__);
     addExplanationAndIncrementPos(pos, 1, "%02x length (%d bytes)", dll_len, dll_len);
 
     dll_c = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x dll-c (%s)", dll_c, cType(dll_c).c_str());
+    addExplanationAndIncrementPos(pos, 1, "%02x dll-c (%s)", dll_c, mbusCField(dll_c).c_str());
 
-    dll_a.resize(6);
-    for (int i=0; i<6; ++i) dll_a[i] = 0;
-    dll_id.resize(4);
-    for (int i=0; i<4; ++i) dll_id[i] = 0;
-    dll_a[0] = *pos;
-    dll_id[0] = *pos;
-
-    addExplanationAndIncrementPos(pos, 1, "%02x dll-a (%d)", dll_a[0], dll_a[0]);
+    mbus_primary_address = *pos;
+    addExplanationAndIncrementPos(pos, 1, "%02x dll-a primary (%d)", mbus_primary_address, mbus_primary_address);
 
     // Add dll_id to ids.
     string id = tostrprintf("%02x", dll_a[0]);
@@ -1878,6 +1872,16 @@ string Telegram::autoDetectPossibleDrivers()
     else possibles = "unknown!";
 
     return possibles;
+}
+
+string mbusCField(uchar c_field)
+{
+    string s;
+    switch (c_field)
+    {
+    case 0x08: return "RSP_UD2";
+    }
+    return "?";
 }
 
 string cType(int c_field)
@@ -4342,7 +4346,7 @@ const char *toString(WMBusDeviceType t)
 {
     switch (t)
     {
-#define X(name,text,tty,rtlsdr) case DEVICE_ ## name: return #text;
+#define X(name,text,tty,rtlsdr,detector) case DEVICE_ ## name: return #text;
 LIST_OF_MBUS_DEVICES
 #undef X
 
@@ -4354,7 +4358,7 @@ const char *toLowerCaseString(WMBusDeviceType t)
 {
     switch (t)
     {
-#define X(name,text,tty,rtlsdr) case DEVICE_ ## name: return #text;
+#define X(name,text,tty,rtlsdr,detector) case DEVICE_ ## name: return #text;
 LIST_OF_MBUS_DEVICES
 #undef X
 
@@ -4364,7 +4368,7 @@ LIST_OF_MBUS_DEVICES
 
 WMBusDeviceType toWMBusDeviceType(string &t)
 {
-#define X(name,text,tty,rtlsdr) if (t == #text) return DEVICE_ ## name;
+#define X(name,text,tty,rtlsdr,detector) if (t == #text) return DEVICE_ ## name;
 LIST_OF_MBUS_DEVICES
 #undef X
     return DEVICE_UNKNOWN;
@@ -4669,7 +4673,7 @@ Detected detectWMBusDeviceOnTTY(string tty,
 
     // Talk im871a with it...
     // assumes this device is configured for 57600 bps, which seems to be the default.
-    if (detectIM871A(&detected, handler) == AccessCheck::AccessOK)
+    if (detectIM871AIM170A(&detected, handler) == AccessCheck::AccessOK)
     {
         return detected;
     }
@@ -4802,6 +4806,11 @@ AccessCheck detectUNKNOWN(Detected *detected, shared_ptr<SerialCommunicationMana
     return AccessCheck::NotThere;
 }
 
+AccessCheck detectSKIP(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
+{
+    return AccessCheck::NotThere;
+}
+
 AccessCheck detectSIMULATION(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
     return AccessCheck::NotThere;
@@ -4817,7 +4826,7 @@ AccessCheck reDetectDevice(Detected *detected, shared_ptr<SerialCommunicationMan
 {
     WMBusDeviceType type = detected->specified_device.type;
 
-#define X(name,text,tty,rtlsdr) if (type == WMBusDeviceType::DEVICE_ ## name) return detect ## name(detected,handler);
+#define X(name,text,tty,rtlsdr,detector) if (type == WMBusDeviceType::DEVICE_ ## name) return detector(detected,handler);
 LIST_OF_MBUS_DEVICES
 #undef X
 
@@ -4827,7 +4836,7 @@ LIST_OF_MBUS_DEVICES
 
 bool usesRTLSDR(WMBusDeviceType t)
 {
-#define X(name,text,tty,rtlsdr) if (t == WMBusDeviceType::DEVICE_ ## name) return rtlsdr;
+#define X(name,text,tty,rtlsdr,detector) if (t == WMBusDeviceType::DEVICE_ ## name) return rtlsdr;
 LIST_OF_MBUS_DEVICES
 #undef X
 
@@ -4837,7 +4846,7 @@ LIST_OF_MBUS_DEVICES
 
 bool usesTTY(WMBusDeviceType t)
 {
-#define X(name,text,tty,rtlsdr) if (t == WMBusDeviceType::DEVICE_ ## name) return tty;
+#define X(name,text,tty,rtlsdr,detector) if (t == WMBusDeviceType::DEVICE_ ## name) return tty;
 LIST_OF_MBUS_DEVICES
 #undef X
 

@@ -196,6 +196,10 @@ shared_ptr<WMBus> BusManager::createWmbusObject(Detected *detected, Configuratio
         verbose("(im871a) on %s\n", detected->found_file.c_str());
         wmbus = openIM871A(*detected, serial_manager_, serial_override);
         break;
+    case DEVICE_IM170A:
+        verbose("(im170a) on %s\n", detected->found_file.c_str());
+        wmbus = openIM170A(*detected, serial_manager_, serial_override);
+        break;
     case DEVICE_AMB8465:
         verbose("(amb8465) on %s\n", detected->found_file.c_str());
         wmbus = openAMB8465(*detected, serial_manager_, serial_override);

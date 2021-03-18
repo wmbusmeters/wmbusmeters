@@ -31,20 +31,21 @@ bool trimCRCsFrameFormatA(std::vector<uchar> &payload);
 bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
 
 #define LIST_OF_MBUS_DEVICES \
-    X(UNKNOWN,unknown,false,false) \
-    X(MBUS,mbus,true,false)        \
-    X(AUTO,auto,false,false)       \
-    X(AMB8465,amb8465,true,false)  \
-    X(CUL,cul,true,false)          \
-    X(IM871A,im871a,true,false)    \
-    X(RAWTTY,rawtty,true,false)    \
-    X(RC1180,rc1180,true,false)    \
-    X(RTL433,rtl433,false,true)    \
-    X(RTLWMBUS,rtlwmbus,false,true)\
-    X(SIMULATION,simulation,false,false)
+    X(UNKNOWN,unknown,false,false,detectUNKNOWN)     \
+    X(MBUS,mbus,true,false,detectMBUS)               \
+    X(AUTO,auto,false,false,detectAUTO)              \
+    X(AMB8465,amb8465,true,false,detectAMB8465)      \
+    X(CUL,cul,true,false,detectCUL)                  \
+    X(IM871A,im871a,true,false,detectIM871AIM170A)   \
+    X(IM170A,im170a,true,false,detectSKIP)           \
+    X(RAWTTY,rawtty,true,false,detectRAWTTY)         \
+    X(RC1180,rc1180,true,false,detectRC1180)         \
+    X(RTL433,rtl433,false,true,detectRTL433)         \
+    X(RTLWMBUS,rtlwmbus,false,true,detectRTLWMBUS)   \
+    X(SIMULATION,simulation,false,false,detectSIMULATION)
 
 enum WMBusDeviceType {
-#define X(name,text,tty,rtlsdr) DEVICE_ ## name,
+#define X(name,text,tty,rtlsdr,detector) DEVICE_ ## name,
 LIST_OF_MBUS_DEVICES
 #undef X
 };
@@ -367,6 +368,8 @@ struct Telegram
     uchar dll_mfct_b[2]; //  2 bytes
     int dll_mfct {};
 
+    uchar mbus_primary_address; // Single byte address 0-250 for mbus devices.
+
     vector<uchar> dll_a; // A field 6 bytes
     // The 6 a field bytes are composed of 4 id bytes, version and type.
     uchar dll_id_b[4] {};    // 4 bytes, address in BCD = 8 decimal 00000000...99999999 digits.
@@ -604,6 +607,9 @@ Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
 shared_ptr<WMBus> openIM871A(Detected detected,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openIM170A(Detected detected,
+                             shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openAMB8465(Detected detected,
                               shared_ptr<SerialCommunicationManager> manager,
                               shared_ptr<SerialDevice> serial_override);
@@ -690,13 +696,13 @@ AccessCheck detectAUTO(Detected *detected, shared_ptr<SerialCommunicationManager
 AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectD1TC(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
-AccessCheck detectIM871A(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRTL433(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRTLWMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
-AccessCheck detectWMB13U(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectSKIP(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 
 // Try to factory reset an AMB8465 by trying all possible serial speeds and
 // restore to factory settings.
@@ -708,5 +714,9 @@ Detected detectWMBusDeviceOnTTY(string tty,
 
 // Remember meters id/mfct/ver/type combos that we should only warn once for.
 bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a);
+
+////////////////// MBUS
+
+string mbusCField(uchar c_field);
 
 #endif

@@ -57,7 +57,7 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
         if (lms.empty()) return false;
         if (!supportedLinkModes().supports(lms)) return false;
         // Ok, the supplied link modes are compatible,
-        // but im871a can only listen to one at a time.
+        // but cul can only listen to one at a time.
         return 1 == countSetBits(lms.asBits());
     }
     void processSerialData();

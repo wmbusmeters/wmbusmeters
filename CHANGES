@@ -12,6 +12,11 @@ a logged line in the log file or stderr output with a timestamp.
 Important means timestamp warnings and device changes.
 Daemon mode defaults to important.
 
+Added support for firmware version 0x14 for im871a dongle.
+(The old version is 0x13 and you can see the firmware version if
+you run with --verbose.) The new version of the im871a firmware
+supports listening to c1 and t1 at the same time.
+
 Version 1.2.0: 2021-03-07
 
 IMPORTANT CHANGES THAT MIGHT AFFECT YOU!vvvvvvvvvvvvvvvvvvvvvv

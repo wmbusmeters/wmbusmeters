@@ -69,7 +69,7 @@
     X(C1b,cab)\
     X(C2a,c2a)\
     X(C2b,c2b)\
-    X(N1A,n1a)\
+    X(CT_N1A,ct_n1a)\
     X(N2A,n2a)\
     X(N1B,n1b)\
     X(N2B,n2b)\
