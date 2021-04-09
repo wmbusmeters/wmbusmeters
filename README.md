@@ -44,9 +44,9 @@ from your computer. Then do:
 `./configure; make; sudo make install` will install wmbusmeters as a daemon.
 
 Check the contents of your `/etc/wmbusmeters.conf` file, assuming it
-has `device=auto:c1` and you are using a im871a,amb8465,rc1180 or cul device,
+has `device=auto:t1` and you are using a im871a,amb8465,rc1180 or cul device,
 then you can now start the daemon with `sudo systemctl start wmbusmeters`
-or you can try it from the command line `wmbusmeters auto:c1`
+or you can try it from the command line `wmbusmeters auto:t1`
 
 Wmbusmeters will scan for wmbus devices every few seconds and detect whenever
 a device is plugged in or removed.
@@ -60,7 +60,7 @@ You can trigger a reload of the config files with `sudo killall -HUP wmbusmeters
 `wmbusmetersd /tmp/thepidfile` from a script instead.)
 
 Check the config file /etc/wmbusmeters.conf and edit the device. For example:
-`auto:c1` or `im871a:c1` or `im871a[457200101056]:t1` or `/dev/ttyUSB2:amb8465:c1,t1`
+`auto:c1` or `im871a:c1,t1` or `im871a[457200101056]:t1` or `/dev/ttyUSB2:amb8465:c1,t1`
 
 Adding a device like auto or im871a will trigger an automatic probe of all serial ttys
 to auto find or to find on which tty the im871a resides.
@@ -169,7 +169,7 @@ depending on if you are running as a daemon or not.
 
 # Running without config files, good for experimentation and test.
 ```
-wmbusmeters version: 1.0.3
+wmbusmeters version: 1.3.0
 Usage: wmbusmeters {options} <device> ( [meter_name] [meter_driver]{:<modes>} [meter_id] [meter_key] )*
 
 As <options> you can use:

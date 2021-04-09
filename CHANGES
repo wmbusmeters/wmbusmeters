@@ -1,3 +1,4 @@
+Version 1.3.0: 2021-04-09
 
 You can now use "auto" as a meter driver.
 Wmbusmeters will then pick the right driver when
@@ -37,7 +38,7 @@ This was due to the fact that the meter state in the driver was updated
 through multiple different telegrams (this is how the meter works).
 Clearly a single state object could not properly maintain the state for all
 possible meters matching the wildcard, the state became a random mix
-of whater telegrams arrived.
+of whatever telegrams arrived.
 
 The fix now, is that a meter C++ object for a uniqe id (not wildcard)
 is created only when the first telegram arrives that matches the wildcard.
