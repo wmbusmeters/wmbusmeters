@@ -25,6 +25,14 @@ The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 ```
 Availability of **wmbusmeters** for other Linux distributions can be checked on [release-monitoring](https://release-monitoring.org/project/88654/) project page.
 
+# Docker
+
+Experimental docker containers are available here: https://hub.docker.com/r/weetmuts/wmbusmeters
+
+# Snap
+
+Experimental snaps are available here: https://snapcraft.io/wmbusmeters
+
 # Run as a daemon
 
 Remove the wmbus dongle (im871a,amb8465,cul,rc1180) or the generic rtlsdr dongle (RTL2832U) from your computer.
@@ -557,10 +565,6 @@ Then you have to unplug and reinsert the dongle.
 If you like to send the bytes manually, the correct bytes are:
  * Factory reset of the settings: `0xFF1100EE`
  * Reset the stick to apply the factory defaults: `0xFF0500FA` this is not necessary if you unplug and reinsert the dongle.
-
-# Docker
-
-Experimental docker containers are available here: https://hub.docker.com/r/weetmuts/wmbusmeters
 
 # Source code
 
