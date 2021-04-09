@@ -1,5 +1,5 @@
-
 # wmbusmeters
+
 The program receives and decodes C1,T1 or S1 telegrams
 (using the wireless mbus protocol) to acquire
 utility meter readings. The readings can then be published using
@@ -18,13 +18,14 @@ The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 |Snap |[![wmbusmeters](https://snapcraft.io//wmbusmeters/badge.svg)](https://snapcraft.io/wmbusmeters)|
 
 # Distributions
+
 **wmbusmeters** package is available on [Fedora](https://src.fedoraproject.org/rpms/wmbusmeters) _(version 31 or newer)_ and can be simply installed by using:
 ```
 # dnf install wmbusmeters
 ```
 Availability of **wmbusmeters** for other Linux distributions can be checked on [release-monitoring](https://release-monitoring.org/project/88654/) project page.
 
-1# Run as a daemon
+# Run as a daemon
 
 Remove the wmbus dongle (im871a,amb8465,cul,rc1180) or the generic rtlsdr dongle (RTL2832U) from your computer.
 
@@ -232,8 +233,9 @@ rtl433(ppm=17), to tune your rtlsdr dongle accordingly.
 
 rtl433:433M, to tune to this fq instead.
 
-rtlwmbus:CMD(<commandline>), to specify the entire background process command line that is expected to produce rtlwbus compatible output.
-Likewise for rtl433.
+rtlwmbus:CMD(&lt;command line&gt;), to specify the entire background
+process command line that is expected to produce rtlwbus compatible
+output. The command line cannot contain parentheses. Likewise for rtl433.
 
 stdin, to read raw binary telegrams from stdin.
 These telegrams are expected to have the data link layer crc bytes removed already!
@@ -445,11 +447,22 @@ If the meter does not use encryption of its meter data, then enter NOKEY on the 
 
 `wmbusmeters --format=json --meterfiles /dev/ttyUSB0:im871a:c1 MyTapWater multical21:c1 12345678 NOKEY`
 
+# Using wmbusmeters in a pipe.
+
+```
+rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s | wmbusmeters --format=json stdin:rtlwmbus MyMeter auto 12345678 NOKEY | ...more processing...
+```
+
+# Additional tools
+
 If you have a Kamstrup meters and you have received a KEM file and its
-password from your supplier, then you can use
-[utils/kem-import.py](utils/kem-import.py) utility to extract meter
+password from your supplier, then you can use `python2 utils/kem-import.py`
+[utils/kem-import.py](utils/kem-import.py) to extract meter
 information from that file (including the AES key) and to create
 corresponding meter files in wmbusmetrs' config directory.
+
+You can also use the XMLExtract Java program. `javac utils/XMLExtract`
+and then `java -cp utils XMLExtract` to print the key on the command line.
 
 You can run wmbusmeters with --logtelegrams to get log output that can
 be placed in a simulation.txt file. You can then run wmbusmeter and
