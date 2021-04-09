@@ -32,10 +32,14 @@ Experimental docker containers are available here: https://hub.docker.com/r/weet
 # Snap
 
 Experimental snaps are available here: https://snapcraft.io/wmbusmeters
+Read the wiki for more info on how to use the snap: https://weetmuts.github.io/wmbusmeterswiki/SNAP.html
 
-# Run as a daemon
+# Build from source and run as a daemon
 
-Remove the wmbus dongle (im871a,amb8465,cul,rc1180) or the generic rtlsdr dongle (RTL2832U) from your computer.
+Building and installing from source is easy and recommended since the
+development progresses quickly.  First remove the wmbus dongle
+(im871a,amb8465,cul,rc1180) or the generic rtlsdr dongle (RTL2832U)
+from your computer. Then do:
 
 `./configure; make; sudo make install` will install wmbusmeters as a daemon.
 
