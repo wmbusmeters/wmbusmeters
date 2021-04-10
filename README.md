@@ -137,6 +137,11 @@ append all todays received telegrams in for example the file Water_2019-12-11, t
 after the telegrams will be recorded in Water_2019-12-12. You can change the resolution
 to day,hour,minute and micros. Micros means that every telegram gets their own file.
 
+The purpose of the alarm shell and timeout is to notify you about
+problems within wmbusmeters and the wmbus dongles, not the meters
+themselves. Thus the timeout is for a dongle to receive some telegram
+at all. It does not matter from which meter.
+
 # Run using config files
 
 If you cannot install as a daemon, then you can also start
