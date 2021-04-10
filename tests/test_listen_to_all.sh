@@ -264,6 +264,11 @@ Received telegram from: 00050901
                   type: Heat meter (0x04)
                    ver: 0x40
                 driver: elf
+Received telegram from: 93929190
+          manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
+                  type: Water meter (0x07)
+                   ver: 0x7b
+                driver: dme_07
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)

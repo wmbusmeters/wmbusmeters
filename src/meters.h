@@ -35,6 +35,7 @@
     X(apator162,  C1_bit|T1_bit, WaterMeter,       APATOR162,   Apator162)   \
     X(cma12w,     C1_bit|T1_bit, TempHygroMeter,   CMA12W,      CMa12w)      \
     X(compact5,   T1_bit, HeatMeter,        COMPACT5,    Compact5)     \
+    X(dme_07,     T1_bit, WaterMeter,       DME_07,      DME_07)      \
     X(ebzwmbe,    T1_bit, ElectricityMeter, EBZWMBE, EBZWMBE)          \
     X(eurisii,    T1_bit, HeatCostAllocationMeter, EURISII, EurisII)   \
     X(ehzp,       T1_bit, ElectricityMeter, EHZP,        EHZP)         \

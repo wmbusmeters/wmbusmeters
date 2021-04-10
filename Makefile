@@ -146,6 +146,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_apator162.o \
 	$(BUILD)/meter_cma12w.o \
 	$(BUILD)/meter_compact5.o \
+	$(BUILD)/meter_dme_07.o \
 	$(BUILD)/meter_ebzwmbe.o \
 	$(BUILD)/meter_ehzp.o \
 	$(BUILD)/meter_esyswm.o \

@@ -51,7 +51,8 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       Smokey      tsd2        91633569 NOKEY
       Sharky775   sharky      68926025 NOKEY
       Heating     compact5    62626262 NOKEY
-      Hetta       elf         01885619 NOKEY"
+      Hetta       elf         01885619 NOKEY
+      DigiWasser  dme_07      93929190 NOKEY"
 
 
 cat simulations/simulation_t1.txt | grep '^{' > $TEST/test_expected.txt
