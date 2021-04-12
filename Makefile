@@ -181,6 +181,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_piigth.o \
 	$(BUILD)/meter_q400.o \
 	$(BUILD)/meter_qcaloric.o \
+	$(BUILD)/meter_qwater55.o \
 	$(BUILD)/meter_rfmamb.o \
 	$(BUILD)/meter_rfmtx1.o \
 	$(BUILD)/meter_sharky.o \
