@@ -366,6 +366,8 @@ the same time.
 The cul dongle can listen to either s1, c1 or t1, but only
 one at a time.
 
+The rc1180 dongle can listen only to t1.
+
 # Usage examples
 
 ```
