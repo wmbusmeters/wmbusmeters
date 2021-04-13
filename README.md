@@ -351,9 +351,11 @@ Kamstrup Omnipower (omnipower)
 ```
 
 The wmbus dongle im871a can listen to either s1, c1 or t1.
-However with the latest firmware version (0x14) im871a can
+However with the latest firmware version (0x15) im871a can
 also listen to c1 and t1 telegrams at the same time.
 (Use --verbose to see your dongles firmware version.)
+If you have the older firmware you can download the upgrader here:
+https://wireless-solutions.de/downloadfile/wireless-m-bus-software/
 
 The amb8465 dongle can listen to either s1, c1 or t1. However it
 can also listen to c1 and t1 at the same time.
