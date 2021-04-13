@@ -170,6 +170,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_lansensm.o \
 	$(BUILD)/meter_lansenth.o \
 	$(BUILD)/meter_lansenpu.o \
+	$(BUILD)/meter_lse_07_17.o \
 	$(BUILD)/meter_mkradio3.o \
 	$(BUILD)/meter_mkradio4.o \
 	$(BUILD)/meter_multical21.o \
