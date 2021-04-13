@@ -58,7 +58,6 @@ COMMIT_HASH?=$(shell git log --pretty=format:'%H' -n 1)
 TAG?=$(shell git describe --tags)
 BRANCH?=$(shell git rev-parse --abbrev-ref HEAD)
 CHANGES?=$(shell git status -s | grep -v '?? ')
-TAG_COMMIT_HASH?=$(shell git show-ref --tags | grep $(TAG) | cut -f 1 -d ' ')
 
 ifeq ($(BRANCH),master)
   BRANCH:=
@@ -66,17 +65,11 @@ else
   BRANCH:=$(BRANCH)_
 endif
 
-ifeq ($(COMMIT),$(TAG_COMMIT))
-  # Exactly on the tagged commit. The version is the tag!
-  VERSION:=$(BRANCH)$(TAG)
-  DEBVERSION:=$(BRANCH)$(TAG)
-else
-  VERSION:=$(BRANCH)$(TAG)++
-  DEBVERSION:=$(BRANCH)$(TAG)++
-endif
+VERSION:=$(BRANCH)$(TAG)
+DEBVERSION:=$(BRANCH)$(TAG)
 
 ifneq ($(strip $(CHANGES)),)
-  # There are changes, signify that with a +changes
+  # There are local un-committed changes.
   VERSION:=$(VERSION) with local changes
   COMMIT_HASH:=$(COMMIT_HASH) with local changes
   DEBVERSION:=$(DEBVERSION)l
