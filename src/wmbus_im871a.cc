@@ -31,6 +31,9 @@
 
 using namespace std;
 
+// 15 is like 14 but with some bug fixes
+#define FIRMWARE_15_C_AND_T 0x15
+// 14 is the first version to support both C and T at the same time.
 #define FIRMWARE_14_C_AND_T 0x14
 #define FIRMWARE_13_C_OR_T  0x13
 
@@ -197,8 +200,8 @@ struct WMBusIM871aIM170A : public virtual WMBusCommonImplementation
             // Simple test.
             return 1 == countSetBits(lms.asBits());
         }
-        // For im871a and latest firmware.
-        if (getFirmwareVersion() == FIRMWARE_14_C_AND_T)
+        // For im871a 14 and later firmware.
+        if (getFirmwareVersion() > FIRMWARE_13_C_OR_T)
         {
             if (2 == countSetBits(lms.asBits()) &&
                 lms.has(LinkMode::C1) &&
@@ -343,7 +346,7 @@ string WMBusIM871aIM170A::getDeviceUniqueId()
 
 uchar WMBusIM871aIM170A::getFirmwareVersion()
 {
-    if (serial()->readonly()) return 0x14; // Feeding from stdin or file.
+    if (serial()->readonly()) return 0x15; // Feeding from stdin or file.
 
     bool ok = getDeviceInfo();
     if (!ok) return 255;
@@ -541,7 +544,7 @@ void WMBusIM871aIM170A::deviceSetLinkModes(LinkModeSet lms)
     request_[4] = 0; // Temporary
     request_[5] = 2; // iff1 bits: Set Radio Mode
     if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1)) {
-        assert(getFirmwareVersion() == FIRMWARE_14_C_AND_T);
+        assert(getFirmwareVersion() > FIRMWARE_13_C_OR_T);
         request_[6] = (int)LinkModeIM871A::CT_N1A;
     } else  if (lms.has(LinkMode::C1)) {
         request_[6] = (int)LinkModeIM871A::C1a;
