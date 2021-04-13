@@ -153,7 +153,7 @@ void MeterLSE_07_17::processContent(Telegram *t)
     if (hasKey(&t->values, key)) {
         extractDVuint16(&t->values, key, &offset, &error_code_);
         // Not sure about this one, is it error codes or sth else?
-        t->addMoreExplanation(offset, " error code (%d)", error_code_);
+        t->addMoreExplanation(offset, " error code (%s)", errorCode().c_str());
     }
 
     if (findKey(MeasurementType::AtError, ValueInformation::Date, 0, 0, &key, &t->values)) {
@@ -196,8 +196,22 @@ string MeterLSE_07_17::dueDate()
 
 string MeterLSE_07_17::errorCode()
 {
-    string status = to_string(error_code_);
-    return status;
+    if (error_code_ == 0) return "OK";
+
+    // How do the following error codes on the display map to the code in the telegram?
+    // According to the datasheet, these errors can appear on the display:
+    // LEAC Leak in the system (no associated error code)
+    // 0    Negative direction of flow.
+    // 2    Operating hours expired.
+    // 3    Hardware error.
+    // 4    Permanently stored error.
+    // b    Communication via OPTO too often per month.
+    // c    Communication via M-Bus too often per month.
+    // d    Flow too high.
+    // f    Device was without voltage supply briefly. All parameter settings are lost.
+    // 
+
+    return tostrprintf("ERR %04x", error_code_);
 }
 
 string MeterLSE_07_17::errorDate()
