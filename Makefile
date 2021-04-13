@@ -170,6 +170,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_lansensm.o \
 	$(BUILD)/meter_lansenth.o \
 	$(BUILD)/meter_lansenpu.o \
+	$(BUILD)/meter_lse_07_17.o \
 	$(BUILD)/meter_mkradio3.o \
 	$(BUILD)/meter_mkradio4.o \
 	$(BUILD)/meter_multical21.o \
@@ -181,7 +182,6 @@ METER_OBJS:=\
 	$(BUILD)/meter_piigth.o \
 	$(BUILD)/meter_q400.o \
 	$(BUILD)/meter_qcaloric.o \
-	$(BUILD)/meter_qwater55.o \
 	$(BUILD)/meter_rfmamb.o \
 	$(BUILD)/meter_rfmtx1.o \
 	$(BUILD)/meter_sharky.o \

@@ -24,8 +24,8 @@
 
 using namespace std;
 
-struct MeterQWater55 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterQWater55(MeterInfo &mi);
+struct MeterLSE_07_17 : public virtual WaterMeter, public virtual MeterCommonImplementation {
+    MeterLSE_07_17(MeterInfo &mi);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -59,13 +59,13 @@ private:
 
 };
 
-shared_ptr<WaterMeter> createQWater55(MeterInfo &mi)
+shared_ptr<WaterMeter> createLSE_07_17(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterQWater55(mi));
+    return shared_ptr<WaterMeter>(new MeterLSE_07_17(mi));
 }
 
-MeterQWater55::MeterQWater55(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::QWATER55)
+MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi) :
+    MeterCommonImplementation(mi, MeterDriver::LSE_07_17)
 {
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -98,7 +98,7 @@ MeterQWater55::MeterQWater55(MeterInfo &mi) :
 
 }
 
-void MeterQWater55::processContent(Telegram *t)
+void MeterLSE_07_17::processContent(Telegram *t)
 {
     /*
     The following telegram corresponds to the Qundis QWater5.5 cold water meters I have here.
@@ -110,25 +110,25 @@ void MeterQWater55::processContent(Telegram *t)
     Even though my meters are definitely Qundis QWater5.5, the meters do not identify with
     manufacturer code QDS but with LSE.
 
-    (qwater55) 0f: 0C dif (8 digit BCD Instantaneous value)
-    (qwater55) 10: 13 vif (Volume l)
-    (qwater55) 11: * 04400100 total consumption (14.004000 m3)
-    (qwater55) 15: 4C dif (8 digit BCD Instantaneous value storagenr=1)
-    (qwater55) 16: 13 vif (Volume l)
-    (qwater55) 17: * 40620000 due date consumption (6.240000 m3)
-    (qwater55) 1b: 42 dif (16 Bit Integer/Binary Instantaneous value storagenr=1)
-    (qwater55) 1c: 6C vif (Date type G)
-    (qwater55) 1d: * 9F2C due date (2020-12-31)
-    (qwater55) 1f: 02 dif (16 Bit Integer/Binary Instantaneous value)
-    (qwater55) 20: BB vif (Volume flow l/h)
-    (qwater55) 21: 56 vife (duration of limit exceed last lower  is 2)
-    (qwater55) 22: * 0000 error code (0)
-    (qwater55) 24: 32 dif (16 Bit Integer/Binary Value during error state)
-    (qwater55) 25: 6C vif (Date type G)
-    (qwater55) 26: * FFFF error date (2127-15-31)
-    (qwater55) 28: 04 dif (32 Bit Integer/Binary Instantaneous value)
-    (qwater55) 29: 6D vif (Date and time type)
-    (qwater55) 2a: * 180DA924 device datetime (2021-04-09 13:24)
+    (lse_07_17) 0f: 0C dif (8 digit BCD Instantaneous value)
+    (lse_07_17) 10: 13 vif (Volume l)
+    (lse_07_17) 11: * 04400100 total consumption (14.004000 m3)
+    (lse_07_17) 15: 4C dif (8 digit BCD Instantaneous value storagenr=1)
+    (lse_07_17) 16: 13 vif (Volume l)
+    (lse_07_17) 17: * 40620000 due date consumption (6.240000 m3)
+    (lse_07_17) 1b: 42 dif (16 Bit Integer/Binary Instantaneous value storagenr=1)
+    (lse_07_17) 1c: 6C vif (Date type G)
+    (lse_07_17) 1d: * 9F2C due date (2020-12-31)
+    (lse_07_17) 1f: 02 dif (16 Bit Integer/Binary Instantaneous value)
+    (lse_07_17) 20: BB vif (Volume flow l/h)
+    (lse_07_17) 21: 56 vife (duration of limit exceed last lower  is 2)
+    (lse_07_17) 22: * 0000 error code (0)
+    (lse_07_17) 24: 32 dif (16 Bit Integer/Binary Value during error state)
+    (lse_07_17) 25: 6C vif (Date type G)
+    (lse_07_17) 26: * FFFF error date (2127-15-31)
+    (lse_07_17) 28: 04 dif (32 Bit Integer/Binary Instantaneous value)
+    (lse_07_17) 29: 6D vif (Date and time type)
+    (lse_07_17) 2a: * 180DA924 device datetime (2021-04-09 13:24)
     */
 
     int offset;
@@ -172,40 +172,40 @@ void MeterQWater55::processContent(Telegram *t)
 
 }
 
-double MeterQWater55::totalWaterConsumption(Unit u)
+double MeterLSE_07_17::totalWaterConsumption(Unit u)
 {
     assertQuantity(u, Quantity::Volume);
     return convert(total_water_consumption_m3_, Unit::M3, u);
 }
 
-bool MeterQWater55::hasTotalWaterConsumption()
+bool MeterLSE_07_17::hasTotalWaterConsumption()
 {
     return true;
 }
 
-double MeterQWater55::dueDateWaterConsumption(Unit u)
+double MeterLSE_07_17::dueDateWaterConsumption(Unit u)
 {
     assertQuantity(u, Quantity::Volume);
     return convert(due_date_water_consumption_m3_, Unit::M3, u);
 }
 
-string MeterQWater55::dueDate()
+string MeterLSE_07_17::dueDate()
 {
     return due_date_;
 }
 
-string MeterQWater55::errorCode()
+string MeterLSE_07_17::errorCode()
 {
     string status = to_string(error_code_);
     return status;
 }
 
-string MeterQWater55::errorDate()
+string MeterLSE_07_17::errorDate()
 {
     return error_date_;
 }
 
-string MeterQWater55::deviceDateTime()
+string MeterLSE_07_17::deviceDateTime()
 {
     return device_date_time_;
 }

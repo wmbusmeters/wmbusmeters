@@ -61,6 +61,7 @@
     X(lansenth,   T1_bit, TempHygroMeter,   LANSENTH,    LansenTH)     \
     X(lansendw,   T1_bit, DoorWindowDetector, LANSENDW,  LansenDW)     \
     X(lansenpu,   T1_bit, PulseCounter,     LANSENPU,    LansenPU)     \
+    X(lse_07_17,  S1_bit, WaterMeter,       LSE_07_17,   LSE_07_17)    \
     X(mkradio3,   T1_bit, WaterMeter,       MKRADIO3,    MKRadio3)     \
     X(mkradio4,   T1_bit, WaterMeter,       MKRADIO4,    MKRadio4)     \
     X(multical21, C1_bit|T1_bit, WaterMeter,       MULTICAL21,  Multical21)   \
@@ -75,7 +76,6 @@
     X(tsd2,       T1_bit, SmokeDetector,    TSD2,        TSD2)         \
     X(q400,       T1_bit, WaterMeter,       Q400,        Q400)         \
     X(qcaloric,   C1_bit, HeatCostAllocationMeter, QCALORIC, QCaloric) \
-    X(qwater55,   S1_bit, WaterMeter,       QWATER55,     QWater55)    \
     X(sensostar,  C1_bit|T1_bit, HeatMeter,SENSOSTAR,  Sensostar)      \
     X(sharky,     T1_bit, HeatMeter,        SHARKY,      Sharky)       \
     X(sontex868,  T1_bit, HeatCostAllocationMeter, SONTEX868, Sontex868) \
