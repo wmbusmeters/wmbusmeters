@@ -95,5 +95,23 @@ apps:
       - system-observe
 
 layout:
+  /usr/bin/curl:
+    bind-file: $SNAP/usr/bin/curl
+  /usr/bin/mosquitto_pub:
+    bind-file: $SNAP/usr/bin/mosquitto_pub
+  /usr/bin/mosquitto_sub:
+    bind-file: $SNAP/usr/bin/mosquitto_sub
+  /usr/bin/rtl_433:
+    bind-file: $SNAP/usr/bin/rtl_433
+  /usr/bin/rtl_sdr:
+    bind-file: $SNAP/usr/bin/rtl_sdr
+  /usr/bin/rtl_wmbus:
+    bind-file: $SNAP/usr/bin/rtl_wmbus
+  /usr/bin/wmbusmeters:
+    bind-file: $SNAP/usr/bin/wmbusmeters
   /sbin/killall5:
     bind-file: $SNAP/sbin/killall5
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/librtlsdr.so.0:
+    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/librtlsdr.so.0
+  /lib/$SNAPCRAFT_ARCH_TRIPLET/libusb-1.0.so.0:
+    symlink: $SNAP/lib/$SNAPCRAFT_ARCH_TRIPLET/libusb-1.0.so.0
