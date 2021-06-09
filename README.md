@@ -246,9 +246,9 @@ rtlwmbus:CMD(&lt;command line&gt;), to specify the entire background
 process command line that is expected to produce rtlwbus compatible
 output. The command line cannot contain parentheses. Likewise for rtl433.
 
-To reduce the rtl_wmbus CPU usage you can try this command line:
-An example of a command line that only listens to T1/C1 meters (disable S1 (-p s) ) and trades
-lower cpu usage for reception performance (-a):
+Here is an example command line that reduces the rtl_wmbus CPU usage if you only need T1/C1 telegrams.
+It disable S1 decoding (-p s) and trades lower cpu usage for reception performance (-a):
+
 `rtlwmbus:CMD(rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus -p s -a)`
 
 rtlwmbus(ppm=17), to tune your rtlsdr dongle accordingly. Use this to tune your dongle and at
