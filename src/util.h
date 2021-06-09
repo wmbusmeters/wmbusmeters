@@ -214,4 +214,6 @@ std::string lookForExecutable(std::string prog, std::string bin_dir, std::string
 bool parseExtras(std::string s, std::map<std::string,std::string> *extras);
 void checkIfMultipleWmbusMetersRunning();
 
+size_t findBytes(std::vector<uchar> &v, uchar a, uchar b, uchar c);
+
 #endif

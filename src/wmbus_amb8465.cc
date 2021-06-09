@@ -592,6 +592,14 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
 
     // FF8A7A00780080710200000000FFFFFA00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF003200021400FFFFFFFFFF010004000000FFFFFF01440000000000000000FFFF0B040100FFFFFFFFFF00030000FFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF17
 
+    size_t skip = findBytes(response, 0xff, 0x8A, 0x7A);
+    while (skip > 0)
+    {
+        // Sometimes there seems to be a leading 00 noise byte. Skip those.
+        response.erase(response.begin());
+        skip--;
+    }
+
     if (response.size() < 8 ||
         response[0] != 0xff ||
         response[1] != (0x80 | request[1]) ||

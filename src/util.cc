@@ -1933,3 +1933,19 @@ bool isValidBps(string b)
     if (b == "115200") return true;
     return false;
 }
+
+size_t findBytes(vector<uchar> &v, uchar a, uchar b, uchar c)
+{
+    size_t p = 0;
+    while (p+2 < v.size())
+    {
+        if (v[p+0] == a &&
+            v[p+1] == b &&
+            v[p+2] == c)
+        {
+            return p;
+        }
+        p++;
+    }
+    return 0;
+}
