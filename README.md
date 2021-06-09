@@ -239,6 +239,18 @@ These telegrams are expected to have the data link layer crc bytes removed alrea
 rtlwmbus, to spawn the background process: "rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s"
 for each attached rtlsdr dongle. This will listen to S1,T1 and C1 meters in parallel.
 
+Note that this uses a noticeable amount of CPU time by rtl_wmbus. You can therefore use a tailored rtl_wmbus
+command that is more suitable for your needs.
+
+rtlwmbus:CMD(&lt;command line&gt;), to specify the entire background
+process command line that is expected to produce rtlwbus compatible
+output. The command line cannot contain parentheses. Likewise for rtl433.
+
+To reduce the rtl_wmbus CPU usage you can try this command line:
+An example of a command line that only listens to T1/C1 meters (disable S1 (-p s) ) and trades
+lower cpu usage for reception performance (-a):
+`rtlwmbus:CMD(rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus -p s -a)`
+
 rtlwmbus(ppm=17), to tune your rtlsdr dongle accordingly. Use this to tune your dongle and at
 the same time listen to S1,T1 and C1.
 
@@ -249,10 +261,6 @@ rtl433, to spawn the background process: "rtl_433 -F csv -f 868.95M"
 rtl433(ppm=17), to tune your rtlsdr dongle accordingly.
 
 rtl433:433M, to tune to this fq instead.
-
-rtlwmbus:CMD(&lt;command line&gt;), to specify the entire background
-process command line that is expected to produce rtlwbus compatible
-output. The command line cannot contain parentheses. Likewise for rtl433.
 
 stdin, to read raw binary telegrams from stdin.
 These telegrams are expected to have the data link layer crc bytes removed already!
