@@ -1,7 +1,7 @@
 /*
  Copyright (C) 2019 Jacek Tomasiak
-               2020 Fredrik Öhrström
-               2021 Vincent Privat
+ Copyright (C) 2020 Fredrik Öhrström
+ Copyright (C) 2021 Vincent Privat
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
