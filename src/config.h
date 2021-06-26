@@ -53,7 +53,6 @@ struct Configuration
     std::string listento_override;
     bool useconfig {};
     std::string config_root;
-    bool reload {};
     bool need_help {};
     bool silent {};
     bool verbose {};
@@ -62,7 +61,8 @@ struct Configuration
     bool debug {};
     bool trace {};
     AddLogTimestamps addtimestamps {};
-    bool internaltesting {}; // Only for testing! When true, shorten all timeouts.
+    bool internaltesting {}; // Not currently used. Was used for speeding up testing. I.e. it shortened all timeouts.
+                             // Might be needed in the future. Therefore it is still here.
     bool logtelegrams {};
     bool meterfiles {};
     std::string meterfiles_dir;

@@ -11,8 +11,8 @@ wmbusmeters \- listen to wireless mbus radio traffic and relay the decoded teleg
 
 Wmbusmeters acquires wmbus telegrams, decodes them and relays them to
 some other software for further processing.  It can for example listen
-to radio traffic using dedicated wmbus dongles like (im871a amb8465 rfmrx2 cul d1tc)
-or a generic software defined radio dongle (rtl_sdr).
+to radio traffic using dedicated wmbus dongles like (im871a,amb8465,cul,rc1180)
+or a generic software defined radio dongle (rtl_sdr) with an RTL2832U.
 
 After the received telegram has been decrypted and parsed, it can then
 be relayed using a shell command, or stored in a log file.  The shell
@@ -27,27 +27,29 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 
 \fB\--alarmshell=\fR<cmdline> invokes cmdline when an alarm triggers
 
-\fB\--alarmtimeout=\fR<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity.
+\fB\--alarmtimeout=\fR<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity
 
 \fB\--debug\fR for a lot of information
 
-\fB\--donotprobe=\fR<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys.
+\fB\--device=\fR<device> override device in config files. Use only in combination with --useconfig= option
+
+\fB\--donotprobe=\fR<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys
 
 \fB\--exitafter=\fR<time> exit program after time, eg 20h, 10m 5s
 
 \fB\--format=\fR(hr|json|fields) for human readable, json or semicolon separated fields
 
-\fB\--ignoreduplicates\fR=true ignore telegram duplicates (when using multiple receiving dongles or repeaters)
+\fB\--help\fR list all options
+
+\fB\--ignoreduplicates\fR=<bool> ignore duplicate telegrams, remember the last 10 telegrams. Default is true.
 
 \fB\--json_xxx=yyy\fR always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy
 
-\fB\--listento=\fR<mode> listen to one of the c1,t1,s1,s1m,n1a-n1f link modes.
+\fB\--license\fR print GPLv3+ license
 
-\fB\--listento=\fR<mode>,<mode> listen to more than one link mode at the same time, assuming the dongle supports it.
+\fB\--listento=\fR<mode> listen to one of the c1,t1,s1,s1m,n1a-n1f link modes
 
-\fB\--logtimestamps=\fR<when> add timestamps to log entries: never/always/important.
-
-\fB\--c1 --t1 --s1 --s1m --n1a ... --n1f\fR listen to c1,t1,s1,s1m,n1a-n1f telegrams.
+\fB\--listento=\fR<mode>,<mode> listen to more than one link mode at the same time, assuming the dongle supports it
 
 \fB\--listenvs=\fR<meter_type> list the env variables available for the given meter type
 
@@ -57,9 +59,11 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 
 \fB\--listmeters=\fR<search> list all meter types containing the text <search>
 
-\fB\--logfile=\fR<dir> use this file instead of stdout
+\fB\--logfile=\fR<dir> use this file for logging
 
 \fB\--logtelegrams\fR log the contents of the telegrams for easy replay
+
+\fB\--logtimestamps=\fR<when> add timestamps to log entries: never/always/important
 
 \fB\--meterfiles=\fR<dir> store meter readings in dir
 
@@ -73,9 +77,7 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 
 \fB\--oneshot\fR wait for an update from each meter, then quit
 
-\fB\--resetafter=\fR<time> reset the wmbus dongle regularly, default is 24h
-
-\fB\--separator=\fR<c> change field separator to c
+\fB\--resetafter=\fR<time> reset the wmbus dongle regularly, default is 23h
 
 \fB\--selectfields=\fRid,timestamp,total_m3 select fields to be printed (--listfields=<meter> to list available fields)
 
@@ -85,6 +87,8 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 
 \fB\--silent\fR do not print informational messages nor warnings
 
+\fB\--trace\fR for tons of information
+
 \fB\--useconfig=\fR<dir> load config files from dir/etc
 
 \fB\--usestderr\fR write notices/debug/verbose and other logging output to stderr (the default)
@@ -93,9 +97,11 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 
 \fB\--verbose\fR for more information
 
+\fB\--version\fR print version
+
 .SH DEVICES
 .TP
-\fBauto:c1\fR detect any serially connected wmbus dongles and rtl_sdr dongles and configure them for c1 mode. (You do not need to use --c1 or --listento=c1 when suffixing the device with the linkmode.) Always try to use auto first.
+\fBauto:c1\fR detect any serially connected wmbus dongles and rtl_sdr dongles and configure them for c1 mode. Always try to use auto first.
 
 .TP
 \fBim871a:t1\fR look for an im871a dongle attached to any of the serial ttys and configure it for t1 mode.

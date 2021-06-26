@@ -1,3 +1,4 @@
+
 # wmbusmeters
 
 The program receives and decodes C1,T1 or S1 telegrams
@@ -132,7 +133,7 @@ If you are running on a Raspberry PI with flash storage and you relay the data t
 another computer using a shell command (mosquitto_pub or curl or similar) then you might want to remove
 `meterfiles` and `meterfilesaction` to minimize the writes to the local flash file system.
 
-If you specify --metefilesaction=append --meterfilestimestamp=day then wmbusmeters will
+If you specify --meterfilesaction=append --meterfilestimestamp=day then wmbusmeters will
 append all todays received telegrams in for example the file Water_2019-12-11, the day
 after the telegrams will be recorded in Water_2019-12-12. You can change the resolution
 to day,hour,minute and micros. Micros means that every telegram gets their own file.
@@ -187,15 +188,19 @@ As <options> you can use:
     --donotprobe=<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys.
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
+    --help list all options
+    --ignoreduplicates=<bool> ignore duplicate telegrams, remember the last 10 telegrams
     --json_xxx=yyy always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy
+    --license print GPLv3+ license
+    --listento=<mode> listen to one of the c1,t1,s1,s1m,n1a-n1f link modes
+    --listento=<mode>,<mode> listen to more than one link mode at the same time, assuming the dongle supports it
     --listenvs=<meter_driver> list the env variables available for the given meter driver
     --listfields=<meter_driver> list the fields selectable for the given meter driver
     --listmeters list all meter drivers
     --listmeters=<search> list all meter drivers containing the text <search>
-    --logfile=<file> use this file instead of stdout
+    --logfile=<file> use this file for logging
     --logtelegrams log the contents of the telegrams for easy replay
     --logtimestamps=<when> add log timestamps: always never important
-    --ignoreduplicates=<bool> ignore duplicate telegrams, remember the last 10 telegrams
     --meterfiles=<dir> store meter readings in dir
     --meterfilesaction=(overwrite|append) overwrite or append to the meter readings file
     --meterfilesnaming=(name|id|name-id) the meter file is the meter's: name, id or name-id
@@ -208,10 +213,12 @@ As <options> you can use:
     --separator=<c> change field separator to c
     --shell=<cmdline> invokes cmdline with env variables containing the latest reading
     --silent do not print informational messages nor warnings
+    --trace for tons of information
     --useconfig=<dir> load config files from dir/etc
     --usestderr write notices/debug/verbose and other logging output to stderr (the default)
     --usestdoutforlogging write debug/verbose and logging output to stdout
     --verbose for more information
+    --version print version
 ```
 
 As device you can use:

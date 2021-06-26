@@ -199,7 +199,14 @@ all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals
 
 deb: wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb
 
-install: $(BUILD)/wmbusmeters
+check_docs:
+	@cat src/cmdline.cc  | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_code
+	@cat wmbusmeters.1   | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_man
+	@cat README.md | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_readme
+	@diff /tmp/options_in_code /tmp/options_in_man
+	@diff /tmp/options_in_code /tmp/options_in_readme
+
+install: $(BUILD)/wmbusmeters check_docs
 	@./install.sh $(BUILD)/wmbusmeters $(DESTDIR) $(EXTRA_INSTALL_OPTIONS)
 
 uninstall:

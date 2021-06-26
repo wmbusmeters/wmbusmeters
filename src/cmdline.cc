@@ -227,13 +227,6 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             return shared_ptr<Configuration>(c);
             continue;
         }
-        if (!strcmp(argv[i], "--reload")) {
-            c->reload = true;
-            if (i > 1 || argc > 2) {
-                error("Usage error: --reload implies no other arguments on the command line.\n");
-            }
-            return shared_ptr<Configuration>(c);
-        }
         if (!strncmp(argv[i], "--format=", 9))
         {
             if (!strcmp(argv[i]+9, "json"))
