@@ -221,7 +221,7 @@ wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb:
 	@./install.sh $(BUILD)/wmbusmeters $(BUILD)/debian/wmbusmeters --no-adduser
 #   Remove the conf files, they are to be installed by postinst.
 	@rm $(BUILD)/debian/wmbusmeters/etc/wmbusmeters.conf
-	@rmdir $(BUILD)/debian/wmbusmeters/etc/wmbusmetersd
+	@rm -rf $(BUILD)/debian/wmbusmeters/etc/wmbusmetersd
 #   Build the control file
 	@echo "Package: wmbusmeters" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
 	@echo "Version: $(DEBVERSION)" >> $(BUILD)/debian/wmbusmeters/DEBIAN/control
