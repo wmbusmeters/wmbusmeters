@@ -203,8 +203,11 @@ check_docs:
 	@cat src/cmdline.cc  | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_code
 	@cat wmbusmeters.1   | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_man
 	@cat README.md | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_readme
+	@./build/wmbusmeters --help | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_binary
 	@diff /tmp/options_in_code /tmp/options_in_man
 	@diff /tmp/options_in_code /tmp/options_in_readme
+	@diff /tmp/options_in_code /tmp/options_in_binary
+	@echo "OK docs"
 
 install: $(BUILD)/wmbusmeters check_docs
 	@./install.sh $(BUILD)/wmbusmeters $(DESTDIR) $(EXTRA_INSTALL_OPTIONS)
