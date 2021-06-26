@@ -44,7 +44,7 @@ do
         esac
 done
 
-ROOT=$ROOT /bin/sh ./scripts/install_binaries.sh
+SRC=$SRC ROOT=$ROOT /bin/sh ./scripts/install_binaries.sh
 
 ROOT=$ROOT /bin/sh ./scripts/install_manpage.sh
 
