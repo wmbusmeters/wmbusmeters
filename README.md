@@ -20,6 +20,8 @@ The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 # Distributions
 
 **wmbusmeters** package is available on [Fedora](https://src.fedoraproject.org/rpms/wmbusmeters) _(version 31 or newer)_ and can be simply installed by using:
+
+```shell
 dnf install wmbusmeters
 ```
 
