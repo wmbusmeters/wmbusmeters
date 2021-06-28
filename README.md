@@ -10,7 +10,6 @@ MQTT, curled to a REST api, inserted into a database or stored in a log file.
 
 The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 
-
 | System       | Status        |
 | ------------ |:-------------:|
 | Ubuntu | [![Build Ubuntu Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20Ubuntu/badge.svg)](https://github.com/weetmuts/wmbusmeters/actions)|
@@ -23,8 +22,7 @@ The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 **wmbusmeters** package is available on [Fedora](https://src.fedoraproject.org/rpms/wmbusmeters) _(version 31 or newer)_ and can be simply installed by using:
 dnf install wmbusmeters
 ```
-# dnf install wmbusmeters
-```
+
 Availability of **wmbusmeters** for other Linux distributions can be checked on [release-monitoring](https://release-monitoring.org/project/88654/) project page.
 
 # Docker
@@ -106,15 +104,15 @@ Meter driver detection will be automatic. You can also provide an
 explicit driver name with: `driver=multical21:c1` or explicitly state
 that driver detection is automatic: `driver=auto`.
 
-Now plugin your wmbus dongle. Wmbusmeters should start automatically,
-check with `tail -f /var/log/syslog` and `tail -f /var/log/wmbusmeters/wmbusmeters.log`
-(If you are using an rtlsdr dongle, then make sure that either the binaries /usr/bin/rtl_sdr and
-/usr/bin/rtl_wmbus exists and are executable. Or rtl_sdr/rtl_wmbus exists inside the same directory
+Now plugin your wmbus dongle.
+Wmbusmeters should start automatically, check with `tail -f /var/log/syslog` and `tail -f /var/log/wmbusmeters/wmbusmeters.log`  
+(If you are using an rtlsdr dongle, then make sure that either the binaries `/usr/bin/rtl_sdr` and
+`/usr/bin/rtl_wmbus` exists and are executable. Or `rtl_sdr/rtl_wmbus` exists inside the same directory
 as the wmbusmeters directory is located. If not you will see the
 error message `(rtlwmbus) error: when starting as daemon, wmbusmeters looked for .../rtl_wmbus and /usr/bin/rtl_wmbus, but found neither!`
 and the daemon will refuse to start.)
 
-The latest reading of the meter can also be found here: /var/log/wmbusmeters/meter_readings/MyTapWater
+The latest reading of the meter can also be found here: `/var/log/wmbusmeters/meter_readings/MyTapWater`
 
 You can use several ids using `id=1111111,2222222,3333333` or you can listen to all
 meters of a certain type `id=*` or you can suffix with star `id=8765*` to match
@@ -122,24 +120,20 @@ all meters with a given prefix. If you supply at least one positive match rule, 
 can add negative match rules as well. For example `id=*,!2222*`
 which will match all meter ids, except those that begin with 2222.
 
-You can add the static json data "address":"RoadenRd 456","city":"Stockholm" to every json message with the
+You can add the static json data `"address":"RoadenRd 456","city":"Stockholm"` to every json message with the
 wmbusmeters.conf setting:
 
 ```ini
 json_address=RoadenRd 456
 json_city=Stockholm
 ```
-If you add `json_floor=5` to the meter file MyTapWater, then you can have the meter tailored
-static json "floor":"5" added to telegrams handled by that particular meter.
+
+If you add `json_floor=5` to the meter file `MyTapWater`, then you can have the meter tailored static json `"floor":"5"` added to telegrams handled by that particular meter.
 
 If you are running on a Raspberry PI with flash storage and you relay the data to
-another computer using a shell command (mosquitto_pub or curl or similar) then you might want to remove
-`meterfiles` and `meterfilesaction` to minimize the writes to the local flash file system.
+another computer using a shell command (`mosquitto_pub` or `curl` or similar) then you might want to remove `meterfiles` and `meterfilesaction` to minimize the writes to the local flash file system.
 
-If you specify --meterfilesaction=append --meterfilestimestamp=day then wmbusmeters will
-append all todays received telegrams in for example the file Water_2019-12-11, the day
-after the telegrams will be recorded in Water_2019-12-12. You can change the resolution
-to day,hour,minute and micros. Micros means that every telegram gets their own file.
+If you specify `--meterfilesaction=append --meterfilestimestamp=day` then wmbusmeters will append all todays received telegrams in for example the file `Water_2019-12-11`, the day after the telegrams will be recorded in `Water_2019-12-12`. You can change the resolution to day,hour,minute and micros. Micros means that every telegram gets their own file.
 
 The purpose of the alarm shell and timeout is to notify you about
 problems within wmbusmeters and the wmbus dongles, not the meters
@@ -149,6 +143,7 @@ at all. It does not matter from which meter.
 # Run using config files
 
 If you cannot install as a daemon, then you can also start
+wmbusmeters in your terminal using the config files in `/etc/wmbusmeters`.
 
 ```shell
 wmbusmeters --useconfig=/
@@ -162,13 +157,14 @@ wmbusmeters --useconfig=/home/me/.config/wmbusmeters
 
 If you already have config with a device specified, and you want to use
 the config with another device. You might have multiple meters in the config
-that you want to listen to. Then you can add --device to override the settings
+that you want to listen to. Then you can add `--device` to override the settings
 in the config. Like this:
 
 ```shell
 wmbusmeters --useconfig=/home/me/.config/wmbusmeters --device=rtlwmbus
 ```
-You must have both --useconfig= and --device= for it to work.
+
+You must have both `--useconfig=` and `--device=` for it to work.
 
 The files/dir should then be located here:
 `/home/me/.config/wmbusmeters/etc/wmbusmeters.conf` and
@@ -179,6 +175,7 @@ using `sudo killall -HUP wmbusmetersd` or `killall -HUP wmbusmeters`
 depending on if you are running as a daemon or not.
 
 # Running without config files, good for experimentation and test.
+
 ```
 wmbusmeters version: 1.3.0
 Usage: wmbusmeters {options} <device> ( [meter_name] [meter_driver]{:<modes>} [meter_id] [meter_key] )*
@@ -229,71 +226,75 @@ As <options> you can use:
 
 As device you can use:
 
-auto:c1, to have wmbusmeters probe for devices: im871a, amb8465, cul, rc1180 or rtlsdr (spawns rtlwmbus).
+`auto:c1`, to have wmbusmeters probe for devices: im871a, amb8465, cul, rc1180 or rtlsdr (spawns rtlwmbus).
 
-im871a:c1 to start all connected im871a devices in c1 mode, ignore all other devices.
+`im871a:c1` to start all connected *im871a* devices in *c1* mode, ignore all other devices.
 
-/dev/ttyUSB1:amb8465:c1 to start only this device on this tty. Do not probe for other devices.
+`/dev/ttyUSB1:amb8465:c1` to start only this device on this tty. Do not probe for other devices.
 
 If you have two im871a you can supply both of them with their unique id:s and set different listening modes:
-im871a[12345678]:c1 im871a[11223344]:t1
+`im871a[12345678]:c1` `im871a[11223344]:t1`
 
 You can also specify rtlwmbus and if you set the serial in the rtlsdr
 dongle using `rtl_eeprom -s 1234` you can also refer to a specific
 rtlsdr dongle like this `rtlwmbus[1234]`.
 
-/dev/ttyUSB0:amb8465, if you have an amb8465 dongle assigned to ttyUSB0. Other suffixes are im871a,cul.
+`/dev/ttyUSB0:amb8465`, if you have an amb8465 dongle assigned to ttyUSB0. Other suffixes are im871a,cul.
 
-/dev/ttyUSB0, to have wmbusmeters auto-detect amb8465, im871a, rc1180 or cul device.
+`/dev/ttyUSB0`, to have wmbusmeters auto-detect amb8465, im871a, rc1180 or cul device.
 
-/dev/ttyUSB0:38400, to have wmbusmeters set the baud rate to 38400 and listen for raw wmbus telegrams.
+`/dev/ttyUSB0:38400`, to have wmbusmeters set the baud rate to 38400 and listen for raw wmbus telegrams.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
-rtlwmbus, to spawn the background process: "rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s"
+`rtlwmbus`, to spawn the background process: `rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s`
 for each attached rtlsdr dongle. This will listen to S1,T1 and C1 meters in parallel.
 
-Note that this uses a noticeable amount of CPU time by rtl_wmbus. You can therefore use a tailored rtl_wmbus
-command that is more suitable for your needs.
+Note that this uses a noticeable amount of CPU time by rtl_wmbus.
+You can therefore use a tailored rtl_wmbus command that is more suitable for your needs.
 
-rtlwmbus:CMD(&lt;command line&gt;), to specify the entire background
+`rtlwmbus:CMD(<command line>)`, to specify the entire background
 process command line that is expected to produce rtlwbus compatible
-output. The command line cannot contain parentheses. Likewise for rtl433.
+output.
+The command line cannot contain parentheses.
+Likewise for rtl433.
 
 Here is an example command line that reduces the rtl_wmbus CPU usage if you only need T1/C1 telegrams.
-It disable S1 decoding (-p s) and trades lower cpu usage for reception performance (-a):
+It disable S1 decoding (`-p s`) and trades lower cpu usage for reception performance (`-a`):
 
 `rtlwmbus:CMD(rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus -p s -a)`
 
-rtlwmbus(ppm=17), to tune your rtlsdr dongle accordingly. Use this to tune your dongle and at
-the same time listen to S1,T1 and C1.
+`rtlwmbus(ppm=17)`, to tune your rtlsdr dongle accordingly.
+Use this to tune your dongle and at the same time listen to S1,T1 and C1.
 
-rtlwmbus:433M, to tune to this fq instead. This will listen to exactly to what is on this frequency.
+`rtlwmbus:433M`, to tune to this fq instead.
+This will listen to exactly to what is on this frequency.
 
-rtl433, to spawn the background process: "rtl_433 -F csv -f 868.95M"
+`rtl433`, to spawn the background process: `rtl_433 -F csv -f 868.95M`
 
-rtl433(ppm=17), to tune your rtlsdr dongle accordingly.
+`rtl433(ppm=17)`, to tune your rtlsdr dongle accordingly.
 
-rtl433:433M, to tune to this fq instead.
+`rtl433:433M`, to tune to this fq instead.
 
-stdin, to read raw binary telegrams from stdin.
+`stdin`, to read raw binary telegrams from stdin.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
-telegrams.bin, to read raw wmbus telegrams from this file.
+`telegrams.bin`, to read raw wmbus telegrams from this file.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
-stdin:rtlwmbus, to read telegrams formatted using the rtlwmbus format from stdin. Works for rtl433 as well.
+`stdin:rtlwmbus`, to read telegrams formatted using the rtlwmbus format from stdin. Works for rtl433 as well.
 
-telegrams.msg:rtlwmbus, to read rtlwmbus formatted telegrams from this file. Works for rtl433 as well.
+`telegrams.msg:rtlwmbus`, to read rtlwmbus formatted telegrams from this file. Works for rtl433 as well.
 
-simulation_abc.txt, to read telegrams from the file (the file must have a name beginning with simulation_....)
-expecting the same format that is the output from --logtelegrams. This format also supports replay with timing.
+`simulation_abc.txt`, to read telegrams from the file (the file must have a name beginning with simulation_....)
+expecting the same format that is the output from `--logtelegrams`. This format also supports replay with timing.
 
 As meter quadruples you specify:
 
-* <meter_name> a mnemonic for this particular meter (!Must not contain a colon ':' character!)
-* <meter_driver> use "auto" or one of the supported meters (can be suffixed with :<mode> to specify which mode you expect the meter to use when transmitting)
-* <meter_id> an 8 digit mbus id, usually printed on the meter
-* <meter_key> an encryption key unique for the meter if the meter uses no encryption, then supply NOKEY
+* `<meter_name>`: a mnemonic for this particular meter (!Must not contain a colon ':' character!)
+* `<meter_driver>`: use `auto` or one of the supported meters (can be suffixed with `:<mode>` to specify which mode you expect the meter to use when transmitting)
+* `<meter_id>`: an 8 digit mbus id, usually printed on the meter
+* `<meter_key>`: an encryption key unique for the meter  
+  if the meter uses no encryption, then supply `NOKEY`
 
 ```
 Supported wmbus dongles:
@@ -374,7 +375,7 @@ Kamstrup Omnipower (omnipower)
 The wmbus dongle im871a can listen to either s1, c1 or t1.
 However with the latest firmware version (0x15) im871a can
 also listen to c1 and t1 telegrams at the same time.
-(Use --verbose to see your dongles firmware version.)
+(Use `--verbose` to see your dongles firmware version.)
 If you have the older firmware you can download the upgrader here:
 https://wireless-solutions.de/downloadfile/wireless-m-bus-software/
 
@@ -498,13 +499,14 @@ METER_TIME_LEAKING
 METER_TIME_BURSTING
 METER_TIMESTAMP
 ```
-(If you have supplied --json_floor=5 then you will also see METER_floor in the list)
 
-Note that the METER_TIMESTAMP and the timestamp in the json output, is in UTC format, this is not your localtime.
+(If you have supplied `--json_floor=5` then you will also see `METER_floor` in the list)
+
+Note that the `METER_TIMESTAMP` and the timestamp in the json output, is in UTC format, this is not your localtime.
 However the hr and fields output will print your localtime.
 
-You can add `shell=commandline` to a meter file stored in wmbusmeters.d, then this meter will use
-this shell command instead of the command stored in wmbusmeters.conf.
+You can add `shell=commandline` to a meter file stored in `wmbusmeters.d`, then this meter will use
+this shell command instead of the command stored in `wmbusmeters.conf`.
 
 You can use `--debug` to get both verbose output and the actual data bytes sent back and forth with the wmbus usb dongle.
 
@@ -514,7 +516,7 @@ If the meter does not use encryption of its meter data, then enter NOKEY on the 
 wmbusmeters --format=json --meterfiles /dev/ttyUSB0:im871a:c1 MyTapWater multical21:c1 12345678 NOKEY
 ```
 
-# Using wmbusmeters in a pipe.
+# Using wmbusmeters in a pipe
 
 ```shell
 rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s | wmbusmeters --format=json stdin:rtlwmbus MyMeter auto 12345678 NOKEY | ...more processing...
@@ -531,15 +533,16 @@ corresponding meter files in wmbusmetrs' config directory.
 You can also use the XMLExtract Java program. `javac utils/XMLExtract`
 and then `java -cp utils XMLExtract` to print the key on the command line.
 
-You can run wmbusmeters with --logtelegrams to get log output that can
+You can run wmbusmeters with `--logtelegram`s to get log output that can
 be placed in a simulation.txt file. You can then run wmbusmeter and
-instead of an usb device, you provide the simulationt.xt file as
+instead of an usb device, you provide the `simulation.txt` file as
 argument. See test.sh for more info.
 
 If you do not specify any meters on the command line, then wmbusmeters
 will listen and print the header information of any telegram it hears.
 
 # Builds and runs on GNU/Linux MacOSX (with recent XCode), and FreeBSD
+
 (For MacOSX do `brew install librtlsdr libusb` which takes such a long
 time that the MacOSX travis build is disabled for the moment.)
 
@@ -571,15 +574,16 @@ Binary generated: `./build_arm_debug/wmbusmeters`
 
 `make install` installs the files:
 
-`/etc/wmbusmeters.conf`
-`/usr/bin/wmbusmeters`
-`/usr/sbin/wmbusmetersd`
-`/etc/systemd/system/wmbusmeters.service`
+`/etc/wmbusmeters.conf`  
+`/usr/bin/wmbusmeters`  
+`/usr/sbin/wmbusmetersd`  
+`/etc/systemd/system/wmbusmeters.service`  
 `/etc/logrotate.d/wmbusmeters`
 
 creates these directories:
-`/etc/wmbusmeters.d`
-`/var/log/wmbusmeters/meter_readings`
+
+`/etc/wmbusmeters.d`  
+`/var/log/wmbusmeters/meter_readings`  
 
 and adds the user `wmbusmeters` with no login account.
 
@@ -593,7 +597,7 @@ if this hangs, then do `sudo killall -9 wmbusmetersd` and/or `sudo killall -9 wm
 If you are using rtl_sdr/rtl_wmbus and you want to stop the daemon, do
 `sudo stop wmbusmeters@-dev-rtlsdr_3.server` followed by `sudo killall -9 rtl_sdr`.
 
-## How to receive telegrams over longer distances.
+## How to receive telegrams over longer distances
 
 I only have personal experience of the im871a,amb8465 and an rtlsdr
 compatible dongle.  The commercial dongles (im871a,amb8464) receive
@@ -622,8 +626,9 @@ this command try all potential baud rates and send the factory reset command.
 Then you have to unplug and reinsert the dongle.
 
 If you like to send the bytes manually, the correct bytes are:
- * Factory reset of the settings: `0xFF1100EE`
- * Reset the stick to apply the factory defaults: `0xFF0500FA` this is not necessary if you unplug and reinsert the dongle.
+
+* Factory reset of the settings: `0xFF1100EE`
+* Reset the stick to apply the factory defaults: `0xFF0500FA` this is not necessary if you unplug and reinsert the dongle.
 
 # Source code
 
@@ -637,7 +642,7 @@ If you do not get proper readings from the meters with non-standard protocols. a
 then you have to open an issue here and help out by logging a lot of messages and reverse engineer them
 even more..... :-/
 
-# Good free documents on the wireless mbus protocol standard EN 13757:
+# Good free documents on the wireless mbus protocol standard EN 13757
 
 https://oms-group.org/
 
