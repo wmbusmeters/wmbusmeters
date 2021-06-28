@@ -74,7 +74,7 @@ you can add `donotprobe=/dev/ttyUSB0` or `donotprobe=all`.
 You can specify combinations like: `device=rc1180:t1` `device=auto:c1`
 to set the rc1180 dongle to t1 but any other auto-detected dongle to c1.
 
-```
+```ini
 loglevel=normal
 # Search for a wmbus device and set it to c1.
 device=auto:c1
@@ -95,7 +95,8 @@ ignoreduplicates=true
 ```
 
 Then add a meter file in /etc/wmbusmeters.d/MyTapWater
-```
+
+```ini
 name=MyTapWater
 id=12345678
 key=00112233445566778899AABBCCDDEEFF
@@ -123,7 +124,8 @@ which will match all meter ids, except those that begin with 2222.
 
 You can add the static json data "address":"RoadenRd 456","city":"Stockholm" to every json message with the
 wmbusmeters.conf setting:
-```
+
+```ini
 json_address=RoadenRd 456
 json_city=Stockholm
 ```
@@ -147,13 +149,14 @@ at all. It does not matter from which meter.
 # Run using config files
 
 If you cannot install as a daemon, then you can also start
-wmbusmeters in your terminal using the config files in /etc/wmbusmeters.
-```
+
+```shell
 wmbusmeters --useconfig=/
 ```
 
 Or you can start wmbusmeters with your own config files:
-```
+
+```shell
 wmbusmeters --useconfig=/home/me/.config/wmbusmeters
 ```
 
@@ -161,7 +164,8 @@ If you already have config with a device specified, and you want to use
 the config with another device. You might have multiple meters in the config
 that you want to listen to. Then you can add --device to override the settings
 in the config. Like this:
-```
+
+```shell
 wmbusmeters --useconfig=/home/me/.config/wmbusmeters --device=rtlwmbus
 ```
 You must have both --useconfig= and --device= for it to work.
@@ -387,7 +391,7 @@ The rc1180 dongle can listen only to t1.
 
 # Usage examples
 
-```
+```shell
 wmbusmeters auto:c1
 ```
 
@@ -404,7 +408,7 @@ Received telegram from: 12345678
 
 Now listen to this specific meter, since the driver is auto-detected, we can use `auto` for the meter driver.
 
-```
+```shell
 wmbusmeters auto:c1 MyTapWater auto 12345678 00112233445566778899AABBCCDDEEFF
 ```
 
@@ -421,23 +425,37 @@ Example output:
 
 Example format json output:
 
-`wmbusmeters --format=json /dev/ttyUSB0:im871a MyTapWater multical21:c1 12345678 00112233445566778899AABBCCDDEEFF MyHeater multical302 22222222 00112233445566778899AABBCCDDEEFF`
+```shell
+wmbusmeters --format=json /dev/ttyUSB0:im871a MyTapWater multical21:c1 12345678 00112233445566778899AABBCCDDEEFF MyHeater multical302 22222222 00112233445566778899AABBCCDDEEFF
+```
 
-`{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"max_flow_m3h":0.000,"flow_temperature":8,"external_temperature":23,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z","device":"im871a[1234567]","rssi_dbm":-40}`
+```json
+{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"max_flow_m3h":0.000,"flow_temperature":8,"external_temperature":23,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z","device":"im871a[1234567]","rssi_dbm":-40}
+```
 
-`{"media":"heat","meter":"multical302","name":"MyHeater","id":"22222222","total_kwh":0.000,"total_volume_m3":0.000,"current_kw":"0.000","timestamp":"2018-02-08T09:07:22Z"}`
+```json
+{"media":"heat","meter":"multical302","name":"MyHeater","id":"22222222","total_kwh":0.000,"total_volume_m3":0.000,"current_kw":"0.000","timestamp":"2018-02-08T09:07:22Z"}
+```
 
 Example format fields output and use tuned rtlsdr dongle with rtlwmbus.
 
-`wmbusmeters --format=fields 'rtlwmbus(ppm=72)' GreenhouseWater multical21:c1 33333333 NOKEY`
+```shell
+wmbusmeters --format=fields 'rtlwmbus(ppm=72)' GreenhouseWater multical21:c1 33333333 NOKEY
+```
 
-`GreenhouseTapWater;33333333;9999.099;77.712;0.000;11;31;;2018-03-05 12:10.24`
+```
+GreenhouseTapWater;33333333;9999.099;77.712;0.000;11;31;;2018-03-05 12:10.24
+```
 
 You can select a subset of all available fields:
 
-`wmbusmeters --format=fields --selectfields=id,total_m3 /dev/ttyUSB0:im871a GreenhouseWater multical21:c1 33333333 NOKEY`
+```shell
+wmbusmeters --format=fields --selectfields=id,total_m3 /dev/ttyUSB0:im871a GreenhouseWater multical21:c1 33333333 NOKEY
+```
 
-`33333333;9999.099`
+```
+33333333;9999.099
+```
 
 You can list all available fields for a meter: `wmbusmeters --listfields=multical21`
 
@@ -447,15 +465,22 @@ You can search for meters: `wmbusmeters --listmeters=water` or `wmbusmteres --li
 
 Eaxmple of using the shell command to publish to MQTT:
 
-`wmbusmeters --shell='HOME=/home/you mosquitto_pub -h localhost -t water -m "$METER_JSON"' /dev/ttyUSB0:im871a GreenhouseWater multical21:c1 33333333 NOKEY`
+```shell
+wmbusmeters --shell='HOME=/home/you mosquitto_pub -h localhost -t water -m "$METER_JSON"' /dev/ttyUSB0:im871a GreenhouseWater multical21:c1 33333333 NOKEY
+```
 
 Eaxmple of using the shell command to inject data into postgresql database:
 
-`wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$METER_ID',\$METER_TOTAL_M3,'\$METER_TIMESTAMP') \" " /dev/ttyUSB0:amb8465 MyColdWater multical21:c1 12345678 NOKEY` (It is much easier to add shell commands in the conf file since you do not need to quote the quotes.)
+```shell
+wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$METER_ID',\$METER_TOTAL_M3,'\$METER_TIMESTAMP') \" " /dev/ttyUSB0:amb8465 MyColdWater multical21:c1 12345678 NOKEY
+```
+
+(It is much easier to add shell commands in the conf file since you do not need to quote the quotes.)
 
 You can have multiple shell commands and they will be executed in the order you gave them on the commandline.
 
 To list the shell env variables available for a meter, run `wmbusmeters --listenvs=multical21` which outputs:
+
 ```
 METER_JSON
 METER_TYPE
@@ -485,11 +510,13 @@ You can use `--debug` to get both verbose output and the actual data bytes sent 
 
 If the meter does not use encryption of its meter data, then enter NOKEY on the command line.
 
-`wmbusmeters --format=json --meterfiles /dev/ttyUSB0:im871a:c1 MyTapWater multical21:c1 12345678 NOKEY`
+```shell
+wmbusmeters --format=json --meterfiles /dev/ttyUSB0:im871a:c1 MyTapWater multical21:c1 12345678 NOKEY
+```
 
 # Using wmbusmeters in a pipe.
 
-```
+```shell
 rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s | wmbusmeters --format=json stdin:rtlwmbus MyMeter auto 12345678 NOKEY | ...more processing...
 ```
 
