@@ -107,7 +107,7 @@ explicit driver name with: `driver=multical21:c1` or explicitly state
 that driver detection is automatic: `driver=auto`.
 
 Now plugin your wmbus dongle.
-Wmbusmeters should start automatically, check with `tail -f /var/log/syslog` and `tail -f /var/log/wmbusmeters/wmbusmeters.log`  
+Wmbusmeters should start automatically, check with `tail -f /var/log/syslog` and `tail -f /var/log/wmbusmeters/wmbusmeters.log`
 (If you are using an rtlsdr dongle, then make sure that either the binaries `/usr/bin/rtl_sdr` and
 `/usr/bin/rtl_wmbus` exists and are executable. Or `rtl_sdr/rtl_wmbus` exists inside the same directory
 as the wmbusmeters directory is located. If not you will see the
@@ -295,7 +295,7 @@ As meter quadruples you specify:
 * `<meter_name>`: a mnemonic for this particular meter (!Must not contain a colon ':' character!)
 * `<meter_driver>`: use `auto` or one of the supported meters (can be suffixed with `:<mode>` to specify which mode you expect the meter to use when transmitting)
 * `<meter_id>`: an 8 digit mbus id, usually printed on the meter
-* `<meter_key>`: an encryption key unique for the meter  
+* `<meter_key>`: an encryption key unique for the meter
   if the meter uses no encryption, then supply `NOKEY`
 
 ```
@@ -535,7 +535,7 @@ corresponding meter files in wmbusmetrs' config directory.
 You can also use the XMLExtract Java program. `javac utils/XMLExtract`
 and then `java -cp utils XMLExtract` to print the key on the command line.
 
-You can run wmbusmeters with `--logtelegram`s to get log output that can
+You can run wmbusmeters with `--logtelegrams` to get log output that can
 be placed in a simulation.txt file. You can then run wmbusmeter and
 instead of an usb device, you provide the `simulation.txt` file as
 argument. See test.sh for more info.
@@ -576,16 +576,16 @@ Binary generated: `./build_arm_debug/wmbusmeters`
 
 `make install` installs the files:
 
-`/etc/wmbusmeters.conf`  
-`/usr/bin/wmbusmeters`  
-`/usr/sbin/wmbusmetersd`  
-`/etc/systemd/system/wmbusmeters.service`  
+`/etc/wmbusmeters.conf`
+`/usr/bin/wmbusmeters`
+`/usr/sbin/wmbusmetersd`
+`/etc/systemd/system/wmbusmeters.service`
 `/etc/logrotate.d/wmbusmeters`
 
 creates these directories:
 
-`/etc/wmbusmeters.d`  
-`/var/log/wmbusmeters/meter_readings`  
+`/etc/wmbusmeters.d`
+`/var/log/wmbusmeters/meter_readings`
 
 and adds the user `wmbusmeters` with no login account.
 

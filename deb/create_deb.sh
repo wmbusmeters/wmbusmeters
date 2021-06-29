@@ -32,24 +32,38 @@ fi
 rm -rf $BUILD/debian/wmbusmeters
 mkdir -p $BUILD/debian/wmbusmeters/DEBIAN
 ./install.sh $BUILD/wmbusmeters $BUILD/debian/wmbusmeters --no-adduser
-#   Remove the conf files, they are to be installed by postinst.
+#   Remove the conf and log files, they are to be installed by postinst.
 rm $BUILD/debian/wmbusmeters/etc/wmbusmeters.conf
 rm -rf $BUILD/debian/wmbusmeters/etc/wmbusmetersd
+rm -rf $BUILD/debian/wmbusmeters/var/log/wmbusmeters
 #   Build the control file
-echo "Package: wmbusmeters" >> $BUILD/debian/wmbusmeters/DEBIAN/control
-echo "Version: $DEBVERSION" >> $BUILD/debian/wmbusmeters/DEBIAN/control
-echo "Maintainer: Fredrik Öhrström <oehrstroemgmail.com>" >> $BUILD/debian/wmbusmeters/DEBIAN/control
-echo "Architecture: $DEBARCH" >> $BUILD/debian/wmbusmeters/DEBIAN/control
-echo "Installed-Size: 1" >> $BUILD/debian/wmbusmeters/DEBIAN/control
-echo "Depends: libc6 (>= 2.27)" >> $BUILD/debian/wmbusmeters/DEBIAN/control
-echo "Section: kernel" >> $BUILD/debian/wmbusmeters/DEBIAN/control
-echo "Priority: optional" >> $BUILD/debian/wmbusmeters/DEBIAN/control
-echo "Homepage: https://github.com/weetmuts/wmbusmeters" >> $BUILD/debian/wmbusmeters/DEBIAN/control
-echo "Description: A tool to read wireless mbus telegrams from utility meters." >> $BUILD/debian/wmbusmeters/DEBIAN/control
+cat >> $BUILD/debian/wmbusmeters/DEBIAN/control << EOF
+Package: wmbusmeters
+Version: $DEBVERSION
+Maintainer: Fredrik Öhrström <oehrstroem@gmail.com>
+Architecture: $DEBARCH
+Installed-Size: $ISIZE
+Depends: libc6 (>= 2.27)
+Section: kernel
+Priority: optional
+Homepage: https://github.com/weetmuts/wmbusmeters
+Description: read wireless and wired mbus telegrams from utility meters
+ Wmbusmeters receives and decodes C1,T1 or S1 telegrams (using
+ the wireless or wired mbus protocol) to acquire utility meter
+ readings. The readings can then be published using MQTT,
+ curled to a REST api, inserted into a database or stored in a log file.
+ .
+ Installing this package results in a full installation, including the
+ configuration files and the daemon. Configuration files for an existing
+ installation are preserved.
+EOF
+cat >> $BUILD/debian/wmbusmeters/DEBIAN/conffiles << EOF
+/etc/logrotate.d/wmbusmeters
+EOF
 mkdir -p $BUILD/debian/wmbusmeters/usr/share/doc/wmbusmeters
 #   Install the changelog
 cp    deb/changelog $BUILD/debian/wmbusmeters/usr/share/doc/wmbusmeters/changelog.Debian
-gzip -v9 $BUILD/debian/wmbusmeters/usr/share/doc/wmbusmeters/changelog.Debian
+gzip -v9 -n $BUILD/debian/wmbusmeters/usr/share/doc/wmbusmeters/changelog.Debian
 #   Collect copyright information
 ./deb/collect_copyrights.sh
 cp /tmp/copyright $BUILD/debian/wmbusmeters/usr/share/doc/wmbusmeters/copyright
