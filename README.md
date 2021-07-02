@@ -308,6 +308,7 @@ rtl_wmbus (rtlwmbus)
 rtl_433 (rtl433)
 
 Supported water meters:
+Aventies (aventieswm)
 Apator at-wmbus-08   (apator08) (non-standard protocol)
 Apator at-wmbus-16-2 (apator162) (non-standard protocol, spurious decoding errors)
 Apator Ultrimis (ultrimis)
