@@ -269,6 +269,15 @@ Received telegram from: 93929190
                   type: Water meter (0x07)
                    ver: 0x7b
                 driver: dme_07
+Received telegram from: 61070071
+          manufacturer: (AAA) Aventies, Germany (0x421)
+                  type: Water meter (0x07)
+                   ver: 0x25
+      Concerning meter: 61070071
+          manufacturer: (AAA) Aventies, Germany (0x421)
+                  type: Water meter (0x07)
+                   ver: 0x25
+                driver: aventieswm aventieswm
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)
