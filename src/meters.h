@@ -33,6 +33,7 @@
     X(amiplus,    T1_bit, ElectricityMeter, AMIPLUS,     Amiplus)      \
     X(apator08,   T1_bit,        WaterMeter,       APATOR08,    Apator08)    \
     X(apator162,  C1_bit|T1_bit, WaterMeter,       APATOR162,   Apator162)   \
+    X(aventieswm, T1_bit,        WaterMeter,       AVENTIESWM,  AventiesWM)   \
     X(cma12w,     C1_bit|T1_bit, TempHygroMeter,   CMA12W,      CMa12w)      \
     X(compact5,   T1_bit, HeatMeter,        COMPACT5,    Compact5)     \
     X(dme_07,     T1_bit, WaterMeter,       DME_07,      DME_07)      \

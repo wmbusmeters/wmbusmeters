@@ -137,6 +137,7 @@ METER_OBJS:=\
 	$(BUILD)/wmbus_utils.o \
 	$(BUILD)/meter_apator08.o \
 	$(BUILD)/meter_apator162.o \
+	$(BUILD)/meter_aventieswm.o \
 	$(BUILD)/meter_cma12w.o \
 	$(BUILD)/meter_compact5.o \
 	$(BUILD)/meter_dme_07.o \
