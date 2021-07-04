@@ -16,6 +16,7 @@ $PROG --format=json simulations/simulation_c1.txt \
       MyWater flowiq2200 52525252 NOKEY \
       Vadden multical21 44556677 NOKEY \
       MyElement qcaloric 78563412 NOKEY \
+      MyElement2 qcaloric 90919293 NOKEY \
       Rum cma12w 66666666 NOKEY \
       My403Cooling multical403 78780102 NOKEY \
       Heat multical603 36363636 NOKEY \
