@@ -10,6 +10,13 @@ then
     mv /etc/systemd/system/wmbusmeters.service $HOME/ancient.wmbusmeters.service
 fi
 
+if [ -f /etc/udev/rules.d/99-wmbus-usb-serial.rules ]
+then
+    echo "Oups! Found an old udev rule here /etc/udev/rules.d/99-wmbus-usb-serial.rules"
+    echo "Removing this! Keeping a backup here though $HOME/ancient.99-wmbus-usb-serial.rules"
+    mv /etc/udev/rules.d/99-wmbus-usb-serial.rules $HOME/ancient.99-wmbus-usb-serial.rules
+fi
+
 SYSTEMD_NEEDS_RELOAD=false
 mkdir -p "$ROOT"/lib/systemd/system/
 
