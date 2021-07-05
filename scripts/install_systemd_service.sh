@@ -3,6 +3,13 @@
 ## Create /lib/systemd/system/wmbusmeters.service
 ##
 
+if [ -f /etc/systemd/system/wmbusmeters.service ]
+then
+    echo "Oups! Found an old wmbusmeters.service here /etc/systemd/system/wmbusmeters.service"
+    echo "Removing this! Keeping a backup here though $HOME/ancient.wmbusmeters.service"
+    mv /etc/systemd/system/wmbusmeters.service $HOME/ancient.wmbusmeters.service
+fi
+
 SYSTEMD_NEEDS_RELOAD=false
 mkdir -p "$ROOT"/lib/systemd/system/
 
