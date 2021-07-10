@@ -129,6 +129,11 @@ telegram=|4E44B4098686868613077AF0004005|2F2F0C1366380000046D27287E2A0F150E00000
 {"media":"water","meter":"hydrodigit","name":"HydrodigitWater","id":"86868686","total_m3":3.866,"meter_datetime":"2019-10-30 08:39","timestamp":"1111-11-11T11:11:11Z"}
 |HydrodigitWater;86868686;3.866000;2019-10-30 08:39;1111-11-11 11:11.11
 
+# Test another pair of BMeters HydroDigit water telegram
+telegram=|3044B4090123456713067A190020052F2F|0C1315000000046D0136A7270F050B000000002F2F2F2F2F2F2F2F2F2F2F69E5|
+{"media":"warm water","meter":"hydrodigit","name":"HydrodigitWater2","id":"67452301","total_m3":0.015,"meter_datetime":"2021-07-07 22:01","timestamp":"1111-11-11T11:11:11Z"}
+|HydrodigitWater2;67452301;0.015000;2021-07-07 22:01;1111-11-11 11:11.11
+
 # Test Q400 water telegram (encrypted)
 telegram=|2E4409077272727210077AD7102005CC2FF08D057E306D8C3078AE44AD6E3D37F8515B92FB068347783DFBB25C3C28|
 {"media":"water","meter":"q400","name":"Q400Water","id":"72727272","total_m3":0,"set_date":"2019-12-01","consumption_at_set_date_m3":0,"timestamp":"1111-11-11T11:11:11Z"}
