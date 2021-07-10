@@ -148,6 +148,11 @@ Received telegram from: 86868686
                   type: Water meter (0x07)
                    ver: 0x13
                 driver: hydrodigit
+Received telegram from: 67452301
+          manufacturer: (BMT) BMETERS, Italy (0x9b4)
+                  type: Warm Water (30°C-90°C) meter (0x06)
+                   ver: 0x13
+                driver: hydrodigit
 Received telegram from: 72727272
           manufacturer: (AXI) UAB Axis Industries, Lithuania (0x709)
                   type: Water meter (0x07)
