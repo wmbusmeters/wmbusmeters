@@ -71,7 +71,9 @@ cp /tmp/copyright $BUILD/debian/wmbusmeters/usr/share/doc/wmbusmeters/copyright
 for x in preinst postinst prerm postrm ; do \
 	cp deb/$x $BUILD/debian/wmbusmeters/DEBIAN/ ; \
 	chmod 555 $BUILD/debian/wmbusmeters/DEBIAN/$x ; \
-done
+    done
+# Change owner to root
+chown -R root:root $BUILD/debian/wmbusmeters
 #   Package the deb
 (cd $BUILD/debian; dpkg-deb --build wmbusmeters .)
 mv $BUILD/debian/wmbusmeters_${DEBVERSION}_${DEBARCH}.deb .
