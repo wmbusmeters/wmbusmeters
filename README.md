@@ -126,11 +126,11 @@ You can add the static json data `"address":"RoadenRd 456","city":"Stockholm"` t
 wmbusmeters.conf setting:
 
 ```ini
-json_address=RoadenRd 456
-json_city=Stockholm
+field_address=RoadenRd 456
+field_city=Stockholm
 ```
 
-If you add `json_floor=5` to the meter file `MyTapWater`, then you can have the meter tailored static json `"floor":"5"` added to telegrams handled by that particular meter.
+If you add `field_floor=5` to the meter file `MyTapWater`, then you can have the meter tailored static json `"floor":"5"` added to telegrams handled by that particular meter. (The old prefix json_ still works.)
 
 If you are running on a Raspberry PI with flash storage and you relay the data to
 another computer using a shell command (`mosquitto_pub` or `curl` or similar) then you might want to remove `meterfiles` and `meterfilesaction` to minimize the writes to the local flash file system.

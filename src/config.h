@@ -110,8 +110,10 @@ struct Configuration
     bool no_init {};
     std::vector<Unit> conversions;
     std::vector<std::string> selected_fields;
+    std::vector<std::string> added_fields;
     std::vector<MeterInfo> meters;
-    std::vector<std::string> jsons; // Additional jsons to always add.
+    std::vector<std::string> extra_constant_fields; // Additional constant fields to always add to json.
+    // These extra constant fields can also be part of selected with selectfields or added with addfields.
 
     ~Configuration() = default;
 };
@@ -120,6 +122,7 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
 
 void handleConversions(Configuration *c, string s);
 void handleSelectedFields(Configuration *c, string s);
+void handleAddedFields(Configuration *c, string s);
 bool handleDevice(Configuration *c, string devicefile);
 
 enum class LinkModeCalculationResultType

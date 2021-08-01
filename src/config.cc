@@ -58,7 +58,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     int bps {};
     vector<string> telegram_shells;
     vector<string> alarm_shells;
-    vector<string> jsons;
+    vector<string> extra_constant_fields;
 
     debug("(config) loading meter file %s\n", file.c_str());
     for (;;) {
@@ -118,10 +118,13 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             alarm_shells.push_back(p.second);
         }
         else
-        if (startsWith(p.first, "json_"))
+        if (startsWith(p.first, "json_") ||
+            startsWith(p.first, "field_"))
         {
-            string keyvalue = p.first.substr(5)+"="+p.second;
-            jsons.push_back(keyvalue);
+            int off = 5;
+            if (startsWith(p.first, "field_")) { off = 6; }
+            string keyvalue = p.first.substr(off)+"="+p.second;
+            extra_constant_fields.push_back(keyvalue);
         }
         else
             warning("Found invalid key \"%s\" in meter config file\n", p.first.c_str());
@@ -182,7 +185,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     }
     if (use) {
         vector<string> ids = splitMatchExpressions(id);
-        c->meters.push_back(MeterInfo(bus, name, mt, "", ids, key, modes, bps, telegram_shells, jsons));
+        c->meters.push_back(MeterInfo(bus, name, mt, "", ids, key, modes, bps, telegram_shells, extra_constant_fields));
     }
 
     return;
@@ -562,6 +565,19 @@ void handleSelectedFields(Configuration *c, string s)
     }
 }
 
+void handleAddedFields(Configuration *c, string s)
+{
+    char buf[s.length()+1];
+    strcpy(buf, s.c_str());
+    char *saveptr {};
+    const char *tok = strtok_r(buf, ",", &saveptr);
+    while (tok != NULL)
+    {
+        c->added_fields.push_back(tok);
+        tok = strtok_r(NULL, ",", &saveptr);
+    }
+}
+
 void handleShell(Configuration *c, string cmdline)
 {
     c->telegram_shells.push_back(cmdline);
@@ -572,9 +588,9 @@ void handleAlarmShell(Configuration *c, string cmdline)
     c->alarm_shells.push_back(cmdline);
 }
 
-void handleJson(Configuration *c, string json)
+void handleExtraConstantField(Configuration *c, string field)
 {
-    c->jsons.push_back(json);
+    c->extra_constant_fields.push_back(field);
 }
 
 shared_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override)
@@ -620,14 +636,18 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
         else if (p.first == "addconversions") handleConversions(c, p.second);
         else if (p.first == "logtimestamps") handleLogTimestamps(c, p.second);
         else if (p.first == "selectfields") handleSelectedFields(c, p.second);
+        else if (p.first == "addfields") handleAddedFields(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);
         else if (p.first == "resetafter") handleResetAfter(c, p.second);
         else if (p.first == "alarmshell") handleAlarmShell(c, p.second);
-        else if (startsWith(p.first, "json_"))
+        else if (startsWith(p.first, "json_") ||
+                 startsWith(p.first, "field_"))
         {
-            string s = p.first.substr(5);
+            int off = 5;
+            if (startsWith(p.first, "field_")) { off = 6; }
+            string s = p.first.substr(off);
             string keyvalue = s+"="+p.second;
-            handleJson(c, keyvalue);
+            handleExtraConstantField(c, keyvalue);
         }
         else
         {

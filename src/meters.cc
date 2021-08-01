@@ -404,7 +404,7 @@ string MeterCommonImplementation::unixTimestampOfUpdate()
 {
     char ut[40];
     memset(ut, 0, sizeof(ut));
-    sprintf(ut, "%zu", datetime_of_update_);
+    snprintf(ut, sizeof(ut)-1, "%zu", datetime_of_update_);
     return string(ut);
 }
 
@@ -650,6 +650,16 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
             s += m->datetimeOfUpdateHumanReadable() + c;
             continue;
         }
+        if (field == "timestamp_lt")
+        {
+            s += m->datetimeOfUpdateHumanReadable() + c;
+            continue;
+        }
+        if (field == "timestamp_utc")
+        {
+            s += m->datetimeOfUpdateRobot() + c;
+            continue;
+        }
         if (field == "timestamp_ut")
         {
             s += m->unixTimestampOfUpdate() + c;
@@ -767,7 +777,8 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                                            string *json,
                                            vector<string> *envs,
                                            vector<string> *more_json,
-                                           vector<string> *selected_fields)
+                                           vector<string> *selected_fields,
+                                           vector<string> *added_fields)
 {
     *human_readable = concatFields(this, t, '\t', prints_, conversions_, true, selected_fields);
     *fields = concatFields(this, t, separator, prints_, conversions_, false, selected_fields);
@@ -853,6 +864,9 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     envs->push_back(string("METER_MEDIA=")+media);
     envs->push_back(string("METER_TYPE=")+meterDriver());
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
+    envs->push_back(string("METER_TIMESTAMP_UTC=")+datetimeOfUpdateRobot());
+    envs->push_back(string("METER_TIMESTAMP_UT=")+unixTimestampOfUpdate());
+    envs->push_back(string("METER_TIMESTAMP_LT=")+datetimeOfUpdateHumanReadable());
     if (t->about.device != "")
     {
         envs->push_back(string("METER_DEVICE=")+t->about.device);

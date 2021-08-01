@@ -187,8 +187,9 @@ void list_shell_envs(Configuration *config, string meter_driver)
                       &ignore2, config->separator,
                       &ignore3,
                       &envs,
-                      &config->jsons,
-                      &config->selected_fields);
+                      &config->extra_constant_fields,
+                      &config->selected_fields,
+                      &config->added_fields);
 
     for (auto &e : envs)
     {
@@ -219,7 +220,11 @@ void list_fields(Configuration *config, string meter_driver)
     string meterr = padLeft("meter", width);
     printf("%s  Meter driver.\n", meterr.c_str());
     string timestamp = padLeft("timestamp", width);
-    printf("%s  Timestamp when wmbusmeters received the telegram.\n", timestamp.c_str());
+    printf("%s  Timestamp when wmbusmeters received the telegram. Local time for hr/fields UTC for json.\n", timestamp.c_str());
+    string timestamp_ut = padLeft("timestamp_ut", width);
+    printf("%s  Unix timestamp when wmbusmeters received the telegram.\n", timestamp_ut.c_str());
+    string timestamp_lt = padLeft("timestamp_l", width);
+    printf("%s  Unix timestamp when wmbusmeters received the telegram.\n", timestamp_ut.c_str());
     string device = padLeft("device", width);
     printf("%s  The wmbus device that received the telegram.\n", device.c_str());
     string rssi = padLeft("rssi_dbm", width);
@@ -401,7 +406,7 @@ bool start(Configuration *config)
     meter_manager_->whenMeterUpdated(
         [&](Telegram *t,Meter *meter)
         {
-            printer_->print(t, meter, &config->jsons, &config->selected_fields);
+            printer_->print(t, meter, &config->extra_constant_fields, &config->selected_fields, &config->added_fields);
             oneshot_check(config, t, meter);
         }
     );

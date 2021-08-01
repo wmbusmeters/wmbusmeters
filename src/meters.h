@@ -230,7 +230,8 @@ struct Meter
                             string *json,
                             vector<string> *envs,
                             vector<string> *more_json,
-                            vector<string> *selected_fields) = 0;
+                            vector<string> *selected_fields,
+                            vector<string> *added_fields) = 0;
 
     // The handleTelegram expects an input_frame where the DLL crcs have been removed.
     // Returns true of this meter handled this telegram!

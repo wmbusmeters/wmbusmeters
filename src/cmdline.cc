@@ -440,16 +440,22 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--json_", 7))
+        if (!strncmp(argv[i], "--json_", 7) ||
+            !strncmp(argv[i], "--field_", 8))
         {
             // For example: --json_floor=42
-            string json = string(argv[i]+7);
-            if (json == "") {
-                error("The json command cannot be empty.\n");
+            // or           --field_floor=42
+            // they are equivalent.
+            int off = 7;
+            if (!strncmp(argv[i], "--field_", 8)) { off = 8; }
+
+            string extra_constant_field = string(argv[i]+off);
+            if (extra_constant_field == "") {
+                error("The extra constant field command cannot be empty.\n");
             }
             // The extra "floor"="42" will be pushed to the json.
-            debug("Added json %s\n", json.c_str());
-            c->jsons.push_back(json);
+            debug("Added extra constant field %s\n", extra_constant_field.c_str());
+            c->extra_constant_fields.push_back(extra_constant_field);
             i++;
             continue;
         }

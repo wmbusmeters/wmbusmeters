@@ -89,7 +89,8 @@ protected:
                     string *json,
                     vector<string> *envs,
                     vector<string> *more_json, // Add this json "key"="value" strings.
-                    vector<string> *selected_fields); // Only print these fields. Json always everything.
+                    vector<string> *selected_fields, // Only print these fields. Json always everything.
+                    vector<string> *added_fields); // Added these fields for printing.
 
     virtual void processContent(Telegram *t) = 0;
 
