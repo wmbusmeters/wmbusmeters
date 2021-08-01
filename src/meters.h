@@ -137,7 +137,7 @@ struct MeterInfo
     LinkModeSet link_modes;
     int bps {};     // For mbus communication you need to know the baud rate.
     vector<string> shells;
-    vector<string> jsons; // Additional static jsons that are added to each message.
+    vector<string> extra_constant_fields; // Additional static fields that are added to each message.
     vector<Unit> conversions; // Additional units desired in json.
 
     // If this is a meter that needs to be polled.
@@ -161,7 +161,7 @@ struct MeterInfo
         idsc = toIdsCommaSeparated(ids);
         key = k;
         shells = s;
-        jsons = j;
+        extra_constant_fields = j;
         link_modes = lms;
         bps = baud;
     }
@@ -175,7 +175,7 @@ struct MeterInfo
         idsc = "";
         key = "";
         shells.clear();
-        jsons.clear();
+        extra_constant_fields.clear();
         link_modes.clear();
         bps = 0;
     }

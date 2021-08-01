@@ -214,7 +214,9 @@ As <options> you can use:
     --nodeviceexit if no wmbus devices are found, then exit immediately
     --oneshot wait for an update from each meter, then quit
     --resetafter=<time> reset the wmbus dongle regularly, default is 23h
-    --selectfields=id,timestamp,total_m3 select fields to be printed
+    --addfields=timestamp_ut add the timestamp_ut field to be printed (--listfields=<meter> to list available fields)
+    --selectfields=id,timestamp,total_m3 select only these fields to be printed (--listfields=<meter> to list available fields)
+      addfields and selectfields are mutually exclusive.
     --separator=<c> change field separator to c
     --shell=<cmdline> invokes cmdline with env variables containing the latest reading
     --silent do not print informational messages nor warnings
@@ -460,6 +462,18 @@ wmbusmeters --format=fields --selectfields=id,total_m3 /dev/ttyUSB0:im871a Green
 ```
 33333333;9999.099
 ```
+
+Instead of selecting a subset you can add fields, such as: timestamp_ut, timestamp_utc, timestamp_lt
+and extra constant fields added using --field_xxx=yyy.
+
+```shell
+wmbusmeters --format=fields --field_city=Stockholm --addfields=timestamp_ut,city /dev/ttyUSB0:im871a GreenhouseWater multical21:c1 33333333 NOKEY
+```
+
+```
+GreenhouseTapWater;33333333;9999.099;77.712;0.000;11;31;;2018-03-05 12:10.24;1627855621,Stockholm
+```
+
 
 You can list all available fields for a meter: `wmbusmeters --listfields=multical21`
 

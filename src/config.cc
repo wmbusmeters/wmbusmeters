@@ -554,6 +554,11 @@ void handleLogTimestamps(Configuration *c, string ts)
 
 void handleSelectedFields(Configuration *c, string s)
 {
+    if (c->added_fields.size() > 0)
+    {
+        warning("(warning) addfields already used! Ignoring addfields %s", s);
+        return;
+    }
     char buf[s.length()+1];
     strcpy(buf, s.c_str());
     char *saveptr {};
@@ -567,6 +572,11 @@ void handleSelectedFields(Configuration *c, string s)
 
 void handleAddedFields(Configuration *c, string s)
 {
+    if (c->selected_fields.size() > 0)
+    {
+        warning("(warning) selectfields already used! Ignoring selectfields %s", s);
+        return;
+    }
     char buf[s.length()+1];
     strcpy(buf, s.c_str());
     char *saveptr {};

@@ -66,9 +66,9 @@ protected:
     void setExpectedTPLSecurityMode(TPLSecurityMode tsm);
     void addConversions(std::vector<Unit> cs);
     void addShell(std::string cmdline);
-    void addJson(std::string json);
+    void addExtraConstantField(std::string ecf);
     std::vector<std::string> &shellCmdlines();
-    std::vector<std::string> &additionalJsons();
+    std::vector<std::string> &meterExtraConstantFields();
     void addLinkMode(LinkMode lm);
     // Print with the default unit for this quantity.
     void addPrint(string vname, Quantity vquantity,
@@ -110,7 +110,7 @@ private:
     time_t datetime_of_update_ {};
     LinkModeSet link_modes_ {};
     vector<string> shell_cmdlines_;
-    vector<string> jsons_;
+    vector<string> extra_constant_fields_;
 
 protected:
     std::map<std::string,std::pair<int,std::string>> values_;

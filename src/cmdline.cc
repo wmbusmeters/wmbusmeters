@@ -277,6 +277,17 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--addfields=", 12)) {
+            if (strlen(argv[i]) > 12)
+            {
+                string s = string(argv[i]+12);
+                handleAddedFields(c, s);
+            } else {
+                error("You must supply fields to be added.\n");
+            }
+            i++;
+            continue;
+        }
 
         if (!strncmp(argv[i], "--separator=", 12)) {
             if (!c->fields) {

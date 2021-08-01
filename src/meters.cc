@@ -276,8 +276,8 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     for (auto s : mi.shells) {
         addShell(s);
     }
-    for (auto j : mi.jsons) {
-        addJson(j);
+    for (auto j : mi.extra_constant_fields) {
+        addExtraConstantField(j);
     }
 }
 
@@ -294,9 +294,9 @@ void MeterCommonImplementation::addShell(string cmdline)
     shell_cmdlines_.push_back(cmdline);
 }
 
-void MeterCommonImplementation::addJson(string json)
+void MeterCommonImplementation::addExtraConstantField(string ecf)
 {
-    jsons_.push_back(json);
+    extra_constant_fields_.push_back(ecf);
 }
 
 vector<string> &MeterCommonImplementation::shellCmdlines()
@@ -304,9 +304,9 @@ vector<string> &MeterCommonImplementation::shellCmdlines()
     return shell_cmdlines_;
 }
 
-vector<string> &MeterCommonImplementation::additionalJsons()
+vector<string> &MeterCommonImplementation::meterExtraConstantFields()
 {
-    return jsons_;
+    return extra_constant_fields_;
 }
 
 MeterDriver MeterCommonImplementation::driver()
@@ -584,7 +584,7 @@ void MeterCommonImplementation::triggerUpdate(Telegram *t)
     t->handled = true;
 }
 
-string concatAllFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector<Unit> &cs, bool hr)
+string concatAllFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector<Unit> &cs, bool hr, vector<string> *added_fields)
 {
     string s;
     s = "";
@@ -624,11 +624,11 @@ string concatAllFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vec
 }
 
 string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector<Unit> &cs, bool hr,
-                    vector<string> *selected_fields)
+                    vector<string> *selected_fields, vector<string> *added_fields)
 {
     if (selected_fields == NULL || selected_fields->size() == 0)
     {
-        return concatAllFields(m, t, c, prints, cs, hr);
+        return concatAllFields(m, t, c, prints, cs, hr, added_fields);
     }
     string s;
     s = "";
@@ -776,12 +776,12 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                                            string *fields, char separator,
                                            string *json,
                                            vector<string> *envs,
-                                           vector<string> *more_json,
+                                           vector<string> *extra_constant_fields,
                                            vector<string> *selected_fields,
                                            vector<string> *added_fields)
 {
-    *human_readable = concatFields(this, t, '\t', prints_, conversions_, true, selected_fields);
-    *fields = concatFields(this, t, separator, prints_, conversions_, false, selected_fields);
+    *human_readable = concatFields(this, t, '\t', prints_, conversions_, true, selected_fields, added_fields);
+    *fields = concatFields(this, t, separator, prints_, conversions_, false, selected_fields, added_fields);
 
     string media;
     if (t->tpl_id_found)
@@ -838,15 +838,15 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         s += "\"device\":\""+t->about.device+"\",";
         s += "\"rssi_dbm\":"+to_string(t->about.rssi_dbm);
     }
-    for (string add_json : additionalJsons())
+    for (string extra_field : meterExtraConstantFields())
     {
         s += ",";
-        s += makeQuotedJson(add_json);
+        s += makeQuotedJson(extra_field);
     }
-    for (string add_json : *more_json)
+    for (string extra_field : *extra_constant_fields)
     {
         s += ",";
-        s += makeQuotedJson(add_json);
+        s += makeQuotedJson(extra_field);
     }
     s += "}";
     *json = s;
@@ -901,13 +901,13 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
     // If the configuration has supplied json_address=Roodroad 123
     // then the env variable METER_address will available and have the content "Roodroad 123"
-    for (string add_json : additionalJsons())
+    for (string add_json : meterExtraConstantFields())
     {
         envs->push_back(string("METER_")+add_json);
     }
-    for (string add_json : *more_json)
+    for (string extra_field : *extra_constant_fields)
     {
-        envs->push_back(string("METER_")+add_json);
+        envs->push_back(string("METER_")+extra_field);
     }
 }
 
