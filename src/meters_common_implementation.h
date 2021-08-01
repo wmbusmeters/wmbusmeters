@@ -41,6 +41,7 @@ struct MeterCommonImplementation : public virtual Meter
 
     string datetimeOfUpdateHumanReadable();
     string datetimeOfUpdateRobot();
+    string unixTimestampOfUpdate();
 
     void onUpdate(function<void(Telegram*,Meter*)> cb);
     int numUpdates();

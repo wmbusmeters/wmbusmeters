@@ -400,6 +400,14 @@ string MeterCommonImplementation::datetimeOfUpdateRobot()
     return string(datetime);
 }
 
+string MeterCommonImplementation::unixTimestampOfUpdate()
+{
+    char ut[40];
+    memset(ut, 0, sizeof(ut));
+    sprintf(ut, "%zu", datetime_of_update_);
+    return string(ut);
+}
+
 bool needsPolling(MeterDriver d)
 {
 #define X(mname,linkmodes,info,driver,cname) if (d == MeterDriver::driver && 0 != ((linkmodes) & MBUS_bit)) return true;
@@ -640,6 +648,11 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
         if (field == "timestamp")
         {
             s += m->datetimeOfUpdateHumanReadable() + c;
+            continue;
+        }
+        if (field == "timestamp_ut")
+        {
+            s += m->unixTimestampOfUpdate() + c;
             continue;
         }
         if (field == "device")
