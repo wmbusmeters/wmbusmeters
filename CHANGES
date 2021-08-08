@@ -1,6 +1,21 @@
 
-Added the field timestamp_ut to print the existing timestamp field
-using unix timestamp seconds since 1970-01-01.
+You can now add constant fields using --field_extra_info=floor54 and
+--selectfields=....,extra_info,.... to print constant values into
+the fields format. --field_xxx=yyy is the new name for --json_xxx=yyy.
+The old --json_xxx=yyy continues to work for backwards compatibility.
+
+The timestamp field/key is the time registered by wmbusmeters
+when the telegram was received. (The telegram itself sometimes
+contain another timestamp when the telegram was sent.)
+
+This timestamp field is encoded using the local time when used
+in hr/fields (ie "2021-01-01 12:15.00") but UTC time within json
+(ie "2021-01-01T10:15.00Z").
+
+This will stay the same. However now you can explicitly select
+the timestamp format for the selected fields. Select timestamp_ut
+to print the timestamp as a unix timestamp (ie seconds since 1970-01-01).
+Select timestamp_utc for the timestamp in UTC and timestamp_lt for local time.
 
 Daniel Glaser added support for the Aventies water meter! Thanks Daniel!
 

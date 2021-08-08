@@ -42,14 +42,13 @@ Printer::Printer(bool json, bool fields, char separator,
 
 void Printer::print(Telegram *t, Meter *meter,
                     vector<string> *more_json,
-                    vector<string> *selected_fields,
-                    vector<string> *added_fields)
+                    vector<string> *selected_fields)
 {
     string human_readable, fields, json;
     vector<string> envs;
     bool printed = false;
 
-    meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields, added_fields);
+    meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields);
 
     if (shell_cmdlines_.size() > 0 || meter->shellCmdlines().size() > 0) {
         printShells(meter, envs);

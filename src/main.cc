@@ -188,8 +188,7 @@ void list_shell_envs(Configuration *config, string meter_driver)
                       &ignore3,
                       &envs,
                       &config->extra_constant_fields,
-                      &config->selected_fields,
-                      &config->added_fields);
+                      &config->selected_fields);
 
     for (auto &e : envs)
     {
@@ -408,7 +407,7 @@ bool start(Configuration *config)
     meter_manager_->whenMeterUpdated(
         [&](Telegram *t,Meter *meter)
         {
-            printer_->print(t, meter, &config->extra_constant_fields, &config->selected_fields, &config->added_fields);
+            printer_->print(t, meter, &config->extra_constant_fields, &config->selected_fields);
             oneshot_check(config, t, meter);
         }
     );

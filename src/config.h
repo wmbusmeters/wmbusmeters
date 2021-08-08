@@ -110,10 +110,9 @@ struct Configuration
     bool no_init {};
     std::vector<Unit> conversions;
     std::vector<std::string> selected_fields;
-    std::vector<std::string> added_fields;
     std::vector<MeterInfo> meters;
     std::vector<std::string> extra_constant_fields; // Additional constant fields to always add to json.
-    // These extra constant fields can also be part of selected with selectfields or added with addfields.
+    // These extra constant fields can also be part of selected with selectfields.
 
     ~Configuration() = default;
 };

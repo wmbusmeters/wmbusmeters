@@ -43,7 +43,7 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 
 \fB\--ignoreduplicates\fR=<bool> ignore duplicate telegrams, remember the last 10 telegrams. Default is true.
 
-\fB\--field_xxx=yyy\fR always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy The field xxx can also be selected or added using selectfields= and addfields=. Equivalent command is --json_xxx=yyy.
+\fB\--field_xxx=yyy\fR always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy The field xxx can also be selected or added using selectfields=. Equivalent older command is --json_xxx=yyy.
 
 \fB\--license\fR print GPLv3+ license
 
@@ -78,8 +78,6 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 \fB\--oneshot\fR wait for an update from each meter, then quit
 
 \fB\--resetafter=\fR<time> reset the wmbus dongle regularly, default is 23h
-
-\fB\--addfields=\fRtimestamp_ut add the timestamp_ut field to be printed (--listfields=<meter> to list available fields)
 
 \fB\--selectfields=\fRid,timestamp,total_m3 select only these fields to be printed (--listfields=<meter> to list available fields)
 

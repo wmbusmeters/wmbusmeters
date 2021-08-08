@@ -89,8 +89,11 @@ protected:
                     string *json,
                     vector<string> *envs,
                     vector<string> *more_json, // Add this json "key"="value" strings.
-                    vector<string> *selected_fields, // Only print these fields. Json always everything.
-                    vector<string> *added_fields); // Added these fields for printing.
+                    vector<string> *selected_fields); // Only print these fields.
+    // Json fields cannot be modified expect by adding conversions.
+    // Json fields include all values except timestamp_ut, timestamp_utc, timestamp_lt
+    // since Json is assumed to be decoded by a program and the current timestamp which is the
+    // same as timestamp_utc, can always be decoded/recoded into local time or a unix timestamp.
 
     virtual void processContent(Telegram *t) = 0;
 

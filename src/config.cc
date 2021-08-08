@@ -554,24 +554,6 @@ void handleLogTimestamps(Configuration *c, string ts)
 
 void handleSelectedFields(Configuration *c, string s)
 {
-    if (c->added_fields.size() > 0)
-    {
-        warning("(warning) addfields already used! Ignoring addfields %s", s);
-        return;
-    }
-    char buf[s.length()+1];
-    strcpy(buf, s.c_str());
-    char *saveptr {};
-    const char *tok = strtok_r(buf, ",", &saveptr);
-    while (tok != NULL)
-    {
-        c->selected_fields.push_back(tok);
-        tok = strtok_r(NULL, ",", &saveptr);
-    }
-}
-
-void handleAddedFields(Configuration *c, string s)
-{
     if (c->selected_fields.size() > 0)
     {
         warning("(warning) selectfields already used! Ignoring selectfields %s", s);
@@ -583,7 +565,7 @@ void handleAddedFields(Configuration *c, string s)
     const char *tok = strtok_r(buf, ",", &saveptr);
     while (tok != NULL)
     {
-        c->added_fields.push_back(tok);
+        c->selected_fields.push_back(tok);
         tok = strtok_r(NULL, ",", &saveptr);
     }
 }
@@ -646,7 +628,6 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
         else if (p.first == "addconversions") handleConversions(c, p.second);
         else if (p.first == "logtimestamps") handleLogTimestamps(c, p.second);
         else if (p.first == "selectfields") handleSelectedFields(c, p.second);
-        else if (p.first == "addfields") handleAddedFields(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);
         else if (p.first == "resetafter") handleResetAfter(c, p.second);
         else if (p.first == "alarmshell") handleAlarmShell(c, p.second);

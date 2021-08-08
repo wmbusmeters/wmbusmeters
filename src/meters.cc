@@ -585,7 +585,7 @@ void MeterCommonImplementation::triggerUpdate(Telegram *t)
 }
 
 string concatAllFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector<Unit> &cs, bool hr,
-                       vector<string> *added_fields, vector<string> *extra_constant_fields)
+                       vector<string> *extra_constant_fields)
 {
     string s;
     s = "";
@@ -747,11 +747,11 @@ bool checkConstantField(string *buf, string field, char c, vector<string> *extra
 
 
 string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector<Unit> &cs, bool hr,
-                    vector<string> *selected_fields, vector<string> *added_fields, vector<string> *extra_constant_fields)
+                    vector<string> *selected_fields, vector<string> *extra_constant_fields)
 {
     if (selected_fields == NULL || selected_fields->size() == 0)
     {
-        return concatAllFields(m, t, c, prints, cs, hr, added_fields, extra_constant_fields);
+        return concatAllFields(m, t, c, prints, cs, hr, extra_constant_fields);
     }
     string buf = "";
 
@@ -831,11 +831,10 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                                            string *json,
                                            vector<string> *envs,
                                            vector<string> *extra_constant_fields,
-                                           vector<string> *selected_fields,
-                                           vector<string> *added_fields)
+                                           vector<string> *selected_fields)
 {
-    *human_readable = concatFields(this, t, '\t', prints_, conversions_, true, selected_fields, added_fields, extra_constant_fields);
-    *fields = concatFields(this, t, separator, prints_, conversions_, false, selected_fields, added_fields, extra_constant_fields);
+    *human_readable = concatFields(this, t, '\t', prints_, conversions_, true, selected_fields, extra_constant_fields);
+    *fields = concatFields(this, t, separator, prints_, conversions_, false, selected_fields, extra_constant_fields);
 
     string media;
     if (t->tpl_id_found)
@@ -886,6 +885,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         }
     }
     s += "\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
+
     if (t->about.device != "")
     {
         s += ",";
