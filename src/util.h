@@ -176,6 +176,7 @@ AccessCheck checkIfExistsAndSameGroup(std::string device);
 int countSetBits(int v);
 
 bool startsWith(std::string &s, const char *prefix);
+bool startsWith(std::string &s, std::string &prefix);
 
 // Given alfa=beta it returns "alfa":"beta"
 std::string makeQuotedJson(std::string &s);

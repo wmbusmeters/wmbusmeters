@@ -110,7 +110,7 @@ if [ "$?" != "0" ]; then RC="1"; fi
 
 if [ -x ../additional_tests.sh ]
 then
-    (cd ..; ./additional_tests.sh)
+    (cd ..; ./additional_tests.sh $PROG)
 fi
 
 echo Slower tests...

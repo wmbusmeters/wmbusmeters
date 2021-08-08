@@ -205,7 +205,7 @@ void list_fields(Configuration *config, string meter_driver)
     mi.driver = toMeterDriver(meter_driver);
     shared_ptr<Meter> meter = createMeter(&mi);
 
-    int width = 0;
+    int width = 13; // Width of timestamp_utc
     for (auto &p : meter->prints())
     {
         if ((int)p.field_name.size() > width) width = p.field_name.size();
@@ -223,8 +223,10 @@ void list_fields(Configuration *config, string meter_driver)
     printf("%s  Timestamp when wmbusmeters received the telegram. Local time for hr/fields UTC for json.\n", timestamp.c_str());
     string timestamp_ut = padLeft("timestamp_ut", width);
     printf("%s  Unix timestamp when wmbusmeters received the telegram.\n", timestamp_ut.c_str());
-    string timestamp_lt = padLeft("timestamp_l", width);
-    printf("%s  Unix timestamp when wmbusmeters received the telegram.\n", timestamp_ut.c_str());
+    string timestamp_lt = padLeft("timestamp_lt", width);
+    printf("%s  Local time when wmbusmeters received the telegram.\n", timestamp_lt.c_str());
+    string timestamp_utc = padLeft("timestamp_utc", width);
+    printf("%s  UTC time when wmbusmeters received the telegram.\n", timestamp_utc.c_str());
     string device = padLeft("device", width);
     printf("%s  The wmbus device that received the telegram.\n", device.c_str());
     string rssi = padLeft("rssi_dbm", width);

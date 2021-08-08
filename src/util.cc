@@ -1374,6 +1374,11 @@ int countSetBits(int v)
     return n;
 }
 
+bool startsWith(string &s, string &prefix)
+{
+    return startsWith(s, prefix.c_str());
+}
+
 bool startsWith(string &s, const char *prefix)
 {
     size_t len = strlen(prefix);
