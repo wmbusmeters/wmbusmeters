@@ -135,6 +135,13 @@ If you add `field_floor=5` to the meter file `MyTapWater`, then you can have the
 If you are running on a Raspberry PI with flash storage and you relay the data to
 another computer using a shell command (`mosquitto_pub` or `curl` or similar) then you might want to remove `meterfiles` and `meterfilesaction` to minimize the writes to the local flash file system.
 
+Also when using the Raspberry PI it can get confused by the serial ports, in particular the bluetooth port might come and
+go as a serial tty depending on the config. Therefore it can be advantageous to use the auto device to find the proper tty
+(eg /dev/ttyUSB0) and then specify this tty device explicitly in the config file, instead of using auto. This assumes that
+you only have a single usb dongle otherwise the USB tty names can change depending on how and when the devices are
+unplugged/replugged and the pi restarted. If you have multiple devies with different antennas, then you should instead
+use donotprobe to avoid the ttys that can never have a wmbus dongle.
+
 If you specify `--meterfilesaction=append --meterfilestimestamp=day` then wmbusmeters will append all todays received telegrams in for example the file `Water_2019-12-11`, the day after the telegrams will be recorded in `Water_2019-12-12`. You can change the resolution to day,hour,minute and micros. Micros means that every telegram gets their own file.
 
 The purpose of the alarm shell and timeout is to notify you about
