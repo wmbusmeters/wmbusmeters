@@ -53,6 +53,7 @@ struct SerialDevice
     virtual int fd() = 0;
     virtual bool opened() = 0;
     virtual bool working() = 0;
+    virtual bool resetting() = 0; // The serial device is working but can lack a valid file descriptor.
     // Used when connecting stdin to a tty driver for testing.
     virtual bool readonly() = 0;
     // Mark this device so that it is ignored by the select/callback event loop.

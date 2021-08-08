@@ -55,6 +55,11 @@ struct ConfigAMB8465
         return ids;
     }
 
+    bool enoughBytes(vector<uchar> &bytes, size_t offset)
+    {
+        return false;
+    }
+
     bool decode(vector<uchar> &bytes)
     {
         size_t o = 5;
@@ -612,6 +617,11 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
             continue;
         }
         response.insert(response.end(), data.begin(), data.end());
+        //size_t skip = findBytes(response, 0xff, 0x8A, 0x7A);
+        /*if (skip == ((size_t)-1) || (response.size()-skip)
+        {
+
+        }*/
     }
 
     serial->close();
@@ -620,7 +630,7 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
 
     size_t skip = findBytes(response, 0xff, 0x8A, 0x7A);
     debug("(amb8465) skipping %zu bytes\n", skip);
-    while (skip > 0)
+    while (skip > 0 && skip != ((size_t)-1))
     {
         // Sometimes there seems to be a leading 00 noise byte. Skip those.
         response.erase(response.begin());

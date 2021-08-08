@@ -1952,5 +1952,5 @@ size_t findBytes(vector<uchar> &v, uchar a, uchar b, uchar c)
         }
         p++;
     }
-    return 0;
+    return (size_t)-1;
 }

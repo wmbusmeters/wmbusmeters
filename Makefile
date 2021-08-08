@@ -47,8 +47,8 @@ ifeq "$(DEBUG)" "true"
         GCOV?=gcov
     endif
 else
-    DEBUG_FLAGS=-Os
-    STRIP_BINARY=$(STRIP) $(BUILD)/wmbusmeters
+    DEBUG_FLAGS=-Os -g
+    STRIP_BINARY=echo FOO
     GCOV=To_run_gcov_add_DEBUG=true
 endif
 

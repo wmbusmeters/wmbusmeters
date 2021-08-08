@@ -146,6 +146,7 @@ struct SerialDeviceImp : public SerialDevice
     int receive(vector<uchar> *data);
     bool waitFor(uchar c);
     bool working() { return resetting_ || fd_ != -1; }
+    bool resetting() { return resetting_; }
     bool opened() { return resetting_ || fd_ != -2; }
     bool isClosed() { return fd_ == -1 && !resetting_; }
     bool readonly() { return is_stdin_ || is_file_; }
@@ -958,8 +959,11 @@ void *SerialCommunicationManagerImp::eventLoop()
             {
                 if (sd->opened() && sd->working() && !sd->skippingCallbacks())
                 {
-                    trace("[SERIAL] select read on fd %d\n", sd->fd());
-                    FD_SET(sd->fd(), &readfds);
+                    if (!sd->resetting() && sd->fd() >= 0)
+                    {
+                        trace("[SERIAL] select read on fd %d\n", sd->fd());
+                        FD_SET(sd->fd(), &readfds);
+                    }
                 }
                 if (sd->opened() && !sd->working()) all_working = false;
             }
