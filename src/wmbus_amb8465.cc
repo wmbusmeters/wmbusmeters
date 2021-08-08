@@ -546,12 +546,20 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
     auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 9600, PARITY::NONE, "detect amb8465");
     serial->disableCallbacks();
     AccessCheck rc = serial->open(false);
-    if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
+    if (rc != AccessCheck::AccessOK)
+    {
+        debug("(amb8465) could not open tty for detection\n");
+        return AccessCheck::NotThere;
+    }
 
     vector<uchar> response;
     // First clear out any data in the queue.
     serial->receive(&response);
-    response.clear();
+    if (response.size() > 0)
+    {
+        debug("(amb8465) cleared serial buffer\n");
+        response.clear();
+    }
 
     vector<uchar> request;
     request.resize(6);
@@ -564,20 +572,38 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
 
     assert(request[5] == 0x77);
 
-    bool sent = serial->send(request);
-    if (!sent) {
-        serial->close();
-        return AccessCheck::NotThere;
-    }
+    bool sent = false;
+    int count = 1;
+    do
+    {
+        debug("(amb8465) sending %zu bytes attempt %d\n", request.size(), count);
+        sent = serial->send(request);
+        debug("(amb8465) sent %zu bytes %s\n", request.size(), sent?"OK":"Failed");
+        if (!sent)
+        {
+            // We failed to send! Why? We have successfully opened the tty....
+            // Perhaps the dongle needs to wake up. Lets try again in 100 ms.
+            usleep(1000*100);
+            count ++;
+            if (count >= 4)
+            {
+                // Tried and failed 3 times.
+                debug("(amb8465) failed to sent query! Giving up!\n");
+                verbose("(amb8465) are you there? no, nothing is there.\n");
+                serial->close();
+                return AccessCheck::NotThere;
+            }
+        }
+    } while (sent == false && count < 4);
 
-    serial->send(request);
     // Wait for 100ms so that the USB stick have time to prepare a response.
     usleep(1000*100);
 
     vector<uchar> data;
-    int count = 0;
-    while (response.size() < 0x7E && count < 2)
+    while (response.size() < 0x7E && count < 3)
     {
+        debug("(amb8465) reading response... %d\n", count);
+
         size_t n = serial->receive(&data);
         if (n == 0)
         {
@@ -593,6 +619,7 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
     // FF8A7A00780080710200000000FFFFFA00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF003200021400FFFFFFFFFF010004000000FFFFFF01440000000000000000FFFF0B040100FFFFFFFFFF00030000FFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF17
 
     size_t skip = findBytes(response, 0xff, 0x8A, 0x7A);
+    debug("(amb8465) skipping %zu bytes\n", skip);
     while (skip > 0)
     {
         // Sometimes there seems to be a leading 00 noise byte. Skip those.

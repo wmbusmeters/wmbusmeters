@@ -380,6 +380,10 @@ bool SerialDeviceTTY::send(vector<uchar> &data)
         {
             if (errno==EINTR) continue;
             rc = false;
+            if (isDebugEnabled()) {
+                string msg = bin2hex(data);
+                debug("(serial %s) failed to send \"%s\"\n", device_.c_str(), msg.c_str());
+            }
             goto end;
         }
         if (written == n) break;
