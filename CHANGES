@@ -1,4 +1,7 @@
 
+Added telegram content sent by Axioma W1 meter to driver q400,
+since Axioma  identifies itself as a q400 meter.
+
 You can now add constant fields using --field_extra_info=floor54 and
 --selectfields=....,extra_info,.... to print constant values into
 the fields format. --field_xxx=yyy is the new name for --json_xxx=yyy.

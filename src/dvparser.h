@@ -71,6 +71,8 @@ bool parseDV(Telegram *t,
 // in combination with the storagenr. (Later I will add tariff/subunit)
 bool findKey(MeasurementType mt, ValueInformation vi, int storagenr, int tariffnr,
              std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
+bool findKeyVife(MeasurementType mt, ValueInformation vi, int storagenr, int tariffnr,
+             std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
 
 #define ANY_STORAGENR -1
 #define ANY_TARIFFNR -1

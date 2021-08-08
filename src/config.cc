@@ -556,7 +556,7 @@ void handleSelectedFields(Configuration *c, string s)
 {
     if (c->selected_fields.size() > 0)
     {
-        warning("(warning) selectfields already used! Ignoring selectfields %s", s);
+        warning("(warning) selectfields already used! Ignoring selectfields %s", s.c_str());
         return;
     }
     char buf[s.length()+1];

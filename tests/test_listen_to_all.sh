@@ -158,6 +158,11 @@ Received telegram from: 72727272
                   type: Water meter (0x07)
                    ver: 0x10
                 driver: q400
+Received telegram from: 72727273
+          manufacturer: (AXI) UAB Axis Industries, Lithuania (0x709)
+                  type: Water meter (0x07)
+                   ver: 0x10
+                driver: q400
 Received telegram from: 22992299
           manufacturer: (EBZ) eBZ, Germany (0x145a)
                   type: Radio converter (meter side) (0x37)

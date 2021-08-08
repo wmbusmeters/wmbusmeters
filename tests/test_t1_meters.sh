@@ -38,6 +38,7 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       HydrodigitWater hydrodigit 86868686 NOKEY
       HydrodigitWater2 hydrodigit 67452301 NOKEY
       Q400Water   q400        72727272 AAA896100FED12DD614DD5D46369ACDD
+      AxiomaWater q400        72727273 NOKEY
       Elen1       ebzwmbe     22992299 NOKEY
       Elen2       esyswm      77997799 NOKEY
       Elen3       ehzp        55995599 NOKEY
