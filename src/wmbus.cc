@@ -1476,12 +1476,18 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
     }
     else if (tpl_sec_mode == TPLSecurityMode::SPECIFIC_16_31)
     {
+        debug("(wmbus) non-standard security mode 16_31\n");
         if (mustDecryptDiehlRealData(frame))
         {
+            debug("(diehl) must decode frame\n");
             if (!meter_keys) return false;
             bool ok = decryptDielhRealData(this, frame, pos, meter_keys->confidentiality_key);
+            // If this telegram is simulated, the content might already be decrypted and the
+            // decruption will fail. But we can assume all is well anyway!
+            if (!ok && isSimulated()) return true;
             if (!ok) return false;
             // Now the frame from pos and onwards has been decrypted.
+            debug("(diehl) decryption successful\n");
         }
     }
     return true;
@@ -1639,6 +1645,7 @@ void Telegram::preProcess()
     DiehlAddressTransformMethod diehl_method = mustTransformDiehlAddress(frame);
     if (diehl_method != DiehlAddressTransformMethod::NONE)
     {
+        debug("(diehl) preprocess necessary %s\n", toString(diehl_method));
         original = vector<uchar>(frame.begin(), frame.begin() + 10);
         transformDiehlAddress(frame, diehl_method);
     }

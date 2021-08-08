@@ -270,7 +270,9 @@ void initializeDiehlDefaultKeySupport(const vector<uchar> &confidentiality_key, 
 // Diehl: Is payload real data crypted (LFSR)?
 bool mustDecryptDiehlRealData(const vector<uchar>& frame)
 {
-    return detectDiehlFrameInterpretation(frame) == DiehlFrameInterpretation::REAL_DATA;
+    DiehlFrameInterpretation fi = detectDiehlFrameInterpretation(frame);
+    debug("(diehl) frame %s\n", toString(fi));
+    return fi == DiehlFrameInterpretation::REAL_DATA;
 }
 
 // Diehl: decrypt real data payload (LFSR)
@@ -288,7 +290,23 @@ bool decryptDielhRealData(Telegram *t, vector<uchar> &frame, vector<uchar>::iter
 
     if (decoded_content.empty())
     {
-        warning("(diehl) Decoding LFSR real data failed.\n");
+        if (!t->isSimulated() && t->parserWarns())
+        {
+            // Do not warn when decryption is not needed since we are running from a simulated file.
+            // Or if the telegram cannot be decrypted when listening to all.
+            warning("(diehl) Decoding LFSR real data failed.\n");
+        }
+        else
+        {
+            if (t->isSimulated())
+            {
+                debug("(diehl) Decoding LFSR real data failed, probably already decoded since telegram is simulated.\n");
+            }
+            else
+            {
+                debug("(diehl) Decoding LFSR real data failed.\n");
+            }
+        }
         return false;
     }
 
@@ -298,4 +316,32 @@ bool decryptDielhRealData(Telegram *t, vector<uchar> &frame, vector<uchar>::iter
     frame.insert(frame.end(), decoded_content.begin(), decoded_content.end());
 
     return true;
+}
+
+const char *toString(DiehlFrameInterpretation i)
+{
+    switch (i)
+    {
+    case DiehlFrameInterpretation::NA: return "N/A";
+    case DiehlFrameInterpretation::REAL_DATA: return "REAL_DATA";
+    case DiehlFrameInterpretation::OMS: return "OMS";
+    case DiehlFrameInterpretation::PRIOS: return "PRIOS";
+    case DiehlFrameInterpretation::SAP_PRIOS: return "SAP_PRIOS";
+    case DiehlFrameInterpretation::SAP_PRIOS_STD: return "SAP_PRIOS_STD";
+    case DiehlFrameInterpretation::PRIOS_SCR: return "PRIOS_SCR";
+    case DiehlFrameInterpretation::RESERVED: return "RESERVED";
+    }
+    return "?";
+}
+
+const char *toString(DiehlAddressTransformMethod m)
+{
+    switch (m)
+    {
+    case DiehlAddressTransformMethod::NONE: return "NONE";
+    case DiehlAddressTransformMethod::SWAPPING: return "SWAPPING";
+    case DiehlAddressTransformMethod::SAP_PRIOS: return "SAP_PRIOS";
+    case DiehlAddressTransformMethod::SAP_PRIOS_STANDARD: return "SAP_PRIOS_STANDARD";
+    }
+    return "?";
 }

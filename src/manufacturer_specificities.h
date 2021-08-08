@@ -53,6 +53,8 @@ enum class DiehlFrameInterpretation {
     RESERVED
 };
 
+const char *toString(DiehlFrameInterpretation i);
+
 // Diehl: address transformation method
 enum class DiehlAddressTransformMethod {
     NONE,              // "A field" coded as per standard
@@ -60,6 +62,8 @@ enum class DiehlAddressTransformMethod {
     SAP_PRIOS,         // Version and type not included in telegram. Must be hardcoded to 0 and 7
     SAP_PRIOS_STANDARD // ?
 };
+
+const char *toString(DiehlAddressTransformMethod m);
 
 // Diehl: Determines how to interpret frame
 DiehlFrameInterpretation detectDiehlFrameInterpretation(const vector<uchar>& frame);

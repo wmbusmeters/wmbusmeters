@@ -279,6 +279,16 @@ Received telegram from: 93929190
                   type: Water meter (0x07)
                    ver: 0x7b
                 driver: dme_07
+Received telegram from: 60897379
+          manufacturer: (HYD) Hydrometer (0x2324)
+                  type: Water meter (0x07)
+                   ver: 0x8b
+                driver: hydrus
+Received telegram from: 60904720
+          manufacturer: (HYD) Hydrometer (0x2324)
+                  type: Warm Water (30°C-90°C) meter (0x06)
+                   ver: 0x8b
+                driver: hydrus
 Received telegram from: 61070071
           manufacturer: (AAA) Aventies, Germany (0x421)
                   type: Water meter (0x07)

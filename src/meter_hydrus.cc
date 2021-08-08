@@ -375,6 +375,48 @@ void MeterHydrus::processContent(Telegram *t)
 	(hydrus) 65: BF2C
     */
 
+    /* And another two more that seem to be branded IZAR RS 868 */
+    /*
+      (hydrus) 00: 1e length (30 bytes)
+      (hydrus) 01: 44 dll-c (from meter SND_NR)
+      (hydrus) 02: 2423 dll-mfct (HYD)
+      (hydrus) 04: 79738960 dll-id (60897379)
+      (hydrus) 08: 8b dll-version
+      (hydrus) 09: 07 dll-type (Water meter)
+      (hydrus) 0a: 7a tpl-ci-field (EN 13757-3 Application Layer (short tplh))
+      (hydrus) 0b: 8f tpl-acc-field
+      (hydrus) 0c: 00 tpl-sts-field (OK)
+      (hydrus) 0d: 107d tpl-cfg 7d10 (accessibility synchronous SPECIFIC_16_31 )
+      (hydrus) 0f: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (hydrus) 10: 13 vif (Volume l)
+      (hydrus) 11: * 12170100 total consumption (71.442000 m3)
+      (hydrus) 15: 42 dif (16 Bit Integer/Binary Instantaneous value storagenr=1)
+      (hydrus) 16: 6C vif (Date type G)
+      (hydrus) 17: * BF23 at date (2021-03-31 00:00)
+      (hydrus) 19: 44 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+      (hydrus) 1a: 13 vif (Volume l)
+      (hydrus) 1b: * 44100100 total consumption at date (69.700000 m3)
+
+      (hydrus) 01: 44 dll-c (from meter SND_NR)
+      (hydrus) 02: 2423 dll-mfct (HYD)
+      (hydrus) 04: 20479060 dll-id (60904720)
+      (hydrus) 08: 8b dll-version
+      (hydrus) 09: 06 dll-type (Warm Water (30°C-90°C) meter)
+      (hydrus) 0a: 7a tpl-ci-field (EN 13757-3 Application Layer (short tplh))
+      (hydrus) 0b: 2a tpl-acc-field
+      (hydrus) 0c: 00 tpl-sts-field (OK)
+      (hydrus) 0d: 10d8 tpl-cfg d810 (bidirectional accessibility SPECIFIC_16_31 )
+      (hydrus) 0f: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (hydrus) 10: 13 vif (Volume l)
+      (hydrus) 11: * DDC00000 total consumption (49.373000 m3)
+      (hydrus) 15: 42 dif (16 Bit Integer/Binary Instantaneous value storagenr=1)
+      (hydrus) 16: 6C vif (Date type G)
+      (hydrus) 17: * BF23 at date (2021-03-31 00:00)
+      (hydrus) 19: 44 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+      (hydrus) 1a: 13 vif (Volume l)
+      (hydrus) 1b: * 82BB0000 total consumption at date (48.002000 m3)
+    */
+
     int offset;
     string key;
     struct tm datetime;

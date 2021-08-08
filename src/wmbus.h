@@ -480,6 +480,7 @@ struct Telegram
     void addMoreExplanation(int pos, const char* fmt, ...);
     void explainParse(string intro, int from);
 
+    bool parserWarns() { return parser_warns_; }
     bool isSimulated() { return is_simulated_; }
     void markAsSimulated() { is_simulated_ = true; }
 

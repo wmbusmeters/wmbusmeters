@@ -35,6 +35,8 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       HydrusWater hydrus      64646464 NOKEY
       HydrusVater hydrus      65656565 NOKEY
       HydrusAES   hydrus      64745666 NOKEY
+      HydrusIzarRSWarm auto   60904720 NOKEY
+      HydrusIzarRS auto       60897379 NOKEY
       HydrodigitWater hydrodigit 86868686 NOKEY
       HydrodigitWater2 hydrodigit 67452301 NOKEY
       Q400Water   q400        72727272 AAA896100FED12DD614DD5D46369ACDD
