@@ -34,11 +34,20 @@ int main(int argc, char **argv)
     // The binary difvif data is sent on stdin.
     char buf[1024];
     vector<uchar> databytes;
-
-    for (;;) {
-        size_t len = read(0, buf, sizeof(buf));
-        if (len <= 0) break;
-        databytes.insert(databytes.end(), buf, buf+len);
+    vector<char> *ptr = reinterpret_cast<vector<char>*>(&databytes);
+    if (argc > 1 && argv[1][0] != 0)
+    {
+        // Read from file.
+        loadFile(string(argv[1]), ptr);
+    }
+    else
+    {
+        // Read from stdin
+        for (;;) {
+            size_t len = read(0, buf, sizeof(buf));
+            if (len <= 0) break;
+            databytes.insert(databytes.end(), buf, buf+len);
+        }
     }
 
     map<string,pair<int,DVEntry>> values;
