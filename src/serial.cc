@@ -1011,10 +1011,13 @@ void *SerialCommunicationManagerImp::eventLoop()
 
                 for (shared_ptr<SerialDevice> &sd : serial_devices_)
                 {
-                    if (sd->opened() && sd->working() && FD_ISSET(sd->fd(), &readfds))
+                    if (sd->opened() && sd->working() && !sd->resetting() && sd->fd() >= 0)
                     {
-                        trace("[SERIAL] select detected data available for reading on fd %d\n", sd->fd());
-                        to_be_notified.push_back(sd);
+                        if (FD_ISSET(sd->fd(), &readfds))
+                        {
+                            trace("[SERIAL] select detected data available for reading on fd %d\n", sd->fd());
+                            to_be_notified.push_back(sd);
+                        }
                     }
                 }
             }
