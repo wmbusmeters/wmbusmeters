@@ -88,7 +88,8 @@ endif
 
 $(info Building $(VERSION))
 
-CXXFLAGS ?= $(DEBUG_FLAGS) -fPIC -std=c++11 -Wall -Werror=format-security
+FUZZFLAGS ?= -DFUZZING=false
+CXXFLAGS ?= $(DEBUG_FLAGS) $(FUZZFLAGS) -fPIC -std=c++11 -Wall -Werror=format-security
 CXXFLAGS += -I$(BUILD)
 LDFLAGS  ?= $(DEBUG_LDFLAGS)
 
@@ -344,9 +345,8 @@ afl_prepared:  AFLplusplus/src/afl-cc.c
 	touch afl_prepared
 
 build_fuzz: afl_prepared
-	echo GURKA
-	$(MAKE) AFL_HARDEN=1 CXX=$(AFL_HOME)/afl-g++-fast $(BUILD)/fuzz
-	$(MAKE) AFL_HARDEN=1 CXX=$(AFL_HOME)/afl-g++-fast $(BUILD)/wmbusmeters
+	$(MAKE) AFL_HARDEN=1 CXX=$(AFL_HOME)/afl-g++-fast FUZZFLAGS=-DFUZZING=true $(BUILD)/fuzz
+	$(MAKE) AFL_HARDEN=1 CXX=$(AFL_HOME)/afl-g++-fast FUZZFLAGS=-DFUZZING=true $(BUILD)/wmbusmeters
 
 run_fuzz_difvifparser:
 	${AFL_HOME}/afl-fuzz -i fuzz_testcases/difvifparser -o fuzz_findings/ build/fuzz

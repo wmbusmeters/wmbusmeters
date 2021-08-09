@@ -986,7 +986,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
                                       ell_pl_crc_b[0], ell_pl_crc_b[1],
                                       check  & 0xff, check >> 8, (ell_pl_crc==check?"OK":"ERROR"));
 
-        if (ell_pl_crc != check)
+        if (ell_pl_crc != check && !FUZZING)
         {
             // Ouch, checksum of the payload does not match.
             // A wrong key was probably used for decryption.
@@ -4063,7 +4063,7 @@ bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
     uint16_t calc_crc = crc16_EN13757(&payload[0], 10);
     uint16_t check_crc = payload[10] << 8 | payload[11];
 
-    if (calc_crc != check_crc)
+    if (calc_crc != check_crc && !FUZZING)
     {
         debug("(wmbus) ff a dll crc first (calculated %04x) did not match (expected %04x) for bytes 0-%zu!\n", calc_crc, check_crc, 10);
         return false;
@@ -4077,7 +4077,7 @@ bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
         size_t to = pos+16;
         calc_crc = crc16_EN13757(&payload[pos], 16);
         check_crc = payload[to] << 8 | payload[to+1];
-        if (calc_crc != check_crc)
+        if (calc_crc != check_crc && !FUZZING)
         {
             debug("(wmbus) ff a dll crc mid (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
                   calc_crc, check_crc, pos, to-1);
@@ -4093,7 +4093,7 @@ bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
         size_t blen = (tto-pos);
         calc_crc = crc16_EN13757(&payload[pos], blen);
         check_crc = payload[tto] << 8 | payload[tto+1];
-        if (calc_crc != check_crc)
+        if (calc_crc != check_crc && !FUZZING)
         {
             debug("(wmbus) ff a dll crc final (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
                   calc_crc, check_crc, pos, tto-1);
@@ -4140,7 +4140,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
     uint16_t calc_crc = crc16_EN13757(&payload[0], crc1_pos);
     uint16_t check_crc = payload[crc1_pos] << 8 | payload[crc1_pos+1];
 
-    if (calc_crc != check_crc)
+    if (calc_crc != check_crc && !FUZZING)
     {
         debug("(wmbus) ff b dll crc (calculated %04x) did not match (expected %04x) for bytes 0-%zu!\n", calc_crc, check_crc, crc1_pos);
         return false;
@@ -4154,7 +4154,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
         calc_crc = crc16_EN13757(&payload[crc1_pos+2], crc2_pos);
         check_crc = payload[crc2_pos] << 8 | payload[crc2_pos+1];
 
-        if (calc_crc != check_crc)
+        if (calc_crc != check_crc && !FUZZING)
         {
             debug("(wmbus) ff b dll crc (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
                   calc_crc, check_crc, crc1_pos+2, crc2_pos);
