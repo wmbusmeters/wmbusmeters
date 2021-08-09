@@ -1395,7 +1395,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         // Now the frame from pos and onwards has been decrypted.
 
         CHECK(2);
-        if (*(pos+0) != 0x2f || *(pos+1) != 0x2f)
+        if ((*(pos+0) != 0x2f || *(pos+1) != 0x2f) && !FUZZING)
         {
             if (parser_warns_)
             {
@@ -1453,7 +1453,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
 
         // Now the frame from pos and onwards has been decrypted.
         CHECK(2);
-        if (*(pos+0) != 0x2f || *(pos+1) != 0x2f)
+        if ((*(pos+0) != 0x2f || *(pos+1) != 0x2f) && !FUZZING)
         {
             if (parser_warns_)
             {

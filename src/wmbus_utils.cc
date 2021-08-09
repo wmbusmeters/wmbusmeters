@@ -99,7 +99,7 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::it
     vector<uchar> buffer;
     buffer.insert(buffer.end(), pos, frame.end());
     frame.erase(pos, frame.end());
-    debugPayload("(TPL) decrypting", buffer);
+    debugPayload("(TPL) AES CBC IV decrypting", buffer);
 
     size_t len = buffer.size();
 
@@ -108,8 +108,17 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::it
         len = t->tpl_num_encr_blocks*16;
     }
 
-    debug("(TPL) num encrypted blocks %d (%d bytes and remaining unencrypted %d bytes)\n",
+    debug("(TPL) num encrypted blocks %zu (%d bytes and remaining unencrypted %zu bytes)\n",
           t->tpl_num_encr_blocks, len, buffer.size()-len);
+
+    if (buffer.size() < len)
+    {
+        warning("(TPL) warning: decryption received less bytes than expected for decryption! "
+                "Got %zu bytes but expected at least %zu bytes since num encr blocks was %d.\n",
+                buffer.size(), len,
+                t->tpl_num_encr_blocks);
+        len = buffer.size();
+    }
 
     // The content should be a multiple of 16 since we are using AES CBC mode.
     if (len % 16 != 0)
@@ -171,7 +180,7 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>:
     vector<uchar> buffer;
     buffer.insert(buffer.end(), pos, frame.end());
     frame.erase(pos, frame.end());
-    debugPayload("(TPL) decrypting", buffer);
+    debugPayload("(TPL) AES CBC NO IV decrypting", buffer);
 
     size_t len = buffer.size();
 
@@ -182,6 +191,15 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>:
 
     debug("(TPL) num encrypted blocks %d (%d bytes and remaining unencrypted %d bytes)\n",
           t->tpl_num_encr_blocks, len, buffer.size()-len);
+
+    if (buffer.size() < len)
+    {
+        warning("(TPL) warning: decryption received less bytes than expected for decryption! "
+                "Got %zu bytes but expected at least %zu bytes since num encr blocks was %d.\n",
+                buffer.size(), len,
+                t->tpl_num_encr_blocks);
+        len = buffer.size();
+    }
 
     // The content should be a multiple of 16 since we are using AES CBC mode.
     if (len % 16 != 0)
