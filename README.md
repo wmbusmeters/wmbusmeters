@@ -186,7 +186,7 @@ depending on if you are running as a daemon or not.
 # Running without config files, good for experimentation and test.
 
 ```
-wmbusmeters version: 1.3.0
+wmbusmeters version: 1.4.0
 Usage: wmbusmeters {options} <device> ( [meter_name] [meter_driver]{:<modes>} [meter_id] [meter_key] )*
 
 As <options> you can use:

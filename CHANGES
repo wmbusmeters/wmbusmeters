@@ -1,4 +1,14 @@
 
+Version 1.4.0: 2021-08-09
+
+Fixed a race that sometimes caused wmbusmeters to crash when resetting the dongles,
+which happens by default every 23 hours.
+
+Fixed two crashes that could be triggered with broken telegrams. Crashes found by fuzzing.
+
+Improved detection of the amb8465 dongle. The detection code could be confused
+if the dongle was receiving a lot of valid telegrams at the same time.
+
 Added telegram content sent by Axioma W1 meter to driver q400,
 since Axioma  identifies itself as a q400 meter.
 
