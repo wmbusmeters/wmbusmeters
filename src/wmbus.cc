@@ -34,6 +34,10 @@
 #include<deque>
 #include<algorithm>
 
+#ifndef FUZZING
+#define FUZZING false
+#endif
+
 struct LinkModeInfo
 {
     LinkMode mode;
