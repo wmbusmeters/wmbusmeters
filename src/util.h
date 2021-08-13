@@ -217,4 +217,8 @@ void checkIfMultipleWmbusMetersRunning();
 
 size_t findBytes(std::vector<uchar> &v, uchar a, uchar b, uchar c);
 
+#ifndef FUZZING
+#define FUZZING false
+#endif
+
 #endif

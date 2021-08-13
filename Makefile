@@ -48,7 +48,7 @@ ifeq "$(DEBUG)" "true"
     endif
 else
     DEBUG_FLAGS=-Os -g
-    STRIP_BINARY=echo FOO
+    STRIP_BINARY=cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters.g; $(STRIP) $(BUILD)/wmbusmeters
     GCOV=To_run_gcov_add_DEBUG=true
 endif
 
@@ -196,9 +196,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_weh_07.o \
 
 
-all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals
-	@$(STRIP_BINARY)
-	@cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd
+all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd $(BUILD)/wmbusmeters.g $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals
 
 deb: wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb
 
@@ -229,15 +227,25 @@ snapcraft:
 
 $(BUILD)/main.o: $(BUILD)/short_manual.h $(BUILD)/version.h
 
-$(BUILD)/wmbusmeters: $(METER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters $(METER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lrtlsdr $(USBLIB) -lpthread
+# Build binary with debug information. ~15M size binary.
+$(BUILD)/wmbusmeters.g: $(METER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
+	$(CXX) -o $(BUILD)/wmbusmeters.g $(METER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lrtlsdr $(USBLIB) -lpthread
+
+# Production build will have debug information stripped. ~1.5M size binary.
+# DEBUG=true builds, which has address sanitizer code, will always keep the debug information.
+$(BUILD)/wmbusmeters: $(BUILD)/wmbusmeters.g
+	cp $(BUILD)/wmbusmeters.g $(BUILD)/wmbusmeters
+	$(STRIP_BINARY)
+
+$(BUILD)/wmbusmetersd: $(BUILD)/wmbusmeters
+	cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd
 
 ifeq ($(shell uname -s),Darwin)
 $(BUILD)/wmbusmeters-admin:
 	touch $(BUILD)/wmbusmeters-admin
 else
 $(BUILD)/wmbusmeters-admin: $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters-admin $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -lrtlsdr $(USBLIB) -lpthread
+	$(CXX) -o $(BUILD)/wmbusmeters-admin.g $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -lrtlsdr $(USBLIB) -lpthread
 endif
 
 $(BUILD)/short_manual.h: README.md
