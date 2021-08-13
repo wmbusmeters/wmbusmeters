@@ -404,7 +404,7 @@ string MeterCommonImplementation::unixTimestampOfUpdate()
 {
     char ut[40];
     memset(ut, 0, sizeof(ut));
-    snprintf(ut, sizeof(ut)-1, "%zu", datetime_of_update_);
+    snprintf(ut, sizeof(ut)-1, "%lu", datetime_of_update_);
     return string(ut);
 }
 
