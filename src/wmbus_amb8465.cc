@@ -598,11 +598,33 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
     }
 
     vector<uchar> response;
-    // First clear out any data in the queue.
-    serial->receive(&response);
+    int count = 1;
+    // First clear out any data in the queue, this might require multiple reads.
+    for (;;)
+    {
+        size_t n = serial->receive(&response);
+        count++;
+        if (n == 0) break;
+        if (count > 10)
+        {
+            break;
+        }
+        usleep(1000*100);
+        continue;
+    }
+
     if (response.size() > 0)
     {
-        debug("(amb8465) cleared serial buffer\n");
+        if (count <= 10)
+        {
+            debug("(amb8465) cleared %zu bytes from serial buffer\n", response.size());
+        }
+        else
+        {
+            debug("(amb8465) way too much data received %zu when trying to detect! cannot clear serial buffer!\n",
+                  response.size());
+        }
+
         response.clear();
     }
 
@@ -619,7 +641,7 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
     assert(request[5] == 0x77);
 
     bool sent = false;
-    int count = 1;
+    count = 0;
     do
     {
         debug("(amb8465) sending %zu bytes attempt %d\n", request.size(), count);
