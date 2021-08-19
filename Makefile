@@ -268,9 +268,18 @@ clean_cc:
 	find . -name "*.gcov" -delete
 	find . -name "*.gcda" -delete
 
+# This generates annotated source files ending in .gcov
+# inside the build_debug where non-executed source lines are marked #####
 gcov:
+	@if [ "$(DEBUG)" = "" ]; then echo "You have to run \"make gcov DEBUG=true\""; exit 1; fi
 	$(GCOV) -o build_debug $(METER_OBJS)
 	mv *.gcov build_debug
+
+lcov:
+	@if [ "$(DEBUG)" = "" ]; then echo "You have to run \"make lcov DEBUG=true\""; exit 1; fi
+	lcov --directory . -c --no-external --output-file build_debug/lcov.info
+	(cd build_debug; genhtml lcov.info)
+	xdg-open build_debug/src/index.html
 
 test:
 	@./test.sh build/wmbusmeters

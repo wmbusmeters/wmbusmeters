@@ -15,6 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"aes.h"
 #include"aescmac.h"
 #include"cmdline.h"
 #include"config.h"
@@ -39,6 +40,7 @@ void test_periods();
 void test_devices();
 void test_meters();
 void test_months();
+void test_aes();
 
 int main(int argc, char **argv)
 {
@@ -66,6 +68,7 @@ int main(int argc, char **argv)
     test_kdf();
     test_periods();
     test_months();
+    test_aes();
     return 0;
 }
 
@@ -802,4 +805,53 @@ void test_meters()
           "0", // bps
           "c1"); // linkmodes
 
+}
+
+void test_aes()
+{
+    vector<uchar> key;
+
+    hex2bin("0123456789abcdef0123456789abcdef", &key);
+    string poe =
+        "Once upon a midnight dreary, while I pondered, weak and weary,\n"
+        "Over many a quaint and curious volume of forgotten lore\n";
+
+    while (poe.length() % 16 != 0)
+    {
+        poe += ".";
+    }
+
+    uchar iv[16];
+    memset(iv, 0xaa, 16);
+
+    uchar in[poe.length()];
+    memcpy(in, &poe[0], poe.size());
+
+    debug("(aes) input: \"%s\"\n", poe.c_str());
+
+    uchar out[sizeof(in)];
+    AES_CBC_encrypt_buffer(out, in, sizeof(in), &key[0], iv);
+
+    vector<uchar> outv(out, out+sizeof(out));
+    string s = bin2hex(outv);
+    debug("(aes) encrypted: \"%s\"\n", s.c_str());
+
+    uchar back[sizeof(in)];
+    AES_CBC_decrypt_buffer(back, out, sizeof(in), &key[0], iv);
+
+    string b = string(back, back+sizeof(back));
+    debug("(aes) decrypted: \"%s\"\n", b.c_str());
+
+    if (poe != b)
+    {
+        printf("ERROR! aes with IV encrypt decrypt failed!\n");
+    }
+
+    AES_ECB_encrypt(in, &key[0], out, sizeof(in));
+    AES_ECB_decrypt(out, &key[0], back, sizeof(in));
+
+    if (memcmp(back, in, sizeof(in)))
+    {
+        printf("ERROR! aes encrypt decrypt (no iv) failed!\n");
+    }
 }
