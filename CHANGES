@@ -1,4 +1,11 @@
 
+Tomasz Gramza added manual offset setting to the apator162 meter driver.
+You can now specify for example: apator162(offset=29) to use the 4 bytes
+at offset 29 in the telegram as the water consumption. Other offsets
+known to work for apators are 9,12,20,23. This is useful as a final
+resort to get your apator162 readout working. You have to test different
+offsets until it works. Thanks Tomasz!
+
 Version 1.4.0: 2021-08-09
 
 Fixed a race that sometimes caused wmbusmeters to crash when resetting the dongles,
