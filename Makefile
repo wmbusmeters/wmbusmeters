@@ -349,7 +349,7 @@ update_manufacturers:
 	rm *.flags manufacturers.txt
 
 
-GCC_MAJOR_VERSION:=$(shell gcc --version | head --lines=1 | sed 's/.* \([0-9]\)\.[0-9]\.[0-9]$$/\1/')
+GCC_MAJOR_VERSION:=$(shell gcc --version | head -n 1 | sed 's/.* \([0-9]\)\.[0-9]\.[0-9]$$/\1/')
 AFL_HOME:=AFLplusplus
 
 $(AFL_HOME)/src/afl-cc.c:
