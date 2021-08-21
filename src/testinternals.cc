@@ -785,7 +785,7 @@ void testm(string arg, bool xok,
         to_string(mi.bps) != xbps ||
         mi.link_modes.hr() != xlm)
     {
-        printf("ERROR in meter parsing parts \"%s\"\n", arg.c_str());
+        printf("ERROR in meter parsing parts \"%s\" - got (driver: %s, extras: %s, bus: %s, bbps: %s, linkmodes: %s)\n", arg.c_str(), toString(mi.driver).c_str(), mi.extras.c_str(), mi.bus.c_str(), to_string(mi.bps).c_str(), mi.link_modes.hr().c_str());
     }
 }
 
@@ -804,6 +804,13 @@ void test_meters()
           "", // bus
           "0", // bps
           "c1"); // linkmodes
+
+    testm("apator162(offset=162)", true,
+          "apator162", // driver
+          "offset=162", // extras
+          "", // bus
+          "0", // bps
+          "c1,t1"); // linkmodes
 
 }
 
