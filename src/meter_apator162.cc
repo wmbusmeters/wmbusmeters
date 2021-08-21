@@ -21,6 +21,8 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
+#include <stdexcept>
+
 using namespace std;
 
 struct MeterApator162 : public virtual WaterMeter, public virtual MeterCommonImplementation {
@@ -34,7 +36,7 @@ private:
 
     void processContent(Telegram *t);
     void processExtras(string miExtras);
-    
+
     double total_water_consumption_m3_ {};
     unsigned short offset_ = 0;
 };
