@@ -21,7 +21,8 @@ meter_no=0
 IFS=$'\n'
 for meter in $(jq -c -M '.meters[]' $CONFIG_PATH)
 do 
-    METER_NAME=$(printf 'meter-%04d' "$(( ++meter_no ))")
+    meter_no=$(( meter_no+1 ))
+    METER_NAME=$(printf 'meter-%04d' "$(( meter_no ))")
     echo "Adding $METER_NAME ..."
     METER_DATA=$(printf '%s\n' $meter | jq --raw-output -c -M '.') 
     echo -e "$METER_DATA" > $CONFIG_DATA_PATH/etc/wmbusmeters.d/$METER_NAME
