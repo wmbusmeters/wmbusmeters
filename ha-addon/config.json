@@ -1,6 +1,6 @@
 {
     "name": "Wmbusmeters (W-MBus to MQTT)",
-    "version": "0.2.11",
+    "version": "0.2.12",
     "slug": "wmbusmeters",
     "description": "Acquire utility meter readings using the wireless mbus protocol (WMBUS)",
     "arch": ["armv7", "aarch64", "amd64"],
@@ -21,7 +21,8 @@
         "data_path": "/config/wmbusmeters",
         "conf": 
             "loglevel=normal\ndevice=/dev/ttyUSB0:t1\nlogtelegrams=false\nformat=json\nlogfile=/dev/stdout\nshell=/wmbusmeters/mosquitto_pub.sh wmbusmeters/$METER_NAME $METER_JSON",
-        "meters": []
+        "meters": [],
+        "mqtt": {}
     },
     "schema": {
         "data_path": "str",
