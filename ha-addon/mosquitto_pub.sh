@@ -4,12 +4,12 @@ TOPIC=$1
 MESSAGE=$2
 
 MQTT_HOST=$(bashio::config "mqtt.host")
-[[ -z "$MQTT_HOST"]] && MQTT_HOST=$(bashio::services mqtt "host")
+if [ -z "$MQTT_HOST"]; then MQTT_HOST=$(bashio::services mqtt "host"); fi
 MQTT_PORT=$(bashio::config "mqtt.port")
-[[ -z "$MQTT_PORT"]] && MQTT_PORT=$(bashio::services mqtt "port")
+if [ -z "$MQTT_PORT"]; then MQTT_PORT=$(bashio::services mqtt "port"); fi
 MQTT_USER=$(bashio::config "mqtt.username")
-[[ -z "$MQTT_USER"]] && MQTT_USER=$(bashio::services mqtt "username")
+if [ -z "$MQTT_USER"]; then MQTT_USER=$(bashio::services mqtt "username"); fi
 MQTT_PASSWORD=$(bashio::config "mqtt.password")
-[[ -z "$MQTT_PASSWORD"]] && MQTT_PASSWORD=$(bashio::services mqtt "password")
+if [ -z "$MQTT_PASSWORD"]; then MQTT_PASSWORD=$(bashio::services mqtt "password"); fi
 
 /usr/bin/mosquitto_pub -h $MQTT_HOST -p $MQTT_PORT -u $MQTT_USER -P $MQTT_PASSWORD -t $TOPIC -m "$MESSAGE"
