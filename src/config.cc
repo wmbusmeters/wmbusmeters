@@ -55,7 +55,6 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     string id;
     string key = "";
     string linkmodes;
-    int bps {};
     vector<string> telegram_shells;
     vector<string> alarm_shells;
     vector<string> extra_constant_fields;
@@ -135,42 +134,22 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     }
     bool use = true;
 
-    LinkModeSet modes;
-    MeterDriver mt = toMeterDriver(driver);
-    size_t colon = driver.find(':');
-    if (colon == string::npos)
+    MeterInfo mi;
+    mi.parse(name, driver, id, key); // sets driver, extras, name, bus, bps, link_modes, ids, name, key
+        
+    LinkModeSet default_modes = toMeterLinkModeSet(mi.driver);
+    if (!default_modes.hasAll(mi.link_modes))
     {
-        // No suffixes to control the driver.
-        modes = toMeterLinkModeSet(driver);
+        string want = mi.link_modes.hr();
+        string has = default_modes.hr();
+        error("(cmdline) cannot set link modes to: %s because meter %s only transmits on: %s\n",
+                want.c_str(), toString(mi.driver).c_str(), has.c_str());
     }
-    else
-    {
-        // The config can be supplied after the driver, like this:
-        // apator162:c1
-        // or
-        // pith:mainbus:2400
-        string modess = driver.substr(colon+1);
-        driver = driver.substr(0, colon);
-        mt = toMeterDriver(driver);
-        if (mt == MeterDriver::UNKNOWN) {
-            warning("Not a valid meter driver \"%s\"\n", driver.c_str());
-            use = false;
-        }
-        modes = parseLinkModes(modess);
-        LinkModeSet default_modes = toMeterLinkModeSet(driver);
-        if (!modes.empty() && !default_modes.hasAll(modes))
-        {
-            string want = modes.hr();
-            string has = default_modes.hr();
-            error("(cmdline) cannot set link modes to: %s because meter %s only transmits on: %s\n",
-                  want.c_str(), driver.c_str(), has.c_str());
-        }
+    string modeshr = mi.link_modes.hr();
+    debug("(cmdline) setting link modes to %s for meter %s\n",
+            mi.link_modes.hr().c_str(), name.c_str());
 
-        string modeshr = modes.hr();
-        debug("(cmdline) setting link modes to %s for meter %s\n",
-              modeshr.c_str(), name.c_str());
-    }
-
+    MeterDriver mt = mi.driver;
     if (mt == MeterDriver::UNKNOWN) {
         warning("Not a valid meter driver \"%s\"\n", driver.c_str());
         use = false;
@@ -184,8 +163,11 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         use = false;
     }
     if (use) {
-        vector<string> ids = splitMatchExpressions(id);
-        c->meters.push_back(MeterInfo(bus, name, mt, "", ids, key, modes, bps, telegram_shells, extra_constant_fields));
+        mi.extra_constant_fields = extra_constant_fields;
+        mi.shells = telegram_shells;
+        mi.idsc = toIdsCommaSeparated(mi.ids);
+
+        c->meters.push_back(mi);
     }
 
     return;

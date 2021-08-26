@@ -119,6 +119,7 @@ struct Configuration
 
 shared_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override);
 
+void parseMeterConfig(Configuration *c, vector<char> &buf, string file);
 void handleConversions(Configuration *c, string s);
 void handleSelectedFields(Configuration *c, string s);
 void handleAddedFields(Configuration *c, string s);
