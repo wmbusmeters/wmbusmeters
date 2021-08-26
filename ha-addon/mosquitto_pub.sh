@@ -4,7 +4,7 @@ TOPIC=$1
 MESSAGE=$2
 
 MQTT_HOST=$(bashio::config "mqtt.host")
-if [[] -z "$MQTT_HOST" ]]; then MQTT_HOST=$(bashio::services mqtt "host"); fi
+if [[ -z "$MQTT_HOST" ]]; then MQTT_HOST=$(bashio::services mqtt "host"); fi
 MQTT_PORT=$(bashio::config "mqtt.port")
 if [[ -z "$MQTT_PORT" ]]; then MQTT_PORT=$(bashio::services mqtt "port"); fi
 MQTT_USER=$(bashio::config "mqtt.username")
