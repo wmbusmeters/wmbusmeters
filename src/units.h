@@ -34,6 +34,7 @@
     X(Text,TXT)              \
     X(Counter,INT)           \
     X(Time,Hour)             \
+    X(PointInTime,DateTimeLT) \
     X(Voltage,Volt)          \
     X(Current,Ampere)        \
     X(Frequency,Hz)
@@ -60,6 +61,9 @@
     X(Hour,h,"h",Time,"hour") \
     X(Day,d,"d",Time,"day") \
     X(Year,y,"y",Time,"year") \
+    X(DateTimeUT,ut,"ut",PointInTime,"unix timestamp") \
+    X(DateTimeUTC,utc,"utc",PointInTime,"coordinated universal time") \
+    X(DateTimeLT,lt,"lt",PointInTime,"local time") \
     X(Volt,v,"V",Voltage,"volt") \
     X(Ampere,a,"A",Current,"ampere") \
     X(Hz,hz,"Hz",Frequency,"hz")

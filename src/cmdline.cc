@@ -482,6 +482,11 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
+        else if (!strcmp(argv[i], "--listunits")) {
+            c->list_units = true;
+            i++;
+            continue;
+        }
         if (!strcmp(argv[i], "--oneshot")) {
             c->oneshot = true;
             i++;
@@ -556,7 +561,8 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         c->use_auto_device_detect == false &&
         !c->list_shell_envs &&
         !c->list_fields &&
-        !c->list_meters)
+        !c->list_meters &&
+        !c->list_units)
     {
         error("You must supply at least one device to communicate using (w)mbus.\n");
     }

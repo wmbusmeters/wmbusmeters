@@ -50,6 +50,7 @@ SpecifiedDevice *find_specified_device_from_detected(Configuration *c, Detected 
 void list_fields(Configuration *config, string meter_type);
 void list_shell_envs(Configuration *config, string meter_type);
 void list_meters(Configuration *config);
+void list_units();
 void log_start_information(Configuration *config);
 void oneshot_check(Configuration *config, Telegram *t, Meter *meter);
 void regular_checkup(Configuration *config);
@@ -129,6 +130,12 @@ provided you with this binary. Read the full license for all details.
     if (config->list_meters)
     {
         list_meters(config.get());
+        exit(0);
+    }
+
+    if (config->list_units)
+    {
+        list_units();
         exit(0);
     }
 
@@ -247,6 +254,50 @@ void list_meters(Configuration *config)
             printf("%-14s %s\n", #mname, #info);
 LIST_OF_METERS
 #undef X
+}
+
+struct TmpUnit
+{
+    string suff, expl, name, quantity;
+};
+void list_units()
+{
+    vector<TmpUnit> units;
+    set<string> quantities;
+
+// X(KVARH,kvarh,"kVARh",Reactive_Energy,"kilo volt amperes reactive hour")
+    int width = 1;
+    int total = 1;
+    int tmp = 0;
+#define X(upn,lcn,name,quantity,expl) \
+    tmp = strlen(#lcn); if (tmp > width) { width = tmp; } \
+    tmp = strlen(#lcn)+strlen(name)+strlen(expl)+3; if (tmp > total) { total = tmp; } \
+    units.push_back( { #lcn, expl, name, #quantity } ); \
+    quantities.insert(#quantity);
+LIST_OF_UNITS
+#undef X
+
+    sort(units.begin(), units.end(), [](const TmpUnit & a, const TmpUnit & b) -> bool { return a.suff > b.suff; });
+    bool first = true;
+    for (const string &q : quantities)
+    {
+        if (!first)
+        {
+            printf("\n");
+        }
+        first = false;
+        printf("%s ", q.c_str());
+        size_t l = total-strlen(q.c_str());
+        for (size_t i=0; i<l; ++i) printf("─");
+        printf("\n\n");
+        for (TmpUnit &u : units)
+        {
+            if (u.quantity == q)
+            {
+                printf("%-*s %s (%s)\n", width, u.suff.c_str(), u.expl.c_str(), u.name.c_str());
+            }
+        }
+    }
 }
 
 void log_start_information(Configuration *config)

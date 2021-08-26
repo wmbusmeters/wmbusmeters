@@ -84,6 +84,7 @@ struct Configuration
     bool list_shell_envs {};
     bool list_fields {};
     bool list_meters {};
+    bool list_units {};
     std::string list_meters_search;
     // When asking for envs or fields, this is the meter type to list for.
     std::string list_meter;

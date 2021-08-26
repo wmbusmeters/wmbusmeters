@@ -109,8 +109,8 @@ that driver detection is automatic: `driver=auto`.
 Now plugin your wmbus dongle.
 Wmbusmeters should start automatically, check with `tail -f /var/log/syslog` and `tail -f /var/log/wmbusmeters/wmbusmeters.log`
 (If you are using an rtlsdr dongle, then make sure that either the binaries `/usr/bin/rtl_sdr` and
-`/usr/bin/rtl_wmbus` exists and are executable. Or `rtl_sdr/rtl_wmbus` exists inside the same directory
-as the wmbusmeters directory is located. If not you will see the
+`/usr/bin/rtl_wmbus` exists and are executable. Or that the executable `rtl_sdr/rtl_wmbus` binaries
+exists inside the same directory as the wmbusmeters executable. If not you will see the
 error message `(rtlwmbus) error: when starting as daemon, wmbusmeters looked for .../rtl_wmbus and /usr/bin/rtl_wmbus, but found neither!`
 and the daemon will refuse to start.)
 

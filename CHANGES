@@ -1,4 +1,7 @@
 
+Added --listunits to list all quantities and the units for each quantity
+that wmbusmeteres knows about.
+
 Tomasz Gramza added manual offset setting to the apator162 meter driver.
 You can now specify for example: apator162(offset=29) to use the 4 bytes
 at offset 29 in the telegram as the water consumption. Other offsets
