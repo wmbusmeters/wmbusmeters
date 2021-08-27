@@ -28,5 +28,33 @@ do
     echo -e "$METER_DATA" > $CONFIG_DATA_PATH/etc/wmbusmeters.d/$METER_NAME
 done
 
+echo "Generating MQTT configuration ... "
+if bashio::config.exists "mqtt.host"
+then
+  MQTT_HOST=$(bashio::config "mqtt.host")
+  [[ $(bashio::config.exists "mqtt.port") ]] && MQTT_PORT=$(bashio::config "mqtt.port")
+  [[ $(bashio::config.exists "mqtt.username") ]] && MQTT_USER=$(bashio::config "mqtt.username")
+  [[ $(bashio::config.exists "mqtt.password") ]] && MQTT_PASSWORD=$(bashio::config "mqtt.password")
+else
+  MQTT_HOST=$(bashio::services mqtt "host")
+  MQTT_PORT=$(bashio::services mqtt "port")
+  MQTT_USER=$(bashio::services mqtt "username")
+  MQTT_PASSWORD=$(bashio::services mqtt "password")
+fi
+
+echo "Broker $MQTT_HOST will be used."
+pub_args=('-h' $MQTT_HOST)
+[[ ! -z ${MQTT_PORT+x} ]] && pub_args+=( '-p' $MQTT_PORT )
+[[ ! -z ${MQTT_USER+x} ]] && pub_args+=( '-u' $MQTT_USER )
+[[ ! -z ${MQTT_PASSWORD+x} ]] && pub_args+=( '-P' $MQTT_PASSWORD )
+
+cat > /wmbusmeters/mosquitto_pub.sh << EOL
+#!/usr/bin/with-contenv bashio
+TOPIC=\$1
+MESSAGE=\$2
+/usr/bin/mosquitto_pub ${pub_args[@]} -t \$TOPIC -m "\$MESSAGE"
+EOL
+chmod a+x /wmbusmeters/mosquitto_pub.sh
+
 echo "Running wmbusmeters ..."
 /wmbusmeters/wmbusmeters --useconfig=$CONFIG_DATA_PATH

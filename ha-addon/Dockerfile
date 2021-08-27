@@ -27,7 +27,4 @@ COPY --from=build /rtl_433/build/src/rtl_433 /usr/bin/rtl_433
 COPY run.sh /
 RUN chmod a+x /run.sh
 
-COPY mosquitto_pub.sh /wmbusmeters/
-RUN chmod a+x /wmbusmeters/mosquitto_pub.sh
-
 CMD ["/run.sh"]
