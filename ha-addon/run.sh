@@ -28,9 +28,9 @@ echo "Generating MQTT configuration ... "
 if bashio::config.exists "mqtt.host"
 then
   MQTT_HOST=$(bashio::config "mqtt.host")
-  [[ $(bashio::config.exists "mqtt.port") ]] && MQTT_PORT=$(bashio::config "mqtt.port")
-  [[ $(bashio::config.exists "mqtt.user") ]] && MQTT_USER=$(bashio::config "mqtt.user")
-  [[ $(bashio::config.exists "mqtt.password") ]] && MQTT_PASSWORD=$(bashio::config "mqtt.password")
+  if bashio::config.exists "mqtt.port"; then MQTT_PORT=$(bashio::config "mqtt.port"); fi
+  if bashio::config.exists "mqtt.user"; then MQTT_USER=$(bashio::config "mqtt.user"); fi
+  if bashio::config.exists "mqtt.password"; then MQTT_PASSWORD=$(bashio::config "mqtt.password"); fi
 else
   MQTT_HOST=$(bashio::services mqtt "host")
   MQTT_PORT=$(bashio::services mqtt "port")
