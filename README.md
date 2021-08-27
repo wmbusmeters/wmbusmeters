@@ -202,7 +202,7 @@ As <options> you can use:
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
     --help list all options
     --ignoreduplicates=<bool> ignore duplicate telegrams, remember the last 10 telegrams
-    --json_xxx=yyy always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy
+    --field_xxx=yyy always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy (--json_xxx=yyy also works)
     --license print GPLv3+ license
     --listento=<mode> listen to one of the c1,t1,s1,s1m,n1a-n1f link modes
     --listento=<mode>,<mode> listen to more than one link mode at the same time, assuming the dongle supports it
@@ -210,6 +210,7 @@ As <options> you can use:
     --listfields=<meter_driver> list the fields selectable for the given meter driver
     --listmeters list all meter drivers
     --listmeters=<search> list all meter drivers containing the text <search>
+    --listunits list all unit suffixes that can be used for typing values
     --logfile=<file> use this file for logging
     --logtelegrams log the contents of the telegrams for easy replay
     --logtimestamps=<when> add log timestamps: always never important
@@ -513,7 +514,7 @@ METER_TIME_BURSTING
 METER_TIMESTAMP
 ```
 
-(If you have supplied `--json_floor=5` then you will also see `METER_floor` in the list)
+(If you have supplied `--field_floor=5` then you will also see `METER_floor` in the list)
 
 Note that the `METER_TIMESTAMP` and the timestamp in the json output, is in UTC format, this is not your localtime.
 However the hr and fields output will print your localtime.
