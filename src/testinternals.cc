@@ -793,14 +793,14 @@ void testc(string file, string file_content,
     string xdriver, string xextras, string xbus, string xbps, string xlm)
 {
     MeterInfo mi;
-    Configuration *c = new Configuration;
+    Configuration c;
 
     vector<char> meter_conf(file_content.begin(), file_content.end());
     meter_conf.push_back('\n');
-    
-    parseMeterConfig(c, meter_conf, file);
 
-    mi = c->meters.back();
+    parseMeterConfig(&c, meter_conf, file);
+
+    mi = c.meters.back();
     if (toString(mi.driver) != xdriver,
         mi.extras != xextras ||
         mi.bus != xbus ||
@@ -922,4 +922,3 @@ void test_aes()
         printf("ERROR! aes encrypt decrypt (no iv) failed!\n");
     }
 }
-
