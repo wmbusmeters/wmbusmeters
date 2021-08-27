@@ -6,10 +6,6 @@ CONFIG_DATA_PATH=$(bashio::config 'data_path')
 CONFIG_CONF="$(jq --raw-output -c -M '.conf' $CONFIG_PATH)"
 CONFIG_METERS="$(jq --raw-output -c -M '.meters' $CONFIG_PATH)"
 
-MQTT_HOST=$(bashio::services mqtt "host")
-MQTT_USER=$(bashio::services mqtt "username")
-MQTT_PASSWORD=$(bashio::services mqtt "password")
-
 echo "Syncing wmbusmeters configuration ..."
 [ ! -d $CONFIG_DATA_PATH/logs/meter_readings ] && mkdir -p $CONFIG_DATA_PATH/logs/meter_readings
 [ ! -d $CONFIG_DATA_PATH/etc/wmbusmeters.d ] && mkdir -p $CONFIG_DATA_PATH/etc/wmbusmeters.d
@@ -33,7 +29,7 @@ if bashio::config.exists "mqtt.host"
 then
   MQTT_HOST=$(bashio::config "mqtt.host")
   [[ $(bashio::config.exists "mqtt.port") ]] && MQTT_PORT=$(bashio::config "mqtt.port")
-  [[ $(bashio::config.exists "mqtt.username") ]] && MQTT_USER=$(bashio::config "mqtt.username")
+  [[ $(bashio::config.exists "mqtt.user") ]] && MQTT_USER=$(bashio::config "mqtt.user")
   [[ $(bashio::config.exists "mqtt.password") ]] && MQTT_PASSWORD=$(bashio::config "mqtt.password")
 else
   MQTT_HOST=$(bashio::services mqtt "host")
