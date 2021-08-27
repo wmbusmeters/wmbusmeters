@@ -28,7 +28,7 @@ Specify your meters usign wmbusmeters meter file format. The `driver` and `id` v
 
 See [project README for more information][github]
 
-```
+```yaml
 meters:
   - |-
     name=MainWater
@@ -53,11 +53,22 @@ Path relative for add-on where wmbusmeters files are stored:
 /etc/wmbusmeters.d/
 ```
 
+#### Option: `mqtt`
+
+By default it is empty `{}` and leverages then the _Moquitto broker_ addon details provided by supervisor. However, you can specify the custom mqtt broker connection details here
+```yaml
+mqtt:
+  host: your-broker-host
+  port: 1883
+  user: your-username
+  password: your-password
+``` 
+
 ## Home Assistant integration
 
 Finally, you need to tell Home Assistant how to extract the readings from the MQTT. You can add the following sensor definition into your `sensor:` section of `configuration.yaml`.
 
-```
+```yaml
 sensor:
   - platform: mqtt
     state_topic: "wmbusmeters/MainWater"
