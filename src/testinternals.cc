@@ -789,14 +789,50 @@ void testm(string arg, bool xok,
     }
 }
 
+void testc(string file, string file_content,
+    string xdriver, string xextras, string xbus, string xbps, string xlm)
+{
+    MeterInfo mi;
+    Configuration *c = new Configuration;
+
+    vector<char> meter_conf(file_content.begin(), file_content.end());
+    meter_conf.push_back('\n');
+    
+    parseMeterConfig(c, meter_conf, file);
+
+    mi = c->meters.back();
+    if (toString(mi.driver) != xdriver,
+        mi.extras != xextras ||
+        mi.bus != xbus ||
+        to_string(mi.bps) != xbps ||
+        mi.link_modes.hr() != xlm)
+    {
+        printf("ERROR in meter parsing parts \"%s\" - got (driver: %s, extras: %s, bus: %s, bbps: %s, linkmodes: %s)\n", file.c_str(), toString(mi.driver).c_str(), mi.extras.c_str(), mi.bus.c_str(), to_string(mi.bps).c_str(), mi.link_modes.hr().c_str());
+    }
+}
+
 void test_meters()
 {
+    string config_content;
+
     testm("piigth:BUS1:2400", true,
           "piigth", // driver
           "", // extras
           "BUS1", // bus
           "2400", // bps
           "mbus"); // linkmodes
+
+    config_content =
+        "name=test\n"
+        "driver=piigth:BUS1:2400\n"
+        "id=01234567\n";
+    testc("meter/piigth:BUS1:2400", config_content,
+          "piigth", // driver
+          "", // extras
+          "BUS1", // bus
+          "2400", // bps
+          "mbus"); // linkmodes)
+
 
     testm("multical21:c1", true,
           "multical21", // driver
@@ -805,12 +841,36 @@ void test_meters()
           "0", // bps
           "c1"); // linkmodes
 
+    config_content =
+        "name=test\n"
+        "driver=multical21:c1\n"
+        "id=01234567\n";
+    testc("meter/multical21:c1", config_content,
+          "multical21", // driver
+          "", // extras
+          "", // bus
+          "0", // bps
+          "c1"); // linkmodes)
+
+
     testm("apator162(offset=162)", true,
           "apator162", // driver
           "offset=162", // extras
           "", // bus
           "0", // bps
           "c1,t1"); // linkmodes
+
+    config_content =
+        "name=test\n"
+        "driver=apator162(offset=162)\n"
+        "id=01234567\n"
+        "key=00000000000000000000000000000000\n";
+    testc("meter/apator162(offset=162)", config_content,
+          "apator162", // driver
+          "offset=162", // extras
+          "", // bus
+          "0", // bps
+          "c1,t1"); // linkmodes)
 
 }
 
@@ -862,3 +922,4 @@ void test_aes()
         printf("ERROR! aes encrypt decrypt (no iv) failed!\n");
     }
 }
+
