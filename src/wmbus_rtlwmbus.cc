@@ -87,7 +87,7 @@ shared_ptr<WMBus> openRTLWMBUS(Detected detected,
                                shared_ptr<SerialCommunicationManager> manager,
                                shared_ptr<SerialDevice> serial_override)
 {
-    string alias = detected.specified_device.alias;
+    string bus_alias = detected.specified_device.bus_alias;
     string identifier = detected.found_device_id;
     SpecifiedDevice &device = detected.specified_device;
     string command;
@@ -177,12 +177,12 @@ shared_ptr<WMBus> openRTLWMBUS(Detected detected,
     args.push_back(command);
     if (serial_override)
     {
-        WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(alias, identifier, serial_override, manager);
+        WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(bus_alias, identifier, serial_override, manager);
         imp->markSerialAsOverriden();
         return shared_ptr<WMBus>(imp);
     }
     auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, "rtlwmbus");
-    WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(alias, identifier, serial, manager);
+    WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(bus_alias, identifier, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 

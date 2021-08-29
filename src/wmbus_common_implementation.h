@@ -24,19 +24,19 @@
 
 struct WMBusCommonImplementation : public virtual WMBus
 {
-    WMBusCommonImplementation(string alias,
+    WMBusCommonImplementation(string bus_alias,
                               WMBusDeviceType t,
                               shared_ptr<SerialCommunicationManager> manager,
                               shared_ptr<SerialDevice> serial_override,
                               bool is_serial);
     ~WMBusCommonImplementation();
 
-    string alias();
+    string busAlias();
     string hr();
     bool isSerial();
     WMBusDeviceType type();
     void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb);
-    void sendTelegram(Telegram *t);
+    bool sendTelegram(ContentStartsWith starts_with, vector<uchar> &content);
     bool handleTelegram(AboutTelegram &about, vector<uchar> frame);
     void checkStatus();
     bool isWorking();
@@ -77,7 +77,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     private:
 
     // Bus alias.
-    string alias_;
+    string bus_alias_;
     // Uses a serial tty?
     bool is_serial_ {};
     bool is_working_ {};

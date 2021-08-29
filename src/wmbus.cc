@@ -3517,13 +3517,13 @@ WMBusCommonImplementation::~WMBusCommonImplementation()
     debug("(wmbus) deleted %s\n", toString(type()));
 }
 
-WMBusCommonImplementation::WMBusCommonImplementation(string alias,
+WMBusCommonImplementation::WMBusCommonImplementation(string bus_alias,
                                                      WMBusDeviceType t,
                                                      shared_ptr<SerialCommunicationManager> manager,
                                                      shared_ptr<SerialDevice> serial,
                                                      bool is_serial)
     : manager_(manager),
-      alias_(alias),
+      bus_alias_(bus_alias),
       is_serial_(is_serial),
       is_working_(true),
       type_(t),
@@ -3567,9 +3567,9 @@ WMBusDeviceType WMBusCommonImplementation::type()
     return type_;
 }
 
-string WMBusCommonImplementation::alias()
+string WMBusCommonImplementation::busAlias()
 {
-    return alias_;
+    return bus_alias_;
 }
 
 void WMBusCommonImplementation::onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb)
@@ -3577,9 +3577,10 @@ void WMBusCommonImplementation::onTelegram(function<bool(AboutTelegram&,vector<u
     telegram_listeners_.push_back(cb);
 }
 
-void WMBusCommonImplementation::sendTelegram(Telegram *t)
+bool WMBusCommonImplementation::sendTelegram(ContentStartsWith starts_with, vector<uchar> &content)
 {
     warning("(bus) Trying to send telegram to bus that has not implemented sending!\n");
+    return false;
 }
 
 static bool ignore_duplicate_telegrams_ = false;
@@ -4520,6 +4521,10 @@ void SpecifiedDevice::clear()
 string SpecifiedDevice::str()
 {
     string r;
+    if (bus_alias != "")
+    {
+        r += bus_alias+"=";
+    }
     if (file != "") r += file+":";
     if (type != WMBusDeviceType::DEVICE_UNKNOWN)
     {
@@ -4548,6 +4553,8 @@ string SpecifiedDevice::str()
 
 bool SpecifiedDevice::isLikelyDevice(string &arg)
 {
+    // Check that it is not a send bus content command.
+    if (SendBusContent::isLikely(arg)) return false;
     // Only devices are allowed to contain colons.
     // Devices usually contain a colon!
     if (arg.find(":") != string::npos) return true;
@@ -4561,16 +4568,16 @@ bool SpecifiedDevice::parse(string &arg)
     size_t ep = arg.find("=");
     if (ep != string::npos)
     {
-        // Is there an alias first?
+        // Is there an bus alias first?
         // BUS1=/dev/ttyUSB0
-        alias = arg.substr(0, ep);
-        if (isValidAlias(alias))
+        bus_alias = arg.substr(0, ep);
+        if (isValidAlias(bus_alias))
         {
             arg = arg.substr(ep+1);
         }
         else
         {
-            alias = "";
+            bus_alias = "";
         }
     }
 
@@ -4651,6 +4658,46 @@ bool SpecifiedDevice::parse(string &arg)
     if (type == WMBusDeviceType::DEVICE_AUTO && (file != "" || bps != "")) return false;
     // You cannot combine a file with a command.
     if (file != "" && command != "") return false;
+    return true;
+}
+
+const char *toString(ContentStartsWith sw)
+{
+    if (sw == ContentStartsWith::C_FIELD) return "c_field";
+    if (sw == ContentStartsWith::CI_FIELD) return "ci_field";
+    if (sw == ContentStartsWith::SHORT_FRAME) return "short_frame";
+    if (sw == ContentStartsWith::LONG_FRAME) return "long_frame";
+    return "?";
+}
+
+bool SendBusContent::isLikely(const string &s)
+{
+    return s.rfind("sendci:", 0) == 0 || s.rfind("sendc:", 0) == 0 ||
+        s.rfind("sends:", 0) == 0 || s.rfind("sendl:", 0) == 0;
+}
+
+bool SendBusContent::parse(const string &s)
+{
+    bus = "";
+    content = "";
+    // Example: send:OUT17:0102030405fefcfbfd
+    // Where OUT17 is a valid bus.
+    size_t c1 = s.find(":");
+    if (c1 == string::npos) return false;
+    size_t c2 = s.find(":", c1+1);
+    if (c2 == string::npos) return false;
+    string cmd = s.substr(0, c1);
+    if (cmd != "sendci" && cmd != "sendc" &&
+        cmd != "sends" && cmd != "sendl") return false;
+    if (cmd == "sendci") starts_with = ContentStartsWith::CI_FIELD;
+    if (cmd == "sendc") starts_with = ContentStartsWith::C_FIELD;
+    if (cmd == "sends") starts_with = ContentStartsWith::SHORT_FRAME;
+    if (cmd == "sendl") starts_with = ContentStartsWith::LONG_FRAME;
+    bus = s.substr(c1+1, c2-c1-1);
+    if (bus.size() == 0) return false;
+    content = s.substr(c2+1);
+    if (content.size() == 0) return false;
+    if (content.size() % 2 == 1) return false;
     return true;
 }
 
@@ -4786,6 +4833,10 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
                 toLowerCaseString(d.found_type));
         d.found_file = specified_device.file;
         d.found_type = WMBusDeviceType::DEVICE_UNKNOWN;
+    }
+    else
+    {
+        d.specified_device = specified_device;
     }
     return d;
 }

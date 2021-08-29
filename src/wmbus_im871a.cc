@@ -213,6 +213,7 @@ struct WMBusIM871aIM170A : public virtual WMBusCommonImplementation
         // Otherwise its a single link mode.
         return 1 == countSetBits(lms.asBits());
     }
+    bool sendTelegram(ContentStartsWith starts_with, vector<uchar> &content);
     void processSerialData();
     void simulate() { }
 
@@ -263,18 +264,18 @@ int toDBM(int rssi)
 
 shared_ptr<WMBus> openIM871AIM170A(WMBusDeviceType type, Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
-    string alias = detected.specified_device.alias;
+    string bus_alias = detected.specified_device.bus_alias;
     string device_file = detected.found_file;
     assert(device_file != "");
     if (serial_override)
     {
-        WMBusIM871aIM170A *imp = new WMBusIM871aIM170A(type, alias, serial_override, manager);
+        WMBusIM871aIM170A *imp = new WMBusIM871aIM170A(type, bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device_file.c_str(), 57600, PARITY::NONE, "im871a");
-    WMBusIM871aIM170A *imp = new WMBusIM871aIM170A(type, alias, serial, manager);
+    WMBusIM871aIM170A *imp = new WMBusIM871aIM170A(type, bus_alias, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 
@@ -816,6 +817,16 @@ void WMBusIM871aIM170A::handleRadioLink(int msgid, vector<uchar> &frame, int rss
         handleTelegram(about, frame);
     }
     break;
+    case RADIOLINK_MSG_DATA_RSP: // 0x05
+        verbose("(im871a) send telegram completed\n");
+        response_.clear();
+        notifyResponseIsHere(RADIOLINK_MSG_DATA_RSP);
+    break;
+    case RADIOLINK_MSG_WMBUSMSG_RSP: // 0x02
+        verbose("(im871a) send telegram completed\n");
+        response_.clear();
+        notifyResponseIsHere(RADIOLINK_MSG_WMBUSMSG_RSP);
+    break;
     default:
         verbose("(im871a) Unhandled radio link message %d\n", msgid);
     }
@@ -900,12 +911,57 @@ bool WMBusIM871aIM170A::getConfig()
     verbose("(im871a) get config\n");
 
     bool sent = serial()->send(request_);
-    if (!sent) return "ERR";
+    if (!sent) return false;
 
     bool ok = waitForResponse(DEVMGMT_MSG_GET_CONFIG_RSP);
-    if (!ok) return "ERR";
+    if (!ok) return false;
 
     return device_config_.decode(response_);
+}
+
+bool WMBusIM871aIM170A::sendTelegram(ContentStartsWith starts_with, vector<uchar> &content)
+{
+    if (serial()->readonly()) return true;
+    if (content.size() > 250) return false;
+
+    LOCK_WMBUS_EXECUTING_COMMAND(sendTelegram);
+
+    request_.resize(4);
+    request_[0] = IM871A_SERIAL_SOF;
+    request_[1] = RADIOLINK_ID;
+    int resp = 0;
+    if (starts_with == ContentStartsWith::C_FIELD)
+    {
+        request_[2] = RADIOLINK_MSG_WMBUSMSG_REQ;
+        resp = RADIOLINK_MSG_WMBUSMSG_RSP;
+    }
+    else if (starts_with == ContentStartsWith::CI_FIELD)
+    {
+        request_[2] = RADIOLINK_MSG_DATA_REQ;
+        resp = RADIOLINK_MSG_DATA_RSP;
+    }
+    else
+    {
+        warning("(im871a) cannot use %s for sending\n", toString(starts_with));
+        return false;
+    }
+
+    request_[3] = content.size()-1;
+
+    for (size_t i=0; i<content.size(); ++i)
+    {
+        request_.push_back(content[i]);
+    }
+
+    verbose("(im871a) send telegram waiting for %d\n", resp);
+
+    bool sent = serial()->send(request_);
+    if (!sent) return false;
+
+    bool ok = waitForResponse(resp);
+    if (!ok) return false; // timeout
+
+    return true;
 }
 
 AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicationManager> manager)

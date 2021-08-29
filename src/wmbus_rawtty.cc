@@ -43,7 +43,7 @@ struct WMBusRawTTY : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate() { }
 
-    WMBusRawTTY(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
+    WMBusRawTTY(string bus_alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusRawTTY() { }
 
 private:
@@ -57,7 +57,7 @@ shared_ptr<WMBus> openRawTTY(Detected detected,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override)
 {
-    string alias = detected.specified_device.alias;
+    string bus_alias = detected.specified_device.bus_alias;
     string device = detected.found_file;
     int bps = detected.found_bps;
 
@@ -65,17 +65,17 @@ shared_ptr<WMBus> openRawTTY(Detected detected,
 
     if (serial_override)
     {
-        WMBusRawTTY *imp = new WMBusRawTTY(alias, serial_override, manager);
+        WMBusRawTTY *imp = new WMBusRawTTY(bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
     auto serial = manager->createSerialDeviceTTY(device.c_str(), bps, PARITY::NONE, "rawtty");
-    WMBusRawTTY *imp = new WMBusRawTTY(alias, serial, manager);
+    WMBusRawTTY *imp = new WMBusRawTTY(bus_alias, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 
-WMBusRawTTY::WMBusRawTTY(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(alias, DEVICE_RAWTTY, manager, serial, true)
+WMBusRawTTY::WMBusRawTTY(string bus_alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(bus_alias, DEVICE_RAWTTY, manager, serial, true)
 {
     reset();
 }

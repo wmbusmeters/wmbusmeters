@@ -358,6 +358,7 @@ void regular_checkup(Configuration *config)
     }
 
     bus_manager_->regularCheckup();
+    bus_manager_->sendQueue();
 }
 
 void setup_log_file(Configuration *config)
@@ -497,25 +498,45 @@ bool start(Configuration *config)
         notice("(wmbusmeters) waiting for telegrams\n");
     }
 
+    bool stop_after_send = false;
     if (!meter_manager_->hasMeters() && serial_manager_->isRunning())
     {
-        notice("No meters configured. Printing id:s of all telegrams heard!\n");
+        if  (config->send_bus_content.size() != 0)
+        {
+            stop_after_send = true;
+        }
+        else
+        {
+            notice("No meters configured. Printing id:s of all telegrams heard!\n");
 
-        meter_manager_->onTelegram([](AboutTelegram &about, vector<uchar> frame) {
-                Telegram t;
-                t.about = about;
-                MeterKeys mk;
-                t.parse(frame, &mk, false); // Try a best effort parse, do not print any warnings.
-                t.print();
-                string info = string("(")+toString(about.type)+")";
-                t.explainParse(info.c_str(), 0);
-                logTelegram(t.original, t.frame, 0, 0);
-                return true;
-            });
+            meter_manager_->onTelegram([](AboutTelegram &about, vector<uchar> frame) {
+                    Telegram t;
+                    t.about = about;
+                    MeterKeys mk;
+                    t.parse(frame, &mk, false); // Try a best effort parse, do not print any warnings.
+                    t.print();
+                    string info = string("(")+toString(about.type)+")";
+                    t.explainParse(info.c_str(), 0);
+                    logTelegram(t.original, t.frame, 0, 0);
+                    return true;
+                });
+        }
     }
 
     bus_manager_->runAnySimulations();
 
+    // Queue any command line send bus contents.
+    for (SendBusContent &sbc : config->send_bus_content)
+    {
+        bus_manager_->queueSendBusContent(sbc);
+    }
+
+    // Flush the initial queue provided on the command line.
+    bus_manager_->sendQueue();
+    if (stop_after_send)
+    {
+        serial_manager_->stop();
+    }
     // This main thread now sleeps and waits for the serial communication manager to stop.
     // The manager has already started one thread that performs select and then callbacks
     // to decoding the telegrams, finally invoking the printer.

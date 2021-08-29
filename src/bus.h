@@ -46,9 +46,11 @@ struct BusManager
 
     void runAnySimulations();
     void regularCheckup();
+    void sendQueue();
 
     int numBusDevices() { return  bus_devices_.size(); }
-    WMBus *findBus(string name);
+    WMBus *findBus(string bus_alias);
+    void queueSendBusContent(const SendBusContent &sbc);
 
 private:
 
@@ -89,6 +91,11 @@ private:
 
     // Store simulation files here.
     std::set<std::string> simulation_files_;
+
+    // Queue with bus content to send.
+    std::vector<SendBusContent> bus_send_queue_;
+    RecursiveMutex bus_send_queue_mutex_;
+#define LOCK_BUS_SEND_QUEUE(where) WITH(bus_send_queue_mutex_, bus_send_queue_mutex, where)
 
     // Set as true when the warning for no detected wmbus devices has been printed.
     bool printed_warning_ = false;

@@ -60,14 +60,14 @@ private:
 
 shared_ptr<WMBus> openSimulator(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
-    string alias = detected.specified_device.alias;
+    string bus_alias = detected.specified_device.bus_alias;
     string device = detected.found_file;
-    WMBusSimulator *imp = new WMBusSimulator(alias, device, manager);
+    WMBusSimulator *imp = new WMBusSimulator(bus_alias, device, manager);
     return shared_ptr<WMBus>(imp);
 }
 
-WMBusSimulator::WMBusSimulator(string alias, string file, shared_ptr<SerialCommunicationManager> manager)
-    : WMBusCommonImplementation(alias, DEVICE_SIMULATION, manager, NULL, false), file_(file)
+WMBusSimulator::WMBusSimulator(string bus_alias, string file, shared_ptr<SerialCommunicationManager> manager)
+    : WMBusCommonImplementation(bus_alias, DEVICE_SIMULATION, manager, NULL, false), file_(file)
 {
     assert(file != "");
     loadFile(file, &lines_);

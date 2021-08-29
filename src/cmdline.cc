@@ -539,23 +539,25 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         error("Unknown option \"%s\"\n", argv[i]);
     }
 
+    bool found_at_least_one_device = false;
     while (argv[i])
     {
         bool ok = handleDevice(c, argv[i]);
-        if (!ok)
+        if (ok)
         {
-            if (!argv[i+1])
+            found_at_least_one_device = true;
+        }
+        else
+        {
+            if (!found_at_least_one_device)
             {
-                // This was the last argument on the commandline.
-                // It should have been a device or a file.
-                error("Not a valid device \"%s\"\n", argv[i]);
+                error("At least one valid device must be supplied!\n");
             }
             // There are more arguments...
             break;
         }
         i++;
     }
-
 
     if (c->supplied_bus_devices.size() == 0 &&
         c->use_auto_device_detect == false &&
@@ -565,6 +567,18 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         !c->list_units)
     {
         error("You must supply at least one device to communicate using (w)mbus.\n");
+    }
+
+    while (argv[i] != 0 && SendBusContent::isLikely(argv[i]))
+    {
+        SendBusContent sbc;
+        bool ok = sbc.parse(argv[i]);
+        if (!ok)
+        {
+            error("Not a valid send bus content command.\n");
+        }
+        c->send_bus_content.push_back(sbc);
+        i++;
     }
 
     if ((argc-i) % 4 != 0) {

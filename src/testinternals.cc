@@ -41,6 +41,7 @@ void test_devices();
 void test_meters();
 void test_months();
 void test_aes();
+void test_sbc();
 
 int main(int argc, char **argv)
 {
@@ -69,6 +70,8 @@ int main(int argc, char **argv)
     test_periods();
     test_months();
     test_aes();
+    test_sbc();
+
     return 0;
 }
 
@@ -546,7 +549,7 @@ void testd(string arg, bool xok, string xalias, string xfile, string xtype, stri
     }
     if (ok == false) return;
 
-    if (d.alias != xalias ||
+    if (d.bus_alias != xalias ||
         d.file != xfile ||
         toString(d.type) != xtype ||
         d.id != xid ||
@@ -872,6 +875,63 @@ void test_meters()
           "0", // bps
           "c1,t1"); // linkmodes)
 
+}
+
+void tests(string arg, bool expect, ContentStartsWith sw, string bus, string content)
+{
+    SendBusContent sbc;
+    bool rc = sbc.parse(arg);
+    if (rc != expect && rc == false)
+    {
+        printf("ERROR could not parse send bus content \"%s\"\n", arg.c_str());
+        return;
+    }
+    if (rc != expect && rc == true)
+    {
+        printf("ERROR could parse send bus content \"%s\" but expected failure!\n", arg.c_str());
+        return;
+    }
+
+    if (expect == false && rc == false) return; // It failed, which was expected.
+
+    if (sbc.starts_with != sw ||
+        sbc.bus != bus ||
+        sbc.content != content)
+    {
+        printf("ERROR in parsing send bus content \"%s\"\n"
+               "got      (sw: %s bus: %s, data: %s)\n"
+               "expected (sw: %s bus: %s, data: %s)\n", arg.c_str(),
+               toString(sbc.starts_with), sbc.bus.c_str(), sbc.content.c_str(),
+               toString(sw), bus.c_str(), content.c_str());
+    }
+}
+
+void test_sbc()
+{
+    tests("sendc:BUS1:11223344", true,
+          ContentStartsWith::C_FIELD,
+          "BUS1", // bus
+          "11223344"); // content
+
+    tests("sendci:alfa:11", true,
+          ContentStartsWith::CI_FIELD,
+          "alfa", // bus
+          "11"); // content
+
+    tests("alfa:t1", false, ContentStartsWith::C_FIELD, "", "");
+    tests("send", false, ContentStartsWith::C_FIELD, "", "");
+    tests("sendc:out", false, ContentStartsWith::C_FIELD, "", "");
+    tests("sendc:out:", false, ContentStartsWith::C_FIELD, "", "x");
+
+    tests("sends:out:5b00", true,
+          ContentStartsWith::SHORT_FRAME,
+          "out", // bus
+          "5b00"); // content
+
+    tests("sendl:mbus2:1122334455", true,
+          ContentStartsWith::LONG_FRAME,
+          "mbus2", // bus
+          "1122334455"); // content
 }
 
 void test_aes()

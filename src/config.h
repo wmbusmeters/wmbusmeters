@@ -114,6 +114,7 @@ struct Configuration
     std::vector<MeterInfo> meters;
     std::vector<std::string> extra_constant_fields; // Additional constant fields to always add to json.
     // These extra constant fields can also be part of selected with selectfields.
+    std::vector<SendBusContent> send_bus_content; // Telegrams used to wake up a meter for reading or mbus read-out requests.
 
     ~Configuration() = default;
 };

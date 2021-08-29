@@ -84,17 +84,17 @@ private:
 
 shared_ptr<WMBus> openCUL(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
-    string alias =  detected.specified_device.alias;
+    string bus_alias =  detected.specified_device.bus_alias;
     string device = detected.found_file;
     if (serial_override)
     {
-        WMBusCUL *imp = new WMBusCUL(alias, serial_override, manager);
+        WMBusCUL *imp = new WMBusCUL(bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400, PARITY::NONE, "cul");
-    WMBusCUL *imp = new WMBusCUL(alias, serial, manager);
+    WMBusCUL *imp = new WMBusCUL(bus_alias, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 

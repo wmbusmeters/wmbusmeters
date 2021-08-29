@@ -58,7 +58,7 @@ struct WMBusRTL433 : public virtual WMBusCommonImplementation
     void processSerialData();
     void simulate();
 
-    WMBusRTL433(string alias, string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
+    WMBusRTL433(string bus_alias, string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
 
 private:
 
@@ -81,7 +81,7 @@ shared_ptr<WMBus> openRTL433(Detected detected, string bin_dir, bool daemon,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override)
 {
-    string alias = detected.specified_device.alias;
+    string bus_alias = detected.specified_device.bus_alias;
     string identifier = detected.found_device_id;
     SpecifiedDevice &device = detected.specified_device;
     string command;
@@ -144,16 +144,16 @@ shared_ptr<WMBus> openRTL433(Detected detected, string bin_dir, bool daemon,
     args.push_back(command);
     if (serial_override)
     {
-        WMBusRTL433 *imp = new WMBusRTL433(alias, identifier, serial_override, manager);
+        WMBusRTL433 *imp = new WMBusRTL433(bus_alias, identifier, serial_override, manager);
         return shared_ptr<WMBus>(imp);
     }
     auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, "rtl433");
-    WMBusRTL433 *imp = new WMBusRTL433(alias, identifier, serial, manager);
+    WMBusRTL433 *imp = new WMBusRTL433(bus_alias, identifier, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 
-WMBusRTL433::WMBusRTL433(string alias, string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(alias, DEVICE_RTL433, manager, serial, false), serialnr_(serialnr)
+WMBusRTL433::WMBusRTL433(string bus_alias, string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(bus_alias, DEVICE_RTL433, manager, serial, false), serialnr_(serialnr)
 {
     reset();
 }

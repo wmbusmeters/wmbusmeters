@@ -136,7 +136,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 
     MeterInfo mi;
     mi.parse(name, driver, id, key); // sets driver, extras, name, bus, bps, link_modes, ids, name, key
-        
+
     LinkModeSet default_modes = toMeterLinkModeSet(mi.driver);
     if (!default_modes.hasAll(mi.link_modes))
     {

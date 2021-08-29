@@ -39,6 +39,7 @@ struct MBusRawTTY : public virtual WMBusCommonImplementation
     LinkModeSet supportedLinkModes() { return Any_bit; }
     int numConcurrentLinkModes() { return 0; }
     bool canSetLinkModes(LinkModeSet desired_modes) { return true; }
+    bool sendTelegram(ContentStartsWith starts_with, vector<uchar> &content);
 
     void processSerialData();
     void simulate() { }
@@ -55,7 +56,7 @@ private:
 
 shared_ptr<WMBus> openMBUS(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
-    string alias  = detected.specified_device.alias;
+    string bus_alias  = detected.specified_device.bus_alias;
     string device = detected.found_file;
     int bps = detected.found_bps;
 
@@ -63,17 +64,17 @@ shared_ptr<WMBus> openMBUS(Detected detected, shared_ptr<SerialCommunicationMana
 
     if (serial_override)
     {
-        MBusRawTTY *imp = new MBusRawTTY(alias, serial_override, manager);
+        MBusRawTTY *imp = new MBusRawTTY(bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
     auto serial = manager->createSerialDeviceTTY(device.c_str(), bps, PARITY::EVEN, "mbus");
-    MBusRawTTY *imp = new MBusRawTTY(alias, serial, manager);
+    MBusRawTTY *imp = new MBusRawTTY(bus_alias, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 
-MBusRawTTY::MBusRawTTY(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(alias, DEVICE_MBUS, manager, serial, true)
+MBusRawTTY::MBusRawTTY(string bus_alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    WMBusCommonImplementation(bus_alias, DEVICE_MBUS, manager, serial, true)
 {
     reset();
 }
@@ -148,6 +149,44 @@ void MBusRawTTY::processSerialData()
             handleTelegram(about, payload);
         }
     }
+}
+
+bool MBusRawTTY::sendTelegram(ContentStartsWith starts_with, vector<uchar> &content)
+{
+    if (serial()->readonly()) return true;
+    if (content.size() > 250) return false;
+
+    vector<uchar> msg;
+    if (starts_with == ContentStartsWith::SHORT_FRAME)
+    {
+        msg.push_back(0x10);
+    }
+    else if (starts_with == ContentStartsWith::LONG_FRAME)
+    {
+        msg.push_back(0x68);
+        msg.push_back((uchar)content.size());
+        msg.push_back((uchar)content.size());
+        msg.push_back(0x68);
+    }
+    else
+    {
+        warning("(mbus) cannot use %s for sending\n", toString(starts_with));
+        return false;
+    }
+
+    uchar crc = 0;
+    for (size_t i=0; i<content.size(); ++i)
+    {
+        msg.push_back(content[i]);
+        crc += content[i];
+    }
+    msg.push_back(crc);
+    msg.push_back(0x16);
+
+    bool sent = serial()->send(msg);
+    if (!sent) return false;
+
+    return true;
 }
 
 AccessCheck detectMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> manager)

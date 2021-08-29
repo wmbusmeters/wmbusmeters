@@ -186,19 +186,19 @@ private:
 
 shared_ptr<WMBus> openAMB8465(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
-    string alias  = detected.specified_device.alias;
+    string bus_alias  = detected.specified_device.bus_alias;
     string device = detected.found_file;
     assert(device != "");
 
     if (serial_override)
     {
-        WMBusAmber *imp = new WMBusAmber(alias, serial_override, manager);
+        WMBusAmber *imp = new WMBusAmber(bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
         return shared_ptr<WMBus>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600, PARITY::NONE, "amb8465");
-    WMBusAmber *imp = new WMBusAmber(alias, serial, manager);
+    WMBusAmber *imp = new WMBusAmber(bus_alias, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
 
