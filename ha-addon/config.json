@@ -20,7 +20,7 @@
     "options": {
         "data_path": "/config/wmbusmeters",
         "conf": 
-            "loglevel=normal\ndevice=/dev/ttyUSB0:t1\nlogtelegrams=false\nformat=json\nlogfile=/dev/stdout\nshell=/wmbusmeters/mosquitto_pub.sh wmbusmeters/$METER_NAME $METER_JSON",
+            "loglevel=normal\ndevice=/dev/ttyUSB0:t1\nlogtelegrams=false\nformat=json\nlogfile=/dev/stdout\nshell=/wmbusmeters/mosquitto_pub.sh wmbusmeters/$METER_NAME \"$METER_JSON\"",
         "meters": [],
         "mqtt": {}
     },
