@@ -946,7 +946,7 @@ bool WMBusIM871aIM170A::sendTelegram(ContentStartsWith starts_with, vector<uchar
         return false;
     }
 
-    request_[3] = content.size()-1;
+    request_[3] = content.size();
 
     for (size_t i=0; i<content.size(); ++i)
     {
