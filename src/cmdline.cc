@@ -539,19 +539,19 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         error("Unknown option \"%s\"\n", argv[i]);
     }
 
-    bool found_at_least_one_device = false;
+    bool found_at_least_one_device_or_hex = false;
     while (argv[i])
     {
-        bool ok = handleDevice(c, argv[i]);
+        bool ok = handleDeviceOrHex(c, argv[i]);
         if (ok)
         {
-            found_at_least_one_device = true;
+            found_at_least_one_device_or_hex = true;
         }
         else
         {
-            if (!found_at_least_one_device)
+            if (!found_at_least_one_device_or_hex)
             {
-                error("At least one valid device must be supplied!\n");
+                error("At least one valid device (or hex) must be supplied!\n");
             }
             // There are more arguments...
             break;

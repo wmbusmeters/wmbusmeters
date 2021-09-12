@@ -42,6 +42,7 @@ void test_meters();
 void test_months();
 void test_aes();
 void test_sbc();
+void test_hex();
 
 int main(int argc, char **argv)
 {
@@ -71,6 +72,7 @@ int main(int argc, char **argv)
     test_months();
     test_aes();
     test_sbc();
+    test_hex();
 
     return 0;
 }
@@ -981,4 +983,24 @@ void test_aes()
     {
         printf("ERROR! aes encrypt decrypt (no iv) failed!\n");
     }
+}
+
+void test_is_hex(const char *hex, bool expected_ok, bool expected_invalid)
+{
+    bool got_invalid;
+    bool got_ok = isHexString(hex, &got_invalid);
+
+    if (got_ok != expected_ok || got_invalid != expected_invalid)
+    {
+        printf("ERROR! hex string %s was expected to be %d (invalid %d) but got %d (invalid %d)\n",
+               hex,
+               expected_ok, expected_invalid, got_ok, got_invalid);
+    }
+}
+void test_hex()
+{
+    test_is_hex("00112233445566778899aabbccddeeff", true, false);
+    test_is_hex("00112233445566778899AABBCCDDEEFF", true, false);
+    test_is_hex("00112233445566778899AABBCCDDEEF", true, true);
+    test_is_hex("00112233445566778899AABBCCDDEEFG", false, false);
 }

@@ -125,7 +125,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file);
 void handleConversions(Configuration *c, string s);
 void handleSelectedFields(Configuration *c, string s);
 void handleAddedFields(Configuration *c, string s);
-bool handleDevice(Configuration *c, string devicefile);
+bool handleDeviceOrHex(Configuration *c, string devicefilehex);
 
 enum class LinkModeCalculationResultType
 {

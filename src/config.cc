@@ -241,13 +241,23 @@ void handleResetAfter(Configuration *c, string s)
     }
 }
 
-bool handleDevice(Configuration *c, string devicefile)
+bool handleDeviceOrHex(Configuration *c, string devicefilehex)
 {
-    SpecifiedDevice specified_device;
-    bool ok = specified_device.parse(devicefile);
-    if (!ok && SpecifiedDevice::isLikelyDevice(devicefile))
+    bool invalid_hex = false;
+    bool is_hex = isHexString(devicefilehex, &invalid_hex);
+    if (is_hex)
     {
-        error("Not a valid device \"%s\"\n", devicefile.c_str());
+        if (invalid_hex)
+        {
+            error("Hex string must have an even lenght of hexadecimal characters.\n");
+        }
+    }
+
+    SpecifiedDevice specified_device;
+    bool ok = specified_device.parse(devicefilehex);
+    if (!ok && SpecifiedDevice::isLikelyDevice(devicefilehex))
+    {
+        error("Not a valid device \"%s\"\n", devicefilehex.c_str());
     }
 
     if (!ok) return false;
@@ -259,7 +269,7 @@ bool handleDevice(Configuration *c, string devicefile)
     {
         if (!specified_device.linkmodes.empty())
         {
-            error("An mbus device must not have linkmode set. \"%s\"\n", devicefile.c_str());
+            error("An mbus device must not have linkmode set. \"%s\"\n", devicefilehex.c_str());
         }
     }
 
@@ -594,7 +604,7 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
         if (p.first == "loglevel") handleLoglevel(c, p.second);
         else if (p.first == "internaltesting") handleInternalTesting(c, p.second);
         else if (p.first == "ignoreduplicates") handleIgnoreDuplicateTelegrams(c, p.second);
-        else if (p.first == "device") handleDevice(c, p.second);
+        else if (p.first == "device") handleDeviceOrHex(c, p.second);
         else if (p.first == "donotprobe") handleDoNotProbe(c, p.second);
         else if (p.first == "listento") handleListenTo(c, p.second);
         else if (p.first == "logtelegrams") handleLogtelegrams(c, p.second);
@@ -653,7 +663,7 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
             device_override = "rtlwmbus";
         }
         debug("(config) overriding device with \"%s\"\n", device_override.c_str());
-        handleDevice(c, device_override);
+        handleDeviceOrHex(c, device_override);
     }
     if (listento_override != "")
     {

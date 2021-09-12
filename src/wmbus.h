@@ -157,7 +157,8 @@ struct SpecifiedDevice
     std::string bus_alias; // A bus alias, necessary for C2/T2 meters and mbus.
     int index; // 0,1,2,3 the order on the command line / config file.
     std::string file; // simulation_meter.txt, stdin, file.raw, /dev/ttyUSB0
-    bool is_tty{}, is_stdin{}, is_file{}, is_simulation{};
+    std::string hex; // a hex string supplied on the command line becomes a hex simulation.
+    bool is_tty{}, is_stdin{}, is_file{}, is_simulation{}, is_hex_simulation{};
     WMBusDeviceType type; // im871a, rtlwmbus
     std::string id; // 12345678 for wmbus dongles or 0,1 for rtlwmbus indexes.
     std::string extras; // Extra device specific settings.
@@ -180,6 +181,7 @@ struct Detected
     SpecifiedDevice specified_device {}; // Device as specified from the command line / config file.
 
     string found_file; // The device file to use.
+    string found_hex;  // An immediate hex string is supplied.
     string found_device_id; // An "unique" identifier, typically the id used by the dongle as its own wmbus id, if it transmits.
     WMBusDeviceType found_type {};  // IM871A, AMB8465 etc.
     int found_bps {}; // Serial speed of tty.
@@ -610,9 +612,9 @@ struct WMBus
     virtual ~WMBus() = 0;
 };
 
-Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
-                                   LinkModeSet default_linkmodes,
-                                   shared_ptr<SerialCommunicationManager> manager);
+Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
+                                        LinkModeSet default_linkmodes,
+                                        shared_ptr<SerialCommunicationManager> manager);
 Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
                                       LinkModeSet default_linkmodes,
                                       shared_ptr<SerialCommunicationManager> handler);

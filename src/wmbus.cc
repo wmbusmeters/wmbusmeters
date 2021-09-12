@@ -4392,9 +4392,9 @@ bool is_command(string b, string *cmd)
     return true;
 }
 
-bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_simulation)
+bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_simulation, bool *is_hex_simulation)
 {
-    *is_tty = *is_stdin = *is_file = *is_simulation = false;
+    *is_tty = *is_stdin = *is_file = *is_simulation = *is_hex_simulation = false;
     if (f == "stdin")
     {
         *is_stdin = true;
@@ -4407,6 +4407,16 @@ bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_
         // a file will confuse the user to no end....
         return false;
     }
+    // A hex string becomes a simulation file with a single line containing a telegram defined by the hex string.
+    bool invalid_hex = false;
+    if (isHexString(f.c_str(), &invalid_hex))
+    {
+        *is_simulation = true;
+        *is_hex_simulation = true;
+        assert(!invalid_hex);
+        return true;
+    }
+    // A command line arguments simulation_xxyyzz.txt is detected as a simulation file.
     if (checkIfSimulationFile(f.c_str()))
     {
         *is_simulation = true;
@@ -4526,6 +4536,7 @@ string SpecifiedDevice::str()
         r += bus_alias+"=";
     }
     if (file != "") r += file+":";
+    if (hex != "") r += "<"+hex+">:";
     if (type != WMBusDeviceType::DEVICE_UNKNOWN)
     {
         r += toString(type);
@@ -4604,10 +4615,17 @@ bool SpecifiedDevice::parse(string &arg)
             // then the specified device string is faulty.
             return false;
         }
-        if (!file_checked && check_file(p, &is_tty, &is_stdin, &is_file, &is_simulation))
+        if (!file_checked && check_file(p, &is_tty, &is_stdin, &is_file, &is_simulation, &is_hex_simulation))
         {
             file_checked = true;
-            file = p;
+            if (!is_hex_simulation)
+            {
+                file = p;
+            }
+            else
+            {
+                hex = p;
+            }
         }
         else if (!typeidextras_checked && is_type_id_extras(p, &type, &id, &extras))
         {
@@ -4750,16 +4768,17 @@ Detected detectWMBusDeviceOnTTY(string tty,
     return detected;
 }
 
-Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
+Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
                                    LinkModeSet default_linkmodes,
                                    shared_ptr<SerialCommunicationManager> handler)
 {
-    assert(specified_device.file != "");
+    assert(specified_device.file != "" || specified_device.hex != "");
     assert(specified_device.command == "");
-    debug("(lookup) with file \"%s\"\n", specified_device.file.c_str());
+    debug("(lookup) with file/hex \"%s%s\"\n", specified_device.file.c_str(), specified_device.hex.c_str());
 
     Detected detected;
     detected.found_file = specified_device.file;
+    detected.found_hex = specified_device.hex;
     detected.setSpecifiedDevice(specified_device);
     // If <device>:c1 is missing :c1 then use --c1.
     LinkModeSet lms = specified_device.linkmodes;
@@ -4769,8 +4788,8 @@ Detected detectWMBusDeviceWithFile(SpecifiedDevice &specified_device,
     }
     if (specified_device.is_simulation)
     {
-        debug("(lookup) driver: simulation file\n");
-        // A simulation file has a lms of all by default, eg no simulation_foo.txt:t1 nor --t1
+        debug("(lookup) driver: simulation %s\n", specified_device.hex != "" ? "hex" : "file");
+        // A simulation file/hex has a lms of all by default, eg no simulation_foo.txt:t1 nor --t1
         if (specified_device.linkmodes.empty()) lms.setAll();
         detected.setAsFound("", DEVICE_SIMULATION, 0 , false, lms);
         return detected;

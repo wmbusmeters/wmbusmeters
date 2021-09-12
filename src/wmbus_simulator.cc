@@ -47,7 +47,7 @@ struct WMBusSimulator : public WMBusCommonImplementation
     void simulate();
     string device() { return file_; }
 
-    WMBusSimulator(string alias, string file, shared_ptr<SerialCommunicationManager> manager);
+    WMBusSimulator(string alias, string file, string hex, shared_ptr<SerialCommunicationManager> manager);
 
 private:
     vector<uchar> received_payload_;
@@ -62,15 +62,23 @@ shared_ptr<WMBus> openSimulator(Detected detected, shared_ptr<SerialCommunicatio
 {
     string bus_alias = detected.specified_device.bus_alias;
     string device = detected.found_file;
-    WMBusSimulator *imp = new WMBusSimulator(bus_alias, device, manager);
+    string hex = detected.found_hex;
+    WMBusSimulator *imp = new WMBusSimulator(bus_alias, device, hex, manager);
     return shared_ptr<WMBus>(imp);
 }
 
-WMBusSimulator::WMBusSimulator(string bus_alias, string file, shared_ptr<SerialCommunicationManager> manager)
+WMBusSimulator::WMBusSimulator(string bus_alias, string file, string hex, shared_ptr<SerialCommunicationManager> manager)
     : WMBusCommonImplementation(bus_alias, DEVICE_SIMULATION, manager, NULL, false), file_(file)
 {
-    assert(file != "");
-    loadFile(file, &lines_);
+    assert(file != "" || hex != "");
+    if (hex != "")
+    {
+        lines_.push_back("telegram="+hex);
+    }
+    if (file != "")
+    {
+        loadFile(file, &lines_);
+    }
 }
 
 bool WMBusSimulator::ping()
