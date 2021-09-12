@@ -536,6 +536,38 @@ wmbusmeters --format=json --meterfiles /dev/ttyUSB0:im871a:c1 MyTapWater multica
 rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s | wmbusmeters --format=json stdin:rtlwmbus MyMeter auto 12345678 NOKEY | ...more processing...
 ```
 
+# Decoding a telegram supplied on the command line as a hex string
+
+If you have a single telegram you want decoded, you do not need to create a simulation file,
+you can just supply the telegram as a hex string on the command line.
+
+```shell
+wmbusmeters 234433300602010014007a8e0000002f2f0efd3a1147000000008e40fd3a341200000000
+```
+
+which will output:
+```
+No meters configured. Printing id:s of all telegrams heard!
+Received telegram from: 00010206
+          manufacturer: (LAS) Lansen Systems, Sweden (0x3033)
+                  type: Other (0x00)
+                   ver: 0x14
+                driver: lansenpu
+```
+
+You an of course decode the meter on the fly:
+
+```shell
+wmbusmeters --format=json 234433300602010014007a8e0000002f2f0efd3a1147000000008e40fd3a341200000000 MyCounter auto 00010206 NOKEY
+```
+
+which will output:
+
+```
+{"media":"other","meter":"lansenpu","name":"MyCounter","id":"00010206","counter_a_int":4711,"counter_b_int":1234,"timestamp":"2021-09-12T08:45:52Z"}
+```
+
+
 # Additional tools
 
 If you have a Kamstrup meters and you have received a KEM file and its
