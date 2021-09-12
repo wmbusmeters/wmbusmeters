@@ -39,6 +39,9 @@ typedef unsigned char uchar;
 uchar bcd2bin(uchar c);
 uchar revbcd2bin(uchar c);
 uchar reverse(uchar c);
+
+bool isHexChar(uchar c);
+
 bool isHexString(const char* txt, bool *invalid);
 bool isHexString(const std::string &txt, bool *invalid);
 bool hex2bin(const char* src, std::vector<uchar> *target);

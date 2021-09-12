@@ -141,6 +141,11 @@ int char2int(char input)
     return -1;
 }
 
+bool isHexChar(uchar c)
+{
+    return char2int(c) != -1;
+}
+
 // The byte 0x13 i converted into the integer value 13.
 uchar bcd2bin(uchar c)
 {

@@ -4187,7 +4187,7 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
     // Ugly: 00615B2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B
     // Here the frame is prefixed with some random data.
 
-    debugPayload("(wmbus) checkWMBUSFrame\n", data);
+    debugPayload("(wmbus) checkWMBUSFrame", data);
 
     if (data.size() < 11)
     {
@@ -4447,9 +4447,17 @@ bool is_type_id_extras(string t, WMBusDeviceType *out_type, string *out_id, stri
     // im871a im871a[12345678] im871a(foo=123)
     // auto
     // rtlwmbus rtlwmbus[plast123] rtlwmbus(device extras) rtlwmbus[hej](extras)
+    // hex
     if (t == "auto")
     {
         *out_type = WMBusDeviceType::DEVICE_AUTO;
+        *out_id = "";
+        return true;
+    }
+
+    if (t == "hex")
+    {
+        *out_type = WMBusDeviceType::DEVICE_HEXTTY;
         *out_id = "";
         return true;
     }

@@ -213,6 +213,10 @@ shared_ptr<WMBus> BusManager::createWmbusObject(Detected *detected, Configuratio
         verbose("(rawtty) on %s\n", detected->found_file.c_str());
         wmbus = openRawTTY(*detected, serial_manager_, serial_override);
         break;
+    case DEVICE_HEXTTY:
+        verbose("(hextty) on %s\n", detected->found_file.c_str());
+        wmbus = openHexTTY(*detected, serial_manager_, serial_override);
+        break;
     case DEVICE_RTLWMBUS:
         wmbus = openRTLWMBUS(*detected, config->bin_dir, config->daemon, serial_manager_, serial_override);
         break;

@@ -39,6 +39,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
     X(IM871A,im871a,true,false,detectIM871AIM170A)   \
     X(IM170A,im170a,true,false,detectSKIP)           \
     X(RAWTTY,rawtty,true,false,detectRAWTTY)         \
+    X(HEXTTY,hextty,true,false,detectSKIP)           \
     X(RC1180,rc1180,true,false,detectRC1180)         \
     X(RTL433,rtl433,false,true,detectRTL433)         \
     X(RTLWMBUS,rtlwmbus,false,true,detectRTLWMBUS)   \
@@ -630,6 +631,9 @@ shared_ptr<WMBus> openAMB8465(Detected detected,
                               shared_ptr<SerialCommunicationManager> manager,
                               shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRawTTY(Detected detected,
+                             shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openHexTTY(Detected detected,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openMBUS(Detected detected,
