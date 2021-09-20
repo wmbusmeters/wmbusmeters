@@ -64,6 +64,7 @@
     X(IPERL,     MANUFACTURER_SEN,  0x06,  0x68) \
     X(IPERL,     MANUFACTURER_SEN,  0x07,  0x68) \
     X(IPERL,     MANUFACTURER_SEN,  0x07,  0x7c) \
+    X(IZAR,      MANUFACTURER_HYD,  0x07,  0x85) \
     X(IZAR,      MANUFACTURER_SAP,  0x15,    -1) \
     X(IZAR,      MANUFACTURER_SAP,  0x04,    -1) \
     X(IZAR,      MANUFACTURER_SAP,  0x07,  0x00) \
