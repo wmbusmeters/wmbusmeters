@@ -109,7 +109,7 @@ void MeterApator162::processContent(Telegram *t)
             vector<uchar> frame;
             t->extractFrame(&frame);
             string hex = bin2hex(frame);
-            warning("(apator162) telegram contains a register (%02x) with unknown size \n"
+            warning("(apator162) telegram contains a register (%02x) with unknown size.\n"
                     "Please open an issue at https://github.com/weetmuts/wmbusmeters/\n"
                     "and report this telegram: %s\n", c, hex.c_str());
             break;
@@ -169,6 +169,8 @@ int MeterApator162::registerSize(int c)
     case 0xA0: return 4;
 
     case 0xB4: return 3;
+
+    case 0xC7: return 3;
 
     case 0xF0: return 4;
     }
