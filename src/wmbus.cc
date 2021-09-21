@@ -780,6 +780,19 @@ void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
     }
 }
 
+void Telegram::addSpecialExplanation(int offset, const char* fmt, ...)
+{
+    char buf[1024];
+    buf[1023] = 0;
+
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, 1023, fmt, args);
+    va_end(args);
+
+    explanations.push_back({offset, buf});
+}
+
 bool expectedMore(int line)
 {
     verbose("(wmbus) parser expected more data! (%d)\n", line);

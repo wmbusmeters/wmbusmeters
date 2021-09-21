@@ -246,6 +246,19 @@ std::string bin2hex(vector<uchar>::iterator data, vector<uchar>::iterator end, i
     return str;
 }
 
+std::string bin2hex(vector<uchar> &data, int offset, int len) {
+    std::string str;
+    vector<uchar>::iterator i = data.begin();
+    i += offset;
+    while (i != data.end() && len-- > 0) {
+        const char ch = *i;
+        i++;
+        str.append(&hex[(ch  & 0xF0) >> 4], 1);
+        str.append(&hex[ch & 0xF], 1);
+    }
+    return str;
+}
+
 std::string safeString(vector<uchar> &target) {
     std::string str;
     for (size_t i = 0; i < target.size(); ++i) {

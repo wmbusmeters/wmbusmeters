@@ -484,6 +484,8 @@ struct Telegram
     vector<pair<int,string>> explanations;
     void addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int len, const char* fmt, ...);
     void addMoreExplanation(int pos, const char* fmt, ...);
+    // Add an explanation of data inside manufacturer specific data.
+    void addSpecialExplanation(int offset, const char* fmt, ...);
     void explainParse(string intro, int from);
 
     bool parserWarns() { return parser_warns_; }

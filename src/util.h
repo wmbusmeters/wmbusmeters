@@ -49,6 +49,7 @@ bool hex2bin(std::string &src, std::vector<uchar> *target);
 bool hex2bin(std::vector<uchar> &src, std::vector<uchar> *target);
 std::string bin2hex(const std::vector<uchar> &target);
 std::string bin2hex(std::vector<uchar>::iterator data, std::vector<uchar>::iterator end, int len);
+std::string bin2hex(std::vector<uchar> &data, int offset, int len);
 std::string safeString(std::vector<uchar> &target);
 void strprintf(std::string &s, const char* fmt, ...);
 std::string tostrprintf(const char* fmt, ...);
