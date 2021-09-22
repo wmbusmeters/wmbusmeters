@@ -157,8 +157,10 @@ int MeterApator162::registerSize(int c)
         // now its impossible to see that the telegram contains mfct data....
         // except by using the mfct/type/version info.
     case 0x81: return 10;
+    case 0x82: return 10;
     case 0x83: return 10;
     case 0x84: return 10;
+    case 0x86: return 10;
     case 0x87: return 10;
 
     case 0x92: return 3;
