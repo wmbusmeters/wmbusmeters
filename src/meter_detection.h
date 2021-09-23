@@ -118,6 +118,7 @@
     X(CCx01,      MANUFACTURER_GSS, 0x02,  0x01) \
     X(LSE_08,     MANUFACTURER_LSE, 0x08,  0x01) \
     X(WEH_07,     MANUFACTURER_WEH, 0x07,  0xfe) \
+    X(UNISMART,   MANUFACTURER_AMX, 0x03,  0x01) \
 
 
 // End of list

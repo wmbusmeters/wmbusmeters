@@ -194,6 +194,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_gransystems_ccx01.o \
 	$(BUILD)/meter_lse_08.o \
 	$(BUILD)/meter_weh_07.o \
+	$(BUILD)/meter_unismart.o \
 
 
 all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd $(BUILD)/wmbusmeters.g $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals

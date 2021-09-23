@@ -90,6 +90,7 @@
     X(whe5x,      S1_bit, HeatCostAllocationMeter, WHE5X, Whe5x)       \
     X(lse_08,     S1_bit|C1_bit, HeatCostAllocationMeter, LSE_08, LSE_08) \
     X(weh_07,     C1_bit, WaterMeter,       WEH_07,       WEH_07)      \
+    X(unismart,   T1_bit, GasMeter,       UNISMART, Unismart)  \
 
 
 enum class MeterDriver {
@@ -280,6 +281,27 @@ struct WaterMeter : public virtual Meter
     virtual bool  hasTotalWaterConsumption();
     virtual double targetWaterConsumption(Unit u); // m3
     virtual bool  hasTargetWaterConsumption();
+    virtual double maxFlow(Unit u); // m3/s
+    virtual bool  hasMaxFlow();
+    virtual double flowTemperature(Unit u); // °C
+    virtual bool hasFlowTemperature();
+    virtual double externalTemperature(Unit u); // °C
+    virtual bool hasExternalTemperature();
+
+    virtual string statusHumanReadable();
+    virtual string status();
+    virtual string timeDry();
+    virtual string timeReversed();
+    virtual string timeLeaking();
+    virtual string timeBursting();
+};
+
+struct GasMeter : public virtual Meter
+{
+    virtual double totalGasConsumption(Unit u); // m3
+    virtual bool  hasTotalGasConsumption();
+    virtual double targetGasConsumption(Unit u); // m3
+    virtual bool  hasTargetGasConsumption();
     virtual double maxFlow(Unit u); // m3/s
     virtual bool  hasMaxFlow();
     virtual double flowTemperature(Unit u); // °C

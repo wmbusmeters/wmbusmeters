@@ -983,6 +983,24 @@ string WaterMeter::timeReversed() { return "-NAN"; }
 string WaterMeter::timeLeaking() { return "-NAN"; }
 string WaterMeter::timeBursting() { return "-NAN"; }
 
+double GasMeter::totalGasConsumption(Unit u) { return -NAN; }
+bool  GasMeter::hasTotalGasConsumption() { return false; }
+double GasMeter::targetGasConsumption(Unit u) { return -NAN; }
+bool  GasMeter::hasTargetGasConsumption() { return false; }
+double GasMeter::maxFlow(Unit u) { return -NAN; }
+bool  GasMeter::hasMaxFlow() { return false; }
+double GasMeter::flowTemperature(Unit u) { return -NAN; }
+bool GasMeter::hasFlowTemperature() { return false; }
+double GasMeter::externalTemperature(Unit u) { return -NAN; }
+bool GasMeter::hasExternalTemperature() { return false; }
+
+string GasMeter::statusHumanReadable() { return "-NAN"; }
+string GasMeter::status() { return "-NAN"; }
+string GasMeter::timeDry() { return "-NAN"; }
+string GasMeter::timeReversed() { return "-NAN"; }
+string GasMeter::timeLeaking() { return "-NAN"; }
+string GasMeter::timeBursting() { return "-NAN"; }
+
 double HeatMeter::totalEnergyConsumption(Unit u) { return -NAN; }
 double HeatMeter::currentPeriodEnergyConsumption(Unit u) { return -NAN; }
 double HeatMeter::previousPeriodEnergyConsumption(Unit u) { return -NAN; }
