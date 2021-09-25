@@ -22,6 +22,8 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
+#include<algorithm>
+
 using namespace std;
 
 struct MeterUnismart : public virtual GasMeter, public virtual MeterCommonImplementation {
@@ -30,11 +32,24 @@ struct MeterUnismart : public virtual GasMeter, public virtual MeterCommonImplem
     // Total gas counted through the meter
     double totalGasConsumption(Unit u);
     bool  hasTotalGasConsumption();
+    // Consumption at the beginning of this month.
+    double targetGasConsumption(Unit u);
 
 private:
     void processContent(Telegram *t);
 
+    string fabrication_no_;
+    string total_date_time_;
     double total_gas_consumption_m3_ {};
+    string target_date_time_;
+    double target_gas_consumption_m3_ {};
+    string version_;
+    string device_date_time_;
+
+    string supplier_info_;
+    string status_;
+    string parameter_set_;
+    string status2_;
 };
 
 shared_ptr<GasMeter> createUnismart(MeterInfo &mi)
@@ -49,10 +64,60 @@ MeterUnismart::MeterUnismart(MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
+    addPrint("fabrication_no", Quantity::Text,
+             [&](){ return fabrication_no_; },
+             "Static fabrication no information.",
+             false, true);
+
+    addPrint("total_date_time", Quantity::Text,
+             [&](){ return total_date_time_; },
+             "Timestamp for this total measurement.",
+             false, true);
+
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalGasConsumption(u); },
              "The total gas consumption recorded by this meter.",
              true, true);
+
+    addPrint("target_date_time", Quantity::Text,
+             [&](){ return target_date_time_; },
+             "Timestamp for gas consumption recorded at the beginning of this month.",
+             false, true);
+
+    addPrint("target", Quantity::Volume,
+             [&](Unit u){ return targetGasConsumption(u); },
+             "The total gas consumption recorded by this meter at the beginning of this month.",
+             true, true);
+
+    addPrint("version", Quantity::Text,
+             [&](){ return version_; },
+             "Model/version a reported by meter.",
+             false, true);
+
+    addPrint("device_date_time", Quantity::Text,
+             [&](){ return device_date_time_; },
+             "Device date time? Seems to be the same as total date time.",
+             false, true);
+
+    addPrint("suppler_info", Quantity::Text,
+             [&](){ return supplier_info_; },
+             "?",
+             false, true);
+
+    addPrint("status", Quantity::Text,
+             [&](){ return status_; },
+             "?",
+             false, true);
+
+    addPrint("parameter_set", Quantity::Text,
+             [&](){ return parameter_set_; },
+             "?",
+             false, true);
+
+    addPrint("status2", Quantity::Text,
+             [&](){ return status2_; },
+             "?",
+             false, true);
 
 }
 
@@ -113,12 +178,78 @@ void MeterUnismart::processContent(Telegram *t)
 (unismart) 5e: 2F skip
 
 */
-     int offset;
+    int offset;
     string key;
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, 0, &key, &t->values)) {
+    uint64_t v {};
+    if (extractDVlong(&t->values, "0C78", &offset, &v))
+    {
+        fabrication_no_ = to_string(v);
+        t->addMoreExplanation(offset, " fabrication no (%zu)", v);
+    }
+
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
+        struct tm datetime;
+        extractDVdate(&t->values, key, &offset, &datetime);
+        total_date_time_ = strdatetime(&datetime);
+        t->addMoreExplanation(offset, " total datetime (%s)", total_date_time_.c_str());
+    }
+
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, &key, &t->values))
+    {
         extractDVdouble(&t->values, key, &offset, &total_gas_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_gas_consumption_m3_);
+    }
+
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 1, 0, &key, &t->values)) {
+        struct tm datetime;
+        extractDVdate(&t->values, key, &offset, &datetime);
+        target_date_time_ = strdatetime(&datetime);
+        t->addMoreExplanation(offset, " target datetime (%s)", target_date_time_.c_str());
+    }
+
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 1, 0, &key, &t->values))
+    {
+        extractDVdouble(&t->values, key, &offset, &target_gas_consumption_m3_);
+        t->addMoreExplanation(offset, " target consumption (%f m3)", target_gas_consumption_m3_);
+    }
+
+    string tmp;
+    if (extractDVstring(&t->values, "0DFD0C", &offset, &tmp))
+    {
+        vector<uchar> bin;
+        hex2bin(tmp, &bin);
+        std::reverse(bin.begin(), bin.end());
+        version_ = safeString(bin);
+        trimWhitespace(&version_);
+        t->addMoreExplanation(offset, " version (%s)", version_.c_str());
+    }
+
+    struct tm datetime;
+    if (extractDVdate(&t->values, "066D", &offset, &datetime))
+    {
+        device_date_time_ = strdatetime(&datetime);
+        t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
+    }
+
+    if (extractDVstring(&t->values, "01FD67", &offset, &supplier_info_))
+    {
+        t->addMoreExplanation(offset, " suppler info (%s)", supplier_info_.c_str());
+    }
+
+    if (extractDVstring(&t->values, "02FD74", &offset, &status_))
+    {
+        t->addMoreExplanation(offset, " status (%s)", status_.c_str());
+    }
+
+    if (extractDVstring(&t->values, "01FD0B", &offset, &parameter_set_))
+    {
+        t->addMoreExplanation(offset, " parameter set (%s)", parameter_set_.c_str());
+    }
+
+    if (extractDVstring(&t->values, "017F", &offset, &status2_))
+    {
+        t->addMoreExplanation(offset, " status2 (%s)", status2_.c_str());
     }
 }
 
@@ -131,4 +262,10 @@ double MeterUnismart::totalGasConsumption(Unit u)
 bool MeterUnismart::hasTotalGasConsumption()
 {
     return true;
+}
+
+double MeterUnismart::targetGasConsumption(Unit u)
+{
+    assertQuantity(u, Quantity::Volume);
+    return convert(target_gas_consumption_m3_, Unit::M3, u);
 }
