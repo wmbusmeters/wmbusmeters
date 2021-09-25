@@ -270,3 +270,8 @@ telegram=|19442423850798160018A2410100133EBBD44081053F243A82A3|
 telegram=76442104710007612507727100076121042507B5006005E2E95A3C2A1279A5415E6732679B43369FD5FDDDD783EEEBB48236D34E7C94AF0A18A5FDA5F7D64111EB42D4D891622139F2952F9D12A20088DFA4CF8123871123EE1F6C1DCEA414879DDB4E05E508F1826D7EFBA6964DF804C9261EA23BBF03
 {"media":"water","meter":"aventieswm","name":"Votten","id":"61070071","total_m3":466.472,"consumption_at_set_date_1_m3":465.96,"consumption_at_set_date_2_m3":458.88,"consumption_at_set_date_3_m3":449.65,"consumption_at_set_date_4_m3":442.35,"consumption_at_set_date_5_m3":431.07,"consumption_at_set_date_6_m3":423.98,"consumption_at_set_date_7_m3":415.23,"consumption_at_set_date_8_m3":409.03,"consumption_at_set_date_9_m3":400.79,"consumption_at_set_date_10_m3":393.2,"consumption_at_set_date_11_m3":388.63,"consumption_at_set_date_12_m3":379.26,"consumption_at_set_date_13_m3":371.26,"consumption_at_set_date_14_m3":357.84,"error_flags":"","timestamp":"1111-11-11T11:11:11Z"}
 |Votten;61070071;466.472000;;1111-11-11 11:11.11
+
+# Test Unismart Gas Meter
+telegram=|6044B8059430040001037A1D005085E2B670BCF1A5C87E0C1A51DA18924EF984613DA2A9CD39D8F4C7208326C76D42DBEADF80D574192B71BD7C4F56A7F1513151768A9DB804883B28CB085CA2D0F7438C361CB9E2734712ED9BFBB2A14EF55208|
+{"media":"gas","meter":"unismart","name":"GasMeter","id":"00043094","total_m3":917,"timestamp":"1111-11-11T11:11:11Z"}
+|GasMeter;00043094;917.000000;1111-11-11 11:11.11

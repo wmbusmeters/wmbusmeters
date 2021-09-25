@@ -1,4 +1,6 @@
 
+Added support for the Apator uniSMART gas meter.
+
 You can now decode a telegram just by supplying hex on the command line:
 wmbusmeters --format=json <hex_string>  MyMeter auto 12345678 NOKEY
 or just

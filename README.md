@@ -388,6 +388,10 @@ Tauron Amiplus (amiplus) (includes vendor apator and echelon)
 Gavazzi EM24 (em24)
 Gransystems 301 and 303 (gransystems)
 Kamstrup Omnipower (omnipower)
+
+Support gas meters:
+uniSMART (unismart)
+
 ```
 
 The wmbus dongle im871a can listen to either s1, c1 or t1.

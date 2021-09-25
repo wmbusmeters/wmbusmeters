@@ -303,6 +303,11 @@ Received telegram from: 61070071
                   type: Water meter (0x07)
                    ver: 0x25
                 driver: aventieswm aventieswm
+Received telegram from: 00043094
+          manufacturer: (AMX) APATOR METRIX, Poland (0x5b8)
+                  type: Gas meter (0x03)
+                   ver: 0x01
+                driver: unismart
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)
