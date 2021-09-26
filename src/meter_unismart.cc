@@ -49,7 +49,7 @@ private:
     string supplier_info_;
     string status_;
     string parameter_set_;
-    string status2_;
+    uint8_t other_;
 };
 
 shared_ptr<GasMeter> createUnismart(MeterInfo &mi)
@@ -114,8 +114,8 @@ MeterUnismart::MeterUnismart(MeterInfo &mi) :
              "?",
              false, true);
 
-    addPrint("status2", Quantity::Text,
-             [&](){ return status2_; },
+    addPrint("other", Quantity::Counter,
+             [&](Unit u){ return other_; },
              "?",
              false, true);
 
@@ -219,7 +219,6 @@ void MeterUnismart::processContent(Telegram *t)
     {
         vector<uchar> bin;
         hex2bin(tmp, &bin);
-        std::reverse(bin.begin(), bin.end());
         version_ = safeString(bin);
         trimWhitespace(&version_);
         t->addMoreExplanation(offset, " version (%s)", version_.c_str());
@@ -247,9 +246,9 @@ void MeterUnismart::processContent(Telegram *t)
         t->addMoreExplanation(offset, " parameter set (%s)", parameter_set_.c_str());
     }
 
-    if (extractDVstring(&t->values, "017F", &offset, &status2_))
+    if (extractDVuint8(&t->values, "017F", &offset, &other_))
     {
-        t->addMoreExplanation(offset, " status2 (%s)", status2_.c_str());
+        t->addMoreExplanation(offset, " status2 (%d)", other_);
     }
 }
 

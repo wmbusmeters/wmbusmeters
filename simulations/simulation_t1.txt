@@ -273,5 +273,5 @@ telegram=76442104710007612507727100076121042507B5006005E2E95A3C2A1279A5415E67326
 
 # Test Unismart Gas Meter
 telegram=|6044B8059430040001037A1D005085E2B670BCF1A5C87E0C1A51DA18924EF984613DA2A9CD39D8F4C7208326C76D42DBEADF80D574192B71BD7C4F56A7F1513151768A9DB804883B28CB085CA2D0F7438C361CB9E2734712ED9BFBB2A14EF55208|
-{"media":"gas","meter":"unismart","name":"GasMeter","id":"00043094","fabrication_no":"3162296","total_date_time":"2021-09-15 13:18","total_m3":917,"target_date_time":"2021-09-01 06:00","target_m3":911.32,"version":"4GGU","device_date_time":"2021-09-15 13:18","suppler_info":"00","status":"F00C","parameter_set":"02","status2":"14","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"gas","meter":"unismart","name":"GasMeter","id":"00043094","fabrication_no":"3162296","total_date_time":"2021-09-15 13:18","total_m3":917,"target_date_time":"2021-09-01 06:00","target_m3":911.32,"version":"UGG4","device_date_time":"2021-09-15 13:18","suppler_info":"00","status":"F00C","parameter_set":"02","other_int":20,"timestamp":"1111-11-11T11:11:11Z"}
 |GasMeter;00043094;917.000000;911.320000;1111-11-11 11:11.11
