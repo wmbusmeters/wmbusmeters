@@ -531,17 +531,17 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             i++;
             continue;
         }
-
-        if (!strcmp(argv[i], "--")) {
-            i++;
-            break;
-        }
         error("Unknown option \"%s\"\n", argv[i]);
     }
 
     bool found_at_least_one_device_or_hex = false;
     while (argv[i])
     {
+        if (!strncmp(argv[i], "--", 2))
+        {
+            // We have found a device and the next parameter is an option.
+            error("All command line options must be placed before the devices, %s is placed wrong.\n", argv[i]);
+        }
         bool ok = handleDeviceOrHex(c, argv[i]);
         if (ok)
         {
