@@ -172,6 +172,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_multical21.o \
 	$(BUILD)/meter_multical302.o \
 	$(BUILD)/meter_multical403.o \
+	$(BUILD)/meter_multical602.o \
 	$(BUILD)/meter_multical603.o \
 	$(BUILD)/meter_multical803.o \
 	$(BUILD)/meter_omnipower.o \

@@ -308,6 +308,11 @@ Received telegram from: 00043094
                   type: Gas meter (0x03)
                    ver: 0x01
                 driver: unismart
+Received telegram from: 71727374
+          manufacturer: (BMT) BMETERS, Italy (0x9b4)
+                  type: Heat/Cooling load meter (0x0d)
+                   ver: 0x0b
+                driver: hydrocalm3
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)

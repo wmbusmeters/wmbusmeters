@@ -1,4 +1,5 @@
 
+Added support for the Hydrocal-M3 heating/cooling meter.
 Added support for the Apator uniSMART gas meter.
 
 You can now decode a telegram just by supplying hex on the command line:

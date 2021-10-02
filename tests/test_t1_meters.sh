@@ -59,7 +59,8 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       Hetta       elf         01885619 NOKEY
       DigiWasser  dme_07      93929190 NOKEY
       Votten      aventieswm  61070071 A004EB23329A477F1DD2D7820B56EB3D
-      GasMeter    unismart    00043094 00000000000000000000000000000000"
+      GasMeter    unismart    00043094 00000000000000000000000000000000
+      HeatCool    hydrocalm3  71727374 NOKEY"
 
 
 cat simulations/simulation_t1.txt | grep '^{' > $TEST/test_expected.txt

@@ -71,8 +71,11 @@ bool parseDV(Telegram *t,
 // in combination with the storagenr. (Later I will add tariff/subunit)
 bool findKey(MeasurementType mt, ValueInformation vi, int storagenr, int tariffnr,
              std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
-bool findKeyVife(MeasurementType mt, ValueInformation vi, int storagenr, int tariffnr,
-             std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
+// Some meters have multiple identical DIF/VIF values! Meh, they are not using storage nrs or tariff nrs.
+// So here we can pick for example nr 2 of an identical set if DIF/VIF values.
+// Nr 1 means the first found value.
+bool findKeyWithNr(MeasurementType mt, ValueInformation vi, int storagenr, int tariffnr, int nr,
+                   std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
 
 #define ANY_STORAGENR -1
 #define ANY_TARIFFNR -1

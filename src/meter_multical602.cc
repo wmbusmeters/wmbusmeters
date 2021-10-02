@@ -162,6 +162,72 @@ double MeterMultical602::volumeFlow(Unit u)
 
 void MeterMultical602::processContent(Telegram *t)
 {
+    /*
+      (multical602) 14: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (multical602) 15: F9 vif (Enhanced identification)
+      (multical602) 16: FF vife (additive correction constant: unit of VIF * 10^0)
+      (multical602) 17: 15 vife (?)
+      (multical602) 18: 1113
+      (multical602) 1a: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical602) 1b: 06 vif (Energy kWh)
+      (multical602) 1c: * 690B0100 total energy consumption (68457.000000 kWh)
+      (multical602) 20: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical602) 21: EE vif (Units for H.C.A.)
+      (multical602) 22: FF vife (additive correction constant: unit of VIF * 10^0)
+      (multical602) 23: 07 vife (?)
+      (multical602) 24: C1BC0200
+      (multical602) 28: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical602) 29: EE vif (Units for H.C.A.)
+      (multical602) 2a: FF vife (additive correction constant: unit of VIF * 10^0)
+      (multical602) 2b: 08 vife (?)
+      (multical602) 2c: 90D40100
+      (multical602) 30: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical602) 31: 14 vif (Volume 10⁻² m³)
+      (multical602) 32: * A9250400 total volume (2717.850000 m3)
+      (multical602) 36: 84 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical602) 37: 40 dife (subunit=1 tariff=0 storagenr=0)
+      (multical602) 38: 14 vif (Volume 10⁻² m³)
+      (multical602) 39: 00000000
+      (multical602) 3d: 84 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical602) 3e: 80 dife (subunit=0 tariff=0 storagenr=0)
+      (multical602) 3f: 40 dife (subunit=2 tariff=0 storagenr=0)
+      (multical602) 40: 14 vif (Volume 10⁻² m³)
+      (multical602) 41: 00000000
+      (multical602) 45: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (multical602) 46: FD vif (Second extension FD of VIF-codes)
+      (multical602) 47: 17 vife (Error flags (binary))
+      (multical602) 48: 0000
+      (multical602) 4a: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (multical602) 4b: 6C vif (Date type G)
+      (multical602) 4c: * B929 target date (2021-09-25 00:00)
+      (multical602) 4e: 42 dif (16 Bit Integer/Binary Instantaneous value storagenr=1)
+      (multical602) 4f: 6C vif (Date type G)
+      (multical602) 50: BF28
+      (multical602) 52: 44 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+      (multical602) 53: 06 vif (Energy kWh)
+      (multical602) 54: 100A0100
+      (multical602) 58: 44 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+      (multical602) 59: 14 vif (Volume 10⁻² m³)
+      (multical602) 5a: D81A0400
+      (multical602) 5e: C4 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+      (multical602) 5f: 40 dife (subunit=1 tariff=0 storagenr=1)
+      (multical602) 60: 14 vif (Volume 10⁻² m³)
+      (multical602) 61: 00000000
+      (multical602) 65: C4 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+      (multical602) 66: 80 dife (subunit=0 tariff=0 storagenr=1)
+      (multical602) 67: 40 dife (subunit=2 tariff=0 storagenr=1)
+      (multical602) 68: 14 vif (Volume 10⁻² m³)
+      (multical602) 69: 00000000
+      (multical602) 6d: 04 dif (32 Bit Integer/Binary Instantaneous value)
+      (multical602) 6e: 3B vif (Volume flow l/h)
+      (multical602) 6f: * 39000000 volume flow (0.057000 m3/h)
+      (multical602) 73: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (multical602) 74: 59 vif (Flow temperature 10⁻² °C)
+      (multical602) 75: * 2A17 T1 flow temperature (59.300000 °C)
+      (multical602) 77: 02 dif (16 Bit Integer/Binary Instantaneous value)
+      (multical602) 78: 5D vif (Return temperature 10⁻² °C)
+      (multical602) 79: * 2912 T2 flow temperature (46.490000 °C)
+    */
     int offset;
     string key;
 

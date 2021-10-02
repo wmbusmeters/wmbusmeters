@@ -69,6 +69,7 @@
     X(multical21, C1_bit|T1_bit, WaterMeter,       MULTICAL21,  Multical21)   \
     X(multical302,C1_bit|T1_bit, HeatMeter,        MULTICAL302, Multical302)  \
     X(multical403,C1_bit, HeatMeter,        MULTICAL403, Multical403)  \
+    X(multical602,C1_bit, HeatMeter,        MULTICAL602, Multical602)  \
     X(multical603,C1_bit, HeatMeter,        MULTICAL603, Multical603)  \
     X(multical803,C1_bit, HeatMeter,        MULTICAL803, Multical803)  \
     X(omnipower,  C1_bit, ElectricityMeter, OMNIPOWER,   Omnipower)    \

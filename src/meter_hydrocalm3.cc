@@ -1,6 +1,5 @@
 /*
- Copyright (C) 2018-2020 Fredrik Öhrström
-                    2020 Eric Bus
+ Copyright (C) 2018-2021 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -35,11 +34,6 @@
 struct MeterHydrocalM3 : public virtual HeatMeter, public virtual MeterCommonImplementation {
     MeterHydrocalM3(MeterInfo &mi);
 
-    double totalHeatingEnergyConsumption(Unit u);
-    double totalHeatingVolume(Unit u);
-    double totalCoolingEnergyConsumption(Unit u);
-    double totalCoolingVolume(Unit u);
-
 private:
     void processContent(Telegram *t);
 
@@ -47,6 +41,10 @@ private:
     double total_heating_volume_m3_ {};
     double total_cooling_energy_kwh_ {};
     double total_cooling_volume_m3_ {};
+    double t1_temperature_c_ { 127 };
+    double t2_temperature_c_ { 127 };
+    double c1_volume_m3_ {};
+    double c2_volume_m3_ {};
     string device_date_time_ {};
 };
 
@@ -57,9 +55,14 @@ MeterHydrocalM3::MeterHydrocalM3(MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    addPrint("total_energy_consumption", Quantity::Energy,
-             [&](Unit u){ return totalEnergyConsumption(u); },
-             "The total energy consumption recorded by this meter.",
+    addPrint("total_heating", Quantity::Energy,
+             [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(total_heating_energy_kwh_, Unit::KWH, u); },
+             "The total heating energy consumption recorded by this meter.",
+             true, true);
+
+    addPrint("total_cooling", Quantity::Energy,
+             [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(total_cooling_energy_kwh_, Unit::KWH, u); },
+             "The total cooling energy consumption recorded by this meter.",
              true, true);
 
     addPrint("device_date_time", Quantity::Text,
@@ -67,38 +70,44 @@ MeterHydrocalM3::MeterHydrocalM3(MeterInfo &mi) :
              "Date when total energy consumption was recorded.",
              false, true);
 
-    addPrint("total_volume", Quantity::Volume,
-             [&](Unit u){ return totalVolume(u); },
-             "Total volume of media.",
-             true, true);
+    addPrint("total_heating", Quantity::Volume,
+             [&](Unit u){ assertQuantity(u, Quantity::Volume); return convert(total_heating_volume_m3_, Unit::M3, u); },
+             "Total heating volume of media.",
+             false, true);
+
+    addPrint("total_cooling", Quantity::Volume,
+             [&](Unit u){ assertQuantity(u, Quantity::Volume); return convert(total_cooling_volume_m3_, Unit::M3, u); },
+             "Total cooling volume of media.",
+             false, true);
+
+    addPrint("total_cooling", Quantity::Volume,
+             [&](Unit u){ assertQuantity(u, Quantity::Volume); return convert(total_cooling_volume_m3_, Unit::M3, u); },
+             "Total cooling volume of media.",
+             false, true);
+
+    addPrint("supply_volume", Quantity::Volume,
+             [&](Unit u){ assertQuantity(u, Quantity::Volume); return convert(c1_volume_m3_, Unit::M3, u); },
+             "Supply c1 volume.",
+             false, true);
+
+    addPrint("return_volume", Quantity::Volume,
+             [&](Unit u){ assertQuantity(u, Quantity::Volume); return convert(c2_volume_m3_, Unit::M3, u); },
+             "Return c2 volume.",
+             false, true);
+
+    addPrint("supply_temperature", Quantity::Temperature,
+             [&](Unit u){ return convert(t1_temperature_c_, Unit::C, u); },
+             "The supply t1 pipe temperature.",
+             false, true);
+
+    addPrint("return_temperature", Quantity::Temperature,
+             [&](Unit u){ return convert(t1_temperature_c_, Unit::C, u); },
+             "The return t2 pipe temperature.",
+             false, true);
 }
 
 shared_ptr<HeatMeter> createHydrocalM3(MeterInfo &mi) {
     return shared_ptr<HeatMeter>(new MeterHydrocalM3(mi));
-}
-
-double MeterHydrocalM3::totalHeatingEnergyConsumption(Unit u)
-{
-    assertQuantity(u, Quantity::Energy);
-    return convert(total_heating_energy_kwh_, Unit::KWH, u);
-}
-
-double MeterHydrocalM3::totalHeatingVolume(Unit u)
-{
-    assertQuantity(u, Quantity::Volume);
-    return convert(total_heating_volume_m3_, Unit::M3, u);
-}
-
-double MeterHydrocalM3::totalCoolingEnergyConsumption(Unit u)
-{
-    assertQuantity(u, Quantity::Energy);
-    return convert(total_cooling_energy_kwh_, Unit::KWH, u);
-}
-
-double MeterHydrocalM3::totalCoolingVolume(Unit u)
-{
-    assertQuantity(u, Quantity::Volume);
-    return convert(total_cooling_volume_m3_, Unit::M3, u);
 }
 
 void MeterHydrocalM3::processContent(Telegram *t)
@@ -106,30 +115,74 @@ void MeterHydrocalM3::processContent(Telegram *t)
     int offset;
     string key;
 
-    // The meter either sends the total energy consumed as kWh or as MJ.
-    // First look for kwh
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_heating_energy_kwh_);
-        t->addMoreExplanation(offset, " total heating energy consumption (%f kWh)", total_heating_energy_kwh_);
-    }
-    // Then look for mj.
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyMJ, 0, 0, &key, &t->values)) {
-        double mj;
-        extractDVdouble(&t->values, key, &offset, &mj);
-        total_heating_energy_kwh_ = convert(mj, Unit::MJ, Unit::KWH);
-        t->addMoreExplanation(offset, " total heating_energy consumption (%f MJ = %f kWh)", mj, total_heating_energy_kwh_);
-    }
-
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 0, 0, &key, &t->values))
+    {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " device date time (%s)", device_date_time_.c_str());
     }
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, &key, &t->values)) {
+    // The meter either sends the total energy consumed as kWh or as MJ.
+    // First look for kwh
+    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, 1, &key, &t->values))
+    {
+        extractDVdouble(&t->values, key, &offset, &total_heating_energy_kwh_);
+        t->addMoreExplanation(offset, " total heating energy consumption (%f kWh)", total_heating_energy_kwh_);
+    }
+    // Then look for mj.
+    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::EnergyMJ, 0, 0, 1, &key, &t->values))
+    {
+        double mj;
+        extractDVdouble(&t->values, key, &offset, &mj);
+        total_heating_energy_kwh_ = convert(mj, Unit::MJ, Unit::KWH);
+        t->addMoreExplanation(offset, " total heating energy consumption (%f MJ = %f kWh)", mj, total_heating_energy_kwh_);
+    }
+    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, 1, &key, &t->values))
+    {
         extractDVdouble(&t->values, key, &offset, &total_heating_volume_m3_);
-        t->addMoreExplanation(offset, " total heating_volume (%f m3)", total_heating_volume_m3_);
+        t->addMoreExplanation(offset, " total heating volume (%f m3)", total_heating_volume_m3_);
+    }
+    // Now look for cooling energy, which uses the same DIFVIF but follows the first set of data.
+    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, 2, &key, &t->values))
+    {
+        extractDVdouble(&t->values, key, &offset, &total_cooling_energy_kwh_);
+        t->addMoreExplanation(offset, " total cooling energy consumption (%f kWh)", total_cooling_energy_kwh_);
+    }
+    // Then look for mj.
+    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::EnergyMJ, 0, 0, 2, &key, &t->values))
+    {
+        double mj;
+        extractDVdouble(&t->values, key, &offset, &mj);
+        total_cooling_energy_kwh_ = convert(mj, Unit::MJ, Unit::KWH);
+        t->addMoreExplanation(offset, " total cooling energy consumption (%f MJ = %f kWh)", mj, total_cooling_energy_kwh_);
     }
 
+    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, 2, &key, &t->values))
+    {
+        extractDVdouble(&t->values, key, &offset, &total_heating_volume_m3_);
+        t->addMoreExplanation(offset, " total cooling volume (%f m3)", total_cooling_volume_m3_);
+    }
+
+    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, 3, &key, &t->values))
+    {
+        extractDVdouble(&t->values, key, &offset, &c1_volume_m3_);
+        t->addMoreExplanation(offset, " supply volume (%f m3)", c1_volume_m3_);
+    }
+
+    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, 4, &key, &t->values))
+    {
+        extractDVdouble(&t->values, key, &offset, &c2_volume_m3_);
+        t->addMoreExplanation(offset, " return volume (%f m3)", c2_volume_m3_);
+    }
+
+    if(findKey(MeasurementType::Instantaneous, ValueInformation::FlowTemperature, 0, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &t1_temperature_c_);
+        t->addMoreExplanation(offset, " supply temperature (%f °C)", t1_temperature_c_);
+    }
+
+    if(findKey(MeasurementType::Instantaneous, ValueInformation::ReturnTemperature, 0, 0, &key, &t->values)) {
+        extractDVdouble(&t->values, key, &offset, &t2_temperature_c_);
+        t->addMoreExplanation(offset, " return temperature (%f °C)", t2_temperature_c_);
+    }
 }

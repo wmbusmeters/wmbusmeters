@@ -315,6 +315,12 @@ bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string ke
 bool findKey(MeasurementType mit, ValueInformation vif, int storagenr, int tariffnr,
              std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values)
 {
+    return findKeyWithNr(mit, vif, storagenr, tariffnr, 1, key, values);
+}
+
+bool findKeyWithNr(MeasurementType mit, ValueInformation vif, int storagenr, int tariffnr, int nr,
+                   std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values)
+{
     int low, hi;
     valueInfoRange(vif, &low, &hi);
 
@@ -338,10 +344,11 @@ bool findKey(MeasurementType mit, ValueInformation vif, int storagenr, int tarif
             && (tariffnr == ANY_TARIFFNR || tariffnr == tn))
         {
             *key = v.first;
+            nr--;
+            if (nr <= 0) return true;
             /*debug("(dvparser) found key %s for type=%s vif=%02x (%s) storagenr=%d\n",
                   v.first.c_str(), measurementTypeName(ty).c_str(),
                   vi, toString(toValueInformation(vi)), storagenr);*/
-            return true;
         }
     }
     return false;
