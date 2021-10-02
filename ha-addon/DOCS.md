@@ -10,7 +10,7 @@ The installation of this add-on is pretty straightforward and not different in
 comparison to installing any other community-driven Home Assistant add-on.
 
 1. Navigate to Supervisor > Add-on Store > Repositories
-1. Add https://github.com/weetmuts/wmbusmeters/tree/master/ha-addon
+1. Add https://github.com/weetmuts/wmbusmeters
 1. Install Wmbusmeters
 1. Plug-in your radio receiver USB dongle
 1. Start the addon container
