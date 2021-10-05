@@ -29,7 +29,7 @@ If you now start wmbusmeters with `wmbusmeters --debug --verbose useconfig=/` an
 
 ```
 [2021-07-05_21:07:30] (meter) ABOGGLKZ: meter detection did not match the selected driver eurisii! correct driver is: unknown!
-(meter) Not printing this warning agin for id: 60900126 mfct: (AAA) Aventies, Germany (0x421) type: Heat Cost Allocator (0x08) ver: 0x55
+(meter) Not printing this warning again for id: 60900126 mfct: (AAA) Aventies, Germany (0x421) type: Heat Cost Allocator (0x08) ver: 0x55
 [2021-07-05_21:07:30] (meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/
 [2021-07-05_21:07:30] (meter) to add support for this unknown mfct,media,version combination
 (meter) ABOGGLKZ: yes for me
@@ -140,7 +140,7 @@ telegram=|76442104260190605508722601906021045508060060052F2F|0B6E660100426EA6008
 Now keep especially the following lines in mind for integation into the meter definitions:
 ```
 [2021-07-05_21:07:30] (meter) ABOGGLKZ: meter detection did not match the selected driver eurisii! correct driver is: unknown!
-(meter) Not printing this warning agin for id: 60900126 mfct: (AAA) Aventies, Germany (0x421) type: Heat Cost Allocator (0x08) ver: 0x55
+(meter) Not printing this warning again for id: 60900126 mfct: (AAA) Aventies, Germany (0x421) type: Heat Cost Allocator (0x08) ver: 0x55
 ```
 
 ## Creating your class
