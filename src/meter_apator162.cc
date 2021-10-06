@@ -148,6 +148,7 @@ int MeterApator162::registerSize(int c)
     case 0x42: return 4;
     case 0x43: return 2;
 
+    case 0x71: return 9;
     case 0x73: return 1+4*4; // Historical data
     case 0x75: return 1+6*4; // Historical data
     case 0x7B: return 1+12*4; // Historical data
