@@ -513,7 +513,7 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
         {
             string possible_drivers = t->autoDetectPossibleDrivers();
             warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n"
-                    "(meter) Not printing this warning agin for id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                    "(meter) Not printing this warning again for id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                     name.c_str(),
                     toString(driver).c_str(),
                     possible_drivers.c_str(),
