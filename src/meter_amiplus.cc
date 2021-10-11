@@ -29,6 +29,7 @@ struct MeterAmiplus : public virtual ElectricityMeter, public virtual MeterCommo
     double currentPowerConsumption(Unit u);
     double totalEnergyProduction(Unit u);
     double currentPowerProduction(Unit u);
+    double currentVoltagePhase1(Unit u);
 
 private:
 
@@ -38,6 +39,7 @@ private:
     double current_power_kw_ {};
     double total_energy_returned_kwh_ {};
     double current_power_returned_kw_ {};
+    double current_voltage_phase1_v_ {};
     string device_date_time_;
 };
 
@@ -67,6 +69,11 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi) :
              [&](Unit u){ return currentPowerProduction(u); },
              "Current power production.",
              true, true);
+
+    addPrint("current_voltage_phase1", Quantity::Voltage,
+	     [&](Unit u){ return currentVoltagePhase1(u); },
+	     "Current voltage for phase 1.",
+	     true, true);
 
     addPrint("device_date_time", Quantity::Text,
              [&](){ return device_date_time_; },
@@ -103,6 +110,12 @@ double MeterAmiplus::currentPowerProduction(Unit u)
     return convert(current_power_returned_kw_, Unit::KW, u);
 }
 
+double MeterAmiplus::currentVoltagePhase1(Unit u)
+{
+    assertQuantity(u, Quantity::Voltage);
+    return convert(current_voltage_phase1_v_, Unit::Volt, u);
+}
+
 void MeterAmiplus::processContent(Telegram *t)
 {
     int offset;
@@ -123,6 +136,13 @@ void MeterAmiplus::processContent(Telegram *t)
 
     extractDVdouble(&t->values, "0BAB3C", &offset, &current_power_returned_kw_);
     t->addMoreExplanation(offset, " current power returned (%f kw)", current_power_returned_kw_);
+
+    uint64_t volt1 {};
+    if (hasKey(&t->values, "0AFDC9FC01") && extractDVlong(&t->values, "0AFDC9FC01", &offset, &volt1))
+    {
+    current_voltage_phase1_v_ = ((double)volt1);
+    t->addMoreExplanation(offset, " current voltage phase 1 (%f v)", current_voltage_phase1_v_);
+    }
 
     if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
         struct tm datetime;
