@@ -340,6 +340,10 @@ struct ElectricityMeter : public virtual Meter
 
     virtual double currentPowerConsumption(Unit u); // kw
     virtual double currentPowerProduction(Unit u); // kw
+
+    virtual double currentVoltagePhase1(Unit u); //v
+    virtual double currentVoltagePhase2(Unit u); //v
+    virtual double currentVoltagePhase3(Unit u); //v
 };
 
 struct HeatCostAllocationMeter : public virtual Meter
