@@ -21,6 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 #include"util.h"
+#include<cmath>
 
 struct MeterAmiplus : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
     MeterAmiplus(MeterInfo &mi);
@@ -38,6 +39,8 @@ private:
     double current_power_kw_ {};
     double total_energy_returned_kwh_ {};
     double current_power_returned_kw_ {};
+    double voltage_L_[3]{NAN, NAN, NAN};
+
     string device_date_time_;
 };
 
@@ -67,6 +70,21 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi) :
              [&](Unit u){ return currentPowerProduction(u); },
              "Current power production.",
              true, true);
+
+    addPrint("voltage_at_phase_1", Quantity::Voltage,
+	     [&](Unit u){ return convert(voltage_L_[0], Unit::Volt, u); },
+	     "Voltage at phase L1.",
+	     true, true);
+
+    addPrint("voltage_at_phase_2", Quantity::Voltage,
+	     [&](Unit u){ return convert(voltage_L_[1], Unit::Volt, u); },
+	     "Voltage at phase L2.",
+	     true, true);
+
+    addPrint("voltage_at_phase_3", Quantity::Voltage,
+	     [&](Unit u){ return convert(voltage_L_[2], Unit::Volt, u); },
+	     "Voltage at phase L3.",
+	     true, true);
 
     addPrint("device_date_time", Quantity::Text,
              [&](){ return device_date_time_; },
@@ -123,6 +141,28 @@ void MeterAmiplus::processContent(Telegram *t)
 
     extractDVdouble(&t->values, "0BAB3C", &offset, &current_power_returned_kw_);
     t->addMoreExplanation(offset, " current power returned (%f kw)", current_power_returned_kw_);
+
+    voltage_L_[0]=voltage_L_[1]=voltage_L_[2] = NAN;
+    uint64_t tmpvolt {};
+
+    if (extractDVlong(&t->values, "0AFDC9FC01", &offset, &tmpvolt))
+    {
+    voltage_L_[0] = ((double)tmpvolt);
+    t->addMoreExplanation(offset, " voltage L1 (%f volts)", voltage_L_[0]);
+    }
+
+    if (extractDVlong(&t->values, "0AFDC9FC02", &offset, &tmpvolt))
+    {
+    voltage_L_[1] = ((double)tmpvolt);
+    t->addMoreExplanation(offset, " voltage L2 (%f volts)", voltage_L_[1]);
+    }
+
+    if (extractDVlong(&t->values, "0AFDC9FC03", &offset, &tmpvolt))
+    {
+    voltage_L_[2] = ((double)tmpvolt);
+    t->addMoreExplanation(offset, " voltage L3 (%f volts)", voltage_L_[2]);
+    }
+        
 
     if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
         struct tm datetime;
