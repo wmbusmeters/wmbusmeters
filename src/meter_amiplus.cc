@@ -76,6 +76,16 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi) :
 	     "Voltage at phase L1.",
 	     true, true);
 
+    addPrint("voltage_at_phase_2", Quantity::Voltage,
+	     [&](Unit u){ return convert(voltage_L_[1], Unit::Volt, u); },
+	     "Voltage at phase L2.",
+	     true, true);
+
+    addPrint("voltage_at_phase_3", Quantity::Voltage,
+	     [&](Unit u){ return convert(voltage_L_[2], Unit::Volt, u); },
+	     "Voltage at phase L3.",
+	     true, true);
+
     addPrint("device_date_time", Quantity::Text,
              [&](){ return device_date_time_; },
              "Device date time.",
@@ -140,6 +150,19 @@ void MeterAmiplus::processContent(Telegram *t)
     voltage_L_[0] = ((double)tmpvolt);
     t->addMoreExplanation(offset, " voltage L1 (%f volts)", voltage_L_[0]);
     }
+
+    if (extractDVlong(&t->values, "0AFDC9FC02", &offset, &tmpvolt))
+    {
+    voltage_L_[1] = ((double)tmpvolt);
+    t->addMoreExplanation(offset, " voltage L2 (%f volts)", voltage_L_[1]);
+    }
+
+    if (extractDVlong(&t->values, "0AFDC9FC03", &offset, &tmpvolt))
+    {
+    voltage_L_[2] = ((double)tmpvolt);
+    t->addMoreExplanation(offset, " voltage L3 (%f volts)", voltage_L_[2]);
+    }
+        
 
     if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
         struct tm datetime;

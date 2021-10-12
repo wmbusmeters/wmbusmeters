@@ -29,8 +29,15 @@ telegram=|1844AE4C4455223368077A55000000|041389E20100023B0000|
 # Test amiplus/apator electricity meter
 
 telegram=|4E4401061010101002027A00004005|2F2F0E035040691500000B2B300300066D00790C7423400C78371204860BABC8FC100000000E833C8074000000000BAB3C0000000AFDC9FC0136022F2F2F2F2F|
-{"media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.05,"current_power_consumption_kw":0.33,"total_energy_production_kwh":7.48,"current_power_production_kw":0,"voltage_at_phase_1_v":236,"device_date_time":"2019-03-20 12:57","timestamp":"1111-11-11T11:11:11Z"}
-|MyElectricity1;10101010;15694.050000;0.330000;7.480000;0.000000;236.000000;1111-11-11 11:11.11
+{"media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.05,"current_power_consumption_kw":0.33,"total_energy_production_kwh":7.48,"current_power_production_kw":0,"voltage_at_phase_1_v":236,"voltage_at_phase_2_v":nan,"voltage_at_phase_3_v":nan,"device_date_time":"2019-03-20 12:57","timestamp":"1111-11-11T11:11:11Z"}
+|MyElectricity1;10101010;15694.050000;0.330000;7.480000;0.000000;236.000000;nan;nan;1111-11-11 11:11.11
+
+# Test amiplus/apator electricity meter with three phase voltages
+
+telegram=|5E44B6105843250000027A2A005005|2F2F0C7835221400066D404708AC2A400E032022650900000E833C0000000000001B2B9647000B2B5510000BAB3C0000000AFDC9FC0135020AFDC9FC0245020AFDC9FC0339020BABC8FC100000002F2F|
+{"media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"device_date_time":"2021-10-12 08:07","timestamp":"1111-11-11T11:11:11Z"}
+|MyElectricity2;00254358;9652.220000;1.055000;0.000000;0.000000;235.000000;245.000000;239.000000;1111-11-11 11:11.11
+
 
 # Test MKRadio3 T1 telegrams
 
