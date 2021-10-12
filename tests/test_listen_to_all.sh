@@ -50,6 +50,11 @@ Received telegram from: 10101010
                   type: Electricity meter (0x02)
                    ver: 0x02
                 driver: amiplus
+Received telegram from: 00254358
+          manufacturer: (DEV) Develco Products, Denmark (0x10b6)
+                  type: Electricity meter (0x02)
+                   ver: 0x00
+                driver: amiplus
 Received telegram from: 34333231
           manufacturer: (TCH) Techem Service (0x5068)
                   type: Warm water (0x62)
