@@ -1016,9 +1016,6 @@ double ElectricityMeter::totalApparentEnergyProduction(Unit u) { return -NAN; }
 
 double ElectricityMeter::currentPowerConsumption(Unit u) { return -NAN; }
 double ElectricityMeter::currentPowerProduction(Unit u) { return -NAN; }
-double ElectricityMeter::currentVoltagePhase1(Unit u) { return -NAN; }
-double ElectricityMeter::currentVoltagePhase2(Unit u) { return -NAN; }
-double ElectricityMeter::currentVoltagePhase3(Unit u) { return -NAN; }
 
 double HeatCostAllocationMeter::currentConsumption(Unit u) { return -NAN; }
 string HeatCostAllocationMeter::setDate() { return "NAN"; }
