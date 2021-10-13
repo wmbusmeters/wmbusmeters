@@ -44,7 +44,6 @@ Encryption: None.
 #include"wmbus.h"
 #include"wmbus_utils.h"
 #include"util.h"
-#include<cmath>
 
 struct MeterGransystemsCCx01: public virtual ElectricityMeter, public virtual MeterCommonImplementation {
     MeterGransystemsCCx01(MeterInfo &mi);
@@ -67,9 +66,9 @@ private:
     std::size_t last_day_tariff_energy_kwh_idx_{};
     double last_day_tariff_energy_kwh_[MAX_TARIFFS] {};
 
-    double voltage_L_[3]{NAN, NAN, NAN};
-    double current_L_[3]{NAN, NAN, NAN};
-    double frequency_{NAN};
+    double voltage_L_[3]{0, 0, 0};
+    double current_L_[3]{0, 0, 0};
+    double frequency_{0};
 
     bool single_phase_{};
     bool three_phase_{};
@@ -207,8 +206,8 @@ void MeterGransystemsCCx01::processContent(Telegram *t)
         }
     }
 
-    voltage_L_[0] = voltage_L_[1] = voltage_L_[2] = NAN;
-    current_L_[0]  = current_L_[1]  = current_L_[2] = NAN;
+    voltage_L_[0] = voltage_L_[1] = voltage_L_[2] = 0;
+    current_L_[0]  = current_L_[1]  = current_L_[2] = 0;
 
     if (single_phase_)
     {

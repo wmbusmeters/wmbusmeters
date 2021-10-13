@@ -21,7 +21,6 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 #include"util.h"
-#include<cmath>
 
 struct MeterAmiplus : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
     MeterAmiplus(MeterInfo &mi);
@@ -39,7 +38,7 @@ private:
     double current_power_kw_ {};
     double total_energy_returned_kwh_ {};
     double current_power_returned_kw_ {};
-    double voltage_L_[3]{NAN, NAN, NAN};
+    double voltage_L_[3]{0, 0, 0};
 
     string device_date_time_;
 };
@@ -142,7 +141,7 @@ void MeterAmiplus::processContent(Telegram *t)
     extractDVdouble(&t->values, "0BAB3C", &offset, &current_power_returned_kw_);
     t->addMoreExplanation(offset, " current power returned (%f kw)", current_power_returned_kw_);
 
-    voltage_L_[0]=voltage_L_[1]=voltage_L_[2] = NAN;
+    voltage_L_[0]=voltage_L_[1]=voltage_L_[2] = 0;
     uint64_t tmpvolt {};
 
     if (extractDVlong(&t->values, "0AFDC9FC01", &offset, &tmpvolt))
