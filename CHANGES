@@ -1,4 +1,6 @@
 
+Jacek27 added support for the Munia temp/hygrometer. Thanks Jacek27!
+
 Improved verbose logging to show if you are not in the dialout
 group when trying to find dongles. Install now adds the current
 user to the dialout group as well.

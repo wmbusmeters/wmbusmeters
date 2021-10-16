@@ -370,6 +370,7 @@ Supported room sensors:
 Bmeters RFM-AMB Thermometer/Hygrometer (rfmamb)
 Elvaco CMa12w Thermometer (cma12w)
 Lansen Thermometer/Hygrometer (lansenth)
+Weptech Munia Thermometer/Hygrometer (munia)
 
 Supported smoke detectors:
 Lansen Smoke Detector (lansensm)

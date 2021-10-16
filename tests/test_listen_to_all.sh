@@ -318,6 +318,11 @@ Received telegram from: 71727374
                   type: Heat/Cooling load meter (0x0d)
                    ver: 0x0b
                 driver: hydrocalm3
+Received telegram from: 00013482
+          manufacturer: (WEP) Weptech elektronik, Germany (0x5cb0)
+                  type: Room sensor (eg temperature or humidity) (0x1b)
+                   ver: 0x02
+                driver: munia
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)
