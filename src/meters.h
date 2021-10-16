@@ -92,7 +92,7 @@
     X(lse_08,     S1_bit|C1_bit, HeatCostAllocationMeter, LSE_08, LSE_08) \
     X(weh_07,     C1_bit, WaterMeter,       WEH_07,       WEH_07)      \
     X(unismart,   T1_bit, GasMeter,       UNISMART, Unismart)  \
-
+    X(munia,      T1_bit, TempHygroMeter, MUNIA, Munia) \
 
 enum class MeterDriver {
 #define X(mname,linkmode,info,type,cname) type,

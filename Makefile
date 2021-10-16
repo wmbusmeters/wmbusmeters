@@ -196,6 +196,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_lse_08.o \
 	$(BUILD)/meter_weh_07.o \
 	$(BUILD)/meter_unismart.o \
+        $(BUILD)/meter_munia.o \
 
 
 all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd $(BUILD)/wmbusmeters.g $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals
