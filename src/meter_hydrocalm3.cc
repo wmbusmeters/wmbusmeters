@@ -101,7 +101,7 @@ MeterHydrocalM3::MeterHydrocalM3(MeterInfo &mi) :
              false, true);
 
     addPrint("return_temperature", Quantity::Temperature,
-             [&](Unit u){ return convert(t1_temperature_c_, Unit::C, u); },
+             [&](Unit u){ return convert(t2_temperature_c_, Unit::C, u); },
              "The return t2 pipe temperature.",
              false, true);
 }
@@ -167,22 +167,22 @@ void MeterHydrocalM3::processContent(Telegram *t)
     if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, 3, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &c1_volume_m3_);
-        t->addMoreExplanation(offset, " supply volume (%f m3)", c1_volume_m3_);
+        t->addMoreExplanation(offset, " volume C1 (%f m3)", c1_volume_m3_);
     }
 
     if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, 4, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &c2_volume_m3_);
-        t->addMoreExplanation(offset, " return volume (%f m3)", c2_volume_m3_);
+        t->addMoreExplanation(offset, " volume C2 (%f m3)", c2_volume_m3_);
     }
 
     if(findKey(MeasurementType::Instantaneous, ValueInformation::FlowTemperature, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &t1_temperature_c_);
-        t->addMoreExplanation(offset, " supply temperature (%f °C)", t1_temperature_c_);
+        t->addMoreExplanation(offset, " supply temperature T1 (%f °C)", t1_temperature_c_);
     }
 
     if(findKey(MeasurementType::Instantaneous, ValueInformation::ReturnTemperature, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &t2_temperature_c_);
-        t->addMoreExplanation(offset, " return temperature (%f °C)", t2_temperature_c_);
+        t->addMoreExplanation(offset, " return temperature T2 (%f °C)", t2_temperature_c_);
     }
 }
