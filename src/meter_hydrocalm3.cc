@@ -85,12 +85,12 @@ MeterHydrocalM3::MeterHydrocalM3(MeterInfo &mi) :
              "Total cooling volume of media.",
              false, true);
 
-    addPrint("supply_volume", Quantity::Volume,
+    addPrint("c1_volume", Quantity::Volume,
              [&](Unit u){ assertQuantity(u, Quantity::Volume); return convert(c1_volume_m3_, Unit::M3, u); },
              "Supply c1 volume.",
              false, true);
 
-    addPrint("return_volume", Quantity::Volume,
+    addPrint("c2_volume", Quantity::Volume,
              [&](Unit u){ assertQuantity(u, Quantity::Volume); return convert(c2_volume_m3_, Unit::M3, u); },
              "Return c2 volume.",
              false, true);
