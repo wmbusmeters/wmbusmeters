@@ -58,3 +58,5 @@ ROOT=$ROOT /bin/sh ./scripts/prepare_logfiles.sh
 ROOT=$ROOT /bin/sh ./scripts/install_default_configuration.sh
 
 ROOT=$ROOT /bin/sh ./scripts/install_systemd_service.sh
+
+ROOT=$ROOT /bin/sh ./scripts/add_myself_to_dialout.sh

@@ -42,6 +42,11 @@ void initUI()
     wbkgd(stdscr, COLOR_PAIR(BG_PAIR));
 }
 
+void exitUI()
+{
+    endwin();
+}
+
 void registerUpdateCB(std::function<void()> cb)
 {
     update_cb_ = cb;

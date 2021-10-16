@@ -174,10 +174,15 @@ void eatWhitespace(std::vector<char> &v, std::vector<char>::iterator &i, bool *e
 std::string eatToSkipWhitespace(std::vector<char> &v, std::vector<char>::iterator &i, int c, size_t max, bool *eof, bool *err);
 // Remove leading and trailing white space
 void trimWhitespace(std::string *s);
-// Returns true if device exists and this programs user, belongs
-// to the same group that the device belongs to.
-enum class AccessCheck { NotThere, NotSameGroup, Locked, AccessOK };
-AccessCheck checkIfExistsAndSameGroup(std::string device);
+// Returns AccessOK if device exists and is accessible.
+// NotSameGroup means that there is no permission and the groups do not match.
+// NoPermission means some other reason for no access. (missing rw etc)
+// Locked means that some other process has locked the tty.
+// NoSuchDevice means the tty does not exist.
+// NoProperResponse means that we talked to something, but we do not know what it is.
+enum class AccessCheck { NoSuchDevice, NoProperResponse, NoPermission, NotSameGroup, AccessOK };
+const char* toString(AccessCheck ac);
+AccessCheck checkIfExistsAndHasAccess(std::string device);
 // Count the number of 1:s in the binary number v.
 int countSetBits(int v);
 

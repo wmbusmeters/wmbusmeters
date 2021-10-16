@@ -966,11 +966,17 @@ bool WMBusIM871aIM170A::sendTelegram(ContentStartsWith starts_with, vector<uchar
 
 AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
+    assert(detected->found_file != "");
+
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 57600, PARITY::NONE, "detect im871a");
     serial->disableCallbacks();
-    AccessCheck rc = serial->open(false);
-    if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
+    bool ok = serial->open(false);
+    if (!ok)
+    {
+        verbose("(im871a) could not open tty %s for detection\n", detected->found_file.c_str());
+        return AccessCheck::NoSuchDevice;
+    }
 
     vector<uchar> response;
     // First clear out any data in the queue.
@@ -1000,7 +1006,7 @@ AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicatio
     {
         verbose("(im871a/im170a) are you there? no.\n");
         serial->close();
-        return AccessCheck::NotThere;
+        return AccessCheck::NoProperResponse;
     }
 
     vector<uchar> payload;
@@ -1047,7 +1053,7 @@ AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicatio
     {
         verbose("(im871a/im170a) are you there? no.\n");
         serial->close();
-        return AccessCheck::NotThere;
+        return AccessCheck::NoProperResponse;
     }
 
     serial->close();

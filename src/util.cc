@@ -1373,36 +1373,70 @@ void addMonths(struct tm *date, int months)
     date->tm_mday = day;
 }
 
-AccessCheck checkIfExistsAndSameGroup(string device)
+const char* toString(AccessCheck ac)
 {
-    struct stat sb;
+    switch (ac)
+    {
+    case AccessCheck::NoSuchDevice: return "NoSuchDevice";
+    case AccessCheck::NoProperResponse: return "NoProperResponse";
+    case AccessCheck::NoPermission: return "NoPermission";
+    case AccessCheck::NotSameGroup: return "NotSameGroup";
+    case AccessCheck::AccessOK: return "AccessOK";
+    }
+    return "?";
+}
 
-    int ok = stat(device.c_str(), &sb);
+AccessCheck checkIfExistsAndHasAccess(string device)
+{
+    struct stat device_sb;
+
+    int ok = stat(device.c_str(), &device_sb);
 
     // The file did not exist.
-    if (ok) return AccessCheck::NotThere;
+    if (ok) return AccessCheck::NoSuchDevice;
+
+    int r = access(device.c_str(), R_OK);
+    int w = access(device.c_str(), W_OK);
+    if (r == 0 && w == 0)
+    {
+        // We have read and write access!
+        return AccessCheck::AccessOK;
+    }
+
+    // We are not permitted to read and write to this tty. Why?
+    // Lets check the group settings.
 
 #if defined(__APPLE__) && defined(__MACH__)
-        int groups[256];
+        int my_groups[256];
 #else
-        gid_t groups[256];
+        gid_t my_groups[256];
 #endif
     int ngroups = 256;
 
     struct passwd *p = getpwuid(getuid());
 
-    int rc = getgrouplist(p->pw_name, p->pw_gid, groups, &ngroups);
+    // What are the groups I am member of?
+    int rc = getgrouplist(p->pw_name, p->pw_gid, my_groups, &ngroups);
     if (rc < 0) {
         error("(wmbusmeters) cannot handle users with more than 256 groups\n");
     }
-    struct group *g = getgrgid(sb.st_gid);
 
-    for (int i=0; i<ngroups; ++i) {
-        if (groups[i] == g->gr_gid) {
-            return AccessCheck::AccessOK;
+    // What is the group of the tty?
+    struct group *device_group = getgrgid(device_sb.st_gid);
+
+    // Go through my groups to see if the device's group is in there.
+    for (int i=0; i<ngroups; ++i)
+    {
+        if (my_groups[i] == device_group->gr_gid)
+        {
+            // We belong to the same group as the tty. Typically dialout.
+            // Then there is some other reason for the lack of access.
+            return AccessCheck::NoPermission;
         }
     }
-
+    // We have examined all the groups that we belong to and yet not
+    // found the device's group. We can at least conclude that we
+    // being in the device's group would help, ie dialout.
     return AccessCheck::NotSameGroup;
 }
 

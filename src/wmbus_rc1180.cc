@@ -163,6 +163,8 @@ private:
 
 shared_ptr<WMBus> openRC1180(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
+    assert(detected.found_file != "");
+
     string bus_alias = detected.specified_device.bus_alias;
     string device = detected.found_file;
     assert(device != "");
@@ -341,8 +343,8 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 19200, PARITY::NONE, "detect rc1180");
     serial->disableCallbacks();
-    AccessCheck rc = serial->open(false);
-    if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
+    bool ok = serial->open(false);
+    if (!ok) return AccessCheck::NoSuchDevice;
 
     vector<uchar> data;
     vector<uchar> msg(1);
@@ -360,7 +362,7 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
        // no RC1180 device detected
        serial->close();
        verbose("(rc1180) are you there? no.\n");
-       return AccessCheck::NotThere;
+       return AccessCheck::NoProperResponse;
     }
 
     data.clear();
@@ -375,7 +377,7 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
     serial->receive(&data);
 
     ConfigRC1180 co;
-    bool ok = co.decode(data);
+    ok = co.decode(data);
     if (!ok || co.uart_bps != 5)
     {
         // Decode must be ok and the uart bps must be 5,
@@ -383,7 +385,7 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
         // If not 5, then this is not a rc1180 dongle.
         serial->close();
         verbose("(rc1180) are you there? no.\n");
-        return AccessCheck::NotThere;
+        return AccessCheck::NoProperResponse;
     }
 
     debug("(rc1180) config: %s\n", co.str().c_str());

@@ -587,14 +587,16 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm)
 
 AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
+    assert(detected->found_file != "");
+
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 9600, PARITY::NONE, "detect amb8465");
     serial->disableCallbacks();
-    AccessCheck rc = serial->open(false);
-    if (rc != AccessCheck::AccessOK)
+    bool ok = serial->open(false);
+    if (!ok)
     {
-        debug("(amb8465) could not open tty for detection\n");
-        return AccessCheck::NotThere;
+        verbose("(amb8465) could not open tty %s for detection\n", detected->found_file.c_str());
+        return AccessCheck::NoSuchDevice;
     }
 
     vector<uchar> response;
@@ -659,7 +661,7 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
                 debug("(amb8465) failed to sent query! Giving up!\n");
                 verbose("(amb8465) are you there? no, nothing is there.\n");
                 serial->close();
-                return AccessCheck::NotThere;
+                return AccessCheck::NoProperResponse;
             }
         }
     } while (sent == false && count < 4);
@@ -676,7 +678,7 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
         {
             verbose("(amb8465) are you there? no.\n");
             serial->close();
-            return AccessCheck::NotThere;
+            return AccessCheck::NoProperResponse;
         }
         debug("(amb8465) reading response... %d\n", count);
 
@@ -725,10 +727,11 @@ static AccessCheck tryFactoryResetAMB8465(string device, shared_ptr<SerialCommun
 {
     // Talk to the device and expect a very specific answer.
     auto serial = manager->createSerialDeviceTTY(device.c_str(), baud, PARITY::NONE, "reset amb8465");
-    AccessCheck rc = serial->open(false);
-    if (rc != AccessCheck::AccessOK) {
-        verbose("(amb8465) could not open device %s using baud %d\n", device.c_str(), baud);
-        return AccessCheck::NotThere;
+    bool ok = serial->open(false);
+    if (!ok)
+    {
+        verbose("(amb8465) could not open device %s using baud %d for reset\n", device.c_str(), baud);
+        return AccessCheck::NoSuchDevice;
     }
 
     vector<uchar> data;
@@ -776,7 +779,7 @@ static AccessCheck tryFactoryResetAMB8465(string device, shared_ptr<SerialCommun
         data[4] != xorChecksum(data, 0, 4))
     {
         verbose("(amb8465) no response to factory reset %s using baud %d\n", device.c_str(), baud);
-        return AccessCheck::NotThere;
+        return AccessCheck::NoProperResponse;
     }
     verbose("(amb8465) received proper factory reset response %s using baud %d\n", device.c_str(), baud);
     return AccessCheck::AccessOK;
@@ -786,7 +789,7 @@ int bauds[] = { 1200, 2400, 4800, 9600, 19200, 38400, 56000, 115200, 0 };
 
 AccessCheck factoryResetAMB8465(string device, shared_ptr<SerialCommunicationManager> manager, int *was_baud)
 {
-    AccessCheck rc = AccessCheck::NotThere;
+    AccessCheck rc = AccessCheck::NoSuchDevice;
 
     for (int i=0; bauds[i] != 0; ++i)
     {
@@ -798,5 +801,5 @@ AccessCheck factoryResetAMB8465(string device, shared_ptr<SerialCommunicationMan
         }
     }
     *was_baud = 0;
-    return AccessCheck::NotThere;
+    return AccessCheck::NoSuchDevice;
 }

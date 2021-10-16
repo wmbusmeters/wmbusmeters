@@ -197,8 +197,8 @@ AccessCheck detectMBUS(Detected *detected, shared_ptr<SerialCommunicationManager
     // Since we do not know how to talk to the other end, it might not
     // even respond. The only thing we can do is to try to open the serial device.
     auto serial = manager->createSerialDeviceTTY(tty.c_str(), bps, PARITY::EVEN, "detect mbus");
-    AccessCheck rc = serial->open(false);
-    if (rc != AccessCheck::AccessOK) return AccessCheck::NotThere;
+    bool ok = serial->open(false);
+    if (!ok) return AccessCheck::NoSuchDevice;
 
     serial->close();
 

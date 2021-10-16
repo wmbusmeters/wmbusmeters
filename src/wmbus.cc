@@ -3693,9 +3693,9 @@ bool WMBusCommonImplementation::reset()
             usleep(3000*1000);
         }
 
-        AccessCheck rc = serial()->open(false);
+        bool ok = serial()->open(false);
 
-        if (rc != AccessCheck::AccessOK)
+        if (!ok)
         {
             // Ouch....
             return false;
@@ -4006,61 +4006,6 @@ LIST_OF_AFL_AUTH_TYPES
     }
 
     return AFLAuthenticationType::Reserved1;
-}
-
-AccessCheck findAndDetect(shared_ptr<SerialCommunicationManager> manager,
-                          string *out_device,
-                          function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> check,
-                          string dongle_name,
-                          string device_root)
-{
-    string dev = device_root;
-    debug("(%s) exists? %s\n", dongle_name.c_str(), dev.c_str());
-    AccessCheck ac = checkIfExistsAndSameGroup(dev);
-    *out_device = dev;
-    if (ac == AccessCheck::AccessOK)
-    {
-        debug("(%s) checking %s\n", dongle_name.c_str(), dev.c_str());
-        AccessCheck rc = check(dev, manager);
-        if (rc == AccessCheck::AccessOK) return AccessCheck::AccessOK;
-    }
-
-    if (ac == AccessCheck::NotSameGroup)
-    {
-        // Device exists, but you do not belong to its group!
-        // This will short circuit testing for other devices.
-        // But not being in the same group is such a problematic
-        // situation, that we can stop early.
-        return AccessCheck::NotSameGroup;
-    }
-
-    *out_device = "";
-    // No device found!
-    return AccessCheck::NotThere;
-}
-
-AccessCheck checkAccessAndDetect(shared_ptr<SerialCommunicationManager> manager,
-                                 function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> check,
-                                 string dongle_name,
-                                 string device)
-{
-    debug("(%s) exists? %s\n", dongle_name.c_str(), device.c_str());
-    AccessCheck ac = checkIfExistsAndSameGroup(device);
-    if (ac == AccessCheck::AccessOK)
-    {
-        debug("(%s) checking %s\n", dongle_name.c_str(), device.c_str());
-        AccessCheck rc = check(device, manager);
-        if (rc == AccessCheck::AccessOK) return AccessCheck::AccessOK;
-        return AccessCheck::NotThere;
-    }
-    if (ac == AccessCheck::NotSameGroup)
-    {
-        // Device exists, but you do not belong to its group!
-        return AccessCheck::NotSameGroup;
-    }
-
-    // No device found!
-    return AccessCheck::NotThere;
 }
 
 bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
@@ -4750,6 +4695,14 @@ Detected detectWMBusDeviceOnTTY(string tty,
     detected.specified_device.is_tty = true;
     detected.specified_device.linkmodes = desired_linkmodes;
 
+    AccessCheck ac = handler->checkAccess(tty, handler);
+    if (ac != AccessCheck::AccessOK)
+    {
+        // Oups, some low level problem (permissions/groups etc) that means that we will not
+        // be able to talk to the device. Lets stop here.
+        return detected;
+    }
+
     // If im87a is tested first, a delay of 1s must be inserted
     // before amb8465 is tested, lest it will not respond properly.
     // It really should not matter, but perhaps is the uart of the amber
@@ -4790,8 +4743,8 @@ Detected detectWMBusDeviceOnTTY(string tty,
 }
 
 Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
-                                   LinkModeSet default_linkmodes,
-                                   shared_ptr<SerialCommunicationManager> handler)
+                                        LinkModeSet default_linkmodes,
+                                        shared_ptr<SerialCommunicationManager> handler)
 {
     assert(specified_device.file != "" || specified_device.hex != "");
     assert(specified_device.command == "");
@@ -4901,23 +4854,23 @@ Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
 
 AccessCheck detectUNKNOWN(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
-    return AccessCheck::NotThere;
+    return AccessCheck::NoSuchDevice;
 }
 
 AccessCheck detectSKIP(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
-    return AccessCheck::NotThere;
+    return AccessCheck::NoSuchDevice;
 }
 
 AccessCheck detectSIMULATION(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
-    return AccessCheck::NotThere;
+    return AccessCheck::NoSuchDevice;
 }
 
 AccessCheck detectAUTO(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
     // Detection of auto is currently not implemented here, but elsewhere.
-    return AccessCheck::NotThere;
+    return AccessCheck::NoSuchDevice;
 }
 
 AccessCheck reDetectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
@@ -4929,7 +4882,7 @@ LIST_OF_MBUS_DEVICES
 #undef X
 
     assert(0);
-    return AccessCheck::NotThere;
+    return AccessCheck::NoSuchDevice;
 }
 
 bool usesRTLSDR(WMBusDeviceType t)

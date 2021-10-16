@@ -656,13 +656,16 @@ and adds the user `wmbusmeters` with no login account.
 
 # Common problems
 
+If wmbusmeters detects no device, but you know you have plugged in your wmbus dongle, then
+run with `--verbose` to get more information on why the devices are not detected.
+Typically this is because you are not in the dialout (for usb-serial dongles) or plugdev (for rtlsdr) group.
+
+Run `sudo make install` to add the current user to the dialout group and the wmbusmeters group.
+
 If the daemon has started then the wmbus device will be taken and you cannot start wmbusmeters manually.
 
-To run manually, first make sure the daemon is stopped `sudo stop wmbusmeters@-dev-im871a_0.server`
+To run manually, first make sure the daemon is stopped `sudo systemctl stop wmbusmeters`
 if this hangs, then do `sudo killall -9 wmbusmetersd` and/or `sudo killall -9 wmbusmeters`.
-
-If you are using rtl_sdr/rtl_wmbus and you want to stop the daemon, do
-`sudo stop wmbusmeters@-dev-rtlsdr_3.server` followed by `sudo killall -9 rtl_sdr`.
 
 ## How to receive telegrams over longer distances
 

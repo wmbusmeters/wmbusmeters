@@ -36,6 +36,7 @@
 #define HILIGHT_PAIR 4
 
 void initUI();
+void exitUI();
 
 void registerUpdateCB(std::function<void()> cb);
 

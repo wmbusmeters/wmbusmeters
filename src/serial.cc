@@ -44,6 +44,8 @@
 #include <linux/serial.h>
 #endif
 
+// return a positive integer (file descriptor) on success.
+// return -1 for failure to open. return -2 for already locked.
 static int openSerialTTY(const char *tty, int baud_rate, PARITY parity);
 static string showTTYSettings(int fd);
 
@@ -93,6 +95,11 @@ struct SerialCommunicationManagerImp : public SerialCommunicationManager
 
     int startRegularCallback(string name, int seconds, function<void()> callback);
     void stopRegularCallback(int id);
+
+    AccessCheck checkAccess(string device,
+                            shared_ptr<SerialCommunicationManager> manager,
+                            string extra_info,
+                            function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> extra_probe);
 
     vector<string> listSerialTTYs();
     shared_ptr<SerialDevice> lookup(std::string device);
@@ -285,7 +292,7 @@ struct SerialDeviceTTY : public SerialDeviceImp
     SerialDeviceTTY(string device, int baud_rate, PARITY parity, SerialCommunicationManagerImp * manager, string purpose);
     ~SerialDeviceTTY();
 
-    AccessCheck open(bool fail_if_not_ok);
+    bool open(bool fail_if_not_ok);
     void close();
     bool send(vector<uchar> &data);
     bool working();
@@ -313,39 +320,26 @@ SerialDeviceTTY::~SerialDeviceTTY()
     close();
 }
 
-AccessCheck SerialDeviceTTY::open(bool fail_if_not_ok)
+bool SerialDeviceTTY::open(bool fail_if_not_ok)
 {
     assert(device_ != "");
     bool ok = checkCharacterDeviceExists(device_.c_str(), fail_if_not_ok);
-    if (!ok) return AccessCheck::NotThere;
+    if (!ok) return false;
     fd_ = openSerialTTY(device_.c_str(), baud_rate_, parity_);
-    if (fd_ < 0)
+    if (fd_ == -1)
     {
-        if (fail_if_not_ok)
-        {
-            if (fd_ == -1)
-            {
-                error("Could not open %s with %d baud N81\n", device_.c_str(), baud_rate_);
-            }
-            else if (fd_ == -2)
-            {
-                error("Device %s is already in use and locked.\n", device_.c_str());
-            }
-        }
-        else
-        {
-            if (fd_ == -1)
-            {
-                return AccessCheck::NotThere;
-            }
-            else if (fd_ == -2)
-            {
-                return AccessCheck::NotSameGroup;
-            }
-        }
+        if (fail_if_not_ok) error("Could not open %s with %d baud N81\n", device_.c_str(), baud_rate_);
+        verbose("(serialtty) could not open %s with %d baud N81\n", device_.c_str(), baud_rate_);
+        return false;
+    }
+    if (fd_ == -2)
+    {
+        if (fail_if_not_ok) error("Device %s is already in use and locked.\n", device_.c_str());
+        verbose("(serialtty) device %s is already in use and locked.\n", device_.c_str());
+        return false;
     }
     verbose("(serialtty) opened %s fd %d (%s)\n", device_.c_str(), fd_, purpose_.c_str());
-    return AccessCheck::AccessOK;
+    return true;
 }
 
 void SerialDeviceTTY::close()
@@ -426,7 +420,7 @@ struct SerialDeviceCommand : public SerialDeviceImp
                         string purpose);
     ~SerialDeviceCommand();
 
-    AccessCheck open(bool fail_if_not_ok);
+    bool open(bool fail_if_not_ok);
     void close();
     bool send(vector<uchar> &data);
     int available();
@@ -466,15 +460,15 @@ SerialDeviceCommand::~SerialDeviceCommand()
     close();
 }
 
-AccessCheck SerialDeviceCommand::open(bool fail_if_not_ok)
+bool SerialDeviceCommand::open(bool fail_if_not_ok)
 {
     expectAscii();
     bool ok = invokeBackgroundShell("/bin/sh", args_, envs_, &fd_, &pid_);
     assert(fd_ >= 0);
-    if (!ok) return AccessCheck::NotThere;
+    if (!ok) return false;
     setIsStdin();
     verbose("(serialcmd) opened %s pid %d fd %d (%s)\n", command_.c_str(), pid_, fd_, purpose_.c_str());
-    return AccessCheck::AccessOK;
+    return true;
 }
 
 void SerialDeviceCommand::close()
@@ -553,7 +547,7 @@ struct SerialDeviceFile : public SerialDeviceImp
     SerialDeviceFile(string file, SerialCommunicationManagerImp *manager, string purpose);
     ~SerialDeviceFile();
 
-    AccessCheck open(bool fail_if_not_ok);
+    bool open(bool fail_if_not_ok);
     void close();
     bool working();
     bool send(vector<uchar> &data);
@@ -578,7 +572,7 @@ SerialDeviceFile::~SerialDeviceFile()
     close();
 }
 
-AccessCheck SerialDeviceFile::open(bool fail_if_not_ok)
+bool SerialDeviceFile::open(bool fail_if_not_ok)
 {
     if (file_ == "stdin")
     {
@@ -592,25 +586,20 @@ AccessCheck SerialDeviceFile::open(bool fail_if_not_ok)
     else
     {
         bool ok = checkFileExists(file_.c_str());
-        if (!ok) return AccessCheck::NotThere;
+        if (!ok) return false;
         fd_ = ::open(file_.c_str(), O_RDONLY | O_NONBLOCK);
         if (fd_ == -1)
         {
-            if (fail_if_not_ok)
-            {
-                error("Could not open file %s for reading.\n", file_.c_str());
-            }
-            else
-            {
-                return AccessCheck::NotThere;
-            }
+            if (fail_if_not_ok) error("Could not open file %s for reading.\n", file_.c_str());
+            verbose("(serialdevicefile) could not open file %s for reading.\n", file_.c_str());
+            return false;
         }
         setIsFile();
         verbose("(serialfile) reading from file %s (%s)\n", file_.c_str(), purpose_.c_str());
     }
     manager_->tickleEventLoop();
 
-    return AccessCheck::AccessOK;
+    return true;
 }
 
 void SerialDeviceFile::close()
@@ -656,7 +645,7 @@ struct SerialDeviceSimulator : public SerialDeviceImp
     };
     ~SerialDeviceSimulator() { };
 
-    AccessCheck open(bool fail_if_not_ok) { return AccessCheck::AccessOK; };
+    bool open(bool fail_if_not_ok) { return true; };
     void close() { };
     bool readonly() { return true; }
     bool send(vector<uchar> &data) { return true; };
@@ -1601,4 +1590,53 @@ static string showTTYSettings(int fd)
 err:
 
     return "error";
+}
+
+AccessCheck SerialCommunicationManagerImp::checkAccess(string device,
+                                                       shared_ptr<SerialCommunicationManager> manager,
+                                                       string extra_info,
+                                                       function<AccessCheck(string,shared_ptr<SerialCommunicationManager>)> extra_probe)
+{
+    assert(device != "");
+
+    if (extra_info == "")
+    {
+        extra_info = "serial";
+    }
+
+    debug("(%s) check if %s can be accessed\n", extra_info.c_str(), device.c_str());
+
+    AccessCheck ac = checkIfExistsAndHasAccess(device);
+
+    if (ac == AccessCheck::AccessOK)
+    {
+        if (!extra_probe)
+        {
+            verbose("(%s) tty %s can be accessed\n", extra_info.c_str(), device.c_str());
+            return AccessCheck::AccessOK;
+        }
+        verbose("(%s) tty %s can be accessed now probing...\n", extra_info.c_str(), device.c_str());
+        ac = extra_probe(device, manager);
+        verbose("(%s) probe returns %s\n", extra_info.c_str(), toString(ac));
+        return ac;
+    }
+
+    if (ac == AccessCheck::NoPermission)
+    {
+        verbose("(serial) you do not have the correct permissions to open the tty %s, but at least you share the same access group.\n",
+                device.c_str());
+        return AccessCheck::NoPermission;
+    }
+
+    if (ac == AccessCheck::NotSameGroup)
+    {
+        verbose("(serial) you do not have the correct permissions to open the tty %s and you do not share the same access group.\n",
+                device.c_str());
+        return AccessCheck::NotSameGroup;
+    }
+
+    verbose("(serial) cannot open/find tty %s.\n",
+            device.c_str());
+
+    return AccessCheck::NoSuchDevice;
 }

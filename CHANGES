@@ -1,4 +1,8 @@
 
+Improved verbose logging to show if you are not in the dialout
+group when trying to find dongles. Install now adds the current
+user to the dialout group as well.
+
 Added support for the Hydrocal-M3 heating/cooling meter.
 Added support for the Apator uniSMART gas meter.
 

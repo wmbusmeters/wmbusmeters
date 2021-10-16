@@ -24,6 +24,7 @@
 #include"serial.h"
 #include"shell.h"
 #include"ui.h"
+#include"util.h"
 #include"wmbus.h"
 
 bool running_as_root_ = false;
@@ -99,6 +100,9 @@ int main(int argc, char **argv)
         enableSyslog();
     }
 
+    // Handle exit on signals...
+    onExit(exitUI);
+
     initUI();
     clear();
 
@@ -160,6 +164,8 @@ int main(int argc, char **argv)
             break;
         }
     } while (running);
+
+    exitUI();
 }
 
 void alwaysOnScreen()
@@ -289,7 +295,7 @@ void resetWMBUSReceiver()
     }
 }
 
-void probeFor(string type, AccessCheck (*check)(Detected*,shared_ptr<SerialCommunicationManager>))
+void probeFor(string type, AccessCheck (*probe)(Detected*,shared_ptr<SerialCommunicationManager>))
 {
     Detected detected {};
     vector<string> devices = handler->listSerialTTYs();
@@ -297,23 +303,32 @@ void probeFor(string type, AccessCheck (*check)(Detected*,shared_ptr<SerialCommu
     for (string& device : devices)
     {
         string tty = "?";
-        AccessCheck ac = checkAccessAndDetect(
-            handler,
-            [&](string d, shared_ptr<SerialCommunicationManager> m){ detected.specified_device.file=d; return check(&detected, m);},
-            type,
-            device);
+        AccessCheck ac = handler->checkAccess(device,
+                                              handler,
+                                              type,
+                                              [&](string d, shared_ptr<SerialCommunicationManager> m){
+                                                  detected.found_file=d;
+                                                  detected.specified_device.file=d; return probe(&detected, m);});
 
         if (ac == AccessCheck::AccessOK)
         {
             tty = device+" DETECTED "+type;
         }
-        else if (ac == AccessCheck::NotThere)
+        else if (ac == AccessCheck::NoSuchDevice)
         {
-            tty = device+" nothing there";
+            tty = device+" no such device";
+        }
+        else if (ac == AccessCheck::NoProperResponse)
+        {
+            tty = device+" no response";
         }
         else if (ac == AccessCheck::NotSameGroup)
         {
             tty = device+" not same group";
+        }
+        else if (ac == AccessCheck::NoPermission)
+        {
+            tty = device+" same group but wrong permissions";
         }
         entries.push_back(tty);
     }
