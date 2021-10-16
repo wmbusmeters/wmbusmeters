@@ -120,6 +120,7 @@
     X(WHE46X,     MANUFACTURER_LSE, 0x08,  0x18) \
     X(WHE5X,      MANUFACTURER_LSE, 0x08,  0x34) \
     X(WEH_07,     MANUFACTURER_WEH, 0x07,  0xfe) \
+    X(MUNIA,      MANUFACTURER_WEP, 0x1b,  0x02) \
 
 
 // End of list
