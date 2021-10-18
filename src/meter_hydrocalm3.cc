@@ -160,7 +160,7 @@ void MeterHydrocalM3::processContent(Telegram *t)
 
     if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, 2, &key, &t->values))
     {
-        extractDVdouble(&t->values, key, &offset, &total_heating_volume_m3_);
+        extractDVdouble(&t->values, key, &offset, &total_cooling_volume_m3_);
         t->addMoreExplanation(offset, " total cooling volume (%f m3)", total_cooling_volume_m3_);
     }
 
