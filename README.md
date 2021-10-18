@@ -560,7 +560,7 @@ wmbusmeters 'rtlwmbus:CMD(nc -lku 4444)'
 
 Or start nc explicitly in a pipe.
 ```shell
-nc -lku 4444 | wmbusmeters rtlwmbus:stdin
+nc -lku 4444 | wmbusmeters stdin:rtlwmbus
 ```
 
 # Decoding hex string telegrams
