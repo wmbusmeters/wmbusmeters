@@ -548,6 +548,21 @@ wmbusmeters --format=json --meterfiles /dev/ttyUSB0:im871a:c1 MyTapWater multica
 rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s | wmbusmeters --format=json stdin:rtlwmbus MyMeter auto 12345678 NOKEY | ...more processing...
 ```
 
+Or you can send rtl_wmbus formatted telegrams using nc over UDP to wmbusmeters.
+```shell
+rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus -p s -a | nc -u localhost 4444
+```
+
+And receive the telegrams with nc spawned by wmbusmeters.
+```shell
+wmbusmeters 'rtlwmbus:CMD(nc -lku 4444)'
+```
+
+Or start nc explicitly in a pipe.
+```shell
+nc -lku 4444 | wmbusmeters rtlwmbus:stdin
+```
+
 # Decoding hex string telegrams
 
 If you have a single telegram as hex, which you want decoded, you do not need to create a simulation file,
