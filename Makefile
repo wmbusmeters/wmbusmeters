@@ -140,6 +140,7 @@ METER_OBJS:=\
 	$(BUILD)/meter_apator162.o \
 	$(BUILD)/meter_aventieswm.o \
 	$(BUILD)/meter_aventieshca.o \
+	$(BUILD)/meter_bfw240radio.o \
 	$(BUILD)/meter_cma12w.o \
 	$(BUILD)/meter_compact5.o \
 	$(BUILD)/meter_dme_07.o \
