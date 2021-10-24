@@ -73,12 +73,13 @@
     X(multical603,C1_bit, HeatMeter,        MULTICAL603, Multical603)  \
     X(multical803,C1_bit, HeatMeter,        MULTICAL803, Multical803)  \
     X(omnipower,  C1_bit, ElectricityMeter, OMNIPOWER,   Omnipower)    \
-    X(piigth,     MBUS_bit, TempHygroMeter, PIIGTH,        PiigTH)     \
+    X(piigth,     MBUS_bit, TempHygroMeter, PIIGTH,      PiigTH)       \
     X(rfmamb,     T1_bit, TempHygroMeter,   RFMAMB,      RfmAmb)       \
     X(rfmtx1,     T1_bit, WaterMeter,       RFMTX1,      RfmTX1)       \
     X(tsd2,       T1_bit, SmokeDetector,    TSD2,        TSD2)         \
     X(q400,       T1_bit, WaterMeter,       Q400,        Q400)         \
     X(qcaloric,   C1_bit, HeatCostAllocationMeter, QCALORIC, QCaloric) \
+    X(qheat,      T1_bit, HeatMeter,        QHEAT,       QHeat)        \
     X(sensostar,  C1_bit|T1_bit, HeatMeter,SENSOSTAR,  Sensostar)      \
     X(sharky,     T1_bit, HeatMeter,        SHARKY,      Sharky)       \
     X(sontex868,  T1_bit, HeatCostAllocationMeter, SONTEX868, Sontex868) \

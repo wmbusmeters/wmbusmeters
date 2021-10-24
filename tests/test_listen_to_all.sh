@@ -323,6 +323,15 @@ Received telegram from: 00013482
                   type: Room sensor (eg temperature or humidity) (0x1b)
                    ver: 0x02
                 driver: munia
+Received telegram from: 37027095
+          manufacturer: (QDS) Qundis, Germany (0x4493)
+                  type: Radio converter (meter side) (0x37)
+                   ver: 0x23
+      Concerning meter: 67228058
+          manufacturer: (QDS) Qundis, Germany (0x4493)
+                  type: Heat meter (0x04)
+                   ver: 0x23
+                driver: qheat
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)
