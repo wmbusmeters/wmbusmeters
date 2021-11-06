@@ -595,6 +595,7 @@ string mediaTypeJSON(int a_field_device_type, int m_field)
     X(0x78, TPL_78,  "TPL: no header APL follows", 0, CI_TYPE::TPL, "") \
     X(0x79, TPL_79,  "TPL: compact APL follows", 0, CI_TYPE::TPL, "") \
     X(0x7A, TPL_7A,  "TPL: short header APL follows", 0, CI_TYPE::TPL, "") \
+    X(0x81, NWL_81,  "NWL: TPL or APL follows?", 0, CI_TYPE::NWL, "") \
     X(0x8C, ELL_I,   "ELL: I",    2, CI_TYPE::ELL, "CC, ACC") \
     X(0x8D, ELL_II,  "ELL: II",   8, CI_TYPE::ELL, "CC, ACC, SN, Payload CRC") \
     X(0x8E, ELL_III, "ELL: III", 10, CI_TYPE::ELL, "CC, ACC, M2, A2") \
@@ -1030,6 +1031,23 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
 
 bool Telegram::parseNWL(vector<uchar>::iterator &pos)
 {
+    int remaining = distance(pos, frame.end());
+    if (remaining == 0) return false;
+
+    debug("(wmbus) parseNWL @%d %d\n", distance(frame.begin(), pos), remaining);
+    int ci_field = *pos;
+    if (!isCiFieldOfType(ci_field, CI_TYPE::NWL)) return true;
+    addExplanationAndIncrementPos(pos, 1, "%02x nwl-ci-field (%s)",
+                                  ci_field, ciType(ci_field).c_str());
+    nwl_ci = ci_field;
+    // We have only seen 0x81 0x1d so far.
+    int len = 1; // ciFieldLength(nwl_ci);
+
+    if (remaining < len+1) return expectedMore(__LINE__);
+
+    uchar nwl = *pos;
+    addExplanationAndIncrementPos(pos, 1, "%02x nwl?", nwl);
+
     return true;
 }
 

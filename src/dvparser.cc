@@ -253,11 +253,7 @@ bool parseDV(Telegram *t,
         int remaining = std::distance(data, data_end);
         if (variable_length) {
             DEBUG_PARSER("(dvparser debug) varlen %02x\n", *(data+0));
-            if (remaining > 2) {
-                datalen = *(data);
-            } else {
-                datalen = remaining;
-            }
+            datalen = *(data);
         }
         DEBUG_PARSER("(dvparser debug) remaining data %d len=%d\n", remaining, datalen);
         if (remaining < datalen) {
@@ -267,7 +263,7 @@ bool parseDV(Telegram *t,
 
         // Skip the length byte in the variable length data.
         if (variable_length) {
-            t->addExplanationAndIncrementPos(data, 1, "%02X varlen=%d", datalen, datalen);
+            t->addExplanationAndIncrementPos(data, 1, "%02X varlen=%d", *(data+0), datalen);
         }
         string value = bin2hex(data, data_end, datalen);
         int offset = start_parse_here+data-data_start;

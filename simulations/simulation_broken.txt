@@ -1,0 +1,3 @@
+# This telegram is not really broken, but the current dvparser fails, in particular the end triggers a varlen with
+# not enough bytes in the telegram. When the protocol/dvparser is improved, a replacement telegram should be placed here.
+telegram=|3444EE4D813929271608|811D|7A51000000|046D1912A62B036E000000|5170426CE1F1436E00000002FF2C00000259D6D0D4090265FC0902FD66A00044C4|
