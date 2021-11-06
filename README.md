@@ -365,6 +365,7 @@ Heat and Cooling meter Kamstrup Multical 803 (multical803) (in C1 mode)
 Heat meter Apator Elf (elf)
 Heat meter Diehl Sharky 775 (sharky)
 Heat and Cooling meter BMeters Hydrocal-M3 (hydrocalm3)
+Heat meter Qundis Q heat 5.5 (qheat)
 
 Supported room sensors:
 Bmeters RFM-AMB Thermometer/Hygrometer (rfmamb)

@@ -5,6 +5,8 @@ wmbusmeters \- listen to wireless mbus radio traffic and relay the decoded teleg
 .SH SYNOPSIS
 .B wmbusmeters [options] <device>{:suffix} (<meter_name> <meter_type>[:<mode>] <meter_id> meter_key>)*
 
+.B wmbusmeters [options] <hex> (<meter_name> <meter_type>[:<mode>] <meter_id> meter_key>)*
+
 .B wmbusmetersd <pid_file>
 
 .SH DESCRIPTION
@@ -132,6 +134,12 @@ and the other set to beta. Alfa has an antenna tuned for 433M, beta has an anten
 
 .TP
 \fBsimulation_xxx.txt\fR read telegrams from file to replay telegram feed (use --logtelegrams to acquire feed for replay)
+
+.TP
+\fB2e441122334455667788\fR decode the given hex string the hex string must have only hex digits.
+
+.TP
+\fBstdin:hex\fR decode any hex found on stdin, non-hex characters are ignored.
 
 .SH METER QUADRUPLES
 .TP

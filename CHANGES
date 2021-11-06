@@ -2,7 +2,13 @@
 Close a security hole where you could trivially spoof an encrypted meter
 by sending an unencrypted telegram with the same id.
 
+Fixed a buffer overflow bug triggered by a bad variable length field at the end of a telegram.
+
+Added support for Qundis Q heat 5.5.
+
 Jacek27 added support for the Munia temp/hygrometer. Thanks Jacek27!
+
+Apator162 decoding much improved.
 
 Improved verbose logging to show if you are not in the dialout
 group when trying to find dongles. Install now adds the current
