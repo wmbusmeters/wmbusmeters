@@ -26,3 +26,29 @@ then
 fi
 
 if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
+
+TESTNAME="Test that telegram really is encrypted"
+TESTRESULT="ERROR"
+
+cat > $TEST/test_expected.txt <<EOF
+(wmbus) WARNING! telegram should have been encrypted, but was not! id: 88888888 mfct: (APA) Apator, Poland (0x601) type: Water meter (0x07) ver: 0x05
+(meter) newly created meter (ApWater 88888888 apator162) did not handle telegram!
+(wmbus) WARNING! decrypted payload crc failed check, did you use the correct decryption key? e1d6 payload crc (calculated a528) Permanently ignoring telegrams from id: 76348799 mfct: (KAM) Kamstrup Energi (0x2c2d) type: Cold water meter (0x16) ver: 0x1b
+(meter) newly created meter (Vatten 76348799 multical21) did not handle telegram!
+(wmbus) WARNING! telegram should have been encrypted, but was not! id: 77777777 mfct: (SON) Sontex, Switzerland (0x4dee) type: Water meter (0x07) ver: 0x3c
+(meter) newly created meter (Wasser 77777777 supercom587) did not handle telegram!
+EOF
+
+$PROG --format=json simulations/simulation_aes_removed.msg \
+      ApWater apator162   88888888 00000000000000000000000000000000 \
+      Vatten  multical21  76348799 28F64A24988064A079AA2C807D6102AE \
+      Wasser  supercom587 77777777 5065747220486F6C79737A6577736B69 > $TEST/test_output.txt 2>&1
+
+diff $TEST/test_expected.txt $TEST/test_output.txt
+if [ "$?" = "0" ]
+then
+    echo "OK: $TESTNAME"
+    TESTRESULT="OK"
+fi
+
+if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi

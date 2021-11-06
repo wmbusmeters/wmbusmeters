@@ -1010,7 +1010,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
                 if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
-                    warning("(wmbus) decrypted payload crc failed check, did you use the correct decryption key? "
+                    warning("(wmbus) WARNING! decrypted payload crc failed check, did you use the correct decryption key? "
                             "%02x%02x payload crc (calculated %02x%02x) "
                             "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             ell_pl_crc_b[0], ell_pl_crc_b[1],
@@ -1134,7 +1134,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
             len != 12 &&
             len != 16)
         {
-            warning("(wmbus) bad length of mac\n");
+            warning("(wmbus) WARNING! bad length of mac\n");
             return false;
         }
         afl_mac_b.clear();
@@ -1415,7 +1415,24 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
 {
     if (tpl_sec_mode == TPLSecurityMode::AES_CBC_IV)
     {
-        if (alreadyDecryptedCBC(pos)) return true;
+        if (alreadyDecryptedCBC(pos))
+        {
+            if (meter_keys && meter_keys->hasConfidentialityKey())
+            {
+                // Oups! There this telegram is already decrypted, but
+                // we have specified a key! Do not accept this telegram!
+                warning("(wmbus) WARNING! telegram should have been encrypted, but was not! "
+                        "id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                            dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
+                            manufacturerFlag(dll_mfct).c_str(),
+                            manufacturer(dll_mfct).c_str(),
+                            dll_mfct,
+                            mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                            dll_version);
+                return false;
+            }
+            return true;
+        }
         if (!meter_keys) return false;
         if (!meter_keys->hasConfidentialityKey())
         {
@@ -1433,7 +1450,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                 if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
-                    warning("(wmbus) decrypted content failed check, did you use the correct decryption key? "
+                    warning("(wmbus) WARNING! decrypted content failed check, did you use the correct decryption key? "
                             "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
@@ -1466,7 +1483,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                 if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
-                    warning("(wmbus) telegram mac check failed, did you use the correct decryption key? "
+                    warning("(wmbus) WARNING! telegram mac check failed, did you use the correct decryption key? "
                             "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
@@ -1491,7 +1508,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                 if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
-                    warning("(wmbus) decrypted content failed check, did you use the correct decryption key? "
+                    warning("(wmbus) WARNING! decrypted content failed check, did you use the correct decryption key? "
                             "Permanently ignoring telegrams from id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
