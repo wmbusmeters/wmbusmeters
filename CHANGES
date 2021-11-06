@@ -1,4 +1,7 @@
 
+Close a security hole where you could trivially spoof an encrypted meter
+by sending an unencrypted telegram with the same id.
+
 Jacek27 added support for the Munia temp/hygrometer. Thanks Jacek27!
 
 Improved verbose logging to show if you are not in the dialout

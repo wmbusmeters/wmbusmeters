@@ -1419,9 +1419,10 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             if (meter_keys && meter_keys->hasConfidentialityKey())
             {
-                // Oups! There this telegram is already decrypted, but
-                // we have specified a key! Do not accept this telegram!
-                warning("(wmbus) WARNING! telegram should have been encrypted, but was not! "
+                // Oups! This telegram is already decrypted (but the header still says it should be encrypted)
+                // this is probably a replay telegram from --logtelegrams.
+                // Since we have specified a key! Do not accept this telegram!
+                warning("(wmbus) WARNING! telegram should have been fully encrypted, but was not! "
                         "id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                             dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
                             manufacturerFlag(dll_mfct).c_str(),
@@ -1538,6 +1539,22 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             debug("(diehl) decryption successful\n");
         }
     }
+    else
+    if (meter_keys && meter_keys->hasConfidentialityKey())
+    {
+        // Oups! This telegram is NOT encrypted, but we have specified a key!
+        // Do not accept this telegram!
+        warning("(wmbus) WARNING! telegram should have been encrypted, but was not! "
+                "id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                dll_id_b[3], dll_id_b[2], dll_id_b[1], dll_id_b[0],
+                manufacturerFlag(dll_mfct).c_str(),
+                manufacturer(dll_mfct).c_str(),
+                dll_mfct,
+                mediaType(dll_type, dll_mfct).c_str(), dll_type,
+                dll_version);
+        return false;
+    }
+
     return true;
 }
 
