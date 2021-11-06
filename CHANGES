@@ -1,3 +1,4 @@
+Version 1.5.0: 2021-11-06
 
 Close a security hole where you could trivially spoof an encrypted meter
 by sending an unencrypted telegram with the same id.
