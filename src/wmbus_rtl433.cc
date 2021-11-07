@@ -91,7 +91,7 @@ shared_ptr<WMBus> openRTL433(Detected detected, string bin_dir, bool daemon,
     bool ok = parseExtras(detected.specified_device.extras, &extras);
     if (!ok)
     {
-        error("(rtlwmbus) invalid extra parameters to rtlwmbus (%s)\n", detected.specified_device.extras.c_str());
+        error("(rtl433) invalid extra parameters to rtl433 (%s)\n", detected.specified_device.extras.c_str());
     }
     string ppm = "";
     if (extras.size() > 0)
