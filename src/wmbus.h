@@ -27,6 +27,7 @@
 
 // Check and remove the data link layer CRCs from a wmbus telegram.
 // If the CRCs do not pass the test, return false.
+void removeAnyDLLCRCs(std::vector<uchar> &payload);
 bool trimCRCsFrameFormatA(std::vector<uchar> &payload);
 bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
 

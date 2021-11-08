@@ -303,6 +303,7 @@ These telegrams are expected to have the data link layer crc bytes removed alrea
 
 `simulation_abc.txt`, to read telegrams from the file (the file must have a name beginning with simulation_....)
 expecting the same format that is the output from `--logtelegrams`. This format also supports replay with timing.
+The telegrams are allowed to have valid dll crcs, which will be automatically stripped.
 
 As meter quadruples you specify:
 
@@ -604,8 +605,11 @@ echo 234433300602010014007a8e0000002f2f0efd3a1147000000008e40fd3a341200000000 | 
 
 or read hex data from a a file, `wmbusmeters myfile.txt:hex`
 
-Any non-hex characters are ignored when using the suffix `:hex`. The hex string must be proper
-with no spaces nor bad characters, when supplied on the command line.
+Any non-hex characters are ignored when using the suffix `:hex`. However when the hex string is
+supplied on the command line it must be a proper hex string with no spaces.
+
+When a telegram is supplied on the command line, then any valid dll crcs will be automatically removed,
+like when the telegram is suppled in a simulation file.
 
 # Additional tools
 

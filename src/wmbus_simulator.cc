@@ -175,6 +175,13 @@ void WMBusSimulator::simulate()
             error("Not a valid string of hex bytes! \"%s\"\n", l.c_str());
         }
         AboutTelegram about("", 0, FrameType::WMBUS);
+        // Since this is a simulation, try to remove any frame format A or B
+        // data link layer crcs. These might remain if we have received the telegram
+        // to be simulated, from a CUL device or some other devices that does not remove the crcs.
+        // Normally the dongle (im871a/amb8465/rc1180/rtlwmbus/rtl443) removes the dll-crcs.
+        // Removing dll-crcs are also done explicitly in the wmbus_cul.cc driver.
+        removeAnyDLLCRCs(payload);
+
         handleTelegram(about, payload);
     }
     manager_->stop();

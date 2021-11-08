@@ -4060,14 +4060,20 @@ LIST_OF_AFL_AUTH_TYPES
     return AFLAuthenticationType::Reserved1;
 }
 
-bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
+bool trimCRCsFrameFormatAInternal(std::vector<uchar> &payload, bool fail_is_ok)
 {
     if (payload.size() < 12) {
-        debug("(wmbus) not enough bytes! expected at least 12 but got (%zu)!\n", payload.size());
+        if (!fail_is_ok)
+        {
+            debug("(wmbus) not enough bytes! expected at least 12 but got (%zu)!\n", payload.size());
+        }
         return false;
     }
     size_t len = payload.size();
-    debugPayload("(wmbus) trimming frame A", payload);
+    if (!fail_is_ok)
+    {
+        debugPayload("(wmbus) trimming frame A", payload);
+    }
 
     vector<uchar> out;
 
@@ -4080,7 +4086,10 @@ bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
         return false;
     }
     out.insert(out.end(), payload.begin(), payload.begin()+10);
-    debug("(wmbus) ff a dll crc 0-%zu %04x ok\n", 10-1, calc_crc);
+    if (!fail_is_ok)
+    {
+        debug("(wmbus) ff a dll crc 0-%zu %04x ok\n", 10-1, calc_crc);
+    }
 
     size_t pos = 12;
     for (pos = 12; pos+18 <= len; pos += 18)
@@ -4090,12 +4099,18 @@ bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
         check_crc = payload[to] << 8 | payload[to+1];
         if (calc_crc != check_crc && !FUZZING)
         {
-            debug("(wmbus) ff a dll crc mid (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
-                  calc_crc, check_crc, pos, to-1);
+            if (!fail_is_ok)
+            {
+                debug("(wmbus) ff a dll crc mid (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
+                      calc_crc, check_crc, pos, to-1);
+            }
             return false;
         }
         out.insert(out.end(), payload.begin()+pos, payload.begin()+pos+16);
-        debug("(wmbus) ff a dll crc mid %zu-%zu %04x ok\n", pos, to-1, calc_crc);
+        if (!fail_is_ok)
+        {
+            debug("(wmbus) ff a dll crc mid %zu-%zu %04x ok\n", pos, to-1, calc_crc);
+        }
     }
 
     if (pos < len-2)
@@ -4106,12 +4121,23 @@ bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
         check_crc = payload[tto] << 8 | payload[tto+1];
         if (calc_crc != check_crc && !FUZZING)
         {
-            debug("(wmbus) ff a dll crc final (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
-                  calc_crc, check_crc, pos, tto-1);
+            if (!fail_is_ok)
+            {
+                debug("(wmbus) ff a dll crc final (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
+                      calc_crc, check_crc, pos, tto-1);
+            }
             return false;
         }
         out.insert(out.end(), payload.begin()+pos, payload.begin()+tto);
-        debug("(wmbus) ff a dll crc final %zu-%zu %04x ok\n", pos, tto-1, calc_crc);
+        if (!fail_is_ok)
+        {
+            debug("(wmbus) ff a dll crc final %zu-%zu %04x ok\n", pos, tto-1, calc_crc);
+        }
+    }
+
+    if (fail_is_ok)
+    {
+        debugPayload("(wmbus) trimming frame A", payload);
     }
 
     out[0] = out.size()-1;
@@ -4120,20 +4146,26 @@ bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
     payload = out;
     size_t new_size = payload.size();
 
-    debug("(wmbus) trimmed %zu crc bytes from frame a and ignored %zu suffix bytes.\n", (len-new_len), (old_size-new_size)-(len-new_len));
-    debugPayload("(wmbus) trimmed  frame A", payload);
+    debug("(wmbus) trimmed %zu dll crc bytes from frame a and ignored %zu suffix bytes.\n", (len-new_len), (old_size-new_size)-(len-new_len));
+    debugPayload("(wmbus) trimmed frame A", payload);
 
     return true;
 }
 
-bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
+bool trimCRCsFrameFormatBInternal(std::vector<uchar> &payload, bool fail_is_ok)
 {
     if (payload.size() < 12) {
-        debug("(wmbus) not enough bytes! expected at least 12 but got (%zu)!\n", payload.size());
+        if (!fail_is_ok)
+        {
+            debug("(wmbus) not enough bytes! expected at least 12 but got (%zu)!\n", payload.size());
+        }
         return false;
     }
     size_t len = payload.size();
-    debugPayload("(wmbus) trimming frame B", payload);
+    if (!fail_is_ok)
+    {
+        debugPayload("(wmbus) trimming frame B", payload);
+    }
 
     vector<uchar> out;
     size_t crc1_pos, crc2_pos;
@@ -4153,12 +4185,18 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
 
     if (calc_crc != check_crc && !FUZZING)
     {
-        debug("(wmbus) ff b dll crc (calculated %04x) did not match (expected %04x) for bytes 0-%zu!\n", calc_crc, check_crc, crc1_pos);
+        if (!fail_is_ok)
+        {
+            debug("(wmbus) ff b dll crc (calculated %04x) did not match (expected %04x) for bytes 0-%zu!\n", calc_crc, check_crc, crc1_pos);
+        }
         return false;
     }
 
     out.insert(out.end(), payload.begin(), payload.begin()+crc1_pos);
-    debug("(wmbus) ff b dll crc first 0-%zu %04x ok\n", crc1_pos, calc_crc);
+    if (!fail_is_ok)
+    {
+        debug("(wmbus) ff b dll crc first 0-%zu %04x ok\n", crc1_pos, calc_crc);
+    }
 
     if (crc2_pos > 0)
     {
@@ -4167,13 +4205,24 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
 
         if (calc_crc != check_crc && !FUZZING)
         {
-            debug("(wmbus) ff b dll crc (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
-                  calc_crc, check_crc, crc1_pos+2, crc2_pos);
+            if (!fail_is_ok)
+            {
+                debug("(wmbus) ff b dll crc (calculated %04x) did not match (expected %04x) for bytes %zu-%zu!\n",
+                      calc_crc, check_crc, crc1_pos+2, crc2_pos);
+            }
             return false;
         }
 
         out.insert(out.end(), payload.begin()+crc1_pos+2, payload.begin()+crc2_pos);
-        debug("(wmbus) ff b dll crc final %zu-%zu %04x ok\n", crc1_pos+2, crc2_pos, calc_crc);
+        if (!fail_is_ok)
+        {
+            debug("(wmbus) ff b dll crc final %zu-%zu %04x ok\n", crc1_pos+2, crc2_pos, calc_crc);
+        }
+    }
+
+    if (fail_is_ok)
+    {
+        debugPayload("(wmbus) trimming frame B", payload);
     }
 
     out[0] = out.size()-1;
@@ -4182,10 +4231,26 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
     payload = out;
     size_t new_size = payload.size();
 
-    debug("(wmbus) trimmed %zu crc bytes from frame b and ignored %zu suffix bytes.\n", (len-new_len), (old_size-new_size)-(len-new_len));
-    debugPayload("(wmbus) trimmed  frame B", payload);
+    debug("(wmbus) trimmed %zu dll crc bytes from frame b and ignored %zu suffix bytes.\n", (len-new_len), (old_size-new_size)-(len-new_len));
+    debugPayload("(wmbus) trimmed frame B", payload);
 
     return true;
+}
+
+void removeAnyDLLCRCs(std::vector<uchar> &payload)
+{
+    bool trimmed = trimCRCsFrameFormatAInternal(payload, true);
+    if (!trimmed) trimCRCsFrameFormatBInternal(payload, true);
+}
+
+bool trimCRCsFrameFormatA(std::vector<uchar> &payload)
+{
+    return trimCRCsFrameFormatAInternal(payload, false);
+}
+
+bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
+{
+    return trimCRCsFrameFormatBInternal(payload, false);
 }
 
 FrameStatus checkWMBusFrame(vector<uchar> &data,

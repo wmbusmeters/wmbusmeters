@@ -1,4 +1,12 @@
 
+Now any DLL crcs (frame A or B) are removed automatically
+when telegrams are read from a simulation_... file or
+passed as hex on the command line. If the DLL crc do not
+check out (usually because they are not there), then the
+telegram is kept as is. If the crcs are broken because
+of a bad data, then the telegram will be passed on as is,
+probably causing a bad parse later on.
+
 Added multical602 heat meter.
 
 Version 1.5.0: 2021-11-06
