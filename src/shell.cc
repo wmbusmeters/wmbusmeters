@@ -59,7 +59,7 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
 #if (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
         execve(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #else
-        execvp(program.c_str(), (char*const*)&argv[0]);
+        execvpe(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #endif
 
         perror("Execvp failed:");
@@ -135,7 +135,7 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
 #if (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
         execve(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #else
-        execvp(program.c_str(), (char*const*)&argv[0]);
+        execvpe(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #endif
 
         perror("Execvp failed:");
@@ -270,7 +270,7 @@ int invokeShellCaptureOutput(string program, vector<string> args, vector<string>
 #if (defined(__APPLE__) && defined(__MACH__)) || defined(__FreeBSD__)
         execve(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #else
-        execvp(program.c_str(), (char*const*)&argv[0]);
+        execvpe(program.c_str(), (char*const*)&argv[0], (char*const*)&env[0]);
 #endif
 
         perror("Execvp failed:");
