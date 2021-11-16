@@ -448,7 +448,6 @@ SerialDeviceCommand::SerialDeviceCommand(string identifier,
                                          string purpose)
     : SerialDeviceImp(manager, purpose)
 {
-    assert(identifier != "");
     identifier_ = identifier;
     command_ = command;
     args_ = args;
