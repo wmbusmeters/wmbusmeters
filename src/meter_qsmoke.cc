@@ -137,6 +137,9 @@ void MeterQSmoke::processContent(Telegram *t)
 
 string MeterQSmoke::status()
 {
+    // We do not yet know how to understand the fields!
+    return "WOOT";
+    /*
     string s;
     bool smoke = 0;
     if (smoke)
@@ -154,5 +157,5 @@ string MeterQSmoke::status()
         s.pop_back();
         return s;
     }
-    return "OK";
+    */
 }
