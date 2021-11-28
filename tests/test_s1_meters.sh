@@ -11,7 +11,8 @@ TESTRESULT="ERROR"
 METERS="HCA  auto 91835132 NOKEY \
         HCA2 auto 04998541 NOKEY \
         QW   auto 13346376 NOKEY \
-        QWW  auto 11121314 NOKEY"
+        QWW  auto 11121314 NOKEY \
+        QWWW auto 12417708 NOKEY"
 
 cat simulations/simulation_s1.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_s1.txt $METERS > $TEST/test_output.txt 2> $TEST/test_stderr.txt
