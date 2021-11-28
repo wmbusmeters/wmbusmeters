@@ -217,6 +217,24 @@ bool parseDV(Telegram *t,
             (*format)++;
         }
 
+        // Grabbing a variable length vif. This does not currently work
+        // with the compact format.
+        if (vif == 0x7c)
+        {
+            DEBUG_PARSER("(dvparser debug) variable length vif found\n");
+            if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif varlen expected)\n"); break; }
+            uchar viflen = **format;
+            t->addExplanationAndIncrementPos(*format, 1, "%02X viflen (%d)", viflen, viflen);
+            for (uchar i = 0; i < viflen; ++i)
+            {
+                if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif varlen byte %d/%d expected)\n",
+                                                   i+1, viflen); break; }
+                uchar v = **format;
+                t->addExplanationAndIncrementPos(*format, 1, "%02X vif (%c)", v, v);
+                id_bytes.push_back(v);
+            }
+        }
+
         bool has_another_vife = (vif & 0x80) == 0x80;
         while (has_another_vife) {
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vife expected)\n"); break; }
