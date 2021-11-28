@@ -64,7 +64,8 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       HeatCool    hydrocalm3  71727374 NOKEY
       TempoHygro  munia       00013482 NOKEY
       QHeato      qheat       67228058 NOKEY
-      QSmokeo     qsmoke      45797086 NOKEY"
+      QSmokeo     qsmoke      45797086 NOKEY
+      QSmokep     qsmoke      48128850 NOKEY"
 
 
 cat simulations/simulation_t1.txt | grep '^{' > $TEST/test_expected.txt

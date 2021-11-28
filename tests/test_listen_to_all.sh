@@ -337,6 +337,11 @@ Received telegram from: 45797086
                   type: Smoke detector (0x1a)
                    ver: 0x21
                 driver: qsmoke
+Received telegram from: 48128850
+          manufacturer: (QDS) Qundis, Germany (0x4493)
+                  type: Smoke detector (0x1a)
+                   ver: 0x23
+                driver: qsmoke
 EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_t1.txt 2>&1)

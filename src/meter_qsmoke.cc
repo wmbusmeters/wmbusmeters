@@ -121,6 +121,44 @@ bool MeterQSmoke::smokeDetected()
 (wmbus) 3b: AC vife (Duration since last readout [second(s)])
 (wmbus) 3c: 7E vife (Reserved)
 (wmbus) 3d: 1100
+
+Another version 0x23
+
+qsmoke) 0f: 81 dif (8 Bit Integer/Binary Instantaneous value)
+(qsmoke) 10: 02 dife (subunit=0 tariff=0 storagenr=4)
+(qsmoke) 11: 7C vif (VIF in following string (length in first byte))
+(qsmoke) 12: 03 viflen (3)
+(qsmoke) 13: 49 vif (I)
+(qsmoke) 14: 55 vif (U)
+(qsmoke) 15: 23 vif (#)
+(qsmoke) 16: 00
+(qsmoke) 17: 82 dif (16 Bit Integer/Binary Instantaneous value)
+(qsmoke) 18: 02 dife (subunit=0 tariff=0 storagenr=4)
+(qsmoke) 19: 6C vif (Date type G)
+(qsmoke) 1a: FFFF
+(qsmoke) 1c: 81 dif (8 Bit Integer/Binary Instantaneous value)
+(qsmoke) 1d: 03 dife (subunit=0 tariff=0 storagenr=6)
+(qsmoke) 1e: 7C vif (VIF in following string (length in first byte))
+(qsmoke) 1f: 03 viflen (3)
+(qsmoke) 20: 4C vif (L)
+(qsmoke) 21: 41 vif (A)
+(qsmoke) 22: 23 vif (#)
+(qsmoke) 23: 00
+(qsmoke) 24: 82 dif (16 Bit Integer/Binary Instantaneous value)
+(qsmoke) 25: 03 dife (subunit=0 tariff=0 storagenr=6)
+(qsmoke) 26: 6C vif (Date type G)
+(qsmoke) 27: FFFF
+(qsmoke) 29: 02 dif (16 Bit Integer/Binary Instantaneous value)
+(qsmoke) 2a: FD vif (Second extension FD of VIF-codes)
+(qsmoke) 2b: 17 vife (Error flags (binary))
+(qsmoke) 2c: 0000
+(qsmoke) 2e: 32 dif (16 Bit Integer/Binary Value during error state)
+(qsmoke) 2f: 6C vif (Date type G)
+(qsmoke) 30: FFFF
+(qsmoke) 32: 04 dif (32 Bit Integer/Binary Instantaneous value)
+(qsmoke) 33: 6D vif (Date and time type)
+(qsmoke) 34: * 2514BC2B device datetime (2021-11-28 20:37)
+
 */
 void MeterQSmoke::processContent(Telegram *t)
 {
