@@ -345,6 +345,7 @@ Sontex Supercom 587 (supercom587)
 Sensus iPERL (iperl)
 Techem MK Radio 3 and 4 (mkradio3,mkradio4) (non-standard protocols)
 Waterstar M (waterstarm)
+Zenner Minomess (minomess)
 
 Currently not supported, please help!
 Diehl/Sappel ACQUARIUS/IZAR R3 (izar3)
