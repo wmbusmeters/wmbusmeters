@@ -25,6 +25,7 @@ $PROG --format=json simulations/simulation_c1.txt \
       myomnipower omnipower 32666857 NOKEY \
       Smokey ei6500 00012811 NOKEY \
       Vatten weh_07 86868686 NOKEY \
+      Mino minomess 55036410 NOKEY \
       > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 
 if [ "$?" = "0" ]
