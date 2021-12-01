@@ -1,4 +1,6 @@
 
+Olli Salonen added support for the Zenner Minomess water meter. Thanks Olli!
+
 Now any DLL crcs (frame A or B) are removed automatically
 when telegrams are read from a simulation_... file or
 passed as hex on the command line. If the DLL crc do not
