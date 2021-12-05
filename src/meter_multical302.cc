@@ -33,8 +33,6 @@
 struct MeterMultical302 : public virtual HeatMeter, public virtual MeterCommonImplementation {
     MeterMultical302(MeterInfo &mi);
 
-    double totalEnergyConsumptionM(Unit u);
-    double targetEnergyConsumptionM(Unit u);
     double totalEnergyConsumption(Unit u);
     double targetEnergyConsumption(Unit u);
     double currentPowerConsumption(Unit u);
@@ -48,8 +46,6 @@ private:
     uchar info_codes_ {};
     double total_energy_kwh_ {};
     double target_energy_kwh_ {};
-    double total_energy_mj_ {};
-    double target_energy_mj_ {};
     double current_power_kw_ {};
     double total_volume_m3_ {};
     string target_date_ {};
@@ -61,16 +57,6 @@ MeterMultical302::MeterMultical302(MeterInfo &mi) :
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
     addLinkMode(LinkMode::C1);
-
-    addPrint("total_energy_consumption_m", Quantity::Energy,
-             [&](Unit u){ return totalEnergyConsumptionM(u); },
-             "The total energy consumption recorded by this meter. MJ",
-             true, true);
-
-    addPrint("total_energy_consumption_at_date_m", Quantity::Energy,
-             [&](Unit u){ return targetEnergyConsumptionM(u); },
-             "The total energy consumption recorded at the target date. MJ",
-             false, true);
 
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
@@ -105,18 +91,6 @@ MeterMultical302::MeterMultical302(MeterInfo &mi) :
 
 shared_ptr<HeatMeter> createMultical302(MeterInfo &mi) {
     return shared_ptr<HeatMeter>(new MeterMultical302(mi));
-}
-
-double MeterMultical302::totalEnergyConsumptionM(Unit u)
-{
-    assertQuantity(u, Quantity::Energy);
-    return convert(total_energy_mj_, Unit::MJ, u);
-}
-
-double MeterMultical302::targetEnergyConsumptionM(Unit u)
-{
-    assertQuantity(u, Quantity::Energy);
-    return convert(target_energy_mj_, Unit::MJ, u);
 }
 
 double MeterMultical302::totalEnergyConsumption(Unit u)
@@ -174,16 +148,6 @@ void MeterMultical302::processContent(Telegram *t)
 
     extractDVuint8(&t->values, "01FF21", &offset, &info_codes_);
     t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
-
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyMJ, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_energy_mj_);
-        t->addMoreExplanation(offset, " total energy consumption (%f Mj)", total_energy_mj_);
-    }
-
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyMJ, 1, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &target_energy_mj_);
-        t->addMoreExplanation(offset, " target energy consumption (%f Mj)", target_energy_mj_);
-    }
 
     if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
