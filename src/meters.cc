@@ -34,6 +34,7 @@ struct MeterManagerImplementation : public virtual MeterManager
 private:
     bool is_daemon_ {};
     bool should_analyze_ {};
+    OutputFormat analyze_format_ {};
     vector<MeterInfo> meter_templates_;
     vector<shared_ptr<Meter>> meters_;
     function<void(AboutTelegram&,vector<uchar>)> on_telegram_;
@@ -179,7 +180,11 @@ public:
                             tmp.driver = pickMeterDriver(&t);
                             if (tmp.driver == MeterDriver::UNKNOWN)
                             {
-                                warnForUnknownDriver(mi.name, &t);
+                                if (should_analyze_ == false)
+                                {
+                                    // We are not analyzing, so warn here.
+                                    warnForUnknownDriver(mi.name, &t);
+                                }
                             }
                         }
                         // Now build a meter object with for this exact id.
@@ -260,18 +265,109 @@ public:
         }
     }
 
-    void analyzeEnabled(bool b)
+    void analyzeEnabled(bool b, OutputFormat f)
     {
         should_analyze_ = b;
+        analyze_format_ = f;
     }
 
     void analyzeTelegram(AboutTelegram &about, vector<uchar> &input_frame, bool simulated)
     {
         Telegram t;
         t.about = about;
+        bool ok = t.parseHeader(input_frame);
+        if (simulated) t.markAsSimulated();
         t.markAsBeingAnalyzed();
 
-        printf("Analyzing...\n");
+        if (!ok)
+        {
+            printf("Could not even analyze header, giving up.\n");
+            return;
+        }
+
+        vector<MeterDriver> drivers;
+#define X(mname,linkmode,info,type,cname) drivers.push_back(MeterDriver::type);
+LIST_OF_METERS
+#undef X
+
+        MeterInfo mi;
+        if (meter_templates_.size() > 0)
+        {
+            if (meter_templates_.size() > 1)
+            {
+                error("When analyzing you can only specify a single meter quadruple.\n");
+            }
+            if (meter_templates_[0].driver != MeterDriver::AUTO)
+            {
+                drivers.clear();
+                drivers.push_back(meter_templates_[0].driver);
+                mi = meter_templates_[0];
+            }
+        }
+
+        // Overwrite the id with the id from the telegram to be analyzed.
+        mi.ids.clear();
+        mi.ids.push_back(t.ids.back());
+        mi.idsc = t.ids.back();
+
+        bool hide_output = drivers.size() > 1;
+        bool handled = false;
+        MeterDriver best_driver {};
+        // For the best driver we have:
+        int best_content_length = 0;
+        int best_understood_content_length = 0;
+
+
+        for (MeterDriver dr : drivers)
+        {
+            if (dr == MeterDriver::AUTO) continue;
+            if (dr == MeterDriver::UNKNOWN) continue;
+            string s = toString(dr);
+            debug("Testing driver %s...\n", s.c_str());
+            mi.driver = dr;
+            auto meter = createMeter(&mi);
+            bool match = false;
+            string id;
+            bool h = meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+            if (!match)
+            {
+
+            }
+            else if (!h)
+            {
+                // Oups, we added a new meter object tailored for this telegram
+                // but it still did not handle it! This can happen if the wrong
+                // decryption key was used.
+                warning("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
+                        meter->name().c_str(), meter->idsc().c_str(), toString(meter->driver()).c_str());
+            }
+            else
+            {
+                handled = true;
+                int l = 0;
+                int u = 0;
+                OutputFormat of = analyze_format_;
+                if (hide_output) of = OutputFormat::NONE;
+                t.analyzeParse(of, &l, &u);
+                if (u > best_understood_content_length)
+                {
+                    // Understood so many bytes
+                    best_understood_content_length = u;
+                    // Out of this many bytes of content total.
+                    best_content_length = l;
+                    best_driver = dr;
+                }
+            }
+        }
+        if (handled)
+        {
+            string s = toString(best_driver);
+            printf("Best driver %s %d/%d\n", s.c_str(), best_understood_content_length, best_content_length);
+        }
+        else
+        {
+            printf("No suitable driver found.\n");
+        }
     }
 
     MeterManagerImplementation(bool daemon) : is_daemon_(daemon) {}
@@ -533,22 +629,25 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
         if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(t, t->dll_a))
         {
             string possible_drivers = t->autoDetectPossibleDrivers();
-            warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n"
-                    "(meter) Not printing this warning again for id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
-                    name.c_str(),
-                    toString(driver).c_str(),
-                    possible_drivers.c_str(),
-                    t->dll_id_b[3], t->dll_id_b[2], t->dll_id_b[1], t->dll_id_b[0],
-                    manufacturerFlag(t->dll_mfct).c_str(),
-                    manufacturer(t->dll_mfct).c_str(),
-                    t->dll_mfct,
-                    mediaType(t->dll_type, t->dll_mfct).c_str(), t->dll_type,
-                    t->dll_version);
-
-            if (possible_drivers == "unknown!")
+            if (t->beingAnalyzed() == false)
             {
-                warning("(meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/\n");
-                warning("(meter) to add support for this unknown mfct,media,version combination\n");
+                warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n"
+                        "(meter) Not printing this warning again for id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
+                        name.c_str(),
+                        toString(driver).c_str(),
+                        possible_drivers.c_str(),
+                        t->dll_id_b[3], t->dll_id_b[2], t->dll_id_b[1], t->dll_id_b[0],
+                        manufacturerFlag(t->dll_mfct).c_str(),
+                        manufacturer(t->dll_mfct).c_str(),
+                        t->dll_mfct,
+                        mediaType(t->dll_type, t->dll_mfct).c_str(), t->dll_type,
+                        t->dll_version);
+
+                if (possible_drivers == "unknown!")
+                {
+                    warning("(meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/\n");
+                    warning("(meter) to add support for this unknown mfct,media,version combination\n");
+                }
             }
         }
     }
@@ -796,13 +895,15 @@ string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector
     return buf;
 }
 
-bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated, string *ids, bool *id_match)
+bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> input_frame,
+                                               bool simulated, string *ids, bool *id_match, Telegram *out_analyzed)
 {
     Telegram t;
     t.about = about;
     bool ok = t.parseHeader(input_frame);
 
     if (simulated) t.markAsSimulated();
+    if (out_analyzed != NULL) t.markAsBeingAnalyzed();
 
     *ids = t.idsc;
 
@@ -843,6 +944,7 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
         t.explainParse(log_prefix, 0);
     }
     triggerUpdate(&t);
+    if (out_analyzed != NULL) *out_analyzed = t;
     return true;
 }
 

@@ -20,6 +20,7 @@
 #include"util.h"
 
 #include<string>
+#include<unistd.h>
 
 using namespace std;
 
@@ -104,9 +105,27 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         }
         if (!strcmp(argv[i], "--analyze")) {
             c->analyze = true;
+            if (isatty(1))
+            {
+                c->analyze_format = OutputFormat::TERMINAL;
+            }
+            else
+            {
+                c->analyze_format = OutputFormat::PLAIN;
+            }
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--analyze=", 10)) {
+            c->analyze = true;
+            string format = string(argv[i]+10);
+            if (format == "plain") c->analyze_format = OutputFormat::PLAIN;
+            else if (format == "terminal") c->analyze_format = OutputFormat::TERMINAL;
+            else if (format == "json") c->analyze_format = OutputFormat::JSON;
+            i++;
+            continue;
+        }
+
         if (!strcmp(argv[i], "--debug")) {
             c->debug = true;
             i++;

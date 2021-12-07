@@ -739,7 +739,7 @@ string ciType(int ci_field)
     return "?";
 }
 
-void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int len, const char* fmt, ...)
+void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...)
 {
     char buf[1024];
     buf[1023] = 0;
@@ -749,7 +749,9 @@ void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int l
     vsnprintf(buf, 1023, fmt, args);
     va_end(args);
 
-    explanations.push_back({parsed.size(), buf});
+
+    Explanation e(parsed.size(), len, buf, k, u);
+    explanations.push_back(e);
     parsed.insert(parsed.end(), pos, pos+len);
     pos += len;
 }
@@ -767,11 +769,12 @@ void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
 
     bool found = false;
     for (auto& p : explanations) {
-        if (p.first == pos) {
-            if (p.second[0] == '*') {
-                debug("(wmbus) warning: already added more explanations to offset %d!\n");
-            }
-            p.second = string("* ")+p.second+buf;
+        if (p.pos == pos)
+        {
+            // Append more information.
+            p.info = p.info+buf;
+            // Since we are adding more information, we assume that we have a full understanding.
+            p.understanding = Understanding::FULL;
             found = true;
         }
     }
@@ -781,7 +784,7 @@ void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
     }
 }
 
-void Telegram::addSpecialExplanation(int offset, const char* fmt, ...)
+void Telegram::addSpecialExplanation(int offset, KindOfData k, Understanding u, const char* fmt, ...)
 {
     char buf[1024];
     buf[1023] = 0;
@@ -791,7 +794,7 @@ void Telegram::addSpecialExplanation(int offset, const char* fmt, ...)
     vsnprintf(buf, 1023, fmt, args);
     va_end(args);
 
-    explanations.push_back({offset, buf});
+    explanations.push_back({offset, 1, buf, k, u});
 }
 
 bool expectedMore(int line)
@@ -808,13 +811,13 @@ bool Telegram::parseMBusDLL(vector<uchar>::iterator &pos)
     debug("(wmbus) parse MBUS DLL @%d %d\n", distance(frame.begin(), pos), remaining);
     dll_len = *pos;
     if (remaining < dll_len) return expectedMore(__LINE__);
-    addExplanationAndIncrementPos(pos, 1, "%02x length (%d bytes)", dll_len, dll_len);
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x length (%d bytes)", dll_len, dll_len);
 
     dll_c = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x dll-c (%s)", dll_c, mbusCField(dll_c).c_str());
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-c (%s)", dll_c, mbusCField(dll_c).c_str());
 
     mbus_primary_address = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x dll-a primary (%d)", mbus_primary_address, mbus_primary_address);
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-a primary (%d)", mbus_primary_address, mbus_primary_address);
 
     // Add dll_id to ids.
     string id = tostrprintf("%02x", dll_a[0]);
@@ -832,16 +835,16 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     debug("(wmbus) parseDLL @%d %d\n", distance(frame.begin(), pos), remaining);
     dll_len = *pos;
     if (remaining < dll_len) return expectedMore(__LINE__);
-    addExplanationAndIncrementPos(pos, 1, "%02x length (%d bytes)", dll_len, dll_len);
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x length (%d bytes)", dll_len, dll_len);
 
     dll_c = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x dll-c (%s)", dll_c, cType(dll_c).c_str());
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-c (%s)", dll_c, cType(dll_c).c_str());
 
     dll_mfct_b[0] = *(pos+0);
     dll_mfct_b[1] = *(pos+1);
     dll_mfct = dll_mfct_b[1] <<8 | dll_mfct_b[0];
     string man = manufacturerFlag(dll_mfct);
-    addExplanationAndIncrementPos(pos, 2, "%02x%02x dll-mfct (%s)",
+    addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x dll-mfct (%s)",
                                   dll_mfct_b[0], dll_mfct_b[1], man.c_str());
 
     dll_a.resize(6);
@@ -859,13 +862,13 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
     ids.push_back(id);
     idsc = id;
-    addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x dll-id (%s)",
+    addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x dll-id (%s)",
                                   *(pos+0), *(pos+1), *(pos+2), *(pos+3), ids.back().c_str());
 
     dll_version = *(pos+0);
     dll_type = *(pos+1);
-    addExplanationAndIncrementPos(pos, 1, "%02x dll-version", dll_version);
-    addExplanationAndIncrementPos(pos, 1, "%02x dll-type (%s)", dll_type,
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-version", dll_version);
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-type (%s)", dll_type,
                                   mediaType(dll_type, dll_mfct).c_str());
 
     return true;
@@ -894,7 +897,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
     debug("(wmbus) parseELL @%d %d\n", distance(frame.begin(), pos), remaining);
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::ELL)) return true;
-    addExplanationAndIncrementPos(pos, 1, "%02x ell-ci-field (%s)",
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-ci-field (%s)",
                                   ci_field, ciType(ci_field).c_str());
     ell_ci = ci_field;
     int len = ciFieldLength(ell_ci);
@@ -904,10 +907,10 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
     // All ELL:s (including ELL I) start with cc,acc.
 
     ell_cc = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x ell-cc (%s)", ell_cc, ccType(ell_cc).c_str());
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-cc (%s)", ell_cc, ccType(ell_cc).c_str());
 
     ell_acc = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x ell-acc", ell_acc);
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-acc", ell_acc);
 
     bool has_target_mft_address = false;
     bool has_session_number_pl_crc = false;
@@ -938,7 +941,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         ell_mfct_b[1] = *(pos+1);
         ell_mfct = ell_mfct_b[1] << 8 | ell_mfct_b[0];
         string man = manufacturerFlag(ell_mfct);
-        addExplanationAndIncrementPos(pos, 2, "%02x%02x ell-mfct (%s)",
+        addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x ell-mfct (%s)",
                                       ell_mfct_b[0], ell_mfct_b[1], man.c_str());
 
         ell_id_found = true;
@@ -951,14 +954,14 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
         ids.push_back(id);
         idsc = idsc+","+id;
-        addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x ell-id",
+        addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x ell-id",
                                       ell_id_b[0], ell_id_b[1], ell_id_b[2], ell_id_b[3]);
 
         ell_version = *pos;
-        addExplanationAndIncrementPos(pos, 1, "%02x ell-version", ell_version);
+        addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-version", ell_version);
 
         ell_type = *pos;
-        addExplanationAndIncrementPos(pos, 1, "%02x ell-type");
+        addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-type");
     }
 
     if (has_session_number_pl_crc)
@@ -975,7 +978,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         ell_sn_sec = (ell_sn >> 29) & 0x7; // next 3 bits.
         ell_sec_mode = fromIntToELLSecurityMode(ell_sn_sec);
         string info = toString(ell_sec_mode);
-        addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x sn (%s)",
+        addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x sn (%s)",
                                       ell_sn_b[0], ell_sn_b[1], ell_sn_b[2], ell_sn_b[3], info.c_str());
 
         if (ell_sec_mode == ELLSecurityMode::AES_CTR)
@@ -996,7 +999,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         int len = distance(pos+2, frame.end());
         uint16_t check = crc16_EN13757(&(frame[dist]), len);
 
-        addExplanationAndIncrementPos(pos, 2, "%02x%02x payload crc (calculated %02x%02x %s)",
+        addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x payload crc (calculated %02x%02x %s)",
                                       ell_pl_crc_b[0], ell_pl_crc_b[1],
                                       check  & 0xff, check >> 8, (ell_pl_crc==check?"OK":"ERROR"));
 
@@ -1037,7 +1040,7 @@ bool Telegram::parseNWL(vector<uchar>::iterator &pos)
     debug("(wmbus) parseNWL @%d %d\n", distance(frame.begin(), pos), remaining);
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::NWL)) return true;
-    addExplanationAndIncrementPos(pos, 1, "%02x nwl-ci-field (%s)",
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x nwl-ci-field (%s)",
                                   ci_field, ciType(ci_field).c_str());
     nwl_ci = ci_field;
     // We have only seen 0x81 0x1d so far.
@@ -1046,7 +1049,7 @@ bool Telegram::parseNWL(vector<uchar>::iterator &pos)
     if (remaining < len+1) return expectedMore(__LINE__);
 
     uchar nwl = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x nwl?", nwl);
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x nwl?", nwl);
 
     return true;
 }
@@ -1063,12 +1066,12 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
 
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::AFL)) return true;
-    addExplanationAndIncrementPos(pos, 1, "%02x afl-ci-field (%s)",
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x afl-ci-field (%s)",
                                   ci_field, ciType(ci_field).c_str());
     afl_ci = ci_field;
 
     afl_len = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x afl-len (%d)",
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x afl-len (%d)",
                                   afl_len, afl_len);
 
     int len = ciFieldLength(afl_ci);
@@ -1078,7 +1081,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
     afl_fc_b[1] = *(pos+1);
     afl_fc = afl_fc_b[1] << 8 | afl_fc_b[0];
     string afl_fc_info = toStringFromAFLFC(afl_fc);
-    addExplanationAndIncrementPos(pos, 2, "%02x%02x afl-fc (%s)",
+    addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x afl-fc (%s)",
                                   afl_fc_b[0], afl_fc_b[1], afl_fc_info.c_str());
 
     bool has_key_info = afl_fc & 0x0200;
@@ -1092,7 +1095,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
     {
         afl_mcl = *pos;
         string afl_mcl_info = toStringFromAFLMC(afl_mcl);
-        addExplanationAndIncrementPos(pos, 1, "%02x afl-mcl (%s)",
+        addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x afl-mcl (%s)",
                                       afl_mcl, afl_mcl_info.c_str());
     }
 
@@ -1102,7 +1105,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
         afl_ki_b[1] = *(pos+1);
         afl_ki = afl_ki_b[1] << 8 | afl_ki_b[0];
         string afl_ki_info = "";
-        addExplanationAndIncrementPos(pos, 2, "%02x%02x afl-ki (%s)",
+        addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x afl-ki (%s)",
                                       afl_ki_b[0], afl_ki_b[1], afl_ki_info.c_str());
     }
 
@@ -1117,7 +1120,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
             afl_counter_b[1] << 8 |
             afl_counter_b[0];
 
-        addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x afl-counter (%u)",
+        addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x afl-counter (%u)",
                                       afl_counter_b[0],afl_counter_b[1],
                                       afl_counter_b[2],afl_counter_b[3],
                                       afl_counter);
@@ -1143,7 +1146,7 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
             afl_mac_b.insert(afl_mac_b.end(), *(pos+i));
         }
         string s = bin2hex(afl_mac_b);
-        addExplanationAndIncrementPos(pos, len, "%s afl-mac %d bytes", s.c_str(), len);
+        addExplanationAndIncrementPos(pos, len, KindOfData::PROTOCOL, Understanding::FULL, "%s afl-mac %d bytes", s.c_str(), len);
         must_check_mac = true;
     }
 
@@ -1234,7 +1237,8 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
         tpl_num_encr_blocks = (tpl_cfg >> 4) & 0x0f;
         has_cfg_ext = true;
     }
-    addExplanationAndIncrementPos(pos, 2, "%02x%02x tpl-cfg %04x (%s)", cfg1, cfg2, tpl_cfg, info.c_str());
+    addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                  "%02x%02x tpl-cfg %04x (%s)", cfg1, cfg2, tpl_cfg, info.c_str());
 
     if (has_cfg_ext)
     {
@@ -1242,7 +1246,8 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
         tpl_cfg_ext = *(pos+0);
         tpl_kdf_selection = (tpl_cfg_ext >> 4) & 3;
 
-        addExplanationAndIncrementPos(pos, 1, "%02x tpl-cfg-ext (KDFS=%d)", tpl_cfg_ext, tpl_kdf_selection);
+        addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                      "%02x tpl-cfg-ext (KDFS=%d)", tpl_cfg_ext, tpl_kdf_selection);
 
         if (tpl_kdf_selection == 1)
         {
@@ -1309,11 +1314,13 @@ bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
     CHECK(1);
 
     tpl_acc = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x tpl-acc-field", tpl_acc);
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                  "%02x tpl-acc-field", tpl_acc);
 
     CHECK(1);
     tpl_sts = *pos;
-    addExplanationAndIncrementPos(pos, 1, "%02x tpl-sts-field (%s)", tpl_sts, decodeTPLStatusByte(tpl_sts, NULL).c_str());
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                  "%02x tpl-sts-field (%s)", tpl_sts, decodeTPLStatusByte(tpl_sts, NULL).c_str());
 
     bool ok = parseTPLConfig(pos);
     if (!ok) return false;
@@ -1340,7 +1347,9 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
     ids.push_back(id);
     idsc = idsc+","+id;
-    addExplanationAndIncrementPos(pos, 4, "%02x%02x%02x%02x tpl-id (%02x%02x%02x%02x)", tpl_id_b[0], tpl_id_b[1], tpl_id_b[2], tpl_id_b[3],
+    addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL,
+                                  "%02x%02x%02x%02x tpl-id (%02x%02x%02x%02x)",
+                                  tpl_id_b[0], tpl_id_b[1], tpl_id_b[2], tpl_id_b[3],
                                   tpl_id_b[3], tpl_id_b[2], tpl_id_b[1], tpl_id_b[0]);
 
     CHECK(2);
@@ -1348,18 +1357,18 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     tpl_mfct_b[1] = *(pos+1);
     tpl_mfct = tpl_mfct_b[1] << 8 | tpl_mfct_b[0];
     string man = manufacturerFlag(tpl_mfct);
-    addExplanationAndIncrementPos(pos, 2, "%02x%02x tpl-mfct (%s)", tpl_mfct_b[0], tpl_mfct_b[1], man.c_str());
+    addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x tpl-mfct (%s)", tpl_mfct_b[0], tpl_mfct_b[1], man.c_str());
 
     CHECK(1);
     tpl_version = *(pos+0);
     tpl_a[4] = *(pos+0);
-    addExplanationAndIncrementPos(pos, 1, "%02x tpl-version", tpl_version);
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x tpl-version", tpl_version);
 
     CHECK(1);
     tpl_type = *(pos+0);
     tpl_a[5] = *(pos+0);
     string info = mediaType(tpl_type, tpl_mfct);
-    addExplanationAndIncrementPos(pos, 1, "%02x tpl-type (%s)", tpl_type, info.c_str());
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x tpl-type (%s)", tpl_type, info.c_str());
 
     bool ok = parseShortTPL(pos);
 
@@ -1407,7 +1416,7 @@ bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *form
 bool Telegram::alreadyDecryptedCBC(vector<uchar>::iterator &pos)
 {
     if (*(pos+0) != 0x2f || *(pos+1) != 0x2f) return false;
-    addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
+    addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
     return true;
 }
 
@@ -1463,7 +1472,8 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             }
             return false;
         }
-        addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
+        addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                      "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
     }
     else if (tpl_sec_mode == TPLSecurityMode::AES_CBC_NO_IV)
     {
@@ -1471,7 +1481,8 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         if (meter_keys == NULL || (!meter_keys->hasConfidentialityKey() && isSimulated()))
         {
             CHECK(2);
-            addExplanationAndIncrementPos(pos, 2, "%02x%02x (already) decrypted check bytes", *(pos+0), *(pos+1));
+            addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                          "%02x%02x (already) decrypted check bytes", *(pos+0), *(pos+1));
             return true;
         }
         bool mac_ok = checkMAC(frame, tpl_start, frame.end(), afl_mac_b, tpl_generated_mac_key);
@@ -1521,7 +1532,8 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             }
             return false;
         }
-        addExplanationAndIncrementPos(pos, 2, "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
+        addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                      "%02x%02x decrypt check bytes", *(pos+0), *(pos+1));
     }
     else if (tpl_sec_mode == TPLSecurityMode::SPECIFIC_16_31)
     {
@@ -1597,7 +1609,8 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
     CHECK(2);
     uchar ecrc0 = *(pos+0);
     uchar ecrc1 = *(pos+1);
-    addExplanationAndIncrementPos(pos, 2, "%02x%02x format signature", ecrc0, ecrc1);
+    addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                  "%02x%02x format signature", ecrc0, ecrc1);
     format_signature = ecrc1<<8 | ecrc0;
 
     vector<uchar> format_bytes;
@@ -1622,7 +1635,8 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
     CHECK(2);
     int ecrc2 = *(pos+0);
     int ecrc3 = *(pos+1);
-    addExplanationAndIncrementPos(pos, 2, "%02x%02x data crc", ecrc2, ecrc3);
+    addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                  "%02x%02x data crc", ecrc2, ecrc3);
 
     header_size = distance(frame.begin(), pos);
     int remaining = distance(pos, frame.end());
@@ -1671,7 +1685,8 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
     tpl_ci = ci_field;
     tpl_start = pos;
 
-    addExplanationAndIncrementPos(pos, 1, "%02x tpl-ci-field (%s)",
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                  "%02x tpl-ci-field (%s)",
                                   tpl_ci, ciType(tpl_ci).c_str());
     int len = ciFieldLength(tpl_ci);
 
@@ -1923,8 +1938,122 @@ bool Telegram::parseHAN(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
 
 void Telegram::explainParse(string intro, int from)
 {
-    for (auto& p : explanations) {
-        debug("%s %02x: %s\n", intro.c_str(), p.first, p.second.c_str());
+    for (auto& p : explanations)
+    {
+        // Protocol or content?
+        const char *c = p.kind == KindOfData::PROTOCOL ? " " : "C";
+        const char *u = "?";
+        if (p.understanding == Understanding::FULL) u = "!";
+        if (p.understanding == Understanding::PARTIAL) u = "p";
+
+        // Do not print ok for understood protocol, it is implicit.
+        // However if a protocol is not full understood then print p or ?.
+        if (p.kind == KindOfData::PROTOCOL && p.understanding == Understanding::FULL) u = " ";
+
+        debug("%s %03d %s%s: %s\n", intro.c_str(), p.pos, c, u, p.info.c_str());
+    }
+}
+
+void printAnalysisAsText(vector<Explanation> &explanations, bool use_ansi)
+{
+    const char *green;
+    const char *yellow;
+    const char *red;
+    const char *reset;
+
+    if (use_ansi)
+    {
+        green = "\033[0;97m\033[0;42m";
+        yellow = "\033[0;97m\033[0;43m";
+        red = "\033[0;97m\033[0;41m";
+        reset = "\033[0m";
+    }
+    else
+    {
+        green = "";
+        yellow = "";
+        red = "";
+        reset = "";
+    }
+
+    for (auto& p : explanations)
+    {
+        // Protocol or content?
+        const char *c = p.kind == KindOfData::PROTOCOL ? " " : "C";
+        const char *u = "?";
+        if (p.understanding == Understanding::FULL) u = "!";
+        if (p.understanding == Understanding::PARTIAL) u = "p";
+
+        // Do not print ok for understood protocol, it is implicit.
+        // However if a protocol is not full understood then print p or ?.
+        if (p.kind == KindOfData::PROTOCOL && p.understanding == Understanding::FULL) u = " ";
+
+        const char *pre;
+        const char *post = reset;
+
+        if (*u == '!')
+        {
+            pre = green;
+        }
+        else if (*u == 'p')
+        {
+            pre = yellow;
+        }
+        else if (*u == ' ')
+        {
+            pre = "";
+            post = "";
+        }
+        else
+        {
+            pre = red;
+        }
+
+        printf("%03d %s%s: %s%s%s\n", p.pos, c, u, pre, p.info.c_str(), post);
+    }
+}
+
+void printAnalysisAsJson(vector<Explanation> &explanations)
+{
+    printf("{ \"TODO\": true }\n");
+}
+
+void Telegram::analyzeParse(OutputFormat format, int *content_length, int *understood_content_length)
+{
+    int u = 0;
+    int l = 0;
+
+    // Calculate how much is understood.
+    for (auto& e : explanations)
+    {
+        if (e.kind == KindOfData::CONTENT)
+        {
+            l += e.len;
+            if (e.understanding != Understanding::NONE)
+            {
+                // Its content and we have at least some understanding.
+                u += e.len;
+            }
+        }
+    }
+    *content_length = l;
+    *understood_content_length = u;
+
+    switch(format)
+    {
+    case OutputFormat::PLAIN :
+    case OutputFormat::TERMINAL:
+    {
+        bool use_ansi = format == OutputFormat::TERMINAL;
+        printAnalysisAsText(explanations, use_ansi);
+        break;
+    }
+    case OutputFormat::JSON:
+        printAnalysisAsJson(explanations);
+        break;
+    case OutputFormat::NONE:
+        // Do nothing
+        break;
     }
 }
 

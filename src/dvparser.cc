@@ -144,14 +144,14 @@ bool parseDV(Telegram *t,
                 string value = bin2hex(data+1, data_end, datalen-1);
                 t->mfct_0f_index = 1+std::distance(data_start, data);
                 assert(t->mfct_0f_index >= 0);
-                t->addExplanationAndIncrementPos(data, datalen, "%02X manufacturer specific data %s", dif, value.c_str());
+                t->addExplanationAndIncrementPos(data, datalen, KindOfData::PROTOCOL, Understanding::NONE, "%02X manufacturer specific data %s", dif, value.c_str());
                 break;
             }
             debug("(dvparser) cannot handle dif %02X ignoring rest of telegram.\n", dif);
             break;
         }
         if (dif == 0x2f) {
-            t->addExplanationAndIncrementPos(*format, 1, "%02X skip", dif);
+            t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02X skip", dif);
             DEBUG_PARSER("\n");
             continue;
         }
@@ -163,7 +163,7 @@ bool parseDV(Telegram *t,
         if (data_has_difvifs) {
             format_bytes.push_back(dif);
             id_bytes.push_back(dif);
-            t->addExplanationAndIncrementPos(*format, 1, "%02X dif (%s)", dif, difType(dif).c_str());
+            t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02X dif (%s)", dif, difType(dif).c_str());
         } else {
             id_bytes.push_back(**format);
             (*format)++;
@@ -193,8 +193,9 @@ bool parseDV(Telegram *t,
             if (data_has_difvifs) {
                 format_bytes.push_back(dife);
                 id_bytes.push_back(dife);
-                t->addExplanationAndIncrementPos(*format, 1, "%02X dife (subunit=%d tariff=%d storagenr=%d)",
-                                  dife, subunit, tariff, storage_nr);
+                t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                                 "%02X dife (subunit=%d tariff=%d storagenr=%d)",
+                                                 dife, subunit, tariff, storage_nr);
             } else {
                 id_bytes.push_back(**format);
                 (*format)++;
@@ -211,7 +212,8 @@ bool parseDV(Telegram *t,
         if (data_has_difvifs) {
             format_bytes.push_back(vif);
             id_bytes.push_back(vif);
-            t->addExplanationAndIncrementPos(*format, 1, "%02X vif (%s)", vif, vifType(vif).c_str());
+            t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                             "%02X vif (%s)", vif, vifType(vif).c_str());
         } else {
             id_bytes.push_back(**format);
             (*format)++;
@@ -224,13 +226,15 @@ bool parseDV(Telegram *t,
             DEBUG_PARSER("(dvparser debug) variable length vif found\n");
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif varlen expected)\n"); break; }
             uchar viflen = **format;
-            t->addExplanationAndIncrementPos(*format, 1, "%02X viflen (%d)", viflen, viflen);
+            t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                             "%02X viflen (%d)", viflen, viflen);
             for (uchar i = 0; i < viflen; ++i)
             {
                 if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif varlen byte %d/%d expected)\n",
                                                    i+1, viflen); break; }
                 uchar v = **format;
-                t->addExplanationAndIncrementPos(*format, 1, "%02X vif (%c)", v, v);
+                t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                                 "%02X vif (%c)", v, v);
                 id_bytes.push_back(v);
             }
         }
@@ -243,7 +247,8 @@ bool parseDV(Telegram *t,
             if (data_has_difvifs) {
                 format_bytes.push_back(vife);
                 id_bytes.push_back(vife);
-                t->addExplanationAndIncrementPos(*format, 1, "%02X vife (%s)", vife, vifeType(dif, vif, vife).c_str());
+                t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                                 "%02X vife (%s)", vife, vifeType(dif, vif, vife).c_str());
             } else {
                 id_bytes.push_back(**format);
                 (*format)++;
@@ -281,14 +286,14 @@ bool parseDV(Telegram *t,
 
         // Skip the length byte in the variable length data.
         if (variable_length) {
-            t->addExplanationAndIncrementPos(data, 1, "%02X varlen=%d", *(data+0), datalen);
+            t->addExplanationAndIncrementPos(data, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02X varlen=%d", *(data+0), datalen);
         }
         string value = bin2hex(data, data_end, datalen);
         int offset = start_parse_here+data-data_start;
         (*values)[key] = { offset, DVEntry(mt, vif&0x7f, storage_nr, tariff, subunit, value) };
         if (value.length() > 0) {
             // This call increments data with datalen.
-            t->addExplanationAndIncrementPos(data, datalen, "%s", value.c_str());
+            t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::NONE, "%s", value.c_str());
             DEBUG_PARSER("(dvparser debug) data \"%s\"\n\n", value.c_str());
         }
         if (remaining == datalen || data == databytes.end()) {

@@ -120,6 +120,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_broken.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_analyze.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 if [ -x ../additional_tests.sh ]
 then
     (cd ..; ./additional_tests.sh $PROG)

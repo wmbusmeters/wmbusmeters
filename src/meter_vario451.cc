@@ -106,7 +106,7 @@ void MeterVario451::processContent(Telegram *t)
     strprintf(prevs, "%02x%02x", prev_lo, prev_hi);
     int offset = t->parsed.size()+3;
     vendor_values["0215"] = { offset, DVEntry(MeasurementType::Instantaneous, 0x15, 0, 0, 0, prevs) };
-    t->explanations.push_back({ offset, prevs });
+    t->explanations.push_back(Explanation(offset, 2, prevs, KindOfData::CONTENT, Understanding::FULL));
     t->addMoreExplanation(offset, " energy used in previous billing period (%f GJ)", prev);
 
     uchar curr_lo = content[7];
@@ -117,7 +117,7 @@ void MeterVario451::processContent(Telegram *t)
     strprintf(currs, "%02x%02x", curr_lo, curr_hi);
     offset = t->parsed.size()+7;
     vendor_values["0215"] = { offset, DVEntry(MeasurementType::Instantaneous, 0x15, 0, 0, 0, currs) };
-    t->explanations.push_back({ offset, currs });
+    t->explanations.push_back(Explanation(offset, 2, currs, KindOfData::CONTENT, Understanding::FULL));
     t->addMoreExplanation(offset, " energy used in current billing period (%f GJ)", curr);
 
     total_energy_gj_ = prev+curr;

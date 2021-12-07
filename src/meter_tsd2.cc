@@ -95,7 +95,7 @@ void MeterTSD2::processContent(Telegram *t)
     string prev_date_str;
     strprintf(prev_date_str, "%04x", prev_date);
     uint offset = t->parsed.size() + 1;
-    t->explanations.push_back({ offset, prev_date_str });
+    t->explanations.push_back(Explanation(offset, 1, prev_date_str, KindOfData::CONTENT, Understanding::FULL));
     t->addMoreExplanation(offset, " previous date (%s)", previous_date_.c_str());
 }
 

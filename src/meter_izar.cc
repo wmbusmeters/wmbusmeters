@@ -241,7 +241,10 @@ void MeterIzar::processContent(Telegram *t)
 
     if (decoded_content.empty())
     {
-        warning("(izar) Decoding PRIOS data failed. Ignoring telegram.\n");
+        if (t->beingAnalyzed() == false)
+        {
+            warning("(izar) Decoding PRIOS data failed. Ignoring telegram.\n");
+        }
         return;
     }
 

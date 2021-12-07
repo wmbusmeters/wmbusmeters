@@ -241,7 +241,8 @@ struct Meter
     // The handleTelegram expects an input_frame where the DLL crcs have been removed.
     // Returns true of this meter handled this telegram!
     // Sets id_match to true, if there was an id match, even though the telegram could not be properly handled.
-    virtual bool handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated, string *id, bool *id_match) = 0;
+    virtual bool handleTelegram(AboutTelegram &about, vector<uchar> input_frame,
+                                bool simulated, string *id, bool *id_match, Telegram *out_t = NULL) = 0;
     virtual MeterKeys *meterKeys() = 0;
 
     // Dynamically access all data received for the meter.
@@ -270,7 +271,7 @@ struct MeterManager
     virtual void onTelegram(function<void(AboutTelegram&,vector<uchar>)> cb) = 0;
     virtual void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual void pollMeters(shared_ptr<BusManager> bus) = 0;
-    virtual void analyzeEnabled(bool b) = 0;
+    virtual void analyzeEnabled(bool b, OutputFormat f) = 0;
     virtual void analyzeTelegram(AboutTelegram &about, vector<uchar> &input_frame, bool simulated) = 0;
 
     virtual ~MeterManager() = default;

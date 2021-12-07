@@ -108,8 +108,10 @@ void MeterLansenDW::processContent(Telegram *t)
     */
     int offset;
 
-    extractDVuint16(&t->values, "02FD1B", &offset, &info_codes_);
-    t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
+    if (extractDVuint16(&t->values, "02FD1B", &offset, &info_codes_))
+    {
+        t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
+    }
 }
 
 string MeterLansenDW::status()

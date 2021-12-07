@@ -134,6 +134,12 @@ void MeterFHKVDataIII::processContent(Telegram *t)
 
     t->extractPayload(&content);
 
+    if (content.size() < 14)
+    {
+        // Not enough data.
+        debugPayload("(fhkvdataiii) not enough data", content);
+        return;
+    }
     // Consumption
     // Previous Consumption
     uchar prev_lo = content[3];

@@ -59,6 +59,7 @@ struct Configuration
     bool version {};
     bool license {};
     bool analyze {};
+    OutputFormat analyze_format {};
     bool debug {};
     bool trace {};
     AddLogTimestamps addtimestamps {};

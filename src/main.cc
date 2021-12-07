@@ -451,7 +451,7 @@ bool start(Configuration *config)
     // and creates meters on demand when the telegram arrives
     // or on startup for 2-way communication meters like mbus or T2.
     meter_manager_ = createMeterManager(config->daemon);
-    meter_manager_->analyzeEnabled(config->analyze);
+    meter_manager_->analyzeEnabled(config->analyze, config->analyze_format);
 
     // The bus manager detects new/lost wmbus devices and
     // configures the devices according to the specification.

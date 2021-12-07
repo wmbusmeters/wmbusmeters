@@ -353,6 +353,32 @@ struct AboutTelegram
     AboutTelegram() {}
 };
 
+// Mark understood bytes as either PROTOCOL, ie dif vif, acc and other header bytes.
+// Or CONTENT, ie the value fields found inside the transport layer.
+enum class KindOfData
+{
+    PROTOCOL, CONTENT
+};
+
+// Content can be not understood at all NONE, partially understood PARTIAL when typically bitsets have
+// been partially decoded, or FULL when the volume or energy field is by itself complete.
+enum class Understanding
+{
+    NONE, PARTIAL, FULL
+};
+
+struct Explanation
+{
+    int pos {};
+    int len {};
+    string info;
+    KindOfData kind {};
+    Understanding understanding {};
+
+    Explanation(int p, int l, const string &i, KindOfData k, Understanding u) :
+        pos(p), len(l), info(i), kind(k), understanding(u) {}
+};
+
 struct Telegram
 {
     AboutTelegram about;
@@ -482,12 +508,13 @@ struct Telegram
 
     // A vector of indentations and explanations, to be printed
     // below the raw data bytes to explain the telegram content.
-    vector<pair<int,string>> explanations;
-    void addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int len, const char* fmt, ...);
+    vector<Explanation> explanations;
+    void addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...);
     void addMoreExplanation(int pos, const char* fmt, ...);
     // Add an explanation of data inside manufacturer specific data.
-    void addSpecialExplanation(int offset, const char* fmt, ...);
+    void addSpecialExplanation(int offset, KindOfData k, Understanding u, const char* fmt, ...);
     void explainParse(string intro, int from);
+    void analyzeParse(OutputFormat o, int *content_length, int *understood_content_length);
 
     bool parserWarns() { return parser_warns_; }
     bool isSimulated() { return is_simulated_; }

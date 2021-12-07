@@ -82,7 +82,8 @@ protected:
     // The default implementation of poll does nothing.
     // Override for mbus meters that need to be queried and likewise for C2/T2 wmbus-meters.
     void poll(shared_ptr<BusManager> bus);
-    bool handleTelegram(AboutTelegram &about, vector<uchar> frame, bool simulated, string *id, bool *id_match);
+    bool handleTelegram(AboutTelegram &about, vector<uchar> frame,
+                        bool simulated, string *id, bool *id_match, Telegram *out_analyzed = NULL);
     void printMeter(Telegram *t,
                     string *human_readable,
                     string *fields, char separator,

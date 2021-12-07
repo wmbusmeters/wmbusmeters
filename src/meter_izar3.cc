@@ -70,6 +70,9 @@ void MeterIzar3::processContent(Telegram *t)
     vector<uchar> frame;
     t->extractFrame(&frame);
 
-    warning("(izar3) cannot decode content of telegram!\n");
+    if (t->beingAnalyzed() == false)
+    {
+        warning("(izar3) cannot decode content of telegram!\n");
+    }
     total_water_consumption_l_ = 123456789;
 }
