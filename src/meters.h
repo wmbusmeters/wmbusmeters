@@ -43,8 +43,6 @@
     X(eurisii,    T1_bit, HeatCostAllocationMeter, EURISII, EurisII)   \
     X(ehzp,       T1_bit, ElectricityMeter, EHZP,        EHZP)         \
     X(esyswm,     T1_bit, ElectricityMeter, ESYSWM,      ESYSWM)       \
-    X(flowiq2200, C1_bit, WaterMeter,       FLOWIQ2200,  FlowIQ2200)   \
-    X(flowiq3100, C1_bit, WaterMeter,       FLOWIQ3100,  FlowIQ3100)   \
     X(ei6500,     C1_bit, SmokeDetector,    EI6500,      EI6500)       \
     X(elf,        T1_bit, HeatMeter,        ELF,         Elf)          \
     X(em24,       C1_bit, ElectricityMeter, EM24,        EM24)         \
@@ -69,6 +67,8 @@
     X(mkradio3,   T1_bit, WaterMeter,       MKRADIO3,    MKRadio3)     \
     X(mkradio4,   T1_bit, WaterMeter,       MKRADIO4,    MKRadio4)     \
     X(multical21, C1_bit|T1_bit, WaterMeter,       MULTICAL21,  Multical21)   \
+    X(flowiq2200, C1_bit, WaterMeter,       FLOWIQ2200,  FlowIQ2200)   \
+    X(flowiq3100, C1_bit, WaterMeter,       FLOWIQ3100,  FlowIQ3100)   \
     X(multical302,C1_bit|T1_bit, HeatMeter,        MULTICAL302, Multical302)  \
     X(multical403,C1_bit, HeatMeter,        MULTICAL403, Multical403)  \
     X(multical602,C1_bit, HeatMeter,        MULTICAL602, Multical602)  \

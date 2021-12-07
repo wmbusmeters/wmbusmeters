@@ -311,6 +311,7 @@ LIST_OF_METERS
         mi.idsc = t.ids.back();
 
         bool hide_output = drivers.size() > 1;
+        bool printed = false;
         bool handled = false;
         MeterDriver best_driver {};
         // For the best driver we have:
@@ -322,8 +323,8 @@ LIST_OF_METERS
         {
             if (dr == MeterDriver::AUTO) continue;
             if (dr == MeterDriver::UNKNOWN) continue;
-            string s = toString(dr);
-            debug("Testing driver %s...\n", s.c_str());
+            string driver_name = toString(dr);
+            debug("Testing driver %s...\n", driver_name.c_str());
             mi.driver = dr;
             auto meter = createMeter(&mi);
             bool match = false;
@@ -348,7 +349,9 @@ LIST_OF_METERS
                 int u = 0;
                 OutputFormat of = analyze_format_;
                 if (hide_output) of = OutputFormat::NONE;
+                else printed = true;
                 t.analyzeParse(of, &l, &u);
+                verbose("(analyze) %s %d/%d\n", driver_name.c_str(), u, l);
                 if (u > best_understood_content_length)
                 {
                     // Understood so many bytes
@@ -361,8 +364,44 @@ LIST_OF_METERS
         }
         if (handled)
         {
-            string s = toString(best_driver);
-            printf("Best driver %s %d/%d\n", s.c_str(), best_understood_content_length, best_content_length);
+            MeterDriver auto_driver = pickMeterDriver(&t);
+            string ad = toString(auto_driver);
+            string bd = toString(best_driver);
+            if (auto_driver != MeterDriver::UNKNOWN)
+            {
+                if (best_driver != auto_driver)
+                {
+                    printf("The automatic driver selection picks \"%s\" based on mfct/type/version!\n", ad.c_str());
+                    printf("BUT the driver which matches most of the content is %s with %d/%d content bytes understood.\n",
+                           bd.c_str(), best_understood_content_length, best_content_length);
+                    mi.driver = auto_driver;
+                }
+                else
+                {
+                    printf("The automatic driver selection picked \"%s\" based on mfct/type/version!\n", ad.c_str());
+                    printf("Which is also the best matching driver with %d/%d content bytes understood.\n",
+                           best_understood_content_length, best_content_length);
+                    mi.driver = best_driver;
+                }
+            }
+            else
+            {
+                printf("No automatic driver selection could be found based on mfct/type/version!\n");
+                printf("The driver which matches most of the content is %s with %d/%d content bytes understood.\n",
+                       bd.c_str(), best_understood_content_length, best_content_length);
+                mi.driver = best_driver;
+            }
+
+            if (!printed)
+            {
+                auto meter = createMeter(&mi);
+                bool match = false;
+                string id;
+                meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+                int l = 0;
+                int u = 0;
+                t.analyzeParse(analyze_format_, &l, &u);
+            }
         }
         else
         {

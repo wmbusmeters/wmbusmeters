@@ -8,6 +8,8 @@ TESTNAME="Test analyze compact telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
+The automatic driver selection picked "multical21" based on mfct/type/version!
+Which is also the best matching driver with 12/12 content bytes understood.
 000   : 23 length (35 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -27,33 +29,9 @@ cat > $TEST/test_expected.txt <<EOF
 030 C!: 08190000 target consumption (6.408000 m3)
 034 C!: 7F flow temperature (127.000000 °C)
 035 C!: 13 external temperature (19.000000 °C)
-Best driver flowiq3100 12/12
 EOF
 
-$PROG --analyze=plain 23442D2C998734761B168D2087D19EAD217F1779EDA86AB6710008190000081900007F13 Foof flowiq3100 11111111 NOKEY 2> $TEST/test_output.txt 1>&2
-
-if [ "$?" = "0" ]
-then
-    diff $TEST/test_expected.txt $TEST/test_output.txt
-    if [ "$?" = "0" ]
-    then
-        echo OK: $TESTNAME
-        TESTRESULT="OK"
-    fi
-else
-    echo ERROR: $TESTNAME
-    echo "wmbusmeters returned error code: $?"
-    cat $TEST/test_output.txt
-fi
-
-TESTNAME="Test analyze find best driver"
-TESTRESULT="ERROR"
-
-cat > $TEST/test_expected.txt <<EOF
-Best driver flowiq3100 12/12
-EOF
-
-$PROG --analyze=plain 23442D2C998734761B168D2087D19EAD217F1779EDA86AB6710008190000081900007F13 2> $TEST/test_output.txt 1>&2
+$PROG --analyze=plain 23442D2C998734761B168D2087D19EAD217F1779EDA86AB6710008190000081900007F13  2> $TEST/test_output.txt 1>&2
 
 if [ "$?" = "0" ]
 then
@@ -73,6 +51,8 @@ TESTNAME="Test analyze normal telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
+The automatic driver selection picks "supercom587" based on mfct/type/version!
+BUT the driver which matches most of the content is evo868 with 20/100 content bytes understood.
 000   : a2 length (162 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : ee4d dll-mfct (SON)
@@ -88,18 +68,18 @@ cat > $TEST/test_expected.txt <<EOF
 017 C!: 48550000 total consumption (5.548000 m3)
 021   : 42 dif (16 Bit Integer/Binary Instantaneous value storagenr=1)
 022   : 6C vif (Date type G)
-023 C!: E1F1 set date (2127-01-01)
+023 C?: E1F1
 025   : 4C dif (8 digit BCD Instantaneous value storagenr=1)
 026   : 13 vif (Volume l)
-027 C!: 00000000 consumption at set date (0.000000 m3)
+027 C?: 00000000
 031   : 82 dif (16 Bit Integer/Binary Instantaneous value)
 032   : 04 dife (subunit=0 tariff=0 storagenr=8)
 033   : 6C vif (Date type G)
-034 C!: 2129 history starts with date (2017-09-01)
+034 C?: 2129
 036   : 8C dif (8 digit BCD Instantaneous value)
 037   : 04 dife (subunit=0 tariff=0 storagenr=8)
 038   : 13 vif (Volume l)
-039 C!: 33000000 consumption at history 1 (0.033000 m3)
+039 C?: 33000000
 043   : 8D dif (variable length Instantaneous value)
 044   : 04 dife (subunit=0 tariff=0 storagenr=8)
 045   : 93 vif (Volume l)
@@ -108,7 +88,7 @@ cat > $TEST/test_expected.txt <<EOF
 048 C?: 3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000
 106   : 04 dif (32 Bit Integer/Binary Instantaneous value)
 107   : 6D vif (Date and time type)
-108 C!: 0D0B5C2B device datetime (2018-11-28 11:13)
+108 C?: 0D0B5C2B
 112   : 03 dif (24 Bit Integer/Binary Instantaneous value)
 113   : FD vif (Second extension FD of VIF-codes)
 114   : 6C vife (Operating time battery [hour(s)])
@@ -147,10 +127,9 @@ cat > $TEST/test_expected.txt <<EOF
 159   : FD vif (Second extension FD of VIF-codes)
 160   : 17 vife (Error flags (binary))
 161 C?: 0000
-Best driver evo868 20/100
 EOF
 
-$PROG --analyze=plain A244EE4D785634123C067A8F0000000C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000 Water evo868 11111111 NOKEY 2> $TEST/test_output.txt 1>&2
+$PROG --analyze=plain A244EE4D785634123C067A8F0000000C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000  2> $TEST/test_output.txt 1>&2
 
 if [ "$?" = "0" ]
 then
