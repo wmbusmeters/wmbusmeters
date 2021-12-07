@@ -29,6 +29,14 @@ telegram=|2E442D2C6767676730048D2039D1684020|BCDB7803062C00004306000000031463000
 telegram=|25442D2C6767676730048D203AD2684020|D81579E7F1D5902C00000000006300007F2A130000|
 {"media":"heat","meter":"multical302","name":"MyHeater","id":"67676767","total_energy_consumption_kwh":44,"current_power_consumption_kw":1.9,"total_volume_m3":0.99,"at_date":"2019-10-31 00:00","total_energy_consumption_at_date_kwh":0,"current_status":"","timestamp":"1111-11-11T11:11:11Z"}
 
+# Mj full telegram
+telegram=|2E442D2C46464646300C8D207A70EA6021B1C178|030FC51000430F9210000314072B05426CBE2B022D0C0001FF2100|
+{"media":"heat volume at inlet","meter":"multical302","name":"MyHeaterMj","id":"46464646","total_energy_consumption_kwh":11925,"current_power_consumption_kw":1.2,"total_volume_m3":3386.95,"at_date":"2021-11-30 00:00","total_energy_consumption_at_date_kwh":11783.333333,"current_status":"","timestamp":"1111-11-11T11:11:11Z"}
+
+# Mj compressed telegram
+telegram=|25442D2C46464646300C8D20D3E2EB60212B6D79E26DCD65|C51000921000152B05BE2B0C0000|
+{"media":"heat volume at inlet","meter":"multical302","name":"MyHeaterMj","id":"46464646","total_energy_consumption_kwh":11925,"current_power_consumption_kw":1.2,"total_volume_m3":3387.09,"at_date":"2021-11-30 00:00","total_energy_consumption_at_date_kwh":11783.333333,"current_status":"","timestamp":"1111-11-11T11:11:11Z"}
+
 # Test QCaloric C1 telegrams
 
 telegram=|314493441234567835087a740000200b6e2701004b6e450100426c5f2ccb086e790000c2086c7f21326cffff046d200b7422|

@@ -152,6 +152,11 @@ void MeterMultical302::processContent(Telegram *t)
     if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
         t->addMoreExplanation(offset, " total energy consumption (%f kWh)", total_energy_kwh_);
+    } else if (findKey(MeasurementType::Instantaneous, ValueInformation::EnergyMJ, 0, 0, &key, &t->values)) {
+        double mj;
+        extractDVdouble(&t->values, key, &offset, &mj);
+        total_energy_kwh_ = convert(mj, Unit::MJ, Unit::KWH);
+        t->addMoreExplanation(offset, " total energy consumption (%f kWh)", total_energy_kwh_);
     }
 
     if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, &key, &t->values)) {
@@ -161,6 +166,11 @@ void MeterMultical302::processContent(Telegram *t)
 
     if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 1, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &target_energy_kwh_);
+        t->addMoreExplanation(offset, " target energy consumption (%f kWh)", target_energy_kwh_);
+    } else if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyMJ, 1, 0, &key, &t->values)){
+        double mj;
+        extractDVdouble(&t->values, key, &offset, &mj);
+        target_energy_kwh_ = convert(mj, Unit::MJ, Unit::KWH);
         t->addMoreExplanation(offset, " target energy consumption (%f kWh)", target_energy_kwh_);
     }
 
