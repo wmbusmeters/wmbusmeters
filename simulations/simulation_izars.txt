@@ -22,3 +22,7 @@ telegram=|1944304c9c5824210c04a363140013716577ec59e8663ab0d31c|
 telegram=|1944304CDEFFE420CC01A2|63120013258F907B0AFF12529AC33B|
 {"media":"water","meter":"izar","name":"IzarWater5","id":"20e4ffde","prefix":"C15SA","serial_number":"007710","total_m3":159.832,"last_month_total_m3":157.76,"last_month_measure_date":"2021-02-01","remaining_battery_life_y":9,"current_alarms":"no_alarm","previous_alarms":"no_alarm","transmit_period_s":32,"manufacture_year":"2015","timestamp":"1111-11-11T11:11:11Z"}
 
+# Yet another version of IZAR
+
+telegram=19442423860775035048A251520015BEB6B2E1ED623A18FC74A5
+{"media":"water","meter":"izar","name":"IzarWater6","id":"48500375","prefix":"","serial_number":"000000","total_m3":521.602,"last_month_total_m3":519.147,"last_month_measure_date":"2021-11-15","remaining_battery_life_y":9,"current_alarms":"no_alarm","previous_alarms":"leakage","transmit_period_s":8,"manufacture_year":"0","timestamp":"1111-11-11T11:11:11Z"}

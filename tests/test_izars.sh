@@ -17,7 +17,8 @@ METERS="IzarWater   izar        21242472 NOKEY
         IzarWater2  izar        66236629 NOKEY
         IzarWater3  izar        20481979 NOKEY
         IzarWater4  izar        2124589c NOKEY
-        IzarWater5  izar        20e4ffde NOKEY"
+        IzarWater5  izar        20e4ffde NOKEY
+        IzarWater6  auto        48500375 NOKEY"
 
 cat simulations/simulation_izars.txt | grep '^{' > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_izars.txt $METERS > $TEST/test_output.txt 2> $TEST/test_stderr.txt
@@ -73,6 +74,11 @@ Received telegram from: 20e4ffde
           manufacturer: (SAP) Sappel (0x4c30)
                   type: Water meter (0x07)
                    ver: 0x00
+                driver: izar
+Received telegram from: 48500375
+          manufacturer: (HYD) Hydrometer (0x2324)
+                  type: Water meter (0x07)
+                   ver: 0x86
                 driver: izar
 EOF
 
