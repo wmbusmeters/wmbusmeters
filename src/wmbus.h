@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
+ Copyright (C) 2017-2021 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -491,7 +491,9 @@ struct Telegram
 
     bool parserWarns() { return parser_warns_; }
     bool isSimulated() { return is_simulated_; }
+    bool beingAnalyzed() { return being_analyzed_; }
     void markAsSimulated() { is_simulated_ = true; }
+    void markAsBeingAnalyzed() { being_analyzed_ = true; }
 
     // Extracted mbus values.
     std::map<std::string,std::pair<int,DVEntry>> values;
@@ -504,6 +506,7 @@ struct Telegram
 private:
 
     bool is_simulated_ {};
+    bool being_analyzed_ {};
     bool parser_warns_ = true;
     MeterKeys *meter_keys {};
 

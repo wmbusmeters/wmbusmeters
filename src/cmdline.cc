@@ -102,6 +102,11 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
             c->license = true;
             return shared_ptr<Configuration>(c);
         }
+        if (!strcmp(argv[i], "--analyze")) {
+            c->analyze = true;
+            i++;
+            continue;
+        }
         if (!strcmp(argv[i], "--debug")) {
             c->debug = true;
             i++;

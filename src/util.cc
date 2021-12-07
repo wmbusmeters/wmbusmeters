@@ -335,6 +335,7 @@ bool internal_testing_enabled_ = false;
 
 string log_file_;
 
+
 void silentLogging(bool b) {
     logging_silenced_ = b;
 }

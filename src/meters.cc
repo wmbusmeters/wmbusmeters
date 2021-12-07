@@ -33,6 +33,7 @@ struct MeterManagerImplementation : public virtual MeterManager
 {
 private:
     bool is_daemon_ {};
+    bool should_analyze_ {};
     vector<MeterInfo> meter_templates_;
     vector<shared_ptr<Meter>> meters_;
     function<void(AboutTelegram&,vector<uchar>)> on_telegram_;
@@ -116,6 +117,12 @@ public:
 
     bool handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated)
     {
+        if (should_analyze_)
+        {
+            analyzeTelegram(about, input_frame, simulated);
+            return true;
+        }
+
         if (!hasMeters())
         {
             if (on_telegram_)
@@ -251,6 +258,20 @@ public:
         {
             m->poll(bus);
         }
+    }
+
+    void analyzeEnabled(bool b)
+    {
+        should_analyze_ = b;
+    }
+
+    void analyzeTelegram(AboutTelegram &about, vector<uchar> &input_frame, bool simulated)
+    {
+        Telegram t;
+        t.about = about;
+        t.markAsBeingAnalyzed();
+
+        printf("Analyzing...\n");
     }
 
     MeterManagerImplementation(bool daemon) : is_daemon_(daemon) {}
