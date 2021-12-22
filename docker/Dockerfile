@@ -17,6 +17,6 @@ WORKDIR /wmbusmeters
 COPY --from=build /wmbusmeters/build/wmbusmeters /wmbusmeters/wmbusmeters
 COPY --from=build /rtl-wmbus/build/rtl_wmbus /usr/bin/rtl_wmbus
 COPY --from=build /rtl_433/build/src/rtl_433 /usr/bin/rtl_433
-COPY docker/docker-entrypoint.sh /wmbusmeters/docker-entrypoint.sh
+COPY --from=build /wmbusmeters/docker/docker-entrypoint.sh /wmbusmeters/docker-entrypoint.sh
 VOLUME /wmbusmeters_data/
 CMD ["sh", "/wmbusmeters/docker-entrypoint.sh"]
