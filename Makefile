@@ -210,6 +210,11 @@ deb: wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb
 check_deb:
 	lintian --no-tag-display-limit wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb
 
+clean_deb:
+	rm -f wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb
+
+# Check docs verifies that all options in the source have been mentioned in the README and in the man page.
+# Also any option not in the source but mentioned in the docs is warned for as well.
 check_docs:
 	@cat src/cmdline.cc  | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_code
 	@cat wmbusmeters.1   | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_man

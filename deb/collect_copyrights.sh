@@ -1,7 +1,7 @@
 #!/bin/bash
 
-rm -f /tmp/copyright
-cat > /tmp/copyright <<EOF
+rm -f /tmp/tmpcopyrights
+cat > /tmp/tmpcopyrights <<EOF
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: wmbusmeters
 Source: https://github.com/weetmuts/wmbusmeters
@@ -32,11 +32,11 @@ do
         echo "Copyright: $cops"
         echo "License: $license"
         echo ""
-        } >> /tmp/copyright
+        } >> /tmp/tmpcopyrights
     fi
 done
 
-cat >> /tmp/copyright <<EOF
+cat >> /tmp/tmpcopyrights <<EOF
 License: GPL-3+
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ License: GPL-3+
  On Debian systems, the complete text of the GNU General Public License
  version 3 can be found in file "/usr/share/common-licenses/GPL-3".
 
-Licenase: Public Domain
+License: Public Domain
  The authors, and therefore would be copyright holders, have as much
  as possible relinguished their copyright to the public domain.
 EOF

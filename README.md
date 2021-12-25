@@ -195,6 +195,7 @@ As <options> you can use:
     --alarmexpectedactivity=mon-fri(08-17),sat-sun(09-12) Specify when the timeout is tested, default is mon-sun(00-23)
     --alarmshell=<cmdline> invokes cmdline when an alarm triggers
     --alarmtimeout=<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity.
+    --analyze Analyze a telegram to find the best driver.
     --debug for a lot of information
     --device=<device> override device in config files. Use only in combination with --useconfig= option
     --donotprobe=<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys.
