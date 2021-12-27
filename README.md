@@ -429,13 +429,14 @@ Listens for C1 telegrams using any of your available wmbus dongles:
 ```
 Received telegram from: 12345678
           manufacturer: (KAM) Kamstrup Energi (0x2c2d)
-           device type: Cold water meter (0x16)
+           device type: Cold water meter (0x16) encrypted
             device ver: 0x1b
                 device: im871a[12345678]
                   rssi: -77 dBm
                 driver: multical21
 ```
 
+You can see that this telegram is encrypted and therefore you need a key.
 Now listen to this specific meter, since the driver is auto-detected, we can use `auto` for the meter driver.
 
 ```shell
