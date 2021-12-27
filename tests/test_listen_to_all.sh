@@ -47,12 +47,12 @@ Received telegram from: 33225544
                 driver: iperl
 Received telegram from: 10101010
           manufacturer: (APA) Apator, Poland (0x601)
-                  type: Electricity meter (0x02)
+                  type: Electricity meter (0x02) encrypted
                    ver: 0x02
                 driver: amiplus
 Received telegram from: 00254358
           manufacturer: (DEV) Develco Products, Denmark (0x10b6)
-                  type: Electricity meter (0x02)
+                  type: Electricity meter (0x02) encrypted
                    ver: 0x00
                 driver: amiplus
 Received telegram from: 34333231
@@ -82,7 +82,7 @@ Received telegram from: 11111234
                 driver: fhkvdataiii
 Received telegram from: 14542076
           manufacturer: (TCH) Techem Service (0x5068)
-                  type: Heat Cost Allocator (0x08)
+                  type: Heat Cost Allocator (0x08) encrypted
                    ver: 0x94
                 driver: fhkvdataiv
 Received telegram from: 88018801
@@ -96,17 +96,17 @@ Received telegram from: 88018801
                 driver: eurisii eurisii
 Received telegram from: 00010204
           manufacturer: (LAS) Lansen Systems, Sweden (0x3033)
-                  type: Smoke detector (0x1a)
+                  type: Smoke detector (0x1a) encrypted
                    ver: 0x03
                 driver: lansensm
 Received telegram from: 00010204
           manufacturer: (LAS) Lansen Systems, Sweden (0x3033)
-                  type: Smoke detector (0x1a)
+                  type: Smoke detector (0x1a) encrypted
                    ver: 0x03
                 driver: lansensm
 Received telegram from: 00010203
           manufacturer: (LAS) Lansen Systems, Sweden (0x3033)
-                  type: Room sensor (eg temperature or humidity) (0x1b)
+                  type: Room sensor (eg temperature or humidity) (0x1b) encrypted
                    ver: 0x07
                 driver: lansenth
 Received telegram from: 00010205
@@ -131,73 +131,73 @@ Received telegram from: 11772288
                 driver: rfmamb
 Received telegram from: 64646464
           manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
-                  type: Water meter (0x07)
+                  type: Water meter (0x07) encrypted
                    ver: 0x70
                 driver: hydrus
 Received telegram from: 65656565
           manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
-                  type: Warm Water (30°C-90°C) meter (0x06)
+                  type: Warm Water (30°C-90°C) meter (0x06) encrypted
                    ver: 0x70
                 driver: hydrus
 Received telegram from: 81100028
           manufacturer: (HYD) Hydrometer (0x2324)
-                  type: Bus/System component (0x0e)
+                  type: Bus/System component (0x0e) encrypted
                    ver: 0x64
       Concerning meter: 64745666
           manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
-                  type: Water meter (0x07)
+                  type: Water meter (0x07) encrypted
                    ver: 0x70
                 driver: hydrus
 Received telegram from: 86868686
           manufacturer: (BMT) BMETERS, Italy (0x9b4)
-                  type: Water meter (0x07)
+                  type: Water meter (0x07) encrypted
                    ver: 0x13
                 driver: hydrodigit
 Received telegram from: 67452301
           manufacturer: (BMT) BMETERS, Italy (0x9b4)
-                  type: Warm Water (30°C-90°C) meter (0x06)
+                  type: Warm Water (30°C-90°C) meter (0x06) encrypted
                    ver: 0x13
                 driver: hydrodigit
 Received telegram from: 72727272
           manufacturer: (AXI) UAB Axis Industries, Lithuania (0x709)
-                  type: Water meter (0x07)
+                  type: Water meter (0x07) encrypted
                    ver: 0x10
                 driver: q400
 Received telegram from: 72727273
           manufacturer: (AXI) UAB Axis Industries, Lithuania (0x709)
-                  type: Water meter (0x07)
+                  type: Water meter (0x07) encrypted
                    ver: 0x10
                 driver: q400
 Received telegram from: 22992299
           manufacturer: (EBZ) eBZ, Germany (0x145a)
-                  type: Radio converter (meter side) (0x37)
+                  type: Radio converter (meter side) (0x37) encrypted
                    ver: 0x02
       Concerning meter: 22992299
           manufacturer: (EBZ) eBZ, Germany (0x145a)
-                  type: Electricity meter (0x02)
+                  type: Electricity meter (0x02) encrypted
                    ver: 0x01
                 driver: ebzwmbe
 Received telegram from: 77997799
           manufacturer: (ESY) EasyMeter (0x1679)
-                  type: Radio converter (meter side) (0x37)
+                  type: Radio converter (meter side) (0x37) encrypted
                    ver: 0x30
       Concerning meter: 77997799
           manufacturer: (ETY) Unknown (0x1699)
-                  type: Electricity meter (0x02)
+                  type: Electricity meter (0x02) encrypted
                    ver: 0x11
                 driver: esyswm
 Received telegram from: 77997799
           manufacturer: (ESY) EasyMeter (0x1679)
-                  type: Radio converter (meter side) (0x37)
+                  type: Radio converter (meter side) (0x37) encrypted
                    ver: 0x30
       Concerning meter: 77997799
           manufacturer: (ESY) EasyMeter (0x1679)
-                  type: Electricity meter (0x02)
+                  type: Electricity meter (0x02) encrypted
                    ver: 0x11
                 driver: esyswm
 Received telegram from: 55995599
           manufacturer: (EMH) EMH metering formerly EMH Elektrizitatszahler (0x15a8)
-                  type: Electricity meter (0x02)
+                  type: Electricity meter (0x02) encrypted
                    ver: 0x02
                 driver: ehzp
 Received telegram from: 004444dd
@@ -207,37 +207,37 @@ Received telegram from: 004444dd
                 driver: apator08
 Received telegram from: 74737271
           manufacturer: (BMT) BMETERS, Italy (0x9b4)
-                  type: Water meter (0x07)
+                  type: Water meter (0x07) encrypted
                    ver: 0x05
                 driver: rfmtx1
 Received telegram from: 20096221
           manufacturer: (DWZ) Lorenz, Germany (0x12fa)
-                  type: Warm Water (30°C-90°C) meter (0x06)
+                  type: Warm Water (30°C-90°C) meter (0x06) encrypted
                    ver: 0x02
                 driver: waterstarm
 Received telegram from: 78563412
           manufacturer: (AMT) INTEGRA METERING (0x5b4)
-                  type: Water meter (0x07)
+                  type: Water meter (0x07) encrypted
                    ver: 0xf1
                 driver: topaseskr
 Received telegram from: 95969798
           manufacturer: (APA) Apator, Poland (0x601)
-                  type: Cold water meter (0x16)
+                  type: Cold water meter (0x16) encrypted
                    ver: 0x01
                 driver: ultrimis
 Received telegram from: 12345679
           manufacturer: (EFE) Engelmann Sensor, Germany (0x14c5)
-                  type: Heat meter (0x04)
+                  type: Heat meter (0x04) encrypted
                    ver: 0x00
                 driver: sensostar
 Received telegram from: 99993030
           manufacturer: (ELR) Elster Metering, United Kingdom (0x1592)
-                  type: Water meter (0x07)
+                  type: Water meter (0x07) encrypted
                    ver: 0x0d
                 driver: ev200
 Received telegram from: 95949392
           manufacturer: (ELR) Elster Metering, United Kingdom (0x1592)
-                  type: Radio converter (meter side) (0x37)
+                  type: Radio converter (meter side) (0x37) encrypted
                    ver: 0x11
                 driver: emerlin868
 Received telegram from: 91633569
@@ -267,7 +267,7 @@ Received telegram from: 20100117
                 driver: gransystems
 Received telegram from: 68926025
           manufacturer: (HYD) Hydrometer (0x2324)
-                  type: Heat meter (0x04)
+                  type: Heat meter (0x04) encrypted
                    ver: 0x20
                 driver: sharky
 Received telegram from: 00050901
@@ -281,17 +281,17 @@ Received telegram from: 00050901
                 driver: elf
 Received telegram from: 93929190
           manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
-                  type: Water meter (0x07)
+                  type: Water meter (0x07) encrypted
                    ver: 0x7b
                 driver: dme_07
 Received telegram from: 60897379
           manufacturer: (HYD) Hydrometer (0x2324)
-                  type: Water meter (0x07)
+                  type: Water meter (0x07) encrypted
                    ver: 0x8b
                 driver: hydrus
 Received telegram from: 60904720
           manufacturer: (HYD) Hydrometer (0x2324)
-                  type: Warm Water (30°C-90°C) meter (0x06)
+                  type: Warm Water (30°C-90°C) meter (0x06) encrypted
                    ver: 0x8b
                 driver: hydrus
 Received telegram from: 18001698
@@ -301,21 +301,21 @@ Received telegram from: 18001698
                 driver: izar
 Received telegram from: 61070071
           manufacturer: (AAA) Aventies, Germany (0x421)
-                  type: Water meter (0x07)
+                  type: Water meter (0x07) encrypted
                    ver: 0x25
       Concerning meter: 61070071
           manufacturer: (AAA) Aventies, Germany (0x421)
-                  type: Water meter (0x07)
+                  type: Water meter (0x07) encrypted
                    ver: 0x25
                 driver: aventieswm aventieswm
 Received telegram from: 00043094
           manufacturer: (AMX) APATOR METRIX, Poland (0x5b8)
-                  type: Gas meter (0x03)
+                  type: Gas meter (0x03) encrypted
                    ver: 0x01
                 driver: unismart
 Received telegram from: 71727374
           manufacturer: (BMT) BMETERS, Italy (0x9b4)
-                  type: Heat/Cooling load meter (0x0d)
+                  type: Heat/Cooling load meter (0x0d) encrypted
                    ver: 0x0b
                 driver: hydrocalm3
 Received telegram from: 00013482

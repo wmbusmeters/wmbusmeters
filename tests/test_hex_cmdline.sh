@@ -11,7 +11,7 @@ cat > $TEST/test_expected.txt <<EOF
 No meters configured. Printing id:s of all telegrams heard!
 Received telegram from: 76348799
           manufacturer: (KAM) Kamstrup Energi (0x2c2d)
-                  type: Cold water meter (0x16)
+                  type: Cold water meter (0x16) encrypted
                    ver: 0x1b
                 driver: multical21
 EOF

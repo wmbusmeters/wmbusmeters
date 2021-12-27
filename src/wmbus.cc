@@ -229,12 +229,20 @@ void Telegram::print()
         c = dll_id[2];
         d = dll_id[3];
     }
+    const char *enc = "";
+
+    if (ell_sec_mode != ELLSecurityMode::NoSecurity ||
+        tpl_sec_mode != TPLSecurityMode::NoSecurity)
+    {
+        enc = " encrypted";
+    }
+
     notice("Received telegram from: %02x%02x%02x%02x\n", a,b,c,d);
     notice("          manufacturer: (%s) %s (0x%02x)\n",
            manufacturerFlag(dll_mfct).c_str(),
            manufacturer(dll_mfct).c_str(),
            dll_mfct);
-    notice("                  type: %s (0x%02x)\n", mediaType(dll_type, dll_mfct).c_str(), dll_type);
+    notice("                  type: %s (0x%02x)%s\n", mediaType(dll_type, dll_mfct).c_str(), dll_type, enc);
 
     notice("                   ver: 0x%02x\n", dll_version);
 
@@ -245,10 +253,9 @@ void Telegram::print()
            manufacturerFlag(tpl_mfct).c_str(),
            manufacturer(tpl_mfct).c_str(),
            tpl_mfct);
-        notice("                  type: %s (0x%02x)\n", mediaType(tpl_type, dll_mfct).c_str(), tpl_type);
+        notice("                  type: %s (0x%02x)%s\n", mediaType(tpl_type, dll_mfct).c_str(), tpl_type, enc);
 
         notice("                   ver: 0x%02x\n", tpl_version);
-
     }
     if (about.device != "")
     {

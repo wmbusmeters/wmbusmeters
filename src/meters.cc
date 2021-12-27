@@ -338,8 +338,8 @@ LIST_OF_METERS
             {
                 // Oups, we added a new meter object tailored for this telegram
                 // but it still did not handle it! This can happen if the wrong
-                // decryption key was used.
-                warning("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
+                // decryption key was used. But it is ok if analyzing....
+                debug("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
                         meter->name().c_str(), meter->idsc().c_str(), toString(meter->driver()).c_str());
             }
             else
