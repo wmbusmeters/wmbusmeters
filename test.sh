@@ -120,6 +120,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_broken.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_rtlwmbus_crc_errors.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 ./tests/test_analyze.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 

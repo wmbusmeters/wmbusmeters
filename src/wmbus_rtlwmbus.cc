@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2020 Fredrik Öhrström
+ Copyright (C) 2019-2021 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -248,19 +248,17 @@ void WMBusRTLWMBUS::processSerialData()
         {
             break;
         }
-        if (status == TextAndNotFrame)
+        else if (status == TextAndNotFrame)
         {
             // The buffer has already been printed by serial cmd.
-            read_buffer_.clear();
-            break;
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
         }
-        if (status == ErrorInFrame)
+        else if (status == ErrorInFrame)
         {
             debug("(rtlwmbus) error in received message.\n");
-            read_buffer_.clear();
-            break;
+            read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
         }
-        if (status == FullFrame)
+        else if (status == FullFrame)
         {
             vector<uchar> payload;
             if (hex_payload_len > 0)
@@ -302,6 +300,10 @@ void WMBusRTLWMBUS::processSerialData()
             AboutTelegram about(id, rssi, FrameType::WMBUS);
             handleTelegram(about, payload);
         }
+        else
+        {
+            assert(0);
+        }
     }
 }
 
@@ -333,11 +335,13 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
         return PartialFrame;
     }
 
+    // Export how long the current line is, so that it can be removed from the buffer.
+    *hex_frame_length = eolp+1;
+
     // We got a full line, but if it is too short, then
     // there is something wrong. Discard the data.
     if (data.size() < 10)
     {
-
         debug("(rtlwmbus) too short line\n");
         return ErrorInFrame;
     }
@@ -411,7 +415,6 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     payload_len = eolp-i;
     *hex_payload_len_out = payload_len;
     *hex_payload_offset = i;
-    *hex_frame_length = eolp+1;
 
     debug("(rtlwmbus) received full frame\n");
     return FullFrame;
