@@ -1158,62 +1158,6 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     }
 }
 
-double WaterMeter::totalWaterConsumption(Unit u) { return -NAN; }
-bool  WaterMeter::hasTotalWaterConsumption() { return false; }
-double WaterMeter::targetWaterConsumption(Unit u) { return -NAN; }
-bool  WaterMeter::hasTargetWaterConsumption() { return false; }
-double WaterMeter::maxFlow(Unit u) { return -NAN; }
-bool  WaterMeter::hasMaxFlow() { return false; }
-double WaterMeter::flowTemperature(Unit u) { return -NAN; }
-bool WaterMeter::hasFlowTemperature() { return false; }
-double WaterMeter::externalTemperature(Unit u) { return -NAN; }
-bool WaterMeter::hasExternalTemperature() { return false; }
-
-string WaterMeter::statusHumanReadable() { return "-NAN"; }
-string WaterMeter::status() { return "-NAN"; }
-string WaterMeter::timeDry() { return "-NAN"; }
-string WaterMeter::timeReversed() { return "-NAN"; }
-string WaterMeter::timeLeaking() { return "-NAN"; }
-string WaterMeter::timeBursting() { return "-NAN"; }
-
-double GasMeter::totalGasConsumption(Unit u) { return -NAN; }
-bool  GasMeter::hasTotalGasConsumption() { return false; }
-double GasMeter::targetGasConsumption(Unit u) { return -NAN; }
-bool  GasMeter::hasTargetGasConsumption() { return false; }
-double GasMeter::maxFlow(Unit u) { return -NAN; }
-bool  GasMeter::hasMaxFlow() { return false; }
-double GasMeter::flowTemperature(Unit u) { return -NAN; }
-bool GasMeter::hasFlowTemperature() { return false; }
-double GasMeter::externalTemperature(Unit u) { return -NAN; }
-bool GasMeter::hasExternalTemperature() { return false; }
-
-string GasMeter::statusHumanReadable() { return "-NAN"; }
-string GasMeter::status() { return "-NAN"; }
-string GasMeter::timeDry() { return "-NAN"; }
-string GasMeter::timeReversed() { return "-NAN"; }
-string GasMeter::timeLeaking() { return "-NAN"; }
-string GasMeter::timeBursting() { return "-NAN"; }
-
-double HeatMeter::totalEnergyConsumption(Unit u) { return -NAN; }
-double HeatMeter::currentPeriodEnergyConsumption(Unit u) { return -NAN; }
-double HeatMeter::previousPeriodEnergyConsumption(Unit u) { return -NAN; }
-double HeatMeter::currentPowerConsumption(Unit u) { return -NAN; }
-double HeatMeter::totalVolume(Unit u) { return -NAN; }
-
-double ElectricityMeter::totalEnergyConsumption(Unit u) { return -NAN; }
-double ElectricityMeter::totalEnergyProduction(Unit u) { return -NAN; }
-double ElectricityMeter::totalReactiveEnergyConsumption(Unit u) { return -NAN; }
-double ElectricityMeter::totalReactiveEnergyProduction(Unit u) { return -NAN; }
-double ElectricityMeter::totalApparentEnergyConsumption(Unit u) { return -NAN; }
-double ElectricityMeter::totalApparentEnergyProduction(Unit u) { return -NAN; }
-
-double ElectricityMeter::currentPowerConsumption(Unit u) { return -NAN; }
-double ElectricityMeter::currentPowerProduction(Unit u) { return -NAN; }
-
-double HeatCostAllocationMeter::currentConsumption(Unit u) { return -NAN; }
-string HeatCostAllocationMeter::setDate() { return "NAN"; }
-double HeatCostAllocationMeter::consumptionAtSetDate(Unit u) { return -NAN; }
-
 void MeterCommonImplementation::setExpectedTPLSecurityMode(TPLSecurityMode tsm)
 {
     expected_tpl_sec_mode_ = tsm;

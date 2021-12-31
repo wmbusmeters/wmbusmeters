@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterLansenPU : public virtual PulseCounter, public virtual MeterCommonImplementation {
+struct MeterLansenPU : public virtual MeterCommonImplementation {
     MeterLansenPU(MeterInfo &mi);
 
     double counterA();
@@ -41,6 +41,8 @@ private:
 MeterLansenPU::MeterLansenPU(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::LANSENPU)
 {
+    setMeterType(MeterType::PulseCounter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     // version 0x14 for which we have a test telegram
@@ -60,7 +62,7 @@ MeterLansenPU::MeterLansenPU(MeterInfo &mi) :
 
 shared_ptr<Meter> createLansenPU(MeterInfo &mi)
 {
-    return shared_ptr<PulseCounter>(new MeterLansenPU(mi));
+    return shared_ptr<Meter>(new MeterLansenPU(mi));
 }
 
 double MeterLansenPU::counterA()

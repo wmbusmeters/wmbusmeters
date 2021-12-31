@@ -42,7 +42,7 @@ typedef struct _izar_alarms {
     bool mechanical_fraud_previously;
 } izar_alarms;
 
-struct MeterIzar : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterIzar : public virtual MeterCommonImplementation {
     MeterIzar(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -77,12 +77,14 @@ private:
 
 shared_ptr<Meter> createIzar(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterIzar(mi));
+    return shared_ptr<Meter>(new MeterIzar(mi));
 }
 
 MeterIzar::MeterIzar(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::IZAR)
 {
+    setMeterType(MeterType::WaterMeter);
+
     initializeDiehlDefaultKeySupport(meterKeys()->confidentiality_key, keys);
     addLinkMode(LinkMode::T1);
 

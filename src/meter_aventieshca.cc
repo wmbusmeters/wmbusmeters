@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterAventiesHCA : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation {
+struct MeterAventiesHCA : public virtual MeterCommonImplementation {
     MeterAventiesHCA(MeterInfo &mi);
 
     double currentConsumption(Unit u);
@@ -44,6 +44,8 @@ private:
 MeterAventiesHCA::MeterAventiesHCA(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::AVENTIESHCA)
 {
+    setMeterType(MeterType::HeatCostAllocationMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -82,7 +84,7 @@ MeterAventiesHCA::MeterAventiesHCA(MeterInfo &mi) :
 
 shared_ptr<Meter> createAventiesHCA(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostAllocationMeter>(new MeterAventiesHCA(mi));
+    return shared_ptr<Meter>(new MeterAventiesHCA(mi));
 }
 
 double MeterAventiesHCA::currentConsumption(Unit u)

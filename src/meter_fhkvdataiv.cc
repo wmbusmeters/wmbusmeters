@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterFHKVDataIV : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation {
+struct MeterFHKVDataIV : public virtual MeterCommonImplementation {
     MeterFHKVDataIV(MeterInfo &mi);
 
     double currentConsumption(Unit u);
@@ -48,6 +48,8 @@ private:
 MeterFHKVDataIV::MeterFHKVDataIV(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::FHKVDATAIV)
 {
+    setMeterType(MeterType::HeatCostAllocationMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::C1);
@@ -100,7 +102,7 @@ MeterFHKVDataIV::MeterFHKVDataIV(MeterInfo &mi) :
 
 shared_ptr<Meter> createFHKVDataIV(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostAllocationMeter>(new MeterFHKVDataIV(mi));
+    return shared_ptr<Meter>(new MeterFHKVDataIV(mi));
 }
 
 double MeterFHKVDataIV::currentConsumption(Unit u)

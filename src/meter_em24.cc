@@ -38,7 +38,7 @@ constexpr uint8_t ERROR_CODE_CURRENT_PHASE_3_OVERFLOW=0x20;
 constexpr uint8_t ERROR_CODE_FREQUENCY_OUT_OF_RANGE=0x40;
 
 
-struct MeterEM24 : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
+struct MeterEM24 : public virtual MeterCommonImplementation {
     MeterEM24(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
@@ -66,12 +66,14 @@ private:
 
 shared_ptr<Meter> createEM24(MeterInfo &mi)
 {
-    return shared_ptr<ElectricityMeter>(new MeterEM24(mi));
+    return shared_ptr<Meter>(new MeterEM24(mi));
 }
 
 MeterEM24::MeterEM24(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::EM24)
 {
+    setMeterType(MeterType::ElectricityMeter);
+
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
     addLinkMode(LinkMode::C1);

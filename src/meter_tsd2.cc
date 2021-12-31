@@ -23,7 +23,7 @@
 
 #define INFO_CODE_SMOKE 0x0001
 
-struct MeterTSD2 : public virtual SmokeDetector, public virtual MeterCommonImplementation
+struct MeterTSD2 : public virtual MeterCommonImplementation
 {
     MeterTSD2(MeterInfo &mi);
 
@@ -45,6 +45,8 @@ private:
 MeterTSD2::MeterTSD2(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::TSD2)
 {
+    setMeterType(MeterType::SmokeDetector);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -62,7 +64,7 @@ MeterTSD2::MeterTSD2(MeterInfo &mi) :
 
 shared_ptr<Meter> createTSD2(MeterInfo &mi)
 {
-    return shared_ptr<SmokeDetector>(new MeterTSD2(mi));
+    return shared_ptr<Meter>(new MeterTSD2(mi));
 }
 
 bool MeterTSD2::smokeDetected()

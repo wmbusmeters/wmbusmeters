@@ -38,7 +38,7 @@ using namespace std;
 #define INFO_CODE_BURST 0x08
 #define INFO_CODE_BURST_SHIFT (4+9)
 
-struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterMultical21 : public virtual MeterCommonImplementation {
     MeterMultical21(MeterInfo &mi, MeterDriver mt);
 
     // Total water counted through the meter
@@ -207,12 +207,12 @@ bool MeterMultical21::hasExternalTemperature()
     return has_external_temperature_;
 }
 
-shared_ptr<WaterMeter> createMulticalWaterMeter(MeterInfo &mi, MeterDriver mt)
+shared_ptr<Meter> createMulticalWaterMeter(MeterInfo &mi, MeterDriver mt)
 {
     if (mt != MeterDriver::MULTICAL21 && mt != MeterDriver::FLOWIQ3100) {
         error("Internal error! Not a proper meter type when creating a multical21 style meter.\n");
     }
-    return shared_ptr<WaterMeter>(new MeterMultical21(mi,mt));
+    return shared_ptr<Meter>(new MeterMultical21(mi,mt));
 }
 
 shared_ptr<Meter> createMultical21(MeterInfo &mi)

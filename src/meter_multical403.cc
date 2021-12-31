@@ -32,7 +32,7 @@
 #define INFO_CODE_SENSOR_T2_BELOW_MEASURING_RANGE 64
 #define INFO_CODE_TEMP_DIFF_WRONG_POLARITY 128
 
-struct MeterMultical403 : public virtual HeatMeter, public virtual MeterCommonImplementation {
+struct MeterMultical403 : public virtual MeterCommonImplementation {
     MeterMultical403(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
@@ -63,6 +63,8 @@ private:
 MeterMultical403::MeterMultical403(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::MULTICAL403)
 {
+    setMeterType(MeterType::HeatMeter);
+
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
     addLinkMode(LinkMode::C1);
@@ -104,7 +106,7 @@ MeterMultical403::MeterMultical403(MeterInfo &mi) :
 }
 
 shared_ptr<Meter> createMultical403(MeterInfo &mi) {
-    return shared_ptr<HeatMeter>(new MeterMultical403(mi));
+    return shared_ptr<Meter>(new MeterMultical403(mi));
 }
 
 double MeterMultical403::totalEnergyConsumption(Unit u)

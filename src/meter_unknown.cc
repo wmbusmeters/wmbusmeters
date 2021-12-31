@@ -27,7 +27,7 @@
 using namespace std;
 
 
-struct MeterUnknown : public virtual UnknownMeter, public virtual MeterCommonImplementation {
+struct MeterUnknown : public virtual MeterCommonImplementation {
     MeterUnknown(MeterInfo &mi);
 
     string meter_info_;
@@ -45,7 +45,7 @@ MeterUnknown::MeterUnknown(MeterInfo &mi) :
 
 shared_ptr<Meter> createUnknown(MeterInfo &mi)
 {
-    return shared_ptr<UnknownMeter>(new MeterUnknown(mi));
+    return shared_ptr<Meter>(new MeterUnknown(mi));
 }
 
 void MeterUnknown::processContent(Telegram *t)

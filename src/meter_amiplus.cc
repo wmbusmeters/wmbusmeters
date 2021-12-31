@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
-struct MeterAmiplus : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
+struct MeterAmiplus : public virtual MeterCommonImplementation {
     MeterAmiplus(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
@@ -46,6 +46,8 @@ private:
 MeterAmiplus::MeterAmiplus(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::AMIPLUS)
 {
+    setMeterType(MeterType::ElectricityMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -93,7 +95,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi) :
 
 shared_ptr<Meter> createAmiplus(MeterInfo &mi)
 {
-    return shared_ptr<ElectricityMeter>(new MeterAmiplus(mi));
+    return shared_ptr<Meter>(new MeterAmiplus(mi));
 }
 
 double MeterAmiplus::totalEnergyConsumption(Unit u)

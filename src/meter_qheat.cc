@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
-struct MeterQHeat : public virtual HeatMeter, public virtual MeterCommonImplementation {
+struct MeterQHeat : public virtual MeterCommonImplementation {
     MeterQHeat(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
@@ -51,6 +51,8 @@ private:
 MeterQHeat::MeterQHeat(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::QHEAT)
 {
+    setMeterType(MeterType::HeatMeter);
+
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
     addLinkMode(LinkMode::C1);
@@ -93,7 +95,7 @@ MeterQHeat::MeterQHeat(MeterInfo &mi) :
 }
 
 shared_ptr<Meter> createQHeat(MeterInfo &mi) {
-    return shared_ptr<HeatMeter>(new MeterQHeat(mi));
+    return shared_ptr<Meter>(new MeterQHeat(mi));
 }
 
 double MeterQHeat::totalEnergyConsumption(Unit u)

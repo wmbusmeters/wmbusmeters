@@ -24,7 +24,7 @@
 
 using namespace std;
 
-struct MeterWaterstarM : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterWaterstarM : public virtual MeterCommonImplementation {
     MeterWaterstarM(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -48,12 +48,14 @@ private:
 
 shared_ptr<Meter> createWaterstarM(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterWaterstarM(mi));
+    return shared_ptr<Meter>(new MeterWaterstarM(mi));
 }
 
 MeterWaterstarM::MeterWaterstarM(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::WATERSTARM)
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);

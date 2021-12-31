@@ -26,7 +26,7 @@
 
 using namespace std;
 
-struct MeterUnismart : public virtual GasMeter, public virtual MeterCommonImplementation {
+struct MeterUnismart : public virtual MeterCommonImplementation {
     MeterUnismart(MeterInfo &mi);
 
     // Total gas counted through the meter
@@ -54,12 +54,14 @@ private:
 
 shared_ptr<Meter> createUnismart(MeterInfo &mi)
 {
-    return shared_ptr<GasMeter>(new MeterUnismart(mi));
+    return shared_ptr<Meter>(new MeterUnismart(mi));
 }
 
 MeterUnismart::MeterUnismart(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::UNISMART)
 {
+    setMeterType(MeterType::GasMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);

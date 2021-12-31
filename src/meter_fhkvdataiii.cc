@@ -24,7 +24,7 @@
 #include"util.h"
 #include <ctime>
 
-struct MeterFHKVDataIII : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation
+struct MeterFHKVDataIII : public virtual MeterCommonImplementation
 {
     MeterFHKVDataIII(MeterInfo &mi);
 
@@ -51,13 +51,15 @@ struct MeterFHKVDataIII : public virtual HeatCostAllocationMeter, public virtual
 
 shared_ptr<Meter> createFHKVDataIII(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostAllocationMeter>(new MeterFHKVDataIII(mi));
+    return shared_ptr<Meter>(new MeterFHKVDataIII(mi));
 }
 
 
 MeterFHKVDataIII::MeterFHKVDataIII(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::FHKVDATAIII)
 {
+    setMeterType(MeterType::HeatCostAllocationMeter);
+
     // media 0x80 T telegrams
     addLinkMode(LinkMode::T1);
 

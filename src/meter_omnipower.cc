@@ -47,7 +47,7 @@ reading the 3 ENC bits using the function in the wmbus.cc file.
 #include"wmbus_utils.h"
 #include"util.h"
 
-struct MeterOmnipower : public virtual ElectricityMeter, public virtual MeterCommonImplementation {
+struct MeterOmnipower : public virtual MeterCommonImplementation {
     MeterOmnipower(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
@@ -68,12 +68,14 @@ private:
 
 shared_ptr<Meter> createOmnipower(MeterInfo &mi)
 {
-    return shared_ptr<ElectricityMeter>(new MeterOmnipower(mi));
+    return shared_ptr<Meter>(new MeterOmnipower(mi));
 }
 
 MeterOmnipower::MeterOmnipower(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::OMNIPOWER)
 {
+    setMeterType(MeterType::ElectricityMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::C1);

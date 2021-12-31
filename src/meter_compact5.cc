@@ -23,7 +23,7 @@
 #include"units.h"
 #include"util.h"
 
-struct MeterCompact5 : public virtual HeatMeter, public virtual MeterCommonImplementation
+struct MeterCompact5 : public virtual MeterCommonImplementation
 {
     MeterCompact5(MeterInfo &mi);
 
@@ -42,12 +42,14 @@ struct MeterCompact5 : public virtual HeatMeter, public virtual MeterCommonImple
 
 shared_ptr<Meter> createCompact5(MeterInfo &mi)
 {
-    return shared_ptr<HeatMeter>(new MeterCompact5(mi));
+    return shared_ptr<Meter>(new MeterCompact5(mi));
 }
 
 MeterCompact5::MeterCompact5(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::COMPACT5)
 {
+    setMeterType(MeterType::HeatMeter);
+
     // media 0x04 is used for C telegrams
     // media 0xC3 is used for T telegrams
 

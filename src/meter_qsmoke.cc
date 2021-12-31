@@ -23,7 +23,7 @@
 
 #define INFO_CODE_SMOKE 0x0001
 
-struct MeterQSmoke : public virtual SmokeDetector, public virtual MeterCommonImplementation
+struct MeterQSmoke : public virtual MeterCommonImplementation
 {
     MeterQSmoke(MeterInfo &mi);
 
@@ -46,6 +46,8 @@ private:
 MeterQSmoke::MeterQSmoke(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::QSMOKE)
 {
+    setMeterType(MeterType::SmokeDetector);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -69,7 +71,7 @@ MeterQSmoke::MeterQSmoke(MeterInfo &mi) :
 
 shared_ptr<Meter> createQSmoke(MeterInfo &mi)
 {
-    return shared_ptr<SmokeDetector>(new MeterQSmoke(mi));
+    return shared_ptr<Meter>(new MeterQSmoke(mi));
 }
 
 bool MeterQSmoke::smokeDetected()

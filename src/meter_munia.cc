@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterMunia : public virtual TempHygroMeter, public virtual MeterCommonImplementation {
+struct MeterMunia : public virtual MeterCommonImplementation {
     MeterMunia(MeterInfo &mi);
 
     double currentTemperature(Unit u);
@@ -38,6 +38,8 @@ private:
 MeterMunia::MeterMunia(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::MUNIA)
 {
+    setMeterType(MeterType::TempHygroMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -56,7 +58,7 @@ MeterMunia::MeterMunia(MeterInfo &mi) :
 
 shared_ptr<Meter> createMunia(MeterInfo &mi)
 {
-    return shared_ptr<TempHygroMeter>(new MeterMunia(mi));
+    return shared_ptr<Meter>(new MeterMunia(mi));
 }
 
 double MeterMunia::currentTemperature(Unit u)

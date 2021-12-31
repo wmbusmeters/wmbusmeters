@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterQCaloric : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation {
+struct MeterQCaloric : public virtual MeterCommonImplementation {
     MeterQCaloric(MeterInfo &mi);
 
     double currentConsumption(Unit u);
@@ -48,6 +48,8 @@ private:
 MeterQCaloric::MeterQCaloric(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::QCALORIC)
 {
+    setMeterType(MeterType::HeatCostAllocationMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::C1);
@@ -100,7 +102,7 @@ MeterQCaloric::MeterQCaloric(MeterInfo &mi) :
 
 shared_ptr<Meter> createQCaloric(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostAllocationMeter>(new MeterQCaloric(mi));
+    return shared_ptr<Meter>(new MeterQCaloric(mi));
 }
 
 double MeterQCaloric::currentConsumption(Unit u)

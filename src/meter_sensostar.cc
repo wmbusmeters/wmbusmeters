@@ -24,7 +24,7 @@
 
 using namespace std;
 
-struct MeterSensostar : public virtual HeatMeter, public virtual MeterCommonImplementation {
+struct MeterSensostar : public virtual MeterCommonImplementation {
     MeterSensostar(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
@@ -42,12 +42,14 @@ private:
 
 shared_ptr<Meter> createSensostar(MeterInfo &mi)
 {
-    return shared_ptr<HeatMeter>(new MeterSensostar(mi));
+    return shared_ptr<Meter>(new MeterSensostar(mi));
 }
 
 MeterSensostar::MeterSensostar(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::SENSOSTAR)
 {
+    setMeterType(MeterType::HeatMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);

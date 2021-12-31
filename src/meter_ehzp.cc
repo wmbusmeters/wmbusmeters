@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
-struct MeterEHZP : public virtual ElectricityMeter, public virtual MeterCommonImplementation
+struct MeterEHZP : public virtual MeterCommonImplementation
 {
     MeterEHZP(MeterInfo &mi);
 
@@ -45,6 +45,8 @@ private:
 MeterEHZP::MeterEHZP(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::EHZP)
 {
+    setMeterType(MeterType::ElectricityMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 
     addLinkMode(LinkMode::T1);
@@ -73,7 +75,7 @@ MeterEHZP::MeterEHZP(MeterInfo &mi) :
 
 shared_ptr<Meter> createEHZP(MeterInfo &mi)
 {
-    return shared_ptr<ElectricityMeter>(new MeterEHZP(mi));
+    return shared_ptr<Meter>(new MeterEHZP(mi));
 }
 
 double MeterEHZP::totalEnergyConsumption(Unit u)

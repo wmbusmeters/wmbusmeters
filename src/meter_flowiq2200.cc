@@ -40,7 +40,7 @@ using namespace std;
 #define INFO_CODE_BURST 0x08
 #define INFO_CODE_BURST_SHIFT (4+9)
 
-struct MeterFlowIQ2200 : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterFlowIQ2200 : public virtual MeterCommonImplementation {
     MeterFlowIQ2200(MeterInfo &mi, MeterDriver mt);
 
     // Total water counted through the meter
@@ -107,6 +107,8 @@ private:
 MeterFlowIQ2200::MeterFlowIQ2200(MeterInfo &mi, MeterDriver mt) :
     MeterCommonImplementation(mi, mt)
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
     addLinkMode(LinkMode::C1);
@@ -269,7 +271,7 @@ bool MeterFlowIQ2200::hasExternalTemperature()
 
 shared_ptr<Meter> createFlowIQ2200(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterFlowIQ2200(mi, MeterDriver::FLOWIQ2200));
+    return shared_ptr<Meter>(new MeterFlowIQ2200(mi, MeterDriver::FLOWIQ2200));
 }
 
 void MeterFlowIQ2200::processContent(Telegram *t)

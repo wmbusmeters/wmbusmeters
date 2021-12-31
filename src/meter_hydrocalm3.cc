@@ -31,7 +31,7 @@
 #define INFO_CODE_SENSOR_T2_BELOW_MEASURING_RANGE 64
 #define INFO_CODE_TEMP_DIFF_WRONG_POLARITY 128
 
-struct MeterHydrocalM3 : public virtual HeatMeter, public virtual MeterCommonImplementation {
+struct MeterHydrocalM3 : public virtual MeterCommonImplementation {
     MeterHydrocalM3(MeterInfo &mi);
 
 private:
@@ -51,6 +51,8 @@ private:
 MeterHydrocalM3::MeterHydrocalM3(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::HYDROCALM3)
 {
+    setMeterType(MeterType::HeatMeter);
+
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
     addLinkMode(LinkMode::T1);
@@ -102,7 +104,7 @@ MeterHydrocalM3::MeterHydrocalM3(MeterInfo &mi) :
 }
 
 shared_ptr<Meter> createHydrocalM3(MeterInfo &mi) {
-    return shared_ptr<HeatMeter>(new MeterHydrocalM3(mi));
+    return shared_ptr<Meter>(new MeterHydrocalM3(mi));
 }
 
 void MeterHydrocalM3::processContent(Telegram *t)

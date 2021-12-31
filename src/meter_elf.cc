@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
-struct MeterElf : public virtual HeatMeter, public virtual MeterCommonImplementation {
+struct MeterElf : public virtual MeterCommonImplementation {
     MeterElf(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
@@ -52,6 +52,8 @@ private:
 MeterElf::MeterElf(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::ELF)
 {
+    setMeterType(MeterType::HeatMeter);
+
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
     addLinkMode(LinkMode::C1);
@@ -119,7 +121,7 @@ MeterElf::MeterElf(MeterInfo &mi) :
 }
 
 shared_ptr<Meter> createElf(MeterInfo &mi) {
-    return shared_ptr<HeatMeter>(new MeterElf(mi));
+    return shared_ptr<Meter>(new MeterElf(mi));
 }
 
 double MeterElf::totalEnergyConsumption(Unit u)

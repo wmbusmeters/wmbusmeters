@@ -45,7 +45,7 @@ Encryption: None.
 #include"wmbus_utils.h"
 #include"util.h"
 
-struct MeterGransystemsCCx01: public virtual ElectricityMeter, public virtual MeterCommonImplementation {
+struct MeterGransystemsCCx01: public virtual MeterCommonImplementation {
     MeterGransystemsCCx01(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
@@ -78,12 +78,14 @@ private:
 
 shared_ptr<Meter> createCCx01(MeterInfo &mi)
 {
-    return shared_ptr<ElectricityMeter>(new MeterGransystemsCCx01(mi));
+    return shared_ptr<Meter>(new MeterGransystemsCCx01(mi));
 }
 
 MeterGransystemsCCx01::MeterGransystemsCCx01(MeterInfo &mi) :
     MeterCommonImplementation(mi, MeterDriver::CCx01)
 {
+    setMeterType(MeterType::ElectricityMeter);
+
     addLinkMode(LinkMode::T1);
 
     addPrint("total_energy_consumption", Quantity::Energy,
