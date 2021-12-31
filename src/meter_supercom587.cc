@@ -37,7 +37,7 @@ private:
     double total_water_consumption_m3_ {};
 };
 
-shared_ptr<WaterMeter> createSupercom587(MeterInfo &mi)
+shared_ptr<Meter> createSupercom587(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterSupercom587(mi));
 }

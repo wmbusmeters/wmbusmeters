@@ -215,12 +215,12 @@ shared_ptr<WaterMeter> createMulticalWaterMeter(MeterInfo &mi, MeterDriver mt)
     return shared_ptr<WaterMeter>(new MeterMultical21(mi,mt));
 }
 
-shared_ptr<WaterMeter> createMultical21(MeterInfo &mi)
+shared_ptr<Meter> createMultical21(MeterInfo &mi)
 {
     return createMulticalWaterMeter(mi, MeterDriver::MULTICAL21);
 }
 
-shared_ptr<WaterMeter> createFlowIQ3100(MeterInfo &mi)
+shared_ptr<Meter> createFlowIQ3100(MeterInfo &mi)
 {
     return createMulticalWaterMeter(mi, MeterDriver::FLOWIQ3100);
 }

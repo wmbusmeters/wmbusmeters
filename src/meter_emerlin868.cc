@@ -61,7 +61,7 @@ MeterEMerlin868::MeterEMerlin868(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<WaterMeter> createEMerlin868(MeterInfo &mi)
+shared_ptr<Meter> createEMerlin868(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterEMerlin868(mi));
 }

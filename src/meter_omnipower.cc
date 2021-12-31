@@ -66,7 +66,7 @@ private:
 
 };
 
-shared_ptr<ElectricityMeter> createOmnipower(MeterInfo &mi)
+shared_ptr<Meter> createOmnipower(MeterInfo &mi)
 {
     return shared_ptr<ElectricityMeter>(new MeterOmnipower(mi));
 }

@@ -43,7 +43,7 @@ MeterUnknown::MeterUnknown(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<UnknownMeter> createUnknown(MeterInfo &mi)
+shared_ptr<Meter> createUnknown(MeterInfo &mi)
 {
     return shared_ptr<UnknownMeter>(new MeterUnknown(mi));
 }

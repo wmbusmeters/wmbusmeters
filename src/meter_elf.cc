@@ -118,7 +118,7 @@ MeterElf::MeterElf(MeterInfo &mi) :
 
 }
 
-shared_ptr<HeatMeter> createElf(MeterInfo &mi) {
+shared_ptr<Meter> createElf(MeterInfo &mi) {
     return shared_ptr<HeatMeter>(new MeterElf(mi));
 }
 

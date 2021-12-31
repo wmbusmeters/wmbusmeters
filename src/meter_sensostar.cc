@@ -40,7 +40,7 @@ private:
     double total_water_m3_ {};
 };
 
-shared_ptr<HeatMeter> createSensostar(MeterInfo &mi)
+shared_ptr<Meter> createSensostar(MeterInfo &mi)
 {
     return shared_ptr<HeatMeter>(new MeterSensostar(mi));
 }

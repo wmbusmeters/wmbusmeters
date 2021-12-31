@@ -52,7 +52,7 @@ private:
     uint8_t other_;
 };
 
-shared_ptr<GasMeter> createUnismart(MeterInfo &mi)
+shared_ptr<Meter> createUnismart(MeterInfo &mi)
 {
     return shared_ptr<GasMeter>(new MeterUnismart(mi));
 }

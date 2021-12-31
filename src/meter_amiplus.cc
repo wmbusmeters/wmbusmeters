@@ -91,7 +91,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<ElectricityMeter> createAmiplus(MeterInfo &mi)
+shared_ptr<Meter> createAmiplus(MeterInfo &mi)
 {
     return shared_ptr<ElectricityMeter>(new MeterAmiplus(mi));
 }
@@ -161,7 +161,7 @@ void MeterAmiplus::processContent(Telegram *t)
     voltage_L_[2] = ((double)tmpvolt);
     t->addMoreExplanation(offset, " voltage L3 (%f volts)", voltage_L_[2]);
     }
-        
+
 
     if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
         struct tm datetime;

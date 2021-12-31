@@ -61,7 +61,7 @@ MeterEV200::MeterEV200(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<WaterMeter> createEV200(MeterInfo &mi)
+shared_ptr<Meter> createEV200(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterEV200(mi));
 }
@@ -80,8 +80,8 @@ void MeterEV200::processContent(Telegram *t)
         extractDVdouble(&t->values, key, &offset, &last_total_water_consumption_m3h_);
         t->addMoreExplanation(offset, " last total consumption (%f m3)", last_total_water_consumption_m3h_);
     }
-    
-    
+
+
 }
 
 double MeterEV200::totalWaterConsumption(Unit u)

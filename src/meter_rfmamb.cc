@@ -141,7 +141,7 @@ MeterRfmAmb::MeterRfmAmb(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<TempHygroMeter> createRfmAmb(MeterInfo &mi)
+shared_ptr<Meter> createRfmAmb(MeterInfo &mi)
 {
     return shared_ptr<TempHygroMeter>(new MeterRfmAmb(mi));
 }

@@ -67,7 +67,7 @@ MeterQSmoke::MeterQSmoke(MeterInfo &mi) :
 
 }
 
-shared_ptr<SmokeDetector> createQSmoke(MeterInfo &mi)
+shared_ptr<Meter> createQSmoke(MeterInfo &mi)
 {
     return shared_ptr<SmokeDetector>(new MeterQSmoke(mi));
 }

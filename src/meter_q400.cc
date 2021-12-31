@@ -53,7 +53,7 @@ private:
     double set_backward_flow_m3h_ {};
 };
 
-shared_ptr<WaterMeter> createQ400(MeterInfo &mi)
+shared_ptr<Meter> createQ400(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterQ400(mi));
 }

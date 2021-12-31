@@ -53,7 +53,7 @@ MeterLansenSM::MeterLansenSM(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<SmokeDetector> createLansenSM(MeterInfo &mi)
+shared_ptr<Meter> createLansenSM(MeterInfo &mi)
 {
     return shared_ptr<SmokeDetector>(new MeterLansenSM(mi));
 }

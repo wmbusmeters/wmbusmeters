@@ -124,7 +124,7 @@ MeterEI6500::MeterEI6500(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<SmokeDetector> createEI6500(MeterInfo &mi)
+shared_ptr<Meter> createEI6500(MeterInfo &mi)
 {
     return shared_ptr<SmokeDetector>(new MeterEI6500(mi));
 }

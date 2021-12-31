@@ -80,7 +80,7 @@ MeterAventiesHCA::MeterAventiesHCA(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<HeatCostAllocationMeter> createAventiesHCA(MeterInfo &mi)
+shared_ptr<Meter> createAventiesHCA(MeterInfo &mi)
 {
     return shared_ptr<HeatCostAllocationMeter>(new MeterAventiesHCA(mi));
 }

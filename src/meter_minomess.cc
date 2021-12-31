@@ -79,7 +79,7 @@ MeterMinomess::MeterMinomess(MeterInfo &mi) :
 
 }
 
-shared_ptr<WaterMeter> createMinomess(MeterInfo &mi)
+shared_ptr<Meter> createMinomess(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterMinomess(mi));
 }

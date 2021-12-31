@@ -511,6 +511,7 @@ struct Telegram
     vector<Explanation> explanations;
     void addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...);
     void addMoreExplanation(int pos, const char* fmt, ...);
+    void addMoreExplanation(int pos, string json);
     // Add an explanation of data inside manufacturer specific data.
     void addSpecialExplanation(int offset, KindOfData k, Understanding u, const char* fmt, ...);
     void explainParse(string intro, int from);

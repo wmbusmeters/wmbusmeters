@@ -8,7 +8,8 @@ TESTNAME="Test analyze compact telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
-The automatic driver selection picked "multical21" based on mfct/type/version!
+
+Using driver "multical21" based on mfct/type/version driver lookup table.
 Which is also the best matching driver with 12/12 content bytes understood.
 000   : 23 length (35 bytes)
 001   : 44 dll-c (from meter SND_NR)
@@ -51,8 +52,9 @@ TESTNAME="Test analyze normal telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
-The automatic driver selection picks "supercom587" based on mfct/type/version!
-BUT the driver which matches most of the content is evo868 with 20/100 content bytes understood.
+
+Using driver "supercom587" based on mfct/type/version driver lookup table.
+But a better match could perhaps be driver "evo868" with 20/100 content bytes understood.
 000   : a2 length (162 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : ee4d dll-mfct (SON)

@@ -37,7 +37,7 @@ private:
     double total_water_consumption_m3_ {};
 };
 
-shared_ptr<WaterMeter> createWEH_07(MeterInfo &mi)
+shared_ptr<Meter> createWEH_07(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterWEH_07(mi));
 }

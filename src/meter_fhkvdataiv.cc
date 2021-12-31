@@ -98,7 +98,7 @@ MeterFHKVDataIV::MeterFHKVDataIV(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<HeatCostAllocationMeter> createFHKVDataIV(MeterInfo &mi)
+shared_ptr<Meter> createFHKVDataIV(MeterInfo &mi)
 {
     return shared_ptr<HeatCostAllocationMeter>(new MeterFHKVDataIV(mi));
 }

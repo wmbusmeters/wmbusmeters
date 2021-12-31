@@ -101,7 +101,7 @@ MeterHydrocalM3::MeterHydrocalM3(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<HeatMeter> createHydrocalM3(MeterInfo &mi) {
+shared_ptr<Meter> createHydrocalM3(MeterInfo &mi) {
     return shared_ptr<HeatMeter>(new MeterHydrocalM3(mi));
 }
 

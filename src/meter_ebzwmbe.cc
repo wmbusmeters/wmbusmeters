@@ -85,7 +85,7 @@ MeterEBZWMBE::MeterEBZWMBE(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<ElectricityMeter> createEBZWMBE(MeterInfo &mi)
+shared_ptr<Meter> createEBZWMBE(MeterInfo &mi)
 {
     return shared_ptr<ElectricityMeter>(new MeterEBZWMBE(mi));
 }

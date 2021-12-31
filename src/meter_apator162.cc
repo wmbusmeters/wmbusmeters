@@ -40,7 +40,7 @@ private:
     int registerSize(int c);
 };
 
-shared_ptr<WaterMeter> createApator162(MeterInfo &mi)
+shared_ptr<Meter> createApator162(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterApator162(mi));
 }

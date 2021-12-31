@@ -75,7 +75,7 @@ private:
     vector<uint32_t> keys;
 };
 
-shared_ptr<WaterMeter> createIzar(MeterInfo &mi)
+shared_ptr<Meter> createIzar(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterIzar(mi));
 }

@@ -92,7 +92,7 @@ MeterQHeat::MeterQHeat(MeterInfo &mi) :
 
 }
 
-shared_ptr<HeatMeter> createQHeat(MeterInfo &mi) {
+shared_ptr<Meter> createQHeat(MeterInfo &mi) {
     return shared_ptr<HeatMeter>(new MeterQHeat(mi));
 }
 

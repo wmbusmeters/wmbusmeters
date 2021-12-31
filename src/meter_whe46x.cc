@@ -103,7 +103,7 @@ MeterWhe46x::MeterWhe46x(MeterInfo &mi) :
 
 }
 
-shared_ptr<HeatCostAllocationMeter> createWhe46x(MeterInfo &mi)
+shared_ptr<Meter> createWhe46x(MeterInfo &mi)
 {
     return shared_ptr<HeatCostAllocationMeter>(new MeterWhe46x(mi));
 }

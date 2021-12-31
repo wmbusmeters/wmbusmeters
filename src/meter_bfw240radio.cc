@@ -49,7 +49,7 @@ struct MeterBFW240RADIO : public virtual HeatCostAllocationMeter, public virtual
     double temp_radiator_ {};
 };
 
-shared_ptr<HeatCostAllocationMeter> createBFW240Radio(MeterInfo &mi)
+shared_ptr<Meter> createBFW240Radio(MeterInfo &mi)
 {
     return shared_ptr<HeatCostAllocationMeter>(new MeterBFW240RADIO(mi));
 }

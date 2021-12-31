@@ -89,7 +89,7 @@ MeterMultical302::MeterMultical302(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<HeatMeter> createMultical302(MeterInfo &mi) {
+shared_ptr<Meter> createMultical302(MeterInfo &mi) {
     return shared_ptr<HeatMeter>(new MeterMultical302(mi));
 }
 

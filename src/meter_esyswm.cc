@@ -132,7 +132,7 @@ MeterESYSWM::MeterESYSWM(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<ElectricityMeter> createESYSWM(MeterInfo &mi)
+shared_ptr<Meter> createESYSWM(MeterInfo &mi)
 {
     return shared_ptr<ElectricityMeter>(new MeterESYSWM(mi));
 }

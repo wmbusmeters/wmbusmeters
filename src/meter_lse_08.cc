@@ -75,7 +75,7 @@ MeterLSE_08::MeterLSE_08(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<HeatCostAllocationMeter> createLSE_08(MeterInfo &mi)
+shared_ptr<Meter> createLSE_08(MeterInfo &mi)
 {
     return shared_ptr<HeatCostAllocationMeter>(new MeterLSE_08(mi));
 }

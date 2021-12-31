@@ -53,7 +53,7 @@ MeterCMa12w::MeterCMa12w(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<TempHygroMeter> createCMa12w(MeterInfo &mi)
+shared_ptr<Meter> createCMa12w(MeterInfo &mi)
 {
     return shared_ptr<TempHygroMeter>(new MeterCMa12w(mi));
 }

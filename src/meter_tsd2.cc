@@ -60,7 +60,7 @@ MeterTSD2::MeterTSD2(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<SmokeDetector> createTSD2(MeterInfo &mi)
+shared_ptr<Meter> createTSD2(MeterInfo &mi)
 {
     return shared_ptr<SmokeDetector>(new MeterTSD2(mi));
 }

@@ -43,7 +43,7 @@ MeterAuto::MeterAuto(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<UnknownMeter> createAuto(MeterInfo &mi)
+shared_ptr<Meter> createAuto(MeterInfo &mi)
 {
     return shared_ptr<UnknownMeter>(new MeterAuto(mi));
 }

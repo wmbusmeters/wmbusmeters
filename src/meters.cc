@@ -371,14 +371,14 @@ LIST_OF_METERS
             {
                 if (best_driver != auto_driver)
                 {
-                    printf("The automatic driver selection picks \"%s\" based on mfct/type/version!\n", ad.c_str());
-                    printf("BUT the driver which matches most of the content is %s with %d/%d content bytes understood.\n",
+                    printf("\nUsing driver \"%s\" based on mfct/type/version driver lookup table.\n", ad.c_str());
+                    printf("But a better match could perhaps be driver \"%s\" with %d/%d content bytes understood.\n",
                            bd.c_str(), best_understood_content_length, best_content_length);
                     mi.driver = auto_driver;
                 }
                 else
                 {
-                    printf("The automatic driver selection picked \"%s\" based on mfct/type/version!\n", ad.c_str());
+                    printf("\nUsing driver \"%s\" based on mfct/type/version driver lookup table.\n", ad.c_str());
                     printf("Which is also the best matching driver with %d/%d content bytes understood.\n",
                            best_understood_content_length, best_content_length);
                     mi.driver = best_driver;
@@ -386,9 +386,9 @@ LIST_OF_METERS
             }
             else
             {
-                printf("No automatic driver selection could be found based on mfct/type/version!\n");
-                printf("The driver which matches most of the content is %s with %d/%d content bytes understood.\n",
+                printf("\nUsing driver \"%s\" based on best content match with %d/%d content bytes understood.\n",
                        bd.c_str(), best_understood_content_length, best_content_length);
+                printf("The mfct/type/version combo was not found in the driver lookup table.\n");
                 mi.driver = best_driver;
             }
 
@@ -468,6 +468,11 @@ vector<string> &MeterCommonImplementation::meterExtraConstantFields()
 MeterDriver MeterCommonImplementation::driver()
 {
     return driver_;
+}
+
+void MeterCommonImplementation::setMeterType(MeterType mt)
+{
+    type_ = mt;
 }
 
 void MeterCommonImplementation::addLinkMode(LinkMode lm)
@@ -987,6 +992,46 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     return true;
 }
 
+string MeterCommonImplementation::renderJsonField(string vname)
+{
+    Print *found = NULL;
+    for (Print &p : prints_)
+    {
+        if (p.vname == vname)
+        {
+            found = &p;
+            break;
+        }
+    }
+
+    if (!found) return "ERROR addPrint is missing for \""+vname+"\"";
+
+    return renderJsonField(found);
+}
+
+string MeterCommonImplementation::renderJsonField(Print *p)
+{
+    string s;
+
+    string default_unit = unitToStringLowerCase(p->default_unit);
+    string var = p->vname;
+    if (p->getValueString) {
+        s += "\""+var+"\":\""+p->getValueString()+"\"";
+    }
+    if (p->getValueDouble) {
+        s += "\""+var+"_"+default_unit+"\":"+valueToString(p->getValueDouble(p->default_unit), p->default_unit);
+
+        Unit u = replaceWithConversionUnit(p->default_unit, conversions_);
+        if (u != p->default_unit)
+        {
+            string unit = unitToStringLowerCase(u);
+            // Appending extra conversion unit.
+            s += ",\""+var+"_"+unit+"\":"+valueToString(p->getValueDouble(u), u);
+        }
+    }
+    return s;
+}
+
 void MeterCommonImplementation::printMeter(Telegram *t,
                                            string *human_readable,
                                            string *fields, char separator,
@@ -1025,25 +1070,11 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     {
         s += "\"id\":\"\",";
     }
-    for (Print p : prints_)
+    for (Print& p : prints_)
     {
         if (p.json)
         {
-            string default_unit = unitToStringLowerCase(p.default_unit);
-            string var = p.vname;
-            if (p.getValueString) {
-                s += "\""+var+"\":\""+p.getValueString()+"\",";
-            }
-            if (p.getValueDouble) {
-                s += "\""+var+"_"+default_unit+"\":"+valueToString(p.getValueDouble(p.default_unit), p.default_unit)+",";
-
-                Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
-                if (u != p.default_unit)
-                {
-                    string unit = unitToStringLowerCase(u);
-                    s += "\""+var+"_"+unit+"\":"+valueToString(p.getValueDouble(u), u)+",";
-                }
-            }
+            s += renderJsonField(&p)+",";
         }
     }
     s += "\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";

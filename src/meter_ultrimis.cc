@@ -44,7 +44,7 @@ private:
     string status();
 };
 
-shared_ptr<WaterMeter> createUltrimis(MeterInfo &mi)
+shared_ptr<Meter> createUltrimis(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterUltrimis(mi));
 }

@@ -77,7 +77,7 @@ MeterLansenTH::MeterLansenTH(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<TempHygroMeter> createLansenTH(MeterInfo &mi)
+shared_ptr<Meter> createLansenTH(MeterInfo &mi)
 {
     return shared_ptr<TempHygroMeter>(new MeterLansenTH(mi));
 }

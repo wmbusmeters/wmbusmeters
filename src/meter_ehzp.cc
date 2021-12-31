@@ -71,7 +71,7 @@ MeterEHZP::MeterEHZP(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<ElectricityMeter> createEHZP(MeterInfo &mi)
+shared_ptr<Meter> createEHZP(MeterInfo &mi)
 {
     return shared_ptr<ElectricityMeter>(new MeterEHZP(mi));
 }

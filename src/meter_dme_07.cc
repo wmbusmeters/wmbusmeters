@@ -39,7 +39,7 @@ private:
     uint16_t error_codes_ {};
 };
 
-shared_ptr<WaterMeter> createDME_07(MeterInfo &mi)
+shared_ptr<Meter> createDME_07(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterDME_07(mi));
 }

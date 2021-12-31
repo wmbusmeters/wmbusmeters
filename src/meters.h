@@ -27,6 +27,24 @@
 #include<string>
 #include<vector>
 
+#define LIST_OF_METER_TYPES \
+    X(UnknownMeter) \
+    X(DoorWindowDetector) \
+    X(ElectricityMeter) \
+    X(GasMeter) \
+    X(HeatCostAllocationMeter) \
+    X(HeatMeter) \
+    X(PulseCounter) \
+    X(SmokeDetector) \
+    X(TempHygroMeter) \
+    X(WaterMeter)  \
+
+enum class MeterType {
+#define X(name) name,
+LIST_OF_METER_TYPES
+#undef X
+};
+
 #define LIST_OF_METERS \
     X(auto,       0,      UnknownMeter, AUTO, Auto) \
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
@@ -400,7 +418,7 @@ MeterDriver toMeterDriver(string& driver);
 LinkModeSet toMeterLinkModeSet(string& driver);
 LinkModeSet toMeterLinkModeSet(MeterDriver driver);
 
-#define X(mname,linkmode,info,type,cname) shared_ptr<info> create##cname(MeterInfo &m);
+#define X(mname,linkmode,info,type,cname) shared_ptr<Meter> create##cname(MeterInfo &m);
 LIST_OF_METERS
 #undef X
 

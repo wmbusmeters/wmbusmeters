@@ -41,10 +41,10 @@ private:
     double total_water_consumption_m3_ {};
     double consumption_at_set_date_m3_[14];
     uint16_t error_flags_;
-    
+
 };
 
-shared_ptr<WaterMeter> createAventiesWM(MeterInfo &mi)
+shared_ptr<Meter> createAventiesWM(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterAventiesWM(mi));
 }

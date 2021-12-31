@@ -267,7 +267,7 @@ bool MeterFlowIQ2200::hasExternalTemperature()
     return has_external_temperature_;
 }
 
-shared_ptr<WaterMeter> createFlowIQ2200(MeterInfo &mi)
+shared_ptr<Meter> createFlowIQ2200(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterFlowIQ2200(mi, MeterDriver::FLOWIQ2200));
 }

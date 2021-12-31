@@ -58,7 +58,7 @@ MKRadio4::MKRadio4(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<WaterMeter> createMKRadio4(MeterInfo &mi)
+shared_ptr<Meter> createMKRadio4(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MKRadio4(mi));
 }

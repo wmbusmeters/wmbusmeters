@@ -46,7 +46,7 @@ private:
     map<int,string> error_codes_;
 };
 
-shared_ptr<WaterMeter> createWaterstarM(MeterInfo &mi)
+shared_ptr<Meter> createWaterstarM(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterWaterstarM(mi));
 }

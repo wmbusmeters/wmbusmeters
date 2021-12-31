@@ -103,7 +103,7 @@ MeterMultical403::MeterMultical403(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<HeatMeter> createMultical403(MeterInfo &mi) {
+shared_ptr<Meter> createMultical403(MeterInfo &mi) {
     return shared_ptr<HeatMeter>(new MeterMultical403(mi));
 }
 

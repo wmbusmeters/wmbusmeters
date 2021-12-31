@@ -115,7 +115,7 @@ MeterMultical803::MeterMultical803(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<HeatMeter> createMultical803(MeterInfo &mi) {
+shared_ptr<Meter> createMultical803(MeterInfo &mi) {
     return shared_ptr<HeatMeter>(new MeterMultical803(mi));
 }
 

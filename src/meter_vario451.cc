@@ -40,7 +40,7 @@ struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImple
     double prev_energy_gj_ {};
 };
 
-shared_ptr<HeatMeter> createVario451(MeterInfo &mi)
+shared_ptr<Meter> createVario451(MeterInfo &mi)
 {
     return shared_ptr<HeatMeter>(new MeterVario451(mi));
 }

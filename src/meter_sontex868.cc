@@ -101,7 +101,7 @@ MeterSontex868::MeterSontex868(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<HeatCostAllocationMeter> createSontex868(MeterInfo &mi)
+shared_ptr<Meter> createSontex868(MeterInfo &mi)
 {
     return shared_ptr<HeatCostAllocationMeter>(new MeterSontex868(mi));
 }

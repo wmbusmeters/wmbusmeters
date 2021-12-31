@@ -76,7 +76,7 @@ private:
     uint32_t status_{};
 };
 
-shared_ptr<ElectricityMeter> createCCx01(MeterInfo &mi)
+shared_ptr<Meter> createCCx01(MeterInfo &mi)
 {
     return shared_ptr<ElectricityMeter>(new MeterGransystemsCCx01(mi));
 }

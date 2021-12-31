@@ -61,7 +61,7 @@ MeterIperl::MeterIperl(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<WaterMeter> createIperl(MeterInfo &mi)
+shared_ptr<Meter> createIperl(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterIperl(mi));
 }

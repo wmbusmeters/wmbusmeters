@@ -153,7 +153,7 @@ MeterHydrus::MeterHydrus(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<WaterMeter> createHydrus(MeterInfo &mi)
+shared_ptr<Meter> createHydrus(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterHydrus(mi));
 }

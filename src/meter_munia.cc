@@ -54,7 +54,7 @@ MeterMunia::MeterMunia(MeterInfo &mi) :
 
 }
 
-shared_ptr<TempHygroMeter> createMunia(MeterInfo &mi)
+shared_ptr<Meter> createMunia(MeterInfo &mi)
 {
     return shared_ptr<TempHygroMeter>(new MeterMunia(mi));
 }

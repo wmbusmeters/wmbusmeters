@@ -38,7 +38,7 @@ private:
     string meter_datetime_;
 };
 
-shared_ptr<WaterMeter> createHydrodigit(MeterInfo &mi)
+shared_ptr<Meter> createHydrodigit(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterHydrodigit(mi));
 }

@@ -64,7 +64,7 @@ private:
     uint8_t error_codes_ {};
 };
 
-shared_ptr<ElectricityMeter> createEM24(MeterInfo &mi)
+shared_ptr<Meter> createEM24(MeterInfo &mi)
 {
     return shared_ptr<ElectricityMeter>(new MeterEM24(mi));
 }

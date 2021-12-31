@@ -99,7 +99,7 @@ MeterSharky::MeterSharky(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<HeatMeter> createSharky(MeterInfo &mi) {
+shared_ptr<Meter> createSharky(MeterInfo &mi) {
     return shared_ptr<HeatMeter>(new MeterSharky(mi));
 }
 
@@ -252,4 +252,3 @@ void MeterSharky::processContent(Telegram *t)
         t->addMoreExplanation(offset, " temperature difference (%f °C)", temperature_difference_c_);
     }
 }
-

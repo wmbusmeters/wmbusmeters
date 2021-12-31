@@ -53,7 +53,7 @@ private:
     string device_date_time_;
 };
 
-shared_ptr<WaterMeter> createEVO868(MeterInfo &mi)
+shared_ptr<Meter> createEVO868(MeterInfo &mi)
 {
     return shared_ptr<WaterMeter>(new MeterEvo868(mi));
 }

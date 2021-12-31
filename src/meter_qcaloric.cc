@@ -98,7 +98,7 @@ MeterQCaloric::MeterQCaloric(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<HeatCostAllocationMeter> createQCaloric(MeterInfo &mi)
+shared_ptr<Meter> createQCaloric(MeterInfo &mi)
 {
     return shared_ptr<HeatCostAllocationMeter>(new MeterQCaloric(mi));
 }

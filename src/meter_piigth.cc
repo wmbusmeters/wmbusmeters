@@ -78,7 +78,7 @@ MeterPIIGTH::MeterPIIGTH(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<TempHygroMeter> createPiigTH(MeterInfo &mi)
+shared_ptr<Meter> createPiigTH(MeterInfo &mi)
 {
     return shared_ptr<TempHygroMeter>(new MeterPIIGTH(mi));
 }
