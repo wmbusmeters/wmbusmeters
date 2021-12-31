@@ -53,17 +53,15 @@ MeterLansenDW::MeterLansenDW(MeterInfo &mi) :
              "The current status: OPEN or CLOSED.",
              true, true);
 
-    /*
     addPrint("counter_a", Quantity::Counter,
              [&](Unit u) { assertQuantity(u, Quantity::Counter); return pulse_counter_a_; },
-             "The current number of counted pulses from counter a.",
-             true, true);
+             "How many times the door/window has been opened or closed.",
+             false, true);
 
     addPrint("counter_b", Quantity::Counter,
              [&](Unit u) { assertQuantity(u, Quantity::Counter); return pulse_counter_b_; },
              "The current number of counted pulses from counter b.",
-             true, true);
-    */
+             false, true);
 }
 
 shared_ptr<Meter> createLansenDW(MeterInfo &mi)
