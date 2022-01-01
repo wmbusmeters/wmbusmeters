@@ -174,6 +174,7 @@ int MeterApator162::registerSize(int c)
     case 0x93: return 3;
     case 0x94: return 3;
     case 0x95: return 3;
+    case 0x96: return 3;
 
     case 0xA0: return 4;
 
