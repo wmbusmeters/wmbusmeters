@@ -52,7 +52,7 @@ private:
 };
 
 MeterMultical302::MeterMultical302(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::MULTICAL302)
+    MeterCommonImplementation(mi, "multical302")
 {
     setMeterType(MeterType::HeatMeter);
 

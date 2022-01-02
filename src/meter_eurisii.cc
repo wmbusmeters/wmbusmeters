@@ -42,7 +42,7 @@ private:
 };
 
 MeterEurisII::MeterEurisII(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EURISII)
+    MeterCommonImplementation(mi, "eurisii")
 {
     setMeterType(MeterType::HeatCostAllocationMeter);
 

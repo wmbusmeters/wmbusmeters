@@ -54,7 +54,7 @@ private:
 };
 
 MeterSontex868::MeterSontex868(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::SONTEX868)
+    MeterCommonImplementation(mi, "sontex868")
 {
     setMeterType(MeterType::HeatCostAllocationMeter);
 

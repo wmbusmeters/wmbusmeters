@@ -44,7 +44,7 @@ private:
 };
 
 MeterAmiplus::MeterAmiplus(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::AMIPLUS)
+    MeterCommonImplementation(mi, "amiplus")
 {
     setMeterType(MeterType::ElectricityMeter);
 

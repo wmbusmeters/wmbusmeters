@@ -207,6 +207,38 @@ struct MeterInfo
     bool parse(string name, string driver, string id, string key);
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Dynamic loading of drivers based on the driver info.
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct DriverDetect
+{
+    uint16_t mfct;
+    uchar    type;
+    uchar    version;
+};
+
+struct DriverInfo
+{
+    string name; // amiplus, lse_07_17, multical21 etc
+    LinkModeSet linkmodes; // C1, T1, S1 or combinations thereof.
+    MeterType type; // Water, Electricity etc.
+    function<shared_ptr<Meter>(MeterInfo&)> constructor; // Invoke this to create an instance of the driver.
+    vector<DriverDetect> detect;
+};
+
+// The function addDriver is called as part of the static initialization inside a driver class.
+
+DriverInfo addDriver(string n,
+                     LinkModeSet lms,
+                     MeterType t,
+                     function<shared_ptr<Meter>(MeterInfo&)> constructor,
+                     vector<DriverDetect> d);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct Print
 {
     string vname; // Value name, like: total current previous target

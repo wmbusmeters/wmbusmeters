@@ -46,7 +46,7 @@ shared_ptr<Meter> createApator162(MeterInfo &mi)
 }
 
 MeterApator162::MeterApator162(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::APATOR162)
+    MeterCommonImplementation(mi, "apator162")
 {
     processExtras(mi.extras);
 

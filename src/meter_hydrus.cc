@@ -63,7 +63,7 @@ private:
 };
 
 MeterHydrus::MeterHydrus(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::HYDRUS)
+    MeterCommonImplementation(mi, "hydrus")
 {
     setMeterType(MeterType::WaterMeter);
 

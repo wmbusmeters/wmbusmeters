@@ -46,7 +46,7 @@ shared_ptr<Meter> createCompact5(MeterInfo &mi)
 }
 
 MeterCompact5::MeterCompact5(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::COMPACT5)
+    MeterCommonImplementation(mi, "compact5")
 {
     setMeterType(MeterType::HeatMeter);
 

@@ -59,7 +59,7 @@ shared_ptr<Meter> createEVO868(MeterInfo &mi)
 }
 
 MeterEvo868::MeterEvo868(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EVO868)
+    MeterCommonImplementation(mi, "evo868")
 {
     setMeterType(MeterType::WaterMeter);
 

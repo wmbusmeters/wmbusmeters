@@ -49,7 +49,7 @@ private:
 };
 
 MeterQHeat::MeterQHeat(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::QHEAT)
+    MeterCommonImplementation(mi, "qheat")
 {
     setMeterType(MeterType::HeatMeter);
 

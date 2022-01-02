@@ -41,7 +41,7 @@ private:
 };
 
 MeterIperl::MeterIperl(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::IPERL)
+    MeterCommonImplementation(mi, "iperl")
 {
     setMeterType(MeterType::WaterMeter);
 

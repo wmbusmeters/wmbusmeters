@@ -41,7 +41,7 @@ private:
 };
 
 MeterLansenSM::MeterLansenSM(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::LANSENSM)
+    MeterCommonImplementation(mi, "lansensm")
 {
     setMeterType(MeterType::SmokeDetector);
 

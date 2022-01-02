@@ -45,7 +45,7 @@ private:
 };
 
 MeterEBZWMBE::MeterEBZWMBE(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EBZWMBE)
+    MeterCommonImplementation(mi, "ebzwmbe")
 {
     setMeterType(MeterType::ElectricityMeter);
 

@@ -44,7 +44,7 @@ shared_ptr<Meter> createRfmTX1(MeterInfo &mi)
 }
 
 MeterRfmTX1::MeterRfmTX1(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::RFMTX1)
+    MeterCommonImplementation(mi, "rfmtx1")
 {
     setMeterType(MeterType::WaterMeter);
 

@@ -43,7 +43,7 @@ private:
 };
 
 MeterTSD2::MeterTSD2(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::TSD2)
+    MeterCommonImplementation(mi, "tsd2")
 {
     setMeterType(MeterType::SmokeDetector);
 

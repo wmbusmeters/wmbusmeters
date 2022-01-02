@@ -53,11 +53,11 @@ struct MeterCommonImplementation : public virtual Meter
     double getRecordAsDouble(std::string record);
     uint16_t getRecordAsUInt16(std::string record);
 
-    MeterCommonImplementation(MeterInfo &mi, MeterDriver driver);
+    MeterCommonImplementation(MeterInfo &mi, string driver);
 
     ~MeterCommonImplementation() = default;
 
-    string meterDriver() { return toString(driver_); }
+    string meterDriver() { return driver_; }
 
 protected:
 
@@ -108,7 +108,7 @@ private:
 
     int index_ {};
     MeterType type_ {};
-    MeterDriver driver_ {};
+    string driver_ {};
     string bus_ {};
     MeterKeys meter_keys_ {};
     ELLSecurityMode expected_ell_sec_mode_ {};

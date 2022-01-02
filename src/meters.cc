@@ -29,6 +29,27 @@
 #include<time.h>
 #include<cmath>
 
+
+map<string, DriverInfo> all_drivers_;
+
+DriverInfo addDriver(string n,
+                     LinkModeSet lms,
+                     MeterType t,
+                     function<shared_ptr<Meter>(MeterInfo&)> constructor,
+                     vector<DriverDetect> d)
+{
+    assert(all_drivers_.count(n) == 0); // A driver must have a unique name.
+
+    DriverInfo di = { n, lms, t, constructor, d };
+    all_drivers_[n] = di;
+
+    // This code is invoked from the static initializers of DriverInfos when starting
+    // wmbusmeters. Thus we do not yet know if the user has supplied --debug or similar setting.
+    // To debug this you have to uncomment the printf below.
+    // fprintf(stderr, "(STATIC) added driver: %s\n", n.c_str());
+    return di;
+}
+
 struct MeterManagerImplementation : public virtual MeterManager
 {
 private:
@@ -419,7 +440,7 @@ shared_ptr<MeterManager> createMeterManager(bool daemon)
 }
 
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
-                                                     MeterDriver driver) :
+                                                     string driver) :
     driver_(driver), bus_(mi.bus), name_(mi.name)
 {
     ids_ = mi.ids;
@@ -467,7 +488,8 @@ vector<string> &MeterCommonImplementation::meterExtraConstantFields()
 
 MeterDriver MeterCommonImplementation::driver()
 {
-    return driver_;
+    return toMeterDriver(driver_);
+
 }
 
 void MeterCommonImplementation::setMeterType(MeterType mt)

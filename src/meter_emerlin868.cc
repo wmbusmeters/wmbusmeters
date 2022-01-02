@@ -41,7 +41,7 @@ private:
 };
 
 MeterEMerlin868::MeterEMerlin868(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EMERLIN868)
+    MeterCommonImplementation(mi, "emerlin868")
 {
     setMeterType(MeterType::WaterMeter);
 

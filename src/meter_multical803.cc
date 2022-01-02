@@ -63,7 +63,7 @@ private:
 };
 
 MeterMultical803::MeterMultical803(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::MULTICAL803)
+    MeterCommonImplementation(mi, "multical803")
 {
     setMeterType(MeterType::HeatMeter);
 

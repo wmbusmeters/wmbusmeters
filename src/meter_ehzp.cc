@@ -43,7 +43,7 @@ private:
 };
 
 MeterEHZP::MeterEHZP(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EHZP)
+    MeterCommonImplementation(mi, "ehzp")
 {
     setMeterType(MeterType::ElectricityMeter);
 

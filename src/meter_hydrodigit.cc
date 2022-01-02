@@ -44,7 +44,7 @@ shared_ptr<Meter> createHydrodigit(MeterInfo &mi)
 }
 
 MeterHydrodigit::MeterHydrodigit(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::HYDRODIGIT)
+    MeterCommonImplementation(mi, "hydrodigit")
 {
     setMeterType(MeterType::WaterMeter);
 

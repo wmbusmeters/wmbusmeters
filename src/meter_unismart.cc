@@ -58,7 +58,7 @@ shared_ptr<Meter> createUnismart(MeterInfo &mi)
 }
 
 MeterUnismart::MeterUnismart(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::UNISMART)
+    MeterCommonImplementation(mi, "unismart")
 {
     setMeterType(MeterType::GasMeter);
 

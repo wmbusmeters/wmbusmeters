@@ -62,7 +62,7 @@ private:
 };
 
 MeterESYSWM::MeterESYSWM(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::ESYSWM)
+    MeterCommonImplementation(mi, "esyswm")
 {
     setMeterType(MeterType::ElectricityMeter);
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);

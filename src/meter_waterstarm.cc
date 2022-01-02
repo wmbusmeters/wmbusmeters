@@ -52,7 +52,7 @@ shared_ptr<Meter> createWaterstarM(MeterInfo &mi)
 }
 
 MeterWaterstarM::MeterWaterstarM(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::WATERSTARM)
+    MeterCommonImplementation(mi, "waterstarm")
 {
     setMeterType(MeterType::WaterMeter);
 

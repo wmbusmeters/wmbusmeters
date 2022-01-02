@@ -41,7 +41,7 @@ private:
 };
 
 MKRadio4::MKRadio4(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::MKRADIO4)
+    MeterCommonImplementation(mi, "mkradio4")
 {
     setMeterType(MeterType::WaterMeter);
 

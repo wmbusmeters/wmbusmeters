@@ -44,7 +44,7 @@ shared_ptr<Meter> createApator08(MeterInfo &mi)
 }
 
 MeterApator08::MeterApator08(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::APATOR08)
+    MeterCommonImplementation(mi, "apator08")
 {
     setMeterType(MeterType::WaterMeter);
 

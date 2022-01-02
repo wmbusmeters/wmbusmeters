@@ -70,7 +70,7 @@ shared_ptr<Meter> createEM24(MeterInfo &mi)
 }
 
 MeterEM24::MeterEM24(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EM24)
+    MeterCommonImplementation(mi, "em24")
 {
     setMeterType(MeterType::ElectricityMeter);
 

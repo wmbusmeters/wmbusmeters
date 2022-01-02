@@ -46,7 +46,7 @@ shared_ptr<Meter> createVario451(MeterInfo &mi)
 }
 
 MeterVario451::MeterVario451(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::VARIO451)
+    MeterCommonImplementation(mi, "vario451")
 {
     setMeterType(MeterType::HeatMeter);
 

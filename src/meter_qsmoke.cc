@@ -44,7 +44,7 @@ private:
 };
 
 MeterQSmoke::MeterQSmoke(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::QSMOKE)
+    MeterCommonImplementation(mi, "qsmoke")
 {
     setMeterType(MeterType::SmokeDetector);
 

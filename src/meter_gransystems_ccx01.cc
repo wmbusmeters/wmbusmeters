@@ -82,7 +82,7 @@ shared_ptr<Meter> createCCx01(MeterInfo &mi)
 }
 
 MeterGransystemsCCx01::MeterGransystemsCCx01(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::CCx01)
+    MeterCommonImplementation(mi, "gransystems")
 {
     setMeterType(MeterType::ElectricityMeter);
 

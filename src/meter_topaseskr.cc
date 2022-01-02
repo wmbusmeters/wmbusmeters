@@ -72,7 +72,7 @@ shared_ptr<Meter> createTopasEsKr(MeterInfo &mi)
 }
 
 MeterTopasEsKr::MeterTopasEsKr(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::TOPASESKR)
+    MeterCommonImplementation(mi, "topaseskr")
 {
     setMeterType(MeterType::WaterMeter);
 

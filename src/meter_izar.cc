@@ -81,7 +81,7 @@ shared_ptr<Meter> createIzar(MeterInfo &mi)
 }
 
 MeterIzar::MeterIzar(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::IZAR)
+    MeterCommonImplementation(mi, "izar")
 {
     setMeterType(MeterType::WaterMeter);
 

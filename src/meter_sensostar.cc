@@ -46,7 +46,7 @@ shared_ptr<Meter> createSensostar(MeterInfo &mi)
 }
 
 MeterSensostar::MeterSensostar(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::SENSOSTAR)
+    MeterCommonImplementation(mi, "sensostar")
 {
     setMeterType(MeterType::HeatMeter);
 

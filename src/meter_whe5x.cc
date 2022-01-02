@@ -42,7 +42,7 @@ private:
 };
 
 MeterWhe5x::MeterWhe5x(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::WHE5X)
+    MeterCommonImplementation(mi, "whe5x")
 {
     setMeterType(MeterType::HeatCostAllocationMeter);
 

@@ -41,7 +41,7 @@ private:
 };
 
 MeterPIIGTH::MeterPIIGTH(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::PIIGTH)
+    MeterCommonImplementation(mi, "piigth")
 {
     setMeterType(MeterType::TempHygroMeter);
 

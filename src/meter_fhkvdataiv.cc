@@ -46,7 +46,7 @@ private:
 };
 
 MeterFHKVDataIV::MeterFHKVDataIV(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::FHKVDATAIV)
+    MeterCommonImplementation(mi, "fhkvdataiv")
 {
     setMeterType(MeterType::HeatCostAllocationMeter);
 

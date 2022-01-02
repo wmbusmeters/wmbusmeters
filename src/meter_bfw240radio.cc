@@ -56,7 +56,7 @@ shared_ptr<Meter> createBFW240Radio(MeterInfo &mi)
 
 
 MeterBFW240RADIO::MeterBFW240RADIO(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::BFW240RADIO)
+    MeterCommonImplementation(mi, "bfw240radio")
 {
     setMeterType(MeterType::HeatCostAllocationMeter);
 

@@ -39,7 +39,7 @@ private:
 };
 
 MeterLSE_08::MeterLSE_08(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::LSE_08)
+    MeterCommonImplementation(mi, "lse_08")
 {
     setMeterType(MeterType::HeatCostAllocationMeter);
 

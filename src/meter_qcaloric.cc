@@ -46,7 +46,7 @@ private:
 };
 
 MeterQCaloric::MeterQCaloric(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::QCALORIC)
+    MeterCommonImplementation(mi, "qcaloric")
 {
     setMeterType(MeterType::HeatCostAllocationMeter);
 

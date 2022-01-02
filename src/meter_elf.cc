@@ -50,7 +50,7 @@ private:
 };
 
 MeterElf::MeterElf(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::ELF)
+    MeterCommonImplementation(mi, "elf")
 {
     setMeterType(MeterType::HeatMeter);
 

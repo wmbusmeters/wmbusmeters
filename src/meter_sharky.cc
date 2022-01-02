@@ -49,7 +49,7 @@ private:
 };
 
 MeterSharky::MeterSharky(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::SHARKY)
+    MeterCommonImplementation(mi, "sharky")
 {
     setMeterType(MeterType::HeatMeter);
 

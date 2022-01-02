@@ -43,7 +43,7 @@ shared_ptr<Meter> createWEH_07(MeterInfo &mi)
 }
 
 MeterWEH_07::MeterWEH_07(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::WEH_07)
+    MeterCommonImplementation(mi, "weh_07")
 {
     setMeterType(MeterType::WaterMeter);
 

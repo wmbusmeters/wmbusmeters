@@ -59,7 +59,7 @@ shared_ptr<Meter> createQ400(MeterInfo &mi)
 }
 
 MeterQ400::MeterQ400(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::Q400)
+    MeterCommonImplementation(mi, "q400")
 {
     setMeterType(MeterType::WaterMeter);
 

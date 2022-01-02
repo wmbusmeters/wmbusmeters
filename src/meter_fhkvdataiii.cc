@@ -56,7 +56,7 @@ shared_ptr<Meter> createFHKVDataIII(MeterInfo &mi)
 
 
 MeterFHKVDataIII::MeterFHKVDataIII(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::FHKVDATAIII)
+    MeterCommonImplementation(mi, "fhkvdataiii")
 {
     setMeterType(MeterType::HeatCostAllocationMeter);
 

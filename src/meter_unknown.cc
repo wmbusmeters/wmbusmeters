@@ -35,7 +35,7 @@ struct MeterUnknown : public virtual MeterCommonImplementation {
 };
 
 MeterUnknown::MeterUnknown(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::AUTO)
+    MeterCommonImplementation(mi, "auto")
 {
     addPrint("meter_info", Quantity::Text,
              [&](){ return meter_info_; },

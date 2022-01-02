@@ -72,7 +72,7 @@ shared_ptr<Meter> createOmnipower(MeterInfo &mi)
 }
 
 MeterOmnipower::MeterOmnipower(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::OMNIPOWER)
+    MeterCommonImplementation(mi, "omnipower")
 {
     setMeterType(MeterType::ElectricityMeter);
 

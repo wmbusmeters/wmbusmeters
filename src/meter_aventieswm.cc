@@ -50,7 +50,7 @@ shared_ptr<Meter> createAventiesWM(MeterInfo &mi)
 }
 
 MeterAventiesWM::MeterAventiesWM(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::AVENTIESWM)
+    MeterCommonImplementation(mi, "aventieswm")
 {
     setMeterType(MeterType::WaterMeter);
 

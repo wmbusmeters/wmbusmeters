@@ -43,7 +43,7 @@ shared_ptr<Meter> createSupercom587(MeterInfo &mi)
 }
 
 MeterSupercom587::MeterSupercom587(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::SUPERCOM587)
+    MeterCommonImplementation(mi, "supercom587")
 {
     setMeterType(MeterType::WaterMeter);
 

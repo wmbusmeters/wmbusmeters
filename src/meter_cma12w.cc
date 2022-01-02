@@ -36,7 +36,7 @@ private:
 };
 
 MeterCMa12w::MeterCMa12w(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::CMA12W)
+    MeterCommonImplementation(mi, "cma12w")
 {
     setMeterType(MeterType::TempHygroMeter);
 

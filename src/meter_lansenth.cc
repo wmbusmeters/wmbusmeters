@@ -40,7 +40,7 @@ private:
 };
 
 MeterLansenTH::MeterLansenTH(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::LANSENTH)
+    MeterCommonImplementation(mi, "lansenth")
 {
     setMeterType(MeterType::TempHygroMeter);
 

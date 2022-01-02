@@ -65,7 +65,7 @@ shared_ptr<Meter> createLSE_07_17(MeterInfo &mi)
 }
 
 MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::LSE_07_17)
+    MeterCommonImplementation(mi, "lse_07_17")
 {
     setMeterType(MeterType::WaterMeter);
 

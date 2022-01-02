@@ -45,7 +45,7 @@ shared_ptr<Meter> createDME_07(MeterInfo &mi)
 }
 
 MeterDME_07::MeterDME_07(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::DME_07)
+    MeterCommonImplementation(mi, "dme_07")
 {
     setMeterType(MeterType::WaterMeter);
 

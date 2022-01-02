@@ -21,6 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
+
 #define INFO_CODE_CLOSED 0x0011
 #define INFO_CODE_OPEN   0x0055
 
@@ -39,8 +40,16 @@ private:
     double pulse_counter_b_ {};
 };
 
+static DriverInfo di = addDriver(
+    "lansendw",
+    T1_bit,
+    MeterType::DoorWindowDetector,
+    [](MeterInfo& mi){ return shared_ptr<Meter>(new MeterLansenDW(mi)); },
+    { { MANUFACTURER_LAS,  0x1d,  0x07 } }
+    );
+
 MeterLansenDW::MeterLansenDW(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::LANSENDW)
+    MeterCommonImplementation(mi, "lansendw")
 {
     setMeterType(MeterType::DoorWindowDetector);
 
@@ -63,6 +72,7 @@ MeterLansenDW::MeterLansenDW(MeterInfo &mi) :
              "The current number of counted pulses from counter b.",
              false, true);
 }
+
 
 shared_ptr<Meter> createLansenDW(MeterInfo &mi)
 {

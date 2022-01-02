@@ -50,7 +50,7 @@ shared_ptr<Meter> createUltrimis(MeterInfo &mi)
 }
 
 MeterUltrimis::MeterUltrimis(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::ULTRIMIS)
+    MeterCommonImplementation(mi, "ultrimis")
 {
     setMeterType(MeterType::WaterMeter);
 

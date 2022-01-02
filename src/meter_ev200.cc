@@ -41,7 +41,7 @@ private:
 };
 
 MeterEV200::MeterEV200(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EV200)
+    MeterCommonImplementation(mi, "ev200")
 {
     setMeterType(MeterType::WaterMeter);
 

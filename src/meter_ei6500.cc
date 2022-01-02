@@ -69,7 +69,7 @@ private:
 };
 
 MeterEI6500::MeterEI6500(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EI6500)
+    MeterCommonImplementation(mi, "ei6500")
 {
     setMeterType(MeterType::SmokeDetector);
 

@@ -36,7 +36,7 @@ private:
 };
 
 MeterMunia::MeterMunia(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::MUNIA)
+    MeterCommonImplementation(mi, "munia")
 {
     setMeterType(MeterType::TempHygroMeter);
 

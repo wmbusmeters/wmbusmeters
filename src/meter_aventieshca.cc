@@ -42,7 +42,7 @@ private:
 };
 
 MeterAventiesHCA::MeterAventiesHCA(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::AVENTIESHCA)
+    MeterCommonImplementation(mi, "aventieshca")
 {
     setMeterType(MeterType::HeatCostAllocationMeter);
 

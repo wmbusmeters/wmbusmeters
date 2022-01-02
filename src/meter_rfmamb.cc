@@ -59,7 +59,7 @@ private:
 };
 
 MeterRfmAmb::MeterRfmAmb(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::RFMAMB)
+    MeterCommonImplementation(mi, "rfmamb")
 {
     setMeterType(MeterType::TempHygroMeter);
 

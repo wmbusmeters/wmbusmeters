@@ -39,7 +39,7 @@ private:
 };
 
 MeterLansenPU::MeterLansenPU(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::LANSENPU)
+    MeterCommonImplementation(mi, "lansenpu")
 {
     setMeterType(MeterType::PulseCounter);
 

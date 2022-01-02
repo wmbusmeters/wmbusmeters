@@ -46,7 +46,7 @@ private:
 };
 
 MeterMinomess::MeterMinomess(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::MINOMESS)
+    MeterCommonImplementation(mi, "minomess")
 {
     setMeterType(MeterType::WaterMeter);
 

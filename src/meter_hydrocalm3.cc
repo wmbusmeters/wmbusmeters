@@ -49,7 +49,7 @@ private:
 };
 
 MeterHydrocalM3::MeterHydrocalM3(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::HYDROCALM3)
+    MeterCommonImplementation(mi, "hydrocalm3")
 {
     setMeterType(MeterType::HeatMeter);
 
