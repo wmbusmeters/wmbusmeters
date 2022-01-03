@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterSharky774 : public virtual HeatMeter, public virtual MeterCommonImplementation {
+struct MeterSharky774 : public virtual MeterCommonImplementation {
     MeterSharky774(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
@@ -44,8 +44,10 @@ private:
 };
 
 MeterSharky774::MeterSharky774(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::SHARKY774)
+    MeterCommonImplementation(mi, "sharky774")
 {
+    setMeterType(MeterType::HeatMeter);
+
     addLinkMode(LinkMode::T1);
 
     addPrint("total_energy_consumption", Quantity::EnergyGJ,
@@ -84,8 +86,8 @@ MeterSharky774::MeterSharky774(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<HeatMeter> createSharky774(MeterInfo &mi) {
-    return shared_ptr<HeatMeter>(new MeterSharky774(mi));
+shared_ptr<Meter> createSharky774(MeterInfo &mi) {
+    return shared_ptr<Meter>(new MeterSharky774(mi));
 }
 
 double MeterSharky774::totalEnergyConsumption(Unit u)
