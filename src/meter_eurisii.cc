@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterEurisII : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation {
+struct MeterEurisII : public virtual MeterCommonImplementation {
     MeterEurisII(MeterInfo &mi);
 
     double currentConsumption(Unit u);
@@ -42,8 +42,10 @@ private:
 };
 
 MeterEurisII::MeterEurisII(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EURISII)
+    MeterCommonImplementation(mi, "eurisii")
 {
+    setMeterType(MeterType::HeatCostAllocationMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -80,9 +82,9 @@ MeterEurisII::MeterEurisII(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<HeatCostAllocationMeter> createEurisII(MeterInfo &mi)
+shared_ptr<Meter> createEurisII(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostAllocationMeter>(new MeterEurisII(mi));
+    return shared_ptr<Meter>(new MeterEurisII(mi));
 }
 
 double MeterEurisII::currentConsumption(Unit u)

@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterRfmAmb : public virtual TempHygroMeter, public virtual MeterCommonImplementation {
+struct MeterRfmAmb : public virtual MeterCommonImplementation {
     MeterRfmAmb(MeterInfo &mi);
 
     double currentTemperature(Unit u);
@@ -59,8 +59,10 @@ private:
 };
 
 MeterRfmAmb::MeterRfmAmb(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::RFMAMB)
+    MeterCommonImplementation(mi, "rfmamb")
 {
+    setMeterType(MeterType::TempHygroMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -141,9 +143,9 @@ MeterRfmAmb::MeterRfmAmb(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<TempHygroMeter> createRfmAmb(MeterInfo &mi)
+shared_ptr<Meter> createRfmAmb(MeterInfo &mi)
 {
-    return shared_ptr<TempHygroMeter>(new MeterRfmAmb(mi));
+    return shared_ptr<Meter>(new MeterRfmAmb(mi));
 }
 
 double MeterRfmAmb::currentTemperature(Unit u)

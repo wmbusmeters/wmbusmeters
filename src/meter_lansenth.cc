@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterLansenTH : public virtual TempHygroMeter, public virtual MeterCommonImplementation {
+struct MeterLansenTH : public virtual MeterCommonImplementation {
     MeterLansenTH(MeterInfo &mi);
 
     double currentTemperature(Unit u);
@@ -40,8 +40,10 @@ private:
 };
 
 MeterLansenTH::MeterLansenTH(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::LANSENTH)
+    MeterCommonImplementation(mi, "lansenth")
 {
+    setMeterType(MeterType::TempHygroMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -77,9 +79,9 @@ MeterLansenTH::MeterLansenTH(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<TempHygroMeter> createLansenTH(MeterInfo &mi)
+shared_ptr<Meter> createLansenTH(MeterInfo &mi)
 {
-    return shared_ptr<TempHygroMeter>(new MeterLansenTH(mi));
+    return shared_ptr<Meter>(new MeterLansenTH(mi));
 }
 
 double MeterLansenTH::currentTemperature(Unit u)

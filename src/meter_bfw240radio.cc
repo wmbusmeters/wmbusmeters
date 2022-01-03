@@ -24,7 +24,7 @@
 #include"util.h"
 #include <ctime>
 
-struct MeterBFW240RADIO : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation
+struct MeterBFW240RADIO : public virtual MeterCommonImplementation
 {
     MeterBFW240RADIO(MeterInfo &mi);
 
@@ -49,15 +49,17 @@ struct MeterBFW240RADIO : public virtual HeatCostAllocationMeter, public virtual
     double temp_radiator_ {};
 };
 
-shared_ptr<HeatCostAllocationMeter> createBFW240Radio(MeterInfo &mi)
+shared_ptr<Meter> createBFW240Radio(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostAllocationMeter>(new MeterBFW240RADIO(mi));
+    return shared_ptr<Meter>(new MeterBFW240RADIO(mi));
 }
 
 
 MeterBFW240RADIO::MeterBFW240RADIO(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::BFW240RADIO)
+    MeterCommonImplementation(mi, "bfw240radio")
 {
+    setMeterType(MeterType::HeatCostAllocationMeter);
+
     // media 0x80 T telegrams
     addLinkMode(LinkMode::T1);
 

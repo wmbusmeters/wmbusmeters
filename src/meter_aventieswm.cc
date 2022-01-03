@@ -24,7 +24,7 @@
 
 using namespace std;
 
-struct MeterAventiesWM : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterAventiesWM : public virtual MeterCommonImplementation {
     MeterAventiesWM(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -41,17 +41,19 @@ private:
     double total_water_consumption_m3_ {};
     double consumption_at_set_date_m3_[14];
     uint16_t error_flags_;
-    
+
 };
 
-shared_ptr<WaterMeter> createAventiesWM(MeterInfo &mi)
+shared_ptr<Meter> createAventiesWM(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterAventiesWM(mi));
+    return shared_ptr<Meter>(new MeterAventiesWM(mi));
 }
 
 MeterAventiesWM::MeterAventiesWM(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::AVENTIESWM)
+    MeterCommonImplementation(mi, "aventieswm")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);

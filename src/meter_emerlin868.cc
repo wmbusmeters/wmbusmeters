@@ -24,7 +24,7 @@
 
 using namespace std;
 
-struct MeterEMerlin868 : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterEMerlin868 : public virtual MeterCommonImplementation {
     MeterEMerlin868(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -41,8 +41,10 @@ private:
 };
 
 MeterEMerlin868::MeterEMerlin868(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EMERLIN868)
+    MeterCommonImplementation(mi, "emerlin868")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -61,9 +63,9 @@ MeterEMerlin868::MeterEMerlin868(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<WaterMeter> createEMerlin868(MeterInfo &mi)
+shared_ptr<Meter> createEMerlin868(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterEMerlin868(mi));
+    return shared_ptr<Meter>(new MeterEMerlin868(mi));
 }
 
 void MeterEMerlin868::processContent(Telegram *t)

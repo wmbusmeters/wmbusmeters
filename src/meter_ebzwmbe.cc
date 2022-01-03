@@ -22,7 +22,7 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
-struct MeterEBZWMBE : public virtual ElectricityMeter, public virtual MeterCommonImplementation
+struct MeterEBZWMBE : public virtual MeterCommonImplementation
 {
     MeterEBZWMBE(MeterInfo &mi);
 
@@ -45,8 +45,10 @@ private:
 };
 
 MeterEBZWMBE::MeterEBZWMBE(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EBZWMBE)
+    MeterCommonImplementation(mi, "ebzwmbe")
 {
+    setMeterType(MeterType::ElectricityMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 
     // The eBZ wWMB E01 is an addons to the electricity meters
@@ -85,9 +87,9 @@ MeterEBZWMBE::MeterEBZWMBE(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<ElectricityMeter> createEBZWMBE(MeterInfo &mi)
+shared_ptr<Meter> createEBZWMBE(MeterInfo &mi)
 {
-    return shared_ptr<ElectricityMeter>(new MeterEBZWMBE(mi));
+    return shared_ptr<Meter>(new MeterEBZWMBE(mi));
 }
 
 double MeterEBZWMBE::totalEnergyConsumption(Unit u)

@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterCMa12w : public virtual TempHygroMeter, public virtual MeterCommonImplementation {
+struct MeterCMa12w : public virtual MeterCommonImplementation {
     MeterCMa12w(MeterInfo &mi);
 
     double currentTemperature(Unit u);
@@ -36,8 +36,10 @@ private:
 };
 
 MeterCMa12w::MeterCMa12w(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::CMA12W)
+    MeterCommonImplementation(mi, "cma12w")
 {
+    setMeterType(MeterType::TempHygroMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -53,9 +55,9 @@ MeterCMa12w::MeterCMa12w(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<TempHygroMeter> createCMa12w(MeterInfo &mi)
+shared_ptr<Meter> createCMa12w(MeterInfo &mi)
 {
-    return shared_ptr<TempHygroMeter>(new MeterCMa12w(mi));
+    return shared_ptr<Meter>(new MeterCMa12w(mi));
 }
 
 double MeterCMa12w::currentTemperature(Unit u)

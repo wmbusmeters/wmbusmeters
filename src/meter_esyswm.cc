@@ -24,7 +24,7 @@
 
 #include<algorithm>
 
-struct MeterESYSWM : public virtual ElectricityMeter, public virtual MeterCommonImplementation
+struct MeterESYSWM : public virtual MeterCommonImplementation
 {
     MeterESYSWM(MeterInfo &mi);
 
@@ -62,8 +62,9 @@ private:
 };
 
 MeterESYSWM::MeterESYSWM(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::ESYSWM)
+    MeterCommonImplementation(mi, "esyswm")
 {
+    setMeterType(MeterType::ElectricityMeter);
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 
     // The ESYS-WM-20 and ESYS-WM15 are addons to the electricity meters.
@@ -132,9 +133,9 @@ MeterESYSWM::MeterESYSWM(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<ElectricityMeter> createESYSWM(MeterInfo &mi)
+shared_ptr<Meter> createESYSWM(MeterInfo &mi)
 {
-    return shared_ptr<ElectricityMeter>(new MeterESYSWM(mi));
+    return shared_ptr<Meter>(new MeterESYSWM(mi));
 }
 
 double MeterESYSWM::totalEnergyConsumption(Unit u)

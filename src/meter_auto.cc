@@ -27,7 +27,7 @@
 using namespace std;
 
 
-struct MeterAuto : public virtual UnknownMeter, public virtual MeterCommonImplementation {
+struct MeterAuto : public virtual MeterCommonImplementation {
     MeterAuto(MeterInfo &mi);
 
     string meter_info_;
@@ -35,7 +35,7 @@ struct MeterAuto : public virtual UnknownMeter, public virtual MeterCommonImplem
 };
 
 MeterAuto::MeterAuto(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::AUTO)
+    MeterCommonImplementation(mi, "auto")
 {
     addPrint("meter_info", Quantity::Text,
              [&](){ return meter_info_; },
@@ -43,9 +43,9 @@ MeterAuto::MeterAuto(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<UnknownMeter> createAuto(MeterInfo &mi)
+shared_ptr<Meter> createAuto(MeterInfo &mi)
 {
-    return shared_ptr<UnknownMeter>(new MeterAuto(mi));
+    return shared_ptr<Meter>(new MeterAuto(mi));
 }
 
 void MeterAuto::processContent(Telegram *t)

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström
+ Copyright (C) 2020-2021 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -21,28 +21,38 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
+
 #define INFO_CODE_CLOSED 0x0011
 #define INFO_CODE_OPEN   0x0055
 
-struct MeterLansenDW : public virtual DoorWindowDetector, public virtual MeterCommonImplementation {
+struct MeterLansenDW : public virtual MeterCommonImplementation
+{
     MeterLansenDW(MeterInfo &mi);
-
-    string status();
-    bool open();
 
 private:
 
     void processContent(Telegram *t);
 
-    private:
+    string status();
 
     uint16_t info_codes_ {};
-
+    double pulse_counter_a_ {};
+    double pulse_counter_b_ {};
 };
 
+static DriverInfo di = addDriver(
+    "lansendw",
+    T1_bit,
+    MeterType::DoorWindowDetector,
+    [](MeterInfo& mi){ return shared_ptr<Meter>(new MeterLansenDW(mi)); },
+    { { MANUFACTURER_LAS,  0x1d,  0x07 } }
+    );
+
 MeterLansenDW::MeterLansenDW(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::LANSENDW)
+    MeterCommonImplementation(mi, "lansendw")
 {
+    setMeterType(MeterType::DoorWindowDetector);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -51,17 +61,24 @@ MeterLansenDW::MeterLansenDW(MeterInfo &mi) :
              [&](){ return status(); },
              "The current status: OPEN or CLOSED.",
              true, true);
+
+    addPrint("counter_a", Quantity::Counter,
+             [&](Unit u) { assertQuantity(u, Quantity::Counter); return pulse_counter_a_; },
+             "How many times the door/window has been opened or closed.",
+             false, true);
+
+    addPrint("counter_b", Quantity::Counter,
+             [&](Unit u) { assertQuantity(u, Quantity::Counter); return pulse_counter_b_; },
+             "The current number of counted pulses from counter b.",
+             false, true);
 }
 
-shared_ptr<DoorWindowDetector> createLansenDW(MeterInfo &mi)
+
+shared_ptr<Meter> createLansenDW(MeterInfo &mi)
 {
-    return shared_ptr<DoorWindowDetector>(new MeterLansenDW(mi));
+    return shared_ptr<Meter>(new MeterLansenDW(mi));
 }
 
-bool MeterLansenDW::open()
-{
-    return info_codes_ == INFO_CODE_OPEN;
-}
 
 void MeterLansenDW::processContent(Telegram *t)
 {
@@ -110,7 +127,17 @@ void MeterLansenDW::processContent(Telegram *t)
 
     if (extractDVuint16(&t->values, "02FD1B", &offset, &info_codes_))
     {
-        t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
+        t->addMoreExplanation(offset, renderJsonField("status"));
+    }
+
+    if (extractDVdouble(&t->values, "0EFD3A", &offset, &pulse_counter_a_, false))
+    {
+        t->addMoreExplanation(offset, renderJsonField("counter_a"));
+    }
+
+    if (extractDVdouble(&t->values, "8E40FD3A", &offset, &pulse_counter_b_, false))
+    {
+        t->addMoreExplanation(offset, renderJsonField("counter_b"));
     }
 }
 

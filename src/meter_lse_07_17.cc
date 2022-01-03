@@ -24,7 +24,7 @@
 
 using namespace std;
 
-struct MeterLSE_07_17 : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterLSE_07_17 : public virtual MeterCommonImplementation {
     MeterLSE_07_17(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -59,14 +59,16 @@ private:
 
 };
 
-shared_ptr<WaterMeter> createLSE_07_17(MeterInfo &mi)
+shared_ptr<Meter> createLSE_07_17(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterLSE_07_17(mi));
+    return shared_ptr<Meter>(new MeterLSE_07_17(mi));
 }
 
 MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::LSE_07_17)
+    MeterCommonImplementation(mi, "lse_07_17")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::S1);
@@ -103,7 +105,7 @@ void MeterLSE_07_17::processContent(Telegram *t)
     /*
     The following telegram corresponds to the Qundis QWater5.5 cold water meters I have here.
     From the device display it states that it is set to S-mode operation, sending a telegram
-    every 4 h. 
+    every 4 h.
     Another option of this device is the C mode operation, sending telegrams every
     7.5 s.
 
@@ -209,7 +211,7 @@ string MeterLSE_07_17::errorCode()
     // c    Communication via M-Bus too often per month.
     // d    Flow too high.
     // f    Device was without voltage supply briefly. All parameter settings are lost.
-    // 
+    //
 
     return tostrprintf("ERR %04x", error_code_);
 }
@@ -223,4 +225,3 @@ string MeterLSE_07_17::deviceDateTime()
 {
     return device_date_time_;
 }
-

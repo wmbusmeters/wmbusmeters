@@ -23,7 +23,7 @@
 
 using namespace std;
 
-struct MeterApator08 : public virtual WaterMeter, public virtual MeterCommonImplementation
+struct MeterApator08 : public virtual MeterCommonImplementation
 {
     MeterApator08(MeterInfo &mi);
 
@@ -38,14 +38,16 @@ private:
     double total_water_consumption_m3_ {};
 };
 
-shared_ptr<WaterMeter> createApator08(MeterInfo &mi)
+shared_ptr<Meter> createApator08(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterApator08(mi));
+    return shared_ptr<Meter>(new MeterApator08(mi));
 }
 
 MeterApator08::MeterApator08(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::APATOR08)
+    MeterCommonImplementation(mi, "apator08")
 {
+    setMeterType(MeterType::WaterMeter);
+
     // manufacturer 0x8614 is not compliant with flags encoding.
     // forced decode will decode to APT.
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);

@@ -24,7 +24,7 @@
 
 using namespace std;
 
-struct MKRadio4 : public virtual WaterMeter, public virtual MeterCommonImplementation
+struct MKRadio4 : public virtual MeterCommonImplementation
 {
     MKRadio4(MeterInfo &mi);
 
@@ -41,8 +41,10 @@ private:
 };
 
 MKRadio4::MKRadio4(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::MKRADIO4)
+    MeterCommonImplementation(mi, "mkradio4")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -58,9 +60,9 @@ MKRadio4::MKRadio4(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<WaterMeter> createMKRadio4(MeterInfo &mi)
+shared_ptr<Meter> createMKRadio4(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MKRadio4(mi));
+    return shared_ptr<Meter>(new MKRadio4(mi));
 }
 
 void MKRadio4::processContent(Telegram *t)

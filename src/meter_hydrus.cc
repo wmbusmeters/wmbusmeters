@@ -24,7 +24,7 @@
 
 using namespace std;
 
-struct MeterHydrus : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterHydrus : public virtual MeterCommonImplementation {
     MeterHydrus(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -63,8 +63,10 @@ private:
 };
 
 MeterHydrus::MeterHydrus(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::HYDRUS)
+    MeterCommonImplementation(mi, "hydrus")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -153,9 +155,9 @@ MeterHydrus::MeterHydrus(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<WaterMeter> createHydrus(MeterInfo &mi)
+shared_ptr<Meter> createHydrus(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterHydrus(mi));
+    return shared_ptr<Meter>(new MeterHydrus(mi));
 }
 
 void MeterHydrus::processContent(Telegram *t)

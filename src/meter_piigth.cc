@@ -22,7 +22,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterPIIGTH : public virtual TempHygroMeter, public virtual MeterCommonImplementation {
+struct MeterPIIGTH : public virtual MeterCommonImplementation {
     MeterPIIGTH(MeterInfo &mi);
 
     double currentTemperature(Unit u);
@@ -41,8 +41,10 @@ private:
 };
 
 MeterPIIGTH::MeterPIIGTH(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::PIIGTH)
+    MeterCommonImplementation(mi, "piigth")
 {
+    setMeterType(MeterType::TempHygroMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -78,9 +80,9 @@ MeterPIIGTH::MeterPIIGTH(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<TempHygroMeter> createPiigTH(MeterInfo &mi)
+shared_ptr<Meter> createPiigTH(MeterInfo &mi)
 {
-    return shared_ptr<TempHygroMeter>(new MeterPIIGTH(mi));
+    return shared_ptr<Meter>(new MeterPIIGTH(mi));
 }
 
 double MeterPIIGTH::currentTemperature(Unit u)

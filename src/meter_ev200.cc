@@ -24,7 +24,7 @@
 
 using namespace std;
 
-struct MeterEV200 : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterEV200 : public virtual MeterCommonImplementation {
     MeterEV200(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -41,8 +41,10 @@ private:
 };
 
 MeterEV200::MeterEV200(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EV200)
+    MeterCommonImplementation(mi, "ev200")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -61,9 +63,9 @@ MeterEV200::MeterEV200(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<WaterMeter> createEV200(MeterInfo &mi)
+shared_ptr<Meter> createEV200(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterEV200(mi));
+    return shared_ptr<Meter>(new MeterEV200(mi));
 }
 
 void MeterEV200::processContent(Telegram *t)
@@ -80,8 +82,8 @@ void MeterEV200::processContent(Telegram *t)
         extractDVdouble(&t->values, key, &offset, &last_total_water_consumption_m3h_);
         t->addMoreExplanation(offset, " last total consumption (%f m3)", last_total_water_consumption_m3h_);
     }
-    
-    
+
+
 }
 
 double MeterEV200::totalWaterConsumption(Unit u)

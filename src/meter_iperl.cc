@@ -24,7 +24,7 @@
 
 using namespace std;
 
-struct MeterIperl : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterIperl : public virtual MeterCommonImplementation {
     MeterIperl(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -41,8 +41,10 @@ private:
 };
 
 MeterIperl::MeterIperl(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::IPERL)
+    MeterCommonImplementation(mi, "iperl")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -61,9 +63,9 @@ MeterIperl::MeterIperl(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<WaterMeter> createIperl(MeterInfo &mi)
+shared_ptr<Meter> createIperl(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterIperl(mi));
+    return shared_ptr<Meter>(new MeterIperl(mi));
 }
 
 void MeterIperl::processContent(Telegram *t)

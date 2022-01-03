@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterSontex868 : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation {
+struct MeterSontex868 : public virtual MeterCommonImplementation {
     MeterSontex868(MeterInfo &mi);
 
     double currentConsumption(Unit u);
@@ -54,8 +54,10 @@ private:
 };
 
 MeterSontex868::MeterSontex868(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::SONTEX868)
+    MeterCommonImplementation(mi, "sontex868")
 {
+    setMeterType(MeterType::HeatCostAllocationMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::C1);
@@ -101,9 +103,9 @@ MeterSontex868::MeterSontex868(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<HeatCostAllocationMeter> createSontex868(MeterInfo &mi)
+shared_ptr<Meter> createSontex868(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostAllocationMeter>(new MeterSontex868(mi));
+    return shared_ptr<Meter>(new MeterSontex868(mi));
 }
 
 double MeterSontex868::currentConsumption(Unit u)

@@ -30,7 +30,7 @@
 #define INFO_CODE_TEMP_DIFF_WRONG_POLARITY 32
 #define INFO_CODE_VOLTAGE_TOO_LOW 128
 
-struct MeterMultical302 : public virtual HeatMeter, public virtual MeterCommonImplementation {
+struct MeterMultical302 : public virtual MeterCommonImplementation {
     MeterMultical302(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
@@ -52,8 +52,10 @@ private:
 };
 
 MeterMultical302::MeterMultical302(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::MULTICAL302)
+    MeterCommonImplementation(mi, "multical302")
 {
+    setMeterType(MeterType::HeatMeter);
+
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
     addLinkMode(LinkMode::C1);
@@ -89,8 +91,8 @@ MeterMultical302::MeterMultical302(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<HeatMeter> createMultical302(MeterInfo &mi) {
-    return shared_ptr<HeatMeter>(new MeterMultical302(mi));
+shared_ptr<Meter> createMultical302(MeterInfo &mi) {
+    return shared_ptr<Meter>(new MeterMultical302(mi));
 }
 
 double MeterMultical302::totalEnergyConsumption(Unit u)

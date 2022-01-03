@@ -763,6 +763,11 @@ void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int l
     pos += len;
 }
 
+void Telegram::addMoreExplanation(int pos, string json)
+{
+    addMoreExplanation(pos, " (%s)", json.c_str());
+}
+
 void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
 {
     char buf[1024];

@@ -24,7 +24,7 @@
 
 using namespace std;
 
-struct MeterSupercom587 : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterSupercom587 : public virtual MeterCommonImplementation {
     MeterSupercom587(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -37,14 +37,16 @@ private:
     double total_water_consumption_m3_ {};
 };
 
-shared_ptr<WaterMeter> createSupercom587(MeterInfo &mi)
+shared_ptr<Meter> createSupercom587(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterSupercom587(mi));
+    return shared_ptr<Meter>(new MeterSupercom587(mi));
 }
 
 MeterSupercom587::MeterSupercom587(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::SUPERCOM587)
+    MeterCommonImplementation(mi, "supercom587")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);

@@ -24,7 +24,7 @@
 #define INFO_CODE_SMOKE 0x0004
 #define INFO_CODE_TEST  0x0008
 
-struct MeterLansenSM : public virtual SmokeDetector, public virtual MeterCommonImplementation {
+struct MeterLansenSM : public virtual MeterCommonImplementation {
     MeterLansenSM(MeterInfo &mi);
 
     string status();
@@ -41,8 +41,10 @@ private:
 };
 
 MeterLansenSM::MeterLansenSM(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::LANSENSM)
+    MeterCommonImplementation(mi, "lansensm")
 {
+    setMeterType(MeterType::SmokeDetector);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
@@ -53,9 +55,9 @@ MeterLansenSM::MeterLansenSM(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<SmokeDetector> createLansenSM(MeterInfo &mi)
+shared_ptr<Meter> createLansenSM(MeterInfo &mi)
 {
-    return shared_ptr<SmokeDetector>(new MeterLansenSM(mi));
+    return shared_ptr<Meter>(new MeterLansenSM(mi));
 }
 
 bool MeterLansenSM::smokeDetected()

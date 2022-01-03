@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterLSE_08 : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation {
+struct MeterLSE_08 : public virtual MeterCommonImplementation {
     MeterLSE_08(MeterInfo &mi);
 
     string setDate();
@@ -39,8 +39,10 @@ private:
 };
 
 MeterLSE_08::MeterLSE_08(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::LSE_08)
+    MeterCommonImplementation(mi, "lse_08")
 {
+    setMeterType(MeterType::HeatCostAllocationMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::C1);
@@ -75,9 +77,9 @@ MeterLSE_08::MeterLSE_08(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<HeatCostAllocationMeter> createLSE_08(MeterInfo &mi)
+shared_ptr<Meter> createLSE_08(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostAllocationMeter>(new MeterLSE_08(mi));
+    return shared_ptr<Meter>(new MeterLSE_08(mi));
 }
 
 string MeterLSE_08::setDate()
