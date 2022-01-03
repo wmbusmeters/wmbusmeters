@@ -23,7 +23,7 @@
 
 using namespace std;
 
-struct MeterApator162 : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterApator162 : public virtual MeterCommonImplementation {
     MeterApator162(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -40,15 +40,17 @@ private:
     int registerSize(int c);
 };
 
-shared_ptr<WaterMeter> createApator162(MeterInfo &mi)
+shared_ptr<Meter> createApator162(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterApator162(mi));
+    return shared_ptr<Meter>(new MeterApator162(mi));
 }
 
 MeterApator162::MeterApator162(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::APATOR162)
+    MeterCommonImplementation(mi, "apator162")
 {
     processExtras(mi.extras);
+
+    setMeterType(MeterType::WaterMeter);
 
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
@@ -172,6 +174,7 @@ int MeterApator162::registerSize(int c)
     case 0x93: return 3;
     case 0x94: return 3;
     case 0x95: return 3;
+    case 0x96: return 3;
 
     case 0xA0: return 4;
 

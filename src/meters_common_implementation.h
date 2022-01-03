@@ -53,11 +53,11 @@ struct MeterCommonImplementation : public virtual Meter
     double getRecordAsDouble(std::string record);
     uint16_t getRecordAsUInt16(std::string record);
 
-    MeterCommonImplementation(MeterInfo &mi, MeterDriver driver);
+    MeterCommonImplementation(MeterInfo &mi, string driver);
 
     ~MeterCommonImplementation() = default;
 
-    string meterDriver() { return toString(driver_); }
+    string meterDriver() { return driver_; }
 
 protected:
 
@@ -69,6 +69,7 @@ protected:
     void addExtraConstantField(std::string ecf);
     std::vector<std::string> &shellCmdlines();
     std::vector<std::string> &meterExtraConstantFields();
+    void setMeterType(MeterType mt);
     void addLinkMode(LinkMode lm);
     // Print with the default unit for this quantity.
     void addPrint(string vname, Quantity vquantity,
@@ -79,6 +80,7 @@ protected:
     // Print the dimensionless Text quantity, no unit is needed.
     void addPrint(string vname, Quantity vquantity,
                   function<std::string()> getValueFunc, string help, bool field, bool json);
+
     // The default implementation of poll does nothing.
     // Override for mbus meters that need to be queried and likewise for C2/T2 wmbus-meters.
     void poll(shared_ptr<BusManager> bus);
@@ -96,12 +98,17 @@ protected:
     // since Json is assumed to be decoded by a program and the current timestamp which is the
     // same as timestamp_utc, can always be decoded/recoded into local time or a unix timestamp.
 
+    // Look a print using the vname and generate the single json key:value, eg "total_m3"=123.000
+    string renderJsonField(string vname);
+    string renderJsonField(Print *p);
+
     virtual void processContent(Telegram *t) = 0;
 
 private:
 
     int index_ {};
-    MeterDriver driver_ {};
+    MeterType type_ {};
+    string driver_ {};
     string bus_ {};
     MeterKeys meter_keys_ {};
     ELLSecurityMode expected_ell_sec_mode_ {};

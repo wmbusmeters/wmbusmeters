@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterWhe5x : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation {
+struct MeterWhe5x : public virtual MeterCommonImplementation {
     MeterWhe5x(MeterInfo &mi);
 
     double currentConsumption(Unit u);
@@ -42,8 +42,10 @@ private:
 };
 
 MeterWhe5x::MeterWhe5x(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::WHE5X)
+    MeterCommonImplementation(mi, "whe5x")
 {
+    setMeterType(MeterType::HeatCostAllocationMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::C1);
@@ -84,9 +86,9 @@ MeterWhe5x::MeterWhe5x(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<HeatCostAllocationMeter> createWhe5x(MeterInfo &mi)
+shared_ptr<Meter> createWhe5x(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostAllocationMeter>(new MeterWhe5x(mi));
+    return shared_ptr<Meter>(new MeterWhe5x(mi));
 }
 
 double MeterWhe5x::currentConsumption(Unit u)

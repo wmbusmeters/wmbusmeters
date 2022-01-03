@@ -21,7 +21,7 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterMinomess : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterMinomess : public virtual MeterCommonImplementation {
     MeterMinomess(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -46,8 +46,10 @@ private:
 };
 
 MeterMinomess::MeterMinomess(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::MINOMESS)
+    MeterCommonImplementation(mi, "minomess")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
     addLinkMode(LinkMode::C1);
@@ -79,9 +81,9 @@ MeterMinomess::MeterMinomess(MeterInfo &mi) :
 
 }
 
-shared_ptr<WaterMeter> createMinomess(MeterInfo &mi)
+shared_ptr<Meter> createMinomess(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterMinomess(mi));
+    return shared_ptr<Meter>(new MeterMinomess(mi));
 }
 
 double MeterMinomess::totalWaterConsumption(Unit u)

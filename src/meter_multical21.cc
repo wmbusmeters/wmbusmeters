@@ -38,8 +38,8 @@ using namespace std;
 #define INFO_CODE_BURST 0x08
 #define INFO_CODE_BURST_SHIFT (4+9)
 
-struct MeterMultical21 : public virtual WaterMeter, public virtual MeterCommonImplementation {
-    MeterMultical21(MeterInfo &mi, MeterDriver mt);
+struct MeterMultical21 : public virtual MeterCommonImplementation {
+    MeterMultical21(MeterInfo &mi, string mt);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -89,7 +89,7 @@ private:
     bool has_external_temperature_ {};
 };
 
-MeterMultical21::MeterMultical21(MeterInfo &mi, MeterDriver mt) :
+MeterMultical21::MeterMultical21(MeterInfo &mi, string mt) :
     MeterCommonImplementation(mi, mt)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
@@ -207,22 +207,22 @@ bool MeterMultical21::hasExternalTemperature()
     return has_external_temperature_;
 }
 
-shared_ptr<WaterMeter> createMulticalWaterMeter(MeterInfo &mi, MeterDriver mt)
+shared_ptr<Meter> createMulticalWaterMeter(MeterInfo &mi, string mt)
 {
-    if (mt != MeterDriver::MULTICAL21 && mt != MeterDriver::FLOWIQ3100) {
+    if (mt != "multical21" && mt != "flowiq3100") {
         error("Internal error! Not a proper meter type when creating a multical21 style meter.\n");
     }
-    return shared_ptr<WaterMeter>(new MeterMultical21(mi,mt));
+    return shared_ptr<Meter>(new MeterMultical21(mi,mt));
 }
 
-shared_ptr<WaterMeter> createMultical21(MeterInfo &mi)
+shared_ptr<Meter> createMultical21(MeterInfo &mi)
 {
-    return createMulticalWaterMeter(mi, MeterDriver::MULTICAL21);
+    return createMulticalWaterMeter(mi, "multical21");
 }
 
-shared_ptr<WaterMeter> createFlowIQ3100(MeterInfo &mi)
+shared_ptr<Meter> createFlowIQ3100(MeterInfo &mi)
 {
-    return createMulticalWaterMeter(mi, MeterDriver::FLOWIQ3100);
+    return createMulticalWaterMeter(mi, "flowiq3100");
 }
 
 void MeterMultical21::processContent(Telegram *t)

@@ -43,7 +43,7 @@ using namespace std;
  Example telegram:
  telegram=|4E44B40512345678F1077A310040052F2F|01FD08040C13991848004C1359423500CC101300000000CC201359423500426C7F2C0B3B00000002FD74DA10025AD300C4016D3B179F27CC011387124600|+2
 */
-struct MeterTopasEsKr : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterTopasEsKr : public virtual MeterCommonImplementation {
     MeterTopasEsKr(MeterInfo &mi);
 
     double totalWaterConsumption(Unit u);
@@ -66,14 +66,16 @@ private:
     string meter_month_period_datetime_;
 };
 
-shared_ptr<WaterMeter> createTopasEsKr(MeterInfo &mi)
+shared_ptr<Meter> createTopasEsKr(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterTopasEsKr(mi));
+    return shared_ptr<Meter>(new MeterTopasEsKr(mi));
 }
 
 MeterTopasEsKr::MeterTopasEsKr(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::TOPASESKR)
+    MeterCommonImplementation(mi, "topaseskr")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     // media 0x06 specified temperature range is 0°C to 50 °C, not sure it ever reports 0x06 for warm water, possibly configurable

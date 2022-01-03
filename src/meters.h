@@ -27,6 +27,24 @@
 #include<string>
 #include<vector>
 
+#define LIST_OF_METER_TYPES \
+    X(UnknownMeter) \
+    X(DoorWindowDetector) \
+    X(ElectricityMeter) \
+    X(GasMeter) \
+    X(HeatCostAllocationMeter) \
+    X(HeatMeter) \
+    X(PulseCounter) \
+    X(SmokeDetector) \
+    X(TempHygroMeter) \
+    X(WaterMeter)  \
+
+enum class MeterType {
+#define X(name) name,
+LIST_OF_METER_TYPES
+#undef X
+};
+
 #define LIST_OF_METERS \
     X(auto,       0,      UnknownMeter, AUTO, Auto) \
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
@@ -190,6 +208,38 @@ struct MeterInfo
     bool parse(string name, string driver, string id, string key);
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// Dynamic loading of drivers based on the driver info.
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct DriverDetect
+{
+    uint16_t mfct;
+    uchar    type;
+    uchar    version;
+};
+
+struct DriverInfo
+{
+    string name; // amiplus, lse_07_17, multical21 etc
+    LinkModeSet linkmodes; // C1, T1, S1 or combinations thereof.
+    MeterType type; // Water, Electricity etc.
+    function<shared_ptr<Meter>(MeterInfo&)> constructor; // Invoke this to create an instance of the driver.
+    vector<DriverDetect> detect;
+};
+
+// The function addDriver is called as part of the static initialization inside a driver class.
+
+DriverInfo addDriver(string n,
+                     LinkModeSet lms,
+                     MeterType t,
+                     function<shared_ptr<Meter>(MeterInfo&)> constructor,
+                     vector<DriverDetect> d);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 struct Print
 {
     string vname; // Value name, like: total current previous target
@@ -280,132 +330,14 @@ struct MeterManager
 
 shared_ptr<MeterManager> createMeterManager(bool daemon);
 
-struct UnknownMeter : public virtual Meter
-{
-};
-
-struct WaterMeter : public virtual Meter
-{
-    virtual double totalWaterConsumption(Unit u); // m3
-    virtual bool  hasTotalWaterConsumption();
-    virtual double targetWaterConsumption(Unit u); // m3
-    virtual bool  hasTargetWaterConsumption();
-    virtual double maxFlow(Unit u); // m3/s
-    virtual bool  hasMaxFlow();
-    virtual double flowTemperature(Unit u); // °C
-    virtual bool hasFlowTemperature();
-    virtual double externalTemperature(Unit u); // °C
-    virtual bool hasExternalTemperature();
-
-    virtual string statusHumanReadable();
-    virtual string status();
-    virtual string timeDry();
-    virtual string timeReversed();
-    virtual string timeLeaking();
-    virtual string timeBursting();
-};
-
-struct GasMeter : public virtual Meter
-{
-    virtual double totalGasConsumption(Unit u); // m3
-    virtual bool  hasTotalGasConsumption();
-    virtual double targetGasConsumption(Unit u); // m3
-    virtual bool  hasTargetGasConsumption();
-    virtual double maxFlow(Unit u); // m3/s
-    virtual bool  hasMaxFlow();
-    virtual double flowTemperature(Unit u); // °C
-    virtual bool hasFlowTemperature();
-    virtual double externalTemperature(Unit u); // °C
-    virtual bool hasExternalTemperature();
-
-    virtual string statusHumanReadable();
-    virtual string status();
-    virtual string timeDry();
-    virtual string timeReversed();
-    virtual string timeLeaking();
-    virtual string timeBursting();
-};
-
-struct HeatMeter : public virtual Meter
-{
-    virtual double totalEnergyConsumption(Unit u); // kwh
-    virtual double currentPeriodEnergyConsumption(Unit u); // kwh
-    virtual double previousPeriodEnergyConsumption(Unit u); // kwh
-    virtual double currentPowerConsumption(Unit u); // kw
-    virtual double totalVolume(Unit u); // m3
-};
-
-struct ElectricityMeter : public virtual Meter
-{
-    virtual double totalEnergyConsumption(Unit u); // kwh
-    virtual double totalEnergyProduction(Unit u); // kwh
-
-    virtual double totalReactiveEnergyConsumption(Unit u); // kvarh
-    virtual double totalReactiveEnergyProduction(Unit u); // kvarh
-
-    virtual double totalApparentEnergyConsumption(Unit u); // kvah
-    virtual double totalApparentEnergyProduction(Unit u); // kvah
-
-    virtual double currentPowerConsumption(Unit u); // kw
-    virtual double currentPowerProduction(Unit u); // kw
-};
-
-struct HeatCostAllocationMeter : public virtual Meter
-{
-    virtual double currentConsumption(Unit u);
-    virtual string setDate();
-    virtual double consumptionAtSetDate(Unit u);
-};
-
-struct TempMeter : public virtual Meter
-{
-    virtual double currentTemperature(Unit u) = 0; // °C
-    virtual ~TempMeter() = default;
-};
-
-struct HygroMeter : public virtual Meter
-{
-    virtual double currentRelativeHumidity() = 0; // RH
-    virtual ~HygroMeter() = default;
-};
-
-struct TempHygroMeter : public virtual TempMeter, public virtual HygroMeter
-{
-    virtual ~TempHygroMeter() = default;
-};
-
-struct SmokeDetector : public virtual Meter
-{
-    virtual bool smokeDetected() = 0;
-    virtual ~SmokeDetector() = default;
-};
-
-struct DoorWindowDetector : public virtual Meter
-{
-    virtual bool open() = 0;
-    virtual ~DoorWindowDetector() = default;
-};
-
-struct PulseCounter : public virtual Meter
-{
-    virtual double counterA() = 0;
-    virtual double counterB() = 0;
-    virtual ~PulseCounter() = default;
-};
-
-struct Generic : public virtual Meter {
-};
-
 string toString(MeterDriver driver);
 MeterDriver toMeterDriver(string& driver);
 LinkModeSet toMeterLinkModeSet(string& driver);
 LinkModeSet toMeterLinkModeSet(MeterDriver driver);
 
-#define X(mname,linkmode,info,type,cname) shared_ptr<info> create##cname(MeterInfo &m);
+#define X(mname,linkmode,info,type,cname) shared_ptr<Meter> create##cname(MeterInfo &m);
 LIST_OF_METERS
 #undef X
-
-Generic *createGeneric(WMBus *bus, MeterInfo &m);
 
 struct Configuration;
 struct MeterInfo;

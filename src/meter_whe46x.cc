@@ -24,7 +24,7 @@
 /* This is an S1 meter that we do not fully understand yet.
    Perhaps we need to send a message to it to acquire the full readout?
 */
-struct MeterWhe46x : public virtual HeatCostAllocationMeter, public virtual MeterCommonImplementation {
+struct MeterWhe46x : public virtual MeterCommonImplementation {
     MeterWhe46x(MeterInfo &mi);
 
     double currentConsumption(Unit u);
@@ -50,8 +50,10 @@ private:
 };
 
 MeterWhe46x::MeterWhe46x(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::WHE46X)
+    MeterCommonImplementation(mi, "whe46x")
 {
+    setMeterType(MeterType::HeatCostAllocationMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::C1);
@@ -103,9 +105,9 @@ MeterWhe46x::MeterWhe46x(MeterInfo &mi) :
 
 }
 
-shared_ptr<HeatCostAllocationMeter> createWhe46x(MeterInfo &mi)
+shared_ptr<Meter> createWhe46x(MeterInfo &mi)
 {
-    return shared_ptr<HeatCostAllocationMeter>(new MeterWhe46x(mi));
+    return shared_ptr<Meter>(new MeterWhe46x(mi));
 }
 
 double MeterWhe46x::currentConsumption(Unit u)

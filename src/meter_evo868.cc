@@ -26,7 +26,7 @@
 
 using namespace std;
 
-struct MeterEvo868 : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterEvo868 : public virtual MeterCommonImplementation {
     MeterEvo868(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -53,14 +53,16 @@ private:
     string device_date_time_;
 };
 
-shared_ptr<WaterMeter> createEVO868(MeterInfo &mi)
+shared_ptr<Meter> createEVO868(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterEvo868(mi));
+    return shared_ptr<Meter>(new MeterEvo868(mi));
 }
 
 MeterEvo868::MeterEvo868(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EVO868)
+    MeterCommonImplementation(mi, "evo868")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);

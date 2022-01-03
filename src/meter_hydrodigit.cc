@@ -24,7 +24,7 @@
 
 using namespace std;
 
-struct MeterHydrodigit : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterHydrodigit : public virtual MeterCommonImplementation {
     MeterHydrodigit(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -38,14 +38,16 @@ private:
     string meter_datetime_;
 };
 
-shared_ptr<WaterMeter> createHydrodigit(MeterInfo &mi)
+shared_ptr<Meter> createHydrodigit(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterHydrodigit(mi));
+    return shared_ptr<Meter>(new MeterHydrodigit(mi));
 }
 
 MeterHydrodigit::MeterHydrodigit(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::HYDRODIGIT)
+    MeterCommonImplementation(mi, "hydrodigit")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);

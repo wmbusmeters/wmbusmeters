@@ -29,7 +29,7 @@
 #define INFO_OBSTACLE_DETECTED      0x0100
 #define INFO_COVERING_DETECTED      0x0200
 
-struct MeterEI6500 : public virtual SmokeDetector, public virtual MeterCommonImplementation
+struct MeterEI6500 : public virtual MeterCommonImplementation
 {
     MeterEI6500(MeterInfo &mi);
 
@@ -69,8 +69,10 @@ private:
 };
 
 MeterEI6500::MeterEI6500(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EI6500)
+    MeterCommonImplementation(mi, "ei6500")
 {
+    setMeterType(MeterType::SmokeDetector);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::C1);
@@ -124,9 +126,9 @@ MeterEI6500::MeterEI6500(MeterInfo &mi) :
              true, true);
 }
 
-shared_ptr<SmokeDetector> createEI6500(MeterInfo &mi)
+shared_ptr<Meter> createEI6500(MeterInfo &mi)
 {
-    return shared_ptr<SmokeDetector>(new MeterEI6500(mi));
+    return shared_ptr<Meter>(new MeterEI6500(mi));
 }
 
 bool MeterEI6500::smokeDetected()

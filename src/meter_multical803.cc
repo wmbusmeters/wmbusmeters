@@ -31,7 +31,7 @@
 #define INFO_CODE_SENSOR_T2_BELOW_MEASURING_RANGE 64
 #define INFO_CODE_TEMP_DIFF_WRONG_POLARITY 128
 
-struct MeterMultical803 : public virtual HeatMeter, public virtual MeterCommonImplementation {
+struct MeterMultical803 : public virtual MeterCommonImplementation {
     MeterMultical803(MeterInfo &mi);
 
     double totalEnergyConsumption(Unit u);
@@ -63,8 +63,10 @@ private:
 };
 
 MeterMultical803::MeterMultical803(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::MULTICAL803)
+    MeterCommonImplementation(mi, "multical803")
 {
+    setMeterType(MeterType::HeatMeter);
+
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
 
     addLinkMode(LinkMode::C1);
@@ -115,8 +117,8 @@ MeterMultical803::MeterMultical803(MeterInfo &mi) :
              false, true);
 }
 
-shared_ptr<HeatMeter> createMultical803(MeterInfo &mi) {
-    return shared_ptr<HeatMeter>(new MeterMultical803(mi));
+shared_ptr<Meter> createMultical803(MeterInfo &mi) {
+    return shared_ptr<Meter>(new MeterMultical803(mi));
 }
 
 double MeterMultical803::totalEnergyConsumption(Unit u)

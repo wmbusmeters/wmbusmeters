@@ -24,7 +24,7 @@
 
 using namespace std;
 
-struct MeterUltrimis : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterUltrimis : public virtual MeterCommonImplementation {
     MeterUltrimis(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -44,14 +44,16 @@ private:
     string status();
 };
 
-shared_ptr<WaterMeter> createUltrimis(MeterInfo &mi)
+shared_ptr<Meter> createUltrimis(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterUltrimis(mi));
+    return shared_ptr<Meter>(new MeterUltrimis(mi));
 }
 
 MeterUltrimis::MeterUltrimis(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::ULTRIMIS)
+    MeterCommonImplementation(mi, "ultrimis")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);

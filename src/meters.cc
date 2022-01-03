@@ -29,6 +29,27 @@
 #include<time.h>
 #include<cmath>
 
+
+map<string, DriverInfo> all_drivers_;
+
+DriverInfo addDriver(string n,
+                     LinkModeSet lms,
+                     MeterType t,
+                     function<shared_ptr<Meter>(MeterInfo&)> constructor,
+                     vector<DriverDetect> d)
+{
+    assert(all_drivers_.count(n) == 0); // A driver must have a unique name.
+
+    DriverInfo di = { n, lms, t, constructor, d };
+    all_drivers_[n] = di;
+
+    // This code is invoked from the static initializers of DriverInfos when starting
+    // wmbusmeters. Thus we do not yet know if the user has supplied --debug or similar setting.
+    // To debug this you have to uncomment the printf below.
+    // fprintf(stderr, "(STATIC) added driver: %s\n", n.c_str());
+    return di;
+}
+
 struct MeterManagerImplementation : public virtual MeterManager
 {
 private:
@@ -371,14 +392,14 @@ LIST_OF_METERS
             {
                 if (best_driver != auto_driver)
                 {
-                    printf("The automatic driver selection picks \"%s\" based on mfct/type/version!\n", ad.c_str());
-                    printf("BUT the driver which matches most of the content is %s with %d/%d content bytes understood.\n",
+                    printf("\nUsing driver \"%s\" based on mfct/type/version driver lookup table.\n", ad.c_str());
+                    printf("But a better match could perhaps be driver \"%s\" with %d/%d content bytes understood.\n",
                            bd.c_str(), best_understood_content_length, best_content_length);
                     mi.driver = auto_driver;
                 }
                 else
                 {
-                    printf("The automatic driver selection picked \"%s\" based on mfct/type/version!\n", ad.c_str());
+                    printf("\nUsing driver \"%s\" based on mfct/type/version driver lookup table.\n", ad.c_str());
                     printf("Which is also the best matching driver with %d/%d content bytes understood.\n",
                            best_understood_content_length, best_content_length);
                     mi.driver = best_driver;
@@ -386,9 +407,9 @@ LIST_OF_METERS
             }
             else
             {
-                printf("No automatic driver selection could be found based on mfct/type/version!\n");
-                printf("The driver which matches most of the content is %s with %d/%d content bytes understood.\n",
+                printf("\nUsing driver \"%s\" based on best content match with %d/%d content bytes understood.\n",
                        bd.c_str(), best_understood_content_length, best_content_length);
+                printf("The mfct/type/version combo was not found in the driver lookup table.\n");
                 mi.driver = best_driver;
             }
 
@@ -419,7 +440,7 @@ shared_ptr<MeterManager> createMeterManager(bool daemon)
 }
 
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
-                                                     MeterDriver driver) :
+                                                     string driver) :
     driver_(driver), bus_(mi.bus), name_(mi.name)
 {
     ids_ = mi.ids;
@@ -467,7 +488,13 @@ vector<string> &MeterCommonImplementation::meterExtraConstantFields()
 
 MeterDriver MeterCommonImplementation::driver()
 {
-    return driver_;
+    return toMeterDriver(driver_);
+
+}
+
+void MeterCommonImplementation::setMeterType(MeterType mt)
+{
+    type_ = mt;
 }
 
 void MeterCommonImplementation::addLinkMode(LinkMode lm)
@@ -987,6 +1014,46 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     return true;
 }
 
+string MeterCommonImplementation::renderJsonField(string vname)
+{
+    Print *found = NULL;
+    for (Print &p : prints_)
+    {
+        if (p.vname == vname)
+        {
+            found = &p;
+            break;
+        }
+    }
+
+    if (!found) return "ERROR addPrint is missing for \""+vname+"\"";
+
+    return renderJsonField(found);
+}
+
+string MeterCommonImplementation::renderJsonField(Print *p)
+{
+    string s;
+
+    string default_unit = unitToStringLowerCase(p->default_unit);
+    string var = p->vname;
+    if (p->getValueString) {
+        s += "\""+var+"\":\""+p->getValueString()+"\"";
+    }
+    if (p->getValueDouble) {
+        s += "\""+var+"_"+default_unit+"\":"+valueToString(p->getValueDouble(p->default_unit), p->default_unit);
+
+        Unit u = replaceWithConversionUnit(p->default_unit, conversions_);
+        if (u != p->default_unit)
+        {
+            string unit = unitToStringLowerCase(u);
+            // Appending extra conversion unit.
+            s += ",\""+var+"_"+unit+"\":"+valueToString(p->getValueDouble(u), u);
+        }
+    }
+    return s;
+}
+
 void MeterCommonImplementation::printMeter(Telegram *t,
                                            string *human_readable,
                                            string *fields, char separator,
@@ -1025,25 +1092,11 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     {
         s += "\"id\":\"\",";
     }
-    for (Print p : prints_)
+    for (Print& p : prints_)
     {
         if (p.json)
         {
-            string default_unit = unitToStringLowerCase(p.default_unit);
-            string var = p.vname;
-            if (p.getValueString) {
-                s += "\""+var+"\":\""+p.getValueString()+"\",";
-            }
-            if (p.getValueDouble) {
-                s += "\""+var+"_"+default_unit+"\":"+valueToString(p.getValueDouble(p.default_unit), p.default_unit)+",";
-
-                Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
-                if (u != p.default_unit)
-                {
-                    string unit = unitToStringLowerCase(u);
-                    s += "\""+var+"_"+unit+"\":"+valueToString(p.getValueDouble(u), u)+",";
-                }
-            }
+            s += renderJsonField(&p)+",";
         }
     }
     s += "\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
@@ -1126,62 +1179,6 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         envs->push_back(string("METER_")+extra_field);
     }
 }
-
-double WaterMeter::totalWaterConsumption(Unit u) { return -NAN; }
-bool  WaterMeter::hasTotalWaterConsumption() { return false; }
-double WaterMeter::targetWaterConsumption(Unit u) { return -NAN; }
-bool  WaterMeter::hasTargetWaterConsumption() { return false; }
-double WaterMeter::maxFlow(Unit u) { return -NAN; }
-bool  WaterMeter::hasMaxFlow() { return false; }
-double WaterMeter::flowTemperature(Unit u) { return -NAN; }
-bool WaterMeter::hasFlowTemperature() { return false; }
-double WaterMeter::externalTemperature(Unit u) { return -NAN; }
-bool WaterMeter::hasExternalTemperature() { return false; }
-
-string WaterMeter::statusHumanReadable() { return "-NAN"; }
-string WaterMeter::status() { return "-NAN"; }
-string WaterMeter::timeDry() { return "-NAN"; }
-string WaterMeter::timeReversed() { return "-NAN"; }
-string WaterMeter::timeLeaking() { return "-NAN"; }
-string WaterMeter::timeBursting() { return "-NAN"; }
-
-double GasMeter::totalGasConsumption(Unit u) { return -NAN; }
-bool  GasMeter::hasTotalGasConsumption() { return false; }
-double GasMeter::targetGasConsumption(Unit u) { return -NAN; }
-bool  GasMeter::hasTargetGasConsumption() { return false; }
-double GasMeter::maxFlow(Unit u) { return -NAN; }
-bool  GasMeter::hasMaxFlow() { return false; }
-double GasMeter::flowTemperature(Unit u) { return -NAN; }
-bool GasMeter::hasFlowTemperature() { return false; }
-double GasMeter::externalTemperature(Unit u) { return -NAN; }
-bool GasMeter::hasExternalTemperature() { return false; }
-
-string GasMeter::statusHumanReadable() { return "-NAN"; }
-string GasMeter::status() { return "-NAN"; }
-string GasMeter::timeDry() { return "-NAN"; }
-string GasMeter::timeReversed() { return "-NAN"; }
-string GasMeter::timeLeaking() { return "-NAN"; }
-string GasMeter::timeBursting() { return "-NAN"; }
-
-double HeatMeter::totalEnergyConsumption(Unit u) { return -NAN; }
-double HeatMeter::currentPeriodEnergyConsumption(Unit u) { return -NAN; }
-double HeatMeter::previousPeriodEnergyConsumption(Unit u) { return -NAN; }
-double HeatMeter::currentPowerConsumption(Unit u) { return -NAN; }
-double HeatMeter::totalVolume(Unit u) { return -NAN; }
-
-double ElectricityMeter::totalEnergyConsumption(Unit u) { return -NAN; }
-double ElectricityMeter::totalEnergyProduction(Unit u) { return -NAN; }
-double ElectricityMeter::totalReactiveEnergyConsumption(Unit u) { return -NAN; }
-double ElectricityMeter::totalReactiveEnergyProduction(Unit u) { return -NAN; }
-double ElectricityMeter::totalApparentEnergyConsumption(Unit u) { return -NAN; }
-double ElectricityMeter::totalApparentEnergyProduction(Unit u) { return -NAN; }
-
-double ElectricityMeter::currentPowerConsumption(Unit u) { return -NAN; }
-double ElectricityMeter::currentPowerProduction(Unit u) { return -NAN; }
-
-double HeatCostAllocationMeter::currentConsumption(Unit u) { return -NAN; }
-string HeatCostAllocationMeter::setDate() { return "NAN"; }
-double HeatCostAllocationMeter::consumptionAtSetDate(Unit u) { return -NAN; }
 
 void MeterCommonImplementation::setExpectedTPLSecurityMode(TPLSecurityMode tsm)
 {

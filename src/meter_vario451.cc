@@ -23,7 +23,7 @@
 #include"units.h"
 #include"util.h"
 
-struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImplementation
+struct MeterVario451 : public virtual MeterCommonImplementation
 {
     MeterVario451(MeterInfo &mi);
 
@@ -40,14 +40,16 @@ struct MeterVario451 : public virtual HeatMeter, public virtual MeterCommonImple
     double prev_energy_gj_ {};
 };
 
-shared_ptr<HeatMeter> createVario451(MeterInfo &mi)
+shared_ptr<Meter> createVario451(MeterInfo &mi)
 {
-    return shared_ptr<HeatMeter>(new MeterVario451(mi));
+    return shared_ptr<Meter>(new MeterVario451(mi));
 }
 
 MeterVario451::MeterVario451(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::VARIO451)
+    MeterCommonImplementation(mi, "vario451")
 {
+    setMeterType(MeterType::HeatMeter);
+
     // media 0x04 C telegrams
     // media 0xC3 T telegrams
 

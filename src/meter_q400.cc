@@ -24,7 +24,7 @@
 
 using namespace std;
 
-struct MeterQ400 : public virtual WaterMeter, public virtual MeterCommonImplementation {
+struct MeterQ400 : public virtual MeterCommonImplementation {
     MeterQ400(MeterInfo &mi);
 
     // Total water counted through the meter
@@ -53,14 +53,16 @@ private:
     double set_backward_flow_m3h_ {};
 };
 
-shared_ptr<WaterMeter> createQ400(MeterInfo &mi)
+shared_ptr<Meter> createQ400(MeterInfo &mi)
 {
-    return shared_ptr<WaterMeter>(new MeterQ400(mi));
+    return shared_ptr<Meter>(new MeterQ400(mi));
 }
 
 MeterQ400::MeterQ400(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::Q400)
+    MeterCommonImplementation(mi, "q400")
 {
+    setMeterType(MeterType::WaterMeter);
+
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
