@@ -265,6 +265,11 @@ Received telegram from: 20100117
                   type: Electricity meter (0x02)
                    ver: 0x01
                 driver: gransystems
+Received telegram from: 72615127
+          manufacturer: (DME) DIEHL Metering, Germany (0x11a5)
+                  type: Heat meter (0x04) encrypted
+                   ver: 0x41
+                driver: sharky774
 Received telegram from: 68926025
           manufacturer: (HYD) Hydrometer (0x2324)
                   type: Heat meter (0x04) encrypted
