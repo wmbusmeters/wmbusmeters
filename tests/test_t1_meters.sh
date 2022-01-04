@@ -55,6 +55,7 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       Voda        ev200       99993030 NOKEY
       Vodda       emerlin868  95949392 NOKEY
       Smokey      tsd2        91633569 NOKEY
+      Sharky774   sharky774   72615127 NOKEY
       Sharky775   sharky      68926025 NOKEY
       Heating     compact5    62626262 NOKEY
       Hetta       elf         01885619 NOKEY
