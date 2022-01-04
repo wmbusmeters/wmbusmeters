@@ -247,6 +247,11 @@ telegram=||9e44731e17011020010278046d0813bc2104030000000084100300000000842003000
 {"media":"electricity","meter":"gransystems","name":"Gran301","id":"20100117","total_energy_consumption_kwh":0,"voltage_at_phase_1_v":234.1,"voltage_at_phase_2_v":0,"voltage_at_phase_3_v":0,"currrent_at_phase_1_a":0,"currrent_at_phase_2_a":0,"currrent_at_phase_3_a":0,"frequency_hz":50,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |Gran301;20100117;0.000000;234.100000;0.000000;0.000000;0.000000;0.000000;0.000000;50.000000;OK;1111-11-11 11:11.11
 
+# Test Hydrometer/Diehl Metering Sharky 774 heat meter
+telegram=||5E44A5112751617241047A8B0050052F2F0C0E000000000C13010000000B3B0000000C2B000000000A5A26020A5E18020B260321000AA6180000C2026CBE2BCC020E00000000CC021301000000DB023B000000DC022B000000002F2F2F2F2F|
+{"media":"heat","meter":"sharky774","name":"Sharky774","id":"72615127","total_energy_consumption_kwh":0,"total_volume_m3":0.001,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":22.6,"return_temperature_c":21.8,"temperature_difference_c":0.8,"timestamp":"1111-11-11T11:11:11Z"}
+|Sharky774;72615127;0.000000;0.001000;0.000000;0.000000;22.600000;21.800000;0.800000;1111-11-11 11:11.11
+
 # Test Hydrometer/Diehl Metering Sharky 775 heat meter
 telegram=|534424232004256092687A370045752235854DEEEA5939FAD81C25FEEF5A23C38FB9168493C563F08DB10BAF87F660FBA91296BA2397E8F4220B86D3A192FB51E0BFCF24DCE72118E0C75A9E89F43BDFE370824B|
 {"media":"heat","meter":"sharky","name":"Sharky775","id":"68926025","total_energy_consumption_kwh":2651,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":150.347,"total_volume_m3":0.018,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":42.3,"return_temperature_c":28.1,"temperature_difference_c":14.1,"timestamp":"1111-11-11T11:11:11Z"}
