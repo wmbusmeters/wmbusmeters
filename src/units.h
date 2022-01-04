@@ -23,7 +23,6 @@
 
 #define LIST_OF_QUANTITIES   \
     X(Energy,KWH)            \
-    X(EnergyGJ,GJ)           \
     X(Reactive_Energy,KVARH) \
     X(Apparent_Energy,KVAH)  \
     X(Power,KW)              \

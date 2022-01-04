@@ -50,7 +50,7 @@ MeterSharky774::MeterSharky774(MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    addPrint("total_energy_consumption", Quantity::EnergyGJ,
+    addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
              true, true);
