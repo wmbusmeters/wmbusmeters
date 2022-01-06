@@ -27,7 +27,7 @@
 
 struct MeterLansenDW : public virtual MeterCommonImplementation
 {
-    MeterLansenDW(MeterInfo &mi);
+    MeterLansenDW(MeterInfo &mi, DriverInfo &di);
 
 private:
 
@@ -40,16 +40,17 @@ private:
     double pulse_counter_b_ {};
 };
 
-static DriverInfo di = addDriver(
-    "lansendw",
-    T1_bit,
-    MeterType::DoorWindowDetector,
-    [](MeterInfo& mi){ return shared_ptr<Meter>(new MeterLansenDW(mi)); },
-    { { MANUFACTURER_LAS,  0x1d,  0x07 } }
-    );
+static bool ok = registerDriver([](DriverInfo&di)
+{
+    di.setName("lansendw");
+    di.setMeterType(MeterType::DoorWindowDetector);
+    di.addLinkMode(LinkMode::T1);
+    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterLansenDW(mi, di)); });
+    di.addDetection(MANUFACTURER_LAS,  0x1d,  0x07);
+});
 
-MeterLansenDW::MeterLansenDW(MeterInfo &mi) :
-    MeterCommonImplementation(mi, "lansendw")
+MeterLansenDW::MeterLansenDW(MeterInfo &mi, DriverInfo &di) :
+    MeterCommonImplementation(mi, di)
 {
     setMeterType(MeterType::DoorWindowDetector);
 
@@ -62,6 +63,12 @@ MeterLansenDW::MeterLansenDW(MeterInfo &mi) :
              "The current status: OPEN or CLOSED.",
              true, true);
 
+    /*
+    addPrint("statuss", Quantity::Text,
+             [&](){ return status(); },
+             "The current status: OPEN or CLOSED.",
+             true, true);
+    */
     addPrint("counter_a", Quantity::Counter,
              [&](Unit u) { assertQuantity(u, Quantity::Counter); return pulse_counter_a_; },
              "How many times the door/window has been opened or closed.",
@@ -76,7 +83,9 @@ MeterLansenDW::MeterLansenDW(MeterInfo &mi) :
 
 shared_ptr<Meter> createLansenDW(MeterInfo &mi)
 {
-    return shared_ptr<Meter>(new MeterLansenDW(mi));
+    DriverInfo di;
+    di.setName("lansendw");
+    return shared_ptr<Meter>(new MeterLansenDW(mi, di));
 }
 
 
@@ -127,17 +136,17 @@ void MeterLansenDW::processContent(Telegram *t)
 
     if (extractDVuint16(&t->values, "02FD1B", &offset, &info_codes_))
     {
-        t->addMoreExplanation(offset, renderJsonField("status"));
+        t->addMoreExplanation(offset, renderJsonOnlyDefaultUnit("status"));
     }
 
     if (extractDVdouble(&t->values, "0EFD3A", &offset, &pulse_counter_a_, false))
     {
-        t->addMoreExplanation(offset, renderJsonField("counter_a"));
+        t->addMoreExplanation(offset, renderJsonOnlyDefaultUnit("counter_a"));
     }
 
     if (extractDVdouble(&t->values, "8E40FD3A", &offset, &pulse_counter_b_, false))
     {
-        t->addMoreExplanation(offset, renderJsonField("counter_b"));
+        t->addMoreExplanation(offset, renderJsonOnlyDefaultUnit("counter_b"));
     }
 }
 

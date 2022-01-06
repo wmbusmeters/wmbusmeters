@@ -28,24 +28,27 @@ using namespace std;
 
 
 struct MeterUnknown : public virtual MeterCommonImplementation {
-    MeterUnknown(MeterInfo &mi);
+    MeterUnknown(MeterInfo &mi, DriverInfo &di);
 
-    string meter_info_;
     void processContent(Telegram *t);
 };
 
-MeterUnknown::MeterUnknown(MeterInfo &mi) :
-    MeterCommonImplementation(mi, "auto")
+static bool ok = registerDriver([](DriverInfo&di)
 {
-    addPrint("meter_info", Quantity::Text,
-             [&](){ return meter_info_; },
-             "Information about the meter telegram.",
-             true, true);
+    di.setName("unknown");
+    di.setMeterType(MeterType::UnknownMeter);
+    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterUnknown(mi, di)); });
+});
+
+MeterUnknown::MeterUnknown(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+{
 }
 
 shared_ptr<Meter> createUnknown(MeterInfo &mi)
 {
-    return shared_ptr<Meter>(new MeterUnknown(mi));
+    DriverInfo di;
+    di.setName("unknown");
+    return shared_ptr<Meter>(new MeterUnknown(mi, di));
 }
 
 void MeterUnknown::processContent(Telegram *t)

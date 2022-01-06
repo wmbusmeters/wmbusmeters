@@ -45,9 +45,7 @@ MeterPIIGTH::MeterPIIGTH(MeterInfo &mi) :
 {
     setMeterType(MeterType::TempHygroMeter);
 
-    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
-
-    addLinkMode(LinkMode::T1);
+    addLinkMode(LinkMode::MBUS);
 
     addPrint("current_temperature", Quantity::Temperature,
              [&](Unit u){ return currentTemperature(u); },

@@ -8,9 +8,7 @@ TEST=testoutput
 TESTNAME="Test meter with unknown driver"
 TESTRESULT="ERROR"
 
-METERS="Dorren lansendw 00010205 NOKEY
-Forren lansensm 00010206 NOKEY
-"
+METERS="Dorren lansendw 00010205 NOKEY Forren lansensm 00010206 NOKEY"
 
 cat > $TEST/test_expected.txt <<EOF
 (meter) Dorren: meter detection did not match the selected driver lansendw! correct driver is: unknown!

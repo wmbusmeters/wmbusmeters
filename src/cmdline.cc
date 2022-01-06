@@ -621,7 +621,11 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         MeterInfo mi;
         mi.parse(name, driver, id, key);
 
-        if (mi.driver == MeterDriver::UNKNOWN) error("Not a valid meter driver \"%s\"\n", driver.c_str());
+        if (mi.driver == MeterDriver::UNKNOWN &&
+            mi.driver_name.str() == "")
+        {
+            error("Not a valid meter driver \"%s\"\n", driver.c_str());
+        }
 
         LinkModeSet default_modes = toMeterLinkModeSet(mi.driver);
 

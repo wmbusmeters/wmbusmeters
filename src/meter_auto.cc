@@ -26,26 +26,28 @@
 
 using namespace std;
 
-
 struct MeterAuto : public virtual MeterCommonImplementation {
-    MeterAuto(MeterInfo &mi);
+    MeterAuto(MeterInfo &mi, DriverInfo &di);
 
-    string meter_info_;
     void processContent(Telegram *t);
 };
 
-MeterAuto::MeterAuto(MeterInfo &mi) :
-    MeterCommonImplementation(mi, "auto")
+bool ok = registerDriver([](DriverInfo&di)
 {
-    addPrint("meter_info", Quantity::Text,
-             [&](){ return meter_info_; },
-             "Information about the meter telegram.",
-             true, true);
+    di.setName("auto");
+    di.setMeterType(MeterType::AutoMeter);
+    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterAuto(mi, di)); });
+});
+
+MeterAuto::MeterAuto(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+{
 }
 
 shared_ptr<Meter> createAuto(MeterInfo &mi)
 {
-    return shared_ptr<Meter>(new MeterAuto(mi));
+    DriverInfo di;
+    di.setName("auto");
+    return shared_ptr<Meter>(new MeterAuto(mi, di));
 }
 
 void MeterAuto::processContent(Telegram *t)

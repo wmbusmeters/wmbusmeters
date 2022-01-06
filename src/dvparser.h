@@ -28,31 +28,78 @@
 #include<vector>
 
 #define LIST_OF_VALUETYPES \
-    X(Volume,0x10,0x17)       \
-    X(OperatingTime,0x24,0x27) \
-    X(VolumeFlow,0x38,0x3F) \
-    X(FlowTemperature,0x58,0x5B) \
-    X(ReturnTemperature,0x5C,0x5F) \
-    X(TemperatureDifference,0x60,0x63) \
-    X(ExternalTemperature,0x64,0x67) \
-    X(HeatCostAllocation,0x6E,0x6E) \
-    X(Date,0x6C,0x6C) \
-    X(DateTime,0x6D,0x6D) \
-    X(EnergyMJ,0x0E,0x0F) \
-    X(EnergyWh,0x00,0x07) \
-    X(PowerW,0x28,0x2f) \
-    X(ActualityDuration,0x74,0x77) \
+    X(Volume,0x10,0x17,Quantity::Volume) \
+    X(OperatingTime,0x24,0x27, Quantity::Time) \
+    X(VolumeFlow,0x38,0x3F, Quantity::Flow) \
+    X(FlowTemperature,0x58,0x5B, Quantity::Temperature) \
+    X(ReturnTemperature,0x5C,0x5F, Quantity::Temperature) \
+    X(TemperatureDifference,0x60,0x63, Quantity::Temperature) \
+    X(ExternalTemperature,0x64,0x67, Quantity::Temperature) \
+    X(HeatCostAllocation,0x6E,0x6E, Quantity::HCA) \
+    X(Date,0x6C,0x6C, Quantity::PointInTime) \
+    X(DateTime,0x6D,0x6D, Quantity::PointInTime) \
+    X(EnergyMJ,0x0E,0x0F, Quantity::Energy) \
+    X(EnergyWh,0x00,0x07, Quantity::Energy) \
+    X(PowerW,0x28,0x2f, Quantity::Power) \
+    X(ActualityDuration,0x74,0x77, Quantity::Time)  \
 
 enum class ValueInformation
 {
     None,
-#define X(name,from,to) name,
+    Any,
+#define X(name,from,to,quantity) name,
 LIST_OF_VALUETYPES
 #undef X
 };
 
 const char *toString(ValueInformation v);
 ValueInformation toValueInformation(int i);
+
+struct DifVifKey
+{
+    DifVifKey(string key) : key_(key) {}
+    string str() { return key_; }
+    bool useSearchInstead() { return key_ == ""; }
+
+private:
+
+    string key_;
+};
+
+static DifVifKey NoDifVifKey = DifVifKey("");
+
+struct StorageNr
+{
+    StorageNr(int n) : nr_(n) {}
+    int intValue() { return nr_; }
+
+private:
+    int nr_;
+};
+
+static StorageNr AnyStorageNr = StorageNr(-1);
+
+struct TariffNr
+{
+    TariffNr(int n) : nr_(n) {}
+    int intValue() { return nr_; }
+
+private:
+    int nr_;
+};
+
+static TariffNr AnyTariffNr = TariffNr(-1);
+
+struct IndexNr
+{
+    IndexNr(int n) : nr_(n) {}
+    int intValue() { return nr_; }
+
+private:
+    int nr_;
+};
+
+static IndexNr AnyIndexNr = IndexNr(-1);
 
 bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes);
 
@@ -74,7 +121,7 @@ bool findKey(MeasurementType mt, ValueInformation vi, int storagenr, int tariffn
 // Some meters have multiple identical DIF/VIF values! Meh, they are not using storage nrs or tariff nrs.
 // So here we can pick for example nr 2 of an identical set if DIF/VIF values.
 // Nr 1 means the first found value.
-bool findKeyWithNr(MeasurementType mt, ValueInformation vi, int storagenr, int tariffnr, int nr,
+bool findKeyWithNr(MeasurementType mt, ValueInformation vi, int storagenr, int tariffnr, int indexnr,
                    std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
 
 #define ANY_STORAGENR -1

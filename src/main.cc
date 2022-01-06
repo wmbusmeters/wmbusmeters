@@ -214,7 +214,7 @@ void list_fields(Configuration *config, string meter_driver)
     int width = 13; // Width of timestamp_utc
     for (auto &p : meter->prints())
     {
-        if ((int)p.field_name.size() > width) width = p.field_name.size();
+        if ((int)p.fieldName().size() > width) width = p.fieldName().size();
     }
 
     string id = padLeft("id", width);
@@ -239,9 +239,9 @@ void list_fields(Configuration *config, string meter_driver)
     printf("%s  The rssi for the received telegram as reported by the device.\n", rssi.c_str());
     for (auto &p : meter->prints())
     {
-        if (p.vname == "") continue;
-        string fn = padLeft(p.field_name, width);
-        printf("%s  %s\n", fn.c_str(), p.help.c_str());
+        if (p.vname() == "") continue;
+        string fn = padLeft(p.fieldName(), width);
+        printf("%s  %s\n", fn.c_str(), p.help().c_str());
     }
 }
 
@@ -254,6 +254,17 @@ void list_meters(Configuration *config)
             printf("%-14s %s\n", #mname, #info);
 LIST_OF_METERS
 #undef X
+
+    for (DriverInfo &di : allRegisteredDrivers())
+    {
+        string mname = di.name().str();
+        const char *info = toString(di.type());
+
+        if (config->list_meters_search == "" ||                      \
+            stringFoundCaseIgnored(info, config->list_meters_search) || \
+            stringFoundCaseIgnored(mname.c_str(), config->list_meters_search)) \
+            printf("%-14s %s\n", mname.c_str(), info);
+    }
 }
 
 struct TmpUnit

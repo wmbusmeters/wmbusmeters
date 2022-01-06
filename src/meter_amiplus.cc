@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2020 Fredrik Öhrström
+ Copyright (C) 2019-2021 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -22,153 +22,164 @@
 #include"wmbus_utils.h"
 #include"util.h"
 
-struct MeterAmiplus : public virtual MeterCommonImplementation {
-    MeterAmiplus(MeterInfo &mi);
-
-    double totalEnergyConsumption(Unit u);
-    double currentPowerConsumption(Unit u);
-    double totalEnergyProduction(Unit u);
-    double currentPowerProduction(Unit u);
+struct MeterAmiplus : public virtual MeterCommonImplementation
+{
+    MeterAmiplus(MeterInfo &mi, DriverInfo &di);
 
 private:
 
-    void processContent(Telegram *t);
-
-    double total_energy_kwh_ {};
-    double current_power_kw_ {};
-    double total_energy_returned_kwh_ {};
-    double current_power_returned_kw_ {};
-    double voltage_L_[3]{0, 0, 0};
-
+    double total_energy_consumption_kwh_ {};
+    double current_power_consumption_kw_ {};
+    double total_energy_production_kwh_ {};
+    double current_power_production_kw_ {};
+    double phase_1_v_ {};
+    double phase_2_v_ {};
+    double phase_3_v_ {};
     string device_date_time_;
 };
 
-MeterAmiplus::MeterAmiplus(MeterInfo &mi) :
-    MeterCommonImplementation(mi, "amiplus")
+static bool ok = registerDriver([](DriverInfo&di)
 {
-    setMeterType(MeterType::ElectricityMeter);
+    di.setName("amiplus");
+    di.setMeterType(MeterType::ElectricityMeter);
+    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
+    di.addLinkMode(LinkMode::T1);
+    di.addDetection(MANUFACTURER_APA,  0x02,  0x02);
+    di.addDetection(MANUFACTURER_DEV,  0x37,  0x02);
+    di.addDetection(MANUFACTURER_DEV,  0x02,  0x00);
+    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterAmiplus(mi, di)); });
+});
 
-    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
+MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+{
+    addFieldWithExtractor(
+        "total_energy_consumption",
+        Quantity::Energy,
+        NoDifVifKey,
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        ValueInformation::EnergyWh,
+        StorageNr(0),
+        TariffNr(0),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+        "The total energy consumption recorded by this meter.",
+        SET_FUNC(total_energy_consumption_kwh_, Unit::KWH),
+        GET_FUNC(total_energy_consumption_kwh_, Unit::KWH));
 
-    addLinkMode(LinkMode::T1);
+    addFieldWithExtractor(
+        "current_power_consumption",
+        Quantity::Power,
+        NoDifVifKey,
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        ValueInformation::PowerW,
+        StorageNr(0),
+        TariffNr(0),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+        "Current power consumption.",
+        SET_FUNC(current_power_consumption_kw_, Unit::KW),
+        GET_FUNC(current_power_consumption_kw_, Unit::KW));
 
-    addPrint("total_energy_consumption", Quantity::Energy,
-             [&](Unit u){ return totalEnergyConsumption(u); },
-             "The total energy consumption recorded by this meter.",
-             true, true);
+    addFieldWithExtractor(
+        "total_energy_production",
+        Quantity::Energy,
+        DifVifKey("0E833C"),
+        VifScaling::Auto,
+        MeasurementType::Unknown,
+        ValueInformation::None,
+        AnyStorageNr,
+        AnyTariffNr,
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+        "The total energy production recorded by this meter.",
+        SET_FUNC(total_energy_production_kwh_, Unit::KWH),
+        GET_FUNC(total_energy_production_kwh_, Unit::KWH));
 
-    addPrint("current_power_consumption", Quantity::Power,
-             [&](Unit u){ return currentPowerConsumption(u); },
-             "Current power consumption.",
-             true, true);
+    addFieldWithExtractor(
+        "current_power_production",
+        Quantity::Power,
+        DifVifKey("0BAB3C"),
+        VifScaling::Auto,
+        MeasurementType::Unknown,
+        ValueInformation::Any,
+        AnyStorageNr,
+        AnyTariffNr,
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+        "Current power production.",
+        SET_FUNC(current_power_production_kw_, Unit::KW),
+        GET_FUNC(current_power_production_kw_, Unit::KW));
 
-    addPrint("total_energy_production", Quantity::Energy,
-             [&](Unit u){ return totalEnergyProduction(u); },
-             "The total energy production recorded by this meter.",
-             true, true);
+    addFieldWithExtractor(
+        "voltage_at_phase_1",
+        Quantity::Voltage,
+        DifVifKey("0AFDC9FC01"),
+        VifScaling::None,
+        MeasurementType::Unknown,
+        ValueInformation::Any,
+        AnyStorageNr,
+        AnyTariffNr,
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+        "Voltage at phase L1.",
+        SET_FUNC(phase_1_v_, Unit::Volt),
+        GET_FUNC(phase_1_v_, Unit::Volt));
 
-    addPrint("current_power_production", Quantity::Power,
-             [&](Unit u){ return currentPowerProduction(u); },
-             "Current power production.",
-             true, true);
+    addFieldWithExtractor(
+        "voltage_at_phase_2",
+        Quantity::Voltage,
+        DifVifKey("0AFDC9FC02"),
+        VifScaling::None,
+        MeasurementType::Unknown,
+        ValueInformation::Any,
+        AnyStorageNr,
+        AnyTariffNr,
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+        "Voltage at phase L2.",
+        SET_FUNC(phase_2_v_, Unit::Volt),
+        GET_FUNC(phase_2_v_, Unit::Volt));
 
-    addPrint("voltage_at_phase_1", Quantity::Voltage,
-	     [&](Unit u){ return convert(voltage_L_[0], Unit::Volt, u); },
-	     "Voltage at phase L1.",
-	     true, true);
+    addFieldWithExtractor(
+        "voltage_at_phase_3",
+        Quantity::Voltage,
+        DifVifKey("0AFDC9FC03"),
+        VifScaling::None,
+        MeasurementType::Unknown,
+        ValueInformation::Any,
+        AnyStorageNr,
+        AnyTariffNr,
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+        "Voltage at phase L3.",
+        SET_FUNC(phase_3_v_, Unit::Volt),
+        GET_FUNC(phase_3_v_, Unit::Volt));
 
-    addPrint("voltage_at_phase_2", Quantity::Voltage,
-	     [&](Unit u){ return convert(voltage_L_[1], Unit::Volt, u); },
-	     "Voltage at phase L2.",
-	     true, true);
-
-    addPrint("voltage_at_phase_3", Quantity::Voltage,
-	     [&](Unit u){ return convert(voltage_L_[2], Unit::Volt, u); },
-	     "Voltage at phase L3.",
-	     true, true);
-
-    addPrint("device_date_time", Quantity::Text,
-             [&](){ return device_date_time_; },
-             "Device date time.",
-             false, true);
+    addStringFieldWithExtractor(
+        "device_date_time",
+        Quantity::Text,
+        NoDifVifKey,
+        MeasurementType::Instantaneous,
+        ValueInformation::DateTime,
+        StorageNr(0),
+        TariffNr(0),
+        IndexNr(1),
+        PrintProperty::JSON,
+        "Device date time.",
+        SET_STRING_FUNC(device_date_time_),
+        GET_STRING_FUNC(device_date_time_));
 }
 
-shared_ptr<Meter> createAmiplus(MeterInfo &mi)
-{
-    return shared_ptr<Meter>(new MeterAmiplus(mi));
-}
+// Test: MyElectricity1 amiplus 10101010 NOKEY
+// telegram=|4E4401061010101002027A00004005|2F2F0E035040691500000B2B300300066D00790C7423400C78371204860BABC8FC100000000E833C8074000000000BAB3C0000000AFDC9FC0136022F2F2F2F2F|
+// {"media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.05,"current_power_consumption_kw":0.33,"total_energy_production_kwh":7.48,"current_power_production_kw":0,"voltage_at_phase_1_v":236,"voltage_at_phase_2_v":0,"voltage_at_phase_3_v":0,"device_date_time":"2019-03-20 12:57","timestamp":"1111-11-11T11:11:11Z"}
+// |MyElectricity1;10101010;15694.050000;0.330000;7.480000;0.000000;236.000000;0.000000;0.000000;1111-11-11 11:11.11
 
-double MeterAmiplus::totalEnergyConsumption(Unit u)
-{
-    assertQuantity(u, Quantity::Energy);
-    return convert(total_energy_kwh_, Unit::KWH, u);
-}
+// Test: MyElectricity2 amiplus 00254358 NOKEY
+// amiplus/apator electricity meter with three phase voltages
 
-double MeterAmiplus::currentPowerConsumption(Unit u)
-{
-    assertQuantity(u, Quantity::Power);
-    return convert(current_power_kw_, Unit::KW, u);
-}
-
-double MeterAmiplus::totalEnergyProduction(Unit u)
-{
-    assertQuantity(u, Quantity::Energy);
-    return convert(total_energy_returned_kwh_, Unit::KWH, u);
-}
-
-double MeterAmiplus::currentPowerProduction(Unit u)
-{
-    assertQuantity(u, Quantity::Power);
-    return convert(current_power_returned_kw_, Unit::KW, u);
-}
-
-void MeterAmiplus::processContent(Telegram *t)
-{
-    int offset;
-    string key;
-
-    if (findKey(MeasurementType::Unknown, ValueInformation::EnergyWh, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
-        t->addMoreExplanation(offset, " total energy (%f kwh)", total_energy_kwh_);
-    }
-
-    if (findKey(MeasurementType::Unknown, ValueInformation::PowerW, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &current_power_kw_);
-        t->addMoreExplanation(offset, " current power (%f kw)", current_power_kw_);
-    }
-
-    extractDVdouble(&t->values, "0E833C", &offset, &total_energy_returned_kwh_);
-    t->addMoreExplanation(offset, " total energy returned (%f kwh)", total_energy_returned_kwh_);
-
-    extractDVdouble(&t->values, "0BAB3C", &offset, &current_power_returned_kw_);
-    t->addMoreExplanation(offset, " current power returned (%f kw)", current_power_returned_kw_);
-
-    voltage_L_[0]=voltage_L_[1]=voltage_L_[2] = 0;
-    uint64_t tmpvolt {};
-
-    if (extractDVlong(&t->values, "0AFDC9FC01", &offset, &tmpvolt))
-    {
-    voltage_L_[0] = ((double)tmpvolt);
-    t->addMoreExplanation(offset, " voltage L1 (%f volts)", voltage_L_[0]);
-    }
-
-    if (extractDVlong(&t->values, "0AFDC9FC02", &offset, &tmpvolt))
-    {
-    voltage_L_[1] = ((double)tmpvolt);
-    t->addMoreExplanation(offset, " voltage L2 (%f volts)", voltage_L_[1]);
-    }
-
-    if (extractDVlong(&t->values, "0AFDC9FC03", &offset, &tmpvolt))
-    {
-    voltage_L_[2] = ((double)tmpvolt);
-    t->addMoreExplanation(offset, " voltage L3 (%f volts)", voltage_L_[2]);
-    }
-
-
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
-        struct tm datetime;
-        extractDVdate(&t->values, key, &offset, &datetime);
-        device_date_time_ = strdatetime(&datetime);
-        t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
-    }
-}
+// telegram=|5E44B6105843250000027A2A005005|2F2F0C7835221400066D404708AC2A400E032022650900000E833C0000000000001B2B9647000B2B5510000BAB3C0000000AFDC9FC0135020AFDC9FC0245020AFDC9FC0339020BABC8FC100000002F2F|
+// {"media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"device_date_time":"2021-10-12 08:07","timestamp":"1111-11-11T11:11:11Z"}
+// |MyElectricity2;00254358;9652.220000;1.055000;0.000000;0.000000;235.000000;245.000000;239.000000;1111-11-11 11:11.11

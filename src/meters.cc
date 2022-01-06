@@ -30,24 +30,68 @@
 #include<cmath>
 
 
-map<string, DriverInfo> all_drivers_;
+map<string, DriverInfo> all_registered_drivers_;
+vector<DriverInfo> all_registered_drivers_list_;
 
-DriverInfo addDriver(string n,
-                     LinkModeSet lms,
-                     MeterType t,
-                     function<shared_ptr<Meter>(MeterInfo&)> constructor,
-                     vector<DriverDetect> d)
+bool DriverInfo::detect(uint16_t mfct, uchar type, uchar version)
 {
-    assert(all_drivers_.count(n) == 0); // A driver must have a unique name.
+    for (auto &dd : detect_)
+    {
+        if (dd.mfct == 0 && dd.type == 0 && dd.version == 0) continue; // Ignore drivers with no detection.
+        if (dd.mfct == mfct && dd.type == type && dd.version == version) return true;
+    }
+    return false;
+}
 
-    DriverInfo di = { n, lms, t, constructor, d };
-    all_drivers_[n] = di;
+void DriverInfo::setExpectedELLSecurityMode(ELLSecurityMode dsm)
+{
+    // TODO should check that the telegram is encrypted using the same mode.
+}
+
+void DriverInfo::setExpectedTPLSecurityMode(TPLSecurityMode tsm)
+{
+    // TODO should check that the telegram is encrypted using the same mode.
+}
+
+bool registerDriver(function<void(DriverInfo&)> setup)
+{
+    DriverInfo di;
+    setup(di);
+
+    // Check that the driver name is unique.
+    assert(all_registered_drivers_.count(di.name().str()) == 0);
+
+    // Check that no other driver also triggers on the same detection values.
+    /*
+    for (auto &d : di.detect())
+    {
+        for (auto &p : all_registered_drivers_)
+        {
+            bool foo = p.second.detect(d.mfct, d.type, d.version);
+            assert(!foo);
+        }
+        }*/
+
+    // Everything looks, good install this driver.
+    all_registered_drivers_[di.name().str()] = di;
+    all_registered_drivers_list_.push_back(di);
 
     // This code is invoked from the static initializers of DriverInfos when starting
     // wmbusmeters. Thus we do not yet know if the user has supplied --debug or similar setting.
     // To debug this you have to uncomment the printf below.
     // fprintf(stderr, "(STATIC) added driver: %s\n", n.c_str());
-    return di;
+    return true;
+}
+
+bool lookupDriverInfo(string& driver, DriverInfo *out_di)
+{
+    if (all_registered_drivers_.count(driver) == 0)
+    {
+        return false;
+    }
+
+    *out_di = all_registered_drivers_[driver];
+    return true;
 }
 
 struct MeterManagerImplementation : public virtual MeterManager
@@ -183,7 +227,7 @@ public:
                     if (MeterCommonImplementation::isTelegramForMeter(&t, NULL, &mi))
                     {
                         // We found a match, make a copy of the meter info.
-                        MeterInfo tmp = mi;
+                        MeterInfo meter_info = mi;
                         // Overwrite the wildcard pattern with the highest level id.
                         // The last id in the t.ids is the highest level id.
                         // For example: a telegram can have dll_id,tpl_id
@@ -192,24 +236,30 @@ public:
                         // then the dll_id will be picked.
                         vector<string> tmp_ids;
                         tmp_ids.push_back(t.ids.back());
-                        tmp.ids = tmp_ids;
-                        tmp.idsc = t.ids.back();
+                        meter_info.ids = tmp_ids;
+                        meter_info.idsc = t.ids.back();
 
-                        if (tmp.driver == MeterDriver::AUTO)
+                        if (meter_info.driver == MeterDriver::AUTO)
                         {
                             // Look up the proper meter driver!
-                            tmp.driver = pickMeterDriver(&t);
-                            if (tmp.driver == MeterDriver::UNKNOWN)
+                            DriverInfo di = pickMeterDriver(&t);
+                            if (di.driver() == MeterDriver::UNKNOWN && di.name().str() == "")
                             {
+                                printf("GURKA Driver not found %d %d %d\n", t.dll_mfct, t.dll_type, t.dll_version);
                                 if (should_analyze_ == false)
                                 {
                                     // We are not analyzing, so warn here.
                                     warnForUnknownDriver(mi.name, &t);
                                 }
                             }
+                            else
+                            {
+                                meter_info.driver = di.driver();
+                                meter_info.driver_name = di.name();
+                            }
                         }
                         // Now build a meter object with for this exact id.
-                        auto meter = createMeter(&tmp);
+                        auto meter = createMeter(&meter_info);
                         addMeter(meter);
                         string idsc = toIdsCommaSeparated(t.ids);
                         verbose("(meter) used meter template %s %s %s to match %s\n",
@@ -223,7 +273,7 @@ public:
                             notice("(wmbusmeters) started meter %d (%s %s %s)\n",
                                    meter->index(),
                                    mi.name.c_str(),
-                                   tmp.idsc.c_str(),
+                                   meter_info.idsc.c_str(),
                                    toString(mi.driver).c_str());
                         }
                         else
@@ -231,7 +281,7 @@ public:
                             verbose("(meter) started meter %d (%s %s %s)\n",
                                    meter->index(),
                                    mi.name.c_str(),
-                                   tmp.idsc.c_str(),
+                                   meter_info.idsc.c_str(),
                                    toString(mi.driver).c_str());
                         }
 
@@ -334,7 +384,7 @@ LIST_OF_METERS
         bool hide_output = drivers.size() > 1;
         bool printed = false;
         bool handled = false;
-        MeterDriver best_driver {};
+        DriverInfo best_driver;
         // For the best driver we have:
         int best_content_length = 0;
         int best_understood_content_length = 0;
@@ -385,24 +435,24 @@ LIST_OF_METERS
         }
         if (handled)
         {
-            MeterDriver auto_driver = pickMeterDriver(&t);
+            DriverInfo auto_driver = pickMeterDriver(&t);
             string ad = toString(auto_driver);
             string bd = toString(best_driver);
-            if (auto_driver != MeterDriver::UNKNOWN)
+            if (auto_driver.driver() != MeterDriver::UNKNOWN)
             {
-                if (best_driver != auto_driver)
+                if (ad != bd)
                 {
                     printf("\nUsing driver \"%s\" based on mfct/type/version driver lookup table.\n", ad.c_str());
                     printf("But a better match could perhaps be driver \"%s\" with %d/%d content bytes understood.\n",
                            bd.c_str(), best_understood_content_length, best_content_length);
-                    mi.driver = auto_driver;
+                    mi.driver_name = auto_driver.name();
                 }
                 else
                 {
                     printf("\nUsing driver \"%s\" based on mfct/type/version driver lookup table.\n", ad.c_str());
                     printf("Which is also the best matching driver with %d/%d content bytes understood.\n",
                            best_understood_content_length, best_content_length);
-                    mi.driver = best_driver;
+                    mi.driver_name = best_driver.name();
                 }
             }
             else
@@ -410,7 +460,7 @@ LIST_OF_METERS
                 printf("\nUsing driver \"%s\" based on best content match with %d/%d content bytes understood.\n",
                        bd.c_str(), best_understood_content_length, best_content_length);
                 printf("The mfct/type/version combo was not found in the driver lookup table.\n");
-                mi.driver = best_driver;
+                mi.driver_name = best_driver.name();
             }
 
             if (!printed)
@@ -458,6 +508,25 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     }
 }
 
+MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
+                                                     DriverInfo &di) :
+    driver_(di.name().str()), bus_(mi.bus), name_(mi.name)
+{
+    ids_ = mi.ids;
+    idsc_ = toIdsCommaSeparated(ids_);
+
+    if (mi.key.length() > 0)
+    {
+        hex2bin(mi.key, &meter_keys_.confidentiality_key);
+    }
+    for (auto s : mi.shells) {
+        addShell(s);
+    }
+    for (auto j : mi.extra_constant_fields) {
+        addExtraConstantField(j);
+    }
+}
+
 void MeterCommonImplementation::addConversions(std::vector<Unit> cs)
 {
     for (Unit c : cs)
@@ -489,7 +558,11 @@ vector<string> &MeterCommonImplementation::meterExtraConstantFields()
 MeterDriver MeterCommonImplementation::driver()
 {
     return toMeterDriver(driver_);
+}
 
+DriverName MeterCommonImplementation::driverName()
+{
+    return driver_name_;
 }
 
 void MeterCommonImplementation::setMeterType(MeterType mt)
@@ -508,7 +581,29 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
     string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
     string field_name = vname+"_"+default_unit;
     fields_.push_back(field_name);
-    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), getValueFunc, NULL, help, field, json, field_name });
+    prints_.push_back(
+        FieldInfo(vname,
+                  vquantity,
+                  defaultUnitForQuantity(vquantity),
+                  NoDifVifKey,
+                  VifScaling::Auto,
+                  MeasurementType::Unknown,
+                  ValueInformation::None,
+                  AnyStorageNr,
+                  AnyTariffNr,
+                  IndexNr(1),
+                  help,
+                  field,
+                  json,
+                  false,
+                  field_name,
+                  getValueFunc,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NULL
+            ));
 }
 
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit unit,
@@ -517,14 +612,213 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit 
     string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
     string field_name = vname+"_"+default_unit;
     fields_.push_back(field_name);
-    prints_.push_back( { vname, vquantity, unit, getValueFunc, NULL, help, field, json, field_name });
+    prints_.push_back(
+        FieldInfo(vname,
+                  vquantity,
+                  unit,
+                  NoDifVifKey,
+                  VifScaling::Auto,
+                  MeasurementType::Unknown,
+                  ValueInformation::None,
+                  AnyStorageNr,
+                  AnyTariffNr,
+                  IndexNr(1),
+                  help,
+                  field,
+                  json,
+                  false,
+                  field_name,
+                  getValueFunc,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NULL
+            ));
 }
 
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          function<string()> getValueFunc,
                                          string help, bool field, bool json)
 {
-    prints_.push_back( { vname, vquantity, defaultUnitForQuantity(vquantity), NULL, getValueFunc, help, field, json, vname } );
+    prints_.push_back(
+        FieldInfo(vname,
+                  vquantity,
+                  defaultUnitForQuantity(vquantity),
+                  NoDifVifKey,
+                  VifScaling::Auto,
+                  MeasurementType::Unknown,
+                  ValueInformation::None,
+                  AnyStorageNr,
+                  AnyTariffNr,
+                  IndexNr(1),
+                  help,
+                  field,
+                  json,
+                  false,
+                  vname,
+                  NULL,
+                  getValueFunc,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NULL
+            ));
+}
+
+void MeterCommonImplementation::addFieldWithExtractor(
+    string vname,
+    Quantity vquantity,
+    DifVifKey dif_vif_key,
+    VifScaling vif_scaling,
+    MeasurementType mt,
+    ValueInformation vi,
+    StorageNr s,
+    TariffNr t,
+    IndexNr i,
+    int print_properties,
+    string help,
+    function<void(Unit,double)> setValueFunc,
+    function<double(Unit)> getValueFunc)
+{
+    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
+    string field_name = vname+"_"+default_unit;
+    fields_.push_back(field_name);
+
+    // Compose the extract function.
+    function<bool(FieldInfo *p,Meter *m, Telegram *t)> extract =
+              [](FieldInfo *fi, Meter *m, Telegram *t)
+              {
+                  bool found = false;
+                  string key = fi->difVifKey().str();
+                  int offset {};
+                  if (key == "")
+                  {
+                      // Search for key.
+                      bool ok = findKeyWithNr(fi->measurementType(),
+                                              fi->valueInformation(),
+                                              fi->storageNr().intValue(),
+                                              fi->tariffNr().intValue(),
+                                              fi->indexNr().intValue(),
+                                              &key,
+                                              &t->values);
+                      if (!ok) return false;
+                  }
+                  double extracted_double_value = NAN;
+                  if (extractDVdouble(&t->values,
+                                      key,
+                                      &offset,
+                                      &extracted_double_value,
+                                      fi->vifScaling() == VifScaling::Auto))
+                  {
+                      fi->setValueDouble(fi->defaultUnit(), extracted_double_value);
+                      t->addMoreExplanation(offset, fi->renderJson(&m->conversions()));
+                      found = true;
+                  }
+                  return found;
+              };
+
+    prints_.push_back(
+        FieldInfo(vname,
+                  vquantity,
+                  defaultUnitForQuantity(vquantity),
+                  dif_vif_key,
+                  vif_scaling,
+                  mt,
+                  vi,
+                  s,
+                  t,
+                  i,
+                  help,
+                  (print_properties & PrintProperty::FIELD) != 0,
+                  (print_properties & PrintProperty::JSON) != 0,
+                  (print_properties & PrintProperty::IMPORTANT) != 0,
+                  field_name,
+                  getValueFunc,
+                  NULL,
+                  setValueFunc,
+                  NULL,
+                  extract,
+                  NULL
+            ));
+}
+
+void MeterCommonImplementation::addStringFieldWithExtractor(
+    string vname,
+    Quantity vquantity,
+    DifVifKey dif_vif_key,
+    MeasurementType mt,
+    ValueInformation vi,
+    StorageNr s,
+    TariffNr t,
+    IndexNr i,
+    int print_properties,
+    string help,
+    function<void(string)> setValueFunc,
+    function<string()> getValueFunc)
+{
+    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
+    string field_name = vname+"_"+default_unit;
+    fields_.push_back(field_name);
+
+    // Compose the extract function.
+    function<bool(FieldInfo *p,Meter *m, Telegram *t)> extract =
+                  [](FieldInfo *fi, Meter *m, Telegram *t)
+                  {
+                      bool found = false;
+                      string key = fi->difVifKey().str();
+                      int offset {};
+                      if (key == "")
+                      {
+                          // Search for key.
+                          bool ok = findKeyWithNr(fi->measurementType(),
+                                                  fi->valueInformation(),
+                                                  fi->storageNr().intValue(),
+                                                  fi->tariffNr().intValue(),
+                                                  fi->indexNr().intValue(),
+                                                  &key,
+                                                  &t->values);
+                          if (!ok) return false;
+                      }
+                      if (fi->valueInformation() == ValueInformation::DateTime)
+                      {
+                          struct tm datetime;
+                          extractDVdate(&t->values, key, &offset, &datetime);
+                          string extracted_device_date_time = strdatetime(&datetime);
+                          fi->setValueString(extracted_device_date_time);
+                          t->addMoreExplanation(offset, fi->renderJsonText());
+                          found = true;
+                      }
+                      else
+                      {
+                          assert(0);
+                      }
+                      return found;
+                  };
+
+    prints_.push_back(
+        FieldInfo(vname,
+                  vquantity,
+                  defaultUnitForQuantity(vquantity),
+                  dif_vif_key,
+                  VifScaling::None,
+                  mt,
+                  vi,
+                  s,
+                  t,
+                  i,
+                  help,
+                  (print_properties & PrintProperty::FIELD) != 0,
+                  (print_properties & PrintProperty::JSON) != 0,
+                  (print_properties & PrintProperty::IMPORTANT) != 0,
+                  field_name,
+                  NULL,
+                  getValueFunc,
+                  NULL,
+                  setValueFunc,
+                  NULL,
+                  extract
+            ));
 }
 
 void MeterCommonImplementation::poll(shared_ptr<BusManager> bus)
@@ -546,7 +840,7 @@ vector<string> MeterCommonImplementation::fields()
     return fields_;
 }
 
-vector<Print> MeterCommonImplementation::prints()
+vector<FieldInfo> MeterCommonImplementation::prints()
 {
     return prints_;
 }
@@ -599,12 +893,26 @@ LIST_OF_METERS
     return false;
 }
 
+const char *toString(MeterType type)
+{
+#define X(tname) if (type == MeterType::tname) return #tname;
+LIST_OF_METER_TYPES
+#undef X
+    return "unknown";
+}
+
 string toString(MeterDriver mt)
 {
 #define X(mname,link,info,type,cname) if (mt == MeterDriver::type) return #mname;
 LIST_OF_METERS
 #undef X
     return "unknown";
+}
+
+string toString(DriverInfo &di)
+{
+    if (di.driver() != MeterDriver::UNKNOWN) return toString(di.driver());
+    return di.name().str();
 }
 
 MeterDriver toMeterDriver(string& t)
@@ -727,26 +1035,6 @@ MeterKeys *MeterCommonImplementation::meterKeys()
     return &meter_keys_;
 }
 
-vector<string> MeterCommonImplementation::getRecords()
-{
-    vector<string> recs;
-    for (auto& p : values_)
-    {
-        recs.push_back(p.first);
-    }
-    return recs;
-}
-
-double MeterCommonImplementation::getRecordAsDouble(string record)
-{
-    return 0.0;
-}
-
-uint16_t MeterCommonImplementation::getRecordAsUInt16(string record)
-{
-    return 0;
-}
-
 int MeterCommonImplementation::index()
 {
     return index_;
@@ -770,7 +1058,7 @@ void MeterCommonImplementation::triggerUpdate(Telegram *t)
     t->handled = true;
 }
 
-string concatAllFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector<Unit> &cs, bool hr,
+string concatAllFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints, vector<Unit> &cs, bool hr,
                        vector<string> *extra_constant_fields)
 {
     string s;
@@ -784,13 +1072,13 @@ string concatAllFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vec
     {
         s += c;
     }
-    for (Print p : prints)
+    for (FieldInfo p : prints)
     {
-        if (p.field)
+        if (p.field())
         {
-            if (p.getValueDouble)
+            if (p.hasGetValueDouble())
             {
-                Unit u = replaceWithConversionUnit(p.default_unit, cs);
+                Unit u = replaceWithConversionUnit(p.defaultUnit(), cs);
                 double v = p.getValueDouble(u);
                 if (hr) {
                     s += valueToString(v, u);
@@ -799,7 +1087,7 @@ string concatAllFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vec
                     s += to_string(v);
                 }
             }
-            if (p.getValueString)
+            if (p.hasGetValueString())
             {
                 s += p.getValueString();
             }
@@ -872,38 +1160,38 @@ bool checkCommonField(string *buf, string field, Meter *m, Telegram *t, char c)
 
 // Is the desired field one of the meter printable fields?
 bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char c,
-                         vector<Print> &prints, vector<Unit> &cs)
+                         vector<FieldInfo> &prints, vector<Unit> &cs)
 {
-    for (Print p : prints)
+    for (FieldInfo p : prints)
     {
-        if (p.getValueString)
+        if (p.hasGetValueString())
         {
             // Strings are simply just print them.
-            if (field == p.vname)
+            if (field == p.vname())
             {
                 *buf += p.getValueString() + c;
                 return true;
             }
         }
-        else if (p.getValueDouble)
+        else if (p.hasGetValueDouble())
         {
             // Doubles have to be converted into the proper unit.
-            string default_unit = unitToStringLowerCase(p.default_unit);
-            string var = p.vname+"_"+default_unit;
+            string default_unit = unitToStringLowerCase(p.defaultUnit());
+            string var = p.vname()+"_"+default_unit;
             if (field == var)
             {
                 // Default unit.
-                *buf += valueToString(p.getValueDouble(p.default_unit), p.default_unit) + c;
+                *buf += valueToString(p.getValueDouble(p.defaultUnit()), p.defaultUnit()) + c;
                 return true;
             }
             else
             {
                 // Added conversion unit.
-                Unit u = replaceWithConversionUnit(p.default_unit, cs);
-                if (u != p.default_unit)
+                Unit u = replaceWithConversionUnit(p.defaultUnit(), cs);
+                if (u != p.defaultUnit())
                 {
                     string unit = unitToStringLowerCase(u);
-                    string var = p.vname+"_"+unit;
+                    string var = p.vname()+"_"+unit;
                     if (field == var)
                     {
                         *buf += valueToString(p.getValueDouble(u), u) + c;
@@ -932,7 +1220,7 @@ bool checkConstantField(string *buf, string field, char c, vector<string> *extra
 }
 
 
-string concatFields(Meter *m, Telegram *t, char c, vector<Print> &prints, vector<Unit> &cs, bool hr,
+string concatFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints, vector<Unit> &cs, bool hr,
                     vector<string> *selected_fields, vector<string> *extra_constant_fields)
 {
     if (selected_fields == NULL || selected_fields->size() == 0)
@@ -999,7 +1287,9 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     snprintf(log_prefix, 255, "(%s) log", meterDriver().c_str());
     logTelegram(t.original, t.frame, t.header_size, t.suffix_size);
 
-    // Invoke meter specific parsing!
+    // Invoke standardized field extractors!
+    processFieldExtractors(&t);
+    // Invoke tailor made meter specific parsing!
     processContent(&t);
     // All done....
 
@@ -1014,43 +1304,82 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     return true;
 }
 
-string MeterCommonImplementation::renderJsonField(string vname)
+void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 {
-    Print *found = NULL;
-    for (Print &p : prints_)
+    for (auto &fi : prints_)
     {
-        if (p.vname == vname)
+        fi.performExtraction(this, t);
+    }
+}
+
+void MeterCommonImplementation::processContent(Telegram *t)
+{
+}
+
+
+FieldInfo *MeterCommonImplementation::findFieldInfo(string vname)
+{
+    FieldInfo *found = NULL;
+    for (FieldInfo &p : prints_)
+    {
+        if (p.vname() == vname)
         {
             found = &p;
             break;
         }
     }
 
-    if (!found) return "ERROR addPrint is missing for \""+vname+"\"";
-
-    return renderJsonField(found);
+    return found;
 }
 
-string MeterCommonImplementation::renderJsonField(Print *p)
+string MeterCommonImplementation::renderJsonOnlyDefaultUnit(string vname)
+{
+    FieldInfo *fi = findFieldInfo(vname);
+
+    if (fi == NULL) return "unknown field "+vname;
+    return fi->renderJsonOnlyDefaultUnit();
+}
+
+string FieldInfo::renderJsonOnlyDefaultUnit()
+{
+    return renderJson(NULL);
+}
+
+string FieldInfo::renderJsonText()
+{
+    return renderJson(NULL);
+}
+
+string FieldInfo::renderJson(vector<Unit> *conversions)
 {
     string s;
 
-    string default_unit = unitToStringLowerCase(p->default_unit);
-    string var = p->vname;
-    if (p->getValueString) {
-        s += "\""+var+"\":\""+p->getValueString()+"\"";
+    string default_unit = unitToStringLowerCase(defaultUnit());
+    string var = vname();
+    if (hasGetValueString())
+    {
+        s += "\""+var+"\":\""+getValueString()+"\"";
     }
-    if (p->getValueDouble) {
-        s += "\""+var+"_"+default_unit+"\":"+valueToString(p->getValueDouble(p->default_unit), p->default_unit);
+    else if (hasGetValueDouble())
+    {
+        s += "\""+var+"_"+default_unit+"\":"+valueToString(getValueDouble(defaultUnit()), defaultUnit());
 
-        Unit u = replaceWithConversionUnit(p->default_unit, conversions_);
-        if (u != p->default_unit)
+        if (conversions != NULL)
         {
-            string unit = unitToStringLowerCase(u);
-            // Appending extra conversion unit.
-            s += ",\""+var+"_"+unit+"\":"+valueToString(p->getValueDouble(u), u);
+            Unit u = replaceWithConversionUnit(defaultUnit(), *conversions);
+            if (u != defaultUnit())
+            {
+                string unit = unitToStringLowerCase(u);
+                // Appending extra conversion unit.
+                s += ",\""+var+"_"+unit+"\":"+valueToString(getValueDouble(u), u);
+            }
         }
     }
+    else
+    {
+        s = "?";
+    }
+
     return s;
 }
 
@@ -1092,11 +1421,11 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     {
         s += "\"id\":\"\",";
     }
-    for (Print& p : prints_)
+    for (FieldInfo& p : prints_)
     {
-        if (p.json)
+        if (p.json())
         {
-            s += renderJsonField(&p)+",";
+            s += p.renderJson(&conversions())+",";
         }
     }
     s += "\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
@@ -1142,23 +1471,23 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         envs->push_back(string("METER_RSSI_DBM=")+to_string(t->about.rssi_dbm));
     }
 
-    for (Print p : prints_)
+    for (FieldInfo p : prints_)
     {
-        if (p.json)
+        if (p.json())
         {
-            string default_unit = unitToStringUpperCase(p.default_unit);
-            string var = p.vname;
+            string default_unit = unitToStringUpperCase(p.defaultUnit());
+            string var = p.vname();
             std::transform(var.begin(), var.end(), var.begin(), ::toupper);
-            if (p.getValueString) {
+            if (p.hasGetValueString()) {
                 string envvar = "METER_"+var+"="+p.getValueString();
                 envs->push_back(envvar);
             }
-            if (p.getValueDouble) {
-                string envvar = "METER_"+var+"_"+default_unit+"="+valueToString(p.getValueDouble(p.default_unit), p.default_unit);
+            if (p.hasGetValueDouble()) {
+                string envvar = "METER_"+var+"_"+default_unit+"="+valueToString(p.getValueDouble(p.defaultUnit()), p.defaultUnit());
                 envs->push_back(envvar);
 
-                Unit u = replaceWithConversionUnit(p.default_unit, conversions_);
-                if (u != p.default_unit)
+                Unit u = replaceWithConversionUnit(p.defaultUnit(), conversions_);
+                if (u != p.defaultUnit())
                 {
                     string unit = unitToStringUpperCase(u);
                     string envvar = "METER_"+var+"_"+unit+"="+valueToString(p.getValueDouble(u), u);
@@ -1205,6 +1534,14 @@ void detectMeterDrivers(int manufacturer, int media, int version, vector<string>
 #define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { drivers->push_back(toString(MeterDriver::TY)); }}
 METER_DETECTION
 #undef X
+
+    for (auto &p : all_registered_drivers_)
+    {
+        if (p.second.detect(manufacturer, media, version))
+        {
+            drivers->push_back(p.second.name().str());
+        }
+    }
 }
 
 bool isMeterDriverValid(MeterDriver type, int manufacturer, int media, int version)
@@ -1213,10 +1550,23 @@ bool isMeterDriverValid(MeterDriver type, int manufacturer, int media, int versi
 METER_DETECTION
 #undef X
 
+    for (auto &p : all_registered_drivers_)
+    {
+        if (p.second.detect(manufacturer, media, version))
+        {
+            return true;
+        }
+    }
+
     return false;
 }
 
-MeterDriver pickMeterDriver(Telegram *t)
+vector<DriverInfo>& allRegisteredDrivers()
+{
+    return all_registered_drivers_list_;
+}
+
+DriverInfo pickMeterDriver(Telegram *t)
 {
     int manufacturer = t->dll_mfct;
     int media = t->dll_type;
@@ -1232,6 +1582,15 @@ MeterDriver pickMeterDriver(Telegram *t)
 #define X(TY,MA,ME,VE) { if (manufacturer == MA && (media == ME || ME == -1) && (version == VE || VE == -1)) { return MeterDriver::TY; }}
 METER_DETECTION
 #undef X
+
+    for (auto &p : all_registered_drivers_)
+    {
+        if (p.second.detect(manufacturer, media, version))
+        {
+            return p.second;
+        }
+    }
+
     return MeterDriver::UNKNOWN;
 }
 
@@ -1240,6 +1599,19 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
     shared_ptr<Meter> newm;
 
     const char *keymsg = (mi->key[0] == 0) ? "not-encrypted" : "encrypted";
+
+    if (all_registered_drivers_.count(mi->driver_name.str()) != 0)
+    {
+        DriverInfo& di = all_registered_drivers_[mi->driver_name.str()];
+        shared_ptr<Meter> newm = di.construct(*mi);
+        newm->addConversions(mi->conversions);
+        verbose("(meter) constructed \"%s\" \"%s\" \"%s\" %s\n",
+                mi->name.c_str(),
+                di.name().str().c_str(),
+                mi->idsc.c_str(),
+                keymsg);
+        return newm;
+    }
 
     switch (mi->driver)
     {
@@ -1259,11 +1631,11 @@ LIST_OF_METERS
     return newm;
 }
 
-bool is_driver_extras(string t, MeterDriver *out_driver, string *out_extras)
+bool is_driver_extras(string t, MeterDriver *out_driver, DriverName *out_driver_name, string *out_extras)
 {
     // piigth(jump=foo)
     // multical21
-
+    DriverInfo di;
     size_t ps = t.find('(');
     size_t pe = t.find(')');
 
@@ -1273,7 +1645,14 @@ bool is_driver_extras(string t, MeterDriver *out_driver, string *out_extras)
 
     if (!found_parentheses)
     {
-        // No brackets nor parentheses found, is t a known wmbus device? like im871a amb8465 etc....
+        if (lookupDriverInfo(t, &di))
+        {
+            *out_driver_name = di.name();
+            // We found a registered driver.
+            *out_driver = MeterDriver::AUTO; // To go away!
+            *out_extras = "";
+            return true;
+        }
         MeterDriver md = toMeterDriver(t);
         if (md == MeterDriver::UNKNOWN) return false;
         *out_driver = md;
@@ -1286,8 +1665,18 @@ bool is_driver_extras(string t, MeterDriver *out_driver, string *out_extras)
     te = ps;
 
     string type = t.substr(0, te);
+
+    bool found = lookupDriverInfo(type, &di);
+
     MeterDriver md = toMeterDriver(type);
-    if (md == MeterDriver::UNKNOWN) return false;
+    if (found)
+    {
+        *out_driver_name = di.name();
+    }
+    else
+    {
+        if (md == MeterDriver::UNKNOWN) return false;
+    }
     *out_driver = md;
 
     string extras = t.substr(ps+1, pe-ps-1);
@@ -1336,7 +1725,7 @@ bool MeterInfo::parse(string n, string d, string i, string k)
 
     for (auto& p : parts)
     {
-        if (!driverextras_checked && is_driver_extras(p, &driver, &extras))
+        if (!driverextras_checked && is_driver_extras(p, &driver, &driver_name, &extras))
         {
             driverextras_checked = true;
         }
@@ -1401,4 +1790,18 @@ bool isValidKey(string& key, MeterDriver mt)
     }
     vector<uchar> tmp;
     return hex2bin(key, &tmp);
+}
+
+
+void FieldInfo::performExtraction(Meter *m, Telegram *t)
+{
+    if (extract_double_)
+    {
+        extract_double_(this, m, t);
+    }
+
+    if (extract_string_)
+    {
+        extract_string_(this, m, t);
+    }
 }

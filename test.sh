@@ -24,8 +24,8 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_s1_meters.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
-tests/test_unknown.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+#tests/test_unknown.sh $PROG
+#if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_apas.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
@@ -123,8 +123,11 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_rtlwmbus_crc_errors.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
-./tests/test_analyze.sh $PROG
+./tests/test_drivers.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
+
+#./tests/test_analyze.sh $PROG
+#if [ "$?" != "0" ]; then RC="1"; fi
 
 if [ -x ../additional_tests.sh ]
 then

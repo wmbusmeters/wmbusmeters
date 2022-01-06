@@ -18,6 +18,7 @@
 #ifndef METER_H_
 #define METER_H_
 
+#include"dvparser.h"
 #include"util.h"
 #include"units.h"
 #include"wmbus.h"
@@ -28,6 +29,7 @@
 #include<vector>
 
 #define LIST_OF_METER_TYPES \
+    X(AutoMeter) \
     X(UnknownMeter) \
     X(DoorWindowDetector) \
     X(ElectricityMeter) \
@@ -46,9 +48,8 @@ LIST_OF_METER_TYPES
 };
 
 #define LIST_OF_METERS \
-    X(auto,       0,      UnknownMeter, AUTO, Auto) \
+    X(auto,       0,      AutoMeter, AUTO, Auto) \
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
-    X(amiplus,    T1_bit, ElectricityMeter, AMIPLUS,     Amiplus)      \
     X(apator08,   T1_bit,        WaterMeter,       APATOR08,    Apator08)    \
     X(apator162,  C1_bit|T1_bit, WaterMeter,       APATOR162,   Apator162)   \
     X(aventieswm, T1_bit,        WaterMeter,       AVENTIESWM,  AventiesWM)   \
@@ -78,7 +79,6 @@ LIST_OF_METER_TYPES
     X(izar3,      T1_bit, WaterMeter,       IZAR3,       Izar3)        \
     X(lansensm,   T1_bit, SmokeDetector,    LANSENSM,    LansenSM)     \
     X(lansenth,   T1_bit, TempHygroMeter,   LANSENTH,    LansenTH)     \
-    X(lansendw,   T1_bit, DoorWindowDetector, LANSENDW,  LansenDW)     \
     X(lansenpu,   T1_bit, PulseCounter,     LANSENPU,    LansenPU)     \
     X(lse_07_17,  S1_bit, WaterMeter,       LSE_07_17,   LSE_07_17)    \
     X(minomess,   C1_bit, WaterMeter,       MINOMESS,    Minomess) \
@@ -123,6 +123,16 @@ LIST_OF_METERS
 #undef X
 };
 
+struct DriverName
+{
+    DriverName() {};
+    DriverName(string s) : name_(s) {};
+    string str() { return name_; }
+
+private:
+    string name_;
+};
+
 struct MeterMatch
 {
     MeterDriver driver;
@@ -139,8 +149,6 @@ void detectMeterDrivers(int manufacturer, int media, int version, std::vector<st
 // When entering the driver, check that the telegram is indeed known to be
 // compatible with the driver(type), if not then print a warning.
 bool isMeterDriverValid(MeterDriver type, int manufacturer, int media, int version);
-// Return the best driver match for a telegram.
-MeterDriver pickMeterDriver(Telegram *t);
 
 bool isValidKey(string& key, MeterDriver mt);
 
@@ -155,6 +163,7 @@ struct MeterInfo
                  // The bus can be the empty string, which means that it will fallback to the first defined bus.
     string name; // User specified name of this (group of) meters.
     MeterDriver driver {}; // Requested driver for decoding telegrams from this meter.
+    DriverName driver_name; // Will replace MeterDriver.
     string extras; // Extra driver specific settings.
     vector<string> ids; // Match expressions for ids.
     string idsc; // Comma separated ids.
@@ -223,34 +232,152 @@ struct DriverDetect
 
 struct DriverInfo
 {
-    string name; // amiplus, lse_07_17, multical21 etc
-    LinkModeSet linkmodes; // C1, T1, S1 or combinations thereof.
-    MeterType type; // Water, Electricity etc.
-    function<shared_ptr<Meter>(MeterInfo&)> constructor; // Invoke this to create an instance of the driver.
-    vector<DriverDetect> detect;
+private:
+
+    MeterDriver driver_ {}; // Old driver enum, to go away.
+    DriverName name_; // auto, unknown, amiplus, lse_07_17, multical21 etc
+    LinkModeSet linkmodes_; // C1, T1, S1 or combinations thereof.
+    MeterType type_; // Water, Electricity etc.
+    function<shared_ptr<Meter>(MeterInfo&,DriverInfo&di)> constructor_; // Invoke this to create an instance of the driver.
+    vector<DriverDetect> detect_;
+
+public:
+    DriverInfo() {};
+    DriverInfo(MeterDriver mt) : driver_(mt) {};
+    void setName(std::string n) { name_ = n; }
+    void setMeterType(MeterType t) { type_ = t; }
+    void setExpectedELLSecurityMode(ELLSecurityMode dsm);
+    void setExpectedTPLSecurityMode(TPLSecurityMode tsm);
+
+    void addLinkMode(LinkMode lm) { linkmodes_.addLinkMode(lm); }
+    void setConstructor(function<shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
+    void addDetection(uint16_t mfct, uchar type, uchar ver) { detect_.push_back({ mfct, type, ver }); }
+    vector<DriverDetect> &detect() { return detect_; }
+
+    MeterDriver driver() { return driver_; }
+    DriverName name() { return name_; }
+    MeterType type() { return type_; }
+    LinkModeSet linkModes() { return linkmodes_; }
+    shared_ptr<Meter> construct(MeterInfo& mi) { return constructor_(mi, *this); }
+    bool detect(uint16_t mfct, uchar type, uchar version);
 };
 
-// The function addDriver is called as part of the static initialization inside a driver class.
+bool registerDriver(function<void(DriverInfo&di)> setup);
+bool lookupDriverInfo(string& driver, DriverInfo *di);
+// Return the best driver match for a telegram.
+DriverInfo pickMeterDriver(Telegram *t);
 
-DriverInfo addDriver(string n,
-                     LinkModeSet lms,
-                     MeterType t,
-                     function<shared_ptr<Meter>(MeterInfo&)> constructor,
-                     vector<DriverDetect> d);
+vector<DriverInfo>& allRegisteredDrivers();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-struct Print
+enum class VifScaling
 {
-    string vname; // Value name, like: total current previous target
-    Quantity quantity; // Quantity: Energy, Volume
-    Unit default_unit; // Default unit for above quantity: KWH, M3
-    function<double(Unit)> getValueDouble; // Callback to fetch the value from the meter.
-    function<string()> getValueString; // Callback to fetch the value from the meter.
-    string help; // Helpful information on this meters use of this value.
-    bool field; // If true, print in hr/fields output.
-    bool json; // If true, print in json and shell env variables.
-    string field_name; // Field name for default unit.
+    None,
+    Auto
+};
+
+struct FieldInfo
+{
+    FieldInfo(string vname,
+              Quantity xuantity,
+              Unit default_unit,
+              DifVifKey dif_vif_key,
+              VifScaling vif_scaling,
+              MeasurementType measurement_type,
+              ValueInformation value_information,
+              StorageNr storage_nr,
+              TariffNr tariff_nr,
+              IndexNr index_nr,
+              string help,
+              bool field,
+              bool json,
+              bool important,
+              string field_name,
+              function<double(Unit)> get_value_double,
+              function<string()> get_value_string,
+              function<void(Unit,double)> set_value_double,
+              function<void(string)> set_value_string,
+              function<bool(FieldInfo*, Meter *mi, Telegram *t)> extract_double,
+              function<bool(FieldInfo*, Meter *mi, Telegram *t)> extract_string
+        ) :
+        vname_(vname),
+        xuantity_(xuantity),
+        default_unit_(default_unit),
+        dif_vif_key_(dif_vif_key),
+        vif_scaling_(vif_scaling),
+        measurement_type_(measurement_type),
+        value_information_(value_information),
+        storage_nr_(storage_nr),
+        tariff_nr_(tariff_nr),
+        index_nr_(index_nr),
+        help_(help),
+        field_(field),
+        json_(json),
+        important_(important),
+        field_name_(field_name),
+        get_value_double_(get_value_double),
+        get_value_string_(get_value_string),
+        set_value_double_(set_value_double),
+        set_value_string_(set_value_string),
+        extract_double_(extract_double),
+        extract_string_(extract_string)
+    {}
+
+    string vname() { return vname_; }
+    Quantity xuantity() { return xuantity_; }
+    Unit defaultUnit() { return default_unit_; }
+    DifVifKey difVifKey() { return dif_vif_key_; }
+    VifScaling vifScaling() { return vif_scaling_; }
+    MeasurementType measurementType() { return measurement_type_; }
+    ValueInformation valueInformation() { return value_information_; }
+    StorageNr storageNr() { return storage_nr_; }
+    TariffNr tariffNr() { return tariff_nr_; }
+    IndexNr indexNr() { return index_nr_; }
+    string help() { return help_; }
+    bool field() { return field_; }
+    bool json() { return json_; }
+    bool important() { return important_; }
+    string fieldName() { return field_name_; }
+
+    double getValueDouble(Unit u) { if (get_value_double_) return get_value_double_(u); else return -12345678; }
+    bool hasGetValueDouble() { return get_value_double_ != NULL; }
+    string getValueString() { if (get_value_string_) return get_value_string_(); else return "?"; }
+    bool hasGetValueString() { return get_value_string_ != NULL; }
+
+    void setValueDouble(Unit u, double d) { if (set_value_double_) set_value_double_(u, d);  }
+    void setValueString(string s) { if (set_value_string_) set_value_string_(s); }
+
+    void performExtraction(Meter *m, Telegram *t);
+
+    string renderJsonOnlyDefaultUnit();
+    string renderJson(vector<Unit> *additional_conversions);
+    string renderJsonText();
+
+private:
+
+    string vname_; // Value name, like: total current previous target
+    Quantity xuantity_; // Quantity: Energy, Volume
+    Unit default_unit_; // Default unit for above quantity: KWH, M3
+    DifVifKey dif_vif_key_; // Hardcoded difvif key, if empty string then search for mt,vi,s,t,i instead.
+    VifScaling vif_scaling_;
+    MeasurementType measurement_type_;
+    ValueInformation value_information_;
+    StorageNr storage_nr_;
+    TariffNr tariff_nr_;
+    IndexNr index_nr_;
+    string help_; // Helpful information on this meters use of this value.
+    bool field_; // If true, print in hr/fields output.
+    bool json_; // If true, print in json and shell env variables.
+    bool important_; // If true, then print this for --format=hr and in the summary when listening to all.
+    string field_name_; // Field name for default unit.
+
+    function<double(Unit)> get_value_double_; // Callback to fetch the value from the meter.
+    function<string()> get_value_string_; // Callback to fetch the value from the meter.
+    function<void(Unit,double)> set_value_double_; // Call back to set the value in the c++ object
+    function<void(string)> set_value_string_; // Call back to set the value string in the c++ object
+    function<bool(FieldInfo*, Meter *mi, Telegram *t)> extract_double_; // Extract field from telegram and insert into meter.
+    function<bool(FieldInfo*, Meter *mi, Telegram *t)> extract_string_; // Extract field from telegram and insert into meter.
 };
 
 struct BusManager;
@@ -269,10 +396,11 @@ struct Meter
     virtual string idsc() = 0;
     // This meter can report these fields, like total_m3, temp_c.
     virtual vector<string> fields() = 0;
-    virtual vector<Print> prints() = 0;
+    virtual vector<FieldInfo> prints() = 0;
     virtual string meterDriver() = 0;
     virtual string name() = 0;
     virtual MeterDriver driver() = 0;
+    virtual DriverName  driverName() = 0;
 
     virtual string datetimeOfUpdateHumanReadable() = 0;
     virtual string datetimeOfUpdateRobot() = 0;
@@ -296,15 +424,14 @@ struct Meter
                                 bool simulated, string *id, bool *id_match, Telegram *out_t = NULL) = 0;
     virtual MeterKeys *meterKeys() = 0;
 
-    // Dynamically access all data received for the meter.
-    virtual std::vector<std::string> getRecords() = 0;
-    virtual double getRecordAsDouble(std::string record) = 0;
-    virtual uint16_t getRecordAsUInt16(std::string record) = 0;
-
     virtual void addConversions(std::vector<Unit> cs) = 0;
+    virtual vector<Unit>& conversions() = 0;
     virtual void addShell(std::string cmdline) = 0;
     virtual vector<string> &shellCmdlines() = 0;
     virtual void poll(shared_ptr<BusManager> bus) = 0;
+
+    virtual FieldInfo *findFieldInfo(string vname) = 0;
+    virtual string renderJsonOnlyDefaultUnit(string vname) = 0;
 
     virtual ~Meter() = default;
 };
@@ -330,7 +457,9 @@ struct MeterManager
 
 shared_ptr<MeterManager> createMeterManager(bool daemon);
 
+const char *toString(MeterType type);
 string toString(MeterDriver driver);
+string toString(DriverInfo &driver);
 MeterDriver toMeterDriver(string& driver);
 LinkModeSet toMeterLinkModeSet(string& driver);
 LinkModeSet toMeterLinkModeSet(MeterDriver driver);
