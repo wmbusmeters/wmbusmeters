@@ -402,7 +402,7 @@ bool extractDVuint8(map<string,pair<int,DVEntry>> *values,
                     uchar *value)
 {
     if ((*values).count(key) == 0) {
-        verbose("(dvparser) warning: cannot extract uint16 from non-existant key \"%s\"\n", key.c_str());
+        verbose("(dvparser) warning: cannot extract uint8 from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
         *value = 0;
         return false;
