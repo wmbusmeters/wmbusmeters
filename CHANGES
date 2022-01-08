@@ -1,4 +1,6 @@
 
+Refactor driver source code structure. It is now much easier to add a new driver.
+
 DomAtHome added support for the heat meter sharky774. Thanks DomAtHome!
 
 Version 1.6.0: 2022-01-01
