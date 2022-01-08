@@ -30,27 +30,34 @@ void handleRule(Rule& rule, string &s, uint64_t bits)
 
     if (rule.type == Type::BitToString)
     {
-        for (Map& m : rule.map)
+        if (bits == 0)
         {
-            if ((~rule.mask & m.from) != 0)
+            s += rule.no_bits_msg+" ";
+        }
+        else
+        {
+            for (Map& m : rule.map)
             {
+                if ((~rule.mask & m.from) != 0)
+                {
+                    string tmp;
+                    strprintf(tmp, "BAD_RULE_%s(from=0x%x mask=0x%x)", rule.name.c_str(), m.from, rule.mask);
+                    s += tmp+" ";
+                }
+                uint64_t from = m.from & rule.mask; // Better safe than sorry.
+                if ((bits & from) != 0)
+                {
+                    s += m.to+" ";
+                    bits = bits & ~m.from; // Remove the handled bit.
+                }
+            }
+            if (bits != 0)
+            {
+                // Oups, there are bits that we have not handled....
                 string tmp;
-                strprintf(tmp, "BAD_RULE_%s(from=0x%x mask=0x%x)", rule.name.c_str(), m.from, rule.mask);
+                strprintf(tmp, "UNKNOWN_%s(0x%x)", rule.name.c_str(), bits);
                 s += tmp+" ";
             }
-            uint64_t from = m.from & rule.mask; // Better safe than sorry.
-            if ((bits & from) != 0)
-            {
-                s += m.to+" ";
-                bits = bits & ~m.from; // Remove the handled bit.
-            }
-        }
-        if (bits != 0)
-        {
-            // Oups, there are bits that we have not handled....
-            string tmp;
-            strprintf(tmp, "UNKNOWN_%s(0x%x)", rule.name.c_str(), bits);
-            s += tmp+" ";
         }
     }
     else if (rule.type == Type::IndexToString)

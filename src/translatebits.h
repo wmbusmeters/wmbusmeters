@@ -41,6 +41,7 @@ namespace Translate
         std::string name;
         Type type;
         uint64_t mask; // Bits to be used are set as 1.
+        std::string no_bits_msg; // If no bits are set print this, typically "OK".
         std::vector<Map> map;
     };
 

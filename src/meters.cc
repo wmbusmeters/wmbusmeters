@@ -1000,7 +1000,8 @@ LIST_OF_METERS
 
 string toString(DriverInfo &di)
 {
-    if (di.driver() != MeterDriver::UNKNOWN) return toString(di.driver());
+    if (di.driver() != MeterDriver::UNKNOWN &&
+        di.driver() != MeterDriver::AUTO) return toString(di.driver());
     return di.name().str();
 }
 

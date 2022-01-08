@@ -103,6 +103,7 @@ MeterAventiesWM::MeterAventiesWM(MeterInfo &mi, DriverInfo &di) :
                     "ERROR_FLAGS",
                     Translate::Type::BitToString,
                     0xffff,
+                    "",
                     {
                         { 0x01, "MEASUREMENT" },
                         { 0x02, "SABOTAGE" },

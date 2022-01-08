@@ -1017,6 +1017,7 @@ void test_translate()
                     "ACCESS_BITS",
                     Translate::Type::BitToString,
                     0xf0,
+                    "",
                     {
                         { 0x10, "NO_ACCESS" },
                         { 0x20, "ALL_ACCESS" },
@@ -1027,6 +1028,7 @@ void test_translate()
                     "ACCESSOR_TYPE",
                     Translate::Type::IndexToString,
                     0x0f,
+                    "",
                     {
                         { 0x00, "ACCESSOR_RED" },
                         { 0x07, "ACCESSOR_GREEN" },
@@ -1042,6 +1044,7 @@ void test_translate()
                     "ERROR_FLAGS",
                     Translate::Type::BitToString,
                     0x0f,
+                    "",
                     {
                         { 0x01, "BACKWARD_FLOW" },
                         { 0x02, "DRY" },
