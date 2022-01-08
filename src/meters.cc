@@ -245,7 +245,6 @@ public:
                             DriverInfo di = pickMeterDriver(&t);
                             if (di.driver() == MeterDriver::UNKNOWN && di.name().str() == "")
                             {
-                                printf("GURKA Driver not found %d %d %d\n", t.dll_mfct, t.dll_type, t.dll_version);
                                 if (should_analyze_ == false)
                                 {
                                     // We are not analyzing, so warn here.
@@ -293,7 +292,7 @@ public:
                             // but it still did not match! This is probably an error in wmbusmeters!
                             warning("(meter) newly created meter (%s %s %s) did not match telegram! ",
                                     "Please open an issue at https://github.com/weetmuts/wmbusmeters/\n",
-                                    meter->name().c_str(), meter->idsc().c_str(), toString(meter->driver()).c_str());
+                                    meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
                         }
                         else if (!h)
                         {
@@ -301,7 +300,7 @@ public:
                             // but it still did not handle it! This can happen if the wrong
                             // decryption key was used.
                             warning("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
-                                    meter->name().c_str(), meter->idsc().c_str(), toString(meter->driver()).c_str());
+                                    meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
                         }
                         else
                         {
@@ -411,7 +410,7 @@ LIST_OF_METERS
                 // but it still did not handle it! This can happen if the wrong
                 // decryption key was used. But it is ok if analyzing....
                 debug("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
-                        meter->name().c_str(), meter->idsc().c_str(), toString(meter->driver()).c_str());
+                      meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
             }
             else
             {
@@ -510,7 +509,7 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
 
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
                                                      DriverInfo &di) :
-    driver_(di.name().str()), bus_(mi.bus), name_(mi.name)
+    type_(di.type()), driver_(di.name().str()), driver_name_(di.name()), bus_(mi.bus), name_(mi.name)
 {
     ids_ = mi.ids;
     idsc_ = toIdsCommaSeparated(ids_);
@@ -525,6 +524,8 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     for (auto j : mi.extra_constant_fields) {
         addExtraConstantField(j);
     }
+
+    link_modes_.unionLinkModeSet(di.linkModes());
 }
 
 void MeterCommonImplementation::addConversions(std::vector<Unit> cs)
@@ -562,6 +563,10 @@ MeterDriver MeterCommonImplementation::driver()
 
 DriverName MeterCommonImplementation::driverName()
 {
+    if (driver_name_.str() == "")
+    {
+        return DriverName(toString(driver()));
+    }
     return driver_name_;
 }
 
@@ -1888,4 +1893,13 @@ void FieldInfo::performExtraction(Meter *m, Telegram *t)
     {
         extract_string_(this, m, t);
     }
+}
+
+DriverName MeterInfo::driverName()
+{
+    if (driver_name.str() == "")
+    {
+        return DriverName(toString(driver));
+    }
+    return driver_name;
 }

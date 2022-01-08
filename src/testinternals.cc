@@ -327,7 +327,7 @@ int test_linkmodes()
                                                                  0,
                                                                  no_meter_shells,
                                                                  no_meter_jsons));
-    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m2", MeterDriver::SUPERCOM587, "", ids, "",
+    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m2", MeterDriver::UNKNOWN, "supercom587", ids, "",
                                                                  toMeterLinkModeSet(supercom587),
                                                                  0,
                                                                  no_meter_shells,

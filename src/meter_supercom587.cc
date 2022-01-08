@@ -24,58 +24,51 @@
 
 using namespace std;
 
-struct MeterSupercom587 : public virtual MeterCommonImplementation {
-    MeterSupercom587(MeterInfo &mi);
-
-    // Total water counted through the meter
-    double totalWaterConsumption(Unit u);
-    bool  hasTotalWaterConsumption();
+struct MeterSupercom587 : public virtual MeterCommonImplementation
+{
+    MeterSupercom587(MeterInfo &mi, DriverInfo &di);
 
 private:
-    void processContent(Telegram *t);
 
     double total_water_consumption_m3_ {};
 };
 
-shared_ptr<Meter> createSupercom587(MeterInfo &mi)
+static bool ok = registerDriver([](DriverInfo&di)
 {
-    return shared_ptr<Meter>(new MeterSupercom587(mi));
+    di.setName("supercom587");
+    di.setMeterType(MeterType::WaterMeter);
+    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
+    di.addLinkMode(LinkMode::T1);
+    di.addDetection(MANUFACTURER_SON, 0x06,  0x3c);
+    di.addDetection(MANUFACTURER_SON, 0x07,  0x3c);
+    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterSupercom587(mi, di)); });
+});
+
+MeterSupercom587::MeterSupercom587(MeterInfo &mi, DriverInfo &di) :
+    MeterCommonImplementation(mi, di)
+{
+    addFieldWithExtractor(
+        "total",
+        Quantity::Volume,
+        NoDifVifKey,
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        ValueInformation::Volume,
+        StorageNr(0),
+        TariffNr(0),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+        "The total water consumption recorded by this meter.",
+        SET_FUNC(total_water_consumption_m3_, Unit::M3),
+        GET_FUNC(total_water_consumption_m3_, Unit::M3));
 }
 
-MeterSupercom587::MeterSupercom587(MeterInfo &mi) :
-    MeterCommonImplementation(mi, "supercom587")
-{
-    setMeterType(MeterType::WaterMeter);
+// Test: MyWarmWater supercom587 12345678 NOKEY
+// telegram=|A244EE4D785634123C067A8F000000|0C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000|
+// {"media":"warm water","meter":"supercom587","name":"MyWarmWater","id":"12345678","total_m3":5.548,"timestamp":"1111-11-11T11:11:11Z"}
+// |MyWarmWater;12345678;5.548000;1111-11-11 11:11.11
 
-    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
-
-    addLinkMode(LinkMode::T1);
-
-    addPrint("total", Quantity::Volume,
-             [&](Unit u){ return totalWaterConsumption(u); },
-             "The total water consumption recorded by this meter.",
-             true, true);
-
-}
-
-void MeterSupercom587::processContent(Telegram *t)
-{
-    int offset;
-    string key;
-
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
-        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
-    }
-}
-
-double MeterSupercom587::totalWaterConsumption(Unit u)
-{
-    assertQuantity(u, Quantity::Volume);
-    return convert(total_water_consumption_m3_, Unit::M3, u);
-}
-
-bool MeterSupercom587::hasTotalWaterConsumption()
-{
-    return true;
-}
+// Test: MyColdWater supercom587 11111111 NOKEY
+// telegram=|A244EE4D111111113C077AAC000000|0C1389490000426CE1F14C130000000082046C21298C0413010000008D04931E3A3CFE0100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000001600000031130000046D0A0C5C2B03FD6C60150082206C5C290BFD0F0200018C4079629885238310FD3100000082106C01018110FD610002FD66020002FD170000|
+// {"media":"water","meter":"supercom587","name":"MyColdWater","id":"11111111","total_m3":4.989,"timestamp":"1111-11-11T11:11:11Z"}
+// |MyColdWater;11111111;4.989000;1111-11-11 11:11.11

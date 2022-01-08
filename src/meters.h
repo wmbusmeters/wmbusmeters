@@ -105,7 +105,6 @@ LIST_OF_METER_TYPES
     X(sharky,     T1_bit, HeatMeter,        SHARKY,      Sharky)       \
     X(sharky774,  T1_bit, HeatMeter,        SHARKY774,   Sharky774)    \
     X(sontex868,  T1_bit, HeatCostAllocationMeter, SONTEX868, Sontex868) \
-    X(supercom587,T1_bit, WaterMeter,       SUPERCOM587, Supercom587)  \
     X(topaseskr,  T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)          \
     X(ultrimis,   T1_bit, WaterMeter,       ULTRIMIS,    Ultrimis)     \
     X(vario451,   T1_bit, HeatMeter,        VARIO451,    Vario451)     \
@@ -184,6 +183,7 @@ struct MeterInfo
     }
 
     string str();
+    DriverName driverName();
 
     MeterInfo(string b, string n, MeterDriver d, string e, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j)
     {
