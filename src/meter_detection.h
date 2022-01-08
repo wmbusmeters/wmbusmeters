@@ -22,7 +22,6 @@
 //    meter driver,       manufacturer,  media,  version
 //
 #define METER_DETECTION \
-    X(AVENTIESWM,MANUFACTURER_AAA,  0x07,  0x25) \
     X(AVENTIESHCA,MANUFACTURER_AAA, 0x08,  0x55) \
     X(APATOR08,  0x8614/*APT?*/,    0x03,  0x03) \
     X(APATOR162, MANUFACTURER_APA,  0x06,  0x05) \

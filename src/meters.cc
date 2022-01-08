@@ -602,7 +602,8 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                   NULL,
                   NULL,
                   NULL,
-                  NULL
+                  NULL,
+                  NoLookup
             ));
 }
 
@@ -633,7 +634,8 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit 
                   NULL,
                   NULL,
                   NULL,
-                  NULL
+                  NULL,
+                  NoLookup
             ));
 }
 
@@ -662,7 +664,8 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                   NULL,
                   NULL,
                   NULL,
-                  NULL
+                  NULL,
+                  NoLookup
             ));
 }
 
@@ -739,7 +742,8 @@ void MeterCommonImplementation::addFieldWithExtractor(
                   setValueFunc,
                   NULL,
                   extract,
-                  NULL
+                  NULL,
+                  NoLookup
             ));
 }
 
@@ -817,7 +821,87 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                   NULL,
                   setValueFunc,
                   NULL,
-                  extract
+                  extract,
+                  NoLookup
+            ));
+}
+
+void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
+    string vname,
+    Quantity vquantity,
+    DifVifKey dif_vif_key,
+    MeasurementType mt,
+    ValueInformation vi,
+    StorageNr s,
+    TariffNr t,
+    IndexNr i,
+    int print_properties,
+    string help,
+    function<void(string)> setValueFunc,
+    function<string()> getValueFunc,
+    Translate::Lookup lookup)
+{
+    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
+    string field_name = vname+"_"+default_unit;
+    fields_.push_back(field_name);
+
+    // Compose the extract function.
+    function<bool(FieldInfo *p,Meter *m, Telegram *t)> extract =
+                  [](FieldInfo *fi, Meter *m, Telegram *t)
+                  {
+                      bool found = false;
+                      string key = fi->difVifKey().str();
+                      int offset {};
+                      if (key == "")
+                      {
+                          // Search for key.
+                          bool ok = findKeyWithNr(fi->measurementType(),
+                                                  fi->valueInformation(),
+                                                  fi->storageNr().intValue(),
+                                                  fi->tariffNr().intValue(),
+                                                  fi->indexNr().intValue(),
+                                                  &key,
+                                                  &t->values);
+                          if (!ok) return false;
+                      }
+                      uint64_t extracted_bits {};
+                      if (extractDVlong(&t->values, key, &offset, &extracted_bits))
+                      {
+                          string translated_bits = fi->lookup().translate(extracted_bits);
+                          fi->setValueString(translated_bits);
+                          t->addMoreExplanation(offset, fi->renderJsonText());
+                          found = true;
+                      }
+                      else
+                      {
+                          assert(0);
+                      }
+                      return found;
+                  };
+
+    prints_.push_back(
+        FieldInfo(vname,
+                  vquantity,
+                  defaultUnitForQuantity(vquantity),
+                  dif_vif_key,
+                  VifScaling::None,
+                  mt,
+                  vi,
+                  s,
+                  t,
+                  i,
+                  help,
+                  (print_properties & PrintProperty::FIELD) != 0,
+                  (print_properties & PrintProperty::JSON) != 0,
+                  (print_properties & PrintProperty::IMPORTANT) != 0,
+                  field_name,
+                  NULL,
+                  getValueFunc,
+                  NULL,
+                  setValueFunc,
+                  NULL,
+                  extract,
+                  lookup
             ));
 }
 

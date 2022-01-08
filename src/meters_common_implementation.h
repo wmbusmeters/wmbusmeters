@@ -88,8 +88,8 @@ protected:
     void addPrint(string vname, Quantity vquantity,
                   function<std::string()> getValueFunc, string help, bool field, bool json);
 
-#define SET_FUNC(varname,to_unit) {[&](Unit from_unit, double d){varname = convert(d, from_unit, to_unit);}}
-#define GET_FUNC(varname,from_unit) {[&](Unit to_unit){return convert(varname, from_unit, to_unit);}}
+#define SET_FUNC(varname,to_unit) {[=](Unit from_unit, double d){varname = convert(d, from_unit, to_unit);}}
+#define GET_FUNC(varname,from_unit) {[=](Unit to_unit){return convert(varname, from_unit, to_unit);}}
 
     void addFieldWithExtractor(
         string vname,          // Name of value without unit, eg total
@@ -106,8 +106,8 @@ protected:
         function<void(Unit,double)> setValueFunc, // Use the SET macro above.
         function<double(Unit)> getValueFunc); // Use the GET macro above.
 
-#define SET_STRING_FUNC(varname) {[&](string s){varname = s;}}
-#define GET_STRING_FUNC(varname) {[&](){return varname; }}
+#define SET_STRING_FUNC(varname) {[=](string s){varname = s;}}
+#define GET_STRING_FUNC(varname) {[=](){return varname; }}
 
     void addStringFieldWithExtractor(
         string vname,          // Name of value without unit, eg total
@@ -123,11 +123,20 @@ protected:
         function<void(string)> setValueFunc, // Use the SET_STRING macro above.
         function<string()> getValueFunc); // Use the GET_STRING macro above.
 
-    // Decode a bit field and print
-    void addPrintTextFromBits(string vname, // Name of field, no suffix unit added since it is text.
-                              string help,  // An explanation of the field.
-                              int props,    // json,field,important
-                              function<std::string(MeterCommonImplementation*)> getValueFunc);
+    void addStringFieldWithExtractorAndLookup(
+        string vname,          // Name of value without unit, eg total
+        Quantity vquantity,    // Value belongs to this quantity.
+        DifVifKey dif_vif_key, // You can hardocde a dif vif header here or use NoDifVifKey
+        MeasurementType mt,    // If not using a hardcoded key, search for mt,vi,s,t and i instead.
+        ValueInformation vi,
+        StorageNr s,
+        TariffNr t,
+        IndexNr i,
+        int print_properties, // Should this be printed by default in fields,json and hr.
+        string help,
+        function<void(string)> setValueFunc, // Use the SET_STRING macro above.
+        function<string()> getValueFunc, // Use the GET_STRING macro above.
+        Translate::Lookup lookup); // Translate the bits/indexes.
 
     // The default implementation of poll does nothing.
     // Override for mbus meters that need to be queried and likewise for C2/T2 wmbus-meters.

@@ -97,3 +97,5 @@ string Lookup::translate(uint64_t bits)
     while (s.back() == ' ') s.pop_back();
     return s;
 }
+
+Lookup NoLookup = {};

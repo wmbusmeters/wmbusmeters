@@ -21,6 +21,7 @@
 #include"dvparser.h"
 #include"util.h"
 #include"units.h"
+#include"translatebits.h"
 #include"wmbus.h"
 
 #include<functional>
@@ -52,7 +53,6 @@ LIST_OF_METER_TYPES
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
     X(apator08,   T1_bit,        WaterMeter,       APATOR08,    Apator08)    \
     X(apator162,  C1_bit|T1_bit, WaterMeter,       APATOR162,   Apator162)   \
-    X(aventieswm, T1_bit,        WaterMeter,       AVENTIESWM,  AventiesWM)   \
     X(aventieshca,T1_bit, HeatCostAllocationMeter, AVENTIESHCA, AventiesHCA)   \
     X(bfw240radio,T1_bit, HeatCostAllocationMeter, BFW240RADIO, BFW240Radio)   \
     X(cma12w,     C1_bit|T1_bit, TempHygroMeter,   CMA12W,      CMa12w)      \
@@ -299,7 +299,8 @@ struct FieldInfo
               function<void(Unit,double)> set_value_double,
               function<void(string)> set_value_string,
               function<bool(FieldInfo*, Meter *mi, Telegram *t)> extract_double,
-              function<bool(FieldInfo*, Meter *mi, Telegram *t)> extract_string
+              function<bool(FieldInfo*, Meter *mi, Telegram *t)> extract_string,
+              Translate::Lookup lookup
         ) :
         vname_(vname),
         xuantity_(xuantity),
@@ -321,7 +322,8 @@ struct FieldInfo
         set_value_double_(set_value_double),
         set_value_string_(set_value_string),
         extract_double_(extract_double),
-        extract_string_(extract_string)
+        extract_string_(extract_string),
+        lookup_(lookup)
     {}
 
     string vname() { return vname_; }
@@ -354,6 +356,8 @@ struct FieldInfo
     string renderJson(vector<Unit> *additional_conversions);
     string renderJsonText();
 
+    Translate::Lookup& lookup() { return lookup_; }
+
 private:
 
     string vname_; // Value name, like: total current previous target
@@ -378,6 +382,7 @@ private:
     function<void(string)> set_value_string_; // Call back to set the value string in the c++ object
     function<bool(FieldInfo*, Meter *mi, Telegram *t)> extract_double_; // Extract field from telegram and insert into meter.
     function<bool(FieldInfo*, Meter *mi, Telegram *t)> extract_string_; // Extract field from telegram and insert into meter.
+    Translate::Lookup lookup_;
 };
 
 struct BusManager;

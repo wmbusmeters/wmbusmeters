@@ -49,7 +49,10 @@ namespace Translate
         std::vector<Rule> rules;
 
         std::string translate(uint64_t bits);
+        bool hasLookups() { return rules.size() > 0; }
     };
 };
+
+extern Translate::Lookup NoLookup;
 
 #endif
