@@ -103,7 +103,14 @@ if [ "$?" != "0" ]; then RC="1"; fi
 if [ "$?" != "0" ]; then RC="1"; fi
 
 ./tests/test_unix_timestamp.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then
+    # This can spuriously fail if it crosses a second change...
+    # Lets try again.
+    ./tests/test_unix_timestamp.sh $PROG
+    if [ "$?" != "0" ]; then
+        RC="1";
+    fi
+fi
 
 ./tests/test_log_timestamps.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
