@@ -22,6 +22,7 @@
 #include"meters.h"
 #include"printer.h"
 #include"serial.h"
+#include"translatebits.h"
 #include"util.h"
 #include"wmbus.h"
 #include"dvparser.h"
@@ -43,6 +44,7 @@ void test_months();
 void test_aes();
 void test_sbc();
 void test_hex();
+void test_translate();
 
 int main(int argc, char **argv)
 {
@@ -73,6 +75,7 @@ int main(int argc, char **argv)
     test_aes();
     test_sbc();
     test_hex();
+    test_translate();
 
     return 0;
 }
@@ -1003,4 +1006,70 @@ void test_hex()
     test_is_hex("00112233445566778899AABBCCDDEEFF", true, false);
     test_is_hex("00112233445566778899AABBCCDDEEF", true, true);
     test_is_hex("00112233445566778899AABBCCDDEEFG", false, false);
+}
+
+void test_translate()
+{
+    Translate::Lookup lookup1 =
+        {
+            {
+                {
+                    "ACCESS_BITS",
+                    Translate::Type::BitToString,
+                    0xf0,
+                    {
+                        { 0x10, "NO_ACCESS" },
+                        { 0x20, "ALL_ACCESS" },
+                        { 0x40, "TEMP_ACCESS" },
+                    }
+                },
+                {
+                    "ACCESSOR_TYPE",
+                    Translate::Type::IndexToString,
+                    0x0f,
+                    {
+                        { 0x00, "ACCESSOR_RED" },
+                        { 0x07, "ACCESSOR_GREEN" },
+                    },
+                },
+            },
+        };
+
+   Translate::Lookup lookup2 =
+        {
+            {
+                {
+                    "ERROR_FLAGS",
+                    Translate::Type::BitToString,
+                    0x0f,
+                    {
+                        { 0x01, "BACKWARD_FLOW" },
+                        { 0x02, "DRY" },
+                        { 0x12, "TRIG" },
+                    }
+                },
+            },
+        };
+
+    string s, e;
+    s = lookup1.translate(0xA0);
+    e = "ALL_ACCESS UNKNOWN_ACCESS_BITS(0x80) ACCESSOR_RED";
+    if (s != e)
+    {
+        printf("ERROR expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+    }
+
+    s = lookup1.translate(0x35);
+    e = "NO_ACCESS ALL_ACCESS UNKNOWN_ACCESSOR_TYPE(0x5)";
+    if (s != e)
+    {
+        printf("ERROR expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+    }
+
+    s = lookup2.translate(0x02);
+    e = "DRY BAD_RULE_ERROR_FLAGS(from=0x12 mask=0xf)";
+    if (s != e)
+    {
+        printf("ERROR expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+    }
 }
