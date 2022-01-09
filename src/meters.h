@@ -51,7 +51,6 @@ LIST_OF_METER_TYPES
 #define LIST_OF_METERS \
     X(auto,       0,      AutoMeter, AUTO, Auto) \
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
-    X(apator08,   T1_bit,        WaterMeter,       APATOR08,    Apator08)    \
     X(apator162,  C1_bit|T1_bit, WaterMeter,       APATOR162,   Apator162)   \
     X(aventieshca,T1_bit, HeatCostAllocationMeter, AVENTIESHCA, AventiesHCA)   \
     X(bfw240radio,T1_bit, HeatCostAllocationMeter, BFW240RADIO, BFW240Radio)   \
