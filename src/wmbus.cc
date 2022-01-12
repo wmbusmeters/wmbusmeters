@@ -4625,7 +4625,7 @@ bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_
     }
     // A hex string becomes a simulation file with a single line containing a telegram defined by the hex string.
     bool invalid_hex = false;
-    if (isHexString(f.c_str(), &invalid_hex))
+    if (isHexStringFlex(f.c_str(), &invalid_hex))
     {
         *is_simulation = true;
         *is_hex_simulation = true;

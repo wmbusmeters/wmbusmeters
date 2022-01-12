@@ -163,12 +163,8 @@ uchar reverse(uchar c)
     return ((c&15)<<4) | (c>>4);
 }
 
-bool isHexString(const string &txt, bool *invalid)
-{
-    return isHexString(txt.c_str(), invalid);
-}
 
-bool isHexString(const char* txt, bool *invalid)
+bool isHexString(const char* txt, bool *invalid, bool strict)
 {
     *invalid = false;
     // An empty string is not an hex string.
@@ -179,19 +175,46 @@ bool isHexString(const char* txt, bool *invalid)
     for (;;)
     {
         char c = *i++;
+        if (!strict && c == '#') continue; // Ignore hashes if not strict
+        if (!strict && c == ' ') continue; // Ignore hashes if not strict
+        if (!strict && c == '|') continue; // Ignore hashes if not strict
         if (c == 0) break;
         n++;
         if (char2int(c) == -1) return false;
     }
+    // An empty string is not an hex string.
+    if (n == 0) return false;
     if (n%2 == 1) *invalid = true;
+
     return true;
+}
+
+bool isHexStringFlex(const char* txt, bool *invalid)
+{
+    return isHexString(txt, invalid, false);
+}
+
+bool isHexStringFlex(const std::string &txt, bool *invalid)
+{
+    return isHexString(txt.c_str(), invalid, false);
+}
+
+bool isHexStringStrict(const char* txt, bool *invalid)
+{
+    return isHexString(txt, invalid, true);
+}
+
+bool isHexStringStrict(const std::string &txt, bool *invalid)
+{
+    return isHexString(txt.c_str(), invalid, true);
 }
 
 bool hex2bin(const char* src, vector<uchar> *target)
 {
     if (!src) return false;
     while(*src && src[1]) {
-        if (*src == ' ') {
+        if (*src == ' ' || *src == '#' || *src == '|') {
+            // Ignore space and hashes and pipes.
             src++;
         } else {
             int hi = char2int(*src);
@@ -989,7 +1012,7 @@ void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size
         string content = parsed_hex.substr(header_size*2);
         if (suffix_size == 0)
         {
-            notice("telegram=|%s|%s|+%ld\n",
+            notice("telegram=|%s#%s|+%ld\n",
                    header.c_str(), content.c_str(), diff);
         }
         else

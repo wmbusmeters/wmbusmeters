@@ -42,8 +42,12 @@ uchar reverse(uchar c);
 
 bool isHexChar(uchar c);
 
-bool isHexString(const char* txt, bool *invalid);
-bool isHexString(const std::string &txt, bool *invalid);
+// Flex strings contain hexadecimal digits and permit # | and whitespace.
+bool isHexStringFlex(const char* txt, bool *invalid);
+bool isHexStringFlex(const std::string &txt, bool *invalid);
+// Strict strings contain only hexadecimal digits.
+bool isHexStringStrict(const char* txt, bool *invalid);
+bool isHexStringStrict(const std::string &txt, bool *invalid);
 bool hex2bin(const char* src, std::vector<uchar> *target);
 bool hex2bin(std::string &src, std::vector<uchar> *target);
 bool hex2bin(std::vector<uchar> &src, std::vector<uchar> *target);

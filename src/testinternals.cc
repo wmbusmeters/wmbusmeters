@@ -988,10 +988,12 @@ void test_aes()
     }
 }
 
-void test_is_hex(const char *hex, bool expected_ok, bool expected_invalid)
+void test_is_hex(const char *hex, bool expected_ok, bool expected_invalid, bool strict)
 {
     bool got_invalid;
-    bool got_ok = isHexString(hex, &got_invalid);
+    bool got_ok;
+    if (strict) got_ok = isHexStringStrict(hex, &got_invalid);
+    else got_ok = isHexStringFlex(hex, &got_invalid);
 
     if (got_ok != expected_ok || got_invalid != expected_invalid)
     {
@@ -1000,12 +1002,16 @@ void test_is_hex(const char *hex, bool expected_ok, bool expected_invalid)
                expected_ok, expected_invalid, got_ok, got_invalid);
     }
 }
+
 void test_hex()
 {
-    test_is_hex("00112233445566778899aabbccddeeff", true, false);
-    test_is_hex("00112233445566778899AABBCCDDEEFF", true, false);
-    test_is_hex("00112233445566778899AABBCCDDEEF", true, true);
-    test_is_hex("00112233445566778899AABBCCDDEEFG", false, false);
+    test_is_hex("00112233445566778899aabbccddeeff", true, false, true);
+    test_is_hex("00112233445566778899AABBCCDDEEFF", true, false, true);
+    test_is_hex("00112233445566778899AABBCCDDEEF", true, true, true);
+    test_is_hex("00112233445566778899AABBCCDDEEFG", false, false, true);
+
+    test_is_hex("00 11 22 33#44|55#66 778899aabbccddeeff", true, false, false);
+    test_is_hex("00 11 22 33#4|55#66 778899aabbccddeeff", true, true, false);
 }
 
 void test_translate()

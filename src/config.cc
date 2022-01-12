@@ -246,7 +246,7 @@ void handleResetAfter(Configuration *c, string s)
 bool handleDeviceOrHex(Configuration *c, string devicefilehex)
 {
     bool invalid_hex = false;
-    bool is_hex = isHexString(devicefilehex, &invalid_hex);
+    bool is_hex = isHexStringFlex(devicefilehex, &invalid_hex);
     if (is_hex)
     {
         if (invalid_hex)
