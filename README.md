@@ -368,6 +368,8 @@ Heat and Cooling meter Kamstrup Multical 603 (multical603) (in C1 mode)
 Heat and Cooling meter Kamstrup Multical 803 (multical803) (in C1 mode)
 Heat meter Apator Elf (elf)
 Heat meter Diehl Sharky 775 (sharky)
+Heat meter Diehl Sharky 774 (sharky774)
+Heat meter Maddelena microClima (microclima)
 Heat and Cooling meter BMeters Hydrocal-M3 (hydrocalm3)
 Heat meter Qundis Q heat 5.5 (qheat)
 

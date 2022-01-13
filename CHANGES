@@ -1,4 +1,6 @@
 
+Added MicroClima heat meter.
+
 MaxPeal helped add ANYID as a synonym for '*' when listening to any meter id.
 This helps when invoking wmbusmeters from another shell and we want to avoid
 escaping '*' multiple levels. Thanks Max!
