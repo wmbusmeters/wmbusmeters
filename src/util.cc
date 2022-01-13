@@ -880,6 +880,7 @@ vector<string> splitMatchExpressions(string& mes)
         auto id = eatTo(v, i, ',', 16, &eof, &err);
         if (err) break;
         trimWhitespace(&id);
+        if (id == "ANYID") id = "*";
         r.push_back(id);
         if (eof) break;
     }
