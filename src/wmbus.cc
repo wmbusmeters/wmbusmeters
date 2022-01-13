@@ -2421,10 +2421,10 @@ string vifType(int vif)
     case 0x5E: return "Return temperature 10⁻¹ °C";
     case 0x5F: return "Return temperature °C";
 
-    case 0x60: return "Temperature difference mK";
-    case 0x61: return "Temperature difference 10⁻² K";
-    case 0x62: return "Temperature difference 10⁻¹ K";
-    case 0x63: return "Temperature difference K";
+    case 0x60: return "Temperature difference mK or 10⁻³ °C?";
+    case 0x61: return "Temperature difference 10⁻² K or °C?";
+    case 0x62: return "Temperature difference 10⁻¹ K or °C?";
+    case 0x63: return "Temperature difference K or °C?";
 
     case 0x64: return "External temperature 10⁻³ °C";
     case 0x65: return "External temperature 10⁻² °C";

@@ -717,7 +717,10 @@ void MeterCommonImplementation::addFieldWithExtractor(
                                       key,
                                       &offset,
                                       &extracted_double_value,
-                                      fi->vifScaling() == VifScaling::Auto))
+                                      fi->vifScaling() == VifScaling::Auto ||
+                                      fi->vifScaling() == VifScaling::AutoSigned,
+                                      fi->vifScaling() == VifScaling::NoneSigned ||
+                                      fi->vifScaling() == VifScaling::AutoSigned))
                   {
                       Unit decoded_unit = fi->defaultUnit();
                       if (fi->valueInformation() != ValueInformation::Any &&

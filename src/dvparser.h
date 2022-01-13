@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2020 Fredrik Öhrström
+ Copyright (C) 2018-2022 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -153,10 +153,11 @@ bool extractDVuint32(std::map<std::string,std::pair<int,DVEntry>> *values,
 
 // All values are scaled according to the vif and wmbusmeters scaling defaults.
 bool extractDVdouble(std::map<std::string,std::pair<int,DVEntry>> *values,
-                    std::string key,
-                    int *offset,
-                    double *value,
-                    bool auto_scale = true);
+                     std::string key,
+                     int *offset,
+                     double *value,
+                     bool auto_scale = true,
+                     bool assume_signed = false);
 
 // Extract a value without scaling. Works for 8bits to 64 bits, binary and bcd.
 bool extractDVlong(map<string,pair<int,DVEntry>> *values,

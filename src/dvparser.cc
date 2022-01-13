@@ -506,7 +506,8 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                      string key,
                      int *offset,
                      double *value,
-                     bool auto_scale)
+                     bool auto_scale,
+                     bool assume_signed)
 {
     if ((*values).count(key) == 0) {
         verbose("(dvparser) warning: cannot extract double from non-existant key \"%s\"\n", key.c_str());
@@ -538,21 +539,27 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
         vector<uchar> v;
         hex2bin(p.second.value, &v);
         uint64_t raw = 0;
+        bool negate = false;
+        uint64_t negate_mask = 0;
         if (t == 0x1) {
             assert(v.size() == 1);
             raw = v[0];
+            if (assume_signed && (raw & (uint64_t)0x80UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<8; }
         } else if (t == 0x2) {
             assert(v.size() == 2);
             raw = v[1]*256 + v[0];
+            if (assume_signed && (raw & (uint64_t)0x8000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<16; }
         } else if (t == 0x3) {
             assert(v.size() == 3);
             raw = v[2]*256*256 + v[1]*256 + v[0];
+            if (assume_signed && (raw & (uint64_t)0x800000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<24; }
         } else if (t == 0x4) {
             assert(v.size() == 4);
             raw = ((unsigned int)v[3])*256*256*256
                 + ((unsigned int)v[2])*256*256
                 + ((unsigned int)v[1])*256
                 + ((unsigned int)v[0]);
+            if (assume_signed && (raw & (uint64_t)0x80000000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<32; }
         } else if (t == 0x6) {
             assert(v.size() == 6);
             raw = ((uint64_t)v[5])*256*256*256*256*256
@@ -561,6 +568,7 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                 + ((uint64_t)v[2])*256*256
                 + ((uint64_t)v[1])*256
                 + ((uint64_t)v[0]);
+            if (assume_signed && (raw & (uint64_t)0x800000000000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<48; }
         } else if (t == 0x7) {
             assert(v.size() == 8);
             raw = ((uint64_t)v[7])*256*256*256*256*256*256*256
@@ -571,10 +579,16 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                 + ((uint64_t)v[2])*256*256
                 + ((uint64_t)v[1])*256
                 + ((uint64_t)v[0]);
+            if (assume_signed && (raw & (uint64_t)0x8000000000000000UL) != 0) { negate = true; negate_mask = 0; }
         }
         double scale = 1.0;
+        double draw = (double)raw;
+        if (negate)
+        {
+            draw = (double)((int64_t)(negate_mask | raw));
+        }
         if (auto_scale) scale = vifScale(vif);
-        *value = ((double)raw) / scale;
+        *value = (draw) / scale;
     }
     else
     if (t == 0x9 || // 2 digit BCD
@@ -586,6 +600,8 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
         // 74140000 -> 00001474
         string& v = p.second.value;
         uint64_t raw = 0;
+        assert(assume_signed == false); // We do not expect negative bcd values.
+        // Even though it is theoretically possible with nines complement.
         if (t == 0x9) {
             assert(v.size() == 2);
             raw = (v[0]-'0')*10 + (v[1]-'0');

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2020 Fredrik Öhrström
+ Copyright (C) 2019-2022 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -52,6 +52,7 @@
     X(LH,lh,"l/h",Flow,"liters per hour") \
     X(C,c,"°C",Temperature,"celsius")         \
     X(F,f,"°F",Temperature,"fahrenheit")      \
+    X(K,k,"K",Temperature,"kelvin")         \
     X(RH,rh,"RH",RelativeHumidity,"relative humidity")      \
     X(HCA,hca,"hca",HCA,"heat cost allocation") \
     X(TXT,txt,"txt",Text,"text")              \

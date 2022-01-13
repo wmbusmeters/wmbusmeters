@@ -271,8 +271,10 @@ vector<DriverInfo>& allRegisteredDrivers();
 
 enum class VifScaling
 {
-    None,
-    Auto
+    None, // No auto scaling.
+    Auto, // Scale to normalized VIF unit (ie kwh, m3, m3h etc)
+    NoneSigned, // No auto scaling however assume the value is signed.
+    AutoSigned // Scale and assume the value is signed.
 };
 
 struct FieldInfo
