@@ -1,5 +1,6 @@
 /*
  Copyright (C) 2021 Vincent Privat
+               2022 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -40,7 +41,7 @@ private:
 static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("sharky");
-    di.setMeterType(MeterType::WaterMeter);
+    di.setMeterType(MeterType::HeatMeter);
     di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(MANUFACTURER_HYD, 0x04, 0x20);
