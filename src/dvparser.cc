@@ -34,7 +34,21 @@ const char *toString(ValueInformation v)
     switch (v) {
         case ValueInformation::None: return "None";
         case ValueInformation::Any: return "Any";
-#define X(name,from,to,quantity) case ValueInformation::name: return #name;
+#define X(name,from,to,quantity,unit) case ValueInformation::name: return #name;
+LIST_OF_VALUETYPES
+#undef X
+    }
+    assert(0);
+}
+
+Unit toDefaultUnit(ValueInformation v)
+{
+    switch (v) {
+    case ValueInformation::Any:
+    case ValueInformation::None:
+        assert(0);
+        break;
+#define X(name,from,to,quantity,unit) case ValueInformation::name: return unit;
 LIST_OF_VALUETYPES
 #undef X
     }
@@ -43,7 +57,7 @@ LIST_OF_VALUETYPES
 
 ValueInformation toValueInformation(int i)
 {
-#define X(name,from,to,quantity) if (from <= i && i <= to) return ValueInformation::name;
+#define X(name,from,to,quantity,unit) if (from <= i && i <= to) return ValueInformation::name;
 LIST_OF_VALUETYPES
 #undef X
     return ValueInformation::None;
@@ -321,7 +335,7 @@ void valueInfoRange(ValueInformation v, int *low, int *hi)
     switch (v) {
     case ValueInformation::Any:
     case ValueInformation::None: *low = 0; *hi = 0; return;
-#define X(name,from,to,quantity) case ValueInformation::name: *low = from; *hi = to; return;
+#define X(name,from,to,quantity,unit) case ValueInformation::name: *low = from; *hi = to; return;
 LIST_OF_VALUETYPES
 #undef X
     }

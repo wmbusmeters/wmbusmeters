@@ -719,7 +719,13 @@ void MeterCommonImplementation::addFieldWithExtractor(
                                       &extracted_double_value,
                                       fi->vifScaling() == VifScaling::Auto))
                   {
-                      fi->setValueDouble(fi->defaultUnit(), extracted_double_value);
+                      Unit decoded_unit = fi->defaultUnit();
+                      if (fi->valueInformation() != ValueInformation::Any &&
+                          fi->valueInformation() != ValueInformation::None)
+                      {
+                          decoded_unit = toDefaultUnit(fi->valueInformation());
+                      }
+                      fi->setValueDouble(decoded_unit, extracted_double_value);
                       t->addMoreExplanation(offset, fi->renderJson(&m->conversions()));
                       found = true;
                   }

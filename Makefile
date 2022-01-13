@@ -135,8 +135,12 @@ PROG_OBJS:=\
 	$(BUILD)/wmbus_rc1180.o \
 	$(BUILD)/wmbus_utils.o \
 
-
-DRIVER_OBJS:=$(wildcard src/meter_*.cc)
+ifeq ($(DRIVER),)
+	DRIVER_OBJS:=$(wildcard src/meter_*.cc)
+else
+    $(info Building a single driver $(DRIVER))
+	DRIVER_OBJS:=src/meter_auto.cc src/meter_unknown.cc src/meter_$(DRIVER).cc
+endif
 DRIVER_OBJS:=$(patsubst src/%.cc,$(BUILD)/%.o,$(DRIVER_OBJS))
 
 all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd $(BUILD)/wmbusmeters.g $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals

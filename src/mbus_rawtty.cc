@@ -120,7 +120,7 @@ void MBusRawTTY::processSerialData()
 
     for (;;)
     {
-        FrameStatus status = checkMBusFrame(read_buffer_, &frame_length, &payload_len, &payload_offset);
+        FrameStatus status = checkMBusFrame(read_buffer_, &frame_length, &payload_len, &payload_offset, false);
 
         if (status == PartialFrame)
         {

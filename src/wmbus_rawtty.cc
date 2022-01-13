@@ -196,7 +196,7 @@ void WMBusRawTTY::processSerialData()
 
     for (;;)
     {
-        FrameStatus status = checkWMBusFrame(data_buffer_, &frame_length, &payload_len, &payload_offset);
+        FrameStatus status = checkWMBusFrame(data_buffer_, &frame_length, &payload_len, &payload_offset, false);
 
         if (status == PartialFrame)
         {

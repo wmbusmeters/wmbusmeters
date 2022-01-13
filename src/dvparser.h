@@ -19,6 +19,7 @@
 #define DVPARSER_H
 
 #include"util.h"
+#include"units.h"
 #include"wmbus.h"
 
 #include<map>
@@ -28,31 +29,32 @@
 #include<vector>
 
 #define LIST_OF_VALUETYPES \
-    X(Volume,0x10,0x17,Quantity::Volume) \
-    X(OperatingTime,0x24,0x27, Quantity::Time) \
-    X(VolumeFlow,0x38,0x3F, Quantity::Flow) \
-    X(FlowTemperature,0x58,0x5B, Quantity::Temperature) \
-    X(ReturnTemperature,0x5C,0x5F, Quantity::Temperature) \
-    X(TemperatureDifference,0x60,0x63, Quantity::Temperature) \
-    X(ExternalTemperature,0x64,0x67, Quantity::Temperature) \
-    X(HeatCostAllocation,0x6E,0x6E, Quantity::HCA) \
-    X(Date,0x6C,0x6C, Quantity::PointInTime) \
-    X(DateTime,0x6D,0x6D, Quantity::PointInTime) \
-    X(EnergyMJ,0x0E,0x0F, Quantity::Energy) \
-    X(EnergyWh,0x00,0x07, Quantity::Energy) \
-    X(PowerW,0x28,0x2f, Quantity::Power) \
-    X(ActualityDuration,0x74,0x77, Quantity::Time)  \
+    X(Volume,0x10,0x17,Quantity::Volume,Unit::M3) \
+    X(OperatingTime,0x24,0x27, Quantity::Time, Unit::Second)  \
+    X(VolumeFlow,0x38,0x3F, Quantity::Flow, Unit::M3H) \
+    X(FlowTemperature,0x58,0x5B, Quantity::Temperature, Unit::C) \
+    X(ReturnTemperature,0x5C,0x5F, Quantity::Temperature, Unit::C) \
+    X(TemperatureDifference,0x60,0x63, Quantity::Temperature, Unit::C) \
+    X(ExternalTemperature,0x64,0x67, Quantity::Temperature, Unit::C) \
+    X(HeatCostAllocation,0x6E,0x6E, Quantity::HCA, Unit::HCA) \
+    X(Date,0x6C,0x6C, Quantity::PointInTime, Unit::DateTimeLT) \
+    X(DateTime,0x6D,0x6D, Quantity::PointInTime, Unit::DateTimeLT) \
+    X(EnergyMJ,0x0E,0x0F, Quantity::Energy, Unit::MJ) \
+    X(EnergyWh,0x00,0x07, Quantity::Energy, Unit::KWH) \
+    X(PowerW,0x28,0x2f, Quantity::Power, Unit::KW) \
+    X(ActualityDuration,0x74,0x77, Quantity::Time, Unit::Second) \
 
 enum class ValueInformation
 {
     None,
     Any,
-#define X(name,from,to,quantity) name,
+#define X(name,from,to,quantity,unit) name,
 LIST_OF_VALUETYPES
 #undef X
 };
 
 const char *toString(ValueInformation v);
+Unit toDefaultUnit(ValueInformation v);
 ValueInformation toValueInformation(int i);
 
 struct DifVifKey

@@ -402,6 +402,7 @@ struct Telegram
     int dll_mfct {};
 
     uchar mbus_primary_address; // Single byte address 0-250 for mbus devices.
+    uchar mbus_ci; // MBus control information field.
 
     vector<uchar> dll_a; // A field 6 bytes
     // The 6 a field bytes are composed of 4 id bytes, version and type.
@@ -701,6 +702,8 @@ bool isCiFieldOfType(int ci_field, CI_TYPE type);
 int ciFieldLength(int ci_field);
 string ciType(int ci_field);
 string cType(int c_field);
+bool isValidWMBusCField(int c_field);
+bool isValidMBusCField(int c_field);
 string ccType(int cc_field);
 string difType(int dif);
 double vifScale(int vif);
@@ -726,12 +729,14 @@ enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
 FrameStatus checkWMBusFrame(vector<uchar> &data,
                             size_t *frame_length,
                             int *payload_len_out,
-                            int *payload_offset);
+                            int *payload_offset,
+                            bool only_test);
 
 FrameStatus checkMBusFrame(vector<uchar> &data,
                            size_t *frame_length,
                            int *payload_len_out,
-                           int *payload_offset);
+                           int *payload_offset,
+                           bool only_test);
 
 AccessCheck reDetectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 
@@ -760,6 +765,7 @@ bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a);
 
 ////////////////// MBUS
 
-string mbusCField(uchar c_field);
+const char *mbusCField(uchar c_field);
+const char *mbusCiField(uchar ci_field);
 
 #endif

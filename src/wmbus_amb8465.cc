@@ -423,13 +423,13 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
     size_t offset = 0;
 
     // The data[0] must be at least 10 bytes. C MM AAAA V T Ci
-    // And C must be 0x44.
-    while ((payload_len = data[offset]) < 10 || data[offset+1] != 0x44)
+    // And C must be a valid wmbus c field.
+    while ((payload_len = data[offset]) < 10 || !isValidWMBusCField(data[offset+1]))
     {
         offset++;
         if (offset + 2 >= data.size()) {
             // No sensible telegram in the buffer. Flush it!
-            // But not the last char, because the next char could be a 0x44
+            // But not the last char, because the next char could be a valid c field.
             verbose("(amb8465) no sensible telegram found, clearing buffer.\n");
             uchar last = data[data.size()-1];
             data.clear();

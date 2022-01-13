@@ -306,7 +306,7 @@ void WMBusRC1180::processSerialData()
 
     for (;;)
     {
-        FrameStatus status = checkWMBusFrame(read_buffer_, &frame_length, &payload_len, &payload_offset);
+        FrameStatus status = checkWMBusFrame(read_buffer_, &frame_length, &payload_len, &payload_offset, false);
 
         if (status == PartialFrame)
         {
