@@ -21,236 +21,172 @@
 #include"wmbus.h"
 #include"wmbus_utils.h"
 
-struct MeterSharky : public virtual MeterCommonImplementation {
-    MeterSharky(MeterInfo &mi);
-
-    double totalEnergyConsumption(Unit u);
-    double totalEnergyConsumptionTariff1(Unit u);
-    double totalVolume(Unit u);
-    double totalVolumeTariff2(Unit u);
-    double volumeFlow(Unit u);
-    double power(Unit u);
-    double flowTemperature(Unit u);
-    double returnTemperature(Unit u);
-    double temperatureDifference(Unit u);
+struct MeterSharky : public virtual MeterCommonImplementation
+{
+    MeterSharky(MeterInfo &mi, DriverInfo &di);
 
 private:
-    void processContent(Telegram *t);
-
     double total_energy_kwh_ {};
     double total_energy_tariff1_kwh_ {};
     double total_volume_m3_ {};
     double total_volume_tariff2_m3_ {};
     double volume_flow_m3h_ {};
-    double power_w_ {};
+    double power_kw_ {};
     double flow_temperature_c_ {};
     double return_temperature_c_ {};
     double temperature_difference_c_ {};
 };
 
-MeterSharky::MeterSharky(MeterInfo &mi) :
-    MeterCommonImplementation(mi, "sharky")
+static bool ok = registerDriver([](DriverInfo&di)
 {
-    setMeterType(MeterType::HeatMeter);
+    di.setName("sharky");
+    di.setMeterType(MeterType::WaterMeter);
+    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
+    di.addLinkMode(LinkMode::T1);
+    di.addDetection(MANUFACTURER_HYD, 0x04, 0x20);
+    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterSharky(mi, di)); });
+});
 
-    addLinkMode(LinkMode::T1);
-
-    addPrint("total_energy_consumption", Quantity::Energy,
-             [&](Unit u){ return totalEnergyConsumption(u); },
-             "The total energy consumption recorded by this meter.",
-             true, true);
-
-    addPrint("total_energy_consumption_tariff1", Quantity::Energy,
-             [&](Unit u){ return totalEnergyConsumptionTariff1(u); },
-             "The total energy consumption recorded by this meter on tariff 1.",
-             true, true);
-
-    addPrint("total_volume", Quantity::Volume,
-             [&](Unit u){ return totalVolume(u); },
-             "The total volume recorded by this meter.",
-             true, true);
-
-    addPrint("total_volume", Quantity::Volume,
-             [&](Unit u){ return totalVolumeTariff2(u); },
-             "The total volume recorded by this meter on tariff 2.",
-             true, true);
-
-    addPrint("volume_flow", Quantity::Flow,
-             [&](Unit u){ return volumeFlow(u); },
-             "The current flow.",
-             true, true);
-
-    addPrint("power", Quantity::Power,
-             [&](Unit u){ return power(u); },
-             "The power.",
-             true, true);
-
-    addPrint("flow_temperature", Quantity::Temperature,
-             [&](Unit u){ return flowTemperature(u); },
-             "The flow temperature.",
-             true, true);
-
-    addPrint("return_temperature", Quantity::Temperature,
-             [&](Unit u){ return returnTemperature(u); },
-             "The return temperature.",
-             true, true);
-
-    addPrint("temperature_difference", Quantity::Temperature,
-             [&](Unit u){ return temperatureDifference(u); },
-             "The temperature difference.",
-             true, true);
-}
-
-shared_ptr<Meter> createSharky(MeterInfo &mi) {
-    return shared_ptr<Meter>(new MeterSharky(mi));
-}
-
-double MeterSharky::totalEnergyConsumption(Unit u)
+MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) :
+    MeterCommonImplementation(mi, di)
 {
-    assertQuantity(u, Quantity::Energy);
-    return convert(total_energy_kwh_, Unit::KWH, u);
+    addFieldWithExtractor(
+        "total_energy_consumption",
+        Quantity::Energy,
+        NoDifVifKey,
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        ValueInformation::EnergyWh,
+        StorageNr(0),
+        TariffNr(0),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+        "The total heat energy consumption recorded by this meter.",
+        SET_FUNC(total_energy_kwh_, Unit::KWH),
+        GET_FUNC(total_energy_kwh_, Unit::KWH));
+
+    addFieldWithExtractor(
+        "total_energy_consumption_tariff1",
+        Quantity::Energy,
+        NoDifVifKey,
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        ValueInformation::EnergyWh,
+        StorageNr(0),
+        TariffNr(1),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD,
+        "The total heat energy consumption recorded by this meter on tariff 1.",
+        SET_FUNC(total_energy_tariff1_kwh_, Unit::KWH),
+        GET_FUNC(total_energy_tariff1_kwh_, Unit::KWH));
+
+    addFieldWithExtractor(
+        "total_volume",
+        Quantity::Volume,
+        NoDifVifKey,
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        ValueInformation::Volume,
+        StorageNr(0),
+        TariffNr(0),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD,
+        "The total heating media volume recorded by this meter.",
+        SET_FUNC(total_volume_m3_, Unit::M3),
+        GET_FUNC(total_volume_m3_, Unit::M3));
+
+    addFieldWithExtractor(
+        "total_volume_tariff2",
+        Quantity::Volume,
+        NoDifVifKey,
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        ValueInformation::Volume,
+        StorageNr(0),
+        TariffNr(2),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD,
+        "The total heating media volume recorded by this meter on tariff 2.",
+        SET_FUNC(total_volume_tariff2_m3_, Unit::M3),
+        GET_FUNC(total_volume_tariff2_m3_, Unit::M3));
+
+    addFieldWithExtractor(
+        "volume_flow",
+        Quantity::Flow,
+        NoDifVifKey,
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        ValueInformation::VolumeFlow,
+        StorageNr(0),
+        TariffNr(0),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD,
+        "The current heat media volume flow.",
+        SET_FUNC(volume_flow_m3h_, Unit::M3H),
+        GET_FUNC(volume_flow_m3h_, Unit::M3H));
+
+    addFieldWithExtractor(
+        "power",
+        Quantity::Power,
+        NoDifVifKey,
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        ValueInformation::PowerW,
+        StorageNr(0),
+        TariffNr(0),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD,
+        "The current power consumption.",
+        SET_FUNC(power_kw_, Unit::KW),
+        GET_FUNC(power_kw_, Unit::KW));
+
+    addFieldWithExtractor(
+        "flow_temperature",
+        Quantity::Temperature,
+        NoDifVifKey,
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        ValueInformation::FlowTemperature,
+        StorageNr(0),
+        TariffNr(0),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD,
+        "The current forward heat media temperature.",
+        SET_FUNC(flow_temperature_c_, Unit::C),
+        GET_FUNC(flow_temperature_c_, Unit::C));
+
+    addFieldWithExtractor(
+        "return_temperature",
+        Quantity::Temperature,
+        NoDifVifKey,
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        ValueInformation::ReturnTemperature,
+        StorageNr(0),
+        TariffNr(0),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD,
+        "The current return heat media temperature.",
+        SET_FUNC(return_temperature_c_, Unit::C),
+        GET_FUNC(return_temperature_c_, Unit::C));
+
+    addFieldWithExtractor(
+        "temperature_difference",
+        Quantity::Temperature,
+        NoDifVifKey,
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        ValueInformation::TemperatureDifference,
+        StorageNr(0),
+        TariffNr(0),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD,
+        "The current return heat media temperature.",
+        SET_FUNC(temperature_difference_c_, Unit::C),
+        GET_FUNC(temperature_difference_c_, Unit::C));
 }
 
-double MeterSharky::totalEnergyConsumptionTariff1(Unit u)
-{
-    assertQuantity(u, Quantity::Energy);
-    return convert(total_energy_tariff1_kwh_, Unit::KWH, u);
-}
-
-double MeterSharky::totalVolume(Unit u)
-{
-    assertQuantity(u, Quantity::Volume);
-    return convert(total_volume_m3_, Unit::M3, u);
-}
-
-double MeterSharky::totalVolumeTariff2(Unit u)
-{
-    assertQuantity(u, Quantity::Volume);
-    return convert(total_volume_tariff2_m3_, Unit::M3, u);
-}
-
-double MeterSharky::volumeFlow(Unit u)
-{
-    assertQuantity(u, Quantity::Flow);
-    return convert(volume_flow_m3h_, Unit::M3H, u);
-}
-
-double MeterSharky::power(Unit u)
-{
-    assertQuantity(u, Quantity::Power);
-    return convert(power_w_, Unit::KW, u);
-}
-
-double MeterSharky::flowTemperature(Unit u)
-{
-    assertQuantity(u, Quantity::Temperature);
-    return convert(flow_temperature_c_, Unit::C, u);
-}
-
-double MeterSharky::returnTemperature(Unit u)
-{
-    assertQuantity(u, Quantity::Temperature);
-    return convert(return_temperature_c_, Unit::C, u);
-}
-
-double MeterSharky::temperatureDifference(Unit u)
-{
-    assertQuantity(u, Quantity::Temperature);
-    return convert(temperature_difference_c_, Unit::C, u);
-}
-
-void MeterSharky::processContent(Telegram *t)
-{
-    /*
-      (wmbus) 0f: 0C dif (8 digit BCD Instantaneous value)
-      (wmbus) 10: 06 vif (Energy kWh)
-      (wmbus) 11: 51260000
-      (wmbus) 15: 8C dif (8 digit BCD Instantaneous value)
-      (wmbus) 16: 10 dife (subunit=0 tariff=1 storagenr=0)
-      (wmbus) 17: 06 vif (Energy kWh)
-      (wmbus) 18: 00000000
-      (wmbus) 1c: 0C dif (8 digit BCD Instantaneous value)
-      (wmbus) 1d: 13 vif (Volume l)
-      (wmbus) 1e: 47031500
-      (wmbus) 22: 8C dif (8 digit BCD Instantaneous value)
-      (wmbus) 23: 20 dife (subunit=0 tariff=2 storagenr=0)
-      (wmbus) 24: 13 vif (Volume l)
-      (wmbus) 25: 18000000
-      (wmbus) 29: 8C dif (8 digit BCD Instantaneous value)
-      (wmbus) 2a: 40 dife (subunit=1 tariff=0 storagenr=0)
-      (wmbus) 2b: 13 vif (Volume l)
-      (wmbus) 2c: 00000000
-      (wmbus) 30: 8C dif (8 digit BCD Instantaneous value)
-      (wmbus) 31: 80 dife (subunit=0 tariff=0 storagenr=0)
-      (wmbus) 32: 40 dife (subunit=2 tariff=0 storagenr=0)
-      (wmbus) 33: 13 vif (Volume l)
-      (wmbus) 34: 00000000
-      (wmbus) 38: 02 dif (16 Bit Integer/Binary Instantaneous value)
-      (wmbus) 39: FD vif (Second extension FD of VIF-codes)
-      (wmbus) 3a: 17 vife (Error flags (binary))
-      (wmbus) 3b: 0000
-      (wmbus) 3d: 0B dif (6 digit BCD Instantaneous value)
-      (wmbus) 3e: 3B vif (Volume flow l/h)
-      (wmbus) 3f: 000000
-      (wmbus) 42: 0C dif (8 digit BCD Instantaneous value)
-      (wmbus) 43: 2B vif (Power W)
-      (wmbus) 44: 00000000
-      (wmbus) 48: 0A dif (4 digit BCD Instantaneous value)
-      (wmbus) 49: 5A vif (Flow temperature 10⁻¹ °C)
-      (wmbus) 4a: 2304
-      (wmbus) 4c: 0A dif (4 digit BCD Instantaneous value)
-      (wmbus) 4d: 5E vif (Return temperature 10⁻¹ °C)
-      (wmbus) 4e: 8102
-      (wmbus) 50: 0A dif (4 digit BCD Instantaneous value)
-      (wmbus) 51: 62 vif (Temperature difference 10⁻¹ K)
-      (wmbus) 52: 4101
-    */
-
-    int offset;
-    string key;
-
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
-        t->addMoreExplanation(offset, " total energy consumption (%f kWh)", total_energy_kwh_);
-    }
-
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 1, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_energy_tariff1_kwh_);
-        t->addMoreExplanation(offset, " total energy tariff 1 (%f kwh)", total_energy_tariff1_kwh_);
-    }
-
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_volume_m3_);
-        t->addMoreExplanation(offset, " total volume (%f ㎥)", total_volume_m3_);
-    }
-
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 2, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_volume_tariff2_m3_);
-        t->addMoreExplanation(offset, " total volume tariff 2 (%f ㎥)", total_volume_tariff2_m3_);
-    }
-
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::VolumeFlow, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &volume_flow_m3h_);
-        t->addMoreExplanation(offset, " volume flow (%f ㎥/h)", volume_flow_m3h_);
-    }
-
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::PowerW, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &power_w_);
-        t->addMoreExplanation(offset, " power (%f W)", power_w_);
-    }
-
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::FlowTemperature, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &flow_temperature_c_);
-        t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_c_);
-    }
-
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::ReturnTemperature, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &return_temperature_c_);
-        t->addMoreExplanation(offset, " return temperature (%f °C)", return_temperature_c_);
-    }
-
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::TemperatureDifference, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &temperature_difference_c_);
-        t->addMoreExplanation(offset, " temperature difference (%f °C)", temperature_difference_c_);
-    }
-}
+// Test: Heat sharky ANYID NOKEY
+// telegram=|534424232004256092687A370045752235854DEEEA5939FAD81C25FEEF5A23C38FB9168493C563F08DB10BAF87F660FBA91296BA2397E8F4220B86D3A192FB51E0BFCF24DCE72118E0C75A9E89F43BDFE370824B|
+// {"media":"heat","meter":"sharky","name":"Heat","id":"68926025","total_energy_consumption_kwh":2651,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":150.347,"total_volume_tariff2_m3":0.018,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":42.3,"return_temperature_c":28.1,"temperature_difference_c":14.1,"timestamp":"1111-11-11T11:11:11Z"}
+// |Heat;68926025;2651.000000;0.000000;150.347000;0.018000;0.000000;0.000000;42.300000;28.100000;14.100000;1111-11-11 11:11.11

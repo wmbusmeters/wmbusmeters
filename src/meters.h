@@ -101,7 +101,6 @@ LIST_OF_METER_TYPES
     X(qheat,      T1_bit, HeatMeter,        QHEAT,       QHeat)        \
     X(qsmoke,     T1_bit, SmokeDetector,    QSMOKE,      QSmoke)       \
     X(sensostar,  C1_bit|T1_bit, HeatMeter,SENSOSTAR,  Sensostar)      \
-    X(sharky,     T1_bit, HeatMeter,        SHARKY,      Sharky)       \
     X(sharky774,  T1_bit, HeatMeter,        SHARKY774,   Sharky774)    \
     X(sontex868,  T1_bit, HeatCostAllocationMeter, SONTEX868, Sontex868) \
     X(topaseskr,  T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)          \
