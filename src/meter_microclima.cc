@@ -230,7 +230,17 @@ MeterMicroClima::MeterMicroClima(MeterInfo &mi, DriverInfo &di) :
 
 }
 
-// Test: Heat microclima ANYID NOKEY
+// The meter sends two types of telegrams a shorter with current values.
+
+// Test: Heat microclima 93572431 NOKEY
 // telegram=|494424343124579300047a5a0000202f2f046d2720b62c04060d07000001fd170004130a8c0400043b00000000042b00000000025b1500025f15000261d0ff03fd0c05000002fd0b1011|
 // {"media":"heat","meter":"microclima","name":"Heat","id":"93572431","total_energy_consumption_kwh":1805,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":297.994,"total_volume_tariff2_m3":0,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":21,"return_temperature_c":21,"temperature_difference_c":-0.48,"status":"OK","device_date_time":"2021-12-22 00:39","timestamp":"1111-11-11T11:11:11Z"}
 // |Heat;93572431;1805.000000;0.000000;297.994000;0.000000;0.000000;0.000000;21.000000;21.000000;-0.480000;OK;1111-11-11 11:11.11
+
+
+// And a longer with historical values. This telegram is not yet properly decoded.
+
+// Test: Heat microclima 93573086 NOKEY
+// telegram=|A44424348630579300047ADD0000202F2F046D0721B62C04064708000004135DB0030001FD1700426C9F2C4406C6040000C40106C0070000C4020637070000C4030611070000C404060B070000C405060B070000C406060B070000C407060B070000C40806A5060000C40906F7050000C40A067A050000C40B060F050000C40C06C6040000C40D063F040000C40E06BB030000C40F06A502000003FD0C05000002FD0B1111|
+// {"media":"heat","meter":"microclima","name":"Heat","id":"93573086","total_energy_consumption_kwh":2119,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":241.757,"total_volume_tariff2_m3":0,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":0,"return_temperature_c":0,"temperature_difference_c":-273.15,"status":"OK","device_date_time":"2021-12-22 01:07","timestamp":"1111-11-11T11:11:11Z"}
+// |Heat;93573086;2119.000000;0.000000;241.757000;0.000000;0.000000;0.000000;0.000000;0.000000;-273.150000;OK;1111-11-11 11:11.11

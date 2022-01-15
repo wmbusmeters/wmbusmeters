@@ -25,7 +25,7 @@ for i in $DRIVERS
 do
     TESTNAME=$i
     rm -f $TEST/*
-    METERS=$(cat src/$i | grep '// Test:' | cut -f 2 -d ':')
+    METERS=$(cat src/$i | grep '// Test:' | cut -f 2 -d ':' | tr -d '\n')
     sed -n '/\/\/ Test:/,$p' src/$i | grep -e '// telegram' -e '// {' -e '// |' | sed 's|// ||g' > $TEST/simulation.txt
     cat $TEST/simulation.txt | grep '^{' > $TEST/test_expected_json.txt
     $PROG --format=json $TEST/simulation.txt $METERS > $TEST/test_output_json.txt 2> $TEST/test_stderr_json.txt
