@@ -52,7 +52,6 @@ LIST_OF_METER_TYPES
     X(auto,       0,      AutoMeter, AUTO, Auto) \
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
     X(apator162,  C1_bit|T1_bit, WaterMeter,       APATOR162,   Apator162)   \
-    X(aventieshca,T1_bit, HeatCostAllocationMeter, AVENTIESHCA, AventiesHCA)   \
     X(bfw240radio,T1_bit, HeatCostAllocationMeter, BFW240RADIO, BFW240Radio)   \
     X(cma12w,     C1_bit|T1_bit, TempHygroMeter,   CMA12W,      CMa12w)      \
     X(compact5,   T1_bit, HeatMeter,        COMPACT5,    Compact5)     \

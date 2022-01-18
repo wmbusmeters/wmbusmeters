@@ -22,7 +22,6 @@
 //    meter driver,       manufacturer,  media,  version
 //
 #define METER_DETECTION \
-    X(AVENTIESHCA,MANUFACTURER_AAA, 0x08,  0x55) \
     X(APATOR162, MANUFACTURER_APA,  0x06,  0x05) \
     X(APATOR162, MANUFACTURER_APA,  0x07,  0x05) \
     X(BFW240RADIO, MANUFACTURER_BFW,0x08,  0x02) \
