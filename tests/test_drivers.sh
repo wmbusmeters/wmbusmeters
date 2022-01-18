@@ -10,7 +10,7 @@ echo "Testing drivers"
 TESTNAME="Test driver tests"
 TESTRESULT="ERROR"
 
-ALL_DRIVERS=$(cd src; echo meter_*cc)
+ALL_DRIVERS=$(cd src; echo driver_*cc)
 DRIVERS=
 
 for i in $ALL_DRIVERS
