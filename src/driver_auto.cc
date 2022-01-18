@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2021 Fredrik Öhrström
+ Copyright (C) 2021-2022 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,18 +15,12 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include"dvparser.h"
-#include"meters.h"
 #include"meters_common_implementation.h"
-#include"wmbus.h"
-#include"wmbus_utils.h"
-#include"util.h"
-
-#include<assert.h>
 
 using namespace std;
 
-struct MeterAuto : public virtual MeterCommonImplementation {
+struct MeterAuto : public virtual MeterCommonImplementation
+{
     MeterAuto(MeterInfo &mi, DriverInfo &di);
 
     void processContent(Telegram *t);

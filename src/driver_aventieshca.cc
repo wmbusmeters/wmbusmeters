@@ -15,11 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include"dvparser.h"
-#include"meters.h"
 #include"meters_common_implementation.h"
-#include"wmbus.h"
-#include"wmbus_utils.h"
 
 struct MeterAventiesHCA : public virtual MeterCommonImplementation
 {

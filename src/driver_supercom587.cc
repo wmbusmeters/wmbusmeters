@@ -15,12 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include"dvparser.h"
-#include"meters.h"
 #include"meters_common_implementation.h"
-#include"wmbus.h"
-#include"wmbus_utils.h"
-#include"util.h"
 
 using namespace std;
 
@@ -44,8 +39,7 @@ static bool ok = registerDriver([](DriverInfo&di)
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterSupercom587(mi, di)); });
 });
 
-MeterSupercom587::MeterSupercom587(MeterInfo &mi, DriverInfo &di) :
-    MeterCommonImplementation(mi, di)
+MeterSupercom587::MeterSupercom587(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
 {
     addFieldWithExtractor(
         "total",

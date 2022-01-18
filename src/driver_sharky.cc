@@ -16,11 +16,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include"meters.h"
 #include"meters_common_implementation.h"
-#include"dvparser.h"
-#include"wmbus.h"
-#include"wmbus_utils.h"
 
 struct MeterSharky : public virtual MeterCommonImplementation
 {
@@ -48,8 +44,7 @@ static bool ok = registerDriver([](DriverInfo&di)
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterSharky(mi, di)); });
 });
 
-MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) :
-    MeterCommonImplementation(mi, di)
+MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
 {
     addFieldWithExtractor(
         "total_energy_consumption",

@@ -15,12 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include"dvparser.h"
-#include"meters.h"
 #include"meters_common_implementation.h"
-#include"wmbus.h"
-#include"wmbus_utils.h"
-
 
 #define INFO_CODE_CLOSED 0x0011
 #define INFO_CODE_OPEN   0x0055
