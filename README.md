@@ -727,11 +727,12 @@ If you like to send the bytes manually, the correct bytes are:
 * Factory reset of the settings: `0xFF1100EE`
 * Reset the stick to apply the factory defaults: `0xFF0500FA` this is not necessary if you unplug and reinsert the dongle.
 
-# Source code
+# How to add a new driver
 
-The source code is modular and it should be relatively straightforward to add more receivers and meters.
+Drivers are self contained source code files named `src/driver_xyz.cc`
+They register themselves at startup. The source file also contains the necessary tests for that driver.
 
-Read for example the text file: HowToAddaNewMeter.txt
+Read more here: [doc/CreateDriver.md](doc/CreateDriver.md)
 
 # Caveat
 

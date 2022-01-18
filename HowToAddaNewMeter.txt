@@ -25,7 +25,7 @@ Be careful, the file must have a name beginning with "simulation_".
 Now you can re-run: wmbusmeters simulation_mymeter.txt
 And it will print the same output (minus the rssi/device).
 
-You can also do: wmbusmeters --debug simulation_mymeter.txt Wasser supercom587 12345678 <yourkey>
+You can also do: wmbusmeters --analyze simulation_mymeter.txt Wasser supercom587 12345678 <yourkey>
 It does not matter that your meter is not compatible with the supercom587, wmbusmeters
 will still decrypt and decode the OMS compliant wmbus encoded values as much as possible.
 

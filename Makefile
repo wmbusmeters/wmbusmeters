@@ -136,7 +136,7 @@ PROG_OBJS:=\
 	$(BUILD)/wmbus_utils.o \
 
 ifeq ($(DRIVER),)
-	DRIVER_OBJS:=$(wildcard src/meter_*.cc)
+	DRIVER_OBJS:=$(wildcard src/meter_*.cc) $(wildcard src/driver_*.cc)
 else
     $(info Building a single driver $(DRIVER))
 	DRIVER_OBJS:=src/meter_auto.cc src/meter_unknown.cc src/meter_$(DRIVER).cc
