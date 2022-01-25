@@ -65,3 +65,8 @@ echo "Updated version string in CHANGES"
 git commit -am "$NEW_MESSAGE"
 
 git tag "$NEW_VERSION"
+
+echo "Now do: git push ; git push --tags"
+
+#git push
+#git push --tags
