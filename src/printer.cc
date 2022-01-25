@@ -48,7 +48,7 @@ void Printer::print(Telegram *t, Meter *meter,
     vector<string> envs;
     bool printed = false;
 
-    meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields);
+    meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields, false);
 
     if (shell_cmdlines_.size() > 0 || meter->shellCmdlines().size() > 0) {
         printShells(meter, envs);

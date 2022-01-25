@@ -195,7 +195,8 @@ void list_shell_envs(Configuration *config, string meter_driver)
                       &ignore3,
                       &envs,
                       &config->extra_constant_fields,
-                      &config->selected_fields);
+                      &config->selected_fields,
+                      false);
 
     for (auto &e : envs)
     {

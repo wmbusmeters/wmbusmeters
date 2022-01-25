@@ -471,6 +471,11 @@ LIST_OF_METERS
                 int l = 0;
                 int u = 0;
                 t.analyzeParse(analyze_format_, &l, &u);
+                string hr, fields, json;
+                vector<string> envs, more_json, selected_fields;
+                meter->printMeter(&t, &hr, &fields, '\t', &json,
+                                  &envs, &more_json, &selected_fields, true);
+                printf("%s\n", json.c_str());
             }
         }
         else
@@ -804,6 +809,15 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                           extractDVdate(&t->values, key, &offset, &datetime);
                           string extracted_device_date_time = strdatetime(&datetime);
                           fi->setValueString(extracted_device_date_time);
+                          t->addMoreExplanation(offset, fi->renderJsonText());
+                          found = true;
+                      }
+                      else if (fi->valueInformation() == ValueInformation::Date)
+                      {
+                          struct tm date;
+                          extractDVdate(&t->values, key, &offset, &date);
+                          string extracted_device_date = strdate(&date);
+                          fi->setValueString(extracted_device_date);
                           t->addMoreExplanation(offset, fi->renderJsonText());
                           found = true;
                       }
@@ -1488,7 +1502,8 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                                            string *json,
                                            vector<string> *envs,
                                            vector<string> *extra_constant_fields,
-                                           vector<string> *selected_fields)
+                                           vector<string> *selected_fields,
+                                           bool pretty_print_json)
 {
     *human_readable = concatFields(this, t, '\t', prints_, conversions_, true, selected_fields, extra_constant_fields);
     *fields = concatFields(this, t, separator, prints_, conversions_, false, selected_fields, extra_constant_fields);
@@ -1507,44 +1522,53 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         media = mediaTypeJSON(t->dll_type, t->dll_mfct);
     }
 
+    string indent = "";
+    string newline = "";
+
+    if (pretty_print_json)
+    {
+        indent = "    ";
+        newline ="\n";
+    }
     string s;
-    s += "{";
-    s += "\"media\":\""+media+"\",";
-    s += "\"meter\":\""+meterDriver()+"\",";
-    s += "\"name\":\""+name()+"\",";
+    s += "{"+newline;
+    s += indent+"\"media\":\""+media+"\","+newline;
+    s += indent+"\"meter\":\""+meterDriver()+"\","+newline;
+    s += indent+"\"name\":\""+name()+"\","+newline;
     if (t->ids.size() > 0)
     {
-        s += "\"id\":\""+t->ids.back()+"\",";
+        s += indent+"\"id\":\""+t->ids.back()+"\","+newline;
     }
     else
     {
-        s += "\"id\":\"\",";
+        s += indent+"\"id\":\"\","+newline;
     }
     for (FieldInfo& p : prints_)
     {
         if (p.json())
         {
-            s += p.renderJson(&conversions())+",";
+            s += indent+p.renderJson(&conversions())+","+newline;
         }
     }
-    s += "\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
+    s += indent+"\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
 
     if (t->about.device != "")
     {
-        s += ",";
-        s += "\"device\":\""+t->about.device+"\",";
-        s += "\"rssi_dbm\":"+to_string(t->about.rssi_dbm);
+        s += ","+newline;
+        s += indent+"\"device\":\""+t->about.device+"\","+newline;
+        s += indent+"\"rssi_dbm\":"+to_string(t->about.rssi_dbm);
     }
     for (string extra_field : meterExtraConstantFields())
     {
-        s += ",";
-        s += makeQuotedJson(extra_field);
+        s += ","+newline;
+        s += indent+makeQuotedJson(extra_field);
     }
     for (string extra_field : *extra_constant_fields)
     {
-        s += ",";
-        s += makeQuotedJson(extra_field);
+        s += ","+newline;
+        s += indent+makeQuotedJson(extra_field);
     }
+    s += newline;
     s += "}";
     *json = s;
 
