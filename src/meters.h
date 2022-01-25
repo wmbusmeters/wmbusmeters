@@ -144,6 +144,9 @@ void detectMeterDrivers(int manufacturer, int media, int version, std::vector<st
 // When entering the driver, check that the telegram is indeed known to be
 // compatible with the driver(type), if not then print a warning.
 bool isMeterDriverValid(MeterDriver type, int manufacturer, int media, int version);
+// For an unknown telegram, when analyzing check if the media type is reasonable in relation to the driver.
+// Ie. do not try to decode a door sensor telegram with a water meter driver.
+bool isMeterDriverReasonableForMedia(MeterDriver type, string driver_name, int media);
 
 bool isValidKey(string& key, MeterDriver mt);
 
@@ -256,6 +259,7 @@ public:
     LinkModeSet linkModes() { return linkmodes_; }
     shared_ptr<Meter> construct(MeterInfo& mi) { return constructor_(mi, *this); }
     bool detect(uint16_t mfct, uchar type, uchar version);
+    bool isValidMedia(uchar type);
 };
 
 bool registerDriver(function<void(DriverInfo&di)> setup);

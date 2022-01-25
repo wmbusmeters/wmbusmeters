@@ -43,6 +43,15 @@ bool DriverInfo::detect(uint16_t mfct, uchar type, uchar version)
     return false;
 }
 
+bool DriverInfo::isValidMedia(uchar type)
+{
+    for (auto &dd : detect_)
+    {
+        if (dd.type == type) return true;
+    }
+    return false;
+}
+
 void DriverInfo::setExpectedELLSecurityMode(ELLSecurityMode dsm)
 {
     // TODO should check that the telegram is encrypted using the same mode.
@@ -389,6 +398,13 @@ LIST_OF_METERS
         {
             if (dr == MeterDriver::AUTO) continue;
             if (dr == MeterDriver::UNKNOWN) continue;
+            if (!isMeterDriverReasonableForMedia(dr, "", t.dll_type) &&
+                !isMeterDriverReasonableForMedia(dr, "", t.tpl_type))
+            {
+                // Skip this driver since it is not relevant for this media.
+                continue;
+            }
+
             string driver_name = toString(dr);
             debug("Testing driver %s...\n", driver_name.c_str());
             mi.driver = dr;
@@ -1699,6 +1715,24 @@ METER_DETECTION
     for (auto &p : all_registered_drivers_)
     {
         if (p.second.detect(manufacturer, media, version))
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool isMeterDriverReasonableForMedia(MeterDriver type, string driver_name, int media)
+{
+    if (media == 0x37) return false;  // Skip converter meter side since they do not give any useful information.
+#define X(TY,MA,ME,VE) { if (type == MeterDriver::TY  && media == ME) { return true; }}
+METER_DETECTION
+#undef X
+
+    for (auto &p : all_registered_drivers_)
+    {
+        if (p.first == "driver_name" && p.second.isValidMedia(media))
         {
             return true;
         }
