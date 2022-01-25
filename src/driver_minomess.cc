@@ -27,7 +27,7 @@ private:
     double total_water_consumption_m3_ {};
     string meter_date_;
     double target_water_consumption_m3_ {};
-    string target_water_consumption_date_;
+    string target_date_;
     string status_;
 };
 
@@ -87,8 +87,8 @@ MeterMinomess::MeterMinomess(MeterInfo &mi, DriverInfo &di) : MeterCommonImpleme
         IndexNr(1),
         PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
         "The total water consumption recorded at the beginning of this month.",
-        SET_FUNC(total_water_consumption_m3_, Unit::M3),
-        GET_FUNC(total_water_consumption_m3_, Unit::M3));
+        SET_FUNC(target_water_consumption_m3_, Unit::M3),
+        GET_FUNC(target_water_consumption_m3_, Unit::M3));
 
     addStringFieldWithExtractor(
         "target_date",
@@ -101,8 +101,8 @@ MeterMinomess::MeterMinomess(MeterInfo &mi, DriverInfo &di) : MeterCommonImpleme
         IndexNr(1),
         PrintProperty::JSON,
         "Date when target water consumption was recorded.",
-        SET_STRING_FUNC(meter_date_),
-        GET_STRING_FUNC(meter_date_));
+        SET_STRING_FUNC(target_date_),
+        GET_STRING_FUNC(target_date_));
 
     /*
     According to data sheet, there are two status/info bytes, byte A and byte B.
@@ -225,5 +225,5 @@ MeterMinomess::MeterMinomess(MeterInfo &mi, DriverInfo &di) : MeterCommonImpleme
 
 // Test: Mino minomess 15503451 NOKEY
 // telegram=|6644496A1064035514377251345015496A0007EE0050052F2F#0C1359000000026CBE2B82046CA12B8C0413FFFFFFFF8D0493132CFBFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF02FD1700002F2F|
-// {"media":"water","meter":"minomess","name":"Mino","id":"15503451","total_m3":244444.442,"meter_date":"2021-11-01","target_m3":244444.442,"target_date":"2021-11-01","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
-// |Mino;15503451;244444.442000;244444.442000;OK;1111-11-11 11:11.11
+// {"media":"water","meter":"minomess","name":"Mino","id":"15503451","total_m3":0.059,"meter_date":"2021-11-30","target_m3":244444.442,"target_date":"2021-11-01","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+// |Mino;15503451;0.059000;244444.442000;OK;1111-11-11 11:11.11
