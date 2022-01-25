@@ -2007,9 +2007,9 @@ void printAnalysisAsText(vector<Explanation> &explanations, bool use_ansi)
 
     if (use_ansi)
     {
-        green = "\033[0;97m\033[0;42m";
+        green = "\033[0;97m\033[1;42m";
         yellow = "\033[0;97m\033[0;43m";
-        red = "\033[0;97m\033[0;41m";
+        red = "\033[0;97m\033[0;41m\033[1;37m";
         reset = "\033[0m";
     }
     else

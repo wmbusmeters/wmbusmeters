@@ -78,7 +78,6 @@ LIST_OF_METER_TYPES
     X(lansenth,   T1_bit, TempHygroMeter,   LANSENTH,    LansenTH)     \
     X(lansenpu,   T1_bit, PulseCounter,     LANSENPU,    LansenPU)     \
     X(lse_07_17,  S1_bit, WaterMeter,       LSE_07_17,   LSE_07_17)    \
-    X(minomess,   C1_bit, WaterMeter,       MINOMESS,    Minomess) \
     X(mkradio3,   T1_bit, WaterMeter,       MKRADIO3,    MKRadio3)     \
     X(mkradio4,   T1_bit, WaterMeter,       MKRADIO4,    MKRadio4)     \
     X(multical21, C1_bit|T1_bit, WaterMeter,       MULTICAL21,  Multical21)   \
