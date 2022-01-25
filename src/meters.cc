@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2021 Fredrik Öhrström
+ Copyright (C) 2017-2022 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -62,7 +62,6 @@ bool registerDriver(function<void(DriverInfo&)> setup)
     assert(all_registered_drivers_.count(di.name().str()) == 0);
 
     // Check that no other driver also triggers on the same detection values.
-    /*
     for (auto &d : di.detect())
     {
         for (auto &p : all_registered_drivers_)
@@ -70,7 +69,7 @@ bool registerDriver(function<void(DriverInfo&)> setup)
             bool foo = p.second.detect(d.mfct, d.type, d.version);
             assert(!foo);
         }
-        }*/
+    }
 
     // Everything looks, good install this driver.
     all_registered_drivers_[di.name().str()] = di;
@@ -380,14 +379,11 @@ LIST_OF_METERS
         mi.ids.push_back(t.ids.back());
         mi.idsc = t.ids.back();
 
-        bool hide_output = drivers.size() > 1;
-        bool printed = false;
         bool handled = false;
         DriverInfo best_driver;
         // For the best driver we have:
         int best_content_length = 0;
         int best_understood_content_length = 0;
-
 
         for (MeterDriver dr : drivers)
         {
@@ -396,6 +392,43 @@ LIST_OF_METERS
             string driver_name = toString(dr);
             debug("Testing driver %s...\n", driver_name.c_str());
             mi.driver = dr;
+            auto meter = createMeter(&mi);
+            bool match = false;
+            string id;
+            bool h = meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+            if (!match)
+            {
+            }
+            else if (!h)
+            {
+                // Oups, we added a new meter object tailored for this telegram
+                // but it still did not handle it! This can happen if the wrong
+                // decryption key was used. But it is ok if analyzing....
+                debug("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
+                      meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
+            }
+            else
+            {
+                handled = true;
+                int l = 0;
+                int u = 0;
+                t.analyzeParse(OutputFormat::NONE, &l, &u);
+                verbose("(analyze) %s %d/%d\n", driver_name.c_str(), u, l);
+                if (u > best_understood_content_length)
+                {
+                    // Understood so many bytes
+                    best_understood_content_length = u;
+                    // Out of this many bytes of content total.
+                    best_content_length = l;
+                    best_driver = dr;
+                }
+            }
+        }
+        for (DriverInfo dr : all_registered_drivers_list_)
+        {
+            string driver_name = toString(dr);
+            debug("Testing driver %s...\n", driver_name.c_str());
+            mi.driver_name = driver_name;
             auto meter = createMeter(&mi);
             bool match = false;
             string id;
@@ -417,10 +450,7 @@ LIST_OF_METERS
                 handled = true;
                 int l = 0;
                 int u = 0;
-                OutputFormat of = analyze_format_;
-                if (hide_output) of = OutputFormat::NONE;
-                else printed = true;
-                t.analyzeParse(of, &l, &u);
+                t.analyzeParse(OutputFormat::NONE, &l, &u);
                 verbose("(analyze) %s %d/%d\n", driver_name.c_str(), u, l);
                 if (u > best_understood_content_length)
                 {
@@ -462,21 +492,18 @@ LIST_OF_METERS
                 mi.driver_name = best_driver.name();
             }
 
-            if (!printed)
-            {
-                auto meter = createMeter(&mi);
-                bool match = false;
-                string id;
-                meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
-                int l = 0;
-                int u = 0;
-                t.analyzeParse(analyze_format_, &l, &u);
-                string hr, fields, json;
-                vector<string> envs, more_json, selected_fields;
-                meter->printMeter(&t, &hr, &fields, '\t', &json,
-                                  &envs, &more_json, &selected_fields, true);
-                printf("%s\n", json.c_str());
-            }
+            auto meter = createMeter(&mi);
+            bool match = false;
+            string id;
+            meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+            int l = 0;
+            int u = 0;
+            t.analyzeParse(analyze_format_, &l, &u);
+            string hr, fields, json;
+            vector<string> envs, more_json, selected_fields;
+            meter->printMeter(&t, &hr, &fields, '\t', &json,
+                              &envs, &more_json, &selected_fields, true);
+            printf("%s\n", json.c_str());
         }
         else
         {
@@ -899,10 +926,6 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
                           fi->setValueString(translated_bits);
                           t->addMoreExplanation(offset, fi->renderJsonText());
                           found = true;
-                      }
-                      else
-                      {
-                          assert(0);
                       }
                       return found;
                   };
