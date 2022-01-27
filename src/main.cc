@@ -187,8 +187,24 @@ void list_shell_envs(Configuration *config, string meter_driver)
     Telegram t;
     t.about.device = "?";
     MeterInfo mi;
+    shared_ptr<Meter> meter;
+    DriverInfo di;
+
     mi.driver = toMeterDriver(meter_driver);
-    shared_ptr<Meter> meter = createMeter(&mi);
+    if (mi.driver != MeterDriver::UNKNOWN)
+    {
+        meter = createMeter(&mi);
+    }
+    else
+    {
+        mi.driver_name = meter_driver;
+        if (!lookupDriverInfo(meter_driver, &di))
+        {
+            error("No such driver %s\n", meter_driver.c_str());
+        }
+        meter = di.construct(mi);
+    }
+
     meter->printMeter(&t,
                       &ignore1,
                       &ignore2, config->separator,
@@ -209,8 +225,23 @@ void list_shell_envs(Configuration *config, string meter_driver)
 void list_fields(Configuration *config, string meter_driver)
 {
     MeterInfo mi;
+    shared_ptr<Meter> meter;
+    DriverInfo di;
+
     mi.driver = toMeterDriver(meter_driver);
-    shared_ptr<Meter> meter = createMeter(&mi);
+    if (mi.driver != MeterDriver::UNKNOWN)
+    {
+        meter = createMeter(&mi);
+    }
+    else
+    {
+        mi.driver_name = meter_driver;
+        if (!lookupDriverInfo(meter_driver, &di))
+        {
+            error("No such driver %s\n", meter_driver.c_str());
+        }
+        meter = di.construct(mi);
+    }
 
     int width = 13; // Width of timestamp_utc
     for (auto &p : meter->prints())

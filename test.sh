@@ -30,6 +30,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_anyid.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_list_envs.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 #tests/test_unknown.sh $PROG
 #if [ "$?" != "0" ]; then RC="1"; fi
 
