@@ -10,8 +10,8 @@ mkdir -p $TEST
 TESTNAME="Test aes encrypted telegrams"
 TESTRESULT="ERROR"
 
-cat simulations/simulation_aes.msg | grep '^{' | tr -d '#' > $TEST/test_expected.txt
-cat simulations/simulation_aes.msg | grep '^[CT]' | tr -d '#' > $TEST/test_input.txt
+cat simulations/serial_aes.msg | grep '^{' | tr -d '#' > $TEST/test_expected.txt
+cat simulations/serial_aes.msg | grep '^[CT]' | tr -d '#' > $TEST/test_input.txt
 cat $TEST/test_input.txt | $PROG --format=json "stdin:rtlwmbus" \
       ApWater apator162   88888888 00000000000000000000000000000000 \
       Vatten  multical21  76348799 28F64A24988064A079AA2C807D6102AE \

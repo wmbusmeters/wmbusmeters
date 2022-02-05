@@ -177,22 +177,48 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 
 void handleLoglevel(Configuration *c, string loglevel)
 {
-    if (loglevel == "verbose") { c->verbose = true; }
+    if (loglevel == "verbose")
+    {
+        c->silent = false;
+        c->verbose = true;
+        c->debug = false;
+        c->trace = false;
+        verboseEnabled(c->verbose);
+    }
     else if (loglevel == "debug")
     {
+        c->silent = false;
+        c->verbose = false;
         c->debug = true;
+        c->trace = false;
         // Kick in debug immediately.
         debugEnabled(c->debug);
     }
     else if (loglevel == "trace")
     {
+        c->silent = false;
+        c->verbose = false;
+        c->debug = false;
         c->trace = true;
         // Kick in trace immediately.
         traceEnabled(c->trace);
     }
-    else if (loglevel == "silent") { c->silent = true; }
-    else if (loglevel == "normal") { }
-    else {
+    else if (loglevel == "silent")
+    {
+        c->silent = true;
+        c->verbose = false;
+        c->debug = false;
+        c->trace = false;
+    }
+    else if (loglevel == "normal")
+    {
+        c->silent = false;
+        c->verbose = false;
+        c->debug = false;
+        c->trace = false;
+    }
+    else
+    {
         warning("No such log level: \"%s\"\n", loglevel.c_str());
     }
 }
@@ -356,6 +382,26 @@ void handleListenTo(Configuration *c, string mode)
     }
 
     c->default_device_linkmodes = lms;
+}
+
+void handleExitAfter(Configuration *c, string after)
+{
+    if (c->exitafter > 0)
+    {
+        error("You have already specified an exit after time!\n");
+    }
+
+    c->exitafter = parseTime(after);
+
+    if (c->exitafter == 0)
+    {
+        error("Exit after time must be non-zero \"%s\"!\n", after.c_str());
+    }
+}
+
+void handleOneshot(Configuration *c)
+{
+    c->oneshot = true;
 }
 
 void handleLogtelegrams(Configuration *c, string logtelegrams)
@@ -579,7 +625,7 @@ void handleExtraConstantField(Configuration *c, string field)
     c->extra_constant_fields.push_back(field);
 }
 
-shared_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override)
+shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrides)
 {
     Configuration *c = new Configuration;
 
@@ -587,7 +633,23 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
     c->json = true;
 
     vector<char> global_conf;
+
+    // --useconfig=/ will work to find /etc/wmbusmeters.conf and /etc/wmbusmeters.d
+    // --useconfig=/etc will also work to find /etc/wmbusmeters.conf and /etc/wmbusmeters.d
+    // The second one is preferable but for backward compatibility the first one is tested first.
+    // If there is no /+etc/wmbusmeters.conf then it will look for /+wmbusmeters.conf
+
+    string conf_dir = root;
     string conf_file = root+"/etc/wmbusmeters.conf";
+    string conf_meter_dir = root+"/etc/wmbusmeters.d";
+
+    if (!checkFileExists(conf_file.c_str()))
+    {
+        conf_dir = root+"/etc";
+        conf_file = root+"/wmbusmeters.conf";
+        conf_meter_dir = root+"/wmbusmeters.d";
+    }
+
     debug("(config) loading %s\n", conf_file.c_str());
     bool ok = loadFile(conf_file, &global_conf);
     global_conf.push_back('\n');
@@ -609,6 +671,8 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
         else if (p.first == "device") handleDeviceOrHex(c, p.second);
         else if (p.first == "donotprobe") handleDoNotProbe(c, p.second);
         else if (p.first == "listento") handleListenTo(c, p.second);
+        else if (p.first == "exitafter") handleExitAfter(c, p.second);
+        else if (p.first == "oneshot") handleOneshot(c);
         else if (p.first == "logtelegrams") handleLogtelegrams(c, p.second);
         else if (p.first == "meterfiles") handleMeterfiles(c, p.second);
         else if (p.first == "meterfilesaction") handleMeterfilesAction(c, p.second);
@@ -641,36 +705,60 @@ shared_ptr<Configuration> loadConfiguration(string root, string device_override,
     }
 
     vector<string> meters;
-    listFiles(root+"/etc/wmbusmeters.d", &meters);
+    listFiles(conf_meter_dir, &meters);
 
     for (auto& f : meters)
     {
         vector<char> meter_conf;
-        string file = root+"/etc/wmbusmeters.d/"+f;
+        string file = conf_meter_dir+"/"+f;
         loadFile(file.c_str(), &meter_conf);
         meter_conf.push_back('\n');
         parseMeterConfig(c, meter_conf, file);
     }
 
-    if (device_override != "")
+    if (overrides.device_override != "")
     {
         // There is an override, therefore we
         // drop any already loaded devices from the config file.
         c->use_auto_device_detect = false;
         c->supplied_bus_devices.clear();
 
-        if (startsWith(device_override, "/dev/rtlsdr"))
+        if (startsWith(overrides.device_override, "/dev/rtlsdr"))
         {
-            debug("(config) use rtlwmbus instead of raw device %s\n", device_override.c_str());
-            device_override = "rtlwmbus";
+            debug("(config) use rtlwmbus instead of raw device %s\n", overrides.device_override.c_str());
+            overrides.device_override = "rtlwmbus";
         }
-        debug("(config) overriding device with \"%s\"\n", device_override.c_str());
-        handleDeviceOrHex(c, device_override);
+        debug("(config) overriding device with \"%s\"\n", overrides.device_override.c_str());
+        handleDeviceOrHex(c, overrides.device_override);
     }
-    if (listento_override != "")
+    if (overrides.listento_override != "")
     {
-        debug("(config) overriding listento with \"%s\"\n", listento_override.c_str());
-        handleListenTo(c, listento_override);
+        debug("(config) overriding listento with \"%s\"\n", overrides.listento_override.c_str());
+        handleListenTo(c, overrides.listento_override);
+    }
+
+    if (overrides.exitafter_override != "")
+    {
+        debug("(config) overriding exitafter with \"%s\"\n", overrides.exitafter_override.c_str());
+        handleExitAfter(c, overrides.exitafter_override);
+    }
+
+    if (overrides.oneshot_override != "")
+    {
+        debug("(config) overriding oneshot with true\n");
+        handleOneshot(c);
+    }
+
+    if (overrides.loglevel_override != "")
+    {
+        debug("(config) overriding loglevel with %s\n", overrides.loglevel_override.c_str());
+        handleLoglevel(c, overrides.loglevel_override);
+    }
+
+    if (overrides.logfile_override != "")
+    {
+        debug("(config) overriding logfile with %s\n", overrides.logfile_override.c_str());
+        handleLogfile(c, overrides.logfile_override);
     }
 
     return shared_ptr<Configuration>(c);

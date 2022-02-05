@@ -24,61 +24,43 @@
 
 using namespace std;
 
-shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
+static bool isDaemon(int argc, char **argv);
+static bool checkIfUseConfig(int argc, char **argv);
+static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int argc, char **argv);
+static shared_ptr<Configuration> parseCommandLineWithUseConfig(Configuration *c, int argc, char **argv, bool pid_file_expected);
 
+shared_ptr<Configuration> parseCommandLine(int argc, char **argv)
+{
     Configuration * c = new Configuration;
 
-    int i=1;
-    const char *filename = strrchr(argv[0], '/');
-    if (filename)
-    {
-        filename++;
-    }
-    else
-    {
-        filename = argv[0];
-    }
     c->bin_dir = dirname(currentProcessExe());
-    if (!strcmp(filename, "wmbusmetersd"))
+
+    if (isDaemon(argc, argv))
     {
         c->daemon = true;
         if (argc < 2) {
-            error("Usage error: wmbusmetersd must have at least a single argument to the pid file.\n"
-                  "But you can also supply --device= and --listento= to override the config files.\n");
+            error("Usage error: wmbusmetersd must have at least a single argument to the pid file.\n");
         }
-        int i = 1;
-        bool pid_file_found = false;
-        for (;;)
-        {
-            if (argv[i] == NULL) break;
-            if (!strncmp(argv[i], "--device=", 9))
-            {
-                c->device_override = string(argv[i]+9);
-                debug("(daemon) device override \"%s\"\n", c->device_override.c_str());
-                i++;
-                continue;
-            }
-            if (!strncmp(argv[i], "--listento=", 11))
-            {
-                c->listento_override = string(argv[i]+11);
-                debug("(daemon) listento override \"%s\"\n", c->listento_override.c_str());
-                i++;
-                continue;
-            }
-            c->pid_file = argv[i];
-            pid_file_found = true;
-            break;
-        }
-        if (!pid_file_found)
-        {
-            error("Usage error: you must supply the pid file as the argument to wmbusmetersd.\n");
-        }
-        return shared_ptr<Configuration>(c);
+        return parseCommandLineWithUseConfig(c, argc, argv, true);
     }
-    if (argc < 2) {
+
+    if (argc < 2)
+    {
         c->need_help = true;
         return shared_ptr<Configuration>(c);
     }
+
+    if (checkIfUseConfig(argc, argv))
+    {
+        return parseCommandLineWithUseConfig(c, argc, argv, false);
+    }
+
+    return parseNormalCommandLine(c, argc, argv);
+}
+
+static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int argc, char **argv)
+{
+    int i = 1;
     while (argv[i] && argv[i][0] == '-')
     {
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "-help") || !strcmp(argv[i], "--help")) {
@@ -203,52 +185,6 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
         if (!strcmp(argv[i], "--logtelegrams")) {
             c->logtelegrams = true;
             i++;
-            continue;
-        }
-        if (!strncmp(argv[i], "--useconfig", 11)) {
-            if (strlen(argv[i]) == 11)
-            {
-                c->useconfig = true;
-                c->config_root = "";
-                return shared_ptr<Configuration>(c);
-            }
-            else if (strlen(argv[i]) > 12 && argv[i][11] == '=')
-            {
-                size_t len = strlen(argv[i]) - 12;
-                c->useconfig = true;
-                c->config_root = string(argv[i]+12, len);
-                if (c->config_root == "/") {
-                    c->config_root = "";
-                }
-            }
-            else
-            {
-                error("You must supply a directory to --useconfig=dir\n");
-            }
-            i++;
-            for (;;)
-            {
-                if (argv[i] == NULL) break;
-                if (!strncmp(argv[i], "--device=", 9))
-                {
-                    c->device_override = string(argv[i]+9);
-                    debug("(useconfig) device override \"%s\"\n", c->device_override.c_str());
-                    i++;
-                    continue;
-                }
-                if (!strncmp(argv[i], "--listento=", 11))
-                {
-                    c->listento_override = string(argv[i]+11);
-                    debug("(useconfig) listento override \"%s\"\n", c->listento_override.c_str());
-                    i++;
-                    continue;
-                }
-                break;
-            }
-            if (i+1 < argc) {
-                error("Usage error: --useconfig can only be followed by --device= and --listento=\n");
-            }
-            return shared_ptr<Configuration>(c);
             continue;
         }
         if (!strncmp(argv[i], "--format=", 9))
@@ -406,7 +342,7 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
                 if (len > 0) {
                     c->logfile = string(argv[i]+10, len);
                 } else {
-                    error("Not a valid log file name.");
+                    error("Not a valid log file name.\n");
                 }
             }
             i++;
@@ -660,4 +596,156 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv) {
     }
 
     return shared_ptr<Configuration>(c);
+}
+
+shared_ptr<Configuration> parseCommandLineWithUseConfig(Configuration *c, int argc, char **argv, bool pid_file_expected)
+{
+    int i = 1;
+
+    while (argv[i] && argv[i][0] == '-')
+    {
+        if (!strncmp(argv[i], "--useconfig", 11))
+        {
+            if (strlen(argv[i]) == 11)
+            {
+                c->useconfig = true;
+                c->config_root = "";
+            }
+            else if (strlen(argv[i]) > 12 && argv[i][11] == '=')
+            {
+                size_t len = strlen(argv[i]) - 12;
+                c->useconfig = true;
+                c->config_root = string(argv[i]+12, len);
+                if (c->config_root == "/") {
+                    c->config_root = "";
+                }
+            }
+            else
+            {
+                error("You must supply a directory to --useconfig=dir\n");
+            }
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--verbose", 9))
+        {
+            c->overrides.loglevel_override = "verbose";
+            debug("(useconfig) loglevel override \"%s\"\n", c->overrides.loglevel_override.c_str());
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--normal", 8))
+        {
+            c->overrides.loglevel_override = "normal";
+            debug("(useconfig) loglevel override \"%s\"\n", c->overrides.loglevel_override.c_str());
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--silent", 8))
+        {
+            c->overrides.loglevel_override = "silent";
+            debug("(useconfig) loglevel override \"%s\"\n", c->overrides.loglevel_override.c_str());
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--debug", 7))
+        {
+            c->overrides.loglevel_override = "debug";
+            debug("(useconfig) loglevel override \"%s\"\n", c->overrides.loglevel_override.c_str());
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--trace", 7))
+        {
+            c->overrides.loglevel_override = "trace";
+            debug("(useconfig) loglevel override \"%s\"\n", c->overrides.loglevel_override.c_str());
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--device=", 9))
+        {
+            c->overrides.device_override = string(argv[i]+9);
+            debug("(useconfig) device override \"%s\"\n", c->overrides.device_override.c_str());
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--listento=", 11))
+        {
+            c->overrides.listento_override = string(argv[i]+11);
+            debug("(useconfig) listento override \"%s\"\n", c->overrides.listento_override.c_str());
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--exitafter=", 12) && strlen(argv[i]) > 12) {
+            int s = parseTime(argv[i]+12);
+            if (s <= 0) {
+                error("Not a valid time to exit after. \"%s\"\n", argv[i]+12);
+            }
+            c->overrides.exitafter_override = argv[i]+12;
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--oneshot")) {
+            c->overrides.oneshot_override = "true";
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--logfile=", 10)) {
+            size_t len = strlen(argv[i])-10;
+            if (len > 0) {
+                c->overrides.logfile_override = string(argv[i]+10, len);
+            } else {
+                error("Not a valid log file name.\n");
+            }
+            i++;
+            continue;
+        }
+
+        error("Usage error: --useconfig=... can only be used in combination with:\n"
+              "--device= --listento= --exitafter= --oneshot= --logfile= --silent --normal --verbose --debug --trace\n");
+        break;
+    }
+
+    if (pid_file_expected)
+    {
+        if (!argv[i])
+        {
+            error("Usage error: you must supply the pid file as the last argument to wmbusmetersd.\n");
+        }
+        c->pid_file = argv[i];
+        i++;
+    }
+
+    if (i+1 < argc)
+    {
+        error("Usage error: you must supply the pid file as the last argument to wmbusmetersd.\n");
+    }
+    return shared_ptr<Configuration>(c);
+}
+
+static bool isDaemon(int argc, char **argv)
+{
+    const char *filename = strrchr(argv[0], '/');
+
+    if (filename)
+    {
+        filename++;
+    }
+    else
+    {
+        filename = argv[0];
+    }
+
+    return !strcmp(filename, "wmbusmetersd");
+}
+
+static bool checkIfUseConfig(int argc, char **argv)
+{
+    while (*argv != NULL)
+    {
+        if (!strncmp(*argv, "--useconfig", 11)) return true;
+        argv++;
+    }
+
+    return false;
 }

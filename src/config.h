@@ -42,6 +42,17 @@ enum class MeterFileTimestamp
     Never, Day, Hour, Minute, Micros
 };
 
+// These values can be overridden from the command line.
+struct ConfigOverrides
+{
+    std::string loglevel_override;
+    std::string device_override;
+    std::string listento_override;
+    std::string exitafter_override;
+    std::string oneshot_override;
+    std::string logfile_override;
+};
+
 struct Configuration
 {
     string bin_dir {}; // The wmbusmeters binary executed is located here.
@@ -49,8 +60,7 @@ struct Configuration
                        // inside the same directory.
     bool daemon {};
     std::string pid_file;
-    std::string device_override;
-    std::string listento_override;
+    ConfigOverrides overrides;
     bool useconfig {};
     std::string config_root;
     bool need_help {};
@@ -121,7 +131,7 @@ struct Configuration
     ~Configuration() = default;
 };
 
-shared_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override);
+shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrides);
 
 void parseMeterConfig(Configuration *c, vector<char> &buf, string file);
 void handleConversions(Configuration *c, string s);

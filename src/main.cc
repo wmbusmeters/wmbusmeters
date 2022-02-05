@@ -55,8 +55,10 @@ void log_start_information(Configuration *config);
 void oneshot_check(Configuration *config, Telegram *t, Meter *meter);
 void regular_checkup(Configuration *config);
 bool start(Configuration *config);
-void start_using_config_files(string root, bool is_daemon, string device_override, string listento_override);
-void start_daemon(string pid_file, string device_override, string listento_override); // Will use config files.
+void start_using_config_files(string root, bool is_daemon, ConfigOverrides overrides);
+
+void start_daemon(string pid_file, ConfigOverrides overrides);
+
 void setup_log_file(Configuration *config);
 void setup_meters(Configuration *config, MeterManager *manager);
 void write_pid(string pid_file, int pid);
@@ -150,13 +152,13 @@ provided you with this binary. Read the full license for all details.
 
     if (config->daemon)
     {
-        start_daemon(config->pid_file, config->device_override, config->listento_override);
+        start_daemon(config->pid_file, config->overrides);
         exit(0);
     }
 
     if (config->useconfig)
     {
-        start_using_config_files(config->config_root, false, config->device_override, config->listento_override);
+        start_using_config_files(config->config_root, false, config->overrides);
         exit(0);
     }
     else
@@ -412,9 +414,9 @@ void setup_log_file(Configuration *config)
         bool ok = enableLogfile(config->logfile, config->daemon);
         if (!ok) {
             if (config->daemon) {
-                warning("Could not open log file, will use syslog instead.\n");
+                warning("Could not open log file %s will use syslog instead.\n", config->logfile.c_str());
             } else {
-                error("Could not open log file.\n");
+                error("Could not open log file %s\n", config->logfile.c_str());
             }
         }
     }
@@ -462,8 +464,9 @@ bool start(Configuration *config)
     // Configure settings.
     silentLogging(config->silent);
     verboseEnabled(config->verbose);
-    logTelegramsEnabled(config->logtelegrams);
     debugEnabled(config->debug);
+    traceEnabled(config->trace);
+    logTelegramsEnabled(config->logtelegrams);
 
     if (config->addtimestamps == AddLogTimestamps::NotSet)
     {
@@ -472,7 +475,7 @@ bool start(Configuration *config)
     }
     setLogTimestamps(config->addtimestamps);
     internalTestingEnabled(config->internaltesting);
-    traceEnabled(config->trace);
+
     stderrEnabled(config->use_stderr_for_log);
     setAlarmShells(config->alarm_shells);
     setIgnoreDuplicateTelegrams(config->ignore_duplicate_telegrams);
@@ -605,7 +608,7 @@ bool start(Configuration *config)
     return gotHupped();
 }
 
-void start_daemon(string pid_file, string device_override, string listento_override)
+void start_daemon(string pid_file, ConfigOverrides overrides)
 {
     setlogmask(LOG_UPTO (LOG_INFO));
     openlog("wmbusmetersd", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
@@ -655,15 +658,15 @@ void start_daemon(string pid_file, string device_override, string listento_overr
     if (open("/dev/null", O_RDWR) == -1) {
         error("Failed to reopen stderr while daemonising (errno=%d)",errno);
     }
-    start_using_config_files("", true, device_override, listento_override);
+    start_using_config_files("", true, overrides);
 }
 
-void start_using_config_files(string root, bool is_daemon, string device_override, string listento_override)
+void start_using_config_files(string root, bool is_daemon, ConfigOverrides overrides)
 {
     bool restart = false;
     do
     {
-        shared_ptr<Configuration> config = loadConfiguration(root, device_override, listento_override);
+        shared_ptr<Configuration> config = loadConfiguration(root, overrides);
         config->daemon = is_daemon;
         restart = start(config.get());
         if (restart)
