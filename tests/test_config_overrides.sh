@@ -2,7 +2,13 @@
 
 PROG="$1"
 
-TEST=testaes
+if [ "$PROG" = "" ]
+then
+    echo Please supply the binary to be tested as the first argument.
+    exit 1
+fi
+
+TEST=testoutput
 
 rm -rf $TEST
 mkdir -p $TEST
@@ -10,16 +16,8 @@ mkdir -p $TEST
 TESTNAME="Test config override with oneshot"
 TESTRESULT="ERROR"
 
-EXTRA="C1;1;1;2020-01-23 10:25:13.000;97;148;76348799;0x2A442D2C998734761B168D2091D37CAC21E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24"
-
 cat simulations/serial_aes.msg | grep '^{' | tr -d '#' > $TEST/test_expected.txt
 cat simulations/serial_aes.msg | grep '^[CT]' | tr -d '#' > $TEST/test_input.txt
-
-# Pad with some more telegrams to make sure oneshot triggers before stdin eof triggers close of wmbusmeters.
-for i in 1 2 3 4 5 6 7 8 9 10
-do
-    echo "$EXTRA" >> $TEST/test_input.txt
-done
 
 cat $TEST/test_input.txt | $PROG --useconfig=tests/config9 --device=stdin:rtlwmbus --oneshot > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 
@@ -36,6 +34,9 @@ if [ "$?" = "0" ]
 then
     echo "OK: $TESTNAME"
     TESTRESULT="OK"
+else
+    echo "ERROR: $TESTNAME"
+    exit 1
 fi
 
 TESTNAME="Test config override with exitafter"
