@@ -10,11 +10,16 @@ mkdir -p $TEST
 TESTNAME="Test config override with oneshot"
 TESTRESULT="ERROR"
 
-BROKEN="T1;1;1;2019-04-03 19:00:42.000;97;148;18888888;0x6e4401068888881805077a85006085bc2630713819512eb4cd87fba554fb43f67cf9654a68ee8e194088160df752e716238292e8af1ac20986202ee561d743602466915e42f1105d9c6782"
+EXTRA="C1;1;1;2020-01-23 10:25:13.000;97;148;76348799;0x2A442D2C998734761B168D2091D37CAC21E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24"
 
 cat simulations/serial_aes.msg | grep '^{' | tr -d '#' > $TEST/test_expected.txt
 cat simulations/serial_aes.msg | grep '^[CT]' | tr -d '#' > $TEST/test_input.txt
-echo "$BROKEN" >> $TEST/input.txt
+
+# Pad with some more telegrams to make sure oneshot triggers before stdin eof triggers close of wmbusmeters.
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+    echo "$EXTRA" >> $TEST/test_input.txt
+done
 
 cat $TEST/test_input.txt | $PROG --useconfig=tests/config9 --device=stdin:rtlwmbus --oneshot > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 
