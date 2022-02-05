@@ -44,8 +44,9 @@ TESTRESULT="ERROR"
 
 cat simulations/serial_aes.msg | grep '^{' | tr -d '#' > $TEST/test_expected.txt
 cat simulations/serial_aes.msg | grep '^[CT]' | tr -d '#' > $TEST/test_input.txt
+
 # Read from stdin
-$PROG --useconfig=tests/config9 --device=stdin:rtlwmbus --oneshot --exitafter=1s  > $TEST/test_output.txt 2> $TEST/test_stderr.txt
+{ cat $TEST/test_input.txt ; sleep 4; } | $PROG --useconfig=tests/config9 --device=stdin:rtlwmbus --exitafter=1s  > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 
 if ! grep -q "(serial) exit after " $TEST/test_stderr.txt
 then
