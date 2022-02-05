@@ -304,7 +304,7 @@ telegram=|2E44B05C82340100021B7A460000002F2F0A6601020AFB1A570602FD971D00002F2F2F
 
 # Test QHeat heat meter
 telegram=|3C449344957002372337725880226793442304DC0000200C05043900004C0500000000426C9F2CCC080551070000C2086CBE29326CFFFF046D280DB62A|
-{"media":"heat","meter":"qheat","name":"QHeato","id":"67228058","total_energy_consumption_kwh":390.4,"last_month_date":"2021-09-30 00:00","last_month_energy_consumption_kwh":75.1,"las_year_date":"2020-12-31 00:00","last_year_energy_consumption_kwh":0,"device_date_time":"2021-10-22 13:40","device_error_date":"2127-15-31 00:00","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"heat","meter":"qheat","name":"QHeato","id":"67228058","total_energy_consumption_kwh":390.4,"last_month_date":"2021-09-30 00:00","last_month_energy_consumption_kwh":75.1,"last_year_date":"2020-12-31 00:00","last_year_energy_consumption_kwh":0,"device_date_time":"2021-10-22 13:40","device_error_date":"2127-15-31 00:00","timestamp":"1111-11-11T11:11:11Z"}
 |QHeato;67228058;390.400000;2021-09-30 00:00;75.100000;1111-11-11 11:11.11
 
 # Test QSmoke smoke detector this one is not yet understood.
