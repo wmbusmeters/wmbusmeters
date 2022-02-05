@@ -47,10 +47,10 @@ cat simulations/serial_aes.msg | grep '^[CT]' | tr -d '#' > $TEST/test_input.txt
 # Read from stdin
 $PROG --useconfig=tests/config9 --device=stdin:rtlwmbus --oneshot --exitafter=1s  > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 
-if ! grep -q "(serial) exit after 2 seconds" $TEST/test_stderr.txt
+if ! grep -q "(serial) exit after " $TEST/test_stderr.txt
 then
     echo "ERROR: $TESTNAME ($0)"
-    echo "Expected stderr to print \"exit after 2 seconds\""
+    echo "Expected stderr to print \"(serial) exit after\""
     exit 1
 else
     echo "OK: $TESTNAME"
