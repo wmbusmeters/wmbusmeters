@@ -112,5 +112,5 @@ MeterItron::MeterItron(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
 // Test: SomeWater itron 12345698 NOKEY
 // Comment: Test ITRON T1 telegram not encrypted, which has no 2f2f markers.
 // telegram=|384497269856341203077AD90000A0#0413FD110000066D2C1AA1D521004413300F0000426CBF2C047F0000060C027F862A0E79678372082100|
-// {"media":"water","meter":"itron","name":"SomeWater","id":"12345698","total_m3":4.605,"meter_date":"2022-01-21 01:26","target_m3":3.888,"target_date":"2021-12-31","timestamp":"2022-02-05T01:03:40Z"}
-// |SomeWater;12345698;4.605000;3.888000;2022-02-05 03:05.05
+// {"media":"water","meter":"itron","name":"SomeWater","id":"12345698","total_m3":4.605,"meter_date":"2022-01-21 01:26","target_m3":3.888,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}
+// |SomeWater;12345698;4.605000;3.888000;1111-11-11 11:11.11
