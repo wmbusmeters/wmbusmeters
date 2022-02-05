@@ -1,4 +1,12 @@
 
+You can now combine --useconfig=<dir> with --oneshot --exitafter=<time>
+--silent --verbose --debug --normal --trace to override the config file settings.
+(Already existing possible overrides was --device=<device> and --listento<mode>.)
+
+This can be useful if you maintain a large set of meter configurations but want
+to start wmbusmeters from a cronjob regularly. You can also add oneshot=true
+and/or exitafter=30m to the conf file to get the same result.
+
 Krzysztof Lewandowski added support for multiple tariffs in the amiplus driver. Thanks Krzysztof!
 
 Bibo added support for the itron water meter. Thanks Bibo!

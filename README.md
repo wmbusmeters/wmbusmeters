@@ -61,6 +61,9 @@ You can trigger a reload of the config files with `sudo killall -HUP wmbusmeters
 (Note! make install only works for GNU/Linux. For MacOSX try to start
 `wmbusmetersd /tmp/thepidfile` from a script instead.)
 
+You can also start the daemon with another set of config files:
+`wmbusmetersd --useconfig=/home/wmbusmeters /tmp/thepidfile`
+
 Check the config file /etc/wmbusmeters.conf and edit the device. For example:
 `auto:c1` or `im871a:c1,t1` or `im871a[457200101056]:t1` or `/dev/ttyUSB2:amb8465:c1,t1`
 
@@ -155,7 +158,7 @@ If you cannot install as a daemon, then you can also start
 wmbusmeters in your terminal using the config files in `/etc/wmbusmeters`.
 
 ```shell
-wmbusmeters --useconfig=/
+wmbusmeters --useconfig=/etc
 ```
 
 Or you can start wmbusmeters with your own config files:
@@ -176,8 +179,12 @@ wmbusmeters --useconfig=/home/me/.config/wmbusmeters --device=rtlwmbus
 You must have both `--useconfig=` and `--device=` for it to work.
 
 The files/dir should then be located here:
-`/home/me/.config/wmbusmeters/etc/wmbusmeters.conf` and
-`/home/me/.config/wmbusmeters/etc/wmbusmeters.d`
+`/home/me/.config/wmbusmeters/wmbusmeters.conf` and
+`/home/me/.config/wmbusmeters/wmbusmeters.d`
+
+(For historical reasons wmbusmeters first looks for `/home/me/.config/wmbusmeters/wmbusmeters.conf`.)
+
+The option `--useconfig=` can only be combined with a few other options: `--device= --listento= --exitafter= --oneshot= --silent --normal --verbose --debug --trace`
 
 When running using config files then you can trigger a reload of the config files
 using `sudo killall -HUP wmbusmetersd` or `killall -HUP wmbusmeters`

@@ -399,9 +399,13 @@ void handleExitAfter(Configuration *c, string after)
     }
 }
 
-void handleOneshot(Configuration *c)
+void handleOneshot(Configuration *c, string oneshot)
 {
-    c->oneshot = true;
+    if (oneshot == "true") { c->oneshot = true; }
+    else if (oneshot == "false") { c->oneshot = false;}
+    else {
+        warning("No such oneshot setting: \"%s\"\n", oneshot.c_str());
+    }
 }
 
 void handleLogtelegrams(Configuration *c, string logtelegrams)
@@ -672,7 +676,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         else if (p.first == "donotprobe") handleDoNotProbe(c, p.second);
         else if (p.first == "listento") handleListenTo(c, p.second);
         else if (p.first == "exitafter") handleExitAfter(c, p.second);
-        else if (p.first == "oneshot") handleOneshot(c);
+        else if (p.first == "oneshot") handleOneshot(c, p.second);
         else if (p.first == "logtelegrams") handleLogtelegrams(c, p.second);
         else if (p.first == "meterfiles") handleMeterfiles(c, p.second);
         else if (p.first == "meterfilesaction") handleMeterfilesAction(c, p.second);
@@ -746,7 +750,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
     if (overrides.oneshot_override != "")
     {
         debug("(config) overriding oneshot with true\n");
-        handleOneshot(c);
+        handleOneshot(c, "true");
     }
 
     if (overrides.loglevel_override != "")
