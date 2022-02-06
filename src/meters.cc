@@ -108,6 +108,9 @@ private:
     bool is_daemon_ {};
     bool should_analyze_ {};
     OutputFormat analyze_format_ {};
+    string analyze_driver_;
+    string analyze_key_;
+    bool analyze_verbose_;
     vector<MeterInfo> meter_templates_;
     vector<shared_ptr<Meter>> meters_;
     function<void(AboutTelegram&,vector<uchar>)> on_telegram_;
@@ -343,16 +346,145 @@ public:
         }
     }
 
-    void analyzeEnabled(bool b, OutputFormat f)
+    void analyzeEnabled(bool b, OutputFormat f, string force_driver, string key, bool verbose)
     {
         should_analyze_ = b;
         analyze_format_ = f;
+        analyze_driver_ = force_driver;
+        analyze_key_ = key;
+        analyze_verbose_ = verbose;
+    }
+
+    string findBestOldStyleDriver(MeterInfo &mi,
+                                  int *best_length,
+                                  int *best_understood,
+                                  Telegram &t,
+                                  AboutTelegram &about,
+                                  vector<uchar> &input_frame,
+                                  bool simulated,
+                                  string only)
+    {
+        vector<MeterDriver> old_drivers;
+#define X(mname,linkmode,info,type,cname) old_drivers.push_back(MeterDriver::type);
+LIST_OF_METERS
+#undef X
+
+        string best_driver = "";
+        for (MeterDriver odr : old_drivers)
+        {
+            if (odr == MeterDriver::AUTO) continue;
+            if (odr == MeterDriver::UNKNOWN) continue;
+            string driver_name = toString(odr);
+            if (only != "" && driver_name != only) continue;
+
+            if (!isMeterDriverReasonableForMedia(odr, "", t.dll_type) &&
+                !isMeterDriverReasonableForMedia(odr, "", t.tpl_type))
+            {
+                // Sanity check, skip this driver since it is not relevant for this media.
+                continue;
+            }
+
+
+            debug("Testing old style driver %s...\n", driver_name.c_str());
+            mi.driver = odr;
+            mi.driver_name = DriverName("");
+
+            auto meter = createMeter(&mi);
+
+            bool match = false;
+            string id;
+            bool h = meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+            if (!match)
+            {
+                debug("no match!\n");
+            }
+            else if (!h)
+            {
+                // Oups, we added a new meter object tailored for this telegram
+                // but it still did not handle it! This can happen if the wrong
+                // decryption key was used. But it is ok if analyzing....
+                debug("Newly created meter (%s %s %s) did not handle telegram!\n",
+                      meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
+            }
+            else
+            {
+                int l = 0;
+                int u = 0;
+                t.analyzeParse(OutputFormat::NONE, &l, &u);
+                if (analyze_verbose_ && only == "") printf("(verbose) old %02d/%02d %s\n", u, l, driver_name.c_str());
+                if (u > *best_understood)
+                {
+                    *best_understood = u;
+                    *best_length = l;
+                    best_driver = driver_name;
+                    if (analyze_verbose_ && only == "") printf("(verbose) old best so far: %s %02d/%02d\n", best_driver.c_str(), u, l);
+                }
+            }
+        }
+        return best_driver;
+    }
+
+    string findBestNewStyleDriver(MeterInfo &mi,
+                                  int *best_length,
+                                  int *best_understood,
+                                  Telegram &t,
+                                  AboutTelegram &about,
+                                  vector<uchar> &input_frame,
+                                  bool simulated,
+                                  string only)
+    {
+        string best_driver = "";
+
+        for (DriverInfo ndr : all_registered_drivers_list_)
+        {
+            string driver_name = toString(ndr);
+            if (only != "" && driver_name != only) continue;
+
+            debug("Testing new style driver %s...\n", driver_name.c_str());
+            mi.driver = MeterDriver::UNKNOWN;
+            mi.driver_name = driver_name;
+
+            auto meter = createMeter(&mi);
+
+            bool match = false;
+            string id;
+            bool h = meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+
+            if (!match)
+            {
+                debug("no match!\n");
+            }
+            else if (!h)
+            {
+                // Oups, we added a new meter object tailored for this telegram
+                // but it still did not handle it! This can happen if the wrong
+                // decryption key was used. But it is ok if analyzing....
+                debug("Newly created meter (%s %s %s) did not handle telegram!\n",
+                      meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
+            }
+            else
+            {
+                int l = 0;
+                int u = 0;
+                t.analyzeParse(OutputFormat::NONE, &l, &u);
+                if (analyze_verbose_ && only == "") printf("(verbose) new %02d/%02d %s\n", u, l, driver_name.c_str());
+                if (u > *best_understood)
+                {
+                    *best_understood = u;
+                    *best_length = l;
+                    best_driver = ndr.name().str();
+                    if (analyze_verbose_ && only == "") printf("(verbose) new best so far: %s %02d/%02d\n", best_driver.c_str(), u, l);
+                }
+            }
+        }
+        return best_driver;
     }
 
     void analyzeTelegram(AboutTelegram &about, vector<uchar> &input_frame, bool simulated)
     {
         Telegram t;
         t.about = about;
+
         bool ok = t.parseHeader(input_frame);
         if (simulated) t.markAsSimulated();
         t.markAsBeingAnalyzed();
@@ -363,168 +495,142 @@ public:
             return;
         }
 
-        vector<MeterDriver> drivers;
-#define X(mname,linkmode,info,type,cname) drivers.push_back(MeterDriver::type);
-LIST_OF_METERS
-#undef X
-
-        MeterInfo mi;
         if (meter_templates_.size() > 0)
         {
-            if (meter_templates_.size() > 1)
-            {
-                error("When analyzing you can only specify a single meter quadruple.\n");
-            }
-            if (meter_templates_[0].driver != MeterDriver::AUTO)
-            {
-                drivers.clear();
-                drivers.push_back(meter_templates_[0].driver);
-                mi = meter_templates_[0];
-            }
+            error("You cannot specify a meter quadruple when analyzing.\n"
+                  "Instead use --analyze=<format>:<driver>:<key>\n"
+                  "where <formt> <driver> <key> are all optional.\n"
+                  "E.g.        --analyze=terminal:multical21:001122334455667788001122334455667788\n"
+                  "            --analyze=001122334455667788001122334455667788\n"
+                  "            --analyze\n");
         }
 
         // Overwrite the id with the id from the telegram to be analyzed.
+        MeterInfo mi;
+        mi.key = analyze_key_;
         mi.ids.clear();
         mi.ids.push_back(t.ids.back());
         mi.idsc = t.ids.back();
 
-        bool handled = false;
-        DriverInfo best_driver;
-        // For the best driver we have:
-        int best_content_length = 0;
-        int best_understood_content_length = 0;
+        // This will be the driver that will actually decode and print with.
+        string using_driver = "";
+        int using_length = 0;
+        int using_understood = 0;
 
-        for (MeterDriver dr : drivers)
+        // Driver that understands most of the telegram content.
+        string best_driver = "";
+        int best_length = 0;
+        int best_understood = 0;
+
+        int old_best_length = 0;
+        int old_best_understood = 0;
+        string best_old_driver = findBestOldStyleDriver(mi, &old_best_length, &old_best_understood, t, about, input_frame, simulated, "");
+
+        int new_best_length = 0;
+        int new_best_understood = 0;
+        string best_new_driver = findBestNewStyleDriver(mi, &new_best_length, &new_best_understood, t, about, input_frame, simulated, "");
+
+        mi.driver = MeterDriver::UNKNOWN;
+        mi.driver_name = DriverName("");
+
+        // Use the existing mapping from mfct/media/version to driver.
+        DriverInfo auto_di = pickMeterDriver(&t);
+        string auto_driver = auto_di.name().str();
+        if (auto_driver == "")
         {
-            if (dr == MeterDriver::AUTO) continue;
-            if (dr == MeterDriver::UNKNOWN) continue;
-            if (!isMeterDriverReasonableForMedia(dr, "", t.dll_type) &&
-                !isMeterDriverReasonableForMedia(dr, "", t.tpl_type))
-            {
-                // Skip this driver since it is not relevant for this media.
-                continue;
-            }
+            auto_driver = toString(auto_di.driver());
+        }
 
-            string driver_name = toString(dr);
-            debug("Testing driver %s...\n", driver_name.c_str());
-            mi.driver = dr;
-            auto meter = createMeter(&mi);
-            bool match = false;
-            string id;
-            bool h = meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
-            if (!match)
+        // Will be non-empty if an explicit driver has been selected.
+        string force_driver = analyze_driver_;
+        int force_length = 0;
+        int force_understood = 0;
+
+        if (force_driver == "" && auto_driver == "")
+        {
+            force_driver = auto_driver;
+        }
+
+        if (force_driver != "")
+        {
+            using_driver = findBestOldStyleDriver(mi, &force_length, &force_understood, t, about, input_frame, simulated,
+                                                  force_driver);
+
+            if (using_driver != "")
             {
-            }
-            else if (!h)
-            {
-                // Oups, we added a new meter object tailored for this telegram
-                // but it still did not handle it! This can happen if the wrong
-                // decryption key was used. But it is ok if analyzing....
-                debug("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
-                      meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
+                mi.driver = toMeterDriver(using_driver);
+                mi.driver_name = DriverName("");
             }
             else
             {
-                handled = true;
-                int l = 0;
-                int u = 0;
-                t.analyzeParse(OutputFormat::NONE, &l, &u);
-                verbose("(analyze) %s %d/%d\n", driver_name.c_str(), u, l);
-                if (u > best_understood_content_length)
-                {
-                    // Understood so many bytes
-                    best_understood_content_length = u;
-                    // Out of this many bytes of content total.
-                    best_content_length = l;
-                    best_driver = dr;
-                }
+                using_driver = findBestNewStyleDriver(mi, &force_length, &force_understood, t, about, input_frame, simulated,
+                                                      force_driver);
+                mi.driver_name = using_driver;
+                mi.driver = MeterDriver::UNKNOWN;
             }
+            using_length = force_length;
+            using_understood = force_understood;
         }
-        for (DriverInfo dr : all_registered_drivers_list_)
-        {
-            string driver_name = toString(dr);
-            debug("Testing driver %s...\n", driver_name.c_str());
-            mi.driver_name = driver_name;
-            auto meter = createMeter(&mi);
-            bool match = false;
-            string id;
-            bool h = meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
-            if (!match)
-            {
 
-            }
-            else if (!h)
+        if (old_best_understood > new_best_understood)
+        {
+            best_length = old_best_length;
+            best_understood = old_best_understood;
+            best_driver = best_old_driver;
+            if (using_driver == "")
             {
-                // Oups, we added a new meter object tailored for this telegram
-                // but it still did not handle it! This can happen if the wrong
-                // decryption key was used. But it is ok if analyzing....
-                debug("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
-                      meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
-            }
-            else
-            {
-                handled = true;
-                int l = 0;
-                int u = 0;
-                t.analyzeParse(OutputFormat::NONE, &l, &u);
-                verbose("(analyze) %s %d/%d\n", driver_name.c_str(), u, l);
-                if (u > best_understood_content_length)
-                {
-                    // Understood so many bytes
-                    best_understood_content_length = u;
-                    // Out of this many bytes of content total.
-                    best_content_length = l;
-                    best_driver = dr;
-                }
+                mi.driver = toMeterDriver(best_old_driver);
+                mi.driver_name = DriverName("");
+                using_driver = best_old_driver;
+                using_length = best_length;
+                using_understood = best_understood;
             }
         }
-        if (handled)
+        else if (new_best_understood > old_best_understood)
         {
-            DriverInfo auto_driver = pickMeterDriver(&t);
-            string ad = toString(auto_driver);
-            string bd = toString(best_driver);
-            if (auto_driver.driver() != MeterDriver::UNKNOWN)
+            best_length = new_best_length;
+            best_understood = new_best_understood;
+            best_driver = best_new_driver;
+            if (using_driver == "")
             {
-                if (ad != bd)
-                {
-                    printf("\nUsing driver \"%s\" based on mfct/type/version driver lookup table.\n", ad.c_str());
-                    printf("But a better match could perhaps be driver \"%s\" with %d/%d content bytes understood.\n",
-                           bd.c_str(), best_understood_content_length, best_content_length);
-                    mi.driver_name = auto_driver.name();
-                }
-                else
-                {
-                    printf("\nUsing driver \"%s\" based on mfct/type/version driver lookup table.\n", ad.c_str());
-                    printf("Which is also the best matching driver with %d/%d content bytes understood.\n",
-                           best_understood_content_length, best_content_length);
-                    mi.driver_name = best_driver.name();
-                }
+                mi.driver_name = best_new_driver;
+                mi.driver = MeterDriver::UNKNOWN;
+                using_driver = best_new_driver;
+                using_length = best_length;
+                using_understood = best_understood;
             }
-            else
-            {
-                printf("\nUsing driver \"%s\" based on best content match with %d/%d content bytes understood.\n",
-                       bd.c_str(), best_understood_content_length, best_content_length);
-                printf("The mfct/type/version combo was not found in the driver lookup table.\n");
-                mi.driver_name = best_driver.name();
-            }
+        }
 
-            auto meter = createMeter(&mi);
-            bool match = false;
-            string id;
-            meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
-            int l = 0;
-            int u = 0;
-            t.analyzeParse(analyze_format_, &l, &u);
-            string hr, fields, json;
-            vector<string> envs, more_json, selected_fields;
-            meter->printMeter(&t, &hr, &fields, '\t', &json,
-                              &envs, &more_json, &selected_fields, true);
-            printf("%s\n", json.c_str());
-        }
-        else
+        auto meter = createMeter(&mi);
+
+        bool match = false;
+        string id;
+
+        meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+
+        int u = 0;
+        int l = 0;
+
+        string output = t.analyzeParse(analyze_format_, &u, &l);
+
+        string hr, fields, json;
+        vector<string> envs, more_json, selected_fields;
+
+        meter->printMeter(&t, &hr, &fields, '\t', &json,
+                          &envs, &more_json, &selected_fields, true);
+
+        if (auto_driver == "")
         {
-            printf("No suitable driver found.\n");
+            auto_driver = "not found!";
         }
+
+        printf("Auto driver  : %s\n", auto_driver.c_str());
+        printf("Best driver  : %s %02d/%02d\n", best_driver.c_str(), best_understood, best_length);
+        printf("Using driver : %s %02d/%02d\n", using_driver.c_str(), using_understood, using_length);
+
+        printf("%s\n", output.c_str());
+
+        printf("%s\n", json.c_str());
     }
 
     MeterManagerImplementation(bool daemon) : is_daemon_(daemon) {}
@@ -804,6 +910,44 @@ void MeterCommonImplementation::addFieldWithExtractor(
                   setValueFunc,
                   NULL,
                   extract,
+                  NULL,
+                  NoLookup
+            ));
+}
+
+void MeterCommonImplementation::addField(
+    string vname,
+    Quantity vquantity,
+    int print_properties,
+    string help,
+    function<void(Unit,double)> setValueFunc,
+    function<double(Unit)> getValueFunc)
+{
+    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
+    string field_name = vname+"_"+default_unit;
+    fields_.push_back(field_name);
+
+    prints_.push_back(
+        FieldInfo(vname,
+                  vquantity,
+                  defaultUnitForQuantity(vquantity),
+                  DifVifKey(""),
+                  VifScaling::None,
+                  MeasurementType::Unknown,
+                  ValueInformation::Volume,
+                  StorageNr(0),
+                  TariffNr(0),
+                  0,
+                  help,
+                  (print_properties & PrintProperty::FIELD) != 0,
+                  (print_properties & PrintProperty::JSON) != 0,
+                  (print_properties & PrintProperty::IMPORTANT) != 0,
+                  field_name,
+                  getValueFunc,
+                  NULL,
+                  setValueFunc,
+                  NULL,
+                  NULL,
                   NULL,
                   NoLookup
             ));
@@ -1442,6 +1586,7 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     ok = t.parse(input_frame, &meter_keys_, true);
     if (!ok)
     {
+        if (out_analyzed != NULL) *out_analyzed = t;
         // Ignoring telegram since it could not be parsed.
         return false;
     }

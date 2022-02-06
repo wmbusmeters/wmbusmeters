@@ -95,15 +95,56 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             {
                 c->analyze_format = OutputFormat::PLAIN;
             }
+            c->analyze_driver = "";
+            c->analyze_key = "";
+            c->analyze_verbose = false;
             i++;
             continue;
         }
         if (!strncmp(argv[i], "--analyze=", 10)) {
             c->analyze = true;
-            string format = string(argv[i]+10);
-            if (format == "plain") c->analyze_format = OutputFormat::PLAIN;
-            else if (format == "terminal") c->analyze_format = OutputFormat::TERMINAL;
-            else if (format == "json") c->analyze_format = OutputFormat::JSON;
+            if (isatty(1))
+            {
+                c->analyze_format = OutputFormat::TERMINAL;
+            }
+            else
+            {
+                c->analyze_format = OutputFormat::PLAIN;
+            }
+            c->analyze_driver = "";
+            c->analyze_key = "";
+            c->analyze_verbose = false;
+            string arg = string(argv[i]+10);
+            vector<string> args = splitString(arg, ':');
+
+            for (auto s : args)
+            {
+                bool inv = false;
+                if (isHexStringStrict(s, &inv))
+                {
+                    if (inv)
+                    {
+                        error("Bad key \"%s\"", s.c_str());
+                    }
+                    c->analyze_key = s;
+                }
+                else if (s == "plain") c->analyze_format = OutputFormat::PLAIN;
+                else if (s == "terminal") c->analyze_format = OutputFormat::TERMINAL;
+                else if (s == "json") c->analyze_format = OutputFormat::JSON;
+                else if (s == "verbose") c->analyze_verbose = true;
+                else
+                {
+                    MeterInfo mi;
+                    mi.parse("x", s, "00000000", "");
+
+                    if (mi.driver == MeterDriver::UNKNOWN &&
+                        mi.driver_name.str() == "")
+                    {
+                        error("Not a valid meter driver \"%s\"\n", s.c_str());
+                    }
+                    c->analyze_driver = s;
+                }
+            }
             i++;
             continue;
         }

@@ -129,13 +129,13 @@ void MeterApator162::processContent(Telegram *t)
             int offset;
             extractDVdouble(&vendor_values, "0413", &offset, &total_water_consumption_m3_);
             total = "*** 10|"+total+" total consumption (%f m3)";
-            t->addSpecialExplanation(offset, KindOfData::CONTENT, Understanding::FULL, total.c_str(), total_water_consumption_m3_);
+            t->addSpecialExplanation(offset, 4, KindOfData::CONTENT, Understanding::FULL, total.c_str(), total_water_consumption_m3_);
         }
         else
         {
             string msg = "*** ";
             msg += bin2hex(content, i-1, 1)+"|"+bin2hex(content, i, size);
-            t->addSpecialExplanation(i-1+t->header_size, KindOfData::CONTENT, Understanding::NONE, msg.c_str());
+            t->addSpecialExplanation(i-1+t->header_size, size, KindOfData::CONTENT, Understanding::NONE, msg.c_str());
         }
         i += size;
     }

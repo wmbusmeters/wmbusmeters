@@ -106,6 +106,14 @@ protected:
         function<void(Unit,double)> setValueFunc, // Use the SET macro above.
         function<double(Unit)> getValueFunc); // Use the GET macro above.
 
+    void addField(
+        string vname,          // Name of value without unit, eg total
+        Quantity vquantity,    // Value belongs to this quantity.
+        int print_properties, // Should this be printed by default in fields,json and hr.
+        string help,
+        function<void(Unit,double)> setValueFunc, // Use the SET macro above.
+        function<double(Unit)> getValueFunc); // Use the GET macro above.
+
 #define SET_STRING_FUNC(varname) {[=](string s){varname = s;}}
 #define GET_STRING_FUNC(varname) {[=](){return varname; }}
 

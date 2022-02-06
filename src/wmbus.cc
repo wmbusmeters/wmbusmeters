@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2021 Fredrik Öhrström
+ Copyright (C) 2017-2022 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -808,7 +808,7 @@ void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
     }
 }
 
-void Telegram::addSpecialExplanation(int offset, KindOfData k, Understanding u, const char* fmt, ...)
+void Telegram::addSpecialExplanation(int offset, int len, KindOfData k, Understanding u, const char* fmt, ...)
 {
     char buf[1024];
     buf[1023] = 0;
@@ -818,7 +818,7 @@ void Telegram::addSpecialExplanation(int offset, KindOfData k, Understanding u, 
     vsnprintf(buf, 1023, fmt, args);
     va_end(args);
 
-    explanations.push_back({offset, 1, buf, k, u});
+    explanations.push_back({offset, len, buf, k, u});
 }
 
 bool expectedMore(int line)
@@ -1044,18 +1044,28 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         int len = distance(pos+2, frame.end());
         uint16_t check = crc16_EN13757(&(frame[dist]), len);
 
-        addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x payload crc (calculated %02x%02x %s)",
-                                      ell_pl_crc_b[0], ell_pl_crc_b[1],
-                                      check  & 0xff, check >> 8, (ell_pl_crc==check?"OK":"ERROR"));
-
-        if (ell_pl_crc != check && !FUZZING)
+        if (ell_pl_crc == check || FUZZING)
+        {
+            addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                          "%02x%02x payload crc (calculated %02x%02x %s)",
+                                          ell_pl_crc_b[0], ell_pl_crc_b[1],
+                                          check  & 0xff, check >> 8, (ell_pl_crc==check?"OK":"ERROR"));
+        }
+        else
         {
             // Ouch, checksum of the payload does not match.
-            // A wrong key was probably used for decryption.
+            // A wrong key, or no key was probably used for decryption.
             decryption_failed = true;
+
+            // Log the content as encrypted.
+            int num_encrypted_bytes = frame.end()-pos;
+            string info =  bin2hex(pos, frame.end(), num_encrypted_bytes);
+            info += " encrypted";
+            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+
             if (parser_warns_)
             {
-                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
+                if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
                     warning("(wmbus) WARNING! decrypted payload crc failed check, did you use the correct decryption key? "
@@ -1493,8 +1503,21 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             addDefaultManufacturerKeyIfAny(frame, tpl_sec_mode, meter_keys);
         }
-        bool ok = decrypt_TPL_AES_CBC_IV(this, frame, pos, meter_keys->confidentiality_key);
-        if (!ok) return false;
+        int num_encrypted_bytes = 0;
+        int num_not_encrypted_at_end = 0;
+        bool ok = decrypt_TPL_AES_CBC_IV(this, frame, pos, meter_keys->confidentiality_key,
+                                         &num_encrypted_bytes, &num_not_encrypted_at_end);
+        if (!ok)
+        {
+            string info =  bin2hex(pos, frame.end(), num_encrypted_bytes);
+            info += " encrypted";
+            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (meter_keys->confidentiality_key.size() > 0)
+            {
+                // Only fail if we gave an explicit key.
+                return false;
+            }
+        }
         // Now the frame from pos and onwards has been decrypted.
 
         CHECK(2);
@@ -1502,7 +1525,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             if (parser_warns_)
             {
-                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
+                if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
                     warning("(wmbus) WARNING! decrypted content failed check, did you use the correct decryption key? "
@@ -1537,7 +1560,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             if (parser_warns_)
             {
-                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
+                if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
                     warning("(wmbus) WARNING! telegram mac check failed, did you use the correct decryption key? "
@@ -1553,8 +1576,17 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             return false;
         }
 
-        bool ok = decrypt_TPL_AES_CBC_NO_IV(this, frame, pos, tpl_generated_key);
-        if (!ok) return false;
+        int num_encrypted_bytes = 0;
+        int num_not_encrypted_at_end = 0;
+        bool ok = decrypt_TPL_AES_CBC_NO_IV(this, frame, pos, tpl_generated_key,
+                                            &num_encrypted_bytes,
+                                            &num_not_encrypted_at_end);
+        if (!ok)
+        {
+            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::FULL,
+                                          "encrypted data");
+            return false;
+        }
 
         // Now the frame from pos and onwards has been decrypted.
         CHECK(2);
@@ -1562,7 +1594,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             if (parser_warns_)
             {
-                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
+                if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
                     warning("(wmbus) WARNING! decrypted content failed check, did you use the correct decryption key? "
@@ -1749,12 +1781,22 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
         {
             header_size = distance(frame.begin(), pos);
             suffix_size = 0;
+            int num_mfct_bytes = frame.end()-pos;
+            string info =  bin2hex(pos, frame.end(), num_mfct_bytes);
+            info += " mfct specific";
+            addExplanationAndIncrementPos(pos, num_mfct_bytes, KindOfData::CONTENT, Understanding::NONE, info.c_str());
+
             return true; // Manufacturer specific telegram payload. Oh well....
         }
         case CI_Field_Values::MFCT_SPECIFIC_A3: // Another stoopid non-conformat wmbus Diehl/Sappel/Izar water meter addon.
         {
             header_size = distance(frame.begin(), pos);
             suffix_size = 0;
+            int num_mfct_bytes = frame.end()-pos;
+            string info =  bin2hex(pos, frame.end(), num_mfct_bytes);
+            info += " mfct specific";
+            addExplanationAndIncrementPos(pos, num_mfct_bytes, KindOfData::CONTENT, Understanding::NONE, info.c_str());
+
             return true; // Manufacturer specific telegram payload. Oh well....
         }
     }
@@ -1989,6 +2031,7 @@ void Telegram::explainParse(string intro, int from)
         const char *u = "?";
         if (p.understanding == Understanding::FULL) u = "!";
         if (p.understanding == Understanding::PARTIAL) u = "p";
+        if (p.understanding == Understanding::ENCRYPTED) u = "E";
 
         // Do not print ok for understood protocol, it is implicit.
         // However if a protocol is not full understood then print p or ?.
@@ -1998,8 +2041,10 @@ void Telegram::explainParse(string intro, int from)
     }
 }
 
-void printAnalysisAsText(vector<Explanation> &explanations, bool use_ansi)
+string renderAnalysisAsText(vector<Explanation> &explanations, bool use_ansi)
 {
+    string s;
+
     const char *green;
     const char *yellow;
     const char *red;
@@ -2027,6 +2072,7 @@ void printAnalysisAsText(vector<Explanation> &explanations, bool use_ansi)
         const char *u = "?";
         if (p.understanding == Understanding::FULL) u = "!";
         if (p.understanding == Understanding::PARTIAL) u = "p";
+        if (p.understanding == Understanding::ENCRYPTED) u = "E";
 
         // Do not print ok for understood protocol, it is implicit.
         // However if a protocol is not full understood then print p or ?.
@@ -2053,16 +2099,17 @@ void printAnalysisAsText(vector<Explanation> &explanations, bool use_ansi)
             pre = red;
         }
 
-        printf("%03d %s%s: %s%s%s\n", p.pos, c, u, pre, p.info.c_str(), post);
+        s += tostrprintf("%03d %s%s: %s%s%s\n", p.pos, c, u, pre, p.info.c_str(), post);
     }
+    return s;
 }
 
-void printAnalysisAsJson(vector<Explanation> &explanations)
+string renderAnalysisAsJson(vector<Explanation> &explanations)
 {
-    printf("{ \"TODO\": true }\n");
+    return "{ \"TODO\": true }\n";
 }
 
-void Telegram::analyzeParse(OutputFormat format, int *content_length, int *understood_content_length)
+string Telegram::analyzeParse(OutputFormat format, int *content_length, int *understood_content_length)
 {
     int u = 0;
     int l = 0;
@@ -2073,7 +2120,8 @@ void Telegram::analyzeParse(OutputFormat format, int *content_length, int *under
         if (e.kind == KindOfData::CONTENT)
         {
             l += e.len;
-            if (e.understanding != Understanding::NONE)
+            if (e.understanding == Understanding::PARTIAL ||
+                e.understanding == Understanding::FULL)
             {
                 // Its content and we have at least some understanding.
                 u += e.len;
@@ -2089,16 +2137,18 @@ void Telegram::analyzeParse(OutputFormat format, int *content_length, int *under
     case OutputFormat::TERMINAL:
     {
         bool use_ansi = format == OutputFormat::TERMINAL;
-        printAnalysisAsText(explanations, use_ansi);
+        return renderAnalysisAsText(explanations, use_ansi);
         break;
     }
     case OutputFormat::JSON:
-        printAnalysisAsJson(explanations);
+        return renderAnalysisAsJson(explanations);
         break;
     case OutputFormat::NONE:
         // Do nothing
+        return "";
         break;
     }
+    return "ERROR";
 }
 
 void detectMeterDrivers(int manufacturer, int media, int version, std::vector<std::string> *drivers);

@@ -42,16 +42,9 @@ static bool ok = registerDriver([](DriverInfo&di)
 
 MeterApator08::MeterApator08(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
 {
-    addFieldWithExtractor(
+    addField(
         "total",
         Quantity::Volume,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        ValueInformation::Volume,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
         PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
         "The total water consumption recorded by this meter.",
         SET_FUNC(total_water_consumption_m3_, Unit::M3),
@@ -84,7 +77,7 @@ void MeterApator08::processContent(Telegram *t)
         total_water_consumption_m3_ /= 3.0;
 
         total = "*** 10|"+total+" total consumption (%f m3)";
-        t->addSpecialExplanation(offset, KindOfData::CONTENT, Understanding::FULL, total.c_str(), total_water_consumption_m3_);
+        t->addSpecialExplanation(offset, 4, KindOfData::CONTENT, Understanding::FULL, total.c_str(), total_water_consumption_m3_);
     }
 }
 

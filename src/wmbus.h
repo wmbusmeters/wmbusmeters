@@ -364,7 +364,7 @@ enum class KindOfData
 // been partially decoded, or FULL when the volume or energy field is by itself complete.
 enum class Understanding
 {
-    NONE, PARTIAL, FULL
+    NONE, ENCRYPTED, PARTIAL, FULL
 };
 
 struct Explanation
@@ -514,9 +514,9 @@ struct Telegram
     void addMoreExplanation(int pos, const char* fmt, ...);
     void addMoreExplanation(int pos, string json);
     // Add an explanation of data inside manufacturer specific data.
-    void addSpecialExplanation(int offset, KindOfData k, Understanding u, const char* fmt, ...);
+    void addSpecialExplanation(int offset, int len, KindOfData k, Understanding u, const char* fmt, ...);
     void explainParse(string intro, int from);
-    void analyzeParse(OutputFormat o, int *content_length, int *understood_content_length);
+    string analyzeParse(OutputFormat o, int *content_length, int *understood_content_length);
 
     bool parserWarns() { return parser_warns_; }
     bool isSimulated() { return is_simulated_; }

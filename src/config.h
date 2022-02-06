@@ -70,6 +70,9 @@ struct Configuration
     bool license {};
     bool analyze {};
     OutputFormat analyze_format {};
+    string analyze_driver {};
+    string analyze_key {};
+    bool analyze_verbose {};
     bool debug {};
     bool trace {};
     AddLogTimestamps addtimestamps {};
