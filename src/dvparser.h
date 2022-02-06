@@ -43,6 +43,7 @@
     X(EnergyWh,0x00,0x07, Quantity::Energy, Unit::KWH) \
     X(PowerW,0x28,0x2f, Quantity::Power, Unit::KW) \
     X(ActualityDuration,0x74,0x77, Quantity::Time, Unit::Second) \
+    X(EnhancedIdentification,0x79,0x79, Quantity::Text, Unit::TXT) \
 
 enum class ValueInformation
 {
@@ -165,10 +166,18 @@ bool extractDVlong(map<string,pair<int,DVEntry>> *values,
                    int *offset,
                    uint64_t *value);
 
-bool extractDVstring(std::map<std::string,std::pair<int,DVEntry>> *values,
-                     std::string key,
-                     int *offset,
-                     string *value);
+// Just copy the raw hex data into the string, not reversed or anything.
+bool extractDVHexString(std::map<std::string,std::pair<int,DVEntry>> *values,
+                        std::string key,
+                        int *offset,
+                        string *value);
+
+// Read the content and attempt to reverse and transform it into a readble string
+// based on the dif information.
+bool extractDVReadableString(std::map<std::string,std::pair<int,DVEntry>> *values,
+                             std::string key,
+                             int *offset,
+                             string *value);
 
 bool extractDVdate(std::map<std::string,std::pair<int,DVEntry>> *values,
                    std::string key,

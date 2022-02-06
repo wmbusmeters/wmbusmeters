@@ -173,10 +173,10 @@ void test_string(map<string,pair<int,DVEntry>> &values, const char *key, const c
 {
     int offset;
     string value;
-    bool b = extractDVstring(&values,
-                             key,
-                             &offset,
-                             &value);
+    bool b = extractDVHexString(&values,
+                                key,
+                                &offset,
+                                &value);
     if (!b || value != v) {
         fprintf(stderr, "Error in dvparser testnr %d: got \"%s\" but expected value \"%s\" for key %s\n", testnr, value.c_str(), v, key);
     }

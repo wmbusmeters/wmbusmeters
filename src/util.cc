@@ -2056,3 +2056,29 @@ size_t findBytes(vector<uchar> &v, uchar a, uchar b, uchar c)
     }
     return (size_t)-1;
 }
+
+string reverseBCD(string v)
+{
+    int vlen = v.length();
+    if (vlen % 2 != 0)
+    {
+        return "BADHEX:"+v;
+    }
+
+    string n = "";
+    for (int i=0; i<vlen; i+=2)
+    {
+        n += v[vlen-2-i];
+        n += v[vlen-1-i];
+    }
+    return n;
+}
+
+string reverseBinaryAsciiSafeToString(string v)
+{
+    vector<uchar> bytes;
+    bool ok = hex2bin(v, &bytes);
+    if (!ok) return "BADHEX:"+v;
+    reverse(bytes.begin(), bytes.end());
+    return safeString(bytes);
+}

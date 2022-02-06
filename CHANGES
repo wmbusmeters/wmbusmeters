@@ -1,4 +1,6 @@
 
+NOTE! Json slight json output change drivers esyswm and evo868 where fabrication now is now properly reversed.
+
 You can now combine --useconfig=<dir> with --oneshot --exitafter=<time>
 --silent --verbose --debug --normal --trace to override the config file settings.
 (Already existing possible overrides was --device=<device> and --listento<mode>.)

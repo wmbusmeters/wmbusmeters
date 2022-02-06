@@ -864,9 +864,20 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                           t->addMoreExplanation(offset, fi->renderJsonText());
                           found = true;
                       }
+                      else if (fi->valueInformation() == ValueInformation::EnhancedIdentification)
+                      {
+                          string extracted_id;
+                          extractDVReadableString(&t->values, key, &offset, &extracted_id);
+                          fi->setValueString(extracted_id);
+                          t->addMoreExplanation(offset, fi->renderJsonText());
+                          found = true;
+                      }
                       else
                       {
-                          assert(0);
+                          error("Internal error: Cannot extract text string from vif %s in %s:%d\n",
+                                toString(fi->valueInformation()),
+                                __FILE__, __LINE__);
+
                       }
                       return found;
                   };

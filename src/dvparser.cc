@@ -761,20 +761,68 @@ bool extractDVlong(map<string,pair<int,DVEntry>> *values,
     return true;
 }
 
-bool extractDVstring(map<string,pair<int,DVEntry>> *values,
-                     string key,
-                     int *offset,
-                     string *value)
+bool extractDVHexString(map<string,pair<int,DVEntry>> *values,
+                        string key,
+                        int *offset,
+                        string *value)
 {
     if ((*values).count(key) == 0) {
         verbose("(dvparser) warning: cannot extract string from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
-        *value = "";
         return false;
     }
     pair<int,DVEntry>&  p = (*values)[key];
     *offset = p.first;
     *value = p.second.value;
+
+    return true;
+}
+
+
+bool extractDVReadableString(map<string,pair<int,DVEntry>> *values,
+                             string key,
+                             int *offset,
+                             string *value)
+{
+    if ((*values).count(key) == 0) {
+        verbose("(dvparser) warning: cannot extract string from non-existant key \"%s\"\n", key.c_str());
+        *offset = -1;
+        return false;
+    }
+    uchar dif, vif;
+    extractDV(key, &dif, &vif);
+    int t = dif&0xf;
+
+    pair<int,DVEntry>&  p = (*values)[key];
+    *offset = p.first;
+
+    string v = p.second.value;
+
+    if (t == 0x1 || // 8 Bit Integer/Binary
+        t == 0x2 || // 16 Bit Integer/Binary
+        t == 0x3 || // 24 Bit Integer/Binary
+        t == 0x4 || // 32 Bit Integer/Binary
+        t == 0x6 || // 48 Bit Integer/Binary
+        t == 0x7 || // 64 Bit Integer/Binary
+        t == 0xD)   // Variable length
+    {
+        // For example an enhanced id 32 bits binary looks like:
+        // 44434241 and will be reversed to: 41424344 and translated using ascii
+        // to ABCD
+        v = reverseBinaryAsciiSafeToString(v);
+    }
+    if (t == 0x9 || // 2 digit BCD
+        t == 0xA || // 4 digit BCD
+        t == 0xB || // 6 digit BCD
+        t == 0xC || // 8 digit BCD
+        t == 0xE)   // 12 digit BCD
+    {
+        // For example an enhanced id 12 digit bcd looks like:
+        // 618171183100 and will be reversed to: 003118718161
+        v = reverseBCD(v);
+    }
+
+    *value = v;
     return true;
 }
 

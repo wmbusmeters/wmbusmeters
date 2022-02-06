@@ -215,7 +215,7 @@ void MeterWhe46x::processContent(Telegram *t)
 
     key = "0DFF5F";
     if (hasKey(&t->values, key)) {
-        extractDVstring(&t->values, key, &offset, &vendor_data_);
+        extractDVHexString(&t->values, key, &offset, &vendor_data_);
         t->addMoreExplanation(offset, " vendor extension data");
     }
 

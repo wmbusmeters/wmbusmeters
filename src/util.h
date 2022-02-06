@@ -39,6 +39,10 @@ typedef unsigned char uchar;
 uchar bcd2bin(uchar c);
 uchar revbcd2bin(uchar c);
 uchar reverse(uchar c);
+// A BCD string 102030405060 is reversed to 605040302010
+std::string reverseBCD(std::string v);
+// A hex string encoding ascii chars is reversed and safely translated into a readble string.
+std::string reverseBinaryAsciiSafeToString(std::string v);
 
 bool isHexChar(uchar c);
 

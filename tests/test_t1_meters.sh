@@ -81,6 +81,7 @@ then
         TESTRESULT="OK"
     else
         TESTRESULT="ERROR"
+        exit 1
     fi
 else
     echo "wmbusmeters returned error code: $?"
@@ -100,6 +101,7 @@ then
         TESTRESULT="OK"
     else
         TESTRESULT="ERROR"
+        exit 1
     fi
 else
     echo "wmbusmeters returned error code: $?"

@@ -29,6 +29,9 @@ private:
     string meter_date_;
     double target_water_consumption_m3_ {};
     string target_date_;
+    string unknown_a_;
+    string unknown_b_;
+    string enhanced_id_;
 };
 
 static bool ok = registerDriver([](DriverInfo&di)
@@ -107,10 +110,76 @@ MeterItron::MeterItron(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         SET_STRING_FUNC(target_date_),
         GET_STRING_FUNC(target_date_));
 
+    addStringFieldWithExtractor(
+        "enhanced_id",
+        Quantity::Text,
+        DifVifKey("0E79"),
+        MeasurementType::Unknown,
+        ValueInformation::EnhancedIdentification,
+        StorageNr(0),
+        TariffNr(0),
+        IndexNr(1),
+        PrintProperty::JSON,
+        "Enhanced meter id.",
+        SET_STRING_FUNC(enhanced_id_),
+        GET_STRING_FUNC(enhanced_id_));
+
+    addStringFieldWithExtractorAndLookup(
+        "unknown_a",
+        Quantity::Text,
+        DifVifKey("047F"),
+        MeasurementType::Unknown,
+        ValueInformation::Any,
+        AnyStorageNr,
+        AnyTariffNr,
+        IndexNr(1),
+        PrintProperty::JSON,
+        "Unknown flags.",
+        SET_STRING_FUNC(unknown_a_),
+        GET_STRING_FUNC(unknown_a_),
+         {
+            {
+                {
+                    "",
+                    Translate::Type::BitToString,
+                    0xffffffff,
+                    "",
+                    {
+                    }
+                },
+            },
+         });
+
+    addStringFieldWithExtractorAndLookup(
+        "unknown_b",
+        Quantity::Text,
+        DifVifKey("027F"),
+        MeasurementType::Unknown,
+        ValueInformation::Any,
+        AnyStorageNr,
+        AnyTariffNr,
+        IndexNr(1),
+        PrintProperty::JSON,
+        "Unknown flags.",
+        SET_STRING_FUNC(unknown_b_),
+        GET_STRING_FUNC(unknown_b_),
+         {
+            {
+                {
+                    "",
+                    Translate::Type::BitToString,
+                    0xffff,
+                    "",
+                    {
+                    }
+                },
+            },
+         });
+
 }
 
 // Test: SomeWater itron 12345698 NOKEY
 // Comment: Test ITRON T1 telegram not encrypted, which has no 2f2f markers.
 // telegram=|384497269856341203077AD90000A0#0413FD110000066D2C1AA1D521004413300F0000426CBF2C047F0000060C027F862A0E79678372082100|
-// {"media":"water","meter":"itron","name":"SomeWater","id":"12345698","total_m3":4.605,"meter_date":"2022-01-21 01:26","target_m3":3.888,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"water","meter":"itron","name":"SomeWater","id":"12345698","total_m3":4.605,"meter_date":"2022-01-21 01:26","target_m3":3.888,"target_date":"2021-12-31","enhanced_id":"002108728367","unknown_a":"UNKNOWN_(0xc060000)","unknown_b":"UNKNOWN_(0x2a86)","timestamp":"1111-11-11T11:11:11Z"}
 // |SomeWater;12345698;4.605000;3.888000;1111-11-11 11:11.11

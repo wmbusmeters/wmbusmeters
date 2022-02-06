@@ -170,7 +170,7 @@ void MeterEBZWMBE::processContent(Telegram *t)
     t->addMoreExplanation(offset, " current power (%f kw)", current_power_kw_);
 
     string tmp;
-    extractDVstring(&t->values, "0DFD11", &offset, &tmp);
+    extractDVHexString(&t->values, "0DFD11", &offset, &tmp);
     if (tmp.length() > 0) {
         vector<uchar> bin;
         hex2bin(tmp, &bin);
