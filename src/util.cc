@@ -1349,8 +1349,10 @@ int days_in_months[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 int get_days_in_month(int year, int month)
 {
-    assert(month >= 0);
-    assert(month < 12);
+    if (month < 0 || month >= 12)
+    {
+        month = 0;
+    }
 
     int days = days_in_months[month];
 

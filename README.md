@@ -203,6 +203,9 @@ As <options> you can use:
     --alarmshell=<cmdline> invokes cmdline when an alarm triggers
     --alarmtimeout=<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity.
     --analyze Analyze a telegram to find the best driver.
+    --analyze=<key> Analyze a telegram to find the best driver use the provided decryption key.
+    --analyze=<driver> Analyze a telegram and use only this driver.
+    --analyze=<driver>:<key> Analyze a telegram and use only this driver with this key.
     --debug for a lot of information
     --device=<device> override device in config files. Use only in combination with --useconfig= option
     --donotprobe=<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys.
