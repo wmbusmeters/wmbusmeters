@@ -768,4 +768,7 @@ bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a);
 const char *mbusCField(uchar c_field);
 const char *mbusCiField(uchar ci_field);
 
+int genericifyMedia(int media);
+bool isCloseEnough(int media1, int media2);
+
 #endif

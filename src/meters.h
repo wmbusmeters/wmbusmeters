@@ -258,6 +258,7 @@ public:
     shared_ptr<Meter> construct(MeterInfo& mi) { return constructor_(mi, *this); }
     bool detect(uint16_t mfct, uchar type, uchar version);
     bool isValidMedia(uchar type);
+    bool isCloseEnoughMedia(uchar type);
 };
 
 bool registerDriver(function<void(DriverInfo&di)> setup);

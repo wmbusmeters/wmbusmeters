@@ -52,6 +52,15 @@ bool DriverInfo::isValidMedia(uchar type)
     return false;
 }
 
+bool DriverInfo::isCloseEnoughMedia(uchar type)
+{
+    for (auto &dd : detect_)
+    {
+        if (isCloseEnough(dd.type, type)) return true;
+    }
+    return false;
+}
+
 void DriverInfo::setExpectedELLSecurityMode(ELLSecurityMode dsm)
 {
     // TODO should check that the telegram is encrypted using the same mode.
@@ -1882,7 +1891,7 @@ METER_DETECTION
 bool isMeterDriverReasonableForMedia(MeterDriver type, string driver_name, int media)
 {
     if (media == 0x37) return false;  // Skip converter meter side since they do not give any useful information.
-#define X(TY,MA,ME,VE) { if (type == MeterDriver::TY  && media == ME) { return true; }}
+#define X(TY,MA,ME,VE) { if (type == MeterDriver::TY  && isCloseEnough(media, ME)) { return true; }}
 METER_DETECTION
 #undef X
 

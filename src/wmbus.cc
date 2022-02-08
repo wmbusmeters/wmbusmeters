@@ -5336,3 +5336,21 @@ const char *toString(FrameType ft)
     }
     return "?";
 }
+
+int genericifyMedia(int media)
+{
+    if (media == 0x06 || // Warm Water (30°C-90°C) meter
+        media == 0x07 || // Water meter
+        media == 0x15 || // Hot water (>=90°C) meter
+        media == 0x16 || // Cold water meter
+        media == 0x28)   // Waste water
+    {
+        return 0x07; // Return plain water
+    }
+    return media;
+}
+
+bool isCloseEnough(int media1, int media2)
+{
+    return genericifyMedia(media1) == genericifyMedia(media2);
+}
