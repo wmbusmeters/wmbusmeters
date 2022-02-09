@@ -158,6 +158,8 @@ public:
 
     bool hasAllMetersReceivedATelegram()
     {
+        if (meters_.size() < meter_templates_.size()) return false;
+
         for (auto &meter : meters_)
         {
             if (meter->numUpdates() == 0) return false;
