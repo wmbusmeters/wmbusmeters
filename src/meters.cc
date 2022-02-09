@@ -597,7 +597,7 @@ LIST_OF_METERS
                 using_understood = best_understood;
             }
         }
-        else if (new_best_understood > old_best_understood)
+        else if (new_best_understood >= old_best_understood)
         {
             best_length = new_best_length;
             best_understood = new_best_understood;

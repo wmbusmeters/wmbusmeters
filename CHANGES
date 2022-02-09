@@ -1,4 +1,8 @@
 
+Michael Ott fixed a bug in oneshot. Thanks Michael!
+
+Fix bug in mode 7 decryption when the encrypted data was followed by non-encrypted data.
+
 NOTE! Json slight json output change drivers esyswm and evo868 where fabrication now is now properly reversed.
 
 You can now combine --useconfig=<dir> with --oneshot --exitafter=<time>
