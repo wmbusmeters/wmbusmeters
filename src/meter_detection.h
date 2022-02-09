@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2021 Fredrik Öhrström
+ Copyright (C) 2017-2022 Fredrik Öhrström
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,11 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// This is the old style meter detection. Drivers are succesively rewritten
+// from meter_xyz.cc to driver_xyz.cc only old style drivers are listed here.
+// The new driver_xyz.cc file format is selfcontained so eventually this
+// file be empty and go away.
+//
 // This file is only included into meters.cc
 //
 // List of numbers that can be used to detect the meter driver from a telegram.

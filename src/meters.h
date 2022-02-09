@@ -48,6 +48,11 @@ LIST_OF_METER_TYPES
 #undef X
 };
 
+// This is the old style meter list. Drivers are succesively rewritten
+// from meter_xyz.cc to driver_xyz.cc only old style drivers are listed here.
+// The new driver_xyz.cc file format is selfcontained so eventually this
+// macro LIST_OF_METERS will be empty and go away.
+
 #define LIST_OF_METERS \
     X(auto,       0,      AutoMeter, AUTO, Auto) \
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \

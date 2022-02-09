@@ -85,7 +85,11 @@ bool registerDriver(function<void(DriverInfo&)> setup)
         for (auto &p : all_registered_drivers_)
         {
             bool foo = p.second.detect(d.mfct, d.type, d.version);
-            assert(!foo);
+            if (foo)
+            {
+                error("Internal error: driver %s tried to register the same auto detect combo as driver %s alread has taken!\n",
+                      di.name().str().c_str(), p.second.name().str().c_str());
+            }
         }
     }
 
@@ -550,6 +554,10 @@ LIST_OF_METERS
         if (auto_driver == "")
         {
             auto_driver = toString(auto_di.driver());
+            if (auto_driver == "unknown")
+            {
+                auto_driver = "";
+            }
         }
 
         // Will be non-empty if an explicit driver has been selected.
@@ -557,7 +565,8 @@ LIST_OF_METERS
         int force_length = 0;
         int force_understood = 0;
 
-        if (force_driver == "" && auto_driver == "")
+        // If an auto driver is found and no other driver has been forced, use the auto driver.
+        if (force_driver == "" && auto_driver != "")
         {
             force_driver = auto_driver;
         }
