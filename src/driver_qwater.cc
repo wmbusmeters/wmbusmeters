@@ -185,3 +185,8 @@ MeterQWater::MeterQWater(MeterInfo &mi, DriverInfo &di) :
 // telegram=|374493444836351218067ac70000200c13911900004c1391170000426cbf2ccc081391170000c2086cbf2c02bb560000326cffff046d1e02de21fed0|
 // {"media":"warm water","meter":"qwater","name":"MyQWater","id":"12353648","total_m3":1.991,"due_date_m3":1.791,"due_date":"2021-12-31","due_date_17_m3":1.791,"due_date_17":"2021-12-31","error_code":"OK","error_date":"2127-15-31","device_date_time":"2022-01-30 02:30","timestamp":"1111-11-11T11:11:11Z"}
 // |MyQWater;12353648;1.991000;1.791000;2021-12-31;OK;1111-11-11 11:11.11
+
+// And a second telegram that only updates the device date time.
+// telegram=|47449344483635121806780dff5f350082da0000600107c113ffff48200000bf2c91170000df2120200000008001000000060019001000160018000d001300350017002f046d370cc422c759|
+// {"media":"warm water","meter":"qwater","name":"MyQWater","id":"12353648","total_m3":1.991,"due_date_m3":1.791,"due_date":"2021-12-31","due_date_17_m3":1.791,"due_date_17":"2021-12-31","error_code":"OK","error_date":"2127-15-31","device_date_time":"2022-02-04 12:55","timestamp":"1111-11-11T11:11:11Z"}
+// |MyQWater;12353648;1.991000;1.791000;2021-12-31;OK;1111-11-11 11:11.11
