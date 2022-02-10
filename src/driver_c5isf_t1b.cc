@@ -17,9 +17,9 @@
 
 #include"meters_common_implementation.h"
 
-struct MeterC5isf : public virtual MeterCommonImplementation
+struct MeterC5isf_t1b : public virtual MeterCommonImplementation
 {
-    MeterC5isf(MeterInfo &mi, DriverInfo &di);
+    MeterC5isf_t1b(MeterInfo &mi, DriverInfo &di);
 
 private:
     double total_energy_kwh_ {};
@@ -38,15 +38,15 @@ private:
 
 static bool ok = registerDriver([](DriverInfo&di)
 {
-    di.setName("c5isf");
+    di.setName("c5isf_t1b");
     di.setMeterType(MeterType::HeatMeter);
     di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(MANUFACTURER_ZRI, 0x04, 0x88);
-    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterC5isf(mi, di)); });
+    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterC5isf_t1b(mi, di)); });
 });
 
-MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+MeterC5isf_t1b::MeterC5isf_t1b(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
 {
     addFieldWithExtractor(
         "total_energy_consumption",
@@ -240,7 +240,7 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
 
 }
 
-// Test: Heat c5isf ANYID NOKEY
+// Test: Heat c5isf_t1b ANYID NOKEY
 // telegram=|5E44496A4420003288047A0A0050052F2F#04061A0000000413C20800008404060000000082046CC121043BA4000000042D1900000002591216025DE21002FD17000084800106000000008280016CC121948001AE25000000002F2F2F2F2F2F|
-// {"media":"heat","meter":"c5isf","name":"Heat","id":"32002044","total_energy_consumption_kwh":26,"total_volume_m3":2.242,"due_energy_consumption_kwh":0,"due_date":"2022-01-01","volume_flow_m3h":0.164,"power_kw":2.5,"total_energy_consumption_last_month_kwh":0,"last_month_date":"2022-01-01","max_power_last_month_kw":0,"flow_temperature_c":56.5,"return_temperature_c":43.22,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"heat","meter":"c5isf_t1b","name":"Heat","id":"32002044","total_energy_consumption_kwh":26,"total_volume_m3":2.242,"due_energy_consumption_kwh":0,"due_date":"2022-01-01","volume_flow_m3h":0.164,"power_kw":2.5,"total_energy_consumption_last_month_kwh":0,"last_month_date":"2022-01-01","max_power_last_month_kw":0,"flow_temperature_c":56.5,"return_temperature_c":43.22,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 // |Heat;32002044;26.000000;2.500000;43.220000;OK;1111-11-11 11:11.11
