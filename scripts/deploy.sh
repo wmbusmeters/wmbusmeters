@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
 
 # Grab all text up to the "Version x.y.z-RC1: <date>" line
 # There should be no text.

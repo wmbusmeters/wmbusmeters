@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2021 Fredrik Öhrström
+ Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -92,9 +92,10 @@ int main(int argc, char **argv)
 
     if (config->license)
     {
-        const char * license = R"LICENSE(
-Copyright (C) 2017-2021 Fredrik Öhrström
-
+        const char * authors =
+#include"authors.h"
+        const char * license =
+            R"LICENSE(
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -113,7 +114,7 @@ But you can also request the source from the person/company that
 provided you with this binary. Read the full license for all details.
 
 )LICENSE";
-        puts(license);
+        printf("%s%s", authors, license);
         exit(0);
     }
 

@@ -1,4 +1,5 @@
 #!/bin/bash
+# Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
 
 TYPE=$1
 

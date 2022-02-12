@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2021 Fredrik Öhrström
+ Copyright (C) 2021 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -276,7 +276,7 @@ void MeterQSmoke::processContent(Telegram *t)
 {
     int offset;
     string key;
-    
+
     key = "81027C495523";
     if (hasKey(&t->values, key)) {
         if (extractDVuint8(&t->values, key, &offset, &ui_event_count_)) {
@@ -290,21 +290,21 @@ void MeterQSmoke::processContent(Telegram *t)
         ui_event_date_ = strdate(&date);
         t->addMoreExplanation(offset, " UI event date (%s)", ui_event_date_.c_str());
     }
-    
+
     key = "81037C4C4123";
     if (hasKey(&t->values, key)) {
         if (extractDVuint8(&t->values, key, &offset, &al_event_count_)) {
             t->addMoreExplanation(offset, " AL event count (%d)", al_event_count_);
         }
     }
-    
+
     if (findKey(MeasurementType::Instantaneous, ValueInformation::Date, 6, 0, &key, &t->values)) {
         struct tm date;
         extractDVdate(&t->values, key, &offset, &date);
         al_event_date_ = strdate(&date);
         t->addMoreExplanation(offset, " AL event date (%s)", al_event_date_.c_str());
     }
-    
+
     key = "02FD17";
     if (hasKey(&t->values, key)) {
         if (extractDVuint16(&t->values, key, &offset, (uint16_t*) &error_flags_)) {
@@ -318,21 +318,21 @@ void MeterQSmoke::processContent(Telegram *t)
             }
         }
     }
-    
+
     if (findKey(MeasurementType::AtError, ValueInformation::Date, 0, 0, &key, &t->values)) {
         struct tm date;
         extractDVdate(&t->values, key, &offset, &date);
         error_date_ = strdate(&date);
         t->addMoreExplanation(offset, " error date (%s)", error_date_.c_str());
     }
-    
+
     if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
     }
-    
+
     key = "02FDAC7E";
     if (hasKey(&t->values, key)) {
         uint64_t seconds;

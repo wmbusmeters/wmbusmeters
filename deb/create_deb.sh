@@ -52,9 +52,7 @@ cp deb/changelog $BUILD/debian/wmbusmeters/usr/share/doc/wmbusmeters/changelog.D
 gzip -v9 -n $BUILD/debian/wmbusmeters/usr/share/doc/wmbusmeters/changelog.Debian
 
 # Automatically collect copyright information.
-rm -f /tmp/tmpcopyrights
-./deb/collect_copyrights.sh
-cp /tmp/tmpcopyrights $BUILD/debian/wmbusmeters/usr/share/doc/wmbusmeters/copyright
+./deb/collect_copyrights.sh $BUILD/debian/wmbusmeters/usr/share/doc/wmbusmeters/copyright
 
 # Install the install/remove scripts.
 for x in preinst postinst prerm postrm

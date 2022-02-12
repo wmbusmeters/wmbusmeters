@@ -1,4 +1,5 @@
 #!/bin/sh
+# Copyright (C) 2021 Fredrik Öhrström (gpl-3.0-or-later)
 
 ID=$(id -u wmbusmeters 2>/dev/null)
 

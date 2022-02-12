@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2021 Vincent Privat
+ Copyright (C) 2021 Vincent Privat (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -189,7 +189,7 @@ void MeterSharky774::processContent(Telegram *t)
 
     int offset;
     string key;
-    
+
     if (findKey(MeasurementType::Instantaneous, ValueInformation::EnergyMJ, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_energy_mj_);
         t->addMoreExplanation(offset, " total energy consumption (%f MJ)", total_energy_mj_);

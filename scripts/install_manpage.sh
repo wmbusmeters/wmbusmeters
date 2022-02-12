@@ -1,3 +1,5 @@
+# Copyright (C) 2021 Fredrik Öhrström (gpl-3.0-or-later)
+
 ####################################################################
 ##
 ## Intall wmbusmeters manual page

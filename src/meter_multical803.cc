@@ -1,7 +1,7 @@
 /*
- Copyright (C) 2018-2020 Fredrik Öhrström
- Copyright (C)      2020 Eric Bus
- Copyright (C)      2020 Nikodem Jędrzejczak
+ Copyright (C) 2018-2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C)      2020 Eric Bus (gpl-3.0-or-later)
+ Copyright (C)      2020 Nikodem Jędrzejczak (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
