@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Additional comment for testing
+
 TMP=$(mktemp -t wmbusmeters.copyrights.XXXXXXXXXX)
 TMP_AUTHORS=$(mktemp -t wmbusmeters.authors.XXXXXXXXXX)
 TMP_OTHER_AUTHORS=$(mktemp -t wmbusmeters.other.authors.XXXXXXXXXX)
