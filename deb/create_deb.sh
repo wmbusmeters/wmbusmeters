@@ -7,25 +7,37 @@ DEBARCH=$4
 
 if [ -z "$BUILD" ]
 then
-    echo You must supply a directory for the deb contents.
+    echo "You must supply a directory for the deb contents."
+    exit 1
+fi
+
+if [ ! -x "$BUILD/wmbusmeters" ]
+then
+    echo "You have to build wmbusmeters first."
+    exit 1
+fi
+
+if [ "$USER" != "root" ]
+then
+    echo 'You have to run this command as "sudo make deb"'
     exit 1
 fi
 
 if [ -z "$DEB" ]
 then
-    echo you must supply a name for the deb file.
+    echo "Uou must supply a name for the deb file."
     exit 1
 fi
 
 if [ -z "$DEBVERSION" ]
 then
-    echo you must supply deb version.
+    echo "You must supply deb version."
     exit 1
 fi
 
 if [ -z "$DEBARCH" ]
 then
-    echo you must supply a deb arch.
+    echo "You must supply a deb arch."
     exit 1
 fi
 

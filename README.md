@@ -193,10 +193,12 @@ depending on if you are running as a daemon or not.
 # Running without config files, good for experimentation and test.
 
 ```
-wmbusmeters version: 1.4.0
-Usage: wmbusmeters {options} <device> ( [meter_name] [meter_driver]{:<modes>} [meter_id] [meter_key] )*
+wmbusmeters version: 1.6.0
+Usage: wmbusmeters {options} [device] { [meter_name] [meter_driver] [meter_id] [meter_key] }*
+       wmbusmeters {options} [hex]    { [meter_name] [meter_driver] [meter_id] [meter_key] }*
+       wmbusmetersd {options} [pid_file]
 
-As <options> you can use:
+As {options} you can use:
 
     --addconversions=<unit>+ add conversion to these units to json and meter env variables (GJ)
     --alarmexpectedactivity=mon-fri(08-17),sat-sun(09-12) Specify when the timeout is tested, default is mon-sun(00-23)

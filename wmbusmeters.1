@@ -1,22 +1,23 @@
 .TH WMBUSMETERS 1
 .SH NAME
-wmbusmeters \- listen to wireless mbus radio traffic and relay the decoded telegrams to other software
+wmbusmeters \- Acquire,query and decode wired and wireless mbus telegrams, then relay the telegrams to other software.
 
 .SH SYNOPSIS
-.B wmbusmeters [options] <device>{:suffix} (<meter_name> <meter_type>[:<mode>] <meter_id> meter_key>)*
+.B wmbusmeters {options} [device] { [name] [driver] [id] [key] }*
 
-.B wmbusmeters [options] <hex> (<meter_name> <meter_type>[:<mode>] <meter_id> meter_key>)*
+.B wmbusmeters {options} [hex]    { [name] [driver] [id] [key] }*
 
-.B wmbusmetersd <pid_file>
+.B wmbusmetersd {options} [pid_file>]
 
 .SH DESCRIPTION
 
 Wmbusmeters acquires wmbus telegrams, decodes them and relays them to
 some other software for further processing.  It can for example listen
-to radio traffic using dedicated wmbus dongles like (im871a,amb8465,cul,rc1180)
-or a generic software defined radio dongle (rtl_sdr) with an RTL2832U.
+to radio traffic using dedicated wmbus dongles (eg im871a,amb8465,cul,rc1180)
+or a software defined radio dongle (rtl_sdr) with an RTL2832U (decoded using
+rtl_wmbus, rtl_433).
 
-After the received telegram has been decrypted and parsed, it can then
+After the acquired telegram has been decrypted and parsed, it can then
 be relayed using a shell command, or stored in a log file.  The shell
 commands can for example relay the telegram using MQTT (eg
 mqtt_publish) sent to a REST API (eg curl) or store it in a database
@@ -32,6 +33,13 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 \fB\--alarmtimeout=\fR<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity
 
 \fB\--analyze\fR Analyze a telegram to find the best driver
+
+\fB\--analyze=\fR<key> Analyze a telegram to find the best driver and use the provided decryption key.
+
+\fB\--analyze=\fR<driver> Analyze a telegram but use only this driver.
+
+\fB\--analyze=\fR<driver>:<key> Analyze a telegram and use only this driver with this key.
+Add :verbose to any analyze to get more verbose analyze output.
 
 \fB\--debug\fR for a lot of information
 

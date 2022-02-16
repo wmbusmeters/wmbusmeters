@@ -70,5 +70,6 @@ License: CC0
 EOF
 
 mv $TMP $1
+chmod 644 $1
 
 echo "Created copyright file: $1"
