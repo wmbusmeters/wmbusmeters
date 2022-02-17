@@ -43,6 +43,7 @@
     X(EnergyWh,0x00,0x07, Quantity::Energy, Unit::KWH) \
     X(PowerW,0x28,0x2f, Quantity::Power, Unit::KW) \
     X(ActualityDuration,0x74,0x77, Quantity::Time, Unit::Second) \
+    X(FabricationNo,0x78,0x78, Quantity::Text, Unit::TXT) \
     X(EnhancedIdentification,0x79,0x79, Quantity::Text, Unit::TXT) \
     X(AnyVolumeVIF,0x00,0x00, Quantity::Volume, Unit::Unknown) \
     X(AnyEnergyVIF,0x00,0x00, Quantity::Energy, Unit::Unknown)  \

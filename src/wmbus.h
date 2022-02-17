@@ -542,7 +542,7 @@ private:
     // Fixes quirks from non-compliant meters to make telegram compatible with the standard
     void preProcess();
 
-    bool parseMBusDLL(std::vector<uchar>::iterator &pos);
+    bool parseMBusDLLandTPL(std::vector<uchar>::iterator &pos);
 
     bool parseDLL(std::vector<uchar>::iterator &pos);
     bool parseELL(std::vector<uchar>::iterator &pos);

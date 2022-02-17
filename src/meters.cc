@@ -1031,7 +1031,8 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                           t->addMoreExplanation(offset, fi->renderJsonText());
                           found = true;
                       }
-                      else if (fi->valueInformation() == ValueInformation::EnhancedIdentification)
+                      else if (fi->valueInformation() == ValueInformation::EnhancedIdentification ||
+                               fi->valueInformation() == ValueInformation::FabricationNo)
                       {
                           string extracted_id;
                           extractDVReadableString(&t->values, key, &offset, &extracted_id);
@@ -1214,12 +1215,22 @@ string MeterCommonImplementation::unixTimestampOfUpdate()
     return string(ut);
 }
 
-bool needsPolling(MeterDriver d)
+bool needsPolling(MeterDriver d, DriverName& dn)
 {
+    if (d != MeterDriver::UNKNOWN && d != MeterDriver::AUTO)
+    {
 #define X(mname,linkmodes,info,driver,cname) if (d == MeterDriver::driver && 0 != ((linkmodes) & MBUS_bit)) return true;
 LIST_OF_METERS
 #undef X
     return false;
+    }
+
+    if (all_registered_drivers_.count(dn.str()) == 0) return false;
+
+    DriverInfo& di = all_registered_drivers_[dn.str()];
+
+    // Return true for MBUS,S2,C2,T2 meters. Currently only mbus is implemented.
+    return di.linkModes().has(LinkMode::MBUS);
 }
 
 const char *toString(MeterType type)

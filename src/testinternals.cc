@@ -823,24 +823,27 @@ void test_meters()
 {
     string config_content;
 
+    /*
     testm("piigth:BUS1:2400", true,
           "piigth", // driver
           "", // extras
           "BUS1", // bus
           "2400", // bps
           "mbus"); // linkmodes
-
+    */
+    /*
     config_content =
         "name=test\n"
         "driver=piigth:BUS1:2400\n"
         "id=01234567\n";
+
     testc("meter/piigth:BUS1:2400", config_content,
           "piigth", // driver
           "", // extras
           "BUS1", // bus
           "2400", // bps
           "mbus"); // linkmodes)
-
+    */
 
     testm("multical21:c1", true,
           "multical21", // driver

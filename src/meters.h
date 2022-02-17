@@ -93,7 +93,6 @@ LIST_OF_METER_TYPES
     X(multical603,C1_bit, HeatMeter,        MULTICAL603, Multical603)  \
     X(multical803,C1_bit, HeatMeter,        MULTICAL803, Multical803)  \
     X(omnipower,  C1_bit, ElectricityMeter, OMNIPOWER,   Omnipower)    \
-    X(piigth,     MBUS_bit, TempHygroMeter, PIIGTH,      PiigTH)       \
     X(rfmamb,     T1_bit, TempHygroMeter,   RFMAMB,      RfmAmb)       \
     X(rfmtx1,     T1_bit, WaterMeter,       RFMTX1,      RfmTX1)       \
     X(tsd2,       T1_bit, SmokeDetector,    TSD2,        TSD2)         \
@@ -137,9 +136,6 @@ struct MeterMatch
     int media;
     int version;
 };
-
-// Return true for mbus and C2/T2 meters.
-bool needsPolling(MeterDriver driver);
 
 // Return a list of matching drivers, like: multical21
 void detectMeterDrivers(int manufacturer, int media, int version, std::vector<std::string> *drivers);
@@ -269,6 +265,8 @@ bool registerDriver(function<void(DriverInfo&di)> setup);
 bool lookupDriverInfo(string& driver, DriverInfo *di);
 // Return the best driver match for a telegram.
 DriverInfo pickMeterDriver(Telegram *t);
+// Return true for mbus and S2/C2/T2 meters.
+bool needsPolling(MeterDriver driver, DriverName& dn);
 
 vector<DriverInfo>& allRegisteredDrivers();
 

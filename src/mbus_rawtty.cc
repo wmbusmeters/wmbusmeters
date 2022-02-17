@@ -140,8 +140,8 @@ void MBusRawTTY::processSerialData()
             vector<uchar> payload;
             if (payload_len > 0)
             {
-                uchar l = payload_len;
-                payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
+                //uchar l = payload_len;
+                //payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
                 payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
             }
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);

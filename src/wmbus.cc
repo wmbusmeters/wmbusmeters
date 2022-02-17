@@ -827,7 +827,7 @@ bool expectedMore(int line)
     return false;
 }
 
-bool Telegram::parseMBusDLL(vector<uchar>::iterator &pos)
+bool Telegram::parseMBusDLLandTPL(vector<uchar>::iterator &pos)
 {
     int remaining = distance(pos, frame.end());
     if (remaining < 5) return expectedMore(__LINE__);
@@ -862,7 +862,7 @@ bool Telegram::parseMBusDLL(vector<uchar>::iterator &pos)
     idsc = id;
 
     mbus_ci = *pos;
-    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-ci (%s)", mbus_ci, mbusCiField(mbus_ci));
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x tpl-ci (%s)", mbus_ci, mbusCiField(mbus_ci));
 
     if (mbus_ci == 0x72)
     {
@@ -1402,6 +1402,7 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
     ids.push_back(id);
     idsc = idsc+","+id;
+
     addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL,
                                   "%02x%02x%02x%02x tpl-id (%02x%02x%02x%02x)",
                                   tpl_id_b[0], tpl_id_b[1], tpl_id_b[2], tpl_id_b[3],
@@ -1973,7 +1974,7 @@ bool Telegram::parseMBUSHeader(vector<uchar> &input_frame)
     // Parsed accumulates parsed bytes.
     parsed.clear();
 
-    ok = parseMBusDLL(pos);
+    ok = parseMBusDLLandTPL(pos);
     if (!ok) return false;
 
     return true;
@@ -2000,10 +2001,8 @@ bool Telegram::parseMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
     //     │                                              │
     //     └──────────────────────────────────────────────┘
 
-    ok = parseMBusDLL(pos);
+    ok = parseMBusDLLandTPL(pos);
     if (!ok) return false;
-
-    printDLL();
 
     return true;
 }
@@ -4686,8 +4685,8 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
         return ErrorInFrame;
     }
 
-    *payload_len_out = *frame_length-6;
-    *payload_offset = 4;
+    *payload_len_out = *frame_length-2; // Drop checksum byte and stop byte.
+    *payload_offset = 0; // Drop 0x68 len len 0x68.
     if (!only_test)
     {
         debug("(mbus) received full frame.\n");
