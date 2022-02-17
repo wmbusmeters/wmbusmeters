@@ -135,11 +135,14 @@ PROG_OBJS:=\
 	$(BUILD)/wmbus_rc1180.o \
 	$(BUILD)/wmbus_utils.o \
 
+# If you run: "make DRIVER=minomess" then only driver_minomess.cc will be compiled into wmbusmeters.
+# The old style drivers meter_xyz.cc must always be compiled in, but eventually they will be gone.
+
 ifeq ($(DRIVER),)
 	DRIVER_OBJS:=$(wildcard src/meter_*.cc) $(wildcard src/driver_*.cc)
 else
     $(info Building a single driver $(DRIVER))
-	DRIVER_OBJS:=src/meter_auto.cc src/meter_unknown.cc src/meter_$(DRIVER).cc
+	DRIVER_OBJS:=src/driver_auto.cc src/driver_unknown.cc $(wildcard src/meter_*.cc) src/driver_$(DRIVER).cc
 endif
 DRIVER_OBJS:=$(patsubst src/%.cc,$(BUILD)/%.o,$(DRIVER_OBJS))
 
