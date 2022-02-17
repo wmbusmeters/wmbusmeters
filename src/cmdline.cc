@@ -77,6 +77,14 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
+        if (!strcmp(argv[i], "--normal")) {
+            c->silent = false;
+            c->verbose = false;
+            c->debug = false;
+            c->trace = false;
+            i++;
+            continue;
+        }
         if (!strcmp(argv[i], "--version")) {
             c->version = true;
             return shared_ptr<Configuration>(c);

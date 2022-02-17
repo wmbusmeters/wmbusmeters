@@ -898,6 +898,9 @@ void MeterCommonImplementation::addFieldWithExtractor(
                   {
                       Unit decoded_unit = fi->defaultUnit();
                       if (fi->valueInformation() != ValueInformation::Any &&
+                          fi->valueInformation() != ValueInformation::AnyVolumeVIF &&
+                          fi->valueInformation() != ValueInformation::AnyEnergyVIF &&
+                          fi->valueInformation() != ValueInformation::AnyPowerVIF &&
                           fi->valueInformation() != ValueInformation::None)
                       {
                           decoded_unit = toDefaultUnit(fi->valueInformation());

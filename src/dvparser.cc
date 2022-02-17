@@ -342,6 +342,36 @@ LIST_OF_VALUETYPES
     assert(0);
 }
 
+bool matchSingleVif(int vi, ValueInformation vif)
+{
+    int low, hi;
+    valueInfoRange(vif, &low, &hi);
+
+    return vi >= low && vi <= hi;
+}
+
+bool isVIFMatch(int vi, ValueInformation vif)
+{
+    if (vif == ValueInformation::AnyVolumeVIF)
+    {
+        // There are more volume units in the standard that will be added here.
+        return matchSingleVif(vi, ValueInformation::Volume);
+    }
+    if (vif == ValueInformation::AnyEnergyVIF)
+    {
+        return
+            matchSingleVif(vi, ValueInformation::EnergyWh) ||
+            matchSingleVif(vi, ValueInformation::EnergyMJ);
+    }
+    if (vif == ValueInformation::AnyPowerVIF)
+    {
+        // There are more power units in the standard that will be added here.
+        return matchSingleVif(vi, ValueInformation::PowerW);
+    }
+
+    return matchSingleVif(vi, vif);
+}
+
 bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string key)
 {
     return values->count(key) > 0;
@@ -356,9 +386,6 @@ bool findKey(MeasurementType mit, ValueInformation vif, int storagenr, int tarif
 bool findKeyWithNr(MeasurementType mit, ValueInformation vif, int storagenr, int tariffnr, int nr,
                    std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values)
 {
-    int low, hi;
-    valueInfoRange(vif, &low, &hi);
-
     /*debug("(dvparser) looking for type=%s vif=%s storagenr=%d value_ran_low=%02x value_ran_hi=%02x\n",
           measurementTypeName(mit).c_str(), toString(vif), storagenr,
           low, hi);*/
@@ -373,10 +400,10 @@ bool findKeyWithNr(MeasurementType mit, ValueInformation vif, int storagenr, int
               v.first.c_str(),
               measurementTypeName(ty).c_str(), vi, toString(toValueInformation(vi)), storagenr, sn);*/
 
-        if (vi >= low && vi <= hi
-            && (mit == MeasurementType::Unknown || mit == ty)
-            && (storagenr == ANY_STORAGENR || storagenr == sn)
-            && (tariffnr == ANY_TARIFFNR || tariffnr == tn))
+        if (isVIFMatch(vi, vif) &&
+            (mit == MeasurementType::Unknown || mit == ty) &&
+            (storagenr == ANY_STORAGENR || storagenr == sn) &&
+            (tariffnr == ANY_TARIFFNR || tariffnr == tn))
         {
             *key = v.first;
             nr--;

@@ -89,6 +89,8 @@ Add :verbose to any analyze to get more verbose analyze output.
 
 \fB\--nodeviceexit\fR if no wmbus devices are found, then exit immediately
 
+\fB\--normal\fR for normal logging
+
 \fB\--oneshot\fR wait for an update from each meter, then quit
 
 \fB\--resetafter=\fR<time> reset the wmbus dongle regularly, default is 23h
@@ -210,6 +212,8 @@ device=im871a[12345678]:c1
 device=rtlwmbus:433M:c1,t1
 logtelegrams=false
 format=json
+# Remove meterfiles to spare precious flash memory when only
+# relaying data using for example mqtt.
 meterfiles=/var/log/wmbusmeters/meter_readings
 meterfilesaction=overwrite
 meterfilesnaming=name
@@ -220,7 +224,7 @@ alarmshell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters_alarm -m "$ALARM_T
 alarmtimeout=1h
 alarmexpectedactivity=mon-sun(00-23)
 ignoreduplicates=false
-json_address=MyStreet 5
+field_address=MyStreet 5
 .fi
 
 .TP
@@ -231,13 +235,13 @@ name=MyTapWater
 type=multical21:c1
 id=12345678
 key=001122334455667788AABBCCDDEEFF
-json_floor=4
+field_floor=4
 
 .SH AUTHOR
 Written by Fredrik Öhrström.
 
 .SH COPYRIGHT
-Copyright \(co 2017-2020 Fredrik Öhrström.
+Copyright \(co 2017-2022 Fredrik Öhrström.
 .br
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 .br

@@ -17,6 +17,7 @@
 
 #include"units.h"
 #include"util.h"
+#include<assert.h>
 
 using namespace std;
 
@@ -69,7 +70,11 @@ double convert(double vfrom, Unit ufrom, Unit uto)
 LIST_OF_CONVERSIONS
 #undef X
 
-    error("Cannot convert between units!\n");
+    string from = unitToStringHR(ufrom);
+    string to = unitToStringHR(uto);
+
+    fprintf(stderr, "Cannot convert between units! %s %s\n", from.c_str(), to.c_str());
+    assert(0);
     return 0;
 }
 

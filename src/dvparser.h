@@ -44,6 +44,9 @@
     X(PowerW,0x28,0x2f, Quantity::Power, Unit::KW) \
     X(ActualityDuration,0x74,0x77, Quantity::Time, Unit::Second) \
     X(EnhancedIdentification,0x79,0x79, Quantity::Text, Unit::TXT) \
+    X(AnyVolumeVIF,0x00,0x00, Quantity::Volume, Unit::Unknown) \
+    X(AnyEnergyVIF,0x00,0x00, Quantity::Energy, Unit::Unknown)  \
+    X(AnyPowerVIF,0x00,0x00, Quantity::Power, Unit::Unknown)  \
 
 enum class ValueInformation
 {

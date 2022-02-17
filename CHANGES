@@ -1,4 +1,6 @@
 
+The sharky774 was improved to handle more different meter configurations.
+
 Michael Ott fixed a bug in oneshot. Thanks Michael!
 
 Fix bug in mode 7 decryption when the encrypted data was followed by non-encrypted data.
