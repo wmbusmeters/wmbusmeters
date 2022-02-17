@@ -257,7 +257,7 @@ void MeterIzar::processContent(Telegram *t)
         uint8_t yy = atoi(digits.substr(0, 2).c_str());
         manufacture_year = yy > 70 ? (1900 + yy) : (2000 + yy); // Maybe to adjust in 2070, if this code stills lives :D
         // get the serial number
-        serial_number = atoi(digits.substr(3, digits.size()).c_str());
+        serial_number = atoi(digits.substr(2, digits.size()).c_str());
         // get letters
         uchar supplier_code = '@' + (((origin[9] & 0x0F) << 1) | (origin[8] >> 7));
         uchar meter_type = '@' + ((origin[8] & 0x7C) >> 2);
