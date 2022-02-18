@@ -96,7 +96,7 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
         "power",
         Quantity::Power,
         NoDifVifKey,
-        VifScaling::Auto,
+        VifScaling::AutoSigned,
         MeasurementType::Instantaneous,
         ValueInformation::AnyPowerVIF,
         StorageNr(0),
