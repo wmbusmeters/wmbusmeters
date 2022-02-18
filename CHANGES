@@ -1,4 +1,8 @@
 
+Fix unnecessary probing bug where a specified device like: /dev/ttyUSB0:im871a:c1
+would still cause wmbusmeters to probe for all types of devices on ttyUSB0.
+Now it only probes for im871a which speeds up the startup time significantly.
+
 The sharky774 was improved to handle more different meter configurations.
 
 Michael Ott fixed a bug in oneshot. Thanks Michael!

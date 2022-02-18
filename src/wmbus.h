@@ -757,6 +757,7 @@ AccessCheck detectSKIP(Detected *detected, shared_ptr<SerialCommunicationManager
 AccessCheck factoryResetAMB8465(string tty, shared_ptr<SerialCommunicationManager> handler, int *was_baud);
 
 Detected detectWMBusDeviceOnTTY(string tty,
+                                WMBusDeviceType type,
                                 LinkModeSet desired_linkmodes,
                                 shared_ptr<SerialCommunicationManager> handler);
 
