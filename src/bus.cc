@@ -235,6 +235,12 @@ shared_ptr<WMBus> BusManager::createWmbusObject(Detected *detected, Configuratio
         wmbus = openRC1180(*detected, serial_manager_, serial_override);
         break;
     }
+    case DEVICE_IU880B:
+    {
+        verbose("(iu880b) on %s\n", detected->found_file.c_str());
+        wmbus = openIU880B(*detected, serial_manager_, serial_override);
+        break;
+    }
     case DEVICE_UNKNOWN:
         warning("(main) internal error! cannot create an unknown device! exiting!\n");
         if (config->daemon) {

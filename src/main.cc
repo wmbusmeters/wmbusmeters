@@ -489,6 +489,14 @@ bool start(Configuration *config)
     // to achive a nice shutdown.
     onExit(call(serial_manager_.get(),stop));
 
+    /*
+    Detected d;
+    d.specified_device.file = "/dev/ttyUSB0";
+    d.found_file = "/dev/ttyUSB0";
+    d.specified_device.type = WMBusDeviceType::DEVICE_IU880B;
+
+    detectIU880B(&d, serial_manager_);
+*/
     // Create the printer object that knows how to translate
     // telegrams into json, fields that are written into log files
     // or sent to shell invocations.

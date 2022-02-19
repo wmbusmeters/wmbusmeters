@@ -5172,6 +5172,16 @@ Detected detectWMBusDeviceOnTTY(string tty,
         }
     }
 
+    // Talk iu880b with it...
+    // assumes this device is configured for 115200 bps, which seems to be the default.
+    if (type == WMBusDeviceType::DEVICE_AUTO || type == WMBusDeviceType::DEVICE_IU880B)
+    {
+        if (detectIU880B(&detected, handler) == AccessCheck::AccessOK)
+        {
+            return detected;
+        }
+    }
+
     // We could not auto-detect either. default is DEVICE_UNKNOWN.
     return detected;
 }

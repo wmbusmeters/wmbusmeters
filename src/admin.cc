@@ -57,7 +57,8 @@ LIST_OF_MAIN_MENU
     X(AMB8465, "amb8465") \
     X(CUL, "cul") \
     X(IM871A, "im871a") \
-    X(RC1180, "rc1180")
+    X(RC1180, "rc1180") \
+    X(IU880B, "iu880b")
 
 enum class ReceiversType {
 #define X(name,description) name,
@@ -245,6 +246,9 @@ void detectWMBUSReceiver()
     case ReceiversType::IM871A:
         probeFor("im871a/im170a", detectIM871AIM170A);
         break;
+    case ReceiversType::IU880B:
+        probeFor("iu880b", detectIU880B);
+        break;
     case ReceiversType::RC1180:
         probeFor("rc1180", detectRC1180);
         break;
@@ -291,6 +295,9 @@ void resetWMBUSReceiver()
         break;
     case ReceiversType::RC1180:
         notImplementedYet("Resetting RC1180");
+        break;
+    case ReceiversType::IU880B:
+        notImplementedYet("Resetting IU880B");
         break;
     }
 }

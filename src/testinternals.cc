@@ -45,6 +45,7 @@ void test_aes();
 void test_sbc();
 void test_hex();
 void test_translate();
+void test_slip();
 
 int main(int argc, char **argv)
 {
@@ -76,6 +77,7 @@ int main(int argc, char **argv)
     test_sbc();
     test_hex();
     test_translate();
+    test_slip();
 
     return 0;
 }
@@ -1084,4 +1086,68 @@ void test_translate()
     {
         printf("ERROR expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
     }
+}
+
+void test_slip()
+{
+    vector<uchar> from = { 1, 0xc0, 3, 4, 5, 0xdb };
+    vector<uchar> expected_to = { 0xc0, 1, 0xdb, 0xdc, 3, 4, 5, 0xdb, 0xdd, 0xc0 };
+    vector<uchar> to;
+    vector<uchar> back;
+
+    addSlipFraming(from, to);
+
+    if (expected_to != to)
+    {
+        printf("ERROR slip 1\n");
+    }
+
+    size_t frame_length = 0;
+    removeSlipFraming(to, &frame_length, back);
+
+    if (back != from)
+    {
+        printf("ERROR slip 2\n");
+    }
+
+    if (to.size() != frame_length)
+    {
+        printf("ERROR slip 3\n");
+    }
+
+    vector<uchar> more = { 0xc0, 0xc0, 0xc0, 1, 2, 3, 4, 5, 6, 7, 8 };
+    addSlipFraming(more, to);
+
+    frame_length = 0;
+    removeSlipFraming(to, &frame_length, back);
+
+    if (back != from)
+    {
+        printf("ERROR slip 4\n");
+    }
+
+    to.erase(to.begin(), to.begin()+frame_length);
+    removeSlipFraming(to, &frame_length, back);
+
+    if (back != more)
+    {
+        printf("ERROR slip 5\n");
+    }
+
+    vector<uchar> again = { 0xc0 };
+    removeSlipFraming(again, &frame_length, back);
+
+    if (frame_length != 0)
+    {
+        printf("ERROR slip 6\n");
+    }
+
+    vector<uchar> againn = { 0xc0, 1, 2, 3, 4, 5 };
+    removeSlipFraming(againn, &frame_length, back);
+
+    if (frame_length != 0)
+    {
+        printf("ERROR slip 7\n");
+    }
+
 }

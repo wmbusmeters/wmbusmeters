@@ -134,6 +134,7 @@ PROG_OBJS:=\
 	$(BUILD)/wmbus_rawtty.o \
 	$(BUILD)/wmbus_rc1180.o \
 	$(BUILD)/wmbus_utils.o \
+	$(BUILD)/lora_iu880b.o \
 
 # If you run: "make DRIVER=minomess" then only driver_minomess.cc will be compiled into wmbusmeters.
 # The old style drivers meter_xyz.cc must always be compiled in, but eventually they will be gone.

@@ -171,6 +171,10 @@ uint16_t crc16_EN13757(uchar *data, size_t len);
 uint16_t crc16_CCITT(uchar *data, uint16_t length);
 bool     crc16_CCITT_check(uchar *data, uint16_t length);
 
+void addSlipFraming(std::vector<uchar>& from, std::vector<uchar> &to);
+// Frame length is set to zero if no frame was found.
+void removeSlipFraming(std::vector<uchar>& from, size_t *frame_length, std::vector<uchar> &to);
+
 // Eat characters from the vector v, iterating using i, until the end char c is found.
 // If end char == -1, then do not expect any end char, get all until eof.
 // If the end char is not found, return error.

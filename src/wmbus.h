@@ -44,6 +44,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
     X(RC1180,rc1180,true,false,detectRC1180)         \
     X(RTL433,rtl433,false,true,detectRTL433)         \
     X(RTLWMBUS,rtlwmbus,false,true,detectRTLWMBUS)   \
+    X(IU880B,iu880b,true,false,detectIU880B)         \
     X(SIMULATION,simulation,false,false,detectSIMULATION)
 
 enum WMBusDeviceType {
@@ -89,6 +90,7 @@ void setIgnoreDuplicateTelegrams(bool idt);
     X(N1e,n1e,--n1e,0x100)                      \
     X(N1f,n1f,--n1f,0x200)                      \
     X(MBUS,mbus,--mbus,0x400)                   \
+    X(LORA,lora,--lora,0x800)                   \
     X(UNKNOWN,unknown,----,0x0)
 
 enum class LinkMode {
@@ -662,6 +664,9 @@ shared_ptr<WMBus> openIM871A(Detected detected,
 shared_ptr<WMBus> openIM170A(Detected detected,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openIU880B(Detected detected,
+                             shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openAMB8465(Detected detected,
                               shared_ptr<SerialCommunicationManager> manager,
                               shared_ptr<SerialDevice> serial_override);
@@ -745,6 +750,7 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
 AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectD1TC(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
 AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManager> handler);

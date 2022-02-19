@@ -247,9 +247,11 @@ void addDefaultManufacturerKeyIfAny(const vector<uchar> &frame, TPLSecurityMode 
         && tpl_sec_mode == TPLSecurityMode::AES_CBC_IV
         && detectDiehlFrameInterpretation(frame) == DiehlFrameInterpretation::OMS)
     {
-        vector<uchar> half; hex2bin(PRIOS_DEFAULT_KEY2, &half);
+        vector<uchar> half;
+        hex2bin(PRIOS_DEFAULT_KEY2, &half);
         meter_keys->confidentiality_key = vector<uchar>(half.begin(), half.end());
         meter_keys->confidentiality_key.insert(meter_keys->confidentiality_key.end(), half.begin(), half.end());
+        debug("(mfct) added default key\n");
     }
 }
 

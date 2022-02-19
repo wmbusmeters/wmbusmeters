@@ -2084,3 +2084,80 @@ string reverseBinaryAsciiSafeToString(string v)
     reverse(bytes.begin(), bytes.end());
     return safeString(bytes);
 }
+
+#define SLIP_END             0xc0    /* indicates end of packet */
+#define SLIP_ESC             0xdb    /* indicates byte stuffing */
+#define SLIP_ESC_END         0xdc    /* ESC ESC_END means END data byte */
+#define SLIP_ESC_ESC         0xdd    /* ESC ESC_ESC means ESC data byte */
+
+void addSlipFraming(vector<uchar>& from, vector<uchar> &to)
+{
+    to.push_back(SLIP_END);
+    for (uchar c : from)
+    {
+        if (c == SLIP_END)
+        {
+            to.push_back(SLIP_ESC);
+            to.push_back(SLIP_ESC_END);
+        }
+        else if (c == SLIP_ESC)
+        {
+            to.push_back(SLIP_ESC);
+            to.push_back(SLIP_ESC_ESC);
+        }
+        else
+        {
+            to.push_back(c);
+        }
+    }
+    to.push_back(SLIP_END);
+}
+
+void removeSlipFraming(vector<uchar>& from, size_t *frame_length, vector<uchar> &to)
+{
+    *frame_length = 0;
+    to.clear();
+    to.reserve(from.size());
+    bool esc = false;
+    size_t i;
+    bool found_end = false;
+
+    for (i = 0; i < from.size(); ++i)
+    {
+        uchar c = from[i];
+        if (c == SLIP_END)
+        {
+            if (to.size() > 0)
+            {
+                found_end = true;
+                i++;
+                break;
+            }
+        }
+        else if (c == SLIP_ESC)
+        {
+            esc = true;
+        }
+        else if (esc)
+        {
+            if (c == SLIP_ESC_END) to.push_back(SLIP_END);
+            else if (c == SLIP_ESC_ESC) to.push_back(SLIP_ESC);
+            else to.push_back(c); // This is an error......
+        }
+        else
+        {
+            to.push_back(c);
+        }
+    }
+
+    if (found_end)
+    {
+        *frame_length = i;
+    }
+    else
+    {
+        *frame_length = 0;
+        to.clear();
+    }
+
+}
