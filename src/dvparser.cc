@@ -628,8 +628,6 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
         string& v = p.second.value;
         uint64_t raw = 0;
         bool negate = false;
-        // assert(assume_signed == false); // We do not expect negative bcd values.
-        // Even though it is theoretically possible with nines complement.
         if (t == 0x9) {
             assert(v.size() == 2);
             if (assume_signed && v[0] == 'F') { negate = true; v[0] = '0'; }

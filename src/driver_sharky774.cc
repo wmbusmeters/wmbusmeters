@@ -200,3 +200,9 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
 // telegram=|5E44A5112751617241047A8B0050052F2F0C0E000000000C13010000000B3B0000000C2B000000000A5A26020A5E18020B260321000AA6180000C2026CBE2BCC020E00000000CC021301000000DB023B000000DC022B000000002F2F2F2F2F|
 // {"media":"heat","meter":"sharky774","name":"Heatoo","id":"72615127","total_energy_consumption_kwh":0,"total_volume_m3":0.001,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":22.6,"return_temperature_c":21.8,"temperature_difference_c":0.8,"operating_time_h":0,"energy_at_set_date_kwh":0,"set_date":"","timestamp":"1111-11-11T11:11:11Z"}
 // |Heatoo;72615127;0.000000;0.001000;0.000000;0.000000;22.600000;21.800000;0.800000;0.000000;1111-11-11 11:11.11
+
+// This telegram contains a negative power value encoded in bcd.
+// Test: Heatooo sharky774 61243590 NOKEY
+// telegram=3E44A5119035246141047A1A0030052F2F#0C06026301000C13688609040B3B0802000C2B220000F00A5A71020A5E72020AA61800004C0636370100426CBF25
+// {"media":"heat","meter":"sharky774","name":"Heatooo","id":"61243590","total_energy_consumption_kwh":16302,"total_volume_m3":4098.668,"volume_flow_m3h":0.208,"power_kw":-0.022,"flow_temperature_c":27.1,"return_temperature_c":27.2,"temperature_difference_c":-0.1,"operating_time_h":0,"energy_at_set_date_kwh":13736,"set_date":"2021-05-31","timestamp":"1111-11-11T11:11:11Z"}
+// |Heatooo;61243590;16302.000000;4098.668000;0.208000;-0.022000;27.100000;27.200000;-0.100000;13736.000000;1111-11-11 11:11.11
