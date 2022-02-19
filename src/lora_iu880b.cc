@@ -98,42 +98,16 @@ struct Firmware_IU880B
     }
 };
 
-struct IU880BConfig
+struct RadioConfig_IU880B
 {
-    // 0x90 = iM880A (obsolete) 0x92 = iM880A-L (128k) 0x93 = iU880A (128k) 0x98 = iM880B 0x99 = iU880B 0xA0 = iM881A 0xA1 = iU881A
-    uchar module_type {};
-    uint16_t device_address {};
-    uchar group_address {};
-    string uid;
-
     string str()
     {
         string s;
-        if (module_type == 0x90) s += "im880a ";
-        else if (module_type == 0x92) s += "im880al ";
-        else if (module_type == 0x93) s += "iu880a ";
-        else if (module_type == 0x98) s += "im880b ";
-        else if (module_type == 0x99) s += "iu880b ";
-        else if (module_type == 0xa0) s += "im881a ";
-        else if (module_type == 0xa1) s += "iu881a ";
-        else s += "unknown_type("+to_string(module_type)+") ";
-
-        s += tostrprintf("address %04x/%02x uid %s", device_address, group_address, uid.c_str());
-
         return s;
     }
 
     bool decode(vector<uchar> &bytes)
     {
-        if (bytes.size() < 9) return false;
-        int i = 0;
-        module_type = bytes[i++];
-        device_address = bytes[i] | bytes[i+1];
-        i+=2;
-        group_address = bytes[i++];
-        i++; // skip reserved
-        uid = tostrprintf("%02x%02x%02x%02x", bytes[i+3], bytes[i+2], bytes[i+1], bytes[i]);
-        i+=4;
         return true;
     }
 };
@@ -188,6 +162,7 @@ private:
     bool loaded_device_info_ {};
     DeviceInfo_IU880B device_info_;
     Firmware_IU880B firmware_;
+    RadioConfig_IU880B radio_config_;
 
     friend AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
     void handleDevMgmt(int msgid, vector<uchar> &payload);
@@ -426,6 +401,9 @@ void LoRaIU880B::handleDevMgmt(int msgid, vector<uchar> &payload)
         case DEVMGMT_MSG_SET_RADIO_MODE_RSP:
             debug("(iu880b) rsp set radio mode\n");
             break;
+        case DEVMGMT_MSG_GET_RADIO_CONFIG_RSP:
+            debug("(iu880b) rsp got radio config\n");
+            break;
         case DEVMGMT_MSG_GET_FW_INFO_RSP:
             debug("(iu880b) rsp got firmware\n");
             break;
@@ -484,6 +462,23 @@ bool LoRaIU880B::getDeviceInfoAndFirmware()
     verbose("(iu880b) device info: %s\n", device_info_.str().c_str());
 
     request_.clear();
+    buildRequest(DEVMGMT_ID, DEVMGMT_MSG_GET_RADIO_CONFIG_REQ, empty_body, request_);
+
+    serial()->send(init);
+    sent = serial()->send(request_);
+    if (!sent) return false; // tty overridden with stdin/file
+
+    sleep(1);
+    response_.clear();
+    //ok = waitForResponse(DEVMGMT_MSG_GET_RADIO_CONFIG_RSP);
+    //if (!ok) return false; // timeout
+
+    // Now device info response is in response_ vector.
+    radio_config_.decode(response_);
+
+    verbose("(iu880b) radio config: %s\n", radio_config_.str().c_str());
+
+    request_.clear();
     buildRequest(DEVMGMT_ID, DEVMGMT_MSG_GET_FW_INFO_REQ, empty_body, request_);
 
     serial()->send(init);
@@ -497,6 +492,7 @@ bool LoRaIU880B::getDeviceInfoAndFirmware()
     firmware_.decode(response_);
 
     verbose("(iu880b) firmware: %s\n", firmware_.str().c_str());
+
 
     loaded_device_info_ = true;
 

@@ -1108,6 +1108,7 @@ static int openSerialTTY(const char *tty, int baud_rate, PARITY parity)
 
     // CREAD=Enable receive CLOCAL=Ignore any Carrier Detect signal.
     tios.c_cflag |= (CREAD | CLOCAL);
+    //tios.c_cflag |= CRTSCTS; // hardware flow control not enabled.
     tios.c_cflag &= ~CSIZE;
     tios.c_cflag |= CS8;
     tios.c_cflag &=~ CSTOPB;
