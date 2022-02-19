@@ -583,7 +583,7 @@ void BusManager::perform_auto_scan_of_serial_devices(Configuration *config)
                 // Nope, lets fall back on the default_linkmodes.
                 desired_linkmodes = config->default_device_linkmodes;
             }
-            Detected detected = detectWMBusDeviceOnTTY(tty, WMBusDeviceType::DEVICE_AUTO, desired_linkmodes, serial_manager_);
+            Detected detected = detectWMBusDeviceOnTTY(tty, config->probe_for, desired_linkmodes, serial_manager_);
             if (detected.found_type != DEVICE_UNKNOWN)
             {
                 // See if we had a specified device without a file,

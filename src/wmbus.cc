@@ -5107,7 +5107,7 @@ bool SendBusContent::parse(const string &s)
 }
 
 Detected detectWMBusDeviceOnTTY(string tty,
-                                WMBusDeviceType type,
+                                set<WMBusDeviceType> probe_for,
                                 LinkModeSet desired_linkmodes,
                                 shared_ptr<SerialCommunicationManager> handler)
 {
@@ -5116,6 +5116,8 @@ Detected detectWMBusDeviceOnTTY(string tty,
     detected.found_file = tty;
     detected.specified_device.is_tty = true;
     detected.specified_device.linkmodes = desired_linkmodes;
+
+    bool has_auto = probe_for.count(WMBusDeviceType::DEVICE_AUTO);
 
     AccessCheck ac = handler->checkAccess(tty, handler);
     if (ac != AccessCheck::AccessOK)
@@ -5134,7 +5136,7 @@ Detected detectWMBusDeviceOnTTY(string tty,
 
     // Talk amb8465 with it...
     // assumes this device is configured for 9600 bps, which seems to be the default.
-    if (type == WMBusDeviceType::DEVICE_AUTO || type == WMBusDeviceType::DEVICE_AMB8465)
+    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_AMB8465))
     {
         if (detectAMB8465(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5144,7 +5146,7 @@ Detected detectWMBusDeviceOnTTY(string tty,
 
     // Talk im871a with it...
     // assumes this device is configured for 57600 bps, which seems to be the default.
-    if (type == WMBusDeviceType::DEVICE_AUTO || type == WMBusDeviceType::DEVICE_IM871A)
+    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_IM871A))
     {
         if (detectIM871AIM170A(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5154,7 +5156,7 @@ Detected detectWMBusDeviceOnTTY(string tty,
 
     // Talk RC1180 with it...
     // assumes this device is configured for 19200 bps, which seems to be the default.
-    if (type == WMBusDeviceType::DEVICE_AUTO || type == WMBusDeviceType::DEVICE_RC1180)
+    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_RC1180))
     {
         if (detectRC1180(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5164,7 +5166,7 @@ Detected detectWMBusDeviceOnTTY(string tty,
 
     // Talk CUL with it...
     // assumes this device is configured for 38400 bps, which seems to be the default.
-    if (type == WMBusDeviceType::DEVICE_AUTO || type == WMBusDeviceType::DEVICE_CUL)
+    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_CUL))
     {
         if (detectCUL(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5174,7 +5176,7 @@ Detected detectWMBusDeviceOnTTY(string tty,
 
     // Talk iu880b with it...
     // assumes this device is configured for 115200 bps, which seems to be the default.
-    if (type == WMBusDeviceType::DEVICE_AUTO || type == WMBusDeviceType::DEVICE_IU880B)
+    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_IU880B))
     {
         if (detectIU880B(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5261,7 +5263,9 @@ Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
     // to figure out what is connected to it.
     LinkModeSet desired_linkmodes = lms;
-    Detected d = detectWMBusDeviceOnTTY(specified_device.file, specified_device.type, desired_linkmodes, handler);
+    set<WMBusDeviceType> probe_for = { specified_device.type };
+
+    Detected d = detectWMBusDeviceOnTTY(specified_device.file, probe_for, desired_linkmodes, handler);
     if (specified_device.type != d.found_type &&
         specified_device.type != DEVICE_UNKNOWN)
     {

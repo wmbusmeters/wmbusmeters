@@ -292,6 +292,8 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
 
     // Number the devices
     specified_device.index = c->supplied_bus_devices.size();
+    // Probe for the specified devices.
+    c->probe_for.insert(specified_device.type);
 
     if (specified_device.type == WMBusDeviceType::DEVICE_MBUS)
     {

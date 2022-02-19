@@ -24,6 +24,7 @@
 
 #include<inttypes.h>
 #include<map>
+#include<set>
 
 // Check and remove the data link layer CRCs from a wmbus telegram.
 // If the CRCs do not pass the test, return false.
@@ -763,7 +764,7 @@ AccessCheck detectSKIP(Detected *detected, shared_ptr<SerialCommunicationManager
 AccessCheck factoryResetAMB8465(string tty, shared_ptr<SerialCommunicationManager> handler, int *was_baud);
 
 Detected detectWMBusDeviceOnTTY(string tty,
-                                WMBusDeviceType type,
+                                set<WMBusDeviceType> probe_for,
                                 LinkModeSet desired_linkmodes,
                                 shared_ptr<SerialCommunicationManager> handler);
 
