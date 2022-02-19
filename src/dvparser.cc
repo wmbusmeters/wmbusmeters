@@ -627,28 +627,34 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
         // 74140000 -> 00001474
         string& v = p.second.value;
         uint64_t raw = 0;
-        assert(assume_signed == false); // We do not expect negative bcd values.
+        bool negate = false;
+        // assert(assume_signed == false); // We do not expect negative bcd values.
         // Even though it is theoretically possible with nines complement.
         if (t == 0x9) {
             assert(v.size() == 2);
+            if (assume_signed && v[0] == 'F') { negate = true; v[0] = '0'; }
             raw = (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xA) {
             assert(v.size() == 4);
+            if (assume_signed && v[2] == 'F') { negate = true; v[2] = '0'; }
             raw = (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xB) {
             assert(v.size() == 6);
+            if (assume_signed && v[4] == 'F') { negate = true; v[4] = '0'; }
             raw = (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xC) {
             assert(v.size() == 8);
+            if (assume_signed && v[6] == 'F') { negate = true; v[6] = '0'; }
             raw = (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
                 + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xE) {
             assert(v.size() == 12);
+            if (assume_signed && v[10] == 'F') { negate = true; v[10] = '0'; }
             raw =(v[10]-'0')*10*10*10*10*10*10*10*10*10*10*10 + (v[11]-'0')*10*10*10*10*10*10*10*10*10*10
                 + (v[8]-'0')*10*10*10*10*10*10*10*10*10 + (v[9]-'0')*10*10*10*10*10*10*10*10
                 + (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
@@ -656,10 +662,14 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         }
-
         double scale = 1.0;
+        double draw = (double)raw;
+        if (negate)
+        {
+            draw = (double)draw * -1;
+        }
         if (auto_scale) scale = vifScale(vif);
-        *value = ((double)raw) / scale;
+        *value = (draw) / scale;
     }
     else
     {
