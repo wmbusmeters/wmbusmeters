@@ -1,4 +1,7 @@
 
+ldebomy fixed a bug in the izar decoding that for some meters dropped the most significant digit
+in the serial number. Thanks ldebomy!
+
 Germar Reitze fixed a bug where negative BCD values were not properly converted. Thanks Germar!
 
 Fix unnecessary probing bug where a specified device like: /dev/ttyUSB0:im871a:c1

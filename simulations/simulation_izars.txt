@@ -1,7 +1,7 @@
 # Test IZAR RC 868 I R4 PL water meter telegram
 
 telegram=|1944304C72242421D401A2|013D4013DD8B46A4999C1293E582CC|
-{"media":"water","meter":"izar","name":"IzarWater","id":"21242472","prefix":"C19UA","serial_number":"045842","total_m3":3.488,"last_month_total_m3":3.486,"last_month_measure_date":"2019-09-30","remaining_battery_life_y":14.5,"current_alarms":"meter_blocked,underflow","previous_alarms":"no_alarm","transmit_period_s":8,"manufacture_year":"2019","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"izar","name":"IzarWater","id":"21242472","prefix":"C19UA","serial_number":"145842","total_m3":3.488,"last_month_total_m3":3.486,"last_month_measure_date":"2019-09-30","remaining_battery_life_y":14.5,"current_alarms":"meter_blocked,underflow","previous_alarms":"no_alarm","transmit_period_s":8,"manufacture_year":"2019","timestamp":"1111-11-11T11:11:11Z"}
 
 # Test new version of IZAR
 
@@ -16,7 +16,7 @@ telegram=|1944A511780779194820A1|21170013355F8EDB2D03C6912B1E37
 # And another izar, with a mfct specific tpl ci field a3.
 
 telegram=|1944304c9c5824210c04a363140013716577ec59e8663ab0d31c|
-{"media":"water","meter":"izar","name":"IzarWater4","id":"2124589c","prefix":"H19CA","serial_number":"059196","total_m3":38.944,"last_month_total_m3":38.691,"last_month_measure_date":"2021-02-01","remaining_battery_life_y":10,"current_alarms":"no_alarm","previous_alarms":"no_alarm","transmit_period_s":32,"manufacture_year":"2019","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"izar","name":"IzarWater4","id":"2124589c","prefix":"H19CA","serial_number":"159196","total_m3":38.944,"last_month_total_m3":38.691,"last_month_measure_date":"2021-02-01","remaining_battery_life_y":10,"current_alarms":"no_alarm","previous_alarms":"no_alarm","transmit_period_s":32,"manufacture_year":"2019","timestamp":"1111-11-11T11:11:11Z"}
 
 # Another test case to ensure non-regression on manufacture year parsing
 telegram=|1944304CDEFFE420CC01A2|63120013258F907B0AFF12529AC33B|
