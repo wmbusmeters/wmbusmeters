@@ -33,7 +33,7 @@ using namespace std;
 
 static void buildRequest(int endpoint_id, int msg_id, vector<uchar>& body, vector<uchar>& out);
 
-struct IU880BDeviceInfo
+struct DeviceInfo_IU880B
 {
     // 0x90 = iM880A (obsolete) 0x92 = iM880A-L (128k) 0x93 = iU880A (128k) 0x98 = iM880B 0x99 = iU880B 0xA0 = iM881A 0xA1 = iU881A
     uchar module_type {};
@@ -69,6 +69,31 @@ struct IU880BDeviceInfo
         i++; // skip reserved
         uid = tostrprintf("%02x%02x%02x%02x", bytes[i+3], bytes[i+2], bytes[i+1], bytes[i]);
         i+=4;
+        return true;
+    }
+};
+
+struct Firmware_IU880B
+{
+    uchar minor {};
+    uchar major {};
+    uint16_t build_count {};
+    string image;
+
+    string str()
+    {
+        return ""+to_string(major)+"."+to_string(minor)+"."+to_string(build_count)+" "+image;
+    }
+
+    bool decode(vector<uchar> &bytes)
+    {
+        if (bytes.size() < 4) return false;
+        int i = 0;
+        minor = bytes[i++];
+        major = bytes[i++];
+        build_count = bytes[i] | bytes[i+1];
+        i+=2;
+        image = string(&bytes[0]+i, &bytes[0]+bytes.size());
         return true;
     }
 };
@@ -118,7 +143,7 @@ struct LoRaIU880B : public virtual WMBusCommonImplementation
     bool ping();
     string getDeviceId();
     string getDeviceUniqueId();
-    uchar getFirmwareVersion();
+    string getFirmwareVersion();
     LinkModeSet getLinkModes();
     void deviceReset();
     void deviceSetLinkModes(LinkModeSet lms);
@@ -158,9 +183,11 @@ private:
     vector<uchar> request_;
     vector<uchar> response_;
 
-    bool getDeviceInfo();
+    bool getDeviceInfoAndFirmware();
+
     bool loaded_device_info_ {};
-    IU880BDeviceInfo device_info_;
+    DeviceInfo_IU880B device_info_;
+    Firmware_IU880B firmware_;
 
     friend AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
     void handleDevMgmt(int msgid, vector<uchar> &payload);
@@ -219,7 +246,7 @@ string LoRaIU880B::getDeviceId()
     if (serial()->readonly()) return "?"; // Feeding from stdin or file.
     if (cached_device_id_ != "") return cached_device_id_;
 
-    bool ok = getDeviceInfo();
+    bool ok = getDeviceInfoAndFirmware();
     if (!ok) return "ER1R";
 
     cached_device_id_ = device_info_.uid;
@@ -234,9 +261,14 @@ string LoRaIU880B::getDeviceUniqueId()
     return getDeviceId();
 }
 
-uchar LoRaIU880B::getFirmwareVersion()
+string LoRaIU880B::getFirmwareVersion()
 {
-    return 0;
+    if (serial()->readonly()) return "?"; // Feeding from stdin or file.
+
+    bool ok = getDeviceInfoAndFirmware();
+    if (!ok) return "ER1R";
+
+    return firmware_.str();
 }
 
 LinkModeSet LoRaIU880B::getLinkModes()
@@ -254,6 +286,7 @@ void LoRaIU880B::deviceReset()
 
 void LoRaIU880B::deviceSetLinkModes(LinkModeSet lms)
 {
+    /*
     if (serial()->readonly()) return; // Feeding from stdin or file.
 
     if (!canSetLinkModes(lms))
@@ -284,6 +317,7 @@ void LoRaIU880B::deviceSetLinkModes(LinkModeSet lms)
 
     bool ok = waitForResponse(DEVMGMT_MSG_SET_RADIO_MODE_RSP);
     if (!ok) return; // timeout
+    */
 }
 
 FrameStatus LoRaIU880B::checkIU880BFrame(vector<uchar> &data,
@@ -384,31 +418,24 @@ void LoRaIU880B::handleDevMgmt(int msgid, vector<uchar> &payload)
 {
     switch (msgid) {
         case DEVMGMT_MSG_PING_RSP:
-            verbose("(iu880b) pong\n");
-            notifyResponseIsHere(DEVMGMT_MSG_PING_RSP);
+            debug("(iu880b) rsp pong\n");
             break;
         case DEVMGMT_MSG_GET_DEVICE_INFO_RSP:
-            verbose("(iu880b) device info completed\n");
-            response_.clear();
-            response_.insert(response_.end(), payload.begin(), payload.end());
-            notifyResponseIsHere(DEVMGMT_MSG_GET_DEVICE_INFO_RSP);
+            debug("(iu880b) rsp got device info\n");
             break;
         case DEVMGMT_MSG_SET_RADIO_MODE_RSP:
-            verbose("(iu880b) device set radio mode completed\n");
-            response_.clear();
-            response_.insert(response_.end(), payload.begin(), payload.end());
-            notifyResponseIsHere(DEVMGMT_MSG_SET_RADIO_MODE_RSP);
+            debug("(iu880b) rsp set radio mode\n");
             break;
         case DEVMGMT_MSG_GET_FW_INFO_RSP:
-            verbose("(iu880b) device get firmware\n");
-            response_.clear();
-            response_.insert(response_.end(), payload.begin(), payload.end());
-            notifyResponseIsHere(DEVMGMT_MSG_GET_FW_INFO_RSP);
+            debug("(iu880b) rsp got firmware\n");
             break;
-
-    default:
-        verbose("(iu880b) Unhandled device management message %d\n", msgid);
+        default:
+            warning("(iu880b) Unhandled device management message %d\n", msgid);
+            return;
     }
+    response_.clear();
+    response_.insert(response_.end(), payload.begin(), payload.end());
+    notifyResponseIsHere(msgid);
 }
 
 void LoRaIU880B::handleRadioLink(int msgid, vector<uchar> &frame, int rssi_dbm)
@@ -424,7 +451,7 @@ void LoRaIU880B::handleHWTest(int msgid, vector<uchar> &payload)
 }
 
 
-bool LoRaIU880B::getDeviceInfo()
+bool LoRaIU880B::getDeviceInfoAndFirmware()
 {
     if (loaded_device_info_) return true;
 
@@ -454,7 +481,6 @@ bool LoRaIU880B::getDeviceInfo()
     // Now device info response is in response_ vector.
     device_info_.decode(response_);
 
-    loaded_device_info_ = true;
     verbose("(iu880b) device info: %s\n", device_info_.str().c_str());
 
     request_.clear();
@@ -467,7 +493,12 @@ bool LoRaIU880B::getDeviceInfo()
     ok = waitForResponse(DEVMGMT_MSG_GET_FW_INFO_RSP);
     if (!ok) return false; // timeout
 
-    verbose("(iu880b) get firmware\n");
+    // Now device info response is in response_ vector.
+    firmware_.decode(response_);
+
+    verbose("(iu880b) firmware: %s\n", firmware_.str().c_str());
+
+    loaded_device_info_ = true;
 
     return true;
 }
@@ -559,7 +590,7 @@ AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManag
 
     debug("(iu880b) endpoint %02x msg %02x status %02x\n", endpoint_id, msg_id, status_byte);
 
-    IU880BDeviceInfo di;
+    DeviceInfo_IU880B di;
     di.decode(payload);
 
     debug("(iu880b) info: %s\n", di.str().c_str());
