@@ -46,12 +46,26 @@ from your computer. Then do:
 `./configure; make; sudo make install` will install wmbusmeters as a daemon.
 
 Check the contents of your `/etc/wmbusmeters.conf` file, assuming it
-has `device=auto:t1` and you are using a im871a,amb8465,rc1180 or cul device,
+has `device=auto:t1` and you are using a im871a,amb8465,rc1180,cul or rtlsdr device,
 then you can now start the daemon with `sudo systemctl start wmbusmeters`
 or you can try it from the command line `wmbusmeters auto:t1`
 
 Wmbusmeters will scan for wmbus devices every few seconds and detect whenever
-a device is plugged in or removed.
+a device is plugged in or removed. However since wmbusmeters now supports
+several dongle types, the scan can take some time!
+
+It is recommended that you use `auto` to find your dongle, then, when
+you know the exact device path, you write for example:
+`device=/dev/ttyUSB0:im871a:c1,t1` in the configuration file or on the
+command line. This will skip the slow probing for all possible dongles
+when wmbusmeters starts up.
+
+If the serial device (ttyUSB0) might change you can also use `device=im871a:c1,t1`
+which will probe all serial devices but only scans for im871a which also speeds it up.
+
+If you have to scan serial devices, then remember that some Raspberry PIs are upset when
+random data is sent to `/dev/ttyAMA0` when it is configured in bluetooth mode.
+To solve this, add `donotprobe=/dev/ttyAMA0`
 
 To have the wmbusmeters daemon start automatically when the computer boots do:
 `sudo systemctl enable wmbusmeters`
@@ -76,6 +90,18 @@ you can add `donotprobe=/dev/ttyUSB0` or `donotprobe=all`.
 
 You can specify combinations like: `device=rc1180:t1` `device=auto:c1`
 to set the rc1180 dongle to t1 but any other auto-detected dongle to c1.
+
+Some dongles have identifiers (im871a,amb8465 and rtlsdrs) (for example: rtlsdr can be set with `rtl_eeprom -s myname`)
+You might have two rtlsdr dongles, one attached to an antenna tuned to 433MHz and the other
+attached to an antenna tuned for 868.95MHz, then a more complicated setup could look like this:
+
+```
+device=rtlwmbus[555555]:433M
+device=rtlwmbus[112233]
+device=/dev/ttyUSB0:im871a[00102759]:c1,t1
+device=/dev/ttyUSB1:rc1800:t1
+```
+
 
 ```ini
 loglevel=normal
@@ -330,7 +356,7 @@ As meter quadruples you specify:
 ```
 Supported wmbus dongles:
 IMST 871a (im871a)
-Amber 8465 (amb8465)
+Amber 8465/8665/8665-M (amb8465)
 CUL family (cul)
 Radiocraft (RC1180)
 rtl_wmbus (rtlwmbus)
