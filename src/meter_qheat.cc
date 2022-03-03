@@ -72,7 +72,7 @@ MeterQHeat::MeterQHeat(MeterInfo &mi) :
              "The total energy consumption recorded at the last day of the previous month.",
              true, true);
 
-    addPrint("las_year_date", Quantity::Text,
+    addPrint("last_year_date", Quantity::Text,
              [&](){ return last_year_date_; },
              "Last day previous year when total energy consumption was recorded.",
              false, true);
