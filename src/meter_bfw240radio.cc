@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2021 Fredrik Öhrström
+ Copyright (C) 2021 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ shared_ptr<Meter> createBFW240Radio(MeterInfo &mi)
 
 
 MeterBFW240RADIO::MeterBFW240RADIO(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::BFW240RADIO)
+    MeterCommonImplementation(mi, "bfw240radio")
 {
     setMeterType(MeterType::HeatCostAllocationMeter);
 

@@ -1,6 +1,6 @@
 /*
- Copyright (C) 2018-2020 Fredrik Öhrström
-                    2020 Eric Bus
+ Copyright (C) 2018-2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C)      2020 Eric Bus (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@ private:
 };
 
 MeterMultical603::MeterMultical603(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::MULTICAL603)
+    MeterCommonImplementation(mi, "multical603")
 {
     setMeterType(MeterType::HeatMeter);
 

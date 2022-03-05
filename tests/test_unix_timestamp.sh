@@ -8,18 +8,14 @@ TEST=testoutput
 TESTNAME="Test unix timestamp in fields"
 TESTRESULT="ERROR"
 
-METERS="Votten      aventieswm  61070071 A004EB23329A477F1DD2D7820B56EB3D"
+METERS="Votten aventieswm  61070071 A004EB23329A477F1DD2D7820B56EB3D"
 
 cat simulations/simulation_unix_timestamp.txt | grep '^{' > $TEST/test_expected.txt
 
-# Wait for the second to switch before starting the run. This will avoid spurious errors
-# where the second barrier switches inside the test.
-PREV=$(date +%s)
-NOW=$PREV
-while [ "$NOW" = "$PREV" ] ; do NOW=$(date "+%s") ; done
+NOW=$(date +%s)
 
 cat simulations/simulation_unix_timestamp.txt | grep '^|' | sed 's/^|//' | sed "s/UT/${NOW}/" > $TEST/test_expected.txt
-$PROG --format=fields --separator='*' --field_extra=extra_info --selectfields=total_m3,timestamp_ut,timestamp_utc,timestamp_lt,name,id,extra simulations/simulation_t1.txt $METERS  > $TEST/test_output.txt 2> $TEST/test_stderr.txt
+$PROG --format=fields --separator='*' --field_extra=extra_info --selectfields=total_m3,timestamp_ut,timestamp_utc,timestamp_lt,name,id,extra simulations/simulation_unix_timestamp.txt $METERS  > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 
 if [ "$?" = "0" ]
 then

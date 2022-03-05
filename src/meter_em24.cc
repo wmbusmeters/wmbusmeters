@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ shared_ptr<Meter> createEM24(MeterInfo &mi)
 }
 
 MeterEM24::MeterEM24(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EM24)
+    MeterCommonImplementation(mi, "em24")
 {
     setMeterType(MeterType::ElectricityMeter);
 

@@ -29,14 +29,14 @@ telegram=|1844AE4C4455223368077A55000000|041389E20100023B0000|
 # Test amiplus/apator electricity meter
 
 telegram=|4E4401061010101002027A00004005|2F2F0E035040691500000B2B300300066D00790C7423400C78371204860BABC8FC100000000E833C8074000000000BAB3C0000000AFDC9FC0136022F2F2F2F2F|
-{"media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.05,"current_power_consumption_kw":0.33,"total_energy_production_kwh":7.48,"current_power_production_kw":0,"voltage_at_phase_1_v":236,"voltage_at_phase_2_v":0,"voltage_at_phase_3_v":0,"device_date_time":"2019-03-20 12:57","timestamp":"1111-11-11T11:11:11Z"}
-|MyElectricity1;10101010;15694.050000;0.330000;7.480000;0.000000;236.000000;0.000000;0.000000;1111-11-11 11:11.11
+{"media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.05,"current_power_consumption_kw":0.33,"total_energy_production_kwh":7.48,"current_power_production_kw":0,"voltage_at_phase_1_v":236,"voltage_at_phase_2_v":0,"voltage_at_phase_3_v":0,"device_date_time":"2019-03-20 12:57","total_energy_consumption_tariff_1_kwh":0,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_tariff_1_kwh":0,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}
+|MyElectricity1;10101010;15694.050000;0.330000;7.480000;0.000000;236.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;1111-11-11 11:11.11
 
 # Test amiplus/apator electricity meter with three phase voltages
 
 telegram=|5E44B6105843250000027A2A005005|2F2F0C7835221400066D404708AC2A400E032022650900000E833C0000000000001B2B9647000B2B5510000BAB3C0000000AFDC9FC0135020AFDC9FC0245020AFDC9FC0339020BABC8FC100000002F2F|
-{"media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"device_date_time":"2021-10-12 08:07","timestamp":"1111-11-11T11:11:11Z"}
-|MyElectricity2;00254358;9652.220000;1.055000;0.000000;0.000000;235.000000;245.000000;239.000000;1111-11-11 11:11.11
+{"media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"device_date_time":"2021-10-12 08:07","total_energy_consumption_tariff_1_kwh":0,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_tariff_1_kwh":0,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}
+|MyElectricity2;00254358;9652.220000;1.055000;0.000000;0.000000;235.000000;245.000000;239.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;1111-11-11 11:11.11
 
 
 # Test MKRadio3 T1 telegrams
@@ -163,13 +163,13 @@ telegram=|5B445A149922992202378C20F6900F002C25BC9E0000BF48954821BC508D7299229922
 # Test electricity meter with ESYS-WM20
 
 # static telegram
-telegram=|7B4479169977997730378C208B900F002C25E4EF0A002EA98E7D58B3ADC57299779977991611028B005087102F2F|0DFD090F34302e3030562030303030303030300D790E31323334353637383839595345310DFD100AAAAAAAAAAAAAAAAAAAAA0D780E31323334353637383930594553312F2F2F2F2F2F2F2F2F2F2F|
-{"media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","total_energy_consumption_kwh":0,"current_power_consumption_kw":0,"total_energy_production_kwh":0,"total_energy_consumption_tariff1_kwh":0,"total_energy_consumption_tariff2_kwh":0,"current_power_consumption_phase1_kw":0,"current_power_consumption_phase2_kw":0,"current_power_consumption_phase3_kw":0,"enhanced_id":"1ESY9887654321","version":"40.00V 00000000","location_hex":"AAAAAAAAAAAAAAAAAAAA","fabrication_no":"1SEY0987654321","timestamp":"1111-11-11T11:11:11Z"}
+telegram=|7B4479169977997730378C208B900F002C25E4EF0A002EA98E7D58B3ADC57299779977991611028B005087102F2F#0DFD090F34302e3030562030303030303030300D790E31323334353637383839595345310DFD100AAAAAAAAAAAAAAAAAAAAA0D780E31323334353637383930594553312F2F2F2F2F2F2F2F2F2F2F|
+{"media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","total_energy_consumption_kwh":0,"current_power_consumption_kw":0,"total_energy_production_kwh":0,"total_energy_consumption_tariff1_kwh":0,"total_energy_consumption_tariff2_kwh":0,"current_power_consumption_phase1_kw":0,"current_power_consumption_phase2_kw":0,"current_power_consumption_phase3_kw":0,"enhanced_id":"1ESY9887654321","version":"00000000 V00.04","location_hex":"AAAAAAAAAAAAAAAAAAAA","fabrication_no":"1SEY0987654321","timestamp":"1111-11-11T11:11:11Z"}
 |Elen2;77997799;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;0.000000;1ESY9887654321;1111-11-11 11:11.11
 
 # dynamic telegram
-telegram=|7B4479169977997730378C20F0900F002C2549EE0A0077C19D3D1A08ABCD729977997779161102F0005007102F2F|0702F5C3FA000000000007823C5407000000000000841004E081020084200415000000042938AB000004A9FF01FA0A000004A9FF02050A000004A9FF03389600002F2F2F2F2F2F2F2F2F2F2F2F2F|
-{"media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","total_energy_consumption_kwh":1643.4165,"current_power_consumption_kw":0.43832,"total_energy_production_kwh":0.1876,"total_energy_consumption_tariff1_kwh":1643.2,"total_energy_consumption_tariff2_kwh":0.21,"current_power_consumption_phase1_kw":0.0281,"current_power_consumption_phase2_kw":0.02565,"current_power_consumption_phase3_kw":0.38456,"enhanced_id":"1ESY9887654321","version":"40.00V 00000000","location_hex":"AAAAAAAAAAAAAAAAAAAA","fabrication_no":"1SEY0987654321","timestamp":"1111-11-11T11:11:11Z"}
+telegram=|7B4479169977997730378C20F0900F002C2549EE0A0077C19D3D1A08ABCD729977997779161102F0005007102F2F#0702F5C3FA000000000007823C5407000000000000841004E081020084200415000000042938AB000004A9FF01FA0A000004A9FF02050A000004A9FF03389600002F2F2F2F2F2F2F2F2F2F2F2F2F|
+{"media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","total_energy_consumption_kwh":1643.4165,"current_power_consumption_kw":0.43832,"total_energy_production_kwh":0.1876,"total_energy_consumption_tariff1_kwh":1643.2,"total_energy_consumption_tariff2_kwh":0.21,"current_power_consumption_phase1_kw":0.0281,"current_power_consumption_phase2_kw":0.02565,"current_power_consumption_phase3_kw":0.38456,"enhanced_id":"1ESY9887654321","version":"00000000 V00.04","location_hex":"AAAAAAAAAAAAAAAAAAAA","fabrication_no":"1SEY0987654321","timestamp":"1111-11-11T11:11:11Z"}
 |Elen2;77997799;1643.416500;0.438320;0.187600;1643.200000;0.210000;0.028100;0.025650;0.384560;1ESY9887654321;1111-11-11 11:11.11
 
 # Test electricity meter eHZ-P
@@ -234,7 +234,7 @@ telegram=|36446850626262624543A1|009F2777010060780000000A00000000000000000000000
 
 # Test Maddalena EVO 868 wmbus module on water meter
 telegram=|aa4424347677787950077ac10000202f2f041306070000046d1e31b12104fd17000000000e787880048120004413c9040000426c9f2c840113c904000082016c9f2cd3013b9a0200c4016d0534a7218104fd280182046c9f2c840413c9040000c404131b00000084051300000000c405130000000084061300000000c406130000000084071300000000c407130000000084081300000000c408130000000084091300000000c4091300000000ffff|
-{"media":"water","meter":"evo868","name":"Votchka","id":"79787776","total_m3":1.798,"device_date_time":"2021-01-17 17:30","current_status":"OK","fabrication_no":"000218400887","consumption_at_set_date_m3":1.225,"set_date":"2020-12-31","consumption_at_set_date_2_m3":1.225,"set_date_2":"2020-12-31","max_flow_since_datetime_m3h":0.666,"max_flow_datetime":"2021-01-07 20:05","consumption_at_history_1_m3":1.225,"history_1_date":"2020-12-31","consumption_at_history_2_m3":0.027,"history_2_date":"2020-11-30","consumption_at_history_3_m3":0,"history_3_date":"2020-10-31","consumption_at_history_4_m3":0,"history_4_date":"2020-09-30","consumption_at_history_5_m3":0,"history_5_date":"2020-08-31","consumption_at_history_6_m3":0,"history_6_date":"2020-07-31","consumption_at_history_7_m3":0,"history_7_date":"2020-06-30","consumption_at_history_8_m3":0,"history_8_date":"2020-05-31","consumption_at_history_9_m3":0,"history_9_date":"2020-04-30","consumption_at_history_10_m3":0,"history_10_date":"2020-03-31","consumption_at_history_11_m3":0,"history_11_date":"2020-02-29","consumption_at_history_12_m3":0,"history_12_date":"2020-01-31","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"evo868","name":"Votchka","id":"79787776","total_m3":1.798,"device_date_time":"2021-01-17 17:30","current_status":"OK","fabrication_no":"002081048078","consumption_at_set_date_m3":1.225,"set_date":"2020-12-31","consumption_at_set_date_2_m3":1.225,"set_date_2":"2020-12-31","max_flow_since_datetime_m3h":0.666,"max_flow_datetime":"2021-01-07 20:05","consumption_at_history_1_m3":1.225,"history_1_date":"2020-12-31","consumption_at_history_2_m3":0.027,"history_2_date":"2020-11-30","consumption_at_history_3_m3":0,"history_3_date":"2020-10-31","consumption_at_history_4_m3":0,"history_4_date":"2020-09-30","consumption_at_history_5_m3":0,"history_5_date":"2020-08-31","consumption_at_history_6_m3":0,"history_6_date":"2020-07-31","consumption_at_history_7_m3":0,"history_7_date":"2020-06-30","consumption_at_history_8_m3":0,"history_8_date":"2020-05-31","consumption_at_history_9_m3":0,"history_9_date":"2020-04-30","consumption_at_history_10_m3":0,"history_10_date":"2020-03-31","consumption_at_history_11_m3":0,"history_11_date":"2020-02-29","consumption_at_history_12_m3":0,"history_12_date":"2020-01-31","timestamp":"1111-11-11T11:11:11Z"}
 |Votchka;79787776;1.798000;OK;1.225000;2020-12-31;1111-11-11 11:11.11
 
 # Test Gran-System-S electricity meter 101
@@ -247,9 +247,14 @@ telegram=||9e44731e17011020010278046d0813bc2104030000000084100300000000842003000
 {"media":"electricity","meter":"gransystems","name":"Gran301","id":"20100117","total_energy_consumption_kwh":0,"voltage_at_phase_1_v":234.1,"voltage_at_phase_2_v":0,"voltage_at_phase_3_v":0,"currrent_at_phase_1_a":0,"currrent_at_phase_2_a":0,"currrent_at_phase_3_a":0,"frequency_hz":50,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |Gran301;20100117;0.000000;234.100000;0.000000;0.000000;0.000000;0.000000;0.000000;50.000000;OK;1111-11-11 11:11.11
 
+# Test Hydrometer/Diehl Metering Sharky 774 heat meter
+telegram=|5E44A5112751617241047A8B0050052F2F0C0E000000000C13010000000B3B0000000C2B000000000A5A26020A5E18020B260321000AA6180000C2026CBE2BCC020E00000000CC021301000000DB023B000000DC022B000000002F2F2F2F2F|
+{"media":"heat","meter":"sharky774","name":"Sharky774","id":"72615127","total_energy_consumption_kwh":0,"total_volume_m3":0.001,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":22.6,"return_temperature_c":21.8,"temperature_difference_c":0.8,"operating_time_h":0,"energy_at_set_date_kwh":0,"set_date":"","timestamp":"1111-11-11T11:11:11Z"}
+|Sharky774;72615127;0.000000;0.001000;0.000000;0.000000;22.600000;21.800000;0.800000;0.000000;1111-11-11 11:11.11
+
 # Test Hydrometer/Diehl Metering Sharky 775 heat meter
 telegram=|534424232004256092687A370045752235854DEEEA5939FAD81C25FEEF5A23C38FB9168493C563F08DB10BAF87F660FBA91296BA2397E8F4220B86D3A192FB51E0BFCF24DCE72118E0C75A9E89F43BDFE370824B|
-{"media":"heat","meter":"sharky","name":"Sharky775","id":"68926025","total_energy_consumption_kwh":2651,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":150.347,"total_volume_m3":0.018,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":42.3,"return_temperature_c":28.1,"temperature_difference_c":14.1,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"heat","meter":"sharky","name":"Sharky775","id":"68926025","total_energy_consumption_kwh":2651,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":150.347,"total_volume_tariff2_m3":0.018,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":42.3,"return_temperature_c":28.1,"temperature_difference_c":14.1,"timestamp":"1111-11-11T11:11:11Z"}
 |Sharky775;68926025;2651.000000;0.000000;150.347000;0.018000;0.000000;0.000000;42.300000;28.100000;14.100000;1111-11-11 11:11.11
 
 # Test Apator Elf Heat meter
@@ -299,7 +304,7 @@ telegram=|2E44B05C82340100021B7A460000002F2F0A6601020AFB1A570602FD971D00002F2F2F
 
 # Test QHeat heat meter
 telegram=|3C449344957002372337725880226793442304DC0000200C05043900004C0500000000426C9F2CCC080551070000C2086CBE29326CFFFF046D280DB62A|
-{"media":"heat","meter":"qheat","name":"QHeato","id":"67228058","total_energy_consumption_kwh":390.4,"last_month_date":"2021-09-30 00:00","last_month_energy_consumption_kwh":75.1,"las_year_date":"2020-12-31 00:00","last_year_energy_consumption_kwh":0,"device_date_time":"2021-10-22 13:40","device_error_date":"2127-15-31 00:00","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"heat","meter":"qheat","name":"QHeato","id":"67228058","total_energy_consumption_kwh":390.4,"last_month_date":"2021-09-30 00:00","last_month_energy_consumption_kwh":75.1,"last_year_date":"2020-12-31 00:00","last_year_energy_consumption_kwh":0,"device_date_time":"2021-10-22 13:40","device_error_date":"2127-15-31 00:00","timestamp":"1111-11-11T11:11:11Z"}
 |QHeato;67228058;390.400000;2021-09-30 00:00;75.100000;1111-11-11 11:11.11
 
 # Test QSmoke smoke detector this one is not yet understood.

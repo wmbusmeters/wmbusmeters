@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2021 Fredrik Öhrström
+ Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 
 #include<inttypes.h>
 #include<map>
+#include<set>
 
 // Check and remove the data link layer CRCs from a wmbus telegram.
 // If the CRCs do not pass the test, return false.
@@ -44,6 +45,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
     X(RC1180,rc1180,true,false,detectRC1180)         \
     X(RTL433,rtl433,false,true,detectRTL433)         \
     X(RTLWMBUS,rtlwmbus,false,true,detectRTLWMBUS)   \
+    X(IU880B,iu880b,true,false,detectIU880B)         \
     X(SIMULATION,simulation,false,false,detectSIMULATION)
 
 enum WMBusDeviceType {
@@ -89,6 +91,7 @@ void setIgnoreDuplicateTelegrams(bool idt);
     X(N1e,n1e,--n1e,0x100)                      \
     X(N1f,n1f,--n1f,0x200)                      \
     X(MBUS,mbus,--mbus,0x400)                   \
+    X(LORA,lora,--lora,0x800)                   \
     X(UNKNOWN,unknown,----,0x0)
 
 enum class LinkMode {
@@ -364,7 +367,7 @@ enum class KindOfData
 // been partially decoded, or FULL when the volume or energy field is by itself complete.
 enum class Understanding
 {
-    NONE, PARTIAL, FULL
+    NONE, ENCRYPTED, PARTIAL, FULL
 };
 
 struct Explanation
@@ -402,6 +405,7 @@ struct Telegram
     int dll_mfct {};
 
     uchar mbus_primary_address; // Single byte address 0-250 for mbus devices.
+    uchar mbus_ci; // MBus control information field.
 
     vector<uchar> dll_a; // A field 6 bytes
     // The 6 a field bytes are composed of 4 id bytes, version and type.
@@ -513,9 +517,9 @@ struct Telegram
     void addMoreExplanation(int pos, const char* fmt, ...);
     void addMoreExplanation(int pos, string json);
     // Add an explanation of data inside manufacturer specific data.
-    void addSpecialExplanation(int offset, KindOfData k, Understanding u, const char* fmt, ...);
+    void addSpecialExplanation(int offset, int len, KindOfData k, Understanding u, const char* fmt, ...);
     void explainParse(string intro, int from);
-    void analyzeParse(OutputFormat o, int *content_length, int *understood_content_length);
+    string analyzeParse(OutputFormat o, int *content_length, int *understood_content_length);
 
     bool parserWarns() { return parser_warns_; }
     bool isSimulated() { return is_simulated_; }
@@ -541,7 +545,7 @@ private:
     // Fixes quirks from non-compliant meters to make telegram compatible with the standard
     void preProcess();
 
-    bool parseMBusDLL(std::vector<uchar>::iterator &pos);
+    bool parseMBusDLLandTPL(std::vector<uchar>::iterator &pos);
 
     bool parseDLL(std::vector<uchar>::iterator &pos);
     bool parseELL(std::vector<uchar>::iterator &pos);
@@ -661,6 +665,9 @@ shared_ptr<WMBus> openIM871A(Detected detected,
 shared_ptr<WMBus> openIM170A(Detected detected,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openIU880B(Detected detected,
+                             shared_ptr<SerialCommunicationManager> manager,
+                             shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openAMB8465(Detected detected,
                               shared_ptr<SerialCommunicationManager> manager,
                               shared_ptr<SerialDevice> serial_override);
@@ -701,6 +708,8 @@ bool isCiFieldOfType(int ci_field, CI_TYPE type);
 int ciFieldLength(int ci_field);
 string ciType(int ci_field);
 string cType(int c_field);
+bool isValidWMBusCField(int c_field);
+bool isValidMBusCField(int c_field);
 string ccType(int cc_field);
 string difType(int dif);
 double vifScale(int vif);
@@ -726,12 +735,14 @@ enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
 FrameStatus checkWMBusFrame(vector<uchar> &data,
                             size_t *frame_length,
                             int *payload_len_out,
-                            int *payload_offset);
+                            int *payload_offset,
+                            bool only_test);
 
 FrameStatus checkMBusFrame(vector<uchar> &data,
                            size_t *frame_length,
                            int *payload_len_out,
-                           int *payload_offset);
+                           int *payload_offset,
+                           bool only_test);
 
 AccessCheck reDetectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 
@@ -740,6 +751,7 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
 AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectD1TC(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
 AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
@@ -752,6 +764,7 @@ AccessCheck detectSKIP(Detected *detected, shared_ptr<SerialCommunicationManager
 AccessCheck factoryResetAMB8465(string tty, shared_ptr<SerialCommunicationManager> handler, int *was_baud);
 
 Detected detectWMBusDeviceOnTTY(string tty,
+                                set<WMBusDeviceType> probe_for,
                                 LinkModeSet desired_linkmodes,
                                 shared_ptr<SerialCommunicationManager> handler);
 
@@ -760,6 +773,10 @@ bool warned_for_telegram_before(Telegram *t, vector<uchar> &dll_a);
 
 ////////////////// MBUS
 
-string mbusCField(uchar c_field);
+const char *mbusCField(uchar c_field);
+const char *mbusCiField(uchar ci_field);
+
+int genericifyMedia(int media);
+bool isCloseEnough(int media1, int media2);
 
 #endif

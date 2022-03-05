@@ -1,7 +1,7 @@
 /*
- Copyright (C) 2019 Jacek Tomasiak
- Copyright (C) 2020 Fredrik Öhrström
- Copyright (C) 2021 Vincent Privat
+ Copyright (C) 2019 Jacek Tomasiak (gpl-3.0-or-later)
+ Copyright (C) 2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2021 Vincent Privat (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ shared_ptr<Meter> createIzar(MeterInfo &mi)
 }
 
 MeterIzar::MeterIzar(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::IZAR)
+    MeterCommonImplementation(mi, "izar")
 {
     setMeterType(MeterType::WaterMeter);
 
@@ -257,7 +257,7 @@ void MeterIzar::processContent(Telegram *t)
         uint8_t yy = atoi(digits.substr(0, 2).c_str());
         manufacture_year = yy > 70 ? (1900 + yy) : (2000 + yy); // Maybe to adjust in 2070, if this code stills lives :D
         // get the serial number
-        serial_number = atoi(digits.substr(3, digits.size()).c_str());
+        serial_number = atoi(digits.substr(2, digits.size()).c_str());
         // get letters
         uchar supplier_code = '@' + (((origin[9] & 0x0F) << 1) | (origin[8] >> 7));
         uchar meter_type = '@' + ((origin[8] & 0x7C) >> 2);

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2020 Fredrik Öhrström
+ Copyright (C) 2018-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -18,11 +18,19 @@
 #ifndef METERS_COMMON_IMPLEMENTATION_H_
 #define METERS_COMMON_IMPLEMENTATION_H_
 
+#include"dvparser.h"
 #include"meters.h"
 #include"units.h"
 
 #include<map>
 #include<set>
+
+enum PrintProperty
+{
+    JSON = 1,  // This field should be printed when using --format=json
+    FIELD = 2, // This field should be printed when using --format=field
+    IMPORTANT = 4, // The most important field.
+};
 
 struct MeterCommonImplementation : public virtual Meter
 {
@@ -32,9 +40,10 @@ struct MeterCommonImplementation : public virtual Meter
     vector<string>& ids();
     string idsc();
     vector<string>  fields();
-    vector<Print>   prints();
+    vector<FieldInfo>   prints();
     string name();
     MeterDriver driver();
+    DriverName driverName();
 
     ELLSecurityMode expectedELLSecurityMode();
     TPLSecurityMode expectedTPLSecurityMode();
@@ -49,15 +58,12 @@ struct MeterCommonImplementation : public virtual Meter
     static bool isTelegramForMeter(Telegram *t, Meter *meter, MeterInfo *mi);
     MeterKeys *meterKeys();
 
-    std::vector<std::string> getRecords();
-    double getRecordAsDouble(std::string record);
-    uint16_t getRecordAsUInt16(std::string record);
-
-    MeterCommonImplementation(MeterInfo &mi, MeterDriver driver);
+    MeterCommonImplementation(MeterInfo &mi, string driver);
+    MeterCommonImplementation(MeterInfo &mi, DriverInfo &di);
 
     ~MeterCommonImplementation() = default;
 
-    string meterDriver() { return toString(driver_); }
+    string meterDriver() { return driver_; }
 
 protected:
 
@@ -65,6 +71,7 @@ protected:
     void setExpectedELLSecurityMode(ELLSecurityMode dsm);
     void setExpectedTPLSecurityMode(TPLSecurityMode tsm);
     void addConversions(std::vector<Unit> cs);
+    std::vector<Unit>& conversions() { return conversions_; }
     void addShell(std::string cmdline);
     void addExtraConstantField(std::string ecf);
     std::vector<std::string> &shellCmdlines();
@@ -81,6 +88,64 @@ protected:
     void addPrint(string vname, Quantity vquantity,
                   function<std::string()> getValueFunc, string help, bool field, bool json);
 
+#define SET_FUNC(varname,to_unit) {[=](Unit from_unit, double d){varname = convert(d, from_unit, to_unit);}}
+#define GET_FUNC(varname,from_unit) {[=](Unit to_unit){return convert(varname, from_unit, to_unit);}}
+
+    void addFieldWithExtractor(
+        string vname,          // Name of value without unit, eg total
+        Quantity vquantity,    // Value belongs to this quantity.
+        DifVifKey dif_vif_key, // You can hardocde a dif vif header here or use NoDifVifKey
+        VifScaling vif_scaling,
+        MeasurementType mt,    // If not using a hardcoded key, search for mt,vi,s,t and i instead.
+        ValueInformation vi,
+        StorageNr s,
+        TariffNr t,
+        IndexNr i,
+        int print_properties, // Should this be printed by default in fields,json and hr.
+        string help,
+        function<void(Unit,double)> setValueFunc, // Use the SET macro above.
+        function<double(Unit)> getValueFunc); // Use the GET macro above.
+
+    void addField(
+        string vname,          // Name of value without unit, eg total
+        Quantity vquantity,    // Value belongs to this quantity.
+        int print_properties, // Should this be printed by default in fields,json and hr.
+        string help,
+        function<void(Unit,double)> setValueFunc, // Use the SET macro above.
+        function<double(Unit)> getValueFunc); // Use the GET macro above.
+
+#define SET_STRING_FUNC(varname) {[=](string s){varname = s;}}
+#define GET_STRING_FUNC(varname) {[=](){return varname; }}
+
+    void addStringFieldWithExtractor(
+        string vname,          // Name of value without unit, eg total
+        Quantity vquantity,    // Value belongs to this quantity.
+        DifVifKey dif_vif_key, // You can hardocde a dif vif header here or use NoDifVifKey
+        MeasurementType mt,    // If not using a hardcoded key, search for mt,vi,s,t and i instead.
+        ValueInformation vi,
+        StorageNr s,
+        TariffNr t,
+        IndexNr i,
+        int print_properties, // Should this be printed by default in fields,json and hr.
+        string help,
+        function<void(string)> setValueFunc, // Use the SET_STRING macro above.
+        function<string()> getValueFunc); // Use the GET_STRING macro above.
+
+    void addStringFieldWithExtractorAndLookup(
+        string vname,          // Name of value without unit, eg total
+        Quantity vquantity,    // Value belongs to this quantity.
+        DifVifKey dif_vif_key, // You can hardocde a dif vif header here or use NoDifVifKey
+        MeasurementType mt,    // If not using a hardcoded key, search for mt,vi,s,t and i instead.
+        ValueInformation vi,
+        StorageNr s,
+        TariffNr t,
+        IndexNr i,
+        int print_properties, // Should this be printed by default in fields,json and hr.
+        string help,
+        function<void(string)> setValueFunc, // Use the SET_STRING macro above.
+        function<string()> getValueFunc, // Use the GET_STRING macro above.
+        Translate::Lookup lookup); // Translate the bits/indexes.
+
     // The default implementation of poll does nothing.
     // Override for mbus meters that need to be queried and likewise for C2/T2 wmbus-meters.
     void poll(shared_ptr<BusManager> bus);
@@ -92,23 +157,25 @@ protected:
                     string *json,
                     vector<string> *envs,
                     vector<string> *more_json, // Add this json "key"="value" strings.
-                    vector<string> *selected_fields); // Only print these fields.
+                    vector<string> *selected_fields, // Only print these fields.
+                    bool pretty_print); // Insert newlines and indentation.
     // Json fields cannot be modified expect by adding conversions.
     // Json fields include all values except timestamp_ut, timestamp_utc, timestamp_lt
     // since Json is assumed to be decoded by a program and the current timestamp which is the
     // same as timestamp_utc, can always be decoded/recoded into local time or a unix timestamp.
 
-    // Look a print using the vname and generate the single json key:value, eg "total_m3"=123.000
-    string renderJsonField(string vname);
-    string renderJsonField(Print *p);
+    FieldInfo *findFieldInfo(string vname);
+    string renderJsonOnlyDefaultUnit(string vname);
 
-    virtual void processContent(Telegram *t) = 0;
+    void processFieldExtractors(Telegram *t);
+    virtual void processContent(Telegram *t);
 
 private:
 
     int index_ {};
     MeterType type_ {};
-    MeterDriver driver_ {};
+    string driver_ {};
+    DriverName driver_name_;
     string bus_ {};
     MeterKeys meter_keys_ {};
     ELLSecurityMode expected_ell_sec_mode_ {};
@@ -126,7 +193,7 @@ private:
 protected:
     std::map<std::string,std::pair<int,std::string>> values_;
     vector<Unit> conversions_;
-    vector<Print> prints_;
+    vector<FieldInfo> prints_;
     vector<string> fields_;
 };
 

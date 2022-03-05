@@ -1,7 +1,4 @@
-####################################################################
-##
-## Intall binaries
-##
+# Copyright (C) 2021 Fredrik Öhrström (gpl-3.0-or-later)
 
 rm -f "$ROOT"/usr/bin/wmbusmeters "$ROOT"/usr/sbin/wmbusmetersd
 mkdir -p "$ROOT"/usr/bin

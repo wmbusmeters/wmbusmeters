@@ -1,22 +1,23 @@
 .TH WMBUSMETERS 1
 .SH NAME
-wmbusmeters \- listen to wireless mbus radio traffic and relay the decoded telegrams to other software
+wmbusmeters \- Acquire,query and decode wired and wireless mbus telegrams, then relay the telegrams to other software.
 
 .SH SYNOPSIS
-.B wmbusmeters [options] <device>{:suffix} (<meter_name> <meter_type>[:<mode>] <meter_id> meter_key>)*
+.B wmbusmeters {options} [device] { [name] [driver] [id] [key] }*
 
-.B wmbusmeters [options] <hex> (<meter_name> <meter_type>[:<mode>] <meter_id> meter_key>)*
+.B wmbusmeters {options} [hex]    { [name] [driver] [id] [key] }*
 
-.B wmbusmetersd <pid_file>
+.B wmbusmetersd {options} [pid_file>]
 
 .SH DESCRIPTION
 
 Wmbusmeters acquires wmbus telegrams, decodes them and relays them to
 some other software for further processing.  It can for example listen
-to radio traffic using dedicated wmbus dongles like (im871a,amb8465,cul,rc1180)
-or a generic software defined radio dongle (rtl_sdr) with an RTL2832U.
+to radio traffic using dedicated wmbus dongles (eg im871a,amb8465,cul,rc1180)
+or a software defined radio dongle (rtl_sdr) with an RTL2832U (decoded using
+rtl_wmbus, rtl_433).
 
-After the received telegram has been decrypted and parsed, it can then
+After the acquired telegram has been decrypted and parsed, it can then
 be relayed using a shell command, or stored in a log file.  The shell
 commands can for example relay the telegram using MQTT (eg
 mqtt_publish) sent to a REST API (eg curl) or store it in a database
@@ -32,6 +33,13 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 \fB\--alarmtimeout=\fR<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity
 
 \fB\--analyze\fR Analyze a telegram to find the best driver
+
+\fB\--analyze=\fR<key> Analyze a telegram to find the best driver and use the provided decryption key.
+
+\fB\--analyze=\fR<driver> Analyze a telegram but use only this driver.
+
+\fB\--analyze=\fR<driver>:<key> Analyze a telegram and use only this driver with this key.
+Add :verbose to any analyze to get more verbose analyze output.
 
 \fB\--debug\fR for a lot of information
 
@@ -80,6 +88,8 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 \fB\--meterfilestimestamp=\fR(never|day|hour|minute|micros) the meter file is suffixed with a timestamp (localtime) with the given resolution.
 
 \fB\--nodeviceexit\fR if no wmbus devices are found, then exit immediately
+
+\fB\--normal\fR for normal logging
 
 \fB\--oneshot\fR wait for an update from each meter, then quit
 
@@ -202,6 +212,8 @@ device=im871a[12345678]:c1
 device=rtlwmbus:433M:c1,t1
 logtelegrams=false
 format=json
+# Remove meterfiles to spare precious flash memory when only
+# relaying data using for example mqtt.
 meterfiles=/var/log/wmbusmeters/meter_readings
 meterfilesaction=overwrite
 meterfilesnaming=name
@@ -212,7 +224,7 @@ alarmshell=/usr/bin/mosquitto_pub -h localhost -t wmbusmeters_alarm -m "$ALARM_T
 alarmtimeout=1h
 alarmexpectedactivity=mon-sun(00-23)
 ignoreduplicates=false
-json_address=MyStreet 5
+field_address=MyStreet 5
 .fi
 
 .TP
@@ -223,13 +235,13 @@ name=MyTapWater
 type=multical21:c1
 id=12345678
 key=001122334455667788AABBCCDDEEFF
-json_floor=4
+field_floor=4
 
 .SH AUTHOR
 Written by Fredrik Öhrström.
 
 .SH COPYRIGHT
-Copyright \(co 2017-2020 Fredrik Öhrström.
+Copyright \(co 2017-2022 Fredrik Öhrström.
 .br
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
 .br

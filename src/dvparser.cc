@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2020 Fredrik Öhrström
+ Copyright (C) 2018-2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -33,7 +33,22 @@ const char *toString(ValueInformation v)
 {
     switch (v) {
         case ValueInformation::None: return "None";
-#define X(name,from,to) case ValueInformation::name: return #name;
+        case ValueInformation::Any: return "Any";
+#define X(name,from,to,quantity,unit) case ValueInformation::name: return #name;
+LIST_OF_VALUETYPES
+#undef X
+    }
+    assert(0);
+}
+
+Unit toDefaultUnit(ValueInformation v)
+{
+    switch (v) {
+    case ValueInformation::Any:
+    case ValueInformation::None:
+        assert(0);
+        break;
+#define X(name,from,to,quantity,unit) case ValueInformation::name: return unit;
 LIST_OF_VALUETYPES
 #undef X
     }
@@ -42,7 +57,7 @@ LIST_OF_VALUETYPES
 
 ValueInformation toValueInformation(int i)
 {
-#define X(name,from,to) if (from <= i && i <= to) return ValueInformation::name;
+#define X(name,from,to,quantity,unit) if (from <= i && i <= to) return ValueInformation::name;
 LIST_OF_VALUETYPES
 #undef X
     return ValueInformation::None;
@@ -318,12 +333,43 @@ bool parseDV(Telegram *t,
 void valueInfoRange(ValueInformation v, int *low, int *hi)
 {
     switch (v) {
+    case ValueInformation::Any:
     case ValueInformation::None: *low = 0; *hi = 0; return;
-#define X(name,from,to) case ValueInformation::name: *low = from; *hi = to; return;
+#define X(name,from,to,quantity,unit) case ValueInformation::name: *low = from; *hi = to; return;
 LIST_OF_VALUETYPES
 #undef X
     }
     assert(0);
+}
+
+bool matchSingleVif(int vi, ValueInformation vif)
+{
+    int low, hi;
+    valueInfoRange(vif, &low, &hi);
+
+    return vi >= low && vi <= hi;
+}
+
+bool isVIFMatch(int vi, ValueInformation vif)
+{
+    if (vif == ValueInformation::AnyVolumeVIF)
+    {
+        // There are more volume units in the standard that will be added here.
+        return matchSingleVif(vi, ValueInformation::Volume);
+    }
+    if (vif == ValueInformation::AnyEnergyVIF)
+    {
+        return
+            matchSingleVif(vi, ValueInformation::EnergyWh) ||
+            matchSingleVif(vi, ValueInformation::EnergyMJ);
+    }
+    if (vif == ValueInformation::AnyPowerVIF)
+    {
+        // There are more power units in the standard that will be added here.
+        return matchSingleVif(vi, ValueInformation::PowerW);
+    }
+
+    return matchSingleVif(vi, vif);
 }
 
 bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string key)
@@ -340,9 +386,6 @@ bool findKey(MeasurementType mit, ValueInformation vif, int storagenr, int tarif
 bool findKeyWithNr(MeasurementType mit, ValueInformation vif, int storagenr, int tariffnr, int nr,
                    std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values)
 {
-    int low, hi;
-    valueInfoRange(vif, &low, &hi);
-
     /*debug("(dvparser) looking for type=%s vif=%s storagenr=%d value_ran_low=%02x value_ran_hi=%02x\n",
           measurementTypeName(mit).c_str(), toString(vif), storagenr,
           low, hi);*/
@@ -357,10 +400,10 @@ bool findKeyWithNr(MeasurementType mit, ValueInformation vif, int storagenr, int
               v.first.c_str(),
               measurementTypeName(ty).c_str(), vi, toString(toValueInformation(vi)), storagenr, sn);*/
 
-        if (vi >= low && vi <= hi
-            && (mit == MeasurementType::Unknown || mit == ty)
-            && (storagenr == ANY_STORAGENR || storagenr == sn)
-            && (tariffnr == ANY_TARIFFNR || tariffnr == tn))
+        if (isVIFMatch(vi, vif) &&
+            (mit == MeasurementType::Unknown || mit == ty) &&
+            (storagenr == ANY_STORAGENR || storagenr == sn) &&
+            (tariffnr == ANY_TARIFFNR || tariffnr == tn))
         {
             *key = v.first;
             nr--;
@@ -400,7 +443,7 @@ bool extractDVuint8(map<string,pair<int,DVEntry>> *values,
                     uchar *value)
 {
     if ((*values).count(key) == 0) {
-        verbose("(dvparser) warning: cannot extract uint16 from non-existant key \"%s\"\n", key.c_str());
+        verbose("(dvparser) warning: cannot extract uint8 from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
         *value = 0;
         return false;
@@ -490,7 +533,8 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                      string key,
                      int *offset,
                      double *value,
-                     bool auto_scale)
+                     bool auto_scale,
+                     bool assume_signed)
 {
     if ((*values).count(key) == 0) {
         verbose("(dvparser) warning: cannot extract double from non-existant key \"%s\"\n", key.c_str());
@@ -521,22 +565,28 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
     {
         vector<uchar> v;
         hex2bin(p.second.value, &v);
-        unsigned int raw = 0;
+        uint64_t raw = 0;
+        bool negate = false;
+        uint64_t negate_mask = 0;
         if (t == 0x1) {
             assert(v.size() == 1);
             raw = v[0];
+            if (assume_signed && (raw & (uint64_t)0x80UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<8; }
         } else if (t == 0x2) {
             assert(v.size() == 2);
             raw = v[1]*256 + v[0];
+            if (assume_signed && (raw & (uint64_t)0x8000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<16; }
         } else if (t == 0x3) {
             assert(v.size() == 3);
             raw = v[2]*256*256 + v[1]*256 + v[0];
+            if (assume_signed && (raw & (uint64_t)0x800000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<24; }
         } else if (t == 0x4) {
             assert(v.size() == 4);
             raw = ((unsigned int)v[3])*256*256*256
                 + ((unsigned int)v[2])*256*256
                 + ((unsigned int)v[1])*256
                 + ((unsigned int)v[0]);
+            if (assume_signed && (raw & (uint64_t)0x80000000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<32; }
         } else if (t == 0x6) {
             assert(v.size() == 6);
             raw = ((uint64_t)v[5])*256*256*256*256*256
@@ -545,6 +595,7 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                 + ((uint64_t)v[2])*256*256
                 + ((uint64_t)v[1])*256
                 + ((uint64_t)v[0]);
+            if (assume_signed && (raw & (uint64_t)0x800000000000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<48; }
         } else if (t == 0x7) {
             assert(v.size() == 8);
             raw = ((uint64_t)v[7])*256*256*256*256*256*256*256
@@ -555,10 +606,16 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                 + ((uint64_t)v[2])*256*256
                 + ((uint64_t)v[1])*256
                 + ((uint64_t)v[0]);
+            if (assume_signed && (raw & (uint64_t)0x8000000000000000UL) != 0) { negate = true; negate_mask = 0; }
         }
         double scale = 1.0;
+        double draw = (double)raw;
+        if (negate)
+        {
+            draw = (double)((int64_t)(negate_mask | raw));
+        }
         if (auto_scale) scale = vifScale(vif);
-        *value = ((double)raw) / scale;
+        *value = (draw) / scale;
     }
     else
     if (t == 0x9 || // 2 digit BCD
@@ -569,27 +626,33 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
     {
         // 74140000 -> 00001474
         string& v = p.second.value;
-        unsigned int raw = 0;
+        uint64_t raw = 0;
+        bool negate = false;
         if (t == 0x9) {
             assert(v.size() == 2);
+            if (assume_signed && v[0] == 'F') { negate = true; v[0] = '0'; }
             raw = (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xA) {
             assert(v.size() == 4);
+            if (assume_signed && v[2] == 'F') { negate = true; v[2] = '0'; }
             raw = (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xB) {
             assert(v.size() == 6);
+            if (assume_signed && v[4] == 'F') { negate = true; v[4] = '0'; }
             raw = (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xC) {
             assert(v.size() == 8);
+            if (assume_signed && v[6] == 'F') { negate = true; v[6] = '0'; }
             raw = (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
                 + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xE) {
             assert(v.size() == 12);
+            if (assume_signed && v[10] == 'F') { negate = true; v[10] = '0'; }
             raw =(v[10]-'0')*10*10*10*10*10*10*10*10*10*10*10 + (v[11]-'0')*10*10*10*10*10*10*10*10*10*10
                 + (v[8]-'0')*10*10*10*10*10*10*10*10*10 + (v[9]-'0')*10*10*10*10*10*10*10*10
                 + (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
@@ -597,10 +660,14 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *values,
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         }
-
         double scale = 1.0;
+        double draw = (double)raw;
+        if (negate)
+        {
+            draw = (double)draw * -1;
+        }
         if (auto_scale) scale = vifScale(vif);
-        *value = ((double)raw) / scale;
+        *value = (draw) / scale;
     }
     else
     {
@@ -729,20 +796,68 @@ bool extractDVlong(map<string,pair<int,DVEntry>> *values,
     return true;
 }
 
-bool extractDVstring(map<string,pair<int,DVEntry>> *values,
-                     string key,
-                     int *offset,
-                     string *value)
+bool extractDVHexString(map<string,pair<int,DVEntry>> *values,
+                        string key,
+                        int *offset,
+                        string *value)
 {
     if ((*values).count(key) == 0) {
         verbose("(dvparser) warning: cannot extract string from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
-        *value = "";
         return false;
     }
     pair<int,DVEntry>&  p = (*values)[key];
     *offset = p.first;
     *value = p.second.value;
+
+    return true;
+}
+
+
+bool extractDVReadableString(map<string,pair<int,DVEntry>> *values,
+                             string key,
+                             int *offset,
+                             string *value)
+{
+    if ((*values).count(key) == 0) {
+        verbose("(dvparser) warning: cannot extract string from non-existant key \"%s\"\n", key.c_str());
+        *offset = -1;
+        return false;
+    }
+    uchar dif, vif;
+    extractDV(key, &dif, &vif);
+    int t = dif&0xf;
+
+    pair<int,DVEntry>&  p = (*values)[key];
+    *offset = p.first;
+
+    string v = p.second.value;
+
+    if (t == 0x1 || // 8 Bit Integer/Binary
+        t == 0x2 || // 16 Bit Integer/Binary
+        t == 0x3 || // 24 Bit Integer/Binary
+        t == 0x4 || // 32 Bit Integer/Binary
+        t == 0x6 || // 48 Bit Integer/Binary
+        t == 0x7 || // 64 Bit Integer/Binary
+        t == 0xD)   // Variable length
+    {
+        // For example an enhanced id 32 bits binary looks like:
+        // 44434241 and will be reversed to: 41424344 and translated using ascii
+        // to ABCD
+        v = reverseBinaryAsciiSafeToString(v);
+    }
+    if (t == 0x9 || // 2 digit BCD
+        t == 0xA || // 4 digit BCD
+        t == 0xB || // 6 digit BCD
+        t == 0xC || // 8 digit BCD
+        t == 0xE)   // 12 digit BCD
+    {
+        // For example an enhanced id 12 digit bcd looks like:
+        // 618171183100 and will be reversed to: 003118718161
+        v = reverseBCD(v);
+    }
+
+    *value = v;
     return true;
 }
 

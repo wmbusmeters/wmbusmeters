@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2021 Fredrik Öhrström
+ Copyright (C) 2017-2021 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -233,6 +233,12 @@ shared_ptr<WMBus> BusManager::createWmbusObject(Detected *detected, Configuratio
     {
         verbose("(rc1180) on %s\n", detected->found_file.c_str());
         wmbus = openRC1180(*detected, serial_manager_, serial_override);
+        break;
+    }
+    case DEVICE_IU880B:
+    {
+        verbose("(iu880b) on %s\n", detected->found_file.c_str());
+        wmbus = openIU880B(*detected, serial_manager_, serial_override);
         break;
     }
     case DEVICE_UNKNOWN:
@@ -577,7 +583,7 @@ void BusManager::perform_auto_scan_of_serial_devices(Configuration *config)
                 // Nope, lets fall back on the default_linkmodes.
                 desired_linkmodes = config->default_device_linkmodes;
             }
-            Detected detected = detectWMBusDeviceOnTTY(tty, desired_linkmodes, serial_manager_);
+            Detected detected = detectWMBusDeviceOnTTY(tty, config->probe_for, desired_linkmodes, serial_manager_);
             if (detected.found_type != DEVICE_UNKNOWN)
             {
                 // See if we had a specified device without a file,

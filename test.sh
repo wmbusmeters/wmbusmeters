@@ -24,8 +24,20 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_s1_meters.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
-tests/test_unknown.sh $PROG
+tests/test_electricity_meters.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_mbus.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_anyid.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_list_envs.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+#tests/test_unknown.sh $PROG
+#if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_apas.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
@@ -103,7 +115,14 @@ if [ "$?" != "0" ]; then RC="1"; fi
 if [ "$?" != "0" ]; then RC="1"; fi
 
 ./tests/test_unix_timestamp.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+if [ "$?" != "0" ]; then
+    # This can spuriously fail if it crosses a second change...
+    # Lets try again.
+    ./tests/test_unix_timestamp.sh $PROG
+    if [ "$?" != "0" ]; then
+        RC="1";
+    fi
+fi
 
 ./tests/test_log_timestamps.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
@@ -123,6 +142,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_rtlwmbus_crc_errors.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_drivers.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 ./tests/test_analyze.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
@@ -134,6 +156,12 @@ fi
 echo Slower tests...
 
 tests/test_pipe.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_config_oneshot_exitafter.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_config_overrides.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 if [ "$(uname)" = "Linux" ]

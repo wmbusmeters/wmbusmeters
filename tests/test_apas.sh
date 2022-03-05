@@ -5,7 +5,7 @@ PROG="$1"
 mkdir -p testoutput
 TEST=testoutput
 
-TESTNAME="Test naughty non-compliant apator162 meters"
+TESTNAME="Test non-compliant apator162 meters"
 TESTRESULT="ERROR"
 
 METERS="Wasser      apator162   20202020 NOKEY

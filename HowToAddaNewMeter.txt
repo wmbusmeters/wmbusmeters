@@ -25,7 +25,7 @@ Be careful, the file must have a name beginning with "simulation_".
 Now you can re-run: wmbusmeters simulation_mymeter.txt
 And it will print the same output (minus the rssi/device).
 
-You can also do: wmbusmeters --debug simulation_mymeter.txt Wasser supercom587 12345678 <yourkey>
+You can also do: wmbusmeters --analyze simulation_mymeter.txt Wasser supercom587 12345678 <yourkey>
 It does not matter that your meter is not compatible with the supercom587, wmbusmeters
 will still decrypt and decode the OMS compliant wmbus encoded values as much as possible.
 
@@ -70,36 +70,16 @@ goal is to find/decode and print them.
 
 Ok, now it is time to program.
 
-To add a meter type, make a copy of meter_supercom587.cc to
-meter_mymeter.cc and add your meter to LIST_OF_METERS in meters.h
-and add the driver lookup values (mfct,type,ver) to METER_DETECTION.
+To add a meter type, make a copy of meter_supercom587.cc to meter_mymeter.cc
+(No other file needs to be changed, not even the Makefile.)
 
-Add the line $(BUILD)/meter_mymeter.o \
-to the Makefile.
-
-In meter_mymeter.cc, search and replace supercom587 for mymeter
-possibly adding a new meter type in meters.h if your meter is not a
-water meter and inheriting from that new meter type instead.
+Change all supercom587 strings to mymeter.
 
 Build with address sanitizer and gdb debug info:
 make DEBUG=true
 
 Run your code:
 ./build_debug/wmbusmeters simulation_mymeter.txt
-
-Now its time to change processContent.
-Some meters contain values that can be found using findKey:
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
-        t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
-    }
-
-Some meters use vendor proprietary fields, typically error codes,
-those are found with:
-    extractDVuint24(&t->values, "03FD17", &offset, &info_codes_);
-    t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
-
-Add any addPrint:s in the constructor to get your decoded values into the json.
 
 Now test your code:
 ./build_debug/wmbusmeters --format=json simulation_mymeter.txt Water MyMeter 12345678 <key>
@@ -115,10 +95,4 @@ Finally try the daemon: make; sudo make install
 (Do the daemon reload command if such is requested.)
 sudo systemctl start wmbusmeters.service
 
-Eventually we have to add a regression test for MyMeter. The regression tests
-are really really important! This is done by adding a telegram in simulations/simulation_t1.txt
-and typically updating tests/test_t1_meters.sh and tests/test_listen_to_all.sh
-
-You can always email me one of your telegrams and I can help you add it to the regression tests.
-I typically anonymize the telegram by changing the id to something random and it is stored
-decrypted in the simulations file, so no key sharing is necessary.
+Update the regression tests in the end of meter_mymeter.cc

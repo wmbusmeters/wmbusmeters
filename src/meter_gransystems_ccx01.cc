@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2021 Fredrik Öhrström
+ Copyright (C) 2018-2021 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -82,7 +82,7 @@ shared_ptr<Meter> createCCx01(MeterInfo &mi)
 }
 
 MeterGransystemsCCx01::MeterGransystemsCCx01(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::CCx01)
+    MeterCommonImplementation(mi, "gransystems")
 {
     setMeterType(MeterType::ElectricityMeter);
 

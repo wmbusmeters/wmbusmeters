@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2020 Fredrik Öhrström
+ Copyright (C) 2018-2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ shared_ptr<Meter> createOmnipower(MeterInfo &mi)
 }
 
 MeterOmnipower::MeterOmnipower(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::OMNIPOWER)
+    MeterCommonImplementation(mi, "omnipower")
 {
     setMeterType(MeterType::ElectricityMeter);
 

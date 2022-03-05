@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2020 Fredrik Öhrström
+ Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 
 #include"units.h"
 #include"util.h"
+#include<assert.h>
 
 using namespace std;
 
@@ -45,6 +46,8 @@ using namespace std;
     X(M3H, LH, {vto=vfrom*1000.0;}) \
     X(L,   M3, {vto=vfrom/1000.0;}) \
     X(LH,  M3H,{vto=vfrom/1000.0;}) \
+    X(C,   K,  {vto=vfrom+273.15;}) \
+    X(K,   C,  {vto=vfrom-273.15;}) \
     X(C,   F,  {vto=(vfrom*9.0/5.0)+32.0;}) \
     X(F,   C,  {vto=(vfrom-32)*5.0/9.0;}) \
 
@@ -67,7 +70,11 @@ double convert(double vfrom, Unit ufrom, Unit uto)
 LIST_OF_CONVERSIONS
 #undef X
 
-    error("Cannot convert between units!\n");
+    string from = unitToStringHR(ufrom);
+    string to = unitToStringHR(uto);
+
+    fprintf(stderr, "Cannot convert between units! %s %s\n", from.c_str(), to.c_str());
+    assert(0);
     return 0;
 }
 

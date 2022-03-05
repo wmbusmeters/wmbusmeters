@@ -9,7 +9,7 @@ mkdir -p $TEST
 
 TESTNAME="Test log timestamps"
 
-cat simulations/simulation_aes.msg | grep '^[CT]' | grep 76348799 | tr -d '#' > $TEST/test_input.txt
+cat simulations/serial_aes.msg | grep '^[CT]' | grep 76348799 | tr -d '#' > $TEST/test_input.txt
 cat $TEST/test_input.txt | $PROG --format=json --logtimestamps=always --verbose "stdin:rtlwmbus" \
       Vatten  multical21  76348799 28F64A24988064A079AA2C807D6102AE > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 

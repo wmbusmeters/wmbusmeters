@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2021 Fredrik Öhrström
+ Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -55,8 +55,10 @@ void log_start_information(Configuration *config);
 void oneshot_check(Configuration *config, Telegram *t, Meter *meter);
 void regular_checkup(Configuration *config);
 bool start(Configuration *config);
-void start_using_config_files(string root, bool is_daemon, string device_override, string listento_override);
-void start_daemon(string pid_file, string device_override, string listento_override); // Will use config files.
+void start_using_config_files(string root, bool is_daemon, ConfigOverrides overrides);
+
+void start_daemon(string pid_file, ConfigOverrides overrides);
+
 void setup_log_file(Configuration *config);
 void setup_meters(Configuration *config, MeterManager *manager);
 void write_pid(string pid_file, int pid);
@@ -90,9 +92,10 @@ int main(int argc, char **argv)
 
     if (config->license)
     {
-        const char * license = R"LICENSE(
-Copyright (C) 2017-2021 Fredrik Öhrström
-
+        const char * authors =
+#include"authors.h"
+        const char * license =
+            R"LICENSE(
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -111,7 +114,7 @@ But you can also request the source from the person/company that
 provided you with this binary. Read the full license for all details.
 
 )LICENSE";
-        puts(license);
+        printf("%s%s", authors, license);
         exit(0);
     }
 
@@ -150,13 +153,13 @@ provided you with this binary. Read the full license for all details.
 
     if (config->daemon)
     {
-        start_daemon(config->pid_file, config->device_override, config->listento_override);
+        start_daemon(config->pid_file, config->overrides);
         exit(0);
     }
 
     if (config->useconfig)
     {
-        start_using_config_files(config->config_root, false, config->device_override, config->listento_override);
+        start_using_config_files(config->config_root, false, config->overrides);
         exit(0);
     }
     else
@@ -187,15 +190,32 @@ void list_shell_envs(Configuration *config, string meter_driver)
     Telegram t;
     t.about.device = "?";
     MeterInfo mi;
+    shared_ptr<Meter> meter;
+    DriverInfo di;
+
     mi.driver = toMeterDriver(meter_driver);
-    shared_ptr<Meter> meter = createMeter(&mi);
+    if (mi.driver != MeterDriver::UNKNOWN)
+    {
+        meter = createMeter(&mi);
+    }
+    else
+    {
+        mi.driver_name = meter_driver;
+        if (!lookupDriverInfo(meter_driver, &di))
+        {
+            error("No such driver %s\n", meter_driver.c_str());
+        }
+        meter = di.construct(mi);
+    }
+
     meter->printMeter(&t,
                       &ignore1,
                       &ignore2, config->separator,
                       &ignore3,
                       &envs,
                       &config->extra_constant_fields,
-                      &config->selected_fields);
+                      &config->selected_fields,
+                      false);
 
     for (auto &e : envs)
     {
@@ -208,13 +228,28 @@ void list_shell_envs(Configuration *config, string meter_driver)
 void list_fields(Configuration *config, string meter_driver)
 {
     MeterInfo mi;
+    shared_ptr<Meter> meter;
+    DriverInfo di;
+
     mi.driver = toMeterDriver(meter_driver);
-    shared_ptr<Meter> meter = createMeter(&mi);
+    if (mi.driver != MeterDriver::UNKNOWN)
+    {
+        meter = createMeter(&mi);
+    }
+    else
+    {
+        mi.driver_name = meter_driver;
+        if (!lookupDriverInfo(meter_driver, &di))
+        {
+            error("No such driver %s\n", meter_driver.c_str());
+        }
+        meter = di.construct(mi);
+    }
 
     int width = 13; // Width of timestamp_utc
     for (auto &p : meter->prints())
     {
-        if ((int)p.field_name.size() > width) width = p.field_name.size();
+        if ((int)p.fieldName().size() > width) width = p.fieldName().size();
     }
 
     string id = padLeft("id", width);
@@ -239,9 +274,9 @@ void list_fields(Configuration *config, string meter_driver)
     printf("%s  The rssi for the received telegram as reported by the device.\n", rssi.c_str());
     for (auto &p : meter->prints())
     {
-        if (p.vname == "") continue;
-        string fn = padLeft(p.field_name, width);
-        printf("%s  %s\n", fn.c_str(), p.help.c_str());
+        if (p.vname() == "") continue;
+        string fn = padLeft(p.fieldName(), width);
+        printf("%s  %s\n", fn.c_str(), p.help().c_str());
     }
 }
 
@@ -254,6 +289,17 @@ void list_meters(Configuration *config)
             printf("%-14s %s\n", #mname, #info);
 LIST_OF_METERS
 #undef X
+
+    for (DriverInfo &di : allRegisteredDrivers())
+    {
+        string mname = di.name().str();
+        const char *info = toString(di.type());
+
+        if (config->list_meters_search == "" ||                      \
+            stringFoundCaseIgnored(info, config->list_meters_search) || \
+            stringFoundCaseIgnored(mname.c_str(), config->list_meters_search)) \
+            printf("%-14s %s\n", mname.c_str(), info);
+    }
 }
 
 struct TmpUnit
@@ -369,9 +415,9 @@ void setup_log_file(Configuration *config)
         bool ok = enableLogfile(config->logfile, config->daemon);
         if (!ok) {
             if (config->daemon) {
-                warning("Could not open log file, will use syslog instead.\n");
+                warning("Could not open log file %s will use syslog instead.\n", config->logfile.c_str());
             } else {
-                error("Could not open log file.\n");
+                error("Could not open log file %s\n", config->logfile.c_str());
             }
         }
     }
@@ -387,7 +433,7 @@ void setup_meters(Configuration *config, MeterManager *manager)
     {
         m.conversions = config->conversions;
 
-        if (needsPolling(m.driver))
+        if (needsPolling(m.driver, m.driver_name))
         {
             // A polling meter must be defined from the start.
             auto meter = createMeter(&m);
@@ -419,8 +465,9 @@ bool start(Configuration *config)
     // Configure settings.
     silentLogging(config->silent);
     verboseEnabled(config->verbose);
-    logTelegramsEnabled(config->logtelegrams);
     debugEnabled(config->debug);
+    traceEnabled(config->trace);
+    logTelegramsEnabled(config->logtelegrams);
 
     if (config->addtimestamps == AddLogTimestamps::NotSet)
     {
@@ -429,7 +476,7 @@ bool start(Configuration *config)
     }
     setLogTimestamps(config->addtimestamps);
     internalTestingEnabled(config->internaltesting);
-    traceEnabled(config->trace);
+
     stderrEnabled(config->use_stderr_for_log);
     setAlarmShells(config->alarm_shells);
     setIgnoreDuplicateTelegrams(config->ignore_duplicate_telegrams);
@@ -442,6 +489,14 @@ bool start(Configuration *config)
     // to achive a nice shutdown.
     onExit(call(serial_manager_.get(),stop));
 
+    /*
+    Detected d;
+    d.specified_device.file = "/dev/ttyUSB0";
+    d.found_file = "/dev/ttyUSB0";
+    d.specified_device.type = WMBusDeviceType::DEVICE_IU880B;
+
+    detectIU880B(&d, serial_manager_);
+*/
     // Create the printer object that knows how to translate
     // telegrams into json, fields that are written into log files
     // or sent to shell invocations.
@@ -451,7 +506,11 @@ bool start(Configuration *config)
     // and creates meters on demand when the telegram arrives
     // or on startup for 2-way communication meters like mbus or T2.
     meter_manager_ = createMeterManager(config->daemon);
-    meter_manager_->analyzeEnabled(config->analyze, config->analyze_format);
+    meter_manager_->analyzeEnabled(config->analyze,
+                                   config->analyze_format,
+                                   config->analyze_driver,
+                                   config->analyze_key,
+                                   config->analyze_verbose);
 
     // The bus manager detects new/lost wmbus devices and
     // configures the devices according to the specification.
@@ -562,7 +621,7 @@ bool start(Configuration *config)
     return gotHupped();
 }
 
-void start_daemon(string pid_file, string device_override, string listento_override)
+void start_daemon(string pid_file, ConfigOverrides overrides)
 {
     setlogmask(LOG_UPTO (LOG_INFO));
     openlog("wmbusmetersd", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
@@ -612,15 +671,15 @@ void start_daemon(string pid_file, string device_override, string listento_overr
     if (open("/dev/null", O_RDWR) == -1) {
         error("Failed to reopen stderr while daemonising (errno=%d)",errno);
     }
-    start_using_config_files("", true, device_override, listento_override);
+    start_using_config_files("", true, overrides);
 }
 
-void start_using_config_files(string root, bool is_daemon, string device_override, string listento_override)
+void start_using_config_files(string root, bool is_daemon, ConfigOverrides overrides)
 {
     bool restart = false;
     do
     {
-        shared_ptr<Configuration> config = loadConfiguration(root, device_override, listento_override);
+        shared_ptr<Configuration> config = loadConfiguration(root, overrides);
         config->daemon = is_daemon;
         restart = start(config.get());
         if (restart)

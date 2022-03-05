@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström
+ Copyright (C) 2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ private:
 };
 
 MeterSontex868::MeterSontex868(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::SONTEX868)
+    MeterCommonImplementation(mi, "sontex868")
 {
     setMeterType(MeterType::HeatCostAllocationMeter);
 
@@ -282,7 +282,7 @@ void MeterSontex868::processContent(Telegram *t)
     key = "0DFF5F";
     if (hasKey(&t->values, key)) {
         string hex;
-        extractDVstring(&t->values, key, &offset, &hex);
+        extractDVHexString(&t->values, key, &offset, &hex);
         t->addMoreExplanation(offset, " vendor extension data");
         // This is not stored anywhere yet, we need to understand it, if necessary.
     }

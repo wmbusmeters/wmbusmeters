@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2021 Fredrik Öhrström
+ Copyright (C) 2018-2021 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ private:
 };
 
 MeterHydrocalM3::MeterHydrocalM3(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::HYDROCALM3)
+    MeterCommonImplementation(mi, "hydrocalm3")
 {
     setMeterType(MeterType::HeatMeter);
 

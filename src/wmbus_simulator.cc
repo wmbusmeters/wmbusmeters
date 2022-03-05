@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2020 Fredrik Öhrström
+ Copyright (C) 2019-2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -174,15 +174,42 @@ void WMBusSimulator::simulate()
         {
             error("Not a valid string of hex bytes! \"%s\"\n", l.c_str());
         }
-        AboutTelegram about("", 0, FrameType::WMBUS);
-        // Since this is a simulation, try to remove any frame format A or B
-        // data link layer crcs. These might remain if we have received the telegram
-        // to be simulated, from a CUL device or some other devices that does not remove the crcs.
-        // Normally the dongle (im871a/amb8465/rc1180/rtlwmbus/rtl443) removes the dll-crcs.
-        // Removing dll-crcs are also done explicitly in the wmbus_cul.cc driver.
-        removeAnyDLLCRCs(payload);
 
-        handleTelegram(about, payload);
+        size_t frame_length;
+        int payload_len, payload_offset;
+        bool is_mbus = FullFrame == checkMBusFrame(payload, &frame_length, &payload_len, &payload_offset, true);
+        bool is_wmbus = FullFrame == checkWMBusFrame(payload, &frame_length, &payload_len, &payload_offset, true);
+
+        debug("(simulator) is_mbus=%s is_wmbus=%s\n",
+              is_mbus?"true":"false",
+              is_wmbus?"true":"false");
+
+        if (is_mbus && is_wmbus)
+        {
+            warning("(mbus) telegram matches both mbus and wmbus! Assuming it is wmbus only.\n");
+            is_mbus = false;
+        }
+
+        if (is_mbus)
+        {
+            debug("(simulator) is mbus telegram.\n");
+            AboutTelegram about("", 0, FrameType::MBUS);
+            handleTelegram(about, payload);
+        }
+
+        if (is_wmbus)
+        {
+            debug("(simulator) is wmbus telegram.\n");
+            AboutTelegram about("", 0, FrameType::WMBUS);
+            // Since this is a simulation, try to remove any frame format A or B
+            // data link layer crcs. These might remain if we have received the telegram
+            // to be simulated, from a CUL device or some other devices that does not remove the crcs.
+            // Normally the dongle (im871a/amb8465/rc1180/rtlwmbus/rtl443) removes the dll-crcs.
+            // Removing dll-crcs are also done explicitly in the wmbus_cul.cc driver.
+            removeAnyDLLCRCs(payload);
+
+            handleTelegram(about, payload);
+        }
     }
     manager_->stop();
 }

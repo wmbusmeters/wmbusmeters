@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2020 Fredrik Öhrström
+# Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -78,8 +78,8 @@ endif
 $(shell echo "#define VERSION \"$(VERSION)\"" > $(BUILD)/version.h.tmp)
 $(shell echo "#define COMMIT \"$(COMMIT_HASH)\"" >> $(BUILD)/version.h.tmp)
 
-PREV_VERSION=$(shell cat -n $(BUILD)/version.h 2> /dev/null)
-CURR_VERSION=$(shell cat -n $(BUILD)/version.h.tmp 2>/dev/null)
+PREV_VERSION:=$(shell cat -n $(BUILD)/version.h 2> /dev/null)
+CURR_VERSION:=$(shell cat -n $(BUILD)/version.h.tmp 2>/dev/null)
 ifneq ($(PREV_VERSION),$(CURR_VERSION))
 $(shell mv $(BUILD)/version.h.tmp $(BUILD)/version.h)
 else
@@ -105,7 +105,7 @@ $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
-METER_OBJS:=\
+PROG_OBJS:=\
 	$(BUILD)/aes.o \
 	$(BUILD)/aescmac.o \
 	$(BUILD)/bus.o \
@@ -121,12 +121,10 @@ METER_OBJS:=\
 	$(BUILD)/shell.o \
 	$(BUILD)/sha256.o \
 	$(BUILD)/threads.o \
+	$(BUILD)/translatebits.o \
 	$(BUILD)/util.o \
 	$(BUILD)/units.o \
 	$(BUILD)/wmbus.o \
-	$(BUILD)/meter_auto.o \
-	$(BUILD)/meter_unknown.o \
-	$(BUILD)/meter_amiplus.o \
 	$(BUILD)/wmbus_amb8465.o \
 	$(BUILD)/wmbus_im871a.o \
 	$(BUILD)/wmbus_cul.o \
@@ -136,73 +134,18 @@ METER_OBJS:=\
 	$(BUILD)/wmbus_rawtty.o \
 	$(BUILD)/wmbus_rc1180.o \
 	$(BUILD)/wmbus_utils.o \
-	$(BUILD)/meter_apator08.o \
-	$(BUILD)/meter_apator162.o \
-	$(BUILD)/meter_aventieswm.o \
-	$(BUILD)/meter_aventieshca.o \
-	$(BUILD)/meter_bfw240radio.o \
-	$(BUILD)/meter_cma12w.o \
-	$(BUILD)/meter_compact5.o \
-	$(BUILD)/meter_dme_07.o \
-	$(BUILD)/meter_ebzwmbe.o \
-	$(BUILD)/meter_ehzp.o \
-	$(BUILD)/meter_esyswm.o \
-	$(BUILD)/meter_elf.o \
-	$(BUILD)/meter_em24.o \
-	$(BUILD)/meter_emerlin868.o \
-	$(BUILD)/meter_ev200.o \
-	$(BUILD)/meter_evo868.o \
-	$(BUILD)/meter_eurisii.o \
-	$(BUILD)/meter_fhkvdataiii.o \
-	$(BUILD)/meter_fhkvdataiv.o \
-	$(BUILD)/meter_flowiq2200.o \
-	$(BUILD)/meter_hydrus.o \
-	$(BUILD)/meter_hydrocalm3.o \
-	$(BUILD)/meter_hydrodigit.o \
-	$(BUILD)/meter_ei6500.o \
-	$(BUILD)/meter_iperl.o \
-	$(BUILD)/meter_izar.o \
-	$(BUILD)/meter_izar3.o \
-	$(BUILD)/meter_lansendw.o \
-	$(BUILD)/meter_lansensm.o \
-	$(BUILD)/meter_lansenth.o \
-	$(BUILD)/meter_lansenpu.o \
-	$(BUILD)/meter_lse_07_17.o \
-	$(BUILD)/meter_minomess.o \
-	$(BUILD)/meter_mkradio3.o \
-	$(BUILD)/meter_mkradio4.o \
-	$(BUILD)/meter_multical21.o \
-	$(BUILD)/meter_multical302.o \
-	$(BUILD)/meter_multical403.o \
-	$(BUILD)/meter_multical602.o \
-	$(BUILD)/meter_multical603.o \
-	$(BUILD)/meter_multical803.o \
-	$(BUILD)/meter_omnipower.o \
-	$(BUILD)/meter_piigth.o \
-	$(BUILD)/meter_q400.o \
-	$(BUILD)/meter_qcaloric.o \
-	$(BUILD)/meter_qheat.o \
-	$(BUILD)/meter_qsmoke.o \
-	$(BUILD)/meter_qwater.o \
-	$(BUILD)/meter_rfmamb.o \
-	$(BUILD)/meter_rfmtx1.o \
-	$(BUILD)/meter_sharky.o \
-	$(BUILD)/meter_supercom587.o \
-	$(BUILD)/meter_sontex868.o \
-	$(BUILD)/meter_topaseskr.o \
-	$(BUILD)/meter_tsd2.o \
-	$(BUILD)/meter_ultrimis.o \
-	$(BUILD)/meter_vario451.o \
-	$(BUILD)/meter_waterstarm.o \
-	$(BUILD)/meter_whe46x.o \
-	$(BUILD)/meter_whe5x.o \
-	$(BUILD)/meter_sensostar.o \
-	$(BUILD)/meter_gransystems_ccx01.o \
-	$(BUILD)/meter_lse_08.o \
-	$(BUILD)/meter_weh_07.o \
-	$(BUILD)/meter_unismart.o \
-        $(BUILD)/meter_munia.o \
+	$(BUILD)/lora_iu880b.o \
 
+# If you run: "make DRIVER=minomess" then only driver_minomess.cc will be compiled into wmbusmeters.
+# The old style drivers meter_xyz.cc must always be compiled in, but eventually they will be gone.
+
+ifeq ($(DRIVER),)
+	DRIVER_OBJS:=$(wildcard src/meter_*.cc) $(wildcard src/driver_*.cc)
+else
+    $(info Building a single driver $(DRIVER))
+	DRIVER_OBJS:=src/driver_auto.cc src/driver_unknown.cc $(wildcard src/meter_*.cc) src/driver_$(DRIVER).cc
+endif
+DRIVER_OBJS:=$(patsubst src/%.cc,$(BUILD)/%.o,$(DRIVER_OBJS))
 
 all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd $(BUILD)/wmbusmeters.g $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals
 
@@ -239,11 +182,14 @@ wmbusmeters_$(DEBVERSION)_$(DEBARCH).deb:
 snapcraft:
 	snapcraft
 
-$(BUILD)/main.o: $(BUILD)/short_manual.h $(BUILD)/version.h
+$(BUILD)/main.o: $(BUILD)/short_manual.h $(BUILD)/version.h $(BUILD)/authors.h
+
+$(BUILD)/authors.h:
+	./scripts/generate_authors.sh $(BUILD)/authors.h
 
 # Build binary with debug information. ~15M size binary.
-$(BUILD)/wmbusmeters.g: $(METER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters.g $(METER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lrtlsdr $(USBLIB) -lpthread
+$(BUILD)/wmbusmeters.g: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
+	$(CXX) -o $(BUILD)/wmbusmeters.g $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lrtlsdr $(USBLIB) -lpthread
 
 # Production build will have debug information stripped. ~1.5M size binary.
 # DEBUG=true builds, which has address sanitizer code, will always keep the debug information.
@@ -258,8 +204,8 @@ ifeq ($(shell uname -s),Darwin)
 $(BUILD)/wmbusmeters-admin:
 	touch $(BUILD)/wmbusmeters-admin
 else
-$(BUILD)/wmbusmeters-admin: $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters-admin.g $(METER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -lrtlsdr $(USBLIB) -lpthread
+$(BUILD)/wmbusmeters-admin: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(BUILD)/short_manual.h
+	$(CXX) -o $(BUILD)/wmbusmeters-admin.g $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -lrtlsdr $(USBLIB) -lpthread
 endif
 
 $(BUILD)/short_manual.h: README.md
@@ -269,11 +215,11 @@ $(BUILD)/short_manual.h: README.md
 	| grep -v '```' >> $(BUILD)/short_manual.h
 	echo ')MANUAL";' >> $(BUILD)/short_manual.h
 
-$(BUILD)/testinternals: $(METER_OBJS) $(BUILD)/testinternals.o
-	$(CXX) -o $(BUILD)/testinternals $(METER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS) -lrtlsdr $(USBLIB) -lpthread
+$(BUILD)/testinternals: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o
+	$(CXX) -o $(BUILD)/testinternals $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS) -lrtlsdr $(USBLIB) -lpthread
 
-$(BUILD)/fuzz: $(METER_OBJS) $(BUILD)/fuzz.o
-	$(CXX) -o $(BUILD)/fuzz $(METER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lrtlsdr -lpthread
+$(BUILD)/fuzz: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o
+	$(CXX) -o $(BUILD)/fuzz $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lrtlsdr -lpthread
 
 clean:
 	rm -rf build/* build_arm/* build_debug/* build_arm_debug/* *~
@@ -286,7 +232,7 @@ clean_cc:
 # inside the build_debug where non-executed source lines are marked #####
 gcov:
 	@if [ "$(DEBUG)" = "" ]; then echo "You have to run \"make gcov DEBUG=true\""; exit 1; fi
-	$(GCOV) -o build_debug $(METER_OBJS)
+	$(GCOV) -o build_debug $(PROG_OBJS) $(DRIVER_OBJS)
 	mv *.gcov build_debug
 
 lcov:
@@ -350,7 +296,8 @@ update_manufacturers:
 	> trimmed.flags
 	cat trimmed.flags | tr -s ' ' | sed 's/^ //g' | sed 's/ $$//g' > done.flags
 	paste -d '|,' list.flags done.flags countries.flags | sed 's/,/, /g' | sed 's/ |/|/g' > manufacturers.txt
-	echo '#ifndef MANUFACTURERS_H' > m.h
+	echo "// Copyright (C) $(date +%Y) Fredrik Öhrström (CC0)" > m.h
+	echo '#ifndef MANUFACTURERS_H' >> m.h
 	echo '#define MANUFACTURERS_H' >> m.h
 	echo '#define MANFCODE(a,b,c) ((a-64)*1024+(b-64)*32+(c-64))' >> m.h
 	echo "#define LIST_OF_MANUFACTURERS \\" >> m.h
@@ -394,5 +341,27 @@ extract_fuzz_telegram_seeds:
 relay: utils/relay.c
 	gcc -g utils/relay.c -o relay -O0 -ggdb -fsanitize=address -fno-omit-frame-pointer -fprofile-arcs -ftest-coverage
 
+# Bump major number
+release_major:
+	@./scripts/release.sh major
+
+# Bump minor number
+release_minor:
+	@./scripts/release.sh minor
+
+# Bump patch number
+release_patch:
+	@./scripts/release.sh patch
+
+# Bump release candidate number, ie a bug in the previous RC was found!
+release_rc:
+	@./scripts/release.sh rc
+
+deploy:
+	@./scripts/deploy.sh
+
+list_copyrights:
+	./scripts/check_copyrights.sh
+
 # Include dependency information generated by gcc in a previous compile.
-include $(wildcard $(patsubst %.o,%.d,$(METER_OBJS)))
+include $(wildcard $(patsubst %.o,%.d,$(PROG_OBJS) $(DRIVER_OBJS)))

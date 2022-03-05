@@ -1,6 +1,6 @@
 /*
- Copyright (C) 2019 Jacek Tomasiak
- Copyright (C) 2021 Vincent Privat
+ Copyright (C) 2019 Jacek Tomasiak (gpl-3.0-or-later)
+ Copyright (C) 2021 Vincent Privat (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -247,9 +247,11 @@ void addDefaultManufacturerKeyIfAny(const vector<uchar> &frame, TPLSecurityMode 
         && tpl_sec_mode == TPLSecurityMode::AES_CBC_IV
         && detectDiehlFrameInterpretation(frame) == DiehlFrameInterpretation::OMS)
     {
-        vector<uchar> half; hex2bin(PRIOS_DEFAULT_KEY2, &half);
+        vector<uchar> half;
+        hex2bin(PRIOS_DEFAULT_KEY2, &half);
         meter_keys->confidentiality_key = vector<uchar>(half.begin(), half.end());
         meter_keys->confidentiality_key.insert(meter_keys->confidentiality_key.end(), half.begin(), half.end());
+        debug("(mfct) added default key\n");
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2021 Fredrik Öhrström
+ Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,11 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// This is the old style meter detection. Drivers are succesively rewritten
+// from meter_xyz.cc to driver_xyz.cc only old style drivers are listed here.
+// The new driver_xyz.cc file format is selfcontained so eventually this
+// file be empty and go away.
+//
 // This file is only included into meters.cc
 //
 // List of numbers that can be used to detect the meter driver from a telegram.
@@ -22,12 +27,6 @@
 //    meter driver,       manufacturer,  media,  version
 //
 #define METER_DETECTION \
-    X(AMIPLUS,   MANUFACTURER_APA,  0x02,  0x02) \
-    X(AMIPLUS,   MANUFACTURER_DEV,  0x37,  0x02) \
-    X(AMIPLUS,   MANUFACTURER_DEV,  0x02,  0x00) \
-    X(AVENTIESWM,MANUFACTURER_AAA,  0x07,  0x25) \
-    X(AVENTIESHCA,MANUFACTURER_AAA, 0x08,  0x55) \
-    X(APATOR08,  0x8614/*APT?*/,    0x03,  0x03) \
     X(APATOR162, MANUFACTURER_APA,  0x06,  0x05) \
     X(APATOR162, MANUFACTURER_APA,  0x07,  0x05) \
     X(BFW240RADIO, MANUFACTURER_BFW,0x08,  0x02) \
@@ -61,9 +60,6 @@
     X(HYDRODIGIT,MANUFACTURER_BMT,  0x06,  0x13) \
     X(HYDRODIGIT,MANUFACTURER_BMT,  0x07,  0x13) \
     X(EI6500,    MANUFACTURER_EIE,  0x1a,  0x0c) \
-    X(IPERL,     MANUFACTURER_SEN,  0x06,  0x68) \
-    X(IPERL,     MANUFACTURER_SEN,  0x07,  0x68) \
-    X(IPERL,     MANUFACTURER_SEN,  0x07,  0x7c) \
     X(IZAR,      MANUFACTURER_HYD,  0x07,  0x85) \
     X(IZAR,      MANUFACTURER_SAP,  0x15,    -1) \
     X(IZAR,      MANUFACTURER_SAP,  0x04,    -1) \
@@ -73,17 +69,10 @@
     X(IZAR3,     MANUFACTURER_SAP,  0x00,  0x88) \
     X(LANSENSM,  MANUFACTURER_LAS,  0x1a,  0x03) \
     X(LANSENTH,  MANUFACTURER_LAS,  0x1b,  0x07) \
-    X(LANSENDW,  MANUFACTURER_LAS,  0x1d,  0x07) \
     X(LANSENPU,  MANUFACTURER_LAS,  0x00,  0x14) \
     X(LANSENPU,  MANUFACTURER_LAS,  0x00,  0x0b) \
-    X(LSE_07_17,  MANUFACTURER_LSE, 0x06,  0x18) \
-    X(LSE_07_17,  MANUFACTURER_LSE, 0x07,  0x18) \
-    X(LSE_07_17,  MANUFACTURER_LSE, 0x07,  0x16) \
-    X(LSE_07_17,  MANUFACTURER_LSE, 0x07,  0x17) \
     X(QCALORIC,  MANUFACTURER_LSE, 0x08,  0x35) \
-    X(LSE_07_17,  MANUFACTURER_QDS, 0x37,  0x33) \
     X(LSE_08,     MANUFACTURER_LSE, 0x08,  0x01) \
-    X(MINOMESS,  MANUFACTURER_ZRI, 0x07,  0x00) \
     X(MKRADIO3,  MANUFACTURER_TCH, 0x62,  0x74) \
     X(MKRADIO3,  MANUFACTURER_TCH, 0x72,  0x74) \
     X(MKRADIO4,  MANUFACTURER_TCH, 0x62,  0x95) \
@@ -96,6 +85,7 @@
     X(FLOWIQ3100,MANUFACTURER_KAM,  0x16,  0x1d) \
     X(MULTICAL302,MANUFACTURER_KAM, 0x04,  0x30) \
     X(MULTICAL302,MANUFACTURER_KAM, 0x0d,  0x30) \
+    X(MULTICAL302,MANUFACTURER_KAM, 0x0c,  0x30) \
     X(MULTICAL403,MANUFACTURER_KAM, 0x0a,  0x34) \
     X(MULTICAL403,MANUFACTURER_KAM, 0x0b,  0x34) \
     X(MULTICAL403,MANUFACTURER_KAM, 0x0c,  0x34) \
@@ -117,9 +107,6 @@
     X(QSMOKE,     MANUFACTURER_QDS, 0x1a,  0x23) \
     X(QWATER,     MANUFACTURER_QDS, 0x06,  0x18) \
     X(QWATER,     MANUFACTURER_QDS, 0x07,  0x18) \
-    X(SHARKY,     MANUFACTURER_HYD, 0x04,  0x20) \
-    X(SUPERCOM587,MANUFACTURER_SON, 0x06,  0x3c) \
-    X(SUPERCOM587,MANUFACTURER_SON, 0x07,  0x3c) \
     X(SONTEX868,  MANUFACTURER_SON, 0x08,  0x16) \
     X(TOPASESKR,  MANUFACTURER_AMT, 0x06,  0xf1) \
     X(TOPASESKR,  MANUFACTURER_AMT, 0x07,  0xf1) \

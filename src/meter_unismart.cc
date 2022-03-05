@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2021 Fredrik Öhrström
+ Copyright (C) 2021 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ shared_ptr<Meter> createUnismart(MeterInfo &mi)
 }
 
 MeterUnismart::MeterUnismart(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::UNISMART)
+    MeterCommonImplementation(mi, "unismart")
 {
     setMeterType(MeterType::GasMeter);
 
@@ -217,7 +217,7 @@ void MeterUnismart::processContent(Telegram *t)
     }
 
     string tmp;
-    if (extractDVstring(&t->values, "0DFD0C", &offset, &tmp))
+    if (extractDVHexString(&t->values, "0DFD0C", &offset, &tmp))
     {
         vector<uchar> bin;
         hex2bin(tmp, &bin);
@@ -233,17 +233,17 @@ void MeterUnismart::processContent(Telegram *t)
         t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
     }
 
-    if (extractDVstring(&t->values, "01FD67", &offset, &supplier_info_))
+    if (extractDVHexString(&t->values, "01FD67", &offset, &supplier_info_))
     {
         t->addMoreExplanation(offset, " suppler info (%s)", supplier_info_.c_str());
     }
 
-    if (extractDVstring(&t->values, "02FD74", &offset, &status_))
+    if (extractDVHexString(&t->values, "02FD74", &offset, &status_))
     {
         t->addMoreExplanation(offset, " status (%s)", status_.c_str());
     }
 
-    if (extractDVstring(&t->values, "01FD0B", &offset, &parameter_set_))
+    if (extractDVHexString(&t->values, "01FD0B", &offset, &parameter_set_))
     {
         t->addMoreExplanation(offset, " parameter set (%s)", parameter_set_.c_str());
     }

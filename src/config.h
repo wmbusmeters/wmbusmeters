@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2021 Fredrik Öhrström
+ Copyright (C) 2019-2021 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -42,6 +42,17 @@ enum class MeterFileTimestamp
     Never, Day, Hour, Minute, Micros
 };
 
+// These values can be overridden from the command line.
+struct ConfigOverrides
+{
+    std::string loglevel_override;
+    std::string device_override;
+    std::string listento_override;
+    std::string exitafter_override;
+    std::string oneshot_override;
+    std::string logfile_override;
+};
+
 struct Configuration
 {
     string bin_dir {}; // The wmbusmeters binary executed is located here.
@@ -49,8 +60,7 @@ struct Configuration
                        // inside the same directory.
     bool daemon {};
     std::string pid_file;
-    std::string device_override;
-    std::string listento_override;
+    ConfigOverrides overrides;
     bool useconfig {};
     std::string config_root;
     bool need_help {};
@@ -60,6 +70,9 @@ struct Configuration
     bool license {};
     bool analyze {};
     OutputFormat analyze_format {};
+    string analyze_driver {};
+    string analyze_key {};
+    bool analyze_verbose {};
     bool debug {};
     bool trace {};
     AddLogTimestamps addtimestamps {};
@@ -117,11 +130,11 @@ struct Configuration
     std::vector<std::string> extra_constant_fields; // Additional constant fields to always add to json.
     // These extra constant fields can also be part of selected with selectfields.
     std::vector<SendBusContent> send_bus_content; // Telegrams used to wake up a meter for reading or mbus read-out requests.
-
+    std::set<WMBusDeviceType> probe_for; // Which devices should be probed for? DEVICE_AUTO means all.
     ~Configuration() = default;
 };
 
-shared_ptr<Configuration> loadConfiguration(string root, string device_override, string listento_override);
+shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrides);
 
 void parseMeterConfig(Configuration *c, vector<char> &buf, string file);
 void handleConversions(Configuration *c, string s);

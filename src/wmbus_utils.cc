@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2020 Fredrik Öhrström
+ Copyright (C) 2018-2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@ bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
     vector<uchar> encrypted_bytes;
     vector<uchar> decrypted_bytes;
     encrypted_bytes.insert(encrypted_bytes.end(), pos, frame.end());
-    frame.erase(pos, frame.end());
     debugPayload("(ELL) decrypting", encrypted_bytes);
 
     uchar iv[16];
@@ -82,7 +81,12 @@ bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
         incrementIV(iv, sizeof(iv));
     }
     debugPayload("(ELL) decrypted", decrypted_bytes);
+
+    // Remove the encrypted bytes.
+    frame.erase(pos, frame.end());
+    // Insert the decrypted bytes.
     frame.insert(frame.end(), decrypted_bytes.begin(), decrypted_bytes.end());
+
     return true;
 }
 
@@ -92,42 +96,50 @@ string frameTypeKamstrupC1(int ft) {
     return "?";
 }
 
-bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey)
+bool decrypt_TPL_AES_CBC_IV(Telegram *t,
+                            vector<uchar> &frame,
+                            vector<uchar>::iterator &pos,
+                            vector<uchar> &aeskey,
+                            int *num_encrypted_bytes,
+                            int *num_not_encrypted_at_end)
 {
-    if (aeskey.size() == 0) return true;
-
     vector<uchar> buffer;
     buffer.insert(buffer.end(), pos, frame.end());
-    frame.erase(pos, frame.end());
-    debugPayload("(TPL) AES CBC IV decrypting", buffer);
 
-    size_t len = buffer.size();
+    size_t num_bytes_to_decrypt = frame.end()-pos;
 
     if (t->tpl_num_encr_blocks)
     {
-        len = t->tpl_num_encr_blocks*16;
+        num_bytes_to_decrypt = t->tpl_num_encr_blocks*16;
     }
 
-    debug("(TPL) num encrypted blocks %zu (%d bytes and remaining unencrypted %zu bytes)\n",
-          t->tpl_num_encr_blocks, len, buffer.size()-len);
+    *num_encrypted_bytes = num_bytes_to_decrypt;
+    *num_not_encrypted_at_end = buffer.size()-num_bytes_to_decrypt;
 
-    if (buffer.size() < len)
+    debug("(TPL) num encrypted blocks %zu (%d bytes and remaining unencrypted %zu bytes)\n",
+          t->tpl_num_encr_blocks, num_bytes_to_decrypt, buffer.size()-num_bytes_to_decrypt);
+
+    if (aeskey.size() == 0) return false;
+
+    debugPayload("(TPL) AES CBC IV decrypting", buffer);
+
+    if (buffer.size() < num_bytes_to_decrypt)
     {
         warning("(TPL) warning: decryption received less bytes than expected for decryption! "
                 "Got %zu bytes but expected at least %zu bytes since num encr blocks was %d.\n",
-                buffer.size(), len,
+                buffer.size(), num_bytes_to_decrypt,
                 t->tpl_num_encr_blocks);
-        len = buffer.size();
+        num_bytes_to_decrypt = buffer.size();
     }
 
     // The content should be a multiple of 16 since we are using AES CBC mode.
-    if (len % 16 != 0)
+    if (num_bytes_to_decrypt % 16 != 0)
     {
         warning("(TPL) warning: decryption received non-multiple of 16 bytes! "
                 "Got %zu bytes shrinking message to %zu bytes.\n",
-                len, len - len % 16);
-        len -= len % 16;
-        assert (len % 16 == 0);
+                num_bytes_to_decrypt, num_bytes_to_decrypt - num_bytes_to_decrypt % 16);
+        num_bytes_to_decrypt -= num_bytes_to_decrypt % 16;
+        assert (num_bytes_to_decrypt % 16 == 0);
     }
 
     uchar iv[16];
@@ -157,58 +169,67 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::it
     string s = bin2hex(ivv);
     debug("(TPL) IV %s\n", s.c_str());
 
-    uchar buffer_data[buffer.size()];
-    memcpy(buffer_data, &buffer[0], buffer.size());
-    uchar decrypted_data[buffer.size()];
-    AES_CBC_decrypt_buffer(decrypted_data, buffer_data, len, &aeskey[0], iv);
+    uchar buffer_data[num_bytes_to_decrypt];
+    memcpy(buffer_data, &buffer[0], num_bytes_to_decrypt);
+    uchar decrypted_data[num_bytes_to_decrypt];
 
-    frame.insert(frame.end(), decrypted_data, decrypted_data+len);
+    AES_CBC_decrypt_buffer(decrypted_data, buffer_data, num_bytes_to_decrypt, &aeskey[0], iv);
+
+    // Remove the encrypted bytes.
+    frame.erase(pos, frame.end());
+
+    // Insert the decrypted bytes.
+    frame.insert(frame.end(), decrypted_data, decrypted_data+num_bytes_to_decrypt);
+
     debugPayload("(TPL) decrypted ", frame, pos);
 
-    if (len < buffer.size())
+    if (num_bytes_to_decrypt < buffer.size())
     {
-        frame.insert(frame.end(), buffer_data+len, buffer_data+buffer.size());
+        frame.insert(frame.end(), buffer.begin()+num_bytes_to_decrypt, buffer.end());
         debugPayload("(TPL) appended  ", frame, pos);
     }
     return true;
 }
 
-bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey)
+bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey,
+                               int *num_encrypted_bytes,
+                               int *num_not_encrypted_at_end)
 {
     if (aeskey.size() == 0) return true;
 
     vector<uchar> buffer;
     buffer.insert(buffer.end(), pos, frame.end());
-    frame.erase(pos, frame.end());
-    debugPayload("(TPL) AES CBC NO IV decrypting", buffer);
 
-    size_t len = buffer.size();
+    size_t num_bytes_to_decrypt = buffer.size();
 
     if (t->tpl_num_encr_blocks)
     {
-        len = t->tpl_num_encr_blocks*16;
+        num_bytes_to_decrypt = t->tpl_num_encr_blocks*16;
     }
 
-    debug("(TPL) num encrypted blocks %d (%d bytes and remaining unencrypted %d bytes)\n",
-          t->tpl_num_encr_blocks, len, buffer.size()-len);
+    *num_encrypted_bytes = num_bytes_to_decrypt;
+    *num_not_encrypted_at_end = buffer.size()-num_bytes_to_decrypt;
 
-    if (buffer.size() < len)
+    debug("(TPL) num encrypted blocks %d (%d bytes and remaining unencrypted %d bytes)\n",
+          t->tpl_num_encr_blocks, num_bytes_to_decrypt, buffer.size()-num_bytes_to_decrypt);
+
+    if (buffer.size() < num_bytes_to_decrypt)
     {
         warning("(TPL) warning: decryption received less bytes than expected for decryption! "
                 "Got %zu bytes but expected at least %zu bytes since num encr blocks was %d.\n",
-                buffer.size(), len,
+                buffer.size(), num_bytes_to_decrypt,
                 t->tpl_num_encr_blocks);
-        len = buffer.size();
+        num_bytes_to_decrypt = buffer.size();
     }
 
     // The content should be a multiple of 16 since we are using AES CBC mode.
-    if (len % 16 != 0)
+    if (num_bytes_to_decrypt % 16 != 0)
     {
         warning("(TPL) warning: decryption received non-multiple of 16 bytes! "
                 "Got %zu bytes shrinking message to %zu bytes.\n",
-                len, len - len % 16);
-        len -= len % 16;
-        assert (len % 16 == 0);
+                num_bytes_to_decrypt, num_bytes_to_decrypt - num_bytes_to_decrypt % 16);
+        num_bytes_to_decrypt -= num_bytes_to_decrypt % 16;
+        assert (num_bytes_to_decrypt % 16 == 0);
     }
 
     uchar iv[16];
@@ -218,18 +239,24 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>:
     string s = bin2hex(ivv);
     debug("(TPL) IV %s\n", s.c_str());
 
-    uchar buffer_data[buffer.size()];
-    memcpy(buffer_data, &buffer[0], buffer.size());
-    uchar decrypted_data[buffer.size()];
-    AES_CBC_decrypt_buffer(decrypted_data, buffer_data, buffer.size(), &aeskey[0], iv);
+    uchar buffer_data[num_bytes_to_decrypt];
+    memcpy(buffer_data, &buffer[0], num_bytes_to_decrypt);
+    uchar decrypted_data[num_bytes_to_decrypt];
 
-    frame.insert(frame.end(), decrypted_data, decrypted_data+buffer.size());
+    AES_CBC_decrypt_buffer(decrypted_data, buffer_data, num_bytes_to_decrypt, &aeskey[0], iv);
+
+    // Remove the encrypted bytes and any potentially not decryptes bytes after.
+    frame.erase(pos, frame.end());
+
+    // Insert the decrypted bytes.
+    frame.insert(frame.end(), decrypted_data, decrypted_data+num_bytes_to_decrypt);
+
     debugPayload("(TPL) decrypted ", frame, pos);
 
-    if (len < buffer.size())
+    if (num_bytes_to_decrypt < buffer.size())
     {
-        frame.insert(frame.end(), buffer_data+len, buffer_data+buffer.size());
-        debugPayload("(TPL) appended  ", frame, pos);
+        frame.insert(frame.end(), buffer.begin()+num_bytes_to_decrypt, buffer.end());
+        debugPayload("(TPL) appended ", frame, pos);
     }
 
     return true;

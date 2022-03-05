@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
+ Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -39,11 +39,19 @@ typedef unsigned char uchar;
 uchar bcd2bin(uchar c);
 uchar revbcd2bin(uchar c);
 uchar reverse(uchar c);
+// A BCD string 102030405060 is reversed to 605040302010
+std::string reverseBCD(std::string v);
+// A hex string encoding ascii chars is reversed and safely translated into a readble string.
+std::string reverseBinaryAsciiSafeToString(std::string v);
 
 bool isHexChar(uchar c);
 
-bool isHexString(const char* txt, bool *invalid);
-bool isHexString(const std::string &txt, bool *invalid);
+// Flex strings contain hexadecimal digits and permit # | and whitespace.
+bool isHexStringFlex(const char* txt, bool *invalid);
+bool isHexStringFlex(const std::string &txt, bool *invalid);
+// Strict strings contain only hexadecimal digits.
+bool isHexStringStrict(const char* txt, bool *invalid);
+bool isHexStringStrict(const std::string &txt, bool *invalid);
 bool hex2bin(const char* src, std::vector<uchar> *target);
 bool hex2bin(std::string &src, std::vector<uchar> *target);
 bool hex2bin(std::vector<uchar> &src, std::vector<uchar> *target);
@@ -162,6 +170,10 @@ uint16_t crc16_EN13757(uchar *data, size_t len);
 // This crc is used by im871a for its serial communication.
 uint16_t crc16_CCITT(uchar *data, uint16_t length);
 bool     crc16_CCITT_check(uchar *data, uint16_t length);
+
+void addSlipFraming(std::vector<uchar>& from, std::vector<uchar> &to);
+// Frame length is set to zero if no frame was found.
+void removeSlipFraming(std::vector<uchar>& from, size_t *frame_length, std::vector<uchar> &to);
 
 // Eat characters from the vector v, iterating using i, until the end char c is found.
 // If end char == -1, then do not expect any end char, get all until eof.

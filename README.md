@@ -61,6 +61,9 @@ You can trigger a reload of the config files with `sudo killall -HUP wmbusmeters
 (Note! make install only works for GNU/Linux. For MacOSX try to start
 `wmbusmetersd /tmp/thepidfile` from a script instead.)
 
+You can also start the daemon with another set of config files:
+`wmbusmetersd --useconfig=/home/wmbusmeters /tmp/thepidfile`
+
 Check the config file /etc/wmbusmeters.conf and edit the device. For example:
 `auto:c1` or `im871a:c1,t1` or `im871a[457200101056]:t1` or `/dev/ttyUSB2:amb8465:c1,t1`
 
@@ -155,7 +158,7 @@ If you cannot install as a daemon, then you can also start
 wmbusmeters in your terminal using the config files in `/etc/wmbusmeters`.
 
 ```shell
-wmbusmeters --useconfig=/
+wmbusmeters --useconfig=/etc
 ```
 
 Or you can start wmbusmeters with your own config files:
@@ -176,8 +179,12 @@ wmbusmeters --useconfig=/home/me/.config/wmbusmeters --device=rtlwmbus
 You must have both `--useconfig=` and `--device=` for it to work.
 
 The files/dir should then be located here:
-`/home/me/.config/wmbusmeters/etc/wmbusmeters.conf` and
-`/home/me/.config/wmbusmeters/etc/wmbusmeters.d`
+`/home/me/.config/wmbusmeters/wmbusmeters.conf` and
+`/home/me/.config/wmbusmeters/wmbusmeters.d`
+
+(For historical reasons wmbusmeters first looks for `/home/me/.config/wmbusmeters/wmbusmeters.conf`.)
+
+The option `--useconfig=` can only be combined with a few other options: `--device= --listento= --exitafter= --oneshot= --silent --normal --verbose --debug --trace`
 
 When running using config files then you can trigger a reload of the config files
 using `sudo killall -HUP wmbusmetersd` or `killall -HUP wmbusmeters`
@@ -186,16 +193,21 @@ depending on if you are running as a daemon or not.
 # Running without config files, good for experimentation and test.
 
 ```
-wmbusmeters version: 1.4.0
-Usage: wmbusmeters {options} <device> ( [meter_name] [meter_driver]{:<modes>} [meter_id] [meter_key] )*
+wmbusmeters version: 1.6.0
+Usage: wmbusmeters {options} [device] { [meter_name] [meter_driver] [meter_id] [meter_key] }*
+       wmbusmeters {options} [hex]    { [meter_name] [meter_driver] [meter_id] [meter_key] }*
+       wmbusmetersd {options} [pid_file]
 
-As <options> you can use:
+As {options} you can use:
 
     --addconversions=<unit>+ add conversion to these units to json and meter env variables (GJ)
     --alarmexpectedactivity=mon-fri(08-17),sat-sun(09-12) Specify when the timeout is tested, default is mon-sun(00-23)
     --alarmshell=<cmdline> invokes cmdline when an alarm triggers
     --alarmtimeout=<time> Expect a telegram to arrive within <time> seconds, eg 60s, 60m, 24h during expected activity.
     --analyze Analyze a telegram to find the best driver.
+    --analyze=<key> Analyze a telegram to find the best driver use the provided decryption key.
+    --analyze=<driver> Analyze a telegram and use only this driver.
+    --analyze=<driver>:<key> Analyze a telegram and use only this driver with this key.
     --debug for a lot of information
     --device=<device> override device in config files. Use only in combination with --useconfig= option
     --donotprobe=<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys.
@@ -221,6 +233,7 @@ As <options> you can use:
     --meterfilestimestamp=(never|day|hour|minute|micros) the meter file is suffixed with a
                           timestamp (localtime) with the given resolution.
     --nodeviceexit if no wmbus devices are found, then exit immediately
+    --normal for normal logging
     --oneshot wait for an update from each meter, then quit
     --resetafter=<time> reset the wmbus dongle regularly, default is 23h
     --selectfields=id,timestamp,total_m3 select only these fields to be printed (--listfields=<meter> to list available fields)
@@ -331,13 +344,14 @@ Apator Ultrimis (ultrimis)
 Aquametro/Integra Topas Es Kr (topaseskr)
 Axioma W1 (q400)
 Bmeters Hydrodigit (hydrodigit) (partly non-standard protocol)
-Diehl/Sappel IZAR RC 868 I R4 PL (izar) (non-standard protocol)
+Diehl/Sappel IZAR RC 868 I R4 PL and R3 (izar) (non-standard protocol)
 Diehl HYDRUS (hydrus)
 Diehl IZAR RC I G4 (dme_07)
 Elster Merlin 868 (emerlin868)
 Elster V200H (ev200)
 Maddalena EVO 868 (evo868)
 Honeywell Q400 (q400)
+Itron (itron)
 Kamstrup Multical 21 (multical21)
 Kamstrup flowIQ 2200 (flowiq2200)
 Kamstrup flowIQ 3100 (flowiq3100)
@@ -347,9 +361,6 @@ Sensus iPERL (iperl)
 Techem MK Radio 3 and 4 (mkradio3,mkradio4) (non-standard protocols)
 Waterstar M (waterstarm)
 Zenner Minomess (minomess)
-
-Currently not supported, please help!
-Diehl/Sappel ACQUARIUS/IZAR R3 (izar3)
 
 Supported heat cost allocators:
 Innotas EurisII  (eurisii)
@@ -368,6 +379,8 @@ Heat and Cooling meter Kamstrup Multical 603 (multical603) (in C1 mode)
 Heat and Cooling meter Kamstrup Multical 803 (multical803) (in C1 mode)
 Heat meter Apator Elf (elf)
 Heat meter Diehl Sharky 775 (sharky)
+Heat meter Diehl Sharky 774 (sharky774)
+Heat meter Maddelena microClima (microclima)
 Heat and Cooling meter BMeters Hydrocal-M3 (hydrocalm3)
 Heat meter Qundis Q heat 5.5 (qheat)
 
@@ -725,11 +738,12 @@ If you like to send the bytes manually, the correct bytes are:
 * Factory reset of the settings: `0xFF1100EE`
 * Reset the stick to apply the factory defaults: `0xFF0500FA` this is not necessary if you unplug and reinsert the dongle.
 
-# Source code
+# How to add a new driver
 
-The source code is modular and it should be relatively straightforward to add more receivers and meters.
+Drivers are self contained source code files named `src/driver_xyz.cc`
+They register themselves at startup. The source file also contains the necessary tests for that driver.
 
-Read for example the text file: HowToAddaNewMeter.txt
+Read more here: [doc/CreateDriver.md](doc/CreateDriver.md)
 
 # Caveat
 

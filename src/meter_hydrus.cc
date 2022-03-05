@@ -1,6 +1,6 @@
 /*
- Copyright (C) 2019-2020 Fredrik Öhrström
- Copyright (C)      2021 Vincent Privat
+ Copyright (C) 2019-2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C)      2021 Vincent Privat (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ private:
 };
 
 MeterHydrus::MeterHydrus(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::HYDRUS)
+    MeterCommonImplementation(mi, "hydrus")
 {
     setMeterType(MeterType::WaterMeter);
 

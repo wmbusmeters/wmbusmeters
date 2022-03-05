@@ -1,7 +1,7 @@
-####################################################################
-##
-## Create /lib/systemd/system/wmbusmeters.service
-##
+# Copyright (C) 2021 Fredrik Öhrström (gpl-3.0-or-later)
+#
+# Create /lib/systemd/system/wmbusmeters.service
+#
 
 if [ -f /etc/systemd/system/wmbusmeters.service ]
 then

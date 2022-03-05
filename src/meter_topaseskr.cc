@@ -1,6 +1,6 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
-                    2020 Avandorp
+ Copyright (C) 2017-2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C)      2020 Avandorp (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ shared_ptr<Meter> createTopasEsKr(MeterInfo &mi)
 }
 
 MeterTopasEsKr::MeterTopasEsKr(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::TOPASESKR)
+    MeterCommonImplementation(mi, "topaseskr")
 {
     setMeterType(MeterType::WaterMeter);
 

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström
+ Copyright (C) 2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ private:
 };
 
 MeterESYSWM::MeterESYSWM(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::ESYSWM)
+    MeterCommonImplementation(mi, "esyswm")
 {
     setMeterType(MeterType::ElectricityMeter);
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
@@ -286,37 +286,15 @@ void MeterESYSWM::processContent(Telegram *t)
     extractDVdouble(&t->values, "04A9FF03", &offset, &current_power_phase3_kw_);
     t->addMoreExplanation(offset, " current power phase 3 (%f kwh)", current_power_phase3_kw_);
 
-    string tmp;
-    extractDVstring(&t->values, "0DFD09", &offset, &tmp);
-    if (tmp.length() > 0) {
-        vector<uchar> bin;
-        hex2bin(tmp, &bin);
-        version_ = safeString(bin);
-    }
+    extractDVReadableString(&t->values, "0DFD09", &offset, &version_);
     t->addMoreExplanation(offset, " version (%s)", version_.c_str());
 
-    extractDVstring(&t->values, "0D79", &offset, &tmp);
-    if (tmp.length() > 0) {
-        vector<uchar> bin;
-        hex2bin(tmp, &bin);
-        reverse(bin.begin(), bin.end());
-        enhanced_id_ = safeString(bin);
-    }
+    extractDVReadableString(&t->values, "0D79", &offset, &enhanced_id_);
     t->addMoreExplanation(offset, " enhanced id (%s)", enhanced_id_.c_str());
 
-    extractDVstring(&t->values, "0DFD10", &offset, &tmp);
-    if (tmp.length() > 0) {
-        location_hex_ = tmp;
-    }
+    extractDVHexString(&t->values, "0DFD10", &offset, &location_hex_);
     t->addMoreExplanation(offset, " location (%s)", location_hex_.c_str());
 
-    extractDVstring(&t->values, "0D78", &offset, &tmp);
-    if (tmp.length() > 0) {
-        vector<uchar> bin;
-        hex2bin(tmp, &bin);
-        reverse(bin.begin(), bin.end());
-        fabrication_no_ = safeString(bin);
-    }
+    extractDVReadableString(&t->values, "0D78", &offset, &fabrication_no_);
     t->addMoreExplanation(offset, " fabrication no (%s)", fabrication_no_.c_str());
-
 }

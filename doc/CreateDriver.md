@@ -1,8 +1,11 @@
-# Creating a new meter class
+# Creating a new driver
 
-To create a new meter class, it is very comfortable, to find an existing meter, that mostly matches the one you want to integrate. I will use the EurisII as a base for Integration of Aventies HCA.
+To create a new driver, it is very convenient, to start with an existing driver,
+that mostly matches the one you want to integrate. I will use the EurisII as a base for
+Integration of Aventies HCA.
 
-In fact, most of the manufacturers already exist in the source code with their respective shortcodes, e.g. Aventies with "AAA".
+In fact, most of the manufacturers already exist in the source code
+with their respective shortcodes, e.g. Aventies with "AAA".
 
 Create the `/etc/wmbusmeters.conf` with content adapted to your installation, e.g.:
 ```
@@ -25,7 +28,8 @@ id=60900126
 key=xxxxxxxxx
 ```
 
-If you now start wmbusmeters with `wmbusmeters --debug --verbose useconfig=/` and your meter transmits a message, you will see a log like this:
+If you now start wmbusmeters with `wmbusmeters --debug --verbose useconfig=/` and your meter transmits a message,
+you will see a log like this:
 
 ```
 [2021-07-05_21:07:30] (meter) ABOGGLKZ: meter detection did not match the selected driver eurisii! correct driver is: unknown!
@@ -143,64 +147,49 @@ Now keep especially the following lines in mind for integation into the meter de
 (meter) Not printing this warning again for id: 60900126 mfct: (AAA) Aventies, Germany (0x421) type: Heat Cost Allocator (0x08) ver: 0x55
 ```
 
-## Creating your class
+and the telegram line with the decrypted content.
+```
+telegram=|76442104260190605508722601906021045508060060052F2F#0B6E660100426EA60082016EA600C2016E9E0082026E7E00C2026E5B0082036E4200C2036E770182046E5B01C2046E4C0182056E4701C2056E3E0182066E3B01C2066E3B0182076E3B01C2076E3B0182086E1301C2086E9C0002FD170000|+6647
+```
 
-As we used the eurisii meter as a template, you need to copy the meter_eurisii.cc to meter_XXX.cc replacing XXX with a name created by you. In my case it is meter_aventieshca.cc
+You can now analyze the telegram with this command:
+```
+wmbusmeters --analyze 76442104260190605508722601906021045508060060052F2F0B6E660100426EA60082016EA600C2016E9E0082026E7E00C2026E5B0082036E4200C2036E770182046E5B01C2046E4C0182056E4701C2056E3E0182066E3B01C2066E3B0182076E3B01C2076E3B0182086E1301C2086E9C0002FD170000
+```
 
+This will test all existing drivers to see which drivers seems to be matching the best. (This method can be improved so do some sanity checks as well.) If the driver already decodes 100% of the content then perhaps you should only add
+```
+di.addDetection(MANUFACTURER_AAA, 0x08,  0x55);
+```
+to the existing driver_eursii.cc file. But in this case we chose to create a new driver.
+(Remember to add a new test case at the end of the cc file.)
+
+## Creating your new driver
+
+As we used the eurisii meter as a template, you need to copy the driver_eurisii.cc to driver_xyz.cc replacing xyz
+with a name created by you. In my case it is driver_aventieshca.cc
+
+As long as you do not need any new (not-yet-implemented) wmbus protocol features, then the
+entire driver is self contained within a single cc file, including tests.
 
 Now replace all occurences of class name MeterEurisII by the class name you created (e.g. MeterAventiesHCA in my case).
 
-Also rename the createEurisII-method, (for me, createAventiesHCA).
+Adjust the test cases at the end of the cc file! These test cases are picked up automatically
+by the testing system. Such regression tests are very important for the future stability of wmbusmeters.
 
-And last but not least, you need to adjust the MeterCommonImplementation-Instantiation 
-```
-MeterEurisII::MeterEurisII(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EURISII)
-{
-```
-with the appropriate Driver, for me it was `Meter::AVENTIESHCA` instead of `Meter::EURISII`.
-
-
-## Extending the other base code to let it know about your meter
-
-### meter_detection.h
-
-In [meters_detection.h](https://github.com/weetmuts/wmbusmeters/blob/master/src/meter_detection.h), you need to add the manufacturer, media and version code above you should have kept in mind (0x421/Aventies, 0x08, 0x55):
-
-```
-    X(AVENTIESWM,MANUFACTURER_AAA,  0x07,  0x25) \
-    X(AVENTIESHCA,MANUFACTURER_AAA, 0x08,  0x55) \
-    X(APATOR08,  0x8614/*APT?*/,    0x03,  0x03) \
-```
-
-The define of the manufacturer could be looked-up in manufacturers.h, starting at [line 1258](https://github.com/weetmuts/wmbusmeters/blob/master/src/manufacturers.h#L1258) (or somewhere around).
-
-0x08 is the code for a Heat Cost allocator. You can find other codes here [here](https://m-bus.com/assets/downloads/MBDOC48.PDF) (on page 76). At least you should check for plausibility...
-
-### meters.h
-
-Now you need to edit the [meters.cc](https://github.com/weetmuts/wmbusmeters/blob/master/src/meters.cc) and insert the link to your class and driver (middle line, the one above and below are just as context).
-
-```
-    X(aventieswm, T1_bit,        WaterMeter,       AVENTIESWM,  AventiesWM)   \
-    X(aventieshca,T1_bit, HeatCostAllocationMeter, AVENTIESHCA, AventiesHCA)   \
-    X(cma12w,     C1_bit|T1_bit, TempHygroMeter,   CMA12W,      CMa12w)      \
-```
-
-
-### Makefile
-
-In the projects [Makefile](https://github.com/weetmuts/wmbusmeters/blob/master/Makefile#L107), it is necessary to add the resulting object as a dependency of METER_OBJS. Otherwise it will not be compiled and linked...
-
-```
-	$(BUILD)/meter_aventieswm.o \
-	$(BUILD)/meter_aventieshca.o \
-	$(BUILD)/meter_cma12w.o \
-```
+Media/type 0x08 is the code for a Heat Cost allocator. You can find other codes here [here](https://m-bus.com/assets/downloads/MBDOC48.PDF) (on page 76). At least you should check for plausibility...
 
 ### Further adjustments
 
-To collect the releavant data correctly, you need to adjust the code for processing and printing the data from the meter. For this you should edit the `MeterXXX::processContent` method to fit your needs. Adhere to the debug log output of the processing function and have a look at other meter's classes for examples how to process multiple values with different sorage numbers or types.
+If you need to do processing that is not support by the current addFieldWithExtractor code, then
+you will have to implement the processContent function.
+
+To collect the releavant data correctly, you need to adjust the code
+for processing and printing the data from the meter. For this you
+should edit the `MeterXXX::processContent` method to fit your
+needs. Adhere to the debug log output of the processing function and
+have a look at other meter's classes for examples how to process
+multiple values with different sorage numbers or types.
 
 If you get errors, it is quite probable that you missed the correct value information (e.g. ValueInformation::Volume):
 ```
@@ -227,13 +216,6 @@ Possible ValueInformation types are:
     - PowerW (0x28,0x2f)
     - ActualityDuration (0x74,0x77)
 
-The constructor also needs a small adjustment for initializing the MeterCommonImplementation with the appropriate driver.
-```
-MeterXXX::MeterXXX(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::XXX)
-{
-```
-
 You can add also special properties and getters for special data of your meter, like it is handled with the error codes for EurisII.
 
 ## Compiling and testing
@@ -245,7 +227,37 @@ If everything was right, you can try compiling the project:
 make -j4
 ```
 
-If again everything was ok, `sudo make install` the new wmbusmeters and start it. 
+Test your new version with the analyze command: `./build/wmbusmeters --analyze ...`
+
+Now test your code:
+./build/wmbusmeters --format=json <hex> MyHCA aventieshca 12345678 NOKEY
+
+It should print:
+```
+{"media":"heat cost allocation","meter":"aventieshca","name":"MyHCA","id":"60900126","current_consumption_hca":166,"consumption_at_set_date_hca":166,"consumption_at_set_date_2_hca":166,"consumption_at_set_date_3_hca":158,"consumption_at_set_date_4_hca":126,"consumption_at_set_date_5_hca":91,"consumption_at_set_date_6_hca":66,"consumption_at_set_date_7_hca":375,"consumption_at_set_date_8_hca":347,"consumption_at_set_date_9_hca":332,"consumption_at_set_date_10_hca":327,"consumption_at_set_date_11_hca":318,"consumption_at_set_date_12_hca":315,"consumption_at_set_date_13_hca":315,"consumption_at_set_date_14_hca":315,"consumption_at_set_date_15_hca":315,"consumption_at_set_date_16_hca":275,"consumption_at_set_date_17_hca":156,"error_flags":"","timestamp":"2022-01-18T10:04:08Z"}
+```
+
+And now you can run it for real:
+./build_debug/wmbusmeters --format=json auto:t1 Water MyMeter 12345678 <key>
+
+or using the config that you setup before:
+`./build/wmbusmeters --debug --verbose useconfig=/`
+
+When it looks good, now run the tests:
+```
+make test
+```
+
+If you have the time please try to build with debug information as well: `make DEBUG=true` and `make testd`
+This will test the code and check that there are no memory leaks or buffer overflows etc.
+
+Finally try the daemon: make; sudo make install
+(Do the daemon reload command if such is requested.)
+sudo systemctl start wmbusmeters.service
+
+Update the regression tests in the end of driver_aventieshca.cc
+
+If again everything was ok, `sudo make install` the new wmbusmeters and start it.
 
 ## Provide some Information (for decumentation and debugging)
 
@@ -330,9 +342,7 @@ The log should show the correct recognition (aventieshca)-tags at the beginning 
 (aventieshca) 75: * 0000 error flags (0000)
 ```
 
-Take this data decoding information from your log and paste it as a comment to the processContent-method.
-
-You can also provide an encrypted telegram, the AES key for the telegram and the decoded data in your pull request for Frederik to add it to the regression tests. The information is part of the log and looks like this:
+You can also provide an encrypted telegram, the AES key for the telegram and the decoded data in your pull request for Fredrik to add it to the regression tests. The information is part of the log and looks like this:
 ```
 (serial) received binary "A5C203764421042601906055087226019060210455080A00600537A7B807E3BA027FE98D75848595628733C29F2D3262F23BA4D2C01D37084E784691E115674D6D8CB874698D4D2C9DB3832A38A39021457A46F151FCBC86947EE7E35CF7AFC049381E74FB2B19E0F835B867B40D22E61129D395263441F4DED061B541"
 (im871a) checkIM871AFrame "A5C203764421042601906055087226019060210455080A00600537A7B807E3BA027FE98D75848595628733C29F2D3262F23BA4D2C01D37084E784691E115674D6D8CB874698D4D2C9DB3832A38A39021457A46F151FCBC86947EE7E35CF7AFC049381E74FB2B19E0F835B867B40D22E61129D395263441F4DED061B541"
@@ -345,7 +355,6 @@ You can also provide an encrypted telegram, the AES key for the telegram and the
 (telegram) TPL CI=72 ACC=0a STS=00 CFG=0560 (AES_CBC_IV nb=6 cntn=0 ra=0 hc=0) ID=26019060 MFT=2104 VER=55 TYPE=08 (Heat Cost Allocator)
 telegram=|764421042601906055087226019060210455080A0060052F2F|0B6E660100426EA60082016EA600C2016E9E0082026E7E00C2026E5B0082036E4200C2036E770182046E5B01C2046E4C0182056E4701C2056E3E0182066E3B01C2066E3B0182076E3B01C2076E3B0182086E1301C2086E9C0002FD170000|+7599
 ```
-
 
 It would also be handy to provide a datasheet of the sensor within the pull request.
 

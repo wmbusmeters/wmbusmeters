@@ -4,13 +4,72 @@ PROG="$1"
 TEST=testoutput
 mkdir -p $TEST
 
-TESTNAME="Test analyze compact telegram"
+performCheck() {
+if [ "$?" = "0" ]
+then
+    cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
+    diff $TEST/test_expected.txt $TEST/test_response.txt
+    if [ "$?" = "0" ]
+    then
+        echo "OK: $TESTNAME"
+        TESTRESULT="OK"
+    else
+        echo "ERROR: $TESTNAME $0"
+    fi
+else
+    echo "ERROR: $TESTNAME $0"
+    echo "wmbusmeters returned error code: $?"
+    cat $TEST/test_output.txt
+fi
+}
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+TESTNAME="Test analyze encrypted (no-key) ctr full telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
+Auto driver  : multical21
+Best driver  :  00/00
+Using driver :  00/00
+000   : 2a length (42 bytes)
+001   : 44 dll-c (from meter SND_NR)
+002   : 2d2c dll-mfct (KAM)
+004   : 99873476 dll-id (76348799)
+008   : 1b dll-version
+009   : 16 dll-type (Cold water meter)
+010   : 8d ell-ci-field (ELL: Extended Link Layer II (8 Byte))
+011   : 20 ell-cc (slow_resp sync)
+012   : 91 ell-acc
+013   : d37cac21 sn (AES_CTR)
+017 CE: E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24 encrypted
 
-Using driver "multical21" based on mfct/type/version driver lookup table.
-Which is also the best matching driver with 12/12 content bytes understood.
+{
+    "media":"cold water",
+    "meter":"unknown",
+    "name":"",
+    "id":"76348799",
+    "timestamp":"1111-11-11T11:11:11Z"
+}
+EOF
+
+$PROG --analyze 2A442D2C998734761B168D2091D37CAC21E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24 > $TEST/test_output.txt 2>&1
+
+performCheck
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+TESTNAME="Test analyze encrypted (no-key) ctr compact telegram"
+TESTRESULT="ERROR"
+
+cat > $TEST/test_expected.txt <<EOF
+Auto driver  : multical21
+Best driver  :  00/00
+Using driver :  00/00
 000   : 23 length (35 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -19,129 +78,186 @@ Which is also the best matching driver with 12/12 content bytes understood.
 009   : 16 dll-type (Cold water meter)
 010   : 8d ell-ci-field (ELL: Extended Link Layer II (8 Byte))
 011   : 20 ell-cc (slow_resp sync)
-012   : 87 ell-acc
-013   : d19ead21 sn (AES_CTR)
-017   : 7f17 payload crc (calculated 7f17 OK)
-019   : 79 tpl-ci-field (EN 13757-3 Application Layer with Compact frame (no tplh))
-020   : eda8 format signature
-022   : 6ab6 data crc
-024 C!: 7100 info codes (DRY(dry 22-31 days))
-026 C!: 08190000 total consumption (6.408000 m3)
-030 C!: 08190000 target consumption (6.408000 m3)
-034 C!: 7F flow temperature (127.000000 °C)
-035 C!: 13 external temperature (19.000000 °C)
+012   : 98 ell-acc
+013   : 3081b222 sn (AES_CTR)
+017 CE: 7A6FA1F10E1B79B5EB4B17E81F930E937EE06C encrypted
+
+{
+    "media":"cold water",
+    "meter":"unknown",
+    "name":"",
+    "id":"76348799",
+    "timestamp":"1111-11-11T11:11:11Z"
+}
 EOF
 
-$PROG --analyze=plain 23442D2C998734761B168D2087D19EAD217F1779EDA86AB6710008190000081900007F13  2> $TEST/test_output.txt 1>&2
+$PROG --analyze 23442D2C998734761B168D20983081B2227A6FA1F10E1B79B5EB4B17E81F930E937EE06C > $TEST/test_output.txt 2>&1
 
-if [ "$?" = "0" ]
-then
-    diff $TEST/test_expected.txt $TEST/test_output.txt
-    if [ "$?" = "0" ]
-    then
-        echo OK: $TESTNAME
-        TESTRESULT="OK"
-    fi
-else
-    echo ERROR: $TESTNAME
-    echo "wmbusmeters returned error code: $?"
-    cat $TEST/test_output.txt
-fi
+performCheck
 
-TESTNAME="Test analyze normal telegram"
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+TESTNAME="Test analyze encrypted (with-key) ctr full telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
-
-Using driver "supercom587" based on mfct/type/version driver lookup table.
-But a better match could perhaps be driver "evo868" with 20/100 content bytes understood.
-000   : a2 length (162 bytes)
+Auto driver  : multical21
+Best driver  : multical21 12/12
+Using driver : multical21 12/12
+000   : 2a length (42 bytes)
 001   : 44 dll-c (from meter SND_NR)
-002   : ee4d dll-mfct (SON)
-004   : 78563412 dll-id (12345678)
-008   : 3c dll-version
-009   : 06 dll-type (Warm Water (30°C-90°C) meter)
-010   : 7a tpl-ci-field (EN 13757-3 Application Layer (short tplh))
-011   : 8f tpl-acc-field
-012   : 00 tpl-sts-field (OK)
-013   : 0000 tpl-cfg 0000 ( )
-015   : 0C dif (8 digit BCD Instantaneous value)
-016   : 13 vif (Volume l)
-017 C!: 48550000 total consumption (5.548000 m3)
-021   : 42 dif (16 Bit Integer/Binary Instantaneous value storagenr=1)
-022   : 6C vif (Date type G)
-023 C?: E1F1
-025   : 4C dif (8 digit BCD Instantaneous value storagenr=1)
+002   : 2d2c dll-mfct (KAM)
+004   : 99873476 dll-id (76348799)
+008   : 1b dll-version
+009   : 16 dll-type (Cold water meter)
+010   : 8d ell-ci-field (ELL: Extended Link Layer II (8 Byte))
+011   : 20 ell-cc (slow_resp sync)
+012   : 91 ell-acc
+013   : d37cac21 sn (AES_CTR)
+017   : 576c payload crc (calculated 576c OK)
+019   : 78 tpl-ci-field (EN 13757-3 Application Layer (no tplh))
+020   : 02 dif (16 Bit Integer/Binary Instantaneous value)
+021   : FF vif (Vendor extension)
+022   : 20 vife (per second)
+023 C!: 7100 info codes (DRY(dry 22-31 days))
+025   : 04 dif (32 Bit Integer/Binary Instantaneous value)
 026   : 13 vif (Volume l)
-027 C?: 00000000
-031   : 82 dif (16 Bit Integer/Binary Instantaneous value)
-032   : 04 dife (subunit=0 tariff=0 storagenr=8)
-033   : 6C vif (Date type G)
-034 C?: 2129
-036   : 8C dif (8 digit BCD Instantaneous value)
-037   : 04 dife (subunit=0 tariff=0 storagenr=8)
-038   : 13 vif (Volume l)
-039 C?: 33000000
-043   : 8D dif (variable length Instantaneous value)
-044   : 04 dife (subunit=0 tariff=0 storagenr=8)
-045   : 93 vif (Volume l)
-046   : 1E vife (Compact profile with register)
-047   : 3A varlen=58
-048 C?: 3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000
-106   : 04 dif (32 Bit Integer/Binary Instantaneous value)
-107   : 6D vif (Date and time type)
-108 C?: 0D0B5C2B
-112   : 03 dif (24 Bit Integer/Binary Instantaneous value)
-113   : FD vif (Second extension FD of VIF-codes)
-114   : 6C vife (Operating time battery [hour(s)])
-115 C?: 5E1500
-118   : 82 dif (16 Bit Integer/Binary Instantaneous value)
-119   : 20 dife (subunit=0 tariff=2 storagenr=0)
-120   : 6C vif (Date type G)
-121 C?: 5C29
-123   : 0B dif (6 digit BCD Instantaneous value)
-124   : FD vif (Second extension FD of VIF-codes)
-125   : 0F vife (Software version #)
-126 C?: 020001
-129   : 8C dif (8 digit BCD Instantaneous value)
-130   : 40 dife (subunit=1 tariff=0 storagenr=0)
-131   : 79 vif (Enhanced identification)
-132 C?: 67888523
-136   : 83 dif (24 Bit Integer/Binary Instantaneous value)
-137   : 10 dife (subunit=0 tariff=1 storagenr=0)
-138   : FD vif (Second extension FD of VIF-codes)
-139   : 31 vife (Duration of tariff [minute(s)])
-140 C?: 000000
-143   : 82 dif (16 Bit Integer/Binary Instantaneous value)
-144   : 10 dife (subunit=0 tariff=1 storagenr=0)
-145   : 6C vif (Date type G)
-146 C?: 0101
-148   : 81 dif (8 Bit Integer/Binary Instantaneous value)
-149   : 10 dife (subunit=0 tariff=1 storagenr=0)
-150   : FD vif (Second extension FD of VIF-codes)
-151   : 61 vife (Cumulation counter)
-152 C?: 00
-153   : 02 dif (16 Bit Integer/Binary Instantaneous value)
-154   : FD vif (Second extension FD of VIF-codes)
-155   : 66 vife (State of parameter activation)
-156 C?: 0200
-158   : 02 dif (16 Bit Integer/Binary Instantaneous value)
-159   : FD vif (Second extension FD of VIF-codes)
-160   : 17 vife (Error flags (binary))
-161 C?: 0000
+027 C!: 08190000 total consumption (6.408000 m3)
+031   : 44 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
+032   : 13 vif (Volume l)
+033 C!: 08190000 target consumption (6.408000 m3)
+037   : 61 dif (8 Bit Integer/Binary Minimum value storagenr=1)
+038   : 5B vif (Flow temperature °C)
+039 C!: 7F flow temperature (127.000000 °C)
+040   : 61 dif (8 Bit Integer/Binary Minimum value storagenr=1)
+041   : 67 vif (External temperature °C)
+042 C!: 13 external temperature (19.000000 °C)
+
+{
+    "media":"cold water",
+    "meter":"multical21",
+    "name":"",
+    "id":"76348799",
+    "total_m3":6.408,
+    "target_m3":6.408,
+    "max_flow_m3h":0,
+    "flow_temperature_c":127,
+    "external_temperature_c":19,
+    "current_status":"DRY",
+    "time_dry":"22-31 days",
+    "time_reversed":"",
+    "time_leaking":"",
+    "time_bursting":"",
+    "timestamp":"1111-11-11T11:11:11Z"
+}
 EOF
 
-$PROG --analyze=plain A244EE4D785634123C067A8F0000000C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000  2> $TEST/test_output.txt 1>&2
+$PROG --analyze=28F64A24988064A079AA2C807D6102AE 2A442D2C998734761B168D2091D37CAC21E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24 > $TEST/test_output.txt 2>&1
 
-if [ "$?" = "0" ]
-then
-    diff $TEST/test_expected.txt $TEST/test_output.txt
-    if [ "$?" = "0" ]
-    then
-        echo OK: $TESTNAME
-        TESTRESULT="OK"
-    fi
-else
-    echo "wmbusmeters returned error code: $?"
-    cat $TEST/test_output.txt
-fi
+performCheck
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+TESTNAME="Test analyze encrypted (no-key) ctr compact telegram"
+TESTRESULT="ERROR"
+
+cat > $TEST/test_expected.txt <<EOF
+Auto driver  : multical21
+Best driver  : multical21 12/12
+Using driver : multical21 12/12
+000   : 23 length (35 bytes)
+001   : 44 dll-c (from meter SND_NR)
+002   : 2d2c dll-mfct (KAM)
+004   : 99873476 dll-id (76348799)
+008   : 1b dll-version
+009   : 16 dll-type (Cold water meter)
+010   : 8d ell-ci-field (ELL: Extended Link Layer II (8 Byte))
+011   : 20 ell-cc (slow_resp sync)
+012   : 98 ell-acc
+013   : 3081b222 sn (AES_CTR)
+017   : c33d payload crc (calculated c33d OK)
+019   : 79 tpl-ci-field (EN 13757-3 Application Layer with Compact frame (no tplh))
+020   : eda8 format signature
+022   : e475 data crc
+024 C!: 7100 info codes (DRY(dry 22-31 days))
+026 C!: 09190000 total consumption (6.409000 m3)
+030 C!: 09190000 target consumption (6.409000 m3)
+034 C!: 7F flow temperature (127.000000 °C)
+035 C!: 16 external temperature (22.000000 °C)
+
+{
+    "media":"cold water",
+    "meter":"multical21",
+    "name":"",
+    "id":"76348799",
+    "total_m3":6.409,
+    "target_m3":6.409,
+    "max_flow_m3h":0,
+    "flow_temperature_c":127,
+    "external_temperature_c":22,
+    "current_status":"DRY",
+    "time_dry":"22-31 days",
+    "time_reversed":"",
+    "time_leaking":"",
+    "time_bursting":"",
+    "timestamp":"1111-11-11T11:11:11Z"
+}
+EOF
+
+$PROG --analyze=28F64A24988064A079AA2C807D6102AE 23442D2C998734761B168D20983081B2227A6FA1F10E1B79B5EB4B17E81F930E937EE06C > $TEST/test_output.txt 2>&1
+
+performCheck
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+TESTNAME="Test analyze CBC IV (no-key)"
+TESTRESULT="ERROR"
+
+cat > $TEST/test_expected.txt <<EOF
+Auto driver  : supercom587
+Best driver  :  00/00
+Using driver :  00/00
+000   : ae length (174 bytes)
+001   : 44 dll-c (from meter SND_NR)
+002   : ee4d dll-mfct (SON)
+004   : 77777777 dll-id (77777777)
+008   : 3c dll-version
+009   : 07 dll-type (Water meter)
+010   : 7a tpl-ci-field (EN 13757-3 Application Layer (short tplh))
+011   : 44 tpl-acc-field
+012   : 00 tpl-sts-field (OK)
+013   : a025 tpl-cfg 25a0 (synchronous AES_CBC_IV nb=10 cntn=0 ra=0 hc=0 )
+015 CE: E78F4A01F9DCA029EDA03BA452686E8FA917507B29E5358B52D77C111EA4C41140290523F3F6B9F9261705E041C0CA41305004605F42D6C9464E5A04EEE227510BD0DC0983C665C3A5E4739C2082975476AC637BCDD39766AEF030502B6A7697BE9E1C49AF535C15470FCF8ADA36CAB9D0B2A1A8690F8DDCF70859F18B3414D8315B311A0AFA57325531587CB7E9CC110E807F24C190D7E635BEDAF4CAE8A161 encrypted
+
+{
+    "media":"water",
+    "meter":"unknown",
+    "name":"",
+    "id":"77777777",
+    "timestamp":"1111-11-11T11:11:11Z"
+}
+EOF
+
+$PROG --analyze AE44EE4D777777773C077A4400A025E78F4A01F9DCA029EDA03BA452686E8FA917507B29E5358B52D77C111EA4C41140290523F3F6B9F9261705E041C0CA41305004605F42D6C9464E5A04EEE227510BD0DC0983C665C3A5E4739C2082975476AC637BCDD39766AEF030502B6A7697BE9E1C49AF535C15470FCF8ADA36CAB9D0B2A1A8690F8DDCF70859F18B3414D8315B311A0AFA57325531587CB7E9CC110E807F24C190D7E635BEDAF4CAE8A161  > $TEST/test_output.txt 2>&1
+
+performCheck
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+#TESTNAME="Test analyze CBC IV (with-key)"
+#TESTRESULT="ERROR"
+
+#cat > $TEST/test_expected.txt <<EOF
+#EOF
+
+#$PROG --analyze=5065747220486F6C79737A6577736B69 AE44EE4D777777773C077A4400A025E78F4A01F9DCA029EDA03BA452686E8FA917507B29E5358B52D77C111EA4C41140290523F3F6B9F9261705E041C0CA41305004605F42D6C9464E5A04EEE227510BD0DC0983C665C3A5E4739C2082975476AC637BCDD39766AEF030502B6A7697BE9E1C49AF535C15470FCF8ADA36CAB9D0B2A1A8690F8DDCF70859F18B3414D8315B311A0AFA57325531587CB7E9CC110E807F24C190D7E635BEDAF4CAE8A161  > $TEST/test_output.txt 2>&1
+
+#performCheck

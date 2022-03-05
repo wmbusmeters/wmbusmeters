@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2021 Fredrik Öhrström
+ Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -268,10 +268,12 @@ void Telegram::print()
 
 void Telegram::printDLL()
 {
-    string possible_drivers = autoDetectPossibleDrivers();
+    if (about.type == FrameType::WMBUS)
+    {
+        string possible_drivers = autoDetectPossibleDrivers();
 
-    string man = manufacturerFlag(dll_mfct);
-    verbose("(telegram) DLL L=%02x C=%02x (%s) M=%04x (%s) A=%02x%02x%02x%02x VER=%02x TYPE=%02x (%s) (driver %s) DEV=%s RSSI=%d\n",
+        string man = manufacturerFlag(dll_mfct);
+        verbose("(telegram) DLL L=%02x C=%02x (%s) M=%04x (%s) A=%02x%02x%02x%02x VER=%02x TYPE=%02x (%s) (driver %s) DEV=%s RSSI=%d\n",
             dll_len,
             dll_c, cType(dll_c).c_str(),
             dll_mfct,
@@ -283,6 +285,16 @@ void Telegram::printDLL()
             possible_drivers.c_str(),
             about.device.c_str(),
             about.rssi_dbm);
+    }
+
+    if (about.type == FrameType::MBUS)
+    {
+        verbose("(telegram) DLL L=%02x C=%02x (%s) A=%02x\n",
+                dll_len,
+                dll_c, cType(dll_c).c_str(),
+                mbus_primary_address);
+    }
+
 }
 
 void Telegram::printELL()
@@ -796,7 +808,7 @@ void Telegram::addMoreExplanation(int pos, const char* fmt, ...)
     }
 }
 
-void Telegram::addSpecialExplanation(int offset, KindOfData k, Understanding u, const char* fmt, ...)
+void Telegram::addSpecialExplanation(int offset, int len, KindOfData k, Understanding u, const char* fmt, ...)
 {
     char buf[1024];
     buf[1023] = 0;
@@ -806,7 +818,7 @@ void Telegram::addSpecialExplanation(int offset, KindOfData k, Understanding u, 
     vsnprintf(buf, 1023, fmt, args);
     va_end(args);
 
-    explanations.push_back({offset, 1, buf, k, u});
+    explanations.push_back({offset, len, buf, k, u});
 }
 
 bool expectedMore(int line)
@@ -815,28 +827,49 @@ bool expectedMore(int line)
     return false;
 }
 
-bool Telegram::parseMBusDLL(vector<uchar>::iterator &pos)
+bool Telegram::parseMBusDLLandTPL(vector<uchar>::iterator &pos)
 {
     int remaining = distance(pos, frame.end());
-    if (remaining == 0) return expectedMore(__LINE__);
+    if (remaining < 5) return expectedMore(__LINE__);
 
-    debug("(wmbus) parse MBUS DLL @%d %d\n", distance(frame.begin(), pos), remaining);
+    debug("(mbus) parse MBUS DLL @%d %d\n", distance(frame.begin(), pos), remaining);
+    debugPayload("(mbus) ", frame);
+
+    if (*pos != 0x68) return false;
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "68 start");
+
     dll_len = *pos;
-    if (remaining < dll_len) return expectedMore(__LINE__);
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x length (%d bytes)", dll_len, dll_len);
 
+    // Two identical length bytes are expected!
+    if (*pos != dll_len) return false;
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x length again (%d bytes)", dll_len, dll_len);
+
+    if (*pos != 0x68) return false;
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "68 start");
+
+    if (remaining < dll_len) return expectedMore(__LINE__);
+
     dll_c = *pos;
-    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-c (%s)", dll_c, mbusCField(dll_c).c_str());
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-c (%s)", dll_c, mbusCField(dll_c));
 
     mbus_primary_address = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-a primary (%d)", mbus_primary_address, mbus_primary_address);
 
     // Add dll_id to ids.
-    string id = tostrprintf("%02x", dll_a[0]);
+    string id = tostrprintf("%02x", mbus_primary_address);
     ids.push_back(id);
     idsc = id;
 
-    return true;
+    mbus_ci = *pos;
+    addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x tpl-ci (%s)", mbus_ci, mbusCiField(mbus_ci));
+
+    if (mbus_ci == 0x72)
+    {
+        return parse_TPL_72(pos);
+    }
+
+    return false;
 }
 
 bool Telegram::parseDLL(vector<uchar>::iterator &pos)
@@ -1011,18 +1044,28 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         int len = distance(pos+2, frame.end());
         uint16_t check = crc16_EN13757(&(frame[dist]), len);
 
-        addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x payload crc (calculated %02x%02x %s)",
-                                      ell_pl_crc_b[0], ell_pl_crc_b[1],
-                                      check  & 0xff, check >> 8, (ell_pl_crc==check?"OK":"ERROR"));
-
-        if (ell_pl_crc != check && !FUZZING)
+        if (ell_pl_crc == check || FUZZING)
+        {
+            addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL,
+                                          "%02x%02x payload crc (calculated %02x%02x %s)",
+                                          ell_pl_crc_b[0], ell_pl_crc_b[1],
+                                          check  & 0xff, check >> 8, (ell_pl_crc==check?"OK":"ERROR"));
+        }
+        else
         {
             // Ouch, checksum of the payload does not match.
-            // A wrong key was probably used for decryption.
+            // A wrong key, or no key was probably used for decryption.
             decryption_failed = true;
+
+            // Log the content as encrypted.
+            int num_encrypted_bytes = frame.end()-pos;
+            string info =  bin2hex(pos, frame.end(), num_encrypted_bytes);
+            info += " encrypted";
+            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+
             if (parser_warns_)
             {
-                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
+                if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
                     warning("(wmbus) WARNING! decrypted payload crc failed check, did you use the correct decryption key? "
@@ -1359,6 +1402,7 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
     ids.push_back(id);
     idsc = idsc+","+id;
+
     addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL,
                                   "%02x%02x%02x%02x tpl-id (%02x%02x%02x%02x)",
                                   tpl_id_b[0], tpl_id_b[1], tpl_id_b[2], tpl_id_b[3],
@@ -1460,8 +1504,21 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             addDefaultManufacturerKeyIfAny(frame, tpl_sec_mode, meter_keys);
         }
-        bool ok = decrypt_TPL_AES_CBC_IV(this, frame, pos, meter_keys->confidentiality_key);
-        if (!ok) return false;
+        int num_encrypted_bytes = 0;
+        int num_not_encrypted_at_end = 0;
+        bool ok = decrypt_TPL_AES_CBC_IV(this, frame, pos, meter_keys->confidentiality_key,
+                                         &num_encrypted_bytes, &num_not_encrypted_at_end);
+        if (!ok)
+        {
+            string info =  bin2hex(pos, frame.end(), num_encrypted_bytes);
+            info += " encrypted";
+            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
+            if (meter_keys->confidentiality_key.size() > 0)
+            {
+                // Only fail if we gave an explicit key.
+                return false;
+            }
+        }
         // Now the frame from pos and onwards has been decrypted.
 
         CHECK(2);
@@ -1469,7 +1526,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             if (parser_warns_)
             {
-                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
+                if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
                     warning("(wmbus) WARNING! decrypted content failed check, did you use the correct decryption key? "
@@ -1504,7 +1561,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             if (parser_warns_)
             {
-                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
+                if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
                     warning("(wmbus) WARNING! telegram mac check failed, did you use the correct decryption key? "
@@ -1520,8 +1577,17 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             return false;
         }
 
-        bool ok = decrypt_TPL_AES_CBC_NO_IV(this, frame, pos, tpl_generated_key);
-        if (!ok) return false;
+        int num_encrypted_bytes = 0;
+        int num_not_encrypted_at_end = 0;
+        bool ok = decrypt_TPL_AES_CBC_NO_IV(this, frame, pos, tpl_generated_key,
+                                            &num_encrypted_bytes,
+                                            &num_not_encrypted_at_end);
+        if (!ok)
+        {
+            addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::FULL,
+                                          "encrypted data");
+            return false;
+        }
 
         // Now the frame from pos and onwards has been decrypted.
         CHECK(2);
@@ -1529,7 +1595,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
         {
             if (parser_warns_)
             {
-                if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a))
+                if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
                 {
                     // Print this warning only once! Unless you are using verbose or debug.
                     warning("(wmbus) WARNING! decrypted content failed check, did you use the correct decryption key? "
@@ -1716,12 +1782,22 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
         {
             header_size = distance(frame.begin(), pos);
             suffix_size = 0;
+            int num_mfct_bytes = frame.end()-pos;
+            string info =  bin2hex(pos, frame.end(), num_mfct_bytes);
+            info += " mfct specific";
+            addExplanationAndIncrementPos(pos, num_mfct_bytes, KindOfData::CONTENT, Understanding::NONE, info.c_str());
+
             return true; // Manufacturer specific telegram payload. Oh well....
         }
         case CI_Field_Values::MFCT_SPECIFIC_A3: // Another stoopid non-conformat wmbus Diehl/Sappel/Izar water meter addon.
         {
             header_size = distance(frame.begin(), pos);
             suffix_size = 0;
+            int num_mfct_bytes = frame.end()-pos;
+            string info =  bin2hex(pos, frame.end(), num_mfct_bytes);
+            info += " mfct specific";
+            addExplanationAndIncrementPos(pos, num_mfct_bytes, KindOfData::CONTENT, Understanding::NONE, info.c_str());
+
             return true; // Manufacturer specific telegram payload. Oh well....
         }
     }
@@ -1898,7 +1974,7 @@ bool Telegram::parseMBUSHeader(vector<uchar> &input_frame)
     // Parsed accumulates parsed bytes.
     parsed.clear();
 
-    ok = parseMBusDLL(pos);
+    ok = parseMBusDLLandTPL(pos);
     if (!ok) return false;
 
     return true;
@@ -1918,18 +1994,15 @@ bool Telegram::parseMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
     vector<uchar>::iterator pos = frame.begin();
     // Parsed accumulates parsed bytes.
     parsed.clear();
-    // Fixes quirks from non-compliant meters to make telegram compatible with the standard
-    preProcess();
+
     //     ┌──────────────────────────────────────────────┐
     //     │                                              │
     //     │ Parse DLL Data Link Layer for Wireless MBUS. │
     //     │                                              │
     //     └──────────────────────────────────────────────┘
 
-    ok = parseMBusDLL(pos);
+    ok = parseMBusDLLandTPL(pos);
     if (!ok) return false;
-
-    printDLL();
 
     return true;
 }
@@ -1957,6 +2030,7 @@ void Telegram::explainParse(string intro, int from)
         const char *u = "?";
         if (p.understanding == Understanding::FULL) u = "!";
         if (p.understanding == Understanding::PARTIAL) u = "p";
+        if (p.understanding == Understanding::ENCRYPTED) u = "E";
 
         // Do not print ok for understood protocol, it is implicit.
         // However if a protocol is not full understood then print p or ?.
@@ -1966,8 +2040,10 @@ void Telegram::explainParse(string intro, int from)
     }
 }
 
-void printAnalysisAsText(vector<Explanation> &explanations, bool use_ansi)
+string renderAnalysisAsText(vector<Explanation> &explanations, bool use_ansi)
 {
+    string s;
+
     const char *green;
     const char *yellow;
     const char *red;
@@ -1975,9 +2051,9 @@ void printAnalysisAsText(vector<Explanation> &explanations, bool use_ansi)
 
     if (use_ansi)
     {
-        green = "\033[0;97m\033[0;42m";
+        green = "\033[0;97m\033[1;42m";
         yellow = "\033[0;97m\033[0;43m";
-        red = "\033[0;97m\033[0;41m";
+        red = "\033[0;97m\033[0;41m\033[1;37m";
         reset = "\033[0m";
     }
     else
@@ -1995,6 +2071,7 @@ void printAnalysisAsText(vector<Explanation> &explanations, bool use_ansi)
         const char *u = "?";
         if (p.understanding == Understanding::FULL) u = "!";
         if (p.understanding == Understanding::PARTIAL) u = "p";
+        if (p.understanding == Understanding::ENCRYPTED) u = "E";
 
         // Do not print ok for understood protocol, it is implicit.
         // However if a protocol is not full understood then print p or ?.
@@ -2021,16 +2098,17 @@ void printAnalysisAsText(vector<Explanation> &explanations, bool use_ansi)
             pre = red;
         }
 
-        printf("%03d %s%s: %s%s%s\n", p.pos, c, u, pre, p.info.c_str(), post);
+        s += tostrprintf("%03d %s%s: %s%s%s\n", p.pos, c, u, pre, p.info.c_str(), post);
     }
+    return s;
 }
 
-void printAnalysisAsJson(vector<Explanation> &explanations)
+string renderAnalysisAsJson(vector<Explanation> &explanations)
 {
-    printf("{ \"TODO\": true }\n");
+    return "{ \"TODO\": true }\n";
 }
 
-void Telegram::analyzeParse(OutputFormat format, int *content_length, int *understood_content_length)
+string Telegram::analyzeParse(OutputFormat format, int *content_length, int *understood_content_length)
 {
     int u = 0;
     int l = 0;
@@ -2041,7 +2119,8 @@ void Telegram::analyzeParse(OutputFormat format, int *content_length, int *under
         if (e.kind == KindOfData::CONTENT)
         {
             l += e.len;
-            if (e.understanding != Understanding::NONE)
+            if (e.understanding == Understanding::PARTIAL ||
+                e.understanding == Understanding::FULL)
             {
                 // Its content and we have at least some understanding.
                 u += e.len;
@@ -2057,16 +2136,18 @@ void Telegram::analyzeParse(OutputFormat format, int *content_length, int *under
     case OutputFormat::TERMINAL:
     {
         bool use_ansi = format == OutputFormat::TERMINAL;
-        printAnalysisAsText(explanations, use_ansi);
+        return renderAnalysisAsText(explanations, use_ansi);
         break;
     }
     case OutputFormat::JSON:
-        printAnalysisAsJson(explanations);
+        return renderAnalysisAsJson(explanations);
         break;
     case OutputFormat::NONE:
         // Do nothing
+        return "";
         break;
     }
+    return "ERROR";
 }
 
 void detectMeterDrivers(int manufacturer, int media, int version, std::vector<std::string> *drivers);
@@ -2087,12 +2168,30 @@ string Telegram::autoDetectPossibleDrivers()
     return possibles;
 }
 
-string mbusCField(uchar c_field)
+const char *mbusCField(uchar c_field)
 {
     string s;
     switch (c_field)
     {
     case 0x08: return "RSP_UD2";
+    }
+    return "?";
+}
+
+const char *mbusCiField(uchar c_field)
+{
+    string s;
+    switch (c_field)
+    {
+    case 0x78: return "no header";
+    case 0x7a: return "short header";
+    case 0x72: return "long header";
+    case 0x79: return "no header compact frame";
+    case 0x7b: return "short header compact frame";
+    case 0x73: return "long header compact frame";
+    case 0x69: return "no header format frame";
+    case 0x6a: return "short header format frame";
+    case 0x6b: return "long header format frame";
     }
     return "?";
 }
@@ -2129,6 +2228,22 @@ string cType(int c_field)
     }
 
     return s;
+}
+
+bool isValidWMBusCField(int c_field)
+{
+    // These are the currently seen valid C fields for wmbus telegrams.
+    // 0x46 is only from an ei6500 meter.... all else is ox44
+    // However in the future we might see relayed telegrams which will perhaps have
+    // some other c field.
+    return
+        c_field == 0x44 ||
+        c_field == 0x46;
+}
+
+bool isValidMBusCField(int c_field)
+{
+    return false;
 }
 
 string ccType(int cc_field)
@@ -2355,10 +2470,10 @@ string vifType(int vif)
     case 0x5E: return "Return temperature 10⁻¹ °C";
     case 0x5F: return "Return temperature °C";
 
-    case 0x60: return "Temperature difference mK";
-    case 0x61: return "Temperature difference 10⁻² K";
-    case 0x62: return "Temperature difference 10⁻¹ K";
-    case 0x63: return "Temperature difference K";
+    case 0x60: return "Temperature difference 10⁻³ K/°C";
+    case 0x61: return "Temperature difference 10⁻² K/°C";
+    case 0x62: return "Temperature difference 10⁻¹ K/°C";
+    case 0x63: return "Temperature difference K/°C";
 
     case 0x64: return "External temperature 10⁻³ °C";
     case 0x65: return "External temperature 10⁻² °C";
@@ -4223,7 +4338,10 @@ bool trimCRCsFrameFormatAInternal(std::vector<uchar> &payload, bool fail_is_ok)
 
     if (calc_crc != check_crc && !FUZZING)
     {
-        debug("(wmbus) ff a dll crc first (calculated %04x) did not match (expected %04x) for bytes 0-%zu!\n", calc_crc, check_crc, 10);
+        if (!fail_is_ok)
+        {
+            debug("(wmbus) ff a dll crc first (calculated %04x) did not match (expected %04x) for bytes 0-%zu!\n", calc_crc, check_crc, 10);
+        }
         return false;
     }
     out.insert(out.end(), payload.begin(), payload.begin()+10);
@@ -4276,10 +4394,7 @@ bool trimCRCsFrameFormatAInternal(std::vector<uchar> &payload, bool fail_is_ok)
         }
     }
 
-    if (fail_is_ok)
-    {
-        debugPayload("(wmbus) trimming frame A", payload);
-    }
+    debugPayload("(wmbus) trimming frame A", payload);
 
     out[0] = out.size()-1;
     size_t new_len = out[0]+1;
@@ -4361,10 +4476,7 @@ bool trimCRCsFrameFormatBInternal(std::vector<uchar> &payload, bool fail_is_ok)
         }
     }
 
-    if (fail_is_ok)
-    {
-        debugPayload("(wmbus) trimming frame B", payload);
-    }
+    debugPayload("(wmbus) trimming frame B", payload);
 
     out[0] = out.size()-1;
     size_t new_len = out[0]+1;
@@ -4397,7 +4509,8 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload)
 FrameStatus checkWMBusFrame(vector<uchar> &data,
                             size_t *frame_length,
                             int *payload_len_out,
-                            int *payload_offset)
+                            int *payload_offset,
+                            bool only_test)
 {
     // Nice clean: 2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B
     // Ugly: 00615B2A442D2C998734761B168D2021D0871921|58387802FF2071000413F81800004413F8180000615B
@@ -4414,17 +4527,17 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
     int type = data[1];
     int offset = 1;
 
-    if (type != 0x44)
+    if (!isValidWMBusCField(type))
     {
         // Ouch, we are out of sync with the wmbus frames that we expect!
         // Since we currently do not handle any other type of frame, we can
-        // look for the byte 0x44 in the buffer. If we find a 0x44 byte and
-        // the length byte before it maps to the end of the buffer,
-        // then we have found a valid telegram.
+        // look for a valid c field (ie 0x44 0x46 etc) in the buffer.
+        // If we find such a byte and the length byte before maps to the end
+        // of the buffer, then we have found a valid telegram.
         bool found = false;
         for (size_t i = 0; i < data.size()-2; ++i)
         {
-            if (data[i+1] == 0x44)
+            if (isValidWMBusCField(data[i+1]))
             {
                 payload_len = data[i];
                 size_t remaining = data.size()-i;
@@ -4440,8 +4553,15 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
         if (!found)
         {
             // No sensible telegram in the buffer. Flush it!
-            verbose("(wmbus) no sensible telegram found, clearing buffer.\n");
-            data.clear();
+            if (!only_test)
+            {
+                verbose("(wmbus) no sensible telegram found, clearing buffer.\n");
+                data.clear();
+            }
+            else
+            {
+                debug("(wmbus) not a proper wmbus frame.\n");
+            }
             return ErrorInFrame;
         }
     }
@@ -4450,18 +4570,25 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
     *frame_length = payload_len+offset;
     if (data.size() < *frame_length)
     {
-        debug("(wmbus) not enough bytes, partial frame %d %d\n", data.size(), *frame_length);
+        if (!only_test)
+        {
+            debug("(wmbus) not enough bytes, partial frame %d %d\n", data.size(), *frame_length);
+        }
         return PartialFrame;
     }
 
-    debug("(wmbus) received full frame.\n");
+    if (!only_test)
+    {
+        debug("(wmbus) received full frame.\n");
+    }
     return FullFrame;
 }
 
 FrameStatus checkMBusFrame(vector<uchar> &data,
                            size_t *frame_length,
                            int *payload_len_out,
-                           int *payload_offset)
+                           int *payload_offset,
+                           bool only_test)
 {
     // Example:
     // E5
@@ -4471,48 +4598,78 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
     // 5E checksum
     // 16 stop
 
-    debugPayload("(wmbus) checkMBUSFrame\n", data);
+    debugPayload("(mbus) checkMBUSFrame\n", data);
 
     if (data.size() > 0 && data[0] == 0xe5)
     {
         // Single character confirmation frame.
+        if (only_test)
+        {
+            // For testing purposes we require the frame to be a single char as well.
+            // This happens when we pass a frame on the command line or in a simulation file.
+            // Otherwise a normal wmbus telegram with length e5 will triggere this mbus command.
+            // (When reading from a serial line, we might have data coming after the e5,
+            // but then we know that we are talking mbus.)
+            if (data.size() != 1)
+            {
+                return ErrorInFrame;
+            }
+        }
         *payload_len_out = 0;
         *payload_offset = 0;
         *frame_length = 1;
-        debug("(wmbus) received E5 single byte frame.\n");
+        if (!only_test)
+        {
+            debug("(mbus) received E5 single byte frame.\n");
+        }
         return FullFrame;
     }
     if (data.size() < 6)
     {
         // 4 byte start, 1 checksum, 1 stop
-        debug("(wmbus) less than 6 bytes, partial frame\n");
+        if (!only_test)
+        {
+            debug("(mbus) less than 6 bytes, partial frame\n");
+        }
         return PartialFrame;
     }
     if (data[0] != 0x68 && data[3] != 0x68)
     {
-        verbose("(wmbus) no 0x68 byte found, clearing buffer.\n");
-        data.clear();
+        if (!only_test)
+        {
+            verbose("(mbus) no 0x68 byte found, clearing buffer.\n");
+            data.clear();
+        }
         return ErrorInFrame;
     }
 
     if (data[1] != data[2])
     {
-        verbose("(wmbus) lengths not matching, clearing buffer.\n");
-        data.clear();
+        if (!only_test)
+        {
+            verbose("(mbus) lengths not matching, clearing buffer.\n");
+            data.clear();
+        }
         return ErrorInFrame;
     }
     int payload_len = data[1];
     *frame_length = payload_len+4+1+1; // start(4)+cs(1)+stop(1)
     if (data.size() < *frame_length)
     {
-        debug("(wmbus) not enough bytes, partial frame %d %d\n", data.size(), *frame_length);
+        if (!only_test)
+        {
+            debug("(mbus) not enough bytes, partial frame %d %d\n", data.size(), *frame_length);
+        }
         return PartialFrame;
     }
     uchar stop = data[*frame_length-1];
     if (stop != 0x16)
     {
-        verbose("(wmbus) stop byte (0x%02x) at pos %d is not 0x16, clearing buffer.\n", stop, *frame_length-1);
-        data.clear();
+        if (!only_test)
+        {
+            verbose("(mbus) stop byte (0x%02x) at pos %d is not 0x16, clearing buffer.\n", stop, *frame_length-1);
+            data.clear();
+        }
         return ErrorInFrame;
     }
     uchar csc = 0;
@@ -4520,14 +4677,20 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
     uchar cs = data[*frame_length-2];
     if (cs != csc)
     {
-        verbose("(wmbus) expected checksum 0x%02x but got 0x%02x, clearing buffer.\n", csc, cs);
-        data.clear();
+        if (!only_test)
+        {
+            verbose("(mbus) expected checksum 0x%02x but got 0x%02x, clearing buffer.\n", csc, cs);
+            data.clear();
+        }
         return ErrorInFrame;
     }
 
-    *payload_len_out = *frame_length-6;
-    *payload_offset = 4;
-    debug("(wmbus) received full frame.\n");
+    *payload_len_out = *frame_length-2; // Drop checksum byte and stop byte.
+    *payload_offset = 0; // Drop 0x68 len len 0x68.
+    if (!only_test)
+    {
+        debug("(mbus) received full frame.\n");
+    }
     return FullFrame;
 }
 
@@ -4625,7 +4788,7 @@ bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_
     }
     // A hex string becomes a simulation file with a single line containing a telegram defined by the hex string.
     bool invalid_hex = false;
-    if (isHexString(f.c_str(), &invalid_hex))
+    if (isHexStringFlex(f.c_str(), &invalid_hex))
     {
         *is_simulation = true;
         *is_hex_simulation = true;
@@ -4944,6 +5107,7 @@ bool SendBusContent::parse(const string &s)
 }
 
 Detected detectWMBusDeviceOnTTY(string tty,
+                                set<WMBusDeviceType> probe_for,
                                 LinkModeSet desired_linkmodes,
                                 shared_ptr<SerialCommunicationManager> handler)
 {
@@ -4952,6 +5116,8 @@ Detected detectWMBusDeviceOnTTY(string tty,
     detected.found_file = tty;
     detected.specified_device.is_tty = true;
     detected.specified_device.linkmodes = desired_linkmodes;
+
+    bool has_auto = probe_for.count(WMBusDeviceType::DEVICE_AUTO);
 
     AccessCheck ac = handler->checkAccess(tty, handler);
     if (ac != AccessCheck::AccessOK)
@@ -4970,30 +5136,52 @@ Detected detectWMBusDeviceOnTTY(string tty,
 
     // Talk amb8465 with it...
     // assumes this device is configured for 9600 bps, which seems to be the default.
-    if (detectAMB8465(&detected, handler) == AccessCheck::AccessOK)
+    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_AMB8465))
     {
-        return detected;
+        if (detectAMB8465(&detected, handler) == AccessCheck::AccessOK)
+        {
+            return detected;
+        }
     }
 
     // Talk im871a with it...
     // assumes this device is configured for 57600 bps, which seems to be the default.
-    if (detectIM871AIM170A(&detected, handler) == AccessCheck::AccessOK)
+    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_IM871A))
     {
-        return detected;
+        if (detectIM871AIM170A(&detected, handler) == AccessCheck::AccessOK)
+        {
+            return detected;
+        }
     }
 
     // Talk RC1180 with it...
     // assumes this device is configured for 19200 bps, which seems to be the default.
-    if (detectRC1180(&detected, handler) == AccessCheck::AccessOK)
+    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_RC1180))
     {
-        return detected;
+        if (detectRC1180(&detected, handler) == AccessCheck::AccessOK)
+        {
+            return detected;
+        }
     }
 
     // Talk CUL with it...
     // assumes this device is configured for 38400 bps, which seems to be the default.
-    if (detectCUL(&detected, handler) == AccessCheck::AccessOK)
+    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_CUL))
     {
-        return detected;
+        if (detectCUL(&detected, handler) == AccessCheck::AccessOK)
+        {
+            return detected;
+        }
+    }
+
+    // Talk iu880b with it...
+    // assumes this device is configured for 115200 bps, which seems to be the default.
+    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_IU880B))
+    {
+        if (detectIU880B(&detected, handler) == AccessCheck::AccessOK)
+        {
+            return detected;
+        }
     }
 
     // We could not auto-detect either. default is DEVICE_UNKNOWN.
@@ -5006,7 +5194,8 @@ Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
 {
     assert(specified_device.file != "" || specified_device.hex != "");
     assert(specified_device.command == "");
-    debug("(lookup) with file/hex \"%s%s\"\n", specified_device.file.c_str(), specified_device.hex.c_str());
+    debug("(lookup) with file/hex \"%s%s\" %s\n", specified_device.file.c_str(), specified_device.hex.c_str(),
+          toString(specified_device.type));
 
     Detected detected;
     detected.found_file = specified_device.file;
@@ -5061,7 +5250,7 @@ Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
         return detected;
     }
 
-    // Now handle all files with specified type.
+    // Now handle all files (ie not ttys) with specified type.
     if (specified_device.type != WMBusDeviceType::DEVICE_UNKNOWN &&
         specified_device.type != WMBusDeviceType::DEVICE_AUTO &&
         !specified_device.is_tty)
@@ -5074,7 +5263,9 @@ Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
     // to figure out what is connected to it.
     LinkModeSet desired_linkmodes = lms;
-    Detected d = detectWMBusDeviceOnTTY(specified_device.file, desired_linkmodes, handler);
+    set<WMBusDeviceType> probe_for = { specified_device.type };
+
+    Detected d = detectWMBusDeviceOnTTY(specified_device.file, probe_for, desired_linkmodes, handler);
     if (specified_device.type != d.found_type &&
         specified_device.type != DEVICE_UNKNOWN)
     {
@@ -5171,4 +5362,22 @@ const char *toString(FrameType ft)
     case FrameType::HAN: return "han";
     }
     return "?";
+}
+
+int genericifyMedia(int media)
+{
+    if (media == 0x06 || // Warm Water (30°C-90°C) meter
+        media == 0x07 || // Water meter
+        media == 0x15 || // Hot water (>=90°C) meter
+        media == 0x16 || // Cold water meter
+        media == 0x28)   // Waste water
+    {
+        return 0x07; // Return plain water
+    }
+    return media;
+}
+
+bool isCloseEnough(int media1, int media2)
+{
+    return genericifyMedia(media1) == genericifyMedia(media2);
 }

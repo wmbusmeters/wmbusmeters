@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström
+ Copyright (C) 2018-2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -23,8 +23,13 @@
 #include "wmbus.h"
 
 bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey);
-bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey);
-bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey);
+bool decrypt_TPL_AES_CBC_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey,
+                            int *num_encrypted_bytes,
+                            int *num_not_encrypted_at_end);
+bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, vector<uchar> &aeskey,
+                               int *num_encrypted_bytes,
+                               int *num_not_encrypted_at_end);
+
 string frameTypeKamstrupC1(int ft);
 
 #endif

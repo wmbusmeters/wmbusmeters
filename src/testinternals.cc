@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2020 Fredrik Öhrström
+ Copyright (C) 2018-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include"meters.h"
 #include"printer.h"
 #include"serial.h"
+#include"translatebits.h"
 #include"util.h"
 #include"wmbus.h"
 #include"dvparser.h"
@@ -43,6 +44,8 @@ void test_months();
 void test_aes();
 void test_sbc();
 void test_hex();
+void test_translate();
+void test_slip();
 
 int main(int argc, char **argv)
 {
@@ -73,6 +76,8 @@ int main(int argc, char **argv)
     test_aes();
     test_sbc();
     test_hex();
+    test_translate();
+    test_slip();
 
     return 0;
 }
@@ -170,10 +175,10 @@ void test_string(map<string,pair<int,DVEntry>> &values, const char *key, const c
 {
     int offset;
     string value;
-    bool b = extractDVstring(&values,
-                             key,
-                             &offset,
-                             &value);
+    bool b = extractDVHexString(&values,
+                                key,
+                                &offset,
+                                &value);
     if (!b || value != v) {
         fprintf(stderr, "Error in dvparser testnr %d: got \"%s\" but expected value \"%s\" for key %s\n", testnr, value.c_str(), v, key);
     }
@@ -324,7 +329,7 @@ int test_linkmodes()
                                                                  0,
                                                                  no_meter_shells,
                                                                  no_meter_jsons));
-    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m2", MeterDriver::SUPERCOM587, "", ids, "",
+    multical21_and_supercom587_config.meters.push_back(MeterInfo("", "m2", MeterDriver::UNKNOWN, "supercom587", ids, "",
                                                                  toMeterLinkModeSet(supercom587),
                                                                  0,
                                                                  no_meter_shells,
@@ -820,24 +825,27 @@ void test_meters()
 {
     string config_content;
 
+    /*
     testm("piigth:BUS1:2400", true,
           "piigth", // driver
           "", // extras
           "BUS1", // bus
           "2400", // bps
           "mbus"); // linkmodes
-
+    */
+    /*
     config_content =
         "name=test\n"
         "driver=piigth:BUS1:2400\n"
         "id=01234567\n";
+
     testc("meter/piigth:BUS1:2400", config_content,
           "piigth", // driver
           "", // extras
           "BUS1", // bus
           "2400", // bps
           "mbus"); // linkmodes)
-
+    */
 
     testm("multical21:c1", true,
           "multical21", // driver
@@ -985,10 +993,12 @@ void test_aes()
     }
 }
 
-void test_is_hex(const char *hex, bool expected_ok, bool expected_invalid)
+void test_is_hex(const char *hex, bool expected_ok, bool expected_invalid, bool strict)
 {
     bool got_invalid;
-    bool got_ok = isHexString(hex, &got_invalid);
+    bool got_ok;
+    if (strict) got_ok = isHexStringStrict(hex, &got_invalid);
+    else got_ok = isHexStringFlex(hex, &got_invalid);
 
     if (got_ok != expected_ok || got_invalid != expected_invalid)
     {
@@ -997,10 +1007,147 @@ void test_is_hex(const char *hex, bool expected_ok, bool expected_invalid)
                expected_ok, expected_invalid, got_ok, got_invalid);
     }
 }
+
 void test_hex()
 {
-    test_is_hex("00112233445566778899aabbccddeeff", true, false);
-    test_is_hex("00112233445566778899AABBCCDDEEFF", true, false);
-    test_is_hex("00112233445566778899AABBCCDDEEF", true, true);
-    test_is_hex("00112233445566778899AABBCCDDEEFG", false, false);
+    test_is_hex("00112233445566778899aabbccddeeff", true, false, true);
+    test_is_hex("00112233445566778899AABBCCDDEEFF", true, false, true);
+    test_is_hex("00112233445566778899AABBCCDDEEF", true, true, true);
+    test_is_hex("00112233445566778899AABBCCDDEEFG", false, false, true);
+
+    test_is_hex("00 11 22 33#44|55#66 778899aabbccddeeff", true, false, false);
+    test_is_hex("00 11 22 33#4|55#66 778899aabbccddeeff", true, true, false);
+}
+
+void test_translate()
+{
+    Translate::Lookup lookup1 =
+        {
+            {
+                {
+                    "ACCESS_BITS",
+                    Translate::Type::BitToString,
+                    0xf0,
+                    "",
+                    {
+                        { 0x10, "NO_ACCESS" },
+                        { 0x20, "ALL_ACCESS" },
+                        { 0x40, "TEMP_ACCESS" },
+                    }
+                },
+                {
+                    "ACCESSOR_TYPE",
+                    Translate::Type::IndexToString,
+                    0x0f,
+                    "",
+                    {
+                        { 0x00, "ACCESSOR_RED" },
+                        { 0x07, "ACCESSOR_GREEN" },
+                    },
+                },
+            },
+        };
+
+   Translate::Lookup lookup2 =
+        {
+            {
+                {
+                    "ERROR_FLAGS",
+                    Translate::Type::BitToString,
+                    0x0f,
+                    "",
+                    {
+                        { 0x01, "BACKWARD_FLOW" },
+                        { 0x02, "DRY" },
+                        { 0x12, "TRIG" },
+                    }
+                },
+            },
+        };
+
+    string s, e;
+    s = lookup1.translate(0xA0);
+    e = "ALL_ACCESS UNKNOWN_ACCESS_BITS(0x80) ACCESSOR_RED";
+    if (s != e)
+    {
+        printf("ERROR expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+    }
+
+    s = lookup1.translate(0x35);
+    e = "NO_ACCESS ALL_ACCESS UNKNOWN_ACCESSOR_TYPE(0x5)";
+    if (s != e)
+    {
+        printf("ERROR expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+    }
+
+    s = lookup2.translate(0x02);
+    e = "DRY BAD_RULE_ERROR_FLAGS(from=0x12 mask=0xf)";
+    if (s != e)
+    {
+        printf("ERROR expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+    }
+}
+
+void test_slip()
+{
+    vector<uchar> from = { 1, 0xc0, 3, 4, 5, 0xdb };
+    vector<uchar> expected_to = { 0xc0, 1, 0xdb, 0xdc, 3, 4, 5, 0xdb, 0xdd, 0xc0 };
+    vector<uchar> to;
+    vector<uchar> back;
+
+    addSlipFraming(from, to);
+
+    if (expected_to != to)
+    {
+        printf("ERROR slip 1\n");
+    }
+
+    size_t frame_length = 0;
+    removeSlipFraming(to, &frame_length, back);
+
+    if (back != from)
+    {
+        printf("ERROR slip 2\n");
+    }
+
+    if (to.size() != frame_length)
+    {
+        printf("ERROR slip 3\n");
+    }
+
+    vector<uchar> more = { 0xc0, 0xc0, 0xc0, 1, 2, 3, 4, 5, 6, 7, 8 };
+    addSlipFraming(more, to);
+
+    frame_length = 0;
+    removeSlipFraming(to, &frame_length, back);
+
+    if (back != from)
+    {
+        printf("ERROR slip 4\n");
+    }
+
+    to.erase(to.begin(), to.begin()+frame_length);
+    removeSlipFraming(to, &frame_length, back);
+
+    if (back != more)
+    {
+        printf("ERROR slip 5\n");
+    }
+
+    vector<uchar> again = { 0xc0 };
+    removeSlipFraming(again, &frame_length, back);
+
+    if (frame_length != 0)
+    {
+        printf("ERROR slip 6\n");
+    }
+
+    vector<uchar> againn = { 0xc0, 1, 2, 3, 4, 5 };
+    removeSlipFraming(againn, &frame_length, back);
+
+    if (frame_length != 0)
+    {
+        printf("ERROR slip 7\n");
+    }
+
 }

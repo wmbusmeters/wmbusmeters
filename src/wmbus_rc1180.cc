@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström
+ Copyright (C) 2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -306,7 +306,7 @@ void WMBusRC1180::processSerialData()
 
     for (;;)
     {
-        FrameStatus status = checkWMBusFrame(read_buffer_, &frame_length, &payload_len, &payload_offset);
+        FrameStatus status = checkWMBusFrame(read_buffer_, &frame_length, &payload_len, &payload_offset, false);
 
         if (status == PartialFrame)
         {

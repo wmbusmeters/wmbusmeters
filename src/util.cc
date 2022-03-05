@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
+ Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -163,12 +163,8 @@ uchar reverse(uchar c)
     return ((c&15)<<4) | (c>>4);
 }
 
-bool isHexString(const string &txt, bool *invalid)
-{
-    return isHexString(txt.c_str(), invalid);
-}
 
-bool isHexString(const char* txt, bool *invalid)
+bool isHexString(const char* txt, bool *invalid, bool strict)
 {
     *invalid = false;
     // An empty string is not an hex string.
@@ -179,19 +175,46 @@ bool isHexString(const char* txt, bool *invalid)
     for (;;)
     {
         char c = *i++;
+        if (!strict && c == '#') continue; // Ignore hashes if not strict
+        if (!strict && c == ' ') continue; // Ignore hashes if not strict
+        if (!strict && c == '|') continue; // Ignore hashes if not strict
         if (c == 0) break;
         n++;
         if (char2int(c) == -1) return false;
     }
+    // An empty string is not an hex string.
+    if (n == 0) return false;
     if (n%2 == 1) *invalid = true;
+
     return true;
+}
+
+bool isHexStringFlex(const char* txt, bool *invalid)
+{
+    return isHexString(txt, invalid, false);
+}
+
+bool isHexStringFlex(const std::string &txt, bool *invalid)
+{
+    return isHexString(txt.c_str(), invalid, false);
+}
+
+bool isHexStringStrict(const char* txt, bool *invalid)
+{
+    return isHexString(txt, invalid, true);
+}
+
+bool isHexStringStrict(const std::string &txt, bool *invalid)
+{
+    return isHexString(txt.c_str(), invalid, true);
 }
 
 bool hex2bin(const char* src, vector<uchar> *target)
 {
     if (!src) return false;
     while(*src && src[1]) {
-        if (*src == ' ') {
+        if (*src == ' ' || *src == '#' || *src == '|') {
+            // Ignore space and hashes and pipes.
             src++;
         } else {
             int hi = char2int(*src);
@@ -857,6 +880,7 @@ vector<string> splitMatchExpressions(string& mes)
         auto id = eatTo(v, i, ',', 16, &eof, &err);
         if (err) break;
         trimWhitespace(&id);
+        if (id == "ANYID") id = "*";
         r.push_back(id);
         if (eof) break;
     }
@@ -989,7 +1013,7 @@ void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size
         string content = parsed_hex.substr(header_size*2);
         if (suffix_size == 0)
         {
-            notice("telegram=|%s|%s|+%ld\n",
+            notice("telegram=|%s#%s|+%ld\n",
                    header.c_str(), content.c_str(), diff);
         }
         else
@@ -1325,8 +1349,10 @@ int days_in_months[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
 int get_days_in_month(int year, int month)
 {
-    assert(month >= 0);
-    assert(month < 12);
+    if (month < 0 || month >= 12)
+    {
+        month = 0;
+    }
 
     int days = days_in_months[month];
 
@@ -2031,4 +2057,107 @@ size_t findBytes(vector<uchar> &v, uchar a, uchar b, uchar c)
         p++;
     }
     return (size_t)-1;
+}
+
+string reverseBCD(string v)
+{
+    int vlen = v.length();
+    if (vlen % 2 != 0)
+    {
+        return "BADHEX:"+v;
+    }
+
+    string n = "";
+    for (int i=0; i<vlen; i+=2)
+    {
+        n += v[vlen-2-i];
+        n += v[vlen-1-i];
+    }
+    return n;
+}
+
+string reverseBinaryAsciiSafeToString(string v)
+{
+    vector<uchar> bytes;
+    bool ok = hex2bin(v, &bytes);
+    if (!ok) return "BADHEX:"+v;
+    reverse(bytes.begin(), bytes.end());
+    return safeString(bytes);
+}
+
+#define SLIP_END             0xc0    /* indicates end of packet */
+#define SLIP_ESC             0xdb    /* indicates byte stuffing */
+#define SLIP_ESC_END         0xdc    /* ESC ESC_END means END data byte */
+#define SLIP_ESC_ESC         0xdd    /* ESC ESC_ESC means ESC data byte */
+
+void addSlipFraming(vector<uchar>& from, vector<uchar> &to)
+{
+    to.push_back(SLIP_END);
+    for (uchar c : from)
+    {
+        if (c == SLIP_END)
+        {
+            to.push_back(SLIP_ESC);
+            to.push_back(SLIP_ESC_END);
+        }
+        else if (c == SLIP_ESC)
+        {
+            to.push_back(SLIP_ESC);
+            to.push_back(SLIP_ESC_ESC);
+        }
+        else
+        {
+            to.push_back(c);
+        }
+    }
+    to.push_back(SLIP_END);
+}
+
+void removeSlipFraming(vector<uchar>& from, size_t *frame_length, vector<uchar> &to)
+{
+    *frame_length = 0;
+    to.clear();
+    to.reserve(from.size());
+    bool esc = false;
+    size_t i;
+    bool found_end = false;
+
+    for (i = 0; i < from.size(); ++i)
+    {
+        uchar c = from[i];
+        if (c == SLIP_END)
+        {
+            if (to.size() > 0)
+            {
+                found_end = true;
+                i++;
+                break;
+            }
+        }
+        else if (c == SLIP_ESC)
+        {
+            esc = true;
+        }
+        else if (esc)
+        {
+            if (c == SLIP_ESC_END) to.push_back(SLIP_END);
+            else if (c == SLIP_ESC_ESC) to.push_back(SLIP_ESC);
+            else to.push_back(c); // This is an error......
+        }
+        else
+        {
+            to.push_back(c);
+        }
+    }
+
+    if (found_end)
+    {
+        *frame_length = i;
+    }
+    else
+    {
+        *frame_length = 0;
+        to.clear();
+    }
+
 }

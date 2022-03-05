@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2021 Fredrik Öhrström
+ Copyright (C) 2021 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -120,7 +120,7 @@ void MBusRawTTY::processSerialData()
 
     for (;;)
     {
-        FrameStatus status = checkMBusFrame(read_buffer_, &frame_length, &payload_len, &payload_offset);
+        FrameStatus status = checkMBusFrame(read_buffer_, &frame_length, &payload_len, &payload_offset, false);
 
         if (status == PartialFrame)
         {
@@ -140,8 +140,8 @@ void MBusRawTTY::processSerialData()
             vector<uchar> payload;
             if (payload_len > 0)
             {
-                uchar l = payload_len;
-                payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
+                //uchar l = payload_len;
+                //payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
                 payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
             }
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);

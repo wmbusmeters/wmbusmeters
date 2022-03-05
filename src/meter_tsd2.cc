@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström
+ Copyright (C) 2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ private:
 };
 
 MeterTSD2::MeterTSD2(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::TSD2)
+    MeterCommonImplementation(mi, "tsd2")
 {
     setMeterType(MeterType::SmokeDetector);
 

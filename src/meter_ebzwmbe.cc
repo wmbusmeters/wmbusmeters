@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström
+ Copyright (C) 2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ private:
 };
 
 MeterEBZWMBE::MeterEBZWMBE(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EBZWMBE)
+    MeterCommonImplementation(mi, "ebzwmbe")
 {
     setMeterType(MeterType::ElectricityMeter);
 
@@ -170,7 +170,7 @@ void MeterEBZWMBE::processContent(Telegram *t)
     t->addMoreExplanation(offset, " current power (%f kw)", current_power_kw_);
 
     string tmp;
-    extractDVstring(&t->values, "0DFD11", &offset, &tmp);
+    extractDVHexString(&t->values, "0DFD11", &offset, &tmp);
     if (tmp.length() > 0) {
         vector<uchar> bin;
         hex2bin(tmp, &bin);

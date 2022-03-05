@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ using namespace std;
 #define INFO_CODE_BURST_SHIFT (4+9)
 
 struct MeterMultical21 : public virtual MeterCommonImplementation {
-    MeterMultical21(MeterInfo &mi, MeterDriver mt);
+    MeterMultical21(MeterInfo &mi, string mt);
 
     // Total water counted through the meter
     double totalWaterConsumption(Unit u);
@@ -89,7 +89,7 @@ private:
     bool has_external_temperature_ {};
 };
 
-MeterMultical21::MeterMultical21(MeterInfo &mi, MeterDriver mt) :
+MeterMultical21::MeterMultical21(MeterInfo &mi, string mt) :
     MeterCommonImplementation(mi, mt)
 {
     setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
@@ -207,9 +207,9 @@ bool MeterMultical21::hasExternalTemperature()
     return has_external_temperature_;
 }
 
-shared_ptr<Meter> createMulticalWaterMeter(MeterInfo &mi, MeterDriver mt)
+shared_ptr<Meter> createMulticalWaterMeter(MeterInfo &mi, string mt)
 {
-    if (mt != MeterDriver::MULTICAL21 && mt != MeterDriver::FLOWIQ3100) {
+    if (mt != "multical21" && mt != "flowiq3100") {
         error("Internal error! Not a proper meter type when creating a multical21 style meter.\n");
     }
     return shared_ptr<Meter>(new MeterMultical21(mi,mt));
@@ -217,12 +217,12 @@ shared_ptr<Meter> createMulticalWaterMeter(MeterInfo &mi, MeterDriver mt)
 
 shared_ptr<Meter> createMultical21(MeterInfo &mi)
 {
-    return createMulticalWaterMeter(mi, MeterDriver::MULTICAL21);
+    return createMulticalWaterMeter(mi, "multical21");
 }
 
 shared_ptr<Meter> createFlowIQ3100(MeterInfo &mi)
 {
-    return createMulticalWaterMeter(mi, MeterDriver::FLOWIQ3100);
+    return createMulticalWaterMeter(mi, "flowiq3100");
 }
 
 void MeterMultical21::processContent(Telegram *t)

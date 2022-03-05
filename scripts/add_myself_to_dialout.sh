@@ -1,4 +1,5 @@
 #!/bin/sh
+# Copyright (C) 2021 Fredrik Öhrström (gpl-3.0-or-later)
 
 if [ ! -z "$SUDO_USER" ]
 then

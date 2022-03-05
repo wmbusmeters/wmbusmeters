@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström
+ Copyright (C) 2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ shared_ptr<Meter> createQ400(MeterInfo &mi)
 }
 
 MeterQ400::MeterQ400(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::Q400)
+    MeterCommonImplementation(mi, "q400")
 {
     setMeterType(MeterType::WaterMeter);
 

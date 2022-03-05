@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
+ Copyright (C) 2017-2021 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ using namespace std;
 #define FIRMWARE_14_C_AND_T 0x14
 #define FIRMWARE_13_C_OR_T  0x13
 
-struct DeviceInfo
+struct IM871ADeviceInfo
 {
     uchar module_type; // 0x33 = im871a 0x36 = im170a
     uchar device_mode; // 0 = other 1 = meter
@@ -228,7 +228,7 @@ struct WMBusIM871aIM170A : public virtual WMBusCommonImplementation
 
 private:
 
-    DeviceInfo device_info_ {};
+    IM871ADeviceInfo device_info_ {};
     Config     device_config_ {};
 
     vector<uchar> read_buffer_;
@@ -1014,7 +1014,7 @@ AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicatio
 
     debugPayload("(device info bytes)", payload);
 
-    DeviceInfo di;
+    IM871ADeviceInfo di;
     di.decode(payload);
 
     debug("(im871a/im170a) info: %s\n", di.str().c_str());

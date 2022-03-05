@@ -1,3 +1,4 @@
+// Copyright (C) 2021 Fredrik Öhrström (CC0)
 #ifndef MANUFACTURERS_H
 #define MANUFACTURERS_H
 #define MANFCODE(a,b,c) ((a-64)*1024+(b-64)*32+(c-64))

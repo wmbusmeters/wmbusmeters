@@ -1,0 +1,10 @@
+
+# Test different kinds of electricity meters with radio converters.
+# The meters might report the same mfct/media/version but contains
+# quite different content.
+
+# This is eBZ DD3 meter with a wMB-E01 wmbus radio converter module.
+
+telegram=|4B445A146450000002378C20F3900F002C25F38B00006CBB07CEB215901172635213015A140102F3002007102F2F#04039D3E03000429E82201000DFD110E333632353331313031305A424531|
+{"media":"electricity","meter":"ehzp","name":"MyEl","id":"01135263","total_energy_consumption_kwh":212.637,"current_power_consumption_kw":0.74472,"total_energy_production_kwh":0,"on_time_h":0,"timestamp":"1111-11-11T11:11:11Z"}
+|MyEl;01135263;212.637000;0.744720;0.000000;1111-11-11 11:11.11

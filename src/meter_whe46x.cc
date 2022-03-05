@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström
+ Copyright (C) 2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ private:
 };
 
 MeterWhe46x::MeterWhe46x(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::WHE46X)
+    MeterCommonImplementation(mi, "whe46x")
 {
     setMeterType(MeterType::HeatCostAllocationMeter);
 
@@ -215,7 +215,7 @@ void MeterWhe46x::processContent(Telegram *t)
 
     key = "0DFF5F";
     if (hasKey(&t->values, key)) {
-        extractDVstring(&t->values, key, &offset, &vendor_data_);
+        extractDVHexString(&t->values, key, &offset, &vendor_data_);
         t->addMoreExplanation(offset, " vendor extension data");
     }
 

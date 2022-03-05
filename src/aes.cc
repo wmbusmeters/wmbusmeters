@@ -1,6 +1,6 @@
 // Source from https://github.com/kokke/tiny-AES128-C
 // Public Domain / CC0 / Unlicense
-// Copyright (C) kokke
+// Copyright (C) 2017-2019 kokke (CC0-1.0)
 /*
 
 This is an implementation of the AES algorithm, specifically ECB and CBC mode.

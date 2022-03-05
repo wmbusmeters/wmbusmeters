@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström
+ Copyright (C) 2020-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,21 +15,13 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include"dvparser.h"
-#include"meters.h"
 #include"meters_common_implementation.h"
-#include"wmbus.h"
-#include"wmbus_utils.h"
 
 using namespace std;
 
 struct MeterApator08 : public virtual MeterCommonImplementation
 {
-    MeterApator08(MeterInfo &mi);
-
-    // Total water counted through the meter
-    double totalWaterConsumption(Unit u);
-    bool  hasTotalWaterConsumption();
+    MeterApator08(MeterInfo &mi, DriverInfo &di);
 
 private:
 
@@ -38,37 +30,25 @@ private:
     double total_water_consumption_m3_ {};
 };
 
-shared_ptr<Meter> createApator08(MeterInfo &mi)
+static bool ok = registerDriver([](DriverInfo&di)
 {
-    return shared_ptr<Meter>(new MeterApator08(mi));
-}
+    di.setName("apator08");
+    di.setMeterType(MeterType::WaterMeter);
+    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
+    di.addLinkMode(LinkMode::T1);
+    di.addDetection(0x8614/*APT?*/, 0x03,  0x03);
+    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterApator08(mi, di)); });
+});
 
-MeterApator08::MeterApator08(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::APATOR08)
+MeterApator08::MeterApator08(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
 {
-    setMeterType(MeterType::WaterMeter);
-
-    // manufacturer 0x8614 is not compliant with flags encoding.
-    // forced decode will decode to APT.
-    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
-
-    addLinkMode(LinkMode::T1);
-
-    addPrint("total", Quantity::Volume,
-             [&](Unit u){ return totalWaterConsumption(u); },
-             "The total water consumption recorded by this meter.",
-             true, true);
-}
-
-double MeterApator08::totalWaterConsumption(Unit u)
-{
-    assertQuantity(u, Quantity::Volume);
-    return convert(total_water_consumption_m3_, Unit::M3, u);
-}
-
-bool MeterApator08::hasTotalWaterConsumption()
-{
-    return true;
+    addField(
+        "total",
+        Quantity::Volume,
+        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+        "The total water consumption recorded by this meter.",
+        SET_FUNC(total_water_consumption_m3_, Unit::M3),
+        GET_FUNC(total_water_consumption_m3_, Unit::M3));
 }
 
 void MeterApator08::processContent(Telegram *t)
@@ -96,7 +76,12 @@ void MeterApator08::processContent(Telegram *t)
         // Now divide with 3! Is this the same for all apator08 meters? Time will tell.
         total_water_consumption_m3_ /= 3.0;
 
-        //Adding explanation have to wait since it assumes that the dvparser could do something, but it could not here.
-        //t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
+        total = "*** 10|"+total+" total consumption (%f m3)";
+        t->addSpecialExplanation(offset, 4, KindOfData::CONTENT, Understanding::FULL, total.c_str(), total_water_consumption_m3_);
     }
 }
+
+// Test: Vatten apator08 004444dd NOKEY
+// telegram=|73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000|
+// {"media":"water","meter":"apator08","name":"Vatten","id":"004444dd","total_m3":871.571,"timestamp":"1111-11-11T11:11:11Z"}
+// |Vatten;004444dd;871.571000;1111-11-11 11:11.11

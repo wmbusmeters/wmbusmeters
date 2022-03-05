@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
+ Copyright (C) 2017-2021 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ void Printer::print(Telegram *t, Meter *meter,
     vector<string> envs;
     bool printed = false;
 
-    meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields);
+    meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields, false);
 
     if (shell_cmdlines_.size() > 0 || meter->shellCmdlines().size() > 0) {
         printShells(meter, envs);

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
+ Copyright (C) 2017-2021 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -1108,6 +1108,7 @@ static int openSerialTTY(const char *tty, int baud_rate, PARITY parity)
 
     // CREAD=Enable receive CLOCAL=Ignore any Carrier Detect signal.
     tios.c_cflag |= (CREAD | CLOCAL);
+    //tios.c_cflag |= CRTSCTS; // hardware flow control not enabled.
     tios.c_cflag &= ~CSIZE;
     tios.c_cflag |= CS8;
     tios.c_cflag &=~ CSTOPB;

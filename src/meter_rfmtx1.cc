@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström
+ Copyright (C) 2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ shared_ptr<Meter> createRfmTX1(MeterInfo &mi)
 }
 
 MeterRfmTX1::MeterRfmTX1(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::RFMTX1)
+    MeterCommonImplementation(mi, "rfmtx1")
 {
     setMeterType(MeterType::WaterMeter);
 

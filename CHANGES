@@ -1,4 +1,45 @@
 
+ldebomy fixed a bug in the izar decoding that for some meters dropped the most significant digit
+in the serial number. Thanks ldebomy!
+
+Germar Reitze fixed a bug where negative BCD values were not properly converted. Thanks Germar!
+
+Fix unnecessary probing bug where a specified device like: /dev/ttyUSB0:im871a:c1
+and im871a:c1 would still cause wmbusmeters to probe for all types of devices on the serial port(s).
+Now it only probes for im871a which speeds up the startup time significantly.
+
+The sharky774 was improved to handle more different meter configurations.
+
+Michael Ott fixed a bug in oneshot. Thanks Michael!
+
+Fix bug in mode 7 decryption when the encrypted data was followed by non-encrypted data.
+
+NOTE! Json slight json output change drivers esyswm and evo868 where fabrication now is now properly reversed.
+
+You can now combine --useconfig=<dir> with --oneshot --exitafter=<time>
+--silent --verbose --debug --normal --trace to override the config file settings.
+(Already existing possible overrides was --device=<device> and --listento<mode>.)
+
+This can be useful if you maintain a large set of meter configurations but want
+to start wmbusmeters from a cronjob regularly. You can also add oneshot=true
+and/or exitafter=30m to the conf file to get the same result.
+
+Krzysztof Lewandowski added support for multiple tariffs in the amiplus driver. Thanks Krzysztof!
+
+Bibo added support for the itron water meter. Thanks Bibo!
+
+Probutus added support for the heat meter Zenner Celsius C5 ISF. Thanks Probutus!
+
+Added MicroClima heat meter.
+
+MaxPeal helped add ANYID as a synonym for '*' when listening to any meter id.
+This helps when invoking wmbusmeters from another shell and we want to avoid
+escaping '*' multiple levels. Thanks Max!
+
+Refactor driver source code structure. It is now much easier to add a new driver.
+
+DomAtHome added support for the heat meter sharky774. Thanks DomAtHome!
+
 Version 1.6.0: 2022-01-01
 
 New year triggered a change to the apator162 telegram. This is now fixed.

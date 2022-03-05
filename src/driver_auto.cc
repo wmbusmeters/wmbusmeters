@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2021 Fredrik Öhrström
+ Copyright (C) 2021-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,39 +15,35 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include"dvparser.h"
-#include"meters.h"
 #include"meters_common_implementation.h"
-#include"wmbus.h"
-#include"wmbus_utils.h"
-#include"util.h"
-
-#include<assert.h>
 
 using namespace std;
 
+struct MeterAuto : public virtual MeterCommonImplementation
+{
+    MeterAuto(MeterInfo &mi, DriverInfo &di);
 
-struct MeterUnknown : public virtual MeterCommonImplementation {
-    MeterUnknown(MeterInfo &mi);
-
-    string meter_info_;
     void processContent(Telegram *t);
 };
 
-MeterUnknown::MeterUnknown(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::AUTO)
+bool ok = registerDriver([](DriverInfo&di)
 {
-    addPrint("meter_info", Quantity::Text,
-             [&](){ return meter_info_; },
-             "Information about the meter telegram.",
-             true, true);
+    di.setName("auto");
+    di.setMeterType(MeterType::AutoMeter);
+    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterAuto(mi, di)); });
+});
+
+MeterAuto::MeterAuto(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+{
 }
 
-shared_ptr<Meter> createUnknown(MeterInfo &mi)
+shared_ptr<Meter> createAuto(MeterInfo &mi)
 {
-    return shared_ptr<Meter>(new MeterUnknown(mi));
+    DriverInfo di;
+    di.setName("auto");
+    return shared_ptr<Meter>(new MeterAuto(mi, di));
 }
 
-void MeterUnknown::processContent(Telegram *t)
+void MeterAuto::processContent(Telegram *t)
 {
 }

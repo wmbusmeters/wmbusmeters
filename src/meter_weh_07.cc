@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2021 Fredrik Öhrström
+ Copyright (C) 2021 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ shared_ptr<Meter> createWEH_07(MeterInfo &mi)
 }
 
 MeterWEH_07::MeterWEH_07(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::WEH_07)
+    MeterCommonImplementation(mi, "weh_07")
 {
     setMeterType(MeterType::WaterMeter);
 

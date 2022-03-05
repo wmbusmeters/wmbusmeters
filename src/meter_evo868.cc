@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ shared_ptr<Meter> createEVO868(MeterInfo &mi)
 }
 
 MeterEvo868::MeterEvo868(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EVO868)
+    MeterCommonImplementation(mi, "evo868")
 {
     setMeterType(MeterType::WaterMeter);
 
@@ -274,8 +274,7 @@ void MeterEvo868::processContent(Telegram *t)
     extractDVuint32(&t->values, "04FD17", &offset, &error_flags_);
     t->addMoreExplanation(offset, " error flags (%s)", status().c_str());
 
-    extractDVstring(&t->values, "0E78", &offset, &fabrication_no_);
-    reverse(fabrication_no_.begin(), fabrication_no_.end());
+    extractDVReadableString(&t->values, "0E78", &offset, &fabrication_no_);
     t->addMoreExplanation(offset, " fabrication no (%s)", fabrication_no_.c_str());
 
     if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 1, 0, &key, &t->values)) {

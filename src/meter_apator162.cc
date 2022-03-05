@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
+ Copyright (C) 2017-2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ shared_ptr<Meter> createApator162(MeterInfo &mi)
 }
 
 MeterApator162::MeterApator162(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::APATOR162)
+    MeterCommonImplementation(mi, "apator162")
 {
     processExtras(mi.extras);
 
@@ -129,13 +129,13 @@ void MeterApator162::processContent(Telegram *t)
             int offset;
             extractDVdouble(&vendor_values, "0413", &offset, &total_water_consumption_m3_);
             total = "*** 10|"+total+" total consumption (%f m3)";
-            t->addSpecialExplanation(offset, KindOfData::CONTENT, Understanding::FULL, total.c_str(), total_water_consumption_m3_);
+            t->addSpecialExplanation(offset, 4, KindOfData::CONTENT, Understanding::FULL, total.c_str(), total_water_consumption_m3_);
         }
         else
         {
             string msg = "*** ";
             msg += bin2hex(content, i-1, 1)+"|"+bin2hex(content, i, size);
-            t->addSpecialExplanation(i-1+t->header_size, KindOfData::CONTENT, Understanding::NONE, msg.c_str());
+            t->addSpecialExplanation(i-1+t->header_size, size, KindOfData::CONTENT, Understanding::NONE, msg.c_str());
         }
         i += size;
     }
@@ -178,8 +178,30 @@ int MeterApator162::registerSize(int c)
 
     case 0xA0: return 4;
 
+    case 0xB0: return 3;
+    case 0xB1: return 3;
+    case 0xB2: return 3;
+    case 0xB3: return 3;
     case 0xB4: return 3;
+    case 0xB5: return 3;
+    case 0xB6: return 3;
+    case 0xB7: return 3;
+    case 0xB8: return 3;
+    case 0xB9: return 3;
+    case 0xBA: return 3;
+    case 0xBB: return 3;
+    case 0xBC: return 3;
+    case 0xBD: return 3;
+    case 0xBE: return 3;
+    case 0xBF: return 3;
 
+    case 0xC0: return 3;
+    case 0xC1: return 3;
+    case 0xC2: return 3;
+    case 0xC3: return 3;
+    case 0xC4: return 3;
+    case 0xC5: return 3;
+    case 0xC6: return 3;
     case 0xC7: return 3;
 
     case 0xD0: return 3;

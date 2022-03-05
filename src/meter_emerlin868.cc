@@ -1,6 +1,6 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström
- Copyright (C) 2018 David Mallon
+ Copyright (C) 2017-2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2018 David Mallon (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ private:
 };
 
 MeterEMerlin868::MeterEMerlin868(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::EMERLIN868)
+    MeterCommonImplementation(mi, "emerlin868")
 {
     setMeterType(MeterType::WaterMeter);
 

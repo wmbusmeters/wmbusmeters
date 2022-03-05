@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2020 Fredrik Öhrström
+ Copyright (C) 2020 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ shared_ptr<Meter> createCompact5(MeterInfo &mi)
 }
 
 MeterCompact5::MeterCompact5(MeterInfo &mi) :
-    MeterCommonImplementation(mi, MeterDriver::COMPACT5)
+    MeterCommonImplementation(mi, "compact5")
 {
     setMeterType(MeterType::HeatMeter);
 

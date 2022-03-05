@@ -1,3 +1,4 @@
+// Copyright (C) 2019 Fredrik Öhrström (CC0-1.0)
 // Defines documented in the Manual for the AMBER wM-Bus Modules Version 2.7
 
 #define AMBER_SERIAL_SOF 0xFF
