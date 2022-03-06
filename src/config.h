@@ -42,6 +42,11 @@ enum class MeterFileTimestamp
     Never, Day, Hour, Minute, Micros
 };
 
+enum class LogSummary
+{
+    All, Unknown
+};
+
 // These values can be overridden from the command line.
 struct ConfigOverrides
 {
@@ -78,6 +83,7 @@ struct Configuration
     AddLogTimestamps addtimestamps {};
     bool internaltesting {}; // Not currently used. Was used for speeding up testing. I.e. it shortened all timeouts.
                              // Might be needed in the future. Therefore it is still here.
+    bool logsummary {};
     bool logtelegrams {};
     bool meterfiles {};
     std::string meterfiles_dir;

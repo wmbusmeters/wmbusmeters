@@ -560,7 +560,7 @@ bool start(Configuration *config)
     }
 
     bool stop_after_send = false;
-    if (!meter_manager_->hasMeters() && serial_manager_->isRunning())
+    if ((config->logsummary || !meter_manager_->hasMeters()) && serial_manager_->isRunning())
     {
         if  (config->send_bus_content.size() != 0)
         {
@@ -568,7 +568,7 @@ bool start(Configuration *config)
         }
         else if (!config->analyze)
         {
-            notice("No meters configured. Printing id:s of all telegrams heard!\n");
+            if (!config->logsummary) notice("No meters configured. Printing id:s of all telegrams heard!\n");
 
             meter_manager_->onTelegram([](AboutTelegram &about, vector<uchar> frame) {
                     Telegram t;

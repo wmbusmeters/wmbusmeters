@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -139,6 +139,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                 else if (s == "plain") c->analyze_format = OutputFormat::PLAIN;
                 else if (s == "terminal") c->analyze_format = OutputFormat::TERMINAL;
                 else if (s == "json") c->analyze_format = OutputFormat::JSON;
+                else if (s == "html") c->analyze_format = OutputFormat::HTML;
                 else if (s == "verbose") c->analyze_verbose = true;
                 else
                 {
@@ -233,6 +234,11 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         }
         if (!strcmp(argv[i], "--logtelegrams")) {
             c->logtelegrams = true;
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--logsummary")) {
+            c->logsummary = true;
             i++;
             continue;
         }

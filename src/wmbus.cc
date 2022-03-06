@@ -2040,7 +2040,7 @@ void Telegram::explainParse(string intro, int from)
     }
 }
 
-string renderAnalysisAsText(vector<Explanation> &explanations, bool use_ansi)
+string renderAnalysisAsText(vector<Explanation> &explanations, OutputFormat of)
 {
     string s;
 
@@ -2049,12 +2049,19 @@ string renderAnalysisAsText(vector<Explanation> &explanations, bool use_ansi)
     const char *red;
     const char *reset;
 
-    if (use_ansi)
+    if (of == OutputFormat::TERMINAL)
     {
         green = "\033[0;97m\033[1;42m";
         yellow = "\033[0;97m\033[0;43m";
         red = "\033[0;97m\033[0;41m\033[1;37m";
         reset = "\033[0m";
+    }
+    else if (of == OutputFormat::HTML)
+    {
+        green = "<span style=\"color:white;background-color:#008450;\">";
+        yellow = "<span style=\"color:white;background-color:#efb700;\">";
+        red = "<span style=\"color:white;background-color:#b81d13;\">";
+        reset = "</span>";
     }
     else
     {
@@ -2133,10 +2140,10 @@ string Telegram::analyzeParse(OutputFormat format, int *content_length, int *und
     switch(format)
     {
     case OutputFormat::PLAIN :
+    case OutputFormat::HTML :
     case OutputFormat::TERMINAL:
     {
-        bool use_ansi = format == OutputFormat::TERMINAL;
-        return renderAnalysisAsText(explanations, use_ansi);
+        return renderAnalysisAsText(explanations, format);
         break;
     }
     case OutputFormat::JSON:

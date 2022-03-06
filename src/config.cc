@@ -419,6 +419,15 @@ void handleLogtelegrams(Configuration *c, string logtelegrams)
     }
 }
 
+void handleLogsummary(Configuration *c, string logsummary)
+{
+    if (logsummary == "true") { c->logsummary = true; }
+    else if (logsummary == "false") { c->logsummary = false;}
+    else {
+        warning("No such logsummary setting: \"%s\"\n", logsummary.c_str());
+    }
+}
+
 void handleMeterfiles(Configuration *c, string meterfiles)
 {
     if (meterfiles.length() > 0)
@@ -680,6 +689,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         else if (p.first == "exitafter") handleExitAfter(c, p.second);
         else if (p.first == "oneshot") handleOneshot(c, p.second);
         else if (p.first == "logtelegrams") handleLogtelegrams(c, p.second);
+        else if (p.first == "logsummary") handleLogsummary(c, p.second);
         else if (p.first == "meterfiles") handleMeterfiles(c, p.second);
         else if (p.first == "meterfilesaction") handleMeterfilesAction(c, p.second);
         else if (p.first == "meterfilesnaming") handleMeterfilesNaming(c, p.second);

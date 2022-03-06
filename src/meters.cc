@@ -126,7 +126,7 @@ private:
     bool analyze_verbose_;
     vector<MeterInfo> meter_templates_;
     vector<shared_ptr<Meter>> meters_;
-    function<void(AboutTelegram&,vector<uchar>)> on_telegram_;
+    vector<function<bool(AboutTelegram&,vector<uchar>)>> telegram_listeners_;
     function<void(Telegram*t,Meter*)> on_meter_updated_;
 
 public:
@@ -212,15 +212,6 @@ public:
         if (should_analyze_)
         {
             analyzeTelegram(about, input_frame, simulated);
-            return true;
-        }
-
-        if (!hasMeters())
-        {
-            if (on_telegram_)
-            {
-                on_telegram_(about, input_frame);
-            }
             return true;
         }
 
@@ -336,6 +327,10 @@ public:
                 }
             }
         }
+        for (auto f : telegram_listeners_)
+        {
+            f(about, input_frame);
+        }
         if (isVerboseEnabled() && !handled)
         {
             verbose("(wmbus) telegram from %s ignored by all configured meters!\n", ids.c_str());
@@ -343,9 +338,9 @@ public:
         return handled;
     }
 
-    void onTelegram(function<void(AboutTelegram &about, vector<uchar>)> cb)
+    void onTelegram(function<bool(AboutTelegram &about, vector<uchar>)> cb)
     {
-        on_telegram_ = cb;
+        telegram_listeners_.push_back(cb);
     }
 
     void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb)

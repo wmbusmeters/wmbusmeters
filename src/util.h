@@ -242,7 +242,7 @@ size_t findBytes(std::vector<uchar> &v, uchar a, uchar b, uchar c);
 
 enum class OutputFormat
 {
-    NONE, PLAIN, TERMINAL, JSON
+    NONE, PLAIN, TERMINAL, JSON, HTML
 };
 
 #ifndef FUZZING
