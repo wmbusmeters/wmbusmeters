@@ -387,13 +387,13 @@ LIST_OF_METERS
             string driver_name = toString(odr);
             if (only != "" && driver_name != only) continue;
 
-            if (!isMeterDriverReasonableForMedia(odr, "", t.dll_type) &&
+            if (only == "" &&
+                !isMeterDriverReasonableForMedia(odr, "", t.dll_type) &&
                 !isMeterDriverReasonableForMedia(odr, "", t.tpl_type))
             {
                 // Sanity check, skip this driver since it is not relevant for this media.
                 continue;
             }
-
 
             debug("Testing old style driver %s...\n", driver_name.c_str());
             mi.driver = odr;
@@ -449,6 +449,14 @@ LIST_OF_METERS
         {
             string driver_name = toString(ndr);
             if (only != "" && driver_name != only) continue;
+
+            if (only == "" &&
+                !isMeterDriverReasonableForMedia(MeterDriver::AUTO, driver_name, t.dll_type) &&
+                !isMeterDriverReasonableForMedia(MeterDriver::AUTO, driver_name, t.tpl_type))
+            {
+                // Sanity check, skip this driver since it is not relevant for this media.
+                continue;
+            }
 
             debug("Testing new style driver %s...\n", driver_name.c_str());
             mi.driver = MeterDriver::UNKNOWN;
@@ -575,6 +583,7 @@ LIST_OF_METERS
             {
                 mi.driver = toMeterDriver(using_driver);
                 mi.driver_name = DriverName("");
+                using_driver += "(driver should be upgraded)";
             }
             else
             {
@@ -591,12 +600,12 @@ LIST_OF_METERS
         {
             best_length = old_best_length;
             best_understood = old_best_understood;
-            best_driver = best_old_driver;
+            best_driver = best_old_driver+"(driver should be upgraded)";
             if (using_driver == "")
             {
                 mi.driver = toMeterDriver(best_old_driver);
                 mi.driver_name = DriverName("");
-                using_driver = best_old_driver;
+                using_driver = best_driver;
                 using_length = best_length;
                 using_understood = best_understood;
             }
@@ -1911,13 +1920,16 @@ METER_DETECTION
 bool isMeterDriverReasonableForMedia(MeterDriver type, string driver_name, int media)
 {
     if (media == 0x37) return false;  // Skip converter meter side since they do not give any useful information.
+    if (driver_name == "")
+    {
 #define X(TY,MA,ME,VE) { if (type == MeterDriver::TY  && isCloseEnough(media, ME)) { return true; }}
 METER_DETECTION
 #undef X
+    }
 
     for (auto &p : all_registered_drivers_)
     {
-        if (p.first == "driver_name" && p.second.isValidMedia(media))
+        if (p.first == driver_name && p.second.isValidMedia(media))
         {
             return true;
         }

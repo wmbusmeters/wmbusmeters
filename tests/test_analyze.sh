@@ -104,8 +104,8 @@ TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : multical21
-Best driver  : multical21 12/12
-Using driver : multical21 12/12
+Best driver  : multical21(driver should be upgraded) 12/12
+Using driver : multical21(driver should be upgraded) 12/12
 000   : 2a length (42 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -167,8 +167,8 @@ TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : multical21
-Best driver  : multical21 12/12
-Using driver : multical21 12/12
+Best driver  : multical21(driver should be upgraded) 12/12
+Using driver : multical21(driver should be upgraded) 12/12
 000   : 23 length (35 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
