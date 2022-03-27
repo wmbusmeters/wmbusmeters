@@ -1601,7 +1601,7 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
                 }
 
                 string info =  bin2hex(pos, frame.end(), frame.end()-pos);
-                info += " mac fails";
+                info += " encrypted mac failed";
                 addExplanationAndIncrementPos(pos, frame.end()-pos, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
                 if (meter_keys->confidentiality_key.size() > 0)
                 {
