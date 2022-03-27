@@ -332,7 +332,7 @@ These telegrams are expected to have the data link layer crc bytes removed alrea
 These telegrams are expected to have the data link layer crc bytes removed already!
 
 `stdin:hex`, to read hex characters wbus telegrams from stdin.
-These telegrams are expected to have the data link layer crc bytes removed laready!
+These telegrams are expected to have the data link layer crc bytes removed already!
 
 `telegrams.txt:hex`, to read hex characters wmbus telegrams from this file.
 These telegrams are expected to have the data link layer crc bytes removed already!
