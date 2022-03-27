@@ -360,7 +360,10 @@ public:
     {
         should_analyze_ = b;
         analyze_format_ = f;
-        analyze_driver_ = force_driver;
+        if (force_driver != "auto")
+        {
+            analyze_driver_ = force_driver;
+        }
         analyze_key_ = key;
         analyze_verbose_ = verbose;
     }
