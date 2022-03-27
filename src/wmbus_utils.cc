@@ -213,6 +213,8 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>:
     debug("(TPL) num encrypted blocks %d (%d bytes and remaining unencrypted %d bytes)\n",
           t->tpl_num_encr_blocks, num_bytes_to_decrypt, buffer.size()-num_bytes_to_decrypt);
 
+    if (aeskey.size() == 0) return false;
+
     if (buffer.size() < num_bytes_to_decrypt)
     {
         warning("(TPL) warning: decryption received less bytes than expected for decryption! "

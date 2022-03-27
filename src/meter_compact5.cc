@@ -100,6 +100,9 @@ void MeterCompact5::processContent(Telegram *t)
     vector<uchar> content;
 
     t->extractPayload(&content);
+
+    if (content.size() < 9) return;
+
     uchar prev_lo = content[3];
     uchar prev_hi = content[4];
     double prev = (256.0*prev_hi+prev_lo);
