@@ -372,7 +372,7 @@ public:
                                   AboutTelegram &about,
                                   vector<uchar> &input_frame,
                                   bool simulated,
-                                  string only)
+                                  string force)
     {
         vector<MeterDriver> old_drivers;
 #define X(mname,linkmode,info,type,cname) old_drivers.push_back(MeterDriver::type);
@@ -385,9 +385,13 @@ LIST_OF_METERS
             if (odr == MeterDriver::AUTO) continue;
             if (odr == MeterDriver::UNKNOWN) continue;
             string driver_name = toString(odr);
-            if (only != "" && driver_name != only) continue;
+            if (force != "")
+            {
+                if (driver_name != force) continue;
+                return driver_name;
+            }
 
-            if (only == "" &&
+            if (force == "" &&
                 !isMeterDriverReasonableForMedia(odr, "", t.dll_type) &&
                 !isMeterDriverReasonableForMedia(odr, "", t.tpl_type))
             {
@@ -421,13 +425,13 @@ LIST_OF_METERS
                 int l = 0;
                 int u = 0;
                 t.analyzeParse(OutputFormat::NONE, &l, &u);
-                if (analyze_verbose_ && only == "") printf("(verbose) old %02d/%02d %s\n", u, l, driver_name.c_str());
+                if (analyze_verbose_ && force == "") printf("(verbose) old %02d/%02d %s\n", u, l, driver_name.c_str());
                 if (u > *best_understood)
                 {
                     *best_understood = u;
                     *best_length = l;
                     best_driver = driver_name;
-                    if (analyze_verbose_ && only == "") printf("(verbose) old best so far: %s %02d/%02d\n", best_driver.c_str(), u, l);
+                    if (analyze_verbose_ && force == "") printf("(verbose) old best so far: %s %02d/%02d\n", best_driver.c_str(), u, l);
                 }
             }
         }
@@ -448,7 +452,11 @@ LIST_OF_METERS
         for (DriverInfo ndr : all_registered_drivers_list_)
         {
             string driver_name = toString(ndr);
-            if (only != "" && driver_name != only) continue;
+            if (only != "")
+            {
+                if (driver_name != only) continue;
+                return driver_name;
+            }
 
             if (only == "" &&
                 !isMeterDriverReasonableForMedia(MeterDriver::AUTO, driver_name, t.dll_type) &&

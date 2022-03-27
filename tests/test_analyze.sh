@@ -33,7 +33,7 @@ TESTRESULT="ERROR"
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : multical21
 Best driver  :  00/00
-Using driver :  00/00
+Using driver : multical21(driver should be upgraded) 00/00
 000   : 2a length (42 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -48,9 +48,19 @@ Using driver :  00/00
 
 {
     "media":"cold water",
-    "meter":"unknown",
+    "meter":"multical21",
     "name":"",
     "id":"76348799",
+    "total_m3":0,
+    "target_m3":0,
+    "max_flow_m3h":0,
+    "flow_temperature_c":127,
+    "external_temperature_c":127,
+    "current_status":"",
+    "time_dry":"",
+    "time_reversed":"",
+    "time_leaking":"",
+    "time_bursting":"",
     "timestamp":"1111-11-11T11:11:11Z"
 }
 EOF
@@ -69,7 +79,7 @@ TESTRESULT="ERROR"
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : multical21
 Best driver  :  00/00
-Using driver :  00/00
+Using driver : multical21(driver should be upgraded) 00/00
 000   : 23 length (35 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -84,9 +94,19 @@ Using driver :  00/00
 
 {
     "media":"cold water",
-    "meter":"unknown",
+    "meter":"multical21",
     "name":"",
     "id":"76348799",
+    "total_m3":0,
+    "target_m3":0,
+    "max_flow_m3h":0,
+    "flow_temperature_c":127,
+    "external_temperature_c":127,
+    "current_status":"",
+    "time_dry":"",
+    "time_reversed":"",
+    "time_leaking":"",
+    "time_bursting":"",
     "timestamp":"1111-11-11T11:11:11Z"
 }
 EOF
@@ -105,7 +125,7 @@ TESTRESULT="ERROR"
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : multical21
 Best driver  : multical21(driver should be upgraded) 12/12
-Using driver : multical21(driver should be upgraded) 12/12
+Using driver : multical21(driver should be upgraded) 00/00
 000   : 2a length (42 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -168,7 +188,7 @@ TESTRESULT="ERROR"
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : multical21
 Best driver  : multical21(driver should be upgraded) 12/12
-Using driver : multical21(driver should be upgraded) 12/12
+Using driver : multical21(driver should be upgraded) 00/00
 000   : 23 length (35 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -222,7 +242,7 @@ TESTRESULT="ERROR"
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : supercom587
 Best driver  :  00/00
-Using driver :  00/00
+Using driver : supercom587 00/00
 000   : ae length (174 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : ee4d dll-mfct (SON)
@@ -237,9 +257,10 @@ Using driver :  00/00
 
 {
     "media":"water",
-    "meter":"unknown",
+    "meter":"supercom587",
     "name":"",
     "id":"77777777",
+    "total_m3":0,
     "timestamp":"1111-11-11T11:11:11Z"
 }
 EOF
