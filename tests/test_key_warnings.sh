@@ -28,7 +28,7 @@ $PROG --format=json simulations/simulation_bad_keys.txt room fhkvdataiv 03065716
 cat > $TEST/expected_err.txt <<EOF
 (meter) room: meter detection did not match the selected driver fhkvdataiv! correct driver is: fhkvdataiii
 (meter) Not printing this warning again for id: 03065716 mfct: (TCH) Techem Service (0x5068) type: Heat Cost Allocator (0x80) ver: 0x94
-(wmbus) WARNING! decrypted content failed check, did you use the correct decryption key? Permanently ignoring telegrams from id: 03065716 mfct: (TCH) Techem Service (0x5068) type: Heat Cost Allocator (0x08) ver: 0x94
+(wmbus) WARNING!! decrypted content failed check, did you use the correct decryption key? Permanently ignoring telegrams from id: 03065716 mfct: (TCH) Techem Service (0x5068) type: Heat Cost Allocator (0x08) ver: 0x94
 EOF
 
 diff $TEST/test_stderr.txt $TEST/expected_err.txt

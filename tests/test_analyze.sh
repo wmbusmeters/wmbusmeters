@@ -44,7 +44,8 @@ Using driver : multical21(driver should be upgraded) 00/00
 011   : 20 ell-cc (slow_resp sync)
 012   : 91 ell-acc
 013   : d37cac21 sn (AES_CTR)
-017 CE: E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24 encrypted
+017   : e1d6 payload crc (calculated a528 ERROR)
+019 CE: 8CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24 failed decryption. Wrong key?
 
 {
     "media":"cold water",
@@ -90,7 +91,8 @@ Using driver : multical21(driver should be upgraded) 00/00
 011   : 20 ell-cc (slow_resp sync)
 012   : 98 ell-acc
 013   : 3081b222 sn (AES_CTR)
-017 CE: 7A6FA1F10E1B79B5EB4B17E81F930E937EE06C encrypted
+017   : 7a6f payload crc (calculated 54d6 ERROR)
+019 CE: A1F10E1B79B5EB4B17E81F930E937EE06C failed decryption. Wrong key?
 
 {
     "media":"cold water",
