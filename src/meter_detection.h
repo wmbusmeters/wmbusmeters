@@ -65,6 +65,7 @@
     X(IZAR,      MANUFACTURER_SAP,  0x04,    -1) \
     X(IZAR,      MANUFACTURER_SAP,  0x07,  0x00) \
     X(IZAR,      MANUFACTURER_DME,  0x07,  0x78) \
+    X(IZAR,      MANUFACTURER_DME,  0x06,  0x78) \
     X(IZAR,      MANUFACTURER_HYD,  0x07,  0x86) \
     X(IZAR3,     MANUFACTURER_SAP,  0x00,  0x88) \
     X(LANSENSM,  MANUFACTURER_LAS,  0x1a,  0x03) \
