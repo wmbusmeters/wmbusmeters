@@ -1735,6 +1735,11 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
         ok = findFormatBytesFromKnownMeterSignatures(&format_bytes);
         if (!ok)
         {
+            int num_compressed_bytes = distance(pos, frame.end());
+            string info = bin2hex(pos, frame.end(), num_compressed_bytes);
+            info += " compressed and signature unknown";
+            addExplanationAndIncrementPos(pos, distance(pos, frame.end()), KindOfData::CONTENT, Understanding::COMPRESSED, info.c_str());
+
             verbose("(wmbus) ignoring compressed telegram since format signature hash 0x%02x is yet unknown.\n"
                     "     this is not a problem, since you only need wait for at most 8 telegrams\n"
                     "     (8*16 seconds) until an full length telegram arrives and then we know\n"
@@ -2067,6 +2072,7 @@ void Telegram::explainParse(string intro, int from)
         if (p.understanding == Understanding::FULL) u = "!";
         if (p.understanding == Understanding::PARTIAL) u = "p";
         if (p.understanding == Understanding::ENCRYPTED) u = "E";
+        if (p.understanding == Understanding::COMPRESSED) u = "C";
 
         // Do not print ok for understood protocol, it is implicit.
         // However if a protocol is not full understood then print p or ?.
@@ -2115,6 +2121,7 @@ string renderAnalysisAsText(vector<Explanation> &explanations, OutputFormat of)
         if (p.understanding == Understanding::FULL) u = "!";
         if (p.understanding == Understanding::PARTIAL) u = "p";
         if (p.understanding == Understanding::ENCRYPTED) u = "E";
+        if (p.understanding == Understanding::COMPRESSED) u = "C";
 
         // Do not print ok for understood protocol, it is implicit.
         // However if a protocol is not full understood then print p or ?.

@@ -365,9 +365,10 @@ enum class KindOfData
 
 // Content can be not understood at all NONE, partially understood PARTIAL when typically bitsets have
 // been partially decoded, or FULL when the volume or energy field is by itself complete.
+// Encrypted if it yet decrypted. Compressed and no format signature is known.
 enum class Understanding
 {
-    NONE, ENCRYPTED, PARTIAL, FULL
+    NONE, ENCRYPTED, COMPRESSED, PARTIAL, FULL
 };
 
 struct Explanation
