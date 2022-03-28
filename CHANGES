@@ -1,4 +1,10 @@
 
+Version 1.7.0: 2022-03-28
+
+Added verio451mid heat meter.
+
+Improved --analyze command significantly.
+
 ldebomy fixed a bug in the izar decoding that for some meters dropped the most significant digit
 in the serial number. Thanks ldebomy!
 
