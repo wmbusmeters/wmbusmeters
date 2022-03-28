@@ -250,6 +250,11 @@ Received telegram from: 62626262
                   type: Heat meter (0x43)
                    ver: 0x45
                 driver: compact5
+Received telegram from: 66336633
+          manufacturer: (TCH) Techem Service (0x5068)
+                  type: Heat meter (0x43)
+                   ver: 0x39
+                driver: compact5
 Received telegram from: 79787776
           manufacturer: (MAD) Maddalena, Italy (0x3424)
                   type: Water meter (0x07)

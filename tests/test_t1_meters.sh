@@ -58,6 +58,7 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       Sharky774   sharky774   72615127 NOKEY
       Sharky775   sharky      68926025 NOKEY
       Heating     compact5    62626262 NOKEY
+      Heating2    compact5    66336633 NOKEY
       Hetta       elf         01885619 NOKEY
       DigiWasser  dme_07      93929190 NOKEY
       Votten      aventieswm  61070071 A004EB23329A477F1DD2D7820B56EB3D
