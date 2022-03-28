@@ -178,6 +178,7 @@ bool isHexString(const char* txt, bool *invalid, bool strict)
         if (!strict && c == '#') continue; // Ignore hashes if not strict
         if (!strict && c == ' ') continue; // Ignore hashes if not strict
         if (!strict && c == '|') continue; // Ignore hashes if not strict
+        if (!strict && c == '_') continue; // Ignore underlines if not strict
         if (c == 0) break;
         n++;
         if (char2int(c) == -1) return false;
@@ -213,8 +214,8 @@ bool hex2bin(const char* src, vector<uchar> *target)
 {
     if (!src) return false;
     while(*src && src[1]) {
-        if (*src == ' ' || *src == '#' || *src == '|') {
-            // Ignore space and hashes and pipes.
+        if (*src == ' ' || *src == '#' || *src == '|' || *src == '_') {
+            // Ignore space and hashes and pipes and underlines.
             src++;
         } else {
             int hi = char2int(*src);
@@ -1013,7 +1014,7 @@ void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size
         string content = parsed_hex.substr(header_size*2);
         if (suffix_size == 0)
         {
-            notice("telegram=|%s#%s|+%ld\n",
+            notice("telegram=|%s_%s|+%ld\n",
                    header.c_str(), content.c_str(), diff);
         }
         else
