@@ -85,7 +85,6 @@ private:
 shared_ptr<WMBus> openCUL(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     string bus_alias =  detected.specified_device.bus_alias;
-    string device = detected.found_file;
     if (serial_override)
     {
         WMBusCUL *imp = new WMBusCUL(bus_alias, serial_override, manager);
@@ -93,7 +92,22 @@ shared_ptr<WMBus> openCUL(Detected detected, shared_ptr<SerialCommunicationManag
         return shared_ptr<WMBus>(imp);
     }
 
-    auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400, PARITY::NONE, "cul");
+	if (detected.specified_device.command != "")
+	{
+		string identifier = "cmd_" + to_string(detected.specified_device.index);
+
+		vector<string> args;
+		vector<string> envs;
+		args.push_back("-c");
+		args.push_back(detected.specified_device.command);
+
+		auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, "cul");
+		WMBusCUL *imp = new WMBusCUL(bus_alias, serial, manager);
+		return shared_ptr<WMBus>(imp);
+	}
+
+	string device = detected.found_file;
+	auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400, PARITY::NONE, "cul");
     WMBusCUL *imp = new WMBusCUL(bus_alias, serial, manager);
     return shared_ptr<WMBus>(imp);
 }
