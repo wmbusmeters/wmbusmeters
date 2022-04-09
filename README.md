@@ -303,7 +303,7 @@ Note that this uses a noticeable amount of CPU time by rtl_wmbus.
 You can therefore use a tailored rtl_wmbus command that is more suitable for your needs.
 
 `rtlwmbus:CMD(<command line>)`, to specify the entire background
-process command line that is expected to produce rtlwbus compatible
+process command line that is expected to produce rtlwmbus compatible
 output.
 The command line cannot contain parentheses.
 Likewise for rtl433.
@@ -331,7 +331,7 @@ These telegrams are expected to have the data link layer crc bytes removed alrea
 `telegrams.bin`, to read raw wmbus telegrams from this file.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
-`stdin:hex`, to read hex characters wbus telegrams from stdin.
+`stdin:hex`, to read hex characters wmbus telegrams from stdin.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
 `telegrams.txt:hex`, to read hex characters wmbus telegrams from this file.
