@@ -27,8 +27,10 @@ then
         TESTRESULT="OK"
     fi
 else
+    echo "ERROR: $TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
+    exit 1
 fi
 
 cat > $TEST/test_expected.txt <<EOF
@@ -48,17 +50,22 @@ then
     then
         echo OK: $TESTNAME
         TESTRESULT="OK"
+    else
+        echo "ERROR: $TESTNAME"
+        exit 1
     fi
 else
+    echo "ERROR: $TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
     cat $TEST/test_stderr.txt
+    exit 1
 fi
 
 TESTNAME="Test invalid hex on commandline"
 
 cat > $TEST/test_expected.txt <<EOF
-Hex string must have an even lenght of hexadecimal characters.
+Hex string must have an even length of hexadecimal characters.
 EOF
 
 $PROG 2A442D2C998734761B168D2091D37CAC21E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC2 2> $TEST/test_output.txt 1>&2
@@ -70,6 +77,9 @@ then
     then
         echo OK: $TESTNAME
         TESTRESULT="OK"
+    else
+        echo "ERROR: $TESTNAME"
+        exit 1
     fi
 else
     echo "wmbusmeters returned error code 0 but we expected failure!"
@@ -99,9 +109,14 @@ then
     then
         echo OK: $TESTNAME
         TESTRESULT="OK"
+    else
+        echo "ERROR: $TESTNAME"
+        exit 1
     fi
 else
+    echo "ERROR: $TESTNAME"
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
     cat $TEST/test_stderr.txt
+    exit 1
 fi
