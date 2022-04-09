@@ -277,7 +277,7 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     {
         if (invalid_hex)
         {
-            error("Hex string must have an even lenght of hexadecimal characters.\n");
+            error("Hex string must have an even length of hexadecimal characters.\n");
         }
     }
 
