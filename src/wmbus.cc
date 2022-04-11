@@ -5061,9 +5061,8 @@ bool SpecifiedDevice::parse(string &arg)
     bool linkmodes_checked = false;
     bool command_checked = false;
 
-    // For the moment the colon : is forbidden in file names and commands.
-    // It cannot occur in type,fq or bps.
-    vector<string> parts = splitString(arg, ':');
+    // The : colon is forbidden inside the parts, except inside CMD(..:..)
+    vector<string> parts = splitDeviceString(arg);
 
     // Most maxed out device spec, though not valid, since file+cmd is not allowed.
     // Example /dev/ttyUSB0:im871a[12345678](device=extras):9600:868.95M:c1,t1:CMD(rtl_433 -F csv -f 123M)

@@ -1843,6 +1843,30 @@ vector<string> splitString(string &s, char c)
     return v;
 }
 
+vector<string> splitDeviceString(string &s)
+{
+    string cmd;
+
+    // The CMD(...) might have colons inside.
+    // Check this first.
+    size_t p = s.rfind(":CMD(");
+    if (s.back() == ')' && p != string::npos)
+    {
+        cmd = s.substr(p+1);
+        s = s.substr(0,p);
+    }
+
+    // Now we can split.
+    vector<string> r = splitString(s, ':');
+
+    if (cmd != "")
+    {
+        // Re-append the comand last.
+        r.push_back(cmd);
+    }
+    return r;
+}
+
 uint32_t indexFromRtlSdrName(string &s)
 {
     size_t p = s.find('_');

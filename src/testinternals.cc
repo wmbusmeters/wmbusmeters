@@ -728,7 +728,17 @@ void test_devices()
           "none", // linkmodes
           ""); // command
 
-
+    // Support : inside the command.
+    testd("cul:c1:CMD(socat TCP:CUNO:2323 STDIO)", true,
+          "", // alias
+          "", // file
+          "cul", // type
+          "", // id
+          "", // extras
+          "", // fq
+          "", // bps
+          "c1", // linkmodes
+          "socat TCP:CUNO:2323 STDIO"); // command
 }
 
 void test_month(int y, int m, int day, int mdiff, string from, string to)

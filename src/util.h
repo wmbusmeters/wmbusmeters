@@ -138,7 +138,11 @@ bool isFrequency(std::string& fq);
 bool isNumber(std::string& fq);
 
 std::vector<std::string> splitMatchExpressions(std::string& mes);
+// Split s into strings separated by c.
 std::vector<std::string> splitString(std::string &s, char c);
+// Split device string cul:c1:CMD(bar 1:2) into cul c1 CMD(bar 1:2)
+// I.e. the : colon inside CMD is not used for splitting.
+std::vector<std::string> splitDeviceString(std::string &s);
 
 void incrementIV(uchar *iv, size_t len);
 

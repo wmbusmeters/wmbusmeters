@@ -2088,8 +2088,7 @@ bool MeterInfo::parse(string n, string d, string i, string k)
     bool bps_checked = false;
     bool link_modes_checked = false;
 
-    // For the moment the colon : is forbidden in file names and commands.
-    // It cannot occur in type,fq or bps.
+    // The : colon is forbidden inside the parts.
     vector<string> parts = splitString(d, ':');
 
     // Example piigth:MAIN:2400
