@@ -91,52 +91,52 @@ MeterIzar::MeterIzar(MeterInfo &mi) :
     addPrint("prefix", Quantity::Text,
              [&](){ return prefix; },
              "The alphanumeric prefix printed before serial number on device.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("serial_number", Quantity::Text,
              [&](){ return serialNumber(); },
              "The meter serial number.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("last_month_total", Quantity::Volume,
              [&](Unit u){ return lastMonthTotalWaterConsumption(u); },
              "The total water consumption recorded by this meter around end of last month.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("last_month_measure_date", Quantity::Text,
              [&](){ return setH0Date(); },
              "The date when the meter recorded the most recent billing value.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("remaining_battery_life", Quantity::Time, Unit::Year,
              [&](Unit u){ return convert(remaining_battery_life, Unit::Year, u); },
              "How many more years the battery is expected to last",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_alarms", Quantity::Text,
              [&](){ return currentAlarmsText(); },
              "Alarms currently reported by the meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("previous_alarms", Quantity::Text,
              [&](){ return previousAlarmsText(); },
              "Alarms previously reported by the meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("transmit_period", Quantity::Time, Unit::Second,
              [&](Unit u){ return convert(transmit_period_s_, Unit::Second, u); },
              "The period at which the meter transmits its data.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("manufacture_year", Quantity::Text,
              [&](){ return to_string(manufacture_year); },
              "The year during which the meter was manufactured.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 double MeterIzar::totalWaterConsumption(Unit u)

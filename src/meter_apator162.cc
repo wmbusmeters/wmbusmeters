@@ -60,7 +60,7 @@ MeterApator162::MeterApator162(MeterInfo &mi) :
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 void MeterApator162::processExtras(string miExtras)

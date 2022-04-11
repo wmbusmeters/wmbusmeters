@@ -58,22 +58,22 @@ MeterSensostar::MeterSensostar(MeterInfo &mi) :
     addPrint("meter_timestamp", Quantity::Text,
              [&](){ return meter_timestamp_; },
              "Date time for this reading.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("total", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_water", Quantity::Volume,
              [&](Unit u){ return totalWater(u); },
              "The total amount of water running through meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_status", Quantity::Text,
              [&](){ return status(); },
              "Status of meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 void MeterSensostar::processContent(Telegram *t)

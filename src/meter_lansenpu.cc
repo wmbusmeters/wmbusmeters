@@ -52,12 +52,12 @@ MeterLansenPU::MeterLansenPU(MeterInfo &mi) :
     addPrint("counter_a", Quantity::Counter,
              [&](Unit u) { assertQuantity(u, Quantity::Counter); return counterA(); },
              "The current number of counted pulses from counter a.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("counter_b", Quantity::Counter,
              [&](Unit u) { assertQuantity(u, Quantity::Counter); return counterB(); },
              "The current number of counted pulses from counter b.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createLansenPU(MeterInfo &mi)

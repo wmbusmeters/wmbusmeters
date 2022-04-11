@@ -69,57 +69,57 @@ MeterUnismart::MeterUnismart(MeterInfo &mi) :
     addPrint("fabrication_no", Quantity::Text,
              [&](){ return fabrication_no_; },
              "Static fabrication no information.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("total_date_time", Quantity::Text,
              [&](){ return total_date_time_; },
              "Timestamp for this total measurement.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalGasConsumption(u); },
              "The total gas consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("target_date_time", Quantity::Text,
              [&](){ return target_date_time_; },
              "Timestamp for gas consumption recorded at the beginning of this month.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("target", Quantity::Volume,
              [&](Unit u){ return targetGasConsumption(u); },
              "The total gas consumption recorded by this meter at the beginning of this month.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("version", Quantity::Text,
              [&](){ return version_; },
              "Model/version a reported by meter.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("device_date_time", Quantity::Text,
              [&](){ return device_date_time_; },
              "Device date time? Seems to be the same as total date time.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("suppler_info", Quantity::Text,
              [&](){ return supplier_info_; },
              "?",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("status", Quantity::Text,
              [&](){ return status_; },
              "?",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("parameter_set", Quantity::Text,
              [&](){ return parameter_set_; },
              "?",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("other", Quantity::Counter,
              [&](Unit u){ return other_; },
              "?",
-             false, true);
+             PrintProperty::JSON);
 
 }
 

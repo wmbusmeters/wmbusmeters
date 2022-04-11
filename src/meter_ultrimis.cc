@@ -61,22 +61,22 @@ MeterUltrimis::MeterUltrimis(MeterInfo &mi) :
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("target", Quantity::Volume,
              [&](Unit u){ return targetWaterConsumption(u); },
              "The total water consumption recorded at the beginning of this month.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_status", Quantity::Text,
              [&](){ return status(); },
              "Status of meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_backward_flow", Quantity::Volume,
              [&](Unit u){ return totalBackwardFlow(u); },
              "The total water backward flow.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
 }
 

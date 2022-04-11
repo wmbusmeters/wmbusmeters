@@ -54,12 +54,12 @@ MeterTSD2::MeterTSD2(MeterInfo &mi) :
     addPrint("status", Quantity::Text,
              [&](){ return status(); },
              "The current status: OK, SMOKE or ERROR.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("prev_date", Quantity::Text,
              [&](){ return previousDate(); },
              "Date of previous billing period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createTSD2(MeterInfo &mi)

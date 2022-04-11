@@ -116,77 +116,77 @@ MeterFlowIQ2200::MeterFlowIQ2200(MeterInfo &mi, string mt) :
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("target", Quantity::Volume,
              [&](Unit u){ return targetWaterConsumption(u); },
              "The total water consumption recorded at the beginning of this month.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("target_datetime", Quantity::Text,
              [&](){ return target_datetime_; },
              "Timestamp for water consumption recorded at the beginning of this month.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_flow", Quantity::Flow,
              [&](Unit u){ return currentFlow(u); },
              "The current flow of water.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("max_flow", Quantity::Flow,
              [&](Unit u){ return maxFlow(u); },
              "The maxium flow recorded during previous period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("min_flow", Quantity::Flow,
              [&](Unit u){ return currentFlow(u); },
              "The minimum flow recorded during previous period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("min_flow_temperature", Quantity::Temperature,
              [&](Unit u){ return minFlowTemperature(u); },
              "The minimum water temperature during previous period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("max_flow_temperature", Quantity::Temperature,
              [&](Unit u){ return maxFlowTemperature(u); },
              "The maximum water temperature during previous period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("external_temperature", Quantity::Temperature,
              [&](Unit u){ return externalTemperature(u); },
              "The external temperature outside of the meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("", Quantity::Text,
              [&](){ return statusHumanReadable(); },
              "Status of meter.",
-             true, false);
+             PrintProperty::FIELD);
 
     addPrint("current_status", Quantity::Text,
              [&](){ return status(); },
              "Status of meter.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("time_dry", Quantity::Text,
              [&](){ return timeDry(); },
              "Amount of time the meter has been dry.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("time_reversed", Quantity::Text,
              [&](){ return timeReversed(); },
              "Amount of time the meter has been reversed.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("time_leaking", Quantity::Text,
              [&](){ return timeLeaking(); },
              "Amount of time the meter has been leaking.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("time_bursting", Quantity::Text,
              [&](){ return timeBursting(); },
              "Amount of time the meter has been bursting.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 double MeterFlowIQ2200::totalWaterConsumption(Unit u)

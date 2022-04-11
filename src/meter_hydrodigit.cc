@@ -55,12 +55,12 @@ MeterHydrodigit::MeterHydrodigit(MeterInfo &mi) :
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("meter_datetime", Quantity::Text,
              [&](){ return meter_datetime_; },
              "Meter timestamp for measurement.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 void MeterHydrodigit::processContent(Telegram *t)

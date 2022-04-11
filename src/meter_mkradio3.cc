@@ -56,22 +56,22 @@ MKRadio3::MKRadio3(MeterInfo &mi) :
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("target", Quantity::Volume,
              [&](Unit u){ return targetWaterConsumption(u); },
              "The total water consumption recorded at the beginning of this month.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_date", Quantity::Text,
              [&](){ return currentDate(); },
              "Date of current billing period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("prev_date", Quantity::Text,
              [&](){ return previousDate(); },
              "Date of previous billing period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createMKRadio3(MeterInfo &mi)

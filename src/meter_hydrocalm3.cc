@@ -60,47 +60,47 @@ MeterHydrocalM3::MeterHydrocalM3(MeterInfo &mi) :
     addPrint("total_heating", Quantity::Energy,
              [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(total_heating_energy_kwh_, Unit::KWH, u); },
              "The total heating energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_cooling", Quantity::Energy,
              [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(total_cooling_energy_kwh_, Unit::KWH, u); },
              "The total cooling energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("device_date_time", Quantity::Text,
              [&](){ return device_date_time_; },
              "Date when total energy consumption was recorded.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("total_heating", Quantity::Volume,
              [&](Unit u){ assertQuantity(u, Quantity::Volume); return convert(total_heating_volume_m3_, Unit::M3, u); },
              "Total heating volume of media.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("total_cooling", Quantity::Volume,
              [&](Unit u){ assertQuantity(u, Quantity::Volume); return convert(total_cooling_volume_m3_, Unit::M3, u); },
              "Total cooling volume of media.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("c1_volume", Quantity::Volume,
              [&](Unit u){ assertQuantity(u, Quantity::Volume); return convert(c1_volume_m3_, Unit::M3, u); },
              "Supply c1 volume.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("c2_volume", Quantity::Volume,
              [&](Unit u){ assertQuantity(u, Quantity::Volume); return convert(c2_volume_m3_, Unit::M3, u); },
              "Return c2 volume.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("supply_temperature", Quantity::Temperature,
              [&](Unit u){ return convert(t1_temperature_c_, Unit::C, u); },
              "The supply t1 pipe temperature.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("return_temperature", Quantity::Temperature,
              [&](Unit u){ return convert(t2_temperature_c_, Unit::C, u); },
              "The return t2 pipe temperature.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createHydrocalM3(MeterInfo &mi) {

@@ -54,23 +54,23 @@ MeterEHZP::MeterEHZP(MeterInfo &mi) :
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_power_consumption", Quantity::Power,
              [&](Unit u){ return currentPowerConsumption(u); },
              "Current power consumption.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_energy_production", Quantity::Energy,
              [&](Unit u){ return totalEnergyProduction(u); },
              "The total energy production recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("on_time", Quantity::Time,
              [&](Unit u){ assertQuantity(u, Quantity::Time);
                  return convert(on_time_h_, Unit::Hour, u); },
              "Device on time.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createEHZP(MeterInfo &mi)

@@ -70,52 +70,52 @@ MeterEvo868::MeterEvo868(MeterInfo &mi) :
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("device_date_time", Quantity::Text,
              [&](){ return device_date_time_; },
              "Device date time.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("current_status", Quantity::Text,
              [&](){ return status(); },
              "Status of meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("fabrication_no", Quantity::Text,
              [&](){ return fabrication_no_; },
              "Fabrication number.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("consumption_at_set_date", Quantity::Volume,
              [&](Unit u){ assertQuantity(u, Quantity::Volume); return convert(consumption_at_set_date_m3_, Unit::M3, u); },
              "The total water consumption at the most recent billing period date.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("set_date", Quantity::Text,
              [&](){ return set_date_; },
              "The most recent billing period date.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("consumption_at_set_date_2", Quantity::Volume,
              [&](Unit u){ assertQuantity(u, Quantity::Volume); return convert(consumption_at_set_date_2_m3_, Unit::M3, u); },
              "The total water consumption at the second recent billing period date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("set_date_2", Quantity::Text,
              [&](){ return set_date_2_; },
              "The second recent billing period date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("max_flow_since_datetime", Quantity::Flow,
              [&](Unit u){ assertQuantity(u, Quantity::Flow); return convert(max_flow_since_datetime_m3h_, Unit::M3H, u); },
              "Maximum water flow since date time.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("max_flow_datetime", Quantity::Text,
              [&](){ return max_flow_datetime_; },
              "The datetime to which maximum flow is measured.",
-             false, true);
+             PrintProperty::JSON);
 
     for (int i=1; i<=12; ++i)
     {
@@ -125,14 +125,14 @@ MeterEvo868::MeterEvo868(MeterInfo &mi) :
         addPrint(key, Quantity::Volume,
              [this,i](Unit u){ assertQuantity(u, Quantity::Volume); return convert(consumption_at_history_date_m3_[i-1], Unit::M3, u); },
              epl,
-             false, true);
+             PrintProperty::JSON);
         key = tostrprintf("history_%d_date", i);
         epl = tostrprintf("The history date %d.", i);
 
         addPrint(key, Quantity::Text,
                  [this,i](){ return history_date_[i-1]; },
                  epl,
-                 false, true);
+                 PrintProperty::JSON);
     }
 
 }

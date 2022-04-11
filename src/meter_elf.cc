@@ -61,62 +61,62 @@ MeterElf::MeterElf(MeterInfo &mi) :
     addPrint("meter_date", Quantity::Text,
              [&](){ return meter_date_; },
              "Date when measurement was recorded.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_power_consumption", Quantity::Power,
              [&](Unit u){ return currentPowerConsumption(u); },
              "Current power consumption.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_volume", Quantity::Volume,
              [&](Unit u){ return totalVolume(u); },
              "Total volume of heat media.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_energy_consumption_at_date", Quantity::Energy,
              [&](Unit u){ return targetEnergyConsumption(u); },
              "The total energy consumption recorded at the target date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("flow_temperature", Quantity::Temperature,
              [&](Unit u){ assertQuantity(u, Quantity::Temperature); return convert(flow_temperature_c_, Unit::C, u); },
              "The water temperature.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("return_temperature", Quantity::Temperature,
              [&](Unit u){ assertQuantity(u, Quantity::Temperature); return convert(return_temperature_c_, Unit::C, u); },
              "The return temperature.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("external_temperature", Quantity::Temperature,
              [&](Unit u){ assertQuantity(u, Quantity::Temperature); return convert(external_temperature_c_, Unit::C, u); },
              "The external temperature.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("status", Quantity::Text,
              [&](){ return status(); },
              "Status of meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("operating_time", Quantity::Time,
              [&](Unit u){ assertQuantity(u, Quantity::Time); return convert(operating_time_days_, Unit::Day, u); },
              "Operating time.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("version", Quantity::Text,
              [&](){ return version_; },
              "Version number.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("battery", Quantity::Voltage,
              [&](Unit u){ assertQuantity(u, Quantity::Voltage); return convert(battery_v_, Unit::Volt, u); },
              "Battery voltage. Not yet implemented.",
-             false, true);
+             PrintProperty::JSON);
 
 }
 

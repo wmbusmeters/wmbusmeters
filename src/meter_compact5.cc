@@ -59,17 +59,17 @@ MeterCompact5::MeterCompact5(MeterInfo &mi) :
     addPrint("total", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current", Quantity::Energy,
              [&](Unit u){ return currentPeriodEnergyConsumption(u); },
              "Energy consumption so far in this billing period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("previous", Quantity::Energy,
              [&](Unit u){ return previousPeriodEnergyConsumption(u); },
              "Energy consumption in previous billing period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 double MeterCompact5::totalEnergyConsumption(Unit u)

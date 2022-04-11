@@ -55,12 +55,12 @@ MeterRfmTX1::MeterRfmTX1(MeterInfo &mi) :
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("meter_datetime", Quantity::Text,
              [&](){ return meter_datetime_; },
              "A date.....",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 uchar decode_vectors_[16][6] = { { 117, 150, 122, 16, 26, 10 }, { 91, 127, 112, 19, 34, 19 }, { 179, 24, 185, 11, 142, 153 }, { 142, 125, 121, 7, 74, 22 }, { 181, 145, 7, 154, 203, 105 }, { 184, 163, 50, 161, 57, 14 }, { 189, 128, 156, 126, 96, 153 }, { 39, 92, 180, 196, 128, 163 }, { 48, 208, 10, 206, 25, 3 }, { 194, 76, 240, 5, 165, 134 }, { 84, 75, 22, 152, 17, 94 }, { 75, 238, 12, 201, 125, 162 }, { 135, 202, 74, 72, 228, 31 }, { 196, 135, 119, 46, 138, 232 }, { 227, 48, 189, 120, 87, 140 }, { 164, 154, 57, 111, 40, 5 } };

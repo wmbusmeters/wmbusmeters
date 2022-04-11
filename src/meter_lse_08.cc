@@ -51,17 +51,17 @@ MeterLSE_08::MeterLSE_08(MeterInfo &mi) :
     addPrint("set_date", Quantity::Text,
              [&](){ return setDate(); },
              "The most recent billing period date.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("consumption_at_set_date", Quantity::HCA,
              [&](Unit u){ return consumptionAtSetDate(u); },
              "Heat cost allocation at the most recent billing period date.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("device_date_time", Quantity::Text,
              [&](){ return device_date_time_; },
              "Device date time.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("duration_since_readout", Quantity::Time,
              [&](Unit u) {
@@ -69,12 +69,12 @@ MeterLSE_08::MeterLSE_08(MeterInfo &mi) :
                  return convert(duration_since_readout_s_, Unit::Second, u);
              },
              "Device date time.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("software_version", Quantity::Text,
              [&](){ return software_version_; },
              "Software version.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createLSE_08(MeterInfo &mi)

@@ -53,17 +53,17 @@ MeterEurisII::MeterEurisII(MeterInfo &mi) :
     addPrint("current_consumption", Quantity::HCA,
              [&](Unit u){ return currentConsumption(u); },
              "The current heat cost allocation.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("set_date", Quantity::Text,
              [&](){ return setDate(); },
              "The most recent billing period date.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("consumption_at_set_date", Quantity::HCA,
              [&](Unit u){ return consumption_at_set_date_hca_[0]; },
              "Heat cost allocation at the most recent billing period date.",
-             false, true);
+             PrintProperty::JSON);
 
     for (int i=1; i<=17; ++i)
     {
@@ -73,13 +73,13 @@ MeterEurisII::MeterEurisII(MeterInfo &mi) :
         addPrint(msg, Quantity::HCA,
                  [this,i](Unit u){ return consumption_at_set_date_hca_[i-1]; },
                  info,
-                 false, true);
+                 PrintProperty::JSON);
     }
 
     addPrint("error_flags", Quantity::Text,
              [&](){ return errorFlagsHumanReadable(); },
              "Error flags.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createEurisII(MeterInfo &mi)

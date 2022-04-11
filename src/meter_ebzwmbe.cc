@@ -59,32 +59,32 @@ MeterEBZWMBE::MeterEBZWMBE(MeterInfo &mi) :
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_power_consumption", Quantity::Power,
              [&](Unit u){ return currentPowerConsumption(u); },
              "Current power consumption.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_power_consumption_phase1", Quantity::Power,
              [&](Unit u){ return currentPowerConsumptionPhase1(u); },
              "Current power consumption phase 1.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_power_consumption_phase2", Quantity::Power,
              [&](Unit u){ return currentPowerConsumptionPhase2(u); },
              "Current power consumption phase 2.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_power_consumption_phase3", Quantity::Power,
              [&](Unit u){ return currentPowerConsumptionPhase3(u); },
              "Current power consumption phase 3.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("customer", Quantity::Text,
              [&](){ return customer_; },
              "Customer name.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createEBZWMBE(MeterInfo &mi)

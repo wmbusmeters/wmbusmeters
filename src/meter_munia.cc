@@ -47,12 +47,12 @@ MeterMunia::MeterMunia(MeterInfo &mi) :
     addPrint("current_temperature", Quantity::Temperature,
              [&](Unit u){ return currentTemperature(u); },
              "The current temperature.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_relative_humidity", Quantity::RelativeHumidity,
              [&](Unit u){ return currentRelativeHumidity(); },
              "The current relative humidity.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
 }
 

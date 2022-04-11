@@ -55,12 +55,12 @@ MeterEMerlin868::MeterEMerlin868(MeterInfo &mi) :
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("target", Quantity::Volume,
              [&](Unit u){ return targetWaterConsumption(u); },
              "The target water consumption recorded at previous period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createEMerlin868(MeterInfo &mi)

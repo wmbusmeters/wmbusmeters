@@ -56,23 +56,23 @@ MeterLansenDW::MeterLansenDW(MeterInfo &mi, DriverInfo &di) :
     addPrint("status", Quantity::Text,
              [&](){ return status(); },
              "The current status: OPEN or CLOSED.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     /*
     addPrint("statuss", Quantity::Text,
              [&](){ return status(); },
              "The current status: OPEN or CLOSED.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     */
     addPrint("counter_a", Quantity::Counter,
              [&](Unit u) { assertQuantity(u, Quantity::Counter); return pulse_counter_a_; },
              "How many times the door/window has been opened or closed.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("counter_b", Quantity::Counter,
              [&](Unit u) { assertQuantity(u, Quantity::Counter); return pulse_counter_b_; },
              "The current number of counted pulses from counter b.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 

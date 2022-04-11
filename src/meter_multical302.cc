@@ -63,32 +63,32 @@ MeterMultical302::MeterMultical302(MeterInfo &mi) :
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_power_consumption", Quantity::Power,
              [&](Unit u){ return currentPowerConsumption(u); },
              "Current power consumption.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_volume", Quantity::Volume,
              [&](Unit u){ return totalVolume(u); },
              "Total volume of heat media.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("at_date", Quantity::Text,
              [&](){ return target_date_; },
              "Date when total energy consumption was recorded.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("total_energy_consumption_at_date", Quantity::Energy,
              [&](Unit u){ return targetEnergyConsumption(u); },
              "The total energy consumption recorded at the target date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("current_status", Quantity::Text,
              [&](){ return status(); },
              "Status of meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createMultical302(MeterInfo &mi) {

@@ -82,77 +82,77 @@ MeterHydrus::MeterHydrus(MeterInfo &mi) :
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_tariff1", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumptionTariff1(u); },
              "The total water consumption recorded by this meter at tariff 1.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("total_tariff2", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumptionTariff2(u); },
              "The total water consumption recorded by this meter at tariff 2.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("max_flow", Quantity::Flow,
              [&](Unit u){ return maxFlow(u); },
              "The maximum flow recorded during previous period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("flow_temperature", Quantity::Temperature,
              [&](Unit u){ return flowTemperature(u); },
              "The water temperature.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("external_temperature", Quantity::Temperature,
              [&](Unit u){ return externalTemperature(u); },
              "The external temperature.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("current_date", Quantity::Text,
              [&](){ return current_date_; },
              "Current date of measurement.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("total_at_date", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumptionAtDate(u); },
              "The total water consumption recorded at date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("total_tariff1_at_date", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumptionTariff1AtDate(u); },
              "The total water consumption recorded at tariff 1 at date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("total_tariff2_at_date", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumptionTariff2AtDate(u); },
              "The total water consumption recorded at tariff 2 at date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("at_date", Quantity::Text,
              [&](){ return at_date_; },
              "Date when total water consumption was recorded.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("actuality_duration", Quantity::Time, Unit::Second,
              [&](Unit u){ return convert(actuality_duration_s_, Unit::Second, u); },
              "Elapsed time between measurement and transmission",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("operating_time", Quantity::Time, Unit::Hour,
              [&](Unit u){ return convert(operating_time_h_, Unit::Hour, u); },
              "How long the meter is operating",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("remaining_battery_life", Quantity::Time, Unit::Year,
              [&](Unit u){ return convert(remaining_battery_life_year_, Unit::Year, u); },
              "How many more years the battery is expected to last",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("status", Quantity::Text,
              [&](){ return status_; },
              "The status is OK or some error condition.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createHydrus(MeterInfo &mi)

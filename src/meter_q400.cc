@@ -70,53 +70,52 @@ MeterQ400::MeterQ400(MeterInfo &mi) :
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("set_date", Quantity::Text,
              [&](){ return setDate(); },
              "The most recent billing period date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("consumption_at_set_date", Quantity::Volume,
              [&](Unit u){ return consumptionAtSetDate(u); },
              "The total water consumption at the most recent billing period date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("meter_datetime", Quantity::Text,
              [&](){ return meter_datetime_; },
              "Meter timestamp for measurement.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("flow", Quantity::Flow,
              [&](Unit u){ assertQuantity(u, Quantity::Flow); return convert(flow_m3h_, Unit::M3H, u); },
              "Water flow?",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("forward_flow", Quantity::Flow,
              [&](Unit u){ assertQuantity(u, Quantity::Flow); return convert(forward_flow_m3h_, Unit::M3H, u); },
              "Forward flow.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("backward_flow", Quantity::Flow,
              [&](Unit u){ assertQuantity(u, Quantity::Flow); return convert(backward_flow_m3h_, Unit::M3H, u); },
              "Backward flow.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("flow_temperature", Quantity::Temperature,
              [&](Unit u){ assertQuantity(u, Quantity::Temperature); return convert(flow_temperature_c_, Unit::C, u); },
              "The water temperature.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("set_forward_flow", Quantity::Flow,
              [&](Unit u){ assertQuantity(u, Quantity::Flow); return convert(set_forward_flow_m3h_, Unit::M3H, u); },
              "Historical forward flow.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("set_backward_flow", Quantity::Flow,
              [&](Unit u){ assertQuantity(u, Quantity::Flow); return convert(set_backward_flow_m3h_, Unit::M3H, u); },
              "Historical backward flow.",
-             false, true);
-
+             PrintProperty::JSON);
 }
 
 void MeterQ400::processContent(Telegram *t)

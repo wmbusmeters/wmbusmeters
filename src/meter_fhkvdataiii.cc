@@ -66,32 +66,32 @@ MeterFHKVDataIII::MeterFHKVDataIII(MeterInfo &mi) :
     addPrint("current", Quantity::HCA,
              [&](Unit u){ return currentPeriodEnergyConsumption(u); },
              "Energy consumption so far in this billing period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_date", Quantity::Text,
              [&](){ return currentPeriodDate(); },
              "Date of current billing period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("previous", Quantity::HCA,
              [&](Unit u){ return previousPeriodEnergyConsumption(u); },
              "Energy consumption in previous billing period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("previous_date", Quantity::Text,
              [&](){ return previousPeriodDate(); },
              "Date of last billing period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("temp_room", Quantity::Temperature,
              [&](Unit u){ return currentRoomTemperature(u); },
              "Current room temperature.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("temp_radiator", Quantity::Temperature,
              [&](Unit u){ return currentRadiatorTemperature(u); },
              "Current radiator temperature.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 double MeterFHKVDataIII::currentPeriodEnergyConsumption(Unit u)

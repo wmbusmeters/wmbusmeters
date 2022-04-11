@@ -770,7 +770,7 @@ void MeterCommonImplementation::addLinkMode(LinkMode lm)
 }
 
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
-                                         function<double(Unit)> getValueFunc, string help, bool field, bool json)
+                                         function<double(Unit)> getValueFunc, string help, PrintProperties pprops)
 {
     string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
     string field_name = vname+"_"+default_unit;
@@ -787,9 +787,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                   AnyTariffNr,
                   IndexNr(1),
                   help,
-                  field,
-                  json,
-                  false,
+                  pprops,
                   field_name,
                   getValueFunc,
                   NULL,
@@ -802,7 +800,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
 }
 
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit unit,
-                                         function<double(Unit)> getValueFunc, string help, bool field, bool json)
+                                         function<double(Unit)> getValueFunc, string help, PrintProperties pprops)
 {
     string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
     string field_name = vname+"_"+default_unit;
@@ -819,9 +817,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit 
                   AnyTariffNr,
                   IndexNr(1),
                   help,
-                  field,
-                  json,
-                  false,
+                  pprops,
                   field_name,
                   getValueFunc,
                   NULL,
@@ -835,7 +831,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit 
 
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          function<string()> getValueFunc,
-                                         string help, bool field, bool json)
+                                         string help, PrintProperties pprops)
 {
     prints_.push_back(
         FieldInfo(vname,
@@ -849,9 +845,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                   AnyTariffNr,
                   IndexNr(1),
                   help,
-                  field,
-                  json,
-                  false,
+                  pprops,
                   vname,
                   NULL,
                   getValueFunc,
@@ -873,7 +867,7 @@ void MeterCommonImplementation::addFieldWithExtractor(
     StorageNr s,
     TariffNr t,
     IndexNr i,
-    int print_properties,
+    PrintProperties print_properties,
     string help,
     function<void(Unit,double)> setValueFunc,
     function<double(Unit)> getValueFunc)
@@ -939,9 +933,7 @@ void MeterCommonImplementation::addFieldWithExtractor(
                   t,
                   i,
                   help,
-                  (print_properties & PrintProperty::FIELD) != 0,
-                  (print_properties & PrintProperty::JSON) != 0,
-                  (print_properties & PrintProperty::IMPORTANT) != 0,
+                  print_properties,
                   field_name,
                   getValueFunc,
                   NULL,
@@ -956,7 +948,7 @@ void MeterCommonImplementation::addFieldWithExtractor(
 void MeterCommonImplementation::addField(
     string vname,
     Quantity vquantity,
-    int print_properties,
+    PrintProperties print_properties,
     string help,
     function<void(Unit,double)> setValueFunc,
     function<double(Unit)> getValueFunc)
@@ -977,9 +969,7 @@ void MeterCommonImplementation::addField(
                   TariffNr(0),
                   0,
                   help,
-                  (print_properties & PrintProperty::FIELD) != 0,
-                  (print_properties & PrintProperty::JSON) != 0,
-                  (print_properties & PrintProperty::IMPORTANT) != 0,
+                  print_properties,
                   field_name,
                   getValueFunc,
                   NULL,
@@ -1000,7 +990,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
     StorageNr s,
     TariffNr t,
     IndexNr i,
-    int print_properties,
+    PrintProperties print_properties,
     string help,
     function<void(string)> setValueFunc,
     function<string()> getValueFunc)
@@ -1077,9 +1067,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                   t,
                   i,
                   help,
-                  (print_properties & PrintProperty::FIELD) != 0,
-                  (print_properties & PrintProperty::JSON) != 0,
-                  (print_properties & PrintProperty::IMPORTANT) != 0,
+                  print_properties,
                   field_name,
                   NULL,
                   getValueFunc,
@@ -1100,7 +1088,7 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
     StorageNr s,
     TariffNr t,
     IndexNr i,
-    int print_properties,
+    PrintProperties print_properties,
     string help,
     function<void(string)> setValueFunc,
     function<string()> getValueFunc,
@@ -1152,9 +1140,7 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
                   t,
                   i,
                   help,
-                  (print_properties & PrintProperty::FIELD) != 0,
-                  (print_properties & PrintProperty::JSON) != 0,
-                  (print_properties & PrintProperty::IMPORTANT) != 0,
+                  print_properties,
                   field_name,
                   NULL,
                   getValueFunc,
@@ -1430,7 +1416,7 @@ string concatAllFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints,
     }
     for (FieldInfo p : prints)
     {
-        if (p.field())
+        if (p.printProperties().hasFIELD())
         {
             if (p.hasGetValueDouble())
             {
@@ -1789,7 +1775,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     }
     for (FieldInfo& p : prints_)
     {
-        if (p.json())
+        if (p.printProperties().hasJSON())
         {
             s += indent+p.renderJson(&conversions())+","+newline;
         }
@@ -1840,7 +1826,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
     for (FieldInfo p : prints_)
     {
-        if (p.json())
+        if (p.printProperties().hasJSON())
         {
             string default_unit = unitToStringUpperCase(p.defaultUnit());
             string var = p.vname();

@@ -75,62 +75,62 @@ MeterESYSWM::MeterESYSWM(MeterInfo &mi) :
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_power_consumption", Quantity::Power,
              [&](Unit u){ return currentPowerConsumption(u); },
              "Current power consumption.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_energy_production", Quantity::Energy,
              [&](Unit u){ return totalEnergyProduction(u); },
              "The total energy production recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_energy_consumption_tariff1", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumptionTariff1(u); },
              "The total energy consumption recorded by this meter on tariff 1.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_energy_consumption_tariff2", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumptionTariff2(u); },
              "The total energy consumption recorded by this meter on tariff 2.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_power_consumption_phase1", Quantity::Power,
              [&](Unit u){ return currentPowerConsumptionPhase1(u); },
              "Current power consumption phase 1.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_power_consumption_phase2", Quantity::Power,
              [&](Unit u){ return currentPowerConsumptionPhase2(u); },
              "Current power consumption phase 2.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_power_consumption_phase3", Quantity::Power,
              [&](Unit u){ return currentPowerConsumptionPhase3(u); },
              "Current power consumption phase 3.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("enhanced_id", Quantity::Text,
              [&](){ return enhanced_id_; },
              "Static enhanced id information.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("version", Quantity::Text,
              [&](){ return version_; },
              "Static version information.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("location_hex", Quantity::Text,
              [&](){ return location_hex_; },
              "Static location information.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("fabrication_no", Quantity::Text,
              [&](){ return fabrication_no_; },
              "Static fabrication no information.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createESYSWM(MeterInfo &mi)

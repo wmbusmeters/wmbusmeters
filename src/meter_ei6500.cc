@@ -87,43 +87,43 @@ MeterEI6500::MeterEI6500(MeterInfo &mi) :
     addPrint("software_version", Quantity::Text,
              [&](){ return software_version_; },
              "Software version.",
-             false, true);
+             PrintProperty::JSON);
     addPrint("message_datetime", Quantity::Text,
              [&](){ return messageDate(); },
              "Date of message.",
-             false, true);
+             PrintProperty::JSON);
     addPrint("last_alarm_date", Quantity::Text,
              [&](){ return lastAlarmDate(); },
              "Date of last alarm.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("smoke_alarm_counter", Quantity::Text,
              [&](){ return smokeAlarmCounter(); },
              "Number of times smoke alarm was triggered.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("total_remove_duration", Quantity::Text,
              [&](){ return totalRemoveDuration(); },
              "Number of times it was removed.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("last_remove_date", Quantity::Text,
              [&](){ return lastRemoveDate(); },
              "Date of last removal.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("removed_counter", Quantity::Text,
              [&](){ return removedCounter(); },
              "removed counter",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("test_button_last_date", Quantity::Text,
              [&](){ return testButtonLastDate(); },
              "Date of last test button press.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("test_button_counter", Quantity::Text,
              [&](){ return testButtonCounter(); },
              "test button counter",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("status", Quantity::Text,
              [&](){ return status(); },
              "Status of smoke detector.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createEI6500(MeterInfo &mi)

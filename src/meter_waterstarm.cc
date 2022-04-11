@@ -76,32 +76,32 @@ MeterWaterstarM::MeterWaterstarM(MeterInfo &mi) :
     addPrint("meter_timestamp", Quantity::Text,
              [&](){ return meter_timestamp_; },
              "Date time for this reading.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_backwards", Quantity::Volume,
              [&](Unit u){ return totalWaterBackwards(u); },
              "The total amount of water running backwards through meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_status", Quantity::Text,
              [&](){ return status_; },
              "The status is OK or some error condition.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("meter_version", Quantity::Text,
              [&](){ return meter_version_; },
              "Meter version.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("parameter_set", Quantity::Text,
              [&](){ return parameter_set_; },
              "Parameter set.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 void MeterWaterstarM::processContent(Telegram *t)

@@ -52,7 +52,7 @@ MeterLansenSM::MeterLansenSM(MeterInfo &mi) :
     addPrint("status", Quantity::Text,
              [&](){ return status(); },
              "The current status: OK, SMOKE, TEST or 'SMOKE TEST'.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createLansenSM(MeterInfo &mi)

@@ -25,13 +25,6 @@
 #include<map>
 #include<set>
 
-enum PrintProperty
-{
-    JSON = 1,  // This field should be printed when using --format=json
-    FIELD = 2, // This field should be printed when using --format=field
-    IMPORTANT = 4, // The most important field.
-};
-
 struct MeterCommonImplementation : public virtual Meter
 {
     int index();
@@ -80,16 +73,27 @@ protected:
     void addLinkMode(LinkMode lm);
     // Print with the default unit for this quantity.
     void addPrint(string vname, Quantity vquantity,
-                  function<double(Unit)> getValueFunc, string help, bool field, bool json);
+                  function<double(Unit)> getValueFunc, string help, PrintProperties pprops);
     // Print with exactly this unit for this quantity.
     void addPrint(string vname, Quantity vquantity, Unit unit,
-                  function<double(Unit)> getValueFunc, string help, bool field, bool json);
+                  function<double(Unit)> getValueFunc, string help, PrintProperties pprops);
     // Print the dimensionless Text quantity, no unit is needed.
     void addPrint(string vname, Quantity vquantity,
-                  function<std::string()> getValueFunc, string help, bool field, bool json);
+                  function<std::string()> getValueFunc, string help, PrintProperties pprops);
 
 #define SET_FUNC(varname,to_unit) {[=](Unit from_unit, double d){varname = convert(d, from_unit, to_unit);}}
 #define GET_FUNC(varname,from_unit) {[=](Unit to_unit){return convert(varname, from_unit, to_unit);}}
+#define LOOKUP_FIELD(DVKEY) NoDifVifKey,VifScaling::Auto,MeasurementType::Unknown,ValueInformation::Any,AnyStorageNr,AnyTariffNr,IndexNr(1)
+#define FIND_FIELD(TYPE,INFO) NoDifVifKey,VifScaling::Auto,TYPE,INFO,StorageNr(0),TariffNr(0),IndexNr(1)
+#define FIND_FIELD_S(TYPE,INFO,STORAGE) NoDifVifKey,VifScaling::Auto,TYPE,INFO,STORAGE,TariffNr(0),IndexNr(1)
+#define FIND_FIELD_ST(TYPE,INFO,STORAGE,TARIFF) NoDifVifKey,VifScaling::Auto,,TYPE,INFO,STORAGE,TARIFF,IndexNr(1)
+#define FIND_FIELD_STI(TYPE,INFO,STORAGE,TARIFF,INDEX) NoDifVifKey,VifScaling::Auto,TYPE,INFO,STORAGE,TARIFF,INDEX
+
+#define FIND_SFIELD(TYPE,INFO) NoDifVifKey,TYPE,INFO,StorageNr(0),TariffNr(0),IndexNr(1)
+#define FIND_SFIELD_S(TYPE,INFO,STORAGE) NoDifVifKey,TYPE,INFO,STORAGE,TariffNr(0),IndexNr(1)
+#define FIND_SFIELD_ST(TYPE,INFO,STORAGE,TARIFF) NoDifVifKey,TYPE,INFO,STORAGE,TARIFF,IndexNr(1)
+#define FIND_SFIELD_STI(TYPE,INFO,STORAGE,TARIFF,INDEX) NoDifVifKey,TYPE,INFO,STORAGE,TARIFF,INDEX
+
 
     void addFieldWithExtractor(
         string vname,          // Name of value without unit, eg total
@@ -101,7 +105,7 @@ protected:
         StorageNr s,
         TariffNr t,
         IndexNr i,
-        int print_properties, // Should this be printed by default in fields,json and hr.
+        PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
         string help,
         function<void(Unit,double)> setValueFunc, // Use the SET macro above.
         function<double(Unit)> getValueFunc); // Use the GET macro above.
@@ -109,7 +113,7 @@ protected:
     void addField(
         string vname,          // Name of value without unit, eg total
         Quantity vquantity,    // Value belongs to this quantity.
-        int print_properties, // Should this be printed by default in fields,json and hr.
+        PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
         string help,
         function<void(Unit,double)> setValueFunc, // Use the SET macro above.
         function<double(Unit)> getValueFunc); // Use the GET macro above.
@@ -126,7 +130,7 @@ protected:
         StorageNr s,
         TariffNr t,
         IndexNr i,
-        int print_properties, // Should this be printed by default in fields,json and hr.
+        PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
         string help,
         function<void(string)> setValueFunc, // Use the SET_STRING macro above.
         function<string()> getValueFunc); // Use the GET_STRING macro above.
@@ -140,7 +144,7 @@ protected:
         StorageNr s,
         TariffNr t,
         IndexNr i,
-        int print_properties, // Should this be printed by default in fields,json and hr.
+        PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
         string help,
         function<void(string)> setValueFunc, // Use the SET_STRING macro above.
         function<string()> getValueFunc, // Use the GET_STRING macro above.

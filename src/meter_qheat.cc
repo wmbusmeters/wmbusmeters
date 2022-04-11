@@ -60,37 +60,37 @@ MeterQHeat::MeterQHeat(MeterInfo &mi) :
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("last_month_date", Quantity::Text,
              [&](){ return last_month_date_; },
              "Last day previous month when total energy consumption was recorded.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("last_month_energy_consumption", Quantity::Energy,
              [&](Unit u){ return targetEnergyConsumption(u); },
              "The total energy consumption recorded at the last day of the previous month.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("last_year_date", Quantity::Text,
              [&](){ return last_year_date_; },
              "Last day previous year when total energy consumption was recorded.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("last_year_energy_consumption", Quantity::Energy,
              [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(last_year_energy_kwh_, Unit::KWH, u); },
              "The total energy consumption recorded at the last day of the previous year.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("device_date_time", Quantity::Text,
              [&](){ return device_date_time_; },
              "Device date time.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("device_error_date", Quantity::Text,
              [&](){ return device_error_date_; },
              "Device error date.",
-             false, true);
+             PrintProperty::JSON);
 
 }
 

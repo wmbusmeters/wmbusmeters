@@ -47,12 +47,12 @@ MeterCMa12w::MeterCMa12w(MeterInfo &mi) :
     addPrint("current_temperature", Quantity::Temperature,
              [&](Unit u){ return currentTemperature(u); },
              "The current temperature.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("average_temperature_1h", Quantity::Temperature,
              [&](Unit u){ return convert(average_temperature_1h_c_, Unit::C, u); },
              "The average temperature over the last hour.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createCMa12w(MeterInfo &mi)

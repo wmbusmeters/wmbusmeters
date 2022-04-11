@@ -75,47 +75,47 @@ MeterMultical603::MeterMultical603(MeterInfo &mi) :
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_volume", Quantity::Volume,
              [&](Unit u){ return totalVolume(u); },
              "Total volume of media.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("volume_flow", Quantity::Flow,
              [&](Unit u){ return volumeFlow(u); },
              "The current flow.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("t1_temperature", Quantity::Temperature,
              [&](Unit u){ return t1Temperature(u); },
              "The T1 temperature.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("t2_temperature", Quantity::Temperature,
              [&](Unit u){ return t2Temperature(u); },
              "The T2 temperature.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("at_date", Quantity::Text,
              [&](){ return target_date_; },
              "Date when total energy consumption was recorded.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("current_status", Quantity::Text,
              [&](){ return status(); },
              "Status of meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("energy_forward", Quantity::Energy,
              [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(energy_forward_kwh_, Unit::KWH, u); },
              "Energy forward.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("energy_returned", Quantity::Energy,
              [&](Unit u){ assertQuantity(u, Quantity::Energy); return convert(energy_returned_kwh_, Unit::KWH, u); },
              "Energy returned.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createMultical603(MeterInfo &mi) {

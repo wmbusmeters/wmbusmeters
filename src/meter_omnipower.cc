@@ -83,22 +83,22 @@ MeterOmnipower::MeterOmnipower(MeterInfo &mi) :
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_energy_production", Quantity::Energy,
              [&](Unit u){ return totalEnergyBackward(u); },
              "The total energy backward (production) recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_power_consumption", Quantity::Power,
              [&](Unit u){ return powerConsumption(u); },
              "The current power consumption on this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_power_production", Quantity::Power,
              [&](Unit u){ return powerBackward(u); },
              "The current power backward on this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 double MeterOmnipower::totalEnergyConsumption(Unit u)

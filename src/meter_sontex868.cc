@@ -65,42 +65,42 @@ MeterSontex868::MeterSontex868(MeterInfo &mi) :
     addPrint("current_consumption", Quantity::HCA,
              [&](Unit u){ return currentConsumption(u); },
              "The current heat cost allocation.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("set_date", Quantity::Text,
              [&](){ return setDate(); },
              "The most recent billing period date.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("consumption_at_set_date", Quantity::HCA,
              [&](Unit u){ return consumptionAtSetDate(u); },
              "Heat cost allocation at the most recent billing period date.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_temp", Quantity::Temperature,
              [&](Unit u){ return currentTemp(u); },
              "The current temperature of the heating element.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("current_room_temp", Quantity::Temperature,
              [&](Unit u){ return currentRoomTemp(u); },
              "The current room temperature.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("max_temp", Quantity::Temperature,
              [&](Unit u){ return maxTemp(u); },
              "The maximum temperature so far during this billing period.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("max_temp_previous_period", Quantity::Temperature,
              [&](Unit u){ return maxTempPreviousPeriod(u); },
              "The maximum temperature during the previous billing period.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("device_date_time", Quantity::Text,
              [&](){ return device_date_time_; },
              "Device date time.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createSontex868(MeterInfo &mi)

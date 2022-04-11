@@ -91,47 +91,47 @@ MeterGransystemsCCx01::MeterGransystemsCCx01(MeterInfo &mi) :
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("voltage_at_phase_1", Quantity::Voltage,
              [&](Unit u){ return convert(voltage_L_[0], Unit::Volt, u); },
              "Voltage at phase L1.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("voltage_at_phase_2", Quantity::Voltage,
              [&](Unit u){ return convert(voltage_L_[1], Unit::Volt, u); },
              "Voltage at phase L2.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("voltage_at_phase_3", Quantity::Voltage,
              [&](Unit u){ return convert(voltage_L_[2], Unit::Volt, u); },
              "Voltage at phase L3.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("currrent_at_phase_1", Quantity::Current,
              [&](Unit u){ return convert(current_L_[0], Unit::Ampere, u); },
              "Current at phase L1.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("currrent_at_phase_2", Quantity::Current,
              [&](Unit u){ return convert(current_L_[1], Unit::Ampere, u); },
              "Current at phase L2.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("currrent_at_phase_3", Quantity::Current,
              [&](Unit u){ return convert(current_L_[2], Unit::Ampere, u); },
              "Current at phase L3.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("frequency", Quantity::Frequency,
              [&](Unit u){ return convert(frequency_, Unit::Hz, u); },
              "Frequency.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("status", Quantity::Text,
              [&](){ return status(); },
              "The meter status.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 double MeterGransystemsCCx01::totalEnergyConsumption(Unit u)

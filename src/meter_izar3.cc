@@ -53,7 +53,7 @@ MeterIzar3::MeterIzar3(MeterInfo &mi) :
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 }
 
 double MeterIzar3::totalWaterConsumption(Unit u)

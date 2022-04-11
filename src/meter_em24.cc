@@ -81,37 +81,37 @@ MeterEM24::MeterEM24(MeterInfo &mi) :
     addPrint("total_energy_consumption", Quantity::Energy,
              [&](Unit u){ return totalEnergyConsumption(u); },
              "The total energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_energy_production", Quantity::Energy,
              [&](Unit u){ return totalEnergyProduction(u); },
              "The total energy production recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_reactive_energy_consumption", Quantity::Reactive_Energy,
              [&](Unit u){ return totalReactiveEnergyConsumption(u); },
              "The total reactive energy consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_reactive_energy_production", Quantity::Reactive_Energy,
              [&](Unit u){ return totalReactiveEnergyProduction(u); },
              "The total reactive energy production recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_apparent_energy_consumption", Quantity::Apparent_Energy,
              [&](Unit u){ return totalApparentEnergyConsumption(u); },
              "The total apparent energy consumption by calculation.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("total_apparent_energy_production", Quantity::Apparent_Energy,
              [&](Unit u){ return totalApparentEnergyProduction(u); },
              "The total apparent energy production by calculation.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("errors", Quantity::Text,
              [&](){ return status(); },
              "Any errors currently being reported.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 double MeterEM24::totalEnergyConsumption(Unit u)

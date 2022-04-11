@@ -62,17 +62,17 @@ MeterQSmoke::MeterQSmoke(MeterInfo &mi) :
     addPrint("status", Quantity::Text,
              [&](){ return status(); },
              "The current status: OK, SMOKE or ERROR.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("counter", Quantity::Counter,
              [&](Unit u){ return counter_; },
              "Transmission counter.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("device_date_time", Quantity::Text,
              [&](){ return device_date_time_; },
              "Device date time.",
-             false, true);
+             PrintProperty::JSON);
 
 }
 

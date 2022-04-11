@@ -57,47 +57,47 @@ MeterQCaloric::MeterQCaloric(MeterInfo &mi) :
     addPrint("current_consumption", Quantity::HCA,
              [&](Unit u){ return currentConsumption(u); },
              "The current heat cost allocation.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("set_date", Quantity::Text,
              [&](){ return setDate(); },
              "The most recent billing period date.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("consumption_at_set_date", Quantity::HCA,
              [&](Unit u){ return consumptionAtSetDate(u); },
              "Heat cost allocation at the most recent billing period date.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("set_date_1", Quantity::Text,
              [&](){ return setDate(); },
              "The 1 billing period date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("consumption_at_set_date_1", Quantity::HCA,
              [&](Unit u){ return consumptionAtSetDate(u); },
              "Heat cost allocation at the 1 billing period date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("set_date_17", Quantity::Text,
              [&](){ return set_date_17_; },
              "The 17 billing period date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("consumption_at_set_date_17", Quantity::HCA,
              [&](Unit u){ return consumption_at_set_date_17_hca_; },
              "Heat cost allocation at the 17 billing period date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("error_date", Quantity::Text,
              [&](){ return error_date_; },
              "Error date.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("device_date_time", Quantity::Text,
              [&](){ return device_date_time_; },
              "Device date time.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createQCaloric(MeterInfo &mi)

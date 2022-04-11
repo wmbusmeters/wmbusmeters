@@ -24,10 +24,12 @@
 #include"translatebits.h"
 #include"wmbus.h"
 
+#include<assert.h>
 #include<functional>
 #include<numeric>
 #include<string>
 #include<vector>
+
 
 #define LIST_OF_METER_TYPES \
     X(AutoMeter) \
@@ -280,6 +282,31 @@ enum class VifScaling
     AutoSigned // Scale and assume the value is signed.
 };
 
+enum PrintProperty
+{
+    JSON = 1,  // This field should be printed when using --format=json
+    FIELD = 2, // This field should be printed when using --format=field
+    IMPORTANT = 4, // The most important field.
+    OPTIONAL = 8, // If no data has arrived, do include this field in the json output.
+};
+
+struct PrintProperties
+{
+    PrintProperties(int x)
+    {
+        props_ = x;
+        assert(x >=0 && x<=16); // No bits outside of possible PrintProperty values.
+    }
+
+    bool hasJSON() { return props_ & PrintProperty::JSON; }
+    bool hasFIELD() { return props_ & PrintProperty::FIELD; }
+    bool hasIMPORTANT() { return props_ & PrintProperty::IMPORTANT; }
+    bool hasOPTIONAL() { return props_ & PrintProperty::OPTIONAL; }
+
+    private:
+    int props_;
+};
+
 struct FieldInfo
 {
     FieldInfo(string vname,
@@ -293,9 +320,7 @@ struct FieldInfo
               TariffNr tariff_nr,
               IndexNr index_nr,
               string help,
-              bool field,
-              bool json,
-              bool important,
+              PrintProperties print_properties,
               string field_name,
               function<double(Unit)> get_value_double,
               function<string()> get_value_string,
@@ -316,9 +341,7 @@ struct FieldInfo
         tariff_nr_(tariff_nr),
         index_nr_(index_nr),
         help_(help),
-        field_(field),
-        json_(json),
-        important_(important),
+        print_properties_(print_properties),
         field_name_(field_name),
         get_value_double_(get_value_double),
         get_value_string_(get_value_string),
@@ -340,9 +363,7 @@ struct FieldInfo
     TariffNr tariffNr() { return tariff_nr_; }
     IndexNr indexNr() { return index_nr_; }
     string help() { return help_; }
-    bool field() { return field_; }
-    bool json() { return json_; }
-    bool important() { return important_; }
+    PrintProperties printProperties() { return print_properties_; }
     string fieldName() { return field_name_; }
 
     double getValueDouble(Unit u) { if (get_value_double_) return get_value_double_(u); else return -12345678; }
@@ -374,9 +395,7 @@ private:
     TariffNr tariff_nr_;
     IndexNr index_nr_;
     string help_; // Helpful information on this meters use of this value.
-    bool field_; // If true, print in hr/fields output.
-    bool json_; // If true, print in json and shell env variables.
-    bool important_; // If true, then print this for --format=hr and in the summary when listening to all.
+    PrintProperties print_properties_;
     string field_name_; // Field name for default unit.
 
     function<double(Unit)> get_value_double_; // Callback to fetch the value from the meter.

@@ -51,32 +51,32 @@ MeterLansenTH::MeterLansenTH(MeterInfo &mi) :
     addPrint("current_temperature", Quantity::Temperature,
              [&](Unit u){ return currentTemperature(u); },
              "The current temperature.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("current_relative_humidity", Quantity::RelativeHumidity,
              [&](Unit u){ return currentRelativeHumidity(); },
              "The current relative humidity.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("average_temperature_1h", Quantity::Temperature,
              [&](Unit u){ return convert(average_temperature_1h_c_, Unit::C, u); },
              "The average temperature over the last hour.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("average_relative_humidity_1h", Quantity::RelativeHumidity,
              [&](Unit u){ return average_relative_humidity_1h_rh_; },
              "The average relative humidity over the last hour.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("average_temperature_24h", Quantity::Temperature,
              [&](Unit u){ return convert(average_temperature_24h_c_, Unit::C, u); },
              "The average temperature over the last 24 hours.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("average_relative_humidity_24h", Quantity::RelativeHumidity,
              [&](Unit u){ return average_relative_humidity_24h_rh_; },
              "The average relative humidity over the last 24 hours.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createLansenTH(MeterInfo &mi)

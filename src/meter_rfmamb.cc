@@ -70,77 +70,77 @@ MeterRfmAmb::MeterRfmAmb(MeterInfo &mi) :
     addPrint("current_temperature", Quantity::Temperature,
              [&](Unit u){ return currentTemperature(u); },
              "The current temperature.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("average_temperature_1h", Quantity::Temperature,
              [this](Unit u){ return convert(average_temperature_1h_c_, Unit::C, u); },
              "The average temperature for the last hour.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("average_temperature_24h", Quantity::Temperature,
              [this](Unit u){ return convert(average_temperature_24h_c_, Unit::C, u); },
              "The average temperature for the last 24 hours",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("maximum_temperature_1h", Quantity::Temperature,
              [&](Unit u){ return maximumTemperature(u); },
              "The maximum temperature.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("minimum_temperature_1h", Quantity::Temperature,
              [&](Unit u){ return minimumTemperature(u); },
              "The minimum temperature.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("maximum_temperature_24h", Quantity::Temperature,
              [&](Unit u){ return maximumTemperatureAtSetDate1(u); },
              "The maximum temperature at set date 1.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("minimum_temperature_24h", Quantity::Temperature,
              [&](Unit u){ return minimumTemperatureAtSetDate1(u); },
              "The minimum temperature at set date 1.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("current_relative_humidity", Quantity::RelativeHumidity,
              [&](Unit u){ return currentRelativeHumidity(); },
              "The current relative humidity.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("average_relative_humidity_1h", Quantity::RelativeHumidity,
              [this](Unit u){ return convert(average_relative_humidity_1h_rh_, Unit::RH, u); },
              "The averate relative humidity for the last hours.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("average_relative_humidity_24h", Quantity::RelativeHumidity,
              [this](Unit u){ return convert(average_relative_humidity_24h_rh_, Unit::RH, u); },
              "The average relative humidity for the last 24 hours.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("minimum_relative_humidity_1h", Quantity::RelativeHumidity,
              [&](Unit u){ return minimumRelativeHumidity(); },
              "The minimum relative humidity.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("maximum_relative_humidity_1h", Quantity::RelativeHumidity,
              [&](Unit u){ return maximumRelativeHumidity(); },
              "The maximum relative humidity.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("maximum_relative_humidity_24h", Quantity::RelativeHumidity,
              [&](Unit u){ return maximumRelativeHumidityAtSetDate1(); },
              "The maximum relative humidity at set date 1.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("minimum_relative_humidity_24h", Quantity::RelativeHumidity,
              [&](Unit u){ return minimumRelativeHumidityAtSetDate1(); },
              "The minimum relative humidity at set date 1.",
-             false, true);
+             PrintProperty::JSON);
 
     addPrint("device_date_time", Quantity::Text,
              [&](){ return device_date_time_; },
              "Device date time.",
-             false, true);
+             PrintProperty::JSON);
 }
 
 shared_ptr<Meter> createRfmAmb(MeterInfo &mi)

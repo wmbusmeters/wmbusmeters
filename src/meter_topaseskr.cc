@@ -86,39 +86,39 @@ MeterTopasEsKr::MeterTopasEsKr(MeterInfo &mi) :
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
              "The total water consumption recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("temperature", Quantity::Temperature,
              [&](Unit u){ return flowTemperature(u); },
              "Current water temperature recorded by this meter.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("current_flow", Quantity::Flow,
              [&](Unit u){ return current_flow_m3h_; },
              "Current flow.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("battery_life_days_remaining_remaining", Quantity::Text,
              [&](){ return battery_life_days_remaining_; },
              "Battery life [days remaining].",
-             false, true);
+             PrintProperty::JSON);
     addPrint("volume_year_period", Quantity::Volume,
              [&](Unit u){ return volume_year_period_m3_; },
              "Volume up to end of last year-period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("reverse_volume_year_period", Quantity::Volume,
              [&](Unit u){ return reverse_volume_year_period_m3_; },
              "Reverse volume in this year-period (?).",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("meter_year_period_start_date", Quantity::Text,
              [&](){ return meter_yearly_period_date_; },
              "Meter date for year-period start.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("volume_month_period", Quantity::Volume,
              [&](Unit u){ return volume_month_period_m3_; },
              "Volume up to end of last month-period.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
     addPrint("meter_month_period_start_datetime", Quantity::Text,
              [&](){ return meter_month_period_datetime_; },
              "Meter timestamp for month-period start.",
-             true, true);
+             PrintProperty::FIELD | PrintProperty::JSON);
 
 }
 

@@ -1,6 +1,7 @@
 #!/bin/sh
 
 PROG="$1"
+DRIVERS="$2"
 
 mkdir -p testoutput
 TEST=testoutput
@@ -11,15 +12,17 @@ TESTNAME="Test driver tests"
 TESTRESULT="ERROR"
 
 ALL_DRIVERS=$(cd src; echo driver_*cc)
-DRIVERS=
 
-for i in $ALL_DRIVERS
-do
-    if grep -q '// Test:' src/$i
-    then
-        DRIVERS="$DRIVERS $i"
-    fi
-done
+if [ "$DRIVERS" = "" ]
+then
+    for i in $ALL_DRIVERS
+    do
+        if grep -q '// Test:' src/$i
+        then
+            DRIVERS="$DRIVERS $i"
+        fi
+    done
+fi
 
 for i in $DRIVERS
 do
