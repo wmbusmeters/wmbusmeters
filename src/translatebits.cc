@@ -25,11 +25,9 @@ using namespace std;
 
 void handleRule(Rule& rule, string &s, uint64_t bits)
 {
-    // Keep only the masked bits.
-    bits = bits & rule.mask;
-
     if (rule.type == Type::BitToString)
     {
+        bits = bits & rule.mask;
         if (bits == 0)
         {
             s += rule.no_bits_msg+" ";
@@ -62,6 +60,7 @@ void handleRule(Rule& rule, string &s, uint64_t bits)
     }
     else if (rule.type == Type::IndexToString)
     {
+        bits = bits & rule.mask;
         bool found = false;
         for (Map& m : rule.map)
         {
@@ -83,6 +82,37 @@ void handleRule(Rule& rule, string &s, uint64_t bits)
             // Oups, this index has not been found.
             string tmp;
             strprintf(tmp, "UNKNOWN_%s(0x%x)", rule.name.c_str(), bits);
+            s += tmp+" ";
+        }
+    }
+    else if (rule.type == Type::DecimalsToString)
+    {
+        // Switch to signed number here.
+        int number = bits % rule.mask;
+        if (number == 0)
+        {
+            s += rule.no_bits_msg+" ";
+        }
+        for (Map& m : rule.map)
+        {
+            if ((m.from - (m.from % rule.mask)) != 0)
+            {
+                string tmp;
+                strprintf(tmp, "BAD_RULE_%s(from=%d modulomask=%d)", rule.name.c_str(), m.from, rule.mask);
+                s += tmp+" ";
+            }
+            int num = m.from % rule.mask; // Better safe than sorry.
+            if ((number - num) >= 0)
+            {
+                s += m.to+" ";
+                number -= num;
+            }
+        }
+        if (number >0)
+        {
+            // Oups, this number has not been fully understood.
+            string tmp;
+            strprintf(tmp, "UNKNOWN_%s(%d)", rule.name.c_str(), number);
             s += tmp+" ";
         }
     }
