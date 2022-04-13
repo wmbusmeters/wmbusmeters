@@ -533,7 +533,7 @@ You can list all available fields for a meter: `wmbusmeters --listfields=multica
 
 You can list all meters: `wmbusmeters --listmeters`
 
-You can search for meters: `wmbusmeters --listmeters=water` or `wmbusmteres --listmeters=q`
+You can search for meters: `wmbusmeters --listmeters=water` or `wmbusmeters --listmeters=q`
 
 Eaxmple of using the shell command to publish to MQTT:
 
@@ -541,7 +541,7 @@ Eaxmple of using the shell command to publish to MQTT:
 wmbusmeters --shell='HOME=/home/you mosquitto_pub -h localhost -t water -m "$METER_JSON"' /dev/ttyUSB0:im871a GreenhouseWater multical21:c1 33333333 NOKEY
 ```
 
-Eaxmple of using the shell command to inject data into postgresql database:
+Example of using the shell command to inject data into postgresql database:
 
 ```shell
 wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$METER_ID',\$METER_TOTAL_M3,'\$METER_TIMESTAMP') \" " /dev/ttyUSB0:amb8465 MyColdWater multical21:c1 12345678 NOKEY
@@ -549,7 +549,7 @@ wmbusmeters --shell="psql waterreadings -c \"insert into readings values ('\$MET
 
 (It is much easier to add shell commands in the conf file since you do not need to quote the quotes.)
 
-You can have multiple shell commands and they will be executed in the order you gave them on the commandline.
+You can have multiple shell commands and they will be executed in the order you gave them on the command line.
 
 To list the shell env variables available for a meter, run `wmbusmeters --listenvs=multical21` which outputs:
 
@@ -627,7 +627,7 @@ Received telegram from: 00010206
                 driver: lansenpu
 ```
 
-You an of course decode the meter on the fly:
+You can of course decode the meter on the fly:
 
 ```shell
 wmbusmeters --format=json 234433300602010014007a8e0000002f2f0efd3a1147000000008e40fd3a341200000000 MyCounter auto 00010206 NOKEY
@@ -655,17 +655,17 @@ like when the telegram is suppled in a simulation file.
 
 # Additional tools
 
-If you have a Kamstrup meters and you have received a KEM file and its
+If you have a Kamstrup meter and you have received a KEM file and its
 password from your supplier, then you can use `python2 utils/kem-import.py`
 [utils/kem-import.py](utils/kem-import.py) to extract meter
 information from that file (including the AES key) and to create
-corresponding meter files in wmbusmetrs' config directory.
+corresponding meter files in wmbusmeters' config directory.
 
 You can also use the XMLExtract Java program. `javac utils/XMLExtract`
 and then `java -cp utils XMLExtract` to print the key on the command line.
 
 You can run wmbusmeters with `--logtelegrams` to get log output that can
-be placed in a simulation.txt file. You can then run wmbusmeter and
+be placed in a simulation.txt file. You can then run wmbusmeters and
 instead of an usb device, you provide the `simulation.txt` file as
 argument. See test.sh for more info.
 
