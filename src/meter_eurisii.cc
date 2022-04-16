@@ -210,33 +210,33 @@ void MeterEurisII::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 0, 0, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 0, 0, &key, &t->dv_entries))
     {
-        extractDVdouble(&t->values, key, &offset, &current_consumption_hca_);
+        extractDVdouble(&t->dv_entries, key, &offset, &current_consumption_hca_);
         t->addMoreExplanation(offset, " current consumption (%f hca)", current_consumption_hca_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::Date, 1, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::Date, 1, 0, &key, &t->dv_entries)) {
         struct tm date;
-        extractDVdate(&t->values, key, &offset, &date);
+        extractDVdate(&t->dv_entries, key, &offset, &date);
         set_date_ = strdate(&date);
         t->addMoreExplanation(offset, " set date (%s)", set_date_.c_str());
     }
 
     for (int i=1; i<=17; ++i)
     {
-        if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, i, 0, &key, &t->values))
+        if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, i, 0, &key, &t->dv_entries))
         {
             string info;
             strprintf(info, " consumption at set date %d (%%f hca)", i);
-            extractDVdouble(&t->values, key, &offset, &consumption_at_set_date_hca_[i-1]);
+            extractDVdouble(&t->dv_entries, key, &offset, &consumption_at_set_date_hca_[i-1]);
             t->addMoreExplanation(offset, info.c_str(), consumption_at_set_date_hca_[i-1]);
         }
     }
 
     key = "02FD17";
-    if (hasKey(&t->values, key)) {
-        extractDVuint16(&t->values, "02FD17", &offset, &error_flags_);
+    if (hasKey(&t->dv_entries, key)) {
+        extractDVuint16(&t->dv_entries, "02FD17", &offset, &error_flags_);
         t->addMoreExplanation(offset, " error flags (%04X)", error_flags_);
     }
 }

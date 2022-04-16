@@ -191,6 +191,7 @@ struct FieldMatcher
     FieldMatcher &set(VIFRange vi) { value_information = vi; return *this; }
     FieldMatcher &set(StorageNr s) { storage_nr = s; return *this; }
     FieldMatcher &set(TariffNr t) { tariff_nr = t; return *this; }
+    FieldMatcher &set(SubUnitNr u) { subunit_nr = u; return *this; }
     FieldMatcher &set(IndexNr i) { index_nr = i; return *this; }
 };
 

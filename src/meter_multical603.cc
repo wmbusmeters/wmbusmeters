@@ -197,43 +197,43 @@ void MeterMultical603::processContent(Telegram *t)
     int offset;
     string key;
 
-    extractDVuint8(&t->values, "04FF22", &offset, &info_codes_);
+    extractDVuint8(&t->dv_entries, "04FF22", &offset, &info_codes_);
     t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
 
-    extractDVuint32(&t->values, "04FF07", &offset, &energy_forward_kwh_);
+    extractDVuint32(&t->dv_entries, "04FF07", &offset, &energy_forward_kwh_);
     t->addMoreExplanation(offset, " energy forward kwh (%zu)", energy_forward_kwh_);
 
-    extractDVuint32(&t->values, "04FF08", &offset, &energy_returned_kwh_);
+    extractDVuint32(&t->dv_entries, "04FF08", &offset, &energy_returned_kwh_);
     t->addMoreExplanation(offset, " energy returned kwh (%zu)", energy_returned_kwh_);
 
-    if(findKey(MeasurementType::Instantaneous, VIFRange::EnergyWh, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
+    if(findKey(MeasurementType::Instantaneous, VIFRange::EnergyWh, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &total_energy_kwh_);
         t->addMoreExplanation(offset, " total energy consumption (%f kWh)", total_energy_kwh_);
     }
 
-    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_volume_m3_);
+    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &total_volume_m3_);
         t->addMoreExplanation(offset, " total volume (%f m3)", total_volume_m3_);
     }
 
-    if(findKey(MeasurementType::Unknown, VIFRange::VolumeFlow, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &volume_flow_m3h_);
+    if(findKey(MeasurementType::Unknown, VIFRange::VolumeFlow, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &volume_flow_m3h_);
         t->addMoreExplanation(offset, " volume flow (%f m3/h)", volume_flow_m3h_);
     }
 
-    if(findKey(MeasurementType::Instantaneous, VIFRange::FlowTemperature, 0, 0, &key, &t->values)) {
-        has_t1_temperature_ = extractDVdouble(&t->values, key, &offset, &t1_temperature_c_);
+    if(findKey(MeasurementType::Instantaneous, VIFRange::FlowTemperature, 0, 0, &key, &t->dv_entries)) {
+        has_t1_temperature_ = extractDVdouble(&t->dv_entries, key, &offset, &t1_temperature_c_);
         t->addMoreExplanation(offset, " T1 flow temperature (%f °C)", t1_temperature_c_);
     }
 
-    if(findKey(MeasurementType::Instantaneous, VIFRange::ReturnTemperature, 0, 0, &key, &t->values)) {
-        has_t2_temperature_ = extractDVdouble(&t->values, key, &offset, &t2_temperature_c_);
+    if(findKey(MeasurementType::Instantaneous, VIFRange::ReturnTemperature, 0, 0, &key, &t->dv_entries)) {
+        has_t2_temperature_ = extractDVdouble(&t->dv_entries, key, &offset, &t2_temperature_c_);
         t->addMoreExplanation(offset, " T2 flow temperature (%f °C)", t2_temperature_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::Date, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::Date, 0, 0, &key, &t->dv_entries)) {
         struct tm datetime;
-        extractDVdate(&t->values, key, &offset, &datetime);
+        extractDVdate(&t->dv_entries, key, &offset, &datetime);
         target_date_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " target date (%s)", target_date_.c_str());
     }

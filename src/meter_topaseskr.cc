@@ -127,40 +127,40 @@ void MeterTopasEsKr::processContent(Telegram *t)
     int offset;
     string key;
 
-    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
+    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
-    if(findKey(MeasurementType::Unknown, VIFRange::FlowTemperature, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &flow_temperature_);
+    if(findKey(MeasurementType::Unknown, VIFRange::FlowTemperature, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &flow_temperature_);
         t->addMoreExplanation(offset, " water temperature (%f °C)", flow_temperature_);
     }
-    if(findKey(MeasurementType::Unknown, VIFRange::VolumeFlow, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &current_flow_m3h_);
+    if(findKey(MeasurementType::Unknown, VIFRange::VolumeFlow, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &current_flow_m3h_);
         t->addMoreExplanation(offset, " current flow (%f m3/h)", current_flow_m3h_);
     }
 
-    extractDVdouble(&t->values, "4C13", &offset, &volume_year_period_m3_);
+    extractDVdouble(&t->dv_entries, "4C13", &offset, &volume_year_period_m3_);
     t->addMoreExplanation(offset, " volume up to end of last year-period (%f m3)", volume_year_period_m3_);
 
-    extractDVdouble(&t->values, "CC1013", &offset, &reverse_volume_year_period_m3_);
+    extractDVdouble(&t->dv_entries, "CC1013", &offset, &reverse_volume_year_period_m3_);
     t->addMoreExplanation(offset, " reverse volume in this year-period (?) (%f m3)", reverse_volume_year_period_m3_);
 
     struct tm date;
-    extractDVdate(&t->values, "426C", &offset, &date);
+    extractDVdate(&t->dv_entries, "426C", &offset, &date);
     meter_yearly_period_date_ = strdate(&date);
     t->addMoreExplanation(offset, " meter_start_year_period_date (%s)", meter_yearly_period_date_.c_str());
 
-    extractDVdouble(&t->values, "CC0113", &offset, &volume_month_period_m3_);
+    extractDVdouble(&t->dv_entries, "CC0113", &offset, &volume_month_period_m3_);
     t->addMoreExplanation(offset, " volume up to end of last month-period (%f m3)", volume_month_period_m3_);
 
     struct tm datetime;
-    extractDVdate(&t->values, "C4016D", &offset, &datetime);
+    extractDVdate(&t->dv_entries, "C4016D", &offset, &datetime);
     meter_month_period_datetime_ = strdatetime(&datetime);
     t->addMoreExplanation(offset, " meter_start_month_period_datetime (%s)", meter_month_period_datetime_.c_str());
 
     uint16_t tmp16;
-    extractDVuint16(&t->values, "02FD74", &offset, &tmp16);
+    extractDVuint16(&t->dv_entries, "02FD74", &offset, &tmp16);
     strprintf(battery_life_days_remaining_, "%u", (unsigned int)tmp16);
     t->addMoreExplanation(offset, " battery life (%s days remaining)", battery_life_days_remaining_.c_str());
 

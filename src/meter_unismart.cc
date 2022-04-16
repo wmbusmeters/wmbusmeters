@@ -184,40 +184,40 @@ void MeterUnismart::processContent(Telegram *t)
     string key;
 
     uint64_t v {};
-    if (extractDVlong(&t->values, "0C78", &offset, &v))
+    if (extractDVlong(&t->dv_entries, "0C78", &offset, &v))
     {
         fabrication_no_ = to_string(v);
         t->addMoreExplanation(offset, " fabrication no (%zu)", v);
     }
 
-    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
         struct tm datetime;
-        extractDVdate(&t->values, key, &offset, &datetime);
+        extractDVdate(&t->dv_entries, key, &offset, &datetime);
         total_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " total datetime (%s)", total_date_time_.c_str());
     }
 
-    if (findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->values))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->dv_entries))
     {
-        extractDVdouble(&t->values, key, &offset, &total_gas_consumption_m3_);
+        extractDVdouble(&t->dv_entries, key, &offset, &total_gas_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_gas_consumption_m3_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 1, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 1, 0, &key, &t->dv_entries)) {
         struct tm datetime;
-        extractDVdate(&t->values, key, &offset, &datetime);
+        extractDVdate(&t->dv_entries, key, &offset, &datetime);
         target_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " target datetime (%s)", target_date_time_.c_str());
     }
 
-    if (findKey(MeasurementType::Instantaneous, VIFRange::Volume, 1, 0, &key, &t->values))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Volume, 1, 0, &key, &t->dv_entries))
     {
-        extractDVdouble(&t->values, key, &offset, &target_gas_consumption_m3_);
+        extractDVdouble(&t->dv_entries, key, &offset, &target_gas_consumption_m3_);
         t->addMoreExplanation(offset, " target consumption (%f m3)", target_gas_consumption_m3_);
     }
 
     string tmp;
-    if (extractDVHexString(&t->values, "0DFD0C", &offset, &tmp))
+    if (extractDVHexString(&t->dv_entries, "0DFD0C", &offset, &tmp))
     {
         vector<uchar> bin;
         hex2bin(tmp, &bin);
@@ -227,28 +227,28 @@ void MeterUnismart::processContent(Telegram *t)
     }
 
     struct tm datetime;
-    if (extractDVdate(&t->values, "066D", &offset, &datetime))
+    if (extractDVdate(&t->dv_entries, "066D", &offset, &datetime))
     {
         device_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
     }
 
-    if (extractDVHexString(&t->values, "01FD67", &offset, &supplier_info_))
+    if (extractDVHexString(&t->dv_entries, "01FD67", &offset, &supplier_info_))
     {
         t->addMoreExplanation(offset, " suppler info (%s)", supplier_info_.c_str());
     }
 
-    if (extractDVHexString(&t->values, "02FD74", &offset, &status_))
+    if (extractDVHexString(&t->dv_entries, "02FD74", &offset, &status_))
     {
         t->addMoreExplanation(offset, " status (%s)", status_.c_str());
     }
 
-    if (extractDVHexString(&t->values, "01FD0B", &offset, &parameter_set_))
+    if (extractDVHexString(&t->dv_entries, "01FD0B", &offset, &parameter_set_))
     {
         t->addMoreExplanation(offset, " parameter set (%s)", parameter_set_.c_str());
     }
 
-    if (extractDVuint8(&t->values, "017F", &offset, &other_))
+    if (extractDVuint8(&t->dv_entries, "017F", &offset, &other_))
     {
         t->addMoreExplanation(offset, " status2 (%d)", other_);
     }

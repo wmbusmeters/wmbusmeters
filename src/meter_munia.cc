@@ -88,18 +88,18 @@ void MeterMunia::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 0, 0, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 0, 0, &key, &t->dv_entries))
     {
-        extractDVdouble(&t->values, key, &offset, &current_temperature_c_);
+        extractDVdouble(&t->dv_entries, key, &offset, &current_temperature_c_);
         t->addMoreExplanation(offset, " current temperature (%f C)", current_temperature_c_);
     }
 
     // Temporarily silly solution until the dvparser is upgraded with support for extension
     key = "0AFB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&t->values, key))
+    if (hasKey(&t->dv_entries, key))
     {
         double tmp;
-        extractDVdouble(&t->values, key, &offset, &tmp, false);
+        extractDVdouble(&t->dv_entries, key, &offset, &tmp, false);
         current_relative_humidity_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " current relative humidity (%f RH)", current_relative_humidity_rh_);
     }

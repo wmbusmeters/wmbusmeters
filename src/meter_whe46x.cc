@@ -164,64 +164,64 @@ void MeterWhe46x::processContent(Telegram *t)
     // This heat cost allocator cannot even be bothered to send the HCA data according
     // to the wmbus protocol....Blech..... I suppose the HCA data is hidden
     // in the variable string vendor string at the end. Sigh.
-    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &current_consumption_hca_);
+    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &current_consumption_hca_);
         t->addMoreExplanation(offset, " current consumption (%f hca)", current_consumption_hca_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::Date, 1, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::Date, 1, 0, &key, &t->dv_entries)) {
         struct tm date;
-        extractDVdate(&t->values, key, &offset, &date);
+        extractDVdate(&t->dv_entries, key, &offset, &date);
         set_date_ = strdate(&date);
         t->addMoreExplanation(offset, " set date (%s)", set_date_.c_str());
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 1, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &consumption_at_set_date_hca_);
+    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 1, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &consumption_at_set_date_hca_);
         t->addMoreExplanation(offset, " consumption at set date (%f hca)", consumption_at_set_date_hca_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 17, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &consumption_at_set_date_17_hca_);
+    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 17, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &consumption_at_set_date_17_hca_);
         t->addMoreExplanation(offset, " consumption at set date 17 (%f hca)", consumption_at_set_date_17_hca_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::Date, 17, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::Date, 17, 0, &key, &t->dv_entries)) {
         struct tm date;
-        extractDVdate(&t->values, key, &offset, &date);
+        extractDVdate(&t->dv_entries, key, &offset, &date);
         set_date_17_ = strdate(&date);
         t->addMoreExplanation(offset, " set date 17 (%s)", set_date_17_.c_str());
     }
 
     key = "326C";
-    if (hasKey(&t->values, key)) {
+    if (hasKey(&t->dv_entries, key)) {
         struct tm date;
-        extractDVdate(&t->values, key, &offset, &date);
+        extractDVdate(&t->dv_entries, key, &offset, &date);
         error_date_ = strdate(&date);
         t->addMoreExplanation(offset, " error date (%s)", error_date_.c_str());
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
         struct tm datetime;
-        extractDVdate(&t->values, key, &offset, &datetime);
+        extractDVdate(&t->dv_entries, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
     }
 
-    if(findKey(MeasurementType::Instantaneous, VIFRange::FlowTemperature, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &flow_temperature_c_);
+    if(findKey(MeasurementType::Instantaneous, VIFRange::FlowTemperature, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &flow_temperature_c_);
         t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_c_);
     }
 
     key = "0DFF5F";
-    if (hasKey(&t->values, key)) {
-        extractDVHexString(&t->values, key, &offset, &vendor_data_);
+    if (hasKey(&t->dv_entries, key)) {
+        extractDVHexString(&t->dv_entries, key, &offset, &vendor_data_);
         t->addMoreExplanation(offset, " vendor extension data");
     }
 
     key = "01FD73";
-    if (hasKey(&t->values, key)) {
-        extractDVuint8(&t->values, key, &offset, &listening_window_management_data_type_L_);
+    if (hasKey(&t->dv_entries, key)) {
+        extractDVuint8(&t->dv_entries, key, &offset, &listening_window_management_data_type_L_);
         t->addMoreExplanation(offset, " listening window management data type L (%d)", listening_window_management_data_type_L_);
     }
 

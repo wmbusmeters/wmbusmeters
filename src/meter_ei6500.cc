@@ -200,7 +200,7 @@ void MeterEI6500::processContent(Telegram *t)
     tpl_sts_ = t->tpl_sts;
 
     uint64_t serial;
-    if (extractDVlong(&t->values, "0BFD0F", &offset, &serial))
+    if (extractDVlong(&t->dv_entries, "0BFD0F", &offset, &serial))
     {
         // 060101 --> 01.01.06
         software_version_ =
@@ -211,39 +211,39 @@ void MeterEI6500::processContent(Telegram *t)
     }
 
     struct tm datetime;
-    if (extractDVdate(&t->values, "046D", &offset, &datetime))
+    if (extractDVdate(&t->dv_entries, "046D", &offset, &datetime))
     {
         message_datetime_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " message datetime (%s)", message_datetime_.c_str());
     }
 
-    if (extractDVuint16(&t->values, "02FD17", &offset, &info_codes_))
+    if (extractDVuint16(&t->dv_entries, "02FD17", &offset, &info_codes_))
     {
         string s = status();
         t->addMoreExplanation(offset, " info codes (%x)", s.c_str());
     }
 
-    extractDVdate(&t->values, "82506C", &offset, &datetime);
+    extractDVdate(&t->dv_entries, "82506C", &offset, &datetime);
     last_alarm_date_ = strdate(&datetime);
     t->addMoreExplanation(offset, " last alarm date (%s)", last_alarm_date_.c_str());
 
-    extractDVuint16(&t->values, "8250FD61", &offset, &smoke_alarm_counter_);
+    extractDVuint16(&t->dv_entries, "8250FD61", &offset, &smoke_alarm_counter_);
     t->addMoreExplanation(offset, " smoke alarm counter (%zu)", smoke_alarm_counter_);
 
-    extractDVuint16(&t->values, "8260FD61", &offset, &removed_counter_);
+    extractDVuint16(&t->dv_entries, "8260FD61", &offset, &removed_counter_);
     t->addMoreExplanation(offset, " removed counter (%zu)", removed_counter_);
 
-    extractDVuint16(&t->values, "8270FD61", &offset, &test_button_counter_);
+    extractDVuint16(&t->dv_entries, "8270FD61", &offset, &test_button_counter_);
     t->addMoreExplanation(offset, " test button counter (%zu)", test_button_counter_);
 
-    extractDVuint24(&t->values, "8360FD31", &offset, &total_remove_duration_);
+    extractDVuint24(&t->dv_entries, "8360FD31", &offset, &total_remove_duration_);
     t->addMoreExplanation(offset, " total remove duration (%zu)", total_remove_duration_);
 
-    extractDVdate(&t->values, "82606C", &offset, &datetime);
+    extractDVdate(&t->dv_entries, "82606C", &offset, &datetime);
     last_remove_date_ = strdate(&datetime);
     t->addMoreExplanation(offset, " last remove date (%s)", last_remove_date_.c_str());
 
-    extractDVdate(&t->values, "82706C", &offset, &datetime);
+    extractDVdate(&t->dv_entries, "82706C", &offset, &datetime);
     test_button_last_date_ = strdate(&datetime);
     t->addMoreExplanation(offset, " test button last date (%s)", test_button_last_date_.c_str());
 }

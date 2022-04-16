@@ -278,65 +278,65 @@ void MeterQSmoke::processContent(Telegram *t)
     string key;
 
     key = "81027C495523";
-    if (hasKey(&t->values, key)) {
-        if (extractDVuint8(&t->values, key, &offset, &ui_event_count_)) {
+    if (hasKey(&t->dv_entries, key)) {
+        if (extractDVuint8(&t->dv_entries, key, &offset, &ui_event_count_)) {
             t->addMoreExplanation(offset, " UI event count (%d)", ui_event_count_);
         }
     }
 
-    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 4, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 4, 0, &key, &t->dv_entries)) {
         struct tm date;
-        extractDVdate(&t->values, key, &offset, &date);
+        extractDVdate(&t->dv_entries, key, &offset, &date);
         ui_event_date_ = strdate(&date);
         t->addMoreExplanation(offset, " UI event date (%s)", ui_event_date_.c_str());
     }
 
     key = "81037C4C4123";
-    if (hasKey(&t->values, key)) {
-        if (extractDVuint8(&t->values, key, &offset, &al_event_count_)) {
+    if (hasKey(&t->dv_entries, key)) {
+        if (extractDVuint8(&t->dv_entries, key, &offset, &al_event_count_)) {
             t->addMoreExplanation(offset, " AL event count (%d)", al_event_count_);
         }
     }
 
-    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 6, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 6, 0, &key, &t->dv_entries)) {
         struct tm date;
-        extractDVdate(&t->values, key, &offset, &date);
+        extractDVdate(&t->dv_entries, key, &offset, &date);
         al_event_date_ = strdate(&date);
         t->addMoreExplanation(offset, " AL event date (%s)", al_event_date_.c_str());
     }
 
     key = "02FD17";
-    if (hasKey(&t->values, key)) {
-        if (extractDVuint16(&t->values, key, &offset, (uint16_t*) &error_flags_)) {
+    if (hasKey(&t->dv_entries, key)) {
+        if (extractDVuint16(&t->dv_entries, key, &offset, (uint16_t*) &error_flags_)) {
             t->addMoreExplanation(offset, " error flags (%04X)", error_flags_);
         }
     } else {
         key = "03FD17";
-        if (hasKey(&t->values, key)) {
-            if (extractDVuint24(&t->values, key, &offset, &error_flags_)) {
+        if (hasKey(&t->dv_entries, key)) {
+            if (extractDVuint24(&t->dv_entries, key, &offset, &error_flags_)) {
                 t->addMoreExplanation(offset, " error flags (%06X)", error_flags_);
             }
         }
     }
 
-    if (findKey(MeasurementType::AtError, VIFRange::Date, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::AtError, VIFRange::Date, 0, 0, &key, &t->dv_entries)) {
         struct tm date;
-        extractDVdate(&t->values, key, &offset, &date);
+        extractDVdate(&t->dv_entries, key, &offset, &date);
         error_date_ = strdate(&date);
         t->addMoreExplanation(offset, " error date (%s)", error_date_.c_str());
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
         struct tm datetime;
-        extractDVdate(&t->values, key, &offset, &datetime);
+        extractDVdate(&t->dv_entries, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
     }
 
     key = "02FDAC7E";
-    if (hasKey(&t->values, key)) {
+    if (hasKey(&t->dv_entries, key)) {
         uint64_t seconds;
-        if (extractDVlong(&t->values, key, &offset, &seconds))
+        if (extractDVlong(&t->dv_entries, key, &offset, &seconds))
         {
             duration_since_readout_s_ = (int)seconds;
             t->addMoreExplanation(offset, " duration (%d s)", duration_since_readout_s_);

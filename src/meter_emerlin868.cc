@@ -73,13 +73,13 @@ void MeterEMerlin868::processContent(Telegram *t)
     int offset;
     string key;
 
-    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &actual_total_water_consumption_m3_);
+    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &actual_total_water_consumption_m3_);
         t->addMoreExplanation(offset, " actual total consumption (%f m3)", actual_total_water_consumption_m3_);
     }
 
-    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 1, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &last_total_water_consumption_m3h_);
+    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 1, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &last_total_water_consumption_m3h_);
         t->addMoreExplanation(offset, " last total consumption (%f m3)", last_total_water_consumption_m3h_);
     }
 

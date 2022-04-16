@@ -151,16 +151,16 @@ void MeterOmnipower::processContent(Telegram *t)
       (omnipower) 2a: * 00000000 current power (0.000000 kw)
     */
     int offset;
-    extractDVdouble(&t->values, "0404", &offset, &total_energy_kwh_);
+    extractDVdouble(&t->dv_entries, "0404", &offset, &total_energy_kwh_);
     t->addMoreExplanation(offset, " total energy (%f kwh)", total_energy_kwh_);
 
-    extractDVdouble(&t->values, "04843C", &offset, &total_energy_backward_kwh_);
+    extractDVdouble(&t->dv_entries, "04843C", &offset, &total_energy_backward_kwh_);
     t->addMoreExplanation(offset, " total energy backward (%f kwh)", total_energy_backward_kwh_);
 
-    extractDVdouble(&t->values, "042B", &offset, &power_kw_);
+    extractDVdouble(&t->dv_entries, "042B", &offset, &power_kw_);
     t->addMoreExplanation(offset, " current power (%f kw)", power_kw_);
 
-    extractDVdouble(&t->values, "04AB3C", &offset, &power_backward_kw_);
+    extractDVdouble(&t->dv_entries, "04AB3C", &offset, &power_backward_kw_);
     t->addMoreExplanation(offset, " current power (%f kw)", power_backward_kw_);
 
 }

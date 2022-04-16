@@ -181,9 +181,9 @@ MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi, DriverInfo &di) :
     (lse_07_17) 29: 6D vif (Date and time type)
     (lse_07_17) 2a: * 180DA924 device datetime (2021-04-09 13:24)
 
-    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
         struct tm datetime;
-        extractDVdate(&t->values, key, &offset, &datetime);
+        extractDVdate(&t->dv_entries, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
     }

@@ -323,55 +323,55 @@ void MeterFlowIQ2200::processContent(Telegram *t)
     int offset;
     string key;
 
-    extractDVuint16(&t->values, "04FF23", &offset, &info_codes_);
+    extractDVuint16(&t->dv_entries, "04FF23", &offset, &info_codes_);
     t->addMoreExplanation(offset, " info codes (%s)", statusHumanReadable().c_str());
 
-    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
+    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &total_water_consumption_m3_);
         has_total_water_consumption_ = true;
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 1, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &target_water_consumption_m3_);
+    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 1, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &target_water_consumption_m3_);
         has_target_water_consumption_ = true;
         t->addMoreExplanation(offset, " target consumption (%f m3)", target_water_consumption_m3_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::Date, 1, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::Date, 1, 0, &key, &t->dv_entries)) {
         struct tm datetime;
-        extractDVdate(&t->values, key, &offset, &datetime);
+        extractDVdate(&t->dv_entries, key, &offset, &datetime);
         target_datetime_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " target_datetime (%s)", target_datetime_.c_str());
     }
 
-    if(findKey(MeasurementType::Instantaneous, VIFRange::VolumeFlow, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &current_flow_m3h_);
+    if(findKey(MeasurementType::Instantaneous, VIFRange::VolumeFlow, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &current_flow_m3h_);
         t->addMoreExplanation(offset, " current flow (%f m3/h)", current_flow_m3h_);
     }
 
-    if(findKey(MeasurementType::Maximum, VIFRange::VolumeFlow, 2, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &max_flow_m3h_);
+    if(findKey(MeasurementType::Maximum, VIFRange::VolumeFlow, 2, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &max_flow_m3h_);
         t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_m3h_);
     }
 
-    if(findKey(MeasurementType::Minimum, VIFRange::VolumeFlow, 2, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &min_flow_m3h_);
+    if(findKey(MeasurementType::Minimum, VIFRange::VolumeFlow, 2, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &min_flow_m3h_);
         t->addMoreExplanation(offset, " min flow (%f m3/h)", min_flow_m3h_);
     }
 
-    if(findKey(MeasurementType::Minimum, VIFRange::FlowTemperature, 2, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &min_flow_temperature_c_);
+    if(findKey(MeasurementType::Minimum, VIFRange::FlowTemperature, 2, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &min_flow_temperature_c_);
         t->addMoreExplanation(offset, " min flow temperature (%f °C)", min_flow_temperature_c_);
     }
 
-    if(findKey(MeasurementType::Maximum, VIFRange::FlowTemperature, 2, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &max_flow_temperature_c_);
+    if(findKey(MeasurementType::Maximum, VIFRange::FlowTemperature, 2, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &max_flow_temperature_c_);
         t->addMoreExplanation(offset, " max flow temperature (%f °C)", max_flow_temperature_c_);
     }
 
-    if(findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, AnyStorageNr, 0, &key, &t->values)) {
-        has_external_temperature_ = extractDVdouble(&t->values, key, &offset, &external_temperature_c_);
+    if(findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, AnyStorageNr, 0, &key, &t->dv_entries)) {
+        has_external_temperature_ = extractDVdouble(&t->dv_entries, key, &offset, &external_temperature_c_);
         t->addMoreExplanation(offset, " external temperature (%f °C)", external_temperature_c_);
     }
 

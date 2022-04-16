@@ -166,20 +166,20 @@ void MeterEM24::processContent(Telegram *t)
 
     // 04 dif (32 Bit Integer/Binary Instantaneous value)
     // 05 vif (Energy 10² Wh)
-    extractDVdouble(&t->values, "0405", &offset, &total_true_energy_consumption_kwh_);
+    extractDVdouble(&t->dv_entries, "0405", &offset, &total_true_energy_consumption_kwh_);
     t->addMoreExplanation(offset, " total power (%f kwh)", total_true_energy_consumption_kwh_);
 
     // 04 dif (32 Bit Integer/Binary Instantaneous value)
     // FB vif (First extension of VIF-codes)
     // 82 vife (Reserved)
     // 75 vife (Cold / Warm Temperature Limit 10^-2 Celsius)
-    extractDVdouble(&t->values, "04FB8275", &offset, &total_reactive_energy_consumption_kvarh_);
+    extractDVdouble(&t->dv_entries, "04FB8275", &offset, &total_reactive_energy_consumption_kvarh_);
     t->addMoreExplanation(offset, " total reactive power (%f kvarh)", total_reactive_energy_consumption_kvarh_);
 
     // 04 dif (32 Bit Integer/Binary Instantaneous value)
     // 85 vif (Energy 10² Wh)
     // 3C vife (backward flow)
-    extractDVdouble(&t->values, "04853C", &offset, &total_true_energy_production_kwh_);
+    extractDVdouble(&t->dv_entries, "04853C", &offset, &total_true_energy_production_kwh_);
     t->addMoreExplanation(offset, " total power (%f kwh)", total_true_energy_production_kwh_);
 
     // 04 dif (32 Bit Integer/Binary Instantaneous value)
@@ -187,13 +187,13 @@ void MeterEM24::processContent(Telegram *t)
     // 82 vife (Reserved)
     // F5 vife (Cold / Warm Temperature Limit 10^-2 Celsius)
     // 3C vife (Reserved)
-    extractDVdouble(&t->values, "04FB82F53C", &offset, &total_reactive_energy_production_kvarh_);
+    extractDVdouble(&t->dv_entries, "04FB82F53C", &offset, &total_reactive_energy_production_kvarh_);
     t->addMoreExplanation(offset, " total reactive power (%f kvarh)", total_reactive_energy_production_kvarh_);
 
     // 01 dif (8 Bit Integer/Binary Instantaneous value)
     // FD vif (Second extension of VIF-codes)
     // 17 vife (Error flags (binary))
-    extractDVuint8(&t->values, "01FD17", &offset, &error_codes_);
+    extractDVuint8(&t->dv_entries, "01FD17", &offset, &error_codes_);
     t->addMoreExplanation(offset, " error codes (%s)", status().c_str());
 }
 

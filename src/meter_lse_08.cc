@@ -98,34 +98,34 @@ void MeterLSE_08::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 8, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &consumption_at_set_date_hca_);
+    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 8, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &consumption_at_set_date_hca_);
         t->addMoreExplanation(offset, " consumption at set date (%f hca)", consumption_at_set_date_hca_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::Date, 8, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::Date, 8, 0, &key, &t->dv_entries)) {
         struct tm date;
-        extractDVdate(&t->values, key, &offset, &date);
+        extractDVdate(&t->dv_entries, key, &offset, &date);
         set_date_ = strdate(&date);
         t->addMoreExplanation(offset, " set date (%s)", set_date_.c_str());
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
         struct tm datetime;
-        extractDVdate(&t->values, key, &offset, &datetime);
+        extractDVdate(&t->dv_entries, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
     }
 
     uint64_t seconds;
-    if (extractDVlong(&t->values, "02FDAC7E", &offset, &seconds))
+    if (extractDVlong(&t->dv_entries, "02FDAC7E", &offset, &seconds))
     {
         duration_since_readout_s_ = (int)seconds;
         t->addMoreExplanation(offset, " duration (%d s)", duration_since_readout_s_);
     }
 
     uint64_t serial;
-    if (extractDVlong(&t->values, "01FD0C", &offset, &serial))
+    if (extractDVlong(&t->dv_entries, "01FD0C", &offset, &serial))
     {
         // 01 --> 01
         software_version_ = to_string(serial);

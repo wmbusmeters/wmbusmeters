@@ -2056,11 +2056,11 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t)
                                 tariffNr().intValue(),
                                 indexNr().intValue(),
                                 &key,
-                                &t->values);
+                                &t->dv_entries);
         if (!ok) return false;
     }
     double extracted_double_value = NAN;
-    if (extractDVdouble(&t->values,
+    if (extractDVdouble(&t->dv_entries,
                         key,
                         &offset,
                         &extracted_double_value,
@@ -2099,13 +2099,13 @@ bool FieldInfo::extractString(Meter *m, Telegram *t)
                                 tariffNr().intValue(),
                                 indexNr().intValue(),
                                 &key,
-                                &t->values);
+                                &t->dv_entries);
         if (!ok) return false;
     }
     uint64_t extracted_bits {};
     if (lookup_.hasLookups())
     {
-        if (extractDVlong(&t->values, key, &offset, &extracted_bits))
+        if (extractDVlong(&t->dv_entries, key, &offset, &extracted_bits))
         {
             string translated_bits = lookup().translate(extracted_bits);
             setValueString(translated_bits);
@@ -2116,7 +2116,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t)
     else if (vifRange() == VIFRange::DateTime)
     {
         struct tm datetime;
-        extractDVdate(&t->values, key, &offset, &datetime);
+        extractDVdate(&t->dv_entries, key, &offset, &datetime);
         string extracted_device_date_time = strdatetime(&datetime);
         setValueString(extracted_device_date_time);
         t->addMoreExplanation(offset, renderJsonText());
@@ -2125,7 +2125,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t)
     else if (vifRange() == VIFRange::Date)
     {
         struct tm date;
-        extractDVdate(&t->values, key, &offset, &date);
+        extractDVdate(&t->dv_entries, key, &offset, &date);
         string extracted_device_date = strdate(&date);
         setValueString(extracted_device_date);
         t->addMoreExplanation(offset, renderJsonText());
@@ -2135,7 +2135,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t)
              vifRange() == VIFRange::FabricationNo)
     {
         string extracted_id;
-        extractDVReadableString(&t->values, key, &offset, &extracted_id);
+        extractDVReadableString(&t->dv_entries, key, &offset, &extracted_id);
         setValueString(extracted_id);
         t->addMoreExplanation(offset, renderJsonText());
         found = true;

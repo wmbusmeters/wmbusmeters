@@ -139,32 +139,32 @@ void MeterWaterstarM::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
         struct tm datetime;
-        extractDVdate(&t->values, key, &offset, &datetime);
+        extractDVdate(&t->dv_entries, key, &offset, &datetime);
         meter_timestamp_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " at date (%s)", meter_timestamp_.c_str());
     }
 
-    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
+    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    extractDVuint16(&t->values, "02FD17", &offset, &info_codes_);
+    extractDVuint16(&t->dv_entries, "02FD17", &offset, &info_codes_);
     status_ = decodeTPLStatusByte(info_codes_, &error_codes_);
     t->addMoreExplanation(offset, " info codes (%s)", status_.c_str());
 
-    extractDVdouble(&t->values, "04933C", &offset, &total_water_backwards_m3_);
+    extractDVdouble(&t->dv_entries, "04933C", &offset, &total_water_backwards_m3_);
     t->addMoreExplanation(offset, " total water backwards (%f m3)", total_water_backwards_m3_);
 
     uint32_t tmp32;
-    extractDVuint24(&t->values, "03FD0C", &offset, &tmp32);
+    extractDVuint24(&t->dv_entries, "03FD0C", &offset, &tmp32);
     strprintf(meter_version_, "%06x", tmp32);
     t->addMoreExplanation(offset, " meter version (%s)", meter_version_.c_str());
 
     uint16_t tmp16;
-    extractDVuint16(&t->values, "02FD0B", &offset, &tmp16);
+    extractDVuint16(&t->dv_entries, "02FD0B", &offset, &tmp16);
     strprintf(parameter_set_, "%04x", tmp16);
     t->addMoreExplanation(offset, " parameter set (%s)", parameter_set_.c_str());
 }

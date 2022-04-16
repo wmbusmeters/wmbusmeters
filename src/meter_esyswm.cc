@@ -254,47 +254,47 @@ void MeterESYSWM::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::EnergyWh, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
+    if (findKey(MeasurementType::Unknown, VIFRange::EnergyWh, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &total_energy_kwh_);
         t->addMoreExplanation(offset, " total energy (%f kwh)", total_energy_kwh_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::EnergyWh, 0, 1, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_energy_tariff1_kwh_);
+    if (findKey(MeasurementType::Unknown, VIFRange::EnergyWh, 0, 1, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &total_energy_tariff1_kwh_);
         t->addMoreExplanation(offset, " total energy tariff 1 (%f kwh)", total_energy_tariff1_kwh_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::EnergyWh, 0, 2, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_energy_tariff2_kwh_);
+    if (findKey(MeasurementType::Unknown, VIFRange::EnergyWh, 0, 2, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &total_energy_tariff2_kwh_);
         t->addMoreExplanation(offset, " total energy tariff 2 (%f kwh)", total_energy_tariff2_kwh_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::PowerW, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &current_power_kw_);
+    if (findKey(MeasurementType::Unknown, VIFRange::PowerW, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &current_power_kw_);
         t->addMoreExplanation(offset, " current power (%f kw)", current_power_kw_);
     }
 
-    extractDVdouble(&t->values, "07823C", &offset, &total_energy_returned_kwh_);
+    extractDVdouble(&t->dv_entries, "07823C", &offset, &total_energy_returned_kwh_);
     t->addMoreExplanation(offset, " total energy returned (%f kwh)", total_energy_returned_kwh_);
 
-    extractDVdouble(&t->values, "04A9FF01", &offset, &current_power_phase1_kw_);
+    extractDVdouble(&t->dv_entries, "04A9FF01", &offset, &current_power_phase1_kw_);
     t->addMoreExplanation(offset, " current power phase 1 (%f kwh)", current_power_phase1_kw_);
 
-    extractDVdouble(&t->values, "04A9FF02", &offset, &current_power_phase2_kw_);
+    extractDVdouble(&t->dv_entries, "04A9FF02", &offset, &current_power_phase2_kw_);
     t->addMoreExplanation(offset, " current power phase 2 (%f kwh)", current_power_phase2_kw_);
 
-    extractDVdouble(&t->values, "04A9FF03", &offset, &current_power_phase3_kw_);
+    extractDVdouble(&t->dv_entries, "04A9FF03", &offset, &current_power_phase3_kw_);
     t->addMoreExplanation(offset, " current power phase 3 (%f kwh)", current_power_phase3_kw_);
 
-    extractDVReadableString(&t->values, "0DFD09", &offset, &version_);
+    extractDVReadableString(&t->dv_entries, "0DFD09", &offset, &version_);
     t->addMoreExplanation(offset, " version (%s)", version_.c_str());
 
-    extractDVReadableString(&t->values, "0D79", &offset, &enhanced_id_);
+    extractDVReadableString(&t->dv_entries, "0D79", &offset, &enhanced_id_);
     t->addMoreExplanation(offset, " enhanced id (%s)", enhanced_id_.c_str());
 
-    extractDVHexString(&t->values, "0DFD10", &offset, &location_hex_);
+    extractDVHexString(&t->dv_entries, "0DFD10", &offset, &location_hex_);
     t->addMoreExplanation(offset, " location (%s)", location_hex_.c_str());
 
-    extractDVReadableString(&t->values, "0D78", &offset, &fabrication_no_);
+    extractDVReadableString(&t->dv_entries, "0D78", &offset, &fabrication_no_);
     t->addMoreExplanation(offset, " fabrication no (%s)", fabrication_no_.c_str());
 }

@@ -152,25 +152,25 @@ void MeterEBZWMBE::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::EnergyWh, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
+    if (findKey(MeasurementType::Unknown, VIFRange::EnergyWh, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &total_energy_kwh_);
         t->addMoreExplanation(offset, " total energy (%f kwh)", total_energy_kwh_);
     }
 
-    extractDVdouble(&t->values, "04A9FF01", &offset, &current_power_phase1_kw_);
+    extractDVdouble(&t->dv_entries, "04A9FF01", &offset, &current_power_phase1_kw_);
     t->addMoreExplanation(offset, " current power phase 1 (%f kwh)", current_power_phase1_kw_);
 
-    extractDVdouble(&t->values, "04A9FF02", &offset, &current_power_phase2_kw_);
+    extractDVdouble(&t->dv_entries, "04A9FF02", &offset, &current_power_phase2_kw_);
     t->addMoreExplanation(offset, " current power phase 2 (%f kwh)", current_power_phase2_kw_);
 
-    extractDVdouble(&t->values, "04A9FF03", &offset, &current_power_phase3_kw_);
+    extractDVdouble(&t->dv_entries, "04A9FF03", &offset, &current_power_phase3_kw_);
     t->addMoreExplanation(offset, " current power phase 3 (%f kwh)", current_power_phase3_kw_);
 
     current_power_kw_ = current_power_phase1_kw_ + current_power_phase2_kw_ + current_power_phase3_kw_;
     t->addMoreExplanation(offset, " current power (%f kw)", current_power_kw_);
 
     string tmp;
-    extractDVHexString(&t->values, "0DFD11", &offset, &tmp);
+    extractDVHexString(&t->dv_entries, "0DFD11", &offset, &tmp);
     if (tmp.length() > 0) {
         vector<uchar> bin;
         hex2bin(tmp, &bin);

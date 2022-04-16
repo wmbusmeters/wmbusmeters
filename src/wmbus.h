@@ -507,7 +507,7 @@ struct Telegram
     void markAsBeingAnalyzed() { being_analyzed_ = true; }
 
     // Extracted mbus values.
-    std::map<std::string,std::pair<int,DVEntry>> values;
+    std::map<std::string,std::pair<int,DVEntry>> dv_entries;
 
     string autoDetectPossibleDrivers();
 

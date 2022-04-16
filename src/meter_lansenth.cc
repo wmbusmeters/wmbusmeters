@@ -129,47 +129,47 @@ void MeterLansenTH::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 0, 0, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 0, 0, &key, &t->dv_entries))
     {
-        extractDVdouble(&t->values, key, &offset, &current_temperature_c_);
+        extractDVdouble(&t->dv_entries, key, &offset, &current_temperature_c_);
         t->addMoreExplanation(offset, " current temperature (%f C)", current_temperature_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 1, 0, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 1, 0, &key, &t->dv_entries))
     {
-        extractDVdouble(&t->values, key, &offset, &average_temperature_1h_c_);
+        extractDVdouble(&t->dv_entries, key, &offset, &average_temperature_1h_c_);
         t->addMoreExplanation(offset, " average temperature 1h (%f C))", average_temperature_1h_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 2, 0, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 2, 0, &key, &t->dv_entries))
     {
-        extractDVdouble(&t->values, key, &offset, &average_temperature_24h_c_);
+        extractDVdouble(&t->dv_entries, key, &offset, &average_temperature_24h_c_);
         t->addMoreExplanation(offset, " average temperature 24h (%f C))", average_temperature_24h_c_);
     }
 
     // Temporarily silly solution until the dvparser is upgraded with support for extension
 
     key = "02FB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&t->values, key))
+    if (hasKey(&t->dv_entries, key))
     {
         double tmp;
-        extractDVdouble(&t->values, key, &offset, &tmp, false);
+        extractDVdouble(&t->dv_entries, key, &offset, &tmp, false);
         current_relative_humidity_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " current relative humidity (%f RH)", current_relative_humidity_rh_);
     }
     key = "42FB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&t->values, key))
+    if (hasKey(&t->dv_entries, key))
     {
         double tmp;
-        extractDVdouble(&t->values, key, &offset, &tmp, false);
+        extractDVdouble(&t->dv_entries, key, &offset, &tmp, false);
         average_relative_humidity_1h_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " average relative humidity 1h (%f RH)", average_relative_humidity_1h_rh_);
     }
     key = "8201FB1A"; // 1A = 0001 1010 = First extension vif code Relative Humidity 10^-1
-    if (hasKey(&t->values, key))
+    if (hasKey(&t->dv_entries, key))
     {
         double tmp;
-        extractDVdouble(&t->values, key, &offset, &tmp, false);
+        extractDVdouble(&t->dv_entries, key, &offset, &tmp, false);
         average_relative_humidity_24h_rh_ = tmp / (double)10.0;
         t->addMoreExplanation(offset, " average relative humidity 24h (%f RH)", average_relative_humidity_24h_rh_);
     }

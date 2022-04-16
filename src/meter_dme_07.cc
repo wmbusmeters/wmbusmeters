@@ -69,12 +69,12 @@ void MeterDME_07::processContent(Telegram *t)
     int offset;
     string key;
 
-    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->values)) {
-        extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
+    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->dv_entries)) {
+        extractDVdouble(&t->dv_entries, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    extractDVuint16(&t->values, "02FD17", &offset, &error_codes_);
+    extractDVuint16(&t->dv_entries, "02FD17", &offset, &error_codes_);
     t->addMoreExplanation(offset, " error codes (%s)", status().c_str());
 }
 

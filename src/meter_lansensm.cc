@@ -84,7 +84,7 @@ void MeterLansenSM::processContent(Telegram *t)
     */
     int offset;
 
-    extractDVuint16(&t->values, "02FD971D", &offset, &info_codes_);
+    extractDVuint16(&t->dv_entries, "02FD971D", &offset, &info_codes_);
     t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
 }
 

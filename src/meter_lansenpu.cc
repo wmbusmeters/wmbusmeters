@@ -95,8 +95,8 @@ void MeterLansenPU::processContent(Telegram *t)
     */
     int offset;
 
-    extractDVdouble(&t->values, "0EFD3A", &offset, &pulse_counter_a_, false);
+    extractDVdouble(&t->dv_entries, "0EFD3A", &offset, &pulse_counter_a_, false);
     t->addMoreExplanation(offset, " pulse counter a (%f)", pulse_counter_a_);
-    extractDVdouble(&t->values, "8E40FD3A", &offset, &pulse_counter_b_, false);
+    extractDVdouble(&t->dv_entries, "8E40FD3A", &offset, &pulse_counter_b_, false);
     t->addMoreExplanation(offset, " pulse counter b (%f)", pulse_counter_b_);
 }

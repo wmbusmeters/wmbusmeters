@@ -147,9 +147,9 @@ void MeterGransystemsCCx01::processContent(Telegram *t)
 
     // Single-phase or three-phase meter?
     key = "04FD17";
-    if (hasKey(&t->values, key))
+    if (hasKey(&t->dv_entries, key))
     {
-        if (extractDVuint32(&t->values, key, &offset, &status_))
+        if (extractDVuint32(&t->dv_entries, key, &offset, &status_))
         {
             if ((status_ & 0xFFFF0000u) == 0x01020000u)
             {
@@ -172,7 +172,7 @@ void MeterGransystemsCCx01::processContent(Telegram *t)
         }
     }
 
-    if (extractDVdouble(&t->values, "0403", &offset, &current_total_energy_kwh_))
+    if (extractDVdouble(&t->dv_entries, "0403", &offset, &current_total_energy_kwh_))
     {
         t->addMoreExplanation(offset, " total energy (%f kwh)", current_total_energy_kwh_);
     }
@@ -182,7 +182,7 @@ void MeterGransystemsCCx01::processContent(Telegram *t)
           current_tariff_energy_kwh_idx_++ )
     {
         static const std::string pattern[MAX_TARIFFS] = {"841003", "842003",  "843003", "84801003"};
-        if (extractDVdouble(&t->values, pattern[current_tariff_energy_kwh_idx_],
+        if (extractDVdouble(&t->dv_entries, pattern[current_tariff_energy_kwh_idx_],
                                 &offset, &current_tariff_energy_kwh_[current_tariff_energy_kwh_idx_]))
         {
             t->addMoreExplanation(offset, " tariff %zu energy (%f kwh)",
@@ -190,7 +190,7 @@ void MeterGransystemsCCx01::processContent(Telegram *t)
         }
     }
 
-    if (extractDVdouble(&t->values, "840103", &offset, &last_day_total_energy_kwh_))
+    if (extractDVdouble(&t->dv_entries, "840103", &offset, &last_day_total_energy_kwh_))
     {
         t->addMoreExplanation(offset, " last day total energy (%f kwh)", last_day_total_energy_kwh_);
     }
@@ -200,7 +200,7 @@ void MeterGransystemsCCx01::processContent(Telegram *t)
           last_day_tariff_energy_kwh_idx_++ )
     {
         static const std::string pattern[MAX_TARIFFS] = {"841103",  "842103", "843103", "84811003"};
-        if (extractDVdouble(&t->values, pattern[last_day_tariff_energy_kwh_idx_],
+        if (extractDVdouble(&t->dv_entries, pattern[last_day_tariff_energy_kwh_idx_],
                                 &offset, &last_day_tariff_energy_kwh_[last_day_tariff_energy_kwh_idx_]))
         {
             t->addMoreExplanation(offset, " tariff %zu last day energy (%f kwh)",
@@ -213,13 +213,13 @@ void MeterGransystemsCCx01::processContent(Telegram *t)
 
     if (single_phase_)
     {
-        if (extractDVdouble(&t->values, "04FD48", &offset, &voltage_L_[0], false))
+        if (extractDVdouble(&t->dv_entries, "04FD48", &offset, &voltage_L_[0], false))
         {
             voltage_L_[0] /= 10.;
             t->addMoreExplanation(offset, " voltage (%f volts)", voltage_L_[0]);
         }
 
-        if (extractDVdouble(&t->values, "04FD5B", &offset, &current_L_[0], false))
+        if (extractDVdouble(&t->dv_entries, "04FD5B", &offset, &current_L_[0], false))
         {
             current_L_[0] /= 10.;
             t->addMoreExplanation(offset, " current (%f ampere)", current_L_[0]);
@@ -230,7 +230,7 @@ void MeterGransystemsCCx01::processContent(Telegram *t)
         for (std::size_t i = 0; i < 3; i++)
         {
             static const std::string pattern[] = {"8440FD48", "848040FD48", "84C040FD48"};
-            if (extractDVdouble(&t->values, pattern[i], &offset, &voltage_L_[i], false))
+            if (extractDVdouble(&t->dv_entries, pattern[i], &offset, &voltage_L_[i], false))
             {
                 voltage_L_[i] /= 10.;
                 t->addMoreExplanation(offset, " voltage L%d (%f volts)", i + 1, voltage_L_[i]);
@@ -240,7 +240,7 @@ void MeterGransystemsCCx01::processContent(Telegram *t)
         for (std::size_t i = 0; i < 3; i++)
         {
             static const std::string pattern[] = {"8440FD5B", "848040FD5B", "84C040FD5B"};
-            if (extractDVdouble(&t->values, pattern[i], &offset, &current_L_[i], false))
+            if (extractDVdouble(&t->dv_entries, pattern[i], &offset, &current_L_[i], false))
             {
                 current_L_[i] /= 10.;
                 t->addMoreExplanation(offset, " current L%d (%f ampere)", i + 1, current_L_[i]);
@@ -248,7 +248,7 @@ void MeterGransystemsCCx01::processContent(Telegram *t)
         }
     }
 
-    if (extractDVdouble(&t->values, "02FB2D", &offset, &frequency_, false))
+    if (extractDVdouble(&t->dv_entries, "02FB2D", &offset, &frequency_, false))
     {
         frequency_ /= 100.;
         t->addMoreExplanation(offset, " frequency (%f hz)", frequency_);
