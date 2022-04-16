@@ -43,7 +43,7 @@ static bool ok = registerDriver([](DriverInfo&di)
 MeterAventiesWM::MeterAventiesWM(MeterInfo &mi, DriverInfo &di) :
     MeterCommonImplementation(mi, di)
 {
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total",
         Quantity::Volume,
         NoDifVifKey,
@@ -63,7 +63,7 @@ MeterAventiesWM::MeterAventiesWM(MeterInfo &mi, DriverInfo &di) :
         string msg, info;
         strprintf(msg, "consumption_at_set_date_%d", i);
         strprintf(info, "Water consumption at the %d billing period date.", i);
-        addFieldWithExtractor(
+        addNumericFieldWithExtractor(
             msg,
             Quantity::Volume,
             NoDifVifKey,

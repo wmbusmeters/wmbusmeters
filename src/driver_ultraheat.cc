@@ -43,7 +43,7 @@ static bool ok = registerDriver([](DriverInfo&di)
 
 MeterUltraHeat::MeterUltraHeat(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
 {
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "heat",
         Quantity::Energy,
         NoDifVifKey,
@@ -58,7 +58,7 @@ MeterUltraHeat::MeterUltraHeat(MeterInfo &mi, DriverInfo &di) : MeterCommonImple
         SET_FUNC(heat_mj_, Unit::MJ),
         GET_FUNC(heat_mj_, Unit::MJ));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "volume",
         Quantity::Volume,
         NoDifVifKey,
@@ -73,7 +73,7 @@ MeterUltraHeat::MeterUltraHeat(MeterInfo &mi, DriverInfo &di) : MeterCommonImple
         SET_FUNC(volume_m3_, Unit::M3),
         GET_FUNC(volume_m3_, Unit::M3));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "power",
         Quantity::Power,
         NoDifVifKey,
@@ -88,7 +88,7 @@ MeterUltraHeat::MeterUltraHeat(MeterInfo &mi, DriverInfo &di) : MeterCommonImple
         SET_FUNC(power_kw_, Unit::KW),
         GET_FUNC(power_kw_, Unit::KW));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "flow",
         Quantity::Flow,
         NoDifVifKey,
@@ -103,7 +103,7 @@ MeterUltraHeat::MeterUltraHeat(MeterInfo &mi, DriverInfo &di) : MeterCommonImple
         SET_FUNC(flow_m3h_, Unit::M3H),
         GET_FUNC(flow_m3h_, Unit::M3H));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "flow",
         Quantity::Temperature,
         NoDifVifKey,
@@ -118,7 +118,7 @@ MeterUltraHeat::MeterUltraHeat(MeterInfo &mi, DriverInfo &di) : MeterCommonImple
         SET_FUNC(flow_c_, Unit::C),
         GET_FUNC(flow_c_, Unit::C));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "return",
         Quantity::Temperature,
         NoDifVifKey,

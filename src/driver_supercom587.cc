@@ -41,7 +41,7 @@ static bool ok = registerDriver([](DriverInfo&di)
 
 MeterSupercom587::MeterSupercom587(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
 {
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total",
         Quantity::Volume,
         NoDifVifKey,

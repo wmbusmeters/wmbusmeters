@@ -47,7 +47,7 @@ static bool ok = registerDriver([](DriverInfo&di)
 
 MeterMicroClima::MeterMicroClima(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
 {
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_consumption",
         Quantity::Energy,
         NoDifVifKey,
@@ -62,7 +62,7 @@ MeterMicroClima::MeterMicroClima(MeterInfo &mi, DriverInfo &di) : MeterCommonImp
         SET_FUNC(total_energy_kwh_, Unit::KWH),
         GET_FUNC(total_energy_kwh_, Unit::KWH));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_consumption_tariff1",
         Quantity::Energy,
         NoDifVifKey,
@@ -77,7 +77,7 @@ MeterMicroClima::MeterMicroClima(MeterInfo &mi, DriverInfo &di) : MeterCommonImp
         SET_FUNC(total_energy_tariff1_kwh_, Unit::KWH),
         GET_FUNC(total_energy_tariff1_kwh_, Unit::KWH));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_volume",
         Quantity::Volume,
         NoDifVifKey,
@@ -92,7 +92,7 @@ MeterMicroClima::MeterMicroClima(MeterInfo &mi, DriverInfo &di) : MeterCommonImp
         SET_FUNC(total_volume_m3_, Unit::M3),
         GET_FUNC(total_volume_m3_, Unit::M3));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_volume_tariff2",
         Quantity::Volume,
         NoDifVifKey,
@@ -107,7 +107,7 @@ MeterMicroClima::MeterMicroClima(MeterInfo &mi, DriverInfo &di) : MeterCommonImp
         SET_FUNC(total_volume_tariff2_m3_, Unit::M3),
         GET_FUNC(total_volume_tariff2_m3_, Unit::M3));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "volume_flow",
         Quantity::Flow,
         NoDifVifKey,
@@ -122,7 +122,7 @@ MeterMicroClima::MeterMicroClima(MeterInfo &mi, DriverInfo &di) : MeterCommonImp
         SET_FUNC(volume_flow_m3h_, Unit::M3H),
         GET_FUNC(volume_flow_m3h_, Unit::M3H));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "power",
         Quantity::Power,
         NoDifVifKey,
@@ -137,7 +137,7 @@ MeterMicroClima::MeterMicroClima(MeterInfo &mi, DriverInfo &di) : MeterCommonImp
         SET_FUNC(power_kw_, Unit::KW),
         GET_FUNC(power_kw_, Unit::KW));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "flow_temperature",
         Quantity::Temperature,
         NoDifVifKey,
@@ -152,7 +152,7 @@ MeterMicroClima::MeterMicroClima(MeterInfo &mi, DriverInfo &di) : MeterCommonImp
         SET_FUNC(flow_temperature_c_, Unit::C),
         GET_FUNC(flow_temperature_c_, Unit::C));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "return_temperature",
         Quantity::Temperature,
         NoDifVifKey,
@@ -167,7 +167,7 @@ MeterMicroClima::MeterMicroClima(MeterInfo &mi, DriverInfo &di) : MeterCommonImp
         SET_FUNC(return_temperature_c_, Unit::C),
         GET_FUNC(return_temperature_c_, Unit::C));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "temperature_difference",
         Quantity::Temperature,
         NoDifVifKey,

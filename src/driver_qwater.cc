@@ -52,7 +52,7 @@ static bool ok = registerDriver([](DriverInfo&di)
 MeterQWater::MeterQWater(MeterInfo &mi, DriverInfo &di) :
     MeterCommonImplementation(mi, di)
 {
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total",
         Quantity::Volume,
         NoDifVifKey,
@@ -67,7 +67,7 @@ MeterQWater::MeterQWater(MeterInfo &mi, DriverInfo &di) :
         SET_FUNC(total_water_consumption_m3_, Unit::M3),
         GET_FUNC(total_water_consumption_m3_, Unit::M3));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "due_date",
         Quantity::Volume,
         NoDifVifKey,
@@ -96,7 +96,7 @@ MeterQWater::MeterQWater(MeterInfo &mi, DriverInfo &di) :
         SET_STRING_FUNC(due_date_),
         GET_STRING_FUNC(due_date_));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "due_date_17",
         Quantity::Volume,
         NoDifVifKey,

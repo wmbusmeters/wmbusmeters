@@ -326,8 +326,6 @@ struct FieldInfo
               function<string()> get_value_string,
               function<void(Unit,double)> set_value_double,
               function<void(string)> set_value_string,
-              function<bool(FieldInfo*, Meter *mi, Telegram *t)> extract_double,
-              function<bool(FieldInfo*, Meter *mi, Telegram *t)> extract_string,
               Translate::Lookup lookup
         ) :
         vname_(vname),
@@ -347,8 +345,6 @@ struct FieldInfo
         get_value_string_(get_value_string),
         set_value_double_(set_value_double),
         set_value_string_(set_value_string),
-        extract_double_(extract_double),
-        extract_string_(extract_string),
         lookup_(lookup)
     {}
 
@@ -374,6 +370,8 @@ struct FieldInfo
     void setValueDouble(Unit u, double d) { if (set_value_double_) set_value_double_(u, d);  }
     void setValueString(string s) { if (set_value_string_) set_value_string_(s); }
 
+    bool extractNumeric(Meter *m, Telegram *t);
+    bool extractString(Meter *m, Telegram *t);
     void performExtraction(Meter *m, Telegram *t);
 
     string renderJsonOnlyDefaultUnit();
@@ -402,8 +400,6 @@ private:
     function<string()> get_value_string_; // Callback to fetch the value from the meter.
     function<void(Unit,double)> set_value_double_; // Call back to set the value in the c++ object
     function<void(string)> set_value_string_; // Call back to set the value string in the c++ object
-    function<bool(FieldInfo*, Meter *mi, Telegram *t)> extract_double_; // Extract field from telegram and insert into meter.
-    function<bool(FieldInfo*, Meter *mi, Telegram *t)> extract_string_; // Extract field from telegram and insert into meter.
     Translate::Lookup lookup_;
 };
 

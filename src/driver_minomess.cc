@@ -43,7 +43,7 @@ static bool ok = registerDriver([](DriverInfo&di)
 
 MeterMinomess::MeterMinomess(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
 {
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total",
         Quantity::Volume,
         NoDifVifKey,
@@ -75,7 +75,7 @@ MeterMinomess::MeterMinomess(MeterInfo &mi, DriverInfo &di) : MeterCommonImpleme
         SET_STRING_FUNC(meter_date_),
         GET_STRING_FUNC(meter_date_));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "target",
         Quantity::Volume,
         NoDifVifKey,

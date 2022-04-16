@@ -53,7 +53,7 @@ MeterIperl::MeterIperl(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
     // version 0x68
     // version 0x7c Sensus 640
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total",
         Quantity::Volume,
         NoDifVifKey,
@@ -68,7 +68,7 @@ MeterIperl::MeterIperl(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         SET_FUNC(total_water_consumption_m3_, Unit::M3),
         GET_FUNC(total_water_consumption_m3_, Unit::M3));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "max_flow",
         Quantity::Flow,
         NoDifVifKey,

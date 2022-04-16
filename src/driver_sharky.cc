@@ -46,7 +46,7 @@ static bool ok = registerDriver([](DriverInfo&di)
 
 MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
 {
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_consumption",
         Quantity::Energy,
         NoDifVifKey,
@@ -61,7 +61,7 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         SET_FUNC(total_energy_kwh_, Unit::KWH),
         GET_FUNC(total_energy_kwh_, Unit::KWH));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_consumption_tariff1",
         Quantity::Energy,
         NoDifVifKey,
@@ -76,7 +76,7 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         SET_FUNC(total_energy_tariff1_kwh_, Unit::KWH),
         GET_FUNC(total_energy_tariff1_kwh_, Unit::KWH));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_volume",
         Quantity::Volume,
         NoDifVifKey,
@@ -91,7 +91,7 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         SET_FUNC(total_volume_m3_, Unit::M3),
         GET_FUNC(total_volume_m3_, Unit::M3));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_volume_tariff2",
         Quantity::Volume,
         NoDifVifKey,
@@ -106,7 +106,7 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         SET_FUNC(total_volume_tariff2_m3_, Unit::M3),
         GET_FUNC(total_volume_tariff2_m3_, Unit::M3));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "volume_flow",
         Quantity::Flow,
         NoDifVifKey,
@@ -121,7 +121,7 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         SET_FUNC(volume_flow_m3h_, Unit::M3H),
         GET_FUNC(volume_flow_m3h_, Unit::M3H));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "power",
         Quantity::Power,
         NoDifVifKey,
@@ -136,7 +136,7 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         SET_FUNC(power_kw_, Unit::KW),
         GET_FUNC(power_kw_, Unit::KW));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "flow_temperature",
         Quantity::Temperature,
         NoDifVifKey,
@@ -151,7 +151,7 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         SET_FUNC(flow_temperature_c_, Unit::C),
         GET_FUNC(flow_temperature_c_, Unit::C));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "return_temperature",
         Quantity::Temperature,
         NoDifVifKey,
@@ -166,7 +166,7 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         SET_FUNC(return_temperature_c_, Unit::C),
         GET_FUNC(return_temperature_c_, Unit::C));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "temperature_difference",
         Quantity::Temperature,
         NoDifVifKey,

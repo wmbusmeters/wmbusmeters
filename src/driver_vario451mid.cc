@@ -42,7 +42,7 @@ static bool ok = registerDriver([](DriverInfo&di)
 
 MeterVario451Mid::MeterVario451Mid(MeterInfo &mi, DriverInfo &di) :  MeterCommonImplementation(mi, di)
 {
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_consumption",
         Quantity::Energy,
         NoDifVifKey,
@@ -57,7 +57,7 @@ MeterVario451Mid::MeterVario451Mid(MeterInfo &mi, DriverInfo &di) :  MeterCommon
         SET_FUNC(total_energy_consumption_kwh_, Unit::KWH),
         GET_FUNC(total_energy_consumption_kwh_, Unit::KWH));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "energy_at_old_date",
         Quantity::Energy,
         NoDifVifKey,
@@ -86,7 +86,7 @@ MeterVario451Mid::MeterVario451Mid(MeterInfo &mi, DriverInfo &di) :  MeterCommon
         SET_STRING_FUNC(old_date_txt_),
         GET_STRING_FUNC(old_date_txt_));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "energy_at_set_date",
         Quantity::Energy,
         NoDifVifKey,

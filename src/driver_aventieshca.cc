@@ -40,7 +40,7 @@ static bool ok = registerDriver([](DriverInfo&di)
 
 MeterAventiesHCA::MeterAventiesHCA(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
 {
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "current_consumption",
         Quantity::HCA,
         NoDifVifKey,
@@ -55,7 +55,7 @@ MeterAventiesHCA::MeterAventiesHCA(MeterInfo &mi, DriverInfo &di) : MeterCommonI
         SET_FUNC(current_consumption_hca_, Unit::HCA),
         GET_FUNC(current_consumption_hca_, Unit::HCA));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "consumption_at_set_date",
         Quantity::HCA,
         NoDifVifKey,
@@ -76,7 +76,7 @@ MeterAventiesHCA::MeterAventiesHCA(MeterInfo &mi, DriverInfo &di) : MeterCommonI
         strprintf(key, "consumption_at_set_date_%d", i);
         strprintf(info, "Heat cost allocation at the %d billing period date.", i);
 
-        addFieldWithExtractor(
+        addNumericFieldWithExtractor(
             key,
             Quantity::HCA,
             NoDifVifKey,

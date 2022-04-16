@@ -70,7 +70,7 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
 {
     // Fields common for T1A1, T1A2, T1B...........
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_consumption",
         Quantity::Energy,
         FIND_FIELD(MeasurementType::Instantaneous, VIFRange::EnergyWh),
@@ -79,7 +79,7 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         SET_FUNC(total_energy_kwh_, Unit::KWH),
         GET_FUNC(total_energy_kwh_, Unit::KWH));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_volume",
         Quantity::Volume,
         FIND_FIELD(MeasurementType::Instantaneous, VIFRange::Volume),
@@ -152,7 +152,7 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
 
     for (int i=0; i<14; ++i)
     {
-        addFieldWithExtractor(
+        addNumericFieldWithExtractor(
             tostrprintf("prev_%d_month", i+1),
             Quantity::Energy,
             FIND_FIELD_S(MeasurementType::Instantaneous, VIFRange::EnergyWh, StorageNr(32+i)),
@@ -166,7 +166,7 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
 
     for (int i=0; i<14; ++i)
     {
-        addFieldWithExtractor(
+        addNumericFieldWithExtractor(
             tostrprintf("prev_%d_month", i+1),
             Quantity::Volume,
             FIND_FIELD_S(MeasurementType::Instantaneous, VIFRange::Volume, StorageNr(32+i)),
@@ -178,7 +178,7 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
 
     // Telegram type T1B ///////////////////////////////////////////////////////
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "due_energy_consumption",
         Quantity::Energy,
         FIND_FIELD_S(MeasurementType::Instantaneous, VIFRange::EnergyWh, StorageNr(8)),
@@ -196,7 +196,7 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         SET_STRING_FUNC(due_date_),
         GET_STRING_FUNC(due_date_));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "volume_flow",
         Quantity::Flow,
         FIND_FIELD(MeasurementType::Instantaneous, VIFRange::VolumeFlow),
@@ -205,7 +205,7 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         SET_FUNC(volume_flow_m3h_, Unit::M3H),
         GET_FUNC(volume_flow_m3h_, Unit::M3H));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "power",
         Quantity::Power,
         FIND_FIELD(MeasurementType::Instantaneous, VIFRange::PowerW),
@@ -214,7 +214,7 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         SET_FUNC(power_kw_, Unit::KW),
         GET_FUNC(power_kw_, Unit::KW));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_consumption_last_month",
         Quantity::Energy,
         FIND_FIELD_S(MeasurementType::Instantaneous, VIFRange::EnergyWh, StorageNr(32)),
@@ -232,7 +232,7 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         SET_STRING_FUNC(last_month_date_),
         GET_STRING_FUNC(last_month_date_));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "max_power_last_month",
         Quantity::Power,
         NoDifVifKey,
@@ -247,7 +247,7 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         SET_FUNC(max_power_last_month_kw_, Unit::KW),
         GET_FUNC(max_power_last_month_kw_, Unit::KW));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "flow_temperature",
         Quantity::Temperature,
         NoDifVifKey,
@@ -262,7 +262,7 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         SET_FUNC(flow_temperature_c_, Unit::C),
         GET_FUNC(flow_temperature_c_, Unit::C));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "return_temperature",
         Quantity::Temperature,
         NoDifVifKey,

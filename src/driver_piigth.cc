@@ -45,7 +45,7 @@ static bool ok = registerDriver([](DriverInfo&di)
 MeterPIIGTH::MeterPIIGTH(MeterInfo &mi, DriverInfo &di) :
     MeterCommonImplementation(mi, di)
 {
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "temperature",
         Quantity::Temperature,
         NoDifVifKey,
@@ -60,7 +60,7 @@ MeterPIIGTH::MeterPIIGTH(MeterInfo &mi, DriverInfo &di) :
         SET_FUNC(temperature_c_, Unit::C),
         GET_FUNC(temperature_c_, Unit::C));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "average_temperature_1h",
         Quantity::Temperature,
         NoDifVifKey,
@@ -75,7 +75,7 @@ MeterPIIGTH::MeterPIIGTH(MeterInfo &mi, DriverInfo &di) :
         SET_FUNC(average_temperature_1h_c_, Unit::C),
         GET_FUNC(average_temperature_1h_c_, Unit::C));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "average_temperature_24h",
         Quantity::Temperature,
         NoDifVifKey,
@@ -91,7 +91,7 @@ MeterPIIGTH::MeterPIIGTH(MeterInfo &mi, DriverInfo &di) :
         GET_FUNC(average_temperature_24h_c_, Unit::C));
 
     /*
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "relative_humidity",
         Quantity::Temperature,
         DifVifKey("02FB1A"),

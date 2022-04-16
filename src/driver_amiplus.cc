@@ -53,7 +53,7 @@ static bool ok = registerDriver([](DriverInfo&di)
 
 MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
 {
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_consumption",
         Quantity::Energy,
         NoDifVifKey,
@@ -68,7 +68,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplement
         SET_FUNC(total_energy_consumption_kwh_, Unit::KWH),
         GET_FUNC(total_energy_consumption_kwh_, Unit::KWH));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "current_power_consumption",
         Quantity::Power,
         NoDifVifKey,
@@ -83,7 +83,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplement
         SET_FUNC(current_power_consumption_kw_, Unit::KW),
         GET_FUNC(current_power_consumption_kw_, Unit::KW));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_production",
         Quantity::Energy,
         DifVifKey("0E833C"),
@@ -98,7 +98,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplement
         SET_FUNC(total_energy_production_kwh_, Unit::KWH),
         GET_FUNC(total_energy_production_kwh_, Unit::KWH));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "current_power_production",
         Quantity::Power,
         DifVifKey("0BAB3C"),
@@ -113,7 +113,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplement
         SET_FUNC(current_power_production_kw_, Unit::KW),
         GET_FUNC(current_power_production_kw_, Unit::KW));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "voltage_at_phase_1",
         Quantity::Voltage,
         DifVifKey("0AFDC9FC01"),
@@ -128,7 +128,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplement
         SET_FUNC(phase_1_v_, Unit::Volt),
         GET_FUNC(phase_1_v_, Unit::Volt));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "voltage_at_phase_2",
         Quantity::Voltage,
         DifVifKey("0AFDC9FC02"),
@@ -143,7 +143,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplement
         SET_FUNC(phase_2_v_, Unit::Volt),
         GET_FUNC(phase_2_v_, Unit::Volt));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "voltage_at_phase_3",
         Quantity::Voltage,
         DifVifKey("0AFDC9FC03"),
@@ -172,7 +172,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplement
         SET_STRING_FUNC(device_date_time_),
         GET_STRING_FUNC(device_date_time_));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_consumption_tariff_1",
         Quantity::Energy,
         DifVifKey("8E1003"),
@@ -187,7 +187,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplement
         SET_FUNC(total_energy_consumption_tariff_1_kwh_, Unit::KWH),
         GET_FUNC(total_energy_consumption_tariff_1_kwh_, Unit::KWH));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_consumption_tariff_2",
         Quantity::Energy,
         DifVifKey("8E2003"),
@@ -203,7 +203,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplement
         GET_FUNC(total_energy_consumption_tariff_2_kwh_, Unit::KWH));
 
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_consumption_tariff_3",
         Quantity::Energy,
         DifVifKey("8E3003"),
@@ -218,7 +218,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplement
         SET_FUNC(total_energy_consumption_tariff_3_kwh_, Unit::KWH),
         GET_FUNC(total_energy_consumption_tariff_3_kwh_, Unit::KWH));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_production_tariff_1",
         Quantity::Energy,
         DifVifKey("8E10833C"),
@@ -234,7 +234,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplement
         GET_FUNC(total_energy_production_tariff_1_kwh_, Unit::KWH));
 
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_production_tariff_2",
         Quantity::Energy,
         DifVifKey("8E20833C"),
@@ -250,7 +250,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplement
         GET_FUNC(total_energy_production_tariff_2_kwh_, Unit::KWH));
 
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_production_tariff_3",
         Quantity::Energy,
         DifVifKey("8E30833C"),

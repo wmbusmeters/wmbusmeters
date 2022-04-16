@@ -47,7 +47,7 @@ static bool ok = registerDriver([](DriverInfo&di)
 
 MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImplementation(mi, di)
 {
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_energy_consumption",
         Quantity::Energy,
         NoDifVifKey,
@@ -62,7 +62,7 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
         SET_FUNC(total_energy_consumption_kwh_, Unit::KWH),
         GET_FUNC(total_energy_consumption_kwh_, Unit::KWH));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total_volume",
         Quantity::Volume,
         NoDifVifKey,
@@ -77,7 +77,7 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
         SET_FUNC(total_volume_m3_, Unit::M3),
         GET_FUNC(total_volume_m3_, Unit::M3));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "volume_flow",
         Quantity::Flow,
         NoDifVifKey,
@@ -92,7 +92,7 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
         SET_FUNC(volume_flow_m3h_, Unit::M3H),
         GET_FUNC(volume_flow_m3h_, Unit::M3H));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "power",
         Quantity::Power,
         NoDifVifKey,
@@ -107,7 +107,7 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
         SET_FUNC(power_kw_, Unit::KW),
         GET_FUNC(power_kw_, Unit::KW));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "flow_temperature",
         Quantity::Temperature,
         NoDifVifKey,
@@ -122,7 +122,7 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
         SET_FUNC(flow_temperature_c_, Unit::C),
         GET_FUNC(flow_temperature_c_, Unit::C));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "return_temperature",
         Quantity::Temperature,
         NoDifVifKey,
@@ -137,14 +137,14 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
         SET_FUNC(return_temperature_c_, Unit::C),
         GET_FUNC(return_temperature_c_, Unit::C));
 
-    addField("temperature_difference",
+    addNumericField("temperature_difference",
              Quantity::Temperature,
              PrintProperty::JSON | PrintProperty::FIELD,
              "The temperature difference.",
              [](Unit u, double v) {},
              [this](Unit u) { return flow_temperature_c_ - return_temperature_c_; });
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "operating_time",
         Quantity::Time,
         DifVifKey("0AA618"),
@@ -159,7 +159,7 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
         SET_FUNC(operating_time_h_, Unit::Hour),
         GET_FUNC(operating_time_h_, Unit::Hour));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "energy_at_set_date",
         Quantity::Energy,
         NoDifVifKey,

@@ -95,7 +95,7 @@ protected:
 #define FIND_SFIELD_STI(TYPE,INFO,STORAGE,TARIFF,INDEX) NoDifVifKey,TYPE,INFO,STORAGE,TARIFF,INDEX
 
 
-    void addFieldWithExtractor(
+    void addNumericFieldWithExtractor(
         string vname,          // Name of value without unit, eg total
         Quantity vquantity,    // Value belongs to this quantity.
         DifVifKey dif_vif_key, // You can hardocde a dif vif header here or use NoDifVifKey
@@ -110,7 +110,7 @@ protected:
         function<void(Unit,double)> setValueFunc, // Use the SET macro above.
         function<double(Unit)> getValueFunc); // Use the GET macro above.
 
-    void addField(
+    void addNumericField(
         string vname,          // Name of value without unit, eg total
         Quantity vquantity,    // Value belongs to this quantity.
         PrintProperties print_properties, // Should this be printed by default in fields,json and hr.

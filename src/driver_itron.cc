@@ -52,7 +52,7 @@ MeterItron::MeterItron(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
 
     addLinkMode(LinkMode::T1);
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "total",
         Quantity::Volume,
         NoDifVifKey,
@@ -81,7 +81,7 @@ MeterItron::MeterItron(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         SET_STRING_FUNC(meter_date_),
         GET_STRING_FUNC(meter_date_));
 
-    addFieldWithExtractor(
+    addNumericFieldWithExtractor(
         "target",
         Quantity::Volume,
         NoDifVifKey,

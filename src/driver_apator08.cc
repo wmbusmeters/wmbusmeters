@@ -42,7 +42,7 @@ static bool ok = registerDriver([](DriverInfo&di)
 
 MeterApator08::MeterApator08(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
 {
-    addField(
+    addNumericField(
         "total",
         Quantity::Volume,
         PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
