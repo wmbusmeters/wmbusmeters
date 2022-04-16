@@ -296,7 +296,7 @@ update_manufacturers:
 	> trimmed.flags
 	cat trimmed.flags | tr -s ' ' | sed 's/^ //g' | sed 's/ $$//g' > done.flags
 	paste -d '|,' list.flags done.flags countries.flags | sed 's/,/, /g' | sed 's/ |/|/g' > manufacturers.txt
-	echo "// Copyright (C) $(date +%Y) Fredrik Öhrström (CC0)" > m.h
+	echo "// Copyright (C) $$(date +%Y) Fredrik Öhrström (CC0)" > m.h
 	echo '#ifndef MANUFACTURERS_H' >> m.h
 	echo '#define MANUFACTURERS_H' >> m.h
 	echo '#define MANFCODE(a,b,c) ((a-64)*1024+(b-64)*32+(c-64))' >> m.h
