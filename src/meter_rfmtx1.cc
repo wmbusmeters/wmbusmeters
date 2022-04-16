@@ -108,12 +108,12 @@ void MeterRfmTX1::processContent(Telegram *t)
         return;
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         meter_datetime_ = strdatetime(&datetime);

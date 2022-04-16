@@ -18,6 +18,7 @@
 #ifndef WMBUS_H
 #define WMBUS_H
 
+#include"dvparser.h"
 #include"manufacturers.h"
 #include"serial.h"
 #include"util.h"
@@ -297,29 +298,6 @@ int toInt(AFLAuthenticationType aat);
 AFLAuthenticationType fromIntToAFLAuthenticationType(int i);
 const char *toString(AFLAuthenticationType aat);
 int toLen(AFLAuthenticationType aat);
-
-enum class MeasurementType
-{
-    Unknown,
-    Instantaneous,
-    Minimum,
-    Maximum,
-    AtError
-};
-
-struct DVEntry
-{
-    MeasurementType type {};
-    int value_information {};
-    int storagenr {};
-    int tariff {};
-    int subunit {};
-    string value;
-
-    DVEntry() {}
-    DVEntry(MeasurementType mt, int vi, int st, int ta, int su, string &val) :
-    type(mt), value_information(vi), storagenr(st), tariff(ta), subunit(su), value(val) {}
-};
 
 using namespace std;
 

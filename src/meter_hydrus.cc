@@ -425,74 +425,74 @@ void MeterHydrus::processContent(Telegram *t)
 
     // Container 0 : current / total
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 1, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 1, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_tariff1_m3_);
         t->addMoreExplanation(offset, " total consumption at tariff 1 (%f m3)", total_water_consumption_tariff1_m3_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 2, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 2, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_tariff2_m3_);
         t->addMoreExplanation(offset, " total consumption at tariff 2 (%f m3)", total_water_consumption_tariff2_m3_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::VolumeFlow, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::VolumeFlow, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &max_flow_m3h_);
         t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_m3h_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::FlowTemperature, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::FlowTemperature, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &flow_temperature_c_);
         t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_c_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::ExternalTemperature, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::ExternalTemperature, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &external_temperature_c_);
         t->addMoreExplanation(offset, " external temperature (%f °C)", external_temperature_c_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->values)) {
         extractDVdate(&t->values, key, &offset, &datetime);
         current_date_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " current date (%s)", current_date_.c_str());
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::ActualityDuration, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::ActualityDuration, 0, 0, &key, &t->values)) {
         extractDVuint24(&t->values, key, &offset, &actuality_duration_s_);
         t->addMoreExplanation(offset, " actuality duration (%f s)", actuality_duration_s_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::OperatingTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::OperatingTime, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &operating_time_h_);
         t->addMoreExplanation(offset, " operating time (%f h)", operating_time_h_);
     }
 
     // Container 1/3 : past/future records
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 1, 0, &key, &t->values)
-     || findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 3, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Volume, 1, 0, &key, &t->values)
+     || findKey(MeasurementType::Instantaneous, VIFRange::Volume, 3, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_at_date_m3_);
         t->addMoreExplanation(offset, " total consumption at date (%f m3)", total_water_consumption_at_date_m3_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 1, 1, &key, &t->values)
-     || findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 3, 1, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Volume, 1, 1, &key, &t->values)
+     || findKey(MeasurementType::Instantaneous, VIFRange::Volume, 3, 1, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_tariff1_at_date_m3_);
         t->addMoreExplanation(offset, " total consumption at tariff 1 at date (%f m3)", total_water_consumption_tariff1_at_date_m3_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 1, 2, &key, &t->values)
-     || findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 3, 2, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Volume, 1, 2, &key, &t->values)
+     || findKey(MeasurementType::Instantaneous, VIFRange::Volume, 3, 2, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_tariff2_at_date_m3_);
         t->addMoreExplanation(offset, " total consumption at tariff 1 at date (%f m3)", total_water_consumption_tariff2_at_date_m3_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Date    , 1, 0, &key, &t->values)
-     || findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 3, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date    , 1, 0, &key, &t->values)
+     || findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 3, 0, &key, &t->values)) {
         extractDVdate(&t->values, key, &offset, &datetime);
         at_date_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " at date (%s)", at_date_.c_str());

@@ -51,7 +51,7 @@ MeterPIIGTH::MeterPIIGTH(MeterInfo &mi, DriverInfo &di) :
         NoDifVifKey,
         VifScaling::Auto,
         MeasurementType::Instantaneous,
-        ValueInformation::ExternalTemperature,
+        VIFRange::ExternalTemperature,
         StorageNr(0),
         TariffNr(0),
         IndexNr(1),
@@ -66,7 +66,7 @@ MeterPIIGTH::MeterPIIGTH(MeterInfo &mi, DriverInfo &di) :
         NoDifVifKey,
         VifScaling::Auto,
         MeasurementType::Instantaneous,
-        ValueInformation::ExternalTemperature,
+        VIFRange::ExternalTemperature,
         StorageNr(1),
         TariffNr(0),
         IndexNr(1),
@@ -81,7 +81,7 @@ MeterPIIGTH::MeterPIIGTH(MeterInfo &mi, DriverInfo &di) :
         NoDifVifKey,
         VifScaling::Auto,
         MeasurementType::Instantaneous,
-        ValueInformation::ExternalTemperature,
+        VIFRange::ExternalTemperature,
         StorageNr(2),
         TariffNr(0),
         IndexNr(1),
@@ -97,7 +97,7 @@ MeterPIIGTH::MeterPIIGTH(MeterInfo &mi, DriverInfo &di) :
         DifVifKey("02FB1A"),
         VifScaling::Auto,
         MeasurementType::Unknown,
-        ValueInformation::RelativeHumidity,
+        VIFRange::RelativeHumidity,
         StorageNr(0),
         TariffNr(0),
         IndexNr(1),
@@ -111,7 +111,7 @@ MeterPIIGTH::MeterPIIGTH(MeterInfo &mi, DriverInfo &di) :
         Quantity::Text,
         NoDifVifKey,
         MeasurementType::Instantaneous,
-        ValueInformation::FabricationNo,
+        VIFRange::FabricationNo,
         StorageNr(0),
         TariffNr(0),
         IndexNr(1),
@@ -223,13 +223,13 @@ void MeterPIIGTH::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 1, 0, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 1, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &average_temperature_1h_c_);
         t->addMoreExplanation(offset, " average temperature 1h (%f C))", average_temperature_1h_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 2, 0, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 2, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &average_temperature_24h_c_);
         t->addMoreExplanation(offset, " average temperature 24h (%f C))", average_temperature_24h_c_);

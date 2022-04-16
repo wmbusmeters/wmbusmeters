@@ -284,7 +284,7 @@ void MeterQSmoke::processContent(Telegram *t)
         }
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Date, 4, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 4, 0, &key, &t->values)) {
         struct tm date;
         extractDVdate(&t->values, key, &offset, &date);
         ui_event_date_ = strdate(&date);
@@ -298,7 +298,7 @@ void MeterQSmoke::processContent(Telegram *t)
         }
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Date, 6, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 6, 0, &key, &t->values)) {
         struct tm date;
         extractDVdate(&t->values, key, &offset, &date);
         al_event_date_ = strdate(&date);
@@ -319,14 +319,14 @@ void MeterQSmoke::processContent(Telegram *t)
         }
     }
 
-    if (findKey(MeasurementType::AtError, ValueInformation::Date, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::AtError, VIFRange::Date, 0, 0, &key, &t->values)) {
         struct tm date;
         extractDVdate(&t->values, key, &offset, &date);
         error_date_ = strdate(&date);
         t->addMoreExplanation(offset, " error date (%s)", error_date_.c_str());
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);

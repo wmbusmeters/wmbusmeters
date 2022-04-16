@@ -782,7 +782,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                   NoDifVifKey,
                   VifScaling::Auto,
                   MeasurementType::Unknown,
-                  ValueInformation::None,
+                  VIFRange::None,
                   AnyStorageNr,
                   AnyTariffNr,
                   IndexNr(1),
@@ -812,7 +812,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit 
                   NoDifVifKey,
                   VifScaling::Auto,
                   MeasurementType::Unknown,
-                  ValueInformation::None,
+                  VIFRange::None,
                   AnyStorageNr,
                   AnyTariffNr,
                   IndexNr(1),
@@ -840,7 +840,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                   NoDifVifKey,
                   VifScaling::Auto,
                   MeasurementType::Unknown,
-                  ValueInformation::None,
+                  VIFRange::None,
                   AnyStorageNr,
                   AnyTariffNr,
                   IndexNr(1),
@@ -863,7 +863,7 @@ void MeterCommonImplementation::addFieldWithExtractor(
     DifVifKey dif_vif_key,
     VifScaling vif_scaling,
     MeasurementType mt,
-    ValueInformation vi,
+    VIFRange vi,
     StorageNr s,
     TariffNr t,
     IndexNr i,
@@ -906,11 +906,11 @@ void MeterCommonImplementation::addFieldWithExtractor(
                                       fi->vifScaling() == VifScaling::AutoSigned))
                   {
                       Unit decoded_unit = fi->defaultUnit();
-                      if (fi->valueInformation() != ValueInformation::Any &&
-                          fi->valueInformation() != ValueInformation::AnyVolumeVIF &&
-                          fi->valueInformation() != ValueInformation::AnyEnergyVIF &&
-                          fi->valueInformation() != ValueInformation::AnyPowerVIF &&
-                          fi->valueInformation() != ValueInformation::None)
+                      if (fi->valueInformation() != VIFRange::Any &&
+                          fi->valueInformation() != VIFRange::AnyVolumeVIF &&
+                          fi->valueInformation() != VIFRange::AnyEnergyVIF &&
+                          fi->valueInformation() != VIFRange::AnyPowerVIF &&
+                          fi->valueInformation() != VIFRange::None)
                       {
                           decoded_unit = toDefaultUnit(fi->valueInformation());
                       }
@@ -964,7 +964,7 @@ void MeterCommonImplementation::addField(
                   DifVifKey(""),
                   VifScaling::None,
                   MeasurementType::Unknown,
-                  ValueInformation::Volume,
+                  VIFRange::Volume,
                   StorageNr(0),
                   TariffNr(0),
                   0,
@@ -986,7 +986,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
     Quantity vquantity,
     DifVifKey dif_vif_key,
     MeasurementType mt,
-    ValueInformation vi,
+    VIFRange vi,
     StorageNr s,
     TariffNr t,
     IndexNr i,
@@ -1018,7 +1018,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                                                   &t->values);
                           if (!ok) return false;
                       }
-                      if (fi->valueInformation() == ValueInformation::DateTime)
+                      if (fi->valueInformation() == VIFRange::DateTime)
                       {
                           struct tm datetime;
                           extractDVdate(&t->values, key, &offset, &datetime);
@@ -1027,7 +1027,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                           t->addMoreExplanation(offset, fi->renderJsonText());
                           found = true;
                       }
-                      else if (fi->valueInformation() == ValueInformation::Date)
+                      else if (fi->valueInformation() == VIFRange::Date)
                       {
                           struct tm date;
                           extractDVdate(&t->values, key, &offset, &date);
@@ -1036,8 +1036,8 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                           t->addMoreExplanation(offset, fi->renderJsonText());
                           found = true;
                       }
-                      else if (fi->valueInformation() == ValueInformation::EnhancedIdentification ||
-                               fi->valueInformation() == ValueInformation::FabricationNo)
+                      else if (fi->valueInformation() == VIFRange::EnhancedIdentification ||
+                               fi->valueInformation() == VIFRange::FabricationNo)
                       {
                           string extracted_id;
                           extractDVReadableString(&t->values, key, &offset, &extracted_id);
@@ -1084,7 +1084,7 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
     Quantity vquantity,
     DifVifKey dif_vif_key,
     MeasurementType mt,
-    ValueInformation vi,
+    VIFRange vi,
     StorageNr s,
     TariffNr t,
     IndexNr i,

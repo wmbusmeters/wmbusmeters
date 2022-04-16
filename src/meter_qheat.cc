@@ -146,43 +146,43 @@ void MeterQHeat::processContent(Telegram *t)
     int offset;
     string key;
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::EnergyWh, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_energy_kwh_);
         t->addMoreExplanation(offset, " total energy consumption (%f kWh)", total_energy_kwh_);
     }
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 1, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::EnergyWh, 1, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &last_year_energy_kwh_);
         t->addMoreExplanation(offset, " last year energy consumption (%f kWh)", last_year_energy_kwh_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::Date, 1, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::Date, 1, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         last_year_date_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " last year date (%s)", last_year_date_.c_str());
     }
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 17, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::EnergyWh, 17, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &last_month_energy_kwh_);
         t->addMoreExplanation(offset, " last month energy consumption (%f kWh)", last_month_energy_kwh_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::Date, 17, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::Date, 17, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         last_month_date_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " last month date (%s)", last_month_date_.c_str());
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->values)) {
             struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " device datetime (%s)", device_date_time_.c_str());
     }
 
-    if (findKey(MeasurementType::AtError, ValueInformation::Date, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::AtError, VIFRange::Date, 0, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         device_error_date_ = strdatetime(&datetime);

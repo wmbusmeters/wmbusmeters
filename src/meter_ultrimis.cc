@@ -120,7 +120,7 @@ void MeterUltrimis::processContent(Telegram *t)
     int offset;
     string key;
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
@@ -128,7 +128,7 @@ void MeterUltrimis::processContent(Telegram *t)
     extractDVuint24(&t->values, "03FD17", &offset, &info_codes_);
     t->addMoreExplanation(offset, " info codes (%s)", status().c_str());
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 1, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 1, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &target_water_consumption_m3_);
         t->addMoreExplanation(offset, " target consumption (%f m3)", target_water_consumption_m3_);
     }

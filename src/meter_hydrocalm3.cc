@@ -112,7 +112,7 @@ void MeterHydrocalM3::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 0, 0, &key, &t->values))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->values))
     {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
@@ -122,32 +122,32 @@ void MeterHydrocalM3::processContent(Telegram *t)
 
     // The meter either sends the total energy consumed as kWh or as MJ.
     // First look for kwh
-    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, 1, &key, &t->values))
+    if (findKeyWithNr(MeasurementType::Instantaneous, VIFRange::EnergyWh, 0, 0, 1, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &total_heating_energy_kwh_);
         t->addMoreExplanation(offset, " total heating energy consumption (%f kWh)", total_heating_energy_kwh_);
     }
     // Then look for mj.
-    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::EnergyMJ, 0, 0, 1, &key, &t->values))
+    if (findKeyWithNr(MeasurementType::Instantaneous, VIFRange::EnergyMJ, 0, 0, 1, &key, &t->values))
     {
         double mj;
         extractDVdouble(&t->values, key, &offset, &mj);
         total_heating_energy_kwh_ = convert(mj, Unit::MJ, Unit::KWH);
         t->addMoreExplanation(offset, " total heating energy consumption (%f MJ = %f kWh)", mj, total_heating_energy_kwh_);
     }
-    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, 1, &key, &t->values))
+    if (findKeyWithNr(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, 1, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &total_heating_volume_m3_);
         t->addMoreExplanation(offset, " total heating volume (%f m3)", total_heating_volume_m3_);
     }
     // Now look for cooling energy, which uses the same DIFVIF but follows the first set of data.
-    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::EnergyWh, 0, 0, 2, &key, &t->values))
+    if (findKeyWithNr(MeasurementType::Instantaneous, VIFRange::EnergyWh, 0, 0, 2, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &total_cooling_energy_kwh_);
         t->addMoreExplanation(offset, " total cooling energy consumption (%f kWh)", total_cooling_energy_kwh_);
     }
     // Then look for mj.
-    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::EnergyMJ, 0, 0, 2, &key, &t->values))
+    if (findKeyWithNr(MeasurementType::Instantaneous, VIFRange::EnergyMJ, 0, 0, 2, &key, &t->values))
     {
         double mj;
         extractDVdouble(&t->values, key, &offset, &mj);
@@ -155,30 +155,30 @@ void MeterHydrocalM3::processContent(Telegram *t)
         t->addMoreExplanation(offset, " total cooling energy consumption (%f MJ = %f kWh)", mj, total_cooling_energy_kwh_);
     }
 
-    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, 2, &key, &t->values))
+    if (findKeyWithNr(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, 2, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &total_cooling_volume_m3_);
         t->addMoreExplanation(offset, " total cooling volume (%f m3)", total_cooling_volume_m3_);
     }
 
-    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, 3, &key, &t->values))
+    if (findKeyWithNr(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, 3, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &c1_volume_m3_);
         t->addMoreExplanation(offset, " volume C1 (%f m3)", c1_volume_m3_);
     }
 
-    if (findKeyWithNr(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, 4, &key, &t->values))
+    if (findKeyWithNr(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, 4, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &c2_volume_m3_);
         t->addMoreExplanation(offset, " volume C2 (%f m3)", c2_volume_m3_);
     }
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::FlowTemperature, 0, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::FlowTemperature, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &t1_temperature_c_);
         t->addMoreExplanation(offset, " supply temperature T1 (%f °C)", t1_temperature_c_);
     }
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::ReturnTemperature, 0, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::ReturnTemperature, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &t2_temperature_c_);
         t->addMoreExplanation(offset, " return temperature T2 (%f °C)", t2_temperature_c_);
     }

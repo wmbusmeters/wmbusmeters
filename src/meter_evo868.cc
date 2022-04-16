@@ -259,12 +259,12 @@ void MeterEvo868::processContent(Telegram *t)
     int offset;
     string key;
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);
@@ -277,36 +277,36 @@ void MeterEvo868::processContent(Telegram *t)
     extractDVReadableString(&t->values, "0E78", &offset, &fabrication_no_);
     t->addMoreExplanation(offset, " fabrication no (%s)", fabrication_no_.c_str());
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 1, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 1, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &consumption_at_set_date_m3_);
         t->addMoreExplanation(offset, " consumption at set date (%f m3)", consumption_at_set_date_m3_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Date, 1, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 1, 0, &key, &t->values)) {
         struct tm date;
         extractDVdate(&t->values, key, &offset, &date);
         set_date_ = strdate(&date);
         t->addMoreExplanation(offset, " set date (%s)", set_date_.c_str());
     }
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 2, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 2, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &consumption_at_set_date_2_m3_);
         t->addMoreExplanation(offset, " consumption at set date 2 (%f m3)", consumption_at_set_date_2_m3_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Date, 2, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 2, 0, &key, &t->values)) {
         struct tm date;
         extractDVdate(&t->values, key, &offset, &date);
         set_date_2_ = strdate(&date);
         t->addMoreExplanation(offset, " set date 2 (%s)", set_date_2_.c_str());
     }
 
-    if(findKey(MeasurementType::Maximum, ValueInformation::VolumeFlow, 3, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Maximum, VIFRange::VolumeFlow, 3, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &max_flow_since_datetime_m3h_);
         t->addMoreExplanation(offset, " max flow (%f m3/h)", max_flow_since_datetime_m3h_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 3, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 3, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         max_flow_datetime_ = strdatetime(&datetime);
@@ -318,7 +318,7 @@ void MeterEvo868::processContent(Telegram *t)
     t->addMoreExplanation(offset, " month increment (%d)", month_increment);
 
     struct tm date;
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Date, 8, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 8, 0, &key, &t->values)) {
         extractDVdate(&t->values, key, &offset, &date);
         string start = strdate(&date);
         t->addMoreExplanation(offset, " history starts with date (%s)", start.c_str());
@@ -327,7 +327,7 @@ void MeterEvo868::processContent(Telegram *t)
     // 12 months of historical data, starting in storage 8.
     for (int i=1; i<=12; ++i)
     {
-        if(findKey(MeasurementType::Instantaneous, ValueInformation::Volume, i+7, 0, &key, &t->values)) {
+        if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, i+7, 0, &key, &t->values)) {
             extractDVdouble(&t->values, key, &offset, &consumption_at_history_date_m3_[i-1]);
             t->addMoreExplanation(offset, " consumption at history %d (%f m3)", i, consumption_at_history_date_m3_[i-1]);
             struct tm d = date;

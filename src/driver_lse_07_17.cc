@@ -57,7 +57,7 @@ MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi, DriverInfo &di) :
         NoDifVifKey,
         VifScaling::Auto,
         MeasurementType::Instantaneous,
-        ValueInformation::Volume,
+        VIFRange::Volume,
         StorageNr(0),
         TariffNr(0),
         IndexNr(1),
@@ -72,7 +72,7 @@ MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi, DriverInfo &di) :
         NoDifVifKey,
         VifScaling::Auto,
         MeasurementType::Instantaneous,
-        ValueInformation::Volume,
+        VIFRange::Volume,
         StorageNr(1),
         TariffNr(0),
         IndexNr(1),
@@ -86,7 +86,7 @@ MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi, DriverInfo &di) :
         Quantity::Text,
         NoDifVifKey,
         MeasurementType::Instantaneous,
-        ValueInformation::Date,
+        VIFRange::Date,
         StorageNr(1),
         TariffNr(0),
         IndexNr(1),
@@ -100,7 +100,7 @@ MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi, DriverInfo &di) :
         Quantity::Text,
         DifVifKey("02BB56"),
         MeasurementType::Unknown,
-        ValueInformation::Any,
+        VIFRange::Any,
         AnyStorageNr,
         AnyTariffNr,
         IndexNr(1),
@@ -127,7 +127,7 @@ MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi, DriverInfo &di) :
         Quantity::Text,
         NoDifVifKey,
         MeasurementType::AtError,
-        ValueInformation::Date,
+        VIFRange::Date,
         StorageNr(0),
         TariffNr(0),
         IndexNr(1),
@@ -141,7 +141,7 @@ MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi, DriverInfo &di) :
         Quantity::Text,
         NoDifVifKey,
         MeasurementType::Instantaneous,
-        ValueInformation::DateTime,
+        VIFRange::DateTime,
         StorageNr(0),
         TariffNr(0),
         IndexNr(1),
@@ -181,7 +181,7 @@ MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi, DriverInfo &di) :
     (lse_07_17) 29: 6D vif (Date and time type)
     (lse_07_17) 2a: * 180DA924 device datetime (2021-04-09 13:24)
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);

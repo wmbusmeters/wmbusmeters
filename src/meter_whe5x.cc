@@ -112,24 +112,24 @@ void MeterWhe5x::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &current_consumption_hca_);
         t->addMoreExplanation(offset, " current consumption (%f hca)", current_consumption_hca_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::Date, 1, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::Date, 1, 0, &key, &t->values)) {
         struct tm date;
         extractDVdate(&t->values, key, &offset, &date);
         set_date_ = strdate(&date);
         t->addMoreExplanation(offset, " set date (%s)", set_date_.c_str());
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::HeatCostAllocation, 1, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 1, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &consumption_at_set_date_hca_);
         t->addMoreExplanation(offset, " consumption at set date (%f hca)", consumption_at_set_date_hca_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);

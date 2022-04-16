@@ -264,45 +264,45 @@ void MeterRfmAmb::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::ExternalTemperature, 0, 0, &key, &t->values))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::ExternalTemperature, 0, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &current_temperature_c_);
         t->addMoreExplanation(offset, " current temperature (%f C)", current_temperature_c_);
     }
 
-    if (findKey(MeasurementType::Maximum, ValueInformation::ExternalTemperature, 0, 0, &key, &t->values))
+    if (findKey(MeasurementType::Maximum, VIFRange::ExternalTemperature, 0, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &maximum_temperature_1h_c_);
         t->addMoreExplanation(offset, " maximum temperature 1h (%f C)", maximum_temperature_1h_c_);
     }
 
-    if (findKey(MeasurementType::Minimum, ValueInformation::ExternalTemperature, 0, 0, &key, &t->values))
+    if (findKey(MeasurementType::Minimum, VIFRange::ExternalTemperature, 0, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &minimum_temperature_1h_c_);
         t->addMoreExplanation(offset, " minimum temperature 1h (%f C)", minimum_temperature_1h_c_);
     }
 
-    if (findKey(MeasurementType::Maximum, ValueInformation::ExternalTemperature, 1, 0, &key, &t->values))
+    if (findKey(MeasurementType::Maximum, VIFRange::ExternalTemperature, 1, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &maximum_temperature_24h_c_);
         t->addMoreExplanation(offset, " maximum temperature 24h (%f C)",
                               maximum_temperature_24h_c_);
     }
 
-    if (findKey(MeasurementType::Minimum, ValueInformation::ExternalTemperature, 1, 0, &key, &t->values))
+    if (findKey(MeasurementType::Minimum, VIFRange::ExternalTemperature, 1, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &minimum_temperature_24h_c_);
         t->addMoreExplanation(offset, " minimum temperature 24h (%f C)",
                               minimum_temperature_24h_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 1, 0, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 1, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &average_temperature_1h_c_);
         t->addMoreExplanation(offset, " average temperature 1h (%f C)", average_temperature_1h_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::ExternalTemperature, 2, 0, &key, &t->values))
+    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 2, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &average_temperature_24h_c_);
         t->addMoreExplanation(offset, " average temperature 24h (%f C)", average_temperature_24h_c_);
@@ -367,7 +367,7 @@ void MeterRfmAmb::processContent(Telegram *t)
         t->addMoreExplanation(offset, " relative humidity 24h (%f RH)", average_relative_humidity_24h_rh_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);

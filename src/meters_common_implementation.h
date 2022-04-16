@@ -83,7 +83,7 @@ protected:
 
 #define SET_FUNC(varname,to_unit) {[=](Unit from_unit, double d){varname = convert(d, from_unit, to_unit);}}
 #define GET_FUNC(varname,from_unit) {[=](Unit to_unit){return convert(varname, from_unit, to_unit);}}
-#define LOOKUP_FIELD(DVKEY) NoDifVifKey,VifScaling::Auto,MeasurementType::Unknown,ValueInformation::Any,AnyStorageNr,AnyTariffNr,IndexNr(1)
+#define LOOKUP_FIELD(DVKEY) NoDifVifKey,VifScaling::Auto,MeasurementType::Unknown,VIFRange::Any,AnyStorageNr,AnyTariffNr,IndexNr(1)
 #define FIND_FIELD(TYPE,INFO) NoDifVifKey,VifScaling::Auto,TYPE,INFO,StorageNr(0),TariffNr(0),IndexNr(1)
 #define FIND_FIELD_S(TYPE,INFO,STORAGE) NoDifVifKey,VifScaling::Auto,TYPE,INFO,STORAGE,TariffNr(0),IndexNr(1)
 #define FIND_FIELD_ST(TYPE,INFO,STORAGE,TARIFF) NoDifVifKey,VifScaling::Auto,,TYPE,INFO,STORAGE,TARIFF,IndexNr(1)
@@ -101,7 +101,7 @@ protected:
         DifVifKey dif_vif_key, // You can hardocde a dif vif header here or use NoDifVifKey
         VifScaling vif_scaling,
         MeasurementType mt,    // If not using a hardcoded key, search for mt,vi,s,t and i instead.
-        ValueInformation vi,
+        VIFRange vi,
         StorageNr s,
         TariffNr t,
         IndexNr i,
@@ -126,7 +126,7 @@ protected:
         Quantity vquantity,    // Value belongs to this quantity.
         DifVifKey dif_vif_key, // You can hardocde a dif vif header here or use NoDifVifKey
         MeasurementType mt,    // If not using a hardcoded key, search for mt,vi,s,t and i instead.
-        ValueInformation vi,
+        VIFRange vi,
         StorageNr s,
         TariffNr t,
         IndexNr i,
@@ -140,7 +140,7 @@ protected:
         Quantity vquantity,    // Value belongs to this quantity.
         DifVifKey dif_vif_key, // You can hardocde a dif vif header here or use NoDifVifKey
         MeasurementType mt,    // If not using a hardcoded key, search for mt,vi,s,t and i instead.
-        ValueInformation vi,
+        VIFRange vi,
         StorageNr s,
         TariffNr t,
         IndexNr i,

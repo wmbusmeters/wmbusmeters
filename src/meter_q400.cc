@@ -208,17 +208,17 @@ void MeterQ400::processContent(Telegram *t)
 
     // Find keys common to both q400 and axioma.
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 0, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if(findKey(MeasurementType::Unknown, ValueInformation::Volume, 1, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 1, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &consumption_at_set_date_m3_);
         t->addMoreExplanation(offset, " consumption at set date (%f m3)", consumption_at_set_date_m3_);
     }
 
-    if (findKey(MeasurementType::Unknown, ValueInformation::DateTime, 1, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 1, 0, &key, &t->values)) {
         struct tm date;
         extractDVdate(&t->values, key, &offset, &date);
         set_date_ = strdate(&date);
@@ -226,7 +226,7 @@ void MeterQ400::processContent(Telegram *t)
     }
 
     // Now the axioma values:
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 0, 0, &key, &t->values))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->values))
     {
         struct tm date;
         extractDVdate(&t->values, key, &offset, &date);
@@ -241,12 +241,12 @@ void MeterQ400::processContent(Telegram *t)
     t->addMoreExplanation(offset, " backward flow (%f m3/h)", backward_flow_m3h_);
 
     // Why does the meter send both forward flow and flow? Aren't they the same?
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::VolumeFlow, 0, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::VolumeFlow, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &flow_m3h_);
         t->addMoreExplanation(offset, " flow (%f m3/h)", flow_m3h_);
     }
 
-    if(findKey(MeasurementType::Instantaneous, ValueInformation::FlowTemperature, 0, 0, &key, &t->values)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::FlowTemperature, 0, 0, &key, &t->values)) {
         extractDVdouble(&t->values, key, &offset, &flow_temperature_c_);
         t->addMoreExplanation(offset, " flow temperature (%f °C)", flow_temperature_c_);
     }

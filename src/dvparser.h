@@ -20,7 +20,6 @@
 
 #include"util.h"
 #include"units.h"
-#include"wmbus.h"
 
 #include<map>
 #include<stdint.h>
@@ -28,7 +27,7 @@
 #include<functional>
 #include<vector>
 
-#define LIST_OF_VALUETYPES \
+#define LIST_OF_VIF_RANGES \
     X(Volume,0x10,0x17,Quantity::Volume,Unit::M3) \
     X(OperatingTime,0x24,0x27, Quantity::Time, Unit::Second)  \
     X(VolumeFlow,0x38,0x3F, Quantity::Flow, Unit::M3H) \
@@ -49,36 +48,57 @@
     X(AnyEnergyVIF,0x00,0x00, Quantity::Energy, Unit::Unknown)  \
     X(AnyPowerVIF,0x00,0x00, Quantity::Power, Unit::Unknown)  \
 
-enum class ValueInformation
+enum class VIFRange
 {
     None,
     Any,
 #define X(name,from,to,quantity,unit) name,
-LIST_OF_VALUETYPES
+LIST_OF_VIF_RANGES
 #undef X
 };
 
-const char *toString(ValueInformation v);
-Unit toDefaultUnit(ValueInformation v);
-ValueInformation toValueInformation(int i);
+const char *toString(VIFRange v);
+Unit toDefaultUnit(VIFRange v);
+VIFRange toVIFRange(int i);
+bool isInsideVIFRange(int i, VIFRange range);
+
+enum class MeasurementType
+{
+    Unknown,
+    Instantaneous,
+    Minimum,
+    Maximum,
+    AtError
+};
 
 struct DifVifKey
 {
-    DifVifKey(string key) : key_(key) {}
-    string str() { return key_; }
+    DifVifKey(std::string key) : key_(key) {}
+    std::string str() { return key_; }
     bool useSearchInstead() { return key_ == ""; }
 
 private:
 
-    string key_;
+    std::string key_;
 };
 
 static DifVifKey NoDifVifKey = DifVifKey("");
+
+struct Vif
+{
+    Vif(int n) : nr_(n) {}
+    int intValue() { return nr_; }
+    bool operator==(Vif s) { return nr_ == s.nr_; }
+
+private:
+    int nr_;
+};
 
 struct StorageNr
 {
     StorageNr(int n) : nr_(n) {}
     int intValue() { return nr_; }
+    bool operator==(StorageNr s) { return nr_ == s.nr_; }
 
 private:
     int nr_;
@@ -90,6 +110,7 @@ struct TariffNr
 {
     TariffNr(int n) : nr_(n) {}
     int intValue() { return nr_; }
+    bool operator==(TariffNr s) { return nr_ == s.nr_; }
 
 private:
     int nr_;
@@ -97,10 +118,21 @@ private:
 
 static TariffNr AnyTariffNr = TariffNr(-1);
 
+struct SubUnitNr
+{
+    SubUnitNr(int n) : nr_(n) {}
+    int intValue() { return nr_; }
+    bool operator==(SubUnitNr s) { return nr_ == s.nr_; }
+
+private:
+    int nr_;
+};
+
 struct IndexNr
 {
     IndexNr(int n) : nr_(n) {}
     int intValue() { return nr_; }
+    bool operator==(IndexNr s) { return nr_ == s.nr_; }
 
 private:
     int nr_;
@@ -108,7 +140,63 @@ private:
 
 static IndexNr AnyIndexNr = IndexNr(-1);
 
-bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *format_bytes);
+struct DVEntry
+{
+    MeasurementType type {};
+    Vif value_information { 0 };
+    StorageNr storagenr { 0 };
+    TariffNr tariff { 0 };
+    SubUnitNr subunit { 0 };
+    std::string value;
+
+    DVEntry() {}
+    DVEntry(MeasurementType mt, Vif vi, StorageNr st, TariffNr ta, SubUnitNr su, std::string &val) :
+    type(mt), value_information(vi), storagenr(st), tariff(ta), subunit(su), value(val) {}
+};
+
+struct FieldMatcher
+{
+    // Exact difvif hex string matching all other checks are ignored.
+    bool match_dif_vif_key = false;
+    DifVifKey dif_vif_key { "" };
+
+    // Match the measurement_type.
+    bool match_measurement_type = false;
+    MeasurementType measurement_type { MeasurementType::Instantaneous };
+
+    // Match the value information range. See dvparser.h
+    bool match_value_information = false;
+    VIFRange value_information { VIFRange::None };
+
+    // Match the storage nr.
+    bool match_storage_nr = false;
+    StorageNr storage_nr { 0 };
+
+    // Match the tariff nr.
+    bool match_tariff_nr = false;
+    TariffNr tariff_nr { 0 };
+
+    // Match the subunit.
+    bool match_subunit_nr = false;
+    SubUnitNr subunit_nr { 0 };
+
+    // If the telegram has multiple identical difvif entries, use entry with this index nr.
+    // First entry has nr 1, which is the default value.
+    bool match_index_nr = false;
+    IndexNr index_nr { 1 };
+
+    static FieldMatcher build() { return FieldMatcher(); }
+    void set(DifVifKey k) { dif_vif_key = k; }
+    FieldMatcher &set(MeasurementType mt) { measurement_type = mt; return *this; }
+    FieldMatcher &set(VIFRange vi) { value_information = vi; return *this; }
+    FieldMatcher &set(StorageNr s) { storage_nr = s; return *this; }
+    FieldMatcher &set(TariffNr t) { tariff_nr = t; return *this; }
+    FieldMatcher &set(IndexNr i) { index_nr = i; return *this; }
+};
+
+bool loadFormatBytesFromSignature(uint16_t format_signature, std::vector<uchar> *format_bytes);
+
+struct Telegram;
 
 bool parseDV(Telegram *t,
              std::vector<uchar> &databytes,
@@ -123,16 +211,13 @@ bool parseDV(Telegram *t,
 // find an existing difvif entry in the values based on the desired value information type.
 // Like: Volume, VolumeFlow, FlowTemperature, ExternalTemperature etc
 // in combination with the storagenr. (Later I will add tariff/subunit)
-bool findKey(MeasurementType mt, ValueInformation vi, int storagenr, int tariffnr,
+bool findKey(MeasurementType mt, VIFRange vi, StorageNr storagenr, TariffNr tariffnr,
              std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
 // Some meters have multiple identical DIF/VIF values! Meh, they are not using storage nrs or tariff nrs.
 // So here we can pick for example nr 2 of an identical set if DIF/VIF values.
 // Nr 1 means the first found value.
-bool findKeyWithNr(MeasurementType mt, ValueInformation vi, int storagenr, int tariffnr, int indexnr,
+bool findKeyWithNr(MeasurementType mt, VIFRange vi, StorageNr storagenr, TariffNr tariffnr, int indexnr,
                    std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values);
-
-#define ANY_STORAGENR -1
-#define ANY_TARIFFNR -1
 
 bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string key);
 
@@ -165,8 +250,8 @@ bool extractDVdouble(std::map<std::string,std::pair<int,DVEntry>> *values,
                      bool assume_signed = false);
 
 // Extract a value without scaling. Works for 8bits to 64 bits, binary and bcd.
-bool extractDVlong(map<string,pair<int,DVEntry>> *values,
-                   string key,
+bool extractDVlong(std::map<std::string,std::pair<int,DVEntry>> *values,
+                   std::string key,
                    int *offset,
                    uint64_t *value);
 
@@ -174,20 +259,20 @@ bool extractDVlong(map<string,pair<int,DVEntry>> *values,
 bool extractDVHexString(std::map<std::string,std::pair<int,DVEntry>> *values,
                         std::string key,
                         int *offset,
-                        string *value);
+                        std::string *value);
 
 // Read the content and attempt to reverse and transform it into a readble string
 // based on the dif information.
 bool extractDVReadableString(std::map<std::string,std::pair<int,DVEntry>> *values,
                              std::string key,
                              int *offset,
-                             string *value);
+                             std::string *value);
 
 bool extractDVdate(std::map<std::string,std::pair<int,DVEntry>> *values,
                    std::string key,
                    int *offset,
                    struct tm *value);
 
-void extractDV(string &s, uchar *dif, uchar *vif);
+void extractDV(std::string &s, uchar *dif, uchar *vif);
 
 #endif

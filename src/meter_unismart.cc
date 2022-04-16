@@ -190,27 +190,27 @@ void MeterUnismart::processContent(Telegram *t)
         t->addMoreExplanation(offset, " fabrication no (%zu)", v);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 0, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         total_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " total datetime (%s)", total_date_time_.c_str());
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 0, 0, &key, &t->values))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &total_gas_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_gas_consumption_m3_);
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::DateTime, 1, 0, &key, &t->values)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 1, 0, &key, &t->values)) {
         struct tm datetime;
         extractDVdate(&t->values, key, &offset, &datetime);
         target_date_time_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " target datetime (%s)", target_date_time_.c_str());
     }
 
-    if (findKey(MeasurementType::Instantaneous, ValueInformation::Volume, 1, 0, &key, &t->values))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Volume, 1, 0, &key, &t->values))
     {
         extractDVdouble(&t->values, key, &offset, &target_gas_consumption_m3_);
         t->addMoreExplanation(offset, " target consumption (%f m3)", target_gas_consumption_m3_);

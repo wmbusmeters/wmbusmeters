@@ -47,7 +47,7 @@ MeterSupercom587::MeterSupercom587(MeterInfo &mi, DriverInfo &di) : MeterCommonI
         NoDifVifKey,
         VifScaling::Auto,
         MeasurementType::Instantaneous,
-        ValueInformation::Volume,
+        VIFRange::Volume,
         StorageNr(0),
         TariffNr(0),
         IndexNr(1),

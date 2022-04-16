@@ -16,6 +16,7 @@
 */
 
 #include"dvparser.h"
+#include"wmbus.h"
 #include"util.h"
 
 #include<assert.h>
@@ -29,38 +30,63 @@
 
 using namespace std;
 
-const char *toString(ValueInformation v)
+const char *toString(VIFRange v)
 {
     switch (v) {
-        case ValueInformation::None: return "None";
-        case ValueInformation::Any: return "Any";
-#define X(name,from,to,quantity,unit) case ValueInformation::name: return #name;
-LIST_OF_VALUETYPES
+        case VIFRange::None: return "None";
+        case VIFRange::Any: return "Any";
+#define X(name,from,to,quantity,unit) case VIFRange::name: return #name;
+LIST_OF_VIF_RANGES
 #undef X
     }
     assert(0);
 }
 
-Unit toDefaultUnit(ValueInformation v)
+Unit toDefaultUnit(VIFRange v)
 {
     switch (v) {
-    case ValueInformation::Any:
-    case ValueInformation::None:
+    case VIFRange::Any:
+    case VIFRange::None:
         assert(0);
         break;
-#define X(name,from,to,quantity,unit) case ValueInformation::name: return unit;
-LIST_OF_VALUETYPES
+#define X(name,from,to,quantity,unit) case VIFRange::name: return unit;
+LIST_OF_VIF_RANGES
 #undef X
     }
     assert(0);
 }
 
-ValueInformation toValueInformation(int i)
+VIFRange toVIFRange(int i)
 {
-#define X(name,from,to,quantity,unit) if (from <= i && i <= to) return ValueInformation::name;
-LIST_OF_VALUETYPES
+#define X(name,from,to,quantity,unit) if (from <= i && i <= to) return VIFRange::name;
+LIST_OF_VIF_RANGES
 #undef X
-    return ValueInformation::None;
+    return VIFRange::None;
+}
+
+bool isInsideVIFRange(Vif vif, VIFRange vif_range)
+{
+    if (vif_range == VIFRange::AnyVolumeVIF)
+    {
+        // There are more volume units in the standard that will be added here.
+        return isInsideVIFRange(vif, VIFRange::Volume);
+    }
+    if (vif_range == VIFRange::AnyEnergyVIF)
+    {
+        return
+            isInsideVIFRange(vif, VIFRange::EnergyWh) ||
+            isInsideVIFRange(vif, VIFRange::EnergyMJ);
+    }
+    if (vif_range == VIFRange::AnyPowerVIF)
+    {
+        // There are more power units in the standard that will be added here.
+        return isInsideVIFRange(vif, VIFRange::PowerW);
+    }
+
+#define X(name,from,to,quantity,unit) if (VIFRange::name == vif_range) { return from <= vif.intValue() && vif.intValue() <= to; }
+LIST_OF_VIF_RANGES
+#undef X
+    return false;
 }
 
 map<uint16_t,string> hash_to_format_;
@@ -305,7 +331,14 @@ bool parseDV(Telegram *t,
         }
         string value = bin2hex(data, data_end, datalen);
         int offset = start_parse_here+data-data_start;
-        (*values)[key] = { offset, DVEntry(mt, vif&0x7f, storage_nr, tariff, subunit, value) };
+        (*values)[key] = { offset,
+                           DVEntry(mt,
+                                   Vif(vif&0x7f),
+                                   StorageNr(storage_nr),
+                                   TariffNr(tariff),
+                                   SubUnitNr(subunit),
+                                   value)
+        };
         if (value.length() > 0) {
             // This call increments data with datalen.
             t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::NONE, "%s", value.c_str());
@@ -330,60 +363,18 @@ bool parseDV(Telegram *t,
     return true;
 }
 
-void valueInfoRange(ValueInformation v, int *low, int *hi)
-{
-    switch (v) {
-    case ValueInformation::Any:
-    case ValueInformation::None: *low = 0; *hi = 0; return;
-#define X(name,from,to,quantity,unit) case ValueInformation::name: *low = from; *hi = to; return;
-LIST_OF_VALUETYPES
-#undef X
-    }
-    assert(0);
-}
-
-bool matchSingleVif(int vi, ValueInformation vif)
-{
-    int low, hi;
-    valueInfoRange(vif, &low, &hi);
-
-    return vi >= low && vi <= hi;
-}
-
-bool isVIFMatch(int vi, ValueInformation vif)
-{
-    if (vif == ValueInformation::AnyVolumeVIF)
-    {
-        // There are more volume units in the standard that will be added here.
-        return matchSingleVif(vi, ValueInformation::Volume);
-    }
-    if (vif == ValueInformation::AnyEnergyVIF)
-    {
-        return
-            matchSingleVif(vi, ValueInformation::EnergyWh) ||
-            matchSingleVif(vi, ValueInformation::EnergyMJ);
-    }
-    if (vif == ValueInformation::AnyPowerVIF)
-    {
-        // There are more power units in the standard that will be added here.
-        return matchSingleVif(vi, ValueInformation::PowerW);
-    }
-
-    return matchSingleVif(vi, vif);
-}
-
 bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *values, std::string key)
 {
     return values->count(key) > 0;
 }
 
-bool findKey(MeasurementType mit, ValueInformation vif, int storagenr, int tariffnr,
+bool findKey(MeasurementType mit, VIFRange vif, StorageNr storagenr, TariffNr tariffnr,
              std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values)
 {
     return findKeyWithNr(mit, vif, storagenr, tariffnr, 1, key, values);
 }
 
-bool findKeyWithNr(MeasurementType mit, ValueInformation vif, int storagenr, int tariffnr, int nr,
+bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr, TariffNr tariffnr, int nr,
                    std::string *key, std::map<std::string,std::pair<int,DVEntry>> *values)
 {
     /*debug("(dvparser) looking for type=%s vif=%s storagenr=%d value_ran_low=%02x value_ran_hi=%02x\n",
@@ -393,24 +384,24 @@ bool findKeyWithNr(MeasurementType mit, ValueInformation vif, int storagenr, int
     for (auto& v : *values)
     {
         MeasurementType ty = v.second.second.type;
-        int vi = v.second.second.value_information;
-        int sn = v.second.second.storagenr;
-        int tn = v.second.second.tariff;
+        Vif vi = v.second.second.value_information;
+        StorageNr sn = v.second.second.storagenr;
+        TariffNr tn = v.second.second.tariff;
         /*debug("(dvparser) match? %s type=%s vif=%02x (%s) and storagenr=%d\n",
               v.first.c_str(),
-              measurementTypeName(ty).c_str(), vi, toString(toValueInformation(vi)), storagenr, sn);*/
+              measurementTypeName(ty).c_str(), vi, toString(toVIFRange(vi)), storagenr, sn);*/
 
-        if (isVIFMatch(vi, vif) &&
+        if (isInsideVIFRange(vi, vif_range) &&
             (mit == MeasurementType::Unknown || mit == ty) &&
-            (storagenr == ANY_STORAGENR || storagenr == sn) &&
-            (tariffnr == ANY_TARIFFNR || tariffnr == tn))
+            (storagenr == AnyStorageNr || storagenr == sn) &&
+            (tariffnr == AnyTariffNr || tariffnr == tn))
         {
             *key = v.first;
             nr--;
             if (nr <= 0) return true;
             /*debug("(dvparser) found key %s for type=%s vif=%02x (%s) storagenr=%d\n",
                   v.first.c_str(), measurementTypeName(ty).c_str(),
-                  vi, toString(toValueInformation(vi)), storagenr);*/
+                  vi, toString(toVIFRange(vi)), storagenr);*/
         }
     }
     return false;
