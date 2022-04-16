@@ -143,7 +143,7 @@ static IndexNr AnyIndexNr = IndexNr(-1);
 struct DVEntry
 {
     MeasurementType type {};
-    Vif value_information { 0 };
+    Vif vif { 0 };
     StorageNr storagenr { 0 };
     TariffNr tariff { 0 };
     SubUnitNr subunit { 0 };
@@ -151,7 +151,7 @@ struct DVEntry
 
     DVEntry() {}
     DVEntry(MeasurementType mt, Vif vi, StorageNr st, TariffNr ta, SubUnitNr su, std::string &val) :
-    type(mt), value_information(vi), storagenr(st), tariff(ta), subunit(su), value(val) {}
+    type(mt), vif(vi), storagenr(st), tariff(ta), subunit(su), value(val) {}
 };
 
 struct FieldMatcher

@@ -384,7 +384,7 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
     for (auto& v : *values)
     {
         MeasurementType ty = v.second.second.type;
-        Vif vi = v.second.second.value_information;
+        Vif vi = v.second.second.vif;
         StorageNr sn = v.second.second.storagenr;
         TariffNr tn = v.second.second.tariff;
         /*debug("(dvparser) match? %s type=%s vif=%02x (%s) and storagenr=%d\n",

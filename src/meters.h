@@ -315,7 +315,7 @@ struct FieldInfo
               DifVifKey dif_vif_key,
               VifScaling vif_scaling,
               MeasurementType measurement_type,
-              VIFRange value_information,
+              VIFRange vif_range,
               StorageNr storage_nr,
               TariffNr tariff_nr,
               IndexNr index_nr,
@@ -336,7 +336,7 @@ struct FieldInfo
         dif_vif_key_(dif_vif_key),
         vif_scaling_(vif_scaling),
         measurement_type_(measurement_type),
-        value_information_(value_information),
+        vif_range_(vif_range),
         storage_nr_(storage_nr),
         tariff_nr_(tariff_nr),
         index_nr_(index_nr),
@@ -358,7 +358,7 @@ struct FieldInfo
     DifVifKey difVifKey() { return dif_vif_key_; }
     VifScaling vifScaling() { return vif_scaling_; }
     MeasurementType measurementType() { return measurement_type_; }
-    VIFRange valueInformation() { return value_information_; }
+    VIFRange vifRange() { return vif_range_; }
     StorageNr storageNr() { return storage_nr_; }
     TariffNr tariffNr() { return tariff_nr_; }
     IndexNr indexNr() { return index_nr_; }
@@ -390,7 +390,7 @@ private:
     DifVifKey dif_vif_key_; // Hardcoded difvif key, if empty string then search for mt,vi,s,t,i instead.
     VifScaling vif_scaling_;
     MeasurementType measurement_type_;
-    VIFRange value_information_;
+    VIFRange vif_range_;
     StorageNr storage_nr_;
     TariffNr tariff_nr_;
     IndexNr index_nr_;

@@ -887,7 +887,7 @@ void MeterCommonImplementation::addFieldWithExtractor(
                   {
                       // Search for key.
                       bool ok = findKeyWithNr(fi->measurementType(),
-                                              fi->valueInformation(),
+                                              fi->vifRange(),
                                               fi->storageNr().intValue(),
                                               fi->tariffNr().intValue(),
                                               fi->indexNr().intValue(),
@@ -906,13 +906,13 @@ void MeterCommonImplementation::addFieldWithExtractor(
                                       fi->vifScaling() == VifScaling::AutoSigned))
                   {
                       Unit decoded_unit = fi->defaultUnit();
-                      if (fi->valueInformation() != VIFRange::Any &&
-                          fi->valueInformation() != VIFRange::AnyVolumeVIF &&
-                          fi->valueInformation() != VIFRange::AnyEnergyVIF &&
-                          fi->valueInformation() != VIFRange::AnyPowerVIF &&
-                          fi->valueInformation() != VIFRange::None)
+                      if (fi->vifRange() != VIFRange::Any &&
+                          fi->vifRange() != VIFRange::AnyVolumeVIF &&
+                          fi->vifRange() != VIFRange::AnyEnergyVIF &&
+                          fi->vifRange() != VIFRange::AnyPowerVIF &&
+                          fi->vifRange() != VIFRange::None)
                       {
-                          decoded_unit = toDefaultUnit(fi->valueInformation());
+                          decoded_unit = toDefaultUnit(fi->vifRange());
                       }
                       fi->setValueDouble(decoded_unit, extracted_double_value);
                       t->addMoreExplanation(offset, fi->renderJson(&m->conversions()));
@@ -1010,7 +1010,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                       {
                           // Search for key.
                           bool ok = findKeyWithNr(fi->measurementType(),
-                                                  fi->valueInformation(),
+                                                  fi->vifRange(),
                                                   fi->storageNr().intValue(),
                                                   fi->tariffNr().intValue(),
                                                   fi->indexNr().intValue(),
@@ -1018,7 +1018,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                                                   &t->values);
                           if (!ok) return false;
                       }
-                      if (fi->valueInformation() == VIFRange::DateTime)
+                      if (fi->vifRange() == VIFRange::DateTime)
                       {
                           struct tm datetime;
                           extractDVdate(&t->values, key, &offset, &datetime);
@@ -1027,7 +1027,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                           t->addMoreExplanation(offset, fi->renderJsonText());
                           found = true;
                       }
-                      else if (fi->valueInformation() == VIFRange::Date)
+                      else if (fi->vifRange() == VIFRange::Date)
                       {
                           struct tm date;
                           extractDVdate(&t->values, key, &offset, &date);
@@ -1036,8 +1036,8 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                           t->addMoreExplanation(offset, fi->renderJsonText());
                           found = true;
                       }
-                      else if (fi->valueInformation() == VIFRange::EnhancedIdentification ||
-                               fi->valueInformation() == VIFRange::FabricationNo)
+                      else if (fi->vifRange() == VIFRange::EnhancedIdentification ||
+                               fi->vifRange() == VIFRange::FabricationNo)
                       {
                           string extracted_id;
                           extractDVReadableString(&t->values, key, &offset, &extracted_id);
@@ -1048,7 +1048,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                       else
                       {
                           error("Internal error: Cannot extract text string from vif %s in %s:%d\n",
-                                toString(fi->valueInformation()),
+                                toString(fi->vifRange()),
                                 __FILE__, __LINE__);
 
                       }
@@ -1109,7 +1109,7 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
                       {
                           // Search for key.
                           bool ok = findKeyWithNr(fi->measurementType(),
-                                                  fi->valueInformation(),
+                                                  fi->vifRange(),
                                                   fi->storageNr().intValue(),
                                                   fi->tariffNr().intValue(),
                                                   fi->indexNr().intValue(),
