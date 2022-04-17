@@ -412,6 +412,13 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
     return false;
 }
 
+
+void extractDV(DifVifKey &dvk, uchar *dif, uchar *vif)
+{
+    string tmp = dvk.str();
+    extractDV(tmp, dif, vif);
+}
+
 void extractDV(string &s, uchar *dif, uchar *vif)
 {
     vector<uchar> bytes;
@@ -538,9 +545,6 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *dv_entries,
         *value = 0;
         return false;
     }
-    uchar dif, vif;
-    extractDV(key, &dif, &vif);
-
     pair<int,DVEntry>&  p = (*dv_entries)[key];
     *offset = p.first;
 
@@ -551,6 +555,14 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *dv_entries,
         return false;
     }
 
+    return p.second.extractDouble(value, auto_scale, assume_signed);
+}
+
+bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
+{
+    uchar dif, vif;
+    extractDV(dif_vif_key, &dif, &vif);
+
     int t = dif&0xf;
     if (t == 0x1 || // 8 Bit Integer/Binary
         t == 0x2 || // 16 Bit Integer/Binary
@@ -560,7 +572,7 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *dv_entries,
         t == 0x7)   // 64 Bit Integer/Binary
     {
         vector<uchar> v;
-        hex2bin(p.second.value, &v);
+        hex2bin(value, &v);
         uint64_t raw = 0;
         bool negate = false;
         uint64_t negate_mask = 0;
@@ -611,7 +623,7 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *dv_entries,
             draw = (double)((int64_t)(negate_mask | raw));
         }
         if (auto_scale) scale = vifScale(vif);
-        *value = (draw) / scale;
+        *out = (draw) / scale;
     }
     else
     if (t == 0x9 || // 2 digit BCD
@@ -621,7 +633,7 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *dv_entries,
         t == 0xE)   // 12 digit BCD
     {
         // 74140000 -> 00001474
-        string& v = p.second.value;
+        string& v = value;
         uint64_t raw = 0;
         bool negate = false;
         if (t == 0x9) {
@@ -663,7 +675,7 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *dv_entries,
             draw = (double)draw * -1;
         }
         if (auto_scale) scale = vifScale(vif);
-        *value = (draw) / scale;
+        *out = (draw) / scale;
     }
     else
     {

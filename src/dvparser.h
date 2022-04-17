@@ -158,6 +158,9 @@ struct DVEntry
     DVEntry() {}
     DVEntry(DifVifKey dvk, MeasurementType mt, Vif vi, StorageNr st, TariffNr ta, SubUnitNr su, std::string &val) :
         dif_vif_key(dvk), measurement_type(mt), vif(vi), storage_nr(st), tariff_nr(ta), subunit_nr(su), value(val) {}
+
+    bool extractDouble(double *out, bool auto_scale, bool assume_signed);
+
 };
 
 struct FieldMatcher
@@ -291,5 +294,6 @@ bool extractDVdate(std::map<std::string,std::pair<int,DVEntry>> *values,
                    struct tm *value);
 
 void extractDV(std::string &s, uchar *dif, uchar *vif);
+void extractDV(DifVifKey &s, uchar *dif, uchar *vif);
 
 #endif
