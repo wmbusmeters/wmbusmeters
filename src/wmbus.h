@@ -506,8 +506,11 @@ struct Telegram
     void markAsSimulated() { is_simulated_ = true; }
     void markAsBeingAnalyzed() { being_analyzed_ = true; }
 
-    // Extracted mbus values.
+    // The actual content of the (w)mbus telegram. The DifVif entries.
+    // Mapped from their key for quick access to their offset and content.
     std::map<std::string,std::pair<int,DVEntry>> dv_entries;
+    // And sorted in increasing offset order.
+    std::vector<DVEntry*> dv_entries_ordered;
 
     string autoDetectPossibleDrivers();
 

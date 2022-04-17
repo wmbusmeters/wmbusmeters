@@ -143,7 +143,8 @@ int test_crc()
     return rc;
 }
 
-int test_parse(const char *data, std::map<std::string,std::pair<int,DVEntry>> *values, int testnr)
+int test_parse(const char *data, std::map<std::string,std::pair<int,DVEntry>> *dv_entries,
+               std::vector<DVEntry*> *dv_entries_ordered, int testnr)
 {
     debug("\n\nTest nr %d......\n\n", testnr);
     bool b;
@@ -152,7 +153,7 @@ int test_parse(const char *data, std::map<std::string,std::pair<int,DVEntry>> *v
     hex2bin(data, &databytes);
     vector<uchar>::iterator i = databytes.begin();
 
-    b = parseDV(&t, databytes, i, databytes.size(), values);
+    b = parseDV(&t, databytes, i, databytes.size(), dv_entries, dv_entries_ordered);
 
     return b;
 }
@@ -203,30 +204,31 @@ void test_date(map<string,pair<int,DVEntry>> &values, const char *key, string da
 
 int test_dvparser()
 {
-    map<string,pair<int,DVEntry>> values;
+    map<string,pair<int,DVEntry>> dv_entries;
+	vector<DVEntry*> dv_entries_ordered;
 
     int testnr = 1;
-    test_parse("2F 2F 0B 13 56 34 12 8B 82 00 93 3E 67 45 23 0D FD 10 0A 30 31 32 33 34 35 36 37 38 39 0F 88 2F", &values, testnr);
-    test_double(values, "0B13", 123.456, testnr);
-    test_double(values, "8B8200933E", 234.567, testnr);
-    test_string(values, "0DFD10", "30313233343536373839", testnr);
+    test_parse("2F 2F 0B 13 56 34 12 8B 82 00 93 3E 67 45 23 0D FD 10 0A 30 31 32 33 34 35 36 37 38 39 0F 88 2F", &dv_entries, &dv_entries_ordered,  testnr);
+    test_double(dv_entries, "0B13", 123.456, testnr);
+    test_double(dv_entries, "8B8200933E", 234.567, testnr);
+    test_string(dv_entries, "0DFD10", "30313233343536373839", testnr);
 
     testnr++;
-    values.clear();
-    test_parse("82046C 5f1C", &values, testnr);
-    test_date(values, "82046C", "2010-12-31 00:00:00", testnr); // 2010-dec-31
+    dv_entries.clear();
+    test_parse("82046C 5f1C", &dv_entries, &dv_entries_ordered,  testnr);
+    test_date(dv_entries, "82046C", "2010-12-31 00:00:00", testnr); // 2010-dec-31
 
     testnr++;
-    values.clear();
-    test_parse("0C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000", &values, testnr);
-    test_double(values, "0C13", 5.548, testnr);
-    test_date(values, "426C", "2127-01-01 00:00:00", testnr); // 2127-jan-1
-    test_date(values, "82106C", "2000-01-01 00:00:00", testnr); // 2000-jan-1
+    dv_entries.clear();
+    test_parse("0C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000", &dv_entries, &dv_entries_ordered,  testnr);
+    test_double(dv_entries, "0C13", 5.548, testnr);
+    test_date(dv_entries, "426C", "2127-01-01 00:00:00", testnr); // 2127-jan-1
+    test_date(dv_entries, "82106C", "2000-01-01 00:00:00", testnr); // 2000-jan-1
 
     testnr++;
-    values.clear();
-    test_parse("426C FE04", &values, testnr);
-    test_date(values, "426C", "2007-04-30 00:00:00", testnr); // 2010-dec-31
+    dv_entries.clear();
+    test_parse("426C FE04", &dv_entries, &dv_entries_ordered,  testnr);
+    test_date(dv_entries, "426C", "2007-04-30 00:00:00", testnr); // 2010-dec-31
     return 0;
 }
 

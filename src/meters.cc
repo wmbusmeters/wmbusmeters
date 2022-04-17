@@ -1504,7 +1504,15 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
 void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 {
-    for (auto &fi : prints_)
+
+    /*
+    for (auto i = t->dv_entries_ordered.begin(); i != t->dv_entries_ordered.end(); ++i)
+    {
+        printf("GURKA %s\n", (*i)->dif_vif_key.str().c_str());
+    }
+    */
+
+    for (FieldInfo &fi : prints_)
     {
         fi.performExtraction(this, t);
     }

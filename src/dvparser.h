@@ -207,7 +207,7 @@ struct FieldMatcher
 
     FieldMatcher &set(IndexNr i) { index_nr = i; return *this; }
 
-    bool matches(int index, DVEntry &dv_entry);
+    bool matches(DVEntry &dv_entry);
 };
 
 bool loadFormatBytesFromSignature(uint16_t format_signature, std::vector<uchar> *format_bytes);
@@ -218,7 +218,8 @@ bool parseDV(Telegram *t,
              std::vector<uchar> &databytes,
              std::vector<uchar>::iterator data,
              size_t data_len,
-             std::map<std::string,std::pair<int,DVEntry>> *values,
+             std::map<std::string,std::pair<int,DVEntry>> *dv_entries,
+             std::vector<DVEntry*> *dv_entries_ordered,
              std::vector<uchar>::iterator *format = NULL,
              size_t format_len = 0,
              uint16_t *format_hash = NULL);
