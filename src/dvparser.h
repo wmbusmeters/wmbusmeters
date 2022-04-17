@@ -147,20 +147,23 @@ static IndexNr AnyIndexNr = IndexNr(-1);
 
 struct DVEntry
 {
-    int offset { 0 }; // Where in the telegram this dventry was found.
-    DifVifKey dif_vif_key { "" };
-    MeasurementType measurement_type {};
-    Vif vif { 0 };
-    StorageNr storage_nr { 0 };
-    TariffNr tariff_nr { 0 };
-    SubUnitNr subunit_nr { 0 };
+    int offset; // Where in the telegram this dventry was found.
+    DifVifKey dif_vif_key;
+    MeasurementType measurement_type;
+    Vif vif;
+    StorageNr storage_nr;
+    TariffNr tariff_nr;
+    SubUnitNr subunit_nr;
     std::string value;
-    DVEntry() {}
     DVEntry(int off, DifVifKey dvk, MeasurementType mt, Vif vi, StorageNr st, TariffNr ta, SubUnitNr su, std::string &val) :
         offset(off), dif_vif_key(dvk), measurement_type(mt), vif(vi), storage_nr(st), tariff_nr(ta), subunit_nr(su), value(val) {}
+    DVEntry() :
+        offset(999999), dif_vif_key("????"), measurement_type(MeasurementType::Instantaneous), vif(0), storage_nr(0), tariff_nr(0), subunit_nr(0), value("x") {}
 
     bool extractDouble(double *out, bool auto_scale, bool assume_signed);
     bool extractLong(uint64_t *out);
+    bool extractDate(struct tm *out);
+    bool extractReadableString(std::string *out);
 };
 
 struct FieldMatcher

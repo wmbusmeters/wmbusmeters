@@ -2076,28 +2076,31 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
     bool found = false;
     string key = difVifKey().str();
 
-    int offset {};
-    if (key == "")
+    if (dve == NULL)
     {
-        // Search for key.
-        bool ok = findKeyWithNr(measurementType(),
-                                vifRange(),
-                                storageNr().intValue(),
-                                tariffNr().intValue(),
-                                indexNr().intValue(),
-                                &key,
-                                &t->dv_entries);
-        if (!ok) return false;
+        if (key == "")
+        {
+            // Search for key.
+            bool ok = findKeyWithNr(measurementType(),
+                                    vifRange(),
+                                    storageNr().intValue(),
+                                    tariffNr().intValue(),
+                                    indexNr().intValue(),
+                                    &key,
+                                    &t->dv_entries);
+            // No entry was found.
+            if (!ok) return false;
+        }
+        // No entry with this key was found.
+        if (t->dv_entries.count(key) == 0) return false;
+        dve = &t->dv_entries[key].second;
     }
     double extracted_double_value = NAN;
-    if (extractDVdouble(&t->dv_entries,
-                        key,
-                        &offset,
-                        &extracted_double_value,
-                        vifScaling() == VifScaling::Auto ||
-                        vifScaling() == VifScaling::AutoSigned,
-                        vifScaling() == VifScaling::NoneSigned ||
-                        vifScaling() == VifScaling::AutoSigned))
+    if (dve->extractDouble(&extracted_double_value,
+                           vifScaling() == VifScaling::Auto ||
+                           vifScaling() == VifScaling::AutoSigned,
+                           vifScaling() == VifScaling::NoneSigned ||
+                           vifScaling() == VifScaling::AutoSigned))
     {
         Unit decoded_unit = defaultUnit();
         if (vifRange() != VIFRange::Any &&
@@ -2109,7 +2112,7 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
             decoded_unit = toDefaultUnit(vifRange());
         }
         setValueDouble(decoded_unit, extracted_double_value);
-        t->addMoreExplanation(offset, renderJson(&m->conversions()));
+        t->addMoreExplanation(dve->offset, renderJson(&m->conversions()));
         found = true;
     }
     return found;
@@ -2119,55 +2122,65 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
 {
     bool found = false;
     string key = difVifKey().str();
-    int offset {};
-    if (key == "")
+
+    if (dve == NULL)
     {
-        // Search for key.
-        bool ok = findKeyWithNr(measurementType(),
-                                vifRange(),
-                                storageNr().intValue(),
-                                tariffNr().intValue(),
-                                indexNr().intValue(),
-                                &key,
-                                &t->dv_entries);
-        if (!ok) return false;
+        if (key == "")
+        {
+            // Search for key.
+            bool ok = findKeyWithNr(measurementType(),
+                                    vifRange(),
+                                    storageNr().intValue(),
+                                    tariffNr().intValue(),
+                                    indexNr().intValue(),
+                                    &key,
+                                    &t->dv_entries);
+            // No entry was found.
+            if (!ok) return false;
+        }
+        // No entry with this key was found.
+        if (t->dv_entries.count(key) == 0) return false;
+        dve = &t->dv_entries[key].second;
     }
+    assert(dve != NULL);
+    assert(dve->dif_vif_key.str() == key);
+
     uint64_t extracted_bits {};
     if (lookup_.hasLookups())
     {
-        if (extractDVlong(&t->dv_entries, key, &offset, &extracted_bits))
+        if (dve->extractLong(&extracted_bits))
         {
             string translated_bits = lookup().translate(extracted_bits);
             setValueString(translated_bits);
-            t->addMoreExplanation(offset, renderJsonText());
+            t->addMoreExplanation(dve->offset, renderJsonText());
             found = true;
         }
     }
     else if (vifRange() == VIFRange::DateTime)
     {
         struct tm datetime;
-        extractDVdate(&t->dv_entries, key, &offset, &datetime);
+        dve->extractDate(&datetime);
         string extracted_device_date_time = strdatetime(&datetime);
         setValueString(extracted_device_date_time);
-        t->addMoreExplanation(offset, renderJsonText());
+        t->addMoreExplanation(dve->offset, renderJsonText());
         found = true;
     }
     else if (vifRange() == VIFRange::Date)
     {
         struct tm date;
-        extractDVdate(&t->dv_entries, key, &offset, &date);
+        dve->extractDate(&date);
         string extracted_device_date = strdate(&date);
         setValueString(extracted_device_date);
-        t->addMoreExplanation(offset, renderJsonText());
+        t->addMoreExplanation(dve->offset, renderJsonText());
         found = true;
     }
     else if (vifRange() == VIFRange::EnhancedIdentification ||
              vifRange() == VIFRange::FabricationNo)
     {
         string extracted_id;
-        extractDVReadableString(&t->dv_entries, key, &offset, &extracted_id);
+        dve->extractReadableString(&extracted_id);
         setValueString(extracted_id);
-        t->addMoreExplanation(offset, renderJsonText());
+        t->addMoreExplanation(dve->offset, renderJsonText());
         found = true;
     }
     else

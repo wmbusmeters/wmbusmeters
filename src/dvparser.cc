@@ -344,6 +344,11 @@ bool parseDV(Telegram *t,
 
         (*dv_entries_ordered).push_back( &(*dv_entries)[key].second );
 
+        DVEntry *dve = (*dv_entries_ordered).back();
+        DVEntry *dvee = &(*dv_entries)[key].second;
+
+        assert(key == dve->dif_vif_key.str() && key == dvee->dif_vif_key.str());
+
         if (value.length() > 0) {
             // This call increments data with datalen.
             t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::NONE, "%s", value.c_str());
@@ -412,7 +417,6 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
     }
     return false;
 }
-
 
 void extractDV(DifVifKey &dvk, uchar *dif, uchar *vif)
 {
@@ -832,21 +836,26 @@ bool extractDVHexString(map<string,pair<int,DVEntry>> *dv_entries,
 bool extractDVReadableString(map<string,pair<int,DVEntry>> *dv_entries,
                              string key,
                              int *offset,
-                             string *value)
+                             string *out)
 {
     if ((*dv_entries).count(key) == 0) {
         verbose("(dvparser) warning: cannot extract string from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
         return false;
     }
-    uchar dif, vif;
-    extractDV(key, &dif, &vif);
-    int t = dif&0xf;
-
     pair<int,DVEntry>&  p = (*dv_entries)[key];
     *offset = p.first;
 
-    string v = p.second.value;
+    return p.second.extractReadableString(out);
+}
+
+bool DVEntry::extractReadableString(string *out)
+{
+    uchar dif, vif;
+    extractDV(dif_vif_key, &dif, &vif);
+    int t = dif&0xf;
+
+    string v = value;
 
     if (t == 0x1 || // 8 Bit Integer/Binary
         t == 0x2 || // 16 Bit Integer/Binary
@@ -872,7 +881,7 @@ bool extractDVReadableString(map<string,pair<int,DVEntry>> *dv_entries,
         v = reverseBCD(v);
     }
 
-    *value = v;
+    *out = v;
     return true;
 }
 
@@ -913,48 +922,54 @@ bool extractTime(uchar hi, uchar lo, struct tm *date)
 bool extractDVdate(map<string,pair<int,DVEntry>> *dv_entries,
                    string key,
                    int *offset,
-                   struct tm *value)
+                   struct tm *out)
 {
     if ((*dv_entries).count(key) == 0)
     {
         verbose("(dvparser) warning: cannot extract date from non-existant key \"%s\"\n", key.c_str());
         *offset = -1;
-        memset(value, 0, sizeof(struct tm));
+        memset(out, 0, sizeof(struct tm));
         return false;
     }
+    pair<int,DVEntry>&  p = (*dv_entries)[key];
+    *offset = p.first;
+
+    return p.second.extractDate(out);
+}
+
+bool DVEntry::extractDate(struct tm *out)
+{
     // This will install the correct timezone
     // offset tm_gmtoff into the timestamp.
     time_t t = time(NULL);
-    localtime_r(&t, value);
-    value->tm_hour = 0;
-    value->tm_min = 0;
-    value->tm_sec = 0;
-    value->tm_mday = 0;
-    value->tm_mon = 0;
-    value->tm_year = 0;
+    localtime_r(&t, out);
+    out->tm_hour = 0;
+    out->tm_min = 0;
+    out->tm_sec = 0;
+    out->tm_mday = 0;
+    out->tm_mon = 0;
+    out->tm_year = 0;
 
     uchar dif, vif;
-    extractDV(key, &dif, &vif);
+    extractDV(dif_vif_key, &dif, &vif);
 
-    pair<int,DVEntry>&  p = (*dv_entries)[key];
-    *offset = p.first;
     vector<uchar> v;
-    hex2bin(p.second.value, &v);
+    hex2bin(value, &v);
 
     bool ok = true;
     if (v.size() == 2) {
-        ok &= extractDate(v[1], v[0], value);
+        ok &= ::extractDate(v[1], v[0], out);
     }
     else if (v.size() == 4) {
-        ok &= extractDate(v[3], v[2], value);
-        ok &= extractTime(v[1], v[0], value);
+        ok &= ::extractDate(v[3], v[2], out);
+        ok &= ::extractTime(v[1], v[0], out);
     }
     else if (v.size() == 6) {
-        ok &= extractDate(v[4], v[3], value);
-        ok &= extractTime(v[2], v[1], value);
+        ok &= ::extractDate(v[4], v[3], out);
+        ok &= ::extractTime(v[2], v[1], out);
         // ..ss ssss
         int sec  = (0x3f) & v[0];
-        value->tm_sec = sec;
+        out->tm_sec = sec;
         // some daylight saving time decoding needed here....
     }
 
