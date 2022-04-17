@@ -333,13 +333,14 @@ bool parseDV(Telegram *t,
         string value = bin2hex(data, data_end, datalen);
         int offset = start_parse_here+data-data_start;
 
-        (*dv_entries)[key] = { offset, DVEntry(key,
-                                                mt,
-                                                Vif(vif&0x7f),
-                                                StorageNr(storage_nr),
-                                                TariffNr(tariff),
-                                                SubUnitNr(subunit),
-                                                value) };
+        (*dv_entries)[key] = { offset, DVEntry(offset,
+                                               key,
+                                               mt,
+                                               Vif(vif&0x7f),
+                                               StorageNr(storage_nr),
+                                               TariffNr(tariff),
+                                               SubUnitNr(subunit),
+                                               value) };
 
         (*dv_entries_ordered).push_back( &(*dv_entries)[key].second );
 

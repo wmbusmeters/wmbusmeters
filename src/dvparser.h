@@ -147,6 +147,7 @@ static IndexNr AnyIndexNr = IndexNr(-1);
 
 struct DVEntry
 {
+    int offset { 0 }; // Where in the telegram this dventry was found.
     DifVifKey dif_vif_key { "" };
     MeasurementType measurement_type {};
     Vif vif { 0 };
@@ -154,10 +155,9 @@ struct DVEntry
     TariffNr tariff_nr { 0 };
     SubUnitNr subunit_nr { 0 };
     std::string value;
-
     DVEntry() {}
-    DVEntry(DifVifKey dvk, MeasurementType mt, Vif vi, StorageNr st, TariffNr ta, SubUnitNr su, std::string &val) :
-        dif_vif_key(dvk), measurement_type(mt), vif(vi), storage_nr(st), tariff_nr(ta), subunit_nr(su), value(val) {}
+    DVEntry(int off, DifVifKey dvk, MeasurementType mt, Vif vi, StorageNr st, TariffNr ta, SubUnitNr su, std::string &val) :
+        offset(off), dif_vif_key(dvk), measurement_type(mt), vif(vi), storage_nr(st), tariff_nr(ta), subunit_nr(su), value(val) {}
 
     bool extractDouble(double *out, bool auto_scale, bool assume_signed);
     bool extractLong(uint64_t *out);

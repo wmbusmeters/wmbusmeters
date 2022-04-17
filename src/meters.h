@@ -319,6 +319,7 @@ struct FieldInfo
               StorageNr storage_nr,
               TariffNr tariff_nr,
               IndexNr index_nr,
+              FieldMatcher matcher,
               string help,
               PrintProperties print_properties,
               string field_name,
@@ -338,6 +339,7 @@ struct FieldInfo
         storage_nr_(storage_nr),
         tariff_nr_(tariff_nr),
         index_nr_(index_nr),
+        matcher_(matcher),
         help_(help),
         print_properties_(print_properties),
         field_name_(field_name),
@@ -370,9 +372,10 @@ struct FieldInfo
     void setValueDouble(Unit u, double d) { if (set_value_double_) set_value_double_(u, d);  }
     void setValueString(string s) { if (set_value_string_) set_value_string_(s); }
 
-    bool extractNumeric(Meter *m, Telegram *t);
-    bool extractString(Meter *m, Telegram *t);
-    void performExtraction(Meter *m, Telegram *t);
+    bool extractNumeric(Meter *m, Telegram *t, DVEntry *dve = NULL);
+    bool extractString(Meter *m, Telegram *t, DVEntry *dve = NULL);
+    bool matches(DVEntry *dve);
+    void performExtraction(Meter *m, Telegram *t, DVEntry *dve);
 
     string renderJsonOnlyDefaultUnit();
     string renderJson(vector<Unit> *additional_conversions);
@@ -392,6 +395,7 @@ private:
     StorageNr storage_nr_;
     TariffNr tariff_nr_;
     IndexNr index_nr_;
+    FieldMatcher matcher_;
     string help_; // Helpful information on this meters use of this value.
     PrintProperties print_properties_;
     string field_name_; // Field name for default unit.

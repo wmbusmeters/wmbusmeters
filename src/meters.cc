@@ -786,6 +786,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                   AnyStorageNr,
                   AnyTariffNr,
                   IndexNr(1),
+                  FieldMatcher(),
                   help,
                   pprops,
                   field_name,
@@ -814,6 +815,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit 
                   AnyStorageNr,
                   AnyTariffNr,
                   IndexNr(1),
+                  FieldMatcher(),
                   help,
                   pprops,
                   field_name,
@@ -840,6 +842,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                   AnyStorageNr,
                   AnyTariffNr,
                   IndexNr(1),
+                  FieldMatcher(),
                   help,
                   pprops,
                   vname,
@@ -881,6 +884,7 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(
                   s,
                   t,
                   i,
+                  FieldMatcher::build().set(mt).set(vi).set(s).set(t).set(i),
                   help,
                   print_properties,
                   field_name,
@@ -915,6 +919,7 @@ void MeterCommonImplementation::addNumericField(
                   StorageNr(0),
                   TariffNr(0),
                   0,
+                  FieldMatcher(),
                   help,
                   print_properties,
                   field_name,
@@ -955,6 +960,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                   s,
                   t,
                   i,
+                  FieldMatcher::build().set(mt).set(vi).set(s).set(t).set(i),
                   help,
                   print_properties,
                   field_name,
@@ -996,6 +1002,7 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
                   s,
                   t,
                   i,
+                  FieldMatcher::build().set(mt).set(vi).set(s).set(t).set(i),
                   help,
                   print_properties,
                   field_name,
@@ -1504,17 +1511,26 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
 void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 {
-
-    /*
+    // Iterate through the dv_entries in the telegram.
+    //printf("%s Processinf fields...\n", driverName().str().c_str());
     for (auto i = t->dv_entries_ordered.begin(); i != t->dv_entries_ordered.end(); ++i)
     {
-        printf("GURKA %s\n", (*i)->dif_vif_key.str().c_str());
-    }
-    */
+        DVEntry *dve = *i;
+        for (FieldInfo &fi : prints_)
+        {
+            if (fi.matches(dve))
+            {
+                //fprintf(stderr, "!");
+                //fi.performExtraction(this, t, dve);
+            }
+        }
 
+//        printf("GURKA %s\n", (*i)->dif_vif_key.str().c_str());
+    }
+//    printf("done.\n");
     for (FieldInfo &fi : prints_)
     {
-        fi.performExtraction(this, t);
+        fi.performExtraction(this, t, NULL);
     }
 }
 
@@ -2029,16 +2045,21 @@ bool isValidKey(string& key, MeterDriver mt)
 }
 
 
-void FieldInfo::performExtraction(Meter *m, Telegram *t)
+void FieldInfo::performExtraction(Meter *m, Telegram *t, DVEntry *dve)
 {
     if (xuantity_ == Quantity::Text)
     {
-        extractString(m, t);
+        extractString(m, t, dve);
     }
     else
     {
-        extractNumeric(m, t);
+        extractNumeric(m, t, dve);
     }
+}
+
+bool FieldInfo::matches(DVEntry *dve)
+{
+    return matcher_.matches(*dve);
 }
 
 DriverName MeterInfo::driverName()
@@ -2050,10 +2071,11 @@ DriverName MeterInfo::driverName()
     return driver_name;
 }
 
-bool FieldInfo::extractNumeric(Meter *m, Telegram *t)
+bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
 {
     bool found = false;
     string key = difVifKey().str();
+
     int offset {};
     if (key == "")
     {
@@ -2093,7 +2115,7 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t)
     return found;
 }
 
-bool FieldInfo::extractString(Meter *m, Telegram *t)
+bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
 {
     bool found = false;
     string key = difVifKey().str();
