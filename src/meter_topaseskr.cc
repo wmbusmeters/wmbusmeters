@@ -127,15 +127,15 @@ void MeterTopasEsKr::processContent(Telegram *t)
     int offset;
     string key;
 
-    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 0, 0, &key, &t->dv_entries)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->dv_entries)) {
         extractDVdouble(&t->dv_entries, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
-    if(findKey(MeasurementType::Unknown, VIFRange::FlowTemperature, 0, 0, &key, &t->dv_entries)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::FlowTemperature, 0, 0, &key, &t->dv_entries)) {
         extractDVdouble(&t->dv_entries, key, &offset, &flow_temperature_);
         t->addMoreExplanation(offset, " water temperature (%f °C)", flow_temperature_);
     }
-    if(findKey(MeasurementType::Unknown, VIFRange::VolumeFlow, 0, 0, &key, &t->dv_entries)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::VolumeFlow, 0, 0, &key, &t->dv_entries)) {
         extractDVdouble(&t->dv_entries, key, &offset, &current_flow_m3h_);
         t->addMoreExplanation(offset, " current flow (%f m3/h)", current_flow_m3h_);
     }

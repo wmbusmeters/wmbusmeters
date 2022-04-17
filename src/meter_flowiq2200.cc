@@ -332,13 +332,13 @@ void MeterFlowIQ2200::processContent(Telegram *t)
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 1, 0, &key, &t->dv_entries)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 1, 0, &key, &t->dv_entries)) {
         extractDVdouble(&t->dv_entries, key, &offset, &target_water_consumption_m3_);
         has_target_water_consumption_ = true;
         t->addMoreExplanation(offset, " target consumption (%f m3)", target_water_consumption_m3_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::Date, 1, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 1, 0, &key, &t->dv_entries)) {
         struct tm datetime;
         extractDVdate(&t->dv_entries, key, &offset, &datetime);
         target_datetime_ = strdatetime(&datetime);
@@ -370,7 +370,7 @@ void MeterFlowIQ2200::processContent(Telegram *t)
         t->addMoreExplanation(offset, " max flow temperature (%f °C)", max_flow_temperature_c_);
     }
 
-    if(findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, AnyStorageNr, 0, &key, &t->dv_entries)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::ExternalTemperature, AnyStorageNr, 0, &key, &t->dv_entries)) {
         has_external_temperature_ = extractDVdouble(&t->dv_entries, key, &offset, &external_temperature_c_);
         t->addMoreExplanation(offset, " external temperature (%f °C)", external_temperature_c_);
     }

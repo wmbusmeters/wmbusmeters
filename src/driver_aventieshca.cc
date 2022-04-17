@@ -96,7 +96,7 @@ MeterAventiesHCA::MeterAventiesHCA(MeterInfo &mi, DriverInfo &di) : MeterCommonI
         "error_flags",
         Quantity::Text,
         DifVifKey("02FD17"),
-        MeasurementType::Unknown,
+        MeasurementType::Instantaneous,
         VIFRange::Any,
         AnyStorageNr,
         AnyTariffNr,

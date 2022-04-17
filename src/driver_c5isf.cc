@@ -94,7 +94,7 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         "status",
         Quantity::Text,
         DifVifKey("02FD17"),
-        MeasurementType::Unknown,
+        MeasurementType::Instantaneous,
         VIFRange::Any,
         AnyStorageNr,
         AnyTariffNr,

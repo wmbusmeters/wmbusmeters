@@ -216,7 +216,7 @@ void MeterMultical603::processContent(Telegram *t)
         t->addMoreExplanation(offset, " total volume (%f m3)", total_volume_m3_);
     }
 
-    if(findKey(MeasurementType::Unknown, VIFRange::VolumeFlow, 0, 0, &key, &t->dv_entries)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::VolumeFlow, 0, 0, &key, &t->dv_entries)) {
         extractDVdouble(&t->dv_entries, key, &offset, &volume_flow_m3h_);
         t->addMoreExplanation(offset, " volume flow (%f m3/h)", volume_flow_m3h_);
     }
@@ -231,7 +231,7 @@ void MeterMultical603::processContent(Telegram *t)
         t->addMoreExplanation(offset, " T2 flow temperature (%f °C)", t2_temperature_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::Date, 0, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 0, 0, &key, &t->dv_entries)) {
         struct tm datetime;
         extractDVdate(&t->dv_entries, key, &offset, &datetime);
         target_date_ = strdatetime(&datetime);

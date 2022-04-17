@@ -3863,7 +3863,6 @@ string measurementTypeName(MeasurementType mt)
     case MeasurementType::Maximum: return "maximum";
     case MeasurementType::Minimum: return "minimum";
     case MeasurementType::AtError: return "aterror";
-    case MeasurementType::Unknown: return "unknown";
     }
     assert(0);
 }

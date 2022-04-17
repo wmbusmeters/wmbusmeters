@@ -296,13 +296,13 @@ void MeterRfmAmb::processContent(Telegram *t)
                               minimum_temperature_24h_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 1, 0, &key, &t->dv_entries))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::ExternalTemperature, 1, 0, &key, &t->dv_entries))
     {
         extractDVdouble(&t->dv_entries, key, &offset, &average_temperature_1h_c_);
         t->addMoreExplanation(offset, " average temperature 1h (%f C)", average_temperature_1h_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 2, 0, &key, &t->dv_entries))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::ExternalTemperature, 2, 0, &key, &t->dv_entries))
     {
         extractDVdouble(&t->dv_entries, key, &offset, &average_temperature_24h_c_);
         t->addMoreExplanation(offset, " average temperature 24h (%f C)", average_temperature_24h_c_);
@@ -367,7 +367,7 @@ void MeterRfmAmb::processContent(Telegram *t)
         t->addMoreExplanation(offset, " relative humidity 24h (%f RH)", average_relative_humidity_24h_rh_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
         struct tm datetime;
         extractDVdate(&t->dv_entries, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);

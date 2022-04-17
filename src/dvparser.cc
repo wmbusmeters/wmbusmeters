@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2018-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -142,7 +142,7 @@ bool parseDV(Telegram *t,
 
     // Data format is:
 
-    // DIF byte (defines how the binary data bits should be decoded and how man data bytes there are)
+    // DIF byte (defines how the binary data bits should be decoded and howy man data bytes there are)
     // Sometimes followed by one or more dife bytes, if the 0x80 high bit is set.
     // The last dife byte does not have the 0x80 bit set.
 
@@ -332,7 +332,8 @@ bool parseDV(Telegram *t,
         string value = bin2hex(data, data_end, datalen);
         int offset = start_parse_here+data-data_start;
         (*values)[key] = { offset,
-                           DVEntry(mt,
+                           DVEntry(key,
+                                   mt,
                                    Vif(vif&0x7f),
                                    StorageNr(storage_nr),
                                    TariffNr(tariff),
@@ -383,16 +384,17 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
 
     for (auto& v : *values)
     {
-        MeasurementType ty = v.second.second.type;
+        MeasurementType ty = v.second.second.measurement_type;
         Vif vi = v.second.second.vif;
-        StorageNr sn = v.second.second.storagenr;
-        TariffNr tn = v.second.second.tariff;
+        StorageNr sn = v.second.second.storage_nr;
+        TariffNr tn = v.second.second.tariff_nr;
+
         /*debug("(dvparser) match? %s type=%s vif=%02x (%s) and storagenr=%d\n",
               v.first.c_str(),
               measurementTypeName(ty).c_str(), vi, toString(toVIFRange(vi)), storagenr, sn);*/
 
         if (isInsideVIFRange(vi, vif_range) &&
-            (mit == MeasurementType::Unknown || mit == ty) &&
+            (mit == MeasurementType::Instantaneous || mit == ty) &&
             (storagenr == AnyStorageNr || storagenr == sn) &&
             (tariffnr == AnyTariffNr || tariffnr == tn))
         {
@@ -935,4 +937,19 @@ bool extractDVdate(map<string,pair<int,DVEntry>> *values,
     }
 
     return ok;
+}
+
+bool FieldMatcher::matches(int index, DVEntry &dv_entry)
+{
+    if (match_dif_vif_key)
+    {
+        return dv_entry.dif_vif_key == dif_vif_key;
+    }
+
+    return
+        (!match_vif_range || isInsideVIFRange(dv_entry.vif, vif_range)) &&
+        (!match_measurement_type || dv_entry.measurement_type == measurement_type) &&
+        (!match_storage_nr || (dv_entry.storage_nr >= storage_nr_from && dv_entry.storage_nr <= storage_nr_to)) &&
+        (!match_tariff_nr || (dv_entry.tariff_nr >= tariff_nr_from && dv_entry.tariff_nr <= tariff_nr_to)) &&
+        (!match_subunit_nr || (dv_entry.subunit_nr >= subunit_nr_from && dv_entry.subunit_nr <= subunit_nr_to));
 }

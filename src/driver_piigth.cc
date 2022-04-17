@@ -96,7 +96,7 @@ MeterPIIGTH::MeterPIIGTH(MeterInfo &mi, DriverInfo &di) :
         Quantity::Temperature,
         DifVifKey("02FB1A"),
         VifScaling::Auto,
-        MeasurementType::Unknown,
+        MeasurementType::Instantaneous,
         VIFRange::RelativeHumidity,
         StorageNr(0),
         TariffNr(0),
@@ -223,13 +223,13 @@ void MeterPIIGTH::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 1, 0, &key, &t->dv_entries))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::ExternalTemperature, 1, 0, &key, &t->dv_entries))
     {
         extractDVdouble(&t->dv_entries, key, &offset, &average_temperature_1h_c_);
         t->addMoreExplanation(offset, " average temperature 1h (%f C))", average_temperature_1h_c_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 2, 0, &key, &t->dv_entries))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::ExternalTemperature, 2, 0, &key, &t->dv_entries))
     {
         extractDVdouble(&t->dv_entries, key, &offset, &average_temperature_24h_c_);
         t->addMoreExplanation(offset, " average temperature 24h (%f C))", average_temperature_24h_c_);

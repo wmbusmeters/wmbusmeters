@@ -136,7 +136,7 @@ MeterMinomess::MeterMinomess(MeterInfo &mi, DriverInfo &di) : MeterCommonImpleme
         "status",
         Quantity::Text,
         DifVifKey("02FD17"),
-        MeasurementType::Unknown,
+        MeasurementType::Instantaneous,
         VIFRange::Any,
         AnyStorageNr,
         AnyTariffNr,

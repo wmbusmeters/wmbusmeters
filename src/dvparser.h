@@ -64,7 +64,6 @@ bool isInsideVIFRange(int i, VIFRange range);
 
 enum class MeasurementType
 {
-    Unknown,
     Instantaneous,
     Minimum,
     Maximum,
@@ -75,7 +74,7 @@ struct DifVifKey
 {
     DifVifKey(std::string key) : key_(key) {}
     std::string str() { return key_; }
-    bool useSearchInstead() { return key_ == ""; }
+    bool operator==(DifVifKey &dvk) { return key_ == dvk.key_; }
 
 private:
 
@@ -99,6 +98,8 @@ struct StorageNr
     StorageNr(int n) : nr_(n) {}
     int intValue() { return nr_; }
     bool operator==(StorageNr s) { return nr_ == s.nr_; }
+    bool operator>=(StorageNr s) { return nr_ >= s.nr_; }
+    bool operator<=(StorageNr s) { return nr_ <= s.nr_; }
 
 private:
     int nr_;
@@ -111,6 +112,8 @@ struct TariffNr
     TariffNr(int n) : nr_(n) {}
     int intValue() { return nr_; }
     bool operator==(TariffNr s) { return nr_ == s.nr_; }
+    bool operator>=(TariffNr s) { return nr_ >= s.nr_; }
+    bool operator<=(TariffNr s) { return nr_ <= s.nr_; }
 
 private:
     int nr_;
@@ -123,6 +126,8 @@ struct SubUnitNr
     SubUnitNr(int n) : nr_(n) {}
     int intValue() { return nr_; }
     bool operator==(SubUnitNr s) { return nr_ == s.nr_; }
+    bool operator>=(SubUnitNr s) { return nr_ >= s.nr_; }
+    bool operator<=(SubUnitNr s) { return nr_ <= s.nr_; }
 
 private:
     int nr_;
@@ -142,16 +147,17 @@ static IndexNr AnyIndexNr = IndexNr(-1);
 
 struct DVEntry
 {
-    MeasurementType type {};
+    DifVifKey dif_vif_key { "" };
+    MeasurementType measurement_type {};
     Vif vif { 0 };
-    StorageNr storagenr { 0 };
-    TariffNr tariff { 0 };
-    SubUnitNr subunit { 0 };
+    StorageNr storage_nr { 0 };
+    TariffNr tariff_nr { 0 };
+    SubUnitNr subunit_nr { 0 };
     std::string value;
 
     DVEntry() {}
-    DVEntry(MeasurementType mt, Vif vi, StorageNr st, TariffNr ta, SubUnitNr su, std::string &val) :
-    type(mt), vif(vi), storagenr(st), tariff(ta), subunit(su), value(val) {}
+    DVEntry(DifVifKey dvk, MeasurementType mt, Vif vi, StorageNr st, TariffNr ta, SubUnitNr su, std::string &val) :
+        dif_vif_key(dvk), measurement_type(mt), vif(vi), storage_nr(st), tariff_nr(ta), subunit_nr(su), value(val) {}
 };
 
 struct FieldMatcher
@@ -165,20 +171,23 @@ struct FieldMatcher
     MeasurementType measurement_type { MeasurementType::Instantaneous };
 
     // Match the value information range. See dvparser.h
-    bool match_value_information = false;
-    VIFRange value_information { VIFRange::None };
+    bool match_vif_range = false;
+    VIFRange vif_range { VIFRange::None };
 
     // Match the storage nr.
     bool match_storage_nr = false;
-    StorageNr storage_nr { 0 };
+    StorageNr storage_nr_from { 0 };
+    StorageNr storage_nr_to { 0 };
 
     // Match the tariff nr.
     bool match_tariff_nr = false;
-    TariffNr tariff_nr { 0 };
+    TariffNr tariff_nr_from { 0 };
+    TariffNr tariff_nr_to { 0 };
 
     // Match the subunit.
     bool match_subunit_nr = false;
-    SubUnitNr subunit_nr { 0 };
+    SubUnitNr subunit_nr_from { 0 };
+    SubUnitNr subunit_nr_to { 0 };
 
     // If the telegram has multiple identical difvif entries, use entry with this index nr.
     // First entry has nr 1, which is the default value.
@@ -188,11 +197,17 @@ struct FieldMatcher
     static FieldMatcher build() { return FieldMatcher(); }
     void set(DifVifKey k) { dif_vif_key = k; }
     FieldMatcher &set(MeasurementType mt) { measurement_type = mt; return *this; }
-    FieldMatcher &set(VIFRange vi) { value_information = vi; return *this; }
-    FieldMatcher &set(StorageNr s) { storage_nr = s; return *this; }
-    FieldMatcher &set(TariffNr t) { tariff_nr = t; return *this; }
-    FieldMatcher &set(SubUnitNr u) { subunit_nr = u; return *this; }
+    FieldMatcher &set(VIFRange v) { vif_range = v; return *this; }
+    FieldMatcher &set(StorageNr s) { storage_nr_from = storage_nr_to = s; return *this; }
+    FieldMatcher &set(StorageNr from, StorageNr to) { storage_nr_from = from; storage_nr_to = to; return *this; }
+    FieldMatcher &set(TariffNr s) { tariff_nr_from = tariff_nr_to = s; return *this; }
+    FieldMatcher &set(TariffNr from, TariffNr to) { tariff_nr_from = from; tariff_nr_to = to; return *this; }
+    FieldMatcher &set(SubUnitNr s) { subunit_nr_from = subunit_nr_to = s; return *this; }
+    FieldMatcher &set(SubUnitNr from, SubUnitNr to) { subunit_nr_from = from; subunit_nr_to = to; return *this; }
+
     FieldMatcher &set(IndexNr i) { index_nr = i; return *this; }
+
+    bool matches(int index, DVEntry &dv_entry);
 };
 
 bool loadFormatBytesFromSignature(uint16_t format_signature, std::vector<uchar> *format_bytes);

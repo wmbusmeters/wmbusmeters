@@ -152,7 +152,7 @@ void MeterEBZWMBE::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::EnergyWh, 0, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::EnergyWh, 0, 0, &key, &t->dv_entries)) {
         extractDVdouble(&t->dv_entries, key, &offset, &total_energy_kwh_);
         t->addMoreExplanation(offset, " total energy (%f kwh)", total_energy_kwh_);
     }

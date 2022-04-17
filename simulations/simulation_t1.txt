@@ -122,7 +122,7 @@ telegram=|5744b40988227711101b7ab20800000265a00842658f088201659f08226589081265a0
 
 # Test Hydrus water meter telegram
 telegram=|4E44A5116464646470077AED004005|2F2F01FD08300C13741100007C1300000000FC101300000000FC201300000000726C00000B3B00000002FD748713025A6800C4016D3B177F2ACC011300020000|
-{"media":"water","meter":"hydrus","name":"HydrusWater","id":"64646464","total_m3":1.174,"total_tariff1_m3":0,"total_tariff2_m3":0,"max_flow_m3h":0,"flow_temperature_c":10.4,"external_temperature_c":0,"current_date":"","total_at_date_m3":0.2,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":0,"at_date":"2019-10-31 23:59","actuality_duration_s":0,"operating_time_h":0,"remaining_battery_life_y":13.686516,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"hydrus","name":"HydrusWater","id":"64646464","total_m3":1.174,"total_tariff1_m3":0,"total_tariff2_m3":0,"max_flow_m3h":0,"flow_temperature_c":10.4,"external_temperature_c":0,"current_date":"","total_at_date_m3":0,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":0,"at_date":"2000-00-00 00:00","actuality_duration_s":0,"operating_time_h":0,"remaining_battery_life_y":13.686516,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |HydrusWater;64646464;1.174000;0.000000;OK;1111-11-11 11:11.11
 
 # Test Hydrus new version water meter telegram

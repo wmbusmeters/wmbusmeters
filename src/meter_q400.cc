@@ -208,17 +208,17 @@ void MeterQ400::processContent(Telegram *t)
 
     // Find keys common to both q400 and axioma.
 
-    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 0, 0, &key, &t->dv_entries)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->dv_entries)) {
         extractDVdouble(&t->dv_entries, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }
 
-    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 1, 0, &key, &t->dv_entries)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 1, 0, &key, &t->dv_entries)) {
         extractDVdouble(&t->dv_entries, key, &offset, &consumption_at_set_date_m3_);
         t->addMoreExplanation(offset, " consumption at set date (%f m3)", consumption_at_set_date_m3_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 1, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 1, 0, &key, &t->dv_entries)) {
         struct tm date;
         extractDVdate(&t->dv_entries, key, &offset, &date);
         set_date_ = strdate(&date);

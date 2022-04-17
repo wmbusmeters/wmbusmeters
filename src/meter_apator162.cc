@@ -125,7 +125,7 @@ void MeterApator162::processContent(Telegram *t)
             // We found the register representing the total
             string total;
             strprintf(total, "%02x%02x%02x%02x", content[i+0], content[i+1], content[i+2], content[i+3]);
-            vendor_values["0413"] = {i-1+t->header_size, DVEntry(MeasurementType::Instantaneous, 0x13, 0, 0, 0, total) };
+            vendor_values["0413"] = {i-1+t->header_size, DVEntry(DifVifKey("0215"), MeasurementType::Instantaneous, 0x13, 0, 0, 0, total) };
             int offset;
             extractDVdouble(&vendor_values, "0413", &offset, &total_water_consumption_m3_);
             total = "*** 10|"+total+" total consumption (%f m3)";

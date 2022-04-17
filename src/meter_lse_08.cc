@@ -98,19 +98,19 @@ void MeterLSE_08::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 8, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::HeatCostAllocation, 8, 0, &key, &t->dv_entries)) {
         extractDVdouble(&t->dv_entries, key, &offset, &consumption_at_set_date_hca_);
         t->addMoreExplanation(offset, " consumption at set date (%f hca)", consumption_at_set_date_hca_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::Date, 8, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 8, 0, &key, &t->dv_entries)) {
         struct tm date;
         extractDVdate(&t->dv_entries, key, &offset, &date);
         set_date_ = strdate(&date);
         t->addMoreExplanation(offset, " set date (%s)", set_date_.c_str());
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
         struct tm datetime;
         extractDVdate(&t->dv_entries, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);

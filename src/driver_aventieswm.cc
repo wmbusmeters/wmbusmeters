@@ -83,7 +83,7 @@ MeterAventiesWM::MeterAventiesWM(MeterInfo &mi, DriverInfo &di) :
         "error_flags",
         Quantity::Text,
         DifVifKey("02FD17"),
-        MeasurementType::Unknown,
+        MeasurementType::Instantaneous,
         VIFRange::Any,
         AnyStorageNr,
         AnyTariffNr,

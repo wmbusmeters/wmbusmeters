@@ -122,13 +122,13 @@ void MeterEHZP::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::EnergyWh, 0, 0, &key, &t->dv_entries))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::EnergyWh, 0, 0, &key, &t->dv_entries))
     {
         extractDVdouble(&t->dv_entries, key, &offset, &total_energy_kwh_);
         t->addMoreExplanation(offset, " total energy (%f kwh)", total_energy_kwh_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::PowerW, 0, 0, &key, &t->dv_entries))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::PowerW, 0, 0, &key, &t->dv_entries))
     {
         extractDVdouble(&t->dv_entries, key, &offset, &current_power_kw_);
         t->addMoreExplanation(offset, " current power (%f kw)", current_power_kw_);

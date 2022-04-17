@@ -326,7 +326,7 @@ void MeterQSmoke::processContent(Telegram *t)
         t->addMoreExplanation(offset, " error date (%s)", error_date_.c_str());
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
         struct tm datetime;
         extractDVdate(&t->dv_entries, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);

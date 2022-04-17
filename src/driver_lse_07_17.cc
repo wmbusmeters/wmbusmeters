@@ -99,7 +99,7 @@ MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi, DriverInfo &di) :
         "error_code",
         Quantity::Text,
         DifVifKey("02BB56"),
-        MeasurementType::Unknown,
+        MeasurementType::Instantaneous,
         VIFRange::Any,
         AnyStorageNr,
         AnyTariffNr,

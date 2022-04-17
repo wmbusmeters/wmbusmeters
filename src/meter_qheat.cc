@@ -156,7 +156,7 @@ void MeterQHeat::processContent(Telegram *t)
         t->addMoreExplanation(offset, " last year energy consumption (%f kWh)", last_year_energy_kwh_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::Date, 1, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 1, 0, &key, &t->dv_entries)) {
         struct tm datetime;
         extractDVdate(&t->dv_entries, key, &offset, &datetime);
         last_year_date_ = strdatetime(&datetime);
@@ -168,14 +168,14 @@ void MeterQHeat::processContent(Telegram *t)
         t->addMoreExplanation(offset, " last month energy consumption (%f kWh)", last_month_energy_kwh_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::Date, 17, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 17, 0, &key, &t->dv_entries)) {
         struct tm datetime;
         extractDVdate(&t->dv_entries, key, &offset, &datetime);
         last_month_date_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " last month date (%s)", last_month_date_.c_str());
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
             struct tm datetime;
         extractDVdate(&t->dv_entries, key, &offset, &datetime);
         device_date_time_ = strdatetime(&datetime);

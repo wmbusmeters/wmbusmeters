@@ -67,10 +67,10 @@ void MeterApator08::processContent(Telegram *t)
     string total;
     strprintf(total, "%02x%02x%02x%02x", content[0], content[1], content[2], content[3]);
 
-    vendor_values["0413"] = { 25, DVEntry(MeasurementType::Instantaneous, 0x13, 0, 0, 0, total) };
+    vendor_values["0413"] = { 25, DVEntry(DifVifKey("0413"), MeasurementType::Instantaneous, 0x13, 0, 0, 0, total) };
     int offset;
     string key;
-    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 0, 0, &key, &vendor_values))
+    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &vendor_values))
     {
         extractDVdouble(&vendor_values, key, &offset, &total_water_consumption_m3_);
         // Now divide with 3! Is this the same for all apator08 meters? Time will tell.

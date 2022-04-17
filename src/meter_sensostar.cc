@@ -96,7 +96,7 @@ void MeterSensostar::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
         struct tm datetime;
         extractDVdate(&t->dv_entries, key, &offset, &datetime);
         meter_timestamp_ = strdatetime(&datetime);

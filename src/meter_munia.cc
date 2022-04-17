@@ -88,7 +88,7 @@ void MeterMunia::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::ExternalTemperature, 0, 0, &key, &t->dv_entries))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::ExternalTemperature, 0, 0, &key, &t->dv_entries))
     {
         extractDVdouble(&t->dv_entries, key, &offset, &current_temperature_c_);
         t->addMoreExplanation(offset, " current temperature (%f C)", current_temperature_c_);

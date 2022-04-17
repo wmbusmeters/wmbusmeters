@@ -210,13 +210,13 @@ void MeterEurisII::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, 0, 0, &key, &t->dv_entries))
+    if (findKey(MeasurementType::Instantaneous, VIFRange::HeatCostAllocation, 0, 0, &key, &t->dv_entries))
     {
         extractDVdouble(&t->dv_entries, key, &offset, &current_consumption_hca_);
         t->addMoreExplanation(offset, " current consumption (%f hca)", current_consumption_hca_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::Date, 1, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 1, 0, &key, &t->dv_entries)) {
         struct tm date;
         extractDVdate(&t->dv_entries, key, &offset, &date);
         set_date_ = strdate(&date);
@@ -225,7 +225,7 @@ void MeterEurisII::processContent(Telegram *t)
 
     for (int i=1; i<=17; ++i)
     {
-        if (findKey(MeasurementType::Unknown, VIFRange::HeatCostAllocation, i, 0, &key, &t->dv_entries))
+        if (findKey(MeasurementType::Instantaneous, VIFRange::HeatCostAllocation, i, 0, &key, &t->dv_entries))
         {
             string info;
             strprintf(info, " consumption at set date %d (%%f hca)", i);

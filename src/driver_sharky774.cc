@@ -149,7 +149,7 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
         Quantity::Time,
         DifVifKey("0AA618"),
         VifScaling::Auto,
-        MeasurementType::Unknown,
+        MeasurementType::Instantaneous,
         VIFRange::None,
         StorageNr(0),
         TariffNr(0),

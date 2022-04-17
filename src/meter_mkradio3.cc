@@ -100,7 +100,7 @@ void MKRadio3::processContent(Telegram *t)
     string prev_date_str;
     strprintf(prev_date_str, "%04x", prev_date);
     uint offset = t->parsed.size() + 1;
-    vendor_values["0215"] = { offset, DVEntry(MeasurementType::Unknown, 0x6c, 0, 0, 0, prev_date_str) };
+    vendor_values["0215"] = { offset, DVEntry(DifVifKey("0215"), MeasurementType::Instantaneous, 0x6c, 0, 0, 0, prev_date_str) };
     t->explanations.push_back(Explanation(offset, 1, prev_date_str, KindOfData::CONTENT, Understanding::FULL));
     t->addMoreExplanation(offset, " previous date (%s)", previous_date_.c_str());
 
@@ -112,7 +112,7 @@ void MKRadio3::processContent(Telegram *t)
     string prevs;
     strprintf(prevs, "%02x%02x", prev_lo, prev_hi);
     offset = t->parsed.size()+3;
-    vendor_values["0215"] = { offset, DVEntry(MeasurementType::Instantaneous, 0x15, 0, 0, 0, prevs) };
+    vendor_values["0215"] = { offset, DVEntry(DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, 0, 0, 0, prevs) };
     t->explanations.push_back(Explanation(offset, 2, prevs, KindOfData::CONTENT, Understanding::FULL));
     t->addMoreExplanation(offset, " prev consumption (%f m3)", prev);
 
@@ -125,7 +125,7 @@ void MKRadio3::processContent(Telegram *t)
     string current_date_str;
     strprintf(current_date_str, "%04x", current_date);
     offset = t->parsed.size() + 5;
-    vendor_values["0215"] = { offset, DVEntry(MeasurementType::Unknown, 0x6c, 0, 0, 0, current_date_str) };
+    vendor_values["0215"] = { offset, DVEntry(DifVifKey("0215"), MeasurementType::Instantaneous, 0x6c, 0, 0, 0, current_date_str) };
     t->explanations.push_back(Explanation(offset, 1, current_date_str, KindOfData::CONTENT, Understanding::FULL));
     t->addMoreExplanation(offset, " current date (%s)", current_date_.c_str());
 
@@ -137,7 +137,7 @@ void MKRadio3::processContent(Telegram *t)
     string currs;
     strprintf(currs, "%02x%02x", curr_lo, curr_hi);
     offset = t->parsed.size()+7;
-    vendor_values["0215"] = { offset, DVEntry(MeasurementType::Instantaneous, 0x15, 0, 0, 0, currs) };
+    vendor_values["0215"] = { offset, DVEntry(DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, 0, 0, 0, currs) };
     t->explanations.push_back(Explanation(offset, 2, currs, KindOfData::CONTENT, Understanding::FULL));
     t->addMoreExplanation(offset, " curr consumption (%f m3)", curr);
 

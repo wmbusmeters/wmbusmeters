@@ -186,7 +186,7 @@ MeterMicroClima::MeterMicroClima(MeterInfo &mi, DriverInfo &di) : MeterCommonImp
         "status",
         Quantity::Text,
         DifVifKey("01FD17"),
-        MeasurementType::Unknown,
+        MeasurementType::Instantaneous,
         VIFRange::Any,
         AnyStorageNr,
         AnyTariffNr,

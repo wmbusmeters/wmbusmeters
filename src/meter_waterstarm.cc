@@ -139,14 +139,14 @@ void MeterWaterstarM::processContent(Telegram *t)
     int offset;
     string key;
 
-    if (findKey(MeasurementType::Unknown, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::DateTime, 0, 0, &key, &t->dv_entries)) {
         struct tm datetime;
         extractDVdate(&t->dv_entries, key, &offset, &datetime);
         meter_timestamp_ = strdatetime(&datetime);
         t->addMoreExplanation(offset, " at date (%s)", meter_timestamp_.c_str());
     }
 
-    if(findKey(MeasurementType::Unknown, VIFRange::Volume, 0, 0, &key, &t->dv_entries)) {
+    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &t->dv_entries)) {
         extractDVdouble(&t->dv_entries, key, &offset, &total_water_consumption_m3_);
         t->addMoreExplanation(offset, " total consumption (%f m3)", total_water_consumption_m3_);
     }

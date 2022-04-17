@@ -181,7 +181,7 @@ void MeterMultical302::processContent(Telegram *t)
         t->addMoreExplanation(offset, " current power consumption (%f kW)", current_power_kw_);
     }
 
-    if (findKey(MeasurementType::Unknown, VIFRange::Date, 1, 0, &key, &t->dv_entries)) {
+    if (findKey(MeasurementType::Instantaneous, VIFRange::Date, 1, 0, &key, &t->dv_entries)) {
         struct tm datetime;
         extractDVdate(&t->dv_entries, key, &offset, &datetime);
         target_date_ = strdatetime(&datetime);
