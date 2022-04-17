@@ -688,16 +688,14 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
 bool extractDVlong(map<string,pair<int,DVEntry>> *dv_entries,
                    string key,
                    int *offset,
-                   uint64_t *value)
+                   uint64_t *out)
 {
     if ((*dv_entries).count(key) == 0) {
         verbose("(dvparser) warning: cannot extract long from non-existant key \"%s\"\n", key.c_str());
         *offset = 0;
-        *value = 0;
+        *out = 0;
         return false;
     }
-    uchar dif, vif;
-    extractDV(key, &dif, &vif);
 
     pair<int,DVEntry>&  p = (*dv_entries)[key];
     *offset = p.first;
@@ -705,9 +703,17 @@ bool extractDVlong(map<string,pair<int,DVEntry>> *dv_entries,
     if (p.second.value.length() == 0) {
         verbose("(dvparser) warning: key found but no data  \"%s\"\n", key.c_str());
         *offset = 0;
-        *value = 0;
+        *out = 0;
         return false;
     }
+
+    return p.second.extractLong(out);
+}
+
+bool DVEntry::extractLong(uint64_t *out)
+{
+    uchar dif, vif;
+    extractDV(dif_vif_key, &dif, &vif);
 
     int t = dif&0xf;
     if (t == 0x1 || // 8 Bit Integer/Binary
@@ -718,7 +724,7 @@ bool extractDVlong(map<string,pair<int,DVEntry>> *dv_entries,
         t == 0x7)   // 64 Bit Integer/Binary
     {
         vector<uchar> v;
-        hex2bin(p.second.value, &v);
+        hex2bin(value, &v);
         uint64_t raw = 0;
         if (t == 0x1) {
             assert(v.size() == 1);
@@ -754,7 +760,7 @@ bool extractDVlong(map<string,pair<int,DVEntry>> *dv_entries,
                 + ((uint64_t)v[1])*256
                 + ((uint64_t)v[0]);
         }
-        *value = raw;
+        *out = raw;
     }
     else
     if (t == 0x9 || // 2 digit BCD
@@ -764,7 +770,7 @@ bool extractDVlong(map<string,pair<int,DVEntry>> *dv_entries,
         t == 0xE)   // 12 digit BCD
     {
         // 74140000 -> 00001474
-        string& v = p.second.value;
+        string& v = value;
         uint64_t raw = 0;
         if (t == 0x9) {
             assert(v.size() == 2);
@@ -794,7 +800,7 @@ bool extractDVlong(map<string,pair<int,DVEntry>> *dv_entries,
                 + (v[0]-'0')*10 + (v[1]-'0');
         }
 
-        *value = raw;
+        *out = raw;
     }
     else
     {

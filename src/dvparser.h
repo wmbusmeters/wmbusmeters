@@ -160,7 +160,7 @@ struct DVEntry
         dif_vif_key(dvk), measurement_type(mt), vif(vi), storage_nr(st), tariff_nr(ta), subunit_nr(su), value(val) {}
 
     bool extractDouble(double *out, bool auto_scale, bool assume_signed);
-
+    bool extractLong(uint64_t *out);
 };
 
 struct FieldMatcher
