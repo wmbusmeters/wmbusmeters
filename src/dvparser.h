@@ -201,18 +201,18 @@ struct FieldMatcher
     bool match_vif_range = false;
     VIFRange vif_range { VIFRange::Any };
 
-    // Match the storage nr.
-    bool match_storage_nr = false;
+    // Match the storage nr. If no storage is specified, default to match only 0.
+    bool match_storage_nr = true;
     StorageNr storage_nr_from { 0 };
     StorageNr storage_nr_to { 0 };
 
-    // Match the tariff nr.
-    bool match_tariff_nr = false;
+    // Match the tariff nr. If no tariff is specified, default to match only 0.
+    bool match_tariff_nr = true;
     TariffNr tariff_nr_from { 0 };
     TariffNr tariff_nr_to { 0 };
 
-    // Match the subunit.
-    bool match_subunit_nr = false;
+    // Match the subunit. If no subunit is specified, default to match only 0.
+    bool match_subunit_nr = true;
     SubUnitNr subunit_nr_from { 0 };
     SubUnitNr subunit_nr_to { 0 };
 

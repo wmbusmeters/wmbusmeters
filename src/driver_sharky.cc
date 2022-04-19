@@ -79,13 +79,11 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
     addNumericFieldWithExtractor(
         "total_volume",
         Quantity::Volume,
-        NoDifVifKey,
         VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::Volume,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
+        FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+        ,
         PrintProperty::JSON | PrintProperty::FIELD,
         "The total heating media volume recorded by this meter.",
         SET_FUNC(total_volume_m3_, Unit::M3),

@@ -872,6 +872,37 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(
             ));
 }
 
+void MeterCommonImplementation::addNumericFieldWithExtractor(
+    string vname,
+    Quantity vquantity,
+    VifScaling vif_scaling,
+    FieldMatcher matcher,
+    PrintProperties print_properties,
+    string help,
+    function<void(Unit,double)> setValueFunc,
+    function<double(Unit)> getValueFunc)
+{
+    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
+    string field_name = vname+"_"+default_unit;
+    fields_.push_back(field_name);
+
+    prints_.push_back(
+        FieldInfo(vname,
+                  vquantity,
+                  defaultUnitForQuantity(vquantity),
+                  vif_scaling,
+                  matcher,
+                  help,
+                  print_properties,
+                  field_name,
+                  getValueFunc,
+                  NULL,
+                  setValueFunc,
+                  NULL,
+                  NoLookup
+            ));
+}
+
 void MeterCommonImplementation::addNumericField(
     string vname,
     Quantity vquantity,
