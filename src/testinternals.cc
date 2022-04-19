@@ -46,6 +46,7 @@ void test_sbc();
 void test_hex();
 void test_translate();
 void test_slip();
+void test_dvs();
 
 int main(int argc, char **argv)
 {
@@ -78,6 +79,7 @@ int main(int argc, char **argv)
     test_hex();
     test_translate();
     test_slip();
+    test_dvs();
 
     return 0;
 }
@@ -1162,4 +1164,14 @@ void test_slip()
         printf("ERROR slip 7\n");
     }
 
+}
+
+void test_dvs()
+{
+    DifVifKey dvk("0B2B");
+
+    if (dvk.dif() != 0x0b || dvk.vif() != 0x2b || dvk.hasDifes() || dvk.hasVifes())
+    {
+        printf("ERROR test_dvs 1\n");
+    }
 }

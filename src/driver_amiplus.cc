@@ -89,7 +89,7 @@ MeterAmiplus::MeterAmiplus(MeterInfo &mi, DriverInfo &di) : MeterCommonImplement
         DifVifKey("0E833C"),
         VifScaling::Auto,
         MeasurementType::Instantaneous,
-        VIFRange::None,
+        VIFRange::Any,
         AnyStorageNr,
         AnyTariffNr,
         IndexNr(1),

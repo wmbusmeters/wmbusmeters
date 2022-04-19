@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2021 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -312,13 +312,7 @@ struct FieldInfo
     FieldInfo(string vname,
               Quantity xuantity,
               Unit default_unit,
-              DifVifKey dif_vif_key,
               VifScaling vif_scaling,
-              MeasurementType measurement_type,
-              VIFRange vif_range,
-              StorageNr storage_nr,
-              TariffNr tariff_nr,
-              IndexNr index_nr,
               FieldMatcher matcher,
               string help,
               PrintProperties print_properties,
@@ -332,13 +326,7 @@ struct FieldInfo
         vname_(vname),
         xuantity_(xuantity),
         default_unit_(default_unit),
-        dif_vif_key_(dif_vif_key),
         vif_scaling_(vif_scaling),
-        measurement_type_(measurement_type),
-        vif_range_(vif_range),
-        storage_nr_(storage_nr),
-        tariff_nr_(tariff_nr),
-        index_nr_(index_nr),
         matcher_(matcher),
         help_(help),
         print_properties_(print_properties),
@@ -353,13 +341,8 @@ struct FieldInfo
     string vname() { return vname_; }
     Quantity xuantity() { return xuantity_; }
     Unit defaultUnit() { return default_unit_; }
-    DifVifKey difVifKey() { return dif_vif_key_; }
     VifScaling vifScaling() { return vif_scaling_; }
-    MeasurementType measurementType() { return measurement_type_; }
-    VIFRange vifRange() { return vif_range_; }
-    StorageNr storageNr() { return storage_nr_; }
-    TariffNr tariffNr() { return tariff_nr_; }
-    IndexNr indexNr() { return index_nr_; }
+    FieldMatcher& matcher() { return matcher_; }
     string help() { return help_; }
     PrintProperties printProperties() { return print_properties_; }
     string fieldName() { return field_name_; }
@@ -374,6 +357,7 @@ struct FieldInfo
 
     bool extractNumeric(Meter *m, Telegram *t, DVEntry *dve = NULL);
     bool extractString(Meter *m, Telegram *t, DVEntry *dve = NULL);
+    bool hasMatcher();
     bool matches(DVEntry *dve);
     void performExtraction(Meter *m, Telegram *t, DVEntry *dve);
 
@@ -388,13 +372,7 @@ private:
     string vname_; // Value name, like: total current previous target
     Quantity xuantity_; // Quantity: Energy, Volume
     Unit default_unit_; // Default unit for above quantity: KWH, M3
-    DifVifKey dif_vif_key_; // Hardcoded difvif key, if empty string then search for mt,vi,s,t,i instead.
     VifScaling vif_scaling_;
-    MeasurementType measurement_type_;
-    VIFRange vif_range_;
-    StorageNr storage_nr_;
-    TariffNr tariff_nr_;
-    IndexNr index_nr_;
     FieldMatcher matcher_;
     string help_; // Helpful information on this meters use of this value.
     PrintProperties print_properties_;
@@ -432,6 +410,11 @@ struct Meter
     virtual string datetimeOfUpdateHumanReadable() = 0;
     virtual string datetimeOfUpdateRobot() = 0;
     virtual string unixTimestampOfUpdate() = 0;
+
+    virtual void setNumericValue(std::string field, Unit u, double v) = 0;
+    virtual double getNumericValue(std::string field, Unit u) = 0;
+    virtual void setStringValue(std::string field, std::string v) = 0;
+    virtual std::string getStringValue(std::string field) = 0;
 
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;

@@ -141,6 +141,9 @@ bool parseDV(Telegram *t,
         debug("(dvparser) using format \"%s\"\n", s.c_str());
     }
 
+    dv_entries->clear();
+    dv_entries_ordered->clear();
+
     // Data format is:
 
     // DIF byte (defines how the binary data bits should be decoded and howy man data bytes there are)
@@ -418,31 +421,46 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
     return false;
 }
 
-void extractDV(DifVifKey &dvk, uchar *dif, uchar *vif)
+void extractDV(DifVifKey &dvk, uchar *dif, uchar *vif, bool *has_difes, bool *has_vifes)
 {
     string tmp = dvk.str();
-    extractDV(tmp, dif, vif);
+    extractDV(tmp, dif, vif, has_difes, has_vifes);
 }
 
-void extractDV(string &s, uchar *dif, uchar *vif)
+void extractDV(string &s, uchar *dif, uchar *vif, bool *has_difes, bool *has_vifes)
 {
     vector<uchar> bytes;
     hex2bin(s, &bytes);
-    *dif = bytes[0];
-    bool has_another_dife = (*dif & 0x80) == 0x80;
-    size_t i=1;
-    while (has_another_dife) {
-        if (i >= bytes.size()) {
-            debug("(dvparser) Invalid key \"%s\" used. Settinf vif to zero.\n", s.c_str());
-            *vif = 0;
-            return;
-        }
-        uchar dife = bytes[i];
-        has_another_dife = (dife & 0x80) == 0x80;
+    size_t i = 0;
+    *has_difes = false;
+    *has_vifes = false;
+    if (bytes.size() == 0)
+    {
+        *dif = 0;
+        *vif = 0;
+        return;
+    }
+
+    *dif = bytes[i];
+    while (i < bytes.size() && (bytes[i] & 0x80))
+    {
         i++;
+        *has_difes = true;
+    }
+    i++;
+
+    if (i >= bytes.size())
+    {
+        *vif = 0;
+        return;
     }
 
     *vif = bytes[i];
+    while (i < bytes.size() && (bytes[i] & 0x80))
+    {
+        i++;
+        *has_vifes = true;
+    }
 }
 
 bool extractDVuint8(map<string,pair<int,DVEntry>> *dv_entries,
@@ -456,8 +474,6 @@ bool extractDVuint8(map<string,pair<int,DVEntry>> *dv_entries,
         *value = 0;
         return false;
     }
-    uchar dif, vif;
-    extractDV(key, &dif, &vif);
 
     pair<int,DVEntry>&  p = (*dv_entries)[key];
     *offset = p.first;
@@ -479,8 +495,6 @@ bool extractDVuint16(map<string,pair<int,DVEntry>> *dv_entries,
         *value = 0;
         return false;
     }
-    uchar dif, vif;
-    extractDV(key, &dif, &vif);
 
     pair<int,DVEntry>&  p = (*dv_entries)[key];
     *offset = p.first;
@@ -502,8 +516,6 @@ bool extractDVuint24(map<string,pair<int,DVEntry>> *dv_entries,
         *value = 0;
         return false;
     }
-    uchar dif, vif;
-    extractDV(key, &dif, &vif);
 
     pair<int,DVEntry>&  p = (*dv_entries)[key];
     *offset = p.first;
@@ -525,8 +537,6 @@ bool extractDVuint32(map<string,pair<int,DVEntry>> *dv_entries,
         *value = 0;
         return false;
     }
-    uchar dif, vif;
-    extractDV(key, &dif, &vif);
 
     pair<int,DVEntry>&  p = (*dv_entries)[key];
     *offset = p.first;
@@ -565,10 +575,17 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *dv_entries,
 
 bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
 {
-    uchar dif, vif;
-    extractDV(dif_vif_key, &dif, &vif);
-
-    int t = dif&0xf;
+    int t = dif_vif_key.dif() & 0xf;
+    if (t == 0x0 ||
+        t == 0x8 ||
+        t == 0xd ||
+        t == 0xf)
+    {
+        // Cannot extract from nothing, selection for readout, variable length or special.
+        // Variable length is used for compact varlen history. Should be added in the future.
+        return false;
+    }
+    else
     if (t == 0x1 || // 8 Bit Integer/Binary
         t == 0x2 || // 16 Bit Integer/Binary
         t == 0x3 || // 24 Bit Integer/Binary
@@ -627,7 +644,7 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
         {
             draw = (double)((int64_t)(negate_mask | raw));
         }
-        if (auto_scale) scale = vifScale(vif);
+        if (auto_scale) scale = vifScale(dif_vif_key.vif());
         *out = (draw) / scale;
     }
     else
@@ -679,12 +696,13 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
         {
             draw = (double)draw * -1;
         }
-        if (auto_scale) scale = vifScale(vif);
+        if (auto_scale) scale = vifScale(dif_vif_key.vif());
         *out = (draw) / scale;
     }
     else
     {
-        error("Unsupported dif format for extraction to double! dif=%02x\n", dif);
+        printf("Unsupported dif format for extraction to double! dif=%02x\n", dif_vif_key.dif());
+        assert(false);
     }
 
     return true;
@@ -717,10 +735,7 @@ bool extractDVlong(map<string,pair<int,DVEntry>> *dv_entries,
 
 bool DVEntry::extractLong(uint64_t *out)
 {
-    uchar dif, vif;
-    extractDV(dif_vif_key, &dif, &vif);
-
-    int t = dif&0xf;
+    int t = dif_vif_key.dif() & 0xf;
     if (t == 0x1 || // 8 Bit Integer/Binary
         t == 0x2 || // 16 Bit Integer/Binary
         t == 0x3 || // 24 Bit Integer/Binary
@@ -809,7 +824,7 @@ bool DVEntry::extractLong(uint64_t *out)
     }
     else
     {
-        error("Unsupported dif format for extraction to long! dif=%02x\n", dif);
+        error("Unsupported dif format for extraction to long! dif=%02x\n", dif_vif_key.dif());
     }
 
     return true;
@@ -851,9 +866,7 @@ bool extractDVReadableString(map<string,pair<int,DVEntry>> *dv_entries,
 
 bool DVEntry::extractReadableString(string *out)
 {
-    uchar dif, vif;
-    extractDV(dif_vif_key, &dif, &vif);
-    int t = dif&0xf;
+    int t = dif_vif_key.dif() & 0xf;
 
     string v = value;
 
@@ -950,9 +963,6 @@ bool DVEntry::extractDate(struct tm *out)
     out->tm_mon = 0;
     out->tm_year = 0;
 
-    uchar dif, vif;
-    extractDV(dif_vif_key, &dif, &vif);
-
     vector<uchar> v;
     hex2bin(value, &v);
 
@@ -978,15 +988,26 @@ bool DVEntry::extractDate(struct tm *out)
 
 bool FieldMatcher::matches(DVEntry &dv_entry)
 {
+    if (!active) return false;
+
     if (match_dif_vif_key)
     {
-        return dv_entry.dif_vif_key == dif_vif_key;
+        bool b = dv_entry.dif_vif_key == dif_vif_key;
+        return b;
     }
 
-    return
+    if (dv_entry.dif_vif_key.hasVifes())
+    {
+        // Currently we cannot match vifes. They must be selected using expicit dif_vif_keys above.
+        return false;
+    }
+
+    bool b =
         (!match_vif_range || isInsideVIFRange(dv_entry.vif, vif_range)) &&
         (!match_measurement_type || dv_entry.measurement_type == measurement_type) &&
         (!match_storage_nr || (dv_entry.storage_nr >= storage_nr_from && dv_entry.storage_nr <= storage_nr_to)) &&
         (!match_tariff_nr || (dv_entry.tariff_nr >= tariff_nr_from && dv_entry.tariff_nr <= tariff_nr_to)) &&
         (!match_subunit_nr || (dv_entry.subunit_nr >= subunit_nr_from && dv_entry.subunit_nr <= subunit_nr_to));
+
+    return b;
 }

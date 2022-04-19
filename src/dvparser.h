@@ -64,22 +64,37 @@ bool isInsideVIFRange(int i, VIFRange range);
 
 enum class MeasurementType
 {
+    Any,
     Instantaneous,
     Minimum,
     Maximum,
     AtError
 };
 
+void extractDV(std::string &s, uchar *dif, uchar *vif, bool *has_difes, bool *has_vifes);
+
 struct DifVifKey
 {
-    DifVifKey(std::string key) : key_(key) {}
+    DifVifKey(std::string key) : key_(key) {
+        extractDV(key, &dif_, &vif_, &has_difes_, &has_vifes_);
+    }
     std::string str() { return key_; }
     bool operator==(DifVifKey &dvk) { return key_ == dvk.key_; }
+    uchar dif() { return dif_; }
+    uchar vif() { return vif_; }
+    bool hasDifes() { return has_difes_; }
+    bool hasVifes() { return has_vifes_; }
 
 private:
 
     std::string key_;
+    uchar dif_;
+    uchar vif_;
+    bool has_difes_;
+    bool has_vifes_;
 };
+
+void extractDV(DifVifKey &s, uchar *dif, uchar *vif, bool *has_difes, bool *has_vifes);
 
 static DifVifKey NoDifVifKey = DifVifKey("");
 
@@ -98,6 +113,7 @@ struct StorageNr
     StorageNr(int n) : nr_(n) {}
     int intValue() { return nr_; }
     bool operator==(StorageNr s) { return nr_ == s.nr_; }
+    bool operator!=(StorageNr s) { return nr_ != s.nr_; }
     bool operator>=(StorageNr s) { return nr_ >= s.nr_; }
     bool operator<=(StorageNr s) { return nr_ <= s.nr_; }
 
@@ -112,6 +128,7 @@ struct TariffNr
     TariffNr(int n) : nr_(n) {}
     int intValue() { return nr_; }
     bool operator==(TariffNr s) { return nr_ == s.nr_; }
+    bool operator!=(TariffNr s) { return nr_ != s.nr_; }
     bool operator>=(TariffNr s) { return nr_ >= s.nr_; }
     bool operator<=(TariffNr s) { return nr_ <= s.nr_; }
 
@@ -164,10 +181,14 @@ struct DVEntry
     bool extractLong(uint64_t *out);
     bool extractDate(struct tm *out);
     bool extractReadableString(std::string *out);
+    bool hasVifes();
 };
 
 struct FieldMatcher
 {
+    // If not actually used, this remains false.
+    bool active = false;
+
     // Exact difvif hex string matching all other checks are ignored.
     bool match_dif_vif_key = false;
     DifVifKey dif_vif_key { "" };
@@ -178,7 +199,7 @@ struct FieldMatcher
 
     // Match the value information range. See dvparser.h
     bool match_vif_range = false;
-    VIFRange vif_range { VIFRange::None };
+    VIFRange vif_range { VIFRange::Any };
 
     // Match the storage nr.
     bool match_storage_nr = false;
@@ -197,19 +218,48 @@ struct FieldMatcher
 
     // If the telegram has multiple identical difvif entries, use entry with this index nr.
     // First entry has nr 1, which is the default value.
-    bool match_index_nr = false;
     IndexNr index_nr { 1 };
 
-    static FieldMatcher build() { return FieldMatcher(); }
-    void set(DifVifKey k) { dif_vif_key = k; }
-    FieldMatcher &set(MeasurementType mt) { measurement_type = mt; return *this; }
-    FieldMatcher &set(VIFRange v) { vif_range = v; return *this; }
-    FieldMatcher &set(StorageNr s) { storage_nr_from = storage_nr_to = s; return *this; }
-    FieldMatcher &set(StorageNr from, StorageNr to) { storage_nr_from = from; storage_nr_to = to; return *this; }
-    FieldMatcher &set(TariffNr s) { tariff_nr_from = tariff_nr_to = s; return *this; }
-    FieldMatcher &set(TariffNr from, TariffNr to) { tariff_nr_from = from; tariff_nr_to = to; return *this; }
-    FieldMatcher &set(SubUnitNr s) { subunit_nr_from = subunit_nr_to = s; return *this; }
-    FieldMatcher &set(SubUnitNr from, SubUnitNr to) { subunit_nr_from = from; subunit_nr_to = to; return *this; }
+    FieldMatcher() : active(false) { }
+    FieldMatcher(bool act) : active(act) { }
+    static FieldMatcher build() { return FieldMatcher(true); }
+    FieldMatcher &set(DifVifKey k) {
+        dif_vif_key = k;
+        match_dif_vif_key = (k.str() != ""); return *this; }
+    FieldMatcher &set(MeasurementType mt) {
+        measurement_type = mt;
+        match_measurement_type = (mt != MeasurementType::Any);
+        return *this; }
+    FieldMatcher &set(VIFRange v) {
+        vif_range = v;
+        match_vif_range = (v != VIFRange::Any);
+        return *this; }
+    FieldMatcher &set(StorageNr s) {
+        storage_nr_from = storage_nr_to = s;
+        match_storage_nr = (s != AnyStorageNr);
+        return *this; }
+    FieldMatcher &set(StorageNr from, StorageNr to) {
+        storage_nr_from = from;
+        storage_nr_to = to;
+        match_storage_nr = true;
+        return *this; }
+    FieldMatcher &set(TariffNr s) {
+        tariff_nr_from = tariff_nr_to = s;
+        match_tariff_nr = (s != AnyTariffNr);
+        return *this; }
+    FieldMatcher &set(TariffNr from, TariffNr to) {
+        tariff_nr_from = from;
+        tariff_nr_to = to;
+        match_tariff_nr = true;
+        return *this; }
+    FieldMatcher &set(SubUnitNr s) {
+        subunit_nr_from = subunit_nr_to = s;
+        match_subunit_nr = true;
+        return *this; }
+    FieldMatcher &set(SubUnitNr from, SubUnitNr to) {
+        subunit_nr_from = from;
+        subunit_nr_to = to;
+        match_subunit_nr = true; return *this; }
 
     FieldMatcher &set(IndexNr i) { index_nr = i; return *this; }
 
@@ -296,7 +346,5 @@ bool extractDVdate(std::map<std::string,std::pair<int,DVEntry>> *values,
                    int *offset,
                    struct tm *value);
 
-void extractDV(std::string &s, uchar *dif, uchar *vif);
-void extractDV(DifVifKey &s, uchar *dif, uchar *vif);
 
 #endif

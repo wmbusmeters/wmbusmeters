@@ -3859,6 +3859,7 @@ string linkModeName(LinkMode link_mode)
 string measurementTypeName(MeasurementType mt)
 {
     switch (mt) {
+    case MeasurementType::Any: return "any";
     case MeasurementType::Instantaneous: return "instantaneous";
     case MeasurementType::Maximum: return "maximum";
     case MeasurementType::Minimum: return "minimum";

@@ -779,13 +779,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
         FieldInfo(vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
-                  NoDifVifKey,
                   VifScaling::Auto,
-                  MeasurementType::Instantaneous,
-                  VIFRange::None,
-                  AnyStorageNr,
-                  AnyTariffNr,
-                  IndexNr(1),
                   FieldMatcher(),
                   help,
                   pprops,
@@ -808,13 +802,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit 
         FieldInfo(vname,
                   vquantity,
                   unit,
-                  NoDifVifKey,
                   VifScaling::Auto,
-                  MeasurementType::Instantaneous,
-                  VIFRange::None,
-                  AnyStorageNr,
-                  AnyTariffNr,
-                  IndexNr(1),
                   FieldMatcher(),
                   help,
                   pprops,
@@ -835,13 +823,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
         FieldInfo(vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
-                  NoDifVifKey,
                   VifScaling::Auto,
-                  MeasurementType::Instantaneous,
-                  VIFRange::None,
-                  AnyStorageNr,
-                  AnyTariffNr,
-                  IndexNr(1),
                   FieldMatcher(),
                   help,
                   pprops,
@@ -877,14 +859,8 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(
         FieldInfo(vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
-                  dif_vif_key,
                   vif_scaling,
-                  mt,
-                  vi,
-                  s,
-                  t,
-                  i,
-                  FieldMatcher::build().set(mt).set(vi).set(s).set(t).set(i),
+                  FieldMatcher::build().set(dif_vif_key).set(mt).set(vi).set(s).set(t).set(i),
                   help,
                   print_properties,
                   field_name,
@@ -912,13 +888,7 @@ void MeterCommonImplementation::addNumericField(
         FieldInfo(vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
-                  DifVifKey(""),
                   VifScaling::None,
-                  MeasurementType::Instantaneous,
-                  VIFRange::Volume,
-                  StorageNr(0),
-                  TariffNr(0),
-                  0,
                   FieldMatcher(),
                   help,
                   print_properties,
@@ -953,14 +923,8 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
         FieldInfo(vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
-                  dif_vif_key,
                   VifScaling::None,
-                  mt,
-                  vi,
-                  s,
-                  t,
-                  i,
-                  FieldMatcher::build().set(mt).set(vi).set(s).set(t).set(i),
+                  FieldMatcher::build().set(dif_vif_key).set(mt).set(vi).set(s).set(t).set(i),
                   help,
                   print_properties,
                   field_name,
@@ -995,14 +959,8 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
         FieldInfo(vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
-                  dif_vif_key,
                   VifScaling::None,
-                  mt,
-                  vi,
-                  s,
-                  t,
-                  i,
-                  FieldMatcher::build().set(mt).set(vi).set(s).set(t).set(i),
+                  FieldMatcher::build().set(dif_vif_key).set(mt).set(vi).set(s).set(t).set(i),
                   help,
                   print_properties,
                   field_name,
@@ -1512,25 +1470,26 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 {
     // Iterate through the dv_entries in the telegram.
-    //printf("%s Processinf fields...\n", driverName().str().c_str());
+
     for (auto i = t->dv_entries_ordered.begin(); i != t->dv_entries_ordered.end(); ++i)
     {
         DVEntry *dve = *i;
         for (FieldInfo &fi : prints_)
         {
-            if (fi.matches(dve))
+            if (fi.hasMatcher() && fi.matches(dve))
             {
-                //fprintf(stderr, "!");
-                //fi.performExtraction(this, t, dve);
+                debug("Using field info %s to extract %d\n", fi.vname().c_str(), dve->dif_vif_key.str().c_str());
+                fi.performExtraction(this, t, dve);
             }
         }
-
-//        printf("GURKA %s\n", (*i)->dif_vif_key.str().c_str());
     }
-//    printf("done.\n");
+
     for (FieldInfo &fi : prints_)
     {
-        fi.performExtraction(this, t, NULL);
+        if (!fi.hasMatcher())
+        {
+            fi.performExtraction(this, t, NULL);
+        }
     }
 }
 
@@ -1538,6 +1497,23 @@ void MeterCommonImplementation::processContent(Telegram *t)
 {
 }
 
+void MeterCommonImplementation::setNumericValue(string field, Unit u, double v)
+{
+}
+
+double MeterCommonImplementation::getNumericValue(string field, Unit u)
+{
+    return 0;
+}
+
+void MeterCommonImplementation::setStringValue(string field, string v)
+{
+}
+
+string MeterCommonImplementation::getStringValue(string field)
+{
+    return "";
+}
 
 FieldInfo *MeterCommonImplementation::findFieldInfo(string vname)
 {
@@ -2057,6 +2033,11 @@ void FieldInfo::performExtraction(Meter *m, Telegram *t, DVEntry *dve)
     }
 }
 
+bool FieldInfo::hasMatcher()
+{
+    return matcher_.active == true;
+}
+
 bool FieldInfo::matches(DVEntry *dve)
 {
     return matcher_.matches(*dve);
@@ -2074,18 +2055,18 @@ DriverName MeterInfo::driverName()
 bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
 {
     bool found = false;
-    string key = difVifKey().str();
+    string key = matcher_.dif_vif_key.str();
 
     if (dve == NULL)
     {
         if (key == "")
         {
             // Search for key.
-            bool ok = findKeyWithNr(measurementType(),
-                                    vifRange(),
-                                    storageNr().intValue(),
-                                    tariffNr().intValue(),
-                                    indexNr().intValue(),
+            bool ok = findKeyWithNr(matcher_.measurement_type,
+                                    matcher_.vif_range,
+                                    matcher_.storage_nr_from.intValue(),
+                                    matcher_.tariff_nr_from.intValue(),
+                                    matcher_.index_nr.intValue(),
                                     &key,
                                     &t->dv_entries);
             // No entry was found.
@@ -2095,6 +2076,9 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
         if (t->dv_entries.count(key) == 0) return false;
         dve = &t->dv_entries[key].second;
     }
+    assert(dve != NULL);
+    assert(key == "" || dve->dif_vif_key.str() == key);
+
     double extracted_double_value = NAN;
     if (dve->extractDouble(&extracted_double_value,
                            vifScaling() == VifScaling::Auto ||
@@ -2103,13 +2087,13 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
                            vifScaling() == VifScaling::AutoSigned))
     {
         Unit decoded_unit = defaultUnit();
-        if (vifRange() != VIFRange::Any &&
-            vifRange() != VIFRange::AnyVolumeVIF &&
-            vifRange() != VIFRange::AnyEnergyVIF &&
-            vifRange() != VIFRange::AnyPowerVIF &&
-            vifRange() != VIFRange::None)
+        if (matcher_.vif_range != VIFRange::Any &&
+            matcher_.vif_range != VIFRange::AnyVolumeVIF &&
+            matcher_.vif_range != VIFRange::AnyEnergyVIF &&
+            matcher_.vif_range != VIFRange::AnyPowerVIF &&
+            matcher_.vif_range != VIFRange::None)
         {
-            decoded_unit = toDefaultUnit(vifRange());
+            decoded_unit = toDefaultUnit(matcher_.vif_range);
         }
         setValueDouble(decoded_unit, extracted_double_value);
         t->addMoreExplanation(dve->offset, renderJson(&m->conversions()));
@@ -2121,18 +2105,18 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
 bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
 {
     bool found = false;
-    string key = difVifKey().str();
+    string key = matcher_.dif_vif_key.str();
 
     if (dve == NULL)
     {
         if (key == "")
         {
             // Search for key.
-            bool ok = findKeyWithNr(measurementType(),
-                                    vifRange(),
-                                    storageNr().intValue(),
-                                    tariffNr().intValue(),
-                                    indexNr().intValue(),
+            bool ok = findKeyWithNr(matcher_.measurement_type,
+                                    matcher_.vif_range,
+                                    matcher_.storage_nr_from.intValue(),
+                                    matcher_.tariff_nr_from.intValue(),
+                                    matcher_.index_nr.intValue(),
                                     &key,
                                     &t->dv_entries);
             // No entry was found.
@@ -2143,7 +2127,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         dve = &t->dv_entries[key].second;
     }
     assert(dve != NULL);
-    assert(dve->dif_vif_key.str() == key);
+    assert(key == "" || dve->dif_vif_key.str() == key);
 
     uint64_t extracted_bits {};
     if (lookup_.hasLookups())
@@ -2156,7 +2140,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
             found = true;
         }
     }
-    else if (vifRange() == VIFRange::DateTime)
+    else if (matcher_.vif_range == VIFRange::DateTime)
     {
         struct tm datetime;
         dve->extractDate(&datetime);
@@ -2165,7 +2149,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         t->addMoreExplanation(dve->offset, renderJsonText());
         found = true;
     }
-    else if (vifRange() == VIFRange::Date)
+    else if (matcher_.vif_range == VIFRange::Date)
     {
         struct tm date;
         dve->extractDate(&date);
@@ -2174,8 +2158,8 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         t->addMoreExplanation(dve->offset, renderJsonText());
         found = true;
     }
-    else if (vifRange() == VIFRange::EnhancedIdentification ||
-             vifRange() == VIFRange::FabricationNo)
+    else if (matcher_.vif_range == VIFRange::EnhancedIdentification ||
+             matcher_.vif_range == VIFRange::FabricationNo)
     {
         string extracted_id;
         dve->extractReadableString(&extracted_id);
@@ -2186,7 +2170,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     else
     {
         error("Internal error: Cannot extract text string from vif %s in %s:%d\n",
-              toString(vifRange()),
+              toString(matcher_.vif_range),
               __FILE__, __LINE__);
 
     }

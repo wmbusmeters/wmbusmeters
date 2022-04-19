@@ -94,7 +94,6 @@ protected:
 #define FIND_SFIELD_ST(TYPE,INFO,STORAGE,TARIFF) NoDifVifKey,TYPE,INFO,STORAGE,TARIFF,IndexNr(1)
 #define FIND_SFIELD_STI(TYPE,INFO,STORAGE,TARIFF,INDEX) NoDifVifKey,TYPE,INFO,STORAGE,TARIFF,INDEX
 
-
     void addNumericFieldWithExtractor(
         string vname,          // Name of value without unit, eg total
         Quantity vquantity,    // Value belongs to this quantity.
@@ -174,6 +173,11 @@ protected:
     void processFieldExtractors(Telegram *t);
     virtual void processContent(Telegram *t);
 
+    void setNumericValue(std::string field, Unit u, double v);
+    double getNumericValue(std::string field, Unit u);
+    void setStringValue(std::string field, std::string v);
+    std::string getStringValue(std::string field);
+
 private:
 
     int index_ {};
@@ -195,10 +199,15 @@ private:
     vector<string> extra_constant_fields_;
 
 protected:
-    std::map<std::string,std::pair<int,std::string>> values_;
     vector<Unit> conversions_;
     vector<FieldInfo> prints_;
     vector<string> fields_;
+    // Map difvif key to hex values from telegrams.
+    std::map<std::string,std::pair<int,std::string>> hex_values_;
+    // Map field name (total_volume) to numeric value.
+    std::map<std::string,std::pair<Unit,double>> numeric_values_;
+    // Map field name (at_date) to string value.
+    std::map<std::string,double> string_values_;
 };
 
 #endif
