@@ -25,6 +25,25 @@
 #include<map>
 #include<set>
 
+struct NumericField
+{
+    Unit unit {};
+    double value {};
+    FieldInfo *field_info {};
+
+    NumericField() {}
+    NumericField(Unit u, double v, FieldInfo *f) : unit(u), value(v), field_info(f) {}
+};
+
+struct StringField
+{
+    std::string value;
+    FieldInfo *field_info {};
+
+    StringField() {}
+    StringField(std::string v, FieldInfo *f) : value(v), field_info(f) {}
+};
+
 struct MeterCommonImplementation : public virtual Meter
 {
     int index();
@@ -183,9 +202,9 @@ protected:
     void processFieldExtractors(Telegram *t);
     virtual void processContent(Telegram *t);
 
-    void setNumericValue(std::string field, Unit u, double v);
+    void setNumericValue(std::string field, Unit u, double v, FieldInfo *fi);
     double getNumericValue(std::string field, Unit u);
-    void setStringValue(std::string field, std::string v);
+    void setStringValue(std::string field, std::string v, FieldInfo *fi);
     std::string getStringValue(std::string field);
 
 private:
@@ -215,9 +234,9 @@ protected:
     // Map difvif key to hex values from telegrams.
     std::map<std::string,std::pair<int,std::string>> hex_values_;
     // Map field name (total_volume) to numeric value.
-    std::map<std::string,std::pair<Unit,double>> numeric_values_;
+    std::map<std::string,NumericField> numeric_values_;
     // Map field name (at_date) to string value.
-    std::map<std::string,double> string_values_;
+    std::map<std::string,StringField> string_values_;
 };
 
 #endif

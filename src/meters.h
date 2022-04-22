@@ -364,6 +364,7 @@ struct FieldInfo
     string renderJsonOnlyDefaultUnit();
     string renderJson(vector<Unit> *additional_conversions);
     string renderJsonText();
+    string generateFieldName(DVEntry *dve);
 
     Translate::Lookup& lookup() { return lookup_; }
 
@@ -411,9 +412,9 @@ struct Meter
     virtual string datetimeOfUpdateRobot() = 0;
     virtual string unixTimestampOfUpdate() = 0;
 
-    virtual void setNumericValue(std::string field, Unit u, double v) = 0;
+    virtual void setNumericValue(std::string field, Unit u, double v, FieldInfo *fi) = 0;
     virtual double getNumericValue(std::string field, Unit u) = 0;
-    virtual void setStringValue(std::string field, std::string v) = 0;
+    virtual void setStringValue(std::string field, std::string v, FieldInfo *fi) = 0;
     virtual std::string getStringValue(std::string field) = 0;
 
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;

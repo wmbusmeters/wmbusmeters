@@ -1528,22 +1528,30 @@ void MeterCommonImplementation::processContent(Telegram *t)
 {
 }
 
-void MeterCommonImplementation::setNumericValue(string field, Unit u, double v)
+void MeterCommonImplementation::setNumericValue(string field, Unit u, double v, FieldInfo *fi)
 {
+    //printf("Setting numeric %s = %f\n", field.c_str(), v);
+    numeric_values_[field] = NumericField(u, v, fi);
 }
 
-double MeterCommonImplementation::getNumericValue(string field, Unit u)
+double MeterCommonImplementation::getNumericValue(string field, Unit to)
 {
-    return 0;
+    if (numeric_values_.count(field) == 0) return -471147114711;
+    NumericField &nf = numeric_values_[field];
+    return convert(nf.value, nf.unit, to);
 }
 
-void MeterCommonImplementation::setStringValue(string field, string v)
+void MeterCommonImplementation::setStringValue(string field, string v, FieldInfo *fi)
 {
+    //printf("Setting string %s = %s\n", field.c_str(), v.c_str());
+    string_values_[field] = StringField(v, fi);
 }
 
 string MeterCommonImplementation::getStringValue(string field)
 {
-    return "";
+    if (string_values_.count(field) == 0) return "???";
+    StringField &sf = string_values_[field];
+    return sf.value;
 }
 
 FieldInfo *MeterCommonImplementation::findFieldInfo(string vname)
@@ -1577,6 +1585,19 @@ string FieldInfo::renderJsonOnlyDefaultUnit()
 string FieldInfo::renderJsonText()
 {
     return renderJson(NULL);
+}
+
+string FieldInfo::generateFieldName(DVEntry *dve)
+{
+    if (xuantity_ == Quantity::Text)
+    {
+        return vname();
+    }
+
+    string default_unit = unitToStringLowerCase(defaultUnit());
+    string var = vname();
+
+    return vname()+"_"+default_unit;
 }
 
 string FieldInfo::renderJson(vector<Unit> *conversions)
@@ -2110,6 +2131,9 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
     assert(dve != NULL);
     assert(key == "" || dve->dif_vif_key.str() == key);
 
+    // Generate the json field name:
+    string field_name = generateFieldName(dve);
+
     double extracted_double_value = NAN;
     if (dve->extractDouble(&extracted_double_value,
                            vifScaling() == VifScaling::Auto ||
@@ -2127,6 +2151,7 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
             decoded_unit = toDefaultUnit(matcher_.vif_range);
         }
         setValueDouble(decoded_unit, extracted_double_value);
+        m->setNumericValue(field_name, decoded_unit, extracted_double_value, this);
         t->addMoreExplanation(dve->offset, renderJson(&m->conversions()));
         found = true;
     }
@@ -2160,6 +2185,9 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     assert(dve != NULL);
     assert(key == "" || dve->dif_vif_key.str() == key);
 
+    // Generate the json field name:
+    string field_name = generateFieldName(dve);
+
     uint64_t extracted_bits {};
     if (lookup_.hasLookups())
     {
@@ -2167,6 +2195,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         {
             string translated_bits = lookup().translate(extracted_bits);
             setValueString(translated_bits);
+            m->setStringValue(field_name, translated_bits, this);
             t->addMoreExplanation(dve->offset, renderJsonText());
             found = true;
         }
@@ -2177,6 +2206,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         dve->extractDate(&datetime);
         string extracted_device_date_time = strdatetime(&datetime);
         setValueString(extracted_device_date_time);
+        m->setStringValue(field_name, extracted_device_date_time, this);
         t->addMoreExplanation(dve->offset, renderJsonText());
         found = true;
     }
@@ -2186,6 +2216,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         dve->extractDate(&date);
         string extracted_device_date = strdate(&date);
         setValueString(extracted_device_date);
+        m->setStringValue(field_name, extracted_device_date, this);
         t->addMoreExplanation(dve->offset, renderJsonText());
         found = true;
     }
@@ -2195,6 +2226,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         string extracted_id;
         dve->extractReadableString(&extracted_id);
         setValueString(extracted_id);
+        m->setStringValue(field_name, extracted_id, this);
         t->addMoreExplanation(dve->offset, renderJsonText());
         found = true;
     }
