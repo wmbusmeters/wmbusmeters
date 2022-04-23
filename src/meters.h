@@ -316,7 +316,6 @@ struct FieldInfo
               FieldMatcher matcher,
               string help,
               PrintProperties print_properties,
-              string field_name,
               function<double(Unit)> get_value_double,
               function<string()> get_value_string,
               function<void(Unit,double)> set_value_double,
@@ -330,7 +329,6 @@ struct FieldInfo
         matcher_(matcher),
         help_(help),
         print_properties_(print_properties),
-        field_name_(field_name),
         get_value_double_(get_value_double),
         get_value_string_(get_value_string),
         set_value_double_(set_value_double),
@@ -345,7 +343,6 @@ struct FieldInfo
     FieldMatcher& matcher() { return matcher_; }
     string help() { return help_; }
     PrintProperties printProperties() { return print_properties_; }
-    string fieldName() { return field_name_; }
 
     double getValueDouble(Unit u) { if (get_value_double_) return get_value_double_(u); else return -12345678; }
     bool hasGetValueDouble() { return get_value_double_ != NULL; }
@@ -364,20 +361,23 @@ struct FieldInfo
     string renderJsonOnlyDefaultUnit();
     string renderJson(vector<Unit> *additional_conversions);
     string renderJsonText();
+    // Render the field name based on the actual field from the telegram.
+    // A FieldInfo can be declared to handle any number of storage fields of a certain range.
+    // The vname is then a pattern total_at_month_{storagenr-32} that gets translated into
+    // total_at_month_2 (for the dventry with storage nr 34.)
     string generateFieldName(DVEntry *dve);
 
     Translate::Lookup& lookup() { return lookup_; }
 
 private:
 
-    string vname_; // Value name, like: total current previous target
+    string vname_; // Value name, like: total current previous target, ie no unit suffix.
     Quantity xuantity_; // Quantity: Energy, Volume
     Unit default_unit_; // Default unit for above quantity: KWH, M3
     VifScaling vif_scaling_;
     FieldMatcher matcher_;
     string help_; // Helpful information on this meters use of this value.
     PrintProperties print_properties_;
-    string field_name_; // Field name for default unit.
 
     function<double(Unit)> get_value_double_; // Callback to fetch the value from the meter.
     function<string()> get_value_string_; // Callback to fetch the value from the meter.
@@ -401,8 +401,7 @@ struct Meter
     // Comma separated ids.
     virtual string idsc() = 0;
     // This meter can report these fields, like total_m3, temp_c.
-    virtual vector<string> fields() = 0;
-    virtual vector<FieldInfo> prints() = 0;
+    virtual vector<FieldInfo> &fieldInfos() = 0;
     virtual string meterDriver() = 0;
     virtual string name() = 0;
     virtual MeterDriver driver() = 0;
@@ -412,10 +411,10 @@ struct Meter
     virtual string datetimeOfUpdateRobot() = 0;
     virtual string unixTimestampOfUpdate() = 0;
 
-    virtual void setNumericValue(std::string field, Unit u, double v, FieldInfo *fi) = 0;
-    virtual double getNumericValue(std::string field, Unit u) = 0;
-    virtual void setStringValue(std::string field, std::string v, FieldInfo *fi) = 0;
-    virtual std::string getStringValue(std::string field) = 0;
+    virtual void setNumericValue(FieldInfo *fi, Unit u, double v) = 0;
+    virtual double getNumericValue(FieldInfo *fi, Unit u) = 0;
+    virtual void setStringValue(FieldInfo *fi, std::string v) = 0;
+    virtual std::string getStringValue(FieldInfo *fi) = 0;
 
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;

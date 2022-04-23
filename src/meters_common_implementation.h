@@ -51,8 +51,7 @@ struct MeterCommonImplementation : public virtual Meter
     string bus();
     vector<string>& ids();
     string idsc();
-    vector<string>  fields();
-    vector<FieldInfo>   prints();
+    vector<FieldInfo> &fieldInfos();
     string name();
     MeterDriver driver();
     DriverName driverName();
@@ -202,10 +201,10 @@ protected:
     void processFieldExtractors(Telegram *t);
     virtual void processContent(Telegram *t);
 
-    void setNumericValue(std::string field, Unit u, double v, FieldInfo *fi);
-    double getNumericValue(std::string field, Unit u);
-    void setStringValue(std::string field, std::string v, FieldInfo *fi);
-    std::string getStringValue(std::string field);
+    void setNumericValue(FieldInfo *fi, Unit u, double v);
+    double getNumericValue(FieldInfo *fi, Unit u);
+    void setStringValue(FieldInfo *fi, std::string v);
+    std::string getStringValue(FieldInfo *fi);
 
 private:
 
@@ -229,8 +228,8 @@ private:
 
 protected:
     vector<Unit> conversions_;
-    vector<FieldInfo> prints_;
-    vector<string> fields_;
+    vector<FieldInfo> field_infos_;
+    vector<string> field_names_;
     // Map difvif key to hex values from telegrams.
     std::map<std::string,std::pair<int,std::string>> hex_values_;
     // Map field name (total_volume) to numeric value.

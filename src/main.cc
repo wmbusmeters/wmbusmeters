@@ -247,9 +247,9 @@ void list_fields(Configuration *config, string meter_driver)
     }
 
     int width = 13; // Width of timestamp_utc
-    for (auto &p : meter->prints())
+    for (FieldInfo &fi : meter->fieldInfos())
     {
-        if ((int)p.fieldName().size() > width) width = p.fieldName().size();
+        if ((int)fi.vname().size() > width) width = fi.vname().size();
     }
 
     string id = padLeft("id", width);
@@ -272,11 +272,11 @@ void list_fields(Configuration *config, string meter_driver)
     printf("%s  The wmbus device that received the telegram.\n", device.c_str());
     string rssi = padLeft("rssi_dbm", width);
     printf("%s  The rssi for the received telegram as reported by the device.\n", rssi.c_str());
-    for (auto &p : meter->prints())
+    for (auto &fi : meter->fieldInfos())
     {
-        if (p.vname() == "") continue;
-        string fn = padLeft(p.fieldName(), width);
-        printf("%s  %s\n", fn.c_str(), p.help().c_str());
+        if (fi.vname() == "") continue;
+        string fn = padLeft(fi.vname(), width);
+        printf("%s  %s\n", fn.c_str(), fi.help().c_str());
     }
 }
 

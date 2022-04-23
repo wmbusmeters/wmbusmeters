@@ -162,9 +162,11 @@ private:
 
 static IndexNr AnyIndexNr = IndexNr(-1);
 
+struct FieldInfo;
+
 struct DVEntry
 {
-    int offset; // Where in the telegram this dventry was found.
+    int offset {}; // Where in the telegram this dventry was found.
     DifVifKey dif_vif_key;
     MeasurementType measurement_type;
     Vif vif;
@@ -172,6 +174,8 @@ struct DVEntry
     TariffNr tariff_nr;
     SubUnitNr subunit_nr;
     std::string value;
+    FieldInfo *field_info {}; // The field info selected to decode this entry.
+
     DVEntry(int off, DifVifKey dvk, MeasurementType mt, Vif vi, StorageNr st, TariffNr ta, SubUnitNr su, std::string &val) :
         offset(off), dif_vif_key(dvk), measurement_type(mt), vif(vi), storage_nr(st), tariff_nr(ta), subunit_nr(su), value(val) {}
     DVEntry() :

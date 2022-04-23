@@ -772,10 +772,7 @@ void MeterCommonImplementation::addLinkMode(LinkMode lm)
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          function<double(Unit)> getValueFunc, string help, PrintProperties pprops)
 {
-    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
-    string field_name = vname+"_"+default_unit;
-    fields_.push_back(field_name);
-    prints_.push_back(
+    field_infos_.push_back(
         FieldInfo(vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
@@ -783,7 +780,6 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                   FieldMatcher(),
                   help,
                   pprops,
-                  field_name,
                   getValueFunc,
                   NULL,
                   NULL,
@@ -795,10 +791,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit unit,
                                          function<double(Unit)> getValueFunc, string help, PrintProperties pprops)
 {
-    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
-    string field_name = vname+"_"+default_unit;
-    fields_.push_back(field_name);
-    prints_.push_back(
+    field_infos_.push_back(
         FieldInfo(vname,
                   vquantity,
                   unit,
@@ -806,7 +799,6 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit 
                   FieldMatcher(),
                   help,
                   pprops,
-                  field_name,
                   getValueFunc,
                   NULL,
                   NULL,
@@ -819,7 +811,7 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          function<string()> getValueFunc,
                                          string help, PrintProperties pprops)
 {
-    prints_.push_back(
+    field_infos_.push_back(
         FieldInfo(vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
@@ -827,7 +819,6 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                   FieldMatcher(),
                   help,
                   pprops,
-                  vname,
                   NULL,
                   getValueFunc,
                   NULL,
@@ -851,11 +842,7 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(
     function<void(Unit,double)> setValueFunc,
     function<double(Unit)> getValueFunc)
 {
-    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
-    string field_name = vname+"_"+default_unit;
-    fields_.push_back(field_name);
-
-    prints_.push_back(
+    field_infos_.push_back(
         FieldInfo(vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
@@ -863,7 +850,6 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(
                   FieldMatcher::build().set(dif_vif_key).set(mt).set(vi).set(s).set(t).set(i),
                   help,
                   print_properties,
-                  field_name,
                   getValueFunc,
                   NULL,
                   setValueFunc,
@@ -882,11 +868,7 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(
     function<void(Unit,double)> setValueFunc,
     function<double(Unit)> getValueFunc)
 {
-    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
-    string field_name = vname+"_"+default_unit;
-    fields_.push_back(field_name);
-
-    prints_.push_back(
+    field_infos_.push_back(
         FieldInfo(vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
@@ -894,7 +876,6 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(
                   matcher,
                   help,
                   print_properties,
-                  field_name,
                   getValueFunc,
                   NULL,
                   setValueFunc,
@@ -911,11 +892,7 @@ void MeterCommonImplementation::addNumericField(
     function<void(Unit,double)> setValueFunc,
     function<double(Unit)> getValueFunc)
 {
-    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
-    string field_name = vname+"_"+default_unit;
-    fields_.push_back(field_name);
-
-    prints_.push_back(
+    field_infos_.push_back(
         FieldInfo(vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
@@ -923,7 +900,6 @@ void MeterCommonImplementation::addNumericField(
                   FieldMatcher(),
                   help,
                   print_properties,
-                  field_name,
                   getValueFunc,
                   NULL,
                   setValueFunc,
@@ -946,11 +922,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
     function<void(string)> setValueFunc,
     function<string()> getValueFunc)
 {
-    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
-    string field_name = vname+"_"+default_unit;
-    fields_.push_back(field_name);
-
-    prints_.push_back(
+    field_infos_.push_back(
         FieldInfo(vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
@@ -958,7 +930,6 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                   FieldMatcher::build().set(dif_vif_key).set(mt).set(vi).set(s).set(t).set(i),
                   help,
                   print_properties,
-                  field_name,
                   NULL,
                   getValueFunc,
                   NULL,
@@ -982,11 +953,7 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
     function<string()> getValueFunc,
     Translate::Lookup lookup)
 {
-    string default_unit = unitToStringLowerCase(defaultUnitForQuantity(vquantity));
-    string field_name = vname+"_"+default_unit;
-    fields_.push_back(field_name);
-
-    prints_.push_back(
+    field_infos_.push_back(
         FieldInfo(vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
@@ -994,7 +961,6 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
                   FieldMatcher::build().set(dif_vif_key).set(mt).set(vi).set(s).set(t).set(i),
                   help,
                   print_properties,
-                  field_name,
                   NULL,
                   getValueFunc,
                   NULL,
@@ -1017,14 +983,9 @@ string MeterCommonImplementation::idsc()
     return idsc_;
 }
 
-vector<string> MeterCommonImplementation::fields()
+vector<FieldInfo> &MeterCommonImplementation::fieldInfos()
 {
-    return fields_;
-}
-
-vector<FieldInfo> MeterCommonImplementation::prints()
-{
-    return prints_;
+    return field_infos_;
 }
 
 string MeterCommonImplementation::name()
@@ -1251,7 +1212,7 @@ void MeterCommonImplementation::triggerUpdate(Telegram *t)
     t->handled = true;
 }
 
-string concatAllFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints, vector<Unit> &cs, bool hr,
+string concatAllFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &fields, vector<Unit> &cs, bool hr,
                        vector<string> *extra_constant_fields)
 {
     string s;
@@ -1265,14 +1226,14 @@ string concatAllFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints,
     {
         s += c;
     }
-    for (FieldInfo p : prints)
+    for (FieldInfo &fi : fields)
     {
-        if (p.printProperties().hasFIELD())
+        if (fi.printProperties().hasFIELD())
         {
-            if (p.hasGetValueDouble())
+            if (fi.hasGetValueDouble())
             {
-                Unit u = replaceWithConversionUnit(p.defaultUnit(), cs);
-                double v = p.getValueDouble(u);
+                Unit u = replaceWithConversionUnit(fi.defaultUnit(), cs);
+                double v = fi.getValueDouble(u);
                 if (hr) {
                     s += valueToString(v, u);
                     s += " "+unitToStringHR(u);
@@ -1280,9 +1241,9 @@ string concatAllFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints,
                     s += to_string(v);
                 }
             }
-            if (p.hasGetValueString())
+            if (fi.hasGetValueString())
             {
-                s += p.getValueString();
+                s += fi.getValueString();
             }
             s += c;
         }
@@ -1353,41 +1314,41 @@ bool checkCommonField(string *buf, string field, Meter *m, Telegram *t, char c)
 
 // Is the desired field one of the meter printable fields?
 bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char c,
-                         vector<FieldInfo> &prints, vector<Unit> &cs)
+                         vector<FieldInfo> &fields, vector<Unit> &cs)
 {
-    for (FieldInfo p : prints)
+    for (FieldInfo &fi : fields)
     {
-        if (p.hasGetValueString())
+        if (fi.hasGetValueString())
         {
             // Strings are simply just print them.
-            if (field == p.vname())
+            if (field == fi.vname())
             {
-                *buf += p.getValueString() + c;
+                *buf += fi.getValueString() + c;
                 return true;
             }
         }
-        else if (p.hasGetValueDouble())
+        else if (fi.hasGetValueDouble())
         {
             // Doubles have to be converted into the proper unit.
-            string default_unit = unitToStringLowerCase(p.defaultUnit());
-            string var = p.vname()+"_"+default_unit;
+            string default_unit = unitToStringLowerCase(fi.defaultUnit());
+            string var = fi.vname()+"_"+default_unit;
             if (field == var)
             {
                 // Default unit.
-                *buf += valueToString(p.getValueDouble(p.defaultUnit()), p.defaultUnit()) + c;
+                *buf += valueToString(fi.getValueDouble(fi.defaultUnit()), fi.defaultUnit()) + c;
                 return true;
             }
             else
             {
                 // Added conversion unit.
-                Unit u = replaceWithConversionUnit(p.defaultUnit(), cs);
-                if (u != p.defaultUnit())
+                Unit u = replaceWithConversionUnit(fi.defaultUnit(), cs);
+                if (u != fi.defaultUnit())
                 {
                     string unit = unitToStringLowerCase(u);
-                    string var = p.vname()+"_"+unit;
+                    string var = fi.vname()+"_"+unit;
                     if (field == var)
                     {
-                        *buf += valueToString(p.getValueDouble(u), u) + c;
+                        *buf += valueToString(fi.getValueDouble(u), u) + c;
                         return true;
                     }
                 }
@@ -1505,7 +1466,7 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
     for (auto i = t->dv_entries_ordered.begin(); i != t->dv_entries_ordered.end(); ++i)
     {
         DVEntry *dve = *i;
-        for (FieldInfo &fi : prints_)
+        for (FieldInfo &fi : field_infos_)
         {
             if (fi.hasMatcher() && fi.matches(dve))
             {
@@ -1515,7 +1476,7 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
         }
     }
 
-    for (FieldInfo &fi : prints_)
+    for (FieldInfo &fi : field_infos_)
     {
         if (!fi.hasMatcher())
         {
@@ -1528,36 +1489,40 @@ void MeterCommonImplementation::processContent(Telegram *t)
 {
 }
 
-void MeterCommonImplementation::setNumericValue(string field, Unit u, double v, FieldInfo *fi)
+void MeterCommonImplementation::setNumericValue(FieldInfo *fi, Unit u, double v)
 {
-    //printf("Setting numeric %s = %f\n", field.c_str(), v);
-    numeric_values_[field] = NumericField(u, v, fi);
+    string field_name_no_unit = fi->vname();
+    //printf("Setting numeric %s = %f\n", field_name_no_unit.c_str(), v);
+    numeric_values_[field_name_no_unit] = NumericField(u, v, fi);
 }
 
-double MeterCommonImplementation::getNumericValue(string field, Unit to)
+double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
 {
-    if (numeric_values_.count(field) == 0) return -471147114711;
-    NumericField &nf = numeric_values_[field];
+    string field_name_no_unit = fi->vname();
+    if (numeric_values_.count(field_name_no_unit) == 0) return -471147114711;
+    NumericField &nf = numeric_values_[field_name_no_unit];
     return convert(nf.value, nf.unit, to);
 }
 
-void MeterCommonImplementation::setStringValue(string field, string v, FieldInfo *fi)
+void MeterCommonImplementation::setStringValue(FieldInfo *fi, string v)
 {
-    //printf("Setting string %s = %s\n", field.c_str(), v.c_str());
-    string_values_[field] = StringField(v, fi);
+    string field_name_no_unit = fi->vname();
+    //printf("Setting string %s = %s\n", field_name_no_unit.c_str(), v.c_str());
+    string_values_[field_name_no_unit] = StringField(v, fi);
 }
 
-string MeterCommonImplementation::getStringValue(string field)
+string MeterCommonImplementation::getStringValue(FieldInfo *fi)
 {
-    if (string_values_.count(field) == 0) return "???";
-    StringField &sf = string_values_[field];
+    string field_name_no_unit = fi->vname();
+    if (string_values_.count(field_name_no_unit) == 0) return "???";
+    StringField &sf = string_values_[field_name_no_unit];
     return sf.value;
 }
 
 FieldInfo *MeterCommonImplementation::findFieldInfo(string vname)
 {
     FieldInfo *found = NULL;
-    for (FieldInfo &p : prints_)
+    for (FieldInfo &p : field_infos_)
     {
         if (p.vname() == vname)
         {
@@ -1642,8 +1607,8 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                                            vector<string> *selected_fields,
                                            bool pretty_print_json)
 {
-    *human_readable = concatFields(this, t, '\t', prints_, conversions_, true, selected_fields, extra_constant_fields);
-    *fields = concatFields(this, t, separator, prints_, conversions_, false, selected_fields, extra_constant_fields);
+    *human_readable = concatFields(this, t, '\t', field_infos_, conversions_, true, selected_fields, extra_constant_fields);
+    *fields = concatFields(this, t, separator, field_infos_, conversions_, false, selected_fields, extra_constant_fields);
 
     string media;
     if (t->tpl_id_found)
@@ -1680,11 +1645,11 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     {
         s += indent+"\"id\":\"\","+newline;
     }
-    for (FieldInfo& p : prints_)
+    for (FieldInfo& fi : field_infos_)
     {
-        if (p.printProperties().hasJSON())
+        if (fi.printProperties().hasJSON())
         {
-            s += indent+p.renderJson(&conversions())+","+newline;
+            s += indent+fi.renderJson(&conversions())+","+newline;
         }
     }
     s += indent+"\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
@@ -1731,7 +1696,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         envs->push_back(string("METER_RSSI_DBM=")+to_string(t->about.rssi_dbm));
     }
 
-    for (FieldInfo p : prints_)
+    for (FieldInfo p : field_infos_)
     {
         if (p.printProperties().hasJSON())
         {
@@ -2151,7 +2116,7 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
             decoded_unit = toDefaultUnit(matcher_.vif_range);
         }
         setValueDouble(decoded_unit, extracted_double_value);
-        m->setNumericValue(field_name, decoded_unit, extracted_double_value, this);
+        m->setNumericValue(this, decoded_unit, extracted_double_value);
         t->addMoreExplanation(dve->offset, renderJson(&m->conversions()));
         found = true;
     }
@@ -2195,7 +2160,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         {
             string translated_bits = lookup().translate(extracted_bits);
             setValueString(translated_bits);
-            m->setStringValue(field_name, translated_bits, this);
+            m->setStringValue(this, translated_bits);
             t->addMoreExplanation(dve->offset, renderJsonText());
             found = true;
         }
@@ -2206,7 +2171,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         dve->extractDate(&datetime);
         string extracted_device_date_time = strdatetime(&datetime);
         setValueString(extracted_device_date_time);
-        m->setStringValue(field_name, extracted_device_date_time, this);
+        m->setStringValue(this, extracted_device_date_time);
         t->addMoreExplanation(dve->offset, renderJsonText());
         found = true;
     }
@@ -2216,7 +2181,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         dve->extractDate(&date);
         string extracted_device_date = strdate(&date);
         setValueString(extracted_device_date);
-        m->setStringValue(field_name, extracted_device_date, this);
+        m->setStringValue(this, extracted_device_date);
         t->addMoreExplanation(dve->offset, renderJsonText());
         found = true;
     }
@@ -2226,7 +2191,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         string extracted_id;
         dve->extractReadableString(&extracted_id);
         setValueString(extracted_id);
-        m->setStringValue(field_name, extracted_id, this);
+        m->setStringValue(this, extracted_id);
         t->addMoreExplanation(dve->offset, renderJsonText());
         found = true;
     }
