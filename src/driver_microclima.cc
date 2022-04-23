@@ -39,7 +39,6 @@ static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("microclima");
     di.setMeterType(MeterType::HeatMeter);
-    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(MANUFACTURER_MAD, 0x04, 0x00);
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterMicroClima(mi, di)); });

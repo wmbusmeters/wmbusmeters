@@ -18,6 +18,7 @@
 #include"units.h"
 #include"util.h"
 #include<assert.h>
+#include<math.h>
 
 using namespace std;
 
@@ -166,6 +167,10 @@ Unit replaceWithConversionUnit(Unit u, vector<Unit> cs)
 
 string valueToString(double v, Unit u)
 {
+    if (isnan(v))
+    {
+        return "null";
+    }
     string s = to_string(v);
     while (s.back() == '0') s.pop_back();
     if (s.back() == '.') {

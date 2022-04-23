@@ -35,7 +35,6 @@ static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("minomess");
     di.setMeterType(MeterType::WaterMeter);
-    di.setExpectedELLSecurityMode(ELLSecurityMode::AES_CTR);
     di.addLinkMode(LinkMode::C1);
     di.addDetection(MANUFACTURER_ZRI, 0x07,  0x00);
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterMinomess(mi, di)); });

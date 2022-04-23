@@ -61,16 +61,6 @@ bool DriverInfo::isCloseEnoughMedia(uchar type)
     return false;
 }
 
-void DriverInfo::setExpectedELLSecurityMode(ELLSecurityMode dsm)
-{
-    // TODO should check that the telegram is encrypted using the same mode.
-}
-
-void DriverInfo::setExpectedTPLSecurityMode(TPLSecurityMode tsm)
-{
-    // TODO should check that the telegram is encrypted using the same mode.
-}
-
 bool registerDriver(function<void(DriverInfo&)> setup)
 {
     DriverInfo di;
@@ -942,6 +932,28 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
             ));
 }
 
+void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
+                                                            string help,
+                                                            PrintProperties print_properties,
+                                                            FieldMatcher matcher)
+{
+    field_infos_.push_back(
+        FieldInfo(field_infos_.size(),
+                  vname,
+                  Quantity::Text,
+                  defaultUnitForQuantity(Quantity::Text),
+                  VifScaling::None,
+                  matcher,
+                  help,
+                  print_properties,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NoLookup
+            ));
+}
+
 void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
     string vname,
     Quantity vquantity,
@@ -970,6 +982,29 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
                   getValueFunc,
                   NULL,
                   setValueFunc,
+                  lookup
+            ));
+}
+
+void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
+                                                            string help,
+                                                            PrintProperties print_properties,
+                                                            FieldMatcher matcher,
+                                                            Translate::Lookup lookup)
+{
+    field_infos_.push_back(
+        FieldInfo(field_infos_.size(),
+                  vname,
+                  Quantity::Text,
+                  defaultUnitForQuantity(Quantity::Text),
+                  VifScaling::None,
+                  matcher,
+                  help,
+                  print_properties,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NULL,
                   lookup
             ));
 }
@@ -1516,7 +1551,10 @@ double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
     }
 
     string field_name_no_unit = fi->vname();
-    assert(numeric_values_.count(field_name_no_unit) != 0);
+    if (numeric_values_.count(field_name_no_unit) == 0)
+    {
+        return std::numeric_limits<double>::quiet_NaN(); // This is translated into a null in the json.
+    }
     NumericField &nf = numeric_values_[field_name_no_unit];
     return convert(nf.value, nf.unit, to);
 }
@@ -1541,7 +1579,10 @@ string MeterCommonImplementation::getStringValue(FieldInfo *fi)
     }
 
     string field_name_no_unit = fi->vname();
-    assert (string_values_.count(field_name_no_unit) != 0);
+    if (string_values_.count(field_name_no_unit) == 0)
+    {
+        return "null"; // This is translated to a real(non-string) null in the json.
+    }
     StringField &sf = string_values_[field_name_no_unit];
     return sf.value;
 }
@@ -1600,7 +1641,21 @@ string FieldInfo::renderJson(Meter *m, vector<Unit> *conversions)
     string var = vname();
     if (xuantity() == Quantity::Text)
     {
-        s += "\""+var+"\":\""+m->getStringValue(this)+"\"";
+        string v = m->getStringValue(this);
+        if (v == "null")
+        {
+            // Yes, right now a meter cannot send a string value "something":"null" it will
+            // be translated into "something":null in the json, indicating that there is no value.
+            // This should not be a problem for now. Lets deal with it when a meter decides to send "null"
+            // as its version string for example.
+            s += "\""+var+"\":null";
+        }
+        else
+        {
+            // Normally the string values are quoted in json. TODO quote the value properly.
+            // A well crafted meter could send a version string with " and break the json format.
+            s += "\""+var+"\":\""+v+"\"";
+        }
     }
     else
     {

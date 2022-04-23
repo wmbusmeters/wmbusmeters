@@ -34,7 +34,6 @@ static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("iperl");
     di.setMeterType(MeterType::WaterMeter);
-    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(MANUFACTURER_SEN,  0x06,  0x68);
     di.addDetection(MANUFACTURER_SEN,  0x07,  0x68);

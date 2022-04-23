@@ -32,7 +32,6 @@ static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("supercom587");
     di.setMeterType(MeterType::WaterMeter);
-    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(MANUFACTURER_SON, 0x06,  0x3c);
     di.addDetection(MANUFACTURER_SON, 0x07,  0x3c);

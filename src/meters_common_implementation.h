@@ -181,6 +181,13 @@ protected:
         function<string()> getValueFunc, // Use the GET_STRING macro above.
         Translate::Lookup lookup); // Translate the bits/indexes.
 
+    void addStringFieldWithExtractor(
+        string vname,
+        string help,
+        PrintProperties print_properties,
+        FieldMatcher matcher,
+        Translate::Lookup lookup); // Translate the bits/indexes.
+
     // The default implementation of poll does nothing.
     // Override for mbus meters that need to be queried and likewise for C2/T2 wmbus-meters.
     void poll(shared_ptr<BusManager> bus);

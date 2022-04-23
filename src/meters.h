@@ -245,8 +245,6 @@ public:
     DriverInfo(MeterDriver mt) : driver_(mt) {};
     void setName(std::string n) { name_ = n; }
     void setMeterType(MeterType t) { type_ = t; }
-    void setExpectedELLSecurityMode(ELLSecurityMode dsm);
-    void setExpectedTPLSecurityMode(TPLSecurityMode tsm);
 
     void addLinkMode(LinkMode lm) { linkmodes_.addLinkMode(lm); }
     void setConstructor(function<shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }

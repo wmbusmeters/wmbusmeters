@@ -38,7 +38,6 @@ static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("itron");
     di.setMeterType(MeterType::WaterMeter);
-    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(MANUFACTURER_ITW,  0x07,  0x03);
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterItron(mi, di)); });

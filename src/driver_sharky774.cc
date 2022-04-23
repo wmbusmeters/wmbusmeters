@@ -39,7 +39,6 @@ static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("sharky774");
     di.setMeterType(MeterType::HeatMeter);
-    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(MANUFACTURER_DME, 0x04,  0x41);
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterSharky774(mi, di)); });

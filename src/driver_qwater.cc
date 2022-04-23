@@ -41,7 +41,6 @@ static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("qwater");
     di.setMeterType(MeterType::WaterMeter);
-    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
     di.addLinkMode(LinkMode::S1);
     di.addDetection(MANUFACTURER_QDS, 0x37,  0x33);
     di.addDetection(MANUFACTURER_QDS, 0x06,  0x18);

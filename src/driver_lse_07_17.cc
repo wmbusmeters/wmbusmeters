@@ -38,7 +38,6 @@ static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("lse_07_17");
     di.setMeterType(MeterType::WaterMeter);
-    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
     di.addLinkMode(LinkMode::S1);
     di.addDetection(MANUFACTURER_LSE, 0x06,  0x18);
     di.addDetection(MANUFACTURER_LSE, 0x07,  0x18);

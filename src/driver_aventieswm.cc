@@ -34,7 +34,6 @@ static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("aventieswm");
     di.setMeterType(MeterType::WaterMeter);
-    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(MANUFACTURER_AAA,  0x07,  0x25);
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterAventiesWM(mi, di)); });

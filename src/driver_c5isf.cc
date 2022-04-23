@@ -58,7 +58,6 @@ static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("c5isf");
     di.setMeterType(MeterType::HeatMeter);
-    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(MANUFACTURER_ZRI, 0x0d, 0x88); // Telegram type T1A1
     di.addDetection(MANUFACTURER_ZRI, 0x07, 0x88); // Telegram type T1A2

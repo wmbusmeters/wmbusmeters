@@ -32,7 +32,6 @@ static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("aventieshca");
     di.setMeterType(MeterType::HeatCostAllocationMeter);
-    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(MANUFACTURER_AAA, 0x08,  0x55);
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterAventiesHCA(mi, di)); });

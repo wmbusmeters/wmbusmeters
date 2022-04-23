@@ -34,7 +34,6 @@ static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("apator08");
     di.setMeterType(MeterType::WaterMeter);
-    di.setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(0x8614/*APT?*/, 0x03,  0x03);
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterApator08(mi, di)); });
