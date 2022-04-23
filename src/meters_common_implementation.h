@@ -181,7 +181,7 @@ protected:
         function<string()> getValueFunc, // Use the GET_STRING macro above.
         Translate::Lookup lookup); // Translate the bits/indexes.
 
-    void addStringFieldWithExtractor(
+    void addStringFieldWithExtractorAndLookup(
         string vname,
         string help,
         PrintProperties print_properties,

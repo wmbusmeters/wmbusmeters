@@ -986,11 +986,11 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
             ));
 }
 
-void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
-                                                            string help,
-                                                            PrintProperties print_properties,
-                                                            FieldMatcher matcher,
-                                                            Translate::Lookup lookup)
+void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vname,
+                                                                     string help,
+                                                                     PrintProperties print_properties,
+                                                                     FieldMatcher matcher,
+                                                                     Translate::Lookup lookup)
 {
     field_infos_.push_back(
         FieldInfo(field_infos_.size(),

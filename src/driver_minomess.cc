@@ -18,161 +18,134 @@
 
 #include"meters_common_implementation.h"
 
-struct MeterMinomess : public virtual MeterCommonImplementation
+namespace
 {
-    MeterMinomess(MeterInfo &mi, DriverInfo &di);
+    struct Driver : public virtual MeterCommonImplementation
+    {
+        Driver(MeterInfo &mi, DriverInfo &di);
+    };
 
-private:
+    static bool ok = registerDriver([](DriverInfo&di)
+    {
+        di.setName("minomess");
+        di.setMeterType(MeterType::WaterMeter);
+        di.addLinkMode(LinkMode::C1);
+        di.addDetection(MANUFACTURER_ZRI, 0x07,  0x00);
+        di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
+    });
 
-    double total_water_consumption_m3_ {};
-    string meter_date_;
-    double target_water_consumption_m3_ {};
-    string target_date_;
-    string status_;
-};
+    Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+    {
+        addNumericFieldWithExtractor(
+            "total",
+            "The total water consumption recorded by this meter.",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            );
 
-static bool ok = registerDriver([](DriverInfo&di)
-{
-    di.setName("minomess");
-    di.setMeterType(MeterType::WaterMeter);
-    di.addLinkMode(LinkMode::C1);
-    di.addDetection(MANUFACTURER_ZRI, 0x07,  0x00);
-    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterMinomess(mi, di)); });
-});
+        addStringFieldWithExtractor(
+            "meter_date",
+            "Date when measurement was recorded.",
+            PrintProperty::JSON,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Date)
+            );
 
-MeterMinomess::MeterMinomess(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
-{
-    addNumericFieldWithExtractor(
-        "total",
-        Quantity::Volume,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::Volume,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
-        "The total water consumption recorded by this meter.",
-        SET_FUNC(total_water_consumption_m3_, Unit::M3),
-        GET_FUNC(total_water_consumption_m3_, Unit::M3));
+        /* If the meter is recently commissioned, the target water consumption value is bogus.
+           The bits store 0xffffffff. Should we deal with this? Now a very large value is printed in the json. */
 
-    /* If the meter is recently commissioned, the target water consumption value is bogus.
-       The bits store 0xffffffff. Should we deal with this? Now a very large value is printed in the json. */
+        addNumericFieldWithExtractor(
+            "target",
+            "The total water consumption recorded at the beginning of this month.",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .set(StorageNr(8))
+            );
 
-    addStringFieldWithExtractor(
-        "meter_date",
-        Quantity::Text,
-        NoDifVifKey,
-        MeasurementType::Instantaneous,
-        VIFRange::Date,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON,
-        "Date when measurement was recorded.",
-        SET_STRING_FUNC(meter_date_),
-        GET_STRING_FUNC(meter_date_));
+        addStringFieldWithExtractor(
+            "target_date",
+            "Date when target water consumption was recorded.",
+            PrintProperty::JSON,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Date)
+            .set(StorageNr(8))
+            );
 
-    addNumericFieldWithExtractor(
-        "target",
-        Quantity::Volume,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::Volume,
-        StorageNr(8),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
-        "The total water consumption recorded at the beginning of this month.",
-        SET_FUNC(target_water_consumption_m3_, Unit::M3),
-        GET_FUNC(target_water_consumption_m3_, Unit::M3));
+        /*
+          According to data sheet, there are two status/info bytes, byte A and byte B.
+          Unfortunately we do not now is byte A is the first or second byte. Oh well.
+          Now we guess that A is the hi byte. I.e. 0x8000 is byte A bit 7.
+          In the telegram the byte order is: lo byte first followed by the hi byte.
+          So the defacto telegram bytes would be 0x0080 for byte A bit 7.
 
-    addStringFieldWithExtractor(
-        "target_date",
-        Quantity::Text,
-        NoDifVifKey,
-        MeasurementType::Instantaneous,
-        VIFRange::Date,
-        StorageNr(8),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON,
-        "Date when target water consumption was recorded.",
-        SET_STRING_FUNC(target_date_),
-        GET_STRING_FUNC(target_date_));
+          Byte A:
+          bit 7 removal active in the past
+          bit 6 tamper active in the past
+          bit 5 leak active in the past
+          bit 4 temporary error (in connection with smart functions)
+          bit 3 permanent error (meter value might be lost)
+          bit 2 battery EOL (measured)
+          bit 1 abnormal error
+          bit 0 unused
 
-    /*
-    According to data sheet, there are two status/info bytes, byte A and byte B.
-    Unfortunately we do not now is byte A is the first or second byte. Oh well.
-    Now we guess that A is the hi byte. I.e. 0x8000 is byte A bit 7.
-    In the telegram the byte order is: lo byte first followed by the hi byte.
-    So the defacto telegram bytes would be 0x0080 for byte A bit 7.
+          Byte B:
+          bit 7 burst
+          bit 6 removal
+          bit 5 leak
+          bit 4 backflow in the past
+          bit 3 backflow
+          bit 2 meter blocked in the past
+          bit 1 meter undersized
+          bit 0 meter oversized
+        */
 
-    Byte A:
-    bit 7 removal active in the past
-    bit 6 tamper active in the past
-    bit 5 leak active in the past
-    bit 4 temporary error (in connection with smart functions)
-    bit 3 permanent error (meter value might be lost)
-    bit 2 battery EOL (measured)
-    bit 1 abnormal error
-    bit 0 unused
-
-    Byte B:
-    bit 7 burst
-    bit 6 removal
-    bit 5 leak
-    bit 4 backflow in the past
-    bit 3 backflow
-    bit 2 meter blocked in the past
-    bit 1 meter undersized
-    bit 0 meter oversized
-    */
-
-    addStringFieldWithExtractorAndLookup(
-        "status",
-        Quantity::Text,
-        DifVifKey("02FD17"),
-        MeasurementType::Instantaneous,
-        VIFRange::Any,
-        AnyStorageNr,
-        AnyTariffNr,
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "Status and error flags.",
-        SET_STRING_FUNC(status_),
-        GET_STRING_FUNC(status_),
-         {
+        addStringFieldWithExtractorAndLookup(
+            "status",
+            "Status and error flags.",
+            PrintProperty::JSON | PrintProperty::FIELD,
+            FieldMatcher::build()
+            .set(DifVifKey("02FD17"))
+            ,
             {
                 {
-                    "ERROR_FLAGS",
-                    Translate::Type::BitToString,
-                    0xffff,
-                    "OK",
                     {
-                        { 0x8000, "WAS_REMOVED" },
-                        { 0x4000, "WAS_TAMPERED" },
-                        { 0x2000, "WAS_LEAKING" },
-                        { 0x1000, "TEMPORARY_ERROR" },
-                        { 0x0800, "PERMANENT_ERROR" },
-                        { 0x0400, "BATTERY_EOL" },
-                        { 0x0200, "ABNORMAL_ERROR" },
-                        // 0x0100 not used
-                        { 0x0080, "BURSTING" },
-                        { 0x0040, "REMOVED" },
-                        { 0x0020, "LEAKING" },
-                        { 0x0010, "WAS_BACKFLOWING" },
-                        { 0x0008, "BACKFLOWING" },
-                        { 0x0004, "WAS_BLOCKED" },
-                        { 0x0002, "UNDERSIZED" },
-                        { 0x0001, "OVERSIZED" }
-                    }
+                        "ERROR_FLAGS",
+                        Translate::Type::BitToString,
+                        0xffff,
+                        "OK",
+                        {
+                            { 0x8000, "WAS_REMOVED" },
+                            { 0x4000, "WAS_TAMPERED" },
+                            { 0x2000, "WAS_LEAKING" },
+                            { 0x1000, "TEMPORARY_ERROR" },
+                            { 0x0800, "PERMANENT_ERROR" },
+                            { 0x0400, "BATTERY_EOL" },
+                            { 0x0200, "ABNORMAL_ERROR" },
+                            // 0x0100 not used
+                            { 0x0080, "BURSTING" },
+                            { 0x0040, "REMOVED" },
+                            { 0x0020, "LEAKING" },
+                            { 0x0010, "WAS_BACKFLOWING" },
+                            { 0x0008, "BACKFLOWING" },
+                            { 0x0004, "WAS_BLOCKED" },
+                            { 0x0002, "UNDERSIZED" },
+                            { 0x0001, "OVERSIZED" }
+                        }
+                    },
                 },
-            },
-         });
+            });
 
+    }
 }
 
     // 00: 66 length (102 bytes)
