@@ -21,16 +21,6 @@
 struct MeterSharky : public virtual MeterCommonImplementation
 {
     MeterSharky(MeterInfo &mi, DriverInfo &di);
-
-private:
-    double total_energy_tariff1_kwh_ {};
-    double total_volume_m3_ {};
-    double total_volume_tariff2_m3_ {};
-    double volume_flow_m3h_ {};
-    double power_kw_ {};
-    double flow_temperature_c_ {};
-    double return_temperature_c_ {};
-    double temperature_difference_c_ {};
 };
 
 static bool ok = registerDriver([](DriverInfo&di)
@@ -47,33 +37,26 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
 {
     addNumericFieldWithExtractor(
         "total_energy_consumption",
-        Quantity::Energy,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::EnergyWh,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
         "The total heat energy consumption recorded by this meter.",
-        NULL,
-        NULL);
+        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+        Quantity::Energy,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::EnergyWh)
+        );
 
     addNumericFieldWithExtractor(
         "total_energy_consumption_tariff1",
-        Quantity::Energy,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::EnergyWh,
-        StorageNr(0),
-        TariffNr(1),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
         "The total heat energy consumption recorded by this meter on tariff 1.",
-        NULL,
-        NULL);
+        PrintProperty::JSON | PrintProperty::FIELD,
+        Quantity::Energy,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::EnergyWh)
+        .set(TariffNr(1))
+        );
 
     addNumericFieldWithExtractor(
         "total_volume",
@@ -88,93 +71,70 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
 
     addNumericFieldWithExtractor(
         "total_volume_tariff2",
-        Quantity::Volume,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::Volume,
-        StorageNr(0),
-        TariffNr(2),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
         "The total heating media volume recorded by this meter on tariff 2.",
-        NULL,
-        NULL);
+        PrintProperty::JSON | PrintProperty::FIELD,
+        Quantity::Volume,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::Volume)
+        .set(TariffNr(2))
+        );
 
     addNumericFieldWithExtractor(
         "volume_flow",
-        Quantity::Flow,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::VolumeFlow,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
         "The current heat media volume flow.",
-        NULL,
-        NULL);
+        PrintProperty::JSON | PrintProperty::FIELD,
+        Quantity::Flow,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::VolumeFlow)
+        );
 
     addNumericFieldWithExtractor(
         "power",
-        Quantity::Power,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::PowerW,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
         "The current power consumption.",
-        NULL,
-        NULL);
+        PrintProperty::JSON | PrintProperty::FIELD,
+        Quantity::Power,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::PowerW)
+        );
 
     addNumericFieldWithExtractor(
         "flow_temperature",
-        Quantity::Temperature,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::FlowTemperature,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
         "The current forward heat media temperature.",
-        NULL,
-        NULL);
+        PrintProperty::JSON | PrintProperty::FIELD,
+        Quantity::Temperature,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::FlowTemperature)
+        );
 
     addNumericFieldWithExtractor(
         "return_temperature",
-        Quantity::Temperature,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::ReturnTemperature,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
         "The current return heat media temperature.",
-        NULL,
-        NULL);
+        PrintProperty::JSON | PrintProperty::FIELD,
+        Quantity::Temperature,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::ReturnTemperature)
+        );
 
     addNumericFieldWithExtractor(
         "temperature_difference",
-        Quantity::Temperature,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::TemperatureDifference,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
         "The current return heat media temperature.",
-        NULL,
-        NULL);
+        PrintProperty::JSON | PrintProperty::FIELD,
+        Quantity::Temperature,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::TemperatureDifference)
+        );
 }
 
 // Test: Heat sharky ANYID NOKEY
