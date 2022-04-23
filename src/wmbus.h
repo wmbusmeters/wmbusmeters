@@ -363,6 +363,12 @@ struct Explanation
 
 struct Telegram
 {
+private:
+    Telegram(Telegram&t) { }
+
+public:
+    Telegram() = default;
+
     AboutTelegram about;
 
     // If a warning is printed mark this.
@@ -510,8 +516,6 @@ struct Telegram
     // The actual content of the (w)mbus telegram. The DifVif entries.
     // Mapped from their key for quick access to their offset and content.
     std::map<std::string,std::pair<int,DVEntry>> dv_entries;
-    // And sorted in increasing offset order.
-    std::vector<DVEntry*> dv_entries_ordered;
 
     string autoDetectPossibleDrivers();
 

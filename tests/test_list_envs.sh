@@ -74,7 +74,7 @@ cat <<EOF > $TEST/test_expected.txt
                  voltage_at_phase_1_v  Voltage at phase L1.
                  voltage_at_phase_2_v  Voltage at phase L2.
                  voltage_at_phase_3_v  Voltage at phase L3.
-                 device_date_time_txt  Device date time.
+                     device_date_time  Device date time.
 total_energy_consumption_tariff_1_kwh  The total energy consumption recorded by this meter on tariff 1.
 total_energy_consumption_tariff_2_kwh  The total energy consumption recorded by this meter on tariff 2.
 total_energy_consumption_tariff_3_kwh  The total energy consumption recorded by this meter on tariff 3.

@@ -174,7 +174,9 @@ provided you with this binary. Read the full license for all details.
 
 shared_ptr<Printer> create_printer(Configuration *config)
 {
-    return shared_ptr<Printer>(new Printer(config->json, config->fields,
+    return shared_ptr<Printer>(new Printer(config->json,
+                                           config->pretty_print_json,
+                                           config->fields,
                                            config->separator, config->meterfiles, config->meterfiles_dir,
                                            config->use_logfile, config->logfile,
                                            config->telegram_shells,
@@ -249,7 +251,13 @@ void list_fields(Configuration *config, string meter_driver)
     int width = 13; // Width of timestamp_utc
     for (FieldInfo &fi : meter->fieldInfos())
     {
-        if ((int)fi.vname().size() > width) width = fi.vname().size();
+        string name = fi.vname();
+        if (fi.xuantity() != Quantity::Text)
+        {
+            name += "_"+unitToStringLowerCase(defaultUnitForQuantity(fi.xuantity()));
+        }
+
+        if ((int)name.size() > width) width = name.size();
     }
 
     string id = padLeft("id", width);
@@ -275,7 +283,13 @@ void list_fields(Configuration *config, string meter_driver)
     for (auto &fi : meter->fieldInfos())
     {
         if (fi.vname() == "") continue;
-        string fn = padLeft(fi.vname(), width);
+        string name = fi.vname();
+        if (fi.xuantity() != Quantity::Text)
+        {
+            name += "_"+unitToStringLowerCase(defaultUnitForQuantity(fi.xuantity()));
+        }
+
+        string fn = padLeft(name, width);
         printf("%s  %s\n", fn.c_str(), fi.help().c_str());
     }
 }

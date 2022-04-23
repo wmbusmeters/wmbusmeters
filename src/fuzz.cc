@@ -50,11 +50,10 @@ int main(int argc, char **argv)
         }
     }
 
-    vector<DVEntry> dv_entries_ordered;
-    map<string,pair<int,DVEntry*>> dv_entries;
+    map<string,pair<int,DVEntry>> dv_entries;
 
     Telegram t;
     vector<uchar>::iterator i = databytes.begin();
 
-    parseDV(&t, databytes, i, databytes.size(), &dv_entries, &dv_entries_ordered);
+    parseDV(&t, databytes, i, databytes.size(), &dv_entries);
 }

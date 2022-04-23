@@ -23,6 +23,7 @@ using namespace std;
 
 struct Printer {
     Printer(bool json,
+            bool pretty_print_json,
             bool fields,
             char separator,
             bool meterfiles, string &meterfiles_dir,
@@ -36,7 +37,7 @@ struct Printer {
 
     private:
 
-    bool json_, fields_;
+    bool json_, pretty_print_json_, fields_;
     bool use_meterfiles_;
     string meterfiles_dir_;
     bool use_logfile_;

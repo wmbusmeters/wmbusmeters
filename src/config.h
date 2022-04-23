@@ -95,6 +95,7 @@ struct Configuration
     bool ignore_duplicate_telegrams = true; // Default is to ignore duplicates.
     std::string logfile;
     bool json {};
+    bool pretty_print_json {};
     bool fields {};
     char separator { ';' };
     std::vector<std::string> telegram_shells;

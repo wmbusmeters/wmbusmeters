@@ -773,7 +773,8 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          function<double(Unit)> getValueFunc, string help, PrintProperties pprops)
 {
     field_infos_.push_back(
-        FieldInfo(vname,
+        FieldInfo(field_infos_.size(),
+                  vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
                   VifScaling::Auto,
@@ -792,7 +793,8 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit 
                                          function<double(Unit)> getValueFunc, string help, PrintProperties pprops)
 {
     field_infos_.push_back(
-        FieldInfo(vname,
+        FieldInfo(field_infos_.size(),
+                  vname,
                   vquantity,
                   unit,
                   VifScaling::Auto,
@@ -812,7 +814,8 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                                          string help, PrintProperties pprops)
 {
     field_infos_.push_back(
-        FieldInfo(vname,
+        FieldInfo(field_infos_.size(),
+                  vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
                   VifScaling::Auto,
@@ -843,7 +846,8 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(
     function<double(Unit)> getValueFunc)
 {
     field_infos_.push_back(
-        FieldInfo(vname,
+        FieldInfo(field_infos_.size(),
+                  vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
                   vif_scaling,
@@ -858,27 +862,25 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(
             ));
 }
 
-void MeterCommonImplementation::addNumericFieldWithExtractor(
-    string vname,
-    Quantity vquantity,
-    VifScaling vif_scaling,
-    FieldMatcher matcher,
-    PrintProperties print_properties,
-    string help,
-    function<void(Unit,double)> setValueFunc,
-    function<double(Unit)> getValueFunc)
+void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
+                                                             string help,
+                                                             PrintProperties print_properties,
+                                                             Quantity vquantity,
+                                                             VifScaling vif_scaling,
+                                                             FieldMatcher matcher)
 {
     field_infos_.push_back(
-        FieldInfo(vname,
+        FieldInfo(field_infos_.size(),
+                  vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
                   vif_scaling,
                   matcher,
                   help,
                   print_properties,
-                  getValueFunc,
                   NULL,
-                  setValueFunc,
+                  NULL,
+                  NULL,
                   NULL,
                   NoLookup
             ));
@@ -893,7 +895,8 @@ void MeterCommonImplementation::addNumericField(
     function<double(Unit)> getValueFunc)
 {
     field_infos_.push_back(
-        FieldInfo(vname,
+        FieldInfo(field_infos_.size(),
+                  vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
                   VifScaling::None,
@@ -923,7 +926,8 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
     function<string()> getValueFunc)
 {
     field_infos_.push_back(
-        FieldInfo(vname,
+        FieldInfo(field_infos_.size(),
+                  vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
                   VifScaling::None,
@@ -954,7 +958,8 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
     Translate::Lookup lookup)
 {
     field_infos_.push_back(
-        FieldInfo(vname,
+        FieldInfo(field_infos_.size(),
+                  vname,
                   vquantity,
                   defaultUnitForQuantity(vquantity),
                   VifScaling::None,
@@ -1462,15 +1467,15 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 {
     // Iterate through the dv_entries in the telegram.
-
-    for (auto i = t->dv_entries_ordered.begin(); i != t->dv_entries_ordered.end(); ++i)
+    for (auto &p : t->dv_entries)
     {
-        DVEntry *dve = *i;
+        DVEntry *dve = &p.second.second;
         for (FieldInfo &fi : field_infos_)
         {
             if (fi.hasMatcher() && fi.matches(dve))
             {
                 debug("Using field info %s to extract %d\n", fi.vname().c_str(), dve->dif_vif_key.str().c_str());
+                dve->setFieldInfo(&fi);
                 fi.performExtraction(this, t, dve);
             }
         }
@@ -1511,7 +1516,7 @@ double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
     }
 
     string field_name_no_unit = fi->vname();
-    if (numeric_values_.count(field_name_no_unit) == 0) return -471147114711;
+    assert(numeric_values_.count(field_name_no_unit) != 0);
     NumericField &nf = numeric_values_[field_name_no_unit];
     return convert(nf.value, nf.unit, to);
 }
@@ -1525,7 +1530,6 @@ void MeterCommonImplementation::setStringValue(FieldInfo *fi, string v)
     }
 
     string field_name_no_unit = fi->vname();
-    //printf("Setting string %s = %s\n", field_name_no_unit.c_str(), v.c_str());
     string_values_[field_name_no_unit] = StringField(v, fi);
 }
 
@@ -1537,7 +1541,7 @@ string MeterCommonImplementation::getStringValue(FieldInfo *fi)
     }
 
     string field_name_no_unit = fi->vname();
-    if (string_values_.count(field_name_no_unit) == 0) return "???";
+    assert (string_values_.count(field_name_no_unit) != 0);
     StringField &sf = string_values_[field_name_no_unit];
     return sf.value;
 }
@@ -1664,13 +1668,35 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     {
         s += indent+"\"id\":\"\","+newline;
     }
+
+    // Iterate over the meter field infos...
     for (FieldInfo& fi : field_infos_)
     {
         if (fi.printProperties().hasJSON())
         {
-            s += indent+fi.renderJson(this, &conversions())+","+newline;
+            // The field should be printed in the json. (Most usually should.)
+            bool found = false;
+            for (auto& i : t->dv_entries)
+            {
+                // Check each telegram dv entry.
+                DVEntry *dve = &i.second.second;
+                // Has the entry been matches to this field, then print it as json.
+                if (dve->getFieldInfo() == &fi)
+                {
+                    s += indent+fi.renderJson(this, &conversions())+","+newline;
+                    found = true;
+                }
+            }
+            if (!found && !fi.printProperties().hasOPTIONAL())
+            {
+                // No telegram entries found, but this field should be printed anyway.
+                // It will be printed with any value received from a previous telegram.
+                // Or if no value has been received, a default bad value, like -12345678
+                s += indent+fi.renderJson(this, &conversions())+","+newline;
+            }
         }
     }
+
     s += indent+"\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
 
     if (t->about.device != "")

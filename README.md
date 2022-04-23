@@ -261,6 +261,7 @@ As {options} you can use:
     --nodeviceexit if no wmbus devices are found, then exit immediately
     --normal for normal logging
     --oneshot wait for an update from each meter, then quit
+    --ppjson pretty print the json
     --resetafter=<time> reset the wmbus dongle regularly, default is 23h
     --selectfields=id,timestamp,total_m3 select only these fields to be printed (--listfields=<meter> to list available fields)
     --separator=<c> change field separator to c

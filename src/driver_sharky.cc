@@ -23,7 +23,6 @@ struct MeterSharky : public virtual MeterCommonImplementation
     MeterSharky(MeterInfo &mi, DriverInfo &di);
 
 private:
-    double total_energy_kwh_ {};
     double total_energy_tariff1_kwh_ {};
     double total_volume_m3_ {};
     double total_volume_tariff2_m3_ {};
@@ -58,8 +57,8 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         IndexNr(1),
         PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
         "The total heat energy consumption recorded by this meter.",
-        SET_FUNC(total_energy_kwh_, Unit::KWH),
-        GET_FUNC(total_energy_kwh_, Unit::KWH));
+        NULL,
+        NULL);
 
     addNumericFieldWithExtractor(
         "total_energy_consumption_tariff1",
@@ -73,21 +72,19 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         IndexNr(1),
         PrintProperty::JSON | PrintProperty::FIELD,
         "The total heat energy consumption recorded by this meter on tariff 1.",
-        SET_FUNC(total_energy_tariff1_kwh_, Unit::KWH),
-        GET_FUNC(total_energy_tariff1_kwh_, Unit::KWH));
+        NULL,
+        NULL);
 
     addNumericFieldWithExtractor(
         "total_volume",
+        "The total heating media volume recorded by this meter.",
+        PrintProperty::JSON | PrintProperty::FIELD,
         Quantity::Volume,
         VifScaling::Auto,
         FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
-        ,
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "The total heating media volume recorded by this meter.",
-        SET_FUNC(total_volume_m3_, Unit::M3),
-        GET_FUNC(total_volume_m3_, Unit::M3));
+        );
 
     addNumericFieldWithExtractor(
         "total_volume_tariff2",
@@ -101,8 +98,8 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         IndexNr(1),
         PrintProperty::JSON | PrintProperty::FIELD,
         "The total heating media volume recorded by this meter on tariff 2.",
-        SET_FUNC(total_volume_tariff2_m3_, Unit::M3),
-        GET_FUNC(total_volume_tariff2_m3_, Unit::M3));
+        NULL,
+        NULL);
 
     addNumericFieldWithExtractor(
         "volume_flow",
@@ -116,8 +113,8 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         IndexNr(1),
         PrintProperty::JSON | PrintProperty::FIELD,
         "The current heat media volume flow.",
-        SET_FUNC(volume_flow_m3h_, Unit::M3H),
-        GET_FUNC(volume_flow_m3h_, Unit::M3H));
+        NULL,
+        NULL);
 
     addNumericFieldWithExtractor(
         "power",
@@ -131,8 +128,8 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         IndexNr(1),
         PrintProperty::JSON | PrintProperty::FIELD,
         "The current power consumption.",
-        SET_FUNC(power_kw_, Unit::KW),
-        GET_FUNC(power_kw_, Unit::KW));
+        NULL,
+        NULL);
 
     addNumericFieldWithExtractor(
         "flow_temperature",
@@ -146,8 +143,8 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         IndexNr(1),
         PrintProperty::JSON | PrintProperty::FIELD,
         "The current forward heat media temperature.",
-        SET_FUNC(flow_temperature_c_, Unit::C),
-        GET_FUNC(flow_temperature_c_, Unit::C));
+        NULL,
+        NULL);
 
     addNumericFieldWithExtractor(
         "return_temperature",
@@ -161,8 +158,8 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         IndexNr(1),
         PrintProperty::JSON | PrintProperty::FIELD,
         "The current return heat media temperature.",
-        SET_FUNC(return_temperature_c_, Unit::C),
-        GET_FUNC(return_temperature_c_, Unit::C));
+        NULL,
+        NULL);
 
     addNumericFieldWithExtractor(
         "temperature_difference",
@@ -176,8 +173,8 @@ MeterSharky::MeterSharky(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementat
         IndexNr(1),
         PrintProperty::JSON | PrintProperty::FIELD,
         "The current return heat media temperature.",
-        SET_FUNC(temperature_difference_c_, Unit::C),
-        GET_FUNC(temperature_difference_c_, Unit::C));
+        NULL,
+        NULL);
 }
 
 // Test: Heat sharky ANYID NOKEY

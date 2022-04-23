@@ -287,7 +287,7 @@ enum PrintProperty
     JSON = 1,  // This field should be printed when using --format=json
     FIELD = 2, // This field should be printed when using --format=field
     IMPORTANT = 4, // The most important field.
-    OPTIONAL = 8, // If no data has arrived, do include this field in the json output.
+    OPTIONAL = 8, // If no data has arrived, then do not include this field in the json output.
 };
 
 struct PrintProperties
@@ -309,7 +309,8 @@ struct PrintProperties
 
 struct FieldInfo
 {
-    FieldInfo(string vname,
+    FieldInfo(int index,
+              string vname,
               Quantity xuantity,
               Unit default_unit,
               VifScaling vif_scaling,
@@ -322,6 +323,7 @@ struct FieldInfo
               function<void(string)> set_string_value_override,
               Translate::Lookup lookup
         ) :
+        index_(index),
         vname_(vname),
         xuantity_(xuantity),
         default_unit_(default_unit),
@@ -336,6 +338,7 @@ struct FieldInfo
         lookup_(lookup)
     {}
 
+    int index() { return index_; }
     string vname() { return vname_; }
     Quantity xuantity() { return xuantity_; }
     Unit defaultUnit() { return default_unit_; }
@@ -374,6 +377,7 @@ struct FieldInfo
 
 private:
 
+    int index_; // The field infos for a meter are ordered.
     string vname_; // Value name, like: total current previous target, ie no unit suffix.
     Quantity xuantity_; // Quantity: Energy, Volume
     Unit default_unit_; // Default unit for above quantity: KWH, M3

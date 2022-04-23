@@ -174,7 +174,6 @@ struct DVEntry
     TariffNr tariff_nr;
     SubUnitNr subunit_nr;
     std::string value;
-    FieldInfo *field_info {}; // The field info selected to decode this entry.
 
     DVEntry(int off, DifVifKey dvk, MeasurementType mt, Vif vi, StorageNr st, TariffNr ta, SubUnitNr su, std::string &val) :
         offset(off), dif_vif_key(dvk), measurement_type(mt), vif(vi), storage_nr(st), tariff_nr(ta), subunit_nr(su), value(val) {}
@@ -186,6 +185,11 @@ struct DVEntry
     bool extractDate(struct tm *out);
     bool extractReadableString(std::string *out);
     bool hasVifes();
+    void setFieldInfo(FieldInfo *fi) { field_info_ = fi; }
+    FieldInfo *getFieldInfo() { return field_info_; }
+
+private:
+    FieldInfo *field_info_ {}; // The field info selected to decode this entry.
 };
 
 struct FieldMatcher
@@ -279,7 +283,6 @@ bool parseDV(Telegram *t,
              std::vector<uchar>::iterator data,
              size_t data_len,
              std::map<std::string,std::pair<int,DVEntry>> *dv_entries,
-             std::vector<DVEntry*> *dv_entries_ordered,
              std::vector<uchar>::iterator *format = NULL,
              size_t format_len = 0,
              uint16_t *format_hash = NULL);

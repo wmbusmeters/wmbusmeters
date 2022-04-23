@@ -242,6 +242,12 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
+        if (!strcmp(argv[i], "--ppjson"))
+        {
+            c->pretty_print_json = true;
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--format=", 9))
         {
             if (!strcmp(argv[i]+9, "json"))

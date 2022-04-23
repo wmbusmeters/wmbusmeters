@@ -128,14 +128,12 @@ protected:
         function<double(Unit)> getValueFunc); // Use the GET macro above.
 
     void addNumericFieldWithExtractor(
-        string vname,          // Name of value without unit, eg total
-        Quantity vquantity,    // Value belongs to this quantity.
-        VifScaling vif_scaling,
-        FieldMatcher matcher,
+        string vname,           // Name of value without unit, eg "total" "total_month{storagenr}"
+        string help,            // Information about this field.
         PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
-        string help,
-        function<void(Unit,double)> setValueFunc, // Use the SET macro above.
-        function<double(Unit)> getValueFunc); // Use the GET macro above.
+        Quantity vquantity,     // Value belongs to this quantity, this quantity determines the default unit.
+        VifScaling vif_scaling, // How should any Vif value be scaled.
+        FieldMatcher matcher);
 
     void addNumericField(
         string vname,          // Name of value without unit, eg total
@@ -161,6 +159,12 @@ protected:
         string help,
         function<void(string)> setValueFunc, // Use the SET_STRING macro above.
         function<string()> getValueFunc); // Use the GET_STRING macro above.
+
+    void addStringFieldWithExtractor(
+        string vname,
+        string help,
+        PrintProperties print_properties,
+        FieldMatcher matcher);
 
     void addStringFieldWithExtractorAndLookup(
         string vname,          // Name of value without unit, eg total

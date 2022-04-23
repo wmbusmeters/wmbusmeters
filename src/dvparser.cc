@@ -108,7 +108,6 @@ bool parseDV(Telegram *t,
              vector<uchar>::iterator data,
              size_t data_len,
              map<string,pair<int,DVEntry>> *dv_entries,
-             vector<DVEntry*> *dv_entries_ordered,
              vector<uchar>::iterator *format,
              size_t format_len,
              uint16_t *format_hash)
@@ -142,7 +141,6 @@ bool parseDV(Telegram *t,
     }
 
     dv_entries->clear();
-    dv_entries_ordered->clear();
 
     // Data format is:
 
@@ -345,12 +343,9 @@ bool parseDV(Telegram *t,
                                                SubUnitNr(subunit),
                                                value) };
 
-        (*dv_entries_ordered).push_back( &(*dv_entries)[key].second );
+        DVEntry *dve = &(*dv_entries)[key].second;
 
-        DVEntry *dve = (*dv_entries_ordered).back();
-        DVEntry *dvee = &(*dv_entries)[key].second;
-
-        assert(key == dve->dif_vif_key.str() && key == dvee->dif_vif_key.str());
+        assert(key == dve->dif_vif_key.str());
 
         if (value.length() > 0) {
             // This call increments data with datalen.

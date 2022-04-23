@@ -20,7 +20,7 @@
 
 using namespace std;
 
-Printer::Printer(bool json, bool fields, char separator,
+Printer::Printer(bool json, bool pretty_print_json, bool fields, char separator,
                  bool use_meterfiles, string &meterfiles_dir,
                  bool use_logfile, string &logfile,
                  vector<string> shell_cmdlines, bool overwrite,
@@ -28,6 +28,7 @@ Printer::Printer(bool json, bool fields, char separator,
                  MeterFileTimestamp timestamp)
 {
     json_ = json;
+    pretty_print_json_ = pretty_print_json;
     fields_ = fields;
     separator_ = separator;
     use_meterfiles_ = use_meterfiles;
@@ -48,7 +49,7 @@ void Printer::print(Telegram *t, Meter *meter,
     vector<string> envs;
     bool printed = false;
 
-    meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields, false);
+    meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields, pretty_print_json_);
 
     if (shell_cmdlines_.size() > 0 || meter->shellCmdlines().size() > 0) {
         printShells(meter, envs);
