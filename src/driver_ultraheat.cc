@@ -17,121 +17,89 @@
 
 #include"meters_common_implementation.h"
 
-using namespace std;
-
-struct MeterUltraHeat : public virtual MeterCommonImplementation
+namespace
 {
-    MeterUltraHeat(MeterInfo &mi, DriverInfo &di);
+    struct Driver : public virtual MeterCommonImplementation
+    {
+        Driver(MeterInfo &mi, DriverInfo &di);
+    };
 
-private:
+    static bool ok = registerDriver([](DriverInfo&di)
+    {
+        di.setName("ultraheat");
+        di.setMeterType(MeterType::HeatMeter);
+        di.addDetection(MANUFACTURER_LUG, 0x04,  0x04);
+        di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
+    });
 
-    double heat_mj_ {};
-    double volume_m3_ {};
-    double power_kw_ {};
-    double flow_m3h_ {};
-    double flow_c_ {};
-    double return_c_ {};
-};
+    Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+    {
+        addNumericFieldWithExtractor(
+            "heat",
+            "The total heat energy consumption recorded by this meter.",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::EnergyMJ)
+            );
 
-static bool ok = registerDriver([](DriverInfo&di)
-{
-    di.setName("ultraheat");
-    di.setMeterType(MeterType::HeatMeter);
-    di.addDetection(MANUFACTURER_LUG, 0x04,  0x04);
-    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterUltraHeat(mi, di)); });
-});
+        addNumericFieldWithExtractor(
+            "volume",
+            "The total heating media volume recorded by this meter.",
+            PrintProperty::JSON,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            );
 
-MeterUltraHeat::MeterUltraHeat(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
-{
-    addNumericFieldWithExtractor(
-        "heat",
-        Quantity::Energy,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::EnergyMJ,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
-        "The total heat energy consumption recorded by this meter.",
-        SET_FUNC(heat_mj_, Unit::MJ),
-        GET_FUNC(heat_mj_, Unit::MJ));
+        addNumericFieldWithExtractor(
+            "power",
+            "The current power consumption.",
+            PrintProperty::JSON ,
+            Quantity::Power,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::PowerW)
+            );
 
-    addNumericFieldWithExtractor(
-        "volume",
-        Quantity::Volume,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::Volume,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON ,
-        "The total heating media volume recorded by this meter.",
-        SET_FUNC(volume_m3_, Unit::M3),
-        GET_FUNC(volume_m3_, Unit::M3));
+        addNumericFieldWithExtractor(
+            "flow",
+            "The current heat media volume flow.",
+            PrintProperty::JSON ,
+            Quantity::Flow,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::VolumeFlow)
+            );
 
-    addNumericFieldWithExtractor(
-        "power",
-        Quantity::Power,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::PowerW,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON ,
-        "The current power consumption.",
-        SET_FUNC(power_kw_, Unit::KW),
-        GET_FUNC(power_kw_, Unit::KW));
+        addNumericFieldWithExtractor(
+            "flow",
+            "The current forward heat media temperature.",
+            PrintProperty::JSON ,
+            Quantity::Temperature,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::FlowTemperature)
+            );
 
-    addNumericFieldWithExtractor(
-        "flow",
-        Quantity::Flow,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::VolumeFlow,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON ,
-        "The current heat media volume flow.",
-        SET_FUNC(flow_m3h_, Unit::M3H),
-        GET_FUNC(flow_m3h_, Unit::M3H));
-
-    addNumericFieldWithExtractor(
-        "flow",
-        Quantity::Temperature,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::FlowTemperature,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON ,
-        "The current forward heat media temperature.",
-        SET_FUNC(flow_c_, Unit::C),
-        GET_FUNC(flow_c_, Unit::C));
-
-    addNumericFieldWithExtractor(
-        "return",
-        Quantity::Temperature,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::ReturnTemperature,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON ,
-        "The current return heat media temperature.",
-        SET_FUNC(return_c_, Unit::C),
-        GET_FUNC(return_c_, Unit::C));
+        addNumericFieldWithExtractor(
+            "return",
+            "The current return heat media temperature.",
+            PrintProperty::JSON ,
+            Quantity::Temperature,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ReturnTemperature)
+            );
+    }
 }
 
 // Test: MyUltra ultraheat 70444600 NOKEY

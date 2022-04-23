@@ -1509,7 +1509,11 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
         {
             if (fi.hasMatcher() && fi.matches(dve))
             {
-                debug("Using field info %s to extract %d\n", fi.vname().c_str(), dve->dif_vif_key.str().c_str());
+                debug("(meters) using field info %s(%s)[%d] to extract %s\n",
+                      fi.vname().c_str(),
+                      toString(fi.xuantity()),
+                      fi.index(),
+                      dve->dif_vif_key.str().c_str());
                 dve->setFieldInfo(&fi);
                 fi.performExtraction(this, t, dve);
             }
@@ -1540,7 +1544,7 @@ void MeterCommonImplementation::setNumericValue(FieldInfo *fi, Unit u, double v)
 
     // Store value in default meter location for numeric values.
     string field_name_no_unit = fi->vname();
-    numeric_values_[field_name_no_unit] = NumericField(u, v, fi);
+    numeric_values_[pair<string,Quantity>(field_name_no_unit,fi->xuantity())] = NumericField(u, v, fi);
 }
 
 double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
@@ -1551,11 +1555,12 @@ double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
     }
 
     string field_name_no_unit = fi->vname();
-    if (numeric_values_.count(field_name_no_unit) == 0)
+    pair<string,Quantity> key(field_name_no_unit,fi->xuantity());
+    if (numeric_values_.count(key) == 0)
     {
         return std::numeric_limits<double>::quiet_NaN(); // This is translated into a null in the json.
     }
-    NumericField &nf = numeric_values_[field_name_no_unit];
+    NumericField &nf = numeric_values_[key];
     return convert(nf.value, nf.unit, to);
 }
 
@@ -1738,7 +1743,14 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                 // Has the entry been matches to this field, then print it as json.
                 if (dve->getFieldInfo() == &fi)
                 {
-                    s += indent+fi.renderJson(this, &conversions())+","+newline;
+                    debug("(meters) render field %s(%s)[%d] with dventry @%d key %s data %s\n",
+                          fi.vname().c_str(), toString(fi.xuantity()), fi.index(),
+                          dve->offset,
+                          dve->dif_vif_key.str().c_str(),
+                          dve->value.c_str());
+                    string out = fi.renderJson(this, &conversions());
+                    debug("(meters)             %s\n", out.c_str());
+                    s += indent+out+","+newline;
                     found = true;
                 }
             }

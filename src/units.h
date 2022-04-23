@@ -88,6 +88,7 @@ LIST_OF_QUANTITIES
 bool canConvert(Unit from, Unit to);
 double convert(double v, Unit from, Unit to);
 Unit toUnit(std::string s);
+const char *toString(Quantity q);
 bool isQuantity(Unit u, Quantity q);
 void assertQuantity(Unit u, Quantity q);
 Unit defaultUnitForQuantity(Quantity q);

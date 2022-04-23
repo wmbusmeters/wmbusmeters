@@ -244,7 +244,7 @@ protected:
     // Map difvif key to hex values from telegrams.
     std::map<std::string,std::pair<int,std::string>> hex_values_;
     // Map field name (total_volume) to numeric value.
-    std::map<std::string,NumericField> numeric_values_;
+    std::map<pair<std::string,Quantity>,NumericField> numeric_values_;
     // Map field name (at_date) to string value.
     std::map<std::string,StringField> string_values_;
 };

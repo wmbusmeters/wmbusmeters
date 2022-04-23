@@ -74,7 +74,7 @@ LIST_OF_CONVERSIONS
     string from = unitToStringHR(ufrom);
     string to = unitToStringHR(uto);
 
-    fprintf(stderr, "Cannot convert between units! %s %s\n", from.c_str(), to.c_str());
+    fprintf(stderr, "Cannot convert between units! from %s to %s\n", from.c_str(), to.c_str());
     assert(0);
     return 0;
 }
@@ -105,6 +105,13 @@ LIST_OF_QUANTITIES
     return Unit::Unknown;
 }
 
+const char *toString(Quantity q)
+{
+#define X(quantity,default_unit) if (q == Quantity::quantity) return #quantity;
+LIST_OF_QUANTITIES
+#undef X
+    return "?";
+}
 
 Unit toUnit(string s)
 {
