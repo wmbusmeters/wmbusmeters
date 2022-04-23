@@ -1230,20 +1230,20 @@ string concatAllFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &fields,
     {
         if (fi.printProperties().hasFIELD())
         {
-            if (fi.hasGetValueDouble())
+            if (fi.xuantity() == Quantity::Text)
+            {
+                s += m->getStringValue(&fi);
+            }
+            else
             {
                 Unit u = replaceWithConversionUnit(fi.defaultUnit(), cs);
-                double v = fi.getValueDouble(u);
+                double v = m->getNumericValue(&fi, u);
                 if (hr) {
                     s += valueToString(v, u);
                     s += " "+unitToStringHR(u);
                 } else {
                     s += to_string(v);
                 }
-            }
-            if (fi.hasGetValueString())
-            {
-                s += fi.getValueString();
             }
             s += c;
         }
@@ -1318,16 +1318,16 @@ bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char 
 {
     for (FieldInfo &fi : fields)
     {
-        if (fi.hasGetValueString())
+        if (fi.xuantity() == Quantity::Text)
         {
             // Strings are simply just print them.
             if (field == fi.vname())
             {
-                *buf += fi.getValueString() + c;
+                *buf += m->getStringValue(&fi) + c;
                 return true;
             }
         }
-        else if (fi.hasGetValueDouble())
+        else
         {
             // Doubles have to be converted into the proper unit.
             string default_unit = unitToStringLowerCase(fi.defaultUnit());
@@ -1335,7 +1335,7 @@ bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char 
             if (field == var)
             {
                 // Default unit.
-                *buf += valueToString(fi.getValueDouble(fi.defaultUnit()), fi.defaultUnit()) + c;
+                *buf += valueToString(m->getNumericValue(&fi, fi.defaultUnit()), fi.defaultUnit()) + c;
                 return true;
             }
             else
@@ -1348,7 +1348,7 @@ bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char 
                     string var = fi.vname()+"_"+unit;
                     if (field == var)
                     {
-                        *buf += valueToString(fi.getValueDouble(u), u) + c;
+                        *buf += valueToString(m->getNumericValue(&fi, u), u) + c;
                         return true;
                     }
                 }
@@ -1491,13 +1491,25 @@ void MeterCommonImplementation::processContent(Telegram *t)
 
 void MeterCommonImplementation::setNumericValue(FieldInfo *fi, Unit u, double v)
 {
+    if (fi->hasSetNumericValueOverride())
+    {
+        // Use setter function to store value somewhere.
+        fi->setNumericValueOverride(u, v);
+        return;
+    }
+
+    // Store value in default meter location for numeric values.
     string field_name_no_unit = fi->vname();
-    //printf("Setting numeric %s = %f\n", field_name_no_unit.c_str(), v);
     numeric_values_[field_name_no_unit] = NumericField(u, v, fi);
 }
 
 double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
 {
+    if (fi->hasGetNumericValueOverride())
+    {
+        return fi->getNumericValueOverride(to);
+    }
+
     string field_name_no_unit = fi->vname();
     if (numeric_values_.count(field_name_no_unit) == 0) return -471147114711;
     NumericField &nf = numeric_values_[field_name_no_unit];
@@ -1506,6 +1518,12 @@ double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
 
 void MeterCommonImplementation::setStringValue(FieldInfo *fi, string v)
 {
+    if (fi->hasSetStringValueOverride())
+    {
+        fi->setStringValueOverride(v);
+        return;
+    }
+
     string field_name_no_unit = fi->vname();
     //printf("Setting string %s = %s\n", field_name_no_unit.c_str(), v.c_str());
     string_values_[field_name_no_unit] = StringField(v, fi);
@@ -1513,6 +1531,11 @@ void MeterCommonImplementation::setStringValue(FieldInfo *fi, string v)
 
 string MeterCommonImplementation::getStringValue(FieldInfo *fi)
 {
+    if (fi->hasGetStringValueOverride())
+    {
+        return fi->getStringValueOverride();
+    }
+
     string field_name_no_unit = fi->vname();
     if (string_values_.count(field_name_no_unit) == 0) return "???";
     StringField &sf = string_values_[field_name_no_unit];
@@ -1539,17 +1562,17 @@ string MeterCommonImplementation::renderJsonOnlyDefaultUnit(string vname)
     FieldInfo *fi = findFieldInfo(vname);
 
     if (fi == NULL) return "unknown field "+vname;
-    return fi->renderJsonOnlyDefaultUnit();
+    return fi->renderJsonOnlyDefaultUnit(this);
 }
 
-string FieldInfo::renderJsonOnlyDefaultUnit()
+string FieldInfo::renderJsonOnlyDefaultUnit(Meter *m)
 {
-    return renderJson(NULL);
+    return renderJson(m, NULL);
 }
 
-string FieldInfo::renderJsonText()
+string FieldInfo::renderJsonText(Meter *m)
 {
-    return renderJson(NULL);
+    return renderJson(m, NULL);
 }
 
 string FieldInfo::generateFieldName(DVEntry *dve)
@@ -1565,19 +1588,19 @@ string FieldInfo::generateFieldName(DVEntry *dve)
     return vname()+"_"+default_unit;
 }
 
-string FieldInfo::renderJson(vector<Unit> *conversions)
+string FieldInfo::renderJson(Meter *m, vector<Unit> *conversions)
 {
     string s;
 
     string default_unit = unitToStringLowerCase(defaultUnit());
     string var = vname();
-    if (hasGetValueString())
+    if (xuantity() == Quantity::Text)
     {
-        s += "\""+var+"\":\""+getValueString()+"\"";
+        s += "\""+var+"\":\""+m->getStringValue(this)+"\"";
     }
-    else if (hasGetValueDouble())
+    else
     {
-        s += "\""+var+"_"+default_unit+"\":"+valueToString(getValueDouble(defaultUnit()), defaultUnit());
+        s += "\""+var+"_"+default_unit+"\":"+valueToString(m->getNumericValue(this, defaultUnit()), defaultUnit());
 
         if (conversions != NULL)
         {
@@ -1586,13 +1609,9 @@ string FieldInfo::renderJson(vector<Unit> *conversions)
             {
                 string unit = unitToStringLowerCase(u);
                 // Appending extra conversion unit.
-                s += ",\""+var+"_"+unit+"\":"+valueToString(getValueDouble(u), u);
+                s += ",\""+var+"_"+unit+"\":"+valueToString(m->getNumericValue(this, u), u);
             }
         }
-    }
-    else
-    {
-        s = "?";
     }
 
     return s;
@@ -1649,7 +1668,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     {
         if (fi.printProperties().hasJSON())
         {
-            s += indent+fi.renderJson(&conversions())+","+newline;
+            s += indent+fi.renderJson(this, &conversions())+","+newline;
         }
     }
     s += indent+"\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
@@ -1696,26 +1715,28 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         envs->push_back(string("METER_RSSI_DBM=")+to_string(t->about.rssi_dbm));
     }
 
-    for (FieldInfo p : field_infos_)
+    for (FieldInfo& fi : field_infos_)
     {
-        if (p.printProperties().hasJSON())
+        if (fi.printProperties().hasJSON())
         {
-            string default_unit = unitToStringUpperCase(p.defaultUnit());
-            string var = p.vname();
+            string default_unit = unitToStringUpperCase(fi.defaultUnit());
+            string var = fi.vname();
             std::transform(var.begin(), var.end(), var.begin(), ::toupper);
-            if (p.hasGetValueString()) {
-                string envvar = "METER_"+var+"="+p.getValueString();
+            if (fi.xuantity() == Quantity::Text)
+            {
+                string envvar = "METER_"+var+"="+getStringValue(&fi);
                 envs->push_back(envvar);
             }
-            if (p.hasGetValueDouble()) {
-                string envvar = "METER_"+var+"_"+default_unit+"="+valueToString(p.getValueDouble(p.defaultUnit()), p.defaultUnit());
+            else
+            {
+                string envvar = "METER_"+var+"_"+default_unit+"="+valueToString(getNumericValue(&fi, fi.defaultUnit()), fi.defaultUnit());
                 envs->push_back(envvar);
 
-                Unit u = replaceWithConversionUnit(p.defaultUnit(), conversions_);
-                if (u != p.defaultUnit())
+                Unit u = replaceWithConversionUnit(fi.defaultUnit(), conversions_);
+                if (u != fi.defaultUnit())
                 {
                     string unit = unitToStringUpperCase(u);
-                    string envvar = "METER_"+var+"_"+unit+"="+valueToString(p.getValueDouble(u), u);
+                    string envvar = "METER_"+var+"_"+unit+"="+valueToString(getNumericValue(&fi, u), u);
                     envs->push_back(envvar);
                 }
             }
@@ -2115,9 +2136,8 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
         {
             decoded_unit = toDefaultUnit(matcher_.vif_range);
         }
-        setValueDouble(decoded_unit, extracted_double_value);
         m->setNumericValue(this, decoded_unit, extracted_double_value);
-        t->addMoreExplanation(dve->offset, renderJson(&m->conversions()));
+        t->addMoreExplanation(dve->offset, renderJson(m, &m->conversions()));
         found = true;
     }
     return found;
@@ -2159,9 +2179,8 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         if (dve->extractLong(&extracted_bits))
         {
             string translated_bits = lookup().translate(extracted_bits);
-            setValueString(translated_bits);
             m->setStringValue(this, translated_bits);
-            t->addMoreExplanation(dve->offset, renderJsonText());
+            t->addMoreExplanation(dve->offset, renderJsonText(m));
             found = true;
         }
     }
@@ -2170,9 +2189,8 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         struct tm datetime;
         dve->extractDate(&datetime);
         string extracted_device_date_time = strdatetime(&datetime);
-        setValueString(extracted_device_date_time);
         m->setStringValue(this, extracted_device_date_time);
-        t->addMoreExplanation(dve->offset, renderJsonText());
+        t->addMoreExplanation(dve->offset, renderJsonText(m));
         found = true;
     }
     else if (matcher_.vif_range == VIFRange::Date)
@@ -2180,9 +2198,8 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         struct tm date;
         dve->extractDate(&date);
         string extracted_device_date = strdate(&date);
-        setValueString(extracted_device_date);
         m->setStringValue(this, extracted_device_date);
-        t->addMoreExplanation(dve->offset, renderJsonText());
+        t->addMoreExplanation(dve->offset, renderJsonText(m));
         found = true;
     }
     else if (matcher_.vif_range == VIFRange::EnhancedIdentification ||
@@ -2190,9 +2207,8 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     {
         string extracted_id;
         dve->extractReadableString(&extracted_id);
-        setValueString(extracted_id);
         m->setStringValue(this, extracted_id);
-        t->addMoreExplanation(dve->offset, renderJsonText());
+        t->addMoreExplanation(dve->offset, renderJsonText(m));
         found = true;
     }
     else

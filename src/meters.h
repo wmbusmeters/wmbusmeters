@@ -316,10 +316,10 @@ struct FieldInfo
               FieldMatcher matcher,
               string help,
               PrintProperties print_properties,
-              function<double(Unit)> get_value_double,
-              function<string()> get_value_string,
-              function<void(Unit,double)> set_value_double,
-              function<void(string)> set_value_string,
+              function<double(Unit)> get_numeric_value_override,
+              function<string()> get_string_value_override,
+              function<void(Unit,double)> set_numeric_value_override,
+              function<void(string)> set_string_value_override,
               Translate::Lookup lookup
         ) :
         vname_(vname),
@@ -329,10 +329,10 @@ struct FieldInfo
         matcher_(matcher),
         help_(help),
         print_properties_(print_properties),
-        get_value_double_(get_value_double),
-        get_value_string_(get_value_string),
-        set_value_double_(set_value_double),
-        set_value_string_(set_value_string),
+        get_numeric_value_override_(get_numeric_value_override),
+        get_string_value_override_(get_string_value_override),
+        set_numeric_value_override_(set_numeric_value_override),
+        set_string_value_override_(set_string_value_override),
         lookup_(lookup)
     {}
 
@@ -344,13 +344,15 @@ struct FieldInfo
     string help() { return help_; }
     PrintProperties printProperties() { return print_properties_; }
 
-    double getValueDouble(Unit u) { if (get_value_double_) return get_value_double_(u); else return -12345678; }
-    bool hasGetValueDouble() { return get_value_double_ != NULL; }
-    string getValueString() { if (get_value_string_) return get_value_string_(); else return "?"; }
-    bool hasGetValueString() { return get_value_string_ != NULL; }
+    double getNumericValueOverride(Unit u) { if (get_numeric_value_override_) return get_numeric_value_override_(u); else return -12345678; }
+    bool hasGetNumericValueOverride() { return get_numeric_value_override_ != NULL; }
+    string getStringValueOverride() { if (get_string_value_override_) return get_string_value_override_(); else return "?"; }
+    bool hasGetStringValueOverride() { return get_string_value_override_ != NULL; }
 
-    void setValueDouble(Unit u, double d) { if (set_value_double_) set_value_double_(u, d);  }
-    void setValueString(string s) { if (set_value_string_) set_value_string_(s); }
+    void setNumericValueOverride(Unit u, double v) { if (set_numeric_value_override_) set_numeric_value_override_(u, v); }
+    bool hasSetNumericValueOverride() { return set_numeric_value_override_ != NULL; }
+    void setStringValueOverride(string v) { if (set_string_value_override_) set_string_value_override_(v); }
+    bool hasSetStringValueOverride() { return set_string_value_override_ != NULL; }
 
     bool extractNumeric(Meter *m, Telegram *t, DVEntry *dve = NULL);
     bool extractString(Meter *m, Telegram *t, DVEntry *dve = NULL);
@@ -358,14 +360,15 @@ struct FieldInfo
     bool matches(DVEntry *dve);
     void performExtraction(Meter *m, Telegram *t, DVEntry *dve);
 
-    string renderJsonOnlyDefaultUnit();
-    string renderJson(vector<Unit> *additional_conversions);
-    string renderJsonText();
+    string renderJsonOnlyDefaultUnit(Meter *m);
+    string renderJson(Meter *m, vector<Unit> *additional_conversions);
+    string renderJsonText(Meter *m);
     // Render the field name based on the actual field from the telegram.
     // A FieldInfo can be declared to handle any number of storage fields of a certain range.
     // The vname is then a pattern total_at_month_{storagenr-32} that gets translated into
     // total_at_month_2 (for the dventry with storage nr 34.)
     string generateFieldName(DVEntry *dve);
+
 
     Translate::Lookup& lookup() { return lookup_; }
 
@@ -379,10 +382,13 @@ private:
     string help_; // Helpful information on this meters use of this value.
     PrintProperties print_properties_;
 
-    function<double(Unit)> get_value_double_; // Callback to fetch the value from the meter.
-    function<string()> get_value_string_; // Callback to fetch the value from the meter.
-    function<void(Unit,double)> set_value_double_; // Call back to set the value in the c++ object
-    function<void(string)> set_value_string_; // Call back to set the value string in the c++ object
+    // Normally the values are stored inside the meter object using its setNumeric/setString/getNumeric/getString
+    // But for special fields we can override this default location with these setters/getters.
+    function<double(Unit)> get_numeric_value_override_; // Callback to fetch the value from the meter.
+    function<string()> get_string_value_override_; // Callback to fetch the value from the meter.
+    function<void(Unit,double)> set_numeric_value_override_; // Call back to set the value in the c++ object
+    function<void(string)> set_string_value_override_; // Call back to set the value string in the c++ object
+
     Translate::Lookup lookup_;
 };
 
