@@ -2,7 +2,7 @@
 # wmbusmeters
 
 The program receives and decodes C1,T1 or S1 telegrams
-(using the wireless mbus protocol) to acquire
+(using the wireless mbus protocol or the wired mbus protocol) to acquire
 utility meter readings. The readings can then be published using
 MQTT, curled to a REST api, inserted into a database or stored in a log file.
 
@@ -44,6 +44,8 @@ development progresses quickly.  First remove the wmbus dongle
 from your computer. Then do:
 
 `./configure; make; sudo make install` will install wmbusmeters as a daemon.
+
+# Usage
 
 Check the contents of your `/etc/wmbusmeters.conf` file, assuming it
 has `device=auto:t1` and you are using a im871a,amb8465,rc1180,cul or rtlsdr device,
@@ -102,6 +104,25 @@ device=/dev/ttyUSB0:im871a[00102759]:c1,t1
 device=/dev/ttyUSB1:rc1800:t1
 ```
 
+# Bus aliases and polling
+
+To poll an C2/T2/S2 wireless meter or an wired m-bus meter you need to give the (w)mbus device a bus-alias, for example
+here we pick the bus alias MAIN:
+```
+MAIN=/dev/ttyUSB0:mbus
+```
+and here we pick the bus alias WIRELESS2 for an im871a dongle:
+```
+WIRELESS2=/dev/ttyUSB1:im871a:c2
+```
+
+The bus alias is then used in the meter driver specification to specify which
+bus the mbus poll request should be sent to.
+```
+wmbusmeters MAIN=/dev/ttyUSB0:mbus MyTempMeter piigth:MAIN:2400:mbus 12001932 NOKEY
+```
+
+# Example wmbusmeter.conf file
 
 ```ini
 loglevel=normal
@@ -262,6 +283,7 @@ As {options} you can use:
     --normal for normal logging
     --oneshot wait for an update from each meter, then quit
     --ppjson pretty print the json
+    --pollevery=<time> time between polling of meters, default is 10m
     --resetafter=<time> reset the wmbus dongle regularly, default is 23h
     --selectfields=id,timestamp,total_m3 select only these fields to be printed (--listfields=<meter> to list available fields)
     --separator=<c> change field separator to c
@@ -297,6 +319,7 @@ rtlsdr dongle like this `rtlwmbus[1234]`.
 `/dev/ttyUSB0:38400`, to have wmbusmeters set the baud rate to 38400 and listen for raw wmbus telegrams.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
+`MAIN=/dev/ttyUSB0`
 `rtlwmbus`, to spawn the background process: `rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s`
 for each attached rtlsdr dongle. This will listen to S1,T1 and C1 meters in parallel.
 
@@ -363,6 +386,9 @@ Radiocraft (RC1180)
 rtl_wmbus (rtlwmbus)
 rtl_433 (rtl433)
 
+Supported mbus dongles:
+Any bus controller dongle/board behaving like a plain serial port.
+
 Supported water meters:
 Aventies (aventieswm)
 Apator at-wmbus-08   (apator08) (non-standard protocol)
@@ -416,6 +442,7 @@ Bmeters RFM-AMB Thermometer/Hygrometer (rfmamb)
 Elvaco CMa12w Thermometer (cma12w)
 Lansen Thermometer/Hygrometer (lansenth)
 Weptech Munia Thermometer/Hygrometer (munia)
+PiiGAB Thermometer/Hygrometer (piigth) wired
 
 Supported smoke detectors:
 Lansen Smoke Detector (lansensm)

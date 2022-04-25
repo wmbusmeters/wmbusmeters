@@ -15,6 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"bus.h"
 #include"config.h"
 #include"meters.h"
 #include"meter_detection.h"
@@ -1009,8 +1010,118 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
             ));
 }
 
-void MeterCommonImplementation::poll(shared_ptr<BusManager> bus)
+void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
 {
+    if (link_modes_.has(LinkMode::MBUS))
+    {
+        WMBus *bus_device = bus_manager->findBus(bus());
+
+        if (!bus_device)
+        {
+            debug("(meter) Could not find bus from name \"%s\"\n", bus().c_str());
+            return;
+        }
+        /*
+        Reset mbus...
+        vector<uchar> buf;
+        buf[0] = 0x10; // Start
+        buf[1] = 0x40; // SND_NKE
+        buf[2] = 0x00; // address 0
+        uchar cs = 0;
+        for (int i=1; i<3; ++i) cs += buf[i];
+        buf[3] = cs; // checksum
+        buf[4] = 0x16; // Stop
+        dev->serial()->send(buf);
+
+        sleep(2);
+        */
+
+        string id = ids().back();
+        if (id.length() != 2 && id.length() != 3 && id.length() != 8)
+        {
+            debug("(meter) not polling from bad id  \"%s\" with wrong length\n", id.c_str());
+            return;
+        }
+
+        if (id.length() == 2 || id.length() == 3)
+        {
+            vector<uchar> idhex;
+            int idnum = atoi(id.c_str());
+
+            if (idnum < 0 || idnum > 250 || idhex.size() != 1)
+            {
+                debug("(meter) not polling from bad id \"%s\"\n", id.c_str());
+                return;
+            }
+
+            vector<uchar> buf;
+            buf.resize(5);
+            buf[0] = 0x10; // Start
+            buf[1] = 0x5b; // REQ_UD2
+            buf[2] = idhex[0];
+            uchar cs = 0;
+            for (int i=1; i<3; ++i) cs += buf[i];
+            buf[3] = cs; // checksum
+            buf[4] = 0x16; // Stop
+
+            verbose("(meter) req ud2 bus %s address %s\n", bus_device->busAlias().c_str(),id.c_str());
+            bus_device->serial()->send(buf);
+        }
+
+        if (id.length() == 8)
+        {
+            // A full secondary address 12345678 was specified.
+
+            vector<uchar> idhex;
+            bool ok = hex2bin(id, &idhex);
+
+            if (!ok || idhex.size() != 4)
+            {
+                debug("(meter) not polling from bad id \"%s\"\n", id.c_str());
+                return;
+            }
+
+            vector<uchar> buf;
+            buf.resize(17);
+            buf[0] = 0x68;
+            buf[1] = 0x0b;
+            buf[2] = 0x0b;
+            buf[3] = 0x68;
+            buf[4] = 0x73; // SND_UD
+            buf[5] = 0xfd; // address 253
+            buf[6] = 0x52; // ci 52
+            buf[7] = idhex[3]; // id 78
+            buf[8] = idhex[2]; // id 56
+            buf[9] = idhex[1]; // id 34
+            buf[10] = idhex[0]; // id 12
+            buf[11] = 0x29; // mfct 29
+            buf[12] = 0x41; // mfct 41   2941 == PII
+            buf[13] = 0x01; // version/generation
+            buf[14] = 0x1b; // type/media/device
+
+            uchar cs = 0;
+            for (int i=4; i<15; ++i) cs += buf[i];
+            buf[15] = cs; // checksum
+            buf[16] = 0x16; // Stop
+
+            debug("(meter) secondary addressing bus %s to address %s\n", bus_device->busAlias().c_str(), id.c_str());
+            bus_device->serial()->send(buf);
+
+            usleep(1000*500);
+
+            buf.resize(5);
+            buf[0] = 0x10; // Start
+            buf[1] = 0x5b; // REQ_UD2
+            buf[2] = 0xfd; // 00 or address 253 previously setup
+            cs = 0;
+            for (int i=1; i<3; ++i) cs += buf[i];
+            buf[3] = cs; // checksum
+            buf[4] = 0x16; // Stop
+
+            verbose("(meter) req ud2 bus %s address %s\n", bus_device->busAlias().c_str(),id.c_str());
+            bus_device->serial()->send(buf);
+        }
+    }
 }
 
 vector<string>& MeterCommonImplementation::ids()
@@ -1991,7 +2102,7 @@ LIST_OF_METERS
     return newm;
 }
 
-bool is_driver_extras(string t, MeterDriver *out_driver, DriverName *out_driver_name, string *out_extras)
+bool is_driver_and_extras(string t, MeterDriver *out_driver, DriverName *out_driver_name, string *out_extras)
 {
     // piigth(jump=foo)
     // multical21
@@ -2084,7 +2195,7 @@ bool MeterInfo::parse(string n, string d, string i, string k)
 
     for (auto& p : parts)
     {
-        if (!driverextras_checked && is_driver_extras(p, &driver, &driver_name, &extras))
+        if (!driverextras_checked && is_driver_and_extras(p, &driver, &driver_name, &extras))
         {
             driverextras_checked = true;
         }

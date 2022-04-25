@@ -801,13 +801,21 @@ void testm(string arg, bool xok,
     }
     if (ok == false) return;
 
-    if (toString(mi.driver) != xdriver,
-        mi.extras != xextras ||
-        mi.bus != xbus ||
-        to_string(mi.bps) != xbps ||
-        mi.link_modes.hr() != xlm)
+    bool driver_ok = toString(mi.driver) == xdriver || mi.driverName().str() == xdriver;
+    bool extras_ok = mi.extras == xextras;
+    bool bus_ok = mi.bus == xbus;
+    bool bps_ok = to_string(mi.bps) == xbps;
+    bool link_modes_ok =  mi.link_modes.hr() == xlm;
+
+    if (!driver_ok || !extras_ok || !bus_ok || !bps_ok || !link_modes_ok)
     {
-        printf("ERROR in meter parsing parts \"%s\" - got (driver: %s, extras: %s, bus: %s, bbps: %s, linkmodes: %s)\n", arg.c_str(), toString(mi.driver).c_str(), mi.extras.c_str(), mi.bus.c_str(), to_string(mi.bps).c_str(), mi.link_modes.hr().c_str());
+        printf("ERROR in meterm parsing parts \"%s\" - got (driver: \"%s/%s\" (%d), extras: \"%s\" (%d), bus: \"%s\" (%d), bbps: \"%s\" (%d), linkmodes: \"%s\" (%d))\n",
+               arg.c_str(),
+               toString(mi.driver).c_str(), mi.driverName().str().c_str(), driver_ok,
+               mi.extras.c_str(), extras_ok,
+               mi.bus.c_str(), bus_ok,
+               to_string(mi.bps).c_str(), bps_ok,
+               mi.link_modes.hr().c_str(), link_modes_ok);
     }
 }
 
@@ -823,13 +831,16 @@ void testc(string file, string file_content,
     parseMeterConfig(&c, meter_conf, file);
 
     mi = c.meters.back();
-    if (toString(mi.driver) != xdriver,
+    if ((toString(mi.driver) != xdriver && mi.driverName().str() != xdriver) ||
         mi.extras != xextras ||
         mi.bus != xbus ||
         to_string(mi.bps) != xbps ||
         mi.link_modes.hr() != xlm)
     {
-        printf("ERROR in meter parsing parts \"%s\" - got (driver: %s, extras: %s, bus: %s, bbps: %s, linkmodes: %s)\n", file.c_str(), toString(mi.driver).c_str(), mi.extras.c_str(), mi.bus.c_str(), to_string(mi.bps).c_str(), mi.link_modes.hr().c_str());
+        printf("ERROR in meterc parsing parts \"%s\" - got (driver: %s/%s, extras: %s, bus: %s, bbps: %s, linkmodes: %s)\n",
+               file.c_str(),
+               toString(mi.driver).c_str(), mi.driverName().str().c_str(),
+               mi.extras.c_str(), mi.bus.c_str(), to_string(mi.bps).c_str(), mi.link_modes.hr().c_str());
     }
 }
 
@@ -837,18 +848,38 @@ void test_meters()
 {
     string config_content;
 
-    /*
     testm("piigth:BUS1:2400", true,
           "piigth", // driver
           "", // extras
           "BUS1", // bus
           "2400", // bps
+          "none"); // linkmodes
+
+    testm("c5isf:MAINO:9600:mbus", true,
+          "c5isf", // driver
+          "", // extras
+          "MAINO", // bus
+          "9600", // bps
           "mbus"); // linkmodes
-    */
+
+    testm("c5isf:DONGLE:t1", true,
+          "c5isf", // driver
+          "", // extras
+          "DONGLE", // bus
+          "0", // bps
+          "t1"); // linkmodes
+
+    testm("c5isf:t1,c1,mbus", true,
+          "c5isf", // driver
+          "", // extras
+          "", // bus
+          "0", // bps
+          "c1,t1,mbus"); // linkmodes
+
     /*
     config_content =
         "name=test\n"
-        "driver=piigth:BUS1:2400\n"
+        "driver=piigth:BUS1:2400:mbus\n"
         "id=01234567\n";
 
     testc("meter/piigth:BUS1:2400", config_content,

@@ -4760,7 +4760,7 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
         return ErrorInFrame;
     }
 
-    *payload_len_out = *frame_length-2; // Drop checksum byte and stop byte.
+    *payload_len_out = *frame_length; // Drop checksum byte and stop byte.
     *payload_offset = 0; // Drop 0x68 len len 0x68.
     if (!only_test)
     {

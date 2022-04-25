@@ -96,6 +96,7 @@ struct Configuration
     std::string logfile;
     bool json {};
     bool pretty_print_json {};
+    int  pollevery {}; // Time between polling.
     bool fields {};
     char separator { ';' };
     std::vector<std::string> telegram_shells;

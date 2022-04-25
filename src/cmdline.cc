@@ -526,6 +526,14 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--pollevery=", 12) && strlen(argv[i]) > 12) {
+            c->pollevery = parseTime(argv[i]+12);
+            if (c->pollevery <= 0) {
+                error("Not a valid time to regularly poll meters. \"%s\"\n", argv[i]+12);
+            }
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--resetafter=", 13) && strlen(argv[i]) > 13) {
             c->resetafter = parseTime(argv[i]+13);
             if (c->resetafter <= 0) {
