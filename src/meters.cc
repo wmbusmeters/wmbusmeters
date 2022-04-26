@@ -2424,3 +2424,82 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     }
     return found;
 }
+
+bool Address::parse(string &s)
+{
+    // Example: 12345678
+    // or       12345678.M=PII.T=1B.V=01
+    // or       1234*
+    // or       1234*.PII
+    // or       1234*.V01
+    // or       12 // mbus primary
+    // or       0  // mbus primary
+    // or       250.MPII.T1B.V01 // mbus primary
+
+    id = "";
+    mbus_primary = false;
+    mfct = 0;
+    type = 0;
+    version = 0;
+
+    if (s.size() == 0) return false;
+
+    vector<string> parts = splitString(s, '.');
+
+    assert(parts.size() > 0);
+
+    if (!isValidMatchExpression(parts[0], true))
+    {
+        // Not a long id, so lets check if it is 0-250.
+        for (int i=0; i < parts[0].length(); ++i)
+        {
+            if (!isdigit(parts[0][i])) return false;
+        }
+        // All digits good.
+        int v = atoi(parts[0].c_str());
+        if (v < 0 || v > 250) return false;
+        // It is 0-250 which means it is an mbus primary address.
+        mbus_primary = true;
+    }
+    id = parts[0];
+
+    for (size_t i=1; i<parts[i].size(); ++i)
+    {
+        if (parts[i].size() == 4) // V=xy or T=xy
+        {
+            if (parts[i][1] != '=') return false;
+
+            vector<uchar> data;
+            bool ok = hex2bin(&parts[i][2], &data);
+            if (!ok) return false;
+            if (data.size() != 1) return false;
+
+            if (parts[i][0] == 'V')
+            {
+                version = data[0];
+            }
+            else if (parts[i][0] == 'T')
+            {
+                type = data[0];
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else if (parts[i].size() == 5) // M=xyz
+        {
+            if (parts[i][1] != '=') return false;
+            if (parts[i][0] != 'M') return false;
+
+            bool ok = flagToManufacturer(&parts[i][2], &mfct);
+            if (!ok) return false;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    return true;
+}

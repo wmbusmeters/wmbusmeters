@@ -689,6 +689,7 @@ shared_ptr<WMBus> openSimulator(Detected detected,
 
 string manufacturer(int m_field);
 string manufacturerFlag(int m_field);
+bool flagToManufacturer(const char *s, uint16_t *out_mfct);
 string mediaType(int a_field_device_type, int m_field);
 string mediaTypeJSON(int a_field_device_type, int m_field);
 bool isCiFieldOfType(int ci_field, CI_TYPE type);

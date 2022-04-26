@@ -636,7 +636,8 @@ bool isValidMatchExpression(string me, bool non_compliant)
     int count = 0;
     if (non_compliant)
     {
-        // Some non-compliant meters have full hex in the me....
+        // Some non-compliant meters have full hex in the id,
+        // but according to the standard there should only be bcd here...
         while (me.length() > 0 &&
                ((me.front() >= '0' && me.front() <= '9') ||
                 (me.front() >= 'a' && me.front() <= 'f')))

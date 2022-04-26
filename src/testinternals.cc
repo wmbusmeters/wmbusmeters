@@ -36,6 +36,7 @@ int test_dvparser();
 int test_test();
 int test_linkmodes();
 void test_ids();
+void test_addresses();
 void test_kdf();
 void test_periods();
 void test_devices();
@@ -71,6 +72,7 @@ int main(int argc, char **argv)
     /*
       test_linkmodes();*/
     test_ids();
+    test_addresses();
     test_kdf();
     test_periods();
     test_months();
@@ -452,6 +454,54 @@ void test_ids()
 
     test_does_id_match_expression("78563413", "78563412,78563413", true, false);
     test_does_id_match_expression("78563413", "*,!00156327,!00048713", true, true);
+}
+
+void test_address(string s, bool valid, string id, string mfct, uchar type, uchar version)
+{
+    Address a;
+    bool ok = a.parse(s);
+
+    if (ok != valid)
+    {
+        printf("Expected parse of address \"%s\" to return %s, but returned %s\n",
+               s.c_str(),
+               valid?"valid":"bad", ok?"valid":"bad");
+    }
+    if (ok)
+    {
+        string smfct = manufacturerFlag(a.mfct);
+        if (id != a.id ||
+            mfct != smfct ||
+            type != a.type ||
+            version != a.version)
+        {
+            printf("Expected parse of address \"%s\" to return (id=%s mfct=%s type=%02x version=%02x) "
+                   "but got (id=%s mfct=%s type=%02x version=%02x)\n",
+                   s.c_str(),
+                   id.c_str(), mfct.c_str(), type, version,
+                   a.id.c_str(), smfct.c_str(), a.type, a.version);
+        }
+    }
+}
+
+void test_addresses()
+{
+    test_address("12345678",
+                 true,
+                 "12345678", // id
+                 "@@@", // mfct
+                 0, // type
+                 0  // version
+        );
+
+    test_address("123k45678", false, "", "", 0, 0);
+    test_address("1234", false, "", "", 0, 0);
+    test_address("0", true, "0", "@@@", 0, 0);
+    test_address("250", true, "250", "@@@", 0, 0);
+    test_address("251", false, "", "", 0, 0);
+    test_address("0.M=PII.T=1b.V=01", true, "0", "PII", 0x1b, 0x01);
+    test_address("123.V=11.M=FOO.T=ff", true, "123", "FOO", 0xff, 0x11);
+    test_address("16.M=BAR", true, "16", "BAR", 0, 0);
 }
 
 void eq(string a, string b, const char *tn)
