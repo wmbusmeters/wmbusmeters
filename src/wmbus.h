@@ -635,6 +635,7 @@ struct WMBus
     // Remember how this device was detected.
     virtual void setDetected(Detected detected) = 0;
     virtual Detected *getDetected() = 0;
+
     virtual ~WMBus() = 0;
 };
 

@@ -100,6 +100,19 @@ LinkModeSet MBusRawTTY::getLinkModes() {
 
 void MBusRawTTY::deviceReset()
 {
+    // Send an NKE message that resets the communication with all meters connected to the mbus.
+    vector<uchar> buf;
+    buf.resize(5);
+    buf[0] = 0x10; // Start
+    buf[1] = 0x40; // SND_NKE
+    buf[2] = 0x00; // address 0
+    uchar cs = 0;
+    for (int i=1; i<3; ++i) cs += buf[i];
+    buf[3] = cs; // checksum
+    buf[4] = 0x16; // Stop
+
+    verbose("Sending NKE to mbus %s\n", busAlias().c_str());
+    serial()->send(buf);
 }
 
 void MBusRawTTY::deviceSetLinkModes(LinkModeSet lms)

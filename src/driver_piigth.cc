@@ -69,6 +69,7 @@ namespace
             .set(StorageNr(2))
             );
 
+        /*
         addNumericFieldWithExtractor(
             "relative_humidity",
             "The current relative humidity.",
@@ -78,7 +79,7 @@ namespace
             FieldMatcher::build().
             set(DifVifKey("02FB1A"))
             );
-
+        */
         addStringFieldWithExtractor(
             "fabrication_no",
             "Fabrication number.",

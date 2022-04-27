@@ -1021,20 +1021,6 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
             debug("(meter) Could not find bus from name \"%s\"\n", bus().c_str());
             return;
         }
-        /*
-        Reset mbus...
-        vector<uchar> buf;
-        buf[0] = 0x10; // Start
-        buf[1] = 0x40; // SND_NKE
-        buf[2] = 0x00; // address 0
-        uchar cs = 0;
-        for (int i=1; i<3; ++i) cs += buf[i];
-        buf[3] = cs; // checksum
-        buf[4] = 0x16; // Stop
-        dev->serial()->send(buf);
-
-        sleep(2);
-        */
 
         string id = ids().back();
         if (id.length() != 2 && id.length() != 3 && id.length() != 8)
@@ -1090,14 +1076,17 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
             buf[4] = 0x73; // SND_UD
             buf[5] = 0xfd; // address 253
             buf[6] = 0x52; // ci 52
+            // Assuming we send id 12345678
             buf[7] = idhex[3]; // id 78
             buf[8] = idhex[2]; // id 56
             buf[9] = idhex[1]; // id 34
             buf[10] = idhex[0]; // id 12
-            buf[11] = 0x29; // mfct 29
-            buf[12] = 0x41; // mfct 41   2941 == PII
-            buf[13] = 0x01; // version/generation
-            buf[14] = 0x1b; // type/media/device
+            // Use wildcards instead of exact matching here.
+            // TODO add selection based on these values as well.
+            buf[11] = 0xff; // mfct
+            buf[12] = 0xff; // mfct
+            buf[13] = 0xff; // version/generation
+            buf[14] = 0xff; // type/media/device
 
             uchar cs = 0;
             for (int i=4; i<15; ++i) cs += buf[i];
