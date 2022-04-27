@@ -107,19 +107,20 @@ device=/dev/ttyUSB1:rc1800:t1
 # Bus aliases and polling
 
 To poll an C2/T2/S2 wireless meter or an wired m-bus meter you need to give the (w)mbus device a bus-alias, for example
-here we pick the bus alias MAIN:
+here we pick the bus alias MAIN for the mbus using 2400 bps for all meters on this bus.
 ```
-MAIN=/dev/ttyUSB0:mbus
+MAIN=/dev/ttyUSB0:mbus:2400
 ```
 and here we pick the bus alias WIRELESS2 for an im871a dongle:
 ```
 WIRELESS2=/dev/ttyUSB1:im871a:c2
 ```
+(This is not yet fully functional.)
 
 The bus alias is then used in the meter driver specification to specify which
 bus the mbus poll request should be sent to.
 ```
-wmbusmeters MAIN=/dev/ttyUSB0:mbus MyTempMeter piigth:MAIN:2400:mbus 12001932 NOKEY
+wmbusmeters MAIN=/dev/ttyUSB0:mbus:2400 MyTempMeter piigth:MAIN:mbus 12001932 NOKEY
 ```
 
 # Example wmbusmeter.conf file
