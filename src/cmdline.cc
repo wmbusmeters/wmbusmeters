@@ -526,10 +526,10 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--pollevery=", 12) && strlen(argv[i]) > 12) {
-            c->pollevery = parseTime(argv[i]+12);
-            if (c->pollevery <= 0) {
-                error("Not a valid time to regularly poll meters. \"%s\"\n", argv[i]+12);
+        if (!strncmp(argv[i], "--pollinterval=", 15) && strlen(argv[i]) > 15) {
+            c->pollinterval = parseTime(argv[i]+15);
+            if (c->pollinterval <= 0) {
+                error("Not a valid time to regularly poll meters. \"%s\"\n", argv[i]+15);
             }
             i++;
             continue;
@@ -625,6 +625,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
 
         MeterInfo mi;
         mi.parse(name, driver, id, key);
+        mi.poll_interval = c->pollinterval;
 
         if (mi.driver == MeterDriver::UNKNOWN &&
             mi.driver_name.str() == "")

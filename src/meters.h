@@ -187,9 +187,7 @@ struct MeterInfo
     vector<Unit> conversions; // Additional units desired in json.
 
     // If this is a meter that needs to be polled.
-    int    poll_seconds; // Poll every x seconds.
-    int    poll_hour_offset; // Instead of
-    string poll_time_period; // Poll only during these hours.
+    int    poll_interval; // Poll every x seconds.
 
     MeterInfo()
     {
@@ -432,6 +430,9 @@ struct Meter
     virtual string datetimeOfUpdateHumanReadable() = 0;
     virtual string datetimeOfUpdateRobot() = 0;
     virtual string unixTimestampOfUpdate() = 0;
+    virtual time_t timestampLastUpdate() = 0;
+    virtual void setPollInterval(time_t interval) = 0;
+    virtual time_t pollInterval() = 0;
 
     virtual void setNumericValue(FieldInfo *fi, Unit u, double v) = 0;
     virtual double getNumericValue(FieldInfo *fi, Unit u) = 0;

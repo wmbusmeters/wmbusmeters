@@ -1,4 +1,14 @@
 
+Using :mbus as suffix to the meter driver now works to poll a meter of mbus instead of
+listening to wmbus telegrams.
+
+wmbusmeters --pollinterval=1h --format=json MAIN=/dev/ttyUSB0:mbus MyTemp piigth:MAIN:2400:mbus 12301234 NOKEY
+
+Added --pollinterval=<time> to set the poll interval for all meters to 10 minutes.
+As <time> you can say 5s 10m 11h etc.
+
+Added --ppjson to pretty print json, ie add newlines and indentation.
+
 Alexander Streit added support for the Zenner Zelsius C5 ISF heat meter. Thanks Alexander!
 
 Version 1.7.0: 2022-03-28

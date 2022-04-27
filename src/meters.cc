@@ -695,6 +695,7 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     ids_ = mi.ids;
     idsc_ = toIdsCommaSeparated(ids_);
     link_modes_ = mi.link_modes;
+    poll_interval_= mi.poll_interval;
 
     if (mi.key.length() > 0)
     {
@@ -1016,6 +1017,14 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
 {
     if (link_modes_.has(LinkMode::MBUS))
     {
+        time_t now = time(NULL);
+        time_t next_poll_time = timestampLastUpdate()+pollInterval();
+        if (now < next_poll_time)
+        {
+            // Not yet time to poll this meter.
+            return;
+        }
+
         WMBus *bus_device = bus_manager->findBus(bus());
 
         if (!bus_device)
@@ -1168,6 +1177,21 @@ string MeterCommonImplementation::unixTimestampOfUpdate()
     memset(ut, 0, sizeof(ut));
     snprintf(ut, sizeof(ut)-1, "%lu", datetime_of_update_);
     return string(ut);
+}
+
+time_t MeterCommonImplementation::timestampLastUpdate()
+{
+    return datetime_of_update_;
+}
+
+void MeterCommonImplementation::setPollInterval(time_t interval)
+{
+    poll_interval_ = interval;
+}
+
+time_t MeterCommonImplementation::pollInterval()
+{
+    return poll_interval_;
 }
 
 bool needsPolling(MeterDriver d, DriverName& dn)

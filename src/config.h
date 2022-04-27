@@ -96,7 +96,7 @@ struct Configuration
     std::string logfile;
     bool json {};
     bool pretty_print_json {};
-    int  pollevery {}; // Time between polling.
+    int  pollinterval = 60*10; // Time between polling, default 10 minutes.
     bool fields {};
     char separator { ';' };
     std::vector<std::string> telegram_shells;

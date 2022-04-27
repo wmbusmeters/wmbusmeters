@@ -283,7 +283,7 @@ As {options} you can use:
     --normal for normal logging
     --oneshot wait for an update from each meter, then quit
     --ppjson pretty print the json
-    --pollevery=<time> time between polling of meters, default is 10m
+    --pollinterval=<time> time between polling of meters, default is 10m
     --resetafter=<time> reset the wmbus dongle regularly, default is 23h
     --selectfields=id,timestamp,total_m3 select only these fields to be printed (--listfields=<meter> to list available fields)
     --separator=<c> change field separator to c

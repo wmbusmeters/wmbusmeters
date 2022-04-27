@@ -62,6 +62,10 @@ struct MeterCommonImplementation : public virtual Meter
     string datetimeOfUpdateHumanReadable();
     string datetimeOfUpdateRobot();
     string unixTimestampOfUpdate();
+    time_t timestampLastUpdate();
+    void setPollInterval(time_t interval);
+    time_t pollInterval();
+
 
     void onUpdate(function<void(Telegram*,Meter*)> cb);
     int numUpdates();
@@ -236,6 +240,7 @@ private:
     LinkModeSet link_modes_ {};
     vector<string> shell_cmdlines_;
     vector<string> extra_constant_fields_;
+    time_t poll_interval_ {};
 
 protected:
     vector<Unit> conversions_;
