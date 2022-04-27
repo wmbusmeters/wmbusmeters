@@ -447,7 +447,7 @@ void setup_meters(Configuration *config, MeterManager *manager)
     {
         m.conversions = config->conversions;
 
-        if (needsPolling(m.driver, m.driver_name))
+        if (m.link_modes.has(LinkMode::MBUS) || needsPolling(m.driver, m.driver_name))
         {
             // A polling meter must be defined from the start.
             auto meter = createMeter(&m);

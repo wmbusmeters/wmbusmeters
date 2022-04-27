@@ -674,6 +674,7 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
 {
     ids_ = mi.ids;
     idsc_ = toIdsCommaSeparated(ids_);
+    link_modes_ = mi.link_modes;
 
     if (mi.key.length() > 0)
     {
@@ -693,6 +694,7 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
 {
     ids_ = mi.ids;
     idsc_ = toIdsCommaSeparated(ids_);
+    link_modes_ = mi.link_modes;
 
     if (mi.key.length() > 0)
     {
@@ -2177,7 +2179,8 @@ bool MeterInfo::parse(string n, string d, string i, string k)
     // The : colon is forbidden inside the parts.
     vector<string> parts = splitString(d, ':');
 
-    // Example piigth:MAIN:2400
+    // Example piigth:MAIN:2400 // it is an mbus meter.
+    //         c5isf:MAIN:2400:mbus // attached to mbus instead of t1
     //         multical21:c1
     //         telco:BUS2:c2
     // driver ( extras ) : bus_alias : bps : linkmodes
@@ -2440,7 +2443,7 @@ bool Address::parse(string &s)
     if (!isValidMatchExpression(parts[0], true))
     {
         // Not a long id, so lets check if it is 0-250.
-        for (int i=0; i < parts[0].length(); ++i)
+        for (size_t i=0; i < parts[0].length(); ++i)
         {
             if (!isdigit(parts[0][i])) return false;
         }
