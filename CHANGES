@@ -1,4 +1,6 @@
 
+Add detection of bad CUL firmware.
+
 Using :mbus as suffix to the meter driver now works to poll a meter of mbus instead of
 listening to wmbus telegrams.
 

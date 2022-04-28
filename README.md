@@ -483,7 +483,9 @@ With the latest rtlwmbus you can listen to s1, c1 and t1 at
 the same time.
 
 The cul dongle can listen to either s1, c1 or t1, but only
-one at a time.
+one at a time. Note that the cul dongle is limited to shorter telegrams.
+There is a firmware fix that allows somewhat longer, but still
+not full length telegrams. Read the wiki to find this firmware.
 
 The rc1180 dongle can listen only to t1.
 

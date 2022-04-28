@@ -155,8 +155,8 @@ void WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     } else if (lms.has(LinkMode::T1)) {
         msg[2] = 't';
     }
-    msg[3] = 0xa;
-    msg[4] = 0xd;
+    msg[3] = 0xd;
+    msg[4] = 0xa;
 
     verbose("(cul) set link mode %c\n", msg[2]);
     sent_command_ = string(&msg[0], &msg[3]);
@@ -188,8 +188,8 @@ void WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     msg[0] = 'X';
     msg[1] = '2'; // 6
     msg[2] = '1'; // 7
-    msg[3] = 0xa;
-    msg[4] = 0xd;
+    msg[3] = 0xd;
+    msg[4] = 0xa;
 
     sent = serial()->send(msg);
 
@@ -327,8 +327,16 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         vector<uchar> hex;
         // If reception is started with X01, then there are no RSSI bytes.
         // If started with X21, then there are two RSSI bytes (4 hex digits at the end).
-        // Now we always start with X01.
+        // Now we always start with X21.
         hex.insert(hex.end(), data.begin()+2, data.begin()+eolp-eof_len-4); // Remove CRLF, RSSI and LQI
+
+        if (hex.size() % 2 == 1)
+        {
+            warning("(cul) Warning! Your cul firmware has a bug that prevents longer telegrams from being received.!\n");
+            warning("(cul) Please read: https://github.com/weetmuts/wmbusmeters/issues/390\n");
+            warning("(cul)         and: https://weetmuts.github.io/wmbusmeterswiki/nanoCUL.html\n");
+        }
+
         payload.clear();
         bool ok = hex2bin(hex, &payload);
         if (!ok)
@@ -355,8 +363,16 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         vector<uchar> hex;
         // If reception is started with X01, then there are no RSSI bytes.
         // If started with X21, then there are two RSSI bytes (4 hex digits at the end).
-        // Now we always start with X01.
+        // Now we always start with X21.
         hex.insert(hex.end(), data.begin()+1, data.begin()+eolp-eof_len-4); // Remove CRLF, RSSI and LQI
+
+        if (hex.size() % 2 == 1)
+        {
+            warning("(cul) Warning! Your cul firmware has a bug that prevents longer telegrams from being received.!\n");
+            warning("(cul) Please read: https://github.com/weetmuts/wmbusmeters/issues/390\n");
+            warning("(cul)         and: https://weetmuts.github.io/wmbusmeterswiki/nanoCUL.html\n");
+        }
+
         payload.clear();
         bool ok = hex2bin(hex, &payload);
         if (!ok)

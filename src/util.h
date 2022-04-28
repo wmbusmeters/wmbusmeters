@@ -52,6 +52,7 @@ bool isHexStringFlex(const std::string &txt, bool *invalid);
 // Strict strings contain only hexadecimal digits.
 bool isHexStringStrict(const char* txt, bool *invalid);
 bool isHexStringStrict(const std::string &txt, bool *invalid);
+int char2int(char input);
 bool hex2bin(const char* src, std::vector<uchar> *target);
 bool hex2bin(std::string &src, std::vector<uchar> *target);
 bool hex2bin(std::vector<uchar> &src, std::vector<uchar> *target);
