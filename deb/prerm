@@ -1,6 +1,0 @@
-#!/bin/bash
-
-# Stop the service
-
-echo "Stopping any wmbusmeters.service running..."
-systemctl stop wmbusmeters.service || true

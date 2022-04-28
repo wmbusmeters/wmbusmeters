@@ -1,0 +1,118 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: wmbusmeters
+Source:  https://github.com/weetmuts/wmbusmeters
+Upstream-Contact: Fredrik Öhrström <oehrstroem@gmail.com>
+
+Files: *
+Copyright: 2017-2022 Fredrik Öhrström <oehrstroem@gmail.com>
+License: GPL-3+
+
+Files: src/aes.cc
+Copyright: 2019 kokke
+License: CC0
+
+Files: src/aes.h
+Copyright: 2019 kokke
+License: CC0
+
+Files: src/driver_iperl.cc
+Copyright: 2022 Fredrik Öhrström
+           2018 David Mallon
+License: GPL-3+
+
+Files: src/driver_minomess.cc
+Copyright: 2021 Olli Salonen
+License: GPL-3+
+
+Files: src/driver_sharky774.cc
+Copyright: 2021 Vincent Privat
+           2022 Fredrik Öhrström
+License: GPL-3+
+
+Files: src/driver_sharky.cc
+Copyright: 2021 Vincent Privat
+License: GPL-3+
+
+Files: src/manufacturer_specificities.cc
+Copyright: 2019 Jacek Tomasiak
+           2021 Vincent Privat
+License: GPL-3+
+
+Files: src/manufacturer_specificities.h
+Copyright: 2019 Jacek Tomasiak
+           2021 Vincent Privat
+License: GPL-3+
+
+Files: src/meter_emerlin868.cc
+Copyright: 2020 Fredrik Öhrström
+           2018 David Mallon
+License: GPL-3+
+
+Files: src/meter_ev200.cc
+Copyright: 2020 Fredrik Öhrström
+           2018 David Mallon
+License: GPL-3+
+
+Files: src/meter_hydrus.cc
+Copyright: 2020 Fredrik Öhrström
+           2021 Vincent Privat
+License: GPL-3+
+
+Files: src/meter_izar.cc
+Copyright: 2019 Jacek Tomasiak
+           2020 Fredrik Öhrström
+           2021 Vincent Privat
+License: GPL-3+
+
+Files: src/meter_multical403.cc
+Copyright: 2020 Fredrik Öhrström
+           2020 Eric Bus
+License: GPL-3+
+
+Files: src/meter_multical602.cc
+Copyright: 2021 Fredrik Öhrström
+           2020 Eric Bus
+License: GPL-3+
+
+Files: src/meter_multical603.cc
+Copyright: 2020 Fredrik Öhrström
+           2020 Eric Bus
+License: GPL-3+
+
+Files: src/meter_multical803.cc
+Copyright: 2020 Fredrik Öhrström
+           2020 Eric Bus
+           2020 Nikodem Jędrzejczak
+License: GPL-3+
+
+Files: src/meter_sensostar.cc
+Copyright: 2020 Patrick Schwarz
+License: GPL-3+
+
+Files: src/meter_topaseskr.cc
+Copyright: 2020 Fredrik Öhrström
+           2020 Avandorp
+License: GPL-3+
+
+Files: src/sha256.cc
+Copyright: 2013 Tom St Denis <tomstdenis@gmail.com>
+           2013 WaterJuice <waterjuice.org>
+License: CC0
+
+Files: src/sha256.h
+Copyright: 2013 Tom St Denis <tomstdenis@gmail.com>
+           2013 WaterJuice <waterjuice.org>
+License: CC0
+
+License: GPL-3+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ version 3 can be found in file "/usr/share/common-licenses/GPL-3".
+
+License: CC0
+ The authors, and therefore would be copyright holders, have as much
+ as possible relinguished their copyright to the public domain.

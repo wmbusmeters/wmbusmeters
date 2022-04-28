@@ -1,6 +1,16 @@
 #!/bin/sh
 
-ADD_WMBUSMETERS_USER
+set -e
 
-# Start wmbusmeters service
-systemctl start wmbusmeters.service
+# Add the wmbusmeters group unless it's already there
+addgroup --quiet --system wmbusmeters || true
+
+# creating wmbusmeters user unless it's already there
+if ! getent passwd wmbusmeters >/dev/null; then
+        adduser --system --ingroup wmbusmeters \
+                --home / --no-create-home \
+                --gecos "wmbusmeters daemon" \
+                wmbusmeters
+fi
+
+#DEBHELPER#
