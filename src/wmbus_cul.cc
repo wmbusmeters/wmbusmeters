@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -410,8 +410,8 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
         // get the version string: "V 1.67 nanoCUL868" or similar
         vector<uchar> msg(3);
         msg[0] = CMD_GET_VERSION; // V
-        msg[1] = 0x0a;
-        msg[2] = 0x0d;
+        msg[1] = 0x0d;
+        msg[2] = 0x0a;
 
         bool ok = serial->send(msg);
         if (!ok)
