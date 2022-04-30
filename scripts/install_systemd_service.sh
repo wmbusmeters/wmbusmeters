@@ -52,7 +52,7 @@ RestartSec=1
 # Run ExecStartPre with root-permissions
 
 PermissionsStartOnly=true
-ExecStartPre=-/bin/mkdir -p /var/log/wmbusmeters/meter_readings
+ExecStartPre=-/bin/mkdir -p /var/lib/wmbusmeters/meter_readings
 ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/log/wmbusmeters
 ExecStartPre=-/bin/mkdir -p /run/wmbusmeters
 ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /run/wmbusmeters

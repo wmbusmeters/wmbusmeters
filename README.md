@@ -133,7 +133,7 @@ device=auto:c1
 donotprobe=/dev/ttyACM2
 logtelegrams=false
 format=json
-meterfiles=/var/log/wmbusmeters/meter_readings
+meterfiles=/var/lib/wmbusmeters/meter_readings
 meterfilesaction=overwrite
 meterfilesnaming=name
 meterfilestimestamp=day
@@ -165,7 +165,7 @@ exists inside the same directory as the wmbusmeters executable. If not you will 
 error message `(rtlwmbus) error: when starting as daemon, wmbusmeters looked for .../rtl_wmbus and /usr/bin/rtl_wmbus, but found neither!`
 and the daemon will refuse to start.)
 
-The latest reading of the meter can also be found here: `/var/log/wmbusmeters/meter_readings/MyTapWater`
+The latest reading of the meter can also be found here: `/var/lib/wmbusmeters/meter_readings/MyTapWater`
 
 You can use several ids using `id=1111111,2222222,3333333` or you can listen to all
 meters of a certain type `id=*` or you can suffix with star `id=8765*` to match
@@ -745,7 +745,7 @@ Binary generated: `./build_arm_debug/wmbusmeters`
 creates these directories:
 
 `/etc/wmbusmeters.d`
-`/var/log/wmbusmeters/meter_readings`
+`/var/lib/wmbusmeters/meter_readings`
 
 and adds the user `wmbusmeters` with no login account.
 

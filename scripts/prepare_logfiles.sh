@@ -3,17 +3,17 @@
 
 ####################################################################
 ##
-## Prepare for  /var/log/wmbusmeters and /var/log/wmbusmeters/meter_readings
+## Prepare for  /var/log/wmbusmeters and /var/lib/wmbusmeters/meter_readings
 ##
 
-if [ ! -d "$ROOT"/var/log/wmbusmeters/meter_readings ]
+if [ ! -d "$ROOT"/var/lib/wmbusmeters/meter_readings ]
 then
     # Create the log directories
-    mkdir -p "$ROOT"/var/log/wmbusmeters/meter_readings
-    chown -R wmbusmeters:wmbusmeters "$ROOT"/var/log/wmbusmeters
-    echo "log: created $ROOT/var/log/wmbusmeters/meter_readings"
+    mkdir -p "$ROOT"/var/lib/wmbusmeters/meter_readings
+    chown -R wmbusmeters:wmbusmeters "$ROOT"/var/lib/wmbusmeters
+    echo "log: created $ROOT/var/lib/wmbusmeters/meter_readings"
 else
-    echo "log: $ROOT/var/log/wmbusmeters/meter_readings unchanged"
+    echo "log: $ROOT/var/lib/wmbusmeters/meter_readings unchanged"
 fi
 
 ####################################################################

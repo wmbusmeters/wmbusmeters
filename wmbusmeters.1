@@ -119,7 +119,9 @@ Add :verbose to any analyze to get more verbose analyze output.
 
 .SH DEVICES
 .TP
-\fBauto:c1\fR detect any serially connected wmbus dongles and rtl_sdr dongles and configure them for c1 mode. Always try to use auto first.
+\fBauto:c1\fR detect any serially connected wmbus dongles and rtl_sdr dongles and configure them for c1 mode.
+Use auto to detect your dongle when testing, but then in production, state explicitly the dongle you are using.
+This will reduce the amount of probing done on the serial ports.
 
 .TP
 \fBim871a:t1\fR look for an im871a dongle attached to any of the serial ttys and configure it for t1 mode.
@@ -214,9 +216,9 @@ device=im871a[12345678]:c1
 device=rtlwmbus:433M:c1,t1
 logtelegrams=false
 format=json
-# Remove meterfiles to spare precious flash memory when only
+# Remember to remove meterfiles to spare precious flash memory when only
 # relaying data using for example mqtt.
-meterfiles=/var/log/wmbusmeters/meter_readings
+meterfiles=/var/lib/wmbusmeters/meter_readings
 meterfilesaction=overwrite
 meterfilesnaming=name
 meterfilestimestamp=day

@@ -12,10 +12,11 @@ then
     mkdir -p "$ROOT"/etc/
     cat <<EOF > "$ROOT"/etc/wmbusmeters.conf
 loglevel=normal
+# Remember to change auto here to the device you are going to use in production.
 device=auto:t1
 logtelegrams=false
 format=json
-meterfiles=/var/log/wmbusmeters/meter_readings
+meterfiles=/var/lib/wmbusmeters/meter_readings
 meterfilesaction=overwrite
 logfile=/var/log/wmbusmeters/wmbusmeters.log
 EOF
