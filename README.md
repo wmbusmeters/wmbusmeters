@@ -56,11 +56,10 @@ Wmbusmeters will scan for wmbus devices every few seconds and detect whenever
 a device is plugged in or removed. However since wmbusmeters now supports
 several dongle types, the scan can take some time!
 
-It is recommended that you use `auto` to find your dongle, then, when
-you know the exact device path, you write for example:
-`device=/dev/ttyUSB0:im871a:c1,t1` in the configuration file or on the
-command line. This will skip the slow probing for all possible dongles
-when wmbusmeters starts up.
+Use `auto` for testing and to find your dongle. For production it is very much
+recommended that you change `auto:t1` to the device name with the full device path
+(eg `/dev/ttyUSB0:im871a:c1,t1`). This will skip the slow probing for all possible
+wmbus dongles when wmbusmeters startup.
 
 If the serial device (ttyUSB0) might change you can also use `device=im871a:c1,t1`
 which will probe all serial devices but only scans for im871a which also speeds it up.
@@ -81,7 +80,7 @@ You can also start the daemon with another set of config files:
 `wmbusmetersd --useconfig=/home/wmbusmeters /tmp/thepidfile`
 
 Check the config file /etc/wmbusmeters.conf and edit the device. For example:
-`auto:c1` or `im871a:c1,t1` or `im871a[457200101056]:t1` or `/dev/ttyUSB2:amb8465:c1,t1`
+`/dev/ttyUSB1:amb8465:c1,t1` or `im871a:c1,t1` or `im871a[457200101056]:t1`.
 
 Adding a device like auto or im871a will trigger an automatic probe of all serial ttys
 to auto find or to find on which tty the im871a resides.
@@ -127,8 +126,9 @@ wmbusmeters MAIN=/dev/ttyUSB0:mbus:2400 MyTempMeter piigth:MAIN:mbus 12001932 NO
 
 ```ini
 loglevel=normal
-# Search for a wmbus device and set it to c1.
-device=auto:c1
+# You can use auto:t1 to find the device you have connected to your system.
+# But do not use auto here since it will cause unnecessary and slow probing of the serial ports.
+device=/dev/ttyUSB0:im871a:c1,t1
 # But do not probe this serial tty.
 donotprobe=/dev/ttyACM2
 logtelegrams=false
@@ -151,11 +151,34 @@ Then add a meter file in /etc/wmbusmeters.d/MyTapWater
 name=MyTapWater
 id=12345678
 key=00112233445566778899AABBCCDDEEFF
+driver=multical21
 ```
 
-Meter driver detection will be automatic. You can also provide an
-explicit driver name with: `driver=multical21:c1` or explicitly state
-that driver detection is automatic: `driver=auto`.
+# Important information about meter drivers and their names.
+
+You can use `driver=auto` to have wmbusmeters automatically detect
+and use the best driver for your meter, but you should not use auto in production.
+
+You can find out which driver is recommended by running `wmbusmeters im871a:t1`.
+This will print information like:
+```
+Received telegram from: 71727374
+          manufacturer: (BMT) BMETERS, Italy (0x9b4)
+                  type: Heat/Cooling load meter (0x0d) encrypted
+                   ver: 0x0b
+                driver: hydrocalm3
+```
+
+For production use it is very much recommended that you specify the exact driver
+in the meter file. The reason is that new and better drivers might be developed
+for your meter, where the keys and the content of the json might change.
+Such new drivers are guaranteed to have a different driver name!
+The auto look up will change to the new driver, but the old driver will still work.
+
+So wmbusmeters makes a guarantee that if you have specified the driver name,
+then wmbusmeters can be safely upgraded at any time. The json will not
+change in an incompatible way. (The only allowed changes are: adding new fields
+and changing the ordering.)
 
 Now plugin your wmbus dongle.
 Wmbusmeters should start automatically, check with `tail -f /var/log/syslog` and `tail -f /var/log/wmbusmeters/wmbusmeters.log`
