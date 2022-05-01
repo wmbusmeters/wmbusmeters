@@ -447,7 +447,7 @@ void setup_meters(Configuration *config, MeterManager *manager)
     {
         m.conversions = config->conversions;
 
-        if (m.needsPolling() || driverNeedsPolling(m.driver, m.driver_name))
+        if (m.usesPolling() || driverNeedsPolling(m.driver, m.driver_name))
         {
             // A polling meter must be defined from the start.
             auto meter = createMeter(&m);

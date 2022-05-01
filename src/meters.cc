@@ -670,7 +670,7 @@ shared_ptr<MeterManager> createMeterManager(bool daemon)
 
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
                                                      string driver) :
-    driver_(driver), bus_(mi.bus), name_(mi.name)
+    driver_(driver), bus_(mi.bus), name_(mi.name), waiting_for_poll_response_sem_("waiting_for_poll_response")
 {
     ids_ = mi.ids;
     idsc_ = toIdsCommaSeparated(ids_);
@@ -690,7 +690,8 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
 
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
                                                      DriverInfo &di) :
-    type_(di.type()), driver_(di.name().str()), driver_name_(di.name()), bus_(mi.bus), name_(mi.name)
+    type_(di.type()), driver_(di.name().str()), driver_name_(di.name()), bus_(mi.bus), name_(mi.name),
+    waiting_for_poll_response_sem_("waiting_for_poll_response")
 {
     ids_ = mi.ids;
     idsc_ = toIdsCommaSeparated(ids_);
@@ -1015,7 +1016,7 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
 
 void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
 {
-    if (needsPolling())
+    if (usesPolling())
     {
         // An valid poll interval must have been set!
         if (pollInterval() <= 0) return;
@@ -1130,6 +1131,11 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
                     bus_device->busAlias().c_str());
             bus_device->serial()->send(buf);
         }
+        bool ok = waiting_for_poll_response_sem_.wait();
+        if (!ok)
+        {
+            warning("(meter) %s %s did not send a response!\n", name().c_str(), idsc().c_str());
+        }
     }
 }
 
@@ -1196,7 +1202,7 @@ time_t MeterCommonImplementation::timestampLastUpdate()
 void MeterCommonImplementation::setPollInterval(time_t interval)
 {
     poll_interval_ = interval;
-    if (needsPolling() && poll_interval_ == 0)
+    if (usesPolling() && poll_interval_ == 0)
     {
         warning("(meter) %s %s needs polling but has no pollinterval set!\n", name().c_str(), idsc().c_str());
     }
@@ -1207,7 +1213,7 @@ time_t MeterCommonImplementation::pollInterval()
     return poll_interval_;
 }
 
-bool MeterCommonImplementation::needsPolling()
+bool MeterCommonImplementation::usesPolling()
 {
     return link_modes_.has(LinkMode::MBUS) ||
         link_modes_.has(LinkMode::C2) ||
@@ -1612,7 +1618,7 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     }
 
     *id_match = true;
-    verbose("(meter) %s %s handling telegram from %s\n", name().c_str(), meterDriver().c_str(), t.ids.back().c_str());
+    verbose("(meter) %s(%d) %s  handling telegram from %s\n", name().c_str(), index(), meterDriver().c_str(), t.ids.back().c_str());
 
     if (isDebugEnabled())
     {
@@ -1631,6 +1637,11 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     char log_prefix[256];
     snprintf(log_prefix, 255, "(%s) log", meterDriver().c_str());
     logTelegram(t.original, t.frame, t.header_size, t.suffix_size);
+
+    if (usesPolling())
+    {
+        waiting_for_poll_response_sem_.notify();
+    }
 
     // Invoke standardized field extractors!
     processFieldExtractors(&t);
@@ -2116,7 +2127,7 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
         shared_ptr<Meter> newm = di.construct(*mi);
         newm->addConversions(mi->conversions);
         newm->setPollInterval(mi->poll_interval);
-        verbose("(meter) constructed \"%s\" \"%s\" \"%s\" %s\n",
+        verbose("(meter) created %s %s %s %s\n",
                 mi->name.c_str(),
                 di.name().str().c_str(),
                 mi->idsc.c_str(),
@@ -2132,7 +2143,7 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
             newm = create##cname(*mi);                      \
             newm->addConversions(mi->conversions);          \
             newm->setPollInterval(mi->poll_interval);       \
-            verbose("(meter) created \"%s\" \"" #mname "\" \"%s\" %s\n", \
+            verbose("(meter) created %s " #mname " %s %s\n", \
                     mi->name.c_str(), mi->idsc.c_str(), keymsg);              \
             return newm;                                                \
         }                                                               \
@@ -2279,7 +2290,7 @@ bool MeterInfo::parse(string n, string d, string i, string k)
     return true;
 }
 
-bool MeterInfo::needsPolling()
+bool MeterInfo::usesPolling()
 {
     return link_modes.has(LinkMode::MBUS) ||
         link_modes.has(LinkMode::C2) ||

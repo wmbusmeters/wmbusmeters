@@ -20,6 +20,7 @@
 
 #include"dvparser.h"
 #include"meters.h"
+#include"threads.h"
 #include"units.h"
 
 #include<map>
@@ -65,7 +66,7 @@ struct MeterCommonImplementation : public virtual Meter
     time_t timestampLastUpdate();
     void setPollInterval(time_t interval);
     time_t pollInterval();
-    bool needsPolling();
+    bool usesPolling();
 
     void onUpdate(function<void(Telegram*,Meter*)> cb);
     int numUpdates();
@@ -252,6 +253,8 @@ protected:
     std::map<pair<std::string,Quantity>,NumericField> numeric_values_;
     // Map field name (at_date) to string value.
     std::map<std::string,StringField> string_values_;
+    // Used to block further
+    Semaphore waiting_for_poll_response_sem_;
 };
 
 #endif

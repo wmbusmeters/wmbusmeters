@@ -1178,7 +1178,12 @@ bool listFiles(string dir, vector<string> *files)
             // Ignore . ..  dirs.
             continue;
         }
-
+        size_t len = strlen(dptr->d_name);
+        if (len > 0 && dptr->d_name[len-1] == '~')
+        {
+            // Ignore emacs backup files ending in ~
+            continue;
+        }
         files->push_back(string(dptr->d_name));
     }
     closedir(dp);

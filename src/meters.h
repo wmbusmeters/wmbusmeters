@@ -226,7 +226,7 @@ struct MeterInfo
     }
 
     bool parse(string name, string driver, string id, string key);
-    bool needsPolling();
+    bool usesPolling();
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -434,7 +434,7 @@ struct Meter
     virtual time_t timestampLastUpdate() = 0;
     virtual void setPollInterval(time_t interval) = 0;
     virtual time_t pollInterval() = 0;
-    virtual bool needsPolling() = 0;
+    virtual bool usesPolling() = 0;
 
     virtual void setNumericValue(FieldInfo *fi, Unit u, double v) = 0;
     virtual double getNumericValue(FieldInfo *fi, Unit u) = 0;

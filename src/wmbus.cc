@@ -841,7 +841,16 @@ bool expectedMore(int line)
 bool Telegram::parseMBusDLLandTPL(vector<uchar>::iterator &pos)
 {
     int remaining = distance(pos, frame.end());
-    if (remaining < 5) return expectedMore(__LINE__);
+
+    if (remaining == 1 && *pos == 0xE5)
+    {
+        addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "E5");
+        return true;
+    }
+
+    if (remaining < 5) {
+        return expectedMore(__LINE__);
+    }
 
     debug("(mbus) parse MBUS DLL @%d %d\n", distance(frame.begin(), pos), remaining);
     debugPayload("(mbus) ", frame);
@@ -4002,10 +4011,21 @@ bool WMBusCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     bool handled = false;
     last_received_ = time(NULL);
 
-    if (ignore_duplicate_telegrams_ && seen_this_telegram_before(frame))
+    if (ignore_duplicate_telegrams_ && about.type == FrameType::WMBUS && seen_this_telegram_before(frame))
     {
-        verbose("(wmbus) skipping already handled telegram.\n");
+        verbose("(wmbus) skipping already handled telegram leng=%zu.\n", frame.size());
         return true;
+    }
+
+    if (about.type == FrameType::MBUS && frame.size() == 1)
+    {
+        if (frame[0] == 0xe5)
+        {
+            // Ack from meter, currently ignored.
+            return true;
+        }
+        // Something else that we currently do not understand.
+        return false;
     }
 
     for (auto f : telegram_listeners_)
@@ -4701,7 +4721,7 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
                 return ErrorInFrame;
             }
         }
-        *payload_len_out = 0;
+        *payload_len_out = 1;
         *payload_offset = 0;
         *frame_length = 1;
         if (!only_test)
