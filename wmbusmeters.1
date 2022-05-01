@@ -145,6 +145,9 @@ and the other set to beta. Alfa has an antenna tuned for 433M, beta has an anten
 \fB/dev/ttyUSB0:9600\fR read serial data from tty at 9600 bps, expects raw wmbus frames with the DLL crcs removed.
 
 .TP
+\fBMAIN=/dev/ttyUSB0:mbus:2400\fR expect an serial to mbus master converter on ttyUSB0.
+
+.TP
 \fBstdin:rtlwmbus\fR read rtlwmbus formatted data from stdin.
 
 .TP
@@ -198,6 +201,10 @@ set using rtl_eeprom. Assuming you want to listen to multiple frequencies, one d
 has one type of antenna attached.
 
 % wmbusmeters rtlwmbus[alfa]:433M:t1 rtlwmbus[beta]:868.9M:c1
+
+You can query an mbus meter:
+
+% wmbusmeters MAIN=/dev/ttyUSB0:mbus:2400 MyTempMeter piigth:MAIN:mbus 12001932 NOKEY
 
 .TP
 Execute using config file /home/me/etc/wmbusmeters.conf and meter config files in /home/me/etc/wmbusmeters.d

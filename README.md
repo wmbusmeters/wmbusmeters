@@ -110,9 +110,9 @@ here we pick the bus alias MAIN for the mbus using 2400 bps for all meters on th
 ```
 MAIN=/dev/ttyUSB0:mbus:2400
 ```
-and here we pick the bus alias OUT for an im871a dongle:
+and here we pick the bus alias RADIOMAIN for an im871a dongle:
 ```
-OUT=/dev/ttyUSB1:im871a:c2
+RADIOMAIN=/dev/ttyUSB1:im871a:c2
 ```
 
 The bus alias is then used in the meter driver specification to specify which
@@ -354,7 +354,8 @@ rtlsdr dongle like this `rtlwmbus[1234]`.
 `/dev/ttyUSB0:38400`, to have wmbusmeters set the baud rate to 38400 and listen for raw wmbus telegrams.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
-`MAIN=/dev/ttyUSB0`
+`MAIN=/dev/ttyUSB0:mbus:2400`, assume ttyUSB0 is an serial to mbus-master converter.  The speed is set to 2400 bps.
+
 `rtlwmbus`, to spawn the background process: `rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s`
 for each attached rtlsdr dongle. This will listen to S1,T1 and C1 meters in parallel.
 
@@ -407,7 +408,7 @@ The telegrams are allowed to have valid dll crcs, which will be automatically st
 As meter quadruples you specify:
 
 * `<meter_name>`: a mnemonic for this particular meter (!Must not contain a colon ':' character!)
-* `<meter_driver>`: use `auto` or one of the supported meters (can be suffixed with `:<mode>` to specify which mode you expect the meter to use when transmitting)
+* `<meter_driver>`: use `auto` or one of the supported meters (can be suffixed with: `:<bus_alias>` for selecting which bus where we should send the poll requests  `:<mode>` to specify which mode you expect the meter to use when transmitting)
 * `<meter_id>`: an 8 digit mbus id, usually printed on the meter
 * `<meter_key>`: an encryption key unique for the meter
   if the meter uses no encryption, then supply `NOKEY`
