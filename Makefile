@@ -38,6 +38,7 @@ endif
 ifeq "$(DEBUG)" "true"
     DEBUG_FLAGS=-O0 -ggdb -fsanitize=address -fno-omit-frame-pointer -fprofile-arcs -ftest-coverage
     STRIP_BINARY=
+    STRIP_ADMIN=
     BUILD:=$(BUILD)_debug
     ifneq '' '$(findstring clang++,$(CXX))'
         DEBUG_LDFLAGS=-fsanitize=address --coverage
@@ -49,15 +50,32 @@ ifeq "$(DEBUG)" "true"
 else
     DEBUG_FLAGS=-Os -g
     STRIP_BINARY=cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters.g; $(STRIP) $(BUILD)/wmbusmeters
+    STRIP_ADMIN=cp $(BUILD)/wmbusmeters-admin $(BUILD)/wmbusmeters-admin.g; $(STRIP) $(BUILD)/wmbusmeters-admin
     GCOV=To_run_gcov_add_DEBUG=true
 endif
 
 $(shell mkdir -p $(BUILD))
 
-COMMIT_HASH?=$(shell git log --pretty=format:'%H' -n 1)
-TAG?=$(shell git describe --tags)
-BRANCH?=$(shell git rev-parse --abbrev-ref HEAD)
-CHANGES?=$(shell git status -s | grep -v '?? ')
+define DQUOTE
+"
+endef
+
+#' make editor quote matching happy.
+
+SUPRE=
+SUPOST=
+ifneq ($(SUDO_USER),)
+# Git has a security check to prevent the wrong user from running inside the git repository.
+# When we run "sudo make install" this will create problems since git is running as root instead.
+# Use SUPRE/SUPOST to use su to switch back to the user for the git commands.
+SUPRE=su -c $(DQUOTE)
+SUPOST=$(DQUOTE) $(SUDO_USER)
+endif
+
+COMMIT_HASH?=$(shell $(SUPRE) git log --pretty=format:'%H' -n 1 $(SUPOST))
+TAG?=$(shell $(SUPRE) git describe --tags $(SUPOST))
+BRANCH?=$(shell $(SUPRE) git rev-parse --abbrev-ref HEAD $(SUPOST))
+CHANGES?=$(shell $(SUPRE) git status -s | grep -v '?? ' $(SUPOST))
 
 ifeq ($(BRANCH),master)
   BRANCH:=
@@ -80,8 +98,10 @@ $(shell echo "#define COMMIT \"$(COMMIT_HASH)\"" >> $(BUILD)/version.h.tmp)
 
 PREV_VERSION:=$(shell cat -n $(BUILD)/version.h 2> /dev/null)
 CURR_VERSION:=$(shell cat -n $(BUILD)/version.h.tmp 2>/dev/null)
+
 ifneq ($(PREV_VERSION),$(CURR_VERSION))
 $(shell mv $(BUILD)/version.h.tmp $(BUILD)/version.h)
+$(info New version number generates new $(BUILD)/version.h)
 else
 $(shell rm $(BUILD)/version.h.tmp)
 endif
@@ -205,7 +225,8 @@ $(BUILD)/wmbusmeters-admin:
 	touch $(BUILD)/wmbusmeters-admin
 else
 $(BUILD)/wmbusmeters-admin: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters-admin.g $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -lrtlsdr $(USBLIB) -lpthread
+	$(CXX) -o $(BUILD)/wmbusmeters-admin $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -lrtlsdr $(USBLIB) -lpthread
+	$(STRIP_ADMIN)
 endif
 
 $(BUILD)/short_manual.h: README.md
