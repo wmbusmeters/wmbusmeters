@@ -1,0 +1,23 @@
+Source: wmbusmeters
+Section: kernel
+Priority: optional
+Maintainer: Petter Reinholdtsen <pere@debian.org>
+Build-Depends: debhelper-compat (= 13)
+ , librtlsdr-dev
+ , libncurses-dev
+ , rtl-wmbus
+Standards-Version: 4.5.1
+Homepage: https://github.com/weetmuts/wmbusmeters
+Vcs-Browser: https://github.com/weetmuts/wmbusmeters
+Vcs-Git: https://github.com/weetmuts/wmbusmeters.git
+Rules-Requires-Root: no
+
+Package: wmbusmeters
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+ , rtl-wmbus
+Description: read wireless and wired M-BUS telegrams from utility meters
+ Receives and decodes C1,T1 or S1 telegrams (using
+ the wireless or wired mbus protocol) to acquire utility meter
+ readings. The readings can then be published using MQTT,
+ curled to a REST api, inserted into a database or stored in a log file.

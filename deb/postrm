@@ -1,11 +1,16 @@
 #!/bin/bash
 
-# More cleanup?
+set -e
 
-ID=$(id -u wmbusmeters 2>/dev/null)
-
-if [ ! "$ID" = "" ]
-then
-    userdel wmbusmeters
+# FIXME Is it safe to remove userand group on removal, or is it owning
+# any files?
+if false && getent passwd wmbusmeters >/dev/null; then
+    userdel wmbusmetersq
     echo user: removed wmbusmeters
 fi
+if false && getent group wmbusmeters >/dev/null; then
+    groupdel wmbusmeters
+    echo group: removed wmbusmeters
+fi
+
+#DEBHELPER#
