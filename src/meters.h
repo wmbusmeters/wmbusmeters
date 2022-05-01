@@ -226,6 +226,7 @@ struct MeterInfo
     }
 
     bool parse(string name, string driver, string id, string key);
+    bool needsPolling();
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -277,8 +278,8 @@ bool registerDriver(function<void(DriverInfo&di)> setup);
 bool lookupDriverInfo(string& driver, DriverInfo *di);
 // Return the best driver match for a telegram.
 DriverInfo pickMeterDriver(Telegram *t);
-// Return true for mbus and S2/C2/T2 meters.
-bool needsPolling(MeterDriver driver, DriverName& dn);
+// Return true for mbus and S2/C2/T2 drivers.
+bool driverNeedsPolling(MeterDriver driver, DriverName& dn);
 
 vector<DriverInfo>& allRegisteredDrivers();
 
@@ -433,6 +434,7 @@ struct Meter
     virtual time_t timestampLastUpdate() = 0;
     virtual void setPollInterval(time_t interval) = 0;
     virtual time_t pollInterval() = 0;
+    virtual bool needsPolling() = 0;
 
     virtual void setNumericValue(FieldInfo *fi, Unit u, double v) = 0;
     virtual double getNumericValue(FieldInfo *fi, Unit u) = 0;

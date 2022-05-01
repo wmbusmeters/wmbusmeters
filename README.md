@@ -110,11 +110,10 @@ here we pick the bus alias MAIN for the mbus using 2400 bps for all meters on th
 ```
 MAIN=/dev/ttyUSB0:mbus:2400
 ```
-and here we pick the bus alias WIRELESS2 for an im871a dongle:
+and here we pick the bus alias OUT for an im871a dongle:
 ```
-WIRELESS2=/dev/ttyUSB1:im871a:c2
+OUT=/dev/ttyUSB1:im871a:c2
 ```
-(This is not yet fully functional.)
 
 The bus alias is then used in the meter driver specification to specify which
 bus the mbus poll request should be sent to.
@@ -129,6 +128,8 @@ loglevel=normal
 # You can use auto:t1 to find the device you have connected to your system.
 # But do not use auto here since it will cause unnecessary and slow probing of the serial ports.
 device=/dev/ttyUSB0:im871a:c1,t1
+# And mbus
+device=MAIN=/dev/ttyUSB1:mbus:2400
 # But do not probe this serial tty.
 donotprobe=/dev/ttyACM2
 logtelegrams=false
@@ -154,10 +155,19 @@ key=00112233445566778899AABBCCDDEEFF
 driver=multical21
 ```
 
+And an mbus meter file in /etc/wmbusmeters.d/MyTempHygro
+
+```ini
+name=MyTempHygro
+id=11223344
+driver=piigth:mbus
+pollinterval=60s
+```
+
 # Important information about meter drivers and their names.
 
 You can use `driver=auto` to have wmbusmeters automatically detect
-and use the best driver for your meter, but you should not use auto in production.
+and use the best driver for your meter, but you should >not< use auto in production.
 
 You can find out which driver is recommended by running `wmbusmeters im871a:t1`.
 This will print information like:
@@ -172,15 +182,16 @@ Received telegram from: 71727374
 For production use it is very much recommended that you specify the exact driver
 in the meter file. The reason is that new and better drivers might be developed
 for your meter, where the keys and the content of the json might change.
-Such new drivers are guaranteed to have a different driver name!
+Such new drivers are guaranteed to have a different driver name.
 The auto look up will change to the new driver, but the old driver will still work.
 
-So wmbusmeters makes a guarantee that if you have specified the driver name,
+So wmbusmeters strives to guarantee that if you have specified the driver name,
 then wmbusmeters can be safely upgraded at any time. The json will not
 change in an incompatible way. (The only allowed changes are: adding new fields
 and changing the ordering.)
 
 Now plugin your wmbus dongle.
+
 Wmbusmeters should start automatically, check with `tail -f /var/log/syslog` and `tail -f /var/log/wmbusmeters/wmbusmeters.log`
 (If you are using an rtlsdr dongle, then make sure that either the binaries `/usr/bin/rtl_sdr` and
 `/usr/bin/rtl_wmbus` exists and are executable. Or that the executable `rtl_sdr/rtl_wmbus` binaries
@@ -307,7 +318,7 @@ As {options} you can use:
     --normal for normal logging
     --oneshot wait for an update from each meter, then quit
     --ppjson pretty print the json
-    --pollinterval=<time> time between polling of meters, default is 10m
+    --pollinterval=<time> time between polling of meters, must be set to get polling.
     --resetafter=<time> reset the wmbus dongle regularly, default is 23h
     --selectfields=id,timestamp,total_m3 select only these fields to be printed (--listfields=<meter> to list available fields)
     --separator=<c> change field separator to c

@@ -55,6 +55,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     string id;
     string key = "";
     string linkmodes;
+    int poll_interval = 0;
     vector<string> telegram_shells;
     vector<string> alarm_shells;
     vector<string> extra_constant_fields;
@@ -109,6 +110,19 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             debug("(config) key=<notprinted>\n");
         }
         else
+        if (p.first == "pollinterval") {
+            if (poll_interval != 0)
+            {
+                error("You have already specified a poll interval for this meter!\n");
+            }
+            poll_interval = parseTime(p.second);
+
+            if (poll_interval == 0)
+            {
+                error("Poll interval must be non-zero \"%s\"!\n", p.second.c_str());
+            }
+        }
+        else
         if (p.first == "shell") {
             telegram_shells.push_back(p.second);
         }
@@ -136,6 +150,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 
     MeterInfo mi;
     mi.parse(name, driver, id, key); // sets driver, extras, name, bus, bps, link_modes, ids, name, key
+    mi.poll_interval = poll_interval;
 
     /*
     Ignore link mode checking until all drivers have been refactored.

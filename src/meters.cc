@@ -1015,8 +1015,11 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
 
 void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
 {
-    if (link_modes_.has(LinkMode::MBUS))
+    if (needsPolling())
     {
+        // An valid poll interval must have been set!
+        if (pollInterval() <= 0) return;
+
         time_t now = time(NULL);
         time_t next_poll_time = timestampLastUpdate()+pollInterval();
         if (now < next_poll_time)
@@ -1029,7 +1032,7 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
 
         if (!bus_device)
         {
-            debug("(meter) Could not find bus from name \"%s\"\n", bus().c_str());
+            warning("(meter) warning! no bus specified for meter %s %s\n", name().c_str(), idsc().c_str());
             return;
         }
 
@@ -1061,7 +1064,10 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
             buf[3] = cs; // checksum
             buf[4] = 0x16; // Stop
 
-            verbose("(meter) req ud2 bus %s address %s\n", bus_device->busAlias().c_str(),id.c_str());
+            verbose("(meter) polling %s %s (primary) with req ud2 on bus %s\n",
+                    name().c_str(),
+                    id.c_str(),
+                    bus_device->busAlias().c_str(),id.c_str());
             bus_device->serial()->send(buf);
         }
 
@@ -1118,7 +1124,10 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
             buf[3] = cs; // checksum
             buf[4] = 0x16; // Stop
 
-            verbose("(meter) req ud2 bus %s address %s\n", bus_device->busAlias().c_str(),id.c_str());
+            verbose("(meter) polling %s %s (secondary) with req ud2 bus %s\n",
+                    name().c_str(),
+                    id.c_str(),
+                    bus_device->busAlias().c_str());
             bus_device->serial()->send(buf);
         }
     }
@@ -1187,6 +1196,10 @@ time_t MeterCommonImplementation::timestampLastUpdate()
 void MeterCommonImplementation::setPollInterval(time_t interval)
 {
     poll_interval_ = interval;
+    if (needsPolling() && poll_interval_ == 0)
+    {
+        warning("(meter) %s %s needs polling but has no pollinterval set!\n", name().c_str(), idsc().c_str());
+    }
 }
 
 time_t MeterCommonImplementation::pollInterval()
@@ -1194,7 +1207,15 @@ time_t MeterCommonImplementation::pollInterval()
     return poll_interval_;
 }
 
-bool needsPolling(MeterDriver d, DriverName& dn)
+bool MeterCommonImplementation::needsPolling()
+{
+    return link_modes_.has(LinkMode::MBUS) ||
+        link_modes_.has(LinkMode::C2) ||
+        link_modes_.has(LinkMode::T2) ||
+        link_modes_.has(LinkMode::S2);
+}
+
+bool driverNeedsPolling(MeterDriver d, DriverName& dn)
 {
     if (d != MeterDriver::UNKNOWN && d != MeterDriver::AUTO)
     {
@@ -1209,7 +1230,10 @@ LIST_OF_METERS
     DriverInfo& di = all_registered_drivers_[dn.str()];
 
     // Return true for MBUS,S2,C2,T2 meters. Currently only mbus is implemented.
-    return di.linkModes().has(LinkMode::MBUS);
+    return di.linkModes().has(LinkMode::MBUS) ||
+        di.linkModes().has(LinkMode::C2) ||
+        di.linkModes().has(LinkMode::T2) ||
+        di.linkModes().has(LinkMode::S2);
 }
 
 const char *toString(MeterType type)
@@ -2091,6 +2115,7 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
         DriverInfo& di = all_registered_drivers_[mi->driver_name.str()];
         shared_ptr<Meter> newm = di.construct(*mi);
         newm->addConversions(mi->conversions);
+        newm->setPollInterval(mi->poll_interval);
         verbose("(meter) constructed \"%s\" \"%s\" \"%s\" %s\n",
                 mi->name.c_str(),
                 di.name().str().c_str(),
@@ -2106,6 +2131,7 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
         {                                                   \
             newm = create##cname(*mi);                      \
             newm->addConversions(mi->conversions);          \
+            newm->setPollInterval(mi->poll_interval);       \
             verbose("(meter) created \"%s\" \"" #mname "\" \"%s\" %s\n", \
                     mi->name.c_str(), mi->idsc.c_str(), keymsg);              \
             return newm;                                                \
@@ -2251,6 +2277,14 @@ bool MeterInfo::parse(string n, string d, string i, string k)
     }
 
     return true;
+}
+
+bool MeterInfo::needsPolling()
+{
+    return link_modes.has(LinkMode::MBUS) ||
+        link_modes.has(LinkMode::C2) ||
+        link_modes.has(LinkMode::T2) ||
+        link_modes.has(LinkMode::S2);
 }
 
 bool isValidKey(string& key, MeterDriver mt)

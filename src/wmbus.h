@@ -81,18 +81,21 @@ void setIgnoreDuplicateTelegrams(bool idt);
 
 #define LIST_OF_LINK_MODES \
     X(Any,any,--anylinkmode,0xffff)             \
-    X(C1,c1,--c1,0x1)                           \
-    X(S1,s1,--s1,0x2)                           \
-    X(S1m,s1m,--s1m,0x4)                        \
-    X(T1,t1,--t1,0x8)                           \
-    X(N1a,n1a,--n1a,0x10)                       \
-    X(N1b,n1b,--n1b,0x20)                       \
-    X(N1c,n1c,--n1c,0x40)                       \
-    X(N1d,n1d,--n1d,0x80)                       \
-    X(N1e,n1e,--n1e,0x100)                      \
-    X(N1f,n1f,--n1f,0x200)                      \
-    X(MBUS,mbus,--mbus,0x400)                   \
-    X(LORA,lora,--lora,0x800)                   \
+    X(MBUS,mbus,--mbus,0x1)                     \
+    X(C1,c1,--c1,0x2)                           \
+    X(S1,s1,--s1,0x4)                           \
+    X(S1m,s1m,--s1m,0x8)                        \
+    X(T1,t1,--t1,0x10)                          \
+    X(C2,c2,--c2,0x20)                          \
+    X(S2,s2,--s2,0x40)                          \
+    X(T2,t2,--t2,0x80)                          \
+    X(N1a,n1a,--n1a,0x100)                      \
+    X(N1b,n1b,--n1b,0x200)                      \
+    X(N1c,n1c,--n1c,0x400)                      \
+    X(N1d,n1d,--n1d,0x800)                      \
+    X(N1e,n1e,--n1e,0x1000)                     \
+    X(N1f,n1f,--n1f,0x2000)                     \
+    X(LORA,lora,--lora,0x400)                   \
     X(UNKNOWN,unknown,----,0x0)
 
 enum class LinkMode {

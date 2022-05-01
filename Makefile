@@ -184,13 +184,14 @@ check_docs:
 	@cat src/cmdline.cc  | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_code
 	@cat wmbusmeters.1   | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_man
 	@cat README.md | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_readme
-	@./build/wmbusmeters --help | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_binary
+	@$(BUILD)/wmbusmeters --help | grep -o -- '--[a-z][a-z]*' | sort | uniq | grep -v internaltesting > /tmp/options_in_binary
 	@diff /tmp/options_in_code /tmp/options_in_man || echo CODE_VS_MAN
 	@diff /tmp/options_in_code /tmp/options_in_readme || echo CODE_VS_README
 	@diff /tmp/options_in_code /tmp/options_in_binary || echo CODE_VS_BINARY
 	@echo "OK docs"
 
 install: $(BUILD)/wmbusmeters check_docs
+	echo "Installing $(BUILD)/wmbusmeters"
 	@./install.sh $(BUILD)/wmbusmeters $(DESTDIR) $(EXTRA_INSTALL_OPTIONS)
 
 uninstall:

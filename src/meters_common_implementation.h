@@ -65,7 +65,7 @@ struct MeterCommonImplementation : public virtual Meter
     time_t timestampLastUpdate();
     void setPollInterval(time_t interval);
     time_t pollInterval();
-
+    bool needsPolling();
 
     void onUpdate(function<void(Telegram*,Meter*)> cb);
     int numUpdates();

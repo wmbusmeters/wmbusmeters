@@ -72,7 +72,7 @@ int main(int argc, char **argv)
     /*
       test_linkmodes();*/
     test_ids();
-    test_addresses();
+//    test_addresses();
     test_kdf();
     test_periods();
     test_months();
@@ -924,7 +924,7 @@ void test_meters()
           "", // extras
           "", // bus
           "0", // bps
-          "c1,t1,mbus"); // linkmodes
+          "mbus,c1,t1"); // linkmodes
 
     /*
     config_content =

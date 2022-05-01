@@ -1,4 +1,8 @@
 
+ATTENTION! When a field is not optional in the driver description,
+but alas, no data has arrived in the telegram, then the json now
+contains a null for the value! Previousy 0 was used, which is misleading.
+
 ATTENTION! The default location of the meter_readings directory has changed
 from /var/log/wmbusmeters/meter_readings to /var/lib/wmbusmeters/meter_readings
 This only affects new installations. Existing conf files will use the old location
@@ -9,7 +13,7 @@ Add detection of bad CUL firmware.
 Using :mbus as suffix to the meter driver now works to poll a meter of mbus instead of
 listening to wmbus telegrams.
 
-wmbusmeters --pollinterval=1h --format=json MAIN=/dev/ttyUSB0:mbus MyTemp piigth:MAIN:2400:mbus 12301234 NOKEY
+wmbusmeters --pollinterval=1h --format=json MAIN=/dev/ttyUSB0:mbus:2400 MyTemp piigth:MAIN:mbus 12301234 NOKEY
 
 Added --pollinterval=<time> to set the poll interval for all meters to 10 minutes.
 As <time> you can say 5s 10m 11h etc.
