@@ -171,7 +171,7 @@ namespace
 
         if (i+1 >= len) return;
         average_heater_temperature_last_month_ = toTemperature(bytes[i+1], bytes[i]);
-        info = renderJsonOnlyDefaultUnit("average_temperature_heater_last_month");
+        info = renderJsonOnlyDefaultUnit("average_heater_temperature_last_month");
         t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                  "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
         i+=2;
