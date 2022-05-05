@@ -8,6 +8,8 @@ from /var/log/wmbusmeters/meter_readings to /var/lib/wmbusmeters/meter_readings
 This only affects new installations. Existing conf files will use the old location
 as specified int the conf file.
 
+Added hydroclima HCA.
+
 Add detection of bad CUL firmware.
 
 Using :mbus as suffix to the meter driver now works to poll a meter of mbus instead of
