@@ -48,6 +48,7 @@ void test_hex();
 void test_translate();
 void test_slip();
 void test_dvs();
+void test_ascii_detection();
 
 int main(int argc, char **argv)
 {
@@ -82,6 +83,7 @@ int main(int argc, char **argv)
     test_translate();
     test_slip();
     test_dvs();
+    test_ascii_detection();
 
     return 0;
 }
@@ -1252,5 +1254,29 @@ void test_dvs()
     if (dvk.dif() != 0x0b || dvk.vif() != 0x2b || dvk.hasDifes() || dvk.hasVifes())
     {
         printf("ERROR test_dvs 1\n");
+    }
+}
+
+void test_ascii_detection()
+{
+    string s = "000008";
+    if (isLikelyAscii(s))
+    {
+        printf("ERROR >%s< should not be likely ascii\n", s.c_str());
+    }
+    s = "41424344";
+    if (!isLikelyAscii(s))
+    {
+        printf("ERROR >%s< should be likely ascii\n", s.c_str());
+    }
+    s = "000041424344";
+    if (!isLikelyAscii(s))
+    {
+        printf("ERROR >%s< should be likely ascii\n", s.c_str());
+    }
+    s = "000041194300";
+    if (isLikelyAscii(s))
+    {
+        printf("ERROR >%s< should not be likely ascii\n", s.c_str());
     }
 }

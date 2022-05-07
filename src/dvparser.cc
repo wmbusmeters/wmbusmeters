@@ -417,10 +417,11 @@ bool parseDV(Telegram *t,
 
         DVEntry *dve = &(*dv_entries)[key].second;
 
+        /*
         if (isDebugEnabled())
         {
             debug("(dvparser) entry %s\n", dve->str().c_str());
-        }
+        }*/
 
         assert(key == dve->dif_vif_key.str());
 
@@ -949,10 +950,17 @@ bool DVEntry::extractReadableString(string *out)
         t == 0x7 || // 64 Bit Integer/Binary
         t == 0xD)   // Variable length
     {
-        // For example an enhanced id 32 bits binary looks like:
-        // 44434241 and will be reversed to: 41424344 and translated using ascii
-        // to ABCD
-        v = reverseBinaryAsciiSafeToString(v);
+        if (isLikelyAscii(v))
+        {
+            // For example an enhanced id 32 bits binary looks like:
+            // 44434241 and will be reversed to: 41424344 and translated using ascii
+            // to ABCD
+            v = reverseBinaryAsciiSafeToString(v);
+        }
+        else
+        {
+            v = reverseBCD(v);
+        }
     }
     if (t == 0x9 || // 2 digit BCD
         t == 0xA || // 4 digit BCD

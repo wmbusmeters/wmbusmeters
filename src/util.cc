@@ -2192,3 +2192,35 @@ void removeSlipFraming(vector<uchar>& from, size_t *frame_length, vector<uchar> 
     }
 
 }
+
+// Check if hex string is likely to be ascii
+bool isLikelyAscii(std::string v)
+{
+    vector<uchar> val;
+    bool ok = hex2bin(v, &val);
+
+    // For example 64 bits:
+    // 0000 0000 4142 4344
+    // is probably the string DCBA
+
+    if (!ok) return false;
+
+    size_t i = 0;
+    for (; i < val.size(); ++i)
+    {
+        if (val[i] != 0) break;
+    }
+
+    if (i == val.size())
+    {
+        // Value is all zeroes, this is probably a number.
+        return false;
+    }
+
+    for (; i < val.size(); ++i)
+    {
+        if (val[i] < 20 || val[i] > 126) return false;
+    }
+
+    return true;
+}

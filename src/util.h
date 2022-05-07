@@ -43,6 +43,8 @@ uchar reverse(uchar c);
 std::string reverseBCD(std::string v);
 // A hex string encoding ascii chars is reversed and safely translated into a readble string.
 std::string reverseBinaryAsciiSafeToString(std::string v);
+// Check if hex string is likely to be ascii
+bool isLikelyAscii(std::string v);
 
 bool isHexChar(uchar c);
 
