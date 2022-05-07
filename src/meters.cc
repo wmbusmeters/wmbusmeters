@@ -2468,7 +2468,9 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         found = true;
     }
     else if (matcher_.vif_range == VIFRange::EnhancedIdentification ||
-             matcher_.vif_range == VIFRange::FabricationNo)
+             matcher_.vif_range == VIFRange::FabricationNo ||
+             matcher_.vif_range == VIFRange::ModelVersion ||
+             matcher_.vif_range == VIFRange::ParameterSet)
     {
         string extracted_id;
         dve->extractReadableString(&extracted_id);

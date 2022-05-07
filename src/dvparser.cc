@@ -42,6 +42,26 @@ LIST_OF_VIF_RANGES
     assert(0);
 }
 
+const char *toString(VIFCombinable v)
+{
+    switch (v) {
+        case VIFCombinable::None: return "None";
+        case VIFCombinable::Any: return "Any";
+#define X(name,from,to) case VIFCombinable::name: return #name;
+LIST_OF_VIF_COMBINABLES
+#undef X
+    }
+    assert(0);
+}
+
+VIFCombinable toVIFCombinable(int i)
+{
+#define X(name,from,to) if (from <= i && i <= to) return VIFCombinable::name;
+LIST_OF_VIF_COMBINABLES
+#undef X
+    return VIFCombinable::None;
+}
+
 Unit toDefaultUnit(VIFRange v)
 {
     switch (v) {
@@ -221,8 +241,10 @@ bool parseDV(Telegram *t,
 
         bool has_another_dife = (dif & 0x80) == 0x80;
 
-        while (has_another_dife) {
+        while (has_another_dife)
+        {
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (dife expected)\n"); break; }
+
             uchar dife = **format;
             int subunit_bit = (dife & 0x40) >> 6;
             subunit |= subunit_bit << difenr;
@@ -231,15 +253,18 @@ bool parseDV(Telegram *t,
             int storage_nr_bits = (dife & 0x0f);
             storage_nr |= storage_nr_bits << (1+difenr*4);
 
-            DEBUG_PARSER("(dvparser debug) dife=%02x (subunit=%d tariff=%d storagenr=%d)\n",
-                         dife, subunit, tariff, storage_nr);
-            if (data_has_difvifs) {
+            DEBUG_PARSER("(dvparser debug) dife=%02x (subunit=%d tariff=%d storagenr=%d)\n", dife, subunit, tariff, storage_nr);
+
+            if (data_has_difvifs)
+            {
                 format_bytes.push_back(dife);
                 id_bytes.push_back(dife);
                 t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
                                                  "%02X dife (subunit=%d tariff=%d storagenr=%d)",
                                                  dife, subunit, tariff, storage_nr);
-            } else {
+            }
+            else
+            {
                 id_bytes.push_back(**format);
                 (*format)++;
             }
@@ -251,15 +276,30 @@ bool parseDV(Telegram *t,
         if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif expected)\n"); break; }
 
         uchar vif = **format;
-        DEBUG_PARSER("(dvparser debug) vif=%02x \"%s\"\n", vif, vifType(vif).c_str());
-        if (data_has_difvifs) {
+        int full_vif = vif & 0x7f;
+        bool extension_vif = false;
+        set<VIFCombinable> found_combinable_vifs;
+
+        DEBUG_PARSER("(dvparser debug) vif=%04x \"%s\"\n", vif, vifType(vif).c_str());
+
+        if (data_has_difvifs)
+        {
             format_bytes.push_back(vif);
             id_bytes.push_back(vif);
             t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
                                              "%02X vif (%s)", vif, vifType(vif).c_str());
-        } else {
+        } else
+        {
             id_bytes.push_back(**format);
             (*format)++;
+        }
+
+        // Check if this is marker for one of the extended sets of vifs: first, second and thir.
+        if (vif == 0xfb || vif == 0xfd || vif == 0xef)
+        {
+            // Extension vifs.
+            full_vif <<= 8;
+            extension_vif = true;
         }
 
         // Grabbing a variable length vif. This does not currently work
@@ -282,21 +322,52 @@ bool parseDV(Telegram *t,
             }
         }
 
+        // Do we have another vife byte? We better have one, if extension_vif is true.
         bool has_another_vife = (vif & 0x80) == 0x80;
-        while (has_another_vife) {
+        while (has_another_vife)
+        {
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vife expected)\n"); break; }
+
             uchar vife = **format;
             DEBUG_PARSER("(dvparser debug) vife=%02x (%s)\n", vife, vifeType(dif, vif, vife).c_str());
-            if (data_has_difvifs) {
+
+            if (data_has_difvifs)
+            {
+                // Collect the difvifs to create signature for future use.
                 format_bytes.push_back(vife);
                 id_bytes.push_back(vife);
-                t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
-                                                 "%02X vife (%s)", vife, vifeType(dif, vif, vife).c_str());
-            } else {
+            }
+            else
+            {
+                // Reuse the existing
                 id_bytes.push_back(**format);
                 (*format)++;
             }
+
             has_another_vife = (vife & 0x80) == 0x80;
+
+            if (extension_vif)
+            {
+                // First vife after the extension marker is the real vif.
+                full_vif |= (vife & 0x7f);
+                extension_vif = false;
+                if (data_has_difvifs)
+                {
+                    t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                                     "%02X vife (%s)", vife, vifeType(dif, vif, vife).c_str());
+                }
+            }
+            else
+            {
+                // If the full vif is now handled, then the rest are combinable vifs.
+                VIFCombinable vc = toVIFCombinable(vife & 0x7f);
+                found_combinable_vifs.insert(vc);
+                if (data_has_difvifs)
+                {
+                    t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                                     "%02X combinable vif (%s)", vife, toString(vc));
+                }
+            }
         }
 
         dv = "";
@@ -337,13 +408,19 @@ bool parseDV(Telegram *t,
         (*dv_entries)[key] = { offset, DVEntry(offset,
                                                key,
                                                mt,
-                                               Vif(vif&0x7f),
+                                               Vif(full_vif),
+                                               found_combinable_vifs,
                                                StorageNr(storage_nr),
                                                TariffNr(tariff),
                                                SubUnitNr(subunit),
                                                value) };
 
         DVEntry *dve = &(*dv_entries)[key].second;
+
+        if (isDebugEnabled())
+        {
+            debug("(dvparser) entry %s\n", dve->str().c_str());
+        }
 
         assert(key == dve->dif_vif_key.str());
 
@@ -376,18 +453,17 @@ bool hasKey(std::map<std::string,std::pair<int,DVEntry>> *dv_entries, std::strin
     return dv_entries->count(key) > 0;
 }
 
-bool findKey(MeasurementType mit, VIFRange vif, StorageNr storagenr, TariffNr tariffnr,
+bool findKey(MeasurementType mit, VIFRange vif_range, StorageNr storagenr, TariffNr tariffnr,
              std::string *key, std::map<std::string,std::pair<int,DVEntry>> *dv_entries)
 {
-    return findKeyWithNr(mit, vif, storagenr, tariffnr, 1, key, dv_entries);
+    return findKeyWithNr(mit, vif_range, storagenr, tariffnr, 1, key, dv_entries);
 }
 
 bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr, TariffNr tariffnr, int nr,
                    std::string *key, std::map<std::string,std::pair<int,DVEntry>> *dv_entries)
 {
-    /*debug("(dvparser) looking for type=%s vif=%s storagenr=%d value_ran_low=%02x value_ran_hi=%02x\n",
-          measurementTypeName(mit).c_str(), toString(vif), storagenr,
-          low, hi);*/
+    /*debug("(dvparser) looking for type=%s vifrange=%s storagenr=%d tariffnr=%d\n",
+      measurementTypeName(mit).c_str(), toString(vif_range), storagenr.intValue(), tariffnr.intValue());*/
 
     for (auto& v : *dv_entries)
     {
@@ -396,9 +472,9 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
         StorageNr sn = v.second.second.storage_nr;
         TariffNr tn = v.second.second.tariff_nr;
 
-        /*debug("(dvparser) match? %s type=%s vif=%02x (%s) and storagenr=%d\n",
+        /* debug("(dvparser) match? %s type=%s vife=%x (%s) and storagenr=%d\n",
               v.first.c_str(),
-              measurementTypeName(ty).c_str(), vi, toString(toVIFRange(vi)), storagenr, sn);*/
+              measurementTypeName(ty).c_str(), vi.intValue(), storagenr, sn);*/
 
         if (isInsideVIFRange(vi, vif_range) &&
             (mit == MeasurementType::Instantaneous || mit == ty) &&
@@ -408,9 +484,9 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
             *key = v.first;
             nr--;
             if (nr <= 0) return true;
-            /*debug("(dvparser) found key %s for type=%s vif=%02x (%s) storagenr=%d\n",
+            debug("(dvparser) found key %s for type=%s vif=%x storagenr=%d\n",
                   v.first.c_str(), measurementTypeName(ty).c_str(),
-                  vi, toString(toVIFRange(vi)), storagenr);*/
+                  vi.intValue(), storagenr.intValue());
         }
     }
     return false;
@@ -893,6 +969,23 @@ bool DVEntry::extractReadableString(string *out)
     return true;
 }
 
+string DVEntry::str()
+{
+    string s =
+        tostrprintf("%d: %s %s vif=%x %s st=%d ta=%d su=%d",
+                    offset,
+                    dif_vif_key.str().c_str(),
+                    toString(measurement_type),
+                    vif.intValue(),
+                    combinable_vifs.size() > 0 ? "HASCOMB ":"",
+                    storage_nr.intValue(),
+                    tariff_nr.intValue(),
+                    subunit_nr.intValue()
+            );
+
+    return s;
+}
+
 bool extractDate(uchar hi, uchar lo, struct tm *date)
 {
     // |     hi    |    lo     |
@@ -991,12 +1084,6 @@ bool FieldMatcher::matches(DVEntry &dv_entry)
         return b;
     }
 
-    if (dv_entry.dif_vif_key.hasVifes())
-    {
-        // Currently we cannot match vifes. They must be selected using expicit dif_vif_keys above.
-        return false;
-    }
-
     bool b =
         (!match_vif_range || isInsideVIFRange(dv_entry.vif, vif_range)) &&
         (!match_measurement_type || dv_entry.measurement_type == measurement_type) &&
@@ -1004,5 +1091,40 @@ bool FieldMatcher::matches(DVEntry &dv_entry)
         (!match_tariff_nr || (dv_entry.tariff_nr >= tariff_nr_from && dv_entry.tariff_nr <= tariff_nr_to)) &&
         (!match_subunit_nr || (dv_entry.subunit_nr >= subunit_nr_from && dv_entry.subunit_nr <= subunit_nr_to));
 
-    return b;
+    if (!b) return false;
+
+    // If field matcher has no combinables, then do NOT match any dventry with a combinable!
+    if (vif_combinables.size()== 0)
+    {
+        if (dv_entry.combinable_vifs.size() == 0) return true;
+        // Oups, field matcher does not expect any combinables, but the dv_entry has combinables.
+        // This means no match for us since combinables must be handled explicitly.
+        return false;
+    }
+
+    // Lets check that the dv_entry combinables contains the field matcher requested combinables.
+    for (VIFCombinable vc : vif_combinables)
+    {
+        if (dv_entry.combinable_vifs.count(vc) == 0)
+        {
+            // Ouch, one of the requested combinables did not exist in the dv_entry. No match!
+            return false;
+        }
+    }
+
+    // Yay, they were all found.
+    return true;
+}
+
+const char *toString(MeasurementType mt)
+{
+    switch (mt)
+    {
+    case MeasurementType::Any: return "Any";
+    case MeasurementType::Instantaneous: return "Instantaneous";
+    case MeasurementType::Minimum: return "Minimum";
+    case MeasurementType::Maximum: return "Maximum";
+    case MeasurementType::AtError: return "AtError";
+    }
+    return "?";
 }

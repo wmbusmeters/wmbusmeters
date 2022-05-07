@@ -22,6 +22,7 @@
 #include"units.h"
 
 #include<map>
+#include<set>
 #include<stdint.h>
 #include<time.h>
 #include<functional>
@@ -44,6 +45,8 @@
     X(ActualityDuration,0x74,0x77, Quantity::Time, Unit::Second) \
     X(FabricationNo,0x78,0x78, Quantity::Text, Unit::TXT) \
     X(EnhancedIdentification,0x79,0x79, Quantity::Text, Unit::TXT) \
+    X(ParameterSet,0x7D0B,0x7D0B, Quantity::Text, Unit::TXT) \
+    X(ModelVersion,0x7D0C,0x7D0C, Quantity::Text, Unit::TXT) \
     X(AnyVolumeVIF,0x00,0x00, Quantity::Volume, Unit::Unknown) \
     X(AnyEnergyVIF,0x00,0x00, Quantity::Energy, Unit::Unknown)  \
     X(AnyPowerVIF,0x00,0x00, Quantity::Power, Unit::Unknown)  \
@@ -62,6 +65,108 @@ Unit toDefaultUnit(VIFRange v);
 VIFRange toVIFRange(int i);
 bool isInsideVIFRange(int i, VIFRange range);
 
+#define LIST_OF_VIF_COMBINABLES \
+    X(Reserved,0x00,0x11) \
+    X(Average,0x12,0x12) \
+    X(InverseCompactProfile,0x13,0x13) \
+    X(RelativeDeviation,0x14,0x14) \
+    X(RecordErrorCodeMeterToController,0x15,0x1c) \
+    X(StandardConformDataContent,0x1d,0x1d) \
+    X(CompactProfileWithRegister,0x1e,0x1e) \
+    X(CompactProfile,0x1f,0x1f) \
+    X(PerSecond,0x20,0x20) \
+    X(PerMinute,0x21,0x21) \
+    X(PerHour,0x22,0x22) \
+    X(PerDay,0x23,0x23) \
+    X(PerWeek,0x24,0x24) \
+    X(PerMonth,0x25,0x25) \
+    X(PerYear,0x26,0x26) \
+    X(PerRevolutionMeasurement,0x27,0x27) \
+    X(IncrPerInputPulseChannel0,0x28,0x28) \
+    X(IncrPerInputPulseChannel1,0x29,0x29) \
+    X(IncrPerOutputPulseChannel0,0x2a,0x2a) \
+    X(IncrPerOutputPulseChannel1,0x2b,0x2b) \
+    X(PerLitre,0x2c,0x2c) \
+    X(PerM3,0x2d,0x2d) \
+    X(PerKg,0x2e,0x2e) \
+    X(PerKelvin,0x2f,0x2f) \
+    X(PerKWh,0x30,0x30) \
+    X(PerGJ,0x31,0x31) \
+    X(PerKW,0x32,0x32) \
+    X(PerKelvinLitreW,0x33,0x33) \
+    X(PerVolt,0x34,0x34) \
+    X(PerAmpere,0x35,0x35) \
+    X(MultipliedByS,0x36,0x36) \
+    X(MultipliedBySDivV,0x37,0x37) \
+    X(MultipliedBySDivA,0x38,0x38) \
+    X(StartDateTimeOfAB,0x39,0x39) \
+    X(UncorrectedMeterUnit,0x3a,0x3a) \
+    X(ForwardFlow,0x3b,0x3b) \
+    X(BackwardFlow,0x3c,0x3c) \
+    X(ReservedNonMetric,0x3d,0x3d) \
+    X(ValueAtBaseCondC,0x3e,0x3e) \
+    X(ObisDeclaration,0x3f,0x3f) \
+    X(LowerLimit,0x40,0x40) \
+    X(ExceedsLowerLimit,0x41,0x41) \
+    X(DateTimeExceedsLowerFirstBegin, 0x42,0x42) \
+    X(DateTimeExceedsLowerFirstEnd, 0x43,0x43) \
+    X(DateTimeExceedsLowerLastBegin, 0x46,0x46) \
+    X(DateTimeExceedsLowerLastEnd, 0x47,0x47) \
+    X(UpperLimit,0x48,0x48) \
+    X(ExceedsUpperLimit,0x49,0x49) \
+    X(DateTimeExceedsUpperFirstBegin, 0x4a,0x4a) \
+    X(DateTimeExceedsUpperFirstEnd, 0x4b,0x4b) \
+    X(DateTimeExceedsUpperLastBegin, 0x4d,0x4d) \
+    X(DateTimeExceedsUpperLastEnd, 0x4e,0x4e) \
+    X(DurationExceedsLowerFirst,0x50,0x53) \
+    X(DurationExceedsLowerLast,0x54,0x57) \
+    X(DurationExceedsUpperFirst,0x58,0x5b) \
+    X(DurationExceedsUpperLast,0x5c,0x5f) \
+    X(DurationOfDFirst,0x60,0x63) \
+    X(DurationOfDLast,0x64,0x67) \
+    X(ValueDuringLowerLimitExceeded,0x68,0x68) \
+    X(LeakageValues,0x69,0x69) \
+    X(OverflowValues,0x6a,0x6a) \
+    X(ValueDuringUpperLimitExceeded,0x6c,0x6c) \
+    X(DateTimeOfDEFirstBegin,0x6a,0x6a) \
+    X(DateTimeOfDEFirstEnd,0x6b,0x6b) \
+    X(DateTimeOfDELastBegin,0x6e,0x6e) \
+    X(DateTimeOfDELastEnd,0x6f,0x6f) \
+    X(MultiplicativeCorrectionFactorForValue,0x70,0x77) \
+    X(AdditiveCorrectionConstant,0x78,0x7b) \
+    X(CombinableVIFExtension,0x7c,0x7c) \
+    X(MultiplicativeCorrectionFactorForValue103,0x7d,0x7d) \
+    X(FutureValue,0x7e,0x7e) \
+    X(MfctSpecific,0x7f,0x7f) \
+    X(AtPhase1,0x7c01,0x7c01) \
+    X(AtPhase2,0x7c02,0x7c02) \
+    X(AtPhase3,0x7c03,0x7c03) \
+    X(AtNeutral,0x7c04,0x7c04) \
+    X(BetweenPhaseL1AndL2,0x7c05,0x7c05) \
+    X(BetweenPhaseL2AndL3,0x7c06,0x7c06) \
+    X(BetweenPhaseL3AndL1,0x7c07,0x7c07) \
+    X(AtQuadrantQ1,0x7c08,0x7c08) \
+    X(AtQuadrantQ2,0x7c09,0x7c09) \
+    X(AtQuadrantQ3,0x7c0a,0x7c0a) \
+    X(AtQuadrantQ4,0x7c0b,0x7c0b) \
+    X(DeltaBetweenImportAndExport,0x7c0c,0x7c0c) \
+    X(AccumulationOfAbsoluteValue,0x7c10,0x7c10) \
+    X(DataPresentedWithTypeC,0x7c11,0x7c11) \
+    X(DataPresentedWithTypeD,0x7c12,0x7c12) \
+
+
+enum class VIFCombinable
+{
+    None,
+    Any,
+#define X(name,from,to) name,
+LIST_OF_VIF_COMBINABLES
+#undef X
+};
+
+VIFCombinable toVIFCombinable(int i);
+const char *toString(VIFCombinable v);
+
 enum class MeasurementType
 {
     Any,
@@ -70,6 +175,8 @@ enum class MeasurementType
     Maximum,
     AtError
 };
+
+const char *toString(MeasurementType mt);
 
 void extractDV(std::string &s, uchar *dif, uchar *vif, bool *has_difes, bool *has_vifes);
 
@@ -170,23 +277,52 @@ struct DVEntry
     DifVifKey dif_vif_key;
     MeasurementType measurement_type;
     Vif vif;
+    std::set<VIFCombinable> combinable_vifs;
     StorageNr storage_nr;
     TariffNr tariff_nr;
     SubUnitNr subunit_nr;
     std::string value;
 
-    DVEntry(int off, DifVifKey dvk, MeasurementType mt, Vif vi, StorageNr st, TariffNr ta, SubUnitNr su, std::string &val) :
-        offset(off), dif_vif_key(dvk), measurement_type(mt), vif(vi), storage_nr(st), tariff_nr(ta), subunit_nr(su), value(val) {}
+    DVEntry(int off,
+            DifVifKey dvk,
+            MeasurementType mt,
+            Vif vi,
+            std::set<VIFCombinable> vc,
+            StorageNr st,
+            TariffNr ta,
+            SubUnitNr su,
+            std::string &val) :
+        offset(off),
+        dif_vif_key(dvk),
+        measurement_type(mt),
+        vif(vi),
+        combinable_vifs(vc),
+        storage_nr(st),
+        tariff_nr(ta),
+        subunit_nr(su),
+        value(val)
+    {
+    }
+
     DVEntry() :
-        offset(999999), dif_vif_key("????"), measurement_type(MeasurementType::Instantaneous), vif(0), storage_nr(0), tariff_nr(0), subunit_nr(0), value("x") {}
+        offset(999999),
+        dif_vif_key("????"),
+        measurement_type(MeasurementType::Instantaneous),
+        vif(0),
+        storage_nr(0),
+        tariff_nr(0),
+        subunit_nr(0),
+        value("x")
+    {
+    }
 
     bool extractDouble(double *out, bool auto_scale, bool assume_signed);
     bool extractLong(uint64_t *out);
     bool extractDate(struct tm *out);
     bool extractReadableString(std::string *out);
-    bool hasVifes();
     void setFieldInfo(FieldInfo *fi) { field_info_ = fi; }
     FieldInfo *getFieldInfo() { return field_info_; }
+    std::string str();
 
 private:
     FieldInfo *field_info_ {}; // The field info selected to decode this entry.
@@ -208,6 +344,9 @@ struct FieldMatcher
     // Match the value information range. See dvparser.h
     bool match_vif_range = false;
     VIFRange vif_range { VIFRange::Any };
+
+    // Match any vif combinables.
+    std::set<VIFCombinable> vif_combinables;
 
     // Match the storage nr. If no storage is specified, default to match only 0.
     bool match_storage_nr = true;
@@ -241,6 +380,9 @@ struct FieldMatcher
     FieldMatcher &set(VIFRange v) {
         vif_range = v;
         match_vif_range = (v != VIFRange::Any);
+        return *this; }
+    FieldMatcher &add(VIFCombinable v) {
+        vif_combinables.insert(v);
         return *this; }
     FieldMatcher &set(StorageNr s) {
         storage_nr_from = storage_nr_to = s;

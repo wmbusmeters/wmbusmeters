@@ -110,7 +110,7 @@ void MeterCompact5::processContent(Telegram *t)
     string prevs;
     strprintf(prevs, "%02x%02x", prev_lo, prev_hi);
     int offset = t->parsed.size()+3;
-    vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, 0, 0, 0, prevs) };
+    vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, 0, 0, 0, prevs) };
     Explanation pe(offset, 2, prevs, KindOfData::CONTENT, Understanding::FULL);
     t->explanations.push_back(pe);
     t->addMoreExplanation(offset, " energy used in previous billing period (%f KWH)", prev);
@@ -122,7 +122,7 @@ void MeterCompact5::processContent(Telegram *t)
     string currs;
     strprintf(currs, "%02x%02x", curr_lo, curr_hi);
     offset = t->parsed.size()+7;
-    vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, 0, 0, 0, currs) };
+    vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, 0, 0, 0, currs) };
     Explanation ce(offset, 2, currs, KindOfData::CONTENT, Understanding::FULL);
     t->explanations.push_back(ce);
     t->addMoreExplanation(offset, " energy used in current billing period (%f KWH)", curr);
