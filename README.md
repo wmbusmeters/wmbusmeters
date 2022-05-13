@@ -118,7 +118,7 @@ RADIOMAIN=/dev/ttyUSB1:im871a:c2
 The bus alias is then used in the meter driver specification to specify which
 bus the mbus poll request should be sent to.
 ```
-wmbusmeters MAIN=/dev/ttyUSB0:mbus:2400 MyTempMeter piigth:MAIN:mbus 12001932 NOKEY
+wmbusmeters --pollinterval=60s MAIN=/dev/ttyUSB0:mbus:2400 MyTempMeter piigth:MAIN:mbus 12001932 NOKEY
 ```
 
 # Example wmbusmeter.conf file
