@@ -25,11 +25,12 @@
 #include"wmbus_utils.h"
 
 #include<algorithm>
+#include<cmath>
+#include<limits>
 #include<memory.h>
 #include<numeric>
+#include<stdexcept>
 #include<time.h>
-#include<cmath>
-
 
 map<string, DriverInfo> all_registered_drivers_;
 vector<DriverInfo> all_registered_drivers_list_;
