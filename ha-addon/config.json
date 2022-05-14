@@ -6,6 +6,7 @@
     "arch": ["armv7", "aarch64", "amd64"],
     "url": "https://github.com/weetmuts/wmbusmeters",
     "startup": "application",
+    "init": false,
     "boot": "auto",
     "devices": ["/dev/ttyUSB0", "/dev/ttyAMA0"],
     "usb": true,
