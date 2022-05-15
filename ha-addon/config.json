@@ -5,6 +5,7 @@
     "description": "Acquire utility meter readings using the wireless mbus protocol (WMBUS)",
     "arch": ["armv7", "aarch64", "amd64"],
     "url": "https://github.com/weetmuts/wmbusmeters",
+    "init" : false,
     "startup": "application",
     "boot": "auto",
     "devices": ["/dev/ttyUSB0", "/dev/ttyAMA0"],
