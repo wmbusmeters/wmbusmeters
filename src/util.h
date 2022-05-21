@@ -36,6 +36,12 @@ typedef unsigned char uchar;
 #define call(A,B) ([&](){A->B();})
 #define calll(A,B,T) ([&](T t){A->B(t);})
 
+enum class TestBit
+{
+    Set,
+    NotSet
+};
+
 uchar bcd2bin(uchar c);
 uchar revbcd2bin(uchar c);
 uchar reverse(uchar c);

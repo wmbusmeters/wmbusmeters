@@ -59,7 +59,7 @@ private:
     double remaining_battery_life_year_ {};
     string status_; // TPL STS
 
-    map<int,string> error_codes_;
+    Translate::Lookup error_codes_;
 };
 
 MeterHydrus::MeterHydrus(MeterInfo &mi) :
@@ -71,13 +71,26 @@ MeterHydrus::MeterHydrus(MeterInfo &mi) :
 
     addLinkMode(LinkMode::T1);
 
-    error_codes_ = { { 0x10, "TEMPERATURE_MEASUREMENT_ERROR" },
-                     { 0x30, "AIR_IN_PIPE" },
-                     { 0x70, "MEASUREMENT_ERROR" },
-                     { 0x90, "LEAKAGE_OR_NO_USAGE" },
-                     { 0xb0, "REVERSE_FLOW" },
-                     { 0xd0, "LOW_TEMPERATURE" },
-                     { 0xf0, "AIR_IN_PIPE" } };
+    error_codes_ =
+        Translate::Lookup(
+        {
+            {
+                {
+                    "TPL_FLAGS",
+                    Translate::Type::IndexToString,
+                    0xe0,
+                    "OK",
+                    {
+                        { 0x20, "AIR_IN_PIPE" },
+                        { 0x40, "WOOT_0x40" },
+                        { 0x60, "MEASUREMENT_ERROR" },
+                        { 0x80, "LEAKAGE_OR_NO_USAGE" },
+                        { 0xa0, "REVERSE_FLOW" },
+                        { 0xc0, "LOW_TEMPERATURE" },
+                        { 0xe0, "AIR_IN_PIPE" } }
+                }
+            },
+        });
 
     addPrint("total", Quantity::Volume,
              [&](Unit u){ return totalWaterConsumption(u); },
@@ -509,7 +522,7 @@ void MeterHydrus::processContent(Telegram *t)
         t->addMoreExplanation(offset, " battery life (%d days %f years)", days, remaining_battery_life_year_);
     }
 
-    status_ = decodeTPLStatusByte(t->tpl_sts, &error_codes_);
+    status_ = ::decodeTPLStatusByteWithMfct(t->tpl_sts, error_codes_);
 }
 
 double MeterHydrus::totalWaterConsumption(Unit u)

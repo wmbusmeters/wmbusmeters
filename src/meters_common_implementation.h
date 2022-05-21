@@ -94,6 +94,8 @@ protected:
     std::vector<std::string> &meterExtraConstantFields();
     void setMeterType(MeterType mt);
     void addLinkMode(LinkMode lm);
+    void addMfctTPlStatusBits(Translate::Lookup lookup);
+
     // Print with the default unit for this quantity.
     void addPrint(string vname, Quantity vquantity,
                   function<double(Unit)> getValueFunc, string help, PrintProperties pprops);
@@ -221,6 +223,7 @@ protected:
     double getNumericValue(FieldInfo *fi, Unit u);
     void setStringValue(FieldInfo *fi, std::string v);
     std::string getStringValue(FieldInfo *fi);
+    std::string decodeTPLStatusByte(uchar sts);
 
 private:
 
@@ -242,6 +245,7 @@ private:
     vector<string> shell_cmdlines_;
     vector<string> extra_constant_fields_;
     time_t poll_interval_ {};
+    Translate::Lookup mfct_tpl_status_bits_ = NoLookup;
 
 protected:
     vector<Unit> conversions_;
@@ -253,7 +257,7 @@ protected:
     std::map<pair<std::string,Quantity>,NumericField> numeric_values_;
     // Map field name (at_date) to string value.
     std::map<std::string,StringField> string_values_;
-    // Used to block further
+    // Used to block next poll, until this poll has received a respones.
     Semaphore waiting_for_poll_response_sem_;
 };
 

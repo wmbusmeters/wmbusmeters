@@ -691,7 +691,12 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
 
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
                                                      DriverInfo &di) :
-    type_(di.type()), driver_(di.name().str()), driver_name_(di.name()), bus_(mi.bus), name_(mi.name),
+    type_(di.type()),
+    driver_(di.name().str()),
+    driver_name_(di.name()),
+    bus_(mi.bus),
+    name_(mi.name),
+    mfct_tpl_status_bits_(di.mfctTPLStatusBits()),
     waiting_for_poll_response_sem_("waiting_for_poll_response")
 {
     ids_ = mi.ids;
@@ -763,6 +768,11 @@ void MeterCommonImplementation::setMeterType(MeterType mt)
 void MeterCommonImplementation::addLinkMode(LinkMode lm)
 {
     link_modes_.addLinkMode(lm);
+}
+
+void MeterCommonImplementation::addMfctTPlStatusBits(Translate::Lookup lookup)
+{
+    mfct_tpl_status_bits_ = lookup;
 }
 
 void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
@@ -1663,7 +1673,8 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
 void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 {
-    // Iterate through the dv_entries in the telegram.
+    // Iterate through the dv_entries in the telegram and trigger any
+    // field specification with a matcher.
     for (auto &p : t->dv_entries)
     {
         DVEntry *dve = &p.second.second;
@@ -1682,6 +1693,8 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
         }
     }
 
+    // Iterate over the fields that has no matcher rule. Ie the field
+    // itself does the searching and matching.
     for (FieldInfo &fi : field_infos_)
     {
         if (!fi.hasMatcher())
@@ -1752,6 +1765,11 @@ string MeterCommonImplementation::getStringValue(FieldInfo *fi)
     }
     StringField &sf = string_values_[field_name_no_unit];
     return sf.value;
+}
+
+string MeterCommonImplementation::decodeTPLStatusByte(uchar sts)
+{
+    return ::decodeTPLStatusByteWithMfct(sts, mfct_tpl_status_bits_);
 }
 
 FieldInfo *MeterCommonImplementation::findFieldInfo(string vname)
@@ -2440,14 +2458,44 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     string field_name = generateFieldName(dve);
 
     uint64_t extracted_bits {};
-    if (lookup_.hasLookups())
+    if (lookup_.hasLookups() || (print_properties_.hasJOINTPLSTATUS()))
     {
-        if (dve->extractLong(&extracted_bits))
+        string translated_bits = "";
+        // The field has lookups, or the print property JOIN_TPL_STATUS is set,
+        // this means that we should create a string.
+        if (lookup_.hasLookups() && dve->extractLong(&extracted_bits))
         {
-            string translated_bits = lookup().translate(extracted_bits);
+            translated_bits = lookup().translate(extracted_bits);
+            found = true;
+        }
+
+        if (print_properties_.hasJOINTPLSTATUS())
+        {
+            string status = m->decodeTPLStatusByte(t->tpl_sts);
+            t->addMoreExplanation(t->tpl_sts_offset, "(%s)", status.c_str());
+            if (status != "OK")
+            {
+                if (translated_bits != "OK")
+                {
+                    // Join the statuses.
+                    translated_bits += " "+status;
+                }
+                else
+                {
+                    // Overwrite the translated bits.
+                    translated_bits = status;
+                }
+            }
+            else
+            {
+                // No change to the translated_bits.
+            }
+        }
+
+        if (found)
+        {
             m->setStringValue(this, translated_bits);
             t->addMoreExplanation(dve->offset, renderJsonText(m));
-            found = true;
         }
     }
     else if (matcher_.vif_range == VIFRange::DateTime)
@@ -2471,6 +2519,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     else if (matcher_.vif_range == VIFRange::EnhancedIdentification ||
              matcher_.vif_range == VIFRange::FabricationNo ||
              matcher_.vif_range == VIFRange::ModelVersion ||
+             matcher_.vif_range == VIFRange::SoftwareVersion ||
              matcher_.vif_range == VIFRange::ParameterSet)
     {
         string extracted_id;
