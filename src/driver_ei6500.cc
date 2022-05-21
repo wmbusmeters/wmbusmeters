@@ -29,7 +29,23 @@ namespace
         di.setName("ei6500");
         di.setMeterType(MeterType::SmokeDetector);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_EIE, 0x1a,  0x0c);
+        di.addDetection(MANUFACTURER_EIE, 0x1a, 0x0c);
+        di.addMfctTPLStatusBits(
+            {
+                {
+                    {
+                        "TPL_BITS",
+                        Translate::Type::BitToString,
+                        0xe0, // Always 0xe0 for tpl status bits. The 0x1f are standard defined.
+                        "OK",
+                        {
+//                            { 0x20, "?"}
+//                            { 0x40, "?"}
+//                            { 0x80, "?"}
+                        }
+                    },
+                },
+            });
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
@@ -172,3 +188,7 @@ namespace
 // telegram=|5E442515112801000C1A7A370050252F2F_0BFD0F060101046D300CAB2202FD17000082206CAB22426C01018440FF2C000F11008250FD61000082506C01018260FD6100008360FD3100000082606C01018270FD61010082706CAB222F2F2F2F|
 // {"media":"smoke detector","meter":"ei6500","name":"Smokey","id":"00012811","software_version":"010106","message_datetime":"2021-02-11 12:48","last_alarm_date":"2000-01-01","smoke_alarm_counter":0,"duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2021-02-11","test_button_counter":1,"status":"NOT_INSTALLED","timestamp":"1111-11-11T11:11:11Z"}
 // |Smokey;00012811;2000-01-01;0.000000;NOT_INSTALLED;1111-11-11 11:11.11
+
+// telegram=|5E442515112801000C1A7A370f50252F2F_0BFD0F060101046D300CAB2202FD17030182206CAB22426C01018440FF2C000F11008250FD61000282506C01018260FD6100008360FD3171000082606C01018270FD61010082706CAB222F2F2F2F|
+// {"media":"smoke detector","meter":"ei6500","name":"Smokey","id":"00012811","software_version":"010106","message_datetime":"2021-02-11 12:48","last_alarm_date":"2000-01-01","smoke_alarm_counter":512,"duration_removed_h":1.883333,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2021-02-11","test_button_counter":1,"status":"ENVIRONMENT_CHANGED OBSTACLE_DETECTED ALARM POWER_LOW PERMANENT_ERROR","timestamp":"1111-11-11T11:11:11Z"}
+// |Smokey;00012811;2000-01-01;512.000000;ENVIRONMENT_CHANGED OBSTACLE_DETECTED ALARM POWER_LOW PERMANENT_ERROR;1111-11-11 11:11.11
