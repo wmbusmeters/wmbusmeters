@@ -500,8 +500,12 @@ Gavazzi EM24 (em24)
 Gransystems 301 and 303 (gransystems)
 Kamstrup Omnipower (omnipower)
 
-Support gas meters:
+Supported gas meters:
 uniSMART (unismart)
+
+Supported pressure sensors:
+Kamstrup Pressure Sensor (kampress)
+
 
 ```
 

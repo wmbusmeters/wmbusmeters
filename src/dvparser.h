@@ -36,6 +36,7 @@
     X(ReturnTemperature,0x5C,0x5F, Quantity::Temperature, Unit::C) \
     X(TemperatureDifference,0x60,0x63, Quantity::Temperature, Unit::C) \
     X(ExternalTemperature,0x64,0x67, Quantity::Temperature, Unit::C) \
+    X(Pressure,0x68,0x6B, Quantity::Pressure, Unit::BAR) \
     X(HeatCostAllocation,0x6E,0x6E, Quantity::HCA, Unit::HCA) \
     X(Date,0x6C,0x6C, Quantity::PointInTime, Unit::DateTimeLT) \
     X(DateTime,0x6D,0x6D, Quantity::PointInTime, Unit::DateTimeLT) \

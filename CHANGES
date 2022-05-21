@@ -14,6 +14,7 @@ from /var/log/wmbusmeters/meter_readings to /var/lib/wmbusmeters/meter_readings
 This only affects new installations. Existing conf files will use the old location
 as specified int the conf file.
 
+Added kampress pressure sensor.
 Added hydroclima HCA.
 
 Add detection of bad CUL firmware.
