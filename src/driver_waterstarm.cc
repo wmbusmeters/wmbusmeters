@@ -73,7 +73,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "current_status",
             "Status and error flags.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            PrintProperty::JSON | PrintProperty::FIELD | JOIN_TPL_STATUS,
             FieldMatcher::build()
             .set(VIFRange::ErrorFlags),
             {
@@ -117,3 +117,17 @@ namespace
             );
     }
 }
+
+// Test: Woter waterstarm 20096221 BEDB81B52C29B5C143388CBB0D15A051
+// telegram=|3944FA122162092002067A3600202567C94D48D00DC47B11213E23383DB51968A705AAFA60C60E263D50CD259D7C9A03FD0C08000002FD0B0011|
+// {"media":"warm water","meter":"waterstarm","name":"Woter","id":"20096221","meter_timestamp":"2020-07-30 10:40","total_m3":0.106,"total_backwards_m3":0,"current_status":"OK","meter_version":"000008","parameter_set":"1100","timestamp":"1111-11-11T11:11:11Z"}
+// |Woter;20096221;0.106000;0.000000;OK;1111-11-11 11:11.11
+
+// telegram=|3944FA122162092002067A3604202567C94D48D00DC47B11213E23383DB51968A705AAFA60C60E263D50CD259D7C9A03FD0C08000002FD0B0011|
+// {"media":"warm water","meter":"waterstarm","name":"Woter","id":"20096221","meter_timestamp":"2020-07-30 10:40","total_m3":0.106,"total_backwards_m3":0,"current_status":"POWER_LOW","meter_version":"000008","parameter_set":"1100","timestamp":"1111-11-11T11:11:11Z"}
+// |Woter;20096221;0.106000;0.000000;POWER_LOW;1111-11-11 11:11.11
+
+// Test: Water waterstarm 22996221 NOKEY
+// telegram=|3944FA122162992202067A360420252F2F_046D282A9E2704136A00000002FD17400004933C000000002F2F2F2F2F2F03FD0C08000002FD0B0011|
+// {"media":"warm water","meter":"waterstarm","name":"Water","id":"22996221","meter_timestamp":"2020-07-30 10:40","total_m3":0.106,"total_backwards_m3":0,"current_status":"LEAKAGE_OR_NO_USAGE POWER_LOW","meter_version":"000008","parameter_set":"1100","timestamp":"1111-11-11T11:11:11Z"}
+// |Water;22996221;0.106000;0.000000;LEAKAGE_OR_NO_USAGE POWER_LOW;1111-11-11 11:11.11
