@@ -112,7 +112,7 @@ MeterAventiesHCA::MeterAventiesHCA(MeterInfo &mi, DriverInfo &di) : MeterCommonI
                     0xffff,
                     "",
                     {
-                        { 0x01, "MEASUREMENT" },
+                        { 0x01, "MEASUREMENT", TestBit::Set },
                         { 0x02, "SABOTAGE" },
                         { 0x04, "BATTERY" },
                         { 0x08, "CS" },

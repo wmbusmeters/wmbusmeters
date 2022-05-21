@@ -47,7 +47,10 @@
     X(EnhancedIdentification,0x79,0x79, Quantity::Text, Unit::TXT) \
     X(ParameterSet,0x7D0B,0x7D0B, Quantity::Text, Unit::TXT) \
     X(ModelVersion,0x7D0C,0x7D0C, Quantity::Text, Unit::TXT) \
+    X(SoftwareVersion,0x7D0F,0x7D0F, Quantity::Text, Unit::TXT) \
     X(ErrorFlags,0x7D17,0x7D17, Quantity::Text, Unit::TXT) \
+    X(DurationOfTariff,0x7D31,0x7D33, Quantity::Time, Unit::Hour) \
+    X(CumulationCounter,0x7D61,0x7D61, Quantity::Counter, Unit::INT) \
     X(AnyVolumeVIF,0x00,0x00, Quantity::Volume, Unit::Unknown) \
     X(AnyEnergyVIF,0x00,0x00, Quantity::Energy, Unit::Unknown)  \
     X(AnyPowerVIF,0x00,0x00, Quantity::Power, Unit::Unknown)  \

@@ -1147,40 +1147,91 @@ void test_translate()
         {
             {
                 {
-                    "ERROR_FLAGS",
+                    "FLOW_FLAGS",
                     Translate::Type::BitToString,
-                    0x0f,
-                    "",
+                    0x3f,
+                    "OOOK",
                     {
                         { 0x01, "BACKWARD_FLOW" },
                         { 0x02, "DRY" },
-                        { 0x12, "TRIG" },
+                        { 0x10, "TRIG" },
+                        { 0x20, "COS" },
+                    }
+                },
+            },
+        };
+
+   Translate::Lookup lookup3 =
+       {
+            {
+                {
+                    "NO_FLAGS",
+                    Translate::Type::BitToString,
+                    0x03,
+                    "OK",
+                    {
+                        // Test that 0x01 is set, means OK (ie installed)
+                        // Not set means not installed.
+                        { 0x01, "NOT_INSTALLED", TestBit::NotSet },
+                        { 0x02, "FOO" },
                     }
                 },
             },
         };
 
     string s, e;
-    s = lookup1.translate(0xA0);
+    uint8_t bits;
+
+    bits = 0xa0;
+    s = lookup1.translate(bits);
     e = "ALL_ACCESS UNKNOWN_ACCESS_BITS(0x80) ACCESSOR_RED";
     if (s != e)
     {
-        printf("ERROR expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+        printf("ERROR lookup1 0x%02x expected \"%s\" but got \"%s\"\n", bits, e.c_str(), s.c_str());
     }
 
-    s = lookup1.translate(0x35);
+    bits = 0x35;
+    s = lookup1.translate(bits);
     e = "NO_ACCESS ALL_ACCESS UNKNOWN_ACCESSOR_TYPE(0x5)";
     if (s != e)
     {
-        printf("ERROR expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+        printf("ERROR lookup1 0x%02x expected \"%s\" but got \"%s\"\n", bits, e.c_str(), s.c_str());
     }
 
+    bits = 0x02;
     s = lookup2.translate(0x02);
-    e = "DRY BAD_RULE_ERROR_FLAGS(from=0x12 mask=0xf)";
+    e = "DRY";
     if (s != e)
     {
-        printf("ERROR expected \"%s\" but got \"%s\"\n", e.c_str(), s.c_str());
+        printf("ERROR lookup2 0x%02x expected \"%s\" but got \"%s\"\n", bits, e.c_str(), s.c_str());
     }
+
+    bits = 0x00;
+    s = lookup2.translate(bits);
+    e = "OOOK";
+    if (s != e)
+    {
+        printf("ERROR lookup2 0x%02x expected \"%s\" but got \"%s\"\n", bits, e.c_str(), s.c_str());
+    }
+
+    // Verify that the not set 0x01 bit translates to NOT_INSTALLED
+    // The set bit 0x02 translates to FOO.
+    bits = 0x02;
+    s = lookup3.translate(0x02);
+    e = "NOT_INSTALLED FOO";
+    if (s != e)
+    {
+        printf("ERROR lookup3 0x%02x expected \"%s\" but got \"%s\"\n", bits, e.c_str(), s.c_str());
+    }
+
+    bits = 0x01;
+    s = lookup3.translate(bits);
+    e = "OK";
+    if (s != e)
+    {
+        printf("ERROR lookup3 0x%02x expected \"%s\" but got \"%s\"\n", bits, e.c_str(), s.c_str());
+    }
+
 }
 
 void test_slip()

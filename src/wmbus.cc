@@ -1397,7 +1397,7 @@ bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
     CHECK(1);
     tpl_sts = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL,
-                                  "%02x tpl-sts-field (%s)", tpl_sts, decodeTPLStatusByte(tpl_sts, NULL).c_str());
+                                  "%02x tpl-sts-field (%s)", tpl_sts, decodeTPLStatusByteWithLookup(tpl_sts, NULL).c_str());
 
     bool ok = parseTPLConfig(pos);
     if (!ok) return false;
@@ -4800,39 +4800,90 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
     return FullFrame;
 }
 
-string decodeTPLStatusByte(uchar sts, map<int,string> *vendor_lookup)
+string decodeTPLStatusByteOnlyStandardBits(uchar sts)
 {
+    // Bits 0-4 are standard defined. Bits 5-7 are mfct specific.
     string s;
 
     if (sts == 0) return "OK";
     if ((sts & 0x03) == 0x01) s += "BUSY ";
-    if ((sts & 0x03) == 0x02) s += "ERROR ";
-    if ((sts & 0x03) == 0x03) s += "ALARM ";
+    if ((sts & 0x03) == 0x02) s += "ERROR "; // E.g. meter failed to understand a message sent to it.
+                                             // More information about the error can be sent using error reporting, EN13757-3:2018 §10
+    if ((sts & 0x03) == 0x03) s += "ALARM "; // E.g. an abnormal condition like water is continuously running.
 
-    if ((sts & 0x04) == 0x04) s += "POWER_LOW ";
-    if ((sts & 0x08) == 0x08) s += "PERMANENT_ERROR ";
+    if ((sts & 0x04) == 0x04) s += "POWER_LOW "; // E.g. battery end of life or external power supply failure
+    if ((sts & 0x08) == 0x08) s += "PERMANENT_ERROR "; // E.g. meter needs service to work again.
     if ((sts & 0x10) == 0x10) s += "TEMPORARY_ERROR ";
+
+    while (s.back() == ' ') s.pop_back();
+    return s;
+}
+
+string decodeTPLStatusByteWithLookup(uchar sts, map<int,string> *vendor_lookup)
+{
+    string s = decodeTPLStatusByteOnlyStandardBits(sts);
+    string t = "OK";
 
     if ((sts & 0xe0) != 0)
     {
+        t = "";
         // Vendor specific bits are set, lets translate them.
-        int v = sts & 0xf8; // Zero the 3 lowest bits.
+        int v = sts & 0xf8; // Zero the 3 lowest bits. Including the temp and permanent bits is wrong here.
+        // But that is how it is implemented right now. This code is about to go away.
         if (vendor_lookup != NULL && vendor_lookup->count(v) != 0)
         {
-            s += (*vendor_lookup)[v];
-            s += " ";
+            t += (*vendor_lookup)[v];
+            t += " ";
         }
         else
         {
             // We could not translate, just print the bits.
             string tmp;
-            strprintf(tmp, "%02x ", sts);
-            s += tmp;
+            strprintf(tmp, "UNKNOWN_%02x ", sts);
+            t += tmp;
+            t += " ";
         }
+        while (t.back() == ' ') t.pop_back();
     }
 
-    s.pop_back();
-    return s;
+    if (t == "OK") return s;
+    if (s == "OK") return t;
+
+    return s+" "+t;
+}
+
+string decodeTPLStatusByteNoMfct(uchar sts)
+{
+    string s = decodeTPLStatusByteOnlyStandardBits(sts);
+    string t = "OK";
+
+    if ((sts & 0xe0) != 0)
+    {
+        t = tostrprintf("UNKNOWN_%02x", sts & 0xe0);
+    }
+
+    if (t == "OK") return s;
+    if (s == "OK") return t;
+
+    return s+" "+t;
+}
+
+string decodeTPLStatusByteWithMfct(uchar sts, Translate::Lookup &lookup)
+{
+    string s = decodeTPLStatusByteOnlyStandardBits(sts);
+    string t = "OK";
+
+    if ((sts & 0xe0) != 0)
+    {
+        // Vendor specific bits are set, lets translate them.
+        int v = sts & 0xe0;
+        t = lookup.translate(v);
+    }
+
+    if (t == "OK") return s;
+    if (s == "OK") return t;
+
+    return s+" "+t;
 }
 
 const char *toString(WMBusDeviceType t)

@@ -22,6 +22,8 @@
 #include<string>
 #include<vector>
 
+#include"util.h"
+
 namespace Translate
 {
     enum class Type
@@ -35,6 +37,7 @@ namespace Translate
     {
         uint64_t from;
         std::string to;
+        TestBit test;
     };
 
     struct Rule

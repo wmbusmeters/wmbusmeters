@@ -67,7 +67,6 @@ LIST_OF_METER_TYPES
     X(eurisii,    T1_bit, HeatCostAllocationMeter, EURISII, EurisII)   \
     X(ehzp,       T1_bit, ElectricityMeter, EHZP,        EHZP)         \
     X(esyswm,     T1_bit, ElectricityMeter, ESYSWM,      ESYSWM)       \
-    X(ei6500,     C1_bit, SmokeDetector,    EI6500,      EI6500)       \
     X(elf,        T1_bit, HeatMeter,        ELF,         Elf)          \
     X(em24,       C1_bit, ElectricityMeter, EM24,        EM24)         \
     X(emerlin868, T1_bit, WaterMeter,       EMERLIN868,  EMerlin868)   \
@@ -247,6 +246,7 @@ private:
     MeterDriver driver_ {}; // Old driver enum, to go away.
     DriverName name_; // auto, unknown, amiplus, lse_07_17, multical21 etc
     LinkModeSet linkmodes_; // C1, T1, S1 or combinations thereof.
+    Translate::Lookup mfct_tpl_status_bits_; // Translate any mfct specific bits in tpl status.
     MeterType type_; // Water, Electricity etc.
     function<shared_ptr<Meter>(MeterInfo&,DriverInfo&di)> constructor_; // Invoke this to create an instance of the driver.
     vector<DriverDetect> detect_;
@@ -258,6 +258,7 @@ public:
     void setMeterType(MeterType t) { type_ = t; }
 
     void addLinkMode(LinkMode lm) { linkmodes_.addLinkMode(lm); }
+    void addMfctTPLStatusBits(Translate::Lookup lookup) { mfct_tpl_status_bits_ = lookup; }
     void setConstructor(function<shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
     void addDetection(uint16_t mfct, uchar type, uchar ver) { detect_.push_back({ mfct, type, ver }); }
     vector<DriverDetect> &detect() { return detect_; }
@@ -266,6 +267,7 @@ public:
     DriverName name() { return name_; }
     MeterType type() { return type_; }
     LinkModeSet linkModes() { return linkmodes_; }
+    Translate::Lookup &mfctTPLStatusBits() { return mfct_tpl_status_bits_; }
     shared_ptr<Meter> construct(MeterInfo& mi) { return constructor_(mi, *this); }
     bool detect(uint16_t mfct, uchar type, uchar version);
     bool isValidMedia(uchar type);
@@ -297,20 +299,21 @@ enum PrintProperty
     FIELD = 2, // This field should be printed when using --format=field
     IMPORTANT = 4, // The most important field.
     OPTIONAL = 8, // If no data has arrived, then do not include this field in the json output.
+    REQUIRED = 16, // If no data has arrived, then print this field anyway with NaN or null.
+    DEPRECATED = 32, // This field is about to be removed or changed in a newer driver, which will have a new name.
+    JOIN_TPL_STATUS = 64 // This text field also includes the tpl status decoding.
 };
 
 struct PrintProperties
 {
-    PrintProperties(int x)
-    {
-        props_ = x;
-        assert(x >=0 && x<=16); // No bits outside of possible PrintProperty values.
-    }
+    PrintProperties(int x) : props_(x) {}
 
     bool hasJSON() { return props_ & PrintProperty::JSON; }
     bool hasFIELD() { return props_ & PrintProperty::FIELD; }
     bool hasIMPORTANT() { return props_ & PrintProperty::IMPORTANT; }
     bool hasOPTIONAL() { return props_ & PrintProperty::OPTIONAL; }
+    bool hasDEPRECATED() { return props_ & PrintProperty::DEPRECATED; }
+    bool hasJOINTPLSTATUS() { return props_ & PrintProperty::JOIN_TPL_STATUS; }
 
     private:
     int props_;
@@ -438,6 +441,7 @@ struct Meter
     virtual double getNumericValue(FieldInfo *fi, Unit u) = 0;
     virtual void setStringValue(FieldInfo *fi, std::string v) = 0;
     virtual std::string getStringValue(FieldInfo *fi) = 0;
+    virtual std::string decodeTPLStatusByte(uchar sts) = 0;
 
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;

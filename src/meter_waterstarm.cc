@@ -43,7 +43,7 @@ private:
     string parameter_set_ {};
 
     string status_;
-    map<int,string> error_codes_;
+    Translate::Lookup error_codes_;
 };
 
 shared_ptr<Meter> createWaterstarM(MeterInfo &mi)
@@ -61,17 +61,28 @@ MeterWaterstarM::MeterWaterstarM(MeterInfo &mi) :
     addLinkMode(LinkMode::T1);
     addLinkMode(LinkMode::C1);
 
-    error_codes_ = {
-             { 0x01, "SW_ERROR" },
-             { 0x02, "CRC_ERROR" },
-             { 0x04, "SENSOR_ERROR" },
-             { 0x08, "MEASUREMENT_ERROR" },
-             { 0x10, "BATTERY_VOLTAGE_ERROR" },
-             { 0x20, "MANIPULATION" },
-             { 0x40, "LEAKAGE_OR_NO_USAGE" },
-             { 0x80, "REVERSE_FLOW" },
-             { 0x100, "OVERLOAD" },
-    };
+    error_codes_ = Translate::Lookup(
+        {
+            {
+                {
+                    "ERROR_FLAGS",
+                    Translate::Type::BitToString,
+                    0xffff,
+                    "OK",
+                    {
+                        { 0x01, "SW_ERROR" },
+                        { 0x02, "CRC_ERROR" },
+                        { 0x04, "SENSOR_ERROR" },
+                        { 0x08, "MEASUREMENT_ERROR" },
+                        { 0x10, "BATTERY_VOLTAGE_ERROR" },
+                        { 0x20, "MANIPULATION" },
+                        { 0x40, "LEAKAGE_OR_NO_USAGE" },
+                        { 0x80, "REVERSE_FLOW" },
+                        { 0x100, "OVERLOAD" },
+                    }
+                }
+            }
+        });
 
     addPrint("meter_timestamp", Quantity::Text,
              [&](){ return meter_timestamp_; },
@@ -152,8 +163,8 @@ void MeterWaterstarM::processContent(Telegram *t)
     }
 
     extractDVuint16(&t->dv_entries, "02FD17", &offset, &info_codes_);
-    status_ = decodeTPLStatusByte(info_codes_, &error_codes_);
-    t->addMoreExplanation(offset, " info codes (%s)", status_.c_str());
+    status_ = error_codes_.translate(info_codes_);
+    t->addMoreExplanation(offset, " error flags (%s)", status_.c_str());
 
     extractDVdouble(&t->dv_entries, "04933C", &offset, &total_water_backwards_m3_);
     t->addMoreExplanation(offset, " total water backwards (%f m3)", total_water_backwards_m3_);

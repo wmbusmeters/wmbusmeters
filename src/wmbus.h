@@ -21,6 +21,7 @@
 #include"dvparser.h"
 #include"manufacturers.h"
 #include"serial.h"
+#include"translatebits.h"
 #include"util.h"
 
 #include<inttypes.h>
@@ -711,9 +712,18 @@ string vifType(int vif); // Long description
 string vifeType(int dif, int vif, int vife); // Long description
 string formatData(int dif, int vif, int vife, string data);
 
-// Decode the status byte in the TPL with a map that gives the
-// translations for the 3 vendor specific high bits.
-string decodeTPLStatusByte(uchar sts, std::map<int,std::string> *vendor_lookup);
+// Decode only the standard defined bits in the tpl status byte. Ignore the top 3 bits.
+// Return "OK" if sts == 0
+string decodeTPLStatusByteOnlyStandardBits(uchar sts);
+// Decode the standard bits and report the top 3 bits if set as for example: UNKNOWN_0x80
+// Return "OK" if sts == 0
+string decodeTPLStatusByteNoMfct(uchar sts);
+// Decode the standard bits and translate the top 3 bits if set.
+// Return "OK" if sts == 0
+string decodeTPLStatusByteWithMfct(uchar sts, Translate::Lookup &lookup);
+// Old style lookup to go away.
+// Return "OK" if sts == 0
+string decodeTPLStatusByteWithLookup(uchar sts, map<int,string> *vendor_lookup);
 
 int difLenBytes(int dif);
 MeasurementType difMeasurementType(int dif);
