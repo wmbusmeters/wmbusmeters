@@ -703,7 +703,7 @@ wmbusmeters --format=json 234433300602010014007a8e0000002f2f0efd3a1147000000008e
 which will output:
 
 ```
-{"media":"other","meter":"lansenpu","name":"MyCounter","id":"00010206","counter_a_int":4711,"counter_b_int":1234,"timestamp":"2021-09-12T08:45:52Z"}
+{"media":"other","meter":"lansenpu","name":"MyCounter","id":"00010206","a_counter":4711,"b_counter":1234,"timestamp":"2021-09-12T08:45:52Z"}
 ```
 
 You can also pipe the hex into wmbusmeters like this:

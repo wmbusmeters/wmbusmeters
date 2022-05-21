@@ -32,7 +32,7 @@
     X(RelativeHumidity,RH)   \
     X(HCA,HCA)               \
     X(Text,TXT)              \
-    X(Counter,INT)           \
+    X(Counter,COUNTER)       \
     X(Time,Hour)             \
     X(PointInTime,DateTimeLT) \
     X(Voltage,Volt)          \
@@ -56,7 +56,7 @@
     X(RH,rh,"RH",RelativeHumidity,"relative humidity")      \
     X(HCA,hca,"hca",HCA,"heat cost allocation") \
     X(TXT,txt,"txt",Text,"text")              \
-    X(INT,int,"int",Counter,"int")              \
+    X(COUNTER,counter,"counter",Counter,"counter")  \
     X(Second,s,"s",Time,"second")           \
     X(Minute,m,"m",Time,"minute")           \
     X(Hour,h,"h",Time,"hour") \

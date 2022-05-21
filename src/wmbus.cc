@@ -2608,9 +2608,10 @@ string vifType(int vif)
 
 double vifScale(int vif)
 {
-    int t = vif & 0x7f;
+    // Remove any remaining 0x80 top bits.
+    vif &= 0x7f7f;
 
-    switch (t) {
+    switch (vif) {
         // wmbusmeters always returns enery as kwh
     case 0x00: return 1000000.0; // Energy mWh
     case 0x01: return 100000.0;  // Energy 10⁻² Wh
@@ -2765,6 +2766,7 @@ double vifScale(int vif)
     case 0x72: return 1.0; // Averaging duration hours
     case 0x73: return (1.0/24.0); // Averaging duration days
 
+        // wmbusmeters always returns time in hours
     case 0x74: return 3600.0; // Actuality duration seconds
     case 0x75: return 60.0; // Actuality duration minutes
     case 0x76: return 1.0; // Actuality duration hours
@@ -2778,7 +2780,12 @@ double vifScale(int vif)
     case 0x7E: // Any VIF
     case 0x7F: // Manufacturer specific
 
-    default: warning("(wmbus) warning: type %d cannot be scaled!\n", t);
+        // wmbusmeters always returns time in hours
+    case 0x7d31: return 60.0; // Duration tariff minutes
+    case 0x7d32: return 1.0; // Duration tariff hours
+    case 0x7d33: return (1.0/24.0); // Duration tariff days
+
+    default: warning("(wmbus) warning: type 0x%x cannot be scaled!\n", vif);
         return -1;
     }
 }

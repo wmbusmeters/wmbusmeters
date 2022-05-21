@@ -49,12 +49,12 @@ MeterLansenPU::MeterLansenPU(MeterInfo &mi) :
     // other version 0x0b reported, but we lack telegram
     addLinkMode(LinkMode::T1);
 
-    addPrint("counter_a", Quantity::Counter,
+    addPrint("a", Quantity::Counter,
              [&](Unit u) { assertQuantity(u, Quantity::Counter); return counterA(); },
              "The current number of counted pulses from counter a.",
              PrintProperty::FIELD | PrintProperty::JSON);
 
-    addPrint("counter_b", Quantity::Counter,
+    addPrint("b", Quantity::Counter,
              [&](Unit u) { assertQuantity(u, Quantity::Counter); return counterB(); },
              "The current number of counted pulses from counter b.",
              PrintProperty::FIELD | PrintProperty::JSON);
