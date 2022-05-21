@@ -493,13 +493,13 @@ bool findKeyWithNr(MeasurementType mit, VIFRange vif_range, StorageNr storagenr,
     return false;
 }
 
-void extractDV(DifVifKey &dvk, uchar *dif, uchar *vif, bool *has_difes, bool *has_vifes)
+void extractDV(DifVifKey &dvk, uchar *dif, int *vif, bool *has_difes, bool *has_vifes)
 {
     string tmp = dvk.str();
     extractDV(tmp, dif, vif, has_difes, has_vifes);
 }
 
-void extractDV(string &s, uchar *dif, uchar *vif, bool *has_difes, bool *has_vifes)
+void extractDV(string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes)
 {
     vector<uchar> bytes;
     hex2bin(s, &bytes);
@@ -528,6 +528,19 @@ void extractDV(string &s, uchar *dif, uchar *vif, bool *has_difes, bool *has_vif
     }
 
     *vif = bytes[i];
+    if (*vif == 0xfb || // first extension
+        *vif == 0xfd || // second extensio
+        *vif == 0xef || // third extension
+        *vif == 0xff)   // vendor extension
+    {
+        if (i+1 < bytes.size())
+        {
+            // Create an extended vif, like 0xfd31 for example.
+            *vif = bytes[i] << 8 | bytes[i+1];
+            i++;
+        }
+    }
+
     while (i < bytes.size() && (bytes[i] & 0x80))
     {
         i++;

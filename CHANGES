@@ -1,4 +1,10 @@
 
+ATTENTION! Counter suffix _int is changed to _counter.
+New fields are added to lansendw, lansenpu, qsmoke drivers.
+Eventually the old fields will go away in drivers.
+Duration tariff added properly this causes a change in the
+ei6500 driver json.
+
 ATTENTION! When a field is not optional in the driver description,
 but alas, no data has arrived in the telegram, then the json now
 contains a null for the value! Previousy 0 was used, which is misleading.

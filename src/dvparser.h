@@ -50,7 +50,7 @@
     X(SoftwareVersion,0x7D0F,0x7D0F, Quantity::Text, Unit::TXT) \
     X(ErrorFlags,0x7D17,0x7D17, Quantity::Text, Unit::TXT) \
     X(DurationOfTariff,0x7D31,0x7D33, Quantity::Time, Unit::Hour) \
-    X(CumulationCounter,0x7D61,0x7D61, Quantity::Counter, Unit::INT) \
+    X(CumulationCounter,0x7D61,0x7D61, Quantity::Counter, Unit::COUNTER) \
     X(AnyVolumeVIF,0x00,0x00, Quantity::Volume, Unit::Unknown) \
     X(AnyEnergyVIF,0x00,0x00, Quantity::Energy, Unit::Unknown)  \
     X(AnyPowerVIF,0x00,0x00, Quantity::Power, Unit::Unknown)  \
@@ -182,7 +182,7 @@ enum class MeasurementType
 
 const char *toString(MeasurementType mt);
 
-void extractDV(std::string &s, uchar *dif, uchar *vif, bool *has_difes, bool *has_vifes);
+void extractDV(std::string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes);
 
 struct DifVifKey
 {
@@ -192,7 +192,7 @@ struct DifVifKey
     std::string str() { return key_; }
     bool operator==(DifVifKey &dvk) { return key_ == dvk.key_; }
     uchar dif() { return dif_; }
-    uchar vif() { return vif_; }
+    int vif() { return vif_; }
     bool hasDifes() { return has_difes_; }
     bool hasVifes() { return has_vifes_; }
 
@@ -200,12 +200,12 @@ private:
 
     std::string key_;
     uchar dif_;
-    uchar vif_;
+    int vif_;
     bool has_difes_;
     bool has_vifes_;
 };
 
-void extractDV(DifVifKey &s, uchar *dif, uchar *vif, bool *has_difes, bool *has_vifes);
+void extractDV(DifVifKey &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes);
 
 static DifVifKey NoDifVifKey = DifVifKey("");
 
