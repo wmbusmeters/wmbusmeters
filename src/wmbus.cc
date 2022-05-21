@@ -2577,7 +2577,7 @@ string vifType(int vif)
 
     case 0x68: return "Pressure mbar";
     case 0x69: return "Pressure 10⁻² bar";
-    case 0x6A: return "Pressure 10⁻1 bar";
+    case 0x6A: return "Pressure 10⁻¹ bar";
     case 0x6B: return "Pressure bar";
 
     case 0x6C: return "Date type G";
@@ -2753,7 +2753,7 @@ double vifScale(int vif)
         // wmbusmeters always returns pressure in bar
     case 0x68: return 1000.0; // Pressure mbar
     case 0x69: return 100.0; // Pressure 10⁻² bar
-    case 0x6A: return 10.0; // Pressure 10⁻1 bar
+    case 0x6A: return 10.0; // Pressure 10⁻¹ bar
     case 0x6B: return 1.0; // Pressure bar
 
     case 0x6C: warning("(wmbus) warning: do not scale a date type!\n"); return -1.0; // Date type G

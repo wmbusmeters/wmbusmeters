@@ -37,7 +37,8 @@
     X(PointInTime,DateTimeLT) \
     X(Voltage,Volt)          \
     X(Current,Ampere)        \
-    X(Frequency,Hz)
+    X(Frequency,Hz)          \
+    X(Pressure,BAR)
 
 #define LIST_OF_UNITS \
     X(KWH,kwh,"kWh",Energy,"kilo Watt hour")  \
@@ -67,7 +68,8 @@
     X(DateTimeLT,lt,"lt",PointInTime,"local time") \
     X(Volt,v,"V",Voltage,"volt") \
     X(Ampere,a,"A",Current,"ampere") \
-    X(Hz,hz,"Hz",Frequency,"hz")
+    X(Hz,hz,"Hz",Frequency,"hz") \
+    X(BAR,bar,"bar",Pressure,"bar")
 
 enum class Unit
 {
