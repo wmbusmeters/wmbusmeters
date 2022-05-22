@@ -92,10 +92,10 @@ namespace
 
 // Test: Pressing kampress 77000317 NOKEY
 // telegram=|32442D2C1703007701188D280080E39322DB8F78_22696600126967000269660005FF091954A33A05FF0A99BD823A02FD170800|
-// {"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"status":"UNKNOWN_ERROR_FLAGS(0x8)","timestamp":"1111-11-11T11:11:11Z"}
-// |Pressing;77000317;1.020000;1.030000;1.020000;UNKNOWN_ERROR_FLAGS(0x8);1111-11-11 11:11.11
+// {"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"status":"ERROR_FLAGS_8","timestamp":"1111-11-11T11:11:11Z"}
+// |Pressing;77000317;1.020000;1.030000;1.020000;ERROR_FLAGS_8;1111-11-11 11:11.11
 
 
 // telegram=|27442D2C1703007701188D280194E393226EC679DE735657_660067006600962B913A21B9423A0800|
-// {"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"status":"UNKNOWN_ERROR_FLAGS(0x8)","timestamp":"1111-11-11T11:11:11Z"}
-// |Pressing;77000317;1.020000;1.030000;1.020000;UNKNOWN_ERROR_FLAGS(0x8);1111-11-11 11:11.11
+// {"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"status":"ERROR_FLAGS_8","timestamp":"1111-11-11T11:11:11Z"}
+// |Pressing;77000317;1.020000;1.030000;1.020000;ERROR_FLAGS_8;1111-11-11 11:11.11

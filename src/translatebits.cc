@@ -65,7 +65,7 @@ void handleBitToString(Rule& rule, string &out_s, uint64_t bits)
     {
         // Oups, there are set bits that we have not handled....
         string tmp;
-        strprintf(tmp, "UNKNOWN_%s(0x%x)", rule.name.c_str(), bits);
+        strprintf(tmp, "%s_%X", rule.name.c_str(), bits);
         s += tmp+" ";
     }
 
@@ -104,7 +104,7 @@ void handleIndexToString(Rule& rule, string &out_s, uint64_t bits)
     {
         // Oups, this index has not been found.
         string tmp;
-        strprintf(tmp, "UNKNOWN_%s(0x%x)", rule.name.c_str(), bits);
+        strprintf(tmp, "%s_%X", rule.name.c_str(), bits);
         s += tmp+" ";
     }
 
@@ -142,7 +142,7 @@ void handleDecimalsToString(Rule& rule, string &out_s, uint64_t bits)
     {
         // Oups, this number has not been fully understood.
         string tmp;
-        strprintf(tmp, "UNKNOWN_%s(%d)", rule.name.c_str(), number);
+        strprintf(tmp, "%s_%d", rule.name.c_str(), number);
         s += tmp+" ";
     }
 
