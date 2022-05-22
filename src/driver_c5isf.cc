@@ -294,3 +294,10 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
 // telegram=|5E44496A5555445588047A0A0050052F2F_04061A0000000413C20800008404060000000082046CC121043BA4000000042D1900000002591216025DE21002FD17000084800106000000008280016CC121948001AE25000000002F2F2F2F2F2F|
 // {"media":"heat","meter":"c5isf","name":"Heat","id":"55445555","total_energy_consumption_kwh":26,"total_volume_m3":2.242,"status":"OK","prev_1_month":"2022-01-01","prev_1_month_kwh":0,"due_energy_consumption_kwh":0,"due_date":"2022-01-01","volume_flow_m3h":0.164,"power_kw":2.5,"total_energy_consumption_last_month_kwh":0,"max_power_last_month_kw":0,"flow_temperature_c":56.5,"return_temperature_c":43.22,"timestamp":"1111-11-11T11:11:11Z"}
 // |Heat;55445555;26.000000;2.242000;OK;1111-11-11 11:11.11
+
+// Test: Heat c5isf 32002044 NOKEY
+
+// Test telegram with max_power_last_month_kwh which is non-zero
+// telegram=|5E44496A4420003288047AFC0050052F2F_0406D00E00000413B28A05008404060000000082046CC121043B00000000042D000000000259E719025D051402FD17000084800106C00C00008280016CC125948001AE25090000002F2F2F2F2F2F|
+// {"media":"heat","meter":"c5isf","name":"Heat","id":"32002044","total_energy_consumption_kwh":3792,"total_volume_m3":363.186,"status":"OK","prev_1_month":"2022-05-01","prev_1_month_kwh":3264,"due_energy_consumption_kwh":0,"due_date":"2022-01-01","volume_flow_m3h":0,"power_kw":0,"total_energy_consumption_last_month_kwh":3264,"max_power_last_month_kw":9,"flow_temperature_c":66.31,"return_temperature_c":51.25,"timestamp":"1111-11-11T11:11:11Z"}
+// |Heat;32002044;3792.000000;363.186000;OK;1111-11-11 11:11.11
