@@ -22,21 +22,19 @@ struct MeterC5isf : public virtual MeterCommonImplementation
 {
     MeterC5isf(MeterInfo &mi, DriverInfo &di);
 
-    private:
-
     // Three types of telegrams (T1A1 T1A2 T1B) they all share total_energy_kwh and total_volume_m3.
     // The T1A1 and T1B also contains a status.
 
     // T1A1 and T1A2 also contains the previous month dates.
     // We assume that they are identical for both types of telegrams
     // so we use the same storage here.
-    string prev_month_date_[14];
+    // prev_month_date[14]
 
     // T1A1 contains 14 back months of energy consumption.
-    double total_energy_prev_month_kwh_[14] {};
+    // total_energy_prev_month_kwh[14]
 
     // T1A2 contains 14 back months of volume consumption.
-    double total_volume_prev_month_m3_[14] {};
+    // total_volume_prev_month_m3[14]
 
     // T1B contains:
     // due_energy_kwh
@@ -44,9 +42,9 @@ struct MeterC5isf : public virtual MeterCommonImplementation
     // volume_flow_m3h
     // power_kw
     // total_energy_last_month_kwh
-    string last_month_date_;
-    double max_power_last_month_kw_ {};
-    double flow_temperature_c_ {};
+    // last_month_date_;
+    // max_power_last_month_kw
+    // flow_temperature_c
     // return_temperature_c
 };
 
@@ -133,12 +131,13 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
     {
         addStringFieldWithExtractor(
             tostrprintf("prev_%d_month", i+1),
-            Quantity::Text,
-            FIND_SFIELD_S(MeasurementType::Instantaneous, VIFRange::Date, StorageNr(32+i)),
-            PrintProperty::JSON,
             "The due date.",
-            SET_STRING_FUNC(prev_month_date_[i]),
-            GET_STRING_FUNC(prev_month_date_[i]));
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(StorageNr(32+i))
+            .set(VIFRange::Date)
+            );
     }
 
     // Telegram type T1A1 ///////////////////////////////////////////////////////
@@ -147,12 +146,15 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
     {
         addNumericFieldWithExtractor(
             tostrprintf("prev_%d_month", i+1),
-            Quantity::Energy,
-            FIND_FIELD_S(MeasurementType::Instantaneous, VIFRange::EnergyWh, StorageNr(32+i)),
-            PrintProperty::JSON,
             "The total heat energy consumption recorded at end of previous month.",
-            SET_FUNC(total_energy_prev_month_kwh_[i], Unit::KWH),
-            GET_FUNC(total_energy_prev_month_kwh_[i], Unit::KWH));
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(StorageNr(32+i))
+            .set(VIFRange::EnergyWh)
+            );
     }
 
     // Telegram type T1A2 ///////////////////////////////////////////////////////
@@ -280,15 +282,15 @@ MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
 // Test: Heat c5isf 55445555 NOKEY
 
 // telegram=|E544496A55554455880D7A320200002F2F_04060000000004130000000002FD17240084800106000000008280016C2124C480010600000080C280016CFFFF84810106000000808281016CFFFFC481010600000080C281016CFFFF84820106000000808282016CFFFFC482010600000080C282016CFFFF84830106000000808283016CFFFFC483010600000080C283016CFFFF84840106000000808284016CFFFFC484010600000080C284016CFFFF84850106000000808285016CFFFFC485010600000080C285016CFFFF84860106000000808286016CFFFFC486010600000080C286016CFFFF|
-// {"media":"heat/cooling load","meter":"c5isf","name":"Heat","id":"55445555","total_energy_consumption_kwh":0,"total_volume_m3":0,"status":"ERROR REVERSE_FLOW SUPPLY_SENSOR_INTERRUPTED","prev_1_month":"2017-04-01","prev_2_month":"2127-15-31","prev_3_month":"2127-15-31","prev_4_month":"2127-15-31","prev_5_month":"2127-15-31","prev_6_month":"2127-15-31","prev_7_month":"2127-15-31","prev_8_month":"2127-15-31","prev_9_month":"2127-15-31","prev_10_month":"2127-15-31","prev_11_month":"2127-15-31","prev_12_month":"2127-15-31","prev_13_month":"2127-15-31","prev_14_month":"2127-15-31","prev_1_month_kwh":0,"prev_2_month_kwh":2147483648,"prev_3_month_kwh":2147483648,"prev_4_month_kwh":2147483648,"prev_5_month_kwh":2147483648,"prev_6_month_kwh":2147483648,"prev_7_month_kwh":2147483648,"prev_8_month_kwh":2147483648,"prev_9_month_kwh":2147483648,"prev_10_month_kwh":2147483648,"prev_11_month_kwh":2147483648,"prev_12_month_kwh":2147483648,"prev_13_month_kwh":2147483648,"prev_14_month_kwh":2147483648,"total_energy_consumption_last_month_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"heat/cooling load","meter":"c5isf","name":"Heat","id":"55445555","total_energy_consumption_kwh":0,"total_volume_m3":0,"status":"ERROR REVERSE_FLOW SUPPLY_SENSOR_INTERRUPTED","prev_1_month":"2017-04-01","prev_2_month":"2127-15-31","prev_3_month":"2127-15-31","prev_4_month":"2127-15-31","prev_5_month":"2127-15-31","prev_6_month":"2127-15-31","prev_7_month":"2127-15-31","prev_8_month":"2127-15-31","prev_9_month":"2127-15-31","prev_10_month":"2127-15-31","prev_11_month":"2127-15-31","prev_12_month":"2127-15-31","prev_13_month":"2127-15-31","prev_14_month":"2127-15-31","prev_2_month_kwh":2147483648,"prev_3_month_kwh":2147483648,"prev_4_month_kwh":2147483648,"prev_5_month_kwh":2147483648,"prev_6_month_kwh":2147483648,"prev_7_month_kwh":2147483648,"prev_8_month_kwh":2147483648,"prev_9_month_kwh":2147483648,"prev_10_month_kwh":2147483648,"prev_11_month_kwh":2147483648,"prev_12_month_kwh":2147483648,"prev_13_month_kwh":2147483648,"prev_14_month_kwh":2147483648,"total_energy_consumption_last_month_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}
 // |Heat;55445555;0.000000;0.000000;ERROR REVERSE_FLOW SUPPLY_SENSOR_INTERRUPTED;1111-11-11 11:11.11
 
 // Type T1A2 telegram:
 // telegram=|DA44496A5555445588077A320200002F2F_04140000000084800114000000008280016C2124C480011400000080C280016CFFFF84810114000000808281016CFFFFC481011400000080C281016CFFFF84820114000000808282016CFFFFC482011400000080C282016CFFFF84830114000000808283016CFFFFC483011400000080C283016CFFFF84840114000000808284016CFFFFC484011400000080C284016CFFFF84850114000000808285016CFFFFC485011400000080C285016CFFFF84860114000000808286016CFFFFC486011400000080C286016CFFFF|
-// {"media":"water","meter":"c5isf","name":"Heat","id":"55445555","total_energy_consumption_kwh":0,"total_volume_m3":0,"status":"ERROR REVERSE_FLOW SUPPLY_SENSOR_INTERRUPTED","prev_1_month":"2017-04-01","prev_2_month":"2127-15-31","prev_3_month":"2127-15-31","prev_4_month":"2127-15-31","prev_5_month":"2127-15-31","prev_6_month":"2127-15-31","prev_7_month":"2127-15-31","prev_8_month":"2127-15-31","prev_9_month":"2127-15-31","prev_10_month":"2127-15-31","prev_11_month":"2127-15-31","prev_12_month":"2127-15-31","prev_13_month":"2127-15-31","prev_14_month":"2127-15-31","prev_1_month_kwh":0,"prev_2_month_kwh":2147483648,"prev_3_month_kwh":2147483648,"prev_4_month_kwh":2147483648,"prev_5_month_kwh":2147483648,"prev_6_month_kwh":2147483648,"prev_7_month_kwh":2147483648,"prev_8_month_kwh":2147483648,"prev_9_month_kwh":2147483648,"prev_10_month_kwh":2147483648,"prev_11_month_kwh":2147483648,"prev_12_month_kwh":2147483648,"prev_13_month_kwh":2147483648,"prev_14_month_kwh":2147483648,"prev_1_month_m3":0,"prev_2_month_m3":21474836.48,"prev_3_month_m3":21474836.48,"prev_4_month_m3":21474836.48,"prev_5_month_m3":21474836.48,"prev_6_month_m3":21474836.48,"prev_7_month_m3":21474836.48,"prev_8_month_m3":21474836.48,"prev_9_month_m3":21474836.48,"prev_10_month_m3":21474836.48,"prev_11_month_m3":21474836.48,"prev_12_month_m3":21474836.48,"prev_13_month_m3":21474836.48,"prev_14_month_m3":21474836.48,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"water","meter":"c5isf","name":"Heat","id":"55445555","total_energy_consumption_kwh":0,"total_volume_m3":0,"status":"ERROR REVERSE_FLOW SUPPLY_SENSOR_INTERRUPTED","prev_1_month":"2017-04-01","prev_2_month":"2127-15-31","prev_3_month":"2127-15-31","prev_4_month":"2127-15-31","prev_5_month":"2127-15-31","prev_6_month":"2127-15-31","prev_7_month":"2127-15-31","prev_8_month":"2127-15-31","prev_9_month":"2127-15-31","prev_10_month":"2127-15-31","prev_11_month":"2127-15-31","prev_12_month":"2127-15-31","prev_13_month":"2127-15-31","prev_14_month":"2127-15-31","prev_1_month_m3":0,"prev_2_month_m3":21474836.48,"prev_3_month_m3":21474836.48,"prev_4_month_m3":21474836.48,"prev_5_month_m3":21474836.48,"prev_6_month_m3":21474836.48,"prev_7_month_m3":21474836.48,"prev_8_month_m3":21474836.48,"prev_9_month_m3":21474836.48,"prev_10_month_m3":21474836.48,"prev_11_month_m3":21474836.48,"prev_12_month_m3":21474836.48,"prev_13_month_m3":21474836.48,"prev_14_month_m3":21474836.48,"timestamp":"1111-11-11T11:11:11Z"}
 // |Heat;55445555;0.000000;0.000000;ERROR REVERSE_FLOW SUPPLY_SENSOR_INTERRUPTED;1111-11-11 11:11.11
 
 // Type T1B telegram:
 // telegram=|5E44496A5555445588047A0A0050052F2F_04061A0000000413C20800008404060000000082046CC121043BA4000000042D1900000002591216025DE21002FD17000084800106000000008280016CC121948001AE25000000002F2F2F2F2F2F|
-// {"media":"heat","meter":"c5isf","name":"Heat","id":"55445555","total_energy_consumption_kwh":26,"total_volume_m3":2.242,"status":"OK","prev_1_month":"2022-01-01","prev_2_month":"2127-15-31","prev_3_month":"2127-15-31","prev_4_month":"2127-15-31","prev_5_month":"2127-15-31","prev_6_month":"2127-15-31","prev_7_month":"2127-15-31","prev_8_month":"2127-15-31","prev_9_month":"2127-15-31","prev_10_month":"2127-15-31","prev_11_month":"2127-15-31","prev_12_month":"2127-15-31","prev_13_month":"2127-15-31","prev_14_month":"2127-15-31","prev_1_month_kwh":0,"prev_2_month_kwh":2147483648,"prev_3_month_kwh":2147483648,"prev_4_month_kwh":2147483648,"prev_5_month_kwh":2147483648,"prev_6_month_kwh":2147483648,"prev_7_month_kwh":2147483648,"prev_8_month_kwh":2147483648,"prev_9_month_kwh":2147483648,"prev_10_month_kwh":2147483648,"prev_11_month_kwh":2147483648,"prev_12_month_kwh":2147483648,"prev_13_month_kwh":2147483648,"prev_14_month_kwh":2147483648,"due_energy_consumption_kwh":0,"due_date":"2022-01-01","volume_flow_m3h":0.164,"power_kw":2.5,"total_energy_consumption_last_month_kwh":0,"max_power_last_month_kw":0,"flow_temperature_c":56.5,"return_temperature_c":43.22,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"heat","meter":"c5isf","name":"Heat","id":"55445555","total_energy_consumption_kwh":26,"total_volume_m3":2.242,"status":"OK","prev_1_month":"2022-01-01","due_energy_consumption_kwh":0,"due_date":"2022-01-01","volume_flow_m3h":0.164,"power_kw":2.5,"total_energy_consumption_last_month_kwh":0,"max_power_last_month_kw":0,"flow_temperature_c":56.5,"return_temperature_c":43.22,"timestamp":"1111-11-11T11:11:11Z"}
 // |Heat;55445555;26.000000;2.242000;OK;1111-11-11 11:11.11
