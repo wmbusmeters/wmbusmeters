@@ -325,12 +325,12 @@ struct DVEntry
     bool extractLong(uint64_t *out);
     bool extractDate(struct tm *out);
     bool extractReadableString(std::string *out);
-    void setFieldInfo(FieldInfo *fi) { field_info_ = fi; }
-    FieldInfo *getFieldInfo() { return field_info_; }
+    void addFieldInfo(FieldInfo *fi) { field_infos_.insert(fi); }
+    bool hasFieldInfo(FieldInfo *fi) { return field_infos_.count(fi) > 0; }
     std::string str();
 
 private:
-    FieldInfo *field_info_ {}; // The field info selected to decode this entry.
+    std::set<FieldInfo*> field_infos_; // The field infos selected to decode this entry.
 };
 
 struct FieldMatcher

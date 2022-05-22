@@ -1687,7 +1687,7 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
                       toString(fi.xuantity()),
                       fi.index(),
                       dve->dif_vif_key.str().c_str());
-                dve->setFieldInfo(&fi);
+                dve->addFieldInfo(&fi);
                 fi.performExtraction(this, t, dve);
             }
         }
@@ -1946,7 +1946,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                 // Check each telegram dv entry.
                 DVEntry *dve = &i.second.second;
                 // Has the entry been matches to this field, then print it as json.
-                if (dve->getFieldInfo() == &fi)
+                if (dve->hasFieldInfo(&fi))
                 {
                     debug("(meters) render field %s(%s)[%d] with dventry @%d key %s data %s\n",
                           fi.vname().c_str(), toString(fi.xuantity()), fi.index(),
@@ -1963,7 +1963,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
             {
                 // No telegram entries found, but this field should be printed anyway.
                 // It will be printed with any value received from a previous telegram.
-                // Or if no value has been received, a default bad value, like -12345678
+                // Or if no value has been received, null.
                 s += indent+fi.renderJson(this, &conversions())+","+newline;
             }
         }
