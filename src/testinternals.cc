@@ -1184,7 +1184,7 @@ void test_translate()
 
     bits = 0xa0;
     s = lookup1.translate(bits);
-    e = "ALL_ACCESS UNKNOWN_ACCESS_BITS(0x80) ACCESSOR_RED";
+    e = "ALL_ACCESS ACCESS_BITS_80 ACCESSOR_RED";
     if (s != e)
     {
         printf("ERROR lookup1 0x%02x expected \"%s\" but got \"%s\"\n", bits, e.c_str(), s.c_str());
@@ -1192,7 +1192,7 @@ void test_translate()
 
     bits = 0x35;
     s = lookup1.translate(bits);
-    e = "NO_ACCESS ALL_ACCESS UNKNOWN_ACCESSOR_TYPE(0x5)";
+    e = "NO_ACCESS ALL_ACCESS ACCESSOR_TYPE_5";
     if (s != e)
     {
         printf("ERROR lookup1 0x%02x expected \"%s\" but got \"%s\"\n", bits, e.c_str(), s.c_str());

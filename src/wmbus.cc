@@ -615,8 +615,7 @@ string mediaTypeJSON(int a_field_device_type, int m_field)
 }
 
 /*
-    X(0x72, TPL_72,  "TPL: APL follows", return "EN 13757-3 Application Layer (long tplh)";
-    case 0x73: return "EN 13757-3 Application Layer with Compact frame and long Transport Layer";
+    X(0x73, TPL_73,  "TPL: long header compact APL follows", 0, CI_TYPE::TPL, "") \
 */
 
 #define LIST_OF_CI_FIELDS \
