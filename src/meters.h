@@ -302,7 +302,9 @@ enum PrintProperty
     OPTIONAL = 8, // If no data has arrived, then do not include this field in the json output.
     REQUIRED = 16, // If no data has arrived, then print this field anyway with NaN or null.
     DEPRECATED = 32, // This field is about to be removed or changed in a newer driver, which will have a new name.
-    JOIN_TPL_STATUS = 64 // This text field also includes the tpl status decoding.
+    STATUS = 64, // This is >the< status field and it should read OK of not error flags are set.
+    JOIN_TPL_STATUS = 128, // This text field also includes the tpl status decoding. multiple OK:s collapse to a single OK.
+    JOIN_INTO_STATUS = 256 // This text field is injected into the already defined status field. multiple OK:s collapse.
 };
 
 struct PrintProperties
@@ -314,7 +316,9 @@ struct PrintProperties
     bool hasIMPORTANT() { return props_ & PrintProperty::IMPORTANT; }
     bool hasOPTIONAL() { return props_ & PrintProperty::OPTIONAL; }
     bool hasDEPRECATED() { return props_ & PrintProperty::DEPRECATED; }
+    bool hasSTATUS() { return props_ & PrintProperty::STATUS; }
     bool hasJOINTPLSTATUS() { return props_ & PrintProperty::JOIN_TPL_STATUS; }
+    bool hasJOININTOSTATUS() { return props_ & PrintProperty::JOIN_INTO_STATUS; }
 
     private:
     int props_;

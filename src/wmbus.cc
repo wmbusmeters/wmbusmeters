@@ -4812,7 +4812,7 @@ string decodeTPLStatusByteOnlyStandardBits(uchar sts)
     string s;
 
     if (sts == 0) return "OK";
-    if ((sts & 0x03) == 0x01) s += "BUSY ";
+    if ((sts & 0x03) == 0x01) s += "BUSY ";  // Meter busy, cannot respond.
     if ((sts & 0x03) == 0x02) s += "ERROR "; // E.g. meter failed to understand a message sent to it.
                                              // More information about the error can be sent using error reporting, EN13757-3:2018 §10
     if ((sts & 0x03) == 0x03) s += "ALARM "; // E.g. an abnormal condition like water is continuously running.
@@ -4844,10 +4844,7 @@ string decodeTPLStatusByteWithLookup(uchar sts, map<int,string> *vendor_lookup)
         else
         {
             // We could not translate, just print the bits.
-            string tmp;
-            strprintf(tmp, "UNKNOWN_%02x ", sts);
-            t += tmp;
-            t += " ";
+            t += tostrprintf("UNKNOWN_%02X ", sts & 0xe0);
         }
         while (t.back() == ' ') t.pop_back();
     }
@@ -4865,7 +4862,7 @@ string decodeTPLStatusByteNoMfct(uchar sts)
 
     if ((sts & 0xe0) != 0)
     {
-        t = tostrprintf("UNKNOWN_%02x", sts & 0xe0);
+        t = tostrprintf("UNKNOWN_%02X", sts & 0xe0);
     }
 
     if (t == "OK") return s;
@@ -4882,8 +4879,7 @@ string decodeTPLStatusByteWithMfct(uchar sts, Translate::Lookup &lookup)
     if ((sts & 0xe0) != 0)
     {
         // Vendor specific bits are set, lets translate them.
-        int v = sts & 0xe0;
-        t = lookup.translate(v);
+        t = lookup.translate(sts & 0xe0);
     }
 
     if (t == "OK") return s;

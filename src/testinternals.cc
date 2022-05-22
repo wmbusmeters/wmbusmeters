@@ -49,6 +49,8 @@ void test_translate();
 void test_slip();
 void test_dvs();
 void test_ascii_detection();
+void test_status_join();
+void test_status_sort();
 
 int main(int argc, char **argv)
 {
@@ -84,6 +86,8 @@ int main(int argc, char **argv)
     test_slip();
     test_dvs();
     test_ascii_detection();
+    test_status_join();
+    test_status_sort();
 
     return 0;
 }
@@ -1330,4 +1334,49 @@ void test_ascii_detection()
     {
         printf("ERROR >%s< should not be likely ascii\n", s.c_str());
     }
+}
+
+void test_join(string a, string b, string s)
+{
+    string t = joinStatusStrings(a, b);
+    if (t != s)
+    {
+        printf("Expected joinStatusString(\"%s\",\"%s\") to be \"%s\" but got \"%s\"\n",
+               a.c_str(), b.c_str(), s.c_str(), t.c_str());
+    }
+
+}
+
+void test_status_join()
+{
+    test_join("OK", "OK", "OK");
+    test_join("", "", "OK");
+    test_join("OK", "", "OK");
+    test_join("", "OK", "OK");
+    test_join("null", "OK", "OK");
+    test_join("null", "null", "OK");
+    test_join("ERROR FLOW", "OK", "ERROR FLOW");
+    test_join("ERROR FLOW", "", "ERROR FLOW");
+    test_join("OK", "ERROR FLOW", "ERROR FLOW");
+    test_join("", "ERROR FLOW", "ERROR FLOW");
+    test_join("ERROR", "FLOW", "ERROR FLOW");
+    test_join("ERROR", "null", "ERROR");
+    test_join("A B C", "D E F G", "A B C D E F G");
+}
+
+void test_sort(string in, string out)
+{
+    string t = sortStatusString(in);
+    if (t != out)
+    {
+        printf("Expected sortStatusString(\"%s\") to be \"%s\" but got \"%s\"\n",
+               in.c_str(), out.c_str(), t.c_str());
+    }
+}
+
+void test_status_sort()
+{
+    test_sort("C B A", "A B C");
+    test_sort("ERROR BUSY FLOW ERROR", "BUSY ERROR FLOW");
+    test_sort("X X X Y Y Z A B C A A AAAA AA AAA", "A AA AAA AAAA B C X Y Z");
 }

@@ -258,6 +258,20 @@ enum class OutputFormat
     NONE, PLAIN, TERMINAL, JSON, HTML
 };
 
+// Joing two status strings with a space, but merge OKs.
+// I.e. "OK" + "OK" --> "OK"
+//      "ERROR" + "OK"  --> "ERROR"
+//      "OK" + "ERROR FLOW" --> "ERROR FLOW"
+//      "ERROR" + "FLOW"    --> "ERROR FLOW"
+//      It also translates empty strings into OK.
+//      "" + "OK" --> "OK"
+//      "" + "" --> "OK"
+std::string joinStatusStrings(const std::string &a, const std::string &b);
+
+// Sort the words in a status string: "GAMMA BETA ALFA" --> "ALFA BETA GAMMA"
+// Also identical flags are merged: "BETA ALFA ALFA" --> "ALFA BETA"
+std::string sortStatusString(const std::string &a);
+
 #ifndef FUZZING
 #define FUZZING false
 #endif
