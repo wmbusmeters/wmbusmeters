@@ -1755,16 +1755,41 @@ string MeterCommonImplementation::getStringValue(FieldInfo *fi)
 {
     if (fi->hasGetStringValueOverride())
     {
+        // There is a custom getter for this field. Use this instead.
         return fi->getStringValueOverride();
     }
 
+    // Fetch the string value from the default string storage in the meter.
     string field_name_no_unit = fi->vname();
     if (string_values_.count(field_name_no_unit) == 0)
     {
         return "null"; // This is translated to a real(non-string) null in the json.
     }
     StringField &sf = string_values_[field_name_no_unit];
-    return sf.value;
+    string value = sf.value;
+
+    if (fi->printProperties().hasSTATUS())
+    {
+        // This is >THE< status field, only one is allowed.
+        // Look for other fields with the JOIN_INTO_STATUS marker.
+        // These other fields will not be printed, instead
+        // joined into this status field.
+        for (FieldInfo &f : field_infos_)
+        {
+            if (f.printProperties().hasJOININTOSTATUS())
+            {
+                string more = getStringValue(&f);
+                string joined = joinStatusStrings(value, more);
+                //printf("JOINING >%s< >%s< into >%s<\n", value.c_str(), more.c_str(), joined.c_str());
+                value = joined;
+            }
+        }
+        // Sort all found flags and remove any duplicates. A well designed meter decoder
+        // should not be able to generate duplicates.
+        value = sortStatusString(value);
+    }
+
+    return value;
 }
 
 string MeterCommonImplementation::decodeTPLStatusByte(uchar sts)

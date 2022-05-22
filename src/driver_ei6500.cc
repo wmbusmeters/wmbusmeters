@@ -34,14 +34,16 @@ namespace
             {
                 {
                     {
-                        "TPL_BITS",
+                        "TPL_STS",
                         Translate::Type::BitToString,
                         0xe0, // Always use 0xe0 for tpl mfct status bits.
                         "OK",
                         {
-//                            { 0x20, "?"}
-//                            { 0x40, "?"}
-//                            { 0x80, "?"}
+                            { 0x20, "FLOW_MEASUREMENT_ERROR"},
+                            { 0x40, "TEMPERATURE_MEASUREMENT_ERROR"}
+                            /* Or should this be:
+                               bit 0x40 RTC invalid
+                            */
                         }
                     },
                 },
@@ -51,6 +53,68 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
+        addStringFieldWithExtractorAndLookup(
+            "status",
+            "Status and error flags.",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
+            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            FieldMatcher::build()
+            .set(VIFRange::ErrorFlags),
+            Translate::Lookup(
+            {
+                {
+                    {
+                        "ERROR_FLAGS",
+                        Translate::Type::BitToString,
+                        0xffff,
+                        "OK",
+                        {
+                            { 0x0001, "NOT_INSTALLED", TestBit::NotSet },
+                            { 0x0002, "ENVIRONMENT_CHANGED" },
+                            { 0x0040, "REMOVED" },
+                            { 0x0080, "LOW_BATTERY" },
+                            { 0x0100, "OBSTACLE_DETECTED" },
+                            { 0x0200, "COVERING_DETECTED" }
+                            /* Or should this be
+                               bit  7-7 Not used, zero by default
+                               bit  8 Application error, unknown field C
+                               bit  9 Application error, unknown field CI
+                               bit 10 Application error, unknown record
+                               bit 11 Application error, access right
+                               bit 12 Application error, record size
+                               bit 13 Application error, record value
+                               bit 14 Application error, bad password
+                               bit 15 Not used, zero by defaul
+                            */
+                        }
+                    },
+                },
+            }));
+
+        addStringFieldWithExtractor(
+            "last_alarm_date",
+            "Date when the smoke alarm last triggered.",
+            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(SubUnitNr(1))
+            .set(TariffNr(1))
+            .set(VIFRange::Date)
+            );
+
+        addNumericFieldWithExtractor(
+            "alarm",
+            "Number of times the smoke alarm has triggered.",
+            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT,
+            Quantity::Counter,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(SubUnitNr(1))
+            .set(TariffNr(1))
+            .set(VIFRange::CumulationCounter)
+            );
+
         addStringFieldWithExtractor(
             "software_version",
             "Meter software version number.",
@@ -68,31 +132,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
             );
-
-        addStringFieldWithExtractor(
-            "last_alarm_date",
-            "Date when the smoke alarm last triggered.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT,
-            FieldMatcher::build()
-            .set(MeasurementType::Instantaneous)
-            .set(SubUnitNr(1))
-            .set(TariffNr(1))
-            .set(VIFRange::Date)
-            );
-
-        addNumericFieldWithExtractor(
-            "smoke_alarm",
-            "Number of times the smoke alarm has triggered.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT,
-            Quantity::Counter,
-            VifScaling::None,
-            FieldMatcher::build()
-            .set(MeasurementType::Instantaneous)
-            .set(SubUnitNr(1))
-            .set(TariffNr(1))
-            .set(VIFRange::CumulationCounter)
-            );
-
 
         addNumericFieldWithExtractor(
             "duration_removed",
@@ -176,32 +215,6 @@ namespace
             );
 
         addStringFieldWithExtractorAndLookup(
-            "status",
-            "Status and error flags.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT | PrintProperty::JOIN_TPL_STATUS,
-            FieldMatcher::build()
-            .set(VIFRange::ErrorFlags),
-            Translate::Lookup(
-            {
-                {
-                    {
-                        "ERROR_FLAGS",
-                        Translate::Type::BitToString,
-                        0xffff,
-                        "OK",
-                        {
-                            { 0x0001, "NOT_INSTALLED", TestBit::NotSet },
-                            { 0x0002, "ENVIRONMENT_CHANGED" },
-                            { 0x0040, "REMOVED" },
-                            { 0x0080, "LOW_BATTERY" },
-                            { 0x0100, "OBSTACLE_DETECTED" },
-                            { 0x0200, "COVERING_DETECTED" }
-                        }
-                    },
-                },
-            }));
-
-        addStringFieldWithExtractorAndLookup(
             "dust_level",
             "Dust level 0 (best) to 15 (worst).",
             PrintProperty::JSON,
@@ -275,7 +288,7 @@ namespace
                         0x700000,
                         "",
                         {
-                            { 0x000000, "NOT_INSTALLED" },
+                            { 0x000000, "SEODS_NOT_COMPLETED" },
                             { 0x100000, "" }, // No obstacle detected
                             { 0x200000, "45_TO_60_CM" },
                             { 0x300000, "38_TO_53_CM" },
@@ -291,9 +304,9 @@ namespace
 
 
         addStringFieldWithExtractorAndLookup(
-            "statuss",
-            "Status and error flags.",
-            PrintProperty::JSON,
+            "head_status",
+            "Status of smoke detector sensors, merged into the status field.",
+            PrintProperty::JOIN_INTO_STATUS,
             FieldMatcher::build()
             .set(DifVifKey("8440FF2C")),
             Translate::Lookup(
@@ -302,25 +315,26 @@ namespace
                     {
                         "HEAD_STATUS",
                         Translate::Type::BitToString,
-                        0x38ff0e0,
+                        0xff8ff0e0,
                         "OK",
                         {
-                           /* 0x0000000-0x000000f dust level*/
-                            { 0x0000020, "SOUNDER_FAULT" },
-                            { 0x0000040, "TAMPER_WHILE_REMOVED" },
-                            { 0x0000080, "EOL_REACHED" },
-                           /* 0x0000100-0x000f00 battery evel*/
-                            { 0x0001000, "LOW_BATTERY_FAULT" },
-                            { 0x0002000, "ALARM_SENSOR_FAULT" },
-                            { 0x0004000, "OBSTACLE_DETECTION_FAULT" },
-                            { 0x0008000, "EOL_WITHIN_12_MONTH" },
-                            { 0x0010000, "OBSTACLE_DETECTING_INSTALLATION_OK" },
-                            { 0x0020000, "ENV_CHANGED_SINCE_INSTALLATION" },
-                            { 0x0040000, "COMM_TO_HEAD_FAULT" },
-                            { 0x0080000, "INTERFERENCE_PREVENTING_OBSTACLE_DETECTION" },
-                           /* 0x0100000-0x0700000 distance */
-                            { 0x1000000, "OBSTACLE_DETECTED" },
-                            { 0x2000000, "SMOKE_DETECTOR_FULLY_COVERED" }
+                           /* 0x00000000-0x000000f dust level*/
+                            { 0x00000020, "SOUNDER_FAULT" },
+                            { 0x00000040, "TAMPER_WHILE_REMOVED" },
+                            { 0x00000080, "EOL_REACHED" },
+                           /* 0x00000100-0x000f00 battery evel*/
+                            { 0x00001000, "LOW_BATTERY_FAULT" },
+                            { 0x00002000, "ALARM_SENSOR_FAULT" },
+                            { 0x00004000, "OBSTACLE_DETECTOR_FAULT" },
+                            { 0x00008000, "EOL_WITHIN_12_MONTH" },
+                            { 0x00010000, "SEODS_NOT_YET_COMPLETED", TestBit::NotSet },
+                            { 0x00020000, "ENV_CHANGED_SINCE_INSTALLATION" },
+                            { 0x00040000, "COMM_TO_HEAD_FAULT" },
+                            { 0x00080000, "INTERFERENCE_PREVENTING_OBSTACLE_DETECTION" },
+                           /* 0x00100000-0x0700000 distance */
+                           /* 0x00800000 reserved */
+                            { 0x01000000, "OBSTACLE_DETECTED" },
+                            { 0x02000000, "SMOKE_DETECTOR_FULLY_COVERED" }
                         }
                     },
                 },
@@ -328,12 +342,3 @@ namespace
 
     }
 }
-
-// Test: Smokey ei6500 00012811 NOKEY
-// telegram=|5E442515112801000C1A7A370050252F2F_0BFD0F060101046D300CAB2202FD17000082206CAB22426C01018440FF2C000F11008250FD61000082506C01018260FD6100008360FD3100000082606C01018270FD61010082706CAB222F2F2F2F|
-// {"media":"smoke detector","meter":"ei6500","name":"Smokey","id":"00012811","software_version":"010106","message_datetime":"2021-02-11 12:48","last_alarm_date":"2000-01-01","smoke_alarm_counter":0,"duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2021-02-11","test_button_counter":1,"installation_date":"2021-02-11","last_sound_check_date":"2000-01-01","status":"NOT_INSTALLED","dust_level":"DUST_0","battery_level":"3.00V","obstacle_distance":"","statuss":"OBSTACLE_DETECTING_INSTALLATION_OK","timestamp":"1111-11-11T11:11:11Z"}
-// |Smokey;00012811;2000-01-01;0.000000;NOT_INSTALLED;1111-11-11 11:11.11
-
-// telegram=|5E442515112801000C1A7A370f50252F2F_0BFD0F060101046D300CAB2202FD17030182206CAB22426C01018440FF2C000F11008250FD61000282506C01018260FD6100008360FD3171000082606C01018270FD61010082706CAB222F2F2F2F|
-// {"media":"smoke detector","meter":"ei6500","name":"Smokey","id":"00012811","software_version":"010106","message_datetime":"2021-02-11 12:48","last_alarm_date":"2000-01-01","smoke_alarm_counter":512,"duration_removed_h":1.883333,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2021-02-11","test_button_counter":1,"installation_date":"2021-02-11","last_sound_check_date":"2000-01-01","status":"ENVIRONMENT_CHANGED OBSTACLE_DETECTED ALARM POWER_LOW PERMANENT_ERROR","dust_level":"DUST_0","battery_level":"3.00V","obstacle_distance":"","statuss":"OBSTACLE_DETECTING_INSTALLATION_OK","timestamp":"1111-11-11T11:11:11Z"}
-// |Smokey;00012811;2000-01-01;512.000000;ENVIRONMENT_CHANGED OBSTACLE_DETECTED ALARM POWER_LOW PERMANENT_ERROR;1111-11-11 11:11.11

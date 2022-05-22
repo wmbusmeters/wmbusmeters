@@ -25,6 +25,7 @@
 #include<functional>
 #include<grp.h>
 #include<pwd.h>
+#include<set>
 #include<signal.h>
 #include<stdarg.h>
 #include<stddef.h>
@@ -2223,4 +2224,60 @@ bool isLikelyAscii(std::string v)
     }
 
     return true;
+}
+
+string joinStatusStrings(const string &a, const string &b)
+{
+    if (a == "" || a == "OK" || a == "null")
+    {
+        if (b == "" || b == "null") return "OK";
+        return b;
+    }
+    if (b == "" || b == "OK" || b == "null")
+    {
+        if (a == "" || a == "null") return "OK";
+        return a;
+    }
+
+    return a+" "+b;
+}
+
+
+string sortStatusString(const string &a)
+{
+    set<string> flags;
+    string curr;
+
+    for (size_t i=0; i<a.length(); ++i)
+    {
+        uchar c = a[i];
+        if (c == ' ')
+        {
+            if (curr.length() > 0)
+            {
+                flags.insert(curr);
+                curr = "";
+            }
+        }
+        else
+        {
+            curr += c;
+        }
+    }
+
+    if (curr.length() > 0)
+    {
+        flags.insert(curr);
+        curr = "";
+    }
+
+    string result;
+    for (auto &s : flags)
+    {
+        result += s+" ";
+    }
+
+    while (result.back() == ' ') result.pop_back();
+
+    return result;
 }
