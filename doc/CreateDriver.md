@@ -23,12 +23,12 @@ Create a meter config in `/etc/wmbusmeters.d/` with content like this, using the
 
 ```
 name=ABOGGLKZ
-type=eurisii
+driver=eurisii
 id=60900126
 key=xxxxxxxxx
 ```
 
-If you now start wmbusmeters with `wmbusmeters --debug --verbose useconfig=/` and your meter transmits a message,
+If you now start wmbusmeters with `wmbusmeters --debug --verbose --useconfig=/etc` and your meter transmits a message,
 you will see a log like this:
 
 ```
