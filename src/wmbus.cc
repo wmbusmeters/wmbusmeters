@@ -24,6 +24,7 @@
 #include"dvparser.h"
 #include"manufacturer_specificities.h"
 #include<assert.h>
+#include<cmath>
 #include<semaphore.h>
 #include<stdarg.h>
 #include<string.h>
@@ -2780,9 +2781,46 @@ double vifScale(int vif)
     case 0x7F: // Manufacturer specific
 
         // wmbusmeters always returns time in hours
+        // 0x7d30 is not supposed to be used according to spec.
     case 0x7d31: return 60.0; // Duration tariff minutes
     case 0x7d32: return 1.0; // Duration tariff hours
     case 0x7d33: return (1.0/24.0); // Duration tariff days
+
+        // wmbusmeters always voltage in volts
+    case 0x7d40:
+    case 0x7d41:
+    case 0x7d42:
+    case 0x7d43:
+    case 0x7d44:
+    case 0x7d45:
+    case 0x7d46:
+    case 0x7d47:
+    case 0x7d48:
+    case 0x7d49:
+    case 0x7d4a:
+    case 0x7d4b:
+    case 0x7d4c:
+    case 0x7d4d:
+    case 0x7d4e:
+    case 0x7d4f: { double exp = (vif & 0xf)-9; return pow(10.0, -exp); }
+
+        // wmbusmeters always return current in ampere
+    case 0x7d50:
+    case 0x7d51:
+    case 0x7d52:
+    case 0x7d53:
+    case 0x7d54:
+    case 0x7d55:
+    case 0x7d56:
+    case 0x7d57:
+    case 0x7d58:
+    case 0x7d59:
+    case 0x7d5a:
+    case 0x7d5b:
+    case 0x7d5c:
+    case 0x7d5d:
+    case 0x7d5e:
+    case 0x7d5f: { double exp = (vif & 0xf)-12; return pow(10.0, -exp); }
 
     default: warning("(wmbus) warning: type 0x%x cannot be scaled!\n", vif);
         return -1;

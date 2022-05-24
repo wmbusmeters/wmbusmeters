@@ -115,6 +115,18 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ParameterSet)
             );
+
+        addNumericFieldWithExtractor(
+            "battery",
+            "The battery voltage.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Voltage,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Voltage)
+            );
+
     }
 }
 
@@ -131,3 +143,9 @@ namespace
 // telegram=|3944FA122162992202067A360420252F2F_046D282A9E2704136A00000002FD17400004933C000000002F2F2F2F2F2F03FD0C08000002FD0B0011|
 // {"media":"warm water","meter":"waterstarm","name":"Water","id":"22996221","meter_timestamp":"2020-07-30 10:40","total_m3":0.106,"total_backwards_m3":0,"current_status":"LEAKAGE_OR_NO_USAGE POWER_LOW","meter_version":"000008","parameter_set":"1100","timestamp":"1111-11-11T11:11:11Z"}
 // |Water;22996221;0.106000;0.000000;LEAKAGE_OR_NO_USAGE POWER_LOW;1111-11-11 11:11.11
+
+
+// Test: Water waterstarm 11559999 NOKEY
+// telegram=|2E44FA129999551100077A070020252F2F_046D0F28C22404139540000002FD17000001FD481D2F2F2F2F2F2F2F2F2F|
+// {"media":"water","meter":"waterstarm","name":"Water","id":"11559999","meter_timestamp":"2022-04-02 08:15","total_m3":16.533,"total_backwards_m3":null,"current_status":"OK","battery_v":2.9,"timestamp":"1111-11-11T11:11:11Z"}
+// |Water;11559999;16.533000;nan;OK;1111-11-11 11:11.11
