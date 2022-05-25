@@ -18,265 +18,266 @@
 
 #include"meters_common_implementation.h"
 
-struct MeterC5isf : public virtual MeterCommonImplementation
+namespace
 {
-    MeterC5isf(MeterInfo &mi, DriverInfo &di);
-
-    // Three types of telegrams (T1A1 T1A2 T1B) they all share total_energy_kwh and total_volume_m3.
-    // The T1A1 and T1B also contains a status.
-
-    // T1A1 and T1A2 also contains the previous month dates.
-    // We assume that they are identical for both types of telegrams
-    // so we use the same storage here.
-    // prev_month_date[14]
-
-    // T1A1 contains 14 back months of energy consumption.
-    // total_energy_prev_month_kwh[14]
-
-    // T1A2 contains 14 back months of volume consumption.
-    // total_volume_prev_month_m3[14]
-
-    // T1B contains:
-    // due_energy_kwh
-    // due_date
-    // volume_flow_m3h
-    // power_kw
-    // total_energy_last_month_kwh
-    // last_month_date_;
-    // max_power_last_month_kw
-    // flow_temperature_c
-    // return_temperature_c
-};
-
-static bool ok = registerDriver([](DriverInfo&di)
-{
-    di.setName("c5isf");
-    di.setMeterType(MeterType::HeatMeter);
-    di.addLinkMode(LinkMode::T1);
-    di.addDetection(MANUFACTURER_ZRI, 0x0d, 0x88); // Telegram type T1A1
-    di.addDetection(MANUFACTURER_ZRI, 0x07, 0x88); // Telegram type T1A2
-    di.addDetection(MANUFACTURER_ZRI, 0x04, 0x88); // Telegram type T1B
-    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterC5isf(mi, di)); });
-});
-
-MeterC5isf::MeterC5isf(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
-{
-    // Fields common for T1A1, T1A2, T1B...........
-
-    addNumericFieldWithExtractor(
-        "total_energy_consumption",
-        "The total heat energy consumption recorded by this meter.",
-        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
-        Quantity::Energy,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::EnergyWh)
-        );
-
-    addNumericFieldWithExtractor(
-        "total_volume",
-        "The total heating media volume recorded by this meter.",
-        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
-        Quantity::Volume,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::Volume)
-        );
-
-    // Status field common for T1A1 and T1B
-
-    addStringFieldWithExtractorAndLookup(
-        "status",
-        "Status and error flags.",
-        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-        PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
-        FieldMatcher::build()
-        .set(VIFRange::ErrorFlags),
-         {
-            {
-                {
-                    "ERROR_FLAGS",
-                    Translate::Type::DecimalsToString,
-                    9999,
-                    "OK",
-                    {
-                        { 2000, "VERIFICATION_EXPIRED" }, // Status initial verification expired
-                        { 1000, "BATTERY_EXPIRED" }, // END Status end of the battery
-                        { 800, "WIRELESS_ERROR" }, // Wireless interface
-                        { 100, "HARDWARE_ERROR3" }, // Hardware error
-                        { 50, "VALUE_OVERLOAD" }, // Measured value outside overload range
-                        { 40, "AIR_INSIDE" }, // Air inside the medium Vent system (**)
-                        { 30, "REVERSE_FLOW" }, // Reverse water flow detected
-                        { 20, "DRY" }, // No water in the measuring tube
-                        { 10, "ERROR_MEASURING" }, // Error in the measuring system
-                        { 9, "HARDWARE_ERROR2" }, // Hardware error Exchange device
-                        { 8, "HARDWARE_ERROR1" }, //  Hardware error Exchange device
-                        { 7, "LOW_BATTERY" }, // Battery voltage Exchange device
-                        { 6, "SUPPLY_SENSOR_INTERRUPTED" }, // Interruption supply sensor Check sensors
-                        { 5, "SHORT_CIRCUIT_SUPPLY_SENSOR" }, // Short circuit supply sensor Check sensors
-                        { 4, "RETURN_SENSOR_INTERRUPTED" }, // Interruption return sensor
-                        { 3, "SHORT_CIRCUIT_RETURN_SENSOR" }, // Short circuit return sensor / Check sensors
-                        { 2, "TEMP_ABOVE_RANGE" }, // Temperature above of measuring range
-                        { 1, "TEMP_BELOW_RANGE" }, // Temperature below of measuring range
-                    }
-                },
-            },
-         });
-
-    // Dates are common to T1A1 and T1A2 ///////////////////////////////////////////////////////
-
-    for (int i=0; i<14; ++i)
+    struct Driver : public virtual MeterCommonImplementation
     {
-        addStringFieldWithExtractor(
-            tostrprintf("prev_%d_month", i+1),
-            "The due date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+        Driver(MeterInfo &mi, DriverInfo &di);
+
+        // Three types of telegrams (T1A1 T1A2 T1B) they all share total_energy_kwh and total_volume_m3.
+        // The T1A1 and T1B also contains a status.
+
+        // T1A1 and T1A2 also contains the previous month dates.
+        // We assume that they are identical for both types of telegrams
+        // so we use the same storage here.
+        // prev_month_date[14]
+
+        // T1A1 contains 14 back months of energy consumption.
+        // total_energy_prev_month_kwh[14]
+
+        // T1A2 contains 14 back months of volume consumption.
+        // total_volume_prev_month_m3[14]
+
+        // T1B contains:
+        // due_energy_kwh
+        // due_date
+        // volume_flow_m3h
+        // power_kw
+        // total_energy_last_month_kwh
+        // last_month_date_;
+        // max_power_last_month_kw
+        // flow_temperature_c
+        // return_temperature_c
+    };
+
+    static bool ok = registerDriver([](DriverInfo&di)
+        {
+            di.setName("c5isf");
+            di.setMeterType(MeterType::HeatMeter);
+            di.addLinkMode(LinkMode::T1);
+            di.addDetection(MANUFACTURER_ZRI, 0x0d, 0x88); // Telegram type T1A1
+            di.addDetection(MANUFACTURER_ZRI, 0x07, 0x88); // Telegram type T1A2
+            di.addDetection(MANUFACTURER_ZRI, 0x04, 0x88); // Telegram type T1B
+            di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
+        });
+
+    Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+    {
+        // Fields common for T1A1, T1A2, T1B...........
+
+        addNumericFieldWithExtractor(
+            "total_energy_consumption",
+            "The total heat energy consumption recorded by this meter.",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            Quantity::Energy,
+            VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
-            .set(StorageNr(32+i))
-            .set(VIFRange::Date)
+            .set(VIFRange::EnergyWh)
             );
-    }
 
-    // Telegram type T1A1 ///////////////////////////////////////////////////////
-
-    for (int i=0; i<14; ++i)
-    {
         addNumericFieldWithExtractor(
-            tostrprintf("prev_%d_month", i+1),
-            "The total heat energy consumption recorded at end of previous month.",
+            "total_volume",
+            "The total heating media volume recorded by this meter.",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            );
+
+        // Status field common for T1A1 and T1B
+
+        addStringFieldWithExtractorAndLookup(
+            "status",
+            "Status and error flags.",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
+            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            FieldMatcher::build()
+            .set(VIFRange::ErrorFlags),
+            {
+                {
+                    {
+                        "ERROR_FLAGS",
+                        Translate::Type::DecimalsToString,
+                        9999,
+                        "OK",
+                        {
+                            { 2000, "VERIFICATION_EXPIRED" }, // Status initial verification expired
+                            { 1000, "BATTERY_EXPIRED" }, // END Status end of the battery
+                            { 800, "WIRELESS_ERROR" }, // Wireless interface
+                            { 100, "HARDWARE_ERROR3" }, // Hardware error
+                            { 50, "VALUE_OVERLOAD" }, // Measured value outside overload range
+                            { 40, "AIR_INSIDE" }, // Air inside the medium Vent system (**)
+                            { 30, "REVERSE_FLOW" }, // Reverse water flow detected
+                            { 20, "DRY" }, // No water in the measuring tube
+                            { 10, "ERROR_MEASURING" }, // Error in the measuring system
+                            { 9, "HARDWARE_ERROR2" }, // Hardware error Exchange device
+                            { 8, "HARDWARE_ERROR1" }, //  Hardware error Exchange device
+                            { 7, "LOW_BATTERY" }, // Battery voltage Exchange device
+                            { 6, "SUPPLY_SENSOR_INTERRUPTED" }, // Interruption supply sensor Check sensors
+                            { 5, "SHORT_CIRCUIT_SUPPLY_SENSOR" }, // Short circuit supply sensor Check sensors
+                            { 4, "RETURN_SENSOR_INTERRUPTED" }, // Interruption return sensor
+                            { 3, "SHORT_CIRCUIT_RETURN_SENSOR" }, // Short circuit return sensor / Check sensors
+                            { 2, "TEMP_ABOVE_RANGE" }, // Temperature above of measuring range
+                            { 1, "TEMP_BELOW_RANGE" }, // Temperature below of measuring range
+                        }
+                    },
+                },
+            });
+
+        // Dates are common to T1A1 and T1A2 ///////////////////////////////////////////////////////
+
+        for (int i=0; i<14; ++i)
+        {
+            addStringFieldWithExtractor(
+                tostrprintf("prev_%d_month", i+1),
+                "The due date.",
+                PrintProperty::JSON | PrintProperty::OPTIONAL,
+                FieldMatcher::build()
+                .set(MeasurementType::Instantaneous)
+                .set(StorageNr(32+i))
+                .set(VIFRange::Date)
+                );
+        }
+
+        // Telegram type T1A1 ///////////////////////////////////////////////////////
+
+        for (int i=0; i<14; ++i)
+        {
+            addNumericFieldWithExtractor(
+                tostrprintf("prev_%d_month", i+1),
+                "The total heat energy consumption recorded at end of previous month.",
+                PrintProperty::JSON | PrintProperty::OPTIONAL,
+                Quantity::Energy,
+                VifScaling::Auto,
+                FieldMatcher::build()
+                .set(MeasurementType::Instantaneous)
+                .set(StorageNr(32+i))
+                .set(VIFRange::EnergyWh)
+                );
+        }
+
+        // Telegram type T1A2 ///////////////////////////////////////////////////////
+
+        for (int i=0; i<14; ++i)
+        {
+            addNumericFieldWithExtractor(
+                tostrprintf("prev_%d_month", i+1),
+                tostrprintf("Previous month %d last date.", i+1),
+                PrintProperty::JSON | PrintProperty::OPTIONAL,
+                Quantity::Volume,
+                VifScaling::Auto,
+                FieldMatcher::build()
+                .set(MeasurementType::Instantaneous)
+                .set(StorageNr(32+i))
+                .set(VIFRange::Volume)
+                );
+        }
+
+        // Telegram type T1B ///////////////////////////////////////////////////////
+
+        addNumericFieldWithExtractor(
+            "due_energy_consumption",
+            "The total heat energy consumption at the due date.",
             PrintProperty::JSON | PrintProperty::OPTIONAL,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
-            .set(StorageNr(32+i))
+            .set(StorageNr(8))
             .set(VIFRange::EnergyWh)
             );
-    }
 
-    // Telegram type T1A2 ///////////////////////////////////////////////////////
-
-    for (int i=0; i<14; ++i)
-    {
-        addNumericFieldWithExtractor(
-            tostrprintf("prev_%d_month", i+1),
-            tostrprintf("Previous month %d last date.", i+1),
+        addStringFieldWithExtractor(
+            "due_date",
+            "The due date.",
             PrintProperty::JSON | PrintProperty::OPTIONAL,
-            Quantity::Volume,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(StorageNr(8))
+            .set(VIFRange::Date)
+            );
+
+        addNumericFieldWithExtractor(
+            "volume_flow",
+            "The current heat media volume flow.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
-            .set(StorageNr(32+i))
-            .set(VIFRange::Volume)
+            .set(VIFRange::VolumeFlow)
+            );
+
+        addNumericFieldWithExtractor(
+            "power",
+            "The current power consumption.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Power,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::PowerW)
+            );
+
+        addNumericFieldWithExtractor(
+            "total_energy_consumption_last_month",
+            "The total heat energy consumption recorded at end of last month.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(StorageNr(32))
+            .set(VIFRange::EnergyWh)
+            );
+
+        addStringFieldWithExtractor(
+            "last_month_date",
+            "The due date.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::DateTime)
+            );
+
+        addNumericFieldWithExtractor(
+            "max_power_last_month",
+            "Maximum power consumption last month.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Power,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Maximum)
+            .set(StorageNr(32))
+            .set(VIFRange::PowerW)
+            .add(VIFCombinable::PerMonth)
+            );
+
+        addNumericFieldWithExtractor(
+            "flow_temperature",
+            "The current forward heat media temperature.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Temperature,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::FlowTemperature)
+            );
+
+        addNumericFieldWithExtractor(
+            "return_temperature",
+            "The current return heat media temperature.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Temperature,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ReturnTemperature)
             );
     }
-
-    // Telegram type T1B ///////////////////////////////////////////////////////
-
-    addNumericFieldWithExtractor(
-        "due_energy_consumption",
-        "The total heat energy consumption at the due date.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Energy,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(StorageNr(8))
-        .set(VIFRange::EnergyWh)
-        );
-
-    addStringFieldWithExtractor(
-        "due_date",
-        "The due date.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(StorageNr(8))
-        .set(VIFRange::Date)
-        );
-
-    addNumericFieldWithExtractor(
-        "volume_flow",
-        "The current heat media volume flow.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Flow,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::VolumeFlow)
-        );
-
-    addNumericFieldWithExtractor(
-        "power",
-        "The current power consumption.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Power,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::PowerW)
-        );
-
-    addNumericFieldWithExtractor(
-        "total_energy_consumption_last_month",
-        "The total heat energy consumption recorded at end of last month.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Energy,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(StorageNr(32))
-        .set(VIFRange::EnergyWh)
-        );
-
-    addStringFieldWithExtractor(
-        "last_month_date",
-        "The due date.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::DateTime)
-        );
-
-    addNumericFieldWithExtractor(
-        "max_power_last_month",
-        "Maximum power consumption last month.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Power,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Maximum)
-        .set(StorageNr(32))
-        .set(VIFRange::PowerW)
-        .add(VIFCombinable::PerMonth)
-        );
-
-    addNumericFieldWithExtractor(
-        "flow_temperature",
-        "The current forward heat media temperature.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Temperature,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::FlowTemperature)
-        );
-
-    addNumericFieldWithExtractor(
-        "return_temperature",
-        "The current return heat media temperature.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Temperature,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::ReturnTemperature)
-        );
-
-
 }
 
 // Test: Heat c5isf 55445555 NOKEY
