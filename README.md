@@ -483,7 +483,7 @@ PiiGAB Thermometer/Hygrometer (piigth) wired
 
 Supported smoke detectors:
 Lansen Smoke Detector (lansensm)
-Ei Electronics Smoke Detector ei6500-oms (ei6500) (work in progress)
+EI Electronics Smoke Detector ei6500-oms (ei6500)
 
 Supported door/window detectors:
 Lansen Door/Window Detector (lansendw)

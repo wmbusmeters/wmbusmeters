@@ -35,6 +35,31 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
+        addStringFieldWithExtractorAndLookup(
+            "status",
+            "Status and error flags.",
+            PrintProperty::JSON | PrintProperty::FIELD | JOIN_TPL_STATUS,
+            FieldMatcher::build()
+            .set(VIFRange::ErrorFlags),
+            {
+                {
+                    {
+                        "ERROR_FLAGS",
+                        Translate::Type::BitToString,
+                        0xffff,
+                        "OK",
+                        {
+                            { 0x01, "DROP" }, // Unexpected drop in pressure in relation to average pressure.
+                            { 0x02, "SURGE" }, // Unexpected increase in pressure in relation to average pressure.
+                            { 0x04, "HIGH" }, // Average pressure has reached configurable limit. Default 15 bar
+                            { 0x08, "LOW" }, // Average pressure has reached configurable limit. Default 1.5 bar
+                            { 0x10, "TRANSIENT" }, // Pressure changes quickly over short timeperiods. Average is fluctuating.
+                            { 0x20, "COMM_ERROR" } // Cannot measure properly or bad internal communication.
+                        }
+                    },
+                },
+            });
+
         addNumericFieldWithExtractor(
             "pressure",
             "The measured pressure.",
@@ -68,34 +93,37 @@ namespace
             .set(VIFRange::Pressure)
             );
 
-        addStringFieldWithExtractorAndLookup(
-            "status",
-            "Status and error flags.",
-            PrintProperty::JSON | PrintProperty::FIELD | JOIN_TPL_STATUS,
+        addNumericFieldWithExtractor(
+            "alfa",
+            "We do not know what this is.",
+            PrintProperty::JSON,
+            Quantity::Counter,
+            VifScaling::None,
             FieldMatcher::build()
-            .set(VIFRange::ErrorFlags),
-            {
-                {
-                    {
-                        "ERROR_FLAGS",
-                        Translate::Type::BitToString,
-                        0xffff,
-                        "OK",
-                        {
-//                            { 0x01, "?" },
-                        }
-                    },
-                },
-            });
+            .set(DifVifKey("05FF09"))
+            );
+
+        addNumericFieldWithExtractor(
+            "beta",
+            "We do not know what this is.",
+            PrintProperty::JSON,
+            Quantity::Counter,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("05FF0A"))
+            );
     }
 }
 
 // Test: Pressing kampress 77000317 NOKEY
 // telegram=|32442D2C1703007701188D280080E39322DB8F78_22696600126967000269660005FF091954A33A05FF0A99BD823A02FD170800|
-// {"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"status":"ERROR_FLAGS_8","timestamp":"1111-11-11T11:11:11Z"}
-// |Pressing;77000317;1.020000;1.030000;1.020000;ERROR_FLAGS_8;1111-11-11 11:11.11
-
+// {"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","status":"LOW","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"alfa_counter":0.001246,"beta_counter":0.000997,"timestamp":"1111-11-11T11:11:11Z"}
+// |Pressing;77000317;LOW;1.020000;1.030000;1.020000;1111-11-11 11:11.11
 
 // telegram=|27442D2C1703007701188D280194E393226EC679DE735657_660067006600962B913A21B9423A0800|
-// {"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"status":"ERROR_FLAGS_8","timestamp":"1111-11-11T11:11:11Z"}
-// |Pressing;77000317;1.020000;1.030000;1.020000;ERROR_FLAGS_8;1111-11-11 11:11.11
+// {"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","status":"LOW","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"alfa_counter":0.001108,"beta_counter":0.000743,"timestamp":"1111-11-11T11:11:11Z"}
+// |Pressing;77000317;LOW;1.020000;1.030000;1.020000;1111-11-11 11:11.11
+
+// telegram=|27442D2C1703007701188D289554F295224ED579DE73188A_650066006600E80EA43A6B97A3BA0800|
+// {"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","status":"LOW","pressure_bar":1.02,"max_pressure_bar":1.02,"min_pressure_bar":1.01,"alfa_counter":0.001252,"beta_counter":-0.001248,"timestamp":"1111-11-11T11:11:11Z"}
+// |Pressing;77000317;LOW;1.020000;1.020000;1.010000;1111-11-11 11:11.11

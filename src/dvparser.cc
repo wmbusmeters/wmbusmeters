@@ -30,6 +30,12 @@
 
 using namespace std;
 
+union RealConversion
+{
+    uint32_t i;
+    float f;
+};
+
 const char *toString(VIFRange v)
 {
     switch (v) {
@@ -781,6 +787,24 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
         {
             draw = (double)draw * -1;
         }
+        if (auto_scale) scale = vifScale(dif_vif_key.vif());
+        *out = (draw) / scale;
+    }
+    else
+    if (t == 0x5) // 32 Bit Real
+    {
+        vector<uchar> v;
+        hex2bin(value, &v);
+        assert(v.size() == 4);
+        RealConversion rc;
+        rc.i = v[3]<<24 | v[2]<<16 | v[1]<<8 | v[0];
+
+        // Assumes float uses the standard IEEE 754 bit set.
+        // 1 bit sign,  8 bit exp, 23 bit mantissa
+        // RealConversion is tested on an amd64 platform. How about
+        // other platsforms with different byte ordering?
+        double draw = rc.f;
+        double scale = 1.0;
         if (auto_scale) scale = vifScale(dif_vif_key.vif());
         *out = (draw) / scale;
     }

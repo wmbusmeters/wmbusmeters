@@ -51,8 +51,10 @@
     X(SoftwareVersion,0x7D0F,0x7D0F, Quantity::Text, Unit::TXT) \
     X(ErrorFlags,0x7D17,0x7D17, Quantity::Text, Unit::TXT) \
     X(DurationOfTariff,0x7D31,0x7D33, Quantity::Time, Unit::Hour) \
+    X(Dimensionless,0x7D3A,0x7D3A, Quantity::Time, Unit::Hour) \
     X(Voltage,0x7D40,0x7D4F, Quantity::Voltage, Unit::Volt) \
     X(Current,0x7D50,0x7D5F, Quantity::Current, Unit::Ampere) \
+    X(ResetCounter,0x7D60,0x7D60, Quantity::Counter, Unit::COUNTER) \
     X(CumulationCounter,0x7D61,0x7D61, Quantity::Counter, Unit::COUNTER) \
     X(AnyVolumeVIF,0x00,0x00, Quantity::Volume, Unit::Unknown) \
     X(AnyEnergyVIF,0x00,0x00, Quantity::Energy, Unit::Unknown)  \
