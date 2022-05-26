@@ -17,137 +17,130 @@
 
 #include"meters_common_implementation.h"
 
-using namespace std;
-
-struct MeterLSE_07_17 : public virtual MeterCommonImplementation
+namespace
 {
-    MeterLSE_07_17(MeterInfo &mi, DriverInfo &di);
+    struct Driver : public virtual MeterCommonImplementation
+    {
+        Driver(MeterInfo &mi, DriverInfo &di);
+    };
 
-    double total_water_consumption_m3_ {};
+    static bool ok = registerDriver([](DriverInfo&di)
+        {
+            di.setName("lse_07_17");
+            di.setMeterType(MeterType::WaterMeter);
+            di.addLinkMode(LinkMode::S1);
+            di.addDetection(MANUFACTURER_LSE, 0x06,  0x18);
+            di.addDetection(MANUFACTURER_LSE, 0x07,  0x18);
+            di.addDetection(MANUFACTURER_LSE, 0x07,  0x16);
+            di.addDetection(MANUFACTURER_LSE, 0x07,  0x17);
+            di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
+        });
 
-    double due_date_water_consumption_m3_ {};
-    string due_date_ {};
+    Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+    {
+        addNumericFieldWithExtractor(
+            "total",
+            "The total water consumption recorded by this meter.",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            );
 
-    string error_code_ {};
-    string error_date_ {};
+        addNumericFieldWithExtractor(
+            "due_date",
+            "The water consumption at the due date.",
+            PrintProperty::JSON | PrintProperty::FIELD,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .set(StorageNr(1))
+            );
 
-    string device_date_time_ {};
-};
+        addStringFieldWithExtractor(
+            "due_date",
+            "The due date configured on the meter.",
+            PrintProperty::JSON | PrintProperty::FIELD,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Date)
+            .set(StorageNr(1))
+            );
 
-static bool ok = registerDriver([](DriverInfo&di)
-{
-    di.setName("lse_07_17");
-    di.setMeterType(MeterType::WaterMeter);
-    di.addLinkMode(LinkMode::S1);
-    di.addDetection(MANUFACTURER_LSE, 0x06,  0x18);
-    di.addDetection(MANUFACTURER_LSE, 0x07,  0x18);
-    di.addDetection(MANUFACTURER_LSE, 0x07,  0x16);
-    di.addDetection(MANUFACTURER_LSE, 0x07,  0x17);
+        addNumericFieldWithExtractor(
+            "what_date",
+            "The water consumption at the what date?",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .set(StorageNr(8))
+            );
 
-    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterLSE_07_17(mi, di)); });
-});
+        addStringFieldWithExtractor(
+            "what_date",
+            "The what date?",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Date)
+            .set(StorageNr(8))
+            );
 
-MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi, DriverInfo &di) :
-    MeterCommonImplementation(mi, di)
-{
-    addNumericFieldWithExtractor(
-        "total",
-        Quantity::Volume,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::Volume,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
-        "The total water consumption recorded by this meter.",
-        SET_FUNC(total_water_consumption_m3_, Unit::M3),
-        GET_FUNC(total_water_consumption_m3_, Unit::M3));
-
-    addNumericFieldWithExtractor(
-        "due_date",
-        Quantity::Volume,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::Volume,
-        StorageNr(1),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
-        "The water consumption at the due date.",
-        SET_FUNC(due_date_water_consumption_m3_, Unit::M3),
-        GET_FUNC(due_date_water_consumption_m3_, Unit::M3));
-
-    addStringFieldWithExtractor(
-        "due_date",
-        Quantity::Text,
-        NoDifVifKey,
-        MeasurementType::Instantaneous,
-        VIFRange::Date,
-        StorageNr(1),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "The due date configured on the meter.",
-        SET_STRING_FUNC(due_date_),
-        GET_STRING_FUNC(due_date_));
-
-    addStringFieldWithExtractorAndLookup(
-        "error_code",
-        Quantity::Text,
-        DifVifKey("02BB56"),
-        MeasurementType::Instantaneous,
-        VIFRange::Any,
-        AnyStorageNr,
-        AnyTariffNr,
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "Error code of the Meter, 0 means no error.",
-        SET_STRING_FUNC(error_code_),
-        GET_STRING_FUNC(error_code_),
-         {
+        addStringFieldWithExtractorAndLookup(
+            "error_code",
+            "Error code of the Meter, 0 means no error.",
+            PrintProperty::JSON | PrintProperty::FIELD,
+            FieldMatcher::build()
+            .set(DifVifKey("02BB56")
+            ),
             {
                 {
-                    "ERROR_FLAGS",
-                    Translate::Type::BitToString,
-                    0xffff,
-                    "OK",
                     {
-                        { 0x01, "?" },
-                    }
+                        "ERROR_FLAGS",
+                        Translate::Type::BitToString,
+                        0xffff,
+                        "OK",
+                        {
+                            // { 0x01, "?" },
+                        }
+                    },
                 },
-            },
-         });
+            });
 
-    addStringFieldWithExtractor(
-        "error_date",
-        Quantity::Text,
-        NoDifVifKey,
-        MeasurementType::AtError,
-        VIFRange::Date,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "The date the error occured at. If no error, reads 2127-15-31 (FFFF).",
-        SET_STRING_FUNC(error_date_),
-        GET_STRING_FUNC(error_date_));
+        addStringFieldWithExtractor(
+            "error_date",
+            "The date the error occured at. If no error, reads 2127-15-31 (FFFF).",
+            PrintProperty::JSON | PrintProperty::FIELD,
+            FieldMatcher::build()
+            .set(MeasurementType::AtError)
+            .set(VIFRange::Date)
+            );
 
-    addStringFieldWithExtractor(
-        "device_date_time",
-        Quantity::Text,
-        NoDifVifKey,
-        MeasurementType::Instantaneous,
-        VIFRange::DateTime,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "Date when measurement was recorded.",
-        SET_STRING_FUNC(device_date_time_),
-        GET_STRING_FUNC(device_date_time_));
+        addStringFieldWithExtractor(
+            "device_date_time",
+            "Date when measurement was recorded.",
+            PrintProperty::JSON | PrintProperty::FIELD,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::DateTime)
+            );
+
+        addStringFieldWithExtractor(
+            "meter_version",
+            "Meter model/version.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ModelVersion)
+            );
+    }
 }
 
     /*
@@ -198,3 +191,18 @@ MeterLSE_07_17::MeterLSE_07_17(MeterInfo &mi, DriverInfo &di) :
     // d    Flow too high.
     // f    Device was without voltage supply briefly. All parameter settings are lost.
     */
+
+
+// Test: Water lse_07_17 13963399 NOKEY
+
+// telegram=|244465329933961318067AE1000000_8C04130070000082046CBE2B01FD0C11046D010CA22C|
+// {"media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","total_m3":null,"due_date_m3":null,"due_date":null,"what_date_m3":7,"what_date":"2021-11-30","error_code":null,"error_date":null,"device_date_time":"2021-12-02 12:01","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
+// |Water;13963399;nan;nan;null;null;null;2021-12-02 12:01;1111-11-11 11:11.11
+
+// telegram=|2A4465329933961318067AD8800000_8C04130070000082046CBE2B01FD0C11046D1800A12C02FDAC7E9B2E|
+// {"media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","total_m3":null,"due_date_m3":null,"due_date":null,"what_date_m3":7,"what_date":"2021-11-30","error_code":null,"error_date":null,"device_date_time":"2021-12-01 00:24","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
+// |Water;13963399;nan;nan;null;null;null;2021-12-01 00:24;1111-11-11 11:11.11
+
+// telegram=|2D4465329933961318067ADA000000_0C13567100004C1300000000426CFFFF02BB560000326CFFFF046D2307A12C|
+// {"media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","total_m3":7.156,"due_date_m3":0,"due_date":"2127-15-31","error_code":"OK","error_date":"2127-15-31","device_date_time":"2021-12-01 07:35","timestamp":"1111-11-11T11:11:11Z"}
+// |Water;13963399;7.156000;0.000000;2127-15-31;OK;2127-15-31;2021-12-01 07:35;1111-11-11 11:11.11
