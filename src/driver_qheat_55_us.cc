@@ -15,140 +15,123 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include"meters_common_implementation.h"
+#include "meters_common_implementation.h"
 
-struct MeterQheat55US : public virtual MeterCommonImplementation
+namespace
 {
-    MeterQheat55US(MeterInfo &mi, DriverInfo &di);
 
-private:
+    struct Driver : public virtual MeterCommonImplementation
+    {
+        Driver(MeterInfo &mi, DriverInfo &di);
 
-    double total_energy_consumption_kwh_ {};
-    double energy_past_month_date_kwh_[13] {}; // 13 past month readings, storagenr 2 to 14
-    string last_month_date_txt_;
-    double energy_at_key_date_kwh_ {}; // billing date reading, storagenr 1
-    string key_date_txt_;
-};
+        // Telegrams contain the following values:
 
-static bool ok = registerDriver([](DriverInfo&di)
-{
-    di.setName("qheat_55_us");
-    di.setMeterType(MeterType::HeatMeter);
+        // device_date_time - current device date and time
+        // total_energy_consumption_kwh - current reading
 
-    di.addLinkMode(LinkMode::C1);
-    di.addDetection(MANUFACTURER_LUG, 0x04,  0x0a);
-    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterQheat55US(mi, di)); });
-});
+        // key_date - billing date, storagenr 1
+        // key_date_kwh - billing date reading, storagenr 1
 
-MeterQheat55US::MeterQheat55US(MeterInfo &mi, DriverInfo &di) :  MeterCommonImplementation(mi, di)
-{
-    addStringFieldWithExtractor(
-        "device_date_time",
-        "Device date time.",
-        PrintProperty::JSON,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::DateTime)
-        );
+        // prev_month - date of the previous month in storagenr 2
+        // prev_month_kwh[13] - 13 past month readings, storagenr 2 to 14
+    };
 
-    addNumericFieldWithExtractor(
-        "total_energy_consumption",
-        Quantity::Energy,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::AnyEnergyVIF,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
-        "The total energy consumption recorded by this meter.",
-        SET_FUNC(total_energy_consumption_kwh_, Unit::KWH),
-        GET_FUNC(total_energy_consumption_kwh_, Unit::KWH));
+    static bool ok = registerDriver([](DriverInfo &di)
+        {
+            di.setName("qheat_55_us");
+            di.setMeterType(MeterType::HeatMeter);
 
-    addNumericFieldWithExtractor(
-        "energy_at_key_date",
-        Quantity::Energy,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::AnyEnergyVIF,
-        StorageNr(1),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "The total energy consumption recorded at key (billing) date",
-        SET_FUNC(energy_at_key_date_kwh_, Unit::KWH),
-        GET_FUNC(energy_at_key_date_kwh_, Unit::KWH));
+            di.addLinkMode(LinkMode::C1);
+            di.addDetection(MANUFACTURER_LUG, 0x04,  0x0a);
+            di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); }); 
+        });
 
-    addStringFieldWithExtractor(
-        "key_date",
-        Quantity::Text,
-        NoDifVifKey,
-        MeasurementType::Instantaneous,
-        VIFRange::DateTime,
-        StorageNr(1),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON,
-        "The key (billing) date",
-        SET_STRING_FUNC(key_date_txt_),
-        GET_STRING_FUNC(key_date_txt_));
+    Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+    {
+        addStringFieldWithExtractor(
+            "device_date_time",
+            "Device date time.",
+            PrintProperty::JSON,
+            FieldMatcher::build()
+                .set(MeasurementType::Instantaneous)
+                .set(VIFRange::DateTime)
+            );
 
-    addNumericFieldWithExtractor(
-        "energy_last_month",
-        Quantity::Energy,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::AnyEnergyVIF,
-        StorageNr(2),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "The total energy consumption recorded by this meter at end of last month.",
-        SET_FUNC(energy_past_month_date_kwh_[0], Unit::KWH),
-        GET_FUNC(energy_past_month_date_kwh_[0], Unit::KWH));
+        addNumericFieldWithExtractor(
+            "total_energy_consumption",
+            "The total energy consumption recorded by this meter.",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+                .set(MeasurementType::Instantaneous)
+                .set(VIFRange::AnyEnergyVIF)
+                .set(StorageNr(0))
+                .set(TariffNr(0))
+                .set(IndexNr(1))
+            );
 
-        for (int i=3; i<=14; ++i)
+        addStringFieldWithExtractor(
+            "key_date",
+            "The key (billing) date",
+            PrintProperty::JSON,
+            FieldMatcher::build()
+                .set(MeasurementType::Instantaneous)
+                .set(VIFRange::DateTime)
+                .set(StorageNr(1))
+                .set(TariffNr(0))
+                .set(IndexNr(1))
+            );
+
+        addNumericFieldWithExtractor(
+            "key_date",
+            "The total energy consumption recorded at key (billing) date",
+            PrintProperty::JSON | PrintProperty::FIELD,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+                .set(MeasurementType::Instantaneous)
+                .set(VIFRange::AnyEnergyVIF)
+                .set(StorageNr(1))
+                .set(TariffNr(0))
+                .set(IndexNr(1))
+            );
+
+        addStringFieldWithExtractor(
+            "prev_month",
+            "The date of end of last month.",
+            PrintProperty::JSON,
+            FieldMatcher::build()
+                .set(MeasurementType::Instantaneous)
+                .set(VIFRange::DateTime)
+                .set(StorageNr(2))
+                .set(TariffNr(0))
+                .set(IndexNr(1))
+            );
+
+        for (int i = 1; i <= 13; ++i)
         {
             string key, info;
-            strprintf(key, "energy_%d_months_back", i-1);
-            strprintf(info, "Energy consumption %d months back.", i-1);
+            strprintf(key, "prev_%d_month", i);
+            strprintf(info, "Energy consumption %d months back.", i);
 
             addNumericFieldWithExtractor(
                 key,
-                Quantity::Energy,
-                NoDifVifKey,
-                VifScaling::Auto,
-                MeasurementType::Instantaneous,
-                VIFRange::AnyEnergyVIF,
-                StorageNr(i),
-                TariffNr(0),
-                IndexNr(1),
-                PrintProperty::JSON,
                 info,
-                SET_FUNC(energy_past_month_date_kwh_[i-2], Unit::KWH),
-                GET_FUNC(energy_past_month_date_kwh_[i-2], Unit::KWH));
+                PrintProperty::JSON,
+                Quantity::Energy,
+                VifScaling::Auto,
+                FieldMatcher::build()
+                    .set(MeasurementType::Instantaneous)
+                    .set(VIFRange::AnyEnergyVIF)
+                    .set(StorageNr(i + 1))
+                    .set(TariffNr(0))
+                    .set(IndexNr(1))
+                );
         }
-
-    addStringFieldWithExtractor(
-        "last_month_date",
-        Quantity::Text,
-        NoDifVifKey,
-        MeasurementType::Instantaneous,
-        VIFRange::DateTime,
-        StorageNr(2),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON,
-        "The date of end of last month.",
-        SET_STRING_FUNC(last_month_date_txt_),
-        GET_STRING_FUNC(last_month_date_txt_));
-
+    }
 }
-
 // Test: Heat qheat_55_us 70835484 NOKEY
 // telegram=9644a732845483700a047ae70000200274fc00046d230Bd3250c0605920000446d3B17Bf2c4c068251000084016d3B17de248c010605900000cc0106988500008c020629770000cc0206226600008c030682510000cc0306933600008c040602260000cc0406691800008c050633140000cc0506900900008c060618020000cc0606000000008c0706000000003c22000000000f001000
-// {"media":"heat","meter":"qheat_55_us","name":"Heat","id":"70835484","device_date_time":"2022-05-19 11:35","total_energy_consumption_kwh":9205,"energy_at_key_date_kwh":5182,"key_date":"2021-12-31 23:59","energy_last_month_kwh":9005,"energy_2_months_back_kwh":8598,"energy_3_months_back_kwh":7729,"energy_4_months_back_kwh":6622,"energy_5_months_back_kwh":5182,"energy_6_months_back_kwh":3693,"energy_7_months_back_kwh":2602,"energy_8_months_back_kwh":1869,"energy_9_months_back_kwh":1433,"energy_10_months_back_kwh":990,"energy_11_months_back_kwh":218,"energy_12_months_back_kwh":0,"energy_13_months_back_kwh":0,"last_month_date":"2022-04-30 23:59","timestamp":"2022-05-22T13:34:58Z"}
-// |Heat;70835484;9205.000000;5182.000000;9005.000000;2022-05-22 13:34.36
+// {"media":"heat","meter":"qheat_55_us","name":"Heat","id":"70835484","device_date_time":"2022-05-19 11:35","total_energy_consumption_kwh":9205,"key_date":"2021-12-31 23:59","key_date_kwh":5182,"prev_month":"2022-04-30 23:59","prev_1_month_kwh":9005,"prev_2_month_kwh":8598,"prev_3_month_kwh":7729,"prev_4_month_kwh":6622,"prev_5_month_kwh":5182,"prev_6_month_kwh":3693,"prev_7_month_kwh":2602,"prev_8_month_kwh":1869,"prev_9_month_kwh":1433,"prev_10_month_kwh":990,"prev_11_month_kwh":218,"prev_12_month_kwh":0,"prev_13_month_kwh":0,"timestamp":"2022-05-26T20:36:13Z"}
+// Heat;70835484;9205.000000;5182.000000;2022-05-26 20:36.32
