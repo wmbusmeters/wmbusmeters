@@ -735,12 +735,12 @@ to find which driver is the best fit for an unknown mfct,type,ver combo.
 wmbusmeters --analyze 3E44A5119035246141047A1A0030052F2F#0C06026301000C13688609040B3B0802000C2B220000F00A5A71020A5E72020AA61800004C0636370100426CBF25
 ```
 
-Fields marked with `C1` (and green background) are content that is understood and put to use in the json. For example:
+Fields marked with `C!` (and green background) are content that is understood and put to use in the json. For example:
 ```
 019 C!: 02630100 ("total_energy_consumption_kwh":16302)
 ```
 Which shows the telegram raw data bytes and the json field into which the decoded value was presented.
-Fields marked with `C2` (and red background) are content that is not understood nor used in the json.
+Fields marked with `C?` (and red background) are content that is not understood nor used in the json.
 
 To force a driver use: `--analyze=<driver>` to supply a decryption key: `--analyze=<key>` and to do both:
 `--analyze=<key>:<driver>`
