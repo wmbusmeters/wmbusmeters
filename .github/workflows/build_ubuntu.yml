@@ -1,9 +1,7 @@
 name: Build Ubuntu
 on:
   push:
-    branches:
-      - master
-      - 'debug/**'
+  pull_request:
 
 jobs:
   build:
