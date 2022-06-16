@@ -372,7 +372,7 @@ deque<SHA256_HASH> seen_telegrams;
 bool seen_this_telegram_before(vector<uchar> &frame)
 {
     SHA256_HASH hash;
-    Sha256Calculate(&frame[0], frame.size(), &hash);
+    Sha256Calculate(safeButUnsafeVectorPtr(frame), frame.size(), &hash);
 
     auto i = std::find(seen_telegrams.begin(), seen_telegrams.end(), hash);
 
@@ -1365,7 +1365,9 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
                 debug("(wmbus) no key, thus cannot execute kdf.\n");
                 return false;
             }
-            AES_CMAC(&meter_keys->confidentiality_key[0], &input[0], 16, &mac[0]);
+            AES_CMAC(safeButUnsafeVectorPtr(meter_keys->confidentiality_key),
+                     safeButUnsafeVectorPtr(input), 16,
+                     safeButUnsafeVectorPtr(mac));
             string s = bin2hex(mac);
             debug("(wmbus) ephemereal Kenc %s\n", s.c_str());
             tpl_generated_key.clear();
@@ -1375,7 +1377,9 @@ bool Telegram::parseTPLConfig(std::vector<uchar>::iterator &pos)
             mac.clear();
             mac.resize(16);
             debugPayload("(wmbus) input to kdf for mac", input);
-            AES_CMAC(&meter_keys->confidentiality_key[0], &input[0], 16, &mac[0]);
+            AES_CMAC(safeButUnsafeVectorPtr(meter_keys->confidentiality_key),
+                     safeButUnsafeVectorPtr(input), 16,
+                     safeButUnsafeVectorPtr(mac));
             s = bin2hex(mac);
             debug("(wmbus) ephemereal Kmac %s\n", s.c_str());
             tpl_generated_mac_key.clear();
@@ -1474,7 +1478,9 @@ bool Telegram::checkMAC(std::vector<uchar> &frame,
     input.insert(input.end(), from, to);
     string s = bin2hex(input);
     debug("(wmbus) input to mac %s\n", s.c_str());
-    AES_CMAC(&mackey[0], &input[0], input.size(), &mac[0]);
+    AES_CMAC(safeButUnsafeVectorPtr(mackey),
+             safeButUnsafeVectorPtr(input), input.size(),
+             safeButUnsafeVectorPtr(mac));
     string calculated = bin2hex(mac);
     debug("(wmbus) calculated mac %s\n", calculated.c_str());
     string received = bin2hex(inmac);
@@ -2351,7 +2357,7 @@ string ccType(int cc_field)
     if (cc_field & CC_R_RELAYED_BIT) s+= "relayed "; // Relayed by a repeater
     if (cc_field & CC_P_HIGH_PRIO_BIT) s+= "prio ";
 
-    if (s.back() == ' ') s.pop_back();
+    if (s.size() > 0 && s.back() == ' ') s.pop_back();
     return s;
 }
 
@@ -4483,7 +4489,7 @@ bool trimCRCsFrameFormatAInternal(std::vector<uchar> &payload, bool fail_is_ok)
 
     vector<uchar> out;
 
-    uint16_t calc_crc = crc16_EN13757(&payload[0], 10);
+    uint16_t calc_crc = crc16_EN13757(safeButUnsafeVectorPtr(payload), 10);
     uint16_t check_crc = payload[10] << 8 | payload[11];
 
     if (calc_crc != check_crc && !FUZZING)
@@ -4586,7 +4592,7 @@ bool trimCRCsFrameFormatBInternal(std::vector<uchar> &payload, bool fail_is_ok)
         crc2_pos = len-2;
     }
 
-    uint16_t calc_crc = crc16_EN13757(&payload[0], crc1_pos);
+    uint16_t calc_crc = crc16_EN13757(safeButUnsafeVectorPtr(payload), crc1_pos);
     uint16_t check_crc = payload[crc1_pos] << 8 | payload[crc1_pos+1];
 
     if (calc_crc != check_crc && !FUZZING)
@@ -4859,7 +4865,7 @@ string decodeTPLStatusByteOnlyStandardBits(uchar sts)
     if ((sts & 0x08) == 0x08) s += "PERMANENT_ERROR "; // E.g. meter needs service to work again.
     if ((sts & 0x10) == 0x10) s += "TEMPORARY_ERROR ";
 
-    while (s.back() == ' ') s.pop_back();
+    while (s.size() > 0 && s.back() == ' ') s.pop_back();
     return s;
 }
 
@@ -4884,7 +4890,7 @@ string decodeTPLStatusByteWithLookup(uchar sts, map<int,string> *vendor_lookup)
             // We could not translate, just print the bits.
             t += tostrprintf("UNKNOWN_%02X ", sts & 0xe0);
         }
-        while (t.back() == ' ') t.pop_back();
+        while (t.size() > 0 && t.back() == ' ') t.pop_back();
     }
 
     if (t == "OK") return s;

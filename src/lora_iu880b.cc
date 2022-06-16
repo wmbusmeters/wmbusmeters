@@ -93,7 +93,7 @@ struct Firmware_IU880B
         major = bytes[i++];
         build_count = bytes[i] | bytes[i+1];
         i+=2;
-        image = string(&bytes[0]+i, &bytes[0]+bytes.size());
+        image = string(&bytes[0]+i, &bytes[0]+bytes.size()); // Ptr from &[0] is ok since size is > 0
         return true;
     }
 };
@@ -511,7 +511,7 @@ static void buildRequest(int endpoint_id, int msg_id, vector<uchar>& body, vecto
     request.push_back(msg_id);
     request.insert(request.end(), body.begin(), body.end());
 
-    uint16_t crc = ~crc16_CCITT(&request[0], request.size());
+    uint16_t crc = ~crc16_CCITT(&request[0], request.size()); // Safe to use &[0] since request size > 0
     request.push_back(crc & 0xff);
     request.push_back(crc >> 8);
 

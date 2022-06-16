@@ -443,7 +443,7 @@ bool parseDV(Telegram *t,
     }
 
     string format_string = bin2hex(format_bytes);
-    uint16_t hash = crc16_EN13757(&format_bytes[0], format_bytes.size());
+    uint16_t hash = crc16_EN13757(safeButUnsafeVectorPtr(format_bytes), format_bytes.size());
 
     if (data_has_difvifs) {
         if (hash_to_format_.count(hash) == 0) {

@@ -32,8 +32,40 @@
 #include<stdexcept>
 #include<time.h>
 
-map<string, DriverInfo> all_registered_drivers_;
-vector<DriverInfo> all_registered_drivers_list_;
+map<string, DriverInfo> *registered_drivers_ = NULL;
+vector<DriverInfo*> *registered_drivers_list_ = NULL;
+
+void verifyDriverLookupCreated()
+{
+    if (registered_drivers_ == NULL)
+    {
+        registered_drivers_ = new map<string,DriverInfo>;
+    }
+    if (registered_drivers_list_ == NULL)
+    {
+        registered_drivers_list_ = new vector<DriverInfo*>;
+    }
+}
+
+DriverInfo *lookupDriver(string name)
+{
+    verifyDriverLookupCreated();
+    if (registered_drivers_->count(name) == 0) return NULL;
+    return &(*registered_drivers_)[name];
+}
+
+vector<DriverInfo*> &allDrivers()
+{
+    return *registered_drivers_list_;
+}
+
+void addRegisteredDriver(DriverInfo di)
+{
+    verifyDriverLookupCreated();
+    (*registered_drivers_)[di.name().str()] = di;
+    // The list elements points into the map.
+    (*registered_drivers_list_).push_back(lookupDriver(di.name().str()));
+}
 
 bool DriverInfo::detect(uint16_t mfct, uchar type, uchar version)
 {
@@ -68,26 +100,25 @@ bool registerDriver(function<void(DriverInfo&)> setup)
     DriverInfo di;
     setup(di);
 
-    // Check that the driver name is unique.
-    assert(all_registered_drivers_.count(di.name().str()) == 0);
+    // Check that the driver name has not been registered before!
+    assert(lookupDriver(di.name().str()) == NULL);
 
     // Check that no other driver also triggers on the same detection values.
     for (auto &d : di.detect())
     {
-        for (auto &p : all_registered_drivers_)
+        for (DriverInfo *p : allDrivers())
         {
-            bool foo = p.second.detect(d.mfct, d.type, d.version);
+            bool foo = p->detect(d.mfct, d.type, d.version);
             if (foo)
             {
                 error("Internal error: driver %s tried to register the same auto detect combo as driver %s alread has taken!\n",
-                      di.name().str().c_str(), p.second.name().str().c_str());
+                      di.name().str().c_str(), p->name().str().c_str());
             }
         }
     }
 
     // Everything looks, good install this driver.
-    all_registered_drivers_[di.name().str()] = di;
-    all_registered_drivers_list_.push_back(di);
+    addRegisteredDriver(di);
 
     // This code is invoked from the static initializers of DriverInfos when starting
     // wmbusmeters. Thus we do not yet know if the user has supplied --debug or similar setting.
@@ -98,12 +129,14 @@ bool registerDriver(function<void(DriverInfo&)> setup)
 
 bool lookupDriverInfo(string& driver, DriverInfo *out_di)
 {
-    if (all_registered_drivers_.count(driver) == 0)
+    DriverInfo *di = lookupDriver(driver);
+    if (di == NULL)
     {
         return false;
     }
 
-    *out_di = all_registered_drivers_[driver];
+    *out_di = *di;
+
     return true;
 }
 
@@ -444,9 +477,9 @@ LIST_OF_METERS
     {
         string best_driver = "";
 
-        for (DriverInfo ndr : all_registered_drivers_list_)
+        for (DriverInfo *ndr : allDrivers())
         {
-            string driver_name = toString(ndr);
+            string driver_name = toString(*ndr);
             if (only != "")
             {
                 if (driver_name != only) continue;
@@ -493,7 +526,7 @@ LIST_OF_METERS
                 {
                     *best_understood = u;
                     *best_length = l;
-                    best_driver = ndr.name().str();
+                    best_driver = ndr->name().str();
                     if (analyze_verbose_ && only == "") printf("(verbose) new best so far: %s %02d/%02d\n", best_driver.c_str(), u, l);
                 }
             }
@@ -1242,15 +1275,15 @@ LIST_OF_METERS
     return false;
     }
 
-    if (all_registered_drivers_.count(dn.str()) == 0) return false;
+    DriverInfo *di = lookupDriver(dn.str());
 
-    DriverInfo& di = all_registered_drivers_[dn.str()];
+    if (di == NULL) return false;
 
     // Return true for MBUS,S2,C2,T2 meters. Currently only mbus is implemented.
-    return di.linkModes().has(LinkMode::MBUS) ||
-        di.linkModes().has(LinkMode::C2) ||
-        di.linkModes().has(LinkMode::T2) ||
-        di.linkModes().has(LinkMode::S2);
+    return di->linkModes().has(LinkMode::MBUS) ||
+        di->linkModes().has(LinkMode::C2) ||
+        di->linkModes().has(LinkMode::T2) ||
+        di->linkModes().has(LinkMode::S2);
 }
 
 const char *toString(MeterType type)
@@ -2079,11 +2112,11 @@ void detectMeterDrivers(int manufacturer, int media, int version, vector<string>
 METER_DETECTION
 #undef X
 
-    for (auto &p : all_registered_drivers_)
+    for (DriverInfo *p : allDrivers())
     {
-        if (p.second.detect(manufacturer, media, version))
+        if (p->detect(manufacturer, media, version))
         {
-            drivers->push_back(p.second.name().str());
+            drivers->push_back(p->name().str());
         }
     }
 }
@@ -2094,9 +2127,9 @@ bool isMeterDriverValid(MeterDriver type, int manufacturer, int media, int versi
 METER_DETECTION
 #undef X
 
-    for (auto &p : all_registered_drivers_)
+    for (DriverInfo *p : allDrivers())
     {
-        if (p.second.detect(manufacturer, media, version))
+        if (p->detect(manufacturer, media, version))
         {
             return true;
         }
@@ -2115,20 +2148,15 @@ METER_DETECTION
 #undef X
     }
 
-    for (auto &p : all_registered_drivers_)
+    for (DriverInfo *p : allDrivers())
     {
-        if (p.first == driver_name && p.second.isValidMedia(media))
+        if (p->name().str() == driver_name && p->isValidMedia(media))
         {
             return true;
         }
     }
 
     return false;
-}
-
-vector<DriverInfo>& allRegisteredDrivers()
-{
-    return all_registered_drivers_list_;
 }
 
 DriverInfo pickMeterDriver(Telegram *t)
@@ -2148,11 +2176,11 @@ DriverInfo pickMeterDriver(Telegram *t)
 METER_DETECTION
 #undef X
 
-    for (auto &p : all_registered_drivers_)
+    for (DriverInfo *p : allDrivers())
     {
-        if (p.second.detect(manufacturer, media, version))
+        if (p->detect(manufacturer, media, version))
         {
-            return p.second;
+            return *p;
         }
     }
 
@@ -2165,15 +2193,16 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
 
     const char *keymsg = (mi->key[0] == 0) ? "not-encrypted" : "encrypted";
 
-    if (all_registered_drivers_.count(mi->driver_name.str()) != 0)
+    DriverInfo *di = lookupDriver(mi->driver_name.str());
+
+    if (di != NULL)
     {
-        DriverInfo& di = all_registered_drivers_[mi->driver_name.str()];
-        shared_ptr<Meter> newm = di.construct(*mi);
+        shared_ptr<Meter> newm = di->construct(*mi);
         newm->addConversions(mi->conversions);
         newm->setPollInterval(mi->poll_interval);
         verbose("(meter) created %s %s %s %s\n",
                 mi->name.c_str(),
-                di.name().str().c_str(),
+                di->name().str().c_str(),
                 mi->idsc.c_str(),
                 keymsg);
         return newm;
