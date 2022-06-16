@@ -272,6 +272,12 @@ std::string joinStatusStrings(const std::string &a, const std::string &b);
 // Also identical flags are merged: "BETA ALFA ALFA" --> "ALFA BETA"
 std::string sortStatusString(const std::string &a);
 
+// If a vector is empty, then there will be an assert (with some compiler flags) if we use &v[0]
+// even if we do not intend to actually use the pointer to uchars!
+// So provide safeVectorPtr which will return NULL instead of assert-crashing.
+uchar *safeButUnsafeVectorPtr(std::vector<uchar> &v);
+
+
 #ifndef FUZZING
 #define FUZZING false
 #endif

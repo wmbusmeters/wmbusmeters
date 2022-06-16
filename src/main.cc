@@ -304,10 +304,10 @@ void list_meters(Configuration *config)
 LIST_OF_METERS
 #undef X
 
-    for (DriverInfo &di : allRegisteredDrivers())
+    for (DriverInfo *di : allDrivers())
     {
-        string mname = di.name().str();
-        const char *info = toString(di.type());
+        string mname = di->name().str();
+        const char *info = toString(di->type());
 
         if (config->list_meters_search == "" ||                      \
             stringFoundCaseIgnored(info, config->list_meters_search) || \

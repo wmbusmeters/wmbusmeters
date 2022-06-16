@@ -179,7 +179,7 @@ string Lookup::translate(uint64_t bits)
         handleRule(r, s, bits);
     }
 
-    while (s.back() == ' ') s.pop_back();
+    while (s.size() > 0 && s.back() == ' ') s.pop_back();
     return s;
 }
 

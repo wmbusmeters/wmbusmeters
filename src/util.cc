@@ -2277,7 +2277,13 @@ string sortStatusString(const string &a)
         result += s+" ";
     }
 
-    while (result.back() == ' ') result.pop_back();
+    while (result.size() > 0 && result.back() == ' ') result.pop_back();
 
     return result;
+}
+
+uchar *safeButUnsafeVectorPtr(std::vector<uchar> &v)
+{
+    if (v.size() == 0) return NULL;
+    return &v[0];
 }

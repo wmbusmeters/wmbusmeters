@@ -64,7 +64,7 @@ bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
 
         // Generate the pseudo-random bits from the IV and the key.
         uchar xordata[16];
-        AES_ECB_encrypt(iv, &aeskey[0], xordata, 16);
+        AES_ECB_encrypt(iv, safeButUnsafeVectorPtr(aeskey), xordata, 16);
 
         // Xor the data with the pseudo-random bits to decrypt into tmp.
         uchar tmp[block_size];
@@ -170,10 +170,10 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t,
     debug("(TPL) IV %s\n", s.c_str());
 
     uchar buffer_data[num_bytes_to_decrypt];
-    memcpy(buffer_data, &buffer[0], num_bytes_to_decrypt);
+    memcpy(buffer_data, safeButUnsafeVectorPtr(buffer), num_bytes_to_decrypt);
     uchar decrypted_data[num_bytes_to_decrypt];
 
-    AES_CBC_decrypt_buffer(decrypted_data, buffer_data, num_bytes_to_decrypt, &aeskey[0], iv);
+    AES_CBC_decrypt_buffer(decrypted_data, buffer_data, num_bytes_to_decrypt, safeButUnsafeVectorPtr(aeskey), iv);
 
     // Remove the encrypted bytes.
     frame.erase(pos, frame.end());
@@ -242,10 +242,10 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>:
     debug("(TPL) IV %s\n", s.c_str());
 
     uchar buffer_data[num_bytes_to_decrypt];
-    memcpy(buffer_data, &buffer[0], num_bytes_to_decrypt);
+    memcpy(buffer_data, safeButUnsafeVectorPtr(buffer), num_bytes_to_decrypt);
     uchar decrypted_data[num_bytes_to_decrypt];
 
-    AES_CBC_decrypt_buffer(decrypted_data, buffer_data, num_bytes_to_decrypt, &aeskey[0], iv);
+    AES_CBC_decrypt_buffer(decrypted_data, buffer_data, num_bytes_to_decrypt, safeButUnsafeVectorPtr(aeskey), iv);
 
     // Remove the encrypted bytes and any potentially not decryptes bytes after.
     frame.erase(pos, frame.end());

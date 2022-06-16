@@ -535,7 +535,9 @@ void test_kdf()
     hex2bin("2b7e151628aed2a6abf7158809cf4f3c", &key);
     mac.resize(16);
 
-    AES_CMAC(&key[0], &input[0], 0, &mac[0]);
+    AES_CMAC(safeButUnsafeVectorPtr(key),
+             safeButUnsafeVectorPtr(input), 0,
+             safeButUnsafeVectorPtr(mac));
     string s = bin2hex(mac);
     string ex = "BB1D6929E95937287FA37D129B756746";
     if (s != ex)
@@ -546,7 +548,9 @@ void test_kdf()
 
     input.clear();
     hex2bin("6bc1bee22e409f96e93d7e117393172a", &input);
-    AES_CMAC(&key[0], &input[0], 16, &mac[0]);
+    AES_CMAC(safeButUnsafeVectorPtr(key),
+             safeButUnsafeVectorPtr(input), 16,
+             safeButUnsafeVectorPtr(mac));
     s = bin2hex(mac);
     ex = "070A16B46B4D4144F79BDD9DD04A287C";
 
@@ -1066,14 +1070,14 @@ void test_aes()
     debug("(aes) input: \"%s\"\n", poe.c_str());
 
     uchar out[sizeof(in)];
-    AES_CBC_encrypt_buffer(out, in, sizeof(in), &key[0], iv);
+    AES_CBC_encrypt_buffer(out, in, sizeof(in), safeButUnsafeVectorPtr(key), iv);
 
     vector<uchar> outv(out, out+sizeof(out));
     string s = bin2hex(outv);
     debug("(aes) encrypted: \"%s\"\n", s.c_str());
 
     uchar back[sizeof(in)];
-    AES_CBC_decrypt_buffer(back, out, sizeof(in), &key[0], iv);
+    AES_CBC_decrypt_buffer(back, out, sizeof(in), safeButUnsafeVectorPtr(key), iv);
 
     string b = string(back, back+sizeof(back));
     debug("(aes) decrypted: \"%s\"\n", b.c_str());
@@ -1083,8 +1087,8 @@ void test_aes()
         printf("ERROR! aes with IV encrypt decrypt failed!\n");
     }
 
-    AES_ECB_encrypt(in, &key[0], out, sizeof(in));
-    AES_ECB_decrypt(out, &key[0], back, sizeof(in));
+    AES_ECB_encrypt(in, safeButUnsafeVectorPtr(key), out, sizeof(in));
+    AES_ECB_decrypt(out, safeButUnsafeVectorPtr(key), back, sizeof(in));
 
     if (memcmp(back, in, sizeof(in)))
     {

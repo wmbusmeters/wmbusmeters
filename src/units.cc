@@ -179,7 +179,7 @@ string valueToString(double v, Unit u)
         return "null";
     }
     string s = to_string(v);
-    while (s.back() == '0') s.pop_back();
+    while (s.size() > 0 && s.back() == '0') s.pop_back();
     if (s.back() == '.') {
         s.pop_back();
         if (s.length() == 0) return "0";
