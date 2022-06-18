@@ -30,6 +30,7 @@
 
 #define LIST_OF_VIF_RANGES \
     X(Volume,0x10,0x17,Quantity::Volume,Unit::M3) \
+    X(OnTime,0x20,0x23, Quantity::Time, Unit::Second)  \
     X(OperatingTime,0x24,0x27, Quantity::Time, Unit::Second)  \
     X(VolumeFlow,0x38,0x3F, Quantity::Flow, Unit::M3H) \
     X(FlowTemperature,0x58,0x5B, Quantity::Temperature, Unit::C) \

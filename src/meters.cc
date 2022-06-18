@@ -2670,3 +2670,114 @@ bool Address::parse(string &s)
 
     return true;
 }
+
+void MeterCommonImplementation::addOptionalCommonFields()
+{
+    addStringFieldWithExtractor(
+        "fabrication_no",
+        "Fabrication number.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::FabricationNo)
+        );
+
+    addNumericFieldWithExtractor(
+        "operating_time",
+        "How long the meter has been collecting data.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        Quantity::Time,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::OperatingTime)
+        );
+
+    addNumericFieldWithExtractor(
+        "on_time",
+        "How long the meter has been powered up.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        Quantity::Time,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::OnTime)
+        );
+
+    addStringFieldWithExtractor(
+        "meter_datetime",
+        "Date and time when the meter sent the telegram.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::DateTime)
+        );
+
+    addStringFieldWithExtractor(
+        "meter_error_datetime",
+        "Date and time when the meter was in error.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        FieldMatcher::build()
+        .set(MeasurementType::AtError)
+        .set(VIFRange::DateTime)
+        );
+
+}
+
+void MeterCommonImplementation::addOptionalFlowRelatedFields()
+{
+    addNumericFieldWithExtractor(
+        "total",
+        "The total heating/cooling media volume consumption recorded by this meter.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        Quantity::Volume,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::Volume)
+        );
+
+    addNumericFieldWithExtractor(
+        "flow_temperature",
+        "Forward heat/cooling media temperature.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        Quantity::Temperature,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::FlowTemperature)
+        );
+
+    addNumericFieldWithExtractor(
+        "return_temperature",
+        "Return heat/cooling media temperature.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        Quantity::Temperature,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::ReturnTemperature)
+        );
+
+    addNumericFieldWithExtractor(
+        "flow_return_temperature_difference",
+        "The difference between flow and return media temperatures.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        Quantity::Temperature,
+        VifScaling::AutoSigned,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::TemperatureDifference)
+        );
+
+    addNumericFieldWithExtractor(
+        "volume_flow",
+        "Media volume flow.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        Quantity::Flow,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::VolumeFlow)
+        );
+    }
