@@ -225,6 +225,9 @@ protected:
     std::string getStringValue(FieldInfo *fi);
     std::string decodeTPLStatusByte(uchar sts);
 
+    void addOptionalCommonFields();
+    void addOptionalFlowRelatedFields();
+
 private:
 
     int index_ {};

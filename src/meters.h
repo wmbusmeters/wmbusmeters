@@ -39,6 +39,7 @@
     X(GasMeter) \
     X(HeatCostAllocationMeter) \
     X(HeatMeter) \
+    X(HeatCoolingMeter) \
     X(PulseCounter) \
     X(SmokeDetector) \
     X(TempHygroMeter) \

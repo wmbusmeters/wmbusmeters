@@ -472,6 +472,7 @@ Heat meter Diehl Sharky 775 (sharky)
 Heat meter Diehl Sharky 774 (sharky774)
 Heat meter Maddelena microClima (microclima)
 Heat and Cooling meter BMeters Hydrocal-M3 (hydrocalm3)
+Heat and Cooling meter Axioma Qualcosonic E3 (qualcosonic)
 Heat meter Qundis Q heat 5.5 (qheat)
 
 Supported room sensors:
