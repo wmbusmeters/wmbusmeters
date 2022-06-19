@@ -195,6 +195,12 @@ protected:
         FieldMatcher matcher,
         Translate::Lookup lookup); // Translate the bits/indexes.
 
+    // Used only for status field from tpl_status only.
+    void addStringField(
+        string vname,
+        string help,
+        PrintProperties print_properties);
+
     // The default implementation of poll does nothing.
     // Override for mbus meters that need to be queried and likewise for C2/T2 wmbus-meters.
     void poll(shared_ptr<BusManager> bus);

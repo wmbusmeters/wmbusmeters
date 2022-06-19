@@ -1058,6 +1058,27 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
             ));
 }
 
+void MeterCommonImplementation::addStringField(string vname,
+                                               string help,
+                                               PrintProperties print_properties)
+{
+    field_infos_.push_back(
+        FieldInfo(field_infos_.size(),
+                  vname,
+                  Quantity::Text,
+                  defaultUnitForQuantity(Quantity::Text),
+                  VifScaling::None,
+                  FieldMatcher(),
+                  help,
+                  print_properties,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NoLookup
+            ));
+}
+
 void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
 {
     if (usesPolling())
@@ -2680,6 +2701,15 @@ void MeterCommonImplementation::addOptionalCommonFields()
         FieldMatcher::build()
         .set(MeasurementType::Instantaneous)
         .set(VIFRange::FabricationNo)
+        );
+
+    addStringFieldWithExtractor(
+        "software_version",
+        "Software version.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::SoftwareVersion)
         );
 
     addNumericFieldWithExtractor(

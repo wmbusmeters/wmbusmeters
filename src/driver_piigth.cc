@@ -35,6 +35,16 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
+        addOptionalCommonFields();
+
+        /*
+        addStringField(
+            "status",
+            "Meter status from tpl status field.",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
+            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS);
+        */
+
         addNumericFieldWithExtractor(
             "temperature",
             "The current temperature.",
@@ -55,6 +65,7 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
+            .set(StorageNr(1))
             );
 
         addNumericFieldWithExtractor(
@@ -69,24 +80,45 @@ namespace
             .set(StorageNr(2))
             );
 
-        /*
         addNumericFieldWithExtractor(
             "relative_humidity",
             "The current relative humidity.",
             PrintProperty::JSON | PrintProperty::FIELD,
             Quantity::RelativeHumidity,
             VifScaling::Auto,
-            FieldMatcher::build().
-            set(DifVifKey("02FB1A"))
-            );
-        */
-        addStringFieldWithExtractor(
-            "fabrication_no",
-            "Fabrication number.",
-            PrintProperty::JSON,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
-            .set(VIFRange::FabricationNo)
+            .set(VIFRange::RelativeHumidity)
+            );
+
+        addNumericFieldWithExtractor(
+            "relative_humidity_1h",
+            "The average relative humidity over the last hour.",
+            PrintProperty::JSON | PrintProperty::FIELD,
+            Quantity::RelativeHumidity,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::RelativeHumidity)
+            .set(StorageNr(1))
+            );
+
+        addNumericFieldWithExtractor(
+            "relative_humidity_24h",
+            "The average relative humidity over the last 24 hours.",
+            PrintProperty::JSON | PrintProperty::FIELD,
+            Quantity::RelativeHumidity,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::RelativeHumidity)
+            .set(StorageNr(2))
             );
     }
 }
+
+
+// Test: Tempo piigth 10000284 NOKEY
+// telegram=|68383868080072840200102941011B04000000_0265C0094265A509B20165000002FB1A900142FB1A6901B201FB1A00000C788402001002FD0F21000FC016|
+// {"media":"room sensor","meter":"piigth","name":"Tempo","id":"10000284","fabrication_no":"10000284","software_version":"0021","temperature_c":24.96,"average_temperature_1h_c":24.69,"average_temperature_24h_c":null,"relative_humidity_rh":40,"relative_humidity_1h_rh":36.1,"relative_humidity_24h_rh":null,"timestamp":"1111-11-11T11:11:11Z"}
+// |Tempo;10000284;24.960000;24.690000;nan;40.000000;36.100000;nan;1111-11-11 11:11.11

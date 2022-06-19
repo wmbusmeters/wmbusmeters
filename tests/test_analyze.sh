@@ -141,7 +141,7 @@ Using driver : multical21(driver should be upgraded) 00/00
 017   : 576c payload crc (calculated 576c OK)
 019   : 78 tpl-ci-field (EN 13757-3 Application Layer (no tplh))
 020   : 02 dif (16 Bit Integer/Binary Instantaneous value)
-021   : FF vif (Vendor extension)
+021   : FF vif (Manufacturer specific)
 022   : 20 combinable vif (PerSecond)
 023 C!: 7100 info codes (DRY(dry 22-31 days))
 025   : 04 dif (32 Bit Integer/Binary Instantaneous value)
