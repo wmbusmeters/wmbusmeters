@@ -47,6 +47,7 @@
     X(ActualityDuration,0x74,0x77, Quantity::Time, Unit::Second) \
     X(FabricationNo,0x78,0x78, Quantity::Text, Unit::TXT) \
     X(EnhancedIdentification,0x79,0x79, Quantity::Text, Unit::TXT) \
+    X(RelativeHumidity,0x7B1A,0x7B1B, Quantity::RH, Unit::RH) \
     X(ParameterSet,0x7D0B,0x7D0B, Quantity::Text, Unit::TXT) \
     X(ModelVersion,0x7D0C,0x7D0C, Quantity::Text, Unit::TXT) \
     X(SoftwareVersion,0x7D0F,0x7D0F, Quantity::Text, Unit::TXT) \

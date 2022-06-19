@@ -2447,20 +2447,11 @@ MeasurementType difMeasurementType(int dif)
 
 string vifType(int vif)
 {
-    int extension = vif & 0x80;
-    int t = vif & 0x7f;
+    // Remove any remaining 0x80 top bits.
+    vif &= 0x7f7f;
 
-    if (extension) {
-        switch(vif) {
-        case 0xfb: return "First extension FB of VIF-codes";
-        case 0xfd: return "Second extension FD of VIF-codes";
-        case 0xef: return "Third extension 6F of VIF-codes";
-        case 0xff: return "Vendor extension";
-        case 0xfc: return "Combinable Extension VIF-codes";
-        }
-    }
-
-    switch (t) {
+    switch (vif)
+    {
     case 0x00: return "Energy mWh";
     case 0x01: return "Energy 10⁻² Wh";
     case 0x02: return "Energy 10⁻¹ Wh";
@@ -2590,7 +2581,7 @@ string vifType(int vif)
     case 0x6D: return "Date and time type";
 
     case 0x6E: return "Units for H.C.A.";
-    case 0x6F: return "Reserved";
+    case 0x6F: return "Third extension 6F of VIF-codes";
 
     case 0x70: return "Averaging duration seconds";
     case 0x71: return "Averaging duration minutes";
@@ -2605,9 +2596,16 @@ string vifType(int vif)
     case 0x78: return "Fabrication no";
     case 0x79: return "Enhanced identification";
 
+    case 0x7B: return "First extension FB of VIF-codes";
     case 0x7C: return "VIF in following string (length in first byte)";
+    case 0x7D: return "Second extension FD of VIF-codes";
+
     case 0x7E: return "Any VIF";
     case 0x7F: return "Manufacturer specific";
+
+    case 0x7B1A: return "Relative humidity 0.1%";
+    case 0x7B1B: return "Relative humidity 1%";
+
     default: return "?";
     }
 }
@@ -2778,13 +2776,9 @@ double vifScale(int vif)
     case 0x76: return 1.0; // Actuality duration hours
     case 0x77: return (1.0/24.0); // Actuality duration days
 
-    case 0x78: // Fabrication no
-    case 0x79: // Enhanced identification
-    case 0x80: // Address
-
-    case 0x7C: // VIF in following string (length in first byte)
-    case 0x7E: // Any VIF
-    case 0x7F: // Manufacturer specific
+        // relative humidity is a dimensionless value.
+    case 0x7b1a: return 10.0; // Relative humidity 0.1 %
+    case 0x7b1b: return 1.0;  // Relative humidity 1 %
 
         // wmbusmeters always returns time in hours
         // 0x7d30 is not supposed to be used according to spec.
@@ -2827,6 +2821,16 @@ double vifScale(int vif)
     case 0x7d5d:
     case 0x7d5e:
     case 0x7d5f: { double exp = (vif & 0xf)-12; return pow(10.0, -exp); }
+
+        /*
+    case 0x78: // Fabrication no
+    case 0x79: // Enhanced identification
+    case 0x80: // Address
+
+    case 0x7C: // VIF in following string (length in first byte)
+    case 0x7E: // Any VIF
+    case 0x7F: // Manufacturer specific
+        */
 
     default: warning("(wmbus) warning: type 0x%x cannot be scaled!\n", vif);
         return -1;
@@ -3211,6 +3215,13 @@ string vif_7B_FirstExtensionType(uchar dif, uchar vif, uchar vife)
         int n = vife & 0x01;
         string s;
         strprintf(s, "10^%d ton", n+2);
+        return s;
+    }
+
+    if ((vife & 0x7e) == 0x1a) {
+        int n = vife & 0x01;
+        string s;
+        strprintf(s, "Relative Humidity 10^%d %%", n-1);
         return s;
     }
 
