@@ -428,7 +428,8 @@ Any bus controller dongle/board behaving like a plain serial port.
 Supported water meters:
 Aventies (aventieswm)
 Apator at-wmbus-08   (apator08) (non-standard protocol)
-Apator at-wmbus-16-2 (apator162) (non-standard protocol, spurious decoding errors)
+Apator at-wmbus-16-2 (apator162) (non-standard protocol)
+Apator at-wmbus-17-2 (apator172) (non-standard protocol)
 Apator Ultrimis (ultrimis)
 Aquametro/Integra Topas Es Kr (topaseskr)
 Axioma W1 (q400)
