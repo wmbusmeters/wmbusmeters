@@ -2822,6 +2822,9 @@ double vifScale(int vif)
     case 0x7d5e:
     case 0x7d5f: { double exp = (vif & 0xf)-12; return pow(10.0, -exp); }
 
+        // for remaining battery wmbusmeters returns number of days.
+    case 0x7d74: { return 1.0; }
+
         /*
     case 0x78: // Fabrication no
     case 0x79: // Enhanced identification
@@ -3613,6 +3616,11 @@ string vif_7D_SecondExtensionType(uchar dif, uchar vif, uchar vife)
     if ((vife & 0x7f) >= 0x71) {
         return "Reserved";
     }
+
+    if ((vife & 0x7f) == 0x74) {
+        return "Remaining battery in days";
+    }
+
     return "?";
 }
 
