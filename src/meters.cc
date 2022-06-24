@@ -803,7 +803,7 @@ void MeterCommonImplementation::addLinkMode(LinkMode lm)
     link_modes_.addLinkMode(lm);
 }
 
-void MeterCommonImplementation::addMfctTPlStatusBits(Translate::Lookup lookup)
+void MeterCommonImplementation::addMfctTPLStatusBits(Translate::Lookup lookup)
 {
     mfct_tpl_status_bits_ = lookup;
 }
@@ -906,13 +906,14 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                                                              PrintProperties print_properties,
                                                              Quantity vquantity,
                                                              VifScaling vif_scaling,
-                                                             FieldMatcher matcher)
+                                                             FieldMatcher matcher,
+                                                             Unit use_unit)
 {
     field_infos_.push_back(
         FieldInfo(field_infos_.size(),
                   vname,
                   vquantity,
-                  defaultUnitForQuantity(vquantity),
+                  use_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : use_unit,
                   vif_scaling,
                   matcher,
                   help,

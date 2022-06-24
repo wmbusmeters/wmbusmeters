@@ -94,7 +94,7 @@ protected:
     std::vector<std::string> &meterExtraConstantFields();
     void setMeterType(MeterType mt);
     void addLinkMode(LinkMode lm);
-    void addMfctTPlStatusBits(Translate::Lookup lookup);
+    void addMfctTPLStatusBits(Translate::Lookup lookup);
 
     // Print with the default unit for this quantity.
     void addPrint(string vname, Quantity vquantity,
@@ -140,7 +140,8 @@ protected:
         PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
         Quantity vquantity,     // Value belongs to this quantity, this quantity determines the default unit.
         VifScaling vif_scaling, // How should any Vif value be scaled.
-        FieldMatcher matcher);
+        FieldMatcher matcher,
+        Unit use_unit = Unit::Unknown); // If specified use this unit instead.
 
     void addNumericField(
         string vname,          // Name of value without unit, eg total
