@@ -63,9 +63,6 @@ jobs:
             else
               DOCKER_TAG=latest
             fi
-            # Turn on Experimental features
-            sudo mkdir $HOME/.docker
-            sudo sh -c 'echo "{ \"experimental\": \"enabled\" }" >> $HOME/.docker/config.json'
             #
             sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
             #
