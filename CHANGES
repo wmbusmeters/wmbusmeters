@@ -1,4 +1,6 @@
 
+Version 1.8.0: 2022-06-25
+
 ATTENTION! Counter suffix _int is changed to _counter.
 New fields are added to lansendw, lansenpu, qsmoke drivers.
 Eventually the old fields will go away in drivers.
