@@ -68,7 +68,8 @@ struct WMBusCommonImplementation : public virtual WMBus
     void resetProtocolErrorCount();
     bool areLinkModesConfigured();
     // Device specific set link modes implementation.
-    virtual void deviceSetLinkModes(LinkModeSet lms) = 0;
+    void retrySetLinkModes(LinkModeSet lms);
+    virtual bool deviceSetLinkModes(LinkModeSet lms) = 0;
     // Device specific reset code, apart from serial->open and setLinkModes.
     virtual void deviceReset() = 0;
     virtual void deviceClose();
@@ -117,6 +118,11 @@ protected:
     int waiting_for_response_id_ {};
     Semaphore waiting_for_response_sem_;
     bool serial_override_ {};
+
+    // Lock this mutex when you want to append to, truncate or clear the receiving buffer.
+    RecursiveMutex receiving_buffer_mutex_;
+#define LOCK_WMBUS_RECEIVING_BUFFER(where) WITH(receiving_buffer_mutex_, receiving_buffer_mutex, where)
+
 };
 
 #endif

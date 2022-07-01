@@ -41,7 +41,7 @@ struct WMBusRTL433 : public virtual WMBusCommonImplementation
     string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
-    void deviceSetLinkModes(LinkModeSet lms);
+    bool deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() {
         return
             C1_bit |
@@ -182,8 +182,9 @@ void WMBusRTL433::deviceReset()
 {
 }
 
-void WMBusRTL433::deviceSetLinkModes(LinkModeSet lm)
+bool WMBusRTL433::deviceSetLinkModes(LinkModeSet lm)
 {
+    return true;
 }
 
 void WMBusRTL433::simulate()
