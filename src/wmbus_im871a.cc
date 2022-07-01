@@ -166,7 +166,7 @@ struct WMBusIM871aIM170A : public virtual WMBusCommonImplementation
     uchar getFirmwareVersion();
     LinkModeSet getLinkModes();
     void deviceReset();
-    void deviceSetLinkModes(LinkModeSet lms);
+    bool deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes()
     {
         if (type() == WMBusDeviceType::DEVICE_IM871A)
@@ -525,9 +525,11 @@ void WMBusIM871aIM170A::deviceReset()
     // set the link modes properly.
 }
 
-void WMBusIM871aIM170A::deviceSetLinkModes(LinkModeSet lms)
+bool WMBusIM871aIM170A::deviceSetLinkModes(LinkModeSet lms)
 {
-    if (serial()->readonly()) return; // Feeding from stdin or file.
+    bool rc = false;
+
+    if (serial()->readonly()) return true; // Feeding from stdin or file.
 
     if (!canSetLinkModes(lms))
     {
@@ -581,11 +583,17 @@ void WMBusIM871aIM170A::deviceSetLinkModes(LinkModeSet lms)
     if (sent)
     {
         bool ok = waitForResponse(DEVMGMT_MSG_SET_CONFIG_RSP);
-        if (!ok)
+        if (ok)
+        {
+            rc = true;
+        }
+        else
         {
             warning("Warning! Did not get confirmation on set link mode for im871a\n");
         }
     }
+
+    return rc;
 }
 
 FrameStatus WMBusIM871aIM170A::checkIM871AFrame(vector<uchar> &data,
@@ -720,6 +728,8 @@ void WMBusIM871aIM170A::processSerialData()
 
     // Receive and accumulated serial data until a full frame has been received.
     serial()->receive(&data);
+
+    LOCK_WMBUS_RECEIVING_BUFFER(processSerialData);
 
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 

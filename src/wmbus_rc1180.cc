@@ -114,7 +114,7 @@ struct WMBusRC1180 : public virtual WMBusCommonImplementation
     string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
-    void deviceSetLinkModes(LinkModeSet lms);
+    bool deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() {
         return
             T1_bit;
@@ -274,9 +274,9 @@ void WMBusRC1180::deviceReset()
     // set the link modes properly.
 }
 
-void WMBusRC1180::deviceSetLinkModes(LinkModeSet lms)
+bool WMBusRC1180::deviceSetLinkModes(LinkModeSet lms)
 {
-    if (serial()->readonly()) return; // Feeding from stdin or file.
+    if (serial()->readonly()) return true; // Feeding from stdin or file.
 
     if (!canSetLinkModes(lms))
     {
@@ -285,7 +285,7 @@ void WMBusRC1180::deviceSetLinkModes(LinkModeSet lms)
     }
 
     // Do not actually try to change the link mode, we assume it is T1.
-    return;
+    return true;
 }
 
 void WMBusRC1180::simulate()
@@ -298,6 +298,8 @@ void WMBusRC1180::processSerialData()
 
     // Receive and accumulated serial data until a full frame has been received.
     serial()->receive(&data);
+
+    LOCK_WMBUS_RECEIVING_BUFFER(processSerialData);
 
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 

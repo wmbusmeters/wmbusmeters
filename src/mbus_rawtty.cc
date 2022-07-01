@@ -35,7 +35,7 @@ struct MBusRawTTY : public virtual WMBusCommonImplementation
     string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
-    void deviceSetLinkModes(LinkModeSet lms);
+    bool deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() { return Any_bit; }
     int numConcurrentLinkModes() { return 0; }
     bool canSetLinkModes(LinkModeSet desired_modes) { return true; }
@@ -117,8 +117,9 @@ void MBusRawTTY::deviceReset()
     sleep(1);
 }
 
-void MBusRawTTY::deviceSetLinkModes(LinkModeSet lms)
+bool MBusRawTTY::deviceSetLinkModes(LinkModeSet lms)
 {
+    return true;
 }
 
 void MBusRawTTY::processSerialData()

@@ -38,7 +38,7 @@ struct WMBusSimulator : public WMBusCommonImplementation
     string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
-    void deviceSetLinkModes(LinkModeSet lms);
+    bool deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() { return Any_bit; }
     int numConcurrentLinkModes() { return 0; }
     bool canSetLinkModes(LinkModeSet lms) { return true; }
@@ -106,9 +106,10 @@ void WMBusSimulator::deviceReset()
 {
 }
 
-void WMBusSimulator::deviceSetLinkModes(LinkModeSet lms)
+bool WMBusSimulator::deviceSetLinkModes(LinkModeSet lms)
 {
     link_modes_ = lms;
+    return true;
 }
 
 void WMBusSimulator::processSerialData()

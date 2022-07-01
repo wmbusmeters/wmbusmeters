@@ -127,7 +127,7 @@ struct WMBusAmber : public virtual WMBusCommonImplementation
     string getDeviceId();
     string getDeviceUniqueId();
     LinkModeSet getLinkModes();
-    void deviceSetLinkModes(LinkModeSet lms);
+    bool deviceSetLinkModes(LinkModeSet lms);
     void deviceReset();
     LinkModeSet supportedLinkModes()
     {
@@ -165,7 +165,7 @@ struct WMBusAmber : public virtual WMBusCommonImplementation
     }
 
 private:
-    vector<uchar> read_buffer_;
+    vector<uchar> read_buffer_; // Must be protected by LOCK_WMBUS_RECEIVING_BUFFER(where)
     vector<uchar> request_;
     vector<uchar> response_;
 
@@ -314,14 +314,23 @@ bool WMBusAmber::getConfiguration()
     return device_config_.decodeNoFrame(response_, 3);
 }
 
-void WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
+bool WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
 {
-    if (serial()->readonly()) return; // Feeding from stdin or file.
+    bool rc = false;
+
+    if (serial()->readonly()) return true; // Feeding from stdin or file.
 
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
         error("(amb8465) setting link mode(s) %s is not supported for amb8465\n", modes.c_str());
+    }
+
+    {
+        // Empty the read buffer we do not want any partial data lying around
+        // because we expect a response to arrive.
+        LOCK_WMBUS_RECEIVING_BUFFER(deviceSetLinkMode_ClearBuffer);
+        read_buffer_.clear();
     }
 
     LOCK_WMBUS_EXECUTING_COMMAND(devicesSetLinkModes);
@@ -358,13 +367,19 @@ void WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
     if (sent)
     {
         bool ok = waitForResponse(CMD_SET_MODE_REQ | 0x80);
-        if (!ok)
+        if (ok)
+        {
+            rc = true;
+        }
+        else
         {
             warning("Warning! Did not get confirmation on set link mode for amb8465\n");
+            rc = false;
         }
     }
 
     link_modes_ = lms;
+    return rc;
 }
 
 FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
@@ -427,7 +442,8 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
     while ((payload_len = data[offset]) < 10 || !isValidWMBusCField(data[offset+1]))
     {
         offset++;
-        if (offset + 2 >= data.size()) {
+        if (offset + 2 >= data.size())
+        {
             // No sensible telegram in the buffer. Flush it!
             // But not the last char, because the next char could be a valid c field.
             verbose("(amb8465) no sensible telegram found, clearing buffer.\n");
@@ -475,11 +491,15 @@ void WMBusAmber::processSerialData()
     // Check long delay beetween rx chunks
     gettimeofday(&timestamp, NULL);
 
-    if (read_buffer_.size() > 0 && timerisset(&timestamp_last_rx_)) {
+    LOCK_WMBUS_RECEIVING_BUFFER(processSerialData);
+
+    if (read_buffer_.size() > 0 && timerisset(&timestamp_last_rx_))
+    {
         struct timeval chunk_time;
         timersub(&timestamp, &timestamp_last_rx_, &chunk_time);
 
-        if (chunk_time.tv_sec >= 2) {
+        if (chunk_time.tv_sec >= 2)
+        {
             verbose("(amb8465) rx long delay (%lds), drop incomplete telegram\n", chunk_time.tv_sec);
             read_buffer_.clear();
             protocolErrorDetected();

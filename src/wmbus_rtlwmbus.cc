@@ -41,7 +41,7 @@ struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
     string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
-    void deviceSetLinkModes(LinkModeSet lms);
+    bool deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() {
         return
             C1_bit |
@@ -216,12 +216,13 @@ void WMBusRTLWMBUS::deviceReset()
 {
 }
 
-void WMBusRTLWMBUS::deviceSetLinkModes(LinkModeSet lm)
+bool WMBusRTLWMBUS::deviceSetLinkModes(LinkModeSet lm)
 {
     LinkModeSet lms;
     lms.addLinkMode(LinkMode::C1);
     lms.addLinkMode(LinkMode::T1);
     device_link_modes_ = lms;
+    return true;
 }
 
 void WMBusRTLWMBUS::simulate()

@@ -120,7 +120,7 @@ struct LoRaIU880B : public virtual WMBusCommonImplementation
     string getFirmwareVersion();
     LinkModeSet getLinkModes();
     void deviceReset();
-    void deviceSetLinkModes(LinkModeSet lms);
+    bool deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes()
     {
         return LORA_bit;
@@ -259,7 +259,7 @@ void LoRaIU880B::deviceReset()
     // set the link modes properly.
 }
 
-void LoRaIU880B::deviceSetLinkModes(LinkModeSet lms)
+bool LoRaIU880B::deviceSetLinkModes(LinkModeSet lms)
 {
     /*
     if (serial()->readonly()) return; // Feeding from stdin or file.
@@ -293,6 +293,7 @@ void LoRaIU880B::deviceSetLinkModes(LinkModeSet lms)
     bool ok = waitForResponse(DEVMGMT_MSG_SET_RADIO_MODE_RSP);
     if (!ok) return; // timeout
     */
+    return true;
 }
 
 FrameStatus LoRaIU880B::checkIU880BFrame(vector<uchar> &data,

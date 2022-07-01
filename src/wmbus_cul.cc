@@ -44,7 +44,7 @@ struct WMBusCUL : public virtual WMBusCommonImplementation
     string getDeviceUniqueId();
     LinkModeSet getLinkModes();
     void deviceReset();
-    void deviceSetLinkModes(LinkModeSet lms);
+    bool deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes() {
         return
             C1_bit |
@@ -149,15 +149,23 @@ void WMBusCUL::deviceReset()
     // set the link modes properly.
 }
 
-void WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
+bool WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
 {
-    if (serial()->readonly()) return; // Feeding from stdin or file.
+    if (serial()->readonly()) return true; // Feeding from stdin or file.
 
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
         error("(cul) setting link mode(s) %s is not supported\n", modes.c_str());
     }
+
+    {
+        // Empty the read buffer we do not want any partial data lying around
+        // because we expect a response to arrive.
+        LOCK_WMBUS_RECEIVING_BUFFER(deviceSetLinkMode_ClearBuffer);
+        read_buffer_.clear();
+    }
+
     // 'brc' command: b - wmbus, r - receive, c - c mode (with t)
     vector<uchar> msg(5);
     msg[0] = 'b';
@@ -208,6 +216,7 @@ void WMBusCUL::deviceSetLinkModes(LinkModeSet lms)
     sent = serial()->send(msg);
 
     // Any response here, or does it silently move into listening mode?
+    return true;
 }
 
 void WMBusCUL::simulate()
@@ -227,8 +236,11 @@ void WMBusCUL::processSerialData()
 {
     vector<uchar> data;
 
-    // Receive and accumulated serial data until a full frame has been received.
+    // Receive and accumulate serial data until a full frame has been received.
     serial()->receive(&data);
+
+    LOCK_WMBUS_RECEIVING_BUFFER(processSerialData);
+
     read_buffer_.insert(read_buffer_.end(), data.begin(), data.end());
 
     size_t frame_length;

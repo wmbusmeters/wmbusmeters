@@ -4016,7 +4016,8 @@ WMBusCommonImplementation::WMBusCommonImplementation(string bus_alias,
       cached_device_id_(""),
       cached_device_unique_id_(""),
       command_mutex_("wmbus_command_mutex"),
-      waiting_for_response_sem_("waiting_for_response_sem")
+      waiting_for_response_sem_("waiting_for_response_sem"),
+      receiving_buffer_mutex_("receiving_buffer_mutex")
 {
     // Initialize timeout from now.
     last_received_ = time(NULL);
@@ -4122,8 +4123,28 @@ void WMBusCommonImplementation::resetProtocolErrorCount()
 void WMBusCommonImplementation::setLinkModes(LinkModeSet lms)
 {
     link_modes_ = lms;
-    deviceSetLinkModes(lms);
+    retrySetLinkModes(lms);
     link_modes_configured_ = true;
+
+}
+
+void WMBusCommonImplementation::retrySetLinkModes(LinkModeSet lms)
+{
+    int tries = 0;
+    for (;;)
+    {
+        bool ok = deviceSetLinkModes(lms);
+        if (ok) break;
+        if (!manager_->isRunning()) break;
+        tries++;
+        if (tries > 3)
+        {
+            string msg = tostrprintf("failed to reset wmbus device %s exiting wmbusmeters", hr().c_str());
+            warning("(wmbus) Permanent error, %s\n", msg.c_str());
+            logAlarm(Alarm::DeviceFailure, msg);
+            manager_->stop();
+        }
+    }
 }
 
 bool WMBusCommonImplementation::areLinkModesConfigured()
@@ -4170,7 +4191,7 @@ bool WMBusCommonImplementation::reset()
             resetting = true;
             serial()->resetInitiated();
             serial()->close();
-            notice_timestamp("(wmbus) resetting %s\n", device().c_str(), toString(type()));
+            notice_timestamp("(wmbus) resetting %s\n", hr().c_str());
 
             // Give the device 3 seconds to shut down properly.
             usleep(3000*1000);
@@ -4188,15 +4209,22 @@ bool WMBusCommonImplementation::reset()
     // Invoke any other device specific resets for this device.
     deviceReset();
 
-    if (resetting) serial()->resetCompleted();
+    if (resetting)
+    {
+        serial()->resetCompleted();
+    }
 
     // If init, then no link modes are configured.
     // If reset, re-initialize the link modes.
     if (areLinkModesConfigured())
     {
-        deviceSetLinkModes(protectedGetLinkModes());
+        retrySetLinkModes(protectedGetLinkModes());
     }
 
+    if (resetting)
+    {
+        notice_timestamp("(wmbus) reset completed %s\n", hr().c_str());
+    }
     return true;
 }
 
@@ -4332,11 +4360,23 @@ void WMBusCommonImplementation::setTimeout(int seconds, string expected_activity
 
 bool WMBusCommonImplementation::waitForResponse(int id)
 {
-    assert(waiting_for_response_id_ == 0 && id != 0);
+    assert(id != 0);
+
+    if (waiting_for_response_id_ != 0)
+    {
+        error("(wmbus) bad internal state tried waitForResponse(%d) but already waiting for %d! Exiting!\n", id, waiting_for_response_id_);
+    }
 
     waiting_for_response_id_ = id;
 
-    return waiting_for_response_sem_.wait();
+    bool ok = waiting_for_response_sem_.wait();
+    if (ok) return true;
+
+    // Ouch, we had a timeout. Reset the waiting for value here.
+    warning("(wmbus device) timeout request id %d\n", waiting_for_response_id_);
+    waiting_for_response_id_ = 0;
+
+    return false;
 }
 
 bool WMBusCommonImplementation::notifyResponseIsHere(int id)
@@ -5484,16 +5524,22 @@ Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
     // to figure out what is connected to it.
     LinkModeSet desired_linkmodes = lms;
+    if (specified_device.type == WMBusDeviceType::DEVICE_UNKNOWN)
+    {
+        error("You have to specify the expected device type for the tty %s\n",
+              specified_device.file.c_str());
+    }
+
     set<WMBusDeviceType> probe_for = { specified_device.type };
 
     Detected d = detectWMBusDeviceOnTTY(specified_device.file, probe_for, desired_linkmodes, handler);
     if (specified_device.type != d.found_type &&
         specified_device.type != DEVICE_UNKNOWN)
     {
-        warning("Expected %s on %s but found %s instead, ignoring it!\n",
+        warning("Expected %s on %s but did not find it! Ignoring tty!\n",
                 toLowerCaseString(specified_device.type),
-                specified_device.file.c_str(),
-                toLowerCaseString(d.found_type));
+                specified_device.file.c_str());
+
         d.found_file = specified_device.file;
         d.found_type = WMBusDeviceType::DEVICE_UNKNOWN;
     }
