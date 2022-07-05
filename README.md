@@ -77,7 +77,11 @@ You can trigger a reload of the config files with `sudo killall -HUP wmbusmeters
 `wmbusmetersd /tmp/thepidfile` from a script instead.)
 
 You can also start the daemon with another set of config files:
-`wmbusmetersd --useconfig=/home/wmbusmeters /tmp/thepidfile`
+`wmbusmetersd --useconfig=/home/me/.config/wmbusmeters /tmp/thepidfile`
+
+When using useconfig, the files/dir should be:
+`/home/me/.config/wmbusmeters/wmbusmeters.conf` and the meters dir:
+`/home/me/.config/wmbusmeters/wmbusmeters.d`
 
 Check the config file /etc/wmbusmeters.conf and edit the device. For example:
 `/dev/ttyUSB1:amb8465:c1,t1` or `im871a:c1,t1` or `im871a[457200101056]:t1`.
@@ -264,8 +268,6 @@ The files/dir should then be located here:
 `/home/me/.config/wmbusmeters/wmbusmeters.conf` and
 `/home/me/.config/wmbusmeters/wmbusmeters.d`
 
-(For historical reasons wmbusmeters first looks for `/home/me/.config/wmbusmeters/wmbusmeters.conf`.)
-
 The option `--useconfig=` can only be combined with a few other options: `--device= --listento= --exitafter= --oneshot= --silent --normal --verbose --debug --trace`
 
 When running using config files then you can trigger a reload of the config files
@@ -325,7 +327,7 @@ As {options} you can use:
     --shell=<cmdline> invokes cmdline with env variables containing the latest reading
     --silent do not print informational messages nor warnings
     --trace for tons of information
-    --useconfig=<dir> load config files from dir/etc
+    --useconfig=<dir> load config <dir>/wmbusmeters.conf and meters from <dir>/wmbusmeters.d
     --usestderr write notices/debug/verbose and other logging output to stderr (the default)
     --usestdoutforlogging write debug/verbose and logging output to stdout
     --verbose for more information
