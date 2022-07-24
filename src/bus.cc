@@ -205,6 +205,10 @@ shared_ptr<WMBus> BusManager::createWmbusObject(Detected *detected, Configuratio
         verbose("(amb8465) on %s\n", detected->found_file.c_str());
         wmbus = openAMB8465(*detected, serial_manager_, serial_override);
         break;
+    case DEVICE_AMB3665:
+        verbose("(amb3665) on %s\n", detected->found_file.c_str());
+        wmbus = openAMB3665(*detected, serial_manager_, serial_override);
+        break;
     case DEVICE_SIMULATION:
         verbose("(simulation) in %s\n", detected->found_file.c_str());
         wmbus = openSimulator(*detected, serial_manager_, serial_override);

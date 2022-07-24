@@ -148,6 +148,7 @@ PROG_OBJS:=\
 	$(BUILD)/units.o \
 	$(BUILD)/wmbus.o \
 	$(BUILD)/wmbus_amb8465.o \
+	$(BUILD)/wmbus_amb3665.o \
 	$(BUILD)/wmbus_im871a.o \
 	$(BUILD)/wmbus_cul.o \
 	$(BUILD)/wmbus_rtlwmbus.o \
