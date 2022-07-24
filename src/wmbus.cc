@@ -5389,11 +5389,21 @@ Detected detectWMBusDeviceOnTTY(string tty,
     }
 
     // If im87a is tested first, a delay of 1s must be inserted
-    // before amb8465 is tested, lest it will not respond properly.
+    // before amb8465/3665 is tested, lest it will not respond properly.
     // It really should not matter, but perhaps is the uart of the amber
     // confused by the 57600 speed....or maybe there is some other reason.
-    // Anyway by testing for the amb8465 first, we can immediately continue
+    // Anyway by testing for the amb8465/3665 first, we can immediately continue
     // with the test for the im871a, without the need for a 1s delay.
+    
+    // Talk amb3665 with it...
+    // assumes this device is configured for 9600 bps, which seems to be the default.
+    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_AMB3665))
+    {
+        if (detectAMB3665(&detected, handler) == AccessCheck::AccessOK)
+        {
+            return detected;
+        }
+    }
 
     // Talk amb8465 with it...
     // assumes this device is configured for 9600 bps, which seems to be the default.
