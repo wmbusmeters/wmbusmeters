@@ -39,6 +39,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
     X(MBUS,mbus,true,false,detectMBUS)               \
     X(AUTO,auto,false,false,detectAUTO)              \
     X(AMB8465,amb8465,true,false,detectAMB8465)      \
+    X(AMB3665,amb3665,true,false,detectAMB3665)      \
     X(CUL,cul,true,false,detectCUL)                  \
     X(IM871A,im871a,true,false,detectIM871AIM170A)   \
     X(IM170A,im170a,true,false,detectSKIP)           \
@@ -663,6 +664,9 @@ shared_ptr<WMBus> openIU880B(Detected detected,
 shared_ptr<WMBus> openAMB8465(Detected detected,
                               shared_ptr<SerialCommunicationManager> manager,
                               shared_ptr<SerialDevice> serial_override);
+shared_ptr<WMBus> openAMB3665(Detected detected,
+                              shared_ptr<SerialCommunicationManager> manager,
+                              shared_ptr<SerialDevice> serial_override);
 shared_ptr<WMBus> openRawTTY(Detected detected,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
@@ -750,6 +754,7 @@ AccessCheck reDetectDevice(Detected *detected, shared_ptr<SerialCommunicationMan
 
 AccessCheck detectAUTO(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectAMB3665(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectD1TC(Detected *detected, shared_ptr<SerialCommunicationManager> manager);
 AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
@@ -761,9 +766,10 @@ AccessCheck detectRTL433(Detected *detected, shared_ptr<SerialCommunicationManag
 AccessCheck detectRTLWMBUS(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectSKIP(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 
-// Try to factory reset an AMB8465 by trying all possible serial speeds and
+// Try to factory reset an AMB8465/AMB3665 by trying all possible serial speeds and
 // restore to factory settings.
 AccessCheck factoryResetAMB8465(string tty, shared_ptr<SerialCommunicationManager> handler, int *was_baud);
+AccessCheck factoryResetAMB3665(string tty, shared_ptr<SerialCommunicationManager> handler, int *was_baud);
 
 Detected detectWMBusDeviceOnTTY(string tty,
                                 set<WMBusDeviceType> probe_for,

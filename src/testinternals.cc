@@ -261,6 +261,7 @@ int test_linkmodes()
     auto serial2 = manager->createSerialDeviceSimulator();
     auto serial3 = manager->createSerialDeviceSimulator();
     auto serial4 = manager->createSerialDeviceSimulator();
+    auto serial5 = manager->createSerialDeviceSimulator();
 
     vector<string> no_meter_shells, no_meter_jsons;
     Detected de;
@@ -269,6 +270,7 @@ int test_linkmodes()
     shared_ptr<WMBus> wmbus_amb8465 = openAMB8465(de, manager, serial2);
     shared_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS(de, "", false, manager, serial3);
     shared_ptr<WMBus> wmbus_rawtty = openRawTTY(de, manager, serial4);
+    shared_ptr<WMBus> wmbus_amb3665 = openAMB3665(de, manager, serial5);
 
     Configuration nometers_config;
     // Check that if no meters are supplied then you must set a link mode.
