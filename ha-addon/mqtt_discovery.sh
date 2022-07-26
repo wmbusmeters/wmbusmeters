@@ -11,18 +11,18 @@ do
     esac
 done
 
+# Get discovery_prefix
+if bashio::config.exists "mqtt.discovery_prefix"
+then MQTT_DISCOVERY_PREFIX=$(bashio::config "mqtt.discovery_prefix")
+else MQTT_DISCOVERY_PREFIX=$(bashio::services mqtt "discovery_prefix"); fi
+if [ "${MQTT_DISCOVERY_PREFIX+true}" ] || [ $MQTT_DISCOVERY_PREFIX != "null" ];
+then MQTT_DISCOVERY_PREFIX="homeassistant"; fi
+
 
 # Is MQTT discovery enabled?
 CONFIG_MQTTDISCOVERY_ENABLED="$(jq --raw-output -c -M '.enable_mqtt_discovery' $CONFIG_PATH)"
 if [ $CONFIG_MQTTDISCOVERY_ENABLED == "true" ]; then
     echo -e "\nMQTT Discovery ..."
-
-    # Get discovery_prefix
-    if bashio::config.exists "mqtt.discovery_prefix"
-    then MQTT_DISCOVERY_PREFIX=$(bashio::config "mqtt.discovery_prefix")
-    else MQTT_DISCOVERY_PREFIX=$(bashio::services mqtt "discovery_prefix"); fi
-    if [ "${MQTT_DISCOVERY_PREFIX+true}" ] || [ $MQTT_DISCOVERY_PREFIX != "null" ];
-    then MQTT_DISCOVERY_PREFIX="homeassistant"; fi
 
     # Copy template files
     templatedir="$(mktemp -d -p /dev/shm/)"
