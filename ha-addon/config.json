@@ -27,6 +27,7 @@
     },
     "schema": {
         "data_path": "str",
+        "enable_mqtt_discovery": "bool?",
         "mqtt": {
           "host": "str?",
           "port": "port?",

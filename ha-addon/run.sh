@@ -52,5 +52,8 @@ MESSAGE=\$2
 EOL
 chmod a+x /wmbusmeters/mosquitto_pub.sh
 
+# Running MQTT discovery
+/mqtt_discovery.sh ${pub_args[@]} -c $CONFIG_PATH -w $CONFIG_DATA_PATH
+
 echo "Running wmbusmeters ..."
 /wmbusmeters/wmbusmeters --useconfig=$CONFIG_DATA_PATH

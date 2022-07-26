@@ -24,6 +24,9 @@ COPY --from=build /wmbusmeters/build/wmbusmeters /wmbusmeters/wmbusmeters
 COPY --from=build /rtl-wmbus/build/rtl_wmbus /usr/bin/rtl_wmbus
 COPY --from=build /rtl_433/build/src/rtl_433 /usr/bin/rtl_433
 
+COPY mqtt_discovery.sh /
+RUN chmod a+x /mqtt_discovery.sh
+
 COPY run.sh /
 RUN chmod a+x /run.sh
 
