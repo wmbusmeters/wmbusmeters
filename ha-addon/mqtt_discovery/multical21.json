@@ -1,0 +1,226 @@
+{
+    "total_m3": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "json_attributes_topic": "wmbusmeters/{name}",
+            "state_class": "total",
+            "name": "WaterMeter total",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "m³",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:gauge"
+        }
+    },
+
+    "target_m3": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "state_class": "total",
+            "name": "{name} target",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "m³",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:gauge"
+        }
+    },
+
+    "max_flow_m3h": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "state_class": "measurement",
+            "name": "{name} max flow",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "m³/h",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:waves-arrow-right"
+        }
+    },
+
+    "flow_temperature_c": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "availability": {
+                "topic": "wmbusmeters/{name}",
+                "value_template": "{{ value_json.{attribute} != 127 }}",
+                "payload_available": "True",
+                "payload_not_available": "False"
+            },
+            "enabled_by_default": false,
+            "state_class": "measurement",
+            "device_class": "temperature",
+            "name": "{name} water temperature",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "°C",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:thermometer-water"
+        }
+    },
+
+    "external_temperature_c": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "availability": {
+                "topic": "wmbusmeters/{name}",
+                "value_template": "{{ value_json.{attribute} != 127 }}",
+                "payload_available": "True",
+                "payload_not_available": "False"
+            },
+            "enabled_by_default": false,
+            "state_class": "measurement",
+            "device_class": "temperature",
+            "name": "{name} ambient temperature",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "°C",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:thermometer"
+        }
+    },
+
+    "status_dry": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "device_class": "problem",
+            "name": "{name} status dry",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'DRY' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+    "status_reversed": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "device_class": "problem",
+            "name": "{name} status reversed",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'REVERSED' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+    "status_leak": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "device_class": "problem",
+            "name": "{name} status leak",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'LEAK' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+    "status_burst": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "device_class": "problem",
+            "name": "{name} status burst",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'BURST' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+
+    "rssi_dbm": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "signal_strength",
+            "state_class": "measurement",
+            "name": "{name} rssi",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "dbm",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:signal"
+        }
+    }
+
+}
