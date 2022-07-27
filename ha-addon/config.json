@@ -20,6 +20,7 @@
     ],
     "options": {
         "data_path": "/config/wmbusmeters",
+        "enable_mqtt_discovery": false,
         "conf":
             "loglevel=normal\ndevice=auto:t1\ndonotprobe=/dev/ttyAMA0\nlogtelegrams=false\nformat=json\nlogfile=/dev/stdout\nshell=/wmbusmeters/mosquitto_pub.sh wmbusmeters/$METER_NAME \"$METER_JSON\"",
         "meters": [],
