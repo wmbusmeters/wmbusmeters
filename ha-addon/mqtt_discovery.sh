@@ -46,7 +46,7 @@ if [ $CONFIG_MQTTDISCOVERY_ENABLED == "true" ]; then
         echo " Adding meter: ${aryKV['name']} ..."
 
         if [ "${aryKV['id']+true}" ] && [ "${aryKV['driver']+true}" ] ; then
-            file="$CONFIG_DATA_PATH/etc/discovery/${aryKV['driver']}.json"
+            file="$CONFIG_DATA_PATH/etc/mqtt_discovery/${aryKV['driver']}.json"
             if test -f "$file"; then
 
                 for attribute in $(jq --raw-output -c -M '. | keys[]' $file)
