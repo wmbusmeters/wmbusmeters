@@ -118,7 +118,7 @@
                 "name": "{name}",
                 "sw_version": "{id}"
             },
-            "enabled_by_default": true,
+            "enabled_by_default": false,
             "json_attributes_topic": "wmbusmeters/{name}",
             "state_class": "total",
             "device_class": "energy",
@@ -141,7 +141,7 @@
                 "name": "{name}",
                 "sw_version": "{id}"
             },
-            "enabled_by_default": true,
+            "enabled_by_default": false,
             "json_attributes_topic": "wmbusmeters/{name}",
             "state_class": "total",
             "device_class": "energy",
