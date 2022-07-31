@@ -18,7 +18,7 @@
             "unique_id": "wmbusmeters_{id}_{attribute}",
             "unit_of_measurement": "kWh",
             "value_template": "{{ value_json.{attribute} }}",
-            "icon": "mdi:gauge"
+            "icon": "mdi:home-lightning-bolt-outline"
         }
     },
 
@@ -39,7 +39,7 @@
             "unique_id": "wmbusmeters_{id}_{attribute}",
             "unit_of_measurement": "m³",
             "value_template": "{{ value_json.{attribute} }}",
-            "icon": "mdi:gauge"
+            "icon": "mdi:water"
         }
     },
 
@@ -104,7 +104,7 @@
             "unique_id": "wmbusmeters_{id}_{attribute}",
             "unit_of_measurement": "°C",
             "value_template": "{{ value_json.{attribute} }}",
-            "icon": "mdi:thermometer"
+            "icon": "mdi:thermometer-water"
         }
     },
 
@@ -127,7 +127,7 @@
             "unique_id": "wmbusmeters_{id}_{attribute}",
             "unit_of_measurement": "kWh",
             "value_template": "{{ value_json.{attribute} }}",
-            "icon": "mdi:gauge"
+            "icon": "mdi:home-lightning-bolt"
         }
     },
 
@@ -150,7 +150,7 @@
             "unique_id": "wmbusmeters_{id}_{attribute}",
             "unit_of_measurement": "kWh",
             "value_template": "{{ value_json.{attribute} }}",
-            "icon": "mdi:gauge"
+            "icon": "mdi:home-lightning-bolt"
         }
     },
 
