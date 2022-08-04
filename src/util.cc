@@ -31,6 +31,7 @@
 #include<stddef.h>
 #include<string.h>
 #include<string>
+#include<time.h>
 #include<errno.h>
 #include<sys/stat.h>
 #include<sys/time.h>
