@@ -40,7 +40,7 @@ Read the wiki for more info on how to use the snap: https://weetmuts.github.io/w
 
 Building and installing from source is easy and recommended since the
 development progresses quickly.  First remove the wmbus dongle
-(im871a,amb8465,cul,rc1180) or the generic rtlsdr dongle (RTL2832U)
+(im871a,amb8465,amb3665,cul,rc1180) or the generic rtlsdr dongle (RTL2832U)
 from your computer. Then do:
 
 `./configure; make; sudo make install` will install wmbusmeters as a daemon.
@@ -48,7 +48,7 @@ from your computer. Then do:
 # Usage
 
 Check the contents of your `/etc/wmbusmeters.conf` file, assuming it
-has `device=auto:t1` and you are using a im871a,amb8465,rc1180,cul or rtlsdr device,
+has `device=auto:t1` and you are using a im871a,amb8465,amb3665,rc1180,cul or rtlsdr device,
 then you can now start the daemon with `sudo systemctl start wmbusmeters`
 or you can try it from the command line `wmbusmeters auto:t1`
 
@@ -96,7 +96,7 @@ you can add `donotprobe=/dev/ttyUSB0` or `donotprobe=all`.
 You can specify combinations like: `device=rc1180:t1` `device=auto:c1`
 to set the rc1180 dongle to t1 but any other auto-detected dongle to c1.
 
-Some dongles have identifiers (im871a,amb8465 and rtlsdrs) (for example: rtlsdr can be set with `rtl_eeprom -s myname`)
+Some dongles have identifiers (im871a,amb8465,amb3665 and rtlsdrs) (for example: rtlsdr can be set with `rtl_eeprom -s myname`)
 You might have two rtlsdr dongles, one attached to an antenna tuned to 433MHz and the other
 attached to an antenna tuned for 868.95MHz, then a more complicated setup could look like this:
 
@@ -336,7 +336,7 @@ As {options} you can use:
 
 As device you can use:
 
-`auto:c1`, to have wmbusmeters probe for devices: im871a, amb8465, cul, rc1180 or rtlsdr (spawns rtlwmbus).
+`auto:c1`, to have wmbusmeters probe for devices: im871a, amb8465, amb3665, cul, rc1180 or rtlsdr (spawns rtlwmbus).
 
 `im871a:c1` to start all connected *im871a* devices in *c1* mode, ignore all other devices.
 
@@ -351,7 +351,7 @@ rtlsdr dongle like this `rtlwmbus[1234]`.
 
 `/dev/ttyUSB0:amb8465`, if you have an amb8465 dongle assigned to ttyUSB0. Other suffixes are im871a,cul.
 
-`/dev/ttyUSB0`, to have wmbusmeters auto-detect amb8465, im871a, rc1180 or cul device.
+`/dev/ttyUSB0`, to have wmbusmeters auto-detect amb8465, amb3665, im871a, rc1180 or cul device.
 
 `/dev/ttyUSB0:38400`, to have wmbusmeters set the baud rate to 38400 and listen for raw wmbus telegrams.
 These telegrams are expected to have the data link layer crc bytes removed already!
@@ -418,7 +418,8 @@ As meter quadruples you specify:
 ```
 Supported wmbus dongles:
 IMST 871a (im871a)
-Amber 8465/8665/8665-M (amb8465)
+Amber 8465/8665/8665-M (amb8465) 868MHz
+Amber 3665-M           (amb3665) 169MHz
 CUL family (cul)
 Radiocraft (RC1180)
 rtl_wmbus (rtlwmbus)
