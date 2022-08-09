@@ -1728,20 +1728,23 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
 void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 {
-    // Iterate through the dv_entries in the telegram and trigger any
-    // field specification with a matcher.
+    // Iterate through the data content (dv_entries9 in the telegram.
     for (auto &p : t->dv_entries)
     {
         DVEntry *dve = &p.second.second;
+        // We have telegram content, a dif-vif-value entry.
+        // Now check for a field info that wants to handle this telegram content entry.
         for (FieldInfo &fi : field_infos_)
         {
             if (fi.hasMatcher() && fi.matches(dve))
             {
+                // We have field that wants to handle this entry!
                 debug("(meters) using field info %s(%s)[%d] to extract %s\n",
                       fi.vname().c_str(),
                       toString(fi.xuantity()),
                       fi.index(),
                       dve->dif_vif_key.str().c_str());
+
                 dve->addFieldInfo(&fi);
                 fi.performExtraction(this, t, dve);
             }
@@ -2503,6 +2506,31 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
     return found;
 }
 
+static string add_tpl_status(string existing_status, Meter *m, Telegram *t)
+{
+    string status = m->decodeTPLStatusByte(t->tpl_sts);
+    t->addMoreExplanation(t->tpl_sts_offset, "(%s)", status.c_str());
+    if (status != "OK")
+    {
+        if (existing_status != "OK")
+        {
+            // Join the statuses.
+            existing_status += " "+status;
+        }
+        else
+        {
+            // Overwrite OK.
+            existing_status = status;
+        }
+    }
+    else
+    {
+        // No change to the existing_status
+    }
+
+    return existing_status;
+}
+
 bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
 {
     bool found = false;
@@ -2512,16 +2540,29 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     {
         if (key == "")
         {
-            // Search for key.
-            bool ok = findKeyWithNr(matcher_.measurement_type,
-                                    matcher_.vif_range,
-                                    matcher_.storage_nr_from.intValue(),
-                                    matcher_.tariff_nr_from.intValue(),
-                                    matcher_.index_nr.intValue(),
-                                    &key,
-                                    &t->dv_entries);
-            // No entry was found.
-            if (!ok) return false;
+            if (!hasMatcher())
+            {
+                // There is no matcher, only use case is to capture JOIN_TPL_STATUS.
+                if (print_properties_.hasJOINTPLSTATUS())
+                {
+                    string status = add_tpl_status("OK", m, t);
+                    m->setStringValue(this, status);
+                    return true;
+                }
+            }
+            else
+            {
+                // Search for key.
+                bool ok = findKeyWithNr(matcher_.measurement_type,
+                                        matcher_.vif_range,
+                                        matcher_.storage_nr_from.intValue(),
+                                        matcher_.tariff_nr_from.intValue(),
+                                        matcher_.index_nr.intValue(),
+                                        &key,
+                                        &t->dv_entries);
+                // No entry was found.
+                if (!ok) return false;
+            }
         }
         // No entry with this key was found.
         if (t->dv_entries.count(key) == 0) return false;
@@ -2547,25 +2588,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
 
         if (print_properties_.hasJOINTPLSTATUS())
         {
-            string status = m->decodeTPLStatusByte(t->tpl_sts);
-            t->addMoreExplanation(t->tpl_sts_offset, "(%s)", status.c_str());
-            if (status != "OK")
-            {
-                if (translated_bits != "OK")
-                {
-                    // Join the statuses.
-                    translated_bits += " "+status;
-                }
-                else
-                {
-                    // Overwrite the translated bits.
-                    translated_bits = status;
-                }
-            }
-            else
-            {
-                // No change to the translated_bits.
-            }
+            translated_bits = add_tpl_status(translated_bits, m, t);
         }
 
         if (found)
