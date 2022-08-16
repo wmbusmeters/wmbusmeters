@@ -664,6 +664,15 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *dv_entries,
     return p.second.extractDouble(value, auto_scale, assume_signed);
 }
 
+bool checkSizeHex(size_t expected_len, DifVifKey &dvk, string &v)
+{
+    if (v.length() == expected_len) return true;
+
+    warning("(dvparser) bad decode since difvif %s expected %d hex chars but got \"%s\"\n",
+            dvk.str().c_str(), expected_len, v.c_str());
+    return false;
+}
+
 bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
 {
     int t = dif_vif_key.dif() & 0xf;
@@ -690,18 +699,22 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
         bool negate = false;
         uint64_t negate_mask = 0;
         if (t == 0x1) {
+            if (!checkSizeHex(2, dif_vif_key, value)) return false;
             assert(v.size() == 1);
             raw = v[0];
             if (assume_signed && (raw & (uint64_t)0x80UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<8; }
         } else if (t == 0x2) {
+            if (!checkSizeHex(4, dif_vif_key, value)) return false;
             assert(v.size() == 2);
             raw = v[1]*256 + v[0];
             if (assume_signed && (raw & (uint64_t)0x8000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<16; }
         } else if (t == 0x3) {
+            if (!checkSizeHex(6, dif_vif_key, value)) return false;
             assert(v.size() == 3);
             raw = v[2]*256*256 + v[1]*256 + v[0];
             if (assume_signed && (raw & (uint64_t)0x800000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<24; }
         } else if (t == 0x4) {
+            if (!checkSizeHex(8, dif_vif_key, value)) return false;
             assert(v.size() == 4);
             raw = ((unsigned int)v[3])*256*256*256
                 + ((unsigned int)v[2])*256*256
@@ -709,6 +722,7 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
                 + ((unsigned int)v[0]);
             if (assume_signed && (raw & (uint64_t)0x80000000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<32; }
         } else if (t == 0x6) {
+            if (!checkSizeHex(12, dif_vif_key, value)) return false;
             assert(v.size() == 6);
             raw = ((uint64_t)v[5])*256*256*256*256*256
                 + ((uint64_t)v[4])*256*256*256*256
@@ -718,6 +732,7 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
                 + ((uint64_t)v[0]);
             if (assume_signed && (raw & (uint64_t)0x800000000000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<48; }
         } else if (t == 0x7) {
+            if (!checkSizeHex(16, dif_vif_key, value)) return false;
             assert(v.size() == 8);
             raw = ((uint64_t)v[7])*256*256*256*256*256*256*256
                 + ((uint64_t)v[6])*256*256*256*256*256*256
@@ -750,29 +765,29 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
         uint64_t raw = 0;
         bool negate = false;
         if (t == 0x9) {
-            assert(v.size() == 2);
+            if (!checkSizeHex(2, dif_vif_key, v)) return false;
             if (assume_signed && v[0] == 'F') { negate = true; v[0] = '0'; }
             raw = (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xA) {
-            assert(v.size() == 4);
+            if (!checkSizeHex(4, dif_vif_key, v)) return false;
             if (assume_signed && v[2] == 'F') { negate = true; v[2] = '0'; }
             raw = (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xB) {
-            assert(v.size() == 6);
+            if (!checkSizeHex(6, dif_vif_key, v)) return false;
             if (assume_signed && v[4] == 'F') { negate = true; v[4] = '0'; }
             raw = (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xC) {
-            assert(v.size() == 8);
+            if (!checkSizeHex(8, dif_vif_key, v)) return false;
             if (assume_signed && v[6] == 'F') { negate = true; v[6] = '0'; }
             raw = (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
                 + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xE) {
-            assert(v.size() == 12);
+            if (!checkSizeHex(12, dif_vif_key, v)) return false;
             if (assume_signed && v[10] == 'F') { negate = true; v[10] = '0'; }
             raw =(v[10]-'0')*10*10*10*10*10*10*10*10*10*10*10 + (v[11]-'0')*10*10*10*10*10*10*10*10*10*10
                 + (v[8]-'0')*10*10*10*10*10*10*10*10*10 + (v[9]-'0')*10*10*10*10*10*10*10*10
@@ -795,6 +810,7 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
     {
         vector<uchar> v;
         hex2bin(value, &v);
+        if (!checkSizeHex(8, dif_vif_key, value)) return false;
         assert(v.size() == 4);
         RealConversion rc;
         rc.i = v[3]<<24 | v[2]<<16 | v[1]<<8 | v[0];
@@ -810,8 +826,8 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
     }
     else
     {
-        printf("Unsupported dif format for extraction to double! dif=%02x\n", dif_vif_key.dif());
-        assert(false);
+        warning("(dvparser) Unsupported dif format for extraction to double! dif=%02x\n", dif_vif_key.dif());
+        return false;
     }
 
     return true;
@@ -856,21 +872,26 @@ bool DVEntry::extractLong(uint64_t *out)
         hex2bin(value, &v);
         uint64_t raw = 0;
         if (t == 0x1) {
+            if (!checkSizeHex(2, dif_vif_key, value)) return false;
             assert(v.size() == 1);
             raw = v[0];
         } else if (t == 0x2) {
+            if (!checkSizeHex(4, dif_vif_key, value)) return false;
             assert(v.size() == 2);
             raw = v[1]*256 + v[0];
         } else if (t == 0x3) {
+            if (!checkSizeHex(6, dif_vif_key, value)) return false;
             assert(v.size() == 3);
             raw = v[2]*256*256 + v[1]*256 + v[0];
         } else if (t == 0x4) {
+            if (!checkSizeHex(8, dif_vif_key, value)) return false;
             assert(v.size() == 4);
             raw = ((unsigned int)v[3])*256*256*256
                 + ((unsigned int)v[2])*256*256
                 + ((unsigned int)v[1])*256
                 + ((unsigned int)v[0]);
         } else if (t == 0x6) {
+            if (!checkSizeHex(12, dif_vif_key, value)) return false;
             assert(v.size() == 6);
             raw = ((uint64_t)v[5])*256*256*256*256*256
                 + ((uint64_t)v[4])*256*256*256*256
@@ -879,6 +900,7 @@ bool DVEntry::extractLong(uint64_t *out)
                 + ((uint64_t)v[1])*256
                 + ((uint64_t)v[0]);
         } else if (t == 0x7) {
+            if (!checkSizeHex(16, dif_vif_key, value)) return false;
             assert(v.size() == 8);
             raw = ((uint64_t)v[7])*256*256*256*256*256*256*256
                 + ((uint64_t)v[6])*256*256*256*256*256*256
@@ -902,24 +924,29 @@ bool DVEntry::extractLong(uint64_t *out)
         string& v = value;
         uint64_t raw = 0;
         if (t == 0x9) {
+            if (!checkSizeHex(2, dif_vif_key, value)) return false;
             assert(v.size() == 2);
             raw = (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xA) {
+            if (!checkSizeHex(4, dif_vif_key, value)) return false;
             assert(v.size() == 4);
             raw = (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xB) {
+            if (!checkSizeHex(6, dif_vif_key, value)) return false;
             assert(v.size() == 6);
             raw = (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xC) {
+            if (!checkSizeHex(8, dif_vif_key, value)) return false;
             assert(v.size() == 8);
             raw = (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
                 + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xE) {
+            if (!checkSizeHex(12, dif_vif_key, value)) return false;
             assert(v.size() == 12);
             raw =(v[10]-'0')*10*10*10*10*10*10*10*10*10*10*10 + (v[11]-'0')*10*10*10*10*10*10*10*10*10*10
                 + (v[8]-'0')*10*10*10*10*10*10*10*10*10 + (v[9]-'0')*10*10*10*10*10*10*10*10

@@ -4880,11 +4880,8 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
     uchar stop = data[*frame_length-1];
     if (stop != 0x16)
     {
-        if (!only_test)
-        {
-            verbose("(mbus) stop byte (0x%02x) at pos %d is not 0x16, clearing buffer.\n", stop, *frame_length-1);
-            data.clear();
-        }
+        warning("(mbus) stop byte (0x%02x) at pos %d is not 0x16, clearing buffer.\n", stop, *frame_length-1);
+        data.clear();
         return ErrorInFrame;
     }
     uchar csc = 0;
@@ -4892,15 +4889,12 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
     uchar cs = data[*frame_length-2];
     if (cs != csc)
     {
-        if (!only_test)
-        {
-            verbose("(mbus) expected checksum 0x%02x but got 0x%02x, clearing buffer.\n", csc, cs);
-            data.clear();
-        }
+        warning("(mbus) expected checksum 0x%02x but got 0x%02x, clearing buffer.\n", csc, cs);
+        data.clear();
         return ErrorInFrame;
     }
 
-    *payload_len_out = *frame_length; // Drop checksum byte and stop byte.
+    *payload_len_out = *frame_length - 2; // Drop checksum byte and stop byte.
     *payload_offset = 0; // Drop 0x68 len len 0x68.
     if (!only_test)
     {
@@ -5394,7 +5388,7 @@ Detected detectWMBusDeviceOnTTY(string tty,
     // confused by the 57600 speed....or maybe there is some other reason.
     // Anyway by testing for the amb8465/3665 first, we can immediately continue
     // with the test for the im871a, without the need for a 1s delay.
-    
+
     // Talk amb3665 with it...
     // assumes this device is configured for 9600 bps, which seems to be the default.
     if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_AMB3665))

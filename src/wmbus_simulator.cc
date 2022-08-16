@@ -195,6 +195,8 @@ void WMBusSimulator::simulate()
         {
             debug("(simulator) is mbus telegram.\n");
             AboutTelegram about("", 0, FrameType::MBUS);
+            // Remove two bytes, which are the checksum and end of telegram marker (0x16).
+            while (((size_t)payload_len) < payload.size()) payload.pop_back();
             handleTelegram(about, payload);
         }
 
