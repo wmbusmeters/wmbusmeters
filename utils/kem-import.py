@@ -155,6 +155,8 @@ for e in xmldoc.getElementsByTagName('Meter'):
     # if their identification in KEM file is known
     if (meterName == 'MC302') and (meterModel.startswith('302T')): 
         wmbusmeters_driver = 'multical302'
+    elif (meterName == 'MC303') and (meterModel.startswith('303')):
+        wmbusmeters_driver = 'multical303'
     elif (meterName == 'MC403') and (meterModel.startswith('403')):
         wmbusmeters_driver = 'multical403'
     elif (meterName == 'MC21') and (meterModel.startswith('021')): 
