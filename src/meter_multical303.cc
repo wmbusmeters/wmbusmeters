@@ -176,7 +176,7 @@ double MeterMultical303::volumeFlow(Unit u)
     return convert(volume_flow_m3h_, Unit::M3H, u);
 }
 
-double MeterMultical302::targetEnergyConsumption(Unit u)
+double MeterMultical303::targetEnergyConsumption(Unit u)
 {
     assertQuantity(u, Quantity::Energy);
     return convert(target_energy_kwh_, Unit::KWH, u);
