@@ -37,7 +37,7 @@ using namespace std;
 #define SET_LINK_MODE 1
 #define SET_X01_MODE 2
 
-struct WMBusCUL : public virtual WMBusCommonImplementation
+struct WMBusCUL : public virtual BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();
@@ -82,14 +82,14 @@ private:
     string setup_;
 };
 
-shared_ptr<WMBus> openCUL(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<BusDevice> openCUL(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     string bus_alias =  detected.specified_device.bus_alias;
     if (serial_override)
     {
         WMBusCUL *imp = new WMBusCUL(bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
-        return shared_ptr<WMBus>(imp);
+        return shared_ptr<BusDevice>(imp);
     }
 
 	if (detected.specified_device.command != "")
@@ -103,17 +103,17 @@ shared_ptr<WMBus> openCUL(Detected detected, shared_ptr<SerialCommunicationManag
 
 		auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, "cul");
 		WMBusCUL *imp = new WMBusCUL(bus_alias, serial, manager);
-		return shared_ptr<WMBus>(imp);
+		return shared_ptr<BusDevice>(imp);
 	}
 
 	string device = detected.found_file;
 	auto serial = manager->createSerialDeviceTTY(device.c_str(), 38400, PARITY::NONE, "cul");
     WMBusCUL *imp = new WMBusCUL(bus_alias, serial, manager);
-    return shared_ptr<WMBus>(imp);
+    return shared_ptr<BusDevice>(imp);
 }
 
 WMBusCUL::WMBusCUL(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(alias, DEVICE_CUL, manager, serial, true)
+    BusDeviceCommonImplementation(alias, DEVICE_CUL, manager, serial, true)
 {
     reset();
 }
@@ -467,7 +467,7 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
         return AccessCheck::NoProperResponse;
     }
 
-    detected->setAsFound("", WMBusDeviceType::DEVICE_CUL, 38400, false, detected->specified_device.linkmodes);
+    detected->setAsFound("", BusDeviceType::DEVICE_CUL, 38400, false, detected->specified_device.linkmodes);
 
     verbose("(cul) are you there? yes\n");
 

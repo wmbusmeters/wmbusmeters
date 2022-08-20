@@ -31,7 +31,7 @@
 
 using namespace std;
 
-struct WMBusSimulator : public WMBusCommonImplementation
+struct WMBusSimulator : public BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();
@@ -58,17 +58,17 @@ private:
     vector<string> lines_;
 };
 
-shared_ptr<WMBus> openSimulator(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<BusDevice> openSimulator(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     string bus_alias = detected.specified_device.bus_alias;
     string device = detected.found_file;
     string hex = detected.found_hex;
     WMBusSimulator *imp = new WMBusSimulator(bus_alias, device, hex, manager);
-    return shared_ptr<WMBus>(imp);
+    return shared_ptr<BusDevice>(imp);
 }
 
 WMBusSimulator::WMBusSimulator(string bus_alias, string file, string hex, shared_ptr<SerialCommunicationManager> manager)
-    : WMBusCommonImplementation(bus_alias, DEVICE_SIMULATION, manager, NULL, false), file_(file)
+    : BusDeviceCommonImplementation(bus_alias, DEVICE_SIMULATION, manager, NULL, false), file_(file)
 {
     assert(file != "" || hex != "");
     if (hex != "")

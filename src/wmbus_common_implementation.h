@@ -22,28 +22,30 @@
 #include "threads.h"
 #include "wmbus.h"
 
-struct WMBusCommonImplementation : public virtual WMBus
+struct BusDeviceCommonImplementation : public virtual BusDevice
 {
-    WMBusCommonImplementation(string bus_alias,
-                              WMBusDeviceType t,
-                              shared_ptr<SerialCommunicationManager> manager,
-                              shared_ptr<SerialDevice> serial_override,
-                              bool is_serial);
-    ~WMBusCommonImplementation();
+    BusDeviceCommonImplementation(string bus_alias,
+                                  BusDeviceType t,
+                                  shared_ptr<SerialCommunicationManager> manager,
+                                  shared_ptr<SerialDevice> serial_override,
+                                  bool is_serial);
+    ~BusDeviceCommonImplementation();
 
     string busAlias();
     string hr();
     bool isSerial();
-    WMBusDeviceType type();
+    BusDeviceType type();
     void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb);
-    bool sendTelegram(ContentStartsWith starts_with, vector<uchar> &content);
+    bool sendTelegram(LinkMode link_mode, TelegramFormat format, vector<uchar> &content);
     bool handleTelegram(AboutTelegram &about, vector<uchar> frame);
     void checkStatus();
     bool isWorking();
     string dongleId();
+    DeviceMode deviceMode();
     void setTimeout(int seconds, std::string expected_activity);
     void setResetInterval(int seconds);
     void setLinkModes(LinkModeSet lms);
+    void setDeviceMode(DeviceMode mode);
     virtual void processSerialData() = 0;
     void disconnectedFromDevice();
     bool reset();
@@ -69,10 +71,13 @@ struct WMBusCommonImplementation : public virtual WMBus
     bool areLinkModesConfigured();
     // Device specific set link modes implementation.
     void retrySetLinkModes(LinkModeSet lms);
+
+    virtual void deviceSetDeviceMode(DeviceMode mode);
     virtual bool deviceSetLinkModes(LinkModeSet lms) = 0;
     // Device specific reset code, apart from serial->open and setLinkModes.
     virtual void deviceReset() = 0;
     virtual void deviceClose();
+
     LinkModeSet protectedGetLinkModes(); // Used to read private link_modes_ in subclass.
 
     private:
@@ -83,7 +88,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     bool is_serial_ {};
     bool is_working_ {};
     vector<function<bool(AboutTelegram&,vector<uchar>)>> telegram_listeners_;
-    WMBusDeviceType type_ {};
+    BusDeviceType type_ {};
     int protocol_error_count_ {};
     time_t timeout_ {}; // If longer silence than timeout, then reset dongle! It might have hanged!
     string expected_activity_ {}; // During which times should we care about timeouts?
@@ -91,6 +96,7 @@ struct WMBusCommonImplementation : public virtual WMBus
     time_t last_reset_ {}; // When did we last attempt a reset of the dongle?
     int reset_timeout_ {}; // When set to 23*3600 reset the device once every 23 hours.
     bool link_modes_configured_ {};
+    DeviceMode device_mode_ { DeviceMode::OTHER }; // Other or meter.
     LinkModeSet link_modes_ {};
     Detected detected_ {}; // Used to remember how this device was setup.
 

@@ -40,7 +40,7 @@ using namespace std;
 struct IM871ADeviceInfo
 {
     uchar module_type; // 0x33 = im871a 0x36 = im170a
-    uchar device_mode; // 0 = other 1 = meter
+    uchar device_mode; // 0 = collector(other) 1 = meter
     uchar firmware_version; // 13 hci 1.6 and 14 hci 1.7
     uchar hci_version;  // serial protocol?
     uint32_t uid;
@@ -48,11 +48,13 @@ struct IM871ADeviceInfo
     string str()
     {
         string s;
+        s += "type=";
         if (module_type == 0x33) s+="im871a ";
         else if (module_type == 0x36) s+="im170a ";
         else s+="unknown_type("+to_string(module_type)+") ";
 
-        if (device_mode == 0) s+="other ";
+        s += "mode=";
+        if (device_mode == 0) s+="collector ";
         else if (device_mode == 1) s+="meter ";
         else s+="unknown_mode("+to_string(device_mode)+") ";
 
@@ -158,7 +160,20 @@ LIST_OF_IM871A_LINK_MODES
     return "unknown";
 }
 
-struct WMBusIM871aIM170A : public virtual WMBusCommonImplementation
+/*
+
+Which receive mode can hear which transmit mode:
+
+868 MHz
+
+Transmit         Receive
+------------------------------------------------------------------------
+
+S1 (to_collector) -->
+
+*/
+
+struct WMBusIM871aIM170A : public virtual BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();
@@ -169,7 +184,7 @@ struct WMBusIM871aIM170A : public virtual WMBusCommonImplementation
     bool deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes()
     {
-        if (type() == WMBusDeviceType::DEVICE_IM871A)
+        if (type() == BusDeviceType::DEVICE_IM871A)
         {
             return
                 C1_bit |
@@ -213,11 +228,12 @@ struct WMBusIM871aIM170A : public virtual WMBusCommonImplementation
         // Otherwise its a single link mode.
         return 1 == countSetBits(lms.asBits());
     }
-    bool sendTelegram(ContentStartsWith starts_with, vector<uchar> &content);
+    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content);
+
     void processSerialData();
     void simulate() { }
 
-    WMBusIM871aIM170A(WMBusDeviceType type, string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
+    WMBusIM871aIM170A(BusDeviceType type, string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusIM871aIM170A() {
     }
 
@@ -262,7 +278,7 @@ int toDBM(int rssi)
     return dbm;
 }
 
-shared_ptr<WMBus> openIM871AIM170A(WMBusDeviceType type, Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<BusDevice> openIM871AIM170A(BusDeviceType type, Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     string bus_alias = detected.specified_device.bus_alias;
     string device_file = detected.found_file;
@@ -271,26 +287,26 @@ shared_ptr<WMBus> openIM871AIM170A(WMBusDeviceType type, Detected detected, shar
     {
         WMBusIM871aIM170A *imp = new WMBusIM871aIM170A(type, bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
-        return shared_ptr<WMBus>(imp);
+        return shared_ptr<BusDevice>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device_file.c_str(), 57600, PARITY::NONE, "im871a");
     WMBusIM871aIM170A *imp = new WMBusIM871aIM170A(type, bus_alias, serial, manager);
-    return shared_ptr<WMBus>(imp);
+    return shared_ptr<BusDevice>(imp);
 }
 
-shared_ptr<WMBus> openIM871A(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<BusDevice> openIM871A(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
-    return openIM871AIM170A(WMBusDeviceType::DEVICE_IM871A, detected, manager, serial_override);
+    return openIM871AIM170A(BusDeviceType::DEVICE_IM871A, detected, manager, serial_override);
 }
 
-shared_ptr<WMBus> openIM170A(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<BusDevice> openIM170A(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
-    return openIM871AIM170A(WMBusDeviceType::DEVICE_IM170A, detected, manager, serial_override);
+    return openIM871AIM170A(BusDeviceType::DEVICE_IM170A, detected, manager, serial_override);
 }
 
-WMBusIM871aIM170A::WMBusIM871aIM170A(WMBusDeviceType type, string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(alias, type, manager, serial, true)
+WMBusIM871aIM170A::WMBusIM871aIM170A(BusDeviceType type, string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
+    BusDeviceCommonImplementation(alias, type, manager, serial, true)
 {
     reset();
 }
@@ -822,7 +838,7 @@ void WMBusIM871aIM170A::handleRadioLink(int msgid, vector<uchar> &frame, int rss
     switch (msgid) {
     case RADIOLINK_MSG_WMBUSMSG_IND: // 0x03
     {
-        // Invoke common telegram reception code in WMBusCommonImplementation.
+        // Invoke common telegram reception code in BusDeviceCommonImplementation.
         AboutTelegram about("im871a["+cached_device_id_+"]", rssi_dbm, FrameType::WMBUS);
         handleTelegram(about, frame);
     }
@@ -929,7 +945,7 @@ bool WMBusIM871aIM170A::getConfig()
     return device_config_.decode(response_);
 }
 
-bool WMBusIM871aIM170A::sendTelegram(ContentStartsWith starts_with, vector<uchar> &content)
+bool WMBusIM871aIM170A::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content)
 {
     if (serial()->readonly()) return true;
     if (content.size() > 250) return false;
@@ -940,19 +956,19 @@ bool WMBusIM871aIM170A::sendTelegram(ContentStartsWith starts_with, vector<uchar
     request_[0] = IM871A_SERIAL_SOF;
     request_[1] = RADIOLINK_ID;
     int resp = 0;
-    if (starts_with == ContentStartsWith::C_FIELD)
+    if (format == TelegramFormat::WMBUS_C_FIELD)
     {
         request_[2] = RADIOLINK_MSG_WMBUSMSG_REQ;
         resp = RADIOLINK_MSG_WMBUSMSG_RSP;
     }
-    else if (starts_with == ContentStartsWith::CI_FIELD)
+    else if (format == TelegramFormat::WMBUS_CI_FIELD)
     {
         request_[2] = RADIOLINK_MSG_DATA_REQ;
         resp = RADIOLINK_MSG_DATA_RSP;
     }
     else
     {
-        warning("(im871a) cannot use %s for sending\n", toString(starts_with));
+        warning("(im871a) cannot use telegram format %s for sending\n", toString(format));
         return false;
     }
 
@@ -1029,17 +1045,17 @@ AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicatio
 
     debug("(im871a/im170a) info: %s\n", di.str().c_str());
 
-    WMBusDeviceType type;
+    BusDeviceType type;
 
     string types;
     if (di.module_type == 0x33)
     {
-        type = WMBusDeviceType::DEVICE_IM871A;
+        type = BusDeviceType::DEVICE_IM871A;
         types = "im871a";
     }
     else
     {
-        type = WMBusDeviceType::DEVICE_IM170A;
+        type = BusDeviceType::DEVICE_IM170A;
         types = "im170a";
     }
 

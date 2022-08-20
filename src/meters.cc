@@ -1095,7 +1095,7 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
             return;
         }
 
-        WMBus *bus_device = bus_manager->findBus(bus());
+        BusDevice *bus_device = bus_manager->findBus(bus());
 
         if (!bus_device)
         {

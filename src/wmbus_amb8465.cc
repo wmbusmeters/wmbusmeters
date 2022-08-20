@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2021 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2018-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -37,7 +37,10 @@ struct ConfigAMB8465
 {
     uchar uart_ctl0 {};
     uchar uart_ctl1 {};
-    uchar received_frames_as_cmd {};
+    uchar uart_cmd_out_enable {};
+
+    uchar b1_add_disable {};
+
     uchar c_field {};
     uint16_t mfct {};
     uint32_t id {};
@@ -53,7 +56,10 @@ struct ConfigAMB8465
 
     string str()
     {
-        string ids = tostrprintf("id=%08x media=%02x version=%02x c_field=%02x auto_rssi=%02x", id, media, version, c_field, auto_rssi);
+        string ids = tostrprintf("uart_cmd_out_enable=%02x id=%08x media=%02x version=%02x c_field=%02x "
+                                 "auto_rssi=%02x b1_add_disable=%02x",
+                                 uart_cmd_out_enable,
+                                 id, media, version, c_field, auto_rssi, b1_add_disable);
         return ids;
     }
 
@@ -64,7 +70,8 @@ struct ConfigAMB8465
         uart_ctl0 = bytes[0+o];
         uart_ctl1 = bytes[0+o];
 
-        received_frames_as_cmd = bytes[5+o];
+        uart_cmd_out_enable = bytes[5+o];
+        b1_add_disable = bytes[48+o];
         c_field = bytes[49+o];
         id = bytes[51+o]<<8|bytes[50+o];
         mfct = bytes[55+o]<<24|bytes[54+o]<<16|bytes[53+o]<<8|bytes[52+o];
@@ -121,7 +128,82 @@ struct ConfigAMB8465
     }
 };
 
-struct WMBusAmber : public virtual WMBusCommonImplementation
+/*
+Which receive mode can hear which transmit mode:
+
+868 MHz
+
+Transmit         Receive
+------------------------------------------------------------------------
+S1 0x01   -->  S2 (0x03)
+S1-m 0x02 -->  S2 (0x03)
+S2 0x03   -->  S2 (0x03)
+
+T1-Meter 0x05 (to_collector) --> T2-Other (0x08) or T2/C2-Other (0x09)
+T1-Other 0x06 (to_meter)     --> T2-Meter (0x07)
+T2-Meter 0x07 (to_collector) --> T2-Other (0x08) or T2/C2-Other (0x09)
+T2-Other 0x08 (to_collector) --> T2-Meter (0x07)
+
+T2/C2-Other 0x09 (to_collector) --> transmit uses last received mode T2 or C2.
+
+R2-Meter 0x0A (to_collector) --> R2-Other (0x0B)
+R2-Other 0x0B (to_meter)     --> R2-Meter (0x0A)
+
+C1-Meter 0x0C (to_collector) --> C2-Other (0x0E) or T2/C2-Other (0x09)
+C2-Meter 0x0D (to_collector) --> C2-Other (0x0E) or T2/C2-Other (0x09)
+C2-Other 0x0E (to_meter)     --> C2-Meter (0x0D)
+
+169 MHz
+
+Transmit         Receive
+------------------------------------------------------------------------
+N1a 0x01 --> N2a (0x02)
+N2a 0x02 --> N2a (0x02)
+N1b 0x03 --> N2b (0x04)
+N2b 0x04 --> N2b (0x04)
+N1c 0x05 --> N2c (0x06)
+N2c 0x06 --> N2c (0x06)
+N1d 0x07 --> N2d (0x08)
+N2d 0x08 --> N2d (0x08)
+N1e 0x09 --> N2e (0x0A)
+N2e 0x0A --> N2e (0x0A)
+N1f 0x0B --> N2f (0x0C)
+N2f 0x0C --> N2f (0x0C)
+N2g 0x0D --> N2f (0x0D)
+
+*/
+
+uchar setupBusDeviceToReceiveTelegramsFromMeter(LinkModeSet lms)
+{
+    if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1))
+    {
+        // Listening to meter transmissions on C1 and T1.
+        // Using collector receive mode C2/T2-Other (0x09).
+        return 0x09;
+    }
+    else if (lms.has(LinkMode::C1))
+    {
+        // Listening to meter transmissions on C1 only.
+        // Using collector receive mode C2-Other (0x0e)
+        return 0x0E;
+    }
+    else if (lms.has(LinkMode::T1))
+    {
+        // Listening to meter transmissions T1 only.
+        // Using collector received mode T2-Other (0x08)
+        return 0x08;
+    }
+    else if (lms.has(LinkMode::S1) || lms.has(LinkMode::S1m))
+    {
+        // Listening only to S1 and S1-m
+        return 0x03;
+    }
+
+    // Error
+    return 0xff;
+}
+
+struct WMBusAmber : public virtual BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();
@@ -158,6 +240,7 @@ struct WMBusAmber : public virtual WMBusCommonImplementation
     void processSerialData();
     bool getConfiguration();
     void simulate() { }
+    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content);
 
     WMBusAmber(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
     ~WMBusAmber() {
@@ -184,7 +267,7 @@ private:
     void handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm);
 };
 
-shared_ptr<WMBus> openAMB8465(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<BusDevice> openAMB8465(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     string bus_alias  = detected.specified_device.bus_alias;
     string device = detected.found_file;
@@ -194,16 +277,16 @@ shared_ptr<WMBus> openAMB8465(Detected detected, shared_ptr<SerialCommunicationM
     {
         WMBusAmber *imp = new WMBusAmber(bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
-        return shared_ptr<WMBus>(imp);
+        return shared_ptr<BusDevice>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600, PARITY::NONE, "amb8465");
     WMBusAmber *imp = new WMBusAmber(bus_alias, serial, manager);
-    return shared_ptr<WMBus>(imp);
+    return shared_ptr<BusDevice>(imp);
 }
 
 WMBusAmber::WMBusAmber(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(alias, DEVICE_AMB8465, manager, serial, true)
+    BusDeviceCommonImplementation(alias, DEVICE_AMB8465, manager, serial, true)
 {
     rssi_expected_ = true;
     reset();
@@ -323,7 +406,7 @@ bool WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
     if (!canSetLinkModes(lms))
     {
         string modes = lms.hr();
-        error("(amb8465) setting link mode(s) %s is not supported for amb8465\n", modes.c_str());
+        error("(amb8465) setting link mode(s) %s is not supported for amb8465 \n", modes.c_str());
     }
 
     {
@@ -339,26 +422,7 @@ bool WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
     request_[0] = AMBER_SERIAL_SOF;
     request_[1] = CMD_SET_MODE_REQ;
     request_[2] = 1; // Len
-    if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1))
-    {
-        // Listening to both C1 and T1!
-        request_[3] = 0x09;
-    }
-    else if (lms.has(LinkMode::C1))
-    {
-        // Listening to only C1.
-        request_[3] = 0x0E;
-    }
-    else if (lms.has(LinkMode::T1))
-    {
-        // Listening to only T1.
-        request_[3] = 0x08;
-    }
-    else if (lms.has(LinkMode::S1) || lms.has(LinkMode::S1m))
-    {
-        // Listening only to S1 and S1-m
-        request_[3] = 0x03;
-    }
+    request_[3] = setupBusDeviceToReceiveTelegramsFromMeter(lms);
     request_[4] = xorChecksum(request_, 0, 4);
 
     verbose("(amb8465) set link mode %02x\n", request_[3]);
@@ -597,12 +661,60 @@ void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm)
         notifyResponseIsHere(0x80|CMD_SERIALNO_REQ);
         break;
     }
+    case (0x80|CMD_DATA_REQ):
+    {
+        verbose("(amb8465) send telegram completed\n");
+        response_.clear();
+        response_.insert(response_.end(), frame.begin(), frame.end());
+        debugPayload("(amb8465) send telegram response", response_);
+        notifyResponseIsHere(0x80|CMD_DATA_REQ);
+        break;
+    }
     default:
         verbose("(amb8465) unhandled device message %d\n", msgid);
         response_.clear();
         response_.insert(response_.end(), frame.begin(), frame.end());
         debugPayload("(amb8465) unknown response", response_);
     }
+}
+
+bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content)
+{
+    if (serial()->readonly()) return true; // Feeding from stdin or file.
+    if (content.size() > 250) return false;
+
+    LOCK_WMBUS_EXECUTING_COMMAND(sendTelegram);
+
+    bool rc = false;
+
+    request_.resize(content.size()+4);
+    request_[0] = AMBER_SERIAL_SOF;
+    request_[1] = CMD_DATA_REQ;
+    request_[2] = content.size();
+    for (size_t i = 0; i < content.size(); ++i)
+    {
+        request_[3+i] = content[i];
+    }
+    request_[content.size()+3] = xorChecksum(request_, 0, request_.size());
+
+    verbose("(amb8465) send %zu bytes of data\n", request_.size());
+    bool sent = serial()->send(request_);
+
+    if (sent)
+    {
+        bool ok = waitForResponse(CMD_DATA_REQ | 0x80);
+        if (ok)
+        {
+            rc = true;
+        }
+        else
+        {
+            warning("Warning! Did not get confirmation on send data for amb8465\n");
+            rc = false;
+        }
+    }
+
+    return rc;
 }
 
 AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
@@ -734,7 +846,7 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
 
     // FF8A7A00780080710200000000FFFFFA00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF003200021400FFFFFFFFFF010004000000FFFFFF01440000000000000000FFFF0B040100FFFFFFFFFF00030000FFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF17
 
-    detected->setAsFound(config.dongleId(), WMBusDeviceType::DEVICE_AMB8465, 9600, false,
+    detected->setAsFound(config.dongleId(), BusDeviceType::DEVICE_AMB8465, 9600, false,
         detected->specified_device.linkmodes);
 
     verbose("(amb8465) detect %s\n", config.str().c_str());

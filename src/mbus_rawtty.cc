@@ -28,7 +28,7 @@
 
 using namespace std;
 
-struct MBusRawTTY : public virtual WMBusCommonImplementation
+struct MBusRawTTY : public virtual BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();
@@ -39,7 +39,7 @@ struct MBusRawTTY : public virtual WMBusCommonImplementation
     LinkModeSet supportedLinkModes() { return Any_bit; }
     int numConcurrentLinkModes() { return 0; }
     bool canSetLinkModes(LinkModeSet desired_modes) { return true; }
-    bool sendTelegram(ContentStartsWith starts_with, vector<uchar> &content);
+    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content);
 
     void processSerialData();
     void simulate() { }
@@ -54,7 +54,7 @@ private:
     vector<uchar> received_payload_;
 };
 
-shared_ptr<WMBus> openMBUS(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<BusDevice> openMBUS(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     string bus_alias  = detected.specified_device.bus_alias;
     string device = detected.found_file;
@@ -66,15 +66,15 @@ shared_ptr<WMBus> openMBUS(Detected detected, shared_ptr<SerialCommunicationMana
     {
         MBusRawTTY *imp = new MBusRawTTY(bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
-        return shared_ptr<WMBus>(imp);
+        return shared_ptr<BusDevice>(imp);
     }
     auto serial = manager->createSerialDeviceTTY(device.c_str(), bps, PARITY::EVEN, "mbus");
     MBusRawTTY *imp = new MBusRawTTY(bus_alias, serial, manager);
-    return shared_ptr<WMBus>(imp);
+    return shared_ptr<BusDevice>(imp);
 }
 
 MBusRawTTY::MBusRawTTY(string bus_alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(bus_alias, DEVICE_MBUS, manager, serial, true)
+    BusDeviceCommonImplementation(bus_alias, DEVICE_MBUS, manager, serial, true)
 {
     reset();
 }
@@ -165,17 +165,17 @@ void MBusRawTTY::processSerialData()
     }
 }
 
-bool MBusRawTTY::sendTelegram(ContentStartsWith starts_with, vector<uchar> &content)
+bool MBusRawTTY::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content)
 {
     if (serial()->readonly()) return true;
     if (content.size() > 250) return false;
 
     vector<uchar> msg;
-    if (starts_with == ContentStartsWith::SHORT_FRAME)
+    if (format == TelegramFormat::MBUS_SHORT_FRAME)
     {
         msg.push_back(0x10);
     }
-    else if (starts_with == ContentStartsWith::LONG_FRAME)
+    else if (format == TelegramFormat::MBUS_LONG_FRAME)
     {
         msg.push_back(0x68);
         msg.push_back((uchar)content.size());
@@ -184,7 +184,7 @@ bool MBusRawTTY::sendTelegram(ContentStartsWith starts_with, vector<uchar> &cont
     }
     else
     {
-        warning("(mbus) cannot use %s for sending\n", toString(starts_with));
+        warning("(mbus) cannot use telegram foramt %s for sending on mbus\n", toString(format));
         return false;
     }
 
@@ -216,7 +216,7 @@ AccessCheck detectMBUS(Detected *detected, shared_ptr<SerialCommunicationManager
 
     serial->close();
 
-    detected->setAsFound("", WMBusDeviceType::DEVICE_MBUS, bps, false,
+    detected->setAsFound("", BusDeviceType::DEVICE_MBUS, bps, false,
         detected->specified_device.linkmodes);
 
     return AccessCheck::AccessOK;

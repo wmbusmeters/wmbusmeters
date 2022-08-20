@@ -42,14 +42,14 @@ struct BusManager
     void removeAllBusDevices();
     void checkForDeadWmbusDevices(Configuration *config);
     void openBusDeviceAndPotentiallySetLinkmodes(Configuration *config, string how, Detected *detected);
-    shared_ptr<WMBus> createWmbusObject(Detected *detected, Configuration *config);
+    shared_ptr<BusDevice> createWmbusObject(Detected *detected, Configuration *config);
 
     void runAnySimulations();
     void regularCheckup();
     void sendQueue();
 
     int numBusDevices() { return  bus_devices_.size(); }
-    WMBus *findBus(string bus_alias);
+    BusDevice *findBus(string bus_alias);
     void queueSendBusContent(const SendBusContent &sbc);
 
 private:
@@ -68,7 +68,7 @@ private:
 
     // Current active set of wmbus devices that can receive telegrams.
     // This can change during runtime, plugging/unplugging wmbus dongles.
-    vector<shared_ptr<WMBus>> bus_devices_;
+    vector<shared_ptr<BusDevice>> bus_devices_;
     RecursiveMutex bus_devices_mutex_;
 #define LOCK_BUS_DEVICES(where) WITH(bus_devices_mutex_, bus_devices_mutex, where)
 
