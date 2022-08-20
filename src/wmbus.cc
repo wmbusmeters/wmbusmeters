@@ -50,6 +50,15 @@ LIST_OF_LINK_MODES
 #undef X
 };
 
+const char *toString(LinkMode lm)
+{
+#define X(name,lcname,option,val) if (lm == LinkMode::name) return #lcname;
+LIST_OF_LINK_MODES
+#undef X
+
+    return "unknown";
+}
+
 LinkModeInfo *getLinkModeInfo(LinkMode lm);
 LinkModeInfo *getLinkModeInfoFromBit(int bit);
 
@@ -89,7 +98,7 @@ LinkMode isLinkModeOption(const char *arg)
     return LinkMode::UNKNOWN;
 }
 
-LinkMode isLinkMode(const char *arg)
+LinkMode toLinkMode(const char *arg)
 {
     for (auto& s : link_modes_) {
         if (!strcmp(arg, s.lcname)) {
@@ -108,7 +117,7 @@ LinkModeSet parseLinkModes(string m)
     const char *tok = strtok_r(buf, ",", &saveptr);
     while (tok != NULL)
     {
-        LinkMode lm = isLinkMode(tok);
+        LinkMode lm = toLinkMode(tok);
         if (lm == LinkMode::UNKNOWN)
         {
             error("(wmbus) not a valid link mode: %s\n", tok);
@@ -128,7 +137,7 @@ bool isValidLinkModes(string m)
     const char *tok = strtok_r(buf, ",", &saveptr);
     while (tok != NULL)
     {
-        LinkMode lm = isLinkMode(tok);
+        LinkMode lm = toLinkMode(tok);
         if (lm == LinkMode::UNKNOWN)
         {
             return false;
@@ -3957,7 +3966,7 @@ string measurementTypeName(MeasurementType mt)
     assert(0);
 }
 
-WMBus::~WMBus() {
+BusDevice::~BusDevice() {
 }
 
 bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_bytes)
@@ -3995,15 +4004,15 @@ bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_byt
     return ok;
 }
 
-WMBusCommonImplementation::~WMBusCommonImplementation()
+BusDeviceCommonImplementation::~BusDeviceCommonImplementation()
 {
     manager_->listenTo(this->serial(), NULL);
     manager_->onDisappear(this->serial(), NULL);
     debug("(wmbus) deleted %s\n", toString(type()));
 }
 
-WMBusCommonImplementation::WMBusCommonImplementation(string bus_alias,
-                                                     WMBusDeviceType t,
+BusDeviceCommonImplementation::BusDeviceCommonImplementation(string bus_alias,
+                                                     BusDeviceType t,
                                                      shared_ptr<SerialCommunicationManager> manager,
                                                      shared_ptr<SerialDevice> serial,
                                                      bool is_serial)
@@ -4026,7 +4035,7 @@ WMBusCommonImplementation::WMBusCommonImplementation(string bus_alias,
     manager_->onDisappear(this->serial(),call(this,disconnectedFromDevice));
 }
 
-string WMBusCommonImplementation::hr()
+string BusDeviceCommonImplementation::hr()
 {
     if (cached_hr_ == "")
     {
@@ -4036,34 +4045,34 @@ string WMBusCommonImplementation::hr()
     return cached_hr_;
 }
 
-bool WMBusCommonImplementation::isSerial()
+bool BusDeviceCommonImplementation::isSerial()
 {
     return is_serial_;
 }
 
-void WMBusCommonImplementation::markAsNoLongerSerial()
+void BusDeviceCommonImplementation::markAsNoLongerSerial()
 {
     // When you override the serial device with a file for an im871a, then
     // it is no longer a serial device.
     is_serial_ = false;
 }
 
-WMBusDeviceType WMBusCommonImplementation::type()
+BusDeviceType BusDeviceCommonImplementation::type()
 {
     return type_;
 }
 
-string WMBusCommonImplementation::busAlias()
+string BusDeviceCommonImplementation::busAlias()
 {
     return bus_alias_;
 }
 
-void WMBusCommonImplementation::onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb)
+void BusDeviceCommonImplementation::onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb)
 {
     telegram_listeners_.push_back(cb);
 }
 
-bool WMBusCommonImplementation::sendTelegram(ContentStartsWith starts_with, vector<uchar> &content)
+bool BusDeviceCommonImplementation::sendTelegram(LinkMode link_mode, TelegramFormat format, vector<uchar> &content)
 {
     warning("(bus) Trying to send telegram to bus that has not implemented sending!\n");
     return false;
@@ -4076,7 +4085,7 @@ void setIgnoreDuplicateTelegrams(bool idt)
     ignore_duplicate_telegrams_ = idt;
 }
 
-bool WMBusCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> frame)
+bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> frame)
 {
     bool handled = false;
     last_received_ = time(NULL);
@@ -4110,17 +4119,17 @@ bool WMBusCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     return handled;
 }
 
-void WMBusCommonImplementation::protocolErrorDetected()
+void BusDeviceCommonImplementation::protocolErrorDetected()
 {
     protocol_error_count_++;
 }
 
-void WMBusCommonImplementation::resetProtocolErrorCount()
+void BusDeviceCommonImplementation::resetProtocolErrorCount()
 {
     protocol_error_count_ = 0;
 }
 
-void WMBusCommonImplementation::setLinkModes(LinkModeSet lms)
+void BusDeviceCommonImplementation::setLinkModes(LinkModeSet lms)
 {
     link_modes_ = lms;
     retrySetLinkModes(lms);
@@ -4128,7 +4137,7 @@ void WMBusCommonImplementation::setLinkModes(LinkModeSet lms)
 
 }
 
-void WMBusCommonImplementation::retrySetLinkModes(LinkModeSet lms)
+void BusDeviceCommonImplementation::retrySetLinkModes(LinkModeSet lms)
 {
     int tries = 0;
     for (;;)
@@ -4147,21 +4156,36 @@ void WMBusCommonImplementation::retrySetLinkModes(LinkModeSet lms)
     }
 }
 
-bool WMBusCommonImplementation::areLinkModesConfigured()
+bool BusDeviceCommonImplementation::areLinkModesConfigured()
 {
     return link_modes_configured_;
 }
 
-LinkModeSet WMBusCommonImplementation::protectedGetLinkModes()
+void BusDeviceCommonImplementation::setDeviceMode(DeviceMode mode)
+{
+    device_mode_ = mode;
+    deviceSetDeviceMode(mode);
+}
+
+void BusDeviceCommonImplementation::deviceSetDeviceMode(DeviceMode mode)
+{
+}
+
+DeviceMode BusDeviceCommonImplementation::deviceMode()
+{
+    return device_mode_;
+}
+
+LinkModeSet BusDeviceCommonImplementation::protectedGetLinkModes()
 {
     return link_modes_;
 }
 
-void WMBusCommonImplementation::deviceClose()
+void BusDeviceCommonImplementation::deviceClose()
 {
 }
 
-void WMBusCommonImplementation::close()
+void BusDeviceCommonImplementation::close()
 {
     debug("(wmbus) closing....\n");
     if (serial())
@@ -4179,7 +4203,7 @@ void WMBusCommonImplementation::close()
     deviceClose();
 }
 
-bool WMBusCommonImplementation::reset()
+bool BusDeviceCommonImplementation::reset()
 {
     last_reset_ = time(NULL);
     bool resetting = false;
@@ -4228,7 +4252,7 @@ bool WMBusCommonImplementation::reset()
     return true;
 }
 
-void WMBusCommonImplementation::disconnectedFromDevice()
+void BusDeviceCommonImplementation::disconnectedFromDevice()
 {
     if (is_working_)
     {
@@ -4237,12 +4261,12 @@ void WMBusCommonImplementation::disconnectedFromDevice()
     }
 }
 
-bool WMBusCommonImplementation::isWorking()
+bool BusDeviceCommonImplementation::isWorking()
 {
     return is_working_;
 }
 
-void WMBusCommonImplementation::checkStatus()
+void BusDeviceCommonImplementation::checkStatus()
 {
     trace("[ALARM] check status\n");
 
@@ -4333,12 +4357,12 @@ void WMBusCommonImplementation::checkStatus()
     }
 }
 
-void WMBusCommonImplementation::setResetInterval(int seconds)
+void BusDeviceCommonImplementation::setResetInterval(int seconds)
 {
     reset_timeout_ = seconds;
 }
 
-void WMBusCommonImplementation::setTimeout(int seconds, string expected_activity)
+void BusDeviceCommonImplementation::setTimeout(int seconds, string expected_activity)
 {
     assert(seconds >= 0);
 
@@ -4358,7 +4382,7 @@ void WMBusCommonImplementation::setTimeout(int seconds, string expected_activity
     }
 }
 
-bool WMBusCommonImplementation::waitForResponse(int id)
+bool BusDeviceCommonImplementation::waitForResponse(int id)
 {
     assert(id != 0);
 
@@ -4379,7 +4403,7 @@ bool WMBusCommonImplementation::waitForResponse(int id)
     return false;
 }
 
-bool WMBusCommonImplementation::notifyResponseIsHere(int id)
+bool BusDeviceCommonImplementation::notifyResponseIsHere(int id)
 {
     if (id != waiting_for_response_id_) return false;
 
@@ -4985,7 +5009,7 @@ string decodeTPLStatusByteWithMfct(uchar sts, Translate::Lookup &lookup)
     return s+" "+t;
 }
 
-const char *toString(WMBusDeviceType t)
+const char *toString(BusDeviceType t)
 {
     switch (t)
     {
@@ -4997,7 +5021,7 @@ LIST_OF_MBUS_DEVICES
     return "?";
 }
 
-const char *toLowerCaseString(WMBusDeviceType t)
+const char *toLowerCaseString(BusDeviceType t)
 {
     switch (t)
     {
@@ -5009,7 +5033,7 @@ LIST_OF_MBUS_DEVICES
     return "?";
 }
 
-WMBusDeviceType toWMBusDeviceType(string &t)
+BusDeviceType toBusDeviceType(string &t)
 {
 #define X(name,text,tty,rtlsdr,detector) if (t == #text) return DEVICE_ ## name;
 LIST_OF_MBUS_DEVICES
@@ -5077,7 +5101,7 @@ bool check_file(string f, bool *is_tty, bool *is_stdin, bool *is_file, bool *is_
     return false;
 }
 
-bool is_type_id_extras(string t, WMBusDeviceType *out_type, string *out_id, string *out_extras)
+bool is_type_id_extras(string t, BusDeviceType *out_type, string *out_id, string *out_extras)
 {
     // im871a im871a[12345678] im871a(foo=123)
     // auto
@@ -5085,14 +5109,14 @@ bool is_type_id_extras(string t, WMBusDeviceType *out_type, string *out_id, stri
     // hex
     if (t == "auto")
     {
-        *out_type = WMBusDeviceType::DEVICE_AUTO;
+        *out_type = BusDeviceType::DEVICE_AUTO;
         *out_id = "";
         return true;
     }
 
     if (t == "hex")
     {
-        *out_type = WMBusDeviceType::DEVICE_HEXTTY;
+        *out_type = BusDeviceType::DEVICE_HEXTTY;
         *out_id = "";
         return true;
     }
@@ -5111,9 +5135,9 @@ bool is_type_id_extras(string t, WMBusDeviceType *out_type, string *out_id, stri
     if (!found_brackets && !found_parentheses)
     {
         // No brackets nor parentheses found, is t a known wmbus device? like im871a amb8465 etc....
-        WMBusDeviceType tt = toWMBusDeviceType(t);
+        BusDeviceType tt = toBusDeviceType(t);
         if (tt == DEVICE_UNKNOWN) return false;
-        *out_type = toWMBusDeviceType(t);
+        *out_type = toBusDeviceType(t);
         *out_id = "";
         return true;
     }
@@ -5142,9 +5166,9 @@ bool is_type_id_extras(string t, WMBusDeviceType *out_type, string *out_id, stri
     }
 
     string type = t.substr(0, te);
-    WMBusDeviceType tt = toWMBusDeviceType(type);
+    BusDeviceType tt = toBusDeviceType(type);
     if (tt == DEVICE_UNKNOWN) return false;
-    *out_type = toWMBusDeviceType(type);
+    *out_type = toBusDeviceType(type);
 
     if (found_brackets)
     {
@@ -5164,7 +5188,7 @@ bool is_type_id_extras(string t, WMBusDeviceType *out_type, string *out_id, stri
 void SpecifiedDevice::clear()
 {
     file = "";
-    type = WMBusDeviceType::DEVICE_UNKNOWN;
+    type = BusDeviceType::DEVICE_UNKNOWN;
     id = "";
     extras = "";
     fq = "";
@@ -5180,7 +5204,7 @@ string SpecifiedDevice::str()
     }
     if (file != "") r += file+":";
     if (hex != "") r += "<"+hex+">:";
-    if (type != WMBusDeviceType::DEVICE_UNKNOWN)
+    if (type != BusDeviceType::DEVICE_UNKNOWN)
     {
         r += toString(type);
         if (id != "")
@@ -5251,7 +5275,7 @@ bool SpecifiedDevice::parse(string &arg)
     //         file         type   id        bps  fq     linkmodes command
     for (auto& p : parts)
     {
-        if (file_checked && typeidextras_checked && file == "" && type == WMBusDeviceType::DEVICE_UNKNOWN && id == "")
+        if (file_checked && typeidextras_checked && file == "" && type == BusDeviceType::DEVICE_UNKNOWN && id == "")
         {
             // There must be either a file and/or type(id). If none are found,
             // then the specified device string is faulty.
@@ -5315,56 +5339,98 @@ bool SpecifiedDevice::parse(string &arg)
     }
 
     // Auto is only allowed to be combined with linkmodes and/or frequencies!
-    if (type == WMBusDeviceType::DEVICE_AUTO && (file != "" || bps != "")) return false;
+    if (type == BusDeviceType::DEVICE_AUTO && (file != "" || bps != "")) return false;
     // You cannot combine a file with a command.
     if (file != "" && command != "") return false;
     return true;
 }
 
-const char *toString(ContentStartsWith sw)
+const char *toString(TelegramFormat format)
 {
-    if (sw == ContentStartsWith::C_FIELD) return "c_field";
-    if (sw == ContentStartsWith::CI_FIELD) return "ci_field";
-    if (sw == ContentStartsWith::SHORT_FRAME) return "short_frame";
-    if (sw == ContentStartsWith::LONG_FRAME) return "long_frame";
-    return "?";
+    if (format == TelegramFormat::WMBUS_C_FIELD) return "wmbus_c_field";
+    if (format == TelegramFormat::WMBUS_CI_FIELD) return "wmbus_ci_field";
+    if (format == TelegramFormat::MBUS_SHORT_FRAME) return "mbus_short_frame";
+    if (format == TelegramFormat::MBUS_LONG_FRAME) return "mbus_long_frame";
+
+    return "unknown";
+}
+
+TelegramFormat toTelegramFormat(const char *s)
+{
+    if (!strcmp(s, "wmbus_c_field")) return TelegramFormat::WMBUS_C_FIELD;
+    if (!strcmp(s, "wmbus_ci_field")) return TelegramFormat::WMBUS_CI_FIELD;
+    if (!strcmp(s, "mbus_short_frame")) return TelegramFormat::MBUS_SHORT_FRAME;
+    if (!strcmp(s, "mbus_long_frame")) return TelegramFormat::MBUS_LONG_FRAME;
+
+    return TelegramFormat::UNKNOWN;
+}
+
+const char *toString(DeviceMode mode)
+{
+    if (mode == DeviceMode::METER) return "meter";
+    if (mode == DeviceMode::OTHER) return "other";
+    return "unknown";
+}
+
+DeviceMode toDeviceMode(const char *s)
+{
+    if (!strcmp(s, "meter")) return DeviceMode::METER;
+    if (!strcmp(s, "other")) return DeviceMode::OTHER;
+
+    return DeviceMode::UNKNOWN;
 }
 
 bool SendBusContent::isLikely(const string &s)
 {
-    return s.rfind("sendci:", 0) == 0 || s.rfind("sendc:", 0) == 0 ||
-        s.rfind("sends:", 0) == 0 || s.rfind("sendl:", 0) == 0;
+    return s.rfind("send:", 0) == 0;
 }
 
 bool SendBusContent::parse(const string &s)
 {
     bus = "";
     content = "";
-    // Example: send:OUT17:0102030405fefcfbfd
-    // Where OUT17 is a valid bus.
+    // Examples:
+    //
+    // send:LINK_MODE:FORMAT:BUS:DATA
+    //
+    // send:t2:c_field:OUTBUS:01020304050607
+    // send:t1:ci_field:OUTBUS:01020304050607
+    // send:mbus:short:OUTMBUS:001122
+    // send:mbus:long:OUTMBUS:001122
+    //     c1   c2   c3      c4
+
     size_t c1 = s.find(":");
     if (c1 == string::npos) return false;
     size_t c2 = s.find(":", c1+1);
     if (c2 == string::npos) return false;
+    size_t c3 = s.find(":", c2+1);
+    if (c3 == string::npos) return false;
+    size_t c4 = s.find(":", c3+1);
+    if (c4 == string::npos) return false;
+
     string cmd = s.substr(0, c1);
-    if (cmd != "sendci" && cmd != "sendc" &&
-        cmd != "sends" && cmd != "sendl") return false;
-    if (cmd == "sendci") starts_with = ContentStartsWith::CI_FIELD;
-    if (cmd == "sendc") starts_with = ContentStartsWith::C_FIELD;
-    if (cmd == "sends") starts_with = ContentStartsWith::SHORT_FRAME;
-    if (cmd == "sendl") starts_with = ContentStartsWith::LONG_FRAME;
-    bus = s.substr(c1+1, c2-c1-1);
+    if (cmd != "send") return false;
+
+    link_mode = toLinkMode(s.substr(c1+1, c2-c1-1).c_str());
+    if (link_mode == LinkMode::UNKNOWN) return false;
+
+    format = toTelegramFormat(s.substr(c2+1, c3-c2-1).c_str());
+    if (format == TelegramFormat::UNKNOWN) return false;
+
+    bus = s.substr(c3+1, c4-c3-1);
     if (bus.size() == 0) return false;
-    content = s.substr(c2+1);
+
+    content = s.substr(c4+1);
     if (content.size() == 0) return false;
     if (content.size() % 2 == 1) return false;
+
     return true;
 }
 
-Detected detectWMBusDeviceOnTTY(string tty,
-                                set<WMBusDeviceType> probe_for,
-                                LinkModeSet desired_linkmodes,
-                                shared_ptr<SerialCommunicationManager> handler)
+Detected detectBusDeviceOnTTY(string tty,
+                              set<BusDeviceType> probe_for,
+                              LinkModeSet desired_linkmodes,
+                              shared_ptr<SerialCommunicationManager> handler)
 {
     Detected detected;
     // Fake a specified device.
@@ -5372,7 +5438,7 @@ Detected detectWMBusDeviceOnTTY(string tty,
     detected.specified_device.is_tty = true;
     detected.specified_device.linkmodes = desired_linkmodes;
 
-    bool has_auto = probe_for.count(WMBusDeviceType::DEVICE_AUTO);
+    bool has_auto = probe_for.count(BusDeviceType::DEVICE_AUTO);
 
     AccessCheck ac = handler->checkAccess(tty, handler);
     if (ac != AccessCheck::AccessOK)
@@ -5391,17 +5457,18 @@ Detected detectWMBusDeviceOnTTY(string tty,
 
     // Talk amb3665 with it...
     // assumes this device is configured for 9600 bps, which seems to be the default.
-    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_AMB3665))
+    /*
+    if (has_auto || probe_for.count(BusDeviceType::DEVICE_AMB3665))
     {
         if (detectAMB3665(&detected, handler) == AccessCheck::AccessOK)
         {
             return detected;
         }
     }
-
+    */
     // Talk amb8465 with it...
     // assumes this device is configured for 9600 bps, which seems to be the default.
-    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_AMB8465))
+    if (has_auto || probe_for.count(BusDeviceType::DEVICE_AMB8465))
     {
         if (detectAMB8465(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5411,7 +5478,7 @@ Detected detectWMBusDeviceOnTTY(string tty,
 
     // Talk im871a with it...
     // assumes this device is configured for 57600 bps, which seems to be the default.
-    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_IM871A))
+    if (has_auto || probe_for.count(BusDeviceType::DEVICE_IM871A))
     {
         if (detectIM871AIM170A(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5421,7 +5488,7 @@ Detected detectWMBusDeviceOnTTY(string tty,
 
     // Talk RC1180 with it...
     // assumes this device is configured for 19200 bps, which seems to be the default.
-    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_RC1180))
+    if (has_auto || probe_for.count(BusDeviceType::DEVICE_RC1180))
     {
         if (detectRC1180(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5431,7 +5498,7 @@ Detected detectWMBusDeviceOnTTY(string tty,
 
     // Talk CUL with it...
     // assumes this device is configured for 38400 bps, which seems to be the default.
-    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_CUL))
+    if (has_auto || probe_for.count(BusDeviceType::DEVICE_CUL))
     {
         if (detectCUL(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5441,7 +5508,7 @@ Detected detectWMBusDeviceOnTTY(string tty,
 
     // Talk iu880b with it...
     // assumes this device is configured for 115200 bps, which seems to be the default.
-    if (has_auto || probe_for.count(WMBusDeviceType::DEVICE_IU880B))
+    if (has_auto || probe_for.count(BusDeviceType::DEVICE_IU880B))
     {
         if (detectIU880B(&detected, handler) == AccessCheck::AccessOK)
         {
@@ -5453,9 +5520,9 @@ Detected detectWMBusDeviceOnTTY(string tty,
     return detected;
 }
 
-Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
-                                        LinkModeSet default_linkmodes,
-                                        shared_ptr<SerialCommunicationManager> handler)
+Detected detectBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
+                                      LinkModeSet default_linkmodes,
+                                      shared_ptr<SerialCommunicationManager> handler)
 {
     assert(specified_device.file != "" || specified_device.hex != "");
     assert(specified_device.command == "");
@@ -5482,7 +5549,7 @@ Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
     }
 
     // Special case to cater for /dev/ttyUSB0:9600, ie the rawtty is implicit.
-    if (specified_device.type == WMBusDeviceType::DEVICE_UNKNOWN && specified_device.bps != "" && specified_device.is_tty)
+    if (specified_device.type == BusDeviceType::DEVICE_UNKNOWN && specified_device.bps != "" && specified_device.is_tty)
     {
         debug("(lookup) driver: rawtty\n");
         // A rawtty has a lms of all by default, eg no simulation_foo.txt:t1 nor --t1
@@ -5492,7 +5559,7 @@ Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
     }
 
     // Special case to cater for /dev/ttyUSB0:mbus:2400, ie an mbus master device.
-    if (specified_device.type == WMBusDeviceType::DEVICE_MBUS)
+    if (specified_device.type == BusDeviceType::DEVICE_MBUS)
     {
         debug("(lookup) driver: mbus\n");
         int bps = atoi(specified_device.bps.c_str());
@@ -5506,7 +5573,7 @@ Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
     }
 
     // Special case to cater for raw_data.bin, ie the rawtty is implicit.
-    if (specified_device.type == WMBusDeviceType::DEVICE_UNKNOWN && !specified_device.is_tty)
+    if (specified_device.type == BusDeviceType::DEVICE_UNKNOWN && !specified_device.is_tty)
     {
         debug("(lookup) driver: raw file\n");
         // A rawtty has a lms of all by default, eg no simulation_foo.txt:t1 nor --t1
@@ -5516,8 +5583,8 @@ Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
     }
 
     // Now handle all files (ie not ttys) with specified type.
-    if (specified_device.type != WMBusDeviceType::DEVICE_UNKNOWN &&
-        specified_device.type != WMBusDeviceType::DEVICE_AUTO &&
+    if (specified_device.type != BusDeviceType::DEVICE_UNKNOWN &&
+        specified_device.type != BusDeviceType::DEVICE_AUTO &&
         !specified_device.is_tty)
     {
         debug("(lookup) driver: %s\n", toString(specified_device.type));
@@ -5528,15 +5595,15 @@ Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
     // Ok, we are left with a single /dev/ttyUSB0 lets talk to it
     // to figure out what is connected to it.
     LinkModeSet desired_linkmodes = lms;
-    if (specified_device.type == WMBusDeviceType::DEVICE_UNKNOWN)
+    if (specified_device.type == BusDeviceType::DEVICE_UNKNOWN)
     {
         error("You have to specify the expected device type for the tty %s\n",
               specified_device.file.c_str());
     }
 
-    set<WMBusDeviceType> probe_for = { specified_device.type };
+    set<BusDeviceType> probe_for = { specified_device.type };
 
-    Detected d = detectWMBusDeviceOnTTY(specified_device.file, probe_for, desired_linkmodes, handler);
+    Detected d = detectBusDeviceOnTTY(specified_device.file, probe_for, desired_linkmodes, handler);
     if (specified_device.type != d.found_type &&
         specified_device.type != DEVICE_UNKNOWN)
     {
@@ -5545,7 +5612,7 @@ Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
                 specified_device.file.c_str());
 
         d.found_file = specified_device.file;
-        d.found_type = WMBusDeviceType::DEVICE_UNKNOWN;
+        d.found_type = BusDeviceType::DEVICE_UNKNOWN;
     }
     else
     {
@@ -5554,9 +5621,9 @@ Detected detectWMBusDeviceWithFileOrHex(SpecifiedDevice &specified_device,
     return d;
 }
 
-Detected detectWMBusDeviceWithCommand(SpecifiedDevice &specified_device,
-                                      LinkModeSet default_linkmodes,
-                                      shared_ptr<SerialCommunicationManager> handler)
+Detected detectBusDeviceWithCommand(SpecifiedDevice &specified_device,
+                                    LinkModeSet default_linkmodes,
+                                    shared_ptr<SerialCommunicationManager> handler)
 {
     assert(specified_device.file == "");
     assert(specified_device.command != "");
@@ -5595,9 +5662,9 @@ AccessCheck detectAUTO(Detected *detected, shared_ptr<SerialCommunicationManager
 
 AccessCheck reDetectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler)
 {
-    WMBusDeviceType type = detected->specified_device.type;
+    BusDeviceType type = detected->specified_device.type;
 
-#define X(name,text,tty,rtlsdr,detector) if (type == WMBusDeviceType::DEVICE_ ## name) return detector(detected,handler);
+#define X(name,text,tty,rtlsdr,detector) if (type == BusDeviceType::DEVICE_ ## name) return detector(detected,handler);
 LIST_OF_MBUS_DEVICES
 #undef X
 
@@ -5605,9 +5672,9 @@ LIST_OF_MBUS_DEVICES
     return AccessCheck::NoSuchDevice;
 }
 
-bool usesRTLSDR(WMBusDeviceType t)
+bool usesRTLSDR(BusDeviceType t)
 {
-#define X(name,text,tty,rtlsdr,detector) if (t == WMBusDeviceType::DEVICE_ ## name) return rtlsdr;
+#define X(name,text,tty,rtlsdr,detector) if (t == BusDeviceType::DEVICE_ ## name) return rtlsdr;
 LIST_OF_MBUS_DEVICES
 #undef X
 
@@ -5615,9 +5682,9 @@ LIST_OF_MBUS_DEVICES
     return false;
 }
 
-bool usesTTY(WMBusDeviceType t)
+bool usesTTY(BusDeviceType t)
 {
-#define X(name,text,tty,rtlsdr,detector) if (t == WMBusDeviceType::DEVICE_ ## name) return tty;
+#define X(name,text,tty,rtlsdr,detector) if (t == BusDeviceType::DEVICE_ ## name) return tty;
 LIST_OF_MBUS_DEVICES
 #undef X
 

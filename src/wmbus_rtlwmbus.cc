@@ -34,7 +34,7 @@
 
 using namespace std;
 
-struct WMBusRTLWMBUS : public virtual WMBusCommonImplementation
+struct WMBusRTLWMBUS : public virtual BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();
@@ -81,7 +81,7 @@ private:
     string setup_;
 };
 
-shared_ptr<WMBus> openRTLWMBUS(Detected detected,
+shared_ptr<BusDevice> openRTLWMBUS(Detected detected,
                                string bin_dir,
                                bool daemon,
                                shared_ptr<SerialCommunicationManager> manager,
@@ -179,15 +179,15 @@ shared_ptr<WMBus> openRTLWMBUS(Detected detected,
     {
         WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(bus_alias, identifier, serial_override, manager);
         imp->markSerialAsOverriden();
-        return shared_ptr<WMBus>(imp);
+        return shared_ptr<BusDevice>(imp);
     }
     auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, "rtlwmbus");
     WMBusRTLWMBUS *imp = new WMBusRTLWMBUS(bus_alias, identifier, serial, manager);
-    return shared_ptr<WMBus>(imp);
+    return shared_ptr<BusDevice>(imp);
 }
 
 WMBusRTLWMBUS::WMBusRTLWMBUS(string alias, string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(alias, DEVICE_RTLWMBUS, manager, serial, false), serialnr_(serialnr)
+    BusDeviceCommonImplementation(alias, DEVICE_RTLWMBUS, manager, serial, false), serialnr_(serialnr)
 {
     reset();
 }

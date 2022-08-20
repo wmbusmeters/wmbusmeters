@@ -310,7 +310,7 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     // Probe for the specified devices.
     c->probe_for.insert(specified_device.type);
 
-    if (specified_device.type == WMBusDeviceType::DEVICE_MBUS)
+    if (specified_device.type == BusDeviceType::DEVICE_MBUS)
     {
         if (!specified_device.linkmodes.empty())
         {
@@ -328,8 +328,8 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
             specified_device.linkmodes.addLinkMode(LinkMode::Any);
         }
         else
-        if (specified_device.type == WMBusDeviceType::DEVICE_RTLWMBUS ||
-            specified_device.type == WMBusDeviceType::DEVICE_RTL433)
+        if (specified_device.type == BusDeviceType::DEVICE_RTLWMBUS ||
+            specified_device.type == BusDeviceType::DEVICE_RTL433)
         {
             c->all_device_linkmodes_specified.addLinkMode(LinkMode::C1);
             c->all_device_linkmodes_specified.addLinkMode(LinkMode::T1);
@@ -355,7 +355,7 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
         c->single_device_override = true;
     }
 
-    if (specified_device.type == WMBusDeviceType::DEVICE_AUTO)
+    if (specified_device.type == BusDeviceType::DEVICE_AUTO)
     {
         c->use_auto_device_detect = true;
         c->auto_device_linkmodes = specified_device.linkmodes;
@@ -367,7 +367,7 @@ bool handleDeviceOrHex(Configuration *c, string devicefilehex)
     else
     {
         c->supplied_bus_devices.push_back(specified_device);
-        if (specified_device.type == WMBusDeviceType::DEVICE_MBUS)
+        if (specified_device.type == BusDeviceType::DEVICE_MBUS)
         {
             c->num_mbus_devices++;
         }
@@ -795,12 +795,12 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
     return shared_ptr<Configuration>(c);
 }
 
-LinkModeCalculationResult calculateLinkModes(Configuration *config, WMBus *wmbus, bool link_modes_matter)
+LinkModeCalculationResult calculateLinkModes(Configuration *config, BusDevice *device, bool link_modes_matter)
 {
-    int n = wmbus->numConcurrentLinkModes();
+    int n = device->numConcurrentLinkModes();
     string num = to_string(n);
     if (n == 0) num = "any combination";
-    string dongles = wmbus->supportedLinkModes().hr();
+    string dongles = device->supportedLinkModes().hr();
     string dongle;
     strprintf(dongle, "%s of %s", num.c_str(), dongles.c_str());
 

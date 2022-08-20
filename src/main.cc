@@ -507,7 +507,7 @@ bool start(Configuration *config)
     Detected d;
     d.specified_device.file = "/dev/ttyUSB0";
     d.found_file = "/dev/ttyUSB0";
-    d.specified_device.type = WMBusDeviceType::DEVICE_IU880B;
+    d.specified_device.type = BusDeviceType::DEVICE_IU880B;
 
     detectIU880B(&d, serial_manager_);
 */

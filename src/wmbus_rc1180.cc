@@ -107,7 +107,7 @@ struct ConfigRC1180
     }
 };
 
-struct WMBusRC1180 : public virtual WMBusCommonImplementation
+struct WMBusRC1180 : public virtual BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();
@@ -161,7 +161,7 @@ private:
     string setup_;
 };
 
-shared_ptr<WMBus> openRC1180(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<BusDevice> openRC1180(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     assert(detected.found_file != "");
 
@@ -173,16 +173,16 @@ shared_ptr<WMBus> openRC1180(Detected detected, shared_ptr<SerialCommunicationMa
     {
         WMBusRC1180 *imp = new WMBusRC1180(bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
-        return shared_ptr<WMBus>(imp);
+        return shared_ptr<BusDevice>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 19200, PARITY::NONE, "rc1180");
     WMBusRC1180 *imp = new WMBusRC1180(bus_alias, serial, manager);
-    return shared_ptr<WMBus>(imp);
+    return shared_ptr<BusDevice>(imp);
 }
 
 WMBusRC1180::WMBusRC1180(string bus_alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(bus_alias, DEVICE_RC1180, manager, serial, true)
+    BusDeviceCommonImplementation(bus_alias, DEVICE_RC1180, manager, serial, true)
 {
     reset();
 }
@@ -416,7 +416,7 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
 
     serial->close();
 
-    detected->setAsFound(co.dongleId(), WMBusDeviceType::DEVICE_RC1180, 19200, false,
+    detected->setAsFound(co.dongleId(), BusDeviceType::DEVICE_RC1180, 19200, false,
         detected->specified_device.linkmodes);
 
     verbose("(rc1180) are you there? yes %s\n", co.dongleId().c_str());

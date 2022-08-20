@@ -103,8 +103,8 @@ int indexFromRtlSdrSerial(std::string serialnr)
 
 AccessCheck detectRTLSDR(string serialnr, Detected *detected)
 {
-    if (detected->specified_device.type != WMBusDeviceType::DEVICE_RTLWMBUS &&
-        detected->specified_device.type != WMBusDeviceType::DEVICE_RTL433)
+    if (detected->specified_device.type != BusDeviceType::DEVICE_RTLWMBUS &&
+        detected->specified_device.type != BusDeviceType::DEVICE_RTL433)
     {
         return AccessCheck::NoSuchDevice;
     }

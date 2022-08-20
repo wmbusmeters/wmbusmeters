@@ -34,7 +34,7 @@
 
 using namespace std;
 
-struct WMBusRTL433 : public virtual WMBusCommonImplementation
+struct WMBusRTL433 : public virtual BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();
@@ -77,7 +77,7 @@ private:
     string setup_;
 };
 
-shared_ptr<WMBus> openRTL433(Detected detected, string bin_dir, bool daemon,
+shared_ptr<BusDevice> openRTL433(Detected detected, string bin_dir, bool daemon,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override)
 {
@@ -145,15 +145,15 @@ shared_ptr<WMBus> openRTL433(Detected detected, string bin_dir, bool daemon,
     if (serial_override)
     {
         WMBusRTL433 *imp = new WMBusRTL433(bus_alias, identifier, serial_override, manager);
-        return shared_ptr<WMBus>(imp);
+        return shared_ptr<BusDevice>(imp);
     }
     auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, "rtl433");
     WMBusRTL433 *imp = new WMBusRTL433(bus_alias, identifier, serial, manager);
-    return shared_ptr<WMBus>(imp);
+    return shared_ptr<BusDevice>(imp);
 }
 
 WMBusRTL433::WMBusRTL433(string bus_alias, string serialnr, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(bus_alias, DEVICE_RTL433, manager, serial, false), serialnr_(serialnr)
+    BusDeviceCommonImplementation(bus_alias, DEVICE_RTL433, manager, serial, false), serialnr_(serialnr)
 {
     reset();
 }

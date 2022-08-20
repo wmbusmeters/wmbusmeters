@@ -55,7 +55,6 @@ LIST_OF_MAIN_MENU
 
 #define LIST_OF_WMBUS_RECEIVERS \
     X(AMB8465, "amb8465") \
-    X(AMB3665, "amb3665") \
     X(CUL, "cul") \
     X(IM871A, "im871a") \
     X(RC1180, "rc1180") \
@@ -238,9 +237,9 @@ void detectWMBUSReceiver()
     int c = selectFromMenu("Select your wmbus radio device", receivers_menu);
     switch (static_cast<ReceiversType>(c))
     {
-    case ReceiversType::AMB3665:
+/*    case ReceiversType::AMB3665:
         probeFor("amb3665", detectAMB3665);
-        break;
+        break;*/
     case ReceiversType::AMB8465:
         probeFor("amb8465", detectAMB8465);
         break;
@@ -264,6 +263,7 @@ void resetWMBUSReceiver()
     int c = selectFromMenu("Select your wmbus radio device", receivers_menu);
     switch (static_cast<ReceiversType>(c))
     {
+        /*
     case ReceiversType::AMB3665:
     {
         vector<string> devices = handler->listSerialTTYs();
@@ -290,7 +290,7 @@ void resetWMBUSReceiver()
             displayInformationAndWait("No amb3665 response from", entries);
         }
         break;
-    }
+        }*/
     case ReceiversType::AMB8465:
     {
         vector<string> devices = handler->listSerialTTYs();

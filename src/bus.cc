@@ -67,7 +67,7 @@ void BusManager::removeAllBusDevices()
 
 void BusManager::openBusDeviceAndPotentiallySetLinkmodes(Configuration *config, string how, Detected *detected)
 {
-    if (detected->found_type == WMBusDeviceType::DEVICE_UNKNOWN)
+    if (detected->found_type == BusDeviceType::DEVICE_UNKNOWN)
     {
         debug("(verbose) ignoring device %s\n", detected->specified_device.str().c_str());
         return;
@@ -111,7 +111,7 @@ void BusManager::openBusDeviceAndPotentiallySetLinkmodes(Configuration *config, 
     }
 
     string listening = "";
-    if (detected->found_type != WMBusDeviceType::DEVICE_MBUS)
+    if (detected->found_type != BusDeviceType::DEVICE_MBUS)
     {
         listening = tostrprintf(" listening on %s%s%s",
                                  using_link_modes.c_str(),
@@ -138,7 +138,7 @@ void BusManager::openBusDeviceAndPotentiallySetLinkmodes(Configuration *config, 
         verbose("%s", started.c_str());
     }
 
-    shared_ptr<WMBus> wmbus = createWmbusObject(detected, config);
+    shared_ptr<BusDevice> wmbus = createWmbusObject(detected, config);
     if (wmbus == NULL) return;
     bus_devices_.push_back(wmbus);
 
@@ -170,9 +170,9 @@ void BusManager::openBusDeviceAndPotentiallySetLinkmodes(Configuration *config, 
     wmbus->setTimeout(config->alarm_timeout, config->alarm_expected_activity);
 }
 
-shared_ptr<WMBus> BusManager::createWmbusObject(Detected *detected, Configuration *config)
+shared_ptr<BusDevice> BusManager::createWmbusObject(Detected *detected, Configuration *config)
 {
-    shared_ptr<WMBus> wmbus;
+    shared_ptr<BusDevice> wmbus;
 
     shared_ptr<SerialDevice> serial_override;
 
@@ -205,10 +205,10 @@ shared_ptr<WMBus> BusManager::createWmbusObject(Detected *detected, Configuratio
         verbose("(amb8465) on %s\n", detected->found_file.c_str());
         wmbus = openAMB8465(*detected, serial_manager_, serial_override);
         break;
-    case DEVICE_AMB3665:
+/*    case DEVICE_AMB3665:
         verbose("(amb3665) on %s\n", detected->found_file.c_str());
         wmbus = openAMB3665(*detected, serial_manager_, serial_override);
-        break;
+        break;*/
     case DEVICE_SIMULATION:
         verbose("(simulation) in %s\n", detected->found_file.c_str());
         wmbus = openSimulator(*detected, serial_manager_, serial_override);
@@ -274,7 +274,7 @@ void BusManager::checkForDeadWmbusDevices(Configuration *config)
 
     trace("[MAIN] checking for dead wmbus devices...\n");
 
-    vector<WMBus*> not_working;
+    vector<BusDevice*> not_working;
     for (auto &w : bus_devices_)
     {
         if (!w->isWorking())
@@ -300,7 +300,7 @@ void BusManager::checkForDeadWmbusDevices(Configuration *config)
         {
             if (w == (*i).get())
             {
-                // The erased shared_ptr will delete the WMBus object.
+                // The erased shared_ptr will delete the BusDevice object.
                 bus_devices_.erase(i);
                 break;
             }
@@ -414,13 +414,13 @@ void BusManager::detectAndConfigureWmbusDevices(Configuration *config, Detection
                 specified_device.handled = true;
                 continue;
             }
-            Detected detected = detectWMBusDeviceWithCommand(specified_device, config->default_device_linkmodes, serial_manager_);
+            Detected detected = detectBusDeviceWithCommand(specified_device, config->default_device_linkmodes, serial_manager_);
             specified_device.handled = true;
             openBusDeviceAndPotentiallySetLinkmodes(config, "config", &detected);
         }
         if (specified_device.hex != "")
         {
-            Detected detected = detectWMBusDeviceWithFileOrHex(specified_device, config->default_device_linkmodes, serial_manager_);
+            Detected detected = detectBusDeviceWithFileOrHex(specified_device, config->default_device_linkmodes, serial_manager_);
             openBusDeviceAndPotentiallySetLinkmodes(config, "config", &detected);
             specified_device.handled = true;
         }
@@ -470,7 +470,7 @@ void BusManager::detectAndConfigureWmbusDevices(Configuration *config, Detection
                 continue;
             }
 
-            Detected detected = detectWMBusDeviceWithFileOrHex(specified_device, config->default_device_linkmodes, serial_manager_);
+            Detected detected = detectBusDeviceWithFileOrHex(specified_device, config->default_device_linkmodes, serial_manager_);
 
             if (detected.found_type == DEVICE_UNKNOWN)
             {
@@ -502,10 +502,10 @@ void BusManager::detectAndConfigureWmbusDevices(Configuration *config, Detection
         perform_auto_scan_of_swradio_devices(config);
     }
 
-    for (shared_ptr<WMBus> &wmbus : bus_devices_)
+    for (shared_ptr<BusDevice> &device : bus_devices_)
     {
-        assert(wmbus->getDetected() != NULL);
-        find_specified_device_and_mark_as_handled(config, wmbus->getDetected());
+        assert(device->getDetected() != NULL);
+        find_specified_device_and_mark_as_handled(config, device->getDetected());
     }
 
     for (SpecifiedDevice &specified_device : config->supplied_bus_devices)
@@ -587,7 +587,7 @@ void BusManager::perform_auto_scan_of_serial_devices(Configuration *config)
                 // Nope, lets fall back on the default_linkmodes.
                 desired_linkmodes = config->default_device_linkmodes;
             }
-            Detected detected = detectWMBusDeviceOnTTY(tty, config->probe_for, desired_linkmodes, serial_manager_);
+            Detected detected = detectBusDeviceOnTTY(tty, config->probe_for, desired_linkmodes, serial_manager_);
             if (detected.found_type != DEVICE_UNKNOWN)
             {
                 // See if we had a specified device without a file,
@@ -653,7 +653,7 @@ void BusManager::perform_auto_scan_of_swradio_devices(Configuration *config)
         {
             debug("(main) rtlsdr device %s not currently used.\n", serialnr.c_str());
             Detected detected;
-            detected.specified_device.type = WMBusDeviceType::DEVICE_RTLWMBUS;
+            detected.specified_device.type = BusDeviceType::DEVICE_RTLWMBUS;
             AccessCheck ac = detectRTLSDR(serialnr, &detected);
             if (ac != AccessCheck::AccessOK)
             {
@@ -760,7 +760,7 @@ SpecifiedDevice *BusManager::find_specified_device_from_detected(Configuration *
     return NULL;
 }
 
-WMBus* BusManager::findBus(string bus_alias)
+BusDevice* BusManager::findBus(string bus_alias)
 {
     for (auto &w : bus_devices_)
     {
@@ -775,7 +775,11 @@ void BusManager::queueSendBusContent(const SendBusContent &sbc)
 
     bus_send_queue_.push_back(sbc);
 
-    debug("(bus) queued send %s bus=%s %s\n", toString(sbc.starts_with), sbc.bus.c_str(), sbc.content.c_str());
+    debug("(bus) queued send:%s:%s:%s:%s\n",
+          toString(sbc.link_mode),
+          toString(sbc.format),
+          sbc.bus.c_str(),
+          sbc.content.c_str());
 }
 
 void BusManager::sendQueue()
@@ -784,25 +788,25 @@ void BusManager::sendQueue()
 
     for (SendBusContent &sbc : bus_send_queue_)
     {
-        WMBus *bus = findBus(sbc.bus);
+        BusDevice *bus = findBus(sbc.bus);
         if (bus == NULL)
         {
-            warning("(bus) could not send content to non-existant bus, %s bus=%s %s\n", toString(sbc.starts_with), sbc.bus.c_str(), sbc.content.c_str());
+            warning("(bus) could not send content to non-existant bus %s\n", sbc.bus.c_str());
             continue;
         }
         if (sbc.content.length() > 250*2)
         {
-            warning("(bus) could not send too long hex, maximum is 500 hex chars, %s bus=%s %s\n", toString(sbc.starts_with), sbc.bus.c_str(), sbc.content.c_str());
+            warning("(bus) could not send too long hex, maximum is 500 hex chars %s\n", sbc.content.c_str());
             continue;
         }
         vector<uchar> content;
         bool ok = hex2bin(sbc.content, &content);
         if (!ok)
         {
-            warning("(bus) could not send bad hex, %s bus=%s %s\n", toString(sbc.starts_with), sbc.bus.c_str(), sbc.content.c_str());
+            warning("(bus) could not send bad hex %s\n", sbc.content.c_str());
             continue;
         }
-        bus->sendTelegram(sbc.starts_with, content);
+        bus->sendTelegram(sbc.link_mode, sbc.format, content);
         notice("Sent %d bytes to bus %s\n", sbc.content.length()/2, sbc.bus.c_str());
     }
     bus_send_queue_.clear();

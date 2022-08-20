@@ -28,7 +28,7 @@
 
 using namespace std;
 
-struct WMBusRawTTY : public virtual WMBusCommonImplementation
+struct WMBusRawTTY : public virtual BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();
@@ -57,7 +57,7 @@ private:
     vector<uchar> received_payload_;
 };
 
-shared_ptr<WMBus> openRawTTYInternal(Detected detected,
+shared_ptr<BusDevice> openRawTTYInternal(Detected detected,
                                      shared_ptr<SerialCommunicationManager> manager,
                                      shared_ptr<SerialDevice> serial_override,
                                      bool use_hex)
@@ -72,21 +72,21 @@ shared_ptr<WMBus> openRawTTYInternal(Detected detected,
     {
         WMBusRawTTY *imp = new WMBusRawTTY(bus_alias, serial_override, manager, use_hex);
         imp->markAsNoLongerSerial();
-        return shared_ptr<WMBus>(imp);
+        return shared_ptr<BusDevice>(imp);
     }
     auto serial = manager->createSerialDeviceTTY(device.c_str(), bps, PARITY::NONE, use_hex?"hextty":"rawtty");
     WMBusRawTTY *imp = new WMBusRawTTY(bus_alias, serial, manager, use_hex);
-    return shared_ptr<WMBus>(imp);
+    return shared_ptr<BusDevice>(imp);
 }
 
-shared_ptr<WMBus> openRawTTY(Detected detected,
+shared_ptr<BusDevice> openRawTTY(Detected detected,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override)
 {
     return openRawTTYInternal(detected, manager, serial_override, false);
 }
 
-shared_ptr<WMBus> openHexTTY(Detected detected,
+shared_ptr<BusDevice> openHexTTY(Detected detected,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override)
 {
@@ -95,7 +95,7 @@ shared_ptr<WMBus> openHexTTY(Detected detected,
 
 WMBusRawTTY::WMBusRawTTY(string bus_alias, shared_ptr<SerialDevice> serial,
                          shared_ptr<SerialCommunicationManager> manager, bool use_hex) :
-    WMBusCommonImplementation(bus_alias, use_hex?DEVICE_HEXTTY:DEVICE_RAWTTY, manager, serial, true)
+    BusDeviceCommonImplementation(bus_alias, use_hex?DEVICE_HEXTTY:DEVICE_RAWTTY, manager, serial, true)
 {
     reset();
 }
@@ -130,7 +130,7 @@ bool WMBusRawTTY::deviceSetLinkModes(LinkModeSet lms)
 
 void WMBusRawTTY::copy(vector<uchar> *from, vector<uchar> *to)
 {
-    if (type() == WMBusDeviceType::DEVICE_RAWTTY)
+    if (type() == BusDeviceType::DEVICE_RAWTTY)
     {
         // We expect binary bytes incoming.
         to->insert(to->end(), from->begin(), from->end());
@@ -139,7 +139,7 @@ void WMBusRawTTY::copy(vector<uchar> *from, vector<uchar> *to)
         return;
     }
 
-    if (type() == WMBusDeviceType::DEVICE_HEXTTY)
+    if (type() == BusDeviceType::DEVICE_HEXTTY)
     {
         // We expect hex chars incoming. Everything else is thrown away.
         vector<uchar> hex;
@@ -241,7 +241,7 @@ AccessCheck detectRAWTTY(Detected *detected, shared_ptr<SerialCommunicationManag
 
     serial->close();
 
-    detected->setAsFound("", WMBusDeviceType::DEVICE_RAWTTY, false, bps,
+    detected->setAsFound("", BusDeviceType::DEVICE_RAWTTY, false, bps,
         detected->specified_device.linkmodes);
 
     return AccessCheck::AccessOK;

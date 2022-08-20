@@ -247,7 +247,7 @@ int test_test()
     shared_ptr<SerialDevice> serial1 = manager->createSerialDeviceSimulator();
 
     /*
-    shared_ptr<WMBus> wmbus_im871a = openIM871A("", manager, serial1);
+    shared_ptr<BusDevice> wmbus_im871a = openIM871A("", manager, serial1);
     manager->stop();*/
     return 0;
 }
@@ -266,11 +266,11 @@ int test_linkmodes()
     vector<string> no_meter_shells, no_meter_jsons;
     Detected de;
     SpecifiedDevice sd;
-    shared_ptr<WMBus> wmbus_im871a = openIM871A(de, manager, serial1);
-    shared_ptr<WMBus> wmbus_amb8465 = openAMB8465(de, manager, serial2);
-    shared_ptr<WMBus> wmbus_rtlwmbus = openRTLWMBUS(de, "", false, manager, serial3);
-    shared_ptr<WMBus> wmbus_rawtty = openRawTTY(de, manager, serial4);
-    shared_ptr<WMBus> wmbus_amb3665 = openAMB3665(de, manager, serial5);
+    shared_ptr<BusDevice> wmbus_im871a = openIM871A(de, manager, serial1);
+    shared_ptr<BusDevice> wmbus_amb8465 = openAMB8465(de, manager, serial2);
+    shared_ptr<BusDevice> wmbus_rtlwmbus = openRTLWMBUS(de, "", false, manager, serial3);
+    shared_ptr<BusDevice> wmbus_rawtty = openRawTTY(de, manager, serial4);
+//    shared_ptr<BusDevice> wmbus_amb3665 = openAMB3665(de, manager, serial5);
 
     Configuration nometers_config;
     // Check that if no meters are supplied then you must set a link mode.
@@ -992,7 +992,7 @@ void test_meters()
 
 }
 
-void tests(string arg, bool expect, ContentStartsWith sw, string bus, string content)
+void tests(string arg, bool expect, LinkMode link_mode, TelegramFormat format, string bus, string content)
 {
     SendBusContent sbc;
     bool rc = sbc.parse(arg);
@@ -1009,44 +1009,57 @@ void tests(string arg, bool expect, ContentStartsWith sw, string bus, string con
 
     if (expect == false && rc == false) return; // It failed, which was expected.
 
-    if (sbc.starts_with != sw ||
+    if (sbc.link_mode != link_mode ||
+        sbc.format != format ||
         sbc.bus != bus ||
         sbc.content != content)
     {
         printf("ERROR in parsing send bus content \"%s\"\n"
-               "got      (sw: %s bus: %s, data: %s)\n"
-               "expected (sw: %s bus: %s, data: %s)\n", arg.c_str(),
-               toString(sbc.starts_with), sbc.bus.c_str(), sbc.content.c_str(),
-               toString(sw), bus.c_str(), content.c_str());
+               "got      (link_mode: %s format: %s bus: %s, data: %s)\n"
+               "expected (link_mode: %s format: %s bus: %s, data: %s)\n", arg.c_str(),
+               toString(sbc.link_mode), toString(sbc.format), sbc.bus.c_str(), sbc.content.c_str(),
+               toString(link_mode), toString(format), bus.c_str(), content.c_str());
     }
 }
 
 void test_sbc()
 {
-    tests("sendc:BUS1:11223344", true,
-          ContentStartsWith::C_FIELD,
+    tests("send:t1:wmbus_c_field:BUS1:11223344", true,
+          LinkMode::T1,
+          TelegramFormat::WMBUS_C_FIELD,
           "BUS1", // bus
           "11223344"); // content
 
-    tests("sendci:alfa:11", true,
-          ContentStartsWith::CI_FIELD,
+    tests("send:c1:wmbus_ci_field:alfa:11", true,
+          LinkMode::C1,
+          TelegramFormat::WMBUS_CI_FIELD,
           "alfa", // bus
           "11"); // content
 
-    tests("alfa:t1", false, ContentStartsWith::C_FIELD, "", "");
-    tests("send", false, ContentStartsWith::C_FIELD, "", "");
-    tests("sendc:out", false, ContentStartsWith::C_FIELD, "", "");
-    tests("sendc:out:", false, ContentStartsWith::C_FIELD, "", "x");
+    tests("send:t2:wmbus_c_field:OUTBUS:1122334455", true,
+          LinkMode::T2,
+          TelegramFormat::WMBUS_C_FIELD,
+          "OUTBUS", // bus
+          "1122334455"); // content
 
-    tests("sends:out:5b00", true,
-          ContentStartsWith::SHORT_FRAME,
+    tests("alfa:t1", false, LinkMode::UNKNOWN, TelegramFormat::UNKNOWN, "", "");
+    tests("send", false, LinkMode::UNKNOWN, TelegramFormat::UNKNOWN, "", "");
+    tests("send:::::::::::", false, LinkMode::UNKNOWN, TelegramFormat::UNKNOWN, "", "");
+    tests("send:foo", false, LinkMode::UNKNOWN, TelegramFormat::UNKNOWN, "", "");
+    tests("send:t2:wmbus_c_field:OUT:", false, LinkMode::UNKNOWN, TelegramFormat::UNKNOWN, "", "");
+    tests("send:t2:wmbus_c_field:OUT:1", false, LinkMode::UNKNOWN, TelegramFormat::UNKNOWN, "", "");
+
+    tests("send:mbus:mbus_short_frame:out:5b00", true,
+          LinkMode::MBUS,
+          TelegramFormat::MBUS_SHORT_FRAME,
           "out", // bus
           "5b00"); // content
 
-    tests("sendl:mbus2:1122334455", true,
-          ContentStartsWith::LONG_FRAME,
+    tests("send:mbus:mbus_long_frame:mbus2:1122334455", true,
+          LinkMode::MBUS,
+          TelegramFormat::MBUS_LONG_FRAME,
           "mbus2", // bus
-          "1122334455"); // content
+          "1122334455"); // content*/
 }
 
 void test_aes()

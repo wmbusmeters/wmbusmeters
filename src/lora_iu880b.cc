@@ -112,7 +112,7 @@ struct RadioConfig_IU880B
     }
 };
 
-struct LoRaIU880B : public virtual WMBusCommonImplementation
+struct LoRaIU880B : public virtual BusDeviceCommonImplementation
 {
     bool ping();
     string getDeviceId();
@@ -135,7 +135,8 @@ struct LoRaIU880B : public virtual WMBusCommonImplementation
         // Otherwise its a single link mode.
         return 1 == countSetBits(lms.asBits());
     }
-    bool sendTelegram(ContentStartsWith starts_with, vector<uchar> &content);
+    bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content);
+
     void processSerialData();
     void simulate() { }
 
@@ -172,7 +173,7 @@ private:
 
 };
 
-shared_ptr<WMBus> openIU880B(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<BusDevice> openIU880B(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
 {
     string bus_alias = detected.specified_device.bus_alias;
     string device_file = detected.found_file;
@@ -181,16 +182,16 @@ shared_ptr<WMBus> openIU880B(Detected detected, shared_ptr<SerialCommunicationMa
     {
         LoRaIU880B *imp = new LoRaIU880B(bus_alias, serial_override, manager);
         imp->markAsNoLongerSerial();
-        return shared_ptr<WMBus>(imp);
+        return shared_ptr<BusDevice>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device_file.c_str(), 115200, PARITY::NONE, "iu880b");
     LoRaIU880B *imp = new LoRaIU880B(bus_alias, serial, manager);
-    return shared_ptr<WMBus>(imp);
+    return shared_ptr<BusDevice>(imp);
 }
 
 LoRaIU880B::LoRaIU880B(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    WMBusCommonImplementation(alias, WMBusDeviceType::DEVICE_IU880B, manager, serial, true)
+    BusDeviceCommonImplementation(alias, BusDeviceType::DEVICE_IU880B, manager, serial, true)
 {
     reset();
 }
@@ -500,7 +501,7 @@ bool LoRaIU880B::getDeviceInfoAndFirmware()
     return true;
 }
 
-bool LoRaIU880B::sendTelegram(ContentStartsWith starts_with, vector<uchar> &content)
+bool LoRaIU880B::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content)
 {
     return false;
 }
@@ -592,7 +593,7 @@ AccessCheck detectIU880B(Detected *detected, shared_ptr<SerialCommunicationManag
 
     debug("(iu880b) info: %s\n", di.str().c_str());
 
-    detected->setAsFound(di.uid, WMBusDeviceType::DEVICE_IU880B, 115200, false, detected->specified_device.linkmodes);
+    detected->setAsFound(di.uid, BusDeviceType::DEVICE_IU880B, 115200, false, detected->specified_device.linkmodes);
 
     verbose("(iu880b) are you there? yes %s\n", di.uid.c_str());
 
