@@ -160,19 +160,6 @@ LIST_OF_IM871A_LINK_MODES
     return "unknown";
 }
 
-/*
-
-Which receive mode can hear which transmit mode:
-
-868 MHz
-
-Transmit         Receive
-------------------------------------------------------------------------
-
-S1 (to_collector) -->
-
-*/
-
 struct WMBusIM871aIM170A : public virtual BusDeviceCommonImplementation
 {
     bool ping();
@@ -188,9 +175,11 @@ struct WMBusIM871aIM170A : public virtual BusDeviceCommonImplementation
         {
             return
                 C1_bit |
+                C2_bit |
                 S1_bit |
                 S1m_bit |
-                T1_bit;
+                T1_bit |
+                T2_bit;
         }
         else
         {
@@ -567,12 +556,16 @@ bool WMBusIM871aIM170A::deviceSetLinkModes(LinkModeSet lms)
         request_[6] = (int)LinkModeIM871A::CT_N1A;
     } else  if (lms.has(LinkMode::C1)) {
         request_[6] = (int)LinkModeIM871A::C1a;
+    } else  if (lms.has(LinkMode::C2)) {
+        request_[6] = (int)LinkModeIM871A::C2b;
     } else if (lms.has(LinkMode::S1)) {
         request_[6] = (int)LinkModeIM871A::S1;
     } else if (lms.has(LinkMode::S1m)) {
         request_[6] = (int)LinkModeIM871A::S1m;
     } else if (lms.has(LinkMode::T1)) {
         request_[6] = (int)LinkModeIM871A::T1;
+    } else if (lms.has(LinkMode::T2)) {
+        request_[6] = (int)LinkModeIM871A::T2;
     } else if (lms.has(LinkMode::N1a)) {
         request_[6] = (int)LinkModeIM871A::CT_N1A;
     } else if (lms.has(LinkMode::N1b)) {
