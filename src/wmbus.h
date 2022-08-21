@@ -178,8 +178,8 @@ private:
 LinkModeSet parseLinkModes(string modes);
 bool isValidLinkModes(string modes);
 
-// A wmbus specified device is supplied on the command line or in the config file.
-// It has this format "alias=file:type(id):fq:bps:linkmods:CMD(command)"
+// A specified bus device is supplied on the command line or in the config file.
+// It has this format "alias=file:type[id](extras):fq:bps:linkmods:CMD(command)"
 struct SpecifiedDevice
 {
     std::string bus_alias; // A bus alias, necessary for C2/T2 meters and mbus.

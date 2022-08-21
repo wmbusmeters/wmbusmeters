@@ -129,7 +129,7 @@ struct ConfigAMB8465
 };
 
 /*
-Which receive mode can hear which transmit mode:
+Which receive mode can hear which transmit mode?
 
 868 MHz
 
@@ -142,9 +142,9 @@ S2 0x03   -->  S2 (0x03)
 T1-Meter 0x05 (to_collector) --> T2-Other (0x08) or T2/C2-Other (0x09)
 T1-Other 0x06 (to_meter)     --> T2-Meter (0x07)
 T2-Meter 0x07 (to_collector) --> T2-Other (0x08) or T2/C2-Other (0x09)
-T2-Other 0x08 (to_collector) --> T2-Meter (0x07)
+T2-Other 0x08 (to_meter)     --> T2-Meter (0x07)
 
-T2/C2-Other 0x09 (to_collector) --> transmit uses last received mode T2 or C2.
+T2/C2-Other 0x09 (to_collector) transmit uses last received mode T2 or C2. -->
 
 R2-Meter 0x0A (to_collector) --> R2-Other (0x0B)
 R2-Other 0x0B (to_meter)     --> R2-Meter (0x0A)
@@ -173,31 +173,129 @@ N2g 0x0D --> N2f (0x0D)
 
 */
 
-uchar setupBusDeviceToReceiveTelegramsFromMeter(LinkModeSet lms)
+uchar setupBusDeviceToReceiveTelegrams(LinkModeSet lms)
 {
     if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1))
     {
         // Listening to meter transmissions on C1 and T1.
-        // Using collector receive mode C2/T2-Other (0x09).
-        return 0x09;
+        // Using receive mode C2/T2-Other (0x09).
+        return (int)LinkModeAMB::C2T2Other;
     }
-    else if (lms.has(LinkMode::C1))
+    if (lms.has(LinkMode::S1) || lms.has(LinkMode::S1m) || lms.has(LinkMode::S2))
+    {
+        // Listening to S1, S1-m.
+        // Using collector receive (and bi-directional) mode S2 (0x03).
+        return (int)LinkModeAMB::S2;
+    }
+    if (lms.has(LinkMode::T1))
+    {
+        // Listening to meter transmissions T1 only.
+        // Using collector receive mode T2-Other (0x08)
+        return (int)LinkModeAMB::T2Other;
+    }
+    if (lms.has(LinkMode::T2))
+    {
+        // Listening to collector transmissions T1 only.
+        // Using meter receive mode T2-Meter (0x07)
+        return (int)LinkModeAMB::T2Meter;
+    }
+    if (lms.has(LinkMode::C1))
     {
         // Listening to meter transmissions on C1 only.
         // Using collector receive mode C2-Other (0x0e)
-        return 0x0E;
+        return (int)LinkModeAMB::C2Other;
     }
-    else if (lms.has(LinkMode::T1))
+    if (lms.has(LinkMode::C2))
     {
-        // Listening to meter transmissions T1 only.
-        // Using collector received mode T2-Other (0x08)
-        return 0x08;
+        // Listening to collector transmissions on C1 only.
+        // Using meter receive mode C2-Meter (0x0d)
+        return (int)LinkModeAMB::C2Meter;
     }
-    else if (lms.has(LinkMode::S1) || lms.has(LinkMode::S1m))
+    if (lms.has(LinkMode::N1a))
     {
-        // Listening only to S1 and S1-m
-        return 0x03;
+        // Listening to meter transmission N1a.
+        // Using collector receive mode N2a (0x02).
+        return (int)LinkModeAMB::N2a;
     }
+    if (lms.has(LinkMode::N1b))
+    {
+        // Listening to meter transmission N1b.
+        // Using collector receive mode N2b (0x04).
+        return (int)LinkModeAMB::N2b;
+    }
+    if (lms.has(LinkMode::N1c))
+    {
+        // Listening to meter transmission N1c.
+        // Using collector receive mode N2c (0x06).
+        return (int)LinkModeAMB::N2c;
+    }
+    if (lms.has(LinkMode::N1d))
+    {
+        // Listening to meter transmission N1d.
+        // Using collector receive mode N2d (0x08).
+        return (int)LinkModeAMB::N2d;
+    }
+    if (lms.has(LinkMode::N1e))
+    {
+        // Listening to meter transmission N1e.
+        // Using collector receive mode N2e (0x0a).
+        return (int)LinkModeAMB::N2e;
+    }
+    if (lms.has(LinkMode::N1f))
+    {
+        // Listening to meter transmission N1f.
+        // Using collector receive mode N2f (0x0c).
+        return (int)LinkModeAMB::N2f;
+    }
+
+    // Error
+    return 0xff;
+}
+
+uchar setupBusDeviceToSendTelegram(LinkMode lm)
+{
+    if (lm == LinkMode::S1)
+    {
+        // Send S1 telegram using mode S1 (0x01).
+        return (int)LinkModeAMB::S1;
+    }
+    if (lm == LinkMode::S1m)
+    {
+        // Send S1 telegram using mode S1m (0x02).
+        return (int)LinkModeAMB::S1m;
+    }
+    if (lm == LinkMode::S2)
+    {
+        // Bi-directional communication with meter using mode S2 (0x03).
+        return (int)LinkModeAMB::S2;
+    }
+    if (lm == LinkMode::T1)
+    {
+        // Send T1 telegram using mode T1-Meter (0x05).
+        return (int)LinkModeAMB::T1Meter;
+    }
+    if (lm == LinkMode::T2)
+    {
+        // Send T2 telegram to meter using mode T2-Other (0x06).
+        return (int)LinkModeAMB::T2Other;
+    }
+    if (lm == LinkMode::C1)
+    {
+        // Send C1 telegram using mode C1-Meter (0x0c).
+        return (int)LinkModeAMB::C1Meter;
+    }
+    if (lm == LinkMode::C2)
+    {
+        // Send C2 telegram to meter using mode C2-Other (0x0e).
+        return (int)LinkModeAMB::C2Other;
+    }
+
+    if (lm == LinkMode::N1a) return (int)LinkModeAMB::N1a;
+    if (lm == LinkMode::N1b) return (int)LinkModeAMB::N1b;
+    if (lm == LinkMode::N1c) return (int)LinkModeAMB::N1c;
+    if (lm == LinkMode::N1d) return (int)LinkModeAMB::N1d;
+    if (lm == LinkMode::N1e) return (int)LinkModeAMB::N1e;
+    if (lm == LinkMode::N1f) return (int)LinkModeAMB::N1f;
 
     // Error
     return 0xff;
@@ -215,9 +313,11 @@ struct WMBusAmber : public virtual BusDeviceCommonImplementation
     {
         return
             C1_bit |
+            C2_bit |
             S1_bit |
             S1m_bit |
-            T1_bit;
+            T1_bit |
+            T2_bit;
     }
     int numConcurrentLinkModes() { return 1; }
     bool canSetLinkModes(LinkModeSet desired_modes)
@@ -253,6 +353,7 @@ private:
     vector<uchar> response_;
 
     LinkModeSet link_modes_ {};
+    uchar last_set_link_mode_ { 0x01 };
     bool rssi_expected_ {};
     struct timeval timestamp_last_rx_ {};
 
@@ -418,11 +519,11 @@ bool WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
 
     LOCK_WMBUS_EXECUTING_COMMAND(devicesSetLinkModes);
 
-    request_.resize(8);
+    request_.resize(5);
     request_[0] = AMBER_SERIAL_SOF;
     request_[1] = CMD_SET_MODE_REQ;
     request_[2] = 1; // Len
-    request_[3] = setupBusDeviceToReceiveTelegramsFromMeter(lms);
+    request_[3] = setupBusDeviceToReceiveTelegrams(lms);
     request_[4] = xorChecksum(request_, 0, 4);
 
     verbose("(amb8465) set link mode %02x\n", request_[3]);
@@ -443,6 +544,8 @@ bool WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
     }
 
     link_modes_ = lms;
+    last_set_link_mode_ = request_[3];
+
     return rc;
 }
 
@@ -687,6 +790,50 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
 
     bool rc = false;
 
+    if (serial()->readonly()) return true; // Feeding from stdin or file.
+
+    uchar link_mode = setupBusDeviceToSendTelegram(lm);
+
+    if (link_mode == 0xff)
+    {
+        error("(amb8465) setting link mode %s for sending is not supported for amb8465 \n", toString(lm));
+    }
+
+    {
+        // Empty the read buffer we do not want any partial data lying around
+        // because we expect a response to arrive.
+        LOCK_WMBUS_RECEIVING_BUFFER(deviceSetLinkMode_ClearBuffer);
+        read_buffer_.clear();
+    }
+
+    if (link_mode != last_set_link_mode_)
+    {
+        // Switch to the send link mode.
+        request_.resize(5);
+        request_[0] = AMBER_SERIAL_SOF;
+        request_[1] = CMD_SET_MODE_REQ;
+        request_[2] = 1; // Len
+        request_[3] = link_mode;
+        request_[4] = xorChecksum(request_, 0, 4);
+
+        verbose("(amb8465) set link mode %02x for sending\n", request_[3]);
+        bool sent = serial()->send(request_);
+
+        if (sent)
+        {
+            bool ok = waitForResponse(CMD_SET_MODE_REQ | 0x80);
+            if (ok)
+            {
+                rc = true;
+            }
+            else
+            {
+                warning("Warning! Did not get confirmation on set link mode for amb8465 for sending\n");
+                rc = false;
+            }
+        }
+    }
+
     request_.resize(content.size()+4);
     request_[0] = AMBER_SERIAL_SOF;
     request_[1] = CMD_DATA_REQ;
@@ -711,6 +858,34 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
         {
             warning("Warning! Did not get confirmation on send data for amb8465\n");
             rc = false;
+        }
+    }
+
+    if (link_mode != last_set_link_mode_)
+    {
+        // Restore the link mode.
+        request_.resize(5);
+        request_[0] = AMBER_SERIAL_SOF;
+        request_[1] = CMD_SET_MODE_REQ;
+        request_[2] = 1; // Len
+        request_[3] = last_set_link_mode_;
+        request_[4] = xorChecksum(request_, 0, 4);
+
+        verbose("(amb8465) set link mode %02x for restore after sending\n", request_[3]);
+        bool sent = serial()->send(request_);
+
+        if (sent)
+        {
+            bool ok = waitForResponse(CMD_SET_MODE_REQ | 0x80);
+            if (ok)
+            {
+                rc = true;
+            }
+            else
+            {
+                warning("Warning! Did not get confirmation on set link mode for amb8465 for restore after sending\n");
+                rc = false;
+            }
         }
     }
 
