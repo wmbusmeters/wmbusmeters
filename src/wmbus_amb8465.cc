@@ -33,8 +33,9 @@ using namespace std;
 
 uchar xorChecksum(vector<uchar> &msg, size_t offset, size_t len);
 
-struct ConfigAMB8465
+struct ConfigAMB8465AMB3665
 {
+    BusDeviceType module_type {};
     uchar uart_ctl0 {};
     uchar uart_ctl1 {};
     uchar uart_cmd_out_enable {};
@@ -82,7 +83,7 @@ struct ConfigAMB8465
         return true;
     }
 
-    bool decode(vector<uchar> &bytes, size_t offset)
+    bool decode8465(vector<uchar> &bytes, size_t offset)
     {
         // The first 5 bytes are:
         // 0xFF
@@ -126,6 +127,52 @@ struct ConfigAMB8465
 
         return true;
     }
+
+    bool decode3665(vector<uchar> &bytes, size_t offset)
+    {
+        // The first 5 bytes are:
+        // 0xFF
+        // 0x8A
+        // <num_bytes+2[0x7a]
+        // <memory_start[0x00]
+        // <num_bytes[0x78]
+        // then follows the parameter bytes
+        // 0x78 parameter bytes
+        // <check_sum byte
+        // Total length 0x86
+        if (bytes.size() < offset+5) return false;
+        if (bytes[offset+0] != 0xff ||
+            bytes[offset+1] != 0x8a ||
+            bytes[offset+2] != 0x82 ||
+            bytes[offset+3] != 0x00 ||
+            bytes[offset+4] != 0x80)
+        {
+            debug("(amb3665) not the right header decoding ConfigAMB3665!\n");
+            return false;
+        }
+        if (bytes.size() < offset+0x86)
+        {
+            debug("(amb3665) not enough data for decoding ConfigAMB3665!\n");
+            return false;
+        }
+        size_t o = offset+5;
+
+        decodeNoFrame(bytes, o);
+
+        uchar received_crc = bytes[offset + 0x86 - 1];
+        uchar calculated_crc = xorChecksum(bytes, offset, 0x7e - 1);
+        if (received_crc != calculated_crc)
+        {
+            debug("(amb3665) bad crc in response! Expected %02x but got %02x\n", calculated_crc, received_crc);
+            return false;
+        }
+
+        string tmp = str();
+        debug("(amb3665) proprely decoded ConfigAMB3665 response. Content: %s\n", tmp.c_str());
+
+        return true;
+    }
+
 };
 
 /*
@@ -173,7 +220,7 @@ N2g 0x0D --> N2f (0x0D)
 
 */
 
-uchar setupBusDeviceToReceiveTelegrams(LinkModeSet lms)
+uchar setupAmberBusDeviceToReceiveTelegrams(LinkModeSet lms)
 {
     if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1))
     {
@@ -248,11 +295,13 @@ uchar setupBusDeviceToReceiveTelegrams(LinkModeSet lms)
         return (int)LinkModeAMB::N2f;
     }
 
+    assert(false);
+
     // Error
     return 0xff;
 }
 
-uchar setupBusDeviceToSendTelegram(LinkMode lm)
+uchar setupAmberBusDeviceToSendTelegram(LinkMode lm)
 {
     if (lm == LinkMode::S1)
     {
@@ -297,6 +346,8 @@ uchar setupBusDeviceToSendTelegram(LinkMode lm)
     if (lm == LinkMode::N1e) return (int)LinkModeAMB::N1e;
     if (lm == LinkMode::N1f) return (int)LinkModeAMB::N1f;
 
+    assert(false);
+
     // Error
     return 0xff;
 }
@@ -311,13 +362,26 @@ struct WMBusAmber : public virtual BusDeviceCommonImplementation
     void deviceReset();
     LinkModeSet supportedLinkModes()
     {
-        return
-            C1_bit |
-            C2_bit |
-            S1_bit |
-            S1m_bit |
-            T1_bit |
-            T2_bit;
+        if (type() == BusDeviceType::DEVICE_AMB8465)
+        {
+            return
+                C1_bit |
+                C2_bit |
+                S1_bit |
+                S1m_bit |
+                S2_bit |
+                T1_bit |
+                T2_bit;
+        }
+        else
+        {
+            return N1a_bit |
+                N1b_bit |
+                N1c_bit |
+                N1d_bit |
+                N1e_bit |
+                N1f_bit;
+        }
     }
     int numConcurrentLinkModes() { return 1; }
     bool canSetLinkModes(LinkModeSet desired_modes)
@@ -342,7 +406,7 @@ struct WMBusAmber : public virtual BusDeviceCommonImplementation
     void simulate() { }
     bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content);
 
-    WMBusAmber(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager);
+    WMBusAmber(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager, BusDeviceType dt);
     ~WMBusAmber() {
         manager_->onDisappear(this->serial(), NULL);
     }
@@ -357,7 +421,7 @@ private:
     bool rssi_expected_ {};
     struct timeval timestamp_last_rx_ {};
 
-    ConfigAMB8465 device_config_;
+    ConfigAMB8465AMB3665 device_config_;
 
     FrameStatus checkAMB8465Frame(vector<uchar> &data,
                                   size_t *frame_length,
@@ -368,7 +432,10 @@ private:
     void handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm);
 };
 
-shared_ptr<BusDevice> openAMB8465(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+shared_ptr<BusDevice> openAmber(Detected detected,
+                                shared_ptr<SerialCommunicationManager> manager,
+                                shared_ptr<SerialDevice> serial_override,
+                                BusDeviceType dt)
 {
     string bus_alias  = detected.specified_device.bus_alias;
     string device = detected.found_file;
@@ -376,18 +443,31 @@ shared_ptr<BusDevice> openAMB8465(Detected detected, shared_ptr<SerialCommunicat
 
     if (serial_override)
     {
-        WMBusAmber *imp = new WMBusAmber(bus_alias, serial_override, manager);
+        WMBusAmber *imp = new WMBusAmber(bus_alias, serial_override, manager, dt);
         imp->markAsNoLongerSerial();
         return shared_ptr<BusDevice>(imp);
     }
 
     auto serial = manager->createSerialDeviceTTY(device.c_str(), 9600, PARITY::NONE, "amb8465");
-    WMBusAmber *imp = new WMBusAmber(bus_alias, serial, manager);
+    WMBusAmber *imp = new WMBusAmber(bus_alias, serial, manager, dt);
     return shared_ptr<BusDevice>(imp);
 }
 
-WMBusAmber::WMBusAmber(string alias, shared_ptr<SerialDevice> serial, shared_ptr<SerialCommunicationManager> manager) :
-    BusDeviceCommonImplementation(alias, DEVICE_AMB8465, manager, serial, true)
+shared_ptr<BusDevice> openAMB8465(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+{
+    return openAmber(detected, manager, serial_override, DEVICE_AMB8465);
+}
+
+shared_ptr<BusDevice> openAMB3665(Detected detected, shared_ptr<SerialCommunicationManager> manager, shared_ptr<SerialDevice> serial_override)
+{
+    return openAmber(detected, manager, serial_override, DEVICE_AMB3665);
+}
+
+WMBusAmber::WMBusAmber(string alias,
+                       shared_ptr<SerialDevice> serial,
+                       shared_ptr<SerialCommunicationManager> manager,
+                       BusDeviceType dt) :
+    BusDeviceCommonImplementation(alias, dt, manager, serial, true)
 {
     rssi_expected_ = true;
     reset();
@@ -517,34 +597,38 @@ bool WMBusAmber::deviceSetLinkModes(LinkModeSet lms)
         read_buffer_.clear();
     }
 
-    LOCK_WMBUS_EXECUTING_COMMAND(devicesSetLinkModes);
-
-    request_.resize(5);
-    request_[0] = AMBER_SERIAL_SOF;
-    request_[1] = CMD_SET_MODE_REQ;
-    request_[2] = 1; // Len
-    request_[3] = setupBusDeviceToReceiveTelegrams(lms);
-    request_[4] = xorChecksum(request_, 0, 4);
-
-    verbose("(amb8465) set link mode %02x\n", request_[3]);
-    bool sent = serial()->send(request_);
-
-    if (sent)
     {
-        bool ok = waitForResponse(CMD_SET_MODE_REQ | 0x80);
-        if (ok)
+        LOCK_WMBUS_EXECUTING_COMMAND(devicesSetLinkModes);
+
+        request_.resize(5);
+        request_[0] = AMBER_SERIAL_SOF;
+        request_[1] = CMD_SET_MODE_REQ;
+        request_[2] = 1; // Len
+        request_[3] = setupAmberBusDeviceToReceiveTelegrams(lms);
+        request_[4] = xorChecksum(request_, 0, 4);
+
+        verbose("(amb8465) set link mode %02x\n", request_[3]);
+        bool sent = serial()->send(request_);
+
+        if (sent)
         {
-            rc = true;
+            bool ok = waitForResponse(CMD_SET_MODE_REQ | 0x80);
+            if (ok)
+            {
+                rc = true;
+            }
+            else
+            {
+                warning("Warning! Did not get confirmation on set link mode for amb8465\n");
+                rc = false;
+            }
         }
-        else
-        {
-            warning("Warning! Did not get confirmation on set link mode for amb8465\n");
-            rc = false;
-        }
+
+        link_modes_ = lms;
+        last_set_link_mode_ = request_[3];
     }
 
-    link_modes_ = lms;
-    last_set_link_mode_ = request_[3];
+    getDeviceUniqueId();
 
     return rc;
 }
@@ -792,7 +876,7 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
 
     if (serial()->readonly()) return true; // Feeding from stdin or file.
 
-    uchar link_mode = setupBusDeviceToSendTelegram(lm);
+    uchar link_mode = setupAmberBusDeviceToSendTelegram(lm);
 
     if (link_mode == 0xff)
     {
@@ -892,17 +976,17 @@ bool WMBusAmber::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> 
     return rc;
 }
 
-AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
+AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
 {
     assert(detected->found_file != "");
 
     // Talk to the device and expect a very specific answer.
-    auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 9600, PARITY::NONE, "detect amb8465");
+    auto serial = manager->createSerialDeviceTTY(detected->found_file.c_str(), 9600, PARITY::NONE, "detect amb8465/amb3665");
     serial->disableCallbacks();
     bool ok = serial->open(false);
     if (!ok)
     {
-        verbose("(amb8465) could not open tty %s for detection\n", detected->found_file.c_str());
+        verbose("(amb8465/3665) could not open tty %s for detection\n", detected->found_file.c_str());
         return AccessCheck::NoSuchDevice;
     }
 
@@ -926,11 +1010,11 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
     {
         if (count <= 10)
         {
-            debug("(amb8465) cleared %zu bytes from serial buffer\n", response.size());
+            debug("(amb8465/3665) cleared %zu bytes from serial buffer\n", response.size());
         }
         else
         {
-            debug("(amb8465) way too much data received %zu when trying to detect! cannot clear serial buffer!\n",
+            debug("(amb8465/3665) way too much data received %zu when trying to detect! cannot clear serial buffer!\n",
                   response.size());
         }
 
@@ -953,9 +1037,9 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
     count = 0;
     do
     {
-        debug("(amb8465) sending %zu bytes attempt %d\n", request.size(), count);
+        debug("(amb8465/3665) sending %zu bytes attempt %d\n", request.size(), count);
         sent = serial->send(request);
-        debug("(amb8465) sent %zu bytes %s\n", request.size(), sent?"OK":"Failed");
+        debug("(amb8465/3665) sent %zu bytes %s\n", request.size(), sent?"OK":"Failed");
         if (!sent)
         {
             // We failed to send! Why? We have successfully opened the tty....
@@ -965,8 +1049,8 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
             if (count >= 4)
             {
                 // Tried and failed 3 times.
-                debug("(amb8465) failed to sent query! Giving up!\n");
-                verbose("(amb8465) are you there? no, nothing is there.\n");
+                debug("(amb8465/3665) failed to sent query! Giving up!\n");
+                verbose("(amb8465/3665) are you there? no, nothing is there.\n");
                 serial->close();
                 return AccessCheck::NoProperResponse;
             }
@@ -976,18 +1060,21 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
     // Wait for 100ms so that the USB stick have time to prepare a response.
     usleep(1000*100);
 
-    ConfigAMB8465 config;
+    ConfigAMB8465AMB3665 config;
     vector<uchar> data;
+    bool ok_8465 {};
+    bool ok_3665 {};
+
     count = 1;
     for (;;)
     {
         if (count > 3)
         {
-            verbose("(amb8465) are you there? no.\n");
+            verbose("(amb8465/3665) are you there? no.\n");
             serial->close();
             return AccessCheck::NoProperResponse;
         }
-        debug("(amb8465) reading response... %d\n", count);
+        debug("(amb8465/3665) reading response... %d\n", count);
 
         size_t n = serial->receive(&data);
         count++;
@@ -997,9 +1084,11 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
             continue;
         }
         response.insert(response.end(), data.begin(), data.end());
-        size_t offset = findBytes(response, 0xff, 0x8A, 0x7A);
+        size_t offset_8465 = findBytes(response, 0xff, 0x8A, 0x7A);
+        size_t offset_3665 = findBytes(response, 0xff, 0x8A, 0x82);
 
-        if (offset == ((size_t)-1))
+        if (offset_8465 == ((size_t)-1) &&
+            offset_3665 == ((size_t)-1))
         {
             // No response found yet, lets wait for more bytes.
             usleep(1000*100);
@@ -1007,10 +1096,17 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
         }
 
         // We have the start of the response, but do we have enough bytes?
-        bool ok = config.decode(response, offset);
+        ok_8465 = config.decode8465(response, offset_8465);
         // Yes!
-        if (ok) {
-            debug("(amb8465) found response at offset %zu\n", offset);
+        if (ok_8465) {
+            debug("(amb8465) found response at offset %zu\n", offset_8465);
+            break;
+        }
+        // We have the start of the response, but do we have enough bytes?
+        ok_3665 = config.decode3665(response, offset_3665);
+        // Yes!
+        if (ok_3665) {
+            debug("(amb3665) found response at offset %zu\n", offset_3665);
             break;
         }
         // No complete response found yet, lets wait for more bytes.
@@ -1019,13 +1115,27 @@ AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationMana
 
     serial->close();
 
-    // FF8A7A00780080710200000000FFFFFA00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF003200021400FFFFFFFFFF010004000000FFFFFF01440000000000000000FFFF0B040100FFFFFFFFFF00030000FFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF17
+    if (ok_8465)
+    {
+        // FF8A7A00780080710200000000FFFFFA00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF003200021400FFFFFFFFFF010004000000FFFFFF01440000000000000000FFFF0B040100FFFFFFFFFF00030000FFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF17
 
-    detected->setAsFound(config.dongleId(), BusDeviceType::DEVICE_AMB8465, 9600, false,
-        detected->specified_device.linkmodes);
+        detected->setAsFound(config.dongleId(), BusDeviceType::DEVICE_AMB8465, 9600, false,
+                             detected->specified_device.linkmodes);
 
-    verbose("(amb8465) detect %s\n", config.str().c_str());
-    verbose("(amb8465) are you there? yes %s\n", config.dongleId().c_str());
+        verbose("(amb8465) detect %s\n", config.str().c_str());
+        verbose("(amb8465) are you there? yes %s\n", config.dongleId().c_str());
+    }
+
+    if (ok_3665)
+    {
+        // FF8A8200800080710200000000FFFFFA00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0C3200021400FFFFFFFFFF010004000000FFFFFF01440000000000000000FFFF0B060100FFFFFFFFFF00020000FFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF18
+
+        detected->setAsFound(config.dongleId(), BusDeviceType::DEVICE_AMB3665, 9600, false,
+                             detected->specified_device.linkmodes);
+
+        verbose("(amb3665) detect %s\n", config.str().c_str());
+        verbose("(amb3665) are you there? yes %s\n", config.dongleId().c_str());
+    }
 
     return AccessCheck::AccessOK;
 }

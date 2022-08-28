@@ -38,7 +38,8 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
     X(UNKNOWN,unknown,false,false,detectUNKNOWN)     \
     X(MBUS,mbus,true,false,detectMBUS)               \
     X(AUTO,auto,false,false,detectAUTO)              \
-    X(AMB8465,amb8465,true,false,detectAMB8465)      \
+    X(AMB8465,amb8465,true,false,detectAMB8465AMB3665)\
+    X(AMB3665,amb3665,true,false,detectSKIP)         \
     X(CUL,cul,true,false,detectCUL)                  \
     X(IM871A,im871a,true,false,detectIM871AIM170A)   \
     X(IM170A,im170a,true,false,detectSKIP)           \
@@ -98,22 +99,28 @@ void setIgnoreDuplicateTelegrams(bool idt);
 // The im871a can for example receive C1a, but it is unclear if there are any meters that use it.
 
 #define LIST_OF_LINK_MODES \
-    X(Any,any,--anylinkmode,0xffff)             \
+    X(Any,any,--anylinkmode,0xffffff)           \
     X(MBUS,mbus,--mbus,0x1)                     \
-    X(C1,c1,--c1,0x2)                           \
-    X(S1,s1,--s1,0x4)                           \
-    X(S1m,s1m,--s1m,0x8)                        \
+    X(S1,s1,--s1,0x2)                           \
+    X(S1m,s1m,--s1m,0x4)                        \
+    X(S2,s2,--s2,0x8)                           \
     X(T1,t1,--t1,0x10)                          \
-    X(C2,c2,--c2,0x20)                          \
-    X(S2,s2,--s2,0x40)                          \
-    X(T2,t2,--t2,0x80)                          \
+    X(T2,t2,--t2,0x20)                          \
+    X(C1,c1,--c1,0x40)                          \
+    X(C2,c2,--c2,0x80)                          \
     X(N1a,n1a,--n1a,0x100)                      \
-    X(N1b,n1b,--n1b,0x200)                      \
-    X(N1c,n1c,--n1c,0x400)                      \
-    X(N1d,n1d,--n1d,0x800)                      \
-    X(N1e,n1e,--n1e,0x1000)                     \
-    X(N1f,n1f,--n1f,0x2000)                     \
-    X(LORA,lora,--lora,0x400)                   \
+    X(N2a,n2a,--n2a,0x200)                      \
+    X(N1b,n1b,--n1b,0x400)                      \
+    X(N2b,n2b,--n2b,0x800)                      \
+    X(N1c,n1c,--n1c,0x1000)                     \
+    X(N2c,n2c,--n2c,0x2000)                     \
+    X(N1d,n1d,--n1d,0x4000)                     \
+    X(N2d,n2d,--n2d,0x8000)                     \
+    X(N1e,n1e,--n1e,0x10000)                    \
+    X(N2e,n2e,--n2e,0x20000)                    \
+    X(N1f,n1f,--n1f,0x40000)                    \
+    X(N2f,n2f,--n2f,0x80000)                    \
+    X(LORA,lora,--lora,0x100000)                \
     X(UNKNOWN,unknown,----,0x0)
 
 enum class LinkMode {
@@ -684,6 +691,9 @@ shared_ptr<BusDevice> openIU880B(Detected detected,
 shared_ptr<BusDevice> openAMB8465(Detected detected,
                               shared_ptr<SerialCommunicationManager> manager,
                               shared_ptr<SerialDevice> serial_override);
+shared_ptr<BusDevice> openAMB3665(Detected detected,
+                                  shared_ptr<SerialCommunicationManager> manager,
+                                  shared_ptr<SerialDevice> serial_override);
 shared_ptr<BusDevice> openRawTTY(Detected detected,
                              shared_ptr<SerialCommunicationManager> manager,
                              shared_ptr<SerialDevice> serial_override);
@@ -770,7 +780,7 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
 AccessCheck reDetectDevice(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 
 AccessCheck detectAUTO(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
-AccessCheck detectAMB8465(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
+AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 //AccessCheck detectAMB3665(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager> handler);
 AccessCheck detectD1TC(Detected *detected, shared_ptr<SerialCommunicationManager> manager);

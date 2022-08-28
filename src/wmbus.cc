@@ -1223,7 +1223,10 @@ bool Telegram::parseAFL(vector<uchar>::iterator &pos)
             len != 12 &&
             len != 16)
         {
-            warning("(wmbus) WARNING! bad length of mac\n");
+            if (parser_warns_)
+            {
+                warning("(wmbus) WARNING! bad length of mac\n");
+            }
             return false;
         }
         afl_mac_b.clear();
@@ -1858,7 +1861,10 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
     int ci_field = *pos;
     if (!isCiFieldOfType(ci_field, CI_TYPE::TPL))
     {
-        warning("(wmbus) Unknown tpl-ci-field %02x\n", ci_field);
+        if (parser_warns_)
+        {
+            warning("(wmbus) Unknown tpl-ci-field %02x\n", ci_field);
+        }
         return false;
     }
     tpl_ci = ci_field;
@@ -1905,7 +1911,10 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
 
     header_size = distance(frame.begin(), pos);
     suffix_size = 0;
-    warning("(wmbus) Not implemented tpl-ci %02x\n", tpl_ci);
+    if (parser_warns_)
+    {
+        warning("(wmbus) Not implemented tpl-ci %02x\n", tpl_ci);
+    }
     return false;
 }
 
@@ -5455,22 +5464,11 @@ Detected detectBusDeviceOnTTY(string tty,
     // Anyway by testing for the amb8465/3665 first, we can immediately continue
     // with the test for the im871a, without the need for a 1s delay.
 
-    // Talk amb3665 with it...
-    // assumes this device is configured for 9600 bps, which seems to be the default.
-    /*
-    if (has_auto || probe_for.count(BusDeviceType::DEVICE_AMB3665))
-    {
-        if (detectAMB3665(&detected, handler) == AccessCheck::AccessOK)
-        {
-            return detected;
-        }
-    }
-    */
     // Talk amb8465 with it...
     // assumes this device is configured for 9600 bps, which seems to be the default.
-    if (has_auto || probe_for.count(BusDeviceType::DEVICE_AMB8465))
+    if (has_auto || probe_for.count(BusDeviceType::DEVICE_AMB8465) || probe_for.count(BusDeviceType::DEVICE_AMB3665))
     {
-        if (detectAMB8465(&detected, handler) == AccessCheck::AccessOK)
+        if (detectAMB8465AMB3665(&detected, handler) == AccessCheck::AccessOK)
         {
             return detected;
         }
@@ -5478,7 +5476,7 @@ Detected detectBusDeviceOnTTY(string tty,
 
     // Talk im871a with it...
     // assumes this device is configured for 57600 bps, which seems to be the default.
-    if (has_auto || probe_for.count(BusDeviceType::DEVICE_IM871A))
+    if (has_auto || probe_for.count(BusDeviceType::DEVICE_IM871A) || probe_for.count(BusDeviceType::DEVICE_IM170A))
     {
         if (detectIM871AIM170A(&detected, handler) == AccessCheck::AccessOK)
         {

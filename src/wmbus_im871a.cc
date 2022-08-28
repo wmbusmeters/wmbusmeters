@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2021 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ struct IM871ADeviceInfo
     }
 };
 
-struct Config
+struct ConfigIM871AIM170A
 {
     // first variable group
     uchar device_mode;
@@ -191,9 +191,12 @@ struct WMBusIM871aIM170A : public virtual BusDeviceCommonImplementation
                 N1f_bit;
         }
     }
-    int numConcurrentLinkModes() {
+
+    int numConcurrentLinkModes()
+    {
         return 2;
     }
+
     bool canSetLinkModes(LinkModeSet lms)
     {
         if (lms.empty()) return false;
@@ -234,7 +237,9 @@ struct WMBusIM871aIM170A : public virtual BusDeviceCommonImplementation
 private:
 
     IM871ADeviceInfo device_info_ {};
-    Config     device_config_ {};
+    ConfigIM871AIM170A device_config_ {};
+
+    uchar last_set_link_mode_ { 0x00 };
 
     vector<uchar> read_buffer_;
     vector<uchar> request_;
@@ -530,6 +535,152 @@ void WMBusIM871aIM170A::deviceReset()
     // set the link modes properly.
 }
 
+uchar setupIMSTBusDeviceToReceiveTelegrams(LinkModeSet lms, int firmware)
+{
+    if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1))
+    {
+        assert(firmware > FIRMWARE_13_C_OR_T);
+        return (int)LinkModeIM871A::CT_N1A;
+    }
+    else if (lms.has(LinkMode::C1))
+    {
+        return (int)LinkModeIM871A::C1b;
+    }
+    else  if (lms.has(LinkMode::C2))
+    {
+        return (int)LinkModeIM871A::C2b;
+    }
+    else if (lms.has(LinkMode::S1))
+    {
+        return (int)LinkModeIM871A::S1;
+    }
+    else if (lms.has(LinkMode::S1m))
+    {
+        return (int)LinkModeIM871A::S1m;
+    }
+    else if (lms.has(LinkMode::T1))
+    {
+        return (int)LinkModeIM871A::T1;
+    }
+    else if (lms.has(LinkMode::T2))
+    {
+        return (int)LinkModeIM871A::T2;
+    }
+    else if (lms.has(LinkMode::N1a))
+    {
+        return (int)LinkModeIM871A::CT_N1A;
+    }
+    else if (lms.has(LinkMode::N1b))
+    {
+        return (int)LinkModeIM871A::N1B;
+    }
+    else if (lms.has(LinkMode::N1c))
+    {
+        return (int)LinkModeIM871A::N1C;
+    }
+    else if (lms.has(LinkMode::N1d))
+    {
+        return (int)LinkModeIM871A::N1D;
+    }
+    else if (lms.has(LinkMode::N1e))
+    {
+        return (int)LinkModeIM871A::N1E;
+    }
+    else if (lms.has(LinkMode::N1f))
+    {
+        return (int)LinkModeIM871A::N1F;
+    }
+    else
+    {
+        return (int)LinkModeIM871A::C1a; // Defaults to C1a
+    }
+
+    assert(false);
+
+    // Error
+    return 0xff;
+}
+
+uchar setupIMSTBusDeviceToSendTelegram(LinkMode lm)
+{
+    if (lm == LinkMode::S1)
+    {
+        return (int)LinkModeIM871A::S1;
+    }
+    if (lm == LinkMode::S1m)
+    {
+        return (int)LinkModeIM871A::S1m;
+    }
+    if (lm == LinkMode::T1)
+    {
+        return (int)LinkModeIM871A::T1;
+    }
+    if (lm == LinkMode::T2)
+    {
+        return (int)LinkModeIM871A::T2;
+    }
+    if (lm == LinkMode::C1)
+    {
+        return (int)LinkModeIM871A::C1a;
+    }
+    if (lm == LinkMode::C2)
+    {
+        return (int)LinkModeIM871A::C2b;
+    }
+    if (lm == LinkMode::N1a)
+    {
+        return (int)LinkModeIM871A::CT_N1A; // This means N1a in an im170a dongle.
+    }
+    if (lm == LinkMode::N2a)
+    {
+        return (int)LinkModeIM871A::N2A;
+    }
+    if (lm == LinkMode::N1b)
+    {
+        return (int)LinkModeIM871A::N1B;
+    }
+    if (lm == LinkMode::N2b)
+    {
+        return (int)LinkModeIM871A::N2B;
+    }
+    if (lm == LinkMode::N1c)
+    {
+        return (int)LinkModeIM871A::N1C;
+    }
+    if (lm == LinkMode::N2c)
+    {
+        return (int)LinkModeIM871A::N2C;
+    }
+    if (lm == LinkMode::N1d)
+    {
+        return (int)LinkModeIM871A::N1D;
+    }
+    if (lm == LinkMode::N2d)
+    {
+        return (int)LinkModeIM871A::N2D;
+    }
+    if (lm == LinkMode::N1e)
+    {
+        return (int)LinkModeIM871A::N1E;
+    }
+    if (lm == LinkMode::N2e)
+    {
+        return (int)LinkModeIM871A::N2E;
+    }
+    if (lm == LinkMode::N1f)
+    {
+        return (int)LinkModeIM871A::N1F;
+    }
+    if (lm == LinkMode::N2f)
+    {
+        return (int)LinkModeIM871A::N2F;
+    }
+
+    assert(false);
+    // Error
+    return 0xff;
+}
+
 bool WMBusIM871aIM170A::deviceSetLinkModes(LinkModeSet lms)
 {
     bool rc = false;
@@ -551,42 +702,15 @@ bool WMBusIM871aIM170A::deviceSetLinkModes(LinkModeSet lms)
     request_[3] = 6; // Len
     request_[4] = 0; // Temporary
     request_[5] = 2; // iff1 bits: Set Radio Mode
-    if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1)) {
-        assert(getFirmwareVersion() > FIRMWARE_13_C_OR_T);
-        request_[6] = (int)LinkModeIM871A::CT_N1A;
-    } else  if (lms.has(LinkMode::C1)) {
-        request_[6] = (int)LinkModeIM871A::C1a;
-    } else  if (lms.has(LinkMode::C2)) {
-        request_[6] = (int)LinkModeIM871A::C2b;
-    } else if (lms.has(LinkMode::S1)) {
-        request_[6] = (int)LinkModeIM871A::S1;
-    } else if (lms.has(LinkMode::S1m)) {
-        request_[6] = (int)LinkModeIM871A::S1m;
-    } else if (lms.has(LinkMode::T1)) {
-        request_[6] = (int)LinkModeIM871A::T1;
-    } else if (lms.has(LinkMode::T2)) {
-        request_[6] = (int)LinkModeIM871A::T2;
-    } else if (lms.has(LinkMode::N1a)) {
-        request_[6] = (int)LinkModeIM871A::CT_N1A;
-    } else if (lms.has(LinkMode::N1b)) {
-        request_[6] = (int)LinkModeIM871A::N1B;
-    } else if (lms.has(LinkMode::N1c)) {
-        request_[6] = (int)LinkModeIM871A::N1C;
-    } else if (lms.has(LinkMode::N1d)) {
-        request_[6] = (int)LinkModeIM871A::N1D;
-    } else if (lms.has(LinkMode::N1e)) {
-        request_[6] = (int)LinkModeIM871A::N1E;
-    } else if (lms.has(LinkMode::N1f)) {
-        request_[6] = (int)LinkModeIM871A::N1F;
-    } else {
-        request_[6] = (int)LinkModeIM871A::C1a; // Defaults to C1a
-    }
+
+    request_[6] = setupIMSTBusDeviceToReceiveTelegrams(lms, getFirmwareVersion());
 
     request_[7] = 0x10 | 0x20; // iff2 bits: Set rssi 0x10, timestamp 0x20
     request_[8] = 1;  // Enable rssi
     request_[9] = 0;  // Disable timestamp
 
     verbose("(im871a) set config to set link mode %02x\n", request_[6]);
+
     bool sent = serial()->send(request_);
 
     if (sent)
@@ -595,6 +719,7 @@ bool WMBusIM871aIM170A::deviceSetLinkModes(LinkModeSet lms)
         if (ok)
         {
             rc = true;
+            last_set_link_mode_ = request_[6];
         }
         else
         {
@@ -943,44 +1068,121 @@ bool WMBusIM871aIM170A::sendTelegram(LinkMode lm, TelegramFormat format, vector<
     if (serial()->readonly()) return true;
     if (content.size() > 250) return false;
 
-    LOCK_WMBUS_EXECUTING_COMMAND(sendTelegram);
+    bool rc = false;
 
-    request_.resize(4);
-    request_[0] = IM871A_SERIAL_SOF;
-    request_[1] = RADIOLINK_ID;
-    int resp = 0;
-    if (format == TelegramFormat::WMBUS_C_FIELD)
     {
-        request_[2] = RADIOLINK_MSG_WMBUSMSG_REQ;
-        resp = RADIOLINK_MSG_WMBUSMSG_RSP;
+        LOCK_WMBUS_EXECUTING_COMMAND(sendTelegram);
+
+        uchar l = setupIMSTBusDeviceToSendTelegram(lm);
+
+        if (l != last_set_link_mode_)
+        {
+            request_.resize(10);
+            request_[0] = IM871A_SERIAL_SOF;
+            request_[1] = DEVMGMT_ID;
+            request_[2] = DEVMGMT_MSG_SET_CONFIG_REQ;
+            request_[3] = 6; // Len
+            request_[4] = 0; // Temporary
+            request_[5] = 2; // iff1 bits: Set Radio Mode
+
+            request_[6] = l;
+
+            request_[7] = 0x10 | 0x20; // iff2 bits: Set rssi 0x10, timestamp 0x20
+            request_[8] = 1;  // Enable rssi
+            request_[9] = 0;  // Disable timestamp
+
+            verbose("(im871a/im170a) set SEND link mode %02x\n", request_[6]);
+
+            bool sent = serial()->send(request_);
+
+            if (sent)
+            {
+                bool ok = waitForResponse(DEVMGMT_MSG_SET_CONFIG_RSP);
+                if (ok)
+                {
+                    rc = true;
+                }
+                else
+                {
+                    warning("Warning! Did not get confirmation on set link mode for sending using im871a/im170a. Not sending.\n");
+                    return false;
+                }
+            }
+        }
+
+        request_.resize(4);
+        request_[0] = IM871A_SERIAL_SOF;
+        request_[1] = RADIOLINK_ID;
+        int resp = 0;
+        if (format == TelegramFormat::WMBUS_C_FIELD)
+        {
+            request_[2] = RADIOLINK_MSG_WMBUSMSG_REQ;
+            resp = RADIOLINK_MSG_WMBUSMSG_RSP;
+        }
+        else if (format == TelegramFormat::WMBUS_CI_FIELD)
+        {
+            request_[2] = RADIOLINK_MSG_DATA_REQ;
+            resp = RADIOLINK_MSG_DATA_RSP;
+        }
+        else
+        {
+            warning("(im871a/im170a) cannot use telegram format %s for sending\n", toString(format));
+            return false;
+        }
+
+        request_[3] = content.size();
+
+        for (size_t i=0; i<content.size(); ++i)
+        {
+            request_.push_back(content[i]);
+        }
+
+        verbose("(im871a/im170a) send telegram waiting for %d\n", resp);
+
+        bool sent = serial()->send(request_);
+        if (!sent) rc = false;
+
+        bool ok = waitForResponse(resp);
+        if (!ok) rc = false; // timeout
+
+        if (l != last_set_link_mode_)
+        {
+            request_.resize(10);
+            request_[0] = IM871A_SERIAL_SOF;
+            request_[1] = DEVMGMT_ID;
+            request_[2] = DEVMGMT_MSG_SET_CONFIG_REQ;
+            request_[3] = 6; // Len
+            request_[4] = 0; // Temporary
+            request_[5] = 2; // iff1 bits: Set Radio Mode
+
+            request_[6] = last_set_link_mode_;
+
+            request_[7] = 0x10 | 0x20; // iff2 bits: Set rssi 0x10, timestamp 0x20
+            request_[8] = 1;  // Enable rssi
+            request_[9] = 0;  // Disable timestamp
+
+            verbose("(im871a/im170a) set restore link mode %02x after send\n", request_[6]);
+
+            bool sent = serial()->send(request_);
+
+            if (sent)
+            {
+                bool ok = waitForResponse(DEVMGMT_MSG_SET_CONFIG_RSP);
+                if (ok)
+                {
+                    rc &= true;
+                }
+                else
+                {
+                    warning("Warning! Did not get confirmation on set link mode for im871a\n");
+                    rc = false;
+                }
+            }
+        }
+
     }
-    else if (format == TelegramFormat::WMBUS_CI_FIELD)
-    {
-        request_[2] = RADIOLINK_MSG_DATA_REQ;
-        resp = RADIOLINK_MSG_DATA_RSP;
-    }
-    else
-    {
-        warning("(im871a) cannot use telegram format %s for sending\n", toString(format));
-        return false;
-    }
 
-    request_[3] = content.size();
-
-    for (size_t i=0; i<content.size(); ++i)
-    {
-        request_.push_back(content[i]);
-    }
-
-    verbose("(im871a) send telegram waiting for %d\n", resp);
-
-    bool sent = serial()->send(request_);
-    if (!sent) return false;
-
-    bool ok = waitForResponse(resp);
-    if (!ok) return false; // timeout
-
-    return true;
+    return rc;
 }
 
 AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicationManager> manager)
@@ -1082,7 +1284,7 @@ AccessCheck detectIM871AIM170A(Detected *detected, shared_ptr<SerialCommunicatio
 
     debugPayload("(device config bytes)", payload);
 
-    Config co;
+    ConfigIM871AIM170A co;
     co.decode(payload);
 
     debug("(im871a/im170a) config: %s\n", co.str().c_str());
