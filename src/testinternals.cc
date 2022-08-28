@@ -270,7 +270,7 @@ int test_linkmodes()
     shared_ptr<BusDevice> wmbus_amb8465 = openAMB8465(de, manager, serial2);
     shared_ptr<BusDevice> wmbus_rtlwmbus = openRTLWMBUS(de, "", false, manager, serial3);
     shared_ptr<BusDevice> wmbus_rawtty = openRawTTY(de, manager, serial4);
-//    shared_ptr<BusDevice> wmbus_amb3665 = openAMB3665(de, manager, serial5);
+    shared_ptr<BusDevice> wmbus_amb3665 = openAMB3665(de, manager, serial5);
 
     Configuration nometers_config;
     // Check that if no meters are supplied then you must set a link mode.
@@ -630,7 +630,32 @@ void testd(string arg, bool xok, string xalias, string xfile, string xtype, stri
         d.linkmodes.hr() != xlm ||
         d.command != xcmd)
     {
-        printf("ERROR in device parsing parts \"%s\"\n", arg.c_str());
+        printf("ERROR in bus device parsing parts \"%s\" - got\n"
+               "alias: \"%s\", file: \"%s\", type: \"%s\", id: \"%s\", extras: \"%s\", fq: \"%s\", bps: \"%s\", lm: \"%s\", cmd: \"%s\"\n"
+               "but expected:\n"
+               "alias: \"%s\", file: \"%s\", type: \"%s\", id: \"%s\", extras: \"%s\", fq: \"%s\", bps: \"%s\", lm: \"%s\", cmd: \"%s\"\n",
+
+               arg.c_str(),
+               d.bus_alias.c_str(),
+               d.file.c_str(),
+               toString(d.type),
+               d.id.c_str(),
+               d.extras.c_str(),
+               d.fq.c_str(),
+               d.bps.c_str(),
+               d.linkmodes.hr().c_str(),
+               d.command.c_str(),
+
+               xalias.c_str(),
+               xfile.c_str(),
+               xtype.c_str(),
+               xid.c_str(),
+               xextras.c_str(),
+               xfq.c_str(),
+               xbps.c_str(),
+               xlm.c_str(),
+               xcmd.c_str());
+
     }
 }
 
@@ -644,7 +669,7 @@ void test_devices()
           "", // extras
           "868.95M", // fq
           "9600", // bps
-          "c1,t1", // linkmodes
+          "t1,c1", // linkmodes
           ""); // command
 
     testd("/dev/ttyUSB0:im871a:c1", true,
@@ -688,7 +713,7 @@ void test_devices()
           "", // extras
           "", // fq
           "", // bps
-          "c1,t1", // linkmodes
+          "t1,c1", // linkmodes
           "gurka"); // command
 
     testd("rtlwmbus[plast]:c1,t1", true,
@@ -699,7 +724,7 @@ void test_devices()
           "", // extras
           "", // fq
           "", // bps
-          "c1,t1", // linkmodes
+          "t1,c1", // linkmodes
           ""); // command
 
     testd("ANTENNA1=rtlwmbus[plast](ppm=5):c1,t1", true,
@@ -710,7 +735,7 @@ void test_devices()
           "ppm=5", // extras
           "", // fq
           "", // bps
-          "c1,t1", // linkmodes
+          "t1,c1", // linkmodes
           ""); // command
 
     testd("stdin:rtlwmbus", true,
@@ -756,7 +781,7 @@ void test_devices()
           "", // extras
           "", // fq
           "", // bps
-          "c1,t1", // linkmodes
+          "t1,c1", // linkmodes
           ""); // command
 
     testd("auto:Makefile:c1,t1", false,
@@ -871,13 +896,25 @@ void testm(string arg, bool xok,
 
     if (!driver_ok || !extras_ok || !bus_ok || !bps_ok || !link_modes_ok)
     {
-        printf("ERROR in meterm parsing parts \"%s\" - got (driver: \"%s/%s\" (%d), extras: \"%s\" (%d), bus: \"%s\" (%d), bbps: \"%s\" (%d), linkmodes: \"%s\" (%d))\n",
+        printf("ERROR in meterc parsing parts \"%s\" got\n"
+               "driver: \"%s\"/\"%s\", extras: \"%s\", bus: \"%s\", bbps: \"%s\", linkmodes: \"%s\"\n"
+               "but expected\n"
+               "driver: \"%s\", extras: \"%s\", bus: \"%s\", bbps: \"%s\", linkmodes: \"%s\"\n",
+
                arg.c_str(),
-               toString(mi.driver).c_str(), mi.driverName().str().c_str(), driver_ok,
-               mi.extras.c_str(), extras_ok,
-               mi.bus.c_str(), bus_ok,
-               to_string(mi.bps).c_str(), bps_ok,
-               mi.link_modes.hr().c_str(), link_modes_ok);
+
+               toString(mi.driver).c_str(), mi.driverName().str().c_str(),
+               mi.extras.c_str(),
+               mi.bus.c_str(),
+               to_string(mi.bps).c_str(),
+               mi.link_modes.hr().c_str(),
+
+               xdriver.c_str(),
+               xextras.c_str(),
+               xbus.c_str(),
+               xbps.c_str(),
+               xlm.c_str()
+            );
     }
 }
 
@@ -899,10 +936,25 @@ void testc(string file, string file_content,
         to_string(mi.bps) != xbps ||
         mi.link_modes.hr() != xlm)
     {
-        printf("ERROR in meterc parsing parts \"%s\" - got (driver: %s/%s, extras: %s, bus: %s, bbps: %s, linkmodes: %s)\n",
+        printf("ERROR in meterc parsing parts \"%s\" got\n"
+               "driver: \"%s\"/\"%s\", extras: \"%s\", bus: \"%s\", bbps: \"%s\", linkmodes: \"%s\"\n"
+               "but expected\n"
+               "driver: \"%s\", extras: \"%s\", bus: \"%s\", bbps: \"%s\", linkmodes: \"%s\"\n",
+
                file.c_str(),
+
                toString(mi.driver).c_str(), mi.driverName().str().c_str(),
-               mi.extras.c_str(), mi.bus.c_str(), to_string(mi.bps).c_str(), mi.link_modes.hr().c_str());
+               mi.extras.c_str(),
+               mi.bus.c_str(),
+               to_string(mi.bps).c_str(),
+               mi.link_modes.hr().c_str(),
+
+               xdriver.c_str(),
+               xextras.c_str(),
+               xbus.c_str(),
+               xbps.c_str(),
+               xlm.c_str()
+            );
     }
 }
 
@@ -936,7 +988,7 @@ void test_meters()
           "", // extras
           "", // bus
           "0", // bps
-          "mbus,c1,t1"); // linkmodes
+          "mbus,t1,c1"); // linkmodes
 
     /*
     config_content =
@@ -976,7 +1028,7 @@ void test_meters()
           "offset=162", // extras
           "", // bus
           "0", // bps
-          "c1,t1"); // linkmodes
+          "t1,c1"); // linkmodes
 
     config_content =
         "name=test\n"
@@ -988,7 +1040,7 @@ void test_meters()
           "offset=162", // extras
           "", // bus
           "0", // bps
-          "c1,t1"); // linkmodes)
+          "t1,c1"); // linkmodes)
 
 }
 

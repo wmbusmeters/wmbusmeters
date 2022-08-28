@@ -241,7 +241,7 @@ void detectWMBUSReceiver()
         probeFor("amb3665", detectAMB3665);
         break;*/
     case ReceiversType::AMB8465:
-        probeFor("amb8465", detectAMB8465);
+        probeFor("amb8465/amb3665", detectAMB8465AMB3665);
         break;
     case ReceiversType::CUL:
         probeFor("cul", detectCUL);
