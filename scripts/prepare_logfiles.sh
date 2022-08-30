@@ -16,6 +16,16 @@ else
     echo "log: $ROOT/var/lib/wmbusmeters/meter_readings unchanged"
 fi
 
+if [ ! -d "$ROOT"/var/log/wmbusmeters ]
+then
+    # Create the log directories
+    mkdir -p "$ROOT"/var/log/wmbusmeters
+    chown -R wmbusmeters:wmbusmeters "$ROOT"/var/log/wmbusmeters
+    echo "log: created $ROOT/var/log/wmbusmeters"
+else
+    echo "log: $ROOT/var/log/wmbusmeters"
+fi
+
 ####################################################################
 ##
 ## Install /etc/logrotate.d/wmbusmeters
