@@ -53,6 +53,8 @@ RestartSec=1
 
 PermissionsStartOnly=true
 ExecStartPre=-/bin/mkdir -p /var/lib/wmbusmeters/meter_readings
+ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/lib/wmbusmeters/meter_readings
+ExecStartPre=-/bin/mkdir -p /var/log/wmbusmeters
 ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /var/log/wmbusmeters
 ExecStartPre=-/bin/mkdir -p /run/wmbusmeters
 ExecStartPre=/bin/chown -R wmbusmeters:wmbusmeters /run/wmbusmeters
