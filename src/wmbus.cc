@@ -41,7 +41,7 @@ struct LinkModeInfo
     const char *name;
     const char *lcname;
     const char *option;
-    int val;
+    uint64_t val;
 };
 
 LinkModeInfo link_modes_[] = {
@@ -75,7 +75,7 @@ LinkModeInfo *getLinkModeInfo(LinkMode lm)
     return NULL;
 }
 
-LinkModeInfo *getLinkModeInfoFromBit(int bit)
+LinkModeInfo *getLinkModeInfoFromBit(uint64_t bit)
 {
     for (auto& s : link_modes_)
     {

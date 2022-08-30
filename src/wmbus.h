@@ -99,29 +99,39 @@ void setIgnoreDuplicateTelegrams(bool idt);
 // The im871a can for example receive C1a, but it is unclear if there are any meters that use it.
 
 #define LIST_OF_LINK_MODES \
-    X(Any,any,--anylinkmode,0xffffff)           \
-    X(MBUS,mbus,--mbus,0x1)                     \
-    X(S1,s1,--s1,0x2)                           \
-    X(S1m,s1m,--s1m,0x4)                        \
-    X(S2,s2,--s2,0x8)                           \
-    X(T1,t1,--t1,0x10)                          \
-    X(T2,t2,--t2,0x20)                          \
-    X(C1,c1,--c1,0x40)                          \
-    X(C2,c2,--c2,0x80)                          \
-    X(N1a,n1a,--n1a,0x100)                      \
-    X(N2a,n2a,--n2a,0x200)                      \
-    X(N1b,n1b,--n1b,0x400)                      \
-    X(N2b,n2b,--n2b,0x800)                      \
-    X(N1c,n1c,--n1c,0x1000)                     \
-    X(N2c,n2c,--n2c,0x2000)                     \
-    X(N1d,n1d,--n1d,0x4000)                     \
-    X(N2d,n2d,--n2d,0x8000)                     \
-    X(N1e,n1e,--n1e,0x10000)                    \
-    X(N2e,n2e,--n2e,0x20000)                    \
-    X(N1f,n1f,--n1f,0x40000)                    \
-    X(N2f,n2f,--n2f,0x80000)                    \
-    X(LORA,lora,--lora,0x100000)                \
-    X(UNKNOWN,unknown,----,0x0)
+    X(Any,any,--anylinkmode,(~0UL))               \
+    X(MBUS,mbus,--mbus,0x1UL)                     \
+    X(S1,s1,--s1,0x2UL)                           \
+    X(S1m,s1m,--s1m,0x4UL)                        \
+    X(S2,s2,--s2,0x8UL)                           \
+    X(T1,t1,--t1,0x10UL)                          \
+    X(T2,t2,--t2,0x20UL)                          \
+    X(C1,c1,--c1,0x40UL)                          \
+    X(C2,c2,--c2,0x80UL)                          \
+    X(N1a,n1a,--n1a,0x100UL)                      \
+    X(N2a,n2a,--n2a,0x200UL)                      \
+    X(N1b,n1b,--n1b,0x400UL)                      \
+    X(N2b,n2b,--n2b,0x800UL)                      \
+    X(N1c,n1c,--n1c,0x1000UL)                     \
+    X(N2c,n2c,--n2c,0x2000UL)                     \
+    X(N1d,n1d,--n1d,0x4000UL)                     \
+    X(N2d,n2d,--n2d,0x8000UL)                     \
+    X(N1e,n1e,--n1e,0x10000UL)                    \
+    X(N2e,n2e,--n2e,0x20000UL)                    \
+    X(N1f,n1f,--n1f,0x40000UL)                    \
+    X(N2f,n2f,--n2f,0x80000UL)                    \
+    X(R2a,r2a,--r2a,0x100000UL)                   \
+    X(R2b,r2b,--r2b,0x200000UL)                   \
+    X(R2c,r2c,--r2c,0x400000UL)                   \
+    X(R2d,r2d,--r2d,0x800000UL)                   \
+    X(R2e,r2e,--r2e,0x1000000UL)                  \
+    X(R2f,r2f,--r2f,0x2000000UL)                  \
+    X(R2g,r2g,--r2g,0x4000000UL)                  \
+    X(R2h,r2h,--r2h,0x8000000UL)                  \
+    X(R2i,r2i,--r2i,0x10000000UL)                 \
+    X(R2j,r2j,--r2j,0x20000000UL)                 \
+    X(LORA,lora,--lora,0x40000000UL)              \
+    X(UNKNOWN,unknown,----,0x0UL)
 
 enum class LinkMode {
 #define X(name,lcname,option,val) name,
@@ -129,11 +139,9 @@ LIST_OF_LINK_MODES
 #undef X
 };
 
-enum LinkModeBits {
-#define X(name,lcname,option,val) name##_bit = val,
+#define X(name,lcname,option,val) const uint64_t name##_bit = val;
 LIST_OF_LINK_MODES
 #undef X
-};
 
 LinkMode toLinkMode(const char *arg);
 LinkMode isLinkModeOption(const char *arg);
@@ -175,11 +183,11 @@ struct LinkModeSet
     std::string hr();
 
     LinkModeSet() { }
-    LinkModeSet(int s) : set_(s) {}
+    LinkModeSet(uint64_t s) : set_(s) {}
 
 private:
 
-    int set_ {};
+    uint64_t set_ {};
 };
 
 LinkModeSet parseLinkModes(string modes);
