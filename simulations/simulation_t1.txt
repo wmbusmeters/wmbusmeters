@@ -111,8 +111,8 @@ telegram=|2e44333005020100071d7ab66800002f2f02fd1b550002fd971d01000efd3a23000000
 # Test Lansen pulse counter
 
 telegram=|234433300602010014007a8e0000002f2f0efd3a1147000000008e40fd3a341200000000|
-{"media":"other","meter":"lansenpu","name":"Countero","id":"00010206","a_counter":4711,"b_counter":1234,"timestamp":"1111-11-11T11:11:11Z"}
-|Countero;00010206;4711.000000;1234.000000;1111-11-11 11:11.11
+{"media":"other","meter":"lansenpu","name":"Countero","id":"00010206","status":"OK","a_counter":4711,"b_counter":1234,"timestamp":"1111-11-11T11:11:11Z"}
+|Countero;00010206;OK;4711;1234;1111-11-11 11:11.11
 
 # Test BMEters RFM-AMB Temperature Hygrometer telegram
 
