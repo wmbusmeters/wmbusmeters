@@ -29,10 +29,24 @@ namespace
         di.setName("lansenpu");
         di.setDefaultFields("name,id,status,a_counter,b_counter,timestamp");
         di.setMeterType(MeterType::PulseCounter);
-        di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
         di.addDetection(MANUFACTURER_LAS,  0x00,  0x14);
         di.addDetection(MANUFACTURER_LAS,  0x00,  0x1b);
         di.addDetection(MANUFACTURER_LAS,  0x02,  0x0b);
+        di.addMfctTPLStatusBits(
+            {
+                {
+                    {
+                        "TPL_STS",
+                        Translate::Type::BitToString,
+                        0xe0, // Always use 0xe0 for tpl mfct status bits.
+                        "OK",
+                        {
+                            { 0x40, "SABOTAGE_ENCLOSURE" }
+                        }
+                    },
+                },
+            });
+        di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
@@ -82,3 +96,7 @@ namespace
 // telegram=|1A443330503702000B027AD7000020|2F2F8E40FD3A700800000000|
 // {"media":"electricity","meter":"lansenpu","name":"COUNTB","id":"00023750","status":"OK","b_counter":870,"timestamp":"1111-11-11T11:11:11Z"}
 // |COUNTB;00023750;OK;null;870;1111-11-11 11:11.11
+
+// telegram=|1A443330503702000B027AD74c0020|2F2F8E40FD3A700800000000|
+// {"media":"electricity","meter":"lansenpu","name":"COUNTB","id":"00023750","status":"PERMANENT_ERROR POWER_LOW SABOTAGE_ENCLOSURE","b_counter":870,"timestamp":"1111-11-11T11:11:11Z"}
+// |COUNTB;00023750;PERMANENT_ERROR POWER_LOW SABOTAGE_ENCLOSURE;null;870;1111-11-11 11:11.11
