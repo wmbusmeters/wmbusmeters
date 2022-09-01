@@ -51,8 +51,6 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields();
-
         addStringField(
             "status",
             "Meter status from tpl status field.",
