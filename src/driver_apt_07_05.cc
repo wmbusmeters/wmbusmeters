@@ -25,29 +25,23 @@ namespace
 
         void processContent(Telegram *t);
 
-        double allocation_hca_ {};
-        double room_c_ {};
+        double total_m3_ {};
     };
 
     static bool ok = registerDriver([](DriverInfo&di)
     {
-        di.setName("apatoreitn");
-        di.setDefaultFields("name,id,room_c,allocation_hca,timestamp");
-        di.setMeterType(MeterType::HeatCostAllocationMeter);
-        di.addDetection(0x8614 /* APT? */, 0x08,  0x04);
+        di.setName("apt_07_05");
+        di.setDefaultFields("name,id,total_m3,timestamp");
+        di.setMeterType(MeterType::WaterMeter);
+        di.addDetection(0x8614 /*APT?*/, 0x07,  0x05);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addPrint("allocation", Quantity::HCA,
-                 [&](Unit u){ return convert(allocation_hca_, Unit::HCA, u); },
-                 "The current heat cost allocation calculated by this meter.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
-
-        addPrint("room", Quantity::Temperature,
-                 [&](Unit u){ return convert(room_c_, Unit::C, u); },
-                 "The room temperature.",
+        addPrint("total", Quantity::Volume,
+                 [&](Unit u){ return convert(total_m3_, Unit::M3, u); },
+                 "The total volume consumed.",
                  PrintProperty::FIELD | PrintProperty::JSON);
     }
 
@@ -56,6 +50,7 @@ namespace
         vector<uchar> content;
         t->extractPayload(&content);
 
+        /*
         size_t offset = 23;
         if (offset+1 < content.size())
         {
@@ -68,10 +63,12 @@ namespace
                                      content[offset+0], content[offset+1],
                                      room_c_);
         }
+        */
+        total_m3_ = 4711.0;
     }
 }
 
-// Test: HCA apatoreitn 37373737 NOKEY
-// telegram=|25441486373737370408B60AFFFFF5450186F41B9D58A0A100007809000000001F2D6416C819|
-// {"media":"heat cost allocation","meter":"apatoreitn","name":"HCA","id":"37373737","allocation_hca":0,"room_c":22.390625,"timestamp":"1111-11-11T11:11:11Z"}
-// |HCA;37373737;22.390625;0;1111-11-11 11:11.11
+// Test: WATER apt_07_05 37373737 NOKEY
+// telegram=|5A441486373737370507B60AFFFFF5450106F41BA5717A8700408535B24C132D721277A85089C02D4FDA886486A89EF3B7FF4E7AF666FE4C58AFD0746925F27F416F8237AB1A7C2612AA5F88615E46AA4D535493EBCA4DC31514BA|
+// {"media":"water","meter":"apt_07_05","name":"WATER","id":"37373737","total_m3":4711,"timestamp":"1111-11-11T11:11:11Z"}
+// |WATER;37373737;4711;1111-11-11 11:11.11
