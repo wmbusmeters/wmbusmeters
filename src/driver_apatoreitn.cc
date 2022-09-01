@@ -71,7 +71,7 @@ namespace
     }
 }
 
-// Test: HCA apatoreitn 35364998 NOKEY
-// telegram=|25441486984936350408B60AFFFFF5450186F41B9D58A0A100007809000000001F2D6416C819|
-// {"media":"heat cost allocation","meter":"apatoreitn","name":"HCA","id":"35364998","allocation_hca":0,"room_c":22.390625,"timestamp":"1111-11-11T11:11:11Z"}
-// |HCA;35364998;22.390625;0;1111-11-11 11:11.11
+// Test: HCA apatoreitn 37373737 NOKEY
+// telegram=|25441486373737370408B60AFFFFF5450186F41B9D58A0A100007809000000001F2D6416C819|
+// {"media":"heat cost allocation","meter":"apatoreitn","name":"HCA","id":"37373737","allocation_hca":0,"room_c":22.390625,"timestamp":"1111-11-11T11:11:11Z"}
+// |HCA;37373737;22.390625;0;1111-11-11 11:11.11
