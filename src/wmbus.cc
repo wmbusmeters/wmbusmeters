@@ -640,11 +640,7 @@ string mediaTypeJSON(int a_field_device_type, int m_field)
     X(0x8E, ELL_III, "ELL: III", 10, CI_TYPE::ELL, "CC, ACC, M2, A2") \
     X(0x8F, ELL_IV,  "ELL: IV",  16, CI_TYPE::ELL, "CC, ACC, M2, A2, SN, Payload CRC") \
     X(0x86, ELL_V,   "ELL: V",   -1, CI_TYPE::ELL, "Variable length") \
-    X(0x90, AFL,     "AFL", 10, CI_TYPE::AFL, "") \
-    X(0xA0, MFCT_SPECIFIC_A0, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "") \
-    X(0xA1, MFCT_SPECIFIC_A1, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "") \
-    X(0xA2, MFCT_SPECIFIC_A2, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "") \
-    X(0xA3, MFCT_SPECIFIC_A3, "MFCT SPECIFIC", 0, CI_TYPE::TPL, "")
+    X(0x90, AFL,     "AFL", 10, CI_TYPE::AFL, "")
 
 enum CI_Field_Values {
 #define X(val,name,cname,len,citype,explain) name = val,
@@ -666,6 +662,11 @@ int ciFieldLength(int ci_field)
 LIST_OF_CI_FIELDS
 #undef X
     return -2;
+}
+
+bool isCiFieldManufacturerSpecific(int ci_field)
+{
+    return ci_field >= 0xA0 && ci_field <= 0xB7;
 }
 
 string ciType(int ci_field)
@@ -795,6 +796,20 @@ void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int l
     pos += len;
 }
 
+void Telegram::setExplanation(vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...)
+{
+    char buf[1024];
+    buf[1023] = 0;
+
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, 1023, fmt, args);
+    va_end(args);
+
+    Explanation e(distance(frame.begin(),pos), len, buf, k, u);
+    explanations.push_back(e);
+}
+
 void Telegram::addMoreExplanation(int pos, string json)
 {
     addMoreExplanation(pos, " (%s)", json.c_str());
@@ -878,6 +893,19 @@ bool Telegram::parseMBusDLLandTPL(vector<uchar>::iterator &pos)
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "68 start");
 
     if (remaining < dll_len) return expectedMore(__LINE__);
+
+    // Last byte should be 0x16
+    auto end = frame.end();
+    end--;
+    if (*end != 0x16) return false;
+    setExplanation(end, 1, KindOfData::PROTOCOL, Understanding::FULL, "16 end");
+
+    // Second last byte should be crc. Should have been checked before! No need to check again here?
+    end--;
+    setExplanation(end, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02X crc", *end);
+
+    // Mark crc and end as suffix, ie should not be parsed by dvparser.
+    suffix_size = 2;
 
     dll_c = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-c (%s)", dll_c, mbusCField(dll_c));
@@ -1753,8 +1781,7 @@ bool Telegram::parse_TPL_72(vector<uchar>::iterator &pos)
     bool decrypt_ok = potentiallyDecrypt(pos);
 
     header_size = distance(frame.begin(), pos);
-    int remaining = distance(pos, frame.end());
-    suffix_size = 0;
+    int remaining = distance(pos, frame.end())-suffix_size;
 
     if (decrypt_ok)
     {
@@ -1771,8 +1798,7 @@ bool Telegram::parse_TPL_72(vector<uchar>::iterator &pos)
 bool Telegram::parse_TPL_78(vector<uchar>::iterator &pos)
 {
     header_size = distance(frame.begin(), pos);
-    int remaining = distance(pos, frame.end());
-    suffix_size = 0;
+    int remaining = distance(pos, frame.end())-suffix_size;
     parseDV(this, frame, pos, remaining, &dv_entries);
 
     return true;
@@ -1821,8 +1847,7 @@ bool Telegram::parse_TPL_79(vector<uchar>::iterator &pos)
                                   "%02x%02x data crc", ecrc2, ecrc3);
 
     header_size = distance(frame.begin(), pos);
-    int remaining = distance(pos, frame.end());
-    suffix_size = 0;
+    int remaining = distance(pos, frame.end())-suffix_size;
 
     parseDV(this, frame, pos, remaining, &dv_entries, &format, format_bytes.size());
 
@@ -1837,8 +1862,7 @@ bool Telegram::parse_TPL_7A(vector<uchar>::iterator &pos)
     bool decrypt_ok = potentiallyDecrypt(pos);
 
     header_size = distance(frame.begin(), pos);
-    int remaining = distance(pos, frame.end());
-    suffix_size = 0;
+    int remaining = distance(pos, frame.end())-suffix_size;
 
     if (decrypt_ok)
     {
@@ -1859,7 +1883,9 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
     debug("(wmbus) parseTPL @%d %d\n", distance(frame.begin(), pos), remaining);
     CHECK(1);
     int ci_field = *pos;
-    if (!isCiFieldOfType(ci_field, CI_TYPE::TPL))
+    int mfct_specific = isCiFieldManufacturerSpecific(ci_field);
+
+    if (!isCiFieldOfType(ci_field, CI_TYPE::TPL) && !mfct_specific)
     {
         if (parser_warns_)
         {
@@ -1875,7 +1901,7 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
                                   tpl_ci, ciType(tpl_ci).c_str());
     int len = ciFieldLength(tpl_ci);
 
-    if (remaining < len+1) return expectedMore(__LINE__);
+    if (remaining < len+1 && ! mfct_specific) return expectedMore(__LINE__);
 
     switch (tpl_ci)
     {
@@ -1883,24 +1909,11 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
         case CI_Field_Values::TPL_78: return parse_TPL_78(pos);
         case CI_Field_Values::TPL_79: return parse_TPL_79(pos);
         case CI_Field_Values::TPL_7A: return parse_TPL_7A(pos);
-        case CI_Field_Values::MFCT_SPECIFIC_A1:
-        case CI_Field_Values::MFCT_SPECIFIC_A0:
-        case CI_Field_Values::MFCT_SPECIFIC_A2:
+        default:
         {
+            // A0 to B7 are manufacturer specific.
             header_size = distance(frame.begin(), pos);
-            suffix_size = 0;
-            int num_mfct_bytes = frame.end()-pos;
-            string info =  bin2hex(pos, frame.end(), num_mfct_bytes);
-            info += " mfct specific";
-            addExplanationAndIncrementPos(pos, num_mfct_bytes, KindOfData::CONTENT, Understanding::NONE, info.c_str());
-
-            return true; // Manufacturer specific telegram payload. Oh well....
-        }
-        case CI_Field_Values::MFCT_SPECIFIC_A3: // Another stoopid non-conformat wmbus Diehl/Sappel/Izar water meter addon.
-        {
-            header_size = distance(frame.begin(), pos);
-            suffix_size = 0;
-            int num_mfct_bytes = frame.end()-pos;
+            int num_mfct_bytes = frame.end()-pos-suffix_size;
             string info =  bin2hex(pos, frame.end(), num_mfct_bytes);
             info += " mfct specific";
             addExplanationAndIncrementPos(pos, num_mfct_bytes, KindOfData::CONTENT, Understanding::NONE, info.c_str());
@@ -1910,7 +1923,6 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
     }
 
     header_size = distance(frame.begin(), pos);
-    suffix_size = 0;
     if (parser_warns_)
     {
         warning("(wmbus) Not implemented tpl-ci %02x\n", tpl_ci);
@@ -1964,6 +1976,7 @@ bool Telegram::parseWMBUSHeader(vector<uchar> &input_frame)
     parser_warns_ = false;
     decryption_failed = false;
     explanations.clear();
+    suffix_size = 0;
     frame = input_frame;
     vector<uchar>::iterator pos = frame.begin();
     // Parsed accumulates parsed bytes.
@@ -1999,6 +2012,7 @@ bool Telegram::parseWMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
     parser_warns_ = warn;
     decryption_failed = false;
     explanations.clear();
+    suffix_size = 0;
     meter_keys = mk;
     assert(meter_keys != NULL);
     bool ok;
@@ -2079,6 +2093,7 @@ bool Telegram::parseMBUSHeader(vector<uchar> &input_frame)
     parser_warns_ = false;
     decryption_failed = false;
     explanations.clear();
+    suffix_size = 0;
     frame = input_frame;
     vector<uchar>::iterator pos = frame.begin();
     // Parsed accumulates parsed bytes.
@@ -2097,6 +2112,7 @@ bool Telegram::parseMBUS(vector<uchar> &input_frame, MeterKeys *mk, bool warn)
     parser_warns_ = warn;
     decryption_failed = false;
     explanations.clear();
+    suffix_size = 0;
     meter_keys = mk;
     assert(meter_keys != NULL);
     bool ok;
@@ -2231,6 +2247,9 @@ string Telegram::analyzeParse(OutputFormat format, int *content_length, int *und
 {
     int u = 0;
     int l = 0;
+
+    sort(explanations.begin(), explanations.end(),
+         [](const Explanation & a, const Explanation & b) -> bool { return a.pos < b.pos; });
 
     // Calculate how much is understood.
     for (auto& e : explanations)
@@ -4099,12 +4118,6 @@ bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<
     bool handled = false;
     last_received_ = time(NULL);
 
-    if (ignore_duplicate_telegrams_ && about.type == FrameType::WMBUS && seen_this_telegram_before(frame))
-    {
-        verbose("(wmbus) skipping already handled telegram leng=%zu.\n", frame.size());
-        return true;
-    }
-
     if (about.type == FrameType::MBUS && frame.size() == 1)
     {
         if (frame[0] == 0xe5)
@@ -4114,6 +4127,12 @@ bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<
         }
         // Something else that we currently do not understand.
         return false;
+    }
+
+    if (ignore_duplicate_telegrams_ && about.type == FrameType::WMBUS && seen_this_telegram_before(frame))
+    {
+        verbose("(wmbus) skipping already handled telegram leng=%zu.\n", frame.size());
+        return true;
     }
 
     for (auto f : telegram_listeners_)
@@ -4927,8 +4946,8 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
         return ErrorInFrame;
     }
 
-    *payload_len_out = *frame_length - 2; // Drop checksum byte and stop byte.
-    *payload_offset = 0; // Drop 0x68 len len 0x68.
+    *payload_len_out = *frame_length;
+    *payload_offset = 0;
     if (!only_test)
     {
         debug("(mbus) received full frame.\n");

@@ -536,6 +536,7 @@ public:
     // below the raw data bytes to explain the telegram content.
     vector<Explanation> explanations;
     void addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...);
+    void setExplanation(vector<uchar>::iterator &pos, int len, KindOfData k, Understanding u, const char* fmt, ...);
     void addMoreExplanation(int pos, const char* fmt, ...);
     void addMoreExplanation(int pos, string json);
 
@@ -738,6 +739,7 @@ string mediaType(int a_field_device_type, int m_field);
 string mediaTypeJSON(int a_field_device_type, int m_field);
 bool isCiFieldOfType(int ci_field, CI_TYPE type);
 int ciFieldLength(int ci_field);
+bool isCiFieldManufacturerSpecific(int ci_field);
 string ciType(int ci_field);
 string cType(int c_field);
 bool isValidWMBusCField(int c_field);
