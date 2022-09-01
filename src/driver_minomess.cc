@@ -28,6 +28,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("minomess");
+        di.setDefaultFields("name,id,total_m3,target_m3,status,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::C1);
         di.addDetection(MANUFACTURER_ZRI, 0x07,  0x00);
@@ -36,16 +37,9 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addNumericFieldWithExtractor(
-            "total",
-            "The total water consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
-            Quantity::Volume,
-            VifScaling::Auto,
-            FieldMatcher::build()
-            .set(MeasurementType::Instantaneous)
-            .set(VIFRange::Volume)
-            );
+        addOptionalCommonFields();
+        addOptionalFlowRelatedFields();
+
 
         addStringFieldWithExtractor(
             "meter_date",
@@ -59,10 +53,12 @@ namespace
         /* If the meter is recently commissioned, the target water consumption value is bogus.
            The bits store 0xffffffff. Should we deal with this? Now a very large value is printed in the json. */
 
+        // The wmbus telegram contains only storage 8 for target_date and total.
+
         addNumericFieldWithExtractor(
             "target",
             "The total water consumption recorded at the beginning of this month.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT | PrintProperty::OPTIONAL,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -74,11 +70,36 @@ namespace
         addStringFieldWithExtractor(
             "target_date",
             "Date when target water consumption was recorded.",
-            PrintProperty::JSON,
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
             .set(StorageNr(8))
+            );
+
+
+        // The wire mbus telegram contains 4 totals and dates. For the moment we only print nr 1 which is the latest.
+
+        addNumericFieldWithExtractor(
+            "target",
+            "The total water consumption recorded at the beginning of this month.",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT | PrintProperty::OPTIONAL,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .set(StorageNr(1))
+            );
+
+        addStringFieldWithExtractor(
+            "target_date",
+            "Date when target water consumption was recorded.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Date)
+            .set(StorageNr(1))
             );
 
         /*
@@ -198,4 +219,9 @@ namespace
 // Test: Mino minomess 15503451 NOKEY
 // telegram=|6644496A1064035514377251345015496A0007EE0050052F2F#0C1359000000026CBE2B82046CA12B8C0413FFFFFFFF8D0493132CFBFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF02FD1700002F2F|
 // {"media":"water","meter":"minomess","name":"Mino","id":"15503451","total_m3":0.059,"meter_date":"2021-11-30","target_m3":244444.442,"target_date":"2021-11-01","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
-// |Mino;15503451;0.059000;244444.442000;OK;1111-11-11 11:11.11
+// |Mino;15503451;0.059;244444.442;OK;1111-11-11 11:11.11
+
+// Test: Minowired minomess 57575757 NOKEY
+// telegram=|6874746808007257575757496A000712000000_0C7857575757046D2414DE280413000000000C943C000000004413FFFFFFFF426CFFFF840113FFFFFFFF82016CFFFFC40113FFFFFFFFC2016CFFFF840213FFFFFFFF82026CFFFF043B000000000422E62F000004260000000034220000000002FD1700001F5716|
+// {"media":"water","meter":"minomess","name":"Minowired","id":"57575757","fabrication_no":"57575757","operating_time_h":0,"on_time_h":3.406111,"on_time_at_error_h":0,"meter_datetime":"2022-08-30 20:36","total_m3":0,"total_backward_m3":0,"volume_flow_m3h":0,"meter_date":null,"target_m3":4294967.295,"target_date":"2127-15-31","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+// |Minowired;57575757;0;4294967.295;OK;1111-11-11 11:11.11

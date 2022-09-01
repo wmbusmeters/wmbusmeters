@@ -59,9 +59,12 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     vector<string> telegram_shells;
     vector<string> alarm_shells;
     vector<string> extra_constant_fields;
+    vector<string> selected_fields;
 
     debug("(config) loading meter file %s\n", file.c_str());
-    for (;;) {
+
+    for (;;)
+    {
         pair<string,string> p = getNextKeyValue(buf, i);
 
         if (p.first == "") break;
@@ -131,6 +134,16 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             alarm_shells.push_back(p.second);
         }
         else
+        if (p.first == "selectedfields")
+        {
+            if (selected_fields.size() > 0)
+            {
+                warning("(warning) selectfields already used! Ignoring selectfields %s", p.second.c_str());
+                return;
+            }
+            selected_fields = splitString(p.second, ',');
+        }
+        else
         if (startsWith(p.first, "json_") ||
             startsWith(p.first, "field_"))
         {
@@ -183,7 +196,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         mi.extra_constant_fields = extra_constant_fields;
         mi.shells = telegram_shells;
         mi.idsc = toIdsCommaSeparated(mi.ids);
-
+        mi.selected_fields = selected_fields;
         c->meters.push_back(mi);
     }
 
@@ -629,15 +642,7 @@ void handleSelectedFields(Configuration *c, string s)
         warning("(warning) selectfields already used! Ignoring selectfields %s", s.c_str());
         return;
     }
-    char buf[s.length()+1];
-    strcpy(buf, s.c_str());
-    char *saveptr {};
-    const char *tok = strtok_r(buf, ",", &saveptr);
-    while (tok != NULL)
-    {
-        c->selected_fields.push_back(tok);
-        tok = strtok_r(NULL, ",", &saveptr);
-    }
+    c->selected_fields = splitString(s, ',');
 }
 
 void handleShell(Configuration *c, string cmdline)

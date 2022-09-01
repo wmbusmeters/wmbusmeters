@@ -1,4 +1,6 @@
 
+Improve minomess driver to handle telegrams from wired m-bus module.
+
 Added Enercal F2 heat meter.
 
 Paulo Rossi added support for the AMB3665-M wmbus dongle for N-mode 169 MHz telegrams. Thanks Paulo!
@@ -11,7 +13,7 @@ Eventually the old fields will go away in drivers.
 
 ATTENTION! When a field is not optional in the driver description,
 but alas, no data has arrived in the telegram, then the json now
-contains a null for the value! Previousy 0 was used, which is misleading.
+contains a null for the value! Previousy 0 was used, which was misleading.
 
 ATTENTION! The default location of the meter_readings directory has changed
 from /var/log/wmbusmeters/meter_readings to /var/lib/wmbusmeters/meter_readings

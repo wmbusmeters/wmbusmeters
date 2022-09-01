@@ -1635,13 +1635,20 @@ bool checkConstantField(string *buf, string field, char c, vector<string> *extra
     return false;
 }
 
-
 string concatFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints, vector<Unit> &cs, bool hr,
                     vector<string> *selected_fields, vector<string> *extra_constant_fields)
 {
     if (selected_fields == NULL || selected_fields->size() == 0)
     {
-        return concatAllFields(m, t, c, prints, cs, hr, extra_constant_fields);
+        // No global override, but is there a meter driver setting?
+        if (m->selectedFields().size() > 0)
+        {
+            selected_fields = &m->selectedFields();
+        }
+        else
+        {
+            return concatAllFields(m, t, c, prints, cs, hr, extra_constant_fields);
+        }
     }
     string buf = "";
 
@@ -2225,6 +2232,14 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
         shared_ptr<Meter> newm = di->construct(*mi);
         newm->addConversions(mi->conversions);
         newm->setPollInterval(mi->poll_interval);
+        if (mi->selected_fields.size() > 0)
+        {
+            newm->setSelectedFields(mi->selected_fields);
+        }
+        else
+        {
+            newm->setSelectedFields(di->defaultFields());
+        }
         verbose("(meter) created %s %s %s %s\n",
                 mi->name.c_str(),
                 di->name().str().c_str(),
@@ -2758,6 +2773,17 @@ void MeterCommonImplementation::addOptionalCommonFields()
         .set(VIFRange::OnTime)
         );
 
+    addNumericFieldWithExtractor(
+        "on_time_at_error",
+        "How long the meter has been in an error state while powered up.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        Quantity::Time,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::AtError)
+        .set(VIFRange::OnTime)
+        );
+
     addStringFieldWithExtractor(
         "meter_datetime",
         "Date and time when the meter sent the telegram.",
@@ -2768,7 +2794,7 @@ void MeterCommonImplementation::addOptionalCommonFields()
         );
 
     addStringFieldWithExtractor(
-        "meter_error_datetime",
+        "meter_datetime_at_error",
         "Date and time when the meter was in error.",
         PrintProperty::JSON | PrintProperty::OPTIONAL,
         FieldMatcher::build()
@@ -2782,7 +2808,7 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields()
 {
     addNumericFieldWithExtractor(
         "total",
-        "The total heating/cooling media volume consumption recorded by this meter.",
+        "The total media volume consumption recorded by this meter.",
         PrintProperty::JSON | PrintProperty::OPTIONAL,
         Quantity::Volume,
         VifScaling::Auto,
@@ -2792,8 +2818,20 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields()
         );
 
     addNumericFieldWithExtractor(
+        "total_backward",
+        "The total media volume flowing backward.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        Quantity::Volume,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::Volume)
+        .add(VIFCombinable::BackwardFlow)
+        );
+
+    addNumericFieldWithExtractor(
         "flow_temperature",
-        "Forward heat/cooling media temperature.",
+        "Forward media temperature.",
         PrintProperty::JSON | PrintProperty::OPTIONAL,
         Quantity::Temperature,
         VifScaling::Auto,
@@ -2804,7 +2842,7 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields()
 
     addNumericFieldWithExtractor(
         "return_temperature",
-        "Return heat/cooling media temperature.",
+        "Return media temperature.",
         PrintProperty::JSON | PrintProperty::OPTIONAL,
         Quantity::Temperature,
         VifScaling::Auto,
@@ -2834,4 +2872,6 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields()
         .set(MeasurementType::Instantaneous)
         .set(VIFRange::VolumeFlow)
         );
+
+
     }
