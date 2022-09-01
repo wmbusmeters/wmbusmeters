@@ -84,7 +84,6 @@ LIST_OF_METER_TYPES
     X(izar3,      T1_bit, WaterMeter,       IZAR3,       Izar3)        \
     X(lansensm,   T1_bit, SmokeDetector,    LANSENSM,    LansenSM)     \
     X(lansenth,   T1_bit, TempHygroMeter,   LANSENTH,    LansenTH)     \
-    X(lansenpu,   T1_bit, PulseCounter,     LANSENPU,    LansenPU)     \
     X(mkradio3,   T1_bit, WaterMeter,       MKRADIO3,    MKRadio3)     \
     X(mkradio4,   T1_bit, WaterMeter,       MKRADIO4,    MKRadio4)     \
     X(multical21, C1_bit|T1_bit, WaterMeter,       MULTICAL21,  Multical21)   \
