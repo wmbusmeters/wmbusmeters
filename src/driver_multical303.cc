@@ -26,6 +26,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("multical303");
+        di.setDefaultFields("name,id,status,total_energy_kwh,target_energy_kwh,timestamp");
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::C1);
         di.addLinkMode(LinkMode::T1);
@@ -56,34 +57,26 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
             );
-/*
-        addStringFieldWithExtractor(
+
+        addNumericFieldWithExtractor(
             "forward_energy",
-            Quantity::Energy,
-            DifVifKey("FF07"),
-            MeasurementType::Instantaneous,
-            VIFRange::AnyEnergyVIF,
-            StorageNr(0),
-            TariffNr(0),
-            IndexNr(1),
-            PrintProperty::JSON,
             "The forward energy of the water (4/97/Energy E8).",
-            SET_STRING_FUNC(forward_energy_),
-            GET_STRING_FUNC(forward_energy_));
-*/
-/////////////////////////////////////////////////////////////////
-// Need help how to get the values for 04FF07 & 04FF08 & 04FF22//
-/////////////////////////////////////////////////////////////////
+            PrintProperty::JSON,
+            Quantity::Energy,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("04FF07")),
+            Unit::KWH);
 
         addNumericFieldWithExtractor(
             "return_energy",
             "The return energy of the water (5/110/Energy E9).",
             PrintProperty::JSON,
-            Quantity::Counter,
+            Quantity::Energy,
             VifScaling::None,
             FieldMatcher::build()
-            .set(DifVifKey("04FF08"))
-            );
+            .set(DifVifKey("04FF08")),
+            Unit::KWH);
 
         addNumericFieldWithExtractor(
             "forward",
@@ -110,7 +103,7 @@ namespace
         addNumericFieldWithExtractor(
             "actual_flow",
             "The actual amount of water that pass through this meter (8/74/Flow V1 actual).",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            PrintProperty::JSON,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -199,5 +192,5 @@ namespace
 // Test: Heat multical303 82788281 75EDE0CBBB6E126764898645AA366568
 // Comment: Not able to get values for 04FF07 & 04FF08 & 04FF22
 // telegram=|_5E442D2C8182788240047A83005025186E9C6D9815EBFC04CBE8E4B8C8A6B9949C9DAA629CD96D920F321CFBEE7AE104DD8532C5C0EE79B4CFACCFA75D3A5EB6D4493DFAFE91B15C3A3DCFCE899138B8EA02CDB609D31CF019F9E4FD04559E|
-// {"media":"heat","meter":"multical303","name":"Heat","id":"82788281","total_energy_kwh":0,"total_volume_m3":2.38,"return_energy_counter":61,"forward_c":26.07,"return_c":26.22,"actual_flow_m3h":0,"status":"OK","date_time":"2022-08-18","target_energy_kwh":0,"target_volume_m3":0,"target_date_time":"2022-08-01","timestamp":"1111-11-11T11:11:11Z"}
-// |Heat;82788281;0.000000;0.000000;OK;0.000000;0.000000;2022-08-01;1111-11-11 11:11.11
+// {"media":"heat","meter":"multical303","name":"Heat","id":"82788281","total_energy_kwh":0,"total_volume_m3":2.38,"forward_energy_kwh":61,"return_energy_kwh":61,"forward_c":26.07,"return_c":26.22,"actual_flow_m3h":0,"status":"OK","date_time":"2022-08-18","target_energy_kwh":0,"target_volume_m3":0,"target_date_time":"2022-08-01","timestamp":"1111-11-11T11:11:11Z"}
+// |Heat;82788281;OK;0;0;1111-11-11 11:11.11
