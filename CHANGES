@@ -1,4 +1,6 @@
 
+Thecem added support for the Multical 303 heat meter. Thanks thescem!
+
 Improve minomess driver to handle telegrams from wired m-bus module.
 
 Added Enercal F2 heat meter.
