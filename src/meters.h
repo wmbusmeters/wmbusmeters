@@ -183,6 +183,7 @@ struct MeterInfo
     vector<string> shells;
     vector<string> extra_constant_fields; // Additional static fields that are added to each message.
     vector<Unit> conversions; // Additional units desired in json.
+    vector<string> selected_fields; // Usually set to the default fields, but can be override in meter config.
 
     // If this is a meter that needs to be polled.
     int    poll_interval; // Poll every x seconds.
@@ -251,13 +252,14 @@ private:
     MeterType type_; // Water, Electricity etc.
     function<shared_ptr<Meter>(MeterInfo&,DriverInfo&di)> constructor_; // Invoke this to create an instance of the driver.
     vector<DriverDetect> detect_;
+    vector<string> default_fields_;
 
 public:
     DriverInfo() {};
     DriverInfo(MeterDriver mt) : driver_(mt) {};
     void setName(std::string n) { name_ = n; }
     void setMeterType(MeterType t) { type_ = t; }
-
+    void setDefaultFields(string f) { default_fields_ = splitString(f, ','); }
     void addLinkMode(LinkMode lm) { linkmodes_.addLinkMode(lm); }
     void addMfctTPLStatusBits(Translate::Lookup lookup) { mfct_tpl_status_bits_ = lookup; }
     void setConstructor(function<shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
@@ -267,6 +269,7 @@ public:
     MeterDriver driver() { return driver_; }
     DriverName name() { return name_; }
     MeterType type() { return type_; }
+    vector<string>& defaultFields() { return default_fields_; }
     LinkModeSet linkModes() { return linkmodes_; }
     Translate::Lookup &mfctTPLStatusBits() { return mfct_tpl_status_bits_; }
     shared_ptr<Meter> construct(MeterInfo& mi) { return constructor_(mi, *this); }
@@ -429,6 +432,9 @@ struct Meter
     virtual string idsc() = 0;
     // This meter can report these fields, like total_m3, temp_c.
     virtual vector<FieldInfo> &fieldInfos() = 0;
+    // Either the default fields specified in the driver, or override fields in the meter configuration file.
+    virtual vector<string> &selectedFields() = 0;
+    virtual void setSelectedFields(vector<string> &f) = 0;
     virtual string meterDriver() = 0;
     virtual string name() = 0;
     virtual MeterDriver driver() = 0;

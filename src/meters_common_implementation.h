@@ -95,6 +95,7 @@ protected:
     void setMeterType(MeterType mt);
     void addLinkMode(LinkMode lm);
     void addMfctTPLStatusBits(Translate::Lookup lookup);
+    void setDefaultFields(string f);
 
     // Print with the default unit for this quantity.
     void addPrint(string vname, Quantity vquantity,
@@ -235,6 +236,9 @@ protected:
     void addOptionalCommonFields();
     void addOptionalFlowRelatedFields();
 
+    vector<string> &selectedFields() { return selected_fields_; }
+    void setSelectedFields(vector<string> &f) { selected_fields_ = f; }
+
 private:
 
     int index_ {};
@@ -261,6 +265,9 @@ protected:
     vector<Unit> conversions_;
     vector<FieldInfo> field_infos_;
     vector<string> field_names_;
+    // Defaults to a setting specified in the driver. Can be overridden in the meter file.
+    // There is also a global selected_fields that can be set on the command line or in the conf file.
+    vector<string> selected_fields_;
     // Map difvif key to hex values from telegrams.
     std::map<std::string,std::pair<int,std::string>> hex_values_;
     // Map field name (total_volume) to numeric value.
