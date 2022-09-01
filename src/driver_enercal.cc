@@ -36,7 +36,7 @@ namespace
     {
         addStringField(
             "status",
-            "Meter error flags.",
+            "Meter status.",
             PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
             PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS);
 
