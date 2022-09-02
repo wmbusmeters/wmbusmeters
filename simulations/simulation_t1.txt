@@ -85,11 +85,11 @@ telegram=|7644C52501880188550872_01880188C5255508010000002F2F0B6E332211426E11018
 # Test Lansen smoke detector telegram
 
 telegram=|2E44333004020100031A7AC40020052F2F_02FD971D000004FD084C02000004FD3A467500002F2F2F2F2F2F2F2F2F2F|
-{"media":"smoke detector","meter":"lansensm","name":"Smokeo","id":"00010204","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"smoke detector","meter":"lansensm","name":"Smokeo","id":"00010204","status":"OK","access_counter":588,"woot_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
 |Smokeo;00010204;OK;1111-11-11 11:11.11
 
 telegram=|2E44333004020100031A7ADE0020052F2F_02FD971D040004FD086502000004FD3A010000002F2F2F2F2F2F2F2F2F2F|
-{"media":"smoke detector","meter":"lansensm","name":"Smokeo","id":"00010204","status":"SMOKE","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"smoke detector","meter":"lansensm","name":"Smokeo","id":"00010204","status":"SMOKE","access_counter":613,"woot_counter":1,"timestamp":"1111-11-11T11:11:11Z"}
 |Smokeo;00010204;SMOKE;1111-11-11 11:11.11
 
 # Test Lansen Temperature Hygrometer telegram

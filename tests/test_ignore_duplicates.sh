@@ -11,7 +11,7 @@ TESTNAME="Test duplicates are ignored"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
-{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","access_counter":588,"woot_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
 $PROG --format=json --ignoreduplicates simulations/simulation_duplicates.txt \
@@ -36,11 +36,11 @@ TESTNAME="Test duplicates are left alone"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
-{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
-{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
-{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
-{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
-{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","access_counter":588,"woot_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","access_counter":588,"woot_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","access_counter":588,"woot_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","access_counter":588,"woot_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","access_counter":588,"woot_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
 $PROG --format=json --ignoreduplicates=false simulations/simulation_duplicates.txt \
