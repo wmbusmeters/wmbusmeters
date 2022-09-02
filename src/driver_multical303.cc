@@ -66,7 +66,7 @@ namespace
             VifScaling::None,
             FieldMatcher::build()
             .set(DifVifKey("04FF07")),
-            Unit::KWH);
+            Unit::M3C);
 
         addNumericFieldWithExtractor(
             "return_energy",
@@ -76,7 +76,7 @@ namespace
             VifScaling::None,
             FieldMatcher::build()
             .set(DifVifKey("04FF08")),
-            Unit::KWH);
+            Unit::M3C);
 
         addNumericFieldWithExtractor(
             "forward",
@@ -146,7 +146,7 @@ namespace
             }));
 
         addStringFieldWithExtractor(
-            "date_time",
+            "meter_date",
             "The date and time (10/348/Date and time).",
             PrintProperty::JSON | PrintProperty::OPTIONAL,
             FieldMatcher::build()
@@ -179,7 +179,7 @@ namespace
             );
 
         addStringFieldWithExtractor(
-            "target_date_time",
+            "target_date",
             "The most recent billing period date and time (14/348/Date and Time logged).",
             PrintProperty::JSON | PrintProperty::FIELD,
             FieldMatcher::build()
@@ -192,5 +192,5 @@ namespace
 // Test: Heat multical303 82788281 75EDE0CBBB6E126764898645AA366568
 // Comment:
 // telegram=|_5E442D2C8182788240047A83005025186E9C6D9815EBFC04CBE8E4B8C8A6B9949C9DAA629CD96D920F321CFBEE7AE104DD8532C5C0EE79B4CFACCFA75D3A5EB6D4493DFAFE91B15C3A3DCFCE899138B8EA02CDB609D31CF019F9E4FD04559E|
-// {"media":"heat","meter":"multical303","name":"Heat","id":"82788281","total_energy_kwh":0,"total_volume_m3":2.38,"forward_energy_kwh":61,"return_energy_kwh":61,"forward_c":26.07,"return_c":26.22,"actual_flow_m3h":0,"status":"OK","date_time":"2022-08-18","target_energy_kwh":0,"target_volume_m3":0,"target_date_time":"2022-08-01","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"heat","meter":"multical303","name":"Heat","id":"82788281","total_energy_kwh":0,"total_volume_m3":2.38,"forward_energy_m3c":61,"return_energy_m3c":61,"forward_c":26.07,"return_c":26.22,"actual_flow_m3h":0,"status":"OK","meter_date":"2022-08-18","target_energy_kwh":0,"target_volume_m3":0,"target_date":"2022-08-01","timestamp":"1111-11-11T11:11:11Z"}
 // |Heat;82788281;OK;0;0;1111-11-11 11:11.11

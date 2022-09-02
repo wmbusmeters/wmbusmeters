@@ -46,10 +46,11 @@
     X(GJ,gj,"GJ",Energy,"Giga Joule")         \
     X(KVARH,kvarh,"kVARh",Reactive_Energy,"kilo volt amperes reactive hour")  \
     X(KVAH,kvah,"kVAh",Apparent_Energy,"kilo volt amperes hour")  \
-    X(M3,m3,"m3",Volume,"cubic meter")        \
+    X(M3C,m3c,"m³°C",Energy,"cubic meter celsius")  \
+    X(M3,m3,"m³",Volume,"cubic meter")        \
     X(L,l,"l",Volume,"litre")                 \
     X(KW,kw,"kW",Power,"kilo Watt")           \
-    X(M3H,m3h,"m3/h",Flow,"cubic meters per hour") \
+    X(M3H,m3h,"m³/h",Flow,"cubic meters per hour") \
     X(LH,lh,"l/h",Flow,"liters per hour") \
     X(C,c,"°C",Temperature,"celsius")         \
     X(F,f,"°F",Temperature,"fahrenheit")      \
