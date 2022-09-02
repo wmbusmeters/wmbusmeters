@@ -2785,6 +2785,24 @@ void MeterCommonImplementation::addOptionalCommonFields()
         );
 
     addStringFieldWithExtractor(
+        "meter_date",
+        "Date when the meter sent the telegram.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::Date)
+        );
+
+    addStringFieldWithExtractor(
+        "meter_date_at_error",
+        "Date when the meter was in error.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        FieldMatcher::build()
+        .set(MeasurementType::AtError)
+        .set(VIFRange::Date)
+        );
+
+    addStringFieldWithExtractor(
         "meter_datetime",
         "Date and time when the meter sent the telegram.",
         PrintProperty::JSON | PrintProperty::OPTIONAL,
