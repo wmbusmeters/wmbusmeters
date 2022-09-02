@@ -48,12 +48,13 @@
     X(FabricationNo,0x78,0x78, Quantity::Text, Unit::TXT) \
     X(EnhancedIdentification,0x79,0x79, Quantity::Text, Unit::TXT) \
     X(RelativeHumidity,0x7B1A,0x7B1B, Quantity::RH, Unit::RH) \
+    X(AccessNumber,0x7D08,0x7D08, Quantity::Counter, Unit::COUNTER) \
     X(ParameterSet,0x7D0B,0x7D0B, Quantity::Text, Unit::TXT) \
     X(ModelVersion,0x7D0C,0x7D0C, Quantity::Text, Unit::TXT) \
     X(SoftwareVersion,0x7D0F,0x7D0F, Quantity::Text, Unit::TXT) \
     X(ErrorFlags,0x7D17,0x7D17, Quantity::Text, Unit::TXT) \
     X(DurationOfTariff,0x7D31,0x7D33, Quantity::Time, Unit::Hour) \
-    X(Dimensionless,0x7D3A,0x7D3A, Quantity::Time, Unit::Hour) \
+    X(Dimensionless,0x7D3A,0x7D3A, Quantity::Counter, Unit::COUNTER) \
     X(Voltage,0x7D40,0x7D4F, Quantity::Voltage, Unit::Volt) \
     X(Current,0x7D50,0x7D5F, Quantity::Current, Unit::Ampere) \
     X(ResetCounter,0x7D60,0x7D60, Quantity::Counter, Unit::COUNTER) \
@@ -83,7 +84,7 @@ bool isInsideVIFRange(int i, VIFRange range);
     X(InverseCompactProfile,0x13,0x13) \
     X(RelativeDeviation,0x14,0x14) \
     X(RecordErrorCodeMeterToController,0x15,0x1c) \
-    X(StandardConformDataContent,0x1d,0x1d) \
+    X(StandardConformantDataContent,0x1d,0x1d) \
     X(CompactProfileWithRegister,0x1e,0x1e) \
     X(CompactProfile,0x1f,0x1f) \
     X(PerSecond,0x20,0x20) \
