@@ -80,7 +80,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "forward",
-            "The forward temperature of the water (6/86/t2 actial 2 decimals).",
+            "The forward temperature of the water (6/86/t2 actual 2 decimals).",
             PrintProperty::JSON | PrintProperty::OPTIONAL,
             Quantity::Temperature,
             VifScaling::Auto,
@@ -91,7 +91,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "return",
-            "The return temperature of the water (7/87/t2 actial 2 decimals).",
+            "The return temperature of the water (7/87/t2 actual 2 decimals).",
             PrintProperty::JSON | PrintProperty::OPTIONAL,
             Quantity::Temperature,
             VifScaling::Auto,
