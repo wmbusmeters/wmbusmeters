@@ -95,8 +95,8 @@ telegram=|2E44333004020100031A7ADE0020052F2F_02FD971D040004FD086502000004FD3A010
 # Test Lansen Temperature Hygrometer telegram
 
 telegram=|2e44333003020100071b7a634820252f2f0265840842658308820165950802fb1aae0142fb1aae018201fb1aa9012f|
-{"media":"room sensor","meter":"lansenth","name":"Tempoo","id":"00010203","current_temperature_c":21.8,"current_relative_humidity_rh":43,"average_temperature_1h_c":21.79,"average_relative_humidity_1h_rh":43,"average_temperature_24h_c":21.97,"average_relative_humidity_24h_rh":42.5,"timestamp":"1111-11-11T11:11:11Z"}
-|Tempoo;00010203;21.800000;43.000000;1111-11-11 11:11.11
+{"media":"room sensor","meter":"lansenth","name":"Tempoo","id":"00010203","status":"PERMANENT_ERROR SABOTAGE_ENCLOSURE","current_temperature_c":21.8,"current_relative_humidity_rh":43,"average_temperature_1h_c":21.79,"average_relative_humidity_1h_rh":43,"average_temperature_24h_c":21.97,"average_relative_humidity_24h_rh":42.5,"timestamp":"1111-11-11T11:11:11Z"}
+|Tempoo;00010203;21.8;43;1111-11-11 11:11.11
 
 # Test Lansen door window telegram
 
