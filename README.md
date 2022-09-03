@@ -104,7 +104,7 @@ attached to an antenna tuned for 868.95MHz, then a more complicated setup could 
 device=rtlwmbus[555555]:433M
 device=rtlwmbus[112233]
 device=/dev/ttyUSB0:im871a[00102759]:c1,t1
-device=/dev/ttyUSB1:rc1800:t1
+device=/dev/ttyUSB1:rc1180:t1
 ```
 
 # Bus aliases and polling
