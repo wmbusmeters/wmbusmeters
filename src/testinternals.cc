@@ -1484,41 +1484,53 @@ void test_field_matcher()
 
     // 81 dif (8 Bit Integer/Binary Instantaneous value)
     // 01 dife (subunit=0 tariff=0 storagenr=2)
-    // E7 vif (External temperature °C)
-    // FF combinable vif (MfctSpecific)
-    // 0F combinable vif (Reserved)
+    // 10 vif (Volume)
+    // FC combinable vif (Extension)
+    // 0C combinable vif (DeltaBetween...)
     // 03 ("external_temperature_c":3)
 
     FieldMatcher m2 = FieldMatcher::build()
         .set(MeasurementType::Instantaneous)
         .set(StorageNr(2))
-        .set(VIFRange::ExternalTemperature);
+        .set(VIFRange::Volume)
+        .add(VIFCombinable::Any);
 
     string v2 = "03";
     DVEntry e2(0,
-               DifVifKey("8101E7FF0F"),
+               DifVifKey("810110FC0C"),
                MeasurementType::Instantaneous,
-               Vif(0xe7),
+               Vif(0x10),
                { VIFCombinable::DeltaBetweenImportAndExport },
                StorageNr(2),
                TariffNr(0),
                SubUnitNr(0),
                v2);
 
-    if (m2.matches(e2))
+    if (!m2.matches(e2))
     {
-        printf("ERROR expected NO match for field matcher test 2 !\n");
+        printf("ERROR expected match for field matcher test 2 !\n");
     }
 
     FieldMatcher m3 = FieldMatcher::build()
         .set(MeasurementType::Instantaneous)
         .set(StorageNr(2))
-        .set(VIFRange::ExternalTemperature)
-        .add(VIFCombinable::Any);
+        .set(VIFRange::Volume)
+        .add(VIFCombinable::DeltaBetweenImportAndExport);
 
     if (!m3.matches(e2))
     {
         printf("ERROR expected match for field matcher test 3 !\n");
+    }
+
+    FieldMatcher m4 = FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(StorageNr(2))
+        .set(VIFRange::Volume)
+        .add(VIFCombinable::ValueDuringUpperLimitExceeded);
+
+    if (m4.matches(e2))
+    {
+        printf("ERROR expected NO match for field matcher test 4 !\n");
     }
 
 }

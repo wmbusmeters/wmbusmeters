@@ -76,7 +76,7 @@ telegram=|4F442D2C012815781C048D206551E76322BE767900843005_1113690B0100C1BC02009
 # Test Multical603 C1 telegram
 
 telegram=|42442D2C3636363635048D20E18025B62087D078_0406A500000004FF072B01000004FF089C000000041421020000043B120000000259D014025D000904FF2200000000|
-{"media":"heat","meter":"multical603","name":"Heat","id":"36363636","total_energy_consumption_kwh":165,"total_volume_m3":5.45,"volume_flow_m3h":0.018,"t1_temperature_c":53.28,"t2_temperature_c":23.04,"at_date":"","current_status":"","energy_forward_kwh":299,"energy_returned_kwh":156,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"heat","meter":"multical603","name":"Heat","id":"36363636","status":"OK","total_energy_consumption_kwh":165,"total_volume_m3":5.45,"volume_flow_m3h":0.018,"t1_temperature_c":53.28,"t2_temperature_c":23.04,"current_status":"","forward_energy_m3c":299,"return_energy_m3c":156,"energy_forward_kwh":299,"energy_returned_kwh":156,"timestamp":"1111-11-11T11:11:11Z"}
 
 # Test Multical803 C1 telegram
 telegram=|88442D2C8180808039048D208640513220EA7978_040FA000000004FF070200000004FF08090000000414FF000000844014000000008480401400000000043B0000000002590000025D0000142D0000000084100F0000000084200F0000000004FF2260000100026C892B440F00000000441400000000C4401400000000C480401400000000426C812B|
