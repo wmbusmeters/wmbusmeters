@@ -69,7 +69,6 @@ LIST_OF_METER_TYPES
     X(eurisii,    T1_bit, HeatCostAllocationMeter, EURISII, EurisII)   \
     X(ehzp,       T1_bit, ElectricityMeter, EHZP,        EHZP)         \
     X(esyswm,     T1_bit, ElectricityMeter, ESYSWM,      ESYSWM)       \
-    X(elf,        T1_bit, HeatMeter,        ELF,         Elf)          \
     X(em24,       C1_bit, ElectricityMeter, EM24,        EM24)         \
     X(emerlin868, T1_bit, WaterMeter,       EMERLIN868,  EMerlin868)   \
     X(ev200,      T1_bit, WaterMeter,       EV200,       EV200)        \

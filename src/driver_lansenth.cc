@@ -55,9 +55,6 @@ namespace
             PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
             PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS);
 
-        // {"media":"room sensor","meter":"lansenth","name":"Tempoo","id":"00010203","current_temperature_c":21.8,"current_relative_humidity_rh":43,"average_temperature_1h_c":21.79,"average_relative_humidity_1h_rh":43,"average_temperature_24h_c":21.97,"average_relative_humidity_24h_rh":42.5,"timestamp":"1111-11-11T11:11:11Z"}
-        // |Tempoo;00010203;21.800000;43.000000;1111-11-11 11:11.11
-
         addNumericFieldWithExtractor(
             "current_temperature",
              "The current temperature.",
