@@ -99,38 +99,38 @@ void setIgnoreDuplicateTelegrams(bool idt);
 // The im871a can for example receive C1a, but it is unclear if there are any meters that use it.
 
 #define LIST_OF_LINK_MODES \
-    X(Any,any,--anylinkmode,(~0UL))               \
-    X(MBUS,mbus,--mbus,0x1UL)                     \
-    X(S1,s1,--s1,0x2UL)                           \
-    X(S1m,s1m,--s1m,0x4UL)                        \
-    X(S2,s2,--s2,0x8UL)                           \
-    X(T1,t1,--t1,0x10UL)                          \
-    X(T2,t2,--t2,0x20UL)                          \
-    X(C1,c1,--c1,0x40UL)                          \
-    X(C2,c2,--c2,0x80UL)                          \
-    X(N1a,n1a,--n1a,0x100UL)                      \
-    X(N2a,n2a,--n2a,0x200UL)                      \
-    X(N1b,n1b,--n1b,0x400UL)                      \
-    X(N2b,n2b,--n2b,0x800UL)                      \
-    X(N1c,n1c,--n1c,0x1000UL)                     \
-    X(N2c,n2c,--n2c,0x2000UL)                     \
-    X(N1d,n1d,--n1d,0x4000UL)                     \
-    X(N2d,n2d,--n2d,0x8000UL)                     \
-    X(N1e,n1e,--n1e,0x10000UL)                    \
-    X(N2e,n2e,--n2e,0x20000UL)                    \
-    X(N1f,n1f,--n1f,0x40000UL)                    \
-    X(N2f,n2f,--n2f,0x80000UL)                    \
-    X(R2a,r2a,--r2a,0x100000UL)                   \
-    X(R2b,r2b,--r2b,0x200000UL)                   \
-    X(R2c,r2c,--r2c,0x400000UL)                   \
-    X(R2d,r2d,--r2d,0x800000UL)                   \
-    X(R2e,r2e,--r2e,0x1000000UL)                  \
-    X(R2f,r2f,--r2f,0x2000000UL)                  \
-    X(R2g,r2g,--r2g,0x4000000UL)                  \
-    X(R2h,r2h,--r2h,0x8000000UL)                  \
-    X(R2i,r2i,--r2i,0x10000000UL)                 \
-    X(R2j,r2j,--r2j,0x20000000UL)                 \
-    X(LORA,lora,--lora,0x40000000UL)              \
+    X(Any,any,--anylinkmode,(~0UL)) \
+    X(MBUS,mbus,--mbus,(1UL<<1))    \
+    X(S1,s1,--s1,      (1UL<<2))    \
+    X(S1m,s1m,--s1m,   (1UL<<3))    \
+    X(S2,s2,--s2,      (1UL<<4))    \
+    X(T1,t1,--t1,      (1UL<<5))    \
+    X(T2,t2,--t2,      (1UL<<6))    \
+    X(C1,c1,--c1,      (1UL<<7))    \
+    X(C2,c2,--c2,      (1UL<<8))    \
+    X(N1a,n1a,--n1a,   (1UL<<9))    \
+    X(N2a,n2a,--n2a,   (1UL<<10))    \
+    X(N1b,n1b,--n1b,   (1UL<<11))    \
+    X(N2b,n2b,--n2b,   (1UL<<12))    \
+    X(N1c,n1c,--n1c,   (1UL<<13))    \
+    X(N2c,n2c,--n2c,   (1UL<<14))    \
+    X(N1d,n1d,--n1d,   (1UL<<15))    \
+    X(N2d,n2d,--n2d,   (1UL<<16))    \
+    X(N1e,n1e,--n1e,   (1UL<<17))    \
+    X(N2e,n2e,--n2e,   (1UL<<18))    \
+    X(N1f,n1f,--n1f,   (1UL<<19))    \
+    X(N2f,n2f,--n2f,   (1UL<<20))    \
+    X(R2a,r2a,--r2a,   (1UL<<21))    \
+    X(R2b,r2b,--r2b,   (1UL<<22))    \
+    X(R2c,r2c,--r2c,   (1UL<<23))    \
+    X(R2d,r2d,--r2d,   (1UL<<24))    \
+    X(R2e,r2e,--r2e,   (1UL<<25))    \
+    X(R2f,r2f,--r2f,   (1UL<<26))    \
+    X(R2g,r2g,--r2g,   (1UL<<27))    \
+    X(R2h,r2h,--r2h,   (1UL<<28))    \
+    X(R2i,r2i,--r2i,   (1UL<<29))    \
+    X(R2j,r2j,--r2j,   (1UL<<30))    \
+    X(LORA,lora,--lora,   (1UL<<31))    \
     X(UNKNOWN,unknown,----,0x0UL)
 
 enum class LinkMode {
