@@ -82,7 +82,6 @@ LIST_OF_METER_TYPES
     X(hydrodigit, T1_bit, WaterMeter,       HYDRODIGIT,  Hydrodigit)   \
     X(izar,       T1_bit, WaterMeter,       IZAR,        Izar)         \
     X(izar3,      T1_bit, WaterMeter,       IZAR3,       Izar3)        \
-    X(lansenth,   T1_bit, TempHygroMeter,   LANSENTH,    LansenTH)     \
     X(mkradio3,   T1_bit, WaterMeter,       MKRADIO3,    MKRadio3)     \
     X(mkradio4,   T1_bit, WaterMeter,       MKRADIO4,    MKRadio4)     \
     X(multical302,C1_bit|T1_bit, HeatMeter,        MULTICAL302, Multical302)  \
