@@ -1150,12 +1150,14 @@ bool FieldMatcher::matches(DVEntry &dv_entry)
 {
     if (!active) return false;
 
+    // Test an explicit dif vif key.
     if (match_dif_vif_key)
     {
         bool b = dv_entry.dif_vif_key == dif_vif_key;
         return b;
     }
 
+    // Test ranges and types.
     bool b =
         (!match_vif_range || isInsideVIFRange(dv_entry.vif, vif_range)) &&
         (!match_measurement_type || dv_entry.measurement_type == measurement_type) &&
@@ -1164,6 +1166,8 @@ bool FieldMatcher::matches(DVEntry &dv_entry)
         (!match_subunit_nr || (dv_entry.subunit_nr >= subunit_nr_from && dv_entry.subunit_nr <= subunit_nr_to));
 
     if (!b) return false;
+
+    // So far so good, now test the combinables.
 
     // If field matcher has no combinables, then do NOT match any dventry with a combinable!
     if (vif_combinables.size()== 0)
@@ -1177,10 +1181,24 @@ bool FieldMatcher::matches(DVEntry &dv_entry)
     // Lets check that the dv_entry combinables contains the field matcher requested combinables.
     for (VIFCombinable vc : vif_combinables)
     {
-        if (dv_entry.combinable_vifs.count(vc) == 0)
+        if (vc != VIFCombinable::Any && dv_entry.combinable_vifs.count(vc) == 0)
         {
             // Ouch, one of the requested combinables did not exist in the dv_entry. No match!
             return false;
+        }
+    }
+
+    // Now if we have not selected the Any combinable match pattern,
+    // then we need to check if there are unmatched combinables in the telegram, if so fail the match.
+    if (vif_combinables.count(VIFCombinable::Any) == 0)
+    {
+        for (VIFCombinable vc : dv_entry.combinable_vifs)
+        {
+            if (vif_combinables.count(vc) == 0)
+            {
+                // Oups, the telegram entry had a combinable that we had no matcher for.
+                return false;
+            }
         }
     }
 

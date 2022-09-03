@@ -1,4 +1,16 @@
 
+ATTENTION! The multical21 and flowiq drivers have been refactored to the new driver style.
+Since the multical21 driver was the first driver ever written, it had some idiosynchrasies.
+To preserve backwards compatibility of the json, the current_status field is left in, but
+marked as deprecated. The new status field will replace it.
+
+The "status":"OK" is a standard field from wmbusmeters that no error bits (both in the tpl status header
+or in error flags in the telegram) are set. The old current_status field was just the empty
+string when all was ok.
+
+If you use the --format=fields then current_status previously also included the time information.
+It no longer does.
+
 Thecem added support for the Multical 303 heat meter. Thanks thescem!
 
 Improve minomess driver to handle telegrams from wired m-bus module.

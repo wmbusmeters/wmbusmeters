@@ -51,6 +51,7 @@ void test_dvs();
 void test_ascii_detection();
 void test_status_join();
 void test_status_sort();
+void test_field_matcher();
 
 int main(int argc, char **argv)
 {
@@ -88,6 +89,7 @@ int main(int argc, char **argv)
     test_ascii_detection();
     test_status_join();
     test_status_sort();
+    test_field_matcher();
 
     return 0;
 }
@@ -254,6 +256,7 @@ int test_test()
 
 int test_linkmodes()
 {
+    /*
     LinkModeCalculationResult lmcr;
     auto manager = createSerialCommunicationManager(0, false);
 
@@ -387,6 +390,7 @@ int test_linkmodes()
     debug("test7 OK\n\n");
 
     manager->stop();
+    */
     return 0;
 }
 
@@ -1450,4 +1454,71 @@ void test_status_sort()
     test_sort("C B A", "A B C");
     test_sort("ERROR BUSY FLOW ERROR", "BUSY ERROR FLOW");
     test_sort("X X X Y Y Z A B C A A AAAA AA AAA", "A AA AAA AAAA B C X Y Z");
+}
+
+void test_field_matcher()
+{
+    // 04 dif (32 Bit Integer/Binary Instantaneous value)
+    // 13 vif (Volume l)
+    // 2F4E0000 ("total_m3":20.015)
+
+    FieldMatcher m1 = FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::Volume);
+
+    string v1 = "2F4E0000";
+    DVEntry e1(0,
+               DifVifKey("0413"),
+               MeasurementType::Instantaneous,
+               Vif(0x13),
+               { },
+               StorageNr(0),
+               TariffNr(0),
+               SubUnitNr(0),
+               v1);
+
+    if (!m1.matches(e1))
+    {
+        printf("ERROR expected match for field matcher test 1 !\n");
+    }
+
+    // 81 dif (8 Bit Integer/Binary Instantaneous value)
+    // 01 dife (subunit=0 tariff=0 storagenr=2)
+    // E7 vif (External temperature °C)
+    // FF combinable vif (MfctSpecific)
+    // 0F combinable vif (Reserved)
+    // 03 ("external_temperature_c":3)
+
+    FieldMatcher m2 = FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(StorageNr(2))
+        .set(VIFRange::ExternalTemperature);
+
+    string v2 = "03";
+    DVEntry e2(0,
+               DifVifKey("8101E7FF0F"),
+               MeasurementType::Instantaneous,
+               Vif(0xe7),
+               { VIFCombinable::DeltaBetweenImportAndExport },
+               StorageNr(2),
+               TariffNr(0),
+               SubUnitNr(0),
+               v2);
+
+    if (m2.matches(e2))
+    {
+        printf("ERROR expected NO match for field matcher test 2 !\n");
+    }
+
+    FieldMatcher m3 = FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(StorageNr(2))
+        .set(VIFRange::ExternalTemperature)
+        .add(VIFCombinable::Any);
+
+    if (!m3.matches(e2))
+    {
+        printf("ERROR expected match for field matcher test 3 !\n");
+    }
+
 }
