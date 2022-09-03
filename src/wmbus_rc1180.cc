@@ -59,6 +59,11 @@ struct ConfigRC1180
         return tostrprintf("%08x", id);
     }
 
+    bool usingRssi()
+    {
+        return rssi_mode == 1;
+    }
+
     string str()
     {
         string mfct_flag = manufacturerFlag(mfct);
@@ -326,15 +331,22 @@ void WMBusRC1180::processSerialData()
         if (status == FullFrame)
         {
             vector<uchar> payload;
-            if (payload_len > 0)
+            int rssi = 0;
+            bool extra_byte = device_config_.usingRssi();
+
+            if ((!extra_byte && payload_len > 0) || (extra_byte && payload_len > 1))
             {
+                if (device_config_.usingRssi())
+                {
+                    rssi = read_buffer_[payload_offset+payload_len-1];
+                    payload_len--;
+                }
                 uchar l = payload_len;
                 payload.insert(payload.end(), &l, &l+1); // Re-insert the len byte.
                 payload.insert(payload.end(), read_buffer_.begin()+payload_offset, read_buffer_.begin()+payload_offset+payload_len);
             }
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
-            // It should be possible to get the rssi from the dongle.
-            AboutTelegram about("rc1180["+cached_device_id_+"]", 0, FrameType::WMBUS);
+            AboutTelegram about("rc1180["+cached_device_id_+"]", rssi, FrameType::WMBUS);
             handleTelegram(about, payload);
         }
     }
@@ -390,7 +402,7 @@ AccessCheck detectRC1180(Detected *detected, shared_ptr<SerialCommunicationManag
         return AccessCheck::NoProperResponse;
     }
 
-    debug("(rc1180) config: %s\n", co.str().c_str());
+    verbose("(rc1180) config: %s\n", co.str().c_str());
 
     /*
       Modification of the non-volatile memory should be done using the
