@@ -34,7 +34,7 @@ else
 fi
 
 cat > $TEST/test_expected.txt <<EOF
-{"media":"cold water","meter":"multical21","name":"MyWater","id":"76348799","total_m3":6.408,"target_m3":6.408,"max_flow_m3h":0,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"cold water","meter":"multical21","name":"MyWater","id":"76348799","status":"DRY","total_m3":6.408,"target_m3":6.408,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
 TESTNAME="Test hex on commandline with meter"
@@ -94,7 +94,7 @@ TESTNAME="Test hex on stdin"
 
 cat > $TEST/test_expected.txt <<EOF
 {"media":"other","meter":"lansenpu","name":"MyCounter","id":"00010206","status":"OK","a_counter":4711,"b_counter":1234,"timestamp":"1111-11-11T11:11:11Z"}
-{"media":"cold water","meter":"multical21","name":"MyWater","id":"76348799","total_m3":6.408,"target_m3":6.408,"max_flow_m3h":0,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"cold water","meter":"multical21","name":"MyWater","id":"76348799","status":"DRY","total_m3":6.408,"target_m3":6.408,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 {"media":"other","meter":"lansenpu","name":"MyCounter","id":"00010206","status":"OK","a_counter":4711,"b_counter":1234,"timestamp":"1111-11-11T11:11:11Z"}
 EOF
 

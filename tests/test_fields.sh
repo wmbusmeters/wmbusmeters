@@ -10,8 +10,8 @@ TESTNAME="Test selected fields"
 TESTRESULT="ERROR"
 
 cat <<EOF > $TEST/test_expected.txt
-76348799;Vatten;6408;6.408;0;127;260.6
-76348799;Vatten;6408;6.408;0;127;260.6
+76348799;Vatten;6408;6.408;null;127;260.6
+76348799;Vatten;6408;6.408;null;127;260.6
 EOF
 
 $PROG --format=fields --separator=';' \

@@ -85,9 +85,6 @@ LIST_OF_METER_TYPES
     X(lansenth,   T1_bit, TempHygroMeter,   LANSENTH,    LansenTH)     \
     X(mkradio3,   T1_bit, WaterMeter,       MKRADIO3,    MKRadio3)     \
     X(mkradio4,   T1_bit, WaterMeter,       MKRADIO4,    MKRadio4)     \
-    X(multical21, C1_bit|T1_bit, WaterMeter,       MULTICAL21,  Multical21)   \
-    X(flowiq2200, C1_bit, WaterMeter,       FLOWIQ2200,  FlowIQ2200)   \
-    X(flowiq3100, C1_bit, WaterMeter,       FLOWIQ3100,  FlowIQ3100)   \
     X(multical302,C1_bit|T1_bit, HeatMeter,        MULTICAL302, Multical302)  \
     X(multical403,C1_bit, HeatMeter,        MULTICAL403, Multical403)  \
     X(multical602,C1_bit, HeatMeter,        MULTICAL602, Multical602)  \
@@ -245,6 +242,7 @@ private:
 
     MeterDriver driver_ {}; // Old driver enum, to go away.
     DriverName name_; // auto, unknown, amiplus, lse_07_17, multical21 etc
+    vector<DriverName> name_aliases_; // Secondary names that will map to this driver.
     LinkModeSet linkmodes_; // C1, T1, S1 or combinations thereof.
     Translate::Lookup mfct_tpl_status_bits_; // Translate any mfct specific bits in tpl status.
     MeterType type_; // Water, Electricity etc.
@@ -256,6 +254,7 @@ public:
     DriverInfo() {};
     DriverInfo(MeterDriver mt) : driver_(mt) {};
     void setName(std::string n) { name_ = n; }
+    void addNameAlias(std::string n) { name_aliases_.push_back(n); }
     void setMeterType(MeterType t) { type_ = t; }
     void setDefaultFields(string f) { default_fields_ = splitString(f, ','); }
     void addLinkMode(LinkMode lm) { linkmodes_.addLinkMode(lm); }
@@ -266,6 +265,7 @@ public:
 
     MeterDriver driver() { return driver_; }
     DriverName name() { return name_; }
+    vector<DriverName>& nameAliases() { return name_aliases_; }
     MeterType type() { return type_; }
     vector<string>& defaultFields() { return default_fields_; }
     LinkModeSet linkModes() { return linkmodes_; }

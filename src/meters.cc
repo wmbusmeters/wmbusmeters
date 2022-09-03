@@ -50,8 +50,23 @@ void verifyDriverLookupCreated()
 DriverInfo *lookupDriver(string name)
 {
     verifyDriverLookupCreated();
-    if (registered_drivers_->count(name) == 0) return NULL;
-    return &(*registered_drivers_)[name];
+    if (registered_drivers_->count(name) == 1)
+    {
+        return &(*registered_drivers_)[name];
+    }
+
+    for (DriverInfo *di : *registered_drivers_list_)
+    {
+        for (DriverName &dn : di->nameAliases())
+        {
+            if (dn.str() == name)
+            {
+                return di;
+            }
+        }
+    }
+
+    return NULL;
 }
 
 vector<DriverInfo*> &allDrivers()
@@ -62,6 +77,12 @@ vector<DriverInfo*> &allDrivers()
 void addRegisteredDriver(DriverInfo di)
 {
     verifyDriverLookupCreated();
+    if (registered_drivers_->count(di.name().str()) != 0)
+    {
+        error("Two drivers trying to register the name \"%s\"\n", di.name().str().c_str());
+        exit(1);
+    }
+
     (*registered_drivers_)[di.name().str()] = di;
     // The list elements points into the map.
     (*registered_drivers_list_).push_back(lookupDriver(di.name().str()));
@@ -1528,7 +1549,7 @@ string findField(string key, vector<string> *extra_constant_fields)
 }
 
 // Is the desired field one of the fields common to all meters and telegrams?
-bool checkCommonField(string *buf, string field, Meter *m, Telegram *t, char c)
+bool checkCommonField(string *buf, string field, Meter *m, Telegram *t, char c, bool human_readable)
 {
     if (field == "name")
     {
@@ -1576,7 +1597,7 @@ bool checkCommonField(string *buf, string field, Meter *m, Telegram *t, char c)
 
 // Is the desired field one of the meter printable fields?
 bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char c,
-                         vector<FieldInfo> &fields, vector<Unit> &cs)
+                         vector<FieldInfo> &fields, vector<Unit> &cs, bool human_readable)
 {
     for (FieldInfo &fi : fields)
     {
@@ -1597,7 +1618,13 @@ bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char 
             if (field == var)
             {
                 // Default unit.
-                *buf += valueToString(m->getNumericValue(&fi, fi.defaultUnit()), fi.defaultUnit()) + c;
+                *buf += valueToString(m->getNumericValue(&fi, fi.defaultUnit()), fi.defaultUnit());
+                if (human_readable)
+                {
+                    *buf += " ";
+                    *buf += unitToStringHR(fi.defaultUnit());
+                }
+                *buf += c;
                 return true;
             }
             else
@@ -1610,7 +1637,13 @@ bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char 
                     string var = fi.vname()+"_"+unit;
                     if (field == var)
                     {
-                        *buf += valueToString(m->getNumericValue(&fi, u), u) + c;
+                        *buf += valueToString(m->getNumericValue(&fi, u), u);
+                        if (human_readable)
+                        {
+                            *buf += " ";
+                            *buf += unitToStringHR(u);
+                        }
+                        *buf += c;
                         return true;
                     }
                 }
@@ -1635,7 +1668,7 @@ bool checkConstantField(string *buf, string field, char c, vector<string> *extra
     return false;
 }
 
-string concatFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints, vector<Unit> &cs, bool hr,
+string concatFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints, vector<Unit> &cs, bool human_readable,
                     vector<string> *selected_fields, vector<string> *extra_constant_fields)
 {
     if (selected_fields == NULL || selected_fields->size() == 0)
@@ -1647,17 +1680,17 @@ string concatFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints, ve
         }
         else
         {
-            return concatAllFields(m, t, c, prints, cs, hr, extra_constant_fields);
+            return concatAllFields(m, t, c, prints, cs, human_readable, extra_constant_fields);
         }
     }
     string buf = "";
 
     for (string field : *selected_fields)
     {
-        bool handled = checkCommonField(&buf, field, m, t, c);
+        bool handled = checkCommonField(&buf, field, m, t, c, human_readable);
         if (handled) continue;
 
-        handled = checkPrintableField(&buf, field, m, t, c, prints, cs);
+        handled = checkPrintableField(&buf, field, m, t, c, prints, cs, human_readable);
         if (handled) continue;
 
         handled = checkConstantField(&buf, field, c, extra_constant_fields);

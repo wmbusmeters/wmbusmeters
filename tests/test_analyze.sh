@@ -33,7 +33,7 @@ TESTRESULT="ERROR"
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : multical21
 Best driver  :  00/00
-Using driver : multical21(driver should be upgraded) 00/00
+Using driver : multical21 00/00
 000   : 2a length (42 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -52,16 +52,14 @@ Using driver : multical21(driver should be upgraded) 00/00
     "meter":"multical21",
     "name":"",
     "id":"76348799",
-    "total_m3":0,
-    "target_m3":0,
-    "max_flow_m3h":0,
-    "flow_temperature_c":127,
-    "external_temperature_c":127,
-    "current_status":"",
-    "time_dry":"",
-    "time_reversed":"",
-    "time_leaking":"",
-    "time_bursting":"",
+    "status":null,
+    "total_m3":null,
+    "target_m3":null,
+    "current_status":null,
+    "time_dry":null,
+    "time_reversed":null,
+    "time_leaking":null,
+    "time_bursting":null,
     "timestamp":"1111-11-11T11:11:11Z"
 }
 EOF
@@ -80,7 +78,7 @@ TESTRESULT="ERROR"
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : multical21
 Best driver  :  00/00
-Using driver : multical21(driver should be upgraded) 00/00
+Using driver : multical21 00/00
 000   : 23 length (35 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -99,16 +97,14 @@ Using driver : multical21(driver should be upgraded) 00/00
     "meter":"multical21",
     "name":"",
     "id":"76348799",
-    "total_m3":0,
-    "target_m3":0,
-    "max_flow_m3h":0,
-    "flow_temperature_c":127,
-    "external_temperature_c":127,
-    "current_status":"",
-    "time_dry":"",
-    "time_reversed":"",
-    "time_leaking":"",
-    "time_bursting":"",
+    "status":null,
+    "total_m3":null,
+    "target_m3":null,
+    "current_status":null,
+    "time_dry":null,
+    "time_reversed":null,
+    "time_leaking":null,
+    "time_bursting":null,
     "timestamp":"1111-11-11T11:11:11Z"
 }
 EOF
@@ -126,8 +122,8 @@ TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : multical21
-Best driver  : multical21(driver should be upgraded) 12/12
-Using driver : multical21(driver should be upgraded) 00/00
+Best driver  : multical21 12/12
+Using driver : multical21 00/00
 000   : 2a length (42 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -143,28 +139,28 @@ Using driver : multical21(driver should be upgraded) 00/00
 020   : 02 dif (16 Bit Integer/Binary Instantaneous value)
 021   : FF vif (Manufacturer specific)
 022   : 20 combinable vif (PerSecond)
-023 C!: 7100 info codes (DRY(dry 22-31 days))
+023 C!: 7100 ("status":"DRY") ("current_status":"DRY") ("time_dry":"22-31 days") ("time_reversed":"") ("time_leaking":"") ("time_bursting":"")
 025   : 04 dif (32 Bit Integer/Binary Instantaneous value)
 026   : 13 vif (Volume l)
-027 C!: 08190000 total consumption (6.408000 m3)
+027 C!: 08190000 ("total_m3":6.408)
 031   : 44 dif (32 Bit Integer/Binary Instantaneous value storagenr=1)
 032   : 13 vif (Volume l)
-033 C!: 08190000 target consumption (6.408000 m3)
+033 C!: 08190000 ("target_m3":6.408)
 037   : 61 dif (8 Bit Integer/Binary Minimum value storagenr=1)
 038   : 5B vif (Flow temperature °C)
-039 C!: 7F flow temperature (127.000000 °C)
+039 C!: 7F ("flow_temperature_c":127)
 040   : 61 dif (8 Bit Integer/Binary Minimum value storagenr=1)
 041   : 67 vif (External temperature °C)
-042 C!: 13 external temperature (19.000000 °C)
+042 C!: 13 ("external_temperature_c":19)
 
 {
     "media":"cold water",
     "meter":"multical21",
     "name":"",
     "id":"76348799",
+    "status":"DRY",
     "total_m3":6.408,
     "target_m3":6.408,
-    "max_flow_m3h":0,
     "flow_temperature_c":127,
     "external_temperature_c":19,
     "current_status":"DRY",
@@ -189,8 +185,8 @@ TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : multical21
-Best driver  : multical21(driver should be upgraded) 12/12
-Using driver : multical21(driver should be upgraded) 00/00
+Best driver  : multical21 12/12
+Using driver : multical21 00/00
 000   : 23 length (35 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -205,20 +201,20 @@ Using driver : multical21(driver should be upgraded) 00/00
 019   : 79 tpl-ci-field (EN 13757-3 Application Layer with Compact frame (no tplh))
 020   : eda8 format signature
 022   : e475 data crc
-024 C!: 7100 info codes (DRY(dry 22-31 days))
-026 C!: 09190000 total consumption (6.409000 m3)
-030 C!: 09190000 target consumption (6.409000 m3)
-034 C!: 7F flow temperature (127.000000 °C)
-035 C!: 16 external temperature (22.000000 °C)
+024 C!: 7100 ("status":"DRY") ("current_status":"DRY") ("time_dry":"22-31 days") ("time_reversed":"") ("time_leaking":"") ("time_bursting":"")
+026 C!: 09190000 ("total_m3":6.409)
+030 C!: 09190000 ("target_m3":6.409)
+034 C!: 7F ("flow_temperature_c":127)
+035 C!: 16 ("external_temperature_c":22)
 
 {
     "media":"cold water",
     "meter":"multical21",
     "name":"",
     "id":"76348799",
+    "status":"DRY",
     "total_m3":6.409,
     "target_m3":6.409,
-    "max_flow_m3h":0,
     "flow_temperature_c":127,
     "external_temperature_c":22,
     "current_status":"DRY",
