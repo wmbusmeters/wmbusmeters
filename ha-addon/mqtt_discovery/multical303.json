@@ -1,5 +1,5 @@
 {
-    "total_energy_consumption_kwh": {
+    "total_energy_kwh": {
         "component": "sensor",
         "discovery_payload": {
             "device": {
@@ -13,7 +13,7 @@
             "json_attributes_topic": "wmbusmeters/{name}",
             "state_class": "total",
             "device_class": "energy",
-            "name": "{name} total energy consumption",
+            "name": "{name} total energy",
             "state_topic": "wmbusmeters/{name}",
             "unique_id": "wmbusmeters_{id}_{attribute}",
             "unit_of_measurement": "kWh",
@@ -43,7 +43,7 @@
         }
     },
 
-    "volume_flow_m3h": {
+    "actual_flow_m3h": {
         "component": "sensor",
         "discovery_payload": {
             "device": {
@@ -64,7 +64,7 @@
         }
     },
 
-    "t1_temperature_c": {
+    "forward_c": {
         "component": "sensor",
         "discovery_payload": {
             "device": {
@@ -86,7 +86,7 @@
         }
     },
 
-    "t2_temperature_c": {
+    "return_c": {
         "component": "sensor",
         "discovery_payload": {
             "device": {
@@ -108,7 +108,7 @@
         }
     },
 
-    "energy_forward_kwh": {
+    "forward_energy_kwh": {
         "component": "sensor",
         "discovery_payload": {
             "device": {
@@ -131,7 +131,7 @@
         }
     },
 
-    "energy_returned_kwh": {
+    "return_energy_kwh": {
         "component": "sensor",
         "discovery_payload": {
             "device": {
@@ -175,6 +175,7 @@
             "payload_off": "False"
         }
     },
+
     "status_LOW_BATTERY_LEVEL": {
         "component": "binary_sensor",
         "discovery_payload": {
@@ -196,27 +197,7 @@
             "payload_off": "False"
         }
     },
-    "status_EXTERNAL_ALARM": {
-        "component": "binary_sensor",
-        "discovery_payload": {
-            "device": {
-                "identifiers": ["wmbusmeters_{id}"],
-                "manufacturer": "Kamstrup",
-                "model": "{driver}",
-                "name": "{name}",
-                "sw_version": "{id}"
-            },
-            "enabled_by_default": false,
-            "entity_category": "diagnostic",
-            "device_class": "problem",
-            "name": "{name} external alarm",
-            "state_topic": "wmbusmeters/{name}",
-            "unique_id": "wmbusmeters_{id}_{attribute}",
-            "value_template": "{{ 'EXTERNAL_ALARM' in value_json.current_status }}",
-            "payload_on": "True",
-            "payload_off": "False"
-        }
-    },
+
     "status_SENSOR_T1_ABOVE_MEASURING_RANGE": {
         "component": "binary_sensor",
         "discovery_payload": {
@@ -238,6 +219,7 @@
             "payload_off": "False"
         }
     },
+ 
     "status_SENSOR_T2_ABOVE_MEASURING_RANGE": {
         "component": "binary_sensor",
         "discovery_payload": {
@@ -259,6 +241,7 @@
             "payload_off": "False"
         }
     },
+ 
     "status_SENSOR_T1_BELOW_MEASURING_RANGE": {
         "component": "binary_sensor",
         "discovery_payload": {
@@ -280,6 +263,7 @@
             "payload_off": "False"
         }
     },
+ 
     "status_SENSOR_T2_BELOW_MEASURING_RANGE": {
         "component": "binary_sensor",
         "discovery_payload": {
@@ -301,6 +285,7 @@
             "payload_off": "False"
         }
     },
+ 
     "status_TEMP_DIFF_WRONG_POLARITY": {
         "component": "binary_sensor",
         "discovery_payload": {
@@ -322,7 +307,95 @@
             "payload_off": "False"
         }
     },
-
+ 
+    "status_FLOW_SENSOR_WEAK_OR_AIR": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} flow sensor weak or air",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'FLOW_SENSOR_WEAK_OR_AIR' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+ 
+    "status_WRONG_FLOW_DIRECTION": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} wrong flow direction",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'WRONG_FLOW_DIRECTION' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+ 
+    "status_UNKNOWN": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} unknown",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'UNKNOWN' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+ 
+    "status_FLOW_INCREASED": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} flow increased",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'FLOW_INCREASED' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+    
     "rssi_dbm": {
         "component": "sensor",
         "discovery_payload": {
