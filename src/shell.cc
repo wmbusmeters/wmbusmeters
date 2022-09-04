@@ -26,6 +26,39 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+// Posix says that this variable just exists.
+// (On some systems this is also declared in unistd.h)
+extern char **environ;
+
+// Not the result borrows memory from env and thus it's lifetime.
+vector<const char*> prepareEnv(vector<string>& envs)
+{
+    map<string, const char*> env_map;
+    int i;
+
+    for (i = 0; environ[i]; i++) {
+        string e = environ[i];
+        vector<string> parts = splitString(e, '=');
+        env_map[parts[0]] = environ[i];
+    }
+
+    for (auto &e : envs) {
+        vector<string> parts = splitString(e, '=');
+        env_map[parts[0]] = e.c_str();
+        debug("(shell) env \"%s\"\n", e.c_str());
+    }
+
+    vector<const char*> env(env_map.size()+1);
+    i = 0;
+    for (auto &e : env_map) {
+        env[i] = e.second;
+        i++;
+    }
+    env[i] = NULL;
+
+    return env;
+}
+
 void invokeShell(string program, vector<string> args, vector<string> envs)
 {
     vector<const char*> argv(args.size()+2);
@@ -41,15 +74,7 @@ void invokeShell(string program, vector<string> args, vector<string> envs)
     }
     argv[i] = NULL;
 
-    vector<const char*> env(envs.size()+1);
-    env[0] = p;
-    i = 0;
-    for (auto &e : envs) {
-        env[i] = e.c_str();
-        i++;
-        debug("(shell) env \"%s\"\n", e.c_str());
-    }
-    env[i] = NULL;
+    vector<const char*> env = prepareEnv(envs);
 
     pid_t pid = fork();
     int status;
@@ -99,15 +124,7 @@ bool invokeBackgroundShell(string program, vector<string> args, vector<string> e
     }
     argv[i] = NULL;
 
-    vector<const char*> env(envs.size()+1);
-    env[0] = p;
-    i = 0;
-    for (auto &e : envs) {
-        env[i] = e.c_str();
-        i++;
-        debug("(bgshell) env \"%s\"\n", e.c_str());
-    }
-    env[i] = NULL;
+    vector<const char*> env = prepareEnv(envs);
 
     if (pipe(link) == -1) {
         error("(bgshell) could not create pipe!\n");
@@ -241,15 +258,7 @@ int invokeShellCaptureOutput(string program, vector<string> args, vector<string>
     }
     argv[i] = NULL;
 
-    vector<const char*> env(envs.size()+1);
-    env[0] = p;
-    i = 0;
-    for (auto &e : envs) {
-        env[i] = e.c_str();
-        i++;
-        debug("(shell) env \"%s\"\n", e.c_str());
-    }
-    env[i] = NULL;
+    vector<const char*> env = prepareEnv(envs);
 
     if (pipe(link) == -1) {
         error("(shell) could not create pipe!\n");
