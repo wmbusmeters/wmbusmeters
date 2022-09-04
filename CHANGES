@@ -1,15 +1,12 @@
 
 ATTENTION! The multical21 and flowiq drivers have been refactored to the new driver style.
+
+Added check for existance of difvif varlen length byte before reading it. Found by fuzzing.
+
 Since the multical21 driver was the first driver ever written, it had some idiosynchrasies.
-To preserve backwards compatibility of the json, the current_status field is left in, but
-marked as deprecated. The new status field will replace it.
-
-The "status":"OK" is a standard field from wmbusmeters that no error bits (both in the tpl status header
-or in error flags in the telegram) are set. The old current_status field was just the empty
-string when all was ok.
-
-If you use the --format=fields then current_status previously also included the time information.
-It no longer does.
+The json should be entirely backwards compatible but when format=fields is used, the
+status field no longer has the days, eg "DRY(22-31 days)" is now just "DRY"
+use the json or selectfields=time_dry to get how long it has been dry.
 
 Thecem added support for the Multical 303 heat meter. Thanks thescem!
 

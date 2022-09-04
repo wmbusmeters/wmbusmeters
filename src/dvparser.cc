@@ -394,12 +394,19 @@ bool parseDV(Telegram *t,
         DEBUG_PARSER("(dvparser debug) DifVif key is %s\n", key.c_str());
 
         int remaining = std::distance(data, data_end);
+        if (remaining < 1)
+        {
+            debug("(dvparser) warning: unexpected end of data\n");
+            break;
+        }
+
         if (variable_length) {
             DEBUG_PARSER("(dvparser debug) varlen %02x\n", *(data+0));
             datalen = *(data);
         }
         DEBUG_PARSER("(dvparser debug) remaining data %d len=%d\n", remaining, datalen);
-        if (remaining < datalen) {
+        if (remaining < datalen)
+        {
             debug("(dvparser) warning: unexpected end of data\n");
             datalen = remaining-1;
         }
