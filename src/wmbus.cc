@@ -2862,6 +2862,12 @@ double vifScale(int vif)
         // for remaining battery wmbusmeters returns number of days.
     case 0x7d74: { return 1.0; }
 
+        // wmbusmeters always returns time in hours
+    case 0x7d2c: return 3600.0; // Duration since readout seconds
+    case 0x7d2d: return 60.0; // Duration since readout minutes
+    case 0x7d2e: return 1.0; // Duration since readout hours
+    case 0x7d2f: return (1.0/24.0); // Duration since readout days
+
         /*
     case 0x78: // Fabrication no
     case 0x79: // Enhanced identification

@@ -315,6 +315,7 @@ bool parseDV(Telegram *t,
             DEBUG_PARSER("(dvparser debug) variable length vif found\n");
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif varlen expected)\n"); break; }
             uchar viflen = **format;
+            id_bytes.push_back(viflen);
             t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
                                              "%02X viflen (%d)", viflen, viflen);
             for (uchar i = 0; i < viflen; ++i)
@@ -430,11 +431,10 @@ bool parseDV(Telegram *t,
 
         DVEntry *dve = &(*dv_entries)[key].second;
 
-        /*
-        if (isDebugEnabled())
+        /*if (isDebugEnabled())
         {
             debug("(dvparser) entry %s\n", dve->str().c_str());
-        }*/
+            }*/
 
         assert(key == dve->dif_vif_key.str());
 
