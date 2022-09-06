@@ -304,8 +304,8 @@ telegram=|8E44B409747372710B0D7A798080052F2F_0C0E59600100046D1D36B9290C136799470
 
 # Test Weptech Munia temperature hygrometer
 telegram=|2E44B05C82340100021B7A460000002F2F0A6601020AFB1A570602FD971D00002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F|
-{"media":"room sensor","meter":"munia","name":"TempoHygro","id":"00013482","current_temperature_c":20.1,"current_relative_humidity_rh":65.7,"timestamp":"1111-11-11T11:11:11Z"}
-|TempoHygro;00013482;20.100000;65.700000;1111-11-11 11:11.11
+{"media":"room sensor","meter":"munia","name":"TempoHygro","id":"00013482","status":"OK","current_temperature_c":20.1,"current_relative_humidity_rh":65.7,"timestamp":"1111-11-11T11:11:11Z"}
+|TempoHygro;00013482;20.1;65.7;1111-11-11 11:11.11
 
 # Test QHeat heat meter
 telegram=|3C449344957002372337725880226793442304DC0000200C05043900004C0500000000426C9F2CCC080551070000C2086CBE29326CFFFF046D280DB62A|
