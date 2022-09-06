@@ -60,6 +60,7 @@
     X(ResetCounter,0x7D60,0x7D60, Quantity::Counter, Unit::COUNTER) \
     X(CumulationCounter,0x7D61,0x7D61, Quantity::Counter, Unit::COUNTER) \
     X(RemainingBattery,0x7D74,0x7D74, Quantity::Time, Unit::Day) \
+    X(DurationSinceReadout,0x7DAC,0x7DAC, Quantity::Time, Unit::Hour) \
     X(AnyVolumeVIF,0x00,0x00, Quantity::Volume, Unit::Unknown) \
     X(AnyEnergyVIF,0x00,0x00, Quantity::Energy, Unit::Unknown)  \
     X(AnyPowerVIF,0x00,0x00, Quantity::Power, Unit::Unknown)
