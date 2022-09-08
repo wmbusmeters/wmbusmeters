@@ -271,6 +271,9 @@ test:
 testd:
 	@./test.sh build_debug/wmbusmeters
 
+testdriver:
+	@./tests/test_drivers.sh build/wmbusmeters driver_${DRIVER}.cc
+
 update_manufacturers:
 	iconv -f utf-8 -t ascii//TRANSLIT -c DLMS_Flagids.csv -o tmp.flags
 	cat tmp.flags | grep -v ^# | cut -f 1 > list.flags

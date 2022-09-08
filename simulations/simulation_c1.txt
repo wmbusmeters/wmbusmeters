@@ -52,7 +52,7 @@ telegram=|314493449392919034087a520000200b6e9700004b6e700200426c9f2ccb086e970000
 # Test CMa12w C1 telegrams
 
 telegram=|2744961566666666201B7AF9000020_2F2F02651E094265180902FD1B30030DFD0F05302E302E340F|
-{"media":"room sensor","meter":"cma12w","name":"Rum","id":"66666666","current_temperature_c":23.34,"average_temperature_1h_c":23.28,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"room sensor","meter":"cma12w","name":"Rum","id":"66666666","software_version":"4.0.0","status":"OK","current_temperature_c":23.34,"average_temperature_1h_c":23.28,"battery":"BATTERY_330","timestamp":"1111-11-11T11:11:11Z"}
 
 # Test Multical403 C1 telegrams, with cooling configuration
 
