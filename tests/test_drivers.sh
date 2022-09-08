@@ -31,7 +31,7 @@ do
     METERS=$(cat src/$i | grep '// Test:' | cut -f 2 -d ':' | tr -d '\n')
     sed -n '/\/\/ Test:/,$p' src/$i | grep -e '// telegram' -e '// {' -e '// |' | sed 's|// ||g' > $TEST/simulation.txt
     cat $TEST/simulation.txt | grep '^{' > $TEST/test_expected_json.txt
-    $PROG --format=json $TEST/simulation.txt $METERS > $TEST/test_output_json.txt 2> $TEST/test_stderr_json.txt
+    $PROG --format=json --ignoreduplicates=false $TEST/simulation.txt $METERS > $TEST/test_output_json.txt 2> $TEST/test_stderr_json.txt
     if [ "$?" = "0" ]
     then
         cat $TEST/test_output_json.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_response_json.txt
@@ -50,7 +50,7 @@ do
     fi
 
     cat $TEST/simulation.txt | grep '^|' | sed 's/^|//' > $TEST/test_expected_fields.txt
-    $PROG --format=fields $TEST/simulation.txt $METERS  > $TEST/test_output_fields.txt 2> $TEST/test_stderr_fields.txt
+    $PROG --format=fields --ignoreduplicates=false $TEST/simulation.txt $METERS  > $TEST/test_output_fields.txt 2> $TEST/test_stderr_fields.txt
     if [ "$?" = "0" ]
     then
         cat $TEST/test_output_fields.txt | sed 's/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9].[0-9][0-9]$/1111-11-11 11:11.11/' > $TEST/test_response_fields.txt
