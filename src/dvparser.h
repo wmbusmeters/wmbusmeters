@@ -53,6 +53,7 @@
     X(ModelVersion,0x7D0C,0x7D0C, Quantity::Text, Unit::TXT) \
     X(SoftwareVersion,0x7D0F,0x7D0F, Quantity::Text, Unit::TXT) \
     X(ErrorFlags,0x7D17,0x7D17, Quantity::Text, Unit::TXT) \
+    X(DigitalInput,0x7D1B,0x7D1B, Quantity::Text, Unit::TXT) \
     X(DurationOfTariff,0x7D31,0x7D33, Quantity::Time, Unit::Hour) \
     X(Dimensionless,0x7D3A,0x7D3A, Quantity::Counter, Unit::COUNTER) \
     X(Voltage,0x7D40,0x7D4F, Quantity::Voltage, Unit::Volt) \
