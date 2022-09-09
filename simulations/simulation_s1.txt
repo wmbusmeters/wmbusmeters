@@ -2,8 +2,8 @@
 # Test a HCA WHE465 Qundis
 
 telegram=|244465323251839134087a4f0000000b6e0403004b6e660300426c9e29326cffff046d1416b921dd2f|
-{"media":"heat cost allocation","meter":"whe5x","name":"HCA","id":"91835132","current_consumption_hca":304,"set_date":"2020-09-30","consumption_at_set_date_hca":366,"set_date_1":"2020-09-30","consumption_at_set_date_1_hca":366,"error_date":"2127-15-31","device_date_time":"2021-01-25 22:20","timestamp":"1111-11-11T11:11:11Z"}
-|HCA;91835132;304.000000;2020-09-30;366.000000;1111-11-11 11:11.11
+{"media":"heat cost allocation","meter":"whe5x","name":"HCA","id":"91835132","status":"OK","current_consumption_hca":304,"set_date":"2020-09-30","consumption_at_set_date_hca":366,"set_date_1":"2020-09-30","consumption_at_set_date_1_hca":366,"error_date":"2127-15-31","device_date_time":"2021-01-25 22:20","timestamp":"1111-11-11T11:11:11Z"}
+|HCA;91835132;304;2020-09-30;366;1111-11-11 11:11.11
 
 # Test another HCA from Qundis
 
