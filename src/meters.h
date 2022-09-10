@@ -70,7 +70,6 @@ LIST_OF_METER_TYPES
     X(esyswm,     T1_bit, ElectricityMeter, ESYSWM,      ESYSWM)       \
     X(em24,       C1_bit, ElectricityMeter, EM24,        EM24)         \
     X(emerlin868, T1_bit, WaterMeter,       EMERLIN868,  EMerlin868)   \
-    X(ev200,      T1_bit, WaterMeter,       EV200,       EV200)        \
     X(evo868,     T1_bit, WaterMeter,       EVO868,      EVO868)       \
     X(fhkvdataiii,T1_bit, HeatCostAllocationMeter,       FHKVDATAIII,   FHKVDataIII)    \
     X(fhkvdataiv, T1_bit, HeatCostAllocationMeter,       FHKVDATAIV,    FHKVDataIV)     \
