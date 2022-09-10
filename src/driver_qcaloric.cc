@@ -28,6 +28,7 @@ namespace
     {
         di.setName("qcaloric");
         di.addNameAlias("whe5x");
+        di.addNameAlias("whe46x");
         di.setDefaultFields("name,id,current_consumption_hca,set_date,consumption_at_set_date_hca,timestamp");
         di.setMeterType(MeterType::HeatCostAllocationMeter);
         di.addLinkMode(LinkMode::C1);
@@ -37,6 +38,7 @@ namespace
         di.addDetection(MANUFACTURER_LSE, 0x08,  0x35);
         di.addDetection(MANUFACTURER_QDS, 0x08,  0x35);
         di.addDetection(MANUFACTURER_QDS, 0x08,  0x34);
+        di.addDetection(MANUFACTURER_LSE, 0x08,  0x18);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
@@ -144,6 +146,26 @@ namespace
             .set(VIFRange::DateTime)
             );
 
+        addStringFieldWithExtractor(
+            "model_version",
+            "model version.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ModelVersion)
+            );
+
+        addNumericFieldWithExtractor(
+            "flow_temperature",
+            "Forward media temperature.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Temperature,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::FlowTemperature)
+            );
+
     }
 }
 
@@ -170,8 +192,16 @@ namespace
 // |MyElement2;90919293;97;2020-12-31;270;1111-11-11 11:11.11
 
 // Comment: Another version of the heat cost allocator. But for historical reasons got its
-// own driver name, which is now aliased to qcaloric.
+// Comment: own driver name, which is now aliased to qcaloric. So the auto will pick qcaloric.
 // Test: HCA whe5x 91835132 NOKEY
 // telegram=|244465323251839134087a4f0000000b6e0403004b6e660300426c9e29326cffff046d1416b921dd2f|
 // {"media":"heat cost allocation","meter":"qcaloric","name":"HCA","id":"91835132","status":"OK","current_consumption_hca":304,"set_date":"2020-09-30","consumption_at_set_date_hca":366,"set_date_1":"2020-09-30","consumption_at_set_date_1_hca":366,"error_date":"2127-15-31","device_date_time":"2021-01-25 22:20","timestamp":"1111-11-11T11:11:11Z"}
 // |HCA;91835132;304;2020-09-30;366;1111-11-11 11:11.11
+
+// Comment: Another version of the heat cost allocator. But for historical reasons there is an alias whe46x.
+// Comment: However the content of this telegram is not fully understood. In particular no telegram with an hca
+// Comment: value has yet been captured.
+// Test: HCA2 whe46x 60367815 NOKEY
+// telegram=|344465321578366018087A90040000046D1311962C01FD0C03326CFFFF01FD7300025AC2000DFF5F0C0008003030810613080BFFFC|
+// {"media":"heat cost allocation","meter":"qcaloric","name":"HCA2","id":"60367815","status":"POWER_LOW","current_consumption_hca":null,"set_date":null,"consumption_at_set_date_hca":null,"set_date_1":null,"consumption_at_set_date_1_hca":null,"error_date":"2127-15-31","device_date_time":"2020-12-22 17:19","model_version":"03","flow_temperature_c":19.4,"timestamp":"1111-11-11T11:11:11Z"}
+// |HCA2;60367815;null;null;null;1111-11-11 11:11.11
