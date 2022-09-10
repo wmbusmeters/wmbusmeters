@@ -1820,6 +1820,27 @@ void MeterCommonImplementation::setNumericValue(FieldInfo *fi, Unit u, double v)
     numeric_values_[pair<string,Quantity>(field_name_no_unit,fi->xuantity())] = NumericField(u, v, fi);
 }
 
+bool MeterCommonImplementation::hasValue(FieldInfo *fi)
+{
+    return hasStringValue(fi) || hasNumericValue(fi);
+}
+
+bool MeterCommonImplementation::hasNumericValue(FieldInfo *fi)
+{
+    if (fi->hasGetNumericValueOverride()) return true;
+
+    pair<string,Quantity> key(fi->vname(),fi->xuantity());
+
+    return numeric_values_.count(key) != 0;
+}
+
+bool MeterCommonImplementation::hasStringValue(FieldInfo *fi)
+{
+    if (fi->hasGetStringValueOverride()) return true;
+
+    return string_values_.count(fi->vname()) != 0;
+}
+
 double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
 {
     if (fi->hasGetNumericValueOverride())
@@ -2033,12 +2054,14 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     }
 
     // Iterate over the meter field infos...
+    map<FieldInfo*,DVEntry*> found; // Found from the telegram
+    set<string> found_vnames;
+
     for (FieldInfo& fi : field_infos_)
     {
         if (fi.printProperties().hasJSON())
         {
             // The field should be printed in the json. (Most usually should.)
-            bool found = false;
             for (auto& i : t->dv_entries)
             {
                 // Check each telegram dv entry.
@@ -2046,23 +2069,49 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                 // Has the entry been matches to this field, then print it as json.
                 if (dve->hasFieldInfo(&fi))
                 {
-                    debug("(meters) render field %s(%s)[%d] with dventry @%d key %s data %s\n",
-                          fi.vname().c_str(), toString(fi.xuantity()), fi.index(),
-                          dve->offset,
-                          dve->dif_vif_key.str().c_str(),
-                          dve->value.c_str());
+                    assert(found.count(&fi) == 0);
+                    found[&fi] = dve;
+                    found_vnames.insert(fi.vname());
+                }
+            }
+        }
+    }
+
+    for (FieldInfo& fi : field_infos_)
+    {
+        if (fi.printProperties().hasJSON())
+        {
+            if (found.count(&fi) != 0)
+            {
+                DVEntry *dve = found[&fi];
+                debug("(meters) render field %s(%s)[%d] with dventry @%d key %s data %s\n",
+                      fi.vname().c_str(), toString(fi.xuantity()), fi.index(),
+                      dve->offset,
+                      dve->dif_vif_key.str().c_str(),
+                      dve->value.c_str());
+                string out = fi.renderJson(this, &conversions());
+                debug("(meters)             %s\n", out.c_str());
+                s += indent+out+","+newline;
+            }
+            else
+            {
+                // Ok, no value found in received telegram.
+                // Print field anyway, if it is not OPTIONAL
+                // or if a value has been received before and this field has not been received using a different rule.
+                // Why this complicated rule?
+                // E.g. the minmoess mbus seems to use storage 1 for target_m3 but the wmbus version uses storage 8.
+                // I.e. we have two rules that store into target_m3, this check will prevent target_m3 from being printed twice.
+                if (!fi.printProperties().hasOPTIONAL() || (found_vnames.count(fi.vname()) == 0 && hasValue(&fi)))
+                {
+                    // No telegram entries found, but this field should be printed anyway.
+                    // It will be printed with any value received from a previous telegram.
+                    // Or if no value has been received, null.
+                    debug("(meters) render field %s(%s)[%d] without dventry\n",
+                          fi.vname().c_str(), toString(fi.xuantity()), fi.index());
                     string out = fi.renderJson(this, &conversions());
                     debug("(meters)             %s\n", out.c_str());
                     s += indent+out+","+newline;
-                    found = true;
                 }
-            }
-            if (!found && !fi.printProperties().hasOPTIONAL())
-            {
-                // No telegram entries found, but this field should be printed anyway.
-                // It will be printed with any value received from a previous telegram.
-                // Or if no value has been received, null.
-                s += indent+fi.renderJson(this, &conversions())+","+newline;
             }
         }
     }
@@ -2490,6 +2539,19 @@ bool FieldInfo::hasMatcher()
 bool FieldInfo::matches(DVEntry *dve)
 {
     return matcher_.matches(*dve);
+}
+
+string FieldInfo::str()
+{
+    // 15 target Volume x�	:� Auto XUZ "The total water consumption recorded at the beginning of this month."
+    return tostrprintf("%d %s_%s (%s) %s [%s] \"%s\"",
+                       index_,
+                       vname_.c_str(),
+                       unitToStringLowerCase(default_unit_).c_str(),
+                       toString(xuantity_),
+                       toString(vif_scaling_),
+                       matcher_.str().c_str(),
+                       help_.c_str());
 }
 
 DriverName MeterInfo::driverName()
@@ -2923,6 +2985,17 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields()
         .set(MeasurementType::Instantaneous)
         .set(VIFRange::VolumeFlow)
         );
+}
 
 
+const char *toString(VifScaling s)
+{
+    switch (s)
+    {
+    case VifScaling::None: return "None";
+    case VifScaling::Auto: return "Auto";
+    case VifScaling::NoneSigned: return "NoneSigned";
+    case VifScaling::AutoSigned: return "AutoSigned";
     }
+    return "?";
+}

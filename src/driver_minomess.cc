@@ -66,7 +66,7 @@ namespace
             .set(StorageNr(8))
             );
 
-        /* The wire mbus telegram contains 4 totals and dates. For the moment we only print nr 1 which is the latest. */
+        // The wire mbus telegram contains 4 totals and dates. For the moment we only print nr 1 which is the latest.
         addNumericFieldWithExtractor(
             "target",
             "The total water consumption recorded at the beginning of this month.",

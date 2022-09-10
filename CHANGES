@@ -1,3 +1,10 @@
+
+OPTIONAL fields were only printed in the json, if they appeared in the telegram,
+even if the field had received a value before. Now a field will be printed
+in the json whenever there is a value stored in the meter object.
+I.e. an OPTIONAL field that has never received a value will not be printed.
+A NON-OPTIONAL field that has never received a value will be printed with the value null.
+
 Version: 1.9.0 2022-09-04
 
 ATTENTION! The multical21 and flowiq drivers have been refactored to the new driver style.

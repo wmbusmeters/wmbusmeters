@@ -44,7 +44,7 @@ telegram=|314493441234567835087a740000200b6e2701004b6e450100426c5f2ccb086e790000
 
 # Test another pair of QCalric C1 telegrams
 telegram=|49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA227|
-{"media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","current_consumption_hca":null,"set_date":null,"consumption_at_set_date_hca":null,"set_date_1":null,"consumption_at_set_date_1_hca":null,"set_date_17":null,"consumption_at_set_date_17_hca":null,"error_date":null,"device_date_time":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","current_consumption_hca":null,"set_date":null,"consumption_at_set_date_hca":null,"set_date_1":null,"consumption_at_set_date_1_hca":null,"device_date_time":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}
 
 telegram=|314493449392919034087a520000200b6e9700004b6e700200426c9f2ccb086e970000c2086cbe26326cffff046d2d16a227|
 {"media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","current_consumption_hca":97,"set_date":"2020-12-31","consumption_at_set_date_hca":270,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":270,"set_date_17":"2021-06-30","consumption_at_set_date_17_hca":97,"error_date":"2127-15-31","device_date_time":"2021-07-02 22:45","timestamp":"1111-11-11T11:11:11Z"}

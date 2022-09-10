@@ -27,10 +27,13 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("qcaloric");
+        di.addNameAlias("whe5x");
         di.setDefaultFields("name,id,current_consumption_hca,set_date,consumption_at_set_date_hca,timestamp");
         di.setMeterType(MeterType::HeatCostAllocationMeter);
         di.addLinkMode(LinkMode::C1);
         di.addLinkMode(LinkMode::T1);
+        di.addLinkMode(LinkMode::S1);
+        di.addDetection(MANUFACTURER_LSE, 0x08,  0x34);
         di.addDetection(MANUFACTURER_LSE, 0x08,  0x35);
         di.addDetection(MANUFACTURER_QDS, 0x08,  0x35);
         di.addDetection(MANUFACTURER_QDS, 0x08,  0x34);
@@ -104,7 +107,7 @@ namespace
         addStringFieldWithExtractor(
             "set_date_17",
             "The 17 billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -114,7 +117,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date_17",
             "Heat cost allocation at the 17 billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -126,7 +129,7 @@ namespace
         addStringFieldWithExtractor(
             "error_date",
             "Date when the meter entered an error state.",
-            PrintProperty::JSON,
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
             FieldMatcher::build()
             .set(MeasurementType::AtError)
             .set(VIFRange::Date)
@@ -153,7 +156,7 @@ namespace
 // Test: MyElement2 qcaloric 90919293 NOKEY
 // Comment: Test mostly proprietary telegram without values
 // telegram=|49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA227|
-// {"media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","current_consumption_hca":null,"set_date":null,"consumption_at_set_date_hca":null,"set_date_1":null,"consumption_at_set_date_1_hca":null,"set_date_17":null,"consumption_at_set_date_17_hca":null,"error_date":null,"device_date_time":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","current_consumption_hca":null,"set_date":null,"consumption_at_set_date_hca":null,"set_date_1":null,"consumption_at_set_date_1_hca":null,"device_date_time":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}
 // |MyElement2;90919293;null;null;null;1111-11-11 11:11.11
 
 // Comment: Normal telegram that fills in values.
@@ -165,3 +168,10 @@ namespace
 // telegram=|49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA228|
 // {"media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","current_consumption_hca":97,"set_date":"2020-12-31","consumption_at_set_date_hca":270,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":270,"set_date_17":"2021-06-30","consumption_at_set_date_17_hca":97,"error_date":"2127-15-31","device_date_time":"2021-08-02 15:34","timestamp":"1111-11-11T11:11:11Z"}
 // |MyElement2;90919293;97;2020-12-31;270;1111-11-11 11:11.11
+
+// Comment: Another version of the heat cost allocator. But for historical reasons got its
+// own driver name, which is now aliased to qcaloric.
+// Test: HCA whe5x 91835132 NOKEY
+// telegram=|244465323251839134087a4f0000000b6e0403004b6e660300426c9e29326cffff046d1416b921dd2f|
+// {"media":"heat cost allocation","meter":"qcaloric","name":"HCA","id":"91835132","status":"OK","current_consumption_hca":304,"set_date":"2020-09-30","consumption_at_set_date_hca":366,"set_date_1":"2020-09-30","consumption_at_set_date_1_hca":366,"error_date":"2127-15-31","device_date_time":"2021-01-25 22:20","timestamp":"1111-11-11T11:11:11Z"}
+// |HCA;91835132;304;2020-09-30;366;1111-11-11 11:11.11

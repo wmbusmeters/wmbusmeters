@@ -231,6 +231,12 @@ protected:
     double getNumericValue(FieldInfo *fi, Unit u);
     void setStringValue(FieldInfo *fi, std::string v);
     std::string getStringValue(FieldInfo *fi);
+
+    // Check if the meter has received a value for this field.
+    bool hasValue(FieldInfo *fi);
+    bool hasNumericValue(FieldInfo *fi);
+    bool hasStringValue(FieldInfo *fi);
+
     std::string decodeTPLStatusByte(uchar sts);
 
     void addOptionalCommonFields();

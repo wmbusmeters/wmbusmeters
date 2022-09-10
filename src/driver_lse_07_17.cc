@@ -204,5 +204,5 @@ namespace
 // |Water;13963399;nan;nan;null;null;null;2021-12-01 00:24;1111-11-11 11:11.11
 
 // telegram=|2D4465329933961318067ADA000000_0C13567100004C1300000000426CFFFF02BB560000326CFFFF046D2307A12C|
-// {"media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","total_m3":7.156,"due_date_m3":0,"due_date":"2127-15-31","error_code":"OK","error_date":"2127-15-31","device_date_time":"2021-12-01 07:35","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","total_m3":7.156,"due_date_m3":0,"due_date":"2127-15-31","what_date_m3":7,"what_date":"2021-11-30","error_code":"OK","error_date":"2127-15-31","device_date_time":"2021-12-01 07:35","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
 // |Water;13963399;7.156000;0.000000;2127-15-31;OK;2127-15-31;2021-12-01 07:35;1111-11-11 11:11.11

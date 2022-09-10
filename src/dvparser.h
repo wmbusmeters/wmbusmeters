@@ -430,6 +430,7 @@ struct FieldMatcher
     FieldMatcher &set(IndexNr i) { index_nr = i; return *this; }
 
     bool matches(DVEntry &dv_entry);
+    std::string str();
 };
 
 bool loadFormatBytesFromSignature(uint16_t format_signature, std::vector<uchar> *format_bytes);
