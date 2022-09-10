@@ -1768,7 +1768,9 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
 void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 {
-    // Iterate through the data content (dv_entries9 in the telegram.
+    set<FieldInfo*> used;
+
+    // Iterate through the data content (dv_entries) in the telegram.
     for (auto &p : t->dv_entries)
     {
         DVEntry *dve = &p.second.second;
@@ -1787,6 +1789,7 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 
                 dve->addFieldInfo(&fi);
                 fi.performExtraction(this, t, dve);
+                used.insert(&fi);
             }
         }
     }
@@ -1797,6 +1800,13 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
     {
         if (!fi.hasMatcher())
         {
+            fi.performExtraction(this, t, NULL);
+        }
+        else if (used.count(&fi) == 0 && fi.printProperties().hasJOINTPLSTATUS())
+        {
+            // This is a status field and it joins the tpl status but it also
+            // has a potential dve match, which did not trigger. Now
+            // force extraction to get the tpl status.
             fi.performExtraction(this, t, NULL);
         }
     }
@@ -2543,7 +2553,6 @@ bool FieldInfo::matches(DVEntry *dve)
 
 string FieldInfo::str()
 {
-    // 15 target Volume x�	:� Auto XUZ "The total water consumption recorded at the beginning of this month."
     return tostrprintf("%d %s_%s (%s) %s [%s] \"%s\"",
                        index_,
                        vname_.c_str(),
@@ -2671,11 +2680,30 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
                                         &key,
                                         &t->dv_entries);
                 // No entry was found.
-                if (!ok) return false;
+                if (!ok) {
+                    // Nothing found, however check if capturing JOIN_TPL_STATUS.
+                    if (print_properties_.hasJOINTPLSTATUS())
+                    {
+                        string status = add_tpl_status("OK", m, t);
+                        m->setStringValue(this, status);
+                        return true;
+                    }
+                    return false;
+                }
             }
         }
         // No entry with this key was found.
-        if (t->dv_entries.count(key) == 0) return false;
+        if (t->dv_entries.count(key) == 0)
+        {
+            // Nothing found, however check if capturing JOIN_TPL_STATUS.
+            if (print_properties_.hasJOINTPLSTATUS())
+            {
+                string status = add_tpl_status("OK", m, t);
+                m->setStringValue(this, status);
+                return true;
+            }
+            return false;
+        }
         dve = &t->dv_entries[key].second;
     }
     assert(dve != NULL);
