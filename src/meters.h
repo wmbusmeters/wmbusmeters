@@ -288,6 +288,8 @@ enum class VifScaling
     AutoSigned // Scale and assume the value is signed.
 };
 
+const char* toString(VifScaling s);
+
 enum PrintProperty
 {
     JSON = 1,  // This field should be printed when using --format=json
@@ -382,9 +384,12 @@ struct FieldInfo
     // The vname is then a pattern total_at_month_{storagenr-32} that gets translated into
     // total_at_month_2 (for the dventry with storage nr 34.)
     string generateFieldName(DVEntry *dve);
-
+    // Check if the meter object stores a value for this field.
+    bool hasValue(Meter *m);
 
     Translate::Lookup& lookup() { return lookup_; }
+
+    string str();
 
 private:
 

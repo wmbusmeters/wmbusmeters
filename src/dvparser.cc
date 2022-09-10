@@ -1225,3 +1225,63 @@ const char *toString(MeasurementType mt)
     }
     return "?";
 }
+
+string FieldMatcher::str()
+{
+    string s = "";
+
+    if (match_dif_vif_key)
+    {
+        s = s+"DVK("+dif_vif_key.str()+") ";
+    }
+
+    if (match_measurement_type)
+    {
+        s = s+"MT("+toString(measurement_type)+") ";
+    }
+
+    if (match_vif_range)
+    {
+        s = s+"VR("+toString(vif_range)+") ";
+    }
+
+    if (vif_combinables.size() > 0)
+    {
+        s += "Comb(";
+
+        for (auto vc : vif_combinables)
+        {
+            s = s+toString(vc)+" ";
+        }
+
+        s.pop_back();
+        s += ")";
+    }
+
+    if (match_storage_nr)
+    {
+        s = s+"S("+to_string(storage_nr_from.intValue())+"-"+to_string(storage_nr_to.intValue())+") ";
+    }
+
+    if (match_tariff_nr)
+    {
+        s = s+"T("+to_string(tariff_nr_from.intValue())+"-"+to_string(tariff_nr_to.intValue())+") ";
+    }
+
+    if (match_subunit_nr)
+    {
+        s += "U("+to_string(subunit_nr_from.intValue())+"-"+to_string(subunit_nr_to.intValue())+") ";
+    }
+
+    if (index_nr.intValue() != 1)
+    {
+        s += "I("+to_string(index_nr.intValue())+")";
+    }
+
+    if (s.size() > 0)
+    {
+        s.pop_back();
+    }
+
+    return s;
+}
