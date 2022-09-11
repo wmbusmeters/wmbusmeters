@@ -85,12 +85,14 @@ endif
 
 VERSION:=$(BRANCH)$(TAG)
 DEBVERSION:=$(BRANCH)$(TAG)
+LOCALCHANGES:=
 
 ifneq ($(strip $(CHANGES)),)
   # There are local un-committed changes.
   VERSION:=$(VERSION) with local changes
   COMMIT_HASH:=$(COMMIT_HASH) with local changes
   DEBVERSION:=$(DEBVERSION)l
+  LOCALCHANGES:=true
 endif
 
 $(shell echo "#define VERSION \"$(VERSION)\"" > $(BUILD)/version.h.tmp)
@@ -172,8 +174,21 @@ DRIVER_OBJS:=$(patsubst src/%.cc,$(BUILD)/%.o,$(DRIVER_OBJS))
 all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd $(BUILD)/wmbusmeters.g $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals
 
 deb:
-	test -L debian || ln -s deb debian
-	debuild
+	@if [ "$(RELEASE)" = "" ] ; then echo "Usage: make deb TAG=1.9.0" ; exit 1 ; fi
+	@rm -rf packaging
+	@mkdir -p packaging
+	@echo "Checking out tag $(RELEASE)..."
+	@(cd packaging ; git clone $(PWD) wmbusmeters-$(RELEASE) ; cd wmbusmeters-$(RELEASE) ; git -c advice.detachedHead=false checkout tags/$(RELEASE) )
+	@(cd packaging/wmbusmeters-$(RELEASE) ; git show -s --format=%ct > ../release_date )
+	@echo "Removing git history..."
+	@(cd packaging ; rm -rf wmbusmeters-$(RELEASE)/.git )
+	@echo "Setting file timestamps to commit date..."
+	@(cd packaging ; export UT=$$(cat ./release_date) ; find . -exec touch -d "@$$UT" \{\} \; )
+	@echo "Creating orig archive..."
+	@(cd packaging ; tar czf ./wmbusmeters_$(RELEASE).orig.tar.gz wmbusmeters-$(RELEASE) )
+	@echo "Running debbuild..."
+	@(cd packaging/wmbusmeters-$(RELEASE) ; ln -s deb debian; debuild )
+
 
 # Check docs verifies that all options in the source have been mentioned in the README and in the man page.
 # Also any option not in the source but mentioned in the docs is warned for as well.
