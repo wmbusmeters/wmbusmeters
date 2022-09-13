@@ -1,0 +1,422 @@
+{
+    "total_energy_kwh": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "json_attributes_topic": "wmbusmeters/{name}",
+            "state_class": "total",
+            "device_class": "energy",
+            "name": "{name} total energy",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "kWh",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:home-lightning-bolt-outline"
+        }
+    },
+
+    "total_volume_m3": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "state_class": "total",
+            "name": "{name} total volume",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "m³",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:water"
+        }
+    },
+
+    "actual_flow_m3h": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "state_class": "measurement",
+            "name": "{name} volume flow",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "m³/h",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:waves-arrow-right"
+        }
+    },
+
+    "forward_c": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "state_class": "measurement",
+            "device_class": "temperature",
+            "name": "{name} T1 temperature",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "°C",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:thermometer-water"
+        }
+    },
+
+    "return_c": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "state_class": "measurement",
+            "device_class": "temperature",
+            "name": "{name} T2 temperature",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "°C",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:thermometer-water"
+        }
+    },
+
+    "forward_energy_kwh": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "json_attributes_topic": "wmbusmeters/{name}",
+            "state_class": "total",
+            "device_class": "energy",
+            "name": "{name} energy forward",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "kWh",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:home-lightning-bolt"
+        }
+    },
+
+    "return_energy_kwh": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "json_attributes_topic": "wmbusmeters/{name}",
+            "state_class": "total",
+            "device_class": "energy",
+            "name": "{name} energy returned",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "kWh",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:home-lightning-bolt"
+        }
+    },
+
+    "status_VOLTAGE_INTERRUPTED": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} voltage interrupted",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'VOLTAGE_INTERRUPTED' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+
+    "status_LOW_BATTERY_LEVEL": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "entity_category": "diagnostic",
+            "device_class": "battery",
+            "name": "{name} low battery level",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'LOW_BATTERY_LEVEL' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+
+    "status_SENSOR_T1_ABOVE_MEASURING_RANGE": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} sensor T1 above range",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'SENSOR_T1_ABOVE_MEASURING_RANGE' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+ 
+    "status_SENSOR_T2_ABOVE_MEASURING_RANGE": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} sensor T2 above range",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'SENSOR_T2_ABOVE_MEASURING_RANGE' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+ 
+    "status_SENSOR_T1_BELOW_MEASURING_RANGE": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} sensor T1 below range",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'SENSOR_T1_BELOW_MEASURING_RANGE' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+ 
+    "status_SENSOR_T2_BELOW_MEASURING_RANGE": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} sensor T2 below range",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'SENSOR_T2_BELOW_MEASURING_RANGE' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+ 
+    "status_TEMP_DIFF_WRONG_POLARITY": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} temp diff wrong polarity",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'TEMP_DIFF_WRONG_POLARITY' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+ 
+    "status_FLOW_SENSOR_WEAK_OR_AIR": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} flow sensor weak or air",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'FLOW_SENSOR_WEAK_OR_AIR' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+ 
+    "status_WRONG_FLOW_DIRECTION": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} wrong flow direction",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'WRONG_FLOW_DIRECTION' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+ 
+    "status_UNKNOWN": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} unknown",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'UNKNOWN' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+ 
+    "status_FLOW_INCREASED": {
+        "component": "binary_sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "problem",
+            "name": "{name} flow increased",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "value_template": "{{ 'FLOW_INCREASED' in value_json.current_status }}",
+            "payload_on": "True",
+            "payload_off": "False"
+        }
+    },
+    
+    "rssi_dbm": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Kamstrup",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "signal_strength",
+            "state_class": "measurement",
+            "name": "{name} rssi",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "dbm",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:signal"
+        }
+    }
+
+}
