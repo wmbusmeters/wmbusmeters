@@ -1,3 +1,4 @@
+Version: 1.10.0 2022-09-14
 
 OPTIONAL fields were only printed in the json, if they appeared in the telegram,
 even if the field had received a value before. Now a field will be printed

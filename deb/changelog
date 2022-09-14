@@ -1,5 +1,6 @@
 wmbusmeters (1.10.0) unstable; urgency=medium
 
   * First package upload (Closes: #998721).
+  * Upload sponsored by Petter Reinholdtsen.
 
  -- Fredrik Öhrström <oehrstroem@gmail.com>  Sat, 26 Jun 2021 12:39:00 +0100
