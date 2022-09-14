@@ -1,4 +1,4 @@
-wmbusmeters (1.10.0) unstable; urgency=medium
+wmbusmeters (1.10.0-1) unstable; urgency=medium
 
   * First package upload (Closes: #998721).
   * Upload sponsored by Petter Reinholdtsen.
