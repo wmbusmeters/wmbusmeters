@@ -187,7 +187,7 @@ deb:
 	@echo "Creating orig archive..."
 	@(cd packaging ; tar czf ./wmbusmeters_$(RELEASE).orig.tar.gz wmbusmeters-$(RELEASE) )
 	@echo "Running debbuild..."
-	@(cd packaging/wmbusmeters-$(RELEASE) ; ln -s deb debian; debuild )
+	@(cd packaging/wmbusmeters-$(RELEASE) ; cp -a deb debian; debuild )
 
 
 # Check docs verifies that all options in the source have been mentioned in the README and in the man page.
