@@ -43,7 +43,7 @@ License: GPL-3+
 Files: src/driver_multical603.cc
 Copyright: 2022 Fredrik Öhrström
            2020 Eric Bus
-           2022 Thecem
+           2022 thecem
 License: GPL-3+
 
 Files: src/driver_sensostar.cc
