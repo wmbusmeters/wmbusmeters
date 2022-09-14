@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ "$1" = "" ]
+then
+    Usage: collecto_copyrights.sh [output_file]
+    exit 1
+fi
+
 TMP=$(mktemp -t wmbusmeters.copyrights.XXXXXXXXXX)
 TMP_AUTHORS=$(mktemp -t wmbusmeters.authors.XXXXXXXXXX)
 TMP_OTHER_AUTHORS=$(mktemp -t wmbusmeters.other.authors.XXXXXXXXXX)
