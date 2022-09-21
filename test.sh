@@ -99,6 +99,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_linkmodes.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_cmdline.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_additional_json.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
