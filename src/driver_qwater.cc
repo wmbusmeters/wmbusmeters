@@ -45,6 +45,7 @@ static bool ok = registerDriver([](DriverInfo&di)
     di.addDetection(MANUFACTURER_QDS, 0x37,  0x33);
     di.addDetection(MANUFACTURER_QDS, 0x06,  0x18);
     //              MANUFACTURER_QDS, 0x07,  0x18 waiting for telegram for test suite.
+    di.addDetection(MANUFACTURER_QDS, 0x06,  0x35);
     di.addDetection(MANUFACTURER_QDS, 0x07,  0x35);
 
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterQWater(mi, di)); });
@@ -196,3 +197,8 @@ MeterQWater::MeterQWater(MeterInfo &mi, DriverInfo &di) :
 // telegram=3C449344682268363537726666666693443507720000200C13670512004C1361100300426CBF2CCC081344501100C2086CDF28326CFFFF046D0813CF29
 // {"media":"water","meter":"qwater","name":"AnotherQWater","id":"66666666","total_m3":120.567,"due_date_m3":31.061,"due_date":"2021-12-31","due_date_17_m3":115.044,"due_date_17":"2022-08-31","error_code":"","error_date":"2127-15-31","device_date_time":"2022-09-15 19:08","timestamp":"1111-11-11T11:11:11Z"}
 // |AnotherQWater;66666666;120.567000;31.061000;2021-12-31;;1111-11-11 11:11.11
+
+// Test: YetAnoter qwater 33333333 NOKEY
+// telegram=3C449344333333333537723333333393443506B8000020_0C13350000004C1300000000426CBF2CCC081300000000C2086CDF25326CFFFF046D0516CE26
+// {"media":"warm water","meter":"qwater","name":"YetAnoter","id":"33333333","total_m3":0.035,"due_date_m3":0,"due_date":"2021-12-31","due_date_17_m3":0,"due_date_17":"2022-05-31","error_code":"","error_date":"2127-15-31","device_date_time":"2022-06-14 22:05","timestamp":"1111-11-11T11:11:11Z"}
+// |YetAnoter;33333333;0.035000;0.000000;2021-12-31;;1111-11-11 11:11.11
