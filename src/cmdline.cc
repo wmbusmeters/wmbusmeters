@@ -38,7 +38,8 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv)
     if (isDaemon(argc, argv))
     {
         c->daemon = true;
-        if (argc < 2) {
+        if (argc < 2)
+        {
             error("Usage error: wmbusmetersd must have at least a single argument to the pid file.\n");
         }
         return parseCommandLineWithUseConfig(c, argc, argv, true);
@@ -788,13 +789,24 @@ shared_ptr<Configuration> parseCommandLineWithUseConfig(Configuration *c, int ar
         {
             error("Usage error: you must supply the pid file as the last argument to wmbusmetersd.\n");
         }
+        if (argv[i][0] == '-')
+        {
+            error("Usage error: the pid file name must not start with minus (-). Please change \"%s\".\n", argv[i]);
+        }
         c->pid_file = argv[i];
         i++;
-    }
 
-    if (i+1 < argc)
+        if (i+1 < argc)
+        {
+            error("Usage error: you must supply the pid file as the last argument to wmbusmetersd.\n");
+        }
+    }
+    else
     {
-        error("Usage error: you must supply the pid file as the last argument to wmbusmetersd.\n");
+        if (i+1 < argc)
+        {
+            error("Usage error: too many arguments \"%s\".\n", argv[i]);
+        }
     }
     return shared_ptr<Configuration>(c);
 }
