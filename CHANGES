@@ -1,4 +1,6 @@
-Version: 1.10.0 2022-09-14
+
+Rename option --device=xyz to --overridedevice=xyz and add better error message
+if it is used without --useconfig=xyz. --device still works but will eventually be removed.
 
 OPTIONAL fields were only printed in the json, if they appeared in the telegram,
 even if the field had received a value before. Now a field will be printed

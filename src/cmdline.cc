@@ -67,6 +67,11 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             c->need_help = true;
             return shared_ptr<Configuration>(c);
         }
+        if (!strncmp(argv[i], "--device=", 9) || // Deprecated
+            !strncmp(argv[i], "--overridedevice=", 17))
+        {
+            error("You can only use --overridedevice=xyz with --useconfig=xyz\n");
+        }
         if (!strcmp(argv[i], "--silent")) {
             c->silent = true;
             i++;
@@ -732,7 +737,8 @@ shared_ptr<Configuration> parseCommandLineWithUseConfig(Configuration *c, int ar
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--device=", 9))
+        if (!strncmp(argv[i], "--device=", 9) || // Deprecated
+            !strncmp(argv[i], "--overridedevice=", 17))
         {
             c->overrides.device_override = string(argv[i]+9);
             debug("(useconfig) device override \"%s\"\n", c->overrides.device_override.c_str());
@@ -772,7 +778,7 @@ shared_ptr<Configuration> parseCommandLineWithUseConfig(Configuration *c, int ar
         }
 
         error("Usage error: --useconfig=... can only be used in combination with:\n"
-              "--device= --listento= --exitafter= --oneshot= --logfile= --silent --normal --verbose --debug --trace\n");
+              "--overridedevice= --listento= --exitafter= --oneshot= --logfile= --silent --normal --verbose --debug --trace\n");
         break;
     }
 

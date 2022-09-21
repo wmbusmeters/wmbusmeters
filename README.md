@@ -255,20 +255,20 @@ wmbusmeters --useconfig=/home/me/.config/wmbusmeters
 
 If you already have config with a device specified, and you want to use
 the config with another device. You might have multiple meters in the config
-that you want to listen to. Then you can add `--device` to override the settings
+that you want to listen to. Then you can add `--overridedevice` to override the settings
 in the config. Like this:
 
 ```shell
-wmbusmeters --useconfig=/home/me/.config/wmbusmeters --device=rtlwmbus
+wmbusmeters --useconfig=/home/me/.config/wmbusmeters --overridedevice=rtlwmbus
 ```
 
-You must have both `--useconfig=` and `--device=` for it to work.
+You must have both `--useconfig=` and `--overridedevice=` for it to work.
 
 The files/dir should then be located here:
 `/home/me/.config/wmbusmeters/wmbusmeters.conf` and
 `/home/me/.config/wmbusmeters/wmbusmeters.d`
 
-The option `--useconfig=` can only be combined with a few other options: `--device= --listento= --exitafter= --oneshot= --silent --normal --verbose --debug --trace`
+The option `--useconfig=` can only be combined with a few other options: `--overridedevice= --listento= --exitafter= --oneshot= --silent --normal --verbose --debug --trace`
 
 When running using config files then you can trigger a reload of the config files
 using `sudo killall -HUP wmbusmetersd` or `killall -HUP wmbusmeters`
@@ -293,7 +293,7 @@ As {options} you can use:
     --analyze=<driver> Analyze a telegram and use only this driver.
     --analyze=<driver>:<key> Analyze a telegram and use only this driver with this key.
     --debug for a lot of information
-    --device=<device> override device in config files. Use only in combination with --useconfig= option
+    --overridedevice=<device> override device in config files. Use only in combination with --useconfig= option
     --donotprobe=<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys.
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields

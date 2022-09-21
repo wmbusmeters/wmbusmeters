@@ -12,7 +12,7 @@ echo "RUNNING $TESTNAME ..."
 > /tmp/wmbusmeters_telegram_test
 > /tmp/wmbusmeters_alarm_test
 
-$PROG --useconfig=tests/config7 --device=simulations/simulation_alarm.txt 2> $TEST/test_stderr.txt | sed 's/....-..-..T..:..:..Z/1111-11-11T11:11:11Z/' > $TEST/test_output.txt
+$PROG --useconfig=tests/config7 --overridedevice=simulations/simulation_alarm.txt 2> $TEST/test_stderr.txt | sed 's/....-..-..T..:..:..Z/1111-11-11T11:11:11Z/' > $TEST/test_output.txt
 
 echo "STDERR---------------------------------"
 cat $TEST/test_stderr.txt
