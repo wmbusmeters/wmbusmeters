@@ -30,6 +30,7 @@ namespace
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::C1);
         di.addDetection(MANUFACTURER_QDS, 0x04,  0x23);
+        //              MANUFACTURER_QDS, 0x37,  0x23 waiting for telegram for test-suite.
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
