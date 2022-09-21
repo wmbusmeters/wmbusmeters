@@ -293,7 +293,6 @@ As {options} you can use:
     --analyze=<driver> Analyze a telegram and use only this driver.
     --analyze=<driver>:<key> Analyze a telegram and use only this driver with this key.
     --debug for a lot of information
-    --overridedevice=<device> override device in config files. Use only in combination with --useconfig= option
     --donotprobe=<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys.
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
@@ -319,6 +318,7 @@ As {options} you can use:
     --nodeviceexit if no wmbus devices are found, then exit immediately
     --normal for normal logging
     --oneshot wait for an update from each meter, then quit
+    --overridedevice=<device> override device in config files. Use only in combination with --useconfig= option
     --ppjson pretty print the json
     --pollinterval=<time> time between polling of meters, must be set to get polling.
     --resetafter=<time> reset the wmbus dongle regularly, default is 23h

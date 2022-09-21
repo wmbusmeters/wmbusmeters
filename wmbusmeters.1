@@ -3,7 +3,7 @@
 wmbusmeters \- Acquire,query and decode wired and wireless mbus telegrams, then relay the telegrams to other software.
 
 .SH SYNOPSIS
-.B wmbusmeters {options} [device] { [name] [driver] [id] [key] }*
+.B wmbusmeters {options} [device]+ { [name] [driver] [id] [key] }*
 
 .B wmbusmeters {options} [hex]    { [name] [driver] [id] [key] }*
 
@@ -13,9 +13,9 @@ wmbusmeters \- Acquire,query and decode wired and wireless mbus telegrams, then 
 
 Wmbusmeters acquires wmbus telegrams, decodes them and relays them to
 some other software for further processing.  It can for example listen
-to radio traffic using dedicated wmbus dongles (eg im871a,amb8465,cul,rc1180)
-or a software defined radio dongle (rtl_sdr) with an RTL2832U (decoded using
-rtl_wmbus, rtl_433).
+to radio traffic using dedicated wmbus dongles (eg im871a,im170a,amb8465,
+amb8335,cul,rc1180) or a software defined radio dongle (rtl_sdr) with an
+RTL2832U (decoded using rtl_wmbus, rtl_433).
 
 After the acquired telegram has been decrypted and parsed, it can then
 be relayed using a shell command, or stored in a log file.  The shell
@@ -42,8 +42,6 @@ mqtt_publish) sent to a REST API (eg curl) or store it in a database
 Add :verbose to any analyze to get more verbose analyze output.
 
 \fB\--debug\fR for a lot of information
-
-\fB\--overridedevice=\fR<device> override device in config files. Can only be used in combination with --useconfig= option
 
 \fB\--donotprobe=\fR<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys
 
@@ -93,6 +91,8 @@ Add :verbose to any analyze to get more verbose analyze output.
 
 \fB\--oneshot\fR wait for an update from each meter, then quit
 
+\fB\--overridedevice=\fR<device> override device in config files. Can only be used in combination with --useconfig= option
+
 \fB\--pollinterval=\fR<interval> poll mbus meters every <interval>, default is 10m.
 
 \fB\--ppjson\fR pretty print the json output
@@ -123,7 +123,7 @@ Add :verbose to any analyze to get more verbose analyze output.
 .TP
 \fBauto:c1\fR detect any serially connected wmbus dongles and rtl_sdr dongles and configure them for c1 mode.
 Use auto to detect your dongle when testing, but then in production, state explicitly the dongle you are using.
-This will reduce the amount of probing done on the serial ports.
+This will significantly reduce the amount of probing done on the serial ports.
 
 .TP
 \fBim871a:t1\fR look for an im871a dongle attached to any of the serial ttys and configure it for t1 mode.
@@ -166,7 +166,7 @@ and the other set to beta. Alfa has an antenna tuned for 433M, beta has an anten
 .TP
 \fBmeter_name\fR a mnemonic for your utility meter
 .TP
-\fBmeter_type\fR for example multical21:t1 (suffix means that we expect this meter to transmit t1 telegrams)
+\fBmeter_type\fR for example multical21:t1 (suffix means that we expect this meter to transmit t1 telegrams) the driver auto can be used, but is not recommended for production.
 .TP
 \fBmeter_id\fR one or more 8 digit numbers separated with commas, a single '*' wildcard, or a prefix '76543*' with wildcard.
 .TP
@@ -245,10 +245,15 @@ An example wmbusmeters.d file:
 
 .nf
 name=MyTapWater
-type=multical21:c1
+driver=multical21:c1
 id=12345678
 key=001122334455667788AABBCCDDEEFF
 field_floor=4
+
+.TP
+You can use the driver auto, but it is not recommended for production.
+The auto driver might change over time to better versions of the driver with new names,
+whereas a fixed driver name should generate backwards compatible json.
 
 .SH AUTHOR
 Written by Fredrik Öhrström.
