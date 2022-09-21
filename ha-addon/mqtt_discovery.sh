@@ -26,7 +26,7 @@ if [ $CONFIG_MQTTDISCOVERY_ENABLED == "true" ]; then
 
     # Copy template files
     templatedir="$(mktemp -d -p /dev/shm/)"
-    wget -O - https://github.com/jnxxx/wmbusmeters/archive/refs/heads/master.tar.gz 2> /dev/null | tar xz --strip=3 "wmbusmeters-master/ha-addon/mqtt_discovery" -C $templatedir || true
+    wget -O - https://github.com/weetmuts/wmbusmeters/archive/refs/heads/master.tar.gz 2> /dev/null | tar xz --strip=3 "wmbusmeters-master/ha-addon/mqtt_discovery" -C $templatedir || true
     [ ! -d $CONFIG_DATA_PATH/etc/mqtt_discovery ] && mkdir -p $CONFIG_DATA_PATH/etc/mqtt_discovery
     cp -u ${templatedir}/* ${CONFIG_DATA_PATH}/etc/mqtt_discovery/ 2>/dev/null || true
     rm -r $templatedir
