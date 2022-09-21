@@ -1,0 +1,69 @@
+{
+    "total_m3": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": [
+                    "wmbusmeters_{id}"
+                ],
+                "manufacturer": "Techem",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "json_attributes_topic": "wmbusmeters/{name}",
+            "state_class": "total",
+            "name": "{name} total",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "m³",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:gauge"
+        }
+    },
+    "target_m3": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Techem",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "state_class": "total",
+            "name": "{name} target",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "m³",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:gauge"
+        }
+    },
+    "rssi_dbm": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": [
+                    "wmbusmeters_{id}"
+                ],
+                "manufacturer": "Techem",
+                "model": "{driver}",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": false,
+            "entity_category": "diagnostic",
+            "device_class": "signal_strength",
+            "state_class": "measurement",
+            "name": "{name} rssi",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "dbm",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:signal"
+        }
+    }
+}
