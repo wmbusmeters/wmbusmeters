@@ -236,7 +236,7 @@ $(BUILD)/wmbusmeters-admin:
 	touch $(BUILD)/wmbusmeters-admin
 else
 $(BUILD)/wmbusmeters-admin: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters-admin $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -ltinfo -lrtlsdr $(USBLIB) -lpthread
+	$(CXX) -o $(BUILD)/wmbusmeters-admin $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -lrtlsdr $(USBLIB) -lpthread
 	$(STRIP_ADMIN)
 endif
 
