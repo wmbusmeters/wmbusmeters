@@ -456,6 +456,7 @@ Waterstar M (waterstarm)
 Zenner Minomess (minomess)
 
 Supported heat cost allocators:
+Apator E-ITN 30.51 (apatoreitn)
 Innotas EurisII  (eurisii)
 Qundis Q caloric (qcaloric)
 Sontex 868 (sontex868)
