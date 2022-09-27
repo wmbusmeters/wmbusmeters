@@ -1,5 +1,6 @@
 /*
  Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2022 Kajetan Krykwiński (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -24,30 +25,65 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
 
         void processContent(Telegram *t);
+        string dateToString(uchar date_lo, uchar date_hi);
 
-        double allocation_hca_ {};
-        double room_c_ {};
+        double prev_energy_hca_ {};
+        double curr_energy_hca_ {};
+        string curr_energy_hca_date_ {};
+        string season_start_date_ {};
+        string esb_date_ {};
+        double temp_room_avg_ {};
+        double temp_room_prev_avg_ {};
     };
 
     static bool ok = registerDriver([](DriverInfo&di)
     {
+        // Note: this supports only E.ITN 30.51 at the moment.
+        // E.ITN 30.60 should be similar, as it is covered via the same datasheet
+        // http://www.apator.com/uploads/files/Produkty/Podzielnik_kosztow_ogrzewania/i-pl-021-2016-e-itn-30-51-30-6.pdf
         di.setName("apatoreitn");
-        di.setDefaultFields("name,id,room_c,allocation_hca,timestamp");
+        di.setDefaultFields("name,id,current_hca,previous_hca,current_date,season_start_date,esb_date,temp_room_avg_c,temp_room_prev_avg_c,timestamp");
         di.setMeterType(MeterType::HeatCostAllocationMeter);
         di.addDetection(0x8614 /* APT? */, 0x08,  0x04);
+        di.addDetection(0x8601 /* APA? */, 0x08,  0x04);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addPrint("allocation", Quantity::HCA,
-                 [&](Unit u){ return convert(allocation_hca_, Unit::HCA, u); },
-                 "The current heat cost allocation calculated by this meter.",
+        addPrint("current", Quantity::HCA,
+                 [&](Unit u){ return convert(curr_energy_hca_, Unit::HCA, u);},
+                 "Energy consumption so far in this billing period.",
                  PrintProperty::FIELD | PrintProperty::JSON);
 
-        addPrint("room", Quantity::Temperature,
-                 [&](Unit u){ return convert(room_c_, Unit::C, u); },
-                 "The room temperature.",
+        addPrint("previous", Quantity::HCA,
+                 [&](Unit u){ return convert(prev_energy_hca_, Unit::HCA, u); },
+                 "Energy consumption in previous billing period.",
+                 PrintProperty::FIELD | PrintProperty::JSON);
+
+        addPrint("current_date", Quantity::Text,
+                 [&](){ return curr_energy_hca_date_; },
+                 "Current date, as reported by meter.",
+                 PrintProperty::FIELD | PrintProperty::JSON);
+
+        addPrint("season_start_date", Quantity::Text,
+                 [&](){ return season_start_date_; },
+                 "Season start date.",
+                 PrintProperty::FIELD | PrintProperty::JSON);
+
+        addPrint("esb_date", Quantity::Text,
+                 [&](){ return esb_date_; },
+                 "Electronic seal protection break date.",
+                 PrintProperty::FIELD | PrintProperty::JSON);
+
+        addPrint("temp_room_avg", Quantity::Temperature,
+                 [&](Unit u){ return convert(temp_room_avg_, Unit::C, u); },
+                 "Average room temperature in current season.",
+                 PrintProperty::FIELD | PrintProperty::JSON);
+
+        addPrint("temp_room_prev_avg", Quantity::Temperature,
+                 [&](Unit u){ return convert(temp_room_prev_avg_, Unit::C, u); },
+                 "Average room temperature in previous season.",
                  PrintProperty::FIELD | PrintProperty::JSON);
     }
 
@@ -56,22 +92,107 @@ namespace
         vector<uchar> content;
         t->extractPayload(&content);
 
-        size_t offset = 23;
-        if (offset+1 < content.size())
-        {
-            double hi = content[offset+1];
-            double lo = content[offset+0];
-            room_c_ = hi + lo/256.0;
+        if (t->tpl_ci == 0xB6) {
+            // tpl-ci-field B6, there's a header to skip
+            // first byte contains following header length
+            uint header_len = content[0] + 1;
 
-            t->addSpecialExplanation(offset, 2, KindOfData::CONTENT, Understanding::FULL,
-                                     "*** %02X%02X room (%f c)",
-                                     content[offset+0], content[offset+1],
-                                     room_c_);
+            //drop header data from content
+            content.erase(content.begin(), content.begin() + header_len);
         }
+
+        if (t->tpl_ci == 0xA0) {
+            // In my opinion this is already part of the telegram data
+            // so lets add it back to content.
+            // Telegram either starts with B0<hdr_len><hdr>A0A1...
+            // or directly with A0A1...
+            content.insert(content.begin(),t->tpl_ci);
+        }
+
+        if (content.size() != 16)
+        {
+            // Payload most likely is broken
+            debugPayload("(apatoreitn) content size wrong!", content);
+            return;
+        }
+
+        // Season start date + install date + some flag?
+        //
+        // Note: may be wrong, requires confirmation as all meters I see in range
+        //       report start date 1.05, installed in 2016 and field is A0A1h
+        // Note: NOT byte swapped. Accidentally? works via dateToString conversion.
+        uchar season_start_date_lo = content[1];
+        uchar season_start_date_hi = content[0];
+        season_start_date_ = dateToString(season_start_date_lo, season_start_date_hi);
+
+        // Previous season total allocation
+        uchar prev_lo = content[4];
+        uchar prev_hi = content[5];
+        prev_energy_hca_ = (256.0*prev_hi+prev_lo);
+
+        // Electronic seal break date
+        uchar esb_date_lo = content[6];
+        uchar esb_date_hi = content[7];
+        esb_date_ = dateToString(esb_date_lo, esb_date_hi);
+
+        // Current season allocation
+        uchar curr_lo = content[8];
+        uchar curr_hi = content[9];
+        curr_energy_hca_ = (256.0*curr_hi+curr_lo);
+
+        // Current date reported by meter
+        uchar date_curr_lo = content[10];
+        uchar date_curr_hi = content[11];
+        curr_energy_hca_date_ = dateToString(date_curr_lo, date_curr_hi);
+
+        // Previous season average temperature
+        double temp_room_prev_avg_frac = content[12];
+        double temp_room_prev_avg_deg = content[13];
+        temp_room_prev_avg_ = temp_room_prev_avg_deg + temp_room_prev_avg_frac/256.0;
+
+        // Current season average temperature
+        double temp_room_avg_frac = content[14];
+        double temp_room_avg_deg = content[15];
+        temp_room_avg_ = temp_room_avg_deg + temp_room_avg_frac/256.0;
+
+    }
+
+    string Driver::dateToString(uchar date_lo, uchar date_hi) {
+        // Data format (MSB -> LSB):
+        // 2 bits of unknown data (or part of a year, but left over for season date
+        //                         hack, and it doesn't matter until 2064 anyway...)
+        // 5 bits of year
+        // 4 bits of month
+        // 5 bits of day
+        uint date_curr = (256*date_hi + date_lo);
+        if(date_curr == 0)
+        {
+            // date is null, what should we do?
+            return "";
+        }
+
+        uint day = date_curr & 0x1F;
+        uint month = (date_curr >> 5) & 0x0F;
+        uint year = ((date_curr >> 9) & 0x1F) + 2000;
+
+        char buf[30];
+        // is there a better way to construct a date from this?
+        std::snprintf(buf, sizeof(buf), "%d-%02d-%02dT02:00:00Z", year, month, day);
+        return buf;
     }
 }
 
-// Test: HCA apatoreitn 37373737 NOKEY
-// telegram=|25441486373737370408B60AFFFFF5450186F41B9D58A0A100007809000000001F2D6416C819|
-// {"media":"heat cost allocation","meter":"apatoreitn","name":"HCA","id":"37373737","allocation_hca":0,"room_c":22.390625,"timestamp":"1111-11-11T11:11:11Z"}
-// |HCA;37373737;22.390625;0;1111-11-11 11:11.11
+// Test: HCA1 apatoreitn 37373731 NOKEY
+// telegram=|19440186313737370408A0A1000059001C270100322DE413B415|
+// {"media":"heat cost allocation","meter":"apatoreitn","name":"HCA1","id":"37373731","current_hca":1,"previous_hca":89,"current_date":"2022-09-18T02:00:00Z","season_start_date":"2016-05-01T02:00:00Z","esb_date":"2019-08-28T02:00:00Z","temp_room_avg_c":21.703125,"temp_room_prev_avg_c":19.890625,"timestamp":"1111-11-11T11:11:11Z"}
+// |HCA1;37373731;1;89;2022-09-18T02:00:00Z;2016-05-01T02:00:00Z;2019-08-28T02:00:00Z;21.703125;19.890625;1111-11-11 11:11.11
+
+// Test: HCA2 apatoreitn 37373732 NOKEY
+// telegram=|25441486323737370408B60AFFFFF5450186F41B9D58A0A100007809000000001F2D6416C819|
+// {"media":"heat cost allocation","meter":"apatoreitn","name":"HCA2","id":"37373732","current_hca":0,"previous_hca":2424,"current_date":"2022-08-31T02:00:00Z","season_start_date":"2016-05-01T02:00:00Z","esb_date":"","temp_room_avg_c":25.78125,"temp_room_prev_avg_c":22.390625,"timestamp":"1111-11-11T11:11:11Z"}
+// |HCA2;37373732;0;2424;2022-08-31T02:00:00Z;2016-05-01T02:00:00Z;;25.78125;22.390625;1111-11-11 11:11.11
+
+// Test: HCA3 apatoreitn 37373733 NOKEY
+// telegram=|29441486333737370408B60EFFFFF1460186EC1B934EE91BA57BA0A1000059009C250100322DE413B415|
+// {"media":"heat cost allocation","meter":"apatoreitn","name":"HCA3","id":"37373733","current_hca":1,"previous_hca":89,"current_date":"2022-09-18T02:00:00Z","season_start_date":"2016-05-01T02:00:00Z","esb_date":"2018-12-28T02:00:00Z","temp_room_avg_c":21.703125,"temp_room_prev_avg_c":19.890625,"timestamp":"1111-11-11T11:11:11Z"}
+// |HCA3;37373733;1;89;2022-09-18T02:00:00Z;2016-05-01T02:00:00Z;2018-12-28T02:00:00Z;21.703125;19.890625;1111-11-11 11:11.11
