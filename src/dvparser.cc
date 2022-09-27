@@ -208,7 +208,7 @@ bool parseDV(Telegram *t,
         {
             if (dif == 0x0f)
             {
-                DEBUG_PARSER("(dvparser) reached manufacturer specific data 0f, parsing is done.\n");
+                DEBUG_PARSER("(dvparser) reached dif %02x manufacturer specific data, parsing is done.\n", dif);
                 datalen = std::distance(data,data_end);
                 string value = bin2hex(data+1, data_end, datalen-1);
                 t->mfct_0f_index = 1+std::distance(data_start, data);
@@ -216,7 +216,12 @@ bool parseDV(Telegram *t,
                 t->addExplanationAndIncrementPos(data, datalen, KindOfData::PROTOCOL, Understanding::NONE, "%02X manufacturer specific data %s", dif, value.c_str());
                 break;
             }
-            debug("(dvparser) cannot handle dif %02X ignoring rest of telegram.\n", dif);
+            DEBUG_PARSER("(dvparser) reached unknown dif %02x treating remaining data as manufacturer specific, parsing is done.\n", dif);
+            datalen = std::distance(data,data_end);
+            string value = bin2hex(data+1, data_end, datalen-1);
+            t->mfct_0f_index = 1+std::distance(data_start, data);
+            assert(t->mfct_0f_index >= 0);
+            t->addExplanationAndIncrementPos(data, datalen, KindOfData::PROTOCOL, Understanding::NONE, "%02X unknown dif treating remaining data as mfct specific %s", dif, value.c_str());
             break;
         }
         if (dif == 0x2f) {
