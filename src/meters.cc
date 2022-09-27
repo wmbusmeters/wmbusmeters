@@ -1489,6 +1489,9 @@ string MeterCommonImplementation::bus()
 
 void MeterCommonImplementation::triggerUpdate(Telegram *t)
 {
+    // Check if processContent has discarded this telegram.
+    if (t->discard) return;
+
     datetime_of_update_ = time(NULL);
     num_updates_++;
     for (auto &cb : on_update_) if (cb) cb(t, this);
@@ -1761,7 +1764,9 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
         snprintf(log_prefix, 255, "(%s)", meterDriver().c_str());
         t.explainParse(log_prefix, 0);
     }
+
     triggerUpdate(&t);
+
     if (out_analyzed != NULL) *out_analyzed = t;
     return true;
 }
@@ -2416,12 +2421,13 @@ bool is_driver_and_extras(string t, MeterDriver *out_driver, DriverName *out_dri
     if (found)
     {
         *out_driver_name = di.name();
+        *out_driver = MeterDriver::AUTO; // To go away!
     }
     else
     {
         if (md == MeterDriver::UNKNOWN) return false;
+        *out_driver = md;
     }
-    *out_driver = md;
 
     string extras = t.substr(ps+1, pe-ps-1);
     *out_extras = extras;

@@ -408,6 +408,9 @@ public:
 
     AboutTelegram about;
 
+    // If set to true then this telegram should be trigger updates.
+    bool discard {};
+
     // If a warning is printed mark this.
     bool triggered_warning {};
 

@@ -162,6 +162,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     bool use = true;
 
     MeterInfo mi;
+
     mi.parse(name, driver, id, key); // sets driver, extras, name, bus, bps, link_modes, ids, name, key
     mi.poll_interval = poll_interval;
 

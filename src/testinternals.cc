@@ -933,7 +933,10 @@ void testc(string file, string file_content,
 
     parseMeterConfig(&c, meter_conf, file);
 
+    assert(c.meters.size() > 0);
+
     mi = c.meters.back();
+
     if ((toString(mi.driver) != xdriver && mi.driverName().str() != xdriver) ||
         mi.extras != xextras ||
         mi.bus != xbus ||
@@ -1032,19 +1035,19 @@ void test_meters()
           "offset=162", // extras
           "", // bus
           "0", // bps
-          "t1,c1"); // linkmodes
+          "none"); // linkmodes
 
     config_content =
         "name=test\n"
-        "driver=apator162(offset=162)\n"
+        "driver=apator162(offset=99)\n"
         "id=01234567\n"
         "key=00000000000000000000000000000000\n";
-    testc("meter/apator162(offset=162)", config_content,
+    testc("meter/apatortest", config_content,
           "apator162", // driver
-          "offset=162", // extras
+          "offset=99", // extras
           "", // bus
           "0", // bps
-          "t1,c1"); // linkmodes)
+          "none"); // linkmodes)
 
 }
 
