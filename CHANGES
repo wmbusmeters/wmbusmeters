@@ -1,4 +1,6 @@
 
+Kajetan Krykwiński added support for the Apator E-ITN heat cost allocator. Thanks Kajetan!
+
 Improved wmbusmeters to gracefully handle bad telegrams with multiple difvif entries
 matching the same field. This used to trigger an assert, now the first matching field is used.
 
@@ -15,12 +17,12 @@ Version: 1.9.0 2022-09-04
 
 ATTENTION! The multical21 and flowiq drivers have been refactored to the new driver style.
 
-Added check for existance of difvif varlen length byte before reading it. Found by fuzzing.
-
 Since the multical21 driver was the first driver ever written, it had some idiosynchrasies.
 The json should be entirely backwards compatible but when format=fields is used, the
 status field no longer has the days, eg "DRY(22-31 days)" is now just "DRY"
 use the json or selectfields=time_dry to get how long it has been dry.
+
+Added check for existance of difvif varlen length byte before reading it. Found by fuzzing.
 
 Thecem added support for the Multical 303 heat meter. Thanks thescem!
 
