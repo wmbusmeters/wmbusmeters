@@ -74,7 +74,9 @@ namespace
 
         map<string,pair<int,DVEntry>> vendor_values;
 
-        size_t i=0;
+        // The first 8 bytes are error flags and a date time.
+        // E.g. 0F005B5996000000
+        size_t i=8;
         while (i < content.size())
         {
             int c = content[i];
@@ -121,7 +123,7 @@ namespace
     {
         switch (c)
         {
-        case 0x0f: return 3; // Payload often starts with 0x0f,
+            // case 0x0f: return 3; // Payload often starts with 0x0f,
             // which  also means dif = manufacturer data follows.
         case 0x10: return 4; // Total volume
 
@@ -135,7 +137,7 @@ namespace
         case 0x75: return 1+6*4; // Historical data
         case 0x7B: return 1+12*4; // Historical data
 
-        case 0x80: return 3; // Apparently payload can also start with 0x80, but hey,
+            // case 0x80: return 3; // Apparently payload can also start with 0x80, but hey,
             // what happened to 0x0f which indicated mfct data? 0x80 is a valid dif
             // now its impossible to see that the telegram contains mfct data....
             // except by using the mfct/type/version info.
@@ -145,12 +147,6 @@ namespace
         case 0x84: return 10;
         case 0x86: return 10;
         case 0x87: return 10;
-
-        case 0x92: return 3;
-        case 0x93: return 3;
-        case 0x94: return 3;
-        case 0x95: return 3;
-        case 0x96: return 3;
 
         case 0xA0: return 4;
 
