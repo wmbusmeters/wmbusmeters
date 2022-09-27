@@ -1768,7 +1768,7 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
 void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 {
-    set<FieldInfo*> used;
+    map<FieldInfo*,DVEntry*> found;
 
     // Iterate through the data content (dv_entries) in the telegram.
     for (auto &p : t->dv_entries)
@@ -1780,16 +1780,31 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
         {
             if (fi.hasMatcher() && fi.matches(dve))
             {
-                // We have field that wants to handle this entry!
-                debug("(meters) using field info %s(%s)[%d] to extract %s\n",
-                      fi.vname().c_str(),
-                      toString(fi.xuantity()),
-                      fi.index(),
-                      dve->dif_vif_key.str().c_str());
+                if (found.count(&fi) != 0)
+                {
+                    DVEntry *old = found[&fi];
 
-                dve->addFieldInfo(&fi);
-                fi.performExtraction(this, t, dve);
-                used.insert(&fi);
+                    verbose("(meter) while processing field extractors ignoring dventry %s at offset %d matching since "
+                            "field %s was already matched against dventry %s at offset %d !\n",
+                            dve->dif_vif_key.str().c_str(),
+                            dve->offset,
+                            fi.vname().c_str(),
+                            old->dif_vif_key.str().c_str(),
+                            old->offset);
+                }
+                else
+                {
+                    // We have field that wants to handle this entry!
+                    debug("(meters) using field info %s(%s)[%d] to extract %s\n",
+                          fi.vname().c_str(),
+                          toString(fi.xuantity()),
+                          fi.index(),
+                          dve->dif_vif_key.str().c_str());
+
+                    dve->addFieldInfo(&fi);
+                    fi.performExtraction(this, t, dve);
+                    found[&fi] = dve;
+                }
             }
         }
     }
@@ -1802,7 +1817,7 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
         {
             fi.performExtraction(this, t, NULL);
         }
-        else if (used.count(&fi) == 0 && fi.printProperties().hasJOINTPLSTATUS())
+        else if (found.count(&fi) == 0 && fi.printProperties().hasJOINTPLSTATUS())
         {
             // This is a status field and it joins the tpl status but it also
             // has a potential dve match, which did not trigger. Now
@@ -2080,6 +2095,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                 if (dve->hasFieldInfo(&fi))
                 {
                     assert(found.count(&fi) == 0);
+
                     found[&fi] = dve;
                     found_vnames.insert(fi.vname());
                 }

@@ -1,4 +1,7 @@
 
+Improved wmbusmeters to gracefully handle bad telegrams with multiple difvif entries
+matching the same field. This used to trigger an assert, now the first matching field is used.
+
 Rename option --device=xyz to --overridedevice=xyz and add better error message
 if it is used without --useconfig=xyz. --device still works but will eventually be removed.
 
