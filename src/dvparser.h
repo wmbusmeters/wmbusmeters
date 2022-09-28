@@ -44,7 +44,7 @@
     X(EnergyMJ,0x0E,0x0F, Quantity::Energy, Unit::MJ) \
     X(EnergyWh,0x00,0x07, Quantity::Energy, Unit::KWH) \
     X(PowerW,0x28,0x2f, Quantity::Power, Unit::KW) \
-    X(ActualityDuration,0x74,0x77, Quantity::Time, Unit::Second) \
+    X(ActualityDuration,0x74,0x77, Quantity::Time, Unit::Hour) \
     X(FabricationNo,0x78,0x78, Quantity::Text, Unit::TXT) \
     X(EnhancedIdentification,0x79,0x79, Quantity::Text, Unit::TXT) \
     X(RelativeHumidity,0x7B1A,0x7B1B, Quantity::RH, Unit::RH) \
