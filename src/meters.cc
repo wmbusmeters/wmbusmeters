@@ -1775,10 +1775,18 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 {
     map<FieldInfo*,DVEntry*> found;
 
-    // Iterate through the data content (dv_entries) in the telegram.
+    vector<DVEntry*> sorted_entries;
+
     for (auto &p : t->dv_entries)
     {
-        DVEntry *dve = &p.second.second;
+        sorted_entries.push_back(&p.second.second);
+    }
+    sort(sorted_entries.begin(), sorted_entries.end(),
+         [](const DVEntry* a, const DVEntry *b) -> bool { return a->offset < b->offset; });
+
+    // Iterate through the data content (dv_entries) in the telegram.
+    for (DVEntry *dve : sorted_entries)
+    {
         // We have telegram content, a dif-vif-value entry.
         // Now check for a field info that wants to handle this telegram content entry.
         for (FieldInfo &fi : field_infos_)
@@ -1800,11 +1808,12 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
                 else
                 {
                     // We have field that wants to handle this entry!
-                    debug("(meters) using field info %s(%s)[%d] to extract %s\n",
+                    debug("(meters) using field info %s(%s)[%d] to extract %s at offset %d\n",
                           fi.vname().c_str(),
                           toString(fi.xuantity()),
                           fi.index(),
-                          dve->dif_vif_key.str().c_str());
+                          dve->dif_vif_key.str().c_str(),
+                          dve->offset);
 
                     dve->addFieldInfo(&fi);
                     fi.performExtraction(this, t, dve);

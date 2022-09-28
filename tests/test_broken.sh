@@ -14,6 +14,10 @@ cat > $TEST/test_expected.txt <<EOF
 (dvparser) warning: unexpected end of data
 (dvparser) found new format "046D0406041301FD17426C4406840106840206840306840406840506840606840706840806840906C1337F47A64E0C062364" with hash b934, remembering!
 (meter) while processing field extractors ignoring dventry 0C06 at offset 129 matching since field total was already matched against dventry 0406 at offset 25 !
+(dvparser) found new format "046D0406041301FD17426C4406840106840206840306840406840506840606840706840806840906585D65E6958F6B5E93DBA60CD99D06EB27D97106000000840F060003620501" with hash 6c76, remembering!
+(meter) while processing field extractors ignoring dventry 0000 at offset 146 matching since field total was already matched against dventry 0406 at offset 25 !
+(meter) while processing field extractors ignoring dventry 0600 at offset 151 matching since field total was already matched against dventry 0406 at offset 25 !
+(meter) while processing field extractors ignoring dventry 0501 at offset 166 matching since field total was already matched against dventry 0406 at offset 25 !
 EOF
 
 $PROG --format=fields --selectfields=id,current_consumption_hca,device_date_time --debug simulations/simulation_broken.txt \
