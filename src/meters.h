@@ -60,7 +60,6 @@ LIST_OF_METER_TYPES
 #define LIST_OF_METERS \
     X(auto,       0,      AutoMeter, AUTO, Auto) \
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
-    X(bfw240radio,T1_bit, HeatCostAllocationMeter, BFW240RADIO, BFW240Radio)   \
     X(compact5,   T1_bit, HeatMeter,        COMPACT5,    Compact5)     \
     X(dme_07,     T1_bit, WaterMeter,       DME_07,      DME_07)      \
     X(ebzwmbe,    T1_bit, ElectricityMeter, EBZWMBE, EBZWMBE)          \

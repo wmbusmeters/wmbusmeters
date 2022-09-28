@@ -1,4 +1,6 @@
 
+Added the bfw 240 radio heat cost allocator.
+
 Kajetan Krykwiński added support for the Apator E-ITN heat cost allocator. Thanks Kajetan!
 
 Improved wmbusmeters to gracefully handle bad telegrams with multiple difvif entries

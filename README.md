@@ -463,6 +463,7 @@ Sontex 868 (sontex868)
 Techem FHKV data II/III (fhkvdataiii)
 Siemens WHE542 (whe5x)
 BMeters Hydroclima RFM (hydroclima)
+BFW 240 (bfw240radio)
 
 Supported heat meters:
 Heat meter Techem Compact V / Compact Ve (compact5) (non-standard protocol)

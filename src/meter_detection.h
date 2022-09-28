@@ -27,7 +27,6 @@
 //    meter driver,       manufacturer,  media,  version
 //
 #define METER_DETECTION \
-    X(BFW240RADIO, MANUFACTURER_BFW,0x08,  0x02) \
     X(CCx01,     MANUFACTURER_GSS,  0x02,  0x01) \
     X(COMPACT5,  MANUFACTURER_TCH,  0x04,  0x45) \
     X(COMPACT5,  MANUFACTURER_TCH,  0xc3,  0x45) \
