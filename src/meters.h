@@ -236,6 +236,7 @@ private:
     function<shared_ptr<Meter>(MeterInfo&,DriverInfo&di)> constructor_; // Invoke this to create an instance of the driver.
     vector<DriverDetect> detect_;
     vector<string> default_fields_;
+    int force_mfct_index_ = -1; // Used for meters not declaring mfct specific data using the dif 0f.
 
 public:
     DriverInfo() {};
@@ -245,6 +246,7 @@ public:
     void setMeterType(MeterType t) { type_ = t; }
     void setDefaultFields(string f) { default_fields_ = splitString(f, ','); }
     void addLinkMode(LinkMode lm) { linkmodes_.addLinkMode(lm); }
+    void forceMfctIndex(int i) { force_mfct_index_ = i; }
     void addMfctTPLStatusBits(Translate::Lookup lookup) { mfct_tpl_status_bits_ = lookup; }
     void setConstructor(function<shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
     void addDetection(uint16_t mfct, uchar type, uchar ver) { detect_.push_back({ mfct, type, ver }); }
@@ -261,6 +263,7 @@ public:
     bool detect(uint16_t mfct, uchar type, uchar version);
     bool isValidMedia(uchar type);
     bool isCloseEnoughMedia(uchar type);
+    int forceMfctIndex() { return force_mfct_index_; }
 };
 
 bool registerDriver(function<void(DriverInfo&di)> setup);

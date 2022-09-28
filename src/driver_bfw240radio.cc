@@ -38,7 +38,7 @@ namespace
         di.addLinkMode(LinkMode::T1);
         di.setMeterType(MeterType::HeatCostAllocationMeter);
         di.addDetection(MANUFACTURER_BFW,0x08,  0x02);
-
+        di.forceMfctIndex(2); // First two bytes are 2f2f after that its completely mfct specific.
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
@@ -116,10 +116,24 @@ namespace
 
         if (content.size() < 40) return;
 
+        current_hca_ = content[6]*256 + content[7];
+
+        string msg = tostrprintf("*** %02X%02X \"current_hca\":%g", content[6], content[7], current_hca_);
+        t->addSpecialExplanation(6+t->header_size, 2, KindOfData::CONTENT, Understanding::FULL, msg.c_str());
+
+        prev_hca_ = content[4]*256 + content[5];
+
+        msg = tostrprintf("*** %02X%02X \"prev_hca\":%g", content[4], content[5], prev_hca_);
+        t->addSpecialExplanation(4+t->header_size, 2, KindOfData::CONTENT, Understanding::FULL, msg.c_str());
+
         device_date_ = tostrprintf("20%02x-%02x-%02x", content[39], content[39-1], content[39-2]);
 
-        current_hca_ = content[6]*256 + content[7];
-        prev_hca_ = content[4]*256 + content[5];
+        msg = tostrprintf("*** %02X%02X%02X \"device_date\":\"%s\"", content[39-2], content[39-1], content[39],
+                                 device_date_.c_str());
+        t->addSpecialExplanation(39-2+t->header_size, 3, KindOfData::CONTENT, Understanding::FULL, msg.c_str());
+
+
+
 
         for (int i=0; i<18; ++i)
         {

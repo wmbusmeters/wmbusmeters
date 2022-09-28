@@ -245,6 +245,8 @@ protected:
     vector<string> &selectedFields() { return selected_fields_; }
     void setSelectedFields(vector<string> &f) { selected_fields_ = f; }
 
+    void forceMfctIndex(int i) { force_mfct_index_  = i; }
+
 private:
 
     int index_ {};
@@ -266,8 +268,10 @@ private:
     vector<string> extra_constant_fields_;
     time_t poll_interval_ {};
     Translate::Lookup mfct_tpl_status_bits_ = NoLookup;
+    int force_mfct_index_ = -1;
 
 protected:
+
     vector<Unit> conversions_;
     vector<FieldInfo> field_infos_;
     vector<string> field_names_;

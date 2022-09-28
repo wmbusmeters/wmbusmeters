@@ -770,6 +770,7 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     }
 
     link_modes_.unionLinkModeSet(di.linkModes());
+    force_mfct_index_ = di.forceMfctIndex();
 }
 
 void MeterCommonImplementation::addConversions(std::vector<Unit> cs)
@@ -1733,6 +1734,12 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     {
         string msg = bin2hex(input_frame);
         debug("(meter) %s %s \"%s\"\n", name().c_str(), t.ids.back().c_str(), msg.c_str());
+    }
+
+    // For older meters with manufacturer specific data without a nice 0f dif marker.
+    if (force_mfct_index_ != -1)
+    {
+        t.force_mfct_index = force_mfct_index_;
     }
 
     ok = t.parse(input_frame, &meter_keys_, true);
