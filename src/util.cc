@@ -531,6 +531,13 @@ void notice(const char* fmt, ...) {
     }
 }
 
+void notice_always(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    output_stuff(LOG_NOTICE, false, fmt, args);
+    va_end(args);
+}
+
 void notice_timestamp(const char* fmt, ...) {
     if (!logging_silenced_) {
         va_list args;
@@ -1017,7 +1024,7 @@ void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size
         string content = parsed_hex.substr(header_size*2);
         if (suffix_size == 0)
         {
-            notice("telegram=|%s_%s|+%ld\n",
+            notice_always("telegram=|%s_%s|+%ld\n",
                    header.c_str(), content.c_str(), diff);
         }
         else
@@ -1025,7 +1032,7 @@ void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size
             assert((suffix_size*2) < (int)content.size());
             string content2 = content.substr(0, content.size()-suffix_size*2);
             string suffix = content.substr(content.size()-suffix_size*2);
-            notice("telegram=|%s|%s|%s|+%ld\n",
+            notice_always("telegram=|%s|%s|%s|+%ld\n",
                    header.c_str(), content2.c_str(), suffix.c_str(), diff);
         }
     }

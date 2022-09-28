@@ -94,6 +94,7 @@ void debug(const char* fmt, ...);
 void warning(const char* fmt, ...);
 void info(const char* fmt, ...);
 void notice(const char* fmt, ...);
+void notice_always(const char* fmt, ...);
 void notice_timestamp(const char* fmt, ...);
 
 void silentLogging(bool b);
