@@ -82,7 +82,6 @@ LIST_OF_METER_TYPES
     X(multical403,C1_bit, HeatMeter,        MULTICAL403, Multical403)  \
     X(multical602,C1_bit, HeatMeter,        MULTICAL602, Multical602)  \
     X(multical803,C1_bit, HeatMeter,        MULTICAL803, Multical803)  \
-    X(omnipower,  C1_bit, ElectricityMeter, OMNIPOWER,   Omnipower)    \
     X(rfmamb,     T1_bit, TempHygroMeter,   RFMAMB,      RfmAmb)       \
     X(rfmtx1,     T1_bit, WaterMeter,       RFMTX1,      RfmTX1)       \
     X(tsd2,       T1_bit, SmokeDetector,    TSD2,        TSD2)         \

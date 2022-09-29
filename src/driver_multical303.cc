@@ -20,8 +20,8 @@
 
 namespace
 {
-    struct Multical303 : public virtual MeterCommonImplementation {
-        Multical303(MeterInfo &mi, DriverInfo &di);
+    struct Driver : public virtual MeterCommonImplementation {
+        Driver(MeterInfo &mi, DriverInfo &di);
     };
 
     static bool ok = registerDriver([](DriverInfo&di)
@@ -32,10 +32,10 @@ namespace
         di.addLinkMode(LinkMode::C1);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_KAM, 0x04,  0x40);
-        di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Multical303(mi, di)); });
+        di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
-    Multical303::Multical303(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+    Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
         addNumericFieldWithExtractor(
             "total_energy",
