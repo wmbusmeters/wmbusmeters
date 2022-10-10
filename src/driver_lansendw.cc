@@ -131,17 +131,17 @@ void MeterLansenDW::processContent(Telegram *t)
 
     if (extractDVuint16(&t->dv_entries, "02FD1B", &offset, &info_codes_))
     {
-        t->addMoreExplanation(offset, renderJsonOnlyDefaultUnit("status"));
+        t->addMoreExplanation(offset, renderJsonOnlyDefaultUnit("status", Quantity::Text));
     }
 
     if (extractDVdouble(&t->dv_entries, "0EFD3A", &offset, &pulse_counter_a_, false))
     {
-        t->addMoreExplanation(offset, renderJsonOnlyDefaultUnit("counter_a"));
+        t->addMoreExplanation(offset, renderJsonOnlyDefaultUnit("counter_a", Quantity::Counter));
     }
 
     if (extractDVdouble(&t->dv_entries, "8E40FD3A", &offset, &pulse_counter_b_, false))
     {
-        t->addMoreExplanation(offset, renderJsonOnlyDefaultUnit("counter_b"));
+        t->addMoreExplanation(offset, renderJsonOnlyDefaultUnit("counter_b", Quantity::Counter));
     }
 }
 

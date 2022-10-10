@@ -115,6 +115,7 @@ bool isInternalTestingEnabled();
 
 bool isVerboseEnabled();
 bool isDebugEnabled();
+bool isTraceEnabled();
 bool isLogTelegramsEnabled();
 
 void debugPayload(std::string intro, std::vector<uchar> &payload);

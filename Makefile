@@ -136,6 +136,7 @@ PROG_OBJS:=\
 	$(BUILD)/cmdline.o \
 	$(BUILD)/config.o \
 	$(BUILD)/dvparser.o \
+	$(BUILD)/formula.o \
 	$(BUILD)/mbus_rawtty.o \
 	$(BUILD)/meters.o \
 	$(BUILD)/manufacturer_specificities.o \
@@ -288,6 +289,9 @@ testd:
 
 testdriver:
 	@./tests/test_drivers.sh build/wmbusmeters driver_${DRIVER}.cc
+
+testdriverd:
+	@./tests/test_drivers.sh build_debug/wmbusmeters driver_${DRIVER}.cc
 
 update_manufacturers:
 	iconv -f utf-8 -t ascii//TRANSLIT -c DLMS_Flagids.csv -o tmp.flags

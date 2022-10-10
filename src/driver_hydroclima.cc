@@ -149,14 +149,14 @@ namespace
 
         if (i+1 >= len) return;
         average_ambient_temperature_ = toTemperature(bytes[i+1], bytes[i]);
-        info = renderJsonOnlyDefaultUnit("average_ambient_temperature");
+        info = renderJsonOnlyDefaultUnit("average_ambient_temperature", Quantity::Temperature);
         t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                  "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
         i+=2;
 
         if (i+1 >= len) return;
         max_ambient_temperature_ = toTemperature(bytes[i+1], bytes[i]);
-        info = renderJsonOnlyDefaultUnit("max_ambient_temperature");
+        info = renderJsonOnlyDefaultUnit("max_ambient_temperature", Quantity::Temperature);
         t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                  "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
         i+=2;
@@ -175,14 +175,14 @@ namespace
 
         if (i+1 >= len) return;
         average_ambient_temperature_last_month_ = toTemperature(bytes[i+1], bytes[i]);
-        info = renderJsonOnlyDefaultUnit("average_ambient_temperature_last_month");
+        info = renderJsonOnlyDefaultUnit("average_ambient_temperature_last_month", Quantity::Temperature);
         t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                  "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
         i+=2;
 
         if (i+1 >= len) return;
         average_heater_temperature_last_month_ = toTemperature(bytes[i+1], bytes[i]);
-        info = renderJsonOnlyDefaultUnit("average_heater_temperature_last_month");
+        info = renderJsonOnlyDefaultUnit("average_heater_temperature_last_month", Quantity::Temperature);
         t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                  "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
         i+=2;

@@ -19,6 +19,7 @@
 #include"util.h"
 #include<assert.h>
 #include<math.h>
+#include<string.h>
 
 using namespace std;
 
@@ -81,6 +82,16 @@ LIST_OF_CONVERSIONS
     return 0;
 }
 
+Unit whenMultiplied(Unit left, Unit right)
+{
+    return Unit::Unknown;
+}
+
+double multiply(double l, Unit left, double r, Unit right)
+{
+    return 0;
+}
+
 bool isQuantity(Unit u, Quantity q)
 {
 #define X(cname,lcname,hrname,quantity,explanation) if (u == Unit::cname) return Quantity::quantity == q;
@@ -88,6 +99,15 @@ LIST_OF_UNITS
 #undef X
 
     return false;
+}
+
+Quantity toQuantity(Unit u)
+{
+#define X(cname,lcname,hrname,quantity,explanation) if (u == Unit::cname) return Quantity::quantity;
+LIST_OF_UNITS
+#undef X
+
+    return Quantity::Unknown;
 }
 
 void assertQuantity(Unit u, Quantity q)
@@ -117,7 +137,7 @@ LIST_OF_QUANTITIES
 
 Unit toUnit(string s)
 {
-#define X(cname,lcname,hrname,quantity,explanation) if (s == #cname) return Unit::cname;
+#define X(cname,lcname,hrname,quantity,explanation) if (s == #cname || s == #lcname) return Unit::cname;
 LIST_OF_UNITS
 #undef X
 
@@ -189,4 +209,31 @@ string valueToString(double v, Unit u)
     }
     if (s.length() == 0) return "0";
     return s;
+}
+
+bool extractUnit(const string &s, string *vname, Unit *u)
+{
+    size_t pos;
+    string vn;
+    const char *c;
+
+    if (s.length() < 3) goto err;
+
+    pos = s.rfind('_');
+
+    if (pos == string::npos) goto err;
+    if (pos+1 >= s.length()) goto err;
+    vn = s.substr(0,pos);
+    pos++;
+
+    c = s.c_str()+pos;
+
+#define X(cname,lcname,hrname,quantity,explanation) if (!strcmp(c, #lcname)) { *u = Unit::cname; *vname = vn; return true; }
+LIST_OF_UNITS
+#undef X
+
+err:
+*vname = "";
+*u = Unit::Unknown;
+return false;
 }

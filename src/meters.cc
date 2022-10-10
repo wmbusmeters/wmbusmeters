@@ -846,7 +846,8 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                   NULL,
                   NULL,
                   NULL,
-                  NoLookup
+                  NoLookup, /* Lookup table */
+                  NULL /* Formula */
             ));
 }
 
@@ -866,7 +867,8 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit 
                   NULL,
                   NULL,
                   NULL,
-                  NoLookup
+                  NoLookup, /* Lookup table */
+                  NULL /* Formula */
             ));
 }
 
@@ -887,7 +889,8 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
                   getValueFunc,
                   NULL,
                   NULL,
-                  NoLookup
+                  NoLookup, /* Lookup table */
+                  NULL /* Formula */
             ));
 }
 
@@ -919,7 +922,8 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(
                   NULL,
                   setValueFunc,
                   NULL,
-                  NoLookup
+                  NoLookup, /* Lookup table */
+                  NULL /* Formula */
             ));
 }
 
@@ -944,7 +948,37 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                   NULL,
                   NULL,
                   NULL,
-                  NoLookup
+                  NoLookup, /* Lookup table */
+                  NULL /* Formula */
+            ));
+}
+
+void MeterCommonImplementation::addNumericFieldWithCalculator(string vname,
+                                                              string help,
+                                                              PrintProperties print_properties,
+                                                              Quantity vquantity,
+                                                              string formula,
+                                                              Unit use_unit)
+{
+    Formula *f = newFormula();
+    bool ok = f->parse(this, formula);
+    assert(ok);
+
+    field_infos_.push_back(
+        FieldInfo(field_infos_.size(),
+                  vname,
+                  vquantity,
+                  use_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : use_unit,
+                  VifScaling::Auto,
+                  NULL,
+                  help,
+                  print_properties,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NoLookup, /* Lookup table */
+                  f /* Formula */
             ));
 }
 
@@ -969,7 +1003,8 @@ void MeterCommonImplementation::addNumericField(
                   NULL,
                   setValueFunc,
                   NULL,
-                  NoLookup
+                  NoLookup, /* Lookup table */
+                  NULL /* Formula */
             ));
 }
 
@@ -1000,7 +1035,8 @@ void MeterCommonImplementation::addStringFieldWithExtractor(
                   getValueFunc,
                   NULL,
                   setValueFunc,
-                  NoLookup
+                  NoLookup, /* Lookup table */
+                  NULL /* Formula */
             ));
 }
 
@@ -1022,7 +1058,8 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
                   NULL,
                   NULL,
                   NULL,
-                  NoLookup
+                  NoLookup, /* Lookup table */
+                  NULL /* Formula */
             ));
 }
 
@@ -1054,7 +1091,8 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
                   getValueFunc,
                   NULL,
                   setValueFunc,
-                  lookup
+                  lookup, /* Lookup table */
+                  NULL /* Formula */
             ));
 }
 
@@ -1077,7 +1115,8 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
                   NULL,
                   NULL,
                   NULL,
-                  lookup
+                  lookup,
+                  NULL /* Formula */
             ));
 }
 
@@ -1098,7 +1137,8 @@ void MeterCommonImplementation::addStringField(string vname,
                   NULL,
                   NULL,
                   NULL,
-                  NoLookup
+                  NoLookup, /* Lookup table */
+                  NULL /* Formula */
             ));
 }
 
@@ -1761,6 +1801,8 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
     // Invoke standardized field extractors!
     processFieldExtractors(&t);
+    // Invoke any calculators working on the extracted fields.
+    processFieldCalculators();
     // Invoke tailor made meter specific parsing!
     processContent(&t);
     // All done....
@@ -1844,6 +1886,18 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
             // has a potential dve match, which did not trigger. Now
             // force extraction to get the tpl status.
             fi.performExtraction(this, t, NULL);
+        }
+    }
+}
+
+void MeterCommonImplementation::processFieldCalculators()
+{
+    // Iterate over the fields with formulas.
+    for (FieldInfo &fi : field_infos_)
+    {
+        if (fi.hasFormula())
+        {
+            fi.performCalculation(this);
         }
     }
 }
@@ -1962,12 +2016,13 @@ string MeterCommonImplementation::decodeTPLStatusByte(uchar sts)
     return ::decodeTPLStatusByteWithMfct(sts, mfct_tpl_status_bits_);
 }
 
-FieldInfo *MeterCommonImplementation::findFieldInfo(string vname)
+FieldInfo *MeterCommonImplementation::findFieldInfo(string vname, Quantity xuantity)
 {
     FieldInfo *found = NULL;
     for (FieldInfo &p : field_infos_)
     {
-        if (p.vname() == vname)
+        if (p.vname() == vname &&
+            p.xuantity() == xuantity)
         {
             found = &p;
             break;
@@ -1977,9 +2032,9 @@ FieldInfo *MeterCommonImplementation::findFieldInfo(string vname)
     return found;
 }
 
-string MeterCommonImplementation::renderJsonOnlyDefaultUnit(string vname)
+string MeterCommonImplementation::renderJsonOnlyDefaultUnit(string vname, Quantity xuantity)
 {
-    FieldInfo *fi = findFieldInfo(vname);
+    FieldInfo *fi = findFieldInfo(vname, xuantity);
 
     if (fi == NULL) return "unknown field "+vname;
     return fi->renderJsonOnlyDefaultUnit(this);
@@ -1995,7 +2050,7 @@ string FieldInfo::renderJsonText(Meter *m)
     return renderJson(m, NULL);
 }
 
-string FieldInfo::generateFieldName(DVEntry *dve)
+string FieldInfo::generateFieldName()
 {
     if (xuantity_ == Quantity::Text)
     {
@@ -2566,22 +2621,36 @@ bool isValidKey(string& key, MeterDriver mt)
     return hex2bin(key, &tmp);
 }
 
-
 void FieldInfo::performExtraction(Meter *m, Telegram *t, DVEntry *dve)
 {
     if (xuantity_ == Quantity::Text)
     {
+        // Extract a string.
         extractString(m, t, dve);
     }
-    else
+    else if (!hasFormula())
     {
+        // Extract a numeric.
         extractNumeric(m, t, dve);
     }
+}
+
+void FieldInfo::performCalculation(Meter *m)
+{
+    assert(hasFormula());
+
+    double value = formula_->calculate(defaultUnit());
+    m->setNumericValue(this, defaultUnit(), value);
 }
 
 bool FieldInfo::hasMatcher()
 {
     return matcher_.active == true;
+}
+
+bool FieldInfo::hasFormula()
+{
+    return formula_ != NULL;
 }
 
 bool FieldInfo::matches(DVEntry *dve)
@@ -2638,7 +2707,7 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
     assert(key == "" || dve->dif_vif_key.str() == key);
 
     // Generate the json field name:
-    string field_name = generateFieldName(dve);
+    string field_name = generateFieldName();
 
     double extracted_double_value = NAN;
     if (dve->extractDouble(&extracted_double_value,
@@ -2748,7 +2817,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     assert(key == "" || dve->dif_vif_key.str() == key);
 
     // Generate the json field name:
-    string field_name = generateFieldName(dve);
+    string field_name = generateFieldName();
 
     uint64_t extracted_bits {};
     if (lookup_.hasLookups() || (print_properties_.hasJOINTPLSTATUS()))
@@ -2795,6 +2864,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
              matcher_.vif_range == VIFRange::FabricationNo ||
              matcher_.vif_range == VIFRange::ModelVersion ||
              matcher_.vif_range == VIFRange::SoftwareVersion ||
+             matcher_.vif_range == VIFRange::Customer ||
              matcher_.vif_range == VIFRange::ParameterSet)
     {
         string extracted_id;

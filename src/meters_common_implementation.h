@@ -142,7 +142,15 @@ protected:
         Quantity vquantity,     // Value belongs to this quantity, this quantity determines the default unit.
         VifScaling vif_scaling, // How should any Vif value be scaled.
         FieldMatcher matcher,
-        Unit use_unit = Unit::Unknown); // If specified use this unit instead.
+        Unit use_unit = Unit::Unknown); // If specified use this unit for the json field instead instead of the default unit.
+
+    void addNumericFieldWithCalculator(
+        string vname,           // Name of value without unit, eg "total" "total_month{storagenr}"
+        string help,            // Information about this field.
+        PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
+        Quantity vquantity,     // Value belongs to this quantity, this quantity determines the default unit.
+        string formula,         // The formula can reference the other fields and + them together.
+        Unit use_unit = Unit::Unknown); // If specified use this unit for the json field instead instead of the default unit.
 
     void addNumericField(
         string vname,          // Name of value without unit, eg total
@@ -221,10 +229,12 @@ protected:
     // since Json is assumed to be decoded by a program and the current timestamp which is the
     // same as timestamp_utc, can always be decoded/recoded into local time or a unix timestamp.
 
-    FieldInfo *findFieldInfo(string vname);
-    string renderJsonOnlyDefaultUnit(string vname);
+    FieldInfo *findFieldInfo(string vname, Quantity xuantity);
+    string renderJsonOnlyDefaultUnit(string vname, Quantity xuantity);
 
     void processFieldExtractors(Telegram *t);
+    void processFieldCalculators();
+
     virtual void processContent(Telegram *t);
 
     void setNumericValue(FieldInfo *fi, Unit u, double v);

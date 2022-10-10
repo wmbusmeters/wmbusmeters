@@ -19,6 +19,7 @@
 #include"aescmac.h"
 #include"cmdline.h"
 #include"config.h"
+#include"formula_implementation.h"
 #include"meters.h"
 #include"printer.h"
 #include"serial.h"
@@ -33,13 +34,13 @@ using namespace std;
 
 int test_crc();
 int test_dvparser();
-int test_test();
+int test_devices();
 int test_linkmodes();
 void test_ids();
 void test_addresses();
 void test_kdf();
 void test_periods();
-void test_devices();
+void test_device_parsing();
 void test_meters();
 void test_months();
 void test_aes();
@@ -52,44 +53,66 @@ void test_ascii_detection();
 void test_status_join();
 void test_status_sort();
 void test_field_matcher();
+void test_units();
+void test_formulas_building();
+void test_formulas_parsing();
+
+bool test(const char *test_name, const char *pattern)
+{
+    if (pattern == NULL) return true;
+    bool ok = strstr(test_name, pattern) != NULL;
+    if (ok) printf("Test %s\n", test_name);
+    return ok;
+}
 
 int main(int argc, char **argv)
 {
-    if (argc > 1) {
-        if (!strcmp(argv[1], "--debug"))
+    const char *pattern = NULL;
+
+    int i = 1;
+    while (i < argc) {
+        if (!strcmp(argv[i], "--debug"))
         {
             debugEnabled(true);
         }
-        if (!strcmp(argv[1], "--trace"))
+        else
+        if (!strcmp(argv[i], "--trace"))
         {
             debugEnabled(true);
             traceEnabled(true);
         }
+        else
+        {
+            pattern = argv[i];
+        }
+        i++;
     }
     onExit([](){});
 
-    test_crc();
-    test_dvparser();
-    test_test();
-    test_devices();
-    test_meters();
-    /*
-      test_linkmodes();*/
-    test_ids();
+    if (test("crc", pattern)) test_crc();
+    if (test("dvparser", pattern)) test_dvparser();
+    if (test("devices", pattern)) test_devices();
+    if (test("device_parsing", pattern)) test_device_parsing();
+    if (test("meters", pattern)) test_meters();
+//    test_linkmodes();
+    if (test("ids", pattern)) test_ids();
 //    test_addresses();
-    test_kdf();
-    test_periods();
-    test_months();
-    test_aes();
-    test_sbc();
-    test_hex();
-    test_translate();
-    test_slip();
-    test_dvs();
-    test_ascii_detection();
-    test_status_join();
-    test_status_sort();
-    test_field_matcher();
+    if (test("kdf", pattern)) test_kdf();
+    if (test("periods", pattern)) test_periods();
+    if (test("months", pattern)) test_months();
+    if (test("aes", pattern)) test_aes();
+    if (test("sbc", pattern)) test_sbc();
+    if (test("hex", pattern)) test_hex();
+    if (test("translate", pattern)) test_translate();
+    if (test("slip", pattern)) test_slip();
+    if (test("dvs", pattern)) test_dvs();
+    if (test("ascii_detection", pattern)) test_ascii_detection();
+    if (test("status_join", pattern)) test_status_join();
+    if (test("status_sort", pattern)) test_status_sort();
+    if (test("field_matcher", pattern)) test_field_matcher();
+    if (test("units", pattern)) test_units();
+    if (test("formulas_building", pattern)) test_formulas_building();
+    if (test("formulas_parsing", pattern)) test_formulas_parsing();
 
     return 0;
 }
@@ -242,7 +265,7 @@ int test_dvparser()
     return 0;
 }
 
-int test_test()
+int test_devices()
 {
     shared_ptr<SerialCommunicationManager> manager = createSerialCommunicationManager(0, false);
 
@@ -663,7 +686,7 @@ void testd(string arg, bool xok, string xalias, string xfile, string xtype, stri
     }
 }
 
-void test_devices()
+void test_device_parsing()
 {
     testd("Bus_4711=/dev/ttyUSB0:im871a[12345678]:9600:868.95M:c1,t1", true,
           "Bus_4711", // alias
@@ -1536,4 +1559,249 @@ void test_field_matcher()
         printf("ERROR expected NO match for field matcher test 4 !\n");
     }
 
+}
+
+void test_unit(string in, bool expected_ok, string expected_vname, Unit expected_unit)
+{
+    Unit unit;
+    string vname;
+
+    bool ok = extractUnit(in, &vname, &unit);
+
+    if (ok != expected_ok ||
+        vname != expected_vname ||
+        unit != expected_unit)
+    {
+        printf("ERROR expected ok=%d vname=%s unit=%s but got\n"
+               "      but got  ok=%d vname=%s unit=%s\n",
+               expected_ok, expected_vname.c_str(), unitToStringUpperCase(expected_unit).c_str(),
+               ok, vname.c_str(), unitToStringUpperCase(unit).c_str());
+    }
+}
+
+void test_units()
+{
+    test_unit("total_kwh", true, "total", Unit::KWH);
+    test_unit("total_", false, "", Unit::Unknown);
+    test_unit("total", false, "", Unit::Unknown);
+    test_unit("", false, "", Unit::Unknown);
+    test_unit("_c", false, "", Unit::Unknown);
+
+    test_unit("work__c", true, "work_", Unit::C);
+
+    test_unit("water_c", true, "water", Unit::C);
+    test_unit("walk_counter", true, "walk", Unit::COUNTER);
+    test_unit("work_kvarh", true, "work", Unit::KVARH);
+
+    test_unit("current_power_consumption_phase1_kw", true, "current_power_consumption_phase1", Unit::KW);
+
+}
+
+
+void test_formulas_building()
+{
+    unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
+
+    assert(f->doConstant(Unit::KWH, 17));
+    assert(f->doConstant(Unit::KWH, 1));
+    assert(f->doAddition());
+    double v = f->calculate(Unit::KWH);
+    if (v != 18.0)
+    {
+        printf("ERROR in test formula 1 expected 18.0 but got %lf\n", v);
+    }
+
+    f->clear();
+    assert(f->doConstant(Unit::KWH, 10));
+    v = f->calculate(Unit::MJ);
+    if (v != 36.0)
+    {
+        printf("ERROR in test formula 2 expected 36.0 but got %lf\n", v);
+    }
+
+    f->clear();
+    assert(f->doConstant(Unit::GJ, 10));
+    assert(f->doConstant(Unit::MJ, 10));
+    assert(f->doAddition());
+    v = f->calculate(Unit::GJ);
+    if (v != 10.01)
+    {
+        printf("ERROR in test formula 3 expected 10.01 but got %lf\n", v);
+    }
+
+    f->clear();
+    assert(f->doConstant(Unit::C, 10));
+    assert(f->doConstant(Unit::C, 20));
+    assert(f->doAddition());
+    assert(f->doConstant(Unit::C, 22));
+    assert(f->doAddition());
+    v = f->calculate(Unit::C);
+    if (v != 52)
+    {
+        printf("ERROR in test formula 4 expected 52 but got %lf\n", v);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    {
+        MeterInfo mi;
+        mi.parse("testur", "multical21", "12345678", "");
+        shared_ptr<Meter> meter = createMeter(&mi);
+        FieldInfo *fi_flow = meter->findFieldInfo("flow_temperature", Quantity::Temperature);
+        FieldInfo *fi_ext = meter->findFieldInfo("external_temperature", Quantity::Temperature);
+        assert(fi_flow != NULL);
+        assert(fi_ext != NULL);
+
+        vector<uchar> frame;
+        hex2bin("2a442d2c785634121B168d2091d37cac217f2d7802ff207100041308190000441308190000615B1f616713", &frame);
+
+        Telegram t;
+        MeterKeys mk;
+        t.parse(frame, &mk, true);
+
+        string id;
+        bool match;
+        meter->handleTelegram(t.about, frame, true, &id, &match, &t);
+
+        f->clear();
+
+        assert(f->doField(Unit::C, meter.get(), fi_flow));
+        v = f->calculate(Unit::C);
+        if (v != 31)
+        {
+            printf("ERROR in test formula 5 expected 31 but got %lf\n", v);
+        }
+
+        f->clear();
+
+        assert(f->doField(Unit::C, meter.get(), fi_flow));
+        assert(f->doField(Unit::C, meter.get(), fi_ext));
+        assert(f->doAddition());
+        v = f->calculate(Unit::C);
+        if (v != 50)
+        {
+            printf("ERROR in test formula 6 expected 50 but got %lf\n", v);
+        }
+
+
+        // Check that trying to add a field reference expecting a non-convertible unit, will fail!
+        f->clear();
+        assert(false == f->doField(Unit::M3, meter.get(), fi_flow));
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    {
+        MeterInfo mi;
+        mi.parse("testur", "ebzwmbe", "22992299", "");
+        shared_ptr<Meter> meter = createMeter(&mi);
+        FieldInfo *fi_p1 = meter->findFieldInfo("current_power_consumption_phase1", Quantity::Power);
+        FieldInfo *fi_p2 = meter->findFieldInfo("current_power_consumption_phase2", Quantity::Power);
+        FieldInfo *fi_p3 = meter->findFieldInfo("current_power_consumption_phase3", Quantity::Power);
+        assert(fi_p1 != NULL);
+        assert(fi_p2 != NULL);
+        assert(fi_p3 != NULL);
+
+        vector<uchar> frame;
+        hex2bin("5B445a149922992202378c20f6900f002c25Bc9e0000BBBBBBBBBBBBBBBB72992299225a140102f6003007102f2f040330f92a0004a9ff01ff24000004a9ff026a29000004a9ff03460600000dfd11063132333435362f2f2f2f2f2f", &frame);
+
+        Telegram t;
+        MeterKeys mk;
+        t.parse(frame, &mk, true);
+
+        string id;
+        bool match;
+        meter->handleTelegram(t.about, frame, true, &id, &match, &t);
+
+        unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
+
+        f->clear();
+
+        assert(f->doField(Unit::KW, meter.get(), fi_p1));
+        assert(f->doField(Unit::KW, meter.get(), fi_p2));
+        assert(f->doAddition());
+        assert(f->doField(Unit::KW, meter.get(), fi_p3));
+        assert(f->doAddition());
+
+        v = f->calculate(Unit::KW);
+        if (v != 0.21679)
+        {
+            printf("ERROR in test formula 7 expected 0.21679 but got %lf\n", v);
+        }
+    }
+}
+
+void test_formula_tree(FormulaImplementation *f, Meter *m, string formula, string tree)
+{
+    f->clear();
+    f->parse(m, formula);
+    string t = f->tree();
+    if (t != tree)
+    {
+        printf("ERROR when parsing \"%s\" expected tree to be \"%s\"\nbut got \"%s\"\n",
+               formula.c_str(), tree.c_str(), t.c_str());
+    }
+}
+
+void test_formula_value(FormulaImplementation *f, Meter *m, string formula, double val, Unit unit)
+{
+    f->clear();
+
+    bool ok = f->parse(m, formula);
+    assert(ok);
+
+    double v = f->calculate(unit);
+    debug("(formula) %s\n", f->tree().c_str());
+
+    if (v != val)
+    {
+        printf("ERROR when evaluating \"%s\"\nERROR expected %.15g but got %.15g\n", formula.c_str(), val, v);
+    }
+}
+
+void test_formulas_parsing()
+{
+    {
+        MeterInfo mi;
+        mi.parse("testur", "ebzwmbe", "22992299", "");
+        shared_ptr<Meter> meter = createMeter(&mi);
+
+        vector<uchar> frame;
+        hex2bin("5B445a149922992202378c20f6900f002c25Bc9e0000BBBBBBBBBBBBBBBB72992299225a140102f6003007102f2f040330f92a0004a9ff01ff24000004a9ff026a29000004a9ff03460600000dfd11063132333435362f2f2f2f2f2f", &frame);
+
+        Telegram t;
+        MeterKeys mk;
+        t.parse(frame, &mk, true);
+
+        string id;
+        bool match;
+        meter->handleTelegram(t.about, frame, true, &id, &match, &t);
+
+        unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
+
+        test_formula_value(f.get(), meter.get(),
+                           "10 kwh + 100 kwh",
+                           110,
+                           Unit::KWH);
+
+        test_formula_value(f.get(), meter.get(),
+                           "current_power_consumption_phase1_kw + "
+                           "current_power_consumption_phase2_kw + "
+                           "current_power_consumption_phase3_kw + "
+                           "100 kw",
+                           100.21679,
+                           Unit::KW);
+
+        test_formula_tree(f.get(), meter.get(),
+                          "5 c + 7 c + 10 c",
+                          "<ADD <ADD <CONST 5 c> <CONST 7 c> > <CONST 10 c> >");
+
+        test_formula_tree(f.get(), meter.get(),
+                          "(5 c + 7 c) + 10 c",
+                          "<ADD <ADD <CONST 5 c> <CONST 7 c> > <CONST 10 c> >");
+
+        test_formula_tree(f.get(), meter.get(),
+                          "5 c + (7 c + 10 c)",
+                          "<ADD <CONST 5 c> <ADD <CONST 7 c> <CONST 10 c> > >");
+    }
 }

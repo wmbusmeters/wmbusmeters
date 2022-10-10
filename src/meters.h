@@ -19,6 +19,7 @@
 #define METER_H_
 
 #include"dvparser.h"
+#include"formula.h"
 #include"util.h"
 #include"units.h"
 #include"translatebits.h"
@@ -60,7 +61,6 @@ LIST_OF_METER_TYPES
 #define LIST_OF_METERS \
     X(auto,       0,      AutoMeter, AUTO, Auto) \
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
-    X(ebzwmbe,    T1_bit, ElectricityMeter, EBZWMBE, EBZWMBE)          \
     X(eurisii,    T1_bit, HeatCostAllocationMeter, EURISII, EurisII)   \
     X(ehzp,       T1_bit, ElectricityMeter, EHZP,        EHZP)         \
     X(esyswm,     T1_bit, ElectricityMeter, ESYSWM,      ESYSWM)       \
@@ -328,7 +328,8 @@ struct FieldInfo
               function<string()> get_string_value_override,
               function<void(Unit,double)> set_numeric_value_override,
               function<void(string)> set_string_value_override,
-              Translate::Lookup lookup
+              Translate::Lookup lookup,
+              Formula *formula
         ) :
         index_(index),
         vname_(vname),
@@ -342,7 +343,8 @@ struct FieldInfo
         get_string_value_override_(get_string_value_override),
         set_numeric_value_override_(set_numeric_value_override),
         set_string_value_override_(set_string_value_override),
-        lookup_(lookup)
+        lookup_(lookup),
+        formula_(formula)
     {}
 
     int index() { return index_; }
@@ -367,8 +369,11 @@ struct FieldInfo
     bool extractNumeric(Meter *m, Telegram *t, DVEntry *dve = NULL);
     bool extractString(Meter *m, Telegram *t, DVEntry *dve = NULL);
     bool hasMatcher();
+    bool hasFormula();
     bool matches(DVEntry *dve);
     void performExtraction(Meter *m, Telegram *t, DVEntry *dve);
+
+    void performCalculation(Meter *m);
 
     string renderJsonOnlyDefaultUnit(Meter *m);
     string renderJson(Meter *m, vector<Unit> *additional_conversions);
@@ -377,7 +382,7 @@ struct FieldInfo
     // A FieldInfo can be declared to handle any number of storage fields of a certain range.
     // The vname is then a pattern total_at_month_{storagenr-32} that gets translated into
     // total_at_month_2 (for the dventry with storage nr 34.)
-    string generateFieldName(DVEntry *dve);
+    string generateFieldName();
     // Check if the meter object stores a value for this field.
     bool hasValue(Meter *m);
 
@@ -403,7 +408,11 @@ private:
     function<void(Unit,double)> set_numeric_value_override_; // Call back to set the value in the c++ object
     function<void(string)> set_string_value_override_; // Call back to set the value string in the c++ object
 
+    // Lookup bits to strings.
     Translate::Lookup lookup_;
+
+    // For calculated fields.
+    unique_ptr<Formula> formula_;
 };
 
 struct BusManager;
@@ -469,8 +478,8 @@ struct Meter
     virtual vector<string> &shellCmdlines() = 0;
     virtual void poll(shared_ptr<BusManager> bus) = 0;
 
-    virtual FieldInfo *findFieldInfo(string vname) = 0;
-    virtual string renderJsonOnlyDefaultUnit(string vname) = 0;
+    virtual FieldInfo *findFieldInfo(string vname, Quantity xuantity) = 0;
+    virtual string renderJsonOnlyDefaultUnit(string vname, Quantity xuantity) = 0;
 
     virtual ~Meter() = default;
 };

@@ -789,7 +789,6 @@ void Telegram::addExplanationAndIncrementPos(vector<uchar>::iterator &pos, int l
     vsnprintf(buf, 1023, fmt, args);
     va_end(args);
 
-
     Explanation e(parsed.size(), len, buf, k, u);
     explanations.push_back(e);
     parsed.insert(parsed.end(), pos, pos+len);

@@ -52,6 +52,7 @@
     X(ParameterSet,0x7D0B,0x7D0B, Quantity::Text, Unit::TXT) \
     X(ModelVersion,0x7D0C,0x7D0C, Quantity::Text, Unit::TXT) \
     X(SoftwareVersion,0x7D0F,0x7D0F, Quantity::Text, Unit::TXT) \
+    X(Customer,0x7D11,0x7D11, Quantity::Text, Unit::TXT) \
     X(ErrorFlags,0x7D17,0x7D17, Quantity::Text, Unit::TXT) \
     X(DigitalInput,0x7D1B,0x7D1B, Quantity::Text, Unit::TXT) \
     X(DurationOfTariff,0x7D31,0x7D33, Quantity::Time, Unit::Hour) \

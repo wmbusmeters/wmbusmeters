@@ -90,9 +90,14 @@ LIST_OF_QUANTITIES
 
 bool canConvert(Unit from, Unit to);
 double convert(double v, Unit from, Unit to);
+Unit whenMultiplied(Unit left, Unit right);
+double multiply(double l, Unit left, double r, Unit right);
+
+// Either uppercase KWH or lowercase kwh works here.
 Unit toUnit(std::string s);
 const char *toString(Quantity q);
 bool isQuantity(Unit u, Quantity q);
+Quantity toQuantity(Unit u);
 void assertQuantity(Unit u, Quantity q);
 Unit defaultUnitForQuantity(Quantity q);
 std::string unitToStringHR(Unit u);
@@ -101,5 +106,7 @@ std::string unitToStringUpperCase(Unit u);
 std::string valueToString(double v, Unit u);
 
 Unit replaceWithConversionUnit(Unit u, std::vector<Unit> cs);
+
+bool extractUnit(const std::string &s, std::string *vname, Unit *u);
 
 #endif

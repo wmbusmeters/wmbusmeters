@@ -453,6 +453,10 @@ bool isDebugEnabled() {
     return debug_enabled_;
 }
 
+bool isTraceEnabled() {
+    return trace_enabled_;
+}
+
 bool isLogTelegramsEnabled() {
     return log_telegrams_enabled_;
 }
