@@ -49,7 +49,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status and error flags.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags)
@@ -136,7 +136,7 @@ namespace
 // Test: SomeWater itron 12345698 NOKEY
 // Comment: Test ITRON T1 telegram not encrypted, which has no 2f2f markers.
 // telegram=|384497269856341203077AD90000A0#0413FD110000066D2C1AA1D521004413300F0000426CBF2C047F0000060C027F862A0E79678372082100|
-// {"media":"water","meter":"itron","name":"SomeWater","id":"12345698","enhanced_id":"002108728367","meter_datetime":"2022-01-21 01:26","total_m3":4.605,"target_m3":3.888,"target_date":"2021-12-31","unknown_a":"WOOTA_C060000","unknown_b":"WOOTB_2A86","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"water","meter":"itron","name":"SomeWater","id":"12345698","enhanced_id":"002108728367","meter_datetime":"2022-01-21 01:26","total_m3":4.605,"status":"OK","target_m3":3.888,"target_date":"2021-12-31","unknown_a":"WOOTA_C060000","unknown_b":"WOOTB_2A86","timestamp":"1111-11-11T11:11:11Z"}
 // |SomeWater;12345698;4.605;3.888;1111-11-11 11:11.11
 
 // Test: MoreWater itron 18000056 NOKEY
