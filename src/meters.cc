@@ -2974,6 +2974,15 @@ void MeterCommonImplementation::addOptionalCommonFields()
         );
 
     addStringFieldWithExtractor(
+        "enhanced_id",
+        "Enhanced identification number.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::EnhancedIdentification)
+        );
+
+    addStringFieldWithExtractor(
         "software_version",
         "Software version.",
         PrintProperty::JSON | PrintProperty::OPTIONAL,
