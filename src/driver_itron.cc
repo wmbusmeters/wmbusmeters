@@ -40,6 +40,7 @@ static bool ok = registerDriver([](DriverInfo&di)
     di.setMeterType(MeterType::WaterMeter);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(MANUFACTURER_ITW,  0x07,  0x03);
+    di.addDetection(MANUFACTURER_ITW,  0x07,  0x33);
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterItron(mi, di)); });
 });
 
@@ -50,6 +51,9 @@ MeterItron::MeterItron(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
     setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
     addLinkMode(LinkMode::T1);
+
+    addOptionalCommonFields();
+    addOptionalFlowRelatedFields();
 
     addNumericFieldWithExtractor(
         "total",
@@ -118,7 +122,7 @@ MeterItron::MeterItron(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         StorageNr(0),
         TariffNr(0),
         IndexNr(1),
-        PrintProperty::JSON,
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
         "Enhanced meter id.",
         SET_STRING_FUNC(enhanced_id_),
         GET_STRING_FUNC(enhanced_id_));
@@ -132,7 +136,7 @@ MeterItron::MeterItron(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         AnyStorageNr,
         AnyTariffNr,
         IndexNr(1),
-        PrintProperty::JSON,
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
         "Unknown flags.",
         SET_STRING_FUNC(unknown_a_),
         GET_STRING_FUNC(unknown_a_),
@@ -158,7 +162,7 @@ MeterItron::MeterItron(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
         AnyStorageNr,
         AnyTariffNr,
         IndexNr(1),
-        PrintProperty::JSON,
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
         "Unknown flags.",
         SET_STRING_FUNC(unknown_b_),
         GET_STRING_FUNC(unknown_b_),
@@ -174,6 +178,27 @@ MeterItron::MeterItron(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementatio
                 },
             },
          });
+
+    addStringFieldWithExtractorAndLookup(
+        "status",
+        "Status and error flags.",
+        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+        FieldMatcher::build()
+        .set(DifVifKey("03FD971C"))
+        ,
+        {
+            {
+                {
+                    "ERROR_FLAGS",
+                    Translate::Type::BitToString,
+                    0xffffff,
+                    "OK",
+                    {
+                        // No known layout for field
+                    }
+                },
+            },
+        });
 
 }
 
