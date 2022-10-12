@@ -3076,6 +3076,18 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields()
         );
 
     addNumericFieldWithExtractor(
+        "total_forward",
+        "The total media volume flowing forward.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        Quantity::Volume,
+        VifScaling::Auto,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::Volume)
+        .add(VIFCombinable::ForwardFlow)
+        );
+
+    addNumericFieldWithExtractor(
         "total_backward",
         "The total media volume flowing backward.",
         PrintProperty::JSON | PrintProperty::OPTIONAL,

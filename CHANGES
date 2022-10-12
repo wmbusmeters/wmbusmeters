@@ -1,4 +1,21 @@
 
+ATTENTION! The q400 driver has been refactored to the new driver
+format and some errors in the fields were discovered! Since the new driver
+format cannot generate these wrong json fields, the new q400 driver
+is not backwards compatible, except for the total_m3 field which is the same.
+
+Same fields and same content: total_m3, consumption_at_set_date_m3"
+Same field different content: meter_datetime now reports a full date time "2019-12-20 13:04"
+before it reported only the date "2019-12-20".
+New field new content: set_date is now set_datetime and reports "2019-12-01 00:00" instead of "2019-12-00"
+
+For the Axioma version of the q400:
+
+Broken fields: forward_flow_m3h, backward_flow_m3h, set_forward_flow_m3h, set_backward_flow_m3h
+replaced with: total_forward_m3, total_backward_m3, forward_at_set_date_m3, backward_at_set_date_m3
+
+Same fields and same content: flow_temperature_c, flow_m3h
+
 Added the bfw 240 radio heat cost allocator.
 
 Kajetan Krykwiński added support for the Apator E-ITN heat cost allocator. Thanks Kajetan!

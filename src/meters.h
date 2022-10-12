@@ -83,7 +83,6 @@ LIST_OF_METER_TYPES
     X(rfmamb,     T1_bit, TempHygroMeter,   RFMAMB,      RfmAmb)       \
     X(rfmtx1,     T1_bit, WaterMeter,       RFMTX1,      RfmTX1)       \
     X(tsd2,       T1_bit, SmokeDetector,    TSD2,        TSD2)         \
-    X(q400,       T1_bit, WaterMeter,       Q400,        Q400)         \
     X(sontex868,  T1_bit, HeatCostAllocationMeter, SONTEX868, Sontex868) \
     X(topaseskr,  T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)          \
     X(vario451,   T1_bit, HeatMeter,        VARIO451,    Vario451)     \
