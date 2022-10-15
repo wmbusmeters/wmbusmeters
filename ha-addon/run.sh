@@ -39,16 +39,17 @@ else
 fi
 
 echo "Broker $MQTT_HOST will be used."
-pub_args=('-h' $MQTT_HOST)
-[[ ! -z ${MQTT_PORT+x} ]] && pub_args+=( '-p' $MQTT_PORT )
-[[ ! -z ${MQTT_USER+x} ]] && pub_args+=( '-u' $MQTT_USER )
-[[ ! -z ${MQTT_PASSWORD+x} ]] && pub_args+=( '-P' $MQTT_PASSWORD )
+pub_args=('-h' $MQTT_HOST )
+pub_args_quoted=('-h' \'$MQTT_HOST\' )
+[[ ! -z ${MQTT_PORT+x} ]] && pub_args+=( '-p' $MQTT_PORT ) && pub_args_quoted+=( '-p' \'$MQTT_PORT\' )
+[[ ! -z ${MQTT_USER+x} ]] && pub_args+=( '-u' $MQTT_USER ) && pub_args_quoted+=( '-u' \'$MQTT_USER\' )
+[[ ! -z ${MQTT_PASSWORD+x} ]] && pub_args+=( '-P' $MQTT_PASSWORD ) && pub_args_quoted+=( '-P' \'$MQTT_PASSWORD\' )
 
 cat > /wmbusmeters/mosquitto_pub.sh << EOL
 #!/usr/bin/with-contenv bashio
 TOPIC=\$1
 MESSAGE=\$2
-/usr/bin/mosquitto_pub ${pub_args[@]} -t \$TOPIC -m "\$MESSAGE"
+/usr/bin/mosquitto_pub ${pub_args_quoted[@]} -t \$TOPIC -m "\$MESSAGE"
 EOL
 chmod a+x /wmbusmeters/mosquitto_pub.sh
 
