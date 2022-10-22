@@ -209,8 +209,8 @@ telegram=|2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000
 
 # Test Sensostar 2 heat meter
 telegram=|9E44C5147956341200047A7B0090052F2F_046D25248A2B04063D1F000001FD17000415265F00004406131F0000840106901E0000C40106841E0000840206841E0000C402067A1E0000840306541E0000C40306021E00008404069E1D0000C40406D71C0000840506F21B0000C40506681A00008406061E190000C40606EB1700008407061C170000C40706EE1600002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F|
-{"media":"heat","meter":"sensostar","name":"Heater","id":"12345679","meter_timestamp":"2020-11-10 04:37","total_kwh":7997,"total_water_m3":2435.8,"current_status":"OK","timestamp":"1111-11-11T11:11:11Z"}
-|Heater;12345679;7997.000000;2435.800000;OK;1111-11-11 11:11.11
+{"media":"heat","meter":"sensostar","name":"Heater","id":"12345679","meter_timestamp":"2020-11-10 04:37","total_kwh":7997,"total_water_m3":2435.8,"current_status":"OK","reporting_date":null,"energy_consumption_at_reporting_date_kwh":7955,"consumption_1_months_ago_kwh":7824,"consumption_2_months_ago_kwh":7812,"consumption_3_months_ago_kwh":7764,"consumption_4_months_ago_kwh":7582,"consumption_5_months_ago_kwh":7154,"consumption_6_months_ago_kwh":6430,"consumption_7_months_ago_kwh":5916,"consumption_8_months_ago_kwh":0,"consumption_9_months_ago_kwh":0,"consumption_10_months_ago_kwh":0,"consumption_11_months_ago_kwh":0,"consumption_12_months_ago_kwh":0,"consumption_13_months_ago_kwh":0,"consumption_14_months_ago_kwh":0,"consumption_15_months_ago_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}
+|Heater;12345679;7997.000000;2435.800000;OK;null;7955.000000;1111-11-11 11:11.11
 
 # Test Elster V200H water meter
 telegram=|2E449215303099990D077AB50820452F2F_0C12495849004C12557545000FB10445007022C50BFFFFFFFF0000FFF000|

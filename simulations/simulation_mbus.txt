@@ -2,7 +2,7 @@
 # Test sensostar heat meter sent over mbus.
 
 telegram=|6893936808007275404810C514000431270000#04786BF99F00046D040F632B0415E02000004415E0200000840115E02000000406A02100004406A0210000840106A021000084100600000000C410060000000084110600000000426C5F2C026C7F2C043B00000000143B08010000042B00000000142B39240000025B1800025F17000461380000000223810C01FD17000490280B0000005616|
-{"media":"heat","meter":"sensostar","name":"MySenso","id":"10484075","meter_timestamp":"2019-11-03 15:04","total_kwh":8608,"power_kw":0,"power_max_kw":9.273,"flow_water_m3h":0,"flow_water_max_m3h":0.264,"forward_c":24,"return_c":23,"difference_c":0.56,"total_water_m3":841.6,"current_status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"heat","meter":"sensostar","name":"MySenso","id":"10484075","meter_timestamp":"2019-11-03 15:04","total_kwh":8608,"power_kw":0,"power_max_kw":9.273,"flow_water_m3h":0,"flow_water_max_m3h":0.264,"forward_c":24,"return_c":23,"difference_c":0.56,"total_water_m3":841.6,"current_status":"OK","reporting_date":"2018-12-31","energy_consumption_at_reporting_date_kwh":8608,"consumption_1_months_ago_kwh":8608,"consumption_2_months_ago_kwh":0,"consumption_3_months_ago_kwh":0,"consumption_4_months_ago_kwh":0,"consumption_5_months_ago_kwh":0,"consumption_6_months_ago_kwh":0,"consumption_7_months_ago_kwh":0,"consumption_8_months_ago_kwh":0,"consumption_9_months_ago_kwh":0,"consumption_10_months_ago_kwh":0,"consumption_11_months_ago_kwh":0,"consumption_12_months_ago_kwh":0,"consumption_13_months_ago_kwh":0,"consumption_14_months_ago_kwh":0,"consumption_15_months_ago_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}
 
 
 # Test ultraheat heat meter sent over mbus.
