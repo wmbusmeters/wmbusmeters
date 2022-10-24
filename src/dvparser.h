@@ -41,7 +41,7 @@
     X(HeatCostAllocation,0x6E,0x6E, Quantity::HCA, Unit::HCA) \
     X(Date,0x6C,0x6C, Quantity::PointInTime, Unit::DateTimeLT) \
     X(DateTime,0x6D,0x6D, Quantity::PointInTime, Unit::DateTimeLT) \
-    X(EnergyMJ,0x0E,0x0F, Quantity::Energy, Unit::MJ) \
+    X(EnergyMJ,0x08,0x0F, Quantity::Energy, Unit::MJ) \
     X(EnergyWh,0x00,0x07, Quantity::Energy, Unit::KWH) \
     X(PowerW,0x28,0x2f, Quantity::Power, Unit::KW) \
     X(ActualityDuration,0x74,0x77, Quantity::Time, Unit::Hour) \
