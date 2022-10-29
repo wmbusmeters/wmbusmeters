@@ -163,6 +163,8 @@ for e in xmldoc.getElementsByTagName('Meter'):
         wmbusmeters_driver = 'multical21'
     elif (meterName == 'MC603') and (meterModel.startswith('603')): 
         wmbusmeters_driver = 'multical603'
+    elif (meterName == 'KWM2210'): 
+        wmbusmeters_driver = 'flowiq2200'
     else:
         wmbusmeters_driver = None
     
@@ -181,7 +183,7 @@ for e in xmldoc.getElementsByTagName('Meter'):
             try:
                 f = open(args.config+meterSerial, 'w')
                 f.write("name=%s\n" % (meterNum))
-                f.write("type=%s\n" % (wmbusmeters_driver))
+                f.write("driver=%s\n" % (wmbusmeters_driver))
                 f.write("id=%s\n" % (meterSerial))
                 f.write("key=%s\n" % (meterKey))
                 f.close()
