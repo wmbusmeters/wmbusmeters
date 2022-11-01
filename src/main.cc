@@ -457,7 +457,9 @@ void setup_meters(Configuration *config, MeterManager *manager)
     for (MeterInfo &m : config->meters)
     {
         m.conversions = config->conversions;
-        m.extra_calculated_fields = config->extra_calculated_fields;
+        m.extra_calculated_fields.insert(m.extra_calculated_fields.end(),
+                                         config->extra_calculated_fields.begin(),
+                                         config->extra_calculated_fields.end());
 
         if (m.usesPolling() || driverNeedsPolling(m.driver, m.driver_name))
         {

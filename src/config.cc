@@ -669,6 +669,11 @@ void handleExtraConstantField(Configuration *c, string field)
     c->extra_constant_fields.push_back(field);
 }
 
+void handleExtraCalculatedField(Configuration *c, string field)
+{
+    c->extra_calculated_fields.push_back(field);
+}
+
 shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrides)
 {
     Configuration *c = new Configuration;
@@ -742,6 +747,12 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
             string s = p.first.substr(off);
             string keyvalue = s+"="+p.second;
             handleExtraConstantField(c, keyvalue);
+        }
+        else
+        if (startsWith(p.first, "calculate_"))
+        {
+            string keyvalue = p.first.substr(10)+"="+p.second;
+            handleExtraCalculatedField(c, keyvalue);
         }
         else
         {

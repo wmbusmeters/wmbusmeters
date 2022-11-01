@@ -750,10 +750,16 @@ shared_ptr<Configuration> parseCommandLineWithUseConfig(Configuration *c, int ar
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--device=", 9) || // Deprecated
-            !strncmp(argv[i], "--overridedevice=", 17))
+        if (!strncmp(argv[i], "--device=", 9)) // Deprecated
         {
             c->overrides.device_override = string(argv[i]+9);
+            debug("(useconfig) device override \"%s\"\n", c->overrides.device_override.c_str());
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--overridedevice=", 17))
+        {
+            c->overrides.device_override = string(argv[i]+17);
             debug("(useconfig) device override \"%s\"\n", c->overrides.device_override.c_str());
             i++;
             continue;
