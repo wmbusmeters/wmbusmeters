@@ -59,6 +59,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     vector<string> telegram_shells;
     vector<string> alarm_shells;
     vector<string> extra_constant_fields;
+    vector<string> extra_calculated_fields;
     vector<string> selected_fields;
 
     debug("(config) loading meter file %s\n", file.c_str());
@@ -153,6 +154,12 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             extra_constant_fields.push_back(keyvalue);
         }
         else
+        if (startsWith(p.first, "calculate_"))
+        {
+            string keyvalue = p.first.substr(10)+"="+p.second;
+            extra_calculated_fields.push_back(keyvalue);
+        }
+        else
             warning("Found invalid key \"%s\" in meter config file\n", p.first.c_str());
 
         if (p.first != "key") {
@@ -195,6 +202,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     }
     if (use) {
         mi.extra_constant_fields = extra_constant_fields;
+        mi.extra_calculated_fields = extra_calculated_fields;
         mi.shells = telegram_shells;
         mi.idsc = toIdsCommaSeparated(mi.ids);
         mi.selected_fields = selected_fields;

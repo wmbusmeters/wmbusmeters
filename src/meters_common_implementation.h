@@ -67,6 +67,7 @@ struct MeterCommonImplementation : public virtual Meter
     void setPollInterval(time_t interval);
     time_t pollInterval();
     bool usesPolling();
+    void addExtraCalculatedField(std::string ef);
 
     void onUpdate(function<void(Telegram*,Meter*)> cb);
     int numUpdates();

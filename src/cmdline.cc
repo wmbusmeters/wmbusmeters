@@ -485,6 +485,18 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--calculate_", 12))
+        {
+            // For example: --calculate_adjusted_kwh='total_kwh + 12345 kwh'
+            string extra_calculated_field = string(argv[i]+12);
+            if (extra_calculated_field == "") {
+                error("The calculated field command cannot be empty.\n");
+            }
+            debug("(cmdline) add calculated field %s\n", extra_calculated_field.c_str());
+            c->extra_calculated_fields.push_back(extra_calculated_field);
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--listenvs=", 11)) {
             c->list_shell_envs = true;
             c->list_meter = string(argv[i]+11);

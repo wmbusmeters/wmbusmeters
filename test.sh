@@ -84,6 +84,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_conversions.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_formulas.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_fields.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 

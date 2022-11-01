@@ -454,9 +454,10 @@ void setup_log_file(Configuration *config)
 
 void setup_meters(Configuration *config, MeterManager *manager)
 {
-    for (auto &m : config->meters)
+    for (MeterInfo &m : config->meters)
     {
         m.conversions = config->conversions;
+        m.extra_calculated_fields = config->extra_calculated_fields;
 
         if (m.usesPolling() || driverNeedsPolling(m.driver, m.driver_name))
         {

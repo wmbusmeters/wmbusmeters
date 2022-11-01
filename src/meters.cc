@@ -738,10 +738,12 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     {
         hex2bin(mi.key, &meter_keys_.confidentiality_key);
     }
-    for (auto s : mi.shells) {
+    for (auto s : mi.shells)
+    {
         addShell(s);
     }
-    for (auto j : mi.extra_constant_fields) {
+    for (auto j : mi.extra_constant_fields)
+    {
         addExtraConstantField(j);
     }
 }
@@ -765,10 +767,12 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     {
         hex2bin(mi.key, &meter_keys_.confidentiality_key);
     }
-    for (auto s : mi.shells) {
+    for (auto s : mi.shells)
+    {
         addShell(s);
     }
-    for (auto j : mi.extra_constant_fields) {
+    for (auto j : mi.extra_constant_fields)
+    {
         addExtraConstantField(j);
     }
 
@@ -792,6 +796,39 @@ void MeterCommonImplementation::addShell(string cmdline)
 void MeterCommonImplementation::addExtraConstantField(string ecf)
 {
     extra_constant_fields_.push_back(ecf);
+}
+
+void MeterCommonImplementation::addExtraCalculatedField(string ecf)
+{
+    verbose("(meter) Adding calculated field: %s\n", ecf.c_str());
+
+    vector<string> parts = splitString(ecf, '=');
+
+    if (parts.size() != 2)
+    {
+        warning("Invalid formula for calculated field. %s\n", ecf.c_str());
+        return;
+    }
+
+    string vname;
+    Unit unit;
+
+    bool ok = extractUnit(parts[0], &vname, &unit);
+    if (!ok)
+    {
+        warning("Could not extract a valid unit from calculated field name %s\n", parts[0].c_str());
+        return;
+    }
+
+    Quantity quantity = toQuantity(unit);
+
+    addNumericFieldWithCalculator(
+        vname,
+        "Calculated: "+ecf,
+        PrintProperty::JSON | PrintProperty::FIELD,
+        quantity,
+        parts[1]
+        );
 }
 
 vector<string> &MeterCommonImplementation::shellCmdlines()
@@ -965,6 +1002,15 @@ void MeterCommonImplementation::addNumericFieldWithCalculator(string vname,
 {
     Formula *f = newFormula();
     bool ok = f->parse(this, formula);
+    if (!ok)
+    {
+        string err = f->errors();
+        warning("Warning! Ignoring calculated field %s because parse failed:\n%s",
+                vname.c_str(),
+                err.c_str());
+        delete f;
+        return;
+    }
     assert(ok);
 
     field_infos_.push_back(
@@ -2417,6 +2463,10 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
     {
         shared_ptr<Meter> newm = di->construct(*mi);
         newm->addConversions(mi->conversions);
+        for (string &j : mi->extra_calculated_fields)
+        {
+            newm->addExtraCalculatedField(j);
+        }
         newm->setPollInterval(mi->poll_interval);
         if (mi->selected_fields.size() > 0)
         {

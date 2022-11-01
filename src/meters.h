@@ -159,6 +159,7 @@ struct MeterInfo
     int bps {};     // For mbus communication you need to know the baud rate.
     vector<string> shells;
     vector<string> extra_constant_fields; // Additional static fields that are added to each message.
+    vector<string> extra_calculated_fields; // Additional field calculated using formulas.
     vector<Unit> conversions; // Additional units desired in json.
     vector<string> selected_fields; // Usually set to the default fields, but can be override in meter config.
 
@@ -172,7 +173,7 @@ struct MeterInfo
     string str();
     DriverName driverName();
 
-    MeterInfo(string b, string n, MeterDriver d, string e, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j)
+    MeterInfo(string b, string n, MeterDriver d, string e, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j, vector<string> &calcfs)
     {
         bus = b;
         name = n;
@@ -183,6 +184,7 @@ struct MeterInfo
         key = k;
         shells = s;
         extra_constant_fields = j;
+        extra_calculated_fields = calcfs;
         link_modes = lms;
         bps = baud;
     }
@@ -197,6 +199,7 @@ struct MeterInfo
         key = "";
         shells.clear();
         extra_constant_fields.clear();
+        extra_calculated_fields.clear();
         link_modes.clear();
         bps = 0;
     }
@@ -471,6 +474,7 @@ struct Meter
     virtual MeterKeys *meterKeys() = 0;
 
     virtual void addConversions(std::vector<Unit> cs) = 0;
+    virtual void addExtraCalculatedField(std::string ecf) = 0;
     virtual vector<Unit>& conversions() = 0;
     virtual void addShell(std::string cmdline) = 0;
     virtual vector<string> &shellCmdlines() = 0;

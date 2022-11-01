@@ -133,13 +133,15 @@ namespace
             .set(DifVifKey("04FB82F53C"))
             );
 
+        /*
         addNumericFieldWithCalculator(
             "total_apparent_energy_consumption",
             "Calculated: the total apparent energy consumption.",
             PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
-            Quantity::Energy,
+            Quantity::Apparent_Energy,
             "total_energy_consumption_kwh + 99 kwh"
             );
+        */
     }
 }
 
