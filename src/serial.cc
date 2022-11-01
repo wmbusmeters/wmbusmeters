@@ -1544,7 +1544,7 @@ string showSpecialChars(struct termios *tios)
         if (c != 0)
         {
             string cc;
-            strprintf(cc, "%u", c);
+            strprintf(&cc, "%u", c);
             s += cc+",";
         }
     }

@@ -92,10 +92,10 @@ void MeterTSD2::processContent(Telegram *t)
     uint prev_date_day = (prev_date >> 0) & 0x1F;
     uint prev_date_month = (prev_date >> 5) & 0x0F;
     uint prev_date_year = (prev_date >> 9) & 0x3F;
-    strprintf(previous_date_, "%d-%02d-%02dT02:00:00Z", prev_date_year+2000, prev_date_month, prev_date_day);
+    strprintf(&previous_date_, "%d-%02d-%02dT02:00:00Z", prev_date_year+2000, prev_date_month, prev_date_day);
 
     string prev_date_str;
-    strprintf(prev_date_str, "%04x", prev_date);
+    strprintf(&prev_date_str, "%04x", prev_date);
     uint offset = t->parsed.size() + 1;
     t->explanations.push_back(Explanation(offset, 1, prev_date_str, KindOfData::CONTENT, Understanding::FULL));
     t->addMoreExplanation(offset, " previous date (%s)", previous_date_.c_str());

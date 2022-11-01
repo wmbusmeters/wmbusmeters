@@ -72,8 +72,8 @@ MeterAventiesHCA::MeterAventiesHCA(MeterInfo &mi, DriverInfo &di) : MeterCommonI
     for (int i=2; i<=17; ++i)
     {
         string key, info;
-        strprintf(key, "consumption_at_set_date_%d", i);
-        strprintf(info, "Heat cost allocation at the %d billing period date.", i);
+        strprintf(&key, "consumption_at_set_date_%d", i);
+        strprintf(&info, "Heat cost allocation at the %d billing period date.", i);
 
         addNumericFieldWithExtractor(
             key,

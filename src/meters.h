@@ -64,7 +64,6 @@ LIST_OF_METER_TYPES
     X(eurisii,    T1_bit, HeatCostAllocationMeter, EURISII, EurisII)   \
     X(ehzp,       T1_bit, ElectricityMeter, EHZP,        EHZP)         \
     X(esyswm,     T1_bit, ElectricityMeter, ESYSWM,      ESYSWM)       \
-    X(em24,       C1_bit, ElectricityMeter, EM24,        EM24)         \
     X(evo868,     T1_bit, WaterMeter,       EVO868,      EVO868)       \
     X(fhkvdataiii,T1_bit, HeatCostAllocationMeter,       FHKVDATAIII,   FHKVDataIII)    \
     X(fhkvdataiv, T1_bit, HeatCostAllocationMeter,       FHKVDATAIV,    FHKVDataIV)     \
@@ -123,7 +122,7 @@ bool isMeterDriverValid(MeterDriver type, int manufacturer, int media, int versi
 // Ie. do not try to decode a door sensor telegram with a water meter driver.
 bool isMeterDriverReasonableForMedia(MeterDriver type, string driver_name, int media);
 
-bool isValidKey(string& key, MeterDriver mt);
+bool isValidKey(const string& key, MeterDriver mt);
 
 using namespace std;
 
@@ -263,7 +262,7 @@ public:
 };
 
 bool registerDriver(function<void(DriverInfo&di)> setup);
-bool lookupDriverInfo(string& driver, DriverInfo *di);
+bool lookupDriverInfo(const string& driver, DriverInfo *di = NULL);
 // Return the best driver match for a telegram.
 DriverInfo pickMeterDriver(Telegram *t);
 // Return true for mbus and S2/C2/T2 drivers.
@@ -507,8 +506,8 @@ shared_ptr<MeterManager> createMeterManager(bool daemon);
 const char *toString(MeterType type);
 string toString(MeterDriver driver);
 string toString(DriverInfo &driver);
-MeterDriver toMeterDriver(string& driver);
-LinkModeSet toMeterLinkModeSet(string& driver);
+MeterDriver toMeterDriver(const string& driver);
+LinkModeSet toMeterLinkModeSet(const string& driver);
 LinkModeSet toMeterLinkModeSet(MeterDriver driver);
 
 #define X(mname,linkmode,info,type,cname) shared_ptr<Meter> create##cname(MeterInfo &m);

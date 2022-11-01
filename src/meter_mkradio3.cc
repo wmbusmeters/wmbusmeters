@@ -95,10 +95,10 @@ void MKRadio3::processContent(Telegram *t)
     uint prev_date_day = (prev_date >> 0) & 0x1F;
     uint prev_date_month = (prev_date >> 5) & 0x0F;
     uint prev_date_year = (prev_date >> 9) & 0x3F;
-    strprintf(previous_date_, "%d-%02d-%02dT02:00:00Z", prev_date_year+2000, prev_date_month, prev_date_day);
+    strprintf(&previous_date_, "%d-%02d-%02dT02:00:00Z", prev_date_year+2000, prev_date_month, prev_date_day);
 
     string prev_date_str;
-    strprintf(prev_date_str, "%04x", prev_date);
+    strprintf(&prev_date_str, "%04x", prev_date);
     uint offset = t->parsed.size() + 1;
     vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x6c, {}, 0, 0, 0, prev_date_str) };
     t->explanations.push_back(Explanation(offset, 1, prev_date_str, KindOfData::CONTENT, Understanding::FULL));
@@ -110,7 +110,7 @@ void MKRadio3::processContent(Telegram *t)
     double prev = (256.0*prev_hi+prev_lo)/10.0;
 
     string prevs;
-    strprintf(prevs, "%02x%02x", prev_lo, prev_hi);
+    strprintf(&prevs, "%02x%02x", prev_lo, prev_hi);
     offset = t->parsed.size()+3;
     vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, 0, 0, 0, prevs) };
     t->explanations.push_back(Explanation(offset, 2, prevs, KindOfData::CONTENT, Understanding::FULL));
@@ -120,10 +120,10 @@ void MKRadio3::processContent(Telegram *t)
     uint16_t current_date = (content[6] << 8) | content[5];
     uint current_date_day = (current_date >> 4) & 0x1F;
     uint current_date_month = (current_date >> 9) & 0x0F;
-    strprintf(current_date_, "%s-%02d-%02dT02:00:00Z", currentYear().c_str(), current_date_month, current_date_day);
+    strprintf(&current_date_, "%s-%02d-%02dT02:00:00Z", currentYear().c_str(), current_date_month, current_date_day);
 
     string current_date_str;
-    strprintf(current_date_str, "%04x", current_date);
+    strprintf(&current_date_str, "%04x", current_date);
     offset = t->parsed.size() + 5;
     vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x6c, {}, 0, 0, 0, current_date_str) };
     t->explanations.push_back(Explanation(offset, 1, current_date_str, KindOfData::CONTENT, Understanding::FULL));
@@ -135,7 +135,7 @@ void MKRadio3::processContent(Telegram *t)
     double curr = (256.0*curr_hi+curr_lo)/10.0;
 
     string currs;
-    strprintf(currs, "%02x%02x", curr_lo, curr_hi);
+    strprintf(&currs, "%02x%02x", curr_lo, curr_hi);
     offset = t->parsed.size()+7;
     vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, 0, 0, 0, currs) };
     t->explanations.push_back(Explanation(offset, 2, currs, KindOfData::CONTENT, Understanding::FULL));

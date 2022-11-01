@@ -112,8 +112,8 @@ namespace
         for (int i = 1; i <= 13; ++i)
         {
             string key, info;
-            strprintf(key, "prev_%d_month", i);
-            strprintf(info, "Energy consumption %d months back.", i);
+            strprintf(&key, "prev_%d_month", i);
+            strprintf(&info, "Energy consumption %d months back.", i);
 
             addNumericFieldWithExtractor(
                 key,

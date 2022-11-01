@@ -248,7 +248,11 @@ $(BUILD)/short_manual.h: README.md
 	| grep -v '```' >> $(BUILD)/short_manual.h
 	echo ')MANUAL";' >> $(BUILD)/short_manual.h
 
-$(BUILD)/testinternals: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o
+testinternals: $(BUILD)/testinternals
+
+$(BUILD)/testinternals.o: $(PROG_OBJS) $(DRIVER_OBJS) $(wildcard src/*.h)
+
+$(BUILD)/testinternals: $(BUILD)/testinternals.o
 	$(CXX) -o $(BUILD)/testinternals $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS) -lrtlsdr $(USBLIB) -lpthread
 
 $(BUILD)/fuzz: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o

@@ -148,7 +148,7 @@ bool registerDriver(function<void(DriverInfo&)> setup)
     return true;
 }
 
-bool lookupDriverInfo(string& driver, DriverInfo *out_di)
+bool lookupDriverInfo(const string& driver, DriverInfo *out_di)
 {
     DriverInfo *di = lookupDriver(driver);
     if (di == NULL)
@@ -156,7 +156,10 @@ bool lookupDriverInfo(string& driver, DriverInfo *out_di)
         return false;
     }
 
-    *out_di = *di;
+    if (out_di != NULL)
+    {
+        *out_di = *di;
+    }
 
     return true;
 }
@@ -1393,7 +1396,7 @@ string toString(DriverInfo &di)
     return di.name().str();
 }
 
-MeterDriver toMeterDriver(string& t)
+MeterDriver toMeterDriver(const string& t)
 {
 #define X(mname,linkmodes,info,type,cname) if (t == #mname) return MeterDriver::type;
 LIST_OF_METERS
@@ -1401,7 +1404,7 @@ LIST_OF_METERS
     return MeterDriver::UNKNOWN;
 }
 
-LinkModeSet toMeterLinkModeSet(string& t)
+LinkModeSet toMeterLinkModeSet(const string& t)
 {
 #define X(mname,linkmodes,info,type,cname) if (t == #mname) return LinkModeSet(linkmodes);
 LIST_OF_METERS
@@ -1999,7 +2002,6 @@ string MeterCommonImplementation::getStringValue(FieldInfo *fi)
             {
                 string more = getStringValue(&f);
                 string joined = joinStatusStrings(value, more);
-                //printf("JOINING >%s< >%s< into >%s<\n", value.c_str(), more.c_str(), joined.c_str());
                 value = joined;
             }
         }
@@ -2451,7 +2453,7 @@ LIST_OF_METERS
     return newm;
 }
 
-bool is_driver_and_extras(string t, MeterDriver *out_driver, DriverName *out_driver_name, string *out_extras)
+bool is_driver_and_extras(const string& t, MeterDriver *out_driver, DriverName *out_driver_name, string *out_extras)
 {
     // piigth(jump=foo)
     // multical21
@@ -2596,11 +2598,10 @@ bool MeterInfo::usesPolling()
         link_modes.has(LinkMode::S2);
 }
 
-bool isValidKey(string& key, MeterDriver mt)
+bool isValidKey(const string& key, MeterDriver mt)
 {
     if (key.length() == 0) return true;
     if (key == "NOKEY") {
-        key = "";
         return true;
     }
     if (mt == MeterDriver::IZAR ||

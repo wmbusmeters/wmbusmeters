@@ -366,6 +366,6 @@ string MeterEvo868::status()
 
     // How do we decode these?
     string info;
-    strprintf(info, "ERROR bits %08x", error_flags_);
+    strprintf(&info, "ERROR bits %08x", error_flags_);
     return info;
 }

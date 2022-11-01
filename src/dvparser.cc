@@ -411,9 +411,9 @@ bool parseDV(Telegram *t,
 
         int count = ++dv_count[dv];
         if (count > 1) {
-            strprintf(key, "%s_%d", dv.c_str(), count);
+            strprintf(&key, "%s_%d", dv.c_str(), count);
         } else {
-            strprintf(key, "%s", dv.c_str());
+            strprintf(&key, "%s", dv.c_str());
         }
         DEBUG_PARSER("(dvparser debug) DifVif key is %s\n", key.c_str());
 

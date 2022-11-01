@@ -161,7 +161,7 @@ void MeterTopasEsKr::processContent(Telegram *t)
 
     uint16_t tmp16;
     extractDVuint16(&t->dv_entries, "02FD74", &offset, &tmp16);
-    strprintf(battery_life_days_remaining_, "%u", (unsigned int)tmp16);
+    strprintf(&battery_life_days_remaining_, "%u", (unsigned int)tmp16);
     t->addMoreExplanation(offset, " battery life (%s days remaining)", battery_life_days_remaining_.c_str());
 
     vector<uchar> data;

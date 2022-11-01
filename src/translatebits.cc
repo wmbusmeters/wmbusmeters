@@ -65,7 +65,7 @@ void handleBitToString(Rule& rule, string &out_s, uint64_t bits)
     {
         // Oups, there are set bits that we have not handled....
         string tmp;
-        strprintf(tmp, "%s_%X", rule.name.c_str(), bits);
+        strprintf(&tmp, "%s_%X", rule.name.c_str(), bits);
         s += tmp+" ";
     }
 
@@ -90,7 +90,7 @@ void handleIndexToString(Rule& rule, string &out_s, uint64_t bits)
         if ((~rule.mask & m.from) != 0)
         {
             string tmp;
-            strprintf(tmp, "BAD_RULE_%s(from=0x%x mask=0x%x)", rule.name.c_str(), m.from, rule.mask);
+            strprintf(&tmp, "BAD_RULE_%s(from=0x%x mask=0x%x)", rule.name.c_str(), m.from, rule.mask);
             s += tmp+" ";
         }
         uint64_t from = m.from & rule.mask; // Better safe than sorry.
@@ -104,7 +104,7 @@ void handleIndexToString(Rule& rule, string &out_s, uint64_t bits)
     {
         // Oups, this index has not been found.
         string tmp;
-        strprintf(tmp, "%s_%X", rule.name.c_str(), bits);
+        strprintf(&tmp, "%s_%X", rule.name.c_str(), bits);
         s += tmp+" ";
     }
 
@@ -128,7 +128,7 @@ void handleDecimalsToString(Rule& rule, string &out_s, uint64_t bits)
         if ((m.from - (m.from % rule.mask)) != 0)
         {
             string tmp;
-            strprintf(tmp, "BAD_RULE_%s(from=%d modulomask=%d)", rule.name.c_str(), m.from, rule.mask);
+            strprintf(&tmp, "BAD_RULE_%s(from=%d modulomask=%d)", rule.name.c_str(), m.from, rule.mask);
             s += tmp+" ";
         }
         int num = m.from % rule.mask; // Better safe than sorry.
@@ -142,7 +142,7 @@ void handleDecimalsToString(Rule& rule, string &out_s, uint64_t bits)
     {
         // Oups, this number has not been fully understood.
         string tmp;
-        strprintf(tmp, "%s_%d", rule.name.c_str(), number);
+        strprintf(&tmp, "%s_%d", rule.name.c_str(), number);
         s += tmp+" ";
     }
 

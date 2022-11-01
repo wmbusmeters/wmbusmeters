@@ -29,6 +29,7 @@
 #include"dvparser.h"
 
 #include<string.h>
+#include<set>
 
 using namespace std;
 
@@ -53,9 +54,13 @@ void test_ascii_detection();
 void test_status_join();
 void test_status_sort();
 void test_field_matcher();
-void test_units();
+void test_units_extraction();
+void test_si_units_basic();
+void test_si_units_conversion();
 void test_formulas_building();
-void test_formulas_parsing();
+void test_formulas_parsing_1();
+void test_formulas_parsing_2();
+void test_formulas_parsing_3();
 
 bool test(const char *test_name, const char *pattern)
 {
@@ -110,9 +115,13 @@ int main(int argc, char **argv)
     if (test("status_join", pattern)) test_status_join();
     if (test("status_sort", pattern)) test_status_sort();
     if (test("field_matcher", pattern)) test_field_matcher();
-    if (test("units", pattern)) test_units();
+    if (test("units_extraction", pattern)) test_units_extraction();
+    if (test("si_units_basic", pattern)) test_si_units_basic();
+    if (test("si_units_conversion", pattern)) test_si_units_conversion();
     if (test("formulas_building", pattern)) test_formulas_building();
-    if (test("formulas_parsing", pattern)) test_formulas_parsing();
+    if (test("formulas_parsing_1", pattern)) test_formulas_parsing_1();
+    if (test("formulas_parsing_2", pattern)) test_formulas_parsing_2();
+    if (test("formulas_parsing_3", pattern)) test_formulas_parsing_3();
 
     return 0;
 }
@@ -1579,7 +1588,7 @@ void test_unit(string in, bool expected_ok, string expected_vname, Unit expected
     }
 }
 
-void test_units()
+void test_units_extraction()
 {
     test_unit("total_kwh", true, "total", Unit::KWH);
     test_unit("total_", false, "", Unit::Unknown);
@@ -1597,14 +1606,425 @@ void test_units()
 
 }
 
+void test_expected_failed_si_convert(Unit from_unit,
+                                     Unit to_unit,
+                                     Quantity q)
+{
+    SIUnit from_si_unit(from_unit);
+    SIUnit to_si_unit(to_unit);
+    string fu = unitToStringLowerCase(from_si_unit.asUnit());
+    string tu = unitToStringLowerCase(to_si_unit.asUnit());
+
+    if (q != from_si_unit.quantity() || q != to_si_unit.quantity())
+    {
+        printf("ERROR! Not the expected quantities!\n");
+    }
+    if (canConvert(from_si_unit, to_si_unit))
+    {
+        printf("ERROR! Should not be able to convert from %s to %s !\n", fu.c_str(), tu.c_str());
+    }
+}
+
+void test_si_convert(double from_value, double expected_value,
+                     Unit from_unit,
+                     string expected_from_unit,
+                     Unit to_unit,
+                     string expected_to_unit,
+                     Quantity q,
+                     set<Unit> *from_set,
+                     set<Unit> *to_set)
+{
+    string evs = tostrprintf("%.15g", expected_value);
+
+    SIUnit from_si_unit(from_unit);
+    SIUnit to_si_unit(to_unit);
+    string fu = unitToStringLowerCase(from_si_unit.asUnit(q));
+    string tu = unitToStringLowerCase(to_si_unit.asUnit(q));
+
+    from_set->erase(from_unit);
+    to_set->erase(to_unit);
+
+    double e = from_si_unit.convert(from_value, to_si_unit);
+    string es = tostrprintf("%.15g", e);
+
+    if (canConvert(from_unit, to_unit))
+    {
+        // Test if conversion was the same using 16 significant digits.
+        // I.e. slightly less than the maximum 17 significant digits.
+        // Takes up the slack between the old style conversion and the new style conversion
+        // which can introduce minor changes in the final digit.
+        double ee = convert(from_value, from_unit, to_unit);
+        string ees = tostrprintf("%.15g", ee);
+        if (es != ees)
+        {
+            printf("ERROR! SI unit conversion %.15g (%s) from %.15g differs from unit conversion %.15g (%s)! \n",
+                   e, es.c_str(), from_value, ee, ees.c_str());
+        }
+    }
+    if (fu != expected_from_unit)
+    {
+        printf("ERROR! Expected from unit %s (but got %s) when converting si unit %s\n",
+               expected_from_unit.c_str(), fu.c_str(), from_si_unit.str().c_str());
+    }
+    if (tu != expected_to_unit)
+    {
+        printf("ERROR! Expected to unit %s (but got %s) when converting si unit %s\n",
+               expected_to_unit.c_str(), tu.c_str(), to_si_unit.str().c_str());
+    }
+    if (es != evs)
+    {
+        printf("ERROR! Expected %.17g [%s] (but got %.17g [%s]) when converting %.17g from %s (%s) to %s (%s)\n",
+               expected_value, evs.c_str(), e, es.c_str(), from_value,
+               from_si_unit.str().c_str(),
+               fu.c_str(),
+               to_si_unit.str().c_str(),
+               tu.c_str());
+    }
+}
+
+void test_si_units_basic()
+{
+    // A kilowatt unit generated from scratch:
+    SIUnit kwh(Quantity::Energy, 3.6E6, 0, SI_KG(1)|SI_M(2)|SI_S(-2));
+
+    string expected = "3.6×10⁶kgm²s⁻²";
+    if (kwh.str() != expected) printf("ERROR expected kwh to be %s but got %s\n", expected.c_str(), kwh.str().c_str());
+
+    // A kilowatt unit from the unit lookup table.
+    SIUnit kwh2(Unit::KWH);
+
+    if (kwh2.str() != expected) printf("ERROR expected second kwh to be %s but got %s\n", expected.c_str(), kwh2.str().c_str());
+
+    // A Celsius unit generated from scratch:
+    SIUnit celsius(Quantity::Temperature, 1, 273.15, SI_K(1));
+
+    expected = "1k+273.15";
+    if (celsius.str() != expected) printf("ERROR expected celsius to be %s but got %s\n", expected.c_str(), celsius.str().c_str());
+
+    // A celsius unit from the Unit.
+    SIUnit celsius2(Unit::C);
+
+    if (celsius2.str() != expected) printf("ERROR expected second celsius to be %s but got %s\n", expected.c_str(), celsius2.str().c_str());
+}
+
+void fill_with_units_from(Quantity q, set<Unit> *s)
+{
+    s->clear();
+#define X(cname,lcname,hrname,quantity,explanation) if (q == Quantity::quantity) s->insert(Unit::cname);
+LIST_OF_UNITS
+#undef X
+}
+
+void check_units_tested(set<Unit> &from_set, set<Unit> &to_set, Quantity q)
+{
+    if (from_set.size() > 0)
+    {
+        printf("ERROR not all units as source in quantity %s tested! Remaining: ", toString(q));
+        for (Unit u : from_set) printf("%s ", unitToStringLowerCase(u).c_str());
+        printf("\n");
+    }
+    if (to_set.size() > 0)
+    {
+        printf("ERROR not all units as targets in quantity %s tested! Remaining: ", toString(q));
+        for (Unit u : to_set) printf("%s ", unitToStringLowerCase(u).c_str());
+        printf("\n");
+    }
+}
+
+void check_quantities_tested(set<Quantity> &s)
+{
+    if (s.size() > 0)
+    {
+        printf("ERROR not all quantities tested! Remaining: ");
+        for (Quantity q : s) printf("%s ", toString(q));
+        printf("\n");
+    }
+}
+
+void test_si_units_conversion()
+{
+    set<Quantity> q_set;
+    set<Unit> from_set;
+    set<Unit> to_set;
+
+#define X(quantity,default_unit) q_set.insert(Quantity::quantity);
+LIST_OF_QUANTITIES
+#undef X
+
+    // Test time units: s, min, h, d, y
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Time);
+    fill_with_units_from(Quantity::Time, &from_set);
+    fill_with_units_from(Quantity::Time, &to_set);
+
+    // 60 seconds is one minute.
+    test_si_convert(60.0, 1.0, Unit::Second, "s", Unit::Minute, "min", Quantity::Time, &from_set, &to_set);
+    // 3600 seconds is one hour.
+    test_si_convert(3600.0, 1.0, Unit::Second, "s", Unit::Hour, "h", Quantity::Time, &from_set, &to_set);
+    // 3600 seconds is 1/24 of a day which is 0.041666666666666664.
+    test_si_convert(3600.0, 0.041666666666666664, Unit::Second, "s", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
+    // Same test again.
+    test_si_convert(3600.0, 1.0/24.0, Unit::Second, "s", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
+    // 1 min is 60 seconds.
+    test_si_convert(1.0, 60.0, Unit::Minute, "min", Unit::Second, "s", Quantity::Time, &from_set, &to_set);
+    // 1 day is 1/365.2425 year
+    test_si_convert(1.0, 1.0/365.2425, Unit::Day, "d", Unit::Year, "y", Quantity::Time, &from_set, &to_set);
+    // 100 hours is 100/24 days.
+    test_si_convert(100.0, 100.0/24.0, Unit::Hour, "h", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
+    // 1 year is 365.2425 days.
+    test_si_convert(1.0, 365.2425, Unit::Year, "y", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Time);
+
+    // Test length units: m
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Length);
+    fill_with_units_from(Quantity::Length, &from_set);
+    fill_with_units_from(Quantity::Length, &to_set);
+
+    test_si_convert(111.1, 111.1, Unit::M, "m", Unit::M, "m", Quantity::Length, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Length);
+
+    // Test mass units: kg
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Mass);
+    fill_with_units_from(Quantity::Mass, &from_set);
+    fill_with_units_from(Quantity::Mass, &to_set);
+
+    test_si_convert(222.1, 222.1, Unit::KG, "kg", Unit::KG, "kg", Quantity::Mass, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Mass);
+
+    // Test electrical current units: a
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Amperage);
+    fill_with_units_from(Quantity::Amperage, &from_set);
+    fill_with_units_from(Quantity::Amperage, &to_set);
+
+    test_si_convert(999.9, 999.9, Unit::Ampere, "a", Unit::Ampere, "a", Quantity::Amperage, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Amperage);
+
+    // Test temperature units: c k f
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Temperature);
+    fill_with_units_from(Quantity::Temperature, &from_set);
+    fill_with_units_from(Quantity::Temperature, &to_set);
+
+    test_si_convert(10.85, 284.0, Unit::C, "c", Unit::K, "k", Quantity::Temperature, &from_set, &to_set);
+    test_si_convert(100.0, -173.15, Unit::K, "k", Unit::C, "c", Quantity::Temperature, &from_set, &to_set);
+    test_si_convert(100.0, -279.67, Unit::K, "k", Unit::F, "f", Quantity::Temperature, &from_set, &to_set);
+    test_si_convert(100.0, 37.77777777777777, Unit::F, "f", Unit::C, "c", Quantity::Temperature, &from_set, &to_set);
+    test_si_convert(0.0, -17.7777777777778, Unit::F, "f", Unit::C, "c", Quantity::Temperature, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Temperature);
+
+    // Test energy units: kwh, mj, gj
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Energy);
+    fill_with_units_from(Quantity::Energy, &from_set);
+    fill_with_units_from(Quantity::Energy, &to_set);
+
+    // 1 kwh is 3.6 mj
+    test_si_convert(1.0, 3.6, Unit::KWH, "kwh", Unit::MJ, "mj", Quantity::Energy, &from_set, &to_set);
+    // 1 kwh is 0.0036 gj
+    test_si_convert(1.0, 0.0036, Unit::KWH, "kwh", Unit::GJ, "gj", Quantity::Energy, &from_set, &to_set);
+    // 1 gj is 1000 mj
+    test_si_convert(1.0, 1000.0, Unit::GJ, "gj", Unit::MJ, "mj", Quantity::Energy, &from_set, &to_set);
+    // 10 mj is 2.77777 kwh
+    test_si_convert(10, 2.7777777777777777, Unit::MJ, "mj", Unit::KWH, "kwh", Quantity::Energy, &from_set, &to_set);
+    // 1 ws = 1/3600000 kwh is 1 j = 0.000001 MJ
+    test_si_convert(1.0/3600000.0, 0.000001, Unit::KWH, "kwh", Unit::MJ, "mj", Quantity::Energy, &from_set, &to_set);
+
+    // 99 m3c = 99 m3c this is the only test we can do with the m3c energy unit,
+    // which cannot be converted into other energy units since we lack the density of the water etc.
+    test_si_convert(99.0, 99.0, Unit::M3C, "m3c", Unit::M3C, "m3c", Quantity::Energy, &from_set, &to_set);
+
+    test_expected_failed_si_convert(Unit::M3C, Unit::KWH, Quantity::Energy);
+
+    check_units_tested(from_set, to_set, Quantity::Energy);
+
+    // Test reactive energy kvarh unit: kvarh
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Reactive_Energy);
+    fill_with_units_from(Quantity::Reactive_Energy, &from_set);
+    fill_with_units_from(Quantity::Reactive_Energy, &to_set);
+
+    // 1 kvarh is 1kwh
+    test_si_convert(1.0, 1.0, Unit::KVARH, "kvarh", Unit::KWH, "kvarh", Quantity::Reactive_Energy, &from_set, &to_set);
+    test_si_convert(1.0, 1.0, Unit::KWH, "kvarh", Unit::KVARH, "kvarh", Quantity::Reactive_Energy, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Reactive_Energy);
+
+    // Test apparent energy kvah unit: kvah
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Apparent_Energy);
+    fill_with_units_from(Quantity::Apparent_Energy, &from_set);
+    fill_with_units_from(Quantity::Apparent_Energy, &to_set);
+
+    // 1 kvah is 1kwh
+    test_si_convert(1.0, 1.0, Unit::KVAH, "kvah", Unit::KWH, "kvah", Quantity::Apparent_Energy, &from_set, &to_set);
+    test_si_convert(1.0, 1.0, Unit::KWH, "kvah", Unit::KVAH, "kvah", Quantity::Apparent_Energy, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Apparent_Energy);
+
+    // Test volume units: m3 l
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Volume);
+    fill_with_units_from(Quantity::Volume, &from_set);
+    fill_with_units_from(Quantity::Volume, &to_set);
+
+    test_si_convert(1, 1000.0, Unit::M3, "m3", Unit::L, "l", Quantity::Volume, &from_set, &to_set);
+    test_si_convert(1, 1.0/1000.0, Unit::L, "l", Unit::M3, "m3", Quantity::Volume, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Volume);
+
+    // Test voltage unit: v
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Voltage);
+    fill_with_units_from(Quantity::Voltage, &from_set);
+    fill_with_units_from(Quantity::Voltage, &to_set);
+
+    test_si_convert(1, 1, Unit::Volt, "v", Unit::Volt, "v", Quantity::Voltage, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Voltage);
+
+    // Test power unit: kw
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Power);
+    fill_with_units_from(Quantity::Power, &from_set);
+    fill_with_units_from(Quantity::Power, &to_set);
+
+    test_si_convert(1, 1, Unit::KW, "kw", Unit::KW, "kw", Quantity::Power, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Power);
+
+    // Test volume flow units: m3h lh
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Flow);
+    fill_with_units_from(Quantity::Flow, &from_set);
+    fill_with_units_from(Quantity::Flow, &to_set);
+
+    test_si_convert(1, 1000.0, Unit::M3H, "m3h", Unit::LH, "lh", Quantity::Flow, &from_set, &to_set);
+    test_si_convert(1000.0, 1.0, Unit::LH, "lh", Unit::M3H, "m3h", Quantity::Flow, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Flow);
+
+    // Test amount of substance: mol
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::AmountOfSubstance);
+    fill_with_units_from(Quantity::AmountOfSubstance, &from_set);
+    fill_with_units_from(Quantity::AmountOfSubstance, &to_set);
+
+    test_si_convert(1.1717, 1.1717, Unit::MOL, "mol", Unit::MOL, "mol", Quantity::AmountOfSubstance, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::AmountOfSubstance);
+
+    // Test luminous intensity: cd
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::LuminousIntensity);
+    fill_with_units_from(Quantity::LuminousIntensity, &from_set);
+    fill_with_units_from(Quantity::LuminousIntensity, &to_set);
+
+    test_si_convert(1.1717, 1.1717, Unit::CD, "cd", Unit::CD, "cd", Quantity::LuminousIntensity, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::LuminousIntensity);
+
+    // Test relative humidity: rh
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::RelativeHumidity);
+    fill_with_units_from(Quantity::RelativeHumidity, &from_set);
+    fill_with_units_from(Quantity::RelativeHumidity, &to_set);
+
+    test_si_convert(1.1717, 1.1717, Unit::RH, "rh", Unit::RH, "rh", Quantity::RelativeHumidity, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::RelativeHumidity);
+
+    // Test heat cost allocation: hca
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::HCA);
+    fill_with_units_from(Quantity::HCA, &from_set);
+    fill_with_units_from(Quantity::HCA, &to_set);
+
+    test_si_convert(11717, 11717, Unit::HCA, "hca", Unit::HCA, "hca", Quantity::HCA, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::HCA);
+
+    // Test pressure: bar pa
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Pressure);
+    fill_with_units_from(Quantity::Pressure, &from_set);
+    fill_with_units_from(Quantity::Pressure, &to_set);
+
+    test_si_convert(1.1717, 117170, Unit::BAR, "bar", Unit::PA, "pa", Quantity::Pressure, &from_set, &to_set);
+    test_si_convert(1.1717, 1.1717e-05, Unit::PA, "pa", Unit::BAR, "bar", Quantity::Pressure, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Pressure);
+
+    // Test frequency: hz
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Frequency);
+    fill_with_units_from(Quantity::Frequency, &from_set);
+    fill_with_units_from(Quantity::Frequency, &to_set);
+
+    test_si_convert(440, 440, Unit::HZ, "hz", Unit::HZ, "hz", Quantity::Frequency, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Frequency);
+
+    // Test counter: counter
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Counter);
+    fill_with_units_from(Quantity::Counter, &from_set);
+    fill_with_units_from(Quantity::Counter, &to_set);
+
+    test_si_convert(2211717, 2211717, Unit::COUNTER, "counter", Unit::COUNTER, "counter", Quantity::Counter, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Counter);
+
+    // Test point in time units: ut utc lt
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // I do not know how to handle the point in time units yet.
+    // Mark them as tested....
+    q_set.erase(Quantity::PointInTime);
+
+    // Test text unit: text
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // I do not know how to handle the text unit yet.
+    // Mark it as tested....
+    q_set.erase(Quantity::Text);
+
+    check_quantities_tested(q_set);
+}
 
 void test_formulas_building()
 {
     unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
 
-    assert(f->doConstant(Unit::KWH, 17));
-    assert(f->doConstant(Unit::KWH, 1));
-    assert(f->doAddition());
+    f->doConstant(Unit::KWH, 17);
+    f->doConstant(Unit::KWH, 1);
+    f->doAddition();
     double v = f->calculate(Unit::KWH);
     if (v != 18.0)
     {
@@ -1612,7 +2032,7 @@ void test_formulas_building()
     }
 
     f->clear();
-    assert(f->doConstant(Unit::KWH, 10));
+    f->doConstant(Unit::KWH, 10);
     v = f->calculate(Unit::MJ);
     if (v != 36.0)
     {
@@ -1620,9 +2040,9 @@ void test_formulas_building()
     }
 
     f->clear();
-    assert(f->doConstant(Unit::GJ, 10));
-    assert(f->doConstant(Unit::MJ, 10));
-    assert(f->doAddition());
+    f->doConstant(Unit::GJ, 10);
+    f->doConstant(Unit::MJ, 10);
+    f->doAddition();
     v = f->calculate(Unit::GJ);
     if (v != 10.01)
     {
@@ -1630,11 +2050,11 @@ void test_formulas_building()
     }
 
     f->clear();
-    assert(f->doConstant(Unit::C, 10));
-    assert(f->doConstant(Unit::C, 20));
-    assert(f->doAddition());
-    assert(f->doConstant(Unit::C, 22));
-    assert(f->doAddition());
+    f->doConstant(Unit::C, 10);
+    f->doConstant(Unit::C, 20);
+    f->doAddition();
+    f->doConstant(Unit::C, 22);
+    f->doAddition();
     v = f->calculate(Unit::C);
     if (v != 52)
     {
@@ -1645,6 +2065,7 @@ void test_formulas_building()
 
     {
         MeterInfo mi;
+        assert(lookupDriverInfo("multical21"));
         mi.parse("testur", "multical21", "12345678", "");
         shared_ptr<Meter> meter = createMeter(&mi);
         FieldInfo *fi_flow = meter->findFieldInfo("flow_temperature", Quantity::Temperature);
@@ -1665,7 +2086,7 @@ void test_formulas_building()
 
         f->clear();
 
-        assert(f->doField(Unit::C, meter.get(), fi_flow));
+        f->doField(Unit::C, meter.get(), fi_flow);
         v = f->calculate(Unit::C);
         if (v != 31)
         {
@@ -1674,9 +2095,9 @@ void test_formulas_building()
 
         f->clear();
 
-        assert(f->doField(Unit::C, meter.get(), fi_flow));
-        assert(f->doField(Unit::C, meter.get(), fi_ext));
-        assert(f->doAddition());
+        f->doField(Unit::C, meter.get(), fi_flow);
+        f->doField(Unit::C, meter.get(), fi_ext);
+        f->doAddition();
         v = f->calculate(Unit::C);
         if (v != 50)
         {
@@ -1686,7 +2107,7 @@ void test_formulas_building()
 
         // Check that trying to add a field reference expecting a non-convertible unit, will fail!
         f->clear();
-        assert(false == f->doField(Unit::M3, meter.get(), fi_flow));
+//        assert(false == f->doField(Unit::M3, meter.get(), fi_flow));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1717,11 +2138,11 @@ void test_formulas_building()
 
         f->clear();
 
-        assert(f->doField(Unit::KW, meter.get(), fi_p1));
-        assert(f->doField(Unit::KW, meter.get(), fi_p2));
-        assert(f->doAddition());
-        assert(f->doField(Unit::KW, meter.get(), fi_p3));
-        assert(f->doAddition());
+        f->doField(Unit::KW, meter.get(), fi_p1);
+        f->doField(Unit::KW, meter.get(), fi_p2);
+        f->doAddition();
+        f->doField(Unit::KW, meter.get(), fi_p3);
+        f->doAddition();
 
         v = f->calculate(Unit::KW);
         if (v != 0.21679)
@@ -1759,7 +2180,23 @@ void test_formula_value(FormulaImplementation *f, Meter *m, string formula, doub
     }
 }
 
-void test_formulas_parsing()
+void test_formula_error(FormulaImplementation *f, Meter *m, string formula, Unit unit, string errors)
+{
+    f->clear();
+
+    bool ok = f->parse(m, formula);
+    string es = f->errors();
+    if (es != errors)
+    {
+        printf("ERROR when parsing \"%s\"\nExpected errors:\n%sBut got errors:\n%s",
+               formula.c_str(),
+               errors.c_str(),
+               f->errors().c_str());
+    }
+    assert(!ok);
+}
+
+void test_formulas_parsing_1()
 {
     {
         MeterInfo mi;
@@ -1794,14 +2231,61 @@ void test_formulas_parsing()
 
         test_formula_tree(f.get(), meter.get(),
                           "5 c + 7 c + 10 c",
-                          "<ADD <ADD <CONST 5 c> <CONST 7 c> > <CONST 10 c> >");
+                          "<ADD <ADD <CONST 5 c[1k+273.15]Temperature> <CONST 7 c[1k+273.15]Temperature> > <CONST 10 c[1k+273.15]Temperature> >");
 
         test_formula_tree(f.get(), meter.get(),
                           "(5 c + 7 c) + 10 c",
-                          "<ADD <ADD <CONST 5 c> <CONST 7 c> > <CONST 10 c> >");
+                          "<ADD <ADD <CONST 5 c[1k+273.15]Temperature> <CONST 7 c[1k+273.15]Temperature> > <CONST 10 c[1k+273.15]Temperature> >");
 
         test_formula_tree(f.get(), meter.get(),
                           "5 c + (7 c + 10 c)",
-                          "<ADD <CONST 5 c> <ADD <CONST 7 c> <CONST 10 c> > >");
+                          "<ADD <CONST 5 c[1k+273.15]Temperature> <ADD <CONST 7 c[1k+273.15]Temperature> <CONST 10 c[1k+273.15]Temperature> > >");
+
     }
+}
+
+void test_formulas_parsing_2()
+{
+    {
+        MeterInfo mi;
+        mi.parse("testur", "em24", "66666666", "");
+        shared_ptr<Meter> meter = createMeter(&mi);
+
+        vector<uchar> frame;
+        hex2bin("35442D2C6666666633028D2070806A0520B4D378_0405F208000004FB82753F00000004853C0000000004FB82F53CCA01000001FD1722", &frame);
+
+        Telegram t;
+        MeterKeys mk;
+        t.parse(frame, &mk, true);
+
+        string id;
+        bool match;
+        meter->handleTelegram(t.about, frame, true, &id, &match, &t);
+
+        unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
+
+        test_formula_value(f.get(), meter.get(),
+                           "total_energy_consumption_kwh + 18 kwh",
+                           247,
+                           Unit::KWH);
+    }
+
+}
+
+void test_formulas_parsing_3()
+{
+    {
+        MeterInfo mi;
+        mi.parse("testur", "em24", "66666666", "");
+
+        auto meter = createMeter(&mi);
+        auto formula = unique_ptr<FormulaImplementation>(new FormulaImplementation());
+
+        test_formula_error(formula.get(), meter.get(),
+                           "10 kwh + 20 kw", Unit::KWH,
+                           "Cannot add kwh[3.6×10⁶kgm²s⁻²]Energy to kw[1000kgm²s⁻³]Power!\n"
+                           "10 kwh + 20 kw\n"
+                           "       ^~~~~\n");
+    }
+
 }

@@ -150,7 +150,7 @@ void MeterFHKVDataIII::processContent(Telegram *t)
     prev_energy_hca_ = prev;
 
     string prevs;
-    strprintf(prevs, "%02x%02x", prev_lo, prev_hi);
+    strprintf(&prevs, "%02x%02x", prev_lo, prev_hi);
     //t->addMoreExplanation(14, " energy used in previous billing period (%f HCA)", prevs);
 
     // Previous Date
@@ -172,7 +172,7 @@ void MeterFHKVDataIII::processContent(Telegram *t)
     curr_energy_hca_ = curr;
 
     string currs;
-    strprintf(currs, "%02x%02x", curr_lo, curr_hi);
+    strprintf(&currs, "%02x%02x", curr_lo, curr_hi);
     //t->addMoreExplanation(offset, " energy used in current billing period (%f HCA)", currs);
 
     // Current Date
@@ -216,7 +216,7 @@ void MeterFHKVDataIII::processContent(Telegram *t)
     temp_room_ = room_t;
 
     string room_ts;
-    strprintf(room_ts, "%02x%02x", room_tlo, room_thi);
+    strprintf(&room_ts, "%02x%02x", room_tlo, room_thi);
     // t->addMoreExplanation(offset, " current room temparature (%f °C)", room_ts);
 
     // Radiator Temperature
@@ -224,7 +224,7 @@ void MeterFHKVDataIII::processContent(Telegram *t)
     temp_radiator_ = radiator_t;
 
     string radiator_ts;
-    strprintf(radiator_ts, "%02x%02x", radiator_tlo, radiator_thi);
+    strprintf(&radiator_ts, "%02x%02x", radiator_tlo, radiator_thi);
     // t->addMoreExplanation(offset, " current radiator temparature (%f °C)", radiator_ts);
 }
 

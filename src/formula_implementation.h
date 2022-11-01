@@ -25,8 +25,8 @@
 
 struct NumericFormula
 {
-    NumericFormula(Unit u) : unit_(u) { }
-    Unit unit() { return unit_; }
+    NumericFormula(SIUnit u) : siunit_(u) { }
+    SIUnit &siunit() { return siunit_; }
     virtual double calculate(Unit to) = 0;
     virtual string str() = 0;
     virtual string tree() = 0;
@@ -34,7 +34,7 @@ struct NumericFormula
 
     private:
 
-    Unit unit_;
+    SIUnit siunit_;
 };
 
 struct NumericFormulaConstant : public NumericFormula
@@ -66,16 +66,35 @@ struct NumericFormulaField : public NumericFormula
 
 struct NumericFormulaAddition : public NumericFormula
 {
-    NumericFormulaAddition(Unit u,
+    NumericFormulaAddition(SIUnit siu,
                            unique_ptr<NumericFormula> &a,
                            unique_ptr<NumericFormula> &b)
-        : NumericFormula(u), left_(std::move(a)), right_(std::move(b)) {}
+        : NumericFormula(siu), left_(std::move(a)), right_(std::move(b)) {}
 
     double calculate(Unit to);
     string str();
     string tree();
 
     ~NumericFormulaAddition();
+
+private:
+
+    std::unique_ptr<NumericFormula> left_;
+    std::unique_ptr<NumericFormula> right_;
+};
+
+struct NumericFormulaMultiplication : public NumericFormula
+{
+    NumericFormulaMultiplication(SIUnit siu,
+                                 unique_ptr<NumericFormula> &a,
+                                 unique_ptr<NumericFormula> &b)
+        : NumericFormula(siu), left_(std::move(a)), right_(std::move(b)) {}
+
+    double calculate(Unit to);
+    string str();
+    string tree();
+
+    ~NumericFormulaMultiplication();
 
 private:
 
@@ -108,25 +127,30 @@ struct Token
     string vals(const string &s);
     double val(const string &s);
     Unit unit(const string &s);
+
+    string withMarker(const string &s);
 };
 
 struct FormulaImplementation : public Formula
 {
     bool parse(Meter *m, const string &f);
     bool valid();
+    string errors();
     double calculate(Unit to);
     void clear();
     string str();
     string tree();
 
     // Pushes a constant on the stack.
-    bool doConstant(Unit u, double c);
-    // Pushes a field read on the stack. Returns false if the field is not found in the meter.
-    bool doField(Unit u, Meter *m, FieldInfo *fi);
+    void doConstant(Unit u, double c);
+    // Pushes a field read on the stack.
+    void doField(Unit u, Meter *m, FieldInfo *fi);
     // Pops the two top nodes of the stack and pushes an addition (using these members) on the stack.
-    // The target unit will be the first unit of the two operands. If incompatible units, then it will
-    // return false.
-    bool doAddition();
+    // The target unit will be the first unit of the two operands.
+    void doAddition();
+    // Pops the two top nodes of the stack and pushes a multiplication (using these members) on the stack.
+    // The target unit will be multiplication of the SI Units.
+    void doMultiplication();
 
     ~FormulaImplementation();
 
@@ -147,14 +171,23 @@ private:
     size_t parsePar(size_t i);
 
     void handleConstant(Token *number, Token *unit);
-    void handleAddition();
+    void handleAddition(Token *add);
+    void handleMultiplication(Token *add);
     void handleField(Token *field);
 
+    void pushOp(NumericFormula *nf);
+    std::unique_ptr<NumericFormula> popOp();
+    NumericFormula *topOp();
+    NumericFormula *top2Op();
+
     bool valid_ = true;
-    std::stack<std::unique_ptr<NumericFormula>> ops_;
+    std::vector<std::unique_ptr<NumericFormula>> op_stack_;
     std::vector<Token> tokens_;
     std::string formula_; // To be parsed.
     Meter *meter_; // To be referenced when parsing.
+
+    // Any errors during parsing are store here.
+    std::vector<std::string> errors_;
 };
 
 #endif

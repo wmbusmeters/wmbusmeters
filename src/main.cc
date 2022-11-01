@@ -318,8 +318,9 @@ LIST_OF_METERS
 
 struct TmpUnit
 {
-    string suff, expl, name, quantity;
+    string suff, expl, name, quantity, si;
 };
+
 void list_units()
 {
     vector<TmpUnit> units;
@@ -327,12 +328,15 @@ void list_units()
 
 // X(KVARH,kvarh,"kVARh",Reactive_Energy,"kilo volt amperes reactive hour")
     int width = 1;
-    int total = 1;
+    int total = 50;
     int tmp = 0;
-#define X(upn,lcn,name,quantity,expl) \
+#define X(upn,lcn,name,quantity,expl)   \
     tmp = strlen(#lcn); if (tmp > width) { width = tmp; } \
-    tmp = strlen(#lcn)+strlen(name)+strlen(expl)+3; if (tmp > total) { total = tmp; } \
-    units.push_back( { #lcn, expl, name, #quantity } ); \
+    { \
+        SIUnit si(Unit::upn);                                           \
+        string sis = si.str();                                          \
+        units.push_back( { #lcn, expl, name, #quantity, sis } );        \
+    }                                                                   \
     quantities.insert(#quantity);
 LIST_OF_UNITS
 #undef X
@@ -354,7 +358,14 @@ LIST_OF_UNITS
         {
             if (u.quantity == q)
             {
-                printf("%-*s %s (%s)\n", width, u.suff.c_str(), u.expl.c_str(), u.name.c_str());
+                string s = tostrprintf("%-*s %s (%s)", width, u.suff.c_str(), u.expl.c_str(), u.name.c_str());
+                int left = strlen_utf8(s.c_str());
+                string si = tostrprintf("%s", u.si.c_str());
+                int right = strlen_utf8(si.c_str());
+                int space = 50-left-right;
+                printf("%s", s.c_str());
+                while (space > 0 && space < 100) { printf(" "); space--; }
+                printf("%s\n", si.c_str());
             }
         }
     }

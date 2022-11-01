@@ -102,7 +102,7 @@ namespace
             {
                 // We found the register representing the total
                 string total;
-                strprintf(total, "%02x%02x%02x%02x", content[i+0], content[i+1], content[i+2], content[i+3]);
+                strprintf(&total, "%02x%02x%02x%02x", content[i+0], content[i+1], content[i+2], content[i+3]);
                 int offset = i-1+t->header_size;
                 vendor_values["0413"] = {offset, DVEntry(offset, DifVifKey("0413"), MeasurementType::Instantaneous, 0x13, {}, 0, 0, 0, total) };
                 extractDVdouble(&vendor_values, "0413", &offset, &total_water_consumption_m3_);

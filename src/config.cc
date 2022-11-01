@@ -808,7 +808,7 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, BusDevice *d
     if (n == 0) num = "any combination";
     string dongles = device->supportedLinkModes().hr();
     string dongle;
-    strprintf(dongle, "%s of %s", num.c_str(), dongles.c_str());
+    strprintf(&dongle, "%s of %s", num.c_str(), dongles.c_str());
 
     // Calculate the possible listen_to linkmodes for this collection of meters.
     LinkModeSet meters_union = UNKNOWN_bit;
@@ -825,7 +825,7 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, BusDevice *d
         if (link_modes_matter && config->all_device_linkmodes_specified.empty())
         {
             string msg;
-            strprintf(msg,"(config) No meters supplied. You must supply which link modes to listen to. 22 Eg. auto:t1");
+            strprintf(&msg,"(config) No meters supplied. You must supply which link modes to listen to. 22 Eg. auto:t1");
             debug("%s\n", msg.c_str());
             return { LinkModeCalculationResultType::NoMetersMustSupplyModes , msg};
         }
@@ -859,7 +859,7 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, BusDevice *d
     if (!config->all_device_linkmodes_specified.hasAll(meters_union))
     {
         string msg;
-        strprintf(msg, "(config) You have specified to listen to the link modes: %s but the meters might transmit on: %s\n"
+        strprintf(&msg, "(config) You have specified to listen to the link modes: %s but the meters might transmit on: %s\n"
                   "(config) Therefore you might miss telegrams! Please specify the expected transmit mode for the meters, eg: apator162:t1\n"
                   "(config) Or use a dongle that can listen to all the required link modes at the same time.",
                   all_lms.c_str(), metersu.c_str());
