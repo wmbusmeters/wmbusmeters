@@ -125,6 +125,10 @@ bus the mbus poll request should be sent to.
 wmbusmeters --pollinterval=60s MAIN=/dev/ttyUSB0:mbus:2400 MyTempMeter piigth:MAIN:mbus 12001932 NOKEY
 ```
 
+If you want to poll an mbus meter using the primary address, just use
+a number between 0 and 250 instead of the full 8 digit secondary
+address.
+
 # Example wmbusmeter.conf file
 
 ```ini
