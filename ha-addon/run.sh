@@ -49,7 +49,7 @@ cat > /wmbusmeters/mosquitto_pub.sh << EOL
 #!/usr/bin/with-contenv bashio
 TOPIC=\$1
 MESSAGE=\$2
-/usr/bin/mosquitto_pub ${pub_args_quoted[@]} -t \$TOPIC -m "\$MESSAGE"
+/usr/bin/mosquitto_pub ${pub_args_quoted[@]} -r -t \$TOPIC -m "\$MESSAGE"
 EOL
 chmod a+x /wmbusmeters/mosquitto_pub.sh
 
