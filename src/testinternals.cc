@@ -55,6 +55,7 @@ void test_status_join();
 void test_status_sort();
 void test_field_matcher();
 void test_units_extraction();
+void test_si_units_siexp();
 void test_si_units_basic();
 void test_si_units_conversion();
 void test_formulas_building();
@@ -116,6 +117,7 @@ int main(int argc, char **argv)
     if (test("status_sort", pattern)) test_status_sort();
     if (test("field_matcher", pattern)) test_field_matcher();
     if (test("units_extraction", pattern)) test_units_extraction();
+    if (test("si_units_siexp", pattern)) test_si_units_siexp();
     if (test("si_units_basic", pattern)) test_si_units_basic();
     if (test("si_units_conversion", pattern)) test_si_units_conversion();
     if (test("formulas_building", pattern)) test_formulas_building();
@@ -1680,6 +1682,32 @@ void test_si_convert(double from_value, double expected_value,
                to_si_unit.str().c_str(),
                tu.c_str());
     }
+}
+
+void test_si_units_siexp()
+{
+    // m3/s
+    SIExp e = SIExp::build().s(-1).m(3);
+    if (e.str() != "m³s⁻¹") { printf("ERROR Expected m³s⁻¹ but got \"%s\"\n", e.str().c_str()); }
+
+    SIExp f = SIExp::build().s(1);
+    if (f.str() != "s") { printf("ERROR Expected s but got \"%s\"\n", f.str().c_str()); }
+
+    SIExp g = e.mul(f);
+    if (g.str() != "m³") { printf("ERROR Expected m³ but got \"%s\"\n", g.str().c_str()); }
+
+    SIExp h = SIExp::build().s(127);
+
+    // Test overflow of exponent for seconds!
+    SIExp i = h.mul(f);
+    if (i.str() != "!s⁻¹²⁸-Invalid!") { printf("ERROR Expected !s⁻¹²⁸-Invalid! but got \"%s\"\n", i.str().c_str()); }
+
+    SIExp j = e.div(e);
+    if (j.str() != "1") { printf("ERROR Expected 1 but got \"%s\"\n", j.str().c_str()); }
+
+    SIExp bad = SIExp::build().k(1).c(1);
+    if (bad.str() != "!kc-Invalid!") { printf("ERROR Expected !kc-Invalid! but got \"%s\"\n", bad.str().c_str()); }
+
 }
 
 void test_si_units_basic()

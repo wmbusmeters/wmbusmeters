@@ -126,6 +126,78 @@ LIST_OF_QUANTITIES
     Unknown
 };
 
+// The SIUnit is used inside formulas and for conversion between units.
+// Any numeric named Unit can be expressed using an SIUnit.
+// Most SIUnits do not have a corresponding named Unit.
+// However the result of a formula calculation or conversion will
+// be eventually converted into a named unit. So even if you
+// are allowed to write a formula: 9 kwh * 6 kwh which generates
+// the unit kwh² which is not explicitly named above,
+// you cannot assign this value to any calculated field since kwh^2
+// is not named. However you can do: sqrt(10 kwh * 10 kwh) which
+// will generated an SIUnit which is equivalent to kwh.
+//
+// Other valid formulas are for example:
+// energy_kwh = 100 kw * 22 h
+// flow_m3h = 100 m3 / 5 h
+//
+// We can only track units raised to the power of 127 or -128.
+// The struct SIExp below is used to track the exponents of the units.
+//
+struct SIExp
+{
+    SIExp &s(int8_t i) { s_ = i; return *this; }
+    SIExp &m(int8_t i) { m_ = i; return *this; }
+    SIExp &kg(int8_t i) { kg_ = i; return *this; }
+    SIExp &a(int8_t i) { a_ = i; return *this; }
+    SIExp &mol(int8_t i) { mol_ = i; return *this; }
+    SIExp &cd(int8_t i) { cd_ = i; return *this; }
+    SIExp &k(int8_t i) { k_ = i; if (k_ != 0 && (c_ != 0 || f_ != 0)) { invalid_ = true; } return *this; }
+    SIExp &c(int8_t i) { c_ = i; if (c_ != 0 && (k_ != 0 || f_ != 0)) { invalid_ = true; } return *this; }
+    SIExp &f(int8_t i) { f_ = i; if (f_ != 0 && (k_ != 0 || c_ != 0)) { invalid_ = true; } return *this; }
+
+    int8_t s() const { return s_; }
+    int8_t m() const { return m_; }
+    int8_t kg() const { return kg_; }
+    int8_t a() const { return a_; }
+    int8_t mol() const { return mol_; }
+    int8_t cd() const { return cd_; }
+    int8_t k() const { return k_; }
+    int8_t c() const { return c_; }
+    int8_t f() const { return f_; }
+    SIExp mul(const SIExp &e) const;
+    SIExp div(const SIExp &e) const;
+    int8_t safe_add(int8_t a, int8_t b);
+    int8_t safe_sub(int8_t a, int8_t b);
+    bool operator==(const SIExp &e) const;
+
+    std::string str() const;
+
+    static SIExp build() { return SIExp(); }
+
+private:
+
+    int8_t s_ {};
+    int8_t m_ {};
+    int8_t kg_ {};
+    int8_t a_ {};
+    int8_t mol_ {};
+    int8_t cd_ {};
+    int8_t k_ {};
+    int8_t c_ {}; // Why c and f here? Because they are offset against K.
+    int8_t f_ {}; // Since SIUnits are also used for conversions of values, not just unit tracking,
+               // this means that the offset units (c,f) must be treated as distinct units.
+               // E.g. if you calculated m3*k (and forget the m3 and k value) then you
+               // cannot convert this value into m3*c since  the offset makes the calculation
+               // depend on the k value, which we no longer know.
+               // But kw*h can be translated into kw*s since scaling (*3600) can be done on the
+               // calculated value without knowing the h value. Therefore we have to
+               // treat k, c and f as distinct units. I.e. you cannot add m3*k+m3*f+m3*c.
+
+    // If exponents have over/underflowed or if multiple of k,c,f are set, then the SIExp is not valid any more!
+    bool invalid_ = false;
+};
+
 struct SIUnit
 {
     // Transform a double,double,uint64_t into an SIUnit.

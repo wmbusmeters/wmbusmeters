@@ -456,3 +456,85 @@ string SIUnit::info()
                        str().c_str(),
                        toString(quantity_));
 }
+
+int8_t SIExp::safe_add(int8_t a, int8_t b)
+{
+    int sum = a+b;
+    if (sum > 127) invalid_ = true;
+    return sum;
+}
+
+int8_t SIExp::safe_sub(int8_t a, int8_t b)
+{
+    int diff = a-b;
+    if (diff  < -128) invalid_ = true;
+    return diff;
+}
+
+bool SIExp::operator==(const SIExp &e) const
+{
+    return
+        s_ == e.s_ &&
+        m_ == e.m_ &&
+        kg_ == e.kg_ &&
+        a_ == e.a_ &&
+        mol_ == e.mol_ &&
+        cd_ == e.cd_ &&
+        k_ == e.k_ &&
+        c_ == e.c_ &&
+        f_ == e.f_;
+}
+
+SIExp SIExp::mul(const SIExp &e) const
+{
+    SIExp ee;
+
+    ee  .s(ee.safe_add(s(),e.s()))
+        .m(ee.safe_add(m(),e.m()))
+        .kg(ee.safe_add(kg(),e.kg()))
+        .a(ee.safe_add(a(),e.a()))
+        .mol(ee.safe_add(mol(),e.mol()))
+        .cd(ee.safe_add(cd(),e.cd()))
+        .k(ee.safe_add(k(),e.k()))
+        .c(ee.safe_add(c(),e.c()))
+        .f(ee.safe_add(f(),e.f()));
+
+    return ee;
+}
+
+SIExp SIExp::div(const SIExp &e) const
+{
+    SIExp ee;
+    ee  .s(ee.safe_sub(s(),e.s()))
+        .m(ee.safe_sub(m(),e.m()))
+        .kg(ee.safe_sub(kg(),e.kg()))
+        .a(ee.safe_sub(a(),e.a()))
+        .mol(ee.safe_sub(mol(),e.mol()))
+        .cd(ee.safe_sub(cd(),e.cd()))
+        .k(ee.safe_sub(k(),e.k()))
+        .c(ee.safe_sub(c(),e.c()))
+        .f(ee.safe_sub(f(),e.f()));
+
+    return ee;
+}
+
+#define DO_UNIT_SIEXP(var, name) if (var != 0) { if (r.length()>0) { } r += #name; if (var != 1) { r += to_superscript(var); } }
+
+string SIExp::str() const
+{
+    string r;
+
+    DO_UNIT_SIEXP(mol_, mol);
+    DO_UNIT_SIEXP(cd_, cd);
+    DO_UNIT_SIEXP(kg_, kg);
+    DO_UNIT_SIEXP(m_, m);
+    DO_UNIT_SIEXP(k_, k);
+    DO_UNIT_SIEXP(c_, c);
+    DO_UNIT_SIEXP(f_, f);
+    DO_UNIT_SIEXP(s_, s);
+    DO_UNIT_SIEXP(a_, a);
+
+    if (invalid_) r = "!"+r+"-Invalid!";
+    if (r == "") return "1";
+    return r;
+}
