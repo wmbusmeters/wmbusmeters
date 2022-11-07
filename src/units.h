@@ -223,7 +223,9 @@ struct SIUnit
     // Convert value from this unit to another unit.
     double convertTo(double val, const SIUnit &to) const;
     // Multiply this unit with another unit.
-    void mul(SIUnit &m);
+    SIUnit mul(const SIUnit &m) const ;
+    // Dividethis unit with another unit.
+    SIUnit div(const SIUnit &m) const ;
 
 private:
 

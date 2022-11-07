@@ -2298,7 +2298,6 @@ void test_formulas_parsing_2()
                            247,
                            Unit::KWH);
     }
-
 }
 
 void test_formulas_parsing_3()

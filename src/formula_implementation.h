@@ -27,7 +27,8 @@ struct NumericFormula
 {
     NumericFormula(SIUnit u) : siunit_(u) { }
     SIUnit &siunit() { return siunit_; }
-    virtual double calculate(Unit to) = 0;
+    // Calculate the formula and return the value in the given "to" unit.
+    virtual double calculate(SIUnit to) = 0;
     virtual string str() = 0;
     virtual string tree() = 0;
     virtual ~NumericFormula() = 0;
@@ -40,7 +41,7 @@ struct NumericFormula
 struct NumericFormulaConstant : public NumericFormula
 {
     NumericFormulaConstant(Unit u, double c) : NumericFormula(u), constant_(c) {}
-    double calculate(Unit to);
+    double calculate(SIUnit to);
     string str();
     string tree();
     ~NumericFormulaConstant();
@@ -53,7 +54,7 @@ struct NumericFormulaConstant : public NumericFormula
 struct NumericFormulaField : public NumericFormula
 {
     NumericFormulaField(Unit u, Meter *m, FieldInfo *fi) : NumericFormula(u), meter_(m), field_info_(fi) {}
-    double calculate(Unit to);
+    double calculate(SIUnit to);
     string str();
     string tree();
     ~NumericFormulaField();
@@ -64,42 +65,106 @@ struct NumericFormulaField : public NumericFormula
     FieldInfo *field_info_;
 };
 
-struct NumericFormulaAddition : public NumericFormula
+struct NumericFormulaPair : public NumericFormula
+{
+    NumericFormulaPair(SIUnit siu,
+                       unique_ptr<NumericFormula> &a,
+                       unique_ptr<NumericFormula> &b,
+                       string name, string op)
+        : NumericFormula(siu),
+        left_(std::move(a)),
+        right_(std::move(b)),
+        name_(name),
+        op_(op)
+    {}
+
+    string str();
+    string tree();
+    ~NumericFormulaPair();
+
+protected:
+
+    std::unique_ptr<NumericFormula> left_;
+    std::unique_ptr<NumericFormula> right_;
+    std::string name_;
+    std::string op_;
+};
+
+struct NumericFormulaAddition : public NumericFormulaPair
 {
     NumericFormulaAddition(SIUnit siu,
                            unique_ptr<NumericFormula> &a,
                            unique_ptr<NumericFormula> &b)
-        : NumericFormula(siu), left_(std::move(a)), right_(std::move(b)) {}
+        : NumericFormulaPair(siu, a, b, "ADD", "+") {}
 
-    double calculate(Unit to);
-    string str();
-    string tree();
+    double calculate(SIUnit to);
 
     ~NumericFormulaAddition();
-
-private:
-
-    std::unique_ptr<NumericFormula> left_;
-    std::unique_ptr<NumericFormula> right_;
 };
 
-struct NumericFormulaMultiplication : public NumericFormula
+struct NumericFormulaSubtraction : public NumericFormulaPair
+{
+    NumericFormulaSubtraction(SIUnit siu,
+                              unique_ptr<NumericFormula> &a,
+                              unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(siu, a, b, "SUB", "-") {}
+
+    double calculate(SIUnit to);
+
+    ~NumericFormulaSubtraction();
+};
+
+struct NumericFormulaMultiplication : public NumericFormulaPair
 {
     NumericFormulaMultiplication(SIUnit siu,
                                  unique_ptr<NumericFormula> &a,
                                  unique_ptr<NumericFormula> &b)
-        : NumericFormula(siu), left_(std::move(a)), right_(std::move(b)) {}
+        : NumericFormulaPair(siu, a, b, "TIMES", "×") {}
 
-    double calculate(Unit to);
+    double calculate(SIUnit to);
+
+    ~NumericFormulaMultiplication();
+};
+
+struct NumericFormulaDivision : public NumericFormulaPair
+{
+    NumericFormulaDivision(SIUnit siu,
+                           unique_ptr<NumericFormula> &a,
+                           unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(siu, a, b, "DIV", "÷") {}
+
+    double calculate(SIUnit to);
+
+    ~NumericFormulaDivision();
+};
+
+struct NumericFormulaExponentiation : public NumericFormulaPair
+{
+    NumericFormulaExponentiation(SIUnit siu,
+                                 unique_ptr<NumericFormula> &a,
+                                 unique_ptr<NumericFormula> &b)
+        : NumericFormulaPair(siu, a, b, "EXP", "^") {}
+
+    double calculate(SIUnit to);
+
+    ~NumericFormulaExponentiation();
+};
+
+struct NumericFormulaSquareRoot : public NumericFormula
+{
+    NumericFormulaSquareRoot(SIUnit siu,
+                             unique_ptr<NumericFormula> &inner)
+        : NumericFormula(siu), inner_(std::move(inner)) {}
+
+    double calculate(SIUnit to);
     string str();
     string tree();
 
-    ~NumericFormulaMultiplication();
+    ~NumericFormulaSquareRoot();
 
 private:
 
-    std::unique_ptr<NumericFormula> left_;
-    std::unique_ptr<NumericFormula> right_;
+    std::unique_ptr<NumericFormula> inner_;
 };
 
 enum class TokenType
@@ -109,6 +174,11 @@ enum class TokenType
     RPAR,
     NUMBER,
     PLUS,
+    MINUS,
+    TIMES,
+    DIV,
+    EXP,
+    SQRT,
     UNIT,
     FIELD
 };
@@ -145,12 +215,24 @@ struct FormulaImplementation : public Formula
     void doConstant(Unit u, double c);
     // Pushes a field read on the stack.
     void doField(Unit u, Meter *m, FieldInfo *fi);
-    // Pops the two top nodes of the stack and pushes an addition (using these members) on the stack.
+    // Pops the two top nodes of the stack and pushes an addition on the stack.
     // The target unit will be the first unit of the two operands.
     void doAddition();
-    // Pops the two top nodes of the stack and pushes a multiplication (using these members) on the stack.
+    // Pops the two top nodes of the stack and pushes a subtraction on the stack.
+    // The target unit will be the first unit of the two operands.
+    void doSubtraction();
+    // Pops the two top nodes of the stack and pushes a multiplication on the stack.
     // The target unit will be multiplication of the SI Units.
     void doMultiplication();
+    // Pops the two top nodes of the stack and pushes a division on the stack.
+    // The target unit will be first SIUnit divided by the second SIUnit.
+    void doDivision();
+    // Pops the two top nodes of the stack and pushes an exponentiation on the stack.
+    // The target unit will be first SIUnit exponentiated.
+    void doExponentiation();
+    // Pops the single top node of the stack and pushes an squareroot on the stack.
+    // The target unit will be SIUnit square rooted.
+    void doSquareRoot();
 
     ~FormulaImplementation();
 
@@ -162,6 +244,11 @@ private:
     size_t findNumber(size_t i);
     size_t findUnit(size_t i);
     size_t findPlus(size_t i);
+    size_t findMinus(size_t i);
+    size_t findTimes(size_t i);
+    size_t findDiv(size_t i);
+    size_t findExp(size_t i);
+    size_t findSqrt(size_t i);
     size_t findLPar(size_t i);
     size_t findRPar(size_t i);
     size_t findField(size_t i);
@@ -172,7 +259,11 @@ private:
 
     void handleConstant(Token *number, Token *unit);
     void handleAddition(Token *add);
+    void handleSubtraction(Token *add);
     void handleMultiplication(Token *add);
+    void handleDivision(Token *add);
+    void handleExponentiation(Token *add);
+    void handleSquareRoot(Token *add);
     void handleField(Token *field);
 
     void pushOp(NumericFormula *nf);

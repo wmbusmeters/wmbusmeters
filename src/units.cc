@@ -228,8 +228,37 @@ double SIUnit::convertTo(double val, const SIUnit &uto) const
     return std::numeric_limits<double>::quiet_NaN();
 }
 
-void SIUnit::mul(SIUnit &m)
+SIUnit SIUnit::mul(const SIUnit &m) const
 {
+    // Multipliying the SIUnits adds the exponents.
+    SIExp exps = exponents_.mul(m.exponents_);
+
+    double new_scale = scale_*m.scale_;
+    SIUnit tmp(Quantity::Unknown,
+               new_scale,
+               exps);
+
+    Unit u = tmp.asUnit(Quantity::Unknown);
+    Quantity q = toQuantity(u);
+
+    return SIUnit(q, new_scale, exps);
+}
+
+SIUnit SIUnit::div(const SIUnit &m) const
+{
+    // Dividing with a  SIUnit subtracts the exponents.
+    SIExp exps = exponents_.div(m.exponents_);
+
+    double new_scale = scale_/m.scale_;
+
+    SIUnit tmp(Quantity::Unknown,
+               new_scale,
+               exps);
+
+    Unit u = tmp.asUnit(Quantity::Unknown);
+    Quantity q = toQuantity(u);
+
+    return SIUnit(q, new_scale, exps);
 }
 
 SIUnit whenMultiplied(SIUnit left, SIUnit right)
