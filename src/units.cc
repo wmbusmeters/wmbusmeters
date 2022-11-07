@@ -20,6 +20,7 @@
 #include<assert.h>
 #include<math.h>
 #include<string.h>
+#include<limits>
 
 using namespace std;
 
@@ -59,41 +60,68 @@ using namespace std;
 
 
 #define LIST_OF_SI_CONVERSIONS  \
-    X(Second,1.0,0,SI_S(1))     \
-    X(M,1.0,0,SI_M(1))          \
-    X(KG,1.0,0,SI_KG(1))        \
-    X(Ampere,1.0,0,SI_A(1))     \
-    X(K,1.0,0,SI_K(1))                                                  \
-    X(MOL,1.0,0,SI_MOL(1))                                              \
-    X(CD,1.0,0,SI_CD(1))                                                \
-    X(KWH, 3.6e+06, 0, SI_KG(1)|SI_M(2)|SI_S(-2))                       \
-    X(MJ,  1.0e+06, 0, SI_KG(1)|SI_M(2)|SI_S(-2))                       \
-    X(GJ,  1.0e+09, 0, SI_KG(1)|SI_M(2)|SI_S(-2))                       \
-    X(KVARH,3.6e+06, 0, SI_KG(1)|SI_M(2)|SI_S(-2))                      \
-    X(KVAH, 3.6e+06, 0, SI_KG(1)|SI_M(2)|SI_S(-2))                      \
-    X(M3C, 1.0,    0, SI_M(3)|SI_K(1))                                  \
-    X(M3,  1.0,        0, SI_M(3))                                      \
-    X(L,   1.0/1000.0, 0, SI_M(3))                                      \
-    X(KW,  1000.0,     0,  SI_KG(1)|SI_M(2)|SI_S(-3))                   \
-    X(M3H, 3600.0,     0,  SI_M(3)|SI_S(-1))                            \
-    X(LH,  3.600,      0,  SI_M(3)|SI_S(-1))                            \
-    X(C,   1.0,        273.15,                   SI_K(1))               \
-    X(F,   (5.0/9.0),  (-32.0+(273.15*9.0/5.0)), SI_K(1))               \
-    X(RH,      1.0,0,0)                                                 \
-    X(HCA,     1.0,0,0)                                                 \
-    X(TXT,     1.0,0,0)                                                 \
-    X(COUNTER, 1.0,0,0)                                                 \
-    X(Minute, 60.0,          0, SI_S(1))                                \
-    X(Hour,   3600.0,        0, SI_S(1))                                \
-    X(Day,    3600.0*24,     0, SI_S(1))                                \
-    X(Year,   3600.0*24*365.2425, 0, SI_S(1))                           \
-    X(DateTimeUT,1.0,0,SI_S(1))                                         \
-    X(DateTimeUTC,1.0,0,SI_S(1))                                        \
-    X(DateTimeLT,1.0,0,SI_S(1))                                         \
-    X(Volt,   1.0,           0, SI_KG(1)|SI_M(2)|SI_S(-3)|SI_A(-1))     \
-    X(HZ,     1.0,           0, SI_S(-1))                               \
-    X(PA,     1.0,           0, SI_KG(1)|SI_M(-1)|SI_S(-2))             \
-    X(BAR,    100000.0,      0, SI_KG(1)|SI_M(-1)|SI_S(-2))
+    X(Second, 1.0, SIExp().s(1))                                   \
+    X(M,      1.0, SIExp().m(1))                                   \
+    X(KG,     1.0, SIExp().kg(1))                                  \
+    X(Ampere, 1.0, SIExp().a(1))                                   \
+    X(K,      1.0, SIExp().k(1))                                   \
+    X(MOL,    1.0, SIExp().mol(1))                                 \
+    X(CD,     1.0, SIExp().cd(1))                                  \
+    \
+    X(KWH,    3.6e+06,    SIExp().kg(1).m(2).s(-2))                 \
+    X(MJ,     1.0e+06,    SIExp().kg(1).m(2).s(-2))                 \
+    X(GJ,     1.0e+09,    SIExp().kg(1).m(2).s(-2))                 \
+    X(KVARH,  3.6e+06,    SIExp().kg(1).m(2).s(-2))                 \
+    X(KVAH,   3.6e+06,    SIExp().kg(1).m(2).s(-2))                 \
+    X(M3C,    1.0,        SIExp().m(3).c(1))                        \
+    \
+    X(KW,     1000.0,     SIExp().kg(1).m(2).s(-3))                 \
+    \
+    X(M3,     1.0,        SIExp().m(3))                             \
+    X(L,      1.0/1000.0, SIExp().m(3))                             \
+    X(M3H,    3600.0,     SIExp().m(3).s(-1))                       \
+    X(LH,     3.600,      SIExp().m(3).s(-1))                       \
+    \
+    X(C,      1.0,        SIExp().c(1)) \
+    X(F,      1.0,        SIExp().f(1)) \
+    \
+    X(Volt,   1.0,           SIExp().kg(1).m(2).s(-3).a(-1))         \
+    X(HZ,     1.0,           SIExp().s(-1))                          \
+    X(PA,     1.0,           SIExp().kg(1).m(-1).s(-2))              \
+    X(BAR,    100000.0,      SIExp().kg(1).m(-1).s(-2))              \
+    \
+    X(Minute,      60.0,          SIExp().s(1))                      \
+    X(Hour,        3600.0,        SIExp().s(1))                      \
+    X(Day,         3600.0*24,     SIExp().s(1))                      \
+    X(Year,        3600.0*24*365.2425, SIExp().s(1))                 \
+    X(DateTimeUT,  1.0,           SIExp().s(1))                      \
+    X(DateTimeUTC, 1.0,           SIExp().s(1))                      \
+    X(DateTimeLT,  1.0,           SIExp().s(1))                      \
+                                                                        \
+    X(RH,          1.0, SIExp())                                     \
+    X(HCA,         1.0, SIExp())                                     \
+    X(COUNTER,     1.0, SIExp())                                     \
+    X(TXT,         1.0, SIExp())                                     \
+
+
+#define X(cname,lcname,hrname,quantity,explanation) const SIUnit SI_##cname(Unit::cname);
+LIST_OF_UNITS
+#undef X
+
+const SIUnit SI_Unknown(Unit::Unknown);
+
+const SIUnit &toSIUnit(Unit u)
+{
+    switch (u)
+    {
+#define X(cname,lcname,hrname,quantity,explanation) case Unit::cname: return SI_##cname;
+LIST_OF_UNITS
+#undef X
+    default: break;
+    }
+
+    return SI_Unknown;
+}
 
 bool canConvert(Unit ufrom, Unit uto)
 {
@@ -121,21 +149,83 @@ LIST_OF_CONVERSIONS
     return 0;
 }
 
-bool canConvert(SIUnit &ufrom, SIUnit &uto)
+bool SIUnit::canConvertTo(const SIUnit &uto) const
 {
-    return ufrom.sameExponents(uto);
+    // Same exponents! Then we can always convert!
+    if (exponents_ == uto.exponents_) return true;
+
+    // Now the special cases. K-C-F
+    if ((exponents_ == SI_K.exponents_ ||
+         exponents_ == SI_C.exponents_ ||
+         exponents_ == SI_F.exponents_) &&
+        (uto.exponents_ == SI_K.exponents_ ||
+         uto.exponents_ == SI_C.exponents_ ||
+         uto.exponents_ == SI_F.exponents_))
+    {
+        // We are converting between the K,C,F temperatures only!
+        return true;
+    }
+
+    return false;
 }
 
-double convert(double vfrom, SIUnit &ufrom, SIUnit &uto)
+bool isKCF(const SIExp &e)
 {
-    assert(canConvert(ufrom, uto));
-
-    return ufrom.convert(vfrom, uto);
+    return
+        e == SI_K.exp() ||
+        e == SI_C.exp() ||
+        e == SI_F.exp();
 }
 
-double SIUnit::convert(double val, SIUnit &to)
+void getScaleOffset(const SIExp &e, double *scale, double *offset)
 {
-    return ((val+offset_)*scale_)/to.scale_-to.offset_;
+    if (e == SI_K.exp())
+    {
+        *scale = 1.0;
+        *offset = 0.0;
+        return;
+    }
+    if (e == SI_C.exp())
+    {
+        *scale = 1.0;
+        *offset = 273.15;
+        return;
+    }
+    if (e == SI_F.exp())
+    {
+        *scale = 5.0/9.0;
+        *offset = -32.0+(273.15*9.0/5.0);
+        return;
+    }
+    assert(0);
+}
+
+double SIUnit::convertTo(double val, const SIUnit &uto) const
+{
+    if (exp() == uto.exp())
+    {
+        return (val*scale_)/uto.scale_;
+    }
+
+    // Now the special cases. K-C-F
+    if (isKCF(exp()) && isKCF(uto.exp()))
+    {
+        double from_scale {};
+        double from_offset {};
+
+        getScaleOffset(exp(), &from_scale, &from_offset);
+        from_scale *= scale();
+
+        double to_offset {};
+        double to_scale {};
+
+        getScaleOffset(uto.exp(), &to_scale, &to_offset);
+        to_scale *= uto.scale();
+
+        return ((val+from_offset)*from_scale)/to_scale-to_offset;
+    }
+
+    return std::numeric_limits<double>::quiet_NaN();
 }
 
 void SIUnit::mul(SIUnit &m)
@@ -308,15 +398,13 @@ SIUnit::SIUnit(Unit u)
 
     switch (u)
     {
-#define X(cname,si_scale,si_offset,si_exponents) \
-        case Unit::cname: scale_ = si_scale; offset_ = si_offset; exponents_ = si_exponents; break;
+#define X(cname,si_scale,si_exponents) \
+        case Unit::cname: scale_ = si_scale; exponents_ = si_exponents; break;
 LIST_OF_SI_CONVERSIONS
 #undef X
     default:
         quantity_ = Quantity::Unknown;
         scale_ = 0;
-        offset_ = 0;
-        exponents_ = 0;
     }
 }
 
@@ -324,20 +412,20 @@ SIUnit::SIUnit(string s)
 {
 }
 
-Unit SIUnit::asUnit()
+Unit SIUnit::asUnit() const
 {
-#define X(cname,si_scale,si_offset,si_exponents) \
-    if ((scale_ == si_scale) && (offset_ == si_offset) && (exponents_ == (si_exponents)) && quantity_ == toQuantity(Unit::cname)) return Unit::cname;
+#define X(cname,si_scale,si_exponents) \
+    if ((scale_ == si_scale) && (exponents_ == (si_exponents)) && quantity_ == toQuantity(Unit::cname)) return Unit::cname;
 LIST_OF_SI_CONVERSIONS
 #undef X
 
     return Unit::Unknown;
 }
 
-Unit SIUnit::asUnit(Quantity q)
+Unit SIUnit::asUnit(Quantity q) const
 {
-#define X(cname,si_scale,si_offset,si_exponents) \
-    if ((scale_ == si_scale) && (offset_ == si_offset) && (exponents_ == (si_exponents)) && q == toQuantity(Unit::cname)) return Unit::cname;
+#define X(cname,si_scale,si_exponents) \
+    if ((scale_ == si_scale) && (exponents_ == (si_exponents)) && q == toQuantity(Unit::cname)) return Unit::cname;
 LIST_OF_SI_CONVERSIONS
 #undef X
 
@@ -417,38 +505,18 @@ string to_superscript(string &s)
     return out;
 }
 
-#define DO_UNIT(u) if (u != 0) { if (r.length()>0) { } r += #u; if (u != 1) { r += to_superscript(u); } }
-
-string SIUnit::str()
+string SIUnit::str() const
 {
-    string r;
-    int8_t s = SI_GET_S(exponents_);
-    int8_t m = SI_GET_M(exponents_);
-    int8_t kg = SI_GET_KG(exponents_);
-    int8_t a = SI_GET_A(exponents_);
-    int8_t k = SI_GET_K(exponents_);
-    int8_t mol = SI_GET_MOL(exponents_);
-    int8_t cd = SI_GET_CD(exponents_);
-
-    DO_UNIT(mol);
-    DO_UNIT(cd);
-    DO_UNIT(kg);
-    DO_UNIT(k);
-    DO_UNIT(m);
-    DO_UNIT(s);
-    DO_UNIT(a);
+    string r = exponents_.str();
 
     string num = tostrprintf("%g", scale_);
-    string offset;
-    if (offset_ > 0) offset = tostrprintf("+%g", offset_);
-    if (offset_ < 0) offset = tostrprintf("%g", offset_);
 
     num = to_superscript(num);
-    return num+r+offset;
+    return num+r;
 }
 
 
-string SIUnit::info()
+string SIUnit::info() const
 {
     Unit u = asUnit();
     return tostrprintf("%s[%s]%s",

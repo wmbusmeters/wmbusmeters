@@ -1621,7 +1621,7 @@ void test_expected_failed_si_convert(Unit from_unit,
     {
         printf("ERROR! Not the expected quantities!\n");
     }
-    if (canConvert(from_si_unit, to_si_unit))
+    if (from_si_unit.canConvertTo(to_si_unit))
     {
         printf("ERROR! Should not be able to convert from %s to %s !\n", fu.c_str(), tu.c_str());
     }
@@ -1646,7 +1646,7 @@ void test_si_convert(double from_value, double expected_value,
     from_set->erase(from_unit);
     to_set->erase(to_unit);
 
-    double e = from_si_unit.convert(from_value, to_si_unit);
+    double e = from_si_unit.convertTo(from_value, to_si_unit);
     string es = tostrprintf("%.15g", e);
 
     if (canConvert(from_unit, to_unit))
@@ -1713,7 +1713,7 @@ void test_si_units_siexp()
 void test_si_units_basic()
 {
     // A kilowatt unit generated from scratch:
-    SIUnit kwh(Quantity::Energy, 3.6E6, 0, SI_KG(1)|SI_M(2)|SI_S(-2));
+    SIUnit kwh(Quantity::Energy, 3.6E6, SIExp().kg(1).m(2).s(-2));
 
     string expected = "3.6×10⁶kgm²s⁻²";
     if (kwh.str() != expected) printf("ERROR expected kwh to be %s but got %s\n", expected.c_str(), kwh.str().c_str());
@@ -1724,9 +1724,9 @@ void test_si_units_basic()
     if (kwh2.str() != expected) printf("ERROR expected second kwh to be %s but got %s\n", expected.c_str(), kwh2.str().c_str());
 
     // A Celsius unit generated from scratch:
-    SIUnit celsius(Quantity::Temperature, 1, 273.15, SI_K(1));
+    SIUnit celsius(Quantity::Temperature, 1, SIExp().c(1));
 
-    expected = "1k+273.15";
+    expected = "1c";
     if (celsius.str() != expected) printf("ERROR expected celsius to be %s but got %s\n", expected.c_str(), celsius.str().c_str());
 
     // A celsius unit from the Unit.
@@ -1845,6 +1845,7 @@ LIST_OF_QUANTITIES
     fill_with_units_from(Quantity::Temperature, &from_set);
     fill_with_units_from(Quantity::Temperature, &to_set);
 
+    test_si_convert(0, 273.15, Unit::C, "c", Unit::K, "k", Quantity::Temperature, &from_set, &to_set);
     test_si_convert(10.85, 284.0, Unit::C, "c", Unit::K, "k", Quantity::Temperature, &from_set, &to_set);
     test_si_convert(100.0, -173.15, Unit::K, "k", Unit::C, "c", Quantity::Temperature, &from_set, &to_set);
     test_si_convert(100.0, -279.67, Unit::K, "k", Unit::F, "f", Quantity::Temperature, &from_set, &to_set);
@@ -1852,6 +1853,7 @@ LIST_OF_QUANTITIES
     test_si_convert(0.0, -17.7777777777778, Unit::F, "f", Unit::C, "c", Quantity::Temperature, &from_set, &to_set);
 
     check_units_tested(from_set, to_set, Quantity::Temperature);
+
 
     // Test energy units: kwh, mj, gj
     /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2259,16 +2261,15 @@ void test_formulas_parsing_1()
 
         test_formula_tree(f.get(), meter.get(),
                           "5 c + 7 c + 10 c",
-                          "<ADD <ADD <CONST 5 c[1k+273.15]Temperature> <CONST 7 c[1k+273.15]Temperature> > <CONST 10 c[1k+273.15]Temperature> >");
+                          "<ADD <ADD <CONST 5 c[1c]Temperature> <CONST 7 c[1c]Temperature> > <CONST 10 c[1c]Temperature> >");
 
         test_formula_tree(f.get(), meter.get(),
                           "(5 c + 7 c) + 10 c",
-                          "<ADD <ADD <CONST 5 c[1k+273.15]Temperature> <CONST 7 c[1k+273.15]Temperature> > <CONST 10 c[1k+273.15]Temperature> >");
+                          "<ADD <ADD <CONST 5 c[1c]Temperature> <CONST 7 c[1c]Temperature> > <CONST 10 c[1c]Temperature> >");
 
         test_formula_tree(f.get(), meter.get(),
                           "5 c + (7 c + 10 c)",
-                          "<ADD <CONST 5 c[1k+273.15]Temperature> <ADD <CONST 7 c[1k+273.15]Temperature> <CONST 10 c[1k+273.15]Temperature> > >");
-
+                          "<ADD <CONST 5 c[1c]Temperature> <ADD <CONST 7 c[1c]Temperature> <CONST 10 c[1c]Temperature> > >");
     }
 }
 

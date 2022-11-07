@@ -45,8 +45,7 @@ NumericFormulaMultiplication::~NumericFormulaMultiplication()
 
 double NumericFormulaConstant::calculate(Unit to)
 {
-    SIUnit tosiunit(to);
-    return convert(constant_, siunit(), tosiunit);
+    return siunit().convertTo(constant_, toSIUnit(to));
 }
 
 double NumericFormulaField::calculate(Unit to)
@@ -371,7 +370,7 @@ void FormulaImplementation::handleAddition(Token *tok)
     SIUnit right_siunit = topOp()->siunit();
     SIUnit left_siunit = top2Op()->siunit();
 
-    if (!canConvert(left_siunit, right_siunit))
+    if (!left_siunit.canConvertTo(right_siunit))
     {
         string lsis = left_siunit.str();
         string rsis = right_siunit.str();
@@ -521,7 +520,7 @@ void FormulaImplementation::doAddition()
 
     pushOp(new NumericFormulaAddition(left_siunit, left_node, right_node));
 
-    assert(canConvert(left_siunit, right_siunit));
+    assert(left_siunit.canConvertTo(right_siunit));
 }
 
 void FormulaImplementation::doMultiplication()

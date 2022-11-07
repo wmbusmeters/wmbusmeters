@@ -21,54 +21,84 @@
 #include<string>
 #include<vector>
 
-#define LIST_OF_QUANTITIES   \
-    X(Time,Hour)             \
-    X(Length,M)              \
-    X(Mass,KG)               \
-    X(Amperage,Ampere)       \
-    X(Temperature,C)         \
-    X(AmountOfSubstance,MOL) \
-    X(LuminousIntensity,CD)  \
-    X(Energy,KWH)            \
-    X(Reactive_Energy,KVARH) \
-    X(Apparent_Energy,KVAH)  \
-    X(Power,KW)              \
-    X(Volume,M3)             \
-    X(Flow,M3H)              \
-    X(RelativeHumidity,RH)   \
-    X(HCA,HCA)               \
-    X(Text,TXT)              \
-    X(Counter,COUNTER)       \
-    X(PointInTime,DateTimeLT) \
-    X(Voltage,Volt)          \
-    X(Frequency,HZ)          \
-    X(Pressure,BAR)
+// A named quantity has a preferred unit,
+// ie Volume has m3 (cubic meters) Energy has kwh, Power has kw.
+// We search for quantities in the mbus telegrams instead of
+// hard coding a specific unit. This is useful since some
+// meters can send either mj or kwh depending on their configuration.
 
+#define LIST_OF_QUANTITIES    \
+    X(Time,Hour)              \
+    X(Length,M)               \
+    X(Mass,KG)                \
+    X(Amperage,Ampere)        \
+    X(Temperature,C)          \
+    X(AmountOfSubstance,MOL)  \
+    X(LuminousIntensity,CD)   \
+    \
+    X(Energy,KWH)             \
+    X(Reactive_Energy,KVARH)  \
+    X(Apparent_Energy,KVAH)   \
+    X(Power,KW)               \
+    \
+    X(Volume,M3)              \
+    X(Flow,M3H)               \
+    \
+    X(Voltage,Volt)           \
+    X(Frequency,HZ)           \
+    X(Pressure,BAR)           \
+    \
+    X(PointInTime,DateTimeLT) \
+    \
+    X(RelativeHumidity,RH)    \
+    X(HCA,HCA)                \
+    X(Text,TXT)               \
+    X(Counter,COUNTER)        \
+
+enum class Quantity
+{
+#define X(quantity,default_unit) quantity,
+LIST_OF_QUANTITIES
+#undef X
+    Unknown
+};
+
+// A named unit (Unit) is a recurring unit that is useful to represent values
+// sent in mbus telegrams. A named unit can be translated into an SIUnit
+// which is unnamed and can encode any combination of SI units & scale & offset.
+// The SIUnits are used inside formulas. Eventually a successful formula
+// calculation will map the final SI Unit to a named unit.
 #define LIST_OF_UNITS \
-    X(Second,s,"s",Time,"second")    \
-    X(M,m,"m",Length,"meter")        \
-    X(KG,kg,"kg",Mass,"kilogram")    \
+    X(Second,s,"s",Time,"second")     \
+    X(M,m,"m",Length,"meter")         \
+    X(KG,kg,"kg",Mass,"kilogram")     \
     X(Ampere,a,"A",Amperage,"ampere") \
-    X(K,k,"K",Temperature,"kelvin")  \
+    X(K,k,"K",Temperature,"kelvin")   \
     X(MOL,mol,"mol",AmountOfSubstance,"mole")  \
     X(CD,cd,"cd",LuminousIntensity,"candela")  \
+    \
     X(KWH,kwh,"kWh",Energy,"kilo Watt hour")   \
     X(MJ,mj,"MJ",Energy,"Mega Joule")          \
     X(GJ,gj,"GJ",Energy,"Giga Joule")          \
     X(KVARH,kvarh,"kVARh",Reactive_Energy,"kilo volt amperes reactive hour") \
     X(KVAH,kvah,"kVAh",Apparent_Energy,"kilo volt amperes hour")        \
     X(M3C,m3c,"m³°C",Energy,"cubic meter celsius")                      \
+    \
+    X(KW,kw,"kW",Power,"kilo Watt")                                     \
+    \
     X(M3,m3,"m³",Volume,"cubic meter")                                  \
     X(L,l,"l",Volume,"litre")                                           \
-    X(KW,kw,"kW",Power,"kilo Watt")                                     \
     X(M3H,m3h,"m³/h",Flow,"cubic meters per hour")                      \
     X(LH,lh,"l/h",Flow,"liters per hour")                               \
+    \
     X(C,c,"°C",Temperature,"celsius")                                   \
     X(F,f,"°F",Temperature,"fahrenheit")                                \
-    X(RH,rh,"RH",RelativeHumidity,"relative humidity")                  \
-    X(HCA,hca,"hca",HCA,"heat cost allocation")                         \
-    X(TXT,txt,"txt",Text,"text")                                        \
-    X(COUNTER,counter,"counter",Counter,"counter")                      \
+    \
+    X(Volt,v,"V",Voltage,"volt")                                        \
+    X(HZ,hz,"Hz",Frequency,"hz")                                        \
+    X(PA,pa,"pa",Pressure,"pascal")                                     \
+    X(BAR,bar,"bar",Pressure,"bar")                                     \
+    \
     X(Minute,min,"min",Time,"minute")                                   \
     X(Hour,h,"h",Time,"hour")                                           \
     X(Day,d,"d",Time,"day")                                             \
@@ -76,52 +106,16 @@
     X(DateTimeUT,ut,"ut",PointInTime,"unix timestamp")                  \
     X(DateTimeUTC,utc,"utc",PointInTime,"coordinated universal time")   \
     X(DateTimeLT,lt,"lt",PointInTime,"local time")                      \
-    X(Volt,v,"V",Voltage,"volt")                                        \
-    X(HZ,hz,"Hz",Frequency,"hz")                                        \
-    X(PA,pa,"pa",Pressure,"pascal")                                     \
-    X(BAR,bar,"bar",Pressure,"bar")
+    \
+    X(RH,rh,"RH",RelativeHumidity,"relative humidity")                  \
+    X(HCA,hca,"hca",HCA,"heat cost allocation")                         \
+    X(TXT,txt,"txt",Text,"text")                                        \
+    X(COUNTER,counter,"counter",Counter,"counter")                      \
 
 enum class Unit
 {
 #define X(cname,lcname,hrname,quantity,explanation) cname,
 LIST_OF_UNITS
-#undef X
-    Unknown
-};
-
-// The SIUnit is used inside formulas to verify the end result.
-// https://en.wikipedia.org/wiki/SI_derived_unit
-
-#define SI_S_OFFSET 0
-#define SI_M_OFFSET 8
-#define SI_KG_OFFSET 16
-#define SI_A_OFFSET 24
-#define SI_K_OFFSET 32
-#define SI_MOL_OFFSET 40
-#define SI_CD_OFFSET 48
-
-#define SI_X(x,y) (((uint64_t)(x & 0xff))<<y)
-#define SI_S(x) SI_X(x,SI_S_OFFSET)
-#define SI_M(x) SI_X(x,SI_M_OFFSET)
-#define SI_KG(x) SI_X(x,SI_KG_OFFSET)
-#define SI_A(x) SI_X(x,SI_A_OFFSET)
-#define SI_K(x) SI_X(x,SI_K_OFFSET)
-#define SI_MOL(x) SI_X(x,SI_MOL_OFFSET)
-#define SI_CD(x) SI_X(x,SI_CD_OFFSET)
-
-#define SI_GET_X(x,y) ((int8_t)(x>>y))
-#define SI_GET_S(x) SI_GET_X(x,SI_S_OFFSET)
-#define SI_GET_M(x) SI_GET_X(x,SI_M_OFFSET)
-#define SI_GET_KG(x) SI_GET_X(x,SI_KG_OFFSET)
-#define SI_GET_A(x) SI_GET_X(x,SI_A_OFFSET)
-#define SI_GET_K(x) SI_GET_X(x,SI_K_OFFSET)
-#define SI_GET_MOL(x) SI_GET_X(x,SI_MOL_OFFSET)
-#define SI_GET_CD(x) SI_GET_X(x,SI_CD_OFFSET)
-
-enum class Quantity
-{
-#define X(quantity,default_unit) quantity,
-LIST_OF_QUANTITIES
 #undef X
     Unknown
 };
@@ -202,26 +196,32 @@ struct SIUnit
 {
     // Transform a double,double,uint64_t into an SIUnit.
     // The exp can be created compile time like this: SIUNIT(3.6E6, 0, SI_KG(1)|SI_M(2)|SI_S(-2)) which is kwh.
-    SIUnit(Quantity q, double scale, double offset, uint64_t exponents) :
-        quantity_(q), scale_(scale), offset_(offset), exponents_(exponents) {}
+    SIUnit(Quantity q, double scale, SIExp exponents) :
+        quantity_(q), scale_(scale), exponents_(exponents) {}
     // Transform a named unit into an SIUnit.
     SIUnit(Unit);
     // Parse string like: 3.6E106*kg*m^2*s^-3*a^−1 (ie volt)
     SIUnit(std::string s);
     // Return the known unit that best matches the SIUnit, or Unit::Unknown if none.
-    Unit asUnit();
+    Unit asUnit() const ;
     // Return the known unit that best matches the SIUnit and the quantity, or Unit::Unknown if none.
-    Unit asUnit(Quantity q);
+    Unit asUnit(Quantity q) const;
     // Return the quantity that this unit is used for.
-    Quantity quantity() { return quantity_; }
+    Quantity quantity() const { return quantity_; }
+    // Get the scale.
+    double scale() const { return scale_; }
+    // Get the exponents.
+    const SIExp &exp() const { return exponents_; }
     // Return a string like 3.6⁶s⁻²m²kg
-    std::string str();
+    std::string str() const;
     // Return a detailed string like: kwh[3.6⁶s⁻²m²kg]Energy
-    std::string info();
+    std::string info() const;
     // Check if the exponents (ie units) are the same.
-    bool sameExponents(SIUnit &to) { return exponents_ == to.exponents_; }
+    bool sameExponents(SIUnit &to) const { return exponents_ == to.exponents_; }
+    // Check if this unit can be converted to the other unit.
+    bool canConvertTo(const SIUnit &to) const;
     // Convert value from this unit to another unit.
-    double convert(double val, SIUnit &to);
+    double convertTo(double val, const SIUnit &to) const;
     // Multiply this unit with another unit.
     void mul(SIUnit &m);
 
@@ -229,8 +229,7 @@ private:
 
     Quantity quantity_;
     double scale_;
-    double offset_; // The offset is in the same scale_ factor.
-    uint64_t exponents_;
+    SIExp exponents_;
 };
 
 bool canConvert(Unit from, Unit to);
@@ -240,6 +239,7 @@ double multiply(double l, Unit left, double r, Unit right);
 
 // Either uppercase KWH or lowercase kwh works here.
 Unit toUnit(std::string s);
+const SIUnit &toSIUnit(Unit u);
 const char *toString(Quantity q);
 bool isQuantity(Unit u, Quantity q);
 Quantity toQuantity(Unit u);
@@ -254,7 +254,5 @@ Unit replaceWithConversionUnit(Unit u, std::vector<Unit> cs);
 
 bool extractUnit(const std::string &s, std::string *vname, Unit *u);
 
-bool canConvert(SIUnit &from, SIUnit &to);
-double convert(double v, SIUnit &from, SIUnit &to);
 
 #endif
