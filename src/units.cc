@@ -261,6 +261,22 @@ SIUnit SIUnit::div(const SIUnit &m) const
     return SIUnit(q, new_scale, exps);
 }
 
+SIUnit SIUnit::sqrt() const
+{
+    // Square rooting SIUnit halfs the exponents.
+    SIExp exps = exponents_.sqrt();
+
+    double new_scale = ::sqrt(scale_);
+    SIUnit tmp(Quantity::Unknown,
+               new_scale,
+               exps);
+
+    Unit u = tmp.asUnit(Quantity::Unknown);
+    Quantity q = toQuantity(u);
+
+    return SIUnit(q, new_scale, exps);
+}
+
 SIUnit whenMultiplied(SIUnit left, SIUnit right)
 {
     return Unit::Unknown;
@@ -548,10 +564,15 @@ string SIUnit::str() const
 string SIUnit::info() const
 {
     Unit u = asUnit();
-    return tostrprintf("%s[%s]%s",
-                       unitToStringLowerCase(u).c_str(),
-                       str().c_str(),
-                       toString(quantity_));
+    string unit = unitToStringLowerCase(u)+"|";
+    if (unit == "?|") unit = "";
+    string quantity = toString(quantity_)+string("|");
+    if (quantity == "?|") quantity = "";
+
+    return tostrprintf("[%s%s%s]",
+                       unit.c_str(),
+                       quantity.c_str(),
+                       str().c_str());
 }
 
 int8_t SIExp::safe_add(int8_t a, int8_t b)
@@ -566,6 +587,13 @@ int8_t SIExp::safe_sub(int8_t a, int8_t b)
     int diff = a-b;
     if (diff  < -128) invalid_ = true;
     return diff;
+}
+
+int8_t SIExp::safe_div2(int8_t a)
+{
+    int8_t d = a/2;
+    if (d*2 != a) invalid_ = true;
+    return d;
 }
 
 bool SIExp::operator==(const SIExp &e) const
@@ -615,6 +643,23 @@ SIExp SIExp::div(const SIExp &e) const
     return ee;
 }
 
+SIExp SIExp::sqrt() const
+{
+    SIExp ee;
+
+    ee  .s(ee.safe_div2(s()))
+        .m(ee.safe_div2(m()))
+        .kg(ee.safe_div2(kg()))
+        .a(ee.safe_div2(a()))
+        .mol(ee.safe_div2(mol()))
+        .cd(ee.safe_div2(cd()))
+        .k(ee.safe_div2(k()))
+        .c(ee.safe_div2(c()))
+        .f(ee.safe_div2(f()));
+
+    return ee;
+}
+
 #define DO_UNIT_SIEXP(var, name) if (var != 0) { if (r.length()>0) { } r += #name; if (var != 1) { r += to_superscript(var); } }
 
 string SIExp::str() const
@@ -632,6 +677,6 @@ string SIExp::str() const
     DO_UNIT_SIEXP(a_, a);
 
     if (invalid_) r = "!"+r+"-Invalid!";
-    if (r == "") return "1";
+
     return r;
 }

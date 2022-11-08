@@ -33,41 +33,57 @@
 
 using namespace std;
 
-int test_crc();
-int test_dvparser();
-int test_devices();
-int test_linkmodes();
-void test_ids();
-void test_addresses();
-void test_kdf();
-void test_periods();
-void test_device_parsing();
-void test_meters();
-void test_months();
-void test_aes();
-void test_sbc();
-void test_hex();
-void test_translate();
-void test_slip();
-void test_dvs();
-void test_ascii_detection();
-void test_status_join();
-void test_status_sort();
-void test_field_matcher();
-void test_units_extraction();
-void test_si_units_siexp();
-void test_si_units_basic();
-void test_si_units_conversion();
-void test_formulas_building();
-void test_formulas_parsing_1();
-void test_formulas_parsing_2();
-void test_formulas_parsing_3();
+// This is test specific verbose.
+bool verbose_ = false;
 
+#define LIST_OF_TESTS \
+    X(crc)            \
+    X(dvparser)       \
+    X(devices)        \
+    X(linkmodes)      \
+    X(ids)            \
+    X(addresses)      \
+    X(kdf)            \
+    X(periods)        \
+    X(device_parsing) \
+    X(meters)         \
+    X(months)         \
+    X(aes)            \
+    X(sbc)            \
+    X(hex)            \
+    X(translate)                                \
+    X(slip)                                     \
+    X(dvs)                                      \
+    X(ascii_detection)                          \
+    X(status_join)                              \
+    X(status_sort)                              \
+    X(field_matcher)                            \
+    X(units_extraction)                         \
+    X(si_units_siexp)                           \
+    X(si_units_basic)                           \
+    X(si_units_conversion)                      \
+    X(formulas_building)                        \
+    X(formulas_parsing_1)                       \
+    X(formulas_parsing_2)                       \
+    X(formulas_multiply_constants)              \
+    X(formulas_divide_constants)                \
+    X(formulas_sqrt_constants)                  \
+    X(formulas_errors)                          \
+
+#define X(t) void test_##t();
+LIST_OF_TESTS
+#undef X
+
+// Test if we should run this test based on the command line pattern.
 bool test(const char *test_name, const char *pattern)
 {
-    if (pattern == NULL) return true;
+    if (pattern == NULL)
+    {
+        if (verbose_) printf("Test %s\n", test_name);
+        return true;
+    }
     bool ok = strstr(test_name, pattern) != NULL;
-    if (ok) printf("Test %s\n", test_name);
+    if (ok) info("Test %s\n", test_name);
     return ok;
 }
 
@@ -76,14 +92,22 @@ int main(int argc, char **argv)
     const char *pattern = NULL;
 
     int i = 1;
-    while (i < argc) {
+    while (i < argc)
+    {
+        if (!strcmp(argv[i], "--verbose"))
+        {
+            verbose_ = true;
+        }
+        else
         if (!strcmp(argv[i], "--debug"))
         {
+            verbose_ = true;
             debugEnabled(true);
         }
         else
         if (!strcmp(argv[i], "--trace"))
         {
+            verbose_ = true;
             debugEnabled(true);
             traceEnabled(true);
         }
@@ -95,43 +119,15 @@ int main(int argc, char **argv)
     }
     onExit([](){});
 
-    if (test("crc", pattern)) test_crc();
-    if (test("dvparser", pattern)) test_dvparser();
-    if (test("devices", pattern)) test_devices();
-    if (test("device_parsing", pattern)) test_device_parsing();
-    if (test("meters", pattern)) test_meters();
-//    test_linkmodes();
-    if (test("ids", pattern)) test_ids();
-//    test_addresses();
-    if (test("kdf", pattern)) test_kdf();
-    if (test("periods", pattern)) test_periods();
-    if (test("months", pattern)) test_months();
-    if (test("aes", pattern)) test_aes();
-    if (test("sbc", pattern)) test_sbc();
-    if (test("hex", pattern)) test_hex();
-    if (test("translate", pattern)) test_translate();
-    if (test("slip", pattern)) test_slip();
-    if (test("dvs", pattern)) test_dvs();
-    if (test("ascii_detection", pattern)) test_ascii_detection();
-    if (test("status_join", pattern)) test_status_join();
-    if (test("status_sort", pattern)) test_status_sort();
-    if (test("field_matcher", pattern)) test_field_matcher();
-    if (test("units_extraction", pattern)) test_units_extraction();
-    if (test("si_units_siexp", pattern)) test_si_units_siexp();
-    if (test("si_units_basic", pattern)) test_si_units_basic();
-    if (test("si_units_conversion", pattern)) test_si_units_conversion();
-    if (test("formulas_building", pattern)) test_formulas_building();
-    if (test("formulas_parsing_1", pattern)) test_formulas_parsing_1();
-    if (test("formulas_parsing_2", pattern)) test_formulas_parsing_2();
-    if (test("formulas_parsing_3", pattern)) test_formulas_parsing_3();
+#define X(x) if (test(#x, pattern)) test_##x();
+LIST_OF_TESTS
+#undef X
 
     return 0;
 }
 
-int test_crc()
+void test_crc()
 {
-    int rc = 0;
-
     unsigned char data[4];
     data[0] = 0x01;
     data[1] = 0xfd;
@@ -141,14 +137,12 @@ int test_crc()
     uint16_t crc = crc16_EN13757(data, 4);
     if (crc != 0xcc22) {
         printf("ERROR! %4x should be cc22\n", crc);
-        rc = -1;
     }
     data[3] = 0x00;
 
     crc = crc16_EN13757(data, 4);
     if (crc != 0xf147) {
         printf("ERROR! %4x should be f147\n", crc);
-        rc = -1;
     }
 
     uchar block[10];
@@ -167,7 +161,6 @@ int test_crc()
 
     if (crc != 0xaabc) {
         printf("ERROR! %4x should be aabc\n", crc);
-        rc = -1;
     }
 
     block[0]='1';
@@ -184,12 +177,10 @@ int test_crc()
 
     if (crc != 0xc2b7) {
         printf("ERROR! %4x should be c2b7\n", crc);
-        rc = -1;
     }
-    return rc;
 }
 
-int test_parse(const char *data, std::map<std::string,std::pair<int,DVEntry>> *dv_entries, int testnr)
+bool tst_parse(const char *data, std::map<std::string,std::pair<int,DVEntry>> *dv_entries, int testnr)
 {
     debug("\n\nTest nr %d......\n\n", testnr);
     bool b;
@@ -203,7 +194,7 @@ int test_parse(const char *data, std::map<std::string,std::pair<int,DVEntry>> *d
     return b;
 }
 
-void test_double(map<string,pair<int,DVEntry>> &values, const char *key, double v, int testnr)
+void tst_double(map<string,pair<int,DVEntry>> &values, const char *key, double v, int testnr)
 {
     int offset;
     double value;
@@ -217,7 +208,7 @@ void test_double(map<string,pair<int,DVEntry>> &values, const char *key, double 
     }
 }
 
-void test_string(map<string,pair<int,DVEntry>> &values, const char *key, const char *v, int testnr)
+void tst_string(map<string,pair<int,DVEntry>> &values, const char *key, const char *v, int testnr)
 {
     int offset;
     string value;
@@ -230,7 +221,7 @@ void test_string(map<string,pair<int,DVEntry>> &values, const char *key, const c
     }
 }
 
-void test_date(map<string,pair<int,DVEntry>> &values, const char *key, string date_expected, int testnr)
+void tst_date(map<string,pair<int,DVEntry>> &values, const char *key, string date_expected, int testnr)
 {
     int offset;
     struct tm value;
@@ -247,36 +238,35 @@ void test_date(map<string,pair<int,DVEntry>> &values, const char *key, string da
     }
 }
 
-int test_dvparser()
+void test_dvparser()
 {
     map<string,pair<int,DVEntry>> dv_entries;
 
     int testnr = 1;
-    test_parse("2F 2F 0B 13 56 34 12 8B 82 00 93 3E 67 45 23 0D FD 10 0A 30 31 32 33 34 35 36 37 38 39 0F 88 2F", &dv_entries, testnr);
-    test_double(dv_entries, "0B13", 123.456, testnr);
-    test_double(dv_entries, "8B8200933E", 234.567, testnr);
-    test_string(dv_entries, "0DFD10", "30313233343536373839", testnr);
+    tst_parse("2F 2F 0B 13 56 34 12 8B 82 00 93 3E 67 45 23 0D FD 10 0A 30 31 32 33 34 35 36 37 38 39 0F 88 2F", &dv_entries, testnr);
+    tst_double(dv_entries, "0B13", 123.456, testnr);
+    tst_double(dv_entries, "8B8200933E", 234.567, testnr);
+    tst_string(dv_entries, "0DFD10", "30313233343536373839", testnr);
 
     testnr++;
     dv_entries.clear();
-    test_parse("82046C 5f1C", &dv_entries, testnr);
-    test_date(dv_entries, "82046C", "2010-12-31 00:00:00", testnr); // 2010-dec-31
+    tst_parse("82046C 5f1C", &dv_entries, testnr);
+    tst_date(dv_entries, "82046C", "2010-12-31 00:00:00", testnr); // 2010-dec-31
 
     testnr++;
     dv_entries.clear();
-    test_parse("0C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000", &dv_entries, testnr);
-    test_double(dv_entries, "0C13", 5.548, testnr);
-    test_date(dv_entries, "426C", "2127-01-01 00:00:00", testnr); // 2127-jan-1
-    test_date(dv_entries, "82106C", "2000-01-01 00:00:00", testnr); // 2000-jan-1
+    tst_parse("0C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000", &dv_entries, testnr);
+    tst_double(dv_entries, "0C13", 5.548, testnr);
+    tst_date(dv_entries, "426C", "2127-01-01 00:00:00", testnr); // 2127-jan-1
+    tst_date(dv_entries, "82106C", "2000-01-01 00:00:00", testnr); // 2000-jan-1
 
     testnr++;
     dv_entries.clear();
-    test_parse("426C FE04", &dv_entries, testnr);
-    test_date(dv_entries, "426C", "2007-04-30 00:00:00", testnr); // 2010-dec-31
-    return 0;
+    tst_parse("426C FE04", &dv_entries, testnr);
+    tst_date(dv_entries, "426C", "2007-04-30 00:00:00", testnr); // 2010-dec-31
 }
 
-int test_devices()
+void test_devices()
 {
     shared_ptr<SerialCommunicationManager> manager = createSerialCommunicationManager(0, false);
 
@@ -285,10 +275,9 @@ int test_devices()
     /*
     shared_ptr<BusDevice> wmbus_im871a = openIM871A("", manager, serial1);
     manager->stop();*/
-    return 0;
 }
 
-int test_linkmodes()
+void test_linkmodes()
 {
     /*
     LinkModeCalculationResult lmcr;
@@ -425,7 +414,6 @@ int test_linkmodes()
 
     manager->stop();
     */
-    return 0;
 }
 
 void test_valid_match_expression(string s, bool expected)
@@ -502,7 +490,7 @@ void test_ids()
     test_does_id_match_expression("78563413", "*,!00156327,!00048713", true, true);
 }
 
-void test_address(string s, bool valid, string id, string mfct, uchar type, uchar version)
+void tst_address(string s, bool valid, string id, string mfct, uchar type, uchar version)
 {
     Address a;
     bool ok = a.parse(s);
@@ -532,7 +520,8 @@ void test_address(string s, bool valid, string id, string mfct, uchar type, ucha
 
 void test_addresses()
 {
-    test_address("12345678",
+    /*
+    tst_address("12345678",
                  true,
                  "12345678", // id
                  "@@@", // mfct
@@ -540,14 +529,15 @@ void test_addresses()
                  0  // version
         );
 
-    test_address("123k45678", false, "", "", 0, 0);
-    test_address("1234", false, "", "", 0, 0);
-    test_address("0", true, "0", "@@@", 0, 0);
-    test_address("250", true, "250", "@@@", 0, 0);
-    test_address("251", false, "", "", 0, 0);
-    test_address("0.M=PII.T=1b.V=01", true, "0", "PII", 0x1b, 0x01);
-    test_address("123.V=11.M=FOO.T=ff", true, "123", "FOO", 0xff, 0x11);
-    test_address("16.M=BAR", true, "16", "BAR", 0, 0);
+    tst_address("123k45678", false, "", "", 0, 0);
+    tst_address("1234", false, "", "", 0, 0);
+    tst_address("0", true, "0", "@@@", 0, 0);
+    tst_address("250", true, "250", "@@@", 0, 0);
+    tst_address("251", false, "", "", 0, 0);
+    tst_address("0.M=PII.T=1b.V=01", true, "0", "PII", 0x1b, 0x01);
+    tst_address("123.V=11.M=FOO.T=ff", true, "123", "FOO", 0xff, 0x11);
+    tst_address("16.M=BAR", true, "16", "BAR", 0, 0);
+    */
 }
 
 void eq(string a, string b, const char *tn)
@@ -1703,7 +1693,7 @@ void test_si_units_siexp()
     if (i.str() != "!s⁻¹²⁸-Invalid!") { printf("ERROR Expected !s⁻¹²⁸-Invalid! but got \"%s\"\n", i.str().c_str()); }
 
     SIExp j = e.div(e);
-    if (j.str() != "1") { printf("ERROR Expected 1 but got \"%s\"\n", j.str().c_str()); }
+    if (j.str() != "") { printf("ERROR Expected \"\" but got \"%s\"\n", j.str().c_str()); }
 
     SIExp bad = SIExp::build().k(1).c(1);
     if (bad.str() != "!kc-Invalid!") { printf("ERROR Expected !kc-Invalid! but got \"%s\"\n", bad.str().c_str()); }
@@ -2206,7 +2196,7 @@ void test_formula_value(FormulaImplementation *f, Meter *m, string formula, doub
 
     if (v != val)
     {
-        printf("ERROR when evaluating \"%s\"\nERROR expected %.15g but got %.15g\n", formula.c_str(), val, v);
+        printf("ERROR when evaluating \"%s\"\nERROR expected %.17g but got %.17g\n", formula.c_str(), val, v);
     }
 }
 
@@ -2228,79 +2218,104 @@ void test_formula_error(FormulaImplementation *f, Meter *m, string formula, Unit
 
 void test_formulas_parsing_1()
 {
-    {
-        MeterInfo mi;
-        mi.parse("testur", "ebzwmbe", "22992299", "");
-        shared_ptr<Meter> meter = createMeter(&mi);
+    MeterInfo mi;
+    mi.parse("testur", "ebzwmbe", "22992299", "");
+    shared_ptr<Meter> meter = createMeter(&mi);
 
-        vector<uchar> frame;
-        hex2bin("5B445a149922992202378c20f6900f002c25Bc9e0000BBBBBBBBBBBBBBBB72992299225a140102f6003007102f2f040330f92a0004a9ff01ff24000004a9ff026a29000004a9ff03460600000dfd11063132333435362f2f2f2f2f2f", &frame);
+    vector<uchar> frame;
+    hex2bin("5B445a149922992202378c20f6900f002c25Bc9e0000BBBBBBBBBBBBBBBB72992299225a140102f6003007102f2f040330f92a0004a9ff01ff24000004a9ff026a29000004a9ff03460600000dfd11063132333435362f2f2f2f2f2f", &frame);
 
-        Telegram t;
-        MeterKeys mk;
-        t.parse(frame, &mk, true);
+    Telegram t;
+    MeterKeys mk;
+    t.parse(frame, &mk, true);
 
-        string id;
-        bool match;
-        meter->handleTelegram(t.about, frame, true, &id, &match, &t);
+    string id;
+    bool match;
+    meter->handleTelegram(t.about, frame, true, &id, &match, &t);
 
-        unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
+    unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
 
-        test_formula_value(f.get(), meter.get(),
-                           "10 kwh + 100 kwh",
-                           110,
-                           Unit::KWH);
+    test_formula_value(f.get(), meter.get(),
+                       "10 kwh + 100 kwh",
+                       110,
+                       Unit::KWH);
 
-        test_formula_value(f.get(), meter.get(),
-                           "current_power_consumption_phase1_kw + "
-                           "current_power_consumption_phase2_kw + "
-                           "current_power_consumption_phase3_kw + "
-                           "100 kw",
-                           100.21679,
-                           Unit::KW);
+    test_formula_value(f.get(), meter.get(),
+                       "current_power_consumption_phase1_kw + "
+                       "current_power_consumption_phase2_kw + "
+                       "current_power_consumption_phase3_kw + "
+                       "100 kw",
+                       100.21679,
+                       Unit::KW);
 
-        test_formula_tree(f.get(), meter.get(),
-                          "5 c + 7 c + 10 c",
-                          "<ADD <ADD <CONST 5 c[1c]Temperature> <CONST 7 c[1c]Temperature> > <CONST 10 c[1c]Temperature> >");
+    test_formula_tree(f.get(), meter.get(),
+                      "5 c + 7 c + 10 c",
+                      "<ADD <ADD <CONST 5 c[1c]Temperature> <CONST 7 c[1c]Temperature> > <CONST 10 c[1c]Temperature> >");
 
-        test_formula_tree(f.get(), meter.get(),
-                          "(5 c + 7 c) + 10 c",
-                          "<ADD <ADD <CONST 5 c[1c]Temperature> <CONST 7 c[1c]Temperature> > <CONST 10 c[1c]Temperature> >");
+    test_formula_tree(f.get(), meter.get(),
+                      "(5 c + 7 c) + 10 c",
+                      "<ADD <ADD <CONST 5 c[1c]Temperature> <CONST 7 c[1c]Temperature> > <CONST 10 c[1c]Temperature> >");
 
-        test_formula_tree(f.get(), meter.get(),
-                          "5 c + (7 c + 10 c)",
-                          "<ADD <CONST 5 c[1c]Temperature> <ADD <CONST 7 c[1c]Temperature> <CONST 10 c[1c]Temperature> > >");
-    }
+    test_formula_tree(f.get(), meter.get(),
+                      "5 c + (7 c + 10 c)",
+                      "<ADD <CONST 5 c[1c]Temperature> <ADD <CONST 7 c[1c]Temperature> <CONST 10 c[1c]Temperature> > >");
+
+    test_formula_tree(f.get(), meter.get(),
+                      "sqrt(22 m * 22 m)",
+                      "<SQRT <TIMES <CONST 22 m[1m]Length> <CONST 22 m[1m]Length> > >");
+
 }
 
 void test_formulas_parsing_2()
 {
-    {
-        MeterInfo mi;
-        mi.parse("testur", "em24", "66666666", "");
-        shared_ptr<Meter> meter = createMeter(&mi);
+    MeterInfo mi;
+    mi.parse("testur", "em24", "66666666", "");
+    shared_ptr<Meter> meter = createMeter(&mi);
 
-        vector<uchar> frame;
-        hex2bin("35442D2C6666666633028D2070806A0520B4D378_0405F208000004FB82753F00000004853C0000000004FB82F53CCA01000001FD1722", &frame);
+    vector<uchar> frame;
+    hex2bin("35442D2C6666666633028D2070806A0520B4D378_0405F208000004FB82753F00000004853C0000000004FB82F53CCA01000001FD1722", &frame);
 
-        Telegram t;
-        MeterKeys mk;
-        t.parse(frame, &mk, true);
+    Telegram t;
+    MeterKeys mk;
+    t.parse(frame, &mk, true);
 
-        string id;
-        bool match;
-        meter->handleTelegram(t.about, frame, true, &id, &match, &t);
+    string id;
+    bool match;
+    meter->handleTelegram(t.about, frame, true, &id, &match, &t);
 
-        unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
+    unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
 
-        test_formula_value(f.get(), meter.get(),
-                           "total_energy_consumption_kwh + 18 kwh",
-                           247,
-                           Unit::KWH);
-    }
+    test_formula_value(f.get(), meter.get(),
+                       "total_energy_consumption_kwh + 18 kwh",
+                       247,
+                       Unit::KWH);
 }
 
-void test_formulas_parsing_3()
+void test_formulas_multiply_constants()
+{
+    FormulaImplementation fi;
+
+    test_formula_value(&fi, NULL, "100.5 counter * 22 kwh", 2211, Unit::KWH);
+    test_formula_value(&fi, NULL, "5 kw * 10 h", 50, Unit::KWH);
+    test_formula_value(&fi, NULL, "5000 v * 10 a * 700 h", 35000, Unit::KVAH);
+}
+
+void test_formulas_divide_constants()
+{
+    FormulaImplementation fi;
+
+    test_formula_value(&fi, NULL, "22 kwh / 11 h", 2, Unit::KW);
+}
+
+void test_formulas_sqrt_constants()
+{
+    FormulaImplementation fi;
+
+    test_formula_value(&fi, NULL, "sqrt(22 m * 22 m)", 22, Unit::M);
+    test_formula_value(&fi, NULL, "sqrt((2 kwh * 2 kwh) + (3 kvarh * 3 kvarh))", 3.6055512754639891, Unit::KVAH);
+}
+
+void test_formulas_errors()
 {
     {
         MeterInfo mi;
@@ -2311,7 +2326,7 @@ void test_formulas_parsing_3()
 
         test_formula_error(formula.get(), meter.get(),
                            "10 kwh + 20 kw", Unit::KWH,
-                           "Cannot add kwh[3.6×10⁶kgm²s⁻²]Energy to kw[1000kgm²s⁻³]Power!\n"
+                           "Cannot add [kwh|Energy|3.6×10⁶kgm²s⁻²] to [kw|Power|1000kgm²s⁻³]!\n"
                            "10 kwh + 20 kw\n"
                            "       ^~~~~\n");
     }

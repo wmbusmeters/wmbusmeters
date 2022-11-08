@@ -27,6 +27,12 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("em24");
+        di.setDefaultFields(
+            "name,id,"
+            "total_energy_consumption_kwh,total_energy_production_kwh,"
+            "total_reactive_energy_consumption_kvarh,total_reactive_energy_production_kvarh,"
+            "total_apparent_energy_consumption_kvah,total_apparent_energy_production_kvah,"
+            "timestamp");
         di.setMeterType(MeterType::ElectricityMeter);
         di.addLinkMode(LinkMode::C1);
         di.addDetection(MANUFACTURER_KAM,  0x02,  0x33);
@@ -77,12 +83,12 @@ namespace
                         0xff,
                         "",
                         {
-                            { 0x01, "V~1~OVERFLOW" },
-                            { 0x02, "V~2~OVERFLOW" },
-                            { 0x04, "V~2~OVERFLOW" },
-                            { 0x08, "I~1~OVERFLOW" },
-                            { 0x10, "I~2~OVERFLOW" },
-                            { 0x20, "I~3~OVERFLOW" },
+                            { 0x01, "V_1_OVERFLOW" },
+                            { 0x02, "V_2_OVERFLOW" },
+                            { 0x04, "V_2_OVERFLOW" },
+                            { 0x08, "I_1_OVERFLOW" },
+                            { 0x10, "I_2_OVERFLOW" },
+                            { 0x20, "I_3_OVERFLOW" },
                             { 0x40, "FREQUENCY" },
                         }
                     },
@@ -133,19 +139,31 @@ namespace
             .set(DifVifKey("04FB82F53C"))
             );
 
-        /*
         addNumericFieldWithCalculator(
             "total_apparent_energy_consumption",
             "Calculated: the total apparent energy consumption.",
             PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
             Quantity::Apparent_Energy,
-            "total_energy_consumption_kwh + 99 kwh"
-            );
-        */
+            "sqrt("
+            "      (total_energy_consumption_kwh * total_energy_consumption_kwh) "
+            "      +"
+            "      (total_reactive_energy_consumption_kvarh * total_reactive_energy_consumption_kvarh)"
+            "    )");
+
+        addNumericFieldWithCalculator(
+            "total_apparent_energy_production",
+            "Calculated: the total apparent energy production.",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            Quantity::Apparent_Energy,
+            R"STR(
+                     sqrt( (total_energy_production_kwh * total_energy_production_kwh) +
+                           (total_reactive_energy_production_kvarh * total_reactive_energy_production_kvarh) )
+            )STR");
+
     }
 }
 
 // Test: Elen em24 66666666 NOKEY
 // telegram=|35442D2C6666666633028D2070806A0520B4D378_0405F208000004FB82753F00000004853C0000000004FB82F53CCA01000001FD1722|
-// {}
-// |GURKA
+// {"media":"electricity","meter":"em24","name":"Elen","id":"66666666","status":"I_3_OVERFLOW V_2_OVERFLOW","error":"V_2_OVERFLOW I_3_OVERFLOW","total_energy_consumption_kwh":229,"total_energy_production_kwh":0,"total_reactive_energy_consumption_kvarh":63,"total_reactive_energy_production_kvarh":458,"total_apparent_energy_consumption_kvah":237.507895,"total_apparent_energy_production_kvah":458,"timestamp":"1111-11-11T11:11:11Z"}
+// |Elen;66666666;229;0;63;458;237.507895;458;1111-11-11 11:11.11

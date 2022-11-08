@@ -69,9 +69,18 @@ double NumericFormulaMultiplication::calculate(SIUnit to)
 {
     double l = left_->calculate(left_->siunit());
     double r = right_->calculate(right_->siunit());
-    double d = l*r;
+    double m = l*r;
+    double v = siunit().convertTo(m, to);
 
-    return siunit().convertTo(d, to);
+    if (isDebugEnabled())
+    {
+        debug("(formula) MUL %g (%s) %g (%s) --> %g --> %g %s\n",
+              l, left_->siunit().info().c_str(),
+              r, right_->siunit().info().c_str(),
+              m,
+              v, to.info().c_str());
+    }
+    return v;
 }
 
 double NumericFormulaDivision::calculate(SIUnit to)
@@ -79,24 +88,47 @@ double NumericFormulaDivision::calculate(SIUnit to)
     double l = left_->calculate(left_->siunit());
     double r = right_->calculate(right_->siunit());
     double d = l/r;
+    double v = siunit().convertTo(d, to);
 
-    return siunit().convertTo(d, to);
+    if (isDebugEnabled())
+    {
+        debug("(formula) DIV %g (%s) %g (%s) --> %g --> %g %s\n",
+              l, left_->siunit().info().c_str(),
+              r, right_->siunit().info().c_str(),
+              d,
+              v,
+              to.info().c_str());
+    }
+
+    return v;
 }
 
 double NumericFormulaExponentiation::calculate(SIUnit to)
 {
     double l = left_->calculate(to);
     double r = right_->calculate(to);
-    double d = pow(l,r);
+    double p = pow(l,r);
+    double v = siunit().convertTo(p, to);
 
-    return siunit().convertTo(d, to);
+    debug("(formula) %g <-- %g <-- pow %g ^ %g\n", v, p, l, r);
+    return v;
 }
 
 double NumericFormulaSquareRoot::calculate(SIUnit to)
 {
-    double i = inner_->calculate(to);
+    double i = inner_->calculate(inner_->siunit());
+    double s = sqrt(i);
+    double v = siunit().convertTo(s, to);
 
-    return sqrt(i);
+    if (isDebugEnabled())
+    {
+        debug("(formula) SQRT %g (%s) --> %g --> %g %s\n",
+              i, inner_->siunit().info().c_str(),
+              s,
+              v,
+              to.info().c_str());
+    }
+    return v;
 }
 
 const char *toString(TokenType tt)
@@ -242,12 +274,15 @@ size_t FormulaImplementation::findDiv(size_t i)
 
 size_t FormulaImplementation::findExp(size_t i)
 {
+    return 0;
+    /*
     if (i >= formula_.length()) return 0;
 
     char c = formula_[i];
     if (c == '^') return 1;
 
     return 0;
+    */
 }
 
 size_t FormulaImplementation::findSqrt(size_t i)
@@ -731,8 +766,6 @@ void FormulaImplementation::doMultiplication()
     string rsis = right_siunit.info();
     string msis = mul_siunit.info();
 
-    debug("(formula) unit %s TIMES %s ==> %s\n", lsis.c_str(), rsis.c_str(), msis.c_str());
-
     pushOp(new NumericFormulaMultiplication(mul_siunit, left_node, right_node));
 }
 
@@ -782,11 +815,11 @@ void FormulaImplementation::doSquareRoot()
 
     SIUnit inner_siunit = topOp()->siunit();
 
+    SIUnit siunit = inner_siunit.sqrt();
+
     unique_ptr<NumericFormula> inner_node = popOp();
 
-    pushOp(new NumericFormulaSquareRoot(inner_siunit, inner_node));
-
-//    assert(canConvert(left_siunit, right_siunit));
+    pushOp(new NumericFormulaSquareRoot(siunit, inner_node));
 }
 
 

@@ -65,7 +65,7 @@ LIST_OF_QUANTITIES
 
 // A named unit (Unit) is a recurring unit that is useful to represent values
 // sent in mbus telegrams. A named unit can be translated into an SIUnit
-// which is unnamed and can encode any combination of SI units & scale & offset.
+// which is unnamed and can encode any combination of SI units & scale.
 // The SIUnits are used inside formulas. Eventually a successful formula
 // calculation will map the final SI Unit to a named unit.
 #define LIST_OF_UNITS \
@@ -161,8 +161,10 @@ struct SIExp
     int8_t f() const { return f_; }
     SIExp mul(const SIExp &e) const;
     SIExp div(const SIExp &e) const;
+    SIExp sqrt() const;
     int8_t safe_add(int8_t a, int8_t b);
     int8_t safe_sub(int8_t a, int8_t b);
+    int8_t safe_div2(int8_t a);
     bool operator==(const SIExp &e) const;
 
     std::string str() const;
@@ -226,6 +228,8 @@ struct SIUnit
     SIUnit mul(const SIUnit &m) const ;
     // Dividethis unit with another unit.
     SIUnit div(const SIUnit &m) const ;
+    // Square root this unit.
+    SIUnit sqrt() const ;
 
 private:
 

@@ -1,4 +1,9 @@
 
+ATTENTION! The em24 driver has been refactored to the new driver
+format and some errors in the fields were discovered! The reactive
+consumption and production values were negative. This was in error,
+and due to a missing scale factor for the kvarh unit, they will now be positive.
+
 ATTENTION! The q400 driver has been refactored to the new driver
 format and some errors in the fields were discovered! Since the new driver
 format cannot generate these wrong json fields, the new q400 driver
