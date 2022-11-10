@@ -1,3 +1,5 @@
+ATTENTION! A bug was fixed where the on_time_h and operating_time_h
+(and related error times) were wrong.
 
 ATTENTION! The em24 driver has been refactored to the new driver
 format and some errors in the fields were discovered! The reactive

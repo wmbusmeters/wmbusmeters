@@ -210,5 +210,5 @@ namespace
 
 // Test: Minowired minomess 57575757 NOKEY
 // telegram=|6874746808007257575757496A000712000000_0C7857575757046D2414DE280413000000000C943C000000004413FFFFFFFF426CFFFF840113FFFFFFFF82016CFFFFC40113FFFFFFFFC2016CFFFF840213FFFFFFFF82026CFFFF043B000000000422E62F000004260000000034220000000002FD1700001F5716|
-// {"media":"water","meter":"minomess","name":"Minowired","id":"57575757","fabrication_no":"57575757","operating_time_h":0,"on_time_h":3.406111,"on_time_at_error_h":0,"meter_datetime":"2022-08-30 20:36","total_m3":0,"total_backward_m3":0,"volume_flow_m3h":0,"target_m3":4294967.295,"target_date":"2127-15-31","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"water","meter":"minomess","name":"Minowired","id":"57575757","fabrication_no":"57575757","operating_time_h":0,"on_time_h":12262,"on_time_at_error_h":0,"meter_datetime":"2022-08-30 20:36","total_m3":0,"total_backward_m3":0,"volume_flow_m3h":0,"target_m3":4294967.295,"target_date":"2127-15-31","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 // |Minowired;57575757;0;4294967.295;OK;1111-11-11 11:11.11

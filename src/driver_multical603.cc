@@ -331,5 +331,5 @@ namespace
 
 // Test: HeatInlet multical603 66666666 NOKEY
 // telegram=|5A442D2C66666666350C8D2066D0E16420C6A178_0406051C000004FF07393D000004FF08AE2400000414F7680000043B47000000042D1600000002596D14025DFD0804FF22000000000422E61A0000143B8C010000142D7C000000|
-// {"media":"heat volume at inlet","meter":"multical603","name":"HeatInlet","id":"66666666","on_time_h":1.912778,"status":"OK","total_energy_consumption_kwh":7173,"total_volume_m3":268.71,"volume_flow_m3h":0.071,"power_kw":2.2,"max_power_kw":12.4,"t1_temperature_c":52.29,"t2_temperature_c":23.01,"max_flow_m3h":0.396,"current_status":"","forward_energy_m3c":15673,"return_energy_m3c":9390,"energy_forward_kwh":15673,"energy_returned_kwh":9390,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"heat volume at inlet","meter":"multical603","name":"HeatInlet","id":"66666666","on_time_h":6886,"status":"OK","total_energy_consumption_kwh":7173,"total_volume_m3":268.71,"volume_flow_m3h":0.071,"power_kw":2.2,"max_power_kw":12.4,"t1_temperature_c":52.29,"t2_temperature_c":23.01,"max_flow_m3h":0.396,"current_status":"","forward_energy_m3c":15673,"return_energy_m3c":9390,"energy_forward_kwh":15673,"energy_returned_kwh":9390,"timestamp":"1111-11-11T11:11:11Z"}
 // |HeatInlet;66666666;7173;268.71;0.071;52.29;23.01;;1111-11-11 11:11.11

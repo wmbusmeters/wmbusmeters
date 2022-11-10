@@ -175,8 +175,8 @@ telegram=|7B4479169977997730378C20F0900F002C2549EE0A0077C19D3D1A08ABCD7299779977
 # Test electricity meter eHZ-P
 
 telegram=|5344A8159955995502028C201D900F002C250C390000ED176BBBB1591ADB7A1D003007102F2F_0700583B74020000000007803CBCD70200000000000728B070200000000000042092A406002F2F2F2F2F2F2F2F2F|
-{"media":"electricity","meter":"ehzp","name":"Elen3","id":"55995599","total_energy_consumption_kwh":41.1718,"current_power_consumption_kw":2.126,"total_energy_production_kwh":0.1863,"on_time_h":120.929444,"timestamp":"1111-11-11T11:11:11Z"}
-|Elen3;55995599;41.171800;2.126000;0.186300;1111-11-11 11:11.11
+{"media":"electricity","meter":"ehzp","name":"Elen3","id":"55995599","status":"OK","on_time_h":120.929444,"total_energy_consumption_kwh":41.1718,"current_power_consumption_kw":2.126,"total_energy_production_kwh":0.1863,"timestamp":"1111-11-11T11:11:11Z"}
+|Elen3;55995599;41.1718;2.126;0.1863;1111-11-11 11:11.11
 
 # Test water meter apator08
 
@@ -264,7 +264,7 @@ telegram=|534424232004256092687A370045752235854DEEEA5939FAD81C25FEEF5A23C38FB916
 
 # Test Apator Elf Heat meter
 telegram=|51440186010905001837721956880101064004DA000020026CA9220E017799241103000C13641320000A2D00000A5A90060A5E800544050E77000001FD0C010A6564370AFD4731030A274907047F00000002|
-{"media":"heat","meter":"elf","name":"Hetta","id":"01885619","status":"ERROR_FLAGS_2000000","meter_date":"2021-02-09","total_energy_consumption_kwh":3112.49977,"current_power_consumption_kw":0,"total_volume_m3":201.364,"total_energy_consumption_at_date_kwh":3047.8,"flow_temperature_c":69,"return_temperature_c":58,"external_temperature_c":37.64,"operating_time_h":4.993333,"version":"01","battery_v":3.31,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"heat","meter":"elf","name":"Hetta","id":"01885619","status":"ERROR_FLAGS_2000000","meter_date":"2021-02-09","total_energy_consumption_kwh":3112.49977,"current_power_consumption_kw":0,"total_volume_m3":201.364,"total_energy_consumption_at_date_kwh":3047.8,"flow_temperature_c":69,"return_temperature_c":58,"external_temperature_c":37.64,"operating_time_h":17976,"version":"01","battery_v":3.31,"timestamp":"1111-11-11T11:11:11Z"}
 |Hetta;01885619;3112.49977;0;201.364;69;58;37.64;ERROR_FLAGS_2000000;1111-11-11 11:11.11
 
 # Test Diehl IZAR RC I G4 water meter

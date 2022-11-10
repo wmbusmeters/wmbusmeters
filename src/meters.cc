@@ -2234,8 +2234,8 @@ void MeterCommonImplementation::printMeter(Telegram *t,
             if (found.count(&fi) != 0)
             {
                 DVEntry *dve = found[&fi];
-                debug("(meters) render field %s(%s)[%d] with dventry @%d key %s data %s\n",
-                      fi.vname().c_str(), toString(fi.xuantity()), fi.index(),
+                debug("(meters) render field %s(%s %s)[%d] with dventry @%d key %s data %s\n",
+                      fi.vname().c_str(), toString(fi.xuantity()), unitToStringLowerCase(fi.defaultUnit()).c_str(), fi.index(),
                       dve->offset,
                       dve->dif_vif_key.str().c_str(),
                       dve->value.c_str());
@@ -2775,8 +2775,23 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
             matcher_.vif_range != VIFRange::None)
         {
             decoded_unit = toDefaultUnit(matcher_.vif_range);
+            debug("(meter) NormalVif(%s) %s decoded %s default %s value %g\n",
+                  toString(matcher_.vif_range),
+                  field_name.c_str(),
+                  unitToStringLowerCase(decoded_unit).c_str(),
+                  unitToStringLowerCase(default_unit_).c_str(),
+                  extracted_double_value);
         }
-        m->setNumericValue(this, decoded_unit, extracted_double_value);
+        else
+        {
+            debug("(meter) AnyVif(%s) %s decoded %s default %s value %g\n",
+                  toString(matcher_.vif_range),
+                  field_name.c_str(),
+                  unitToStringLowerCase(decoded_unit).c_str(),
+                  unitToStringLowerCase(default_unit_).c_str(),
+                  extracted_double_value);
+        }
+        m->setNumericValue(this, default_unit_, convert(extracted_double_value, decoded_unit, default_unit_));
         t->addMoreExplanation(dve->offset, renderJson(m, &m->conversions()));
         found = true;
     }

@@ -62,7 +62,6 @@ LIST_OF_METER_TYPES
     X(auto,       0,      AutoMeter, AUTO, Auto) \
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
     X(eurisii,    T1_bit, HeatCostAllocationMeter, EURISII, EurisII)   \
-    X(ehzp,       T1_bit, ElectricityMeter, EHZP,        EHZP)         \
     X(esyswm,     T1_bit, ElectricityMeter, ESYSWM,      ESYSWM)       \
     X(evo868,     T1_bit, WaterMeter,       EVO868,      EVO868)       \
     X(fhkvdataiii,T1_bit, HeatCostAllocationMeter,       FHKVDATAIII,   FHKVDataIII)    \

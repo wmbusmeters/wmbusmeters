@@ -26,6 +26,13 @@
 #include<map>
 #include<set>
 
+
+// Values in a meter are stored based on vname + Quantity.
+// I.e. you can have a total_m3 and a total_kwh even though they share the same "total" vname
+// since they have two different quantities (Volume and Energy).
+// The field total_l refers to the same field storage in the meter as total_m3.
+// If a wacko meter sends different values, one m3 and one l. then you
+// have to name the fields using different vnames.
 struct NumericField
 {
     Unit unit {};
