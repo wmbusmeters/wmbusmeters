@@ -74,7 +74,7 @@ namespace
     int getHistoric(int n, vector<uchar> &content)
     {
         assert(n >= 0 && n < 18);
-        assert(content.size() == 40);
+        assert(content.size() >= 40);
 
         int offset = (n*12)/8;
         int remainder = (n*12)%8;
