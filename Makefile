@@ -258,6 +258,14 @@ $(BUILD)/testinternals: $(BUILD)/testinternals.o
 $(BUILD)/fuzz: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o
 	$(CXX) -o $(BUILD)/fuzz $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lrtlsdr -lpthread
 
+clean_executables:
+	rm -rf build/wmbusmeters* build_arm/wmbusmeters* build_debug/wmbusmeters* build_arm_debug/wmbusmeters* *~
+	rm -rf build/testinternal* build_arm/testinternal* build_debug/testinternal* build_arm_debug/testinternal*
+	$(RM) testaes/test_input.txt testaes/test_stderr.txt
+	$(RM) testoutput/test_expected.txt testoutput/test_input.txt \
+          testoutput/test_response.txt testoutput/test_responses.txt \
+          testoutput/test_stderr.txt
+
 clean:
 	rm -rf build/* build_arm/* build_debug/* build_arm_debug/* *~
 	$(RM) testaes/test_input.txt testaes/test_stderr.txt

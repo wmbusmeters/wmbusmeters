@@ -2931,6 +2931,8 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
              matcher_.vif_range == VIFRange::ModelVersion ||
              matcher_.vif_range == VIFRange::SoftwareVersion ||
              matcher_.vif_range == VIFRange::Customer ||
+             matcher_.vif_range == VIFRange::Location ||
+             matcher_.vif_range == VIFRange::Any ||
              matcher_.vif_range == VIFRange::ParameterSet)
     {
         string extracted_id;
@@ -3055,6 +3057,24 @@ void MeterCommonImplementation::addOptionalCommonFields()
         FieldMatcher::build()
         .set(MeasurementType::Instantaneous)
         .set(VIFRange::SoftwareVersion)
+        );
+
+    addStringFieldWithExtractor(
+        "customer",
+        "Customer name.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::Customer)
+        );
+
+    addStringFieldWithExtractor(
+        "location",
+        "Meter installed at this customer location.",
+        PrintProperty::JSON | PrintProperty::OPTIONAL,
+        FieldMatcher::build()
+        .set(MeasurementType::Instantaneous)
+        .set(VIFRange::Location)
         );
 
     addNumericFieldWithExtractor(

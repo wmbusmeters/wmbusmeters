@@ -194,7 +194,7 @@ Received telegram from: 77997799
           manufacturer: (ESY) EasyMeter (0x1679)
                   type: Electricity meter (0x02) encrypted
                    ver: 0x11
-                driver: esyswm
+                driver: esyswm esyswm
 Received telegram from: 55995599
           manufacturer: (EMH) EMH metering formerly EMH Elektrizitatszahler (0x15a8)
                   type: Electricity meter (0x02) encrypted
