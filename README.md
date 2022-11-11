@@ -355,7 +355,7 @@ rtlsdr dongle like this `rtlwmbus[1234]`.
 
 `/dev/ttyUSB0:amb8465`, if you have an amb8465 dongle assigned to ttyUSB0. Other suffixes are im871a,cul.
 
-`/dev/ttyUSB0`, to have wmbusmeters auto-detect amb8465, amb3665, im871a, rc1180 or cul device.
+(Note that a plain `/dev/ttyUSB0` no longer works, you have to specify the device expected on the device.)
 
 `/dev/ttyUSB0:38400`, to have wmbusmeters set the baud rate to 38400 and listen for raw wmbus telegrams.
 These telegrams are expected to have the data link layer crc bytes removed already!
