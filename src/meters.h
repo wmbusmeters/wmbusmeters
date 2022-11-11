@@ -82,7 +82,6 @@ LIST_OF_METER_TYPES
     X(tsd2,       T1_bit, SmokeDetector,    TSD2,        TSD2)         \
     X(sontex868,  T1_bit, HeatCostAllocationMeter, SONTEX868, Sontex868) \
     X(topaseskr,  T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)          \
-    X(vario451,   T1_bit, HeatMeter,        VARIO451,    Vario451)     \
     X(lse_08,     S1_bit|C1_bit, HeatCostAllocationMeter, LSE_08, LSE_08) \
     X(unismart,   T1_bit, GasMeter,       UNISMART, Unismart)  \
 
