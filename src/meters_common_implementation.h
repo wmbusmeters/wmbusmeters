@@ -103,7 +103,6 @@ protected:
     void setMeterType(MeterType mt);
     void addLinkMode(LinkMode lm);
     void addMfctTPLStatusBits(Translate::Lookup lookup);
-    void setDefaultFields(string f);
 
     // Print with the default unit for this quantity.
     void addPrint(string vname, Quantity vquantity,
@@ -257,8 +256,8 @@ protected:
 
     std::string decodeTPLStatusByte(uchar sts);
 
-    void addOptionalCommonFields();
-    void addOptionalFlowRelatedFields();
+    void addOptionalCommonFields(string fields);
+    void addOptionalFlowRelatedFields(string fields);
 
     vector<string> &selectedFields() { return selected_fields_; }
     void setSelectedFields(vector<string> &f) { selected_fields_ = f; }

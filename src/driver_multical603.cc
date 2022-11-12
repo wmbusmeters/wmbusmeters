@@ -39,7 +39,7 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields();
+        addOptionalCommonFields("on_time_h");
 
         // Technical Description Multical 603 page 116 section 7.7.2 Information code types on serial communication.
         addStringFieldWithExtractorAndLookup(

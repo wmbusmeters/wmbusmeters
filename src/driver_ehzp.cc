@@ -41,7 +41,7 @@ namespace
             PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
             PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS);
 
-        addOptionalCommonFields();
+        addOptionalCommonFields("on_time_h");
 
         addNumericFieldWithExtractor(
             "total_energy_consumption",

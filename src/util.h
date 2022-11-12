@@ -23,6 +23,7 @@
 #include<string>
 #include<functional>
 #include<map>
+#include<set>
 #include<vector>
 
 void onExit(std::function<void()> cb);
@@ -152,6 +153,8 @@ bool isNumber(const std::string& fq);
 std::vector<std::string> splitMatchExpressions(const std::string& mes);
 // Split s into strings separated by c.
 std::vector<std::string> splitString(const std::string &s, char c);
+// Split s into strings separated by c and store inte set.
+std::set<std::string> splitStringIntoSet(const std::string &s, char c);
 // Split device string cul:c1:CMD(bar 1:2) into cul c1 CMD(bar 1:2)
 // I.e. the : colon inside CMD is not used for splitting.
 std::vector<std::string> splitDeviceString(const std::string &s);

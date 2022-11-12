@@ -1,3 +1,15 @@
+ATTENTION! When values are missing in the fields output, they were previously
+reported as "nan" but they are now reported as "null".
+
+ATTENTION! The unismart driver has been refactored to the new driver format.
+Several fields were unknown before and are still unknown and their content
+have slightly changed: status and version.
+
+The field "other_counter" is replaced with just "other" and its content changed.
+The field "suppler_info" is replaced with "supplier_info".
+The field "device_date_time" is replaced with "device_timestamp" and now contains seconds
+and a timezone.
+
 ATTENTION! A bug was fixed where the on_time_h and operating_time_h
 (and related error times) were wrong.
 

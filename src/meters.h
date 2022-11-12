@@ -83,7 +83,6 @@ LIST_OF_METER_TYPES
     X(sontex868,  T1_bit, HeatCostAllocationMeter, SONTEX868, Sontex868) \
     X(topaseskr,  T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)          \
     X(lse_08,     S1_bit|C1_bit, HeatCostAllocationMeter, LSE_08, LSE_08) \
-    X(unismart,   T1_bit, GasMeter,       UNISMART, Unismart)  \
 
 
 enum class MeterDriver {
@@ -292,7 +291,8 @@ enum PrintProperty
     DEPRECATED = 32, // This field is about to be removed or changed in a newer driver, which will have a new name.
     STATUS = 64, // This is >the< status field and it should read OK of not error flags are set.
     JOIN_TPL_STATUS = 128, // This text field also includes the tpl status decoding. multiple OK:s collapse to a single OK.
-    JOIN_INTO_STATUS = 256 // This text field is injected into the already defined status field. multiple OK:s collapse.
+    JOIN_INTO_STATUS = 256, // This text field is injected into the already defined status field. multiple OK:s collapse.
+    OFFICIAL = 512 // This field is listed as an official field for the driver.
 };
 
 struct PrintProperties

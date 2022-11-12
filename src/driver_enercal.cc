@@ -237,7 +237,7 @@ namespace
             .set(StorageNr(1))
             );
 
-        addOptionalCommonFields();
+        addOptionalCommonFields("operating_time_h,on_time_h,meter_datetime");
     }
 }
 

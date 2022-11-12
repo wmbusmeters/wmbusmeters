@@ -1168,7 +1168,10 @@ bool DVEntry::extractDate(struct tm *out)
         // ..ss ssss
         int sec  = (0x3f) & v[0];
         out->tm_sec = sec;
-        // some daylight saving time decoding needed here....
+        // There are also bits for day of week, week of year.
+        // A bit for if daylight saving is in use or not and its offset.
+        // A bit if it is a leap year.
+        // I am unsure how to deal with this here..... TODO
     }
 
     return ok;

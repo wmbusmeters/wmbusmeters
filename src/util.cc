@@ -1884,6 +1884,13 @@ vector<string> splitString(const string &s, char c)
     return v;
 }
 
+set<string> splitStringIntoSet(const string &s, char c)
+{
+    vector<string> v = splitString(s, c);
+    set<string> words(v.begin(), v.end());
+    return words;
+}
+
 vector<string> splitDeviceString(const string& ds)
 {
     string s = ds;

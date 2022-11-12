@@ -62,6 +62,7 @@
     X(Current,0x7D50,0x7D5F, Quantity::Current, Unit::Ampere) \
     X(ResetCounter,0x7D60,0x7D60, Quantity::Counter, Unit::COUNTER) \
     X(CumulationCounter,0x7D61,0x7D61, Quantity::Counter, Unit::COUNTER) \
+    X(SpecialSupplierInformation,0x7D67,0x7D67, Quantity::Text, Unit::TXT) \
     X(RemainingBattery,0x7D74,0x7D74, Quantity::Time, Unit::Day) \
     X(DurationSinceReadout,0x7DAC,0x7DAC, Quantity::Time, Unit::Hour) \
     X(AnyVolumeVIF,0x00,0x00, Quantity::Volume, Unit::Unknown) \
@@ -280,6 +281,7 @@ struct IndexNr
     IndexNr(int n) : nr_(n) {}
     int intValue() { return nr_; }
     bool operator==(IndexNr s) { return nr_ == s.nr_; }
+    bool operator!=(IndexNr s) { return nr_ != s.nr_; }
 
 private:
     int nr_;
@@ -381,8 +383,9 @@ struct FieldMatcher
     SubUnitNr subunit_nr_from { 0 };
     SubUnitNr subunit_nr_to { 0 };
 
-    // If the telegram has multiple identical difvif entries, use entry with this index nr.
-    // First entry has nr 1, which is the default value.
+    // If the telegram has multiple identical difvif entries matching this field
+    // and you want to catch the second matching entry, then set the index nr to 2.
+    // The default is 1.
     IndexNr index_nr { 1 };
 
     FieldMatcher() : active(false) { }

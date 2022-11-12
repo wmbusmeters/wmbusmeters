@@ -41,6 +41,8 @@ do
             echo OK json: $TESTNAME
             TESTRESULT="OK"
         else
+            jq --sort-keys . $TEST/test_expected_json.txt
+            jq --sort-keys . $TEST/test_response_json.txt
             TESTRESULT="ERROR"
         fi
     else
