@@ -199,8 +199,8 @@ telegram=|3944FA122162092002067A3600202567C94D48D00DC47B11213E23383DB51968A705AA
 # Test topaseskr water meter
 
 telegram=|4E44B40512345678F1077A310040052F2F_01FD08040C13991848004C1359423500CC101300000000CC201359423500426C7F2C0B3B00000002FD74DA10025AD300C4016D3B179F27CC011387124600|
-{"media":"water","meter":"topaseskr","name":"Witer","id":"78563412","total_m3":481.899,"temperature_c":21.1,"current_flow_m3h":0,"battery_life_days_remaining_remaining":"4314","volume_year_period_m3":354.259,"reverse_volume_year_period_m3":0,"meter_year_period_start_date":"2019-12-31","volume_month_period_m3":461.287,"meter_month_period_start_datetime":"2020-07-31 23:59","timestamp":"1111-11-11T11:11:11Z"}
-|Witer;78563412;481.899000;21.100000;0.000000;354.259000;0.000000;2019-12-31;461.287000;2020-07-31 23:59;1111-11-11 11:11.11
+{"media":"water","meter":"topaseskr","name":"Witer","id":"78563412","total_m3":481.899,"access_counter":4,"temperature_c":21.1,"current_flow_m3h":0,"volume_year_period_m3":354.259,"reverse_volume_year_period_m3":0,"meter_year_period_start_date":"2019-12-31","volume_month_period_m3":461.287,"meter_month_period_start_datetime":"2020-07-31 23:59","battery_y":11.811331,"timestamp":"1111-11-11T11:11:11Z"}
+|Witer;78563412;481.899;21.1;0;354.259;0;2019-12-31;461.287;2020-07-31 23:59;1111-11-11 11:11.11
 
 # Test Ultrimis water meter
 telegram=|2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F|+0

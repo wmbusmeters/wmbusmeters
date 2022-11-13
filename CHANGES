@@ -1,3 +1,7 @@
+
+ATTENTION! The topaseskr driver has been refactored to the new driver format.
+The field "battery_life_days_remaining_remaining" has been changed to "battery_life_y".
+
 ATTENTION! When values are missing in the fields output, they were previously
 reported as "nan" but they are now reported as "null".
 

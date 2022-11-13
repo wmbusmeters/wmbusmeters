@@ -3353,6 +3353,20 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
             .set(VIFRange::VolumeFlow)
             );
     }
+
+    if (checkIf(fields,"access_counter"))
+    {
+        addNumericFieldWithExtractor(
+            "access",
+            "Meter access counter.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Counter,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AccessNumber)
+            );
+        }
 }
 
 
