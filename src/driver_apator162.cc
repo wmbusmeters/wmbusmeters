@@ -75,7 +75,7 @@ namespace
         map<string,pair<int,DVEntry>> vendor_values;
 
         // The first 8 bytes are error flags and a date time.
-        // E.g. 0F005B5996000000
+        // E.g. 0F005B5996000000 therefore we skip the first 8 bytes.
         size_t i=8;
         while (i < content.size())
         {
@@ -137,10 +137,7 @@ namespace
         case 0x75: return 1+6*4; // Historical data
         case 0x7B: return 1+12*4; // Historical data
 
-            // case 0x80: return 3; // Apparently payload can also start with 0x80, but hey,
-            // what happened to 0x0f which indicated mfct data? 0x80 is a valid dif
-            // now its impossible to see that the telegram contains mfct data....
-            // except by using the mfct/type/version info.
+        case 0x80: return 10;
         case 0x81: return 10;
         case 0x82: return 10;
         case 0x83: return 10;
