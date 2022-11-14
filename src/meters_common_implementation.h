@@ -26,6 +26,13 @@
 #include<map>
 #include<set>
 
+
+// Values in a meter are stored based on vname + Quantity.
+// I.e. you can have a total_m3 and a total_kwh even though they share the same "total" vname
+// since they have two different quantities (Volume and Energy).
+// The field total_l refers to the same field storage in the meter as total_m3.
+// If a wacko meter sends different values, one m3 and one l. then you
+// have to name the fields using different vnames.
 struct NumericField
 {
     Unit unit {};
@@ -67,6 +74,7 @@ struct MeterCommonImplementation : public virtual Meter
     void setPollInterval(time_t interval);
     time_t pollInterval();
     bool usesPolling();
+    void addExtraCalculatedField(std::string ef);
 
     void onUpdate(function<void(Telegram*,Meter*)> cb);
     int numUpdates();
@@ -95,7 +103,6 @@ protected:
     void setMeterType(MeterType mt);
     void addLinkMode(LinkMode lm);
     void addMfctTPLStatusBits(Translate::Lookup lookup);
-    void setDefaultFields(string f);
 
     // Print with the default unit for this quantity.
     void addPrint(string vname, Quantity vquantity,
@@ -249,8 +256,8 @@ protected:
 
     std::string decodeTPLStatusByte(uchar sts);
 
-    void addOptionalCommonFields();
-    void addOptionalFlowRelatedFields();
+    void addOptionalCommonFields(string fields);
+    void addOptionalFlowRelatedFields(string fields);
 
     vector<string> &selectedFields() { return selected_fields_; }
     void setSelectedFields(vector<string> &f) { selected_fields_ = f; }

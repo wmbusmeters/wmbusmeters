@@ -62,9 +62,6 @@ LIST_OF_METER_TYPES
     X(auto,       0,      AutoMeter, AUTO, Auto) \
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
     X(eurisii,    T1_bit, HeatCostAllocationMeter, EURISII, EurisII)   \
-    X(ehzp,       T1_bit, ElectricityMeter, EHZP,        EHZP)         \
-    X(esyswm,     T1_bit, ElectricityMeter, ESYSWM,      ESYSWM)       \
-    X(em24,       C1_bit, ElectricityMeter, EM24,        EM24)         \
     X(evo868,     T1_bit, WaterMeter,       EVO868,      EVO868)       \
     X(fhkvdataiii,T1_bit, HeatCostAllocationMeter,       FHKVDATAIII,   FHKVDataIII)    \
     X(fhkvdataiv, T1_bit, HeatCostAllocationMeter,       FHKVDATAIV,    FHKVDataIV)     \
@@ -84,10 +81,7 @@ LIST_OF_METER_TYPES
     X(rfmtx1,     T1_bit, WaterMeter,       RFMTX1,      RfmTX1)       \
     X(tsd2,       T1_bit, SmokeDetector,    TSD2,        TSD2)         \
     X(sontex868,  T1_bit, HeatCostAllocationMeter, SONTEX868, Sontex868) \
-    X(topaseskr,  T1_bit, WaterMeter,   TOPASESKR, TopasEsKr)          \
-    X(vario451,   T1_bit, HeatMeter,        VARIO451,    Vario451)     \
     X(lse_08,     S1_bit|C1_bit, HeatCostAllocationMeter, LSE_08, LSE_08) \
-    X(unismart,   T1_bit, GasMeter,       UNISMART, Unismart)  \
 
 
 enum class MeterDriver {
@@ -123,7 +117,7 @@ bool isMeterDriverValid(MeterDriver type, int manufacturer, int media, int versi
 // Ie. do not try to decode a door sensor telegram with a water meter driver.
 bool isMeterDriverReasonableForMedia(MeterDriver type, string driver_name, int media);
 
-bool isValidKey(string& key, MeterDriver mt);
+bool isValidKey(const string& key, MeterDriver mt);
 
 using namespace std;
 
@@ -160,6 +154,7 @@ struct MeterInfo
     int bps {};     // For mbus communication you need to know the baud rate.
     vector<string> shells;
     vector<string> extra_constant_fields; // Additional static fields that are added to each message.
+    vector<string> extra_calculated_fields; // Additional field calculated using formulas.
     vector<Unit> conversions; // Additional units desired in json.
     vector<string> selected_fields; // Usually set to the default fields, but can be override in meter config.
 
@@ -173,7 +168,7 @@ struct MeterInfo
     string str();
     DriverName driverName();
 
-    MeterInfo(string b, string n, MeterDriver d, string e, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j)
+    MeterInfo(string b, string n, MeterDriver d, string e, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j, vector<string> &calcfs)
     {
         bus = b;
         name = n;
@@ -184,6 +179,7 @@ struct MeterInfo
         key = k;
         shells = s;
         extra_constant_fields = j;
+        extra_calculated_fields = calcfs;
         link_modes = lms;
         bps = baud;
     }
@@ -198,6 +194,7 @@ struct MeterInfo
         key = "";
         shells.clear();
         extra_constant_fields.clear();
+        extra_calculated_fields.clear();
         link_modes.clear();
         bps = 0;
     }
@@ -263,7 +260,7 @@ public:
 };
 
 bool registerDriver(function<void(DriverInfo&di)> setup);
-bool lookupDriverInfo(string& driver, DriverInfo *di);
+bool lookupDriverInfo(const string& driver, DriverInfo *di = NULL);
 // Return the best driver match for a telegram.
 DriverInfo pickMeterDriver(Telegram *t);
 // Return true for mbus and S2/C2/T2 drivers.
@@ -293,7 +290,8 @@ enum PrintProperty
     DEPRECATED = 32, // This field is about to be removed or changed in a newer driver, which will have a new name.
     STATUS = 64, // This is >the< status field and it should read OK of not error flags are set.
     JOIN_TPL_STATUS = 128, // This text field also includes the tpl status decoding. multiple OK:s collapse to a single OK.
-    JOIN_INTO_STATUS = 256 // This text field is injected into the already defined status field. multiple OK:s collapse.
+    JOIN_INTO_STATUS = 256, // This text field is injected into the already defined status field. multiple OK:s collapse.
+    OFFICIAL = 512 // This field is listed as an official field for the driver.
 };
 
 struct PrintProperties
@@ -472,6 +470,7 @@ struct Meter
     virtual MeterKeys *meterKeys() = 0;
 
     virtual void addConversions(std::vector<Unit> cs) = 0;
+    virtual void addExtraCalculatedField(std::string ecf) = 0;
     virtual vector<Unit>& conversions() = 0;
     virtual void addShell(std::string cmdline) = 0;
     virtual vector<string> &shellCmdlines() = 0;
@@ -507,8 +506,8 @@ shared_ptr<MeterManager> createMeterManager(bool daemon);
 const char *toString(MeterType type);
 string toString(MeterDriver driver);
 string toString(DriverInfo &driver);
-MeterDriver toMeterDriver(string& driver);
-LinkModeSet toMeterLinkModeSet(string& driver);
+MeterDriver toMeterDriver(const string& driver);
+LinkModeSet toMeterLinkModeSet(const string& driver);
 LinkModeSet toMeterLinkModeSet(MeterDriver driver);
 
 #define X(mname,linkmode,info,type,cname) shared_ptr<Meter> create##cname(MeterInfo &m);

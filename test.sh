@@ -24,9 +24,6 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_s1_meters.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
-tests/test_electricity_meters.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
-
 tests/test_mbus.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
@@ -82,6 +79,9 @@ tests/test_multiple_ids.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_conversions.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_formulas.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_fields.sh $PROG

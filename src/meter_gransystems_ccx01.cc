@@ -108,23 +108,23 @@ MeterGransystemsCCx01::MeterGransystemsCCx01(MeterInfo &mi) :
              "Voltage at phase L3.",
              PrintProperty::FIELD | PrintProperty::JSON);
 
-    addPrint("currrent_at_phase_1", Quantity::Current,
+    addPrint("currrent_at_phase_1", Quantity::Amperage,
              [&](Unit u){ return convert(current_L_[0], Unit::Ampere, u); },
              "Current at phase L1.",
              PrintProperty::FIELD | PrintProperty::JSON);
 
-    addPrint("currrent_at_phase_2", Quantity::Current,
+    addPrint("currrent_at_phase_2", Quantity::Amperage,
              [&](Unit u){ return convert(current_L_[1], Unit::Ampere, u); },
              "Current at phase L2.",
              PrintProperty::FIELD | PrintProperty::JSON);
 
-    addPrint("currrent_at_phase_3", Quantity::Current,
+    addPrint("currrent_at_phase_3", Quantity::Amperage,
              [&](Unit u){ return convert(current_L_[2], Unit::Ampere, u); },
              "Current at phase L3.",
              PrintProperty::FIELD | PrintProperty::JSON);
 
     addPrint("frequency", Quantity::Frequency,
-             [&](Unit u){ return convert(frequency_, Unit::Hz, u); },
+             [&](Unit u){ return convert(frequency_, Unit::HZ, u); },
              "Frequency.",
              PrintProperty::FIELD | PrintProperty::JSON);
 

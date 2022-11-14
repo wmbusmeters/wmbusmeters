@@ -3223,7 +3223,7 @@ string vif_7B_FirstExtensionType(uchar dif, uchar vif, uchar vife)
     if ((vife & 0x7e) == 0x00) {
         int n = vife & 0x01;
         string s;
-        strprintf(s, "10^%d MWh", n-1);
+        strprintf(&s, "10^%d MWh", n-1);
         return s;
     }
 
@@ -3235,7 +3235,7 @@ string vif_7B_FirstExtensionType(uchar dif, uchar vif, uchar vife)
     if ((vife & 0x7e) == 0x08) {
         int n = vife & 0x01;
         string s;
-        strprintf(s, "10^%d GJ", n-1);
+        strprintf(&s, "10^%d GJ", n-1);
         return s;
     }
 
@@ -3247,7 +3247,7 @@ string vif_7B_FirstExtensionType(uchar dif, uchar vif, uchar vife)
     if ((vife & 0x7e) == 0x10) {
         int n = vife & 0x01;
         string s;
-        strprintf(s, "10^%d m3", n+2);
+        strprintf(&s, "10^%d m3", n+2);
         return s;
     }
 
@@ -3259,14 +3259,14 @@ string vif_7B_FirstExtensionType(uchar dif, uchar vif, uchar vife)
     if ((vife & 0x7e) == 0x18) {
         int n = vife & 0x01;
         string s;
-        strprintf(s, "10^%d ton", n+2);
+        strprintf(&s, "10^%d ton", n+2);
         return s;
     }
 
     if ((vife & 0x7e) == 0x1a) {
         int n = vife & 0x01;
         string s;
-        strprintf(s, "Relative Humidity 10^%d %%", n-1);
+        strprintf(&s, "Relative Humidity 10^%d %%", n-1);
         return s;
     }
 
@@ -3315,7 +3315,7 @@ string vif_7B_FirstExtensionType(uchar dif, uchar vif, uchar vife)
         // output from a nuclear power plant?
         int n = vife & 0x01;
         string s;
-        strprintf(s, "10^%d MW", n-1);
+        strprintf(&s, "10^%d MW", n-1);
         return s;
     }
 
@@ -3327,7 +3327,7 @@ string vif_7B_FirstExtensionType(uchar dif, uchar vif, uchar vife)
     if ((vife & 0x7e) == 0x30) {
         int n = vife & 0x01;
         string s;
-        strprintf(s, "10^%d GJ/h", n-1);
+        strprintf(&s, "10^%d GJ/h", n-1);
         return s;
     }
 
@@ -3338,28 +3338,28 @@ string vif_7B_FirstExtensionType(uchar dif, uchar vif, uchar vife)
     if ((vife & 0x7c) == 0x58) {
         int nn = vife & 0x03;
         string s;
-        strprintf(s, "Flow temperature 10^%d Fahrenheit", nn-3);
+        strprintf(&s, "Flow temperature 10^%d Fahrenheit", nn-3);
         return s;
     }
 
     if ((vife & 0x7c) == 0x5c) {
         int nn = vife & 0x03;
         string s;
-        strprintf(s, "Return temperature 10^%d Fahrenheit", nn-3);
+        strprintf(&s, "Return temperature 10^%d Fahrenheit", nn-3);
         return s;
     }
 
     if ((vife & 0x7c) == 0x60) {
         int nn = vife & 0x03;
         string s;
-        strprintf(s, "Temperature difference 10^%d Fahrenheit", nn-3);
+        strprintf(&s, "Temperature difference 10^%d Fahrenheit", nn-3);
         return s;
     }
 
     if ((vife & 0x7c) == 0x64) {
         int nn = vife & 0x03;
         string s;
-        strprintf(s, "External temperature 10^%d Fahrenheit", nn-3);
+        strprintf(&s, "External temperature 10^%d Fahrenheit", nn-3);
         return s;
     }
 
@@ -3370,21 +3370,21 @@ string vif_7B_FirstExtensionType(uchar dif, uchar vif, uchar vife)
     if ((vife & 0x7c) == 0x70) {
         int nn = vife & 0x03;
         string s;
-        strprintf(s, "Cold / Warm Temperature Limit 10^%d Fahrenheit", nn-3);
+        strprintf(&s, "Cold / Warm Temperature Limit 10^%d Fahrenheit", nn-3);
         return s;
     }
 
     if ((vife & 0x7c) == 0x74) {
         int nn = vife & 0x03;
         string s;
-        strprintf(s, "Cold / Warm Temperature Limit 10^%d Celsius", nn-3);
+        strprintf(&s, "Cold / Warm Temperature Limit 10^%d Celsius", nn-3);
         return s;
     }
 
     if ((vife & 0x78) == 0x78) {
         int nnn = vife & 0x07;
         string s;
-        strprintf(s, "Cumulative count max power 10^%d W", nnn-3);
+        strprintf(&s, "Cumulative count max power 10^%d W", nnn-3);
         return s;
     }
 
@@ -3398,14 +3398,14 @@ string vif_7D_SecondExtensionType(uchar dif, uchar vif, uchar vife)
     if ((vife & 0x7c) == 0x00) {
         int nn = vife & 0x03;
         string s;
-        strprintf(s, "Credit of 10^%d of the nominal local legal currency units", nn-3);
+        strprintf(&s, "Credit of 10^%d of the nominal local legal currency units", nn-3);
         return s;
     }
 
     if ((vife & 0x7c) == 0x04) {
         int nn = vife & 0x03;
         string s;
-        strprintf(s, "Debit of 10^%d of the nominal local legal currency units", nn-3);
+        strprintf(&s, "Debit of 10^%d of the nominal local legal currency units", nn-3);
         return s;
     }
 
@@ -3524,7 +3524,7 @@ string vif_7D_SecondExtensionType(uchar dif, uchar vif, uchar vife)
     if ((vife & 0x7c) == 0x24) {
         int nn = vife & 0x03;
         string s;
-        strprintf(s, "Storage interval [%s]", timeNN(nn));
+        strprintf(&s, "Storage interval [%s]", timeNN(nn));
         return s;
     }
 
@@ -3547,7 +3547,7 @@ string vif_7D_SecondExtensionType(uchar dif, uchar vif, uchar vife)
     if ((vife & 0x7c) == 0x2c) {
         int nn = vife & 0x03;
         string s;
-        strprintf(s, "Duration since last readout [%s]", timeNN(nn));
+        strprintf(&s, "Duration since last readout [%s]", timeNN(nn));
         return s;
     }
 
@@ -3559,14 +3559,14 @@ string vif_7D_SecondExtensionType(uchar dif, uchar vif, uchar vife)
         int nn = vife & 0x03;
         string s;
         // nn == 0 (seconds) is not expected here! According to m-bus spec.
-        strprintf(s, "Duration of tariff [%s]", timeNN(nn));
+        strprintf(&s, "Duration of tariff [%s]", timeNN(nn));
         return s;
     }
 
     if ((vife & 0x7c) == 0x34) {
         int nn = vife & 0x03;
         string s;
-        strprintf(s, "Period of tariff [%s]", timeNN(nn));
+        strprintf(&s, "Period of tariff [%s]", timeNN(nn));
         return s;
     }
 
@@ -3594,14 +3594,14 @@ string vif_7D_SecondExtensionType(uchar dif, uchar vif, uchar vife)
     if ((vife & 0x70) == 0x40) {
         int nnnn = vife & 0x0f;
         string s;
-        strprintf(s, "10^%d Volts", nnnn-9);
+        strprintf(&s, "10^%d Volts", nnnn-9);
         return s;
     }
 
     if ((vife & 0x70) == 0x50) {
         int nnnn = vife & 0x0f;
         string s;
-        strprintf(s, "10^%d Ampere", nnnn-12);
+        strprintf(&s, "10^%d Ampere", nnnn-12);
         return s;
     }
 
@@ -3640,14 +3640,14 @@ string vif_7D_SecondExtensionType(uchar dif, uchar vif, uchar vife)
     if ((vife & 0x7c) == 0x68) {
         int pp = vife & 0x03;
         string s;
-        strprintf(s, "Duration since last cumulation [%s]", timePP(pp));
+        strprintf(&s, "Duration since last cumulation [%s]", timePP(pp));
         return s;
     }
 
     if ((vife & 0x7c) == 0x6c) {
         int pp = vife & 0x03;
         string s;
-        strprintf(s, "Operating time battery [%s]", timePP(pp));
+        strprintf(&s, "Operating time battery [%s]", timePP(pp));
         return s;
     }
 
@@ -3969,7 +3969,7 @@ string formatData(int dif, int vif, int vife, string data)
     if (t >= 0 && t <= 0x77 && !(t >= 0x6c && t<=0x6f)) {
         // These are vif codes with an understandable key and unit.
         double val = dataAsDouble(dif, vif, vife, data);
-        strprintf(r, "%d", val);
+        strprintf(&r, "%d", val);
         return r;
     }
 
@@ -4313,7 +4313,7 @@ void BusDeviceCommonImplementation::checkStatus()
         bool ok = reset();
         if (ok) return;
         string msg;
-        strprintf(msg, "failed regular reset of %s %s", device().c_str(), toString(type()));
+        strprintf(&msg, "failed regular reset of %s %s", device().c_str(), toString(type()));
         logAlarm(Alarm::RegularResetFailure, msg);
         return;
     }
@@ -4321,7 +4321,7 @@ void BusDeviceCommonImplementation::checkStatus()
     if (protocol_error_count_ >= 20)
     {
         string msg;
-        strprintf(msg, "too many protocol errors(%d) resetting %s %s", protocol_error_count_, device().c_str(), toString(type()));
+        strprintf(&msg, "too many protocol errors(%d) resetting %s %s", protocol_error_count_, device().c_str(), toString(type()));
         logAlarm(Alarm::DeviceFailure, msg);
         bool ok = reset();
         if (ok)
@@ -4331,7 +4331,7 @@ void BusDeviceCommonImplementation::checkStatus()
             return;
         }
 
-        strprintf(msg, "failed to reset wmbus device %s %s exiting wmbusmeters", device().c_str(), toString(type()));
+        strprintf(&msg, "failed to reset wmbus device %s %s exiting wmbusmeters", device().c_str(), toString(type()));
         logAlarm(Alarm::DeviceFailure, msg);
         manager_->stop();
         return;
@@ -4370,7 +4370,7 @@ void BusDeviceCommonImplementation::checkStatus()
     string nowtxt = strdatetime(&nowtm);
 
     string msg;
-    strprintf(msg, "%d seconds of inactivity resetting %s %s "
+    strprintf(&msg, "%d seconds of inactivity resetting %s %s "
               "(timeout %ds expected %s now %s)",
               since, device().c_str(), toString(type()),
               timeout_, expected_activity_.c_str(), nowtxt.c_str());
@@ -4384,7 +4384,7 @@ void BusDeviceCommonImplementation::checkStatus()
     }
     else
     {
-        strprintf(msg, "failed to reset wmbus device %s %s exiting wmbusmeters", device().c_str(), toString(type()));
+        strprintf(&msg, "failed to reset wmbus device %s %s exiting wmbusmeters", device().c_str(), toString(type()));
         logAlarm(Alarm::DeviceFailure, msg);
         manager_->stop();
     }

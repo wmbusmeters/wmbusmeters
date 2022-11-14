@@ -59,7 +59,7 @@ struct IM871ADeviceInfo
         else s+="unknown_mode("+to_string(device_mode)+") ";
 
         string ss;
-        strprintf(ss, "firmware=%02x hci=%02x uid=%08x", firmware_version, hci_version, uid);
+        strprintf(&ss, "firmware=%02x hci=%02x uid=%08x", firmware_version, hci_version, uid);
         return s+ss;
     }
 
@@ -101,7 +101,7 @@ struct ConfigIM871AIM170A
     string dongleId()
     {
         string s;
-        strprintf(s, "%08x", id);
+        strprintf(&s, "%08x", id);
         return s;
     }
 
@@ -116,7 +116,7 @@ struct ConfigIM871AIM170A
         s += "link_mode="+toString(LinkModeIM871A(link_mode));
 
         string ids;
-        strprintf(ids, " id=%08x media=%02x version=%02x c_field=%02x auto_rssi=%02x", id, media, version, c_field, auto_rssi);
+        strprintf(&ids, " id=%08x media=%02x version=%02x c_field=%02x auto_rssi=%02x", id, media, version, c_field, auto_rssi);
 
         return s+ids;
     }

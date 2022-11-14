@@ -136,6 +136,7 @@ struct Configuration
     std::vector<std::string> selected_fields;
     std::vector<MeterInfo> meters;
     std::vector<std::string> extra_constant_fields; // Additional constant fields to always add to json.
+    std::vector<std::string> extra_calculated_fields; // Additional calculated fields to always add to json.
     // These extra constant fields can also be part of selected with selectfields.
     std::vector<SendBusContent> send_bus_content; // Telegrams used to wake up a meter for reading or mbus read-out requests.
     std::set<BusDeviceType> probe_for; // Which devices should be probed for? DEVICE_AUTO means all.

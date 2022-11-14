@@ -43,8 +43,8 @@ namespace
 
         addLinkMode(LinkMode::T1);
 
-        addOptionalCommonFields();
-        addOptionalFlowRelatedFields();
+        addOptionalCommonFields("enhanced_id,meter_datetime");
+        addOptionalFlowRelatedFields("total_m3,total_backward_m3,volume_flow_m3h");
 
         addStringFieldWithExtractorAndLookup(
             "status",
@@ -136,10 +136,10 @@ namespace
 // Test: SomeWater itron 12345698 NOKEY
 // Comment: Test ITRON T1 telegram not encrypted, which has no 2f2f markers.
 // telegram=|384497269856341203077AD90000A0#0413FD110000066D2C1AA1D521004413300F0000426CBF2C047F0000060C027F862A0E79678372082100|
-// {"media":"water","meter":"itron","name":"SomeWater","id":"12345698","enhanced_id":"002108728367","meter_datetime":"2022-01-21 01:26","total_m3":4.605,"status":"OK","target_m3":3.888,"target_date":"2021-12-31","unknown_a":"WOOTA_C060000","unknown_b":"WOOTB_2A86","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"water","meter":"itron","name":"SomeWater","id":"12345698","enhanced_id":"002108728367","meter_datetime":"2022-01-21 01:26:44","total_m3":4.605,"status":"OK","target_m3":3.888,"target_date":"2021-12-31","unknown_a":"WOOTA_C060000","unknown_b":"WOOTB_2A86","timestamp":"1111-11-11T11:11:11Z"}
 // |SomeWater;12345698;4.605;3.888;1111-11-11 11:11.11
 
 // Test: MoreWater itron 18000056 NOKEY
 // telegram=|46449726560000183307725600001897263307AF0030052F2F_066D0E1015C82A000C13771252000C933C000000000B3B0400004C1361045200426CC12A03FD971C0000002F2F2F|
-// {"media":"water","meter":"itron","name":"MoreWater","id":"18000056","meter_datetime":"2022-10-08 21:16","total_m3":521.277,"total_backward_m3":0,"volume_flow_m3h":0.004,"status":"OK","target_m3":520.461,"target_date":"2022-10-01","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"water","meter":"itron","name":"MoreWater","id":"18000056","meter_datetime":"2022-10-08 21:16:14","total_m3":521.277,"total_backward_m3":0,"volume_flow_m3h":0.004,"status":"OK","target_m3":520.461,"target_date":"2022-10-01","timestamp":"1111-11-11T11:11:11Z"}
 // |MoreWater;18000056;521.277;520.461;1111-11-11 11:11.11

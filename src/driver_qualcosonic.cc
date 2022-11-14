@@ -35,8 +35,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) :  MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields();
-        addOptionalFlowRelatedFields();
+        addOptionalCommonFields("fabrication_no,operating_time_h,on_time_h,meter_datetime,meter_datetime_at_error");
+        addOptionalFlowRelatedFields("total_m3,flow_temperature_c,return_temperature_c,flow_return_temperature_difference_c,volume_flow_m3h");
 
         addStringFieldWithExtractorAndLookup(
             "status",
@@ -137,5 +137,5 @@ namespace
 
 // Test: qualco qualcosonic 03016408 NOKEY
 // telegram=|76440907086401030B0d7a78000000046d030fB726346d0000010134fd170000000004200f13cf0104240f13cf0104863B0000000004863cdc0000000413B5150600042B86f1ffff043B030200000259c002025d2c05026194fd0c780864010384086d3B17Bf258408863B000000008408863c0B000000|
-// {"media":"heat/cooling load","meter":"qualcosonic","name":"qualco","id":"03016408","fabrication_no":"03016408","operating_time_h":2.34167,"on_time_h":2.34167,"meter_datetime":"2021-06-23 15:03","meter_datetime_at_error":"2000-01-01 00:00","total_m3":398.773,"flow_temperature_c":7.04,"return_temperature_c":13.24,"flow_return_temperature_difference_c":-6.2,"volume_flow_m3h":0.515,"status":"OK","total_heat_energy_kwh":0,"total_cooling_energy_kwh":220,"power_kw":-3.706,"target_datetime":"2021-05-31 23:59","target_heat_energy_kwh":0,"target_cooling_energy_kwh":11,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"heat/cooling load","meter":"qualcosonic","name":"qualco","id":"03016408","fabrication_no":"03016408","operating_time_h":8430.013056,"on_time_h":8430.013056,"meter_datetime":"2021-06-23 15:03","meter_datetime_at_error":"2000-01-01 00:00","total_m3":398.773,"flow_temperature_c":7.04,"return_temperature_c":13.24,"flow_return_temperature_difference_c":-6.2,"volume_flow_m3h":0.515,"status":"OK","total_heat_energy_kwh":0,"total_cooling_energy_kwh":220,"power_kw":-3.706,"target_datetime":"2021-05-31 23:59","target_heat_energy_kwh":0,"target_cooling_energy_kwh":11,"timestamp":"1111-11-11T11:11:11Z"}
 // |qualco;03016408;OK;0.000000;220.000000;-3.706000;2021-05-31 23:59;0.000000;11.000000;1111-11-11 11:11.11

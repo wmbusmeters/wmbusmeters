@@ -64,7 +64,7 @@ void MeterApator08::processContent(Telegram *t)
     map<string,pair<int,DVEntry>> vendor_values;
 
     string total;
-    strprintf(total, "%02x%02x%02x%02x", content[0], content[1], content[2], content[3]);
+    strprintf(&total, "%02x%02x%02x%02x", content[0], content[1], content[2], content[3]);
 
     vendor_values["0413"] = { 25, DVEntry(25, DifVifKey("0413"), MeasurementType::Instantaneous, 0x13, {}, 0, 0, 0, total) };
     int offset;

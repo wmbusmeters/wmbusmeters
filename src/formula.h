@@ -28,9 +28,15 @@ struct FieldInfo;
 
 struct Formula
 {
+    // Parse and return false if parse failed.
     virtual bool parse(Meter *m, const std::string &f) = 0;
+    // Returns false if the parse has failed and the formula is invalid.
     virtual bool valid() = 0;
+    // Returns lines of error messages.
+    virtual std::string errors() = 0;
+    // Calculate the formula. Returns nan if it could not be calculated.
     virtual double calculate(Unit to) = 0;
+    // Clear the formula, ie drop any parsed tree.
     virtual void clear() = 0;
     // Return a regenerated formula string.
     virtual std::string str() = 0;

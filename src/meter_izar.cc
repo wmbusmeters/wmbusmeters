@@ -159,14 +159,14 @@ double MeterIzar::lastMonthTotalWaterConsumption(Unit u)
 string MeterIzar::setH0Date()
 {
     string date;
-    strprintf(date, "%d-%02d-%02d", h0_year, h0_month%99, h0_day%99);
+    strprintf(&date, "%d-%02d-%02d", h0_year, h0_month%99, h0_day%99);
     return date;
 }
 
 string MeterIzar::serialNumber()
 {
     string result;
-    strprintf(result, "%06d", serial_number);
+    strprintf(&result, "%06d", serial_number);
     return result;
 }
 
@@ -263,7 +263,7 @@ void MeterIzar::processContent(Telegram *t)
         uchar meter_type = '@' + ((origin[8] & 0x7C) >> 2);
         uchar diameter = '@' + (((origin[8] & 0x03) << 3) | (origin[7] >> 5));
         // build the prefix
-        strprintf(prefix, "%c%02d%c%c", supplier_code, yy, meter_type, diameter);
+        strprintf(&prefix, "%c%02d%c%c", supplier_code, yy, meter_type, diameter);
     }
 
     // get the remaining battery life (in year) and transmission period (in seconds)

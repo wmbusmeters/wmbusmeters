@@ -59,6 +59,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     vector<string> telegram_shells;
     vector<string> alarm_shells;
     vector<string> extra_constant_fields;
+    vector<string> extra_calculated_fields;
     vector<string> selected_fields;
 
     debug("(config) loading meter file %s\n", file.c_str());
@@ -153,6 +154,12 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             extra_constant_fields.push_back(keyvalue);
         }
         else
+        if (startsWith(p.first, "calculate_"))
+        {
+            string keyvalue = p.first.substr(10)+"="+p.second;
+            extra_calculated_fields.push_back(keyvalue);
+        }
+        else
             warning("Found invalid key \"%s\" in meter config file\n", p.first.c_str());
 
         if (p.first != "key") {
@@ -195,6 +202,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     }
     if (use) {
         mi.extra_constant_fields = extra_constant_fields;
+        mi.extra_calculated_fields = extra_calculated_fields;
         mi.shells = telegram_shells;
         mi.idsc = toIdsCommaSeparated(mi.ids);
         mi.selected_fields = selected_fields;
@@ -661,6 +669,11 @@ void handleExtraConstantField(Configuration *c, string field)
     c->extra_constant_fields.push_back(field);
 }
 
+void handleExtraCalculatedField(Configuration *c, string field)
+{
+    c->extra_calculated_fields.push_back(field);
+}
+
 shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrides)
 {
     Configuration *c = new Configuration;
@@ -736,6 +749,12 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
             handleExtraConstantField(c, keyvalue);
         }
         else
+        if (startsWith(p.first, "calculate_"))
+        {
+            string keyvalue = p.first.substr(10)+"="+p.second;
+            handleExtraCalculatedField(c, keyvalue);
+        }
+        else
         {
             warning("No such key: %s\n", p.first.c_str());
         }
@@ -808,7 +827,7 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, BusDevice *d
     if (n == 0) num = "any combination";
     string dongles = device->supportedLinkModes().hr();
     string dongle;
-    strprintf(dongle, "%s of %s", num.c_str(), dongles.c_str());
+    strprintf(&dongle, "%s of %s", num.c_str(), dongles.c_str());
 
     // Calculate the possible listen_to linkmodes for this collection of meters.
     LinkModeSet meters_union = UNKNOWN_bit;
@@ -825,7 +844,7 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, BusDevice *d
         if (link_modes_matter && config->all_device_linkmodes_specified.empty())
         {
             string msg;
-            strprintf(msg,"(config) No meters supplied. You must supply which link modes to listen to. 22 Eg. auto:t1");
+            strprintf(&msg,"(config) No meters supplied. You must supply which link modes to listen to. 22 Eg. auto:t1");
             debug("%s\n", msg.c_str());
             return { LinkModeCalculationResultType::NoMetersMustSupplyModes , msg};
         }
@@ -859,7 +878,7 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, BusDevice *d
     if (!config->all_device_linkmodes_specified.hasAll(meters_union))
     {
         string msg;
-        strprintf(msg, "(config) You have specified to listen to the link modes: %s but the meters might transmit on: %s\n"
+        strprintf(&msg, "(config) You have specified to listen to the link modes: %s but the meters might transmit on: %s\n"
                   "(config) Therefore you might miss telegrams! Please specify the expected transmit mode for the meters, eg: apator162:t1\n"
                   "(config) Or use a dongle that can listen to all the required link modes at the same time.",
                   all_lms.c_str(), metersu.c_str());

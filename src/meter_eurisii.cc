@@ -68,8 +68,8 @@ MeterEurisII::MeterEurisII(MeterInfo &mi) :
     for (int i=1; i<=17; ++i)
     {
         string msg, info;
-        strprintf(msg, "consumption_at_set_date_%d", i);
-        strprintf(info, "Heat cost allocation at the %d billing period date.", i);
+        strprintf(&msg, "consumption_at_set_date_%d", i);
+        strprintf(&info, "Heat cost allocation at the %d billing period date.", i);
         addPrint(msg, Quantity::HCA,
                  [this,i](Unit u){ return consumption_at_set_date_hca_[i-1]; },
                  info,
@@ -119,7 +119,7 @@ string MeterEurisII::errorFlagsHumanReadable()
 
     if (error_flags_ != 0 && s.length() == 0) {
         // Some higher bits are set that we do not know about! Fall back to printing the number!
-        strprintf(s, "0x%04X", error_flags_);
+        strprintf(&s, "0x%04X", error_flags_);
     }
     return s;
 }
@@ -228,7 +228,7 @@ void MeterEurisII::processContent(Telegram *t)
         if (findKey(MeasurementType::Instantaneous, VIFRange::HeatCostAllocation, i, 0, &key, &t->dv_entries))
         {
             string info;
-            strprintf(info, " consumption at set date %d (%%f hca)", i);
+            strprintf(&info, " consumption at set date %d (%%f hca)", i);
             extractDVdouble(&t->dv_entries, key, &offset, &consumption_at_set_date_hca_[i-1]);
             t->addMoreExplanation(offset, info.c_str(), consumption_at_set_date_hca_[i-1]);
         }

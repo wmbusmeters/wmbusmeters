@@ -60,8 +60,8 @@ MeterAventiesWM::MeterAventiesWM(MeterInfo &mi, DriverInfo &di) :
     for (int i=1; i<=14; ++i)
     {
         string msg, info;
-        strprintf(msg, "consumption_at_set_date_%d", i);
-        strprintf(info, "Water consumption at the %d billing period date.", i);
+        strprintf(&msg, "consumption_at_set_date_%d", i);
+        strprintf(&info, "Water consumption at the %d billing period date.", i);
         addNumericFieldWithExtractor(
             msg,
             Quantity::Volume,

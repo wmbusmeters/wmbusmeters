@@ -23,6 +23,7 @@
 #include<string>
 #include<functional>
 #include<map>
+#include<set>
 #include<vector>
 
 void onExit(std::function<void()> cb);
@@ -46,11 +47,11 @@ uchar bcd2bin(uchar c);
 uchar revbcd2bin(uchar c);
 uchar reverse(uchar c);
 // A BCD string 102030405060 is reversed to 605040302010
-std::string reverseBCD(std::string v);
+std::string reverseBCD(const std::string& v);
 // A hex string encoding ascii chars is reversed and safely translated into a readble string.
-std::string reverseBinaryAsciiSafeToString(std::string v);
+std::string reverseBinaryAsciiSafeToString(const std::string& v);
 // Check if hex string is likely to be ascii
-bool isLikelyAscii(std::string v);
+bool isLikelyAscii(const std::string& v);
 
 bool isHexChar(uchar c);
 
@@ -62,14 +63,15 @@ bool isHexStringStrict(const char* txt, bool *invalid);
 bool isHexStringStrict(const std::string &txt, bool *invalid);
 int char2int(char input);
 bool hex2bin(const char* src, std::vector<uchar> *target);
-bool hex2bin(std::string &src, std::vector<uchar> *target);
+bool hex2bin(const std::string &src, std::vector<uchar> *target);
 bool hex2bin(std::vector<uchar> &src, std::vector<uchar> *target);
 std::string bin2hex(const std::vector<uchar> &target);
 std::string bin2hex(std::vector<uchar>::iterator data, std::vector<uchar>::iterator end, int len);
 std::string bin2hex(std::vector<uchar> &data, int offset, int len);
 std::string safeString(std::vector<uchar> &target);
-void strprintf(std::string &s, const char* fmt, ...);
+void strprintf(std::string *s, const char* fmt, ...);
 std::string tostrprintf(const char* fmt, ...);
+std::string tostrprintf(const std::string &fmt, ...);
 
 // Return for example: 2010-03-21
 std::string strdate(struct tm *date);
@@ -79,12 +81,12 @@ std::string strdatetime(struct tm *date);
 std::string strdatetimesec(struct tm *date);
 void addMonths(struct tm* date, int m);
 
-bool stringFoundCaseIgnored(std::string haystack, std::string needle);
+bool stringFoundCaseIgnored(const std::string& haystack, const std::string& needle);
 
 void xorit(uchar *srca, uchar *srcb, uchar *dest, int len);
 void shiftLeft(uchar *srca, uchar *srcb, int len);
 std::string format3fdot3f(double v);
-bool enableLogfile(std::string logfile, bool daemon);
+bool enableLogfile(const std::string& logfile, bool daemon);
 void disableLogfile();
 void enableSyslog();
 void error(const char* fmt, ...);
@@ -118,8 +120,8 @@ bool isDebugEnabled();
 bool isTraceEnabled();
 bool isLogTelegramsEnabled();
 
-void debugPayload(std::string intro, std::vector<uchar> &payload);
-void debugPayload(std::string intro, std::vector<uchar> &payload, std::vector<uchar>::iterator &pos);
+void debugPayload(const std::string& intro, std::vector<uchar> &payload);
+void debugPayload(const std::string& intro, std::vector<uchar> &payload, std::vector<uchar>::iterator &pos);
 void logTelegram(std::vector<uchar> &original, std::vector<uchar> &parsed, int header_size, int suffix_size);
 
 enum class Alarm
@@ -134,26 +136,28 @@ const char* toString(Alarm type);
 void logAlarm(Alarm type, std::string info);
 void setAlarmShells(std::vector<std::string> &alarm_shells);
 
-bool isValidAlias(std::string alias);
-bool isValidBps(std::string b);
-bool isValidMatchExpression(std::string id, bool non_compliant);
-bool isValidMatchExpressions(std::string ids, bool non_compliant);
-bool doesIdMatchExpression(std::string id, std::string match_rule);
-bool doesIdMatchExpressions(std::string id, std::vector<std::string>& match_rules, bool *used_wildcard);
+bool isValidAlias(const std::string& alias);
+bool isValidBps(const std::string& b);
+bool isValidMatchExpression(const std::string& s, bool non_compliant);
+bool isValidMatchExpressions(const std::string& s, bool non_compliant);
+bool doesIdMatchExpression(const std::string& id, std::string match_rule);
+bool doesIdMatchExpressions(const std::string& id, std::vector<std::string>& match_rules, bool *used_wildcard);
 bool doesIdsMatchExpressions(std::vector<std::string> &ids, std::vector<std::string>& match_rules, bool *used_wildcard);
 std::string toIdsCommaSeparated(std::vector<std::string> &ids);
 
-bool isValidId(std::string id, bool accept_non_compliant);
+bool isValidId(const std::string& id, bool accept_non_compliant);
 
-bool isFrequency(std::string& fq);
-bool isNumber(std::string& fq);
+bool isFrequency(const std::string& fq);
+bool isNumber(const std::string& fq);
 
-std::vector<std::string> splitMatchExpressions(std::string& mes);
+std::vector<std::string> splitMatchExpressions(const std::string& mes);
 // Split s into strings separated by c.
-std::vector<std::string> splitString(std::string &s, char c);
+std::vector<std::string> splitString(const std::string &s, char c);
+// Split s into strings separated by c and store inte set.
+std::set<std::string> splitStringIntoSet(const std::string &s, char c);
 // Split device string cul:c1:CMD(bar 1:2) into cul c1 CMD(bar 1:2)
 // I.e. the : colon inside CMD is not used for splitting.
-std::vector<std::string> splitDeviceString(std::string &s);
+std::vector<std::string> splitDeviceString(const std::string &s);
 
 void incrementIV(uchar *iv, size_t len);
 
@@ -161,24 +165,24 @@ bool checkCharacterDeviceExists(const char *tty, bool fail_if_not);
 bool checkFileExists(const char *file);
 bool checkIfSimulationFile(const char *file);
 bool checkIfDirExists(const char *dir);
-bool listFiles(std::string dir, std::vector<std::string> *files);
-int loadFile(std::string file, std::vector<std::string> *lines);
-bool loadFile(std::string file, std::vector<char> *buf);
+bool listFiles(const std::string& dir, std::vector<std::string> *files);
+int loadFile(const std::string& file, std::vector<std::string> *lines);
+bool loadFile(const std::string& file, std::vector<char> *buf);
 
 std::string eatTo(std::vector<uchar> &v, std::vector<uchar>::iterator &i, int c, size_t max, bool *eof, bool *err);
 
 void padWithZeroesTo(std::vector<uchar> *content, size_t len, std::vector<uchar> *full_content);
-std::string padLeft(std::string input, int width);
+std::string padLeft(const std::string& input, int width);
 
 // Parse text string into seconds, 5h = (3600*5) 2m = (60*2) 1s = 1
-int parseTime(std::string time);
+int parseTime(const std::string& time);
 
 // Test if current time is inside any of the specified periods.
 // For example: mon-sun(00-24) is always true!
 //              mon-fri(08-20) is true monday to friday from 08.00 to 19.59
 //              tue(09-10),sat(00-24) is true tuesday 09.00 to 09.59 and whole of saturday.
 bool isInsideTimePeriod(time_t now, std::string periods);
-bool isValidTimePeriod(std::string periods);
+bool isValidTimePeriod(const std::string& periods);
 
 uint16_t crc16_EN13757(uchar *data, size_t len);
 
@@ -209,15 +213,15 @@ void trimWhitespace(std::string *s);
 // NoProperResponse means that we talked to something, but we do not know what it is.
 enum class AccessCheck { NoSuchDevice, NoProperResponse, NoPermission, NotSameGroup, AccessOK };
 const char* toString(AccessCheck ac);
-AccessCheck checkIfExistsAndHasAccess(std::string device);
+AccessCheck checkIfExistsAndHasAccess(const std::string& device);
 // Count the number of 1:s in the binary number v.
 int countSetBits(int v);
 
-bool startsWith(std::string &s, const char *prefix);
-bool startsWith(std::string &s, std::string &prefix);
+bool startsWith(const std::string &s, const char *prefix);
+bool startsWith(const std::string &s, std::string &prefix);
 
 // Given alfa=beta it returns "alfa":"beta"
-std::string makeQuotedJson(std::string &s);
+std::string makeQuotedJson(const std::string &s);
 
 std::string currentYear();
 std::string currentDay();
@@ -230,14 +234,14 @@ std::string currentMicros();
 
 bool hasBytes(int n, std::vector<uchar>::iterator &pos, std::vector<uchar> &frame);
 
-bool startsWith(std::string s, std::vector<uchar> &data);
+bool startsWith(const std::string& s, std::vector<uchar> &data);
 
 // Sum the memory used by the heap and stack.
 size_t memoryUsage();
 
 std::string humanReadableTwoDecimals(size_t s);
 
-uint32_t indexFromRtlSdrName(std::string &s);
+uint32_t indexFromRtlSdrName(const std::string& s);
 
 bool check_if_rtlwmbus_exists_in_path();
 bool check_if_rtlsdr_exists_in_path();
@@ -245,12 +249,12 @@ bool check_if_rtlsdr_exists_in_path();
 // Return the actual executable binary that is running.
 std::string currentProcessExe();
 
-std::string dirname(std::string p);
+std::string dirname(const std::string& p);
 
-std::string lookForExecutable(std::string prog, std::string bin_dir, std::string default_dir);
+std::string lookForExecutable(const std::string& prog, std::string bin_dir, std::string default_dir);
 
 // Extract from "ppm=5 radix=7" and put key values into map.
-bool parseExtras(std::string s, std::map<std::string,std::string> *extras);
+bool parseExtras(const std::string& s, std::map<std::string,std::string> *extras);
 void checkIfMultipleWmbusMetersRunning();
 
 size_t findBytes(std::vector<uchar> &v, uchar a, uchar b, uchar c);
@@ -272,6 +276,7 @@ std::string joinStatusStrings(const std::string &a, const std::string &b);
 
 // Sort the words in a status string: "GAMMA BETA ALFA" --> "ALFA BETA GAMMA"
 // Also identical flags are merged: "BETA ALFA ALFA" --> "ALFA BETA"
+// Finally ~ is replaced with a space, this is only used for backwards compatibilty for deprecated fields.
 std::string sortStatusString(const std::string &a);
 
 // If a vector is empty, then there will be an assert (with some compiler flags) if we use &v[0]
@@ -279,6 +284,8 @@ std::string sortStatusString(const std::string &a);
 // So provide safeVectorPtr which will return NULL instead of assert-crashing.
 uchar *safeButUnsafeVectorPtr(std::vector<uchar> &v);
 
+// Count utf8 unicode code points.
+int strlen_utf8(const char *s);
 
 #ifndef FUZZING
 #define FUZZING false

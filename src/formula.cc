@@ -23,40 +23,112 @@
 #include<cmath>
 #include<string.h>
 
-NumericFormula::~NumericFormula()
+NumericFormula::~NumericFormula() { }
+NumericFormulaConstant::~NumericFormulaConstant() { }
+NumericFormulaField::~NumericFormulaField() { }
+NumericFormulaPair::~NumericFormulaPair() { }
+NumericFormulaAddition::~NumericFormulaAddition() { }
+NumericFormulaSubtraction::~NumericFormulaSubtraction() { }
+NumericFormulaMultiplication::~NumericFormulaMultiplication() { }
+NumericFormulaDivision::~NumericFormulaDivision() { }
+NumericFormulaExponentiation::~NumericFormulaExponentiation() { }
+NumericFormulaSquareRoot::~NumericFormulaSquareRoot() { }
+
+double NumericFormulaConstant::calculate(SIUnit to)
 {
+    return siunit().convertTo(constant_, to);
 }
 
-NumericFormulaConstant::~NumericFormulaConstant()
+double NumericFormulaField::calculate(SIUnit to_si_unit)
 {
+    Unit field_unit = field_info_->defaultUnit();
+    double val = meter_->getNumericValue(field_info_, field_unit);
+
+    const SIUnit& field_si_unit = toSIUnit(field_unit);
+
+    return field_si_unit.convertTo(val, to_si_unit);
 }
 
-NumericFormulaField::~NumericFormulaField()
+double NumericFormulaAddition::calculate(SIUnit to)
 {
+    double l = left_->calculate(to);
+    double r = right_->calculate(to);
+
+    return l+r;
 }
 
-NumericFormulaAddition::~NumericFormulaAddition()
+double NumericFormulaSubtraction::calculate(SIUnit to)
 {
+    double l = left_->calculate(to);
+    double r = right_->calculate(to);
+
+    return l-r;
 }
 
-double NumericFormulaConstant::calculate(Unit to)
+double NumericFormulaMultiplication::calculate(SIUnit to)
 {
-    return convert(constant_, unit(), to);
+    double l = left_->calculate(left_->siunit());
+    double r = right_->calculate(right_->siunit());
+    double m = l*r;
+    double v = siunit().convertTo(m, to);
+
+    if (isDebugEnabled())
+    {
+        debug("(formula) MUL %g (%s) %g (%s) --> %g --> %g %s\n",
+              l, left_->siunit().info().c_str(),
+              r, right_->siunit().info().c_str(),
+              m,
+              v, to.info().c_str());
+    }
+    return v;
 }
 
-double NumericFormulaField::calculate(Unit to)
+double NumericFormulaDivision::calculate(SIUnit to)
 {
-    return meter_->getNumericValue(field_info_, to);
+    double l = left_->calculate(left_->siunit());
+    double r = right_->calculate(right_->siunit());
+    double d = l/r;
+    double v = siunit().convertTo(d, to);
+
+    if (isDebugEnabled())
+    {
+        debug("(formula) DIV %g (%s) %g (%s) --> %g --> %g %s\n",
+              l, left_->siunit().info().c_str(),
+              r, right_->siunit().info().c_str(),
+              d,
+              v,
+              to.info().c_str());
+    }
+
+    return v;
 }
 
-double NumericFormulaAddition::calculate(Unit to)
+double NumericFormulaExponentiation::calculate(SIUnit to)
 {
-    double sum = 0;
+    double l = left_->calculate(to);
+    double r = right_->calculate(to);
+    double p = pow(l,r);
+    double v = siunit().convertTo(p, to);
 
-    sum += left_->calculate(to);
-    sum += right_->calculate(to);
+    debug("(formula) %g <-- %g <-- pow %g ^ %g\n", v, p, l, r);
+    return v;
+}
 
-    return sum;
+double NumericFormulaSquareRoot::calculate(SIUnit to)
+{
+    double i = inner_->calculate(inner_->siunit());
+    double s = sqrt(i);
+    double v = siunit().convertTo(s, to);
+
+    if (isDebugEnabled())
+    {
+        debug("(formula) SQRT %g (%s) --> %g --> %g %s\n",
+              i, inner_->siunit().info().c_str(),
+              s,
+              v,
+              to.info().c_str());
+    }
+    return v;
 }
 
 const char *toString(TokenType tt)
@@ -67,6 +139,11 @@ const char *toString(TokenType tt)
     case TokenType::LPAR: return "LPAR";
     case TokenType::RPAR: return "RPAR";
     case TokenType::PLUS: return "PLUS";
+    case TokenType::MINUS: return "MINUS";
+    case TokenType::TIMES: return "TIMES";
+    case TokenType::DIV: return "DIV";
+    case TokenType::EXP: return "EXP";
+    case TokenType::SQRT: return "SQRT";
     case TokenType::UNIT: return "UNIT";
     case TokenType::FIELD: return "FIELD";
     }
@@ -99,10 +176,25 @@ Unit Token::unit(const string &s)
 void FormulaImplementation::clear()
 {
     valid_ = true;
-    while (!ops_.empty()) ops_.pop();
+    op_stack_.clear();
     tokens_.clear();
     formula_ = "";
     meter_ = NULL;
+}
+
+bool is_letter(char c)
+{
+    return c >= 'a' && c <= 'z';
+}
+
+bool is_letter_or_underscore(char c)
+{
+    return c == '_' || (c >= 'a' && c <= 'z');
+}
+
+bool is_letter_digit_or_underscore(char c)
+{
+    return c == '_' || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
 }
 
 size_t FormulaImplementation::findSpace(size_t i)
@@ -150,6 +242,61 @@ size_t FormulaImplementation::findPlus(size_t i)
     return 0;
 }
 
+size_t FormulaImplementation::findMinus(size_t i)
+{
+    if (i >= formula_.length()) return 0;
+
+    char c = formula_[i];
+    if (c == '-') return 1;
+
+    return 0;
+}
+
+size_t FormulaImplementation::findTimes(size_t i)
+{
+    if (i >= formula_.length()) return 0;
+
+    char c = formula_[i];
+    if (c == '*') return 1;
+
+    return 0;
+}
+
+size_t FormulaImplementation::findDiv(size_t i)
+{
+    if (i >= formula_.length()) return 0;
+
+    char c = formula_[i];
+    if (c == '/') return 1;
+
+    return 0;
+}
+
+size_t FormulaImplementation::findExp(size_t i)
+{
+    return 0;
+    /*
+    if (i >= formula_.length()) return 0;
+
+    char c = formula_[i];
+    if (c == '^') return 1;
+
+    return 0;
+    */
+}
+
+size_t FormulaImplementation::findSqrt(size_t i)
+{
+    if (i+4 >= formula_.length()) return 0;
+
+    if (!strncmp(&formula_[i], "sqrt", 4) && !is_letter(formula_[i+4]))
+    {
+        return 4;
+    }
+
+    return 0;
+}
+
 size_t FormulaImplementation::findLPar(size_t i)
 {
     if (i >= formula_.length()) return 0;
@@ -170,21 +317,6 @@ size_t FormulaImplementation::findRPar(size_t i)
     return 0;
 }
 
-bool is_letter(char c)
-{
-    return c >= 'a' && c <= 'z';
-}
-
-bool is_letter_or_underscore(char c)
-{
-    return c == '_' || (c >= 'a' && c <= 'z');
-}
-
-bool is_letter_digit_or_underscore(char c)
-{
-    return c == '_' || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
-}
-
 size_t FormulaImplementation::findUnit(size_t i)
 {
     if (i >= formula_.length()) return 0;
@@ -195,9 +327,9 @@ size_t FormulaImplementation::findUnit(size_t i)
     // All units start with a lower case a-z, followed by more letters and _ underscores.
     if (!is_letter(c)) return 0;
 
-#define X(cname,lcname,hrname,quantity,explanation)                     \
-    if ( (i+sizeof(#lcname)-1 <= len) &&                                  \
-         !is_letter_or_underscore(formula_[i+sizeof(#lcname)-1]) &&                     \
+#define X(cname,lcname,hrname,quantity,explanation) \
+    if ( (i+sizeof(#lcname)-1 <= len) &&                                \
+         !is_letter_or_underscore(formula_[i+sizeof(#lcname)-1]) &&     \
          !strncmp(#lcname, formula_.c_str()+i, sizeof(#lcname)-1)) return sizeof(#lcname)-1;
 LIST_OF_UNITS
 #undef X
@@ -249,6 +381,21 @@ bool FormulaImplementation::tokenize()
         len = findPlus(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::PLUS, i, len)); i+=len; continue; }
 
+        len = findMinus(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::MINUS, i, len)); i+=len; continue; }
+
+        len = findTimes(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::TIMES, i, len)); i+=len; continue; }
+
+        len = findDiv(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::DIV, i, len)); i+=len; continue; }
+
+        len = findExp(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::EXP, i, len)); i+=len; continue; }
+
+        len = findSqrt(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::SQRT, i, len)); i+=len; continue; }
+
         len = findUnit(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::UNIT, i, len)); i+=len; continue; }
 
@@ -279,7 +426,42 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::PLUS)
     {
         size_t next = parseOps(i+1);
-        handleAddition();
+        handleAddition(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::MINUS)
+    {
+        size_t next = parseOps(i+1);
+        handleSubtraction(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::TIMES)
+    {
+        size_t next = parseOps(i+1);
+        handleMultiplication(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::DIV)
+    {
+        size_t next = parseOps(i+1);
+        handleDivision(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::EXP)
+    {
+        size_t next = parseOps(i+1);
+        handleExponentiation(tok);
+        return next;
+    }
+
+    if (tok->type == TokenType::SQRT)
+    {
+        size_t next = parseOps(i+1);
+        handleSquareRoot(tok);
         return next;
     }
 
@@ -322,13 +504,15 @@ size_t FormulaImplementation::parsePar(size_t i)
 
     if (tok == NULL)
     {
-        warning("No closing parenthesis found!\n");
+        errors_.push_back(tostrprintf("Missing closing parenthesis at end of formula!\n"));
+        valid_ = false;
         return i;
     }
 
     if (tok->type != TokenType::RPAR)
     {
-        warning("Expected parenthesis but got xx intead.\n");
+        errors_.push_back("Expected closing parenthesis!\n"+tok->withMarker(formula_));
+        valid_ = false;
         return i;
     }
     return i+1;
@@ -341,50 +525,105 @@ void FormulaImplementation::handleConstant(Token *number, Token *unit)
 
     if (u == Unit::Unknown)
     {
-        warning("Unknown unit \"%s\" in formula:\n%s\n", unit->vals(formula_).c_str(), formula_.c_str());
+        errors_.push_back(tostrprintf("Unknown unit \"%s\"!\n%s",
+                                      unit->vals(formula_).c_str(),
+                                      unit->withMarker(formula_).c_str()));
+        valid_ = false;
         return;
     }
-    //debug("(formula) push constant %f %s\n", c, unitToStringLowerCase(u).c_str());
+
     doConstant(u, c);
 }
 
-void FormulaImplementation::handleAddition()
+void FormulaImplementation::handleAddition(Token *tok)
 {
-    //debug("(formula) push addition\n");
+    SIUnit right_siunit = topOp()->siunit();
+    SIUnit left_siunit = top2Op()->siunit();
+
+    if (!left_siunit.canConvertTo(right_siunit))
+    {
+        string lsis = left_siunit.str();
+        string rsis = right_siunit.str();
+        errors_.push_back(tostrprintf("Cannot add %s to %s!\n%s",
+                                      left_siunit.info().c_str(),
+                                      right_siunit.info().c_str(),
+                                      tok->withMarker(formula_).c_str()));
+        valid_ = false;
+        return;
+    }
+
     doAddition();
+}
+
+void FormulaImplementation::handleSubtraction(Token *tok)
+{
+    SIUnit right_siunit = topOp()->siunit();
+    SIUnit left_siunit = top2Op()->siunit();
+
+    if (!left_siunit.canConvertTo(right_siunit))
+    {
+        string lsis = left_siunit.str();
+        string rsis = right_siunit.str();
+        errors_.push_back(tostrprintf("Cannot subtract %s to %s!\n%s",
+                                      left_siunit.info().c_str(),
+                                      right_siunit.info().c_str(),
+                                      tok->withMarker(formula_).c_str()));
+        valid_ = false;
+        return;
+    }
+
+    doSubtraction();
+}
+
+void FormulaImplementation::handleMultiplication(Token *tok)
+{
+    // Any two units can be multiplied! You might not like the answer thought....
+    doMultiplication();
+}
+
+void FormulaImplementation::handleDivision(Token *tok)
+{
+    // Any two units can be multiplied! You might not like the answer thought....
+    doDivision();
+}
+
+void FormulaImplementation::handleExponentiation(Token *tok)
+{
+    // You can only exponentiate to a number.
+    doExponentiation();
+}
+
+void FormulaImplementation::handleSquareRoot(Token *tok)
+{
+    doSquareRoot();
 }
 
 void FormulaImplementation::handleField(Token *field)
 {
     string field_name = field->vals(formula_); // Full field: total_m3
-    //debug("(formula) push field %s\n", field_name.c_str());
-    string vname;                      // Without unit: total
-    Unit unit;
-    bool ok = extractUnit(field_name, &vname, &unit);
+    string vname;                              // Without unit: total
+    Unit named_unit;                      // The extracted unit: m3
+    bool ok = extractUnit(field_name, &vname, &named_unit);
 
-    debug("(formula) handle field %s into %s %s\n", field_name.c_str(), vname.c_str(), unitToStringLowerCase(unit).c_str());
+    debug("(formula) handle field %s into %s %s\n", field_name.c_str(), vname.c_str(), unitToStringLowerCase(named_unit).c_str());
 
     if (!ok)
     {
-        warning("Could not extract a valid unit from field name \"%s\"\n", field_name.c_str());
+        errors_.push_back("Cannot extra a valid unit from field name \""+field_name+"\"\n"+field->withMarker(formula_));
         return;
     }
 
-    Quantity q = toQuantity(unit);
+    Quantity q = toQuantity(named_unit);
     FieldInfo *f = meter_->findFieldInfo(vname, q);
 
     if (f == NULL)
     {
-        warning("No such field found \"%s\" (%s %s)\n", field_name.c_str(), vname.c_str(), toString(q));
+        errors_.push_back("No such field found \""+field_name+"\"\n"+field->withMarker(formula_));
+        valid_ = false;
         return;
     }
 
-    ok = doField(unit, meter_, f);
-    if (!ok)
-    {
-        warning("Could not use field \"%s\" (%s %s)\n", field_name.c_str(), vname.c_str(), toString(q));
-        return;
-    }
+    doField(named_unit, meter_, f);
 }
 
 bool FormulaImplementation::go()
@@ -436,70 +675,160 @@ bool FormulaImplementation::parse(Meter *m, const string &f)
     {
         debug("(formula) %s\n", tree().c_str());
     }
-    return true;
+    return valid_;
 }
 
 bool FormulaImplementation::valid()
 {
-    return valid_ == true && ops_.size() == 1;
+    return valid_ == true && op_stack_.size() == 1;
+}
+
+string FormulaImplementation::errors()
+{
+    string s;
+    for (string& e : errors_) s += e;
+    return s;
 }
 
 double FormulaImplementation::calculate(Unit to)
 {
     if (!valid_)
     {
-        warning("(formula) not valid returning nan!\n");
-        return std::nan("");
-    }
-    if (ops_.size() != 1)
-    {
-        warning("(formula) does not have a single op (has %zu), not valid returning nan!\n", ops_.size());
+        string t = tree();
+        warning("Warning! Formula is not valid! Returning nan!\n%s\n", t.c_str());
         return std::nan("");
     }
 
-    return ops_.top().get()->calculate(to);
-}
-
-bool FormulaImplementation::doConstant(Unit u, double c)
-{
-    ops_.push(unique_ptr<NumericFormula>(new NumericFormulaConstant(u, c)));
-    return true;
-}
-
-bool FormulaImplementation::doAddition()
-{
-    if (ops_.size() < 2) { valid_ = false; return false;}
-
-    Unit right_unit = ops_.top()->unit();
-
-    unique_ptr<NumericFormula> right_node = std::move(ops_.top());
-    ops_.pop();
-
-    Unit left_unit = ops_.top()->unit();
-
-    unique_ptr<NumericFormula> left_node = std::move(ops_.top());
-    ops_.pop();
-
-    ops_.push(unique_ptr<NumericFormula>(new NumericFormulaAddition(left_unit, left_node, right_node)));
-
-    if (!canConvert(left_unit, right_unit))
+    if (op_stack_.size() != 1)
     {
-        valid_ = false;
-        return false;
+        string t = tree();
+        warning("Warning! Formula is not valid! Multiple ops on stack! Returning nan!\n%s\n", t.c_str());
+        return std::nan("");
     }
 
-    return true;
+    return topOp()->calculate(toSIUnit(to));
 }
 
-bool FormulaImplementation::doField(Unit u, Meter *m, FieldInfo *fi)
+void FormulaImplementation::doConstant(Unit u, double c)
 {
-    if (!canConvert(u, fi->defaultUnit()))
-    {
-        valid_ = false;
-        return false;
-    }
-    ops_.push(unique_ptr<NumericFormula>(new NumericFormulaField(u, m, fi)));
-    return true;
+    pushOp(new NumericFormulaConstant(u, c));
+}
+
+void FormulaImplementation::doAddition()
+{
+    assert(op_stack_.size() >= 2);
+
+    SIUnit right_siunit = topOp()->siunit();
+
+    unique_ptr<NumericFormula> right_node = popOp();
+
+    SIUnit left_siunit = topOp()->siunit();
+
+    unique_ptr<NumericFormula> left_node = popOp();
+
+    pushOp(new NumericFormulaAddition(left_siunit, left_node, right_node));
+
+    assert(left_siunit.canConvertTo(right_siunit));
+}
+
+void FormulaImplementation::doSubtraction()
+{
+    assert(op_stack_.size() >= 2);
+
+    SIUnit right_siunit = topOp()->siunit();
+
+    unique_ptr<NumericFormula> right_node = popOp();
+
+    SIUnit left_siunit = topOp()->siunit();
+
+    unique_ptr<NumericFormula> left_node = popOp();
+
+    pushOp(new NumericFormulaSubtraction(left_siunit, left_node, right_node));
+
+    assert(left_siunit.canConvertTo(right_siunit));
+}
+
+void FormulaImplementation::doMultiplication()
+{
+    assert(op_stack_.size() >= 2);
+
+    SIUnit right_siunit = topOp()->siunit();
+
+    unique_ptr<NumericFormula> right_node = popOp();
+
+    SIUnit left_siunit = topOp()->siunit();
+
+    unique_ptr<NumericFormula> left_node = popOp();
+
+    SIUnit mul_siunit = left_siunit.mul(right_siunit);
+
+    string lsis = left_siunit.info();
+    string rsis = right_siunit.info();
+    string msis = mul_siunit.info();
+
+    pushOp(new NumericFormulaMultiplication(mul_siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doDivision()
+{
+    assert(op_stack_.size() >= 2);
+
+    SIUnit right_siunit = topOp()->siunit();
+
+    unique_ptr<NumericFormula> right_node = popOp();
+
+    SIUnit left_siunit = topOp()->siunit();
+
+    unique_ptr<NumericFormula> left_node = popOp();
+
+    SIUnit div_siunit = left_siunit.div(right_siunit);
+
+    string lsis = left_siunit.info();
+    string rsis = right_siunit.info();
+    string dsis = div_siunit.info();
+
+    debug("(formula) unit %s DIV %s ==> %s\n", lsis.c_str(), rsis.c_str(), dsis.c_str());
+
+    pushOp(new NumericFormulaDivision(div_siunit, left_node, right_node));
+}
+
+void FormulaImplementation::doExponentiation()
+{
+    assert(op_stack_.size() >= 2);
+
+//    SIUnit right_siunit = topOp()->siunit();
+
+    unique_ptr<NumericFormula> right_node = popOp();
+
+    SIUnit left_siunit = topOp()->siunit();
+
+    unique_ptr<NumericFormula> left_node = popOp();
+
+    pushOp(new NumericFormulaDivision(left_siunit, left_node, right_node));
+
+//    assert(canConvert(left_siunit, right_siunit));
+}
+
+void FormulaImplementation::doSquareRoot()
+{
+    assert(op_stack_.size() >= 1);
+
+    SIUnit inner_siunit = topOp()->siunit();
+
+    SIUnit siunit = inner_siunit.sqrt();
+
+    unique_ptr<NumericFormula> inner_node = popOp();
+
+    pushOp(new NumericFormulaSquareRoot(siunit, inner_node));
+}
+
+
+void FormulaImplementation::doField(Unit u, Meter *m, FieldInfo *fi)
+{
+    SIUnit from_si_unit = toSIUnit(fi->defaultUnit());
+    SIUnit to_si_unit = toSIUnit(u);
+    assert(from_si_unit.canConvertTo(to_si_unit));
+    pushOp(new NumericFormulaField(u, m, fi));
 }
 
 Formula *newFormula()
@@ -517,38 +846,60 @@ FormulaImplementation::~FormulaImplementation()
 
 string FormulaImplementation::str()
 {
-    return ops_.top()->str();
+    return topOp()->str();
 }
 
 string FormulaImplementation::tree()
 {
-    string t = ops_.top()->tree();
-    if (t.back() == ' ') t.pop_back();
-    return t;
+    string s;
+
+    for (auto &op : op_stack_)
+    {
+        if (s.length() > 0) s += " | ";
+        s += op->tree();
+        if (s.back() == ' ') s.pop_back();
+    }
+    return s;
 }
 
 string NumericFormulaConstant::str()
 {
-    return tostrprintf("%.15g %s", constant_, unit());
+    return tostrprintf("%.17g %s", constant_, siunit());
 }
 
 string NumericFormulaConstant::tree()
 {
-    return tostrprintf("<CONST %.15g %s> ", constant_, unitToStringLowerCase(unit()).c_str());
+    Quantity q = siunit().quantity();
+    Unit nearest = siunit().asUnit(q);
+    string sis = siunit().str();
+
+    return tostrprintf("<CONST %.17g %s[%s]%s> ", constant_, unitToStringLowerCase(nearest).c_str(), sis.c_str(), toString(q));
 }
 
-string NumericFormulaAddition::str()
+string NumericFormulaPair::str()
 {
     string left = left_->tree();
     string right = right_->tree();
-    return left+" + "+right;
+    return left+" "+op_+" "+right;
 }
 
-string NumericFormulaAddition::tree()
+string NumericFormulaPair::tree()
 {
     string left = left_->tree();
     string right = right_->tree();
-    return "<ADD "+left+right+"> ";
+    return "<"+name_+" "+left+right+"> ";
+}
+
+string NumericFormulaSquareRoot::str()
+{
+    string inner = inner_->str();
+    return "sqrt("+inner+")";
+}
+
+string NumericFormulaSquareRoot::tree()
+{
+    string inner = inner_->tree();
+    return "<SQRT "+inner+"> ";
 }
 
 string NumericFormulaField::str()
@@ -559,4 +910,41 @@ string NumericFormulaField::str()
 string NumericFormulaField::tree()
 {
     return "<FIELD "+field_info_->vname()+"_"+unitToStringLowerCase(field_info_->defaultUnit())+"> ";
+}
+
+void FormulaImplementation::pushOp(NumericFormula *nf)
+{
+    op_stack_.push_back(unique_ptr<NumericFormula>(nf));
+}
+
+unique_ptr<NumericFormula> FormulaImplementation::popOp()
+{
+    assert(op_stack_.size() > 0);
+    unique_ptr<NumericFormula> nf = std::move(op_stack_.back());
+    op_stack_.pop_back();
+    return nf;
+}
+
+NumericFormula * FormulaImplementation::topOp()
+{
+    assert(op_stack_.size() > 0);
+    return op_stack_.back().get();
+}
+
+NumericFormula * FormulaImplementation::top2Op()
+{
+    assert(op_stack_.size() > 1);
+    return op_stack_[op_stack_.size()-2].get();
+}
+
+string Token::withMarker(const string& formula)
+{
+    string indent;
+    size_t n = start;
+    while (n > 0)
+    {
+        indent += " ";
+        n--;
+    }
+    return formula+"\n"+indent+"^~~~~\n";
 }

@@ -411,9 +411,9 @@ bool parseDV(Telegram *t,
 
         int count = ++dv_count[dv];
         if (count > 1) {
-            strprintf(key, "%s_%d", dv.c_str(), count);
+            strprintf(&key, "%s_%d", dv.c_str(), count);
         } else {
-            strprintf(key, "%s", dv.c_str());
+            strprintf(&key, "%s", dv.c_str());
         }
         DEBUG_PARSER("(dvparser debug) DifVif key is %s\n", key.c_str());
 
@@ -1168,7 +1168,10 @@ bool DVEntry::extractDate(struct tm *out)
         // ..ss ssss
         int sec  = (0x3f) & v[0];
         out->tm_sec = sec;
-        // some daylight saving time decoding needed here....
+        // There are also bits for day of week, week of year.
+        // A bit for if daylight saving is in use or not and its offset.
+        // A bit if it is a leap year.
+        // I am unsure how to deal with this here..... TODO
     }
 
     return ok;

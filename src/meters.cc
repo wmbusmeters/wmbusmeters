@@ -148,7 +148,7 @@ bool registerDriver(function<void(DriverInfo&)> setup)
     return true;
 }
 
-bool lookupDriverInfo(string& driver, DriverInfo *out_di)
+bool lookupDriverInfo(const string& driver, DriverInfo *out_di)
 {
     DriverInfo *di = lookupDriver(driver);
     if (di == NULL)
@@ -156,7 +156,10 @@ bool lookupDriverInfo(string& driver, DriverInfo *out_di)
         return false;
     }
 
-    *out_di = *di;
+    if (out_di != NULL)
+    {
+        *out_di = *di;
+    }
 
     return true;
 }
@@ -735,10 +738,12 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     {
         hex2bin(mi.key, &meter_keys_.confidentiality_key);
     }
-    for (auto s : mi.shells) {
+    for (auto s : mi.shells)
+    {
         addShell(s);
     }
-    for (auto j : mi.extra_constant_fields) {
+    for (auto j : mi.extra_constant_fields)
+    {
         addExtraConstantField(j);
     }
 }
@@ -762,10 +767,12 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     {
         hex2bin(mi.key, &meter_keys_.confidentiality_key);
     }
-    for (auto s : mi.shells) {
+    for (auto s : mi.shells)
+    {
         addShell(s);
     }
-    for (auto j : mi.extra_constant_fields) {
+    for (auto j : mi.extra_constant_fields)
+    {
         addExtraConstantField(j);
     }
 
@@ -789,6 +796,39 @@ void MeterCommonImplementation::addShell(string cmdline)
 void MeterCommonImplementation::addExtraConstantField(string ecf)
 {
     extra_constant_fields_.push_back(ecf);
+}
+
+void MeterCommonImplementation::addExtraCalculatedField(string ecf)
+{
+    verbose("(meter) Adding calculated field: %s\n", ecf.c_str());
+
+    vector<string> parts = splitString(ecf, '=');
+
+    if (parts.size() != 2)
+    {
+        warning("Invalid formula for calculated field. %s\n", ecf.c_str());
+        return;
+    }
+
+    string vname;
+    Unit unit;
+
+    bool ok = extractUnit(parts[0], &vname, &unit);
+    if (!ok)
+    {
+        warning("Could not extract a valid unit from calculated field name %s\n", parts[0].c_str());
+        return;
+    }
+
+    Quantity quantity = toQuantity(unit);
+
+    addNumericFieldWithCalculator(
+        vname,
+        "Calculated: "+ecf,
+        PrintProperty::JSON | PrintProperty::FIELD,
+        quantity,
+        parts[1]
+        );
 }
 
 vector<string> &MeterCommonImplementation::shellCmdlines()
@@ -962,6 +1002,15 @@ void MeterCommonImplementation::addNumericFieldWithCalculator(string vname,
 {
     Formula *f = newFormula();
     bool ok = f->parse(this, formula);
+    if (!ok)
+    {
+        string err = f->errors();
+        warning("Warning! Ignoring calculated field %s because parse failed:\n%s",
+                vname.c_str(),
+                err.c_str());
+        delete f;
+        return;
+    }
     assert(ok);
 
     field_infos_.push_back(
@@ -1393,7 +1442,7 @@ string toString(DriverInfo &di)
     return di.name().str();
 }
 
-MeterDriver toMeterDriver(string& t)
+MeterDriver toMeterDriver(const string& t)
 {
 #define X(mname,linkmodes,info,type,cname) if (t == #mname) return MeterDriver::type;
 LIST_OF_METERS
@@ -1401,7 +1450,7 @@ LIST_OF_METERS
     return MeterDriver::UNKNOWN;
 }
 
-LinkModeSet toMeterLinkModeSet(string& t)
+LinkModeSet toMeterLinkModeSet(const string& t)
 {
 #define X(mname,linkmodes,info,type,cname) if (t == #mname) return LinkModeSet(linkmodes);
 LIST_OF_METERS
@@ -1824,6 +1873,8 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 {
     map<FieldInfo*,DVEntry*> found;
 
+    // Sort the dv_entries based on their offset in the telegram.
+    // I.e. restore the ordering that was implicit in the telegram.
     vector<DVEntry*> sorted_entries;
 
     for (auto &p : t->dv_entries)
@@ -1833,30 +1884,32 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
     sort(sorted_entries.begin(), sorted_entries.end(),
          [](const DVEntry* a, const DVEntry *b) -> bool { return a->offset < b->offset; });
 
-    // Iterate through the data content (dv_entries) in the telegram.
-    for (DVEntry *dve : sorted_entries)
+    // Now go through each field_info defined by the driver.
+    for (FieldInfo &fi : field_infos_)
     {
-        // We have telegram content, a dif-vif-value entry.
-        // Now check for a field info that wants to handle this telegram content entry.
-        for (FieldInfo &fi : field_infos_)
+        int current_match_nr = 0;
+
+        // This field_info has not been matched to a dv_entry before!
+        debug("(meters) trying field info %s(%s)[%d]...\n",
+              fi.vname().c_str(),
+              toString(fi.xuantity()),
+              fi.index());
+
+        // Iterate through dv_entries in the telegram in the same order the telegram presented them.
+        for (DVEntry *dve : sorted_entries)
         {
             if (fi.hasMatcher() && fi.matches(dve))
             {
-                if (found.count(&fi) != 0)
-                {
-                    DVEntry *old = found[&fi];
+                current_match_nr++;
 
-                    verbose("(meter) while processing field extractors ignoring dventry %s at offset %d matching since "
-                            "field %s was already matched against dventry %s at offset %d !\n",
-                            dve->dif_vif_key.str().c_str(),
-                            dve->offset,
-                            fi.vname().c_str(),
-                            old->dif_vif_key.str().c_str(),
-                            old->offset);
-                }
-                else
+                if (fi.matcher().index_nr != IndexNr(current_match_nr))
                 {
-                    // We have field that wants to handle this entry!
+                    // This field info did match, but requires another index nr!
+                    // Increment the current index nr and look for the next match.
+                }
+                else if (found.count(&fi) == 0)
+                {
+                    // This field_info has not been matched to a dv_entry before!
                     debug("(meters) using field info %s(%s)[%d] to extract %s at offset %d\n",
                           fi.vname().c_str(),
                           toString(fi.xuantity()),
@@ -1867,6 +1920,18 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
                     dve->addFieldInfo(&fi);
                     fi.performExtraction(this, t, dve);
                     found[&fi] = dve;
+                }
+                else
+                {
+                    DVEntry *old = found[&fi];
+
+                    verbose("(meter) while processing field extractors ignoring dventry %s at offset %d matching since "
+                            "field %s was already matched against dventry %s at offset %d !\n",
+                            dve->dif_vif_key.str().c_str(),
+                            dve->offset,
+                            fi.vname().c_str(),
+                            old->dif_vif_key.str().c_str(),
+                            old->offset);
                 }
             }
         }
@@ -1999,7 +2064,6 @@ string MeterCommonImplementation::getStringValue(FieldInfo *fi)
             {
                 string more = getStringValue(&f);
                 string joined = joinStatusStrings(value, more);
-                //printf("JOINING >%s< >%s< into >%s<\n", value.c_str(), more.c_str(), joined.c_str());
                 value = joined;
             }
         }
@@ -2186,8 +2250,8 @@ void MeterCommonImplementation::printMeter(Telegram *t,
             if (found.count(&fi) != 0)
             {
                 DVEntry *dve = found[&fi];
-                debug("(meters) render field %s(%s)[%d] with dventry @%d key %s data %s\n",
-                      fi.vname().c_str(), toString(fi.xuantity()), fi.index(),
+                debug("(meters) render field %s(%s %s)[%d] with dventry @%d key %s data %s\n",
+                      fi.vname().c_str(), toString(fi.xuantity()), unitToStringLowerCase(fi.defaultUnit()).c_str(), fi.index(),
                       dve->offset,
                       dve->dif_vif_key.str().c_str(),
                       dve->value.c_str());
@@ -2415,6 +2479,10 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
     {
         shared_ptr<Meter> newm = di->construct(*mi);
         newm->addConversions(mi->conversions);
+        for (string &j : mi->extra_calculated_fields)
+        {
+            newm->addExtraCalculatedField(j);
+        }
         newm->setPollInterval(mi->poll_interval);
         if (mi->selected_fields.size() > 0)
         {
@@ -2451,7 +2519,7 @@ LIST_OF_METERS
     return newm;
 }
 
-bool is_driver_and_extras(string t, MeterDriver *out_driver, DriverName *out_driver_name, string *out_extras)
+bool is_driver_and_extras(const string& t, MeterDriver *out_driver, DriverName *out_driver_name, string *out_extras)
 {
     // piigth(jump=foo)
     // multical21
@@ -2596,11 +2664,10 @@ bool MeterInfo::usesPolling()
         link_modes.has(LinkMode::S2);
 }
 
-bool isValidKey(string& key, MeterDriver mt)
+bool isValidKey(const string& key, MeterDriver mt)
 {
     if (key.length() == 0) return true;
     if (key == "NOKEY") {
-        key = "";
         return true;
     }
     if (mt == MeterDriver::IZAR ||
@@ -2724,8 +2791,23 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
             matcher_.vif_range != VIFRange::None)
         {
             decoded_unit = toDefaultUnit(matcher_.vif_range);
+            debug("(meter) NormalVif(%s) %s decoded %s default %s value %g\n",
+                  toString(matcher_.vif_range),
+                  field_name.c_str(),
+                  unitToStringLowerCase(decoded_unit).c_str(),
+                  unitToStringLowerCase(default_unit_).c_str(),
+                  extracted_double_value);
         }
-        m->setNumericValue(this, decoded_unit, extracted_double_value);
+        else
+        {
+            debug("(meter) AnyVif(%s) %s decoded %s default %s value %g\n",
+                  toString(matcher_.vif_range),
+                  field_name.c_str(),
+                  unitToStringLowerCase(decoded_unit).c_str(),
+                  unitToStringLowerCase(default_unit_).c_str(),
+                  extracted_double_value);
+        }
+        m->setNumericValue(this, default_unit_, convert(extracted_double_value, decoded_unit, default_unit_));
         t->addMoreExplanation(dve->offset, renderJson(m, &m->conversions()));
         found = true;
     }
@@ -2846,7 +2928,17 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     {
         struct tm datetime;
         dve->extractDate(&datetime);
-        string extracted_device_date_time = strdatetime(&datetime);
+        string extracted_device_date_time;
+
+        if (dve->value.size() == 12)
+        {
+            // A long date time sec + timezone field. TODO add timezone data.
+            extracted_device_date_time = strdatetimesec(&datetime);
+        }
+        else
+        {
+            extracted_device_date_time = strdatetime(&datetime);
+        }
         m->setStringValue(this, extracted_device_date_time);
         t->addMoreExplanation(dve->offset, renderJsonText(m));
         found = true;
@@ -2860,11 +2952,14 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         t->addMoreExplanation(dve->offset, renderJsonText(m));
         found = true;
     }
-    else if (matcher_.vif_range == VIFRange::EnhancedIdentification ||
+    else if (matcher_.vif_range == VIFRange::Any ||
+             matcher_.vif_range == VIFRange::EnhancedIdentification ||
              matcher_.vif_range == VIFRange::FabricationNo ||
              matcher_.vif_range == VIFRange::ModelVersion ||
              matcher_.vif_range == VIFRange::SoftwareVersion ||
              matcher_.vif_range == VIFRange::Customer ||
+             matcher_.vif_range == VIFRange::Location ||
+             matcher_.vif_range == VIFRange::SpecialSupplierInformation ||
              matcher_.vif_range == VIFRange::ParameterSet)
     {
         string extracted_id;
@@ -2962,186 +3057,316 @@ bool Address::parse(string &s)
     return true;
 }
 
-void MeterCommonImplementation::addOptionalCommonFields()
+bool checkIf(set<string> &fields, const char *s)
 {
-    addStringFieldWithExtractor(
-        "fabrication_no",
-        "Fabrication number.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::FabricationNo)
-        );
+    if (fields.count(s) > 0)
+    {
+        fields.erase(s);
+        return true;
+    }
 
-    addStringFieldWithExtractor(
-        "enhanced_id",
-        "Enhanced identification number.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::EnhancedIdentification)
-        );
-
-    addStringFieldWithExtractor(
-        "software_version",
-        "Software version.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::SoftwareVersion)
-        );
-
-    addNumericFieldWithExtractor(
-        "operating_time",
-        "How long the meter has been collecting data.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Time,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::OperatingTime)
-        );
-
-    addNumericFieldWithExtractor(
-        "on_time",
-        "How long the meter has been powered up.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Time,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::OnTime)
-        );
-
-    addNumericFieldWithExtractor(
-        "on_time_at_error",
-        "How long the meter has been in an error state while powered up.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Time,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::AtError)
-        .set(VIFRange::OnTime)
-        );
-
-    addStringFieldWithExtractor(
-        "meter_date",
-        "Date when the meter sent the telegram.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::Date)
-        );
-
-    addStringFieldWithExtractor(
-        "meter_date_at_error",
-        "Date when the meter was in error.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        FieldMatcher::build()
-        .set(MeasurementType::AtError)
-        .set(VIFRange::Date)
-        );
-
-    addStringFieldWithExtractor(
-        "meter_datetime",
-        "Date and time when the meter sent the telegram.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::DateTime)
-        );
-
-    addStringFieldWithExtractor(
-        "meter_datetime_at_error",
-        "Date and time when the meter was in error.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        FieldMatcher::build()
-        .set(MeasurementType::AtError)
-        .set(VIFRange::DateTime)
-        );
-
+    return false;
 }
 
-void MeterCommonImplementation::addOptionalFlowRelatedFields()
+void checkFieldsEmpty(set<string> &fields, string name)
 {
-    addNumericFieldWithExtractor(
-        "total",
-        "The total media volume consumption recorded by this meter.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Volume,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::Volume)
-        );
+    if (fields.size() > 0)
+    {
+        string info;
+        for (auto &s : fields) { info += s+" "; }
 
-    addNumericFieldWithExtractor(
-        "total_forward",
-        "The total media volume flowing forward.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Volume,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::Volume)
-        .add(VIFCombinable::ForwardFlow)
-        );
+        warning("(meter) when adding common fields to driver %s, these fields were not found: %s\n",
+                name.c_str(),
+                info.c_str());
+    }
+}
 
-    addNumericFieldWithExtractor(
-        "total_backward",
-        "The total media volume flowing backward.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Volume,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::Volume)
-        .add(VIFCombinable::BackwardFlow)
-        );
+void MeterCommonImplementation::addOptionalCommonFields(string field_names)
+{
+    set<string> fields = splitStringIntoSet(field_names, ',');
 
-    addNumericFieldWithExtractor(
-        "flow_temperature",
-        "Forward media temperature.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Temperature,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::FlowTemperature)
-        );
+    if (checkIf(fields, "fabrication_no"))
+    {
+        addStringFieldWithExtractor(
+            "fabrication_no",
+            "Fabrication number.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::FabricationNo)
+            );
+    }
 
-    addNumericFieldWithExtractor(
-        "return_temperature",
-        "Return media temperature.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Temperature,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::ReturnTemperature)
-        );
+    if (checkIf(fields,"enhanced_id"))
+    {
+        addStringFieldWithExtractor(
+            "enhanced_id",
+            "Enhanced identification number.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::EnhancedIdentification)
+            );
+    }
 
-    addNumericFieldWithExtractor(
-        "flow_return_temperature_difference",
-        "The difference between flow and return media temperatures.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Temperature,
-        VifScaling::AutoSigned,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::TemperatureDifference)
-        );
+    if (checkIf(fields,"software_version"))
+    {
+        addStringFieldWithExtractor(
+            "software_version",
+            "Software version.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::SoftwareVersion)
+            );
+    }
 
-    addNumericFieldWithExtractor(
-        "volume_flow",
-        "Media volume flow.",
-        PrintProperty::JSON | PrintProperty::OPTIONAL,
-        Quantity::Flow,
-        VifScaling::Auto,
-        FieldMatcher::build()
-        .set(MeasurementType::Instantaneous)
-        .set(VIFRange::VolumeFlow)
-        );
+    if (checkIf(fields,"model_version"))
+    {
+        addStringFieldWithExtractor(
+            "model_version",
+            "Meter model version.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ModelVersion)
+            );
+    }
+
+    if (checkIf(fields,"customer"))
+    {
+        addStringFieldWithExtractor(
+            "customer",
+            "Customer name.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Customer)
+            );
+    }
+
+    if (checkIf(fields,"location"))
+    {
+        addStringFieldWithExtractor(
+            "location",
+            "Meter installed at this customer location.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Location)
+            );
+    }
+
+    if (checkIf(fields,"operating_time_h"))
+    {
+        addNumericFieldWithExtractor(
+            "operating_time",
+            "How long the meter has been collecting data.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Time,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::OperatingTime)
+            );
+    }
+
+    if (checkIf(fields,"on_time_h"))
+    {
+        addNumericFieldWithExtractor(
+            "on_time",
+            "How long the meter has been powered up.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Time,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::OnTime)
+            );
+    }
+
+    if (checkIf(fields,"on_time_at_error_h"))
+    {
+        addNumericFieldWithExtractor(
+            "on_time_at_error",
+            "How long the meter has been in an error state while powered up.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Time,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::AtError)
+            .set(VIFRange::OnTime)
+            );
+    }
+
+    if (checkIf(fields,"meter_date"))
+    {
+        addStringFieldWithExtractor(
+            "meter_date",
+            "Date when the meter sent the telegram.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Date)
+            );
+    }
+
+    if (checkIf(fields,"meter_date_at_error"))
+    {
+        addStringFieldWithExtractor(
+            "meter_date_at_error",
+            "Date when the meter was in error.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::AtError)
+            .set(VIFRange::Date)
+            );
+    }
+
+    if (checkIf(fields,"meter_datetime"))
+    {
+        addStringFieldWithExtractor(
+            "meter_datetime",
+            "Date and time when the meter sent the telegram.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::DateTime)
+            );
+    }
+
+    if (checkIf(fields,"meter_datetime_at_error"))
+    {
+        addStringFieldWithExtractor(
+            "meter_datetime_at_error",
+            "Date and time when the meter was in error.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::AtError)
+            .set(VIFRange::DateTime)
+            );
+    }
+
+    checkFieldsEmpty(fields, name());
+}
+
+void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
+{
+    set<string> fields = splitStringIntoSet(field_names, ',');
+
+    if (checkIf(fields,"total_m3"))
+    {
+        addNumericFieldWithExtractor(
+            "total",
+            "The total media volume consumption recorded by this meter.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            );
+    }
+
+    if (checkIf(fields,"total_forward_m3"))
+    {
+        addNumericFieldWithExtractor(
+            "total_forward",
+            "The total media volume flowing forward.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .add(VIFCombinable::ForwardFlow)
+            );
+    }
+
+    if (checkIf(fields,"total_backward_m3"))
+    {
+        addNumericFieldWithExtractor(
+            "total_backward",
+            "The total media volume flowing backward.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .add(VIFCombinable::BackwardFlow)
+            );
+    }
+
+    if (checkIf(fields,"flow_temperature_c"))
+    {
+        addNumericFieldWithExtractor(
+            "flow_temperature",
+            "Forward media temperature.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Temperature,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::FlowTemperature)
+            );
+    }
+
+    if (checkIf(fields,"return_temperature_c"))
+    {
+        addNumericFieldWithExtractor(
+            "return_temperature",
+            "Return media temperature.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Temperature,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ReturnTemperature)
+            );
+    }
+
+    if (checkIf(fields,"flow_return_temperature_difference_c"))
+    {
+        addNumericFieldWithExtractor(
+            "flow_return_temperature_difference",
+            "The difference between flow and return media temperatures.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Temperature,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::TemperatureDifference)
+            );
+    }
+
+    if (checkIf(fields,"volume_flow_m3h"))
+    {
+        addNumericFieldWithExtractor(
+            "volume_flow",
+            "Media volume flow.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Flow,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::VolumeFlow)
+            );
+    }
+
+    if (checkIf(fields,"access_counter"))
+    {
+        addNumericFieldWithExtractor(
+            "access",
+            "Meter access counter.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Counter,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AccessNumber)
+            );
+        }
 }
 
 

@@ -1,0 +1,4 @@
+name=Vatten
+driver=multical21
+id=76348799
+calculate_sum_c=flow_temperature_c+external_temperature_c

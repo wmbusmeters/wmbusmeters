@@ -36,8 +36,6 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields();
-
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter status. Reports OK if neither tpl sts nor error flags have bits set.",
@@ -59,11 +57,6 @@ namespace
                     },
                 }));
 
-        /*
-            .set(MeasurementType::Instantaneous)
-            .set(VIFRange::ErrorFlags)
-            .add(VIFCombinable::StandardConformantDataContent)
-*/
         addNumericFieldWithExtractor(
             "current_temperature",
             "The current temperature.",

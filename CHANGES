@@ -1,4 +1,27 @@
 
+ATTENTION! The topaseskr driver has been refactored to the new driver format.
+The field "battery_life_days_remaining_remaining" has been changed to "battery_life_y".
+
+ATTENTION! When values are missing in the fields output, they were previously
+reported as "nan" but they are now reported as "null".
+
+ATTENTION! The unismart driver has been refactored to the new driver format.
+Several fields were unknown before and are still unknown and their content
+have slightly changed: status and version.
+
+The field "other_counter" is replaced with just "other" and its content changed.
+The field "suppler_info" is replaced with "supplier_info".
+The field "device_date_time" is replaced with "device_timestamp" and now contains seconds
+and a timezone.
+
+ATTENTION! A bug was fixed where the on_time_h and operating_time_h
+(and related error times) were wrong.
+
+ATTENTION! The em24 driver has been refactored to the new driver
+format and some errors in the fields were discovered! The reactive
+consumption and production values were negative. This was in error,
+and due to a missing scale factor for the kvarh unit, they will now be positive.
+
 ATTENTION! The q400 driver has been refactored to the new driver
 format and some errors in the fields were discovered! Since the new driver
 format cannot generate these wrong json fields, the new q400 driver

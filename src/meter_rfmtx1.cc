@@ -102,7 +102,7 @@ void MeterRfmTX1::processContent(Telegram *t)
         int m = bcd2bin(frame[o+1]);
         int s = bcd2bin(frame[o+0]);
 
-        strprintf(meter_datetime_, "%d-%02d-%02d %02d:%02d:%02d",
+        strprintf(&meter_datetime_, "%d-%02d-%02d %02d:%02d:%02d",
                   y, M%99, d%99, H%99, m%99, s%99);
 
         return;

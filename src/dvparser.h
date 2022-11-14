@@ -30,8 +30,8 @@
 
 #define LIST_OF_VIF_RANGES \
     X(Volume,0x10,0x17,Quantity::Volume,Unit::M3) \
-    X(OnTime,0x20,0x23, Quantity::Time, Unit::Second)  \
-    X(OperatingTime,0x24,0x27, Quantity::Time, Unit::Second)  \
+    X(OnTime,0x20,0x23, Quantity::Time, Unit::Hour)  \
+    X(OperatingTime,0x24,0x27, Quantity::Time, Unit::Hour)  \
     X(VolumeFlow,0x38,0x3F, Quantity::Flow, Unit::M3H) \
     X(FlowTemperature,0x58,0x5B, Quantity::Temperature, Unit::C) \
     X(ReturnTemperature,0x5C,0x5F, Quantity::Temperature, Unit::C) \
@@ -41,7 +41,7 @@
     X(HeatCostAllocation,0x6E,0x6E, Quantity::HCA, Unit::HCA) \
     X(Date,0x6C,0x6C, Quantity::PointInTime, Unit::DateTimeLT) \
     X(DateTime,0x6D,0x6D, Quantity::PointInTime, Unit::DateTimeLT) \
-    X(EnergyMJ,0x0E,0x0F, Quantity::Energy, Unit::MJ) \
+    X(EnergyMJ,0x08,0x0F, Quantity::Energy, Unit::MJ) \
     X(EnergyWh,0x00,0x07, Quantity::Energy, Unit::KWH) \
     X(PowerW,0x28,0x2f, Quantity::Power, Unit::KW) \
     X(ActualityDuration,0x74,0x77, Quantity::Time, Unit::Hour) \
@@ -52,6 +52,7 @@
     X(ParameterSet,0x7D0B,0x7D0B, Quantity::Text, Unit::TXT) \
     X(ModelVersion,0x7D0C,0x7D0C, Quantity::Text, Unit::TXT) \
     X(SoftwareVersion,0x7D0F,0x7D0F, Quantity::Text, Unit::TXT) \
+    X(Location,0x7D10,0x7D10, Quantity::Text, Unit::TXT) \
     X(Customer,0x7D11,0x7D11, Quantity::Text, Unit::TXT) \
     X(ErrorFlags,0x7D17,0x7D17, Quantity::Text, Unit::TXT) \
     X(DigitalInput,0x7D1B,0x7D1B, Quantity::Text, Unit::TXT) \
@@ -61,6 +62,7 @@
     X(Current,0x7D50,0x7D5F, Quantity::Current, Unit::Ampere) \
     X(ResetCounter,0x7D60,0x7D60, Quantity::Counter, Unit::COUNTER) \
     X(CumulationCounter,0x7D61,0x7D61, Quantity::Counter, Unit::COUNTER) \
+    X(SpecialSupplierInformation,0x7D67,0x7D67, Quantity::Text, Unit::TXT) \
     X(RemainingBattery,0x7D74,0x7D74, Quantity::Time, Unit::Day) \
     X(DurationSinceReadout,0x7DAC,0x7DAC, Quantity::Time, Unit::Hour) \
     X(AnyVolumeVIF,0x00,0x00, Quantity::Volume, Unit::Unknown) \
@@ -279,6 +281,7 @@ struct IndexNr
     IndexNr(int n) : nr_(n) {}
     int intValue() { return nr_; }
     bool operator==(IndexNr s) { return nr_ == s.nr_; }
+    bool operator!=(IndexNr s) { return nr_ != s.nr_; }
 
 private:
     int nr_;
@@ -380,8 +383,9 @@ struct FieldMatcher
     SubUnitNr subunit_nr_from { 0 };
     SubUnitNr subunit_nr_to { 0 };
 
-    // If the telegram has multiple identical difvif entries, use entry with this index nr.
-    // First entry has nr 1, which is the default value.
+    // If the telegram has multiple identical difvif entries matching this field
+    // and you want to catch the second matching entry, then set the index nr to 2.
+    // The default is 1.
     IndexNr index_nr { 1 };
 
     FieldMatcher() : active(false) { }
