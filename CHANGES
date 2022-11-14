@@ -1,4 +1,6 @@
 
+ATTENTION! Bug in historical data for sensostar driver. Only the most recent month was correct.
+
 ATTENTION! The topaseskr driver has been refactored to the new driver format.
 The field "battery_life_days_remaining_remaining" has been changed to "battery_life_y".
 
