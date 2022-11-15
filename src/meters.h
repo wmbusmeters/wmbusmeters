@@ -66,7 +66,6 @@ LIST_OF_METER_TYPES
     X(fhkvdataiii,T1_bit, HeatCostAllocationMeter,       FHKVDATAIII,   FHKVDataIII)    \
     X(fhkvdataiv, T1_bit, HeatCostAllocationMeter,       FHKVDATAIV,    FHKVDataIV)     \
     X(gransystems,T1_bit, ElectricityMeter, CCx01, CCx01) 		       \
-    X(hydrus,     T1_bit, WaterMeter,       HYDRUS,      Hydrus)       \
     X(hydrocalm3, T1_bit, HeatMeter,        HYDROCALM3,  HydrocalM3)   \
     X(hydrodigit, T1_bit, WaterMeter,       HYDRODIGIT,  Hydrodigit)   \
     X(mkradio3,   T1_bit, WaterMeter,       MKRADIO3,    MKRadio3)     \

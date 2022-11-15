@@ -2671,7 +2671,7 @@ bool isValidKey(const string& key, MeterInfo &mi)
         return true;
     }
     if (mi.driver_name.str() == "izar" ||
-        mi.driver == MeterDriver::HYDRUS)
+        mi.driver_name.str() == "hydrus")
     {
         // These meters can either be OMS compatible 128 bit key (32 hex).
         // Or using an older proprietary encryption with 64 bit keys (16 hex)
