@@ -69,7 +69,6 @@ LIST_OF_METER_TYPES
     X(hydrus,     T1_bit, WaterMeter,       HYDRUS,      Hydrus)       \
     X(hydrocalm3, T1_bit, HeatMeter,        HYDROCALM3,  HydrocalM3)   \
     X(hydrodigit, T1_bit, WaterMeter,       HYDRODIGIT,  Hydrodigit)   \
-    X(izar,       T1_bit, WaterMeter,       IZAR,        Izar)         \
     X(mkradio3,   T1_bit, WaterMeter,       MKRADIO3,    MKRadio3)     \
     X(mkradio4,   T1_bit, WaterMeter,       MKRADIO4,    MKRadio4)     \
     X(multical302,C1_bit|T1_bit, HeatMeter,        MULTICAL302, Multical302)  \
@@ -116,7 +115,8 @@ bool isMeterDriverValid(MeterDriver type, int manufacturer, int media, int versi
 // Ie. do not try to decode a door sensor telegram with a water meter driver.
 bool isMeterDriverReasonableForMedia(MeterDriver type, string driver_name, int media);
 
-bool isValidKey(const string& key, MeterDriver mt);
+struct MeterInfo;
+bool isValidKey(const string& key, MeterInfo &mt);
 
 using namespace std;
 

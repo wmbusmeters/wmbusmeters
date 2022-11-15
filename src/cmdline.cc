@@ -663,7 +663,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             // WMBus ids are 8 hex digits iiiiiiii
             if (!isValidMatchExpressions(id, true)) error("Not a valid id nor a valid meter match expression \"%s\"\n", id.c_str());
         }
-        if (!isValidKey(key, mi.driver)) error("Not a valid meter key \"%s\"\n", key.c_str());
+        if (!isValidKey(key, mi)) error("Not a valid meter key \"%s\"\n", key.c_str());
 
         c->meters.push_back(mi);
 

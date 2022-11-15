@@ -2664,14 +2664,14 @@ bool MeterInfo::usesPolling()
         link_modes.has(LinkMode::S2);
 }
 
-bool isValidKey(const string& key, MeterDriver mt)
+bool isValidKey(const string& key, MeterInfo &mi)
 {
     if (key.length() == 0) return true;
     if (key == "NOKEY") {
         return true;
     }
-    if (mt == MeterDriver::IZAR ||
-        mt == MeterDriver::HYDRUS)
+    if (mi.driver_name.str() == "izar" ||
+        mi.driver == MeterDriver::HYDRUS)
     {
         // These meters can either be OMS compatible 128 bit key (32 hex).
         // Or using an older proprietary encryption with 64 bit keys (16 hex)
