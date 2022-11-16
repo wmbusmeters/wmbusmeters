@@ -1,4 +1,7 @@
 
+ATTENTION! The fhkvdataiv driver has been refactored to the new driver format.
+The field consumption_at_set_date_17 was wrong and has been renamed to field consumption_at_set_date_8.
+
 ATTENTION! Bug in historical data for sensostar driver. Only the most recent month was correct.
 
 ATTENTION! The topaseskr driver has been refactored to the new driver format.

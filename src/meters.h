@@ -63,8 +63,6 @@ LIST_OF_METER_TYPES
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
     X(eurisii,    T1_bit, HeatCostAllocationMeter, EURISII, EurisII)   \
     X(evo868,     T1_bit, WaterMeter,       EVO868,      EVO868)       \
-    X(fhkvdataiii,T1_bit, HeatCostAllocationMeter,       FHKVDATAIII,   FHKVDataIII)    \
-    X(fhkvdataiv, T1_bit, HeatCostAllocationMeter,       FHKVDATAIV,    FHKVDataIV)     \
     X(gransystems,T1_bit, ElectricityMeter, CCx01, CCx01) 		       \
     X(hydrocalm3, T1_bit, HeatMeter,        HYDROCALM3,  HydrocalM3)   \
     X(hydrodigit, T1_bit, WaterMeter,       HYDRODIGIT,  Hydrodigit)   \
