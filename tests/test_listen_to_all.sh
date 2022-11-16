@@ -372,7 +372,7 @@ if [ ! -z "$RES" ]
 then
     echo ERROR: $TESTNAME
     echo -----------------
-    diff $LOGFILE $LOGFILE_EXPECTED
+    meld $LOGFILE $LOGFILE_EXPECTED
     echo -----------------
     exit 1
 else

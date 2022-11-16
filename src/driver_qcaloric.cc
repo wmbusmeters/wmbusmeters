@@ -69,7 +69,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "current_consumption",
-            "The current temperature.",
+            "The current heat cost allocation.",
             PrintProperty::JSON | PrintProperty::FIELD,
             Quantity::HCA,
             VifScaling::Auto,

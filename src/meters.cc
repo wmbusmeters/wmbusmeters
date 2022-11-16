@@ -3369,6 +3369,24 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
         }
 }
 
+void MeterCommonImplementation::addHCARelatedFields(string field_names)
+{
+    set<string> fields = splitStringIntoSet(field_names, ',');
+
+    if (checkIf(fields,"consumption_hca"))
+    {
+        addNumericFieldWithExtractor(
+            "consumption",
+            "The current heat cost allocation for this meter.",
+            PrintProperty::JSON | PrintProperty::FIELD,
+            Quantity::HCA,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::HeatCostAllocation)
+            );
+    }
+}
 
 const char *toString(VifScaling s)
 {
