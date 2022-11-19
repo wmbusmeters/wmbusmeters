@@ -23,9 +23,11 @@
 
 #include<stack>
 
+struct FormulaImplementation;
+
 struct NumericFormula
 {
-    NumericFormula(SIUnit u) : siunit_(u) { }
+    NumericFormula(FormulaImplementation *f, SIUnit u) : formula_(f), siunit_(u) { }
     SIUnit &siunit() { return siunit_; }
     // Calculate the formula and return the value in the given "to" unit.
     virtual double calculate(SIUnit to) = 0;
@@ -33,14 +35,17 @@ struct NumericFormula
     virtual string tree() = 0;
     virtual ~NumericFormula() = 0;
 
+    FormulaImplementation *formula() { return formula_; }
+
     private:
 
+    FormulaImplementation *formula_;
     SIUnit siunit_;
 };
 
 struct NumericFormulaConstant : public NumericFormula
 {
-    NumericFormulaConstant(Unit u, double c) : NumericFormula(u), constant_(c) {}
+    NumericFormulaConstant(FormulaImplementation *f, Unit u, double c) : NumericFormula(f, u), constant_(c) {}
     double calculate(SIUnit to);
     string str();
     string tree();
@@ -51,27 +56,41 @@ struct NumericFormulaConstant : public NumericFormula
     double constant_;
 };
 
-struct NumericFormulaField : public NumericFormula
+struct NumericFormulaMeterField : public NumericFormula
 {
-    NumericFormulaField(Unit u, Meter *m, FieldInfo *fi) : NumericFormula(u), meter_(m), field_info_(fi) {}
+    NumericFormulaMeterField(FormulaImplementation *f, Unit u, FieldInfo *fi) : NumericFormula(f, u), field_info_(fi) {}
+
     double calculate(SIUnit to);
     string str();
     string tree();
-    ~NumericFormulaField();
+    ~NumericFormulaMeterField();
 
     private:
 
-    Meter *meter_;
     FieldInfo *field_info_;
+};
+
+struct NumericFormulaDVEntryField : public NumericFormula
+{
+    NumericFormulaDVEntryField(FormulaImplementation *f, Unit u, DVEntryCounterType ct) : NumericFormula(f, u), counter_(ct) {}
+
+    double calculate(SIUnit to);
+    string str();
+    string tree();
+    ~NumericFormulaDVEntryField();
+
+    private:
+
+    DVEntryCounterType counter_;
 };
 
 struct NumericFormulaPair : public NumericFormula
 {
-    NumericFormulaPair(SIUnit siu,
+    NumericFormulaPair(FormulaImplementation *f, SIUnit siu,
                        unique_ptr<NumericFormula> &a,
                        unique_ptr<NumericFormula> &b,
                        string name, string op)
-        : NumericFormula(siu),
+        : NumericFormula(f, siu),
         left_(std::move(a)),
         right_(std::move(b)),
         name_(name),
@@ -92,10 +111,10 @@ protected:
 
 struct NumericFormulaAddition : public NumericFormulaPair
 {
-    NumericFormulaAddition(SIUnit siu,
+    NumericFormulaAddition(FormulaImplementation *f, SIUnit siu,
                            unique_ptr<NumericFormula> &a,
                            unique_ptr<NumericFormula> &b)
-        : NumericFormulaPair(siu, a, b, "ADD", "+") {}
+        : NumericFormulaPair(f, siu, a, b, "ADD", "+") {}
 
     double calculate(SIUnit to);
 
@@ -104,10 +123,10 @@ struct NumericFormulaAddition : public NumericFormulaPair
 
 struct NumericFormulaSubtraction : public NumericFormulaPair
 {
-    NumericFormulaSubtraction(SIUnit siu,
+    NumericFormulaSubtraction(FormulaImplementation *f, SIUnit siu,
                               unique_ptr<NumericFormula> &a,
                               unique_ptr<NumericFormula> &b)
-        : NumericFormulaPair(siu, a, b, "SUB", "-") {}
+        : NumericFormulaPair(f, siu, a, b, "SUB", "-") {}
 
     double calculate(SIUnit to);
 
@@ -116,10 +135,10 @@ struct NumericFormulaSubtraction : public NumericFormulaPair
 
 struct NumericFormulaMultiplication : public NumericFormulaPair
 {
-    NumericFormulaMultiplication(SIUnit siu,
+    NumericFormulaMultiplication(FormulaImplementation *f, SIUnit siu,
                                  unique_ptr<NumericFormula> &a,
                                  unique_ptr<NumericFormula> &b)
-        : NumericFormulaPair(siu, a, b, "TIMES", "×") {}
+        : NumericFormulaPair(f, siu, a, b, "TIMES", "×") {}
 
     double calculate(SIUnit to);
 
@@ -128,10 +147,10 @@ struct NumericFormulaMultiplication : public NumericFormulaPair
 
 struct NumericFormulaDivision : public NumericFormulaPair
 {
-    NumericFormulaDivision(SIUnit siu,
+    NumericFormulaDivision(FormulaImplementation *f, SIUnit siu,
                            unique_ptr<NumericFormula> &a,
                            unique_ptr<NumericFormula> &b)
-        : NumericFormulaPair(siu, a, b, "DIV", "÷") {}
+        : NumericFormulaPair(f, siu, a, b, "DIV", "÷") {}
 
     double calculate(SIUnit to);
 
@@ -140,10 +159,10 @@ struct NumericFormulaDivision : public NumericFormulaPair
 
 struct NumericFormulaExponentiation : public NumericFormulaPair
 {
-    NumericFormulaExponentiation(SIUnit siu,
+    NumericFormulaExponentiation(FormulaImplementation *f, SIUnit siu,
                                  unique_ptr<NumericFormula> &a,
                                  unique_ptr<NumericFormula> &b)
-        : NumericFormulaPair(siu, a, b, "EXP", "^") {}
+        : NumericFormulaPair(f, siu, a, b, "EXP", "^") {}
 
     double calculate(SIUnit to);
 
@@ -152,9 +171,9 @@ struct NumericFormulaExponentiation : public NumericFormulaPair
 
 struct NumericFormulaSquareRoot : public NumericFormula
 {
-    NumericFormulaSquareRoot(SIUnit siu,
+    NumericFormulaSquareRoot(FormulaImplementation *f, SIUnit siu,
                              unique_ptr<NumericFormula> &inner)
-        : NumericFormula(siu), inner_(std::move(inner)) {}
+        : NumericFormula(f, siu), inner_(std::move(inner)) {}
 
     double calculate(SIUnit to);
     string str();
@@ -206,37 +225,39 @@ struct FormulaImplementation : public Formula
     bool parse(Meter *m, const string &f);
     bool valid();
     string errors();
-    double calculate(Unit to);
+    double calculate(Unit to, DVEntry *dve = NULL, Meter *m = NULL);
     void clear();
     string str();
     string tree();
+    void setMeter(Meter *m);
+    void setDVEntry(DVEntry *dve);
 
-    // Pushes a constant on the stack.
+    // Pushes a constant on the formula builder stack.
     void doConstant(Unit u, double c);
-    // Pushes a field read on the stack.
-    void doField(Unit u, Meter *m, FieldInfo *fi);
-    // Pops the two top nodes of the stack and pushes an addition on the stack.
+    // Pushes a meter field read on the formula builder stack.
+    void doMeterField(Unit u, FieldInfo *fi);
+    // Pushes a dve entry field read on the formula builder stack.
+    void doDVEntryField(Unit u, DVEntryCounterType ct);
+    // Pops the two top nodes of the formula builder stack and pushes an addition on the formula builder stack.
     // The target unit will be the first unit of the two operands.
     void doAddition();
-    // Pops the two top nodes of the stack and pushes a subtraction on the stack.
+    // Pops the two top nodes of the formula builder stack and pushes a subtraction on the formula builder stack.
     // The target unit will be the first unit of the two operands.
     void doSubtraction();
-    // Pops the two top nodes of the stack and pushes a multiplication on the stack.
+    // Pops the two top nodes of the formula builder stack and pushes a multiplication on the formula builder stack.
     // The target unit will be multiplication of the SI Units.
     void doMultiplication();
-    // Pops the two top nodes of the stack and pushes a division on the stack.
+    // Pops the two top nodes of the formula builder stack and pushes a division on the formula builder stack.
     // The target unit will be first SIUnit divided by the second SIUnit.
     void doDivision();
-    // Pops the two top nodes of the stack and pushes an exponentiation on the stack.
+    // Pops the two top nodes of the formula builder stack and pushes an exponentiation on the formula builder stack.
     // The target unit will be first SIUnit exponentiated.
     void doExponentiation();
-    // Pops the single top node of the stack and pushes an squareroot on the stack.
+    // Pops the single top node of the formula builder stack and pushes an squareroot on the formula builder stack.
     // The target unit will be SIUnit square rooted.
     void doSquareRoot();
 
     ~FormulaImplementation();
-
-private:
 
     bool tokenize();
     bool go();
@@ -271,14 +292,34 @@ private:
     NumericFormula *topOp();
     NumericFormula *top2Op();
 
+    Meter *meter() { return meter_; }
+    DVEntry *dventry() { return dventry_; }
+
+private:
+
     bool valid_ = true;
     std::vector<std::unique_ptr<NumericFormula>> op_stack_;
     std::vector<Token> tokens_;
     std::string formula_; // To be parsed.
-    Meter *meter_; // To be referenced when parsing.
+    Meter *meter_; // To be referenced when parsing and calculating.
+    DVEntry *dventry_; // To be referenced when calculating.
 
     // Any errors during parsing are store here.
     std::vector<std::string> errors_;
+};
+
+struct StringInterpolatorImplementation : public StringInterpolator
+{
+    // Create a string interpolation from for example: "historic_{storage_counter / - 12 counter}_value"
+    // Which for a dventry with storage 13 will "generate historic_1_value"
+    bool parse(const std::string &f);
+    std::string apply(DVEntry *dve);
+    ~StringInterpolatorImplementation();
+
+    // The strings store "historic_" "_value"
+    std::vector<std::string> strings_;
+    // The formula stores the parsed "storage_counter / - 12 counter" formula.
+    std::vector<std::unique_ptr<Formula>> formulas_;
 };
 
 #endif

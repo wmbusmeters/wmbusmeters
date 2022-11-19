@@ -319,22 +319,7 @@ struct FieldInfo
               function<void(string)> set_string_value_override,
               Translate::Lookup lookup,
               Formula *formula
-        ) :
-        index_(index),
-        vname_(vname),
-        xuantity_(xuantity),
-        default_unit_(default_unit),
-        vif_scaling_(vif_scaling),
-        matcher_(matcher),
-        help_(help),
-        print_properties_(print_properties),
-        get_numeric_value_override_(get_numeric_value_override),
-        get_string_value_override_(get_string_value_override),
-        set_numeric_value_override_(set_numeric_value_override),
-        set_string_value_override_(set_string_value_override),
-        lookup_(lookup),
-        formula_(formula)
-    {}
+        );
 
     int index() { return index_; }
     string vname() { return vname_; }
@@ -369,9 +354,9 @@ struct FieldInfo
     string renderJsonText(Meter *m);
     // Render the field name based on the actual field from the telegram.
     // A FieldInfo can be declared to handle any number of storage fields of a certain range.
-    // The vname is then a pattern total_at_month_{storagenr-32} that gets translated into
-    // total_at_month_2 (for the dventry with storage nr 34.)
-    string generateFieldName();
+    // The vname is then a pattern total_at_month_{storage_counter} that gets translated into
+    // total_at_month_2 (for the dventry with storage nr 2.)
+    string generateFieldName(DVEntry *dve);
     // Check if the meter object stores a value for this field.
     bool hasValue(Meter *m);
 
@@ -402,6 +387,12 @@ private:
 
     // For calculated fields.
     unique_ptr<Formula> formula_;
+
+    // For the generated field name.
+    unique_ptr<StringInterpolator> field_name_;
+
+    // If the field name template could not be parsed.
+    bool valid_field_name_;
 };
 
 struct BusManager;

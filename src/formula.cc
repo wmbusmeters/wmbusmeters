@@ -22,10 +22,12 @@
 
 #include<cmath>
 #include<string.h>
+#include<limits>
 
 NumericFormula::~NumericFormula() { }
 NumericFormulaConstant::~NumericFormulaConstant() { }
-NumericFormulaField::~NumericFormulaField() { }
+NumericFormulaMeterField::~NumericFormulaMeterField() { }
+NumericFormulaDVEntryField::~NumericFormulaDVEntryField() { }
 NumericFormulaPair::~NumericFormulaPair() { }
 NumericFormulaAddition::~NumericFormulaAddition() { }
 NumericFormulaSubtraction::~NumericFormulaSubtraction() { }
@@ -39,14 +41,27 @@ double NumericFormulaConstant::calculate(SIUnit to)
     return siunit().convertTo(constant_, to);
 }
 
-double NumericFormulaField::calculate(SIUnit to_si_unit)
+double NumericFormulaMeterField::calculate(SIUnit to_si_unit)
 {
+    if (formula()->meter() == NULL) return std::numeric_limits<double>::quiet_NaN();
+
     Unit field_unit = field_info_->defaultUnit();
-    double val = meter_->getNumericValue(field_info_, field_unit);
+    double val = formula()->meter()->getNumericValue(field_info_, field_unit);
 
     const SIUnit& field_si_unit = toSIUnit(field_unit);
 
     return field_si_unit.convertTo(val, to_si_unit);
+}
+
+double NumericFormulaDVEntryField::calculate(SIUnit to_si_unit)
+{
+    if (formula()->dventry() == NULL) return std::numeric_limits<double>::quiet_NaN();
+
+    double val = formula()->dventry()->getCounter(counter_);
+
+    const SIUnit& counter_si_unit = toSIUnit(Unit::COUNTER);
+
+    return counter_si_unit.convertTo(val, to_si_unit);
 }
 
 double NumericFormulaAddition::calculate(SIUnit to)
@@ -179,6 +194,7 @@ void FormulaImplementation::clear()
     op_stack_.clear();
     tokens_.clear();
     formula_ = "";
+    dventry_ = NULL;
     meter_ = NULL;
 }
 
@@ -605,25 +621,38 @@ void FormulaImplementation::handleField(Token *field)
     Unit named_unit;                      // The extracted unit: m3
     bool ok = extractUnit(field_name, &vname, &named_unit);
 
-    debug("(formula) handle field %s into %s %s\n", field_name.c_str(), vname.c_str(), unitToStringLowerCase(named_unit).c_str());
-
     if (!ok)
     {
         errors_.push_back("Cannot extra a valid unit from field name \""+field_name+"\"\n"+field->withMarker(formula_));
         return;
     }
 
-    Quantity q = toQuantity(named_unit);
-    FieldInfo *f = meter_->findFieldInfo(vname, q);
+    DVEntryCounterType dve = toDVEntryCounterType(field_name);
 
-    if (f == NULL)
+    if (dve != DVEntryCounterType::UNKNOWN)
     {
-        errors_.push_back("No such field found \""+field_name+"\"\n"+field->withMarker(formula_));
-        valid_ = false;
-        return;
-    }
+        debug("(formula) handle dventry field %s into %s %s\n", field_name.c_str(), vname.c_str(),
+              unitToStringLowerCase(named_unit).c_str());
 
-    doField(named_unit, meter_, f);
+        doDVEntryField(named_unit, dve);
+    }
+    else
+    {
+        debug("(formula) handle meter field %s into %s %s\n", field_name.c_str(), vname.c_str(),
+              unitToStringLowerCase(named_unit).c_str());
+
+        Quantity q = toQuantity(named_unit);
+        FieldInfo *f = meter_->findFieldInfo(vname, q);
+
+        if (f == NULL)
+        {
+            errors_.push_back("No such field found \""+field_name+"\"\n"+field->withMarker(formula_));
+            valid_ = false;
+            return;
+        }
+
+        doMeterField(named_unit, f);
+    }
 }
 
 bool FormulaImplementation::go()
@@ -649,6 +678,8 @@ Token *FormulaImplementation::LA(size_t i)
 bool FormulaImplementation::parse(Meter *m, const string &f)
 {
     bool ok;
+
+    clear();
 
     meter_ = m;
     formula_ = f;
@@ -690,8 +721,11 @@ string FormulaImplementation::errors()
     return s;
 }
 
-double FormulaImplementation::calculate(Unit to)
+double FormulaImplementation::calculate(Unit to, DVEntry *dve, Meter *m)
 {
+    if (dve != NULL) dventry_ = dve;
+    if (m != NULL) meter_ = m;
+
     if (!valid_)
     {
         string t = tree();
@@ -711,7 +745,7 @@ double FormulaImplementation::calculate(Unit to)
 
 void FormulaImplementation::doConstant(Unit u, double c)
 {
-    pushOp(new NumericFormulaConstant(u, c));
+    pushOp(new NumericFormulaConstant(this, u, c));
 }
 
 void FormulaImplementation::doAddition()
@@ -726,7 +760,7 @@ void FormulaImplementation::doAddition()
 
     unique_ptr<NumericFormula> left_node = popOp();
 
-    pushOp(new NumericFormulaAddition(left_siunit, left_node, right_node));
+    pushOp(new NumericFormulaAddition(this, left_siunit, left_node, right_node));
 
     assert(left_siunit.canConvertTo(right_siunit));
 }
@@ -743,7 +777,7 @@ void FormulaImplementation::doSubtraction()
 
     unique_ptr<NumericFormula> left_node = popOp();
 
-    pushOp(new NumericFormulaSubtraction(left_siunit, left_node, right_node));
+    pushOp(new NumericFormulaSubtraction(this, left_siunit, left_node, right_node));
 
     assert(left_siunit.canConvertTo(right_siunit));
 }
@@ -766,7 +800,7 @@ void FormulaImplementation::doMultiplication()
     string rsis = right_siunit.info();
     string msis = mul_siunit.info();
 
-    pushOp(new NumericFormulaMultiplication(mul_siunit, left_node, right_node));
+    pushOp(new NumericFormulaMultiplication(this, mul_siunit, left_node, right_node));
 }
 
 void FormulaImplementation::doDivision()
@@ -789,7 +823,7 @@ void FormulaImplementation::doDivision()
 
     debug("(formula) unit %s DIV %s ==> %s\n", lsis.c_str(), rsis.c_str(), dsis.c_str());
 
-    pushOp(new NumericFormulaDivision(div_siunit, left_node, right_node));
+    pushOp(new NumericFormulaDivision(this, div_siunit, left_node, right_node));
 }
 
 void FormulaImplementation::doExponentiation()
@@ -804,7 +838,7 @@ void FormulaImplementation::doExponentiation()
 
     unique_ptr<NumericFormula> left_node = popOp();
 
-    pushOp(new NumericFormulaDivision(left_siunit, left_node, right_node));
+    pushOp(new NumericFormulaDivision(this, left_siunit, left_node, right_node));
 
 //    assert(canConvert(left_siunit, right_siunit));
 }
@@ -819,16 +853,21 @@ void FormulaImplementation::doSquareRoot()
 
     unique_ptr<NumericFormula> inner_node = popOp();
 
-    pushOp(new NumericFormulaSquareRoot(siunit, inner_node));
+    pushOp(new NumericFormulaSquareRoot(this, siunit, inner_node));
 }
 
 
-void FormulaImplementation::doField(Unit u, Meter *m, FieldInfo *fi)
+void FormulaImplementation::doMeterField(Unit u, FieldInfo *fi)
 {
     SIUnit from_si_unit = toSIUnit(fi->defaultUnit());
     SIUnit to_si_unit = toSIUnit(u);
     assert(from_si_unit.canConvertTo(to_si_unit));
-    pushOp(new NumericFormulaField(u, m, fi));
+    pushOp(new NumericFormulaMeterField(this, u, fi));
+}
+
+void FormulaImplementation::doDVEntryField(Unit u, DVEntryCounterType ct)
+{
+    pushOp(new NumericFormulaDVEntryField(this, Unit::COUNTER, ct));
 }
 
 Formula *newFormula()
@@ -860,6 +899,16 @@ string FormulaImplementation::tree()
         if (s.back() == ' ') s.pop_back();
     }
     return s;
+}
+
+void FormulaImplementation::setMeter(Meter *m)
+{
+    meter_ = m;
+}
+
+void FormulaImplementation::setDVEntry(DVEntry *dve)
+{
+    dventry_ = dve;
 }
 
 string NumericFormulaConstant::str()
@@ -902,14 +951,24 @@ string NumericFormulaSquareRoot::tree()
     return "<SQRT "+inner+"> ";
 }
 
-string NumericFormulaField::str()
+string NumericFormulaMeterField::str()
 {
     return field_info_->vname()+"_"+unitToStringLowerCase(field_info_->defaultUnit());
 }
 
-string NumericFormulaField::tree()
+string NumericFormulaMeterField::tree()
 {
     return "<FIELD "+field_info_->vname()+"_"+unitToStringLowerCase(field_info_->defaultUnit())+"> ";
+}
+
+string NumericFormulaDVEntryField::str()
+{
+    return toString(counter_);
+}
+
+string NumericFormulaDVEntryField::tree()
+{
+    return string("<DVENTRY ")+toString(counter_)+"> ";
 }
 
 void FormulaImplementation::pushOp(NumericFormula *nf)
@@ -947,4 +1006,87 @@ string Token::withMarker(const string& formula)
         n--;
     }
     return formula+"\n"+indent+"^~~~~\n";
+}
+
+StringInterpolator *newStringInterpolator()
+{
+    return new StringInterpolatorImplementation();
+}
+
+StringInterpolator::~StringInterpolator()
+{
+}
+
+StringInterpolatorImplementation::~StringInterpolatorImplementation()
+{
+}
+
+bool StringInterpolatorImplementation::parse(const std::string &f)
+{
+    debug("(stringinterpolator) parsing \"%s\"\n", f.c_str());
+
+    strings_.clear();
+    formulas_.clear();
+
+    size_t prev_string_start = 0;
+    size_t next_start_brace = f.find('{', prev_string_start);
+
+    while (next_start_brace != string::npos)
+    {
+        // Push the string up to the brace.
+        string part = f.substr(prev_string_start, next_start_brace - prev_string_start);
+        debug("(stringinterpolator) string \"%s\"\n", part.c_str());
+        strings_.push_back(part);
+
+        // Find the end of the formula.
+        size_t next_end_brace = f.find('}', next_start_brace);
+        if (next_end_brace == string::npos) return false; // Oups, missing closing }
+
+        string formula = f.substr(next_start_brace+1, next_end_brace - next_start_brace - 1);
+        debug("(stringinterpolator) formula \"%s\"\n", formula.c_str());
+
+        formulas_.push_back(unique_ptr<Formula>(newFormula()));
+        bool ok = formulas_.back()->parse(NULL, formula);
+        if (!ok) return false;
+
+        prev_string_start = next_end_brace+1;
+
+        next_start_brace = f.find('{', prev_string_start);
+    }
+
+    // Add any remaining string segment after the last formula.
+    if (prev_string_start < f.length())
+    {
+        string part = f.substr(prev_string_start);
+        debug("(stringinterpolator) last string \"%s\"\n", part.c_str());
+        strings_.push_back(part);
+    }
+
+    return true;
+}
+
+string StringInterpolatorImplementation::apply(DVEntry *dve)
+{
+    string result;
+    size_t s = 0;
+    size_t f = 0;
+
+    for (;;)
+    {
+        if (s >= strings_.size() && f >= formulas_.size()) break;
+
+        if (s < strings_.size())
+        {
+            result += strings_[s];
+            s++;
+        }
+
+        if (f < formulas_.size())
+        {
+            result += tostrprintf("%g", formulas_[f]->calculate(Unit::COUNTER, dve));
+            f++;
+        }
+    }
+
+    return result;
 }

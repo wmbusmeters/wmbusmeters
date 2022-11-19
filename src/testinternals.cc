@@ -69,6 +69,8 @@ bool verbose_ = false;
     X(formulas_divide_constants)                \
     X(formulas_sqrt_constants)                  \
     X(formulas_errors)                          \
+    X(formulas_dventries)                       \
+    X(formulas_stringinterpolation)             \
 
 #define X(t) void test_##t();
 LIST_OF_TESTS
@@ -2105,8 +2107,9 @@ void test_formulas_building()
         meter->handleTelegram(t.about, frame, true, &id, &match, &t);
 
         f->clear();
+        f->setMeter(meter.get());
 
-        f->doField(Unit::C, meter.get(), fi_flow);
+        f->doMeterField(Unit::C, fi_flow);
         v = f->calculate(Unit::C);
         if (v != 31)
         {
@@ -2114,9 +2117,10 @@ void test_formulas_building()
         }
 
         f->clear();
+        f->setMeter(meter.get());
 
-        f->doField(Unit::C, meter.get(), fi_flow);
-        f->doField(Unit::C, meter.get(), fi_ext);
+        f->doMeterField(Unit::C, fi_flow);
+        f->doMeterField(Unit::C, fi_ext);
         f->doAddition();
         v = f->calculate(Unit::C);
         if (v != 50)
@@ -2124,9 +2128,8 @@ void test_formulas_building()
             printf("ERROR in test formula 6 expected 50 but got %lf\n", v);
         }
 
-
         // Check that trying to add a field reference expecting a non-convertible unit, will fail!
-        f->clear();
+//        f->clear();
 //        assert(false == f->doField(Unit::M3, meter.get(), fi_flow));
     }
 
@@ -2157,11 +2160,12 @@ void test_formulas_building()
         unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
 
         f->clear();
+        f->setMeter(meter.get());
 
-        f->doField(Unit::KW, meter.get(), fi_p1);
-        f->doField(Unit::KW, meter.get(), fi_p2);
+        f->doMeterField(Unit::KW, fi_p1);
+        f->doMeterField(Unit::KW, fi_p2);
         f->doAddition();
-        f->doField(Unit::KW, meter.get(), fi_p3);
+        f->doMeterField(Unit::KW, fi_p3);
         f->doAddition();
 
         v = f->calculate(Unit::KW);
@@ -2329,6 +2333,88 @@ void test_formulas_errors()
                            "Cannot add [kwh|Energy|3.6×10⁶kgm²s⁻²] to [kw|Power|1000kgm²s⁻³]!\n"
                            "10 kwh + 20 kw\n"
                            "       ^~~~~\n");
+    }
+
+}
+
+void test_formulas_dventries()
+{
+    FormulaImplementation fi;
+
+    DVEntry dve;
+    dve.storage_nr = 17;
+    dve.tariff_nr = 3;
+    dve.subunit_nr = 2;
+
+    unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
+
+    string s = "(storage_counter - 12 counter) *  tariff_counter - subunit_counter";
+    f->parse(NULL, s);
+
+    f->setDVEntry(&dve);
+    double v = f->calculate(Unit::COUNTER);
+
+    if (v != 13.0)
+    {
+        printf("ERROR when calculating:\n%s\nExpected: %g but got: %g\n",
+               s.c_str(),
+               13.0,
+               v);
+    }
+
+    dve.storage_nr = 18;
+    dve.tariff_nr = 0;
+    dve.subunit_nr = 0;
+
+    s = "(storage_counter - 8counter) / 2counter";
+    f->parse(NULL, s);
+
+    f->setDVEntry(&dve);
+    v = f->calculate(Unit::COUNTER);
+
+    if (v != 5.0)
+    {
+        printf("ERROR when calculating:\n%s\nExpected: %g but got: %g\n",
+               s.c_str(),
+               5.0,
+               v);
+    }
+
+}
+
+void test_formulas_stringinterpolation()
+{
+    DVEntry dve;
+    dve.storage_nr = 17;
+    dve.tariff_nr = 3;
+    dve.subunit_nr = 2;
+
+    unique_ptr<StringInterpolator> f = unique_ptr<StringInterpolator>(new StringInterpolatorImplementation());
+
+    string p = "history_{storage_counter-12counter}_value";
+    f->parse(p);
+    string s = f->apply(&dve);
+    string e = "history_5_value";
+
+    if (s != e)
+    {
+        printf("ERROR when interpolating\n%s\nExpected: %s but got: %s\n",
+               p.c_str(),
+               e.c_str(),
+               s.c_str());
+    }
+
+    p = "{storage_counter}_{tariff_counter}_{2counter*subunit_counter}";
+    f->parse(p);
+    s = f->apply(&dve);
+    e = "17_3_4";
+
+    if (s != e)
+    {
+        printf("ERROR when interpolating\n%s\nExpected: %s but got: %s\n",
+               p.c_str(),
+               e.c_str(),
+               s.c_str());
     }
 
 }

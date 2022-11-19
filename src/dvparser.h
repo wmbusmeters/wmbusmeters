@@ -234,6 +234,17 @@ private:
     int nr_;
 };
 
+enum class DVEntryCounterType
+{
+    UNKNOWN,
+    STORAGE_COUNTER,
+    TARIFF_COUNTER,
+    SUBUNIT_COUNTER
+};
+
+DVEntryCounterType toDVEntryCounterType(const std::string &s);
+const char *toString(DVEntryCounterType ct);
+
 struct StorageNr
 {
     StorageNr(int n) : nr_(n) {}
@@ -343,6 +354,8 @@ struct DVEntry
     void addFieldInfo(FieldInfo *fi) { field_infos_.insert(fi); }
     bool hasFieldInfo(FieldInfo *fi) { return field_infos_.count(fi) > 0; }
     std::string str();
+
+    double getCounter(DVEntryCounterType ct);
 
 private:
     std::set<FieldInfo*> field_infos_; // The field infos selected to decode this entry.

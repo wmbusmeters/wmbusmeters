@@ -21,6 +21,7 @@
 
 #include<assert.h>
 #include<memory.h>
+#include<limits>
 
 // The parser should not crash on invalid data, but yeah, when I
 // need to debug it because it crashes on invalid data, then
@@ -1069,6 +1070,19 @@ bool DVEntry::extractReadableString(string *out)
     return true;
 }
 
+double DVEntry::getCounter(DVEntryCounterType ct)
+{
+    switch (ct)
+    {
+    case DVEntryCounterType::STORAGE_COUNTER: return storage_nr.intValue();
+    case DVEntryCounterType::TARIFF_COUNTER: return tariff_nr.intValue();
+    case DVEntryCounterType::SUBUNIT_COUNTER: return subunit_nr.intValue();
+    case DVEntryCounterType::UNKNOWN: break;
+    }
+
+    return std::numeric_limits<double>::quiet_NaN();
+}
+
 string DVEntry::str()
 {
     string s =
@@ -1308,4 +1322,25 @@ string FieldMatcher::str()
     }
 
     return s;
+}
+
+DVEntryCounterType toDVEntryCounterType(const std::string &s)
+{
+    if (s == "storage_counter") return DVEntryCounterType::STORAGE_COUNTER;
+    if (s == "tariff_counter") return DVEntryCounterType::TARIFF_COUNTER;
+    if (s == "subunit_counter") return DVEntryCounterType::SUBUNIT_COUNTER;
+    return DVEntryCounterType::UNKNOWN;
+}
+
+const char *toString(DVEntryCounterType ct)
+{
+    switch (ct)
+    {
+    case DVEntryCounterType::UNKNOWN: return "unknown";
+    case DVEntryCounterType::STORAGE_COUNTER: return "storage_counter";
+    case DVEntryCounterType::TARIFF_COUNTER: return "tariff_counter";
+    case DVEntryCounterType::SUBUNIT_COUNTER: return "subunit_counter";
+    }
+
+    return "unknown";
 }

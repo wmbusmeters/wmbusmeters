@@ -25,6 +25,7 @@
 
 struct Meter;
 struct FieldInfo;
+struct DVEntry;
 
 struct Formula
 {
@@ -35,17 +36,34 @@ struct Formula
     // Returns lines of error messages.
     virtual std::string errors() = 0;
     // Calculate the formula. Returns nan if it could not be calculated.
-    virtual double calculate(Unit to) = 0;
+    // If a dventry is supplied, then the values storage_counter, tariff_counter, subunit_counter are available.
+    // If a meter is supplied it overrides the meter supplied when parsing.
+    virtual double calculate(Unit to, DVEntry *dve = NULL, Meter *m = NULL) = 0;
     // Clear the formula, ie drop any parsed tree.
     virtual void clear() = 0;
     // Return a regenerated formula string.
     virtual std::string str() = 0;
     // Return the formula in a format where the tree structure is explicit.
     virtual std::string tree() = 0;
+    // Specify which meter to read the meter fields from.
+    virtual void setMeter(Meter *m) = 0;
+    // Specify which dventry to read counter fields from.
+    virtual void setDVEntry(DVEntry *dve) = 0;
 
     virtual ~Formula() = 0;
 };
 
 Formula *newFormula();
+
+struct StringInterpolator
+{
+    // Create a string interpolation from for example: "historic_{storage_counter / - 12 counter}_value"
+    // Which for a dventry with storage 13 will "generate historic_1_value"
+    virtual bool parse(const std::string &f) = 0;
+    virtual std::string apply(DVEntry *dve) = 0;
+    virtual ~StringInterpolator() = 0;
+};
+
+StringInterpolator *newStringInterpolator();
 
 #endif

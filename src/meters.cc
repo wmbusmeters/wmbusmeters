@@ -2104,6 +2104,44 @@ string MeterCommonImplementation::renderJsonOnlyDefaultUnit(string vname, Quanti
     return fi->renderJsonOnlyDefaultUnit(this);
 }
 
+FieldInfo::FieldInfo(int index,
+                     string vname,
+                     Quantity xuantity,
+                     Unit default_unit,
+                     VifScaling vif_scaling,
+                     FieldMatcher matcher,
+                     string help,
+                     PrintProperties print_properties,
+                     function<double(Unit)> get_numeric_value_override,
+                     function<string()> get_string_value_override,
+                     function<void(Unit,double)> set_numeric_value_override,
+                     function<void(string)> set_string_value_override,
+                     Translate::Lookup lookup,
+                     Formula *formula
+        ) :
+        index_(index),
+        vname_(vname),
+        xuantity_(xuantity),
+        default_unit_(default_unit),
+        vif_scaling_(vif_scaling),
+        matcher_(matcher),
+        help_(help),
+        print_properties_(print_properties),
+        get_numeric_value_override_(get_numeric_value_override),
+        get_string_value_override_(get_string_value_override),
+        set_numeric_value_override_(set_numeric_value_override),
+        set_string_value_override_(set_string_value_override),
+        lookup_(lookup),
+        formula_(formula)
+{
+    field_name_ = unique_ptr<StringInterpolator>(newStringInterpolator());
+    valid_field_name_ = field_name_->parse(vname);
+    if (!valid_field_name_)
+    {
+        warning("(meter) field template \"%s\" could not be parsed!\n", vname.c_str());
+    }
+}
+
 string FieldInfo::renderJsonOnlyDefaultUnit(Meter *m)
 {
     return renderJson(m, NULL);
@@ -2114,17 +2152,19 @@ string FieldInfo::renderJsonText(Meter *m)
     return renderJson(m, NULL);
 }
 
-string FieldInfo::generateFieldName()
+string FieldInfo::generateFieldName(DVEntry *dve)
 {
+    if (!valid_field_name_) return "bad_field_name";
+
     if (xuantity_ == Quantity::Text)
     {
-        return vname();
+        return field_name_->apply(dve);
     }
 
     string default_unit = unitToStringLowerCase(defaultUnit());
-    string var = vname();
+    string var = field_name_->apply(dve);
 
-    return vname()+"_"+default_unit;
+    return var+"_"+default_unit;
 }
 
 string FieldInfo::renderJson(Meter *m, vector<Unit> *conversions)
@@ -2774,7 +2814,7 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
     assert(key == "" || dve->dif_vif_key.str() == key);
 
     // Generate the json field name:
-    string field_name = generateFieldName();
+    string field_name = generateFieldName(dve);
 
     double extracted_double_value = NAN;
     if (dve->extractDouble(&extracted_double_value,
@@ -2899,7 +2939,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     assert(key == "" || dve->dif_vif_key.str() == key);
 
     // Generate the json field name:
-    string field_name = generateFieldName();
+    string field_name = generateFieldName(dve);
 
     uint64_t extracted_bits {};
     if (lookup_.hasLookups() || (print_properties_.hasJOINTPLSTATUS()))
