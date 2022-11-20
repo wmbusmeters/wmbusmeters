@@ -21,8 +21,8 @@ then
     exit 1
 fi
 
-cat simulations/simulation_t1.txt | grep '^{' | grep 12345699 | tail -n 1 > $TEST/test_expected.txt
-cat $TEST/meter_readings2/MoreWater | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
+cat simulations/simulation_t1.txt | grep '^{' | grep 12345699 | tail -n 1 | jq --sort-keys . > $TEST/test_expected.txt
+cat $TEST/meter_readings2/MoreWater | jq --sort-keys . | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ ! "$?" = "0" ]
 then
@@ -31,8 +31,8 @@ then
     exit 1
 fi
 
-cat simulations/simulation_t1.txt | grep '^{' | grep supercom | grep 12345678 | tail -n 1 > $TEST/test_expected.txt
-cat $TEST/meter_readings2/MyWarmWater | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
+cat simulations/simulation_t1.txt | grep '^{' | grep supercom | grep 12345678 | tail -n 1 | jq --sort-keys . > $TEST/test_expected.txt
+cat $TEST/meter_readings2/MyWarmWater | jq --sort-keys . | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ ! "$?" = "0" ]
 then
@@ -41,8 +41,8 @@ then
     exit 1
 fi
 
-cat simulations/simulation_t1.txt | grep '^{' | grep 11111111 | tail -n 1 > $TEST/test_expected.txt
-cat $TEST/meter_readings2/MyColdWater | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
+cat simulations/simulation_t1.txt | grep '^{' | grep 11111111 | tail -n 1 | jq --sort-keys . > $TEST/test_expected.txt
+cat $TEST/meter_readings2/MyColdWater | jq --sort-keys . | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
 diff $TEST/test_expected.txt $TEST/test_response.txt
 if [ ! "$?" = "0" ]
 then

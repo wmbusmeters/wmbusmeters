@@ -827,7 +827,8 @@ void MeterCommonImplementation::addExtraCalculatedField(string ecf)
         "Calculated: "+ecf,
         PrintProperty::JSON | PrintProperty::FIELD,
         quantity,
-        parts[1]
+        parts[1],
+        unit
         );
 }
 

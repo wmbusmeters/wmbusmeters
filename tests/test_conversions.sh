@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Adding automatic conversions is deprecated!
+
+exit 1
+
 PROG="$1"
 
 rm -rf testoutput

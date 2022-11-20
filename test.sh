@@ -84,8 +84,8 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_multiple_ids.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
-tests/test_conversions.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+#tests/test_conversions.sh $PROG
+#if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_formulas.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
