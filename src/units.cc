@@ -93,6 +93,7 @@ using namespace std;
     X(Minute,      60.0,          SIExp().s(1))                      \
     X(Hour,        3600.0,        SIExp().s(1))                      \
     X(Day,         3600.0*24,     SIExp().s(1))                      \
+    X(Month,       3600.0*24*30.437, SIExp().s(1))                   \
     X(Year,        3600.0*24*365.2425, SIExp().s(1))                 \
     X(DateTimeUT,  1.0,           SIExp().s(1))                      \
     X(DateTimeUTC, 1.0,           SIExp().s(1))                      \

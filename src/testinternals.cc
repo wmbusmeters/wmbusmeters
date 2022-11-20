@@ -1790,6 +1790,9 @@ LIST_OF_QUANTITIES
     test_si_convert(1.0, 60.0, Unit::Minute, "min", Unit::Second, "s", Quantity::Time, &from_set, &to_set);
     // 1 day is 1/365.2425 year
     test_si_convert(1.0, 1.0/365.2425, Unit::Day, "d", Unit::Year, "y", Quantity::Time, &from_set, &to_set);
+    // 1 month is 30.437 days
+    test_si_convert(2.0, 30.437*2, Unit::Month, "month", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
+    test_si_convert(30.437*2, 2.0, Unit::Day, "d", Unit::Month, "month", Quantity::Time, &from_set, &to_set);
     // 100 hours is 100/24 days.
     test_si_convert(100.0, 100.0/24.0, Unit::Hour, "h", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
     // 1 year is 365.2425 days.

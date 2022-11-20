@@ -255,11 +255,6 @@ Received telegram from: 66336633
                   type: Heat meter (0x43)
                    ver: 0x39
                 driver: compact5
-Received telegram from: 79787776
-          manufacturer: (MAD) Maddalena, Italy (0x3424)
-                  type: Water meter (0x07)
-                   ver: 0x50
-                driver: evo868
 Received telegram from: 18046178
           manufacturer: (GSS) R D Gran System S, Belarus (0x1e73)
                   type: Electricity meter (0x02)

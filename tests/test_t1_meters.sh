@@ -24,7 +24,6 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       Gran101     gransystems 18046178 NOKEY
       Gran301     gransystems 20100117 NOKEY
       HeatMeter   eurisii     88018801 NOKEY
-      Votchka     evo868      79787776 NOKEY
       Smokeo      lansensm    00010204 NOKEY
       Tempoo      lansenth    00010203 NOKEY
       Dooro       lansendw    00010205 NOKEY
@@ -70,11 +69,11 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
       QSmokep     qsmoke      48128850 NOKEY"
 
 
-cat simulations/simulation_t1.txt | grep '^{' > $TEST/test_expected.txt
-$PROG --format=json simulations/simulation_t1.txt $METERS > $TEST/test_output.txt 2> $TEST/test_stderr.txt
+cat simulations/simulation_t1.txt | grep '^{' | jq --sort-keys . > $TEST/test_expected.txt
+$PROG --format=json simulations/simulation_t1.txt $METERS 2> $TEST/test_stderr.txt | jq --sort-keys . > $TEST/test_output.txt
 if [ "$?" = "0" ]
 then
-    cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
+    cat $TEST/test_output.txt | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then

@@ -1083,7 +1083,14 @@ string StringInterpolatorImplementation::apply(DVEntry *dve)
 
         if (f < formulas_.size())
         {
-            result += tostrprintf("%g", formulas_[f]->calculate(Unit::COUNTER, dve));
+            if (dve != NULL)
+            {
+                result += tostrprintf("%g", formulas_[f]->calculate(Unit::COUNTER, dve));
+            }
+            else
+            {
+                result += "{NULL}";
+            }
             f++;
         }
     }

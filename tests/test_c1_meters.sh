@@ -9,7 +9,7 @@ TEST=testoutput
 TESTNAME="Test C1 meters"
 TESTRESULT="ERROR"
 
-cat simulations/simulation_c1.txt | grep '^{' > $TEST/test_expected.txt
+cat simulations/simulation_c1.txt | grep '^{' | jq --sort-keys . > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_c1.txt \
       MyHeater multical302 67676767 NOKEY \
       MyHeaterMj multical302 46464646 NOKEY \
@@ -27,11 +27,11 @@ $PROG --format=json simulations/simulation_c1.txt \
       Smokey ei6500 00012811 NOKEY \
       Vatten weh_07 86868686 NOKEY \
       Mino minomess 55036410 NOKEY \
-      > $TEST/test_output.txt 2> $TEST/test_stderr.txt
+      | jq --sort-keys . > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 
 if [ "$?" = "0" ]
 then
-    cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
+    cat $TEST/test_output.txt | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then

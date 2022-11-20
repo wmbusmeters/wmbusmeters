@@ -102,6 +102,7 @@ LIST_OF_QUANTITIES
     X(Minute,min,"min",Time,"minute")                                   \
     X(Hour,h,"h",Time,"hour")                                           \
     X(Day,d,"d",Time,"day")                                             \
+    X(Month,month,"month",Time,"month")                                 \
     X(Year,y,"y",Time,"year")                                           \
     X(DateTimeUT,ut,"ut",PointInTime,"unix timestamp")                  \
     X(DateTimeUTC,utc,"utc",PointInTime,"coordinated universal time")   \

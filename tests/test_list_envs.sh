@@ -8,9 +8,9 @@ TEST=testoutput
 TESTNAME="Test list-envs and list-fields"
 TESTRESULT="ERROR"
 
-$PROG --listenvs=amiplus > $TEST/test_output.txt 2>&1
+$PROG --listenvs=amiplus | sort > $TEST/test_output.txt 2>&1
 
-cat <<EOF > $TEST/test_expected.txt
+cat <<EOF | sort > $TEST/test_expected.txt
 METER_JSON
 METER_ID
 METER_NAME
@@ -54,9 +54,9 @@ then
     exit 1
 fi
 
-$PROG --listfields=amiplus > $TEST/test_output.txt 2>&1
+$PROG --listfields=amiplus | sort > $TEST/test_output.txt 2>&1
 
-cat <<EOF > $TEST/test_expected.txt
+cat <<EOF | sort > $TEST/test_expected.txt
                                    id  The meter id number.
                                  name  Your name for the meter.
                                 media  What does the meter measure?

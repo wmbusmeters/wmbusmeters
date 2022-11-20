@@ -9,6 +9,12 @@ then
     exit 1
 fi
 
+if ! command -v jq > /dev/null
+then
+    echo "You have to install jq !"
+    exit 1
+fi
+
 $TESTINTERNAL
 if [ "$?" = "0" ]; then
     echo OK: test internals

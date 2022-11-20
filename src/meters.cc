@@ -1871,7 +1871,8 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
 void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 {
-    map<FieldInfo*,DVEntry*> found;
+    // Multiple dventries can be matched against a single wildcard FieldInfo.
+    map<FieldInfo*,set<DVEntry*>> founds;
 
     // Sort the dv_entries based on their offset in the telegram.
     // I.e. restore the ordering that was implicit in the telegram.
@@ -1902,14 +1903,14 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
             {
                 current_match_nr++;
 
-                if (fi.matcher().index_nr != IndexNr(current_match_nr))
+                if (fi.matcher().index_nr != IndexNr(current_match_nr) &&
+                    !fi.matcher().expectedToMatchAgainstMultipleEntries())
                 {
                     // This field info did match, but requires another index nr!
                     // Increment the current index nr and look for the next match.
                 }
-                else if (found.count(&fi) == 0)
+                else if (founds[&fi].count(dve) == 0 || fi.matcher().expectedToMatchAgainstMultipleEntries())
                 {
-                    // This field_info has not been matched to a dv_entry before!
                     debug("(meters) using field info %s(%s)[%d] to extract %s at offset %d\n",
                           fi.vname().c_str(),
                           toString(fi.xuantity()),
@@ -1919,19 +1920,27 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 
                     dve->addFieldInfo(&fi);
                     fi.performExtraction(this, t, dve);
-                    found[&fi] = dve;
+                    founds[&fi].insert(dve);
                 }
                 else
                 {
-                    DVEntry *old = found[&fi];
+                    if (isVerboseEnabled())
+                    {
+                        set<DVEntry*> old = founds[&fi];
+                        string olds;
+                        for (DVEntry *dve : old)
+                        {
+                            olds += to_string(dve->offset)+",";
+                        }
+                        olds.pop_back();
 
-                    verbose("(meter) while processing field extractors ignoring dventry %s at offset %d matching since "
-                            "field %s was already matched against dventry %s at offset %d !\n",
-                            dve->dif_vif_key.str().c_str(),
-                            dve->offset,
-                            fi.vname().c_str(),
-                            old->dif_vif_key.str().c_str(),
-                            old->offset);
+                        verbose("(meter) while processing field extractors ignoring dventry %s at offset %d matching since "
+                                "field %s was already matched against offsets %s !\n",
+                                dve->dif_vif_key.str().c_str(),
+                                dve->offset,
+                                fi.vname().c_str(),
+                                olds.c_str());
+                    }
                 }
             }
         }
@@ -1945,7 +1954,7 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
         {
             fi.performExtraction(this, t, NULL);
         }
-        else if (found.count(&fi) == 0 && fi.printProperties().hasJOINTPLSTATUS())
+        else if (founds.count(&fi) == 0 && fi.printProperties().hasJOINTPLSTATUS())
         {
             // This is a status field and it joins the tpl status but it also
             // has a potential dve match, which did not trigger. Now
@@ -2144,15 +2153,22 @@ FieldInfo::FieldInfo(int index,
 
 string FieldInfo::renderJsonOnlyDefaultUnit(Meter *m)
 {
-    return renderJson(m, NULL);
+    return renderJson(m, NULL, NULL);
 }
 
 string FieldInfo::renderJsonText(Meter *m)
 {
-    return renderJson(m, NULL);
+    return renderJson(m, NULL, NULL);
 }
 
-string FieldInfo::generateFieldName(DVEntry *dve)
+string FieldInfo::generateFieldNameNoUnit(DVEntry *dve)
+{
+    if (!valid_field_name_) return "bad_field_name";
+
+    return field_name_->apply(dve);
+}
+
+string FieldInfo::generateFieldNameWithUnit(DVEntry *dve)
 {
     if (!valid_field_name_) return "bad_field_name";
 
@@ -2167,12 +2183,14 @@ string FieldInfo::generateFieldName(DVEntry *dve)
     return var+"_"+default_unit;
 }
 
-string FieldInfo::renderJson(Meter *m, vector<Unit> *conversions)
+
+string FieldInfo::renderJson(Meter *m, DVEntry *dve, vector<Unit> *conversions)
 {
     string s;
 
     string default_unit = unitToStringLowerCase(defaultUnit());
-    string var = vname();
+    string field_name = generateFieldNameNoUnit(dve);
+
     if (xuantity() == Quantity::Text)
     {
         string v = m->getStringValue(this);
@@ -2182,18 +2200,18 @@ string FieldInfo::renderJson(Meter *m, vector<Unit> *conversions)
             // be translated into "something":null in the json, indicating that there is no value.
             // This should not be a problem for now. Lets deal with it when a meter decides to send "null"
             // as its version string for example.
-            s += "\""+var+"\":null";
+            s += "\""+field_name+"\":null";
         }
         else
         {
             // Normally the string values are quoted in json. TODO quote the value properly.
             // A well crafted meter could send a version string with " and break the json format.
-            s += "\""+var+"\":\""+v+"\"";
+            s += "\""+field_name+"\":\""+v+"\"";
         }
     }
     else
     {
-        s += "\""+var+"_"+default_unit+"\":"+valueToString(m->getNumericValue(this, defaultUnit()), defaultUnit());
+        s += "\""+field_name+"_"+default_unit+"\":"+valueToString(m->getNumericValue(this, defaultUnit()), defaultUnit());
 
         if (conversions != NULL)
         {
@@ -2202,7 +2220,7 @@ string FieldInfo::renderJson(Meter *m, vector<Unit> *conversions)
             {
                 string unit = unitToStringLowerCase(u);
                 // Appending extra conversion unit.
-                s += ",\""+var+"_"+unit+"\":"+valueToString(m->getNumericValue(this, u), u);
+                s += ",\""+field_name+"_"+unit+"\":"+valueToString(m->getNumericValue(this, u), u);
             }
         }
     }
@@ -2259,7 +2277,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     }
 
     // Iterate over the meter field infos...
-    map<FieldInfo*,DVEntry*> found; // Found from the telegram
+    map<FieldInfo*,set<DVEntry*>> founds; // Multiple dventries can match to a single field info.
     set<string> found_vnames;
 
     for (FieldInfo& fi : field_infos_)
@@ -2274,10 +2292,11 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                 // Has the entry been matches to this field, then print it as json.
                 if (dve->hasFieldInfo(&fi))
                 {
-                    assert(found.count(&fi) == 0);
+                    assert(founds[&fi].count(dve) == 0);
 
-                    found[&fi] = dve;
-                    found_vnames.insert(fi.vname());
+                    founds[&fi].insert(dve);
+                    string field_name = fi.generateFieldNameNoUnit(dve);
+                    found_vnames.insert(field_name);
                 }
             }
         }
@@ -2287,17 +2306,20 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     {
         if (fi.printProperties().hasJSON())
         {
-            if (found.count(&fi) != 0)
+            if (founds.count(&fi) != 0)
             {
-                DVEntry *dve = found[&fi];
-                debug("(meters) render field %s(%s %s)[%d] with dventry @%d key %s data %s\n",
-                      fi.vname().c_str(), toString(fi.xuantity()), unitToStringLowerCase(fi.defaultUnit()).c_str(), fi.index(),
-                      dve->offset,
-                      dve->dif_vif_key.str().c_str(),
-                      dve->value.c_str());
-                string out = fi.renderJson(this, &conversions());
-                debug("(meters)             %s\n", out.c_str());
-                s += indent+out+","+newline;
+                // This field info has matched against some dventries.
+                for (DVEntry *dve : founds[&fi])
+                {
+                    debug("(meters) render field %s(%s %s)[%d] with dventry @%d key %s data %s\n",
+                          fi.vname().c_str(), toString(fi.xuantity()), unitToStringLowerCase(fi.defaultUnit()).c_str(), fi.index(),
+                          dve->offset,
+                          dve->dif_vif_key.str().c_str(),
+                          dve->value.c_str());
+                    string out = fi.renderJson(this, dve, &conversions());
+                    debug("(meters)             %s\n", out.c_str());
+                    s += indent+out+","+newline;
+                }
             }
             else
             {
@@ -2314,7 +2336,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                     // Or if no value has been received, null.
                     debug("(meters) render field %s(%s)[%d] without dventry\n",
                           fi.vname().c_str(), toString(fi.xuantity()), fi.index());
-                    string out = fi.renderJson(this, &conversions());
+                    string out = fi.renderJson(this, NULL, &conversions());
                     debug("(meters)             %s\n", out.c_str());
                     s += indent+out+","+newline;
                 }
@@ -2813,8 +2835,11 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
     assert(dve != NULL);
     assert(key == "" || dve->dif_vif_key.str() == key);
 
-    // Generate the json field name:
-    string field_name = generateFieldName(dve);
+    string field_name;
+    if (isDebugEnabled())
+    {
+        field_name = generateFieldNameWithUnit(dve);
+    }
 
     double extracted_double_value = NAN;
     if (dve->extractDouble(&extracted_double_value,
@@ -2848,7 +2873,7 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
                   extracted_double_value);
         }
         m->setNumericValue(this, default_unit_, convert(extracted_double_value, decoded_unit, default_unit_));
-        t->addMoreExplanation(dve->offset, renderJson(m, &m->conversions()));
+        t->addMoreExplanation(dve->offset, renderJson(m, dve, &m->conversions()));
         found = true;
     }
     return found;
@@ -2939,7 +2964,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     assert(key == "" || dve->dif_vif_key.str() == key);
 
     // Generate the json field name:
-    string field_name = generateFieldName(dve);
+    string field_name = generateFieldNameNoUnit(dve);
 
     uint64_t extracted_bits {};
     if (lookup_.hasLookups() || (print_properties_.hasJOINTPLSTATUS()))

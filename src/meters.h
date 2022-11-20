@@ -62,7 +62,6 @@ LIST_OF_METER_TYPES
     X(auto,       0,      AutoMeter, AUTO, Auto) \
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
     X(eurisii,    T1_bit, HeatCostAllocationMeter, EURISII, EurisII)   \
-    X(evo868,     T1_bit, WaterMeter,       EVO868,      EVO868)       \
     X(gransystems,T1_bit, ElectricityMeter, CCx01, CCx01) 		       \
     X(hydrocalm3, T1_bit, HeatMeter,        HYDROCALM3,  HydrocalM3)   \
     X(hydrodigit, T1_bit, WaterMeter,       HYDRODIGIT,  Hydrodigit)   \
@@ -350,13 +349,14 @@ struct FieldInfo
     void performCalculation(Meter *m);
 
     string renderJsonOnlyDefaultUnit(Meter *m);
-    string renderJson(Meter *m, vector<Unit> *additional_conversions);
+    string renderJson(Meter *m, DVEntry *dve, vector<Unit> *additional_conversions);
     string renderJsonText(Meter *m);
     // Render the field name based on the actual field from the telegram.
     // A FieldInfo can be declared to handle any number of storage fields of a certain range.
     // The vname is then a pattern total_at_month_{storage_counter} that gets translated into
     // total_at_month_2 (for the dventry with storage nr 2.)
-    string generateFieldName(DVEntry *dve);
+    string generateFieldNameWithUnit(DVEntry *dve);
+    string generateFieldNameNoUnit(DVEntry *dve);
     // Check if the meter object stores a value for this field.
     bool hasValue(Meter *m);
 
