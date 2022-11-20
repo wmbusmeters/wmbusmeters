@@ -20,11 +20,11 @@ METERS="IzarWater   izar        21242472 NOKEY
         IzarWater5  izar        20e4ffde NOKEY
         IzarWater6  auto        48500375 NOKEY"
 
-cat simulations/simulation_izars.txt | grep '^{' > $TEST/test_expected.txt
-$PROG --format=json simulations/simulation_izars.txt $METERS > $TEST/test_output.txt 2> $TEST/test_stderr.txt
+cat simulations/simulation_izars.txt | grep '^{' | jq --sort-keys . > $TEST/test_expected.txt
+$PROG --format=json simulations/simulation_izars.txt $METERS  2> $TEST/test_stderr.txt | jq --sort-keys . > $TEST/test_output.txt
 if [ "$?" = "0" ]
 then
-    cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
+    cat $TEST/test_output.txt | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then

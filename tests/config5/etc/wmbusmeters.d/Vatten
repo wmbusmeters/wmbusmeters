@@ -2,4 +2,4 @@ name=Vatten
 type=supercom587
 id=12345678
 key=
-shell=echo "TESTING SHELL $METER_JSON" > /tmp/wmbusmeters_meter_shell_test
+shell=echo "TESTING SHELL $(echo $METER_JSON | jq -c --sort-keys .)" > /tmp/wmbusmeters_meter_shell_test
