@@ -191,8 +191,8 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
 
 // Test: Heato sharky774 58496405 NOKEY
 // telegram=3E44A5110564495841047A700030052F2F#0C06846800000C13195364000B3B0400000C2B110100000A5A17050A5E76020AA61800004C0647630000426CBF25
-// {"media":"heat","meter":"sharky774","name":"Heato","id":"58496405","total_energy_consumption_kwh":6884,"total_volume_m3":645.319,"volume_flow_m3h":0.004,"power_kw":0.111,"flow_temperature_c":51.7,"return_temperature_c":27.6,"temperature_difference_c":24.1,"operating_time_h":0,"energy_at_set_date_kwh":6347,"set_date":"2021-05-31","timestamp":"1111-11-11T11:11:11Z"}
-// |Heato;58496405;6884.000000;645.319000;0.004000;0.111000;51.700000;27.600000;24.100000;6347.000000;1111-11-11 11:11.11
+// {"media":"heat","meter":"sharky774","name":"Heato","id":"58496405","total_energy_consumption_kwh":1912.222222,"total_volume_m3":645.319,"volume_flow_m3h":0.004,"power_kw":0.111,"flow_temperature_c":51.7,"return_temperature_c":27.6,"temperature_difference_c":24.1,"operating_time_h":0,"energy_at_set_date_kwh":6347,"set_date":"2021-05-31","timestamp":"1111-11-11T11:11:11Z"}
+// |Heato;58496405;1912.222222;645.319000;0.004000;0.111000;51.700000;27.600000;24.100000;6347.000000;1111-11-11 11:11.11
 
 // This test telegram has more historical data!
 // Test: Heatoo sharky774 72615127 NOKEY
@@ -203,5 +203,5 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
 // This telegram contains a negative power value encoded in bcd.
 // Test: Heatooo sharky774 61243590 NOKEY
 // telegram=3E44A5119035246141047A1A0030052F2F#0C06026301000C13688609040B3B0802000C2B220000F00A5A71020A5E72020AA61800004C0636370100426CBF25
-// {"media":"heat","meter":"sharky774","name":"Heatooo","id":"61243590","total_energy_consumption_kwh":16302,"total_volume_m3":4098.668,"volume_flow_m3h":0.208,"power_kw":-0.022,"flow_temperature_c":27.1,"return_temperature_c":27.2,"temperature_difference_c":-0.1,"operating_time_h":0,"energy_at_set_date_kwh":13736,"set_date":"2021-05-31","timestamp":"1111-11-11T11:11:11Z"}
-// |Heatooo;61243590;16302.000000;4098.668000;0.208000;-0.022000;27.100000;27.200000;-0.100000;13736.000000;1111-11-11 11:11.11
+// {"media":"heat","meter":"sharky774","name":"Heatooo","id":"61243590","total_energy_consumption_kwh":4528.333333,"total_volume_m3":4098.668,"volume_flow_m3h":0.208,"power_kw":-0.022,"flow_temperature_c":27.1,"return_temperature_c":27.2,"temperature_difference_c":-0.1,"operating_time_h":0,"energy_at_set_date_kwh":13736,"set_date":"2021-05-31","timestamp":"1111-11-11T11:11:11Z"}
+// |Heatooo;61243590;4528.333333;4098.668000;0.208000;-0.022000;27.100000;27.200000;-0.100000;13736.000000;1111-11-11 11:11.11
