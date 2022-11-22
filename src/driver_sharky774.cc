@@ -59,7 +59,7 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
         PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
         "The total energy consumption recorded by this meter.",
         SET_FUNC(total_energy_consumption_kwh_, Unit::KWH),
-        GET_FUNC(total_energy_consumption_kwh_, Unit::KWH));
+        GET_FUNC(total_energy_consumption_kwh_, Unit::MJ));
 
     addNumericFieldWithExtractor(
         "total_volume",
