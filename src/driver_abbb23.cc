@@ -57,8 +57,8 @@ namespace
             );
 
         addStringFieldWithExtractor(
-            "extra_data",
-            "Some extra data.",
+            "product_no",
+            "The meter device product number.",
             PrintProperty::JSON | PrintProperty::OPTIONAL,
             FieldMatcher::build().
             set(DifVifKey("0DFFAA00")));
@@ -67,5 +67,5 @@ namespace
 
 // Test: ABBmeter abbb23 33221100 NOKEY
 // telegram=|844442040011223320027A3E000020_0E840017495200000004FFA0150000000004FFA1150000000004FFA2150000000004FFA3150000000007FFA600000000000000000007FFA700000000000000000007FFA800000000000000000007FFA90000000000000000000DFD8E0007302E38322E31420DFFAA000B3030312D313131203332421F|
-// {"media":"electricity","meter":"abbb23","name":"ABBmeter","id":"33221100","total_energy_consumption_kwh":5249.17,"firmware_version": "B1.28.0","extra_data": "B23 111-100","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"electricity","meter":"abbb23","name":"ABBmeter","id":"33221100","total_energy_consumption_kwh":5249.17,"firmware_version": "B1.28.0","product_no": "B23 111-100","timestamp":"1111-11-11T11:11:11Z"}
 // |ABBmeter;33221100;5249.17;1111-11-11 11:11.11
