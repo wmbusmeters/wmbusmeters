@@ -456,7 +456,6 @@ void setup_meters(Configuration *config, MeterManager *manager)
 {
     for (MeterInfo &m : config->meters)
     {
-        m.conversions = config->conversions;
         m.extra_calculated_fields.insert(m.extra_calculated_fields.end(),
                                          config->extra_calculated_fields.begin(),
                                          config->extra_calculated_fields.end());

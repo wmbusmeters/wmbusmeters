@@ -58,7 +58,8 @@ struct NumericFormulaConstant : public NumericFormula
 
 struct NumericFormulaMeterField : public NumericFormula
 {
-    NumericFormulaMeterField(FormulaImplementation *f, Unit u, FieldInfo *fi) : NumericFormula(f, u), field_info_(fi) {}
+    NumericFormulaMeterField(FormulaImplementation *f, Unit u, string v, Quantity q)
+        : NumericFormula(f, u), vname_(v), quantity_(q) {}
 
     double calculate(SIUnit to);
     string str();
@@ -67,7 +68,8 @@ struct NumericFormulaMeterField : public NumericFormula
 
     private:
 
-    FieldInfo *field_info_;
+    string vname_;
+    Quantity quantity_;
 };
 
 struct NumericFormulaDVEntryField : public NumericFormula

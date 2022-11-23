@@ -16,7 +16,7 @@ EOF
 
 $PROG --format=fields --separator=';' \
       --selectfields=id,name,total_l,total_m3,max_flow_m3h,flow_temperature_c,flow_temperature_f \
-      --addconversions=L,F \
+      --calculate_total_l=total_m3 --calculate_flow_temperature_f=flow_temperature_c \
       simulations/simulation_c1.txt Vatten multical21 76348799 "" \
       > $TEST/test_output.txt
 

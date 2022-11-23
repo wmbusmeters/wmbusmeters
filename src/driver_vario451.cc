@@ -24,10 +24,6 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
 
         void processContent(Telegram *t);
-
-        double total_energy_gj_ {};
-        double curr_energy_gj_ {};
-        double prev_energy_gj_ {};
     };
 
     static bool ok = registerDriver([](DriverInfo&di)
@@ -46,24 +42,17 @@ namespace
         addNumericField("total",
                         Quantity::Energy,
                         PrintProperty::FIELD | PrintProperty::JSON,
-                        "The total energy consumption recorded by this meter.",
-                        SET_FUNC(total_energy_gj_, Unit::GJ),
-                        GET_FUNC(total_energy_gj_, Unit::GJ));
+                        "The total energy consumption recorded by this meter.");
 
         addNumericField("current",
                         Quantity::Energy,
                         PrintProperty::FIELD | PrintProperty::JSON,
-                        "Energy consumption so far in this billing period.",
-                        SET_FUNC(curr_energy_gj_, Unit::GJ),
-                        GET_FUNC(curr_energy_gj_, Unit::GJ));
+                        "Energy consumption so far in this billing period.");
 
         addNumericField("previous",
                         Quantity::Energy,
                         PrintProperty::FIELD | PrintProperty::JSON,
-                        "Energy consumption in previous billing period.",
-                        SET_FUNC(prev_energy_gj_, Unit::GJ),
-                        GET_FUNC(prev_energy_gj_, Unit::GJ));
-
+                        "Energy consumption in previous billing period.");
     }
 
     void Driver::processContent(Telegram *t)
@@ -80,29 +69,29 @@ namespace
 
         uchar prev_lo = content[3];
         uchar prev_hi = content[4];
-        double prev = (256.0*prev_hi+prev_lo)/1000;
+        double prev_gj = (256.0*prev_hi+prev_lo)/1000;
 
         string prevs;
         strprintf(&prevs, "%02x%02x", prev_lo, prev_hi);
         int offset = t->parsed.size()+3;
         vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, 0, 0, 0, prevs) };
         t->explanations.push_back(Explanation(offset, 2, prevs, KindOfData::CONTENT, Understanding::FULL));
-        t->addMoreExplanation(offset, " energy used in previous billing period (%f GJ)", prev);
+        t->addMoreExplanation(offset, " energy used in previous billing period (%f GJ)", prev_gj);
 
         uchar curr_lo = content[7];
         uchar curr_hi = content[8];
-        double curr = (256.0*curr_hi+curr_lo)/1000;
+        double curr_gj = (256.0*curr_hi+curr_lo)/1000;
 
         string currs;
         strprintf(&currs, "%02x%02x", curr_lo, curr_hi);
         offset = t->parsed.size()+7;
         vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, 0, 0, 0, currs) };
         t->explanations.push_back(Explanation(offset, 2, currs, KindOfData::CONTENT, Understanding::FULL));
-        t->addMoreExplanation(offset, " energy used in current billing period (%f GJ)", curr);
+        t->addMoreExplanation(offset, " energy used in current billing period (%f GJ)", curr_gj);
 
-        total_energy_gj_ = prev+curr;
-        curr_energy_gj_ = curr;
-        prev_energy_gj_ = prev;
+        setNumericValue("total", Unit::GJ, curr_gj+prev_gj);
+        setNumericValue("current", Unit::GJ, curr_gj);
+        setNumericValue("previous", Unit::GJ, prev_gj);
     }
 
 }

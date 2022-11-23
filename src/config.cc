@@ -605,24 +605,6 @@ void handleSeparator(Configuration *c, string s)
     }
 }
 
-void handleConversions(Configuration *c, string s)
-{
-    char buf[s.length()+1];
-    strcpy(buf, s.c_str());
-    char *saveptr  {};
-    const char *tok = strtok_r(buf, ",", &saveptr);
-    while (tok != NULL)
-    {
-        Unit u = toUnit(tok);
-        if (u == Unit::Unknown)
-        {
-            warning("(warning) not a valid conversion unit: %s\n", tok);
-        }
-        c->conversions.push_back(u);
-        tok = strtok_r(NULL, ",", &saveptr);
-    }
-}
-
 void handleLogTimestamps(Configuration *c, string ts)
 {
     if (ts == "never")
@@ -733,7 +715,6 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         else if (p.first == "alarmtimeout") handleAlarmTimeout(c, p.second);
         else if (p.first == "alarmexpectedactivity") handleAlarmExpectedActivity(c, p.second);
         else if (p.first == "separator") handleSeparator(c, p.second);
-        else if (p.first == "addconversions") handleConversions(c, p.second);
         else if (p.first == "logtimestamps") handleLogTimestamps(c, p.second);
         else if (p.first == "selectfields") handleSelectedFields(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);

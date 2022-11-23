@@ -282,17 +282,6 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
-        if (!strncmp(argv[i], "--addconversions=", 17)) {
-            if (strlen(argv[i]) > 16)
-            {
-                string s = string(argv[i]+17);
-                handleConversions(c, s);
-            } else {
-                error("You must supply conversion units.\n");
-            }
-            i++;
-            continue;
-        }
         if (!strncmp(argv[i], "--selectfields=", 15)) {
             if (strlen(argv[i]) > 15)
             {

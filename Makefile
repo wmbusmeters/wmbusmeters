@@ -138,6 +138,7 @@ PROG_OBJS:=\
 	$(BUILD)/dvparser.o \
 	$(BUILD)/formula.o \
 	$(BUILD)/mbus_rawtty.o \
+	$(BUILD)/metermanager.o \
 	$(BUILD)/meters.o \
 	$(BUILD)/manufacturer_specificities.o \
 	$(BUILD)/printer.o \

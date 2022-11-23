@@ -132,7 +132,6 @@ struct Configuration
     string telegram_reader;
     // A set of all link modes (union) that the user requests the wmbus dongle to listen to.
     bool no_init {};
-    std::vector<Unit> conversions;
     std::vector<std::string> selected_fields;
     std::vector<MeterInfo> meters;
     std::vector<std::string> extra_constant_fields; // Additional constant fields to always add to json.
@@ -146,7 +145,6 @@ struct Configuration
 shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrides);
 
 void parseMeterConfig(Configuration *c, vector<char> &buf, string file);
-void handleConversions(Configuration *c, string s);
 void handleSelectedFields(Configuration *c, string s);
 void handleAddedFields(Configuration *c, string s);
 bool handleDeviceOrHex(Configuration *c, string devicefilehex);

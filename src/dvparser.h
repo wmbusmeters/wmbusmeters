@@ -407,6 +407,7 @@ struct FieldMatcher
     FieldMatcher() : active(false) { }
     FieldMatcher(bool act) : active(act) { }
     static FieldMatcher build() { return FieldMatcher(true); }
+    static FieldMatcher noMatcher() { return FieldMatcher(false); }
     FieldMatcher &set(DifVifKey k) {
         dif_vif_key = k;
         match_dif_vif_key = (k.str() != ""); return *this; }

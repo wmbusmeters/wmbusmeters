@@ -2,3 +2,7 @@ name=MyTapWater
 type=multical21:c1
 id=76348799
 key=
+calculate_external_temperature_f=external_temperature_c
+calculate_flow_temperature_f=flow_temperature_c
+calculate_target_l=target_m3
+calculate_total_l=total_m3

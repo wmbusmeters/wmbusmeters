@@ -1,4 +1,14 @@
 
+Important change! The feature --addconversions=GJ has been removed!!! But there is a replacement!
+It was used to add conversions to all energy values into gj, eg you have
+total_kwh and add total_gj.
+
+This feature was too broad and the conversion happened too late in the processing code.
+You can now achieved the same thing but you have to specify each field you want to convert
+using the calculation feature.
+
+E.g. --calculate_total_gj=total_kwh
+
 ATTENTION! The fhkvdataiv driver has been refactored to the new driver format.
 The field consumption_at_set_date_17 was wrong and has been renamed to field consumption_at_set_date_8.
 

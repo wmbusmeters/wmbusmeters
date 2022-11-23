@@ -146,7 +146,6 @@ struct MeterInfo
     vector<string> shells;
     vector<string> extra_constant_fields; // Additional static fields that are added to each message.
     vector<string> extra_calculated_fields; // Additional field calculated using formulas.
-    vector<Unit> conversions; // Additional units desired in json.
     vector<string> selected_fields; // Usually set to the default fields, but can be override in meter config.
 
     // If this is a meter that needs to be polled.
@@ -304,6 +303,7 @@ struct PrintProperties
 
 struct FieldInfo
 {
+    ~FieldInfo();
     FieldInfo(int index,
               string vname,
               Quantity xuantity,
@@ -349,7 +349,7 @@ struct FieldInfo
     void performCalculation(Meter *m);
 
     string renderJsonOnlyDefaultUnit(Meter *m);
-    string renderJson(Meter *m, DVEntry *dve, vector<Unit> *additional_conversions);
+    string renderJson(Meter *m, DVEntry *dve);
     string renderJsonText(Meter *m);
     // Render the field name based on the actual field from the telegram.
     // A FieldInfo can be declared to handle any number of storage fields of a certain range.
@@ -386,13 +386,13 @@ private:
     Translate::Lookup lookup_;
 
     // For calculated fields.
-    unique_ptr<Formula> formula_;
+    shared_ptr<Formula> formula_;
 
     // For the generated field name.
-    unique_ptr<StringInterpolator> field_name_;
+    shared_ptr<StringInterpolator> field_name_;
 
     // If the field name template could not be parsed.
-    bool valid_field_name_;
+    bool valid_field_name_ {};
 };
 
 struct BusManager;
@@ -427,6 +427,7 @@ struct Meter
     virtual time_t pollInterval() = 0;
     virtual bool usesPolling() = 0;
 
+    virtual void setNumericValue(string vname, Unit u, double v) = 0;
     virtual void setNumericValue(FieldInfo *fi, Unit u, double v) = 0;
     virtual double getNumericValue(FieldInfo *fi, Unit u) = 0;
     virtual void setStringValue(FieldInfo *fi, std::string v) = 0;
@@ -452,15 +453,15 @@ struct Meter
                                 bool simulated, string *id, bool *id_match, Telegram *out_t = NULL) = 0;
     virtual MeterKeys *meterKeys() = 0;
 
-    virtual void addConversions(std::vector<Unit> cs) = 0;
     virtual void addExtraCalculatedField(std::string ecf) = 0;
-    virtual vector<Unit>& conversions() = 0;
     virtual void addShell(std::string cmdline) = 0;
     virtual vector<string> &shellCmdlines() = 0;
     virtual void poll(shared_ptr<BusManager> bus) = 0;
 
     virtual FieldInfo *findFieldInfo(string vname, Quantity xuantity) = 0;
     virtual string renderJsonOnlyDefaultUnit(string vname, Quantity xuantity) = 0;
+
+    virtual string debugValues() = 0;
 
     virtual ~Meter() = default;
 };

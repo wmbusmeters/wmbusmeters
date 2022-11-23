@@ -45,8 +45,10 @@ double NumericFormulaMeterField::calculate(SIUnit to_si_unit)
 {
     if (formula()->meter() == NULL) return std::numeric_limits<double>::quiet_NaN();
 
-    Unit field_unit = field_info_->defaultUnit();
-    double val = formula()->meter()->getNumericValue(field_info_, field_unit);
+    FieldInfo *fi = formula()->meter()->findFieldInfo(vname_, quantity_);
+
+    Unit field_unit = fi->defaultUnit();
+    double val = formula()->meter()->getNumericValue(fi, field_unit);
 
     const SIUnit& field_si_unit = toSIUnit(field_unit);
 
@@ -862,7 +864,7 @@ void FormulaImplementation::doMeterField(Unit u, FieldInfo *fi)
     SIUnit from_si_unit = toSIUnit(fi->defaultUnit());
     SIUnit to_si_unit = toSIUnit(u);
     assert(from_si_unit.canConvertTo(to_si_unit));
-    pushOp(new NumericFormulaMeterField(this, u, fi));
+    pushOp(new NumericFormulaMeterField(this, u, fi->vname(), fi->xuantity()));
 }
 
 void FormulaImplementation::doDVEntryField(Unit u, DVEntryCounterType ct)
@@ -953,12 +955,17 @@ string NumericFormulaSquareRoot::tree()
 
 string NumericFormulaMeterField::str()
 {
-    return field_info_->vname()+"_"+unitToStringLowerCase(field_info_->defaultUnit());
+    if (formula()->meter() == NULL) return "<?"+vname_+"?>";
+    FieldInfo *fi = formula()->meter()->findFieldInfo(vname_, quantity_);
+
+    return fi->vname()+"_"+unitToStringLowerCase(fi->defaultUnit());
 }
 
 string NumericFormulaMeterField::tree()
 {
-    return "<FIELD "+field_info_->vname()+"_"+unitToStringLowerCase(field_info_->defaultUnit())+"> ";
+    if (formula()->meter() == NULL) return "<?"+vname_+"?>";
+    FieldInfo *fi = formula()->meter()->findFieldInfo(vname_, quantity_);
+    return "<FIELD "+fi->vname()+"_"+unitToStringLowerCase(fi->defaultUnit())+"> ";
 }
 
 string NumericFormulaDVEntryField::str()

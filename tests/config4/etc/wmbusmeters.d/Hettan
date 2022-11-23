@@ -2,3 +2,6 @@ name=Hettan
 type=vario451
 id=58234965
 key=
+calculate_current_gj=current_kwh
+calculate_previous_gj=previous_kwh
+calculate_total_gj=total_kwh
