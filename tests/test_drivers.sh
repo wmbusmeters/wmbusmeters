@@ -30,11 +30,11 @@ do
     rm -f $TEST/*
     METERS=$(cat src/$i | grep '// Test:' | cut -f 2 -d ':' | tr -d '\n')
     sed -n '/\/\/ Test:/,$p' src/$i | grep -e '// telegram' -e '// {' -e '// |' | sed 's|// ||g' > $TEST/simulation.txt
-    cat $TEST/simulation.txt | grep '^{' > $TEST/test_expected_json.txt
-    $PROG --format=json --ignoreduplicates=false $TEST/simulation.txt $METERS > $TEST/test_output_json.txt 2> $TEST/test_stderr_json.txt
+    cat $TEST/simulation.txt | grep '^{' | jq --sort-keys . > $TEST/test_expected_json.txt
+    $PROG --format=json --ignoreduplicates=false $TEST/simulation.txt $METERS 2> $TEST/test_stderr_json.txt | jq --sort-keys . > $TEST/test_output_json.txt
     if [ "$?" = "0" ]
     then
-        cat $TEST/test_output_json.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_response_json.txt
+        cat $TEST/test_output_json.txt | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' > $TEST/test_response_json.txt
         diff $TEST/test_expected_json.txt $TEST/test_response_json.txt
         if [ "$?" = "0" ]
         then

@@ -2995,6 +2995,8 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     else if (matcher_.vif_range == VIFRange::Any ||
              matcher_.vif_range == VIFRange::EnhancedIdentification ||
              matcher_.vif_range == VIFRange::FabricationNo ||
+             matcher_.vif_range == VIFRange::HardwareVersion ||
+             matcher_.vif_range == VIFRange::FirmwareVersion ||
              matcher_.vif_range == VIFRange::ModelVersion ||
              matcher_.vif_range == VIFRange::SoftwareVersion ||
              matcher_.vif_range == VIFRange::Customer ||
