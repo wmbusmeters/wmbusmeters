@@ -210,21 +210,40 @@ void list_shell_envs(Configuration *config, string meter_driver)
         meter = di.construct(mi);
     }
 
-    meter->printMeter(&t,
-                      &ignore1,
-                      &ignore2, config->separator,
-                      &ignore3,
-                      &envs,
-                      &config->extra_constant_fields,
-                      &config->selected_fields,
-                      false);
+    printf("METER_DEVICE\n"
+           "METER_ID\n"
+           "METER_JSON\n"
+           "METER_MEDIA\n"
+           "METER_TYPE\n"
+           "METER_NAME\n"
+           "METER_RSSI_DBM\n"
+           "METER_TIMESTAMP\n"
+           "METER_TIMESTAMP_LT\n"
+           "METER_TIMESTAMP_UT\n"
+           "METER_TIMESTAMP_UTC\n");
 
-    for (auto &e : envs)
+    for (auto &fi : meter->fieldInfos())
     {
-        int p = e.find('=');
-        string key = e.substr(0,p);
-        printf("%s\n", key.c_str());
+        if (fi.vname() == "") continue;
+        string name = fi.vname();
+        std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+        if (fi.xuantity() != Quantity::Text)
+        {
+            printf("METER_%s_%s\n",name.c_str(), unitToStringUpperCase(fi.defaultUnit()).c_str());
+        }
+        else
+        {
+            printf("METER_%s\n",name.c_str());
+        }
     }
+
+    for (string &s : meter->extraConstantFields())
+    {
+        string name = s;
+        std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+        printf("METER_%s\n", name.c_str());
+    }
+
 }
 
 void list_fields(Configuration *config, string meter_driver)

@@ -42,6 +42,10 @@ do
             TESTRESULT="OK"
         else
             TESTRESULT="ERROR"
+            if [ "$USE_MELD" = "true" ]
+            then
+                meld $TEST/test_expected_json.txt $TEST/test_response_json.txt
+            fi
         fi
     else
         echo "wmbusmeters returned error code: $?"

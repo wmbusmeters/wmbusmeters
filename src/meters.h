@@ -411,6 +411,7 @@ struct Meter
     virtual string idsc() = 0;
     // This meter can report these fields, like total_m3, temp_c.
     virtual vector<FieldInfo> &fieldInfos() = 0;
+    virtual vector<string> &extraConstantFields() = 0;
     // Either the default fields specified in the driver, or override fields in the meter configuration file.
     virtual vector<string> &selectedFields() = 0;
     virtual void setSelectedFields(vector<string> &f) = 0;
@@ -428,7 +429,8 @@ struct Meter
     virtual bool usesPolling() = 0;
 
     virtual void setNumericValue(string vname, Unit u, double v) = 0;
-    virtual void setNumericValue(FieldInfo *fi, Unit u, double v) = 0;
+    virtual void setNumericValue(FieldInfo *fi, DVEntry *dve, Unit u, double v) = 0;
+    virtual double getNumericValue(string vname, Unit u) = 0;
     virtual double getNumericValue(FieldInfo *fi, Unit u) = 0;
     virtual void setStringValue(FieldInfo *fi, std::string v) = 0;
     virtual std::string getStringValue(FieldInfo *fi) = 0;

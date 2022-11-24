@@ -788,6 +788,11 @@ vector<FieldInfo> &MeterCommonImplementation::fieldInfos()
     return field_infos_;
 }
 
+vector<string> &MeterCommonImplementation::extraConstantFields()
+{
+    return extra_constant_fields_;
+}
+
 string MeterCommonImplementation::name()
 {
     return name_;
@@ -1446,7 +1451,7 @@ void MeterCommonImplementation::processContent(Telegram *t)
 {
 }
 
-void MeterCommonImplementation::setNumericValue(FieldInfo *fi, Unit u, double v)
+void MeterCommonImplementation::setNumericValue(FieldInfo *fi, DVEntry *dve, Unit u, double v)
 {
     if (fi->hasSetNumericValueOverride())
     {
@@ -1456,8 +1461,18 @@ void MeterCommonImplementation::setNumericValue(FieldInfo *fi, Unit u, double v)
     }
 
     // Store value in default meter location for numeric values.
-    string field_name_no_unit = fi->vname();
-    numeric_values_[pair<string,Quantity>(field_name_no_unit,fi->xuantity())] = NumericField(u, v, fi);
+    string field_name_no_unit;
+
+    if (dve == NULL)
+    {
+        field_name_no_unit = fi->vname();
+    }
+    else
+    {
+        field_name_no_unit = fi->generateFieldNameNoUnit(dve);
+    }
+
+    numeric_values_[pair<string,Quantity>(field_name_no_unit, fi->xuantity())] = NumericField(u, v, fi);
 }
 
 void MeterCommonImplementation::setNumericValue(string vname, Unit u, double v)
@@ -1470,7 +1485,7 @@ void MeterCommonImplementation::setNumericValue(string vname, Unit u, double v)
         warning("(meter) cannot set numeric value %g %s for non-existant field \"%s\" %s\n", v, unitToStringLowerCase(u).c_str(), vname.c_str(), toString(q));
         return;
     }
-    setNumericValue(fi, u, v);
+    setNumericValue(fi, NULL, u, v);
 }
 
 bool MeterCommonImplementation::hasValue(FieldInfo *fi)
@@ -1503,6 +1518,25 @@ double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
 
     string field_name_no_unit = fi->vname();
     pair<string,Quantity> key(field_name_no_unit,fi->xuantity());
+    if (numeric_values_.count(key) == 0)
+    {
+        return std::numeric_limits<double>::quiet_NaN(); // This is translated into a null in the json.
+    }
+    NumericField &nf = numeric_values_[key];
+    return convert(nf.value, nf.unit, to);
+}
+
+double MeterCommonImplementation::getNumericValue(string vname, Unit to)
+{
+    Quantity q = toQuantity(to);
+    FieldInfo *fi = findFieldInfo(vname, q);
+
+    if (fi != NULL && fi->hasGetNumericValueOverride())
+    {
+        return fi->getNumericValueOverride(to);
+    }
+
+    pair<string,Quantity> key(vname,q);
     if (numeric_values_.count(key) == 0)
     {
         return std::numeric_limits<double>::quiet_NaN(); // This is translated into a null in the json.
@@ -1718,7 +1752,7 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     }
     else
     {
-        s += "\""+field_name+"_"+default_unit+"\":"+valueToString(m->getNumericValue(this, defaultUnit()), defaultUnit());
+        s += "\""+field_name+"_"+default_unit+"\":"+valueToString(m->getNumericValue(field_name, defaultUnit()), defaultUnit());
     }
 
     return s;
@@ -2255,7 +2289,7 @@ void FieldInfo::performCalculation(Meter *m)
     assert(hasFormula());
 
     double value = formula_->calculate(defaultUnit());
-    m->setNumericValue(this, defaultUnit(), value);
+    m->setNumericValue(this, NULL, defaultUnit(), value);
 }
 
 bool FieldInfo::hasMatcher()
@@ -2358,7 +2392,7 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
                   unitToStringLowerCase(default_unit_).c_str(),
                   extracted_double_value);
         }
-        m->setNumericValue(this, default_unit_, convert(extracted_double_value, decoded_unit, default_unit_));
+        m->setNumericValue(this, dve, default_unit_, convert(extracted_double_value, decoded_unit, default_unit_));
         t->addMoreExplanation(dve->offset, renderJson(m, dve));
         found = true;
     }

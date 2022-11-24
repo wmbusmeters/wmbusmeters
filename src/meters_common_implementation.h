@@ -60,6 +60,7 @@ struct MeterCommonImplementation : public virtual Meter
     vector<string>& ids();
     string idsc();
     vector<FieldInfo> &fieldInfos();
+    vector<string> &extraConstantFields();
     string name();
     MeterDriver driver();
     DriverName driverName();
@@ -250,7 +251,8 @@ protected:
     virtual void processContent(Telegram *t);
 
     void setNumericValue(string vname, Unit u, double v);
-    void setNumericValue(FieldInfo *fi, Unit u, double v);
+    void setNumericValue(FieldInfo *fi, DVEntry *dve, Unit u, double v);
+    double getNumericValue(string vname, Unit u);
     double getNumericValue(FieldInfo *fi, Unit u);
     void setStringValue(FieldInfo *fi, std::string v);
     std::string getStringValue(FieldInfo *fi);

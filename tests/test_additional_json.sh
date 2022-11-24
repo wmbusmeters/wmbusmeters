@@ -20,6 +20,11 @@ then
     then
         echo "OK: $TESTNAME"
         TESTRESULT="OK"
+    else
+        if [ "$USE_MELD" = "true" ]
+        then
+            meld $TEST/test_expected.txt $TEST/test_response.txt
+        fi
     fi
 fi
 
@@ -30,11 +35,11 @@ if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
 TESTNAME="Test additional shell envs from cmdline"
 TESTRESULT="ERROR"
 
-$PROG --json_floor=5 --json_house="alfa beta" --listenvs=multical21 > $TEST/test_output.txt 2> $TEST/test_stderr.txt
+$PROG --json_floor=5 --json_house="alfa beta" --listenvs=multical21 2> $TEST/test_stderr.txt | sort > $TEST/test_output.txt
 
 ENVS=$(cat $TEST/test_output.txt | tr '\n' ' ')
 
-cat > $TEST/test_expected.txt <<EOF
+cat <<EOF | sort > $TEST/test_expected.txt
 METER_JSON
 METER_ID
 METER_NAME
@@ -58,8 +63,6 @@ METER_TIME_DRY
 METER_TIME_REVERSED
 METER_TIME_LEAKING
 METER_TIME_BURSTING
-METER_floor
-METER_house
 EOF
 
 diff $TEST/test_expected.txt $TEST/test_output.txt
@@ -67,6 +70,11 @@ if [ "$?" = "0" ]
 then
     echo "OK: $TESTNAME"
     TESTRESULT="OK"
+else
+    if [ "$USE_MELD" = "true" ]
+    then
+        meld $TEST/test_expected.txt $TEST/test_output.txt
+    fi
 fi
 
 if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi

@@ -1030,8 +1030,6 @@ StringInterpolatorImplementation::~StringInterpolatorImplementation()
 
 bool StringInterpolatorImplementation::parse(const std::string &f)
 {
-    debug("(stringinterpolator) parsing \"%s\"\n", f.c_str());
-
     strings_.clear();
     formulas_.clear();
 
@@ -1042,7 +1040,6 @@ bool StringInterpolatorImplementation::parse(const std::string &f)
     {
         // Push the string up to the brace.
         string part = f.substr(prev_string_start, next_start_brace - prev_string_start);
-        debug("(stringinterpolator) string \"%s\"\n", part.c_str());
         strings_.push_back(part);
 
         // Find the end of the formula.
@@ -1050,7 +1047,6 @@ bool StringInterpolatorImplementation::parse(const std::string &f)
         if (next_end_brace == string::npos) return false; // Oups, missing closing }
 
         string formula = f.substr(next_start_brace+1, next_end_brace - next_start_brace - 1);
-        debug("(stringinterpolator) formula \"%s\"\n", formula.c_str());
 
         formulas_.push_back(unique_ptr<Formula>(newFormula()));
         bool ok = formulas_.back()->parse(NULL, formula);
@@ -1065,7 +1061,6 @@ bool StringInterpolatorImplementation::parse(const std::string &f)
     if (prev_string_start < f.length())
     {
         string part = f.substr(prev_string_start);
-        debug("(stringinterpolator) last string \"%s\"\n", part.c_str());
         strings_.push_back(part);
     }
 
