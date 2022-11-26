@@ -93,17 +93,22 @@ using namespace std;
     X(Minute,      60.0,          SIExp().s(1))                      \
     X(Hour,        3600.0,        SIExp().s(1))                      \
     X(Day,         3600.0*24,     SIExp().s(1))                      \
-    X(Month,       3600.0*24*30.437, SIExp().s(1))                   \
-    X(Year,        3600.0*24*365.2425, SIExp().s(1))                 \
-    X(DateTimeUT,  1.0,           SIExp().s(1))                      \
-    X(DateTimeUTC, 1.0,           SIExp().s(1))                      \
-    X(DateTimeLT,  1.0,           SIExp().s(1))                      \
-                                                                        \
+    X(Month,       1,             SIExp().month(1))                  \
+    X(Year,        1,             SIExp().year(1))                   \
+    X(UnixTimestamp,1.0,          SIExp().unixTimestamp(1))          \
+    X(DateTimeUTC, 0.0,           SIExp().unixTimestamp(1))          \
+    X(DateTimeLT,  0.0,           SIExp().unixTimestamp(1))          \
+    X(DateLT,      0.0,           SIExp().unixTimestamp(1))          \
+    X(TimeLT,      0.0,           SIExp().unixTimestamp(1))          \
+                                                                     \
     X(RH,          1.0, SIExp())                                     \
     X(HCA,         1.0, SIExp())                                     \
     X(COUNTER,     1.0, SIExp())                                     \
     X(TXT,         1.0, SIExp())                                     \
 
+
+// 3600.0*24*365.2425
+// 3600.0*24*30.437
 
 #define X(cname,lcname,hrname,quantity,explanation) const SIUnit SI_##cname(Unit::cname);
 LIST_OF_UNITS
@@ -150,32 +155,21 @@ LIST_OF_CONVERSIONS
     return 0;
 }
 
-bool SIUnit::canConvertTo(const SIUnit &uto) const
-{
-    // Same exponents! Then we can always convert!
-    if (exponents_ == uto.exponents_) return true;
-
-    // Now the special cases. K-C-F
-    if ((exponents_ == SI_K.exponents_ ||
-         exponents_ == SI_C.exponents_ ||
-         exponents_ == SI_F.exponents_) &&
-        (uto.exponents_ == SI_K.exponents_ ||
-         uto.exponents_ == SI_C.exponents_ ||
-         uto.exponents_ == SI_F.exponents_))
-    {
-        // We are converting between the K,C,F temperatures only!
-        return true;
-    }
-
-    return false;
-}
-
 bool isKCF(const SIExp &e)
 {
     return
         e == SI_K.exp() ||
         e == SI_C.exp() ||
         e == SI_F.exp();
+}
+
+bool is_S_MONTH_YEAR_UT(const SIExp &e)
+{
+    return
+        e == SI_Second.exp() ||
+        e == SI_UnixTimestamp.exp() ||
+        e == SI_Month.exp() ||
+        e == SI_Year.exp();
 }
 
 void getScaleOffset(const SIExp &e, double *scale, double *offset)
@@ -201,15 +195,16 @@ void getScaleOffset(const SIExp &e, double *scale, double *offset)
     assert(0);
 }
 
-double SIUnit::convertTo(double val, const SIUnit &uto) const
+bool SIUnit::convertTo(double left, const SIUnit &out_siunit, double *out) const
 {
-    if (exp() == uto.exp())
+    if (exp() == out_siunit.exp())
     {
-        return (val*scale_)/uto.scale_;
+        if (out != NULL) *out = (left*scale_)/out_siunit.scale_;
+        return true;
     }
 
     // Now the special cases. K-C-F
-    if (isKCF(exp()) && isKCF(uto.exp()))
+    if (isKCF(exp()) && isKCF(out_siunit.exp()))
     {
         double from_scale {};
         double from_offset {};
@@ -220,13 +215,97 @@ double SIUnit::convertTo(double val, const SIUnit &uto) const
         double to_offset {};
         double to_scale {};
 
-        getScaleOffset(uto.exp(), &to_scale, &to_offset);
-        to_scale *= uto.scale();
+        getScaleOffset(out_siunit.exp(), &to_scale, &to_offset);
+        to_scale *= out_siunit.scale();
 
-        return ((val+from_offset)*from_scale)/to_scale-to_offset;
+        if (out != NULL) *out = ((left+from_offset)*from_scale)/to_scale-to_offset;
+        return true;
     }
 
-    return std::numeric_limits<double>::quiet_NaN();
+    if (out != NULL) *out = std::numeric_limits<double>::quiet_NaN();
+    return false;
+}
+
+bool forbidden_op(MathOp op, const SIExp &a, const SIExp &b)
+{
+    // Two unix timestamps cannot be added together. They can be subtracted though!
+    if (op == MathOp::ADD && a == SI_UnixTimestamp.exp() && b == SI_UnixTimestamp.exp()) return true;
+
+    return false;
+}
+
+double do_op(MathOp op, double left, double right)
+{
+    if (op == MathOp::ADD) return left+right;
+    if (op == MathOp::SUB) return left-right;
+    assert(0);
+}
+
+bool SIUnit::mathOpTo(MathOp op, double left, double right, const SIUnit &right_siunit, SIUnit *out_siunit, double *out) const
+{
+    // Adding all values with the same units.
+    if (exp() == right_siunit.exp())
+    {
+        if (forbidden_op(op, exp(), right_siunit.exp()))
+        {
+            if (out_siunit != NULL) *out_siunit = SI_COUNTER;
+            if (out != NULL) *out = std::numeric_limits<double>::quiet_NaN();
+            return false;
+        }
+        double left_converted {};
+        convertTo(left, right_siunit, &left_converted);
+        double result = do_op(op, left_converted, right);
+        if (out_siunit != NULL) *out_siunit = right_siunit;
+        if (out != NULL) *out = result;
+        return true;
+    }
+
+    // Adding temperatures.
+    if (isKCF(exp()) && isKCF(right_siunit.exp()))
+    {
+        double left_converted {};
+        convertTo(left, right_siunit, &left_converted);
+        double result = do_op(op, left_converted, right);
+        if (out_siunit != NULL) *out_siunit = right_siunit;
+        if (out  != NULL) *out = result;
+        return true;
+    }
+
+    // Operating on unix timestamps
+    if (exp() == SI_UnixTimestamp.exp() || right_siunit.exp() == SI_UnixTimestamp.exp())
+    {
+        if (right_siunit.exp() == SI_UnixTimestamp.exp())
+        {
+            // The timestamp is right, flip the arguments.
+            return right_siunit.mathOpTo(op, right, left, *this, out_siunit, out);
+        }
+        assert(exp() == SI_UnixTimestamp.exp() && right_siunit.exp() != SI_UnixTimestamp.exp());
+
+        // The timestamp is left. Lets handle all permitted additions to UnixTimestamp.
+        if (right_siunit.exp() == SI_Second.exp())
+        {
+            // Move right argument (day, hour, min, s) to seconds.
+            double right_converted {};
+            right_siunit.convertTo(right, SI_Second, &right_converted);
+            // Add the seconds to the unix timestamp.
+            double result = do_op(op, left, right_converted);
+            if (out_siunit != NULL) *out_siunit = SI_UnixTimestamp;
+            if (out != NULL) *out = result;
+            return true;
+        }
+        if (right_siunit.exp() == SI_Month.exp())
+        {
+            // Move right argument (day, hour, min, s) to seconds.
+            if (op == MathOp::SUB) right = -right;
+            double result = addMonths(left, right);
+            if (out_siunit != NULL) *out_siunit = SI_UnixTimestamp;
+            if (out != NULL) *out = result;
+            return true;
+        }
+    }
+
+    // Oups, should not get here....
+    return false;
 }
 
 SIUnit SIUnit::mul(const SIUnit &m) const
@@ -383,15 +462,6 @@ string strWithUnitLowerCase(double v, Unit u)
     string r = format3fdot3f(v);
     r += " "+unitToStringLowerCase(u);
     return r;
-}
-
-Unit replaceWithConversionUnit(Unit u, vector<Unit> cs)
-{
-    for (Unit c : cs)
-    {
-        if (canConvert(u, c)) return c;
-    }
-    return u;
 }
 
 string valueToString(double v, Unit u)
@@ -597,6 +667,11 @@ int8_t SIExp::safe_div2(int8_t a)
     return d;
 }
 
+bool SIExp::operator!=(const SIExp &e) const
+{
+    return ! (*this == e);
+}
+
 bool SIExp::operator==(const SIExp &e) const
 {
     return
@@ -608,7 +683,10 @@ bool SIExp::operator==(const SIExp &e) const
         cd_ == e.cd_ &&
         k_ == e.k_ &&
         c_ == e.c_ &&
-        f_ == e.f_;
+        f_ == e.f_ &&
+        month_ == e.month_ &&
+        year_ == e.year_ &&
+        unix_timestamp_ == e.unix_timestamp_;
 }
 
 SIExp SIExp::mul(const SIExp &e) const
@@ -623,7 +701,10 @@ SIExp SIExp::mul(const SIExp &e) const
         .cd(ee.safe_add(cd(),e.cd()))
         .k(ee.safe_add(k(),e.k()))
         .c(ee.safe_add(c(),e.c()))
-        .f(ee.safe_add(f(),e.f()));
+        .f(ee.safe_add(f(),e.f()))
+        .month(ee.safe_add(month(),e.month()))
+        .year(ee.safe_add(year(),e.year()))
+        .unixTimestamp(ee.safe_add(unixTimestamp(),e.unixTimestamp()));
 
     return ee;
 }
@@ -639,7 +720,10 @@ SIExp SIExp::div(const SIExp &e) const
         .cd(ee.safe_sub(cd(),e.cd()))
         .k(ee.safe_sub(k(),e.k()))
         .c(ee.safe_sub(c(),e.c()))
-        .f(ee.safe_sub(f(),e.f()));
+        .f(ee.safe_sub(f(),e.f()))
+        .month(ee.safe_sub(month(),e.month()))
+        .year(ee.safe_sub(year(),e.year()))
+        .unixTimestamp(ee.safe_sub(unixTimestamp(),e.unixTimestamp()));
 
     return ee;
 }
@@ -656,7 +740,10 @@ SIExp SIExp::sqrt() const
         .cd(ee.safe_div2(cd()))
         .k(ee.safe_div2(k()))
         .c(ee.safe_div2(c()))
-        .f(ee.safe_div2(f()));
+        .f(ee.safe_div2(f()))
+        .month(ee.safe_div2(month()))
+        .year(ee.safe_div2(year()))
+        .unixTimestamp(ee.safe_div2(unixTimestamp()));
 
     return ee;
 }
@@ -676,6 +763,9 @@ string SIExp::str() const
     DO_UNIT_SIEXP(f_, f);
     DO_UNIT_SIEXP(s_, s);
     DO_UNIT_SIEXP(a_, a);
+    DO_UNIT_SIEXP(month_, month);
+    DO_UNIT_SIEXP(year_, year);
+    DO_UNIT_SIEXP(unix_timestamp_, ut);
 
     if (invalid_) r = "!"+r+"-Invalid!";
 

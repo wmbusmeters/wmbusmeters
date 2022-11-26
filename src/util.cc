@@ -1405,6 +1405,15 @@ int get_days_in_month(int year, int month)
     return days;
 }
 
+double addMonths(double t, int months)
+{
+    time_t ut = (time_t)t;
+    struct tm time;
+    localtime_r(&ut, &time);
+    addMonths(&time, months);
+    return (double)mktime(&time);
+}
+
 void addMonths(struct tm *date, int months)
 {
     bool is_last_day_in_month = date->tm_mday == get_days_in_month(date->tm_year, date->tm_mon);

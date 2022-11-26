@@ -104,9 +104,11 @@ LIST_OF_QUANTITIES
     X(Day,d,"d",Time,"day")                                             \
     X(Month,month,"month",Time,"month")                                 \
     X(Year,y,"y",Time,"year")                                           \
-    X(DateTimeUT,ut,"ut",PointInTime,"unix timestamp")                  \
+    X(UnixTimestamp,ut,"ut",PointInTime,"unix timestamp")               \
     X(DateTimeUTC,utc,"utc",PointInTime,"coordinated universal time")   \
-    X(DateTimeLT,lt,"lt",PointInTime,"local time")                      \
+    X(DateTimeLT,datetime,"datetime",PointInTime,"local time")          \
+    X(DateLT,date,"date",PointInTime,"local date")                      \
+    X(TimeLT,time,"time",PointInTime,"local time")                      \
     \
     X(RH,rh,"RH",RelativeHumidity,"relative humidity")                  \
     X(HCA,hca,"hca",HCA,"heat cost allocation")                         \
@@ -150,6 +152,9 @@ struct SIExp
     SIExp &k(int8_t i) { k_ = i; if (k_ != 0 && (c_ != 0 || f_ != 0)) { invalid_ = true; } return *this; }
     SIExp &c(int8_t i) { c_ = i; if (c_ != 0 && (k_ != 0 || f_ != 0)) { invalid_ = true; } return *this; }
     SIExp &f(int8_t i) { f_ = i; if (f_ != 0 && (k_ != 0 || c_ != 0)) { invalid_ = true; } return *this; }
+    SIExp &month(int8_t i) { month_ = i; return *this; }
+    SIExp &year(int8_t i) { year_ = i; return *this; }
+    SIExp &unixTimestamp(int8_t i) { unix_timestamp_ = i; return *this; }
 
     int8_t s() const { return s_; }
     int8_t m() const { return m_; }
@@ -160,6 +165,10 @@ struct SIExp
     int8_t k() const { return k_; }
     int8_t c() const { return c_; }
     int8_t f() const { return f_; }
+    int8_t month() const { return month_; }
+    int8_t year() const { return year_; }
+    int8_t unixTimestamp() const { return unix_timestamp_; }
+
     SIExp mul(const SIExp &e) const;
     SIExp div(const SIExp &e) const;
     SIExp sqrt() const;
@@ -167,6 +176,7 @@ struct SIExp
     int8_t safe_sub(int8_t a, int8_t b);
     int8_t safe_div2(int8_t a);
     bool operator==(const SIExp &e) const;
+    bool operator!=(const SIExp &e) const;
 
     std::string str() const;
 
@@ -190,9 +200,19 @@ private:
                // But kw*h can be translated into kw*s since scaling (*3600) can be done on the
                // calculated value without knowing the h value. Therefore we have to
                // treat k, c and f as distinct units. I.e. you cannot add m3*k+m3*f+m3*c.
+    int8_t month_ {}; // Why month and year here instead of using s? Because they vary in length and thus cannot
+    int8_t year_ {};  // be auto-converted to seconds, ie you cannot add/subtract months/years without knowing what you add to.
+    int8_t unix_timestamp_ {}; // Why not s? Because point in time is referenced agains an offset. UT is 1970-01-01 01:00.
 
-    // If exponents have over/underflowed or if multiple of k,c,f are set, then the SIExp is not valid any more!
+    // If exponents have over/underflowed or if multiple of (k,c,f) (month,year,unix_timestamp) are set,
+    // then the SIExp is not valid any more!
+
     bool invalid_ = false;
+};
+
+enum class MathOp
+{
+    ADD, SUB
 };
 
 struct SIUnit
@@ -220,11 +240,12 @@ struct SIUnit
     // Return a detailed string like: kwh[3.6⁶s⁻²m²kg]Energy
     std::string info() const;
     // Check if the exponents (ie units) are the same.
-    bool sameExponents(SIUnit &to) const { return exponents_ == to.exponents_; }
-    // Check if this unit can be converted to the other unit.
-    bool canConvertTo(const SIUnit &to) const;
-    // Convert value from this unit to another unit.
-    double convertTo(double val, const SIUnit &to) const;
+    bool sameExponents(SIUnit &to_siunit) const { return exponents_ == to_siunit.exponents_; }
+    // Convert value from this unit to another unit and store it in out. Return false if conversion is impossible!
+    bool convertTo(double left, const SIUnit &out_siunit, double *out) const;
+    // Do a math op. Store the resulting unit and value into the destination pointers.
+    // Return false if the addion cannot be performed.
+    bool mathOpTo(MathOp op, double left, double right, const SIUnit &right_siunit, SIUnit *out_siunit, double *out) const;
     // Multiply this unit with another unit.
     SIUnit mul(const SIUnit &m) const ;
     // Dividethis unit with another unit.
@@ -257,9 +278,10 @@ std::string unitToStringLowerCase(Unit u);
 std::string unitToStringUpperCase(Unit u);
 std::string valueToString(double v, Unit u);
 
-Unit replaceWithConversionUnit(Unit u, std::vector<Unit> cs);
-
 bool extractUnit(const std::string &s, std::string *vname, Unit *u);
 
+#define X(cname,lcname,hrname,quantity,explanation) extern const SIUnit SI_##cname;
+LIST_OF_UNITS
+#undef X
 
 #endif

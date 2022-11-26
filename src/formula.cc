@@ -38,7 +38,9 @@ NumericFormulaSquareRoot::~NumericFormulaSquareRoot() { }
 
 double NumericFormulaConstant::calculate(SIUnit to)
 {
-    return siunit().convertTo(constant_, to);
+    double r {};
+    siunit().convertTo(constant_, to, &r);
+    return r;
 }
 
 double NumericFormulaMeterField::calculate(SIUnit to_si_unit)
@@ -52,7 +54,9 @@ double NumericFormulaMeterField::calculate(SIUnit to_si_unit)
 
     const SIUnit& field_si_unit = toSIUnit(field_unit);
 
-    return field_si_unit.convertTo(val, to_si_unit);
+    double r {};
+    field_si_unit.convertTo(val, to_si_unit, &r);
+    return r;
 }
 
 double NumericFormulaDVEntryField::calculate(SIUnit to_si_unit)
@@ -63,31 +67,66 @@ double NumericFormulaDVEntryField::calculate(SIUnit to_si_unit)
 
     const SIUnit& counter_si_unit = toSIUnit(Unit::COUNTER);
 
-    return counter_si_unit.convertTo(val, to_si_unit);
+    double r {};
+    counter_si_unit.convertTo(val, to_si_unit, &r);
+    return r;
 }
 
-double NumericFormulaAddition::calculate(SIUnit to)
+double NumericFormulaAddition::calculate(SIUnit to_siunit)
 {
-    double l = left_->calculate(to);
-    double r = right_->calculate(to);
+    double l = left_->calculate(left_->siunit());
+    double r = right_->calculate(right_->siunit());
 
-    return l+r;
+    double v {};
+    SIUnit v_siunit(Unit::COUNTER);
+    left_->siunit().mathOpTo(MathOp::ADD, l, r, right_->siunit(), &v_siunit, &v);
+
+    double result {};
+    v_siunit.convertTo(v, to_siunit, &result);
+
+    if (isDebugEnabled())
+    {
+        debug("(formula) ADD %g (%s) %g (%s) --> %g %s --> %g %s\n",
+              l, left_->siunit().info().c_str(),
+              r, right_->siunit().info().c_str(),
+              v, v_siunit.info().c_str(),
+              result, siunit().info().c_str());
+    }
+
+    return result;
 }
 
-double NumericFormulaSubtraction::calculate(SIUnit to)
+double NumericFormulaSubtraction::calculate(SIUnit to_siunit)
 {
-    double l = left_->calculate(to);
-    double r = right_->calculate(to);
+    double l = left_->calculate(left_->siunit());
+    double r = right_->calculate(right_->siunit());
 
-    return l-r;
+    double v {};
+    SIUnit v_siunit(Unit::COUNTER);
+    left_->siunit().mathOpTo(MathOp::SUB, l, r, right_->siunit(), &v_siunit, &v);
+
+    double result {};
+    v_siunit.convertTo(v, to_siunit, &result);
+
+    if (isDebugEnabled())
+    {
+        debug("(formula) SUB %g (%s) %g (%s) --> %g %s --> %g %s\n",
+              l, left_->siunit().info().c_str(),
+              r, right_->siunit().info().c_str(),
+              v, v_siunit.info().c_str(),
+              result, siunit().info().c_str());
+    }
+
+    return result;
 }
 
-double NumericFormulaMultiplication::calculate(SIUnit to)
+double NumericFormulaMultiplication::calculate(SIUnit to_siunit)
 {
     double l = left_->calculate(left_->siunit());
     double r = right_->calculate(right_->siunit());
     double m = l*r;
-    double v = siunit().convertTo(m, to);
+    double v {};
+    siunit().convertTo(m, to_siunit, &v);
 
     if (isDebugEnabled())
     {
@@ -95,17 +134,18 @@ double NumericFormulaMultiplication::calculate(SIUnit to)
               l, left_->siunit().info().c_str(),
               r, right_->siunit().info().c_str(),
               m,
-              v, to.info().c_str());
+              v, to_siunit.info().c_str());
     }
     return v;
 }
 
-double NumericFormulaDivision::calculate(SIUnit to)
+double NumericFormulaDivision::calculate(SIUnit to_siunit)
 {
     double l = left_->calculate(left_->siunit());
     double r = right_->calculate(right_->siunit());
     double d = l/r;
-    double v = siunit().convertTo(d, to);
+    double v {};
+    siunit().convertTo(d, to_siunit, &v);
 
     if (isDebugEnabled())
     {
@@ -114,28 +154,30 @@ double NumericFormulaDivision::calculate(SIUnit to)
               r, right_->siunit().info().c_str(),
               d,
               v,
-              to.info().c_str());
+              to_siunit.info().c_str());
     }
 
     return v;
 }
 
-double NumericFormulaExponentiation::calculate(SIUnit to)
+double NumericFormulaExponentiation::calculate(SIUnit to_siunit)
 {
-    double l = left_->calculate(to);
-    double r = right_->calculate(to);
+    double l = left_->calculate(to_siunit);
+    double r = right_->calculate(to_siunit);
     double p = pow(l,r);
-    double v = siunit().convertTo(p, to);
+    double v {};
+    siunit().convertTo(p, to_siunit, &v);
 
     debug("(formula) %g <-- %g <-- pow %g ^ %g\n", v, p, l, r);
     return v;
 }
 
-double NumericFormulaSquareRoot::calculate(SIUnit to)
+double NumericFormulaSquareRoot::calculate(SIUnit to_siunit)
 {
     double i = inner_->calculate(inner_->siunit());
     double s = sqrt(i);
-    double v = siunit().convertTo(s, to);
+    double v {};
+    siunit().convertTo(s, to_siunit, &v);
 
     if (isDebugEnabled())
     {
@@ -143,7 +185,7 @@ double NumericFormulaSquareRoot::calculate(SIUnit to)
               i, inner_->siunit().info().c_str(),
               s,
               v,
-              to.info().c_str());
+              to_siunit.info().c_str());
     }
     return v;
 }
@@ -153,6 +195,8 @@ const char *toString(TokenType tt)
     switch (tt) {
     case TokenType::SPACE: return "SPACE";
     case TokenType::NUMBER: return "NUMBER";
+    case TokenType::DATETIME: return "DATETIME";
+    case TokenType::TIME: return "TIME";
     case TokenType::LPAR: return "LPAR";
     case TokenType::RPAR: return "RPAR";
     case TokenType::PLUS: return "PLUS";
@@ -176,7 +220,30 @@ string Token::str(const string &s)
 double Token::val(const string &s)
 {
     string v = s.substr(start, len);
-    return atof(v.c_str());
+    if (type == TokenType::NUMBER)
+    {
+        return atof(v.c_str());
+    }
+    else if (type == TokenType::DATETIME)
+    {
+        struct tm time {};
+        strptime(v.c_str(), "'%Y-%m-%d %H:%M:%S'", &time);
+        time_t epoch = mktime(&time);
+        double result = (double)epoch;
+        return result;
+    }
+    else if (type == TokenType::TIME)
+    {
+        int h = 0;
+        int m = 0;
+        int s = 0;
+        sscanf(v.c_str(), "'%02d:%02d:%02d'", &h, &m, &s);
+        double result = h*3600+m*60+s;
+        return result;
+    }
+
+    assert(0);
+    return 0;
 }
 
 string Token::vals(const string &s)
@@ -249,6 +316,76 @@ size_t FormulaImplementation::findNumber(size_t i)
 
     return len;
 }
+
+size_t FormulaImplementation::findDateTime(size_t i)
+{
+    // A datetime is converted into a unix timestamp.
+    // Patterns: '2222-22-22 11:11:00'
+    //           '2222-22-22 11:11'
+    //           '2222-22-22'
+
+    struct tm time {};
+    const char *start = &formula_[i];
+    const char *end;
+
+    memset(&time, 0, sizeof(time));
+    if (i+20 < formula_.length())
+    {
+        end = strptime(start, "'%Y-%m-%d %H:%M:%S'", &time);
+        if (distance(start, end) == 21) return 21;
+    }
+
+    if (i+17 < formula_.length())
+    {
+        end = strptime(start, "'%Y-%m-%d %H:%M'", &time);
+        if (distance(start, end) == 18) return 18;
+    }
+
+    if (i+11 < formula_.length())
+    {
+        end = strptime(start, "'%Y-%m-%d'", &time);
+        if (distance(start, end) == 12) return 12;
+    }
+
+    return 0;
+}
+
+size_t FormulaImplementation::findTime(size_t i)
+{
+    // A time is converted into seconds 10:11:12 is 10*3600+11*60+12 seconds.
+    // Patterns: '11:22:15'
+    //           '11:22'
+
+    if (i+9 < formula_.length() &&
+        '\'' == formula_[i+0] &&
+        isdigit(formula_[i+1]) &&
+        isdigit(formula_[i+2]) &&
+        ':' == formula_[i+3] &&
+        isdigit(formula_[i+4]) &&
+        isdigit(formula_[i+5]) &&
+        ':' == formula_[i+6] &&
+        isdigit(formula_[i+7]) &&
+        isdigit(formula_[i+8]) &&
+        '\'' == formula_[i+9])
+    {
+        return 10;
+    }
+
+    if (i+6 < formula_.length() &&
+        '\'' == formula_[i+0] &&
+        isdigit(formula_[i+1]) &&
+        isdigit(formula_[i+2]) &&
+        ':' == formula_[i+3] &&
+        isdigit(formula_[i+4]) &&
+        isdigit(formula_[i+5]) &&
+        '\'' == formula_[i+6])
+    {
+        return 7;
+    }
+
+    return 0;
+}
+
 
 size_t FormulaImplementation::findPlus(size_t i)
 {
@@ -387,6 +524,12 @@ bool FormulaImplementation::tokenize()
         len = findSpace(i);
         if (len > 0) { i+=len; continue; } // No token added for whitespace.
 
+        len = findDateTime(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::DATETIME, i, len)); i+=len; continue; }
+
+        len = findTime(i);
+        if (len > 0) { tokens_.push_back(Token(TokenType::TIME, i, len)); i+=len; continue; }
+
         len = findNumber(i);
         if (len > 0) { tokens_.push_back(Token(TokenType::NUMBER, i, len)); i+=len; continue; }
 
@@ -424,7 +567,13 @@ bool FormulaImplementation::tokenize()
     }
 
     // Interrupted early, thus there was an error tokenizing.
-    if (i < formula_.length()) return false;
+    if (i < formula_.length())
+    {
+        Token tok(TokenType::SPACE, i, 0);
+        errors_.push_back(tostrprintf("Unknown token!\n"+tok.withMarker(formula_)));
+        valid_ = false;
+        return false;
+    }
 
     return true;
 }
@@ -438,6 +587,18 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::FIELD)
     {
         handleField(tok);
+        return i+1;
+    }
+
+    if (tok->type == TokenType::DATETIME)
+    {
+        handleUnixTimestamp(tok);
+        return i+1;
+    }
+
+    if (tok->type == TokenType::TIME)
+    {
+        handleSeconds(tok);
         return i+1;
     }
 
@@ -553,12 +714,30 @@ void FormulaImplementation::handleConstant(Token *number, Token *unit)
     doConstant(u, c);
 }
 
+void FormulaImplementation::handleUnixTimestamp(Token *number)
+{
+    double c = number->val(formula_);
+
+    doConstant(Unit::UnixTimestamp, c);
+}
+
+void FormulaImplementation::handleSeconds(Token *number)
+{
+    double c = number->val(formula_);
+    Unit u = Unit::Second;
+
+    doConstant(u, c);
+}
+
 void FormulaImplementation::handleAddition(Token *tok)
 {
     SIUnit right_siunit = topOp()->siunit();
     SIUnit left_siunit = top2Op()->siunit();
+    SIUnit to_siunit(Unit::COUNTER);
 
-    if (!left_siunit.canConvertTo(right_siunit))
+    bool ok = left_siunit.mathOpTo(MathOp::ADD, 0, 0, right_siunit, &to_siunit, NULL);
+
+    if (!ok)
     {
         string lsis = left_siunit.str();
         string rsis = right_siunit.str();
@@ -570,7 +749,7 @@ void FormulaImplementation::handleAddition(Token *tok)
         return;
     }
 
-    doAddition();
+    doAddition(to_siunit);
 }
 
 void FormulaImplementation::handleSubtraction(Token *tok)
@@ -578,11 +757,15 @@ void FormulaImplementation::handleSubtraction(Token *tok)
     SIUnit right_siunit = topOp()->siunit();
     SIUnit left_siunit = top2Op()->siunit();
 
-    if (!left_siunit.canConvertTo(right_siunit))
+    SIUnit v_siunit(Unit::COUNTER);
+
+    bool ok = left_siunit.mathOpTo(MathOp::SUB, 0, 0, right_siunit, &v_siunit, NULL);
+
+    if (!ok)
     {
         string lsis = left_siunit.str();
         string rsis = right_siunit.str();
-        errors_.push_back(tostrprintf("Cannot subtract %s to %s!\n%s",
+        errors_.push_back(tostrprintf("Cannot subtract %s from %s!\n%s",
                                       left_siunit.info().c_str(),
                                       right_siunit.info().c_str(),
                                       tok->withMarker(formula_).c_str()));
@@ -590,7 +773,7 @@ void FormulaImplementation::handleSubtraction(Token *tok)
         return;
     }
 
-    doSubtraction();
+    doSubtraction(v_siunit);
 }
 
 void FormulaImplementation::handleMultiplication(Token *tok)
@@ -601,7 +784,7 @@ void FormulaImplementation::handleMultiplication(Token *tok)
 
 void FormulaImplementation::handleDivision(Token *tok)
 {
-    // Any two units can be multiplied! You might not like the answer thought....
+    // Any two units can be divided! You might not like the answer thought....
     doDivision();
 }
 
@@ -750,38 +933,24 @@ void FormulaImplementation::doConstant(Unit u, double c)
     pushOp(new NumericFormulaConstant(this, u, c));
 }
 
-void FormulaImplementation::doAddition()
+void FormulaImplementation::doAddition(const SIUnit &to_siunit)
 {
     assert(op_stack_.size() >= 2);
 
-    SIUnit right_siunit = topOp()->siunit();
-
     unique_ptr<NumericFormula> right_node = popOp();
-
-    SIUnit left_siunit = topOp()->siunit();
-
     unique_ptr<NumericFormula> left_node = popOp();
 
-    pushOp(new NumericFormulaAddition(this, left_siunit, left_node, right_node));
-
-    assert(left_siunit.canConvertTo(right_siunit));
+    pushOp(new NumericFormulaAddition(this, to_siunit, left_node, right_node));
 }
 
-void FormulaImplementation::doSubtraction()
+void FormulaImplementation::doSubtraction(const SIUnit &to_siunit)
 {
     assert(op_stack_.size() >= 2);
 
-    SIUnit right_siunit = topOp()->siunit();
-
     unique_ptr<NumericFormula> right_node = popOp();
-
-    SIUnit left_siunit = topOp()->siunit();
-
     unique_ptr<NumericFormula> left_node = popOp();
 
-    pushOp(new NumericFormulaSubtraction(this, left_siunit, left_node, right_node));
-
-    assert(left_siunit.canConvertTo(right_siunit));
+    pushOp(new NumericFormulaSubtraction(this, to_siunit, left_node, right_node));
 }
 
 void FormulaImplementation::doMultiplication()
@@ -863,7 +1032,8 @@ void FormulaImplementation::doMeterField(Unit u, FieldInfo *fi)
 {
     SIUnit from_si_unit = toSIUnit(fi->defaultUnit());
     SIUnit to_si_unit = toSIUnit(u);
-    assert(from_si_unit.canConvertTo(to_si_unit));
+    assert(from_si_unit.convertTo(0, to_si_unit, NULL));
+
     pushOp(new NumericFormulaMeterField(this, u, fi->vname(), fi->xuantity()));
 }
 

@@ -80,6 +80,7 @@ std::string strdatetime(struct tm *date);
 // Return for example: 2010-03-21 15:22:03
 std::string strdatetimesec(struct tm *date);
 void addMonths(struct tm* date, int m);
+double addMonths(double t, int m);
 
 bool stringFoundCaseIgnored(const std::string& haystack, const std::string& needle);
 

@@ -62,7 +62,9 @@ bool verbose_ = false;
     X(si_units_siexp)                           \
     X(si_units_basic)                           \
     X(si_units_conversion)                      \
-    X(formulas_building)                        \
+    X(formulas_building_consts)                 \
+    X(formulas_building_meters)                 \
+    X(formulas_datetimes)                       \
     X(formulas_parsing_1)                       \
     X(formulas_parsing_2)                       \
     X(formulas_multiply_constants)              \
@@ -862,7 +864,7 @@ void test_device_parsing()
 
 void test_month(int y, int m, int day, int mdiff, string from, string to)
 {
-    struct tm date;
+    struct tm date {};
     date.tm_year  = y-1900;
     date.tm_mon   = m-1;
     date.tm_mday  = day;
@@ -1597,7 +1599,6 @@ void test_units_extraction()
     test_unit("work_kvarh", true, "work", Unit::KVARH);
 
     test_unit("current_power_consumption_phase1_kw", true, "current_power_consumption_phase1", Unit::KW);
-
 }
 
 void test_expected_failed_si_convert(Unit from_unit,
@@ -1613,7 +1614,7 @@ void test_expected_failed_si_convert(Unit from_unit,
     {
         printf("ERROR! Not the expected quantities!\n");
     }
-    if (from_si_unit.canConvertTo(to_si_unit))
+    if (from_si_unit.convertTo(0, to_si_unit, NULL))
     {
         printf("ERROR! Should not be able to convert from %s to %s !\n", fu.c_str(), tu.c_str());
     }
@@ -1628,6 +1629,10 @@ void test_si_convert(double from_value, double expected_value,
                      set<Unit> *from_set,
                      set<Unit> *to_set)
 {
+    debug("test_si_convert from %.17g %s to %.17g %s\n",
+          from_value, expected_from_unit.c_str(),
+          expected_value, expected_to_unit.c_str());
+
     string evs = tostrprintf("%.15g", expected_value);
 
     SIUnit from_si_unit(from_unit);
@@ -1638,7 +1643,8 @@ void test_si_convert(double from_value, double expected_value,
     from_set->erase(from_unit);
     to_set->erase(to_unit);
 
-    double e = from_si_unit.convertTo(from_value, to_si_unit);
+    double e {};
+    from_si_unit.convertTo(from_value, to_si_unit, &e);
     string es = tostrprintf("%.15g", e);
 
     if (canConvert(from_unit, to_unit))
@@ -1788,15 +1794,15 @@ LIST_OF_QUANTITIES
     test_si_convert(3600.0, 1.0/24.0, Unit::Second, "s", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
     // 1 min is 60 seconds.
     test_si_convert(1.0, 60.0, Unit::Minute, "min", Unit::Second, "s", Quantity::Time, &from_set, &to_set);
-    // 1 day is 1/365.2425 year
-    test_si_convert(1.0, 1.0/365.2425, Unit::Day, "d", Unit::Year, "y", Quantity::Time, &from_set, &to_set);
-    // 1 month is 30.437 days
-    test_si_convert(2.0, 30.437*2, Unit::Month, "month", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
-    test_si_convert(30.437*2, 2.0, Unit::Day, "d", Unit::Month, "month", Quantity::Time, &from_set, &to_set);
+    // 1 day is 24 hours
+    test_si_convert(1.0, 24, Unit::Day, "d", Unit::Hour, "h", Quantity::Time, &from_set, &to_set);
+    // 1 month is 1 month.
+    test_si_convert(1.0, 1.0, Unit::Month, "month", Unit::Month, "month", Quantity::Time, &from_set, &to_set);
+    test_si_convert(1.0, 1.0, Unit::Year, "y", Unit::Year, "y", Quantity::Time, &from_set, &to_set);
     // 100 hours is 100/24 days.
     test_si_convert(100.0, 100.0/24.0, Unit::Hour, "h", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
     // 1 year is 365.2425 days.
-    test_si_convert(1.0, 365.2425, Unit::Year, "y", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
+//    test_si_convert(1.0, 365.2425, Unit::Year, "y", Unit::Day, "d", Quantity::Time, &from_set, &to_set);
 
     check_units_tested(from_set, to_set, Quantity::Time);
 
@@ -2043,19 +2049,22 @@ LIST_OF_QUANTITIES
     check_quantities_tested(q_set);
 }
 
-void test_formulas_building()
+
+void test_formulas_building_consts()
 {
     unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
+    double v; // , expected;
 
     f->doConstant(Unit::KWH, 17);
     f->doConstant(Unit::KWH, 1);
-    f->doAddition();
-    double v = f->calculate(Unit::KWH);
+    f->doAddition(SI_KWH);
+    v = f->calculate(Unit::KWH);
     if (v != 18.0)
     {
         printf("ERROR in test formula 1 expected 18.0 but got %lf\n", v);
     }
 
+    /*
     f->clear();
     f->doConstant(Unit::KWH, 10);
     v = f->calculate(Unit::MJ);
@@ -2067,7 +2076,7 @@ void test_formulas_building()
     f->clear();
     f->doConstant(Unit::GJ, 10);
     f->doConstant(Unit::MJ, 10);
-    f->doAddition();
+    f->doAddition(SI_GJ);
     v = f->calculate(Unit::GJ);
     if (v != 10.01)
     {
@@ -2077,14 +2086,52 @@ void test_formulas_building()
     f->clear();
     f->doConstant(Unit::C, 10);
     f->doConstant(Unit::C, 20);
-    f->doAddition();
+    f->doAddition(SI_C);
     f->doConstant(Unit::C, 22);
-    f->doAddition();
+    f->doAddition(SI_C);
     v = f->calculate(Unit::C);
     if (v != 52)
     {
         printf("ERROR in test formula 4 expected 52 but got %lf\n", v);
     }
+
+    f->clear();
+    f->doConstant(Unit::Month, 2);
+    f->doConstant(Unit::COUNTER, 3);
+    f->doMultiplication();
+    v = f->calculate(Unit::Month);
+    if (v != 6)
+    {
+        printf("ERROR in test formula 5 expected 6 but got %g\n", v);
+    }
+
+    f->clear();
+    f->doConstant(Unit::UnixTimestamp, 3600*24*11); // mon 12 jan 1970 01:00:00 CET
+    f->doConstant(Unit::UnixTimestamp, 9);
+    f->doAddition(SIUnit(Unit::UnixTimestamp));
+    v = f->calculate(Unit::UnixTimestamp);
+    expected = 3600*24*11+9;
+    if (v != expected)
+    {
+        printf("ERROR in test formula 6 expected %g but got %g\n", expected, v);
+    }
+
+    f->clear();
+    f->doConstant(Unit::UnixTimestamp, 3600*24*11); // mon 12 jan 1970 01:00:00 CET
+    f->doConstant(Unit::Month, 1);
+    f->doAddition(SIUnit(Unit::UnixTimestamp));
+    v = f->calculate(Unit::UnixTimestamp);
+    expected = 3600*24*(31+11); // mon 12 feb 1970 01:00:00 CET
+    if (v != expected)
+    {
+        printf("ERROR in test formula 7 expected %g but got %g\n", expected, v);
+    }
+    */
+}
+
+void test_formulas_building_meters()
+{
+    unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2113,7 +2160,7 @@ void test_formulas_building()
         f->setMeter(meter.get());
 
         f->doMeterField(Unit::C, fi_flow);
-        v = f->calculate(Unit::C);
+        double v = f->calculate(Unit::C);
         if (v != 31)
         {
             printf("ERROR in test formula 5 expected 31 but got %lf\n", v);
@@ -2124,7 +2171,7 @@ void test_formulas_building()
 
         f->doMeterField(Unit::C, fi_flow);
         f->doMeterField(Unit::C, fi_ext);
-        f->doAddition();
+        f->doAddition(SIUnit(Unit::C));
         v = f->calculate(Unit::C);
         if (v != 50)
         {
@@ -2167,11 +2214,11 @@ void test_formulas_building()
 
         f->doMeterField(Unit::KW, fi_p1);
         f->doMeterField(Unit::KW, fi_p2);
-        f->doAddition();
+        f->doAddition(SI_KW);
         f->doMeterField(Unit::KW, fi_p3);
-        f->doAddition();
+        f->doAddition(SI_KW);
 
-        v = f->calculate(Unit::KW);
+        double v = f->calculate(Unit::KW);
         if (v != 0.21679)
         {
             printf("ERROR in test formula 7 expected 0.21679 but got %lf\n", v);
@@ -2221,6 +2268,110 @@ void test_formula_error(FormulaImplementation *f, Meter *m, string formula, Unit
                f->errors().c_str());
     }
     assert(!ok);
+}
+
+double totime(int year, int month = 1, int day = 1, int hour = 0, int min = 0, int sec = 0)
+{
+    struct tm date {};
+
+    date.tm_year  = year-1900;
+    date.tm_mon   = month-1;
+    date.tm_mday  = day;
+    date.tm_hour = hour;
+    date.tm_min = min;
+    date.tm_sec = sec;
+
+    // This t timestamp is dependent on the local time zone.
+    time_t t = mktime(&date);
+    /*
+    // Extract the local time zone.
+    struct tm tz_adjust {};
+    localtime_r(&t, &tz_adjust);
+
+    // if tm_gmtoff is zero, then we are in Greenwich!
+    // if tm_gmtoff is 3600 then we are in Stockholm!
+    // Now adjust the t timestamp so that we execute this this, as if we are in Greenwich.
+    // This way, the test will work wherever in the world we run it.
+    t -= tz_adjust.tm_gmtoff;
+    */
+    return (double)t;
+}
+
+void test_datetime(FormulaImplementation *f, string formula, int year, int month=1, int day=1, int hour=0, int min=0, int sec=0)
+{
+    f->clear();
+    double expected = totime(year,month,day,hour,min,sec);
+    f->parse(NULL, formula);
+    if (!f->valid())
+    {
+        printf("%s\n", f->errors().c_str());
+    }
+
+    double v = f->calculate(Unit::UnixTimestamp);
+    if (v != expected)
+    {
+        time_t t = v;
+        struct tm time {};
+        localtime_r(&t, &time);
+        string gs = strdatetimesec(&time);
+
+        printf("ERROR Expected datetime %.17g %04d-%02d-%02d %02d:%02d:%02d "
+               "but got %.17g (%s) when testing \"%s\"\n",
+               expected, year, month, day, hour, min, sec,
+               v, gs.c_str(), formula.c_str());
+    }
+}
+
+void test_time(FormulaImplementation *f, string formula, int hour=0, int min=0, int sec=0)
+{
+    f->clear();
+    double expected = hour*3600+min*60+sec;
+    f->parse(NULL, formula);
+    if (!f->valid())
+    {
+        printf("%s\n", f->errors().c_str());
+    }
+
+    double v = f->calculate(Unit::Second);
+    if (v != expected)
+    {
+        printf("ERROR Expected time %.17g but got %.17g when testing %s %02d:%02d.%02d\n",
+               expected, v, formula.c_str(), hour, min, sec);
+    }
+}
+
+void test_formulas_datetimes()
+{
+    unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
+
+    test_datetime(f.get(), "'2022-02-02'", 2022, 02, 02);
+    test_datetime(f.get(), "'2021-02-28'", 2021, 02, 28);
+
+    test_datetime(f.get(), "'1970-01-01 01:00:00'", 1970, 01, 01, 01, 00, 00);
+    test_datetime(f.get(), "'1970-01-01 01:00'", 1970, 01, 01, 01, 00);
+    test_datetime(f.get(), "'1970-01-01'", 1970, 01, 01);
+
+    test_time(f.get(), "'00:15'", 0, 15, 0);
+    test_time(f.get(), "'00:00:16'", 0, 0, 16);
+
+    test_datetime(f.get(), "'2022-01-01 00:00:00' + 1s", 2022,1,1,0,0,1);
+    test_datetime(f.get(), "'1971-10-01 02:17' +7d+1h+2min+1s", 1971, 10, 8, 3, 19, 1);
+
+    test_datetime(f.get(), "'2000-01-01' + 1month", 2000, 2, 1);
+    test_datetime(f.get(), "'2020-12-31' + 2month", 2021, 2, 28);
+    test_datetime(f.get(), "'2020-12-31' - 10month", 2020, 2, 29);
+    test_datetime(f.get(), "'2021-01-31' - 1month",  2020, 12,31);
+    test_datetime(f.get(), "'2021-01-31' - 2month",  2020, 11, 30);
+    test_datetime(f.get(), "'2021-01-31' - 24month", 2019, 1, 31);
+    test_datetime(f.get(), "'2021-01-31' + 24month", 2023, 1, 31);
+    test_datetime(f.get(), "'2021-01-31' + 22month", 2022, 11, 30);
+
+    // 2020 was a leap year.
+    test_datetime(f.get(), "'2021-02-28' -12month", 2020,2,29);
+    // 2000 was a leap year %100=0 but %400=0 overrides.
+    test_datetime(f.get(), "'2001-02-28' -12month", 2000, 2, 29);
+    // 2100 is not a leap year since %100=0 and not overriden %400 != 0.
+    test_datetime(f.get(), "'2000-02-29' +(12month * 100counter)", 2100,2,28);
 }
 
 void test_formulas_parsing_1()
@@ -2320,6 +2471,13 @@ void test_formulas_sqrt_constants()
 
     test_formula_value(&fi, NULL, "sqrt(22 m * 22 m)", 22, Unit::M);
     test_formula_value(&fi, NULL, "sqrt((2 kwh * 2 kwh) + (3 kvarh * 3 kvarh))", 3.6055512754639891, Unit::KVAH);
+}
+
+void test_formulas_date_constants()
+{
+    FormulaImplementation fi;
+
+//    test_formula_value(&fi, NULL, "2022-01-01 + 1 month", "2022-02-01");
 }
 
 void test_formulas_errors()

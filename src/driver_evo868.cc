@@ -140,6 +140,21 @@ namespace
             .set(StorageNr(8),StorageNr(19))
             );
 
+        /*
+        addNumericFieldWithExtractor(
+            "history_{storage_counter-7counter}",
+            "The historic date #.",
+            PrintProperty::JSON,
+            Quantity::PointInTime,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .set(StorageNr(8),StorageNr(19)),
+            Unit::Date
+            );
+        */
+
         addStringFieldWithExtractor(
             "device_date_time",
             "Date and time when the meter sent the telegram.",

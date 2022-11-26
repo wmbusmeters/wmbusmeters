@@ -194,6 +194,8 @@ enum class TokenType
     LPAR,
     RPAR,
     NUMBER,
+    DATETIME,
+    TIME,
     PLUS,
     MINUS,
     TIMES,
@@ -241,11 +243,11 @@ struct FormulaImplementation : public Formula
     // Pushes a dve entry field read on the formula builder stack.
     void doDVEntryField(Unit u, DVEntryCounterType ct);
     // Pops the two top nodes of the formula builder stack and pushes an addition on the formula builder stack.
-    // The target unit will be the first unit of the two operands.
-    void doAddition();
+    // The target unit will be the supplied to unit.
+    void doAddition(const SIUnit &to);
     // Pops the two top nodes of the formula builder stack and pushes a subtraction on the formula builder stack.
-    // The target unit will be the first unit of the two operands.
-    void doSubtraction();
+    // The target unit will be the supplied to unit.
+    void doSubtraction(const SIUnit &to);
     // Pops the two top nodes of the formula builder stack and pushes a multiplication on the formula builder stack.
     // The target unit will be multiplication of the SI Units.
     void doMultiplication();
@@ -265,6 +267,8 @@ struct FormulaImplementation : public Formula
     bool go();
     size_t findSpace(size_t i);
     size_t findNumber(size_t i);
+    size_t findDateTime(size_t i);
+    size_t findTime(size_t i);
     size_t findUnit(size_t i);
     size_t findPlus(size_t i);
     size_t findMinus(size_t i);
@@ -281,6 +285,8 @@ struct FormulaImplementation : public Formula
     size_t parsePar(size_t i);
 
     void handleConstant(Token *number, Token *unit);
+    void handleSeconds(Token *number);
+    void handleUnixTimestamp(Token *number);
     void handleAddition(Token *add);
     void handleSubtraction(Token *add);
     void handleMultiplication(Token *add);
