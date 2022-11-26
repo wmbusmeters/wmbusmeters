@@ -68,7 +68,6 @@ LIST_OF_METER_TYPES
     X(multical803,C1_bit, HeatMeter,        MULTICAL803, Multical803)  \
     X(rfmamb,     T1_bit, TempHygroMeter,   RFMAMB,      RfmAmb)       \
     X(rfmtx1,     T1_bit, WaterMeter,       RFMTX1,      RfmTX1)       \
-    X(lse_08,     S1_bit|C1_bit, HeatCostAllocationMeter, LSE_08, LSE_08) \
 
 
 enum class MeterDriver {

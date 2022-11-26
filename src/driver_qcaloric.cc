@@ -27,6 +27,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("qcaloric");
+        di.addNameAlias("lse_08");
         di.addNameAlias("whe5x");
         di.addNameAlias("whe46x");
         di.setDefaultFields("name,id,current_consumption_hca,set_date,consumption_at_set_date_hca,timestamp");
@@ -206,7 +207,6 @@ namespace
 
     }
 }
-
 
 // Test: MyElement qcaloric 78563412 NOKEY
 // telegram=|314493441234567835087a740000200b6e2701004b6e450100426c5f2ccb086e790000c2086c7f21326cffff046d200b7422|

@@ -58,6 +58,7 @@
     X(Customer,0x7D11,0x7D11, Quantity::Text, Unit::TXT) \
     X(ErrorFlags,0x7D17,0x7D17, Quantity::Text, Unit::TXT) \
     X(DigitalInput,0x7D1B,0x7D1B, Quantity::Text, Unit::TXT) \
+    X(DurationSinceReadout,0x7D2c,0x7D2f, Quantity::Time, Unit::Hour) \
     X(DurationOfTariff,0x7D31,0x7D33, Quantity::Time, Unit::Hour) \
     X(Dimensionless,0x7D3A,0x7D3A, Quantity::Counter, Unit::COUNTER) \
     X(Voltage,0x7D40,0x7D4F, Quantity::Voltage, Unit::Volt) \
@@ -66,7 +67,6 @@
     X(CumulationCounter,0x7D61,0x7D61, Quantity::Counter, Unit::COUNTER) \
     X(SpecialSupplierInformation,0x7D67,0x7D67, Quantity::Text, Unit::TXT) \
     X(RemainingBattery,0x7D74,0x7D74, Quantity::Time, Unit::Day) \
-    X(DurationSinceReadout,0x7DAC,0x7DAC, Quantity::Time, Unit::Hour) \
     X(AnyVolumeVIF,0x00,0x00, Quantity::Volume, Unit::Unknown) \
     X(AnyEnergyVIF,0x00,0x00, Quantity::Energy, Unit::Unknown)  \
     X(AnyPowerVIF,0x00,0x00, Quantity::Power, Unit::Unknown)
