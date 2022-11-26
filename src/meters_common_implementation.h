@@ -158,6 +158,15 @@ protected:
         string formula,         // The formula can reference the other fields and + them together.
         Unit use_unit = Unit::Unknown); // If specified use this unit for the json field instead instead of the default unit.
 
+    void addNumericFieldWithCalculatorAndMatcher(
+        string vname,           // Name of value without unit, eg "total" "total_month{storagenr}"
+        string help,            // Information about this field.
+        PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
+        Quantity vquantity,     // Value belongs to this quantity, this quantity determines the default unit.
+        string formula,         // The formula can reference the other fields and + them together.
+        FieldMatcher matcher,   // We can generate a calculated field per match.
+        Unit use_unit = Unit::Unknown); // If specified use this unit for the json field instead instead of the default unit.
+
     void addNumericField(
         string vname,          // Name of value without unit, eg total
         Quantity vquantity,    // Value belongs to this quantity.

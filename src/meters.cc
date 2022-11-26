@@ -463,6 +463,45 @@ void MeterCommonImplementation::addNumericFieldWithCalculator(string vname,
             ));
 }
 
+void MeterCommonImplementation::addNumericFieldWithCalculatorAndMatcher(string vname,
+                                                                        string help,
+                                                                        PrintProperties print_properties,
+                                                                        Quantity vquantity,
+                                                                        string formula,
+                                                                        FieldMatcher matcher,
+                                                                        Unit use_unit)
+{
+    Formula *f = newFormula();
+    bool ok = f->parse(this, formula);
+    if (!ok)
+    {
+        string err = f->errors();
+        warning("Warning! Ignoring calculated field %s because parse failed:\n%s",
+                vname.c_str(),
+                err.c_str());
+        delete f;
+        return;
+    }
+    assert(ok);
+
+    field_infos_.push_back(
+        FieldInfo(field_infos_.size(),
+                  vname,
+                  vquantity,
+                  use_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : use_unit,
+                  VifScaling::Auto,
+                  matcher,
+                  help,
+                  print_properties,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NULL,
+                  NoLookup, /* Lookup table */
+                  f /* Formula */
+            ));
+}
+
 void MeterCommonImplementation::addNumericField(
     string vname,
     Quantity vquantity,
@@ -1437,10 +1476,10 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
 
 void MeterCommonImplementation::processFieldCalculators()
 {
-    // Iterate over the fields with formulas.
+    // Iterate over the fields with formulas but no matcher.
     for (FieldInfo &fi : field_infos_)
     {
-        if (fi.hasFormula())
+        if (fi.hasFormula() && !fi.hasMatcher())
         {
             fi.performCalculation(this);
         }
@@ -1752,7 +1791,19 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     }
     else
     {
-        s += "\""+field_name+"_"+default_unit+"\":"+valueToString(m->getNumericValue(field_name, defaultUnit()), defaultUnit());
+        if (defaultUnit() == Unit::DateLT)
+        {
+            s += "\""+field_name+"_"+default_unit+"\":\""+strdate(m->getNumericValue(field_name, Unit::DateLT))+"\"";
+        }
+        else if (defaultUnit() == Unit::DateTimeLT)
+        {
+            s += "\""+field_name+"_"+default_unit+"\":\""+strdatetime(m->getNumericValue(field_name, Unit::DateTimeLT))+"\"";
+        }
+        else
+        {
+            // All numeric values.
+            s += "\""+field_name+"_"+default_unit+"\":"+valueToString(m->getNumericValue(field_name, defaultUnit()), defaultUnit());
+        }
     }
 
     return s;
@@ -2277,7 +2328,12 @@ void FieldInfo::performExtraction(Meter *m, Telegram *t, DVEntry *dve)
         // Extract a string.
         extractString(m, t, dve);
     }
-    else if (!hasFormula())
+    else if (hasFormula())
+    {
+        double value = formula_->calculate(defaultUnit(), dve, m);
+        m->setNumericValue(this, dve, defaultUnit(), value);
+    }
+    else
     {
         // Extract a numeric.
         extractNumeric(m, t, dve);
@@ -2369,29 +2425,34 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
                            vifScaling() == VifScaling::AutoSigned))
     {
         Unit decoded_unit = defaultUnit();
-        if (matcher_.vif_range != VIFRange::Any &&
+        if (matcher_.vif_range == VIFRange::DateTime)
+        {
+            struct tm datetime;
+            dve->extractDate(&datetime);
+            extracted_double_value = mktime(&datetime);
+        }
+        else if (matcher_.vif_range == VIFRange::Date)
+        {
+            struct tm date;
+            dve->extractDate(&date);
+            extracted_double_value = mktime(&date);
+        }
+        else if (matcher_.vif_range != VIFRange::Any &&
             matcher_.vif_range != VIFRange::AnyVolumeVIF &&
             matcher_.vif_range != VIFRange::AnyEnergyVIF &&
             matcher_.vif_range != VIFRange::AnyPowerVIF &&
             matcher_.vif_range != VIFRange::None)
         {
             decoded_unit = toDefaultUnit(matcher_.vif_range);
-            debug("(meter) NormalVif(%s) %s decoded %s default %s value %g\n",
-                  toString(matcher_.vif_range),
-                  field_name.c_str(),
-                  unitToStringLowerCase(decoded_unit).c_str(),
-                  unitToStringLowerCase(default_unit_).c_str(),
-                  extracted_double_value);
         }
-        else
-        {
-            debug("(meter) AnyVif(%s) %s decoded %s default %s value %g\n",
-                  toString(matcher_.vif_range),
-                  field_name.c_str(),
-                  unitToStringLowerCase(decoded_unit).c_str(),
-                  unitToStringLowerCase(default_unit_).c_str(),
-                  extracted_double_value);
-        }
+
+        debug("(meter) %s %s decoded %s default %s value %g\n",
+              toString(matcher_.vif_range),
+              field_name.c_str(),
+              unitToStringLowerCase(decoded_unit).c_str(),
+              unitToStringLowerCase(default_unit_).c_str(),
+              extracted_double_value);
+
         m->setNumericValue(this, dve, default_unit_, convert(extracted_double_value, decoded_unit, default_unit_));
         t->addMoreExplanation(dve->offset, renderJson(m, dve));
         found = true;

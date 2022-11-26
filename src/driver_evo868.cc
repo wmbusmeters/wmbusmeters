@@ -140,20 +140,31 @@ namespace
             .set(StorageNr(8),StorageNr(19))
             );
 
-        /*
         addNumericFieldWithExtractor(
-            "history_{storage_counter-7counter}",
-            "The historic date #.",
+            "history_reference",
+            "Reference date for history.",
             PrintProperty::JSON,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Date)
+            .set(StorageNr(8)),
+            Unit::DateLT
+            );
+
+        addNumericFieldWithCalculatorAndMatcher(
+            "history_{storage_counter-7counter}",
+            "The historic date #.",
+            PrintProperty::JSON,
+            Quantity::PointInTime,
+            "history_reference_date - ((storage_counter-8counter) * 1 month)",
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
             .set(StorageNr(8),StorageNr(19)),
-            Unit::Date
+            Unit::DateLT
             );
-        */
 
         addStringFieldWithExtractor(
             "device_date_time",
@@ -163,7 +174,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
             );
-
     }
 
 }
@@ -171,5 +181,5 @@ namespace
 // Test: Votchka evo868 79787776 NOKEY
 // Comment: Test Maddalena EVO 868 wmbus module on water meter
 // telegram=|aa4424347677787950077ac10000202f2f041306070000046d1e31b12104fd17000000000e787880048120004413c9040000426c9f2c840113c904000082016c9f2cd3013b9a0200c4016d0534a7218104fd280182046c9f2c840413c9040000c404131b00000084051300000000c405130000000084061300000000c406130000000084071300000000c407130000000084081300000000c408130000000084091300000000c4091300000000ffff|
-// {"media":"water","meter":"evo868","name":"Votchka","id":"79787776","total_m3":1.798,"device_date_time":"2021-01-17 17:30","current_status":"OK","fabrication_no":"002081048078","consumption_at_set_date_m3":1.225,"set_date":"2020-12-31","consumption_at_set_date_2_m3":1.225,"set_date_2":"2020-12-31","max_flow_since_datetime_m3h":0.666,"max_flow_datetime":"2021-01-07 20:05","consumption_at_history_1_m3":1.225,"history_1_date":"2020-12-31","consumption_at_history_2_m3":0.027,"history_2_date":"2020-11-30","consumption_at_history_3_m3":0,"history_3_date":"2020-10-31","consumption_at_history_4_m3":0,"history_4_date":"2020-09-30","consumption_at_history_5_m3":0,"history_5_date":"2020-08-31","consumption_at_history_6_m3":0,"history_6_date":"2020-07-31","consumption_at_history_7_m3":0,"history_7_date":"2020-06-30","consumption_at_history_8_m3":0,"history_8_date":"2020-05-31","consumption_at_history_9_m3":0,"history_9_date":"2020-04-30","consumption_at_history_10_m3":0,"history_10_date":"2020-03-31","consumption_at_history_11_m3":0,"history_11_date":"2020-02-29","consumption_at_history_12_m3":0,"history_12_date":"2020-01-31","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"water","meter":"evo868","name":"Votchka","id":"79787776","total_m3":1.798,"device_date_time":"2021-01-17 17:30","current_status":"OK","fabrication_no":"002081048078","consumption_at_set_date_m3":1.225,"set_date":"2020-12-31","consumption_at_set_date_2_m3":1.225,"set_date_2":"2020-12-31","max_flow_since_datetime_m3h":0.666,"max_flow_datetime":"2021-01-07 20:05","history_reference_date":"2020-12-31","consumption_at_history_1_m3":1.225,"history_1_date":"2020-12-31","consumption_at_history_2_m3":0.027,"history_2_date":"2020-11-30","consumption_at_history_3_m3":0,"history_3_date":"2020-10-31","consumption_at_history_4_m3":0,"history_4_date":"2020-09-30","consumption_at_history_5_m3":0,"history_5_date":"2020-08-31","consumption_at_history_6_m3":0,"history_6_date":"2020-07-31","consumption_at_history_7_m3":0,"history_7_date":"2020-06-30","consumption_at_history_8_m3":0,"history_8_date":"2020-05-31","consumption_at_history_9_m3":0,"history_9_date":"2020-04-30","consumption_at_history_10_m3":0,"history_10_date":"2020-03-31","consumption_at_history_11_m3":0,"history_11_date":"2020-02-29","consumption_at_history_12_m3":0,"history_12_date":"2020-01-31","timestamp":"1111-11-11T11:11:11Z"}
 // |Votchka;79787776;1.798;OK;1.225;2020-12-31;1111-11-11 11:11.11

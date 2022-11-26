@@ -1362,6 +1362,14 @@ string strdate(struct tm *date)
     return string(buf);
 }
 
+string strdate(double v)
+{
+    struct tm date;
+    time_t t = v;
+    localtime_r(&t, &date);
+    return strdate(&date);
+}
+
 string strdatetime(struct tm *datetime)
 {
     char buf[256];
@@ -1369,11 +1377,27 @@ string strdatetime(struct tm *datetime)
     return string(buf);
 }
 
+string strdatetime(double v)
+{
+    struct tm datetime;
+    time_t t = v;
+    localtime_r(&t, &datetime);
+    return strdate(&datetime);
+}
+
 string strdatetimesec(struct tm *datetime)
 {
     char buf[256];
     strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", datetime);
     return string(buf);
+}
+
+string strdatetimesec(double v)
+{
+    struct tm datetime;
+    time_t t = v;
+    localtime_r(&t, &datetime);
+    return strdate(&datetime);
 }
 
 bool is_leap_year(int year)

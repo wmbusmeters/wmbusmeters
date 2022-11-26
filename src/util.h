@@ -75,10 +75,13 @@ std::string tostrprintf(const std::string &fmt, ...);
 
 // Return for example: 2010-03-21
 std::string strdate(struct tm *date);
+std::string strdate(double v);
 // Return for example: 2010-03-21 15:22
 std::string strdatetime(struct tm *date);
+std::string strdatetime(double v);
 // Return for example: 2010-03-21 15:22:03
 std::string strdatetimesec(struct tm *date);
+std::string strdatetimesec(double v);
 void addMonths(struct tm* date, int m);
 double addMonths(double t, int m);
 

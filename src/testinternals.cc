@@ -2053,7 +2053,7 @@ LIST_OF_QUANTITIES
 void test_formulas_building_consts()
 {
     unique_ptr<FormulaImplementation> f = unique_ptr<FormulaImplementation>(new FormulaImplementation());
-    double v; // , expected;
+    double v, expected;
 
     f->doConstant(Unit::KWH, 17);
     f->doConstant(Unit::KWH, 1);
@@ -2064,7 +2064,6 @@ void test_formulas_building_consts()
         printf("ERROR in test formula 1 expected 18.0 but got %lf\n", v);
     }
 
-    /*
     f->clear();
     f->doConstant(Unit::KWH, 10);
     v = f->calculate(Unit::MJ);
@@ -2107,7 +2106,7 @@ void test_formulas_building_consts()
 
     f->clear();
     f->doConstant(Unit::UnixTimestamp, 3600*24*11); // mon 12 jan 1970 01:00:00 CET
-    f->doConstant(Unit::UnixTimestamp, 9);
+    f->doConstant(Unit::Second, 9);
     f->doAddition(SIUnit(Unit::UnixTimestamp));
     v = f->calculate(Unit::UnixTimestamp);
     expected = 3600*24*11+9;
@@ -2126,7 +2125,6 @@ void test_formulas_building_consts()
     {
         printf("ERROR in test formula 7 expected %g but got %g\n", expected, v);
     }
-    */
 }
 
 void test_formulas_building_meters()

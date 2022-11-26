@@ -57,6 +57,11 @@ using namespace std;
     X(F,   C,  {vto=(vfrom-32)*5.0/9.0;}) \
     X(PA,  BAR,{vto=vfrom/100000.0;}) \
     X(BAR, PA, {vto=vfrom*100000.0;}) \
+    X(UnixTimestamp,DateTimeLT, {vto=vfrom; }) \
+    X(DateTimeLT,UnixTimestamp, {vto=vfrom; }) \
+    X(DateLT,UnixTimestamp, {vto=vfrom; }) \
+    X(DateTimeLT, DateLT, {vto=vfrom; }) \
+    X(DateLT, DateTimeLT, {vto=vfrom; }) \
 
 
 #define LIST_OF_SI_CONVERSIONS  \
@@ -96,10 +101,10 @@ using namespace std;
     X(Month,       1,             SIExp().month(1))                  \
     X(Year,        1,             SIExp().year(1))                   \
     X(UnixTimestamp,1.0,          SIExp().unixTimestamp(1))          \
-    X(DateTimeUTC, 0.0,           SIExp().unixTimestamp(1))          \
-    X(DateTimeLT,  0.0,           SIExp().unixTimestamp(1))          \
-    X(DateLT,      0.0,           SIExp().unixTimestamp(1))          \
-    X(TimeLT,      0.0,           SIExp().unixTimestamp(1))          \
+    X(DateTimeUTC, 1.0,           SIExp().unixTimestamp(1))          \
+    X(DateTimeLT,  1.0,           SIExp().unixTimestamp(1))          \
+    X(DateLT,      1.0,           SIExp().unixTimestamp(1))          \
+    X(TimeLT,      1.0,           SIExp().unixTimestamp(1))          \
                                                                      \
     X(RH,          1.0, SIExp())                                     \
     X(HCA,         1.0, SIExp())                                     \
