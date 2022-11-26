@@ -69,6 +69,14 @@ LIST_OF_VIF_COMBINABLES
     return VIFCombinable::None;
 }
 
+Unit toDefaultUnit(Vif v)
+{
+#define X(name,from,to,quantity,unit) { if (from <= v.intValue() && v.intValue() <= to) return unit; }
+LIST_OF_VIF_RANGES
+#undef X
+    return Unit::Unknown;
+}
+
 Unit toDefaultUnit(VIFRange v)
 {
     switch (v) {
@@ -1154,16 +1162,8 @@ bool extractDVdate(map<string,pair<int,DVEntry>> *dv_entries,
 
 bool DVEntry::extractDate(struct tm *out)
 {
-    // This will install the correct timezone
-    // offset tm_gmtoff into the timestamp.
-    time_t t = time(NULL);
-    localtime_r(&t, out);
-    out->tm_hour = 0;
-    out->tm_min = 0;
-    out->tm_sec = 0;
-    out->tm_mday = 0;
-    out->tm_mon = 0;
-    out->tm_year = 0;
+    memset(out, 0, sizeof(*out));
+    out->tm_isdst = -1; // Figure out the dst automatically!
 
     vector<uchar> v;
     hex2bin(value, &v);

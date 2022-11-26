@@ -81,6 +81,8 @@ shared_ptr<Printer> printer_;
 
 int main(int argc, char **argv)
 {
+    tzset(); // Load the current timezone.
+
     auto config = parseCommandLine(argc, argv);
 
     if (config->version)

@@ -1193,6 +1193,7 @@ bool checkCommonField(string *buf, string field, Meter *m, Telegram *t, char c, 
 bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char c,
                          vector<FieldInfo> &fields, bool human_readable)
 {
+
     for (FieldInfo &fi : fields)
     {
         if (fi.xuantity() == Quantity::Text)
@@ -1206,40 +1207,34 @@ bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char 
         }
         else
         {
-            // Doubles have to be converted into the proper unit.
-            string default_unit = unitToStringLowerCase(fi.defaultUnit());
-            string var = fi.vname()+"_"+default_unit;
-            if (field == var)
+            if (fi.defaultUnit() == Unit::DateLT)
             {
-                // Default unit.
-                *buf += valueToString(m->getNumericValue(&fi, fi.defaultUnit()), fi.defaultUnit());
-                if (human_readable)
-                {
-                    *buf += " ";
-                    *buf += unitToStringHR(fi.defaultUnit());
-                }
+                *buf += strdate(m->getNumericValue(&fi, Unit::DateLT));
+                *buf += c;
+                return true;
+            }
+            else if (fi.defaultUnit() == Unit::DateTimeLT)
+            {
+                *buf += strdatetime(m->getNumericValue(&fi, Unit::DateTimeLT));
                 *buf += c;
                 return true;
             }
             else
             {
-                // Added conversion unit.
-                Unit u = fi.defaultUnit();
-                if (u != fi.defaultUnit())
+                // Doubles have to be converted into the proper unit.
+                string default_unit = unitToStringLowerCase(fi.defaultUnit());
+                string var = fi.vname()+"_"+default_unit;
+                if (field == var)
                 {
-                    string unit = unitToStringLowerCase(u);
-                    string var = fi.vname()+"_"+unit;
-                    if (field == var)
+                    // Default unit.
+                    *buf += valueToString(m->getNumericValue(&fi, fi.defaultUnit()), fi.defaultUnit());
+                    if (human_readable)
                     {
-                        *buf += valueToString(m->getNumericValue(&fi, u), u);
-                        if (human_readable)
-                        {
-                            *buf += " ";
-                            *buf += unitToStringHR(u);
-                        }
-                        *buf += c;
-                        return true;
+                        *buf += " ";
+                        *buf += unitToStringHR(fi.defaultUnit());
                     }
+                    *buf += c;
+                    return true;
                 }
             }
         }
@@ -2429,26 +2424,28 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
         {
             struct tm datetime;
             dve->extractDate(&datetime);
-            // TODO Figure out why I have to use a temporary time_t offset here instead
-            // of just subtracting datetime.tm_gmtoff, which gives the wrong result.
-            time_t offset = datetime.tm_gmtoff;
-            time_t tmp = mktime(&datetime)-offset;
+            time_t tmp = mktime(&datetime);
+            string bbb = strdatetime(tmp);
             extracted_double_value = tmp;
         }
         else if (matcher_.vif_range == VIFRange::Date)
         {
             struct tm date;
             dve->extractDate(&date);
-            //time_t offset = date.tm_gmtoff;
             time_t tmp = mktime(&date);
             extracted_double_value = tmp;
         }
-        else if (matcher_.vif_range != VIFRange::Any &&
-            matcher_.vif_range != VIFRange::AnyVolumeVIF &&
-            matcher_.vif_range != VIFRange::AnyEnergyVIF &&
-            matcher_.vif_range != VIFRange::AnyPowerVIF &&
-            matcher_.vif_range != VIFRange::None)
+        else if (matcher_.vif_range == VIFRange::AnyEnergyVIF ||
+                 matcher_.vif_range == VIFRange::AnyVolumeVIF ||
+                 matcher_.vif_range == VIFRange::AnyPowerVIF)
         {
+            // Find the actual unit used in the telegram.
+            decoded_unit = toDefaultUnit(dve->vif);
+        }
+        else if (matcher_.vif_range != VIFRange::Any &&
+                 matcher_.vif_range != VIFRange::None)
+        {
+            // Pick the default unit for this range.
             decoded_unit = toDefaultUnit(matcher_.vif_range);
         }
 

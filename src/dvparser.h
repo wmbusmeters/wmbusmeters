@@ -236,6 +236,8 @@ private:
     int nr_;
 };
 
+Unit toDefaultUnit(Vif v);
+
 enum class DVEntryCounterType
 {
     UNKNOWN,
