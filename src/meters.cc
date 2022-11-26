@@ -2429,13 +2429,19 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
         {
             struct tm datetime;
             dve->extractDate(&datetime);
-            extracted_double_value = mktime(&datetime);
+            // TODO Figure out why I have to use a temporary time_t offset here instead
+            // of just subtracting datetime.tm_gmtoff, which gives the wrong result.
+            time_t offset = datetime.tm_gmtoff;
+            time_t tmp = mktime(&datetime)-offset;
+            extracted_double_value = tmp;
         }
         else if (matcher_.vif_range == VIFRange::Date)
         {
             struct tm date;
             dve->extractDate(&date);
-            extracted_double_value = mktime(&date);
+            //time_t offset = date.tm_gmtoff;
+            time_t tmp = mktime(&date);
+            extracted_double_value = tmp;
         }
         else if (matcher_.vif_range != VIFRange::Any &&
             matcher_.vif_range != VIFRange::AnyVolumeVIF &&
@@ -2469,7 +2475,11 @@ static string add_tpl_status(string existing_status, Meter *m, Telegram *t)
         if (existing_status != "OK")
         {
             // Join the statuses.
-            existing_status += " "+status;
+            if (existing_status != "")
+            {
+                existing_status += " ";
+            }
+            existing_status += status;
         }
         else
         {

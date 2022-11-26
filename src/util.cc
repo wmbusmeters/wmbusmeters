@@ -1382,7 +1382,7 @@ string strdatetime(double v)
     struct tm datetime;
     time_t t = v;
     localtime_r(&t, &datetime);
-    return strdate(&datetime);
+    return strdatetime(&datetime);
 }
 
 string strdatetimesec(struct tm *datetime)
@@ -1397,7 +1397,7 @@ string strdatetimesec(double v)
     struct tm datetime;
     time_t t = v;
     localtime_r(&t, &datetime);
-    return strdate(&datetime);
+    return strdatetimesec(&datetime);
 }
 
 bool is_leap_year(int year)

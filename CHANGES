@@ -9,6 +9,9 @@ using the calculation feature.
 
 E.g. --calculate_total_gj=total_kwh
 
+ATTENTION! The hydrocalm3 driver has been refactored to the new driver format.
+The field device_date_time has been renamed to device_datetime.
+
 ATTENTION! The fhkvdataiv driver has been refactored to the new driver format.
 The field consumption_at_set_date_17 was wrong and has been renamed to field consumption_at_set_date_8.
 

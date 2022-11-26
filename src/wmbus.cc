@@ -4999,13 +4999,13 @@ string decodeTPLStatusByteWithLookup(uchar sts, map<int,string> *vendor_lookup)
         else
         {
             // We could not translate, just print the bits.
-            t += tostrprintf("UNKNOWN_%02X ", sts & 0xe0);
+            t += tostrprintf("TPL_MFCT_%02X ", sts & 0xe0);
         }
         while (t.size() > 0 && t.back() == ' ') t.pop_back();
     }
 
-    if (t == "OK") return s;
-    if (s == "OK") return t;
+    if (t == "OK" || t == "") return s;
+    if (s == "OK" || s == "") return t;
 
     return s+" "+t;
 }
@@ -5020,8 +5020,8 @@ string decodeTPLStatusByteNoMfct(uchar sts)
         t = tostrprintf("UNKNOWN_%02X", sts & 0xe0);
     }
 
-    if (t == "OK") return s;
-    if (s == "OK") return t;
+    if (t == "OK" || t == "") return s;
+    if (s == "OK" || s == "") return t;
 
     return s+" "+t;
 }
@@ -5034,11 +5034,18 @@ string decodeTPLStatusByteWithMfct(uchar sts, Translate::Lookup &lookup)
     if ((sts & 0xe0) != 0)
     {
         // Vendor specific bits are set, lets translate them.
-        t = lookup.translate(sts & 0xe0);
+        if (lookup.hasLookups())
+        {
+            t = lookup.translate(sts & 0xe0);
+        }
+        else
+        {
+            t = decodeTPLStatusByteWithLookup(sts & 0xe0, NULL);
+        }
     }
 
-    if (t == "OK") return s;
-    if (s == "OK") return t;
+    if (t == "OK" || t == "") return s;
+    if (s == "OK" || s == "") return t;
 
     return s+" "+t;
 }
