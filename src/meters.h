@@ -61,7 +61,6 @@ LIST_OF_METER_TYPES
 #define LIST_OF_METERS \
     X(auto,       0,      AutoMeter, AUTO, Auto) \
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
-    X(eurisii,    T1_bit, HeatCostAllocationMeter, EURISII, EurisII)   \
     X(gransystems,T1_bit, ElectricityMeter, CCx01, CCx01) 		       \
     X(hydrocalm3, T1_bit, HeatMeter,        HYDROCALM3,  HydrocalM3)   \
     X(hydrodigit, T1_bit, WaterMeter,       HYDRODIGIT,  Hydrodigit)   \
