@@ -36,7 +36,7 @@ namespace
                     {
                         "TPL_STS",
                         Translate::Type::BitToString,
-                        0xe0, // Always use 0xe0 for tpl mfct status bits.
+                        AlwaysTrigger, MaskBits(0xe0), // Always use 0xe0 for tpl mfct status bits.
                         "OK",
                         {
                         }
@@ -60,7 +60,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xffffffff,
+                        AlwaysTrigger, MaskBits(0xffffffff),
                         "OK",
                         {
                         }

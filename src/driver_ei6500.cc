@@ -36,7 +36,7 @@ namespace
                     {
                         "TPL_STS",
                         Translate::Type::BitToString,
-                        0xe0, // Always use 0xe0 for tpl mfct status bits.
+                        AlwaysTrigger, MaskBits(0xe0), // Always use 0xe0 for tpl mfct status bits.
                         "OK",
                         {
                             { 0x40, "RTC_INVALID" }
@@ -62,7 +62,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xffff,
+                        AlwaysTrigger, MaskBits(0xffff),
                         "OK",
                         {
                             /* When used for m-bus?
@@ -216,7 +216,7 @@ namespace
                     {
                         "DUST",
                         Translate::Type::IndexToString,
-                        0x1f,
+                        AlwaysTrigger, MaskBits(0x1f),
                         "",
                         {
                         }
@@ -236,7 +236,7 @@ namespace
                     {
                         "BATTERY_VOLTAGE",
                         Translate::Type::IndexToString,
-                        0x0f00,
+                        AlwaysTrigger, MaskBits(0x0f00),
                         "",
                         {
                             { 0x0000, "2.25V" },
@@ -275,7 +275,7 @@ namespace
                     {
                         "OBSTACLE_DISTANCE",
                         Translate::Type::IndexToString,
-                        0x700000,
+                        AlwaysTrigger, MaskBits(0x700000),
                         "",
                         {
                             { 0x000000, "SEODS_NOT_COMPLETED" },
@@ -305,7 +305,7 @@ namespace
                     {
                         "HEAD_STATUS",
                         Translate::Type::BitToString,
-                        0xff8ff0e0,
+                        AlwaysTrigger, MaskBits(0xff8ff0e0),
                         "OK",
                         {
                            /* 0x00000000-0x000000f dust level*/

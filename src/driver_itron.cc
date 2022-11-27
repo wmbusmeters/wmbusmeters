@@ -59,7 +59,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xffffff,
+                        AlwaysTrigger, MaskBits(0xffffff),
                         "OK",
                         {
                             // No known layout for field
@@ -101,7 +101,7 @@ namespace
                     {
                         "WOOTA",
                         Translate::Type::BitToString,
-                        0xffffffff,
+                        AlwaysTrigger, MaskBits(0xffffffff),
                         "",
                         {
                             // No known layout for field
@@ -121,7 +121,7 @@ namespace
                     {
                         "WOOTB",
                         Translate::Type::BitToString,
-                        0xffff,
+                        AlwaysTrigger, MaskBits(0xffff),
                         "",
                         {
                             // No known layout for field

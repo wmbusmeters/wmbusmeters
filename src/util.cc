@@ -2301,8 +2301,13 @@ bool isLikelyAscii(const string& v)
     return true;
 }
 
-string joinStatusStrings(const string &a, const string &b)
+string joinStatusOKStrings(const string &aa, const string &bb)
 {
+    string a = aa;
+    while (a.length() > 0 && a.back() == ' ') a.pop_back();
+    string b = bb;
+    while (b.length() > 0 && b.back() == ' ') b.pop_back();
+
     if (a == "" || a == "OK" || a == "null")
     {
         if (b == "" || b == "null") return "OK";
@@ -2311,6 +2316,27 @@ string joinStatusStrings(const string &a, const string &b)
     if (b == "" || b == "OK" || b == "null")
     {
         if (a == "" || a == "null") return "OK";
+        return a;
+    }
+
+    return a+" "+b;
+}
+
+string joinStatusEmptyStrings(const string &aa, const string &bb)
+{
+    string a = aa;
+    while (a.length() > 0 && a.back() == ' ') a.pop_back();
+    string b = bb;
+    while (b.length() > 0 && b.back() == ' ') b.pop_back();
+
+    if (a == "" || a == "null")
+    {
+        if (b == "" || b == "null") return "";
+        return b;
+    }
+    if (b == "" || b == "null")
+    {
+        if (a == "" || a == "null") return "";
         return a;
     }
 

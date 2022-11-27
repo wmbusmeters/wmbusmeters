@@ -96,7 +96,7 @@ MeterAventiesWM::MeterAventiesWM(MeterInfo &mi, DriverInfo &di) :
                 {
                     "ERROR_FLAGS",
                     Translate::Type::BitToString,
-                    0xffff,
+                    AlwaysTrigger, MaskBits(0xffff),
                     "",
                     {
                         { 0x01, "MEASUREMENT" },
@@ -119,5 +119,5 @@ MeterAventiesWM::MeterAventiesWM(MeterInfo &mi, DriverInfo &di) :
 
 // Test: Vatten aventieswm 61070072 NOKEY
 // telegram=76442104720007612507727200076121042507B50060052F2F0413281E0700431404B60083011440B300C30114A5AF00830214CBAC00C3021463A8008303149EA500C3031433A200830414C79F00C304148F9C00830514989900C30514CF9700830614269400C30614069100830714C88B0002FD171111
-// {"media":"water","meter":"aventieswm","name":"Vatten","id":"61070072","total_m3":466.472,"consumption_at_set_date_1_m3":465.96,"consumption_at_set_date_2_m3":458.88,"consumption_at_set_date_3_m3":449.65,"consumption_at_set_date_4_m3":442.35,"consumption_at_set_date_5_m3":431.07,"consumption_at_set_date_6_m3":423.98,"consumption_at_set_date_7_m3":415.23,"consumption_at_set_date_8_m3":409.03,"consumption_at_set_date_9_m3":400.79,"consumption_at_set_date_10_m3":393.2,"consumption_at_set_date_11_m3":388.63,"consumption_at_set_date_12_m3":379.26,"consumption_at_set_date_13_m3":371.26,"consumption_at_set_date_14_m3":357.84,"error_flags":"MEASUREMENT HF ERROR_FLAGS_1100","timestamp":"1111-11-11T11:11:11Z"}
-// |Vatten;61070072;466.472000;MEASUREMENT HF ERROR_FLAGS_1100;1111-11-11 11:11.11
+// {"media":"water","meter":"aventieswm","name":"Vatten","id":"61070072","total_m3":466.472,"consumption_at_set_date_1_m3":465.96,"consumption_at_set_date_2_m3":458.88,"consumption_at_set_date_3_m3":449.65,"consumption_at_set_date_4_m3":442.35,"consumption_at_set_date_5_m3":431.07,"consumption_at_set_date_6_m3":423.98,"consumption_at_set_date_7_m3":415.23,"consumption_at_set_date_8_m3":409.03,"consumption_at_set_date_9_m3":400.79,"consumption_at_set_date_10_m3":393.2,"consumption_at_set_date_11_m3":388.63,"consumption_at_set_date_12_m3":379.26,"consumption_at_set_date_13_m3":371.26,"consumption_at_set_date_14_m3":357.84,"error_flags":"ERROR_FLAGS_1100 HF MEASUREMENT","timestamp":"1111-11-11T11:11:11Z"}
+// |Vatten;61070072;466.472000;ERROR_FLAGS_1100 HF MEASUREMENT;1111-11-11 11:11.11

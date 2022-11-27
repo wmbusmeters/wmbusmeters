@@ -9,6 +9,10 @@ using the calculation feature.
 
 E.g. --calculate_total_gj=total_kwh
 
+ATTENTION! The gransystems driver has been refactored to the new driver format.
+The field currrent_at_phase_1_a has been renamed to current_at_phase_1_a.
+The info strings in the "status" field now have underscores instead of spaces within a single string.
+
 ATTENTION! The rfmamb driver has been refactored to the new driver format.
 A bug was found and fixed where min and max relative humidity over 1h and 24h were wrong.
 The field device_date_time has been renamed to device_datetime.

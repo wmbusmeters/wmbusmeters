@@ -83,7 +83,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xffff,
+                        AlwaysTrigger, MaskBits(0xffff),
                         "OK",
                         {
                             { 0x01, "SW_ERROR" },

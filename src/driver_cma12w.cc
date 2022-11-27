@@ -77,21 +77,10 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DigitalInput),
-            Translate::Lookup(
-            {
-                {
-                    {
-                        "BATTERY",
-                        Translate::Type::BitToString,
-                        0xffff,
-                        "",
-                        {
-                        }
-                    },
-                },
-            }));
-
-
+            Translate::Lookup()
+            .add(Translate::Rule("BATTERY", Translate::Type::BitToString)
+                 .set(MaskBits(0xffff)))
+            );
     }
 }
 

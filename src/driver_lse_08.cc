@@ -52,7 +52,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xff,
+                        AlwaysTrigger, MaskBits(0xff),
                         "OK",
                         {
                             // Bits unknown

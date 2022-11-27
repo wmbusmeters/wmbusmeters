@@ -61,7 +61,6 @@ LIST_OF_METER_TYPES
 #define LIST_OF_METERS \
     X(auto,       0,      AutoMeter, AUTO, Auto) \
     X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
-    X(gransystems,T1_bit, ElectricityMeter, CCx01, CCx01) 		       \
     X(multical302,C1_bit|T1_bit, HeatMeter,        MULTICAL302, Multical302)  \
     X(multical403,C1_bit, HeatMeter,        MULTICAL403, Multical403)  \
     X(multical602,C1_bit, HeatMeter,        MULTICAL602, Multical602)  \
@@ -275,7 +274,8 @@ enum PrintProperty
     STATUS = 64, // This is >the< status field and it should read OK of not error flags are set.
     JOIN_TPL_STATUS = 128, // This text field also includes the tpl status decoding. multiple OK:s collapse to a single OK.
     JOIN_INTO_STATUS = 256, // This text field is injected into the already defined status field. multiple OK:s collapse.
-    OFFICIAL = 512 // This field is listed as an official field for the driver.
+    OFFICIAL = 512, // This field is listed as an official field for the driver.
+    HIDE = 1024 // This field is only used in calculations, do not print it!
 };
 
 struct PrintProperties
@@ -283,6 +283,7 @@ struct PrintProperties
     PrintProperties(int x) : props_(x) {}
 
     bool hasJSON() { return props_ & PrintProperty::JSON; }
+    bool hasHIDE() { return props_ & PrintProperty::HIDE; }
     bool hasFIELD() { return props_ & PrintProperty::FIELD; }
     bool hasIMPORTANT() { return props_ & PrintProperty::IMPORTANT; }
     bool hasOPTIONAL() { return props_ & PrintProperty::OPTIONAL; }

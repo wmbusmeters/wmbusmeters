@@ -199,7 +199,7 @@ MeterMicroClima::MeterMicroClima(MeterInfo &mi, DriverInfo &di) : MeterCommonImp
                 {
                     "ERROR_FLAGS",
                     Translate::Type::BitToString,
-                    0xffff,
+                    AlwaysTrigger, MaskBits(0xffff),
                     "OK",
                     {
                         { 0x01, "?" },

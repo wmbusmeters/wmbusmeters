@@ -85,7 +85,7 @@ namespace
                         {
                             "TPL_FLAGS",
                             Translate::Type::IndexToString,
-                            0xe0,
+                            AlwaysTrigger, MaskBits(0xe0),
                             "OK",
                             {
                                 { 0x20, "AIR_IN_PIPE" },

@@ -45,22 +45,15 @@ namespace
             PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT | PrintProperty::STATUS,
             FieldMatcher::build()
             .set(DifVifKey("02FF20")),
-            {
-                {
-                    {
-                        "ERROR_FLAGS",
-                        Translate::Type::BitToString,
-                        0x000f,
-                        "OK",
-                        {
-                            { 0x01 , "DRY" },
-                            { 0x02 , "REVERSE" },
-                            { 0x04 , "LEAK" },
-                            { 0x08 , "BURST" },
-                        }
-                    },
-                },
-            });
+            Translate::Lookup()
+            .add(Translate::Rule("ERROR_FLAGS", Translate::Type::BitToString)
+                 .set(MaskBits(0x000f))
+                 .set(DefaultMessage("OK"))
+                 .add(Translate::Map(0x01 ,"DRY", TestBit::Set))
+                 .add(Translate::Map(0x02 ,"REVERSE", TestBit::Set))
+                 .add(Translate::Map(0x04 ,"LEAK", TestBit::Set))
+                 .add(Translate::Map(0x08 ,"BURST", TestBit::Set))
+                ));
 
         addNumericFieldWithExtractor(
             "total",
@@ -144,7 +137,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0x000f,
+                        AlwaysTrigger, MaskBits(0x000f),
                         "",
                         {
                             { 0x01 , "DRY" },
@@ -167,7 +160,7 @@ namespace
                     {
                         "DRY",
                         Translate::Type::IndexToString,
-                        0x0070,
+                        AlwaysTrigger, MaskBits(0x0070),
                         "",
                         {
                             { 0x0000, "" },
@@ -194,7 +187,7 @@ namespace
                     {
                         "REVERSED",
                         Translate::Type::IndexToString,
-                        0x0380,
+                        AlwaysTrigger, MaskBits(0x0380),
                         "",
                         {
                             { 0x0000, "" },
@@ -221,7 +214,7 @@ namespace
                     {
                         "LEAKING",
                         Translate::Type::IndexToString,
-                        0x1c00,
+                        AlwaysTrigger, MaskBits(0x1c00),
                         "",
                         {
                             { 0x0000, "" },
@@ -248,7 +241,7 @@ namespace
                     {
                         "BURSTING",
                         Translate::Type::IndexToString,
-                        0xe000,
+                        AlwaysTrigger, MaskBits(0xe000),
                         "",
                         {
                             { 0x0000, "" },

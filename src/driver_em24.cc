@@ -53,7 +53,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xff,
+                        AlwaysTrigger, MaskBits(0xff),
                         "OK",
                         {
                             { 0x01, "V_1_OVERFLOW" },
@@ -80,7 +80,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xff,
+                        AlwaysTrigger, MaskBits(0xff),
                         "",
                         {
                             { 0x01, "V_1_OVERFLOW" },
@@ -165,5 +165,5 @@ namespace
 
 // Test: Elen em24 66666666 NOKEY
 // telegram=|35442D2C6666666633028D2070806A0520B4D378_0405F208000004FB82753F00000004853C0000000004FB82F53CCA01000001FD1722|
-// {"media":"electricity","meter":"em24","name":"Elen","id":"66666666","status":"I_3_OVERFLOW V_2_OVERFLOW","error":"V_2_OVERFLOW I_3_OVERFLOW","total_energy_consumption_kwh":229,"total_energy_production_kwh":0,"total_reactive_energy_consumption_kvarh":63,"total_reactive_energy_production_kvarh":458,"total_apparent_energy_consumption_kvah":237.507895,"total_apparent_energy_production_kvah":458,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"electricity","meter":"em24","name":"Elen","id":"66666666","status":"I_3_OVERFLOW V_2_OVERFLOW","error":"I_3_OVERFLOW V_2_OVERFLOW","total_energy_consumption_kwh":229,"total_energy_production_kwh":0,"total_reactive_energy_consumption_kvarh":63,"total_reactive_energy_production_kvarh":458,"total_apparent_energy_consumption_kvah":237.507895,"total_apparent_energy_production_kvah":458,"timestamp":"1111-11-11T11:11:11Z"}
 // |Elen;66666666;229;0;63;458;237.507895;458;1111-11-11 11:11.11

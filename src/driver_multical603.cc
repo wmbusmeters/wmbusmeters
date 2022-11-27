@@ -55,7 +55,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xffffffff,
+                        AlwaysTrigger, MaskBits(0xffffffff),
                         "OK",
                         {
                             { 0x00000001, "VOLTAGE_INTERRUPTED" },
@@ -197,7 +197,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xffffffff,
+                        AlwaysTrigger, MaskBits(0xffffffff),
                         "",
                         {
                             { 0x00000001, "VOLTAGE_INTERRUPTED" },

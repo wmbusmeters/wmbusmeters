@@ -101,7 +101,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::DecimalsToString,
-                        9999,
+                        AlwaysTrigger, MaskBits(9999),
                         "OK",
                         {
                             { 2000, "VERIFICATION_EXPIRED" }, // Status initial verification expired

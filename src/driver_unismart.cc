@@ -50,7 +50,7 @@ namespace
                     {
                         "STATUS_FLAGS",
                         Translate::Type::BitToString,
-                        0xffff,
+                        AlwaysTrigger, MaskBits(0xffff),
                         "OK",
                         {
                         }
@@ -69,7 +69,7 @@ namespace
                     {
                         "OTHER_FLAGS",
                         Translate::Type::BitToString,
-                        0xff,
+                        AlwaysTrigger, MaskBits(0xff),
                         "",
                         {
                         }

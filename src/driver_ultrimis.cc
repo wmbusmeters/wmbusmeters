@@ -68,7 +68,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xffffff,
+                        AlwaysTrigger, MaskBits(0xffffff),
                         "OK",
                         {
                             /* What are the bits?

@@ -155,7 +155,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xff,
+                        AlwaysTrigger, MaskBits(0xff),
                         "OK",
                         {
                             // based on information published here: https://www.engelmann.de/wp-content/uploads/2022/10/1080621004_2022-10-12_BA_S3_ES_Comm_en.pdf

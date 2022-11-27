@@ -276,7 +276,10 @@ enum class OutputFormat
 //      It also translates empty strings into OK.
 //      "" + "OK" --> "OK"
 //      "" + "" --> "OK"
-std::string joinStatusStrings(const std::string &a, const std::string &b);
+std::string joinStatusOKStrings(const std::string &a, const std::string &b);
+
+// Same but do not introduce OK, keep empty strings empty.
+std::string joinStatusEmptyStrings(const std::string &a, const std::string &b);
 
 // Sort the words in a status string: "GAMMA BETA ALFA" --> "ALFA BETA GAMMA"
 // Also identical flags are merged: "BETA ALFA ALFA" --> "ALFA BETA"

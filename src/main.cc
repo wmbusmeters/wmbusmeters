@@ -272,6 +272,8 @@ void list_fields(Configuration *config, string meter_driver)
     int width = 13; // Width of timestamp_utc
     for (FieldInfo &fi : meter->fieldInfos())
     {
+        if (fi.printProperties().hasHIDE()) continue;
+
         string name = fi.vname();
         if (fi.xuantity() != Quantity::Text)
         {
@@ -303,6 +305,8 @@ void list_fields(Configuration *config, string meter_driver)
     printf("%s  The rssi for the received telegram as reported by the device.\n", rssi.c_str());
     for (auto &fi : meter->fieldInfos())
     {
+        if (fi.printProperties().hasHIDE()) continue;
+
         if (fi.vname() == "") continue;
         string name = fi.vname();
         if (fi.xuantity() != Quantity::Text)

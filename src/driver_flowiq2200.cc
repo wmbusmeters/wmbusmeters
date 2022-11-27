@@ -52,7 +52,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xffffffff,
+                        AlwaysTrigger, MaskBits(0xffffffff),
                         "OK",
                         {
                             /* Maybe these are the same as the multical21 but we do not know!
@@ -217,7 +217,7 @@ namespace
                     {
                         "DRY",
                         Translate::Type::IndexToString,
-                        0x0070,
+                        AlwaysTrigger, MaskBits(0x0070),
                         "",
                         {
                             { 0x0000, "" },
@@ -244,7 +244,7 @@ namespace
                     {
                         "REVERSED",
                         Translate::Type::IndexToString,
-                        0x0380,
+                        AlwaysTrigger, MaskBits(0x0380),
                         "",
                         {
                             { 0x0000, "" },
@@ -271,7 +271,7 @@ namespace
                     {
                         "LEAKING",
                         Translate::Type::IndexToString,
-                        0x1c00,
+                        AlwaysTrigger, MaskBits(0x1c00),
                         "",
                         {
                             { 0x0000, "" },
@@ -298,7 +298,7 @@ namespace
                     {
                         "BURSTING",
                         Translate::Type::IndexToString,
-                        0xe000,
+                        AlwaysTrigger, MaskBits(0xe000),
                         "",
                         {
                             { 0x0000, "" },

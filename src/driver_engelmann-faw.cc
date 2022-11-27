@@ -47,7 +47,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xff,
+                        AlwaysTrigger, MaskBits(0xff),
                         "OK",
                         {
                             { 0x01, "VOLUME_DETECTION_COILS_DEFECT" },

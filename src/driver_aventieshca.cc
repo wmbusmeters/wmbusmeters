@@ -109,7 +109,7 @@ MeterAventiesHCA::MeterAventiesHCA(MeterInfo &mi, DriverInfo &di) : MeterCommonI
                 {
                     "ERROR_FLAGS",
                     Translate::Type::BitToString,
-                    0xffff,
+                    AlwaysTrigger, MaskBits(0xffff),
                     "",
                     {
                         { 0x01, "MEASUREMENT", TestBit::Set },

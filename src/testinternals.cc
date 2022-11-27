@@ -1227,31 +1227,19 @@ void test_hex()
 void test_translate()
 {
     Translate::Lookup lookup1 =
-        {
-            {
-                {
-                    "ACCESS_BITS",
-                    Translate::Type::BitToString,
-                    0xf0,
-                    "",
-                    {
-                        { 0x10, "NO_ACCESS" },
-                        { 0x20, "ALL_ACCESS" },
-                        { 0x40, "TEMP_ACCESS" },
-                    }
-                },
-                {
-                    "ACCESSOR_TYPE",
-                    Translate::Type::IndexToString,
-                    0x0f,
-                    "",
-                    {
-                        { 0x00, "ACCESSOR_RED" },
-                        { 0x07, "ACCESSOR_GREEN" },
-                    },
-                },
-            },
-        };
+        Translate::Lookup()
+        .add(Translate::Rule("ACCESS_BITS", Translate::Type::BitToString)
+             .set(MaskBits(0xf0))
+             .add(Translate::Map(0x10, "NO_ACCESS", TestBit::Set))
+             .add(Translate::Map(0x20, "ALL_ACCESS", TestBit::Set))
+             .add(Translate::Map(0x40, "TEMP_ACCESS", TestBit::Set))
+            )
+        .add(Translate::Rule("ACCESSOR_TYPE", Translate::Type::IndexToString)
+             .set(MaskBits(0x0f))
+             .add(Translate::Map(0x00, "ACCESSOR_RED", TestBit::Set))
+             .add(Translate::Map(0x07, "ACCESSOR_GREEN", TestBit::Set))
+            )
+        ;
 
    Translate::Lookup lookup2 =
         {
@@ -1259,7 +1247,8 @@ void test_translate()
                 {
                     "FLOW_FLAGS",
                     Translate::Type::BitToString,
-                    0x3f,
+                    AlwaysTrigger,
+                    MaskBits(0x3f),
                     "OOOK",
                     {
                         { 0x01, "BACKWARD_FLOW" },
@@ -1277,7 +1266,8 @@ void test_translate()
                 {
                     "NO_FLAGS",
                     Translate::Type::BitToString,
-                    0x03,
+                    AlwaysTrigger,
+                    MaskBits(0x03),
                     "OK",
                     {
                         // Test that 0x01 is set, means OK (ie installed)
@@ -1293,16 +1283,16 @@ void test_translate()
     uint8_t bits;
 
     bits = 0xa0;
-    s = lookup1.translate(bits);
-    e = "ALL_ACCESS ACCESS_BITS_80 ACCESSOR_RED";
+    s = sortStatusString(lookup1.translate(bits));
+    e = sortStatusString("ALL_ACCESS ACCESS_BITS_80 ACCESSOR_RED");
     if (s != e)
     {
         printf("ERROR lookup1 0x%02x expected \"%s\" but got \"%s\"\n", bits, e.c_str(), s.c_str());
     }
 
     bits = 0x35;
-    s = lookup1.translate(bits);
-    e = "NO_ACCESS ALL_ACCESS ACCESSOR_TYPE_5";
+    s = sortStatusString(lookup1.translate(bits));
+    e = sortStatusString("NO_ACCESS ALL_ACCESS ACCESSOR_TYPE_5");
     if (s != e)
     {
         printf("ERROR lookup1 0x%02x expected \"%s\" but got \"%s\"\n", bits, e.c_str(), s.c_str());
@@ -1327,8 +1317,8 @@ void test_translate()
     // Verify that the not set 0x01 bit translates to NOT_INSTALLED
     // The set bit 0x02 translates to FOO.
     bits = 0x02;
-    s = lookup3.translate(0x02);
-    e = "NOT_INSTALLED FOO";
+    s = sortStatusString(lookup3.translate(0x02));
+    e = sortStatusString("NOT_INSTALLED FOO");
     if (s != e)
     {
         printf("ERROR lookup3 0x%02x expected \"%s\" but got \"%s\"\n", bits, e.c_str(), s.c_str());
@@ -1444,7 +1434,7 @@ void test_ascii_detection()
 
 void test_join(string a, string b, string s)
 {
-    string t = joinStatusStrings(a, b);
+    string t = joinStatusOKStrings(a, b);
     if (t != s)
     {
         printf("Expected joinStatusString(\"%s\",\"%s\") to be \"%s\" but got \"%s\"\n",

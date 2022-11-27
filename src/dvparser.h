@@ -62,7 +62,7 @@
     X(DurationOfTariff,0x7D31,0x7D33, Quantity::Time, Unit::Hour) \
     X(Dimensionless,0x7D3A,0x7D3A, Quantity::Counter, Unit::COUNTER) \
     X(Voltage,0x7D40,0x7D4F, Quantity::Voltage, Unit::Volt) \
-    X(Current,0x7D50,0x7D5F, Quantity::Current, Unit::Ampere) \
+    X(Amperage,0x7D50,0x7D5F, Quantity::Amperage, Unit::Ampere) \
     X(ResetCounter,0x7D60,0x7D60, Quantity::Counter, Unit::COUNTER) \
     X(CumulationCounter,0x7D61,0x7D61, Quantity::Counter, Unit::COUNTER) \
     X(SpecialSupplierInformation,0x7D67,0x7D67, Quantity::Text, Unit::TXT) \

@@ -1631,13 +1631,15 @@ string MeterCommonImplementation::getStringValue(FieldInfo *fi)
             if (f.printProperties().hasJOININTOSTATUS())
             {
                 string more = getStringValue(&f);
-                string joined = joinStatusStrings(value, more);
+                string joined = joinStatusOKStrings(value, more);
                 value = joined;
             }
         }
         // Sort all found flags and remove any duplicates. A well designed meter decoder
         // should not be able to generate duplicates.
         value = sortStatusString(value);
+        // If it is empty, then translate to OK!
+        if (value == "") value = "OK";
     }
 
     return value;
@@ -1870,7 +1872,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
     for (FieldInfo& fi : field_infos_)
     {
-        if (fi.printProperties().hasJSON())
+        if (fi.printProperties().hasJSON() && !fi.printProperties().hasHIDE())
         {
             // The field should be printed in the json. (Most usually should.)
             for (auto& i : t->dv_entries)
@@ -1892,7 +1894,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
     for (FieldInfo& fi : field_infos_)
     {
-        if (fi.printProperties().hasJSON())
+        if (fi.printProperties().hasJSON() && !fi.printProperties().hasHIDE())
         {
             if (founds.count(&fi) != 0)
             {
@@ -1978,7 +1980,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
     for (FieldInfo& fi : field_infos_)
     {
-        if (fi.printProperties().hasJSON())
+        if (fi.printProperties().hasJSON() && !fi.printProperties().hasHIDE())
         {
             string default_unit = unitToStringUpperCase(fi.defaultUnit());
             string var = fi.vname();

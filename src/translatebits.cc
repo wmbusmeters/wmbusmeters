@@ -23,14 +23,35 @@
 using namespace Translate;
 using namespace std;
 
+TriggerBits AlwaysTrigger(~(uint64_t)0);
+MaskBits AutoMask(0);
+
 void handleBitToString(Rule& rule, string &out_s, uint64_t bits)
 {
     string s;
 
-    bits = bits & rule.mask;
+    if (rule.trigger != AlwaysTrigger && (bits & rule.trigger.intValue()) == 0 )
+    {
+        // The trigger bits are needed and there are no trigger bits. Ignore this rule.
+        return;
+    }
+
+    uint64_t mask = rule.mask.intValue();
+
+    if (rule.mask == AutoMask)
+    {
+        mask = 0;
+        for (Map& m : rule.map)
+        {
+            // Collect all listed bits as the mask.
+            mask |= m.from;
+        }
+    }
+
+    bits = bits & mask;
     for (Map& m : rule.map)
     {
-        if ((~rule.mask & m.from) != 0)
+        if ((~mask & m.from) != 0)
         {
             // Check that the match rule does not extend outside of the mask!
             // If mask is 0xff then a match for 0x100 will trigger this bad warning!
@@ -38,7 +59,7 @@ void handleBitToString(Rule& rule, string &out_s, uint64_t bits)
             s += tmp+" ";
         }
 
-        uint64_t from = m.from & rule.mask; // Better safe than sorry.
+        uint64_t from = m.from & mask; // Better safe than sorry.
 
         if (m.test == TestBit::Set)
         {
@@ -71,7 +92,7 @@ void handleBitToString(Rule& rule, string &out_s, uint64_t bits)
 
     if (s == "")
     {
-        s = rule.no_bits_msg+" ";
+        s = rule.default_message.stringValue()+" ";
     }
 
     out_s += s;
@@ -81,19 +102,37 @@ void handleIndexToString(Rule& rule, string &out_s, uint64_t bits)
 {
     string s;
 
-    bits = bits & rule.mask;
+    if (rule.trigger != AlwaysTrigger && (bits & rule.trigger.intValue()) == 0 )
+    {
+        // The trigger bits are needed and there are no trigger bits. Ignore this rule.
+        return;
+    }
+
+    uint64_t mask = rule.mask.intValue();
+
+    if (rule.mask == AutoMask)
+    {
+        mask = 0;
+        for (Map& m : rule.map)
+        {
+            // Collect all listed bits as the mask.
+            mask |= m.from;
+        }
+    }
+
+    bits = bits & mask;
     bool found = false;
     for (Map& m : rule.map)
     {
         assert(m.test == TestBit::Set);
 
-        if ((~rule.mask & m.from) != 0)
+        if ((~mask & m.from) != 0)
         {
             string tmp;
             strprintf(&tmp, "BAD_RULE_%s(from=0x%x mask=0x%x)", rule.name.c_str(), m.from, rule.mask);
             s += tmp+" ";
         }
-        uint64_t from = m.from & rule.mask; // Better safe than sorry.
+        uint64_t from = m.from & mask; // Better safe than sorry.
         if (bits == from)
         {
             s += m.to+" ";
@@ -115,23 +154,41 @@ void handleDecimalsToString(Rule& rule, string &out_s, uint64_t bits)
 {
     string s;
 
+    if (rule.trigger != AlwaysTrigger && (bits & rule.trigger.intValue()) == 0 )
+    {
+        // The trigger bits are needed and there are no trigger bits. Ignore this rule.
+        return;
+    }
+
+    uint64_t mask = rule.mask.intValue();
+
+    if (rule.mask == AutoMask)
+    {
+        mask = 0;
+        for (Map& m : rule.map)
+        {
+            // Collect all listed bits as the mask.
+            mask |= m.from;
+        }
+    }
+
     // Switch to signed number here.
-    int number = bits % rule.mask;
+    int number = bits % mask;
     if (number == 0)
     {
-        s += rule.no_bits_msg+" ";
+        s += rule.default_message.stringValue()+" ";
     }
     for (Map& m : rule.map)
     {
         assert(m.test == TestBit::Set);
 
-        if ((m.from - (m.from % rule.mask)) != 0)
+        if ((m.from - (m.from % mask)) != 0)
         {
             string tmp;
             strprintf(&tmp, "BAD_RULE_%s(from=%d modulomask=%d)", rule.name.c_str(), m.from, rule.mask);
             s += tmp+" ";
         }
-        int num = m.from % rule.mask; // Better safe than sorry.
+        int num = m.from % mask; // Better safe than sorry.
         if ((number - num) >= 0)
         {
             s += m.to+" ";
@@ -172,15 +229,25 @@ void handleRule(Rule& rule, string &s, uint64_t bits)
 
 string Lookup::translate(uint64_t bits)
 {
-    string s = "";
+    string total = "";
 
     for (Rule& r : rules)
     {
+        string s;
         handleRule(r, s, bits);
+        total = joinStatusEmptyStrings(total, s);
     }
 
-    while (s.size() > 0 && s.back() == ' ') s.pop_back();
-    return s;
+    while (total.size() > 0 && total.back() == ' ') total.pop_back();
+
+    return sortStatusString(total);
 }
 
 Lookup NoLookup = {};
+
+
+Map m = { 123, "howdy" };
+vector<Map> vm = { { 123, "howdy" } };
+
+Rule r = { "name", Translate::Type::IndexToString,
+    AlwaysTrigger, MaskBits(0xe000),  "", { } };

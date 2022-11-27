@@ -27,7 +27,6 @@
 //    meter driver,       manufacturer,  media,  version
 //
 #define METER_DETECTION \
-    X(CCx01,     MANUFACTURER_GSS,  0x02,  0x01) \
     X(MULTICAL302,MANUFACTURER_KAM, 0x04,  0x30) \
     X(MULTICAL302,MANUFACTURER_KAM, 0x0d,  0x30) \
     X(MULTICAL302,MANUFACTURER_KAM, 0x0c,  0x30) \

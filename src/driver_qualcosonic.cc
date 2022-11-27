@@ -51,7 +51,7 @@ namespace
                     {
                         "ERROR_FLAGS",
                         Translate::Type::BitToString,
-                        0xffffffff,
+                        AlwaysTrigger, MaskBits(0xffffffff),
                         "OK",
                         {
                             /* What do these bits mean? There are a lot of them...
