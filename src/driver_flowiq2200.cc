@@ -32,6 +32,7 @@ namespace
         di.addLinkMode(LinkMode::C1);
         // FlowIQ2200
         di.addDetection(MANUFACTURER_KAW,  0x16,  0x3a);
+	di.addDetection(MANUFACTURER_KAW,  0x16,  0x3c);
         // FlowIQ3100
         di.addDetection(MANUFACTURER_KAM,  0x16,  0x1d);
 
