@@ -27,7 +27,6 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("qcaloric");
-        di.addNameAlias("lse_08");
         di.addNameAlias("whe5x");
         di.addNameAlias("whe46x");
         di.setDefaultFields("name,id,current_consumption_hca,set_date,consumption_at_set_date_hca,timestamp");
