@@ -126,7 +126,7 @@ namespace
     }
 }
 
-// Test: HCA2 qcaloric 04998541 NOKEY
+// Test: HCA2 lse_08 04998541 NOKEY
 // telegram=|294465324185990401087a0080000082046c7f018b046e210300046d1a0e6f0202fdac7e012301fd0c01|
 // {"media":"heat cost allocation","meter":"lse_08","name":"HCA2","id":"04998541","status":"TPL_MFCT_80","set_date":"2003-01-31","consumption_at_set_date_hca":321,"device_date_time":"2003-02-15 14:26","duration_since_readout_h":2.489167,"model_version":"01","timestamp":"1111-11-11T11:11:11Z"}
 // |HCA2;04998541;2003-01-31;321;1111-11-11 11:11.11

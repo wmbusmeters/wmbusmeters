@@ -53,52 +53,25 @@ LIST_OF_METER_TYPES
 #undef X
 };
 
-// This is the old style meter list. Drivers are succesively rewritten
-// from meter_xyz.cc to driver_xyz.cc only old style drivers are listed here.
-// The new driver_xyz.cc file format is selfcontained so eventually this
-// macro LIST_OF_METERS will be empty and go away.
-
-#define LIST_OF_METERS \
-    X(auto,       0,      AutoMeter, AUTO, Auto) \
-    X(unknown,    0,      UnknownMeter, UNKNOWN, Unknown) \
-    X(multical302,C1_bit|T1_bit, HeatMeter,        MULTICAL302, Multical302)  \
-    X(multical403,C1_bit, HeatMeter,        MULTICAL403, Multical403)  \
-    X(multical602,C1_bit, HeatMeter,        MULTICAL602, Multical602)  \
-    X(multical803,C1_bit, HeatMeter,        MULTICAL803, Multical803)  \
-
-
-enum class MeterDriver {
-#define X(mname,linkmode,info,type,cname) type,
-LIST_OF_METERS
-#undef X
-};
-
 struct DriverName
 {
     DriverName() {};
     DriverName(string s) : name_(s) {};
-    string str() { return name_; }
+    const string &str() const { return name_; }
+    bool operator==(const DriverName &dn) const { return name_ == dn.name_; }
 
 private:
     string name_;
-};
-
-struct MeterMatch
-{
-    MeterDriver driver;
-    int manufacturer;
-    int media;
-    int version;
 };
 
 // Return a list of matching drivers, like: multical21
 void detectMeterDrivers(int manufacturer, int media, int version, std::vector<std::string> *drivers);
 // When entering the driver, check that the telegram is indeed known to be
 // compatible with the driver(type), if not then print a warning.
-bool isMeterDriverValid(MeterDriver type, int manufacturer, int media, int version);
+bool isMeterDriverValid(DriverName driver_name, int manufacturer, int media, int version);
 // For an unknown telegram, when analyzing check if the media type is reasonable in relation to the driver.
 // Ie. do not try to decode a door sensor telegram with a water meter driver.
-bool isMeterDriverReasonableForMedia(MeterDriver type, string driver_name, int media);
+bool isMeterDriverReasonableForMedia(string driver_name, int media);
 
 struct MeterInfo;
 bool isValidKey(const string& key, MeterInfo &mt);
@@ -128,7 +101,6 @@ struct MeterInfo
                  // A bus can be an mbus or a wmbus dongle.
                  // The bus can be the empty string, which means that it will fallback to the first defined bus.
     string name; // User specified name of this (group of) meters.
-    MeterDriver driver {}; // Requested driver for decoding telegrams from this meter.
     DriverName driver_name; // Will replace MeterDriver.
     string extras; // Extra driver specific settings.
     vector<string> ids; // Match expressions for ids.
@@ -151,11 +123,10 @@ struct MeterInfo
     string str();
     DriverName driverName();
 
-    MeterInfo(string b, string n, MeterDriver d, string e, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j, vector<string> &calcfs)
+    MeterInfo(string b, string n, string e, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j, vector<string> &calcfs)
     {
         bus = b;
         name = n;
-        driver = d;
         extras = e,
         ids = i;
         idsc = toIdsCommaSeparated(ids);
@@ -171,7 +142,6 @@ struct MeterInfo
     {
         bus = "";
         name = "";
-        driver = MeterDriver::UNKNOWN;
         ids.clear();
         idsc = "";
         key = "";
@@ -203,7 +173,6 @@ struct DriverInfo
 {
 private:
 
-    MeterDriver driver_ {}; // Old driver enum, to go away.
     DriverName name_; // auto, unknown, amiplus, lse_07_17, multical21 etc
     vector<DriverName> name_aliases_; // Secondary names that will map to this driver.
     LinkModeSet linkmodes_; // C1, T1, S1 or combinations thereof.
@@ -216,7 +185,6 @@ private:
 
 public:
     DriverInfo() {};
-    DriverInfo(MeterDriver mt) : driver_(mt) {};
     void setName(std::string n) { name_ = n; }
     void addNameAlias(std::string n) { name_aliases_.push_back(n); }
     void setMeterType(MeterType t) { type_ = t; }
@@ -228,9 +196,14 @@ public:
     void addDetection(uint16_t mfct, uchar type, uchar ver) { detect_.push_back({ mfct, type, ver }); }
     vector<DriverDetect> &detect() { return detect_; }
 
-    MeterDriver driver() { return driver_; }
     DriverName name() { return name_; }
     vector<DriverName>& nameAliases() { return name_aliases_; }
+    bool hasDriverName(DriverName dn) {
+        if (name_ == dn) return true;
+        for (auto &i : name_aliases_) if (i == dn) return true;
+        return false;
+    }
+
     MeterType type() { return type_; }
     vector<string>& defaultFields() { return default_fields_; }
     LinkModeSet linkModes() { return linkmodes_; }
@@ -247,7 +220,7 @@ bool lookupDriverInfo(const string& driver, DriverInfo *di = NULL);
 // Return the best driver match for a telegram.
 DriverInfo pickMeterDriver(Telegram *t);
 // Return true for mbus and S2/C2/T2 drivers.
-bool driverNeedsPolling(MeterDriver driver, DriverName& dn);
+bool driverNeedsPolling(DriverName& dn);
 
 vector<DriverInfo*>& allDrivers();
 
@@ -410,10 +383,8 @@ struct Meter
     // Either the default fields specified in the driver, or override fields in the meter configuration file.
     virtual vector<string> &selectedFields() = 0;
     virtual void setSelectedFields(vector<string> &f) = 0;
-    virtual string meterDriver() = 0;
     virtual string name() = 0;
-    virtual MeterDriver driver() = 0;
-    virtual DriverName  driverName() = 0;
+    virtual DriverName driverName() = 0;
 
     virtual string datetimeOfUpdateHumanReadable() = 0;
     virtual string datetimeOfUpdateRobot() = 0;
@@ -485,15 +456,8 @@ struct MeterManager
 shared_ptr<MeterManager> createMeterManager(bool daemon);
 
 const char *toString(MeterType type);
-string toString(MeterDriver driver);
 string toString(DriverInfo &driver);
-MeterDriver toMeterDriver(const string& driver);
 LinkModeSet toMeterLinkModeSet(const string& driver);
-LinkModeSet toMeterLinkModeSet(MeterDriver driver);
-
-#define X(mname,linkmode,info,type,cname) shared_ptr<Meter> create##cname(MeterInfo &m);
-LIST_OF_METERS
-#undef X
 
 struct Configuration;
 struct MeterInfo;

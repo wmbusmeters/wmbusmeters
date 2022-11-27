@@ -920,7 +920,7 @@ void testm(string arg, bool xok,
     }
     if (ok == false) return;
 
-    bool driver_ok = toString(mi.driver) == xdriver || mi.driverName().str() == xdriver;
+    bool driver_ok = mi.driverName().str() == xdriver;
     bool extras_ok = mi.extras == xextras;
     bool bus_ok = mi.bus == xbus;
     bool bps_ok = to_string(mi.bps) == xbps;
@@ -929,13 +929,13 @@ void testm(string arg, bool xok,
     if (!driver_ok || !extras_ok || !bus_ok || !bps_ok || !link_modes_ok)
     {
         printf("ERROR in meterc parsing parts \"%s\" got\n"
-               "driver: \"%s\"/\"%s\", extras: \"%s\", bus: \"%s\", bbps: \"%s\", linkmodes: \"%s\"\n"
+               "driver: \"%s\", extras: \"%s\", bus: \"%s\", bbps: \"%s\", linkmodes: \"%s\"\n"
                "but expected\n"
                "driver: \"%s\", extras: \"%s\", bus: \"%s\", bbps: \"%s\", linkmodes: \"%s\"\n",
 
                arg.c_str(),
 
-               toString(mi.driver).c_str(), mi.driverName().str().c_str(),
+               mi.driverName().str().c_str(),
                mi.extras.c_str(),
                mi.bus.c_str(),
                to_string(mi.bps).c_str(),
@@ -965,20 +965,20 @@ void testc(string file, string file_content,
 
     mi = c.meters.back();
 
-    if ((toString(mi.driver) != xdriver && mi.driverName().str() != xdriver) ||
+    if (mi.driverName().str() != xdriver ||
         mi.extras != xextras ||
         mi.bus != xbus ||
         to_string(mi.bps) != xbps ||
         mi.link_modes.hr() != xlm)
     {
         printf("ERROR in meterc parsing parts \"%s\" got\n"
-               "driver: \"%s\"/\"%s\", extras: \"%s\", bus: \"%s\", bbps: \"%s\", linkmodes: \"%s\"\n"
+               "driver: \"%s\", extras: \"%s\", bus: \"%s\", bbps: \"%s\", linkmodes: \"%s\"\n"
                "but expected\n"
                "driver: \"%s\", extras: \"%s\", bus: \"%s\", bbps: \"%s\", linkmodes: \"%s\"\n",
 
                file.c_str(),
 
-               toString(mi.driver).c_str(), mi.driverName().str().c_str(),
+               mi.driverName().str().c_str(),
                mi.extras.c_str(),
                mi.bus.c_str(),
                to_string(mi.bps).c_str(),

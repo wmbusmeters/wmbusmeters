@@ -1,13 +1,34 @@
 
+  ╭─────────────────────────────────────────────────────────────────╮
+  │                                                                 │
+  │                 Important change! The old style                 │
+  │      of writing drivers is now gone! BUT BUT BUT                │
+  │           the final set of drivers to be converted were         │
+  │        the multical 302/303/403/602/603/803 meters that         │
+  │     were merged into a single hamheat driver. It was not        │
+  │    possible to keep all of them backwards compatible!           │
+  │                                                                 │
+  │   Note that the default fields for these meters are changed!    │
+  │      Please use --selectfields to resolve this.                 │
+  │                                                                 │
+  │      I.e. It is a very good idea to check your multical heat    │
+  │     meter values when you upgrade to wmbusmeters 2.0 !          │
+  │                                                                 │
+  ╰─────────────────────────────────────────────────────────────────╯
+
 Important change! The feature --addconversions=GJ has been removed!!! But there is a replacement!
 It was used to add conversions to all energy values into gj, eg you have
 total_kwh and add total_gj.
 
-This feature was too broad and the conversion happened too late in the processing code.
-You can now achieved the same thing but you have to specify each field you want to convert
+The addconversion feature was too broad and the conversion happened too late in the processing code.
+You can now achieve the same thing but you have to specify each field you want to convert
 using the calculation feature.
 
 E.g. --calculate_total_gj=total_kwh
+
+ATTENTION! The multical 302/303/403/602/603/803 heat meter drivers have been merged into a single kamheat
+driver. Not all values are backwards compatible! I.e. 302 is very changed, less so for the others.
+The default fields have changed!
 
 ATTENTION! The gransystems driver has been refactored to the new driver format.
 The field currrent_at_phase_1_a has been renamed to current_at_phase_1_a.

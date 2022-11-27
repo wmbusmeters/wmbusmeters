@@ -187,11 +187,6 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     debug("(cmdline) setting link modes to %s for meter %s\n",
             mi.link_modes.hr().c_str(), name.c_str());
     */
-    MeterDriver mt = mi.driver;
-    if (mt == MeterDriver::UNKNOWN) {
-        warning("Not a valid meter driver \"%s\"\n", driver.c_str());
-        use = false;
-    }
     if (!isValidMatchExpressions(id, true)) {
         warning("Not a valid meter id nor a valid meter match expression \"%s\"\n", id.c_str());
         use = false;
@@ -816,7 +811,7 @@ LinkModeCalculationResult calculateLinkModes(Configuration *config, BusDevice *d
     {
         meters_union.unionLinkModeSet(m.link_modes);
         string meter = m.link_modes.hr();
-        debug("(config) meter %s link mode(s): %s\n", toString(m.driver).c_str(), meter.c_str());
+        debug("(config) meter %s link mode(s): %s\n", m.driverName().str().c_str(), meter.c_str());
     }
     string metersu = meters_union.hr();
     debug("(config) all possible link modes that the meters might transmit on: %s\n", metersu.c_str());

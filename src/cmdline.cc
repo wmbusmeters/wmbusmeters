@@ -152,8 +152,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                     MeterInfo mi;
                     mi.parse("x", s, "00000000", "");
 
-                    if (mi.driver == MeterDriver::UNKNOWN &&
-                        mi.driver_name.str() == "")
+                    if (mi.driver_name.str() == "")
                     {
                         error("Not a valid meter driver \"%s\"\n", s.c_str());
                     }
@@ -634,14 +633,14 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         mi.parse(name, driver, id, key);
         mi.poll_interval = c->pollinterval;
 
-        if (mi.driver == MeterDriver::UNKNOWN &&
-            mi.driver_name.str() == "")
+        if (mi.driver_name.str() == "")
         {
             error("Not a valid meter driver \"%s\"\n", driver.c_str());
         }
 
-        LinkModeSet default_modes = toMeterLinkModeSet(mi.driver);
+        //LinkModeSet default_modes = toMeterLinkModeSet(mi.driver);
 
+        /*
         if (default_modes.has(LinkMode::MBUS))
         {
             // MBus primary address       0-250
@@ -653,6 +652,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             if (!isValidMatchExpressions(id, true)) error("Not a valid id nor a valid meter match expression \"%s\"\n", id.c_str());
         }
         if (!isValidKey(key, mi)) error("Not a valid meter key \"%s\"\n", key.c_str());
+        */
 
         c->meters.push_back(mi);
 

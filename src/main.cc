@@ -197,20 +197,12 @@ void list_shell_envs(Configuration *config, string meter_driver)
     shared_ptr<Meter> meter;
     DriverInfo di;
 
-    mi.driver = toMeterDriver(meter_driver);
-    if (mi.driver != MeterDriver::UNKNOWN)
+    mi.driver_name = meter_driver;
+    if (!lookupDriverInfo(meter_driver, &di))
     {
-        meter = createMeter(&mi);
+        error("No such driver %s\n", meter_driver.c_str());
     }
-    else
-    {
-        mi.driver_name = meter_driver;
-        if (!lookupDriverInfo(meter_driver, &di))
-        {
-            error("No such driver %s\n", meter_driver.c_str());
-        }
-        meter = di.construct(mi);
-    }
+    meter = di.construct(mi);
 
     printf("METER_DEVICE\n"
            "METER_ID\n"
@@ -254,20 +246,12 @@ void list_fields(Configuration *config, string meter_driver)
     shared_ptr<Meter> meter;
     DriverInfo di;
 
-    mi.driver = toMeterDriver(meter_driver);
-    if (mi.driver != MeterDriver::UNKNOWN)
+    mi.driver_name = meter_driver;
+    if (!lookupDriverInfo(meter_driver, &di))
     {
-        meter = createMeter(&mi);
+        error("No such driver %s\n", meter_driver.c_str());
     }
-    else
-    {
-        mi.driver_name = meter_driver;
-        if (!lookupDriverInfo(meter_driver, &di))
-        {
-            error("No such driver %s\n", meter_driver.c_str());
-        }
-        meter = di.construct(mi);
-    }
+    meter = di.construct(mi);
 
     int width = 13; // Width of timestamp_utc
     for (FieldInfo &fi : meter->fieldInfos())
@@ -321,14 +305,6 @@ void list_fields(Configuration *config, string meter_driver)
 
 void list_meters(Configuration *config)
 {
-#define X(mname,link,info,type,cname) \
-    if (config->list_meters_search == "" || \
-        stringFoundCaseIgnored(#info, config->list_meters_search) || \
-        stringFoundCaseIgnored(#mname, config->list_meters_search)) \
-            printf("%-14s %s\n", #mname, #info);
-LIST_OF_METERS
-#undef X
-
     for (DriverInfo *di : allDrivers())
     {
         string mname = di->name().str();
@@ -485,7 +461,7 @@ void setup_meters(Configuration *config, MeterManager *manager)
                                          config->extra_calculated_fields.begin(),
                                          config->extra_calculated_fields.end());
 
-        if (m.usesPolling() || driverNeedsPolling(m.driver, m.driver_name))
+        if (m.usesPolling() || driverNeedsPolling(m.driver_name))
         {
             // A polling meter must be defined from the start.
             auto meter = createMeter(&m);

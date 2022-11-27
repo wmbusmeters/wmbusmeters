@@ -65,6 +65,10 @@ do
             TESTRESULT="OK"
         else
             TESTRESULT="ERROR"
+            if [ "$USE_MELD" = "true" ]
+            then
+                meld $TEST/test_expected_fields.txt $TEST/test_response_fields.txt
+            fi
         fi
     else
         echo "wmbusmeters returned error code: $?"

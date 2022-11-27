@@ -18,7 +18,6 @@
 #include"bus.h"
 #include"config.h"
 #include"meters.h"
-#include"meter_detection.h"
 #include"meters_common_implementation.h"
 #include"units.h"
 #include"wmbus.h"
@@ -174,11 +173,11 @@ public:
                         meter_info.ids = tmp_ids;
                         meter_info.idsc = t.ids.back();
 
-                        if (meter_info.driver == MeterDriver::AUTO)
+                        if (meter_info.driverName().str() == "auto")
                         {
                             // Look up the proper meter driver!
                             DriverInfo di = pickMeterDriver(&t);
-                            if (di.driver() == MeterDriver::UNKNOWN && di.name().str() == "")
+                            if (di.name().str() == "")
                             {
                                 if (should_analyze_ == false)
                                 {
@@ -188,7 +187,6 @@ public:
                             }
                             else
                             {
-                                meter_info.driver = di.driver();
                                 meter_info.driver_name = di.name();
                             }
                         }
@@ -199,7 +197,7 @@ public:
                         verbose("(meter) used meter template %s %s %s to match %s\n",
                                 mi.name.c_str(),
                                 mi.idsc.c_str(),
-                                toString(mi.driver).c_str(),
+                                mi.driverName().str().c_str(),
                                 idsc.c_str());
 
                         if (is_daemon_)
@@ -208,15 +206,15 @@ public:
                                    meter->index(),
                                    mi.name.c_str(),
                                    meter_info.idsc.c_str(),
-                                   toString(mi.driver).c_str());
+                                   mi.driverName().str().c_str());
                         }
                         else
                         {
                             verbose("(meter) started meter %d (%s %s %s)\n",
-                                   meter->index(),
-                                   mi.name.c_str(),
-                                   meter_info.idsc.c_str(),
-                                   toString(mi.driver).c_str());
+                                    meter->index(),
+                                    mi.name.c_str(),
+                                    meter_info.idsc.c_str(),
+                                    mi.driverName().str().c_str());
                         }
 
                         bool match = false;
@@ -286,79 +284,6 @@ public:
         analyze_verbose_ = verbose;
     }
 
-    string findBestOldStyleDriver(MeterInfo &mi,
-                                  int *best_length,
-                                  int *best_understood,
-                                  Telegram &t,
-                                  AboutTelegram &about,
-                                  vector<uchar> &input_frame,
-                                  bool simulated,
-                                  string force)
-    {
-        vector<MeterDriver> old_drivers;
-#define X(mname,linkmode,info,type,cname) old_drivers.push_back(MeterDriver::type);
-LIST_OF_METERS
-#undef X
-
-        string best_driver = "";
-        for (MeterDriver odr : old_drivers)
-        {
-            if (odr == MeterDriver::AUTO) continue;
-            if (odr == MeterDriver::UNKNOWN) continue;
-            string driver_name = toString(odr);
-            if (force != "")
-            {
-                if (driver_name != force) continue;
-                return driver_name;
-            }
-
-            if (force == "" &&
-                !isMeterDriverReasonableForMedia(odr, "", t.dll_type) &&
-                !isMeterDriverReasonableForMedia(odr, "", t.tpl_type))
-            {
-                // Sanity check, skip this driver since it is not relevant for this media.
-                continue;
-            }
-
-            debug("Testing old style driver %s...\n", driver_name.c_str());
-            mi.driver = odr;
-            mi.driver_name = DriverName("");
-
-            auto meter = createMeter(&mi);
-
-            bool match = false;
-            string id;
-            bool h = meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
-            if (!match)
-            {
-                debug("no match!\n");
-            }
-            else if (!h)
-            {
-                // Oups, we added a new meter object tailored for this telegram
-                // but it still did not handle it! This can happen if the wrong
-                // decryption key was used. But it is ok if analyzing....
-                debug("Newly created meter (%s %s %s) did not handle telegram!\n",
-                      meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
-            }
-            else
-            {
-                int l = 0;
-                int u = 0;
-                t.analyzeParse(OutputFormat::NONE, &l, &u);
-                if (analyze_verbose_ && force == "") printf("(verbose) old %02d/%02d %s\n", u, l, driver_name.c_str());
-                if (u > *best_understood)
-                {
-                    *best_understood = u;
-                    *best_length = l;
-                    best_driver = driver_name;
-                    if (analyze_verbose_ && force == "") printf("(verbose) old best so far: %s %02d/%02d\n", best_driver.c_str(), u, l);
-                }
-            }
-        }
-        return best_driver;
-    }
-
     string findBestNewStyleDriver(MeterInfo &mi,
                                   int *best_length,
                                   int *best_understood,
@@ -380,15 +305,14 @@ LIST_OF_METERS
             }
 
             if (only == "" &&
-                !isMeterDriverReasonableForMedia(MeterDriver::AUTO, driver_name, t.dll_type) &&
-                !isMeterDriverReasonableForMedia(MeterDriver::AUTO, driver_name, t.tpl_type))
+                !isMeterDriverReasonableForMedia(driver_name, t.dll_type) &&
+                !isMeterDriverReasonableForMedia(driver_name, t.tpl_type))
             {
                 // Sanity check, skip this driver since it is not relevant for this media.
                 continue;
             }
 
-            debug("Testing new style driver %s...\n", driver_name.c_str());
-            mi.driver = MeterDriver::UNKNOWN;
+            debug("Testing driver %s...\n", driver_name.c_str());
             mi.driver_name = driver_name;
 
             auto meter = createMeter(&mi);
@@ -465,32 +389,15 @@ LIST_OF_METERS
         int using_understood = 0;
 
         // Driver that understands most of the telegram content.
-        string best_driver = "";
         int best_length = 0;
         int best_understood = 0;
+        string best_driver = findBestNewStyleDriver(mi, &best_length, &best_understood, t, about, input_frame, simulated, "");
 
-        int old_best_length = 0;
-        int old_best_understood = 0;
-        string best_old_driver = findBestOldStyleDriver(mi, &old_best_length, &old_best_understood, t, about, input_frame, simulated, "");
-
-        int new_best_length = 0;
-        int new_best_understood = 0;
-        string best_new_driver = findBestNewStyleDriver(mi, &new_best_length, &new_best_understood, t, about, input_frame, simulated, "");
-
-        mi.driver = MeterDriver::UNKNOWN;
         mi.driver_name = DriverName("");
 
         // Use the existing mapping from mfct/media/version to driver.
         DriverInfo auto_di = pickMeterDriver(&t);
         string auto_driver = auto_di.name().str();
-        if (auto_driver == "")
-        {
-            auto_driver = toString(auto_di.driver());
-            if (auto_driver == "unknown")
-            {
-                auto_driver = "";
-            }
-        }
 
         // Will be non-empty if an explicit driver has been selected.
         string force_driver = analyze_driver_;
@@ -505,53 +412,12 @@ LIST_OF_METERS
 
         if (force_driver != "")
         {
-            using_driver = findBestOldStyleDriver(mi, &force_length, &force_understood, t, about, input_frame, simulated,
+            using_driver = findBestNewStyleDriver(mi, &force_length, &force_understood, t, about, input_frame, simulated,
                                                   force_driver);
+            mi.driver_name = using_driver;
 
-            if (using_driver != "")
-            {
-                mi.driver = toMeterDriver(using_driver);
-                mi.driver_name = DriverName("");
-                using_driver += "(driver should be upgraded)";
-            }
-            else
-            {
-                using_driver = findBestNewStyleDriver(mi, &force_length, &force_understood, t, about, input_frame, simulated,
-                                                      force_driver);
-                mi.driver_name = using_driver;
-                mi.driver = MeterDriver::UNKNOWN;
-            }
             using_length = force_length;
             using_understood = force_understood;
-        }
-
-        if (old_best_understood > new_best_understood)
-        {
-            best_length = old_best_length;
-            best_understood = old_best_understood;
-            best_driver = best_old_driver+"(driver should be upgraded)";
-            if (using_driver == "")
-            {
-                mi.driver = toMeterDriver(best_old_driver);
-                mi.driver_name = DriverName("");
-                using_driver = best_driver;
-                using_length = best_length;
-                using_understood = best_understood;
-            }
-        }
-        else if (new_best_understood >= old_best_understood)
-        {
-            best_length = new_best_length;
-            best_understood = new_best_understood;
-            best_driver = best_new_driver;
-            if (using_driver == "")
-            {
-                mi.driver_name = best_new_driver;
-                mi.driver = MeterDriver::UNKNOWN;
-                using_driver = best_new_driver;
-                using_length = best_length;
-                using_understood = best_understood;
-            }
         }
 
         auto meter = createMeter(&mi);

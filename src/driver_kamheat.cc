@@ -27,13 +27,30 @@ namespace
 
     static bool ok = registerDriver([](DriverInfo&di)
     {
-        di.setName("multical603");
-        di.setDefaultFields("name,id,total_energy_consumption_kwh,total_volume_m3,volume_flow_m3h,t1_temperature_c,t2_temperature_c,current_status,timestamp");
+        di.setName("kamheat");
+        di.addNameAlias("multical302");
+        di.addNameAlias("multical303");
+        di.addNameAlias("multical403");
+        di.addNameAlias("multical602");
+        di.addNameAlias("multical603");
+        di.addNameAlias("multical803");
+        di.setDefaultFields("name,id,total_energy_consumption_kwh,total_volume_m3,status,timestamp");
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::C1);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_KAM, 0x04, 0x35);
-        di.addDetection(MANUFACTURER_KAM, 0x0c, 0x35);
+        di.addDetection(MANUFACTURER_KAM, 0x04,  0x30); // 302
+        di.addDetection(MANUFACTURER_KAM, 0x0d,  0x30); // 302
+        di.addDetection(MANUFACTURER_KAM, 0x0c,  0x30); // 302
+        di.addDetection(MANUFACTURER_KAM, 0x04,  0x40); // 303
+        di.addDetection(MANUFACTURER_KAM, 0x0a,  0x34); // 403
+        di.addDetection(MANUFACTURER_KAM, 0x0b,  0x34); // 403
+        di.addDetection(MANUFACTURER_KAM, 0x0c,  0x34); // 403
+        di.addDetection(MANUFACTURER_KAM, 0x0d,  0x34); // 403
+        di.addDetection(MANUFACTURER_KAM, 0x04,  0x1c); // 602
+        di.addDetection(MANUFACTURER_KAM, 0x04, 0x35); // 603
+        di.addDetection(MANUFACTURER_KAM, 0x0c, 0x35); // 603
+        di.addDetection(MANUFACTURER_KAM, 0x04,  0x39); // 803
+
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
@@ -45,8 +62,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status and error flags.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            PrintProperty::JSON | PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
             FieldMatcher::build()
             .set(DifVifKey("04FF22")),
             Translate::Lookup(
@@ -98,7 +114,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -172,7 +188,6 @@ namespace
             .set(VIFRange::ReturnTemperature)
             );
 
-
         addNumericFieldWithExtractor(
             "max_flow",
             "The maximum flow of water that passed through this meter.",
@@ -183,59 +198,6 @@ namespace
             .set(MeasurementType::Maximum)
             .set(VIFRange::VolumeFlow)
             );
-
-        // Backwards compatible current_status to be removed.
-        addStringFieldWithExtractorAndLookup(
-            "current_status",
-            "Status and error flags (9/369/ Info Bits).",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::DEPRECATED,
-            FieldMatcher::build()
-            .set(DifVifKey("04FF22")),
-            Translate::Lookup(
-            {
-                {
-                    {
-                        "ERROR_FLAGS",
-                        Translate::Type::BitToString,
-                        AlwaysTrigger, MaskBits(0xffffffff),
-                        "",
-                        {
-                            { 0x00000001, "VOLTAGE_INTERRUPTED" },
-                            { 0x00000002, "LOW_BATTERY_LEVEL" },
-                            { 0x00000004, "SENSOR_ERROR" },
-                            { 0x00000008, "SENSOR_T1_ABOVE_MEASURING_RANGE" },
-                            { 0x00000010, "SENSOR_T2_ABOVE_MEASURING_RANGE" },
-                            { 0x00000020, "SENSOR_T1_BELOW_MEASURING_RANGE" },
-                            { 0x00000040, "SENSOR_T2_BELOW_MEASURING_RANGE" },
-                            { 0x00000080, "TEMP_DIFF_WRONG_POLARITY" },
-                            { 0x00000100, "FLOW_SENSOR_WEAK_OR_AIR" },
-                            { 0x00000200, "WRONG_FLOW_DIRECTION" },
-                            { 0x00000400, "RESERVED_BIT_10" },
-                            { 0x00000800, "FLOW_INCREASED" },
-                            { 0x00001000, "IN_A1_LEAKAGE_IN_THE_SYSTEM" },
-                            { 0x00002000, "IN_B1_LEAKAGE_IN_THE_SYSTEM" },
-                            { 0x00004000, "IN-A1_A2_EXTERNAL_ALARM" },
-                            { 0x00008000, "IN-B1_B2_EXTERNAL_ALARM" },
-                            { 0x00010000, "V1_COMMUNICATION_ERROR" },
-                            { 0x00020000, "V1_WRONG_PULSE_FIGURE" },
-                            { 0x00040000, "IN_A2_LEAKAGE_IN_THE_SYSTEM" },
-                            { 0x00080000, "IN_B2_LEAKAGE_IN_THE_SYSTEM" },
-                            { 0x00100000, "T3_ABOVE_MEASURING_RANGE_OR_SWITCHED_OFF" },
-                            { 0x00200000, "T3_BELOW_MEASURING_RANGE_OR_SHORT_CIRCUITED" },
-                            { 0x00400000, "V2_COMMUNICATION_ERROR" },
-                            { 0x00800000, "V2_WRONG_PULSE_FIGURE" },
-                            { 0x01000000, "V2_AIR" },
-                            { 0x02000000, "V2_WRONG_FLOW_DIRECTION" },
-                            { 0x04000000, "RESERVED_BIT_26" },
-                            { 0x08000000, "V2_INCREASED_FLOW" },
-                            { 0x10000000, "V1_V2_BURST_WATER_LOSS" },
-                            { 0x20000000, "V1_V2_BURST_WATER_PENETRATION" },
-                            { 0x40000000, "V1_V2_LEAKAGE_WATER_LOSS" },
-                            { 0x80000000, "V1_V2_LEAKAGE_WATER_PENETRATION" }
-                        }
-                    },
-                },
-            }));
 
         addNumericFieldWithExtractor(
             "forward_energy",
@@ -257,28 +219,6 @@ namespace
             .set(DifVifKey("04FF08")),
             Unit::M3C);
 
-        /* Deprecated kwh version where unit should be m3c. */
-        addNumericFieldWithExtractor(
-            "energy_forward",
-            "Deprecated! The forward energy of the water but in wrong unit! Should be m3c!",
-            PrintProperty::JSON | PrintProperty::OPTIONAL | PrintProperty::DEPRECATED,
-            Quantity::Energy,
-            VifScaling::None,
-            FieldMatcher::build()
-            .set(DifVifKey("04FF07")),
-            Unit::KWH);
-
-        /* Deprecated kwh version where unit should be m3c. */
-        addNumericFieldWithExtractor(
-            "energy_returned",
-            "Deprecated! The return energy of the water but in wrong unit! Should be m3c!",
-            PrintProperty::JSON | PrintProperty::OPTIONAL | PrintProperty::DEPRECATED,
-            Quantity::Energy,
-            VifScaling::None,
-            FieldMatcher::build()
-            .set(DifVifKey("04FF08")),
-            Unit::KWH);
-
         addStringFieldWithExtractor(
             "meter_date",
             "The date and time (10/348/Date and time).",
@@ -291,7 +231,7 @@ namespace
         addNumericFieldWithExtractor(
             "target_energy",
             "The energy consumption recorded by this meter at the set date (11/60/Heat energy E1/026C).",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -303,7 +243,7 @@ namespace
         addNumericFieldWithExtractor(
             "target_volume",
             "The amount of water that had passed through this meter at the set date (13/68/Volume V1).",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -315,7 +255,7 @@ namespace
         addStringFieldWithExtractor(
             "target_date",
             "The most recent billing period date and time (14/348/Date and Time logged).",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -323,13 +263,57 @@ namespace
             );
     }
 }
+
+// Test: MyHeater multical302 67676767 NOKEY
+// Comment: Using vif kwh
+// telegram=|2E442D2C6767676730048D2039D1684020_BCDB7803062C000043060000000314630000426C7F2A022D130001FF2100|
+// {"id": "67676767","media": "heat","meter": "kamheat","name": "MyHeater","power_kw": 1.9,"status": "OK","target_date": "2019-10-31","target_energy_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 44,"total_volume_m3": 0.99}
+// |MyHeater;67676767;44;0.99;OK;1111-11-11 11:11.11
+
+// telegram=|25442D2C6767676730048D203AD2684020_D81579E7F1D5902C00000000006300007F2A130000|
+// {"id": "67676767","media": "heat","meter": "kamheat","name": "MyHeater","power_kw": 1.9,"status": "OK","target_date": "2019-10-31","target_energy_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 44,"total_volume_m3": 0.99}
+// |MyHeater;67676767;44;0.99;OK;1111-11-11 11:11.11
+
+// Test: MyHeaterMj multical302 46464646 NOKEY
+// Comment: Using mj kwh
+// telegram=|2E442D2C46464646300C8D207A70EA6021B1C178_030FC51000430F9210000314072B05426CBE2B022D0C0001FF2100|
+// {"id": "46464646","media": "heat volume at inlet","meter": "kamheat","name": "MyHeaterMj","power_kw": 1.2,"status": "OK","target_date": "2021-11-30","target_energy_kwh": 11783.333333,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 11925,"total_volume_m3": 3386.95}
+// |MyHeaterMj;46464646;11925;3386.95;OK;1111-11-11 11:11.11
+
+// telegram=|25442D2C46464646300C8D20D3E2EB60212B6D79E26DCD65_C51000921000152B05BE2B0C0000|
+// {"id": "46464646","media": "heat volume at inlet","meter": "kamheat","name": "MyHeaterMj","power_kw": 1.2,"status": "OK","target_date": "2021-11-30","target_energy_kwh": 11783.333333,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 11925,"total_volume_m3": 3387.09}
+// |MyHeaterMj;46464646;11925;3387.09;OK;1111-11-11 11:11.11
+
 // Test: Heat multical603 36363636 NOKEY
 // Comment:
 // telegram=|42442D2C3636363635048D20E18025B62087D078_0406A500000004FF072B01000004FF089C000000041421020000043B120000000259D014025D000904FF2200000000|
-// {"media":"heat","meter":"multical603","name":"Heat","id":"36363636","status":"OK","total_energy_consumption_kwh":165,"total_volume_m3":5.45,"volume_flow_m3h":0.018,"t1_temperature_c":53.28,"t2_temperature_c":23.04,"current_status":"","forward_energy_m3c":299,"return_energy_m3c":156,"energy_forward_kwh":299,"energy_returned_kwh":156,"timestamp":"1111-11-11T11:11:11Z"}
-// |Heat;36363636;165;5.45;0.018;53.28;23.04;;1111-11-11 11:11.11
+// {"media":"heat","meter":"kamheat","name":"Heat","id":"36363636","status":"OK","total_energy_consumption_kwh":165,"total_volume_m3":5.45,"volume_flow_m3h":0.018,"t1_temperature_c":53.28,"t2_temperature_c":23.04,"forward_energy_m3c":299,"return_energy_m3c":156,"timestamp":"1111-11-11T11:11:11Z"}
+// |Heat;36363636;165;5.45;OK;1111-11-11 11:11.11
 
 // Test: HeatInlet multical603 66666666 NOKEY
 // telegram=|5A442D2C66666666350C8D2066D0E16420C6A178_0406051C000004FF07393D000004FF08AE2400000414F7680000043B47000000042D1600000002596D14025DFD0804FF22000000000422E61A0000143B8C010000142D7C000000|
-// {"media":"heat volume at inlet","meter":"multical603","name":"HeatInlet","id":"66666666","on_time_h":6886,"status":"OK","total_energy_consumption_kwh":7173,"total_volume_m3":268.71,"volume_flow_m3h":0.071,"power_kw":2.2,"max_power_kw":12.4,"t1_temperature_c":52.29,"t2_temperature_c":23.01,"max_flow_m3h":0.396,"current_status":"","forward_energy_m3c":15673,"return_energy_m3c":9390,"energy_forward_kwh":15673,"energy_returned_kwh":9390,"timestamp":"1111-11-11T11:11:11Z"}
-// |HeatInlet;66666666;7173;268.71;0.071;52.29;23.01;;1111-11-11 11:11.11
+// {"media":"heat volume at inlet","meter":"kamheat","name":"HeatInlet","id":"66666666","on_time_h":6886,"status":"OK","total_energy_consumption_kwh":7173,"total_volume_m3":268.71,"volume_flow_m3h":0.071,"power_kw":2.2,"max_power_kw":12.4,"t1_temperature_c":52.29,"t2_temperature_c":23.01,"max_flow_m3h":0.396,"forward_energy_m3c":15673,"return_energy_m3c":9390,"timestamp":"1111-11-11T11:11:11Z"}
+// |HeatInlet;66666666;7173;268.71;OK;1111-11-11 11:11.11
+
+// Test: My403Cooling multical403 78780102 NOKEY
+// telegram=|88442D2C02017878340A8D208D529C132037FC78_040E2D0A000004FF07F8FF000004FF08401801000413C1900500844014000000008480401400000000043BED0000000259BC06025DCD07142DE7FFFFFF84100E0000000084200E0000000004FF2200000000026C9228440E5F0300004413960D0200C4401400000000C480401400000000426C8128|
+// {"forward_energy_m3c": 65528,"id": "78780102","max_power_kw": 429496727.1,"media": "cooling load volume at outlet","meter": "kamheat","meter_date": "2020-08-18","name": "My403Cooling","return_energy_m3c": 71744,"status": "OK","t1_temperature_c": 17.24,"t2_temperature_c": 19.97,"target_date": "2020-08-01","target_energy_kwh": 239.722222,"target_volume_m3": 134.55,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 723.611111,"total_volume_m3": 364.737,"volume_flow_m3h": 0.237}
+// |My403Cooling;78780102;723.611111;364.737;OK;1111-11-11 11:11.11
+
+// telegram=|5B442D2C02017878340A8D2096809C1320EF2B7934147ED7_2D0A0000FAFF000043180100CE9005000000000000000000EE000000BA06CB07E7FFFFFF00000000000000000000000092285F030000960D020000000000000000008128|
+// {"forward_energy_m3c": 65530,"id": "78780102","max_power_kw": 429496727.1,"media": "cooling load volume at outlet","meter": "kamheat","meter_date": "2020-08-18","name": "My403Cooling","return_energy_m3c": 71747,"status": "OK","t1_temperature_c": 17.22,"t2_temperature_c": 19.95,"target_date": "2020-08-01","target_energy_kwh": 239.722222,"target_volume_m3": 134.55,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 723.611111,"total_volume_m3": 364.75,"volume_flow_m3h": 0.238}
+// |My403Cooling;78780102;723.611111;364.75;OK;1111-11-11 11:11.11
+
+// Test: Heato multical602 78152801 NOKEY
+// telegram=|7A442D2C012815781C048D206450E76322344678_02F9FF1511130406690B010004EEFF07C1BC020004EEFF0890D401000414A925040084401400000000848040140000000002FD170000026CB929426CBF284406100A01004414D81A0400C4401400000000C480401400000000043B3900000002592A17025D2912|
+// {"id": "78152801","media": "heat","meter": "kamheat","meter_date": "2021-09-25","name": "Heato","status": "OK","t1_temperature_c": 59.3,"t2_temperature_c": 46.49,"target_date": "2021-08-31","target_energy_kwh": 68112,"target_volume_m3": 2690.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 68457,"total_volume_m3": 2717.85,"volume_flow_m3h": 0.057}
+// |Heato;78152801;68457;2717.85;OK;1111-11-11 11:11.11
+
+// telegram=|4F442D2C012815781C048D206551E76322BE767900843005_1113690B0100C1BC020090D40100A925040000000000000000000000B929BF28100A0100D81A04000000000000000000390000002A172912|
+// {"id": "78152801","media": "heat","meter": "kamheat","meter_date": "2021-09-25","name": "Heato","status": "OK","t1_temperature_c": 59.3,"t2_temperature_c": 46.49,"target_date": "2021-08-31","target_energy_kwh": 68112,"target_volume_m3": 2690.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 68457,"total_volume_m3": 2717.85,"volume_flow_m3h": 0.057}
+// |Heato;78152801;68457;2717.85;OK;1111-11-11 11:11.11
+
+// Test: Heater multical803 80808081 NOKEY
+// telegram=|88442D2C8180808039048D208640513220EA7978_040FA000000004FF070200000004FF08090000000414FF000000844014000000008480401400000000043B0000000002590000025D0000142D0000000084100F0000000084200F0000000004FF2260000100026C892B440F00000000441400000000C4401400000000C480401400000000426C812B|
+// {"forward_energy_m3c": 2,"id": "80808081","max_power_kw": 0,"media": "heat","meter": "kamheat","meter_date": "2020-11-09","name": "Heater","return_energy_m3c": 9,"status": "SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR","t1_temperature_c": 0,"t2_temperature_c": 0,"target_date": "2020-11-01","target_energy_kwh": 0,"target_volume_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 444.444444,"total_volume_m3": 2.55,"volume_flow_m3h": 0}
+// |Heater;80808081;444.444444;2.55;SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR;1111-11-11 11:11.11

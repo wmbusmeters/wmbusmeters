@@ -6,7 +6,7 @@ rm -rf testoutput
 mkdir -p testoutput
 
 TEST=testoutput
-SIM=simulations/simulation_c1.txt
+SIM=simulations/simulation_oneshot.txt
 
 $PROG --oneshot --verbose $SIM MyHeater multical302 67676767 NOKEY MyTapWater multical21 76348799 NOKEY > $TEST/test_output.txt 2> $TEST/test_stderr.txt
 

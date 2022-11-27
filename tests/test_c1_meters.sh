@@ -37,6 +37,11 @@ then
     then
         echo OK: $TESTNAME
         TESTRESULT="OK"
+    else
+        if [ "$USE_MELD" = "true" ]
+        then
+            meld $TEST/test_expected.txt $TEST/test_responses.txt
+        fi
     fi
 else
     echo "wmbusmeters returned error code: $?"

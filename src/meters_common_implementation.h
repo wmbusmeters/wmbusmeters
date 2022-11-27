@@ -62,7 +62,6 @@ struct MeterCommonImplementation : public virtual Meter
     vector<FieldInfo> &fieldInfos();
     vector<string> &extraConstantFields();
     string name();
-    MeterDriver driver();
     DriverName driverName();
 
     ELLSecurityMode expectedELLSecurityMode();
@@ -87,8 +86,6 @@ struct MeterCommonImplementation : public virtual Meter
     MeterCommonImplementation(MeterInfo &mi, DriverInfo &di);
 
     ~MeterCommonImplementation() = default;
-
-    string meterDriver() { return driver_; }
 
 protected:
 
@@ -287,7 +284,6 @@ private:
 
     int index_ {};
     MeterType type_ {};
-    string driver_ {};
     DriverName driver_name_;
     string bus_ {};
     MeterKeys meter_keys_ {};

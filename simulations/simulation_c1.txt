@@ -19,24 +19,6 @@ telegram=|21442D2C776655441B168D2079CC8C3A20_F4307912C40DFF00002F4E00003D010203|
 telegram=|4D44372C525252523A168D203894DF7920F93278_04FF23000000000413AEAC0000441364A80000426C812A023B000092013BEF01A2013B000006FF1B067000097000A1015B0C91015B14A1016713|
 {"media":"cold water","meter":"flowiq2200","name":"MyWater","id":"52525252","status":"OK","total_m3":44.206,"target_m3":43.108,"target_date":"2020-10-01","flow_m3h":0,"min_flow_temperature_c":12,"max_flow_temperature_c":20,"min_external_temperature_c":19,"max_flow_m3h":0.495,"min_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
 
-# Test Multical302 C1 telegrams
-
-# full telegram
-telegram=|2E442D2C6767676730048D2039D1684020_BCDB7803062C000043060000000314630000426C7F2A022D130001FF2100|
-{"media":"heat","meter":"multical302","name":"MyHeater","id":"67676767","total_energy_consumption_kwh":44,"current_power_consumption_kw":1.9,"total_volume_m3":0.99,"at_date":"2019-10-31 00:00","total_energy_consumption_at_date_kwh":0,"current_status":"","timestamp":"1111-11-11T11:11:11Z"}
-
-# compressed telegram
-telegram=|25442D2C6767676730048D203AD2684020_D81579E7F1D5902C00000000006300007F2A130000|
-{"media":"heat","meter":"multical302","name":"MyHeater","id":"67676767","total_energy_consumption_kwh":44,"current_power_consumption_kw":1.9,"total_volume_m3":0.99,"at_date":"2019-10-31 00:00","total_energy_consumption_at_date_kwh":0,"current_status":"","timestamp":"1111-11-11T11:11:11Z"}
-
-# Mj full telegram
-telegram=|2E442D2C46464646300C8D207A70EA6021B1C178_030FC51000430F9210000314072B05426CBE2B022D0C0001FF2100|
-{"media":"heat volume at inlet","meter":"multical302","name":"MyHeaterMj","id":"46464646","total_energy_consumption_kwh":11925,"current_power_consumption_kw":1.2,"total_volume_m3":3386.95,"at_date":"2021-11-30 00:00","total_energy_consumption_at_date_kwh":11783.333333,"current_status":"","timestamp":"1111-11-11T11:11:11Z"}
-
-# Mj compressed telegram
-telegram=|25442D2C46464646300C8D20D3E2EB60212B6D79E26DCD65_C51000921000152B05BE2B0C0000|
-{"media":"heat volume at inlet","meter":"multical302","name":"MyHeaterMj","id":"46464646","total_energy_consumption_kwh":11925,"current_power_consumption_kw":1.2,"total_volume_m3":3387.09,"at_date":"2021-11-30 00:00","total_energy_consumption_at_date_kwh":11783.333333,"current_status":"","timestamp":"1111-11-11T11:11:11Z"}
-
 # Test QCaloric C1 telegrams
 
 telegram=|314493441234567835087a740000200b6e2701004b6e450100426c5f2ccb086e790000c2086c7f21326cffff046d200b7422|
@@ -53,34 +35,6 @@ telegram=|314493449392919034087a520000200b6e9700004b6e700200426c9f2ccb086e970000
 
 telegram=|2744961566666666201B7AF9000020_2F2F02651E094265180902FD1B30030DFD0F05302E302E340F|
 {"media":"room sensor","meter":"cma12w","name":"Rum","id":"66666666","software_version":"4.0.0","status":"OK","current_temperature_c":23.34,"average_temperature_1h_c":23.28,"battery":"BATTERY_330","timestamp":"1111-11-11T11:11:11Z"}
-
-# Test Multical403 C1 telegrams, with cooling configuration
-
-# full telegram
-telegram=|88442D2C02017878340A8D208D529C132037FC78_040E2D0A000004FF07F8FF000004FF08401801000413C1900500844014000000008480401400000000043BED0000000259BC06025DCD07142DE7FFFFFF84100E0000000084200E0000000004FF2200000000026C9228440E5F0300004413960D0200C4401400000000C480401400000000426C8128|
-{"media":"cooling load volume at outlet","meter":"multical403","name":"My403Cooling","id":"78780102","total_energy_consumption_kwh":723.611111,"total_volume_m3":364.737,"volume_flow_m3h":0.237,"t1_temperature_c":17.24,"t2_temperature_c":19.97,"at_date":"2020-08-18 00:00","current_status":"","timestamp":"1111-11-11T11:11:11Z"}
-# compressed telegram
-telegram=|5B442D2C02017878340A8D2096809C1320EF2B7934147ED7_2D0A0000FAFF000043180100CE9005000000000000000000EE000000BA06CB07E7FFFFFF00000000000000000000000092285F030000960D020000000000000000008128|
-{"media":"cooling load volume at outlet","meter":"multical403","name":"My403Cooling","id":"78780102","total_energy_consumption_kwh":723.611111,"total_volume_m3":364.75,"volume_flow_m3h":0.238,"t1_temperature_c":17.22,"t2_temperature_c":19.95,"at_date":"2020-08-18 00:00","current_status":"","timestamp":"1111-11-11T11:11:11Z"}
-
-# Test Multical602 C1 telegram full
-
-telegram=|7A442D2C012815781C048D206450E76322344678_02F9FF1511130406690B010004EEFF07C1BC020004EEFF0890D401000414A925040084401400000000848040140000000002FD170000026CB929426CBF284406100A01004414D81A0400C4401400000000C480401400000000043B3900000002592A17025D2912|
-{"media":"heat","meter":"multical602","name":"Heato","id":"78152801","total_energy_consumption_kwh":68457,"total_volume_m3":2717.85,"volume_flow_m3h":0.057,"t1_temperature_c":59.3,"t2_temperature_c":46.49,"at_date":"2021-09-25 00:00","current_status":"","energy_forward_kwh":0,"energy_returned_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}
-
-# Test Multical602 C1 telegram compressed
-
-telegram=|4F442D2C012815781C048D206551E76322BE767900843005_1113690B0100C1BC020090D40100A925040000000000000000000000B929BF28100A0100D81A04000000000000000000390000002A172912|
-{"media":"heat","meter":"multical602","name":"Heato","id":"78152801","total_energy_consumption_kwh":68457,"total_volume_m3":2717.85,"volume_flow_m3h":0.057,"t1_temperature_c":59.3,"t2_temperature_c":46.49,"at_date":"2021-09-25 00:00","current_status":"","energy_forward_kwh":0,"energy_returned_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}
-
-# Test Multical603 C1 telegram
-
-telegram=|42442D2C3636363635048D20E18025B62087D078_0406A500000004FF072B01000004FF089C000000041421020000043B120000000259D014025D000904FF2200000000|
-{"media":"heat","meter":"multical603","name":"Heat","id":"36363636","status":"OK","total_energy_consumption_kwh":165,"total_volume_m3":5.45,"volume_flow_m3h":0.018,"t1_temperature_c":53.28,"t2_temperature_c":23.04,"current_status":"","forward_energy_m3c":299,"return_energy_m3c":156,"energy_forward_kwh":299,"energy_returned_kwh":156,"timestamp":"1111-11-11T11:11:11Z"}
-
-# Test Multical803 C1 telegram
-telegram=|88442D2C8180808039048D208640513220EA7978_040FA000000004FF070200000004FF08090000000414FF000000844014000000008480401400000000043B0000000002590000025D0000142D0000000084100F0000000084200F0000000004FF2260000100026C892B440F00000000441400000000C4401400000000C480401400000000426C812B|
-{"media":"heat","meter":"multical803","name":"Heater","id":"80808081","total_energy_consumption_kwh":444.444444,"total_volume_m3":2.55,"volume_flow_m3h":0,"t1_temperature_c":0,"t2_temperature_c":0,"at_date":"2020-11-09 00:00","current_status":"SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE","energy_forward_kwh":0.555556,"energy_returned_kwh":2.5,"timestamp":"1111-11-11T11:11:11Z"}
 
 # Test Kamstrup OmniPower C1 tlg
 # Full tlg
