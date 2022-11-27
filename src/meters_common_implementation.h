@@ -263,6 +263,7 @@ protected:
     void setNumericValue(FieldInfo *fi, DVEntry *dve, Unit u, double v);
     double getNumericValue(string vname, Unit u);
     double getNumericValue(FieldInfo *fi, Unit u);
+    void setStringValue(string vname, std::string v);
     void setStringValue(FieldInfo *fi, std::string v);
     std::string getStringValue(FieldInfo *fi);
 

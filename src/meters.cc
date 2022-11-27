@@ -1591,6 +1591,18 @@ void MeterCommonImplementation::setStringValue(FieldInfo *fi, string v)
     string_values_[field_name_no_unit] = StringField(v, fi);
 }
 
+void MeterCommonImplementation::setStringValue(string vname, string v)
+{
+    FieldInfo *fi = findFieldInfo(vname, Quantity::Text);
+
+    if (fi == NULL)
+    {
+        warning("(meter) cannot set string value %s for non-existant field \"%s\"\n", v.c_str(), vname.c_str());
+        return;
+    }
+    setStringValue(fi, v);
+}
+
 string MeterCommonImplementation::getStringValue(FieldInfo *fi)
 {
     if (fi->hasGetStringValueOverride())
