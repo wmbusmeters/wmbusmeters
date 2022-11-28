@@ -261,7 +261,7 @@ std::string lookForExecutable(const std::string& prog, std::string bin_dir, std:
 bool parseExtras(const std::string& s, std::map<std::string,std::string> *extras);
 void checkIfMultipleWmbusMetersRunning();
 
-size_t findBytes(std::vector<uchar> &v, uchar a, uchar b, uchar c);
+bool findBytes(std::vector<uchar> &v, uchar a, uchar b, uchar c, size_t *out);
 
 enum class OutputFormat
 {

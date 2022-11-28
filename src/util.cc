@@ -2150,20 +2150,23 @@ bool isValidBps(const string& b)
     return false;
 }
 
-size_t findBytes(vector<uchar> &v, uchar a, uchar b, uchar c)
+bool findBytes(vector<uchar> &v, uchar a, uchar b, uchar c, size_t *out)
 {
     size_t p = 0;
+
     while (p+2 < v.size())
     {
         if (v[p+0] == a &&
             v[p+1] == b &&
             v[p+2] == c)
         {
-            return p;
+            *out = p;
+            return true;
         }
         p++;
     }
-    return (size_t)-1;
+    *out = 999999;
+    return false;
 }
 
 string reverseBCD(const string& v)

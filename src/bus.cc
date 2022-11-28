@@ -379,7 +379,7 @@ void BusManager::detectAndConfigureWmbusDevices(Configuration *config, Detection
     bool must_auto_find_rtlsdrs = false;
 
     // The device=auto has been specified....
-    if (config->use_auto_device_detect && dt == DetectionType::ALL)
+    if (config->use_auto_device_detect && dt == DetectionType::ALL_BUT_SFS)
     {
         must_auto_find_ttys = true;
         must_auto_find_rtlsdrs = true;
@@ -388,7 +388,7 @@ void BusManager::detectAndConfigureWmbusDevices(Configuration *config, Detection
     for (SpecifiedDevice &specified_device : config->supplied_bus_devices)
     {
         specified_device.handled = false;
-        if (dt != DetectionType::ALL)
+        if (dt != DetectionType::ALL_BUT_SFS)
         {
             if (specified_device.is_tty || (!specified_device.is_stdin && !specified_device.is_file && !specified_device.is_simulation))
             {
@@ -417,14 +417,16 @@ void BusManager::detectAndConfigureWmbusDevices(Configuration *config, Detection
             Detected detected = detectBusDeviceWithCommand(specified_device, config->default_device_linkmodes, serial_manager_);
             specified_device.handled = true;
             openBusDeviceAndPotentiallySetLinkmodes(config, "config", &detected);
+            continue;
         }
-        if (specified_device.hex != "")
+        if (specified_device.hex != "" && dt == DetectionType::STDIN_FILE_SIMULATION)
         {
             Detected detected = detectBusDeviceWithFileOrHex(specified_device, config->default_device_linkmodes, serial_manager_);
             openBusDeviceAndPotentiallySetLinkmodes(config, "config", &detected);
             specified_device.handled = true;
+            continue;
         }
-        if (specified_device.file != "")
+        if (specified_device.file != "" && dt == DetectionType::STDIN_FILE_SIMULATION)
         {
             shared_ptr<SerialDevice> sd = serial_manager_->lookup(specified_device.file);
             if (sd != NULL)
@@ -510,7 +512,7 @@ void BusManager::detectAndConfigureWmbusDevices(Configuration *config, Detection
 
     for (SpecifiedDevice &specified_device : config->supplied_bus_devices)
     {
-        if (dt == DetectionType::ALL && !specified_device.handled)
+        if (dt == DetectionType::ALL_BUT_SFS && !specified_device.handled)
         {
             time_t last_alarm = specified_device.last_alarm;
             time_t now = time(NULL);

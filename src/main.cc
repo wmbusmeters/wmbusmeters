@@ -426,7 +426,7 @@ void regular_checkup(Configuration *config)
 
     if (serial_manager_ && config)
     {
-        bus_manager_->detectAndConfigureWmbusDevices(config, DetectionType::ALL);
+        bus_manager_->detectAndConfigureWmbusDevices(config, DetectionType::ALL_BUT_SFS);
     }
 
     bus_manager_->regularCheckup();
@@ -559,7 +559,7 @@ bool start(Configuration *config)
 
     serial_manager_->startEventLoop();
 
-    bus_manager_->detectAndConfigureWmbusDevices(config, DetectionType::ALL);
+    bus_manager_->detectAndConfigureWmbusDevices(config, DetectionType::ALL_BUT_SFS);
 
     if (bus_manager_->numBusDevices() == 0)
     {

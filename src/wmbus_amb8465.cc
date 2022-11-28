@@ -1084,11 +1084,12 @@ AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicat
             continue;
         }
         response.insert(response.end(), data.begin(), data.end());
-        size_t offset_8465 = findBytes(response, 0xff, 0x8A, 0x7A);
-        size_t offset_3665 = findBytes(response, 0xff, 0x8A, 0x82);
+        size_t offset_8465;
+        size_t offset_3665;
+        bool got_8465 = findBytes(response, 0xff, 0x8A, 0x7A, &offset_8465);
+        bool got_3665 = findBytes(response, 0xff, 0x8A, 0x82, &offset_3665);
 
-        if (offset_8465 == ((size_t)-1) &&
-            offset_3665 == ((size_t)-1))
+        if (!got_8465 && !got_3665)
         {
             // No response found yet, lets wait for more bytes.
             usleep(1000*100);
@@ -1096,18 +1097,24 @@ AccessCheck detectAMB8465AMB3665(Detected *detected, shared_ptr<SerialCommunicat
         }
 
         // We have the start of the response, but do we have enough bytes?
-        ok_8465 = config.decode8465(response, offset_8465);
-        // Yes!
-        if (ok_8465) {
-            debug("(amb8465) found response at offset %zu\n", offset_8465);
-            break;
+        if (got_8465)
+        {
+            ok_8465 = config.decode8465(response, offset_8465);
+            // Yes!
+            if (ok_8465) {
+                debug("(amb8465) found response at offset %zu\n", offset_8465);
+                break;
+            }
         }
-        // We have the start of the response, but do we have enough bytes?
-        ok_3665 = config.decode3665(response, offset_3665);
-        // Yes!
-        if (ok_3665) {
-            debug("(amb3665) found response at offset %zu\n", offset_3665);
-            break;
+        if (got_3665)
+        {
+            // We have the start of the response, but do we have enough bytes?
+            ok_3665 = config.decode3665(response, offset_3665);
+            // Yes!
+            if (ok_3665) {
+                debug("(amb3665) found response at offset %zu\n", offset_3665);
+                break;
+            }
         }
         // No complete response found yet, lets wait for more bytes.
         usleep(1000*100);

@@ -384,7 +384,7 @@ public:
         mi.idsc = t.ids.back();
 
         // This will be the driver that will actually decode and print with.
-        string using_driver = "";
+        string using_driver = "auto";
         int using_length = 0;
         int using_understood = 0;
 
@@ -393,9 +393,14 @@ public:
         int best_understood = 0;
         string best_driver = findBestNewStyleDriver(mi, &best_length, &best_understood, t, about, input_frame, simulated, "");
 
-        mi.driver_name = DriverName("");
+        mi.driver_name = DriverName(best_driver);
 
-        // Use the existing mapping from mfct/media/version to driver.
+        // Default to best driver....
+        using_driver = best_driver;
+        using_length = best_length;
+        using_understood = best_understood;
+
+        // Unless the existing mapping from mfct/media/version to driver overrides best.
         DriverInfo auto_di = pickMeterDriver(&t);
         string auto_driver = auto_di.name().str();
 
@@ -421,6 +426,8 @@ public:
         }
 
         auto meter = createMeter(&mi);
+
+        assert(meter != NULL);
 
         bool match = false;
         string id;
