@@ -384,7 +384,7 @@ public:
         mi.idsc = t.ids.back();
 
         // This will be the driver that will actually decode and print with.
-        string using_driver = "auto";
+        string using_driver;
         int using_length = 0;
         int using_understood = 0;
 
@@ -392,6 +392,8 @@ public:
         int best_length = 0;
         int best_understood = 0;
         string best_driver = findBestNewStyleDriver(mi, &best_length, &best_understood, t, about, input_frame, simulated, "");
+
+        if (best_driver == "") best_driver = "unknown";
 
         mi.driver_name = DriverName(best_driver);
 
@@ -419,11 +421,11 @@ public:
         {
             using_driver = findBestNewStyleDriver(mi, &force_length, &force_understood, t, about, input_frame, simulated,
                                                   force_driver);
-            mi.driver_name = using_driver;
-
             using_length = force_length;
             using_understood = force_understood;
         }
+
+        mi.driver_name = using_driver;
 
         auto meter = createMeter(&mi);
 

@@ -32,7 +32,7 @@ TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : multical21
-Best driver  :  00/00
+Best driver  : unknown 00/00
 Using driver : multical21 00/00
 000   : 2a length (42 bytes)
 001   : 44 dll-c (from meter SND_NR)
@@ -77,7 +77,7 @@ TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : multical21
-Best driver  :  00/00
+Best driver  : unknown 00/00
 Using driver : multical21 00/00
 000   : 23 length (35 bytes)
 001   : 44 dll-c (from meter SND_NR)
@@ -239,7 +239,7 @@ TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
 Auto driver  : supercom587
-Best driver  :  00/00
+Best driver  : unknown 00/00
 Using driver : supercom587 00/00
 000   : ae length (174 bytes)
 001   : 44 dll-c (from meter SND_NR)
