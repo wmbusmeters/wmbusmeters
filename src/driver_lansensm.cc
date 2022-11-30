@@ -27,7 +27,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("lansensm");
-        di.setDefaultFields("name,id,status,timestamp");
+        di.setDefaultFields("name,id,status,minutes_since_last_manual_test_counter,timestamp");
         di.setMeterType(MeterType::SmokeDetector);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_LAS, 0x1a, 0x03);
@@ -36,16 +36,9 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        /* BATTERY Low battery in TPL sts?
-           SMOKE Smoke present (Alarm) bit 0x04 in error flags.
-           END OF LIFE Device is ending its max service time of 10 years where?
-           MALFUNCTION Malfunction warning where?
-           NO CONNECTION No connection between the radio - smokesensor where?
-           MANUAL TEST Manual test performed bit 0x08 in error flags.
-        */
         addStringFieldWithExtractorAndLookup(
             "status",
-            "Meter error flags. IMPORTANT! Smoke alarm is NOT reported here! You MUST check last alarm date and counter!",
+            "Meter status.",
             PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
             PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
             FieldMatcher::build()
@@ -60,17 +53,21 @@ namespace
                         AlwaysTrigger, MaskBits(0xffff),
                         "OK",
                         {
+                            { 0x0002, "LOW_BATTERY" },
                             { 0x0004, "SMOKE" },
-                            { 0x0008, "TEST" }
+                            { 0x0008, "MANUAL_TEST" },
+                            { 0x0010, "MALFUNCTION" },
+                            { 0x0020, "NO_CONNECTION_TO_SMOKE_DETECTOR" },
+                            { 0x0100, "SMOKE_SENSOR_END_OF_LIFE" }
                         }
                     },
                 },
             }));
 
         addNumericFieldWithExtractor(
-            "access",
-            "Unknown counter.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::OPTIONAL,
+            "async_msg_id",
+            "Unique asynchronous message number.",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()
@@ -79,9 +76,9 @@ namespace
             );
 
         addNumericFieldWithExtractor(
-            "woot",
-            "Unknown counter.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::OPTIONAL,
+            "minutes_since_last_manual_test",
+            "Minutes since last manual test.",
+            PrintProperty::JSON | PrintProperty::FIELD,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()
@@ -94,9 +91,9 @@ namespace
 
 // Test: SMOKEA lansensm 00010204 NOKEY
 // telegram=|2E44333004020100031A7AC40020052F2F_02FD971D000004FD084C02000004FD3A467500002F2F2F2F2F2F2F2F2F2F|
-// {"media":"smoke detector","meter":"lansensm","name":"SMOKEA","id":"00010204","status":"OK","access_counter":588,"woot_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
-// |SMOKEA;00010204;OK;1111-11-11 11:11.11
+// {"media":"smoke detector","meter":"lansensm","name":"SMOKEA","id":"00010204","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
+// |SMOKEA;00010204;OK;30022;1111-11-11 11:11.11
 
 // telegram=|2E44333004020100031A7ADE0020052F2F_02FD971D040004FD086502000004FD3A010000002F2F2F2F2F2F2F2F2F2F|
-// {"media":"smoke detector","meter":"lansensm","name":"SMOKEA","id":"00010204","status":"SMOKE","access_counter":613,"woot_counter":1,"timestamp":"1111-11-11T11:11:11Z"}
-// |SMOKEA;00010204;SMOKE;1111-11-11 11:11.11
+// {"media":"smoke detector","meter":"lansensm","name":"SMOKEA","id":"00010204","status":"SMOKE","async_msg_id_counter":613,"minutes_since_last_manual_test_counter":1,"timestamp":"1111-11-11T11:11:11Z"}
+// |SMOKEA;00010204;SMOKE;1;1111-11-11 11:11.11
