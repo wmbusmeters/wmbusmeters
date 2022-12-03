@@ -11,6 +11,7 @@
                 "name": "{name}",
                 "sw_version": "{id}"
             },
+            "device_class": "water",
             "enabled_by_default": true,
             "json_attributes_topic": "wmbusmeters/{name}",
             "state_class": "total",
