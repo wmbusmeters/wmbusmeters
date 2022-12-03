@@ -10,7 +10,7 @@
                 "sw_version": "{id}"
             },
             "enabled_by_default": true,
-            "device_class": "problem",
+            "device_class": "smoke",
             "name": "{name} status smoke",
             "state_topic": "wmbusmeters/{name}",
             "unique_id": "wmbusmeters_{id}_{attribute}",
