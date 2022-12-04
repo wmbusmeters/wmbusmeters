@@ -14,8 +14,8 @@ The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 | ------------ |:-------------:|
 | Ubuntu | [![Build Ubuntu Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20Ubuntu/badge.svg)](https://github.com/weetmuts/wmbusmeters/actions)|
 | MacOSX | [![Build MacOSX Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20MacOSX/badge.svg)](https://github.com/weetmuts/wmbusmeters/actions)|
-|Docker |[![CircleCI>](https://circleci.com/gh/weetmuts/wmbusmeters.svg?style=shield)](https://circleci.com/gh/weetmuts/wmbusmeters)|
-|Snap |[![wmbusmeters](https://snapcraft.io//wmbusmeters/badge.svg)](https://snapcraft.io/wmbusmeters)|
+| Docker | [![Build Docker Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20docker/badge.svg)](https://hub.docker.com/r/weetmuts/wmbusmeters/)|
+| Snap | [![wmbusmeters](https://snapcraft.io//wmbusmeters/badge.svg)](https://snapcraft.io/wmbusmeters)|
 
 # Distributions
 

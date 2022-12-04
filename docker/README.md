@@ -7,8 +7,8 @@ MQTT, curled to a REST api, inserted into a database or stored in a log file.
 [FAQ/WIKI/MANUAL pages](https://github.com/weetmuts/wmbusmeters)
 
 -	Supported architectures 
-	-	ARMv7 32-bit (`arm32v7`)
-	-	ARMv8 64-bit (`arm64v8`)
+	-	ARMv7 32-bit (`armv7`)
+	-	ARMv8 64-bit (`arm64`)
 	-	Linux x86-64 (`amd64`)
 
 ## Running the wmbusmeters container
