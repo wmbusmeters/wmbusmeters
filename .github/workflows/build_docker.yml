@@ -1,0 +1,53 @@
+name: Build docker
+
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - '*.*.*'
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: weetmuts/wmbusmeters
+          tags: type=ref,event=tag
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      -
+        name: Build and push not tagged release
+        if: ${{ !steps.meta.outputs.tags }}
+        uses: docker/build-push-action@v3
+        with:
+          context: docker/
+          platforms: linux/amd64,linux/arm64,linux/armv7
+          push: true
+          tags: weetmuts/wmbusmeters:latest
+      -
+        name: Build and push tagged release
+        if: ${{ steps.meta.outputs.tags }}
+        uses: docker/build-push-action@v3
+        with:
+          context: docker/
+          platforms: linux/amd64,linux/arm64,linux/armv7
+          push: true
+          tags: weetmuts/wmbusmeters:release-${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
