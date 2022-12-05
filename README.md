@@ -281,7 +281,7 @@ depending on if you are running as a daemon or not.
 # Running without config files, good for experimentation and test.
 
 ```
-wmbusmeters version: 1.8.0
+wmbusmeters version: 1.10.0
 Usage: wmbusmeters {options} [device] { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmeters {options} [hex]    { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmetersd {options} [pid_file]
@@ -296,6 +296,9 @@ As {options} you can use:
     --analyze=<key> Analyze a telegram to find the best driver use the provided decryption key.
     --analyze=<driver> Analyze a telegram and use only this driver.
     --analyze=<driver>:<key> Analyze a telegram and use only this driver with this key.
+    --calculate_field_unit='...' Add field_unit to the json and calculate it using the formula. E.g.
+    --calculate_sumtemp_c='external_temperature_c+flow_temperature_c'
+    --calculate_flow_f=flow_temperature_c
     --debug for a lot of information
     --donotprobe=<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys.
     --exitafter=<time> exit program after time, eg 20h, 10m 5s

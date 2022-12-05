@@ -1,4 +1,6 @@
 
+Version: 1.10.0 2022-12-05
+
   ╭─────────────────────────────────────────────────────────────────╮
   │                                                                 │
   │                 Important change! The old style                 │
@@ -12,7 +14,7 @@
   │      Please use --selectfields to resolve this.                 │
   │                                                                 │
   │      I.e. It is a very good idea to check your multical heat    │
-  │     meter values when you upgrade to wmbusmeters 2.0 !          │
+  │     meter values when you upgrade to wmbusmeters 1.10 !         │
   │                                                                 │
   ╰─────────────────────────────────────────────────────────────────╯
 
@@ -64,6 +66,9 @@ and a timezone.
 ATTENTION! A bug was fixed where the on_time_h and operating_time_h
 (and related error times) were wrong.
 
+ATTENTION! The lansensm driver now prints an extra field with the minutes since
+the last test was made. The json is improved.
+
 ATTENTION! The em24 driver has been refactored to the new driver
 format and some errors in the fields were discovered! The reactive
 consumption and production values were negative. This was in error,
@@ -85,6 +90,26 @@ Broken fields: forward_flow_m3h, backward_flow_m3h, set_forward_flow_m3h, set_ba
 replaced with: total_forward_m3, total_backward_m3, forward_at_set_date_m3, backward_at_set_date_m3
 
 Same fields and same content: flow_temperature_c, flow_m3h
+
+---------------------------------------------------------------------------------------------
+
+Karsten Festag added Engelmann FAW Radio transmitter and Engelmann Sensostar U
+extended with tests for wmbus and mbus. Thanks Karsten!
+
+Jannick Fahlbusch, Stefan Rado, Jan jnxxx, Ovettel, Artur Ptaszek, Sergey Melnik,
+Jan Suchal, Patrick Huesmann improved the HA-addon! Thanks!
+
+Steven Cooreman improved the Itron driver. Thanks Steven!
+
+Patrick Huesmann improved the qwater driver. Thanks Patrick!
+
+Florian Zschetzsche added support for the qheat 55 driver. Thanks Florian!
+
+Lasse Bang Mikkelsen added support for flowiq2200 and HA-addon fixes and kem-import fixes. Thanks Lasse!
+
+Bibo added support for the abbb23 driver and improved the docker builds and the lansensm driver! Thanks Bibo!
+
+Thisandre added support for the mkradio4a and vario511 meters. Thanks Andre!
 
 Added the bfw 240 radio heat cost allocator.
 
