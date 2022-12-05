@@ -81,6 +81,10 @@ then
         TESTRESULT="OK"
     else
         TESTRESULT="ERROR"
+        if [ "$USE_MELD" = "true" ]
+        then
+            meld $TEST/test_expected.txt $TEST/test_responses.txt
+        fi
         exit 1
     fi
 else
@@ -101,6 +105,10 @@ then
         TESTRESULT="OK"
     else
         TESTRESULT="ERROR"
+        if [ "$USE_MELD" = "true" ]
+        then
+            meld $TEST/test_expected.txt $TEST/test_responses.txt
+        fi
         exit 1
     fi
 else
