@@ -1,7 +1,5 @@
 /*
  Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
- Copyright (C) 2018 David Mallon (gpl-3.0-or-later)
-
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -30,7 +28,7 @@ namespace
 
     {
         di.setName("mkradio4a");
-        di.setDefaultFields("name,id,previous_m3,timestamp");
+        di.setDefaultFields("name,id,target_m3,target_date,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addLinkMode(LinkMode::C1);
@@ -45,35 +43,39 @@ namespace
         setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_IV);
 
         addNumericFieldWithExtractor(
-            "Water_previous",
-            "The total water consumption recorded at the end of previous billing period.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            "target",
+            "The total water consumption recorded at the end of previous year.",
+            PrintProperty::JSON | PrintProperty::IMPORTANT,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
             .set(StorageNr(1))
-            .set(DifVifKey("4315"))
             );
 
-        addStringFieldWithExtractor(
-            "Previous_date",
-            "Date when previous billing period ended.",
-            PrintProperty::JSON | PrintProperty::FIELD ,
+        addNumericFieldWithExtractor(
+            "target",
+            "Date when previous year ended.",
+            PrintProperty::JSON,
+            Quantity::PointInTime,
+            VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
-            .set(DifVifKey("426C"))
-            .set(StorageNr(1))
+            .set(StorageNr(1)),
+            Unit::DateLT
             );
     }
 }
-//Test: Techem radio4 66953825 NOKEY  (Warm water)
-//telegram=|4B44685036494600953772253895662423FE064E0030052F2F_4315A10000426CBF2C0F542CF2DD8BEC869511B2DB8301C3ABA390FB4FDB6F1144DA1F3897DD55F2AD0D194F68510FF8FADFB9|+38
-//{"media":"warm water","meter":"mkradio4a","name":"www3","id":"66953825","Water_previous_m3":16.1,"Previous_date":"2021-12-31","timestamp":"2022-11-21T12:07:44Z","device":"rtlwmbus[00000001]","rssi_dbm":82}"
+// Test: FOO mkradio4a 66953825 NOKEY
+// Comment: Warm water
+// telegram=|4B44685036494600953772253895662423FE064E0030052F2F_4315A10000426CBF2C0F542CF2DD8BEC869511B2DB8301C3ABA390FB4FDB6F1144DA1F3897DD55F2AD0D194F68510FF8FADFB9|
+// {"media":"warm water","meter":"mkradio4a","name":"FOO","id":"66953825","target_m3":16.1,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}
+// |FOO;66953825;16.1;2021-12-31;1111-11-11 11:11.11
 
-//Test: Techem radio4 01770002 NOKEY  (Cold water)
-//telegram=|4B4468508644710095377202007701A85CFE078A0030052F2F_4315F00200426CBF2C0FEE456BF6F802216503E25EB73E9377D54F672681B76C469696E4C7BCCC9072CC79F712360FC3F57D85|+72
-//{"media":"water","meter":"mkradio4a","name":"kww6","id":"01770002","Water_previous_m3":75.2,"Previous_date":"2021-12-31","timestamp":"2022-11-21T12:08:18Z","device": "rtlwmbus[00000001]","rssi_dbm":143}
-
+// Test: BAR mkradio4a 01770002 NOKEY
+// Comment: Cold water
+// telegram=|4B4468508644710095377202007701A85CFE078A0030052F2F_4315F00200426CBF2C0FEE456BF6F802216503E25EB73E9377D54F672681B76C469696E4C7BCCC9072CC79F712360FC3F57D85|
+// {"media":"water","meter":"mkradio4a","name":"BAR","id":"01770002","target_m3":75.2,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}
+// |BAR;01770002;75.2;2021-12-31;1111-11-11 11:11.11

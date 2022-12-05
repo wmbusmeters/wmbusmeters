@@ -17,54 +17,56 @@
 
 #include"meters_common_implementation.h"
 
-using namespace std;
-
-struct Driver : public virtual MeterCommonImplementation
+namespace
 {
-    Driver(MeterInfo &mi, DriverInfo &di);
-};
+    struct Driver : public virtual MeterCommonImplementation
+    {
+        Driver(MeterInfo &mi, DriverInfo &di);
+    };
 
-static bool ok = registerDriver([](DriverInfo&di)
-{
-    di.setName("vario411");
-    di.setMeterType(MeterType::HeatMeter);
-    di.addLinkMode(LinkMode::C1);
-    di.addLinkMode(LinkMode::T1);
-    di.addDetection(MANUFACTURER_TCH, 0x04, 0x28);
-    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
-});
+    static bool ok = registerDriver([](DriverInfo&di)
+    {
+        di.setName("vario411");
+        di.setDefaultFields("name,id,target_kwh,target_date,timestamp");
+        di.setMeterType(MeterType::HeatMeter);
+        di.addLinkMode(LinkMode::C1);
+        di.addLinkMode(LinkMode::T1);
+        di.addDetection(MANUFACTURER_TCH, 0x04, 0x28);
+        di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
+    });
 
-Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
-{
-    setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
+    Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+    {
+        setExpectedTPLSecurityMode(TPLSecurityMode::AES_CBC_NO_IV);
 
-    addNumericFieldWithExtractor(
-       "energy_at_old_date",
-       "Total energy consumption at the end of the year",
-       PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
-       Quantity::Energy,
-       VifScaling::Auto,
-       FieldMatcher::build()
-       .set(MeasurementType::Instantaneous)
-       .set(VIFRange::AnyEnergyVIF)
-       .set(StorageNr(1))
-       .set(TariffNr(0))
-       .set(IndexNr(1))
-       .set(DifVifKey("4406"))
-       );
+        addNumericFieldWithExtractor(
+            "target",
+            "Total energy consumption at the end of the year",
+            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(StorageNr(1))
+            );
 
-   addStringFieldWithExtractor(
-       "old_date",
-       "Date at end of previous period",
-       PrintProperty::JSON | PrintProperty::FIELD ,
-       FieldMatcher::build()
-       .set(DifVifKey("426C"))
-       .set(MeasurementType::Instantaneous)
-       .set(VIFRange::Date)
-       .set(StorageNr(1))
-       );
+        addNumericFieldWithExtractor(
+            "target",
+            "Date when previous year ended.",
+            PrintProperty::JSON,
+            Quantity::PointInTime,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Date)
+            .set(StorageNr(1)),
+            Unit::DateLT
+            );
+    }
 }
 
-// Test: Techem vario411 67627875 NOKEY
-//telegram=|624468507578626728048C00F3900F002C25FEEB0600BA84134D9202A1327AFF003007102F2F_4406E1190000426CBF2C0F206730E2E7516874F5DB46B5A97816F575A29A1EA2717D6ADE5C2FE64517ED2B0497EE0FF64C2674CD0832572C484DDFED30|+22
-//{"media":"heat","meter":"vario411","name":"hw3","id":"67627875","energy_at_old_date_kwh":6625,"old_date":"2021-12-31","timestamp":"2022-11-21T12:41:15Z","device":"rtlwmbus[00000001]","rssi_dbm":114}
+// Test: Howdy vario411 67627875 NOKEY
+// telegram=|624468507578626728048C00F3900F002C25FEEB0600BA84134D9202A1327AFF003007102F2F_4406E1190000426CBF2C0F206730E2E7516874F5DB46B5A97816F575A29A1EA2717D6ADE5C2FE64517ED2B0497EE0FF64C2674CD0832572C484DDFED30|
+// {"id": "67627875","media": "heat","meter": "vario411","name": "Howdy","target_date": "2021-12-31","target_kwh": 6625,"timestamp":"1111-11-11T11:11:11Z"}
+// |Howdy;67627875;6625;2021-12-31;1111-11-11 11:11.11
