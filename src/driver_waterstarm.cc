@@ -27,13 +27,15 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("waterstarm");
+        di.setDefaultFields("name,id,total_m3,total_backwards_m3,current_status,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addLinkMode(LinkMode::C1);
-        di.addDetection(MANUFACTURER_DWZ,  0x06,  0x02);
+        di.addDetection(MANUFACTURER_DWZ,  0x06,  0x00);    // warm water
+        di.addDetection(MANUFACTURER_DWZ,  0x06,  0x02);    // warm water
         di.addDetection(MANUFACTURER_DWZ,  0x07,  0x02);
         di.addDetection(MANUFACTURER_EFE,  0x07,  0x03);
-        di.addDetection(MANUFACTURER_DWZ,  0x07,  0x00);
+        di.addDetection(MANUFACTURER_DWZ,  0x07,  0x00);    // water meter
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
@@ -43,7 +45,7 @@ namespace
         addStringFieldWithExtractor(
             "meter_timestamp",
             "Device date time.",
-            PrintProperty::JSON,
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -52,7 +54,7 @@ namespace
         addNumericFieldWithExtractor(
             "total",
             "The total water consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            PrintProperty::JSON | PrintProperty::IMPORTANT,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -63,7 +65,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_backwards",
             "The total backward water volume recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -75,7 +77,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "current_status",
             "Status and error flags.",
-            PrintProperty::JSON | PrintProperty::FIELD | JOIN_TPL_STATUS,
+            PrintProperty::JSON | PrintProperty::OPTIONAL | PrintProperty::JOIN_TPL_STATUS,
             FieldMatcher::build()
             .set(VIFRange::ErrorFlags),
             {
@@ -129,25 +131,73 @@ namespace
             .set(VIFRange::Voltage)
             );
 
+        addNumericFieldWithExtractor(
+            "consumption_at_history_{storage_counter}",
+            "The total water consumption at the historic date.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .set(StorageNr(1),StorageNr(16))
+            );
+
+        addNumericFieldWithExtractor(
+            "history_reference",
+            "Reference date for history.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::PointInTime,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Date)
+            .set(StorageNr(1)),
+            Unit::DateLT
+            );
+
+        addNumericFieldWithCalculatorAndMatcher(
+            "history_{storage_counter}",
+            "The historic date #.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::PointInTime,
+            "history_reference_date - ((storage_counter-1counter) * 1 month)",
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .set(StorageNr(1),StorageNr(16)),
+            Unit::DateLT
+            );
     }
 }
 
 // Test: Woter waterstarm 20096221 BEDB81B52C29B5C143388CBB0D15A051
 // telegram=|3944FA122162092002067A3600202567C94D48D00DC47B11213E23383DB51968A705AAFA60C60E263D50CD259D7C9A03FD0C08000002FD0B0011|
 // {"media":"warm water","meter":"waterstarm","name":"Woter","id":"20096221","meter_timestamp":"2020-07-30 10:40","total_m3":0.106,"total_backwards_m3":0,"current_status":"OK","meter_version":"000008","parameter_set":"1100","timestamp":"1111-11-11T11:11:11Z"}
-// |Woter;20096221;0.106000;0.000000;OK;1111-11-11 11:11.11
+// |Woter;20096221;0.106;0;OK;1111-11-11 11:11.11
 
 // telegram=|3944FA122162092002067A3604202567C94D48D00DC47B11213E23383DB51968A705AAFA60C60E263D50CD259D7C9A03FD0C08000002FD0B0011|
 // {"media":"warm water","meter":"waterstarm","name":"Woter","id":"20096221","meter_timestamp":"2020-07-30 10:40","total_m3":0.106,"total_backwards_m3":0,"current_status":"POWER_LOW","meter_version":"000008","parameter_set":"1100","timestamp":"1111-11-11T11:11:11Z"}
-// |Woter;20096221;0.106000;0.000000;POWER_LOW;1111-11-11 11:11.11
+// |Woter;20096221;0.106;0;POWER_LOW;1111-11-11 11:11.11
 
 // Test: Water waterstarm 22996221 NOKEY
 // telegram=|3944FA122162992202067A360420252F2F_046D282A9E2704136A00000002FD17400004933C000000002F2F2F2F2F2F03FD0C08000002FD0B0011|
 // {"media":"warm water","meter":"waterstarm","name":"Water","id":"22996221","meter_timestamp":"2020-07-30 10:40","total_m3":0.106,"total_backwards_m3":0,"current_status":"LEAKAGE_OR_NO_USAGE POWER_LOW","meter_version":"000008","parameter_set":"1100","timestamp":"1111-11-11T11:11:11Z"}
-// |Water;22996221;0.106000;0.000000;LEAKAGE_OR_NO_USAGE POWER_LOW;1111-11-11 11:11.11
+// |Water;22996221;0.106;0;LEAKAGE_OR_NO_USAGE POWER_LOW;1111-11-11 11:11.11
 
 
 // Test: Water waterstarm 11559999 NOKEY
 // telegram=|2E44FA129999551100077A070020252F2F_046D0F28C22404139540000002FD17000001FD481D2F2F2F2F2F2F2F2F2F|
-// {"media":"water","meter":"waterstarm","name":"Water","id":"11559999","meter_timestamp":"2022-04-02 08:15","total_m3":16.533,"total_backwards_m3":null,"current_status":"OK","battery_v":2.9,"timestamp":"1111-11-11T11:11:11Z"}
-// |Water;11559999;16.533000;nan;OK;1111-11-11 11:11.11
+// {"media":"water","meter":"waterstarm","name":"Water","id":"11559999","meter_timestamp":"2022-04-02 08:15","total_m3":16.533,"current_status":"OK","battery_v":2.9,"timestamp":"1111-11-11T11:11:11Z"}
+// |Water;11559999;16.533;null;OK;1111-11-11 11:11.11
+
+// Test: WarmLorenz waterstarm 20050666 NOKEY
+// telegram=|9644FA126606052000067A1E000020_046D3B2ED729041340D8000002FD17000001FD481D426CBF2C4413026C000084011348D20000C40113F3CB0000840213DCC40000C40213B8B60000840313849B0000C403138B8C0000840413E3800000C4041337770000840513026C0000C40513D65F00008406134F560000C40613604700008407139D370000C407137F3300008408135B2C0000|
+// {"battery_v": 2.9,"consumption_at_history_10_m3": 27.65,"consumption_at_history_11_m3": 24.534,"consumption_at_history_12_m3": 22.095,"consumption_at_history_13_m3": 18.272,"consumption_at_history_14_m3": 14.237,"consumption_at_history_15_m3": 13.183,"consumption_at_history_16_m3": 11.355,"consumption_at_history_1_m3": 27.65,"consumption_at_history_2_m3": 53.832,"consumption_at_history_3_m3": 52.211,"consumption_at_history_4_m3": 50.396,"consumption_at_history_5_m3": 46.776,"consumption_at_history_6_m3": 39.812,"consumption_at_history_7_m3": 35.979,"consumption_at_history_8_m3": 32.995,"consumption_at_history_9_m3": 30.519,"current_status": "OK","history_10_date": "2021-03-31","history_11_date": "2021-02-28","history_12_date": "2021-01-31","history_13_date": "2020-12-31","history_14_date": "2020-11-30","history_15_date": "2020-10-31","history_16_date": "2020-09-30","history_1_date": "2021-12-31","history_2_date": "2021-11-30","history_3_date": "2021-10-31","history_4_date": "2021-09-30","history_5_date": "2021-08-31","history_6_date": "2021-07-31","history_7_date": "2021-06-30","history_8_date": "2021-05-31","history_9_date": "2021-04-30","history_reference_date": "2021-12-31","id": "20050666","media": "warm water","meter": "waterstarm","meter_timestamp": "2022-09-23 14:59","name": "WarmLorenz","timestamp": "1111-11-11T11:11:11Z","total_m3": 55.36}
+// |WarmLorenz;20050666;55.36;null;OK;1111-11-11 11:11.11
+
+
+// Test: ColdLorenz waterstarm 20065160 NOKEY
+// telegram=|9644FA126051062000077A78000020_046D392DD7290413901A000002FD17000001FD481D426CBF2C4413D312000084011399190000C40113841800008402130C180000C40213EC16000084031395150000C40313E3140000840413BD130000C404134C130000840513D3120000C4051322120000840613AF110000C4061397100000840713D00F0000C40713890E0000840813980C0000|
+// {"battery_v": 2.9,"consumption_at_history_10_m3": 4.819,"consumption_at_history_11_m3": 4.642,"consumption_at_history_12_m3": 4.527,"consumption_at_history_13_m3": 4.247,"consumption_at_history_14_m3": 4.048,"consumption_at_history_15_m3": 3.721,"consumption_at_history_16_m3": 3.224,"consumption_at_history_1_m3": 4.819,"consumption_at_history_2_m3": 6.553,"consumption_at_history_3_m3": 6.276,"consumption_at_history_4_m3": 6.156,"consumption_at_history_5_m3": 5.868,"consumption_at_history_6_m3": 5.525,"consumption_at_history_7_m3": 5.347,"consumption_at_history_8_m3": 5.053,"consumption_at_history_9_m3": 4.94,"current_status": "OK","history_10_date": "2021-03-31","history_11_date": "2021-02-28","history_12_date": "2021-01-31","history_13_date": "2020-12-31","history_14_date": "2020-11-30","history_15_date": "2020-10-31","history_16_date": "2020-09-30","history_1_date": "2021-12-31","history_2_date": "2021-11-30","history_3_date": "2021-10-31","history_4_date": "2021-09-30","history_5_date": "2021-08-31","history_6_date": "2021-07-31","history_7_date": "2021-06-30","history_8_date": "2021-05-31","history_9_date": "2021-04-30","history_reference_date": "2021-12-31","id": "20065160","media": "water","meter": "waterstarm","meter_timestamp": "2022-09-23 13:57","name": "ColdLorenz","timestamp": "1111-11-11T11:11:11Z","total_m3": 6.8}
+// |ColdLorenz;20065160;6.8;null;OK;1111-11-11 11:11.11
