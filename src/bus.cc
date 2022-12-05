@@ -426,7 +426,7 @@ void BusManager::detectAndConfigureWmbusDevices(Configuration *config, Detection
             specified_device.handled = true;
             continue;
         }
-        if (specified_device.file != "" && dt == DetectionType::STDIN_FILE_SIMULATION)
+        if (specified_device.file != "")
         {
             shared_ptr<SerialDevice> sd = serial_manager_->lookup(specified_device.file);
             if (sd != NULL)
