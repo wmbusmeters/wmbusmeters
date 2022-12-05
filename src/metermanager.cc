@@ -24,6 +24,7 @@
 #include"wmbus_utils.h"
 
 #include<algorithm>
+#include<chrono>
 #include<cmath>
 #include<limits>
 #include<memory.h>
@@ -37,6 +38,7 @@ struct MeterManagerImplementation : public virtual MeterManager
 private:
     bool is_daemon_ {};
     bool should_analyze_ {};
+    int should_profile_ {};
     OutputFormat analyze_format_ {};
     string analyze_driver_;
     string analyze_key_;
@@ -272,9 +274,10 @@ public:
         }
     }
 
-    void analyzeEnabled(bool b, OutputFormat f, string force_driver, string key, bool verbose)
+    void analyzeEnabled(bool b, OutputFormat f, string force_driver, string key, bool verbose, int profile)
     {
         should_analyze_ = b;
+        should_profile_ = profile;
         analyze_format_ = f;
         if (force_driver != "auto")
         {
@@ -433,6 +436,45 @@ public:
 
         bool match = false;
         string id;
+
+        if (should_profile_ > 0)
+        {
+            size_t start_peak_rss = getPeakRSS();
+            size_t start_curr_rss = getCurrentRSS();
+            string start_peak_prss = humanReadableTwoDecimals(start_peak_rss);
+
+            notice("Profiling %d rounds memory rss %zu peak %s\n", should_profile_, start_curr_rss, start_peak_prss.c_str());
+
+            chrono::milliseconds start = chrono::duration_cast< chrono::milliseconds >(chrono::system_clock::now().time_since_epoch());
+
+            for (int k=0; k<should_profile_; ++k)
+            {
+                meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+                string hr, fields, json;
+                vector<string> envs, more_json, selected_fields;
+
+                meter->printMeter(&t, &hr, &fields, '\t', &json,
+                                  &envs, &more_json, &selected_fields, true);
+                if (k % 100 == 0) fprintf(stderr, ".");
+            }
+
+            chrono::milliseconds end = chrono::duration_cast< chrono::milliseconds >(chrono::system_clock::now().time_since_epoch());
+
+            size_t end_peak_rss = getPeakRSS();
+            size_t end_curr_rss = getCurrentRSS();
+            string end_peak_prss = humanReadableTwoDecimals(end_peak_rss);
+
+            std::chrono::duration<double> diff_s(end-start);
+
+            double speed_ms = 1000.0 * (diff_s.count()) / should_profile_;
+
+            notice("\nDone profiling after %g s which gives %g ms/telegram memory rss %zu peak %s\n",
+                   diff_s.count(),
+                   speed_ms,
+                   end_curr_rss,
+                   end_peak_prss.c_str());
+            return;
+        }
 
         meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
 

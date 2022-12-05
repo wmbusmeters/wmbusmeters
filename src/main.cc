@@ -538,7 +538,8 @@ bool start(Configuration *config)
                                    config->analyze_format,
                                    config->analyze_driver,
                                    config->analyze_key,
-                                   config->analyze_verbose);
+                                   config->analyze_verbose,
+                                   config->analyze_profile);
 
     // The bus manager detects new/lost wmbus devices and
     // configures the devices according to the specification.

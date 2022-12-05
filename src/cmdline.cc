@@ -203,6 +203,12 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--profile=", 10)) {
+            c->analyze_profile = atoi(argv[i]+10);
+            if (c->analyze_profile <= 0) error("Illegal profile value, must be greater than zero.\n");
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--donotprobe=", 13))
         {
             string df = string(argv[i]+13);

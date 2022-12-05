@@ -48,10 +48,25 @@ ifeq "$(DEBUG)" "true"
         GCOV?=gcov
     endif
 else
-    DEBUG_FLAGS=-Os -g
-    STRIP_BINARY=cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters.g; $(STRIP) $(BUILD)/wmbusmeters
-    STRIP_ADMIN=cp $(BUILD)/wmbusmeters-admin $(BUILD)/wmbusmeters-admin.g; $(STRIP) $(BUILD)/wmbusmeters-admin
-    GCOV=To_run_gcov_add_DEBUG=true
+    ifeq "$(PROFILE)" "true"
+        DEBUG_FLAGS=-O0 -ggdb -fno-omit-frame-pointer -fprofile-arcs -pg
+        STRIP_BINARY=
+        STRIP_ADMIN=
+        BUILD:=$(BUILD)_profile
+        ifneq '' '$(findstring clang++,$(CXX))'
+            DEBUG_LDFLAGS=
+            GCOV=To_run_gcov_add_DEBUG=true
+        else
+            DEBUG_LDFLAGS=-lgcov --coverage
+            GCOV=To_run_gcov_add_DEBUG=true
+        endif
+    else
+        # Release build
+        DEBUG_FLAGS=-Os -g
+        STRIP_BINARY=cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters.g; $(STRIP) $(BUILD)/wmbusmeters
+        STRIP_ADMIN=cp $(BUILD)/wmbusmeters-admin $(BUILD)/wmbusmeters-admin.g; $(STRIP) $(BUILD)/wmbusmeters-admin
+        GCOV=To_run_gcov_add_DEBUG=true
+    endif
 endif
 
 $(shell mkdir -p $(BUILD))
@@ -268,7 +283,7 @@ clean_executables:
           testoutput/test_stderr.txt
 
 clean:
-	rm -rf build/* build_arm/* build_debug/* build_arm_debug/* *~
+	rm -rf build/* build_arm/* build_debug/* build_arm_debug/* build_profile/* *~
 	$(RM) testaes/test_input.txt testaes/test_stderr.txt
 	$(RM) testoutput/test_expected.txt testoutput/test_input.txt \
           testoutput/test_response.txt testoutput/test_responses.txt \

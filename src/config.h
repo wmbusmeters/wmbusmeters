@@ -78,6 +78,7 @@ struct Configuration
     string analyze_driver {};
     string analyze_key {};
     bool analyze_verbose {};
+    int analyze_profile {}; // If greater than 0, then run the handleTelegram call this number of times when analyzing.
     bool debug {};
     bool trace {};
     AddLogTimestamps addtimestamps {};

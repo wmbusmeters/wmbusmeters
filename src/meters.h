@@ -447,7 +447,7 @@ struct MeterManager
     virtual void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb) = 0;
     virtual void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual void pollMeters(shared_ptr<BusManager> bus) = 0;
-    virtual void analyzeEnabled(bool b, OutputFormat f, string force_driver, string key, bool verbose) = 0;
+    virtual void analyzeEnabled(bool b, OutputFormat f, string force_driver, string key, bool verbose, int profile) = 0;
     virtual void analyzeTelegram(AboutTelegram &about, vector<uchar> &input_frame, bool simulated) = 0;
 
     virtual ~MeterManager() = default;
