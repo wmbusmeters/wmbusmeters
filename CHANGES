@@ -1,4 +1,8 @@
 
+Version: 1.10.1 2022-12-05
+
+Fix bug that prevented a direct tty link: /dev/ttyUSB0:device:t1 to work.
+
 Version: 1.10.0 2022-12-05
 
   ╭─────────────────────────────────────────────────────────────────╮
