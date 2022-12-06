@@ -11,7 +11,7 @@ Version: 1.10.0 2022-12-05
   │      of writing drivers is now gone! BUT BUT BUT                │
   │           the final set of drivers to be converted were         │
   │        the multical 302/303/403/602/603/803 meters that         │
-  │     were merged into a single hamheat driver. It was not        │
+  │     were merged into a single kamheat driver. It was not        │
   │    possible to keep all of them backwards compatible!           │
   │                                                                 │
   │   Note that the default fields for these meters are changed!    │

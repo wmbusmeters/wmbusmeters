@@ -174,6 +174,7 @@ namespace
         case 0xC7: return 3;
 
         case 0xD0: return 3;
+        case 0xD3: return 3;
 
         case 0xF0: return 4;
         }
