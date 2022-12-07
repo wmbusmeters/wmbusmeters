@@ -13,6 +13,7 @@
             },
             "enabled_by_default": true,
             "json_attributes_topic": "wmbusmeters/{name}",
+            "device_class": "water",
             "state_class": "total",
             "name": "{name} total",
             "state_topic": "wmbusmeters/{name}",
@@ -33,6 +34,7 @@
                 "sw_version": "{id}"
             },
             "enabled_by_default": true,
+            "device_class": "water",
             "state_class": "total",
             "name": "{name} target",
             "state_topic": "wmbusmeters/{name}",
