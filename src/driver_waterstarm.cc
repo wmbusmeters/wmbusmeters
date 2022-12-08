@@ -132,20 +132,8 @@ namespace
             );
 
         addNumericFieldWithExtractor(
-            "consumption_at_history_{storage_counter}",
-            "The total water consumption at the historic date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
-            Quantity::Volume,
-            VifScaling::Auto,
-            FieldMatcher::build()
-            .set(MeasurementType::Instantaneous)
-            .set(VIFRange::Volume)
-            .set(StorageNr(1),StorageNr(16))
-            );
-
-        addNumericFieldWithExtractor(
-            "history_reference",
-            "Reference date for history.",
+            "set_date",
+            "The most recent billing period date.",
             PrintProperty::JSON | PrintProperty::OPTIONAL,
             Quantity::PointInTime,
             VifScaling::Auto,
@@ -156,16 +144,40 @@ namespace
             Unit::DateLT
             );
 
-        addNumericFieldWithCalculatorAndMatcher(
-            "history_{storage_counter}",
-            "The historic date #.",
+        addNumericFieldWithExtractor(
+            "consumption_at_set_date",
+            "The total water consumption at the most recent billing period date.",
             PrintProperty::JSON | PrintProperty::OPTIONAL,
-            Quantity::PointInTime,
-            "history_reference_date - ((storage_counter-1counter) * 1 month)",
+            Quantity::Volume,
+            VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
-            .set(StorageNr(1),StorageNr(16)),
+            .set(StorageNr(1))
+            );            
+
+        addNumericFieldWithExtractor(
+            "consumption_at_history_{storage_counter - 1 counter}",
+            "The total water consumption at the historic date.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .set(StorageNr(2),StorageNr(16))
+            );
+
+        addNumericFieldWithCalculatorAndMatcher(
+            "history_{storage_counter - 1 counter}",
+            "The historic date #.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::PointInTime,
+            "meter_timestamp - ((storage_counter-1counter) * 1 month)",
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .set(StorageNr(2),StorageNr(16)),
             Unit::DateLT
             );
     }
