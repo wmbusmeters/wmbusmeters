@@ -10,18 +10,18 @@ description: |
   to allow snap read USB devices and check that root user of your system is
   added to group that can read USB devices
 
-base: core18
+base: core22
 confinement: strict
 
 architectures:
   - build-on: amd64
-    run-on: amd64
+    build-for: amd64
 
   - build-on: arm64
-    run-on: arm64
+    build-for: arm64
 
   - build-on: armhf
-    run-on: armhf
+    build-for: armhf
 
 parts:
   script:
@@ -34,15 +34,15 @@ parts:
     source: "https://github.com/weetmuts/wmbusmeters.git"
     source-type: git
     override-pull: |
-      snapcraftctl pull
+      craftctl default
       if [ -n "$(git describe --tags | grep -)" ]; then
         GIT_REV="$(git describe --tags | cut -f1,2 -d'-')"
-        snapcraftctl set-version "$GIT_REV"
-        snapcraftctl set-grade devel
+        craftctl set version="$GIT_REV"
+        craftctl set grade=devel
       else
         GIT_VER="$(git describe --tags)"
-        snapcraftctl set-version "$GIT_VER"
-        snapcraftctl set-grade stable
+        craftctl set version="$GIT_VER"
+        craftctl set grade=stable
       fi
     plugin: autotools
     build-packages:
@@ -68,20 +68,14 @@ parts:
   rtl-wmbus:
     source: "https://github.com/weetmuts/rtl-wmbus.git"
     plugin: make
-    artifacts:
-      - build/rtl_wmbus
-    organize:
-      build/rtl_wmbus: usr/bin/rtl_wmbus
-    prime:
-      - usr/bin/rtl_wmbus
+    make-parameters:
+      - DESTDIR=/usr
 
   rtl-433:
     source: "https://github.com/merbanan/rtl_433.git"
     plugin: cmake
-    organize:
-      bin/rtl_433: usr/bin/rtl_433
-    prime:
-      - usr/bin/rtl_433
+    cmake-parameters:
+      - -DCMAKE_INSTALL_PREFIX=/usr
 
 apps:
   wmbusmeters:
@@ -97,8 +91,6 @@ apps:
 layout:
   /usr/bin/wmbusmeters:
     bind-file: $SNAP/usr/bin/wmbusmeters
-  /sbin/killall5:
-    bind-file: $SNAP/sbin/killall5
 #rtl
   /usr/bin/rtl_433:
     bind-file: $SNAP/usr/bin/rtl_433
@@ -106,51 +98,33 @@ layout:
     bind-file: $SNAP/usr/bin/rtl_sdr
   /usr/bin/rtl_wmbus:
     bind-file: $SNAP/usr/bin/rtl_wmbus
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/librtlsdr.so.0:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/librtlsdr.so.0
-  /lib/$SNAPCRAFT_ARCH_TRIPLET/libusb-1.0.so.0:
-    symlink: $SNAP/lib/$SNAPCRAFT_ARCH_TRIPLET/libusb-1.0.so.0
+  /usr/lib/$CRAFT_ARCH_TRIPLET/librtlsdr.so.0:
+    symlink: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/librtlsdr.so.0
+  /usr/lib/$CRAFT_ARCH_TRIPLET/libusb-1.0.so.0:
+    symlink: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/libusb-1.0.so.0
 #mosquitto
   /usr/bin/mosquitto_pub:
     bind-file: $SNAP/usr/bin/mosquitto_pub
   /usr/bin/mosquitto_sub:
     bind-file: $SNAP/usr/bin/mosquitto_sub
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libmosquitto.so.1:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libmosquitto.so.1
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libcares.so.2:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libcares.so.2
+  /usr/lib/$CRAFT_ARCH_TRIPLET/libmosquitto.so.1:
+    symlink: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/libmosquitto.so.1
+  /usr/lib/$CRAFT_ARCH_TRIPLET/libcjson.so.1:
+    symlink: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/libcjson.so.1
 #curl
   /usr/bin/curl:
     bind-file: $SNAP/usr/bin/curl
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libcurl.so.4:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libcurl.so.4
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libnghttp2.so.14:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libnghttp2.so.14
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/librtmp.so.1:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/librtmp.so.1
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpsl.so.5:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpsl.so.5
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libldap_r-2.4.so.2:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libldap_r-2.4.so.2
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/liblber-2.4.so.2:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/liblber-2.4.so.2
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libsasl2.so.2:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libsasl2.so.2
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libgssapi.so.3:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libgssapi.so.3
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libheimntlm.so.0:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libheimntlm.so.0
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libasn1.so.8:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libasn1.so.8
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libhcrypto.so.4:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libhcrypto.so.4
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libroken.so.18:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libroken.so.18
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libwind.so.0:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libwind.so.0
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libheimbase.so.1:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libheimbase.so.1
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libhx509.so.5:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libhx509.so.5
-  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libkrb5.so.26:
-    symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libkrb5.so.26
+  /usr/lib/$CRAFT_ARCH_TRIPLET/libcurl.so.4:
+    symlink: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/libcurl.so.4
+  /usr/lib/$CRAFT_ARCH_TRIPLET/libnghttp2.so.14:
+    symlink: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/libnghttp2.so.14
+  /usr/lib/$CRAFT_ARCH_TRIPLET/librtmp.so.1:
+    symlink: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/librtmp.so.1
+  /usr/lib/$CRAFT_ARCH_TRIPLET/libpsl.so.5:
+    symlink: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/libpsl.so.5
+  /usr/lib/$CRAFT_ARCH_TRIPLET/libldap-2.5.so.0:
+    symlink: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/libldap-2.5.so.0
+  /usr/lib/$CRAFT_ARCH_TRIPLET/liblber-2.5.so.0:
+    symlink: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/liblber-2.5.so.0
+  /usr/lib/$CRAFT_ARCH_TRIPLET/libsasl2.so.2:
+    symlink: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/libsasl2.so.2
