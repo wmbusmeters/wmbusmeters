@@ -24,7 +24,7 @@ Once the wmbusmeters is receiving the telegrams you need to configure your meter
 
 #### Option: `meters`
 
-Specify your meters usign wmbusmeters meter file format. The `driver` and `id` values can be read from the add-on logs after the initial start (with empty `meters` configuration). The `name` is your label for the meter and `key` is the encryption key to decrypt telegrams (if your meter use any).
+Specify your meters using wmbusmeters meter file format. The `driver` and `id` values can be read from the add-on logs after the initial start (with empty `meters` configuration). The `name` is your label for the meter and `key` is the encryption key to decrypt telegrams (if your meter use any).
 
 See [project README for more information][github]
 
