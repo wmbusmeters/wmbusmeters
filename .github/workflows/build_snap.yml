@@ -1,0 +1,51 @@
+name: Build Snap
+
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - '*.*.*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        architecture:
+        - amd64
+        - armhf
+        - arm64
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+    -
+      name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: weetmuts/wmbusmeters
+        tags: type=ref,event=tag
+    - name: Build
+      id: build
+      uses: diddlesnaps/snapcraft-multiarch-action@v1
+      with:
+        architecture: ${{ matrix.architecture }}
+    - name: Publish release to Stable
+      uses: snapcore/action-publish@v1
+      if: ${{ steps.meta.outputs.tags }}
+      env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snapcraft_token }}
+      with:
+        snap: ${{ steps.build.outputs.snap }}
+        release: stable
+    - name: Publish latest to Edge
+      uses: snapcore/action-publish@v1
+      if: ${{ !steps.meta.outputs.tags }}
+      env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snapcraft_token }}
+      with:
+        snap: ${{ steps.build.outputs.snap }}
+        release: edge
