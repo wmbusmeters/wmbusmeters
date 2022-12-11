@@ -191,7 +191,7 @@ public:
     void setDefaultFields(string f) { default_fields_ = splitString(f, ','); }
     void addLinkMode(LinkMode lm) { linkmodes_.addLinkMode(lm); }
     void forceMfctIndex(int i) { force_mfct_index_ = i; }
-    void addMfctTPLStatusBits(Translate::Lookup lookup) { mfct_tpl_status_bits_ = lookup; }
+    void addMfctTPLStatusBits(Translate::Lookup &lookup) { mfct_tpl_status_bits_ = lookup; }
     void setConstructor(function<shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
     void addDetection(uint16_t mfct, uchar type, uchar ver) { detect_.push_back({ mfct, type, ver }); }
     vector<DriverDetect> &detect() { return detect_; }

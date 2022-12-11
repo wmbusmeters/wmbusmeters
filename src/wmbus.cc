@@ -1439,9 +1439,9 @@ bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
 
     CHECK(1);
     tpl_sts = *pos;
+    tpl_sts_offset = distance(frame.begin(), pos);
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL,
-                                  "%02x tpl-sts-field (%s)", tpl_sts, decodeTPLStatusByteWithLookup(tpl_sts, NULL).c_str());
-
+                                  "%02x tpl-sts-field (%s)", tpl_sts, decodeTPLStatusByteOnlyStandardBits(tpl_sts).c_str());
     bool ok = parseTPLConfig(pos);
     if (!ok) return false;
 
@@ -3962,21 +3962,6 @@ uint64_t dataAsUint64(int dif, int vif, int vife, string data)
     return -1;
 }
 
-string formatData(int dif, int vif, int vife, string data)
-{
-    string r;
-
-    int t = vif & 0x7f;
-    if (t >= 0 && t <= 0x77 && !(t >= 0x6c && t<=0x6f)) {
-        // These are vif codes with an understandable key and unit.
-        double val = dataAsDouble(dif, vif, vife, data);
-        strprintf(&r, "%d", val);
-        return r;
-    }
-
-    return data;
-}
-
 string linkModeName(LinkMode link_mode)
 {
 
@@ -4980,39 +4965,8 @@ string decodeTPLStatusByteOnlyStandardBits(uchar sts)
     return s;
 }
 
-string decodeTPLStatusByteWithLookup(uchar sts, map<int,string> *vendor_lookup)
-{
-    string s = decodeTPLStatusByteOnlyStandardBits(sts);
-    string t = "OK";
-
-    if ((sts & 0xe0) != 0)
-    {
-        t = "";
-        // Vendor specific bits are set, lets translate them.
-        int v = sts & 0xf8; // Zero the 3 lowest bits. Including the temp and permanent bits is wrong here.
-        // But that is how it is implemented right now. This code is about to go away.
-        if (vendor_lookup != NULL && vendor_lookup->count(v) != 0)
-        {
-            t += (*vendor_lookup)[v];
-            t += " ";
-        }
-        else
-        {
-            // We could not translate, just print the bits.
-            t += tostrprintf("TPL_MFCT_%02X ", sts & 0xe0);
-        }
-        while (t.size() > 0 && t.back() == ' ') t.pop_back();
-    }
-
-    if (t == "OK" || t == "") return s;
-    if (s == "OK" || s == "") return t;
-
-    return s+" "+t;
-}
-
 string decodeTPLStatusByteNoMfct(uchar sts)
 {
-    string s = decodeTPLStatusByteOnlyStandardBits(sts);
     string t = "OK";
 
     if ((sts & 0xe0) != 0)
@@ -5020,10 +4974,7 @@ string decodeTPLStatusByteNoMfct(uchar sts)
         t = tostrprintf("UNKNOWN_%02X", sts & 0xe0);
     }
 
-    if (t == "OK" || t == "") return s;
-    if (s == "OK" || s == "") return t;
-
-    return s+" "+t;
+    return t;
 }
 
 string decodeTPLStatusByteWithMfct(uchar sts, Translate::Lookup &lookup)
@@ -5040,7 +4991,7 @@ string decodeTPLStatusByteWithMfct(uchar sts, Translate::Lookup &lookup)
         }
         else
         {
-            t = decodeTPLStatusByteWithLookup(sts & 0xe0, NULL);
+            t = decodeTPLStatusByteNoMfct(sts & 0xe0);
         }
     }
 

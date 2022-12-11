@@ -31,19 +31,11 @@ namespace
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_EIE, 0x1a, 0x0c);
         di.addMfctTPLStatusBits(
-            {
-                {
-                    {
-                        "TPL_STS",
-                        Translate::Type::BitToString,
-                        AlwaysTrigger, MaskBits(0xe0), // Always use 0xe0 for tpl mfct status bits.
-                        "OK",
-                        {
-                            { 0x40, "RTC_INVALID" }
-                        }
-                    },
-                },
-            });
+            Translate::Lookup()
+            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
+                 .set(MaskBits(0xe0))
+                 .set(DefaultMessage("OK"))
+                 .add(Translate::Map(0x04 ,"RTC_INVALID", TestBit::Set))));
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

@@ -31,19 +31,11 @@ namespace
         di.setMeterType(MeterType::TempHygroMeter);
         di.addDetection(MANUFACTURER_LAS,  0x1b,  0x07);
         di.addMfctTPLStatusBits(
-            {
-                {
-                    {
-                        "TPL_STS",
-                        Translate::Type::BitToString,
-                        AlwaysTrigger, MaskBits(0xe0), // Always use 0xe0 for tpl mfct status bits.
-                        "OK",
-                        {
-                            { 0x40, "SABOTAGE_ENCLOSURE" }
-                        }
-                    },
-                },
-            });
+            Translate::Lookup()
+            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
+                 .set(MaskBits(0xe0))
+                 .set(DefaultMessage("OK"))
+                 .add(Translate::Map(0x40 ,"SABOTAGE_ENCLOSURE", TestBit::Set))));
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

@@ -10,6 +10,7 @@ echo "Testing drivers"
 
 TESTNAME="Test driver tests"
 TESTRESULT="ERROR"
+FAILED=false
 
 ALL_DRIVERS=$(cd src; echo driver_*cc)
 
@@ -46,11 +47,15 @@ do
             then
                 meld $TEST/test_expected_json.txt $TEST/test_response_json.txt
             fi
+            echo "Failure: $TESTNAME"
+            FAILED=true
         fi
     else
         echo "wmbusmeters returned error code: $?"
         cat $TEST/test_output_json.txt
         cat $TEST/test_stderr_json.txt
+        echo "Failure: $TESTNAME"
+        FAILED=true
     fi
 
     cat $TEST/simulation.txt | grep '^|' | sed 's/^|//' > $TEST/test_expected_fields.txt
@@ -69,14 +74,18 @@ do
             then
                 meld $TEST/test_expected_fields.txt $TEST/test_response_fields.txt
             fi
+            echo "Failure: $TESTNAME"
+            FAILED=true
         fi
     else
         echo "wmbusmeters returned error code: $?"
         cat $TEST/test_output_fields.txt
         cat $TEST/test_stderr_fields.txt
+        echo "Failure: $TESTNAME"
+        FAILED=true
     fi
 
-    if [ "$TESTRESULT" = "ERROR" ]
+    if [ "$TESTRESULT" = "ERROR" ] || "$FAILED" = "true"
     then
         echo ERROR: $TESTNAME
         exit 1

@@ -55,7 +55,7 @@ void handleBitToString(Rule& rule, string &out_s, uint64_t bits)
         {
             // Check that the match rule does not extend outside of the mask!
             // If mask is 0xff then a match for 0x100 will trigger this bad warning!
-            string tmp = tostrprintf("BAD_RULE_%s(from=0x%x mask=0x%x)", rule.name.c_str(), m.from, rule.mask);
+            string tmp = tostrprintf("BAD_RULE_%s(from=0x%x mask=0x%x)", rule.name.c_str(), m.from, mask);
             s += tmp+" ";
         }
 
@@ -241,6 +241,22 @@ string Lookup::translate(uint64_t bits)
     while (total.size() > 0 && total.back() == ' ') total.pop_back();
 
     return sortStatusString(total);
+}
+
+string Lookup::str()
+{
+    string x = " Lookup {\n";
+
+    for (Rule& r : rules)
+    {
+        x += "    Rulex {\n";
+        x += "        name = "+r.name+"\n";
+        x += "    }\n";
+    }
+
+    x += "}\n";
+
+    return x;
 }
 
 Lookup NoLookup = {};

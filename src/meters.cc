@@ -286,7 +286,7 @@ void MeterCommonImplementation::addLinkMode(LinkMode lm)
     link_modes_.addLinkMode(lm);
 }
 
-void MeterCommonImplementation::addMfctTPLStatusBits(Translate::Lookup lookup)
+void MeterCommonImplementation::addMfctTPLStatusBits(Translate::Lookup &lookup)
 {
     mfct_tpl_status_bits_ = lookup;
 }

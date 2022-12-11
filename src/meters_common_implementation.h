@@ -98,7 +98,7 @@ protected:
     std::vector<std::string> &meterExtraConstantFields();
     void setMeterType(MeterType mt);
     void addLinkMode(LinkMode lm);
-    void addMfctTPLStatusBits(Translate::Lookup lookup);
+    void addMfctTPLStatusBits(Translate::Lookup &lookup);
 
     // Print with the default unit for this quantity.
     void addPrint(string vname, Quantity vquantity,

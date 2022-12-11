@@ -755,7 +755,6 @@ string vifKey(int vif); // E.g. temperature energy power mass_flow volume_flow
 string vifUnit(int vif); // E.g. m3 c kwh kw MJ MJh
 string vifType(int vif); // Long description
 string vifeType(int dif, int vif, int vife); // Long description
-string formatData(int dif, int vif, int vife, string data);
 
 // Decode only the standard defined bits in the tpl status byte. Ignore the top 3 bits.
 // Return "OK" if sts == 0
@@ -766,9 +765,6 @@ string decodeTPLStatusByteNoMfct(uchar sts);
 // Decode the standard bits and translate the top 3 bits if set.
 // Return "OK" if sts == 0
 string decodeTPLStatusByteWithMfct(uchar sts, Translate::Lookup &lookup);
-// Old style lookup to go away.
-// Return "OK" if sts == 0
-string decodeTPLStatusByteWithLookup(uchar sts, map<int,string> *vendor_lookup);
 
 int difLenBytes(int dif);
 MeasurementType difMeasurementType(int dif);

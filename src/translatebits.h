@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2021 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2021-2022 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -111,6 +111,8 @@ namespace Translate
         bool hasLookups() { return rules.size() > 0; }
 
         Lookup &add(Rule r) { rules.push_back(r); return *this; }
+
+        std::string str();
     };
 };
 
