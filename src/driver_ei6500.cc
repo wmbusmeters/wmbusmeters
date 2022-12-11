@@ -30,17 +30,18 @@ namespace
         di.setMeterType(MeterType::SmokeDetector);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_EIE, 0x1a, 0x0c);
-        di.addMfctTPLStatusBits(
-            Translate::Lookup()
-            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
-                 .set(MaskBits(0xe0))
-                 .set(DefaultMessage("OK"))
-                 .add(Translate::Map(0x04 ,"RTC_INVALID", TestBit::Set))));
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
+        setMfctTPLStatusBits(
+            Translate::Lookup()
+            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
+                 .set(MaskBits(0xe0))
+                 .set(DefaultMessage("OK"))
+                 .add(Translate::Map(0x04 ,"RTC_INVALID", TestBit::Set))));
+
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter error flags. IMPORTANT! Smoke alarm is NOT reported here! You MUST check last alarm date and counter!",

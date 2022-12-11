@@ -32,17 +32,18 @@ namespace
         di.addDetection(MANUFACTURER_LAS,  0x00,  0x14);
         di.addDetection(MANUFACTURER_LAS,  0x00,  0x1b);
         di.addDetection(MANUFACTURER_LAS,  0x02,  0x0b);
-        di.addMfctTPLStatusBits(
-            Translate::Lookup()
-            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
-                 .set(MaskBits(0xe0))
-                 .set(DefaultMessage("OK"))
-                 .add(Translate::Map(0x40 ,"SABOTAGE_ENCLOSURE", TestBit::Set))));
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
+        setMfctTPLStatusBits(
+            Translate::Lookup()
+            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
+                 .set(MaskBits(0xe0))
+                 .set(DefaultMessage("OK"))
+                 .add(Translate::Map(0x40 ,"SABOTAGE_ENCLOSURE", TestBit::Set))));
+
         addStringField(
             "status",
             "Meter status from tpl status field.",

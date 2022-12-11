@@ -31,17 +31,18 @@ namespace
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_BMT, 0x0d,  0x0b);
-        di.addMfctTPLStatusBits(
-            Translate::Lookup()
-            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
-                 .set(MaskBits(0xe0))
-                 .set(DefaultMessage("OK"))
-                 .add(Translate::Map(0x80 ,"SABOTAGE_ENCLOSURE", TestBit::Set))));
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) :  MeterCommonImplementation(mi, di)
     {
+        setMfctTPLStatusBits(
+            Translate::Lookup()
+            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
+                 .set(MaskBits(0xe0))
+                 .set(DefaultMessage("OK"))
+                 .add(Translate::Map(0x80 ,"SABOTAGE_ENCLOSURE", TestBit::Set))));
+
         addStringField(
             "status",
             "Meter status from tpl status field.",

@@ -30,17 +30,18 @@ namespace
         di.setDefaultFields("name,id,current_temperature_c,current_relative_humidity_rh,timestamp");
         di.setMeterType(MeterType::TempHygroMeter);
         di.addDetection(MANUFACTURER_LAS,  0x1b,  0x07);
-        di.addMfctTPLStatusBits(
-            Translate::Lookup()
-            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
-                 .set(MaskBits(0xe0))
-                 .set(DefaultMessage("OK"))
-                 .add(Translate::Map(0x40 ,"SABOTAGE_ENCLOSURE", TestBit::Set))));
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
+        setMfctTPLStatusBits(
+            Translate::Lookup()
+            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
+                 .set(MaskBits(0xe0))
+                 .set(DefaultMessage("OK"))
+                 .add(Translate::Map(0x40 ,"SABOTAGE_ENCLOSURE", TestBit::Set))));
+
         addStringField(
             "status",
             "Meter status from tpl status field.",
