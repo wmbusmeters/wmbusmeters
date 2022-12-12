@@ -49,7 +49,7 @@ double NumericFormulaMeterField::calculate(SIUnit to_si_unit)
 
     FieldInfo *fi = formula()->meter()->findFieldInfo(vname_, quantity_);
 
-    Unit field_unit = fi->defaultUnit();
+    Unit field_unit = fi->displayUnit();
     double val = formula()->meter()->getNumericValue(fi, field_unit);
 
     const SIUnit& field_si_unit = toSIUnit(field_unit);
@@ -1030,7 +1030,7 @@ void FormulaImplementation::doSquareRoot()
 
 void FormulaImplementation::doMeterField(Unit u, FieldInfo *fi)
 {
-    SIUnit from_si_unit = toSIUnit(fi->defaultUnit());
+    SIUnit from_si_unit = toSIUnit(fi->displayUnit());
     SIUnit to_si_unit = toSIUnit(u);
     assert(from_si_unit.convertTo(0, to_si_unit, NULL));
 
@@ -1128,14 +1128,14 @@ string NumericFormulaMeterField::str()
     if (formula()->meter() == NULL) return "<?"+vname_+"?>";
     FieldInfo *fi = formula()->meter()->findFieldInfo(vname_, quantity_);
 
-    return fi->vname()+"_"+unitToStringLowerCase(fi->defaultUnit());
+    return fi->vname()+"_"+unitToStringLowerCase(fi->displayUnit());
 }
 
 string NumericFormulaMeterField::tree()
 {
     if (formula()->meter() == NULL) return "<?"+vname_+"?>";
     FieldInfo *fi = formula()->meter()->findFieldInfo(vname_, quantity_);
-    return "<FIELD "+fi->vname()+"_"+unitToStringLowerCase(fi->defaultUnit())+"> ";
+    return "<FIELD "+fi->vname()+"_"+unitToStringLowerCase(fi->displayUnit())+"> ";
 }
 
 string NumericFormulaDVEntryField::str()

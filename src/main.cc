@@ -223,7 +223,7 @@ void list_shell_envs(Configuration *config, string meter_driver)
         std::transform(name.begin(), name.end(), name.begin(), ::toupper);
         if (fi.xuantity() != Quantity::Text)
         {
-            printf("METER_%s_%s\n",name.c_str(), unitToStringUpperCase(fi.defaultUnit()).c_str());
+            printf("METER_%s_%s\n",name.c_str(), unitToStringUpperCase(fi.displayUnit()).c_str());
         }
         else
         {

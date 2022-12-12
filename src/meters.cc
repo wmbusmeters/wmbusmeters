@@ -1060,7 +1060,7 @@ string concatAllFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &fields,
             }
             else
             {
-                Unit u = fi.defaultUnit();
+                Unit u = fi.displayUnit();
                 double v = m->getNumericValue(&fi, u);
                 if (hr) {
                     s += valueToString(v, u);
@@ -1154,13 +1154,13 @@ bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char 
         }
         else
         {
-            if (fi.defaultUnit() == Unit::DateLT)
+            if (fi.displayUnit() == Unit::DateLT)
             {
                 *buf += strdate(m->getNumericValue(&fi, Unit::DateLT));
                 *buf += c;
                 return true;
             }
-            else if (fi.defaultUnit() == Unit::DateTimeLT)
+            else if (fi.displayUnit() == Unit::DateTimeLT)
             {
                 *buf += strdatetime(m->getNumericValue(&fi, Unit::DateTimeLT));
                 *buf += c;
@@ -1169,16 +1169,16 @@ bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char 
             else
             {
                 // Doubles have to be converted into the proper unit.
-                string default_unit = unitToStringLowerCase(fi.defaultUnit());
+                string default_unit = unitToStringLowerCase(fi.displayUnit());
                 string var = fi.vname()+"_"+default_unit;
                 if (field == var)
                 {
                     // Default unit.
-                    *buf += valueToString(m->getNumericValue(&fi, fi.defaultUnit()), fi.defaultUnit());
+                    *buf += valueToString(m->getNumericValue(&fi, fi.displayUnit()), fi.displayUnit());
                     if (human_readable)
                     {
                         *buf += " ";
-                        *buf += unitToStringHR(fi.defaultUnit());
+                        *buf += unitToStringHR(fi.displayUnit());
                     }
                     *buf += c;
                     return true;
@@ -1652,7 +1652,7 @@ FieldInfo::~FieldInfo()
 FieldInfo::FieldInfo(int index,
                      string vname,
                      Quantity xuantity,
-                     Unit default_unit,
+                     Unit display_unit,
                      VifScaling vif_scaling,
                      FieldMatcher matcher,
                      string help,
@@ -1667,7 +1667,7 @@ FieldInfo::FieldInfo(int index,
         index_(index),
         vname_(vname),
         xuantity_(xuantity),
-        default_unit_(default_unit),
+        display_unit_(display_unit),
         vif_scaling_(vif_scaling),
         matcher_(matcher),
         help_(help),
@@ -1713,7 +1713,7 @@ string FieldInfo::generateFieldNameWithUnit(DVEntry *dve)
         return field_name_->apply(dve);
     }
 
-    string default_unit = unitToStringLowerCase(defaultUnit());
+    string default_unit = unitToStringLowerCase(displayUnit());
     string var = field_name_->apply(dve);
 
     return var+"_"+default_unit;
@@ -1724,7 +1724,7 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
 {
     string s;
 
-    string default_unit = unitToStringLowerCase(defaultUnit());
+    string default_unit = unitToStringLowerCase(displayUnit());
     string field_name = generateFieldNameNoUnit(dve);
 
     if (xuantity() == Quantity::Text)
@@ -1747,18 +1747,18 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     }
     else
     {
-        if (defaultUnit() == Unit::DateLT)
+        if (displayUnit() == Unit::DateLT)
         {
             s += "\""+field_name+"_"+default_unit+"\":\""+strdate(m->getNumericValue(field_name, Unit::DateLT))+"\"";
         }
-        else if (defaultUnit() == Unit::DateTimeLT)
+        else if (displayUnit() == Unit::DateTimeLT)
         {
             s += "\""+field_name+"_"+default_unit+"\":\""+strdatetime(m->getNumericValue(field_name, Unit::DateTimeLT))+"\"";
         }
         else
         {
             // All numeric values.
-            s += "\""+field_name+"_"+default_unit+"\":"+valueToString(m->getNumericValue(field_name, defaultUnit()), defaultUnit());
+            s += "\""+field_name+"_"+default_unit+"\":"+valueToString(m->getNumericValue(field_name, displayUnit()), displayUnit());
         }
     }
 
@@ -1849,7 +1849,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                 for (DVEntry *dve : founds[&fi])
                 {
                     debug("(meters) render field %s(%s %s)[%d] with dventry @%d key %s data %s\n",
-                          fi.vname().c_str(), toString(fi.xuantity()), unitToStringLowerCase(fi.defaultUnit()).c_str(), fi.index(),
+                          fi.vname().c_str(), toString(fi.xuantity()), unitToStringLowerCase(fi.displayUnit()).c_str(), fi.index(),
                           dve->offset,
                           dve->dif_vif_key.str().c_str(),
                           dve->value.c_str());
@@ -1929,7 +1929,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     {
         if (fi.printProperties().hasJSON() && !fi.printProperties().hasHIDE())
         {
-            string default_unit = unitToStringUpperCase(fi.defaultUnit());
+            string default_unit = unitToStringUpperCase(fi.displayUnit());
             string var = fi.vname();
             std::transform(var.begin(), var.end(), var.begin(), ::toupper);
             if (fi.xuantity() == Quantity::Text)
@@ -1939,7 +1939,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
             }
             else
             {
-                string envvar = "METER_"+var+"_"+default_unit+"="+valueToString(getNumericValue(&fi, fi.defaultUnit()), fi.defaultUnit());
+                string envvar = "METER_"+var+"_"+default_unit+"="+valueToString(getNumericValue(&fi, fi.displayUnit()), fi.displayUnit());
                 envs->push_back(envvar);
             }
         }
@@ -2244,8 +2244,8 @@ void FieldInfo::performExtraction(Meter *m, Telegram *t, DVEntry *dve)
     }
     else if (hasFormula())
     {
-        double value = formula_->calculate(defaultUnit(), dve, m);
-        m->setNumericValue(this, dve, defaultUnit(), value);
+        double value = formula_->calculate(displayUnit(), dve, m);
+        m->setNumericValue(this, dve, displayUnit(), value);
     }
     else
     {
@@ -2258,8 +2258,8 @@ void FieldInfo::performCalculation(Meter *m)
 {
     assert(hasFormula());
 
-    double value = formula_->calculate(defaultUnit());
-    m->setNumericValue(this, NULL, defaultUnit(), value);
+    double value = formula_->calculate(displayUnit());
+    m->setNumericValue(this, NULL, displayUnit(), value);
 }
 
 bool FieldInfo::hasMatcher()
@@ -2282,7 +2282,7 @@ string FieldInfo::str()
     return tostrprintf("%d %s_%s (%s) %s [%s] \"%s\"",
                        index_,
                        vname_.c_str(),
-                       unitToStringLowerCase(default_unit_).c_str(),
+                       unitToStringLowerCase(display_unit_).c_str(),
                        toString(xuantity_),
                        toString(vif_scaling_),
                        matcher_.str().c_str(),
@@ -2334,7 +2334,7 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
                            vifScaling() == VifScaling::NoneSigned ||
                            vifScaling() == VifScaling::AutoSigned))
     {
-        Unit decoded_unit = defaultUnit();
+        Unit decoded_unit = displayUnit();
         if (matcher_.vif_range == VIFRange::DateTime)
         {
             struct tm datetime;
@@ -2368,10 +2368,10 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
               toString(matcher_.vif_range),
               field_name.c_str(),
               unitToStringLowerCase(decoded_unit).c_str(),
-              unitToStringLowerCase(default_unit_).c_str(),
+              unitToStringLowerCase(display_unit_).c_str(),
               extracted_double_value);
 
-        m->setNumericValue(this, dve, default_unit_, convert(extracted_double_value, decoded_unit, default_unit_));
+        m->setNumericValue(this, dve, display_unit_, convert(extracted_double_value, decoded_unit, display_unit_));
         t->addMoreExplanation(dve->offset, renderJson(m, dve));
         found = true;
     }

@@ -273,8 +273,8 @@ struct FieldInfo
     ~FieldInfo();
     FieldInfo(int index,
               string vname,
-              Quantity xuantity,
-              Unit default_unit,
+              Quantity quantity,
+              Unit display_unit,
               VifScaling vif_scaling,
               FieldMatcher matcher,
               string help,
@@ -290,7 +290,7 @@ struct FieldInfo
     int index() { return index_; }
     string vname() { return vname_; }
     Quantity xuantity() { return xuantity_; }
-    Unit defaultUnit() { return default_unit_; }
+    Unit displayUnit() { return display_unit_; }
     VifScaling vifScaling() { return vif_scaling_; }
     FieldMatcher& matcher() { return matcher_; }
     string help() { return help_; }
@@ -336,7 +336,7 @@ private:
     int index_; // The field infos for a meter are ordered.
     string vname_; // Value name, like: total current previous target, ie no unit suffix.
     Quantity xuantity_; // Quantity: Energy, Volume
-    Unit default_unit_; // Default unit for above quantity: KWH, M3
+    Unit display_unit_; // Selected display unit for above quantity: KWH, M3
     VifScaling vif_scaling_;
     FieldMatcher matcher_;
     string help_; // Helpful information on this meters use of this value.
