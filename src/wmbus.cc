@@ -1886,6 +1886,9 @@ bool Telegram::parseTPL(vector<uchar>::iterator &pos)
 
     if (!isCiFieldOfType(ci_field, CI_TYPE::TPL) && !mfct_specific)
     {
+        addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::NONE,
+                                      "%02x unknown ci-field",
+                                      ci_field);
         if (parser_warns_)
         {
             warning("(wmbus) Unknown tpl-ci-field %02x\n", ci_field);
