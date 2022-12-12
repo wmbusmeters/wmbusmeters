@@ -42,10 +42,12 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addStringFieldWithExtractor(
+        addNumericFieldWithExtractor(
             "meter_timestamp",
             "Device date time.",
             PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::PointInTime,
+            VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -173,7 +175,7 @@ namespace
             "The historic date #.",
             PrintProperty::JSON | PrintProperty::OPTIONAL,
             Quantity::PointInTime,
-            "meter_timestamp - ((storage_counter-1counter) * 1 month)",
+            "meter_timestamp_date - ((storage_counter-1counter) * 1 month)",
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
