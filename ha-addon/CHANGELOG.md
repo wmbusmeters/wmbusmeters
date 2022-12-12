@@ -1,5 +1,7 @@
-## 0.2.0
-- Wmbusmeters configuration migrated to add-on page
+# Release
 
-## 0.1.0
-- First versioned release of the add-on
+https://github.com/weetmuts/wmbusmeters/tags
+
+# Changelog
+
+https://github.com/weetmuts/wmbusmeters/blob/master/CHANGES
