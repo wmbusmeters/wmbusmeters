@@ -251,6 +251,17 @@ void MeterCommonImplementation::addExtraCalculatedField(string ecf)
 
     Quantity quantity = toQuantity(unit);
 
+    FieldInfo *existing = findFieldInfo(vname, quantity);
+    if (existing != NULL)
+    {
+        if (!canConvert(unit, existing->displayUnit()))
+        {
+            warning("Warning! Cannot add the calculated field: %s since it would conflict with the already declared field %s for quantity %s.\n",
+                    parts[0].c_str(), vname.c_str(), toString(quantity));
+            return;
+        }
+    }
+
     addNumericFieldWithCalculator(
         vname,
         "Calculated: "+ecf,
@@ -394,13 +405,13 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                                                              Quantity vquantity,
                                                              VifScaling vif_scaling,
                                                              FieldMatcher matcher,
-                                                             Unit use_unit)
+                                                             Unit display_unit)
 {
     field_infos_.emplace_back(
         FieldInfo(field_infos_.size(),
                   vname,
                   vquantity,
-                  use_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : use_unit,
+                  display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
                   vif_scaling,
                   matcher,
                   help,
@@ -419,7 +430,7 @@ void MeterCommonImplementation::addNumericFieldWithCalculator(string vname,
                                                               PrintProperties print_properties,
                                                               Quantity vquantity,
                                                               string formula,
-                                                              Unit use_unit)
+                                                              Unit display_unit)
 {
     Formula *f = newFormula();
     bool ok = f->parse(this, formula);
@@ -438,7 +449,7 @@ void MeterCommonImplementation::addNumericFieldWithCalculator(string vname,
         FieldInfo(field_infos_.size(),
                   vname,
                   vquantity,
-                  use_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : use_unit,
+                  display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
                   VifScaling::Auto,
                   FieldMatcher::noMatcher(),
                   help,
@@ -458,7 +469,7 @@ void MeterCommonImplementation::addNumericFieldWithCalculatorAndMatcher(string v
                                                                         Quantity vquantity,
                                                                         string formula,
                                                                         FieldMatcher matcher,
-                                                                        Unit use_unit)
+                                                                        Unit display_unit)
 {
     Formula *f = newFormula();
     bool ok = f->parse(this, formula);
@@ -477,7 +488,7 @@ void MeterCommonImplementation::addNumericFieldWithCalculatorAndMatcher(string v
         FieldInfo(field_infos_.size(),
                   vname,
                   vquantity,
-                  use_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : use_unit,
+                  display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
                   VifScaling::Auto,
                   matcher,
                   help,
@@ -522,13 +533,13 @@ void MeterCommonImplementation::addNumericField(
     Quantity vquantity,
     PrintProperties print_properties,
     string help,
-    Unit use_unit)
+    Unit display_unit)
 {
     field_infos_.emplace_back(
         FieldInfo(field_infos_.size(),
                   vname,
                   vquantity,
-                  use_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : use_unit,
+                  display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
                   VifScaling::None,
                   FieldMatcher::noMatcher(),
                   help,
@@ -1169,8 +1180,8 @@ bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char 
             else
             {
                 // Doubles have to be converted into the proper unit.
-                string default_unit = unitToStringLowerCase(fi.displayUnit());
-                string var = fi.vname()+"_"+default_unit;
+                string display_unit_s = unitToStringLowerCase(fi.displayUnit());
+                string var = fi.vname()+"_"+display_unit_s;
                 if (field == var)
                 {
                     // Default unit.
@@ -1713,10 +1724,10 @@ string FieldInfo::generateFieldNameWithUnit(DVEntry *dve)
         return field_name_->apply(dve);
     }
 
-    string default_unit = unitToStringLowerCase(displayUnit());
+    string display_unit_s = unitToStringLowerCase(displayUnit());
     string var = field_name_->apply(dve);
 
-    return var+"_"+default_unit;
+    return var+"_"+display_unit_s;
 }
 
 
@@ -1724,7 +1735,7 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
 {
     string s;
 
-    string default_unit = unitToStringLowerCase(displayUnit());
+    string display_unit_s = unitToStringLowerCase(displayUnit());
     string field_name = generateFieldNameNoUnit(dve);
 
     if (xuantity() == Quantity::Text)
@@ -1749,16 +1760,16 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     {
         if (displayUnit() == Unit::DateLT)
         {
-            s += "\""+field_name+"_"+default_unit+"\":\""+strdate(m->getNumericValue(field_name, Unit::DateLT))+"\"";
+            s += "\""+field_name+"_"+display_unit_s+"\":\""+strdate(m->getNumericValue(field_name, Unit::DateLT))+"\"";
         }
         else if (displayUnit() == Unit::DateTimeLT)
         {
-            s += "\""+field_name+"_"+default_unit+"\":\""+strdatetime(m->getNumericValue(field_name, Unit::DateTimeLT))+"\"";
+            s += "\""+field_name+"_"+display_unit_s+"\":\""+strdatetime(m->getNumericValue(field_name, Unit::DateTimeLT))+"\"";
         }
         else
         {
             // All numeric values.
-            s += "\""+field_name+"_"+default_unit+"\":"+valueToString(m->getNumericValue(field_name, displayUnit()), displayUnit());
+            s += "\""+field_name+"_"+display_unit_s+"\":"+valueToString(m->getNumericValue(field_name, displayUnit()), displayUnit());
         }
     }
 
@@ -1929,7 +1940,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     {
         if (fi.printProperties().hasJSON() && !fi.printProperties().hasHIDE())
         {
-            string default_unit = unitToStringUpperCase(fi.displayUnit());
+            string display_unit_s = unitToStringUpperCase(fi.displayUnit());
             string var = fi.vname();
             std::transform(var.begin(), var.end(), var.begin(), ::toupper);
             if (fi.xuantity() == Quantity::Text)
@@ -1939,7 +1950,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
             }
             else
             {
-                string envvar = "METER_"+var+"_"+default_unit+"="+valueToString(getNumericValue(&fi, fi.displayUnit()), fi.displayUnit());
+                string envvar = "METER_"+var+"_"+display_unit_s+"="+valueToString(getNumericValue(&fi, fi.displayUnit()), fi.displayUnit());
                 envs->push_back(envvar);
             }
         }

@@ -1929,6 +1929,10 @@ LIST_OF_QUANTITIES
     fill_with_units_from(Quantity::Power, &to_set);
 
     test_si_convert(1, 1, Unit::KW, "kw", Unit::KW, "kw", Quantity::Power, &from_set, &to_set);
+    // The power variant is m3ch.
+    test_si_convert(99.0, 99.0, Unit::M3CH, "m3ch", Unit::M3CH, "m3ch", Quantity::Power, &from_set, &to_set);
+
+    test_expected_failed_si_convert(Unit::M3CH, Unit::KW, Quantity::Power);
 
     check_units_tested(from_set, to_set, Quantity::Power);
 

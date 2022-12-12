@@ -145,7 +145,7 @@ protected:
         Quantity vquantity,     // Value belongs to this quantity, this quantity determines the default unit.
         VifScaling vif_scaling, // How should any Vif value be scaled.
         FieldMatcher matcher,
-        Unit use_unit = Unit::Unknown); // If specified use this unit for the json field instead instead of the default unit.
+        Unit display_unit = Unit::Unknown); // If specified use this unit for the json field instead instead of the default unit.
 
     void addNumericFieldWithCalculator(
         string vname,           // Name of value without unit, eg "total" "total_month{storagenr}"
@@ -153,7 +153,7 @@ protected:
         PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
         Quantity vquantity,     // Value belongs to this quantity, this quantity determines the default unit.
         string formula,         // The formula can reference the other fields and + them together.
-        Unit use_unit = Unit::Unknown); // If specified use this unit for the json field instead instead of the default unit.
+        Unit display_unit = Unit::Unknown); // If specified use this unit for the json field instead instead of the default unit.
 
     void addNumericFieldWithCalculatorAndMatcher(
         string vname,           // Name of value without unit, eg "total" "total_month{storagenr}"
@@ -162,7 +162,7 @@ protected:
         Quantity vquantity,     // Value belongs to this quantity, this quantity determines the default unit.
         string formula,         // The formula can reference the other fields and + them together.
         FieldMatcher matcher,   // We can generate a calculated field per match.
-        Unit use_unit = Unit::Unknown); // If specified use this unit for the json field instead instead of the default unit.
+        Unit display_unit = Unit::Unknown); // If specified use this unit for the json field instead instead of the default unit.
 
     void addNumericField(
         string vname,          // Name of value without unit, eg total
@@ -177,7 +177,7 @@ protected:
         Quantity vquantity,    // Value belongs to this quantity.
         PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
         string help,
-        Unit use_unit = Unit::Unknown);  // If specified use this unit for the json field instead instead of the default unit.
+        Unit display_unit = Unit::Unknown);  // If specified use this unit for the json field instead instead of the default unit.
 
 #define SET_STRING_FUNC(varname) {[=](string s){varname = s;}}
 #define GET_STRING_FUNC(varname) {[=](){return varname; }}

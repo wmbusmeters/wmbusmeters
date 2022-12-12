@@ -85,6 +85,7 @@ LIST_OF_QUANTITIES
     X(M3C,m3c,"m³°C",Energy,"cubic meter celsius")                      \
     \
     X(KW,kw,"kW",Power,"kilo Watt")                                     \
+    X(M3CH,m3ch,"m³°C/h",Power,"cubic meter celsius per hour")          \
     \
     X(M3,m3,"m³",Volume,"cubic meter")                                  \
     X(L,l,"l",Volume,"litre")                                           \
