@@ -332,8 +332,8 @@ bool parseDV(Telegram *t,
             (*format)++;
         }
 
-        // Check if this is marker for one of the extended sets of vifs: first, second and thir.
-        if (vif == 0xfb || vif == 0xfd || vif == 0xef)
+        // Check if this is marker for one of the extended sets of vifs: first, second and third or manufacturer.
+        if (vif == 0xfb || vif == 0xfd || vif == 0xef || vif == 0xff)
         {
             // Extension vifs.
             full_vif <<= 8;

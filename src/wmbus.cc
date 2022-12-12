@@ -3673,6 +3673,12 @@ string vif_6F_ThirdExtensionType(uchar dif, uchar vif, uchar vife)
     return "?";
 }
 
+string vif_7F_ManufacturerExtensionType(uchar dif, uchar vif, uchar vife)
+{
+    assert(vif == 0xff);
+    return "?";
+}
+
 string vifeType(int dif, int vif, int vife)
 {
     if (vif == 0xfb) { // 0x7b without high bit
@@ -3683,6 +3689,9 @@ string vifeType(int dif, int vif, int vife)
     }
     if (vif == 0xef) { // 0x6f without high bit
         return vif_6F_ThirdExtensionType(dif, vif, vife);
+    }
+    if (vif == 0xff) { // 0x7f without high bit
+        return vif_7F_ManufacturerExtensionType(dif, vif, vife);
     }
     vife = vife & 0x7f; // Strip the bit signifying more vifes after this.
     if (vife == 0x1f) {

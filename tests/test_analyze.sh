@@ -138,7 +138,7 @@ Using driver : multical21 00/00
 019   : 78 tpl-ci-field (EN 13757-3 Application Layer (no tplh))
 020   : 02 dif (16 Bit Integer/Binary Instantaneous value)
 021   : FF vif (Manufacturer specific)
-022   : 20 combinable vif (PerSecond)
+022   : 20 vife (?)
 023 C!: 7100 ("status":"DRY") ("current_status":"DRY") ("time_dry":"22-31 days") ("time_reversed":"") ("time_leaking":"") ("time_bursting":"")
 025   : 04 dif (32 Bit Integer/Binary Instantaneous value)
 026   : 13 vif (Volume l)
