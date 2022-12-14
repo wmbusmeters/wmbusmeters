@@ -9,14 +9,14 @@ CONFIG_METERS="$(jq --raw-output -c -M '.meters' $CONFIG_PATH)"
 echo "Syncing wmbusmeters configuration ..."
 [ ! -d $CONFIG_DATA_PATH/logs/meter_readings ] && mkdir -p $CONFIG_DATA_PATH/logs/meter_readings
 [ ! -d $CONFIG_DATA_PATH/etc/wmbusmeters.d ] && mkdir -p $CONFIG_DATA_PATH/etc/wmbusmeters.d
-echo -e "$CONFIG_CONF" > $CONFIG_DATA_PATH/etc/wmbusmeters.conf 
+echo -e "$CONFIG_CONF" > $CONFIG_DATA_PATH/etc/wmbusmeters.conf
 
 echo "Registering meters ..."
 rm -f $CONFIG_DATA_PATH/etc/wmbusmeters.d/*
 meter_no=0
 IFS=$'\n'
 for meter in $(jq -c -M '.meters[]' $CONFIG_PATH)
-do 
+do
     meter_no=$(( meter_no+1 ))
     METER_NAME=$(printf 'meter-%04d' "$(( meter_no ))")
     echo "Adding $METER_NAME ..."
@@ -49,7 +49,7 @@ cat > /wmbusmeters/mosquitto_pub.sh << EOL
 #!/usr/bin/with-contenv bashio
 TOPIC=\$1
 MESSAGE=\$2
-/usr/bin/mosquitto_pub ${pub_args_quoted[@]} -r -t \$TOPIC -m "\$MESSAGE"
+/usr/bin/mosquitto_pub ${pub_args_quoted[@]} -r -t "\$TOPIC" -m "\$MESSAGE"
 EOL
 chmod a+x /wmbusmeters/mosquitto_pub.sh
 
