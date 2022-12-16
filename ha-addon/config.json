@@ -11,6 +11,14 @@
     "devices": ["/dev/ttyUSB0", "/dev/ttyAMA0"],
     "usb": true,
     "uart": true,
+    "ports": {
+      "9011/udp": null,
+      "9022/tcp": null
+    },
+    "ports_description": {
+      "9011/udp": "Netcat udp-listen port",
+      "9022/tcp": "Netcat tcp-listen port"
+    },
     "services": [
       "mqtt:need"
     ],
