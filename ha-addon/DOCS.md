@@ -66,20 +66,25 @@ mqtt:
 
 ## Home Assistant integration
 
-Finally, you need to tell Home Assistant how to extract the readings from the MQTT. You can add the following sensor definition into your `sensor:` section of `configuration.yaml`.
+Finally, you need to tell Home Assistant how to extract the readings from the MQTT. You can add the following sensor definition into your `mqtt:` section of `configuration.yaml`.
 
 ```yaml
-sensor:
-  - platform: mqtt
-    state_topic: "wmbusmeters/MainWater"
-    json_attributes_topic: "wmbusmeters/MainWater"
-    unit_of_measurement: "m3"
-    value_template: "{{ value_json.total_m3 }}"
-    name: Water usage
-    icon: "mdi:gauge"
+mqtt:
+  sensor:
+    - state_topic: "wmbusmeters/MainWater"
+      json_attributes_topic: "wmbusmeters/MainWater"
+      unit_of_measurement: m³
+      value_template: "{{ value_json.total_m3 }}"
+      name: Water usage
+      icon: "mdi:gauge"
+      state_class: total_increasing
+      device_class: water
 ```
 
-_Please note: `MainWater` is the water meter name used in `meters` configuration._
+_Please note: 
+
+- `MainWater` is the water meter name used in `meters` configuration._
+- `device_class` is necessary to be adapt on your meters type (water, gas, etc.) [see here](https://developers.home-assistant.io/docs/core/entity/sensor/#available-device-classes)
 
 
 ## Support
