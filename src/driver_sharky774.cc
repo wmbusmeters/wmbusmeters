@@ -25,12 +25,15 @@ struct MeterSharky774 : public virtual MeterCommonImplementation
 private:
 
     double total_energy_consumption_kwh_ {};
+    double total_cooling_consumption_kwh_ {};
     double total_volume_m3_ {};
+    double total_cooling_m3_ {};
     double volume_flow_m3h_ {};
     double power_kw_ {};
     double flow_temperature_c_ {};
     double return_temperature_c_ {};
     double energy_at_set_date_kwh_ {};
+    double cooling_at_set_date_kwh_ {};
     double operating_time_h_ {};
     string set_date_txt_;
 };
@@ -41,6 +44,7 @@ static bool ok = registerDriver([](DriverInfo&di)
     di.setMeterType(MeterType::HeatMeter);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(MANUFACTURER_DME, 0x04,  0x41);
+    di.addDetection(MANUFACTURER_DME, 0x0d,  0x41);
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterSharky774(mi, di)); });
 });
 
@@ -60,6 +64,21 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
         "The total energy consumption recorded by this meter.",
         SET_FUNC(total_energy_consumption_kwh_, Unit::KWH),
         GET_FUNC(total_energy_consumption_kwh_, Unit::MJ));
+		
+    addNumericFieldWithExtractor(
+        "total_cooling_consumption",
+        Quantity::Energy,
+        DifVifKey("8C1006"),
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        VIFRange::AnyEnergyVIF,
+        StorageNr(0),
+        TariffNr(1),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+        "The total cooling consumption recorded by this meter.",
+        SET_FUNC(total_cooling_consumption_kwh_, Unit::KWH),
+        GET_FUNC(total_cooling_consumption_kwh_, Unit::MJ));
 
     addNumericFieldWithExtractor(
         "total_volume",
@@ -75,7 +94,22 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
         "The total volume recorded by this meter.",
         SET_FUNC(total_volume_m3_, Unit::M3),
         GET_FUNC(total_volume_m3_, Unit::M3));
-
+		
+    addNumericFieldWithExtractor(
+        "total_cooling",
+        Quantity::Volume,
+        DifVifKey("8C2013"),
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        VIFRange::AnyVolumeVIF,
+        StorageNr(0),
+        TariffNr(2),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD,
+        "The total cooling energy consumption recorded by this meter.",
+        SET_FUNC(total_cooling_m3_, Unit::M3),
+        GET_FUNC(total_cooling_m3_, Unit::M3));
+		
     addNumericFieldWithExtractor(
         "volume_flow",
         Quantity::Flow,
@@ -172,6 +206,21 @@ MeterSharky774::MeterSharky774(MeterInfo &mi, DriverInfo &di) :  MeterCommonImpl
         "The total energy consumption recorded by this meter at the set date.",
         SET_FUNC(energy_at_set_date_kwh_, Unit::KWH),
         GET_FUNC(energy_at_set_date_kwh_, Unit::KWH));
+
+    addNumericFieldWithExtractor(
+        "cooling_at_set_date",
+        Quantity::Energy,
+        DifVifKey("CC1006"),
+        VifScaling::Auto,
+        MeasurementType::Instantaneous,
+        VIFRange::AnyEnergyVIF,
+        StorageNr(1),
+        TariffNr(1),
+        IndexNr(1),
+        PrintProperty::JSON | PrintProperty::FIELD,
+        "The total cooling consumption recorded by this meter at the set date.",
+        SET_FUNC(cooling_at_set_date_kwh_, Unit::KWH),
+        GET_FUNC(cooling_at_set_date_kwh_, Unit::KWH));
 
     addStringFieldWithExtractor(
         "set_date",
