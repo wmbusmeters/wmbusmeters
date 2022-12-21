@@ -3,8 +3,8 @@
 CONFIG_PATH=/data/options.json
 
 CONFIG_DATA_PATH=$(bashio::config 'data_path')
-CONFIG_CONF="$(jq --raw-output -c -M '.conf' $CONFIG_PATH)"
-CONFIG_METERS="$(jq --raw-output -c -M '.meters' $CONFIG_PATH)"
+CONFIG_CONF=$(bashio::jq "${CONFIG_PATH}" '.conf')
+CONFIG_METERS=$(bashio::jq "${CONFIG_PATH}" '.meters')
 
 bashio::log.info "Syncing wmbusmeters configuration ..."
 [ ! -d $CONFIG_DATA_PATH/logs/meter_readings ] && mkdir -p $CONFIG_DATA_PATH/logs/meter_readings
