@@ -7,8 +7,12 @@ CONFIG_CONF=$(bashio::jq "${CONFIG_PATH}" '.conf')
 CONFIG_METERS=$(bashio::jq "${CONFIG_PATH}" '.meters')
 
 bashio::log.info "Syncing wmbusmeters configuration ..."
-[ ! -d $CONFIG_DATA_PATH/logs/meter_readings ] && mkdir -p $CONFIG_DATA_PATH/logs/meter_readings
-[ ! -d $CONFIG_DATA_PATH/etc/wmbusmeters.d ] && mkdir -p $CONFIG_DATA_PATH/etc/wmbusmeters.d
+if ! bashio::fs.directory_exists "${CONFIG_DATA_PATH}/logs/meter_readings"; then
+    mkdir -p "${CONFIG_DATA_PATH}/logs/meter_readings"
+fi
+if ! bashio::fs.directory_exists "${CONFIG_DATA_PATH}/etc/wmbusmeters.d"; then
+    mkdir -p "${CONFIG_DATA_PATH}/etc/wmbusmeters.d"
+fi
 echo -e "$CONFIG_CONF" > $CONFIG_DATA_PATH/etc/wmbusmeters.conf
 
 bashio::log.info "Registering meters ..."
