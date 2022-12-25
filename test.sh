@@ -168,7 +168,13 @@ then
     (cd ..; ./additional_tests.sh $PROG)
 fi
 
-./tests/test_nc.sh $PROG
+./tests/test_nc1.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_nc2.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_nc3.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 echo Slower tests...
