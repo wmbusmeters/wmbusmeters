@@ -66,7 +66,19 @@ shared_ptr<BusDevice> openRawTTYInternal(Detected detected,
     string device = detected.found_file;
     int bps = detected.found_bps;
 
-    assert(device != "");
+	if (detected.specified_device.command != "")
+	{
+		string identifier = "cmd_" + to_string(detected.specified_device.index);
+
+		vector<string> args;
+		vector<string> envs;
+		args.push_back("-c");
+		args.push_back(detected.specified_device.command);
+
+		auto serial = manager->createSerialDeviceCommand(identifier, "/bin/sh", args, envs, "rawtty");
+		WMBusRawTTY *imp = new WMBusRawTTY(bus_alias, serial, manager, use_hex);
+		return shared_ptr<BusDevice>(imp);
+	}
 
     if (serial_override)
     {

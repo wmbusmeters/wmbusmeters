@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if nc 2>&1 | grep -q apple
+then
+    exit 0
+fi
+
 PROG="$1"
 
 TEST=testoutput
@@ -13,7 +18,7 @@ TESTRESULT="ERROR"
 PORT=$(( $RANDOM % 10000 + 30000 ))
 
 rm -f $TEST/response
-$PROG --silent --oneshot --format=fields --selectfields=total_m3 "rtlwmbus:CMD(nc -lkv $PORT)"  MyWater iperl 33225544 NOKEY >> $TEST/response 2>&1 &
+$PROG --silent --oneshot --exitafter=5s --format=fields --selectfields=total_m3 "rtlwmbus:CMD(nc -lkv $PORT)"  MyWater iperl 33225544 NOKEY >> $TEST/response 2>&1 &
 
 sleep 0.5
 
