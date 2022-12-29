@@ -32,6 +32,7 @@ namespace
         di.addLinkMode(LinkMode::MBUS);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
         di.addDetection(MANUFACTURER_WEP, 0x1b,  0x02);
+        di.addDetection(MANUFACTURER_WEP, 0x1b,  0x04);
     });
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
@@ -81,7 +82,14 @@ namespace
     }
 }
 
+// Munia
 // Test: TempoHygro munia 00013482 NOKEY
 // telegram=|2E44B05C82340100021B7A460000002F2F0A6601020AFB1A570602FD971D00002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F|
 // {"media":"room sensor","meter":"munia","name":"TempoHygro","id":"00013482","status":"OK","current_temperature_c":20.1,"current_relative_humidity_rh":65.7,"timestamp":"1111-11-11T11:11:11Z"}
 // |TempoHygro;00013482;20.1;65.7;1111-11-11 11:11.11
+
+// Robin 
+// # Test: TempoHygro munia 00220111 NOKEY 
+// telegram=|2E44B05C11012200041B7A2B0000002F2F0A6617020AFB1A100602FD971D00002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F|
+// {"media":"room sensor","meter":"munia","name":"TempoHygro","id":"00220111","status":"OK","current_temperature_c":21.7,"current_relative_humidity_rh":61,"timestamp":"1111-11-11T11:11:11Z"}
+// |TempoHygro;00220111;21.7;61;1111-11-11 11:11.11
