@@ -1099,7 +1099,7 @@ void padWithZeroesTo(vector<uchar> *content, size_t len, vector<uchar> *full_con
     }
 }
 
-static string space = "                                                   ";
+static string space = "                                                                                                                                                               ";
 string padLeft(const string& input, int width)
 {
     int w = width-input.size();

@@ -1,3 +1,9 @@
+
+A bug in the hydrocalm3 driver was found. When total_cooling_kwh
+and other similar values were used as text fields (not a json fields)
+they were replaced with dates instead. This was due to a bug in the new
+code handling Quantity::PointInTime.
+
 Version 1.11.0 2022-12-29
 
 Version 1.11.0-RC2 2022-12-29

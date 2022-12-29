@@ -1148,7 +1148,7 @@ bool checkCommonField(string *buf, string field, Meter *m, Telegram *t, char c, 
 }
 
 // Is the desired field one of the meter printable fields?
-bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char c,
+bool checkPrintableField(string *buf, string desired_field_name, Meter *m, Telegram *t, char c,
                          vector<FieldInfo> &fields, bool human_readable)
 {
 
@@ -1157,7 +1157,7 @@ bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char 
         if (fi.xuantity() == Quantity::Text)
         {
             // Strings are simply just print them.
-            if (field == fi.vname())
+            if (desired_field_name == fi.vname())
             {
                 *buf += m->getStringValue(&fi) + c;
                 return true;
@@ -1165,6 +1165,11 @@ bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char 
         }
         else
         {
+            string display_unit_s = unitToStringLowerCase(fi.displayUnit());
+            string var = fi.vname()+"_"+display_unit_s;
+            if (desired_field_name != var) continue;
+
+            // We have the correc field.
             if (fi.displayUnit() == Unit::DateLT)
             {
                 *buf += strdate(m->getNumericValue(&fi, Unit::DateLT));
@@ -1179,21 +1184,15 @@ bool checkPrintableField(string *buf, string field, Meter *m, Telegram *t, char 
             }
             else
             {
-                // Doubles have to be converted into the proper unit.
-                string display_unit_s = unitToStringLowerCase(fi.displayUnit());
-                string var = fi.vname()+"_"+display_unit_s;
-                if (field == var)
+                // Default unit.
+                *buf += valueToString(m->getNumericValue(&fi, fi.displayUnit()), fi.displayUnit());
+                if (human_readable)
                 {
-                    // Default unit.
-                    *buf += valueToString(m->getNumericValue(&fi, fi.displayUnit()), fi.displayUnit());
-                    if (human_readable)
-                    {
-                        *buf += " ";
-                        *buf += unitToStringHR(fi.displayUnit());
-                    }
-                    *buf += c;
-                    return true;
+                    *buf += " ";
+                    *buf += unitToStringHR(fi.displayUnit());
                 }
+                *buf += c;
+                return true;
             }
         }
     }
