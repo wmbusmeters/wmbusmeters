@@ -21,6 +21,10 @@ then
     exit 0
 fi
 
+cat /tmp/release_changes
+
+exit 0
+
 VERSION=$(grep -m 1 ^Version CHANGES  | sed 's/Version \([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)\(-RC[ 0-9]\?\)\?:.*/\1 \2 \3 \4/')
 
 MAJOR=$(echo "$VERSION" | cut -f 1 -d ' ')
