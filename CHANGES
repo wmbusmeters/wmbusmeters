@@ -5,6 +5,12 @@ Ranma added support for the pollcumqheat 55 driver. Thanks Ranma!
 
 Jacek27 added another Munia temp/hygrometer version. Thanks Jacek27!
 
+Version 1.10.2 2022-12-05
+
+Stefan Rado improved the mqtt discovery for HA. Thanks Stefan!
+
+Bibo improved the snap build process. Thanks Bibo!
+
 Version 1.10.1 2022-12-05
 
 Fix bug that prevented a direct tty link: /dev/ttyUSB0:device:t1 to work.
