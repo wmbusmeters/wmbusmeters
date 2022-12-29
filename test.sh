@@ -168,14 +168,18 @@ then
     (cd ..; ./additional_tests.sh $PROG)
 fi
 
-./tests/test_nc1.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+# Only run the netcat tests if netcat is installed.
+if command -v nc > /dev/null 2> /dev/null
+then
+    ./tests/test_nc1.sh $PROG
+    if [ "$?" != "0" ]; then RC="1"; fi
 
-./tests/test_nc2.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+    ./tests/test_nc2.sh $PROG
+    if [ "$?" != "0" ]; then RC="1"; fi
 
-./tests/test_nc3.sh $PROG
-if [ "$?" != "0" ]; then RC="1"; fi
+    ./tests/test_nc3.sh $PROG
+    if [ "$?" != "0" ]; then RC="1"; fi
+fi
 
 echo Slower tests...
 
