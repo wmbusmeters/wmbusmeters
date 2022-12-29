@@ -1,7 +1,7 @@
 #!/bin/bash
 # Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
 
-# Grab all text up to the "Version x.y.z-RC1: <date>" line
+# Grab all text up to the "Version x.y.z-RC1 <date>" line
 # There should be no text.
 CHANGES=$(sed '/Version /q' CHANGES | grep -v ^Version | sed '/./,$!d' | \
           tac | sed -e '/./,$!d' | tac | sed -e '/./,$!d' > /tmp/release_changes)
@@ -13,7 +13,7 @@ then
 fi
 
 # Grab all text between the Version RC and the previous VERSION.
-sed -n '/^Version.*-RC[0-9]:/,/^Version .*\.[0-9]\+:/{p;/^Version .*\.[0-9]\+:/q}' CHANGES \
+sed -n '/^Version.*-RC[0-9] /,/^Version .*\.[0-9]\+:/{p;/^Version .*\.[0-9]\+ /q}' CHANGES \
               | grep -v "^Version " | sed '/./,$!d' \
               | tac | sed -e '/./,$!d' | tac | sed -e '/./,$!d' > /tmp/release_changes
 
@@ -32,7 +32,7 @@ PATCH=$(echo "$RC_VERSION" | cut -f 3 -d ' ')
 
 NEW_VERSION="$MAJOR.$MINOR.$PATCH"
 
-NEW_MESSAGE="Version $NEW_VERSION: $(date +'%Y-%m-%d')"
+NEW_MESSAGE="Version $NEW_VERSION $(date +'%Y-%m-%d')"
 
 PREV_GIT_MESSAGE=$(git log -1 --pretty=%B)
 

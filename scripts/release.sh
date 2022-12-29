@@ -9,7 +9,7 @@ then
     exit 0
 fi
 
-# Grab all text up to the "Version x.y.z: <date>" line
+# Grab all text up to the "Version x.y.z <date>" line
 # If there is no text, then we have to add some information to CHANGES
 # before we make a release.
 CHANGES=$(sed '/Version /q' CHANGES | grep -v ^Version | sed '/./,$!d' | \
@@ -21,11 +21,7 @@ then
     exit 0
 fi
 
-cat /tmp/release_changes
-
-exit 0
-
-VERSION=$(grep -m 1 ^Version CHANGES  | sed 's/Version \([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)\(-RC[ 0-9]\?\)\?:.*/\1 \2 \3 \4/')
+VERSION=$(grep -m 1 ^Version CHANGES  | sed 's/Version \([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\)\(-RC[ 0-9]\?\)\? .*/\1 \2 \3 \4/')
 
 MAJOR=$(echo "$VERSION" | cut -f 1 -d ' ')
 MINOR=$(echo "$VERSION" | cut -f 2 -d ' ')
@@ -57,7 +53,7 @@ fi
 
 RC_VERSION="$MAJOR.$MINOR.$PATCH-RC$RC"
 
-MESSAGE="Version $RC_VERSION: $(date +'%Y-%m-%d')"
+MESSAGE="Version $RC_VERSION $(date +'%Y-%m-%d')"
 
 echo
 echo "$MESSAGE"
