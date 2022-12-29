@@ -1,5 +1,16 @@
 
-A bug in the hydrocalm3 driver was found. When total_cooling_kwh
+ATTENTION! The sharky774 driver had a bug that triggered when the meter used Joules instead of kWh.
+Also the calculated temperature difference had to be removed. You can re-add the temperature difference
+by using --calculate_temperature_difference_c=flow_temperature_c-return_temperature_c
+
+Since a field disappeared the default fields were disrupted and a shorter list of fields
+have now been picked for the default fields. Please use --selectedfields=... to recreate
+your previous fields.
+
+Also the field operating_time_h now prints the proper operating time and
+the new field operating_time_in_error_h prints the time when in error.
+
+ATTENTION! A bug in the hydrocalm3 driver was found. When total_cooling_kwh
 and other similar values were used as text fields (not a json fields)
 they were replaced with dates instead. This was due to a bug in the new
 code handling Quantity::PointInTime.

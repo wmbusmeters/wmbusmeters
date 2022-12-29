@@ -22,23 +22,24 @@
 #include<algorithm>
 #include<assert.h>
 #include<dirent.h>
+#include<errno.h>
+#include<fcntl.h>
 #include<functional>
 #include<grp.h>
 #include<pwd.h>
+#include<math.h>
 #include<set>
 #include<signal.h>
 #include<stdarg.h>
 #include<stddef.h>
 #include<string.h>
 #include<string>
-#include<time.h>
-#include<errno.h>
 #include<sys/stat.h>
 #include<sys/time.h>
-#include<syslog.h>
-#include<unistd.h>
 #include<sys/types.h>
-#include<fcntl.h>
+#include<syslog.h>
+#include<time.h>
+#include<unistd.h>
 
 #if defined(__APPLE__) && defined(__MACH__)
 #include <mach-o/dyld.h>
@@ -1364,6 +1365,7 @@ string strdate(struct tm *date)
 
 string strdate(double v)
 {
+    if (isnan(v)) return "null";
     struct tm date;
     time_t t = v;
     localtime_r(&t, &date);
@@ -1379,6 +1381,7 @@ string strdatetime(struct tm *datetime)
 
 string strdatetime(double v)
 {
+    if (isnan(v)) return "null";
     struct tm datetime;
     time_t t = v;
     localtime_r(&t, &datetime);

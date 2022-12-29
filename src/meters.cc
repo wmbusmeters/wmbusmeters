@@ -1172,13 +1172,15 @@ bool checkPrintableField(string *buf, string desired_field_name, Meter *m, Teleg
             // We have the correc field.
             if (fi.displayUnit() == Unit::DateLT)
             {
-                *buf += strdate(m->getNumericValue(&fi, Unit::DateLT));
+                double d = m->getNumericValue(&fi, Unit::DateLT);
+                *buf += strdate(d);
                 *buf += c;
                 return true;
             }
             else if (fi.displayUnit() == Unit::DateTimeLT)
             {
-                *buf += strdatetime(m->getNumericValue(&fi, Unit::DateTimeLT));
+                double d = m->getNumericValue(&fi, Unit::DateTimeLT);
+                *buf += strdatetime(d);
                 *buf += c;
                 return true;
             }
