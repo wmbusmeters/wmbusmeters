@@ -35,8 +35,8 @@ parts:
     source-type: git
     override-pull: |
       craftctl default
-      if [ -n "$(git describe --tags | grep -)" ]; then
-        GIT_REV="$(git describe --tags | cut -f1,2 -d'-')"
+      if [ -n "$(git describe --tags | grep -E -- '-[^-RC]+$')" ]; then
+        GIT_REV="$(git describe --tags | rev | cut -f2- -d'-' | rev)"
         craftctl set version="$GIT_REV"
         craftctl set grade=devel
       else
