@@ -28,17 +28,6 @@ MINOR=$(echo "$VERSION" | cut -f 2 -d ' ')
 PATCH=$(echo "$VERSION" | cut -f 3 -d ' ')
 RC=$(echo "$VERSION" | cut -f 4 -d ' ')
 
-if [ -f LATEST_RELEASE ]
-then
-    if [ "$(cat LATEST_RELEASE)" != "${MAJOR}.${MINOR}.${PATCH}" ]
-    then
-        echo "Oups! Expected the content in LATEST_RELEASE to be ${MAJOR}.${MINOR}.${PATCH} but was $(cat LATEST_RELEASE)"
-        exit 0
-    fi
-else
-    echo "${MAJOR}.${MINOR}.${PATCH}" > LATEST_RELEASE
-fi
-
 if [ ! "$RC" = "" ]
 then
     if [ ! "$TYPE" = "rc" ]

@@ -65,8 +65,6 @@ echo "Updated version number in ha-addon/config.json to $NEW_VERSION"
 sed "s/$OLD_MESSAGE/$NEW_MESSAGE/" CHANGES > /tmp/release_changes
 echo "Updated version string in CHANGES"
 
-echo $NEW_VERSION > LATEST_RELEAS
-
 git commit -am "$NEW_MESSAGE"
 
 git tag "$NEW_VERSION"
