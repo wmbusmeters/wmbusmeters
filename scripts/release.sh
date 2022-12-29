@@ -77,14 +77,11 @@ while true; do
 done
 
 # Insert release candidate line in CHANGES.
-CMD="1i $MESSAGE"
+CMD="1i $MESSAGE\n"
 sed -i "$CMD" CHANGES
 
 git commit -am "$MESSAGE"
 
 git tag "$RC_VERSION"
 
-echo "Now do: git push ; git push --tags"
-
-#git push
-#git push --tags
+echo "Now do: git push --followtags"

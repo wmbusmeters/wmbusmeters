@@ -34,13 +34,20 @@ PATCH=$(echo "$PARTS" | cut -f 3 -d ' ')
 
 NEW_VERSION="$MAJOR.$MINOR.$PATCH"
 
+if git tag | grep -q "^${NEW_VERSION}\$"
+then
+    echo "Oups! The new version tag $NEW_VERSION already exists!"
+    exit 0
+fi
+
 NEW_MESSAGE="Version $NEW_VERSION $(date +'%Y-%m-%d')"
 
 PREV_GIT_MESSAGE=$(git log -1 --pretty=%B)
 
-if [ "PREV_GIT_MESSAGE" != "$OLD_MESSAGE" ]
+if [ "$PREV_GIT_MESSAGE" != "$OLD_MESSAGE" ]
 then
-    echo "Oups! Something is wrong in the git log. Expected last commit to say \"$OLD_MESSAGE\" but it does not!"
+    echo "Oups! Something is wrong in the git log."
+    echo "Expected last commit to say \"$OLD_MESSAGE\" but it doesn't, it says: \"$PREV_GIT_MESSAGE\""
     exit 0
 fi
 
@@ -59,17 +66,22 @@ while true; do
     esac
 done
 
-sed 's/"version": "[\.0-9]*"/"version": "'$NEW_VERSION'"/' ha-addon/config.json > /tmp/release_haconfig
+# Update the ha-addon version number. This will trigger rebuilds at ha installs with auto-update.
+CMD="s/\"version\": \"[\.0-9]*\"/\"version\": \"${NEW_VERSION}\"/"
+sed -i "$CMD" ha-addon/config.json
 echo "Updated version number in ha-addon/config.json to $NEW_VERSION"
 
-sed "s/$OLD_MESSAGE/$NEW_MESSAGE/" CHANGES > /tmp/release_changes
+# Update the CHANGES file
+CMD="1i $NEW_MESSAGE"
+sed -i "$CMD" CHANGES
 echo "Updated version string in CHANGES"
+
+CMD="s/wmbusmeters version:.*/wmbusmeters version: $NEW_VERSION/g"
+sed -i "$CMD" README.md
+echo "Updated version string in README"
 
 git commit -am "$NEW_MESSAGE"
 
 git tag "$NEW_VERSION"
 
-echo "Now do: git push ; git push --tags"
-
-#git push
-#git push --tags
+echo "Now do: git push --followtags"
