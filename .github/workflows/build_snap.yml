@@ -5,8 +5,8 @@ on:
     branches:
       - 'master'
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
-      - '[0-9]+.[0-9]+.[0-9]+RC[0-9]+'
+      - '[0-9]+\.[0-9]+\.[0-9]+'
+      - '[0-9]+\.[0-9]+\.[0-9]+-RC[0-9]+'
 
 jobs:
   build-and-release:
@@ -18,9 +18,11 @@ jobs:
         - armhf
         - arm64
     steps:
-    - name: Checkout
+    -
+      name: Checkout
       uses: actions/checkout@v2
-    - name: Set up QEMU
+    -
+      name: Set up QEMU
       uses: docker/setup-qemu-action@v1
     -
       name: Docker meta
@@ -29,20 +31,32 @@ jobs:
       with:
         images: weetmuts/wmbusmeters
         tags: type=ref,event=tag
-    - name: Build
+    -
+      name: Build
       id: build
       uses: diddlesnaps/snapcraft-multiarch-action@v1
       with:
         architecture: ${{ matrix.architecture }}
-    - name: Publish release to Stable
+    -
+      name: Publish release to Stable
       uses: snapcore/action-publish@v1
-      if: ${{ steps.meta.outputs.tags }}
+      if: ${{ steps.meta.outputs.tags && !contains(steps.meta.outputs.tags, '-RC') }}
       env:
         SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snapcraft_token }}
       with:
         snap: ${{ steps.build.outputs.snap }}
         release: stable
-    - name: Publish latest to Edge
+    -
+      name: Publish RC to Candidate
+      uses: snapcore/action-publish@v1
+      if: ${{ steps.meta.outputs.tags && contains(steps.meta.outputs.tags, '-RC') }}
+      env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.snapcraft_token }}
+      with:
+        snap: ${{ steps.build.outputs.snap }}
+        release: candidate
+    -
+      name: Publish latest to Edge
       uses: snapcore/action-publish@v1
       if: ${{ !steps.meta.outputs.tags }}
       env:
