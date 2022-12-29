@@ -23,12 +23,14 @@ then
     exit 0
 fi
 
+# Grab the line from CHANGES which says: Version 1.2.3-RC1 2022-12-22
 OLD_MESSAGE=$(grep -m 1 ^Version CHANGES)
-RC_VERSION=$(grep -m 1 ^Version CHANGES  | sed 's/Version \([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\).*/\1 \2 \3/')
+# Now extract the major, minor and patch.
+PARTS=$(grep -m 1 ^Version CHANGES  | sed 's/Version \([0-9]\+\)\.\([0-9]\+\)\.\([0-9]\+\).*/\1 \2 \3/')
 
-MAJOR=$(echo "$RC_VERSION" | cut -f 1 -d ' ')
-MINOR=$(echo "$RC_VERSION" | cut -f 2 -d ' ')
-PATCH=$(echo "$RC_VERSION" | cut -f 3 -d ' ')
+MAJOR=$(echo "$PARTS" | cut -f 1 -d ' ')
+MINOR=$(echo "$PARTS" | cut -f 2 -d ' ')
+PATCH=$(echo "$PARTS" | cut -f 3 -d ' ')
 
 NEW_VERSION="$MAJOR.$MINOR.$PATCH"
 
@@ -43,7 +45,7 @@ then
 fi
 
 echo
-echo "Deploying release $NEW_MESSAGE with changelog:"
+echo "Deploying >>$NEW_MESSAGE<< with changelog:"
 echo "----------------------------------------------------------------------------------"
 cat /tmp/release_changes
 echo "----------------------------------------------------------------------------------"
@@ -62,6 +64,8 @@ echo "Updated version number in ha-addon/config.json to $NEW_VERSION"
 
 sed "s/$OLD_MESSAGE/$NEW_MESSAGE/" CHANGES > /tmp/release_changes
 echo "Updated version string in CHANGES"
+
+echo $NEW_VERSION > LATEST_RELEAS
 
 git commit -am "$NEW_MESSAGE"
 
