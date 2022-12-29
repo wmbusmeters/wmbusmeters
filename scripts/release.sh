@@ -56,8 +56,8 @@ else
     # rc can only be used when the previous tag was also an rc!
     if [ "$TYPE" = "rc" ] ; then echo "You must supply major,minor or patch! Not rc." ; exit 0; fi
     # otherwise you supply major, minor or patch.
-    if [ "$TYPE" = "major" ] ; then MAJOR=$((MAJOR+1)) ; fi
-    if [ "$TYPE" = "minor" ] ; then MINOR=$((MINOR+1)) ; fi
+    if [ "$TYPE" = "major" ] ; then MAJOR=$((MAJOR+1)) ; MINOR=0 ; PATCH=0 ; fi
+    if [ "$TYPE" = "minor" ] ; then MINOR=$((MINOR+1)) ; PATCH=0 ; fi
     if [ "$TYPE" = "patch" ] ; then PATCH=$((PATCH+1)) ; fi
     RC=1
 fi
@@ -82,7 +82,7 @@ while true; do
 done
 
 # Insert release candidate line in CHANGES.
-CMD="1 i\$MESSAGE"
+CMD="1i $MESSAGE"
 sed -i "$CMD" CHANGES
 
 git commit -am "$MESSAGE"
