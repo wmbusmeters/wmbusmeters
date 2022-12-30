@@ -4840,10 +4840,22 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
     *frame_length = payload_len+offset;
     if (data.size() < *frame_length)
     {
-        if (!only_test)
+        // Not enough bytes for this payload_len....
+        if (only_test)
         {
-            debug("(wmbus) not enough bytes, partial frame %d %d\n", data.size(), *frame_length);
+            // This is used from simulate files and hex in command line and analyze.
+            // Lets be lax and just adjust the length to what is available.
+            payload_len = data.size() - offset;
+            *payload_len_out = payload_len;
+            *frame_length = payload_len+offset;
+            warning("(wmbus) not enough bytes, frame length byte changed from %d(%02x) to %d(%02x)!\n",
+                    data[offset-1], data[offset-1],
+                    payload_len, payload_len);
+            data[offset-1] = payload_len;
+
+            return FullFrame;
         }
+        debug("(wmbus) not enough bytes, partial frame %d %d\n", data.size(), *frame_length);
         return PartialFrame;
     }
 
