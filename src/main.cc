@@ -438,6 +438,11 @@ void setup_log_file(Configuration *config)
     if (config->use_logfile)
     {
         verbose("(wmbusmeters) using log file %s\n", config->logfile.c_str());
+        if (config->logfile == "syslog")
+        {
+            enableSyslog();
+            return;
+        }
         bool ok = enableLogfile(config->logfile, config->daemon);
         if (!ok) {
             if (config->daemon) {

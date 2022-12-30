@@ -313,7 +313,7 @@ As {options} you can use:
     --listmeters list all meter drivers
     --listmeters=<search> list all meter drivers containing the text <search>
     --listunits list all unit suffixes that can be used for typing values
-    --logfile=<file> use this file for logging
+    --logfile=<file> use this file for logging or --logfile=syslog
     --logtelegrams log the contents of the telegrams for easy replay
     --logtimestamps=<when> add log timestamps: always never important
     --meterfiles=<dir> store meter readings in dir
