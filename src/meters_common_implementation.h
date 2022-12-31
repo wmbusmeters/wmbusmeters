@@ -124,21 +124,6 @@ protected:
 #define FIND_SFIELD_STI(TYPE,INFO,STORAGE,TARIFF,INDEX) NoDifVifKey,TYPE,INFO,STORAGE,TARIFF,INDEX
 
     void addNumericFieldWithExtractor(
-        string vname,          // Name of value without unit, eg total
-        Quantity vquantity,    // Value belongs to this quantity.
-        DifVifKey dif_vif_key, // You can hardocde a dif vif header here or use NoDifVifKey
-        VifScaling vif_scaling,
-        MeasurementType mt,    // If not using a hardcoded key, search for mt,vi,s,t and i instead.
-        VIFRange vi,
-        StorageNr s,
-        TariffNr t,
-        IndexNr i,
-        PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
-        string help,
-        function<void(Unit,double)> setValueFunc, // Use the SET macro above.
-        function<double(Unit)> getValueFunc); // Use the GET macro above.
-
-    void addNumericFieldWithExtractor(
         string vname,           // Name of value without unit, eg "total" "total_month{storagenr}"
         string help,            // Information about this field.
         PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
@@ -181,20 +166,6 @@ protected:
 
 #define SET_STRING_FUNC(varname) {[=](string s){varname = s;}}
 #define GET_STRING_FUNC(varname) {[=](){return varname; }}
-
-    void addStringFieldWithExtractor(
-        string vname,          // Name of value without unit, eg total
-        Quantity vquantity,    // Value belongs to this quantity.
-        DifVifKey dif_vif_key, // You can hardocde a dif vif header here or use NoDifVifKey
-        MeasurementType mt,    // If not using a hardcoded key, search for mt,vi,s,t and i instead.
-        VIFRange vi,
-        StorageNr s,
-        TariffNr t,
-        IndexNr i,
-        PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
-        string help,
-        function<void(string)> setValueFunc, // Use the SET_STRING macro above.
-        function<string()> getValueFunc); // Use the GET_STRING macro above.
 
     void addStringFieldWithExtractor(
         string vname,

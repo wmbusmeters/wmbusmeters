@@ -17,224 +17,157 @@
 
 #include"meters_common_implementation.h"
 
-struct MeterMicroClima : public virtual MeterCommonImplementation
+namespace
 {
-    MeterMicroClima(MeterInfo &mi, DriverInfo &di);
+    struct Driver : public virtual MeterCommonImplementation
+    {
+        Driver(MeterInfo &mi, DriverInfo &di);
+    };
 
-private:
-    double total_energy_kwh_ {};
-    double total_energy_tariff1_kwh_ {};
-    double total_volume_m3_ {};
-    double total_volume_tariff2_m3_ {};
-    double volume_flow_m3h_ {};
-    double power_kw_ {};
-    double flow_temperature_c_ {};
-    double return_temperature_c_ {};
-    double temperature_difference_k_ {};
-    string status_;
-    string device_date_time_;
-};
+    static bool ok = registerDriver([](DriverInfo&di)
+    {
+        di.setName("microclima");
+        di.setDefaultFields("name,id,status,total_energy_consumption_kwh,total_volume_m3,timestamp");
+        di.setMeterType(MeterType::HeatMeter);
+        di.addLinkMode(LinkMode::T1);
+        di.addDetection(MANUFACTURER_MAD, 0x04, 0x00);
+        di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
+    });
 
-static bool ok = registerDriver([](DriverInfo&di)
-{
-    di.setName("microclima");
-    di.setMeterType(MeterType::HeatMeter);
-    di.addLinkMode(LinkMode::T1);
-    di.addDetection(MANUFACTURER_MAD, 0x04, 0x00);
-    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterMicroClima(mi, di)); });
-});
+    Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+    {
+        addOptionalCommonFields("meter_datetime,model_version,parameter_set");
+        addOptionalFlowRelatedFields("flow_temperature_c,return_temperature_c");
 
-MeterMicroClima::MeterMicroClima(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
-{
-    addNumericFieldWithExtractor(
-        "total_energy_consumption",
-        Quantity::Energy,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::EnergyWh,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
-        "The total heat energy consumption recorded by this meter.",
-        SET_FUNC(total_energy_kwh_, Unit::KWH),
-        GET_FUNC(total_energy_kwh_, Unit::KWH));
-
-    addNumericFieldWithExtractor(
-        "total_energy_consumption_tariff1",
-        Quantity::Energy,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::EnergyWh,
-        StorageNr(0),
-        TariffNr(1),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "The total heat energy consumption recorded by this meter on tariff 1.",
-        SET_FUNC(total_energy_tariff1_kwh_, Unit::KWH),
-        GET_FUNC(total_energy_tariff1_kwh_, Unit::KWH));
-
-    addNumericFieldWithExtractor(
-        "total_volume",
-        Quantity::Volume,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::Volume,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "The total heating media volume recorded by this meter.",
-        SET_FUNC(total_volume_m3_, Unit::M3),
-        GET_FUNC(total_volume_m3_, Unit::M3));
-
-    addNumericFieldWithExtractor(
-        "total_volume_tariff2",
-        Quantity::Volume,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::Volume,
-        StorageNr(0),
-        TariffNr(2),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "The total heating media volume recorded by this meter on tariff 2.",
-        SET_FUNC(total_volume_tariff2_m3_, Unit::M3),
-        GET_FUNC(total_volume_tariff2_m3_, Unit::M3));
-
-    addNumericFieldWithExtractor(
-        "volume_flow",
-        Quantity::Flow,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::VolumeFlow,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "The current heat media volume flow.",
-        SET_FUNC(volume_flow_m3h_, Unit::M3H),
-        GET_FUNC(volume_flow_m3h_, Unit::M3H));
-
-    addNumericFieldWithExtractor(
-        "power",
-        Quantity::Power,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::PowerW,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "The current power consumption.",
-        SET_FUNC(power_kw_, Unit::KW),
-        GET_FUNC(power_kw_, Unit::KW));
-
-    addNumericFieldWithExtractor(
-        "flow_temperature",
-        Quantity::Temperature,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::FlowTemperature,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "The current forward heat media temperature.",
-        SET_FUNC(flow_temperature_c_, Unit::C),
-        GET_FUNC(flow_temperature_c_, Unit::C));
-
-    addNumericFieldWithExtractor(
-        "return_temperature",
-        Quantity::Temperature,
-        NoDifVifKey,
-        VifScaling::Auto,
-        MeasurementType::Instantaneous,
-        VIFRange::ReturnTemperature,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "The current return heat media temperature.",
-        SET_FUNC(return_temperature_c_, Unit::C),
-        GET_FUNC(return_temperature_c_, Unit::C));
-
-    addNumericFieldWithExtractor(
-        "temperature_difference",
-        Quantity::Temperature,
-        NoDifVifKey,
-        VifScaling::AutoSigned,
-        MeasurementType::Instantaneous,
-        VIFRange::TemperatureDifference,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "The current return heat media temperature.",
-        SET_FUNC(temperature_difference_k_, Unit::K),
-        GET_FUNC(temperature_difference_k_, Unit::K));
-
-    addStringFieldWithExtractorAndLookup(
-        "status",
-        Quantity::Text,
-        DifVifKey("01FD17"),
-        MeasurementType::Instantaneous,
-        VIFRange::Any,
-        AnyStorageNr,
-        AnyTariffNr,
-        IndexNr(1),
-        PrintProperty::JSON | PrintProperty::FIELD,
-        "Error flags.",
-        SET_STRING_FUNC(status_),
-        GET_STRING_FUNC(status_),
-         {
-            {
+        addStringFieldWithExtractorAndLookup(
+            "status",
+            "Meter status from error flags and tpl status field.",
+            PrintProperty::JSON | PrintProperty::IMPORTANT |
+            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ErrorFlags),
+            Translate::Lookup(
                 {
-                    "ERROR_FLAGS",
-                    Translate::Type::BitToString,
-                    AlwaysTrigger, MaskBits(0xffff),
-                    "OK",
                     {
-                        { 0x01, "?" },
-                    }
-                },
-            },
-         });
+                        {
+                            "ERROR_FLAGS",
+                            Translate::Type::BitToString,
+                            AlwaysTrigger, MaskBits(0xffff),
+                            "OK",
+                            {
+                            }
+                        },
+                    },
+                }));
 
-    addStringFieldWithExtractor(
-        "device_date_time",
-        Quantity::Text,
-        NoDifVifKey,
-        MeasurementType::Instantaneous,
-        VIFRange::DateTime,
-        StorageNr(0),
-        TariffNr(0),
-        IndexNr(1),
-        PrintProperty::JSON,
-        "Device date time.",
-        SET_STRING_FUNC(device_date_time_),
-        GET_STRING_FUNC(device_date_time_));
+        addNumericFieldWithExtractor(
+            "total_energy_consumption",
+            "The total heat energy consumption recorded by this meter.",
+            PrintProperty::JSON | PrintProperty::IMPORTANT,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            );
 
+        addNumericFieldWithExtractor(
+            "total_volume",
+            "The total heating media volume recorded by this meter.",
+            PrintProperty::JSON,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            );
+
+        addNumericFieldWithExtractor(
+            "volume_flow",
+            "The current heat media volume flow.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Flow,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::VolumeFlow)
+            );
+
+        addNumericFieldWithExtractor(
+            "power",
+            "The current power consumption.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Power,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::PowerW)
+            );
+
+        addNumericFieldWithExtractor(
+            "temperature_difference",
+            "The difference between flow and return media temperatures.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Temperature,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::TemperatureDifference)
+            );
+
+        addNumericFieldWithExtractor(
+            "set",
+            "The most recent billing period date.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL | PrintProperty::HIDE,
+            Quantity::PointInTime,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Date)
+            .set(StorageNr(1)),
+            Unit::DateLT
+            );
+
+        addNumericFieldWithExtractor(
+            "consumption_at_set_date_{storage_counter}",
+            "The total water consumption at the historic date.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(StorageNr(1),StorageNr(31))
+            );
+
+        addNumericFieldWithCalculatorAndMatcher(
+            "set_date_{storage_counter}",
+            "Unclear! What is the date really?",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            Quantity::PointInTime,
+            "set_date - ((storage_counter-1counter) * 1 month)",
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(StorageNr(1),StorageNr(31)),
+            Unit::DateLT
+            );
+
+    }
 }
 
 // The meter sends two types of telegrams a shorter with current values.
 
 // Test: Heat microclima 93572431 NOKEY
 // telegram=|494424343124579300047a5a0000202f2f046d2720b62c04060d07000001fd170004130a8c0400043b00000000042b00000000025b1500025f15000261d0ff03fd0c05000002fd0b1011|
-// {"media":"heat","meter":"microclima","name":"Heat","id":"93572431","total_energy_consumption_kwh":1805,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":297.994,"total_volume_tariff2_m3":0,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":21,"return_temperature_c":21,"temperature_difference_c":-0.48,"status":"OK","device_date_time":"2021-12-22 00:39","timestamp":"1111-11-11T11:11:11Z"}
-// |Heat;93572431;1805.000000;0.000000;297.994000;0.000000;0.000000;0.000000;21.000000;21.000000;-0.480000;OK;1111-11-11 11:11.11
+// {"flow_temperature_c":21,"id":"93572431","media":"heat","meter":"microclima","meter_datetime":"2021-12-22 00:39","model_version":"000005","name":"Heat","parameter_set":"1110","power_kw":0,"return_temperature_c":21,"status":"OK","temperature_difference_c":-0.48,"timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":1805,"total_volume_m3":297.994,"volume_flow_m3h":0}
+// |Heat;93572431;OK;1805;297.994;1111-11-11 11:11.11
 
 
 // And a longer with historical values. This telegram is not yet properly decoded.
 
 // Test: Heat microclima 93573086 NOKEY
 // telegram=|A44424348630579300047ADD0000202F2F046D0721B62C04064708000004135DB0030001FD1700426C9F2C4406C6040000C40106C0070000C4020637070000C4030611070000C404060B070000C405060B070000C406060B070000C407060B070000C40806A5060000C40906F7050000C40A067A050000C40B060F050000C40C06C6040000C40D063F040000C40E06BB030000C40F06A502000003FD0C05000002FD0B1111|
-// {"media":"heat","meter":"microclima","name":"Heat","id":"93573086","total_energy_consumption_kwh":2119,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":241.757,"total_volume_tariff2_m3":0,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":0,"return_temperature_c":0,"temperature_difference_c":-273.15,"status":"OK","device_date_time":"2021-12-22 01:07","timestamp":"1111-11-11T11:11:11Z"}
-// |Heat;93573086;2119.000000;0.000000;241.757000;0.000000;0.000000;0.000000;0.000000;0.000000;-273.150000;OK;1111-11-11 11:11.11
+// {"consumption_at_set_date_11_kwh":1803,"consumption_at_set_date_13_kwh":1803,"consumption_at_set_date_15_kwh":1803,"consumption_at_set_date_17_kwh":1701,"consumption_at_set_date_19_kwh":1527,"consumption_at_set_date_1_kwh":1222,"consumption_at_set_date_21_kwh":1402,"consumption_at_set_date_23_kwh":1295,"consumption_at_set_date_25_kwh":1222,"consumption_at_set_date_27_kwh":1087,"consumption_at_set_date_29_kwh":955,"consumption_at_set_date_31_kwh":677,"consumption_at_set_date_3_kwh":1984,"consumption_at_set_date_5_kwh":1847,"consumption_at_set_date_7_kwh":1809,"consumption_at_set_date_9_kwh":1803,"id":"93573086","media":"heat","meter":"microclima","meter_datetime":"2021-12-22 01:07","model_version":"000005","name":"Heat","parameter_set":"1111","set_date_11_date":"2020-02-29","set_date_13_date":"2019-12-31","set_date_15_date":"2019-10-31","set_date_17_date":"2019-08-31","set_date_19_date":"2019-06-30","set_date_1_date":"2020-12-31","set_date_21_date":"2019-04-30","set_date_23_date":"2019-02-28","set_date_25_date":"2018-12-31","set_date_27_date":"2018-10-31","set_date_29_date":"2018-08-31","set_date_31_date":"2018-06-30","set_date_3_date":"2020-10-31","set_date_5_date":"2020-08-31","set_date_7_date":"2020-06-30","set_date_9_date":"2020-04-30","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":2119,"total_volume_m3":241.757}
+// |Heat;93573086;OK;2119;241.757;1111-11-11 11:11.11

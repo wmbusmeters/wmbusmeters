@@ -366,39 +366,6 @@ void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
             ));
 }
 
-void MeterCommonImplementation::addNumericFieldWithExtractor(
-    string vname,
-    Quantity vquantity,
-    DifVifKey dif_vif_key,
-    VifScaling vif_scaling,
-    MeasurementType mt,
-    VIFRange vi,
-    StorageNr s,
-    TariffNr t,
-    IndexNr i,
-    PrintProperties print_properties,
-    string help,
-    function<void(Unit,double)> setValueFunc,
-    function<double(Unit)> getValueFunc)
-{
-    field_infos_.emplace_back(
-        FieldInfo(field_infos_.size(),
-                  vname,
-                  vquantity,
-                  defaultUnitForQuantity(vquantity),
-                  vif_scaling,
-                  FieldMatcher::build().set(dif_vif_key).set(mt).set(vi).set(s).set(t).set(i),
-                  help,
-                  print_properties,
-                  getValueFunc,
-                  NULL,
-                  setValueFunc,
-                  NULL,
-                  NoLookup, /* Lookup table */
-                  NULL /* Formula */
-            ));
-}
-
 void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                                                              string help,
                                                              PrintProperties print_properties,
@@ -548,38 +515,6 @@ void MeterCommonImplementation::addNumericField(
                   NULL,
                   NULL, // setValueFunc
                   NULL,
-                  NoLookup, /* Lookup table */
-                  NULL /* Formula */
-            ));
-}
-
-void MeterCommonImplementation::addStringFieldWithExtractor(
-    string vname,
-    Quantity vquantity,
-    DifVifKey dif_vif_key,
-    MeasurementType mt,
-    VIFRange vi,
-    StorageNr s,
-    TariffNr t,
-    IndexNr i,
-    PrintProperties print_properties,
-    string help,
-    function<void(string)> setValueFunc,
-    function<string()> getValueFunc)
-{
-    field_infos_.emplace_back(
-        FieldInfo(field_infos_.size(),
-                  vname,
-                  vquantity,
-                  defaultUnitForQuantity(vquantity),
-                  VifScaling::None,
-                  FieldMatcher::build().set(dif_vif_key).set(mt).set(vi).set(s).set(t).set(i),
-                  help,
-                  print_properties,
-                  NULL,
-                  getValueFunc,
-                  NULL,
-                  setValueFunc,
                   NoLookup, /* Lookup table */
                   NULL /* Formula */
             ));
@@ -1104,44 +1039,44 @@ string findField(string key, vector<string> *extra_constant_fields)
 }
 
 // Is the desired field one of the fields common to all meters and telegrams?
-bool checkCommonField(string *buf, string field, Meter *m, Telegram *t, char c, bool human_readable)
+bool checkCommonField(string *buf, string desired_field, Meter *m, Telegram *t, char c, bool human_readable)
 {
-    if (field == "name")
+    if (desired_field == "name")
     {
         *buf += m->name() + c;
         return true;
     }
-    if (field == "id")
+    if (desired_field == "id")
     {
         *buf += t->ids.back() + c;
         return true;
     }
-    if (field == "timestamp")
+    if (desired_field == "timestamp")
     {
         *buf += m->datetimeOfUpdateHumanReadable() + c;
         return true;
     }
-    if (field == "timestamp_lt")
+    if (desired_field == "timestamp_lt")
     {
         *buf += m->datetimeOfUpdateHumanReadable() + c;
         return true;
     }
-    if (field == "timestamp_utc")
+    if (desired_field == "timestamp_utc")
     {
         *buf += m->datetimeOfUpdateRobot() + c;
         return true;
     }
-    if (field == "timestamp_ut")
+    if (desired_field == "timestamp_ut")
     {
         *buf += m->unixTimestampOfUpdate() + c;
         return true;
     }
-    if (field == "device")
+    if (desired_field == "device")
     {
         *buf += t->about.device + c;
         return true;
     }
-    if (field == "rssi_dbm")
+    if (desired_field == "rssi_dbm")
     {
         *buf += to_string(t->about.rssi_dbm) + c;
         return true;
@@ -1151,7 +1086,7 @@ bool checkCommonField(string *buf, string field, Meter *m, Telegram *t, char c, 
 }
 
 // Is the desired field one of the meter printable fields?
-bool checkPrintableField(string *buf, string desired_field_name, Meter *m, Telegram *t, char c,
+bool checkPrintableField(string *buf, string desired_field, Meter *m, Telegram *t, char c,
                          vector<FieldInfo> &fields, bool human_readable)
 {
 
@@ -1160,7 +1095,7 @@ bool checkPrintableField(string *buf, string desired_field_name, Meter *m, Teleg
         if (fi.xuantity() == Quantity::Text)
         {
             // Strings are simply just print them.
-            if (desired_field_name == fi.vname())
+            if (desired_field == fi.vname())
             {
                 *buf += m->getStringValue(&fi) + c;
                 return true;
@@ -1170,7 +1105,7 @@ bool checkPrintableField(string *buf, string desired_field_name, Meter *m, Teleg
         {
             string display_unit_s = unitToStringLowerCase(fi.displayUnit());
             string var = fi.vname()+"_"+display_unit_s;
-            if (desired_field_name != var) continue;
+            if (desired_field != var) continue;
 
             // We have the correc field.
             if (fi.displayUnit() == Unit::DateLT)
@@ -2726,6 +2661,18 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ModelVersion)
+            );
+    }
+
+    if (checkIf(fields,"parameter_set"))
+    {
+        addStringFieldWithExtractor(
+            "parameter_set",
+            "Parameter set for this meter.",
+            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ParameterSet)
             );
     }
 

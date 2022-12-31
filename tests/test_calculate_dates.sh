@@ -43,6 +43,7 @@ cat > $TEST/test_expected.txt <<EOF
     "set_28_fromdhmsz_datetime":"2023-01-22 12:12",
     "set_29_fromdhmsz_datetime":"2023-01-22 11:12",
     "set_30_from_setdate_datetime":"2022-06-30 00:00",
+    "set_31_from_setdate2_datetime":"2022-07-31 07:33",
 EOF
 
 # TZ=UTC+1 date --date 2022-12-22T12:12:12Z +%s  --> 1671711132 # UTC time
@@ -87,8 +88,10 @@ TZ=UTC+1 $PROG --format=json --ppjson \
   --calculate_set_28_fromdhmsz_datetime="'2022-12-22T12:12:12Z' + 1 month" \
   --calculate_set_29_fromdhmsz_datetime='1671711132 ut + 1 month'\
   --calculate_set_30_from_setdate_datetime='set_date + 1 month'\
+\
+  --calculate_set_31_from_setdate2_datetime="set_30_from_setdate_datetime + 1 month + 7 h + '00:33'"\
       "$HEX" \
-      GURKA sharky774 71942539 NOKEY | grep \"set_ > $TEST/test_output.txt
+      Moo sharky774 71942539 NOKEY | grep \"set_ > $TEST/test_output.txt
 
 if [ "$?" = "0" ]
 then
