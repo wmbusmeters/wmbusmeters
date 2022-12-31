@@ -860,7 +860,10 @@ string MeterCommonImplementation::datetimeOfUpdateRobot()
     char datetime[40];
     memset(datetime, 0, sizeof(datetime));
     // This is the date time in the Greenwich timezone (Zulu time), dont get surprised!
-    strftime(datetime, sizeof(datetime), "%FT%TZ", gmtime(&datetime_of_update_));
+    time_t d = datetime_of_update_;
+    struct tm ts;
+    gmtime_r(&d, &ts);
+    strftime(datetime, sizeof(datetime), "%FT%TZ", &ts);
     return string(datetime);
 }
 
@@ -1181,6 +1184,13 @@ bool checkPrintableField(string *buf, string desired_field_name, Meter *m, Teleg
             {
                 double d = m->getNumericValue(&fi, Unit::DateTimeLT);
                 *buf += strdatetime(d);
+                *buf += c;
+                return true;
+            }
+            else if (fi.displayUnit() == Unit::DateTimeUTC)
+            {
+                double d = m->getNumericValue(&fi, Unit::DateTimeUTC);
+                *buf += strTimestampUTC(d);
                 *buf += c;
                 return true;
             }
@@ -1766,6 +1776,10 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
         else if (displayUnit() == Unit::DateTimeLT)
         {
             s += "\""+field_name+"_"+display_unit_s+"\":\""+strdatetime(m->getNumericValue(field_name, Unit::DateTimeLT))+"\"";
+        }
+        else if (displayUnit() == Unit::DateTimeUTC)
+        {
+            s += "\""+field_name+"_"+display_unit_s+"\":\""+strTimestampUTC(m->getNumericValue(field_name, Unit::DateTimeUTC))+"\"";
         }
         else
         {

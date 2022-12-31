@@ -227,7 +227,8 @@ double Token::val(const string &s)
     else if (type == TokenType::DATETIME)
     {
         struct tm time {};
-        strptime(v.c_str(), "'%Y-%m-%d %H:%M:%S'", &time);
+        char *ok = strptime(v.c_str(), "'%Y-%m-%d %H:%M:%S'", &time);
+        if (!ok) ok = strptime(v.c_str(), "'%Y-%m-%dT%H:%M:%SZ'", &time);
         time_t epoch = mktime(&time);
         double result = (double)epoch;
         return result;
@@ -320,7 +321,8 @@ size_t FormulaImplementation::findNumber(size_t i)
 size_t FormulaImplementation::findDateTime(size_t i)
 {
     // A datetime is converted into a unix timestamp.
-    // Patterns: '2222-22-22 11:11:00'
+    // Patterns: '2022-12-30T09:32:45Z'
+    //           '2222-22-22 11:11:00'
     //           '2222-22-22 11:11'
     //           '2222-22-22'
 
@@ -329,6 +331,12 @@ size_t FormulaImplementation::findDateTime(size_t i)
     const char *end;
 
     memset(&time, 0, sizeof(time));
+    if (i+21 < formula_.length())
+    {
+        end = strptime(start, "'%Y-%m-%dT%H:%M:%SZ'", &time);
+        if (distance(start, end) == 22) return 22;
+    }
+
     if (i+20 < formula_.length())
     {
         end = strptime(start, "'%Y-%m-%d %H:%M:%S'", &time);

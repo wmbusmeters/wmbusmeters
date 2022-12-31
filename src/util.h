@@ -82,6 +82,8 @@ std::string strdatetime(double v);
 // Return for example: 2010-03-21 15:22:03
 std::string strdatetimesec(struct tm *date);
 std::string strdatetimesec(double v);
+// Return UTC timestamp:
+std::string strTimestampUTC(double v);
 void addMonths(struct tm* date, int m);
 double addMonths(double t, int m);
 

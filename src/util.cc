@@ -2405,3 +2405,14 @@ int strlen_utf8(const char *s)
     for (; *s; ++s) if ((*s & 0xC0) != 0x80) ++len;
     return len;
 }
+
+string strTimestampUTC(double v)
+{
+    char datetime[40];
+    memset(datetime, 0, sizeof(datetime));
+    time_t d = v;
+    struct tm ts;
+    gmtime_r(&d, &ts);
+    strftime(datetime, sizeof(datetime), "%FT%TZ", &ts);
+    return string(datetime);
+}
