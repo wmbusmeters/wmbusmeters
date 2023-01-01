@@ -42,12 +42,12 @@ namespace
         addStringField(
             "status",
             "Status and error flags.",
-            PrintProperty::JSON | PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS);
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS);
 
         addStringFieldWithExtractor(
             "set_datetime",
             "Date and time when the previous billing period ended.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -57,7 +57,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date",
             "The total water consumption at the end of the previous billing period.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -69,7 +69,7 @@ namespace
         addNumericFieldWithExtractor(
             "forward_at_set_date",
             "The total media volume flowing forward at the end of previous billing period.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -82,7 +82,7 @@ namespace
         addNumericFieldWithExtractor(
             "backward_at_set_date",
             "The total media volume flowing backward at the end of the previous billing period.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()

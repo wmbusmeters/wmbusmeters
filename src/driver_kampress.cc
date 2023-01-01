@@ -27,6 +27,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("kampress");
+        di.setDefaultFields("name,id,status,pressure_bar,max_pressure_bar,min_pressure_bar,timestamp");
         di.setMeterType(MeterType::PressureSensor);
         di.addLinkMode(LinkMode::C1);
         di.addDetection(MANUFACTURER_KAM,  0x18,  0x01);
@@ -38,7 +39,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status and error flags.",
-            PrintProperty::JSON | PrintProperty::FIELD | JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES  | INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(VIFRange::ErrorFlags),
             {
@@ -63,7 +64,7 @@ namespace
         addNumericFieldWithExtractor(
             "pressure",
             "The measured pressure.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Pressure,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -74,7 +75,7 @@ namespace
         addNumericFieldWithExtractor(
             "max_pressure",
             "The maximum pressure measured during ?.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Pressure,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -85,7 +86,7 @@ namespace
         addNumericFieldWithExtractor(
             "min_pressure",
             "The minumum pressure measured during ?.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Pressure,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -96,7 +97,7 @@ namespace
         addNumericFieldWithExtractor(
             "alfa",
             "We do not know what this is.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()
@@ -106,7 +107,7 @@ namespace
         addNumericFieldWithExtractor(
             "beta",
             "We do not know what this is.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()
@@ -118,12 +119,12 @@ namespace
 // Test: Pressing kampress 77000317 NOKEY
 // telegram=|32442D2C1703007701188D280080E39322DB8F78_22696600126967000269660005FF091954A33A05FF0A99BD823A02FD170800|
 // {"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","status":"LOW","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"alfa_counter":0.001246,"beta_counter":0.000997,"timestamp":"1111-11-11T11:11:11Z"}
-// |Pressing;77000317;LOW;1.020000;1.030000;1.020000;1111-11-11 11:11.11
+// |Pressing;77000317;LOW;1.02;1.03;1.02;1111-11-11 11:11.11
 
 // telegram=|27442D2C1703007701188D280194E393226EC679DE735657_660067006600962B913A21B9423A0800|
 // {"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","status":"LOW","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"alfa_counter":0.001108,"beta_counter":0.000743,"timestamp":"1111-11-11T11:11:11Z"}
-// |Pressing;77000317;LOW;1.020000;1.030000;1.020000;1111-11-11 11:11.11
+// |Pressing;77000317;LOW;1.02;1.03;1.02;1111-11-11 11:11.11
 
 // telegram=|27442D2C1703007701188D289554F295224ED579DE73188A_650066006600E80EA43A6B97A3BA0800|
 // {"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","status":"LOW","pressure_bar":1.02,"max_pressure_bar":1.02,"min_pressure_bar":1.01,"alfa_counter":0.001252,"beta_counter":-0.001248,"timestamp":"1111-11-11T11:11:11Z"}
-// |Pressing;77000317;LOW;1.020000;1.020000;1.010000;1111-11-11 11:11.11
+// |Pressing;77000317;LOW;1.02;1.02;1.01;1111-11-11 11:11.11

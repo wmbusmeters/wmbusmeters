@@ -42,7 +42,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status of meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT | PrintProperty::STATUS,
+            DEFAULT_PRINT_PROPERTIES  | PrintProperty::STATUS,
             FieldMatcher::build()
             .set(DifVifKey("02FF20")),
             Translate::Lookup()
@@ -58,7 +58,7 @@ namespace
         addNumericFieldWithExtractor(
             "total",
             "The total water consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -69,7 +69,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
              "The total water consumption recorded at the beginning of this month.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -81,7 +81,7 @@ namespace
         addNumericFieldWithExtractor(
             "flow_temperature",
              "The water temperature.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -93,7 +93,7 @@ namespace
         addNumericFieldWithExtractor(
             "external_temperature",
              "The external temperature outside of the meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -106,7 +106,7 @@ namespace
         addNumericFieldWithExtractor(
             "min_external_temperature",
              "The lowest external temperature outside of the meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -117,7 +117,7 @@ namespace
         addNumericFieldWithExtractor(
             "max_flow",
             "The maxium flow recorded during previous period.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::OPTIONAL,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -129,7 +129,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "current_status",
             "Status of meter. This field will go away use status instead.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT | PrintProperty::DEPRECATED,
+            DEFAULT_PRINT_PROPERTIES  | PrintProperty::DEPRECATED,
             FieldMatcher::build()
             .set(DifVifKey("02FF20")),
             {
@@ -152,7 +152,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "time_dry",
             "Amount of time the meter has been dry.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("02FF20")),
             {
@@ -179,7 +179,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "time_reversed",
             "Amount of time the meter has been reversed.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("02FF20")),
             {
@@ -206,7 +206,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "time_leaking",
             "Amount of time the meter has been leaking.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("02FF20")),
             {
@@ -233,7 +233,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "time_bursting",
             "Amount of time the meter has been bursting.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("02FF20")),
             {
@@ -272,9 +272,9 @@ namespace
 
 // Test: Vadden multical21 44556677 NOKEY
 // telegram=|2D442D2C776655441B168D2083B48D3A20_46887802FF20000004132F4E000092013B3D01A1015B028101E7FF0F03|
-// {"media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","status":"OK","total_m3":20.015,"target_m3":null,"flow_temperature_c":2,"external_temperature_c":3,"max_flow_m3h":0.317,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","status":"OK","total_m3":20.015,"flow_temperature_c":2,"external_temperature_c":3,"max_flow_m3h":0.317,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 // |Vadden;44556677;20.015;null;0.317;2;3;OK;1111-11-11 11:11.11
 
 // telegram=|21442D2C776655441B168D2079CC8C3A20_F4307912C40DFF00002F4E00003D010203|
-// {"media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","status":"OK","total_m3":20.015,"target_m3":null,"flow_temperature_c":2,"external_temperature_c":3,"max_flow_m3h":0.317,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","status":"OK","total_m3":20.015,"flow_temperature_c":2,"external_temperature_c":3,"max_flow_m3h":0.317,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 // |Vadden;44556677;20.015;null;0.317;2;3;OK;1111-11-11 11:11.11

@@ -38,6 +38,7 @@ private:
 static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("lansendw");
+    di.setDefaultFields("name,id,status,timestamp");
     di.setMeterType(MeterType::DoorWindowDetector);
     di.addLinkMode(LinkMode::T1);
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterLansenDW(mi, di)); });
@@ -56,23 +57,17 @@ MeterLansenDW::MeterLansenDW(MeterInfo &mi, DriverInfo &di) :
     addPrint("status", Quantity::Text,
              [&](){ return status(); },
              "The current status: OPEN or CLOSED.",
-             PrintProperty::FIELD | PrintProperty::JSON);
+              DEFAULT_PRINT_PROPERTIES);
 
-    /*
-    addPrint("statuss", Quantity::Text,
-             [&](){ return status(); },
-             "The current status: OPEN or CLOSED.",
-             PrintProperty::FIELD | PrintProperty::JSON);
-    */
     addPrint("a", Quantity::Counter,
              [&](Unit u) { assertQuantity(u, Quantity::Counter); return pulse_counter_a_; },
              "How many times the door/window has been opened or closed.",
-             PrintProperty::JSON);
+             DEFAULT_PRINT_PROPERTIES);
 
     addPrint("b", Quantity::Counter,
              [&](Unit u) { assertQuantity(u, Quantity::Counter); return pulse_counter_b_; },
              "The current number of counted pulses from counter b.",
-             PrintProperty::JSON);
+             DEFAULT_PRINT_PROPERTIES);
 }
 
 

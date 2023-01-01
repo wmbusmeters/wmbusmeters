@@ -63,6 +63,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("hydrus");
+        di.setDefaultFields("name,id,total_m3,total_at_date_m3,status,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_DME,  0x07,  0x70);
@@ -102,77 +103,77 @@ namespace
         addPrint("total", Quantity::Volume,
                  [&](Unit u){ return totalWaterConsumption(u); },
                  "The total water consumption recorded by this meter.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("total_tariff1", Quantity::Volume,
                  [&](Unit u){ return totalWaterConsumptionTariff1(u); },
                  "The total water consumption recorded by this meter at tariff 1.",
-                 PrintProperty::JSON);
+                 DEFAULT_PRINT_PROPERTIES);
 
         addPrint("total_tariff2", Quantity::Volume,
                  [&](Unit u){ return totalWaterConsumptionTariff2(u); },
                  "The total water consumption recorded by this meter at tariff 2.",
-                 PrintProperty::JSON);
+                 DEFAULT_PRINT_PROPERTIES);
 
         addPrint("max_flow", Quantity::Flow,
                  [&](Unit u){ return maxFlow(u); },
                  "The maximum flow recorded during previous period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("flow_temperature", Quantity::Temperature,
                  [&](Unit u){ return flowTemperature(u); },
                  "The water temperature.",
-                 PrintProperty::JSON);
+                 DEFAULT_PRINT_PROPERTIES);
 
         addPrint("external_temperature", Quantity::Temperature,
                  [&](Unit u){ return externalTemperature(u); },
                  "The external temperature.",
-                 PrintProperty::JSON);
+                 DEFAULT_PRINT_PROPERTIES);
 
         addPrint("current_date", Quantity::Text,
                  [&](){ return current_date_; },
                  "Current date of measurement.",
-                 PrintProperty::JSON);
+                 DEFAULT_PRINT_PROPERTIES);
 
         addPrint("total_at_date", Quantity::Volume,
                  [&](Unit u){ return totalWaterConsumptionAtDate(u); },
                  "The total water consumption recorded at date.",
-                 PrintProperty::JSON);
+                 DEFAULT_PRINT_PROPERTIES);
 
         addPrint("total_tariff1_at_date", Quantity::Volume,
                  [&](Unit u){ return totalWaterConsumptionTariff1AtDate(u); },
                  "The total water consumption recorded at tariff 1 at date.",
-                 PrintProperty::JSON);
+                 DEFAULT_PRINT_PROPERTIES);
 
         addPrint("total_tariff2_at_date", Quantity::Volume,
                  [&](Unit u){ return totalWaterConsumptionTariff2AtDate(u); },
                  "The total water consumption recorded at tariff 2 at date.",
-                 PrintProperty::JSON);
+                 DEFAULT_PRINT_PROPERTIES);
 
         addPrint("at_date", Quantity::Text,
                  [&](){ return at_date_; },
                  "Date when total water consumption was recorded.",
-                 PrintProperty::JSON);
+                 DEFAULT_PRINT_PROPERTIES);
 
         addPrint("actuality_duration", Quantity::Time, Unit::Second,
                  [&](Unit u){ return convert(actuality_duration_s_, Unit::Second, u); },
                  "Elapsed time between measurement and transmission",
-                 PrintProperty::JSON);
+                 DEFAULT_PRINT_PROPERTIES);
 
         addPrint("operating_time", Quantity::Time, Unit::Hour,
                  [&](Unit u){ return convert(operating_time_h_, Unit::Hour, u); },
                  "How long the meter is operating",
-                 PrintProperty::JSON);
+                 DEFAULT_PRINT_PROPERTIES);
 
         addPrint("remaining_battery_life", Quantity::Time, Unit::Year,
                  [&](Unit u){ return convert(remaining_battery_life_year_, Unit::Year, u); },
                  "How many more years the battery is expected to last",
-                 PrintProperty::JSON);
+                 DEFAULT_PRINT_PROPERTIES);
 
         addPrint("status", Quantity::Text,
                  [&](){ return status_; },
                  "The status is OK or some error condition.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
     }
 
         void Driver::processContent(Telegram *t)
@@ -592,14 +593,14 @@ namespace
 // Test: HydrusWater hydrus 64646464 NOKEY
 // telegram=|4E44A5116464646470077AED004005_2F2F01FD08300C13741100007C1300000000FC101300000000FC201300000000726C00000B3B00000002FD748713025A6800C4016D3B177F2ACC011300020000|
 // {"media":"water","meter":"hydrus","name":"HydrusWater","id":"64646464","total_m3":1.174,"total_tariff1_m3":0,"total_tariff2_m3":0,"max_flow_m3h":0,"flow_temperature_c":10.4,"external_temperature_c":0,"current_date":"","total_at_date_m3":0,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":0,"at_date":"2000-00-00 00:00","actuality_duration_s":0,"operating_time_h":0,"remaining_battery_life_y":13.686516,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
-// |HydrusWater;64646464;1.174000;0.000000;OK;1111-11-11 11:11.11
+// |HydrusWater;64646464;1.174;0;OK;1111-11-11 11:11.11
 
 // Test: HydrusVater hydrus 65656565 NOKEY
 // telegram=|3E44A5116565656570067AFB0030052F2F_0C13503400000DFD110A383731303134423032410B3B00000002FD74DC15C4016D3B178D29CC0113313400002F2F|
 // {"media":"warm water","meter":"hydrus","name":"HydrusVater","id":"65656565","total_m3":3.45,"total_tariff1_m3":0,"total_tariff2_m3":0,"max_flow_m3h":0,"flow_temperature_c":127,"external_temperature_c":0,"current_date":"","total_at_date_m3":3.431,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":0,"at_date":"2020-09-13 23:59","actuality_duration_s":0,"operating_time_h":0,"remaining_battery_life_y":15.321013,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
-// |HydrusVater;65656565;3.450000;0.000000;OK;1111-11-11 11:11.11
+// |HydrusVater;65656565;3.45;3.431;OK;1111-11-11 11:11.11
 
 // Test: HydrusAES hydrus 64745666 NOKEY
 // telegram=||6644242328001081640E7266567464A51170071F0050052C411A08674048DD6BA82A0DF79FFD401309179A893A1BE3CE8EDC50C2A45CD7AFEC3B4CE765820BE8056C124A17416C3722985FFFF7FCEB7094901AB3A16294B511B9A740C9F9911352B42A72FB3B0C|
 // {"media":"water","meter":"hydrus","name":"HydrusAES","id":"64745666","total_m3":137.291,"total_tariff1_m3":0,"total_tariff2_m3":137.291,"max_flow_m3h":0,"flow_temperature_c":24.5,"external_temperature_c":23.9,"current_date":"2021-01-23 08:27","total_at_date_m3":128.638,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":128.638,"at_date":"2020-12-31 00:00","actuality_duration_s":6673,"operating_time_h":14678,"remaining_battery_life_y":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
-// |HydrusAES;64745666;137.291000;0.000000;OK;1111-11-11 11:11.11
+// |HydrusAES;64745666;137.291;128.638;OK;1111-11-11 11:11.11

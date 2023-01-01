@@ -41,7 +41,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -52,7 +52,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_power_consumption",
             "Current power consumption.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -63,7 +63,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_production",
             "The total energy production recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -73,7 +73,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_power_production",
             "Current power production.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -83,7 +83,7 @@ namespace
         addNumericFieldWithExtractor(
             "voltage_at_phase_1",
             "Voltage at phase L1.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
             VifScaling::None,
             FieldMatcher::build()
@@ -93,7 +93,7 @@ namespace
         addNumericFieldWithExtractor(
             "voltage_at_phase_2",
             "Voltage at phase L2.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
             VifScaling::None,
             FieldMatcher::build()
@@ -103,7 +103,7 @@ namespace
         addNumericFieldWithExtractor(
             "voltage_at_phase_3",
             "Voltage at phase L3.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
             VifScaling::None,
             FieldMatcher::build()
@@ -113,7 +113,7 @@ namespace
         addStringFieldWithExtractor(
             "device_date_time",
             "Device date time.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -122,7 +122,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption_tariff_1",
             "The total energy consumption recorded by this meter on tariff 1.",
-            PrintProperty::JSON | PrintProperty::FIELD, // | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES, // ,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -134,7 +134,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption_tariff_2",
             "The total energy consumption recorded by this meter on tariff 2.",
-            PrintProperty::JSON | PrintProperty::FIELD, // | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES, // ,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -146,7 +146,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption_tariff_3",
             "The total energy consumption recorded by this meter on tariff 3.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -158,7 +158,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_production_tariff_1",
             "The total energy production recorded by this meter on tariff 1.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -168,7 +168,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_production_tariff_2",
             "The total energy production recorded by this meter on tariff 2.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -178,7 +178,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_production_tariff_3",
             "The total energy production recorded by this meter on tariff 3.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -189,19 +189,17 @@ namespace
 
 // Test: MyElectricity1 amiplus 10101010 NOKEY
 // telegram=|4E4401061010101002027A00004005_2F2F0E035040691500000B2B300300066D00790C7423400C78371204860BABC8FC100000000E833C8074000000000BAB3C0000000AFDC9FC0136022F2F2F2F2F|
-// {"media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.05,"current_power_consumption_kw":0.33,"total_energy_production_kwh":7.48,"current_power_production_kw":0,"voltage_at_phase_1_v":236,"voltage_at_phase_2_v":null,"voltage_at_phase_3_v":null,"device_date_time":"2019-03-20 12:57:00","total_energy_consumption_tariff_1_kwh":null,"total_energy_consumption_tariff_2_kwh":null,"total_energy_consumption_tariff_3_kwh":null,"total_energy_production_tariff_1_kwh":null,"total_energy_production_tariff_2_kwh":null,"total_energy_production_tariff_3_kwh":null,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.05,"current_power_consumption_kw":0.33,"total_energy_production_kwh":7.48,"current_power_production_kw":0,"voltage_at_phase_1_v":236,"device_date_time":"2019-03-20 12:57:00","timestamp":"1111-11-11T11:11:11Z"}
 // |MyElectricity1;10101010;15694.05;0.33;7.48;0;236;null;null;null;null;null;null;null;null;1111-11-11 11:11.11
 
 // Test: MyElectricity2 amiplus 00254358 NOKEY
-// amiplus/apator electricity meter with three phase voltages
-
+// Comment: amiplus/apator electricity meter with three phase voltages
 // telegram=|5E44B6105843250000027A2A005005_2F2F0C7835221400066D404708AC2A400E032022650900000E833C0000000000001B2B9647000B2B5510000BAB3C0000000AFDC9FC0135020AFDC9FC0245020AFDC9FC0339020BABC8FC100000002F2F|
-// {"media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"device_date_time":"2021-10-12 08:07:00","total_energy_consumption_tariff_1_kwh":null,"total_energy_consumption_tariff_2_kwh":null,"total_energy_consumption_tariff_3_kwh":null,"total_energy_production_tariff_1_kwh":null,"total_energy_production_tariff_2_kwh":null,"total_energy_production_tariff_3_kwh":null,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"device_date_time":"2021-10-12 08:07:00","timestamp":"1111-11-11T11:11:11Z"}
 // |MyElectricity2;00254358;9652.22;1.055;0;0;235;245;239;null;null;null;null;null;null;1111-11-11 11:11.11
 
 // Test: MyElectricity3 amiplus 86064864 NOKEY
-// amiplus/apator electricity meter with three phase voltages and 2 tariffs
-
+// Comment: amiplus/apator electricity meter with three phase voltages and 2 tariffs.
 // telegram=|804401066448068602027A000070052F2F_066D1E5C11DA21400C78644806868E10036110012500008E20038106531800008E10833C9949000000008E20833C8606000000001B2B5228020B2B3217000BAB3C0000000AFDC9FC0131020AFDC9FC0225020AFDC9FC0331020BABC8FC100000002F2F2F2F2F2F2F2F2F2F2F2F2FDE47|
-// {"media":"electricity","meter":"amiplus","name":"MyElectricity3","id":"86064864","total_energy_consumption_kwh":null,"current_power_consumption_kw":1.732,"total_energy_production_kwh":null,"current_power_production_kw":0,"voltage_at_phase_1_v":231,"voltage_at_phase_2_v":225,"voltage_at_phase_3_v":231,"device_date_time":"2022-01-26 17:28:30","total_energy_consumption_tariff_1_kwh":25011.061,"total_energy_consumption_tariff_2_kwh":18530.681,"total_energy_consumption_tariff_3_kwh":null,"total_energy_production_tariff_1_kwh":4.999,"total_energy_production_tariff_2_kwh":0.686,"total_energy_production_tariff_3_kwh":null,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"electricity","meter":"amiplus","name":"MyElectricity3","id":"86064864","current_power_consumption_kw":1.732,"current_power_production_kw":0,"voltage_at_phase_1_v":231,"voltage_at_phase_2_v":225,"voltage_at_phase_3_v":231,"device_date_time":"2022-01-26 17:28:30","total_energy_consumption_tariff_1_kwh":25011.061,"total_energy_consumption_tariff_2_kwh":18530.681,"total_energy_production_tariff_1_kwh":4.999,"total_energy_production_tariff_2_kwh":0.686,"timestamp":"1111-11-11T11:11:11Z"}
 // |MyElectricity3;86064864;null;1.732;null;0;231;225;231;25011.061;18530.681;null;4.999;0.686;null;1111-11-11 11:11.11

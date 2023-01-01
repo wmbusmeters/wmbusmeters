@@ -39,7 +39,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status of meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT | PrintProperty::STATUS,
+            DEFAULT_PRINT_PROPERTIES  | PrintProperty::STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
@@ -59,7 +59,7 @@ namespace
         addNumericFieldWithExtractor(
             "total",
             "The total water consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()

@@ -46,13 +46,13 @@ namespace
         addStringField(
             "status",
             "Meter status from tpl status field.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS);
+            DEFAULT_PRINT_PROPERTIES  |
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS);
 
         addNumericFieldWithExtractor(
             "total_heating",
             "The total heating energy consumption recorded by this meter.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -64,7 +64,7 @@ namespace
         addNumericFieldWithExtractor(
             "device",
             "The date time when the recording was made.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -75,7 +75,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_cooling",
             "The total cooling energy consumption recorded by this meter.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -87,7 +87,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_heating",
             "Total heating volume of media.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -99,7 +99,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_cooling",
             "Total cooling volume of media.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -111,7 +111,7 @@ namespace
         addNumericFieldWithExtractor(
             "c1_volume",
             "Supply c1 volume.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -123,7 +123,7 @@ namespace
         addNumericFieldWithExtractor(
             "c2_volume",
             "Return c2 volume.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -135,7 +135,7 @@ namespace
         addNumericFieldWithExtractor(
             "supply_temperature",
             "The supply t1 pipe temperature.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -147,7 +147,7 @@ namespace
         addNumericFieldWithExtractor(
             "return_temperature",
             "The return t2 pipe temperature.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()

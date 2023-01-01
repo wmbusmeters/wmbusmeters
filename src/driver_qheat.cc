@@ -41,7 +41,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter status.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES  | PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
@@ -78,7 +78,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -89,7 +89,7 @@ namespace
         addStringFieldWithExtractor(
             "last_month_date",
              "Last day previous month when total energy consumption was recorded.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT,
+             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(StorageNr(17))
@@ -99,7 +99,7 @@ namespace
         addNumericFieldWithExtractor(
             "last_month_energy_consumption",
             "The total energy consumption recorded at the last day of the previous month.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -111,7 +111,7 @@ namespace
         addStringFieldWithExtractor(
             "last_year_date",
              "Last day previous year when total energy consumption was recorded.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(StorageNr(1))
@@ -121,7 +121,7 @@ namespace
         addNumericFieldWithExtractor(
             "last_year_energy_consumption",
             "The total energy consumption recorded at the last day of the previous year.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -133,7 +133,7 @@ namespace
         addStringFieldWithExtractor(
             "device_date_time",
              "Device date time.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -142,7 +142,7 @@ namespace
         addStringFieldWithExtractor(
             "device_error_date",
              "Device error date.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::AtError)
             .set(VIFRange::Date)

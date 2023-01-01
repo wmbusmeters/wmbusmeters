@@ -40,8 +40,8 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "current_status",
             "Status of meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT
-            | PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES  
+            | PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
@@ -65,7 +65,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date",
             "The total water consumption at the most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -77,7 +77,7 @@ namespace
         addStringFieldWithExtractor(
             "set_date",
             "The most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -87,7 +87,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date_2",
             "The total water consumption at the second most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -99,7 +99,7 @@ namespace
         addStringFieldWithExtractor(
             "set_date_2",
             "The second most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -109,7 +109,7 @@ namespace
         addNumericFieldWithExtractor(
             "max_flow_since_datetime",
             "Maximum water flow since date time.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -121,7 +121,7 @@ namespace
         addStringFieldWithExtractor(
             "max_flow_datetime",
             "The datetime to which maximum flow is measured.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -131,7 +131,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_history_{storage_counter-7counter}",
             "The total water consumption at the historic date.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -143,7 +143,7 @@ namespace
         addNumericFieldWithExtractor(
             "history_reference",
             "Reference date for history.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -156,7 +156,7 @@ namespace
         addNumericFieldWithCalculatorAndMatcher(
             "history_{storage_counter-7counter}",
             "The historic date #.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             "history_reference_date - ((storage_counter-8counter) * 1 month)",
             FieldMatcher::build()
@@ -169,7 +169,7 @@ namespace
         addStringFieldWithExtractor(
             "device_date_time",
             "Date and time when the meter sent the telegram.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)

@@ -26,6 +26,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("ultrimis");
+        di.setDefaultFields("name,id,total_m3,target_m3,current_status,total_backward_flow_m3,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_APA,  0x16,  0x01);
@@ -37,7 +38,7 @@ namespace
         addNumericFieldWithExtractor(
             "total",
             "The total water consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -48,7 +49,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
              "The total water consumption recorded at the beginning of this month.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -60,7 +61,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "current_status",
             "Status and error flags.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("03FD17")),
             {
@@ -89,7 +90,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_backward_flow",
             "The total backward water volume recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -102,4 +103,4 @@ namespace
 // Comment:
 // telegram=|2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F|
 // {"media":"cold water","meter":"ultrimis","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}
-// |Water;95969798;3.122000;2.337000;OK;0.000000;1111-11-11 11:11.11
+// |Water;95969798;3.122;2.337;OK;0;1111-11-11 11:11.11

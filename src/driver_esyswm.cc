@@ -42,7 +42,7 @@ namespace
         addStringFieldWithExtractor(
             "location_hex",
             "Meter installed at this customer location. Deprecate field.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL | PrintProperty::DEPRECATED,
+            DEFAULT_PRINT_PROPERTIES  | PrintProperty::DEPRECATED,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Location)
@@ -51,7 +51,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -62,7 +62,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_power_consumption",
             "Calculated sum of power consumption of all phases.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -73,7 +73,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_production",
             "The total energy production recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -85,7 +85,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption_tariff1",
              "The total energy consumption recorded by this meter on tariff 1.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -97,7 +97,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption_tariff2",
              "The total energy consumption recorded by this meter on tariff 2.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -109,7 +109,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_power_consumption_phase1",
             "Current power consumption phase 1.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -119,7 +119,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_power_consumption_phase2",
             "Current power consumption phase 2.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -129,7 +129,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_power_consumption_phase3",
             "Current power consumption phase 3.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -139,7 +139,7 @@ namespace
         addStringFieldWithExtractor(
             "version",
             "Static version information.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("0DFD09"))
@@ -151,7 +151,7 @@ namespace
 // Test: Elen2 esyswm 77997799 NOKEY
 // Comment: Static telegram
 // telegram=|7B4479169977997730378C208B900F002C25E4EF0A002EA98E7D58B3ADC57299779977991611028B005087102F2F#0DFD090F34302e3030562030303030303030300D790E31323334353637383839595345310DFD100AAAAAAAAAAAAAAAAAAAAA0D780E31323334353637383930594553312F2F2F2F2F2F2F2F2F2F2F|
-// {"media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","fabrication_no":"1SEY0987654321","enhanced_id":"1ESY9887654321","location":"AAAAAAAAAAAAAAAAAAAA","location_hex":"AAAAAAAAAAAAAAAAAAAA","total_energy_consumption_kwh":null,"current_power_consumption_kw":null,"total_energy_production_kwh":null,"total_energy_consumption_tariff1_kwh":null,"total_energy_consumption_tariff2_kwh":null,"current_power_consumption_phase1_kw":null,"current_power_consumption_phase2_kw":null,"current_power_consumption_phase3_kw":null,"version":"00000000 V00.04","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","fabrication_no":"1SEY0987654321","enhanced_id":"1ESY9887654321","location":"AAAAAAAAAAAAAAAAAAAA","location_hex":"AAAAAAAAAAAAAAAAAAAA","version":"00000000 V00.04","timestamp":"1111-11-11T11:11:11Z"}
 // |Elen2;77997799;null;null;null;null;null;null;null;null;1ESY9887654321;1111-11-11 11:11.11
 
 // Comment: Dynamic telegram

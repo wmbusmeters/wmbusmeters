@@ -26,6 +26,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("enercal");
+        di.setDefaultFields("name,id,status,total_kwh,target_kwh,total_m3,target_m3,timestamp");
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::MBUS);
         di.addDetection(MANUFACTURER_GWF, 0x04,  0x08);
@@ -37,13 +38,12 @@ namespace
         addStringField(
             "status",
             "Meter status.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS);
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS);
 
         addNumericFieldWithExtractor(
             "total",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -54,7 +54,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
             "The energy consumption recorded by this meter at the set date.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -66,7 +66,7 @@ namespace
         addNumericFieldWithExtractor(
             "power",
             "The active power consumption.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -77,7 +77,7 @@ namespace
         addNumericFieldWithExtractor(
             "flow",
             "The flow of water.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -88,7 +88,7 @@ namespace
         addNumericFieldWithExtractor(
             "flow_max",
             "The maximum forward flow of water since the last set date?",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -99,7 +99,7 @@ namespace
         addNumericFieldWithExtractor(
             "forward",
             "The forward temperature of the water.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -110,7 +110,7 @@ namespace
         addNumericFieldWithExtractor(
             "return",
             "The return temperature of the water.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -121,7 +121,7 @@ namespace
         addNumericFieldWithExtractor(
             "difference",
             "The temperature difference forward-return for the water.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::AutoSigned,
             FieldMatcher::build()
@@ -132,7 +132,7 @@ namespace
         addNumericFieldWithExtractor(
             "total",
             "The total amount of water that has passed through this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -143,7 +143,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
             "The amount of water that had passed through this meter at the set date.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -155,7 +155,7 @@ namespace
         addNumericFieldWithExtractor(
             "subunit1",
             "The amount of water that has passed through subunit 1.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -167,7 +167,7 @@ namespace
         addNumericFieldWithExtractor(
             "subunit1_target",
             "The amount of water that had passed through the subunit 1 at the set date.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -180,7 +180,7 @@ namespace
         addNumericFieldWithExtractor(
             "subunit1",
             "The current heat cost allocation for subunit 1.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -192,7 +192,7 @@ namespace
         addNumericFieldWithExtractor(
             "subunit1_target",
             "The heat cost allocation for subunit 1 at the target date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -205,7 +205,7 @@ namespace
         addNumericFieldWithExtractor(
             "subunit2",
             "The current heat cost allocation for subunit 2.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -217,7 +217,7 @@ namespace
         addNumericFieldWithExtractor(
             "subunit2_target",
             "The heat cost allocation for subunit 2 at the target date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -230,7 +230,7 @@ namespace
         addStringFieldWithExtractor(
             "target_date",
             "The most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -245,4 +245,4 @@ namespace
 // Comment:
 // telegram=|688e8e6808017224993000e61e080406000000040681460600041488f2350084401426e02600025B2600025f220002622a00042247880200042647880200043B00000000042c00000000046d2d0ede2784406e000000008480406e00000000c4800006B1450600c48000143Be43500c4c000142fd22600c4c0006e00000000c480406e00000000c280006cc1271f00000000f416|
 // {"media":"heat","meter":"enercal","name":"Heat","id":"00309924","status":"OK","total_kwh":411265,"target_kwh":411057,"power_kw":0,"flow_m3h":0,"forward_c":38,"return_c":34,"difference_c":4.2,"total_m3":35354.96,"target_m3":35318.35,"subunit1_m3":25477.5,"subunit1_target_m3":25441.75,"subunit1_hca":0,"subunit1_target_hca":0,"subunit2_hca":0,"subunit2_target_hca":0,"target_date":"2022-07-01","operating_time_h":165959,"on_time_h":165959,"meter_datetime":"2022-07-30 14:45","timestamp":"1111-11-11T11:11:11Z"}
-// |Heat;00309924;OK;411265.000000;411057.000000;35354.960000;35318.350000;1111-11-11 11:11.11
+// |Heat;00309924;OK;411265;411057;35354.96;35318.35;1111-11-11 11:11.11

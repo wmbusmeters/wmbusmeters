@@ -27,6 +27,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("ei6500");
+        di.setDefaultFields("name,id,status,last_alarm_date,alarm_counter,timestamp");
         di.setMeterType(MeterType::SmokeDetector);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_EIE, 0x1a, 0x0c);
@@ -45,8 +46,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter error flags. IMPORTANT! Smoke alarm is NOT reported here! You MUST check last alarm date and counter!",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(VIFRange::ErrorFlags),
             Translate::Lookup(
@@ -77,7 +77,7 @@ namespace
         addStringFieldWithExtractor(
             "last_alarm_date",
             "Date when the smoke alarm last triggered.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT,
+             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(SubUnitNr(1))
@@ -88,7 +88,7 @@ namespace
         addNumericFieldWithExtractor(
             "alarm",
             "Number of times the smoke alarm has triggered.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()
@@ -101,7 +101,7 @@ namespace
         addStringFieldWithExtractor(
             "software_version",
             "Meter software version number.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::SoftwareVersion)
@@ -110,7 +110,7 @@ namespace
         addStringFieldWithExtractor(
             "message_datetime",
             "Device date time.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -119,7 +119,7 @@ namespace
         addNumericFieldWithExtractor(
             "duration_removed",
             "Time the smoke alarm has been removed.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -132,7 +132,7 @@ namespace
         addStringFieldWithExtractor(
             "last_remove_date",
             "Date when the smoke alarm was last removed.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(SubUnitNr(1))
@@ -143,7 +143,7 @@ namespace
         addNumericFieldWithExtractor(
             "removed",
             "Number of times the smoke alarm has been removed.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()
@@ -156,7 +156,7 @@ namespace
         addStringFieldWithExtractor(
             "test_button_last_date",
             "Date when test button was last pressed.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(SubUnitNr(1))
@@ -167,7 +167,7 @@ namespace
         addNumericFieldWithExtractor(
             "test_button",
             "Number of times the test button has been pressed.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()
@@ -180,7 +180,7 @@ namespace
         addStringFieldWithExtractor(
             "installation_date",
             "Date when the smoke alarm was installed.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(TariffNr(2))
@@ -190,7 +190,7 @@ namespace
         addStringFieldWithExtractor(
             "last_sound_check_date",
             "Date when the smoke alarm last checked the piezo speaker.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(StorageNr(1))
@@ -200,7 +200,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "dust_level",
             "Dust level 0 (best) to 15 (worst).",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("8440FF2C")),
             Translate::Lookup(
@@ -220,7 +220,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "battery_level",
             "Battery voltage level.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("8440FF2C")),
             Translate::Lookup(
@@ -259,7 +259,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "obstacle_distance",
             "The distance to a detected obstacle.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("8440FF2C")),
             Translate::Lookup(
@@ -289,7 +289,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "head_status",
             "Status of smoke detector sensors, merged into the status field.",
-            PrintProperty::JOIN_INTO_STATUS,
+            PrintProperty::INJECT_INTO_STATUS | PrintProperty::HIDE,
             FieldMatcher::build()
             .set(DifVifKey("8440FF2C")),
             Translate::Lookup(
@@ -329,16 +329,16 @@ namespace
 // Test: Smokey ei6500 01097274 NOKEY
 // telegram=|58442515747209010C1A7A8B0000000BFD0F070101046D2A06D82502FD17000082206CD825426CD0238440FF2C000F11008250FD61000082506C01018260FD6100008360FD3100000082606C01018270FD61000082706C0101|
 // {"media":"smoke detector","meter":"ei6500","name":"Smokey","id":"01097274","status":"OK","last_alarm_date":"2000-01-01","alarm_counter":0,"software_version":"010107","message_datetime":"2022-05-24 06:42","duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2000-01-01","test_button_counter":0,"installation_date":"2022-05-24","last_sound_check_date":"2022-03-16","dust_level":"DUST_0","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}
-// |Smokey;01097274;OK;2000-01-01;0.000000;1111-11-11 11:11.11
+// |Smokey;01097274;OK;2000-01-01;0;1111-11-11 11:11.11
 
 // telegram=|58442515747209010C1A7A8D0000000BFD0F070101046D2E06D82502FD17000082206CD825426CD0238440FF2C000F11008250FD61000082506C01018260FD6100008360FD3100000082606C01018270FD61020082706CD825|
 // {"media":"smoke detector","meter":"ei6500","name":"Smokey","id":"01097274","status":"OK","last_alarm_date":"2000-01-01","alarm_counter":0,"software_version":"010107","message_datetime":"2022-05-24 06:46","duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2022-05-24","test_button_counter":2,"installation_date":"2022-05-24","last_sound_check_date":"2022-03-16","dust_level":"DUST_0","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}
-// |Smokey;01097274;OK;2000-01-01;0.000000;1111-11-11 11:11.11
+// |Smokey;01097274;OK;2000-01-01;0;1111-11-11 11:11.11
 
 // telegram=|58442515747209010C1A7A900000000BFD0F070101046D3406D82502FD17000082206CD825426CD0238440FF2C020F11008250FD61010082506CD8258260FD6100008360FD3100000082606C01018270FD61020082706CD825|
 // {"media":"smoke detector","meter":"ei6500","name":"Smokey","id":"01097274","status":"OK","last_alarm_date":"2022-05-24","alarm_counter":1,"software_version":"010107","message_datetime":"2022-05-24 06:52","duration_removed_h":0,"last_remove_date":"2000-01-01","removed_counter":0,"test_button_last_date":"2022-05-24","test_button_counter":2,"installation_date":"2022-05-24","last_sound_check_date":"2022-03-16","dust_level":"DUST_2","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}
-// |Smokey;01097274;OK;2022-05-24;1.000000;1111-11-11 11:11.11
+// |Smokey;01097274;OK;2022-05-24;1;1111-11-11 11:11.11
 
 // telegram=|58442515747209010C1A7A940000000BFD0F070101046D0007D82502FD17000082206CD825426CD0238440FF2C420F11008250FD61010082506CD8258260FD6101008360FD3101000082606CD8258270FD61020082706CD825|
 // {"media":"smoke detector","meter":"ei6500","name":"Smokey","id":"01097274","status":"TAMPER_WHILE_REMOVED","last_alarm_date":"2022-05-24","alarm_counter":1,"software_version":"010107","message_datetime":"2022-05-24 07:00","duration_removed_h":0.016667,"last_remove_date":"2022-05-24","removed_counter":1,"test_button_last_date":"2022-05-24","test_button_counter":2,"installation_date":"2022-05-24","last_sound_check_date":"2022-03-16","dust_level":"DUST_2","battery_level":"3.00V","obstacle_distance":"","timestamp":"1111-11-11T11:11:11Z"}
-// |Smokey;01097274;TAMPER_WHILE_REMOVED;2022-05-24;1.000000;1111-11-11 11:11.11
+// |Smokey;01097274;TAMPER_WHILE_REMOVED;2022-05-24;1;1111-11-11 11:11.11

@@ -44,7 +44,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status of meter. Not fully understood!",
-            PrintProperty::JSON | PrintProperty::IMPORTANT | PrintProperty::STATUS,
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::STATUS,
             FieldMatcher::build()
             .set(DifVifKey("04FF23")),
             {
@@ -69,7 +69,7 @@ namespace
         addNumericFieldWithExtractor(
             "total",
             "The total water consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -80,7 +80,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
              "The total water consumption recorded at the beginning of this month.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -92,7 +92,7 @@ namespace
         addStringFieldWithExtractor(
             "target_date",
              "The date at the beginning of this month.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -102,7 +102,7 @@ namespace
         addNumericFieldWithExtractor(
             "flow",
             "The current flow of water through the meter.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -113,7 +113,7 @@ namespace
         addNumericFieldWithExtractor(
             "min_flow_temperature",
              "The water temperature.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -125,7 +125,7 @@ namespace
         addNumericFieldWithExtractor(
             "max_flow_temperature",
             "The maximum water temperature.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -137,7 +137,7 @@ namespace
         addNumericFieldWithExtractor(
             "min_external_temperature",
             "The external temperature outside of the meter.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -149,7 +149,7 @@ namespace
         addNumericFieldWithExtractor(
             "max_flow",
             "The maxium flow recorded during previous period.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -161,7 +161,7 @@ namespace
         addNumericFieldWithExtractor(
             "min_flow",
             "The minimum flow recorded during previous period.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -173,7 +173,7 @@ namespace
         addNumericFieldWithExtractor(
             "max_external_temperature",
             "The maxium temperature recorded during previous period.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -185,7 +185,7 @@ namespace
         addNumericFieldWithExtractor(
             "min_external_temperature",
             "The minimum flow recorded during previous period.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -197,7 +197,7 @@ namespace
         addNumericFieldWithExtractor(
             "max_flow",
             "The maxium flow recorded during previous period.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -209,7 +209,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "time_dry",
             "Amount of time the meter has been dry.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("02FF20")),
             {
@@ -236,7 +236,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "time_reversed",
             "Amount of time the meter has been reversed.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("02FF20")),
             {
@@ -263,7 +263,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "time_leaking",
             "Amount of time the meter has been leaking.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("02FF20")),
             {
@@ -290,7 +290,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "time_bursting",
             "Amount of time the meter has been bursting.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("02FF20")),
             {

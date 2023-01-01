@@ -41,7 +41,7 @@ namespace
         addNumericFieldWithExtractor(
             "total",
             "The total water consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -52,7 +52,7 @@ namespace
         addNumericFieldWithExtractor(
             "meter",
             "Meter timestamp for measurement.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()

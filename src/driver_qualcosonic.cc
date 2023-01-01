@@ -27,6 +27,8 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("qualcosonic");
+        di.setDefaultFields("name,id,status,total_heat_energy_kwh,total_cooling_energy_kwh,"
+                            "power_kw,target_datetime,target_heat_energy_kwh,target_cooling_energy_kwh,timestamp");
         di.setMeterType(MeterType::HeatCoolingMeter);
         di.addLinkMode(LinkMode::C1);
         di.addDetection(MANUFACTURER_AXI, 0x0d,  0x0b);
@@ -41,8 +43,8 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter status. Includes both meter error field and tpl status field.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES   |
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(VIFRange::ErrorFlags),
             Translate::Lookup(
@@ -64,7 +66,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_heat_energy",
             "The total heating energy consumption recorded by this meter.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -76,7 +78,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_cooling_energy",
             "The total cooling energy consumption recorded by this meter.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -88,7 +90,7 @@ namespace
         addNumericFieldWithExtractor(
             "power",
             "The current power consumption.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::AutoSigned,
             FieldMatcher::build()
@@ -99,7 +101,7 @@ namespace
         addStringFieldWithExtractor(
             "target_datetime",
             "Date and time when the previous billing period ended.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -109,7 +111,7 @@ namespace
         addNumericFieldWithExtractor(
             "target_heat_energy",
             "The heating energy consumption recorded at the end of the previous billing period.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -122,7 +124,7 @@ namespace
         addNumericFieldWithExtractor(
             "target_cooling_energy",
             "The cooling energy consumption recorded at the end of the previous billing period.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -138,4 +140,4 @@ namespace
 // Test: qualco qualcosonic 03016408 NOKEY
 // telegram=|76440907086401030B0d7a78000000046d030fB726346d0000010134fd170000000004200f13cf0104240f13cf0104863B0000000004863cdc0000000413B5150600042B86f1ffff043B030200000259c002025d2c05026194fd0c780864010384086d3B17Bf258408863B000000008408863c0B000000|
 // {"media":"heat/cooling load","meter":"qualcosonic","name":"qualco","id":"03016408","fabrication_no":"03016408","operating_time_h":8430.013056,"on_time_h":8430.013056,"meter_datetime":"2021-06-23 15:03","meter_datetime_at_error":"2000-01-01 00:00","total_m3":398.773,"flow_temperature_c":7.04,"return_temperature_c":13.24,"flow_return_temperature_difference_c":-6.2,"volume_flow_m3h":0.515,"status":"OK","total_heat_energy_kwh":0,"total_cooling_energy_kwh":220,"power_kw":-3.706,"target_datetime":"2021-05-31 23:59","target_heat_energy_kwh":0,"target_cooling_energy_kwh":11,"timestamp":"1111-11-11T11:11:11Z"}
-// |qualco;03016408;OK;0.000000;220.000000;-3.706000;2021-05-31 23:59;0.000000;11.000000;1111-11-11 11:11.11
+// |qualco;03016408;OK;0;220;-3.706;2021-05-31 23:59;0;11;1111-11-11 11:11.11

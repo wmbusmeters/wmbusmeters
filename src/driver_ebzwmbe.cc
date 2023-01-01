@@ -39,7 +39,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -50,7 +50,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_power_consumption_phase1",
             "Current power consumption at phase 1.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -60,7 +60,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_power_consumption_phase2",
             "Current power consumption at phase 2.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -70,7 +70,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_power_consumption_phase3",
             "Current power consumption at phase 3.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -80,7 +80,7 @@ namespace
         addStringFieldWithExtractor(
             "customer",
             "Customer name.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Customer)
@@ -90,7 +90,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_power_consumption",
             "Calculated sum of power consumption of all phases.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -102,7 +102,7 @@ namespace
         addNumericFieldWithCalculator(
             "current_power_consumption",
             "Calculated sum of power consumption of all phases.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             "current_power_consumption_phase1_kw + current_power_consumption_phase2_kw + current_power_consumption_phase3_kw"
             );

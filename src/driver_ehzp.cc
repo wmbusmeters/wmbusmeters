@@ -38,15 +38,14 @@ namespace
         addStringField(
             "status",
             "Meter status. Includes both meter error field and tpl status field.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS);
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS);
 
         addOptionalCommonFields("on_time_h");
 
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -57,7 +56,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_power_consumption",
             "Current power consumption.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -68,7 +67,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_production",
             "The total energy production recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()

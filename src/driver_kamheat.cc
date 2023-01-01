@@ -62,7 +62,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status and error flags.",
-            PrintProperty::JSON | PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(DifVifKey("04FF22")),
             Translate::Lookup(
@@ -114,7 +114,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -125,7 +125,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_volume",
             "The volume of water (3/68/Volume V1).",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -136,7 +136,7 @@ namespace
         addNumericFieldWithExtractor(
             "volume_flow",
             "The actual amount of water that pass through this meter (8/74/Flow V1 actual).",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -147,7 +147,7 @@ namespace
         addNumericFieldWithExtractor(
             "power",
             "The current power flowing.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -158,7 +158,7 @@ namespace
         addNumericFieldWithExtractor(
             "max_power",
             "The maximum power supplied.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -169,7 +169,7 @@ namespace
         addNumericFieldWithExtractor(
             "t1_temperature",
             "The forward temperature of the water (6/86/t2 actual 2 decimals).",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -180,7 +180,7 @@ namespace
         addNumericFieldWithExtractor(
             "t2_temperature",
             "The return temperature of the water (7/87/t2 actual 2 decimals).",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -191,7 +191,7 @@ namespace
         addNumericFieldWithExtractor(
             "max_flow",
             "The maximum flow of water that passed through this meter.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -202,7 +202,7 @@ namespace
         addNumericFieldWithExtractor(
             "forward_energy",
             "The forward energy of the water (4/97/Energy E8).",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::None,
             FieldMatcher::build()
@@ -212,7 +212,7 @@ namespace
         addNumericFieldWithExtractor(
             "return_energy",
             "The return energy of the water (5/110/Energy E9).",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::None,
             FieldMatcher::build()
@@ -222,7 +222,7 @@ namespace
         addStringFieldWithExtractor(
             "meter_date",
             "The date and time (10/348/Date and time).",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -231,7 +231,7 @@ namespace
         addNumericFieldWithExtractor(
             "target_energy",
             "The energy consumption recorded by this meter at the set date (11/60/Heat energy E1/026C).",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -243,7 +243,7 @@ namespace
         addNumericFieldWithExtractor(
             "target_volume",
             "The amount of water that had passed through this meter at the set date (13/68/Volume V1).",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -255,7 +255,7 @@ namespace
         addStringFieldWithExtractor(
             "target_date",
             "The most recent billing period date and time (14/348/Date and Time logged).",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)

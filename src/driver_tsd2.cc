@@ -39,6 +39,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("tsd2");
+        di.setDefaultFields("name,id,status,prev_date,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_TCH, 0xf0,  0x76);
@@ -57,12 +58,12 @@ namespace
         addPrint("status", Quantity::Text,
                  [&](){ return status(); },
                  "The current status: OK, SMOKE or ERROR.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("prev_date", Quantity::Text,
                  [&](){ return previousDate(); },
                  "Date of previous billing period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
     }
 
 #define INFO_CODE_SMOKE 0x0001

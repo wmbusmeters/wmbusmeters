@@ -42,13 +42,13 @@ namespace
         addStringField(
             "status",
             "Meter status from tpl status field.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS);
+            DEFAULT_PRINT_PROPERTIES  |
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS);
 
         addNumericFieldWithExtractor(
             "current_consumption",
             "The current heat cost allocation.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -58,7 +58,7 @@ namespace
         addStringFieldWithExtractor(
             "set_date",
              "The most recent billing period date.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -67,7 +67,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date",
             "Heat cost allocation at the most recent billing period date.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -78,7 +78,7 @@ namespace
         addStringFieldWithExtractor(
             "set_date_1",
              "The most recent billing period date.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -87,7 +87,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date_1",
             "Heat cost allocation at the most recent billing period date.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -98,7 +98,7 @@ namespace
         addStringFieldWithExtractor(
             "set_date_8",
              "The 8 billing period date.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -107,7 +107,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date_8",
             "Heat cost allocation at the 8 billing period date.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()

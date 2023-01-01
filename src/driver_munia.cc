@@ -40,8 +40,8 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter status. Reports OK if neither tpl sts nor error flags have bits set.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES   |
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(DifVifKey("02FD971D")),
             Translate::Lookup({
@@ -61,7 +61,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_temperature",
             "The current temperature.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -72,7 +72,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_relative_humidity",
             "The current relative humidity.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::RelativeHumidity,
             VifScaling::Auto,
             FieldMatcher::build()

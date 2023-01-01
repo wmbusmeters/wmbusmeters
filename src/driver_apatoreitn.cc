@@ -54,37 +54,37 @@ namespace
         addPrint("current", Quantity::HCA,
                  [&](Unit u){ return convert(curr_energy_hca_, Unit::HCA, u);},
                  "Energy consumption so far in this billing period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("previous", Quantity::HCA,
                  [&](Unit u){ return convert(prev_energy_hca_, Unit::HCA, u); },
                  "Energy consumption in previous billing period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("current_date", Quantity::Text,
                  [&](){ return curr_energy_hca_date_; },
                  "Current date, as reported by meter.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("season_start_date", Quantity::Text,
                  [&](){ return season_start_date_; },
                  "Season start date.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("esb_date", Quantity::Text,
                  [&](){ return esb_date_; },
                  "Electronic seal protection break date.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("temp_room_avg", Quantity::Temperature,
                  [&](Unit u){ return convert(temp_room_avg_, Unit::C, u); },
                  "Average room temperature in current season.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("temp_room_prev_avg", Quantity::Temperature,
                  [&](Unit u){ return convert(temp_room_prev_avg_, Unit::C, u); },
                  "Average room temperature in previous season.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
     }
 
     void Driver::processContent(Telegram *t)

@@ -39,8 +39,8 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter status from error flags and tpl status field.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES  |
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
@@ -67,8 +67,8 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "error_flags",
             "Deprecated field! Use status instead.",
-            PrintProperty::JSON | PrintProperty::DEPRECATED |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::DEPRECATED |
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
@@ -95,7 +95,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_consumption",
             "The current heat cost allocation.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -106,7 +106,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date_{storage_counter}",
             "The heat cost allocation at set date #.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -118,7 +118,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date",
             "Deprecated field.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()

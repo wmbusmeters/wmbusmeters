@@ -62,7 +62,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status of meter.",
-            PrintProperty::JSON | PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
@@ -116,7 +116,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "info",
             "Is it a three phase or single phase meter.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
@@ -139,7 +139,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -150,7 +150,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption_tariff_{tariff_counter}",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -162,7 +162,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
             "Last day?",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -174,7 +174,7 @@ namespace
         addNumericFieldWithExtractor(
             "target_energy_consumption",
             "Last day energy consumption?",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -186,7 +186,7 @@ namespace
         addNumericFieldWithExtractor(
             "target_energy_consumption_tariff_{tariff_counter}",
             "Last day energy consumption for tariff?",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -199,7 +199,7 @@ namespace
         addNumericFieldWithExtractor(
             "device",
             "Device date time when telegram was sent.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -210,7 +210,7 @@ namespace
         addNumericFieldWithExtractor(
             "voltage_at_phase_1",
             "Voltage for single phase meter.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -222,7 +222,7 @@ namespace
         addNumericFieldWithExtractor(
             "voltage_at_phase_{subunit_counter}",
             "Voltage at phase L#.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -234,7 +234,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_at_phase_1",
             "Amperage for single phase meter.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Amperage,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -246,7 +246,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_at_phase_{subunit_counter}",
             "Amperage at phase L#.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Amperage,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -258,7 +258,7 @@ namespace
         addNumericFieldWithExtractor(
             "raw_frequency",
             "Raw input to frequency.",
-            PrintProperty::JSON | PrintProperty::HIDE,
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::HIDE,
             Quantity::Frequency,
             VifScaling::None,
             FieldMatcher::build()
@@ -268,7 +268,7 @@ namespace
         addNumericFieldWithCalculator(
             "frequency",
             "Frequency of AC.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Frequency,
             "raw_frequency_hz / 100 counter");
     }

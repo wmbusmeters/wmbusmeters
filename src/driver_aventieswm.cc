@@ -40,8 +40,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter status from error flags and tpl status field.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
@@ -68,7 +67,7 @@ namespace
         addNumericFieldWithExtractor(
             "total",
             "The total water consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -79,7 +78,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date_{storage_counter}",
             "Water consumption at the # billing period date.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -92,7 +91,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "error_flags",
             "Deprecated.",
-            PrintProperty::JSON | PrintProperty::DEPRECATED,
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::DEPRECATED,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),

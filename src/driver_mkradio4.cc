@@ -37,6 +37,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("mkradio4");
+        di.setDefaultFields("name,id,total_m3,target_m3,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_TCH, 0x62,  0x95);
@@ -52,12 +53,12 @@ namespace
         addPrint("total", Quantity::Volume,
                  [&](Unit u){ return totalWaterConsumption(u); },
                  "The total water consumption recorded by this meter.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("target", Quantity::Volume,
                  [&](Unit u){ return targetWaterConsumption(u); },
                  "The total water consumption recorded at the beginning of this month.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
     }
 
     void Driver::processContent(Telegram *t)
@@ -112,4 +113,4 @@ namespace
 // Test: Duschagain mkradio4 02410120 NOKEY
 // telegram=|2F446850200141029562A2_06702901006017030004000300000000000000000000000000000000000000000000000000|
 // {"media":"warm water","meter":"mkradio4","name":"Duschagain","id":"02410120","total_m3":0.4,"target_m3":0.1,"timestamp":"1111-11-11T11:11:11Z"}
-// |Duschagain;02410120;0.400000;0.100000;1111-11-11 11:11.11
+// |Duschagain;02410120;0.4;0.1;1111-11-11 11:11.11

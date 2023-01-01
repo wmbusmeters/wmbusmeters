@@ -33,6 +33,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("apator172");
+        di.setDefaultFields("name,id,total_m3,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addDetection(0x8614 /*APT?*/,  0x11,  0x04);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
@@ -43,7 +44,7 @@ namespace
         addPrint("total", Quantity::Volume,
                  [&](Unit u){ return convert(total_water_consumption_m3_, Unit::M3, u); },
                  "The total water consumption recorded by this meter.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
     }
 
     void Driver::processContent(Telegram *t)
@@ -78,8 +79,8 @@ namespace
 // Test: Vattur apator172 0014a807 NOKEY
 // telegram=|1C44148607A814000411A0_1D5400000840030000000005FF05D83D0000|
 // {"media":"water","meter":"apator172","name":"Vattur","id":"0014a807","total_m3":7177.7,"timestamp":"1111-11-11T11:11:11Z"}
-// |Vattur;0014a807;7177.700000;1111-11-11 11:11.11
+// |Vattur;0014a807;7177.7;1111-11-11 11:11.11
 
 // telegram=|1C44148607A814000411A0_215400000840030000000005FF05D83D0000|
 // {"media":"water","meter":"apator172","name":"Vattur","id":"0014a807","total_m3":7179,"timestamp":"1111-11-11T11:11:11Z"}
-// |Vattur;0014a807;7179.000000;1111-11-11 11:11.11
+// |Vattur;0014a807;7179;1111-11-11 11:11.11

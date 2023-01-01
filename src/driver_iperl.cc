@@ -28,6 +28,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("iperl");
+        di.setDefaultFields("name,id,total_m3,max_flow_m3h,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_SEN,  0x06,  0x68);
@@ -41,7 +42,7 @@ namespace
         addNumericFieldWithExtractor(
             "total",
             "The total water consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -52,7 +53,7 @@ namespace
         addNumericFieldWithExtractor(
             "max_flow",
             "The maxium flow recorded during previous period.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -65,10 +66,10 @@ namespace
 // Comment: Test iPerl T1 telegram, that after decryption, has 2f2f markers.
 // telegram=|1E44AE4C9956341268077A36001000_2F2F0413181E0000023B00002F2F2F2F|
 // {"media":"water","meter":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
-// |MoreWater;12345699;7.704000;0.000000;1111-11-11 11:11.11
+// |MoreWater;12345699;7.704;0;1111-11-11 11:11.11
 
 // Test: WaterWater iperl 33225544 NOKEY
 // Comment: Test iPerl T1 telegram not encrypted, which has no 2f2f markers.
 // telegram=|1844AE4C4455223368077A55000000_041389E20100023B0000|
 // {"media":"water","meter":"iperl","name":"WaterWater","id":"33225544","total_m3":123.529,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
-// |WaterWater;33225544;123.529000;0.000000;1111-11-11 11:11.11
+// |WaterWater;33225544;123.529;0;1111-11-11 11:11.11

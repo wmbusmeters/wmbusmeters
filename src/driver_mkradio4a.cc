@@ -44,7 +44,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
             "The total water consumption recorded at the end of previous year.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -56,7 +56,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
             "Date when previous year ended.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()

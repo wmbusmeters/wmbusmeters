@@ -33,6 +33,7 @@ private:
 static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("apator08");
+    di.setDefaultFields("name,id,total_m3,timestamp");
     di.setMeterType(MeterType::WaterMeter);
     di.addLinkMode(LinkMode::T1);
     di.addDetection(0x8614/*APT?*/, 0x03,  0x03);
@@ -44,7 +45,7 @@ MeterApator08::MeterApator08(MeterInfo &mi, DriverInfo &di) : MeterCommonImpleme
     addNumericField(
         "total",
         Quantity::Volume,
-        PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+        DEFAULT_PRINT_PROPERTIES,
         "The total water consumption recorded by this meter.",
         SET_FUNC(total_water_consumption_m3_, Unit::M3),
         GET_FUNC(total_water_consumption_m3_, Unit::M3));
@@ -83,4 +84,4 @@ void MeterApator08::processContent(Telegram *t)
 // Test: Vatten apator08 004444dd NOKEY
 // telegram=|73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000|
 // {"media":"water","meter":"apator08","name":"Vatten","id":"004444dd","total_m3":871.571,"timestamp":"1111-11-11T11:11:11Z"}
-// |Vatten;004444dd;871.571000;1111-11-11 11:11.11
+// |Vatten;004444dd;871.571;1111-11-11 11:11.11

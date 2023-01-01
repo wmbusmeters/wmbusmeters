@@ -47,7 +47,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
             "The total water consumption recorded at the beginning of this month.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -59,7 +59,7 @@ namespace
         addStringFieldWithExtractor(
             "target_date",
             "Date when target water consumption was recorded.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -70,7 +70,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
             "The total water consumption recorded at the beginning of this month.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -82,7 +82,7 @@ namespace
         addStringFieldWithExtractor(
             "target_date",
             "Date when target water consumption was recorded.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -120,7 +120,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status and error flags.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("02FD17"))
             ,

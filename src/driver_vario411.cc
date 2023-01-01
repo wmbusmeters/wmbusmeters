@@ -42,7 +42,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
             "Total energy consumption at the end of the year",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -54,7 +54,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
             "Date when previous year ended.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()

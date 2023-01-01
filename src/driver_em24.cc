@@ -44,7 +44,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status of meter.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT | PrintProperty::STATUS,
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
@@ -71,7 +71,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "error",
             "Any errors currently being reported, this field is deprecated and replaced by the status field.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT | PrintProperty::DEPRECATED,
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::DEPRECATED,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
@@ -98,7 +98,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -109,7 +109,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_production",
             "The total energy backward (production) recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -121,7 +121,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_reactive_energy_consumption",
             "The reactive total energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Reactive_Energy,
             VifScaling::None,
             FieldMatcher::build()
@@ -131,7 +131,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_reactive_energy_production",
             "The total reactive energy backward (production) recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Reactive_Energy,
             VifScaling::None,
             FieldMatcher::build()
@@ -142,7 +142,7 @@ namespace
         addNumericFieldWithCalculator(
             "total_apparent_energy_consumption",
             "Calculated: the total apparent energy consumption.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Apparent_Energy,
             "sqrt("
             "      (total_energy_consumption_kwh * total_energy_consumption_kwh) "
@@ -153,7 +153,7 @@ namespace
         addNumericFieldWithCalculator(
             "total_apparent_energy_production",
             "Calculated: the total apparent energy production.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Apparent_Energy,
             R"STR(
                      sqrt( (total_energy_production_kwh * total_energy_production_kwh) +

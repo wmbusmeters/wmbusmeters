@@ -48,8 +48,8 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter status from tpl status field.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES   |
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(DifVifKey("01FD73")),
             Translate::Lookup(
@@ -70,7 +70,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_consumption",
             "The current heat cost allocation.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -81,7 +81,7 @@ namespace
         addStringFieldWithExtractor(
             "set_date",
             "The most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -91,7 +91,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date",
             "Heat cost allocation at the most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -103,7 +103,7 @@ namespace
         addStringFieldWithExtractor(
             "set_date_1",
             "The most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -113,7 +113,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date_1",
             "Heat cost allocation at the most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -125,7 +125,7 @@ namespace
         addStringFieldWithExtractor(
             "set_date_8",
             "The 8 billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -135,7 +135,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date_8",
             "Heat cost allocation at the 8 billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -147,7 +147,7 @@ namespace
         addStringFieldWithExtractor(
             "set_date_17",
             "The 17 billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -157,7 +157,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date_17",
             "Heat cost allocation at the 17 billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -169,7 +169,7 @@ namespace
         addStringFieldWithExtractor(
             "error_date",
             "Date when the meter entered an error state.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::AtError)
             .set(VIFRange::Date)
@@ -178,7 +178,7 @@ namespace
         addStringFieldWithExtractor(
             "device_date_time",
             "Date and time when the meter sent the telegram.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -187,7 +187,7 @@ namespace
         addStringFieldWithExtractor(
             "model_version",
             "model version.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ModelVersion)
@@ -196,7 +196,7 @@ namespace
         addNumericFieldWithExtractor(
             "flow_temperature",
             "Forward media temperature.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -215,7 +215,7 @@ namespace
 // Test: MyElement2 qcaloric 90919293 NOKEY
 // Comment: Test mostly proprietary telegram without values
 // telegram=|49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA227|
-// {"media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","current_consumption_hca":null,"set_date":null,"consumption_at_set_date_hca":null,"set_date_1":null,"consumption_at_set_date_1_hca":null,"device_date_time":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","device_date_time":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}
 // |MyElement2;90919293;null;null;null;1111-11-11 11:11.11
 
 // Comment: Normal telegram that fills in values.
@@ -237,7 +237,7 @@ namespace
 // Comment: Another version of the heat cost allocator. Was known as whe46x, which now is a name alias mapped to qcaloric.
 // Test: HCA2 whe46x 60366655 NOKEY
 // telegram=|344465325566366018087A90040000046D1311962C01FD0C03326CFFFF01FD7300025AC2000DFF5F0C0008003030810613080BFFFC|
-// {"media":"heat cost allocation","meter":"qcaloric","name":"HCA2","id":"60366655","status":"POWER_LOW","current_consumption_hca":null,"set_date":null,"consumption_at_set_date_hca":null,"set_date_1":null,"consumption_at_set_date_1_hca":null,"error_date":"2127-15-31","device_date_time":"2020-12-22 17:19","model_version":"03","flow_temperature_c":19.4,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"heat cost allocation","meter":"qcaloric","name":"HCA2","id":"60366655","status":"POWER_LOW","error_date":"2127-15-31","device_date_time":"2020-12-22 17:19","model_version":"03","flow_temperature_c":19.4,"timestamp":"1111-11-11T11:11:11Z"}
 // |HCA2;60366655;null;null;null;1111-11-11 11:11.11
 
 // telegram=|2a4465325566366018087ac3040000046d1617Ba210B6e890000426c9f2c4B6e520600326cffff01fd7300|

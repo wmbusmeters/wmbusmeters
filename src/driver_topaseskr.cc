@@ -65,7 +65,7 @@ namespace
         addNumericFieldWithExtractor(
             "temperature",
             "Current water temperature recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -75,7 +75,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_flow",
             "The current water flow.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -85,7 +85,7 @@ namespace
         addNumericFieldWithExtractor(
             "volume_year_period",
             "Volume up to end of last year-period.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -97,7 +97,7 @@ namespace
         addNumericFieldWithExtractor(
             "reverse_volume_year_period",
             "Reverse volume in this year-period (?)",
-            PrintProperty::JSON | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -111,7 +111,7 @@ namespace
         addStringFieldWithExtractor(
             "meter_year_period_start_date",
             "Meter date for year-period start.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -121,7 +121,7 @@ namespace
         addNumericFieldWithExtractor(
             "volume_month_period",
             "Volume up to end of last month-period.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -133,7 +133,7 @@ namespace
         addStringFieldWithExtractor(
             "meter_month_period_start_datetime",
             "Meter timestamp for month-period start.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -143,7 +143,7 @@ namespace
         addNumericFieldWithExtractor(
             "battery",
             "Remaining battery life in years.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
             FieldMatcher::build()

@@ -29,6 +29,7 @@ struct MeterUnknown : public virtual MeterCommonImplementation
 static bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("unknown");
+    di.setDefaultFields("name,id,timestamp");
     di.setMeterType(MeterType::UnknownMeter);
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterUnknown(mi, di)); });
 });

@@ -29,6 +29,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("vario451");
+        di.setDefaultFields("name,id,total_kwh,current_kwh,previous_kwh,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::C1);
         di.addLinkMode(LinkMode::T1);
@@ -41,17 +42,17 @@ namespace
     {
         addNumericField("total",
                         Quantity::Energy,
-                        PrintProperty::FIELD | PrintProperty::JSON,
+                         DEFAULT_PRINT_PROPERTIES,
                         "The total energy consumption recorded by this meter.");
 
         addNumericField("current",
                         Quantity::Energy,
-                        PrintProperty::FIELD | PrintProperty::JSON,
+                         DEFAULT_PRINT_PROPERTIES,
                         "Energy consumption so far in this billing period.");
 
         addNumericField("previous",
                         Quantity::Energy,
-                        PrintProperty::FIELD | PrintProperty::JSON,
+                         DEFAULT_PRINT_PROPERTIES,
                         "Energy consumption in previous billing period.");
     }
 

@@ -237,36 +237,30 @@ const char* toString(VifScaling s);
 
 enum PrintProperty
 {
-    JSON = 1,  // This field should be printed when using --format=json
-    FIELD = 2, // This field should be printed when using --format=field
-    IMPORTANT = 4, // The most important field.
-    OPTIONAL = 8, // If no data has arrived, then do not include this field in the json output.
-    REQUIRED = 16, // If no data has arrived, then print this field anyway with NaN or null.
-    DEPRECATED = 32, // This field is about to be removed or changed in a newer driver, which will have a new name.
-    STATUS = 64, // This is >the< status field and it should read OK of not error flags are set.
-    JOIN_TPL_STATUS = 128, // This text field also includes the tpl status decoding. multiple OK:s collapse to a single OK.
-    JOIN_INTO_STATUS = 256, // This text field is injected into the already defined status field. multiple OK:s collapse.
-    OFFICIAL = 512, // This field is listed as an official field for the driver.
-    HIDE = 1024 // This field is only used in calculations, do not print it!
+    REQUIRED = 1, // If no data has arrived, then print this field anyway with NaN or null.
+    DEPRECATED = 2, // This field is about to be removed or changed in a newer driver, which will have a new name.
+    STATUS = 4, // This is >the< status field and it should read OK of not error flags are set.
+    INCLUDE_TPL_STATUS = 8, // This text field also includes the tpl status decoding. multiple OK:s collapse to a single OK.
+    INJECT_INTO_STATUS = 16, // This text field is injected into the already defined status field. multiple OK:s collapse.
+    HIDE = 32 // This field is only used in calculations, do not print it!
 };
 
 struct PrintProperties
 {
     PrintProperties(int x) : props_(x) {}
 
-    bool hasJSON() { return props_ & PrintProperty::JSON; }
-    bool hasHIDE() { return props_ & PrintProperty::HIDE; }
-    bool hasFIELD() { return props_ & PrintProperty::FIELD; }
-    bool hasIMPORTANT() { return props_ & PrintProperty::IMPORTANT; }
-    bool hasOPTIONAL() { return props_ & PrintProperty::OPTIONAL; }
+    bool hasREQUIRED() { return props_ & PrintProperty::REQUIRED; }
     bool hasDEPRECATED() { return props_ & PrintProperty::DEPRECATED; }
     bool hasSTATUS() { return props_ & PrintProperty::STATUS; }
-    bool hasJOINTPLSTATUS() { return props_ & PrintProperty::JOIN_TPL_STATUS; }
-    bool hasJOININTOSTATUS() { return props_ & PrintProperty::JOIN_INTO_STATUS; }
+    bool hasINCLUDETPLSTATUS() { return props_ & PrintProperty::INCLUDE_TPL_STATUS; }
+    bool hasINJECTINTOSTATUS() { return props_ & PrintProperty::INJECT_INTO_STATUS; }
+    bool hasHIDE() { return props_ & PrintProperty::HIDE; }
 
     private:
     int props_;
 };
+
+#define DEFAULT_PRINT_PROPERTIES 0
 
 struct FieldInfo
 {

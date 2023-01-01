@@ -50,7 +50,7 @@ namespace
         addPrint("total", Quantity::Volume,
                  [&](Unit u){ return convert(total_water_consumption_m3_, Unit::M3, u); },
                  "The total water consumption recorded by this meter.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
     }
 
     void Driver::processContent(Telegram *t)

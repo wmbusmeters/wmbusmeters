@@ -42,8 +42,8 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter status from tpl status field.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES   |
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(DifVifKey("01FD73")),
             Translate::Lookup(
@@ -64,7 +64,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_consumption",
             "The current heat cost allocation.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -75,7 +75,7 @@ namespace
         addStringFieldWithExtractor(
             "set_date",
             "The most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -85,7 +85,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date",
             "Heat cost allocation at the most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -97,7 +97,7 @@ namespace
         addStringFieldWithExtractor(
             "device_date_time",
             "Date and time when the meter sent the telegram.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -106,7 +106,7 @@ namespace
         addNumericFieldWithExtractor(
             "duration_since_readout",
             "Duration since last measurement.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -118,7 +118,7 @@ namespace
         addStringFieldWithExtractor(
             "model_version",
             "model version.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ModelVersion)

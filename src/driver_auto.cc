@@ -29,6 +29,7 @@ struct MeterAuto : public virtual MeterCommonImplementation
 bool ok = registerDriver([](DriverInfo&di)
 {
     di.setName("auto");
+    di.setDefaultFields("name,id,timestamp");
     di.setMeterType(MeterType::AutoMeter);
     di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterAuto(mi, di)); });
 });

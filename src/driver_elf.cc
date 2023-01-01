@@ -38,8 +38,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter status from manufacturer status and tpl status field.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(DifVifKey("047F")),
             {
@@ -59,7 +58,7 @@ namespace
         addStringFieldWithExtractor(
             "meter_date",
             "The meter date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -68,7 +67,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -79,7 +78,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_power_consumption",
              "Current power consumption.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -90,7 +89,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_volume",
             "Total volume of heat media.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -101,7 +100,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption_at_date",
             "The total energy consumption recorded at the target date.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -113,7 +112,7 @@ namespace
         addNumericFieldWithExtractor(
             "flow_temperature",
              "The flow temperature.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -124,7 +123,7 @@ namespace
         addNumericFieldWithExtractor(
             "return_temperature",
              "The return temperature.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -135,7 +134,7 @@ namespace
         addNumericFieldWithExtractor(
             "external_temperature",
              "The external temperature.",
-            PrintProperty::FIELD | PrintProperty::JSON,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -146,7 +145,7 @@ namespace
         addNumericFieldWithExtractor(
             "operating_time",
             "How long the meter has been collecting data.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -157,7 +156,7 @@ namespace
         addStringFieldWithExtractor(
             "version",
             "version.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ModelVersion)
@@ -166,7 +165,7 @@ namespace
         addNumericFieldWithExtractor(
             "battery",
             "Battery voltage.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
             VifScaling::Auto,
             FieldMatcher::build()

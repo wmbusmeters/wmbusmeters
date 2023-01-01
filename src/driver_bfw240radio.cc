@@ -47,12 +47,12 @@ namespace
         addPrint("current", Quantity::HCA,
                  [&](Unit u){ return convert(current_hca_, Unit::HCA, u);},
                  "Energy consumption so far in this billing period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("prev", Quantity::HCA,
                  [&](Unit u){ return convert(prev_hca_, Unit::HCA, u); },
                  "Energy consumption at end of previous billing period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         for (int i=0; i<18; ++i)
         {
@@ -61,13 +61,13 @@ namespace
 
             addPrint(info, Quantity::HCA,
                      [this,i](Unit u){ return convert(historic_hca_[i], Unit::HCA, u);},
-                     about, PrintProperty::JSON);
+                     about, DEFAULT_PRINT_PROPERTIES);
         }
 
         addPrint("device_date", Quantity::Text,
                  [&](){ return device_date_; },
                  "Device date when telegram was sent.",
-                 PrintProperty::JSON);
+                 DEFAULT_PRINT_PROPERTIES);
     }
 
 

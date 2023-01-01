@@ -39,8 +39,8 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter status.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES   |
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(VIFRange::ErrorFlags)
             .add(VIFCombinable::StandardConformantDataContent),
@@ -67,7 +67,7 @@ namespace
         addNumericFieldWithExtractor(
             "async_msg_id",
             "Unique asynchronous message number.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()
@@ -78,7 +78,7 @@ namespace
         addNumericFieldWithExtractor(
             "minutes_since_last_manual_test",
             "Minutes since last manual test.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()

@@ -27,6 +27,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("ultraheat");
+        di.setDefaultFields("name,id,heat_kwh,timestamp");
         di.setMeterType(MeterType::HeatMeter);
         di.addDetection(MANUFACTURER_LUG, 0x04,  0x04);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
@@ -37,7 +38,7 @@ namespace
         addNumericFieldWithExtractor(
             "heat",
             "The total heat energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -48,7 +49,7 @@ namespace
         addNumericFieldWithExtractor(
             "volume",
             "The total heating media volume recorded by this meter.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -59,7 +60,7 @@ namespace
         addNumericFieldWithExtractor(
             "power",
             "The current power consumption.",
-            PrintProperty::JSON ,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -70,7 +71,7 @@ namespace
         addNumericFieldWithExtractor(
             "flow",
             "The current heat media volume flow.",
-            PrintProperty::JSON ,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -81,7 +82,7 @@ namespace
         addNumericFieldWithExtractor(
             "flow",
             "The current forward heat media temperature.",
-            PrintProperty::JSON ,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -92,7 +93,7 @@ namespace
         addNumericFieldWithExtractor(
             "return",
             "The current return heat media temperature.",
-            PrintProperty::JSON ,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()

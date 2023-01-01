@@ -45,7 +45,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -56,7 +56,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_cooling_consumption",
             "The total cooling energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -68,7 +68,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_volume",
             "The total volume recorded by this meter.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -79,7 +79,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_cooling_volume",
             "The total cooling volume recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -91,7 +91,7 @@ namespace
         addNumericFieldWithExtractor(
             "volume_flow",
             "The current flow.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -102,7 +102,7 @@ namespace
         addNumericFieldWithExtractor(
             "power",
             "The power.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::AutoSigned,
             FieldMatcher::build()
@@ -113,7 +113,7 @@ namespace
         addNumericFieldWithExtractor(
             "flow_temperature",
             "The flow temperature.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -124,7 +124,7 @@ namespace
         addNumericFieldWithExtractor(
             "return_temperature",
             "The return temperature.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -135,7 +135,7 @@ namespace
         addNumericFieldWithExtractor(
             "operating_time",
             "How long the meter has been collecting data.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -146,7 +146,7 @@ namespace
         addNumericFieldWithExtractor(
             "operating_time_in_error",
             "How long the meter has been in an error state and not collected data.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -158,7 +158,7 @@ namespace
         addNumericFieldWithExtractor(
             "energy_at_set_date",
             "The total energy consumption recorded by this meter at the set date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -170,7 +170,7 @@ namespace
         addNumericFieldWithExtractor(
             "cooling_at_set_date",
             "The total cooling energy consumption recorded by this meter at the set date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -183,7 +183,7 @@ namespace
         addNumericFieldWithExtractor(
             "set",
             "The last billing set date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()

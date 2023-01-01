@@ -52,14 +52,6 @@ Using driver : multical21 00/00
     "meter":"multical21",
     "name":"",
     "id":"76348799",
-    "status":null,
-    "total_m3":null,
-    "target_m3":null,
-    "current_status":null,
-    "time_dry":null,
-    "time_reversed":null,
-    "time_leaking":null,
-    "time_bursting":null,
     "timestamp":"1111-11-11T11:11:11Z"
 }
 EOF
@@ -97,14 +89,6 @@ Using driver : multical21 00/00
     "meter":"multical21",
     "name":"",
     "id":"76348799",
-    "status":null,
-    "total_m3":null,
-    "target_m3":null,
-    "current_status":null,
-    "time_dry":null,
-    "time_reversed":null,
-    "time_leaking":null,
-    "time_bursting":null,
     "timestamp":"1111-11-11T11:11:11Z"
 }
 EOF

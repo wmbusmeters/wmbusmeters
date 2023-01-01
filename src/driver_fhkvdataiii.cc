@@ -45,6 +45,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("fhkvdataiii");
+        di.setDefaultFields("name,id,current_hca,current_date,previous_hca,previous_date,temp_room_c,temp_radiator_c,timestamp");
         di.setMeterType(MeterType::HeatCostAllocationMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_TCH, 0x80,  0x69);
@@ -58,32 +59,32 @@ namespace
         addPrint("current", Quantity::HCA,
                  [&](Unit u){ return currentPeriodEnergyConsumption(u); },
                  "Energy consumption so far in this billing period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("current_date", Quantity::Text,
                  [&](){ return currentPeriodDate(); },
                  "Date of current billing period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("previous", Quantity::HCA,
                  [&](Unit u){ return previousPeriodEnergyConsumption(u); },
                  "Energy consumption in previous billing period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("previous_date", Quantity::Text,
                  [&](){ return previousPeriodDate(); },
                  "Date of last billing period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("temp_room", Quantity::Temperature,
                  [&](Unit u){ return currentRoomTemperature(u); },
                  "Current room temperature.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("temp_radiator", Quantity::Temperature,
                  [&](Unit u){ return currentRadiatorTemperature(u); },
                  "Current radiator temperature.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
     }
 
     double Driver::currentPeriodEnergyConsumption(Unit u)
@@ -229,11 +230,11 @@ namespace
 // Test: Room fhkvdataiii 11776622 NOKEY
 // Comment: There is a problem in the decoding here, the data stored inside the telegram does not seem to properly encode/decode the year.... We should not report a current_date with a full year, if the year is actually not part of the telegram.
 // telegram=|31446850226677116980A0119F27020480048300C408F709143C003D341A2B0B2A0707000000000000062D114457563D71A1850000|
-// {"media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11776622","current_hca":131,"current_date":"2022-02-08T02:00:00Z","previous_hca":1026,"previous_date":"2019-12-31T02:00:00Z","temp_room_c":22.44,"temp_radiator_c":25.51,"timestamp":"1111-11-11T11:11:11Z"}
-// |Room;11776622;131.000000;2022-02-08T02:00:00Z;1026.000000;2019-12-31T02:00:00Z;22.440000;25.510000;1111-11-11 11:11.11
+// {"media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11776622","current_hca":131,"current_date":"2023-02-08T02:00:00Z","previous_hca":1026,"previous_date":"2019-12-31T02:00:00Z","temp_room_c":22.44,"temp_radiator_c":25.51,"timestamp":"1111-11-11T11:11:11Z"}
+// |Room;11776622;131;2023-02-08T02:00:00Z;1026;2019-12-31T02:00:00Z;22.44;25.51;1111-11-11 11:11.11
 
 // Test: Rooom fhkvdataiii 11111234 NOKEY
 // Comment: FHKV radio 4 / EHKV vario 4 There is a problem in the decoding here, the data stored inside the telegram does not seem to properly encode/decode the year.... We should not report a current_date with a full year, if the year is actually not part of the telegram.
 // telegram=|33446850341211119480A2_0F9F292D005024040011BD08380904000000070000000000000000000000000001000000000003140E|
-// {"media":"heat cost allocator","meter":"fhkvdataiii","name":"Rooom","id":"11111234","current_hca":4,"current_date":"2022-02-05T02:00:00Z","previous_hca":45,"previous_date":"2020-12-31T02:00:00Z","temp_room_c":22.37,"temp_radiator_c":23.6,"timestamp":"1111-11-11T11:11:11Z"}
-// |Rooom;11111234;4.000000;2022-02-05T02:00:00Z;45.000000;2020-12-31T02:00:00Z;22.370000;23.600000;1111-11-11 11:11.11
+// {"media":"heat cost allocator","meter":"fhkvdataiii","name":"Rooom","id":"11111234","current_hca":4,"current_date":"2023-02-05T02:00:00Z","previous_hca":45,"previous_date":"2020-12-31T02:00:00Z","temp_room_c":22.37,"temp_radiator_c":23.6,"timestamp":"1111-11-11T11:11:11Z"}
+// |Rooom;11111234;4;2023-02-05T02:00:00Z;45;2020-12-31T02:00:00Z;22.37;23.6;1111-11-11 11:11.11

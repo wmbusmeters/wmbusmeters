@@ -47,8 +47,8 @@ namespace
         addStringField(
             "status",
             "Meter status from tpl status field.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS);
+            DEFAULT_PRINT_PROPERTIES   |
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS);
 
         /* Doubles have a 52 bit significand 11 bit exp and 1 bit sign,
            so double is good for incremental pulses up to 2^52 counts
@@ -58,7 +58,7 @@ namespace
         addNumericFieldWithExtractor(
             "a",
              "The current number of counted pulses from counter a.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT | PrintProperty::OPTIONAL,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()
@@ -68,7 +68,7 @@ namespace
         addNumericFieldWithExtractor(
             "b",
              "The current number of counted pulses from counter b.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT  | PrintProperty::OPTIONAL,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()

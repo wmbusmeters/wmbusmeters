@@ -27,6 +27,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
         {
             di.setName("lse_07_17");
+            di.setDefaultFields("name,id,total_m3,due_date_m3,due_date,error_code,error_date,device_date_time,timestamp");
             di.setMeterType(MeterType::WaterMeter);
             di.addLinkMode(LinkMode::S1);
             di.addDetection(MANUFACTURER_LSE, 0x06,  0x18);
@@ -41,7 +42,7 @@ namespace
         addNumericFieldWithExtractor(
             "total",
             "The total water consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -52,7 +53,7 @@ namespace
         addNumericFieldWithExtractor(
             "due_date",
             "The water consumption at the due date.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -64,7 +65,7 @@ namespace
         addStringFieldWithExtractor(
             "due_date",
             "The due date configured on the meter.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -74,7 +75,7 @@ namespace
         addNumericFieldWithExtractor(
             "what_date",
             "The water consumption at the what date?",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -86,7 +87,7 @@ namespace
         addStringFieldWithExtractor(
             "what_date",
             "The what date?",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -96,7 +97,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "error_code",
             "Error code of the Meter, 0 means no error.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("02BB56")
             ),
@@ -117,7 +118,7 @@ namespace
         addStringFieldWithExtractor(
             "error_date",
             "The date the error occured at. If no error, reads 2127-15-31 (FFFF).",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::AtError)
             .set(VIFRange::Date)
@@ -126,7 +127,7 @@ namespace
         addStringFieldWithExtractor(
             "device_date_time",
             "Date when measurement was recorded.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -135,7 +136,7 @@ namespace
         addStringFieldWithExtractor(
             "meter_version",
             "Meter model/version.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ModelVersion)
@@ -196,13 +197,13 @@ namespace
 // Test: Water lse_07_17 13963399 NOKEY
 
 // telegram=|244465329933961318067AE1000000_8C04130070000082046CBE2B01FD0C11046D010CA22C|
-// {"media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","total_m3":null,"due_date_m3":null,"due_date":null,"what_date_m3":7,"what_date":"2021-11-30","error_code":null,"error_date":null,"device_date_time":"2021-12-02 12:01","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
-// |Water;13963399;nan;nan;null;null;null;2021-12-02 12:01;1111-11-11 11:11.11
+// {"media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","what_date_m3":7,"what_date":"2021-11-30","device_date_time":"2021-12-02 12:01","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
+// |Water;13963399;null;null;null;null;null;2021-12-02 12:01;1111-11-11 11:11.11
 
 // telegram=|2A4465329933961318067AD8800000_8C04130070000082046CBE2B01FD0C11046D1800A12C02FDAC7E9B2E|
-// {"media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","total_m3":null,"due_date_m3":null,"due_date":null,"what_date_m3":7,"what_date":"2021-11-30","error_code":null,"error_date":null,"device_date_time":"2021-12-01 00:24","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
-// |Water;13963399;nan;nan;null;null;null;2021-12-01 00:24;1111-11-11 11:11.11
+// {"media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","what_date_m3":7,"what_date":"2021-11-30","device_date_time":"2021-12-01 00:24","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
+// |Water;13963399;null;null;null;null;null;2021-12-01 00:24;1111-11-11 11:11.11
 
 // telegram=|2D4465329933961318067ADA000000_0C13567100004C1300000000426CFFFF02BB560000326CFFFF046D2307A12C|
 // {"media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","total_m3":7.156,"due_date_m3":0,"due_date":"2127-15-31","what_date_m3":7,"what_date":"2021-11-30","error_code":"OK","error_date":"2127-15-31","device_date_time":"2021-12-01 07:35","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
-// |Water;13963399;7.156000;0.000000;2127-15-31;OK;2127-15-31;2021-12-01 07:35;1111-11-11 11:11.11
+// |Water;13963399;7.156;0;2127-15-31;OK;2127-15-31;2021-12-01 07:35;1111-11-11 11:11.11

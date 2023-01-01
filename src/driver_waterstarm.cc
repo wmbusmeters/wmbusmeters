@@ -45,7 +45,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status and error flags.",
-            PrintProperty::JSON | PrintProperty::JOIN_TPL_STATUS | PrintProperty::STATUS,
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::INCLUDE_TPL_STATUS | PrintProperty::STATUS,
             FieldMatcher::build()
             .set(VIFRange::ErrorFlags),
             {
@@ -73,7 +73,7 @@ namespace
         addNumericFieldWithExtractor(
             "meter",
             "Device date time.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -84,7 +84,7 @@ namespace
         addNumericFieldWithExtractor(
             "total",
             "The total water consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -95,7 +95,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_backwards",
             "The total backward water volume recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -107,7 +107,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "current_status",
             "Status and error flags. (Deprecated use status instead.)",
-            PrintProperty::JSON | PrintProperty::JOIN_TPL_STATUS | PrintProperty::STATUS | PrintProperty::DEPRECATED,
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::INCLUDE_TPL_STATUS | PrintProperty::STATUS | PrintProperty::DEPRECATED,
             FieldMatcher::build()
             .set(VIFRange::ErrorFlags),
             {
@@ -135,7 +135,7 @@ namespace
         addStringFieldWithExtractor(
             "meter_version",
             "Meter model/version.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ModelVersion)
@@ -144,7 +144,7 @@ namespace
         addStringFieldWithExtractor(
             "parameter_set",
             "Parameter set.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ParameterSet)
@@ -153,7 +153,7 @@ namespace
         addNumericFieldWithExtractor(
             "battery",
             "The battery voltage.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -164,7 +164,7 @@ namespace
         addNumericFieldWithExtractor(
             "set",
             "The most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -177,7 +177,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date",
             "The total water consumption at the most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -189,7 +189,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_history_{storage_counter - 1 counter}",
             "The total water consumption at the historic date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -201,7 +201,7 @@ namespace
         addNumericFieldWithCalculatorAndMatcher(
             "history_{storage_counter - 1 counter}",
             "The historic date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             "meter_datetime - ((storage_counter-1counter) * 1 month)",
             FieldMatcher::build()

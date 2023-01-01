@@ -40,8 +40,8 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter error flags. IMPORTANT! Smoke alarm is probably NOT reported here! You MUST check last alarm date and counter!",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES   |
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(VIFRange::ErrorFlags),
             Translate::Lookup(
@@ -61,7 +61,7 @@ namespace
         addStringFieldWithExtractor(
             "last_alarm_date",
             "Date when the smoke alarm last triggered.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT,
+             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(StorageNr(6))
@@ -71,7 +71,7 @@ namespace
         addNumericFieldWithExtractor(
             "alarm",
             "Number of times the smoke alarm has triggered.",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::IMPORTANT,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()
@@ -81,7 +81,7 @@ namespace
         addStringFieldWithExtractor(
             "message_datetime",
             "Device date time.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -90,7 +90,7 @@ namespace
         addStringFieldWithExtractor(
             "test_button_last_date",
             "Date when test button was last pressed.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(StorageNr(4))
@@ -100,7 +100,7 @@ namespace
         addNumericFieldWithExtractor(
             "test_button",
             "Number of times the test button has been pressed.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()
@@ -110,7 +110,7 @@ namespace
         addNumericFieldWithExtractor(
             "transmission",
             "Transmission counter?",
-            PrintProperty::FIELD | PrintProperty::JSON | PrintProperty::OPTIONAL,
+             DEFAULT_PRINT_PROPERTIES,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()
@@ -121,7 +121,7 @@ namespace
         addStringFieldWithExtractor(
             "at_error_date",
             "Date when the device entered an error state.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::AtError)
             .set(VIFRange::Date)
@@ -130,7 +130,7 @@ namespace
         addNumericFieldWithExtractor(
             "some_sort_of_duration",
             "What does this mean?",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
             FieldMatcher::build()

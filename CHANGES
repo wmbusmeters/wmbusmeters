@@ -11,6 +11,8 @@ ATTENTION! The sharky774 driver had a bug that triggered when the meter used Jou
 Also the calculated temperature difference had to be removed. You can re-add the temperature difference
 by using --calculate_temperature_difference_c=flow_temperature_c-return_temperature_c
 
+ATTENTION! The third hydrus driver field has changed from max_flow_m3h to total_at_date_m3.
+
 Since a field disappeared the default fields were disrupted and a shorter list of fields
 have now been picked for the default fields. Please use --selectedfields=... to recreate
 your previous fields.

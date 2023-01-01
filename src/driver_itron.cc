@@ -49,7 +49,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status and error flags.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES  | PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags)
@@ -71,7 +71,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
              "The total water consumption recorded at the end of previous billing period.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -83,7 +83,7 @@ namespace
         addStringFieldWithExtractor(
             "target_date",
             "Date when previous billing period ended.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -93,7 +93,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "unknown_a",
             "Unknown flags.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("047F")),
             {
@@ -113,7 +113,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "unknown_b",
             "Unknown flags.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(DifVifKey("027F")),
             {

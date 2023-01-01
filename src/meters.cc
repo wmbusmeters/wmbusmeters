@@ -265,7 +265,7 @@ void MeterCommonImplementation::addExtraCalculatedField(string ecf)
     addNumericFieldWithCalculator(
         vname,
         "Calculated: "+ecf,
-        PrintProperty::JSON | PrintProperty::FIELD,
+        DEFAULT_PRINT_PROPERTIES,
         quantity,
         parts[1],
         unit
@@ -985,46 +985,6 @@ void MeterCommonImplementation::triggerUpdate(Telegram *t)
     t->handled = true;
 }
 
-string concatAllFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &fields, bool hr,
-                       vector<string> *extra_constant_fields)
-{
-    string s;
-    s = "";
-    s += m->name() + c;
-    if (t->ids.size() > 0)
-    {
-        s += t->ids.back() + c;
-    }
-    else
-    {
-        s += c;
-    }
-    for (FieldInfo &fi : fields)
-    {
-        if (fi.printProperties().hasFIELD())
-        {
-            if (fi.xuantity() == Quantity::Text)
-            {
-                s += m->getStringValue(&fi);
-            }
-            else
-            {
-                Unit u = fi.displayUnit();
-                double v = m->getNumericValue(&fi, u);
-                if (hr) {
-                    s += valueToString(v, u);
-                    s += " "+unitToStringHR(u);
-                } else {
-                    s += to_string(v);
-                }
-            }
-            s += c;
-        }
-    }
-    s += m->datetimeOfUpdateHumanReadable();
-    return s;
-}
-
 string findField(string key, vector<string> *extra_constant_fields)
 {
     key = key+"=";
@@ -1166,16 +1126,9 @@ string concatFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints, bo
 {
     if (selected_fields == NULL || selected_fields->size() == 0)
     {
-        // No global override, but is there a meter driver setting?
-        if (m->selectedFields().size() > 0)
-        {
-            selected_fields = &m->selectedFields();
-        }
-        else
-        {
-            return concatAllFields(m, t, c, prints, human_readable, extra_constant_fields);
-        }
+        selected_fields = &m->selectedFields();
     }
+
     string buf = "";
 
     for (string field : *selected_fields)
@@ -1363,7 +1316,7 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
         {
             fi.performExtraction(this, t, NULL);
         }
-        else if (founds.count(&fi) == 0 && fi.printProperties().hasJOINTPLSTATUS())
+        else if (founds.count(&fi) == 0 && fi.printProperties().hasINCLUDETPLSTATUS())
         {
             // This is a status field and it joins the tpl status but it also
             // has a potential dve match, which did not trigger. Now
@@ -1532,7 +1485,7 @@ string MeterCommonImplementation::getStringValue(FieldInfo *fi)
         // joined into this status field.
         for (FieldInfo &f : field_infos_)
         {
-            if (f.printProperties().hasJOININTOSTATUS())
+            if (f.printProperties().hasINJECTINTOSTATUS())
             {
                 string more = getStringValue(&f);
                 string joined = joinStatusOKStrings(value, more);
@@ -1780,64 +1733,62 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
     for (FieldInfo& fi : field_infos_)
     {
-        if (fi.printProperties().hasJSON() && !fi.printProperties().hasHIDE())
-        {
-            // The field should be printed in the json. (Most usually should.)
-            for (auto& i : t->dv_entries)
-            {
-                // Check each telegram dv entry.
-                DVEntry *dve = &i.second.second;
-                // Has the entry been matches to this field, then print it as json.
-                if (dve->hasFieldInfo(&fi))
-                {
-                    assert(founds[&fi].count(dve) == 0);
+        if (fi.printProperties().hasHIDE()) continue;
 
-                    founds[&fi].insert(dve);
-                    string field_name = fi.generateFieldNameNoUnit(dve);
-                    found_vnames.insert(field_name);
-                }
+        // The field should be printed in the json. (Most usually should.)
+        for (auto& i : t->dv_entries)
+        {
+            // Check each telegram dv entry.
+            DVEntry *dve = &i.second.second;
+            // Has the entry been matches to this field, then print it as json.
+            if (dve->hasFieldInfo(&fi))
+            {
+                assert(founds[&fi].count(dve) == 0);
+
+                founds[&fi].insert(dve);
+                string field_name = fi.generateFieldNameNoUnit(dve);
+                found_vnames.insert(field_name);
             }
         }
     }
 
     for (FieldInfo& fi : field_infos_)
     {
-        if (fi.printProperties().hasJSON() && !fi.printProperties().hasHIDE())
+        if (fi.printProperties().hasHIDE()) continue;
+
+        if (founds.count(&fi) != 0)
         {
-            if (founds.count(&fi) != 0)
+            // This field info has matched against some dventries.
+            for (DVEntry *dve : founds[&fi])
             {
-                // This field info has matched against some dventries.
-                for (DVEntry *dve : founds[&fi])
-                {
-                    debug("(meters) render field %s(%s %s)[%d] with dventry @%d key %s data %s\n",
-                          fi.vname().c_str(), toString(fi.xuantity()), unitToStringLowerCase(fi.displayUnit()).c_str(), fi.index(),
-                          dve->offset,
-                          dve->dif_vif_key.str().c_str(),
-                          dve->value.c_str());
-                    string out = fi.renderJson(this, dve);
-                    debug("(meters)             %s\n", out.c_str());
-                    s += indent+out+","+newline;
-                }
+                debug("(meters) render field %s(%s %s)[%d] with dventry @%d key %s data %s\n",
+                      fi.vname().c_str(), toString(fi.xuantity()), unitToStringLowerCase(fi.displayUnit()).c_str(), fi.index(),
+                      dve->offset,
+                      dve->dif_vif_key.str().c_str(),
+                      dve->value.c_str());
+                string out = fi.renderJson(this, dve);
+                debug("(meters)             %s\n", out.c_str());
+                s += indent+out+","+newline;
             }
-            else
+        }
+        else
+        {
+            // Ok, no value found in received telegram.
+            // Print field anyway if it is required,
+            // or if a value has been received before and this field has not been received using a different rule.
+            // Why this complicated rule?
+            // E.g. the minmoess mbus seems to use storage 1 for target_m3 but the wmbus version uses storage 8.
+            // I.e. we have two rules that store into target_m3, this check will prevent target_m3 from being printed twice.
+            if (fi.printProperties().hasREQUIRED() || (found_vnames.count(fi.vname()) == 0 && hasValue(&fi)))
             {
-                // Ok, no value found in received telegram.
-                // Print field anyway, if it is not OPTIONAL
-                // or if a value has been received before and this field has not been received using a different rule.
-                // Why this complicated rule?
-                // E.g. the minmoess mbus seems to use storage 1 for target_m3 but the wmbus version uses storage 8.
-                // I.e. we have two rules that store into target_m3, this check will prevent target_m3 from being printed twice.
-                if (!fi.printProperties().hasOPTIONAL() || (found_vnames.count(fi.vname()) == 0 && hasValue(&fi)))
-                {
-                    // No telegram entries found, but this field should be printed anyway.
-                    // It will be printed with any value received from a previous telegram.
-                    // Or if no value has been received, null.
-                    debug("(meters) render field %s(%s)[%d] without dventry\n",
-                          fi.vname().c_str(), toString(fi.xuantity()), fi.index());
-                    string out = fi.renderJson(this, NULL);
-                    debug("(meters)             %s\n", out.c_str());
-                    s += indent+out+","+newline;
-                }
+                // No telegram entries found, but this field should be printed anyway.
+                // It will be printed with any value received from a previous telegram.
+                // Or if no value has been received, null.
+                debug("(meters) render field %s(%s)[%d] without dventry\n",
+                      fi.vname().c_str(), toString(fi.xuantity()), fi.index());
+                string out = fi.renderJson(this, NULL);
+                debug("(meters)             %s\n", out.c_str());
+                s += indent+out+","+newline;
             }
         }
     }
@@ -1888,21 +1839,20 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
     for (FieldInfo& fi : field_infos_)
     {
-        if (fi.printProperties().hasJSON() && !fi.printProperties().hasHIDE())
+        if (fi.printProperties().hasHIDE()) continue;
+
+        string display_unit_s = unitToStringUpperCase(fi.displayUnit());
+        string var = fi.vname();
+        std::transform(var.begin(), var.end(), var.begin(), ::toupper);
+        if (fi.xuantity() == Quantity::Text)
         {
-            string display_unit_s = unitToStringUpperCase(fi.displayUnit());
-            string var = fi.vname();
-            std::transform(var.begin(), var.end(), var.begin(), ::toupper);
-            if (fi.xuantity() == Quantity::Text)
-            {
-                string envvar = "METER_"+var+"="+getStringValue(&fi);
-                envs->push_back(envvar);
-            }
-            else
-            {
-                string envvar = "METER_"+var+"_"+display_unit_s+"="+valueToString(getNumericValue(&fi, fi.displayUnit()), fi.displayUnit());
-                envs->push_back(envvar);
-            }
+            string envvar = "METER_"+var+"="+getStringValue(&fi);
+            envs->push_back(envvar);
+        }
+        else
+        {
+            string envvar = "METER_"+var+"_"+display_unit_s+"="+valueToString(getNumericValue(&fi, fi.displayUnit()), fi.displayUnit());
+            envs->push_back(envvar);
         }
     }
 
@@ -2380,7 +2330,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
             if (!hasMatcher())
             {
                 // There is no matcher, only use case is to capture JOIN_TPL_STATUS.
-                if (print_properties_.hasJOINTPLSTATUS())
+                if (print_properties_.hasINCLUDETPLSTATUS())
                 {
                     string status = add_tpl_status("OK", m, t);
                     m->setStringValue(this, status);
@@ -2400,7 +2350,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
                 // No entry was found.
                 if (!ok) {
                     // Nothing found, however check if capturing JOIN_TPL_STATUS.
-                    if (print_properties_.hasJOINTPLSTATUS())
+                    if (print_properties_.hasINCLUDETPLSTATUS())
                     {
                         string status = add_tpl_status("OK", m, t);
                         m->setStringValue(this, status);
@@ -2414,7 +2364,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         if (t->dv_entries.count(key) == 0)
         {
             // Nothing found, however check if capturing JOIN_TPL_STATUS.
-            if (print_properties_.hasJOINTPLSTATUS())
+            if (print_properties_.hasINCLUDETPLSTATUS())
             {
                 string status = add_tpl_status("OK", m, t);
                 m->setStringValue(this, status);
@@ -2431,7 +2381,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     string field_name = generateFieldNameNoUnit(dve);
 
     uint64_t extracted_bits {};
-    if (lookup_.hasLookups() || (print_properties_.hasJOINTPLSTATUS()))
+    if (lookup_.hasLookups() || (print_properties_.hasINCLUDETPLSTATUS()))
     {
         string translated_bits = "";
         // The field has lookups, or the print property JOIN_TPL_STATUS is set,
@@ -2442,7 +2392,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
             found = true;
         }
 
-        if (print_properties_.hasJOINTPLSTATUS())
+        if (print_properties_.hasINCLUDETPLSTATUS())
         {
             translated_bits = add_tpl_status(translated_bits, m, t);
         }
@@ -2621,7 +2571,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addStringFieldWithExtractor(
             "fabrication_no",
             "Fabrication number.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FabricationNo)
@@ -2633,7 +2583,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addStringFieldWithExtractor(
             "enhanced_id",
             "Enhanced identification number.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::EnhancedIdentification)
@@ -2645,7 +2595,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addStringFieldWithExtractor(
             "software_version",
             "Software version.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::SoftwareVersion)
@@ -2657,7 +2607,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addStringFieldWithExtractor(
             "model_version",
             "Meter model version.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ModelVersion)
@@ -2669,7 +2619,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addStringFieldWithExtractor(
             "parameter_set",
             "Parameter set for this meter.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ParameterSet)
@@ -2681,7 +2631,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addStringFieldWithExtractor(
             "customer",
             "Customer name.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Customer)
@@ -2693,7 +2643,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addStringFieldWithExtractor(
             "location",
             "Meter installed at this customer location.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Location)
@@ -2705,7 +2655,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addNumericFieldWithExtractor(
             "operating_time",
             "How long the meter has been collecting data.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -2719,7 +2669,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addNumericFieldWithExtractor(
             "on_time",
             "How long the meter has been powered up.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -2733,7 +2683,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addNumericFieldWithExtractor(
             "on_time_at_error",
             "How long the meter has been in an error state while powered up.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -2747,7 +2697,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addStringFieldWithExtractor(
             "meter_date",
             "Date when the meter sent the telegram.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -2759,7 +2709,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addStringFieldWithExtractor(
             "meter_date_at_error",
             "Date when the meter was in error.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::AtError)
             .set(VIFRange::Date)
@@ -2771,7 +2721,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addStringFieldWithExtractor(
             "meter_datetime",
             "Date and time when the meter sent the telegram.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -2783,7 +2733,7 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
         addStringFieldWithExtractor(
             "meter_datetime_at_error",
             "Date and time when the meter was in error.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::AtError)
             .set(VIFRange::DateTime)
@@ -2802,7 +2752,7 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
         addNumericFieldWithExtractor(
             "total",
             "The total media volume consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -2816,7 +2766,7 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
         addNumericFieldWithExtractor(
             "total_forward",
             "The total media volume flowing forward.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -2831,7 +2781,7 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
         addNumericFieldWithExtractor(
             "total_backward",
             "The total media volume flowing backward.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -2846,7 +2796,7 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
         addNumericFieldWithExtractor(
             "flow_temperature",
             "Forward media temperature.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -2860,7 +2810,7 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
         addNumericFieldWithExtractor(
             "return_temperature",
             "Return media temperature.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -2874,7 +2824,7 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
         addNumericFieldWithExtractor(
             "flow_return_temperature_difference",
             "The difference between flow and return media temperatures.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::AutoSigned,
             FieldMatcher::build()
@@ -2888,7 +2838,7 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
         addNumericFieldWithExtractor(
             "volume_flow",
             "Media volume flow.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -2902,7 +2852,7 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
         addNumericFieldWithExtractor(
             "access",
             "Meter access counter.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Counter,
             VifScaling::None,
             FieldMatcher::build()
@@ -2921,7 +2871,7 @@ void MeterCommonImplementation::addHCARelatedFields(string field_names)
         addNumericFieldWithExtractor(
             "consumption",
             "The current heat cost allocation for this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()

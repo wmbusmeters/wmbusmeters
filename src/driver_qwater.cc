@@ -52,12 +52,12 @@ namespace
         addStringField(
             "status",
             "Meter status tpl status field.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT | PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS);
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS);
 
         addNumericFieldWithExtractor(
             "due_date",
             "The water consumption at the due date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -69,7 +69,7 @@ namespace
         addNumericFieldWithExtractor(
             "due",
             "The due date for billing date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -82,7 +82,7 @@ namespace
         addNumericFieldWithExtractor(
             "due_17_date",
             "The water consumption at the 17 due date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -94,7 +94,7 @@ namespace
         addNumericFieldWithExtractor(
             "due_17",
             "The due date for billing date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -107,7 +107,7 @@ namespace
         addNumericFieldWithExtractor(
             "volume_flow",
             "Media volume flow when duration exceeds lower last.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -119,7 +119,7 @@ namespace
         addNumericFieldWithExtractor(
             "error",
             "The date the error occured at. If no error, reads 2127-15-31 (FFFF).",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()

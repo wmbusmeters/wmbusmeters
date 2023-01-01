@@ -43,6 +43,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("mkradio3");
+        di.setDefaultFields("name,id,total_m3,target_m3,current_date,prev_date,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_TCH, 0x62,  0x74);
@@ -56,22 +57,22 @@ namespace
         addPrint("total", Quantity::Volume,
                  [&](Unit u){ return totalWaterConsumption(u); },
                  "The total water consumption recorded by this meter.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("target", Quantity::Volume,
                  [&](Unit u){ return targetWaterConsumption(u); },
                  "The total water consumption recorded at the beginning of this month.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("current_date", Quantity::Text,
                  [&](){ return currentDate(); },
                  "Date of current billing period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("prev_date", Quantity::Text,
                  [&](){ return previousDate(); },
                  "Date of previous billing period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
     }
 
     void Driver::processContent(Telegram *t)
@@ -174,5 +175,5 @@ namespace
 // Comment: There is a problem in the decoding here, the data stored inside the telegram does not seem to properly encode/decode the year....
 // We should not report a current_date with a full year, if the year is actually not part of the telegram.
 // telegram=|2F446850313233347462A2_069F255900B029310000000306060906030609070606050509050505050407040605070500|
-// {"media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2022-04-27T02:00:00Z","prev_date":"2018-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
-// |Duschen;34333231;13.800000;8.900000;2022-04-27T02:00:00Z;2018-12-31T02:00:00Z;1111-11-11 11:11.11
+// {"media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2023-04-27T02:00:00Z","prev_date":"2018-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
+// |Duschen;34333231;13.8;8.9;2023-04-27T02:00:00Z;2018-12-31T02:00:00Z;1111-11-11 11:11.11

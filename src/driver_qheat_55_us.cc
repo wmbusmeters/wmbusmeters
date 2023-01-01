@@ -51,7 +51,7 @@ namespace
         addStringFieldWithExtractor(
             "device_date_time",
             "Device date time.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
                 .set(MeasurementType::Instantaneous)
                 .set(VIFRange::DateTime)
@@ -60,7 +60,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -74,7 +74,7 @@ namespace
         addStringFieldWithExtractor(
             "key_date",
             "The key (billing) date",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
                 .set(MeasurementType::Instantaneous)
                 .set(VIFRange::DateTime)
@@ -86,7 +86,7 @@ namespace
         addNumericFieldWithExtractor(
             "key_date",
             "The total energy consumption recorded at key (billing) date",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -100,7 +100,7 @@ namespace
         addStringFieldWithExtractor(
             "prev_month",
             "The date of end of last month.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
                 .set(MeasurementType::Instantaneous)
                 .set(VIFRange::DateTime)
@@ -118,7 +118,7 @@ namespace
             addNumericFieldWithExtractor(
                 key,
                 info,
-                PrintProperty::JSON,
+                DEFAULT_PRINT_PROPERTIES,
                 Quantity::Energy,
                 VifScaling::Auto,
                 FieldMatcher::build()
@@ -133,7 +133,7 @@ namespace
         addNumericFieldWithExtractor(
             "actuality_duration",
             "The time between the measurement and the sending of this telegram.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -144,7 +144,7 @@ namespace
         addNumericFieldWithExtractor(
             "time_without_measurement",
             "How long the meter has been in an error state and unable to measure values, while powered up.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
             FieldMatcher::build()

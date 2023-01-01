@@ -51,17 +51,17 @@ namespace
         addPrint("total", Quantity::Energy,
                  [&](Unit u){ return convert(total_energy_kwh_, Unit::KWH, u); },
                  "The total energy consumption recorded by this meter.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("current", Quantity::Energy,
                  [&](Unit u){ return convert(curr_energy_kwh_, Unit::KWH, u); },
                  "Energy consumption so far in this billing period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
 
         addPrint("previous", Quantity::Energy,
                  [&](Unit u){ return convert(prev_energy_kwh_, Unit::KWH, u); },
                  "Energy consumption in previous billing period.",
-                 PrintProperty::FIELD | PrintProperty::JSON);
+                  DEFAULT_PRINT_PROPERTIES);
     }
 
     void Driver::processContent(Telegram *t)

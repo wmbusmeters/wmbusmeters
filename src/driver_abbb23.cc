@@ -39,7 +39,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -49,7 +49,7 @@ namespace
         addStringFieldWithExtractor(
             "firmware_version",
             "Firmware version.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FirmwareVersion)
@@ -59,7 +59,7 @@ namespace
         addStringFieldWithExtractor(
             "product_no",
             "The meter device product number.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build().
             set(DifVifKey("0DFFAA00")));
     }

@@ -40,7 +40,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -51,7 +51,7 @@ namespace
         addNumericFieldWithExtractor(
             "energy_at_old_date",
             "The total energy consumption recorded when?",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -63,7 +63,7 @@ namespace
         addNumericFieldWithExtractor(
             "old",
             "The last billing old date?",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -75,7 +75,7 @@ namespace
         addNumericFieldWithExtractor(
             "energy_at_set_date",
             "The total energy consumption recorded by this meter at the due date.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -87,7 +87,7 @@ namespace
         addNumericFieldWithExtractor(
             "set",
             "The last billing set date.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()

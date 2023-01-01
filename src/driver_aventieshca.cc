@@ -39,8 +39,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter status from error flags and tpl status field.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
@@ -67,7 +66,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "error_flags",
             "Deprecated.",
-            PrintProperty::JSON | PrintProperty::DEPRECATED,
+            DEFAULT_PRINT_PROPERTIES | PrintProperty::DEPRECATED,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
@@ -94,7 +93,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_consumption",
             "The current heat cost allocation.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -105,7 +104,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date",
             "Heat cost allocation at the most recent billing period date.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -117,7 +116,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date_{storage_counter}",
             "The heat cost allocation at set date #.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()

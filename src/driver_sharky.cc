@@ -28,6 +28,9 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("sharky");
+        di.setDefaultFields("name,id,total_energy_consumption_kwh,total_energy_consumption_tariff1_kwh,total_volume_m3,"
+                            "total_volume_tariff2_m3,volume_flow_m3h,power_kw,flow_temperature_c,"
+                            "return_temperature_c,temperature_difference_c,timestamp");
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_HYD, 0x04, 0x20);
@@ -39,7 +42,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total heat energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -50,7 +53,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption_tariff1",
             "The total heat energy consumption recorded by this meter on tariff 1.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -62,7 +65,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_volume",
             "The total heating media volume recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -73,7 +76,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_volume_tariff2",
             "The total heating media volume recorded by this meter on tariff 2.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -85,7 +88,7 @@ namespace
         addNumericFieldWithExtractor(
             "volume_flow",
             "The current heat media volume flow.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -96,7 +99,7 @@ namespace
         addNumericFieldWithExtractor(
             "power",
             "The current power consumption.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -107,7 +110,7 @@ namespace
         addNumericFieldWithExtractor(
             "flow_temperature",
             "The current forward heat media temperature.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -118,7 +121,7 @@ namespace
         addNumericFieldWithExtractor(
             "return_temperature",
             "The current return heat media temperature.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -129,7 +132,7 @@ namespace
         addNumericFieldWithExtractor(
             "temperature_difference",
             "The current return heat media temperature.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::AutoSigned,
             FieldMatcher::build()
@@ -142,4 +145,4 @@ namespace
 // Test: Heat sharky ANYID NOKEY
 // telegram=|534424232004256092687A370045752235854DEEEA5939FAD81C25FEEF5A23C38FB9168493C563F08DB10BAF87F660FBA91296BA2397E8F4220B86D3A192FB51E0BFCF24DCE72118E0C75A9E89F43BDFE370824B|
 // {"media":"heat","meter":"sharky","name":"Heat","id":"68926025","total_energy_consumption_kwh":2651,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":150.347,"total_volume_tariff2_m3":0.018,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":42.3,"return_temperature_c":28.1,"temperature_difference_c":14.1,"timestamp":"1111-11-11T11:11:11Z"}
-// |Heat;68926025;2651.000000;0.000000;150.347000;0.018000;0.000000;0.000000;42.300000;28.100000;14.100000;1111-11-11 11:11.11
+// |Heat;68926025;2651;0;150.347;0.018;0;0;42.3;28.1;14.1;1111-11-11 11:11.11

@@ -42,8 +42,8 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Meter status from error flags and tpl status field.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS,
+            DEFAULT_PRINT_PROPERTIES  |
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
@@ -64,7 +64,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total heat energy consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -75,7 +75,7 @@ namespace
         addNumericFieldWithExtractor(
             "total_volume",
             "The total heating media volume recorded by this meter.",
-            PrintProperty::JSON,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -86,7 +86,7 @@ namespace
         addNumericFieldWithExtractor(
             "volume_flow",
             "The current heat media volume flow.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -97,7 +97,7 @@ namespace
         addNumericFieldWithExtractor(
             "power",
             "The current power consumption.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -108,7 +108,7 @@ namespace
         addNumericFieldWithExtractor(
             "temperature_difference",
             "The difference between flow and return media temperatures.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::AutoSigned,
             FieldMatcher::build()
@@ -119,7 +119,7 @@ namespace
         addNumericFieldWithExtractor(
             "set",
             "The most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL | PrintProperty::HIDE,
+            DEFAULT_PRINT_PROPERTIES  | PrintProperty::HIDE,
             Quantity::PointInTime,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -132,7 +132,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date_{storage_counter}",
             "The total water consumption at the historic date.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -144,7 +144,7 @@ namespace
         addNumericFieldWithCalculatorAndMatcher(
             "set_date_{storage_counter}",
             "Unclear! What is the date really?",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             "set_date - ((storage_counter-1counter) * 1 month)",
             FieldMatcher::build()

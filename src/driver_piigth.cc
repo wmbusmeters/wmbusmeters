@@ -41,13 +41,12 @@ namespace
         addStringField(
             "status",
             "Meter status from tpl status field.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT |
-            PrintProperty::STATUS | PrintProperty::JOIN_TPL_STATUS);
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS);
 
         addNumericFieldWithExtractor(
             "temperature",
             "The current temperature.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            PrintProperty::REQUIRED,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -58,7 +57,7 @@ namespace
         addNumericFieldWithExtractor(
             "average_temperature_1h",
             "The average temperature over the last hour.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            PrintProperty::REQUIRED,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -70,7 +69,7 @@ namespace
         addNumericFieldWithExtractor(
             "average_temperature_24h",
             "The average temperature over the last 24 hours.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            PrintProperty::REQUIRED,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -82,7 +81,7 @@ namespace
         addNumericFieldWithExtractor(
             "relative_humidity",
             "The current relative humidity.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            PrintProperty::REQUIRED,
             Quantity::RelativeHumidity,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -93,7 +92,7 @@ namespace
         addNumericFieldWithExtractor(
             "relative_humidity_1h",
             "The average relative humidity over the last hour.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            PrintProperty::REQUIRED,
             Quantity::RelativeHumidity,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -105,7 +104,7 @@ namespace
         addNumericFieldWithExtractor(
             "relative_humidity_24h",
             "The average relative humidity over the last 24 hours.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            PrintProperty::REQUIRED,
             Quantity::RelativeHumidity,
             VifScaling::Auto,
             FieldMatcher::build()

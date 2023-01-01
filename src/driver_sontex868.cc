@@ -41,7 +41,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_consumption",
             "The current heat cost allocation for this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -52,7 +52,7 @@ namespace
         addStringFieldWithExtractor(
             "set_date",
             "The most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -62,7 +62,7 @@ namespace
         addNumericFieldWithExtractor(
             "consumption_at_set_date",
              "Heat cost allocation at the most recent billing period date.",
-            PrintProperty::JSON | PrintProperty::FIELD,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -74,7 +74,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_temp",
             "The current temperature of the heating element.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -85,7 +85,7 @@ namespace
         addNumericFieldWithExtractor(
             "current_room_temp",
             "The current room temperature.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -96,7 +96,7 @@ namespace
         addNumericFieldWithExtractor(
             "max_temp",
             "The maximum temperature so far during this billing period.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -108,7 +108,7 @@ namespace
         addNumericFieldWithExtractor(
             "max_temp_previous_period",
              "The maximum temperature during the previous billing period.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -120,7 +120,7 @@ namespace
         addStringFieldWithExtractor(
             "device_date_time",
             "Date and time when the meter sent the telegram.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)

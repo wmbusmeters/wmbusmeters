@@ -42,7 +42,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status of meter?",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT | PrintProperty::STATUS,
+            DEFAULT_PRINT_PROPERTIES  | PrintProperty::STATUS,
             FieldMatcher::build()
             .set(DifVifKey("02FD74")),
             {
@@ -61,7 +61,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "other",
             "Other status of meter?",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT | PrintProperty::STATUS,
+            DEFAULT_PRINT_PROPERTIES  | PrintProperty::STATUS,
             FieldMatcher::build()
             .set(DifVifKey("017F")),
             {
@@ -80,7 +80,7 @@ namespace
         addStringFieldWithExtractor(
             "total_date_time",
             "Timestamp for this total measurement.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -90,7 +90,7 @@ namespace
         addNumericFieldWithExtractor(
             "total",
              "The total gas consumption recorded by this meter.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -102,7 +102,7 @@ namespace
         addStringFieldWithExtractor(
             "target_date_time",
             "Timestamp for gas consumption recorded at the beginning of this month.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -112,7 +112,7 @@ namespace
         addNumericFieldWithExtractor(
             "target",
              "The total gas consumption recorded by this meter at the beginning of this month.",
-            PrintProperty::JSON | PrintProperty::FIELD | PrintProperty::IMPORTANT,
+            DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
             FieldMatcher::build()
@@ -125,7 +125,7 @@ namespace
         addStringFieldWithExtractor(
             "version",
             "Model version.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ModelVersion)
@@ -134,7 +134,7 @@ namespace
         addStringFieldWithExtractor(
             "supplier_info",
             "Supplier info?",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::SpecialSupplierInformation)
@@ -143,7 +143,7 @@ namespace
         addStringFieldWithExtractor(
             "parameter_set",
             "Meter configued with this parameter set?",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ParameterSet)
@@ -152,7 +152,7 @@ namespace
         addStringFieldWithExtractor(
             "meter_timestamp",
             "Timestamp when this measurement was sent.",
-            PrintProperty::JSON | PrintProperty::OPTIONAL,
+            DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
