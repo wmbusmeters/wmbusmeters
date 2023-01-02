@@ -366,8 +366,10 @@ struct AboutTelegram
     int rssi_dbm {};
     // WMBus or MBus
     FrameType type {};
+    // time the telegram was received
+    time_t timestamp;
 
-    AboutTelegram(string dv, int rs, FrameType t) : device(dv), rssi_dbm(rs), type(t) {}
+    AboutTelegram(string dv, int rs, FrameType t, time_t ts = 0) : device(dv), rssi_dbm(rs), type(t), timestamp(ts) {}
     AboutTelegram() {}
 };
 

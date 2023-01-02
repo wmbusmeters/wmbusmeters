@@ -266,6 +266,7 @@ private:
     vector<function<void(Telegram*,Meter*)>> on_update_;
     int num_updates_ {};
     time_t datetime_of_update_ {};
+    time_t datetime_of_poll_ {};
     LinkModeSet link_modes_ {};
     vector<string> shell_cmdlines_;
     vector<string> extra_constant_fields_;

@@ -30,6 +30,7 @@
 #include<errno.h>
 #include<sys/stat.h>
 #include<sys/types.h>
+#include<time.h>
 #include<unistd.h>
 
 using namespace std;
@@ -75,7 +76,8 @@ private:
                                    size_t *hex_frame_length,
                                    int *hex_payload_len_out,
                                    int *hex_payload_offset,
-                                   double *rssi);
+                                   double *rssi,
+                                   struct tm *timestamp);
     void handleMessage(vector<uchar> &frame);
 
     string setup_;
@@ -239,11 +241,12 @@ void WMBusRTLWMBUS::processSerialData()
 
     size_t frame_length;
     int hex_payload_len, hex_payload_offset;
+    struct tm timestamp;
 
     for (;;)
     {
         double rssi = 0;
-        FrameStatus status = checkRTLWMBUSFrame(read_buffer_, &frame_length, &hex_payload_len, &hex_payload_offset, &rssi);
+        FrameStatus status = checkRTLWMBUSFrame(read_buffer_, &frame_length, &hex_payload_len, &hex_payload_offset, &rssi, &timestamp);
 
         if (status == PartialFrame)
         {
@@ -298,7 +301,7 @@ void WMBusRTLWMBUS::processSerialData()
             }
 
             string id = string("rtlwmbus[")+getDeviceId()+"]";
-            AboutTelegram about(id, rssi, FrameType::WMBUS);
+            AboutTelegram about(id, rssi, FrameType::WMBUS, timestamp.tm_mday ? timegm(&timestamp) : 0);
             handleTelegram(about, payload);
         }
         else
@@ -312,7 +315,8 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
                                               size_t *hex_frame_length,
                                               int *hex_payload_len_out,
                                               int *hex_payload_offset,
-                                              double *rssi)
+                                              double *rssi,
+                                              struct tm *timestamp)
 {
     // C1;1;1;2019-02-09 07:14:18.000;117;102;94740459;0x49449344590474943508780dff5f3500827f0000f10007b06effff530100005f2c620100007f2118010000008000800080008000000000000000000e003f005500d4ff2f046d10086922
     // There might be a second telegram on the same line ;0x4944.......
@@ -374,9 +378,15 @@ FrameStatus WMBusRTLWMBUS::checkRTLWMBUSFrame(vector<uchar> &data,
     }
     size_t i = 0;
     int count = 0;
-    // Look for packet rssi
+    *timestamp = { 0 };
+    // Look for packet timestamp and rssi
     for (; i+1 < data.size(); ++i) {
-        if (data[i] == ';') count++;
+        if (data[i] != ';') continue;
+        count++;
+        if (count == 3 && !strptime((const char*)&data[i+1], "%Y-%m-%d %H:%M:%S", timestamp)) {
+            debug("(rtlwmbus) invalid timestamp\n");
+            return ErrorInFrame;
+        }
         if (count == 4) break;
     }
     if (count == 4)
