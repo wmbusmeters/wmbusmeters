@@ -1,3 +1,8 @@
+
+ATTENTION! The hydrus driver has been rewritten from scratch! current_date is now meter_datetime
+Several fields were printed with value 0 even if the telegram did not contain the actual zero,
+such fields are no longer printed.
+
 ATTENTION! The microclima driver has been refactored. The field device_date_time has been renamed
 to meter_datetime. Also two fields related to tariffs do not occur in the actual telegrams so these
 fields have been removed. The fields output has therefore been drastically changed. Use --selectfields=

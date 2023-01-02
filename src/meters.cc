@@ -302,70 +302,6 @@ void MeterCommonImplementation::setMfctTPLStatusBits(Translate::Lookup &lookup)
     mfct_tpl_status_bits_ = lookup;
 }
 
-void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
-                                         function<double(Unit)> getValueFunc, string help, PrintProperties pprops)
-{
-    field_infos_.emplace_back(
-        FieldInfo(field_infos_.size(),
-                  vname,
-                  vquantity,
-                  defaultUnitForQuantity(vquantity),
-                  VifScaling::Auto,
-                  FieldMatcher(),
-                  help,
-                  pprops,
-                  getValueFunc,
-                  NULL,
-                  NULL,
-                  NULL,
-                  NoLookup, /* Lookup table */
-                  NULL /* Formula */
-            ));
-}
-
-void MeterCommonImplementation::addPrint(string vname, Quantity vquantity, Unit unit,
-                                         function<double(Unit)> getValueFunc, string help, PrintProperties pprops)
-{
-    field_infos_.emplace_back(
-        FieldInfo(field_infos_.size(),
-                  vname,
-                  vquantity,
-                  unit,
-                  VifScaling::Auto,
-                  FieldMatcher(),
-                  help,
-                  pprops,
-                  getValueFunc,
-                  NULL,
-                  NULL,
-                  NULL,
-                  NoLookup, /* Lookup table */
-                  NULL /* Formula */
-            ));
-}
-
-void MeterCommonImplementation::addPrint(string vname, Quantity vquantity,
-                                         function<string()> getValueFunc,
-                                         string help, PrintProperties pprops)
-{
-    field_infos_.emplace_back(
-        FieldInfo(field_infos_.size(),
-                  vname,
-                  vquantity,
-                  defaultUnitForQuantity(vquantity),
-                  VifScaling::Auto,
-                  FieldMatcher(),
-                  help,
-                  pprops,
-                  NULL,
-                  getValueFunc,
-                  NULL,
-                  NULL,
-                  NoLookup, /* Lookup table */
-                  NULL /* Formula */
-            ));
-}
-
 void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                                                              string help,
                                                              PrintProperties print_properties,
@@ -469,31 +405,6 @@ void MeterCommonImplementation::addNumericFieldWithCalculatorAndMatcher(string v
             ));
 }
 
-void MeterCommonImplementation::addNumericField(
-    string vname,
-    Quantity vquantity,
-    PrintProperties print_properties,
-    string help,
-    function<void(Unit,double)> setValueFunc,
-    function<double(Unit)> getValueFunc)
-{
-    field_infos_.emplace_back(
-        FieldInfo(field_infos_.size(),
-                  vname,
-                  vquantity,
-                  defaultUnitForQuantity(vquantity),
-                  VifScaling::None,
-                  FieldMatcher(),
-                  help,
-                  print_properties,
-                  getValueFunc,
-                  NULL,
-                  setValueFunc,
-                  NULL,
-                  NoLookup, /* Lookup table */
-                  NULL /* Formula */
-            ));
-}
 
 void MeterCommonImplementation::addNumericField(
     string vname,
@@ -539,39 +450,6 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
                   NULL,
                   NULL,
                   NoLookup, /* Lookup table */
-                  NULL /* Formula */
-            ));
-}
-
-void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(
-    string vname,
-    Quantity vquantity,
-    DifVifKey dif_vif_key,
-    MeasurementType mt,
-    VIFRange vi,
-    StorageNr s,
-    TariffNr t,
-    IndexNr i,
-    PrintProperties print_properties,
-    string help,
-    function<void(string)> setValueFunc,
-    function<string()> getValueFunc,
-    Translate::Lookup lookup)
-{
-    field_infos_.emplace_back(
-        FieldInfo(field_infos_.size(),
-                  vname,
-                  vquantity,
-                  defaultUnitForQuantity(vquantity),
-                  VifScaling::None,
-                  FieldMatcher::build().set(dif_vif_key).set(mt).set(vi).set(s).set(t).set(i),
-                  help,
-                  print_properties,
-                  NULL,
-                  getValueFunc,
-                  NULL,
-                  setValueFunc,
-                  lookup, /* Lookup table */
                   NULL /* Formula */
             ));
 }
@@ -2566,6 +2444,35 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
 {
     set<string> fields = splitStringIntoSet(field_names, ',');
 
+    if (checkIf(fields, "actuality_duration_s"))
+    {
+        addNumericFieldWithExtractor(
+            "actuality_duration",
+            "Lapsed time between measurement and transmission.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Time,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ActualityDuration),
+            Unit::Second
+            );
+    }
+
+    if (checkIf(fields, "actuality_duration_h"))
+    {
+        addNumericFieldWithExtractor(
+            "actuality_duration",
+            "Lapsed time between measurement and transmission.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Time,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ActualityDuration)
+            );
+    }
+
     if (checkIf(fields, "fabrication_no"))
     {
         addStringFieldWithExtractor(
@@ -2802,6 +2709,20 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FlowTemperature)
+            );
+    }
+
+    if (checkIf(fields,"external_temperature_c"))
+    {
+        addNumericFieldWithExtractor(
+            "external_temperature",
+            "Temperature outside of meter.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Temperature,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ExternalTemperature)
             );
     }
 

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2022-2023 Fredrik Öhrström (gpl-3.0-or-later)
  Copyright (C) 2022 Kajetan Krykwiński (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
@@ -26,14 +26,6 @@ namespace
 
         void processContent(Telegram *t);
         string dateToString(uchar date_lo, uchar date_hi);
-
-        double prev_energy_hca_ {};
-        double curr_energy_hca_ {};
-        string curr_energy_hca_date_ {};
-        string season_start_date_ {};
-        string esb_date_ {};
-        double temp_room_avg_ {};
-        double temp_room_prev_avg_ {};
     };
 
     static bool ok = registerDriver([](DriverInfo&di)
@@ -51,40 +43,37 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addPrint("current", Quantity::HCA,
-                 [&](Unit u){ return convert(curr_energy_hca_, Unit::HCA, u);},
-                 "Energy consumption so far in this billing period.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("current",
+                 Quantity::HCA,
+                 DEFAULT_PRINT_PROPERTIES,
+                 "Energy consumption so far in this billing period.");
 
-        addPrint("previous", Quantity::HCA,
-                 [&](Unit u){ return convert(prev_energy_hca_, Unit::HCA, u); },
-                 "Energy consumption in previous billing period.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("previous",
+                 Quantity::HCA,
+                 DEFAULT_PRINT_PROPERTIES,
+                 "Energy consumption in previous billing period.");
 
-        addPrint("current_date", Quantity::Text,
-                 [&](){ return curr_energy_hca_date_; },
-                 "Current date, as reported by meter.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addStringField("current_date",
+                       "Current date, as reported by meter.",
+                       DEFAULT_PRINT_PROPERTIES);
 
-        addPrint("season_start_date", Quantity::Text,
-                 [&](){ return season_start_date_; },
-                 "Season start date.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addStringField("season_start_date",
+                       "Season start date.",
+                       DEFAULT_PRINT_PROPERTIES);
 
-        addPrint("esb_date", Quantity::Text,
-                 [&](){ return esb_date_; },
-                 "Electronic seal protection break date.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addStringField("esb_date",
+                       "Electronic seal protection break date.",
+                       DEFAULT_PRINT_PROPERTIES);
 
-        addPrint("temp_room_avg", Quantity::Temperature,
-                 [&](Unit u){ return convert(temp_room_avg_, Unit::C, u); },
-                 "Average room temperature in current season.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("temp_room_avg",
+                 Quantity::Temperature,
+                 DEFAULT_PRINT_PROPERTIES,
+                 "Average room temperature in current season.");
 
-        addPrint("temp_room_prev_avg", Quantity::Temperature,
-                 [&](Unit u){ return convert(temp_room_prev_avg_, Unit::C, u); },
-                 "Average room temperature in previous season.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("temp_room_prev_avg",
+                 Quantity::Temperature,
+                 DEFAULT_PRINT_PROPERTIES,
+                 "Average room temperature in previous season.");
     }
 
     void Driver::processContent(Telegram *t)
@@ -123,38 +112,44 @@ namespace
         // Note: NOT byte swapped. Accidentally? works via dateToString conversion.
         uchar season_start_date_lo = content[1];
         uchar season_start_date_hi = content[0];
-        season_start_date_ = dateToString(season_start_date_lo, season_start_date_hi);
+        string season_start_date = dateToString(season_start_date_lo, season_start_date_hi);
+        setStringValue("season_start_date", season_start_date);
 
         // Previous season total allocation
         uchar prev_lo = content[4];
         uchar prev_hi = content[5];
-        prev_energy_hca_ = (256.0*prev_hi+prev_lo);
+        double previous_hca = (256.0*prev_hi+prev_lo);
+        setNumericValue("previous", Unit::HCA, previous_hca);
 
         // Electronic seal break date
         uchar esb_date_lo = content[6];
         uchar esb_date_hi = content[7];
-        esb_date_ = dateToString(esb_date_lo, esb_date_hi);
+        string esb_date = dateToString(esb_date_lo, esb_date_hi);
+        setStringValue("esb_date", esb_date);
 
         // Current season allocation
         uchar curr_lo = content[8];
         uchar curr_hi = content[9];
-        curr_energy_hca_ = (256.0*curr_hi+curr_lo);
+        double current_hca = (256.0*curr_hi+curr_lo);
+        setNumericValue("current", Unit::HCA, current_hca);
 
         // Current date reported by meter
         uchar date_curr_lo = content[10];
         uchar date_curr_hi = content[11];
-        curr_energy_hca_date_ = dateToString(date_curr_lo, date_curr_hi);
+        string current_date = dateToString(date_curr_lo, date_curr_hi);
+        setStringValue("current_date", current_date);
 
         // Previous season average temperature
         double temp_room_prev_avg_frac = content[12];
         double temp_room_prev_avg_deg = content[13];
-        temp_room_prev_avg_ = temp_room_prev_avg_deg + temp_room_prev_avg_frac/256.0;
+        double temp_room_prev_avg = temp_room_prev_avg_deg + temp_room_prev_avg_frac/256.0;
+        setNumericValue("temp_room_prev_avg", Unit::C, temp_room_prev_avg);
 
         // Current season average temperature
         double temp_room_avg_frac = content[14];
         double temp_room_avg_deg = content[15];
-        temp_room_avg_ = temp_room_avg_deg + temp_room_avg_frac/256.0;
-
+        double temp_room_avg = temp_room_avg_deg + temp_room_avg_frac/256.0;
+        setNumericValue("temp_room_avg", Unit::C, temp_room_avg);
     }
 
     string Driver::dateToString(uchar date_lo, uchar date_hi) {

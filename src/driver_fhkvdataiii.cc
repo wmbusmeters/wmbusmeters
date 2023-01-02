@@ -23,23 +23,10 @@ namespace
     {
         Driver(MeterInfo &mi, DriverInfo &di);
 
+    private:
+
         void processContent(Telegram *t);
-
-        double currentPeriodEnergyConsumption(Unit u);
-        string currentPeriodDate();
-        double previousPeriodEnergyConsumption(Unit u);
-        string previousPeriodDate();
-        double currentRoomTemperature(Unit u);
-        double currentRadiatorTemperature(Unit u);
-
         string leadingZeroString(int num);
-
-        double curr_energy_hca_ {};
-        string curr_energy_hca_date {};
-        double prev_energy_hca_ {};
-        string prev_energy_hca_date {};
-        double temp_room_ {};
-        double temp_radiator_ {};
     };
 
     static bool ok = registerDriver([](DriverInfo&di)
@@ -56,72 +43,38 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addPrint("current", Quantity::HCA,
-                 [&](Unit u){ return currentPeriodEnergyConsumption(u); },
-                 "Energy consumption so far in this billing period.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("current",
+                        Quantity::HCA,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Energy consumption so far in this billing period.");
 
-        addPrint("current_date", Quantity::Text,
-                 [&](){ return currentPeriodDate(); },
-                 "Date of current billing period.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addStringField("current_date",
+                       "Date of current billing period.",
+                       DEFAULT_PRINT_PROPERTIES);
 
-        addPrint("previous", Quantity::HCA,
-                 [&](Unit u){ return previousPeriodEnergyConsumption(u); },
-                 "Energy consumption in previous billing period.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("previous",
+                        Quantity::HCA,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Energy consumption in previous billing period.");
 
-        addPrint("previous_date", Quantity::Text,
-                 [&](){ return previousPeriodDate(); },
-                 "Date of last billing period.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addStringField("previous_date",
+                       "Date of last billing period.",
+                       DEFAULT_PRINT_PROPERTIES);
 
-        addPrint("temp_room", Quantity::Temperature,
-                 [&](Unit u){ return currentRoomTemperature(u); },
-                 "Current room temperature.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("temp_room",
+                        Quantity::Temperature,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Current room temperature.");
 
-        addPrint("temp_radiator", Quantity::Temperature,
-                 [&](Unit u){ return currentRadiatorTemperature(u); },
-                 "Current radiator temperature.",
-                  DEFAULT_PRINT_PROPERTIES);
-    }
-
-    double Driver::currentPeriodEnergyConsumption(Unit u)
-    {
-        return curr_energy_hca_;
-    }
-
-    string Driver::currentPeriodDate()
-    {
-        return curr_energy_hca_date;
-    }
-
-    double Driver::previousPeriodEnergyConsumption(Unit u)
-    {
-        return prev_energy_hca_;
-    }
-
-    string Driver::previousPeriodDate()
-    {
-        return prev_energy_hca_date;
-    }
-
-    double Driver::currentRoomTemperature(Unit u)
-    {
-        assertQuantity(u, Quantity::Temperature);
-        return convert(temp_room_, Unit::C, u);
-    }
-
-    double Driver::currentRadiatorTemperature(Unit u)
-    {
-        assertQuantity(u, Quantity::Temperature);
-        return convert(temp_radiator_, Unit::C, u);
+        addNumericField("temp_radiator",
+                        Quantity::Temperature,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Current radiator temperature.");
     }
 
     void Driver::processContent(Telegram *t)
     {
-        // Unfortunately, the Techem FHKV data ii/iii is mostly a proprieatary protocol
+        // The Techem FHKV data ii/iii is mostly a proprietary protocol
         // simple wrapped inside a wmbus telegram since the ci-field is 0xa0.
         // Which means that the entire payload is manufacturer specific.
 
@@ -135,18 +88,10 @@ namespace
             debugPayload("(fhkvdataiii) not enough data", content);
             return;
         }
-        // Consumption
-        // Previous Consumption
-        uchar prev_lo = content[3];
-        uchar prev_hi = content[4];
-        double prev = (256.0*prev_hi+prev_lo);
-        prev_energy_hca_ = prev;
 
-        string prevs;
-        strprintf(&prevs, "%02x%02x", prev_lo, prev_hi);
-        //t->addMoreExplanation(14, " energy used in previous billing period (%f HCA)", prevs);
 
-        // Previous Date
+        // Previous Date ////////////////////////////////////////////////////////
+
         uchar date_prev_lo = content[1];
         uchar date_prev_hi = content[2];
         int date_prev = (256.0*date_prev_hi+date_prev_lo);
@@ -154,21 +99,36 @@ namespace
         int day_prev = (date_prev >> 0) & 0x1F;
         int month_prev = (date_prev >> 5) & 0x0F;
         int year_prev = (date_prev >> 9) & 0x3F;
-        prev_energy_hca_date = std::to_string((year_prev + 2000)) + "-" + leadingZeroString(month_prev) + "-" + leadingZeroString(day_prev) + "T02:00:00Z";
 
-        //t->addMoreExplanation(offset, " last date of previous billing period (%s)", prev_energy_hca_date);
+        string previous_date =
+            std::to_string((year_prev + 2000)) + "-" +
+            leadingZeroString(month_prev) + "-" +
+            leadingZeroString(day_prev) + "T02:00:00Z";
 
-        // Current Consumption
-        uchar curr_lo = content[7];
-        uchar curr_hi = content[8];
-        double curr = (256.0*curr_hi+curr_lo);
-        curr_energy_hca_ = curr;
+        setStringValue("previous_date", previous_date);
 
-        string currs;
-        strprintf(&currs, "%02x%02x", curr_lo, curr_hi);
-        //t->addMoreExplanation(offset, " energy used in current billing period (%f HCA)", currs);
+        string bytes = tostrprintf("%02x%02x", content[1], content[2]);
+        string info = "*** "+bytes+" previous_date = %s";
 
-        // Current Date
+        t->addSpecialExplanation(t->header_size+1, 2, KindOfData::CONTENT, Understanding::FULL,
+                                 info.c_str(), previous_date.c_str());
+
+        // Previous Consumption //////////////////////////////////////////////////////////
+
+        uchar prev_lo = content[3];
+        uchar prev_hi = content[4];
+        double prev = (256.0*prev_hi+prev_lo);
+        double previous_hca = prev;
+        setNumericValue("previous", Unit::HCA, previous_hca);
+
+        bytes = tostrprintf("%02x%02x", content[3], content[4]);
+        info = "*** "+bytes+" previous_hca = %.17g";
+
+        t->addSpecialExplanation(t->header_size+3, 2, KindOfData::CONTENT, Understanding::FULL,
+                                 info.c_str(), previous_hca);
+
+        // Current Date //////////////////////////////////////////////////////////////////
+
         uchar date_curr_lo = content[5];
         uchar date_curr_hi = content[6];
         int date_curr = (256.0*date_curr_hi+date_curr_lo);
@@ -181,44 +141,73 @@ namespace
         if (day_curr <= 0) day_curr = 1;
         int month_curr = (date_curr >> 9) & 0x0F;
         if (month_curr <= 0) month_curr = 12;
-        curr_energy_hca_date = to_string(year_curr) + "-" + leadingZeroString(month_curr) + "-" + leadingZeroString(day_curr) + "T02:00:00Z";
 
-        // t->addMoreExplanation(offset, " last date of current billing period (%s)", curr_energy_hca_date);
+        string current_date =
+            to_string(year_curr) + "-" +
+            leadingZeroString(month_curr) + "-" +
+            leadingZeroString(day_curr) + "T02:00:00Z";
 
-        // Temperature
+        setStringValue("current_date", current_date);
+
+        bytes = tostrprintf("%02x%02x", content[5], content[6]);
+        info = "*** "+bytes+" current_date = %s";
+
+        t->addSpecialExplanation(t->header_size+5, 2, KindOfData::CONTENT, Understanding::FULL,
+                                 info.c_str(), current_date.c_str());
+
+        // Current Consumption ///////////////////////////////////////////////////////////
+
+        uchar curr_lo = content[7];
+        uchar curr_hi = content[8];
+        double current_hca = (256.0*curr_hi+curr_lo);
+
+        setNumericValue("current", Unit::HCA, current_hca);
+
+        bytes = tostrprintf("%02x%02x", content[7], content[8]);
+        info = "*** "+bytes+" current_hca = %.17g";
+
+        t->addSpecialExplanation(t->header_size+7, 2, KindOfData::CONTENT, Understanding::FULL,
+                                 info.c_str(), current_hca);
+
+        // Temperatures //////////////////////////////////////////////
+
         uchar room_tlo;
         uchar room_thi;
         uchar radiator_tlo;
         uchar radiator_thi;
+        int offset = 9;
+
         if(t->dll_version == 0x94)
         {
-            room_tlo = content[10];
-            room_thi = content[11];
-            radiator_tlo = content[12];
-            radiator_thi = content[13];
-        } else
-        {
-            room_tlo = content[9];
-            room_thi = content[10];
-            radiator_tlo = content[11];
-            radiator_thi = content[12];
+            offset= 10;
         }
 
-        // Room Temperature
-        double room_t = (256.0*room_thi+room_tlo)/100;
-        temp_room_ = room_t;
+        room_tlo = content[offset];
+        room_thi = content[offset+1];
+        radiator_tlo = content[offset+2];
+        radiator_thi = content[offset+3];
 
-        string room_ts;
-        strprintf(&room_ts, "%02x%02x", room_tlo, room_thi);
-        // t->addMoreExplanation(offset, " current room temparature (%f °C)", room_ts);
+        // Room Temperature ////////////////////////////////////////////////////////////////
 
-        // Radiator Temperature
-        double radiator_t = (256.0*radiator_thi+radiator_tlo)/100;
-        temp_radiator_ = radiator_t;
+        double temp_room_c = (256.0*room_thi+room_tlo)/100;
+        setNumericValue("temp_room", Unit::C, temp_room_c);
 
-        string radiator_ts;
-        strprintf(&radiator_ts, "%02x%02x", radiator_tlo, radiator_thi);
-        // t->addMoreExplanation(offset, " current radiator temparature (%f °C)", radiator_ts);
+        bytes = tostrprintf("%02x%02x", content[offset], content[offset+1]);
+        info = "*** "+bytes+" temp_room_c = %.17g";
+
+        t->addSpecialExplanation(t->header_size+offset, 2, KindOfData::CONTENT, Understanding::FULL,
+                                 info.c_str(), temp_room_c);
+
+        // Radiator Temperature ////////////////////////////////////////////////////////////
+
+        double temp_radiator_c = (256.0*radiator_thi+radiator_tlo)/100;
+        setNumericValue("temp_radiator", Unit::C, temp_radiator_c);
+
+        bytes = tostrprintf("%02x%02x", content[offset+2], content[offset+3]);
+        info = "*** "+bytes+" temp_radiator_c = %.17g";
+
+        t->addSpecialExplanation(t->header_size+offset+2, 2, KindOfData::CONTENT, Understanding::FULL,
+                                 info.c_str(), temp_radiator_c);
     }
 
     string Driver::leadingZeroString(int num) {

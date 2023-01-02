@@ -101,11 +101,11 @@ telegram=|2e44333003020100071b7a634820252f2f0265840842658308820165950802fb1aae01
 # Test Lansen door window telegram
 
 telegram=|2e44333005020100071d7ab54800002f2f02fd1b110002fd971d01000efd3a2200000000008e40fd3a000000000000|
-{"media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"CLOSED","a_counter":22,"b_counter":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"CLOSED","a_counter":22,"b_counter":0,"error_flags": "ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_40","timestamp":"1111-11-11T11:11:11Z"}
 |Dooro;00010205;CLOSED;1111-11-11 11:11.11
 
 telegram=|2e44333005020100071d7ab66800002f2f02fd1b550002fd971d01000efd3a2300000000008e40fd3a000000000000|
-{"media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"OPEN","a_counter":23,"b_counter":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"OPEN","a_counter":23,"b_counter":0,"error_flags": "ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_60","timestamp":"1111-11-11T11:11:11Z"}
 |Dooro;00010205;OPEN;1111-11-11 11:11.11
 
 # Test Lansen pulse counter
@@ -122,17 +122,17 @@ telegram=|5744b40988227711101b7ab20800000265a00842658f088201659f08226589081265a0
 
 # Test Hydrus water meter telegram
 telegram=|4E44A5116464646470077AED004005_2F2F01FD08300C13741100007C1300000000FC101300000000FC201300000000726C00000B3B00000002FD748713025A6800C4016D3B177F2ACC011300020000|
-{"media":"water","meter":"hydrus","name":"HydrusWater","id":"64646464","total_m3":1.174,"total_tariff1_m3":0,"total_tariff2_m3":0,"max_flow_m3h":0,"flow_temperature_c":10.4,"external_temperature_c":0,"current_date":"","total_at_date_m3":0,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":0,"at_date":"2000-00-00 00:00","actuality_duration_s":0,"operating_time_h":0,"remaining_battery_life_y":13.686516,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
-|HydrusWater;64646464;1.174;0;OK;1111-11-11 11:11.11
+{"at_datetime": "2019-10-31 23:59","flow_m3h": 0,"flow_temperature_c": 10.4,"id": "64646464","media": "water","meter": "hydrus","name": "HydrusWater","remaining_battery_life_y": 13.686797,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 0.2,"total_m3": 1.174}
+|HydrusWater;64646464;1.174;0.2;OK;1111-11-11 11:11.11
 
 # Test Hydrus new version water meter telegram
 telegram=|3E44A5116565656570067AFB0030052F2F_0C13503400000DFD110A383731303134423032410B3B00000002FD74DC15C4016D3B178D29CC0113313400002F2F|
-{"media":"warm water","meter":"hydrus","name":"HydrusVater","id":"65656565","total_m3":3.45,"total_tariff1_m3":0,"total_tariff2_m3":0,"max_flow_m3h":0,"flow_temperature_c":127,"external_temperature_c":0,"current_date":"","total_at_date_m3":3.431,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":0,"at_date":"2020-09-13 23:59","actuality_duration_s":0,"operating_time_h":0,"remaining_battery_life_y":15.321013,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"at_datetime": "2020-09-13 23:59","customer": "A20B410178","flow_m3h": 0,"id": "65656565","media": "warm water","meter": "hydrus","name": "HydrusVater","remaining_battery_life_y": 15.321328,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 3.431,"total_m3": 3.45}
 |HydrusVater;65656565;3.45;3.431;OK;1111-11-11 11:11.11
 
 # Test Hydrus with default AES encryption
 telegram=||6644242328001081640E7266567464A51170071F0050052C411A08674048DD6BA82A0DF79FFD401309179A893A1BE3CE8EDC50C2A45CD7AFEC3B4CE765820BE8056C124A17416C3722985FFFF7FCEB7094901AB3A16294B511B9A740C9F9911352B42A72FB3B0C|
-{"media":"water","meter":"hydrus","name":"HydrusAES","id":"64745666","total_m3":137.291,"total_tariff1_m3":0,"total_tariff2_m3":137.291,"max_flow_m3h":0,"flow_temperature_c":24.5,"external_temperature_c":23.9,"current_date":"2021-01-23 08:27","total_at_date_m3":128.638,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":128.638,"at_date":"2020-12-31 00:00","actuality_duration_s":6673,"operating_time_h":14678,"remaining_battery_life_y":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"actuality_duration_s": 6673,"at_date": "2020-12-31","external_temperature_c": 23.9,"flow_m3h": 0,"flow_temperature_c": 24.5,"id": "64745666","media": "water","meter": "hydrus","meter_datetime": "2021-01-23 08:27","name": "HydrusAES","operating_time_h": 14678,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 128.638,"total_m3": 137.291,"total_tariff1_at_date_m3": 0,"total_tariff1_m3": 0,"total_tariff2_at_date_m3": 128.638,"total_tariff2_m3": 137.291}
 |HydrusAES;64745666;137.291;128.638;OK;1111-11-11 11:11.11
 
 # Test BMeters HydroDigit water telegram
@@ -270,18 +270,18 @@ telegram=|1E44A511909192937B077A9F0010052F2F_04130347030002FD1700002F2F2F|
 
 # Test IZAR RS 868 water meter
 telegram=|1E4424238B07797389607A8F00107D_041312170100426CBF23441344100100|
-{"media":"water","meter":"hydrus","name":"HydrusIzarRS","id":"60897379","total_m3":71.442,"total_tariff1_m3":0,"total_tariff2_m3":0,"max_flow_m3h":0,"flow_temperature_c":127,"external_temperature_c":0,"current_date":"","total_at_date_m3":69.7,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":0,"at_date":"2021-03-31 00:00","actuality_duration_s":0,"operating_time_h":0,"remaining_battery_life_y":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"at_date": "2021-03-31","id": "60897379","media": "water","meter": "hydrus","name": "HydrusIzarRS","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 69.7,"total_m3": 71.442}
 |HydrusIzarRS;60897379;71.442;69.7;OK;1111-11-11 11:11.11
 
 # Test IZAR RS 868 water meter warm
 telegram=|1E4424238B06204790607A2A0010D8_0413DDC00000426CBF23441382BB0000|
-{"media":"warm water","meter":"hydrus","name":"HydrusIzarRSWarm","id":"60904720","total_m3":49.373,"total_tariff1_m3":0,"total_tariff2_m3":0,"max_flow_m3h":0,"flow_temperature_c":127,"external_temperature_c":0,"current_date":"","total_at_date_m3":48.002,"total_tariff1_at_date_m3":0,"total_tariff2_at_date_m3":0,"at_date":"2021-03-31 00:00","actuality_duration_s":0,"operating_time_h":0,"remaining_battery_life_y":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"at_date": "2021-03-31","id": "60904720","media": "warm water","meter": "hydrus","name": "HydrusIzarRSWarm","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 48.002,"total_m3": 49.373}
 |HydrusIzarRSWarm;60904720;49.373;48.002;OK;1111-11-11 11:11.11
 
 # Test another Diehl branded meter with the izar protocol
 telegram=|19442423850798160018A2410100133EBBD44081053F243A82A3|
-{"media":"water","meter":"izar","name":"IzarWater4","id":"18001698","prefix":"","serial_number":"000000","total_m3":835.689,"last_month_total_m3":820.329,"last_month_measure_date":"2021-09-01","remaining_battery_life_y":0.5,"current_alarms":"no_alarm","previous_alarms":"no_alarm","transmit_period_s":8,"manufacture_year":"0","timestamp":"1111-11-11T11:11:11Z"}
-|IzarWater4;18001698;;000000;835.689;820.329;2021-09-01;0.5;no_alarm;no_alarm;8;0;1111-11-11 11:11.11
+{"media":"water","meter":"izar","name":"IzarWater4","id":"18001698","total_m3":835.689,"last_month_total_m3":820.329,"last_month_measure_date":"2021-09-01","remaining_battery_life_y":0.5,"current_alarms":"no_alarm","previous_alarms":"no_alarm","transmit_period_s":8,"timestamp":"1111-11-11T11:11:11Z"}
+|IzarWater4;18001698;null;null;835.689;820.329;2021-09-01;0.5;no_alarm;no_alarm;8;null;1111-11-11 11:11.11
 
 # Test Aventies Water Meter
 telegram=76442104710007612507727100076121042507B5006005E2E95A3C2A1279A5415E6732679B43369FD5FDDDD783EEEBB48236D34E7C94AF0A18A5FDA5F7D64111EB42D4D891622139F2952F9D12A20088DFA4CF8123871123EE1F6C1DCEA414879DDB4E05E508F1826D7EFBA6964DF804C9261EA23BBF03

@@ -24,10 +24,6 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
 
         void processContent(Telegram *t);
-
-        double total_energy_kwh_ {};
-        double curr_energy_kwh_ {};
-        double prev_energy_kwh_ {};
     };
 
     static bool ok = registerDriver([](DriverInfo&di)
@@ -48,20 +44,20 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addPrint("total", Quantity::Energy,
-                 [&](Unit u){ return convert(total_energy_kwh_, Unit::KWH, u); },
-                 "The total energy consumption recorded by this meter.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("total",
+                        Quantity::Energy,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "The total energy consumption recorded by this meter.");
 
-        addPrint("current", Quantity::Energy,
-                 [&](Unit u){ return convert(curr_energy_kwh_, Unit::KWH, u); },
-                 "Energy consumption so far in this billing period.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("current",
+                        Quantity::Energy,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Energy consumption so far in this billing period.");
 
-        addPrint("previous", Quantity::Energy,
-                 [&](Unit u){ return convert(prev_energy_kwh_, Unit::KWH, u); },
-                 "Energy consumption in previous billing period.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("previous",
+                        Quantity::Energy,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Energy consumption in previous billing period.");
     }
 
     void Driver::processContent(Telegram *t)
@@ -101,9 +97,14 @@ namespace
         t->explanations.push_back(ce);
         t->addMoreExplanation(offset, " energy used in current billing period (%f KWH)", curr);
 
-        total_energy_kwh_ = prev+curr;
-        curr_energy_kwh_ = curr;
-        prev_energy_kwh_ = prev;
+        double total_energy_kwh = prev+curr;
+        setNumericValue("total", Unit::KWH, total_energy_kwh);
+
+        double curr_energy_kwh = curr;
+        setNumericValue("current", Unit::KWH, curr_energy_kwh);
+
+        double prev_energy_kwh = prev;
+        setNumericValue("previous", Unit::KWH, prev_energy_kwh);
     }
 }
 

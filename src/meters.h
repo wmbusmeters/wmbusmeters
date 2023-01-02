@@ -182,6 +182,7 @@ private:
     vector<DriverDetect> detect_;
     vector<string> default_fields_;
     int force_mfct_index_ = -1; // Used for meters not declaring mfct specific data using the dif 0f.
+    bool has_process_content_ = false; // Mark this driver as having mfct specific decoding.
 
 public:
     DriverInfo() {};
@@ -193,6 +194,8 @@ public:
     void forceMfctIndex(int i) { force_mfct_index_ = i; }
     void setConstructor(function<shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
     void addDetection(uint16_t mfct, uchar type, uchar ver) { detect_.push_back({ mfct, type, ver }); }
+    void usesProcessContent() { has_process_content_ = true; }
+
     vector<DriverDetect> &detect() { return detect_; }
 
     DriverName name() { return name_; }
@@ -212,6 +215,7 @@ public:
     bool isValidMedia(uchar type);
     bool isCloseEnoughMedia(uchar type);
     int forceMfctIndex() { return force_mfct_index_; }
+    bool hasProcessContentCode() { return has_process_content_; }
 };
 
 bool registerDriver(function<void(DriverInfo&di)> setup);

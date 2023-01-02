@@ -25,11 +25,6 @@ namespace
         void processContent(Telegram *t);
         void decodeRF_RKN0(Telegram *t);
         void decodeRF_RKN9(Telegram *t);
-
-        double average_ambient_temperature_ {};
-        double max_ambient_temperature_ {};
-        double average_ambient_temperature_last_month_ {};
-        double average_heater_temperature_last_month_ {};
     };
 
     static bool ok = registerDriver([](DriverInfo&di)
@@ -39,6 +34,7 @@ namespace
         di.setMeterType(MeterType::HeatCostAllocationMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_BMP, 0x08,  0x53);
+        di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
@@ -55,29 +51,25 @@ namespace
             .set(VIFRange::HeatCostAllocation)
             );
 
-        addPrint("average_ambient_temperature",
-                 Quantity::Temperature,
-                 GET_FUNC(average_ambient_temperature_, Unit::C),
-                 "Average ambient temperature since this beginning of this month.",
-                 DEFAULT_PRINT_PROPERTIES );
+        addNumericField("average_ambient_temperature",
+                        Quantity::Temperature,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Average ambient temperature since this beginning of this month.");
 
-        addPrint("max_ambient_temperature",
-                 Quantity::Temperature,
-                 GET_FUNC(max_ambient_temperature_, Unit::C),
-                 "Max ambient temperature  since the beginning of this month.",
-                 DEFAULT_PRINT_PROPERTIES);
+        addNumericField("max_ambient_temperature",
+                        Quantity::Temperature,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Max ambient temperature  since the beginning of this month.");
 
-        addPrint("average_ambient_temperature_last_month",
-                 Quantity::Temperature,
-                 GET_FUNC(average_ambient_temperature_last_month_, Unit::C),
-                 "Average ambient temperature last month.",
-                 DEFAULT_PRINT_PROPERTIES);
+        addNumericField("average_ambient_temperature_last_month",
+                        Quantity::Temperature,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Average ambient temperature last month.");
 
-        addPrint("average_heater_temperature_last_month",
-                 Quantity::Temperature,
-                 GET_FUNC(average_heater_temperature_last_month_, Unit::C),
-                 "Average heater temperature last month.",
-                 DEFAULT_PRINT_PROPERTIES);
+        addNumericField("average_heater_temperature_last_month",
+                        Quantity::Temperature,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Average heater temperature last month.");
     }
 
     double toTemperature(uchar hi, uchar lo)
@@ -149,14 +141,16 @@ namespace
         i+=2;
 
         if (i+1 >= len) return;
-        average_ambient_temperature_ = toTemperature(bytes[i+1], bytes[i]);
+        double average_ambient_temperature_c = toTemperature(bytes[i+1], bytes[i]);
+        setNumericValue("average_ambient_temperature", Unit::C, average_ambient_temperature_c);
         info = renderJsonOnlyDefaultUnit("average_ambient_temperature", Quantity::Temperature);
         t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                  "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
         i+=2;
 
         if (i+1 >= len) return;
-        max_ambient_temperature_ = toTemperature(bytes[i+1], bytes[i]);
+        double max_ambient_temperature_c = toTemperature(bytes[i+1], bytes[i]);
+        setNumericValue("max_ambient_temperature", Unit::C, max_ambient_temperature_c);
         info = renderJsonOnlyDefaultUnit("max_ambient_temperature", Quantity::Temperature);
         t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                  "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
@@ -175,14 +169,18 @@ namespace
         i+=2;
 
         if (i+1 >= len) return;
-        average_ambient_temperature_last_month_ = toTemperature(bytes[i+1], bytes[i]);
+        double average_ambient_temperature_last_month_c = toTemperature(bytes[i+1], bytes[i]);
+        setNumericValue("average_ambient_temperature_last_month", Unit::C,
+                        average_ambient_temperature_last_month_c);
         info = renderJsonOnlyDefaultUnit("average_ambient_temperature_last_month", Quantity::Temperature);
         t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                  "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
         i+=2;
 
         if (i+1 >= len) return;
-        average_heater_temperature_last_month_ = toTemperature(bytes[i+1], bytes[i]);
+        double average_heater_temperature_last_month_c = toTemperature(bytes[i+1], bytes[i]);
+        setNumericValue("average_heater_temperature_last_month", Unit::C,
+                        average_heater_temperature_last_month_c);
         info = renderJsonOnlyDefaultUnit("average_heater_temperature_last_month", Quantity::Temperature);
         t->addSpecialExplanation(i+offset, 2, KindOfData::CONTENT, Understanding::FULL,
                                  "*** %02X%02X (%s)", bytes[i], bytes[i+1], info.c_str());
@@ -252,5 +250,5 @@ namespace
 // Test: HCAA hydroclima 74393723 NOKEY
 // Comment:
 // telegram=|2D44B009233739743308780F9D1300023ED97AEC7BC5908A32C15D8A32C126915AC15AC126912691269187912689|
-// {"media":"heat cost allocation","meter":"hydroclima","name":"HCAA","id":"74393723","average_ambient_temperature_c":0,"max_ambient_temperature_c":0,"average_ambient_temperature_last_month_c":0,"average_heater_temperature_last_month_c":0,"timestamp":"1111-11-11T11:11:11Z"}
-// |HCAA;74393723;null;0;1111-11-11 11:11.11
+// {"media":"heat cost allocation","meter":"hydroclima","name":"HCAA","id":"74393723","timestamp":"1111-11-11T11:11:11Z"}
+// |HCAA;74393723;null;null;1111-11-11 11:11.11

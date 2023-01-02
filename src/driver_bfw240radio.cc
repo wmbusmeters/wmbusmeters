@@ -24,11 +24,6 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
 
         void processContent(Telegram *t);
-
-        double current_hca_;
-        double prev_hca_;
-        double historic_hca_[18];
-        string device_date_;
     };
 
     static bool ok = registerDriver([](DriverInfo&di)
@@ -44,30 +39,30 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addPrint("current", Quantity::HCA,
-                 [&](Unit u){ return convert(current_hca_, Unit::HCA, u);},
-                 "Energy consumption so far in this billing period.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("current",
+                        Quantity::HCA,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Energy consumption so far in this billing period.");
 
-        addPrint("prev", Quantity::HCA,
-                 [&](Unit u){ return convert(prev_hca_, Unit::HCA, u); },
-                 "Energy consumption at end of previous billing period.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("prev",
+                        Quantity::HCA,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "Energy consumption at end of previous billing period.");
 
         for (int i=0; i<18; ++i)
         {
             string info = tostrprintf("prev_%02d", i+1);
             string about = tostrprintf("Energy consumption %d months ago.", i+1);
 
-            addPrint(info, Quantity::HCA,
-                     [this,i](Unit u){ return convert(historic_hca_[i], Unit::HCA, u);},
-                     about, DEFAULT_PRINT_PROPERTIES);
+            addNumericField(info,
+                            Quantity::HCA,
+                            DEFAULT_PRINT_PROPERTIES,
+                            about);
         }
 
-        addPrint("device_date", Quantity::Text,
-                 [&](){ return device_date_; },
-                 "Device date when telegram was sent.",
-                 DEFAULT_PRINT_PROPERTIES);
+        addStringField("device_date",
+                       "Device date when telegram was sent.",
+                       DEFAULT_PRINT_PROPERTIES);
     }
 
 
@@ -116,28 +111,31 @@ namespace
 
         if (content.size() < 40) return;
 
-        current_hca_ = content[6]*256 + content[7];
+        double current_hca = content[6]*256 + content[7];
+        setNumericValue("current", Unit::HCA, current_hca);
 
-        string msg = tostrprintf("*** %02X%02X \"current_hca\":%g", content[6], content[7], current_hca_);
+        string msg = tostrprintf("*** %02X%02X \"current_hca\":%g", content[6], content[7], current_hca);
         t->addSpecialExplanation(6+t->header_size, 2, KindOfData::CONTENT, Understanding::FULL, msg.c_str());
 
-        prev_hca_ = content[4]*256 + content[5];
+        double prev_hca = content[4]*256 + content[5];
+        setNumericValue("prev", Unit::HCA, prev_hca);
 
-        msg = tostrprintf("*** %02X%02X \"prev_hca\":%g", content[4], content[5], prev_hca_);
+        msg = tostrprintf("*** %02X%02X \"prev_hca\":%g", content[4], content[5], prev_hca);
         t->addSpecialExplanation(4+t->header_size, 2, KindOfData::CONTENT, Understanding::FULL, msg.c_str());
 
-        device_date_ = tostrprintf("20%02x-%02x-%02x", content[39], content[39-1], content[39-2]);
+        string device_date = tostrprintf("20%02x-%02x-%02x", content[39], content[39-1], content[39-2]);
+        setStringValue("device_date", device_date);
 
         msg = tostrprintf("*** %02X%02X%02X \"device_date\":\"%s\"", content[39-2], content[39-1], content[39],
-                                 device_date_.c_str());
+                                 device_date.c_str());
         t->addSpecialExplanation(39-2+t->header_size, 3, KindOfData::CONTENT, Understanding::FULL, msg.c_str());
-
-
 
 
         for (int i=0; i<18; ++i)
         {
-            historic_hca_[i] = getHistoric(i, content);
+            string info = tostrprintf("prev_%02d", i+1);
+            double historic_hca = getHistoric(i, content);
+            setNumericValue(info, Unit::HCA, historic_hca);
         }
     }
 }

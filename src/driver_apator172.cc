@@ -26,8 +26,6 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
 
         void processContent(Telegram *t);
-
-        double total_water_consumption_m3_ {};
     };
 
     static bool ok = registerDriver([](DriverInfo&di)
@@ -41,10 +39,11 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addPrint("total", Quantity::Volume,
-                 [&](Unit u){ return convert(total_water_consumption_m3_, Unit::M3, u); },
-                 "The total water consumption recorded by this meter.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField(
+            "total",
+            Quantity::Volume,
+            DEFAULT_PRINT_PROPERTIES,
+            "The total water consumption recorded by this meter.");
     }
 
     void Driver::processContent(Telegram *t)
@@ -69,9 +68,11 @@ namespace
             extractDVdouble(&vendor_values, "0413", &offset, &tmp);
             // Single tick seems to be 1/3 of a m3. Divide by 3 and keep a single decimal.
             // This will report consumption as 100.0 100.3 100.7 101.0 etc.
-            total_water_consumption_m3_ = 0.1*std::round(10000.0*tmp/3.0);
+            double total_water_consumption_m3 = 0.1*std::round(10000.0*tmp/3.0);
             total = "*** "+total+" total consumption (%f m3)";
-            t->addSpecialExplanation(offset, 4, KindOfData::CONTENT, Understanding::FULL, total.c_str(), total_water_consumption_m3_);
+            t->addSpecialExplanation(offset, 4, KindOfData::CONTENT, Understanding::FULL, total.c_str(), total_water_consumption_m3);
+
+            setNumericValue("total", Unit::M3, total_water_consumption_m3);
         }
     }
 }

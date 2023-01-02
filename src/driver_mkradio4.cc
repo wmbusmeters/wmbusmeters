@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2019-2023 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -24,14 +24,6 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
 
         void processContent(Telegram *t);
-
-    private:
-
-        double totalWaterConsumption(Unit u);
-        double targetWaterConsumption(Unit u);
-
-        double total_water_consumption_m3_ {};
-        double target_water_consumption_m3_ {};
     };
 
     static bool ok = registerDriver([](DriverInfo&di)
@@ -50,20 +42,20 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addPrint("total", Quantity::Volume,
-                 [&](Unit u){ return totalWaterConsumption(u); },
-                 "The total water consumption recorded by this meter.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("total",
+                        Quantity::Volume,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "The total water consumption recorded by this meter.");
 
-        addPrint("target", Quantity::Volume,
-                 [&](Unit u){ return targetWaterConsumption(u); },
-                 "The total water consumption recorded at the beginning of this month.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField("target",
+                        Quantity::Volume,
+                        DEFAULT_PRINT_PROPERTIES,
+                        "The total water consumption recorded at the beginning of this month.");
     }
 
     void Driver::processContent(Telegram *t)
     {
-        // Unfortunately, the MK Radio 4 is mostly a proprieatary protocol
+        // The MK Radio 4 is mostly a proprietary protocol
         // simple wrapped inside a wmbus telegram since the ci-field is 0xa2.
         // Which means that the entire payload is manufacturer specific.
 
@@ -76,37 +68,32 @@ namespace
         uchar prev_hi = content[4];
         double prev = (256.0*prev_hi+prev_lo)/10.0;
 
+        /*
         string prevs;
         strprintf(&prevs, "%02x%02x", prev_lo, prev_hi);
         int offset = t->parsed.size()+3;
         vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, 0, 0, 0, prevs) };
         t->explanations.push_back(Explanation(offset, 2, prevs, KindOfData::CONTENT, Understanding::FULL));
         t->addMoreExplanation(offset, " prev consumption (%f m3)", prev);
+        */
 
         uchar curr_lo = content[7];
         uchar curr_hi = content[8];
         double curr = (256.0*curr_hi+curr_lo)/10.0;
 
+        /*
         string currs;
         strprintf(&currs, "%02x%02x", curr_lo, curr_hi);
         offset = t->parsed.size()+7;
         vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, 0, 0, 0, currs) };
         t->explanations.push_back(Explanation(offset, 2, currs, KindOfData::CONTENT, Understanding::FULL));
         t->addMoreExplanation(offset, " curr consumption (%f m3)", curr);
+        */
 
-        total_water_consumption_m3_ = prev+curr;
-        target_water_consumption_m3_ = prev;
-    }
-
-    double Driver::totalWaterConsumption(Unit u)
-    {
-        assertQuantity(u, Quantity::Volume);
-        return convert(total_water_consumption_m3_, Unit::M3, u);
-    }
-
-    double Driver::targetWaterConsumption(Unit u)
-    {
-        return target_water_consumption_m3_;
+        double total_water_consumption_m3 = prev+curr;
+        setNumericValue("total", Unit::M3, total_water_consumption_m3);
+        double target_water_consumption_m3 = prev;
+        setNumericValue("target", Unit::M3, target_water_consumption_m3);
     }
 }
 

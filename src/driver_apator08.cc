@@ -17,67 +17,64 @@
 
 #include"meters_common_implementation.h"
 
-using namespace std;
-
-struct MeterApator08 : public virtual MeterCommonImplementation
+namespace
 {
-    MeterApator08(MeterInfo &mi, DriverInfo &di);
-
-private:
-
-    void processContent(Telegram *t);
-
-    double total_water_consumption_m3_ {};
-};
-
-static bool ok = registerDriver([](DriverInfo&di)
-{
-    di.setName("apator08");
-    di.setDefaultFields("name,id,total_m3,timestamp");
-    di.setMeterType(MeterType::WaterMeter);
-    di.addLinkMode(LinkMode::T1);
-    di.addDetection(0x8614/*APT?*/, 0x03,  0x03);
-    di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new MeterApator08(mi, di)); });
-});
-
-MeterApator08::MeterApator08(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
-{
-    addNumericField(
-        "total",
-        Quantity::Volume,
-        DEFAULT_PRINT_PROPERTIES,
-        "The total water consumption recorded by this meter.",
-        SET_FUNC(total_water_consumption_m3_, Unit::M3),
-        GET_FUNC(total_water_consumption_m3_, Unit::M3));
-}
-
-void MeterApator08::processContent(Telegram *t)
-{
-    // Unfortunately, the at-wmbus-08 is mostly a proprietary protocol
-    // simple wrapped inside a wmbus telegram. Naughty!
-
-    // The telegram says gas (0x03) but it is a water meter.... so fix this.
-    t->dll_type = 0x07;
-
-    vector<uchar> content;
-    t->extractPayload(&content);
-
-    map<string,pair<int,DVEntry>> vendor_values;
-
-    string total;
-    strprintf(&total, "%02x%02x%02x%02x", content[0], content[1], content[2], content[3]);
-
-    vendor_values["0413"] = { 25, DVEntry(25, DifVifKey("0413"), MeasurementType::Instantaneous, 0x13, {}, 0, 0, 0, total) };
-    int offset;
-    string key;
-    if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &vendor_values))
+    struct Driver : public virtual MeterCommonImplementation
     {
-        extractDVdouble(&vendor_values, key, &offset, &total_water_consumption_m3_);
-        // Now divide with 3! Is this the same for all apator08 meters? Time will tell.
-        total_water_consumption_m3_ /= 3.0;
+        Driver(MeterInfo &mi, DriverInfo &di);
 
-        total = "*** 10|"+total+" total consumption (%f m3)";
-        t->addSpecialExplanation(offset, 4, KindOfData::CONTENT, Understanding::FULL, total.c_str(), total_water_consumption_m3_);
+    private:
+
+        void processContent(Telegram *t);
+    };
+
+    static bool ok = registerDriver([](DriverInfo&di)
+    {
+        di.setName("apator08");
+        di.setDefaultFields("name,id,total_m3,timestamp");
+        di.setMeterType(MeterType::WaterMeter);
+        di.addLinkMode(LinkMode::T1);
+        di.addDetection(0x8614/*APT?*/, 0x03,  0x03);
+        di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
+    });
+
+    Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
+    {
+        addNumericField(
+            "total",
+            Quantity::Volume,
+            DEFAULT_PRINT_PROPERTIES,
+            "The total water consumption recorded by this meter.");
+    }
+
+    void Driver::processContent(Telegram *t)
+    {
+        // The telegram says gas (0x03) but it is a water meter.... so fix this.
+        t->dll_type = 0x07;
+
+        vector<uchar> content;
+        t->extractPayload(&content);
+
+        map<string,pair<int,DVEntry>> vendor_values;
+
+        string total;
+        strprintf(&total, "%02x%02x%02x%02x", content[0], content[1], content[2], content[3]);
+
+        vendor_values["0413"] = { 25, DVEntry(25, DifVifKey("0413"), MeasurementType::Instantaneous, 0x13, {}, 0, 0, 0, total) };
+        int offset;
+        string key;
+        if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &vendor_values))
+        {
+            double total_water_consumption_m3 {};
+            extractDVdouble(&vendor_values, key, &offset, &total_water_consumption_m3);
+            // Now divide with 3! Is this the same for all apator08 meters? Time will tell.
+            total_water_consumption_m3 /= 3.0;
+
+            total = "*** 10|"+total+" total consumption (%f m3)";
+            t->addSpecialExplanation(offset, 4, KindOfData::CONTENT, Understanding::FULL, total.c_str(), total_water_consumption_m3);
+
+            setNumericValue("total", Unit::M3, total_water_consumption_m3);
+        }
     }
 }
 

@@ -26,8 +26,6 @@ namespace
         void processContent(Telegram *t);
         void processExtras(string miExtras);
         int registerSize(int c);
-
-        double total_water_consumption_m3_ {};
     };
 
     static bool ok = registerDriver([](DriverInfo&di)
@@ -47,10 +45,11 @@ namespace
     {
         processExtras(mi.extras);
 
-        addPrint("total", Quantity::Volume,
-                 [&](Unit u){ return convert(total_water_consumption_m3_, Unit::M3, u); },
-                 "The total water consumption recorded by this meter.",
-                  DEFAULT_PRINT_PROPERTIES);
+        addNumericField(
+            "total",
+            Quantity::Volume,
+            DEFAULT_PRINT_PROPERTIES,
+            "The total water consumption recorded by this meter.");
     }
 
     void Driver::processContent(Telegram *t)
@@ -105,9 +104,12 @@ namespace
                 strprintf(&total, "%02x%02x%02x%02x", content[i+0], content[i+1], content[i+2], content[i+3]);
                 int offset = i-1+t->header_size;
                 vendor_values["0413"] = {offset, DVEntry(offset, DifVifKey("0413"), MeasurementType::Instantaneous, 0x13, {}, 0, 0, 0, total) };
-                extractDVdouble(&vendor_values, "0413", &offset, &total_water_consumption_m3_);
+                double total_water_consumption_m3 {};
+                extractDVdouble(&vendor_values, "0413", &offset, &total_water_consumption_m3);
                 total = "*** 10-"+total+" total consumption (%f m3)";
-                t->addSpecialExplanation(offset, 4, KindOfData::CONTENT, Understanding::FULL, total.c_str(), total_water_consumption_m3_);
+                t->addSpecialExplanation(offset, 4, KindOfData::CONTENT, Understanding::FULL, total.c_str(), total_water_consumption_m3);
+
+                setNumericValue("total", Unit::M3, total_water_consumption_m3);
             }
             else
             {
