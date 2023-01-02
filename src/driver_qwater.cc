@@ -35,6 +35,8 @@ namespace
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::S1);
         di.addDetection(MANUFACTURER_QDS, 0x37,  0x33);
+        di.addDetection(MANUFACTURER_QDS, 0x06,  0x16);
+        di.addDetection(MANUFACTURER_QDS, 0x07,  0x16);
         di.addDetection(MANUFACTURER_QDS, 0x06,  0x18);
         di.addDetection(MANUFACTURER_QDS, 0x07,  0x18);
         di.addDetection(MANUFACTURER_QDS, 0x06,  0x35);
@@ -154,3 +156,16 @@ namespace
 // telegram=|394493449400231218077ad30000200c13536712004c1307920500426cBf2ccc081373621200c2086cde2B02BB560000326cffff046d3714c32c|
 // {"media":"water","meter":"qwater","name":"QWater-7-18","id":"12230094","status":"OK","total_m3":126.753,"due_date_m3":59.207,"due_date":"2021-12-31","due_17_date_m3":126.273,"due_17_date":"2022-11-30","error_date":"2128-03-31","volume_flow_m3h":0,"meter_datetime":"2022-12-03 20:55","timestamp":"1111-11-11T11:11:11Z"}
 // |QWater-7-18;12230094;126.753;59.207;2021-12-31;OK;1111-11-11 11:11.11
+
+
+// Test: QWoo qwater 13144514 NOKEY
+// Comment: Warm water
+// telegram=|394493441445141316067A31000020_0C13671605004C1348160500426CDF2CCC081348160500C2086CDF2C02BB560000326CFFFF046D3414E121|
+// {"due_17_date": "2022-12-31","due_17_date_m3": 51.648,"due_date": "2022-12-31","due_date_m3": 51.648,"error_date": "2128-03-31","id": "13144514","media": "warm water","meter": "qwater","meter_datetime": "2023-01-01 20:52","name": "QWoo","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 51.667,"volume_flow_m3h": 0}
+// |QWoo;13144514;51.667;51.648;2022-12-31;OK;1111-11-11 11:11.11
+
+// Test: QWooo qwater 13176890 NOKEY
+// Comment: Cold water
+// telegram=|394493449068171316077A0B000020_0C13358612004C1307851200426CDF2CCC081307851200C2086CDF2C02BB560000326CFFFF046D3014E121|
+// {"due_17_date": "2022-12-31","due_17_date_m3": 128.507,"due_date": "2022-12-31","due_date_m3": 128.507,"error_date": "2128-03-31","id": "13176890","media": "water","meter": "qwater","meter_datetime": "2023-01-01 20:48","name": "QWooo","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 128.635,"volume_flow_m3h": 0}
+// |QWooo;13176890;128.635;128.507;2022-12-31;OK;1111-11-11 11:11.11
