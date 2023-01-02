@@ -1211,6 +1211,10 @@ void MeterCommonImplementation::processFieldCalculators()
     {
         if (fi.hasFormula() && !fi.hasMatcher())
         {
+            debug("(meters) calculating field %s(%s)[%d]\n",
+                  fi.vname().c_str(),
+                  toString(fi.xuantity()),
+                  fi.index());
             fi.performCalculation(this);
         }
     }
@@ -1657,7 +1661,10 @@ void MeterCommonImplementation::printMeter(Telegram *t,
             // Why this complicated rule?
             // E.g. the minmoess mbus seems to use storage 1 for target_m3 but the wmbus version uses storage 8.
             // I.e. we have two rules that store into target_m3, this check will prevent target_m3 from being printed twice.
-            if (fi.printProperties().hasREQUIRED() || (found_vnames.count(fi.vname()) == 0 && hasValue(&fi)))
+            if (fi.printProperties().hasREQUIRED() ||
+                (hasValue(&fi) && (
+                    found_vnames.count(fi.vname()) == 0 ||
+                    fi.hasFormula()))) // TODO! Fix so a new field total_l does not overwrite total_m3 in mem.
             {
                 // No telegram entries found, but this field should be printed anyway.
                 // It will be printed with any value received from a previous telegram.
