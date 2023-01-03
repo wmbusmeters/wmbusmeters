@@ -508,7 +508,7 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
         if (pollInterval() <= 0) return;
 
         time_t now = time(NULL);
-        time_t next_poll_time = timestampLastUpdate()+pollInterval();
+        time_t next_poll_time = datetime_of_poll_+pollInterval();
         if (now < next_poll_time)
         {
             // Not yet time to poll this meter.
@@ -857,7 +857,8 @@ void MeterCommonImplementation::triggerUpdate(Telegram *t)
     // Check if processContent has discarded this telegram.
     if (t->discard) return;
 
-    datetime_of_update_ = time(NULL);
+    datetime_of_poll_ = time(NULL);
+    datetime_of_update_ = t->about.timestamp ? t->about.timestamp : datetime_of_poll_;
     num_updates_++;
     for (auto &cb : on_update_) if (cb) cb(t, this);
     t->handled = true;
