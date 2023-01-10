@@ -80,7 +80,7 @@ namespace
             VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
-            .set(VIFRange::EnergyMJ)
+            .set(VIFRange::AnyEnergyVIF)
             .set(IndexNr(2))
             );
 

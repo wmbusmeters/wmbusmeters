@@ -44,7 +44,7 @@ namespace
             VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
-            .set(VIFRange::EnergyWh)
+            .set(VIFRange::AnyEnergyVIF)
             );
 
         addNumericFieldWithExtractor(

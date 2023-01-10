@@ -72,7 +72,7 @@ namespace
             VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
-            .set(VIFRange::EnergyWh)
+            .set(VIFRange::AnyEnergyVIF)
             );
 
         addNumericFieldWithExtractor(
@@ -105,7 +105,7 @@ namespace
             VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
-            .set(VIFRange::EnergyWh)
+            .set(VIFRange::AnyEnergyVIF)
             .set(StorageNr(1))
             );
 
