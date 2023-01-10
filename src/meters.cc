@@ -2713,7 +2713,8 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
-            .set(StorageNr(1))
+            .set(StorageNr(1)),
+            Unit::DateLT
             );
     }
 
