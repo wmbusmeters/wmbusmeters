@@ -27,6 +27,7 @@ namespace
 
     static bool ok = registerDriver([](DriverInfo&di)
     {
+        // This is the sharky 775 heat meter driver, should this merge with the sharky 774 driver?
         di.setName("sharky");
         di.setDefaultFields("name,id,total_energy_consumption_kwh,total_energy_consumption_tariff1_kwh,total_volume_m3,"
                             "total_volume_tariff2_m3,volume_flow_m3h,power_kw,flow_temperature_c,"
@@ -34,11 +35,25 @@ namespace
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_HYD, 0x04, 0x20);
+        di.addDetection(MANUFACTURER_DME, 0x04, 0x40);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
+        addStringFieldWithExtractorAndLookup(
+            "status",
+            "Status of meter.",
+            DEFAULT_PRINT_PROPERTIES  | PrintProperty::STATUS,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ErrorFlags),
+            Translate::Lookup()
+            .add(Translate::Rule("ERROR_FLAGS", Translate::Type::BitToString)
+                 .set(MaskBits(0x0000))
+                 .set(DefaultMessage("OK"))
+                ));
+
         addNumericFieldWithExtractor(
             "total_energy_consumption",
             "The total heat energy consumption recorded by this meter.",
@@ -142,7 +157,12 @@ namespace
     }
 }
 
-// Test: Heat sharky ANYID NOKEY
+// Test: Heat sharky 68926025 NOKEY
 // telegram=|534424232004256092687A370045752235854DEEEA5939FAD81C25FEEF5A23C38FB9168493C563F08DB10BAF87F660FBA91296BA2397E8F4220B86D3A192FB51E0BFCF24DCE72118E0C75A9E89F43BDFE370824B|
-// {"media":"heat","meter":"sharky","name":"Heat","id":"68926025","total_energy_consumption_kwh":2651,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":150.347,"total_volume_tariff2_m3":0.018,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":42.3,"return_temperature_c":28.1,"temperature_difference_c":14.1,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"heat","meter":"sharky","name":"Heat","id":"68926025","total_energy_consumption_kwh":2651,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":150.347,"total_volume_tariff2_m3":0.018,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":42.3,"return_temperature_c":28.1,"status":"OK","temperature_difference_c":14.1,"timestamp":"1111-11-11T11:11:11Z"}
+// |Heat;68926025;2651;0;150.347;0.018;0;0;42.3;28.1;14.1;1111-11-11 11:11.11
+
+// Test: Heat sharky 68926025 NOKEY
+// telegram=|5e44a5115376916140047a0B0050052f2f0c0e829311008c100e000000000c14014938000c2B751400000B3B2902000a5a52070a5e95060a6256000a279015cc020e92831100cc021478113800c2026cdf2c2f2f2f2f2f2f2f2f2f2f2f2f2f|
+// {"flow_temperature_c": 42.3,"id": "68926025","media": "heat","meter": "sharky","name": "Heat","power_kw": 0,"return_temperature_c": 28.1,"status": "OK","temperature_difference_c": 14.1,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 2651,"total_energy_consumption_tariff1_kwh": 0,"total_volume_m3": 150.347,"total_volume_tariff2_m3": 0.018,"volume_flow_m3h": 0}
 // |Heat;68926025;2651;0;150.347;0.018;0;0;42.3;28.1;14.1;1111-11-11 11:11.11
