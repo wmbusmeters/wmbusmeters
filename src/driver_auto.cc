@@ -22,8 +22,6 @@ using namespace std;
 struct MeterAuto : public virtual MeterCommonImplementation
 {
     MeterAuto(MeterInfo &mi, DriverInfo &di);
-
-    void processContent(Telegram *t);
 };
 
 bool ok = registerDriver([](DriverInfo&di)
@@ -43,8 +41,4 @@ shared_ptr<Meter> createAuto(MeterInfo &mi)
     DriverInfo di;
     di.setName("auto");
     return shared_ptr<Meter>(new MeterAuto(mi, di));
-}
-
-void MeterAuto::processContent(Telegram *t)
-{
 }

@@ -33,7 +33,7 @@ namespace
         di.setMeterType(MeterType::SmokeDetector);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_TCH, 0xf0,  0x76);
-
+        di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

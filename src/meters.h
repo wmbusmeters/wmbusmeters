@@ -215,7 +215,7 @@ public:
     bool isValidMedia(uchar type);
     bool isCloseEnoughMedia(uchar type);
     int forceMfctIndex() { return force_mfct_index_; }
-    bool hasProcessContentCode() { return has_process_content_; }
+    bool hasProcessContent() { return has_process_content_; }
 };
 
 bool registerDriver(function<void(DriverInfo&di)> setup);

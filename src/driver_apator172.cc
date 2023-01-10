@@ -34,6 +34,7 @@ namespace
         di.setDefaultFields("name,id,total_m3,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addDetection(0x8614 /*APT?*/,  0x11,  0x04);
+        di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

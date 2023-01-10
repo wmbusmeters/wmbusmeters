@@ -63,6 +63,7 @@ struct MeterCommonImplementation : public virtual Meter
     vector<string> &extraConstantFields();
     string name();
     DriverName driverName();
+    bool hasProcessContent();
 
     ELLSecurityMode expectedELLSecurityMode();
     TPLSecurityMode expectedTPLSecurityMode();
@@ -82,7 +83,7 @@ struct MeterCommonImplementation : public virtual Meter
     static bool isTelegramForMeter(Telegram *t, Meter *meter, MeterInfo *mi);
     MeterKeys *meterKeys();
 
-    MeterCommonImplementation(MeterInfo &mi, string driver);
+//    MeterCommonImplementation(MeterInfo &mi, string driver);
     MeterCommonImplementation(MeterInfo &mi, DriverInfo &di);
 
     ~MeterCommonImplementation() = default;
@@ -133,9 +134,6 @@ protected:
         PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
         string help,
         Unit display_unit = Unit::Unknown);  // If specified use this unit for the json field instead instead of the default unit.
-
-#define SET_STRING_FUNC(varname) {[=](string s){varname = s;}}
-#define GET_STRING_FUNC(varname) {[=](){return varname; }}
 
     void addStringFieldWithExtractor(
         string vname,
@@ -228,6 +226,7 @@ private:
     time_t poll_interval_ {};
     Translate::Lookup mfct_tpl_status_bits_ = NoLookup;
     int force_mfct_index_ = -1;
+    bool has_process_content_ = false;
 
 protected:
 

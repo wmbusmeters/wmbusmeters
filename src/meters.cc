@@ -162,11 +162,13 @@ bool lookupDriverInfo(const string& driver, DriverInfo *out_di)
 
     return true;
 }
-
-
+/*
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
                                                      string driver) :
-    driver_name_(driver), bus_(mi.bus), name_(mi.name), waiting_for_poll_response_sem_("waiting_for_poll_response")
+    driver_name_(driver),
+    bus_(mi.bus),
+    name_(mi.name),
+    waiting_for_poll_response_sem_("waiting_for_poll_response")
 {
     ids_ = mi.ids;
     idsc_ = toIdsCommaSeparated(ids_);
@@ -185,7 +187,7 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
         addExtraConstantField(j);
     }
 }
-
+*/
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
                                                      DriverInfo &di) :
     type_(di.type()),
@@ -193,6 +195,7 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     bus_(mi.bus),
     name_(mi.name),
     mfct_tpl_status_bits_(di.mfctTPLStatusBits()),
+    has_process_content_(di.hasProcessContent()),
     waiting_for_poll_response_sem_("waiting_for_poll_response")
 {
     ids_ = mi.ids;
@@ -1082,8 +1085,11 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
     // Invoke standardized field extractors!
     processFieldExtractors(&t);
-    // Invoke tailor made meter specific parsing!
-    processContent(&t);
+    if (hasProcessContent())
+    {
+        // Invoke tailor made meter specific parsing!
+        processContent(&t);
+    }
     // Invoke any calculators working on the extracted fields.
     processFieldCalculators();
     // All done....
@@ -1223,6 +1229,11 @@ void MeterCommonImplementation::processFieldCalculators()
 
 void MeterCommonImplementation::processContent(Telegram *t)
 {
+}
+
+bool MeterCommonImplementation::hasProcessContent()
+{
+    return has_process_content_;
 }
 
 void MeterCommonImplementation::setNumericValue(FieldInfo *fi, DVEntry *dve, Unit u, double v)
@@ -2673,6 +2684,36 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
+            );
+    }
+
+    if (checkIf(fields,"target_m3"))
+    {
+        addNumericFieldWithExtractor(
+            "target",
+            "The volume recorded by this meter at the target date.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Volume,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .set(StorageNr(1))
+            );
+    }
+
+    if (checkIf(fields,"target_date"))
+    {
+        addNumericFieldWithExtractor(
+            "target",
+            "The target date. Usually the end of the previous billing period.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::PointInTime,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Date)
+            .set(StorageNr(1))
             );
     }
 

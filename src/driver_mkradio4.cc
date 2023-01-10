@@ -36,7 +36,7 @@ namespace
         di.addDetection(MANUFACTURER_TCH, 0x62,  0x70);
         di.addDetection(MANUFACTURER_TCH, 0x72,  0x95);
         di.addDetection(MANUFACTURER_TCH, 0x72,  0x70);
-
+        di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

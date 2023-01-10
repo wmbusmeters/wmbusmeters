@@ -22,8 +22,6 @@ using namespace std;
 struct MeterUnknown : public virtual MeterCommonImplementation
 {
     MeterUnknown(MeterInfo &mi, DriverInfo &di);
-
-    void processContent(Telegram *t);
 };
 
 static bool ok = registerDriver([](DriverInfo&di)
@@ -43,8 +41,4 @@ shared_ptr<Meter> createUnknown(MeterInfo &mi)
     DriverInfo di;
     di.setName("unknown");
     return shared_ptr<Meter>(new MeterUnknown(mi, di));
-}
-
-void MeterUnknown::processContent(Telegram *t)
-{
 }

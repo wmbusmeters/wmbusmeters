@@ -38,6 +38,7 @@ namespace
         di.addDetection(MANUFACTURER_APA,  0x06,  0x05);
         di.addDetection(MANUFACTURER_APA,  0x07,  0x05);
         di.addDetection(0x8614 /*APT?*/, 0x07,  0x05); // Older version of telegram that is not understood!
+        di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
