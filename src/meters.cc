@@ -792,6 +792,7 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
         // this particular driver, mfct, media, version combo
         // is not registered in the METER_DETECTION list in meters.h
 
+        /*
         if (used_wildcard)
         {
             // The match for the id was not exact, thus the user is listening using a wildcard
@@ -800,7 +801,7 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
             verbose("(meter) ignoring telegram from %s since it matched a wildcard id rule but driver (%s) does not match.\n",
                     t->idsc.c_str(), driver_name.c_str());
             return false;
-        }
+            }*/
 
         // The match was exact, ie the user has actually specified 12345678 and foo as driver even
         // though they do not match. Lets warn and then proceed. It is common that a user tries a
@@ -808,7 +809,7 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
         if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(t, t->dll_a))
         {
             string possible_drivers = t->autoDetectPossibleDrivers();
-            if (t->beingAnalyzed() == false)
+            if (t->beingAnalyzed() == false && driver_name != "auto")
             {
                 warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n"
                         "(meter) Not printing this warning again for id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
