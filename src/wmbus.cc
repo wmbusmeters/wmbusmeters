@@ -1062,7 +1062,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-version", ell_version);
 
         ell_type = *pos;
-        addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-type");
+        addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x ell-type", ell_type);
     }
 
     if (has_session_number_pl_crc)
