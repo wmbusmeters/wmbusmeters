@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2019-2023 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ namespace
         di.addDetection(MANUFACTURER_LSE, 0x08,  0x35);
         di.addDetection(MANUFACTURER_QDS, 0x08,  0x35);
         di.addDetection(MANUFACTURER_QDS, 0x08,  0x34);
+        di.addDetection(MANUFACTURER_QDS, 0x08,  0x36);
         di.addDetection(MANUFACTURER_LSE, 0x08,  0x18); // whe4
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
@@ -243,3 +244,26 @@ namespace
 // telegram=|2a4465325566366018087ac3040000046d1617Ba210B6e890000426c9f2c4B6e520600326cffff01fd7300|
 // {"media":"heat cost allocation","meter":"qcaloric","name":"HCA2","id":"60366655","status":"POWER_LOW","current_consumption_hca":89,"set_date":"2020-12-31","consumption_at_set_date_hca":652,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":652,"error_date":"2127-15-31","device_date_time":"2021-01-26 23:22","model_version":"03","flow_temperature_c":19.4,"timestamp":"1111-11-11T11:11:11Z"}
 // |HCA2;60366655;89;2020-12-31;652;1111-11-11 11:11.11
+
+// Test: HCA55 qcaloric 30535282 NOKEY
+// Comment: QCaloric 5.5 encrypted but with some not-encrypted bytes at the end. We should print these, but we do not right now....
+// Since it is encrypted and we do not have the key, wmbusmeters currently ignores it and every following telegram.
+// The readable bytes are: 326cffff046d230dda2c which decodes to
+// 32 dif (16 Bit Integer/Binary Value during error state)
+// 6C vif (Date type G)
+// FFFF
+// 04 dif (32 Bit Integer/Binary Instantaneous value)
+// 6D vif (Date and time type)
+// 230DDA2C
+// 32 dif (16 Bit Integer/Binary Value during error state)
+// 6C vif (Date type G)
+// FFFF ("error_date":"2127-15-31")
+// 04 dif (32 Bit Integer/Binary Instantaneous value)
+// 6D vif (Date and time type)
+// 230DDA2C ("device_date_time":"2022-12-26 13:35")
+// NOTYET telegram=|384493448252533036087A430020253F59515BD90F76E8576AF36C988EEA9B398EC5C205E5DBBE3F2698408947CB8E326CFFFF046D230DDA2C|
+
+// Comment: Mostly mfct specific data. Not yet decoded.
+// telegram=|49449344825253303608780DFF5F350082430035E3DFC4EAC97A58B8610713D93549E2601258D617D267E7515C764B002A88CD341A9F9DF3C6034DE5B6D1FAB3619CBA9F046D250DDA2C|
+// {"device_date_time": "2022-12-26 13:37","id": "30535282","media": "heat cost allocation","meter": "qcaloric","name": "HCA55","status": "OK","timestamp": "1111-11-11T11:11:11Z"}
+// |HCA55;30535282;null;null;null;1111-11-11 11:11.11
