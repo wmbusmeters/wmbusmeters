@@ -229,7 +229,7 @@ field_city=Stockholm
 
 If you add `field_floor=5` to the meter file `MyTapWater`, then you can have the meter tailored static json `"floor":"5"` added to telegrams handled by that particular meter. (The old prefix json_ still works.)
 
-You can add unit conversions and calculate values using
+You can add unit conversions and calculated values to the meter files using
 `calculate_...`.  The formulas track units. If the unit do not match
 up, then the formula will generate a null value. When two units are compatible
 it will automatically convert the value between two units.
