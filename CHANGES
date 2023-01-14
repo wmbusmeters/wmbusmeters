@@ -1,5 +1,15 @@
 
+George Hopkins improved the fhkvdataiii driver to infer the current year and
+the rtlwmbus driver to propagate the timestamp from rtlwmbus input into the final
+json timestamp. Thanks George!
+
+Rob Peters fixed a missing log output for ell_type. Thanks Rob!
+
+Added the GWF water meter.
+
 Zleba improved the qwater driver! Thanks Zleba!
+
+The option --logfile=syslog now works.
 
 ATTENTION! The hydrus driver has been rewritten from scratch! current_date is now meter_datetime
 Several fields were printed with value 0 even if the telegram did not contain the actual zero,
@@ -41,7 +51,7 @@ Version 1.11.0-RC1 2022-12-29
 
 Chpego and SzczepanLeon improved the HA-addon. Thanks!
 
-Ranma added support for the pollcumqheat 55 driver. Thanks Ranma!
+Ranma added support for the pollucomf 55 driver. Thanks Ranma!
 
 Jacek27 added another Munia temp/hygrometer version. Thanks Jacek27!
 

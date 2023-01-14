@@ -236,7 +236,7 @@ it will automatically convert the value between two units.
 
 The formula
 ```ini
-calculate_sum_mj='5 kwh + 8 gj + (7 kw * 3 h)'
+calculate_sum_mj=5 kwh + 8 gj + (7 kw * 3 h)
 ```
 
 will add the field:
@@ -557,6 +557,7 @@ Diehl HYDRUS (hydrus)
 Diehl IZAR RC I G4 (dme_07)
 Elster Merlin 868 (emerlin868)
 Elster V200H (ev200)
+GWF Water (gwfwater)
 Maddalena EVO 868 (evo868)
 Honeywell Q400 (q400)
 Itron (itron)
@@ -596,6 +597,7 @@ Heat meter Maddelena microClima (microclima)
 Heat and Cooling meter BMeters Hydrocal-M3 (hydrocalm3)
 Heat and Cooling meter Axioma Qualcosonic E3 (qualcosonic)
 Heat meter Qundis Q heat 5.5 (qheat)
+Heat meter Sensus Pollucom F (pollucomf)
 
 Supported room sensors:
 Bmeters RFM-AMB Thermometer/Hygrometer (rfmamb)
@@ -948,25 +950,6 @@ If the daemon has started then the wmbus device will be taken and you cannot sta
 
 To run manually, first make sure the daemon is stopped `sudo systemctl stop wmbusmeters`
 if this hangs, then do `sudo killall -9 wmbusmetersd` and/or `sudo killall -9 wmbusmeters`.
-
-## How to receive telegrams over longer distances
-
-I only have personal experience of the im871a,amb8465 and an rtlsdr
-compatible dongle.  The commercial dongles (im871a,amb8464) receive
-well despite having tiny antennas inside the dongle. However the
-reception range is limited by walls and you must definitely get quite
-close to the meter if it is mounted underground in a concrete tube.
-
-The rtlsdr/rtl-wmbus solution seems to work for a lot of users, but it
-does use more cpu-power since it decodes the radio traffic in
-software. Range seems to be similar to the other dongles, despite the
-antenna being much larger.
-
-At least one professional collector use the same commercial dongles,
-but the versions with an external antenna connector, into which they
-attach a radio amplifier for the proper frequency, and then a larger
-antennna. This makes it possible to receive telegrams from meters
-underground and over larger distances.
 
 ## Non-standard baud rate set for AMB8465 USB stick
 
