@@ -11,7 +11,7 @@ wmbusmeters \- Acquire,query and decode wired and wireless mbus telegrams, then 
 
 .SH DESCRIPTION
 
-Wmbusmeters acquires wmbus telegrams, decodes them and relays them to
+Wmbusmeters acquires wired or wireless mbus telegrams, decodes them and relays them to
 some other software for further processing.  It can for example listen
 to radio traffic using dedicated wmbus dongles (eg im871a,im170a,amb8465,
 amb8335,cul,rc1180) or a software defined radio dongle (rtl_sdr) with an
@@ -150,6 +150,15 @@ and the other set to beta. Alfa has an antenna tuned for 433M, beta has an anten
 \fBMAIN=/dev/ttyUSB0:mbus:2400\fR expect an serial to mbus master converter on ttyUSB0.
 
 .TP
+\fBstdin:rawtty\fR read binary telegrams (without dll crc:s) from stdin.
+
+.TP
+\fBfilename:rawtty\fR read binary telegrams from the file.
+
+.TP
+\fBstdin:hex\fR decode any hex found on stdin, non-hex characters are ignored.
+
+.TP
 \fBstdin:rtlwmbus\fR read rtlwmbus formatted data from stdin.
 
 .TP
@@ -159,10 +168,7 @@ and the other set to beta. Alfa has an antenna tuned for 433M, beta has an anten
 \fBsimulation_xxx.txt\fR read telegrams from file to replay telegram feed (use --logtelegrams to acquire feed for replay)
 
 .TP
-\fB2e441122334455667788\fR decode the given hex string the hex string must have only hex digits.
-
-.TP
-\fBstdin:hex\fR decode any hex found on stdin, non-hex characters are ignored.
+\fB2e441122334455667788\fR decode the given hex string the hex string must have only hex digits or underscores.
 
 .SH METER QUADRUPLES
 .TP
