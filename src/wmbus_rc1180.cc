@@ -78,17 +78,9 @@ struct ConfigRC1180
 
     bool decode(vector<uchar> &bytes)
     {
-        if (bytes.size() < 257) return false;
+        if (bytes.size() != 257) return false;
 
-        // Check that the returned memory here contains all 0xff bytes.
-        // Maybe there are dongles out there where this is not true?
-        // Anyway this is what it looks like for my dongle, so lets
-        // use that info to detect the dongle.
-        for (int i=128; i<256; ++i)
-        {
-            if (bytes[i] != 0xff) return false;
-        }
-        // And the last byte should be 0x3e.
+        // The last byte should be 0x3e.
         if (bytes[256] != 0x3e) return false;
         radio_channel = bytes[0];
         radio_power = bytes[1];
