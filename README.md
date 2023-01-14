@@ -234,10 +234,29 @@ You can add unit conversions and calculate values using
 up, then the formula will generate a null value. When two units are compatible
 it will automatically convert the value between two units.
 
+The formula
+```ini
+calculate_sum_mj='5 kwh + 8 gj + (7 kw * 3 h)'
+```
+
+will add the field:
+
+```json
+"sum_mj":8093.6
+```
+
 Units inside the formula calculation are tracked as arbitrary SI unit
 exponents (ie Volt is `1kgm²s⁻³a⁻¹`) however the final result must be
 a named unit (ie the calculated field must end with `_v`). The
 existing named units can be found with `wmbusmeters --listunits`.
+
+If you make a mistake in the formula you will get a warning:
+```
+Warning! Ignoring calculated field sum because parse failed:
+Cannot add [kw|Power|1000kgm²s⁻³] to [gj|Energy|1×10⁹kgm²s⁻²]!
+5 kw + 8 gj + (7 kw * 3 h)
+     ^~~~~
+```
 
 You need parentheses in the formulas since operator precedence is not yet implemented.
 
