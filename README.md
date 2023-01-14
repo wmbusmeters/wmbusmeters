@@ -231,10 +231,15 @@ If you add `field_floor=5` to the meter file `MyTapWater`, then you can have the
 
 You can add unit conversions and calculate values using
 `calculate_...`.  The formulas track units. If the unit do not match
-up, then the formula will generate a null value.  You need parentheses
-in the formulas since operator precedence is not yet implemented.
+up, then the formula will generate a null value. When two units are compatible
+it will automatically convert the value between two units.
 
-You can
+Units inside the formula calculation are tracked as arbitrary SI unit
+exponents (ie Volt is `1kgm²s⁻³a⁻¹`) however the final result must be
+a named unit (ie the calculated field must end with `_v`). The
+existing named units can be found with `wmbusmeters --listunits`.
+
+You need parentheses in the formulas since operator precedence is not yet implemented.
 
 ```ini
 calculate_total_l=total_m3
@@ -245,6 +250,7 @@ calculate_total_mj=total_energy_consumption_kwh
 ```
 wmbusmeters --format=json --ppjson
 --field_collector=cm57829
+--calculate_total_l=total_volume_m3
 --calculate_approx_power_m3ch='(t1_temperature_c-t2_temperature_c)*volume_flow_m3h'
 --calculate_total_mj=total_energy_consumption_kwh
 5e442d2c1155775540047a7d0050252f2f0406c50e000004147B86000004ff074254000004ff086047000002594117025d9a14023Bed0302ff220000026cca2c4406750B00004414ad680000426cc12c2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f
@@ -271,6 +277,7 @@ which will output:
     "target_energy_kwh":2933,
     "target_volume_m3":267.97,
     "target_date":"2022-12-01",
+    "total_l":344270,
     "approx_power_m3ch":6.82395,
     "total_mj":13611.6,
     "timestamp":"2023-01-14T07:20:22Z",
