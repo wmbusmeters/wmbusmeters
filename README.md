@@ -1,10 +1,10 @@
 
 # wmbusmeters
 
-The program receives and decodes C1,T1 or S1 telegrams
-(using the wireless mbus protocol or the wired mbus protocol) to acquire
-utility meter readings. The readings can then be published using
-MQTT, curled to a REST api, inserted into a database or stored in a log file.
+The program acquires utility meter readings from wired m-bus or
+wireless wm-bus meters.  The readings can then be published using
+MQTT, curled to a REST api, inserted into a database or stored in a
+log file.
 
 [FAQ/WIKI/MANUAL pages](https://weetmuts.github.io/wmbusmeterswiki/)
 
@@ -584,11 +584,7 @@ BFW 240 (bfw240radio)
 Supported heat meters:
 Heat meter Techem Compact V / Compact Ve (compact5) (non-standard protocol)
 Heat meter Techem Vario 4 (vario451) (non-standard protocol)
-Heat meter Kamstrup Multical 302 (multical302) (in C1 mode, please open issue for T1 mode)
-Heat and Cooling meter Kamstrup Multical 403 (multical403) (in C1 mode)
-Heat and Cooling meter Kamstrup Multical 602 (multical602) (in C1 mode)
-Heat and Cooling meter Kamstrup Multical 603 (multical603) (in C1 mode)
-Heat and Cooling meter Kamstrup Multical 803 (multical803) (in C1 mode)
+Heat and Cooling meters Kamstrup Multical 302,403,602,603,803 (kamheat)
 Heat meter Apator Elf (elf)
 Heat meter Enercal F2 (enercal)
 Heat meter Diehl Sharky 775 (sharky)
@@ -704,7 +700,7 @@ wmbusmeters --format=json /dev/ttyUSB0:im871a MyTapWater multical21:c1 12345678 
 ```
 
 ```json
-{"media":"heat","meter":"multical302","name":"MyHeater","id":"22222222","total_kwh":0.000,"total_volume_m3":0.000,"current_kw":"0.000","timestamp":"2018-02-08T09:07:22Z"}
+{"media":"heat","meter":"kamheat","name":"MyHeater","id":"22222222","total_kwh":0.000,"total_volume_m3":0.000,"current_kw":"0.000","timestamp":"2018-02-08T09:07:22Z"}
 ```
 
 Example format fields output and use tuned rtlsdr dongle with rtlwmbus.
