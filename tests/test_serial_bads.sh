@@ -16,7 +16,7 @@ cat > $TEST/test_expected.txt <<EOF
 EOF
 
 xxd -r -p simulations/serial_rawtty_ok.hex | \
-    $PROG --silent --format=json --listento=any stdin \
+    $PROG --silent --format=json --listento=any stdin:rawtty \
           Rummet1 lansenth 00010203 "" \
           Rummet2 rfmamb 11772288 "" \
     | grep Rummet > $TEST/test_output.txt
@@ -43,7 +43,7 @@ cat > $TEST/test_expected.txt <<EOF
 {"media":"room sensor","meter":"rfmamb","name":"Rummet2","id":"11772288","status":"PERMANENT_ERROR","current_temperature_c":22.08,"average_temperature_1h_c":21.91,"average_temperature_24h_c":22.07,"maximum_temperature_1h_c":22.08,"maximum_temperature_24h_c":23.47,"minimum_temperature_1h_c":21.85,"minimum_temperature_24h_c":21.29,"current_relative_humidity_rh":44.2,"average_relative_humidity_1h_rh":43.2,"average_relative_humidity_24h_rh":44.5,"maximum_relative_humidity_1h_rh":44.2,"maximum_relative_humidity_24h_rh":50.1,"minimum_relative_humidity_1h_rh":42.5,"minimum_relative_humidity_24h_rh":42.2,"device_datetime":"2019-10-11 19:59","timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
-xxd -r -p simulations/serial_rawtty_bad.hex | $PROG --silent --format=json --listento=any stdin Rummet1 lansenth 00010203 "" Rummet2 rfmamb 11772288 "" | grep Rummet > $TEST/test_output.txt
+xxd -r -p simulations/serial_rawtty_bad.hex | $PROG --silent --format=json --listento=any stdin:rawtty Rummet1 lansenth 00010203 "" Rummet2 rfmamb 11772288 "" | grep Rummet > $TEST/test_output.txt
 
 if [ "$?" = "0" ]
 then

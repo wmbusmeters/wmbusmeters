@@ -215,6 +215,10 @@ all meters with a given prefix. If you supply at least one positive match rule, 
 can add negative match rules as well. For example `id=*,!2222*`
 which will match all meter ids, except those that begin with 2222.
 
+When matching all meters from the command line you can use `ANYID` instead of `*` to avoid shell quotes.
+
+# Add static and calculated fields to the output
+
 You can add the static json data `"address":"RoadenRd 456","city":"Stockholm"` to every json message with the
 wmbusmeters.conf setting:
 
@@ -225,8 +229,87 @@ field_city=Stockholm
 
 If you add `field_floor=5` to the meter file `MyTapWater`, then you can have the meter tailored static json `"floor":"5"` added to telegrams handled by that particular meter. (The old prefix json_ still works.)
 
-If you are running on a Raspberry PI with flash storage and you relay the data to
-another computer using a shell command (`mosquitto_pub` or `curl` or similar) then you might want to remove `meterfiles` and `meterfilesaction` to minimize the writes to the local flash file system.
+You can add unit conversions and calculate values using
+`calculate_...`.  The formulas track units. If the unit do not match
+up, then the formula will generate a null value.  You need parentheses
+in the formulas since operator precedence is not yet implemented.
+
+You can
+
+```ini
+calculate_total_l=total_m3
+calculate_approx_power_m3ch=(t1_temperature_c-t2_temperature_c)*volume_flow_m3h
+calculate_total_mj=total_energy_consumption_kwh
+```
+
+```
+wmbusmeters --format=json --ppjson
+--field_collector=cm57829
+--calculate_approx_power_m3ch='(t1_temperature_c-t2_temperature_c)*volume_flow_m3h'
+--calculate_total_mj=total_energy_consumption_kwh
+5e442d2c1155775540047a7d0050252f2f0406c50e000004147B86000004ff074254000004ff086047000002594117025d9a14023Bed0302ff220000026cca2c4406750B00004414ad680000426cc12c2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f
+Heato kamheat 55775511 NOKEY
+```
+
+which will output:
+
+```json
+{
+    "media":"heat",
+    "meter":"kamheat",
+    "name":"Heato",
+    "id":"55775511",
+    "status":"OK",
+    "total_energy_consumption_kwh":3781,
+    "total_volume_m3":344.27,
+    "volume_flow_m3h":1.005,
+    "t1_temperature_c":59.53,
+    "t2_temperature_c":52.74,
+    "forward_energy_m3c":21570,
+    "return_energy_m3c":18272,
+    "meter_date":"2022-12-10",
+    "target_energy_kwh":2933,
+    "target_volume_m3":267.97,
+    "target_date":"2022-12-01",
+    "approx_power_m3ch":6.82395,
+    "total_mj":13611.6,
+    "timestamp":"2023-01-14T07:20:22Z",
+    "collector":"cm57829"
+}
+```
+
+If you have connected your Lansen pulse counting meter to an
+electricity meter triggering a pulse per 0.1 kwh, then you can
+directly calculate a value based on the counters:
+
+```
+wmbusmeters --format=json --ppjson
+--calculate_total_kwh='1000 kwh + (a_counter * 0.1 kwh)'
+234433300602010014007a8e0400002f2f0efd3a1147000000008e40fd3a341200000000
+Electricity lansenpu 00010206 NOKEY
+```
+
+```json
+{
+    "media":"other",
+    "meter":"lansenpu",
+    "name":"Electricity",
+    "id":"00010206",
+    "status":"POWER_LOW",
+    "a_counter":4711,
+    "b_counter":1234,
+    "total_kwh":1471.1,
+    "timestamp":"2023-01-14T07:25:34Z"
+}
+```
+
+# Miscellaneous
+
+If you are running on a Raspberry PI with flash storage and you relay
+the data to another computer using a shell command (`mosquitto_pub` or
+`curl` or similar) then you might want to remove `meterfiles` and
+`meterfilesaction` to minimize the writes to the local flash file
+system.
 
 Also when using the Raspberry PI it can get confused by the serial ports, in particular the bluetooth port might come and
 go as a serial tty depending on the config. Therefore it can be advantageous to use the auto device to find the proper tty
@@ -393,10 +476,10 @@ This will listen to exactly to what is on this frequency.
 
 `rtl433:433M`, to tune to this fq instead.
 
-`stdin`, to read raw binary telegrams from stdin.
+`stdin:rawtty`, to read raw binary telegrams from stdin.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
-`telegrams.bin`, to read raw wmbus telegrams from this file.
+`telegrams.bin:rawtty`, to read raw wmbus telegrams from this file.
 These telegrams are expected to have the data link layer crc bytes removed already!
 
 `stdin:hex`, to read hex characters wmbus telegrams from stdin.
