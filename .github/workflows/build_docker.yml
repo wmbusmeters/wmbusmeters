@@ -40,7 +40,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: docker/
-          platforms: linux/amd64,linux/arm64,linux/armv7
+          platforms: linux/amd64,linux/arm64,linux/armhf
           push: true
           tags: weetmuts/wmbusmeters:latest
       -
@@ -49,7 +49,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: docker/
-          platforms: linux/amd64,linux/arm64,linux/armv7
+          platforms: linux/amd64,linux/arm64,linux/armhf
           push: true
           tags: weetmuts/wmbusmeters:candidate-${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
       -
@@ -58,6 +58,6 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: docker/
-          platforms: linux/amd64,linux/arm64,linux/armv7
+          platforms: linux/amd64,linux/arm64,linux/armhf
           push: true
           tags: weetmuts/wmbusmeters:release-${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
