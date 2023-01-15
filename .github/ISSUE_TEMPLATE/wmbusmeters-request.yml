@@ -1,0 +1,39 @@
+name: Ticket concerning wmbusmeters
+description: This is the ticket to create for anything related to wmbusmeters itself
+labels: ["wmbusmeters"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to fill out this request!
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Type of request
+      description: Pick the type of request
+      options:
+        - Enhancement
+        - Question
+        - Bug
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      description: Specify OS version that you are running
+    validations:
+      required: true
+  - type: input
+    id: wmbusmeters-version
+    attributes:
+      label: wmbusmeters version
+      description: Specify wmbusmeters version that you are running
+    validations:
+      required: true
+  - type: textarea
+    id: descriptiom
+    attributes:
+      label: Your message goes here
+      description: Please provide as detailed description as possible. In case of bug - add logs with relevant information as attachment. 
+    validations:
+      required: true
