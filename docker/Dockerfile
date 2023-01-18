@@ -1,4 +1,4 @@
-FROM multiarch/alpine:${TARGETARCH}-latest-stable AS build
+FROM multiarch/alpine:${TARGETARCH}${TARGETVARIANT}-latest-stable AS build
 RUN apk add --no-cache alpine-sdk gcc linux-headers ncurses-dev librtlsdr-dev cmake libusb-dev bash
 RUN git clone https://github.com/weetmuts/wmbusmeters.git && \
     git clone https://github.com/weetmuts/rtl-wmbus.git && \
@@ -10,7 +10,7 @@ RUN make release && chmod 755 build/rtl_wmbus
 WORKDIR /rtl_433
 RUN mkdir build && cd build && cmake ../ && make
 
-FROM multiarch/alpine:${TARGETARCH}-latest-stable as scratch
+FROM multiarch/alpine:${TARGETARCH}${TARGETVARIANT}-latest-stable as scratch
 ENV QEMU_EXECVE=1
 RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb ncurses rtl-sdr netcat-openbsd
 WORKDIR /wmbusmeters
