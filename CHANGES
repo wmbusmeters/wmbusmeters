@@ -1,4 +1,6 @@
 
+Added the watertech meter.
+
 George Hopkins improved the fhkvdataiii driver to infer the current year and
 the rtlwmbus driver to propagate the timestamp from rtlwmbus input into the final
 json timestamp. Thanks George!

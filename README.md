@@ -569,6 +569,7 @@ Sontex Supercom 587 (supercom587)
 Sensus iPERL (iperl)
 Techem MK Radio 3 and 4 (mkradio3,mkradio4) (non-standard protocols)
 Waterstar M (waterstarm)
+Watertech (watertech)
 Zenner Minomess (minomess)
 
 Supported heat cost allocators:
