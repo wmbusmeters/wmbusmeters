@@ -1,0 +1,34 @@
+name: Ticket concerning device support
+description: This is the ticket to create for anything related to meter drivers
+labels: ["device support"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to fill out this request!
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Type of request
+      description: Pick the type of request
+      options:
+        - New device support
+        - Existing device improvement
+    validations:
+      required: true
+  - type: textarea
+    id: descriptiom
+    attributes:
+      label: Meter description
+      description: Please describe in details meter - manuafacturer, model name, link to descripton, etc. If available also add as much details about wmbus message format and fields. 
+      placeholder: Detailed meter description
+    validations:
+      required: true
+  - type: textarea
+    id: telegrams
+    attributes:
+      label: Logged telegrams from meter in decrypted format
+      description: In order to log telegrams, set `logtelegrams=true` in configuration and gather at least 10 telegrams from meter. Check that telegrams are not encrypted, it can be verified in logs or by pasting them [here](https://wmbusmeters.org/). If telegram is encrypted you need to get encryption key, decrypt messages and them post them as we can not do anything with encrypted ones.
+      placeholder: Logged telegrams
+      render: shell
+    validations:
+      required: true

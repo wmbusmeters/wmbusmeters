@@ -1,0 +1,39 @@
+name: Ticket concerning Home Assistant addon
+description: This is the ticket to create for anything related to ha-addon
+labels: ["ha-addon"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to fill out this request!
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Type of request
+      description: Pick the type of request
+      options:
+        - Enhancement
+        - Question
+        - Bug
+    validations:
+      required: true
+  - type: input
+    id: haos-version
+    attributes:
+      label: HAOS version
+      description: Specify Home Assistant Operating System that you are running
+    validations:
+      required: true
+  - type: input
+    id: wmbusmeters-version
+    attributes:
+      label: wmbusmeters version
+      description: Specify wmbusmeters version that you are running as addon
+    validations:
+      required: true
+  - type: textarea
+    id: descriptiom
+    attributes:
+      label: Your message goes here
+      description: Provide as detailed description as possible. In case of bug - add logs with relevant information as attachment. 
+    validations:
+      required: true
