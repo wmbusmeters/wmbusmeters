@@ -32,6 +32,8 @@ namespace
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::C1);
         di.addDetection(MANUFACTURER_ZRI, 0x07,  0x00);
+        di.addDetection(MANUFACTURER_ZRI, 0x16,  0x01);
+        di.addDetection(MANUFACTURER_ZRI, 0x06,  0x01);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
@@ -212,3 +214,13 @@ namespace
 // telegram=|6874746808007257575757496A000712000000_0C7857575757046D2414DE280413000000000C943C000000004413FFFFFFFF426CFFFF840113FFFFFFFF82016CFFFFC40113FFFFFFFFC2016CFFFF840213FFFFFFFF82026CFFFF043B000000000422E62F000004260000000034220000000002FD1700001F5716|
 // {"media":"water","meter":"minomess","name":"Minowired","id":"57575757","fabrication_no":"57575757","operating_time_h":0,"on_time_h":12262,"on_time_at_error_h":0,"meter_datetime":"2022-08-30 20:36","total_m3":0,"total_backward_m3":0,"volume_flow_m3h":0,"target_m3":4294967.295,"target_date":"2127-15-31","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 // |Minowired;57575757;0;4294967.295;OK;1111-11-11 11:11.11
+
+// Test: Zenner_cold minomess 21314151 NOKEY
+// telegram=|6644496A8753155518377251413121496A0106330050052F2F_0C1357000000026CEC2182046CE1218C0413000000808D0493132C33FE00008000008000008000008000008000008000008000008000008000008000008000008000008000008002FD1700002F2F|
+// {"media":"warm water","meter":"minomess","name":"Zenner_cold","id":"21314151","meter_date":"2023-01-12","total_m3":0.057,"target_m3":80000,"target_date":"2023-01-01","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+// |Zenner_cold;21314151;0.057;80000;OK;1111-11-11 11:11.11
+
+// Test: Zenner_warm minomess 51413121 NOKEY
+// telegram=|6644496A8753155518377221314151496A0106300050052F2F_0C1357000000026CEC2182046CE1218C0413000000808D0493132C33FE00008000008000008000008000008000008000008000008000008000008000008000008000008000008002FD1700002F2F|
+// {"media":"warm water","meter":"minomess","name":"Zenner_warm","id":"51413121","meter_date":"2023-01-12","total_m3":0.057,"target_m3":80000,"target_date":"2023-01-01","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+// |Zenner_warm;51413121;0.057;80000;OK;1111-11-11 11:11.11
