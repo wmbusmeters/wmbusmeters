@@ -109,6 +109,28 @@
         }
     },
 	
+	"power_kw": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Diehl",
+                "model": "SHARKY 774",
+                "name": "{name}",
+                "sw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "state_class": "measurement",
+            "device_class": "power",
+            "name": "{name} current power consumption",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "kW",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:waves-arrow-right"
+        }
+    },
+	
 	"timestamp": {
 		"component": "sensor",
 		"discovery_payload": {
