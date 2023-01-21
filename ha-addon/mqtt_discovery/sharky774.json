@@ -4,7 +4,7 @@
         "discovery_payload": {
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
-                "manufacturer": "SHARKY774",
+                "manufacturer": "Diehl",
                 "model": "{driver}",
                 "name": "{name}",
                 "sw_version": "{id}"
@@ -27,7 +27,7 @@
         "discovery_payload": {
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
-                "manufacturer": "SHARKY774",
+                "manufacturer": "Diehl",
                 "model": "{driver}",
                 "name": "{name}",
                 "sw_version": "{id}"
@@ -49,7 +49,7 @@
         "discovery_payload": {
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
-                "manufacturer": "SHARKY774",
+                "manufacturer": "Diehl",
                 "model": "{driver}",
                 "name": "{name}",
                 "sw_version": "{id}"
@@ -70,7 +70,7 @@
         "discovery_payload": {
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
-                "manufacturer": "SHARKY774",
+                "manufacturer": "Diehl",
                 "model": "{driver}",
                 "name": "{name}",
                 "sw_version": "{id}"
@@ -92,7 +92,7 @@
         "discovery_payload": {
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
-                "manufacturer": "SHARKY774",
+                "manufacturer": "Diehl",
                 "model": "{driver}",
                 "name": "{name}",
                 "sw_version": "{id}"
@@ -114,7 +114,7 @@
 		"discovery_payload": {
 			"device": {
 				"identifiers": ["wmbusmeters_{id}"],
-				"manufacturer": "SHARKY774",
+				"manufacturer": "Diehl",
 				"model": "{driver}",
 				"name": "{name}",
 				"sw_version": "{id}"
@@ -134,7 +134,7 @@
         "discovery_payload": {
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
-                "manufacturer": "SHARKY774",
+                "manufacturer": "Diehl",
                 "model": "{driver}",
                 "name": "{name}",
                 "sw_version": "{id}"
