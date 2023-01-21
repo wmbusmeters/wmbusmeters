@@ -21,7 +21,7 @@ fi
 # The key is the supplied password as raw bytes padded with zero bytes.
 # The key is also used as the iv.
 key=$(echo -n "$password" | xxd -p)
-key=$(printf "%-32s" 4f5638333030 | tr ' ' '0')
+key=$(printf "%-32s" "$key" | tr ' ' '0')
 
 xml=$(cat "$file")
 
