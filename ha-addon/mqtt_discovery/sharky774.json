@@ -5,7 +5,7 @@
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
                 "manufacturer": "Diehl",
-                "model": "{driver}",
+                "model": "SHARKY 774",
                 "name": "{name}",
                 "sw_version": "{id}"
             },
@@ -28,7 +28,7 @@
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
                 "manufacturer": "Diehl",
-                "model": "{driver}",
+                "model": "SHARKY 774",
                 "name": "{name}",
                 "sw_version": "{id}"
             },
@@ -50,7 +50,7 @@
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
                 "manufacturer": "Diehl",
-                "model": "{driver}",
+                "model": "SHARKY 774",
                 "name": "{name}",
                 "sw_version": "{id}"
             },
@@ -71,7 +71,7 @@
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
                 "manufacturer": "Diehl",
-                "model": "{driver}",
+                "model": "SHARKY 774",
                 "name": "{name}",
                 "sw_version": "{id}"
             },
@@ -93,7 +93,7 @@
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
                 "manufacturer": "Diehl",
-                "model": "{driver}",
+                "model": "SHARKY 774",
                 "name": "{name}",
                 "sw_version": "{id}"
             },
@@ -115,7 +115,7 @@
 			"device": {
 				"identifiers": ["wmbusmeters_{id}"],
 				"manufacturer": "Diehl",
-				"model": "{driver}",
+				"model": "SHARKY 774",
 				"name": "{name}",
 				"sw_version": "{id}"
 			},
@@ -135,7 +135,7 @@
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
                 "manufacturer": "Diehl",
-                "model": "{driver}",
+                "model": "SHARKY 774",
                 "name": "{name}",
                 "sw_version": "{id}"
             },
