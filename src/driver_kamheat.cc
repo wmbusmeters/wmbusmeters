@@ -42,6 +42,7 @@ namespace
         di.addDetection(MANUFACTURER_KAM, 0x0d,  0x30); // 302
         di.addDetection(MANUFACTURER_KAM, 0x0c,  0x30); // 302
         di.addDetection(MANUFACTURER_KAM, 0x04,  0x40); // 303
+        di.addDetection(MANUFACTURER_KAM, 0x0c,  0x40); // 303
         di.addDetection(MANUFACTURER_KAM, 0x0a,  0x34); // 403
         di.addDetection(MANUFACTURER_KAM, 0x0b,  0x34); // 403
         di.addDetection(MANUFACTURER_KAM, 0x0c,  0x34); // 403
@@ -317,3 +318,8 @@ namespace
 // telegram=|88442D2C8180808039048D208640513220EA7978_040FA000000004FF070200000004FF08090000000414FF000000844014000000008480401400000000043B0000000002590000025D0000142D0000000084100F0000000084200F0000000004FF2260000100026C892B440F00000000441400000000C4401400000000C480401400000000426C812B|
 // {"forward_energy_m3c": 2,"id": "80808081","max_power_kw": 0,"media": "heat","meter": "kamheat","meter_date": "2020-11-09","name": "Heater","return_energy_m3c": 9,"status": "SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR","t1_temperature_c": 0,"t2_temperature_c": 0,"target_date": "2020-11-01","target_energy_kwh": 0,"target_volume_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 444.444444,"total_volume_m3": 2.55,"volume_flow_m3h": 0}
 // |Heater;80808081;444.444444;2.55;SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR;1111-11-11 11:11.11
+
+// Test: Kamstrup_303 kamheat 78787878 NOKEY
+// telegram=|5E442D2C78787878400C7A6E0050252F2F_04056C2B000004138A0B070004FF07C657020004FF08FD36020002594B09025DFA08023B000002FF220000026CF42144052F000000441302AD0000426CE1212F2F2F2F2F2F2F2F2F2F2F2F2F2F2F|
+// {"media":"heat volume at inlet","meter":"kamheat","name":"Kamstrup_303","id":"78787878","status":"OK","total_energy_consumption_kwh":1111.6,"total_volume_m3":461.706,"volume_flow_m3h":0,"t1_temperature_c":23.79,"t2_temperature_c":22.98,"forward_energy_m3c":153542,"return_energy_m3c":145149,"meter_date":"2023-01-20","target_energy_kwh":4.7,"target_volume_m3":44.29,"target_date":"2023-01-01","timestamp":"1111-11-11T11:11:11Z"}
+// |Kamstrup_303;78787878;1111.6;461.706;OK;1111-11-11 11:11.11
