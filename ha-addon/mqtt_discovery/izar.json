@@ -113,8 +113,8 @@
       "discovery_payload": {
           "device": {
               "identifiers": ["wmbusmeters_{id}"],
-              "manufacturer": "Water meter IZAR RC 868 I R4 PL",
-              "model": "{driver}",
+              "manufacturer": "Diehl",
+              "model": "Water meter IZAR RC 868 I R4 PL",
               "name": "{name}",
               "sw_version": "{id}"
           },
@@ -132,8 +132,8 @@
     "discovery_payload": {
         "device": {
             "identifiers": ["wmbusmeters_{id}"],
-            "manufacturer": "Water meter IZAR RC 868 I R4 PL",
-            "model": "{driver}",
+            "manufacturer": "Diehl",
+            "model": "Water meter IZAR RC 868 I R4 PL",
             "name": "{name}",
             "sw_version": "{id}"
         },
