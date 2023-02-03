@@ -6,6 +6,11 @@ CONFIG_DATA_PATH=$(bashio::config 'data_path')
 CONFIG_CONF=$(bashio::jq "${CONFIG_PATH}" '.conf')
 CONFIG_METERS=$(bashio::jq "${CONFIG_PATH}" '.meters')
 
+bashio::log.info "CONFIG_CONF ..."
+bashio::log.info "${CONFIG_CONF}"
+bashio::log.info "CONFIG_METERS ..."
+bashio::log.info "${CONFIG_METERS}"
+
 bashio::log.info "Syncing wmbusmeters configuration ..."
 if ! bashio::fs.directory_exists "${CONFIG_DATA_PATH}/logs/meter_readings"; then
     mkdir -p "${CONFIG_DATA_PATH}/logs/meter_readings"
@@ -13,7 +18,8 @@ fi
 if ! bashio::fs.directory_exists "${CONFIG_DATA_PATH}/etc/wmbusmeters.d"; then
     mkdir -p "${CONFIG_DATA_PATH}/etc/wmbusmeters.d"
 fi
-echo -e "$CONFIG_CONF" > $CONFIG_DATA_PATH/etc/wmbusmeters.conf
+
+echo -e "$CONFIG_CONF" | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' > $CONFIG_DATA_PATH/etc/wmbusmeters.conf
 
 bashio::log.info "Registering meters ..."
 rm -f $CONFIG_DATA_PATH/etc/wmbusmeters.d/*
@@ -25,7 +31,7 @@ do
     METER_NAME=$(printf 'meter-%04d' "$(( meter_no ))")
     bashio::log.info "Adding $METER_NAME ..."
     METER_DATA=$(printf '%s\n' $meter | jq --raw-output -c -M '.') 
-    echo -e "$METER_DATA" > $CONFIG_DATA_PATH/etc/wmbusmeters.d/$METER_NAME
+    echo -e "$METER_DATA" | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' > $CONFIG_DATA_PATH/etc/wmbusmeters.d/$METER_NAME
 done
 
 bashio::log.info "Generating MQTT configuration ... "

@@ -24,22 +24,35 @@ Once the wmbusmeters is receiving the telegrams you need to configure your meter
 
 #### Option: `meters`
 
-Specify your meters using wmbusmeters meter file format. The `driver` and `id` values can be read from the add-on logs after the initial start (with empty `meters` configuration). The `name` is your label for the meter and `key` is the encryption key to decrypt telegrams (if your meter use any).
+Specify your meters using YAML format. The `driver` and `id` values can be read from the add-on logs after the initial start (with empty `meters` configuration). The `name` is your label for the meter and `key` is the encryption key to decrypt telegrams (if your meter use any).
 
 See [project README for more information][github]
 
 ```yaml
 meters:
-  - |-
-    name=MainWater
-    driver=apator162
-    id=01234567
-    key=00000000000000000000000000000000
+  - name: ElectricityMeter
+    driver: amiplus
+    id: "12345678" #Note "123" casts number as string
+    key: DEADBEEF1337DEADBEEF1337DEADBEEF
+  - name: WaterMeter
+    driver: apator162
+    id: "87654321" #Note "123" casts number as string
+    key: "00000000000000000000000000000000"  #Note "123" casts number as string
 ```
 
 #### Option: `conf`
 
-The wmbusmeters configuration file. It will be used as `wmbusmeters.conf`.
+The wmbusmeters configuration file casted as YAML. It will be used as `wmbusmeters.conf`.
+
+```yaml
+loglevel: normal
+device: auto:t1
+donotprobe: /dev/ttyAMA0
+logtelegrams: false
+format: json
+logfile: /dev/stdout
+shell: /wmbusmeters/mosquitto_pub.sh "wmbusmeters/$METER_NAME" "$METER_JSON"
+```
 
 See [project README for more information][github]
 

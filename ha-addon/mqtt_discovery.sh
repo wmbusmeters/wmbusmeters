@@ -39,9 +39,10 @@ if [ $CONFIG_MQTTDISCOVERY_ENABLED == "true" ]; then
         declare kv
         for line in $(printf '%s\n' $meter | jq --raw-output -c -M '.')
         do
-            readarray -d = -t kv <<< $line
-            #echo "${kv[0]}  =  ${kv[1]}"
-            aryKV[${kv[0]}]=${kv[1]%$'\n'}
+            aryKV["name"]=$(printf '%s\n' $meter | jq --raw-output -c -M '.name')
+            aryKV["id"]=$(printf '%s\n' $meter | jq --raw-output -c -M '.id')
+            aryKV["driver"]=$(printf '%s\n' $meter | jq --raw-output -c -M '.driver')
+
         done
         echo " Adding meter: ${aryKV['name']} ..."
 

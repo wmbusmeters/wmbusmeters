@@ -29,9 +29,16 @@
     "options": {
         "data_path": "/config/wmbusmeters",
         "enable_mqtt_discovery": false,
-        "conf":
-            "loglevel=normal\ndevice=auto:t1\ndonotprobe=/dev/ttyAMA0\nlogtelegrams=false\nformat=json\nlogfile=/dev/stdout\nshell=/wmbusmeters/mosquitto_pub.sh \"wmbusmeters/$METER_NAME\" \"$METER_JSON\"",
-        "meters": [],
+        "conf": {
+            "loglevel": "normal",
+            "device": "auto:t1",
+            "donotprobe": "/dev/ttyAMA0",
+            "logtelegrams": false,
+            "format": "json",
+            "logfile": "/dev/stdout",
+            "shell": "/wmbusmeters/mosquitto_pub.sh \"wmbusmeters/$METER_NAME\" \"$METER_JSON\""
+          },
+        "meters": {},
         "mqtt": {}
     },
     "schema": {
@@ -43,7 +50,20 @@
           "user": "str?",
           "password": "str?"
         },
-        "conf": "str",
-        "meters": [ "str" ]
+        "conf": {
+          "loglevel": "str",
+          "device": "str",
+          "donotprobe": "str",
+          "logtelegrams": "bool?",
+          "shell": "str"
+        },
+        "meters": [
+          {
+            "name": "str",
+            "driver": "str",
+            "id": "str",
+            "key": "str"
+          }
+        ]
     }
 }
