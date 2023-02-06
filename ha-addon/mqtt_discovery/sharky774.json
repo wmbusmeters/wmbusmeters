@@ -6,7 +6,9 @@
                 "identifiers": ["wmbusmeters_{id}"],
                 "manufacturer": "Diehl",
                 "model": "SHARKY 774",
-                "name": "{name}"
+                "name": "{name}",
+		"hw_version": "{id}"
+
             },
             "enabled_by_default": true,
             "json_attributes_topic": "wmbusmeters/{name}",
@@ -28,7 +30,8 @@
                 "identifiers": ["wmbusmeters_{id}"],
                 "manufacturer": "Diehl",
                 "model": "SHARKY 774",
-                "name": "{name}"
+                "name": "{name}",
+		"hw_version": "{id}"
             },
             "enabled_by_default": true,
             "state_class": "total",
@@ -49,7 +52,8 @@
                 "identifiers": ["wmbusmeters_{id}"],
                 "manufacturer": "Diehl",
                 "model": "SHARKY 774",
-                "name": "{name}"
+                "name": "{name}",
+		"hw_version": "{id}"
             },
             "enabled_by_default": true,
             "state_class": "measurement",
@@ -69,7 +73,8 @@
                 "identifiers": ["wmbusmeters_{id}"],
                 "manufacturer": "Diehl",
                 "model": "SHARKY 774",
-                "name": "{name}"
+                "name": "{name}",
+		"hw_version": "{id}"
             },
             "enabled_by_default": true,
             "state_class": "measurement",
@@ -90,7 +95,8 @@
                 "identifiers": ["wmbusmeters_{id}"],
                 "manufacturer": "Diehl",
                 "model": "SHARKY 774",
-                "name": "{name}"
+                "name": "{name}",
+		"hw_version": "{id}"
             },
             "enabled_by_default": true,
             "state_class": "measurement",
@@ -111,7 +117,8 @@
                 "identifiers": ["wmbusmeters_{id}"],
                 "manufacturer": "Diehl",
                 "model": "SHARKY 774",
-                "name": "{name}"
+                "name": "{name}",
+		"hw_version": "{id}"
             },
             "enabled_by_default": true,
             "state_class": "measurement",
@@ -132,7 +139,8 @@
 				"identifiers": ["wmbusmeters_{id}"],
 				"manufacturer": "Diehl",
 				"model": "SHARKY 774",
-				"name": "{name}"
+				"name": "{name}",
+				"hw_version": "{id}"
 			},
 			"entity_category": "diagnostic",
 			"name": "{name} timestamp",
@@ -151,7 +159,8 @@
                 "identifiers": ["wmbusmeters_{id}"],
                 "manufacturer": "Diehl",
                 "model": "SHARKY 774",
-                "name": "{name}"
+                "name": "{name}",
+		"hw_version": "{id}"
             },
             "enabled_by_default": false,
             "entity_category": "diagnostic",
