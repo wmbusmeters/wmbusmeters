@@ -33,7 +33,7 @@
            "manufacturer":"APATOR",
            "model":"Electricity meter Apator EMU family (driver: {driver})",
            "name":"{name}",
-           "sw_version":"{id}"
+           "hw_version":"{id}"
         },
         "name":"{name} total energy production",
         "unique_id":"wmbusmeters_{id}_{attribute}",
