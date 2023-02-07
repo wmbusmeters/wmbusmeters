@@ -218,7 +218,7 @@
            "manufacturer":"APATOR",
            "model":"Water meter AT-WMBUS-16-2 (driver: {driver})",
            "name":"{name}",
-           "sw_version":"{id}"
+           "hw_version":"{id}"
         },
         "entity_category":"diagnostic",
         "name":"{name} rssi",
