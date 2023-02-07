@@ -174,7 +174,7 @@
            "manufacturer":"APATOR",
            "model":"Electricity meter Apator EMU family (driver: {driver})",
            "name":"{name}",
-           "sw_version":"{id}"
+           "hw_version":"{id}"
         },
         "entity_category":"diagnostic",
         "name":"{name} timestamp",
