@@ -37,7 +37,7 @@ jobs:
       -
         name: Build and push not tagged release
         if: ${{ !steps.meta.outputs.tags }}
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: docker/
           platforms: linux/amd64,linux/arm64,linux/armhf
@@ -46,7 +46,7 @@ jobs:
       -
         name: Build and push candidate
         if: ${{ steps.meta.outputs.tags && contains(steps.meta.outputs.tags, '-RC') }}
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: docker/
           platforms: linux/amd64,linux/arm64,linux/armhf
@@ -55,7 +55,7 @@ jobs:
       -
         name: Build and push tagged release
         if: ${{ steps.meta.outputs.tags && !contains(steps.meta.outputs.tags, '-RC') }}
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           context: docker/
           platforms: linux/amd64,linux/arm64,linux/armhf
