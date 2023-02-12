@@ -37,6 +37,7 @@ namespace
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_DME, 0x04,  0x41);
         di.addDetection(MANUFACTURER_DME, 0x0d,  0x41);
+        di.addDetection(MANUFACTURER_DME, 0x0c,  0x41);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
@@ -199,6 +200,11 @@ namespace
 // telegram=3E44A5110564495841047A700030052F2F_0C06846800000C13195364000B3B0400000C2B110100000A5A17050A5E76020AA61800004C0647630000426CBF25
 // {"media":"heat","meter":"sharky774","name":"Heato","id":"58496405","total_energy_consumption_kwh":6884,"total_volume_m3":645.319,"volume_flow_m3h":0.004,"power_kw":0.111,"flow_temperature_c":51.7,"return_temperature_c":27.6,"operating_time_in_error_h":0,"energy_at_set_date_kwh":6347,"set_date":"2021-05-31","timestamp":"1111-11-11T11:11:11Z"}
 // |Heato;58496405;6884;6347;2021-05-31;1111-11-11 11:11.11
+
+// Test: diehl_meter sharky774 52173898 NOKEY
+// telegram=|3E44A51198381752410C7AA80030052F2F_0C06105104000C13093835020B3B9401000C2B342600000A5A12060A5E91040AA61800004C0641460400426CFF21|+0
+// {"media":"heat volume at inlet","meter":"sharky774","name":"diehl_meter","id":"52173898","total_energy_consumption_kwh":45110,"total_volume_m3":2353.809,"volume_flow_m3h":0.194,"power_kw":2.634,"flow_temperature_c":61.2,"return_temperature_c":49.1,"operating_time_in_error_h":0,"energy_at_set_date_kwh":44641,"set_date":"2023-01-31","timestamp":"1111-11-11T11:11:11Z"}
+// |diehl_meter;52173898;45110;44641;2023-01-31;1111-11-11 11:11.11
 
 // This test telegram has more historical data!
 // Test: Heatoo sharky774 72615127 NOKEY

@@ -40,6 +40,7 @@ namespace
         di.addDetection(MANUFACTURER_QDS, 0x08,  0x34);
         di.addDetection(MANUFACTURER_QDS, 0x08,  0x36);
         di.addDetection(MANUFACTURER_LSE, 0x08,  0x18); // whe4
+        di.addDetection(MANUFACTURER_ZRI, 0x08,  0xfd);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
@@ -218,6 +219,11 @@ namespace
 // telegram=|49449344939291903408780DFF5F350082180000800007B06EFFFF970000009F2C70020000BE26970000000000010018002E001F002E0023FF210008000500020000002F046D220FA227|
 // {"media":"heat cost allocation","meter":"qcaloric","name":"MyElement2","id":"90919293","status":"OK","device_date_time":"2021-07-02 15:34","timestamp":"1111-11-11T11:11:11Z"}
 // |MyElement2;90919293;null;null;null;1111-11-11 11:11.11
+
+// Test: zenner_heat qcaloric 25932395 NOKEY
+// telegram=|5E44496A95239325FD087A2CC050052F2F_0B6E030100426CDF2C4B6EFFFFFF82046CE1228B046E6200008D04EE132C3BFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF2F2F2F2F|+0
+// {"media":"heat cost allocation","meter":"qcaloric","name":"zenner_heat","id":"25932395","status":"UNKNOWN_C0","current_consumption_hca":103,"set_date":"2022-12-31","consumption_at_set_date_hca":2444442,"set_date_1":"2022-12-31","consumption_at_set_date_1_hca":2444442,"set_date_8":"2023-02-01","consumption_at_set_date_8_hca":62,"timestamp":"1111-11-11T11:11:11Z"}
+// |zenner_heat;25932395;103;2022-12-31;2444442;1111-11-11 11:11.11
 
 // Comment: Normal telegram that fills in values.
 // telegram=|314493449392919034087a520000200b6e9700004b6e700200426c9f2ccb086e970000c2086cbe26326cffff046d2d16a227|
