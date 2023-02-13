@@ -4,10 +4,11 @@
         "discovery_payload": {
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
-                "manufacturer": "SHARKY774",
-                "model": "{driver}",
+                "manufacturer": "Diehl",
+                "model": "SHARKY 774",
                 "name": "{name}",
-                "sw_version": "{id}"
+		"hw_version": "{id}"
+
             },
             "enabled_by_default": true,
             "json_attributes_topic": "wmbusmeters/{name}",
@@ -27,10 +28,10 @@
         "discovery_payload": {
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
-                "manufacturer": "SHARKY774",
-                "model": "{driver}",
+                "manufacturer": "Diehl",
+                "model": "SHARKY 774",
                 "name": "{name}",
-                "sw_version": "{id}"
+		"hw_version": "{id}"
             },
             "enabled_by_default": true,
             "state_class": "total",
@@ -49,10 +50,10 @@
         "discovery_payload": {
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
-                "manufacturer": "SHARKY774",
-                "model": "{driver}",
+                "manufacturer": "Diehl",
+                "model": "SHARKY 774",
                 "name": "{name}",
-                "sw_version": "{id}"
+		"hw_version": "{id}"
             },
             "enabled_by_default": true,
             "state_class": "measurement",
@@ -70,10 +71,10 @@
         "discovery_payload": {
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
-                "manufacturer": "SHARKY774",
-                "model": "{driver}",
+                "manufacturer": "Diehl",
+                "model": "SHARKY 774",
                 "name": "{name}",
-                "sw_version": "{id}"
+		"hw_version": "{id}"
             },
             "enabled_by_default": true,
             "state_class": "measurement",
@@ -92,10 +93,10 @@
         "discovery_payload": {
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
-                "manufacturer": "SHARKY774",
-                "model": "{driver}",
+                "manufacturer": "Diehl",
+                "model": "SHARKY 774",
                 "name": "{name}",
-                "sw_version": "{id}"
+		"hw_version": "{id}"
             },
             "enabled_by_default": true,
             "state_class": "measurement",
@@ -109,15 +110,37 @@
         }
     },
 	
+	"power_kw": {
+        "component": "sensor",
+        "discovery_payload": {
+            "device": {
+                "identifiers": ["wmbusmeters_{id}"],
+                "manufacturer": "Diehl",
+                "model": "SHARKY 774",
+                "name": "{name}",
+		"hw_version": "{id}"
+            },
+            "enabled_by_default": true,
+            "state_class": "measurement",
+            "device_class": "power",
+            "name": "{name} current power consumption",
+            "state_topic": "wmbusmeters/{name}",
+            "unique_id": "wmbusmeters_{id}_{attribute}",
+            "unit_of_measurement": "kW",
+            "value_template": "{{ value_json.{attribute} }}",
+            "icon": "mdi:waves-arrow-right"
+        }
+    },
+	
 	"timestamp": {
 		"component": "sensor",
 		"discovery_payload": {
 			"device": {
 				"identifiers": ["wmbusmeters_{id}"],
-				"manufacturer": "SHARKY774",
-				"model": "{driver}",
+				"manufacturer": "Diehl",
+				"model": "SHARKY 774",
 				"name": "{name}",
-				"sw_version": "{id}"
+				"hw_version": "{id}"
 			},
 			"entity_category": "diagnostic",
 			"name": "{name} timestamp",
@@ -134,10 +157,10 @@
         "discovery_payload": {
             "device": {
                 "identifiers": ["wmbusmeters_{id}"],
-                "manufacturer": "SHARKY774",
-                "model": "{driver}",
+                "manufacturer": "Diehl",
+                "model": "SHARKY 774",
                 "name": "{name}",
-                "sw_version": "{id}"
+		"hw_version": "{id}"
             },
             "enabled_by_default": false,
             "entity_category": "diagnostic",
