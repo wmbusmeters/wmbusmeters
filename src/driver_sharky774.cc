@@ -202,7 +202,7 @@ namespace
 // |Heato;58496405;6884;6347;2021-05-31;1111-11-11 11:11.11
 
 // Test: diehl_meter sharky774 52173898 NOKEY
-// telegram=|3E44A51198381752410C7AA80030052F2F_0C06105104000C13093835020B3B9401000C2B342600000A5A12060A5E91040AA61800004C0641460400426CFF21|+0
+// telegram=|3E44A51198381752410C7AA80030052F2F_0C06105104000C13093835020B3B9401000C2B342600000A5A12060A5E91040AA61800004C0641460400426CFF21|
 // {"media":"heat volume at inlet","meter":"sharky774","name":"diehl_meter","id":"52173898","total_energy_consumption_kwh":45110,"total_volume_m3":2353.809,"volume_flow_m3h":0.194,"power_kw":2.634,"flow_temperature_c":61.2,"return_temperature_c":49.1,"operating_time_in_error_h":0,"energy_at_set_date_kwh":44641,"set_date":"2023-01-31","timestamp":"1111-11-11T11:11:11Z"}
 // |diehl_meter;52173898;45110;44641;2023-01-31;1111-11-11 11:11.11
 
