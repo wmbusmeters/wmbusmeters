@@ -7,7 +7,7 @@
         "manufacturer": "Diehl",
         "model": "Water meter IZAR RC 868 I R4 PL",
         "name": "{name}",
-        "sw_version": "{id}"
+        "hw_version": "{id}"
       },
       "name": "{name} total",
       "unique_id": "wmbusmeters_{id}_{attribute}",
@@ -30,7 +30,7 @@
         "manufacturer": "Diehl",
         "model": "Water meter IZAR RC 868 I R4 PL",
         "name": "{name}",
-        "sw_version": "{id}"
+        "hw_version": "{id}"
       },
       "name": "{name} last month total",
       "unique_id": "wmbusmeters_{id}_{attribute}",
@@ -53,7 +53,7 @@
         "manufacturer": "Diehl",
         "model": "Water meter IZAR RC 868 I R4 PL",
         "name": "{name}",
-        "sw_version": "{id}"
+        "hw_version": "{id}"
       },
       "entity_category": "diagnostic",
       "name": "{name} last month measure date",
@@ -73,7 +73,7 @@
         "manufacturer": "Diehl",
         "model": "Water meter IZAR RC 868 I R4 PL",
         "name": "{name}",
-        "sw_version": "{id}"
+        "hw_version": "{id}"
       },
       "entity_category": "diagnostic",
       "name": "{name} timestamp",
@@ -93,7 +93,7 @@
         "manufacturer": "Diehl",
         "model": "Water meter IZAR RC 868 I R4 PL",
         "name": "{name}",
-        "sw_version": "{id}"
+        "hw_version": "{id}"
       },
       "entity_category": "diagnostic",
       "name": "{name} rssi",
@@ -116,7 +116,7 @@
               "manufacturer": "Diehl",
               "model": "Water meter IZAR RC 868 I R4 PL",
               "name": "{name}",
-              "sw_version": "{id}"
+              "hw_version": "{id}"
           },
           "name": "{name} current alarm",
           "state_topic": "wmbusmeters/{name}",
@@ -135,7 +135,7 @@
             "manufacturer": "Diehl",
             "model": "Water meter IZAR RC 868 I R4 PL",
             "name": "{name}",
-            "sw_version": "{id}"
+            "hw_version": "{id}"
         },
         "name": "{name} previous alarm",
         "state_topic": "wmbusmeters/{name}",
