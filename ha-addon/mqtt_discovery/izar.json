@@ -1,0 +1,148 @@
+{
+  "total_m3": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["wmbusmeters_{id}"],
+        "manufacturer": "Diehl",
+        "model": "Water meter IZAR RC 868 I R4 PL",
+        "name": "{name}",
+        "hw_version": "{id}"
+      },
+      "name": "{name} total",
+      "unique_id": "wmbusmeters_{id}_{attribute}",
+      "state_topic": "wmbusmeters/{name}",
+      "value_template": "{{ value_json.{attribute} }}",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "icon": "mdi:gauge",
+      "unit_of_measurement": "m³",
+      "state_class": "total_increasing",
+      "device_class": "water",
+      "enabled_by_default": true
+    }
+  },
+
+  "last_month_total_m3": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["wmbusmeters_{id}"],
+        "manufacturer": "Diehl",
+        "model": "Water meter IZAR RC 868 I R4 PL",
+        "name": "{name}",
+        "hw_version": "{id}"
+      },
+      "name": "{name} last month total",
+      "unique_id": "wmbusmeters_{id}_{attribute}",
+      "state_topic": "wmbusmeters/{name}",
+      "value_template": "{{ value_json.{attribute} }}",
+      "json_attributes_topic": "wmbusmeters/{name}",
+      "icon": "mdi:gauge",
+      "unit_of_measurement": "m³",
+      "state_class": "total_increasing",
+      "device_class": "water",
+      "enabled_by_default": true
+    }
+  },
+
+  "last_month_measure_date": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["wmbusmeters_{id}"],
+        "manufacturer": "Diehl",
+        "model": "Water meter IZAR RC 868 I R4 PL",
+        "name": "{name}",
+        "hw_version": "{id}"
+      },
+      "entity_category": "diagnostic",
+      "name": "{name} last month measure date",
+      "unique_id": "wmbusmeters_{id}_{attribute}",
+      "state_topic": "wmbusmeters/{name}",
+      "value_template": "{{ value_json.{attribute} }}",
+      "icon": "mdi:calendar-clock",
+      "enabled_by_default": false
+    }
+  },
+
+  "timestamp": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["wmbusmeters_{id}"],
+        "manufacturer": "Diehl",
+        "model": "Water meter IZAR RC 868 I R4 PL",
+        "name": "{name}",
+        "hw_version": "{id}"
+      },
+      "entity_category": "diagnostic",
+      "name": "{name} timestamp",
+      "unique_id": "wmbusmeters_{id}_{attribute}",
+      "state_topic": "wmbusmeters/{name}",
+      "value_template": "{{ value_json.{attribute} }}",
+      "icon": "mdi:calendar-clock",
+      "enabled_by_default": false
+    }
+  },
+
+  "rssi_dbm": {
+    "component": "sensor",
+    "discovery_payload": {
+      "device": {
+        "identifiers": ["wmbusmeters_{id}"],
+        "manufacturer": "Diehl",
+        "model": "Water meter IZAR RC 868 I R4 PL",
+        "name": "{name}",
+        "hw_version": "{id}"
+      },
+      "entity_category": "diagnostic",
+      "name": "{name} rssi",
+      "unique_id": "wmbusmeters_{id}_{attribute}",
+      "state_topic": "wmbusmeters/{name}",
+      "value_template": "{{ value_json.{attribute} }}",
+      "icon": "mdi:signal",
+      "unit_of_measurement": "dbm",
+      "device_class": "signal_strength",
+      "state_class": "measurement",
+      "enabled_by_default": false
+    }
+  },
+
+  "current_alarms": {
+      "component": "sensor",
+      "discovery_payload": {
+          "device": {
+              "identifiers": ["wmbusmeters_{id}"],
+              "manufacturer": "Diehl",
+              "model": "Water meter IZAR RC 868 I R4 PL",
+              "name": "{name}",
+              "hw_version": "{id}"
+          },
+          "name": "{name} current alarm",
+          "state_topic": "wmbusmeters/{name}",
+          "unique_id": "wmbusmeters_{id}_{attribute}",
+          "value_template": "{{ value_json.{attribute} }}",
+          "icon": "mdi:alarm-light-outline",
+          "enabled_by_default": true
+      }
+  },
+
+  "previous_alarms": {
+    "component": "sensor",
+    "discovery_payload": {
+        "device": {
+            "identifiers": ["wmbusmeters_{id}"],
+            "manufacturer": "Diehl",
+            "model": "Water meter IZAR RC 868 I R4 PL",
+            "name": "{name}",
+            "hw_version": "{id}"
+        },
+        "name": "{name} previous alarm",
+        "state_topic": "wmbusmeters/{name}",
+        "unique_id": "wmbusmeters_{id}_{attribute}",
+        "value_template": "{{ value_json.{attribute} }}",
+        "icon": "mdi:alarm-light-outline",
+        "enabled_by_default": true
+    }
+  }
+}
