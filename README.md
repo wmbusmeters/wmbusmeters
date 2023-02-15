@@ -40,7 +40,7 @@ Read the wiki for more info on how to use the snap: https://weetmuts.github.io/w
 
 Building and installing from source is easy and recommended since the
 development progresses quickly.  First remove the wmbus dongle
-(im871a,amb8465,amb3665,cul,rc1180) or the generic rtlsdr dongle (RTL2832U)
+(im871a,amb8465(metis),amb3665,cul,rc1180) or the generic rtlsdr dongle (RTL2832U)
 from your computer. Then do:
 
 `./configure; make; sudo make install` will install wmbusmeters as a daemon.
@@ -48,7 +48,7 @@ from your computer. Then do:
 # Usage
 
 Check the contents of your `/etc/wmbusmeters.conf` file, assuming it
-has `device=auto:t1` and you are using a im871a,amb8465,amb3665,rc1180,cul or rtlsdr device,
+has `device=auto:t1` and you are using a im871a,amb8465(metis),amb3665,rc1180,cul or rtlsdr device,
 then you can now start the daemon with `sudo systemctl start wmbusmeters`
 or you can try it from the command line `wmbusmeters auto:t1`
 
@@ -96,7 +96,7 @@ you can add `donotprobe=/dev/ttyUSB0` or `donotprobe=all`.
 You can specify combinations like: `device=rc1180:t1` `device=auto:c1`
 to set the rc1180 dongle to t1 but any other auto-detected dongle to c1.
 
-Some dongles have identifiers (im871a,amb8465,amb3665 and rtlsdrs) (for example: rtlsdr can be set with `rtl_eeprom -s myname`)
+Some dongles have identifiers (im871a,amb8465(metis),amb3665 and rtlsdrs) (for example: rtlsdr can be set with `rtl_eeprom -s myname`)
 You might have two rtlsdr dongles, one attached to an antenna tuned to 433MHz and the other
 attached to an antenna tuned for 868.95MHz, then a more complicated setup could look like this:
 
@@ -451,7 +451,7 @@ As {options} you can use:
 
 As device you can use:
 
-`auto:c1`, to have wmbusmeters probe for devices: im871a, amb8465, amb3665, cul, rc1180 or rtlsdr (spawns rtlwmbus).
+`auto:c1`, to have wmbusmeters probe for devices: im871a, amb8465(metis), amb3665, cul, rc1180 or rtlsdr (spawns rtlwmbus).
 
 `im871a:c1` to start all connected *im871a* devices in *c1* mode, ignore all other devices.
 
@@ -464,7 +464,7 @@ You can also specify rtlwmbus and if you set the serial in the rtlsdr
 dongle using `rtl_eeprom -s 1234` you can also refer to a specific
 rtlsdr dongle like this `rtlwmbus[1234]`.
 
-`/dev/ttyUSB0:amb8465`, if you have an amb8465 dongle assigned to ttyUSB0. Other suffixes are im871a,cul.
+`/dev/ttyUSB0:amb8465`, if you have an amb8465(metis) dongle assigned to ttyUSB0. Other suffixes are im871a,cul.
 
 (Note that a plain `/dev/ttyUSB0` no longer works, you have to specify the device expected on the device.)
 
@@ -533,7 +533,7 @@ As meter quadruples you specify:
 ```
 Supported wmbus dongles:
 IMST 871a (im871a)
-Amber 8465/8665/8665-M (amb8465) 868MHz
+Amber 8465-M/8665-M/8626-M/Metis-II (amb8465) 868MHz
 Amber 3665-M           (amb3665) 169MHz
 CUL family (cul)
 Radiocraft (RC1180)
@@ -632,22 +632,23 @@ Kamstrup Pressure Sensor (kampress)
 ```
 
 The wmbus dongle im871a can listen to either s1, c1 or t1.
-However with the latest firmware version (0x15) im871a can
+With the latest firmware version (0x15) im871a can
 also listen to c1 and t1 telegrams at the same time.
 (Use `--verbose` to see your dongles firmware version.)
 If you have the older firmware you can download the upgrader here:
 https://wireless-solutions.de/downloadfile/wireless-m-bus-software/
 
-The amb8465 dongle can listen to either s1, c1 or t1. However it
-can also listen to c1 and t1 at the same time.
+The amb8465 dongle (new model name is Metis-II) can listen to either
+s1, c1 or t1.  It can also listen to c1 and t1 at the same time.
 
 With the latest rtlwmbus you can listen to s1, c1 and t1 at
-the same time.
+the same time. But you might want to disable some if you want
+to save cpu usage.
 
 The cul dongle can listen to c1 and t1 at the same time, but only
 if you specify c1! If you specify t1 or s1, then it will only listen to t1 or s1.
 
-Imporant!!!! Note that the cul dongle is limited to shorter
+Important!!!! Note that the cul dongle is limited to shorter
 telegrams. There is a firmware fix that allows somewhat longer,
 but still not full length telegrams. This can be a serious blocker
 if you want to receive long telegrams from advanced meters.
