@@ -38,7 +38,12 @@
             "logfile": "/dev/stdout",
             "shell": "/wmbusmeters/mosquitto_pub.sh \"wmbusmeters/$METER_NAME\" \"$METER_JSON\""
           },
-        "meters": {},
+        "meters": {
+            "name": "ElectricityMeter",
+            "driver": "amiplus",
+            "id": "12345678",
+            "key": "DEADBEEF1337DEADBEEF1337DEADBEEF"
+          },
         "mqtt": {}
     },
     "schema": {
@@ -55,13 +60,15 @@
           "device": "str",
           "donotprobe": "str?",
           "logtelegrams": "bool?",
+          "format": "str",
+          "logfile": "str",
           "shell": "str"
         },
         "meters": {
-            "name": "ElectricityMeter",
-            "driver": "amiplus",
-            "id": "12345678",
-            "key": "DEADBEEF1337DEADBEEF1337DEADBEEF"
+            "name": "str",
+            "driver": "str",
+            "id": "str",
+            "key": "str"
           }
     }
 }
