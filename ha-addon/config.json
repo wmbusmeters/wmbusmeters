@@ -64,11 +64,6 @@
           "logfile": "str",
           "shell": "str"
         },
-        "meters": {
-            "name": "str",
-            "driver": "str",
-            "id": "str",
-            "key": "str"
-          }
+        "meters": {}
     }
 }
