@@ -68,7 +68,7 @@
             "name": "str",
             "driver": "str",
             "id": "str",
-            "key": "str"
+            "key": "str?"
           }
     }
 }
