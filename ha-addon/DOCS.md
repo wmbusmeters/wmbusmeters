@@ -28,16 +28,25 @@ Specify your meters using YAML format. The `driver` and `id` values can be read 
 
 See [project README for more information][github]
 
+
 ```yaml
 meters:
   - name: ElectricityMeter
     driver: amiplus
-    id: "12345678" #Note "123" casts number as string
+    id: "12345678" #Note "123" casts number as string. If you only using numbers you have to use quotation marks!
     key: DEADBEEF1337DEADBEEF1337DEADBEEF
   - name: WaterMeter
     driver: apator162
     id: "87654321" #Note "123" casts number as string
-    key: "00000000000000000000000000000000"  #Note "123" casts number as string
+    key: "00000000000000000000000000000000"  #Note "123" casts number as string. If you only using numbers you have to use quotation marks!
+  - name: HeatMeter1
+    driver: kamheat
+    id: 8a6d43f1
+    key: "00000000000000000000000000000000"  #Note "123" casts number as string. If you only using numbers you have to use quotation marks!
+  - name: HeatMeter2 
+    driver: kamheat
+    id: "12345678"
+    key: NOKEY
 ```
 
 #### Option: `conf`
@@ -47,7 +56,7 @@ The wmbusmeters configuration file casted as YAML. It will be used as `wmbusmete
 ```yaml
 loglevel: normal
 device: auto:t1
-donotprobe: /dev/ttyAMA0
+donotprobe: /dev/ttyAMA0 # optional
 logtelegrams: false
 format: json
 logfile: /dev/stdout
