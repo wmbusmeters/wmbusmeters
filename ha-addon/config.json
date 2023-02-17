@@ -56,13 +56,21 @@
           "password": "str?"
         },
         "conf": {
+          "alarmexpectedactivity": "str?",
+          "alarmshell": "str?",
+          "alarmtimeout": "str?",
           "loglevel": "str",
           "device": "str",
           "donotprobe": "str?",
           "logtelegrams": "bool?",
           "format": "str",
           "logfile": "str",
-          "shell": "str"
+          "shell": "str",
+          "meterfiles": "str?",
+          "meterfilesaction": "list(overwrite|append)?",
+          "meterfilesnaming": "list(name|id|name-id)?",
+          "meterfilestimestamp": "list(never|day|hour|minute|micros)?",
+          "ignoreduplicates": "bool?"
         },
         "meters": [
           {
