@@ -534,9 +534,9 @@ As meter quadruples you specify:
 Supported wmbus dongles:
 IMST 871a (im871a)
 Amber 8465-M/8665-M/8626-M/Metis-II (amb8465) 868MHz
-Amber 3665-M           (amb3665) 169MHz
+Amber 3665-M (amb3665) 169MHz
 CUL family (cul)
-Radiocraft (RC1180)
+Radiocraft (rc1180)
 rtl_wmbus (rtlwmbus)
 rtl_433 (rtl433)
 

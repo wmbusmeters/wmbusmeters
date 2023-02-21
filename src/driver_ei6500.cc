@@ -89,7 +89,7 @@ namespace
             "alarm",
             "Number of times the smoke alarm has triggered.",
              DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
+            Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -144,7 +144,7 @@ namespace
             "removed",
             "Number of times the smoke alarm has been removed.",
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
+            Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -168,7 +168,7 @@ namespace
             "test_button",
             "Number of times the test button has been pressed.",
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
+            Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)

@@ -316,6 +316,8 @@ bool parseDV(Telegram *t,
         uchar vif = **format;
         int full_vif = vif & 0x7f;
         bool extension_vif = false;
+        int combinable_full_vif = 0;
+        bool combinable_extension_vif = false;
         set<VIFCombinable> found_combinable_vifs;
 
         DEBUG_PARSER("(dvparser debug) vif=%04x \"%s\"\n", vif, vifType(vif).c_str());
@@ -398,13 +400,44 @@ bool parseDV(Telegram *t,
             }
             else
             {
-                // If the full vif is now handled, then the rest are combinable vifs.
-                VIFCombinable vc = toVIFCombinable(vife & 0x7f);
-                found_combinable_vifs.insert(vc);
-                if (data_has_difvifs)
+                if (combinable_extension_vif)
                 {
-                    t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
-                                                     "%02X combinable vif (%s)", vife, toString(vc));
+                    // First vife after the combinable extension marker is the real vif.
+                    combinable_full_vif |= (vife & 0x7f);
+                    combinable_extension_vif = false;
+                    VIFCombinable vc = toVIFCombinable(combinable_full_vif);
+                    found_combinable_vifs.insert(vc);
+                    if (data_has_difvifs)
+                    {
+                        t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                                         "%02X combinable extension vife", vife);
+                    }
+                }
+                else
+                {
+                    combinable_full_vif = vife & 0x7f;
+                    // Check if this is marker for one of the extended combinable vifs
+                    if (combinable_full_vif == 0x7c || combinable_full_vif == 0x7f)
+                    {
+                        combinable_full_vif <<= 8;
+                        combinable_extension_vif = true;
+                        VIFCombinable vc = toVIFCombinable(vife & 0x7f);
+                        if (data_has_difvifs)
+                        {
+                            t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                                             "%02X combinable vif (%s)", vife, toString(vc));
+                        }
+                    }
+                    else
+                    {
+                        VIFCombinable vc = toVIFCombinable(combinable_full_vif);
+                        found_combinable_vifs.insert(vc);
+                        if (data_has_difvifs)
+                        {
+                            t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                                             "%02X combinable vif (%s)", vife, toString(vc));
+                        }
+                    }
                 }
             }
         }

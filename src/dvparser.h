@@ -174,7 +174,14 @@ bool isInsideVIFRange(int i, VIFRange range);
     X(AccumulationOfAbsoluteValue,0x7c10,0x7c10) \
     X(DataPresentedWithTypeC,0x7c11,0x7c11) \
     X(DataPresentedWithTypeD,0x7c12,0x7c12) \
-
+    X(Mfct00,0x7f00,0x7f00) \
+    X(Mfct01,0x7f01,0x7f01) \
+    X(Mfct02,0x7f02,0x7f02) \
+    X(Mfct03,0x7f03,0x7f03) \
+    X(Mfct04,0x7f04,0x7f04) \
+    X(Mfct05,0x7f05,0x7f05) \
+    X(Mfct06,0x7f06,0x7f06) \
+    X(Mfct07,0x7f07,0x7f07) \
 
 enum class VIFCombinable
 {

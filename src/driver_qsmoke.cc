@@ -72,7 +72,7 @@ namespace
             "alarm",
             "Number of times the smoke alarm has triggered.",
              DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
+            Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(DifVifKey("81037C034C4123"))
@@ -101,7 +101,7 @@ namespace
             "test_button",
             "Number of times the test button has been pressed.",
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
+            Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(DifVifKey("81027C03495523"))
@@ -111,7 +111,7 @@ namespace
             "transmission",
             "Transmission counter?",
              DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
+            Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)

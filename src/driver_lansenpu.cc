@@ -59,7 +59,7 @@ namespace
             "a",
              "The current number of counted pulses from counter a.",
              DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
+            Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(DifVifKey("0EFD3A"))
@@ -69,7 +69,7 @@ namespace
             "b",
              "The current number of counted pulses from counter b.",
              DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
+            Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(DifVifKey("8E40FD3A"))

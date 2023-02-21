@@ -2825,7 +2825,7 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
             "access",
             "Meter access counter.",
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
+            Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)

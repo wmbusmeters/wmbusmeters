@@ -57,6 +57,8 @@ using namespace std;
     X(F,   C,  {vto=(vfrom-32)*5.0/9.0;}) \
     X(PA,  BAR,{vto=vfrom/100000.0;}) \
     X(BAR, PA, {vto=vfrom*100000.0;}) \
+    X(COUNTER, FACTOR,{vto=vfrom;})  \
+    X(FACTOR, COUNTER, {vto=vfrom;}) \
     X(UnixTimestamp,DateTimeLT, {vto=vfrom; }) \
     X(DateTimeLT,UnixTimestamp, {vto=vfrom; }) \
     X(DateLT,UnixTimestamp, {vto=vfrom; }) \
@@ -110,6 +112,7 @@ using namespace std;
     X(RH,          1.0, SIExp())                                     \
     X(HCA,         1.0, SIExp())                                     \
     X(COUNTER,     1.0, SIExp())                                     \
+    X(FACTOR,      1.0, SIExp())                                     \
     X(TXT,         1.0, SIExp())                                     \
 
 

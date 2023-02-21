@@ -68,7 +68,7 @@ namespace
             "async_msg_id",
             "Unique asynchronous message number.",
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
+            Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -79,7 +79,7 @@ namespace
             "minutes_since_last_manual_test",
             "Minutes since last manual test.",
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
+            Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)

@@ -53,7 +53,7 @@
     X(RelativeHumidity,RH)    \
     X(HCA,HCA)                \
     X(Text,TXT)               \
-    X(Counter,COUNTER)        \
+    X(Dimensionless,COUNTER) \
 
 enum class Quantity
 {
@@ -114,7 +114,8 @@ LIST_OF_QUANTITIES
     X(RH,rh,"RH",RelativeHumidity,"relative humidity")                  \
     X(HCA,hca,"hca",HCA,"heat cost allocation")                         \
     X(TXT,txt,"txt",Text,"text")                                        \
-    X(COUNTER,counter,"counter",Counter,"counter")                      \
+    X(COUNTER,counter,"counter",Dimensionless,"counter")                \
+    X(FACTOR,factor,"factor",Dimensionless,"factor")                    \
 
 enum class Unit
 {

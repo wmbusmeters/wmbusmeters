@@ -2018,13 +2018,14 @@ LIST_OF_QUANTITIES
     // Test counter: counter
     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    q_set.erase(Quantity::Counter);
-    fill_with_units_from(Quantity::Counter, &from_set);
-    fill_with_units_from(Quantity::Counter, &to_set);
+    q_set.erase(Quantity::Dimensionless);
+    fill_with_units_from(Quantity::Dimensionless, &from_set);
+    fill_with_units_from(Quantity::Dimensionless, &to_set);
 
-    test_si_convert(2211717, 2211717, Unit::COUNTER, "counter", Unit::COUNTER, "counter", Quantity::Counter, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::COUNTER, "counter", Unit::FACTOR, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::FACTOR, "counter", Unit::COUNTER, "counter", Quantity::Dimensionless, &from_set, &to_set);
 
-    check_units_tested(from_set, to_set, Quantity::Counter);
+    check_units_tested(from_set, to_set, Quantity::Dimensionless);
 
     // Test point in time units: ut utc lt
     /////////////////////////////////////////////////////////////////////////////////////////////////////

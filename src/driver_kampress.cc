@@ -98,7 +98,7 @@ namespace
             "alfa",
             "We do not know what this is.",
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
+            Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(DifVifKey("05FF09"))
@@ -108,7 +108,7 @@ namespace
             "beta",
             "We do not know what this is.",
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
+            Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(DifVifKey("05FF0A"))
