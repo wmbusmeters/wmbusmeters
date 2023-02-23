@@ -19,7 +19,16 @@ if ! bashio::fs.directory_exists "${CONFIG_DATA_PATH}/etc/wmbusmeters.d"; then
     mkdir -p "${CONFIG_DATA_PATH}/etc/wmbusmeters.d"
 fi
 
-echo -e "$CONFIG_CONF" | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' > $CONFIG_DATA_PATH/etc/wmbusmeters.conf
+echo -e "$CONFIG_CONF" | jq -r '
+  to_entries | map( 
+    .key as $k |
+    if ( .value | type ) == "array" then
+      .value | map( { key: $k, value: . } )
+    else 
+      . 
+    end 
+  ) | flatten | map( "\(.key)=\(.value|tostring)") | .[]
+' > $CONFIG_DATA_PATH/etc/wmbusmeters.conf
 
 bashio::log.info "Registering meters ..."
 rm -f $CONFIG_DATA_PATH/etc/wmbusmeters.d/*

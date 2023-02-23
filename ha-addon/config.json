@@ -31,8 +31,8 @@
         "enable_mqtt_discovery": false,
         "conf": {
             "loglevel": "normal",
-            "device": "auto:t1",
-            "donotprobe": "/dev/ttyAMA0",
+            "device": [ "auto:t1" ],
+            "donotprobe": [ "/dev/ttyAMA0" ],
             "logtelegrams": false,
             "format": "json",
             "logfile": "/dev/stdout",
@@ -57,8 +57,8 @@
         },
         "conf": {
           "loglevel": "str",
-          "device": "str",
-          "donotprobe": "str?",
+          "device": [ "str" ],
+          "donotprobe": [ "str" ],
           "logtelegrams": "bool?",
           "format": "str",
           "logfile": "str",
