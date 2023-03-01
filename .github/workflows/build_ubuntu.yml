@@ -7,7 +7,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - id: INSTALL_ADDITIONAL_BUILD_DEPENDENCIES
       run: sudo apt-get install librtlsdr-dev libusb-dev ncurses-dev
     - id: CONFIGURE
