@@ -128,6 +128,8 @@ public:
 
     bool handleTelegram(AboutTelegram &about, vector<uchar> input_frame, bool simulated)
     {
+        removeAnyDLLCRCs(input_frame);
+
         if (should_analyze_)
         {
             analyzeTelegram(about, input_frame, simulated);

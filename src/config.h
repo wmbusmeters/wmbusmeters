@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2021 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2019-2023 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -45,6 +45,13 @@ enum class MeterFileTimestamp
 enum class LogSummary
 {
     All, Unknown
+};
+
+enum class DllCrcCheck
+{
+    TryVerify,       // Try if the crc match, then remove. Security problem? Ok, for hex, simulation and cli.
+    ExpectAndVerify, // Crcs are expected, if not found then fail.
+    NotExpected      // Dll crcs should not be there, do not try to remove them.
 };
 
 // These values can be overridden from the command line.
