@@ -1,0 +1,21 @@
+name: Build Debian package
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - id: INSTALL_ADDITIONAL_BUILD_DEPENDENCIES
+      run: |
+         sudo apt install -y eatmydata
+         sudo eatmydata apt install -y devscripts debhelper
+         sudo eatmydata apt build-dep -y . || sudo eatmydata apt install -y librtlsdr-dev libncurses-dev adduser
+    - id: PREPARE_SOURCE
+      run: |
+         ln -s deb debian
+         echo 1.0 > debian/source/format
+    - id: BUILD_DEB
+      run: yes y | eatmydata debuild --no-sign
