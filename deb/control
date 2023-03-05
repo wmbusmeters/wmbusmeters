@@ -4,8 +4,9 @@ Priority: optional
 Maintainer: Fredrik Öhrström <oehrstroem@gmail.com>
 Build-Depends: debhelper-compat (= 13)
  , librtlsdr-dev
- , libncurses-dev,
+ , libncurses-dev
  , adduser
+ , jq
 Standards-Version: 4.5.1
 Homepage: https://github.com/weetmuts/wmbusmeters
 Vcs-Browser: https://github.com/weetmuts/wmbusmeters
