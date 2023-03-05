@@ -5,8 +5,8 @@ Maintainer: Fredrik Öhrström <oehrstroem@gmail.com>
 Build-Depends: debhelper-compat (= 13)
  , librtlsdr-dev
  , libncurses-dev
- , adduser
  , jq
+ , netcat-openbsd
 Standards-Version: 4.5.1
 Homepage: https://github.com/weetmuts/wmbusmeters
 Vcs-Browser: https://github.com/weetmuts/wmbusmeters
@@ -16,7 +16,8 @@ Rules-Requires-Root: no
 Package: wmbusmeters
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Suggest: rtl-wmbus
+ , adduser
+Suggests: rtl-wmbus
 Description: read wireless and wired M-BUS telegrams from utility meters
  Receives and decodes C1,T1 or S1 telegrams (using
  the wireless or wired mbus protocol) to acquire utility meter
