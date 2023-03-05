@@ -58,7 +58,7 @@
         "conf": {
           "loglevel": "str",
           "device": [ "str" ],
-          "donotprobe": [ "str" ],
+          "donotprobe": [ "str?" ],
           "logtelegrams": "bool?",
           "format": "str",
           "logfile": "str",
