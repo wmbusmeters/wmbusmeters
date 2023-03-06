@@ -16,5 +16,5 @@ jobs:
       env:
         DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PAT }}
-        DOCKERHUB_REPOSITORY: weetmuts/wmbusmeters
+        DOCKERHUB_REPOSITORY: wmbusmeters/wmbusmeters
         README_FILEPATH: ./docker/README.md
