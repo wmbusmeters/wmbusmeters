@@ -15,6 +15,6 @@ jobs:
       uses: peter-evans/dockerhub-description@v3
       env:
         DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-        DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+        DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PAT }}
         DOCKERHUB_REPOSITORY: weetmuts/wmbusmeters
         README_FILEPATH: ./docker/README.md
