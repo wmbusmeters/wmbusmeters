@@ -359,8 +359,8 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         if (hex.size() % 2 == 1)
         {
             warning("(cul) Warning! Your cul firmware has a bug that prevents longer telegrams from being received.!\n");
-            warning("(cul) Please read: https://github.com/weetmuts/wmbusmeters/issues/390\n");
-            warning("(cul)         and: https://weetmuts.github.io/wmbusmeterswiki/nanoCUL.html\n");
+            warning("(cul) Please read: https://github.com/wmbusmeters/wmbusmeters/issues/390\n");
+            warning("(cul)         and: https://wmbusmeters.github.io/wmbusmeters-wiki/nanoCUL.html\n");
         }
 
         payload.clear();
@@ -395,8 +395,8 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         if (hex.size() % 2 == 1)
         {
             warning("(cul) Warning! Your cul firmware has a bug that prevents longer telegrams from being received.!\n");
-            warning("(cul) Please read: https://github.com/weetmuts/wmbusmeters/issues/390\n");
-            warning("(cul)         and: https://weetmuts.github.io/wmbusmeterswiki/nanoCUL.html\n");
+            warning("(cul) Please read: https://github.com/wmbusmeters/wmbusmeters/issues/390\n");
+            warning("(cul)         and: https://wmbusmeters.github.io/wmbusmeters-wiki/nanoCUL.html\n");
         }
 
         payload.clear();

@@ -33,7 +33,7 @@ fi
 cat <<'EOF' > $CURR_WMBS
 [Unit]
 Description="wmbusmeters service"
-Documentation=https://github.com/weetmuts/wmbusmeters
+Documentation=https://github.com/wmbusmeters/wmbusmeters
 Documentation=man:wmbusmeters(1)
 After=network.target
 StopWhenUnneeded=false

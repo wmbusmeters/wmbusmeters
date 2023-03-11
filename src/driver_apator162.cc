@@ -98,7 +98,7 @@ namespace
                 if (t->beingAnalyzed() == false)
                 {
                     warning("(apator162) telegram contains a register (%02x) with unknown size.\n"
-                            "Please open an issue at https://github.com/weetmuts/wmbusmeters/\n"
+                            "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
                             "and report this telegram: %s\n", c, hex.c_str());
                 }
                 break;

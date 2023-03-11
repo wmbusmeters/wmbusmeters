@@ -583,7 +583,7 @@ PACKAGE_TARNAME='wmbusmeters'
 PACKAGE_VERSION='wmbusmeters'
 PACKAGE_STRING='wmbusmeters wmbusmeters'
 PACKAGE_BUGREPORT='oehrstroem@gmail.com'
-PACKAGE_URL='https://github.com/weetmuts/wmbusmeters'
+PACKAGE_URL='https://github.com/wmbusmeters/wmbusmeters'
 
 # Factoring default headers for most tests.
 ac_includes_default="\
@@ -1336,7 +1336,7 @@ Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
 
 Report bugs to <oehrstroem@gmail.com>.
-wmbusmeters home page: <https://github.com/weetmuts/wmbusmeters>.
+wmbusmeters home page: <https://github.com/wmbusmeters/wmbusmeters>.
 _ACEOF
 ac_status=$?
 fi
@@ -3988,7 +3988,7 @@ Configuration files:
 $config_files
 
 Report bugs to <oehrstroem@gmail.com>.
-wmbusmeters home page: <https://github.com/weetmuts/wmbusmeters>."
+wmbusmeters home page: <https://github.com/wmbusmeters/wmbusmeters>."
 
 _ACEOF
 cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1

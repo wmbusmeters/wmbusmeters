@@ -6,16 +6,16 @@ wireless wm-bus meters.  The readings can then be published using
 MQTT, curled to a REST api, inserted into a database or stored in a
 log file.
 
-[FAQ/WIKI/MANUAL pages](https://weetmuts.github.io/wmbusmeterswiki/)
+[FAQ/WIKI/MANUAL pages](https://wmbusmeters.github.io/wmbusmeters-wiki/)
 
 The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 
 | System       | Status        |
 | ------------ |:-------------:|
-| Ubuntu | [![Build Ubuntu Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20Ubuntu/badge.svg)](https://github.com/weetmuts/wmbusmeters/actions)|
-| MacOSX | [![Build MacOSX Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20MacOSX/badge.svg)](https://github.com/weetmuts/wmbusmeters/actions)|
-| Docker | [![Build Docker Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20docker/badge.svg)](https://hub.docker.com/r/weetmuts/wmbusmeters/)|
-| Snap | [![Build Snap Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20Snap/badge.svg)](https://snapcraft.io/wmbusmeters)|
+| Ubuntu | [![Build Ubuntu Status](https://github.com/wmbusmeters/wmbusmeters/workflows/Build%20Ubuntu/badge.svg)](https://github.com/wmbusmeters/wmbusmeters/actions)|
+| MacOSX | [![Build MacOSX Status](https://github.com/wmbusmeters/wmbusmeters/workflows/Build%20MacOSX/badge.svg)](https://github.com/wmbusmeters/wmbusmeters/actions)|
+| Docker | [![Build Docker Status](https://github.com/wmbusmeters/wmbusmeters/workflows/Build%20docker/badge.svg)](https://hub.docker.com/r/wmbusmeters/wmbusmeters/)|
+| Snap | [![Build Snap Status](https://github.com/wmbusmeters/wmbusmeters/workflows/Build%20Snap/badge.svg)](https://snapcraft.io/wmbusmeters)|
 
 # Distributions
 
@@ -29,12 +29,12 @@ Availability of **wmbusmeters** for other Linux distributions can be checked on 
 
 # Docker
 
-Experimental docker containers are available here: https://hub.docker.com/r/weetmuts/wmbusmeters
+Experimental docker containers are available here: https://hub.docker.com/r/wmbusmeters/wmbusmeters
 
 # Snap
 
 Experimental snaps are available here: https://snapcraft.io/wmbusmeters
-Read the wiki for more info on how to use the snap: https://weetmuts.github.io/wmbusmeterswiki/SNAP.html
+Read the wiki for more info on how to use the snap: https://wmbusmeters.github.io/wmbusmeters-wiki/SNAP.html
 
 # Build from source and run as a daemon
 

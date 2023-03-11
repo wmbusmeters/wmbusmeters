@@ -18,7 +18,7 @@ trap finish EXIT
 cat > $TMP <<EOF
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: wmbusmeters
-Source: https://github.com/weetmuts/wmbusmeters
+Source: https://github.com/wmbusmeters/wmbusmeters
 Upstream-Contact: Fredrik Öhrström <oehrstroem@gmail.com>
 
 Files: *
