@@ -31,7 +31,7 @@ parts:
       - launcher.sh
 
   wmbusmeters:
-    source: "https://github.com/weetmuts/wmbusmeters.git"
+    source: "https://github.com/wmbusmeters/wmbusmeters.git"
     source-type: git
     override-pull: |
       craftctl default

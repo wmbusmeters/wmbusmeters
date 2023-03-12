@@ -111,7 +111,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-You can download the source here: https://github.com/weetmuts/wmbusmeters
+You can download the source here: https://github.com/wmbusmeters/wmbusmeters
 But you can also request the source from the person/company that
 provided you with this binary. Read the full license for all details.
 

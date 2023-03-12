@@ -34,7 +34,7 @@ you will see a log like this:
 ```
 [2021-07-05_21:07:30] (meter) ABOGGLKZ: meter detection did not match the selected driver eurisii! correct driver is: unknown!
 (meter) Not printing this warning again for id: 60900126 mfct: (AAA) Aventies, Germany (0x421) type: Heat Cost Allocator (0x08) ver: 0x55
-[2021-07-05_21:07:30] (meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/
+[2021-07-05_21:07:30] (meter) please consider opening an issue at https://github.com/wmbusmeters/wmbusmeters/
 [2021-07-05_21:07:30] (meter) to add support for this unknown mfct,media,version combination
 (meter) ABOGGLKZ: yes for me
 (meter) ABOGGLKZ eurisii handling telegram from 60900126

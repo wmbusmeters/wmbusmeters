@@ -29,7 +29,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v4
       with:
-        images: weetmuts/wmbusmeters
+        images: wmbusmeters/wmbusmeters
         tags: type=ref,event=tag
     -
       name: Build

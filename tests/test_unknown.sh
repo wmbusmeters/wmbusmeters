@@ -13,7 +13,7 @@ METERS="Dorren lansendw 00010205 NOKEY Forren lansensm 00010206 NOKEY"
 cat > $TEST/test_expected.txt <<EOF
 (meter) Dorren: meter detection did not match the selected driver lansendw! correct driver is: unknown!
 (meter) Not printing this warning again for id: 00010205 mfct: (LAS) Lansen Systems, Sweden (0x3033) type: Unknown (0xff) ver: 0x07
-(meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/
+(meter) please consider opening an issue at https://github.com/wmbusmeters/wmbusmeters/
 (meter) to add support for this unknown mfct,media,version combination
 {"media":"Unknown","meter":"lansendw","name":"Dorren","id":"00010205","status":"OPEN","a_counter":23,"b_counter":0,"timestamp":"1111-11-11T11:11:11Z"}
 (meter) Forren: meter detection did not match the selected driver lansensm! correct driver is: lansendw

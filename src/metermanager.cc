@@ -122,7 +122,7 @@ public:
                 version);
 
 
-        warning("(meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/\n");
+        warning("(meter) please consider opening an issue at https://github.com/wmbusmeters/wmbusmeters/\n");
         warning("(meter) to add support for this unknown mfct,media,version combination\n");
     }
 
@@ -226,7 +226,7 @@ public:
                             // Oups, we added a new meter object tailored for this telegram
                             // but it still did not match! This is probably an error in wmbusmeters!
                             warning("(meter) newly created meter (%s %s %s) did not match telegram! ",
-                                    "Please open an issue at https://github.com/weetmuts/wmbusmeters/\n",
+                                    "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n",
                                     meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
                         }
                         else if (!h)

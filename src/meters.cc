@@ -825,7 +825,7 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
 
                 if (possible_drivers == "unknown!")
                 {
-                    warning("(meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/\n");
+                    warning("(meter) please consider opening an issue at https://github.com/wmbusmeters/wmbusmeters/\n");
                     warning("(meter) to add support for this unknown mfct,media,version combination\n");
                 }
             }

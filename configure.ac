@@ -15,7 +15,7 @@
 #
 
 AC_PREREQ([2.69])
-AC_INIT(wmbusmeters, wmbusmeters, oehrstroem@gmail.com,,https://github.com/weetmuts/wmbusmeters)
+AC_INIT(wmbusmeters, wmbusmeters, oehrstroem@gmail.com,,https://github.com/wmbusmeters/wmbusmeters)
 
 AC_CONFIG_AUX_DIR([autoconf])
 AC_CANONICAL_BUILD
