@@ -1,5 +1,26 @@
+WMbusmeters has moved to its new github organization: github.com/wmbusmeters
+
+Bibo significantly improved the experience for installing the ha-addon
+by downloading a prepared docker image instead of building from scratch!
+Use the new ha-addon location: github.com/wmbusmeters/wmbusmeters-ha-addon
+Thanks Bibo!
+
+Bibo contributed many github workflow improvements! Thanks Bibo!
+
+Thecem,Krzysztof Hajdamowicz, chpego and convicte contributed several improvements to the ha-addon. Thanks!
+
+idl0r updated the eurosii driver with more telegrams. Thank you idl0r!
+
+Roland Huß contributed compressed telegram format for the multical21. Thanks Roland!
+
+Petter Reinholdtsen contributed several fixes to the deb building process and a speedup
+of the build workflow. Thanks Petter!
 
 Added the watertech meter.
+
+Christoph Hannebauer contributed another auto-detect combo for the qheat driver. Thanks Christoph!
+
+Gizmocuz added missing logging for the ell_type. Thanks Gizmocuz!
 
 George Hopkins improved the fhkvdataiii driver to infer the current year and
 the rtlwmbus driver to propagate the timestamp from rtlwmbus input into the final
