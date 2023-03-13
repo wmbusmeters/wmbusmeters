@@ -43,6 +43,7 @@ namespace
         di.addDetection(MANUFACTURER_KAM, 0x0c,  0x30); // 302
         di.addDetection(MANUFACTURER_KAM, 0x04,  0x40); // 303
         di.addDetection(MANUFACTURER_KAM, 0x0c,  0x40); // 303
+        di.addDetection(MANUFACTURER_KAM, 0x04,  0x34); // 403
         di.addDetection(MANUFACTURER_KAM, 0x0a,  0x34); // 403
         di.addDetection(MANUFACTURER_KAM, 0x0b,  0x34); // 403
         di.addDetection(MANUFACTURER_KAM, 0x0c,  0x34); // 403
