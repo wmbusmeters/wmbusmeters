@@ -4802,6 +4802,11 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
     int type = data[1];
     int offset = 1;
 
+    if (data[0] == 0x68 && data[3] == 0x68 && data[1] == data[2])
+    {
+        // Ooups this is not a wmbus frame. Its clearly an mbus frame.
+        return PartialFrame;
+    }
     if (!isValidWMBusCField(type))
     {
         // Ouch, we are out of sync with the wmbus frames that we expect!
