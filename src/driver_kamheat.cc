@@ -263,6 +263,19 @@ namespace
             .set(VIFRange::Date)
             .set(StorageNr(1))
             );
+
+        addNumericFieldWithExtractor(
+            "operating_time",
+            "How long the meter has been collecting data.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Time,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::OperatingTime)
+            .add(VIFCombinable::Mfct21)
+            );
+
     }
 }
 
@@ -324,3 +337,8 @@ namespace
 // telegram=|5E442D2C78787878400C7A6E0050252F2F_04056C2B000004138A0B070004FF07C657020004FF08FD36020002594B09025DFA08023B000002FF220000026CF42144052F000000441302AD0000426CE1212F2F2F2F2F2F2F2F2F2F2F2F2F2F2F|
 // {"media":"heat volume at inlet","meter":"kamheat","name":"Kamstrup_303","id":"78787878","status":"OK","total_energy_consumption_kwh":1111.6,"total_volume_m3":461.706,"volume_flow_m3h":0,"t1_temperature_c":23.79,"t2_temperature_c":22.98,"forward_energy_m3c":153542,"return_energy_m3c":145149,"meter_date":"2023-01-20","target_energy_kwh":4.7,"target_volume_m3":44.29,"target_date":"2023-01-01","timestamp":"1111-11-11T11:11:11Z"}
 // |Kamstrup_303;78787878;1111.6;461.706;OK;1111-11-11 11:11.11
+
+// Test: Kamstrup_403_mbus kamheat 77447744 NOKEY
+// telegram=|68464668084a72447744772d2c3404060000000406ce86000004ff073444020004ff08f8ce0100041411680300043B0f02000002593c19025da41104ff220000000004a5ff21c7d02700d916|
+// {"forward_energy_m3c": 148532,"id": "77447744","media": "heat","meter": "kamheat","name": "Kamstrup_403_mbus","return_energy_m3c": 118520,"status": "OK","t1_temperature_c": 64.6,"t2_temperature_c": 45.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 34510,"total_volume_m3": 2232.49,"volume_flow_m3h": 0.527,"operating_time_h": 43489.183333}
+// |Kamstrup_403_mbus;77447744;34510;2232.49;OK;1111-11-11 11:11.11

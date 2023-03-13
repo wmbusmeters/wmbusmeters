@@ -13,4 +13,4 @@ telegram=|68F8F86808007200464470A7320404270000000974040970040C0E082303000C140795
 # Test multical 403 heat meter sent over mbus.
 
 telegram=|68464668084a72447744772d2c3404060000000406ce86000004ff073444020004ff08f8ce0100041411680300043B0f02000002593c19025da41104ff220000000004a5ff21c7d02700d916|
-{"forward_energy_m3c": 148532,"id": "77447744","media": "heat","meter": "kamheat","name": "MyKamHeat","return_energy_m3c": 118520,"status": "OK","t1_temperature_c": 64.6,"t2_temperature_c": 45.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 34510,"total_volume_m3": 2232.49,"volume_flow_m3h": 0.527 }
+{"forward_energy_m3c": 148532,"id": "77447744","media": "heat","meter": "kamheat","name": "MyKamHeat","return_energy_m3c": 118520,"status": "OK","t1_temperature_c": 64.6,"t2_temperature_c": 45.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 34510,"total_volume_m3": 2232.49,"volume_flow_m3h": 0.527,"operating_time_h": 43489.183333}

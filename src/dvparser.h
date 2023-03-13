@@ -182,6 +182,7 @@ bool isInsideVIFRange(int i, VIFRange range);
     X(Mfct05,0x7f05,0x7f05) \
     X(Mfct06,0x7f06,0x7f06) \
     X(Mfct07,0x7f07,0x7f07) \
+    X(Mfct21,0x7f21,0x7f21) \
 
 enum class VIFCombinable
 {
