@@ -27,7 +27,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("aerius");
-        di.setDefaultFields("name,id,total_m3,current_flow_m3h,target_date_time,target_m3,timestamp");
+        di.setDefaultFields("name,id,total_m3,flow_m3h,target_datetime,target_m3,timestamp");
         di.setMeterType(MeterType::GasMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_DME, 0x03, 0x30);
@@ -49,7 +49,7 @@ namespace
             );
 
         addNumericFieldWithExtractor(
-            "current_flow",
+            "flow",
             "The current gas flow.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
@@ -60,7 +60,7 @@ namespace
             );
 
         addNumericFieldWithExtractor(
-            "current_temp",
+            "temperature",
             "The current temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
@@ -70,15 +70,15 @@ namespace
             .set(VIFRange::FlowTemperature)
             );
 
-        addStringFieldWithExtractor(
-            "target_date_time",
-            "Timestamp for gas consumption recorded at the beginning of this period.",
+        addNumericFieldWithExtractor(
+            "target",
+            "Date time when previous billing period ended.",
             DEFAULT_PRINT_PROPERTIES,
+            Quantity::PointInTime,
+            VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
-            .set(StorageNr(1))
-            .set(SubUnitNr(0))
             .set(StorageNr(3))
             );
 
@@ -91,8 +91,6 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
-            .set(StorageNr(1))
-            .set(SubUnitNr(0))
             .set(StorageNr(3))
             .add(VIFCombinable::ValueAtBaseCondC)
             );
@@ -102,5 +100,5 @@ namespace
 
 // Test: aerius_gas aerius 99657098 NOKEY
 // telegram=|2E44A5119870659930037A060020052F2F_0C933E842784060A3B00000A5A5901C4016D3B37DF2CCC01933E24032606|
-// {"media":"gas","meter":"aerius","name":"aerius_gas","id":"99657098","total_m3":6842.784,"current_flow_m3h":0,"current_temp_c":15.9,"target_date_time":"2022-12-31 23:59","target_m3":6260.324,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"gas","meter":"aerius","name":"aerius_gas","id":"99657098","total_m3":6842.784,"flow_m3h":0,"temperature_c":15.9,"target_datetime":"2022-12-31 23:59","target_m3":6260.324,"timestamp":"1111-11-11T11:11:11Z"}
 // |aerius_gas;99657098;6842.784;0;2022-12-31 23:59;6260.324;1111-11-11 11:11.11
