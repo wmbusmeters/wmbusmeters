@@ -9,6 +9,7 @@ jobs:
     steps:
       - uses: actions/stale@v7
         with:
+          repo-token: ${{ secrets.HA_PAT }}
           stale-issue-message: 'This issue is stale because it has been open for 2 month with no activity. Remove stale label or comment or this will be closed in 1 month.'
           close-issue-message: 'This issue was closed because it has been stalled for 1 month with no activity.'
           days-before-stale: 60
