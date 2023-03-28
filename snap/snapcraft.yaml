@@ -86,6 +86,7 @@ apps:
       - network
       - network-bind
       - raw-usb
+      - serial-port
       - system-observe
 
 layout:
