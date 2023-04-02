@@ -36,6 +36,7 @@ METER_TOTAL_ENERGY_CONSUMPTION_TARIFF_3_KWH
 METER_TOTAL_ENERGY_PRODUCTION_TARIFF_1_KWH
 METER_TOTAL_ENERGY_PRODUCTION_TARIFF_2_KWH
 METER_TOTAL_ENERGY_PRODUCTION_TARIFF_3_KWH
+METER_MAX_POWER_CONSUMPTION_KW
 EOF
 
 if [ "$?" = "0" ]
@@ -86,6 +87,7 @@ total_energy_consumption_tariff_3_kwh  The total energy consumption recorded by 
  total_energy_production_tariff_1_kwh  The total energy production recorded by this meter on tariff 1.
  total_energy_production_tariff_2_kwh  The total energy production recorded by this meter on tariff 2.
  total_energy_production_tariff_3_kwh  The total energy production recorded by this meter on tariff 3.
+             max_power_consumption_kw  The maximum demand indicator (maximum 15-min average power consumption recorded this month).
 EOF
 
 if [ "$?" = "0" ]
