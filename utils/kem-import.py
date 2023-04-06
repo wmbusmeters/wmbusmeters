@@ -225,5 +225,5 @@ elif xmldoc.documentElement.tagName == "Devices":
         meterKey    = e.getElementsByTagName('Value')[0].firstChild.nodeValue
         print_meter(meterName,meterType,meterNum,meterSerial,meterVendor,meterConfig,meterModel,meterKey)
 else:
-    print("ERROR: Looks like password is wrong - decryption failed!")
+    print("ERROR: Unable to extract details from file")
     sys.exit(1)
