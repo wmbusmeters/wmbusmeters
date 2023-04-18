@@ -613,6 +613,7 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::PLUS)
     {
         size_t next = parseOps(i+1);
+        if (!valid_) return next;
         handleAddition(tok);
         return next;
     }
@@ -620,6 +621,7 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::MINUS)
     {
         size_t next = parseOps(i+1);
+        if (!valid_) return next;
         handleSubtraction(tok);
         return next;
     }
@@ -627,6 +629,7 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::TIMES)
     {
         size_t next = parseOps(i+1);
+        if (!valid_) return next;
         handleMultiplication(tok);
         return next;
     }
@@ -634,6 +637,7 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::DIV)
     {
         size_t next = parseOps(i+1);
+        if (!valid_) return next;
         handleDivision(tok);
         return next;
     }
@@ -641,6 +645,7 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::EXP)
     {
         size_t next = parseOps(i+1);
+        if (!valid_) return next;
         handleExponentiation(tok);
         return next;
     }
@@ -648,6 +653,7 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::SQRT)
     {
         size_t next = parseOps(i+1);
+        if (!valid_) return next;
         handleSquareRoot(tok);
         return next;
     }
@@ -662,10 +668,14 @@ size_t FormulaImplementation::parseOps(size_t i)
         return i;
     }
 
-    if (next == NULL) return i;
-
-    if (tok->type == TokenType::NUMBER && next->type == TokenType::UNIT)
+    if (tok->type == TokenType::NUMBER)
     {
+        if (next == NULL || next->type != TokenType::UNIT)
+        {
+            errors_.push_back(tostrprintf("Constant number %s lacks a unit!\n", tok->vals(formula_).c_str()));
+            valid_ = false;
+            return i;
+        }
         handleConstant(tok, next);
         return i+2;
     }
@@ -685,7 +695,7 @@ size_t FormulaImplementation::parsePar(size_t i)
         if (tok == NULL) break;
         if (tok->type == TokenType::RPAR) break;
         size_t next = parseOps(i);
-        if (next == i) break;
+        if (!valid_ || next == i) break;
         i = next;
     }
 
@@ -855,7 +865,7 @@ bool FormulaImplementation::go()
     for (;;)
     {
         size_t next = parseOps(i);
-        if (next == i) break;
+        if (!valid_ || next == i) break;
         i = next;
     }
 
