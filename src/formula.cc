@@ -490,14 +490,17 @@ size_t FormulaImplementation::findUnit(size_t i)
     // All units start with a lower case a-z, followed by more letters and _ underscores.
     if (!is_letter(c)) return 0;
 
+    size_t longest_unit = 0;
+
 #define X(cname,lcname,hrname,quantity,explanation) \
     if ( (i+sizeof(#lcname)-1 <= len) &&                                \
-         !is_letter_or_underscore(formula_[i+sizeof(#lcname)-1]) &&     \
-         !strncmp(#lcname, formula_.c_str()+i, sizeof(#lcname)-1)) return sizeof(#lcname)-1;
+         !is_letter_digit_or_underscore(formula_[i+sizeof(#lcname)-1]) &&     \
+         !strncmp(#lcname, formula_.c_str()+i, sizeof(#lcname)-1) &&    \
+         longest_unit < (sizeof(#lcname)-1)) { longest_unit = (sizeof(#lcname)-1); }
 LIST_OF_UNITS
 #undef X
 
-    return 0;
+    return longest_unit;
 }
 
 size_t FormulaImplementation::findField(size_t i)
@@ -672,7 +675,9 @@ size_t FormulaImplementation::parseOps(size_t i)
     {
         if (next == NULL || next->type != TokenType::UNIT)
         {
-            errors_.push_back(tostrprintf("Constant number %s lacks a unit!\n", tok->vals(formula_).c_str()));
+            errors_.push_back(tostrprintf("Constant number %s lacks a valid unit!\n%s",
+                                          tok->vals(formula_).c_str(),
+                                          tok->withMarker(formula_).c_str()));
             valid_ = false;
             return i;
         }
@@ -699,14 +704,14 @@ size_t FormulaImplementation::parsePar(size_t i)
         i = next;
     }
 
-    if (tok == NULL)
+    if (valid_ && tok == NULL)
     {
-        errors_.push_back(tostrprintf("Missing closing parenthesis at end of formula!\n"));
+        errors_.push_back("Missing closing parenthesis at end of formula!\n");
         valid_ = false;
         return i;
     }
 
-    if (tok->type != TokenType::RPAR)
+    if (valid_ && tok->type != TokenType::RPAR)
     {
         errors_.push_back("Expected closing parenthesis!\n"+tok->withMarker(formula_));
         valid_ = false;
