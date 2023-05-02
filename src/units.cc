@@ -475,7 +475,7 @@ string strWithUnitLowerCase(double v, Unit u)
 
 string valueToString(double v, Unit u)
 {
-    if (isnan(v))
+    if (::isnan(v))
     {
         return "null";
     }

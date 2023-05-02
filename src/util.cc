@@ -1365,7 +1365,7 @@ string strdate(struct tm *date)
 
 string strdate(double v)
 {
-    if (isnan(v)) return "null";
+    if (::isnan(v)) return "null";
     struct tm date;
     time_t t = v;
     localtime_r(&t, &date);
@@ -1381,7 +1381,7 @@ string strdatetime(struct tm *datetime)
 
 string strdatetime(double v)
 {
-    if (isnan(v)) return "null";
+    if (::isnan(v)) return "null";
     struct tm datetime;
     time_t t = v;
     localtime_r(&t, &datetime);
