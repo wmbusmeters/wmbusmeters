@@ -84,6 +84,6 @@
             "icon": "mdi:calendar-clock",
             "enabled_by_default": false
         }
-    },
+    }
 
 }
