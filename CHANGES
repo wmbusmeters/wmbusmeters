@@ -1,3 +1,25 @@
+
+The ha-addon has been moved to https://github.com/wmbusmeters/wmbusmeters-ha-addon
+
+Bug fixed where an mbus telegram was mistakenly detected as wmbus.
+The snap package can now use the serial port so that it works with mbus.
+
+DeDragonSlayer improved the amiplus with the maximum power consumption field. Thanks DeDragonSlayer!
+
+The calculator was improved to properly handle the m3 unit and give a better
+error message when a constant number lacks unit.
+
+The sharky driver was improved.
+
+The kamheat driver was updated with operating_time_h and a new auto-detect combo.
+
+Bibo added support for the hydrocal m4 meter,
+improved the kem-import and kem-extract scripts and
+added support for the Aerius gas meter. Thanks Bibo!
+
+The wmusmeters-admin tool has been removed since it was never really useful.
+It will probably be replaced with something better.
+
 Version 1.12.0 2023-03-12
 Version 1.12.0-RC1 2023-03-12
 

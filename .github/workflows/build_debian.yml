@@ -12,7 +12,7 @@ jobs:
       run: |
          sudo apt install -y eatmydata
          sudo eatmydata apt install -y devscripts debhelper
-         sudo eatmydata apt build-dep -y . || sudo eatmydata apt install -y librtlsdr-dev libncurses-dev adduser
+         sudo eatmydata apt build-dep -y . || sudo eatmydata apt install -y librtlsdr-dev adduser
     - id: PREPARE_SOURCE
       run: |
          ln -s deb debian

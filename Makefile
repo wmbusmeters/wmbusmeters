@@ -64,7 +64,6 @@ else
         # Release build
         DEBUG_FLAGS=-Os -g
         STRIP_BINARY=cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters.g; $(STRIP) $(BUILD)/wmbusmeters
-        STRIP_ADMIN=cp $(BUILD)/wmbusmeters-admin $(BUILD)/wmbusmeters-admin.g; $(STRIP) $(BUILD)/wmbusmeters-admin
         GCOV=To_run_gcov_add_DEBUG=true
     endif
 endif
@@ -99,14 +98,13 @@ else
 endif
 
 VERSION:=$(BRANCH)$(TAG)
-DEBVERSION:=$(BRANCH)$(TAG)
+LOCALDEBVERSION:=$(BRANCH)$(TAG)
 LOCALCHANGES:=
 
 ifneq ($(strip $(CHANGES)),)
   # There are local un-committed changes.
   VERSION:=$(VERSION) with local changes
-  COMMIT_HASH:=$(COMMIT_HASH) with local changes
-  DEBVERSION:=$(DEBVERSION)l
+  COMMIT_HASH:=$(COMMIT_HASH)+
   LOCALCHANGES:=true
 endif
 
@@ -188,9 +186,9 @@ else
 endif
 DRIVER_OBJS:=$(patsubst src/%.cc,$(BUILD)/%.o,$(DRIVER_OBJS))
 
-all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd $(BUILD)/wmbusmeters.g $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals
+all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd $(BUILD)/wmbusmeters.g $(BUILD)/testinternals
 
-deb:
+deb_release:
 	@if [ "$(RELEASE)" = "" ] ; then echo "Usage: make deb RELEASE=1.2.3" ; exit 1 ; fi
 	@if [ "$$(cat deb/changelog  | grep wmbusmeters\ \( | grep -o $(RELEASE))" != "$(RELEASE)" ]; then \
         echo "Changelog not updated with this release! It says:" ; \
@@ -211,6 +209,30 @@ deb:
 	@echo "Running debbuild..."
 	@(cd packaging/wmbusmeters-$(RELEASE) ; cp -a deb debian; debuild )
 
+deb_local:
+	@rm -rf packaging
+	@mkdir -p packaging
+	@echo "Using latest commit..."
+	@(cd packaging ; git clone $(PWD) wmbusmeters-$(LOCALDEBVERSION) ; cd wmbusmeters-$(LOCALDEBVERSION) )
+	@echo "Applying local changes..."
+	@(git diff > packaging/local_patch_$(LOCALDEBVERSION) ; \
+	  cd packaging/wmbusmeters-$(LOCALDEBVERSION) ; \
+	  patch -p 1 < ../local_patch_$(LOCALDEBVERSION) )
+	@(cd packaging/wmbusmeters-$(LOCALDEBVERSION) ; git show -s --format=%ct > ../release_date )
+	@echo "Removing git history..."
+	@(cd packaging ; rm -rf wmbusmeters-$(LOCALDEBVERSION)/.git )
+	@echo "Setting file timestamps to commit date..."
+	@(cd packaging ; export UT=$$(cat ./release_date) ; find . -exec touch -d "@$$UT" \{\} \; )
+	@echo "Creating orig archive..."
+	@(cd packaging ; tar czf ./wmbusmeters_$(LOCALDEBVERSION).orig.tar.gz wmbusmeters-$(LOCALDEBVERSION) )
+	@echo "Installing debian directory..."
+	@(cd packaging/wmbusmeters-$(LOCALDEBVERSION) ; cp -a deb debian )
+	@echo "Creating local dummy changelog..."
+	@echo "wmbusmeters ($(LOCALDEBVERSION)-99) unstable; urgency=low\n\n" \
+          "  * Local build of deb current sources $(VERSION) $(COMMIT_HASH)\n\n" \
+          " -- No User <nouser@nowhere> $(shell LANG=C date -R)\n" > packaging/wmbusmeters-$(LOCALDEBVERSION)/debian/changelog
+	@echo "Running debbuild..."
+	@(cd packaging/wmbusmeters-$(LOCALDEBVERSION) ; debuild -i -us -uc -b )
 
 # Check docs verifies that all options in the source have been mentioned in the README and in the man page.
 # Also any option not in the source but mentioned in the docs is warned for as well.
@@ -229,8 +251,13 @@ install: $(BUILD)/wmbusmeters check_docs
 	echo "Installing $(BUILD)/wmbusmeters"
 	@./install.sh $(BUILD)/wmbusmeters $(DESTDIR) $(EXTRA_INSTALL_OPTIONS)
 
+# Uninstall binaries and manpages. But keep configuration data and wmbusmeters user/group.
 uninstall:
 	@./uninstall.sh /
+
+# Uninstall everything including configuration and wmbusmeters user/group.
+uninstall_purge:
+	@./uninstall.sh / --purge
 
 snapcraft:
 	snapcraft
@@ -252,15 +279,6 @@ $(BUILD)/wmbusmeters: $(BUILD)/wmbusmeters.g
 
 $(BUILD)/wmbusmetersd: $(BUILD)/wmbusmeters
 	cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd
-
-ifeq ($(shell uname -s),Darwin)
-$(BUILD)/wmbusmeters-admin:
-	touch $(BUILD)/wmbusmeters-admin
-else
-$(BUILD)/wmbusmeters-admin: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters-admin $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -lrtlsdr $(USBLIB) -lpthread
-	$(STRIP_ADMIN)
-endif
 
 $(BUILD)/short_manual.h: README.md
 	echo 'R"MANUAL(' > $(BUILD)/short_manual.h

@@ -954,10 +954,7 @@ if this hangs, then do `sudo killall -9 wmbusmetersd` and/or `sudo killall -9 wm
 
 Wmbusmeters expects the serial baud rate for the AMB8465 USB stick to be 9600 8n1.
 If you have used another tool and changed the baud rate to something else
-you need to restore the baud rate to 9600 8n1. You can do that with that other tool,
-or you can try wmbusmeters-admin and select `Reset wmbus receives`
-this command try all potential baud rates and send the factory reset command.
-Then you have to unplug and reinsert the dongle.
+you need to restore the baud rate to 9600 8n1.
 
 If you like to send the bytes manually, the correct bytes are:
 

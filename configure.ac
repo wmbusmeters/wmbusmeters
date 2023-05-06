@@ -54,14 +54,6 @@ AC_CHECK_LIB(rtlsdr, rtlsdr_get_device_count, [],
   AC_MSG_ERROR([Could  not find rtlsdr library. Try: sudo apt install librtlsdr-dev])
 ])
 
-AX_WITH_CURSES
-
-if test ! "$ax_cv_curses" = "yes"
-then
-    echo "Could not find ncurses library. Try: sudo apt install libncurses-dev"
-    exit 1
-fi
-
 AC_CONFIG_FILES([$OUTPUT_ROOT/spec.gmk:$SRC_ROOT/autoconf/spec.gmk.in])
 AC_CONFIG_FILES([$OUTPUT_ROOT/Makefile:$SRC_ROOT/autoconf/Makefile.in])
 
