@@ -407,12 +407,12 @@ update_manufacturers:
 	rm *.flags manufacturers.txt
 
 
-GCC_MAJOR_VERSION:=$(shell gcc --version | head -n 1 | sed 's/.* \([0-9]\)\.[0-9]\.[0-9]$$/\1/')
+GCC_MAJOR_VERSION:=$(shell cc --version | head -n 1 | sed 's/.* \([0-9][0-9]*\)\.[0-9][0-9]*\.[0-9][0-9]*$$/\1/')
 AFL_HOME:=AFLplusplus
 
 $(AFL_HOME)/src/afl-cc.c:
 	mkdir -p AFLplusplus
-	if ! dpkg -s gcc-$(GCC_MAJOR_VERSION)-plugin-dev 2>/dev/null >/dev/null ; then echo "Please run: sudo apt install gcc-$(GCC_MAJOR_VERSION)-plugin-dev"; exit 1; fi
+	@if ! dpkg -s gcc-$(GCC_MAJOR_VERSION)-plugin-dev 2>/dev/null >/dev/null ; then echo "Please run: sudo apt install gcc-$(GCC_MAJOR_VERSION)-plugin-dev"; exit 1; fi
 	git clone https://github.com/AFLplusplus/AFLplusplus.git
 
 afl_prepared:  AFLplusplus/src/afl-cc.c
