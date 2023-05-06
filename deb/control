@@ -4,7 +4,6 @@ Priority: optional
 Maintainer: Fredrik Öhrström <oehrstroem@gmail.com>
 Build-Depends: debhelper-compat (= 13)
  , librtlsdr-dev
- , libncurses-dev
  , jq
  , netcat-openbsd
 Standards-Version: 4.5.1

@@ -22,7 +22,6 @@ AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 
 m4_include([autoconf/pkg.m4])
-m4_include([autoconf/ax_with_curses.m4])
 
 PKG_PREREQ(0.29)
 

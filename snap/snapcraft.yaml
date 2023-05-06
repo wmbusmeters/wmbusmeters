@@ -49,7 +49,6 @@ parts:
       - g++
       - make
       - librtlsdr-dev
-      - libncurses5-dev
     stage-packages:
       - mosquitto-clients
       - curl
