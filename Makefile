@@ -191,7 +191,7 @@ DRIVER_OBJS:=$(patsubst src/%.cc,$(BUILD)/%.o,$(DRIVER_OBJS))
 all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd $(BUILD)/wmbusmeters.g $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals
 
 deb:
-	@if [ "$(RELEASE)" = "" ] ; then echo "Usage: make deb TAG=1.10.1" ; exit 1 ; fi
+	@if [ "$(RELEASE)" = "" ] ; then echo "Usage: make deb RELEASE=1.2.3" ; exit 1 ; fi
 	@if [ "$$(cat deb/changelog  | grep wmbusmeters\ \( | grep -o $(RELEASE))" != "$(RELEASE)" ]; then \
         echo "Changelog not updated with this release! It says:" ; \
 	    head -n 1 deb/changelog ; \
