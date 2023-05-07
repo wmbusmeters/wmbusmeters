@@ -15,3 +15,10 @@ export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
 
 %:
 	dh $@
+
+LPAR=(
+RPAR=)
+CHANGELOG_RELEASE=$(shell cat debian/changelog | head -n 1 | grep -o '$(LPAR).*$(RPAR)' | tr -d '$(LPAR)$(RPAR)' )
+
+override_dh_auto_build:
+	$(MAKE) COMMIT_HASH= TAG=$(CHANGELOG_RELEASE) BRANCH= CHANGES=

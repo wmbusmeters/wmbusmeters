@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+# Copyright (C) 2017-2023 Fredrik Öhrström (gpl-3.0-or-later)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -188,27 +188,7 @@ DRIVER_OBJS:=$(patsubst src/%.cc,$(BUILD)/%.o,$(DRIVER_OBJS))
 
 all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd $(BUILD)/wmbusmeters.g $(BUILD)/testinternals
 
-deb_release:
-	@if [ "$(RELEASE)" = "" ] ; then echo "Usage: make deb RELEASE=1.2.3" ; exit 1 ; fi
-	@if [ "$$(cat deb/changelog  | grep wmbusmeters\ \( | grep -o $(RELEASE))" != "$(RELEASE)" ]; then \
-        echo "Changelog not updated with this release! It says:" ; \
-	    head -n 1 deb/changelog ; \
-        exit 1 ; \
-    fi
-	@rm -rf packaging
-	@mkdir -p packaging
-	@echo "Checking out tag $(RELEASE)..."
-	@(cd packaging ; git clone $(PWD) wmbusmeters-$(RELEASE) ; cd wmbusmeters-$(RELEASE) ; git -c advice.detachedHead=false checkout tags/$(RELEASE) )
-	@(cd packaging/wmbusmeters-$(RELEASE) ; git show -s --format=%ct > ../release_date )
-	@echo "Removing git history..."
-	@(cd packaging ; rm -rf wmbusmeters-$(RELEASE)/.git )
-	@echo "Setting file timestamps to commit date..."
-	@(cd packaging ; export UT=$$(cat ./release_date) ; find . -exec touch -d "@$$UT" \{\} \; )
-	@echo "Creating orig archive..."
-	@(cd packaging ; tar czf ./wmbusmeters_$(RELEASE).orig.tar.gz wmbusmeters-$(RELEASE) )
-	@echo "Running debbuild..."
-	@(cd packaging/wmbusmeters-$(RELEASE) ; cp -a deb debian; debuild )
-
+# Create a local binary only package.
 deb_local:
 	@rm -rf packaging
 	@mkdir -p packaging
