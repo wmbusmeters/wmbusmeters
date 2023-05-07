@@ -1,6 +1,9 @@
+Version 1.13.1-RC1 2023-05-07
+
+Fix make install to not trigger a new build.
+
 Version 1.13.0 2023-05-07
 Version 1.13.0-RC1 2023-05-07
-
 
 The ha-addon has been moved to https://github.com/wmbusmeters/wmbusmeters-ha-addon
 
