@@ -247,8 +247,9 @@ check_docs:
 	@diff /tmp/options_in_code /tmp/options_in_binary || echo CODE_VS_BINARY
 	@echo "OK docs"
 
-install: $(BUILD)/wmbusmeters check_docs
-	echo "Installing $(BUILD)/wmbusmeters"
+install:
+	@if [ ! -f $(BUILD)/wmbusmeters ] ; then echo "Cannot find the binary to install! You have to run just \"make\" first!" ; exit 1 ; fi
+	@echo "Installing $(BUILD)/wmbusmeters"
 	@./install.sh $(BUILD)/wmbusmeters $(DESTDIR) $(EXTRA_INSTALL_OPTIONS)
 
 # Uninstall binaries and manpages. But keep configuration data and wmbusmeters user/group.
