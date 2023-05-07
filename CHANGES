@@ -1,3 +1,5 @@
+Version 1.13.0-RC1 2023-05-07
+
 
 The ha-addon has been moved to https://github.com/wmbusmeters/wmbusmeters-ha-addon
 
@@ -17,8 +19,9 @@ Bibo added support for the hydrocal m4 meter,
 improved the kem-import and kem-extract scripts and
 added support for the Aerius gas meter. Thanks Bibo!
 
-The wmusmeters-admin tool has been removed since it was never really useful.
-It will probably be replaced with something better.
+The wmbusmeters-admin tool has been removed since it was never really useful.
+It will probably be replaced with something better and http based.
+This drops the need for the ncurses dependency.
 
 Version 1.12.0 2023-03-12
 Version 1.12.0-RC1 2023-03-12
