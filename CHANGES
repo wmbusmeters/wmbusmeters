@@ -1,3 +1,4 @@
+Version 1.13.1 2023-05-07
 Version 1.13.1-RC1 2023-05-07
 
 Fix make install to not trigger a new build.
