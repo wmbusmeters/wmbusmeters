@@ -117,7 +117,7 @@ namespace
 
         addStringFieldWithExtractor(
             "error_date",
-            "The date the error occured at. If no error, reads 2127-15-31 (FFFF).",
+            "The date the error occurred at. If no error, reads 2127-15-31 (FFFF).",
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::AtError)

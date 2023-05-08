@@ -148,7 +148,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "max_flow",
-            "The maxium flow recorded during previous period.",
+            "The maximum flow recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
@@ -172,7 +172,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "max_external_temperature",
-            "The maxium temperature recorded during previous period.",
+            "The maximum temperature recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
@@ -196,7 +196,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "max_flow",
-            "The maxium flow recorded during previous period.",
+            "The maximum flow recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,

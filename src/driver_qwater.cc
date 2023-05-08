@@ -120,7 +120,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "error",
-            "The date the error occured at. If no error, reads 2127-15-31 (FFFF).",
+            "The date the error occurred at. If no error, reads 2127-15-31 (FFFF).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,

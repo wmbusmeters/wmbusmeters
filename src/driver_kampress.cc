@@ -85,7 +85,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "min_pressure",
-            "The minumum pressure measured during ?.",
+            "The minimum pressure measured during ?.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Pressure,
             VifScaling::Auto,

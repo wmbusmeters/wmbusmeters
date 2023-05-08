@@ -52,7 +52,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "max_flow",
-            "The maxium flow recorded during previous period.",
+            "The maximum flow recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
