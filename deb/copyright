@@ -15,6 +15,11 @@ Files: src/aes.h
 Copyright: 2019 kokke
 License: CC0
 
+Files: src/driver_apatoreitn.cc
+Copyright: 2023 Fredrik Öhrström
+           2022 Kajetan Krykwiński
+License: GPL-3+
+
 Files: src/driver_emerlin868.cc
 Copyright: 2022 Fredrik Öhrström
            2018 David Mallon
@@ -25,25 +30,31 @@ Copyright: 2022 Fredrik Öhrström
            2018 David Mallon
 License: GPL-3+
 
+Files: src/driver_hydrus.cc
+Copyright: 2023 Fredrik Öhrström
+           2021 Vincent Privat
+License: GPL-3+
+
 Files: src/driver_iperl.cc
 Copyright: 2022 Fredrik Öhrström
            2018 David Mallon
 License: GPL-3+
 
-Files: src/driver_minomess.cc
-Copyright: 2021 Olli Salonen
-           2022 Fredrik Öhrström
+Files: src/driver_izar.cc
+Copyright: 2019 Jacek Tomasiak
+           2023 Fredrik Öhrström
+           2021 Vincent Privat
 License: GPL-3+
 
-Files: src/driver_multical303.cc
-Copyright: 2022 thecem
-           2022 Fredrik Öhrström
-License: GPL-3+
-
-Files: src/driver_multical603.cc
+Files: src/driver_kamheat.cc
 Copyright: 2022 Fredrik Öhrström
            2020 Eric Bus
            2022 thecem
+License: GPL-3+
+
+Files: src/driver_minomess.cc
+Copyright: 2021 Olli Salonen
+           2022 Fredrik Öhrström
 License: GPL-3+
 
 Files: src/driver_sensostar.cc
@@ -61,6 +72,11 @@ Copyright: 2021 Vincent Privat
            2022 Fredrik Öhrström
 License: GPL-3+
 
+Files: src/driver_topaseskr.cc
+Copyright: 2022 Fredrik Öhrström
+           2020 Avandorp
+License: GPL-3+
+
 Files: src/manufacturer_specificities.cc
 Copyright: 2019 Jacek Tomasiak
            2021 Vincent Privat
@@ -69,38 +85,6 @@ License: GPL-3+
 Files: src/manufacturer_specificities.h
 Copyright: 2019 Jacek Tomasiak
            2021 Vincent Privat
-License: GPL-3+
-
-Files: src/meter_hydrus.cc
-Copyright: 2020 Fredrik Öhrström
-           2021 Vincent Privat
-License: GPL-3+
-
-Files: src/meter_izar.cc
-Copyright: 2019 Jacek Tomasiak
-           2020 Fredrik Öhrström
-           2021 Vincent Privat
-License: GPL-3+
-
-Files: src/meter_multical403.cc
-Copyright: 2020 Fredrik Öhrström
-           2020 Eric Bus
-License: GPL-3+
-
-Files: src/meter_multical602.cc
-Copyright: 2021 Fredrik Öhrström
-           2020 Eric Bus
-License: GPL-3+
-
-Files: src/meter_multical803.cc
-Copyright: 2020 Fredrik Öhrström
-           2020 Eric Bus
-           2020 Nikodem Jędrzejczak
-License: GPL-3+
-
-Files: src/meter_topaseskr.cc
-Copyright: 2020 Fredrik Öhrström
-           2020 Avandorp
 License: GPL-3+
 
 Files: src/sha256.cc
