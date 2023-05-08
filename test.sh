@@ -180,14 +180,19 @@ fi
 # Only run the netcat tests if netcat is installed.
 if command -v nc > /dev/null 2> /dev/null
 then
-    ./tests/test_nc1.sh $PROG
-    if [ "$?" != "0" ]; then RC="1"; fi
+    IS_NC_OPENBSD=$(nc -help 2>&1 | grep -o OpenBSD)
+    # These tests only work with netcat-openbsd.
+    if [ "$IS_NC_OPENBSD" = "OpenBSD" ]
+    then
+        ./tests/test_nc1.sh $PROG
+        if [ "$?" != "0" ]; then RC="1"; fi
 
-    ./tests/test_nc2.sh $PROG
-    if [ "$?" != "0" ]; then RC="1"; fi
+        ./tests/test_nc2.sh $PROG
+        if [ "$?" != "0" ]; then RC="1"; fi
 
-    ./tests/test_nc3.sh $PROG
-    if [ "$?" != "0" ]; then RC="1"; fi
+        ./tests/test_nc3.sh $PROG
+        if [ "$?" != "0" ]; then RC="1"; fi
+    fi
 fi
 
 echo Slower tests...
