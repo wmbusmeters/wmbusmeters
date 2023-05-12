@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2023 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -4141,6 +4141,16 @@ bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<
     {
         verbose("(wmbus) skipping already handled telegram leng=%zu.\n", frame.size());
         return true;
+    }
+
+    if (about.type == FrameType::WMBUS)
+    {
+        size_t len = frame[0]+1;
+        if (frame.size() > 0 && len != frame.size())
+        {
+            warning("(wmbus) telegram length byte (the first) 0x%02x (%d) is probably wrong. Expected 0x%02x (%zu) based on the length of the telegram.\n",
+                    frame[0], frame[0], len, len);
+        }
     }
 
     for (auto f : telegram_listeners_)
