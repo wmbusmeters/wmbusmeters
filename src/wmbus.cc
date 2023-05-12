@@ -1538,6 +1538,7 @@ bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *form
 
 bool Telegram::alreadyDecryptedCBC(vector<uchar>::iterator &pos)
 {
+    CHECK(2);
     if (*(pos+0) != 0x2f || *(pos+1) != 0x2f) return false;
     addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x already decrypted check bytes", *(pos+0), *(pos+1));
     return true;
