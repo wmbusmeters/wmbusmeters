@@ -4126,6 +4126,8 @@ bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<
     bool handled = false;
     last_received_ = time(NULL);
 
+    assert(frame.size() > 0);
+
     if (about.type == FrameType::MBUS && frame.size() == 1)
     {
         if (frame[0] == 0xe5)

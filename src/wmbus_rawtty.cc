@@ -211,6 +211,14 @@ void WMBusRawTTY::processSerialData()
     {
         FrameStatus status = checkWMBusFrame(data_buffer_, &frame_length, &payload_len, &payload_offset, false);
 
+        if (payload_len == 0)
+        {
+            verbose("(rawtty) protocol error in message received length byte is zero!\n");
+            string msg = bin2hex(data_buffer_);
+            debug("(rawtty) protocol error \"%s\"\n", msg.c_str());
+            data_buffer_.clear();
+            break;
+        }
         if (status == PartialFrame)
         {
             // Partial frame, stop eating.
