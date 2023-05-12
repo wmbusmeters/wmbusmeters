@@ -173,12 +173,11 @@ namespace
         case 0x82:
         case 0x83:
         case 0x84:
-        case 0x85:
         case 0x86:
         case 0x87: return 10; // Events
 
-        case 0x88: return 6;
-
+        case 0x85:
+        case 0x88:
         case 0x8F: return 11; // Events
 
         case 0x8A: return 9; // Events
