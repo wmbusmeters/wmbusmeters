@@ -4145,11 +4145,11 @@ bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<
 
     if (about.type == FrameType::WMBUS)
     {
-        size_t len = frame[0]+1;
-        if (frame.size() > 0 && len != frame.size())
+        size_t expected_len = frame[0]+1;
+        if (frame.size() > 0 && expected_len != frame.size())
         {
             warning("(wmbus) telegram length byte (the first) 0x%02x (%d) is probably wrong. Expected 0x%02x (%zu) based on the length of the telegram.\n",
-                    frame[0], frame[0], len, len);
+                    frame[0], frame[0], frame.size()-1, frame.size()-1);
         }
     }
 

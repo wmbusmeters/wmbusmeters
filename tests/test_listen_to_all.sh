@@ -70,7 +70,7 @@ Received telegram from: 58234965
                   type: Heat meter (0xc3)
                    ver: 0x27
                 driver: vario451
-(wmbus) telegram length byte (the first) 0x31 (49) is probably wrong. Expected 0x32 (50) based on the length of the telegram.
+(wmbus) telegram length byte (the first) 0x31 (49) is probably wrong. Expected 0x34 (52) based on the length of the telegram.
 Received telegram from: 11776622
           manufacturer: (TCH) Techem Service (0x5068)
                   type: Heat Cost Allocator (0x80)
