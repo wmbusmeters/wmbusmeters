@@ -16,12 +16,15 @@
 */
 
 #include"meters_common_implementation.h"
+#include"manufacturer_specificities.h"
 
 namespace
 {
     struct Driver : public virtual MeterCommonImplementation
     {
         Driver(MeterInfo &mi, DriverInfo &di);
+    protected:
+        void processContent(Telegram *t) override;
     };
 
     static bool ok = registerDriver([](DriverInfo&di)
@@ -41,6 +44,7 @@ namespace
         di.addDetection(MANUFACTURER_QDS, 0x07,  0x18);
         di.addDetection(MANUFACTURER_QDS, 0x06,  0x35);
         di.addDetection(MANUFACTURER_QDS, 0x07,  0x35);
+        di.usesProcessContent();
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
@@ -132,6 +136,19 @@ namespace
     }
 }
 
+void Driver::processContent(Telegram *t) {
+    auto it = t->dv_entries.find("0DFF5F");
+    if (it == t->dv_entries.end()) {
+        return;
+    }
+    DVEntry entry = it->second.second;
+    qdsExtractWalkByField(t, this, entry, 24, 8, "0C13", "total", Quantity::Volume);
+    qdsExtractWalkByField(t, this, entry, 32, 4, "426C", "due", Quantity::PointInTime);
+    qdsExtractWalkByField(t, this, entry, 36, 8, "4C13", "due_date", Quantity::Volume);
+    qdsExtractWalkByField(t, this, entry, 44, 4, "C2086C", "due_17", Quantity::PointInTime);
+    qdsExtractWalkByField(t, this, entry, 48, 8, "CC0813", "due_17_date", Quantity::Volume);
+}
+
 // Test: MyQWater qwater 12353648 NOKEY
 // telegram=|374493444836351218067ac70000200c13911900004c1391170000426cbf2ccc081391170000c2086cbf2c02bb560000326cffff046d1e02de21fed0|
 // {"media":"warm water","meter":"qwater","name":"MyQWater","id":"12353648","status":"OK","total_m3":1.991,"due_date_m3":1.791,"due_date":"2021-12-31","due_17_date_m3":1.791,"due_17_date":"2021-12-31","error_date":"2128-03-31","volume_flow_m3h":0,"meter_datetime":"2022-01-30 02:30","timestamp":"1111-11-11T11:11:11Z"}
@@ -139,8 +156,8 @@ namespace
 
 // And a second telegram that only updates the device date time.
 // telegram=|47449344483635121806780dff5f350082da0000600107c113ffff48200000bf2c91170000df2120200000008001000000060019001000160018000d001300350017002f046d370cc422c759|
-// {"media":"warm water","meter":"qwater","name":"MyQWater","id":"12353648","status":"OK","total_m3":1.991,"due_date_m3":1.791,"due_date":"2021-12-31","due_17_date_m3":1.791,"due_17_date":"2021-12-31","error_date":"2128-03-31","volume_flow_m3h":0,"meter_datetime":"2022-02-04 12:55","timestamp":"1111-11-11T11:11:11Z"}
-// |MyQWater;12353648;1.991;1.791;2021-12-31;OK;1111-11-11 11:11.11
+// {"media":"warm water","meter":"qwater","name":"MyQWater","id":"12353648","status":"OK","total_m3":2.048,"due_date_m3":1.791,"due_date":"2021-12-31","due_17_date_m3":2.02,"due_17_date":"2022-01-31","error_date":"2128-03-31","volume_flow_m3h":0,"meter_datetime":"2022-02-04 12:55","timestamp":"1111-11-11T11:11:11Z"}
+// |MyQWater;12353648;2.048;1.791;2021-12-31;OK;1111-11-11 11:11.11
 
 // Test: AnotherQWater qwater 66666666 NOKEY
 // telegram=|3C449344682268363537726666666693443507720000200C13670512004C1361100300426CBF2CCC081344501100C2086CDF28326CFFFF046D0813CF29|
@@ -169,3 +186,9 @@ namespace
 // telegram=|394493449068171316077A0B000020_0C13358612004C1307851200426CDF2CCC081307851200C2086CDF2C02BB560000326CFFFF046D3014E121|
 // {"due_17_date": "2022-12-31","due_17_date_m3": 128.507,"due_date": "2022-12-31","due_date_m3": 128.507,"error_date": "2128-03-31","id": "13176890","media": "water","meter": "qwater","meter_datetime": "2023-01-01 20:48","name": "QWooo","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 128.635,"volume_flow_m3h": 0}
 // |QWooo;13176890;128.635;128.507;2022-12-31;OK;1111-11-11 11:11.11
+
+// Test: QWooo qwater 78563412 NOKEY
+// Comment: Proprietary Q walk-by message
+// telegram=|49449344123456781606780DFF5F3500824E00007F0007C113FFFF63961300DF2C82731200FE2463811300A400F200D100A900DD00E000E90006011601EA0027010F012F046D0211F225|
+// {"due_17_date": "2023-04-30","due_17_date_m3": 138.163,"due_date": "2022-12-31","due_date_m3": 127.382,"id": "78563412","media": "warm water","meter": "qwater","meter_datetime": "2023-05-18 17:02","name": "QWooo","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 139.663}
+// |QWooo;78563412;139.663;127.382;2022-12-31;OK;1111-11-11 11:11.11
