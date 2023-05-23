@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2019-2023 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -30,11 +30,13 @@ namespace
         di.setDefaultFields("name,id,current_temperature_c,current_relative_humidity_rh,timestamp");
         di.setMeterType(MeterType::TempHygroMeter);
         di.addDetection(MANUFACTURER_LAS,  0x1b,  0x07);
+        di.addDetection(MANUFACTURER_LAS,  0x1b,  0x09);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
+        addOptionalCommonFields("on_time_h");
         setMfctTPLStatusBits(
             Translate::Lookup()
             .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
@@ -127,6 +129,7 @@ namespace
 // {"media":"room sensor","meter":"lansenth","name":"Tempoo","id":"00010203","status":"PERMANENT_ERROR SABOTAGE_ENCLOSURE","current_temperature_c":21.8,"current_relative_humidity_rh":43,"average_temperature_1h_c":21.79,"average_relative_humidity_1h_rh":43,"average_temperature_24h_c":21.97,"average_relative_humidity_24h_rh":42.5,"timestamp":"1111-11-11T11:11:11Z"}
 // |Tempoo;00010203;21.8;43;1111-11-11 11:11.11
 
-// Test: T2 lansenth 00060041 <KEY-REDACTED>
+// Test: T2 lansenth 00060041 NOKEY
 // telegram=|2E44333041000600091B7AA70020252F2F_0265DBF94265FC04820165610901FB1B2C41FB1B238101FB1B290223BB00|+0
-// {"media":"room sensor","meter":"lansenth","name":"T2","id":"00060041","status":"OK","current_temperature_c":-15.73,"current_relative_humidity_rh":44,"average_temperature_1h_c":12.76,"average_relative_humidity_1h_rh":35,"average_temperature_24h_c":24.01,"average_relative_humidity_24h_rh":41,"timestamp":"2023-05-23T07:28:44Z"}
+// {"media":"room sensor","meter":"lansenth","name":"T2","id":"00060041","status":"OK","current_temperature_c":-15.73,"current_relative_humidity_rh":44,"average_temperature_1h_c":12.76,"average_relative_humidity_1h_rh":35,"average_temperature_24h_c":24.01,"average_relative_humidity_24h_rh":41,"on_time_h":4488,"timestamp":"1111-11-11T11:11:11Z"}
+// |T2;00060041;-15.73;44;1111-11-11 11:11.11
