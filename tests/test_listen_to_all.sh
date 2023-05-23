@@ -337,7 +337,7 @@ Received telegram from: 37027095
           manufacturer: (QDS) Qundis, Germany (0x4493)
                   type: Heat meter (0x04)
                    ver: 0x23
-                driver: qheat
+                driver: qheat qheat
 Received telegram from: 45797086
           manufacturer: (QDS) Qundis, Germany (0x4493)
                   type: Smoke detector (0x1a)
