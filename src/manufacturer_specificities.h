@@ -80,4 +80,6 @@ bool mustDecryptDiehlRealData(const vector<uchar>& frame);
 // Diehl: decrypt real data payload (LFSR)
 bool decryptDielhRealData(Telegram *t, vector<uchar> &frame, vector<uchar>::iterator &pos, const vector<uchar> &meterkey);
 
+void qdsExtractWalkByField(Telegram *t, Meter *driver, DVEntry &mfctEntry, int pos, int n, const string &key_s, const string &fieldName, Quantity quantity);
+
 #endif

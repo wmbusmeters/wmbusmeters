@@ -536,6 +536,8 @@ public:
     bool parseHANHeader(vector<uchar> &input_frame);
     bool parseHAN(vector<uchar> &input_frame, MeterKeys *mk, bool warn);
 
+    void addId(const vector<uchar>::iterator &pos);
+
     void print();
 
     // A vector of indentations and explanations, to be printed

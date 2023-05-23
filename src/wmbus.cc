@@ -229,6 +229,18 @@ LIST_OF_MANUFACTURERS
 
 }
 
+void Telegram::addId(const vector<uchar>::iterator &pos)
+{
+    string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
+    ids.push_back(id);
+    if (idsc.empty()) {
+        idsc = id;
+    }
+    else {
+        idsc += "," + id;
+    }
+}
+
 void Telegram::print()
 {
     uchar a=0, b=0, c=0, d=0;
@@ -960,9 +972,7 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
         }
     }
     // Add dll_id to ids.
-    string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
-    ids.push_back(id);
-    idsc = id;
+    addId(pos);
     addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x dll-id (%s)",
                                   *(pos+0), *(pos+1), *(pos+2), *(pos+3), ids.back().c_str());
 
@@ -1052,9 +1062,7 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         ell_id_b[3] = *(pos+3);
 
         // Add ell_id to ids.
-        string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
-        ids.push_back(id);
-        idsc = idsc+","+id;
+        addId(pos);
         addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x ell-id",
                                       ell_id_b[0], ell_id_b[1], ell_id_b[2], ell_id_b[3]);
 
@@ -1464,9 +1472,7 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     }
 
     // Add the tpl_id to ids.
-    string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
-    ids.push_back(id);
-    idsc = idsc+","+id;
+    addId(pos);
 
     addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL,
                                   "%02x%02x%02x%02x tpl-id (%02x%02x%02x%02x)",

@@ -20,6 +20,7 @@
 #include<set>
 #include"manufacturers.h"
 #include"manufacturer_specificities.h"
+#include"meters.h"
 
 std::set<int> diehl_manufacturers = {
     MANUFACTURER_DME,
@@ -346,4 +347,29 @@ const char *toString(DiehlAddressTransformMethod m)
     case DiehlAddressTransformMethod::SAP_PRIOS_STANDARD: return "SAP_PRIOS_STANDARD";
     }
     return "?";
+}
+
+void qdsExtractWalkByField(Telegram *t, Meter *driver, DVEntry &mfctEntry, int pos, int n, const string &key_s, const string &fieldName, Quantity quantity) {
+    string bytes = mfctEntry.value.substr(pos, n);
+
+    DifVifKey key(key_s);
+    DVEntry fieldEntry(0,
+                       key,
+                       MeasurementType::Instantaneous,
+                       key.vif(),
+                       set<VIFCombinable>(),
+                       AnyStorageNr,
+                       AnyTariffNr,
+                       SubUnitNr(0),
+                       bytes);
+
+    FieldInfo *fieldInfo = driver->findFieldInfo(fieldName, quantity);
+    if (fieldInfo == nullptr) {
+        error("(qds) field info not found: %s\n", fieldName.c_str());
+    }
+
+    fieldInfo->performExtraction(driver, t, &fieldEntry);
+    string info = "*** " + bytes + " (" + fieldInfo->renderJson(driver, &fieldEntry) + ")";
+
+    t->addSpecialExplanation(mfctEntry.offset + pos / 2, n / 2, KindOfData::CONTENT, Understanding::FULL, info.c_str());
 }
