@@ -1,3 +1,15 @@
+
+Improve error messages when telegrams with bad length byte are read.
+Improve the apator162 driver.
+
+Added the iwmtx5 driver.
+
+Vyacheslav Karpukhin improved the qheat driver to decode propriatary format telegrams. Thanks Vyacheslav!
+
+pvagner improved the lansenth driver to handle negative values. Thanks pvagner!
+
+demetz imporproved ultraheat driver to handle negative values. Thanks demetz!
+
 Version 1.13.1 2023-05-07
 Version 1.13.1-RC1 2023-05-07
 
