@@ -36,6 +36,7 @@ namespace
         di.setMeterType(MeterType::ElectricityMeter);
         di.addLinkMode(LinkMode::C1);
         di.addDetection(MANUFACTURER_KAM,  0x02,  0x33);
+        di.addDetection(MANUFACTURER_GAV,  0x02,  0x00);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
@@ -107,6 +108,17 @@ namespace
             );
 
         addNumericFieldWithExtractor(
+            "power",
+            "Power measured by this meter at the moment.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Power,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyPowerVIF)
+            );
+
+        addNumericFieldWithExtractor(
             "total_energy_production",
             "The total energy backward (production) recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
@@ -167,3 +179,8 @@ namespace
 // telegram=|35442D2C6666666633028D2070806A0520B4D378_0405F208000004FB82753F00000004853C0000000004FB82F53CCA01000001FD1722|
 // {"media":"electricity","meter":"em24","name":"Elen","id":"66666666","status":"I_3_OVERFLOW V_2_OVERFLOW","error":"I_3_OVERFLOW V_2_OVERFLOW","total_energy_consumption_kwh":229,"total_energy_production_kwh":0,"total_reactive_energy_consumption_kvarh":63,"total_reactive_energy_production_kvarh":458,"total_apparent_energy_consumption_kvah":237.507895,"total_apparent_energy_production_kvah":458,"timestamp":"1111-11-11T11:11:11Z"}
 // |Elen;66666666;229;0;63;458;237.507895;458;1111-11-11 11:11.11
+
+// Test: Elen2 em24 02020202 NOKEY
+// telegram=|4144361C0202020200028C209A7A9A0030252F2F_04050100000004FB82750000000004FB82F53C00000000042A0000000001FD17002F2F2F2F2F2F2F2F2F2F2F2F2F|
+// {"error": "","id": "02020202","media": "electricity","meter": "em24","name": "Elen2","power_kw": 0,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_apparent_energy_consumption_kvah": 0.1,"total_apparent_energy_production_kvah": null,"total_energy_consumption_kwh": 0.1,"total_reactive_energy_consumption_kvarh": 0,"total_reactive_energy_production_kvarh": 0}
+// |Elen2;02020202;0.1;null;0;0;0.1;null;1111-11-11 11:11.11
