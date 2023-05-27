@@ -1230,7 +1230,7 @@ bool SerialCommunicationManagerImp::removeNonWorking(string device)
 }
 
 
-#if defined(__APPLE__) || defined(__FreeBSD__)
+#if not defined(__linux__)
 vector<string> SerialCommunicationManagerImp::listSerialTTYs()
 {
     vector<string> list;
