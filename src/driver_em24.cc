@@ -172,15 +172,96 @@ namespace
                            (total_reactive_energy_production_kvarh * total_reactive_energy_production_kvarh) )
             )STR");
 
+        addNumericFieldWithExtractor(
+            "amperage_at_phase_1",
+            "Amperage at phase L1.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Amperage,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(DifVifKey("04FDD9FC01"))
+            );
+
+        addNumericFieldWithExtractor(
+            "amperage_at_phase_2",
+            "Amperage at phase L2.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Amperage,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(DifVifKey("04FDD9FC02"))
+            );
+
+        addNumericFieldWithExtractor(
+            "amperage_at_phase_3",
+            "Amperage at phase L3.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Amperage,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(DifVifKey("04FDD9FC03"))
+            );
+
+        addNumericFieldWithExtractor(
+            "voltage_at_phase_1",
+            "Voltage at phase L1.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Voltage,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(DifVifKey("04FDC8FC01"))
+            );
+
+        addNumericFieldWithExtractor(
+            "voltage_at_phase_2",
+            "Voltage at phase L2.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Voltage,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(DifVifKey("04FDC8FC02"))
+            );
+
+        addNumericFieldWithExtractor(
+            "voltage_at_phase_3",
+            "Voltage at phase L3.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Voltage,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(DifVifKey("04FDC8FC03"))
+            );
+
+        addNumericFieldWithExtractor(
+            "raw_frequency",
+            "Frequency in 0.1 Hz",
+            DEFAULT_PRINT_PROPERTIES  | PrintProperty::HIDE,
+            Quantity::Frequency,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("02FB2E"))
+            );
+
+        addNumericFieldWithCalculator(
+            "frequency",
+            "Frequency of AC.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Frequency,
+            "raw_frequency_hz / 10 counter");
     }
 }
 
 // Test: Elen em24 66666666 NOKEY
 // telegram=|35442D2C6666666633028D2070806A0520B4D378_0405F208000004FB82753F00000004853C0000000004FB82F53CCA01000001FD1722|
-// {"media":"electricity","meter":"em24","name":"Elen","id":"66666666","status":"I_3_OVERFLOW V_2_OVERFLOW","error":"I_3_OVERFLOW V_2_OVERFLOW","total_energy_consumption_kwh":229,"total_energy_production_kwh":0,"total_reactive_energy_consumption_kvarh":63,"total_reactive_energy_production_kvarh":458,"total_apparent_energy_consumption_kvah":237.507895,"total_apparent_energy_production_kvah":458,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"electricity","meter":"em24","name":"Elen","id":"66666666","status":"I_3_OVERFLOW V_2_OVERFLOW","error":"I_3_OVERFLOW V_2_OVERFLOW","total_energy_consumption_kwh":229,"total_energy_production_kwh":0,"total_reactive_energy_consumption_kvarh":63,"total_reactive_energy_production_kvarh":458,"total_apparent_energy_consumption_kvah":237.507895,"total_apparent_energy_production_kvah":458,"frequency_hz":null,"timestamp":"1111-11-11T11:11:11Z"}
 // |Elen;66666666;229;0;63;458;237.507895;458;1111-11-11 11:11.11
 
 // Test: Elen2 em24 02020202 NOKEY
 // telegram=|4144361C0202020200028C209A7A9A0030252F2F_04050100000004FB82750000000004FB82F53C00000000042A0000000001FD17002F2F2F2F2F2F2F2F2F2F2F2F2F|
-// {"error": "","id": "02020202","media": "electricity","meter": "em24","name": "Elen2","power_kw": 0,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_apparent_energy_consumption_kvah": 0.1,"total_apparent_energy_production_kvah": null,"total_energy_consumption_kwh": 0.1,"total_reactive_energy_consumption_kvarh": 0,"total_reactive_energy_production_kvarh": 0}
+// {"error": "","id": "02020202","media": "electricity","meter": "em24","name": "Elen2","power_kw": 0,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_apparent_energy_consumption_kvah": 0.1,"total_apparent_energy_production_kvah": null,"total_energy_consumption_kwh": 0.1,"total_reactive_energy_consumption_kvarh": 0,"total_reactive_energy_production_kvarh": 0,"frequency_hz":null}
+// |Elen2;02020202;0.1;null;0;0;0.1;null;1111-11-11 11:11.11
+
+
+// telegram=|8144361C0202020200028C20357A351070252F2F_04050100000004FB82750000000004FB82F53C00000000042A0000000004FB140000000004FB943C0000000004FDD9FC010000000004FDD9FC020000000004FDD9FC030000000004FDC8FC011709000004FDC8FC02EC04000004FDC8FC03EC04000002FB2EF40101FD17002F2F2F|
+// {"amperage_at_phase_1_a": 0,"amperage_at_phase_2_a": 0,"amperage_at_phase_3_a": 0,"error": "","frequency_hz": 50,"id": "02020202","media": "electricity","meter": "em24","name": "Elen2","power_kw": 0,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_apparent_energy_consumption_kvah": 0.1,"total_apparent_energy_production_kvah": null,"total_energy_consumption_kwh": 0.1,"total_reactive_energy_consumption_kvarh": 0,"total_reactive_energy_production_kvarh": 0,"voltage_at_phase_1_v": 232.7,"voltage_at_phase_2_v": 126,"voltage_at_phase_3_v": 126}
 // |Elen2;02020202;0.1;null;0;0;0.1;null;1111-11-11 11:11.11

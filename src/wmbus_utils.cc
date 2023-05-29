@@ -122,6 +122,10 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t,
                 buffer.size(), num_bytes_to_decrypt,
                 t->tpl_num_encr_blocks);
         num_bytes_to_decrypt = buffer.size();
+        *num_encrypted_bytes = num_bytes_to_decrypt;
+
+        // We must have at least 16 bytes to decrypt. Give up otherwise.
+        if (num_bytes_to_decrypt < 16) return false;
     }
 
     *num_not_encrypted_at_end = buffer.size()-num_bytes_to_decrypt;
@@ -140,7 +144,10 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t,
                 "Got %zu bytes shrinking message to %zu bytes.\n",
                 num_bytes_to_decrypt, num_bytes_to_decrypt - num_bytes_to_decrypt % 16);
         num_bytes_to_decrypt -= num_bytes_to_decrypt % 16;
+        *num_encrypted_bytes = num_bytes_to_decrypt;
         assert (num_bytes_to_decrypt % 16 == 0);
+        // There must be at least 16 bytes remaining.
+        if (num_bytes_to_decrypt < 16) return false;
     }
 
     uchar iv[16];
