@@ -191,11 +191,13 @@ namespace
         it = t->dv_entries.find("0DFF5F");
         if (it != t->dv_entries.end()) {
             DVEntry entry = it->second.second;
-            qdsExtractWalkByField(t, this, entry, 24, 8, "0C05", "total_energy_consumption", Quantity::Energy);
-            qdsExtractWalkByField(t, this, entry, 32, 4, "426C", "last_year_date", Quantity::Text);
-            qdsExtractWalkByField(t, this, entry, 36, 8, "4C05", "last_year_energy_consumption", Quantity::Energy);
-            qdsExtractWalkByField(t, this, entry, 44, 4, "C2086C", "last_month_date", Quantity::Text);
-            qdsExtractWalkByField(t, this, entry, 48, 8, "CC0805", "last_month_energy_consumption", Quantity::Energy);
+            if (entry.value.length() == 53 * 2) {
+                qdsExtractWalkByField(t, this, entry, 24, 8, "0C05", "total_energy_consumption", Quantity::Energy);
+                qdsExtractWalkByField(t, this, entry, 32, 4, "426C", "last_year_date", Quantity::Text);
+                qdsExtractWalkByField(t, this, entry, 36, 8, "4C05", "last_year_energy_consumption", Quantity::Energy);
+                qdsExtractWalkByField(t, this, entry, 44, 4, "C2086C", "last_month_date", Quantity::Text);
+                qdsExtractWalkByField(t, this, entry, 48, 8, "CC0805", "last_month_energy_consumption", Quantity::Energy);
+            }
         }
     }
 }

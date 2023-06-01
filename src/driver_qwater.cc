@@ -142,6 +142,9 @@ void Driver::processContent(Telegram *t) {
         return;
     }
     DVEntry entry = it->second.second;
+    if (entry.value.length() != 53 * 2) {
+        return;
+    }
     qdsExtractWalkByField(t, this, entry, 24, 8, "0C13", "total", Quantity::Volume);
     qdsExtractWalkByField(t, this, entry, 32, 4, "426C", "due", Quantity::PointInTime);
     qdsExtractWalkByField(t, this, entry, 36, 8, "4C13", "due_date", Quantity::Volume);
