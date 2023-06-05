@@ -44,19 +44,22 @@ do
         esac
 done
 
-SRC=$SRC ROOT=$ROOT /bin/sh ./scripts/install_binaries.sh
+SRC=$SRC ROOT=$ROOT /bin/sh ./scripts/install_binaries.sh || exit $?
 
-ROOT=$ROOT /bin/sh ./scripts/install_manpage.sh
+ROOT=$ROOT /bin/sh ./scripts/install_manpage.sh || exit $?
 
 if [ "$ADDUSER" = "true" ]
 then
-    ROOT=$ROOT /bin/sh ./scripts/add_wmbusmeters_user.sh
+    ROOT=$ROOT /bin/sh ./scripts/add_wmbusmeters_user.sh || exit $?
 fi
 
-ROOT=$ROOT /bin/sh ./scripts/prepare_logfiles.sh
+ROOT=$ROOT /bin/sh ./scripts/prepare_logfiles.sh || exit $?
 
-ROOT=$ROOT /bin/sh ./scripts/install_default_configuration.sh
+ROOT=$ROOT /bin/sh ./scripts/install_default_configuration.sh || exit $?
 
-ROOT=$ROOT /bin/sh ./scripts/install_systemd_service.sh
+ROOT=$ROOT /bin/sh ./scripts/install_systemd_service.sh || exit $?
 
-ROOT=$ROOT /bin/sh ./scripts/add_myself_to_dialout.sh
+ROOT=$ROOT /bin/sh ./scripts/add_myself_to_dialout.sh || exit $?
+
+echo
+echo "wmbusmetters sucessfully installed."
