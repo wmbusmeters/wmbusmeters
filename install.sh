@@ -62,4 +62,4 @@ ROOT=$ROOT /bin/sh ./scripts/install_systemd_service.sh || exit $?
 ROOT=$ROOT /bin/sh ./scripts/add_myself_to_dialout.sh || exit $?
 
 echo
-echo "wmbusmetters sucessfully installed."
+echo "wmbusmeters sucessfully installed."
