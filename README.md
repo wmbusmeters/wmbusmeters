@@ -390,7 +390,7 @@ depending on if you are running as a daemon or not.
 # Running without config files, good for experimentation and test.
 
 ```
-wmbusmeters version: 1.13.1
+wmbusmeters version: 1.14.0
 Usage: wmbusmeters {options} [device] { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmeters {options} [hex]    { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmetersd {options} [pid_file]
@@ -575,6 +575,7 @@ Zenner Minomess (minomess)
 
 Supported heat cost allocators:
 Apator E-ITN 30.51 (apatoreitn)
+Engelmann HCA e2 (hcae2)
 Innotas EurisII  (eurisii)
 Qundis Q caloric (qcaloric)
 Sontex 868 (sontex868)

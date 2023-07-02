@@ -1,10 +1,19 @@
 
+Added more fields to em24 driver.
+Added another mfct/type/version combo to em42 driver and the power_kw field.
+
+Mikołaj Milej imporved the installation script! Thanks Mikołaj!
+Christian Güdel improved the topaseskr driver to consider negative flows. Thanks Christian!
+Peter Vágner improved the lansenth driver to consider negative temperatures. Thanks Peter!
+Dennis Metz improved the ultraheat driver to consider negative flow and temperatures. Thanks Dennis!
+Bibo added support for the hcae2 driver. Thanks Bibo!
+
 Improve error messages when telegrams with bad length byte are read.
 Improve the apator162 driver.
 
 Added the iwmtx5 driver.
 
-Vyacheslav Karpukhin improved the qheat driver to decode propriatary format telegrams. Thanks Vyacheslav!
+Vyacheslav Karpukhin improved the qheat driver to decode proprietary format telegrams. Thanks Vyacheslav!
 
 pvagner improved the lansenth driver to handle negative values. Thanks pvagner!
 
