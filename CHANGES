@@ -1,3 +1,5 @@
+Version 1.14.0-RC1 2023-07-02
+
 
 Added more fields to em24 driver.
 Added another mfct/type/version combo to em42 driver and the power_kw field.
