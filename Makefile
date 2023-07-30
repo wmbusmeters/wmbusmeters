@@ -140,8 +140,7 @@ endif
 
 ifeq ($(shell uname -s),Darwin)
     CXXFLAGS += -I$(shell brew --prefix)/include
-    LDFLAGS  += -L$(shell brew --prefix)/lib
-    USBLIB    =  -lusb-1.0
+    LDFLAGS  += -L$(shell brew --prefix)/libm
 endif
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
