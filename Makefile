@@ -140,7 +140,7 @@ endif
 
 ifeq ($(shell uname -s),Darwin)
     CXXFLAGS += -I$(shell brew --prefix)/include
-    LDFLAGS  += -L$(shell brew --prefix)/libm
+    LDFLAGS  += -L$(shell brew --prefix)/lib
 endif
 
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
