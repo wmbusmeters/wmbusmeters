@@ -138,6 +138,11 @@ ifeq ($(shell uname -s),FreeBSD)
     USBLIB    =  -lusb
 endif
 
+ifeq ($(shell uname -s),Darwin)
+    CXXFLAGS += -I$(shell brew --prefix)/include
+    LDFLAGS  += -L$(shell brew --prefix)/lib
+endif
+
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
