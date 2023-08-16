@@ -31,6 +31,7 @@ namespace
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_BMT,  0x06,  0x13);
+        di.addDetection(MANUFACTURER_BMT,  0x06,  0x17);
         di.addDetection(MANUFACTURER_BMT,  0x07,  0x13);
         di.addDetection(MANUFACTURER_BMT,  0x07,  0x15);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
