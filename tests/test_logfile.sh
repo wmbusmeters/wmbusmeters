@@ -51,7 +51,7 @@ then
     exit 1
 fi
 
-RES=$(cat $TEST/thelog2.txt | tr '\n' ' '  | tr -d ' ' | sed 's/|+1 /|+0 /g' )
+RES=$(cat $TEST/thelog2.txt | tr '\n' ' '  | sed 's/|+1 /|+0 /g' | tr -d ' ' )
 
 # The sed replacement reduces the risk of a failing test when the second counter happens to flip within the test run.
 
