@@ -161,11 +161,11 @@ shared_ptr<BusDevice> openRTLWMBUS(Detected detected,
         {
             if (!force_freq)
             {
-                command = rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+rtl_wmbus+" -s";
+                command = rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - | "+rtl_wmbus+" -s -f";
             }
             else
             {
-                command = rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+rtl_wmbus;
+                command = rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - | "+rtl_wmbus+" -f";
             }
         }
         verbose("(rtlwmbus) using command: %s\n", command.c_str());
