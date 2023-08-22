@@ -358,6 +358,7 @@ void qdsExtractWalkByField(Telegram *t, Meter *driver, DVEntry &mfctEntry, int p
                        MeasurementType::Instantaneous,
                        key.vif(),
                        set<VIFCombinable>(),
+                       set<uint16_t>(),
                        AnyStorageNr,
                        AnyTariffNr,
                        SubUnitNr(0),

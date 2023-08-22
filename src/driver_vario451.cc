@@ -76,7 +76,7 @@ namespace
         string prevs;
         strprintf(&prevs, "%02x%02x", prev_lo, prev_hi);
         int offset = t->parsed.size()+3;
-        vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, 0, 0, 0, prevs) };
+        vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, {}, 0, 0, 0, prevs) };
         t->explanations.push_back(Explanation(offset, 2, prevs, KindOfData::CONTENT, Understanding::FULL));
         t->addMoreExplanation(offset, " energy used in previous billing period (%f GJ)", prev_gj);
 
@@ -87,7 +87,7 @@ namespace
         string currs;
         strprintf(&currs, "%02x%02x", curr_lo, curr_hi);
         offset = t->parsed.size()+7;
-        vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, 0, 0, 0, currs) };
+        vendor_values["0215"] = { offset, DVEntry(offset, DifVifKey("0215"), MeasurementType::Instantaneous, 0x15, {}, {}, 0, 0, 0, currs) };
         t->explanations.push_back(Explanation(offset, 2, currs, KindOfData::CONTENT, Understanding::FULL));
         t->addMoreExplanation(offset, " energy used in current billing period (%f GJ)", curr_gj);
 

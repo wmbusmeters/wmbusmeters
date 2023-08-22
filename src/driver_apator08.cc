@@ -61,7 +61,7 @@ namespace
         string total;
         strprintf(&total, "%02x%02x%02x%02x", content[0], content[1], content[2], content[3]);
 
-        vendor_values["0413"] = { 25, DVEntry(25, DifVifKey("0413"), MeasurementType::Instantaneous, 0x13, {}, 0, 0, 0, total) };
+        vendor_values["0413"] = { 25, DVEntry(25, DifVifKey("0413"), MeasurementType::Instantaneous, 0x13, {}, {}, 0, 0, 0, total) };
         int offset;
         string key;
         if(findKey(MeasurementType::Instantaneous, VIFRange::Volume, 0, 0, &key, &vendor_values))

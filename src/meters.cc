@@ -311,7 +311,8 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                                                              Quantity vquantity,
                                                              VifScaling vif_scaling,
                                                              FieldMatcher matcher,
-                                                             Unit display_unit)
+                                                             Unit display_unit,
+                                                             double scale)
 {
     field_infos_.emplace_back(
         FieldInfo(field_infos_.size(),
@@ -319,6 +320,7 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                   vquantity,
                   display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
                   vif_scaling,
+                  scale,
                   matcher,
                   help,
                   print_properties,
@@ -357,6 +359,7 @@ void MeterCommonImplementation::addNumericFieldWithCalculator(string vname,
                   vquantity,
                   display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
                   VifScaling::Auto,
+                  1.0,
                   FieldMatcher::noMatcher(),
                   help,
                   print_properties,
@@ -396,6 +399,7 @@ void MeterCommonImplementation::addNumericFieldWithCalculatorAndMatcher(string v
                   vquantity,
                   display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
                   VifScaling::Auto,
+                  1.0,
                   matcher,
                   help,
                   print_properties,
@@ -422,6 +426,7 @@ void MeterCommonImplementation::addNumericField(
                   vquantity,
                   display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
                   VifScaling::None,
+                  1.0,
                   FieldMatcher::noMatcher(),
                   help,
                   print_properties,
@@ -445,6 +450,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
                   Quantity::Text,
                   defaultUnitForQuantity(Quantity::Text),
                   VifScaling::None,
+                  1.0,
                   matcher,
                   help,
                   print_properties,
@@ -469,6 +475,7 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
                   Quantity::Text,
                   defaultUnitForQuantity(Quantity::Text),
                   VifScaling::None,
+                  1.0,
                   matcher,
                   help,
                   print_properties,
@@ -491,6 +498,7 @@ void MeterCommonImplementation::addStringField(string vname,
                   Quantity::Text,
                   defaultUnitForQuantity(Quantity::Text),
                   VifScaling::None,
+                  1.0,
                   FieldMatcher(),
                   help,
                   print_properties,
@@ -1459,6 +1467,7 @@ FieldInfo::FieldInfo(int index,
                      Quantity xuantity,
                      Unit display_unit,
                      VifScaling vif_scaling,
+                     double scale,
                      FieldMatcher matcher,
                      string help,
                      PrintProperties print_properties,
@@ -1474,6 +1483,7 @@ FieldInfo::FieldInfo(int index,
         xuantity_(xuantity),
         display_unit_(display_unit),
         vif_scaling_(vif_scaling),
+        scale_(scale),
         matcher_(matcher),
         help_(help),
         print_properties_(print_properties),
@@ -2173,13 +2183,19 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
             decoded_unit = toDefaultUnit(matcher_.vif_range);
         }
 
-        debug("(meter) %s %s decoded %s default %s value %g\n",
+        debug("(meter) %s %s decoded %s default %s value %g (scale %g)\n",
               toString(matcher_.vif_range),
               field_name.c_str(),
               unitToStringLowerCase(decoded_unit).c_str(),
               unitToStringLowerCase(display_unit_).c_str(),
-              extracted_double_value);
+              extracted_double_value,
+              scale());
 
+        if (scale() != 1.0)
+        {
+            // Hardcoded scale factor for this field used for manufacturer specific values without vif units.
+            extracted_double_value *= scale();
+        }
         m->setNumericValue(this, dve, display_unit_, convert(extracted_double_value, decoded_unit, display_unit_));
         t->addMoreExplanation(dve->offset, renderJson(m, dve));
         found = true;

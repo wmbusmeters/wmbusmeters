@@ -193,6 +193,11 @@ LIST_OF_VIF_COMBINABLES
 #undef X
 };
 
+struct VIFCombinableRaw {
+    VIFCombinableRaw(uint16_t v) : value(v) {}
+    uint16_t value;
+};
+
 VIFCombinable toVIFCombinable(int i);
 const char *toString(VIFCombinable v);
 
@@ -322,6 +327,7 @@ struct DVEntry
     MeasurementType measurement_type;
     Vif vif;
     std::set<VIFCombinable> combinable_vifs;
+    std::set<uint16_t> combinable_vifs_raw;
     StorageNr storage_nr;
     TariffNr tariff_nr;
     SubUnitNr subunit_nr;
@@ -332,6 +338,7 @@ struct DVEntry
             MeasurementType mt,
             Vif vi,
             std::set<VIFCombinable> vc,
+            std::set<uint16_t> vc_raw,
             StorageNr st,
             TariffNr ta,
             SubUnitNr su,
@@ -341,6 +348,7 @@ struct DVEntry
         measurement_type(mt),
         vif(vi),
         combinable_vifs(vc),
+        combinable_vifs_raw(vc_raw),
         storage_nr(st),
         tariff_nr(ta),
         subunit_nr(su),
@@ -393,6 +401,7 @@ struct FieldMatcher
 
     // Match any vif combinables.
     std::set<VIFCombinable> vif_combinables;
+    std::set<uint16_t> vif_combinables_raw;
 
     // Match the storage nr. If no storage is specified, default to match only 0.
     bool match_storage_nr = true;
@@ -431,6 +440,9 @@ struct FieldMatcher
         return *this; }
     FieldMatcher &add(VIFCombinable v) {
         vif_combinables.insert(v);
+        return *this; }
+    FieldMatcher &add(VIFCombinableRaw v) {
+        vif_combinables_raw.insert(v.value);
         return *this; }
     FieldMatcher &set(StorageNr s) {
         storage_nr_from = storage_nr_to = s;

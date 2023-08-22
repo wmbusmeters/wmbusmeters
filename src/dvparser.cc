@@ -319,6 +319,7 @@ bool parseDV(Telegram *t,
         int combinable_full_vif = 0;
         bool combinable_extension_vif = false;
         set<VIFCombinable> found_combinable_vifs;
+        set<uint16_t> found_combinable_vifs_raw;
 
         DEBUG_PARSER("(dvparser debug) vif=%04x \"%s\"\n", vif, vifType(vif).c_str());
 
@@ -407,6 +408,8 @@ bool parseDV(Telegram *t,
                     combinable_extension_vif = false;
                     VIFCombinable vc = toVIFCombinable(combinable_full_vif);
                     found_combinable_vifs.insert(vc);
+                    found_combinable_vifs_raw.insert(combinable_full_vif);
+
                     if (data_has_difvifs)
                     {
                         t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
@@ -432,6 +435,8 @@ bool parseDV(Telegram *t,
                     {
                         VIFCombinable vc = toVIFCombinable(combinable_full_vif);
                         found_combinable_vifs.insert(vc);
+                        found_combinable_vifs_raw.insert(combinable_full_vif);
+
                         if (data_has_difvifs)
                         {
                             t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
@@ -487,6 +492,7 @@ bool parseDV(Telegram *t,
                                                mt,
                                                Vif(full_vif),
                                                found_combinable_vifs,
+                                               found_combinable_vifs_raw,
                                                StorageNr(storage_nr),
                                                TariffNr(tariff),
                                                SubUnitNr(subunit),
@@ -1127,12 +1133,13 @@ double DVEntry::getCounter(DVEntryCounterType ct)
 string DVEntry::str()
 {
     string s =
-        tostrprintf("%d: %s %s vif=%x %s st=%d ta=%d su=%d",
+        tostrprintf("%d: %s %s vif=%x %s%s st=%d ta=%d su=%d",
                     offset,
                     dif_vif_key.str().c_str(),
                     toString(measurement_type),
                     vif.intValue(),
                     combinable_vifs.size() > 0 ? "HASCOMB ":"",
+                    combinable_vifs_raw.size() > 0 ? "HASCOMBRAW ":"",
                     storage_nr.intValue(),
                     tariff_nr.intValue(),
                     subunit_nr.intValue()
@@ -1248,15 +1255,28 @@ bool FieldMatcher::matches(DVEntry &dv_entry)
     // So far so good, now test the combinables.
 
     // If field matcher has no combinables, then do NOT match any dventry with a combinable!
-    if (vif_combinables.size()== 0)
+    if (vif_combinables.size()== 0 && vif_combinables_raw.size() == 0)
     {
-        if (dv_entry.combinable_vifs.size() == 0) return true;
+        // If there is a combinable vif, then there is a raw combinable vif. So comparing both not strictly necessary.
+        if (dv_entry.combinable_vifs.size() == 0 && dv_entry.combinable_vifs_raw.size() == 0) return true;
         // Oups, field matcher does not expect any combinables, but the dv_entry has combinables.
         // This means no match for us since combinables must be handled explicitly.
         return false;
     }
 
+    // Lets check that the dv_entry vif combinables raw contains the field matcher requested combinable raws.
+    // The raws are used for meters using reserved and manufacturer specific vif combinables.
+    for (uint16_t vcr : vif_combinables_raw)
+    {
+        if (dv_entry.combinable_vifs_raw.count(vcr) == 0)
+        {
+            // Ouch, one of the requested vif combinables raw did not exist in the dv_entry. No match!
+            return false;
+        }
+    }
+
     // Lets check that the dv_entry combinables contains the field matcher requested combinables.
+    // The named vif combinables are used by well behaved meters.
     for (VIFCombinable vc : vif_combinables)
     {
         if (vc != VIFCombinable::Any && dv_entry.combinable_vifs.count(vc) == 0)
@@ -1270,12 +1290,26 @@ bool FieldMatcher::matches(DVEntry &dv_entry)
     // then we need to check if there are unmatched combinables in the telegram, if so fail the match.
     if (vif_combinables.count(VIFCombinable::Any) == 0)
     {
-        for (VIFCombinable vc : dv_entry.combinable_vifs)
+        if (vif_combinables.size() > 0)
         {
-            if (vif_combinables.count(vc) == 0)
+            for (VIFCombinable vc : dv_entry.combinable_vifs)
             {
-                // Oups, the telegram entry had a combinable that we had no matcher for.
-                return false;
+                if (vif_combinables.count(vc) == 0)
+                {
+                    // Oups, the telegram entry had a vif combinable that we had no matcher for.
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            for (uint16_t vcr : dv_entry.combinable_vifs_raw)
+            {
+                if (vif_combinables_raw.count(vcr) == 0)
+                {
+                    // Oups, the telegram entry had a vif combinable raw that we had no matcher for.
+                    return false;
+                }
             }
         }
     }

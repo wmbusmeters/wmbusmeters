@@ -274,6 +274,7 @@ struct FieldInfo
               Quantity quantity,
               Unit display_unit,
               VifScaling vif_scaling,
+              double scale,
               FieldMatcher matcher,
               string help,
               PrintProperties print_properties,
@@ -290,6 +291,7 @@ struct FieldInfo
     Quantity xuantity() { return xuantity_; }
     Unit displayUnit() { return display_unit_; }
     VifScaling vifScaling() { return vif_scaling_; }
+    double scale() { return scale_; }
     FieldMatcher& matcher() { return matcher_; }
     string help() { return help_; }
     PrintProperties printProperties() { return print_properties_; }
@@ -336,6 +338,7 @@ private:
     Quantity xuantity_; // Quantity: Energy, Volume
     Unit display_unit_; // Selected display unit for above quantity: KWH, M3
     VifScaling vif_scaling_;
+    double scale_; // A hardcoded scale factor. Used only for manufacturer specific values with unknown units for the vifs.
     FieldMatcher matcher_;
     string help_; // Helpful information on this meters use of this value.
     PrintProperties print_properties_;
