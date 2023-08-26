@@ -50,7 +50,7 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -63,7 +63,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .set(TariffNr(1),TariffNr(4))
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -77,7 +77,7 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(TariffNr(0))
             .set(SubUnitNr(1))
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -91,7 +91,7 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(TariffNr(1),TariffNr(4))
             .set(SubUnitNr(1))
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -207,7 +207,7 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FirmwareVersion)
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
             );
 
         addStringFieldWithExtractor(
@@ -236,7 +236,46 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "active_consumption_l1",
+            "Instantaneous active imported power for L1 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Power,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyPowerVIF)
+            .add(VIFCombinableRaw(0x7f01))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "active_consumption_l2",
+            "Instantaneous active imported power for L2 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Power,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyPowerVIF)
+            .add(VIFCombinableRaw(0x7f02))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "active_consumption_l3",
+            "Instantaneous active imported power for L3 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Power,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyPowerVIF)
+            .add(VIFCombinableRaw(0x7f03))
+            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -249,7 +288,49 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
             .set(SubUnitNr(2))
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "reactive_consumption_l1",
+            "Instantaneous reactive imported power for L1 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Power,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyPowerVIF)
+            .set(SubUnitNr(2))
+            .add(VIFCombinableRaw(0x7f01))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "reactive_consumption_l2",
+            "Instantaneous reactive imported power for L2 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Power,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyPowerVIF)
+            .set(SubUnitNr(2))
+            .add(VIFCombinableRaw(0x7f02))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "reactive_consumption_l3",
+            "Instantaneous reactive imported power for L3 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Power,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyPowerVIF)
+            .set(SubUnitNr(2))
+            .add(VIFCombinableRaw(0x7f03))
+            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -262,7 +343,49 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
             .set(SubUnitNr(4))
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "apparent_consumption_l1",
+            "Instantaneous apparent imported power for L1 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Power,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyPowerVIF)
+            .set(SubUnitNr(4))
+            .add(VIFCombinableRaw(0x7f01))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "apparent_consumption_l2",
+            "Instantaneous apparent imported power for L2 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Power,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyPowerVIF)
+            .set(SubUnitNr(4))
+            .add(VIFCombinableRaw(0x7f02))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "apparent_consumption_l3",
+            "Instantaneous apparent imported power for L3 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Power,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyPowerVIF)
+            .set(SubUnitNr(4))
+            .add(VIFCombinableRaw(0x7f03))
+            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -275,7 +398,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -288,7 +411,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -301,7 +424,46 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "voltage_l1_l2",
+            "Instantaneous voltage between L1 and L2.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Voltage,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Voltage)
+            .add(VIFCombinableRaw(0x7f05))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "voltage_l2_l3",
+            "Instantaneous voltage between L2 and L3.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Voltage,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Voltage)
+            .add(VIFCombinableRaw(0x7f06))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "voltage_l3_l2",
+            "Instantaneous voltage between L3 and L2.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Voltage,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Voltage)
+            .add(VIFCombinableRaw(0x7f07))
+            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -314,7 +476,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Amperage)
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -327,7 +489,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Amperage)
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -340,7 +502,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Amperage)
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0)) // Stupid 00 combinable....
+            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -376,9 +538,40 @@ namespace
             FieldMatcher::build()
             .set(DifVifKey("0EFFF9C400")),
             Unit::KG,
-            0.001
+            0.01
             );
 
+        addNumericFieldWithExtractor(
+            "co2_conversion",
+            "CO2 conversion factor (kg * 10-3 /kWh).",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("04FFA400")),
+            Unit::FACTOR
+            );
+
+        addNumericFieldWithExtractor(
+            "energy_currency",
+            "Energy in currency.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("0EFFF9C900"))
+            );
+
+        addNumericFieldWithExtractor(
+            "currency_conversion",
+            "Currency conversion factor (curr * 10-3 /kWh).",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("04FFA500")),
+            Unit::FACTOR
+            );
 
     }
 }
