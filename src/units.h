@@ -53,7 +53,8 @@
     X(RelativeHumidity,RH)    \
     X(HCA,HCA)                \
     X(Text,TXT)               \
-    X(Dimensionless,COUNTER) \
+    X(Angle,DEGREE)           \
+    X(Dimensionless,COUNTER)  \
 
 enum class Quantity
 {
@@ -114,8 +115,11 @@ LIST_OF_QUANTITIES
     X(RH,rh,"RH",RelativeHumidity,"relative humidity")                  \
     X(HCA,hca,"hca",HCA,"heat cost allocation")                         \
     X(TXT,txt,"txt",Text,"text")                                        \
+    X(DEGREE,deg,"°",Angle,"degree")                                    \
+    X(RADIAN,rad,"rad",Angle,"radian")                                  \
     X(COUNTER,counter,"counter",Dimensionless,"counter")                \
     X(FACTOR,factor,"factor",Dimensionless,"factor")                    \
+    X(NUMBER,nr,"number",Dimensionless,"number")                        \
 
 enum class Unit
 {
@@ -266,6 +270,10 @@ bool canConvert(Unit from, Unit to);
 double convert(double v, Unit from, Unit to);
 Unit whenMultiplied(Unit left, Unit right);
 double multiply(double l, Unit left, double r, Unit right);
+
+// Used to convert protocol KWH to KVARH/KVA, strictly speaking
+// not a valid conversion, but permitted to work around limitations in the mbus protocol usage.
+bool overrideConversion(Unit from, Unit to);
 
 // Either uppercase KWH or lowercase kwh works here.
 Unit toUnit(std::string s);

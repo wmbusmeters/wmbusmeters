@@ -2196,6 +2196,11 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
             // Hardcoded scale factor for this field used for manufacturer specific values without vif units.
             extracted_double_value *= scale();
         }
+        if (overrideConversion(decoded_unit, display_unit_))
+        {
+            // Special case! Transform the decoded unit into the display unit. I.e. kwh was replaced with kvarh.
+            decoded_unit = display_unit_;
+        }
         m->setNumericValue(this, dve, display_unit_, convert(extracted_double_value, decoded_unit, display_unit_));
         t->addMoreExplanation(dve->offset, renderJson(m, dve));
         found = true;

@@ -530,6 +530,190 @@ namespace
             );
 
         addNumericFieldWithExtractor(
+            "power_l1",
+            "Power factor for phase L1.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("02FFE0FF8100")),
+            Unit::FACTOR,
+            0.001
+            );
+
+        addNumericFieldWithExtractor(
+            "power_l2",
+            "Power factor for phase L2.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("02FFE0FF8200")),
+            Unit::FACTOR,
+            0.001
+            );
+
+        addNumericFieldWithExtractor(
+            "power_l3",
+            "Power factor.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("02FFE0FF8300")),
+            Unit::FACTOR,
+            0.001
+            );
+
+        addNumericFieldWithExtractor(
+            "power_phase_angle",
+            "Total power phase angle.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Angle,
+            VifScaling::NoneSigned,
+            FieldMatcher::build()
+            .set(DifVifKey("02FFD200")),
+            Unit::DEGREE,
+            0.1
+            );
+
+        addNumericFieldWithExtractor(
+            "phase_angle_power_l1",
+            "Power phase angle for phase L1.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Angle,
+            VifScaling::NoneSigned,
+            FieldMatcher::build()
+            .set(DifVifKey("02FFD2FF8100")),
+            Unit::DEGREE,
+            0.1
+            );
+
+        addNumericFieldWithExtractor(
+            "phase_angle_power_l2",
+            "Power phase angle for phase L2.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Angle,
+            VifScaling::NoneSigned,
+            FieldMatcher::build()
+            .set(DifVifKey("02FFD2FF8200")),
+            Unit::DEGREE,
+            0.1
+            );
+
+        addNumericFieldWithExtractor(
+            "phase_angle_power_l3",
+            "Power phase angle for phase L3.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Angle,
+            VifScaling::NoneSigned,
+            FieldMatcher::build()
+            .set(DifVifKey("02FFD2FF8300")),
+            Unit::DEGREE,
+            0.1
+            );
+
+        addNumericFieldWithExtractor(
+            "total_reactive_energy_consumption",
+            "Total cumulative reactive kvarh imported energy.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Reactive_Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(2))
+            .add(VIFCombinableRaw(0)),
+            Unit::KVARH
+            );
+
+        addNumericFieldWithExtractor(
+            "total_reactive_energy_consumption_tariff_{tariff_counter}",
+            "Total cumulative reactive kvarh imported energy per tariff.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(2))
+            .set(TariffNr(1),TariffNr(4))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_reactive_energy_production",
+            "Total cumulative reactive kvarh exported energy.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Reactive_Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(3))
+            .add(VIFCombinableRaw(0)),
+            Unit::KVARH
+            );
+
+        addNumericFieldWithExtractor(
+            "total_reactive_energy_production_tariff_{tariff_counter}",
+            "Total cumulative reactive kvarh exported energy per tariff.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(3))
+            .set(TariffNr(1),TariffNr(4))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "current_quadrant",
+            "The quadrant in which the current is measured.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("01FF9700")),
+            Unit::NUMBER
+            );
+
+        addNumericFieldWithExtractor(
+            "current_quadrant_l1",
+            "The quadrant in which the current is measured for phase L1.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("01FF97FF8100")),
+            Unit::NUMBER
+            );
+
+        addNumericFieldWithExtractor(
+            "current_quadrant_l2",
+            "The quadrant in which the current is measured for phase L2.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("01FF97FF8200")),
+            Unit::NUMBER
+            );
+
+        addNumericFieldWithExtractor(
+            "current_quadrant_l3",
+            "The quadrant in which the current is measured for phase L3.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("01FF97FF8300")),
+            Unit::NUMBER
+            );
+
+        addNumericFieldWithExtractor(
             "energy_co2",
             "Energy in co2.",
             DEFAULT_PRINT_PROPERTIES,

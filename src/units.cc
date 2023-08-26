@@ -59,11 +59,17 @@ using namespace std;
     X(BAR, PA, {vto=vfrom*100000.0;}) \
     X(COUNTER, FACTOR,{vto=vfrom;})  \
     X(FACTOR, COUNTER, {vto=vfrom;}) \
+    X(COUNTER, NUMBER,{vto=vfrom;})  \
+    X(NUMBER, COUNTER, {vto=vfrom;}) \
+    X(FACTOR, NUMBER, {vto=vfrom;})  \
+    X(NUMBER, FACTOR, {vto=vfrom;}) \
     X(UnixTimestamp,DateTimeLT, {vto=vfrom; }) \
     X(DateTimeLT,UnixTimestamp, {vto=vfrom; }) \
     X(DateLT,UnixTimestamp, {vto=vfrom; }) \
     X(DateTimeLT, DateLT, {vto=vfrom; }) \
     X(DateLT, DateTimeLT, {vto=vfrom; }) \
+    X(DEGREE, RADIAN, {vto=vfrom*M_PI/180.0;}) \
+    X(RADIAN, DEGREE, {vto=vfrom*180.0/M_PI;}) \
 
 
 #define LIST_OF_SI_CONVERSIONS  \
@@ -111,8 +117,11 @@ using namespace std;
                                                                      \
     X(RH,          1.0, SIExp())                                     \
     X(HCA,         1.0, SIExp())                                     \
+    X(DEGREE,      1.0, SIExp())                                     \
+    X(RADIAN,      180.0/M_PI, SIExp())                              \
     X(COUNTER,     1.0, SIExp())                                     \
     X(FACTOR,      1.0, SIExp())                                     \
+    X(NUMBER,      1.0, SIExp())                                     \
     X(TXT,         1.0, SIExp())                                     \
 
 
@@ -136,6 +145,14 @@ LIST_OF_UNITS
     }
 
     return SI_Unknown;
+}
+
+bool overrideConversion(Unit from, Unit to)
+{
+    // The mbus protocol lacks kvarh and kva. Some meters, like the abbb23 uses kwh for kvarh.
+    // Permit 1 to 1 conversion from kwh to kvarh and kva in extractNumeric.
+    if (from == Unit::KWH && (to == Unit::KVARH || to == Unit::KVAH)) return true;
+    return false;
 }
 
 bool canConvert(Unit ufrom, Unit uto)

@@ -2026,8 +2026,22 @@ LIST_OF_QUANTITIES
 
     test_si_convert(2211717, 2211717, Unit::COUNTER, "counter", Unit::FACTOR, "counter", Quantity::Dimensionless, &from_set, &to_set);
     test_si_convert(2211717, 2211717, Unit::FACTOR, "counter", Unit::COUNTER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::NUMBER, "counter", Unit::COUNTER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::FACTOR, "counter", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
 
     check_units_tested(from_set, to_set, Quantity::Dimensionless);
+
+    // Test angles: deg rad
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Angle);
+    fill_with_units_from(Quantity::Angle, &from_set);
+    fill_with_units_from(Quantity::Angle, &to_set);
+
+    test_si_convert(180, 3.1415926535897931l, Unit::DEGREE, "deg", Unit::RADIAN, "rad", Quantity::Angle, &from_set, &to_set);
+    test_si_convert(3.1415926535897931l, 180, Unit::RADIAN, "rad", Unit::DEGREE, "deg", Quantity::Angle, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Angle);
 
     // Test point in time units: ut utc lt
     /////////////////////////////////////////////////////////////////////////////////////////////////////
