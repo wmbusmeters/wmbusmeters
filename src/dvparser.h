@@ -57,6 +57,7 @@
     X(Location,0x7D10,0x7D10, Quantity::Text, Unit::TXT) \
     X(Customer,0x7D11,0x7D11, Quantity::Text, Unit::TXT) \
     X(ErrorFlags,0x7D17,0x7D17, Quantity::Text, Unit::TXT) \
+    X(DigitalOutput,0x7D1A,0x7D1A, Quantity::Text, Unit::TXT) \
     X(DigitalInput,0x7D1B,0x7D1B, Quantity::Text, Unit::TXT) \
     X(DurationSinceReadout,0x7D2c,0x7D2f, Quantity::Time, Unit::Hour) \
     X(DurationOfTariff,0x7D31,0x7D33, Quantity::Time, Unit::Hour) \
@@ -79,6 +80,11 @@ enum class VIFRange
 #define X(name,from,to,quantity,unit) name,
 LIST_OF_VIF_RANGES
 #undef X
+};
+
+struct VIFRaw {
+    VIFRaw(uint16_t v) : value(v) {}
+    uint16_t value;
 };
 
 const char *toString(VIFRange v);
@@ -399,6 +405,10 @@ struct FieldMatcher
     bool match_vif_range = false;
     VIFRange vif_range { VIFRange::Any };
 
+    // Match the vif exactly, used for manufacturer specific vifs.
+    bool match_vif_raw = false;
+    uint16_t vif_raw {};
+
     // Match any vif combinables.
     std::set<VIFCombinable> vif_combinables;
     std::set<uint16_t> vif_combinables_raw;
@@ -437,6 +447,10 @@ struct FieldMatcher
     FieldMatcher &set(VIFRange v) {
         vif_range = v;
         match_vif_range = (v != VIFRange::Any);
+        return *this; }
+    FieldMatcher &set(VIFRaw v) {
+        vif_raw = v.value;
+        match_vif_raw = true;
         return *this; }
     FieldMatcher &add(VIFCombinable v) {
         vif_combinables.insert(v);

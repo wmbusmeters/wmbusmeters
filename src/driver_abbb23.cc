@@ -713,6 +713,170 @@ namespace
             Unit::NUMBER
             );
 
+        addStringFieldWithExtractorAndLookup(
+            "digital_output_{subunit_counter}",
+            "The state for output register 1-2.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::DigitalOutput)
+            .set(StorageNr(0))
+            .set(TariffNr(0))
+            .set(SubUnitNr(1),SubUnitNr(2))
+            .add(VIFCombinableRaw(0)),
+            Translate::Lookup()
+            .add(Translate::Rule("OUTPUT", Translate::Type::BitToString)
+                 .set(MaskBits(0xff))
+                ));
+
+        addStringFieldWithExtractorAndLookup(
+            "digital_input_{subunit_counter-2counter}",
+            "The state for input register 1-2.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::DigitalInput)
+            .set(SubUnitNr(3),SubUnitNr(4))
+            .add(VIFCombinableRaw(0)),
+            Translate::Lookup()
+            .add(Translate::Rule("INPUT", Translate::Type::BitToString)
+                 .set(MaskBits(0xff))
+                ));
+
+        addStringFieldWithExtractorAndLookup(
+            "digital_historic_input_{subunit_counter-2counter}",
+            "The state for input register 3-4.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::DigitalInput)
+            .set(StorageNr(1))
+            .set(SubUnitNr(3),SubUnitNr(4))
+            .add(VIFCombinableRaw(0)),
+            Translate::Lookup()
+            .add(Translate::Rule("INPUT", Translate::Type::BitToString)
+                 .set(MaskBits(0xff))
+                ));
+
+        addNumericFieldWithExtractor(
+            "input_{subunit_counter-2counter}",
+            "Number of times input 1-2 counted a 1.",
+             DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(SubUnitNr(3),SubUnitNr(4))
+            .set(VIFRange::CumulationCounter)
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "resettable_energy_consumption",
+            "Resettable cumulative active imported energy.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .add(VIFCombinableRaw(0x7f72))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "resettable_energy_production",
+            "Resettable cumulative active exported energy.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(1))
+            .add(VIFCombinableRaw(0x7f72))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "resettable_reactive_energy_consumption",
+            "Resettable cumulative reactive imported energy.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(2))
+            .add(VIFCombinableRaw(0x7f72))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "resettable_reactive_energy_production",
+            "Resettable cumulative reactive exported energy.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(3))
+            .add(VIFCombinableRaw(0x7f72))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "reset_energy_consumption",
+            "Number of times the resettable energy imported value has been reset.",
+             DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRaw(0x7f71))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "reset_energy_production",
+            "Number of times the resettable active energy exported value has been reset.",
+             DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRaw(0x7f71))
+            .set(SubUnitNr(1))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "reset_reactive_energy_consumption",
+            "Number of times the resettable reactive energy imported value has been reset.",
+             DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRaw(0x7f71))
+            .set(SubUnitNr(2))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "reset_reactive_energy_production",
+            "Number of times the resettable reactive energy exported value has been reset.",
+             DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRaw(0x7f71))
+            .set(SubUnitNr(3))
+            .add(VIFCombinableRaw(0))
+            );
+
         addNumericFieldWithExtractor(
             "energy_co2",
             "Energy in co2.",
@@ -755,6 +919,283 @@ namespace
             FieldMatcher::build()
             .set(DifVifKey("04FFA500")),
             Unit::FACTOR
+            );
+
+        addNumericFieldWithExtractor(
+            "total_apparent_energy_consumption",
+            "Total cumulative apparent kvah imported energy.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Apparent_Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(4))
+            .add(VIFCombinableRaw(0)),
+            Unit::KVAH
+            );
+
+        addNumericFieldWithExtractor(
+            "total_apparent_energy_production",
+            "Total cumulative apparent kvah exported energy.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Apparent_Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(5))
+            .add(VIFCombinableRaw(0)),
+            Unit::KVAH
+            );
+
+        addNumericFieldWithExtractor(
+            "total_energy_consumption_l1",
+            "Total imported active energy for L1 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .add(VIFCombinableRaw(0x7f01))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_energy_consumption_l2",
+            "Total imported active energy for L2 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .add(VIFCombinableRaw(0x7f02))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_energy_consumption_l3",
+            "Total imported active energy for L3 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .add(VIFCombinableRaw(0x7f03))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_reactive_energy_consumption_l1",
+            "Total imported reactive energy for L1 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(2))
+            .add(VIFCombinableRaw(0x7f01))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_reactive_energy_consumption_l2",
+            "Total imported reactive energy for L2 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(2))
+            .add(VIFCombinableRaw(0x7f02))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_reactive_energy_consumption_l3",
+            "Total imported reactive energy for L3 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(2))
+            .add(VIFCombinableRaw(0x7f03))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_apparent_energy_consumption_l1",
+            "Total imported apparent energy for L1 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(4))
+            .add(VIFCombinableRaw(0x7f01))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_apparent_energy_consumption_l2",
+            "Total imported apparent energy for L2 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(4))
+            .add(VIFCombinableRaw(0x7f02))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_apparent_energy_consumption_l3",
+            "Total imported apparent energy for L3 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(4))
+            .add(VIFCombinableRaw(0x7f03))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_energy_production_l1",
+            "Total exported active energy for L1 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(1))
+            .add(VIFCombinableRaw(0x7f01))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_energy_production_l2",
+            "Total exported active energy for L2 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(1))
+            .add(VIFCombinableRaw(0x7f02))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_energy_production_l3",
+            "Total exported active energy for L3 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(1))
+            .add(VIFCombinableRaw(0x7f03))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_reactive_energy_production_l1",
+            "Total exported reactive energy for L1 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(3))
+            .add(VIFCombinableRaw(0x7f01))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_reactive_energy_production_l2",
+            "Total exported reactive energy for L2 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(3))
+            .add(VIFCombinableRaw(0x7f02))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_reactive_energy_production_l3",
+            "Total exported reactive energy for L3 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(3))
+            .add(VIFCombinableRaw(0x7f03))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_apparent_energy_production_l1",
+            "Total exported apparent energy for L1 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(5))
+            .add(VIFCombinableRaw(0x7f01))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_apparent_energy_production_l2",
+            "Total exported apparent energy for L2 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(5))
+            .add(VIFCombinableRaw(0x7f02))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_apparent_energy_production_l3",
+            "Total exported apparent energy for L3 phase.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(5))
+            .add(VIFCombinableRaw(0x7f03))
+            .add(VIFCombinableRaw(0))
             );
 
     }

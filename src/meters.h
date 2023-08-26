@@ -317,7 +317,7 @@ struct FieldInfo
 
     string renderJsonOnlyDefaultUnit(Meter *m);
     string renderJson(Meter *m, DVEntry *dve);
-    string renderJsonText(Meter *m);
+    string renderJsonText(Meter *m, DVEntry *dve);
     // Render the field name based on the actual field from the telegram.
     // A FieldInfo can be declared to handle any number of storage fields of a certain range.
     // The vname is then a pattern total_at_month_{storage_counter} that gets translated into

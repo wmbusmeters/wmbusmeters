@@ -1507,9 +1507,9 @@ string FieldInfo::renderJsonOnlyDefaultUnit(Meter *m)
     return renderJson(m, NULL);
 }
 
-string FieldInfo::renderJsonText(Meter *m)
+string FieldInfo::renderJsonText(Meter *m, DVEntry *dve)
 {
-    return renderJson(m, NULL);
+    return renderJson(m, dve);
 }
 
 string FieldInfo::generateFieldNameNoUnit(DVEntry *dve)
@@ -2319,7 +2319,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         if (found)
         {
             m->setStringValue(this, translated_bits);
-            t->addMoreExplanation(dve->offset, renderJsonText(m));
+            t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         }
     }
     else if (matcher_.vif_range == VIFRange::DateTime)
@@ -2338,7 +2338,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
             extracted_device_date_time = strdatetime(&datetime);
         }
         m->setStringValue(this, extracted_device_date_time);
-        t->addMoreExplanation(dve->offset, renderJsonText(m));
+        t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;
     }
     else if (matcher_.vif_range == VIFRange::Date)
@@ -2347,7 +2347,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         dve->extractDate(&date);
         string extracted_device_date = strdate(&date);
         m->setStringValue(this, extracted_device_date);
-        t->addMoreExplanation(dve->offset, renderJsonText(m));
+        t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;
     }
     else if (matcher_.vif_range == VIFRange::Any ||
@@ -2365,7 +2365,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         string extracted_id;
         dve->extractReadableString(&extracted_id);
         m->setStringValue(this, extracted_id);
-        t->addMoreExplanation(dve->offset, renderJsonText(m));
+        t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;
     }
     else

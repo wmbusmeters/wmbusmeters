@@ -1245,6 +1245,7 @@ bool FieldMatcher::matches(DVEntry &dv_entry)
     // Test ranges and types.
     bool b =
         (!match_vif_range || isInsideVIFRange(dv_entry.vif, vif_range)) &&
+        (!match_vif_raw || dv_entry.vif == vif_raw) &&
         (!match_measurement_type || dv_entry.measurement_type == measurement_type) &&
         (!match_storage_nr || (dv_entry.storage_nr >= storage_nr_from && dv_entry.storage_nr <= storage_nr_to)) &&
         (!match_tariff_nr || (dv_entry.tariff_nr >= tariff_nr_from && dv_entry.tariff_nr <= tariff_nr_to)) &&
@@ -1348,6 +1349,11 @@ string FieldMatcher::str()
     if (match_vif_range)
     {
         s = s+"VR("+toString(vif_range)+") ";
+    }
+
+    if (match_vif_raw)
+    {
+        s = s+"VRR("+to_string(vif_raw)+") ";
     }
 
     if (vif_combinables.size() > 0)
