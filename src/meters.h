@@ -296,16 +296,6 @@ struct FieldInfo
     string help() { return help_; }
     PrintProperties printProperties() { return print_properties_; }
 
-    double getNumericValueOverride(Unit u) { if (get_numeric_value_override_) return get_numeric_value_override_(u); else return -12345678; }
-    bool hasGetNumericValueOverride() { return get_numeric_value_override_ != NULL; }
-    string getStringValueOverride() { if (get_string_value_override_) return get_string_value_override_(); else return "?"; }
-    bool hasGetStringValueOverride() { return get_string_value_override_ != NULL; }
-
-    void setNumericValueOverride(Unit u, double v) { if (set_numeric_value_override_) set_numeric_value_override_(u, v); }
-    bool hasSetNumericValueOverride() { return set_numeric_value_override_ != NULL; }
-    void setStringValueOverride(string v) { if (set_string_value_override_) set_string_value_override_(v); }
-    bool hasSetStringValueOverride() { return set_string_value_override_ != NULL; }
-
     bool extractNumeric(Meter *m, Telegram *t, DVEntry *dve = NULL);
     bool extractString(Meter *m, Telegram *t, DVEntry *dve = NULL);
     bool hasMatcher();

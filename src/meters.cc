@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2023 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -1111,6 +1111,9 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     }
 
     triggerUpdate(&t);
+/*    string s = debugValues();
+
+      printf("\n\nVALUES------\n%s\n--------------\n", s.c_str());*/
 
     if (out_analyzed != NULL) *out_analyzed = t;
     return true;
@@ -1247,26 +1250,18 @@ bool MeterCommonImplementation::hasProcessContent()
 
 void MeterCommonImplementation::setNumericValue(FieldInfo *fi, DVEntry *dve, Unit u, double v)
 {
-    if (fi->hasSetNumericValueOverride())
-    {
-        // Use setter function to store value somewhere.
-        fi->setNumericValueOverride(u, v);
-        return;
-    }
-
-    // Store value in default meter location for numeric values.
     string field_name_no_unit;
 
     if (dve == NULL)
     {
-        field_name_no_unit = fi->vname();
+        string field_name_no_unit = fi->vname();
+        numeric_values_[pair<string,Quantity>(field_name_no_unit, fi->xuantity())] = NumericField(u, v, fi);
     }
     else
     {
         field_name_no_unit = fi->generateFieldNameNoUnit(dve);
+        numeric_values_[pair<string,Quantity>(field_name_no_unit, fi->xuantity())] = NumericField(u, v, fi, *dve);
     }
-
-    numeric_values_[pair<string,Quantity>(field_name_no_unit, fi->xuantity())] = NumericField(u, v, fi);
 }
 
 void MeterCommonImplementation::setNumericValue(string vname, Unit u, double v)
@@ -1289,8 +1284,6 @@ bool MeterCommonImplementation::hasValue(FieldInfo *fi)
 
 bool MeterCommonImplementation::hasNumericValue(FieldInfo *fi)
 {
-    if (fi->hasGetNumericValueOverride()) return true;
-
     pair<string,Quantity> key(fi->vname(),fi->xuantity());
 
     return numeric_values_.count(key) != 0;
@@ -1298,18 +1291,11 @@ bool MeterCommonImplementation::hasNumericValue(FieldInfo *fi)
 
 bool MeterCommonImplementation::hasStringValue(FieldInfo *fi)
 {
-    if (fi->hasGetStringValueOverride()) return true;
-
     return string_values_.count(fi->vname()) != 0;
 }
 
 double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
 {
-    if (fi->hasGetNumericValueOverride())
-    {
-        return fi->getNumericValueOverride(to);
-    }
-
     string field_name_no_unit = fi->vname();
     pair<string,Quantity> key(field_name_no_unit,fi->xuantity());
     if (numeric_values_.count(key) == 0)
@@ -1323,12 +1309,6 @@ double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
 double MeterCommonImplementation::getNumericValue(string vname, Unit to)
 {
     Quantity q = toQuantity(to);
-    FieldInfo *fi = findFieldInfo(vname, q);
-
-    if (fi != NULL && fi->hasGetNumericValueOverride())
-    {
-        return fi->getNumericValueOverride(to);
-    }
 
     pair<string,Quantity> key(vname,q);
     if (numeric_values_.count(key) == 0)
@@ -1341,12 +1321,6 @@ double MeterCommonImplementation::getNumericValue(string vname, Unit to)
 
 void MeterCommonImplementation::setStringValue(FieldInfo *fi, string v)
 {
-    if (fi->hasSetStringValueOverride())
-    {
-        fi->setStringValueOverride(v);
-        return;
-    }
-
     string field_name_no_unit = fi->vname();
     string_values_[field_name_no_unit] = StringField(v, fi);
 }
@@ -1365,13 +1339,6 @@ void MeterCommonImplementation::setStringValue(string vname, string v)
 
 string MeterCommonImplementation::getStringValue(FieldInfo *fi)
 {
-    if (fi->hasGetStringValueOverride())
-    {
-        // There is a custom getter for this field. Use this instead.
-        return fi->getStringValueOverride();
-    }
-
-    // Fetch the string value from the default string storage in the meter.
     string field_name_no_unit = fi->vname();
     if (string_values_.count(field_name_no_unit) == 0)
     {
@@ -1636,6 +1603,27 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     map<FieldInfo*,set<DVEntry*>> founds; // Multiple dventries can match to a single field info.
     set<string> found_vnames;
 
+    for (auto &p : numeric_values_)
+    {
+        string vname = p.first.first;
+        NumericField& nf = p.second;
+        if (nf.field_info->printProperties().hasHIDE()) continue;
+
+        string out = nf.field_info->renderJson(this, &nf.dv_entry);
+        s += indent+out+","+newline;
+    }
+
+    for (auto &p : string_values_)
+    {
+        string vname = p.first;
+        StringField& sf = p.second;
+
+        if (sf.field_info->printProperties().hasHIDE()) continue;
+
+        string out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), sf.value.c_str());
+        s += indent+out+","+newline;
+    }
+    /*
     for (FieldInfo& fi : field_infos_)
     {
         if (fi.printProperties().hasHIDE()) continue;
@@ -1700,7 +1688,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
             }
         }
     }
-
+    */
     s += indent+"\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
 
     if (t->about.device != "")

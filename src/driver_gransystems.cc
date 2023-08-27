@@ -73,7 +73,7 @@ namespace
                         Translate::Type::BitToString,
                         AlwaysTrigger,
                         AutoMask,
-                        "",
+                        "OK",
                         {
                             { 0x0001, "METER_HARDWARE_ERROR" },
                             { 0x0002, "RTC_ERROR" },
@@ -88,7 +88,7 @@ namespace
                         Translate::Type::BitToString,
                         TriggerBits(0x01020000),
                         AutoMask,
-                        "",
+                        "OK",
                         {
                             { 0x0008, "DEVICE_NOT_CONFIGURED" },
                             { 0x0010, "INTERNAL_ERROR" },
@@ -102,7 +102,7 @@ namespace
                         Translate::Type::BitToString,
                         TriggerBits(0x01010000),
                         AutoMask,
-                        "",
+                        "OK",
                         {
                             { 0x0008, "CALIBRATION_EEPROM_ERROR" },
                             { 0x0010, "NETWORK_INTERFERENCE" },

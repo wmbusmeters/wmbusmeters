@@ -38,9 +38,11 @@ struct NumericField
     Unit unit {};
     double value {};
     FieldInfo *field_info {};
+    DVEntry dv_entry {};
 
     NumericField() {}
     NumericField(Unit u, double v, FieldInfo *f) : unit(u), value(v), field_info(f) {}
+    NumericField(Unit u, double v, FieldInfo *f, DVEntry &dve) : unit(u), value(v), field_info(f), dv_entry(dve) {}
 };
 
 struct StringField
@@ -238,7 +240,7 @@ protected:
     vector<string> selected_fields_;
     // Map difvif key to hex values from telegrams.
     std::map<std::string,std::pair<int,std::string>> hex_values_;
-    // Map field name (total_volume) to numeric value.
+    // Map field name including unit (total_volume_m3) to numeric value.
     std::map<pair<std::string,Quantity>,NumericField> numeric_values_;
     // Map field name (at_date) to string value.
     std::map<std::string,StringField> string_values_;
