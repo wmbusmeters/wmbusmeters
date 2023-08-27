@@ -83,11 +83,13 @@ int main(int argc, char **argv)
 {
     tzset(); // Load the current timezone.
 
+    setVersion(VERSION);
+
     auto config = parseCommandLine(argc, argv);
 
     if (config->version)
     {
-        printf("wmbusmeters: " VERSION "\n");
+        printf("wmbusmeters: %s\n", getVersion());
         printf(COMMIT "\n");
         exit(0);
     }

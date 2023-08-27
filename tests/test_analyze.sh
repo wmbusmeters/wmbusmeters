@@ -14,7 +14,10 @@ then
         echo "OK: $TESTNAME"
         TESTRESULT="OK"
     else
-        echo "ERROR: $TESTNAME $0"
+        if [ "$USE_MELD" = "true" ]
+        then
+            meld $TEST/test_expected.txt $TEST/test_response.txt
+        fi
     fi
 else
     echo "ERROR: $TESTNAME $0"
@@ -142,16 +145,16 @@ Using driver : multical21 00/00
     "meter":"multical21",
     "name":"",
     "id":"76348799",
-    "status":"DRY",
-    "total_m3":6.408,
-    "target_m3":6.408,
-    "flow_temperature_c":127,
     "external_temperature_c":19,
+    "flow_temperature_c":127,
+    "target_m3":6.408,
+    "total_m3":6.408,
     "current_status":"DRY",
-    "time_dry":"22-31 days",
-    "time_reversed":"",
-    "time_leaking":"",
+    "status":"DRY",
     "time_bursting":"",
+    "time_dry":"22-31 days",
+    "time_leaking":"",
+    "time_reversed":"",
     "timestamp":"1111-11-11T11:11:11Z"
 }
 EOF
@@ -196,16 +199,16 @@ Using driver : multical21 00/00
     "meter":"multical21",
     "name":"",
     "id":"76348799",
-    "status":"DRY",
-    "total_m3":6.409,
-    "target_m3":6.409,
-    "flow_temperature_c":127,
     "external_temperature_c":22,
+    "flow_temperature_c":127,
+    "target_m3":6.409,
+    "total_m3":6.409,
     "current_status":"DRY",
-    "time_dry":"22-31 days",
-    "time_reversed":"",
-    "time_leaking":"",
+    "status":"DRY",
     "time_bursting":"",
+    "time_dry":"22-31 days",
+    "time_leaking":"",
+    "time_reversed":"",
     "timestamp":"1111-11-11T11:11:11Z"
 }
 EOF

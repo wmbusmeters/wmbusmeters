@@ -26,6 +26,9 @@
 #include<set>
 #include<vector>
 
+void setVersion(const char *v);
+const char *getVersion();
+
 void onExit(std::function<void()> cb);
 void restoreSignalHandlers();
 bool gotHupped();

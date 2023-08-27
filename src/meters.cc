@@ -1101,6 +1101,7 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     }
     // Invoke any calculators working on the extracted fields.
     processFieldCalculators();
+
     // All done....
 
     if (isDebugEnabled())
@@ -1237,6 +1238,40 @@ void MeterCommonImplementation::processFieldCalculators()
             fi.performCalculation(this);
         }
     }
+}
+
+string MeterCommonImplementation::getStatusField(FieldInfo *fi)
+{
+    string field_name_no_unit = fi->vname();
+    if (string_values_.count(field_name_no_unit) == 0)
+    {
+        return "null"; // This is translated to a real(non-string) null in the json.
+    }
+    StringField &sf = string_values_[field_name_no_unit];
+    string value = sf.value;
+
+    // This is >THE< status field, only one is allowed.
+    // Look for other fields with the JOIN_INTO_STATUS marker.
+    // These other fields will not be printed, instead
+    // joined into this status field.
+    for (FieldInfo &f : field_infos_)
+    {
+        if (f.printProperties().hasINJECTINTOSTATUS())
+        {
+            //printf("NOW >%s<\n", value.c_str());
+            string more = getStringValue(&f);
+            //printf("MORE >%s<\n", more.c_str());
+            string joined = joinStatusOKStrings(value, more);
+            //printf("JOINED >%s<\n", joined.c_str());
+            value = joined;
+        }
+    }
+    // Sort all found flags and remove any duplicates. A well designed meter decoder
+    // should not be able to generate duplicates.
+    value = sortStatusString(value);
+    // If it is empty, then translate to OK!
+    if (value == "") value = "OK";
+    return value;
 }
 
 void MeterCommonImplementation::processContent(Telegram *t)
@@ -1617,9 +1652,26 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         StringField& sf = p.second;
 
         if (sf.field_info->printProperties().hasHIDE()) continue;
-
-        string out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), sf.value.c_str());
-        s += indent+out+","+newline;
+        if (sf.field_info->printProperties().hasSTATUS())
+        {
+            string in = getStatusField(sf.field_info);
+            string out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), in.c_str());
+            s += indent+out+","+newline;
+        }
+        else
+        {
+            if (sf.value == "null")
+            {
+                // The string "null" translates to actual json null.
+                string out = tostrprintf("\"%s\":null", vname.c_str());
+                s += indent+out+","+newline;
+            }
+            else
+            {
+                string out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), sf.value.c_str());
+                s += indent+out+","+newline;
+            }
+        }
     }
     /*
     for (FieldInfo& fi : field_infos_)

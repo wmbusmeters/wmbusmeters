@@ -180,6 +180,7 @@ protected:
 
     void processFieldExtractors(Telegram *t);
     void processFieldCalculators();
+    string getStatusField(FieldInfo *fi);
 
     virtual void processContent(Telegram *t);
 

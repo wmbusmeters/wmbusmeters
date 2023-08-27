@@ -17,7 +17,6 @@
 
 #include"util.h"
 #include"shell.h"
-#include"version.h"
 
 #include<algorithm>
 #include<assert.h>
@@ -386,6 +385,18 @@ void enableSyslog() {
     syslog_enabled_ = true;
 }
 
+const char *version_;
+
+void setVersion(const char *v)
+{
+    version_ = v;
+}
+
+const char *getVersion()
+{
+    return version_;
+}
+
 bool enableLogfile(const string& logfile, bool daemon)
 {
     log_file_ = logfile;
@@ -397,7 +408,7 @@ bool enableLogfile(const string& logfile, bool daemon)
         strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localtime(&now));
         int n = 0;
         if (daemon) {
-            n = fprintf(output, "(wmbusmeters) logging started %s using " VERSION "\n", buf);
+            n = fprintf(output, "(wmbusmeters) logging started %s %s\n", buf, version_);
             if (n == 0) {
                 logfile_enabled_ = false;
                 return false;
@@ -2345,6 +2356,10 @@ string joinStatusEmptyStrings(const string &aa, const string &bb)
         if (a == "" || a == "null") return "";
         return a;
     }
+
+    if (a != "OK" && b == "OK") return a;
+    if (a == "OK" && b != "OK") return b;
+    if (a == "OK" && b == "OK") return a;
 
     return a+" "+b;
 }
