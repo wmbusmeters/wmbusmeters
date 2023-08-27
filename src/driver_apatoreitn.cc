@@ -114,7 +114,7 @@ namespace
         uchar season_start_date_lo = content[1];
         uchar season_start_date_hi = content[0];
         string season_start_date = dateToString(season_start_date_lo, season_start_date_hi);
-        setStringValue("season_start_date", season_start_date);
+        setStringValue("season_start_date", season_start_date, NULL);
 
         // Previous season total allocation
         uchar prev_lo = content[4];
@@ -126,7 +126,7 @@ namespace
         uchar esb_date_lo = content[6];
         uchar esb_date_hi = content[7];
         string esb_date = dateToString(esb_date_lo, esb_date_hi);
-        setStringValue("esb_date", esb_date);
+        setStringValue("esb_date", esb_date, NULL);
 
         // Current season allocation
         uchar curr_lo = content[8];
@@ -138,7 +138,7 @@ namespace
         uchar date_curr_lo = content[10];
         uchar date_curr_hi = content[11];
         string current_date = dateToString(date_curr_lo, date_curr_hi);
-        setStringValue("current_date", current_date);
+        setStringValue("current_date", current_date, NULL);
 
         // Previous season average temperature
         double temp_room_prev_avg_frac = content[12];

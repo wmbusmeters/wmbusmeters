@@ -1352,13 +1352,23 @@ double MeterCommonImplementation::getNumericValue(string vname, Unit to)
     return convert(nf.value, nf.unit, to);
 }
 
-void MeterCommonImplementation::setStringValue(FieldInfo *fi, string v)
+void MeterCommonImplementation::setStringValue(FieldInfo *fi, string v, DVEntry *dve)
 {
-    string field_name_no_unit = fi->vname();
-    string_values_[field_name_no_unit] = StringField(v, fi);
+    string field_name_no_unit;
+
+    if (dve == NULL)
+    {
+        string field_name_no_unit = fi->vname();
+        string_values_[field_name_no_unit] = StringField(v, fi);
+    }
+    else
+    {
+        field_name_no_unit = fi->generateFieldNameNoUnit(dve);
+        string_values_[field_name_no_unit] = StringField(v, fi);
+    }
 }
 
-void MeterCommonImplementation::setStringValue(string vname, string v)
+void MeterCommonImplementation::setStringValue(string vname, string v, DVEntry *dve)
 {
     FieldInfo *fi = findFieldInfo(vname, Quantity::Text);
 
@@ -1367,7 +1377,7 @@ void MeterCommonImplementation::setStringValue(string vname, string v)
         warning("(meter) cannot set string value %s for non-existant field \"%s\"\n", v.c_str(), vname.c_str());
         return;
     }
-    setStringValue(fi, v);
+    setStringValue(fi, v, dve);
 }
 
 string MeterCommonImplementation::getStringValue(FieldInfo *fi)
@@ -2290,7 +2300,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
                 if (print_properties_.hasINCLUDETPLSTATUS())
                 {
                     string status = add_tpl_status("OK", m, t);
-                    m->setStringValue(this, status);
+                    m->setStringValue(this, status, dve);
                     return true;
                 }
             }
@@ -2310,7 +2320,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
                     if (print_properties_.hasINCLUDETPLSTATUS())
                     {
                         string status = add_tpl_status("OK", m, t);
-                        m->setStringValue(this, status);
+                        m->setStringValue(this, status, dve);
                         return true;
                     }
                     return false;
@@ -2324,7 +2334,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
             if (print_properties_.hasINCLUDETPLSTATUS())
             {
                 string status = add_tpl_status("OK", m, t);
-                m->setStringValue(this, status);
+                m->setStringValue(this, status, dve);
                 return true;
             }
             return false;
@@ -2356,7 +2366,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
 
         if (found)
         {
-            m->setStringValue(this, translated_bits);
+            m->setStringValue(this, translated_bits, dve);
             t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         }
     }
@@ -2375,7 +2385,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         {
             extracted_device_date_time = strdatetime(&datetime);
         }
-        m->setStringValue(this, extracted_device_date_time);
+        m->setStringValue(this, extracted_device_date_time, dve);
         t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;
     }
@@ -2384,7 +2394,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
         struct tm date;
         dve->extractDate(&date);
         string extracted_device_date = strdate(&date);
-        m->setStringValue(this, extracted_device_date);
+        m->setStringValue(this, extracted_device_date, dve);
         t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;
     }
@@ -2402,7 +2412,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     {
         string extracted_id;
         dve->extractReadableString(&extracted_id);
-        m->setStringValue(this, extracted_id);
+        m->setStringValue(this, extracted_id, dve);
         t->addMoreExplanation(dve->offset, renderJsonText(m, dve));
         found = true;
     }

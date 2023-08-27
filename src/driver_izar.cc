@@ -214,11 +214,11 @@ namespace
             // get the manufacture year
             uint8_t yy = atoi(digits.substr(0, 2).c_str());
             int manufacture_year = yy > 70 ? (1900 + yy) : (2000 + yy); // Maybe to adjust in 2070, if this code stills lives :D
-            setStringValue("manufacture_year", tostrprintf("%d", manufacture_year));
+            setStringValue("manufacture_year", tostrprintf("%d", manufacture_year), NULL);
 
             // get the serial number
             uint32_t serial_number = atoi(digits.substr(2, digits.size()).c_str());
-            setStringValue("serial_number", tostrprintf("%06d", serial_number));
+            setStringValue("serial_number", tostrprintf("%06d", serial_number), NULL);
 
             // get letters
             uchar supplier_code = '@' + (((origin[9] & 0x0F) << 1) | (origin[8] >> 7));
@@ -226,7 +226,7 @@ namespace
             uchar diameter = '@' + (((origin[8] & 0x03) << 3) | (origin[7] >> 5));
             // build the prefix
             string prefix = tostrprintf("%c%02d%c%c", supplier_code, yy, meter_type, diameter);
-            setStringValue("prefix", prefix);
+            setStringValue("prefix", prefix, NULL);
         }
 
         // get the remaining battery life (in year) and transmission period (in seconds)
@@ -252,7 +252,7 @@ namespace
         uint8_t h0_month = decoded_content[10] & 0xF;
         uint8_t h0_day = decoded_content[9] & 0x1F;
 
-        setStringValue("last_month_measure_date", tostrprintf("%d-%02d-%02d", h0_year, h0_month%99, h0_day%99));
+        setStringValue("last_month_measure_date", tostrprintf("%d-%02d-%02d", h0_year, h0_month%99, h0_day%99), NULL);
 
         // read the alarms:
         IzarAlarms alarms {};

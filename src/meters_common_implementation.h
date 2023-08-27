@@ -188,8 +188,8 @@ protected:
     void setNumericValue(FieldInfo *fi, DVEntry *dve, Unit u, double v);
     double getNumericValue(string vname, Unit u);
     double getNumericValue(FieldInfo *fi, Unit u);
-    void setStringValue(string vname, std::string v);
-    void setStringValue(FieldInfo *fi, std::string v);
+    void setStringValue(string vname, std::string v, DVEntry *dve = NULL);
+    void setStringValue(FieldInfo *fi, std::string v, DVEntry *dve);
     std::string getStringValue(FieldInfo *fi);
 
     // Check if the meter has received a value for this field.

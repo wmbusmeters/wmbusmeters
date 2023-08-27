@@ -105,7 +105,7 @@ namespace
             leadingZeroString(month_prev) + "-" +
             leadingZeroString(day_prev) + "T02:00:00Z";
 
-        setStringValue("previous_date", previous_date);
+        setStringValue("previous_date", previous_date, NULL);
 
         string bytes = tostrprintf("%02x%02x", content[1], content[2]);
         string info = "*** "+bytes+" previous_date = %s";
@@ -147,7 +147,7 @@ namespace
             leadingZeroString(month_curr) + "-" +
             leadingZeroString(day_curr) + "T02:00:00Z";
 
-        setStringValue("current_date", current_date);
+        setStringValue("current_date", current_date, NULL);
 
         bytes = tostrprintf("%02x%02x", content[5], content[6]);
         info = "*** "+bytes+" current_date = %s";

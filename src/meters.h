@@ -388,7 +388,8 @@ struct Meter
     virtual void setNumericValue(FieldInfo *fi, DVEntry *dve, Unit u, double v) = 0;
     virtual double getNumericValue(string vname, Unit u) = 0;
     virtual double getNumericValue(FieldInfo *fi, Unit u) = 0;
-    virtual void setStringValue(FieldInfo *fi, std::string v) = 0;
+    virtual void setStringValue(FieldInfo *fi, std::string v, DVEntry *dve) = 0;
+    virtual void setStringValue(string vname, std::string v, DVEntry *dve = NULL) = 0;
     virtual std::string getStringValue(FieldInfo *fi) = 0;
     virtual std::string decodeTPLStatusByte(uchar sts) = 0;
 

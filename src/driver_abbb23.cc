@@ -197,7 +197,20 @@ namespace
             .set(DifVifKey("07FFA900")),
             Translate::Lookup()
             .add(Translate::Rule("ALARM_FLAGS", Translate::Type::BitToString)
-                 .set(MaskBits(0xffffffffffffffff))
+                 .set(MaskBits(0xfffffffffffffff))
+                 .set(DefaultMessage("OK"))
+                ));
+
+       addStringFieldWithExtractorAndLookup(
+            "unknown_vif_FFAD",
+            "Unknown byte.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(DifVifKey("01FFAD00")),
+            Translate::Lookup()
+            .add(Translate::Rule("UNKNOWN", Translate::Type::BitToString)
+                 .set(MaskBits(0xff))
                  .set(DefaultMessage("OK"))
                 ));
 
@@ -760,7 +773,7 @@ namespace
                 ));
 
         addNumericFieldWithExtractor(
-            "input_{subunit_counter-2counter}",
+            "digital_input_{subunit_counter-2counter}",
             "Number of times input 1-2 counted a 1.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,

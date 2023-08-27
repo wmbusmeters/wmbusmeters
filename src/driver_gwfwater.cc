@@ -77,7 +77,7 @@ namespace
 
         if (type != 1)
         {
-            setStringValue("mfct_status", tostrprintf("UKNOWN_MFCT_STATUS=%02x%02x%02x", type, a, b));
+            setStringValue("mfct_status", tostrprintf("UKNOWN_MFCT_STATUS=%02x%02x%02x", type, a, b), NULL);
             return;
         }
 
@@ -89,9 +89,9 @@ namespace
         if (a & 0x40) info += "BACKFLOW ";
 
         if (info.size() > 0) info.pop_back();
-        setStringValue("mfct_status", info);
+        setStringValue("mfct_status", info, NULL);
 
-        setStringValue("power_mode", (b & 0x01) ? "SAVING" :  "NORMAL");
+        setStringValue("power_mode", (b & 0x01) ? "SAVING" :  "NORMAL", NULL);
 
         double battery_semesters = (b >> 3); // Half years.
         setNumericValue("battery", Unit::Year, battery_semesters/2.0);
