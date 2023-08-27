@@ -1,8 +1,11 @@
 FROM multiarch/alpine:${TARGETARCH}${TARGETVARIANT}-latest-stable AS build
 RUN apk add --no-cache alpine-sdk gcc linux-headers librtlsdr-dev cmake libusb-dev bash
 RUN git clone https://github.com/wmbusmeters/wmbusmeters.git && \
+    git clone https://gitea.osmocom.org/sdr/rtl-sdr.git && \
     git clone https://github.com/weetmuts/rtl-wmbus.git && \
     git clone https://github.com/merbanan/rtl_433.git
+WORKDIR /rtl-sdr
+RUN mkdir build && cd build && cmake ../ -DDETACH_KERNEL_DRIVER=ON && make && make install
 WORKDIR /wmbusmeters
 RUN make
 WORKDIR /rtl-wmbus
@@ -13,6 +16,9 @@ RUN mkdir build && cd build && cmake ../ && make
 FROM multiarch/alpine:${TARGETARCH}${TARGETVARIANT}-latest-stable as scratch
 ENV QEMU_EXECVE=1
 RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb rtl-sdr netcat-openbsd
+#Copy rtl-sdr files
+COPY --from=build /usr/local/bin /usr/local/bin
+COPY --from=build /usr/local/lib /usr/local/lib
 WORKDIR /wmbusmeters
 COPY --from=build /wmbusmeters/build/wmbusmeters /wmbusmeters/wmbusmeters
 COPY --from=build /rtl-wmbus/build/rtl_wmbus /usr/bin/rtl_wmbus
