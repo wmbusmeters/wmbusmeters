@@ -101,7 +101,8 @@ namespace
             Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
-            .set(DifVifKey("01FF9300"))
+            .set(DifVifKey("01FF9300")),
+            Unit::NUMBER
             );
 
         addNumericFieldWithExtractor(
@@ -1196,6 +1197,179 @@ namespace
             .set(SubUnitNr(5))
             .add(VIFCombinableRaw(0x7f03))
             .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_net_energy",
+            "Active net energy total.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(6))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_net_energy_l1",
+            "Active net energy total for phase L1.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(6))
+            .add(VIFCombinableRaw(0x7f01))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_net_energy_l2",
+            "Active net energy total for phase L2.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(6))
+            .add(VIFCombinableRaw(0x7f02))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_net_energy_l3",
+            "Active net energy total for phase L3.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(6))
+            .add(VIFCombinableRaw(0x7f03))
+            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "total_net_reactive_energy",
+            "Active net energy total.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(7))
+            .add(VIFCombinableRaw(0)),
+            Unit::KVARH
+            );
+
+        addNumericFieldWithExtractor(
+            "total_net_reactive_energy_l1",
+            "Active net reactive energy total for phase L1.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(7))
+            .add(VIFCombinableRaw(0x7f01))
+            .add(VIFCombinableRaw(0)),
+            Unit::KVARH
+            );
+
+        addNumericFieldWithExtractor(
+            "total_net_reactive_energy_l2",
+            "Active net reactive energy total for phase L2.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(7))
+            .add(VIFCombinableRaw(0x7f02))
+            .add(VIFCombinableRaw(0)),
+            Unit::KVARH
+            );
+
+        addNumericFieldWithExtractor(
+            "total_net_reactive_energy_l3",
+            "Active net reactive energy total for phase L3.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(7))
+            .add(VIFCombinableRaw(0x7f03))
+            .add(VIFCombinableRaw(0)),
+            Unit::KVARH
+            );
+
+        addNumericFieldWithExtractor(
+            "total_net_apparent_energy",
+            "Active net energy total.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(8))
+            .add(VIFCombinableRaw(0)),
+            Unit::KVAH
+            );
+
+        addNumericFieldWithExtractor(
+            "total_net_apparent_energy_l1",
+            "Active net apparent energy total for phase L1.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(8))
+            .add(VIFCombinableRaw(0x7f01))
+            .add(VIFCombinableRaw(0)),
+            Unit::KVAH
+            );
+
+        addNumericFieldWithExtractor(
+            "total_net_apparent_energy_l2",
+            "Active net apparent energy total for phase L2.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(8))
+            .add(VIFCombinableRaw(0x7f02))
+            .add(VIFCombinableRaw(0)),
+            Unit::KVAH
+            );
+
+        addNumericFieldWithExtractor(
+            "total_net_apparent_energy_l3",
+            "Active net apparent energy total for phase L3.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(8))
+            .add(VIFCombinableRaw(0x7f03))
+            .add(VIFCombinableRaw(0)),
+            Unit::KVAH
             );
 
     }
