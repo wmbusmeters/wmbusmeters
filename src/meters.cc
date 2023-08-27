@@ -1111,7 +1111,7 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     }
 
     triggerUpdate(&t);
-/*    string s = debugValues();
+    /*string s = debugValues();
 
       printf("\n\nVALUES------\n%s\n--------------\n", s.c_str());*/
 
@@ -1255,12 +1255,12 @@ void MeterCommonImplementation::setNumericValue(FieldInfo *fi, DVEntry *dve, Uni
     if (dve == NULL)
     {
         string field_name_no_unit = fi->vname();
-        numeric_values_[pair<string,Quantity>(field_name_no_unit, fi->xuantity())] = NumericField(u, v, fi);
+        numeric_values_[pair<string,Unit>(field_name_no_unit, fi->displayUnit())] = NumericField(u, v, fi);
     }
     else
     {
         field_name_no_unit = fi->generateFieldNameNoUnit(dve);
-        numeric_values_[pair<string,Quantity>(field_name_no_unit, fi->xuantity())] = NumericField(u, v, fi, *dve);
+        numeric_values_[pair<string,Unit>(field_name_no_unit, fi->displayUnit())] = NumericField(u, v, fi, *dve);
     }
 }
 
@@ -1284,7 +1284,7 @@ bool MeterCommonImplementation::hasValue(FieldInfo *fi)
 
 bool MeterCommonImplementation::hasNumericValue(FieldInfo *fi)
 {
-    pair<string,Quantity> key(fi->vname(),fi->xuantity());
+    pair<string,Unit> key(fi->vname(),fi->displayUnit());
 
     return numeric_values_.count(key) != 0;
 }
@@ -1297,7 +1297,7 @@ bool MeterCommonImplementation::hasStringValue(FieldInfo *fi)
 double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
 {
     string field_name_no_unit = fi->vname();
-    pair<string,Quantity> key(field_name_no_unit,fi->xuantity());
+    pair<string,Unit> key(field_name_no_unit,fi->displayUnit());
     if (numeric_values_.count(key) == 0)
     {
         return std::numeric_limits<double>::quiet_NaN(); // This is translated into a null in the json.
@@ -1308,9 +1308,7 @@ double MeterCommonImplementation::getNumericValue(FieldInfo *fi, Unit to)
 
 double MeterCommonImplementation::getNumericValue(string vname, Unit to)
 {
-    Quantity q = toQuantity(to);
-
-    pair<string,Quantity> key(vname,q);
+    pair<string,Unit> key(vname,to);
     if (numeric_values_.count(key) == 0)
     {
         return std::numeric_limits<double>::quiet_NaN(); // This is translated into a null in the json.
@@ -1408,10 +1406,10 @@ string MeterCommonImplementation::debugValues()
     for (auto &p : numeric_values_)
     {
         string vname = p.first.first;
-        Quantity q = p.first.second;
+        string us = unitToStringLowerCase(p.first.second);
         NumericField& nf = p.second;
 
-        s += tostrprintf("%s %s = %g\n", toString(q), vname.c_str(),  nf.value);
+        s += tostrprintf("%s_%s = %g\n", vname.c_str(), us.c_str(), nf.value);
     }
 
     for (auto &p : string_values_)

@@ -240,8 +240,8 @@ protected:
     vector<string> selected_fields_;
     // Map difvif key to hex values from telegrams.
     std::map<std::string,std::pair<int,std::string>> hex_values_;
-    // Map field name including unit (total_volume_m3) to numeric value.
-    std::map<pair<std::string,Quantity>,NumericField> numeric_values_;
+    // Map field name+Unit to Numeric field which includes the value.
+    std::map<pair<std::string,Unit>,NumericField> numeric_values_;
     // Map field name (at_date) to string value.
     std::map<std::string,StringField> string_values_;
     // Used to block next poll, until this poll has received a respones.
