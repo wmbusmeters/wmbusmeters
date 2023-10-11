@@ -652,7 +652,7 @@ FrameStatus WMBusAmber::checkAMB8465Frame(vector<uchar> &data,
         }
 
         // Only response from CMD_DATA_IND has rssi
-        int rssi_len = (rssi_expected_ && data[1] == (0x80|CMD_DATA_IND)) ? 1 : 0;
+        int rssi_len = (rssi_expected_ && data[1] == (CMD_DATA_IND)) ? 1 : 0;
 
         // A command response begins with 0xff
         *msgid_out = data[1];
@@ -815,7 +815,8 @@ void WMBusAmber::processSerialData()
 void WMBusAmber::handleMessage(int msgid, vector<uchar> &frame, int rssi_dbm)
 {
     switch (msgid) {
-    case (0):
+    case (0): // Transparent telegram mode (no 0xff header)
+    case(CMD_DATA_IND): // Command telegram mode (0xff03 prefix)
     {
         AboutTelegram about("amb8465["+cached_device_id_+"]", rssi_dbm, FrameType::WMBUS);
         handleTelegram(about, frame);
