@@ -23,6 +23,7 @@
 #include"util.h"
 #include"units.h"
 #include"translatebits.h"
+#include"xmq.h"
 #include"wmbus.h"
 
 #include<assert.h>
@@ -183,6 +184,8 @@ private:
     vector<string> default_fields_;
     int force_mfct_index_ = -1; // Used for meters not declaring mfct specific data using the dif 0f.
     bool has_process_content_ = false; // Mark this driver as having mfct specific decoding.
+    XMQDoc *dynamic_driver_ {}; // Configuration loaded from driver file.
+    string dynamic_file_name_; // Name of actual loaded driver file.
 
 public:
     DriverInfo() {};
@@ -195,6 +198,9 @@ public:
     void setConstructor(function<shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
     void addDetection(uint16_t mfct, uchar type, uchar ver) { detect_.push_back({ mfct, type, ver }); }
     void usesProcessContent() { has_process_content_ = true; }
+    void setDynamic(const string &file_name, XMQDoc *driver) { dynamic_file_name_ = file_name; dynamic_driver_ = driver; }
+    XMQDoc *getDynamicDriver() { return dynamic_driver_; }
+    const string &getDynamicFileName() { return dynamic_file_name_; }
 
     vector<DriverDetect> &detect() { return detect_; }
 
@@ -219,6 +225,7 @@ public:
 };
 
 bool registerDriver(function<void(DriverInfo&di)> setup);
+// Lookup (and load if necessary) driver from memory or disk.
 bool lookupDriverInfo(const string& driver, DriverInfo *di = NULL);
 // Return the best driver match for a telegram.
 DriverInfo pickMeterDriver(Telegram *t);
@@ -234,10 +241,12 @@ enum class VifScaling
     None, // No auto scaling.
     Auto, // Scale to normalized VIF unit (ie kwh, m3, m3h etc)
     NoneSigned, // No auto scaling however assume the value is signed.
-    AutoSigned // Scale and assume the value is signed.
+    AutoSigned, // Scale and assume the value is signed.
+    Unknown
 };
 
 const char* toString(VifScaling s);
+VifScaling toVifScaling(const char *s);
 
 enum PrintProperty
 {
@@ -246,8 +255,13 @@ enum PrintProperty
     STATUS = 4, // This is >the< status field and it should read OK of not error flags are set.
     INCLUDE_TPL_STATUS = 8, // This text field also includes the tpl status decoding. multiple OK:s collapse to a single OK.
     INJECT_INTO_STATUS = 16, // This text field is injected into the already defined status field. multiple OK:s collapse.
-    HIDE = 32 // This field is only used in calculations, do not print it!
+    HIDE = 32, // This field is only used in calculations, do not print it!
+    Unknown = 1024
 };
+
+int toBit(PrintProperty p);
+const char* toString(PrintProperty p);
+PrintProperty toPrintProperty(const char *s);
 
 struct PrintProperties
 {
@@ -259,10 +273,14 @@ struct PrintProperties
     bool hasINCLUDETPLSTATUS() { return props_ & PrintProperty::INCLUDE_TPL_STATUS; }
     bool hasINJECTINTOSTATUS() { return props_ & PrintProperty::INJECT_INTO_STATUS; }
     bool hasHIDE() { return props_ & PrintProperty::HIDE; }
+    bool hasUnknown() { return props_ & PrintProperty::Unknown; }
 
-    private:
+private:
     int props_;
 };
+
+// Parse a string like DEPRECATED,HIDE into bits.
+PrintProperties toPrintProperties(string s);
 
 #define DEFAULT_PRINT_PROPERTIES 0
 
@@ -447,11 +465,14 @@ struct MeterManager
 shared_ptr<MeterManager> createMeterManager(bool daemon);
 
 const char *toString(MeterType type);
+MeterType toMeterType(std::string type);
 string toString(DriverInfo &driver);
 LinkModeSet toMeterLinkModeSet(const string& driver);
 
 struct Configuration;
 struct MeterInfo;
 shared_ptr<Meter> createMeter(MeterInfo *mi);
+
+const char *availableMeterTypes();
 
 #endif

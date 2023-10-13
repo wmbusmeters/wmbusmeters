@@ -13,7 +13,7 @@ then
     exit 1
 fi
 
-(cd src; grep -Eo "Copyright \(C\) (....-)?.... [^\(]+ \(.+\)" * | cut -f 2 -d ':' | tr -s ' ' | sed 's/(C) \([0-9][0-9][0-9][0-9]\) /(C) \1-\1 /' >  $TMP)
+(cd src; grep -Eo ".*Copyright \(C\) (....-)?.... [^\(]+ \(.+\)" * | cut -f 2 -d ':' | tr -s ' ' | sed 's/(C) \([0-9][0-9][0-9][0-9]\) /(C) \1-\1 /' >  $TMP)
 
 echo 'R"AUTHORS(' > $OUT
 

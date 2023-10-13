@@ -415,6 +415,14 @@ LIST_OF_UNITS
     return Quantity::Unknown;
 }
 
+Quantity toQuantity(string q)
+{
+#define X(qname,qunit) if (q == #qname) return Quantity::qname;
+LIST_OF_QUANTITIES
+#undef X
+    return Quantity::Unknown;
+}
+
 void assertQuantity(Unit u, Quantity q)
 {
     if (!isQuantity(u, q))

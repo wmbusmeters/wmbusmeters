@@ -53,6 +53,11 @@ AC_CHECK_LIB(rtlsdr, rtlsdr_get_device_count, [],
   AC_MSG_ERROR([Could  not find rtlsdr library. Try: sudo apt install librtlsdr-dev])
 ])
 
+AC_CHECK_LIB(xml2, xmlFreeDoc, [],
+[
+  AC_MSG_ERROR([Could  not find libxml2 library. Try: sudo apt install libxml2-dev])
+])
+
 AC_CONFIG_FILES([$OUTPUT_ROOT/spec.gmk:$SRC_ROOT/autoconf/spec.gmk.in])
 AC_CONFIG_FILES([$OUTPUT_ROOT/Makefile:$SRC_ROOT/autoconf/Makefile.in])
 

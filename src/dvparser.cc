@@ -49,6 +49,17 @@ LIST_OF_VIF_RANGES
     assert(0);
 }
 
+VIFRange toVIFRange(const char *s)
+{
+    if (!strcmp(s, "None")) return VIFRange::None;
+    if (!strcmp(s, "Any")) return VIFRange::Any;
+#define X(name,from,to,quantity,unit) if (!strcmp(s, #name)) return VIFRange::name;
+LIST_OF_VIF_RANGES
+#undef X
+
+    return VIFRange::None;
+}
+
 const char *toString(VIFCombinable v)
 {
     switch (v) {
@@ -1328,8 +1339,21 @@ const char *toString(MeasurementType mt)
     case MeasurementType::Minimum: return "Minimum";
     case MeasurementType::Maximum: return "Maximum";
     case MeasurementType::AtError: return "AtError";
+    case MeasurementType::Unknown: return "Unknown";
     }
     return "?";
+}
+
+MeasurementType toMeasurementType(const char *s)
+{
+    if (!strcmp(s, "Any")) return MeasurementType::Any;
+    if (!strcmp(s, "Instantaneous")) return MeasurementType::Instantaneous;
+    if (!strcmp(s, "Minimum")) return MeasurementType::Minimum;
+    if (!strcmp(s, "Maximum")) return MeasurementType::Maximum;
+    if (!strcmp(s, "AtError")) return MeasurementType::AtError;
+    if (!strcmp(s, "Unknown")) return MeasurementType::Unknown;
+
+    return MeasurementType::Unknown;
 }
 
 string FieldMatcher::str()

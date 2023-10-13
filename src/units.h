@@ -277,6 +277,7 @@ bool overrideConversion(Unit from, Unit to);
 
 // Either uppercase KWH or lowercase kwh works here.
 Unit toUnit(std::string s);
+Quantity toQuantity(std::string s);
 const SIUnit &toSIUnit(Unit u);
 const char *toString(Quantity q);
 bool isQuantity(Unit u, Quantity q);

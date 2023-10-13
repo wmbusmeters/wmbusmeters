@@ -40,7 +40,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "current_status",
             "Status of meter.",
-            DEFAULT_PRINT_PROPERTIES  
+            DEFAULT_PRINT_PROPERTIES
             | PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
