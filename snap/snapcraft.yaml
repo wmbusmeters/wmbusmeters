@@ -49,6 +49,7 @@ parts:
       - g++
       - make
       - librtlsdr-dev
+      - libxml2-dev
     stage-packages:
       - mosquitto-clients
       - curl
@@ -56,6 +57,7 @@ parts:
       - sysvinit-utils
       - libusb-1.0-0
       - rtl-sdr
+      - libxml2
     prime:
       - sbin/
       - usr/bin/
