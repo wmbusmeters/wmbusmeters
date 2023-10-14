@@ -299,6 +299,10 @@ uchar *safeButUnsafeVectorPtr(std::vector<uchar> &v);
 // Count utf8 unicode code points.
 int strlen_utf8(const char *s);
 
+int toMfctCode(char a, char b, char c);
+
+bool is_lowercase_alnum_text(const char *text);
+
 #ifndef FUZZING
 #define FUZZING false
 #endif

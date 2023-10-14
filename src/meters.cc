@@ -17,6 +17,7 @@
 
 #include"bus.h"
 #include"config.h"
+#include"driver_dynamic.h"
 #include"meters.h"
 #include"meters_common_implementation.h"
 #include"units.h"
@@ -49,11 +50,14 @@ void verifyDriverLookupCreated()
 DriverInfo *lookupDriver(string name)
 {
     verifyDriverLookupCreated();
+
+    // Check if we have a compiled/loaded driver available.
     if (registered_drivers_->count(name) == 1)
     {
         return &(*registered_drivers_)[name];
     }
 
+    // No, ok lets look for driver aliases.
     for (DriverInfo *di : *registered_drivers_list_)
     {
         for (DriverName &dn : di->nameAliases())
@@ -115,6 +119,38 @@ bool DriverInfo::isCloseEnoughMedia(uchar type)
     return false;
 }
 
+bool forceRegisterDriver(function<void(DriverInfo&)> setup)
+{
+    DriverInfo di;
+    setup(di);
+
+    // Check that the driver name has not been registered before!
+    assert(lookupDriver(di.name().str()) == NULL);
+
+    // Check that no other driver also triggers on the same detection values.
+    for (auto &d : di.detect())
+    {
+        for (DriverInfo *p : allDrivers())
+        {
+            bool foo = p->detect(d.mfct, d.type, d.version);
+            if (foo)
+            {
+                error("Internal error: driver %s tried to register the same auto detect combo as driver %s alread has taken!\n",
+                      di.name().str().c_str(), p->name().str().c_str());
+            }
+        }
+    }
+
+    // Everything looks, good install this driver.
+    addRegisteredDriver(di);
+
+    // This code is invoked from the static initializers of DriverInfos when starting
+    // wmbusmeters. Thus we do not yet know if the user has supplied --debug or similar setting.
+    // To debug this you have to uncomment the printf below.
+    // fprintf(stderr, "(STATIC) added driver: %s\n", n.c_str());
+    return true;
+}
+
 bool registerDriver(function<void(DriverInfo&)> setup)
 {
     DriverInfo di;
@@ -147,12 +183,58 @@ bool registerDriver(function<void(DriverInfo&)> setup)
     return true;
 }
 
-bool lookupDriverInfo(const string& driver, DriverInfo *out_di)
+string loadDriver(const string &file)
 {
-    DriverInfo *di = lookupDriver(driver);
+    DriverInfo di;
+
+    bool ok = DriverDynamic::load(&di, file);
+    if (!ok)
+    {
+        error("Failed to load driver from file: %s\n", file.c_str());
+    }
+    // Check that the driver name has not been registered before!
+    if (lookupDriver(di.name().str()) != NULL)
+    {
+        error("Cannot load driver %s %s since it is already registered!\n",
+              di.name().str().c_str(),
+              file.c_str());
+    }
+
+    // Check that no other driver also triggers on the same detection values.
+    for (auto &d : di.detect())
+    {
+        for (DriverInfo *p : allDrivers())
+        {
+            bool foo = p->detect(d.mfct, d.type, d.version);
+            if (foo)
+            {
+                error("Newly loaded driver %s tries to register the same auto detect combo as driver %s alread has taken!\n",
+                      di.name().str().c_str(), p->name().str().c_str());
+            }
+        }
+    }
+
+    // Everything looks, good install this driver.
+    addRegisteredDriver(di);
+
+    return di.name().str();
+}
+
+bool lookupDriverInfo(const string& driver_name, DriverInfo *out_di)
+{
+    DriverInfo *di = lookupDriver(driver_name);
     if (di == NULL)
     {
-        return false;
+        // Ok, not built in, try to load it from file.
+        string new_name = loadDriver(driver_name);
+
+        // Check again if it was registered.
+        di = lookupDriver(new_name);
+
+        if (di == NULL)
+        {
+            return false;
+        }
     }
 
     if (out_di != NULL)
@@ -162,32 +244,7 @@ bool lookupDriverInfo(const string& driver, DriverInfo *out_di)
 
     return true;
 }
-/*
-MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
-                                                     string driver) :
-    driver_name_(driver),
-    bus_(mi.bus),
-    name_(mi.name),
-    waiting_for_poll_response_sem_("waiting_for_poll_response")
-{
-    ids_ = mi.ids;
-    idsc_ = toIdsCommaSeparated(ids_);
-    link_modes_ = mi.link_modes;
 
-    if (mi.key.length() > 0)
-    {
-        hex2bin(mi.key, &meter_keys_.confidentiality_key);
-    }
-    for (auto s : mi.shells)
-    {
-        addShell(s);
-    }
-    for (auto j : mi.extra_constant_fields)
-    {
-        addExtraConstantField(j);
-    }
-}
-*/
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
                                                      DriverInfo &di) :
     type_(di.type()),
@@ -745,6 +802,14 @@ const char *toString(MeterType type)
 LIST_OF_METER_TYPES
 #undef X
     return "unknown";
+}
+
+MeterType toMeterType(string type)
+{
+#define X(tname) if (type == #tname) return MeterType::tname;
+LIST_OF_METER_TYPES
+#undef X
+    return MeterType::UnknownMeter;
 }
 
 string toString(DriverInfo &di)
@@ -2930,6 +2995,107 @@ const char *toString(VifScaling s)
     case VifScaling::Auto: return "Auto";
     case VifScaling::NoneSigned: return "NoneSigned";
     case VifScaling::AutoSigned: return "AutoSigned";
+    case VifScaling::Unknown: return "Unknown";
     }
     return "?";
+}
+
+VifScaling toVifScaling(const char *s)
+{
+    if (!s) return VifScaling::Unknown;
+    if (!strcmp(s, "None")) return VifScaling::None;
+    if (!strcmp(s, "Auto")) return VifScaling::Auto;
+    if (!strcmp(s, "NoneSigned")) return VifScaling::NoneSigned;
+    if (!strcmp(s, "AutoSigned")) return VifScaling::AutoSigned;
+    if (!strcmp(s, "Unknown")) return VifScaling::Unknown;
+    return VifScaling::Unknown;
+}
+
+FieldType toFieldType(const char *s)
+{
+    if (!strcmp(s, "NumericFieldWithExtractor")) return FieldType::NumericFieldWithExtractor;
+    if (!strcmp(s, "NumericFieldWithCalculator")) return FieldType::NumericFieldWithCalculator;
+    if (!strcmp(s, "NumericFieldWithCalculatorAndMatcher")) return FieldType::NumericFieldWithCalculatorAndMatcher;
+    if (!strcmp(s, "NumericField")) return FieldType::NumericField;
+
+    if (!strcmp(s, "StringFieldWithExtractor")) return FieldType::StringFieldWithExtractor;
+    if (!strcmp(s, "StringFieldWithExtractorAndLookup")) return FieldType::StringFieldWithExtractorAndLookup;
+    if (!strcmp(s, "StringField")) return FieldType::StringField;
+
+    return FieldType::Unknown;
+}
+
+const char *toString(FieldType ft)
+{
+    switch (ft) {
+    case FieldType::NumericFieldWithExtractor: return "NumericFieldWithExtractor";
+    case FieldType::NumericFieldWithCalculator: return "NumericFieldWithCalculator";
+    case FieldType::NumericFieldWithCalculatorAndMatcher: return "NumericFieldWithCalculatorAndMatcher";
+    case FieldType::NumericField: return "NumericField";
+    case FieldType::StringFieldWithExtractor: return "StringFieldWithExtractor";
+    case FieldType::StringFieldWithExtractorAndLookup: return "StringFieldWithExtractorAndLookup";
+    case FieldType::StringField: return "StringField";
+    case FieldType::Unknown: return "Unknown";
+    }
+
+    return "Unknown";
+}
+
+const char* toString(PrintProperty p)
+{
+    switch(p)
+    {
+    case PrintProperty::REQUIRED: return "REQUIRED";
+    case PrintProperty::DEPRECATED: return "DEPRECATED";
+    case PrintProperty::STATUS: return "STATUS";
+    case PrintProperty::INCLUDE_TPL_STATUS: return "INCLUDE_TPL_STATUS";
+    case PrintProperty::INJECT_INTO_STATUS: return "INJECT_INTO_STATUS";
+    case PrintProperty::HIDE: return "HIDE";
+    case PrintProperty::Unknown: return "Unknown";
+    }
+
+    return "Unknown";
+}
+
+PrintProperty toPrintProperty(const char *s)
+{
+    if (!strcmp(s, "REQUIRED")) return PrintProperty::REQUIRED;
+    if (!strcmp(s, "DEPRECATED")) return PrintProperty::DEPRECATED;
+    if (!strcmp(s, "STATUS")) return PrintProperty::STATUS;
+    if (!strcmp(s, "INCLUDE_TPL_STATUS")) return PrintProperty::INCLUDE_TPL_STATUS;
+    if (!strcmp(s, "INJECT_INTO_STATUS")) return PrintProperty::INJECT_INTO_STATUS;
+    if (!strcmp(s, "HIDE")) return PrintProperty::HIDE;
+    if (!strcmp(s, "Unknown")) return PrintProperty::Unknown;
+
+    return PrintProperty::Unknown;
+}
+
+PrintProperties toPrintProperties(string s)
+{
+    auto fields = splitString(s, ',');
+
+    int bits = 0;
+    for (auto p : fields)
+    {
+        bits |= toPrintProperty(p.c_str());
+    }
+
+    return bits;
+}
+
+char available_meter_types_[2048];
+
+const char *availableMeterTypes()
+{
+    if (available_meter_types_[0]) return available_meter_types_;
+
+#define X(m) if (MeterType::m != MeterType::AutoMeter && MeterType::m != MeterType::UnknownMeter) {  \
+        strcat(available_meter_types_, #m); strcat(available_meter_types_, "\n"); \
+        assert(strlen(available_meter_types_) < 1024); }
+LIST_OF_METER_TYPES
+#undef X
+
+    // Remove last ,
+    available_meter_types_[strlen(available_meter_types_)-1] = 0;
+    return available_meter_types_;
 }

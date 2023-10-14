@@ -88,6 +88,7 @@ struct VIFRaw {
 };
 
 const char *toString(VIFRange v);
+VIFRange toVIFRange(const char *s);
 Unit toDefaultUnit(VIFRange v);
 VIFRange toVIFRange(int i);
 bool isInsideVIFRange(int i, VIFRange range);
@@ -213,10 +214,12 @@ enum class MeasurementType
     Instantaneous,
     Minimum,
     Maximum,
-    AtError
+    AtError,
+    Unknown
 };
 
 const char *toString(MeasurementType mt);
+MeasurementType toMeasurementType(const char *s);
 
 void extractDV(std::string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes);
 

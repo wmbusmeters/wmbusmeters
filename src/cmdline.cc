@@ -76,10 +76,12 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         if (!strcmp(argv[i], "--silent")) {
             c->silent = true;
             i++;
+            silentLogging(true);
             continue;
         }
         if (!strcmp(argv[i], "--verbose")) {
             c->verbose = true;
+            verboseEnabled(true);
             i++;
             continue;
         }
@@ -165,12 +167,17 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
 
         if (!strcmp(argv[i], "--debug")) {
             c->debug = true;
+            verboseEnabled(true);
+            debugEnabled(true);
             i++;
             continue;
         }
         if (!strcmp(argv[i], "--trace")) {
             c->debug = true;
             c->trace = true;
+            verboseEnabled(true);
+            debugEnabled(true);
+            traceEnabled(true);
             i++;
             continue;
         }

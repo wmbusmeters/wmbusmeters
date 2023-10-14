@@ -1,6 +1,13 @@
+
+Added initial support for drivers that can be loaded from config files.
+Properly receive telegrams from amb8465 which is in command mode.
+Chris Bednarczyk improved the build process for Darwin/MacOS platform. Thanks Chris!
+PovilasID added another Hydrodigit version. Thanks PovilasID!
+Added new units for phase angle: deg rad.
+Added more fields to the abbb23.
+
 Version 1.14.0 2023-07-02
 Version 1.14.0-RC1 2023-07-02
-
 
 Added more fields to em24 driver.
 Added another mfct/type/version combo to em42 driver and the power_kw field.

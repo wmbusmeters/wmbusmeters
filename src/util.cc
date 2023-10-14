@@ -2431,3 +2431,24 @@ string strTimestampUTC(double v)
     strftime(datetime, sizeof(datetime), "%FT%TZ", &ts);
     return string(datetime);
 }
+
+int toMfctCode(char a, char b, char c)
+{
+    return ((a-64)*1024+(b-64)*32+(c-64));
+}
+
+bool is_lowercase_alnum_text(const char *text)
+{
+    const char *i = text;
+    while (*i)
+    {
+        char c = *i;
+        if (!((c >= '0' && c <= '9') ||
+              (c >= 'a' && c <= 'z')))
+        {
+            return false;
+        }
+        i++;
+    }
+    return true;
+}

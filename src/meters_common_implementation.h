@@ -54,6 +54,21 @@ struct StringField
     StringField(std::string v, FieldInfo *f) : value(v), field_info(f) {}
 };
 
+enum class FieldType
+{
+    NumericFieldWithExtractor,
+    NumericFieldWithCalculator,
+    NumericFieldWithCalculatorAndMatcher,
+    NumericField,
+    StringFieldWithExtractor,
+    StringFieldWithExtractorAndLookup,
+    StringField,
+    Unknown
+};
+
+FieldType toFieldType(const char *s);
+const char *toString(FieldType ft);
+
 struct MeterCommonImplementation : public virtual Meter
 {
     int index();
