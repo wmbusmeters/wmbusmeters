@@ -31,6 +31,8 @@ namespace
             di.setMeterType(MeterType::WaterMeter);
             di.addLinkMode(LinkMode::S1);
             di.addDetection(MANUFACTURER_LSE, 0x06,  0x18);
+            di.addDetection(MANUFACTURER_LSE, 0x06,  0x41);
+            di.addDetection(MANUFACTURER_LSE, 0x07,  0x41);
             di.addDetection(MANUFACTURER_LSE, 0x07,  0x18);
             di.addDetection(MANUFACTURER_LSE, 0x07,  0x16);
             di.addDetection(MANUFACTURER_LSE, 0x07,  0x17);
