@@ -111,7 +111,7 @@ public:
             id_b = t->tpl_id_b;
         }
 
-        warning("(meter) %s: meter detection could not find driver for "
+        warning("(meter) %s: meter detection could not find driver for received telegram "
                 "id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
                 name.c_str(),
                 id_b[3], id_b[2], id_b[1], id_b[0],
