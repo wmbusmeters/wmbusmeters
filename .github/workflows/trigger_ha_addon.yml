@@ -31,7 +31,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.HA_PAT }}
-          repository: wmbusmeters/wmbusmeters-ha-addon
+          repository: comfre91/wmbusmeters-ha-addon
           event-type: build_ha_edge
           client-payload: '{"ver": "${{ steps.version.outputs.id }}"}'
 
@@ -40,6 +40,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.HA_PAT }}
-          repository: wmbusmeters/wmbusmeters-ha-addon
+          repository: comfre91/wmbusmeters-ha-addon
           event-type: build_ha_stable
           client-payload: '{"ver": "${{ steps.version.outputs.id }}"}'
