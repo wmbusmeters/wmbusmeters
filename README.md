@@ -64,9 +64,8 @@ wmbus dongles when wmbusmeters startup.
 If the serial device (ttyUSB0) might change you can also use `device=im871a:c1,t1`
 which will probe all serial devices but only scans for im871a which also speeds it up.
 
-If you are using a sdr-rtl device, keep in mind that SDR devices are accessed through 
-character device special files named `/dev/swradio0` to `/dev/swradio255`[^kernel_docs_sdr].
-And usually are not found under e.g. `/dev/ttyUSB0`.
+Note that the rtl-sdr devices are not found under the tty devices (e.g. `/dev/tty...`).
+Instead the rtl-sdr devices are accessed through character device special files named `/dev/swradio0` to `/dev/swradio255`[^kernel_docs_sdr]. Wmbusmeters uses librtsldr to probe these devices.
 
 [^kernel_docs_sdr]: https://docs.kernel.org/userspace-api/media/v4l/dev-sdr.html?highlight=sdr#software-defined-radio-interface-sdr
 
