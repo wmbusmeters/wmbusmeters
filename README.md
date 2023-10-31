@@ -64,6 +64,12 @@ wmbus dongles when wmbusmeters startup.
 If the serial device (ttyUSB0) might change you can also use `device=im871a:c1,t1`
 which will probe all serial devices but only scans for im871a which also speeds it up.
 
+If you are using a sdr-rtl device, keep in mind that SDR devices are accessed through 
+character device special files named `/dev/swradio0` to `/dev/swradio255`[^kernel_docs_sdr].
+And usually are not found under e.g. `/dev/ttyUSB0`.
+
+[^kernel_docs_sdr]: https://docs.kernel.org/userspace-api/media/v4l/dev-sdr.html?highlight=sdr#software-defined-radio-interface-sdr
+
 If you have to scan serial devices, then remember that some Raspberry PIs are upset when
 random data is sent to `/dev/ttyAMA0` when it is configured in bluetooth mode.
 To solve this, add `donotprobe=/dev/ttyAMA0`
