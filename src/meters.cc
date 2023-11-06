@@ -225,7 +225,12 @@ bool lookupDriverInfo(const string& driver_name, DriverInfo *out_di)
     DriverInfo *di = lookupDriver(driver_name);
     if (di == NULL)
     {
-        // Ok, not built in, try to load it from file.
+        if (!endsWith(driver_name, ".xmq") || !checkFileExists(driver_name.c_str()))
+        {
+            return false;
+        }
+
+        // Ok, not built in, but it ends with .xmq and the file exists!
         string new_name = loadDriver(driver_name);
 
         // Check again if it was registered.

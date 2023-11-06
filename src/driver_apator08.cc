@@ -56,6 +56,8 @@ namespace
         vector<uchar> content;
         t->extractPayload(&content);
 
+        if (content.size() < 4) return;
+
         map<string,pair<int,DVEntry>> vendor_values;
 
         string total;
