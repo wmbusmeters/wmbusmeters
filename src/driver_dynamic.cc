@@ -22,6 +22,9 @@
 
 bool DriverDynamic::load(DriverInfo *di, const string &file)
 {
+    if (!endsWith(file, ".xmq")) return false;
+    if (!checkFileExists(file.c_str())) return false;
+
     XMQDoc *doc = xmqNewDoc();
 
     bool ok = xmqParseFile(doc, file.c_str(), "config");
