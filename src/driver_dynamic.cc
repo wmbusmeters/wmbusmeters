@@ -38,19 +38,29 @@ bool DriverDynamic::load(DriverInfo *di, const string &file)
     }
 
     const char *name = xmqGetString(doc, NULL, "/driver/name");
+    if (!name) error("(dynamic) Error in %s cannot find driver/name\n"
+                     "          A driver file looks like: driver { name = abc123 ... }\n", file.c_str());
+
     if (!is_lowercase_alnum_text(name)) error("(dynamic) Error in %s invalid driver name \"%s\"\n"
                                               "          The driver name must consist of lower case ascii a-z and digits 0-9.\n",
                                               file.c_str(), name);
 
-    const char *default_fields = xmqGetString(doc, NULL, "/driver/default_fields");
-
     const char *meter_type_s = xmqGetString(doc, NULL, "/driver/meter_type");
+    if (!meter_type_s) error("(dynamic) Error in %s cannot find driver/meter_type\n"
+                             "          Remember to add: meter_type = ...\n", file.c_str());
+
     MeterType meter_type = toMeterType(meter_type_s);
 
     if (meter_type == MeterType::UnknownMeter) error("(dynamic) Error in %s unknown meter type %s\n"
                                                      "Available meter types are:\n%s\n"
                                                      ,
                                                      file.c_str(), meter_type_s, availableMeterTypes());
+
+    const char *default_fields = xmqGetString(doc, NULL, "/driver/default_fields");
+    if (!default_fields) error("(dynamic) Error in %s cannot find driver/default_fields\n"
+                             "          Remember to add: default_fields = name,id,total_m3,timestamp\n"
+                             "          Where you change total_m3 to your meters most important field.\n", file.c_str());
+
 
     verbose("(dynamic) loading %s %s\n", meter_type_s, name);
 
@@ -60,6 +70,11 @@ bool DriverDynamic::load(DriverInfo *di, const string &file)
     di->setDynamic(file, doc);
 
     xmqForeach(doc, NULL, "/driver/detect/mvt", add_detect, di);
+
+    if (di->detect().size() == 0) error("(dynamic) Error in %s cannot find any driver/detect/mvt triplets\n"
+                                        "          Remember to add: detect { mvt = AAA,05,07 mvt = AAA,06,07 ... }\n"
+                                        "          The triplets contain MANUFACTURER,VERSION,TYPE\n"
+                                        "          and you can see these values when listening to all meters.\n", file.c_str());
 
     di->setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new DriverDynamic(mi, di)); });
 
@@ -85,7 +100,10 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, void *dd)
     string mvt = xmqGetString(doc, detect, ".");
 
     auto fields = splitString(mvt, ',');
-    if (fields.size() != 3) error("Cannot load driver %s, wrong number of fields in mvt triple.\n", di->name().str().c_str());
+    if (fields.size() != 3) error("(dynamic) Error in %s, wrong number of fields in mvt triple: mvt = %s\n"
+                                  "          There should be three fields, for example: mvt = AAA,07,05\n",
+                                   di->getDynamicFileName().c_str(),
+                                   mvt.c_str());
 
     string mfct = fields[0];
     int mfct_code = 0;
