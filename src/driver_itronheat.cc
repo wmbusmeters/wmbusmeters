@@ -28,7 +28,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("itronheat");
-		di.addNameAlias("ultramaxx");
+        di.addNameAlias("ultramaxx");
         di.setDefaultFields("name,id,status,total_energy_consumption_kwh,total_volume_m3,timestamp");
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::C1);
