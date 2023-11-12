@@ -361,9 +361,9 @@ driver { name = iffo meter_type = WaterMeter default_fields = name,id,total_m3,t
 EOF
 
 cat > $TEST/test_expected.txt <<EOF
-(driver) error in testoutput/driver.xmq, cannot find: driver/field/measurement_type
+(driver) error in testoutput/driver.xmq, cannot find: driver/field/match/measurement_type
 -------------------------------------------------------------------------------
-Remember to add for example: field { ... measurement_type = Instantaneous ... }
+Remember to add for example: match { measurement_type = Instantaneous ... }
 Available measurement types:
 Instantaneous
 Minimum
@@ -414,9 +414,9 @@ driver { name = iffo meter_type = WaterMeter default_fields = name,id,total_m3,t
 EOF
 
 cat > $TEST/test_expected.txt <<EOF
-(driver) error in testoutput/driver.xmq, cannot find: driver/field/vif_range
+(driver) error in testoutput/driver.xmq, cannot find: driver/field/match/vif_range
 -------------------------------------------------------------------------------
-Remember to add for example: field { ... vif_range = ReturnTemperature ... }
+Remember to add for example: match { ... vif_range = ReturnTemperature ... }
 Available vif ranges:
 Volume
 OnTime
@@ -468,7 +468,7 @@ $PROG --format=hr --selectfields=name,total_m3 1844AE4C4455223399077A55000000_04
 
 performCheck
 
-TESTNAME="Test field matcher without vif_range"
+TESTNAME="Test proper field matcher"
 TESTRESULT="ERROR"
 cat > $TEST/driver.xmq <<EOF
 driver { name = iffo meter_type = WaterMeter default_fields = name,id,total_m3,timestamp

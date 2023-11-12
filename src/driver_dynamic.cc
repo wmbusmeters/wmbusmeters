@@ -580,9 +580,9 @@ void check_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm
 {
     if (!measurement_type_s)
     {
-        warning("(driver) error in %s, cannot find: driver/field/measurement_type\n"
+        warning("(driver) error in %s, cannot find: driver/field/match/measurement_type\n"
                 "%s\n"
-                "Remember to add for example: field { ... measurement_type = Instantaneous ... }\n"
+                "Remember to add for example: match { measurement_type = Instantaneous ... }\n"
                 "Available measurement types:\n"
                 "Instantaneous\n"
                 "Minimum\n"
@@ -623,9 +623,9 @@ void check_set_vif_range(const char *vif_range_s, FieldMatcher *fm, DriverDynami
 {
     if (!vif_range_s)
     {
-        warning("(driver) error in %s, cannot find: driver/field/vif_range\n"
+        warning("(driver) error in %s, cannot find: driver/field/match/vif_range\n"
                 "%s\n"
-                "Remember to add for example: field { ... vif_range = ReturnTemperature ... }\n"
+                "Remember to add for example: match { ... vif_range = ReturnTemperature ... }\n"
                 "Available vif ranges:\n"
                 "%s\n"
                 "%s\n",
