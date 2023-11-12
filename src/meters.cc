@@ -195,9 +195,10 @@ string loadDriver(const string &file)
     // Check that the driver name has not been registered before!
     if (lookupDriver(di.name().str()) != NULL)
     {
-        error("Cannot load driver %s %s since it is already registered!\n",
+        debug("Ignoring loaded driver %s %s since it is already registered!\n",
               di.name().str().c_str(),
               file.c_str());
+        return di.name().str();
     }
 
     // Check that no other driver also triggers on the same detection values.
