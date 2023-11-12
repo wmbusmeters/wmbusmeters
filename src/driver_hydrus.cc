@@ -189,3 +189,9 @@ namespace
 // telegram=|1E4424238B06204790607A2A0010D8_0413DDC00000426CBF23441382BB0000|
 // {"media":"warm water","meter":"hydrus","name":"HydrusIzarRSWarm","id":"60904720","total_m3":49.373,"total_at_date_m3":48.002,"at_date":"2021-03-31","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 // |HydrusIzarRSWarm;60904720;49.373;48.002;OK;1111-11-11 11:11.11
+
+// Test: HydrusFoo hydrus 64641820 NOKEY
+// Comment: Negative power values.
+// telegram=|6344A5112018646470078C00D7900F002C256AB59B00F0F13032019092DE7A6A004007102F2F0C13896729004C1323462400CC101300000000CC201323462400426CDF2C0B3B0200F002FD742F0D025AC100C4016D3B17FE29CC01132841290001FD089F|
+// {"at_date": "2022-12-31","at_datetime": "2023-09-30 23:59","flow_m3h": -0.002,"flow_temperature_c": 19.3,"id": "64641820","media": "water","meter": "hydrus","name": "HydrusFoo","remaining_battery_life_y": 9.240436,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 294.128,"total_m3": 296.789,"total_tariff1_at_date_m3": 0,"total_tariff2_at_date_m3": 244.623}
+// |HydrusFoo;64641820;296.789;294.128;OK;1111-11-11 11:11.11
