@@ -163,14 +163,14 @@ namespace
 // Test: HydrusWater hydrus 64646464 NOKEY
 // Comment:
 // telegram=|4E44A5116464646470077AED004005_2F2F01FD08300C13741100007C1300000000FC101300000000FC201300000000726C00000B3B00000002FD748713025A6800C4016D3B177F2ACC011300020000|
-// {"media":"water","meter":"hydrus","name":"HydrusWater","id":"64646464","total_m3":1.174,"flow_m3h":0,"flow_temperature_c":10.4,"remaining_battery_life_y":13.686797,"status":"OK","at_datetime":"2019-10-31 23:59","total_at_date_m3": 0.2,"timestamp":"1111-11-11T11:11:11Z"}
-// |HydrusWater;64646464;1.174;0.2;OK;1111-11-11 11:11.11
+// {"media":"water","meter":"hydrus","name":"HydrusWater","id":"64646464","total_m3":1.174,"flow_m3h":0,"flow_temperature_c":10.4,"remaining_battery_life_y":13.686797,"status":"OK","at_datetime":"2019-10-31 23:59","total_at_woot_m3": 0.2,"timestamp":"1111-11-11T11:11:11Z"}
+// |HydrusWater;64646464;1.174;null;OK;1111-11-11 11:11.11
 
 // Test: HydrusVater hydrus 65656565 NOKEY
 // Comment:
 // telegram=|3E44A5116565656570067AFB0030052F2F_0C13503400000DFD110A383731303134423032410B3B00000002FD74DC15C4016D3B178D29CC0113313400002F2F|
-// {"media":"warm water","meter":"hydrus","name":"HydrusVater","id":"65656565","flow_m3h":0,"customer": "A20B410178","total_m3":3.45,"total_at_date_m3":3.431,"remaining_battery_life_y":15.321328,"at_datetime":"2020-09-13 23:59","total_at_date_m3": 3.431,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
-// |HydrusVater;65656565;3.45;3.431;OK;1111-11-11 11:11.11
+// {"media":"warm water","meter":"hydrus","name":"HydrusVater","id":"65656565","flow_m3h":0,"customer": "A20B410178","total_m3":3.45,"remaining_battery_life_y":15.321328,"at_datetime":"2020-09-13 23:59","total_at_woot_m3": 3.431,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+// |HydrusVater;65656565;3.45;null;OK;1111-11-11 11:11.11
 
 // Test: HydrusAES hydrus 64745666 NOKEY
 // Comment:
@@ -193,5 +193,5 @@ namespace
 // Test: HydrusFoo hydrus 64641820 NOKEY
 // Comment: Negative power values.
 // telegram=|6344A5112018646470078C00D7900F002C256AB59B00F0F13032019092DE7A6A004007102F2F0C13896729004C1323462400CC101300000000CC201323462400426CDF2C0B3B0200F002FD742F0D025AC100C4016D3B17FE29CC01132841290001FD089F|
-// {"at_date": "2022-12-31","at_datetime": "2023-09-30 23:59","flow_m3h": -0.002,"flow_temperature_c": 19.3,"id": "64641820","media": "water","meter": "hydrus","name": "HydrusFoo","remaining_battery_life_y": 9.240436,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 294.128,"total_m3": 296.789,"total_tariff1_at_date_m3": 0,"total_tariff2_at_date_m3": 244.623}
-// |HydrusFoo;64641820;296.789;294.128;OK;1111-11-11 11:11.11
+// {"at_date": "2022-12-31","at_datetime": "2023-09-30 23:59","flow_m3h": -0.002,"flow_temperature_c": 19.3,"id": "64641820","media": "water","meter": "hydrus","name": "HydrusFoo","remaining_battery_life_y": 9.240436,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3":244.623,"total_at_woot_m3": 294.128,"total_m3": 296.789,"total_tariff1_at_date_m3": 0,"total_tariff2_at_date_m3": 244.623}
+// |HydrusFoo;64641820;296.789;244.623;OK;1111-11-11 11:11.11
