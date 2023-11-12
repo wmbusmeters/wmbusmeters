@@ -304,6 +304,9 @@ int toMfctCode(char a, char b, char c);
 
 bool is_lowercase_alnum_text(const char *text);
 
+// The language that the user expects driver and other messages in.
+const std::string &language();
+
 #ifndef FUZZING
 #define FUZZING false
 #endif

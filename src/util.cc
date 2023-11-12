@@ -2457,3 +2457,29 @@ bool endsWith(const std::string& str, const std::string& suffix)
 {
     return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
 }
+
+string lang_;
+
+const std::string &language()
+{
+    if (lang_.length() > 0) return lang_;
+
+    const char *la = getenv("LANG");
+    if (!la || strlen(la) < 2)
+    {
+        lang_ = "en";
+    }
+    else
+    {
+        if (la[2] == '_' || la[2] == 0)
+        {
+            lang_ = string(la, la+2);
+        }
+        else
+        {
+            lang_ = "en";
+        }
+    }
+
+    return lang_;
+}

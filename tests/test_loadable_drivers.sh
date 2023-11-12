@@ -37,32 +37,29 @@ driver {
     name           = iporl
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,max_flow_m3h,timestamp
-    link_modes     = T1
     detect {
         mvt = SEN,99,07
     }
     field {
         name        = totalitator
         quantity    = Volume
-        type        = NumericFieldWithExtractor
-        info        = 'The total water consumption recorded by this meter.'
-        vif_scaling = Auto
-        attributes  = ''
         match {
             measurement_type = Instantaneous
             vif_range        = Volume
+        }
+        about {
+            en = 'The total water consumption recorded by this meter.'
         }
     }
     field {
         name        = max_flowwor
         quantity    = Flow
-        type        = NumericFieldWithExtractor
-        info        = 'The maximum flow recorded during previous period.'
-        vif_scaling = Auto
-        attributes  = ''
         match {
             measurement_type = Instantaneous
             vif_range        = VolumeFlow
+        }
+        about {
+            en = 'The maximum flow recorded during previous period.'
         }
     }
 }

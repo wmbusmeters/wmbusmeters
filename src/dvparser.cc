@@ -1441,3 +1441,18 @@ const char *toString(DVEntryCounterType ct)
 
     return "unknown";
 }
+
+string available_vif_ranges_;
+
+const string &availableVIFRanges()
+{
+    if (available_vif_ranges_ != "") return available_vif_ranges_;
+
+#define X(n,from,to,q,u) available_vif_ranges_ += string(#n) + "\n";
+LIST_OF_VIF_RANGES
+#undef X
+
+    // Remove last newline
+    available_vif_ranges_.pop_back();
+    return available_vif_ranges_;
+}
