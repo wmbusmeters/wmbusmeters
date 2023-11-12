@@ -295,4 +295,7 @@ bool extractUnit(const std::string &s, std::string *vname, Unit *u);
 LIST_OF_UNITS
 #undef X
 
+const char *availableQuantities();
+const char *availableUnits();
+
 #endif

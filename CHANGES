@@ -1,4 +1,7 @@
 
+ATTENTION! The hydrus driver could report the wrong value for total_at_date_m3
+if an at_date had not been reached yet. This is fixed.
+
 Added initial support for drivers that can be loaded from config files.
 Properly receive telegrams from amb8465 which is in command mode.
 Chris Bednarczyk improved the build process for Darwin/MacOS platform. Thanks Chris!

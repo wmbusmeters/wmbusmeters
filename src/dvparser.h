@@ -584,4 +584,6 @@ bool extractDVdate(std::map<std::string,std::pair<int,DVEntry>> *values,
                    struct tm *value);
 
 
+const std::string &availableVIFRanges();
+
 #endif

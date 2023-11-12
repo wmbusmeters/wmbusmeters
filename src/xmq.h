@@ -344,12 +344,12 @@ typedef enum
 } XMQProceed;
 
 /**
-    NodeCallback: The function type which is called by foreach functions.
+    XMQNodeCallback: The function type which is called by foreach functions.
     @doc: The document being processed.
     @node: The node triggering the callback.
     @user_data: The user data supplied to for_each.
 */
-typedef XMQProceed (*NodeCallback)(XMQDoc *doc, XMQNode *node, void *user_data);
+typedef XMQProceed (*XMQNodeCallback)(XMQDoc *doc, XMQNode *node, void *user_data);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -660,7 +660,7 @@ const char *xmqGetString(XMQDoc *doc, XMQNode *node, const char *xpath);
 
    Returns the number of hits.
 */
-int xmqForeach(XMQDoc *doq, XMQNode *node, const char *xpath, NodeCallback cb, void *user_data);
+int xmqForeach(XMQDoc *doq, XMQNode *node, const char *xpath, XMQNodeCallback cb, void *user_data);
 
 /**
 

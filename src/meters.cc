@@ -195,9 +195,10 @@ string loadDriver(const string &file)
     // Check that the driver name has not been registered before!
     if (lookupDriver(di.name().str()) != NULL)
     {
-        error("Cannot load driver %s %s since it is already registered!\n",
+        debug("Ignoring loaded driver %s %s since it is already registered!\n",
               di.name().str().c_str(),
               file.c_str());
+        return di.name().str();
     }
 
     // Check that no other driver also triggers on the same detection values.
@@ -3014,36 +3015,6 @@ VifScaling toVifScaling(const char *s)
     if (!strcmp(s, "AutoSigned")) return VifScaling::AutoSigned;
     if (!strcmp(s, "Unknown")) return VifScaling::Unknown;
     return VifScaling::Unknown;
-}
-
-FieldType toFieldType(const char *s)
-{
-    if (!strcmp(s, "NumericFieldWithExtractor")) return FieldType::NumericFieldWithExtractor;
-    if (!strcmp(s, "NumericFieldWithCalculator")) return FieldType::NumericFieldWithCalculator;
-    if (!strcmp(s, "NumericFieldWithCalculatorAndMatcher")) return FieldType::NumericFieldWithCalculatorAndMatcher;
-    if (!strcmp(s, "NumericField")) return FieldType::NumericField;
-
-    if (!strcmp(s, "StringFieldWithExtractor")) return FieldType::StringFieldWithExtractor;
-    if (!strcmp(s, "StringFieldWithExtractorAndLookup")) return FieldType::StringFieldWithExtractorAndLookup;
-    if (!strcmp(s, "StringField")) return FieldType::StringField;
-
-    return FieldType::Unknown;
-}
-
-const char *toString(FieldType ft)
-{
-    switch (ft) {
-    case FieldType::NumericFieldWithExtractor: return "NumericFieldWithExtractor";
-    case FieldType::NumericFieldWithCalculator: return "NumericFieldWithCalculator";
-    case FieldType::NumericFieldWithCalculatorAndMatcher: return "NumericFieldWithCalculatorAndMatcher";
-    case FieldType::NumericField: return "NumericField";
-    case FieldType::StringFieldWithExtractor: return "StringFieldWithExtractor";
-    case FieldType::StringFieldWithExtractorAndLookup: return "StringFieldWithExtractorAndLookup";
-    case FieldType::StringField: return "StringField";
-    case FieldType::Unknown: return "Unknown";
-    }
-
-    return "Unknown";
 }
 
 const char* toString(PrintProperty p)

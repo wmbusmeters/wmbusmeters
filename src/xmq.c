@@ -6369,7 +6369,7 @@ bool has_attributes(xmlNodePtr node)
     return NULL == xml_first_attribute(node);
 }
 
-int xmqForeach(XMQDoc *doq, XMQNode *xmq_node, const char *xpath, NodeCallback cb, void *user_data)
+int xmqForeach(XMQDoc *doq, XMQNode *xmq_node, const char *xpath, XMQNodeCallback cb, void *user_data)
 {
     xmlDocPtr doc = (xmlDocPtr)xmqGetImplementationDoc(doq);
     xmlXPathContextPtr ctx = xmlXPathNewContext(doc);

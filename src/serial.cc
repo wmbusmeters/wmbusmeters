@@ -589,7 +589,10 @@ bool SerialDeviceFile::open(bool fail_if_not_ok)
         fd_ = ::open(file_.c_str(), O_RDONLY | O_NONBLOCK);
         if (fd_ == -1)
         {
-            if (fail_if_not_ok) error("Could not open file %s for reading.\n", file_.c_str());
+            if (fail_if_not_ok)
+            {
+                error("Could not open file %s for reading.\n", file_.c_str());
+            }
             verbose("(serialdevicefile) could not open file %s for reading.\n", file_.c_str());
             return false;
         }

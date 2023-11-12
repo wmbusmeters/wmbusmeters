@@ -122,13 +122,13 @@ telegram=|5744b40988227711101b7ab20800000265a00842658f088201659f08226589081265a0
 
 # Test Hydrus water meter telegram
 telegram=|4E44A5116464646470077AED004005_2F2F01FD08300C13741100007C1300000000FC101300000000FC201300000000726C00000B3B00000002FD748713025A6800C4016D3B177F2ACC011300020000|
-{"at_datetime": "2019-10-31 23:59","flow_m3h": 0,"flow_temperature_c": 10.4,"id": "64646464","media": "water","meter": "hydrus","name": "HydrusWater","remaining_battery_life_y": 13.686797,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 0.2,"total_m3": 1.174}
-|HydrusWater;64646464;1.174;0.2;OK;1111-11-11 11:11.11
+{"at_datetime": "2019-10-31 23:59","flow_m3h": 0,"flow_temperature_c": 10.4,"id": "64646464","media": "water","meter": "hydrus","name": "HydrusWater","remaining_battery_life_y": 13.686797,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_woot_m3": 0.2,"total_m3": 1.174}
+|HydrusWater;64646464;1.174;null;OK;1111-11-11 11:11.11
 
 # Test Hydrus new version water meter telegram
 telegram=|3E44A5116565656570067AFB0030052F2F_0C13503400000DFD110A383731303134423032410B3B00000002FD74DC15C4016D3B178D29CC0113313400002F2F|
-{"at_datetime": "2020-09-13 23:59","customer": "A20B410178","flow_m3h": 0,"id": "65656565","media": "warm water","meter": "hydrus","name": "HydrusVater","remaining_battery_life_y": 15.321328,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 3.431,"total_m3": 3.45}
-|HydrusVater;65656565;3.45;3.431;OK;1111-11-11 11:11.11
+{"at_datetime": "2020-09-13 23:59","customer": "A20B410178","flow_m3h": 0,"id": "65656565","media": "warm water","meter": "hydrus","name": "HydrusVater","remaining_battery_life_y": 15.321328,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_woot_m3": 3.431,"total_m3": 3.45}
+|HydrusVater;65656565;3.45;null;OK;1111-11-11 11:11.11
 
 # Test Hydrus with default AES encryption
 telegram=||6644242328001081640E7266567464A51170071F0050052C411A08674048DD6BA82A0DF79FFD401309179A893A1BE3CE8EDC50C2A45CD7AFEC3B4CE765820BE8056C124A17416C3722985FFFF7FCEB7094901AB3A16294B511B9A740C9F9911352B42A72FB3B0C|

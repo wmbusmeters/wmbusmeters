@@ -298,6 +298,16 @@ public:
     {
         string best_driver = "";
 
+        if (only != "")
+        {
+            DriverInfo di;
+            if (!lookupDriverInfo(only, &di))
+            {
+                error("No such driver %s\n", only.c_str());
+            }
+            only = di.name().str();
+        }
+
         for (DriverInfo *ndr : allDrivers())
         {
             string driver_name = toString(*ndr);
