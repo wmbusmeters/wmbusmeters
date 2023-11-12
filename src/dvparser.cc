@@ -20,6 +20,7 @@
 #include"util.h"
 
 #include<assert.h>
+#include<cmath>
 #include<math.h>
 #include<memory.h>
 #include<limits>

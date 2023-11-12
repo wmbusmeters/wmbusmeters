@@ -124,7 +124,7 @@ namespace
             );
 
         addNumericFieldWithExtractor(
-            "total_at_date",
+            "total_at_woot",
             "Fix this! The total water consumption recorded at last day. Perhaps?",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
