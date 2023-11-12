@@ -100,9 +100,16 @@ bool enableLogfile(const std::string& logfile, bool daemon);
 void disableLogfile();
 void enableSyslog();
 void error(const char* fmt, ...);
-void verbose(const char* fmt, ...);
-void trace(const char* fmt, ...);
-void debug(const char* fmt, ...);
+
+#define verbose(...) { if (isVerboseEnabled()) { verbose_int(__VA_ARGS__); } }
+void verbose_int(const char* fmt, ...);
+
+#define trace(...) { if (isTraceEnabled()) { trace_int(__VA_ARGS__); } }
+void trace_int(const char* fmt, ...);
+
+#define debug(...) { if (isDebugEnabled()) { debug_int(__VA_ARGS__); } }
+void debug_int(const char* fmt, ...);
+
 void warning(const char* fmt, ...);
 void info(const char* fmt, ...);
 void notice(const char* fmt, ...);

@@ -587,7 +587,7 @@ void warning(const char* fmt, ...) {
     }
 }
 
-void verbose(const char* fmt, ...) {
+void verbose_int(const char* fmt, ...) {
     if (verbose_enabled_) {
         va_list args;
         va_start(args, fmt);
@@ -596,7 +596,7 @@ void verbose(const char* fmt, ...) {
     }
 }
 
-void debug(const char* fmt, ...) {
+void debug_int(const char* fmt, ...) {
     if (debug_enabled_) {
         va_list args;
         va_start(args, fmt);
@@ -605,7 +605,7 @@ void debug(const char* fmt, ...) {
     }
 }
 
-void trace(const char* fmt, ...) {
+void trace_int(const char* fmt, ...) {
     if (trace_enabled_) {
         va_list args;
         va_start(args, fmt);

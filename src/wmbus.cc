@@ -1532,8 +1532,12 @@ bool Telegram::checkMAC(std::vector<uchar> &frame,
     debug("(wmbus) received   mac %s\n", received.c_str());
     string truncated = calculated.substr(0, received.length());
     bool ok = truncated == received;
-    if (ok) debug("(wmbus) mac ok!\n");
-    else {
+    if (ok)
+    {
+        debug("(wmbus) mac ok!\n");
+    }
+    else
+    {
         debug("(wmbus) mac NOT ok!\n");
         explainParse("BADMAC", 0);
     }
