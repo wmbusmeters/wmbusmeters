@@ -20,7 +20,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: wmbusmeters/wmbusmeters
+          images: comfre1991/wmbusmeters
           tags: type=ref,event=tag
       -
         name: Set up QEMU
@@ -42,7 +42,7 @@ jobs:
           context: docker/
           platforms: linux/amd64,linux/arm64,linux/armhf
           push: true
-          tags: wmbusmeters/wmbusmeters:latest
+          tags: comfre1991/wmbusmeters:latest
       -
         name: Build and push candidate
         if: ${{ steps.meta.outputs.tags && contains(steps.meta.outputs.tags, '-RC') }}
@@ -51,7 +51,7 @@ jobs:
           context: docker/
           platforms: linux/amd64,linux/arm64,linux/armhf
           push: true
-          tags: wmbusmeters/wmbusmeters:candidate-${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+          tags: comfre1991/wmbusmeters:candidate-${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
       -
         name: Build and push tagged release
         if: ${{ steps.meta.outputs.tags && !contains(steps.meta.outputs.tags, '-RC') }}
