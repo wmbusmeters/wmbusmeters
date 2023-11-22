@@ -38,6 +38,7 @@ namespace
         di.addDetection(MANUFACTURER_HYD,  0x06,  0x8b);
         di.addDetection(MANUFACTURER_DME,  0x06,  0x70);
         di.addDetection(MANUFACTURER_DME,  0x16,  0x70);
+        di.addDetection(MANUFACTURER_IMT,  0x0e,  0x05);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
