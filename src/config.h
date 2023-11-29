@@ -101,6 +101,7 @@ struct Configuration
     bool fields {};
     char separator { ';' };
     std::vector<std::string> telegram_shells;
+    std::vector<std::string> meter_shells;
     std::vector<std::string> alarm_shells;
     int alarm_timeout {}; // Maximum number of seconds between dongle receiving two telegrams.
     std::string alarm_expected_activity; // Only warn when within these time periods.

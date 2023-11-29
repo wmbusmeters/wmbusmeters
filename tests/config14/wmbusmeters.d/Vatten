@@ -1,0 +1,6 @@
+name=Vatten
+type=supercom587
+id=12345678
+key=
+metershell=echo "TESTING METERSHELL $METER_ID" > /tmp/wmbusmeters_metershell1_test
+shell=echo "TESTING SHELL $METER_ID" > /tmp/wmbusmeters_metershell2_test
