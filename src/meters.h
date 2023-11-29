@@ -47,6 +47,7 @@
     X(TempHygroMeter) \
     X(WaterMeter)  \
     X(PressureSensor)  \
+    X(Repeater) \
 
 enum class MeterType {
 #define X(name) name,
