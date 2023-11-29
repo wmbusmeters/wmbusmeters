@@ -738,7 +738,7 @@ string MeterCommonImplementation::datetimeOfUpdateHumanReadable()
 {
     char datetime[40];
     memset(datetime, 0, sizeof(datetime));
-    strftime(datetime, 20, "%Y-%m-%d %H:%M.%S", localtime(&datetime_of_update_));
+    strftime(datetime, 20, "%Y-%m-%d %H:%M:%S", localtime(&datetime_of_update_));
     return string(datetime);
 }
 
