@@ -181,6 +181,15 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_bad_driver.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+./tests/test_metershell_env.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_metershell.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_metershell2.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 if [ -x ../additional_tests.sh ]
 then
     (cd ..; ./additional_tests.sh $PROG)

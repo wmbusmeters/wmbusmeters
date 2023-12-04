@@ -51,7 +51,7 @@ void Printer::print(Telegram *t, Meter *meter,
 
     meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields, pretty_print_json_);
 
-    if (shell_cmdlines_.size() > 0 || meter->shellCmdlines().size() > 0) {
+    if (shell_cmdlines_.size() > 0 || meter->shellCmdlinesMeterUpdated().size() > 0) {
         printShells(meter, envs);
         printed = true;
     }
@@ -69,8 +69,8 @@ void Printer::print(Telegram *t, Meter *meter,
 void Printer::printShells(Meter *meter, vector<string> &envs)
 {
     vector<string> *shells = &shell_cmdlines_;
-    if (meter->shellCmdlines().size() > 0) {
-        shells = &meter->shellCmdlines();
+    if (meter->shellCmdlinesMeterUpdated().size() > 0) {
+        shells = &meter->shellCmdlinesMeterUpdated();
     }
     for (auto &s : *shells) {
         vector<string> args;

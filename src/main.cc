@@ -552,6 +552,39 @@ bool start(Configuration *config)
     // configures the devices according to the specification.
     bus_manager_   = createBusManager(serial_manager_, meter_manager_);
 
+    // When a meter is added, print it, shell it, log it, etc.
+    meter_manager_->whenMeterAdded(
+        [&](shared_ptr<Meter> meter)
+        {
+            vector<string> *shells = &config->meter_shells;
+            if (meter->shellCmdlinesMeterAdded().size() > 0) {
+                shells = &meter->shellCmdlinesMeterAdded();
+            }
+
+            if (shells->size() < 1) {
+                // Early return when no meter_shell configured by user
+                return;
+            }
+
+            vector<string> envs;
+
+            string id = "";
+            if (meter->ids().size() > 0)
+            {
+                id = meter->idsc().c_str();
+            }
+
+            meter->createMeterEnv(&id, &envs, &config->extra_constant_fields);
+
+            for (auto &s : *shells) {
+                vector<string> args;
+                args.push_back("-c");
+                args.push_back(s);
+                invokeShell("/bin/sh", args, envs);
+            }
+        }
+    );
+
     // When a meter is updated, print it, shell it, log it, etc.
     meter_manager_->whenMeterUpdated(
         [&](Telegram *t,Meter *meter)

@@ -57,6 +57,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     string linkmodes;
     int poll_interval = 0;
     vector<string> telegram_shells;
+    vector<string> meter_shells;
     vector<string> alarm_shells;
     vector<string> extra_constant_fields;
     vector<string> extra_calculated_fields;
@@ -131,6 +132,10 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             telegram_shells.push_back(p.second);
         }
         else
+        if (p.first == "metershell") {
+            meter_shells.push_back(p.second);
+        }
+        else
         if (p.first == "alarmshell") {
             alarm_shells.push_back(p.second);
         }
@@ -199,6 +204,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         mi.extra_constant_fields = extra_constant_fields;
         mi.extra_calculated_fields = extra_calculated_fields;
         mi.shells = telegram_shells;
+        mi.meter_shells = meter_shells;
         mi.idsc = toIdsCommaSeparated(mi.ids);
         mi.selected_fields = selected_fields;
         c->meters.push_back(mi);
@@ -636,6 +642,11 @@ void handleShell(Configuration *c, string cmdline)
     c->telegram_shells.push_back(cmdline);
 }
 
+void handleMeterShell(Configuration *c, string cmdline)
+{
+    c->meter_shells.push_back(cmdline);
+}
+
 void handleAlarmShell(Configuration *c, string cmdline)
 {
     c->alarm_shells.push_back(cmdline);
@@ -714,6 +725,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         else if (p.first == "selectfields") handleSelectedFields(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);
         else if (p.first == "resetafter") handleResetAfter(c, p.second);
+        else if (p.first == "metershell") handleMeterShell(c, p.second);
         else if (p.first == "alarmshell") handleAlarmShell(c, p.second);
         else if (startsWith(p.first, "json_") ||
                  startsWith(p.first, "field_"))
