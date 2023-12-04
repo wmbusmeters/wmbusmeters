@@ -1,5 +1,7 @@
 
-Jacman777 imporved the kamheat driver! Thanks Jacman777!
+Sunflowerenergias improved the iwmtx5 driver! Thanks Sunflowerenergias!
+
+Jacman777 improved the kamheat driver! Thanks Jacman777!
 
 Pim added a --metershell setting which will invoke a shell command line
 when a meter is seen for the first time. This can be used to trigger extra

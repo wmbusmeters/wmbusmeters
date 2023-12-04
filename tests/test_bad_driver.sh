@@ -113,6 +113,7 @@ HeatCostAllocationMeter
 HeatMeter
 HeatCoolingMeter
 PulseCounter
+Repeater
 SmokeDetector
 TempHygroMeter
 WaterMeter
