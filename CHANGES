@@ -1,9 +1,12 @@
 
+Jacman777 imporved the kamheat driver! Thanks Jacman777!
+
 Pim added a --metershell setting which will invoke a shell command line
 when a meter is seen for the first time. This can be used to trigger extra
 commands in HA and other systems, to add the new meter. Thanks Pim!
 
 Pim added support for the Lansen repeater which sends its own status messages!
+Pim also fixed a small typo in the human readable date timestamp format!
 Thanks Pim!
 
 ATTENTION! The hydrus driver could report the wrong value for total_at_date_m3
