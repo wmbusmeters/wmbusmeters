@@ -343,3 +343,8 @@ namespace
 // telegram=|68464668084a72447744772d2c3404060000000406ce86000004ff073444020004ff08f8ce0100041411680300043B0f02000002593c19025da41104ff220000000004a5ff21c7d02700d916|
 // {"forward_energy_m3c": 148532,"id": "77447744","media": "heat","meter": "kamheat","name": "Kamstrup_403_mbus","return_energy_m3c": 118520,"status": "OK","t1_temperature_c": 64.6,"t2_temperature_c": 45.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 34510,"total_volume_m3": 2232.49,"volume_flow_m3h": 0.527,"operating_time_h": 43489.183333}
 // |Kamstrup_403_mbus;77447744;34510;2232.49;OK;1111-11-11 11:11.11
+
+// Test: Kamstrup_402_wmbus kamheat 62215006 NOKEY
+// telegram=|40442D2C0650216219048D2083A4E1162306FF78_040F2C3F000004FF07DBA40D0004FF08860B0D000414BA33140002FD170000043B620000000259A21E025DFA1B|
+// {"media":"heat","meter":"kamheat","name":"Kamstrup_402_wmbus","id":"62215006","forward_energy_m3c":894171,"return_energy_m3c":854918,"t1_temperature_c":78.42,"t2_temperature_c":71.62,"total_energy_consumption_kwh":44922.222222,"total_volume_m3":13239.62,"volume_flow_m3h":0.098,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+// |Kamstrup_402_wmbus;62215006;44922.222222;13239.62;OK;1111-11-11 11:11.11
