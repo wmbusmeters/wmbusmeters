@@ -272,7 +272,11 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     }
     for (auto s : mi.shells)
     {
-        addShell(s);
+        addShellMeterUpdated(s);
+    }
+    for (auto s : mi.meter_shells)
+    {
+        addShellMeterAdded(s);
     }
     for (auto j : mi.extra_constant_fields)
     {
@@ -283,9 +287,14 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     force_mfct_index_ = di.forceMfctIndex();
 }
 
-void MeterCommonImplementation::addShell(string cmdline)
+void MeterCommonImplementation::addShellMeterAdded(string cmdline)
 {
-    shell_cmdlines_.push_back(cmdline);
+    shell_cmdlines_added_.push_back(cmdline);
+}
+
+void MeterCommonImplementation::addShellMeterUpdated(string cmdline)
+{
+    shell_cmdlines_updated_.push_back(cmdline);
 }
 
 void MeterCommonImplementation::addExtraConstantField(string ecf)
@@ -338,9 +347,14 @@ void MeterCommonImplementation::addExtraCalculatedField(string ecf)
         );
 }
 
-vector<string> &MeterCommonImplementation::shellCmdlines()
+vector<string> &MeterCommonImplementation::shellCmdlinesMeterAdded()
 {
-    return shell_cmdlines_;
+    return shell_cmdlines_added_;
+}
+
+vector<string> &MeterCommonImplementation::shellCmdlinesMeterUpdated()
+{
+    return shell_cmdlines_updated_;
 }
 
 vector<string> &MeterCommonImplementation::meterExtraConstantFields()
@@ -738,7 +752,7 @@ string MeterCommonImplementation::datetimeOfUpdateHumanReadable()
 {
     char datetime[40];
     memset(datetime, 0, sizeof(datetime));
-    strftime(datetime, 20, "%Y-%m-%d %H:%M.%S", localtime(&datetime_of_update_));
+    strftime(datetime, 20, "%Y-%m-%d %H:%M:%S", localtime(&datetime_of_update_));
     return string(datetime);
 }
 
@@ -1665,6 +1679,26 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     return s;
 }
 
+void MeterCommonImplementation::createMeterEnv( string *id,
+                                                vector<string> *envs,
+                                                vector<string> *extra_constant_fields)
+{
+    envs->push_back(string("METER_ID="+*id));
+    envs->push_back(string("METER_NAME=")+name());
+    envs->push_back(string("METER_TYPE=")+driverName().str());
+
+    // If the configuration has supplied json_address=Roodroad 123
+    // then the env variable METER_address will available and have the content "Roodroad 123"
+    for (string add_json : meterExtraConstantFields())
+    {
+        envs->push_back(string("METER_")+add_json);
+    }
+    for (string extra_field : *extra_constant_fields)
+    {
+        envs->push_back(string("METER_")+extra_field);
+    }
+}
+
 void MeterCommonImplementation::printMeter(Telegram *t,
                                            string *human_readable,
                                            string *fields, char separator,
@@ -1691,6 +1725,12 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         media = mediaTypeJSON(t->dll_type, t->dll_mfct);
     }
 
+    string id = "";
+    if (t->ids.size() > 0)
+    {
+        id = t->ids.back();
+    }
+
     string indent = "";
     string newline = "";
 
@@ -1699,19 +1739,13 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         indent = "    ";
         newline ="\n";
     }
+
     string s;
     s += "{"+newline;
     s += indent+"\"media\":\""+media+"\","+newline;
     s += indent+"\"meter\":\""+driverName().str()+"\","+newline;
     s += indent+"\"name\":\""+name()+"\","+newline;
-    if (t->ids.size() > 0)
-    {
-        s += indent+"\"id\":\""+t->ids.back()+"\","+newline;
-    }
-    else
-    {
-        s += indent+"\"id\":\"\","+newline;
-    }
+    s += indent+"\"id\":\""+id+"\","+newline;
 
     // Iterate over the meter field infos...
     map<FieldInfo*,set<DVEntry*>> founds; // Multiple dventries can match to a single field info.
@@ -1842,27 +1876,14 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     s += "}";
     *json = s;
 
+    createMeterEnv(&id, envs, extra_constant_fields);
+
     envs->push_back(string("METER_JSON=")+*json);
-    if (t->ids.size() > 0)
-    {
-        envs->push_back(string("METER_ID=")+t->ids.back());
-    }
-    else
-    {
-        envs->push_back(string("METER_ID="));
-    }
-    envs->push_back(string("METER_NAME=")+name());
     envs->push_back(string("METER_MEDIA=")+media);
-    envs->push_back(string("METER_TYPE=")+driverName().str());
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
     envs->push_back(string("METER_TIMESTAMP_UTC=")+datetimeOfUpdateRobot());
     envs->push_back(string("METER_TIMESTAMP_UT=")+unixTimestampOfUpdate());
     envs->push_back(string("METER_TIMESTAMP_LT=")+datetimeOfUpdateHumanReadable());
-    if (t->about.device != "")
-    {
-        envs->push_back(string("METER_DEVICE=")+t->about.device);
-        envs->push_back(string("METER_RSSI_DBM=")+to_string(t->about.rssi_dbm));
-    }
 
     for (FieldInfo& fi : field_infos_)
     {
@@ -1883,16 +1904,12 @@ void MeterCommonImplementation::printMeter(Telegram *t,
         }
     }
 
-    // If the configuration has supplied json_address=Roodroad 123
-    // then the env variable METER_address will available and have the content "Roodroad 123"
-    for (string add_json : meterExtraConstantFields())
+    if (t->about.device != "")
     {
-        envs->push_back(string("METER_")+add_json);
+        envs->push_back(string("METER_DEVICE=")+t->about.device);
+        envs->push_back(string("METER_RSSI_DBM=")+to_string(t->about.rssi_dbm));
     }
-    for (string extra_field : *extra_constant_fields)
-    {
-        envs->push_back(string("METER_")+extra_field);
-    }
+
 }
 
 void MeterCommonImplementation::setExpectedTPLSecurityMode(TPLSecurityMode tsm)

@@ -39,14 +39,15 @@
     X(DoorWindowDetector) \
     X(ElectricityMeter) \
     X(GasMeter) \
+    X(HeatCoolingMeter) \
     X(HeatCostAllocationMeter) \
     X(HeatMeter) \
-    X(HeatCoolingMeter) \
+    X(PressureSensor)  \
     X(PulseCounter) \
+    X(Repeater) \
     X(SmokeDetector) \
     X(TempHygroMeter) \
     X(WaterMeter)  \
-    X(PressureSensor)  \
 
 enum class MeterType {
 #define X(name) name,
@@ -110,6 +111,7 @@ struct MeterInfo
     LinkModeSet link_modes;
     int bps {};     // For mbus communication you need to know the baud rate.
     vector<string> shells;
+    vector<string> meter_shells;
     vector<string> extra_constant_fields; // Additional static fields that are added to each message.
     vector<string> extra_calculated_fields; // Additional field calculated using formulas.
     vector<string> selected_fields; // Usually set to the default fields, but can be override in meter config.
@@ -124,7 +126,7 @@ struct MeterInfo
     string str();
     DriverName driverName();
 
-    MeterInfo(string b, string n, string e, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j, vector<string> &calcfs)
+    MeterInfo(string b, string n, string e, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &ms, vector<string> &j, vector<string> &calcfs)
     {
         bus = b;
         name = n;
@@ -133,6 +135,7 @@ struct MeterInfo
         idsc = toIdsCommaSeparated(ids);
         key = k;
         shells = s;
+        meter_shells = ms;
         extra_constant_fields = j;
         extra_calculated_fields = calcfs;
         link_modes = lms;
@@ -147,6 +150,7 @@ struct MeterInfo
         idsc = "";
         key = "";
         shells.clear();
+        meter_shells.clear();
         extra_constant_fields.clear();
         extra_calculated_fields.clear();
         link_modes.clear();
@@ -414,6 +418,9 @@ struct Meter
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;
 
+    virtual void createMeterEnv(string *id,
+                                vector<string> *envs,
+                                vector<string> *more_json) = 0;
     virtual void printMeter(Telegram *t,
                             string *human_readable,
                             string *fields, char separator,
@@ -431,8 +438,10 @@ struct Meter
     virtual MeterKeys *meterKeys() = 0;
 
     virtual void addExtraCalculatedField(std::string ecf) = 0;
-    virtual void addShell(std::string cmdline) = 0;
-    virtual vector<string> &shellCmdlines() = 0;
+    virtual void addShellMeterAdded(std::string cmdline) = 0;
+    virtual void addShellMeterUpdated(std::string cmdline) = 0;
+    virtual vector<string> &shellCmdlinesMeterAdded() = 0;
+    virtual vector<string> &shellCmdlinesMeterUpdated() = 0;
     virtual void poll(shared_ptr<BusManager> bus) = 0;
 
     virtual FieldInfo *findFieldInfo(string vname, Quantity xuantity) = 0;
@@ -447,6 +456,7 @@ struct MeterManager
 {
     virtual void addMeterTemplate(MeterInfo &mi) = 0;
     virtual void addMeter(shared_ptr<Meter> meter) = 0;
+    virtual void triggerMeterAdded(shared_ptr<Meter> meter) = 0;
     virtual Meter*lastAddedMeter() = 0;
     virtual void removeAllMeters() = 0;
     virtual void forEachMeter(std::function<void(Meter*)> cb) = 0;
@@ -454,6 +464,7 @@ struct MeterManager
     virtual bool hasAllMetersReceivedATelegram() = 0;
     virtual bool hasMeters() = 0;
     virtual void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb) = 0;
+    virtual void whenMeterAdded(std::function<void(shared_ptr<Meter>)> cb) = 0;
     virtual void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual void pollMeters(shared_ptr<BusManager> bus) = 0;
     virtual void analyzeEnabled(bool b, OutputFormat f, string force_driver, string key, bool verbose, int profile) = 0;

@@ -435,6 +435,7 @@ As {options} you can use:
     --meterfilesnaming=(name|id|name-id) the meter file is the meter's: name, id or name-id
     --meterfilestimestamp=(never|day|hour|minute|micros) the meter file is suffixed with a
                           timestamp (localtime) with the given resolution.
+    --metershell=<cmdline> invokes cmdline with env variables the first time a meter is seen since startup
     --nodeviceexit if no wmbus devices are found, then exit immediately
     --normal for normal logging
     --oneshot wait for an update from each meter, then quit

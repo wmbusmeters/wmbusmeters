@@ -458,6 +458,15 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--metershell=", 13)) {
+            string cmd = string(argv[i]+13);
+            if (cmd == "") {
+                error("The meter shell command cannot be empty.\n");
+            }
+            c->meter_shells.push_back(cmd);
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--alarmshell=", 13)) {
             string cmd = string(argv[i]+13);
             if (cmd == "") {

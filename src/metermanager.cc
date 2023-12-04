@@ -46,6 +46,7 @@ private:
     vector<MeterInfo> meter_templates_;
     vector<shared_ptr<Meter>> meters_;
     vector<function<bool(AboutTelegram&,vector<uchar>)>> telegram_listeners_;
+    function<void(shared_ptr<Meter>)> on_meter_added_;
     function<void(Telegram*t,Meter*)> on_meter_updated_;
 
 public:
@@ -59,6 +60,12 @@ public:
         meters_.push_back(meter);
         meter->setIndex(meters_.size());
         meter->onUpdate(on_meter_updated_);
+        triggerMeterAdded(meter);
+    }
+
+    void triggerMeterAdded(shared_ptr<Meter> meter)
+    {
+        if (on_meter_added_) on_meter_added_(meter);
     }
 
     Meter *lastAddedMeter()
@@ -259,6 +266,11 @@ public:
     void onTelegram(function<bool(AboutTelegram &about, vector<uchar>)> cb)
     {
         telegram_listeners_.push_back(cb);
+    }
+
+    void whenMeterAdded(std::function<void(shared_ptr<Meter>)> cb)
+    {
+        on_meter_added_ = cb;
     }
 
     void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb)

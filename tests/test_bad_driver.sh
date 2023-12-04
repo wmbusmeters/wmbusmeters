@@ -80,14 +80,15 @@ Available meter types are:
 DoorWindowDetector
 ElectricityMeter
 GasMeter
+HeatCoolingMeter
 HeatCostAllocationMeter
 HeatMeter
-HeatCoolingMeter
+PressureSensor
 PulseCounter
+Repeater
 SmokeDetector
 TempHygroMeter
 WaterMeter
-PressureSensor
 -------------------------------------------------------------------------------
 Failed to load driver from file: testoutput/driver.xmq
 EOF
@@ -109,14 +110,15 @@ Available meter types are:
 DoorWindowDetector
 ElectricityMeter
 GasMeter
+HeatCoolingMeter
 HeatCostAllocationMeter
 HeatMeter
-HeatCoolingMeter
+PressureSensor
 PulseCounter
+Repeater
 SmokeDetector
 TempHygroMeter
 WaterMeter
-PressureSensor
 -------------------------------------------------------------------------------
 Failed to load driver from file: testoutput/driver.xmq
 EOF

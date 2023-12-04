@@ -95,9 +95,11 @@ protected:
     void triggerUpdate(Telegram *t);
     void setExpectedELLSecurityMode(ELLSecurityMode dsm);
     void setExpectedTPLSecurityMode(TPLSecurityMode tsm);
-    void addShell(std::string cmdline);
+    void addShellMeterAdded(std::string cmdline);
+    void addShellMeterUpdated(std::string cmdline);
     void addExtraConstantField(std::string ecf);
-    std::vector<std::string> &shellCmdlines();
+    std::vector<std::string> &shellCmdlinesMeterAdded();
+    std::vector<std::string> &shellCmdlinesMeterUpdated();
     std::vector<std::string> &meterExtraConstantFields();
     void setMeterType(MeterType mt);
     void addLinkMode(LinkMode lm);
@@ -162,6 +164,9 @@ protected:
     void poll(shared_ptr<BusManager> bus);
     bool handleTelegram(AboutTelegram &about, vector<uchar> frame,
                         bool simulated, string *id, bool *id_match, Telegram *out_analyzed = NULL);
+    void createMeterEnv(string *id,
+                        vector<string> *envs,
+                        vector<string> *more_json); // Add this json "key"="value" strings.
     void printMeter(Telegram *t,
                     string *human_readable,
                     string *fields, char separator,
@@ -225,7 +230,8 @@ private:
     time_t datetime_of_update_ {};
     time_t datetime_of_poll_ {};
     LinkModeSet link_modes_ {};
-    vector<string> shell_cmdlines_;
+    vector<string> shell_cmdlines_added_;
+    vector<string> shell_cmdlines_updated_;
     vector<string> extra_constant_fields_;
     time_t poll_interval_ {};
     Translate::Lookup mfct_tpl_status_bits_ = NoLookup;
