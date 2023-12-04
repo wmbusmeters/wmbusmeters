@@ -39,15 +39,15 @@
     X(DoorWindowDetector) \
     X(ElectricityMeter) \
     X(GasMeter) \
+    X(HeatCoolingMeter) \
     X(HeatCostAllocationMeter) \
     X(HeatMeter) \
-    X(HeatCoolingMeter) \
+    X(PressureSensor)  \
     X(PulseCounter) \
+    X(Repeater) \
     X(SmokeDetector) \
     X(TempHygroMeter) \
     X(WaterMeter)  \
-    X(PressureSensor)  \
-    X(Repeater) \
 
 enum class MeterType {
 #define X(name) name,
