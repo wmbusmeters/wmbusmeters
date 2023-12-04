@@ -118,7 +118,7 @@ namespace
             "The current power consumption.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
+            VifScaling::AutoSigned,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::PowerW)
