@@ -85,6 +85,7 @@ then
         then
             meld $TEST/test_expected.txt $TEST/test_responses.txt
         fi
+        echo ERROR: $TESTNAME
         exit 1
     fi
 else
@@ -109,6 +110,7 @@ then
         then
             meld $TEST/test_expected.txt $TEST/test_responses.txt
         fi
+        echo ERROR: $TESTNAME
         exit 1
     fi
 else
