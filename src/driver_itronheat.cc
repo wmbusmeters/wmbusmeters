@@ -83,12 +83,34 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
             );
+
+        addStringFieldWithExtractor(
+            "last_year_date",
+             "Last day previous year when total energy consumption was recorded.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(StorageNr(1))
+            .set(VIFRange::Date)
+            );
+
+        addNumericFieldWithExtractor(
+            "last_year_energy_consumption",
+            "The total energy consumption recorded at the last day of the previous year.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(StorageNr(1))
+            .set(VIFRange::AnyEnergyVIF)
+            );
     }
 }
 
 // Test: Heat itronheat 23340485 NOKEY
 // Comment: Allmess UltraMaXX with ITRON EquaScan hMIU RF Module
 // telegram=|444497268504342300047AD00030A52F2F_04062C0100000C1429270000066D2D130AE12B007406FEFEFEFE426C1F010D7FEB0E00000006040C995500372F2F0C7951622223|
-// {"id":"23340485","media":"heat","meter":"itronheat","meter_datetime":"2023-11-01 10:19:45","name":"Heat","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":300,"total_volume_m3":27.29}
+// {"id":"23340485","media":"heat","meter":"itronheat","meter_datetime":"2023-11-01 10:19:45","name":"Heat","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":300,"total_volume_m3":27.29,"last_year_date":"2000-01-31"}
 // |Heat;23340485;OK;300;27.29;1111-11-11 11:11.11
 
