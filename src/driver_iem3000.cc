@@ -1564,7 +1564,76 @@ namespace
             Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
-            .set(DifVifKey("03FF22")));
+            .set(DifVifKey("03FF22")),
+            Unit::NUMBER);
+
+        addNumericFieldWithExtractor(
+            "vts",
+            "Number of VT:s.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("03FF25")));
+
+        addNumericFieldWithExtractor(
+            "vt_primary",
+            "Primary VT.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("05FF26")),
+            Unit::NUMBER);
+
+        addNumericFieldWithExtractor(
+            "vt_secondary",
+            "Secondary VT.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("03FF27")),
+            Unit::NUMBER);
+
+        addNumericFieldWithExtractor(
+            "cts",
+            "Number of CT:s.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("03FF28")));
+
+        addNumericFieldWithExtractor(
+            "ct_primary",
+            "Primary CT.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("03FF29")),
+            Unit::NUMBER);
+
+        addNumericFieldWithExtractor(
+            "ct_secondary",
+            "Secondary CT.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("03FF2A")),
+            Unit::NUMBER);
+
+        addNumericFieldWithExtractor(
+            "vt_connection_type",
+            "VT connection type.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("03FF2B")),
+            Unit::NUMBER);
 
         addStringFieldWithExtractorAndLookup(
             "power_system_configuration",
