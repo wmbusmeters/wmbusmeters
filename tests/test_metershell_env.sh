@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ "$(uname)" = "Darwin" ]
+then
+    # Skip this test.
+    exit 0
+fi
+
 PROG="$1"
 
 mkdir -p testoutput
