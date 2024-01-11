@@ -101,6 +101,12 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
     catch (...)
     {
     }
+
+    xmqFreeDoc(doc);
+}
+
+DriverDynamic::~DriverDynamic()
+{
 }
 
 XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *di)

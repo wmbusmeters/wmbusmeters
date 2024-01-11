@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2023 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -26,20 +26,46 @@ namespace
 
     static bool ok = registerDriver([](DriverInfo&di)
     {
-        di.setName("abbb23");
+        di.setName("iem3000");
         di.setDefaultFields("name,id,total_energy_consumption_kwh,timestamp");
         di.setMeterType(MeterType::ElectricityMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_ABB,  0x02,  0x20);
+        di.addDetection(MANUFACTURER_SEC,  0x02,  0x13);
+        di.addDetection(MANUFACTURER_SEC,  0x02,  0x15);
+        di.addDetection(MANUFACTURER_SEC,  0x02,  0x18);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-      addStringField(
+        addOptionalCommonFields("firmware_version,manufacturer,meter_datetime,model_version");
+
+        addStringField(
             "status",
-            "Status, error, warning and alarm flags.",
-            DEFAULT_PRINT_PROPERTIES | PrintProperty::INCLUDE_TPL_STATUS | PrintProperty::STATUS);
+            "Status and error flags.",
+            PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS);
+
+        addStringFieldWithExtractorAndLookup(
+            "error_flags",
+            "Error flags.",
+            PrintProperty::INJECT_INTO_STATUS,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::ErrorFlags),
+            Translate::Lookup()
+            .add(Translate::Rule("ERROR_FLAGS", Translate::Type::IndexToString)
+                 .set(MaskBits(0xffffff))
+                 .add(Translate::Map(0x000000, "CODE_101_EEPROM_ERROR", TestBit::Set))
+                 .add(Translate::Map(0x000010, "CODE_102_NO_CALIBRATION_TABLE", TestBit::Set))
+                 .add(Translate::Map(0x000020, "CODE_201_MISMATCH_BETWEEN_FREQUENCY_SETTINGS_AND_FREQUENCY_MEASUREMENTS", TestBit::Set))
+                 .add(Translate::Map(0x000030, "CODE_202_PHASE_SEQUENCE_REVERSED", TestBit::Set))
+                 .add(Translate::Map(0x000040, "CODE_203_PHASE_SEQUENCE_REVERSED", TestBit::Set))
+                 .add(Translate::Map(0x000050, "CODE_204_TOTAL_ACTIVE_ENERGY_NEGATIVE_DUE_TO_INCORRECT_V_OR_A_CONNECTIONS", TestBit::Set))
+                 .add(Translate::Map(0x000060, "CODE_205_DATE_TIME_RESET_DUE_TO_POWER_FAILUER", TestBit::Set))
+                 .add(Translate::Map(0x000070, "CODE_206_PULSE_MISSING_DUE_TO_OVERSPEED_OF_ENERGY_PULSE_OUTPUT", TestBit::Set))
+                 .add(Translate::Map(0x000080, "CODE_207_ABNORMAL_INTERNAL_CLOCK_FUNCTION", TestBit::Set))
+                 .add(Translate::Map(0x000090, "INTERNAL_DATA_BUS_COMUNICATION_ERROR", TestBit::Set))
+                ));
 
         addNumericFieldWithExtractor(
             "total_energy_consumption",
@@ -50,7 +76,31 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
-            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "partial_energy_consumption",
+            "Partial cumulative active imported energy.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .add(VIFCombinableRaw(0x7f0d))
+            );
+
+        addNumericFieldWithExtractor(
+            "partial_reactive_energy_consumption",
+            "Partial cumulative reactive imported energy.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(SubUnitNr(1))
+            .add(VIFCombinableRaw(0x7f0d))
             );
 
         addNumericFieldWithExtractor(
@@ -63,7 +113,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .set(TariffNr(1),TariffNr(4))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -75,9 +124,7 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
-            .set(TariffNr(0))
-            .set(SubUnitNr(1))
-            .add(VIFCombinableRaw(0))
+            .add(VIFCombinableRaw(0x7f09))
             );
 
         addNumericFieldWithExtractor(
@@ -91,7 +138,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(TariffNr(1),TariffNr(4))
             .set(SubUnitNr(1))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -101,7 +147,7 @@ namespace
             Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
-            .set(DifVifKey("01FF9300")),
+            .set(DifVifKey("03FF10")),
             Unit::NUMBER
             );
 
@@ -215,16 +261,6 @@ namespace
                 ));
 
         addStringFieldWithExtractor(
-            "firmware_version",
-            "Firmware version.",
-            DEFAULT_PRINT_PROPERTIES,
-            FieldMatcher::build()
-            .set(MeasurementType::Instantaneous)
-            .set(VIFRange::FirmwareVersion)
-            .add(VIFCombinableRaw(0))
-            );
-
-        addStringFieldWithExtractor(
             "product_no",
             "The meter device product number.",
             DEFAULT_PRINT_PROPERTIES,
@@ -250,7 +286,6 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -263,7 +298,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -276,7 +310,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -289,7 +322,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -301,8 +333,7 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
-            .set(SubUnitNr(2))
-            .add(VIFCombinableRaw(0))
+            .set(SubUnitNr(1))
             );
 
         addNumericFieldWithExtractor(
@@ -316,7 +347,6 @@ namespace
             .set(VIFRange::AnyPowerVIF)
             .set(SubUnitNr(2))
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -330,7 +360,6 @@ namespace
             .set(VIFRange::AnyPowerVIF)
             .set(SubUnitNr(2))
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -344,7 +373,6 @@ namespace
             .set(VIFRange::AnyPowerVIF)
             .set(SubUnitNr(2))
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -356,8 +384,7 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
-            .set(SubUnitNr(4))
-            .add(VIFCombinableRaw(0))
+            .set(SubUnitNr(2))
             );
 
         addNumericFieldWithExtractor(
@@ -371,7 +398,6 @@ namespace
             .set(VIFRange::AnyPowerVIF)
             .set(SubUnitNr(4))
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -385,7 +411,6 @@ namespace
             .set(VIFRange::AnyPowerVIF)
             .set(SubUnitNr(4))
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -399,7 +424,6 @@ namespace
             .set(VIFRange::AnyPowerVIF)
             .set(SubUnitNr(4))
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -412,7 +436,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -425,7 +448,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -438,7 +460,18 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "voltage_average_ln",
+            "Average voltage line to neutral.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Voltage,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Voltage)
+            .add(VIFCombinableRaw(0x7f04))
             );
 
         addNumericFieldWithExtractor(
@@ -451,7 +484,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
             .add(VIFCombinableRaw(0x7f05))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -464,7 +496,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
             .add(VIFCombinableRaw(0x7f06))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -477,7 +508,18 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
             .add(VIFCombinableRaw(0x7f07))
-            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "voltage_average_ll",
+            "Average voltage line to line.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Voltage,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Voltage)
+            .add(VIFCombinableRaw(0x7f08))
             );
 
         addNumericFieldWithExtractor(
@@ -490,7 +532,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Amperage)
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -503,7 +544,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Amperage)
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -516,7 +556,18 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Amperage)
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "current_average",
+            "Average current in all phases.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Amperage,
+            VifScaling::AutoSigned,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Amperage)
+            .add(VIFCombinableRaw(0x7f00))
             );
 
         addNumericFieldWithExtractor(
@@ -526,10 +577,8 @@ namespace
             Quantity::Frequency,
             VifScaling::None,
             FieldMatcher::build()
-            .set(DifVifKey("0AFFD900")),
-            Unit::HZ,
-            0.01
-            );
+            .set(DifVifKey("05FF0B")),
+            Unit::HZ);
 
         addNumericFieldWithExtractor(
             "power",
@@ -538,10 +587,8 @@ namespace
             Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
-            .set(DifVifKey("02FFE000")),
-            Unit::FACTOR,
-            0.001
-            );
+            .set(DifVifKey("05FF0A")),
+            Unit::FACTOR);
 
         addNumericFieldWithExtractor(
             "power_l1",
@@ -636,8 +683,7 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
-            .set(SubUnitNr(2))
-            .add(VIFCombinableRaw(0)),
+            .set(SubUnitNr(1)),
             Unit::KVARH
             );
 
@@ -652,7 +698,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(2))
             .set(TariffNr(1),TariffNr(4))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -664,8 +709,8 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
-            .set(SubUnitNr(3))
-            .add(VIFCombinableRaw(0)),
+            .set(SubUnitNr(1))
+            .add(VIFCombinableRaw(0x7f09)),
             Unit::KVARH
             );
 
@@ -680,7 +725,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(3))
             .set(TariffNr(1),TariffNr(4))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -727,62 +771,48 @@ namespace
             Unit::NUMBER
             );
 
-        addStringFieldWithExtractorAndLookup(
-            "digital_output_{subunit_counter}",
-            "The state for output register 1-2.",
-            DEFAULT_PRINT_PROPERTIES,
-            FieldMatcher::build()
-            .set(MeasurementType::Instantaneous)
-            .set(VIFRange::DigitalOutput)
-            .set(StorageNr(0))
-            .set(TariffNr(0))
-            .set(SubUnitNr(1),SubUnitNr(2))
-            .add(VIFCombinableRaw(0)),
-            Translate::Lookup()
-            .add(Translate::Rule("OUTPUT", Translate::Type::BitToString)
-                 .set(MaskBits(0xff))
-                ));
-
-        addStringFieldWithExtractorAndLookup(
-            "digital_input_{subunit_counter-2counter}",
-            "The state for input register 1-2.",
-            DEFAULT_PRINT_PROPERTIES,
-            FieldMatcher::build()
-            .set(MeasurementType::Instantaneous)
-            .set(VIFRange::DigitalInput)
-            .set(SubUnitNr(3),SubUnitNr(4))
-            .add(VIFCombinableRaw(0)),
-            Translate::Lookup()
-            .add(Translate::Rule("INPUT", Translate::Type::BitToString)
-                 .set(MaskBits(0xff))
-                ));
-
-        addStringFieldWithExtractorAndLookup(
-            "digital_historic_input_{subunit_counter-2counter}",
-            "The state for input register 3-4.",
-            DEFAULT_PRINT_PROPERTIES,
-            FieldMatcher::build()
-            .set(MeasurementType::Instantaneous)
-            .set(VIFRange::DigitalInput)
-            .set(StorageNr(1))
-            .set(SubUnitNr(3),SubUnitNr(4))
-            .add(VIFCombinableRaw(0)),
-            Translate::Lookup()
-            .add(Translate::Rule("INPUT", Translate::Type::BitToString)
-                 .set(MaskBits(0xff))
-                ));
-
         addNumericFieldWithExtractor(
-            "digital_input_{subunit_counter-2counter}",
-            "Number of times input 1-2 counted a 1.",
+            "input_metering_cumulation",
+            "Input metering accumulation.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
             VifScaling::None,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
-            .set(SubUnitNr(3),SubUnitNr(4))
             .set(VIFRange::CumulationCounter)
-            .add(VIFCombinableRaw(0))
+            );
+
+        addNumericFieldWithExtractor(
+            "pulse_duration",
+            "Energy pulse duration.",
+             DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(DifVifKey("03FF2C"))
+            );
+
+        addNumericFieldWithExtractor(
+            "pulse_weight",
+            "Energy pulse weight.",
+             DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(DifVifKey("05FF2E"))
+            );
+
+        addNumericFieldWithExtractor(
+            "pulse_constant",
+            "Energy pulse constant.",
+             DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(DifVifKey("05FF2F"))
             );
 
         addNumericFieldWithExtractor(
@@ -795,7 +825,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .add(VIFCombinableRaw(0x7f72))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -809,7 +838,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(1))
             .add(VIFCombinableRaw(0x7f72))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -823,7 +851,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(2))
             .add(VIFCombinableRaw(0x7f72))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -837,7 +864,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(3))
             .add(VIFCombinableRaw(0x7f72))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -849,7 +875,6 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRaw(0x7f71))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -862,7 +887,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRaw(0x7f71))
             .set(SubUnitNr(1))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -875,7 +899,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRaw(0x7f71))
             .set(SubUnitNr(2))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -888,7 +911,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRaw(0x7f71))
             .set(SubUnitNr(3))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -944,8 +966,7 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
-            .set(SubUnitNr(4))
-            .add(VIFCombinableRaw(0)),
+            .set(SubUnitNr(4)),
             Unit::KVAH
             );
 
@@ -958,8 +979,7 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
-            .set(SubUnitNr(5))
-            .add(VIFCombinableRaw(0)),
+            .set(SubUnitNr(5)),
             Unit::KVAH
             );
 
@@ -973,7 +993,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -986,7 +1005,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -999,7 +1017,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1013,7 +1030,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(2))
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1027,7 +1043,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(2))
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1041,7 +1056,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(2))
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1055,7 +1069,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(4))
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1069,7 +1082,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(4))
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1083,7 +1095,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(4))
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1097,7 +1108,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(1))
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1111,7 +1121,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(1))
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1125,7 +1134,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(1))
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1139,7 +1147,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(3))
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1153,7 +1160,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(3))
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1167,7 +1173,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(3))
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1181,7 +1186,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(5))
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1195,7 +1199,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(5))
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1209,7 +1212,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(5))
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1222,7 +1224,6 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(6))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1236,7 +1237,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(6))
             .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1250,7 +1250,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(6))
             .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1264,7 +1263,6 @@ namespace
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(6))
             .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0))
             );
 
         addNumericFieldWithExtractor(
@@ -1276,8 +1274,7 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
-            .set(SubUnitNr(7))
-            .add(VIFCombinableRaw(0)),
+            .set(SubUnitNr(7)),
             Unit::KVARH
             );
 
@@ -1291,8 +1288,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(7))
-            .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0)),
+            .add(VIFCombinableRaw(0x7f01)),
             Unit::KVARH
             );
 
@@ -1306,8 +1302,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(7))
-            .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0)),
+            .add(VIFCombinableRaw(0x7f02)),
             Unit::KVARH
             );
 
@@ -1321,8 +1316,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(7))
-            .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0)),
+            .add(VIFCombinableRaw(0x7f03)),
             Unit::KVARH
             );
 
@@ -1335,8 +1329,7 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
-            .set(SubUnitNr(8))
-            .add(VIFCombinableRaw(0)),
+            .set(SubUnitNr(8)),
             Unit::KVAH
             );
 
@@ -1350,8 +1343,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(8))
-            .add(VIFCombinableRaw(0x7f01))
-            .add(VIFCombinableRaw(0)),
+            .add(VIFCombinableRaw(0x7f01)),
             Unit::KVAH
             );
 
@@ -1365,8 +1357,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(8))
-            .add(VIFCombinableRaw(0x7f02))
-            .add(VIFCombinableRaw(0)),
+            .add(VIFCombinableRaw(0x7f02)),
             Unit::KVAH
             );
 
@@ -1380,16 +1371,222 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .set(SubUnitNr(8))
-            .add(VIFCombinableRaw(0x7f03))
-            .add(VIFCombinableRaw(0)),
+            .add(VIFCombinableRaw(0x7f03)),
             Unit::KVAH
             );
 
+        addNumericFieldWithExtractor(
+            "last_partial_energy_reset",
+            "Date and time of last partial energy reset,",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::PointInTime,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::DateTime)
+            .add(VIFCombinableRaw(0x7f0c))
+            );
+
+        addNumericFieldWithExtractor(
+            "last_input_metering_reset",
+            "Date and time of last input metering reset.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::PointInTime,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::DateTime)
+            .add(VIFCombinableRaw(0x7f0e))
+            );
+
+        addStringFieldWithExtractorAndLookup(
+            "digital_input",
+            "Digital input status.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::DigitalInput),
+            Translate::Lookup()
+            .add(Translate::Rule("INPUT", Translate::Type::BitToString)
+                 .set(MaskBits(0xffffff))
+                ));
+
+        addStringFieldWithExtractorAndLookup(
+            "digital_input_status",
+            "Digital input status.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(DifVifKey("02FF32")),
+            Translate::Lookup()
+            .add(Translate::Rule("INPUT_STATUS", Translate::Type::BitToString)
+                 .set(MaskBits(0xff))
+                ));
+
+        addStringFieldWithExtractorAndLookup(
+            "digital_output",
+            "Digital output status.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::DigitalOutput),
+            Translate::Lookup()
+            .add(Translate::Rule("OUTPUT", Translate::Type::BitToString)
+                 .set(MaskBits(0xffffff))
+                ));
+
+        addStringFieldWithExtractorAndLookup(
+            "digital_output_association",
+            "Digital output association.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(DifVifKey("03FF2D")),
+            Translate::Lookup()
+            .add(Translate::Rule("OUTPUT_ASSOCIATION", Translate::Type::BitToString)
+                 .set(MaskBits(0xffffff))
+                ));
+
+        addStringFieldWithExtractorAndLookup(
+            "digital_input_association",
+            "Digital input association.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(DifVifKey("03FF30")),
+            Translate::Lookup()
+            .add(Translate::Rule("INPUT_ASSOCIATION", Translate::Type::BitToString)
+                 .set(MaskBits(0xffffff))
+                ));
+
+        addStringFieldWithExtractorAndLookup(
+            "digital_output_association",
+            "Digital output association.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(DifVifKey( "02FF36")),
+            Translate::Lookup()
+            .add(Translate::Rule("OUTPUT_ASSOCIATION", Translate::Type::BitToString)
+                 .set(MaskBits(0xffff))
+                ));
+
+        addStringFieldWithExtractorAndLookup(
+            "overload_alarm_setup",
+            "Overload alarm setup.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(DifVifKey("02FF34")),
+            Translate::Lookup()
+            .add(Translate::Rule("OVERLOAD_ALARM", Translate::Type::BitToString)
+                 .set(MaskBits(0xff))
+                ));
+
+        addNumericFieldWithExtractor(
+            "pickup_setpoint",
+            "Pickup setpoint.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("05FF35")));
+
+        addStringFieldWithExtractorAndLookup(
+            "activated_status",
+            "Activated status.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(DifVifKey("02FF37")),
+            Translate::Lookup()
+            .add(Translate::Rule("ACTIVATED_STATUS", Translate::Type::BitToString)
+                 .set(MaskBits(0xff))
+                ));
+
+        addStringFieldWithExtractorAndLookup(
+            "unack_status",
+            "Unacknowledged status.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(DifVifKey("02FF38")),
+            Translate::Lookup()
+            .add(Translate::Rule("UNACK_STATUS", Translate::Type::BitToString)
+                 .set(MaskBits(0xff))
+                ));
+
+        addNumericFieldWithExtractor(
+            "last_alarm",
+            "Date and time of last alarm.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::PointInTime,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::DateTime)
+            .add(VIFCombinableRaw(0x7f39))
+            );
+
+        addNumericFieldWithExtractor(
+            "last_alarm",
+            "Last alarm value.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("05FF3A")),
+            Unit::NUMBER);
+
+        addNumericFieldWithExtractor(
+            "operating_time",
+            "Operating time. Unit is unknown, please fix!",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Time,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("06FF20")),
+            Unit::Year);
+
+        addNumericFieldWithExtractor(
+            "phases",
+            "Number of phases.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("03FF21")));
+
+        addNumericFieldWithExtractor(
+            "wires",
+            "Number of wires.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("03FF22")));
+
+        addStringFieldWithExtractorAndLookup(
+            "power_system_configuration",
+            "Power system configuration.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(DifVifKey("03FF23")),
+            Translate::Lookup()
+            .add(Translate::Rule("POWER_SYS_CONFIG", Translate::Type::BitToString)
+                 .set(MaskBits(0xffffff))
+                ));
+
+        addNumericFieldWithExtractor(
+            "nominal_frequency",
+            "Nominal frequency.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Frequency,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("03FF24")),
+            Unit::HZ);
+
     }
 }
-
-/* / Test: ABBmeter abbb23 33221100 NOKEY
-  / telegram=|844442040011223320027A3E000020_0E840017495200000004FFA0150000000004FFA1150000000004FFA2150000000004FFA3150000000007FFA600000000000000000007FFA700000000000000000007FFA800000000000000000007FFA90000000000000000000DFD8E0007302E38322E31420DFFAA000B3030312D313131203332421F|
-  / {"media":"electricity","meter":"abbb23","name":"ABBmeter","id":"33221100","total_energy_consumption_kwh":5249.17,"firmware_version": "B1.28.0","product_no": "B23 111-100","timestamp":"1111-11-11T11:11:11Z"}
- / |ABBmeter;33221100;5249.17;1111-11-11 11:11.11
-*/
