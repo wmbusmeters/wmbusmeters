@@ -440,6 +440,8 @@ FabricationNo
 EnhancedIdentification
 RelativeHumidity
 AccessNumber
+Medium
+Manufacturer
 ParameterSet
 ModelVersion
 HardwareVersion
