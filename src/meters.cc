@@ -2491,6 +2491,8 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
              matcher_.vif_range == VIFRange::FabricationNo ||
              matcher_.vif_range == VIFRange::HardwareVersion ||
              matcher_.vif_range == VIFRange::FirmwareVersion ||
+             matcher_.vif_range == VIFRange::Medium ||
+             matcher_.vif_range == VIFRange::Manufacturer ||
              matcher_.vif_range == VIFRange::ModelVersion ||
              matcher_.vif_range == VIFRange::SoftwareVersion ||
              matcher_.vif_range == VIFRange::Customer ||
@@ -2686,6 +2688,18 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
             );
     }
 
+    if (checkIf(fields,"manufacturer"))
+    {
+        addStringFieldWithExtractor(
+            "manufacturer",
+            "Meter manufacturer.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Manufacturer)
+            );
+    }
+
     if (checkIf(fields,"model_version"))
     {
         addStringFieldWithExtractor(
@@ -2695,6 +2709,18 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ModelVersion)
+            );
+    }
+
+    if (checkIf(fields,"firmware_version"))
+    {
+        addStringFieldWithExtractor(
+            "firmware_version",
+            "Meter firmware version.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::FirmwareVersion)
             );
     }
 

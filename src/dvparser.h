@@ -49,6 +49,8 @@
     X(EnhancedIdentification,0x79,0x79, Quantity::Text, Unit::TXT) \
     X(RelativeHumidity,0x7B1A,0x7B1B, Quantity::RH, Unit::RH) \
     X(AccessNumber,0x7D08,0x7D08, Quantity::Counter, Unit::COUNTER) \
+    X(Medium,0x7D09,0x7D09, Quantity::Text, Unit::TXT) \
+    X(Manufacturer,0x7D0A,0x7D0A, Quantity::Text, Unit::TXT) \
     X(ParameterSet,0x7D0B,0x7D0B, Quantity::Text, Unit::TXT) \
     X(ModelVersion,0x7D0C,0x7D0C, Quantity::Text, Unit::TXT) \
     X(HardwareVersion,0x7D0D,0x7D0D, Quantity::Text, Unit::TXT) \
