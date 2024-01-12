@@ -45,7 +45,7 @@ bool DriverDynamic::load(DriverInfo *di, const string &file)
 
     XMQDoc *doc = xmqNewDoc();
 
-    bool ok = xmqParseFile(doc, file.c_str(), "config");
+    bool ok = xmqParseFile(doc, file.c_str(), NULL);
 
     if (!ok) {
         warning("(driver) error loading wmbusmeters driver file %s\n%s\n%s\n",
@@ -101,6 +101,12 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
     catch (...)
     {
     }
+
+    xmqFreeDoc(doc);
+}
+
+DriverDynamic::~DriverDynamic()
+{
 }
 
 XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *di)

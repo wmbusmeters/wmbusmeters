@@ -192,7 +192,7 @@ ifeq ($(DRIVER),)
 	DRIVER_OBJS:=$(wildcard src/meter_*.cc) $(wildcard src/driver_*.cc)
 else
     $(info Building a single driver $(DRIVER))
-	DRIVER_OBJS:=src/driver_auto.cc src/driver_unknown.cc $(wildcard src/meter_*.cc) src/driver_$(DRIVER).cc
+	DRIVER_OBJS:=src/driver_auto.cc src/driver_unknown.cc src/driver_dynamic.cc $(wildcard src/meter_*.cc) src/driver_$(DRIVER).cc
 endif
 DRIVER_OBJS:=$(patsubst src/%.cc,$(BUILD)/%.o,$(DRIVER_OBJS))
 

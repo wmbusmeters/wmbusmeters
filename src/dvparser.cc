@@ -256,6 +256,16 @@ bool parseDV(Telegram *t,
                 t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::NONE, "%02X manufacturer specific data %s", dif, value.c_str());
                 break;
             }
+            if (dif == 0x1f)
+            {
+                DEBUG_PARSER("(dvparser) reached dif %02x more records in next telegram.\n", dif);
+                datalen = std::distance(data,data_end);
+                string value = bin2hex(data+1, data_end, datalen-1);
+                t->mfct_0f_index = 1+std::distance(data_start, data);
+                assert(t->mfct_0f_index >= 0);
+                t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::FULL, "%02X more data in next telegram %s", dif, value.c_str());
+                break;
+            }
             DEBUG_PARSER("(dvparser) reached unknown dif %02x treating remaining data as manufacturer specific, parsing is done.\n", dif);
             datalen = std::distance(data,data_end);
             string value = bin2hex(data+1, data_end, datalen-1);
