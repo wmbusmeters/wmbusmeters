@@ -114,3 +114,9 @@ namespace
 // {"id":"23340485","media":"heat","meter":"itronheat","meter_datetime":"2023-11-01 10:19:45","name":"Heat","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":300,"total_volume_m3":27.29,"last_year_date":"2000-01-31"}
 // |Heat;23340485;OK;300;27.29;1111-11-11 11:11.11
 
+// Test: Heat_lower_case itronheat 11755757 NOKEY
+// Comment: Itron Heatmeter with strange MFCT iTW instead of ITW
+// telegram=|_404497A65757751100047A040000A00406494C0000041348318000066D2B0ED7EE2A0044069A360000426CDF2C0D7FEB0700000006040C5C7E034E0C7942502321|
+// {"id":"11755757","media":"heat","meter":"itronheat","meter_datetime":"2023-10-14 23:14:43","name":"Heat_lower_case","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":19529,"total_volume_m3":8401.224,"last_year_date":"2022-12-31","last_year_energy_consumption_kwh": 13978}
+// |Heat_lower_case;11755757;OK;19529;8401.224;1111-11-11 11:11.11
+
