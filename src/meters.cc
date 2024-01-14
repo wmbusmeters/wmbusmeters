@@ -97,8 +97,8 @@ bool DriverInfo::detect(uint16_t mfct, uchar type, uchar version)
     {
         if (dd.mfct == 0 && dd.type == 0 && dd.version == 0) continue; // Ignore drivers with no detection.
         if (dd.mfct == mfct && dd.type == type && dd.version == version) return true;
-		//some meters send mfct where the first character ist lower case, therefor % ( 32 * 1024 ) to convert mfct to upper case
-		if (dd.mfct == mfct % ( 32 * 1024 ) && dd.type == type && dd.version == version) return true;
+        //some meters send mfct where the first character ist lower case, therefor % ( 32 * 1024 ) to convert mfct to upper case
+        if (dd.mfct == mfct % ( 32 * 1024 ) && dd.type == type && dd.version == version) return true;
     }
     return false;
 }
