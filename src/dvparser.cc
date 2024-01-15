@@ -123,7 +123,8 @@ bool isInsideVIFRange(Vif vif, VIFRange vif_range)
     {
         return
             isInsideVIFRange(vif, VIFRange::EnergyWh) ||
-            isInsideVIFRange(vif, VIFRange::EnergyMJ);
+            isInsideVIFRange(vif, VIFRange::EnergyMJ) ||
+            isInsideVIFRange(vif, VIFRange::EnergyMWh);
     }
     if (vif_range == VIFRange::AnyPowerVIF)
     {
