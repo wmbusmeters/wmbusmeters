@@ -20,6 +20,7 @@
 #include"wmbus_utils.h"
 #include"rtlsdr.h"
 #include"serial.h"
+#include"shell.h"
 
 #include<assert.h>
 #include<algorithm>
@@ -158,15 +159,30 @@ shared_ptr<BusDevice> openRTLWMBUS(Detected detected,
                 rtl_wmbus = "rtl_wmbus";
             }
         }
+
+        string out;
+        invokeShellCaptureOutput(rtl_wmbus, { "--help" }, {}, &out, true);
+        debug("(rtlwmbus) help %s\n", out.c_str());
+        string add_f = "";
+        if (out.find("-f exit if flow") != string::npos)
+        {
+            add_f = " -f";
+        }
+        else
+        {
+            warning("Warning! rtl_wbus executable lacks -f option! Without this option rtl_wmbus cannot detect when rtl-sdr stops working.\n"
+                    "Please upgrade rtl_wmbus.\n");
+        }
+
         if (command == "")
         {
             if (!force_freq)
             {
-                command = "ERRFILE=$(mktemp --suffix=_wmbusmeters_rtlsdr) ; echo ERRFILE=$ERRFILE ;  date -Iseconds > $ERRFILE ; tail -f $ERRFILE & "+rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>>$ERRFILE | "+rtl_wmbus+" -s -f";
+                command = "ERRFILE=$(mktemp --suffix=_wmbusmeters_rtlsdr) ; echo ERRFILE=$ERRFILE ;  date -Iseconds > $ERRFILE ; tail -f $ERRFILE & "+rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>>$ERRFILE | "+rtl_wmbus+" -s"+add_f;
             }
             else
             {
-                command = "ERRFILE=$(mktemp --suffix=_wmbusmeters_rtlsdr) ; echo ERRFILE=$ERRFILE ; date -Iseconds > $ERRFILE ; tail -f $ERRFILE & "+rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>>$ERRFILE | "+rtl_wmbus+" -f";
+                command = "ERRFILE=$(mktemp --suffix=_wmbusmeters_rtlsdr) ; echo ERRFILE=$ERRFILE ; date -Iseconds > $ERRFILE ; tail -f $ERRFILE & "+rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>>$ERRFILE | "+rtl_wmbus+" "+add_f;
             }
         }
         verbose("(rtlwmbus) using command: %s\n", command.c_str());
