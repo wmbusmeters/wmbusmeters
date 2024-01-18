@@ -44,6 +44,7 @@ then
     postrotate
         /bin/kill -HUP \`cat /run/wmbusmeters/wmbusmeters.pid 2> /dev/null\` 2> /dev/null || true
     endscript
+}
 EOF
     echo "logrotate: created $ROOT/etc/logrotate.d/wmbusmeters"
 else
