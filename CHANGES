@@ -1,4 +1,24 @@
 
+ATTENTION! Wmbusmeters now use new -f option when starting rtl_wmbus. There is a
+warning if rtl_wmbus does not support the -f option and an upgrade is recommended.
+This option will cause rtl_wmbus to exit with an error if the rtl_sdr dongle stops sending data.
+This in turn will cause wmbusmeters to restart the pipeline.
+
+Up till now, the stderr from rtl_sdr has been sent to /dev/null. This is a problem
+since we cannot see any errors from rtl_sdr that could have caused it to stall.
+
+However the reason for /dev/null was this bug in rtl_sdr.
+https://github.com/osmocom/rtl-sdr/commit/142325a93c6ad70f851f43434acfdf75e12dfe03
+which prevented us from sending the rtl_sdr stderr to wmbusmeters.
+If we did, rtl_sdr went into a 100% cpu hang when we restarted a wmbusmeters daemon.
+
+A temporary workaround has been found that both sends the stderr output to wmbusmeters
+and permits the restart of the daemon. Stderr from rtl_sdr is now sent to
+/tmp/tmp.XXXXXXX_wmbusmeters_rtlsdr and then tailed into wmbusmeters.
+This is a temporary solution until the real rtl_sdr bugfix has propagated into enough distributions.
+
+Add second extension energy MWh VIF 7b00-7b01.
+
 Sunflowerenergias improved the iwmtx5 driver! Thanks Sunflowerenergias!
 
 Jacman777 improved the kamheat driver! Thanks Jacman777!
