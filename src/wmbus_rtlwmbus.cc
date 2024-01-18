@@ -22,6 +22,7 @@
 #include"serial.h"
 
 #include<assert.h>
+#include<algorithm>
 #include<fcntl.h>
 #include<grp.h>
 #include<pthread.h>
@@ -161,11 +162,11 @@ shared_ptr<BusDevice> openRTLWMBUS(Detected detected,
         {
             if (!force_freq)
             {
-                command = rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+rtl_wmbus+" -s";
+                command = "ERRFILE=$(mktemp --suffix=_wmbusmeters_rtlsdr) ; echo ERRFILE=$ERRFILE ;  date -Iseconds > $ERRFILE ; tail -f $ERRFILE & "+rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>>$ERRFILE | "+rtl_wmbus+" -s -f";
             }
             else
             {
-                command = rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>/dev/null | "+rtl_wmbus;
+                command = "ERRFILE=$(mktemp --suffix=_wmbusmeters_rtlsdr) ; echo ERRFILE=$ERRFILE ; date -Iseconds > $ERRFILE ; tail -f $ERRFILE & "+rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>>$ERRFILE | "+rtl_wmbus+" -f";
             }
         }
         verbose("(rtlwmbus) using command: %s\n", command.c_str());
@@ -254,6 +255,17 @@ void WMBusRTLWMBUS::processSerialData()
         }
         else if (status == TextAndNotFrame)
         {
+            const char *exit_message = "rtl_wmbus: exiting";
+            auto end = read_buffer_.begin()+frame_length;
+            auto it = std::search(read_buffer_.begin(),
+                                  end,
+                                  exit_message,
+                                  exit_message + strlen(exit_message));
+            if (it != end)
+            {
+                debug("(rtlwmbus) detected rtl_wmbus exit due to stopped data flow. Resetting pipeline!\n");
+                reset();
+            }
             // The buffer has already been printed by serial cmd.
             read_buffer_.erase(read_buffer_.begin(), read_buffer_.begin()+frame_length);
         }
