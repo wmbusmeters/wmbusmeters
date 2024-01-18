@@ -279,7 +279,7 @@ void WMBusRTLWMBUS::processSerialData()
                                   exit_message + strlen(exit_message));
             if (it != end)
             {
-                debug("(rtlwmbus) detected rtl_wmbus exit due to stopped data flow. Resetting pipeline!\n");
+                warning("Warning! Detected rtl_wmbus exit due to stopped data flow. Resetting pipeline!\n");
                 reset();
             }
             // The buffer has already been printed by serial cmd.

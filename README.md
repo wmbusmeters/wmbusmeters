@@ -479,10 +479,24 @@ These telegrams are expected to have the data link layer crc bytes removed alrea
 
 `MAIN=/dev/ttyUSB0:mbus:2400`, assume ttyUSB0 is an serial to mbus-master converter.  The speed is set to 2400 bps.
 
-`rtlwmbus`, to spawn the background process: `rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s`
+`rtlwmbus`, to spawn the background process: `rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -f -s`
 for each attached rtlsdr dongle. This will listen to S1,T1 and C1 meters in parallel.
 
-Note that this uses a noticeable amount of CPU time by rtl_wmbus.
+For the moment, it is necessary to send the stderr to a file (/dev/null) because of a bug:
+https://github.com/osmocom/rtl-sdr/commit/142325a93c6ad70f851f43434acfdf75e12dfe03
+
+Until this bug fix has propagated into Debian/Fedora etc, wmbusmeters uses a tmp file
+to see the stderr output from rtl_sdr. This tmp file is created in /tmp and will
+generate 420 bytes of data once ever 23 hours.
+
+The current command line used by wmbusmeters to start the rtl_wmbus pipeline is therefore a bit longer:
+```
+ERRFILE=$(mktemp --suffix=_wmbusmeters_rtlsdr) ;
+echo ERRFILE=$ERRFILE ;  date -Iseconds > $ERRFILE ;
+tail -f $ERRFILE & /usr/bin/rtl_sdr  -d 0 -f 868.625M -s 1.6e6 - 2>>$ERRFILE | /usr/bin/rtl_wmbus -s -f
+```
+
+Note that the standard -s option uses a noticeable amount of CPU time by rtl_wmbus.
 You can therefore use a tailored rtl_wmbus command that is more suitable for your needs.
 
 `rtlwmbus:CMD(<command line>)`, to specify the entire background
@@ -492,9 +506,10 @@ The command line cannot contain parentheses.
 Likewise for rtl433.
 
 Here is an example command line that reduces the rtl_wmbus CPU usage if you only need T1/C1 telegrams.
-It disable S1 decoding (`-p s`) and trades lower cpu usage for reception performance (`-a`):
+It disable S1 decoding (`-p s`) and trades lower cpu usage for reception performance (`-a`).
+You should always add the `-f` option to enable detection if rtl_sdr has stalled:
 
-`rtlwmbus:CMD(rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus -p s -a)`
+`rtlwmbus:CMD(rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus -p s -a -f)`
 
 `rtlwmbus(ppm=17)`, to tune your rtlsdr dongle accordingly.
 Use this to tune your dongle and at the same time listen to S1,T1 and C1.
@@ -797,12 +812,12 @@ wmbusmeters --format=json --meterfiles /dev/ttyUSB0:im871a:c1 MyTapWater multica
 # Using wmbusmeters in a pipe
 
 ```shell
-rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s | wmbusmeters --format=json stdin:rtlwmbus MyMeter auto 12345678 NOKEY | ...more processing...
+rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -f -s | wmbusmeters --format=json stdin:rtlwmbus MyMeter auto 12345678 NOKEY | ...more processing...
 ```
 
 Or you can send rtl_wmbus formatted telegrams using nc over UDP to wmbusmeters.
 ```shell
-rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus -p s -a | nc -u localhost 4444
+rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus -f -p s -a | nc -u localhost 4444
 ```
 
 And receive the telegrams with nc spawned by wmbusmeters.
