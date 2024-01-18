@@ -159,7 +159,7 @@ namespace
             VifScaling::None,
             FieldMatcher::build()
             .set(DifVifKey("04FFA015")),
-            Unit::FACTOR
+            Unit::NUMBER
             );
 
         addNumericFieldWithExtractor(
@@ -170,7 +170,7 @@ namespace
             VifScaling::None,
             FieldMatcher::build()
             .set(DifVifKey("04FFA115")),
-            Unit::FACTOR
+            Unit::NUMBER
             );
 
         addNumericFieldWithExtractor(
@@ -181,7 +181,7 @@ namespace
             VifScaling::None,
             FieldMatcher::build()
             .set(DifVifKey("04FFA215")),
-            Unit::FACTOR
+            Unit::NUMBER
             );
 
         addNumericFieldWithExtractor(
@@ -192,7 +192,7 @@ namespace
             VifScaling::None,
             FieldMatcher::build()
             .set(DifVifKey("04FFA315")),
-            Unit::FACTOR
+            Unit::NUMBER
             );
 
        addStringFieldWithExtractorAndLookup(
@@ -1569,7 +1569,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "vts",
-            "Number of VT:s.",
+            "Number of voltaget transformers VT:s.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
             VifScaling::None,
@@ -1578,7 +1578,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "vt_primary",
-            "Primary VT.",
+            "Primary voltage transformer VT.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
             VifScaling::None,
@@ -1588,7 +1588,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "vt_secondary",
-            "Secondary VT.",
+            "Secondary voltage transformer VT.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
             VifScaling::None,
@@ -1598,7 +1598,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "cts",
-            "Number of CT:s.",
+            "Number of current transformers CT:s.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
             VifScaling::None,
@@ -1607,7 +1607,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "ct_primary",
-            "Primary CT.",
+            "Primary current transformer CT.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
             VifScaling::None,
@@ -1617,7 +1617,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "ct_secondary",
-            "Secondary CT.",
+            "Secondary current transformer CT.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
             VifScaling::None,
@@ -1627,7 +1627,7 @@ namespace
 
         addNumericFieldWithExtractor(
             "vt_connection_type",
-            "VT connection type.",
+            "Voltage transformer connection type.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
             VifScaling::None,

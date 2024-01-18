@@ -438,6 +438,7 @@ PowerW
 ActualityDuration
 FabricationNo
 EnhancedIdentification
+EnergyMWh
 RelativeHumidity
 AccessNumber
 Medium

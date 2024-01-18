@@ -50,8 +50,8 @@ namespace
         di.addDetection(MANUFACTURER_KAM, 0x0c,  0x34); // 403
         di.addDetection(MANUFACTURER_KAM, 0x0d,  0x34); // 403
         di.addDetection(MANUFACTURER_KAM, 0x04,  0x1c); // 602
-        di.addDetection(MANUFACTURER_KAM, 0x04, 0x35); // 603
-        di.addDetection(MANUFACTURER_KAM, 0x0c, 0x35); // 603
+        di.addDetection(MANUFACTURER_KAM, 0x04,  0x35); // 603
+        di.addDetection(MANUFACTURER_KAM, 0x0c,  0x35); // 603
         di.addDetection(MANUFACTURER_KAM, 0x04,  0x39); // 803
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
@@ -59,7 +59,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("on_time_h");
+        addOptionalCommonFields("fabrication_no,meter_datetime,on_time_h,on_time_at_error_h");
+        addOptionalFlowRelatedFields("flow_return_temperature_difference_c");
 
         // Technical Description Multical 603 page 116 section 7.7.2 Information code types on serial communication.
         addStringFieldWithExtractorAndLookup(
@@ -348,3 +349,8 @@ namespace
 // telegram=|40442D2C0650216219048D2083A4E1162306FF78_040F2C3F000004FF07DBA40D0004FF08860B0D000414BA33140002FD170000043B620000000259A21E025DFA1B|
 // {"media":"heat","meter":"kamheat","name":"Kamstrup_402_wmbus","id":"62215006","forward_energy_m3c":894171,"return_energy_m3c":854918,"t1_temperature_c":78.42,"t2_temperature_c":71.62,"total_energy_consumption_kwh":44922.222222,"total_volume_m3":13239.62,"volume_flow_m3h":0.098,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 // |Kamstrup_402_wmbus;62215006;44922.222222;13239.62;OK;1111-11-11 11:11.11
+
+// Test: Kamstrup_MC603_mbus kamheat 32323232 NOKEY
+// telegram=|68c9c96808e672323232322d2c35041900000004fB006083000004ff074006010004ff08299400000416984e010084401400000000848040140000000004225043000034221c0000000259c91f025d4f1102617a0e042e30020000142e65030000043c24050000143ce308000004ff2200000000046d2e2B0f3144fB00007d000044ff07Bdf9000044ff08308d00004416B73f0100c4401400000000c480401400000000542ed9020000543ce8090000426c013102ff1a011B0c783032858404ff16e5841e0004ff17c1d5B400a516|
+// {"fabrication_no": "84853230",  "flow_return_temperature_difference_c": 37.06,  "forward_energy_m3c": 67136,  "id": "32323232",  "max_flow_m3h": 22.75,  "max_power_kw": 869,  "media": "heat",  "meter": "kamheat",  "meter_datetime": "2024-01-15 11:46",  "name": "Kamstrup_MC603_mbus",  "on_time_at_error_h": 28,  "on_time_h": 17232,  "power_kw": 560,  "return_energy_m3c": 37929,  "status": "OK",  "t1_temperature_c": 81.37,  "t2_temperature_c": 44.31,  "target_date": "2024-01-01",  "target_energy_kwh": 3200000,  "target_volume_m3": 81847,  "timestamp": "1111-11-11T11:11:11Z",  "total_energy_consumption_kwh": 3363200,  "total_volume_m3": 85656,  "volume_flow_m3h": 13.16}
+// |Kamstrup_MC603_mbus;32323232;3363200;85656;OK;1111-11-11 11:11.11
