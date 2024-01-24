@@ -23,7 +23,7 @@
 
 #include<map>
 #include<set>
-#include<stdint.h>
+#include<cstdint>
 #include<time.h>
 #include<functional>
 #include<vector>

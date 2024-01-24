@@ -19,7 +19,7 @@
 #define UTIL_H
 
 #include<signal.h>
-#include<stdint.h>
+#include<cstdint>
 #include<string>
 #include<functional>
 #include<map>
