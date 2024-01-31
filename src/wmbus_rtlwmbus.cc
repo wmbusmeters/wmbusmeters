@@ -180,11 +180,11 @@ shared_ptr<BusDevice> openRTLWMBUS(Detected detected,
 
             if (!force_freq)
             {
-                command = "ERRFILE=$(mktemp --suffix=_wmbusmeters_rtlsdr) ; echo ERRFILE=$ERRFILE ;  date -Iseconds > $ERRFILE ; tail -f $ERRFILE & "+rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>>$ERRFILE | "+rtl_wmbus+" -s"+add_f;
+                command = "ERRFILE=$(mktemp -t wmbusmeters_rtlsdr.XXXXXXXXXXXX) ; echo ERRFILE=$ERRFILE ;  date -Iseconds > $ERRFILE ; tail -f $ERRFILE & "+rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>>$ERRFILE | "+rtl_wmbus+" -s"+add_f;
             }
             else
             {
-                command = "ERRFILE=$(mktemp --suffix=_wmbusmeters_rtlsdr) ; echo ERRFILE=$ERRFILE ; date -Iseconds > $ERRFILE ; tail -f $ERRFILE & "+rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>>$ERRFILE | "+rtl_wmbus+" "+add_f;
+                command = "ERRFILE=$(mktemp -t wmbusmeters_rtlsdr.XXXXXXXXXXXX) ; echo ERRFILE=$ERRFILE ; date -Iseconds > $ERRFILE ; tail -f $ERRFILE & "+rtl_sdr+" "+ppm+" -d "+to_string(id)+" -f "+freq+" -s 1.6e6 - 2>>$ERRFILE | "+rtl_wmbus+" "+add_f;
             }
         }
         verbose("(rtlwmbus) using command: %s\n", command.c_str());
