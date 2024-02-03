@@ -1,5 +1,5 @@
-FROM asymworks/multiarch-alpine:${TARGETARCH}${TARGETVARIANT}-latest-stable AS build
-RUN apk add --no-cache alpine-sdk gcc linux-headers librtlsdr-dev libxml2-dev cmake libusb-dev bash
+FROM alpine AS build
+RUN apk add --no-cache alpine-sdk gcc linux-headers librtlsdr-dev libxml2-dev cmake libusb-dev bash samurai
 RUN git clone https://github.com/wmbusmeters/wmbusmeters.git && \
     git clone https://github.com/weetmuts/rtl-wmbus.git && \
     git clone https://github.com/merbanan/rtl_433.git
@@ -8,10 +8,11 @@ RUN make
 WORKDIR /rtl-wmbus
 RUN make release && chmod 755 build/rtl_wmbus
 WORKDIR /rtl_433
-RUN mkdir build && cd build && cmake ../ && make
+RUN cmake -B build -G Ninja \
+        -DCMAKE_BUILD_TYPE=MinSizeRel && \
+    cmake --build build
 
-FROM asymworks/multiarch-alpine:${TARGETARCH}${TARGETVARIANT}-latest-stable as scratch
-ENV QEMU_EXECVE=1
+FROM alpine as scratch
 RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb rtl-sdr libxml2 netcat-openbsd
 WORKDIR /wmbusmeters
 COPY --from=build /wmbusmeters/build/wmbusmeters /wmbusmeters/wmbusmeters
