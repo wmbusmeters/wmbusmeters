@@ -18,7 +18,7 @@
 #ifndef TRANSLATEBITS_H
 #define TRANSLATEBITS_H
 
-#include<stdint.h>
+#include<cstdint>
 #include<string>
 #include<vector>
 

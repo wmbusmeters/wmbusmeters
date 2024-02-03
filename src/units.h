@@ -20,6 +20,7 @@
 
 #include<string>
 #include<vector>
+#include<cstdint>
 
 // A named quantity has a preferred unit,
 // ie Volume has m3 (cubic meters) Energy has kwh, Power has kw.
