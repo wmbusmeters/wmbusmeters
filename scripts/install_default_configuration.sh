@@ -50,3 +50,18 @@ then
 else
     echo "conf dir: $ROOT/etc/wmbusmeters.d unchanged"
 fi
+
+####################################################################
+##
+## Create /etc/wmbusmeters.drivers.d
+##
+
+if [ ! -d "$ROOT"/etc/wmbusmeters.drivers.d ]
+then
+    # Create the drivers directory
+    mkdir -p "$ROOT"/etc/wmbusmeters.drivers.d
+    chmod -R 755 "$ROOT"/etc/wmbusmeters.drivers.d
+    echo "conf dir: created $ROOT/etc/wmbusmeters.drivers.d"
+else
+    echo "conf dir: $ROOT/etc/wmbusmeters.drivers.d unchanged"
+fi

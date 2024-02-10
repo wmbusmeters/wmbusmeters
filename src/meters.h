@@ -236,6 +236,8 @@ DriverInfo pickMeterDriver(Telegram *t);
 // Return true for mbus and S2/C2/T2 drivers.
 bool driverNeedsPolling(DriverName& dn);
 
+string loadDriver(const string &file);
+
 vector<DriverInfo*>& allDrivers();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

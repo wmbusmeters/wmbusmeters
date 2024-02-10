@@ -18,6 +18,7 @@
 #include"bus.h"
 #include"cmdline.h"
 #include"config.h"
+#include"drivers.h"
 #include"meters.h"
 #include"printer.h"
 #include"rtlsdr.h"
@@ -311,11 +312,17 @@ void list_meters(Configuration *config)
     {
         string mname = di->name().str();
         const char *info = toString(di->type());
+        const char *where = "";
+        const string f = di->getDynamicFileName();
+        if (f != "")
+        {
+            where = f.c_str();
+        }
 
         if (config->list_meters_search == "" ||                      \
             stringFoundCaseIgnored(info, config->list_meters_search) || \
             stringFoundCaseIgnored(mname.c_str(), config->list_meters_search)) \
-            printf("%-14s %s\n", mname.c_str(), info);
+            printf("%-14s %s %s\n", mname.c_str(), info, where);
     }
 }
 

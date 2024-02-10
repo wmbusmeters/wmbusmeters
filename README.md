@@ -414,6 +414,8 @@ As {options} you can use:
     --calculate_flow_f=flow_temperature_c
     --debug for a lot of information
     --donotprobe=<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys.
+    --driver=<file> load a driver
+    --driverdir=<dir> load all drivers in dir
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
     --help list all options

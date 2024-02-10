@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2023 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2023-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ bool DriverDynamic::load(DriverInfo *di, const string &file)
         string default_fields = check_default_fields(xmqGetString(doc, NULL, "/driver/default_fields"), file);
         di->setDefaultFields(default_fields);
 
-        verbose("(driver) loading driver %s\n", name.c_str());
+        verbose("(driver) loading driver %s from file %s\n", name.c_str(), file.c_str());
 
         di->setDynamic(file, doc);
 
@@ -90,7 +90,7 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
 {
     XMQDoc *doc = di.getDynamicDriver();
 
-    verbose("(driver) constructing driver %s from file %s\n",
+    verbose("(driver) constructing driver %s from already loaded file %s\n",
             di.name().str().c_str(),
             fileName().c_str());
 

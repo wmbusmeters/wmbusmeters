@@ -77,6 +77,21 @@ vector<DriverInfo*> &allDrivers()
     return *registered_drivers_list_;
 }
 
+void removeDriver(const string &name)
+{
+    for (auto i = registered_drivers_list_->begin(); i != registered_drivers_list_->end(); i++)
+    {
+        if ((*i)->name().str() == name)
+        {
+            registered_drivers_list_->erase(i);
+            break;
+        }
+    }
+
+    registered_drivers_->erase(name);
+    assert(registered_drivers_->count(name) == 0);
+}
+
 void addRegisteredDriver(DriverInfo di)
 {
     verifyDriverLookupCreated();
@@ -192,13 +207,22 @@ string loadDriver(const string &file)
     {
         error("Failed to load driver from file: %s\n", file.c_str());
     }
-    // Check that the driver name has not been registered before!
-    if (lookupDriver(di.name().str()) != NULL)
+
+    // Check if the driver name has been registered before....
+    DriverInfo *old = lookupDriver(di.name().str());
+    if (old != NULL)
     {
-        debug("Ignoring loaded driver %s %s since it is already registered!\n",
-              di.name().str().c_str(),
-              file.c_str());
-        return di.name().str();
+        if (old->getDynamicFileName() != "")
+        {
+            error("Newly loaded driver file %s tries to register the same name %s as driver file %s has already taken!\n",
+                  file.c_str(), di.name().str().c_str(), old->getDynamicFileName().c_str());
+        }
+        else
+        {
+            verbose("(drivers) newly loaded driver %s overrides builtin driver\n",
+                    file.c_str(), di.name().str().c_str());
+            removeDriver(di.name().str());
+        }
     }
 
     // Check that no other driver also triggers on the same detection values.
@@ -209,8 +233,30 @@ string loadDriver(const string &file)
             bool foo = p->detect(d.mfct, d.type, d.version);
             if (foo)
             {
-                error("Newly loaded driver %s tries to register the same auto detect combo as driver %s alread has taken!\n",
-                      di.name().str().c_str(), p->name().str().c_str());
+                string mfct = manufacturerFlag(d.mfct);
+                if (p->getDynamicFileName() != "")
+                {
+                    // It is not ok to override an previously file loaded driver!
+                    error("Newly loaded driver %s tries to register the same "
+                          "auto detect combo as driver %s alread has taken! mvt=%s,%02x,%02x\n",
+                          di.name().str().c_str(),
+                          p->name().str().c_str(),
+                          mfct.c_str(),
+                          d.version,
+                          d.type);
+                }
+                else
+                {
+                    // It is ok to override a built in driver!
+                    verbose("(driver) newly loaded driver %s forces removal of builtin "
+                            "driver %s since it auto-detects the same combo! mvt=%s,%02x,%02x\n",
+                          di.name().str().c_str(),
+                          p->name().str().c_str(),
+                          mfct.c_str(),
+                          d.version,
+                          d.type);
+                    removeDriver(p->name().str());
+                }
             }
         }
     }

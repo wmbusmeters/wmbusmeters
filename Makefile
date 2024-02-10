@@ -157,6 +157,7 @@ PROG_OBJS:=\
 	$(BUILD)/bus.o \
 	$(BUILD)/cmdline.o \
 	$(BUILD)/config.o \
+	$(BUILD)/drivers.o \
 	$(BUILD)/dvparser.o \
 	$(BUILD)/formula.o \
 	$(BUILD)/mbus_rawtty.o \

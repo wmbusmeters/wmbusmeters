@@ -86,6 +86,7 @@ typedef struct XMQParseCallbacks XMQParseCallbacks;
     @XMQ_CONTENT_XML: xml detected
     @XMQ_CONTENT_HTML: html detected
     @XMQ_CONTENT_JSON: json detected
+    @XMQ_CONTENT_TEXT: valid utf8 text input/output is selected
 
     Specify the file/buffer content type.
 */
@@ -97,7 +98,8 @@ typedef enum
     XMQ_CONTENT_HTMQ = 3,
     XMQ_CONTENT_XML = 4,
     XMQ_CONTENT_HTML = 5,
-    XMQ_CONTENT_JSON = 6
+    XMQ_CONTENT_JSON = 6,
+    XMQ_CONTENT_TEXT = 7
 } XMQContentType;
 
 /**
@@ -143,76 +145,37 @@ typedef enum
 } XMQTrimType;
 
 /**
-    XMQColorType: The normal coloring options for xmq.
-    @COLORTYPE_xmq_c: Comments
-    @COLORTYPE_xmq_q: Standalone quote.
-    @COLORTYPE_xmq_e: Entity
-    @COLORTYPE_xmq_ens: Element Namespace
-    @COLORTYPE_xmq_en: Element Name
-    @COLORTYPE_xmq_ek: Element Key
-    @COLORTYPE_xmq_ekv: Element Key Value
-    @COLORTYPE_xmq_ans: Attribute NameSpace
-    @COLORTYPE_xmq_ak: Attribute Key
-    @COLORTYPE_xmq_akv: Attribute Key Value
-    @COLORTYPE_xmq_cp: Compound Parentheses
-    @COLORTYPE_xmq_uw: Unicode Whitespace
-    @COLORTYPE_xmq_tw: Tab Whitespace
+    XMQSyntax:
+    @SYNTAX_C: Comments
+    @SYNTAX_Q: Standalone quote.
+    @SYNTAX_E: Entity
+    @SYNTAX_ENS: Element Namespace
+    @SYNTAX_EN: Element Name
+    @SYNTAX_EK: Element Key
+    @SYNTAX_EKV: Element Key Value
+    @SYNTAX_ANS: Attribute NameSpace
+    @SYNTAX_AK: Attribute Key
+    @SYNTAX_AKV: Attribute Key Value
+    @SYNTAX_CP: Compound Parentheses
+    @SYNTAX_NDC: Namespace declaration
+    @SYNTAX_UW: Unicode Whitespace
 */
 typedef enum
 {
-    COLORTYPE_xmq_c = 0, // Comments
-    COLORTYPE_xmq_q = 1, // Standalone quote.
-    COLORTYPE_xmq_e = 2, // Entity
-    COLORTYPE_xmq_ens = 3, // Element Namespace
-    COLORTYPE_xmq_en = 4, // Element Name
-    COLORTYPE_xmq_ek = 5, // Element Key
-    COLORTYPE_xmq_ekv = 6, // Element Key Value
-    COLORTYPE_xmq_ans = 7, // Attribute NameSpace
-    COLORTYPE_xmq_ak = 8, // Attribute Key
-    COLORTYPE_xmq_akv = 9, // Attribute Key Value
-    COLORTYPE_xmq_cp = 10, // Compound Parentheses
-    COLORTYPE_xmq_uw = 11, // Unicode Whitespace
-} XMQColorType;
-
-/**
-    XMQColor:
-
-    Map token type into color index.
-*/
-typedef enum XMQColor {
-    COLOR_none,
-    COLOR_whitespace,
-    COLOR_unicode_whitespace,
-    COLOR_indentation_whitespace,
-    COLOR_equals,
-    COLOR_brace_left,
-    COLOR_brace_right,
-    COLOR_apar_left,
-    COLOR_apar_right,
-    COLOR_cpar_left,
-    COLOR_cpar_right,
-    COLOR_quote,
-    COLOR_entity,
-    COLOR_comment,
-    COLOR_comment_continuation,
-    COLOR_ns_colon,
-    COLOR_element_ns,
-    COLOR_element_name,
-    COLOR_element_key,
-    COLOR_element_value_text,
-    COLOR_element_value_quote,
-    COLOR_element_value_entity,
-    COLOR_element_value_compound_quote,
-    COLOR_element_value_compound_entity,
-    COLOR_attr_ns,
-    COLOR_attr_ns_declaration,
-    COLOR_attr_key,
-    COLOR_attr_value_text,
-    COLOR_attr_value_quote,
-    COLOR_attr_value_entity,
-    COLOR_attr_value_compound_quote,
-    COLOR_attr_value_compound_entity,
-} XMQColor;
+    SYNTAX_C = 0, // Comments
+    SYNTAX_Q = 1, // Standalone quote.
+    SYNTAX_E = 2, // Entity
+    SYNTAX_ENS = 3, // Element Namespace
+    SYNTAX_EN = 4, // Element Name
+    SYNTAX_EK = 5, // Element Key
+    SYNTAX_EKV = 6, // Element Key Value
+    SYNTAX_ANS = 7, // Attribute NameSpace
+    SYNTAX_AK = 8, // Attribute Key
+    SYNTAX_AKV = 9, // Attribute Key Value
+    SYNTAX_CP = 10, // Compound Parentheses
+    SYNTAX_NDC = 11, // Namespace declaration
+    SYNTAX_UW = 12, // Unicode Whitespace
+} XMQSyntax;
 
 /**
     XMQReader:
@@ -281,21 +244,6 @@ typedef enum
 */
 typedef XMQProceed (*XMQNodeCallback)(XMQDoc *doc, XMQNode *node, void *user_data);
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////// FUNCTIONS  /////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
-    xmqDetectContentType:
-    @start: points to first byte of buffer to scan for content type
-    @stop: points to byte after buffer
-
-    Detect the content type xmq/xml/html/json by examining a few leading
-    non-whitespace words/characters.
- */
-XMQContentType xmqDetectContentType(const char *start, const char *stop);
-
 /**
     XMQParseError:
     @XMQ_ERROR_CANNOT_READ_FILE: file not found or cannot be opened for reading.
@@ -331,6 +279,7 @@ XMQContentType xmqDetectContentType(const char *start, const char *stop);
 */
 typedef enum
 {
+    XMQ_ERROR_NONE = 0,
     XMQ_ERROR_CANNOT_READ_FILE = 1,
     XMQ_ERROR_OOM = 2,
     XMQ_ERROR_NOT_XMQ = 3,
@@ -359,25 +308,43 @@ typedef enum
     XMQ_ERROR_EXPECTED_HTML = 26,
     XMQ_ERROR_EXPECTED_JSON = 27,
     XMQ_ERROR_PARSING_XML = 28,
-    XMQ_ERROR_PARSING_HTML = 29
+    XMQ_ERROR_PARSING_HTML = 29,
+    XMQ_WARNING_QUOTES_NEEDED = 100
 } XMQParseError;
 
-
-const char *xmqParseErrorToString(XMQParseError e);
-
-/** Allocate an empty XMQParseCallback structure. All callbacks are NULL and none will be called. */
-XMQParseCallbacks *xmqNewParseCallbacks();
-
-/** Free the XMQParseCallback structure. */
-void xmqFreeParseCallbacks(XMQParseCallbacks *cb);
+///////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////// FUNCTIONS  /////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
-    xmqSetupParseCallbacksNoopTokens:
+    xmqDetectContentType:
+    @start: points to first byte of buffer to scan for content type
+    @stop: points to byte after buffer
 
-    When tokenizing only, for coloring or debugging, you can
-    use the setup functions below for a few standardized handlers.
+    Detect the content type xmq/xml/html/json by examining a few leading
+    non-whitespace words/characters.
+ */
+XMQContentType xmqDetectContentType(const char *start, const char *stop);
+
+/**
+   xmqParseErrorToString:
+   @e: Translate this error to a human readable string.
 */
-void xmqSetupParseCallbacksNoopTokens(XMQParseCallbacks *state);
+const char *xmqParseErrorToString(XMQParseError e);
+
+/**
+    xmqNewParseCallbacks:
+
+    Allocate an empty XMQParseCallback structure. All callbacks are NULL and none will be called.
+*/
+XMQParseCallbacks *xmqNewParseCallbacks();
+
+/**
+    xmqFreeParseCallbacks:
+
+    Free the XMQParseCallback structure.
+*/
+void xmqFreeParseCallbacks(XMQParseCallbacks *cb);
 
 /**
     xmqSetupParseCallbacksColorizeTokens:
@@ -470,6 +437,20 @@ XMQDoc *xmqNewDoc();
 void xmqSetDocSourceName(XMQDoc *doq, const char *source_name);
 
 /**
+    xmqGetOriginalContentType:
+
+    If available, return the original content type (xmq/htmq/xml/html/json/text) of this document.
+*/
+XMQContentType xmqGetOriginalContentType(XMQDoc *doq);
+
+/**
+    xmqGetOriginalSize:
+
+    If available, return the size of the original content, ie the loaded file size.
+*/
+size_t xmqGetOriginalSize(XMQDoc *doq);
+
+/**
     xmqGetRootNode:
 
     Get root node suitable for xmqForeach.
@@ -542,10 +523,10 @@ void xmqSetUseColor(XMQOutputSettings *os, bool use_color);
 void xmqSetEscapeNewlines(XMQOutputSettings *os, bool escape_newlines);
 void xmqSetEscapeNon7bit(XMQOutputSettings *os, bool escape_non_7bit);
 void xmqSetOutputFormat(XMQOutputSettings *os, XMQContentType output_format);
-//void xmqSetColoring(XMQOutputSettings *os, XMQColoring coloring);
 void xmqSetRenderFormat(XMQOutputSettings *os, XMQRenderFormat render_to);
 void xmqSetRenderRaw(XMQOutputSettings *os, bool render_raw);
 void xmqSetRenderOnlyStyle(XMQOutputSettings *os, bool only_style);
+void xmqSetRenderStyle(XMQOutputSettings *os, const char *render_style);
 void xmqSetWriterContent(XMQOutputSettings *os, XMQWriter content);
 void xmqSetWriterError(XMQOutputSettings *os, XMQWriter error);
 
@@ -729,26 +710,20 @@ void xmqRenderHtmlSettings(XMQOutputSettings *settings,
                            const char *use_class);
 
 /**
-   xmqOverrideColorType:
+   xmqOverrideColor:
+   @settings:
+   @render_style: Use "" for the default render_style
+   @sc: The syntax element you want to change the color for.
 
    Change the color strings for the given color type. You have to run xmqSetupDefaultColors first.
 */
-void xmqOverrideColorType(XMQOutputSettings *settings,
-                          XMQColorType ct,
-                          const char *pre,
-                          const char *post,
-                          const char *ns);
-
-/**
-   xmqOverrideColor:
-
-   Change the color strings for the given color. You have to run xmqSetupDefaultColors first.
-*/
 void xmqOverrideColor(XMQOutputSettings *settings,
-                      XMQColor c,
+                      const char *render_style,
+                      XMQSyntax sc,
                       const char *pre,
                       const char *post,
                       const char *ns);
+
 
 #ifdef __cplusplus
 _hideRBfromEditor
