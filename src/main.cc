@@ -311,6 +311,8 @@ void list_fields(Configuration *config, string meter_driver)
 
 void list_meters(Configuration *config)
 {
+    loadAllBuiltinDrivers();
+
     for (DriverInfo *di : allDrivers())
     {
         string mname = di->name().str();
