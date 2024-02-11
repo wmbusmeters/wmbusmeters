@@ -1,8 +1,8 @@
-//2024-02-11_23:16
+//2024-02-12_00:51
 test {
     args     = 'Gas elster 05105025 NOKEY'
     telegram = 3644A511640010253837722550100593158103E70020052F2F_0374E602000C137034220302FD74EE0F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
-    json     = '{"media":"gas","meter":"elster","name":"Gas","id":"05105025","total_m3":3223.47,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"media":"gas","meter":"elster","name":"Gas","id":"05105025","actuality_duration_s":742,"total_m3":3223.47,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Gas;05105025;3223.47;1111-11-11 11:11.11'
 }
 test {

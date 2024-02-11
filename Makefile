@@ -455,8 +455,8 @@ collect_copyrights:
 
 3rdparty/xmq/build/default/release/xmq: $(wildcard 3rdparty/xmq/src/main/c/* 3rdparty/xmq/src/main/c/parts/*)
 	@mkdir -p 3rdparty
-	@(cd 3rdparty; git clone https://github.com/libxmq/xmq.git; cd xmq; ./configure)
-	@if [ "$(cat build/default/spec.mk | grep CC)" = "CC:=gcc" ]; then (cd 3rdparty/xmq; make) ; else rm -f $@ ; mkdir -p $$(dirname $@); touch $@ ; echo "Could not build xmq." ; fi
+	@(cd 3rdparty; git clone --depth 1 https://github.com/libxmq/xmq.git; cd xmq; ./configure)
+	@if [ "$$(cat 3rdparty/xmq/build/default/spec.mk | grep CC)" = "CC:=gcc" ]; then (cd 3rdparty/xmq; make) ; else rm -f $@ ; mkdir -p $$(dirname $@); touch $@ ; echo "Could not build xmq." ; fi
 
 build/xmq: 3rdparty/xmq/build/default/release/xmq
 	@cp $< $@

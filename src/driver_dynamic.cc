@@ -116,6 +116,14 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
 
     try
     {
+        xmqForeach(doc, NULL, "/driver/use", (XMQNodeCallback)add_use, this);
+    }
+    catch (...)
+    {
+    }
+
+    try
+    {
         xmqForeach(doc, NULL, "/driver/field", (XMQNodeCallback)add_field, this);
     }
     catch (...)
@@ -223,6 +231,13 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
           type);
 
     di->addDetection(mfct_code, type, version);
+    return XMQ_CONTINUE;
+}
+
+XMQProceed DriverDynamic::add_use(XMQDoc *doc, XMQNode *field, DriverDynamic *dd)
+{
+    string name = xmqGetString(doc, field, ".");
+    dd->addOptionalCommonFields(name);
     return XMQ_CONTINUE;
 }
 
