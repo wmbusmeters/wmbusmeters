@@ -17,6 +17,7 @@
 
 #include"bus.h"
 #include"config.h"
+#include"drivers.h"
 #include"driver_dynamic.h"
 #include"meters.h"
 #include"meters_common_implementation.h"
@@ -125,6 +126,10 @@ bool DriverInfo::isValidMedia(uchar type)
     return false;
 }
 
+DriverInfo::~DriverInfo()
+{
+}
+
 bool DriverInfo::isCloseEnoughMedia(uchar type)
 {
     for (auto &dd : detect_)
@@ -198,11 +203,11 @@ bool registerDriver(function<void(DriverInfo&)> setup)
     return true;
 }
 
-string loadDriver(const string &file)
+string loadDriver(const string &file, const char *content)
 {
     DriverInfo di;
 
-    bool ok = DriverDynamic::load(&di, file);
+    bool ok = DriverDynamic::load(&di, file, content);
     if (!ok)
     {
         error("Failed to load driver from file: %s\n", file.c_str());
@@ -269,32 +274,47 @@ string loadDriver(const string &file)
 
 bool lookupDriverInfo(const string& driver_name, DriverInfo *out_di)
 {
+    // Lookup an already loaded driver, it might be compiled in as well.
     DriverInfo *di = lookupDriver(driver_name);
-    if (di == NULL)
+    if (di)
     {
-        if (!endsWith(driver_name, ".xmq") || !checkFileExists(driver_name.c_str()))
+        if (out_di) *out_di = *di;
+        return true;
+    }
+
+    // Lookup a dynamic text driver that can be loaded from memory.
+    if (loadBuiltinDriver(driver_name))
+    {
+        // It is loaded, lets fetch the DriverInfo.
+        di = lookupDriver(driver_name);
+        if (di)
         {
-            return false;
-        }
-
-        // Ok, not built in, but it ends with .xmq and the file exists!
-        string new_name = loadDriver(driver_name);
-
-        // Check again if it was registered.
-        di = lookupDriver(new_name);
-
-        if (di == NULL)
-        {
-            return false;
+            if (out_di) *out_di = *di;
+            return true;
         }
     }
 
-    if (out_di != NULL)
+    // Is this a dynamic text driver file?
+    if (!endsWith(driver_name, ".xmq") || !checkFileExists(driver_name.c_str()))
     {
-        *out_di = *di;
+        // Nope, give up.
+        return false;
     }
 
-    return true;
+    string file_name = driver_name;
+
+    // Load the driver from the file.
+    string new_name = loadDriver(file_name, NULL);
+
+    // Check again if it was registered.
+    di = lookupDriver(new_name);
+    if (di)
+    {
+        if (out_di) *out_di = *di;
+        return true;
+    }
+
+    return false;
 }
 
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
@@ -1980,12 +2000,19 @@ ELLSecurityMode MeterCommonImplementation::expectedELLSecurityMode()
 
 void detectMeterDrivers(int manufacturer, int media, int version, vector<string> *drivers)
 {
+    bool found = false;
     for (DriverInfo *p : allDrivers())
     {
         if (p->detect(manufacturer, media, version))
         {
             drivers->push_back(p->name().str());
+            found = true;
         }
+    }
+    if (!found)
+    {
+        const char *name = findBuiltinDriver(manufacturer, version, media);
+        if (name) drivers->push_back(name);
     }
 }
 

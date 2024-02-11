@@ -20,6 +20,8 @@
 #include"driver_dynamic.h"
 #include"xmq.h"
 
+#include<string.h>
+
 string check_driver_name(const char *name, string file);
 MeterType check_meter_type(const char *meter_type_s, string file);
 string check_default_fields(const char *fields, string file);
@@ -38,14 +40,28 @@ void check_set_vif_range(const char *vif_range_s, FieldMatcher *fm, DriverDynami
 
 const char *line = "-------------------------------------------------------------------------------";
 
-bool DriverDynamic::load(DriverInfo *di, const string &file)
+bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *content)
 {
-    if (!endsWith(file, ".xmq")) return false;
-    if (!checkFileExists(file.c_str())) return false;
+    if (!content)
+    {
+        if (!endsWith(file_name, ".xmq")) return false;
+        if (!checkFileExists(file_name.c_str())) return false;
+    }
 
+    string file = file_name;
     XMQDoc *doc = xmqNewDoc();
 
-    bool ok = xmqParseFile(doc, file.c_str(), NULL);
+    bool ok = false;
+
+    if (!content)
+    {
+        ok = xmqParseFile(doc, file.c_str(), NULL);
+    }
+    else
+    {
+        file = "builtin";
+        ok = xmqParseBuffer(doc, content, content+strlen(content), NULL);
+    }
 
     if (!ok) {
         warning("(driver) error loading wmbusmeters driver file %s\n%s\n%s\n",
@@ -67,7 +83,10 @@ bool DriverDynamic::load(DriverInfo *di, const string &file)
         string default_fields = check_default_fields(xmqGetString(doc, NULL, "/driver/default_fields"), file);
         di->setDefaultFields(default_fields);
 
-        verbose("(driver) loading driver %s from file %s\n", name.c_str(), file.c_str());
+        if (!content)
+        {
+            verbose("(driver) loading driver %s from file %s\n", name.c_str(), file.c_str());
+        }
 
         di->setDynamic(file, doc);
 
@@ -89,6 +108,7 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
     MeterCommonImplementation(mi, di), file_name_(di.getDynamicFileName())
 {
     XMQDoc *doc = di.getDynamicDriver();
+    assert(doc);
 
     verbose("(driver) constructing driver %s from already loaded file %s\n",
             di.name().str().c_str(),
@@ -101,8 +121,6 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
     catch (...)
     {
     }
-
-    xmqFreeDoc(doc);
 }
 
 DriverDynamic::~DriverDynamic()

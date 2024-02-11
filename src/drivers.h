@@ -20,6 +20,10 @@
 
 #include<string>
 
+void prepareBuiltinDrivers();
 void loadDriversFromDir(std::string dir);
+bool loadBuiltinDriver(std::string driver_name);
+void loadAllBuiltinDrivers();
+const char *findBuiltinDriver(uint16_t mfct, uchar ver, uchar type);
 
 #endif

@@ -86,6 +86,9 @@ int main(int argc, char **argv)
 
     setVersion(VERSION);
 
+    enableEarlyLoggingFromCommandLine(argc, argv);
+    prepareBuiltinDrivers();
+
     auto config = parseCommandLine(argc, argv);
 
     if (config->version)

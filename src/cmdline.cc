@@ -60,6 +60,43 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv)
     return parseNormalCommandLine(c, argc, argv);
 }
 
+void enableEarlyLoggingFromCommandLine(int argc, char **argv)
+{
+    int i = 1;
+    // First find all logging flags, --silent --verbose --normal --debug
+    while (argv[i] && argv[i][0] == '-')
+    {
+        if (!strcmp(argv[i], "--silent")) {
+            i++;
+            silentLogging(true);
+            continue;
+        }
+        if (!strcmp(argv[i], "--verbose")) {
+            verboseEnabled(true);
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--normal")) {
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--debug")) {
+            verboseEnabled(true);
+            debugEnabled(true);
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--trace")) {
+            verboseEnabled(true);
+            debugEnabled(true);
+            traceEnabled(true);
+            i++;
+            continue;
+        }
+        i++;
+    }
+}
+
 static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int argc, char **argv)
 {
     int i = 1;
@@ -621,13 +658,13 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         if (!strncmp(argv[i], "--driver=", 9))
         {
             size_t len = strlen(argv[i]) - 9;
-            string driver = string(argv[i]+9, len);
-            if (!checkFileExists(driver.c_str()))
+            string file_name = string(argv[i]+9, len);
+            if (!checkFileExists(file_name.c_str()))
             {
                 error("You must supply a valid file to --driver=<file>\n");
             }
             i++;
-            loadDriver(driver);
+            loadDriver(file_name, NULL);
             continue;
         }
 

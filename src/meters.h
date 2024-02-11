@@ -192,6 +192,7 @@ private:
     string dynamic_file_name_; // Name of actual loaded driver file.
 
 public:
+    ~DriverInfo();
     DriverInfo() {};
     void setName(std::string n) { name_ = n; }
     void addNameAlias(std::string n) { name_aliases_.push_back(n); }
@@ -236,7 +237,7 @@ DriverInfo pickMeterDriver(Telegram *t);
 // Return true for mbus and S2/C2/T2 drivers.
 bool driverNeedsPolling(DriverName& dn);
 
-string loadDriver(const string &file);
+string loadDriver(const string &file, const char *content);
 
 vector<DriverInfo*>& allDrivers();
 
