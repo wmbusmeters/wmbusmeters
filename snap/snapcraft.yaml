@@ -50,6 +50,7 @@ parts:
       - make
       - librtlsdr-dev
       - libxml2-dev
+      - libxslt1-dev
     stage-packages:
       - mosquitto-clients
       - curl
@@ -58,6 +59,7 @@ parts:
       - libusb-1.0-0
       - rtl-sdr
       - libxml2
+      - libxslt1
     prime:
       - sbin/
       - usr/bin/

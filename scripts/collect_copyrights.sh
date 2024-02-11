@@ -41,12 +41,12 @@ do
     if grep -q -i "gpl-3.0-or-later" $f
     then
         license="GPL-3+"
-    elif grep -q -i "MIT" $f
-    then
-        license="MIT"
     elif grep -q -i "CC0" $f
     then
         license="CC0"
+    elif grep -q -i "MIT" $f
+    then
+        license="MIT"
     else
         echo "Unknown license in file: "+$f
         exit 1
