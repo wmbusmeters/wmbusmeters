@@ -59,7 +59,6 @@ parts:
       - libusb-1.0-0
       - rtl-sdr
       - libxml2
-      - libxslt1
     prime:
       - sbin/
       - usr/bin/
