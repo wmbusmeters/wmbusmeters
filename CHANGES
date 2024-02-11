@@ -1,4 +1,13 @@
 
+For the daemon you can now drop a driver file (such as iperl.xmq) in /etc/wmbusmeters.driver.d
+and it will automatically be used (overriding any builtin iperl driver).
+
+From the command line you can also load a driver file with --driver=file.xmq
+or load a whole directory with --driverdir=/drivers or in a tuple just use
+a file name ending with xmq. E.g. "Water driver.xmq 12345678 NOKEY"
+
+The two first builtin text drivers are elster and iperl.
+
 ATTENTION! Wmbusmeters now use new -f option when starting rtl_wmbus. There is a
 warning if rtl_wmbus does not support the -f option and an upgrade is recommended.
 This option will cause rtl_wmbus to exit with an error if the rtl_sdr dongle stops sending data.
