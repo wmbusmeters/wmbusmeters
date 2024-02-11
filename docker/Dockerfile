@@ -12,7 +12,7 @@ RUN mkdir build && cd build && cmake ../ && make
 
 FROM asymworks/multiarch-alpine:${TARGETARCH}${TARGETVARIANT}-latest-stable as scratch
 ENV QEMU_EXECVE=1
-RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb rtl-sdr libxml2 libxslt1 netcat-openbsd
+RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb rtl-sdr libxml2 netcat-openbsd
 WORKDIR /wmbusmeters
 COPY --from=build /wmbusmeters/build/wmbusmeters /wmbusmeters/wmbusmeters
 COPY --from=build /rtl-wmbus/build/rtl_wmbus /usr/bin/rtl_wmbus
