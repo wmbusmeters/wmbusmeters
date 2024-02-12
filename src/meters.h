@@ -231,6 +231,7 @@ public:
 
 bool registerDriver(function<void(DriverInfo&di)> setup);
 // Lookup (and load if necessary) driver from memory or disk.
+DriverInfo *lookupDriver(string name);
 bool lookupDriverInfo(const string& driver, DriverInfo *di = NULL);
 // Return the best driver match for a telegram.
 DriverInfo pickMeterDriver(Telegram *t);

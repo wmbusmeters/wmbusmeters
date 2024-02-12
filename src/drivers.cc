@@ -70,6 +70,12 @@ bool loadBuiltinDriver(string driver_name)
     // Check that there is such a builtin driver.
     if (builtins_name_lookup_.count(driver_name) == 0) return false;
 
+    if (lookupDriver(driver_name))
+    {
+        // A driver has already been loaded! Skip loading the builtin driver.
+        return true;
+    }
+
     BuiltinDriver *driver = builtins_name_lookup_[driver_name];
     if (driver->loaded) return true;
 
