@@ -37,7 +37,7 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("fabrication_no");
+        addOptionalLibraryFields("fabrication_no");
 
         addStringFieldWithExtractorAndLookup(
             "status",

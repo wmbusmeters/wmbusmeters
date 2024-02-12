@@ -37,7 +37,7 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("fabrication_no,enhanced_id,location");
+        addOptionalLibraryFields("fabrication_no,enhanced_id,location");
 
         addStringFieldWithExtractor(
             "location_hex",

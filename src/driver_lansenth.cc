@@ -36,7 +36,7 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("on_time_h");
+        addOptionalLibraryFields("on_time_h");
         setMfctTPLStatusBits(
             Translate::Lookup()
             .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)

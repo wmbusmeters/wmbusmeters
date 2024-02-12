@@ -2692,7 +2692,7 @@ void checkFieldsEmpty(set<string> &fields, string name)
     }
 }
 
-void MeterCommonImplementation::addOptionalCommonFields(string field_names)
+void MeterCommonImplementation::addOptionalLibraryFields(string field_names)
 {
     set<string> fields = splitStringIntoSet(field_names, ',');
 
@@ -2923,13 +2923,6 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
             );
     }
 
-    checkFieldsEmpty(fields, name());
-}
-
-void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
-{
-    set<string> fields = splitStringIntoSet(field_names, ',');
-
     if (checkIf(fields,"total_m3"))
     {
         addNumericFieldWithExtractor(
@@ -3087,12 +3080,7 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AccessNumber)
             );
-        }
-}
-
-void MeterCommonImplementation::addHCARelatedFields(string field_names)
-{
-    set<string> fields = splitStringIntoSet(field_names, ',');
+    }
 
     if (checkIf(fields,"consumption_hca"))
     {

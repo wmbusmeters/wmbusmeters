@@ -204,9 +204,7 @@ protected:
 
     std::string decodeTPLStatusByte(uchar sts);
 
-    void addOptionalCommonFields(string fields);
-    void addOptionalFlowRelatedFields(string fields);
-    void addHCARelatedFields(string fields);
+    void addOptionalLibraryFields(string fields);
 
     vector<string> &selectedFields() { return selected_fields_; }
     void setSelectedFields(vector<string> &f) { selected_fields_ = f; }

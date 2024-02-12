@@ -39,7 +39,7 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("software_version");
+        addOptionalLibraryFields("software_version");
 
         addStringField(
             "status",

@@ -60,7 +60,7 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalFlowRelatedFields("total_m3,access_counter");
+        addOptionalLibraryFields("total_m3,access_counter");
 
         addNumericFieldWithExtractor(
             "temperature",

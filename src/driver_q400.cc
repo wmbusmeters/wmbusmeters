@@ -36,8 +36,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("meter_datetime");
-        addOptionalFlowRelatedFields("total_m3,total_forward_m3,total_backward_m3,flow_temperature_c,volume_flow_m3h");
+        addOptionalLibraryFields("meter_datetime");
+        addOptionalLibraryFields("total_m3,total_forward_m3,total_backward_m3,flow_temperature_c,volume_flow_m3h");
 
         addStringField(
             "status",

@@ -237,7 +237,7 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
 XMQProceed DriverDynamic::add_use(XMQDoc *doc, XMQNode *field, DriverDynamic *dd)
 {
     string name = xmqGetString(doc, field, ".");
-    dd->addOptionalCommonFields(name);
+    dd->addOptionalLibraryFields(name);
     return XMQ_CONTINUE;
 }
 
