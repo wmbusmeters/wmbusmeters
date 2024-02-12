@@ -38,7 +38,7 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) :  MeterCommonImplementation(mi, di)
     {
-        addOptionalLibraryFields("fabrication_no,on_time_h,operating_time_h,on_time_h,meter_datetime,meter_datetime_at_error");
+        addOptionalLibraryFields("fabrication_no,operating_time_h,on_time_h,meter_datetime,meter_datetime_at_error");
         addOptionalLibraryFields("total_m3,flow_temperature_c,return_temperature_c,flow_return_temperature_difference_c,volume_flow_m3h");
 
         addStringFieldWithExtractorAndLookup(
@@ -134,18 +134,6 @@ namespace
             .add(VIFCombinable::BackwardFlow)
             .set(StorageNr(16))
             );
-
-        addNumericFieldWithExtractor(
-            "battery",
-            "Percentage of battery remaining.",
-            DEFAULT_PRINT_PROPERTIES,
-            Quantity::Dimensionless,
-            VifScaling::None,
-            FieldMatcher::build()
-            .set(DifVifKey("01FD74")),
-            Unit::PERCENTAGE
-            );
-
     }
 }
 
@@ -163,8 +151,3 @@ namespace
 // telegram=|9A440907859449980C0D7A8C000000_046D3201E122346D0000010134FD17000000000420BB776802042490776802048E3BF2190000048E3C00000000041329860100042B6A010000043B0B0000000259F615025D1E0B0261D80A0C788594499884086D3B17FF21820859BC1382085D720B840824915D680284088E3BED19000084088E3C00000000840813028601008408BE5800000000027F00AD|
 // {"media":"heat/cooling load","meter":"qualcosonic","name":"qualcoe4long","id":"98499485","fabrication_no":"98499485","operating_time_h":11222.44,"on_time_h":11222.451944,"meter_datetime":"2023-02-01 01:50","meter_datetime_at_error":"2000-01-01 00:00","total_m3":99.881,"flow_temperature_c":56.22,"return_temperature_c":28.46,"flow_return_temperature_difference_c":27.76,"volume_flow_m3h":0.011,"status":"OK","total_heat_energy_kwh":1845,"total_cooling_energy_kwh":0,"power_kw":0.362,"target_datetime":"2023-01-31 23:59","target_heat_energy_kwh":1843.611111,"target_cooling_energy_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}
 // |qualcoe4long;98499485;OK;1845;0;0.362;2023-01-31 23:59;1843.611111;0;1111-11-11 11:11.11
-
-// Test: M qualcosonic 05829163 NOKEY
-// telegram=|544409076391820510077ABF100000046D2A0DC62C0420E80F430104130000000004933B0000000004933C00000000023B00000259F0D8446D0000C12C44130000000044933B0000000044933C0000000001FD7461|
-// {"flow_temperature_c": 555.36,"id": "05829163","media": "water","meter": "qualcosonic","meter_datetime": "2022-12-06 13:42","name": "M","on_time_h": 5881.166667,"status": "TEMPORARY_ERROR","timestamp": "1111-11-11T11:11:11Z","total_m3": 0,"volume_flow_m3h": 0,"battery_pct": 97}
-// |M;05829163;TEMPORARY_ERROR;null;null;null;null;null;null;1111-11-11 11:11.11
