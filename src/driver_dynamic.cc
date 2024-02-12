@@ -237,7 +237,14 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
 XMQProceed DriverDynamic::add_use(XMQDoc *doc, XMQNode *field, DriverDynamic *dd)
 {
     string name = xmqGetString(doc, field, ".");
-    dd->addOptionalLibraryFields(name);
+    bool ok = dd->addOptionalLibraryFields(name);
+    if (!ok)
+    {
+        warning("(driver) error in %s, unknown library field: %s \n",
+                dd->fileName().c_str(),
+                name.c_str());
+    }
+
     return XMQ_CONTINUE;
 }
 

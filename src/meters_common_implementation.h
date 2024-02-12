@@ -204,7 +204,7 @@ protected:
 
     std::string decodeTPLStatusByte(uchar sts);
 
-    void addOptionalLibraryFields(string fields);
+    bool addOptionalLibraryFields(string fields);
 
     vector<string> &selectedFields() { return selected_fields_; }
     void setSelectedFields(vector<string> &f) { selected_fields_ = f; }

@@ -168,7 +168,7 @@ shared_ptr<BusDevice> openRTLWMBUS(Detected detected,
             args.push_back("-h");
             invokeShellCaptureOutput(rtl_wmbus, { "-h" }, {}, &out, true);
             debug("(rtlwmbus) help %s\n", out.c_str());
-            if (out.find("-f exit if flow") != string::npos)
+            if (out.find("-f exit") != string::npos)
             {
                 add_f = " -f";
             }

@@ -2679,7 +2679,7 @@ bool checkIf(set<string> &fields, const char *s)
     return false;
 }
 
-void checkFieldsEmpty(set<string> &fields, string name)
+bool checkFieldsEmpty(set<string> &fields, string driver_name)
 {
     if (fields.size() > 0)
     {
@@ -2687,12 +2687,14 @@ void checkFieldsEmpty(set<string> &fields, string name)
         for (auto &s : fields) { info += s+" "; }
 
         warning("(meter) when adding common fields to driver %s, these fields were not found: %s\n",
-                name.c_str(),
+                driver_name.c_str(),
                 info.c_str());
+        return false;
     }
+    return true;
 }
 
-void MeterCommonImplementation::addOptionalLibraryFields(string field_names)
+bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
 {
     set<string> fields = splitStringIntoSet(field_names, ',');
 
@@ -3095,6 +3097,12 @@ void MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(VIFRange::HeatCostAllocation)
             );
     }
+
+    if (!checkFieldsEmpty(fields, name()))
+    {
+        return false;
+    }
+    return true;
 }
 
 const char *toString(VifScaling s)
