@@ -1,5 +1,5 @@
 FROM alpine AS build
-RUN apk add --no-cache alpine-sdk gcc linux-headers librtlsdr-dev libxml2-dev cmake libusb-dev bash samurai
+RUN apk add --no-cache alpine-sdk gcc linux-headers libxml2-dev cmake libusb-dev bash samurai
 RUN git clone https://github.com/steve-m/librtlsdr.git && \
     git clone https://github.com/wmbusmeters/wmbusmeters.git && \
     git clone https://github.com/weetmuts/rtl-wmbus.git && \
@@ -25,7 +25,7 @@ WORKDIR /rtl_reset
 RUN make
 
 FROM alpine as scratch
-RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb rtl-sdr libxml2 netcat-openbsd
+RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb libxml2 netcat-openbsd
 WORKDIR /wmbusmeters
 COPY --from=build /librtlsdr/build/src/librtlsdr.so.* /usr/lib/
 COPY --from=build /librtlsdr/rtl-sdr.rules /usr/lib/udev/rules.d/rtl-sdr.rules
