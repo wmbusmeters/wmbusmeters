@@ -1,5 +1,8 @@
-Version 1.15.0-RC1 2024-02-13
+Version 1.15.0-RC2 2024-02-14
 
+Update wmbusmeters-ha-addon with new dockerfile.
+
+Version 1.15.0-RC1 2024-02-13
 
 For the daemon you can now drop a driver file (such as iperl.xmq) in /etc/wmbusmeters.driver.d
 and it will automatically be used (overriding any builtin iperl driver).
