@@ -63,6 +63,8 @@ using namespace std;
     X(NUMBER, COUNTER, {vto=vfrom;}) \
     X(FACTOR, NUMBER, {vto=vfrom;})  \
     X(NUMBER, FACTOR, {vto=vfrom;}) \
+    X(PERCENTAGE, NUMBER, {vto=vfrom;})  \
+    X(NUMBER, PERCENTAGE, {vto=vfrom;}) \
     X(UnixTimestamp,DateTimeLT, {vto=vfrom; }) \
     X(DateTimeLT,UnixTimestamp, {vto=vfrom; }) \
     X(DateLT,UnixTimestamp, {vto=vfrom; }) \
@@ -122,6 +124,7 @@ using namespace std;
     X(COUNTER,     1.0, SIExp())                                     \
     X(FACTOR,      1.0, SIExp())                                     \
     X(NUMBER,      1.0, SIExp())                                     \
+    X(PERCENTAGE,  1.0, SIExp())                                     \
     X(TXT,         1.0, SIExp())                                     \
 
 
@@ -830,7 +833,7 @@ const char *availableUnits()
     if (available_units_[0]) return available_units_;
 
 #define X(n,suffix,sn,q,ln) if (Unit::n != Unit::Unknown) {     \
-        strcat(available_units_, #suffix); strcat(available_units_, "\n"); \
+        strcat(available_units_, #suffix); strcat(available_units_, " "); \
         assert(strlen(available_units_) < 1024); }
 LIST_OF_UNITS
 #undef X

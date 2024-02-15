@@ -37,6 +37,7 @@ using namespace std;
 bool verbose_ = false;
 
 #define LIST_OF_TESTS \
+    X(dynamic_loading)\
     X(crc)            \
     X(dvparser)       \
     X(devices)        \
@@ -2028,6 +2029,8 @@ LIST_OF_QUANTITIES
     test_si_convert(2211717, 2211717, Unit::FACTOR, "counter", Unit::COUNTER, "counter", Quantity::Dimensionless, &from_set, &to_set);
     test_si_convert(2211717, 2211717, Unit::NUMBER, "counter", Unit::COUNTER, "counter", Quantity::Dimensionless, &from_set, &to_set);
     test_si_convert(2211717, 2211717, Unit::FACTOR, "counter", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::PERCENTAGE, "counter", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::NUMBER, "counter", Unit::PERCENTAGE, "counter", Quantity::Dimensionless, &from_set, &to_set);
 
     check_units_tested(from_set, to_set, Quantity::Dimensionless);
 
@@ -2587,4 +2590,23 @@ void test_formulas_stringinterpolation()
                s.c_str());
     }
 
+}
+
+void test_dynamic_loading()
+{
+    VIFRange vr = toVIFRange("Date");
+
+    if (vr != VIFRange::Date)
+    {
+        printf("ERROR in dynamic loading got %s but expected %s!\n",
+               toString(vr), toString(VIFRange::Date));
+    }
+
+    vr = toVIFRange("DateTime");
+
+    if (vr != VIFRange::DateTime)
+    {
+        printf("ERROR in dynamic loading got %s but expected %s!\n",
+               toString(vr), toString(VIFRange::DateTime));
+    }
 }

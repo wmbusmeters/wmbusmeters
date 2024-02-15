@@ -35,8 +35,12 @@ string get_translation(XMQDoc *doc, XMQNode *node, string name, string lang);
 string check_calculate(const char *formula, DriverDynamic *dd);
 Unit check_display_unit(const char *display_unit, DriverDynamic *dd);
 
-void check_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm, DriverDynamic *dd);
-void check_set_vif_range(const char *vif_range_s, FieldMatcher *fm, DriverDynamic *dd);
+void checked_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm, DriverDynamic *dd);
+void checked_set_vif_range(const char *vif_range_s, FieldMatcher *fm, DriverDynamic *dd);
+void checked_set_storagenr_range(const char *storagenr_range_s, FieldMatcher *fm, DriverDynamic *dd);
+void checked_set_tariffnr_range(const char *tariffnr_range_s, FieldMatcher *fm, DriverDynamic *dd);
+void checked_set_subunitnr_range(const char *subunitnr_range_s, FieldMatcher *fm, DriverDynamic *dd);
+void checked_add_vif_combinable(const char *vif_range_s, FieldMatcher *fm, DriverDynamic *dd);
 
 const char *line = "-------------------------------------------------------------------------------";
 
@@ -107,26 +111,19 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
 DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
     MeterCommonImplementation(mi, di), file_name_(di.getDynamicFileName())
 {
-    XMQDoc *doc = di.getDynamicDriver();
-    assert(doc);
-
-    verbose("(driver) constructing driver %s from already loaded file %s\n",
-            di.name().str().c_str(),
-            fileName().c_str());
-
     try
     {
+        XMQDoc *doc = di.getDynamicDriver();
+        assert(doc);
+
+        verbose("(driver) constructing driver %s from already loaded file %s\n",
+                di.name().str().c_str(),
+                fileName().c_str());
+
         xmqForeach(doc, NULL, "/driver/use", (XMQNodeCallback)add_use, this);
-    }
-    catch (...)
-    {
-    }
-
-    try
-    {
         xmqForeach(doc, NULL, "/driver/field", (XMQNodeCallback)add_field, this);
     }
-    catch (...)
+    catch(...)
     {
     }
 }
@@ -163,9 +160,9 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
         char a = mfct[0];
         char b = mfct[1];
         char c = mfct[2];
-        if (!(a >= 'A' && a < 'Z' &&
-              b >= 'A' && b < 'Z' &&
-              c >= 'A' && c < 'Z'))
+        if (!(a >= 'A' && a <= 'Z' &&
+              b >= 'A' && b <= 'Z' &&
+              c >= 'A' && c <= 'Z'))
         {
             warning("(driver) error in %s, bad manufacturer in mvt triplet: %s\n"
                     "%s\n"
@@ -339,22 +336,22 @@ XMQProceed DriverDynamic::add_match(XMQDoc *doc, XMQNode *match, DriverDynamic *
 {
     FieldMatcher *fm = dd->tmp_matcher_;
 
-    check_set_measurement_type(xmqGetString(doc, match, "measurement_type"), fm, dd);
+    checked_set_measurement_type(xmqGetString(doc, match, "measurement_type"), fm, dd);
 
-    check_set_vif_range(xmqGetString(doc, match, "vif_range"), fm, dd);
+    checked_set_vif_range(xmqGetString(doc, match, "vif_range"), fm, dd);
 
-    const char *vif_range_s = xmqGetString(doc, match, "vif_range");
+    checked_set_storagenr_range(xmqGetString(doc, match, "storage_nr"), fm, dd);
 
-    if (vif_range_s)
-    {
-        VIFRange vif_range = toVIFRange(vif_range_s);
-        if (vif_range == VIFRange::None)
-        {
-            warning("(driver) error unknown measurement type %s\n",  vif_range_s);
-            throw 1;
-        }
-        fm->set(vif_range);
-    }
+    xmqForeach(doc, match, "add_combinable", (XMQNodeCallback)add_combinable, dd);
+
+    return XMQ_CONTINUE;
+}
+
+XMQProceed DriverDynamic::add_combinable(XMQDoc *doc, XMQNode *match, DriverDynamic *dd)
+{
+    FieldMatcher *fm = dd->tmp_matcher_;
+
+    checked_add_vif_combinable(xmqGetString(doc, match, "."), fm, dd);
 
     return XMQ_CONTINUE;
 }
@@ -622,7 +619,7 @@ Unit check_display_unit(const char *display_unit_s, DriverDynamic *dd)
     return u;
 }
 
-void check_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm, DriverDynamic *dd)
+void checked_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm, DriverDynamic *dd)
 {
     if (!measurement_type_s)
     {
@@ -665,7 +662,7 @@ void check_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm
     fm->set(measurement_type);
 }
 
-void check_set_vif_range(const char *vif_range_s, FieldMatcher *fm, DriverDynamic *dd)
+void checked_set_vif_range(const char *vif_range_s, FieldMatcher *fm, DriverDynamic *dd)
 {
     if (!vif_range_s)
     {
@@ -700,4 +697,59 @@ void check_set_vif_range(const char *vif_range_s, FieldMatcher *fm, DriverDynami
     }
 
     fm->set(vif_range);
+}
+
+void checked_set_storagenr_range(const char *storagenr_range_s, FieldMatcher *fm, DriverDynamic *dd)
+{
+    if (!storagenr_range_s) return;
+
+    auto fields = splitString(storagenr_range_s, ',');
+    bool ok = isNumber(fields[0]);
+    if (fields.size() > 1)
+    {
+        ok &= isNumber(fields[1]);
+    }
+    if (!ok || fields.size() > 2)
+    {
+        warning("(driver) error in %s, bad storagenr_range: %s\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                storagenr_range_s,
+                line);
+        throw 1;
+    }
+
+    if (fields.size() == 1)
+    {
+        fm->set(StorageNr(atoi(fields[0].c_str())));
+    }
+    else
+    {
+        fm->set(StorageNr(atoi(fields[0].c_str())),
+                StorageNr(atoi(fields[1].c_str())));
+    }
+}
+
+void checked_add_vif_combinable(const char *vif_combinable_s, FieldMatcher *fm, DriverDynamic *dd)
+{
+    if (!vif_combinable_s) return;
+
+    VIFCombinable vif_combinable = toVIFCombinable(vif_combinable_s);
+
+    if (vif_combinable == VIFCombinable::None)
+    {
+        warning("(driver) error in %s, bad vif_combinable: %s\n"
+                "%s\n"
+                "Available vif combinables:\n"
+                "%s\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                vif_combinable_s,
+                line,
+                availableVIFCombinables().c_str(),
+                line);
+        throw 1;
+    }
+
+    fm->add(vif_combinable);
 }

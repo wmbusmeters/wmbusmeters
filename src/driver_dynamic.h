@@ -29,6 +29,7 @@ struct DriverDynamic : public virtual MeterCommonImplementation
     static XMQProceed add_use(XMQDoc *doc, XMQNode *field, DriverDynamic *dd);
     static XMQProceed add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *dd);
     static XMQProceed add_match(XMQDoc *doc, XMQNode *match, DriverDynamic *dd);
+    static XMQProceed add_combinable(XMQDoc *doc, XMQNode *match, DriverDynamic *dd);
 
     const string &fileName() { return file_name_; }
 

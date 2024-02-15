@@ -1313,7 +1313,6 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
             if (fi.hasMatcher() && fi.matches(dve))
             {
                 current_match_nr++;
-
                 if (fi.matcher().index_nr != IndexNr(current_match_nr) &&
                     !fi.matcher().expectedToMatchAgainstMultipleEntries())
                 {
