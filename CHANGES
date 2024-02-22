@@ -1,3 +1,7 @@
+Version 1.16.1 2024-02-22
+
+Fix docker file generation.
+
 Version 1.16.0 2024-02-22
 
 New build to trigger proper docker versioning.
