@@ -11,8 +11,8 @@ on:
 env:
   DOCKERHUB_IMAGE: ${{ github.repository }}
   IMAGE_TAG: |
-    ${{ github.ref_type == 'tag' && (contains(github.ref_name, '-RC') &&
-      format('{0}-{1}', 'candidate', github.ref_name) || format('{0}-{1}', 'release', github.ref_name)) || 'latest' }}
+    ${{ github.ref_type == 'tag' && format('{0}-{1}', (contains(github.ref_name, '-RC') &&
+      'candidate' || 'release'), github.ref_name) || 'latest' }}
 
 jobs:
   build:
