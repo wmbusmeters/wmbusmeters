@@ -155,19 +155,10 @@ void setAlarmShells(std::vector<std::string> &alarm_shells);
 
 bool isValidAlias(const std::string& alias);
 bool isValidBps(const std::string& b);
-bool isValidMatchExpression(const std::string& s, bool non_compliant);
-bool isValidMatchExpressions(const std::string& s, bool non_compliant);
-bool doesIdMatchExpression(const std::string& id, std::string match_rule);
-bool doesIdMatchExpressions(const std::string& id, std::vector<std::string>& match_rules, bool *used_wildcard);
-bool doesIdsMatchExpressions(std::vector<std::string> &ids, std::vector<std::string>& match_rules, bool *used_wildcard);
-std::string toIdsCommaSeparated(std::vector<std::string> &ids);
-
-bool isValidId(const std::string& id, bool accept_non_compliant);
 
 bool isFrequency(const std::string& fq);
 bool isNumber(const std::string& fq);
 
-std::vector<std::string> splitMatchExpressions(const std::string& mes);
 // Split s into strings separated by c.
 std::vector<std::string> splitString(const std::string &s, char c);
 // Split s into strings separated by c and store inte set.

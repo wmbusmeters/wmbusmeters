@@ -18,6 +18,7 @@
 #ifndef METER_H_
 #define METER_H_
 
+#include"address.h"
 #include"dvparser.h"
 #include"formula.h"
 #include"util.h"
@@ -80,22 +81,6 @@ bool isValidKey(const string& key, MeterInfo &mt);
 
 using namespace std;
 
-typedef unsigned char uchar;
-
-struct Address
-{
-    // Example address: 12345678
-    // Or fully qualified: 12345678.M=PII.T=1b.V=01
-    // which means manufacturer triplet PII, type/media=0x1b, version=0x01
-    string id;
-    bool wildcard_used {}; // The id contains a *
-    bool mbus_primary {}; // Signals that the id is 0-250
-    uint16_t mfct {};
-    uchar type {};
-    uchar version {};
-
-    bool parse(string &s);
-};
 
 struct MeterInfo
 {

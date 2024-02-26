@@ -153,6 +153,7 @@ $(BUILD)/%.o: src/%.c $(wildcard src/%.h)
 	$(CXX) -I/usr/include/libxml2 -fpermissive $(CXXFLAGS)  $< -MMD -c -o $@
 
 PROG_OBJS:=\
+	$(BUILD)/address.o \
 	$(BUILD)/aes.o \
 	$(BUILD)/aescmac.o \
 	$(BUILD)/bus.o \

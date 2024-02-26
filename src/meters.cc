@@ -2593,17 +2593,19 @@ bool Address::parse(string &s)
     // Example: 12345678
     // or       12345678.M=PII.T=1B.V=01
     // or       1234*
-    // or       1234*.PII
-    // or       1234*.V01
+    // or       1234*.M=PII
+    // or       1234*.V=01
     // or       12 // mbus primary
     // or       0  // mbus primary
-    // or       250.MPII.T1B.V01 // mbus primary
-
+    // or       250.MPII.V01.T1B // mbus primary
+    // or       !12345678
+    // or       !*.M=ABC
     id = "";
     mbus_primary = false;
-    mfct = 0;
-    type = 0;
-    version = 0;
+    mfct = 0xffff;
+    type = 0xff;
+    version = 0xff;
+    negate = false;
 
     if (s.size() == 0) return false;
 
@@ -2626,7 +2628,7 @@ bool Address::parse(string &s)
     }
     id = parts[0];
 
-    for (size_t i=1; i<parts[i].size(); ++i)
+    for (size_t i=1; i<parts.size(); ++i)
     {
         if (parts[i].size() == 4) // V=xy or T=xy
         {
