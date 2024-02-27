@@ -2613,7 +2613,7 @@ bool Address::parse(string &s)
 
     assert(parts.size() > 0);
 
-    if (!isValidMatchExpression(parts[0], true))
+    if (!isValidMatchExpression(parts[0]))
     {
         // Not a long id, so lets check if it is 0-250.
         for (size_t i=0; i < parts[0].length(); ++i)

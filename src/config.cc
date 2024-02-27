@@ -193,7 +193,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     debug("(cmdline) setting link modes to %s for meter %s\n",
             mi.link_modes.hr().c_str(), name.c_str());
     */
-    if (!isValidMatchExpressions(id, true)) {
+    if (!isValidMatchExpressions(id)) {
         warning("Not a valid meter id nor a valid meter match expression \"%s\"\n", id.c_str());
         use = false;
     }

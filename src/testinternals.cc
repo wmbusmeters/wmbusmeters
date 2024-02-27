@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2018-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"address.h"
 #include"aes.h"
 #include"aescmac.h"
 #include"cmdline.h"
@@ -425,7 +426,7 @@ void test_linkmodes()
 
 void test_valid_match_expression(string s, bool expected)
 {
-    bool b = isValidMatchExpressions(s, false);
+    bool b = isValidMatchExpressions(s);
     if (b == expected) return;
     if (expected == true)
     {

@@ -104,6 +104,7 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
     }
     catch (...)
     {
+        xmqFreeDoc(doc);
         return false;
     }
 }
@@ -111,9 +112,10 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
 DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
     MeterCommonImplementation(mi, di), file_name_(di.getDynamicFileName())
 {
+    XMQDoc *doc = NULL;
     try
     {
-        XMQDoc *doc = di.getDynamicDriver();
+        doc = di.getDynamicDriver();
         assert(doc);
 
         verbose("(driver) constructing driver %s from already loaded file %s\n",
@@ -125,6 +127,7 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
     }
     catch(...)
     {
+        xmqFreeDoc(doc);
     }
 }
 

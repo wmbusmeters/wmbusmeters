@@ -19,7 +19,7 @@
 
 using namespace std;
 
-bool isValidMatchExpression(const string& s, bool non_compliant)
+bool isValidMatchExpression(const string& s)
 {
     string me = s;
 
@@ -41,27 +41,15 @@ bool isValidMatchExpression(const string& s, bool non_compliant)
     if (me.length() == 0) return false;
 
     int count = 0;
-    if (non_compliant)
+    // Some non-compliant meters have full hex in the id,
+    // but according to the standard there should only be bcd here...
+    // We accept hex anyway.
+    while (me.length() > 0 &&
+           ((me.front() >= '0' && me.front() <= '9') ||
+            (me.front() >= 'a' && me.front() <= 'f')))
     {
-        // Some non-compliant meters have full hex in the id,
-        // but according to the standard there should only be bcd here...
-        while (me.length() > 0 &&
-               ((me.front() >= '0' && me.front() <= '9') ||
-                (me.front() >= 'a' && me.front() <= 'f')))
-        {
-            me.erase(0,1);
-            count++;
-        }
-    }
-    else
-    {
-        // But compliant meters use only a bcd subset.
-        while (me.length() > 0 &&
-               (me.front() >= '0' && me.front() <= '9'))
-        {
-            me.erase(0,1);
-            count++;
-        }
+        me.erase(0,1);
+        count++;
     }
 
     bool wildcard_used = false;
@@ -84,28 +72,26 @@ bool isValidMatchExpression(const string& s, bool non_compliant)
     return count <= 7;
 }
 
-bool isValidMatchExpressions(const string& mes, bool non_compliant)
+bool isValidMatchExpressions(const string& mes)
 {
     vector<string> v = splitMatchExpressions(mes);
 
     for (string me : v)
     {
-        if (!isValidMatchExpression(me, non_compliant)) return false;
+        if (!isValidMatchExpression(me)) return false;
     }
     return true;
 }
 
-bool isValidId(const string& id, bool accept_non_compliant)
+bool isValidId(const string& id)
 {
 
     for (size_t i=0; i<id.length(); ++i)
     {
         if (id[i] >= '0' && id[i] <= '9') continue;
-        if (accept_non_compliant)
-        {
-            if (id[i] >= 'a' && id[i] <= 'f') continue;
-            if (id[i] >= 'A' && id[i] <= 'F') continue;
-        }
+        // Some non-compliant meters have hex in their id.
+        if (id[i] >= 'a' && id[i] <= 'f') continue;
+        if (id[i] >= 'A' && id[i] <= 'F') continue;
         return false;
     }
     return true;
