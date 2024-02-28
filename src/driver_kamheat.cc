@@ -59,8 +59,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("fabrication_no,meter_datetime,on_time_h,on_time_at_error_h");
-        addOptionalFlowRelatedFields("flow_return_temperature_difference_c");
+        addOptionalLibraryFields("fabrication_no,meter_datetime,on_time_h,on_time_at_error_h");
+        addOptionalLibraryFields("flow_return_temperature_difference_c");
 
         // Technical Description Multical 603 page 116 section 7.7.2 Information code types on serial communication.
         addStringFieldWithExtractorAndLookup(

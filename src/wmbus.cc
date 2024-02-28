@@ -231,6 +231,7 @@ LIST_OF_MANUFACTURERS
 
 void Telegram::addId(const vector<uchar>::iterator &pos)
 {
+//    string id = tostrprintf("%02x%02x%02x%02x_%02x_%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0), *(pos+4), *(pos+5));
     string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
     ids.push_back(id);
     if (idsc.empty()) {

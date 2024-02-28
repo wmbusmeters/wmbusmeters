@@ -395,7 +395,7 @@ depending on if you are running as a daemon or not.
 # Running without config files, good for experimentation and test.
 
 ```
-wmbusmeters version: 1.14.0
+wmbusmeters version: 1.15.0
 Usage: wmbusmeters {options} [device] { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmeters {options} [hex]    { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmetersd {options} [pid_file]
@@ -414,6 +414,8 @@ As {options} you can use:
     --calculate_flow_f=flow_temperature_c
     --debug for a lot of information
     --donotprobe=<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys.
+    --driver=<file> load a driver
+    --driversdir=<dir> load all drivers in dir
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
     --help list all options

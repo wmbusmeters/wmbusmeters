@@ -50,6 +50,7 @@ parts:
       - make
       - librtlsdr-dev
       - libxml2-dev
+      - libxslt1-dev
     stage-packages:
       - mosquitto-clients
       - curl

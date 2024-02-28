@@ -68,6 +68,7 @@ struct Configuration
     ConfigOverrides overrides;
     bool useconfig {};
     std::string config_root;
+    std::string drivers_dir;
     bool need_help {};
     bool silent {};
     bool verbose {};

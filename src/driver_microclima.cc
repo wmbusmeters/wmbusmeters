@@ -36,8 +36,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("meter_datetime,model_version,parameter_set");
-        addOptionalFlowRelatedFields("flow_temperature_c,return_temperature_c");
+        addOptionalLibraryFields("meter_datetime,model_version,parameter_set");
+        addOptionalLibraryFields("flow_temperature_c,return_temperature_c");
 
         addStringFieldWithExtractorAndLookup(
             "status",

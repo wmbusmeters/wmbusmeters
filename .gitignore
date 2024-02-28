@@ -6,6 +6,7 @@ packaging/
 testaes/
 testoutput/
 tests_tmp/
+3rdparty/
 *~
 config.log
 autom4te.cache/

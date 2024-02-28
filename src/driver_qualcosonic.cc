@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2022-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -38,8 +38,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) :  MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("fabrication_no,operating_time_h,on_time_h,meter_datetime,meter_datetime_at_error");
-        addOptionalFlowRelatedFields("total_m3,flow_temperature_c,return_temperature_c,flow_return_temperature_difference_c,volume_flow_m3h");
+        addOptionalLibraryFields("fabrication_no,operating_time_h,on_time_h,meter_datetime,meter_datetime_at_error");
+        addOptionalLibraryFields("total_m3,flow_temperature_c,return_temperature_c,flow_return_temperature_difference_c,volume_flow_m3h");
 
         addStringFieldWithExtractorAndLookup(
             "status",
@@ -134,7 +134,6 @@ namespace
             .add(VIFCombinable::BackwardFlow)
             .set(StorageNr(16))
             );
-
     }
 }
 

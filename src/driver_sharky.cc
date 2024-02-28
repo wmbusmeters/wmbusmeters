@@ -41,7 +41,7 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("operating_time_h");
+        addOptionalLibraryFields("operating_time_h");
 
         addStringFieldWithExtractorAndLookup(
             "status",

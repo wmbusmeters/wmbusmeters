@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2018-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"address.h"
 #include"aes.h"
 #include"aescmac.h"
 #include"cmdline.h"
@@ -37,6 +38,8 @@ using namespace std;
 bool verbose_ = false;
 
 #define LIST_OF_TESTS \
+    X(addresses) \
+    X(dynamic_loading)                        \
     X(crc)            \
     X(dvparser)       \
     X(devices)        \
@@ -73,6 +76,7 @@ bool verbose_ = false;
     X(formulas_errors)                          \
     X(formulas_dventries)                       \
     X(formulas_stringinterpolation)             \
+
 
 #define X(t) void test_##t();
 LIST_OF_TESTS
@@ -422,7 +426,7 @@ void test_linkmodes()
 
 void test_valid_match_expression(string s, bool expected)
 {
-    bool b = isValidMatchExpressions(s, false);
+    bool b = isValidMatchExpressions(s);
     if (b == expected) return;
     if (expected == true)
     {
@@ -494,7 +498,9 @@ void test_ids()
     test_does_id_match_expression("78563413", "*,!00156327,!00048713", true, true);
 }
 
-void tst_address(string s, bool valid, string id, string mfct, uchar type, uchar version)
+void tst_address(string s, bool valid, string id,
+                 string mfct, uchar version, uchar type,
+                 bool mbus_primary, bool wildcard_used)
 {
     Address a;
     bool ok = a.parse(s);
@@ -510,38 +516,46 @@ void tst_address(string s, bool valid, string id, string mfct, uchar type, uchar
         string smfct = manufacturerFlag(a.mfct);
         if (id != a.id ||
             mfct != smfct ||
+            version != a.version ||
             type != a.type ||
-            version != a.version)
+            wildcard_used != a.wildcard_used ||
+            mbus_primary != a.mbus_primary ||
+            wildcard_used != a.wildcard_used)
         {
-            printf("Expected parse of address \"%s\" to return (id=%s mfct=%s type=%02x version=%02x) "
-                   "but got (id=%s mfct=%s type=%02x version=%02x)\n",
+            printf("Expected parse of address \"%s\" to return (id=%s mfct=%s version=%02x type=%02x mp=%d wu=%d)\n"
+                   "but got (id=%s mfct=%s version=%02x type=%02x mp=%d wu=%d)\n",
                    s.c_str(),
-                   id.c_str(), mfct.c_str(), type, version,
-                   a.id.c_str(), smfct.c_str(), a.type, a.version);
+                   id.c_str(), mfct.c_str(), version, type, mbus_primary, wildcard_used,
+                   a.id.c_str(), smfct.c_str(), a.version, a.type, a.mbus_primary, a.wildcard_used);
         }
     }
 }
 
 void test_addresses()
 {
-    /*
     tst_address("12345678",
-                 true,
-                 "12345678", // id
-                 "@@@", // mfct
-                 0, // type
-                 0  // version
+                true,
+                "12345678", // id
+                "___", // mfct
+                0xff, // type
+                0xff,  // version
+                false, // mbus primary
+                false // wildcard used
         );
+    tst_address("123k45678", false, "", "", 0xff, 0xff, false, false);
+    tst_address("1234", false, "", "", 0xff, 0xff, false, false);
+    tst_address("0", true, "0", "___", 0xff, 0xff, true,false);
+    tst_address("250", true, "250", "___", 0xff, 0xff, true, false);
+    tst_address("251", false, "", "", 0xff, 0xff, false, false);
+    tst_address("0.M=PII.V=01.T=1b", true, "0", "PII", 0x01, 0x1b, true, false);
+    tst_address("123.V=11.M=FOO.T=ff", true, "123", "FOO", 0x11, 0xff, true, false);
+    tst_address("123.M=FOO", true, "123", "FOO", 0xff, 0xff, true, false);
+    tst_address("123.M=FOO.V=33", true, "123", "FOO", 0x33, 0xff, true, false);
+    tst_address("123.T=33", true, "123", "___", 0xff, 0x33, true, false);
+    tst_address("1.V=33", true, "1", "___", 0x33, 0xff, true, false);
+    tst_address("16.M=BAR", true, "16", "BAR", 0xff, 0xff, true, false);
 
-    tst_address("123k45678", false, "", "", 0, 0);
-    tst_address("1234", false, "", "", 0, 0);
-    tst_address("0", true, "0", "@@@", 0, 0);
-    tst_address("250", true, "250", "@@@", 0, 0);
-    tst_address("251", false, "", "", 0, 0);
-    tst_address("0.M=PII.T=1b.V=01", true, "0", "PII", 0x1b, 0x01);
-    tst_address("123.V=11.M=FOO.T=ff", true, "123", "FOO", 0xff, 0x11);
-    tst_address("16.M=BAR", true, "16", "BAR", 0, 0);
-    */
+//    tst_address("12*", true, "12*", "___", 0xff, 0xff, false, true);
 }
 
 void eq(string a, string b, const char *tn)
@@ -2028,6 +2042,8 @@ LIST_OF_QUANTITIES
     test_si_convert(2211717, 2211717, Unit::FACTOR, "counter", Unit::COUNTER, "counter", Quantity::Dimensionless, &from_set, &to_set);
     test_si_convert(2211717, 2211717, Unit::NUMBER, "counter", Unit::COUNTER, "counter", Quantity::Dimensionless, &from_set, &to_set);
     test_si_convert(2211717, 2211717, Unit::FACTOR, "counter", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::PERCENTAGE, "counter", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::NUMBER, "counter", Unit::PERCENTAGE, "counter", Quantity::Dimensionless, &from_set, &to_set);
 
     check_units_tested(from_set, to_set, Quantity::Dimensionless);
 
@@ -2587,4 +2603,23 @@ void test_formulas_stringinterpolation()
                s.c_str());
     }
 
+}
+
+void test_dynamic_loading()
+{
+    VIFRange vr = toVIFRange("Date");
+
+    if (vr != VIFRange::Date)
+    {
+        printf("ERROR in dynamic loading got %s but expected %s!\n",
+               toString(vr), toString(VIFRange::Date));
+    }
+
+    vr = toVIFRange("DateTime");
+
+    if (vr != VIFRange::DateTime)
+    {
+        printf("ERROR in dynamic loading got %s but expected %s!\n",
+               toString(vr), toString(VIFRange::DateTime));
+    }
 }

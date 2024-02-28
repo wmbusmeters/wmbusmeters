@@ -37,8 +37,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("software_version");
-        addOptionalFlowRelatedFields("total_m3");
+        addOptionalLibraryFields("software_version");
+        addOptionalLibraryFields("total_m3");
 
         addStringFieldWithExtractorAndLookup(
             "status",

@@ -16,6 +16,7 @@
 */
 
 #include"config.h"
+#include"drivers.h"
 #include"meters.h"
 #include"units.h"
 
@@ -192,7 +193,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     debug("(cmdline) setting link modes to %s for meter %s\n",
             mi.link_modes.hr().c_str(), name.c_str());
     */
-    if (!isValidMatchExpressions(id, true)) {
+    if (!isValidMatchExpressions(id)) {
         warning("Not a valid meter id nor a valid meter match expression \"%s\"\n", id.c_str());
         use = false;
     }
@@ -679,12 +680,14 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
     string conf_dir = root;
     string conf_file = root+"/etc/wmbusmeters.conf";
     string conf_meter_dir = root+"/etc/wmbusmeters.d";
+    string conf_drivers_dir = root+"/etc/wmbusmeters.drivers.d";
 
     if (!checkFileExists(conf_file.c_str()))
     {
         conf_dir = root+"/etc";
         conf_file = root+"/wmbusmeters.conf";
         conf_meter_dir = root+"/wmbusmeters.d";
+        conf_drivers_dir = root+"/wmbusmeters.drivers.d";
     }
 
     debug("(config) loading %s\n", conf_file.c_str());
@@ -804,6 +807,8 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         debug("(config) overriding logfile with %s\n", overrides.logfile_override.c_str());
         handleLogfile(c, overrides.logfile_override);
     }
+
+    loadDriversFromDir(conf_drivers_dir);
 
     return shared_ptr<Configuration>(c);
 }

@@ -169,6 +169,13 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_rtlwmbus_timestamps.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+if [ -s build/xmq ]
+then
+    ./build/xmq tests/generated_tests.xmq for-each /test --shell='./tests/testit.sh '$PROG' "${args}" "${telegram}" "${json}" "${fields}"'
+else
+    echo "Skipping tests/generated_tests.xmq since xmq is missing."
+fi
+
 ./tests/test_drivers.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 

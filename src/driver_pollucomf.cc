@@ -179,7 +179,7 @@ namespace
             .set(StorageNr(1))
             );
 
-        addOptionalCommonFields("operating_time_h,on_time_h,on_time_at_error_h,meter_datetime");
+        addOptionalLibraryFields("operating_time_h,on_time_h,on_time_at_error_h,meter_datetime");
     }
 }
 

@@ -16,6 +16,7 @@
 */
 
 #include"cmdline.h"
+#include"drivers.h"
 #include"meters.h"
 #include"util.h"
 
@@ -59,20 +60,49 @@ shared_ptr<Configuration> parseCommandLine(int argc, char **argv)
     return parseNormalCommandLine(c, argc, argv);
 }
 
+void enableEarlyLoggingFromCommandLine(int argc, char **argv)
+{
+    int i = 1;
+    // First find all logging flags, --silent --verbose --normal --debug
+    while (argv[i] && argv[i][0] == '-')
+    {
+        if (!strcmp(argv[i], "--silent")) {
+            i++;
+            silentLogging(true);
+            continue;
+        }
+        if (!strcmp(argv[i], "--verbose")) {
+            verboseEnabled(true);
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--normal")) {
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--debug")) {
+            verboseEnabled(true);
+            debugEnabled(true);
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--trace")) {
+            verboseEnabled(true);
+            debugEnabled(true);
+            traceEnabled(true);
+            i++;
+            continue;
+        }
+        i++;
+    }
+}
+
 static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int argc, char **argv)
 {
     int i = 1;
+    // First find all logging flags, --silent --verbose --normal --debug
     while (argv[i] && argv[i][0] == '-')
     {
-        if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "-help") || !strcmp(argv[i], "--help")) {
-            c->need_help = true;
-            return shared_ptr<Configuration>(c);
-        }
-        if (!strncmp(argv[i], "--device=", 9) || // Deprecated
-            !strncmp(argv[i], "--overridedevice=", 17))
-        {
-            error("You can only use --overridedevice=xyz with --useconfig=xyz\n");
-        }
         if (!strcmp(argv[i], "--silent")) {
             c->silent = true;
             i++;
@@ -92,6 +122,48 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             c->trace = false;
             i++;
             continue;
+        }
+        if (!strcmp(argv[i], "--debug")) {
+            c->debug = true;
+            verboseEnabled(true);
+            debugEnabled(true);
+            i++;
+            continue;
+        }
+        if (!strcmp(argv[i], "--trace")) {
+            c->debug = true;
+            c->trace = true;
+            verboseEnabled(true);
+            debugEnabled(true);
+            traceEnabled(true);
+            i++;
+            continue;
+        }
+        i++;
+    }
+
+    // Now do the rest of the arguments.
+    i = 1;
+    while (argv[i] && argv[i][0] == '-')
+    {
+        if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "-help") || !strcmp(argv[i], "--help")) {
+            c->need_help = true;
+            return shared_ptr<Configuration>(c);
+        }
+        if (!strcmp(argv[i], "--silent") ||
+            !strcmp(argv[i], "--verbose") ||
+            !strcmp(argv[i], "--normal") ||
+            !strcmp(argv[i], "--debug") ||
+            !strcmp(argv[i], "--trace"))
+        {
+            // Handled already.
+            i++;
+            continue;
+        }
+        if (!strncmp(argv[i], "--device=", 9) || // Deprecated
+            !strncmp(argv[i], "--overridedevice=", 17))
+        {
+            error("You can only use --overridedevice=xyz with --useconfig=xyz\n");
         }
         if (!strcmp(argv[i], "--version")) {
             c->version = true;
@@ -161,23 +233,6 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                     c->analyze_driver = s;
                 }
             }
-            i++;
-            continue;
-        }
-
-        if (!strcmp(argv[i], "--debug")) {
-            c->debug = true;
-            verboseEnabled(true);
-            debugEnabled(true);
-            i++;
-            continue;
-        }
-        if (!strcmp(argv[i], "--trace")) {
-            c->debug = true;
-            c->trace = true;
-            verboseEnabled(true);
-            debugEnabled(true);
-            traceEnabled(true);
             i++;
             continue;
         }
@@ -588,6 +643,31 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--driversdir=", 13))
+        {
+            size_t len = strlen(argv[i]) - 13;
+            c->drivers_dir = string(argv[i]+13, len);
+            if (!checkIfDirExists(c->drivers_dir.c_str()))
+            {
+                error("You must supply a valid directory to --driversdir=<dir>\n");
+            }
+            i++;
+            loadDriversFromDir(c->drivers_dir);
+            continue;
+        }
+        if (!strncmp(argv[i], "--driver=", 9))
+        {
+            size_t len = strlen(argv[i]) - 9;
+            string file_name = string(argv[i]+9, len);
+            if (!checkFileExists(file_name.c_str()))
+            {
+                error("You must supply a valid file to --driver=<file>\n");
+            }
+            i++;
+            loadDriver(file_name, NULL);
+            continue;
+        }
+
         error("Unknown option \"%s\"\n", argv[i]);
     }
 

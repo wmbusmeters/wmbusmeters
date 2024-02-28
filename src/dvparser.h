@@ -39,7 +39,7 @@
     X(ExternalTemperature,0x64,0x67, Quantity::Temperature, Unit::C) \
     X(Pressure,0x68,0x6B, Quantity::Pressure, Unit::BAR) \
     X(HeatCostAllocation,0x6E,0x6E, Quantity::HCA, Unit::HCA) \
-    X(Date,0x6C,0x6C, Quantity::PointInTime, Unit::DateTimeLT) \
+    X(Date,0x6C,0x6C, Quantity::PointInTime, Unit::DateLT) \
     X(DateTime,0x6D,0x6D, Quantity::PointInTime, Unit::DateTimeLT) \
     X(EnergyMJ,0x08,0x0F, Quantity::Energy, Unit::MJ) \
     X(EnergyWh,0x00,0x07, Quantity::Energy, Unit::KWH) \
@@ -208,6 +208,7 @@ struct VIFCombinableRaw {
     uint16_t value;
 };
 
+VIFCombinable toVIFCombinable(const char *s);
 VIFCombinable toVIFCombinable(int i);
 const char *toString(VIFCombinable v);
 
@@ -588,5 +589,6 @@ bool extractDVdate(std::map<std::string,std::pair<int,DVEntry>> *values,
 
 
 const std::string &availableVIFRanges();
+const std::string &availableVIFCombinables();
 
 #endif

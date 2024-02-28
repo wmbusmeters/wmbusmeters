@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 
 #include"bus.h"
 #include"config.h"
+#include"drivers.h"
 #include"meters.h"
 #include"meters_common_implementation.h"
 #include"units.h"
@@ -378,6 +379,7 @@ public:
 
     void analyzeTelegram(AboutTelegram &about, vector<uchar> &input_frame, bool simulated)
     {
+        loadAllBuiltinDrivers();
         Telegram t;
         t.about = about;
 

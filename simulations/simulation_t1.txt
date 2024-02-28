@@ -60,7 +60,7 @@ telegram=|374468506549235827C3A2_129F25383300A8622600008200800A2AF86211517555287
 # Test FHKV data II/III
 # There is a problem in the decoding here, the data stored inside the telegram does not seem to properly encode/decode the year....
 # We should not report a current_date with a full year, if the year is actually not part of the telegram.
-telegram=|31446850226677116980A0119F27020480048300C408F709143C003D341A2B0B2A0707000000000000062D114457563D71A1850000|
+telegram=|34446850226677116980A0119F27020480048300C408F709143C003D341A2B0B2A0707000000000000062D114457563D71A1850000|
 {"media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11776622","current_hca":131,"current_date":"2020-02-08T02:00:00Z","previous_hca":1026,"previous_date":"2019-12-31T02:00:00Z","temp_room_c":22.44,"temp_radiator_c":25.51,"timestamp":"1111-11-11T11:11:11Z"}
 |Room;11776622;131;2020-02-08T02:00:00Z;1026;2019-12-31T02:00:00Z;22.44;25.51;1111-11-11 11:11.11
 
@@ -152,7 +152,7 @@ telegram=|2E4409077272727210077AD71020052F2F_046D040D742C041377000000446D0000612
 
 # Test Axioma W1 telegram with additional fields compared to the older q400 meter.
 telegram=|5E4409077372727210077A710050052F2F_046D0110A92704130000000004933B0000000004933C00000000023B000002592A0A446D0000A12744130000000044933B0000000044933C0000000001FD74622F2F2F2F2F2F2F2F2F2F2F2F2F2F|
-{"media":"water","meter":"q400","name":"AxiomaWater","id":"72727273","meter_datetime":"2021-07-09 16:01","total_m3":0,"total_forward_m3":0,"total_backward_m3":0,"flow_temperature_c":26.02,"volume_flow_m3h":0,"status":"OK","set_datetime":"2021-07-01 00:00","consumption_at_set_date_m3":0,"forward_at_set_date_m3":0,"backward_at_set_date_m3":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"q400","name":"AxiomaWater","id":"72727273","meter_datetime":"2021-07-09 16:01","total_m3":0,"total_forward_m3":0,"total_backward_m3":0,"flow_temperature_c":26.02,"volume_flow_m3h":0,"status":"OK","set_datetime":"2021-07-01 00:00","consumption_at_set_date_m3":0,"forward_at_set_date_m3":0,"backward_at_set_date_m3":0,"battery_pct":98,"timestamp":"1111-11-11T11:11:11Z"}
 |AxiomaWater;72727273;0;1111-11-11 11:11.11
 
 # Test electricity meter with eBZ wMB E01.

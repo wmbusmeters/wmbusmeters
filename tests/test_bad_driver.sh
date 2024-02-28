@@ -7,7 +7,7 @@ mkdir -p $TEST
 performCheck() {
 if [ "$?" = "0" ]
 then
-    cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
+    cat $TEST/test_output.txt | grep -v == | grep -v  \# | grep -v Indirect | grep -v Direct | grep -v -e "^$" | grep -v SUMMARY | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_response.txt
     diff $TEST/test_expected.txt $TEST/test_response.txt
     if [ "$?" = "0" ]
     then

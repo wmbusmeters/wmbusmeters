@@ -17,6 +17,7 @@
 
 #include"bus.h"
 #include"config.h"
+#include"drivers.h"
 #include"driver_dynamic.h"
 #include"meters.h"
 #include"meters_common_implementation.h"
@@ -77,6 +78,21 @@ vector<DriverInfo*> &allDrivers()
     return *registered_drivers_list_;
 }
 
+void removeDriver(const string &name)
+{
+    for (auto i = registered_drivers_list_->begin(); i != registered_drivers_list_->end(); i++)
+    {
+        if ((*i)->name().str() == name)
+        {
+            registered_drivers_list_->erase(i);
+            break;
+        }
+    }
+
+    registered_drivers_->erase(name);
+    assert(registered_drivers_->count(name) == 0);
+}
+
 void addRegisteredDriver(DriverInfo di)
 {
     verifyDriverLookupCreated();
@@ -110,6 +126,10 @@ bool DriverInfo::isValidMedia(uchar type)
         if (dd.type == type) return true;
     }
     return false;
+}
+
+DriverInfo::~DriverInfo()
+{
 }
 
 bool DriverInfo::isCloseEnoughMedia(uchar type)
@@ -185,22 +205,31 @@ bool registerDriver(function<void(DriverInfo&)> setup)
     return true;
 }
 
-string loadDriver(const string &file)
+string loadDriver(const string &file, const char *content)
 {
     DriverInfo di;
 
-    bool ok = DriverDynamic::load(&di, file);
+    bool ok = DriverDynamic::load(&di, file, content);
     if (!ok)
     {
         error("Failed to load driver from file: %s\n", file.c_str());
     }
-    // Check that the driver name has not been registered before!
-    if (lookupDriver(di.name().str()) != NULL)
+
+    // Check if the driver name has been registered before....
+    DriverInfo *old = lookupDriver(di.name().str());
+    if (old != NULL)
     {
-        debug("Ignoring loaded driver %s %s since it is already registered!\n",
-              di.name().str().c_str(),
-              file.c_str());
-        return di.name().str();
+        if (old->getDynamicFileName() != "")
+        {
+            error("Newly loaded driver file %s tries to register the same name %s as driver file %s has already taken!\n",
+                  file.c_str(), di.name().str().c_str(), old->getDynamicFileName().c_str());
+        }
+        else
+        {
+            verbose("(drivers) newly loaded driver %s overrides builtin driver\n",
+                    file.c_str(), di.name().str().c_str());
+            removeDriver(di.name().str());
+        }
     }
 
     // Check that no other driver also triggers on the same detection values.
@@ -211,8 +240,30 @@ string loadDriver(const string &file)
             bool foo = p->detect(d.mfct, d.type, d.version);
             if (foo)
             {
-                error("Newly loaded driver %s tries to register the same auto detect combo as driver %s alread has taken!\n",
-                      di.name().str().c_str(), p->name().str().c_str());
+                string mfct = manufacturerFlag(d.mfct);
+                if (p->getDynamicFileName() != "")
+                {
+                    // It is not ok to override an previously file loaded driver!
+                    error("Newly loaded driver %s tries to register the same "
+                          "auto detect combo as driver %s alread has taken! mvt=%s,%02x,%02x\n",
+                          di.name().str().c_str(),
+                          p->name().str().c_str(),
+                          mfct.c_str(),
+                          d.version,
+                          d.type);
+                }
+                else
+                {
+                    // It is ok to override a built in driver!
+                    verbose("(driver) newly loaded driver %s forces removal of builtin "
+                            "driver %s since it auto-detects the same combo! mvt=%s,%02x,%02x\n",
+                          di.name().str().c_str(),
+                          p->name().str().c_str(),
+                          mfct.c_str(),
+                          d.version,
+                          d.type);
+                    removeDriver(p->name().str());
+                }
             }
         }
     }
@@ -225,32 +276,47 @@ string loadDriver(const string &file)
 
 bool lookupDriverInfo(const string& driver_name, DriverInfo *out_di)
 {
+    // Lookup an already loaded driver, it might be compiled in as well.
     DriverInfo *di = lookupDriver(driver_name);
-    if (di == NULL)
+    if (di)
     {
-        if (!endsWith(driver_name, ".xmq") || !checkFileExists(driver_name.c_str()))
+        if (out_di) *out_di = *di;
+        return true;
+    }
+
+    // Lookup a dynamic text driver that can be loaded from memory.
+    if (loadBuiltinDriver(driver_name))
+    {
+        // It is loaded, lets fetch the DriverInfo.
+        di = lookupDriver(driver_name);
+        if (di)
         {
-            return false;
-        }
-
-        // Ok, not built in, but it ends with .xmq and the file exists!
-        string new_name = loadDriver(driver_name);
-
-        // Check again if it was registered.
-        di = lookupDriver(new_name);
-
-        if (di == NULL)
-        {
-            return false;
+            if (out_di) *out_di = *di;
+            return true;
         }
     }
 
-    if (out_di != NULL)
+    // Is this a dynamic text driver file?
+    if (!endsWith(driver_name, ".xmq") || !checkFileExists(driver_name.c_str()))
     {
-        *out_di = *di;
+        // Nope, give up.
+        return false;
     }
 
-    return true;
+    string file_name = driver_name;
+
+    // Load the driver from the file.
+    string new_name = loadDriver(file_name, NULL);
+
+    // Check again if it was registered.
+    di = lookupDriver(new_name);
+    if (di)
+    {
+        if (out_di) *out_di = *di;
+        return true;
+    }
+
+    return false;
 }
 
 MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
@@ -1249,7 +1315,6 @@ void MeterCommonImplementation::processFieldExtractors(Telegram *t)
             if (fi.hasMatcher() && fi.matches(dve))
             {
                 current_match_nr++;
-
                 if (fi.matcher().index_nr != IndexNr(current_match_nr) &&
                     !fi.matcher().expectedToMatchAgainstMultipleEntries())
                 {
@@ -1936,12 +2001,19 @@ ELLSecurityMode MeterCommonImplementation::expectedELLSecurityMode()
 
 void detectMeterDrivers(int manufacturer, int media, int version, vector<string> *drivers)
 {
+    bool found = false;
     for (DriverInfo *p : allDrivers())
     {
         if (p->detect(manufacturer, media, version))
         {
             drivers->push_back(p->name().str());
+            found = true;
         }
+    }
+    if (!found)
+    {
+        const char *name = findBuiltinDriver(manufacturer, version, media);
+        if (name) drivers->push_back(name);
     }
 }
 
@@ -2523,17 +2595,19 @@ bool Address::parse(string &s)
     // Example: 12345678
     // or       12345678.M=PII.T=1B.V=01
     // or       1234*
-    // or       1234*.PII
-    // or       1234*.V01
+    // or       1234*.M=PII
+    // or       1234*.V=01
     // or       12 // mbus primary
     // or       0  // mbus primary
-    // or       250.MPII.T1B.V01 // mbus primary
-
+    // or       250.MPII.V01.T1B // mbus primary
+    // or       !12345678
+    // or       !*.M=ABC
     id = "";
     mbus_primary = false;
-    mfct = 0;
-    type = 0;
-    version = 0;
+    mfct = 0xffff;
+    type = 0xff;
+    version = 0xff;
+    negate = false;
 
     if (s.size() == 0) return false;
 
@@ -2541,7 +2615,7 @@ bool Address::parse(string &s)
 
     assert(parts.size() > 0);
 
-    if (!isValidMatchExpression(parts[0], true))
+    if (!isValidMatchExpression(parts[0]))
     {
         // Not a long id, so lets check if it is 0-250.
         for (size_t i=0; i < parts[0].length(); ++i)
@@ -2556,7 +2630,7 @@ bool Address::parse(string &s)
     }
     id = parts[0];
 
-    for (size_t i=1; i<parts[i].size(); ++i)
+    for (size_t i=1; i<parts.size(); ++i)
     {
         if (parts[i].size() == 4) // V=xy or T=xy
         {
@@ -2608,7 +2682,7 @@ bool checkIf(set<string> &fields, const char *s)
     return false;
 }
 
-void checkFieldsEmpty(set<string> &fields, string name)
+bool checkFieldsEmpty(set<string> &fields, string driver_name)
 {
     if (fields.size() > 0)
     {
@@ -2616,12 +2690,14 @@ void checkFieldsEmpty(set<string> &fields, string name)
         for (auto &s : fields) { info += s+" "; }
 
         warning("(meter) when adding common fields to driver %s, these fields were not found: %s\n",
-                name.c_str(),
+                driver_name.c_str(),
                 info.c_str());
+        return false;
     }
+    return true;
 }
 
-void MeterCommonImplementation::addOptionalCommonFields(string field_names)
+bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
 {
     set<string> fields = splitStringIntoSet(field_names, ',');
 
@@ -2852,13 +2928,6 @@ void MeterCommonImplementation::addOptionalCommonFields(string field_names)
             );
     }
 
-    checkFieldsEmpty(fields, name());
-}
-
-void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
-{
-    set<string> fields = splitStringIntoSet(field_names, ',');
-
     if (checkIf(fields,"total_m3"))
     {
         addNumericFieldWithExtractor(
@@ -3016,12 +3085,7 @@ void MeterCommonImplementation::addOptionalFlowRelatedFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AccessNumber)
             );
-        }
-}
-
-void MeterCommonImplementation::addHCARelatedFields(string field_names)
-{
-    set<string> fields = splitStringIntoSet(field_names, ',');
+    }
 
     if (checkIf(fields,"consumption_hca"))
     {
@@ -3036,6 +3100,12 @@ void MeterCommonImplementation::addHCARelatedFields(string field_names)
             .set(VIFRange::HeatCostAllocation)
             );
     }
+
+    if (!checkFieldsEmpty(fields, name()))
+    {
+        return false;
+    }
+    return true;
 }
 
 const char *toString(VifScaling s)

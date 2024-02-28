@@ -45,8 +45,8 @@ namespace
 
         addLinkMode(LinkMode::T1);
 
-        addOptionalCommonFields("enhanced_id,meter_datetime");
-        addOptionalFlowRelatedFields("total_m3,total_backward_m3,volume_flow_m3h");
+        addOptionalLibraryFields("enhanced_id,meter_datetime");
+        addOptionalLibraryFields("total_m3,total_backward_m3,volume_flow_m3h");
 
         addStringFieldWithExtractorAndLookup(
             "status",

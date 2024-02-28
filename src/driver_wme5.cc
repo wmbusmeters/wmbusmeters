@@ -39,7 +39,7 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("meter_datetime,model_version");
+        addOptionalLibraryFields("meter_datetime,model_version");
 
         addNumericField(
             "total",

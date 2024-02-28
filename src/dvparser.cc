@@ -62,6 +62,17 @@ LIST_OF_VIF_RANGES
     return VIFRange::None;
 }
 
+VIFCombinable toVIFCombinable(const char *s)
+{
+    if (!strcmp(s, "None")) return VIFCombinable::None;
+    if (!strcmp(s, "Any")) return VIFCombinable::Any;
+#define X(name,from,to) if (!strcmp(s, #name)) return VIFCombinable::name;
+LIST_OF_VIF_COMBINABLES
+#undef X
+
+    return VIFCombinable::None;
+}
+
 const char *toString(VIFCombinable v)
 {
     switch (v) {
@@ -1299,13 +1310,16 @@ bool FieldMatcher::matches(DVEntry &dv_entry)
     }
 
     // Test ranges and types.
-    bool b =
-        (!match_vif_range || isInsideVIFRange(dv_entry.vif, vif_range)) &&
-        (!match_vif_raw || dv_entry.vif == vif_raw) &&
-        (!match_measurement_type || dv_entry.measurement_type == measurement_type) &&
-        (!match_storage_nr || (dv_entry.storage_nr >= storage_nr_from && dv_entry.storage_nr <= storage_nr_to)) &&
-        (!match_tariff_nr || (dv_entry.tariff_nr >= tariff_nr_from && dv_entry.tariff_nr <= tariff_nr_to)) &&
-        (!match_subunit_nr || (dv_entry.subunit_nr >= subunit_nr_from && dv_entry.subunit_nr <= subunit_nr_to));
+    bool range = (!match_vif_range || isInsideVIFRange(dv_entry.vif, vif_range));
+    bool raw = (!match_vif_raw || dv_entry.vif == vif_raw);
+    bool type = (!match_measurement_type || dv_entry.measurement_type == measurement_type);
+    bool storage = (!match_storage_nr || (dv_entry.storage_nr >= storage_nr_from && dv_entry.storage_nr <= storage_nr_to));
+    bool tariff = (!match_tariff_nr || (dv_entry.tariff_nr >= tariff_nr_from && dv_entry.tariff_nr <= tariff_nr_to));
+    bool subunit = (!match_subunit_nr || (dv_entry.subunit_nr >= subunit_nr_from && dv_entry.subunit_nr <= subunit_nr_to));
+
+    //printf("Match? range=%d raw=%d type=%d storage=%d tariff=%d subunit=%d \n", range, raw, type, storage, tariff, subunit);
+
+    bool b = range & raw & type & storage & tariff & subunit;
 
     if (!b) return false;
 
@@ -1500,4 +1514,19 @@ LIST_OF_VIF_RANGES
     // Remove last newline
     available_vif_ranges_.pop_back();
     return available_vif_ranges_;
+}
+
+string available_vif_combinables_;
+
+const string &availableVIFCombinables()
+{
+    if (available_vif_combinables_ != "") return available_vif_combinables_;
+
+#define X(n,from,to) available_vif_combinables_ += string(#n) + "\n";
+LIST_OF_VIF_COMBINABLES
+#undef X
+
+    // Remove last newline
+    available_vif_combinables_.pop_back();
+    return available_vif_combinables_;
 }

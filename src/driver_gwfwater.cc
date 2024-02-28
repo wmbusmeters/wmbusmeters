@@ -38,8 +38,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("actuality_duration_s");
-        addOptionalFlowRelatedFields("total_m3,target_m3,target_date");
+        addOptionalLibraryFields("actuality_duration_s");
+        addOptionalLibraryFields("total_m3,target_m3,target_date");
 
         addStringField(
             "status",

@@ -39,8 +39,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("meter_date,fabrication_no,operating_time_h,on_time_h,on_time_at_error_h,meter_datetime");
-        addOptionalFlowRelatedFields("total_m3,total_backward_m3,volume_flow_m3h");
+        addOptionalLibraryFields("meter_date,fabrication_no,operating_time_h,on_time_h,on_time_at_error_h,meter_datetime");
+        addOptionalLibraryFields("total_m3,total_backward_m3,volume_flow_m3h");
 
         /* If the meter is recently commissioned, the target water consumption value is bogus.
            The bits store 0xffffffff. Should we deal with this? Now a very large value is printed in the json.

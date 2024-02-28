@@ -40,7 +40,7 @@ namespace
             "Meter status. Includes both meter error field and tpl status field.",
             PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS);
 
-        addOptionalCommonFields("on_time_h");
+        addOptionalLibraryFields("on_time_h");
 
         addNumericFieldWithExtractor(
             "total_energy_consumption",

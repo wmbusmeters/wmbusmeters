@@ -36,8 +36,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("meter_datetime");
-        addOptionalFlowRelatedFields("total_m3,total_forward_m3,total_backward_m3,flow_temperature_c,volume_flow_m3h");
+        addOptionalLibraryFields("meter_datetime,on_time_h");
+        addOptionalLibraryFields("total_m3,total_forward_m3,total_backward_m3,flow_temperature_c,volume_flow_m3h");
 
         addStringField(
             "status",
@@ -92,6 +92,16 @@ namespace
             .add(VIFCombinable::BackwardFlow)
             );
 
+        addNumericFieldWithExtractor(
+            "battery",
+            "Percentage of battery remaining.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Dimensionless,
+            VifScaling::None,
+            FieldMatcher::build()
+            .set(DifVifKey("01FD74")),
+            Unit::PERCENTAGE
+            );
     }
 }
 
@@ -103,5 +113,10 @@ namespace
 // Test: AxiomaWater q400 72727273 NOKEY
 // Comment: Test Axioma W1 telegram with additional fields compared to the older q400 meter.
 // telegram=|5E4409077372727210077A710050052F2F_046D0110A92704130022000004933B0000000004933C00000000023B000002592A0A446D0000A12744130000000044933B0000000044933C0000000001FD74622F2F2F2F2F2F2F2F2F2F2F2F2F2F|
-// {"media":"water","meter":"q400","name":"AxiomaWater","id":"72727273","meter_datetime":"2021-07-09 16:01","total_m3":8.704,"total_forward_m3":0,"total_backward_m3":0,"flow_temperature_c":26.02,"volume_flow_m3h":0,"status":"OK","set_datetime":"2021-07-01 00:00","consumption_at_set_date_m3":0,"forward_at_set_date_m3":0,"backward_at_set_date_m3":0,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"water","meter":"q400","name":"AxiomaWater","id":"72727273","meter_datetime":"2021-07-09 16:01","total_m3":8.704,"total_forward_m3":0,"total_backward_m3":0,"flow_temperature_c":26.02,"volume_flow_m3h":0,"status":"OK","set_datetime":"2021-07-01 00:00","consumption_at_set_date_m3":0,"forward_at_set_date_m3":0,"backward_at_set_date_m3":0,"battery_pct":98,"timestamp":"1111-11-11T11:11:11Z"}
 // |AxiomaWater;72727273;8.704;1111-11-11 11:11.11
+
+// Test: M q400 05829163 NOKEY
+// telegram=|544409076391820510077ABF100000046D2A0DC62C0420E80F430104130000000004933B0000000004933C00000000023B00000259F0D8446D0000C12C44130000000044933B0000000044933C0000000001FD7461|
+// {"backward_at_set_date_m3": 0,"battery_pct": 97,"consumption_at_set_date_m3": 0,"flow_temperature_c": 555.36,"forward_at_set_date_m3": 0,"id": "05829163","media": "water","meter": "q400","meter_datetime": "2022-12-06 13:42","name": "M","on_time_h": 5881.166667,"set_datetime": "2022-12-01 00:00","status": "TEMPORARY_ERROR","timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 0,"total_forward_m3": 0,"total_m3": 0,"volume_flow_m3h": 0}
+// |M;05829163;0;1111-11-11 11:11.11

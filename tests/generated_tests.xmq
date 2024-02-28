@@ -1,0 +1,21 @@
+// Generated 2024-02-12_08:58
+test {
+    args     = 'Gas elster 05105025 NOKEY'
+    telegram = 3644A511640010253837722550100593158103E70020052F2F_0374E602000C137034220302FD74EE0F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"media":"gas","meter":"elster","name":"Gas","id":"05105025","actuality_duration_s":742,"total_m3":3223.47,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Gas;05105025;3223.47;1111-11-11 11:11.11'
+}
+test {
+    args     = 'WaterWater iperl 33225544 NOKEY'
+    comment  = 'Test iPerl T1 telegram not encrypted, which has no 2f2f markers.'
+    telegram = 1844AE4C4455223368077A55000000_041389E20100023B0000
+    json     = '{"media":"water","meter":"iperl","name":"WaterWater","id":"33225544","total_m3":123.529,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'WaterWater;33225544;123.529;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MoreWater iperl 12345699 NOKEY'
+    coment   = 'Test iPerl T1 telegram, that after decryption, has 2f2f markers.'
+    telegram = 1E44AE4C9956341268077A36001000_2F2F0413181E0000023B00002F2F2F2F
+    json     = '{"media":"water","meter":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'MoreWater;12345699;7.704;0;1111-11-11 11:11.11'
+}

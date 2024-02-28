@@ -18,6 +18,7 @@
 #ifndef METER_H_
 #define METER_H_
 
+#include"address.h"
 #include"dvparser.h"
 #include"formula.h"
 #include"util.h"
@@ -80,22 +81,6 @@ bool isValidKey(const string& key, MeterInfo &mt);
 
 using namespace std;
 
-typedef unsigned char uchar;
-
-struct Address
-{
-    // Example address: 12345678
-    // Or fully qualified: 12345678.M=PII.T=1b.V=01
-    // which means manufacturer triplet PII, type/media=0x1b, version=0x01
-    string id;
-    bool wildcard_used {}; // The id contains a *
-    bool mbus_primary {}; // Signals that the id is 0-250
-    uint16_t mfct {};
-    uchar type {};
-    uchar version {};
-
-    bool parse(string &s);
-};
 
 struct MeterInfo
 {
@@ -192,6 +177,7 @@ private:
     string dynamic_file_name_; // Name of actual loaded driver file.
 
 public:
+    ~DriverInfo();
     DriverInfo() {};
     void setName(std::string n) { name_ = n; }
     void addNameAlias(std::string n) { name_aliases_.push_back(n); }
@@ -230,11 +216,14 @@ public:
 
 bool registerDriver(function<void(DriverInfo&di)> setup);
 // Lookup (and load if necessary) driver from memory or disk.
+DriverInfo *lookupDriver(string name);
 bool lookupDriverInfo(const string& driver, DriverInfo *di = NULL);
 // Return the best driver match for a telegram.
 DriverInfo pickMeterDriver(Telegram *t);
 // Return true for mbus and S2/C2/T2 drivers.
 bool driverNeedsPolling(DriverName& dn);
+
+string loadDriver(const string &file, const char *content);
 
 vector<DriverInfo*>& allDrivers();
 

@@ -44,8 +44,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("operating_time_h,actuality_duration_s,meter_datetime,customer");
-        addOptionalFlowRelatedFields("flow_temperature_c,external_temperature_c");
+        addOptionalLibraryFields("operating_time_h,actuality_duration_s,meter_datetime,customer");
+        addOptionalLibraryFields("flow_temperature_c,external_temperature_c");
 
         addStringField(
             "status",

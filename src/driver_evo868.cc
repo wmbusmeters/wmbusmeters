@@ -59,8 +59,8 @@ namespace
                 },
             });
 
-        addOptionalCommonFields("fabrication_no");
-        addOptionalFlowRelatedFields("total_m3");
+        addOptionalLibraryFields("fabrication_no");
+        addOptionalLibraryFields("total_m3");
 
         addNumericFieldWithExtractor(
             "consumption_at_set_date",

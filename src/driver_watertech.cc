@@ -36,7 +36,7 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("software_version,meter_datetime");
+        addOptionalLibraryFields("software_version,meter_datetime");
 
         addStringFieldWithExtractorAndLookup(
             "status",

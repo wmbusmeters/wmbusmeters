@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,18 +15,15 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CMDLINE_H
-#define CMDLINE_H
+#ifndef DRIVERS_H_
+#define DRIVERS_H_
 
-#include"config.h"
-#include"meters.h"
-#include<memory>
-#include<string.h>
-#include<vector>
+#include<string>
 
-using namespace std;
-
-shared_ptr<Configuration> parseCommandLine(int argc, char **argv);
-void enableEarlyLoggingFromCommandLine(int argc, char **argv);
+void prepareBuiltinDrivers();
+void loadDriversFromDir(std::string dir);
+bool loadBuiltinDriver(std::string driver_name);
+void loadAllBuiltinDrivers();
+const char *findBuiltinDriver(uint16_t mfct, uchar ver, uchar type);
 
 #endif

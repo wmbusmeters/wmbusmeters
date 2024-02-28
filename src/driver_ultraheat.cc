@@ -35,7 +35,7 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("meter_datetime,fabrication_no");
+        addOptionalLibraryFields("meter_datetime,fabrication_no");
 
         addNumericFieldWithExtractor(
             "heat",

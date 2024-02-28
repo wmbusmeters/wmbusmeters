@@ -11,7 +11,7 @@ jobs:
     - id: INSTALL_ADDITIONAL_BUILD_DEPENDENCIES
       run: |
          sudo apt install -y eatmydata
-         sudo eatmydata apt-get install librtlsdr-dev libusb-dev
+         sudo eatmydata apt-get install librtlsdr-dev libusb-dev libxml2-dev libxslt1-dev
     - id: CONFIGURE
       run: eatmydata ./configure
     - id: MAKE

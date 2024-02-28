@@ -18,6 +18,7 @@
 #include"bus.h"
 #include"cmdline.h"
 #include"config.h"
+#include"drivers.h"
 #include"meters.h"
 #include"printer.h"
 #include"rtlsdr.h"
@@ -84,6 +85,9 @@ int main(int argc, char **argv)
     tzset(); // Load the current timezone.
 
     setVersion(VERSION);
+
+    enableEarlyLoggingFromCommandLine(argc, argv);
+    prepareBuiltinDrivers();
 
     auto config = parseCommandLine(argc, argv);
 
@@ -307,15 +311,23 @@ void list_fields(Configuration *config, string meter_driver)
 
 void list_meters(Configuration *config)
 {
+    loadAllBuiltinDrivers();
+
     for (DriverInfo *di : allDrivers())
     {
         string mname = di->name().str();
         const char *info = toString(di->type());
+        const char *where = "";
+        const string f = di->getDynamicFileName();
+        if (f != "")
+        {
+            where = f.c_str();
+        }
 
         if (config->list_meters_search == "" ||                      \
             stringFoundCaseIgnored(info, config->list_meters_search) || \
             stringFoundCaseIgnored(mname.c_str(), config->list_meters_search)) \
-            printf("%-14s %s\n", mname.c_str(), info);
+            printf("%-14s %s %s\n", mname.c_str(), info, where);
     }
 }
 
