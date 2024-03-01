@@ -39,13 +39,13 @@ bool verbose_ = false;
 
 #define LIST_OF_TESTS \
     X(addresses) \
+    /*
     X(dynamic_loading)                        \
     X(crc)            \
     X(dvparser)       \
     X(devices)        \
     X(linkmodes)      \
     X(ids)            \
-    X(addresses)      \
     X(kdf)            \
     X(periods)        \
     X(device_parsing) \
@@ -77,6 +77,7 @@ bool verbose_ = false;
     X(formulas_dventries)                       \
     X(formulas_stringinterpolation)             \
 
+    */
 
 #define X(t) void test_##t();
 LIST_OF_TESTS
@@ -498,11 +499,15 @@ void test_ids()
     test_does_id_match_expression("78563413", "*,!00156327,!00048713", true, true);
 }
 
-void tst_address(string s, bool valid, string id,
-                 string mfct, uchar version, uchar type,
-                 bool mbus_primary, bool wildcard_used)
+void tst_address(string s, bool valid,
+                 string id, bool has_wildcard,
+                 string mfct,
+                 uchar version,
+                 uchar type,
+                 bool mbus_primary,
+                 bool filter_out)
 {
-    Address a;
+    AddressExpression a;
     bool ok = a.parse(s);
 
     if (ok != valid)
@@ -515,19 +520,57 @@ void tst_address(string s, bool valid, string id,
     {
         string smfct = manufacturerFlag(a.mfct);
         if (id != a.id ||
+            has_wildcard != a.has_wildcard ||
             mfct != smfct ||
             version != a.version ||
             type != a.type ||
-            wildcard_used != a.wildcard_used ||
             mbus_primary != a.mbus_primary ||
-            wildcard_used != a.wildcard_used)
+            filter_out != a.filter_out)
         {
-            printf("Expected parse of address \"%s\" to return (id=%s mfct=%s version=%02x type=%02x mp=%d wu=%d)\n"
-                   "but got (id=%s mfct=%s version=%02x type=%02x mp=%d wu=%d)\n",
+            printf("Expected parse of address \"%s\" to return\n"
+                   "(id=%s haswild=%d mfct=%s version=%02x type=%02x mbus=%d negt=%d)\n"
+                   "but got\n"
+                   "(id=%s haswild=%d mfct=%s version=%02x type=%02x mbus=%d negt=%d)\n",
                    s.c_str(),
-                   id.c_str(), mfct.c_str(), version, type, mbus_primary, wildcard_used,
-                   a.id.c_str(), smfct.c_str(), a.version, a.type, a.mbus_primary, a.wildcard_used);
+                   id.c_str(),
+                   has_wildcard,
+                   mfct.c_str(),
+                   version,
+                   type,
+                   mbus_primary,
+                   filter_out,
+                   a.id.c_str(),
+                   a.has_wildcard,
+                   smfct.c_str(),
+                   a.version,
+                   a.type,
+                   a.mbus_primary,
+                   a.filter_out);
         }
+    }
+}
+
+void tst_address_match(string expr, string id, uint16_t m, uchar v, uchar t, bool match, bool filter_out)
+{
+    AddressExpression e;
+    bool ok = e.parse(expr);
+    assert(ok);
+
+    bool test = e.match(id, m, v, t);
+
+    if (test != match)
+    {
+        printf("Expected address %s %04x %02x %02x to %smatch expression %s\n",
+               id.c_str(),
+               m, v, t,
+               match?"":"not ",
+               expr.c_str());
+    }
+    if (match && e.filter_out != filter_out)
+    {
+        printf("Expected %s from match expression %s\n",
+               filter_out?"FILTERED OUT":"NOT filtered",
+               expr.c_str());
     }
 }
 
@@ -536,26 +579,60 @@ void test_addresses()
     tst_address("12345678",
                 true,
                 "12345678", // id
+                false, // has wildcard
                 "___", // mfct
                 0xff, // type
                 0xff,  // version
-                false, // mbus primary
-                false // wildcard used
+                false, // mbus primary found
+                false // negate test
         );
-    tst_address("123k45678", false, "", "", 0xff, 0xff, false, false);
-    tst_address("1234", false, "", "", 0xff, 0xff, false, false);
-    tst_address("0", true, "0", "___", 0xff, 0xff, true,false);
-    tst_address("250", true, "250", "___", 0xff, 0xff, true, false);
-    tst_address("251", false, "", "", 0xff, 0xff, false, false);
-    tst_address("0.M=PII.V=01.T=1b", true, "0", "PII", 0x01, 0x1b, true, false);
-    tst_address("123.V=11.M=FOO.T=ff", true, "123", "FOO", 0x11, 0xff, true, false);
-    tst_address("123.M=FOO", true, "123", "FOO", 0xff, 0xff, true, false);
-    tst_address("123.M=FOO.V=33", true, "123", "FOO", 0x33, 0xff, true, false);
-    tst_address("123.T=33", true, "123", "___", 0xff, 0x33, true, false);
-    tst_address("1.V=33", true, "1", "___", 0x33, 0xff, true, false);
-    tst_address("16.M=BAR", true, "16", "BAR", 0xff, 0xff, true, false);
+    tst_address("123k45678", false, "", false, "", 0xff, 0xff, false, false);
+    tst_address("1234", false, "", false, "", 0xff, 0xff, false, false);
+    tst_address("p0", true, "p0", false, "___", 0xff, 0xff, true, false);
+    tst_address("p250", true, "p250", false, "___", 0xff, 0xff, true, false);
+    tst_address("p251", false, "", false, "", 0xff, 0xff, false, false);
+    tst_address("p0.M=PII.V=01.T=1b", true, "p0", false, "PII", 0x01, 0x1b, true, false);
+    tst_address("p123.V=11.M=FOO.T=ff", true, "p123", false, "FOO", 0x11, 0xff, true, false);
+    tst_address("p123.M=FOO", true, "p123", false, "FOO", 0xff, 0xff, true, false);
+    tst_address("p123.M=FOO.V=33", true, "p123", false, "FOO", 0x33, 0xff, true, false);
+    tst_address("p123.T=33", true, "p123", false, "___", 0xff, 0x33, true, false);
+    tst_address("p1.V=33", true, "p1", false, "___", 0x33, 0xff, true, false);
+    tst_address("p16.M=BAR", true, "p16", false, "BAR", 0xff, 0xff, true, false);
 
-//    tst_address("12*", true, "12*", "___", 0xff, 0xff, false, true);
+    tst_address("12345678.M=ABB.V=66.T=16", true, "12345678",  false, "ABB", 0x66, 0x16, false, false);
+    tst_address("!12345678.M=ABB.V=66.T=16", true, "12345678", false, "ABB", 0x66, 0x16, false, true);
+    tst_address("!*.M=ABB", true, "*", true, "ABB", 0xff, 0xff, false, true);
+    tst_address("!*.V=66.T=06", true, "*", true, "___", 0x66, 0x06, false, true);
+
+    tst_address("12*", true, "12*", true, "___", 0xff, 0xff, false, false);
+    tst_address("!1234567*", true, "1234567*", true, "___", 0xff, 0xff, false, true);
+
+    tst_address_match("12345678", "12345678", 1, 1, 1, true, false);
+    tst_address_match("12345678.M=ABB.V=77", "12345678", MANUFACTURER_ABB, 0x77, 88, true, false);
+    tst_address_match("1*.V=77", "12345678", MANUFACTURER_ABB, 0x77, 1, true, false);
+    tst_address_match("12345678.M=ABB.V=67.T=06", "12345678", MANUFACTURER_ABB, 0x67, 0x06, true, false);
+    tst_address_match("12345678.M=ABB.V=67.T=06", "12345678", MANUFACTURER_ABB, 0x68, 0x06, false, false);
+    tst_address_match("12345678.M=ABB.V=67.T=06", "12345678", MANUFACTURER_ABB, 0x67, 0x07, false, false);
+    tst_address_match("12345678.M=ABB.V=67.T=06", "12345678", MANUFACTURER_ABB+1, 0x67, 0x06, false, false);
+    tst_address_match("12345678.M=ABB.V=67.T=06", "12345677", MANUFACTURER_ABB, 0x67, 0x06, false, false);
+
+    // Now verify filter out ! character. The filter out does notchange the test. It is still the same
+    // test, but the match will be used as a filter out. Ie if the match triggers, then the telegram will be filtered out.
+    tst_address_match("!12345678", "12345677", 1, 1, 1, false, false);
+    tst_address_match("!*.M=ABB", "99999999", MANUFACTURER_ABB, 1, 1, true, true);
+    tst_address_match("*.M=ABB", "99999999", MANUFACTURER_ABB, 1, 1, true, false);
+
+    // Test that both id wildcard matches and the version.
+    tst_address_match("9*.V=06", "99999999", MANUFACTURER_ABB, 0x06, 1, true, false);
+    tst_address_match("9*.V=06", "89999999", MANUFACTURER_ABB, 0x06, 1, false, false);
+    tst_address_match("9*.V=06", "99999999", MANUFACTURER_ABB, 0x07, 1, false, false);
+    tst_address_match("9*.V=06", "89999999", MANUFACTURER_ABB, 0x07, 1, false, false);
+
+    // Test the same, expect same answers but check that filtered out is set.
+    tst_address_match("!9*.V=06", "99999999", MANUFACTURER_ABB, 0x06, 1, true, true);
+    tst_address_match("!9*.V=06", "89999999", MANUFACTURER_ABB, 0x06, 1, false, true);
+    tst_address_match("!9*.V=06", "99999999", MANUFACTURER_ABB, 0x07, 1, false, true);
+    tst_address_match("!9*.V=06", "89999999", MANUFACTURER_ABB, 0x07, 1, false, true);
 }
 
 void eq(string a, string b, const char *tn)

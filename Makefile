@@ -1,4 +1,3 @@
-
 # Copyright (C) 2017-2023 Fredrik Öhrström (gpl-3.0-or-later)
 #
 # This program is free software: you can redistribute it and/or modify

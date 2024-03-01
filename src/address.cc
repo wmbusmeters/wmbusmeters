@@ -16,10 +16,13 @@
 */
 
 #include"address.h"
+#include"manufacturers.h"
+
+#include<assert.h>
 
 using namespace std;
 
-bool isValidMatchExpression(const string& s)
+bool isValidMatchExpression(const string& s, bool *has_wildcard)
 {
     string me = s;
 
@@ -58,6 +61,7 @@ bool isValidMatchExpression(const string& s)
     {
         me.erase(0,1);
         wildcard_used = true;
+        if (has_wildcard) *has_wildcard = true;
     }
 
     // Now we should have eaten the whole expression.
@@ -78,7 +82,7 @@ bool isValidMatchExpressions(const string& mes)
 
     for (string me : v)
     {
-        if (!isValidMatchExpression(me)) return false;
+        if (!isValidMatchExpression(me, NULL)) return false;
     }
     return true;
 }
@@ -231,6 +235,74 @@ bool doesIdMatchExpressions(const string& id, vector<string>& mes, bool *used_wi
     return false;
 }
 
+bool doesIdMatchAddressExpressions(const string& id, vector<AddressExpression>& aes, bool *used_wildcard)
+{
+/*    bool found_match = false;
+    bool found_negative_match = false;
+    bool exact_match = false;*/
+    *used_wildcard = false;
+
+    // Goes through all possible match expressions.
+    // If no expression matches, neither positive nor negative,
+    // then the result is false. (ie no match)
+
+    // If more than one positive match is found, and no negative,
+    // then the result is true.
+
+    // If more than one negative match is found, irrespective
+    // if there is any positive matches or not, then the result is false.
+
+    // If a positive match is found, using a wildcard not any exact match,
+    // then *used_wildcard is set to true.
+/*
+    for (AddressExpression &ae : aes)
+    {
+        bool has_wildcard = ae.has_wildcard;
+        bool is_negative_rule = (me.length() > 0 && me.front() == '!');
+        if (is_negative_rule)
+        {
+            me.erase(0, 1);
+        }
+
+        bool m = doesIdMatchExpression(id, me);
+
+        if (is_negative_rule)
+        {
+            if (m) found_negative_match = true;
+        }
+        else
+        {
+            if (m)
+            {
+                found_match = true;
+                if (!has_wildcard)
+                {
+                    exact_match = true;
+                }
+            }
+        }
+    }
+
+    if (found_negative_match)
+    {
+        return false;
+    }
+    if (found_match)
+    {
+        if (exact_match)
+        {
+            *used_wildcard = false;
+        }
+        else
+        {
+            *used_wildcard = true;
+        }
+        return true;
+    }
+*/
+    return false;
+}
+
 string toIdsCommaSeparated(vector<string> &ids)
 {
     string cs;
@@ -241,4 +313,115 @@ string toIdsCommaSeparated(vector<string> &ids)
     }
     if (cs.length() > 0) cs.pop_back();
     return cs;
+}
+
+bool AddressExpression::match(const std::string &i, uint16_t m, uchar v, uchar t)
+{
+    if (!(mfct == 0xffff || mfct == m)) return false;
+    if (!(version == 0xff || version == v)) return false;
+    if (!(type == 0xff || type == t)) return false;
+    if (!doesIdMatchExpression(i, id)) return false;
+
+    return true;
+}
+
+bool AddressExpression::parse(const string &in)
+{
+    string s = in;
+    // Example: 12345678
+    // or       12345678.M=PII.T=1B.V=01
+    // or       1234*
+    // or       1234*.M=PII
+    // or       1234*.V=01
+    // or       12 // mbus primary
+    // or       0  // mbus primary
+    // or       250.MPII.V01.T1B // mbus primary
+    // or       !12345678
+    // or       !*.M=ABC
+    id = "";
+    mbus_primary = false;
+    mfct = 0xffff;
+    type = 0xff;
+    version = 0xff;
+    filter_out = false;
+
+    if (s.size() == 0) return false;
+
+    if (s.size() > 1 && s[0] == '!')
+    {
+        filter_out = true;
+        s = s.substr(1);
+    }
+
+    vector<string> parts = splitString(s, '.');
+
+    assert(parts.size() > 0);
+
+    id = parts[0];
+    if (!isValidMatchExpression(id, &has_wildcard))
+    {
+        // Not a long id, so lets check if it is p0 to p250 for primary mbus ids.
+        if (id.size() < 2) return false;
+        if (id[0] != 'p') return false;
+        for (size_t i=1; i < id.length(); ++i)
+        {
+            if (!isdigit(id[i])) return false;
+        }
+        // All digits good.
+        int v = atoi(id.c_str()+1);
+        if (v < 0 || v > 250) return false;
+        // It is 0-250 which means it is an mbus primary address.
+        mbus_primary = true;
+    }
+
+    for (size_t i=1; i<parts.size(); ++i)
+    {
+        if (parts[i].size() == 4) // V=xy or T=xy
+        {
+            if (parts[i][1] != '=') return false;
+
+            vector<uchar> data;
+            bool ok = hex2bin(&parts[i][2], &data);
+            if (!ok) return false;
+            if (data.size() != 1) return false;
+
+            if (parts[i][0] == 'V')
+            {
+                version = data[0];
+            }
+            else if (parts[i][0] == 'T')
+            {
+                type = data[0];
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else if (parts[i].size() == 5) // M=xyz
+        {
+            if (parts[i][1] != '=') return false;
+            if (parts[i][0] != 'M') return false;
+
+            bool ok = flagToManufacturer(&parts[i][2], &mfct);
+            if (!ok) return false;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool flagToManufacturer(const char *s, uint16_t *out_mfct)
+{
+    if (s[0] == 0 || s[1] == 0 || s[2] == 0 || s[3] != 0) return false;
+    if (s[0] < '@' || s[0] > 'Z' ||
+        s[1] < '@' || s[1] > 'Z' ||
+        s[2] < '@' || s[2] > 'Z') return false;
+
+    *out_mfct = MANFCODE(s[0],s[1],s[2]);
+    return true;
 }

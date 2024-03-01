@@ -465,17 +465,6 @@ string manufacturerFlag(int m_field) {
     return flag;
 }
 
-bool flagToManufacturer(const char *s, uint16_t *out_mfct)
-{
-    if (s[0] == 0 || s[1] == 0 || s[2] == 0 || s[3] != 0) return false;
-    if (s[0] < '@' || s[0] > 'Z' ||
-        s[1] < '@' || s[1] > 'Z' ||
-        s[2] < '@' || s[2] > 'Z') return false;
-
-    *out_mfct = MANFCODE(s[0],s[1],s[2]);
-    return true;
-}
-
 string mediaType(int a_field_device_type, int m_field) {
     switch (a_field_device_type) {
     case 0: return "Other";
