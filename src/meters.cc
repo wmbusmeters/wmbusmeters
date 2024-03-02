@@ -327,8 +327,7 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     has_process_content_(di.hasProcessContent()),
     waiting_for_poll_response_sem_("waiting_for_poll_response")
 {
-    ids_ = mi.ids;
-    idsc_ = toIdsCommaSeparated(ids_);
+    address_expressions_ = mi.address_expressions;
     link_modes_ = mi.link_modes;
     poll_interval_= mi.poll_interval;
 
@@ -673,25 +672,25 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
 
         if (!bus_device)
         {
-            warning("(meter) warning! no bus specified for meter %s %s\n", name().c_str(), idsc().c_str());
+            string aesc = AddressExpression::concat(addressExpressions());
+            warning("(meter) warning! no bus specified for meter %s %s\n", name().c_str(), aesc.c_str());
             return;
         }
 
-        string id = ids().back();
-        if (id.length() != 2 && id.length() != 3 && id.length() != 8)
+        AddressExpression &ae = addressExpressions().back();
+        if (ae.has_wildcard)
         {
-            debug("(meter) not polling from bad id  \"%s\" with wrong length\n", id.c_str());
+            debug("(meter) not polling from id \"%s\" since poll id must not have a wildcard\n", ae.id.c_str());
             return;
         }
 
-        if (id.length() == 2 || id.length() == 3)
+        if (ae.mbus_primary)
         {
-            vector<uchar> idhex;
-            int idnum = atoi(id.c_str());
+            int idnum = atoi(ae.id.c_str()+1);
 
-            if (idnum < 0 || idnum > 250 || idhex.size() != 1)
+            if (idnum < 0 || idnum > 250)
             {
-                debug("(meter) not polling from bad id \"%s\"\n", id.c_str());
+                debug("(meter) not polling from bad id \"%s\"\n", ae.id.c_str());
                 return;
             }
 
@@ -699,7 +698,7 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
             buf.resize(5);
             buf[0] = 0x10; // Start
             buf[1] = 0x5b; // REQ_UD2
-            buf[2] = idhex[0];
+            buf[2] = idnum & 0xff;
             uchar cs = 0;
             for (int i=1; i<3; ++i) cs += buf[i];
             buf[3] = cs; // checksum
@@ -707,21 +706,21 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
 
             verbose("(meter) polling %s %s (primary) with req ud2 on bus %s\n",
                     name().c_str(),
-                    id.c_str(),
-                    bus_device->busAlias().c_str(),id.c_str());
+                    ae.id.c_str(),
+                    bus_device->busAlias().c_str(),ae.id.c_str());
             bus_device->serial()->send(buf);
         }
 
-        if (id.length() == 8)
+        if (!ae.mbus_primary)
         {
             // A full secondary address 12345678 was specified.
 
             vector<uchar> idhex;
-            bool ok = hex2bin(id, &idhex);
+            bool ok = hex2bin(ae.id, &idhex);
 
             if (!ok || idhex.size() != 4)
             {
-                debug("(meter) not polling from bad id \"%s\"\n", id.c_str());
+                debug("(meter) not polling from bad id \"%s\"\n", ae.id.c_str());
                 return;
             }
 
@@ -739,19 +738,19 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
             buf[8] = idhex[2]; // id 56
             buf[9] = idhex[1]; // id 34
             buf[10] = idhex[0]; // id 12
-            // Use wildcards instead of exact matching here.
-            // TODO add selection based on these values as well.
-            buf[11] = 0xff; // mfct
-            buf[12] = 0xff; // mfct
-            buf[13] = 0xff; // version/generation
-            buf[14] = 0xff; // type/media/device
+            buf[11] = (ae.mfct >> 8) & 0xff; // use 0xff as a wildcard
+            buf[12] = ae.mfct & 0xff; // mfct
+            buf[13] = ae.version; // version/generation
+            buf[14] = ae.type; // type/media/device
 
             uchar cs = 0;
             for (int i=4; i<15; ++i) cs += buf[i];
             buf[15] = cs; // checksum
             buf[16] = 0x16; // Stop
 
-            debug("(meter) secondary addressing bus %s to address %s\n", bus_device->busAlias().c_str(), id.c_str());
+            debug("(meter) secondary addressing bus %s to address %s\n",
+                  bus_device->busAlias().c_str(),
+                  ae.id.c_str());
             bus_device->serial()->send(buf);
 
             usleep(1000*500);
@@ -767,26 +766,21 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
 
             verbose("(meter) polling %s %s (secondary) with req ud2 bus %s\n",
                     name().c_str(),
-                    id.c_str(),
+                    ae.id.c_str(),
                     bus_device->busAlias().c_str());
             bus_device->serial()->send(buf);
         }
         bool ok = waiting_for_poll_response_sem_.wait();
         if (!ok)
         {
-            warning("(meter) %s %s did not send a response!\n", name().c_str(), idsc().c_str());
+            warning("(meter) %s %s did not send a response!\n", name().c_str(), ae.id.c_str());
         }
     }
 }
 
-vector<string>& MeterCommonImplementation::ids()
+vector<AddressExpression>& MeterCommonImplementation::addressExpressions()
 {
-    return ids_;
-}
-
-string MeterCommonImplementation::idsc()
-{
-    return idsc_;
+    return address_expressions_;
 }
 
 vector<FieldInfo> &MeterCommonImplementation::fieldInfos()
@@ -852,7 +846,10 @@ void MeterCommonImplementation::setPollInterval(time_t interval)
     poll_interval_ = interval;
     if (usesPolling() && poll_interval_ == 0)
     {
-        warning("(meter) %s %s needs polling but has no pollinterval set!\n", name().c_str(), idsc().c_str());
+        string aesc = AddressExpression::concat(addressExpressions());
+        warning("(meter) %s %s needs polling but has no pollinterval set!\n",
+                name().c_str(),
+                aesc.c_str());
     }
 }
 
@@ -906,8 +903,7 @@ string toString(DriverInfo &di)
 bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, MeterInfo *mi)
 {
     string name;
-    vector<string> ids;
-    string idsc;
+    vector<AddressExpression> address_expressions;
     string driver_name;
 
     assert((meter && !mi) ||
@@ -916,22 +912,27 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
     if (meter)
     {
         name = meter->name();
-        ids = meter->ids();
-        idsc = meter->idsc();
+        address_expressions = meter->addressExpressions();
         driver_name = meter->driverName().str();
     }
     else
     {
         name = mi->name;
-        ids = mi->ids;
-        idsc = mi->idsc;
+        address_expressions = mi->address_expressions;
         driver_name = mi->driver_name.str();
     }
 
-    debug("(meter) %s: for me? %s in %s\n", name.c_str(), t->idsc.c_str(), idsc.c_str());
+    if (isDebugEnabled())
+    {
+        // Telegram addresses
+        string t_idsc = Address::concat(t->addresses);
+        // Meter/MeterInfo address expressions
+        string m_idsc = AddressExpression::concat(address_expressions);
+        debug("(meter) %s: for me? %s in %s\n", name.c_str(), t_idsc.c_str(), m_idsc.c_str());
+    }
 
     bool used_wildcard = false;
-    bool id_match = doesIdsMatchExpressions(t->ids, ids, &used_wildcard);
+    bool id_match = doesTelegramMatchExpressions(t->addresses, address_expressions, &used_wildcard);
 
     if (!id_match) {
         // The id must match.
@@ -1050,7 +1051,7 @@ bool checkCommonField(string *buf, string desired_field, Meter *m, Telegram *t, 
     }
     if (desired_field == "id")
     {
-        *buf += t->ids.back() + c;
+        *buf += t->addresses.back().id + c;
         return true;
     }
     if (desired_field == "timestamp")
@@ -1194,7 +1195,8 @@ string concatFields(Meter *m, Telegram *t, char c, vector<FieldInfo> &prints, bo
 }
 
 bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> input_frame,
-                                               bool simulated, string *ids, bool *id_match, Telegram *out_analyzed)
+                                               bool simulated, vector<Address> *addresses,
+                                               bool *id_match, Telegram *out_analyzed)
 {
     Telegram t;
     t.about = about;
@@ -1203,7 +1205,7 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     if (simulated) t.markAsSimulated();
     if (out_analyzed != NULL) t.markAsBeingAnalyzed();
 
-    *ids = t.idsc;
+    *addresses = t.addresses;
 
     if (!ok || !isTelegramForMeter(&t, this, NULL))
     {
@@ -1212,12 +1214,19 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     }
 
     *id_match = true;
-    verbose("(meter) %s(%d) %s  handling telegram from %s\n", name().c_str(), index(), driverName().str().c_str(), t.ids.back().c_str());
+    if (isVerboseEnabled())
+    {
+        verbose("(meter) %s(%d) %s  handling telegram from %s\n",
+                name().c_str(),
+                index(),
+                driverName().str().c_str(),
+                t.addresses.back().str().c_str());
+    }
 
     if (isDebugEnabled())
     {
         string msg = bin2hex(input_frame);
-        debug("(meter) %s %s \"%s\"\n", name().c_str(), t.ids.back().c_str(), msg.c_str());
+        debug("(meter) %s %s \"%s\"\n", name().c_str(), t.addresses.back().str().c_str(), msg.c_str());
     }
 
     // For older meters with manufacturer specific data without a nice 0f dif marker.
@@ -1744,11 +1753,11 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     return s;
 }
 
-void MeterCommonImplementation::createMeterEnv( string *id,
-                                                vector<string> *envs,
-                                                vector<string> *extra_constant_fields)
+void MeterCommonImplementation::createMeterEnv(string id,
+                                               vector<string> *envs,
+                                               vector<string> *extra_constant_fields)
 {
-    envs->push_back(string("METER_ID="+*id));
+    envs->push_back(string("METER_ID="+id));
     envs->push_back(string("METER_NAME=")+name());
     envs->push_back(string("METER_TYPE=")+driverName().str());
 
@@ -1791,9 +1800,9 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     }
 
     string id = "";
-    if (t->ids.size() > 0)
+    if (t->addresses.size() > 0)
     {
-        id = t->ids.back();
+        id = t->addresses.back().id;
     }
 
     string indent = "";
@@ -1941,7 +1950,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     s += "}";
     *json = s;
 
-    createMeterEnv(&id, envs, extra_constant_fields);
+    createMeterEnv(id, envs, extra_constant_fields);
 
     envs->push_back(string("METER_JSON=")+*json);
     envs->push_back(string("METER_MEDIA=")+media);
@@ -2093,11 +2102,15 @@ shared_ptr<Meter> createMeter(MeterInfo *mi)
         {
             newm->setSelectedFields(di->defaultFields());
         }
-        verbose("(meter) created %s %s %s %s\n",
-                mi->name.c_str(),
-                di->name().str().c_str(),
-                mi->idsc.c_str(),
-                keymsg);
+        if (isVerboseEnabled())
+        {
+            string aesc = AddressExpression::concat(mi->address_expressions);
+            verbose("(meter) created %s %s %s %s\n",
+                    mi->name.c_str(),
+                    di->name().str().c_str(),
+                    aesc.c_str(),
+                    keymsg);
+        }
         return newm;
     }
 
@@ -2165,12 +2178,12 @@ string MeterInfo::str()
     return r;
 }
 
-bool MeterInfo::parse(string n, string d, string i, string k)
+bool MeterInfo::parse(string n, string d, string aes, string k)
 {
     clear();
 
     name = n;
-    ids = splitMatchExpressions(i);
+    address_expressions = splitAddressExpressions(aes);
     key = k;
     bool driverextras_checked = false;
     bool bus_checked = false;

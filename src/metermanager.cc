@@ -144,11 +144,12 @@ public:
 
         bool handled = false;
         bool exact_id_match = false;
+        string verbose_info;
 
-        string ids;
+        vector<Address> addresses;
         for (auto &m : meters_)
         {
-            bool h = m->handleTelegram(about, input_frame, simulated, &ids, &exact_id_match);
+            bool h = m->handleTelegram(about, input_frame, simulated, &addresses, &exact_id_match);
             if (h) handled = true;
         }
 
@@ -156,7 +157,12 @@ public:
         // then lets check if there is a template that can create a meter for it.
         if (!handled && !exact_id_match)
         {
-            debug("(meter) no meter handled %s checking %d templates.\n", ids.c_str(), meter_templates_.size());
+            if (isDebugEnabled())
+            {
+                string idsc = Address::concat(addresses);
+                debug("(meter) no meter handled %s checking %d templates.\n",
+                      idsc.c_str(), meter_templates_.size());
+            }
             // Not handled, maybe we have a template to create a new meter instance for this telegram?
             Telegram t;
             t.about = about;
@@ -165,7 +171,6 @@ public:
 
             if (ok)
             {
-                ids = t.idsc;
                 for (auto &mi : meter_templates_)
                 {
                     if (MeterCommonImplementation::isTelegramForMeter(&t, NULL, &mi))
@@ -178,10 +183,9 @@ public:
                         // This will pick the tpl_id.
                         // Or a telegram can have a single dll_id,
                         // then the dll_id will be picked.
-                        vector<string> tmp_ids;
-                        tmp_ids.push_back(t.ids.back());
-                        meter_info.ids = tmp_ids;
-                        meter_info.idsc = t.ids.back();
+                        vector<AddressExpression> aes;
+                        aes.push_back(AddressExpression(t.addresses.back()));
+                        meter_info.address_expressions = aes;
 
                         if (meter_info.driverName().str() == "auto")
                         {
@@ -203,47 +207,55 @@ public:
                         // Now build a meter object with for this exact id.
                         auto meter = createMeter(&meter_info);
                         addMeter(meter);
-                        string idsc = toIdsCommaSeparated(t.ids);
-                        verbose("(meter) used meter template %s %s %s to match %s\n",
-                                mi.name.c_str(),
-                                mi.idsc.c_str(),
-                                mi.driverName().str().c_str(),
-                                idsc.c_str());
+                        if (isVerboseEnabled())
+                        {
+                            string idsc = Address::concat(t.addresses);
+                            string mi_idsc = AddressExpression::concat(mi.address_expressions);
+                            verbose("(meter) used meter template %s %s %s to match %s\n",
+                                    mi.name.c_str(),
+                                    mi_idsc.c_str(),
+                                    mi.driverName().str().c_str(),
+                                    idsc.c_str());
+                        }
 
                         if (is_daemon_)
                         {
+                            string mi_idsc = AddressExpression::concat(mi.address_expressions);
                             notice("(wmbusmeters) started meter %d (%s %s %s)\n",
                                    meter->index(),
                                    mi.name.c_str(),
-                                   meter_info.idsc.c_str(),
+                                   mi_idsc.c_str(),
                                    mi.driverName().str().c_str());
                         }
                         else
                         {
+                            string mi_idsc = AddressExpression::concat(mi.address_expressions);
                             verbose("(meter) started meter %d (%s %s %s)\n",
                                     meter->index(),
                                     mi.name.c_str(),
-                                    meter_info.idsc.c_str(),
+                                    mi_idsc.c_str(),
                                     mi.driverName().str().c_str());
                         }
 
                         bool match = false;
-                        bool h = meter->handleTelegram(about, input_frame, simulated, &ids, &match);
+                        bool h = meter->handleTelegram(about, input_frame, simulated, &addresses, &match);
                         if (!match)
                         {
+                            string aesc = AddressExpression::concat(meter->addressExpressions());
                             // Oups, we added a new meter object tailored for this telegram
                             // but it still did not match! This is probably an error in wmbusmeters!
                             warning("(meter) newly created meter (%s %s %s) did not match telegram! ",
                                     "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n",
-                                    meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
+                                    meter->name().c_str(), aesc.c_str(), meter->driverName().str().c_str());
                         }
                         else if (!h)
                         {
+                            string aesc = AddressExpression::concat(meter->addressExpressions());
                             // Oups, we added a new meter object tailored for this telegram
                             // but it still did not handle it! This can happen if the wrong
                             // decryption key was used.
                             warning("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
-                                    meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
+                                    meter->name().c_str(), aesc.c_str(), meter->driverName().str().c_str());
                         }
                         else
                         {
@@ -259,7 +271,7 @@ public:
         }
         if (isVerboseEnabled() && !handled)
         {
-            verbose("(wmbus) telegram from %s ignored by all configured meters!\n", ids.c_str());
+            verbose("(wmbus) telegram from %s ignored by all configured meters!\n", "TODO");
         }
         return handled;
     }
@@ -344,8 +356,8 @@ public:
             auto meter = createMeter(&mi);
 
             bool match = false;
-            string id;
-            bool h = meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+            vector<Address> addresses;
+            bool h = meter->handleTelegram(about, input_frame, simulated, &addresses, &match, &t);
 
             if (!match)
             {
@@ -353,11 +365,12 @@ public:
             }
             else if (!h)
             {
+                string aesc = AddressExpression::concat(meter->addressExpressions());
                 // Oups, we added a new meter object tailored for this telegram
                 // but it still did not handle it! This can happen if the wrong
                 // decryption key was used. But it is ok if analyzing....
                 debug("Newly created meter (%s %s %s) did not handle telegram!\n",
-                      meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
+                      meter->name().c_str(), aesc.c_str(), meter->driverName().str().c_str());
             }
             else
             {
@@ -406,9 +419,8 @@ public:
         // Overwrite the id with the id from the telegram to be analyzed.
         MeterInfo mi;
         mi.key = analyze_key_;
-        mi.ids.clear();
-        mi.ids.push_back(t.ids.back());
-        mi.idsc = t.ids.back();
+        mi.address_expressions.clear();
+        mi.address_expressions.push_back(AddressExpression(t.addresses.back()));
 
         // This will be the driver that will actually decode and print with.
         string using_driver;
@@ -459,7 +471,6 @@ public:
         assert(meter != NULL);
 
         bool match = false;
-        string id;
 
         if (should_profile_ > 0)
         {
@@ -473,7 +484,8 @@ public:
 
             for (int k=0; k<should_profile_; ++k)
             {
-                meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+                vector<Address> addresses;
+                meter->handleTelegram(about, input_frame, simulated, &addresses, &match, &t);
                 string hr, fields, json;
                 vector<string> envs, more_json, selected_fields;
 
@@ -500,7 +512,8 @@ public:
             return;
         }
 
-        meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+        vector<Address> addresses;
+        meter->handleTelegram(about, input_frame, simulated, &addresses, &match, &t);
 
         int u = 0;
         int l = 0;

@@ -581,12 +581,12 @@ bool start(Configuration *config)
             vector<string> envs;
 
             string id = "";
-            if (meter->ids().size() > 0)
+            if (meter->addressExpressions().size() > 0)
             {
-                id = meter->idsc().c_str();
+                id = meter->addressExpressions().back().id;
             }
 
-            meter->createMeterEnv(&id, &envs, &config->extra_constant_fields);
+            meter->createMeterEnv(id, &envs, &config->extra_constant_fields);
 
             for (auto &s : *shells) {
                 vector<string> args;

@@ -39,7 +39,6 @@ bool verbose_ = false;
 
 #define LIST_OF_TESTS \
     X(addresses) \
-    /*
     X(dynamic_loading)                        \
     X(crc)            \
     X(dvparser)       \
@@ -76,8 +75,6 @@ bool verbose_ = false;
     X(formulas_errors)                          \
     X(formulas_dventries)                       \
     X(formulas_stringinterpolation)             \
-
-    */
 
 #define X(t) void test_##t();
 LIST_OF_TESTS
@@ -427,7 +424,7 @@ void test_linkmodes()
 
 void test_valid_match_expression(string s, bool expected)
 {
-    bool b = isValidMatchExpressions(s);
+    bool b = isValidSequenceOfAddressExpressions(s);
     if (b == expected) return;
     if (expected == true)
     {
@@ -441,9 +438,13 @@ void test_valid_match_expression(string s, bool expected)
 
 void test_does_id_match_expression(string id, string mes, bool expected, bool expected_uw)
 {
-    vector<string> expressions = splitMatchExpressions(mes);
+    Address a;
+    a.id = id;
+    vector<Address> as;
+    as.push_back(a);
+    vector<AddressExpression> expressions = splitAddressExpressions(mes);
     bool uw = false;
-    bool b = doesIdMatchExpressions(id, expressions, &uw);
+    bool b = doesTelegramMatchExpressions(as, expressions, &uw);
     if (b != expected)
     {
         if (expected == true)
@@ -2254,9 +2255,9 @@ void test_formulas_building_meters()
         MeterKeys mk;
         t.parse(frame, &mk, true);
 
-        string id;
+        vector<Address> addresses;
         bool match;
-        meter->handleTelegram(t.about, frame, true, &id, &match, &t);
+        meter->handleTelegram(t.about, frame, true, &addresses, &match, &t);
 
         f->clear();
         f->setMeter(meter.get());
@@ -2305,7 +2306,7 @@ void test_formulas_building_meters()
         MeterKeys mk;
         t.parse(frame, &mk, true);
 
-        string id;
+        vector<Address> id;
         bool match;
         meter->handleTelegram(t.about, frame, true, &id, &match, &t);
 
@@ -2489,7 +2490,7 @@ void test_formulas_parsing_1()
     MeterKeys mk;
     t.parse(frame, &mk, true);
 
-    string id;
+    vector<Address> id;
     bool match;
     meter->handleTelegram(t.about, frame, true, &id, &match, &t);
 
@@ -2539,7 +2540,7 @@ void test_formulas_parsing_2()
     MeterKeys mk;
     t.parse(frame, &mk, true);
 
-    string id;
+    vector<Address> id;
     bool match;
     meter->handleTelegram(t.about, frame, true, &id, &match, &t);
 

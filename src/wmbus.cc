@@ -229,17 +229,18 @@ LIST_OF_MANUFACTURERS
 
 }
 
-void Telegram::addId(const vector<uchar>::iterator &pos)
+void Telegram::addAddressMfctFirst(const vector<uchar>::iterator &pos)
 {
-//    string id = tostrprintf("%02x%02x%02x%02x_%02x_%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0), *(pos+4), *(pos+5));
-    string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
-    ids.push_back(id);
-    if (idsc.empty()) {
-        idsc = id;
-    }
-    else {
-        idsc += "," + id;
-    }
+    Address a;
+    a.decodeMfctFirst(pos);
+    addresses.push_back(a);
+}
+
+void Telegram::addAddressIdFirst(const vector<uchar>::iterator &pos)
+{
+    Address a;
+    a.decodeIdFirst(pos);
+    addresses.push_back(a);
 }
 
 void Telegram::print()
@@ -451,18 +452,6 @@ string manufacturer(int m_field) {
 	if (m.m_field == m_field) return m.name;
     }
     return "Unknown";
-}
-
-string manufacturerFlag(int m_field) {
-    char a = (m_field/1024)%32+64;
-    char b = (m_field/32)%32+64;
-    char c = (m_field)%32+64;
-
-    string flag;
-    flag += a;
-    flag += b;
-    flag += c;
-    return flag;
 }
 
 string mediaType(int a_field_device_type, int m_field) {
@@ -915,9 +904,10 @@ bool Telegram::parseMBusDLLandTPL(vector<uchar>::iterator &pos)
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-a primary (%d)", mbus_primary_address, mbus_primary_address);
 
     // Add dll_id to ids.
-    string id = tostrprintf("%02x", mbus_primary_address);
-    ids.push_back(id);
-    idsc = id;
+    string id = tostrprintf("p%d", mbus_primary_address);
+    Address a;
+    a.id = id;
+    addresses.push_back(a);
 
     mbus_ci = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x tpl-ci (%s)", mbus_ci, mbusCiField(mbus_ci));
@@ -943,6 +933,9 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     dll_c = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-c (%s)", dll_c, cType(dll_c).c_str());
 
+    CHECK(8)
+    addAddressMfctFirst(pos);
+
     dll_mfct_b[0] = *(pos+0);
     dll_mfct_b[1] = *(pos+1);
     dll_mfct = dll_mfct_b[1] <<8 | dll_mfct_b[0];
@@ -962,9 +955,8 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
         }
     }
     // Add dll_id to ids.
-    addId(pos);
     addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x dll-id (%s)",
-                                  *(pos+0), *(pos+1), *(pos+2), *(pos+3), ids.back().c_str());
+                                  *(pos+0), *(pos+1), *(pos+2), *(pos+3), addresses.back().id.c_str());
 
     dll_version = *(pos+0);
     dll_type = *(pos+1);
@@ -1038,6 +1030,9 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
 
     if (has_target_mft_address)
     {
+        CHECK(8);
+        addAddressMfctFirst(pos);
+
         ell_mfct_b[0] = *(pos+0);
         ell_mfct_b[1] = *(pos+1);
         ell_mfct = ell_mfct_b[1] << 8 | ell_mfct_b[0];
@@ -1052,7 +1047,6 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         ell_id_b[3] = *(pos+3);
 
         // Add ell_id to ids.
-        addId(pos);
         addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x ell-id",
                                       ell_id_b[0], ell_id_b[1], ell_id_b[2], ell_id_b[3]);
 
@@ -1448,7 +1442,9 @@ bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
 
 bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
 {
-    CHECK(4);
+    CHECK(8);
+    addAddressIdFirst(pos);
+
     tpl_id_found = true;
     tpl_id_b[0] = *(pos+0);
     tpl_id_b[1] = *(pos+1);
@@ -1460,9 +1456,6 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     {
         tpl_a[i] = *(pos+i);
     }
-
-    // Add the tpl_id to ids.
-    addId(pos);
 
     addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL,
                                   "%02x%02x%02x%02x tpl-id (%02x%02x%02x%02x)",

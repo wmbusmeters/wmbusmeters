@@ -22,6 +22,8 @@
 
 using namespace std;
 
+vector<string> splitSequenceOfAddressExpressionsAtCommas(const string& mes);
+
 bool isValidMatchExpression(const string& s, bool *has_wildcard)
 {
     string me = s;
@@ -37,8 +39,11 @@ bool isValidMatchExpression(const string& s, bool *has_wildcard)
     // A match expression cannot be empty.
     if (me.length() == 0) return false;
 
-    // An me can be negated with an exclamation mark first.
+    // An me can be filtered out with an exclamation mark first.
     if (me.front() == '!') me.erase(0, 1);
+
+    // More than one negation is not allowed.
+    if (me.front() == '!') return false;
 
     // A match expression cannot be only a negation mark.
     if (me.length() == 0) return false;
@@ -76,29 +81,51 @@ bool isValidMatchExpression(const string& s, bool *has_wildcard)
     return count <= 7;
 }
 
-bool isValidMatchExpressions(const string& mes)
+vector<string> splitSequenceOfAddressExpressionsAtCommas(const string& mes)
 {
-    vector<string> v = splitMatchExpressions(mes);
+    vector<string> r;
+    bool eof, err;
+    vector<uchar> v (mes.begin(), mes.end());
+    auto i = v.begin();
+
+    for (;;) {
+        auto id = eatTo(v, i, ',', 16, &eof, &err);
+        if (err) break;
+        trimWhitespace(&id);
+        if (id == "ANYID") id = "*";
+        r.push_back(id);
+        if (eof) break;
+    }
+    return r;
+}
+
+bool isValidSequenceOfAddressExpressions(const string& mes)
+{
+    vector<string> v = splitSequenceOfAddressExpressionsAtCommas(mes);
 
     for (string me : v)
     {
-        if (!isValidMatchExpression(me, NULL)) return false;
+        AddressExpression ae;
+        if (!ae.parse(me)) return false;
     }
     return true;
 }
 
-bool isValidId(const string& id)
+vector<AddressExpression> splitAddressExpressions(const string &aes)
 {
+    vector<string> v = splitSequenceOfAddressExpressionsAtCommas(aes);
 
-    for (size_t i=0; i<id.length(); ++i)
+    vector<AddressExpression> r;
+
+    for (string me : v)
     {
-        if (id[i] >= '0' && id[i] <= '9') continue;
-        // Some non-compliant meters have hex in their id.
-        if (id[i] >= 'a' && id[i] <= 'f') continue;
-        if (id[i] >= 'A' && id[i] <= 'F') continue;
-        return false;
+        AddressExpression ae;
+        if (ae.parse(me))
+        {
+            r.push_back(ae);
+        }
     }
-    return true;
+    return r;
 }
 
 bool doesIdMatchExpression(const string& s, string match)
@@ -153,12 +180,12 @@ bool hasWildCard(const string& mes)
     return mes.find('*') != string::npos;
 }
 
-bool doesIdsMatchExpressions(vector<string> &ids, vector<string>& mes, bool *used_wildcard)
+bool doesIdsMatchExpressionss(vector<string> &ids, vector<string>& mes, bool *used_wildcard)
 {
     bool match = false;
     for (string &id : ids)
     {
-        if (doesIdMatchExpressions(id, mes, used_wildcard))
+        if (doesIdMatchExpressionss(id, mes, used_wildcard))
         {
             match = true;
         }
@@ -168,7 +195,7 @@ bool doesIdsMatchExpressions(vector<string> &ids, vector<string>& mes, bool *use
     return match;
 }
 
-bool doesIdMatchExpressions(const string& id, vector<string>& mes, bool *used_wildcard)
+bool doesIdMatchExpressionss(const string& id, vector<string>& mes, bool *used_wildcard)
 {
     bool found_match = false;
     bool found_negative_match = false;
@@ -315,6 +342,18 @@ string toIdsCommaSeparated(vector<string> &ids)
     return cs;
 }
 
+string toIdsCommaSeparated(vector<AddressExpression> &ids)
+{
+    string cs;
+    for (AddressExpression& ae: ids)
+    {
+        cs += ae.str();
+        cs += ",";
+    }
+    if (cs.length() > 0) cs.pop_back();
+    return cs;
+}
+
 bool AddressExpression::match(const std::string &i, uint16_t m, uchar v, uchar t)
 {
     if (!(mfct == 0xffff || mfct == m)) return false;
@@ -351,8 +390,9 @@ bool AddressExpression::parse(const string &in)
     {
         filter_out = true;
         s = s.substr(1);
+        // Double ! not allowed.
+        if (s.size() > 1 && s[0] == '!') return false;
     }
-
     vector<string> parts = splitString(s, '.');
 
     assert(parts.size() > 0);
@@ -424,4 +464,177 @@ bool flagToManufacturer(const char *s, uint16_t *out_mfct)
 
     *out_mfct = MANFCODE(s[0],s[1],s[2]);
     return true;
+}
+
+string AddressExpression::str()
+{
+    string s;
+
+    if (filter_out) s = "!";
+
+    s.append(id);
+    if (mfct != 0xffff)
+    {
+        s += ".M="+manufacturerFlag(mfct);
+    }
+    if (version != 0xff)
+    {
+        s += ".V="+tostrprintf("%02x", version);
+    }
+    if (type != 0xff)
+    {
+        s += ".T="+tostrprintf("%02x", type);
+    }
+
+    return s;
+}
+
+string Address::str()
+{
+    string s;
+
+    s.append(id);
+    if (mfct != 0xffff)
+    {
+        s += ".M="+manufacturerFlag(mfct);
+    }
+    if (version != 0xff)
+    {
+        s += ".V="+tostrprintf("%02x", version);
+    }
+    if (type != 0xff)
+    {
+        s += ".T="+tostrprintf("%02x", type);
+    }
+
+    return s;
+}
+
+string Address::concat(std::vector<Address> &addresses)
+{
+    string s;
+    for (Address& a: addresses)
+    {
+        if (s.size() > 0) s.append(",");
+        s.append(a.str());
+    }
+    return s;
+}
+
+string AddressExpression::concat(std::vector<AddressExpression> &address_expressions)
+{
+    string s;
+    for (AddressExpression& a: address_expressions)
+    {
+        if (s.size() > 0) s.append(",");
+        s.append(a.str());
+    }
+    return s;
+}
+
+string manufacturerFlag(int m_field) {
+    char a = (m_field/1024)%32+64;
+    char b = (m_field/32)%32+64;
+    char c = (m_field)%32+64;
+
+    string flag;
+    flag += a;
+    flag += b;
+    flag += c;
+    return flag;
+}
+
+void Address::decodeMfctFirst(const vector<uchar>::iterator &pos)
+{
+    mfct = *(pos+1) << 8 | *(pos+0);
+    id = tostrprintf("%02x%02x%02x%02x", *(pos+5), *(pos+4), *(pos+3), *(pos+2));
+    version = *(pos+6);
+    type = *(pos+7);
+}
+
+void Address::decodeIdFirst(const vector<uchar>::iterator &pos)
+{
+    id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
+    mfct = *(pos+5) << 8 | *(pos+4);
+    version = *(pos+6);
+    type = *(pos+7);
+}
+
+bool doesTelegramMatchExpressions(std::vector<Address> &addresses,
+                                  std::vector<AddressExpression>& address_expressions,
+                                  bool *used_wildcard)
+{
+    bool match = false;
+    for (Address &a : addresses)
+    {
+        if (doesAddressMatchExpressions(a, address_expressions, used_wildcard))
+        {
+            match = true;
+        }
+        // Go through all ids even though there is an early match.
+        // This way we can see if theres an exact match later.
+    }
+    return match;
+}
+
+bool doesAddressMatchExpressions(Address &address,
+                                 vector<AddressExpression>& address_expressions,
+                                 bool *used_wildcard)
+{
+    bool found_match = false;
+    bool found_negative_match = false;
+    bool exact_match = false;
+
+    // Goes through all possible match expressions.
+    // If no expression matches, neither positive nor negative,
+    // then the result is false. (ie no match)
+
+    // If more than one positive match is found, and no negative,
+    // then the result is true.
+
+    // If more than one negative match is found, irrespective
+    // if there is any positive matches or not, then the result is false.
+
+    // If a positive match is found, using a wildcard not any exact match,
+    // then *used_wildcard is set to true.
+    for (AddressExpression &ae : address_expressions)
+    {
+        bool has_wildcard = ae.has_wildcard;
+        bool is_negative_rule = ae.filter_out;
+
+        bool m = doesIdMatchExpression(address.id, ae.id);
+
+        if (is_negative_rule)
+        {
+            if (m) found_negative_match = true;
+        }
+        else
+        {
+            if (m)
+            {
+                found_match = true;
+                if (!has_wildcard)
+                {
+                    exact_match = true;
+                }
+            }
+        }
+    }
+    if (found_negative_match)
+    {
+        return false;
+    }
+    if (found_match)
+    {
+        if (exact_match)
+        {
+            *used_wildcard = false;
+        }
+        else
+        {
+            *used_wildcard = true;
+        }
+        return true;
+    }
+    return false;
 }
