@@ -176,7 +176,7 @@ and the other set to beta. Alfa has an antenna tuned for 433M, beta has an anten
 .TP
 \fBmeter_type\fR for example multical21:t1 (suffix means that we expect this meter to transmit t1 telegrams) the driver auto can be used, but is not recommended for production.
 .TP
-\fBmeter_id\fR one or more 8 digit numbers separated with commas, a single '*' wildcard, or a prefix '76543*' with wildcard.
+\fBmeter_id\fR one or more addresses separated with commas, a single '*' wildcard, or a prefix '76543*' with wildcard. You can as a suffix fully or partially specify manufacturer, version and type: 12345678.M=KAM.V=1b.T=16 You can use p0 to p250 to specify an mbus primary address.
 .TP
 \fBmeter_key\fR a unique key for the meter, if meter telegrams are not encrypted, you must supply an empty key: ""
 

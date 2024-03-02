@@ -77,32 +77,10 @@ struct AddressExpression
     !*.V=33
 */
 bool isValidSequenceOfAddressExpressions(const std::string& s);
-
-bool isValidMatchExpression(const std::string& s, bool *has_wildcard);
-
-
-bool doesIdMatchExpression(const std::string& id,
-                           std::string match_rule);
-bool doesIdMatchExpressionss(const std::string& id,
-                            std::vector<std::string>& match_rules,
-                            bool *used_wildcard);
-bool doesIdsMatchExpressionss(std::vector<std::string> &ids,
-                             std::vector<std::string>& match_rules,
-                             bool *used_wildcard);
-std::string toIdsCommaSeparated(std::vector<std::string> &ids);
-std::string toIdsCommaSeparated(std::vector<AddressExpression> &ids);
-
 std::vector<AddressExpression> splitAddressExpressions(const std::string &aes);
-
 bool flagToManufacturer(const char *s, uint16_t *out_mfct);
-
 std::string manufacturerFlag(int m_field);
-
 bool doesTelegramMatchExpressions(std::vector<Address> &addresses,
-                                  std::vector<AddressExpression>& address_expressions,
-                                  bool *used_wildcard);
-
-bool doesAddressMatchExpressions(Address &address,
                                   std::vector<AddressExpression>& address_expressions,
                                   bool *used_wildcard);
 
