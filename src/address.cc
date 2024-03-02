@@ -27,7 +27,8 @@ bool isValidMatchExpression(const std::string& s, bool *has_wildcard);
 bool doesIdMatchExpression(const std::string& id, std::string match_rule);
 bool doesAddressMatchExpressions(Address &address,
                                  std::vector<AddressExpression>& address_expressions,
-                                 bool *used_wildcard);
+                                 bool *used_wildcard,
+                                 bool *filtered_out);
 
 bool isValidMatchExpression(const string& s, bool *has_wildcard)
 {
@@ -94,7 +95,7 @@ vector<string> splitSequenceOfAddressExpressionsAtCommas(const string& mes)
     auto i = v.begin();
 
     for (;;) {
-        auto id = eatTo(v, i, ',', 16, &eof, &err);
+        auto id = eatTo(v, i, ',', 64, &eof, &err);
         if (err) break;
         trimWhitespace(&id);
         if (id == "ANYID") id = "*";
@@ -277,6 +278,19 @@ bool AddressExpression::parse(const string &in)
             bool ok = flagToManufacturer(&parts[i][2], &mfct);
             if (!ok) return false;
         }
+        else if (parts[i].size() == 6) // M=abcd explicit hex version
+        {
+            if (parts[i][1] != '=') return false;
+            if (parts[i][0] != 'M') return false;
+
+            vector<uchar> data;
+            bool ok = hex2bin(&parts[i][2], &data);
+            if (!ok) return false;
+            if (data.size() != 2) return false;
+
+            mfct = data[1] << 8 | data[0];
+            if (!ok) return false;
+        }
         else
         {
             return false;
@@ -396,21 +410,25 @@ bool doesTelegramMatchExpressions(std::vector<Address> &addresses,
                                   bool *used_wildcard)
 {
     bool match = false;
+    bool filtered_out = false;
     for (Address &a : addresses)
     {
-        if (doesAddressMatchExpressions(a, address_expressions, used_wildcard))
+        if (doesAddressMatchExpressions(a, address_expressions, used_wildcard, &filtered_out))
         {
             match = true;
         }
         // Go through all ids even though there is an early match.
         // This way we can see if theres an exact match later.
     }
+    // If any expression triggered a filter out, then the whole telegram does not match.
+    if (filtered_out) match = false;
     return match;
 }
 
 bool doesAddressMatchExpressions(Address &address,
                                  vector<AddressExpression>& address_expressions,
-                                 bool *used_wildcard)
+                                 bool *used_wildcard,
+                                 bool *filtered_out)
 {
     bool found_match = false;
     bool found_negative_match = false;
@@ -433,7 +451,7 @@ bool doesAddressMatchExpressions(Address &address,
         bool has_wildcard = ae.has_wildcard;
         bool is_negative_rule = ae.filter_out;
 
-        bool m = doesIdMatchExpression(address.id, ae.id);
+        bool m = ae.match(address.id, address.mfct, address.version, address.type);
 
         if (is_negative_rule)
         {
@@ -453,6 +471,7 @@ bool doesAddressMatchExpressions(Address &address,
     }
     if (found_negative_match)
     {
+        *filtered_out = true;
         return false;
     }
     if (found_match)

@@ -403,6 +403,14 @@ void log_start_information(Configuration *config)
         verbose("(config) using device: %s \n", specified_device.str().c_str());
     }
     verbose("(config) number of meters: %d\n", config->meters.size());
+    if (isDebugEnabled())
+    {
+        for (MeterInfo &m : config->meters)
+        {
+            string aes = AddressExpression::concat(m.address_expressions);
+            debug("(config) template %s %s %s\n", m.name.c_str(), aes.c_str(), m.str().c_str());
+        }
+    }
 }
 
 void oneshot_check(Configuration *config, Telegram *t, Meter *meter)

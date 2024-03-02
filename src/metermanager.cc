@@ -187,6 +187,7 @@ public:
                         aes.push_back(AddressExpression(t.addresses.back()));
                         meter_info.address_expressions = aes;
 
+                        // Overwrite the mfct,version and type.
                         if (meter_info.driverName().str() == "auto")
                         {
                             // Look up the proper meter driver!
