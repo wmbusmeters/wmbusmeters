@@ -181,6 +181,14 @@ cat > $TEST/test_expected.txt <<EOF
 -------------------------------------------------------------------------------
 There should be three fields, for example: mvt = AAA,07,05
 -------------------------------------------------------------------------------
+(driver) error in testoutput/driver.xmq, cannot find any detection triplets: driver/detect/mvt
+-------------------------------------------------------------------------------
+Remember to add: detect { mvt = AAA,05,07 mvt = AAA,06,07 ... }
+The triplets consists of MANUFACTURER,VERSION,TYPE
+You can see these values when listening to all meters.
+The manufacturer can be given as three uppercase characters A-Z
+or as 4 lower case hex digits.
+-------------------------------------------------------------------------------
 Failed to load driver from file: testoutput/driver.xmq
 EOF
 

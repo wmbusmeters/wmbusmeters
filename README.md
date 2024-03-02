@@ -130,9 +130,11 @@ bus the mbus poll request should be sent to.
 wmbusmeters --pollinterval=60s MAIN=/dev/ttyUSB0:mbus:2400 MyTempMeter piigth:MAIN:mbus 12001932 NOKEY
 ```
 
-If you want to poll an mbus meter using the primary address, just use
-a number between 0 and 250 instead of the full 8 digit secondary
-address.
+If you want to poll an mbus meter using the primary address, use p0 to p250 (deciman numbers)
+instead of the full 8 digit secondary address.
+```
+wmbusmeters --pollinterval=60s MAIN=/dev/ttyUSB0:mbus:2400 MyTempMeter piigth:MAIN:mbus p0 NOKEY
+```
 
 # Example wmbusmeter.conf file
 
@@ -217,8 +219,12 @@ The latest reading of the meter can also be found here: `/var/lib/wmbusmeters/me
 You can use several ids using `id=1111111,2222222,3333333` or you can listen to all
 meters of a certain type `id=*` or you can suffix with star `id=8765*` to match
 all meters with a given prefix. If you supply at least one positive match rule, then you
-can add negative match rules as well. For example `id=*,!2222*`
+can add filter out rules as well. For example `id=*,!2222*`
 which will match all meter ids, except those that begin with 2222.
+
+You can also specify the exact manufacturer, version and type: `id=11111111.M=KAM.V=1b.T=16`
+or a subset: `id=11111111.T=16` or all telegrams from 22222222 except those with version 77:
+`id=22222222,!22222222.V=77`
 
 When matching all meters from the command line you can use `ANYID` instead of `*` to avoid shell quotes.
 

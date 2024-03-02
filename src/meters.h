@@ -90,8 +90,7 @@ struct MeterInfo
     string name; // User specified name of this (group of) meters.
     DriverName driver_name; // Will replace MeterDriver.
     string extras; // Extra driver specific settings.
-    vector<string> ids; // Match expressions for ids.
-    string idsc; // Comma separated ids.
+    vector<AddressExpression> address_expressions; // Match expressions for ids.
     string key;  // Decryption key.
     LinkModeSet link_modes;
     int bps {};     // For mbus communication you need to know the baud rate.
@@ -111,13 +110,12 @@ struct MeterInfo
     string str();
     DriverName driverName();
 
-    MeterInfo(string b, string n, string e, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &ms, vector<string> &j, vector<string> &calcfs)
+    MeterInfo(string b, string n, string e, vector<AddressExpression> aes, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &ms, vector<string> &j, vector<string> &calcfs)
     {
         bus = b;
         name = n;
         extras = e,
-        ids = i;
-        idsc = toIdsCommaSeparated(ids);
+        address_expressions = aes;
         key = k;
         shells = s;
         meter_shells = ms;
@@ -131,8 +129,7 @@ struct MeterInfo
     {
         bus = "";
         name = "";
-        ids.clear();
-        idsc = "";
+        address_expressions.clear();
         key = "";
         shells.clear();
         meter_shells.clear();
@@ -374,10 +371,8 @@ struct Meter
     virtual void setIndex(int i) = 0;
     // Use this bus to send messages to the meter.
     virtual string bus() = 0;
-    // This meter listens to these ids.
-    virtual vector<string> &ids() = 0;
-    // Comma separated ids.
-    virtual string idsc() = 0;
+    // This meter listens to these address expressions.
+    virtual std::vector<AddressExpression>& addressExpressions() = 0;
     // This meter can report these fields, like total_m3, temp_c.
     virtual vector<FieldInfo> &fieldInfos() = 0;
     virtual vector<string> &extraConstantFields() = 0;
@@ -407,7 +402,7 @@ struct Meter
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;
 
-    virtual void createMeterEnv(string *id,
+    virtual void createMeterEnv(string id,
                                 vector<string> *envs,
                                 vector<string> *more_json) = 0;
     virtual void printMeter(Telegram *t,
@@ -423,7 +418,8 @@ struct Meter
     // Returns true of this meter handled this telegram!
     // Sets id_match to true, if there was an id match, even though the telegram could not be properly handled.
     virtual bool handleTelegram(AboutTelegram &about, vector<uchar> input_frame,
-                                bool simulated, string *id, bool *id_match, Telegram *out_t = NULL) = 0;
+                                bool simulated, std::vector<Address> *addresses,
+                                bool *id_match, Telegram *out_t = NULL) = 0;
     virtual MeterKeys *meterKeys() = 0;
 
     virtual void addExtraCalculatedField(std::string ecf) = 0;

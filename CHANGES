@@ -1,3 +1,15 @@
+
+New improved address specification. E.g. use 12345678.M=KAM.V=1b.T=16
+to listen to exactly the telegrams with id 12345678 manufacturer KAM,
+version 0x1b and type 0x16. You if you do not specify any M,V or T, they
+become wildcards which will be the old default behaviour.
+
+If you receive multiple telegram versions from the same id, and you want to
+filter out some versions, do: 12345678,!12345678.V=77
+
+You can now specify p0 to p250, to read from an mbus using the primary address.
+E.g. wmbusmeters --pollinterval=5s /dev/ttyUSB1:mbus:2400 TEMP piigth:mbus p0 NOKEY
+
 Version 1.16.1 2024-02-22
 
 Fix docker file generation.

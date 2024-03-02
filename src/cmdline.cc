@@ -740,38 +740,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             error("Not a valid meter driver \"%s\"\n", driver.c_str());
         }
 
-        //LinkModeSet default_modes = toMeterLinkModeSet(mi.driver);
-
-        /*
-        if (default_modes.has(LinkMode::MBUS))
-        {
-            // MBus primary address       0-250
-            //      secondary hex address iiiiiiiimmmmvvmm
-        }
-        else
-        {
-            // WMBus ids are 8 hex digits iiiiiiii
-            if (!isValidMatchExpressions(id, true)) error("Not a valid id nor a valid meter match expression \"%s\"\n", id.c_str());
-        }
-        if (!isValidKey(key, mi)) error("Not a valid meter key \"%s\"\n", key.c_str());
-        */
-
         c->meters.push_back(mi);
-
-        // Check if the devices can listen to the meter link mode(s).
-        /*
-          Ignore this check for now until all meters have been refactored.
-        if (!default_modes.hasAll(mi.link_modes))
-        {
-            string want = mi.link_modes.hr();
-            string has = default_modes.hr();
-            error("(cmdline) cannot set link modes to: %s because meter %s only transmits on: %s\n",
-                  want.c_str(), mi.driverName().str().c_str(), has.c_str());
-        }
-        string modeshr = mi.link_modes.hr();
-        debug("(cmdline) setting link modes to %s for meter %s\n",
-              mi.link_modes.hr().c_str(), name.c_str());
-        */
     }
 
     return shared_ptr<Configuration>(c);

@@ -676,24 +676,6 @@ bool isNumber(const string& fq)
     return true;
 }
 
-vector<string> splitMatchExpressions(const string& mes)
-{
-    vector<string> r;
-    bool eof, err;
-    vector<uchar> v (mes.begin(), mes.end());
-    auto i = v.begin();
-
-    for (;;) {
-        auto id = eatTo(v, i, ',', 16, &eof, &err);
-        if (err) break;
-        trimWhitespace(&id);
-        if (id == "ANYID") id = "*";
-        r.push_back(id);
-        if (eof) break;
-    }
-    return r;
-}
-
 void incrementIV(uchar *iv, size_t len) {
     uchar *p = iv+len-1;
     while (p >= iv) {

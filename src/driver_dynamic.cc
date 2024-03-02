@@ -105,6 +105,7 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
     catch (...)
     {
         xmqFreeDoc(doc);
+        di->setDynamic(file, NULL);
         return false;
     }
 }
@@ -150,7 +151,7 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
                 mvt.c_str(),
                 line,
                 line);
-        throw 1;
+        return XMQ_CONTINUE;
     }
 
     string mfct = fields[0];
@@ -175,7 +176,7 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
                     mfct.c_str(),
                     line,
                     line);
-            throw 1;
+            return XMQ_CONTINUE;
         }
         mfct_code = toMfctCode(a, b, c);
     }
@@ -193,7 +194,7 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
                     mfct.c_str(),
                     line,
                     line);
-            throw 1;
+            return XMQ_CONTINUE;
         }
     }
 
@@ -207,7 +208,7 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
                 version,
                 line,
                 line);
-        throw 1;
+        return XMQ_CONTINUE;
     }
 
     if (type > 255 || type < 0)
@@ -220,7 +221,7 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
                 type,
                 line,
                 line);
-        throw 1;
+        return XMQ_CONTINUE;
     }
 
     string mfct_flag = manufacturerFlag(mfct_code);
