@@ -6,6 +6,25 @@ wireless wm-bus meters.  The readings can then be published using
 MQTT, curled to a REST api, inserted into a database or stored in a
 log file.
 
+# What does it do?
+
+Wmbusmeters converts incoming telegrams from (w)mbus/OMS compatible meters like:
+`2A442D2C998734761B168D2091D37CAC21576C78_02FF207100041308190000441308190000615B7F616713`
+
+into human readable tab separated fields:
+`MyTapWater   12345678     6.388 m3     6.377 m3    0.000 m3/h     8°C    23°C   DRY(dry 22-31 days)     2018-03-05 12:02.50`
+
+or into computer readable fields:
+`MyTapWater;12345678;6.388;6.377;0.000;8;23;DRY(dry 22-31 days);2018-03-05 12:02.50`
+
+or into json:
+```json
+{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"max_flow_m3h":0.000,"flow_temperature":8,"external_temperature":23,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z","device":"im871a[1234567]","rssi_dbm":-40}
+```
+
+Wmbusmeters can collect telegrams from radio using hardware dongles or rtl-sdr software radio dongles,
+or from m-bus meters using serial ports, or from files/pipes.
+
 [FAQ/WIKI/MANUAL pages](https://wmbusmeters.github.io/wmbusmeters-wiki/)
 
 The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
@@ -175,7 +194,7 @@ And an mbus meter file in /etc/wmbusmeters.d/MyTempHygro
 ```ini
 name=MyTempHygro
 id=11223344
-driver=piigth:mbus
+driver=piigth:MAIN:mbus
 pollinterval=60s
 ```
 
@@ -425,6 +444,7 @@ As {options} you can use:
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
     --help list all options
+    --identitymode=(id|id-mfct|full|none) group meter state based on the identity mode. Default is id.
     --ignoreduplicates=<bool> ignore duplicate telegrams, remember the last 10 telegrams
     --field_xxx=yyy always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy (--json_xxx=yyy also works)
     --license print GPLv3+ license
