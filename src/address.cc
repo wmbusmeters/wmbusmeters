@@ -30,7 +30,9 @@ bool doesIdMatchExpression(const std::string& id, std::string match_rule);
 bool doesAddressMatchExpressions(Address &address,
                                  std::vector<AddressExpression>& address_expressions,
                                  bool *used_wildcard,
-                                 bool *filtered_out);
+                                 bool *filtered_out,
+                                 bool *required_found,
+                                 bool *required_failed);
 
 bool isValidMatchExpression(const string& s, bool *has_wildcard)
 {
@@ -348,6 +350,7 @@ string AddressExpression::str()
     string s;
 
     if (filter_out) s = "!";
+    if (required) s = "R";
 
     s.append(id);
     if (mfct != 0xffff)
@@ -443,9 +446,17 @@ bool doesTelegramMatchExpressions(std::vector<Address> &addresses,
 {
     bool match = false;
     bool filtered_out = false;
+    bool required_found = false; // An R12345678 field was found.
+    bool required_failed = true; // Init to fail, set to true if R is satistifed anywhere.
+
     for (Address &a : addresses)
     {
-        if (doesAddressMatchExpressions(a, address_expressions, used_wildcard, &filtered_out))
+        if (doesAddressMatchExpressions(a,
+                                        address_expressions,
+                                        used_wildcard,
+                                        &filtered_out,
+                                        &required_found,
+                                        &required_failed))
         {
             match = true;
         }
@@ -454,18 +465,21 @@ bool doesTelegramMatchExpressions(std::vector<Address> &addresses,
     }
     // If any expression triggered a filter out, then the whole telegram does not match.
     if (filtered_out) match = false;
+    // If a required field was found and it failed....
+    if (required_found && required_failed) match = false;
     return match;
 }
 
 bool doesAddressMatchExpressions(Address &address,
                                  vector<AddressExpression>& address_expressions,
                                  bool *used_wildcard,
-                                 bool *filtered_out)
+                                 bool *filtered_out,
+                                 bool *required_found,
+                                 bool *required_failed)
 {
     bool found_match = false;
     bool found_negative_match = false;
     bool exact_match = false;
-    bool failed_required_match = false;
 
     // Goes through all possible match expressions.
     // If no expression matches, neither positive nor negative,
@@ -485,7 +499,10 @@ bool doesAddressMatchExpressions(Address &address,
     {
         bool has_wildcard = ae.has_wildcard;
         bool is_negative_rule = ae.filter_out;
+        // We currently assume that only a single expression is required, the last one!
         bool is_required = ae.required;
+
+        if (is_required) *required_found = true;
 
         bool m = ae.match(address.id, address.mfct, address.version, address.type);
 
@@ -497,26 +514,21 @@ bool doesAddressMatchExpressions(Address &address,
         {
             if (m)
             {
-                found_match = true;
-                if (!has_wildcard)
+                // A match, but the required does not count.
+                if (!is_required)
                 {
-                    exact_match = true;
+                    found_match = true;
+                    if (!has_wildcard)
+                    {
+                        exact_match = true;
+                    }
                 }
-            }
-            else
-            {
-                // No match
-                if (is_required)
+                else
                 {
-                    // Oups! A required match!
-                    failed_required_match = true;
+                    *required_failed = false;
                 }
             }
         }
-    }
-    if (failed_required_match)
-    {
-        return false;
     }
     if (found_negative_match)
     {

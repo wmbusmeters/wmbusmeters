@@ -938,9 +938,12 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
     }
 
     bool used_wildcard = false;
-    bool match = doesTelegramMatchExpressions(t->addresses, address_expressions, &used_wildcard);
+    bool match = doesTelegramMatchExpressions(t->addresses,
+                                              address_expressions,
+                                              &used_wildcard);
 
-    if (!match) {
+    if (!match)
+    {
         // The id must match.
         debug("(meter) %s: not for me: no match\n", name.c_str());
         return false;

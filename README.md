@@ -11,15 +11,33 @@ log file.
 Wmbusmeters converts incoming telegrams from (w)mbus/OMS compatible meters like:
 `2A442D2C998734761B168D2091D37CAC21576C78_02FF207100041308190000441308190000615B7F616713`
 
-into human readable tab separated fields:
-`MyTapWater   12345678     6.388 m3     6.377 m3    0.000 m3/h     8°C    23°C   DRY(dry 22-31 days)     2018-03-05 12:02.50`
+into human readable:
+`MyTapWater  12345678  6.388 m³  6.377  m³  0.000 m³/h  8°C  23°C  DRY(dry 22-31 days)  2018-03-05 12:02.50`
 
-or into computer readable fields:
+or into csv:
 `MyTapWater;12345678;6.388;6.377;0.000;8;23;DRY(dry 22-31 days);2018-03-05 12:02.50`
 
 or into json:
 ```json
-{"media":"cold water","meter":"multical21","name":"MyTapWater","id":"12345678","total_m3":6.388,"target_m3":6.377,"max_flow_m3h":0.000,"flow_temperature":8,"external_temperature":23,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"2018-02-08T09:07:22Z","device":"im871a[1234567]","rssi_dbm":-40}
+{
+    "media":"cold water",
+    "meter":"multical21",
+    "name":"MyTapWater",
+    "id":"12345678",
+    "total_m3":6.388,
+    "target_m3":6.377,
+    "max_flow_m3h":0.000,
+    "flow_temperature":8,
+    "external_temperature":23,
+    "current_status":"DRY",
+    "time_dry":"22-31 days",
+    "time_reversed":"",
+    "time_leaking":"",
+    "time_bursting":"",
+    "timestamp":"2018-02-08T09:07:22Z",
+    "device":"im871a[1234567]",
+    "rssi_dbm":-40
+}
 ```
 
 Wmbusmeters can collect telegrams from radio using hardware dongles or rtl-sdr software radio dongles,

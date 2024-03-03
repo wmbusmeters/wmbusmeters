@@ -126,6 +126,12 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_addresses.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_address_filtering.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_address_dll.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_identity_mode.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
