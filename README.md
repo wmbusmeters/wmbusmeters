@@ -9,34 +9,24 @@ log file.
 # What does it do?
 
 Wmbusmeters converts incoming telegrams from (w)mbus/OMS compatible meters like:
-`2A442D2C998734761B168D2091D37CAC21576C78_02FF207100041308190000441308190000615B7F616713`
+`1844AE4C4455223368077A55000000_041389E20100023B0000`
 
 into human readable:
-`MyTapWater  12345678  6.388 m³  6.377  m³  0.000 m³/h  8°C  23°C  DRY(dry 22-31 days)  2018-03-05 12:02.50`
+`MyTapWater  33225544  123.529 m³  0 m³/h  2024-03-03 19:36:22`
 
 or into csv:
-`MyTapWater;12345678;6.388;6.377;0.000;8;23;DRY(dry 22-31 days);2018-03-05 12:02.50`
+`MyTapWater;33225544;123.529;0;2024-03-03 19:36:45`
 
 or into json:
 ```json
 {
-    "media":"cold water",
-    "meter":"multical21",
+    "media":"water",
+    "meter":"iperl",
     "name":"MyTapWater",
-    "id":"12345678",
-    "total_m3":6.388,
-    "target_m3":6.377,
-    "max_flow_m3h":0.000,
-    "flow_temperature":8,
-    "external_temperature":23,
-    "current_status":"DRY",
-    "time_dry":"22-31 days",
-    "time_reversed":"",
-    "time_leaking":"",
-    "time_bursting":"",
-    "timestamp":"2018-02-08T09:07:22Z",
-    "device":"im871a[1234567]",
-    "rssi_dbm":-40
+    "id":"33225544",
+    "max_flow_m3h":0,
+    "total_m3":123.529,
+    "timestamp":"2024-03-03T18:37:00Z"
 }
 ```
 
