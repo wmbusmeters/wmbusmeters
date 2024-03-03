@@ -99,6 +99,7 @@ struct Configuration
     bool json {};
     bool pretty_print_json {};
     int  pollinterval {}; // Time between polling of mbus meters.
+    IdentityMode identity_mode {}; // How to group meters identities into state objects.
     bool fields {};
     char separator { ';' };
     std::vector<std::string> telegram_shells;

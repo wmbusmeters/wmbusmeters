@@ -57,6 +57,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     string key = "";
     string linkmodes;
     int poll_interval = 0;
+    IdentityMode identity_mode {};
     vector<string> telegram_shells;
     vector<string> meter_shells;
     vector<string> alarm_shells;
@@ -129,6 +130,15 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             }
         }
         else
+        if (p.first == "identitymode") {
+            identity_mode = toIdentityMode(p.second.c_str());
+
+            if (identity_mode == IdentityMode::INVALID)
+            {
+                error("Invalid identity mode: \"%s\"!\n", p.second.c_str());
+            }
+        }
+        else
         if (p.first == "shell") {
             telegram_shells.push_back(p.second);
         }
@@ -178,6 +188,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 
     mi.parse(name, driver, address_expressions, key); // sets driver, extras, name, bus, bps, link_modes, ids, name, key
     mi.poll_interval = poll_interval;
+    mi.identity_mode = identity_mode;
 
     if (!isValidSequenceOfAddressExpressions(address_expressions)) {
         warning("Not a valid meter id nor a valid sequence of match expression \"%s\"\n", address_expressions.c_str());

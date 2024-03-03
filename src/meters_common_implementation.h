@@ -60,6 +60,7 @@ struct MeterCommonImplementation : public virtual Meter
     void setIndex(int i);
     string bus();
     vector<AddressExpression>& addressExpressions();
+    IdentityMode identityMode();
     vector<FieldInfo> &fieldInfos();
     vector<string> &extraConstantFields();
     string name();
@@ -84,7 +85,6 @@ struct MeterCommonImplementation : public virtual Meter
     static bool isTelegramForMeter(Telegram *t, Meter *meter, MeterInfo *mi);
     MeterKeys *meterKeys();
 
-//    MeterCommonImplementation(MeterInfo &mi, string driver);
     MeterCommonImplementation(MeterInfo &mi, DriverInfo &di);
 
     ~MeterCommonImplementation() = default;
@@ -222,6 +222,7 @@ private:
     TPLSecurityMode expected_tpl_sec_mode_ {};
     string name_;
     vector<AddressExpression> address_expressions_;
+    IdentityMode identity_mode_;
     vector<function<void(Telegram*,Meter*)>> on_update_;
     int num_updates_ {};
     time_t datetime_of_update_ {};

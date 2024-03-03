@@ -19,6 +19,8 @@
 #include"manufacturers.h"
 
 #include<assert.h>
+#include<algorithm>
+#include<string.h>
 
 using namespace std;
 
@@ -194,6 +196,36 @@ bool AddressExpression::match(const std::string &i, uint16_t m, uchar v, uchar t
     if (!doesIdMatchExpression(i, id)) return false;
 
     return true;
+}
+
+void AddressExpression::trimToIdentity(IdentityMode im, Address &a)
+{
+    switch (im)
+    {
+    case IdentityMode::FULL:
+        id = a.id;
+        mfct = a.mfct;
+        version = a.version;
+        type = a.type;
+        required = true;
+        break;
+    case IdentityMode::ID_MFCT:
+        id = a.id;
+        mfct = a.mfct;
+        version = 0xff;
+        type = 0xff;
+        required = true;
+        break;
+    case IdentityMode::ID:
+        id = a.id;
+        mfct = 0xffff;
+        version = 0xff;
+        type = 0xff;
+        required = true;
+        break;
+    default:
+        break;
+    }
 }
 
 bool AddressExpression::parse(const string &in)
@@ -433,6 +465,7 @@ bool doesAddressMatchExpressions(Address &address,
     bool found_match = false;
     bool found_negative_match = false;
     bool exact_match = false;
+    bool failed_required_match = false;
 
     // Goes through all possible match expressions.
     // If no expression matches, neither positive nor negative,
@@ -446,10 +479,13 @@ bool doesAddressMatchExpressions(Address &address,
 
     // If a positive match is found, using a wildcard not any exact match,
     // then *used_wildcard is set to true.
+
+    // If an expression is required and it fails, then the match fails.
     for (AddressExpression &ae : address_expressions)
     {
         bool has_wildcard = ae.has_wildcard;
         bool is_negative_rule = ae.filter_out;
+        bool is_required = ae.required;
 
         bool m = ae.match(address.id, address.mfct, address.version, address.type);
 
@@ -467,7 +503,20 @@ bool doesAddressMatchExpressions(Address &address,
                     exact_match = true;
                 }
             }
+            else
+            {
+                // No match
+                if (is_required)
+                {
+                    // Oups! A required match!
+                    failed_required_match = true;
+                }
+            }
         }
+    }
+    if (failed_required_match)
+    {
+        return false;
     }
     if (found_negative_match)
     {
@@ -487,4 +536,66 @@ bool doesAddressMatchExpressions(Address &address,
         return true;
     }
     return false;
+}
+
+const char *toString(IdentityMode im)
+{
+    switch (im)
+    {
+    case IdentityMode::ID: return "id";
+    case IdentityMode::ID_MFCT: return "id-mfct";
+    case IdentityMode::FULL: return "full";
+    case IdentityMode::NONE: return "none";
+    case IdentityMode::INVALID: return "invalid";
+    }
+    return "?";
+}
+
+IdentityMode toIdentityMode(const char *s)
+{
+    if (!strcmp(s,"id")) return IdentityMode::ID;
+    if (!strcmp(s,"id-mfct")) return IdentityMode::ID_MFCT;
+    if (!strcmp(s, "full")) return IdentityMode::FULL;
+    if (!strcmp(s, "none")) return IdentityMode::NONE;
+    return IdentityMode::INVALID;
+}
+
+void AddressExpression::clear()
+{
+    id = "";
+    has_wildcard = false;
+    mbus_primary = false;
+    mfct = 0xffff;
+    version = 0xff;
+    type = 0xff;
+}
+
+void AddressExpression::appendIdentity(IdentityMode im,
+                                       AddressExpression *identity_expression,
+                                       std::vector<Address> &as,
+                                       std::vector<AddressExpression> &es)
+{
+    identity_expression->clear();
+    if (im == IdentityMode::NONE) return;
+
+    // Copy id, id-mfct, id-mfct-v-t to identity_expression from the last address.
+    identity_expression->trimToIdentity(im, as.back());
+
+    // Is this identity expression already in the list of address expressions?
+    if (std::find(es.begin(), es.end(), *identity_expression) == es.end())
+    {
+        // No, then add it at the end.
+        es.push_back(*identity_expression);
+    }
+}
+
+bool AddressExpression::operator==(const AddressExpression&ae) const
+{
+    return id == ae.id &&
+        has_wildcard == ae.has_wildcard&&
+        mbus_primary == ae.mbus_primary  &&
+        mfct == ae.mfct &&
+        version == ae.version &&
+        type == ae.type &&
+        filter_out == ae.filter_out;
 }

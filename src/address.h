@@ -21,6 +21,28 @@
 #include "util.h"
 #include <string>
 
+/**
+    IdentityMode:
+
+    @ID: The default, only the id groups the meter content.
+    @ID_MFCT: Used when you have two meters with the same id but different manufacturers.
+    @FULL: Used when you want to fully separate meter content on id.mft.v.t
+    @NONE: Do not separate any meters! This might lead to telegrams overwriting each others state.
+           Use this when no state is to be kept in the wmbusmeters object.
+    @INVALID: Cannot parse cmdline.
+*/
+enum class IdentityMode
+{
+    ID,
+    ID_MFCT,
+    FULL,
+    NONE,
+    INVALID
+};
+
+const char *toString(IdentityMode im);
+IdentityMode toIdentityMode(const char *s);
+
 struct Address
 {
     std::string id; // p1 or 12345678 or non-compliant hex: 1234abcd
@@ -53,18 +75,26 @@ struct AddressExpression
     bool has_wildcard {}; // The id contains a *
     bool mbus_primary {}; // Signals that the id is 0-250
 
-    uint16_t mfct {}; // If 0xffff then any mfct matches this address.
-    uchar version {}; // If 0xff then any version matches this address.
-    uchar type {}; // If 0xff then any type matches this address.
+    uint16_t mfct { 0xffff }; // If 0xffff then any mfct matches this address.
+    uchar version { 0xff }; // If 0xff then any version matches this address.
+    uchar type { 0xff }; // If 0xff then any type matches this address.
 
     bool filter_out {}; // Telegrams matching this rule should be filtered out!
+    bool required {}; // If true, then this address expression must be matched!
 
     AddressExpression() {}
     AddressExpression(Address &a) : id(a.id), mfct(a.mfct), version(a.version), type(a.type) { }
+    bool operator==(const AddressExpression&) const;
+    void clear();
+    void trimToIdentity(IdentityMode im, Address &a);
     bool parse(const std::string &s);
     bool match(const std::string &id, uint16_t mfct, uchar version, uchar type);
     std::string str();
     static std::string concat(std::vector<AddressExpression> &address_expressions);
+    static void appendIdentity(IdentityMode im,
+                               AddressExpression *identity_expression,
+                               std::vector<Address> &as,
+                               std::vector<AddressExpression> &es);
 };
 
 /**

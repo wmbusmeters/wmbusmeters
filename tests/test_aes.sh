@@ -36,11 +36,11 @@ TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
 (wmbus) WARNING!! telegram should have been fully encrypted, but was not! id: 88888888 mfct: (APA) Apator, Poland (0x601) type: Water meter (0x07) ver: 0x05
-(meter) newly created meter (ApWater 88888888.M=APA.V=05.T=07 apator162) did not handle telegram!
+(meter) newly created meter (ApWater 88888888 apator162) did not handle telegram!
 (wmbus) WARNING! decrypted payload crc failed check, did you use the correct decryption key? e1d6 payload crc (calculated a528) Permanently ignoring telegrams from id: 76348799 mfct: (KAM) Kamstrup Energi (0x2c2d) type: Cold water meter (0x16) ver: 0x1b
-(meter) newly created meter (Vatten 76348799.M=KAM.V=1b.T=16 multical21) did not handle telegram!
+(meter) newly created meter (Vatten 76348799 multical21) did not handle telegram!
 (wmbus) WARNING!! telegram should have been fully encrypted, but was not! id: 77777777 mfct: (SON) Sontex, Switzerland (0x4dee) type: Water meter (0x07) ver: 0x3c
-(meter) newly created meter (Wasser 77777777.M=SON.V=3c.T=07 supercom587) did not handle telegram!
+(meter) newly created meter (Wasser 77777777 supercom587) did not handle telegram!
 (wmbus) WARNING!!! telegram should have been encrypted, but was not! id: 77777777 mfct: (SON) Sontex, Switzerland (0x4dee) type: Water meter (0x07) ver: 0x3c
 EOF
 

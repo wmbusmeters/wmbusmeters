@@ -28,9 +28,9 @@ fi
 cat <<EOF > $TEST/test_expected.txt
 Started config rtlwmbus on stdin listening on any
 (wmbus) WARNING!! decrypted content failed check, did you use the correct decryption key? Permanently ignoring telegrams from id: 88888888 mfct: (APA) Apator, Poland (0x601) type: Water meter (0x07) ver: 0x05
-(meter) newly created meter (ApWater 88888888.M=APA.V=05.T=07 apator162) did not handle telegram!
+(meter) newly created meter (ApWater 88888888 apator162) did not handle telegram!
 (wmbus) WARNING! decrypted payload crc failed check, did you use the correct decryption key? 979f payload crc (calculated 3431) Permanently ignoring telegrams from id: 76348799 mfct: (KAM) Kamstrup Energi (0x2c2d) type: Cold water meter (0x16) ver: 0x1b
-(meter) newly created meter (Vatten 76348799.M=KAM.V=1b.T=16 multical21) did not handle telegram!
+(meter) newly created meter (Vatten 76348799 multical21) did not handle telegram!
 EOF
 
 diff $TEST/test_expected.txt $TEST/test_stderr.txt
