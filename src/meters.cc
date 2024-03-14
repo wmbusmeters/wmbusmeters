@@ -330,6 +330,7 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     waiting_for_poll_response_sem_("waiting_for_poll_response")
 {
     address_expressions_ = mi.address_expressions;
+    identity_mode_ = mi.identity_mode;
     link_modes_ = mi.link_modes;
     poll_interval_= mi.poll_interval;
 
@@ -785,6 +786,11 @@ vector<AddressExpression>& MeterCommonImplementation::addressExpressions()
     return address_expressions_;
 }
 
+IdentityMode MeterCommonImplementation::identityMode()
+{
+    return identity_mode_;
+}
+
 vector<FieldInfo> &MeterCommonImplementation::fieldInfos()
 {
     return field_infos_;
@@ -934,11 +940,14 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
     }
 
     bool used_wildcard = false;
-    bool id_match = doesTelegramMatchExpressions(t->addresses, address_expressions, &used_wildcard);
+    bool match = doesTelegramMatchExpressions(t->addresses,
+                                              address_expressions,
+                                              &used_wildcard);
 
-    if (!id_match) {
+    if (!match)
+    {
         // The id must match.
-        debug("(meter) %s: not for me: not my id\n", name.c_str());
+        debug("(meter) %s: not for me: no match\n", name.c_str());
         return false;
     }
 
@@ -954,16 +963,11 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
         // this particular driver, mfct, media, version combo
         // is not registered in the METER_DETECTION list in meters.h
 
-        /*
-        if (used_wildcard)
-        {
-            // The match for the id was not exact, thus the user is listening using a wildcard
-            // to many meters and some received matched meter telegrams are not from the right meter type,
-            // ie their driver does not match. Lets just ignore telegrams that probably cannot be decoded properly.
-            verbose("(meter) ignoring telegram from %s since it matched a wildcard id rule but driver (%s) does not match.\n",
-                    t->idsc.c_str(), driver_name.c_str());
-            return false;
-            }*/
+        // There was an attempt to give up here if there was a wildcard and it was the wrong driver.
+        // However some users did expect it to work anyway! This might make sense
+        // in the future when we have even better dynamic drivers.
+        // It already make sense if you create an amalgamation driver for several different
+        // types of meters and want to force the use of this driver.
 
         // The match was exact, ie the user has actually specified 12345678 and foo as driver even
         // though they do not match. Lets warn and then proceed. It is common that a user tries a
@@ -1043,6 +1047,21 @@ string findField(string key, vector<string> *extra_constant_fields)
     return "";
 }
 
+string build_id(Address &a, IdentityMode im)
+{
+    string id = a.id;
+    if (im == IdentityMode::ID_MFCT ||
+        im == IdentityMode::FULL)
+    {
+        id += string(".M=")+manufacturerFlag(a.mfct);
+    }
+    if (im == IdentityMode::FULL)
+    {
+        id += tostrprintf(".V=%02x.T=%02x", a.version, a.type);
+    }
+    return id;
+}
+
 // Is the desired field one of the fields common to all meters and telegrams?
 bool checkCommonField(string *buf, string desired_field, Meter *m, Telegram *t, char c, bool human_readable)
 {
@@ -1053,7 +1072,8 @@ bool checkCommonField(string *buf, string desired_field, Meter *m, Telegram *t, 
     }
     if (desired_field == "id")
     {
-        *buf += t->addresses.back().id + c;
+        string id = build_id(t->addresses.back(), m->identityMode());
+        *buf += id + c;
         return true;
     }
     if (desired_field == "timestamp")
@@ -1804,7 +1824,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     string id = "";
     if (t->addresses.size() > 0)
     {
-        id = t->addresses.back().id;
+        id = build_id(t->addresses.back(), identityMode());
     }
 
     string indent = "";
@@ -1864,72 +1884,6 @@ void MeterCommonImplementation::printMeter(Telegram *t,
             }
         }
     }
-    /*
-    for (FieldInfo& fi : field_infos_)
-    {
-        if (fi.printProperties().hasHIDE()) continue;
-
-        // The field should be printed in the json. (Most usually should.)
-        for (auto& i : t->dv_entries)
-        {
-            // Check each telegram dv entry.
-            DVEntry *dve = &i.second.second;
-            // Has the entry been matches to this field, then print it as json.
-            if (dve->hasFieldInfo(&fi))
-            {
-                assert(founds[&fi].count(dve) == 0);
-
-                founds[&fi].insert(dve);
-                string field_name = fi.generateFieldNameNoUnit(dve);
-                found_vnames.insert(field_name);
-            }
-        }
-    }
-
-    for (FieldInfo& fi : field_infos_)
-    {
-        if (fi.printProperties().hasHIDE()) continue;
-
-        if (founds.count(&fi) != 0)
-        {
-            // This field info has matched against some dventries.
-            for (DVEntry *dve : founds[&fi])
-            {
-                debug("(meters) render field %s(%s %s)[%d] with dventry @%d key %s data %s\n",
-                      fi.vname().c_str(), toString(fi.xuantity()), unitToStringLowerCase(fi.displayUnit()).c_str(), fi.index(),
-                      dve->offset,
-                      dve->dif_vif_key.str().c_str(),
-                      dve->value.c_str());
-                string out = fi.renderJson(this, dve);
-                debug("(meters)             %s\n", out.c_str());
-                s += indent+out+","+newline;
-            }
-        }
-        else
-        {
-            // Ok, no value found in received telegram.
-            // Print field anyway if it is required,
-            // or if a value has been received before and this field has not been received using a different rule.
-            // Why this complicated rule?
-            // E.g. the minmoess mbus seems to use storage 1 for target_m3 but the wmbus version uses storage 8.
-            // I.e. we have two rules that store into target_m3, this check will prevent target_m3 from being printed twice.
-            if (fi.printProperties().hasREQUIRED() ||
-                (hasValue(&fi) && (
-                    found_vnames.count(fi.vname()) == 0 ||
-                    fi.hasFormula()))) // TODO! Fix so a new field total_l does not overwrite total_m3 in mem.
-            {
-                // No telegram entries found, but this field should be printed anyway.
-                // It will be printed with any value received from a previous telegram.
-                // Or if no value has been received, null.
-                debug("(meters) render field %s(%s)[%d] without dventry\n",
-                      fi.vname().c_str(), toString(fi.xuantity()), fi.index());
-                string out = fi.renderJson(this, NULL);
-                debug("(meters)             %s\n", out.c_str());
-                s += indent+out+","+newline;
-            }
-        }
-    }
-    */
     s += indent+"\"timestamp\":\""+datetimeOfUpdateRobot()+"\"";
 
     if (t->about.device != "")

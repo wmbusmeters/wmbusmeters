@@ -617,6 +617,15 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--identitymode=", 15) && strlen(argv[i]) > 15) {
+            c->identity_mode = toIdentityMode(argv[i]+15);
+            if (c->identity_mode == IdentityMode::INVALID)
+            {
+                error("Not a valid identity mode. \"%s\"\n", argv[i]+15);
+            }
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--resetafter=", 13) && strlen(argv[i]) > 13) {
             c->resetafter = parseTime(argv[i]+13);
             if (c->resetafter <= 0) {
@@ -728,12 +737,13 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         string bus;
         string name = argv[m*4+i+0];
         string driver = argv[m*4+i+1];
-        string id = argv[m*4+i+2];
+        string address_expressions = argv[m*4+i+2];
         string key = argv[m*4+i+3];
 
         MeterInfo mi;
-        mi.parse(name, driver, id, key);
+        mi.parse(name, driver, address_expressions, key);
         mi.poll_interval = c->pollinterval;
+        mi.identity_mode = c->identity_mode;
 
         if (mi.driver_name.str() == "")
         {

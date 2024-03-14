@@ -6,6 +6,33 @@ wireless wm-bus meters.  The readings can then be published using
 MQTT, curled to a REST api, inserted into a database or stored in a
 log file.
 
+# What does it do?
+
+Wmbusmeters converts incoming telegrams from (w)mbus/OMS compatible meters like:
+`1844AE4C4455223368077A55000000_041389E20100023B0000`
+
+into human readable:
+`MyTapWater  33225544  123.529 m³  0 m³/h  2024-03-03 19:36:22`
+
+or into csv:
+`MyTapWater;33225544;123.529;0;2024-03-03 19:36:45`
+
+or into json:
+```json
+{
+    "media":"water",
+    "meter":"iperl",
+    "name":"MyTapWater",
+    "id":"33225544",
+    "max_flow_m3h":0,
+    "total_m3":123.529,
+    "timestamp":"2024-03-03T18:37:00Z"
+}
+```
+
+Wmbusmeters can collect telegrams from radio using hardware dongles or rtl-sdr software radio dongles,
+or from m-bus meters using serial ports, or from files/pipes.
+
 [FAQ/WIKI/MANUAL pages](https://wmbusmeters.github.io/wmbusmeters-wiki/)
 
 The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
@@ -175,7 +202,7 @@ And an mbus meter file in /etc/wmbusmeters.d/MyTempHygro
 ```ini
 name=MyTempHygro
 id=11223344
-driver=piigth:mbus
+driver=piigth:MAIN:mbus
 pollinterval=60s
 ```
 
@@ -425,6 +452,7 @@ As {options} you can use:
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
     --help list all options
+    --identitymode=(id|id-mfct|full|none) group meter state based on the identity mode. Default is id.
     --ignoreduplicates=<bool> ignore duplicate telegrams, remember the last 10 telegrams
     --field_xxx=yyy always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy (--json_xxx=yyy also works)
     --license print GPLv3+ license

@@ -177,15 +177,28 @@ public:
                     {
                         // We found a match, make a copy of the meter info.
                         MeterInfo meter_info = mi;
-                        // Overwrite the wildcard pattern with the highest level id.
-                        // The last id in the t.ids is the highest level id.
-                        // For example: a telegram can have dll_id,tpl_id
-                        // This will pick the tpl_id.
-                        // Or a telegram can have a single dll_id,
-                        // then the dll_id will be picked.
-                        vector<AddressExpression> aes;
-                        aes.push_back(AddressExpression(t.addresses.back()));
-                        meter_info.address_expressions = aes;
+                        // Append the identity to the address expressions.
+                        // The identity is by default the highest level id found.
+                        // I.e. often the tpl_id. This is the last element in t->addresses.
+                        //
+                        // When instantiating a meter from a template we
+                        // make sure the meter triggers exactly on this identity.
+                        // So we append the identity to the address expressions.
+                        //
+                        // E.g. if the template address expression is 12*.M=PII and the meter
+                        // 12345678 is received then the meters address expressions
+                        // will be: 12*.M=PII,12345678
+                        //
+                        // The default type of identity can be changed.
+                        // identitymode=id
+                        // identitymode=id-mfct
+                        // identitymode=full
+                        // identitymode=none
+                        AddressExpression identity_expression;
+                        AddressExpression::appendIdentity(mi.identity_mode,
+                                                          &identity_expression,
+                                                          t.addresses,
+                                                          meter_info.address_expressions);
 
                         if (meter_info.driverName().str() == "auto")
                         {
@@ -221,20 +234,24 @@ public:
                         if (is_daemon_)
                         {
                             string mi_idsc = AddressExpression::concat(mi.address_expressions);
-                            notice("(wmbusmeters) started meter %d (%s %s %s)\n",
+                            notice("(wmbusmeters) started meter %d (%s %s %s) identity mode: %s %s\n",
                                    meter->index(),
                                    mi.name.c_str(),
                                    mi_idsc.c_str(),
-                                   mi.driverName().str().c_str());
+                                   mi.driverName().str().c_str(),
+                                   toString(mi.identity_mode),
+                                   identity_expression.str().c_str());
                         }
                         else
                         {
                             string mi_idsc = AddressExpression::concat(mi.address_expressions);
-                            verbose("(meter) started meter %d (%s %s %s)\n",
+                            verbose("(meter) started meter %d (%s %s %s) identity mode: %s %s\n",
                                     meter->index(),
                                     mi.name.c_str(),
                                     mi_idsc.c_str(),
-                                    mi.driverName().str().c_str());
+                                    mi.driverName().str().c_str(),
+                                    toString(mi.identity_mode),
+                                    identity_expression.str().c_str());
                         }
 
                         bool match = false;

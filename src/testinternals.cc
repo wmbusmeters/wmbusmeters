@@ -575,6 +575,42 @@ void tst_address_match(string expr, string id, uint16_t m, uchar v, uchar t, boo
     }
 }
 
+void tst_telegram_match(string addresses, string expressions, bool match, bool uw)
+{
+    vector<AddressExpression> exprs = splitAddressExpressions(expressions);
+    vector<AddressExpression> as = splitAddressExpressions(addresses);
+    vector<Address> addrs;
+
+    for (auto &ad : as)
+    {
+        Address a;
+        a.id = ad.id;
+        a.mfct = ad.mfct;
+        a.version = ad.version;
+        a.type = ad.type;
+
+        addrs.push_back(a);
+    }
+
+    bool used_wildcard = false;
+    bool m = doesTelegramMatchExpressions(addrs, exprs, &used_wildcard);
+
+    if (m != match)
+    {
+        printf("Expected addresses %s to %smatch expressions %s\n",
+               addresses.c_str(),
+               match?"":"NOT ",
+               expressions.c_str());
+    }
+    if (uw != used_wildcard)
+    {
+        printf("Expected addresses %s from match expression %s %susing wildcard\n",
+               addresses.c_str(),
+               expressions.c_str(),
+               uw?"":"NOT ");
+    }
+}
+
 void test_addresses()
 {
     tst_address("12345678",
@@ -634,6 +670,33 @@ void test_addresses()
     tst_address_match("!9*.V=06", "89999999", MANUFACTURER_ABB, 0x06, 1, false, true);
     tst_address_match("!9*.V=06", "99999999", MANUFACTURER_ABB, 0x07, 1, false, true);
     tst_address_match("!9*.V=06", "89999999", MANUFACTURER_ABB, 0x07, 1, false, true);
+
+    tst_telegram_match("12345678", "12345678", true, false);
+    tst_telegram_match("11111111,22222222", "12345678,22*", true, true);
+    tst_telegram_match("11111111,22222222", "12345678,22222222", true, false);
+    tst_telegram_match("11111111.M=KAM,22222222.M=PII", "11111111.M=KAM", true, false);
+    tst_telegram_match("11111111.M=KAF", "11111111.M=KAM", false, false);
+
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAM", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAF", false, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAM", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.V=1b", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.T=16", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAM.T=16", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAM.V=1b", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.T=16.V=1b", true, false);
+
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAL", false, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.V=1c", false, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.T=17", false, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAM.T=17", false, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAL.V=1b", false, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.T=17.V=1b", false, false);
+
+    // Test * matches both 11111111 and 2222222 but the only the 111111 matches the filter out V=1b.
+    // Verify that the filter out !1*.V=1b will override successfull match (with no filter out) * for 22222222.
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16,22222222.M=XXX.V=aa.T=99", "*,!1*.V=1b", false, true);
 }
 
 void eq(string a, string b, const char *tn)

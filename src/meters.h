@@ -91,6 +91,7 @@ struct MeterInfo
     DriverName driver_name; // Will replace MeterDriver.
     string extras; // Extra driver specific settings.
     vector<AddressExpression> address_expressions; // Match expressions for ids.
+    IdentityMode identity_mode {}; // How to group telegram content into objects with state. Default is by id.
     string key;  // Decryption key.
     LinkModeSet link_modes;
     int bps {};     // For mbus communication you need to know the baud rate.
@@ -373,6 +374,7 @@ struct Meter
     virtual string bus() = 0;
     // This meter listens to these address expressions.
     virtual std::vector<AddressExpression>& addressExpressions() = 0;
+    virtual IdentityMode identityMode() = 0;
     // This meter can report these fields, like total_m3, temp_c.
     virtual vector<FieldInfo> &fieldInfos() = 0;
     virtual vector<string> &extraConstantFields() = 0;

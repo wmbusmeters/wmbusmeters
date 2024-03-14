@@ -53,10 +53,11 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     string bus;
     string name;
     string driver = "auto";
-    string id;
+    string address_expressions;
     string key = "";
     string linkmodes;
     int poll_interval = 0;
+    IdentityMode identity_mode {};
     vector<string> telegram_shells;
     vector<string> meter_shells;
     vector<string> alarm_shells;
@@ -108,7 +109,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         else
         if (p.first == "driver") driver = p.second;
         else
-        if (p.first == "id") id = p.second;
+        if (p.first == "id") address_expressions = p.second;
         else
         if (p.first == "key")
         {
@@ -126,6 +127,15 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             if (poll_interval == 0)
             {
                 error("Poll interval must be non-zero \"%s\"!\n", p.second.c_str());
+            }
+        }
+        else
+        if (p.first == "identitymode") {
+            identity_mode = toIdentityMode(p.second.c_str());
+
+            if (identity_mode == IdentityMode::INVALID)
+            {
+                error("Invalid identity mode: \"%s\"!\n", p.second.c_str());
             }
         }
         else
@@ -176,11 +186,12 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 
     MeterInfo mi;
 
-    mi.parse(name, driver, id, key); // sets driver, extras, name, bus, bps, link_modes, ids, name, key
+    mi.parse(name, driver, address_expressions, key); // sets driver, extras, name, bus, bps, link_modes, ids, name, key
     mi.poll_interval = poll_interval;
+    mi.identity_mode = identity_mode;
 
-    if (!isValidSequenceOfAddressExpressions(id)) {
-        warning("Not a valid meter id nor a valid sequence of match expression \"%s\"\n", id.c_str());
+    if (!isValidSequenceOfAddressExpressions(address_expressions)) {
+        warning("Not a valid meter id nor a valid sequence of match expression \"%s\"\n", address_expressions.c_str());
         use = false;
     }
     if (!isValidKey(key, mi)) {

@@ -10,6 +10,16 @@ filter out some versions, do: 12345678,!12345678.V=77
 You can now specify p0 to p250, to read from an mbus using the primary address.
 E.g. wmbusmeters --pollinterval=5s /dev/ttyUSB1:mbus:2400 TEMP piigth:mbus p0 NOKEY
 
+Added option --identitymode=(id|id-mfct|full|none) to specify how
+wmbusmeters groups meter state when receiving telegrams.
+
+The default (which is the same as before) is to map state based only on id.
+This usually works ok, however if you have two meters with the same id, but
+from different manufacturers, you must separate their state with --identitymode=id-mfct
+Full takes into account version and type as well. None means do not separate state
+at all, used with wildcards and meters that do not need to keep state, ie all info
+is in every telegram.
+
 Version 1.16.1 2024-02-22
 
 Fix docker file generation.
