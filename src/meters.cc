@@ -112,7 +112,9 @@ bool DriverInfo::detect(uint16_t mfct, uchar type, uchar version)
     for (auto &dd : detect_)
     {
         if (dd.mfct == 0 && dd.type == 0 && dd.version == 0) continue; // Ignore drivers with no detection.
-        if (dd.mfct == mfct && dd.type == type && dd.version == version) return true;
+        //some meters send mfct where the first character ist lower case, which results in mfct which are bigger
+        //than 32767, therefore restrict mfct to correct range
+        if (dd.mfct == (mfct & 0x7fff) && dd.type == type && dd.version == version) return true;
     }
     return false;
 }
