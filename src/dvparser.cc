@@ -313,9 +313,12 @@ bool parseDV(Telegram *t,
         int storage_nr = lsb_of_storage_nr;
 
         bool has_another_dife = (dif & 0x80) == 0x80;
+        int num_dife = 0;
 
         while (has_another_dife)
         {
+            num_dife++;
+            if (num_dife > 10) { debug("(dvparser) warning: too many dife found!\n"); break; }
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (dife expected)\n"); break; }
 
             uchar dife = **format;
@@ -401,8 +404,13 @@ bool parseDV(Telegram *t,
 
         // Do we have another vife byte? We better have one, if extension_vif is true.
         bool has_another_vife = (vif & 0x80) == 0x80;
+        int num_vife = 0;
+
         while (has_another_vife)
         {
+            num_vife++;
+            if (num_vife > 10) { debug("(dvparser) warning: too many vife found!\n"); break; }
+
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vife expected)\n"); break; }
 
             uchar vife = **format;
