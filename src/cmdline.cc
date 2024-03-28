@@ -741,9 +741,20 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         string key = argv[m*4+i+3];
 
         MeterInfo mi;
+
+        if (!isValidSequenceOfAddressExpressions(address_expressions))
+        {
+            error("Not a valid meter id nor a valid sequence of match expression \"%s\"\n", address_expressions.c_str());
+        }
+
         mi.parse(name, driver, address_expressions, key);
         mi.poll_interval = c->pollinterval;
         mi.identity_mode = c->identity_mode;
+
+        if (!isValidKey(key, mi))
+        {
+            error("Not a valid meter key \"%s\"\n", key.c_str());
+        }
 
         if (mi.driver_name.str() == "")
         {

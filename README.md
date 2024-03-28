@@ -251,7 +251,9 @@ which will match all meter ids, except those that begin with 2222.
 
 You can also specify the exact manufacturer, version and type: `id=11111111.M=KAM.V=1b.T=16`
 or a subset: `id=11111111.T=16` or all telegrams from 22222222 except those with version 77:
-`id=22222222,!22222222.V=77`
+`id=22222222,!22222222.V=77` You can also use the fully specified secondary address that is
+printed by libmbus after doing a bus scan, ie `100002842941011B` which is equivalent to
+`10000284.M=PII.V=01.T=1B`
 
 When matching all meters from the command line you can use `ANYID` instead of `*` to avoid shell quotes.
 
