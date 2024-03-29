@@ -456,7 +456,7 @@ bool parseDV(Telegram *t,
                     if (data_has_difvifs)
                     {
                         t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
-                                                         "%02X combinable extension vife", vife);
+                                                         "%02X combinable extension vife (%s)", vife, toString(vc));
                     }
                 }
                 else
