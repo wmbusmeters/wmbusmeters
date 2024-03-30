@@ -680,10 +680,16 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
             return;
         }
 
+        if (addressExpressions().size() == 0)
+        {
+            warning("(meter) not polling from \"%s\" since no valid id\n", name().c_str());
+            return;
+        }
+
         AddressExpression &ae = addressExpressions().back();
         if (ae.has_wildcard)
         {
-            debug("(meter) not polling from id \"%s\" since poll id must not have a wildcard\n", ae.id.c_str());
+            warning("(meter) not polling from id \"%s\" since poll id must not have a wildcard\n", ae.id.c_str());
             return;
         }
 
@@ -693,7 +699,7 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
 
             if (idnum < 0 || idnum > 250)
             {
-                debug("(meter) not polling from bad id \"%s\"\n", ae.id.c_str());
+                warning("(meter) not polling from bad id \"%s\"\n", ae.id.c_str());
                 return;
             }
 
@@ -723,7 +729,7 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
 
             if (!ok || idhex.size() != 4)
             {
-                debug("(meter) not polling from bad id \"%s\"\n", ae.id.c_str());
+                warning("(meter) not polling from bad id \"%s\"\n", ae.id.c_str());
                 return;
             }
 
@@ -741,8 +747,8 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
             buf[8] = idhex[2]; // id 56
             buf[9] = idhex[1]; // id 34
             buf[10] = idhex[0]; // id 12
-            buf[11] = (ae.mfct >> 8) & 0xff; // use 0xff as a wildcard
-            buf[12] = ae.mfct & 0xff; // mfct
+            buf[11] = ae.mfct & 0xff; // mfct
+            buf[12] = (ae.mfct >> 8) & 0xff; // use 0xff as a wildcard
             buf[13] = ae.version; // version/generation
             buf[14] = ae.type; // type/media/device
 

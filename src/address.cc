@@ -45,6 +45,8 @@ bool isValidMatchExpression(const string& s, bool *has_wildcard)
     // !12345677
     //  2222222*
     // !22222222
+    // We also accept an secondary libmbus address:
+    // 100002842941011B
 
     // A match expression cannot be empty.
     if (me.length() == 0) return false;
@@ -64,10 +66,20 @@ bool isValidMatchExpression(const string& s, bool *has_wildcard)
     // We accept hex anyway.
     while (me.length() > 0 &&
            ((me.front() >= '0' && me.front() <= '9') ||
+            (me.front() >= 'A' && me.front() <= 'F') ||
             (me.front() >= 'a' && me.front() <= 'f')))
     {
         me.erase(0,1);
         count++;
+    }
+
+    if (me.length() == 0 && count == 16)
+    {
+        // A secondary libmbus address: 100002842941011B
+        // Strictly speaking the leading 8 digits should be bcd,
+        // but we accept hex as well.
+        *has_wildcard = false;
+        return true;
     }
 
     bool wildcard_used = false;
@@ -243,6 +255,8 @@ bool AddressExpression::parse(const string &in)
     // or       250.MPII.V01.T1B // mbus primary
     // or       !12345678
     // or       !*.M=ABC
+    // or libmbus secondary style:
+    //          123456782941011B
     id = "";
     mbus_primary = false;
     mfct = 0xffff;
@@ -278,6 +292,35 @@ bool AddressExpression::parse(const string &in)
         if (v < 0 || v > 250) return false;
         // It is 0-250 which means it is an mbus primary address.
         mbus_primary = true;
+    }
+
+    if (parts.size() == 1 && id.length() == 16)
+    {
+        // This is a secondary libmbus address.
+        string mfct_hex = id.substr(8,4);
+        string version_hex = id.substr(12,2);
+        string type_hex = id.substr(14,2);
+        id = id.substr(0,8);
+
+        vector<uchar> data;
+        bool ok = hex2bin(mfct_hex.c_str(), &data);
+        if (!ok) return false;
+        if (data.size() != 2) return false;
+        mfct = data[1] << 8 | data[0];
+
+        data.clear();
+        ok = hex2bin(version_hex.c_str(), &data);
+        if (!ok) return false;
+        if (data.size() != 1) return false;
+        version = data[0];
+
+        data.clear();
+        ok = hex2bin(type_hex.c_str(), &data);
+        if (!ok) return false;
+        if (data.size() != 1) return false;
+        type = data[0];
+
+        return true;
     }
 
     for (size_t i=1; i<parts.size(); ++i)

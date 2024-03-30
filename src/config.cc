@@ -186,18 +186,22 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 
     MeterInfo mi;
 
+    if (!isValidSequenceOfAddressExpressions(address_expressions))
+    {
+        warning("In config, not a valid meter id nor a valid sequence of match expression \"%s\"\n", address_expressions.c_str());
+        use = false;
+    }
+
     mi.parse(name, driver, address_expressions, key); // sets driver, extras, name, bus, bps, link_modes, ids, name, key
     mi.poll_interval = poll_interval;
     mi.identity_mode = identity_mode;
 
-    if (!isValidSequenceOfAddressExpressions(address_expressions)) {
-        warning("Not a valid meter id nor a valid sequence of match expression \"%s\"\n", address_expressions.c_str());
+    if (!isValidKey(key, mi))
+    {
+        warning("In config, not a valid meter key in config \"%s\"\n", key.c_str());
         use = false;
     }
-    if (!isValidKey(key, mi)) {
-        warning("Not a valid meter key \"%s\"\n", key.c_str());
-        use = false;
-    }
+
     if (use)
     {
         mi.extra_constant_fields = extra_constant_fields;
