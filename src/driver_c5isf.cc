@@ -68,7 +68,7 @@ namespace
         // Fields common for T1A1, T1A2, T1B...........
 
         addNumericFieldWithExtractor(
-            "total_energy_consumption",
+            "total_energy_consumption_Heat",
             "The total heat energy consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
@@ -76,10 +76,21 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
-            );
-
+	    .set(TariffNr(0))
+	    );
         addNumericFieldWithExtractor(
-            "total_volume",
+            "total_energy_consumption_Cold",
+            "The total heat energy consumption recorded by this meter.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+	    .set(TariffNr(1))
+	    );
+        addNumericFieldWithExtractor(
+            "total_volume_tariff_{tariff_counter}",
             "The total heating media volume recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
@@ -87,7 +98,8 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
-            );
+            .set(AnyTariffNr)
+	    );
 
         // Status field common for T1A1 and T1B
 
@@ -133,14 +145,26 @@ namespace
         for (int i=0; i<14; ++i)
         {
             addStringFieldWithExtractor(
-                tostrprintf("prev_%d_month", i+1),
+                tostrprintf("prev_%d_month_Heat", i+1),
                 "The due date.",
                 DEFAULT_PRINT_PROPERTIES,
                 FieldMatcher::build()
                 .set(MeasurementType::Instantaneous)
                 .set(StorageNr(32+i))
+                .set(TariffNr(0))
                 .set(VIFRange::Date)
                 );
+            addStringFieldWithExtractor(
+                tostrprintf("prev_%d_month_Cold", i+1),
+                "The due date.",
+                DEFAULT_PRINT_PROPERTIES,
+                FieldMatcher::build()
+                .set(MeasurementType::Instantaneous)
+                .set(StorageNr(32+i))
+                .set(TariffNr(1))
+                .set(VIFRange::Date)
+                );
+
         }
 
         // Telegram type T1A1 ///////////////////////////////////////////////////////
@@ -148,7 +172,7 @@ namespace
         for (int i=0; i<14; ++i)
         {
             addNumericFieldWithExtractor(
-                tostrprintf("prev_%d_month", i+1),
+                tostrprintf("prev_%d_month_Heat", i+1),
                 "The total heat energy consumption recorded at end of previous month.",
                 DEFAULT_PRINT_PROPERTIES,
                 Quantity::Energy,
@@ -156,8 +180,22 @@ namespace
                 FieldMatcher::build()
                 .set(MeasurementType::Instantaneous)
                 .set(StorageNr(32+i))
-                .set(VIFRange::AnyEnergyVIF)
+                .set(TariffNr(0))
+		.set(VIFRange::AnyEnergyVIF)
                 );
+            addNumericFieldWithExtractor(
+                tostrprintf("prev_%d_month_Cold", i+1),
+                "The total Cold energy consumption recorded at end of previous month.",
+                DEFAULT_PRINT_PROPERTIES,
+                Quantity::Energy,
+                VifScaling::Auto,
+                FieldMatcher::build()
+                .set(MeasurementType::Instantaneous)
+                .set(StorageNr(32+i))
+                .set(TariffNr(1))
+		.set(VIFRange::AnyEnergyVIF)
+                );
+
         }
 
         // Telegram type T1A2 ///////////////////////////////////////////////////////
@@ -165,7 +203,7 @@ namespace
         for (int i=0; i<14; ++i)
         {
             addNumericFieldWithExtractor(
-                tostrprintf("prev_%d_month", i+1),
+                tostrprintf("prev_%d_month_Heat", i+1),
                 tostrprintf("Previous month %d last date.", i+1),
                 DEFAULT_PRINT_PROPERTIES,
                 Quantity::Volume,
@@ -173,6 +211,20 @@ namespace
                 FieldMatcher::build()
                 .set(MeasurementType::Instantaneous)
                 .set(StorageNr(32+i))
+		.set(TariffNr(0))
+                .set(VIFRange::Volume)
+                );
+
+            addNumericFieldWithExtractor(
+                tostrprintf("prev_%d_month_Cold", i+1),
+                tostrprintf("Previous month %d last date.", i+1),
+                DEFAULT_PRINT_PROPERTIES,
+                Quantity::Volume,
+                VifScaling::Auto,
+                FieldMatcher::build()
+                .set(MeasurementType::Instantaneous)
+                .set(StorageNr(32+i))
+		.set(TariffNr(1))
                 .set(VIFRange::Volume)
                 );
         }
@@ -180,7 +232,7 @@ namespace
         // Telegram type T1B ///////////////////////////////////////////////////////
 
         addNumericFieldWithExtractor(
-            "due_energy_consumption",
+            "due_energy_consumption_Heat",
             "The total heat energy consumption at the due date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
@@ -188,17 +240,42 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(StorageNr(8))
-            .set(VIFRange::AnyEnergyVIF)
+            .set(TariffNr(0))
+	    .set(VIFRange::AnyEnergyVIF)
+            );
+        addNumericFieldWithExtractor(
+            "due_energy_consumption_Cold",
+            "The total cold energy consumption at the due date.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(StorageNr(8))
+            .set(TariffNr(1))
+	    .set(VIFRange::AnyEnergyVIF)
             );
 
         addStringFieldWithExtractor(
-            "due_date",
-            "The due date.",
+            "due_date_Heat",
+            "The Heat due date.",
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(StorageNr(8))
             .set(VIFRange::Date)
+	    .set(TariffNr(0))
+            );
+
+        addStringFieldWithExtractor(
+            "due_date_Cold",
+            "The Cold due date.",
+            DEFAULT_PRINT_PROPERTIES,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(StorageNr(8))
+            .set(VIFRange::Date)
+	    .set(TariffNr(1))
             );
 
         addNumericFieldWithExtractor(
@@ -210,21 +287,33 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::VolumeFlow)
-            );
+	    );
 
         addNumericFieldWithExtractor(
-            "power",
-            "The current power consumption.",
+            "power_Heat",
+            "The current Heat power consumption.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::PowerW)
-            );
+            .set(TariffNr(0))
+	    );
+        addNumericFieldWithExtractor(
+            "power_Cold",
+            "The current Cold power consumption.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Power,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::PowerW)
+            .set(TariffNr(1))
+	    );
 
         addNumericFieldWithExtractor(
-            "total_energy_consumption_last_month",
+            "total_energy_consumption_last_month_Heat",
             "The total heat energy consumption recorded at end of last month.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
@@ -233,7 +322,20 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(StorageNr(32))
             .set(VIFRange::AnyEnergyVIF)
-            );
+            .set(TariffNr(0))
+	    );
+        addNumericFieldWithExtractor(
+            "total_energy_consumption_last_month_Cold",
+            "The total cold energy consumption recorded at end of last month.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(StorageNr(32))
+            .set(VIFRange::AnyEnergyVIF)
+            .set(TariffNr(1))
+	    );
 
         addStringFieldWithExtractor(
             "last_month_date",
@@ -245,8 +347,8 @@ namespace
             );
 
         addNumericFieldWithExtractor(
-            "max_power_last_month",
-            "Maximum power consumption last month.",
+            "max_power_last_month_Heat",
+            "Maximum Heat power consumption last month.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
@@ -254,6 +356,21 @@ namespace
             .set(MeasurementType::Maximum)
             .set(StorageNr(32))
             .set(VIFRange::PowerW)
+	    .set(TariffNr(0))
+            .add(VIFCombinable::PerMonth)
+            );
+
+        addNumericFieldWithExtractor(
+            "max_power_last_month_Cold",
+            "Maximum Cold power consumption last month.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Power,
+            VifScaling::Auto,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(StorageNr(32))
+            .set(VIFRange::PowerW)
+	    .set(TariffNr(1))
             .add(VIFCombinable::PerMonth)
             );
 
@@ -265,7 +382,7 @@ namespace
             VifScaling::Auto,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
-            .set(VIFRange::FlowTemperature)
+	    .set(VIFRange::FlowTemperature)
             );
 
         addNumericFieldWithExtractor(
@@ -277,7 +394,8 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ReturnTemperature)
-            );
+            
+	    );
     }
 }
 
