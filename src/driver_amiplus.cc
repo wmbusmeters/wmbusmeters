@@ -33,6 +33,7 @@ namespace
         di.addDetection(MANUFACTURER_APA,  0x02,  0x02);
         di.addDetection(MANUFACTURER_DEV,  0x37,  0x02);
         di.addDetection(MANUFACTURER_DEV,  0x02,  0x00);
+        di.addDetection(MANUFACTURER_NES,  0x02,  0x03);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
