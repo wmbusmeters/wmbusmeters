@@ -51,7 +51,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
             Translate::Lookup()
-            .add(Translate::Rule("ERROR_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("ERROR_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0x0000))
                  .set(DefaultMessage("OK"))
                 ));

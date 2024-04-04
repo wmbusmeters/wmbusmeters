@@ -35,11 +35,16 @@ string get_translation(XMQDoc *doc, XMQNode *node, string name, string lang);
 string check_calculate(const char *formula, DriverDynamic *dd);
 Unit check_display_unit(const char *display_unit, DriverDynamic *dd);
 
+bool checked_set_difvifkey(const char *difvifkey_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_vif_range(const char *vif_range_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_storagenr_range(const char *storagenr_range_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_tariffnr_range(const char *tariffnr_range_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_subunitnr_range(const char *subunitnr_range_s, FieldMatcher *fm, DriverDynamic *dd);
+Translate::MapType checked_map_type(const char *map_type_s, DriverDynamic *dd);
+uint64_t checked_mask_bits(const char *mask_bits_s, DriverDynamic *dd);
+uint64_t checked_value(const char *value_s, DriverDynamic *dd);
+TestBit checked_test_type(const char *test_s, DriverDynamic *dd);
 void checked_add_vif_combinable(const char *vif_range_s, FieldMatcher *fm, DriverDynamic *dd);
 
 const char *line = "-------------------------------------------------------------------------------";
@@ -59,12 +64,12 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
 
     if (!content)
     {
-        ok = xmqParseFile(doc, file.c_str(), NULL);
+        ok = xmqParseFile(doc, file.c_str(), NULL, 0);
     }
     else
     {
         file = "builtin";
-        ok = xmqParseBuffer(doc, content, content+strlen(content), NULL);
+        ok = xmqParseBuffer(doc, content, content+strlen(content), NULL, 0);
     }
 
     if (!ok) {
@@ -283,6 +288,21 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     // Check if there were any matches at all, if not, then disable the matcher.
     match.active = num_matches > 0;
 
+    // Now find all matchers.
+    Translate::Lookup lookup = Translate::Lookup();
+    /*
+        .add(Translate::Rule("ERROR_FLAGS", Translate::Type::BitToString)
+        .set(MaskBits(0x000f))
+        .set(DefaultMessage("OK"))
+        .add(Translate::Map(0x01 ,"DRY", TestBit::Set))
+        .add(Translate::Map(0x02 ,"REVERSE", TestBit::Set))
+        .add(Translate::Map(0x04 ,"LEAK", TestBit::Set))
+        .add(Translate::Map(0x08 ,"BURST", TestBit::Set))
+        ));
+    */
+    dd->tmp_lookup_ = &lookup;
+    int num_lookups = xmqForeach(doc, field, "lookup", (XMQNodeCallback)add_lookup, dd);
+
     if (is_numeric)
     {
         if (calculate == "")
@@ -326,12 +346,25 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     }
     else
     {
-        dd->addStringFieldWithExtractor(
-            name,
-            info,
-            properties,
-            match
-            );
+        if (num_lookups > 0)
+        {
+            dd->addStringFieldWithExtractorAndLookup(
+                name,
+                info,
+                properties,
+                match,
+                lookup
+                );
+        }
+        else
+        {
+            dd->addStringFieldWithExtractor(
+                name,
+                info,
+                properties,
+                match
+                );
+        }
     }
     return XMQ_CONTINUE;
 }
@@ -339,6 +372,8 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
 XMQProceed DriverDynamic::add_match(XMQDoc *doc, XMQNode *match, DriverDynamic *dd)
 {
     FieldMatcher *fm = dd->tmp_matcher_;
+
+    if (checked_set_difvifkey(xmqGetString(doc, match, "difvifkey"), fm, dd)) return XMQ_CONTINUE;
 
     checked_set_measurement_type(xmqGetString(doc, match, "measurement_type"), fm, dd);
 
@@ -356,6 +391,61 @@ XMQProceed DriverDynamic::add_combinable(XMQDoc *doc, XMQNode *match, DriverDyna
     FieldMatcher *fm = dd->tmp_matcher_;
 
     checked_add_vif_combinable(xmqGetString(doc, match, "."), fm, dd);
+
+    return XMQ_CONTINUE;
+}
+
+/**
+   add_map:
+   Add a mapping from a value (bits,index,decimal) to a string name.
+
+   map {
+       name  = SURGE
+       info  = 'Unexpected increase in pressure in relation to average pressure.'
+       value = 0x02
+       test  = set
+   }
+*/
+XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
+{
+    const char *name = xmqGetString(doc, map, "name");
+    uint64_t value = checked_value(xmqGetString(doc, map, "value"), dd);
+    TestBit test_type = checked_test_type(xmqGetString(doc, map, "test"), dd);
+
+    dd->tmp_rule_->add(Translate::Map(value, name, test_type));
+
+    return XMQ_CONTINUE;
+}
+
+/**
+    add_lookup:
+    Add a lookup from bits,index or decimal to a sequence of string tokens.
+    Or fallback to the name (ERROR_FLAGS_8) suffixed by the untranslateable bits.
+
+    lookup {
+        name            = ERROR_FLAGS
+        map_type        = BitToString
+        mask_bits       = 0xffff
+        default_message = OK
+        map { } map {}
+    }
+*/
+XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic *dd)
+{
+    const char *name = xmqGetString(doc, lookup, "name");
+    Translate::MapType map_type = checked_map_type(xmqGetString(doc, lookup, "map_type"), dd);
+    uint64_t mask_bits = checked_mask_bits(xmqGetString(doc, lookup, "mask_bits"), dd);
+    const char *default_message = xmqGetString(doc, lookup, "default_message");
+
+    Translate::Rule rule = Translate::Rule(name, map_type);
+    dd->tmp_rule_ = &rule;
+
+    rule.set(MaskBits(mask_bits));
+    rule.set(DefaultMessage(default_message));
+
+    xmqForeach(doc, lookup, "map", (XMQNodeCallback)add_map, dd);
+
+    dd->tmp_lookup_->add(rule);
 
     return XMQ_CONTINUE;
 }
@@ -623,6 +713,31 @@ Unit check_display_unit(const char *display_unit_s, DriverDynamic *dd)
     return u;
 }
 
+bool checked_set_difvifkey(const char *difvifkey_s, FieldMatcher *fm, DriverDynamic *dd)
+{
+    if (!difvifkey_s) return false;
+
+    bool invalid_hex = false;
+    bool hex = isHexStringStrict(difvifkey_s, &invalid_hex);
+
+    if (!hex || invalid_hex)
+    {
+        warning("(driver) error in %s, bad divfikey: %s\n"
+                "%s\n"
+                "Should be all hex.\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                difvifkey_s,
+                line,
+                line);
+        throw 1;
+    }
+
+    fm->set(DifVifKey(difvifkey_s));
+
+    return true;
+}
+
 void checked_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm, DriverDynamic *dd)
 {
     if (!measurement_type_s)
@@ -756,4 +871,119 @@ void checked_add_vif_combinable(const char *vif_combinable_s, FieldMatcher *fm, 
     }
 
     fm->add(vif_combinable);
+}
+
+Translate::MapType checked_map_type(const char *map_type_s, DriverDynamic *dd)
+{
+    if (!map_type_s)
+    {
+        warning("(driver) error in %s, cannot find: driver/field/lookup/map_type\n"
+                "%s\n"
+                "Remember to add for example: lookup { map_type = BitToString ... }\n"
+                "Available map types:\n"
+                "BitToString\n"
+                "IndexToString\n"
+                "DecimalsToString\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                line,
+                line);
+        throw 1;
+    }
+
+    Translate::MapType map_type = toMapType(map_type_s);
+
+    if (map_type == Translate::MapType::Unknown)
+    {
+        warning("(driver) error in %s, bad map_type: %s\n"
+                "%s\n"
+                "Available map types:\n"
+                "BitToString\n"
+                "IndexToString\n"
+                "DecimalToString\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                map_type_s,
+                line,
+                line);
+        throw 1;
+    }
+
+    return map_type;
+}
+
+
+uint64_t checked_mask_bits(const char *mask_bits_s, DriverDynamic *dd)
+{
+    if (!mask_bits_s)
+    {
+        warning("(driver) error in %s, cannot find: driver/field/lookup/mask_bitse\n"
+                "%s\n"
+                "Remember to add for example: lookup { mask_bits = 0x00ff ... }\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                line,
+                line);
+        throw 1;
+    }
+
+    uint64_t mask = strtol(mask_bits_s, NULL, 16);
+
+    return mask;
+}
+
+uint64_t checked_value(const char *value_s, DriverDynamic *dd)
+{
+    if (!value_s)
+    {
+        warning("(driver) error in %s, cannot find: driver/field/lookup/map/value\n"
+                "%s\n"
+                "Remember to add for example: lookup { map { ... value = 0x01 ... }}\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                line,
+                line);
+        throw 1;
+    }
+
+    uint64_t value = strtol(value_s, NULL, 16);
+
+    return value;
+}
+
+TestBit checked_test_type(const char *test_s, DriverDynamic *dd)
+{
+    if (!test_s)
+    {
+        warning("(driver) error in %s, cannot find: driver/field/lookup/map/test\n"
+                "%s\n"
+                "Remember to add for example: lookup { map { test = Set }  }\n"
+                "Available test types:\n"
+                "Set\n"
+                "NotSet\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                line,
+                line);
+        throw 1;
+    }
+
+    TestBit test_type = toTestBit(test_s);
+
+    if (test_type == TestBit::Unknown)
+    {
+        warning("(driver) error in %s, bad test: %s\n"
+                "%s\n"
+                "Available test types:\n"
+                "Set\n"
+                "NotSet\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                test_s,
+                line,
+                line);
+        throw 1;
+    }
+
+    return test_type;
 }

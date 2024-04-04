@@ -46,7 +46,7 @@ namespace
             FieldMatcher::build()
             .set(DifVifKey("02FF20")),
             Translate::Lookup()
-            .add(Translate::Rule("ERROR_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("ERROR_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0x000f))
                  .set(DefaultMessage("OK"))
                  .add(Translate::Map(0x01 ,"DRY", TestBit::Set))
@@ -136,7 +136,7 @@ namespace
                 {
                     {
                         "ERROR_FLAGS",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0x000f),
                         "",
                         {
@@ -159,7 +159,7 @@ namespace
                 {
                     {
                         "DRY",
-                        Translate::Type::IndexToString,
+                        Translate::MapType::IndexToString,
                         AlwaysTrigger, MaskBits(0x0070),
                         "",
                         {
@@ -186,7 +186,7 @@ namespace
                 {
                     {
                         "REVERSED",
-                        Translate::Type::IndexToString,
+                        Translate::MapType::IndexToString,
                         AlwaysTrigger, MaskBits(0x0380),
                         "",
                         {
@@ -213,7 +213,7 @@ namespace
                 {
                     {
                         "LEAKING",
-                        Translate::Type::IndexToString,
+                        Translate::MapType::IndexToString,
                         AlwaysTrigger, MaskBits(0x1c00),
                         "",
                         {
@@ -240,7 +240,7 @@ namespace
                 {
                     {
                         "BURSTING",
-                        Translate::Type::IndexToString,
+                        Translate::MapType::IndexToString,
                         AlwaysTrigger, MaskBits(0xe000),
                         "",
                         {

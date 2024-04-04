@@ -39,7 +39,7 @@ namespace
     {
         setMfctTPLStatusBits(
             Translate::Lookup()
-            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
+            .add(Translate::Rule("TPL_STS", Translate::MapType::BitToString)
                  .set(MaskBits(0xe0))
                  .set(DefaultMessage("OK"))
                  .add(Translate::Map(0x80 ,"SABOTAGE_ENCLOSURE", TestBit::Set))));

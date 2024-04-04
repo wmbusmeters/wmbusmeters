@@ -19,6 +19,7 @@
 #include"util.h"
 
 #include<assert.h>
+#include<string.h>
 
 using namespace Translate;
 using namespace std;
@@ -210,15 +211,15 @@ void handleRule(Rule& rule, string &s, uint64_t bits)
 {
     switch (rule.type)
     {
-    case Type::BitToString:
+    case MapType::BitToString:
         handleBitToString(rule, s, bits);
         break;
 
-    case Type::IndexToString:
+    case MapType::IndexToString:
         handleIndexToString(rule, s, bits);
         break;
 
-    case Type::DecimalsToString:
+    case MapType::DecimalsToString:
         handleDecimalsToString(rule, s, bits);
         break;
 
@@ -259,11 +260,19 @@ string Lookup::str()
     return x;
 }
 
+Translate::MapType toMapType(const char *s)
+{
+    if (!strcmp(s, "BitToString")) return Translate::MapType::BitToString;
+    if (!strcmp(s, "IndexToString")) return Translate::MapType::IndexToString;
+    if (!strcmp(s, "DecimalsToString")) return Translate::MapType::DecimalsToString;
+    return Translate::MapType::Unknown;
+}
+
 Lookup NoLookup = {};
 
 
 Map m = { 123, "howdy" };
 vector<Map> vm = { { 123, "howdy" } };
 
-Rule r = { "name", Translate::Type::IndexToString,
+Rule r = { "name", Translate::MapType::IndexToString,
     AlwaysTrigger, MaskBits(0xe000),  "", { } };

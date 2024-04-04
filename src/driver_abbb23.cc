@@ -157,7 +157,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("07FFA600")),
             Translate::Lookup()
-            .add(Translate::Rule("ERROR_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("ERROR_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0xffffffffffffffff))
                  .set(DefaultMessage("OK"))
                 ));
@@ -170,7 +170,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("07FFA700")),
             Translate::Lookup()
-            .add(Translate::Rule("WARNING_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("WARNING_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0xffffffffffffffff))
                  .set(DefaultMessage("OK"))
                 ));
@@ -183,7 +183,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("07FFA800")),
             Translate::Lookup()
-            .add(Translate::Rule("INFORMATION_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("INFORMATION_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0xffffffffffffffff))
                  .set(DefaultMessage(""))
                 ));
@@ -196,7 +196,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("07FFA900")),
             Translate::Lookup()
-            .add(Translate::Rule("ALARM_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("ALARM_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0xfffffffffffffff))
                  .set(DefaultMessage("OK"))
                 ));
@@ -209,7 +209,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("01FFAD00")),
             Translate::Lookup()
-            .add(Translate::Rule("UNKNOWN", Translate::Type::BitToString)
+            .add(Translate::Rule("UNKNOWN", Translate::MapType::BitToString)
                  .set(MaskBits(0xff))
                  .set(DefaultMessage("OK"))
                 ));
@@ -739,7 +739,7 @@ namespace
             .set(SubUnitNr(1),SubUnitNr(2))
             .add(VIFCombinableRaw(0)),
             Translate::Lookup()
-            .add(Translate::Rule("OUTPUT", Translate::Type::BitToString)
+            .add(Translate::Rule("OUTPUT", Translate::MapType::BitToString)
                  .set(MaskBits(0xff))
                 ));
 
@@ -753,7 +753,7 @@ namespace
             .set(SubUnitNr(3),SubUnitNr(4))
             .add(VIFCombinableRaw(0)),
             Translate::Lookup()
-            .add(Translate::Rule("INPUT", Translate::Type::BitToString)
+            .add(Translate::Rule("INPUT", Translate::MapType::BitToString)
                  .set(MaskBits(0xff))
                 ));
 
@@ -768,7 +768,7 @@ namespace
             .set(SubUnitNr(3),SubUnitNr(4))
             .add(VIFCombinableRaw(0)),
             Translate::Lookup()
-            .add(Translate::Rule("INPUT", Translate::Type::BitToString)
+            .add(Translate::Rule("INPUT", Translate::MapType::BitToString)
                  .set(MaskBits(0xff))
                 ));
 

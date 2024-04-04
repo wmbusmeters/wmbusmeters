@@ -101,7 +101,7 @@ namespace
                 {
                     {
                         "ERROR_FLAGS",
-                        Translate::Type::DecimalsToString,
+                        Translate::MapType::DecimalsToString,
                         AlwaysTrigger, MaskBits(9999),
                         "OK",
                         {

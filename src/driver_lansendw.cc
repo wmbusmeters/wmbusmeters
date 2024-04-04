@@ -44,7 +44,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DigitalInput),
             Translate::Lookup()
-            .add(Translate::Rule("INPUT_BITS", Translate::Type::IndexToString)
+            .add(Translate::Rule("INPUT_BITS", Translate::MapType::IndexToString)
                  .set(MaskBits(0xffff))
                  .add(Translate::Map(0x11 ,"CLOSED", TestBit::Set))
                  .add(Translate::Map(0x55 ,"OPEN", TestBit::Set))
@@ -58,7 +58,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
             Translate::Lookup()
-            .add(Translate::Rule("ERROR_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("ERROR_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0xffff))
                  .set(DefaultMessage("OK"))
                 ));

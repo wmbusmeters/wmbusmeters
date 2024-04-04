@@ -1,4 +1,4 @@
-// Generated 2024-02-12_08:58
+// Generated 2024-04-04_20:51
 test {
     args     = 'Gas elster 05105025 NOKEY'
     telegram = 3644A511640010253837722550100593158103E70020052F2F_0374E602000C137034220302FD74EE0F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
@@ -18,4 +18,24 @@ test {
     telegram = 1E44AE4C9956341268077A36001000_2F2F0413181E0000023B00002F2F2F2F
     json     = '{"media":"water","meter":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'MoreWater;12345699;7.704;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Pressing kampress 77000317 NOKEY'
+    telegram = '32442D2C1703007701188D280080E39322DB8F78_22696600126967000269660005FF091954A33A05FF0A99BD823A02FD170800
+                27442D2C1703007701188D289554F295224ED579DE73188A_650066006600E80EA43A6B97A3BA0800'
+    json     = '{"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","status":"LOW","pressure_bar":1.02,"max_pressure_bar":1.02,"min_pressure_bar":1.01,"alfa_counter":0.001252,"beta_counter":-0.001248,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Pressing;77000317;LOW;1.02;1.02;1.01;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Pressing kampress 77000317 NOKEY'
+    telegram = '32442D2C1703007701188D280080E39322DB8F78_22696600126967000269660005FF091954A33A05FF0A99BD823A02FD170800
+                27442D2C1703007701188D280194E393226EC679DE735657_660067006600962B913A21B9423A0800'
+    json     = '{"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","status":"LOW","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"alfa_counter":0.001108,"beta_counter":0.000743,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Pressing;77000317;LOW;1.02;1.03;1.02;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Pressing kampress 77000317 NOKEY'
+    telegram = 32442D2C1703007701188D280080E39322DB8F78_22696600126967000269660005FF091954A33A05FF0A99BD823A02FD170800
+    json     = '{"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","status":"LOW","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"alfa_counter":0.001246,"beta_counter":0.000997,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Pressing;77000317;LOW;1.02;1.03;1.02;1111-11-11 11:11.11'
 }

@@ -60,7 +60,7 @@ namespace
                 {
                     {
                         "ERROR_FLAGS",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xffffff),
                         "OK",
                         {
@@ -102,7 +102,7 @@ namespace
                 {
                     {
                         "WOOTA",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xffffffff),
                         "",
                         {
@@ -122,7 +122,7 @@ namespace
                 {
                     {
                         "WOOTB",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xffff),
                         "",
                         {
@@ -156,4 +156,3 @@ namespace
 // telegram=|3A4497269820362300167AF60020A52F2F_04132E100000066D03260DE12B007413FEFEFEFE426C1F01047F1600060C027F9A2A0E79187103002300|
 // {"enhanced_id": "002300037118", "id": "23362098", "media": "cold water", "meter": "itron", "meter_datetime": "2023-11-01 13:38:03", "name": "ColdWaterMeter", "status": "OK", "target_date": "2000-01-31", "timestamp": "1111-11-11T11:11:11Z", "total_m3": 4.142,"unknown_a": "WOOTA_C060016","unknown_b": "WOOTB_2A9A" }
 // |ColdWaterMeter;23362098;4.142;null;1111-11-11 11:11.11
-

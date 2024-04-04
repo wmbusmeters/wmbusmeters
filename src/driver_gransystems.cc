@@ -70,7 +70,7 @@ namespace
                 {
                     {
                         "ERROR_FLAGS",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger,
                         AutoMask,
                         "OK",
@@ -85,7 +85,7 @@ namespace
                     },
                     {
                         "ERROR_FLAGS_SINGLE_PHASE",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         TriggerBits(0x01020000),
                         AutoMask,
                         "OK",
@@ -99,7 +99,7 @@ namespace
                     },
                     {
                         "ERROR_FLAGS_THREE_PHASE",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         TriggerBits(0x01010000),
                         AutoMask,
                         "OK",
@@ -124,7 +124,7 @@ namespace
                 {
                     {
                         "INFO_FLAGS",
-                        Translate::Type::IndexToString,
+                        Translate::MapType::IndexToString,
                         AlwaysTrigger,
                         AutoMask,
                         "",

@@ -207,6 +207,7 @@ string loadDriver(const string &file, const char *content)
 {
     DriverInfo di;
 
+    debug("(meter) loading %s\n", file.c_str());
     bool ok = DriverDynamic::load(&di, file, content);
     if (!ok)
     {
@@ -217,8 +218,15 @@ string loadDriver(const string &file, const char *content)
     DriverInfo *old = lookupDriver(di.name().str());
     if (old != NULL)
     {
+        debug("(meter) overriding %s\n", di.name().str().c_str());
         if (old->getDynamicFileName() != "")
         {
+            if (di.getDynamicFileName() == old->getDynamicFileName())
+            {
+                // Loading same file again, happens when using analyze. This is fine.
+                return di.name().str();
+            }
+            // New file source registering the same driver name, nono.
             error("Newly loaded driver file %s tries to register the same name %s as driver file %s has already taken!\n",
                   file.c_str(), di.name().str().c_str(), old->getDynamicFileName().c_str());
         }

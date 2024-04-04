@@ -40,7 +40,7 @@ namespace
     {
         setMfctTPLStatusBits(
             Translate::Lookup()
-            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
+            .add(Translate::Rule("TPL_STS", Translate::MapType::BitToString)
                  .set(MaskBits(0xe0))
                  .set(DefaultMessage("OK"))
                  .add(Translate::Map(0x04 ,"LOW_BATTERY", TestBit::Set))));
@@ -92,7 +92,7 @@ namespace
             .set(VIFRange::Dimensionless)
             .set(SubUnitNr(2)),
             Translate::Lookup()
-            .add(Translate::Rule("INPUT_BITS", Translate::Type::IndexToString)
+            .add(Translate::Rule("INPUT_BITS", Translate::MapType::IndexToString)
                  .set(MaskBits(0x01))
                  .add(Translate::Map(0x00, "NO", TestBit::Set))
                  .add(Translate::Map(0x01, "YES", TestBit::Set))
@@ -143,7 +143,7 @@ namespace
             .set(VIFRange::Dimensionless)
             .set(StorageNr(3)),
             Translate::Lookup()
-            .add(Translate::Rule("INPUT_BITS", Translate::Type::BitToString)
+            .add(Translate::Rule("INPUT_BITS", Translate::MapType::BitToString)
                  .set(MaskBits(0xffff))
                  .add(Translate::Map(0x01 ,"SU", TestBit::Set))
                  .add(Translate::Map(0x02 ,"MO", TestBit::Set))

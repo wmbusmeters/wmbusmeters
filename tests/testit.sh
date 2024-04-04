@@ -11,9 +11,12 @@ FIELDS="$5"
 
 OK=true
 
-rm -f $TEST/test_output.txt $TEST/test_expected.txt
+rm -f $TEST/test_output.txt $TEST/test_expected.txt $TEST/simulation_tmp.txt
 
-$PROG --format=json $HEX $ARGS \
+echo "$HEX" | sed 's/^/telegram=/g' > $TEST/simulation_tmp.txt
+
+$PROG --format=json $TEST/simulation_tmp.txt $ARGS \
+    | tail -n 1 \
     | jq . --sort-keys \
     | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' \
     > $TEST/test_output.txt
@@ -31,7 +34,8 @@ fi
 
 rm -f $TEST/test_output.txt $TEST/test_expected.txt
 
-$PROG --format=fields $HEX $ARGS \
+$PROG --format=fields $TEST/simulation_tmp.txt $ARGS \
+    | tail -n 1 \
     | sed 's/....-..-.. ..:..:../1111-11-11 11:11.11/' \
     > $TEST/test_output.txt
 

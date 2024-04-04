@@ -53,7 +53,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
             Translate::Lookup()
-            .add(Translate::Rule("ERROR_FLAGS", Translate::Type::IndexToString)
+            .add(Translate::Rule("ERROR_FLAGS", Translate::MapType::IndexToString)
                  .set(MaskBits(0xffffff))
                  .add(Translate::Map(0x000000, "CODE_101_EEPROM_ERROR", TestBit::Set))
                  .add(Translate::Map(0x000010, "CODE_102_NO_CALIBRATION_TABLE", TestBit::Set))
@@ -203,7 +203,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("07FFA600")),
             Translate::Lookup()
-            .add(Translate::Rule("ERROR_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("ERROR_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0xffffffffffffffff))
                  .set(DefaultMessage("OK"))
                 ));
@@ -216,7 +216,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("07FFA700")),
             Translate::Lookup()
-            .add(Translate::Rule("WARNING_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("WARNING_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0xffffffffffffffff))
                  .set(DefaultMessage("OK"))
                 ));
@@ -229,7 +229,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("07FFA800")),
             Translate::Lookup()
-            .add(Translate::Rule("INFORMATION_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("INFORMATION_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0xffffffffffffffff))
                  .set(DefaultMessage(""))
                 ));
@@ -242,7 +242,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("07FFA900")),
             Translate::Lookup()
-            .add(Translate::Rule("ALARM_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("ALARM_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0xfffffffffffffff))
                  .set(DefaultMessage("OK"))
                 ));
@@ -255,7 +255,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("01FFAD00")),
             Translate::Lookup()
-            .add(Translate::Rule("UNKNOWN", Translate::Type::BitToString)
+            .add(Translate::Rule("UNKNOWN", Translate::MapType::BitToString)
                  .set(MaskBits(0xff))
                  .set(DefaultMessage("OK"))
                 ));
@@ -1407,7 +1407,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DigitalInput),
             Translate::Lookup()
-            .add(Translate::Rule("INPUT", Translate::Type::BitToString)
+            .add(Translate::Rule("INPUT", Translate::MapType::BitToString)
                  .set(MaskBits(0xffffff))
                 ));
 
@@ -1419,7 +1419,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("02FF32")),
             Translate::Lookup()
-            .add(Translate::Rule("INPUT_STATUS", Translate::Type::BitToString)
+            .add(Translate::Rule("INPUT_STATUS", Translate::MapType::BitToString)
                  .set(MaskBits(0xff))
                 ));
 
@@ -1431,7 +1431,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DigitalOutput),
             Translate::Lookup()
-            .add(Translate::Rule("OUTPUT", Translate::Type::BitToString)
+            .add(Translate::Rule("OUTPUT", Translate::MapType::BitToString)
                  .set(MaskBits(0xffffff))
                 ));
 
@@ -1443,7 +1443,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("03FF2D")),
             Translate::Lookup()
-            .add(Translate::Rule("OUTPUT_ASSOCIATION", Translate::Type::BitToString)
+            .add(Translate::Rule("OUTPUT_ASSOCIATION", Translate::MapType::BitToString)
                  .set(MaskBits(0xffffff))
                 ));
 
@@ -1455,7 +1455,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("03FF30")),
             Translate::Lookup()
-            .add(Translate::Rule("INPUT_ASSOCIATION", Translate::Type::BitToString)
+            .add(Translate::Rule("INPUT_ASSOCIATION", Translate::MapType::BitToString)
                  .set(MaskBits(0xffffff))
                 ));
 
@@ -1467,7 +1467,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey( "02FF36")),
             Translate::Lookup()
-            .add(Translate::Rule("OUTPUT_ASSOCIATION", Translate::Type::BitToString)
+            .add(Translate::Rule("OUTPUT_ASSOCIATION", Translate::MapType::BitToString)
                  .set(MaskBits(0xffff))
                 ));
 
@@ -1479,7 +1479,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("02FF34")),
             Translate::Lookup()
-            .add(Translate::Rule("OVERLOAD_ALARM", Translate::Type::BitToString)
+            .add(Translate::Rule("OVERLOAD_ALARM", Translate::MapType::BitToString)
                  .set(MaskBits(0xff))
                 ));
 
@@ -1500,7 +1500,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("02FF37")),
             Translate::Lookup()
-            .add(Translate::Rule("ACTIVATED_STATUS", Translate::Type::BitToString)
+            .add(Translate::Rule("ACTIVATED_STATUS", Translate::MapType::BitToString)
                  .set(MaskBits(0xff))
                 ));
 
@@ -1512,7 +1512,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("02FF38")),
             Translate::Lookup()
-            .add(Translate::Rule("UNACK_STATUS", Translate::Type::BitToString)
+            .add(Translate::Rule("UNACK_STATUS", Translate::MapType::BitToString)
                  .set(MaskBits(0xff))
                 ));
 
@@ -1643,7 +1643,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("03FF23")),
             Translate::Lookup()
-            .add(Translate::Rule("POWER_SYS_CONFIG", Translate::Type::BitToString)
+            .add(Translate::Rule("POWER_SYS_CONFIG", Translate::MapType::BitToString)
                  .set(MaskBits(0xffffff))
                 ));
 

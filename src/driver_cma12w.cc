@@ -77,7 +77,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DigitalInput),
             Translate::Lookup()
-            .add(Translate::Rule("BATTERY", Translate::Type::BitToString)
+            .add(Translate::Rule("BATTERY", Translate::MapType::BitToString)
                  .set(MaskBits(0xffff)))
             );
     }
