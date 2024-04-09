@@ -30,6 +30,7 @@ void check_detection_triplets(DriverInfo *di, string file);
 string check_field_name(const char *name, DriverDynamic *dd);
 Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd);
 VifScaling check_vif_scaling(const char *vif_scaling_s, DriverDynamic *dd);
+DifSignedness check_dif_signedness(const char *dif_signedness_s, DriverDynamic *dd);
 PrintProperties check_print_properties(const char *print_properties_s, DriverDynamic *dd);
 string get_translation(XMQDoc *doc, XMQNode *node, string name, string lang);
 string check_calculate(const char *formula, DriverDynamic *dd);
@@ -269,6 +270,9 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     // The vif scaling is by default Auto but can be overriden for pesky fields.
     VifScaling vif_scaling = check_vif_scaling(xmqGetString(doc, field, "vif_scaling"), dd);
 
+    // The dif signedness is by default Signed but can be overriden for pesky fields.
+    DifSignedness dif_signedness = check_dif_signedness(xmqGetString(doc, field, "dif_signedness"), dd);
+
     // The properties are by default empty but can be specified for specific fields.
     PrintProperties properties = check_print_properties(xmqGetString(doc, field, "attributes"), dd);
 
@@ -313,6 +317,7 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 properties,
                 quantity,
                 vif_scaling,
+                dif_signedness,
                 match,
                 display_unit
                 );
@@ -635,17 +640,44 @@ VifScaling check_vif_scaling(const char *vif_scaling_s, DriverDynamic *dd)
         warning("(driver) error in %s, bad vif scaling: %s\n",
                 "%s\n"
                 "Available vif scalings:\n"
-                "%s\n"
+                "Auto\n"
+                "None\n"
                 "%s\n",
                 dd->fileName().c_str(),
                 vif_scaling_s,
                 line,
-                "???",
                 line);
         throw 1;
     }
 
     return vif_scaling;
+}
+
+DifSignedness check_dif_signedness(const char *dif_signedness_s, DriverDynamic *dd)
+{
+    if (!dif_signedness_s)
+    {
+        return DifSignedness::Signed;
+    }
+
+    DifSignedness dif_signedness = toDifSignedness(dif_signedness_s);
+
+    if (dif_signedness == DifSignedness::Unknown)
+    {
+        warning("(driver) error in %s, bad dif signedness: %s\n",
+                "%s\n"
+                "Available dif signedness:\n"
+                "Signed\n"
+                "Unsigned\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                dif_signedness_s,
+                line,
+                line);
+        throw 1;
+    }
+
+    return dif_signedness;
 }
 
 PrintProperties check_print_properties(const char *print_properties_s, DriverDynamic *dd)

@@ -44,6 +44,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -55,6 +56,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::PowerW)
@@ -66,6 +68,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0E833C"))
             );
@@ -76,6 +79,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0BAB3C"))
             );
@@ -86,6 +90,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
             VifScaling::None,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0AFDC9FC01"))
             );
@@ -96,6 +101,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
             VifScaling::None,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0AFDC9FC02"))
             );
@@ -106,6 +112,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
             VifScaling::None,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0AFDC9FC03"))
             );
@@ -125,6 +132,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES, // ,
             Quantity::Energy,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -137,6 +145,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES, // ,
             Quantity::Energy,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -149,6 +158,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -161,6 +171,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("8E10833C"))
             );
@@ -171,6 +182,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("8E20833C"))
             );
@@ -181,6 +193,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("8E30833C"))
             );
@@ -191,6 +204,7 @@ namespace
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::AnyPowerVIF)

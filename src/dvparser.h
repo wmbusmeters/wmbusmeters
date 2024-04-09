@@ -381,7 +381,7 @@ struct DVEntry
     {
     }
 
-    bool extractDouble(double *out, bool auto_scale, bool assume_signed);
+    bool extractDouble(double *out, bool auto_scale, bool force_unsigned);
     bool extractLong(uint64_t *out);
     bool extractDate(struct tm *out);
     bool extractReadableString(std::string *out);
@@ -561,7 +561,7 @@ bool extractDVdouble(std::map<std::string,std::pair<int,DVEntry>> *values,
                      int *offset,
                      double *value,
                      bool auto_scale = true,
-                     bool assume_signed = false);
+                     bool force_unsigned = false);
 
 // Extract a value without scaling. Works for 8bits to 64 bits, binary and bcd.
 bool extractDVlong(std::map<std::string,std::pair<int,DVEntry>> *values,
