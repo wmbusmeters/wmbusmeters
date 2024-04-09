@@ -120,7 +120,7 @@ namespace
             "The total energy consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -131,7 +131,7 @@ namespace
             "The volume of water (3/68/Volume V1).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -142,7 +142,7 @@ namespace
             "The actual amount of water that pass through this meter (8/74/Flow V1 actual).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::VolumeFlow)
@@ -153,7 +153,7 @@ namespace
             "The current power flowing.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -164,7 +164,7 @@ namespace
             "The maximum power supplied.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::AnyPowerVIF)
@@ -175,7 +175,7 @@ namespace
             "The forward temperature of the water (6/86/t2 actual 2 decimals).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FlowTemperature)
@@ -186,7 +186,7 @@ namespace
             "The return temperature of the water (7/87/t2 actual 2 decimals).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ReturnTemperature)
@@ -197,7 +197,7 @@ namespace
             "The maximum flow of water that passed through this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::VolumeFlow)
@@ -208,7 +208,7 @@ namespace
             "The forward energy of the water (4/97/Energy E8).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FF07")),
             Unit::M3C);
@@ -218,7 +218,7 @@ namespace
             "The return energy of the water (5/110/Energy E9).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FF08")),
             Unit::M3C);
@@ -237,7 +237,7 @@ namespace
             "The energy consumption recorded by this meter at the set date (11/60/Heat energy E1/026C).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -249,7 +249,7 @@ namespace
             "The amount of water that had passed through this meter at the set date (13/68/Volume V1).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -271,7 +271,7 @@ namespace
             "How long the meter has been collecting data.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::OperatingTime)
@@ -314,11 +314,11 @@ namespace
 
 // Test: My403Cooling multical403 78780102 NOKEY
 // telegram=|88442D2C02017878340A8D208D529C132037FC78_040E2D0A000004FF07F8FF000004FF08401801000413C1900500844014000000008480401400000000043BED0000000259BC06025DCD07142DE7FFFFFF84100E0000000084200E0000000004FF2200000000026C9228440E5F0300004413960D0200C4401400000000C480401400000000426C8128|
-// {"forward_energy_m3c": 65528,"id": "78780102","max_power_kw": 429496727.1,"media": "cooling load volume at outlet","meter": "kamheat","meter_date": "2020-08-18","name": "My403Cooling","return_energy_m3c": 71744,"status": "OK","t1_temperature_c": 17.24,"t2_temperature_c": 19.97,"target_date": "2020-08-01","target_energy_kwh": 239.722222,"target_volume_m3": 134.55,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 723.611111,"total_volume_m3": 364.737,"volume_flow_m3h": 0.237}
+// {"forward_energy_m3c": 65528,"id": "78780102","max_power_kw": -2.5,"media": "cooling load volume at outlet","meter": "kamheat","meter_date": "2020-08-18","name": "My403Cooling","return_energy_m3c": 71744,"status": "OK","t1_temperature_c": 17.24,"t2_temperature_c": 19.97,"target_date": "2020-08-01","target_energy_kwh": 239.722222,"target_volume_m3": 134.55,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 723.611111,"total_volume_m3": 364.737,"volume_flow_m3h": 0.237}
 // |My403Cooling;78780102;723.611111;364.737;OK;1111-11-11 11:11.11
 
 // telegram=|5B442D2C02017878340A8D2096809C1320EF2B7934147ED7_2D0A0000FAFF000043180100CE9005000000000000000000EE000000BA06CB07E7FFFFFF00000000000000000000000092285F030000960D020000000000000000008128|
-// {"forward_energy_m3c": 65530,"id": "78780102","max_power_kw": 429496727.1,"media": "cooling load volume at outlet","meter": "kamheat","meter_date": "2020-08-18","name": "My403Cooling","return_energy_m3c": 71747,"status": "OK","t1_temperature_c": 17.22,"t2_temperature_c": 19.95,"target_date": "2020-08-01","target_energy_kwh": 239.722222,"target_volume_m3": 134.55,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 723.611111,"total_volume_m3": 364.75,"volume_flow_m3h": 0.238}
+// {"forward_energy_m3c": 65530,"id": "78780102","max_power_kw": -2.5,"media": "cooling load volume at outlet","meter": "kamheat","meter_date": "2020-08-18","name": "My403Cooling","return_energy_m3c": 71747,"status": "OK","t1_temperature_c": 17.22,"t2_temperature_c": 19.95,"target_date": "2020-08-01","target_energy_kwh": 239.722222,"target_volume_m3": 134.55,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 723.611111,"total_volume_m3": 364.75,"volume_flow_m3h": 0.238}
 // |My403Cooling;78780102;723.611111;364.75;OK;1111-11-11 11:11.11
 
 // Test: Heato multical602 78152801 NOKEY

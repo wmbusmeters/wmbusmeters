@@ -69,7 +69,7 @@ namespace
             "The total heating energy consumption recorded by this meter.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -81,7 +81,7 @@ namespace
             "The total cooling energy consumption recorded by this meter.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -93,7 +93,7 @@ namespace
             "The current power consumption.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -114,7 +114,7 @@ namespace
             "The heating energy consumption recorded at the end of the previous billing period.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -127,7 +127,7 @@ namespace
             "The cooling energy consumption recorded at the end of the previous billing period.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)

@@ -67,7 +67,7 @@ namespace
             "Current water temperature recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FlowTemperature));
@@ -77,7 +77,7 @@ namespace
             "The current water flow.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::VolumeFlow));
@@ -87,7 +87,7 @@ namespace
             "Volume up to end of last year-period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -99,7 +99,7 @@ namespace
             "Reverse volume in this year-period (?)",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -123,7 +123,7 @@ namespace
             "Volume up to end of last month-period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -145,7 +145,7 @@ namespace
             "Remaining battery life in years.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::RemainingBattery),

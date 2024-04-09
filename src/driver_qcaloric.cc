@@ -74,7 +74,7 @@ namespace
             "The current heat cost allocation.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -95,7 +95,7 @@ namespace
             "Heat cost allocation at the most recent billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -117,7 +117,7 @@ namespace
             "Heat cost allocation at the most recent billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -139,7 +139,7 @@ namespace
             "Heat cost allocation at the 8 billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -161,7 +161,7 @@ namespace
             "Heat cost allocation at the 17 billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -200,7 +200,7 @@ namespace
             "Forward media temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FlowTemperature)

@@ -51,7 +51,7 @@ namespace
             "The current temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
@@ -62,7 +62,7 @@ namespace
             "The average temperature over the last hour.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)

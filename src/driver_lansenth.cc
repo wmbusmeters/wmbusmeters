@@ -55,7 +55,7 @@ namespace
              "The current temperature.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
@@ -66,7 +66,7 @@ namespace
              "The current humidity.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::RelativeHumidity)
@@ -77,7 +77,7 @@ namespace
              "The average temperature over the last hour.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
@@ -89,7 +89,7 @@ namespace
              "The average humidity over the last hour.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::RelativeHumidity)
@@ -101,7 +101,7 @@ namespace
              "The average temperature over the last 24 hours.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
@@ -113,7 +113,7 @@ namespace
              "The average humidity over the last 24 hours.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::RelativeHumidity)

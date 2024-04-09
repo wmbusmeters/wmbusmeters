@@ -56,7 +56,7 @@ namespace
             "Number of total routed messages since power up",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)
@@ -67,7 +67,7 @@ namespace
             "Used router slots (maximum 936)",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)
@@ -103,7 +103,7 @@ namespace
             "Seconds to mode change (Listen -> Sleep or Sleep -> Listen). Maximum 32767 seconds",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)
@@ -115,7 +115,7 @@ namespace
             "Value on parameter 'Listen timer'",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)
@@ -127,7 +127,7 @@ namespace
             "Value on parameter 'Pause timer'",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)
@@ -159,7 +159,7 @@ namespace
             "Value on parameter 'Start time', shown as minusted after midnight (-1=Not used)",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)
@@ -180,7 +180,7 @@ namespace
             "Battery voltage.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)

@@ -42,7 +42,7 @@ namespace
             "The total water consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -53,7 +53,7 @@ namespace
             "The target water consumption recorded at previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)

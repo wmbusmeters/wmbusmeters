@@ -51,7 +51,7 @@ namespace
             "The total water consumption recorded at the beginning of this month.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -74,7 +74,7 @@ namespace
             "The total water consumption recorded at the beginning of this month.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -212,8 +212,8 @@ namespace
 
 // Test: Minowired minomess 57575757 NOKEY
 // telegram=|6874746808007257575757496A000712000000_0C7857575757046D2414DE280413000000000C943C000000004413FFFFFFFF426CFFFF840113FFFFFFFF82016CFFFFC40113FFFFFFFFC2016CFFFF840213FFFFFFFF82026CFFFF043B000000000422E62F000004260000000034220000000002FD1700001F5716|
-// {"media":"water","meter":"minomess","name":"Minowired","id":"57575757","fabrication_no":"57575757","operating_time_h":0,"on_time_h":12262,"on_time_at_error_h":0,"meter_datetime":"2022-08-30 20:36","total_m3":0,"total_backward_m3":0,"volume_flow_m3h":0,"target_m3":4294967.295,"target_date":"2127-15-31","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
-// |Minowired;57575757;0;4294967.295;OK;1111-11-11 11:11.11
+// {"media":"water","meter":"minomess","name":"Minowired","id":"57575757","fabrication_no":"57575757","operating_time_h":0,"on_time_h":12262,"on_time_at_error_h":0,"meter_datetime":"2022-08-30 20:36","total_m3":0,"total_backward_m3":0,"volume_flow_m3h":0,"target_m3":-0.001,"target_date":"2127-15-31","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+// |Minowired;57575757;0;-0.001;OK;1111-11-11 11:11.11
 
 // Test: Zenner_cold minomess 21314151 NOKEY
 // telegram=|6644496A4425155518377251413121496A0116360050052F2F_0C1355000000026CEC2182046CE1218C0413000000808D0493132C33FE00008000008000008000008000008000008000008000008000008000008000008000008000008000008002FD1700002F2F|

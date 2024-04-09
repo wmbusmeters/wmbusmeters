@@ -46,7 +46,7 @@ namespace
             "Total cumulative active imported energy.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -58,7 +58,7 @@ namespace
             "Total cumulative active imported energy per tariff.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -71,7 +71,7 @@ namespace
             "Total cumulative active exported energy.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -85,7 +85,7 @@ namespace
             "Total cumulative active exported energy per tariff.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -99,7 +99,7 @@ namespace
             "Active tariff.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("01FF9300")),
             Unit::NUMBER
@@ -110,7 +110,7 @@ namespace
             "Current transformer ratio (numerator).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FFA015")),
             Unit::FACTOR
@@ -121,7 +121,7 @@ namespace
             "Voltage transformer ratio (numerator).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FFA115")),
             Unit::FACTOR
@@ -132,7 +132,7 @@ namespace
             "Current transformer ratio (denominator).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FFA215")),
             Unit::FACTOR
@@ -143,7 +143,7 @@ namespace
             "Voltage transformer ratio (denominator).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FFA315")),
             Unit::FACTOR
@@ -236,7 +236,7 @@ namespace
             "Power fail counter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FF9800"))
             );
@@ -246,7 +246,7 @@ namespace
             "Instantaneous total active imported power.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -258,7 +258,7 @@ namespace
             "Instantaneous active imported power for L1 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -271,7 +271,7 @@ namespace
             "Instantaneous active imported power for L2 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -284,7 +284,7 @@ namespace
             "Instantaneous active imported power for L3 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -297,7 +297,7 @@ namespace
             "Instantaneous total reactive imported power.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -310,7 +310,7 @@ namespace
             "Instantaneous reactive imported power for L1 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -324,7 +324,7 @@ namespace
             "Instantaneous reactive imported power for L2 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -338,7 +338,7 @@ namespace
             "Instantaneous reactive imported power for L3 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -352,7 +352,7 @@ namespace
             "Instantaneous total apparent imported power.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -365,7 +365,7 @@ namespace
             "Instantaneous apparent imported power for L1 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -379,7 +379,7 @@ namespace
             "Instantaneous apparent imported power for L2 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -393,7 +393,7 @@ namespace
             "Instantaneous apparent imported power for L3 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -407,7 +407,7 @@ namespace
             "Instantaneous voltage between L1 and neutral.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
@@ -420,7 +420,7 @@ namespace
             "Instantaneous voltage between L2 and neutral.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
@@ -433,7 +433,7 @@ namespace
             "Instantaneous voltage between L3 and neutral.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
@@ -446,7 +446,7 @@ namespace
             "Instantaneous voltage between L1 and L2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
@@ -459,7 +459,7 @@ namespace
             "Instantaneous voltage between L2 and L3.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
@@ -472,7 +472,7 @@ namespace
             "Instantaneous voltage between L3 and L1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
@@ -485,7 +485,7 @@ namespace
             "Instantaneous current in the L1 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Amperage,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Amperage)
@@ -498,7 +498,7 @@ namespace
             "Instantaneous current in the L2 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Amperage,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Amperage)
@@ -511,7 +511,7 @@ namespace
             "Instantaneous current in the L3 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Amperage,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Amperage)
@@ -524,7 +524,7 @@ namespace
             "Frequency of AC",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Frequency,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0AFFD900")),
             Unit::HZ,
@@ -536,7 +536,7 @@ namespace
             "Power factor.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("02FFE000")),
             Unit::FACTOR,
@@ -548,7 +548,7 @@ namespace
             "Power factor for phase L1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("02FFE0FF8100")),
             Unit::FACTOR,
@@ -560,7 +560,7 @@ namespace
             "Power factor for phase L2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("02FFE0FF8200")),
             Unit::FACTOR,
@@ -572,7 +572,7 @@ namespace
             "Power factor.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("02FFE0FF8300")),
             Unit::FACTOR,
@@ -584,7 +584,7 @@ namespace
             "Total power phase angle.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Angle,
-            VifScaling::NoneSigned,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("02FFD200")),
             Unit::DEGREE,
@@ -596,7 +596,7 @@ namespace
             "Power phase angle for phase L1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Angle,
-            VifScaling::NoneSigned,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("02FFD2FF8100")),
             Unit::DEGREE,
@@ -608,7 +608,7 @@ namespace
             "Power phase angle for phase L2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Angle,
-            VifScaling::NoneSigned,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("02FFD2FF8200")),
             Unit::DEGREE,
@@ -620,7 +620,7 @@ namespace
             "Power phase angle for phase L3.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Angle,
-            VifScaling::NoneSigned,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("02FFD2FF8300")),
             Unit::DEGREE,
@@ -632,7 +632,7 @@ namespace
             "Total cumulative reactive kvarh imported energy.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Reactive_Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -646,7 +646,7 @@ namespace
             "Total cumulative reactive kvarh imported energy per tariff.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -660,7 +660,7 @@ namespace
             "Total cumulative reactive kvarh exported energy.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Reactive_Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -674,7 +674,7 @@ namespace
             "Total cumulative reactive kvarh exported energy per tariff.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -688,7 +688,7 @@ namespace
             "The quadrant in which the current is measured.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("01FF9700")),
             Unit::NUMBER
@@ -699,7 +699,7 @@ namespace
             "The quadrant in which the current is measured for phase L1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("01FF97FF8100")),
             Unit::NUMBER
@@ -710,7 +710,7 @@ namespace
             "The quadrant in which the current is measured for phase L2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("01FF97FF8200")),
             Unit::NUMBER
@@ -721,7 +721,7 @@ namespace
             "The quadrant in which the current is measured for phase L3.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("01FF97FF8300")),
             Unit::NUMBER
@@ -777,7 +777,7 @@ namespace
             "Number of times input 1-2 counted a 1.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(SubUnitNr(3),SubUnitNr(4))
@@ -790,7 +790,7 @@ namespace
             "Resettable cumulative active imported energy.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -803,7 +803,7 @@ namespace
             "Resettable cumulative active exported energy.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -817,7 +817,7 @@ namespace
             "Resettable cumulative reactive imported energy.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -831,7 +831,7 @@ namespace
             "Resettable cumulative reactive exported energy.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -845,7 +845,7 @@ namespace
             "Number of times the resettable energy imported value has been reset.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRaw(0x7f71))
@@ -857,7 +857,7 @@ namespace
             "Number of times the resettable active energy exported value has been reset.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRaw(0x7f71))
@@ -870,7 +870,7 @@ namespace
             "Number of times the resettable reactive energy imported value has been reset.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRaw(0x7f71))
@@ -883,7 +883,7 @@ namespace
             "Number of times the resettable reactive energy exported value has been reset.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRaw(0x7f71))
@@ -896,7 +896,7 @@ namespace
             "Energy in co2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Mass,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0EFFF9C400")),
             Unit::KG,
@@ -908,7 +908,7 @@ namespace
             "CO2 conversion factor (kg * 10-3 /kWh).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FFA400")),
             Unit::FACTOR
@@ -919,7 +919,7 @@ namespace
             "Energy in currency.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0EFFF9C900"))
             );
@@ -929,7 +929,7 @@ namespace
             "Currency conversion factor (curr * 10-3 /kWh).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FFA500")),
             Unit::FACTOR
@@ -940,7 +940,7 @@ namespace
             "Total cumulative apparent kvah imported energy.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Apparent_Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -954,7 +954,7 @@ namespace
             "Total cumulative apparent kvah exported energy.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Apparent_Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -968,7 +968,7 @@ namespace
             "Total imported active energy for L1 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -981,7 +981,7 @@ namespace
             "Total imported active energy for L2 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -994,7 +994,7 @@ namespace
             "Total imported active energy for L3 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1007,7 +1007,7 @@ namespace
             "Total imported reactive energy for L1 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1021,7 +1021,7 @@ namespace
             "Total imported reactive energy for L2 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1035,7 +1035,7 @@ namespace
             "Total imported reactive energy for L3 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1049,7 +1049,7 @@ namespace
             "Total imported apparent energy for L1 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1063,7 +1063,7 @@ namespace
             "Total imported apparent energy for L2 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1077,7 +1077,7 @@ namespace
             "Total imported apparent energy for L3 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1091,7 +1091,7 @@ namespace
             "Total exported active energy for L1 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1105,7 +1105,7 @@ namespace
             "Total exported active energy for L2 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1119,7 +1119,7 @@ namespace
             "Total exported active energy for L3 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1133,7 +1133,7 @@ namespace
             "Total exported reactive energy for L1 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1147,7 +1147,7 @@ namespace
             "Total exported reactive energy for L2 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1161,7 +1161,7 @@ namespace
             "Total exported reactive energy for L3 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1175,7 +1175,7 @@ namespace
             "Total exported apparent energy for L1 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1189,7 +1189,7 @@ namespace
             "Total exported apparent energy for L2 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1203,7 +1203,7 @@ namespace
             "Total exported apparent energy for L3 phase.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1217,7 +1217,7 @@ namespace
             "Active net energy total.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1230,7 +1230,7 @@ namespace
             "Active net energy total for phase L1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1244,7 +1244,7 @@ namespace
             "Active net energy total for phase L2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1258,7 +1258,7 @@ namespace
             "Active net energy total for phase L3.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1272,7 +1272,7 @@ namespace
             "Active net energy total.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1286,7 +1286,7 @@ namespace
             "Active net reactive energy total for phase L1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1301,7 +1301,7 @@ namespace
             "Active net reactive energy total for phase L2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1316,7 +1316,7 @@ namespace
             "Active net reactive energy total for phase L3.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1331,7 +1331,7 @@ namespace
             "Active net energy total.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1345,7 +1345,7 @@ namespace
             "Active net apparent energy total for phase L1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1360,7 +1360,7 @@ namespace
             "Active net apparent energy total for phase L2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -1375,7 +1375,7 @@ namespace
             "Active net apparent energy total for phase L3.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)

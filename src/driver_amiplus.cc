@@ -43,8 +43,7 @@ namespace
             "The total energy consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
-            DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -55,8 +54,7 @@ namespace
             "Current power consumption.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
-            DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::PowerW)
@@ -67,8 +65,7 @@ namespace
             "The total energy production recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
-            DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0E833C"))
             );
@@ -78,8 +75,7 @@ namespace
             "Current power production.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
-            DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0BAB3C"))
             );
@@ -89,8 +85,7 @@ namespace
             "Voltage at phase L1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::None,
-            DifSignedness::Signed,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0AFDC9FC01"))
             );
@@ -100,8 +95,7 @@ namespace
             "Voltage at phase L2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::None,
-            DifSignedness::Signed,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0AFDC9FC02"))
             );
@@ -111,8 +105,7 @@ namespace
             "Voltage at phase L3.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::None,
-            DifSignedness::Signed,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0AFDC9FC03"))
             );
@@ -131,8 +124,7 @@ namespace
             "The total energy consumption recorded by this meter on tariff 1.",
             DEFAULT_PRINT_PROPERTIES, // ,
             Quantity::Energy,
-            VifScaling::Auto,
-            DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -144,8 +136,7 @@ namespace
             "The total energy consumption recorded by this meter on tariff 2.",
             DEFAULT_PRINT_PROPERTIES, // ,
             Quantity::Energy,
-            VifScaling::Auto,
-            DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -157,8 +148,7 @@ namespace
             "The total energy consumption recorded by this meter on tariff 3.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
-            DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -170,8 +160,7 @@ namespace
             "The total energy production recorded by this meter on tariff 1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
-            DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("8E10833C"))
             );
@@ -181,8 +170,7 @@ namespace
             "The total energy production recorded by this meter on tariff 2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
-            DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("8E20833C"))
             );
@@ -192,8 +180,7 @@ namespace
             "The total energy production recorded by this meter on tariff 3.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
-            DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("8E30833C"))
             );
@@ -203,8 +190,7 @@ namespace
             "The maximum demand indicator (maximum 15-min average power consumption recorded this month).",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
-            DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::AnyPowerVIF)

@@ -141,7 +141,7 @@ namespace
             "The total energy consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -152,7 +152,7 @@ namespace
             "The total energy consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -164,7 +164,7 @@ namespace
             "Last day?",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -176,7 +176,7 @@ namespace
             "Last day energy consumption?",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -188,7 +188,7 @@ namespace
             "Last day energy consumption for tariff?",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -201,7 +201,7 @@ namespace
             "Device date time when telegram was sent.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
@@ -212,7 +212,7 @@ namespace
             "Voltage for single phase meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
@@ -224,7 +224,7 @@ namespace
             "Voltage at phase L#.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)
@@ -236,7 +236,7 @@ namespace
             "Amperage for single phase meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Amperage,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Amperage)
@@ -248,7 +248,7 @@ namespace
             "Amperage at phase L#.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Amperage,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Amperage)
@@ -260,7 +260,7 @@ namespace
             "Raw input to frequency.",
             DEFAULT_PRINT_PROPERTIES | PrintProperty::HIDE,
             Quantity::Frequency,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("02FB2D"))
             );

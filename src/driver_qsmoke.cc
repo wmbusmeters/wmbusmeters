@@ -73,7 +73,7 @@ namespace
             "Number of times the smoke alarm has triggered.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Unsigned,
             FieldMatcher::build()
             .set(DifVifKey("81037C034C4123"))
             );
@@ -102,7 +102,7 @@ namespace
             "Number of times the test button has been pressed.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("81027C03495523"))
             );
@@ -112,7 +112,7 @@ namespace
             "Transmission counter?",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Unsigned,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AccessNumber)
@@ -132,7 +132,7 @@ namespace
             "What does this mean?",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("02FDAC7E"))
             );

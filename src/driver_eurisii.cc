@@ -98,7 +98,7 @@ namespace
             "The current heat cost allocation.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -109,7 +109,7 @@ namespace
             "The heat cost allocation at set date #.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -121,7 +121,7 @@ namespace
             "Deprecated field.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)

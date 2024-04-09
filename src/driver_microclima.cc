@@ -66,7 +66,7 @@ namespace
             "The total heat energy consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -77,7 +77,7 @@ namespace
             "The total heating media volume recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -88,7 +88,7 @@ namespace
             "The current heat media volume flow.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::VolumeFlow)
@@ -99,7 +99,7 @@ namespace
             "The current power consumption.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::PowerW)
@@ -110,7 +110,7 @@ namespace
             "The difference between flow and return media temperatures.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::TemperatureDifference)
@@ -121,7 +121,7 @@ namespace
             "The most recent billing period date.",
             DEFAULT_PRINT_PROPERTIES  | PrintProperty::HIDE,
             Quantity::PointInTime,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -134,7 +134,7 @@ namespace
             "The total water consumption at the historic date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)

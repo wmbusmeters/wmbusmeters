@@ -101,7 +101,7 @@ namespace
             "The total energy consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -112,7 +112,7 @@ namespace
             "Power measured by this meter at the moment.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -123,7 +123,7 @@ namespace
             "The total energy backward (production) recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -135,7 +135,7 @@ namespace
             "The reactive total energy consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Reactive_Energy,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FB8275"))
             );
@@ -145,7 +145,7 @@ namespace
             "The total reactive energy backward (production) recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Reactive_Energy,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(DifVifKey("04FB82F53C"))
@@ -177,7 +177,7 @@ namespace
             "Amperage at phase L1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Amperage,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FDD9FC01"))
             );
@@ -187,7 +187,7 @@ namespace
             "Amperage at phase L2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Amperage,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FDD9FC02"))
             );
@@ -197,7 +197,7 @@ namespace
             "Amperage at phase L3.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Amperage,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FDD9FC03"))
             );
@@ -207,7 +207,7 @@ namespace
             "Voltage at phase L1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FDC8FC01"))
             );
@@ -217,7 +217,7 @@ namespace
             "Voltage at phase L2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FDC8FC02"))
             );
@@ -227,7 +227,7 @@ namespace
             "Voltage at phase L3.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("04FDC8FC03"))
             );
@@ -237,7 +237,7 @@ namespace
             "Frequency in 0.1 Hz",
             DEFAULT_PRINT_PROPERTIES  | PrintProperty::HIDE,
             Quantity::Frequency,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("02FB2E"))
             );

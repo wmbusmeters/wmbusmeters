@@ -62,7 +62,7 @@ namespace
             "The current temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
@@ -73,7 +73,7 @@ namespace
             "The current relative humidity.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::RelativeHumidity)

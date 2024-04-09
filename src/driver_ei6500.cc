@@ -90,7 +90,7 @@ namespace
             "Number of times the smoke alarm has triggered.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(SubUnitNr(1))
@@ -121,7 +121,7 @@ namespace
             "Time the smoke alarm has been removed.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(SubUnitNr(1))
@@ -145,7 +145,7 @@ namespace
             "Number of times the smoke alarm has been removed.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(SubUnitNr(1))
@@ -169,7 +169,7 @@ namespace
             "Number of times the test button has been pressed.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(SubUnitNr(1))

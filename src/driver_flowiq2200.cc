@@ -71,7 +71,7 @@ namespace
             "The total water consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -82,7 +82,7 @@ namespace
              "The total water consumption recorded at the beginning of this month.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -104,7 +104,7 @@ namespace
             "The current flow of water through the meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::VolumeFlow)
@@ -115,7 +115,7 @@ namespace
              "The water temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Minimum)
             .set(VIFRange::FlowTemperature)
@@ -127,7 +127,7 @@ namespace
             "The maximum water temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::FlowTemperature)
@@ -139,7 +139,7 @@ namespace
             "The external temperature outside of the meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Minimum)
             .set(VIFRange::ExternalTemperature)
@@ -151,7 +151,7 @@ namespace
             "The maximum flow recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::VolumeFlow)
@@ -163,7 +163,7 @@ namespace
             "The minimum flow recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Minimum)
             .set(VIFRange::VolumeFlow)
@@ -175,7 +175,7 @@ namespace
             "The maximum temperature recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::ExternalTemperature)
@@ -187,7 +187,7 @@ namespace
             "The minimum flow recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Minimum)
             .set(VIFRange::ExternalTemperature)
@@ -199,7 +199,7 @@ namespace
             "The maximum flow recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::VolumeFlow)
