@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2018-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -135,7 +135,8 @@ bool isInsideVIFRange(Vif vif, VIFRange vif_range)
         return
             isInsideVIFRange(vif, VIFRange::EnergyWh) ||
             isInsideVIFRange(vif, VIFRange::EnergyMJ) ||
-            isInsideVIFRange(vif, VIFRange::EnergyMWh);
+            isInsideVIFRange(vif, VIFRange::EnergyMWh) ||
+            isInsideVIFRange(vif, VIFRange::EnergyGJ);
     }
     if (vif_range == VIFRange::AnyPowerVIF)
     {
