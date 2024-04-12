@@ -42,6 +42,7 @@ typedef unsigned char uchar;
 
 enum class TestBit
 {
+    Unknown,
     Set,
     NotSet
 };
@@ -304,6 +305,8 @@ bool is_lowercase_alnum_text(const char *text);
 
 // The language that the user expects driver and other messages in.
 const std::string &language();
+
+TestBit toTestBit(const char *s);
 
 #ifndef FUZZING
 #define FUZZING false

@@ -46,7 +46,7 @@ namespace
                 {
                     {
                         "ERROR_FLAGS",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xff),
                         "OK",
                         {
@@ -78,7 +78,7 @@ namespace
             "The water consumption at the last billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -95,7 +95,7 @@ namespace
                 info,
                 DEFAULT_PRINT_PROPERTIES,
                 Quantity::Volume,
-                VifScaling::Auto,
+                VifScaling::Auto, DifSignedness::Signed,
                 FieldMatcher::build()
                 .set(MeasurementType::Instantaneous)
                 .set(VIFRange::Volume)

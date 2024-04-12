@@ -48,7 +48,7 @@ namespace
                     {
                         {
                             "ERROR_FLAGS",
-                            Translate::Type::BitToString,
+                            Translate::MapType::BitToString,
                             AlwaysTrigger, MaskBits(0xffff),
                             "OK",
                             {
@@ -75,7 +75,7 @@ namespace
                     {
                         {
                             "ERROR_FLAGS",
-                            Translate::Type::BitToString,
+                            Translate::MapType::BitToString,
                             AlwaysTrigger, MaskBits(0xffff),
                             "",
                             {
@@ -95,7 +95,7 @@ namespace
             "The current heat cost allocation.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -106,7 +106,7 @@ namespace
             "Heat cost allocation at the most recent billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -118,7 +118,7 @@ namespace
             "The heat cost allocation at set date #.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)

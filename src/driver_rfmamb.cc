@@ -47,7 +47,7 @@ namespace
             "The current temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
@@ -58,7 +58,7 @@ namespace
             "The average temperature over the last hour.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
@@ -70,7 +70,7 @@ namespace
             "The average temperature over the last 24 hours.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
@@ -82,7 +82,7 @@ namespace
             "The maximum temperature over the last hour.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::ExternalTemperature)
@@ -93,7 +93,7 @@ namespace
             "The maximum temperature over the last 24 hours.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::ExternalTemperature)
@@ -105,7 +105,7 @@ namespace
             "The minimum temperature over the last hour.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Minimum)
             .set(VIFRange::ExternalTemperature)
@@ -116,7 +116,7 @@ namespace
             "The minimum temperature over the last 24 hours.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Minimum)
             .set(VIFRange::ExternalTemperature)
@@ -128,7 +128,7 @@ namespace
             "The current relative humidity.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::RelativeHumidity)
@@ -139,7 +139,7 @@ namespace
             "The average relative humidity over the last hour.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::RelativeHumidity)
@@ -151,7 +151,7 @@ namespace
             "The average relative humidity over the last 24 hours.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::RelativeHumidity)
@@ -163,7 +163,7 @@ namespace
             "The maximum relative humidity over the last hour.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::RelativeHumidity)
@@ -174,7 +174,7 @@ namespace
             "The maximum relative humidity over the last 24 hours.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::RelativeHumidity)
@@ -186,7 +186,7 @@ namespace
             "The minimum relative humidity over the last hour.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Minimum)
             .set(VIFRange::RelativeHumidity)
@@ -197,7 +197,7 @@ namespace
             "The minimum relative humidity over the last 24 hours.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Minimum)
             .set(VIFRange::RelativeHumidity)
@@ -209,7 +209,7 @@ namespace
             "The meters date time.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)

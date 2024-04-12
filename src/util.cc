@@ -2227,3 +2227,10 @@ const std::string &language()
 
     return lang_;
 }
+
+TestBit toTestBit(const char *s)
+{
+    if (!strcmp(s, "Set")) return TestBit::Set;
+    if (!strcmp(s, "NotSet")) return TestBit::NotSet;
+    return TestBit::Unknown;
+}

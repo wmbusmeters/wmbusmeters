@@ -40,7 +40,7 @@ namespace
     {
         setMfctTPLStatusBits(
             Translate::Lookup()
-            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
+            .add(Translate::Rule("TPL_STS", Translate::MapType::BitToString)
                  .set(MaskBits(0xe0))
                  .set(DefaultMessage("OK"))
                  .add(Translate::Map(0x04 ,"LOW_BATTERY", TestBit::Set))));
@@ -56,7 +56,7 @@ namespace
             "Number of total routed messages since power up",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)
@@ -67,7 +67,7 @@ namespace
             "Used router slots (maximum 936)",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)
@@ -92,7 +92,7 @@ namespace
             .set(VIFRange::Dimensionless)
             .set(SubUnitNr(2)),
             Translate::Lookup()
-            .add(Translate::Rule("INPUT_BITS", Translate::Type::IndexToString)
+            .add(Translate::Rule("INPUT_BITS", Translate::MapType::IndexToString)
                  .set(MaskBits(0x01))
                  .add(Translate::Map(0x00, "NO", TestBit::Set))
                  .add(Translate::Map(0x01, "YES", TestBit::Set))
@@ -103,7 +103,7 @@ namespace
             "Seconds to mode change (Listen -> Sleep or Sleep -> Listen). Maximum 32767 seconds",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)
@@ -115,7 +115,7 @@ namespace
             "Value on parameter 'Listen timer'",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)
@@ -127,7 +127,7 @@ namespace
             "Value on parameter 'Pause timer'",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)
@@ -143,7 +143,7 @@ namespace
             .set(VIFRange::Dimensionless)
             .set(StorageNr(3)),
             Translate::Lookup()
-            .add(Translate::Rule("INPUT_BITS", Translate::Type::BitToString)
+            .add(Translate::Rule("INPUT_BITS", Translate::MapType::BitToString)
                  .set(MaskBits(0xffff))
                  .add(Translate::Map(0x01 ,"SU", TestBit::Set))
                  .add(Translate::Map(0x02 ,"MO", TestBit::Set))
@@ -159,7 +159,7 @@ namespace
             "Value on parameter 'Start time', shown as minusted after midnight (-1=Not used)",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)
@@ -180,7 +180,7 @@ namespace
             "Battery voltage.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Voltage)

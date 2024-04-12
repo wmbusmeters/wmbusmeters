@@ -229,15 +229,23 @@ vector<DriverInfo*>& allDrivers();
 
 enum class VifScaling
 {
-    None, // No auto scaling.
     Auto, // Scale to normalized VIF unit (ie kwh, m3, m3h etc)
-    NoneSigned, // No auto scaling however assume the value is signed.
-    AutoSigned, // Scale and assume the value is signed.
+    None, // No auto scaling.
     Unknown
 };
 
 const char* toString(VifScaling s);
 VifScaling toVifScaling(const char *s);
+
+enum class DifSignedness
+{
+    Signed,   // By default the binary values are interpreted as signed.
+    Unsigned, // We can override for non-compliant meters.
+    Unknown
+};
+
+const char* toString(DifSignedness s);
+DifSignedness toDifSignedness(const char *s);
 
 enum PrintProperty
 {
@@ -283,6 +291,7 @@ struct FieldInfo
               Quantity quantity,
               Unit display_unit,
               VifScaling vif_scaling,
+              DifSignedness dif_signedness,
               double scale,
               FieldMatcher matcher,
               string help,
@@ -300,6 +309,7 @@ struct FieldInfo
     Quantity xuantity() { return xuantity_; }
     Unit displayUnit() { return display_unit_; }
     VifScaling vifScaling() { return vif_scaling_; }
+    DifSignedness difSignedness() { return dif_signedness_; }
     double scale() { return scale_; }
     FieldMatcher& matcher() { return matcher_; }
     string help() { return help_; }
@@ -337,6 +347,7 @@ private:
     Quantity xuantity_; // Quantity: Energy, Volume
     Unit display_unit_; // Selected display unit for above quantity: KWH, M3
     VifScaling vif_scaling_;
+    DifSignedness dif_signedness_;
     double scale_; // A hardcoded scale factor. Used only for manufacturer specific values with unknown units for the vifs.
     FieldMatcher matcher_;
     string help_; // Helpful information on this meters use of this value.

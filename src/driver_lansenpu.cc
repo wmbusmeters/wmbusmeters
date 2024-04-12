@@ -39,7 +39,7 @@ namespace
     {
         setMfctTPLStatusBits(
             Translate::Lookup()
-            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
+            .add(Translate::Rule("TPL_STS", Translate::MapType::BitToString)
                  .set(MaskBits(0xe0))
                  .set(DefaultMessage("OK"))
                  .add(Translate::Map(0x40 ,"SABOTAGE_ENCLOSURE", TestBit::Set))));
@@ -60,7 +60,7 @@ namespace
              "The current number of counted pulses from counter a.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("0EFD3A"))
             );
@@ -70,7 +70,7 @@ namespace
              "The current number of counted pulses from counter b.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("8E40FD3A"))
             );

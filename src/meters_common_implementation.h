@@ -111,6 +111,7 @@ protected:
         PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
         Quantity vquantity,     // Value belongs to this quantity, this quantity determines the default unit.
         VifScaling vif_scaling, // How should any Vif value be scaled.
+        DifSignedness dif_signedness, // Should we override the default signed assumption for binary values?
         FieldMatcher matcher,
         Unit display_unit = Unit::Unknown, // If specified use this unit for the json field instead instead of the default unit.
         double scale = 1.0); // A hard coded extra scale factor. Useful for manufacturer specific values.

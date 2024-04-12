@@ -51,7 +51,7 @@ namespace
             "The total energy consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -62,7 +62,7 @@ namespace
             "The active power consumption.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -73,7 +73,7 @@ namespace
             "The maximum power consumption over ?period?.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::AnyPowerVIF)
@@ -84,7 +84,7 @@ namespace
             "The flow of water.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::VolumeFlow)
@@ -95,7 +95,7 @@ namespace
             "The maximum forward flow of water over a ?period?.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::VolumeFlow)
@@ -106,7 +106,7 @@ namespace
             "The forward temperature of the water.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FlowTemperature)
@@ -117,7 +117,7 @@ namespace
             "The return temperature of the water.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ReturnTemperature)
@@ -128,7 +128,7 @@ namespace
             "The temperature difference forward-return for the water.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::TemperatureDifference)
@@ -139,7 +139,7 @@ namespace
             "The total amount of water that has passed through this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -155,7 +155,7 @@ namespace
                 {
                     {
                         "ERROR_FLAGS",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xff),
                         "OK",
                         {
@@ -188,7 +188,7 @@ namespace
             "The energy consumption at the last billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -205,7 +205,7 @@ namespace
                 info,
                 DEFAULT_PRINT_PROPERTIES,
                 Quantity::Energy,
-                VifScaling::Auto,
+                VifScaling::Auto, DifSignedness::Signed,
                 FieldMatcher::build()
                 .set(MeasurementType::Instantaneous)
                 .set(VIFRange::AnyEnergyVIF)
@@ -220,8 +220,14 @@ namespace
 // {"media":"heat","meter":"sensostar","name":"Heat","id":"20480057","meter_timestamp":"2022-04-28 13:44","total_kwh":0,"power_kw":0,"power_max_kw":0,"flow_water_m3h":0,"flow_water_max_m3h":0,"forward_c":20,"return_c":21,"difference_c":-0.38,"total_water_m3":0,"current_status":"ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR","reporting_date":"2000-00-00","energy_consumption_at_reporting_date_kwh":0,"consumption_1_months_ago_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}
 // |Heat;20480057;0;0;ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR;2000-00-00;0;1111-11-11 11:11.11
 
-// Test: WMZ sensostar 02752560 NOKEY
-// Comment: from "Sensostar U"
+//Test: WMZ sensostar 02752560 NOKEY
+//Comment: from "Sensostar U"
 //telegram=a444c5146025750200047ac20000202f2f046d2e26c62a040643160000041310f0050001fd1700426cbf2c4406570e00008401061f160000840206f6150000840306f5150000840406f3150000840506ea150000840606bf1500008407065214000084080692120000840906c5100000840a06570e0000840b06ca0b0000840c06da090000840d06ca080000840e06c8080000840f06c608000003fd0c05010002fd0b2111
 //{"media":"heat","meter":"sensostar","name":"WMZ","id":"02752560","meter_timestamp":"2022-10-06 06:46","total_kwh":5699,"total_water_m3":389.136,"current_status":"OK","reporting_date":"2021-12-31","energy_consumption_at_reporting_date_kwh":3671,"consumption_1_months_ago_kwh":5663,"consumption_2_months_ago_kwh":5622,"consumption_3_months_ago_kwh":5621,"consumption_4_months_ago_kwh":5619,"consumption_5_months_ago_kwh":5610,"consumption_6_months_ago_kwh":5567,"consumption_7_months_ago_kwh":5202,"consumption_8_months_ago_kwh":4754,"consumption_9_months_ago_kwh":4293,"consumption_10_months_ago_kwh":3671,"consumption_11_months_ago_kwh":3018,"consumption_12_months_ago_kwh":2522,"consumption_13_months_ago_kwh":2250,"consumption_14_months_ago_kwh":2248,"consumption_15_months_ago_kwh":2246,"timestamp":"1111-11-11 11:11.11"}
 //WMZ;02752560;5699;389.136000;OK;1111-11-11 11:11.11
+
+// Test: ABC sensostar 21750444 NOKEY
+// Comment: Test negative flow values
+// telegram=4944C5144404752100047AC1000020_2F2F046D142D073404068847000001FD170004138E8A4000043BF7FFFFFF042B00000000025B3E00025F360002612F0303FD0C05010002FD0B2011
+// {"current_status": "OK","difference_c": 8.15,"flow_water_m3h": -0.009,"forward_c": 62,"id": "21750444","media": "heat","meter": "sensostar","meter_timestamp": "2024-04-07 13:20","name": "ABC","power_kw": 0,"return_c": 54,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 18312,"total_water_m3": 4229.774}
+// |ABC;21750444;18312;4229.774;OK;null;null;1111-11-11 11:11.11

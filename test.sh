@@ -11,7 +11,7 @@ fi
 
 if ! command -v jq > /dev/null
 then
-    echo "You have to install jq !"
+    echo "You have to install jq! Try: sudo apt install jq"
     exit 1
 fi
 

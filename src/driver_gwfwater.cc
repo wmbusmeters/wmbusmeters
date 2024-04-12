@@ -100,5 +100,5 @@ namespace
 
 // Test: Wateroo gwfwater 20221031 NOKEY
 // telegram=|3144E61E31102220010E8C04F47ABE0420452F2F_037410000004133E0000004413FFFFFFFF426CFFFF0F0120012F2F2F2F2F|
-// {"actuality_duration_s": 16,"battery_y": 0,"id": "20221031","media": "bus/system component","meter": "gwfwater","name": "Wateroo","power_mode": "SAVING","status": "BATTERY_LOW POWER_LOW","target_date": "2128-03-31","target_m3": 4294967.295,"timestamp": "1111-11-11T11:11:11Z","total_m3": 0.062}
+// {"actuality_duration_s": 16,"battery_y": 0,"id": "20221031","media": "bus/system component","meter": "gwfwater","name": "Wateroo","power_mode": "SAVING","status": "BATTERY_LOW POWER_LOW","target_date": "2128-03-31","target_m3": -0.001,"timestamp": "1111-11-11T11:11:11Z","total_m3": 0.062}
 // |Wateroo;20221031;0.062;1111-11-11 11:11.11
