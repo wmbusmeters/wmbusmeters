@@ -44,7 +44,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DigitalInput),
             Translate::Lookup()
-            .add(Translate::Rule("INPUT_BITS", Translate::Type::IndexToString)
+            .add(Translate::Rule("INPUT_BITS", Translate::MapType::IndexToString)
                  .set(MaskBits(0xffff))
                  .add(Translate::Map(0x11 ,"CLOSED", TestBit::Set))
                  .add(Translate::Map(0x55 ,"OPEN", TestBit::Set))
@@ -58,7 +58,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
             Translate::Lookup()
-            .add(Translate::Rule("ERROR_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("ERROR_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0xffff))
                  .set(DefaultMessage("OK"))
                 ));
@@ -68,7 +68,7 @@ namespace
             "How many times the door/window has been opened or closed.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)
@@ -79,7 +79,7 @@ namespace
             "The current number of counted pulses from counter b.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
-            VifScaling::None,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)

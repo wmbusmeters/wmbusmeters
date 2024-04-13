@@ -209,6 +209,7 @@ string loadDriver(const string &file, const char *content)
 {
     DriverInfo di;
 
+    debug("(meter) loading %s\n", file.c_str());
     bool ok = DriverDynamic::load(&di, file, content);
     if (!ok)
     {
@@ -219,8 +220,15 @@ string loadDriver(const string &file, const char *content)
     DriverInfo *old = lookupDriver(di.name().str());
     if (old != NULL)
     {
+        debug("(meter) overriding %s\n", di.name().str().c_str());
         if (old->getDynamicFileName() != "")
         {
+            if (di.getDynamicFileName() == old->getDynamicFileName())
+            {
+                // Loading same file again, happens when using analyze. This is fine.
+                return di.name().str();
+            }
+            // New file source registering the same driver name, nono.
             error("Newly loaded driver file %s tries to register the same name %s as driver file %s has already taken!\n",
                   file.c_str(), di.name().str().c_str(), old->getDynamicFileName().c_str());
         }
@@ -455,6 +463,7 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                                                              PrintProperties print_properties,
                                                              Quantity vquantity,
                                                              VifScaling vif_scaling,
+                                                             DifSignedness dif_signedness,
                                                              FieldMatcher matcher,
                                                              Unit display_unit,
                                                              double scale)
@@ -465,6 +474,7 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                   vquantity,
                   display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
                   vif_scaling,
+                  dif_signedness,
                   scale,
                   matcher,
                   help,
@@ -504,6 +514,7 @@ void MeterCommonImplementation::addNumericFieldWithCalculator(string vname,
                   vquantity,
                   display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
                   VifScaling::Auto,
+                  DifSignedness::Signed,
                   1.0,
                   FieldMatcher::noMatcher(),
                   help,
@@ -544,6 +555,7 @@ void MeterCommonImplementation::addNumericFieldWithCalculatorAndMatcher(string v
                   vquantity,
                   display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
                   VifScaling::Auto,
+                  DifSignedness::Signed,
                   1.0,
                   matcher,
                   help,
@@ -571,6 +583,7 @@ void MeterCommonImplementation::addNumericField(
                   vquantity,
                   display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
                   VifScaling::None,
+                  DifSignedness::Signed,
                   1.0,
                   FieldMatcher::noMatcher(),
                   help,
@@ -595,6 +608,7 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
                   Quantity::Text,
                   defaultUnitForQuantity(Quantity::Text),
                   VifScaling::None,
+                  DifSignedness::Signed,
                   1.0,
                   matcher,
                   help,
@@ -620,6 +634,7 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
                   Quantity::Text,
                   defaultUnitForQuantity(Quantity::Text),
                   VifScaling::None,
+                  DifSignedness::Signed,
                   1.0,
                   matcher,
                   help,
@@ -643,6 +658,7 @@ void MeterCommonImplementation::addStringField(string vname,
                   Quantity::Text,
                   defaultUnitForQuantity(Quantity::Text),
                   VifScaling::None,
+                  DifSignedness::Signed,
                   1.0,
                   FieldMatcher(),
                   help,
@@ -1664,6 +1680,7 @@ FieldInfo::FieldInfo(int index,
                      Quantity xuantity,
                      Unit display_unit,
                      VifScaling vif_scaling,
+                     DifSignedness dif_signedness,
                      double scale,
                      FieldMatcher matcher,
                      string help,
@@ -1680,6 +1697,7 @@ FieldInfo::FieldInfo(int index,
         xuantity_(xuantity),
         display_unit_(display_unit),
         vif_scaling_(vif_scaling),
+        dif_signedness_(dif_signedness),
         scale_(scale),
         matcher_(matcher),
         help_(help),
@@ -2330,11 +2348,11 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
     }
 
     double extracted_double_value = NAN;
-    if (dve->extractDouble(&extracted_double_value,
-                           vifScaling() == VifScaling::Auto ||
-                           vifScaling() == VifScaling::AutoSigned,
-                           vifScaling() == VifScaling::NoneSigned ||
-                           vifScaling() == VifScaling::AutoSigned))
+
+    bool auto_vif_scaling = vifScaling() == VifScaling::Auto;
+    bool force_unsigned = difSignedness() == DifSignedness::Unsigned;
+
+    if (dve->extractDouble(&extracted_double_value, auto_vif_scaling, force_unsigned))
     {
         Unit decoded_unit = displayUnit();
         if (matcher_.vif_range == VIFRange::DateTime)
@@ -2601,6 +2619,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ActualityDuration),
@@ -2616,6 +2635,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ActualityDuration)
@@ -2738,6 +2758,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::OperatingTime)
@@ -2752,6 +2773,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::OnTime)
@@ -2766,6 +2788,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::AtError)
             .set(VIFRange::OnTime)
@@ -2828,6 +2851,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -2842,6 +2866,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -2857,6 +2882,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
@@ -2873,6 +2899,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -2888,6 +2915,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -2903,6 +2931,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FlowTemperature)
@@ -2917,6 +2946,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
@@ -2931,6 +2961,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ReturnTemperature)
@@ -2944,7 +2975,8 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             "The difference between flow and return media temperatures.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::AutoSigned,
+            VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::TemperatureDifference)
@@ -2959,6 +2991,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::VolumeFlow)
@@ -2973,6 +3006,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
             VifScaling::None,
+            DifSignedness::Unsigned,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AccessNumber)
@@ -2987,6 +3021,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
+            DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -3004,10 +3039,8 @@ const char *toString(VifScaling s)
 {
     switch (s)
     {
-    case VifScaling::None: return "None";
     case VifScaling::Auto: return "Auto";
-    case VifScaling::NoneSigned: return "NoneSigned";
-    case VifScaling::AutoSigned: return "AutoSigned";
+    case VifScaling::None: return "None";
     case VifScaling::Unknown: return "Unknown";
     }
     return "?";
@@ -3016,12 +3049,30 @@ const char *toString(VifScaling s)
 VifScaling toVifScaling(const char *s)
 {
     if (!s) return VifScaling::Unknown;
-    if (!strcmp(s, "None")) return VifScaling::None;
     if (!strcmp(s, "Auto")) return VifScaling::Auto;
-    if (!strcmp(s, "NoneSigned")) return VifScaling::NoneSigned;
-    if (!strcmp(s, "AutoSigned")) return VifScaling::AutoSigned;
+    if (!strcmp(s, "None")) return VifScaling::None;
     if (!strcmp(s, "Unknown")) return VifScaling::Unknown;
     return VifScaling::Unknown;
+}
+
+const char *toString(DifSignedness s)
+{
+    switch (s)
+    {
+    case DifSignedness::Signed: return "Signed";
+    case DifSignedness::Unsigned: return "Unsigned";
+    case DifSignedness::Unknown: return "Unknown";
+    }
+    return "?";
+}
+
+DifSignedness toDifSignedness(const char *s)
+{
+    if (!s) return DifSignedness::Unknown;
+    if (!strcmp(s, "Signed")) return DifSignedness::Signed;
+    if (!strcmp(s, "Unsigned")) return DifSignedness::Unsigned;
+    if (!strcmp(s, "Unknown")) return DifSignedness::Unknown;
+    return DifSignedness::Unknown;
 }
 
 const char* toString(PrintProperty p)

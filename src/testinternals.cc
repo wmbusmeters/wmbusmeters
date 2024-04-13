@@ -1383,13 +1383,13 @@ void test_translate()
 {
     Translate::Lookup lookup1 =
         Translate::Lookup()
-        .add(Translate::Rule("ACCESS_BITS", Translate::Type::BitToString)
+        .add(Translate::Rule("ACCESS_BITS", Translate::MapType::BitToString)
              .set(MaskBits(0xf0))
              .add(Translate::Map(0x10, "NO_ACCESS", TestBit::Set))
              .add(Translate::Map(0x20, "ALL_ACCESS", TestBit::Set))
              .add(Translate::Map(0x40, "TEMP_ACCESS", TestBit::Set))
             )
-        .add(Translate::Rule("ACCESSOR_TYPE", Translate::Type::IndexToString)
+        .add(Translate::Rule("ACCESSOR_TYPE", Translate::MapType::IndexToString)
              .set(MaskBits(0x0f))
              .add(Translate::Map(0x00, "ACCESSOR_RED", TestBit::Set))
              .add(Translate::Map(0x07, "ACCESSOR_GREEN", TestBit::Set))
@@ -1401,7 +1401,7 @@ void test_translate()
             {
                 {
                     "FLOW_FLAGS",
-                    Translate::Type::BitToString,
+                    Translate::MapType::BitToString,
                     AlwaysTrigger,
                     MaskBits(0x3f),
                     "OOOK",
@@ -1420,7 +1420,7 @@ void test_translate()
             {
                 {
                     "NO_FLAGS",
-                    Translate::Type::BitToString,
+                    Translate::MapType::BitToString,
                     AlwaysTrigger,
                     MaskBits(0x03),
                     "OK",

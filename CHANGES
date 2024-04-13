@@ -1,4 +1,11 @@
 
+Fixed long standing confusion wether the DIF binary values are by
+default signed or unsigned. It turns out that they are signed!
+Thank you Mathias (Zeppelin500) and KaVauA for sorting this out!
+
+For unknown VIFS and non-compliant meters the signedness
+can be overriden to unsigned.
+
 New improved address specification. E.g. use 12345678.M=KAM.V=1b.T=16
 to listen to exactly the telegrams with id 12345678 manufacturer KAM,
 version 0x1b and type 0x16. You if you do not specify any M,V or T, they
