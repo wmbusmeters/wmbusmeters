@@ -53,7 +53,7 @@ namespace
                     {
                         {
                             "ERROR_FLAGS",
-                            Translate::Type::BitToString,
+                            Translate::MapType::BitToString,
                             AlwaysTrigger, MaskBits(0xffff),
                             "OK",
                             {
@@ -67,7 +67,7 @@ namespace
             "The total heat energy consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -78,7 +78,7 @@ namespace
             "The total heating media volume recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -99,7 +99,7 @@ namespace
             "The total energy consumption recorded at the last day of the previous year.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(StorageNr(1))
