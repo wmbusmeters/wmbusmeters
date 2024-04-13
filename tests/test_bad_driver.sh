@@ -447,6 +447,7 @@ ActualityDuration
 FabricationNo
 EnhancedIdentification
 EnergyMWh
+EnergyGJ
 RelativeHumidity
 AccessNumber
 Medium

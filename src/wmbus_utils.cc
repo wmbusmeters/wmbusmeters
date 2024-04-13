@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2018-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -39,7 +39,10 @@ bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
     // A-field
     for (int j=0; j<6; ++j) { iv[i++] = t->dll_a[j]; }
     // CC-field
-    iv[i++] = t->ell_cc;
+    // Two bits should be zeroed out:
+    // 0x10 H-field Hop-count set when telegram is repeated
+    // 0x02 R-field Repeated access field
+    iv[i++] = t->ell_cc & ~(0x10) & ~(0x02);
     // SN-field
     for (int j=0; j<4; ++j) { iv[i++] = t->ell_sn_b[j]; }
     // FN
