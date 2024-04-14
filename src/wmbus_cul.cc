@@ -331,6 +331,7 @@ FrameStatus WMBusCUL::checkCULFrame(vector<uchar> &data,
         string s = safeString(hex_buffer);
         debug("(cul) bad hex for LQI and RSSI \"%s\"\n", s.c_str());
         warning("(cul) warning: the LQI and RSSI hex string is not properly formatted!\n");
+	return ErrorInFrame;
     }
     // LQI is 7 bits unsigned number and relative - range 0-127 lower is better
     uint lqi = lqi_rssi[0]>>1;
