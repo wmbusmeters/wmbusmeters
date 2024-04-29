@@ -868,6 +868,12 @@ Or start nc explicitly in a pipe.
 nc -lku 4444 | wmbusmeters stdin:rtlwmbus
 ```
 
+Telegrams can also be pulled in by listening on MQTT topics if they were captured by other tools like [rtl_433](https://github.com/merbanan/rtl_433)
+```shell
+wmbusmeters 'hex:CMD(/usr/bin/mosquitto_sub -h 192.168.x.x -t rtl_433/device/devices/6/Wireless-MBus/+/data | tr -d "\n" )'
+```
+`+` is a wild card that listens to all the captured telegrams but can be replaced with a specific meter's ID
+
 # Decoding hex string telegrams
 
 If you have a single telegram as hex, which you want decoded, you do not need to create a simulation file,
