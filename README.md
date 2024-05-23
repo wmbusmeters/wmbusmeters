@@ -52,7 +52,7 @@ The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 dnf install wmbusmeters
 ```
 
-Availability of **wmbusmeters** for other Linux distributions can be checked on [release-monitoring](https://release-monitoring.org/project/88654/) project page.
+**wmbusmeters** for [Debian](https://tracker.debian.org/pkg/wmbusmeters) is currently available through Experimental repositories. Availability for other Linux distributions can be checked on [release-monitoring](https://release-monitoring.org/project/88654/) project page.
 
 # Docker
 
