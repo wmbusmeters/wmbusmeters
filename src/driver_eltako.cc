@@ -286,7 +286,3 @@ namespace
     }
 }
 
-// Test: Electricity eltako 24450291 NOKEY
-// Telegram=|689292680801729102452494150102270000008C1004997500008C1104997500008C2004000000008C21040000000002FDC9FF01E80002FDDBFF01000002ACFF0101008240ACFF01010002FDC9FF02E80002FDDBFF02000002ACFF0200008240ACFF02000002FDC9FF03E70002FDDBFF03070002ACFF030E008240ACFF03080002FF68010002ACFF000F008240ACFF000A0001FF1300D416|
-// { "media":"electricity", "meter":"eltako_dsz15dm", "name":"", "id":"24450291", "active_consumption_l1_kw":0.01, "active_consumption_l2_kw":0, "active_consumption_l3_kw":0.14, "active_consumption_total_kw":0.15, "active_tariff_nr":0, "ct_numerator_nr":1, "current_l1_a":0, "current_l2_a":0, "current_l3_a":0.7, "reactive_consumption_l1_kw":0.01, "reactive_consumption_l2_kw":0, "reactive_consumption_l3_kw":0.08, "reactive_consumption_total_kw":0.1, "reactive_energy_consumption_tariff_1_kwh":75.99, "reactive_energy_consumption_tariff_2_kwh":0, "total_energy_consumption_tariff_1_kwh":75.99, "total_energy_consumption_tariff_2_kwh":0, "voltage_l1_n_v":232, "voltage_l2_n_v":232, "voltage_l3_n_v":231, "status":"OK", "timestamp":"2024-05-25T22:51:20Z" }
-
