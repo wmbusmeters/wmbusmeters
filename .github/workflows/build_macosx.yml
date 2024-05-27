@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - debug_maccrap
 jobs:
   build:
     runs-on: macOS-latest
