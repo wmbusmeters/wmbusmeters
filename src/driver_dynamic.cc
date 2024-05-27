@@ -385,6 +385,8 @@ XMQProceed DriverDynamic::add_match(XMQDoc *doc, XMQNode *match, DriverDynamic *
     checked_set_vif_range(xmqGetString(doc, match, "vif_range"), fm, dd);
 
     checked_set_storagenr_range(xmqGetString(doc, match, "storage_nr"), fm, dd);
+    checked_set_tariffnr_range(xmqGetString(doc, match, "tariff_nr"), fm, dd);
+    checked_set_subunitnr_range(xmqGetString(doc, match, "subunit_nr"), fm, dd);
 
     xmqForeach(doc, match, "add_combinable", (XMQNodeCallback)add_combinable, dd);
 
@@ -880,6 +882,69 @@ void checked_set_storagenr_range(const char *storagenr_range_s, FieldMatcher *fm
                 StorageNr(atoi(fields[1].c_str())));
     }
 }
+
+void checked_set_tariffnr_range(const char *tariffnr_range_s, FieldMatcher *fm, DriverDynamic *dd)
+{
+    if (!tariffnr_range_s) return;
+
+    auto fields = splitString(tariffnr_range_s, ',');
+    bool ok = isNumber(fields[0]);
+    if (fields.size() > 1)
+    {
+        ok &= isNumber(fields[1]);
+    }
+    if (!ok || fields.size() > 2)
+    {
+        warning("(driver) error in %s, bad tariffnr_range: %s\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                tariffnr_range_s,
+                line);
+        throw 1;
+    }
+
+    if (fields.size() == 1)
+    {
+        fm->set(TariffNr(atoi(fields[0].c_str())));
+    }
+    else
+    {
+        fm->set(TariffNr(atoi(fields[0].c_str())),
+                TariffNr(atoi(fields[1].c_str())));
+    }
+}
+
+void checked_set_subunitnr_range(const char *subunitnr_range_s, FieldMatcher *fm, DriverDynamic *dd)
+{
+    if (!subunitnr_range_s) return;
+
+    auto fields = splitString(subunitnr_range_s, ',');
+    bool ok = isNumber(fields[0]);
+    if (fields.size() > 1)
+    {
+        ok &= isNumber(fields[1]);
+    }
+    if (!ok || fields.size() > 2)
+    {
+        warning("(driver) error in %s, bad subunitnr_range: %s\n"
+                "%s\n",
+                dd->fileName().c_str(),
+                subunitnr_range_s,
+                line);
+        throw 1;
+    }
+
+    if (fields.size() == 1)
+    {
+        fm->set(SubUnitNr(atoi(fields[0].c_str())));
+    }
+    else
+    {
+        fm->set(SubUnitNr(atoi(fields[0].c_str())),
+                SubUnitNr(atoi(fields[1].c_str())));
+    }
+}
+
 
 void checked_add_vif_combinable(const char *vif_combinable_s, FieldMatcher *fm, DriverDynamic *dd)
 {

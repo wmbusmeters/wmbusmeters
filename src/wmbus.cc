@@ -5738,6 +5738,17 @@ const char *toString(FrameType ft)
     return "?";
 }
 
+const char *toString(FrameStatus fs)
+{
+    switch (fs) {
+    case FrameStatus::PartialFrame: return "PartialFrame";
+    case FrameStatus::FullFrame: return "FullFrame";
+    case FrameStatus::ErrorInFrame: return "ErrorInFrame";
+    case FrameStatus::TextAndNotFrame: return "TextAndNotFrame";
+    }
+    return "?";
+}
+
 int genericifyMedia(int media)
 {
     if (media == 0x06 || // Warm Water (30°C-90°C) meter
