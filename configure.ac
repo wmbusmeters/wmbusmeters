@@ -44,6 +44,7 @@ darwin*)
 	CFLAGS="$CFLAGS -I/usr/local/include -I/opt/homebrew/include"
 	CXXFLAGS="$CXXFLAGS -I/usr/local/include -I/opt/homebrew/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib -I/opt/homebrew/lib"
+        find / -name "*rtlsdr*"
 ;;
 esac
 
