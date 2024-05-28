@@ -1,0 +1,275 @@
+driver {
+    name           = eltako
+    default_fields = name,id,total_kwh,timestamp
+    meter_type     = ElectricityMeter
+    detect {
+        mvt = ELT,01,02
+    }
+    field {
+        name     = status
+        quantity = Text
+        info     = status_and_error_flags
+        match {
+            measurement_type = Instantaneous
+            vif_range        = ErrorFlags
+        }
+        lookup {
+            name            = ERROR_FLAGS
+            map_type        = BitToString
+            mask_bits       = 0xff
+            default_message = OK
+            map {
+                name  = BUSY
+                info  = 'System is busy'
+                value = 0x01
+                test  = Set
+            }
+            map {
+                name  = GENERIC_APP_ERROR
+                info  = 'Generic application error'
+                value = 0x02
+                test  = Set
+            }
+            map {
+                name  = CURRENT_LOW
+                info  = 'Current too low'
+                value = 0x04
+                test  = Set
+            }
+            map {
+                name  = PERMANENT_ERROR
+                info  = 'permanent error'
+                value = 0x08
+                test  = Set
+            }
+            map {
+                name  = TEMPORARY_ERROR
+                info  = 'temporary error'
+                value = 0x10
+                test  = Set
+            }
+        }
+    }
+    field {
+        name     = 'total_tariff_1'
+        quantity = Energy
+        info     = 'Total cumulative active energy per tariff.'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = AnyEnergyVIF
+            tariff_nr        = 1
+        }
+    }
+    field {
+        name     = 'total_tariff_2'
+        quantity = Energy
+        info     = 'Total cumulative active energy per tariff.'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = AnyEnergyVIF
+            tariff_nr        = 2
+        }
+    }
+    field {
+        name     = 'total_reactive_tariff_{tariff_counter}'
+        quantity = Energy
+        info     = 'Total cumulative reactive energy per tariff.'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = AnyEnergyVIF
+            storage_nr       = 2
+            tariff_nr        = 1,10
+        }
+    }
+    field {
+        name     = voltage_l1_n
+        quantity = Voltage
+        info     = 'Instantaneous voltage between L1 and neutral.'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = Voltage
+            add_combinable   = Mfct01
+        }
+    }
+    field {
+        name     = current_l1
+        quantity = Amperage
+        info     = 'Instantaneous current in the L1 phase.'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = Amperage
+            add_combinable   = Mfct01
+        }
+    }
+    field {
+        name     = power_l1
+        quantity = Power
+        info     = 'active Power in L1 phase'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = AnyPowerVIF
+            add_combinable   = Mfct01
+        }
+    }
+    field {
+        name     = reactive_power_l1
+        quantity = Power
+        info     = 'reactive Power in L1 phase'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = AnyPowerVIF
+            subunit_nr       = 1
+            add_combinable   = Mfct01
+        }
+    }
+    field {
+        name     = voltage_l2_n
+        quantity = Voltage
+        info     = 'Instantaneous voltage between L2 and neutral.'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = Voltage
+            add_combinable   = Mfct02
+        }
+    }
+    field {
+        name     = current_l2
+        quantity = Amperage
+        info     = 'Instantaneous current in the L2 phase.'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = Amperage
+            add_combinable   = Mfct02
+        }
+    }
+    field {
+        name     = power_l2
+        quantity = Power
+        info     = 'active Power in L2 phase'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = AnyPowerVIF
+            add_combinable   = Mfct02
+        }
+    }
+    field {
+        name     = reactive_power_l2
+        quantity = Power
+        info     = 'reactive Power in L2 phase'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = AnyPowerVIF
+            subunit_nr       = 1
+            add_combinable   = Mfct02
+        }
+    }
+    field {
+        name     = voltage_l3_n
+        quantity = Voltage
+        info     = 'Instantaneous voltage between L3 and neutral.'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = Voltage
+            add_combinable   = Mfct03
+        }
+    }
+    field {
+        name     = current_l3
+        quantity = Amperage
+        info     = 'Instantaneous current in the L3 phase.'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = Amperage
+            add_combinable   = Mfct03
+        }
+    }
+    field {
+        name     = power_l3
+        quantity = Power
+        info     = 'active Power in L3 phase'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = AnyPowerVIF
+            add_combinable   = Mfct03
+        }
+    }
+    field {
+        name     = reactive_power_l3
+        quantity = Power
+        info     = 'reactive Power in L3 phase'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = AnyPowerVIF
+            subunit_nr       = 1
+            add_combinable   = Mfct03
+        }
+    }
+    field {
+        name        = ct_numerator
+        info        = 'Current transformer ratio (numerator)'
+        quantity    = Dimensionless
+        vif_scaling = None
+        match {
+            difvifkey = 02FF68
+        }
+    }
+    field {
+        name     = active_power_overall
+        quantity = Power
+        info     = 'active Power overall'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = AnyPowerVIF
+            add_combinable   = Mfct00
+        }
+    }
+    field {
+        name     = reactive_power_overall
+        quantity = Power
+        info     = 'reactive Power overall'
+        match {
+            measurement_type = Instantaneous
+            vif_scaling      = Auto
+            vif_range        = AnyPowerVIF
+            subunit_nr       = 1
+            add_combinable   = Mfct00
+        }
+    }
+    field {
+        name        = active_tariff
+        info        = 'active tariff'
+        quantity    = Dimensionless
+        vif_scaling = None
+        match {
+            difvifkey = 01FF13
+        }
+    }
+    field {
+        name     = 'total'
+        quantity = Energy
+        info     = 'Total active energy over all tariffs.'
+        calculate = total_tariff_1_kwh+total_tariff_2_kwh
+    }
+    test {
+        args     = 'Eltako eltako 23451236 NOKEY'
+        telegram = 689292680800723612452394150102cd0000008c1004688902008c1104688902008c2004000000008c21040000000002fdc9ff01ee0002fddBff01100002acff0120008240acff010a0002fdc9ff02ef0002fddBff02110002acff0224008240acff02070002fdc9ff03ee0002fddBff030e0002acff031c008240acff03060002ff68010002acff0062008240acff00190001ff1300f416
+        json     = '{"active_power_overall_kw": 0.98,"active_tariff_counter": 0,"ct_numerator_counter": 1,"current_l1_a": 1.6,"current_l2_a": 1.7,"current_l3_a": 1.4,"id": "23451236","media": "electricity","meter": "eltako","name": "Eltako","power_l1_kw": 0.32,"power_l2_kw": 0.36,"power_l3_kw": 0.28,"reactive_power_l1_kw": 0.1,"reactive_power_l2_kw": 0.07,"reactive_power_l3_kw": 0.06,"reactive_power_overall_kw": 0.25,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 289.68,"total_reactive_tariff_1_kwh": 289.68,"total_reactive_tariff_2_kwh": 0,"total_tariff_1_kwh": 289.68,"total_tariff_2_kwh": 0,"voltage_l1_n_v": 238,"voltage_l2_n_v": 239,"voltage_l3_n_v": 238}'
+        fields   = 'Eltako;23451236;289.68;1111-11-11 11:11.11'
+    }
+}
