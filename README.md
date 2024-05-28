@@ -1030,10 +1030,21 @@ If you like to send the bytes manually, the correct bytes are:
 
 # How to add a new driver
 
-Drivers are self contained source code files named `src/driver_xyz.cc`
-They register themselves at startup. The source file also contains the necessary tests for that driver.
+Drivers for OMS-compliant meters are text files `drivers/src/*.xmq`
+First collect an unecrypted telegram as a hex string <hex> using --logtelegrams and any other driver.
+Then run `wmbusmeters --analyze <hex>` to see the best match.
 
-Read more here: [doc/CreateDriver.md](doc/CreateDriver.md)
+Copy that meters aaa,xmq file to a new filename bbb.xmq and change the name field from aaa to bbb in the driver source.
+
+Now run the new driver with `wmbusmeters --analyze=drivers/src/bbb.xmq <hex>`
+and start modifying the driver until it produces the desired json output.
+
+You can now run `make; make install` from within the drivers directory
+and then rebuild from the wmbusmeters directory `make`. The new driver is now
+compiled into the binary.
+
+You can also put the new driver file bbb.xmq into /etc/wmbusmeters.drivers.d and it will immediately
+be available to the wmbusmeters program without recompiling.
 
 # Caveat
 
