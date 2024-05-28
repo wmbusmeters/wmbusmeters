@@ -75,7 +75,7 @@ std::string bin2hex(std::vector<uchar> &data, int offset, int len);
 std::string safeString(std::vector<uchar> &target);
 void strprintf(std::string *s, const char* fmt, ...);
 std::string tostrprintf(const char* fmt, ...);
-std::string tostrprintf(const std::string &fmt, ...);
+std::string tostrprintf(const std::string *fmt, ...);
 bool endsWith(const std::string &str, const std::string &suffix);
 
 // Return for example: 2010-03-21

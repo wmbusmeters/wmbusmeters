@@ -2149,7 +2149,7 @@ string MeterInfo::str()
     }
     r += ":";
     if (bus != "") r += bus+":";
-    if (bps != 0) r += bps+":";
+    if (bps != 0) r += to_string(bps)+":";
     if (!link_modes.empty()) r += link_modes.hr()+":";
     if (r.size() > 0) r.pop_back();
 

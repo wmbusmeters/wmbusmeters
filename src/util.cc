@@ -314,13 +314,16 @@ string tostrprintf(const char* fmt, ...)
     return s;
 }
 
-string tostrprintf(const string& fmt, ...)
+
+// Why a pointer here? To avoid the compiler warning:
+// warning: passing an object of reference type to 'va_start' has undefined behavior [-Wvarargs]
+string tostrprintf(const string *fmt, ...)
 {
     string s;
     char buf[4096];
     va_list args;
-    va_start(args, fmt);
-    size_t n = vsnprintf(buf, 4096, fmt.c_str(), args);
+    va_start(args, fmt); // <<<<< here fmt must be a native type.
+    size_t n = vsnprintf(buf, 4096, fmt->c_str(), args);
     assert(n < 4096);
     va_end(args);
     s = buf;

@@ -75,7 +75,6 @@ private:
     // Then check if the rtl_sdr and/or rtl_wmbus and/or rtl_433 is available.
     bool rtlsdr_found_ = false;
     bool rtlwmbus_found_ = false;
-    bool rtl433_found_ = false;
 
     // Remember devices that were not detected as wmbus devices.
     // To avoid probing them again and again.
