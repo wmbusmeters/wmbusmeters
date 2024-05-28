@@ -249,14 +249,14 @@ bool hex2bin(vector<uchar> &src, vector<uchar> *target)
     return true;
 }
 
-char const hex[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A','B','C','D','E','F'};
+char const hexChar[16] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A','B','C','D','E','F'};
 
 string bin2hex(const vector<uchar> &target) {
     string str;
     for (size_t i = 0; i < target.size(); ++i) {
         const char ch = target[i];
-        str.append(&hex[(ch  & 0xF0) >> 4], 1);
-        str.append(&hex[ch & 0xF], 1);
+        str.append(&hexChar[(ch  & 0xF0) >> 4], 1);
+        str.append(&hexChar[ch & 0xF], 1);
     }
     return str;
 }
@@ -266,8 +266,8 @@ string bin2hex(vector<uchar>::iterator data, vector<uchar>::iterator end, int le
     while (data != end && len-- > 0) {
         const char ch = *data;
         data++;
-        str.append(&hex[(ch  & 0xF0) >> 4], 1);
-        str.append(&hex[ch & 0xF], 1);
+        str.append(&hexChar[(ch  & 0xF0) >> 4], 1);
+        str.append(&hexChar[ch & 0xF], 1);
     }
     return str;
 }
@@ -279,8 +279,8 @@ string bin2hex(vector<uchar> &data, int offset, int len) {
     while (i != data.end() && len-- > 0) {
         const char ch = *i;
         i++;
-        str.append(&hex[(ch  & 0xF0) >> 4], 1);
-        str.append(&hex[ch & 0xF], 1);
+        str.append(&hexChar[(ch  & 0xF0) >> 4], 1);
+        str.append(&hexChar[ch & 0xF], 1);
     }
     return str;
 }
@@ -293,8 +293,8 @@ string safeString(vector<uchar> &target) {
             str += ch;
         } else {
             str += '<';
-            str.append(&hex[(ch  & 0xF0) >> 4], 1);
-            str.append(&hex[ch & 0xF], 1);
+            str.append(&hexChar[(ch  & 0xF0) >> 4], 1);
+            str.append(&hexChar[ch & 0xF], 1);
             str += '>';
         }
     }
