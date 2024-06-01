@@ -84,13 +84,13 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
 
     try
     {
-        string name = check_driver_name(xmqGetString(doc, NULL, "/driver/name"), file);
+        string name = check_driver_name(xmqGetString(doc, "/driver/name"), file);
         di->setName(name);
 
-        MeterType meter_type = check_meter_type(xmqGetString(doc, NULL, "/driver/meter_type"), file);
+        MeterType meter_type = check_meter_type(xmqGetString(doc, "/driver/meter_type"), file);
         di->setMeterType(meter_type);
 
-        string default_fields = check_default_fields(xmqGetString(doc, NULL, "/driver/default_fields"), file);
+        string default_fields = check_default_fields(xmqGetString(doc, "/driver/default_fields"), file);
         di->setDefaultFields(default_fields);
 
         if (!content)
@@ -100,7 +100,7 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
 
         di->setDynamic(file, doc);
 
-        xmqForeach(doc, NULL, "/driver/detect/mvt", (XMQNodeCallback)add_detect, di);
+        xmqForeach(doc, "/driver/detect/mvt", (XMQNodeCallback)add_detect, di);
 
         check_detection_triplets(di, file);
 
@@ -129,8 +129,8 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
                 di.name().str().c_str(),
                 fileName().c_str());
 
-        xmqForeach(doc, NULL, "/driver/use", (XMQNodeCallback)add_use, this);
-        xmqForeach(doc, NULL, "/driver/field", (XMQNodeCallback)add_field, this);
+        xmqForeach(doc, "/driver/use", (XMQNodeCallback)add_use, this);
+        xmqForeach(doc, "/driver/field", (XMQNodeCallback)add_field, this);
     }
     catch(...)
     {
@@ -144,7 +144,7 @@ DriverDynamic::~DriverDynamic()
 
 XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *di)
 {
-    string mvt = xmqGetString(doc, detect, ".");
+    string mvt = xmqGetStringRel(doc, ".", detect);
 
     auto fields = splitString(mvt, ',');
     if (fields.size() != 3)
@@ -243,7 +243,7 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
 
 XMQProceed DriverDynamic::add_use(XMQDoc *doc, XMQNode *field, DriverDynamic *dd)
 {
-    string name = xmqGetString(doc, field, ".");
+    string name = xmqGetStringRel(doc, ".", field);
     bool ok = dd->addOptionalLibraryFields(name);
     if (!ok)
     {
@@ -258,37 +258,37 @@ XMQProceed DriverDynamic::add_use(XMQDoc *doc, XMQNode *field, DriverDynamic *dd
 XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *dd)
 {
     // The field name must be supplied without a unit ie total (not total_m3) since units are managed by wmbusmeters.
-    string name = check_field_name(xmqGetString(doc, field, "name"), dd);
+    string name = check_field_name(xmqGetStringRel(doc, "name", field), dd);
 
     // The quantity ie Volume, gives the default unit (m3) for the field. The unit can be overriden with display_unit.
-    Quantity quantity = check_field_quantity(xmqGetString(doc, field, "quantity"), dd);
+    Quantity quantity = check_field_quantity(xmqGetStringRel(doc, "quantity", field), dd);
 
     // Text fields are either version strings or lookups from status bits.
     // All other fields are numeric, ie they have a unit. This also includes date and datetime.
     bool is_numeric = quantity != Quantity::Text;
 
     // The vif scaling is by default Auto but can be overriden for pesky fields.
-    VifScaling vif_scaling = check_vif_scaling(xmqGetString(doc, field, "vif_scaling"), dd);
+    VifScaling vif_scaling = check_vif_scaling(xmqGetStringRel(doc, "vif_scaling", field), dd);
 
     // The dif signedness is by default Signed but can be overriden for pesky fields.
-    DifSignedness dif_signedness = check_dif_signedness(xmqGetString(doc, field, "dif_signedness"), dd);
+    DifSignedness dif_signedness = check_dif_signedness(xmqGetStringRel(doc, "dif_signedness", field), dd);
 
     // The properties are by default empty but can be specified for specific fields.
-    PrintProperties properties = check_print_properties(xmqGetString(doc, field, "attributes"), dd);
+    PrintProperties properties = check_print_properties(xmqGetStringRel(doc, "attributes", field), dd);
 
     // The about fields explains what the value is for. Ie. is storage 1 the previous day or month value etc.
     string info = get_translation(doc, field, "about", language());
 
     // The calculate formula is optional.
-    string calculate = check_calculate(xmqGetString(doc, field, "calculate"), dd);
+    string calculate = check_calculate(xmqGetStringRel(doc, "calculate", field), dd);
 
     // The display unit is usually based on the quantity. But you can override it.
-    Unit display_unit = check_display_unit(xmqGetString(doc, field, "display_unit"), dd);
+    Unit display_unit = check_display_unit(xmqGetStringRel(doc, "display_unit", field), dd);
 
     // Now find all matchers.
     FieldMatcher match = FieldMatcher::build();
     dd->tmp_matcher_ = &match;
-    int num_matches = xmqForeach(doc, field, "match", (XMQNodeCallback)add_match, dd);
+    int num_matches = xmqForeachRel(doc, "match", (XMQNodeCallback)add_match, dd, field);
     // Check if there were any matches at all, if not, then disable the matcher.
     match.active = num_matches > 0;
 
@@ -305,7 +305,7 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
         ));
     */
     dd->tmp_lookup_ = &lookup;
-    int num_lookups = xmqForeach(doc, field, "lookup", (XMQNodeCallback)add_lookup, dd);
+    int num_lookups = xmqForeachRel(doc, "lookup", (XMQNodeCallback)add_lookup, dd, field);
 
     if (is_numeric)
     {
@@ -378,17 +378,17 @@ XMQProceed DriverDynamic::add_match(XMQDoc *doc, XMQNode *match, DriverDynamic *
 {
     FieldMatcher *fm = dd->tmp_matcher_;
 
-    if (checked_set_difvifkey(xmqGetString(doc, match, "difvifkey"), fm, dd)) return XMQ_CONTINUE;
+    if (checked_set_difvifkey(xmqGetStringRel(doc, "difvifkey", match), fm, dd)) return XMQ_CONTINUE;
 
-    checked_set_measurement_type(xmqGetString(doc, match, "measurement_type"), fm, dd);
+    checked_set_measurement_type(xmqGetStringRel(doc, "measurement_type", match), fm, dd);
 
-    checked_set_vif_range(xmqGetString(doc, match, "vif_range"), fm, dd);
+    checked_set_vif_range(xmqGetStringRel(doc, "vif_range", match), fm, dd);
 
-    checked_set_storagenr_range(xmqGetString(doc, match, "storage_nr"), fm, dd);
-    checked_set_tariffnr_range(xmqGetString(doc, match, "tariff_nr"), fm, dd);
-    checked_set_subunitnr_range(xmqGetString(doc, match, "subunit_nr"), fm, dd);
+    checked_set_storagenr_range(xmqGetStringRel(doc, "storage_nr", match), fm, dd);
+    checked_set_tariffnr_range(xmqGetStringRel(doc, "tariff_nr", match), fm, dd);
+    checked_set_subunitnr_range(xmqGetStringRel(doc, "subunit_nr", match), fm, dd);
 
-    xmqForeach(doc, match, "add_combinable", (XMQNodeCallback)add_combinable, dd);
+    xmqForeachRel(doc, "add_combinable", (XMQNodeCallback)add_combinable, dd, match);
 
     return XMQ_CONTINUE;
 }
@@ -397,7 +397,7 @@ XMQProceed DriverDynamic::add_combinable(XMQDoc *doc, XMQNode *match, DriverDyna
 {
     FieldMatcher *fm = dd->tmp_matcher_;
 
-    checked_add_vif_combinable(xmqGetString(doc, match, "."), fm, dd);
+    checked_add_vif_combinable(xmqGetStringRel(doc, ".", match), fm, dd);
 
     return XMQ_CONTINUE;
 }
@@ -415,9 +415,9 @@ XMQProceed DriverDynamic::add_combinable(XMQDoc *doc, XMQNode *match, DriverDyna
 */
 XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
 {
-    const char *name = xmqGetString(doc, map, "name");
-    uint64_t value = checked_value(xmqGetString(doc, map, "value"), dd);
-    TestBit test_type = checked_test_type(xmqGetString(doc, map, "test"), dd);
+    const char *name = xmqGetStringRel(doc, "name", map);
+    uint64_t value = checked_value(xmqGetStringRel(doc, "value", map), dd);
+    TestBit test_type = checked_test_type(xmqGetStringRel(doc, "test", map), dd);
 
     dd->tmp_rule_->add(Translate::Map(value, name, test_type));
 
@@ -439,10 +439,10 @@ XMQProceed DriverDynamic::add_map(XMQDoc *doc, XMQNode *map, DriverDynamic *dd)
 */
 XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic *dd)
 {
-    const char *name = xmqGetString(doc, lookup, "name");
-    Translate::MapType map_type = checked_map_type(xmqGetString(doc, lookup, "map_type"), dd);
-    uint64_t mask_bits = checked_mask_bits(xmqGetString(doc, lookup, "mask_bits"), dd);
-    const char *default_message = xmqGetString(doc, lookup, "default_message");
+    const char *name = xmqGetStringRel(doc, "name", lookup);
+    Translate::MapType map_type = checked_map_type(xmqGetStringRel(doc, "map_type", lookup), dd);
+    uint64_t mask_bits = checked_mask_bits(xmqGetStringRel(doc, "mask_bits", lookup), dd);
+    const char *default_message = xmqGetStringRel(doc, "default_message", lookup);
 
     Translate::Rule rule = Translate::Rule(name, map_type);
     dd->tmp_rule_ = &rule;
@@ -450,7 +450,7 @@ XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic
     rule.set(MaskBits(mask_bits));
     rule.set(DefaultMessage(default_message));
 
-    xmqForeach(doc, lookup, "map", (XMQNodeCallback)add_map, dd);
+    xmqForeachRel(doc, "map", (XMQNodeCallback)add_map, dd, lookup);
 
     dd->tmp_lookup_->add(rule);
 
@@ -704,11 +704,11 @@ PrintProperties check_print_properties(const char *print_properties_s, DriverDyn
 string get_translation(XMQDoc *doc, XMQNode *node, string name, string lang)
 {
     string xpath = name+"/"+lang;
-    const char *txt = xmqGetString(doc, node, xpath.c_str());
+    const char *txt = xmqGetStringRel(doc, xpath.c_str(), node);
     if (!txt)
     {
         xpath = name+"/en";
-        txt = xmqGetString(doc, node, xpath.c_str());
+        txt = xmqGetStringRel(doc, xpath.c_str(), node);
         if (!txt)
         {
             txt = "";
