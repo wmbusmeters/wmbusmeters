@@ -318,6 +318,7 @@ typedef enum
     XMQ_ERROR_EXPECTED_JSON = 27,
     XMQ_ERROR_PARSING_XML = 28,
     XMQ_ERROR_PARSING_HTML = 29,
+    XMQ_ERROR_VALUE_CANNOT_START_WITH = 30,
     XMQ_WARNING_QUOTES_NEEDED = 100
 } XMQParseError;
 
@@ -581,39 +582,81 @@ const char *xmqGetContent(XMQNode *node);
     @doc: the xmq doc object
     @xpath: the location of the content to be parsed as an 32 bit signed integer.
 */
-int32_t xmqGetInt(XMQDoc *doc, XMQNode *node, const char *xpath);
+int32_t xmqGetInt(XMQDoc *doc, const char *xpath);
+
+/**
+    xmqGetIntRel:
+    @doc: the xmq doc object
+    @xpath: the location of the content to be parsed as an 32 bit signed integer.
+    @relative: the xpath is search using this node as the starting point.
+*/
+int32_t xmqGetIntRel(XMQDoc *doc, const char *xpath, XMQNode *relative);
 
 /**
     xmqGetLong:
     @doc: the xmq doc object
     @xpath: the location of the content to be parsed as an 64 bit signed integer.
 */
-int64_t xmqGetLong(XMQDoc *doc, XMQNode *node, const char *xpath);
+int64_t xmqGetLong(XMQDoc *doc, const char *xpath);
+
+/**
+    xmqGetLongRel:
+    @doc: the xmq doc object
+    @xpath: the location of the content to be parsed as an 64 bit signed integer.
+    @relative: the xpath is search using this node as the starting point.
+*/
+int64_t xmqGetLongRel(XMQDoc *doc, const char *xpath, XMQNode *relative);
 
 /**
     xmqGetDouble:
     @doc: the xmq doc object
     @xpath: the location of the content to be parsed as double float.
 */
-double xmqGetDouble(XMQDoc *doc, XMQNode *node, const char *xpath);
+double xmqGetDouble(XMQDoc *doc, const char *xpath);
+
+/**
+    xmqGetDoubleRel:
+    @doc: the xmq doc object
+    @xpath: the location of the content to be parsed as double float.
+    @relative: the xpath is search using this node as the starting point.
+*/
+double xmqGetDoubleRel(XMQDoc *doc, const char *xpath, XMQNode *relative);
 
 /**
     xmqGetString:
     @doc: the xmq doc object
     @xpath: the location of the content to be parsed as string.
 */
-const char *xmqGetString(XMQDoc *doc, XMQNode *node, const char *xpath);
+const char *xmqGetString(XMQDoc *doc, const char *xpath);
 
 /**
-   xmqqForeach: Find all locations matching the xpath.
-   @node: the starting node to search below.
+    xmqGetStringRel:
+    @doc: the xmq doc object
+    @xpath: the location of the content to be parsed as string.
+    @relative: the xpath is search using this node as the starting point.
+*/
+const char *xmqGetStringRel(XMQDoc *doc, const char *xpath, XMQNode *relative);
+
+/**
+   xmqForeach: Find all locations matching the xpath.
    @xpath: the xpath pattern.
    @cb: the function to call for each found node. Can be NULL.
    @user_data: the user_data supplied to the function.
 
    Returns the number of hits.
 */
-int xmqForeach(XMQDoc *doq, XMQNode *node, const char *xpath, XMQNodeCallback cb, void *user_data);
+int xmqForeach(XMQDoc *doq, const char *xpath, XMQNodeCallback cb, void *user_data);
+
+/**
+   xmqForeachRel: Find all locations matching the xpath.
+   @xpath: the xpath pattern.
+   @cb: the function to call for each found node. Can be NULL.
+   @user_data: the user_data supplied to the function.
+   @relative: find nodes relative to this node.
+
+   Returns the number of hits.
+*/
+int xmqForeachRel(XMQDoc *doq, const char *xpath, XMQNodeCallback cb, void *user_data, XMQNode *relative);
 
 /**
    xmqReplaceEntity: Replace the selected entity with the supplied content.

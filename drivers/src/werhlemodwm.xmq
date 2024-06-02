@@ -1,0 +1,24 @@
+driver {
+    name           = werhlemodwm
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,timestamp
+    detect {
+        mvt = WZG,03,16
+    }
+    use = meter_datetime
+    use = target_date
+    use = target_m3
+    use = total_m3
+    use = fabrication_no
+    field {
+        name         = next_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            add_combinable   = FutureValue
+            storage_nr       = 1
+        }
+    }
+}

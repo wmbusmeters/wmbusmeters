@@ -581,7 +581,8 @@ bool FormulaImplementation::tokenize()
     if (i < formula_.length())
     {
         Token tok(TokenType::SPACE, i, 0);
-        errors_.push_back(tostrprintf("Unknown token!\n"+tok.withMarker(formula_)));
+        string s = string("Unknown token!\n")+tok.withMarker(formula_);
+        errors_.push_back(s);
         valid_ = false;
         return false;
     }

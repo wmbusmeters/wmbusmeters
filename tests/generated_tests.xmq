@@ -1,9 +1,15 @@
-// Generated 2024-04-04_20:51
+// Generated 2024-05-28_16:59
 test {
     args     = 'Gas elster 05105025 NOKEY'
     telegram = 3644A511640010253837722550100593158103E70020052F2F_0374E602000C137034220302FD74EE0F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
     json     = '{"media":"gas","meter":"elster","name":"Gas","id":"05105025","actuality_duration_s":742,"total_m3":3223.47,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Gas;05105025;3223.47;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Eltako eltako 23451236 NOKEY'
+    telegram = 689292680800723612452394150102cd0000008c1004688902008c1104688902008c2004000000008c21040000000002fdc9ff01ee0002fddBff01100002acff0120008240acff010a0002fdc9ff02ef0002fddBff02110002acff0224008240acff02070002fdc9ff03ee0002fddBff030e0002acff031c008240acff03060002ff68010002acff0062008240acff00190001ff1300f416
+    json     = '{"active_power_overall_kw": 0.98,"active_tariff_counter": 0,"ct_numerator_counter": 1,"current_l1_a": 1.6,"current_l2_a": 1.7,"current_l3_a": 1.4,"id": "23451236","media": "electricity","meter": "eltako","name": "Eltako","power_l1_kw": 0.32,"power_l2_kw": 0.36,"power_l3_kw": 0.28,"reactive_power_l1_kw": 0.1,"reactive_power_l2_kw": 0.07,"reactive_power_l3_kw": 0.06,"reactive_power_overall_kw": 0.25,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 289.68,"total_reactive_tariff_1_kwh": 289.68,"total_reactive_tariff_2_kwh": 0,"total_tariff_1_kwh": 289.68,"total_tariff_2_kwh": 0,"voltage_l1_n_v": 238,"voltage_l2_n_v": 239,"voltage_l3_n_v": 238}'
+    fields   = 'Eltako;23451236;289.68;1111-11-11 11:11.11'
 }
 test {
     args     = 'WaterWater iperl 33225544 NOKEY'

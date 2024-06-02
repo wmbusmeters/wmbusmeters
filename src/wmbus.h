@@ -776,6 +776,7 @@ string linkModeName(LinkMode link_mode);
 string measurementTypeName(MeasurementType mt);
 
 enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
+const char *toString(FrameStatus fs);
 
 
 FrameStatus checkWMBusFrame(vector<uchar> &data,

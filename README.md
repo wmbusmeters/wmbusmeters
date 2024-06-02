@@ -868,6 +868,12 @@ Or start nc explicitly in a pipe.
 nc -lku 4444 | wmbusmeters stdin:rtlwmbus
 ```
 
+Telegrams can also be pulled in by listening on MQTT topics if they were captured by other tools like [rtl_433](https://github.com/merbanan/rtl_433)
+```shell
+wmbusmeters 'hex:CMD(/usr/bin/mosquitto_sub -h 192.168.x.x -t rtl_433/device/devices/6/Wireless-MBus/+/data | tr -d "\n" )'
+```
+`+` is a wild card that listens to all the captured telegrams but can be replaced with a specific meter's ID
+
 # Decoding hex string telegrams
 
 If you have a single telegram as hex, which you want decoded, you do not need to create a simulation file,
@@ -1024,10 +1030,21 @@ If you like to send the bytes manually, the correct bytes are:
 
 # How to add a new driver
 
-Drivers are self contained source code files named `src/driver_xyz.cc`
-They register themselves at startup. The source file also contains the necessary tests for that driver.
+Drivers for OMS-compliant meters are text files `drivers/src/*.xmq`
+First collect an unecrypted telegram as a hex string <hex> using --logtelegrams and any other driver.
+Then run `wmbusmeters --analyze <hex>` to see the best match.
 
-Read more here: [doc/CreateDriver.md](doc/CreateDriver.md)
+Copy that meters aaa,xmq file to a new filename bbb.xmq and change the name field from aaa to bbb in the driver source.
+
+Now run the new driver with `wmbusmeters --analyze=drivers/src/bbb.xmq <hex>`
+and start modifying the driver until it produces the desired json output.
+
+You can now run `make; make install` from within the drivers directory
+and then rebuild from the wmbusmeters directory `make`. The new driver is now
+compiled into the binary.
+
+You can also put the new driver file bbb.xmq into /etc/wmbusmeters.drivers.d and it will immediately
+be available to the wmbusmeters program without recompiling.
 
 # Caveat
 

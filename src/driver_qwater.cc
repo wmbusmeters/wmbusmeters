@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2022-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@ namespace
         di.addDetection(MANUFACTURER_QDS, 0x07,  0x16);
         di.addDetection(MANUFACTURER_QDS, 0x06,  0x18);
         di.addDetection(MANUFACTURER_QDS, 0x07,  0x18);
+        di.addDetection(MANUFACTURER_QDS, 0x07,  0x19);
         di.addDetection(MANUFACTURER_QDS, 0x06,  0x35);
         di.addDetection(MANUFACTURER_QDS, 0x07,  0x35);
         di.usesProcessContent();
@@ -195,3 +196,9 @@ void Driver::processContent(Telegram *t) {
 // telegram=|49449344123456781606780DFF5F3500824E00007F0007C113FFFF63961300DF2C82731200FE2463811300A400F200D100A900DD00E000E90006011601EA0027010F012F046D0211F225|
 // {"due_17_date": "2023-04-30","due_17_date_m3": 138.163,"due_date": "2022-12-31","due_date_m3": 127.382,"id": "78563412","media": "warm water","meter": "qwater","meter_datetime": "2023-05-18 17:02","name": "QWooo","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 139.663}
 // |QWooo;78563412;139.663;127.382;2022-12-31;OK;1111-11-11 11:11.11
+
+// Test: QWaaa qwater 51220588 NOKEY
+// Comment:
+// telegram=|4944934488052251190778_0DFF5F350082930000810007C113FFFF91670400FF2C265402001E34332204000000EE00F201A501DB01C1015401B70178019701B901C9012F046D06091D35|
+// {"due_17_date": "2024-04-30","due_17_date_m3": 42.233,"due_date": "2023-12-31","due_date_m3": 25.426,"id": "51220588","media": "water","meter": "qwater","meter_datetime": "2024-05-29 09:06","name": "QWaaa","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 46.791}
+// |QWaaa;51220588;46.791;25.426;2023-12-31;OK;1111-11-11 11:11.11
