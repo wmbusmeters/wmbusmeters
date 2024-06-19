@@ -27,7 +27,9 @@ License: GPL-3+
 
 EOF
 
-SOURCES=$(find src -type f | sort)
+SOURCES="$(find src -type f | sort) $(find drivers/src -type f | sort)"
+
+echo "SOURCES=$SOURCES"
 
 for f in $SOURCES
 do

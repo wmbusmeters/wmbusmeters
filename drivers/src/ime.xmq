@@ -1,4 +1,4 @@
-// Work in progress
+// Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
     name           = ime
     default_fields = name,id,total_kwh,timestamp

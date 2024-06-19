@@ -1,6 +1,5 @@
-/*    Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
-      Copyright (C) 2024 Arthur van Dorp (gpl-3.0-or-later)
-      spdx: GPL-3.0-or-later
+/* Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
+   Copyright (C) 2024 Arthur van Dorp (gpl-3.0-or-later)
 
    Ista sensonic 3 heat meter sending on c1, product number 4030020.
    (Can also be used for cold metering, I don't think the device I own is configured for that use case.)

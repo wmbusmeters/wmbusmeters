@@ -1,3 +1,4 @@
+// Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
     name            = elster
     meter_type      = GasMeter

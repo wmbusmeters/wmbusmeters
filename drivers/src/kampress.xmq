@@ -1,3 +1,4 @@
+// Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
     name           = kampress
     default_fields = name,id,status,pressure_bar,max_pressure_bar,min_pressure_bar,timestamp
