@@ -995,7 +995,9 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
         if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(t, t->dll_a))
         {
             string possible_drivers = t->autoDetectPossibleDrivers();
-            if (t->beingAnalyzed() == false && driver_name != "auto")
+            if (t->beingAnalyzed() == false && // Do not warn when analyzing.
+                driver_name != "auto" && // Do not warn when driver is auto. We can expecte errors then.
+                t->dll_mfct != 0) // Do not warn if dll_mfct == 0 because this is primary mbus address.
             {
                 warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n"
                         "(meter) Not printing this warning again for id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
