@@ -1,4 +1,4 @@
-// Generated 2024-06-19_13:09
+// Generated 2024-06-19_20:14
 test {
     args     = 'Gas elster 05105025 NOKEY'
     telegram = 3644A511640010253837722550100593158103E70020052F2F_0374E602000C137034220302FD74EE0F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
@@ -30,6 +30,18 @@ test {
     telegram = 1E44AE4C9956341268077A36001000_2F2F0413181E0000023B00002F2F2F2F
     json     = '{"media":"water","meter":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'MoreWater;12345699;7.704;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'FeelTheHeat istaheat 44503169 NOKEY'
+    telegram = 5344742669315044A9048C2017900F002C253DCD0000CE827C98B4346AB67A3D003007102F2F_0C0514980400426CFF2C4C052061020082016C1F318C0105581604008C0115142800002F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"status":"OK","media":"heat","meter":"istaheat","name":"FeelTheHeat","id":"44503169","last_year_kwh":2612,"last_year_date":"2023-12-31","target_kwh":4165.8,"target_date":"2024-01-31","target_m3":281.4,"total_kwh":4981.4,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'FeelTheHeat;44503169;OK;4981.4;4165.8;1111-11-11 11:11.11'
+}
+test {
+    args     = 'HeatItUp istaheat 33503169 NOKEY'
+    telegram = 5344742669315033A9048C2070900F002C25961200009D6949E80EB1E2707A96003007102F2F_0C0500000000426C00004C050000000082016CFE298C0105000000008C0115000000002F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"id": "33503169","last_year_date": "1999-11-30","last_year_kwh": 0,"media": "heat","meter": "istaheat","name": "HeatItUp","status": "OK","target_date": "2023-09-30","target_kwh": 0,"target_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 0}'
+    fields   = 'HeatItUp;33503169;OK;0;0;1111-11-11 11:11.11'
 }
 test {
     args     = 'Pressing kampress 77000317 NOKEY'
