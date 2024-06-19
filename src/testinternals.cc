@@ -2010,6 +2010,10 @@ LIST_OF_QUANTITIES
     fill_with_units_from(Quantity::Energy, &from_set);
     fill_with_units_from(Quantity::Energy, &to_set);
 
+    // 1 kwh is 1000 wh
+    test_si_convert(1.0, 1000, Unit::KWH, "kwh", Unit::WH, "wh", Quantity::Energy, &from_set, &to_set);
+    // 2000 wh is 2 wh
+    test_si_convert(2000.0, 2.0, Unit::WH, "wh", Unit::KWH, "kwh", Quantity::Energy, &from_set, &to_set);
     // 1 kwh is 3.6 mj
     test_si_convert(1.0, 3.6, Unit::KWH, "kwh", Unit::MJ, "mj", Quantity::Energy, &from_set, &to_set);
     // 1 kwh is 0.0036 gj
@@ -2085,7 +2089,9 @@ LIST_OF_QUANTITIES
     fill_with_units_from(Quantity::Power, &from_set);
     fill_with_units_from(Quantity::Power, &to_set);
 
-    test_si_convert(1, 1, Unit::KW, "kw", Unit::KW, "kw", Quantity::Power, &from_set, &to_set);
+    test_si_convert(1, 1000, Unit::KW, "kw", Unit::W, "w", Quantity::Power, &from_set, &to_set);
+    test_si_convert(1000, 1, Unit::W, "w", Unit::KW, "kw", Quantity::Power, &from_set, &to_set);
+
     // The power variant is m3ch.
     test_si_convert(99.0, 99.0, Unit::M3CH, "m3ch", Unit::M3CH, "m3ch", Quantity::Power, &from_set, &to_set);
 
