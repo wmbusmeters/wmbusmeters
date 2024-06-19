@@ -3,7 +3,7 @@
 driver {
     name           = itronheat
     meter_type     = HeatMeter
-    default_fields = name,id,status,total_kwh,target_kwh,timestamp
+    default_fields = name,id,status,total_kwh,timestamp
     detect {
         mvt = ITW,00,04
     }
@@ -33,26 +33,6 @@ driver {
         }
     }
     field {
-        name     = target
-        quantity = Energy
-        info     = 'The total heat energy for the previous month period.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = AnyEnergyVIF
-            storage_nr       = 2
-        }
-    }
-    field {
-        name     = target
-        quantity = Volume
-        info     = 'The total heating media volume recorded by this meter at the end of last month.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = Volume
-            storage_nr       = 2
-        }
-    }
-    field {
         name         = last_year
         quantity     = PointInTime
         info         = 'Last day of previous billing year.'
@@ -74,17 +54,17 @@ driver {
         }
     }
     test {
-        args = 'Heat itronheat 23340485 NOKEY'
-        comment = 'Allmess UltraMaXX with ITRON EquaScan hMIU RF Module'
+        args     = 'Heat itronheat 23340485 NOKEY'
+        comment  = 'Allmess UltraMaXX with ITRON EquaScan hMIU RF Module'
         telegram = 444497268504342300047AD00030A52F2F_04062C0100000C1429270000066D2D130AE12B007406FEFEFEFE426C1F010D7FEB0E00000006040C995500372F2F0C7951622223
-        json     = '{}'
-        fields   = ''
+        json     = '{"id": "23340485","last_year_date": "2000-01-31","media": "heat","meter": "itronheat","meter_datetime": "2023-11-01 10:19:45","name": "Heat","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 300,"total_m3": 27.29}'
+        fields   = 'Heat;23340485;OK;300;1111-11-11 11:11.11'
     }
     test {
-        args = 'Heat_lower_case itronheat 11755757 NOKEY'
-        comment = 'Itron Heatmeter with strange MFCT iTW instead of ITW'
+        args     = 'Heat_lower_case itronheat 11755757 NOKEY'
+        comment  = 'Itron Heatmeter with strange MFCT iTW instead of ITW'
         telegram = 404497A65757751100047A040000A00406494C0000041348318000066D2B0ED7EE2A0044069A360000426CDF2C0D7FEB0700000006040C5C7E034E0C7942502321
-        json = '{}'
-        fields = ''
+        json     = '{"id": "11755757","last_year_date": "2022-12-31","last_year_kwh": 13978,"media": "heat","meter": "itronheat","meter_datetime": "2023-10-14 23:14:43","name": "Heat_lower_case","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 19529,"total_m3": 8401.224}'
+        fields   = 'Heat_lower_case;11755757;OK;19529;1111-11-11 11:11.11'
     }
 }
