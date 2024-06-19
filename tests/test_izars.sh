@@ -18,7 +18,8 @@ METERS="IzarWater   izar        21242472 NOKEY
         IzarWater3  izar        20481979 NOKEY
         IzarWater4  izar        2124589c NOKEY
         IzarWater5  izar        20e4ffde NOKEY
-        IzarWater6  auto        48500375 NOKEY"
+        IzarWater6  auto        48500375 NOKEY
+        IzarWater7  izar        208962f3 NOKEY"
 
 cat simulations/simulation_izars.txt | grep '^{' | jq --sort-keys . > $TEST/test_expected.txt
 $PROG --format=json simulations/simulation_izars.txt $METERS  2> $TEST/test_stderr.txt | jq --sort-keys . > $TEST/test_output.txt
@@ -80,7 +81,12 @@ Received telegram from: 48500375
                   type: Water meter (0x07)
                    ver: 0x86
                 driver: izar
-EOF
+Received telegram from: 208962f3
+          manufacturer: (SAP) Sappel (0x4c30)
+                  type: Water meter (0x07)
+                   ver: 0x00
+                driver: izar
+-----------------EOF
 
 RES=$($PROG --logfile=$LOGFILE --t1 simulations/simulation_izars.txt 2>&1)
 
