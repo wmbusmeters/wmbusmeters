@@ -35,6 +35,7 @@ PrintProperties check_print_properties(const char *print_properties_s, DriverDyn
 string get_translation(XMQDoc *doc, XMQNode *node, string name, string lang);
 string check_calculate(const char *formula, DriverDynamic *dd);
 Unit check_display_unit(const char *display_unit, DriverDynamic *dd);
+double check_force_scale(double force_scale, DriverDynamic *dd);
 
 bool checked_set_difvifkey(const char *difvifkey_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm, DriverDynamic *dd);
@@ -285,6 +286,9 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     // The display unit is usually based on the quantity. But you can override it.
     Unit display_unit = check_display_unit(xmqGetStringRel(doc, "display_unit", field), dd);
 
+    // A field can force a scale factor. Defaults to 1.0
+    double force_scale = check_force_scale(xmqGetDoubleRel(doc, "force_scale", field), dd);
+
     // Now find all matchers.
     FieldMatcher match = FieldMatcher::build();
     dd->tmp_matcher_ = &match;
@@ -319,12 +323,13 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
                 vif_scaling,
                 dif_signedness,
                 match,
-                display_unit
+                display_unit,
+                force_scale
                 );
         }
         else
         {
-            if (match.active)
+            if (!match.active)
             {
                 dd->addNumericFieldWithCalculator(
                     name,
@@ -745,6 +750,14 @@ Unit check_display_unit(const char *display_unit_s, DriverDynamic *dd)
     }
 
     return u;
+}
+
+double check_force_scale(double force_scale, DriverDynamic *dd)
+{
+    // TODO improve error detection.
+    if (force_scale == 0) return 1.0;
+
+    return force_scale;
 }
 
 bool checked_set_difvifkey(const char *difvifkey_s, FieldMatcher *fm, DriverDynamic *dd)
