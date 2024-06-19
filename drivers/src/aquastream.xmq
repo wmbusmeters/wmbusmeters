@@ -1,0 +1,41 @@
+// Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = aquastream
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,timestamp
+    detect {
+        mvt = IMT,05,0e
+    }
+    use = total_m3,meter_datetime,target_m3,target_date
+    field {
+        name     = status
+        quantity = Text
+        info     = status_and_error_flags
+        attributes = INCLUDE_TPL_STATUS
+        match {
+            measurement_type = Instantaneous
+            vif_range        = ErrorFlags
+        }
+        lookup {
+            name            = ERROR_FLAGS
+            map_type        = BitToString
+            mask_bits       = 0xffff
+            default_message = OK
+        }
+    }
+    field {
+        name = total_tariff1
+        quantity = Volume
+        match {
+            measurement_type = Instantaneous
+            vif_range = Volume
+            tariff_nr = 1
+        }
+    }
+    test {
+        args = 'AqWater aquastream 05933237 NOKEY'
+        telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
+        json = '{"id": "05933237","media": "water","meter": "aquastream","meter_datetime": "2023-11-22 16:13","name": "AqWater","status": "OK","target_date": "2023-10-31","target_m3": 6.217,"timestamp": "1111-11-11T11:11:11Z","total_m3": 16.899,"total_tariff1_m3": 0}'
+        fields = 'AqWater;05933237;16.899;1111-11-11 11:11.11'
+    }
+}
