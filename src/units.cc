@@ -41,12 +41,14 @@ using namespace std;
     X(Day,  Hour, {vto=vfrom*24.0;}) \
     X(Day,  Year, {vto=vfrom/365.2425;}) \
     X(Year,  Day, {vto=vfrom*365.2425;}) \
+    X(WH,  KWH, {vto=vfrom/1000.0;})     \
     X(KWH, GJ, {vto=vfrom*0.0036;})     \
     X(KWH, MJ, {vto=vfrom*0.0036*1000.0;})     \
     X(GJ,  KWH,{vto=vfrom/0.0036;}) \
     X(MJ,  GJ,  {vto=vfrom/1000.0;}) \
     X(MJ,  KWH,{vto=vfrom/1000.0/0.0036;}) \
     X(GJ,  MJ,  {vto=vfrom*1000.0;}) \
+    X(W,   KW, {vto=vfrom/1000.0;})     \
     X(M3,  L,  {vto=vfrom*1000.0;}) \
     X(M3H, LH, {vto=vfrom*1000.0;}) \
     X(L,   M3, {vto=vfrom/1000.0;}) \
@@ -83,6 +85,7 @@ using namespace std;
     X(MOL,    1.0, SIExp().mol(1))                                 \
     X(CD,     1.0, SIExp().cd(1))                                  \
     \
+    X(WH,     3.6e+03,    SIExp().kg(1).m(2).s(-2))                 \
     X(KWH,    3.6e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(MJ,     1.0e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(GJ,     1.0e+09,    SIExp().kg(1).m(2).s(-2))                 \
@@ -90,6 +93,7 @@ using namespace std;
     X(KVAH,   3.6e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(M3C,    1.0,        SIExp().m(3).c(1))                        \
     \
+    X(W,      1.0,        SIExp().kg(1).m(2).s(-3))                 \
     X(KW,     1000.0,     SIExp().kg(1).m(2).s(-3))                 \
     X(M3CH,   3600.0,    SIExp().m(3).c(1).s(-1))                  \
     \
