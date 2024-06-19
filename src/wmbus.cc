@@ -451,6 +451,11 @@ string manufacturer(int m_field) {
     for (auto &m : manufacturers_) {
 	if (m.m_field == m_field) return m.name;
     }
+    // Some weird meters send the first char in lower case aPT iTW. Fix and try again.
+    m_field &= 0x7fff;
+    for (auto &m : manufacturers_) {
+	if (m.m_field == m_field) return m.name;
+    }
     return "Unknown";
 }
 
