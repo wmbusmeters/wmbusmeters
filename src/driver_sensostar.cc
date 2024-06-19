@@ -195,11 +195,11 @@ namespace
             .set(StorageNr(1))
             );
 
-        for (int i=1; i<=15; ++i)
+        for (int i=1; i<=30; ++i)
         {
             string name, info;
-            strprintf(&name, "consumption_%d_months_ago", i);
-            strprintf(&info, "Energy consumption %d month(s) ago.", i);
+            strprintf(&name, "enegry_consumption_semi_monthly_%02d", i);
+            strprintf(&info, "Energy consumption at semi-monthly position %02d.", i);
             addNumericFieldWithExtractor(
                 name,
                 info,
@@ -209,7 +209,7 @@ namespace
                 FieldMatcher::build()
                 .set(MeasurementType::Instantaneous)
                 .set(VIFRange::AnyEnergyVIF)
-                .set(StorageNr(i)));
+                .set(StorageNr(i+1)));
         }
     }
 }
@@ -217,7 +217,7 @@ namespace
 // Test: Heat sensostar 20480057 NOKEY
 // Comment:
 // telegram=|68B3B36808007257004820c51400046c100000047839803801040600000000041300000000042B00000000142B00000000043B00000000143B00000000025B1400025f15000261daff02235c00046d2c2ddc24440600000000441300000000426c000001fd171003fd0c05000084200600000000c420060000000084300600000000c430060000000084401300000000c44013000000008480401300000000c48040130000000084c0401300000000c4c0401300000000a216|
-// {"media":"heat","meter":"sensostar","name":"Heat","id":"20480057","meter_timestamp":"2022-04-28 13:44","total_kwh":0,"power_kw":0,"power_max_kw":0,"flow_water_m3h":0,"flow_water_max_m3h":0,"forward_c":20,"return_c":21,"difference_c":-0.38,"total_water_m3":0,"current_status":"ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR","reporting_date":"2000-00-00","energy_consumption_at_reporting_date_kwh":0,"consumption_1_months_ago_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"heat","meter":"sensostar","name":"Heat","id":"20480057","meter_timestamp":"2022-04-28 13:44","total_kwh":0,"power_kw":0,"power_max_kw":0,"flow_water_m3h":0,"flow_water_max_m3h":0,"forward_c":20,"return_c":21,"difference_c":-0.38,"total_water_m3":0,"current_status":"ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR","reporting_date":"2000-00-00","energy_consumption_at_reporting_date_kwh":0,"timestamp":"1111-11-11T11:11:11Z"}
 // |Heat;20480057;0;0;ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR;2000-00-00;0;1111-11-11 11:11.11
 
 //Test: WMZ sensostar 02752560 NOKEY
