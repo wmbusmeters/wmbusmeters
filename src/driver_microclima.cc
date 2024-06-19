@@ -31,7 +31,6 @@ namespace
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_MAD, 0x04, 0x00);
-        di.addDetection(MANUFACTURER_SON, 0x04, 0x1b); // Sontex Supercal 739
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
@@ -172,10 +171,3 @@ namespace
 // telegram=|A44424348630579300047ADD0000202F2F046D0721B62C04064708000004135DB0030001FD1700426C9F2C4406C6040000C40106C0070000C4020637070000C4030611070000C404060B070000C405060B070000C406060B070000C407060B070000C40806A5060000C40906F7050000C40A067A050000C40B060F050000C40C06C6040000C40D063F040000C40E06BB030000C40F06A502000003FD0C05000002FD0B1111|
 // {"consumption_at_set_date_11_kwh":1803,"consumption_at_set_date_13_kwh":1803,"consumption_at_set_date_15_kwh":1803,"consumption_at_set_date_17_kwh":1701,"consumption_at_set_date_19_kwh":1527,"consumption_at_set_date_1_kwh":1222,"consumption_at_set_date_21_kwh":1402,"consumption_at_set_date_23_kwh":1295,"consumption_at_set_date_25_kwh":1222,"consumption_at_set_date_27_kwh":1087,"consumption_at_set_date_29_kwh":955,"consumption_at_set_date_31_kwh":677,"consumption_at_set_date_3_kwh":1984,"consumption_at_set_date_5_kwh":1847,"consumption_at_set_date_7_kwh":1809,"consumption_at_set_date_9_kwh":1803,"id":"93573086","media":"heat","meter":"microclima","meter_datetime":"2021-12-22 01:07","model_version":"000005","name":"Heat","parameter_set":"1111","set_date_11_date":"2020-02-29","set_date_13_date":"2019-12-31","set_date_15_date":"2019-10-31","set_date_17_date":"2019-08-31","set_date_19_date":"2019-06-30","set_date_1_date":"2020-12-31","set_date_21_date":"2019-04-30","set_date_23_date":"2019-02-28","set_date_25_date":"2018-12-31","set_date_27_date":"2018-10-31","set_date_29_date":"2018-08-31","set_date_31_date":"2018-06-30","set_date_3_date":"2020-10-31","set_date_5_date":"2020-08-31","set_date_7_date":"2020-06-30","set_date_9_date":"2020-04-30","status":"OK","timestamp":"1111-11-11T11:11:11Z","total_energy_consumption_kwh":2119,"total_volume_m3":241.757}
 // |Heat;93573086;OK;2119;241.757;1111-11-11 11:11.11
-
-// Sontex Supercal 739 test case
-
-// Test: sonsupercal microclima 89508019 NOKEY
-// telegram=|4444EE4D198050891B047AFB000000_046D3612E423820A6CE1F1040628010000840A060000000004144A110000840A14000000000259E30F025D2A0C023B1D01032C3A0100|
-// {"media":"heat","meter":"microclima","name":"sonsupercal","id":"89508019","meter_datetime":"2023-03-04 18:54","flow_temperature_c":40.67,"return_temperature_c":31.14,"status":"OK","total_energy_consumption_kwh":296,"total_volume_m3":44.26,"volume_flow_m3h":0.285,"power_kw":3.14,"consumption_at_set_date_20_kwh":0,"set_date_20_date":"-205264256-02-29","timestamp":"1111-11-11T11:11:11Z"}
-// |sonsupercal;89508019;OK;296;44.26;1111-11-11 11:11.11
