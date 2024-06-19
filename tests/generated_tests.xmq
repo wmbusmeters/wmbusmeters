@@ -1,4 +1,4 @@
-// Generated 2024-06-19_20:14
+// Generated 2024-06-19_21:28
 test {
     args     = 'Gas elster 05105025 NOKEY'
     telegram = 3644A511640010253837722550100593158103E70020052F2F_0374E602000C137034220302FD74EE0F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
@@ -42,6 +42,20 @@ test {
     telegram = 5344742669315033A9048C2070900F002C25961200009D6949E80EB1E2707A96003007102F2F_0C0500000000426C00004C050000000082016CFE298C0105000000008C0115000000002F2F2F2F2F2F2F2F2F2F2F
     json     = '{"id": "33503169","last_year_date": "1999-11-30","last_year_kwh": 0,"media": "heat","meter": "istaheat","name": "HeatItUp","status": "OK","target_date": "2023-09-30","target_kwh": 0,"target_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 0}'
     fields   = 'HeatItUp;33503169;OK;0;0;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat_lower_case itronheat 11755757 NOKEY'
+    comment  = 'Itron Heatmeter with strange MFCT iTW instead of ITW'
+    telegram = 404497A65757751100047A040000A00406494C0000041348318000066D2B0ED7EE2A0044069A360000426CDF2C0D7FEB0700000006040C5C7E034E0C7942502321
+    json     = '{"id": "11755757","last_year_date": "2022-12-31","last_year_kwh": 13978,"media": "heat","meter": "itronheat","meter_datetime": "2023-10-14 23:14:43","name": "Heat_lower_case","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 19529,"total_m3": 8401.224}'
+    fields   = 'Heat_lower_case;11755757;OK;19529;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heat itronheat 23340485 NOKEY'
+    comment  = 'Allmess UltraMaXX with ITRON EquaScan hMIU RF Module'
+    telegram = 444497268504342300047AD00030A52F2F_04062C0100000C1429270000066D2D130AE12B007406FEFEFEFE426C1F010D7FEB0E00000006040C995500372F2F0C7951622223
+    json     = '{"id": "23340485","last_year_date": "2000-01-31","media": "heat","meter": "itronheat","meter_datetime": "2023-11-01 10:19:45","name": "Heat","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 300,"total_m3": 27.29}'
+    fields   = 'Heat;23340485;OK;300;1111-11-11 11:11.11'
 }
 test {
     args     = 'Pressing kampress 77000317 NOKEY'
