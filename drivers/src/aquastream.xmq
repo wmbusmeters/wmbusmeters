@@ -4,7 +4,7 @@ driver {
     meter_type     = WaterMeter
     default_fields = name,id,total_m3,timestamp
     detect {
-        mvt = IMT,05,0e
+        mvt = IMT,01,07
     }
     use = total_m3,meter_datetime,target_m3,target_date
     field {
