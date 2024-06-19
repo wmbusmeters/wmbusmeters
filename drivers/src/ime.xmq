@@ -1,0 +1,26 @@
+// Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = ime
+    default_fields = name,id,total_kwh,timestamp
+    meter_type     = ElectricityMeter
+    detect {
+        mvt = IME,55,08
+    }
+    field {
+        name     = 'total'
+        quantity = Energy
+        info     = 'Positive Three-phase Active Energy (Total).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kwh
+        match {
+            difvifkey = 849010FF80843B
+        }
+    }
+    test {
+        args     = 'MyMeter ime 12345678 NOKEY'
+        telegram = 68CBCB6808017278563412A525660200000000_849010FF80843BC1010C00849010FF80843C00000000849010FF81843BD73B0700849010FF81843C050000008410FF80843B89F00B008420FF80843B381100008410FF80843C000000008420FF80843C000000008410FF81843B3F2F07008420FF81843B980C00008410FF81843C050000008420FF81843C0000000084A010FF80843BC1010C0084A010FF80843C0000000084A010FF81843BD73B070084A010FF81843C0500000004FF90290000000002FF912B00001F00000000004C16
+        json     = '{"media":"electricity","meter":"ime","name":"MyMeter","id":"12345678","total_kwh":786881,"timestamp":"1111-11-11T11:11:11Z"}'
+        fields   = 'MyMeter;12345678;786881;1111-11-11 11:11.11'
+    }
+}

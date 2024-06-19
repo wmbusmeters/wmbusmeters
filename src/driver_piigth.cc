@@ -36,7 +36,7 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("fabrication_no,software_version");
+        addOptionalLibraryFields("fabrication_no,software_version");
 
         addStringField(
             "status",
@@ -48,7 +48,7 @@ namespace
             "The current temperature.",
             PrintProperty::REQUIRED,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
@@ -59,7 +59,7 @@ namespace
             "The average temperature over the last hour.",
             PrintProperty::REQUIRED,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
@@ -71,7 +71,7 @@ namespace
             "The average temperature over the last 24 hours.",
             PrintProperty::REQUIRED,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
@@ -83,7 +83,7 @@ namespace
             "The current relative humidity.",
             PrintProperty::REQUIRED,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::RelativeHumidity)
@@ -94,7 +94,7 @@ namespace
             "The average relative humidity over the last hour.",
             PrintProperty::REQUIRED,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::RelativeHumidity)
@@ -106,7 +106,7 @@ namespace
             "The average relative humidity over the last 24 hours.",
             PrintProperty::REQUIRED,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::RelativeHumidity)
@@ -118,7 +118,7 @@ namespace
 
 // Test: Tempo piigth 10000284 NOKEY
 // telegram=|68383868080072840200102941011B04000000_0265C0094265A509B20165000002FB1A900142FB1A6901B201FB1A00000C788402001002FD0F21000FC016|
-// {"media":"room sensor","meter":"piigth","name":"Tempo","id":"10000284","fabrication_no":"10000284","software_version":"0021","status":"OK","temperature_c":24.96,"average_temperature_1h_c":24.69,"average_temperature_24h_c":null,"relative_humidity_rh":40,"relative_humidity_1h_rh":36.1,"relative_humidity_24h_rh":null,"timestamp":"1111-11-11T11:11:11Z"}
+// {"media":"room sensor","meter":"piigth","name":"Tempo","id":"10000284","fabrication_no":"10000284","software_version":"0021","status":"OK","temperature_c":24.96,"average_temperature_1h_c":24.69,"relative_humidity_rh":40,"relative_humidity_1h_rh":36.1,"timestamp":"1111-11-11T11:11:11Z"}
 // |Tempo;10000284;OK;24.96;40;1111-11-11 11:11.11
 
 // telegram=|68383868080072840200102941011B06000000_02653F0A4265000A820165CA0902FB1A4F0142FB1A53018201FB1A5E010C788402001002FD0F21000F1916|

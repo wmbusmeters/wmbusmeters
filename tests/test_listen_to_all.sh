@@ -201,7 +201,7 @@ Received telegram from: 55995599
                    ver: 0x02
                 driver: ehzp
 Received telegram from: 004444dd
-          manufacturer: (APT) Unknown (0x8614)
+          manufacturer: (APT) Apator, Poland (0x8614)
                   type: Gas meter (0x03)
                    ver: 0x03
                 driver: apator08
@@ -276,7 +276,7 @@ Received telegram from: 68926025
                    ver: 0x20
                 driver: sharky
 Received telegram from: 00050901
-          manufacturer: (APA) Unknown (0x8601)
+          manufacturer: (APA) Apator, Poland (0x8601)
                   type: Radio converter (meter side) (0x37)
                    ver: 0x18
       Concerning meter: 01885619
@@ -336,7 +336,7 @@ Received telegram from: 37027095
           manufacturer: (QDS) Qundis, Germany (0x4493)
                   type: Heat meter (0x04)
                    ver: 0x23
-                driver: qheat
+                driver: qheat qheat
 Received telegram from: 45797086
           manufacturer: (QDS) Qundis, Germany (0x4493)
                   type: Smoke detector (0x1a)

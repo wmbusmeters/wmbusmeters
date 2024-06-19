@@ -49,7 +49,7 @@ namespace
                 {
                     {
                         "ERROR_FLAGS",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xffff),
                         "OK",
                         {
@@ -68,8 +68,8 @@ namespace
             "async_msg_id",
             "Unique asynchronous message number.",
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
-            VifScaling::None,
+            Quantity::Dimensionless,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AccessNumber)
@@ -79,8 +79,8 @@ namespace
             "minutes_since_last_manual_test",
             "Minutes since last manual test.",
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
-            VifScaling::None,
+            Quantity::Dimensionless,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Dimensionless)

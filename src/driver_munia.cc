@@ -29,7 +29,6 @@ namespace
         di.setName("munia");
         di.setDefaultFields("name,id,current_temperature_c,current_relative_humidity_rh,timestamp");
         di.setMeterType(MeterType::TempHygroMeter);
-        di.addLinkMode(LinkMode::MBUS);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
         di.addDetection(MANUFACTURER_WEP, 0x1b,  0x02);
         di.addDetection(MANUFACTURER_WEP, 0x1b,  0x04);
@@ -48,7 +47,7 @@ namespace
                     {
                         {
                             "ERROR_FLAGS",
-                            Translate::Type::BitToString,
+                            Translate::MapType::BitToString,
                             AlwaysTrigger, MaskBits(0xffff),
                             "OK",
                             {
@@ -63,7 +62,7 @@ namespace
             "The current temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
@@ -74,7 +73,7 @@ namespace
             "The current relative humidity.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::RelativeHumidity,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::RelativeHumidity)

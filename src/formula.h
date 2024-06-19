@@ -57,10 +57,21 @@ Formula *newFormula();
 
 struct StringInterpolator
 {
-    // Create a string interpolation from for example: "historic_{storage_counter / - 12 counter}_value"
-    // Which for a dventry with storage 13 will "generate historic_1_value"
+    /**
+       parse: Parse a field name like: "historic_{storage_counter / - 12 counter}_value"
+       @f: String to parse and find {...} subformulas inside.
+
+       Parse and prepare it for being applied to an actual dve.
+       E.g. for a dventry with storage 13 the formula above will generate "historic_1_value"
+    */
     virtual bool parse(const std::string &f) = 0;
+    /**
+       apply: Insert inline formulas in field names like "total_{subunit_nr}" insert the result of the formula.
+       @dve: A pointer to a telegram entry to use (ie containing storagenr/tariffnr/subunitnr etc.) Can be NULL.
+
+    */
     virtual std::string apply(DVEntry *dve) = 0;
+
     virtual ~StringInterpolator() = 0;
 };
 

@@ -13,6 +13,7 @@ cat simulations/simulation_mbus.txt | grep '^{' | jq --sort-keys . > $TEST/test_
 $PROG --format=json simulations/simulation_mbus.txt \
       MyUltra ultraheat 70444600 NOKEY \
       MySenso sensostar 10484075 NOKEY \
+      MyKamHeat kamheat 77447744 NOKEY \
       2> $TEST/test_stderr.txt | jq --sort-keys . > $TEST/test_output.txt
 
 if [ "$?" = "0" ]

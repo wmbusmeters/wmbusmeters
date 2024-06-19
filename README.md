@@ -6,16 +6,43 @@ wireless wm-bus meters.  The readings can then be published using
 MQTT, curled to a REST api, inserted into a database or stored in a
 log file.
 
-[FAQ/WIKI/MANUAL pages](https://weetmuts.github.io/wmbusmeterswiki/)
+# What does it do?
+
+Wmbusmeters converts incoming telegrams from (w)mbus/OMS compatible meters like:
+`1844AE4C4455223368077A55000000_041389E20100023B0000`
+
+into human readable:
+`MyTapWater  33225544  123.529 m³  0 m³/h  2024-03-03 19:36:22`
+
+or into csv:
+`MyTapWater;33225544;123.529;0;2024-03-03 19:36:45`
+
+or into json:
+```json
+{
+    "media":"water",
+    "meter":"iperl",
+    "name":"MyTapWater",
+    "id":"33225544",
+    "max_flow_m3h":0,
+    "total_m3":123.529,
+    "timestamp":"2024-03-03T18:37:00Z"
+}
+```
+
+Wmbusmeters can collect telegrams from radio using hardware dongles or rtl-sdr software radio dongles,
+or from m-bus meters using serial ports, or from files/pipes.
+
+[FAQ/WIKI/MANUAL pages](https://wmbusmeters.github.io/wmbusmeters-wiki/)
 
 The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 
 | System       | Status        |
 | ------------ |:-------------:|
-| Ubuntu | [![Build Ubuntu Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20Ubuntu/badge.svg)](https://github.com/weetmuts/wmbusmeters/actions)|
-| MacOSX | [![Build MacOSX Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20MacOSX/badge.svg)](https://github.com/weetmuts/wmbusmeters/actions)|
-| Docker | [![Build Docker Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20docker/badge.svg)](https://hub.docker.com/r/weetmuts/wmbusmeters/)|
-| Snap | [![Build Snap Status](https://github.com/weetmuts/wmbusmeters/workflows/Build%20Snap/badge.svg)](https://snapcraft.io/wmbusmeters)|
+| Ubuntu | [![Build Ubuntu Status](https://github.com/wmbusmeters/wmbusmeters/workflows/Build%20Ubuntu/badge.svg)](https://github.com/wmbusmeters/wmbusmeters/actions)|
+| MacOSX | [![Build MacOSX Status](https://github.com/wmbusmeters/wmbusmeters/workflows/Build%20MacOSX/badge.svg)](https://github.com/wmbusmeters/wmbusmeters/actions)|
+| Docker | [![Build Docker Status](https://github.com/wmbusmeters/wmbusmeters/workflows/Build%20docker/badge.svg)](https://hub.docker.com/r/wmbusmeters/wmbusmeters/)|
+| Snap | [![Build Snap Status](https://github.com/wmbusmeters/wmbusmeters/workflows/Build%20Snap/badge.svg)](https://snapcraft.io/wmbusmeters)|
 
 # Distributions
 
@@ -25,16 +52,16 @@ The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
 dnf install wmbusmeters
 ```
 
-Availability of **wmbusmeters** for other Linux distributions can be checked on [release-monitoring](https://release-monitoring.org/project/88654/) project page.
+**wmbusmeters** for [Debian](https://tracker.debian.org/pkg/wmbusmeters) is currently available through Experimental repositories. Availability for other Linux distributions can be checked on [release-monitoring](https://release-monitoring.org/project/88654/) project page.
 
 # Docker
 
-Experimental docker containers are available here: https://hub.docker.com/r/weetmuts/wmbusmeters
+Experimental docker containers are available here: https://hub.docker.com/r/wmbusmeters/wmbusmeters
 
 # Snap
 
 Experimental snaps are available here: https://snapcraft.io/wmbusmeters
-Read the wiki for more info on how to use the snap: https://weetmuts.github.io/wmbusmeterswiki/SNAP.html
+Read the wiki for more info on how to use the snap: https://wmbusmeters.github.io/wmbusmeters-wiki/SNAP.html
 
 # Build from source and run as a daemon
 
@@ -63,6 +90,11 @@ wmbus dongles when wmbusmeters startup.
 
 If the serial device (ttyUSB0) might change you can also use `device=im871a:c1,t1`
 which will probe all serial devices but only scans for im871a which also speeds it up.
+
+Note that the rtl-sdr devices are not found under the tty devices (e.g. `/dev/tty...`).
+Instead the rtl-sdr devices are accessed through character device special files named `/dev/swradio0` to `/dev/swradio255`[^kernel_docs_sdr]. Wmbusmeters uses librtsldr to probe these devices.
+
+[^kernel_docs_sdr]: https://docs.kernel.org/userspace-api/media/v4l/dev-sdr.html?highlight=sdr#software-defined-radio-interface-sdr
 
 If you have to scan serial devices, then remember that some Raspberry PIs are upset when
 random data is sent to `/dev/ttyAMA0` when it is configured in bluetooth mode.
@@ -125,9 +157,11 @@ bus the mbus poll request should be sent to.
 wmbusmeters --pollinterval=60s MAIN=/dev/ttyUSB0:mbus:2400 MyTempMeter piigth:MAIN:mbus 12001932 NOKEY
 ```
 
-If you want to poll an mbus meter using the primary address, just use
-a number between 0 and 250 instead of the full 8 digit secondary
-address.
+If you want to poll an mbus meter using the primary address, use p0 to p250 (deciman numbers)
+instead of the full 8 digit secondary address.
+```
+wmbusmeters --pollinterval=60s MAIN=/dev/ttyUSB0:mbus:2400 MyTempMeter piigth:MAIN:mbus p0 NOKEY
+```
 
 # Example wmbusmeter.conf file
 
@@ -168,7 +202,7 @@ And an mbus meter file in /etc/wmbusmeters.d/MyTempHygro
 ```ini
 name=MyTempHygro
 id=11223344
-driver=piigth:mbus
+driver=piigth:MAIN:mbus
 pollinterval=60s
 ```
 
@@ -212,8 +246,14 @@ The latest reading of the meter can also be found here: `/var/lib/wmbusmeters/me
 You can use several ids using `id=1111111,2222222,3333333` or you can listen to all
 meters of a certain type `id=*` or you can suffix with star `id=8765*` to match
 all meters with a given prefix. If you supply at least one positive match rule, then you
-can add negative match rules as well. For example `id=*,!2222*`
+can add filter out rules as well. For example `id=*,!2222*`
 which will match all meter ids, except those that begin with 2222.
+
+You can also specify the exact manufacturer, version and type: `id=11111111.M=KAM.V=1b.T=16`
+or a subset: `id=11111111.T=16` or all telegrams from 22222222 except those with version 77:
+`id=22222222,!22222222.V=77` You can also use the fully specified secondary address that is
+printed by libmbus after doing a bus scan, ie `100002842941011B` which is equivalent to
+`10000284.M=PII.V=01.T=1B`
 
 When matching all meters from the command line you can use `ANYID` instead of `*` to avoid shell quotes.
 
@@ -390,7 +430,7 @@ depending on if you are running as a daemon or not.
 # Running without config files, good for experimentation and test.
 
 ```
-wmbusmeters version: 1.11.0
+wmbusmeters version: 1.15.0
 Usage: wmbusmeters {options} [device] { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmeters {options} [hex]    { [meter_name] [meter_driver] [meter_id] [meter_key] }*
        wmbusmetersd {options} [pid_file]
@@ -409,9 +449,12 @@ As {options} you can use:
     --calculate_flow_f=flow_temperature_c
     --debug for a lot of information
     --donotprobe=<tty> do not auto-probe this tty. Use multiple times for several ttys or specify "all" for all ttys.
+    --driver=<file> load a driver
+    --driversdir=<dir> load all drivers in dir
     --exitafter=<time> exit program after time, eg 20h, 10m 5s
     --format=<hr/json/fields> for human readable, json or semicolon separated fields
     --help list all options
+    --identitymode=(id|id-mfct|full|none) group meter state based on the identity mode. Default is id.
     --ignoreduplicates=<bool> ignore duplicate telegrams, remember the last 10 telegrams
     --field_xxx=yyy always add "xxx"="yyy" to the json output and add shell env METER_xxx=yyy (--json_xxx=yyy also works)
     --license print GPLv3+ license
@@ -430,6 +473,7 @@ As {options} you can use:
     --meterfilesnaming=(name|id|name-id) the meter file is the meter's: name, id or name-id
     --meterfilestimestamp=(never|day|hour|minute|micros) the meter file is suffixed with a
                           timestamp (localtime) with the given resolution.
+    --metershell=<cmdline> invokes cmdline with env variables the first time a meter is seen since startup
     --nodeviceexit if no wmbus devices are found, then exit immediately
     --normal for normal logging
     --oneshot wait for an update from each meter, then quit
@@ -473,10 +517,24 @@ These telegrams are expected to have the data link layer crc bytes removed alrea
 
 `MAIN=/dev/ttyUSB0:mbus:2400`, assume ttyUSB0 is an serial to mbus-master converter.  The speed is set to 2400 bps.
 
-`rtlwmbus`, to spawn the background process: `rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s`
+`rtlwmbus`, to spawn the background process: `rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -f -s`
 for each attached rtlsdr dongle. This will listen to S1,T1 and C1 meters in parallel.
 
-Note that this uses a noticeable amount of CPU time by rtl_wmbus.
+For the moment, it is necessary to send the stderr to a file (/dev/null) because of a bug:
+https://github.com/osmocom/rtl-sdr/commit/142325a93c6ad70f851f43434acfdf75e12dfe03
+
+Until this bug fix has propagated into Debian/Fedora etc, wmbusmeters uses a tmp file
+to see the stderr output from rtl_sdr. This tmp file is created in /tmp and will
+generate 420 bytes of data once ever 23 hours.
+
+The current command line used by wmbusmeters to start the rtl_wmbus pipeline is therefore a bit longer:
+```
+ERRFILE=$(mktemp --suffix=_wmbusmeters_rtlsdr) ;
+echo ERRFILE=$ERRFILE ;  date -Iseconds > $ERRFILE ;
+tail -f $ERRFILE & /usr/bin/rtl_sdr  -d 0 -f 868.625M -s 1.6e6 - 2>>$ERRFILE | /usr/bin/rtl_wmbus -s -f
+```
+
+Note that the standard -s option uses a noticeable amount of CPU time by rtl_wmbus.
 You can therefore use a tailored rtl_wmbus command that is more suitable for your needs.
 
 `rtlwmbus:CMD(<command line>)`, to specify the entire background
@@ -486,9 +544,10 @@ The command line cannot contain parentheses.
 Likewise for rtl433.
 
 Here is an example command line that reduces the rtl_wmbus CPU usage if you only need T1/C1 telegrams.
-It disable S1 decoding (`-p s`) and trades lower cpu usage for reception performance (`-a`):
+It disable S1 decoding (`-p s`) and trades lower cpu usage for reception performance (`-a`).
+You should always add the `-f` option to enable detection if rtl_sdr has stalled:
 
-`rtlwmbus:CMD(rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus -p s -a)`
+`rtlwmbus:CMD(rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus -p s -a -f)`
 
 `rtlwmbus(ppm=17)`, to tune your rtlsdr dongle accordingly.
 Use this to tune your dongle and at the same time listen to S1,T1 and C1.
@@ -534,9 +593,9 @@ As meter quadruples you specify:
 Supported wmbus dongles:
 IMST 871a (im871a)
 Amber 8465-M/8665-M/8626-M/Metis-II (amb8465) 868MHz
-Amber 3665-M           (amb3665) 169MHz
+Amber 3665-M (amb3665) 169MHz
 CUL family (cul)
-Radiocraft (RC1180)
+Radiocraft (rc1180)
 rtl_wmbus (rtlwmbus)
 rtl_433 (rtl433)
 
@@ -546,12 +605,14 @@ Any bus controller dongle/board behaving like a plain serial port.
 Supported water meters:
 Aventies (aventieswm)
 Apator at-wmbus-08   (apator08) (non-standard protocol)
+Apator at-wmbus-08-2   (apator082) (non-standard protocol)
 Apator at-wmbus-16-2 (apator162) (non-standard protocol)
 Apator at-wmbus-17-2 (apator172) (non-standard protocol)
 Apator Ultrimis (ultrimis)
 Aquametro/Integra Topas Es Kr (topaseskr)
 Axioma W1 (q400)
 Bmeters Hydrodigit (hydrodigit) (partly non-standard protocol)
+Bmeters GSD8-I with IWM-TX5 module (iwmtx5)
 Diehl/Sappel IZAR RC 868 I R4 PL and R3 (izar) (non-standard protocol)
 Diehl HYDRUS (hydrus)
 Diehl IZAR RC I G4 (dme_07)
@@ -574,6 +635,7 @@ Zenner Minomess (minomess)
 
 Supported heat cost allocators:
 Apator E-ITN 30.51 (apatoreitn)
+Engelmann HCA e2 (hcae2)
 Innotas EurisII  (eurisii)
 Qundis Q caloric (qcaloric)
 Sontex 868 (sontex868)
@@ -584,7 +646,8 @@ BFW 240 (bfw240radio)
 
 Supported heat meters:
 Heat meter Techem Compact V / Compact Ve (compact5) (non-standard protocol)
-Heat meter Techem Vario 4 (vario451) (non-standard protocol)
+Heat meter Techem vario 3 type 3.2.1 (mkradio3) (see here: https://github.com/weetmuts/wmbusmeters/issues/333)
+Heat meter Techem vario 4 (vario451) (non-standard protocol)
 Heat and Cooling meters Kamstrup Multical 302,403,602,603,803 (kamheat)
 Heat meter Apator Elf (elf)
 Heat meter Enercal F2 (enercal)
@@ -788,12 +851,12 @@ wmbusmeters --format=json --meterfiles /dev/ttyUSB0:im871a:c1 MyTapWater multica
 # Using wmbusmeters in a pipe
 
 ```shell
-rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -s | wmbusmeters --format=json stdin:rtlwmbus MyMeter auto 12345678 NOKEY | ...more processing...
+rtl_sdr -f 868.625M -s 1600000 - 2>/dev/null | rtl_wmbus -f -s | wmbusmeters --format=json stdin:rtlwmbus MyMeter auto 12345678 NOKEY | ...more processing...
 ```
 
 Or you can send rtl_wmbus formatted telegrams using nc over UDP to wmbusmeters.
 ```shell
-rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus -p s -a | nc -u localhost 4444
+rtl_sdr -f 868.95M -s 1600000 - 2>/dev/null | rtl_wmbus -f -p s -a | nc -u localhost 4444
 ```
 
 And receive the telegrams with nc spawned by wmbusmeters.
@@ -805,6 +868,12 @@ Or start nc explicitly in a pipe.
 ```shell
 nc -lku 4444 | wmbusmeters stdin:rtlwmbus
 ```
+
+Telegrams can also be pulled in by listening on MQTT topics if they were captured by other tools like [rtl_433](https://github.com/merbanan/rtl_433)
+```shell
+wmbusmeters 'hex:CMD(/usr/bin/mosquitto_sub -h 192.168.x.x -t rtl_433/device/devices/6/Wireless-MBus/+/data | tr -d "\n" )'
+```
+`+` is a wild card that listens to all the captured telegrams but can be replaced with a specific meter's ID
 
 # Decoding hex string telegrams
 
@@ -953,10 +1022,7 @@ if this hangs, then do `sudo killall -9 wmbusmetersd` and/or `sudo killall -9 wm
 
 Wmbusmeters expects the serial baud rate for the AMB8465 USB stick to be 9600 8n1.
 If you have used another tool and changed the baud rate to something else
-you need to restore the baud rate to 9600 8n1. You can do that with that other tool,
-or you can try wmbusmeters-admin and select `Reset wmbus receives`
-this command try all potential baud rates and send the factory reset command.
-Then you have to unplug and reinsert the dongle.
+you need to restore the baud rate to 9600 8n1.
 
 If you like to send the bytes manually, the correct bytes are:
 
@@ -965,10 +1031,21 @@ If you like to send the bytes manually, the correct bytes are:
 
 # How to add a new driver
 
-Drivers are self contained source code files named `src/driver_xyz.cc`
-They register themselves at startup. The source file also contains the necessary tests for that driver.
+Drivers for OMS-compliant meters are text files `drivers/src/*.xmq`
+First collect an unecrypted telegram as a hex string <hex> using --logtelegrams and any other driver.
+Then run `wmbusmeters --analyze <hex>` to see the best match.
 
-Read more here: [doc/CreateDriver.md](doc/CreateDriver.md)
+Copy that meters aaa,xmq file to a new filename bbb.xmq and change the name field from aaa to bbb in the driver source.
+
+Now run the new driver with `wmbusmeters --analyze=drivers/src/bbb.xmq <hex>`
+and start modifying the driver until it produces the desired json output.
+
+You can now run `make; make install` from within the drivers directory
+and then rebuild from the wmbusmeters directory `make`. The new driver is now
+compiled into the binary.
+
+You can also put the new driver file bbb.xmq into /etc/wmbusmeters.drivers.d and it will immediately
+be available to the wmbusmeters program without recompiling.
 
 # Caveat
 

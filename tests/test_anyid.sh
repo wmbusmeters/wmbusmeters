@@ -51,7 +51,7 @@ TESTNAME="Test ANYID with auto but no driver found!"
 
 cat <<EOF > $TEST/test_expected.txt
 (meter) Vatten: meter detection could not find driver for id: 76348799 mfct: (KIM) Unknown (0x2d2d) type: Cold water meter (0x16) ver: 0x1b
-(meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/
+(meter) please consider opening an issue at https://github.com/wmbusmeters/wmbusmeters/
 (meter) to add support for this unknown mfct,media,version combination
 {"media":"cold water","meter":"auto","name":"Vatten","id":"76348799","timestamp":"1111-11-11T11:11:11Z"}
 EOF

@@ -68,6 +68,7 @@ struct Configuration
     ConfigOverrides overrides;
     bool useconfig {};
     std::string config_root;
+    std::string drivers_dir;
     bool need_help {};
     bool silent {};
     bool verbose {};
@@ -98,9 +99,11 @@ struct Configuration
     bool json {};
     bool pretty_print_json {};
     int  pollinterval {}; // Time between polling of mbus meters.
+    IdentityMode identity_mode {}; // How to group meters identities into state objects.
     bool fields {};
     char separator { ';' };
     std::vector<std::string> telegram_shells;
+    std::vector<std::string> meter_shells;
     std::vector<std::string> alarm_shells;
     int alarm_timeout {}; // Maximum number of seconds between dongle receiving two telegrams.
     std::string alarm_expected_activity; // Only warn when within these time periods.

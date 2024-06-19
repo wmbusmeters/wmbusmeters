@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2020 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2018-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -39,7 +39,10 @@ bool decrypt_ELL_AES_CTR(Telegram *t, vector<uchar> &frame, vector<uchar>::itera
     // A-field
     for (int j=0; j<6; ++j) { iv[i++] = t->dll_a[j]; }
     // CC-field
-    iv[i++] = t->ell_cc;
+    // Two bits should be zeroed out:
+    // 0x10 H-field Hop-count set when telegram is repeated
+    // 0x02 R-field Repeated access field
+    iv[i++] = t->ell_cc & ~(0x10) & ~(0x02);
     // SN-field
     for (int j=0; j<4; ++j) { iv[i++] = t->ell_sn_b[j]; }
     // FN
@@ -114,6 +117,20 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t,
     }
 
     *num_encrypted_bytes = num_bytes_to_decrypt;
+
+    if (buffer.size() < num_bytes_to_decrypt)
+    {
+        warning("(TPL) warning: aes-cbc-iv decryption received less bytes than expected for decryption! "
+                "Got %zu bytes but expected at least %zu bytes since num encr blocks was %d.\n",
+                buffer.size(), num_bytes_to_decrypt,
+                t->tpl_num_encr_blocks);
+        num_bytes_to_decrypt = buffer.size();
+        *num_encrypted_bytes = num_bytes_to_decrypt;
+
+        // We must have at least 16 bytes to decrypt. Give up otherwise.
+        if (num_bytes_to_decrypt < 16) return false;
+    }
+
     *num_not_encrypted_at_end = buffer.size()-num_bytes_to_decrypt;
 
     debug("(TPL) num encrypted blocks %zu (%d bytes and remaining unencrypted %zu bytes)\n",
@@ -123,15 +140,6 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t,
 
     debugPayload("(TPL) AES CBC IV decrypting", buffer);
 
-    if (buffer.size() < num_bytes_to_decrypt)
-    {
-        warning("(TPL) warning: decryption received less bytes than expected for decryption! "
-                "Got %zu bytes but expected at least %zu bytes since num encr blocks was %d.\n",
-                buffer.size(), num_bytes_to_decrypt,
-                t->tpl_num_encr_blocks);
-        num_bytes_to_decrypt = buffer.size();
-    }
-
     // The content should be a multiple of 16 since we are using AES CBC mode.
     if (num_bytes_to_decrypt % 16 != 0)
     {
@@ -139,7 +147,10 @@ bool decrypt_TPL_AES_CBC_IV(Telegram *t,
                 "Got %zu bytes shrinking message to %zu bytes.\n",
                 num_bytes_to_decrypt, num_bytes_to_decrypt - num_bytes_to_decrypt % 16);
         num_bytes_to_decrypt -= num_bytes_to_decrypt % 16;
+        *num_encrypted_bytes = num_bytes_to_decrypt;
         assert (num_bytes_to_decrypt % 16 == 0);
+        // There must be at least 16 bytes remaining.
+        if (num_bytes_to_decrypt < 16) return false;
     }
 
     uchar iv[16];
@@ -208,21 +219,21 @@ bool decrypt_TPL_AES_CBC_NO_IV(Telegram *t, vector<uchar> &frame, vector<uchar>:
     }
 
     *num_encrypted_bytes = num_bytes_to_decrypt;
+    if (buffer.size() < num_bytes_to_decrypt)
+    {
+        warning("(TPL) warning: aes-cbc-no-iv decryption received less bytes than expected for decryption! "
+                "Got %zu bytes but expected at least %zu bytes since num encr blocks was %d.\n",
+                buffer.size(), num_bytes_to_decrypt,
+                t->tpl_num_encr_blocks);
+        num_bytes_to_decrypt = buffer.size();
+    }
+
     *num_not_encrypted_at_end = buffer.size()-num_bytes_to_decrypt;
 
     debug("(TPL) num encrypted blocks %d (%d bytes and remaining unencrypted %d bytes)\n",
           t->tpl_num_encr_blocks, num_bytes_to_decrypt, buffer.size()-num_bytes_to_decrypt);
 
     if (aeskey.size() == 0) return false;
-
-    if (buffer.size() < num_bytes_to_decrypt)
-    {
-        warning("(TPL) warning: decryption received less bytes than expected for decryption! "
-                "Got %zu bytes but expected at least %zu bytes since num encr blocks was %d.\n",
-                buffer.size(), num_bytes_to_decrypt,
-                t->tpl_num_encr_blocks);
-        num_bytes_to_decrypt = buffer.size();
-    }
 
     // The content should be a multiple of 16 since we are using AES CBC mode.
     if (num_bytes_to_decrypt % 16 != 0)

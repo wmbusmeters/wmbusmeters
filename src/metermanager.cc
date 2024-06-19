@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
 
 #include"bus.h"
 #include"config.h"
+#include"drivers.h"
 #include"meters.h"
 #include"meters_common_implementation.h"
 #include"units.h"
@@ -46,6 +47,7 @@ private:
     vector<MeterInfo> meter_templates_;
     vector<shared_ptr<Meter>> meters_;
     vector<function<bool(AboutTelegram&,vector<uchar>)>> telegram_listeners_;
+    function<void(shared_ptr<Meter>)> on_meter_added_;
     function<void(Telegram*t,Meter*)> on_meter_updated_;
 
 public:
@@ -59,6 +61,12 @@ public:
         meters_.push_back(meter);
         meter->setIndex(meters_.size());
         meter->onUpdate(on_meter_updated_);
+        triggerMeterAdded(meter);
+    }
+
+    void triggerMeterAdded(shared_ptr<Meter> meter)
+    {
+        if (on_meter_added_) on_meter_added_(meter);
     }
 
     Meter *lastAddedMeter()
@@ -122,7 +130,7 @@ public:
                 version);
 
 
-        warning("(meter) please consider opening an issue at https://github.com/weetmuts/wmbusmeters/\n");
+        warning("(meter) please consider opening an issue at https://github.com/wmbusmeters/wmbusmeters/\n");
         warning("(meter) to add support for this unknown mfct,media,version combination\n");
     }
 
@@ -136,11 +144,12 @@ public:
 
         bool handled = false;
         bool exact_id_match = false;
+        string verbose_info;
 
-        string ids;
+        vector<Address> addresses;
         for (auto &m : meters_)
         {
-            bool h = m->handleTelegram(about, input_frame, simulated, &ids, &exact_id_match);
+            bool h = m->handleTelegram(about, input_frame, simulated, &addresses, &exact_id_match);
             if (h) handled = true;
         }
 
@@ -148,7 +157,12 @@ public:
         // then lets check if there is a template that can create a meter for it.
         if (!handled && !exact_id_match)
         {
-            debug("(meter) no meter handled %s checking %d templates.\n", ids.c_str(), meter_templates_.size());
+            if (isDebugEnabled())
+            {
+                string idsc = Address::concat(addresses);
+                debug("(meter) no meter handled %s checking %d templates.\n",
+                      idsc.c_str(), meter_templates_.size());
+            }
             // Not handled, maybe we have a template to create a new meter instance for this telegram?
             Telegram t;
             t.about = about;
@@ -157,23 +171,34 @@ public:
 
             if (ok)
             {
-                ids = t.idsc;
                 for (auto &mi : meter_templates_)
                 {
                     if (MeterCommonImplementation::isTelegramForMeter(&t, NULL, &mi))
                     {
                         // We found a match, make a copy of the meter info.
                         MeterInfo meter_info = mi;
-                        // Overwrite the wildcard pattern with the highest level id.
-                        // The last id in the t.ids is the highest level id.
-                        // For example: a telegram can have dll_id,tpl_id
-                        // This will pick the tpl_id.
-                        // Or a telegram can have a single dll_id,
-                        // then the dll_id will be picked.
-                        vector<string> tmp_ids;
-                        tmp_ids.push_back(t.ids.back());
-                        meter_info.ids = tmp_ids;
-                        meter_info.idsc = t.ids.back();
+                        // Append the identity to the address expressions.
+                        // The identity is by default the highest level id found.
+                        // I.e. often the tpl_id. This is the last element in t->addresses.
+                        //
+                        // When instantiating a meter from a template we
+                        // make sure the meter triggers exactly on this identity.
+                        // So we append the identity to the address expressions.
+                        //
+                        // E.g. if the template address expression is 12*.M=PII and the meter
+                        // 12345678 is received then the meters address expressions
+                        // will be: 12*.M=PII,12345678
+                        //
+                        // The default type of identity can be changed.
+                        // identitymode=id
+                        // identitymode=id-mfct
+                        // identitymode=full
+                        // identitymode=none
+                        AddressExpression identity_expression;
+                        AddressExpression::appendIdentity(mi.identity_mode,
+                                                          &identity_expression,
+                                                          t.addresses,
+                                                          meter_info.address_expressions);
 
                         if (meter_info.driverName().str() == "auto")
                         {
@@ -195,47 +220,59 @@ public:
                         // Now build a meter object with for this exact id.
                         auto meter = createMeter(&meter_info);
                         addMeter(meter);
-                        string idsc = toIdsCommaSeparated(t.ids);
-                        verbose("(meter) used meter template %s %s %s to match %s\n",
-                                mi.name.c_str(),
-                                mi.idsc.c_str(),
-                                mi.driverName().str().c_str(),
-                                idsc.c_str());
+                        if (isVerboseEnabled())
+                        {
+                            string idsc = Address::concat(t.addresses);
+                            string mi_idsc = AddressExpression::concat(mi.address_expressions);
+                            verbose("(meter) used meter template %s %s %s to match %s\n",
+                                    mi.name.c_str(),
+                                    mi_idsc.c_str(),
+                                    mi.driverName().str().c_str(),
+                                    idsc.c_str());
+                        }
 
                         if (is_daemon_)
                         {
-                            notice("(wmbusmeters) started meter %d (%s %s %s)\n",
+                            string mi_idsc = AddressExpression::concat(mi.address_expressions);
+                            notice("(wmbusmeters) started meter %d (%s %s %s) identity mode: %s %s\n",
                                    meter->index(),
                                    mi.name.c_str(),
-                                   meter_info.idsc.c_str(),
-                                   mi.driverName().str().c_str());
+                                   mi_idsc.c_str(),
+                                   mi.driverName().str().c_str(),
+                                   toString(mi.identity_mode),
+                                   identity_expression.str().c_str());
                         }
                         else
                         {
-                            verbose("(meter) started meter %d (%s %s %s)\n",
+                            string mi_idsc = AddressExpression::concat(mi.address_expressions);
+                            verbose("(meter) started meter %d (%s %s %s) identity mode: %s %s\n",
                                     meter->index(),
                                     mi.name.c_str(),
-                                    meter_info.idsc.c_str(),
-                                    mi.driverName().str().c_str());
+                                    mi_idsc.c_str(),
+                                    mi.driverName().str().c_str(),
+                                    toString(mi.identity_mode),
+                                    identity_expression.str().c_str());
                         }
 
                         bool match = false;
-                        bool h = meter->handleTelegram(about, input_frame, simulated, &ids, &match);
+                        bool h = meter->handleTelegram(about, input_frame, simulated, &addresses, &match);
                         if (!match)
                         {
+                            string aesc = AddressExpression::concat(meter->addressExpressions());
                             // Oups, we added a new meter object tailored for this telegram
                             // but it still did not match! This is probably an error in wmbusmeters!
                             warning("(meter) newly created meter (%s %s %s) did not match telegram! ",
-                                    "Please open an issue at https://github.com/weetmuts/wmbusmeters/\n",
-                                    meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
+                                    "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n",
+                                    meter->name().c_str(), aesc.c_str(), meter->driverName().str().c_str());
                         }
                         else if (!h)
                         {
+                            string aesc = AddressExpression::concat(meter->addressExpressions());
                             // Oups, we added a new meter object tailored for this telegram
                             // but it still did not handle it! This can happen if the wrong
                             // decryption key was used.
                             warning("(meter) newly created meter (%s %s %s) did not handle telegram!\n",
-                                    meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
+                                    meter->name().c_str(), aesc.c_str(), meter->driverName().str().c_str());
                         }
                         else
                         {
@@ -251,7 +288,7 @@ public:
         }
         if (isVerboseEnabled() && !handled)
         {
-            verbose("(wmbus) telegram from %s ignored by all configured meters!\n", ids.c_str());
+            verbose("(wmbus) telegram from %s ignored by all configured meters!\n", "TODO");
         }
         return handled;
     }
@@ -259,6 +296,11 @@ public:
     void onTelegram(function<bool(AboutTelegram &about, vector<uchar>)> cb)
     {
         telegram_listeners_.push_back(cb);
+    }
+
+    void whenMeterAdded(std::function<void(shared_ptr<Meter>)> cb)
+    {
+        on_meter_added_ = cb;
     }
 
     void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb)
@@ -298,6 +340,16 @@ public:
     {
         string best_driver = "";
 
+        if (only != "")
+        {
+            DriverInfo di;
+            if (!lookupDriverInfo(only, &di))
+            {
+                error("No such driver %s\n", only.c_str());
+            }
+            only = di.name().str();
+        }
+
         for (DriverInfo *ndr : allDrivers())
         {
             string driver_name = toString(*ndr);
@@ -317,12 +369,13 @@ public:
 
             debug("Testing driver %s...\n", driver_name.c_str());
             mi.driver_name = driver_name;
+            mi.poll_interval = 1000*1000*1000;  // Fake a high value to silence warning about poll inteval.
 
             auto meter = createMeter(&mi);
 
             bool match = false;
-            string id;
-            bool h = meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+            vector<Address> addresses;
+            bool h = meter->handleTelegram(about, input_frame, simulated, &addresses, &match, &t);
 
             if (!match)
             {
@@ -330,11 +383,12 @@ public:
             }
             else if (!h)
             {
+                string aesc = AddressExpression::concat(meter->addressExpressions());
                 // Oups, we added a new meter object tailored for this telegram
                 // but it still did not handle it! This can happen if the wrong
                 // decryption key was used. But it is ok if analyzing....
                 debug("Newly created meter (%s %s %s) did not handle telegram!\n",
-                      meter->name().c_str(), meter->idsc().c_str(), meter->driverName().str().c_str());
+                      meter->name().c_str(), aesc.c_str(), meter->driverName().str().c_str());
             }
             else
             {
@@ -356,6 +410,7 @@ public:
 
     void analyzeTelegram(AboutTelegram &about, vector<uchar> &input_frame, bool simulated)
     {
+        loadAllBuiltinDrivers();
         Telegram t;
         t.about = about;
 
@@ -382,9 +437,8 @@ public:
         // Overwrite the id with the id from the telegram to be analyzed.
         MeterInfo mi;
         mi.key = analyze_key_;
-        mi.ids.clear();
-        mi.ids.push_back(t.ids.back());
-        mi.idsc = t.ids.back();
+        mi.address_expressions.clear();
+        mi.address_expressions.push_back(AddressExpression(t.addresses.back()));
 
         // This will be the driver that will actually decode and print with.
         string using_driver;
@@ -429,13 +483,12 @@ public:
         }
 
         mi.driver_name = using_driver;
-
+        mi.poll_interval = 1000*1000*1000;  // Fake a high value to silence warning about poll inteval.
         auto meter = createMeter(&mi);
 
         assert(meter != NULL);
 
         bool match = false;
-        string id;
 
         if (should_profile_ > 0)
         {
@@ -449,7 +502,8 @@ public:
 
             for (int k=0; k<should_profile_; ++k)
             {
-                meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+                vector<Address> addresses;
+                meter->handleTelegram(about, input_frame, simulated, &addresses, &match, &t);
                 string hr, fields, json;
                 vector<string> envs, more_json, selected_fields;
 
@@ -476,7 +530,8 @@ public:
             return;
         }
 
-        meter->handleTelegram(about, input_frame, simulated, &id, &match, &t);
+        vector<Address> addresses;
+        meter->handleTelegram(about, input_frame, simulated, &addresses, &match, &t);
 
         int u = 0;
         int l = 0;
@@ -494,9 +549,9 @@ public:
             auto_driver = "not found!";
         }
 
-        printf("Auto driver  : %s\n", auto_driver.c_str());
-        printf("Best driver  : %s %02d/%02d\n", best_driver.c_str(), best_understood, best_length);
-        printf("Using driver : %s %02d/%02d\n", using_driver.c_str(), using_understood, using_length);
+        printf("Auto driver    : %s\n", auto_driver.c_str());
+        printf("Similar driver : %s %02d/%02d\n", best_driver.c_str(), best_understood, best_length);
+        printf("Using driver   : %s %02d/%02d\n", using_driver.c_str(), using_understood, using_length);
 
         printf("%s\n", output.c_str());
 

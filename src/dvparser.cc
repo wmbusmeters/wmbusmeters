@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2018-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@
 #include"util.h"
 
 #include<assert.h>
+#include<cmath>
+#include<math.h>
 #include<memory.h>
 #include<limits>
 
@@ -47,6 +49,28 @@ LIST_OF_VIF_RANGES
 #undef X
     }
     assert(0);
+}
+
+VIFRange toVIFRange(const char *s)
+{
+    if (!strcmp(s, "None")) return VIFRange::None;
+    if (!strcmp(s, "Any")) return VIFRange::Any;
+#define X(name,from,to,quantity,unit) if (!strcmp(s, #name)) return VIFRange::name;
+LIST_OF_VIF_RANGES
+#undef X
+
+    return VIFRange::None;
+}
+
+VIFCombinable toVIFCombinable(const char *s)
+{
+    if (!strcmp(s, "None")) return VIFCombinable::None;
+    if (!strcmp(s, "Any")) return VIFCombinable::Any;
+#define X(name,from,to) if (!strcmp(s, #name)) return VIFCombinable::name;
+LIST_OF_VIF_COMBINABLES
+#undef X
+
+    return VIFCombinable::None;
 }
 
 const char *toString(VIFCombinable v)
@@ -110,7 +134,9 @@ bool isInsideVIFRange(Vif vif, VIFRange vif_range)
     {
         return
             isInsideVIFRange(vif, VIFRange::EnergyWh) ||
-            isInsideVIFRange(vif, VIFRange::EnergyMJ);
+            isInsideVIFRange(vif, VIFRange::EnergyMJ) ||
+            isInsideVIFRange(vif, VIFRange::EnergyMWh) ||
+            isInsideVIFRange(vif, VIFRange::EnergyGJ);
     }
     if (vif_range == VIFRange::AnyPowerVIF)
     {
@@ -243,6 +269,16 @@ bool parseDV(Telegram *t,
                 t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::NONE, "%02X manufacturer specific data %s", dif, value.c_str());
                 break;
             }
+            if (dif == 0x1f)
+            {
+                DEBUG_PARSER("(dvparser) reached dif %02x more records in next telegram.\n", dif);
+                datalen = std::distance(data,data_end);
+                string value = bin2hex(data+1, data_end, datalen-1);
+                t->mfct_0f_index = 1+std::distance(data_start, data);
+                assert(t->mfct_0f_index >= 0);
+                t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::FULL, "%02X more data in next telegram %s", dif, value.c_str());
+                break;
+            }
             DEBUG_PARSER("(dvparser) reached unknown dif %02x treating remaining data as manufacturer specific, parsing is done.\n", dif);
             datalen = std::distance(data,data_end);
             string value = bin2hex(data+1, data_end, datalen-1);
@@ -278,9 +314,12 @@ bool parseDV(Telegram *t,
         int storage_nr = lsb_of_storage_nr;
 
         bool has_another_dife = (dif & 0x80) == 0x80;
+        int num_dife = 0;
 
         while (has_another_dife)
         {
+            num_dife++;
+            if (num_dife > 10) { debug("(dvparser) warning: too many dife found!\n"); break; }
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (dife expected)\n"); break; }
 
             uchar dife = **format;
@@ -316,7 +355,10 @@ bool parseDV(Telegram *t,
         uchar vif = **format;
         int full_vif = vif & 0x7f;
         bool extension_vif = false;
+        int combinable_full_vif = 0;
+        bool combinable_extension_vif = false;
         set<VIFCombinable> found_combinable_vifs;
+        set<uint16_t> found_combinable_vifs_raw;
 
         DEBUG_PARSER("(dvparser debug) vif=%04x \"%s\"\n", vif, vifType(vif).c_str());
 
@@ -363,8 +405,13 @@ bool parseDV(Telegram *t,
 
         // Do we have another vife byte? We better have one, if extension_vif is true.
         bool has_another_vife = (vif & 0x80) == 0x80;
+        int num_vife = 0;
+
         while (has_another_vife)
         {
+            num_vife++;
+            if (num_vife > 10) { debug("(dvparser) warning: too many vife found!\n"); break; }
+
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vife expected)\n"); break; }
 
             uchar vife = **format;
@@ -398,13 +445,48 @@ bool parseDV(Telegram *t,
             }
             else
             {
-                // If the full vif is now handled, then the rest are combinable vifs.
-                VIFCombinable vc = toVIFCombinable(vife & 0x7f);
-                found_combinable_vifs.insert(vc);
-                if (data_has_difvifs)
+                if (combinable_extension_vif)
                 {
-                    t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
-                                                     "%02X combinable vif (%s)", vife, toString(vc));
+                    // First vife after the combinable extension marker is the real vif.
+                    combinable_full_vif |= (vife & 0x7f);
+                    combinable_extension_vif = false;
+                    VIFCombinable vc = toVIFCombinable(combinable_full_vif);
+                    found_combinable_vifs.insert(vc);
+                    found_combinable_vifs_raw.insert(combinable_full_vif);
+
+                    if (data_has_difvifs)
+                    {
+                        t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                                         "%02X combinable extension vife (%s)", vife, toString(vc));
+                    }
+                }
+                else
+                {
+                    combinable_full_vif = vife & 0x7f;
+                    // Check if this is marker for one of the extended combinable vifs
+                    if (combinable_full_vif == 0x7c || combinable_full_vif == 0x7f)
+                    {
+                        combinable_full_vif <<= 8;
+                        combinable_extension_vif = true;
+                        VIFCombinable vc = toVIFCombinable(vife & 0x7f);
+                        if (data_has_difvifs)
+                        {
+                            t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                                             "%02X combinable vif (%s)", vife, toString(vc));
+                        }
+                    }
+                    else
+                    {
+                        VIFCombinable vc = toVIFCombinable(combinable_full_vif);
+                        found_combinable_vifs.insert(vc);
+                        found_combinable_vifs_raw.insert(combinable_full_vif);
+
+                        if (data_has_difvifs)
+                        {
+                            t->addExplanationAndIncrementPos(*format, 1, KindOfData::PROTOCOL, Understanding::FULL,
+                                                             "%02X combinable vif (%s)", vife, toString(vc));
+                        }
+                    }
                 }
             }
         }
@@ -454,6 +536,7 @@ bool parseDV(Telegram *t,
                                                mt,
                                                Vif(full_vif),
                                                found_combinable_vifs,
+                                               found_combinable_vifs_raw,
                                                StorageNr(storage_nr),
                                                TariffNr(tariff),
                                                SubUnitNr(subunit),
@@ -680,7 +763,7 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *dv_entries,
                      int *offset,
                      double *value,
                      bool auto_scale,
-                     bool assume_signed)
+                     bool force_unsigned)
 {
     if ((*dv_entries).count(key) == 0) {
         verbose("(dvparser) warning: cannot extract double from non-existant key \"%s\"\n", key.c_str());
@@ -698,7 +781,7 @@ bool extractDVdouble(map<string,pair<int,DVEntry>> *dv_entries,
         return false;
     }
 
-    return p.second.extractDouble(value, auto_scale, assume_signed);
+    return p.second.extractDouble(value, auto_scale, force_unsigned);
 }
 
 bool checkSizeHex(size_t expected_len, DifVifKey &dvk, string &v)
@@ -710,7 +793,16 @@ bool checkSizeHex(size_t expected_len, DifVifKey &dvk, string &v)
     return false;
 }
 
-bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
+bool is_all_F(string &v)
+{
+    for (size_t i = 0; i < v.length(); ++i)
+    {
+        if (v[i] != 'F') return false;
+    }
+    return true;
+}
+
+bool DVEntry::extractDouble(double *out, bool auto_scale, bool force_unsigned)
 {
     int t = dif_vif_key.dif() & 0xf;
     if (t == 0x0 ||
@@ -739,17 +831,17 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
             if (!checkSizeHex(2, dif_vif_key, value)) return false;
             assert(v.size() == 1);
             raw = v[0];
-            if (assume_signed && (raw & (uint64_t)0x80UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<8; }
+            if (!force_unsigned && (raw & (uint64_t)0x80UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<8; }
         } else if (t == 0x2) {
             if (!checkSizeHex(4, dif_vif_key, value)) return false;
             assert(v.size() == 2);
             raw = v[1]*256 + v[0];
-            if (assume_signed && (raw & (uint64_t)0x8000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<16; }
+            if (!force_unsigned && (raw & (uint64_t)0x8000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<16; }
         } else if (t == 0x3) {
             if (!checkSizeHex(6, dif_vif_key, value)) return false;
             assert(v.size() == 3);
             raw = v[2]*256*256 + v[1]*256 + v[0];
-            if (assume_signed && (raw & (uint64_t)0x800000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<24; }
+            if (!force_unsigned && (raw & (uint64_t)0x800000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<24; }
         } else if (t == 0x4) {
             if (!checkSizeHex(8, dif_vif_key, value)) return false;
             assert(v.size() == 4);
@@ -757,7 +849,7 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
                 + ((unsigned int)v[2])*256*256
                 + ((unsigned int)v[1])*256
                 + ((unsigned int)v[0]);
-            if (assume_signed && (raw & (uint64_t)0x80000000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<32; }
+            if (!force_unsigned && (raw & (uint64_t)0x80000000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<32; }
         } else if (t == 0x6) {
             if (!checkSizeHex(12, dif_vif_key, value)) return false;
             assert(v.size() == 6);
@@ -767,7 +859,7 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
                 + ((uint64_t)v[2])*256*256
                 + ((uint64_t)v[1])*256
                 + ((uint64_t)v[0]);
-            if (assume_signed && (raw & (uint64_t)0x800000000000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<48; }
+            if (!force_unsigned && (raw & (uint64_t)0x800000000000UL) != 0) { negate = true; negate_mask = ~((uint64_t)0)<<48; }
         } else if (t == 0x7) {
             if (!checkSizeHex(16, dif_vif_key, value)) return false;
             assert(v.size() == 8);
@@ -779,7 +871,7 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
                 + ((uint64_t)v[2])*256*256
                 + ((uint64_t)v[1])*256
                 + ((uint64_t)v[0]);
-            if (assume_signed && (raw & (uint64_t)0x8000000000000000UL) != 0) { negate = true; negate_mask = 0; }
+            if (!force_unsigned && (raw & (uint64_t)0x8000000000000000UL) != 0) { negate = true; negate_mask = 0; }
         }
         double scale = 1.0;
         double draw = (double)raw;
@@ -797,35 +889,43 @@ bool DVEntry::extractDouble(double *out, bool auto_scale, bool assume_signed)
         t == 0xC || // 8 digit BCD
         t == 0xE)   // 12 digit BCD
     {
+        // Negative BCD values are always visible in bcd. I.e. they are always signed.
+        // Ignore assumption on signedness.
         // 74140000 -> 00001474
         string& v = value;
         uint64_t raw = 0;
         bool negate = false;
+
+        if (is_all_F(v))
+        {
+            *out = std::nan("");
+            return false;
+        }
         if (t == 0x9) {
             if (!checkSizeHex(2, dif_vif_key, v)) return false;
-            if (assume_signed && v[0] == 'F') { negate = true; v[0] = '0'; }
+            if (v[0] == 'F') { negate = true; v[0] = '0'; }
             raw = (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xA) {
             if (!checkSizeHex(4, dif_vif_key, v)) return false;
-            if (assume_signed && v[2] == 'F') { negate = true; v[2] = '0'; }
+            if (v[2] == 'F') { negate = true; v[2] = '0'; }
             raw = (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xB) {
             if (!checkSizeHex(6, dif_vif_key, v)) return false;
-            if (assume_signed && v[4] == 'F') { negate = true; v[4] = '0'; }
+            if (v[4] == 'F') { negate = true; v[4] = '0'; }
             raw = (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xC) {
             if (!checkSizeHex(8, dif_vif_key, v)) return false;
-            if (assume_signed && v[6] == 'F') { negate = true; v[6] = '0'; }
+            if (v[6] == 'F') { negate = true; v[6] = '0'; }
             raw = (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
                 + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xE) {
             if (!checkSizeHex(12, dif_vif_key, v)) return false;
-            if (assume_signed && v[10] == 'F') { negate = true; v[10] = '0'; }
+            if (v[10] == 'F') { negate = true; v[10] = '0'; }
             raw =(v[10]-'0')*10*10*10*10*10*10*10*10*10*10*10 + (v[11]-'0')*10*10*10*10*10*10*10*10*10*10
                 + (v[8]-'0')*10*10*10*10*10*10*10*10*10 + (v[9]-'0')*10*10*10*10*10*10*10*10
                 + (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
@@ -959,24 +1059,33 @@ bool DVEntry::extractLong(uint64_t *out)
     {
         // 74140000 -> 00001474
         string& v = value;
+        if (is_all_F(v))
+        {
+            return false;
+        }
         uint64_t raw = 0;
+        bool negate = false;
         if (t == 0x9) {
             if (!checkSizeHex(2, dif_vif_key, value)) return false;
+            if (v[0] == 'F') { negate = true; v[0] = '0'; }
             assert(v.size() == 2);
             raw = (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xA) {
             if (!checkSizeHex(4, dif_vif_key, value)) return false;
+            if (v[2] == 'F') { negate = true; v[2] = '0'; }
             assert(v.size() == 4);
             raw = (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xB) {
             if (!checkSizeHex(6, dif_vif_key, value)) return false;
+            if (v[4] == 'F') { negate = true; v[4] = '0'; }
             assert(v.size() == 6);
             raw = (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xC) {
             if (!checkSizeHex(8, dif_vif_key, value)) return false;
+            if (v[6] == 'F') { negate = true; v[6] = '0'; }
             assert(v.size() == 8);
             raw = (v[6]-'0')*10*10*10*10*10*10*10 + (v[7]-'0')*10*10*10*10*10*10
                 + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
@@ -984,6 +1093,7 @@ bool DVEntry::extractLong(uint64_t *out)
                 + (v[0]-'0')*10 + (v[1]-'0');
         } else if (t ==  0xE) {
             if (!checkSizeHex(12, dif_vif_key, value)) return false;
+            if (v[10] == 'F') { negate = true; v[10] = '0'; }
             assert(v.size() == 12);
             raw =(v[10]-'0')*10*10*10*10*10*10*10*10*10*10*10 + (v[11]-'0')*10*10*10*10*10*10*10*10*10*10
                 + (v[8]-'0')*10*10*10*10*10*10*10*10*10 + (v[9]-'0')*10*10*10*10*10*10*10*10
@@ -991,6 +1101,11 @@ bool DVEntry::extractLong(uint64_t *out)
                 + (v[4]-'0')*10*10*10*10*10 + (v[5]-'0')*10*10*10*10
                 + (v[2]-'0')*10*10*10 + (v[3]-'0')*10*10
                 + (v[0]-'0')*10 + (v[1]-'0');
+        }
+
+        if (negate)
+        {
+            raw = (uint64_t)(((int64_t)raw)*-1);
         }
 
         *out = raw;
@@ -1094,12 +1209,13 @@ double DVEntry::getCounter(DVEntryCounterType ct)
 string DVEntry::str()
 {
     string s =
-        tostrprintf("%d: %s %s vif=%x %s st=%d ta=%d su=%d",
+        tostrprintf("%d: %s %s vif=%x %s%s st=%d ta=%d su=%d",
                     offset,
                     dif_vif_key.str().c_str(),
                     toString(measurement_type),
                     vif.intValue(),
                     combinable_vifs.size() > 0 ? "HASCOMB ":"",
+                    combinable_vifs_raw.size() > 0 ? "HASCOMBRAW ":"",
                     storage_nr.intValue(),
                     tariff_nr.intValue(),
                     subunit_nr.intValue()
@@ -1203,27 +1319,44 @@ bool FieldMatcher::matches(DVEntry &dv_entry)
     }
 
     // Test ranges and types.
-    bool b =
-        (!match_vif_range || isInsideVIFRange(dv_entry.vif, vif_range)) &&
-        (!match_measurement_type || dv_entry.measurement_type == measurement_type) &&
-        (!match_storage_nr || (dv_entry.storage_nr >= storage_nr_from && dv_entry.storage_nr <= storage_nr_to)) &&
-        (!match_tariff_nr || (dv_entry.tariff_nr >= tariff_nr_from && dv_entry.tariff_nr <= tariff_nr_to)) &&
-        (!match_subunit_nr || (dv_entry.subunit_nr >= subunit_nr_from && dv_entry.subunit_nr <= subunit_nr_to));
+    bool range = (!match_vif_range || isInsideVIFRange(dv_entry.vif, vif_range));
+    bool raw = (!match_vif_raw || dv_entry.vif == vif_raw);
+    bool type = (!match_measurement_type || dv_entry.measurement_type == measurement_type);
+    bool storage = (!match_storage_nr || (dv_entry.storage_nr >= storage_nr_from && dv_entry.storage_nr <= storage_nr_to));
+    bool tariff = (!match_tariff_nr || (dv_entry.tariff_nr >= tariff_nr_from && dv_entry.tariff_nr <= tariff_nr_to));
+    bool subunit = (!match_subunit_nr || (dv_entry.subunit_nr >= subunit_nr_from && dv_entry.subunit_nr <= subunit_nr_to));
+
+    //printf("Match? range=%d raw=%d type=%d storage=%d tariff=%d subunit=%d \n", range, raw, type, storage, tariff, subunit);
+
+    bool b = range & raw & type & storage & tariff & subunit;
 
     if (!b) return false;
 
     // So far so good, now test the combinables.
 
     // If field matcher has no combinables, then do NOT match any dventry with a combinable!
-    if (vif_combinables.size()== 0)
+    if (vif_combinables.size()== 0 && vif_combinables_raw.size() == 0)
     {
-        if (dv_entry.combinable_vifs.size() == 0) return true;
+        // If there is a combinable vif, then there is a raw combinable vif. So comparing both not strictly necessary.
+        if (dv_entry.combinable_vifs.size() == 0 && dv_entry.combinable_vifs_raw.size() == 0) return true;
         // Oups, field matcher does not expect any combinables, but the dv_entry has combinables.
         // This means no match for us since combinables must be handled explicitly.
         return false;
     }
 
+    // Lets check that the dv_entry vif combinables raw contains the field matcher requested combinable raws.
+    // The raws are used for meters using reserved and manufacturer specific vif combinables.
+    for (uint16_t vcr : vif_combinables_raw)
+    {
+        if (dv_entry.combinable_vifs_raw.count(vcr) == 0)
+        {
+            // Ouch, one of the requested vif combinables raw did not exist in the dv_entry. No match!
+            return false;
+        }
+    }
+
     // Lets check that the dv_entry combinables contains the field matcher requested combinables.
+    // The named vif combinables are used by well behaved meters.
     for (VIFCombinable vc : vif_combinables)
     {
         if (vc != VIFCombinable::Any && dv_entry.combinable_vifs.count(vc) == 0)
@@ -1237,12 +1370,26 @@ bool FieldMatcher::matches(DVEntry &dv_entry)
     // then we need to check if there are unmatched combinables in the telegram, if so fail the match.
     if (vif_combinables.count(VIFCombinable::Any) == 0)
     {
-        for (VIFCombinable vc : dv_entry.combinable_vifs)
+        if (vif_combinables.size() > 0)
         {
-            if (vif_combinables.count(vc) == 0)
+            for (VIFCombinable vc : dv_entry.combinable_vifs)
             {
-                // Oups, the telegram entry had a combinable that we had no matcher for.
-                return false;
+                if (vif_combinables.count(vc) == 0)
+                {
+                    // Oups, the telegram entry had a vif combinable that we had no matcher for.
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            for (uint16_t vcr : dv_entry.combinable_vifs_raw)
+            {
+                if (vif_combinables_raw.count(vcr) == 0)
+                {
+                    // Oups, the telegram entry had a vif combinable raw that we had no matcher for.
+                    return false;
+                }
             }
         }
     }
@@ -1260,8 +1407,21 @@ const char *toString(MeasurementType mt)
     case MeasurementType::Minimum: return "Minimum";
     case MeasurementType::Maximum: return "Maximum";
     case MeasurementType::AtError: return "AtError";
+    case MeasurementType::Unknown: return "Unknown";
     }
     return "?";
+}
+
+MeasurementType toMeasurementType(const char *s)
+{
+    if (!strcmp(s, "Any")) return MeasurementType::Any;
+    if (!strcmp(s, "Instantaneous")) return MeasurementType::Instantaneous;
+    if (!strcmp(s, "Minimum")) return MeasurementType::Minimum;
+    if (!strcmp(s, "Maximum")) return MeasurementType::Maximum;
+    if (!strcmp(s, "AtError")) return MeasurementType::AtError;
+    if (!strcmp(s, "Unknown")) return MeasurementType::Unknown;
+
+    return MeasurementType::Unknown;
 }
 
 string FieldMatcher::str()
@@ -1281,6 +1441,11 @@ string FieldMatcher::str()
     if (match_vif_range)
     {
         s = s+"VR("+toString(vif_range)+") ";
+    }
+
+    if (match_vif_raw)
+    {
+        s = s+"VRR("+to_string(vif_raw)+") ";
     }
 
     if (vif_combinables.size() > 0)
@@ -1343,4 +1508,34 @@ const char *toString(DVEntryCounterType ct)
     }
 
     return "unknown";
+}
+
+string available_vif_ranges_;
+
+const string &availableVIFRanges()
+{
+    if (available_vif_ranges_ != "") return available_vif_ranges_;
+
+#define X(n,from,to,q,u) available_vif_ranges_ += string(#n) + "\n";
+LIST_OF_VIF_RANGES
+#undef X
+
+    // Remove last newline
+    available_vif_ranges_.pop_back();
+    return available_vif_ranges_;
+}
+
+string available_vif_combinables_;
+
+const string &availableVIFCombinables()
+{
+    if (available_vif_combinables_ != "") return available_vif_combinables_;
+
+#define X(n,from,to) available_vif_combinables_ += string(#n) + "\n";
+LIST_OF_VIF_COMBINABLES
+#undef X
+
+    // Remove last newline
+    available_vif_combinables_.pop_back();
+    return available_vif_combinables_;
 }

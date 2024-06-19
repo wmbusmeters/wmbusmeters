@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2017-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -229,6 +229,20 @@ LIST_OF_MANUFACTURERS
 
 }
 
+void Telegram::addAddressMfctFirst(const vector<uchar>::iterator &pos)
+{
+    Address a;
+    a.decodeMfctFirst(pos);
+    addresses.push_back(a);
+}
+
+void Telegram::addAddressIdFirst(const vector<uchar>::iterator &pos)
+{
+    Address a;
+    a.decodeIdFirst(pos);
+    addresses.push_back(a);
+}
+
 void Telegram::print()
 {
     uchar a=0, b=0, c=0, d=0;
@@ -437,30 +451,12 @@ string manufacturer(int m_field) {
     for (auto &m : manufacturers_) {
 	if (m.m_field == m_field) return m.name;
     }
+    // Some weird meters send the first char in lower case aPT iTW. Fix and try again.
+    m_field &= 0x7fff;
+    for (auto &m : manufacturers_) {
+	if (m.m_field == m_field) return m.name;
+    }
     return "Unknown";
-}
-
-string manufacturerFlag(int m_field) {
-    char a = (m_field/1024)%32+64;
-    char b = (m_field/32)%32+64;
-    char c = (m_field)%32+64;
-
-    string flag;
-    flag += a;
-    flag += b;
-    flag += c;
-    return flag;
-}
-
-bool flagToManufacturer(const char *s, uint16_t *out_mfct)
-{
-    if (s[0] == 0 || s[1] == 0 || s[2] == 0 || s[3] != 0) return false;
-    if (s[0] < '@' || s[0] > 'Z' ||
-        s[1] < '@' || s[1] > 'Z' ||
-        s[2] < '@' || s[2] > 'Z') return false;
-
-    *out_mfct = MANFCODE(s[0],s[1],s[2]);
-    return true;
 }
 
 string mediaType(int a_field_device_type, int m_field) {
@@ -913,9 +909,10 @@ bool Telegram::parseMBusDLLandTPL(vector<uchar>::iterator &pos)
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-a primary (%d)", mbus_primary_address, mbus_primary_address);
 
     // Add dll_id to ids.
-    string id = tostrprintf("%02x", mbus_primary_address);
-    ids.push_back(id);
-    idsc = id;
+    string id = tostrprintf("p%d", mbus_primary_address);
+    Address a;
+    a.id = id;
+    addresses.push_back(a);
 
     mbus_ci = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x tpl-ci (%s)", mbus_ci, mbusCiField(mbus_ci));
@@ -941,6 +938,9 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
     dll_c = *pos;
     addExplanationAndIncrementPos(pos, 1, KindOfData::PROTOCOL, Understanding::FULL, "%02x dll-c (%s)", dll_c, cType(dll_c).c_str());
 
+    CHECK(8)
+    addAddressMfctFirst(pos);
+
     dll_mfct_b[0] = *(pos+0);
     dll_mfct_b[1] = *(pos+1);
     dll_mfct = dll_mfct_b[1] <<8 | dll_mfct_b[0];
@@ -960,11 +960,8 @@ bool Telegram::parseDLL(vector<uchar>::iterator &pos)
         }
     }
     // Add dll_id to ids.
-    string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
-    ids.push_back(id);
-    idsc = id;
     addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x dll-id (%s)",
-                                  *(pos+0), *(pos+1), *(pos+2), *(pos+3), ids.back().c_str());
+                                  *(pos+0), *(pos+1), *(pos+2), *(pos+3), addresses.back().id.c_str());
 
     dll_version = *(pos+0);
     dll_type = *(pos+1);
@@ -1038,6 +1035,9 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
 
     if (has_target_mft_address)
     {
+        CHECK(8);
+        addAddressMfctFirst(pos);
+
         ell_mfct_b[0] = *(pos+0);
         ell_mfct_b[1] = *(pos+1);
         ell_mfct = ell_mfct_b[1] << 8 | ell_mfct_b[0];
@@ -1052,9 +1052,6 @@ bool Telegram::parseELL(vector<uchar>::iterator &pos)
         ell_id_b[3] = *(pos+3);
 
         // Add ell_id to ids.
-        string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
-        ids.push_back(id);
-        idsc = idsc+","+id;
         addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x%02x%02x ell-id",
                                       ell_id_b[0], ell_id_b[1], ell_id_b[2], ell_id_b[3]);
 
@@ -1450,7 +1447,9 @@ bool Telegram::parseShortTPL(std::vector<uchar>::iterator &pos)
 
 bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
 {
-    CHECK(4);
+    CHECK(8);
+    addAddressIdFirst(pos);
+
     tpl_id_found = true;
     tpl_id_b[0] = *(pos+0);
     tpl_id_b[1] = *(pos+1);
@@ -1462,11 +1461,6 @@ bool Telegram::parseLongTPL(std::vector<uchar>::iterator &pos)
     {
         tpl_a[i] = *(pos+i);
     }
-
-    // Add the tpl_id to ids.
-    string id = tostrprintf("%02x%02x%02x%02x", *(pos+3), *(pos+2), *(pos+1), *(pos+0));
-    ids.push_back(id);
-    idsc = idsc+","+id;
 
     addExplanationAndIncrementPos(pos, 4, KindOfData::PROTOCOL, Understanding::FULL,
                                   "%02x%02x%02x%02x tpl-id (%02x%02x%02x%02x)",
@@ -1526,8 +1520,12 @@ bool Telegram::checkMAC(std::vector<uchar> &frame,
     debug("(wmbus) received   mac %s\n", received.c_str());
     string truncated = calculated.substr(0, received.length());
     bool ok = truncated == received;
-    if (ok) debug("(wmbus) mac ok!\n");
-    else {
+    if (ok)
+    {
+        debug("(wmbus) mac ok!\n");
+    }
+    else
+    {
         debug("(wmbus) mac NOT ok!\n");
         explainParse("BADMAC", 0);
     }
@@ -1538,6 +1536,7 @@ bool loadFormatBytesFromSignature(uint16_t format_signature, vector<uchar> *form
 
 bool Telegram::alreadyDecryptedCBC(vector<uchar>::iterator &pos)
 {
+    CHECK(2);
     if (*(pos+0) != 0x2f || *(pos+1) != 0x2f) return false;
     addExplanationAndIncrementPos(pos, 2, KindOfData::PROTOCOL, Understanding::FULL, "%02x%02x already decrypted check bytes", *(pos+0), *(pos+1));
     return true;
@@ -1582,7 +1581,6 @@ bool Telegram::potentiallyDecrypt(vector<uchar>::iterator &pos)
             string info =  bin2hex(pos, frame.end(), num_encrypted_bytes);
             info += " encrypted";
             addExplanationAndIncrementPos(pos, num_encrypted_bytes, KindOfData::CONTENT, Understanding::ENCRYPTED, info.c_str());
-
             if (parser_warns_)
             {
                 if (!beingAnalyzed() && (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(this, dll_a)))
@@ -2642,6 +2640,9 @@ string vifType(int vif)
     case 0x7E: return "Any VIF";
     case 0x7F: return "Manufacturer specific";
 
+    case 0x7B00: return "Active Energy 0.1 MWh";
+    case 0x7B01: return "Active Energy 1 MWh";
+
     case 0x7B1A: return "Relative humidity 0.1%";
     case 0x7B1B: return "Relative humidity 1%";
 
@@ -2815,6 +2816,18 @@ double vifScale(int vif)
     case 0x75: return 60.0; // Actuality duration minutes
     case 0x76: return 1.0; // Actuality duration hours
     case 0x77: return (1.0/24.0); // Actuality duration days
+
+        // Active energy 0.1 or 1 MWh normalize to 100 KWh or 1000 KWh
+        // 7b00 33632 -> 3363.2 MWh -> 3363200 KWh
+        // 7b01 33632 -> 33632 MWh -> 33632000 KWh
+    case 0x7b00:
+    case 0x7b01: { double exp = (vif & 0x1)+2; return pow(10.0, -exp); }
+
+        // Active energy 0.1 or 1 GJ normalize to 100 MJ or 1000 MJ
+        // 7b09 19 -> 1.9 G -> 1 900 KWh
+        // 7b0A 19 -> 19 GJ -> 19 000 MJ
+    case 0x7b09:
+    case 0x7b0A: { double exp = (vif & 0x1)+2; return pow(10.0, -exp); }
 
         // relative humidity is a dimensionless value.
     case 0x7b1a: return 10.0; // Relative humidity 0.1 %
@@ -3993,6 +4006,7 @@ string measurementTypeName(MeasurementType mt)
     case MeasurementType::Maximum: return "maximum";
     case MeasurementType::Minimum: return "minimum";
     case MeasurementType::AtError: return "aterror";
+    case MeasurementType::Unknown: return "unknown";
     }
     assert(0);
 }
@@ -4027,6 +4041,11 @@ bool Telegram::findFormatBytesFromKnownMeterSignatures(vector<uchar> *format_byt
     {
         hex2bin("02FF2004134413", format_bytes);
         debug("(wmbus) using hard coded format for hash dd34\n");
+    }
+    else if (format_signature == 0x7c0e)
+    {
+        hex2bin("02FF200413523B", format_bytes);
+        debug("(wmbus) using hard coded format for hash 7c0e\n");
     }
     else
     {
@@ -4121,6 +4140,8 @@ bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<
     bool handled = false;
     last_received_ = time(NULL);
 
+    assert(frame.size() > 0);
+
     if (about.type == FrameType::MBUS && frame.size() == 1)
     {
         if (frame[0] == 0xe5)
@@ -4136,6 +4157,16 @@ bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<
     {
         verbose("(wmbus) skipping already handled telegram leng=%zu.\n", frame.size());
         return true;
+    }
+
+    if (about.type == FrameType::WMBUS)
+    {
+        size_t expected_len = frame[0]+1;
+        if (frame.size() > 0 && expected_len != frame.size())
+        {
+            warning("(wmbus) telegram length byte (the first) 0x%02x (%d) is probably wrong. Expected 0x%02x (%zu) based on the length of the telegram.\n",
+                    frame[0], frame[0], frame.size()-1, frame.size()-1);
+        }
     }
 
     for (auto f : telegram_listeners_)
@@ -4797,6 +4828,11 @@ FrameStatus checkWMBusFrame(vector<uchar> &data,
     int type = data[1];
     int offset = 1;
 
+    if (data[0] == 0x68 && data[3] == 0x68 && data[1] == data[2])
+    {
+        // Ooups this is not a wmbus frame. Its clearly an mbus frame.
+        return PartialFrame;
+    }
     if (!isValidWMBusCField(type))
     {
         // Ouch, we are out of sync with the wmbus frames that we expect!
@@ -5703,6 +5739,17 @@ const char *toString(FrameType ft)
     case FrameType::WMBUS: return "wmbus";
     case FrameType::MBUS: return "mbus";
     case FrameType::HAN: return "han";
+    }
+    return "?";
+}
+
+const char *toString(FrameStatus fs)
+{
+    switch (fs) {
+    case FrameStatus::PartialFrame: return "PartialFrame";
+    case FrameStatus::FullFrame: return "FullFrame";
+    case FrameStatus::ErrorInFrame: return "ErrorInFrame";
+    case FrameStatus::TextAndNotFrame: return "TextAndNotFrame";
     }
     return "?";
 }

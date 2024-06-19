@@ -1,5 +1,177 @@
 
+Fixed long standing confusion wether the DIF binary values are by
+default signed or unsigned. It turns out that they are signed!
+Thank you Mathias (Zeppelin500) and KaVauA for sorting this out!
+
+For unknown VIFS and non-compliant meters the signedness
+can be overriden to unsigned.
+
+New improved address specification. E.g. use 12345678.M=KAM.V=1b.T=16
+to listen to exactly the telegrams with id 12345678 manufacturer KAM,
+version 0x1b and type 0x16. You if you do not specify any M,V or T, they
+become wildcards which will be the old default behaviour.
+
+If you receive multiple telegram versions from the same id, and you want to
+filter out some versions, do: 12345678,!12345678.V=77
+
+You can now specify p0 to p250, to read from an mbus using the primary address.
+E.g. wmbusmeters --pollinterval=5s /dev/ttyUSB1:mbus:2400 TEMP piigth:mbus p0 NOKEY
+
+Added option --identitymode=(id|id-mfct|full|none) to specify how
+wmbusmeters groups meter state when receiving telegrams.
+
+The default (which is the same as before) is to map state based only on id.
+This usually works ok, however if you have two meters with the same id, but
+from different manufacturers, you must separate their state with --identitymode=id-mfct
+Full takes into account version and type as well. None means do not separate state
+at all, used with wildcards and meters that do not need to keep state, ie all info
+is in every telegram.
+
+Version 1.16.1 2024-02-22
+
+Fix docker file generation.
+
+Version 1.16.0 2024-02-22
+
+New build to trigger proper docker versioning.
+
+Version 1.15.0 2024-02-14
+Version 1.15.0-RC2 2024-02-14
+
+Update wmbusmeters-ha-addon with new dockerfile.
+
+Version 1.15.0-RC1 2024-02-13
+
+For the daemon you can now drop a driver file (such as iperl.xmq) in /etc/wmbusmeters.driver.d
+and it will automatically be used (overriding any builtin iperl driver).
+
+From the command line you can also load a driver file with --driver=file.xmq
+or load a whole directory with --driverdir=/drivers or in a tuple just use
+a file name ending with xmq. E.g. "Water driver.xmq 12345678 NOKEY"
+
+The two first builtin text drivers are elster and iperl.
+
+ATTENTION! Wmbusmeters now use new -f option when starting rtl_wmbus. There is a
+warning if rtl_wmbus does not support the -f option and an upgrade is recommended.
+This option will cause rtl_wmbus to exit with an error if the rtl_sdr dongle stops sending data.
+This in turn will cause wmbusmeters to restart the pipeline.
+
+Up till now, the stderr from rtl_sdr has been sent to /dev/null. This is a problem
+since we cannot see any errors from rtl_sdr that could have caused it to stall.
+
+However the reason for /dev/null was this bug in rtl_sdr.
+https://github.com/osmocom/rtl-sdr/commit/142325a93c6ad70f851f43434acfdf75e12dfe03
+which prevented us from sending the rtl_sdr stderr to wmbusmeters.
+If we did, rtl_sdr went into a 100% cpu hang when we restarted a wmbusmeters daemon.
+
+A temporary workaround has been found that both sends the stderr output to wmbusmeters
+and permits the restart of the daemon. Stderr from rtl_sdr is now sent to
+/tmp/tmp.XXXXXXX_wmbusmeters_rtlsdr and then tailed into wmbusmeters.
+This is a temporary solution until the real rtl_sdr bugfix has propagated into enough distributions.
+
+Add second extension energy MWh VIF 7b00-7b01.
+
+Sunflowerenergias improved the iwmtx5 driver! Thanks Sunflowerenergias!
+
+Jacman777 improved the kamheat driver! Thanks Jacman777!
+
+Pim added a --metershell setting which will invoke a shell command line
+when a meter is seen for the first time. This can be used to trigger extra
+commands in HA and other systems, to add the new meter. Thanks Pim!
+
+Pim added support for the Lansen repeater which sends its own status messages!
+Pim also fixed a small typo in the human readable date timestamp format!
+Thanks Pim!
+
+ATTENTION! The hydrus driver could report the wrong value for total_at_date_m3
+if an at_date had not been reached yet. This is fixed.
+
+Added initial support for drivers that can be loaded from config files.
+Properly receive telegrams from amb8465 which is in command mode.
+Chris Bednarczyk improved the build process for Darwin/MacOS platform. Thanks Chris!
+PovilasID added another Hydrodigit version. Thanks PovilasID!
+Added new units for phase angle: deg rad.
+Added more fields to the abbb23.
+
+Version 1.14.0 2023-07-02
+Version 1.14.0-RC1 2023-07-02
+
+Added more fields to em24 driver.
+Added another mfct/type/version combo to em42 driver and the power_kw field.
+
+Mikołaj Milej imporved the installation script! Thanks Mikołaj!
+Christian Güdel improved the topaseskr driver to consider negative flows. Thanks Christian!
+Peter Vágner improved the lansenth driver to consider negative temperatures. Thanks Peter!
+Dennis Metz improved the ultraheat driver to consider negative flow and temperatures. Thanks Dennis!
+Bibo added support for the hcae2 driver. Thanks Bibo!
+
+Improve error messages when telegrams with bad length byte are read.
+Improve the apator162 driver.
+
+Added the iwmtx5 driver.
+
+Vyacheslav Karpukhin improved the qheat driver to decode proprietary format telegrams. Thanks Vyacheslav!
+
+pvagner improved the lansenth driver to handle negative values. Thanks pvagner!
+
+demetz imporproved ultraheat driver to handle negative values. Thanks demetz!
+
+Version 1.13.1 2023-05-07
+Version 1.13.1-RC1 2023-05-07
+
+Fix make install to not trigger a new build.
+
+Version 1.13.0 2023-05-07
+Version 1.13.0-RC1 2023-05-07
+
+The ha-addon has been moved to https://github.com/wmbusmeters/wmbusmeters-ha-addon
+
+Bug fixed where an mbus telegram was mistakenly detected as wmbus.
+The snap package can now use the serial port so that it works with mbus.
+
+DeDragonSlayer improved the amiplus with the maximum power consumption field. Thanks DeDragonSlayer!
+
+The calculator was improved to properly handle the m3 unit and give a better
+error message when a constant number lacks unit.
+
+The sharky driver was improved.
+
+The kamheat driver was updated with operating_time_h and a new auto-detect combo.
+
+Bibo added support for the hydrocal m4 meter,
+improved the kem-import and kem-extract scripts and
+added support for the Aerius gas meter. Thanks Bibo!
+
+The wmbusmeters-admin tool has been removed since it was never really useful.
+It will probably be replaced with something better and http based.
+This drops the need for the ncurses dependency.
+
+Version 1.12.0 2023-03-12
+Version 1.12.0-RC1 2023-03-12
+
+WMbusmeters has moved to its new github organization: github.com/wmbusmeters
+
+Bibo significantly improved the experience for installing the ha-addon
+by downloading a prepared docker image instead of building from scratch!
+Use the new ha-addon location: github.com/wmbusmeters/wmbusmeters-ha-addon
+Thanks Bibo!
+
+Bibo contributed many github workflow improvements! Thanks Bibo!
+
+Thecem,Krzysztof Hajdamowicz, chpego and convicte contributed several improvements to the ha-addon. Thanks!
+
+idl0r updated the eurosii driver with more telegrams. Thank you idl0r!
+
+Roland Huß contributed compressed telegram format for the multical21. Thanks Roland!
+
+Petter Reinholdtsen contributed several fixes to the deb building process and a speedup
+of the build workflow. Thanks Petter!
+
 Added the watertech meter.
+
+Christoph Hannebauer contributed another auto-detect combo for the qheat driver. Thanks Christoph!
+
+Gizmocuz added missing logging for the ell_type. Thanks Gizmocuz!
 
 George Hopkins improved the fhkvdataiii driver to infer the current year and
 the rtlwmbus driver to propagate the timestamp from rtlwmbus input into the final

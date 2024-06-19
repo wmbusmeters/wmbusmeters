@@ -766,7 +766,7 @@ FrameStatus WMBusIM871aIM170A::checkIM871AFrame(vector<uchar> &data,
 
     int ctrlbits = (data[1] & 0xf0) >> 4;
     if (ctrlbits & 1) {
-        debug("(im871a) error in frame, bit 1 shoud not be set in data[1]\n");
+        debug("(im871a) error in frame, bit 1 should not be set in data[1]\n");
         return ErrorInFrame; // Bit 1 is reserved, we do not expect it....
     }
     bool has_timestamp = ((ctrlbits&2)==2);

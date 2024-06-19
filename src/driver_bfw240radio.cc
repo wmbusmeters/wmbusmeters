@@ -125,7 +125,7 @@ namespace
         t->addSpecialExplanation(4+t->header_size, 2, KindOfData::CONTENT, Understanding::FULL, msg.c_str());
 
         string device_date = tostrprintf("20%02x-%02x-%02x", content[39], content[39-1], content[39-2]);
-        setStringValue("device_date", device_date);
+        setStringValue("device_date", device_date, NULL);
 
         msg = tostrprintf("*** %02X%02X%02X \"device_date\":\"%s\"", content[39-2], content[39-1], content[39],
                                  device_date.c_str());

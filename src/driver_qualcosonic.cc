@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2022-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -38,8 +38,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) :  MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("fabrication_no,operating_time_h,on_time_h,meter_datetime,meter_datetime_at_error");
-        addOptionalFlowRelatedFields("total_m3,flow_temperature_c,return_temperature_c,flow_return_temperature_difference_c,volume_flow_m3h");
+        addOptionalLibraryFields("fabrication_no,operating_time_h,on_time_h,meter_datetime,meter_datetime_at_error");
+        addOptionalLibraryFields("total_m3,flow_temperature_c,return_temperature_c,flow_return_temperature_difference_c,volume_flow_m3h");
 
         addStringFieldWithExtractorAndLookup(
             "status",
@@ -53,7 +53,7 @@ namespace
                 {
                     {
                         "ERROR_FLAGS",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xffffffff),
                         "OK",
                         {
@@ -69,7 +69,7 @@ namespace
             "The total heating energy consumption recorded by this meter.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -81,7 +81,7 @@ namespace
             "The total cooling energy consumption recorded by this meter.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -93,7 +93,7 @@ namespace
             "The current power consumption.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -114,7 +114,7 @@ namespace
             "The heating energy consumption recorded at the end of the previous billing period.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -127,14 +127,13 @@ namespace
             "The cooling energy consumption recorded at the end of the previous billing period.",
              DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
             .add(VIFCombinable::BackwardFlow)
             .set(StorageNr(16))
             );
-
     }
 }
 

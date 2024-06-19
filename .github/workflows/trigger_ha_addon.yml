@@ -1,0 +1,45 @@
+name: Trigger HA add-on build
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '*.*.*'
+
+jobs:
+  trigger_ha_addon_build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - run: git fetch --prune --unshallow
+
+      - name: Get wmbusmeters version
+        id: version
+        run: |
+          if [ -n "$(git describe --tags | grep -)" ]; then
+            GIT_VER="$(git describe --tags | cut -f1,2 -d'-')"
+            echo "id=${GIT_VER}" >> $GITHUB_OUTPUT
+          else
+            GIT_VER="$(git describe --tags)"
+            echo "id=${GIT_VER}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Trigger build for edge release
+        if: ${{ github.ref_name == 'master' }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.HA_PAT }}
+          repository: wmbusmeters/wmbusmeters-ha-addon
+          event-type: build_ha_edge
+          client-payload: '{"ver": "${{ steps.version.outputs.id }}"}'
+
+      - name: Trigger build for stable release
+        if: ${{ github.ref_name != 'master' }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.HA_PAT }}
+          repository: wmbusmeters/wmbusmeters-ha-addon
+          event-type: build_ha_stable
+          client-payload: '{"ver": "${{ steps.version.outputs.id }}"}'

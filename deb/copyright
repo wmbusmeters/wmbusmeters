@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: wmbusmeters
-Source: https://github.com/weetmuts/wmbusmeters
+Source: https://github.com/wmbusmeters/wmbusmeters
 Upstream-Contact: Fredrik Öhrström <oehrstroem@gmail.com>
 
 Files: *
@@ -15,6 +15,11 @@ Files: src/aes.h
 Copyright: 2019 kokke
 License: CC0
 
+Files: src/driver_apatoreitn.cc
+Copyright: 2023 Fredrik Öhrström
+           2022 Kajetan Krykwiński
+License: GPL-3+
+
 Files: src/driver_emerlin868.cc
 Copyright: 2022 Fredrik Öhrström
            2018 David Mallon
@@ -25,25 +30,26 @@ Copyright: 2022 Fredrik Öhrström
            2018 David Mallon
 License: GPL-3+
 
-Files: src/driver_iperl.cc
-Copyright: 2022 Fredrik Öhrström
-           2018 David Mallon
+Files: src/driver_hydrus.cc
+Copyright: 2023 Fredrik Öhrström
+           2021 Vincent Privat
+License: GPL-3+
+
+Files: src/driver_izar.cc
+Copyright: 2019 Jacek Tomasiak
+           2023 Fredrik Öhrström
+           2021 Vincent Privat
+License: GPL-3+
+
+Files: src/driver_kamheat.cc
+Copyright: 2024 Fredrik Öhrström
+           2020 Eric Bus
+           2022 thecem
 License: GPL-3+
 
 Files: src/driver_minomess.cc
 Copyright: 2021 Olli Salonen
-           2022 Fredrik Öhrström
-License: GPL-3+
-
-Files: src/driver_multical303.cc
-Copyright: 2022 thecem
-           2022 Fredrik Öhrström
-License: GPL-3+
-
-Files: src/driver_multical603.cc
-Copyright: 2022 Fredrik Öhrström
-           2020 Eric Bus
-           2022 thecem
+           2023 Fredrik Öhrström
 License: GPL-3+
 
 Files: src/driver_sensostar.cc
@@ -61,6 +67,11 @@ Copyright: 2021 Vincent Privat
            2022 Fredrik Öhrström
 License: GPL-3+
 
+Files: src/driver_topaseskr.cc
+Copyright: 2022 Fredrik Öhrström
+           2020 Avandorp
+License: GPL-3+
+
 Files: src/manufacturer_specificities.cc
 Copyright: 2019 Jacek Tomasiak
            2021 Vincent Privat
@@ -69,38 +80,6 @@ License: GPL-3+
 Files: src/manufacturer_specificities.h
 Copyright: 2019 Jacek Tomasiak
            2021 Vincent Privat
-License: GPL-3+
-
-Files: src/meter_hydrus.cc
-Copyright: 2020 Fredrik Öhrström
-           2021 Vincent Privat
-License: GPL-3+
-
-Files: src/meter_izar.cc
-Copyright: 2019 Jacek Tomasiak
-           2020 Fredrik Öhrström
-           2021 Vincent Privat
-License: GPL-3+
-
-Files: src/meter_multical403.cc
-Copyright: 2020 Fredrik Öhrström
-           2020 Eric Bus
-License: GPL-3+
-
-Files: src/meter_multical602.cc
-Copyright: 2021 Fredrik Öhrström
-           2020 Eric Bus
-License: GPL-3+
-
-Files: src/meter_multical803.cc
-Copyright: 2020 Fredrik Öhrström
-           2020 Eric Bus
-           2020 Nikodem Jędrzejczak
-License: GPL-3+
-
-Files: src/meter_topaseskr.cc
-Copyright: 2020 Fredrik Öhrström
-           2020 Avandorp
 License: GPL-3+
 
 Files: src/sha256.cc
@@ -113,6 +92,11 @@ Copyright: 2013 Tom St Denis <tomstdenis@gmail.com>
            2013 WaterJuice <waterjuice.org>
 License: CC0
 
+Files: drivers/src/istaheat.xmq
+Copyright: 2024 Fredrik Öhrström
+           2024 Arthur van Dorp
+License: GPL-3+
+
 License: GPL-3+
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -121,6 +105,25 @@ License: GPL-3+
  .
  On Debian systems, the complete text of the GNU General Public License
  version 3 can be found in file "/usr/share/common-licenses/GPL-3".
+
+License: MIT
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
 
 License: CC0
  The authors, and therefore would be copyright holders, have as much

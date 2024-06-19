@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2022 Fredrik Öhrström (gpl-3.0-or-later)
+# Copyright (C) 2017-2024 Fredrik Öhrström (gpl-3.0-or-later)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -64,7 +64,6 @@ else
         # Release build
         DEBUG_FLAGS=-Os -g
         STRIP_BINARY=cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmeters.g; $(STRIP) $(BUILD)/wmbusmeters
-        STRIP_ADMIN=cp $(BUILD)/wmbusmeters-admin $(BUILD)/wmbusmeters-admin.g; $(STRIP) $(BUILD)/wmbusmeters-admin
         GCOV=To_run_gcov_add_DEBUG=true
     endif
 endif
@@ -99,14 +98,13 @@ else
 endif
 
 VERSION:=$(BRANCH)$(TAG)
-DEBVERSION:=$(BRANCH)$(TAG)
+LOCALDEBVERSION:=$(BRANCH)$(TAG)
 LOCALCHANGES:=
 
 ifneq ($(strip $(CHANGES)),)
   # There are local un-committed changes.
   VERSION:=$(VERSION) with local changes
-  COMMIT_HASH:=$(COMMIT_HASH) with local changes
-  DEBVERSION:=$(DEBVERSION)l
+  COMMIT_HASH:=$(COMMIT_HASH)+
   LOCALCHANGES:=true
 endif
 
@@ -140,16 +138,27 @@ ifeq ($(shell uname -s),FreeBSD)
     USBLIB    =  -lusb
 endif
 
+ifeq ($(shell uname -s),Darwin)
+    CXXFLAGS += -I$(shell brew --prefix)/include
+    LDFLAGS  += -L$(shell brew --prefix)/lib
+endif
+
 $(BUILD)/%.o: src/%.cc $(wildcard src/%.h)
 	$(CXX) $(CXXFLAGS) $< -c -E > $@.src
 	$(CXX) $(CXXFLAGS) $< -MMD -c -o $@
 
+$(BUILD)/%.o: src/%.c $(wildcard src/%.h)
+	$(CXX) -I/usr/include/libxml2 $(CXXFLAGS) $< -c -E > $@.src
+	$(CXX) -I/usr/include/libxml2 -fpermissive $(CXXFLAGS)  $< -MMD -c -o $@
+
 PROG_OBJS:=\
+	$(BUILD)/address.o \
 	$(BUILD)/aes.o \
 	$(BUILD)/aescmac.o \
 	$(BUILD)/bus.o \
 	$(BUILD)/cmdline.o \
 	$(BUILD)/config.o \
+	$(BUILD)/drivers.o \
 	$(BUILD)/dvparser.o \
 	$(BUILD)/formula.o \
 	$(BUILD)/mbus_rawtty.o \
@@ -175,6 +184,7 @@ PROG_OBJS:=\
 	$(BUILD)/wmbus_rawtty.o \
 	$(BUILD)/wmbus_rc1180.o \
 	$(BUILD)/wmbus_utils.o \
+	$(BUILD)/xmq.o \
 	$(BUILD)/lora_iu880b.o \
 
 # If you run: "make DRIVER=minomess" then only driver_minomess.cc will be compiled into wmbusmeters.
@@ -184,33 +194,37 @@ ifeq ($(DRIVER),)
 	DRIVER_OBJS:=$(wildcard src/meter_*.cc) $(wildcard src/driver_*.cc)
 else
     $(info Building a single driver $(DRIVER))
-	DRIVER_OBJS:=src/driver_auto.cc src/driver_unknown.cc $(wildcard src/meter_*.cc) src/driver_$(DRIVER).cc
+	DRIVER_OBJS:=src/driver_auto.cc src/driver_unknown.cc src/driver_dynamic.cc $(wildcard src/meter_*.cc) src/driver_$(DRIVER).cc
 endif
 DRIVER_OBJS:=$(patsubst src/%.cc,$(BUILD)/%.o,$(DRIVER_OBJS))
 
-all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd $(BUILD)/wmbusmeters.g $(BUILD)/wmbusmeters-admin $(BUILD)/testinternals
+all: $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd $(BUILD)/wmbusmeters.g $(BUILD)/testinternals
 
-deb:
-	@if [ "$(RELEASE)" = "" ] ; then echo "Usage: make deb TAG=1.10.1" ; exit 1 ; fi
-	@if [ "$$(cat deb/changelog  | grep wmbusmeters\ \( | grep -o $(RELEASE))" != "$(RELEASE)" ]; then \
-        echo "Changelog not updated with this release! It says:" ; \
-	    head -n 1 deb/changelog ; \
-        exit 1 ; \
-    fi
+# Create a local binary only package.
+deb_local:
 	@rm -rf packaging
 	@mkdir -p packaging
-	@echo "Checking out tag $(RELEASE)..."
-	@(cd packaging ; git clone $(PWD) wmbusmeters-$(RELEASE) ; cd wmbusmeters-$(RELEASE) ; git -c advice.detachedHead=false checkout tags/$(RELEASE) )
-	@(cd packaging/wmbusmeters-$(RELEASE) ; git show -s --format=%ct > ../release_date )
+	@echo "Using latest commit..."
+	@(cd packaging ; git clone $(PWD) wmbusmeters-$(LOCALDEBVERSION) ; cd wmbusmeters-$(LOCALDEBVERSION) )
+	@echo "Applying local changes..."
+	@(git diff > packaging/local_patch_$(LOCALDEBVERSION) ; \
+	  cd packaging/wmbusmeters-$(LOCALDEBVERSION) ; \
+	  patch -p 1 < ../local_patch_$(LOCALDEBVERSION) )
+	@(cd packaging/wmbusmeters-$(LOCALDEBVERSION) ; git show -s --format=%ct > ../release_date )
 	@echo "Removing git history..."
-	@(cd packaging ; rm -rf wmbusmeters-$(RELEASE)/.git )
+	@(cd packaging ; rm -rf wmbusmeters-$(LOCALDEBVERSION)/.git )
 	@echo "Setting file timestamps to commit date..."
 	@(cd packaging ; export UT=$$(cat ./release_date) ; find . -exec touch -d "@$$UT" \{\} \; )
 	@echo "Creating orig archive..."
-	@(cd packaging ; tar czf ./wmbusmeters_$(RELEASE).orig.tar.gz wmbusmeters-$(RELEASE) )
+	@(cd packaging ; tar czf ./wmbusmeters_$(LOCALDEBVERSION).orig.tar.gz wmbusmeters-$(LOCALDEBVERSION) )
+	@echo "Installing debian directory..."
+	@(cd packaging/wmbusmeters-$(LOCALDEBVERSION) ; cp -a deb debian )
+	@echo "Creating local dummy changelog..."
+	@echo "wmbusmeters ($(LOCALDEBVERSION)-99) unstable; urgency=low\n\n" \
+          "  * Local build of deb current sources $(VERSION) $(COMMIT_HASH)\n\n" \
+          " -- No User <nouser@nowhere> $(shell LANG=C date -R)\n" > packaging/wmbusmeters-$(LOCALDEBVERSION)/debian/changelog
 	@echo "Running debbuild..."
-	@(cd packaging/wmbusmeters-$(RELEASE) ; cp -a deb debian; debuild )
-
+	@(cd packaging/wmbusmeters-$(LOCALDEBVERSION) ; debuild -i -us -uc -b )
 
 # Check docs verifies that all options in the source have been mentioned in the README and in the man page.
 # Also any option not in the source but mentioned in the docs is warned for as well.
@@ -225,12 +239,18 @@ check_docs:
 	@diff /tmp/options_in_code /tmp/options_in_binary || echo CODE_VS_BINARY
 	@echo "OK docs"
 
-install: $(BUILD)/wmbusmeters check_docs
-	echo "Installing $(BUILD)/wmbusmeters"
+install:
+	@if [ ! -f $(BUILD)/wmbusmeters ] ; then echo "Cannot find the binary to install! You have to run just \"make\" first!" ; exit 1 ; fi
+	@echo "Installing $(BUILD)/wmbusmeters"
 	@./install.sh $(BUILD)/wmbusmeters $(DESTDIR) $(EXTRA_INSTALL_OPTIONS)
 
+# Uninstall binaries and manpages. But keep configuration data and wmbusmeters user/group.
 uninstall:
 	@./uninstall.sh /
+
+# Uninstall everything including configuration and wmbusmeters user/group.
+uninstall_purge:
+	@./uninstall.sh / --purge
 
 snapcraft:
 	snapcraft
@@ -242,7 +262,7 @@ $(BUILD)/authors.h:
 
 # Build binary with debug information. ~15M size binary.
 $(BUILD)/wmbusmeters.g: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters.g $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lrtlsdr $(USBLIB) -lpthread
+	$(CXX) -o $(BUILD)/wmbusmeters.g $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/main.o $(LDFLAGS) -lrtlsdr -lxml2 $(USBLIB) -lpthread
 
 # Production build will have debug information stripped. ~1.5M size binary.
 # DEBUG=true builds, which has address sanitizer code, will always keep the debug information.
@@ -252,15 +272,6 @@ $(BUILD)/wmbusmeters: $(BUILD)/wmbusmeters.g
 
 $(BUILD)/wmbusmetersd: $(BUILD)/wmbusmeters
 	cp $(BUILD)/wmbusmeters $(BUILD)/wmbusmetersd
-
-ifeq ($(shell uname -s),Darwin)
-$(BUILD)/wmbusmeters-admin:
-	touch $(BUILD)/wmbusmeters-admin
-else
-$(BUILD)/wmbusmeters-admin: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(BUILD)/short_manual.h
-	$(CXX) -o $(BUILD)/wmbusmeters-admin $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/admin.o $(BUILD)/ui.o $(LDFLAGS) -lmenu -lform -lncurses -lrtlsdr $(USBLIB) -lpthread
-	$(STRIP_ADMIN)
-endif
 
 $(BUILD)/short_manual.h: README.md
 	echo 'R"MANUAL(' > $(BUILD)/short_manual.h
@@ -274,10 +285,10 @@ testinternals: $(BUILD)/testinternals
 $(BUILD)/testinternals.o: $(PROG_OBJS) $(DRIVER_OBJS) $(wildcard src/*.h)
 
 $(BUILD)/testinternals: $(BUILD)/testinternals.o
-	$(CXX) -o $(BUILD)/testinternals $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS) -lrtlsdr $(USBLIB) -lpthread
+	$(CXX) -o $(BUILD)/testinternals $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/testinternals.o $(LDFLAGS) -lrtlsdr -lxml2 $(USBLIB) -lpthread
 
 $(BUILD)/fuzz: $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o
-	$(CXX) -o $(BUILD)/fuzz $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lrtlsdr -lpthread
+	$(CXX) -o $(BUILD)/fuzz $(PROG_OBJS) $(DRIVER_OBJS) $(BUILD)/fuzz.o $(LDFLAGS) -lrtlsdr -lxml2 -lpthread
 
 clean_executables:
 	rm -rf build/wmbusmeters* build_arm/wmbusmeters* build_debug/wmbusmeters* build_arm_debug/wmbusmeters* *~
@@ -314,16 +325,16 @@ lcov:
 	(cd build_debug; genhtml lcov.info)
 	xdg-open build_debug/src/index.html
 
-test:
+test: build/xmq
 	@./test.sh build/wmbusmeters
 
-testd:
+testd: build/xmq
 	@./test.sh build_debug/wmbusmeters
 
-testdriver:
+testdriver: build/xmq
 	@./tests/test_drivers.sh build/wmbusmeters driver_${DRIVER}.cc
 
-testdriverd:
+testdriverd: build/xmq
 	@./tests/test_drivers.sh build_debug/wmbusmeters driver_${DRIVER}.cc
 
 update_manufacturers:
@@ -389,12 +400,12 @@ update_manufacturers:
 	rm *.flags manufacturers.txt
 
 
-GCC_MAJOR_VERSION:=$(shell gcc --version | head -n 1 | sed 's/.* \([0-9]\)\.[0-9]\.[0-9]$$/\1/')
+GCC_MAJOR_VERSION:=$(shell cc --version | head -n 1 | sed 's/.* \([0-9][0-9]*\)\.[0-9][0-9]*\.[0-9][0-9]*$$/\1/')
 AFL_HOME:=AFLplusplus
 
 $(AFL_HOME)/src/afl-cc.c:
 	mkdir -p AFLplusplus
-	if ! dpkg -s gcc-$(GCC_MAJOR_VERSION)-plugin-dev 2>/dev/null >/dev/null ; then echo "Please run: sudo apt install gcc-$(GCC_MAJOR_VERSION)-plugin-dev"; exit 1; fi
+	@if ! dpkg -s gcc-$(GCC_MAJOR_VERSION)-plugin-dev 2>/dev/null >/dev/null ; then echo "Please run: sudo apt install gcc-$(GCC_MAJOR_VERSION)-plugin-dev"; exit 1; fi
 	git clone https://github.com/AFLplusplus/AFLplusplus.git
 
 afl_prepared:  AFLplusplus/src/afl-cc.c
@@ -441,6 +452,15 @@ deploy:
 
 collect_copyrights:
 	./scripts/collect_copyrights.sh deb/copyright
+
+3rdparty/xmq/build/default/release/xmq: $(wildcard 3rdparty/xmq/src/main/c/* 3rdparty/xmq/src/main/c/parts/*)
+	@mkdir -p 3rdparty
+	@(cd 3rdparty; git clone --depth 1 https://github.com/libxmq/xmq.git; cd xmq; ./configure)
+	@cat 3rdparty/xmq/build/default/spec.mk
+	@if [ "$$(cat 3rdparty/xmq/build/default/spec.mk | grep CC)" = "CC:=gcc" ]; then (cd 3rdparty/xmq; make VERBOSE=) ; else rm -f $@ ; mkdir -p $$(dirname $@); touch $@ ; echo "Could not build xmq." ; fi
+
+build/xmq: 3rdparty/xmq/build/default/release/xmq
+	@cp $< $@
 
 # Include dependency information generated by gcc in a previous compile.
 include $(wildcard $(patsubst %.o,%.d,$(PROG_OBJS) $(DRIVER_OBJS)))

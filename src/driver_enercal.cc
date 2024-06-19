@@ -45,7 +45,7 @@ namespace
             "The total energy consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -56,7 +56,7 @@ namespace
             "The energy consumption recorded by this meter at the set date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -68,7 +68,7 @@ namespace
             "The active power consumption.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyPowerVIF)
@@ -79,7 +79,7 @@ namespace
             "The flow of water.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::VolumeFlow)
@@ -90,7 +90,7 @@ namespace
             "The maximum forward flow of water since the last set date?",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::VolumeFlow)
@@ -101,7 +101,7 @@ namespace
             "The forward temperature of the water.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FlowTemperature)
@@ -112,7 +112,7 @@ namespace
             "The return temperature of the water.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ReturnTemperature)
@@ -123,7 +123,7 @@ namespace
             "The temperature difference forward-return for the water.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::TemperatureDifference)
@@ -134,7 +134,7 @@ namespace
             "The total amount of water that has passed through this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -145,7 +145,7 @@ namespace
             "The amount of water that had passed through this meter at the set date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -157,7 +157,7 @@ namespace
             "The amount of water that has passed through subunit 1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -169,7 +169,7 @@ namespace
             "The amount of water that had passed through the subunit 1 at the set date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -182,7 +182,7 @@ namespace
             "The current heat cost allocation for subunit 1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -194,7 +194,7 @@ namespace
             "The heat cost allocation for subunit 1 at the target date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -207,7 +207,7 @@ namespace
             "The current heat cost allocation for subunit 2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -219,7 +219,7 @@ namespace
             "The heat cost allocation for subunit 2 at the target date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -237,7 +237,7 @@ namespace
             .set(StorageNr(1))
             );
 
-        addOptionalCommonFields("operating_time_h,on_time_h,meter_datetime");
+        addOptionalLibraryFields("operating_time_h,on_time_h,meter_datetime");
     }
 }
 

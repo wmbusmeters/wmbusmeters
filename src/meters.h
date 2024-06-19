@@ -18,11 +18,13 @@
 #ifndef METER_H_
 #define METER_H_
 
+#include"address.h"
 #include"dvparser.h"
 #include"formula.h"
 #include"util.h"
 #include"units.h"
 #include"translatebits.h"
+#include"xmq.h"
 #include"wmbus.h"
 
 #include<assert.h>
@@ -38,14 +40,15 @@
     X(DoorWindowDetector) \
     X(ElectricityMeter) \
     X(GasMeter) \
+    X(HeatCoolingMeter) \
     X(HeatCostAllocationMeter) \
     X(HeatMeter) \
-    X(HeatCoolingMeter) \
+    X(PressureSensor)  \
     X(PulseCounter) \
+    X(Repeater) \
     X(SmokeDetector) \
     X(TempHygroMeter) \
     X(WaterMeter)  \
-    X(PressureSensor)  \
 
 enum class MeterType {
 #define X(name) name,
@@ -78,22 +81,6 @@ bool isValidKey(const string& key, MeterInfo &mt);
 
 using namespace std;
 
-typedef unsigned char uchar;
-
-struct Address
-{
-    // Example address: 12345678
-    // Or fully qualified: 12345678.M=PII.T=1b.V=01
-    // which means manufacturer triplet PII, type/media=0x1b, version=0x01
-    string id;
-    bool wildcard_used {}; // The id contains a *
-    bool mbus_primary {}; // Signals that the id is 0-250
-    uint16_t mfct {};
-    uchar type {};
-    uchar version {};
-
-    bool parse(string &s);
-};
 
 struct MeterInfo
 {
@@ -103,12 +90,13 @@ struct MeterInfo
     string name; // User specified name of this (group of) meters.
     DriverName driver_name; // Will replace MeterDriver.
     string extras; // Extra driver specific settings.
-    vector<string> ids; // Match expressions for ids.
-    string idsc; // Comma separated ids.
+    vector<AddressExpression> address_expressions; // Match expressions for ids.
+    IdentityMode identity_mode {}; // How to group telegram content into objects with state. Default is by id.
     string key;  // Decryption key.
     LinkModeSet link_modes;
     int bps {};     // For mbus communication you need to know the baud rate.
     vector<string> shells;
+    vector<string> meter_shells;
     vector<string> extra_constant_fields; // Additional static fields that are added to each message.
     vector<string> extra_calculated_fields; // Additional field calculated using formulas.
     vector<string> selected_fields; // Usually set to the default fields, but can be override in meter config.
@@ -123,15 +111,15 @@ struct MeterInfo
     string str();
     DriverName driverName();
 
-    MeterInfo(string b, string n, string e, vector<string> i, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &j, vector<string> &calcfs)
+    MeterInfo(string b, string n, string e, vector<AddressExpression> aes, string k, LinkModeSet lms, int baud, vector<string> &s, vector<string> &ms, vector<string> &j, vector<string> &calcfs)
     {
         bus = b;
         name = n;
         extras = e,
-        ids = i;
-        idsc = toIdsCommaSeparated(ids);
+        address_expressions = aes;
         key = k;
         shells = s;
+        meter_shells = ms;
         extra_constant_fields = j;
         extra_calculated_fields = calcfs;
         link_modes = lms;
@@ -142,10 +130,10 @@ struct MeterInfo
     {
         bus = "";
         name = "";
-        ids.clear();
-        idsc = "";
+        address_expressions.clear();
         key = "";
         shells.clear();
+        meter_shells.clear();
         extra_constant_fields.clear();
         extra_calculated_fields.clear();
         link_modes.clear();
@@ -183,8 +171,11 @@ private:
     vector<string> default_fields_;
     int force_mfct_index_ = -1; // Used for meters not declaring mfct specific data using the dif 0f.
     bool has_process_content_ = false; // Mark this driver as having mfct specific decoding.
+    XMQDoc *dynamic_driver_ {}; // Configuration loaded from driver file.
+    string dynamic_file_name_; // Name of actual loaded driver file.
 
 public:
+    ~DriverInfo();
     DriverInfo() {};
     void setName(std::string n) { name_ = n; }
     void addNameAlias(std::string n) { name_aliases_.push_back(n); }
@@ -195,6 +186,9 @@ public:
     void setConstructor(function<shared_ptr<Meter>(MeterInfo&,DriverInfo&)> c) { constructor_ = c; }
     void addDetection(uint16_t mfct, uchar type, uchar ver) { detect_.push_back({ mfct, type, ver }); }
     void usesProcessContent() { has_process_content_ = true; }
+    void setDynamic(const string &file_name, XMQDoc *driver) { dynamic_file_name_ = file_name; dynamic_driver_ = driver; }
+    XMQDoc *getDynamicDriver() { return dynamic_driver_; }
+    const string &getDynamicFileName() { return dynamic_file_name_; }
 
     vector<DriverDetect> &detect() { return detect_; }
 
@@ -219,11 +213,15 @@ public:
 };
 
 bool registerDriver(function<void(DriverInfo&di)> setup);
+// Lookup (and load if necessary) driver from memory or disk.
+DriverInfo *lookupDriver(string name);
 bool lookupDriverInfo(const string& driver, DriverInfo *di = NULL);
 // Return the best driver match for a telegram.
 DriverInfo pickMeterDriver(Telegram *t);
 // Return true for mbus and S2/C2/T2 drivers.
 bool driverNeedsPolling(DriverName& dn);
+
+string loadDriver(const string &file, const char *content);
 
 vector<DriverInfo*>& allDrivers();
 
@@ -231,13 +229,23 @@ vector<DriverInfo*>& allDrivers();
 
 enum class VifScaling
 {
-    None, // No auto scaling.
     Auto, // Scale to normalized VIF unit (ie kwh, m3, m3h etc)
-    NoneSigned, // No auto scaling however assume the value is signed.
-    AutoSigned // Scale and assume the value is signed.
+    None, // No auto scaling.
+    Unknown
 };
 
 const char* toString(VifScaling s);
+VifScaling toVifScaling(const char *s);
+
+enum class DifSignedness
+{
+    Signed,   // By default the binary values are interpreted as signed.
+    Unsigned, // We can override for non-compliant meters.
+    Unknown
+};
+
+const char* toString(DifSignedness s);
+DifSignedness toDifSignedness(const char *s);
 
 enum PrintProperty
 {
@@ -246,8 +254,13 @@ enum PrintProperty
     STATUS = 4, // This is >the< status field and it should read OK of not error flags are set.
     INCLUDE_TPL_STATUS = 8, // This text field also includes the tpl status decoding. multiple OK:s collapse to a single OK.
     INJECT_INTO_STATUS = 16, // This text field is injected into the already defined status field. multiple OK:s collapse.
-    HIDE = 32 // This field is only used in calculations, do not print it!
+    HIDE = 32, // This field is only used in calculations, do not print it!
+    Unknown = 1024
 };
+
+int toBit(PrintProperty p);
+const char* toString(PrintProperty p);
+PrintProperty toPrintProperty(const char *s);
 
 struct PrintProperties
 {
@@ -259,10 +272,14 @@ struct PrintProperties
     bool hasINCLUDETPLSTATUS() { return props_ & PrintProperty::INCLUDE_TPL_STATUS; }
     bool hasINJECTINTOSTATUS() { return props_ & PrintProperty::INJECT_INTO_STATUS; }
     bool hasHIDE() { return props_ & PrintProperty::HIDE; }
+    bool hasUnknown() { return props_ & PrintProperty::Unknown; }
 
-    private:
+private:
     int props_;
 };
+
+// Parse a string like DEPRECATED,HIDE into bits.
+PrintProperties toPrintProperties(string s);
 
 #define DEFAULT_PRINT_PROPERTIES 0
 
@@ -274,6 +291,8 @@ struct FieldInfo
               Quantity quantity,
               Unit display_unit,
               VifScaling vif_scaling,
+              DifSignedness dif_signedness,
+              double scale,
               FieldMatcher matcher,
               string help,
               PrintProperties print_properties,
@@ -290,19 +309,11 @@ struct FieldInfo
     Quantity xuantity() { return xuantity_; }
     Unit displayUnit() { return display_unit_; }
     VifScaling vifScaling() { return vif_scaling_; }
+    DifSignedness difSignedness() { return dif_signedness_; }
+    double scale() { return scale_; }
     FieldMatcher& matcher() { return matcher_; }
     string help() { return help_; }
     PrintProperties printProperties() { return print_properties_; }
-
-    double getNumericValueOverride(Unit u) { if (get_numeric_value_override_) return get_numeric_value_override_(u); else return -12345678; }
-    bool hasGetNumericValueOverride() { return get_numeric_value_override_ != NULL; }
-    string getStringValueOverride() { if (get_string_value_override_) return get_string_value_override_(); else return "?"; }
-    bool hasGetStringValueOverride() { return get_string_value_override_ != NULL; }
-
-    void setNumericValueOverride(Unit u, double v) { if (set_numeric_value_override_) set_numeric_value_override_(u, v); }
-    bool hasSetNumericValueOverride() { return set_numeric_value_override_ != NULL; }
-    void setStringValueOverride(string v) { if (set_string_value_override_) set_string_value_override_(v); }
-    bool hasSetStringValueOverride() { return set_string_value_override_ != NULL; }
 
     bool extractNumeric(Meter *m, Telegram *t, DVEntry *dve = NULL);
     bool extractString(Meter *m, Telegram *t, DVEntry *dve = NULL);
@@ -315,7 +326,7 @@ struct FieldInfo
 
     string renderJsonOnlyDefaultUnit(Meter *m);
     string renderJson(Meter *m, DVEntry *dve);
-    string renderJsonText(Meter *m);
+    string renderJsonText(Meter *m, DVEntry *dve);
     // Render the field name based on the actual field from the telegram.
     // A FieldInfo can be declared to handle any number of storage fields of a certain range.
     // The vname is then a pattern total_at_month_{storage_counter} that gets translated into
@@ -336,6 +347,8 @@ private:
     Quantity xuantity_; // Quantity: Energy, Volume
     Unit display_unit_; // Selected display unit for above quantity: KWH, M3
     VifScaling vif_scaling_;
+    DifSignedness dif_signedness_;
+    double scale_; // A hardcoded scale factor. Used only for manufacturer specific values with unknown units for the vifs.
     FieldMatcher matcher_;
     string help_; // Helpful information on this meters use of this value.
     PrintProperties print_properties_;
@@ -370,10 +383,9 @@ struct Meter
     virtual void setIndex(int i) = 0;
     // Use this bus to send messages to the meter.
     virtual string bus() = 0;
-    // This meter listens to these ids.
-    virtual vector<string> &ids() = 0;
-    // Comma separated ids.
-    virtual string idsc() = 0;
+    // This meter listens to these address expressions.
+    virtual std::vector<AddressExpression>& addressExpressions() = 0;
+    virtual IdentityMode identityMode() = 0;
     // This meter can report these fields, like total_m3, temp_c.
     virtual vector<FieldInfo> &fieldInfos() = 0;
     virtual vector<string> &extraConstantFields() = 0;
@@ -395,13 +407,17 @@ struct Meter
     virtual void setNumericValue(FieldInfo *fi, DVEntry *dve, Unit u, double v) = 0;
     virtual double getNumericValue(string vname, Unit u) = 0;
     virtual double getNumericValue(FieldInfo *fi, Unit u) = 0;
-    virtual void setStringValue(FieldInfo *fi, std::string v) = 0;
+    virtual void setStringValue(FieldInfo *fi, std::string v, DVEntry *dve) = 0;
+    virtual void setStringValue(string vname, std::string v, DVEntry *dve = NULL) = 0;
     virtual std::string getStringValue(FieldInfo *fi) = 0;
     virtual std::string decodeTPLStatusByte(uchar sts) = 0;
 
     virtual void onUpdate(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual int numUpdates() = 0;
 
+    virtual void createMeterEnv(string id,
+                                vector<string> *envs,
+                                vector<string> *more_json) = 0;
     virtual void printMeter(Telegram *t,
                             string *human_readable,
                             string *fields, char separator,
@@ -415,12 +431,15 @@ struct Meter
     // Returns true of this meter handled this telegram!
     // Sets id_match to true, if there was an id match, even though the telegram could not be properly handled.
     virtual bool handleTelegram(AboutTelegram &about, vector<uchar> input_frame,
-                                bool simulated, string *id, bool *id_match, Telegram *out_t = NULL) = 0;
+                                bool simulated, std::vector<Address> *addresses,
+                                bool *id_match, Telegram *out_t = NULL) = 0;
     virtual MeterKeys *meterKeys() = 0;
 
     virtual void addExtraCalculatedField(std::string ecf) = 0;
-    virtual void addShell(std::string cmdline) = 0;
-    virtual vector<string> &shellCmdlines() = 0;
+    virtual void addShellMeterAdded(std::string cmdline) = 0;
+    virtual void addShellMeterUpdated(std::string cmdline) = 0;
+    virtual vector<string> &shellCmdlinesMeterAdded() = 0;
+    virtual vector<string> &shellCmdlinesMeterUpdated() = 0;
     virtual void poll(shared_ptr<BusManager> bus) = 0;
 
     virtual FieldInfo *findFieldInfo(string vname, Quantity xuantity) = 0;
@@ -435,6 +454,7 @@ struct MeterManager
 {
     virtual void addMeterTemplate(MeterInfo &mi) = 0;
     virtual void addMeter(shared_ptr<Meter> meter) = 0;
+    virtual void triggerMeterAdded(shared_ptr<Meter> meter) = 0;
     virtual Meter*lastAddedMeter() = 0;
     virtual void removeAllMeters() = 0;
     virtual void forEachMeter(std::function<void(Meter*)> cb) = 0;
@@ -442,6 +462,7 @@ struct MeterManager
     virtual bool hasAllMetersReceivedATelegram() = 0;
     virtual bool hasMeters() = 0;
     virtual void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb) = 0;
+    virtual void whenMeterAdded(std::function<void(shared_ptr<Meter>)> cb) = 0;
     virtual void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual void pollMeters(shared_ptr<BusManager> bus) = 0;
     virtual void analyzeEnabled(bool b, OutputFormat f, string force_driver, string key, bool verbose, int profile) = 0;
@@ -453,11 +474,14 @@ struct MeterManager
 shared_ptr<MeterManager> createMeterManager(bool daemon);
 
 const char *toString(MeterType type);
+MeterType toMeterType(std::string type);
 string toString(DriverInfo &driver);
 LinkModeSet toMeterLinkModeSet(const string& driver);
 
 struct Configuration;
 struct MeterInfo;
 shared_ptr<Meter> createMeter(MeterInfo *mi);
+
+const char *availableMeterTypes();
 
 #endif

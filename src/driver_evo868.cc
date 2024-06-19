@@ -40,7 +40,7 @@ namespace
         addStringFieldWithExtractorAndLookup(
             "current_status",
             "Status of meter.",
-            DEFAULT_PRINT_PROPERTIES  
+            DEFAULT_PRINT_PROPERTIES
             | PrintProperty::STATUS | PrintProperty::INCLUDE_TPL_STATUS,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -49,7 +49,7 @@ namespace
                 {
                     {
                         "ERROR_FLAGS",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xffff),
                         "OK",
                         {
@@ -59,15 +59,15 @@ namespace
                 },
             });
 
-        addOptionalCommonFields("fabrication_no");
-        addOptionalFlowRelatedFields("total_m3");
+        addOptionalLibraryFields("fabrication_no");
+        addOptionalLibraryFields("total_m3");
 
         addNumericFieldWithExtractor(
             "consumption_at_set_date",
             "The total water consumption at the most recent billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -89,7 +89,7 @@ namespace
             "The total water consumption at the second most recent billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -111,7 +111,7 @@ namespace
             "Maximum water flow since date time.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::VolumeFlow)
@@ -133,7 +133,7 @@ namespace
             "The total water consumption at the historic date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -145,7 +145,7 @@ namespace
             "Reference date for history.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)

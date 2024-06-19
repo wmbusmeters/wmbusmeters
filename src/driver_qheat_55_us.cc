@@ -63,7 +63,7 @@ namespace
             "The total energy consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
                 .set(MeasurementType::Instantaneous)
                 .set(VIFRange::AnyEnergyVIF)
@@ -89,7 +89,7 @@ namespace
             "The total energy consumption recorded at key (billing) date",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
                 .set(MeasurementType::Instantaneous)
                 .set(VIFRange::AnyEnergyVIF)
@@ -121,7 +121,7 @@ namespace
                 info,
                 DEFAULT_PRINT_PROPERTIES,
                 Quantity::Energy,
-                VifScaling::Auto,
+                VifScaling::Auto, DifSignedness::Signed,
                 FieldMatcher::build()
                     .set(MeasurementType::Instantaneous)
                     .set(VIFRange::AnyEnergyVIF)
@@ -136,7 +136,7 @@ namespace
             "The time between the measurement and the sending of this telegram.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ActualityDuration)
@@ -147,7 +147,7 @@ namespace
             "How long the meter has been in an error state and unable to measure values, while powered up.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::AtError)
             .set(VIFRange::OnTime)

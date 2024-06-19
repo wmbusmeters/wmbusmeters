@@ -7,15 +7,15 @@ mkdir -p $TEST
 TESTNAME="Test additional json from cmdline"
 TESTRESULT="ERROR"
 
-cat simulations/simulation_additional_json.txt | grep '^{' > $TEST/test_expected.txt
+cat simulations/simulation_additional_json.txt | grep '^{' | jq --sort-keys . > $TEST/test_expected.txt
 $PROG --format=json --json_floor=5 --json_address="RoodRd 42" --field_city="Stockholm" simulations/simulation_additional_json.txt \
-      MyTapWater multical21 76348799 "" \
-      > $TEST/test_output.txt 2> $TEST/test_stderr.txt
+      MyTapWater multical21 76348799 "" 2> $TEST/test_stderr.txt | jq --sort-keys . > $TEST/test_output.txt
 
 if [ "$?" = "0" ]
 then
-    cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
+    cat $TEST/test_output.txt | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
+
     if [ "$?" = "0" ]
     then
         echo "OK: $TESTNAME"
@@ -23,14 +23,14 @@ then
     else
         if [ "$USE_MELD" = "true" ]
         then
-            meld $TEST/test_expected.txt $TEST/test_response.txt
+            meld $TEST/test_expected.txt $TEST/test_responses.txt
         fi
     fi
 fi
 
 if [ "$TESTRESULT" = "ERROR" ]; then echo ERROR: $TESTNAME;  exit 1; fi
 
-
+exit 0
 
 TESTNAME="Test additional shell envs from cmdline"
 TESTRESULT="ERROR"

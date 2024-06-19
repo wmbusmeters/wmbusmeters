@@ -11,7 +11,7 @@ TESTRESULT="ERROR"
 
 HEX="5E44A51139259471410D7A720050052F2F0C06742400008C1006000000000C13823522008C2013494400000B3B0000000C2B000000000A5A22030A5E91020AA61800004C0619130000CC100600000000426CDF252F2F2F2F2F2F2F2F2F2F2F"
 
-cat > $TEST/test_expected.txt <<EOF
+cat > $TEST/test_expected_unsorted.txt <<EOF
     "set_date":"2022-05-31",
     "set_1_fromd_utc":"2022-12-22T01:00:00Z",
     "set_2_fromdhm_utc":"2022-12-22T13:12:00Z",
@@ -45,6 +45,8 @@ cat > $TEST/test_expected.txt <<EOF
     "set_30_from_setdate_datetime":"2022-06-30 00:00",
     "set_31_from_setdate2_datetime":"2022-07-31 07:33",
 EOF
+
+sort $TEST/test_expected_unsorted.txt > $TEST/test_expected.txt
 
 # TZ=UTC+1 date --date 2022-12-22T12:12:12Z +%s  --> 1671711132 # UTC time
 # TZ=UTC+1 date --date '2022-12-22 12:12:12' +%s --> 1671714732 # Local time in UTC+1 ie Stockholm no daylight savings.
@@ -91,7 +93,7 @@ TZ=UTC+1 $PROG --format=json --ppjson \
 \
   --calculate_set_31_from_setdate2_datetime="set_30_from_setdate_datetime + 1 month + 7 h + '00:33'"\
       "$HEX" \
-      Moo sharky774 71942539 NOKEY | grep \"set_ > $TEST/test_output.txt
+      Moo sharky774 71942539 NOKEY | grep \"set_ | sort > $TEST/test_output.txt
 
 if [ "$?" = "0" ]
 then
@@ -100,6 +102,11 @@ then
     then
         echo "OK: $TESTNAME"
         TESTRESULT="OK"
+    else
+        if [ "$USE_MELD" = "true" ]
+        then
+            meld $TEST/test_expected.txt $TEST/test_output.txt
+        fi
     fi
 fi
 

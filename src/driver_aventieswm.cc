@@ -49,7 +49,7 @@ namespace
                     {
                         {
                             "ERROR_FLAGS",
-                            Translate::Type::BitToString,
+                            Translate::MapType::BitToString,
                             AlwaysTrigger, MaskBits(0xffff),
                             "OK",
                             {
@@ -69,7 +69,7 @@ namespace
             "The total water consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -80,7 +80,7 @@ namespace
             "Water consumption at the # billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -100,7 +100,7 @@ namespace
                     {
                         {
                             "ERROR_FLAGS",
-                            Translate::Type::BitToString,
+                            Translate::MapType::BitToString,
                             AlwaysTrigger, MaskBits(0xffff),
                             "",
                             {

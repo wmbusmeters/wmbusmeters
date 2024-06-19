@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2018-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include"address.h"
 #include"aes.h"
 #include"aescmac.h"
 #include"cmdline.h"
@@ -37,12 +38,13 @@ using namespace std;
 bool verbose_ = false;
 
 #define LIST_OF_TESTS \
+    X(addresses) \
+    X(dynamic_loading)                        \
     X(crc)            \
     X(dvparser)       \
     X(devices)        \
     X(linkmodes)      \
     X(ids)            \
-    X(addresses)      \
     X(kdf)            \
     X(periods)        \
     X(device_parsing) \
@@ -422,7 +424,7 @@ void test_linkmodes()
 
 void test_valid_match_expression(string s, bool expected)
 {
-    bool b = isValidMatchExpressions(s, false);
+    bool b = isValidSequenceOfAddressExpressions(s);
     if (b == expected) return;
     if (expected == true)
     {
@@ -436,9 +438,13 @@ void test_valid_match_expression(string s, bool expected)
 
 void test_does_id_match_expression(string id, string mes, bool expected, bool expected_uw)
 {
-    vector<string> expressions = splitMatchExpressions(mes);
+    Address a;
+    a.id = id;
+    vector<Address> as;
+    as.push_back(a);
+    vector<AddressExpression> expressions = splitAddressExpressions(mes);
     bool uw = false;
-    bool b = doesIdMatchExpressions(id, expressions, &uw);
+    bool b = doesTelegramMatchExpressions(as, expressions, &uw);
     if (b != expected)
     {
         if (expected == true)
@@ -494,9 +500,15 @@ void test_ids()
     test_does_id_match_expression("78563413", "*,!00156327,!00048713", true, true);
 }
 
-void tst_address(string s, bool valid, string id, string mfct, uchar type, uchar version)
+void tst_address(string s, bool valid,
+                 string id, bool has_wildcard,
+                 string mfct,
+                 uchar version,
+                 uchar type,
+                 bool mbus_primary,
+                 bool filter_out)
 {
-    Address a;
+    AddressExpression a;
     bool ok = a.parse(s);
 
     if (ok != valid)
@@ -509,39 +521,182 @@ void tst_address(string s, bool valid, string id, string mfct, uchar type, uchar
     {
         string smfct = manufacturerFlag(a.mfct);
         if (id != a.id ||
+            has_wildcard != a.has_wildcard ||
             mfct != smfct ||
+            version != a.version ||
             type != a.type ||
-            version != a.version)
+            mbus_primary != a.mbus_primary ||
+            filter_out != a.filter_out)
         {
-            printf("Expected parse of address \"%s\" to return (id=%s mfct=%s type=%02x version=%02x) "
-                   "but got (id=%s mfct=%s type=%02x version=%02x)\n",
+            printf("Expected parse of address \"%s\" to return\n"
+                   "(id=%s haswild=%d mfct=%s version=%02x type=%02x mbus=%d negt=%d)\n"
+                   "but got\n"
+                   "(id=%s haswild=%d mfct=%s version=%02x type=%02x mbus=%d negt=%d)\n",
                    s.c_str(),
-                   id.c_str(), mfct.c_str(), type, version,
-                   a.id.c_str(), smfct.c_str(), a.type, a.version);
+                   id.c_str(),
+                   has_wildcard,
+                   mfct.c_str(),
+                   version,
+                   type,
+                   mbus_primary,
+                   filter_out,
+                   a.id.c_str(),
+                   a.has_wildcard,
+                   smfct.c_str(),
+                   a.version,
+                   a.type,
+                   a.mbus_primary,
+                   a.filter_out);
         }
+    }
+}
+
+void tst_address_match(string expr, string id, uint16_t m, uchar v, uchar t, bool match, bool filter_out)
+{
+    AddressExpression e;
+    bool ok = e.parse(expr);
+    assert(ok);
+
+    bool test = e.match(id, m, v, t);
+
+    if (test != match)
+    {
+        printf("Expected address %s %04x %02x %02x to %smatch expression %s\n",
+               id.c_str(),
+               m, v, t,
+               match?"":"not ",
+               expr.c_str());
+    }
+    if (match && e.filter_out != filter_out)
+    {
+        printf("Expected %s from match expression %s\n",
+               filter_out?"FILTERED OUT":"NOT filtered",
+               expr.c_str());
+    }
+}
+
+void tst_telegram_match(string addresses, string expressions, bool match, bool uw)
+{
+    vector<AddressExpression> exprs = splitAddressExpressions(expressions);
+    vector<AddressExpression> as = splitAddressExpressions(addresses);
+    vector<Address> addrs;
+
+    for (auto &ad : as)
+    {
+        Address a;
+        a.id = ad.id;
+        a.mfct = ad.mfct;
+        a.version = ad.version;
+        a.type = ad.type;
+
+        addrs.push_back(a);
+    }
+
+    bool used_wildcard = false;
+    bool m = doesTelegramMatchExpressions(addrs, exprs, &used_wildcard);
+
+    if (m != match)
+    {
+        printf("Expected addresses %s to %smatch expressions %s\n",
+               addresses.c_str(),
+               match?"":"NOT ",
+               expressions.c_str());
+    }
+    if (uw != used_wildcard)
+    {
+        printf("Expected addresses %s from match expression %s %susing wildcard\n",
+               addresses.c_str(),
+               expressions.c_str(),
+               uw?"":"NOT ");
     }
 }
 
 void test_addresses()
 {
-    /*
     tst_address("12345678",
-                 true,
-                 "12345678", // id
-                 "@@@", // mfct
-                 0, // type
-                 0  // version
+                true,
+                "12345678", // id
+                false, // has wildcard
+                "___", // mfct
+                0xff, // type
+                0xff,  // version
+                false, // mbus primary found
+                false // negate test
         );
+    tst_address("123k45678", false, "", false, "", 0xff, 0xff, false, false);
+    tst_address("1234", false, "", false, "", 0xff, 0xff, false, false);
+    tst_address("p0", true, "p0", false, "___", 0xff, 0xff, true, false);
+    tst_address("p250", true, "p250", false, "___", 0xff, 0xff, true, false);
+    tst_address("p251", false, "", false, "", 0xff, 0xff, false, false);
+    tst_address("p0.M=PII.V=01.T=1b", true, "p0", false, "PII", 0x01, 0x1b, true, false);
+    tst_address("p123.V=11.M=FOO.T=ff", true, "p123", false, "FOO", 0x11, 0xff, true, false);
+    tst_address("p123.M=FOO", true, "p123", false, "FOO", 0xff, 0xff, true, false);
+    tst_address("p123.M=FOO.V=33", true, "p123", false, "FOO", 0x33, 0xff, true, false);
+    tst_address("p123.T=33", true, "p123", false, "___", 0xff, 0x33, true, false);
+    tst_address("p1.V=33", true, "p1", false, "___", 0x33, 0xff, true, false);
+    tst_address("p16.M=BAR", true, "p16", false, "BAR", 0xff, 0xff, true, false);
 
-    tst_address("123k45678", false, "", "", 0, 0);
-    tst_address("1234", false, "", "", 0, 0);
-    tst_address("0", true, "0", "@@@", 0, 0);
-    tst_address("250", true, "250", "@@@", 0, 0);
-    tst_address("251", false, "", "", 0, 0);
-    tst_address("0.M=PII.T=1b.V=01", true, "0", "PII", 0x1b, 0x01);
-    tst_address("123.V=11.M=FOO.T=ff", true, "123", "FOO", 0xff, 0x11);
-    tst_address("16.M=BAR", true, "16", "BAR", 0, 0);
-    */
+    tst_address("12345678.M=ABB.V=66.T=16", true, "12345678",  false, "ABB", 0x66, 0x16, false, false);
+    tst_address("!12345678.M=ABB.V=66.T=16", true, "12345678", false, "ABB", 0x66, 0x16, false, true);
+    tst_address("!*.M=ABB", true, "*", true, "ABB", 0xff, 0xff, false, true);
+    tst_address("!*.V=66.T=06", true, "*", true, "___", 0x66, 0x06, false, true);
+
+    tst_address("12*", true, "12*", true, "___", 0xff, 0xff, false, false);
+    tst_address("!1234567*", true, "1234567*", true, "___", 0xff, 0xff, false, true);
+
+    tst_address_match("12345678", "12345678", 1, 1, 1, true, false);
+    tst_address_match("12345678.M=ABB.V=77", "12345678", MANUFACTURER_ABB, 0x77, 88, true, false);
+    tst_address_match("1*.V=77", "12345678", MANUFACTURER_ABB, 0x77, 1, true, false);
+    tst_address_match("12345678.M=ABB.V=67.T=06", "12345678", MANUFACTURER_ABB, 0x67, 0x06, true, false);
+    tst_address_match("12345678.M=ABB.V=67.T=06", "12345678", MANUFACTURER_ABB, 0x68, 0x06, false, false);
+    tst_address_match("12345678.M=ABB.V=67.T=06", "12345678", MANUFACTURER_ABB, 0x67, 0x07, false, false);
+    tst_address_match("12345678.M=ABB.V=67.T=06", "12345678", MANUFACTURER_ABB+1, 0x67, 0x06, false, false);
+    tst_address_match("12345678.M=ABB.V=67.T=06", "12345677", MANUFACTURER_ABB, 0x67, 0x06, false, false);
+
+    // Now verify filter out ! character. The filter out does notchange the test. It is still the same
+    // test, but the match will be used as a filter out. Ie if the match triggers, then the telegram will be filtered out.
+    tst_address_match("!12345678", "12345677", 1, 1, 1, false, false);
+    tst_address_match("!*.M=ABB", "99999999", MANUFACTURER_ABB, 1, 1, true, true);
+    tst_address_match("*.M=ABB", "99999999", MANUFACTURER_ABB, 1, 1, true, false);
+
+    // Test that both id wildcard matches and the version.
+    tst_address_match("9*.V=06", "99999999", MANUFACTURER_ABB, 0x06, 1, true, false);
+    tst_address_match("9*.V=06", "89999999", MANUFACTURER_ABB, 0x06, 1, false, false);
+    tst_address_match("9*.V=06", "99999999", MANUFACTURER_ABB, 0x07, 1, false, false);
+    tst_address_match("9*.V=06", "89999999", MANUFACTURER_ABB, 0x07, 1, false, false);
+
+    // Test the same, expect same answers but check that filtered out is set.
+    tst_address_match("!9*.V=06", "99999999", MANUFACTURER_ABB, 0x06, 1, true, true);
+    tst_address_match("!9*.V=06", "89999999", MANUFACTURER_ABB, 0x06, 1, false, true);
+    tst_address_match("!9*.V=06", "99999999", MANUFACTURER_ABB, 0x07, 1, false, true);
+    tst_address_match("!9*.V=06", "89999999", MANUFACTURER_ABB, 0x07, 1, false, true);
+
+    tst_telegram_match("12345678", "12345678", true, false);
+    tst_telegram_match("11111111,22222222", "12345678,22*", true, true);
+    tst_telegram_match("11111111,22222222", "12345678,22222222", true, false);
+    tst_telegram_match("11111111.M=KAM,22222222.M=PII", "11111111.M=KAM", true, false);
+    tst_telegram_match("11111111.M=KAF", "11111111.M=KAM", false, false);
+
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAM", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAF", false, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAM", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.V=1b", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.T=16", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAM.T=16", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAM.V=1b", true, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.T=16.V=1b", true, false);
+
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAL", false, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.V=1c", false, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.T=17", false, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAM.T=17", false, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.M=KAL.V=1b", false, false);
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16", "11111111.T=17.V=1b", false, false);
+
+    // Test * matches both 11111111 and 2222222 but the only the 111111 matches the filter out V=1b.
+    // Verify that the filter out !1*.V=1b will override successfull match (with no filter out) * for 22222222.
+    tst_telegram_match("11111111.M=KAM.V=1b.T=16,22222222.M=XXX.V=aa.T=99", "*,!1*.V=1b", false, true);
 }
 
 void eq(string a, string b, const char *tn)
@@ -1228,13 +1383,13 @@ void test_translate()
 {
     Translate::Lookup lookup1 =
         Translate::Lookup()
-        .add(Translate::Rule("ACCESS_BITS", Translate::Type::BitToString)
+        .add(Translate::Rule("ACCESS_BITS", Translate::MapType::BitToString)
              .set(MaskBits(0xf0))
              .add(Translate::Map(0x10, "NO_ACCESS", TestBit::Set))
              .add(Translate::Map(0x20, "ALL_ACCESS", TestBit::Set))
              .add(Translate::Map(0x40, "TEMP_ACCESS", TestBit::Set))
             )
-        .add(Translate::Rule("ACCESSOR_TYPE", Translate::Type::IndexToString)
+        .add(Translate::Rule("ACCESSOR_TYPE", Translate::MapType::IndexToString)
              .set(MaskBits(0x0f))
              .add(Translate::Map(0x00, "ACCESSOR_RED", TestBit::Set))
              .add(Translate::Map(0x07, "ACCESSOR_GREEN", TestBit::Set))
@@ -1246,7 +1401,7 @@ void test_translate()
             {
                 {
                     "FLOW_FLAGS",
-                    Translate::Type::BitToString,
+                    Translate::MapType::BitToString,
                     AlwaysTrigger,
                     MaskBits(0x3f),
                     "OOOK",
@@ -1265,7 +1420,7 @@ void test_translate()
             {
                 {
                     "NO_FLAGS",
-                    Translate::Type::BitToString,
+                    Translate::MapType::BitToString,
                     AlwaysTrigger,
                     MaskBits(0x03),
                     "OK",
@@ -1493,6 +1648,7 @@ void test_field_matcher()
                MeasurementType::Instantaneous,
                Vif(0x13),
                { },
+               { },
                StorageNr(0),
                TariffNr(0),
                SubUnitNr(0),
@@ -1522,6 +1678,7 @@ void test_field_matcher()
                MeasurementType::Instantaneous,
                Vif(0x10),
                { VIFCombinable::DeltaBetweenImportAndExport },
+               { },
                StorageNr(2),
                TariffNr(0),
                SubUnitNr(0),
@@ -1853,6 +2010,10 @@ LIST_OF_QUANTITIES
     fill_with_units_from(Quantity::Energy, &from_set);
     fill_with_units_from(Quantity::Energy, &to_set);
 
+    // 1 kwh is 1000 wh
+    test_si_convert(1.0, 1000, Unit::KWH, "kwh", Unit::WH, "wh", Quantity::Energy, &from_set, &to_set);
+    // 2000 wh is 2 wh
+    test_si_convert(2000.0, 2.0, Unit::WH, "wh", Unit::KWH, "kwh", Quantity::Energy, &from_set, &to_set);
     // 1 kwh is 3.6 mj
     test_si_convert(1.0, 3.6, Unit::KWH, "kwh", Unit::MJ, "mj", Quantity::Energy, &from_set, &to_set);
     // 1 kwh is 0.0036 gj
@@ -1928,7 +2089,9 @@ LIST_OF_QUANTITIES
     fill_with_units_from(Quantity::Power, &from_set);
     fill_with_units_from(Quantity::Power, &to_set);
 
-    test_si_convert(1, 1, Unit::KW, "kw", Unit::KW, "kw", Quantity::Power, &from_set, &to_set);
+    test_si_convert(1, 1000, Unit::KW, "kw", Unit::W, "w", Quantity::Power, &from_set, &to_set);
+    test_si_convert(1000, 1, Unit::W, "w", Unit::KW, "kw", Quantity::Power, &from_set, &to_set);
+
     // The power variant is m3ch.
     test_si_convert(99.0, 99.0, Unit::M3CH, "m3ch", Unit::M3CH, "m3ch", Quantity::Power, &from_set, &to_set);
 
@@ -2018,13 +2181,30 @@ LIST_OF_QUANTITIES
     // Test counter: counter
     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    q_set.erase(Quantity::Counter);
-    fill_with_units_from(Quantity::Counter, &from_set);
-    fill_with_units_from(Quantity::Counter, &to_set);
+    q_set.erase(Quantity::Dimensionless);
+    fill_with_units_from(Quantity::Dimensionless, &from_set);
+    fill_with_units_from(Quantity::Dimensionless, &to_set);
 
-    test_si_convert(2211717, 2211717, Unit::COUNTER, "counter", Unit::COUNTER, "counter", Quantity::Counter, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::COUNTER, "counter", Unit::FACTOR, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::FACTOR, "counter", Unit::COUNTER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::NUMBER, "counter", Unit::COUNTER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::FACTOR, "counter", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::PERCENTAGE, "counter", Unit::NUMBER, "counter", Quantity::Dimensionless, &from_set, &to_set);
+    test_si_convert(2211717, 2211717, Unit::NUMBER, "counter", Unit::PERCENTAGE, "counter", Quantity::Dimensionless, &from_set, &to_set);
 
-    check_units_tested(from_set, to_set, Quantity::Counter);
+    check_units_tested(from_set, to_set, Quantity::Dimensionless);
+
+    // Test angles: deg rad
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Angle);
+    fill_with_units_from(Quantity::Angle, &from_set);
+    fill_with_units_from(Quantity::Angle, &to_set);
+
+    test_si_convert(180, 3.1415926535897931l, Unit::DEGREE, "deg", Unit::RADIAN, "rad", Quantity::Angle, &from_set, &to_set);
+    test_si_convert(3.1415926535897931l, 180, Unit::RADIAN, "rad", Unit::DEGREE, "deg", Quantity::Angle, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Angle);
 
     // Test point in time units: ut utc lt
     /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2144,9 +2324,9 @@ void test_formulas_building_meters()
         MeterKeys mk;
         t.parse(frame, &mk, true);
 
-        string id;
+        vector<Address> addresses;
         bool match;
-        meter->handleTelegram(t.about, frame, true, &id, &match, &t);
+        meter->handleTelegram(t.about, frame, true, &addresses, &match, &t);
 
         f->clear();
         f->setMeter(meter.get());
@@ -2195,7 +2375,7 @@ void test_formulas_building_meters()
         MeterKeys mk;
         t.parse(frame, &mk, true);
 
-        string id;
+        vector<Address> id;
         bool match;
         meter->handleTelegram(t.about, frame, true, &id, &match, &t);
 
@@ -2379,7 +2559,7 @@ void test_formulas_parsing_1()
     MeterKeys mk;
     t.parse(frame, &mk, true);
 
-    string id;
+    vector<Address> id;
     bool match;
     meter->handleTelegram(t.about, frame, true, &id, &match, &t);
 
@@ -2429,7 +2609,7 @@ void test_formulas_parsing_2()
     MeterKeys mk;
     t.parse(frame, &mk, true);
 
-    string id;
+    vector<Address> id;
     bool match;
     meter->handleTelegram(t.about, frame, true, &id, &match, &t);
 
@@ -2570,4 +2750,23 @@ void test_formulas_stringinterpolation()
                s.c_str());
     }
 
+}
+
+void test_dynamic_loading()
+{
+    VIFRange vr = toVIFRange("Date");
+
+    if (vr != VIFRange::Date)
+    {
+        printf("ERROR in dynamic loading got %s but expected %s!\n",
+               toString(vr), toString(VIFRange::Date));
+    }
+
+    vr = toVIFRange("DateTime");
+
+    if (vr != VIFRange::DateTime)
+    {
+        printf("ERROR in dynamic loading got %s but expected %s!\n",
+               toString(vr), toString(VIFRange::DateTime));
+    }
 }

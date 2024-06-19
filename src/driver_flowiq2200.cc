@@ -51,7 +51,7 @@ namespace
                 {
                     {
                         "ERROR_FLAGS",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xffffffff),
                         "OK",
                         {
@@ -71,7 +71,7 @@ namespace
             "The total water consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -82,7 +82,7 @@ namespace
              "The total water consumption recorded at the beginning of this month.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -104,7 +104,7 @@ namespace
             "The current flow of water through the meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::VolumeFlow)
@@ -115,7 +115,7 @@ namespace
              "The water temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Minimum)
             .set(VIFRange::FlowTemperature)
@@ -127,7 +127,7 @@ namespace
             "The maximum water temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::FlowTemperature)
@@ -139,7 +139,7 @@ namespace
             "The external temperature outside of the meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Minimum)
             .set(VIFRange::ExternalTemperature)
@@ -148,10 +148,10 @@ namespace
 
         addNumericFieldWithExtractor(
             "max_flow",
-            "The maxium flow recorded during previous period.",
+            "The maximum flow recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::VolumeFlow)
@@ -163,7 +163,7 @@ namespace
             "The minimum flow recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Minimum)
             .set(VIFRange::VolumeFlow)
@@ -172,10 +172,10 @@ namespace
 
         addNumericFieldWithExtractor(
             "max_external_temperature",
-            "The maxium temperature recorded during previous period.",
+            "The maximum temperature recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::ExternalTemperature)
@@ -187,7 +187,7 @@ namespace
             "The minimum flow recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Minimum)
             .set(VIFRange::ExternalTemperature)
@@ -196,10 +196,10 @@ namespace
 
         addNumericFieldWithExtractor(
             "max_flow",
-            "The maxium flow recorded during previous period.",
+            "The maximum flow recorded during previous period.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Maximum)
             .set(VIFRange::VolumeFlow)
@@ -216,7 +216,7 @@ namespace
                 {
                     {
                         "DRY",
-                        Translate::Type::IndexToString,
+                        Translate::MapType::IndexToString,
                         AlwaysTrigger, MaskBits(0x0070),
                         "",
                         {
@@ -243,7 +243,7 @@ namespace
                 {
                     {
                         "REVERSED",
-                        Translate::Type::IndexToString,
+                        Translate::MapType::IndexToString,
                         AlwaysTrigger, MaskBits(0x0380),
                         "",
                         {
@@ -270,7 +270,7 @@ namespace
                 {
                     {
                         "LEAKING",
-                        Translate::Type::IndexToString,
+                        Translate::MapType::IndexToString,
                         AlwaysTrigger, MaskBits(0x1c00),
                         "",
                         {
@@ -297,7 +297,7 @@ namespace
                 {
                     {
                         "BURSTING",
-                        Translate::Type::IndexToString,
+                        Translate::MapType::IndexToString,
                         AlwaysTrigger, MaskBits(0xe000),
                         "",
                         {

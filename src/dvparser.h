@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2018-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2018-2024 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 #include<map>
 #include<set>
-#include<stdint.h>
+#include<cstdint>
 #include<time.h>
 #include<functional>
 #include<vector>
@@ -39,7 +39,7 @@
     X(ExternalTemperature,0x64,0x67, Quantity::Temperature, Unit::C) \
     X(Pressure,0x68,0x6B, Quantity::Pressure, Unit::BAR) \
     X(HeatCostAllocation,0x6E,0x6E, Quantity::HCA, Unit::HCA) \
-    X(Date,0x6C,0x6C, Quantity::PointInTime, Unit::DateTimeLT) \
+    X(Date,0x6C,0x6C, Quantity::PointInTime, Unit::DateLT) \
     X(DateTime,0x6D,0x6D, Quantity::PointInTime, Unit::DateTimeLT) \
     X(EnergyMJ,0x08,0x0F, Quantity::Energy, Unit::MJ) \
     X(EnergyWh,0x00,0x07, Quantity::Energy, Unit::KWH) \
@@ -47,8 +47,12 @@
     X(ActualityDuration,0x74,0x77, Quantity::Time, Unit::Hour) \
     X(FabricationNo,0x78,0x78, Quantity::Text, Unit::TXT) \
     X(EnhancedIdentification,0x79,0x79, Quantity::Text, Unit::TXT) \
+    X(EnergyMWh,0x7B00,0x7B01, Quantity::Energy, Unit::KWH) \
+    X(EnergyGJ,0x7B09,0x7B0A, Quantity::Energy, Unit::MJ) \
     X(RelativeHumidity,0x7B1A,0x7B1B, Quantity::RH, Unit::RH) \
     X(AccessNumber,0x7D08,0x7D08, Quantity::Counter, Unit::COUNTER) \
+    X(Medium,0x7D09,0x7D09, Quantity::Text, Unit::TXT) \
+    X(Manufacturer,0x7D0A,0x7D0A, Quantity::Text, Unit::TXT) \
     X(ParameterSet,0x7D0B,0x7D0B, Quantity::Text, Unit::TXT) \
     X(ModelVersion,0x7D0C,0x7D0C, Quantity::Text, Unit::TXT) \
     X(HardwareVersion,0x7D0D,0x7D0D, Quantity::Text, Unit::TXT) \
@@ -57,6 +61,7 @@
     X(Location,0x7D10,0x7D10, Quantity::Text, Unit::TXT) \
     X(Customer,0x7D11,0x7D11, Quantity::Text, Unit::TXT) \
     X(ErrorFlags,0x7D17,0x7D17, Quantity::Text, Unit::TXT) \
+    X(DigitalOutput,0x7D1A,0x7D1A, Quantity::Text, Unit::TXT) \
     X(DigitalInput,0x7D1B,0x7D1B, Quantity::Text, Unit::TXT) \
     X(DurationSinceReadout,0x7D2c,0x7D2f, Quantity::Time, Unit::Hour) \
     X(DurationOfTariff,0x7D31,0x7D33, Quantity::Time, Unit::Hour) \
@@ -81,7 +86,13 @@ LIST_OF_VIF_RANGES
 #undef X
 };
 
+struct VIFRaw {
+    VIFRaw(uint16_t v) : value(v) {}
+    uint16_t value;
+};
+
 const char *toString(VIFRange v);
+VIFRange toVIFRange(const char *s);
 Unit toDefaultUnit(VIFRange v);
 VIFRange toVIFRange(int i);
 bool isInsideVIFRange(int i, VIFRange range);
@@ -174,7 +185,15 @@ bool isInsideVIFRange(int i, VIFRange range);
     X(AccumulationOfAbsoluteValue,0x7c10,0x7c10) \
     X(DataPresentedWithTypeC,0x7c11,0x7c11) \
     X(DataPresentedWithTypeD,0x7c12,0x7c12) \
-
+    X(Mfct00,0x7f00,0x7f00) \
+    X(Mfct01,0x7f01,0x7f01) \
+    X(Mfct02,0x7f02,0x7f02) \
+    X(Mfct03,0x7f03,0x7f03) \
+    X(Mfct04,0x7f04,0x7f04) \
+    X(Mfct05,0x7f05,0x7f05) \
+    X(Mfct06,0x7f06,0x7f06) \
+    X(Mfct07,0x7f07,0x7f07) \
+    X(Mfct21,0x7f21,0x7f21) \
 
 enum class VIFCombinable
 {
@@ -185,6 +204,12 @@ LIST_OF_VIF_COMBINABLES
 #undef X
 };
 
+struct VIFCombinableRaw {
+    VIFCombinableRaw(uint16_t v) : value(v) {}
+    uint16_t value;
+};
+
+VIFCombinable toVIFCombinable(const char *s);
 VIFCombinable toVIFCombinable(int i);
 const char *toString(VIFCombinable v);
 
@@ -194,10 +219,12 @@ enum class MeasurementType
     Instantaneous,
     Minimum,
     Maximum,
-    AtError
+    AtError,
+    Unknown
 };
 
 const char *toString(MeasurementType mt);
+MeasurementType toMeasurementType(const char *s);
 
 void extractDV(std::string &s, uchar *dif, int *vif, bool *has_difes, bool *has_vifes);
 
@@ -314,6 +341,7 @@ struct DVEntry
     MeasurementType measurement_type;
     Vif vif;
     std::set<VIFCombinable> combinable_vifs;
+    std::set<uint16_t> combinable_vifs_raw;
     StorageNr storage_nr;
     TariffNr tariff_nr;
     SubUnitNr subunit_nr;
@@ -324,6 +352,7 @@ struct DVEntry
             MeasurementType mt,
             Vif vi,
             std::set<VIFCombinable> vc,
+            std::set<uint16_t> vc_raw,
             StorageNr st,
             TariffNr ta,
             SubUnitNr su,
@@ -333,6 +362,7 @@ struct DVEntry
         measurement_type(mt),
         vif(vi),
         combinable_vifs(vc),
+        combinable_vifs_raw(vc_raw),
         storage_nr(st),
         tariff_nr(ta),
         subunit_nr(su),
@@ -352,7 +382,7 @@ struct DVEntry
     {
     }
 
-    bool extractDouble(double *out, bool auto_scale, bool assume_signed);
+    bool extractDouble(double *out, bool auto_scale, bool force_unsigned);
     bool extractLong(uint64_t *out);
     bool extractDate(struct tm *out);
     bool extractReadableString(std::string *out);
@@ -383,8 +413,13 @@ struct FieldMatcher
     bool match_vif_range = false;
     VIFRange vif_range { VIFRange::Any };
 
+    // Match the vif exactly, used for manufacturer specific vifs.
+    bool match_vif_raw = false;
+    uint16_t vif_raw {};
+
     // Match any vif combinables.
     std::set<VIFCombinable> vif_combinables;
+    std::set<uint16_t> vif_combinables_raw;
 
     // Match the storage nr. If no storage is specified, default to match only 0.
     bool match_storage_nr = true;
@@ -421,8 +456,15 @@ struct FieldMatcher
         vif_range = v;
         match_vif_range = (v != VIFRange::Any);
         return *this; }
+    FieldMatcher &set(VIFRaw v) {
+        vif_raw = v.value;
+        match_vif_raw = true;
+        return *this; }
     FieldMatcher &add(VIFCombinable v) {
         vif_combinables.insert(v);
+        return *this; }
+    FieldMatcher &add(VIFCombinableRaw v) {
+        vif_combinables_raw.insert(v.value);
         return *this; }
     FieldMatcher &set(StorageNr s) {
         storage_nr_from = storage_nr_to = s;
@@ -520,7 +562,7 @@ bool extractDVdouble(std::map<std::string,std::pair<int,DVEntry>> *values,
                      int *offset,
                      double *value,
                      bool auto_scale = true,
-                     bool assume_signed = false);
+                     bool force_unsigned = false);
 
 // Extract a value without scaling. Works for 8bits to 64 bits, binary and bcd.
 bool extractDVlong(std::map<std::string,std::pair<int,DVEntry>> *values,
@@ -546,5 +588,8 @@ bool extractDVdate(std::map<std::string,std::pair<int,DVEntry>> *values,
                    int *offset,
                    struct tm *value);
 
+
+const std::string &availableVIFRanges();
+const std::string &availableVIFCombinables();
 
 #endif

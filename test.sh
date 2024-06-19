@@ -11,7 +11,7 @@ fi
 
 if ! command -v jq > /dev/null
 then
-    echo "You have to install jq !"
+    echo "You have to install jq! Try: sudo apt install jq"
     exit 1
 fi
 
@@ -30,7 +30,13 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_s1_meters.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_non_existant_driver.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_mbus.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_libmbus_secondary_address.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_anyid.sh $PROG
@@ -87,10 +93,16 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_conversions.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_conversions_more.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_calculate.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_formulas.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_formula_errors.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_calculate_dates.sh $PROG
@@ -115,6 +127,18 @@ tests/test_cmdline.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_additional_json.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_addresses.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_address_filtering.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_address_dll.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+tests/test_identity_mode.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 tests/test_rtlwmbus.sh $PROG
@@ -163,10 +187,32 @@ if [ "$?" != "0" ]; then RC="1"; fi
 ./tests/test_rtlwmbus_timestamps.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+if [ -s build/xmq ]
+then
+    ./build/xmq tests/generated_tests.xmq for-each /test --shell='./tests/testit.sh '$PROG' "${args}" "${telegram}" "${json}" "${fields}"'
+else
+    echo "Skipping tests/generated_tests.xmq since xmq is missing."
+fi
+
 ./tests/test_drivers.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 ./tests/test_analyze.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_loadable_drivers.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_bad_driver.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_metershell_env.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_metershell.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_metershell2.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 if [ -x ../additional_tests.sh ]
@@ -177,14 +223,19 @@ fi
 # Only run the netcat tests if netcat is installed.
 if command -v nc > /dev/null 2> /dev/null
 then
-    ./tests/test_nc1.sh $PROG
-    if [ "$?" != "0" ]; then RC="1"; fi
+    IS_NC_OPENBSD=$(nc -help 2>&1 | grep -o OpenBSD)
+    # These tests only work with netcat-openbsd.
+    if [ "$IS_NC_OPENBSD" = "OpenBSD" ]
+    then
+        ./tests/test_nc1.sh $PROG
+        if [ "$?" != "0" ]; then RC="1"; fi
 
-    ./tests/test_nc2.sh $PROG
-    if [ "$?" != "0" ]; then RC="1"; fi
+        ./tests/test_nc2.sh $PROG
+        if [ "$?" != "0" ]; then RC="1"; fi
 
-    ./tests/test_nc3.sh $PROG
-    if [ "$?" != "0" ]; then RC="1"; fi
+        ./tests/test_nc3.sh $PROG
+        if [ "$?" != "0" ]; then RC="1"; fi
+    fi
 fi
 
 echo Slower tests...

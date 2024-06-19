@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2019-2023 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ namespace
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_BMT,  0x06,  0x13);
+        di.addDetection(MANUFACTURER_BMT,  0x06,  0x17);
         di.addDetection(MANUFACTURER_BMT,  0x07,  0x13);
         di.addDetection(MANUFACTURER_BMT,  0x07,  0x15);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
@@ -43,7 +44,7 @@ namespace
             "The total water consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -54,7 +55,7 @@ namespace
             "Meter timestamp for measurement.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime),
@@ -67,3 +68,8 @@ namespace
 // telegram=|4E44B4098686868613077AF0004005_2F2F0C1366380000046D27287E2A0F150E00000000C10000D10000E60000FD00000C01002F0100410100540100680100890000A00000B30000002F2F2F2F2F2F|
 // {"media":"water","meter":"hydrodigit","name":"HydrodigitWater","id":"86868686","total_m3":3.866,"meter_datetime":"2019-10-30 08:39","timestamp":"1111-11-11T11:11:11Z"}
 // |HydrodigitWater;86868686;3.866;2019-10-30 08:39;1111-11-11 11:11.11
+
+// Test: HydridigitWaterr hydrodigit 03245501 NOKEY
+// telegram=|2444B4090155240317068C00487AC0000000_0C1335670000046D172EEA280F030000000000|
+// {"id": "03245501","media": "warm water","meter": "hydrodigit","meter_datetime": "2023-08-10 14:23","name": "HydridigitWaterr","timestamp": "1111-11-11T11:11:11Z","total_m3": 6.735}
+// |HydridigitWaterr;03245501;6.735;2023-08-10 14:23;1111-11-11 11:11.11

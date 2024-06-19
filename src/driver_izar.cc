@@ -211,14 +211,15 @@ namespace
         if (detectDiehlFrameInterpretation(frame) == DiehlFrameInterpretation::SAP_PRIOS)
         {
             string digits = to_string((origin[7] & 0x03) << 24 | origin[6] << 16 | origin[5] << 8 | origin[4]);
+            digits = tostrprintf("%08d", atoi(digits.c_str())); // Make sure we are on 8 digits for 200x years
             // get the manufacture year
             uint8_t yy = atoi(digits.substr(0, 2).c_str());
             int manufacture_year = yy > 70 ? (1900 + yy) : (2000 + yy); // Maybe to adjust in 2070, if this code stills lives :D
-            setStringValue("manufacture_year", tostrprintf("%d", manufacture_year));
+            setStringValue("manufacture_year", tostrprintf("%d", manufacture_year), NULL);
 
             // get the serial number
             uint32_t serial_number = atoi(digits.substr(2, digits.size()).c_str());
-            setStringValue("serial_number", tostrprintf("%06d", serial_number));
+            setStringValue("serial_number", tostrprintf("%06d", serial_number), NULL);
 
             // get letters
             uchar supplier_code = '@' + (((origin[9] & 0x0F) << 1) | (origin[8] >> 7));
@@ -226,7 +227,7 @@ namespace
             uchar diameter = '@' + (((origin[8] & 0x03) << 3) | (origin[7] >> 5));
             // build the prefix
             string prefix = tostrprintf("%c%02d%c%c", supplier_code, yy, meter_type, diameter);
-            setStringValue("prefix", prefix);
+            setStringValue("prefix", prefix, NULL);
         }
 
         // get the remaining battery life (in year) and transmission period (in seconds)
@@ -239,20 +240,24 @@ namespace
         double total_water_consumption_l_ = uint32FromBytes(decoded_content, 1, true);
         setNumericValue("total", Unit::L, total_water_consumption_l_);
 
-        double last_month_total_water_consumption_l_ = uint32FromBytes(decoded_content, 5, true);
-        setNumericValue("last_month_total", Unit::L, last_month_total_water_consumption_l_);
-
-        // get the date when the second measurement was taken
-        uint16_t h0_year = ((decoded_content[10] & 0xF0) >> 1) + ((decoded_content[9] & 0xE0) >> 5);
-        if (h0_year > 80) {
-            h0_year += 1900;
-        } else {
-            h0_year += 2000;
+        if (decoded_content.size() > 8) {
+            double last_month_total_water_consumption_l_ = uint32FromBytes(decoded_content, 5, true);
+            setNumericValue("last_month_total", Unit::L, last_month_total_water_consumption_l_);
         }
-        uint8_t h0_month = decoded_content[10] & 0xF;
-        uint8_t h0_day = decoded_content[9] & 0x1F;
+        
+        // get the date when the second measurement was taken
+        if (decoded_content.size() > 10) {
+            uint16_t h0_year = ((decoded_content[10] & 0xF0) >> 1) + ((decoded_content[9] & 0xE0) >> 5);
+            if (h0_year > 80) {
+                h0_year += 1900;
+            } else {
+                h0_year += 2000;
+            }
+            uint8_t h0_month = decoded_content[10] & 0xF;
+            uint8_t h0_day = decoded_content[9] & 0x1F;
 
-        setStringValue("last_month_measure_date", tostrprintf("%d-%02d-%02d", h0_year, h0_month%99, h0_day%99));
+            setStringValue("last_month_measure_date", tostrprintf("%d-%02d-%02d", h0_year, h0_month%99, h0_day%99), NULL);
+        }
 
         // read the alarms:
         IzarAlarms alarms {};

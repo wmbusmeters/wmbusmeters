@@ -53,7 +53,7 @@ fi
 
 RC_VERSION="$MAJOR.$MINOR.$PATCH-RC$RC"
 
-if [ git tag "$RC_VERSION" | grep -q "$RC_VERSION" ]
+if git tag | grep -q "$RC_VERSION"
 then
     echo "Oups! The tag $RC_VERSION already exists! Please remove it!"
     exit 0

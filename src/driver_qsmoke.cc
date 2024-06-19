@@ -49,7 +49,7 @@ namespace
                 {
                     {
                         "ERROR_FLAGS",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xffff),
                         "OK",
                         {
@@ -72,8 +72,8 @@ namespace
             "alarm",
             "Number of times the smoke alarm has triggered.",
              DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
-            VifScaling::None,
+            Quantity::Dimensionless,
+            VifScaling::None, DifSignedness::Unsigned,
             FieldMatcher::build()
             .set(DifVifKey("81037C034C4123"))
             );
@@ -101,8 +101,8 @@ namespace
             "test_button",
             "Number of times the test button has been pressed.",
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
-            VifScaling::None,
+            Quantity::Dimensionless,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("81027C03495523"))
             );
@@ -111,8 +111,8 @@ namespace
             "transmission",
             "Transmission counter?",
              DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
-            VifScaling::None,
+            Quantity::Dimensionless,
+            VifScaling::None, DifSignedness::Unsigned,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AccessNumber)
@@ -132,7 +132,7 @@ namespace
             "What does this mean?",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(DifVifKey("02FDAC7E"))
             );

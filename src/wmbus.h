@@ -18,6 +18,7 @@
 #ifndef WMBUS_H
 #define WMBUS_H
 
+#include"address.h"
 #include"dvparser.h"
 #include"manufacturers.h"
 #include"serial.h"
@@ -416,10 +417,9 @@ public:
     // If a warning is printed mark this.
     bool triggered_warning {};
 
-    // The different ids found, the first is th dll_id, ell_id, nwl_id, and the last is the tpl_id.
-    vector<string> ids;
-    // Ids separated by commas
-    string idsc;
+    // The different addresses found,
+    // the first is the dll_id_mvt, ell_id_mvt, nwl_id_mvt, and the last is the tpl_id_mvt.
+    vector<Address> addresses;
 
     // If decryption failed, set this to true, to prevent further processing.
     bool decryption_failed {};
@@ -535,6 +535,9 @@ public:
 
     bool parseHANHeader(vector<uchar> &input_frame);
     bool parseHAN(vector<uchar> &input_frame, MeterKeys *mk, bool warn);
+
+    void addAddressMfctFirst(const vector<uchar>::iterator &pos);
+    void addAddressIdFirst(const vector<uchar>::iterator &pos);
 
     void print();
 
@@ -739,8 +742,6 @@ shared_ptr<BusDevice> openSimulator(Detected detected,
                                 shared_ptr<SerialDevice> serial_override);
 
 string manufacturer(int m_field);
-string manufacturerFlag(int m_field);
-bool flagToManufacturer(const char *s, uint16_t *out_mfct);
 string mediaType(int a_field_device_type, int m_field);
 string mediaTypeJSON(int a_field_device_type, int m_field);
 bool isCiFieldOfType(int ci_field, CI_TYPE type);
@@ -775,6 +776,7 @@ string linkModeName(LinkMode link_mode);
 string measurementTypeName(MeasurementType mt);
 
 enum FrameStatus { PartialFrame, FullFrame, ErrorInFrame, TextAndNotFrame };
+const char *toString(FrameStatus fs);
 
 
 FrameStatus checkWMBusFrame(vector<uchar> &data,

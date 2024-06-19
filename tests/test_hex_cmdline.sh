@@ -16,7 +16,7 @@ Received telegram from: 76348799
                 driver: multical21
 EOF
 
-$PROG 2A442D2C998734761B168D2091D37CAC21E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24 2> $TEST/test_output.txt 1>&2
+$PROG 2A442D2C998734761B168D2091D37CAC21E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24 > $TEST/test_output.txt 2>&1
 
 if [ "$?" = "0" ]
 then
@@ -25,6 +25,11 @@ then
     then
         echo OK: $TESTNAME
         TESTRESULT="OK"
+    else
+        if [ "$USE_MELD" = "true" ]
+        then
+            meld $TEST/test_expected.txt $TEST/test_output.txt
+        fi
     fi
 else
     echo "ERROR: $TESTNAME"
@@ -33,18 +38,20 @@ else
     exit 1
 fi
 
-cat > $TEST/test_expected.txt <<EOF
+cat > $TEST/test_expected_unsorted.txt <<EOF
 {"media":"cold water","meter":"multical21","name":"MyWater","id":"76348799","status":"DRY","total_m3":6.408,"target_m3":6.408,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 EOF
+
+jq --sort-keys . $TEST/test_expected_unsorted.txt > $TEST/test_expected.txt
 
 TESTNAME="Test hex on commandline with meter"
 
 $PROG --format=json 2A442D2C998734761B168D2091D37CAC21E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24 \
-      MyWater auto 76348799 28F64A24988064A079AA2C807D6102AE > $TEST/test_output.txt 2> $TEST/test_stderr.txt
+      MyWater auto 76348799 28F64A24988064A079AA2C807D6102AE  2> $TEST/test_stderr.txt | jq --sort-keys . > $TEST/test_output.txt
 
 if [ "$?" = "0" ]
 then
-    cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
+    cat $TEST/test_output.txt | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then
@@ -92,18 +99,20 @@ fi
 
 TESTNAME="Test hex on stdin"
 
-cat > $TEST/test_expected.txt <<EOF
+cat > $TEST/test_expected_unsorted.txt <<EOF
 {"media":"other","meter":"lansenpu","name":"MyCounter","id":"00010206","status":"OK","a_counter":4711,"b_counter":1234,"timestamp":"1111-11-11T11:11:11Z"}
 {"media":"cold water","meter":"multical21","name":"MyWater","id":"76348799","status":"DRY","total_m3":6.408,"target_m3":6.408,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 {"media":"other","meter":"lansenpu","name":"MyCounter","id":"00010206","status":"OK","a_counter":4711,"b_counter":1234,"timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
+jq --sort-keys . $TEST/test_expected_unsorted.txt > $TEST/test_expected.txt
+
 echo 234433300602010014007a8e0000002f2f0efd3a1147000000008e40fd3a3412000000002A442D2C998734761B168D2091D37CAC21E1D68CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24234433300602010014007a8e0000002f2f0efd3a1147000000008e40fd3a341200000000999 | \
-    $PROG --silent --ignoreduplicates=false --format=json stdin:hex MyCounter auto 00010206 NOKEY MyWater auto 76348799 28F64A24988064A079AA2C807D6102AE > $TEST/test_output.txt 2> $TEST/test_stderr.txt
+    $PROG --silent --ignoreduplicates=false --format=json stdin:hex MyCounter auto 00010206 NOKEY MyWater auto 76348799 28F64A24988064A079AA2C807D6102AE 2> $TEST/test_stderr.txt | jq --sort-keys . > $TEST/test_output.txt
 
 if [ "$?" = "0" ]
 then
-    cat $TEST/test_output.txt | sed 's/"timestamp":"....-..-..T..:..:..Z"/"timestamp":"1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
+    cat $TEST/test_output.txt | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
     diff $TEST/test_expected.txt $TEST/test_responses.txt
     if [ "$?" = "0" ]
     then

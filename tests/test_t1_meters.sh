@@ -70,7 +70,7 @@ METERS="MyWarmWater supercom587 12345678 NOKEY
 
 
 cat simulations/simulation_t1.txt | grep '^{' | jq --sort-keys . > $TEST/test_expected.txt
-$PROG --format=json simulations/simulation_t1.txt $METERS 2> $TEST/test_stderr.txt | jq --sort-keys . > $TEST/test_output.txt
+$PROG --format=json simulations/simulation_t1.txt $METERS  | jq --sort-keys . > $TEST/test_output.txt
 if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/"timestamp": "....-..-..T..:..:..Z"/"timestamp": "1111-11-11T11:11:11Z"/' > $TEST/test_responses.txt
@@ -85,16 +85,16 @@ then
         then
             meld $TEST/test_expected.txt $TEST/test_responses.txt
         fi
+        echo ERROR: $TESTNAME
         exit 1
     fi
 else
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
-    cat $TEST/test_stderr.txt
 fi
 
 cat simulations/simulation_t1.txt | grep '^|' | sed 's/^|//' > $TEST/test_expected.txt
-$PROG --format=fields simulations/simulation_t1.txt $METERS  > $TEST/test_output.txt 2> $TEST/test_stderr.txt
+$PROG --format=fields simulations/simulation_t1.txt $METERS  > $TEST/test_output.txt
 if [ "$?" = "0" ]
 then
     cat $TEST/test_output.txt | sed 's/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9].[0-9][0-9]$/1111-11-11 11:11.11/' > $TEST/test_responses.txt
@@ -109,12 +109,12 @@ then
         then
             meld $TEST/test_expected.txt $TEST/test_responses.txt
         fi
+        echo ERROR: $TESTNAME
         exit 1
     fi
 else
     echo "wmbusmeters returned error code: $?"
     cat $TEST/test_output.txt
-    cat $TEST/test_stderr.txt
 fi
 
 

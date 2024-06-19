@@ -38,7 +38,7 @@ namespace
     {
         setMfctTPLStatusBits(
             Translate::Lookup()
-            .add(Translate::Rule("TPL_STS", Translate::Type::BitToString)
+            .add(Translate::Rule("TPL_STS", Translate::MapType::BitToString)
                  .set(MaskBits(0xe0))
                  .set(DefaultMessage("OK"))
                  .add(Translate::Map(0x04 ,"RTC_INVALID", TestBit::Set))));
@@ -54,7 +54,7 @@ namespace
                 {
                     {
                         "ERROR_FLAGS",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xffff),
                         "OK",
                         {
@@ -89,8 +89,8 @@ namespace
             "alarm",
             "Number of times the smoke alarm has triggered.",
              DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
-            VifScaling::None,
+            Quantity::Dimensionless,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(SubUnitNr(1))
@@ -121,7 +121,7 @@ namespace
             "Time the smoke alarm has been removed.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(SubUnitNr(1))
@@ -144,8 +144,8 @@ namespace
             "removed",
             "Number of times the smoke alarm has been removed.",
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
-            VifScaling::None,
+            Quantity::Dimensionless,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(SubUnitNr(1))
@@ -168,8 +168,8 @@ namespace
             "test_button",
             "Number of times the test button has been pressed.",
             DEFAULT_PRINT_PROPERTIES,
-            Quantity::Counter,
-            VifScaling::None,
+            Quantity::Dimensionless,
+            VifScaling::None, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(SubUnitNr(1))
@@ -208,7 +208,7 @@ namespace
                 {
                     {
                         "DUST",
-                        Translate::Type::IndexToString,
+                        Translate::MapType::IndexToString,
                         AlwaysTrigger, MaskBits(0x1f),
                         "",
                         {
@@ -228,7 +228,7 @@ namespace
                 {
                     {
                         "BATTERY_VOLTAGE",
-                        Translate::Type::IndexToString,
+                        Translate::MapType::IndexToString,
                         AlwaysTrigger, MaskBits(0x0f00),
                         "",
                         {
@@ -267,7 +267,7 @@ namespace
                 {
                     {
                         "OBSTACLE_DISTANCE",
-                        Translate::Type::IndexToString,
+                        Translate::MapType::IndexToString,
                         AlwaysTrigger, MaskBits(0x700000),
                         "",
                         {
@@ -297,7 +297,7 @@ namespace
                 {
                     {
                         "HEAD_STATUS",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xff8ff0e0),
                         "OK",
                         {

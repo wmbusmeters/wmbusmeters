@@ -35,7 +35,7 @@ telegram=|4E4401061010101002027A00004005_2F2F0E035040691500000B2B300300066D00790
 # Test amiplus/apator electricity meter with three phase voltages
 
 telegram=|5E44B6105843250000027A2A005005_2F2F0C7835221400066D404708AC2A400E032022650900000E833C0000000000001B2B9647000B2B5510000BAB3C0000000AFDC9FC0135020AFDC9FC0245020AFDC9FC0339020BABC8FC100000002F2F|
-{"media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"device_date_time":"2021-10-12 08:07:00","timestamp":"1111-11-11T11:11:11Z"}
+{"media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"max_power_consumption_kw":4.796,"device_date_time":"2021-10-12 08:07:00","timestamp":"1111-11-11T11:11:11Z"}
 |MyElectricity2;00254358;9652.22;1.055;0;0;235;245;239;null;null;null;null;null;null;1111-11-11 11:11.11
 
 
@@ -43,8 +43,8 @@ telegram=|5E44B6105843250000027A2A005005_2F2F0C7835221400066D404708AC2A400E03202
 # There is a problem in the decoding here, the data stored inside the telegram does not seem to properly encode/decode the year....
 # We should not report a current_date with a full year, if the year is actually not part of the telegram.
 telegram=|2F446850313233347462A2_069F255900B029310000000306060906030609070606050509050505050407040605070500|
-{"media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2023-04-27T02:00:00Z","prev_date":"2018-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
-|Duschen;34333231;13.8;8.9;2023-04-27T02:00:00Z;2018-12-31T02:00:00Z;1111-11-11 11:11.11
+{"media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2024-04-27T02:00:00Z","prev_date":"2018-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
+|Duschen;34333231;13.8;8.9;2024-04-27T02:00:00Z;2018-12-31T02:00:00Z;1111-11-11 11:11.11
 
 # Test MKRadio4 T1 telegrams
 
@@ -60,7 +60,7 @@ telegram=|374468506549235827C3A2_129F25383300A8622600008200800A2AF86211517555287
 # Test FHKV data II/III
 # There is a problem in the decoding here, the data stored inside the telegram does not seem to properly encode/decode the year....
 # We should not report a current_date with a full year, if the year is actually not part of the telegram.
-telegram=|31446850226677116980A0119F27020480048300C408F709143C003D341A2B0B2A0707000000000000062D114457563D71A1850000|
+telegram=|34446850226677116980A0119F27020480048300C408F709143C003D341A2B0B2A0707000000000000062D114457563D71A1850000|
 {"media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11776622","current_hca":131,"current_date":"2020-02-08T02:00:00Z","previous_hca":1026,"previous_date":"2019-12-31T02:00:00Z","temp_room_c":22.44,"temp_radiator_c":25.51,"timestamp":"1111-11-11T11:11:11Z"}
 |Room;11776622;131;2020-02-08T02:00:00Z;1026;2019-12-31T02:00:00Z;22.44;25.51;1111-11-11 11:11.11
 
@@ -122,13 +122,13 @@ telegram=|5744b40988227711101b7ab20800000265a00842658f088201659f08226589081265a0
 
 # Test Hydrus water meter telegram
 telegram=|4E44A5116464646470077AED004005_2F2F01FD08300C13741100007C1300000000FC101300000000FC201300000000726C00000B3B00000002FD748713025A6800C4016D3B177F2ACC011300020000|
-{"at_datetime": "2019-10-31 23:59","flow_m3h": 0,"flow_temperature_c": 10.4,"id": "64646464","media": "water","meter": "hydrus","name": "HydrusWater","remaining_battery_life_y": 13.686797,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 0.2,"total_m3": 1.174}
-|HydrusWater;64646464;1.174;0.2;OK;1111-11-11 11:11.11
+{"target_datetime": "2019-10-31 23:59","flow_m3h": 0,"flow_temperature_c": 10.4,"id": "64646464","media": "water","meter": "hydrus","name": "HydrusWater","remaining_battery_life_y": 13.686797,"status": "OK","timestamp": "1111-11-11T11:11:11Z","target_m3": 0.2,"total_m3": 1.174}
+|HydrusWater;64646464;1.174;null;OK;1111-11-11 11:11.11
 
 # Test Hydrus new version water meter telegram
 telegram=|3E44A5116565656570067AFB0030052F2F_0C13503400000DFD110A383731303134423032410B3B00000002FD74DC15C4016D3B178D29CC0113313400002F2F|
-{"at_datetime": "2020-09-13 23:59","customer": "A20B410178","flow_m3h": 0,"id": "65656565","media": "warm water","meter": "hydrus","name": "HydrusVater","remaining_battery_life_y": 15.321328,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 3.431,"total_m3": 3.45}
-|HydrusVater;65656565;3.45;3.431;OK;1111-11-11 11:11.11
+{"target_datetime": "2020-09-13 23:59","customer": "A20B410178","flow_m3h": 0,"id": "65656565","media": "warm water","meter": "hydrus","name": "HydrusVater","remaining_battery_life_y": 15.321328,"status": "OK","timestamp": "1111-11-11T11:11:11Z","target_m3": 3.431,"total_m3": 3.45}
+|HydrusVater;65656565;3.45;null;OK;1111-11-11 11:11.11
 
 # Test Hydrus with default AES encryption
 telegram=||6644242328001081640E7266567464A51170071F0050052C411A08674048DD6BA82A0DF79FFD401309179A893A1BE3CE8EDC50C2A45CD7AFEC3B4CE765820BE8056C124A17416C3722985FFFF7FCEB7094901AB3A16294B511B9A740C9F9911352B42A72FB3B0C|
@@ -152,7 +152,7 @@ telegram=|2E4409077272727210077AD71020052F2F_046D040D742C041377000000446D0000612
 
 # Test Axioma W1 telegram with additional fields compared to the older q400 meter.
 telegram=|5E4409077372727210077A710050052F2F_046D0110A92704130000000004933B0000000004933C00000000023B000002592A0A446D0000A12744130000000044933B0000000044933C0000000001FD74622F2F2F2F2F2F2F2F2F2F2F2F2F2F|
-{"media":"water","meter":"q400","name":"AxiomaWater","id":"72727273","meter_datetime":"2021-07-09 16:01","total_m3":0,"total_forward_m3":0,"total_backward_m3":0,"flow_temperature_c":26.02,"volume_flow_m3h":0,"status":"OK","set_datetime":"2021-07-01 00:00","consumption_at_set_date_m3":0,"forward_at_set_date_m3":0,"backward_at_set_date_m3":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"q400","name":"AxiomaWater","id":"72727273","meter_datetime":"2021-07-09 16:01","total_m3":0,"total_forward_m3":0,"total_backward_m3":0,"flow_temperature_c":26.02,"volume_flow_m3h":0,"status":"OK","set_datetime":"2021-07-01 00:00","consumption_at_set_date_m3":0,"forward_at_set_date_m3":0,"backward_at_set_date_m3":0,"battery_pct":98,"timestamp":"1111-11-11T11:11:11Z"}
 |AxiomaWater;72727273;0;1111-11-11 11:11.11
 
 # Test electricity meter with eBZ wMB E01.
@@ -199,7 +199,7 @@ telegram=|3944FA122162092002067A3600202567C94D48D00DC47B11213E23383DB51968A705AA
 # Test topaseskr water meter
 
 telegram=|4E44B40512345678F1077A310040052F2F_01FD08040C13991848004C1359423500CC101300000000CC201359423500426C7F2C0B3B00000002FD74DA10025AD300C4016D3B179F27CC011387124600|
-{"media":"water","meter":"topaseskr","name":"Witer","id":"78563412","total_m3":481.899,"access_counter":4,"temperature_c":21.1,"current_flow_m3h":0,"volume_year_period_m3":354.259,"reverse_volume_year_period_m3":0,"meter_year_period_start_date":"2019-12-31","volume_month_period_m3":461.287,"meter_month_period_start_datetime":"2020-07-31 23:59","battery_y":11.811331,"timestamp":"1111-11-11T11:11:11Z"}
+{"media":"water","meter":"topaseskr","name":"Witer","id":"78563412","total_m3":481.899,"access_counter":4,"temperature_c":21.1,"current_flow_m3h":0,"volume_year_period_m3":354.259,"reverse_volume_year_period_m3":0,"meter_year_period_end_date":"2019-12-31","volume_month_period_m3":461.287,"meter_month_period_end_datetime":"2020-07-31 23:59","battery_y":11.811331,"timestamp":"1111-11-11T11:11:11Z"}
 |Witer;78563412;481.899;21.1;0;354.259;0;2019-12-31;461.287;2020-07-31 23:59;1111-11-11 11:11.11
 
 # Test Ultrimis water meter

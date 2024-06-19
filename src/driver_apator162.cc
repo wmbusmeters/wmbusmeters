@@ -80,7 +80,7 @@ namespace
         // 0F - Spcial function / packet
         // next 4B : Date - In default frame
         // next 3B : Faults - In default frame example: please see description of 0x01 register
-        
+
         size_t i=8;
         while (i < content.size())
         {
@@ -89,7 +89,7 @@ namespace
             if (c == 0xff) break; // An FF signals end of telegram padded to encryption boundary,
             // FFFFFFF623A where 4 last are perhaps crc or counter?
             i++;
-            if (size == -1 || i+size >= content.size())
+            if (size == -1 || i+size > content.size())
             {
                 vector<uchar> frame;
                 t->extractFrame(&frame);
@@ -97,9 +97,19 @@ namespace
 
                 if (t->beingAnalyzed() == false)
                 {
-                    warning("(apator162) telegram contains a register (%02x) with unknown size.\n"
-                            "Please open an issue at https://github.com/weetmuts/wmbusmeters/\n"
-                            "and report this telegram: %s\n", c, hex.c_str());
+                    if (size == -1)
+                    {
+                        warning("(apator162) telegram contains a register (%02x) with unknown size.\n"
+                                "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
+                                "and report this telegram: %s\n", c, hex.c_str());
+                    }
+                    else
+                    {
+                        warning("(apator162) telegram decoding fails since last register (%02x size %d) does not\n"
+                                "align with telegram size %zu > %zu.\n"
+                                "Please open an issue at https://github.com/wmbusmeters/wmbusmeters/\n"
+                                "and report this telegram: %s\n", c, size, i+size, content.size(), hex.c_str());
+                    }
                 }
                 break;
             }
@@ -109,7 +119,7 @@ namespace
                 string total;
                 strprintf(&total, "%02x%02x%02x%02x", content[i+0], content[i+1], content[i+2], content[i+3]);
                 int offset = i-1+t->header_size;
-                vendor_values["0413"] = {offset, DVEntry(offset, DifVifKey("0413"), MeasurementType::Instantaneous, 0x13, {}, 0, 0, 0, total) };
+                vendor_values["0413"] = {offset, DVEntry(offset, DifVifKey("0413"), MeasurementType::Instantaneous, 0x13, {}, {}, 0, 0, 0, total) };
                 double total_water_consumption_m3 {};
                 extractDVdouble(&vendor_values, "0413", &offset, &total_water_consumption_m3);
                 total = "*** 10-"+total+" total consumption (%f m3)";
@@ -135,14 +145,14 @@ namespace
             // which  also means dif = manufacturer data follows.
             // After 0x0F there is always:
             // next 4B : Date - In default frame
-            // next 3B : Faults - In default frame 
-            
-        case 0x00: return 4; // Date 
+            // next 3B : Faults - In default frame
+
+        case 0x00: return 4; // Date
         case 0x01: return 3; // Faults - In default frame f.ex. 0F 09 4D A1 97 18 02 00 -> 18 02 00 -> 00 02 18 -> 0x0218
-        
+
         case 0xA1:
         case 0x10: return 4; // Total volume - In default frame
-        
+
         case 0x11: return 2; // Flow
 
         case 0x40: return 6; // Detectors
@@ -150,49 +160,52 @@ namespace
         case 0x42: return 4; // Energy
         case 0x43: return 2; // Life days - In default frame f.ex. 43 6E 0A -> 2670 days from first run
 
-        case 0x71: return 9;
+        case 0x44: return 3;
+
+        case 0x71: return 1+2*4; // ?
+        case 0x72: return 1+3*4; // ?
         case 0x73: return 1+4*4; // Historical data
         case 0x75: return 1+6*4; // Historical data
         case 0x7B: return 1+12*4; // Historical data
 
-        case 0x80: 
-        case 0x81: 
-        case 0x82: 
-        case 0x83: 
-        case 0x84: 
-        case 0x86: 
+        case 0x80:
+        case 0x81:
+        case 0x82:
+        case 0x83:
+        case 0x84:
+        case 0x86:
         case 0x87: return 10; // Events
-        
+
         case 0x85:
-        case 0x88: 
+        case 0x88:
         case 0x8F: return 11; // Events
 
         case 0x8A: return 9; // Events
-        
+
         case 0x8B:
         case 0x8C: return 6; // Events
-        
+
         case 0x8E: return 7; // Events
-        
+
         case 0xA0: return 4;
-        
+
         case 0xA2: return 1;
-        
+
         case 0xA3: return 7;
-        
+
         case 0xA4: return 4;
-        
+
         case 0xA5:
         case 0xA9:
         case 0xAF: return 1;
-        
+
         case 0xA6: return 3;
-        
+
         case 0xA7:
         case 0xA8:
         case 0xAA:
-        case 0xAB: 
-        case 0xAC: 
+        case 0xAB:
+        case 0xAC:
         case 0xAD: return 2;
 
         case 0xB0: return 5;
@@ -201,7 +214,7 @@ namespace
         case 0xB3: return 8;
         case 0xB4: return 2;
         case 0xB5: return 16;
-        
+
         // Unknown
         case 0xB6: return 3;
         case 0xB7: return 3;

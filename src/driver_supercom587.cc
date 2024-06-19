@@ -37,8 +37,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("software_version");
-        addOptionalFlowRelatedFields("total_m3");
+        addOptionalLibraryFields("software_version");
+        addOptionalLibraryFields("total_m3");
 
         addStringFieldWithExtractorAndLookup(
             "status",
@@ -48,7 +48,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
             Translate::Lookup()
-            .add(Translate::Rule("ERROR_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("ERROR_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0x000f))
                  .set(DefaultMessage("OK"))
                 ));

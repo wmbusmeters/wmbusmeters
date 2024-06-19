@@ -25,7 +25,6 @@
 #include"shell.h"
 #include"threads.h"
 #include"util.h"
-#include"version.h"
 #include"wmbus.h"
 
 #include <algorithm>

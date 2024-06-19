@@ -41,12 +41,14 @@ using namespace std;
     X(Day,  Hour, {vto=vfrom*24.0;}) \
     X(Day,  Year, {vto=vfrom/365.2425;}) \
     X(Year,  Day, {vto=vfrom*365.2425;}) \
+    X(WH,  KWH, {vto=vfrom/1000.0;})     \
     X(KWH, GJ, {vto=vfrom*0.0036;})     \
     X(KWH, MJ, {vto=vfrom*0.0036*1000.0;})     \
     X(GJ,  KWH,{vto=vfrom/0.0036;}) \
     X(MJ,  GJ,  {vto=vfrom/1000.0;}) \
     X(MJ,  KWH,{vto=vfrom/1000.0/0.0036;}) \
     X(GJ,  MJ,  {vto=vfrom*1000.0;}) \
+    X(W,   KW, {vto=vfrom/1000.0;})     \
     X(M3,  L,  {vto=vfrom*1000.0;}) \
     X(M3H, LH, {vto=vfrom*1000.0;}) \
     X(L,   M3, {vto=vfrom/1000.0;}) \
@@ -57,11 +59,21 @@ using namespace std;
     X(F,   C,  {vto=(vfrom-32)*5.0/9.0;}) \
     X(PA,  BAR,{vto=vfrom/100000.0;}) \
     X(BAR, PA, {vto=vfrom*100000.0;}) \
+    X(COUNTER, FACTOR,{vto=vfrom;})  \
+    X(FACTOR, COUNTER, {vto=vfrom;}) \
+    X(COUNTER, NUMBER,{vto=vfrom;})  \
+    X(NUMBER, COUNTER, {vto=vfrom;}) \
+    X(FACTOR, NUMBER, {vto=vfrom;})  \
+    X(NUMBER, FACTOR, {vto=vfrom;}) \
+    X(PERCENTAGE, NUMBER, {vto=vfrom;})  \
+    X(NUMBER, PERCENTAGE, {vto=vfrom;}) \
     X(UnixTimestamp,DateTimeLT, {vto=vfrom; }) \
     X(DateTimeLT,UnixTimestamp, {vto=vfrom; }) \
     X(DateLT,UnixTimestamp, {vto=vfrom; }) \
     X(DateTimeLT, DateLT, {vto=vfrom; }) \
     X(DateLT, DateTimeLT, {vto=vfrom; }) \
+    X(DEGREE, RADIAN, {vto=vfrom*M_PI/180.0;}) \
+    X(RADIAN, DEGREE, {vto=vfrom*180.0/M_PI;}) \
 
 
 #define LIST_OF_SI_CONVERSIONS  \
@@ -73,6 +85,7 @@ using namespace std;
     X(MOL,    1.0, SIExp().mol(1))                                 \
     X(CD,     1.0, SIExp().cd(1))                                  \
     \
+    X(WH,     3.6e+03,    SIExp().kg(1).m(2).s(-2))                 \
     X(KWH,    3.6e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(MJ,     1.0e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(GJ,     1.0e+09,    SIExp().kg(1).m(2).s(-2))                 \
@@ -80,6 +93,7 @@ using namespace std;
     X(KVAH,   3.6e+06,    SIExp().kg(1).m(2).s(-2))                 \
     X(M3C,    1.0,        SIExp().m(3).c(1))                        \
     \
+    X(W,      1.0,        SIExp().kg(1).m(2).s(-3))                 \
     X(KW,     1000.0,     SIExp().kg(1).m(2).s(-3))                 \
     X(M3CH,   3600.0,    SIExp().m(3).c(1).s(-1))                  \
     \
@@ -109,7 +123,12 @@ using namespace std;
                                                                      \
     X(RH,          1.0, SIExp())                                     \
     X(HCA,         1.0, SIExp())                                     \
+    X(DEGREE,      1.0, SIExp())                                     \
+    X(RADIAN,      180.0/M_PI, SIExp())                              \
     X(COUNTER,     1.0, SIExp())                                     \
+    X(FACTOR,      1.0, SIExp())                                     \
+    X(NUMBER,      1.0, SIExp())                                     \
+    X(PERCENTAGE,  1.0, SIExp())                                     \
     X(TXT,         1.0, SIExp())                                     \
 
 
@@ -133,6 +152,14 @@ LIST_OF_UNITS
     }
 
     return SI_Unknown;
+}
+
+bool overrideConversion(Unit from, Unit to)
+{
+    // The mbus protocol lacks kvarh and kva. Some meters, like the abbb23 uses kwh for kvarh.
+    // Permit 1 to 1 conversion from kwh to kvarh and kva in extractNumeric.
+    if (from == Unit::KWH && (to == Unit::KVARH || to == Unit::KVAH)) return true;
+    return false;
 }
 
 bool canConvert(Unit ufrom, Unit uto)
@@ -395,6 +422,14 @@ LIST_OF_UNITS
     return Quantity::Unknown;
 }
 
+Quantity toQuantity(string q)
+{
+#define X(qname,qunit) if (q == #qname) return Quantity::qname;
+LIST_OF_QUANTITIES
+#undef X
+    return Quantity::Unknown;
+}
+
 void assertQuantity(Unit u, Quantity q)
 {
     if (!isQuantity(u, q))
@@ -472,7 +507,7 @@ string strWithUnitLowerCase(double v, Unit u)
 
 string valueToString(double v, Unit u)
 {
-    if (isnan(v))
+    if (::isnan(v))
     {
         return "null";
     }
@@ -776,4 +811,38 @@ string SIExp::str() const
     if (invalid_) r = "!"+r+"-Invalid!";
 
     return r;
+}
+
+char available_quantities_[2048];
+
+const char *availableQuantities()
+{
+    if (available_quantities_[0]) return available_quantities_;
+
+#define X(q,u) if (Quantity::q != Quantity::Unknown) {                   \
+        strcat(available_quantities_, #q); strcat(available_quantities_, "\n"); \
+        assert(strlen(available_quantities_) < 1024); }
+LIST_OF_QUANTITIES
+#undef X
+
+    // Remove last newline
+    available_quantities_[strlen(available_quantities_)-1] = 0;
+    return available_quantities_;
+}
+
+char available_units_[2048];
+
+const char *availableUnits()
+{
+    if (available_units_[0]) return available_units_;
+
+#define X(n,suffix,sn,q,ln) if (Unit::n != Unit::Unknown) {     \
+        strcat(available_units_, #suffix); strcat(available_units_, " "); \
+        assert(strlen(available_units_) < 1024); }
+LIST_OF_UNITS
+#undef X
+
+    // Remove last newline
+    available_units_[strlen(available_units_)-1] = 0;
+    return available_units_;
 }

@@ -38,8 +38,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
-        addOptionalCommonFields("actuality_duration_s");
-        addOptionalFlowRelatedFields("total_m3,target_m3,target_date");
+        addOptionalLibraryFields("actuality_duration_s");
+        addOptionalLibraryFields("total_m3,target_m3,target_date");
 
         addStringField(
             "status",
@@ -77,7 +77,7 @@ namespace
 
         if (type != 1)
         {
-            setStringValue("mfct_status", tostrprintf("UKNOWN_MFCT_STATUS=%02x%02x%02x", type, a, b));
+            setStringValue("mfct_status", tostrprintf("UKNOWN_MFCT_STATUS=%02x%02x%02x", type, a, b), NULL);
             return;
         }
 
@@ -89,9 +89,9 @@ namespace
         if (a & 0x40) info += "BACKFLOW ";
 
         if (info.size() > 0) info.pop_back();
-        setStringValue("mfct_status", info);
+        setStringValue("mfct_status", info, NULL);
 
-        setStringValue("power_mode", (b & 0x01) ? "SAVING" :  "NORMAL");
+        setStringValue("power_mode", (b & 0x01) ? "SAVING" :  "NORMAL", NULL);
 
         double battery_semesters = (b >> 3); // Half years.
         setNumericValue("battery", Unit::Year, battery_semesters/2.0);
@@ -100,5 +100,5 @@ namespace
 
 // Test: Wateroo gwfwater 20221031 NOKEY
 // telegram=|3144E61E31102220010E8C04F47ABE0420452F2F_037410000004133E0000004413FFFFFFFF426CFFFF0F0120012F2F2F2F2F|
-// {"actuality_duration_s": 16,"battery_y": 0,"id": "20221031","media": "bus/system component","meter": "gwfwater","name": "Wateroo","power_mode": "SAVING","status": "BATTERY_LOW POWER_LOW","target_date": "2128-03-31","target_m3": 4294967.295,"timestamp": "1111-11-11T11:11:11Z","total_m3": 0.062}
+// {"actuality_duration_s": 16,"battery_y": 0,"id": "20221031","media": "bus/system component","meter": "gwfwater","name": "Wateroo","power_mode": "SAVING","status": "BATTERY_LOW POWER_LOW","target_date": "2128-03-31","target_m3": -0.001,"timestamp": "1111-11-11T11:11:11Z","total_m3": 0.062}
 // |Wateroo;20221031;0.062;1111-11-11 11:11.11

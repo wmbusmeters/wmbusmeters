@@ -38,9 +38,11 @@ struct NumericField
     Unit unit {};
     double value {};
     FieldInfo *field_info {};
+    DVEntry dv_entry {};
 
     NumericField() {}
     NumericField(Unit u, double v, FieldInfo *f) : unit(u), value(v), field_info(f) {}
+    NumericField(Unit u, double v, FieldInfo *f, DVEntry &dve) : unit(u), value(v), field_info(f), dv_entry(dve) {}
 };
 
 struct StringField
@@ -57,8 +59,8 @@ struct MeterCommonImplementation : public virtual Meter
     int index();
     void setIndex(int i);
     string bus();
-    vector<string>& ids();
-    string idsc();
+    vector<AddressExpression>& addressExpressions();
+    IdentityMode identityMode();
     vector<FieldInfo> &fieldInfos();
     vector<string> &extraConstantFields();
     string name();
@@ -83,7 +85,6 @@ struct MeterCommonImplementation : public virtual Meter
     static bool isTelegramForMeter(Telegram *t, Meter *meter, MeterInfo *mi);
     MeterKeys *meterKeys();
 
-//    MeterCommonImplementation(MeterInfo &mi, string driver);
     MeterCommonImplementation(MeterInfo &mi, DriverInfo &di);
 
     ~MeterCommonImplementation() = default;
@@ -93,9 +94,11 @@ protected:
     void triggerUpdate(Telegram *t);
     void setExpectedELLSecurityMode(ELLSecurityMode dsm);
     void setExpectedTPLSecurityMode(TPLSecurityMode tsm);
-    void addShell(std::string cmdline);
+    void addShellMeterAdded(std::string cmdline);
+    void addShellMeterUpdated(std::string cmdline);
     void addExtraConstantField(std::string ecf);
-    std::vector<std::string> &shellCmdlines();
+    std::vector<std::string> &shellCmdlinesMeterAdded();
+    std::vector<std::string> &shellCmdlinesMeterUpdated();
     std::vector<std::string> &meterExtraConstantFields();
     void setMeterType(MeterType mt);
     void addLinkMode(LinkMode lm);
@@ -108,8 +111,10 @@ protected:
         PrintProperties print_properties, // Should this be printed by default in fields,json and hr.
         Quantity vquantity,     // Value belongs to this quantity, this quantity determines the default unit.
         VifScaling vif_scaling, // How should any Vif value be scaled.
+        DifSignedness dif_signedness, // Should we override the default signed assumption for binary values?
         FieldMatcher matcher,
-        Unit display_unit = Unit::Unknown); // If specified use this unit for the json field instead instead of the default unit.
+        Unit display_unit = Unit::Unknown, // If specified use this unit for the json field instead instead of the default unit.
+        double scale = 1.0); // A hard coded extra scale factor. Useful for manufacturer specific values.
 
     void addNumericFieldWithCalculator(
         string vname,           // Name of value without unit, eg "total" "total_month{storagenr}"
@@ -158,7 +163,11 @@ protected:
     // Override for mbus meters that need to be queried and likewise for C2/T2 wmbus-meters.
     void poll(shared_ptr<BusManager> bus);
     bool handleTelegram(AboutTelegram &about, vector<uchar> frame,
-                        bool simulated, string *id, bool *id_match, Telegram *out_analyzed = NULL);
+                        bool simulated, std::vector<Address> *addresses,
+                        bool *id_match, Telegram *out_analyzed = NULL);
+    void createMeterEnv(string id,
+                        vector<string> *envs,
+                        vector<string> *more_json); // Add this json "key"="value" strings.
     void printMeter(Telegram *t,
                     string *human_readable,
                     string *fields, char separator,
@@ -177,6 +186,7 @@ protected:
 
     void processFieldExtractors(Telegram *t);
     void processFieldCalculators();
+    string getStatusField(FieldInfo *fi);
 
     virtual void processContent(Telegram *t);
 
@@ -184,8 +194,8 @@ protected:
     void setNumericValue(FieldInfo *fi, DVEntry *dve, Unit u, double v);
     double getNumericValue(string vname, Unit u);
     double getNumericValue(FieldInfo *fi, Unit u);
-    void setStringValue(string vname, std::string v);
-    void setStringValue(FieldInfo *fi, std::string v);
+    void setStringValue(string vname, std::string v, DVEntry *dve = NULL);
+    void setStringValue(FieldInfo *fi, std::string v, DVEntry *dve);
     std::string getStringValue(FieldInfo *fi);
 
     // Check if the meter has received a value for this field.
@@ -195,9 +205,7 @@ protected:
 
     std::string decodeTPLStatusByte(uchar sts);
 
-    void addOptionalCommonFields(string fields);
-    void addOptionalFlowRelatedFields(string fields);
-    void addHCARelatedFields(string fields);
+    bool addOptionalLibraryFields(string fields);
 
     vector<string> &selectedFields() { return selected_fields_; }
     void setSelectedFields(vector<string> &f) { selected_fields_ = f; }
@@ -214,14 +222,15 @@ private:
     ELLSecurityMode expected_ell_sec_mode_ {};
     TPLSecurityMode expected_tpl_sec_mode_ {};
     string name_;
-    vector<string> ids_;
-    string idsc_;
+    vector<AddressExpression> address_expressions_;
+    IdentityMode identity_mode_;
     vector<function<void(Telegram*,Meter*)>> on_update_;
     int num_updates_ {};
     time_t datetime_of_update_ {};
     time_t datetime_of_poll_ {};
     LinkModeSet link_modes_ {};
-    vector<string> shell_cmdlines_;
+    vector<string> shell_cmdlines_added_;
+    vector<string> shell_cmdlines_updated_;
     vector<string> extra_constant_fields_;
     time_t poll_interval_ {};
     Translate::Lookup mfct_tpl_status_bits_ = NoLookup;
@@ -237,8 +246,8 @@ protected:
     vector<string> selected_fields_;
     // Map difvif key to hex values from telegrams.
     std::map<std::string,std::pair<int,std::string>> hex_values_;
-    // Map field name (total_volume) to numeric value.
-    std::map<pair<std::string,Quantity>,NumericField> numeric_values_;
+    // Map field name+Unit to Numeric field which includes the value.
+    std::map<pair<std::string,Unit>,NumericField> numeric_values_;
     // Map field name (at_date) to string value.
     std::map<std::string,StringField> string_values_;
     // Used to block next poll, until this poll has received a respones.

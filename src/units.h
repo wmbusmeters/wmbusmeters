@@ -20,6 +20,7 @@
 
 #include<string>
 #include<vector>
+#include<cstdint>
 
 // A named quantity has a preferred unit,
 // ie Volume has m3 (cubic meters) Energy has kwh, Power has kw.
@@ -53,7 +54,8 @@
     X(RelativeHumidity,RH)    \
     X(HCA,HCA)                \
     X(Text,TXT)               \
-    X(Counter,COUNTER)        \
+    X(Angle,DEGREE)           \
+    X(Dimensionless,COUNTER)  \
 
 enum class Quantity
 {
@@ -77,6 +79,7 @@ LIST_OF_QUANTITIES
     X(MOL,mol,"mol",AmountOfSubstance,"mole")  \
     X(CD,cd,"cd",LuminousIntensity,"candela")  \
     \
+    X(WH,wh,"Wh",Energy,"Watt hour")           \
     X(KWH,kwh,"kWh",Energy,"kilo Watt hour")   \
     X(MJ,mj,"MJ",Energy,"Mega Joule")          \
     X(GJ,gj,"GJ",Energy,"Giga Joule")          \
@@ -84,6 +87,7 @@ LIST_OF_QUANTITIES
     X(KVAH,kvah,"kVAh",Apparent_Energy,"kilo volt amperes hour")        \
     X(M3C,m3c,"m³°C",Energy,"cubic meter celsius")                      \
     \
+    X(W,w,"W",Power,"Watt")                                             \
     X(KW,kw,"kW",Power,"kilo Watt")                                     \
     X(M3CH,m3ch,"m³°C/h",Power,"cubic meter celsius per hour")          \
     \
@@ -114,7 +118,12 @@ LIST_OF_QUANTITIES
     X(RH,rh,"RH",RelativeHumidity,"relative humidity")                  \
     X(HCA,hca,"hca",HCA,"heat cost allocation")                         \
     X(TXT,txt,"txt",Text,"text")                                        \
-    X(COUNTER,counter,"counter",Counter,"counter")                      \
+    X(DEGREE,deg,"°",Angle,"degree")                                    \
+    X(RADIAN,rad,"rad",Angle,"radian")                                  \
+    X(COUNTER,counter,"counter",Dimensionless,"counter")                \
+    X(FACTOR,factor,"factor",Dimensionless,"factor")                    \
+    X(NUMBER,nr,"number",Dimensionless,"number")                        \
+    X(PERCENTAGE,pct,"percentage",Dimensionless,"percentage")                  \
 
 enum class Unit
 {
@@ -266,8 +275,13 @@ double convert(double v, Unit from, Unit to);
 Unit whenMultiplied(Unit left, Unit right);
 double multiply(double l, Unit left, double r, Unit right);
 
+// Used to convert protocol KWH to KVARH/KVA, strictly speaking
+// not a valid conversion, but permitted to work around limitations in the mbus protocol usage.
+bool overrideConversion(Unit from, Unit to);
+
 // Either uppercase KWH or lowercase kwh works here.
 Unit toUnit(std::string s);
+Quantity toQuantity(std::string s);
 const SIUnit &toSIUnit(Unit u);
 const char *toString(Quantity q);
 bool isQuantity(Unit u, Quantity q);
@@ -284,5 +298,8 @@ bool extractUnit(const std::string &s, std::string *vname, Unit *u);
 #define X(cname,lcname,hrname,quantity,explanation) extern const SIUnit SI_##cname;
 LIST_OF_UNITS
 #undef X
+
+const char *availableQuantities();
+const char *availableUnits();
 
 #endif

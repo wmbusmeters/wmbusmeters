@@ -4,7 +4,7 @@
 TMP=$(mktemp)
 OUT=$1
 
-(cd src; grep -Ec "Copyright \(C\) (....-)?.... [^\(]+ \(.+\)" *  | grep :0 > $TMP)
+(grep -rEc "Copyright \(C\) (....-)?.... [^\(]+ \(.+\)" src drivers/src  | grep :0 > $TMP)
 
 if [ -s $TMP ]
 then
@@ -13,7 +13,7 @@ then
     exit 1
 fi
 
-(cd src; grep -Eo "Copyright \(C\) (....-)?.... [^\(]+ \(.+\)" * | cut -f 2 -d ':' | tr -s ' ' | sed 's/(C) \([0-9][0-9][0-9][0-9]\) /(C) \1-\1 /' >  $TMP)
+(grep -rEo "Copyright \(C\) (....-)?.... [^\(]+ \(.+\)" src drivers/src | cut -f 2 -d ':' | tr -s ' ' | sed 's/(C) \([0-9][0-9][0-9][0-9]\) /(C) \1-\1 /' >  $TMP)
 
 echo 'R"AUTHORS(' > $OUT
 

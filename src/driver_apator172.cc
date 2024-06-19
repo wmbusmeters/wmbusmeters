@@ -64,7 +64,7 @@ namespace
             string total;
             strprintf(&total, "%02x%02x%02x%02x", content[i+0], content[i+1], content[i+2], content[i+3]);
             int offset = i-1+t->header_size;
-            vendor_values["0413"] = {offset, DVEntry(offset, DifVifKey("0413"), MeasurementType::Instantaneous, 0x13, {}, 0, 0, 0, total) };
+            vendor_values["0413"] = {offset, DVEntry(offset, DifVifKey("0413"), MeasurementType::Instantaneous, 0x13, {}, {}, 0, 0, 0, total) };
             double tmp = 0;
             extractDVdouble(&vendor_values, "0413", &offset, &tmp);
             // Single tick seems to be 1/3 of a m3. Divide by 3 and keep a single decimal.

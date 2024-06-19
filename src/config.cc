@@ -16,6 +16,7 @@
 */
 
 #include"config.h"
+#include"drivers.h"
 #include"meters.h"
 #include"units.h"
 
@@ -52,11 +53,13 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     string bus;
     string name;
     string driver = "auto";
-    string id;
+    string address_expressions;
     string key = "";
     string linkmodes;
     int poll_interval = 0;
+    IdentityMode identity_mode {};
     vector<string> telegram_shells;
+    vector<string> meter_shells;
     vector<string> alarm_shells;
     vector<string> extra_constant_fields;
     vector<string> extra_calculated_fields;
@@ -106,7 +109,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         else
         if (p.first == "driver") driver = p.second;
         else
-        if (p.first == "id") id = p.second;
+        if (p.first == "id") address_expressions = p.second;
         else
         if (p.first == "key")
         {
@@ -127,8 +130,21 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
             }
         }
         else
+        if (p.first == "identitymode") {
+            identity_mode = toIdentityMode(p.second.c_str());
+
+            if (identity_mode == IdentityMode::INVALID)
+            {
+                error("Invalid identity mode: \"%s\"!\n", p.second.c_str());
+            }
+        }
+        else
         if (p.first == "shell") {
             telegram_shells.push_back(p.second);
+        }
+        else
+        if (p.first == "metershell") {
+            meter_shells.push_back(p.second);
         }
         else
         if (p.first == "alarmshell") {
@@ -170,36 +186,28 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
 
     MeterInfo mi;
 
-    mi.parse(name, driver, id, key); // sets driver, extras, name, bus, bps, link_modes, ids, name, key
-    mi.poll_interval = poll_interval;
-
-    /*
-    Ignore link mode checking until all drivers have been refactored.
-    LinkModeSet default_modes = toMeterLinkModeSet(mi.driver);
-    if (!default_modes.hasAll(mi.link_modes))
+    if (!isValidSequenceOfAddressExpressions(address_expressions))
     {
-        string want = mi.link_modes.hr();
-        string has = default_modes.hr();
-        error("(cmdline) cannot set link modes to: %s because meter %s only transmits on: %s\n",
-              want.c_str(), mi.driverName().str().c_str(), has.c_str());
-    }
-    string modeshr = mi.link_modes.hr();
-    debug("(cmdline) setting link modes to %s for meter %s\n",
-            mi.link_modes.hr().c_str(), name.c_str());
-    */
-    if (!isValidMatchExpressions(id, true)) {
-        warning("Not a valid meter id nor a valid meter match expression \"%s\"\n", id.c_str());
+        warning("In config, not a valid meter id nor a valid sequence of match expression \"%s\"\n", address_expressions.c_str());
         use = false;
     }
-    if (!isValidKey(key, mi)) {
-        warning("Not a valid meter key \"%s\"\n", key.c_str());
+
+    mi.parse(name, driver, address_expressions, key); // sets driver, extras, name, bus, bps, link_modes, ids, name, key
+    mi.poll_interval = poll_interval;
+    mi.identity_mode = identity_mode;
+
+    if (!isValidKey(key, mi))
+    {
+        warning("In config, not a valid meter key in config \"%s\"\n", key.c_str());
         use = false;
     }
-    if (use) {
+
+    if (use)
+    {
         mi.extra_constant_fields = extra_constant_fields;
         mi.extra_calculated_fields = extra_calculated_fields;
         mi.shells = telegram_shells;
-        mi.idsc = toIdsCommaSeparated(mi.ids);
+        mi.meter_shells = meter_shells;
         mi.selected_fields = selected_fields;
         c->meters.push_back(mi);
     }
@@ -636,6 +644,11 @@ void handleShell(Configuration *c, string cmdline)
     c->telegram_shells.push_back(cmdline);
 }
 
+void handleMeterShell(Configuration *c, string cmdline)
+{
+    c->meter_shells.push_back(cmdline);
+}
+
 void handleAlarmShell(Configuration *c, string cmdline)
 {
     c->alarm_shells.push_back(cmdline);
@@ -668,12 +681,14 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
     string conf_dir = root;
     string conf_file = root+"/etc/wmbusmeters.conf";
     string conf_meter_dir = root+"/etc/wmbusmeters.d";
+    string conf_drivers_dir = root+"/etc/wmbusmeters.drivers.d";
 
     if (!checkFileExists(conf_file.c_str()))
     {
         conf_dir = root+"/etc";
         conf_file = root+"/wmbusmeters.conf";
         conf_meter_dir = root+"/wmbusmeters.d";
+        conf_drivers_dir = root+"/wmbusmeters.drivers.d";
     }
 
     debug("(config) loading %s\n", conf_file.c_str());
@@ -714,6 +729,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         else if (p.first == "selectfields") handleSelectedFields(c, p.second);
         else if (p.first == "shell") handleShell(c, p.second);
         else if (p.first == "resetafter") handleResetAfter(c, p.second);
+        else if (p.first == "metershell") handleMeterShell(c, p.second);
         else if (p.first == "alarmshell") handleAlarmShell(c, p.second);
         else if (startsWith(p.first, "json_") ||
                  startsWith(p.first, "field_"))
@@ -792,6 +808,8 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         debug("(config) overriding logfile with %s\n", overrides.logfile_override.c_str());
         handleLogfile(c, overrides.logfile_override);
     }
+
+    loadDriversFromDir(conf_drivers_dir);
 
     return shared_ptr<Configuration>(c);
 }

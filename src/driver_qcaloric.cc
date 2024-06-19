@@ -59,7 +59,7 @@ namespace
                 {
                     {
                         "ERROR_FLAGS",
-                        Translate::Type::BitToString,
+                        Translate::MapType::BitToString,
                         AlwaysTrigger, MaskBits(0xff),
                         "OK",
                         {
@@ -74,7 +74,7 @@ namespace
             "The current heat cost allocation.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -95,7 +95,7 @@ namespace
             "Heat cost allocation at the most recent billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -117,7 +117,7 @@ namespace
             "Heat cost allocation at the most recent billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -139,7 +139,7 @@ namespace
             "Heat cost allocation at the 8 billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -161,7 +161,7 @@ namespace
             "Heat cost allocation at the 17 billing period date.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
@@ -200,7 +200,7 @@ namespace
             "Forward media temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FlowTemperature)
@@ -222,8 +222,8 @@ namespace
 
 // Test: zenner_heat qcaloric 25932395 NOKEY
 // telegram=|5E44496A95239325FD087A2CC050052F2F_0B6E030100426CDF2C4B6EFFFFFF82046CE1228B046E6200008D04EE132C3BFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF2F2F2F2F|
-// {"media":"heat cost allocation","meter":"qcaloric","name":"zenner_heat","id":"25932395","status":"UNKNOWN_C0","current_consumption_hca":103,"set_date":"2022-12-31","consumption_at_set_date_hca":2444442,"set_date_1":"2022-12-31","consumption_at_set_date_1_hca":2444442,"set_date_8":"2023-02-01","consumption_at_set_date_8_hca":62,"timestamp":"1111-11-11T11:11:11Z"}
-// |zenner_heat;25932395;103;2022-12-31;2444442;1111-11-11 11:11.11
+// {"media":"heat cost allocation","meter":"qcaloric","name":"zenner_heat","id":"25932395","status":"UNKNOWN_C0","current_consumption_hca":103,"set_date":"2022-12-31","set_date_1":"2022-12-31","set_date_8":"2023-02-01","consumption_at_set_date_8_hca":62,"timestamp":"1111-11-11T11:11:11Z"}
+// |zenner_heat;25932395;103;2022-12-31;null;1111-11-11 11:11.11
 
 // Comment: Normal telegram that fills in values.
 // telegram=|314493449392919034087a520000200b6e9700004b6e700200426c9f2ccb086e970000c2086cbe26326cffff046d2d16a227|

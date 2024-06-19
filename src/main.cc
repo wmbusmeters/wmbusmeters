@@ -18,6 +18,7 @@
 #include"bus.h"
 #include"cmdline.h"
 #include"config.h"
+#include"drivers.h"
 #include"meters.h"
 #include"printer.h"
 #include"rtlsdr.h"
@@ -83,11 +84,16 @@ int main(int argc, char **argv)
 {
     tzset(); // Load the current timezone.
 
+    setVersion(VERSION);
+
+    enableEarlyLoggingFromCommandLine(argc, argv);
+    prepareBuiltinDrivers();
+
     auto config = parseCommandLine(argc, argv);
 
     if (config->version)
     {
-        printf("wmbusmeters: " VERSION "\n");
+        printf("wmbusmeters: %s\n", getVersion());
         printf(COMMIT "\n");
         exit(0);
     }
@@ -111,7 +117,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-You can download the source here: https://github.com/weetmuts/wmbusmeters
+You can download the source here: https://github.com/wmbusmeters/wmbusmeters
 But you can also request the source from the person/company that
 provided you with this binary. Read the full license for all details.
 
@@ -305,15 +311,23 @@ void list_fields(Configuration *config, string meter_driver)
 
 void list_meters(Configuration *config)
 {
+    loadAllBuiltinDrivers();
+
     for (DriverInfo *di : allDrivers())
     {
         string mname = di->name().str();
         const char *info = toString(di->type());
+        const char *where = "";
+        const string f = di->getDynamicFileName();
+        if (f != "")
+        {
+            where = f.c_str();
+        }
 
         if (config->list_meters_search == "" ||                      \
             stringFoundCaseIgnored(info, config->list_meters_search) || \
             stringFoundCaseIgnored(mname.c_str(), config->list_meters_search)) \
-            printf("%-14s %s\n", mname.c_str(), info);
+            printf("%-14s %s %s\n", mname.c_str(), info, where);
     }
 }
 
@@ -389,6 +403,14 @@ void log_start_information(Configuration *config)
         verbose("(config) using device: %s \n", specified_device.str().c_str());
     }
     verbose("(config) number of meters: %d\n", config->meters.size());
+    if (isDebugEnabled())
+    {
+        for (MeterInfo &m : config->meters)
+        {
+            string aes = AddressExpression::concat(m.address_expressions);
+            debug("(config) template %s %s %s\n", m.name.c_str(), aes.c_str(), m.str().c_str());
+        }
+    }
 }
 
 void oneshot_check(Configuration *config, Telegram *t, Meter *meter)
@@ -549,6 +571,39 @@ bool start(Configuration *config)
     // The bus manager detects new/lost wmbus devices and
     // configures the devices according to the specification.
     bus_manager_   = createBusManager(serial_manager_, meter_manager_);
+
+    // When a meter is added, print it, shell it, log it, etc.
+    meter_manager_->whenMeterAdded(
+        [&](shared_ptr<Meter> meter)
+        {
+            vector<string> *shells = &config->meter_shells;
+            if (meter->shellCmdlinesMeterAdded().size() > 0) {
+                shells = &meter->shellCmdlinesMeterAdded();
+            }
+
+            if (shells->size() < 1) {
+                // Early return when no meter_shell configured by user
+                return;
+            }
+
+            vector<string> envs;
+
+            string id = "";
+            if (meter->addressExpressions().size() > 0)
+            {
+                id = meter->addressExpressions().back().id;
+            }
+
+            meter->createMeterEnv(id, &envs, &config->extra_constant_fields);
+
+            for (auto &s : *shells) {
+                vector<string> args;
+                args.push_back("-c");
+                args.push_back(s);
+                invokeShell("/bin/sh", args, envs);
+            }
+        }
+    );
 
     // When a meter is updated, print it, shell it, log it, etc.
     meter_manager_->whenMeterUpdated(

@@ -4,7 +4,7 @@ The program receives and decodes C1,T1 or S1 telegrams
 utility meter readings. The readings can then be published using
 MQTT, curled to a REST api, inserted into a database or stored in a log file.
 
-[FAQ/WIKI/MANUAL pages](https://github.com/weetmuts/wmbusmeters)
+[FAQ/WIKI/MANUAL pages](https://github.com/wmbusmeters/wmbusmeters)
 
 -	Supported architectures 
 	-	ARMv7 32-bit (`armv7`)
@@ -22,7 +22,7 @@ docker run -d --privileged \
     -v /etc/localtime:/etc/localtime:ro \
     -v /opt/wmbusmeters:/wmbusmeters_data \
     -v /dev/:/dev/ \
-    weetmuts/wmbusmeters 
+    wmbusmeters/wmbusmeters 
 ```
 
 ### Command line Options
@@ -40,7 +40,7 @@ If docker-compose.yml file is being used, then it is also possible to copy/paste
 version: "2"
 services:
   wmbusmeters:
-    image: weetmuts/wmbusmeters
+    image: wmbusmeters/wmbusmeters
     container_name: wmbusmeters
     restart: always
     volumes:
@@ -48,7 +48,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /dev/:/dev/
 ```
-Then, `docker-compose pull` can be used to pull the latest weetmuts/wmbusmeters image, `docker-compose up -d` to start the wmbusmeters container service, and `docker-compose down` to stop the wmbusmeters service and delete the container. It must be noted that those commands will also pull, start, and stop any other services defined in docker-compose.yml.
+Then, `docker-compose pull` can be used to pull the latest wmbusmeters/wmbusmeters image, `docker-compose up -d` to start the wmbusmeters container service, and `docker-compose down` to stop the wmbusmeters service and delete the container. It must be noted that those commands will also pull, start, and stop any other services defined in docker-compose.yml.
 
 
 ## How to run docker in unprivileged mode
@@ -73,7 +73,7 @@ docker run -d \
     -v /etc/localtime:/etc/localtime:ro \
     -v /opt/wmbusmeters:/wmbusmeters_data \
     --device=/dev/im871a \
-    weetmuts/wmbusmeters 
+    wmbusmeters/wmbusmeters 
 ```
 
 ### Command line Options
@@ -91,7 +91,7 @@ If docker-compose.yml file is being used, then it is also possible to copy/paste
 version: "2"
 services:
   wmbusmeters:
-    image: weetmuts/wmbusmeters
+    image: wmbusmeters/wmbusmeters
     container_name: wmbusmeters
     restart: always
     volumes:
@@ -101,8 +101,8 @@ services:
       - /dev/im871a
 
 ```
-Then, `docker-compose pull` can be used to pull the latest weetmuts/wmbusmeters image, `docker-compose up -d` to start the wmbusmeters container service, and `docker-compose down` to stop the wmbusmeters service and delete the container. It must be noted that those commands will also pull, start, and stop any other services defined in docker-compose.yml.
+Then, `docker-compose pull` can be used to pull the latest wmbusmeters/wmbusmeters image, `docker-compose up -d` to start the wmbusmeters container service, and `docker-compose down` to stop the wmbusmeters service and delete the container. It must be noted that those commands will also pull, start, and stop any other services defined in docker-compose.yml.
 
 ### Issues / Contributing
 
-Please raise any issues with this container at its [GitHub repo](https://github.com/weetmuts/wmbusmeters)
+Please raise any issues with this container at its [GitHub repo](https://github.com/wmbusmeters/wmbusmeters)

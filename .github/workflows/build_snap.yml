@@ -20,16 +20,16 @@ jobs:
     steps:
     -
       name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     -
       name: Set up QEMU
-      uses: docker/setup-qemu-action@v1
+      uses: docker/setup-qemu-action@v3
     -
       name: Docker meta
       id: meta
-      uses: docker/metadata-action@v4
+      uses: docker/metadata-action@v5
       with:
-        images: weetmuts/wmbusmeters
+        images: wmbusmeters/wmbusmeters
         tags: type=ref,event=tag
     -
       name: Build

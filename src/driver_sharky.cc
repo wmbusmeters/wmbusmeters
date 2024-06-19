@@ -41,6 +41,8 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
+        addOptionalLibraryFields("operating_time_h");
+
         addStringFieldWithExtractorAndLookup(
             "status",
             "Status of meter.",
@@ -49,7 +51,7 @@ namespace
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ErrorFlags),
             Translate::Lookup()
-            .add(Translate::Rule("ERROR_FLAGS", Translate::Type::BitToString)
+            .add(Translate::Rule("ERROR_FLAGS", Translate::MapType::BitToString)
                  .set(MaskBits(0x0000))
                  .set(DefaultMessage("OK"))
                 ));
@@ -59,7 +61,7 @@ namespace
             "The total heat energy consumption recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -70,7 +72,7 @@ namespace
             "The total heat energy consumption recorded by this meter on tariff 1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Energy,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
@@ -82,7 +84,7 @@ namespace
             "The total heating media volume recorded by this meter.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -93,7 +95,7 @@ namespace
             "The total heating media volume recorded by this meter on tariff 2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
@@ -105,7 +107,7 @@ namespace
             "The current heat media volume flow.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::VolumeFlow)
@@ -116,7 +118,7 @@ namespace
             "The current power consumption.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Power,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::PowerW)
@@ -127,7 +129,7 @@ namespace
             "The current forward heat media temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FlowTemperature)
@@ -138,7 +140,7 @@ namespace
             "The current return heat media temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::Auto,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ReturnTemperature)
@@ -149,11 +151,47 @@ namespace
             "The current return heat media temperature.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
-            VifScaling::AutoSigned,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::TemperatureDifference)
             );
+
+        addNumericFieldWithExtractor(
+            "target_energy_consumption",
+            "The total heat energy consumption recorded by this meter at the end of the previous billing period.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto, DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .set(StorageNr(5))
+            );
+
+        addNumericFieldWithExtractor(
+            "target_volume",
+            "The total heating media volume recorded by this meter at the end of the previous billing period.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Volume,
+            VifScaling::Auto, DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Volume)
+            .set(StorageNr(5))
+            );
+
+        addNumericFieldWithExtractor(
+            "target",
+            "The last billing period end date.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::PointInTime,
+            VifScaling::Auto, DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Date)
+            .set(StorageNr(5)),
+            Unit::DateLT);
     }
 }
 
@@ -166,3 +204,8 @@ namespace
 // telegram=|5e44a5115376916140047a0B0050052f2f0c0e829311008c100e000000000c14014938000c2B751400000B3B2902000a5a52070a5e95060a6256000a279015cc020e92831100cc021478113800c2026cdf2c2f2f2f2f2f2f2f2f2f2f2f2f2f|
 // {"flow_temperature_c": 42.3,"id": "68926025","media": "heat","meter": "sharky","name": "Heat","power_kw": 0,"return_temperature_c": 28.1,"status": "OK","temperature_difference_c": 14.1,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 2651,"total_energy_consumption_tariff1_kwh": 0,"total_volume_m3": 150.347,"total_volume_tariff2_m3": 0.018,"volume_flow_m3h": 0}
 // |Heat;68926025;2651;0;150.347;0.018;0;0;42.3;28.1;14.1;1111-11-11 11:11.11
+
+// Test: Heato sharky 69696969 NOKEY
+// telegram=|5e44a5116969696940047aBe0050052f2f0c06975100008c1006000000000c13849345000c2B000000000B3B0000000a5a06020a5e08020a6202f00B26110201cc020623500000cc021329554400c2026cdf2c2f2f2f2f2f2f2f2f2f2f2f2f|
+// {"flow_temperature_c": 20.6,"id": "69696969","media": "heat","meter": "sharky","name": "Heato","operating_time_h": 10211,"power_kw": 0,"return_temperature_c": 20.8,"target_date": "2022-12-31","target_energy_consumption_kwh": 5023,"target_volume_m3": 445.529,"temperature_difference_c": -0.2,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 5197,"total_energy_consumption_tariff1_kwh": 0,"total_volume_m3": 459.384, "volume_flow_m3h": 0}
+// |Heato;69696969;5197;0;459.384;null;0;0;20.6;20.8;-0.2;1111-11-11 11:11.11

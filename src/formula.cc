@@ -490,14 +490,17 @@ size_t FormulaImplementation::findUnit(size_t i)
     // All units start with a lower case a-z, followed by more letters and _ underscores.
     if (!is_letter(c)) return 0;
 
+    size_t longest_unit = 0;
+
 #define X(cname,lcname,hrname,quantity,explanation) \
     if ( (i+sizeof(#lcname)-1 <= len) &&                                \
-         !is_letter_or_underscore(formula_[i+sizeof(#lcname)-1]) &&     \
-         !strncmp(#lcname, formula_.c_str()+i, sizeof(#lcname)-1)) return sizeof(#lcname)-1;
+         !is_letter_digit_or_underscore(formula_[i+sizeof(#lcname)-1]) &&     \
+         !strncmp(#lcname, formula_.c_str()+i, sizeof(#lcname)-1) &&    \
+         longest_unit < (sizeof(#lcname)-1)) { longest_unit = (sizeof(#lcname)-1); }
 LIST_OF_UNITS
 #undef X
 
-    return 0;
+    return longest_unit;
 }
 
 size_t FormulaImplementation::findField(size_t i)
@@ -578,7 +581,8 @@ bool FormulaImplementation::tokenize()
     if (i < formula_.length())
     {
         Token tok(TokenType::SPACE, i, 0);
-        errors_.push_back(tostrprintf("Unknown token!\n"+tok.withMarker(formula_)));
+        string s = string("Unknown token!\n")+tok.withMarker(formula_);
+        errors_.push_back(s);
         valid_ = false;
         return false;
     }
@@ -613,6 +617,7 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::PLUS)
     {
         size_t next = parseOps(i+1);
+        if (!valid_) return next;
         handleAddition(tok);
         return next;
     }
@@ -620,6 +625,7 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::MINUS)
     {
         size_t next = parseOps(i+1);
+        if (!valid_) return next;
         handleSubtraction(tok);
         return next;
     }
@@ -627,6 +633,7 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::TIMES)
     {
         size_t next = parseOps(i+1);
+        if (!valid_) return next;
         handleMultiplication(tok);
         return next;
     }
@@ -634,6 +641,7 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::DIV)
     {
         size_t next = parseOps(i+1);
+        if (!valid_) return next;
         handleDivision(tok);
         return next;
     }
@@ -641,6 +649,7 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::EXP)
     {
         size_t next = parseOps(i+1);
+        if (!valid_) return next;
         handleExponentiation(tok);
         return next;
     }
@@ -648,6 +657,7 @@ size_t FormulaImplementation::parseOps(size_t i)
     if (tok->type == TokenType::SQRT)
     {
         size_t next = parseOps(i+1);
+        if (!valid_) return next;
         handleSquareRoot(tok);
         return next;
     }
@@ -662,10 +672,16 @@ size_t FormulaImplementation::parseOps(size_t i)
         return i;
     }
 
-    if (next == NULL) return i;
-
-    if (tok->type == TokenType::NUMBER && next->type == TokenType::UNIT)
+    if (tok->type == TokenType::NUMBER)
     {
+        if (next == NULL || next->type != TokenType::UNIT)
+        {
+            errors_.push_back(tostrprintf("Constant number %s lacks a valid unit!\n%s",
+                                          tok->vals(formula_).c_str(),
+                                          tok->withMarker(formula_).c_str()));
+            valid_ = false;
+            return i;
+        }
         handleConstant(tok, next);
         return i+2;
     }
@@ -685,18 +701,18 @@ size_t FormulaImplementation::parsePar(size_t i)
         if (tok == NULL) break;
         if (tok->type == TokenType::RPAR) break;
         size_t next = parseOps(i);
-        if (next == i) break;
+        if (!valid_ || next == i) break;
         i = next;
     }
 
-    if (tok == NULL)
+    if (valid_ && tok == NULL)
     {
-        errors_.push_back(tostrprintf("Missing closing parenthesis at end of formula!\n"));
+        errors_.push_back("Missing closing parenthesis at end of formula!\n");
         valid_ = false;
         return i;
     }
 
-    if (tok->type != TokenType::RPAR)
+    if (valid_ && tok->type != TokenType::RPAR)
     {
         errors_.push_back("Expected closing parenthesis!\n"+tok->withMarker(formula_));
         valid_ = false;
@@ -855,7 +871,7 @@ bool FormulaImplementation::go()
     for (;;)
     {
         size_t next = parseOps(i);
-        if (next == i) break;
+        if (!valid_ || next == i) break;
         i = next;
     }
 

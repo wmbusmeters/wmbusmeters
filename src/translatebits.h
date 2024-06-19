@@ -18,7 +18,7 @@
 #ifndef TRANSLATEBITS_H
 #define TRANSLATEBITS_H
 
-#include<stdint.h>
+#include<cstdint>
 #include<string>
 #include<vector>
 
@@ -66,8 +66,9 @@ private:
 
 namespace Translate
 {
-    enum class Type
+    enum class MapType
     {
+        Unknown,
         BitToString, // A bit translates to a text string.
         IndexToString, // A masked set of bits (a number) translates to a lookup index with text strings.
         DecimalsToString // Numbers are successively subtracted from input, each successfull subtraction translate into a text string.
@@ -86,16 +87,16 @@ namespace Translate
     struct Rule
     {
         std::string name;
-        Type type;
+        MapType type;
         TriggerBits trigger; // Bits that must be set.
         MaskBits mask; // Bits to be used are set as 1.
         DefaultMessage default_message; // If no bits are set print this, typically "OK" or "".
         std::vector<Map> map;
 
         Rule() {};
-        Rule(std::string n, Type t, TriggerBits tr, MaskBits mb, std::string dm, std::vector<Map> m)
+        Rule(std::string n, MapType t, TriggerBits tr, MaskBits mb, std::string dm, std::vector<Map> m)
             : name(n), type(t), trigger(tr), mask(mb), default_message(dm), map(m) {}
-        Rule(std::string n, Type t) :
+        Rule(std::string n, MapType t) :
             name(n), type(t), trigger(AlwaysTrigger), mask(AutoMask), default_message(DefaultMessage("")) {}
         Rule &set(TriggerBits t) { trigger = t; return *this; }
         Rule &set(MaskBits m) { mask = m; return *this; }
@@ -115,6 +116,8 @@ namespace Translate
         std::string str();
     };
 };
+
+Translate::MapType toMapType(const char *s);
 
 extern Translate::Lookup NoLookup;
 
