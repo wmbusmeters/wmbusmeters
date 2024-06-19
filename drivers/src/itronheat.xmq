@@ -1,0 +1,90 @@
+/* Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
+   Copyright (C) 2023 Andreas Horrer (gpl-3.0-or-later) */
+driver {
+    name           = itronheat
+    meter_type     = HeatMeter
+    default_fields = name,id,status,total_kwh,target_kwh,timestamp
+    detect {
+        mvt = ITW,00,04
+    }
+    use = meter_datetime
+    field {
+        name       = status
+        quantity   = Text
+        info       = 'Meter status from tpl field.'
+        attributes = INCLUDE_TPL_STATUS
+    }
+    field {
+        name     = total
+        quantity = Energy
+        info     = 'The total heat energy consumption recorded by this meter.'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = AnyEnergyVIF
+        }
+    }
+    field {
+        name     = total
+        quantity = Volume
+        info     = 'The total volume of heating media recorded by this meter.'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+        }
+    }
+    field {
+        name     = target
+        quantity = Energy
+        info     = 'The total heat energy for the previous month period.'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = AnyEnergyVIF
+            storage_nr       = 2
+        }
+    }
+    field {
+        name     = target
+        quantity = Volume
+        info     = 'The total heating media volume recorded by this meter at the end of last month.'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            storage_nr       = 2
+        }
+    }
+    field {
+        name         = last_year
+        quantity     = PointInTime
+        info         = 'Last day of previous billing year.'
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            storage_nr       = 1
+        }
+    }
+    field {
+        name     = last_year
+        quantity = Energy
+        info     = 'The total heat energy for the previous year period.'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = AnyEnergyVIF
+            storage_nr       = 1
+        }
+    }
+    test {
+        args = 'Heat itronheat 23340485 NOKEY'
+        comment = 'Allmess UltraMaXX with ITRON EquaScan hMIU RF Module'
+        telegram = 444497268504342300047AD00030A52F2F_04062C0100000C1429270000066D2D130AE12B007406FEFEFEFE426C1F010D7FEB0E00000006040C995500372F2F0C7951622223
+        json     = '{}'
+        fields   = ''
+    }
+    test {
+        args = 'Heat_lower_case itronheat 11755757 NOKEY'
+        comment = 'Itron Heatmeter with strange MFCT iTW instead of ITW'
+        telegram = 404497A65757751100047A040000A00406494C0000041348318000066D2B0ED7EE2A0044069A360000426CDF2C0D7FEB0700000006040C5C7E034E0C7942502321
+        json = '{}'
+        fields = ''
+    }
+}
