@@ -369,6 +369,7 @@ public:
 
             debug("Testing driver %s...\n", driver_name.c_str());
             mi.driver_name = driver_name;
+            mi.poll_interval = 1000*1000*1000;  // Fake a high value to silence warning about poll inteval.
 
             auto meter = createMeter(&mi);
 
@@ -482,7 +483,7 @@ public:
         }
 
         mi.driver_name = using_driver;
-
+        mi.poll_interval = 1000*1000*1000;  // Fake a high value to silence warning about poll inteval.
         auto meter = createMeter(&mi);
 
         assert(meter != NULL);
