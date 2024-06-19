@@ -35,6 +35,7 @@ namespace
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(0x8614/*APT?*/, 0x03,  0x03);
+        di.addDetection(0x8614/*APT?*/, 0x0F, 0x0F);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
@@ -85,3 +86,8 @@ namespace
 // telegram=|73441486DD4444000303A0B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000|
 // {"media":"water","meter":"apator08","name":"Vatten","id":"004444dd","total_m3":871.571,"timestamp":"1111-11-11T11:11:11Z"}
 // |Vatten;004444dd;871.571;1111-11-11 11:11.11
+
+// Test: test_apator082 apator08 00149c06 NOKEY
+// telegram=|_1C441486069C14000F0FA042F214000040030000000005FF0472BF1400|
+// {"media":"water","meter":"apator08","name":"test_apator082","id":"00149c06","total_m3":457.579333,"timestamp":"1111-11-11T11:11:11Z"}
+// |test_apator082;00149c06;457.579333;1111-11-11 11:11.11
