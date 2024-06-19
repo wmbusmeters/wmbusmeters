@@ -239,20 +239,24 @@ namespace
         double total_water_consumption_l_ = uint32FromBytes(decoded_content, 1, true);
         setNumericValue("total", Unit::L, total_water_consumption_l_);
 
-        double last_month_total_water_consumption_l_ = uint32FromBytes(decoded_content, 5, true);
-        setNumericValue("last_month_total", Unit::L, last_month_total_water_consumption_l_);
-
-        // get the date when the second measurement was taken
-        uint16_t h0_year = ((decoded_content[10] & 0xF0) >> 1) + ((decoded_content[9] & 0xE0) >> 5);
-        if (h0_year > 80) {
-            h0_year += 1900;
-        } else {
-            h0_year += 2000;
+        if (decoded_content.size() > 8) {
+            double last_month_total_water_consumption_l_ = uint32FromBytes(decoded_content, 5, true);
+            setNumericValue("last_month_total", Unit::L, last_month_total_water_consumption_l_);
         }
-        uint8_t h0_month = decoded_content[10] & 0xF;
-        uint8_t h0_day = decoded_content[9] & 0x1F;
+        
+        // get the date when the second measurement was taken
+        if (decoded_content.size() > 10) {
+            uint16_t h0_year = ((decoded_content[10] & 0xF0) >> 1) + ((decoded_content[9] & 0xE0) >> 5);
+            if (h0_year > 80) {
+                h0_year += 1900;
+            } else {
+                h0_year += 2000;
+            }
+            uint8_t h0_month = decoded_content[10] & 0xF;
+            uint8_t h0_day = decoded_content[9] & 0x1F;
 
-        setStringValue("last_month_measure_date", tostrprintf("%d-%02d-%02d", h0_year, h0_month%99, h0_day%99), NULL);
+            setStringValue("last_month_measure_date", tostrprintf("%d-%02d-%02d", h0_year, h0_month%99, h0_day%99), NULL);
+        }
 
         // read the alarms:
         IzarAlarms alarms {};
