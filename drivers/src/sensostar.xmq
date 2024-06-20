@@ -94,15 +94,6 @@ driver {
         }
     }
     field {
-        name     = 'energy_consumption_semi_monthly_{storage_counter - 1 counter}'
-        quantity = Energy
-        match {
-            measurement_type = Instantaneous
-            vif_range        = AnyEnergyVIF
-            storage_nr       = 2,30
-        }
-    }
-    field {
         name     = total_water
         quantity = Volume
         info     = 'The total volume of heating media recorded by this meter.'
@@ -237,6 +228,15 @@ driver {
             subunit_nr       = 1,3
         }
     }
+    field {
+        name     = 'target_{storage_counter}'
+        quantity = Energy
+        match {
+            measurement_type = Instantaneous
+            vif_range        = AnyEnergyVIF
+            storage_nr       = 2,32
+        }
+    }
     test {
         args = 'Heat sensostar 20480057 NOKEY'
         telegram = 68B3B36808007257004820c51400046c100000047839803801040600000000041300000000042B00000000142B00000000043B00000000143B00000000025B1400025f15000261daff02235c00046d2c2ddc24440600000000441300000000426c000001fd171003fd0c05000084200600000000c420060000000084300600000000c430060000000084401300000000c44013000000008480401300000000c48040130000000084c0401300000000c4c0401300000000a216
@@ -247,7 +247,7 @@ driver {
         args = 'WMZ sensostar 02752560 NOKEY'
         comment = 'from "Sensostar U"'
         telegram = a444c5146025750200047ac20000202f2f046d2e26c62a040643160000041310f0050001fd1700426cbf2c4406570e00008401061f160000840206f6150000840306f5150000840406f3150000840506ea150000840606bf1500008407065214000084080692120000840906c5100000840a06570e0000840b06ca0b0000840c06da090000840d06ca080000840e06c8080000840f06c608000003fd0c05010002fd0b2111
-        json = '{"energy_consumption_semi_monthly_11_kwh": 5567,"energy_consumption_semi_monthly_13_kwh": 5202,"energy_consumption_semi_monthly_15_kwh": 4754,"energy_consumption_semi_monthly_17_kwh": 4293,"energy_consumption_semi_monthly_19_kwh": 3671,"energy_consumption_semi_monthly_1_kwh": 5663,"energy_consumption_semi_monthly_21_kwh": 3018,"energy_consumption_semi_monthly_23_kwh": 2522,"energy_consumption_semi_monthly_25_kwh": 2250,"energy_consumption_semi_monthly_27_kwh": 2248,"energy_consumption_semi_monthly_29_kwh": 2246,"energy_consumption_semi_monthly_3_kwh": 5622,"energy_consumption_semi_monthly_5_kwh": 5621,"energy_consumption_semi_monthly_7_kwh": 5619,"energy_consumption_semi_monthly_9_kwh": 5610,"id": "02752560","media": "heat","meter": "sensostar","meter_datetime": "2022-10-06 06:46","model_version": "000105","name": "WMZ","parameter_set": "1121","status": "OK","target_date": "2021-12-31","target_kwh": 3671,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 5699,"total_water_m3": 389.136}'
+        json = '{"id": "02752560","media": "heat","meter": "sensostar","meter_datetime": "2022-10-06 06:46","model_version": "000105","name": "WMZ","parameter_set": "1121","status": "OK","target_10_kwh": 5610,"target_12_kwh": 5567,"target_14_kwh": 5202,"target_16_kwh": 4754,"target_18_kwh": 4293,"target_20_kwh": 3671,"target_22_kwh": 3018,"target_24_kwh": 2522,"target_26_kwh": 2250,"target_28_kwh": 2248,"target_2_kwh": 5663,"target_30_kwh": 2246,"target_4_kwh": 5622,"target_6_kwh": 5621,"target_8_kwh": 5619,"target_date": "2021-12-31","target_kwh": 3671,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 5699,"total_water_m3": 389.136}'
         fields = 'WMZ;02752560;OK;5699;389.136;2021-12-31;3671;1111-11-11 11:11.11'
     }
     test {

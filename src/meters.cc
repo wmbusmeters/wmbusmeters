@@ -485,7 +485,8 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                   NULL,
                   NULL,
                   NoLookup, /* Lookup table */
-                  NULL /* Formula */
+                  NULL, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -525,7 +526,8 @@ void MeterCommonImplementation::addNumericFieldWithCalculator(string vname,
                   NULL,
                   NULL,
                   NoLookup, /* Lookup table */
-                  f /* Formula */
+                  f, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -566,7 +568,8 @@ void MeterCommonImplementation::addNumericFieldWithCalculatorAndMatcher(string v
                   NULL,
                   NULL,
                   NoLookup, /* Lookup table */
-                  f /* Formula */
+                  f, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -594,7 +597,8 @@ void MeterCommonImplementation::addNumericField(
                   NULL, // setValueFunc
                   NULL,
                   NoLookup, /* Lookup table */
-                  NULL /* Formula */
+                  NULL, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -619,7 +623,8 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
                   NULL,
                   NULL,
                   NoLookup, /* Lookup table */
-                  NULL /* Formula */
+                  NULL, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -645,7 +650,8 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
                   NULL,
                   NULL,
                   lookup,
-                  NULL /* Formula */
+                  NULL, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -669,7 +675,8 @@ void MeterCommonImplementation::addStringField(string vname,
                   NULL,
                   NULL,
                   NoLookup, /* Lookup table */
-                  NULL /* Formula */
+                  NULL, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -1500,7 +1507,7 @@ void MeterCommonImplementation::setNumericValue(FieldInfo *fi, DVEntry *dve, Uni
     }
     else
     {
-        field_name_no_unit = fi->generateFieldNameNoUnit(dve);
+        field_name_no_unit = fi->generateFieldNameNoUnit(this, dve);
         numeric_values_[pair<string,Unit>(field_name_no_unit, fi->displayUnit())] = NumericField(u, v, fi, *dve);
     }
 }
@@ -1569,7 +1576,7 @@ void MeterCommonImplementation::setStringValue(FieldInfo *fi, string v, DVEntry 
     }
     else
     {
-        field_name_no_unit = fi->generateFieldNameNoUnit(dve);
+        field_name_no_unit = fi->generateFieldNameNoUnit(this, dve);
         string_values_[field_name_no_unit] = StringField(v, fi);
     }
 }
@@ -1693,7 +1700,8 @@ FieldInfo::FieldInfo(int index,
                      function<void(Unit,double)> set_numeric_value_override,
                      function<void(string)> set_string_value_override,
                      Translate::Lookup lookup,
-                     Formula *formula
+                     Formula *formula,
+                     Meter *m
         ) :
         index_(index),
         vname_(vname),
@@ -1712,7 +1720,7 @@ FieldInfo::FieldInfo(int index,
         lookup_(lookup),
         formula_(formula),
         field_name_(newStringInterpolator()),
-        valid_field_name_(field_name_->parse(vname))
+        valid_field_name_(field_name_->parse(m, vname))
 {
     if (!valid_field_name_)
     {
@@ -1730,24 +1738,24 @@ string FieldInfo::renderJsonText(Meter *m, DVEntry *dve)
     return renderJson(m, dve);
 }
 
-string FieldInfo::generateFieldNameNoUnit(DVEntry *dve)
+string FieldInfo::generateFieldNameNoUnit(Meter *m, DVEntry *dve)
 {
     if (!valid_field_name_) return "bad_field_name";
 
-    return field_name_->apply(dve);
+    return field_name_->apply(m, dve);
 }
 
-string FieldInfo::generateFieldNameWithUnit(DVEntry *dve)
+string FieldInfo::generateFieldNameWithUnit(Meter *m, DVEntry *dve)
 {
     if (!valid_field_name_) return "bad_field_name";
 
     if (xuantity_ == Quantity::Text)
     {
-        return field_name_->apply(dve);
+        return field_name_->apply(m, dve);
     }
 
     string display_unit_s = unitToStringLowerCase(displayUnit());
-    string var = field_name_->apply(dve);
+    string var = field_name_->apply(m, dve);
 
     return var+"_"+display_unit_s;
 }
@@ -1758,7 +1766,7 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     string s;
 
     string display_unit_s = unitToStringLowerCase(displayUnit());
-    string field_name = generateFieldNameNoUnit(dve);
+    string field_name = generateFieldNameNoUnit(m, dve);
 
     if (xuantity() == Quantity::Text)
     {
@@ -2347,7 +2355,7 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
     string field_name;
     if (isDebugEnabled())
     {
-        field_name = generateFieldNameWithUnit(dve);
+        field_name = generateFieldNameWithUnit(m, dve);
     }
 
     double extracted_double_value = NAN;
@@ -2501,7 +2509,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     assert(key == "" || dve->dif_vif_key.str() == key);
 
     // Generate the json field name:
-    string field_name = generateFieldNameNoUnit(dve);
+    string field_name = generateFieldNameNoUnit(m, dve);
 
     uint64_t extracted_bits {};
     if (lookup_.hasLookups() || (print_properties_.hasINCLUDETPLSTATUS()))

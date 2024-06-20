@@ -45,6 +45,8 @@ struct Formula
     virtual std::string str() = 0;
     // Return the formula in a format where the tree structure is explicit.
     virtual std::string tree() = 0;
+    // Return the final type of the formula calculation.
+    virtual SIUnit &siUnit() = 0;
     // Specify which meter to read the meter fields from.
     virtual void setMeter(Meter *m) = 0;
     // Specify which dventry to read counter fields from.
@@ -64,13 +66,13 @@ struct StringInterpolator
        Parse and prepare it for being applied to an actual dve.
        E.g. for a dventry with storage 13 the formula above will generate "historic_1_value"
     */
-    virtual bool parse(const std::string &f) = 0;
+    virtual bool parse(Meter *m, const std::string &f) = 0;
     /**
        apply: Insert inline formulas in field names like "total_{subunit_nr}" insert the result of the formula.
        @dve: A pointer to a telegram entry to use (ie containing storagenr/tariffnr/subunitnr etc.) Can be NULL.
 
     */
-    virtual std::string apply(DVEntry *dve) = 0;
+    virtual std::string apply(Meter *m, DVEntry *dve) = 0;
 
     virtual ~StringInterpolator() = 0;
 };

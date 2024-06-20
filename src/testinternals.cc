@@ -2725,8 +2725,8 @@ void test_formulas_stringinterpolation()
     unique_ptr<StringInterpolator> f = unique_ptr<StringInterpolator>(new StringInterpolatorImplementation());
 
     string p = "history_{storage_counter-12counter}_value";
-    f->parse(p);
-    string s = f->apply(&dve);
+    f->parse(NULL, p);
+    string s = f->apply(NULL, &dve);
     string e = "history_5_value";
 
     if (s != e)
@@ -2738,8 +2738,8 @@ void test_formulas_stringinterpolation()
     }
 
     p = "{storage_counter}_{tariff_counter}_{2counter*subunit_counter}";
-    f->parse(p);
-    s = f->apply(&dve);
+    f->parse(NULL, p);
+    s = f->apply(NULL, &dve);
     e = "17_3_4";
 
     if (s != e)

@@ -455,6 +455,7 @@ LIST_OF_QUANTITIES
     return "?";
 }
 
+
 Unit toUnit(string s)
 {
 #define X(cname,lcname,hrname,quantity,explanation) if (s == #cname || s == #lcname) return Unit::cname;

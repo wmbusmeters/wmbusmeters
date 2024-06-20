@@ -301,7 +301,8 @@ struct FieldInfo
               function<void(Unit,double)> set_numeric_value_override,
               function<void(string)> set_string_value_override,
               Translate::Lookup lookup,
-              Formula *formula
+              Formula *formula,
+              Meter *m
         );
 
     int index() { return index_; }
@@ -331,8 +332,8 @@ struct FieldInfo
     // A FieldInfo can be declared to handle any number of storage fields of a certain range.
     // The vname is then a pattern total_at_month_{storage_counter} that gets translated into
     // total_at_month_2 (for the dventry with storage nr 2.)
-    string generateFieldNameWithUnit(DVEntry *dve);
-    string generateFieldNameNoUnit(DVEntry *dve);
+    string generateFieldNameWithUnit(Meter *m, DVEntry *dve);
+    string generateFieldNameNoUnit(Meter *m, DVEntry *dve);
     // Check if the meter object stores a value for this field.
     bool hasValue(Meter *m);
 

@@ -233,6 +233,7 @@ struct FormulaImplementation : public Formula
     void clear();
     string str();
     string tree();
+    SIUnit &siUnit();
     void setMeter(Meter *m);
     void setDVEntry(DVEntry *dve);
 
@@ -320,8 +321,8 @@ struct StringInterpolatorImplementation : public StringInterpolator
 {
     // Create a string interpolation from for example: "historic_{storage_counter / - 12 counter}_value"
     // Which for a dventry with storage 13 will "generate historic_1_value"
-    bool parse(const std::string &f);
-    std::string apply(DVEntry *dve);
+    bool parse(Meter *m, const std::string &f);
+    std::string apply(Meter *m, DVEntry *dve);
     ~StringInterpolatorImplementation();
 
     // The strings store "historic_" "_value"
