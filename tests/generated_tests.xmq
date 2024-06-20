@@ -1,4 +1,4 @@
-// Generated 2024-06-20_00:46
+// Generated 2024-06-20_10:13
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -93,7 +93,7 @@ test {
     args     = 'WMZ sensostar 02752560 NOKEY'
     comment  = 'from "Sensostar U"'
     telegram = a444c5146025750200047ac20000202f2f046d2e26c62a040643160000041310f0050001fd1700426cbf2c4406570e00008401061f160000840206f6150000840306f5150000840406f3150000840506ea150000840606bf1500008407065214000084080692120000840906c5100000840a06570e0000840b06ca0b0000840c06da090000840d06ca080000840e06c8080000840f06c608000003fd0c05010002fd0b2111
-    json     = '{"enegry_consumption_semi_monthly_11_kwh": 5567,"enegry_consumption_semi_monthly_13_kwh": 5202,"enegry_consumption_semi_monthly_15_kwh": 4754,"enegry_consumption_semi_monthly_17_kwh": 4293,"enegry_consumption_semi_monthly_19_kwh": 3671,"enegry_consumption_semi_monthly_1_kwh": 5663,"enegry_consumption_semi_monthly_21_kwh": 3018,"enegry_consumption_semi_monthly_23_kwh": 2522,"enegry_consumption_semi_monthly_25_kwh": 2250,"enegry_consumption_semi_monthly_27_kwh": 2248,"enegry_consumption_semi_monthly_29_kwh": 2246,"enegry_consumption_semi_monthly_3_kwh": 5622,"enegry_consumption_semi_monthly_5_kwh": 5621,"enegry_consumption_semi_monthly_7_kwh": 5619,"enegry_consumption_semi_monthly_9_kwh": 5610,"id": "02752560","media": "heat","meter": "sensostar","meter_datetime": "2022-10-06 06:46","model_version": "000105","name": "WMZ","parameter_set": "1121","status": "OK","target_date": "2021-12-31","target_kwh": 3671,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 5699,"total_water_m3": 389.136}'
+    json     = '{"energy_consumption_semi_monthly_11_kwh": 5567,"energy_consumption_semi_monthly_13_kwh": 5202,"energy_consumption_semi_monthly_15_kwh": 4754,"energy_consumption_semi_monthly_17_kwh": 4293,"energy_consumption_semi_monthly_19_kwh": 3671,"energy_consumption_semi_monthly_1_kwh": 5663,"energy_consumption_semi_monthly_21_kwh": 3018,"energy_consumption_semi_monthly_23_kwh": 2522,"energy_consumption_semi_monthly_25_kwh": 2250,"energy_consumption_semi_monthly_27_kwh": 2248,"energy_consumption_semi_monthly_29_kwh": 2246,"energy_consumption_semi_monthly_3_kwh": 5622,"energy_consumption_semi_monthly_5_kwh": 5621,"energy_consumption_semi_monthly_7_kwh": 5619,"energy_consumption_semi_monthly_9_kwh": 5610,"id": "02752560","media": "heat","meter": "sensostar","meter_datetime": "2022-10-06 06:46","model_version": "000105","name": "WMZ","parameter_set": "1121","status": "OK","target_date": "2021-12-31","target_kwh": 3671,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 5699,"total_water_m3": 389.136}'
     fields   = 'WMZ;02752560;OK;5699;389.136;2021-12-31;3671;1111-11-11 11:11.11'
 }
 test {

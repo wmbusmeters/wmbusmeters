@@ -17,6 +17,9 @@ Michael Ott added w and wh units. Thanks Michael!
 
 Roman Masse added a new mvt triplet detection for apator08 telegrams. Thanks Roman!
 
+Alexander Streit added the eltako driver! Thanks Alexander!
+This was also the first xmq driver not developed by me. A milestone!
+
 Fixed long standing confusion wether the DIF binary values are by
 default signed or unsigned. It turns out that they are signed!
 Thank you Mathias (Zeppelin500) and KaVauA for sorting this out!

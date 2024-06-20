@@ -423,7 +423,7 @@ run_fuzz_telegrams: extract_fuzz_telegram_seeds
 	${AFL_HOME}/afl-fuzz -i fuzz_testcases/telegrams -o fuzz_findings_telegrams/ build/wmbusmeters --listento=any stdin
 
 extract_fuzz_telegram_seeds:
-	@cat src/driver_*.cc | grep "^// telegram=" | tr -d '|' | sed 's|^// telegram=\|||' > $(BUILD)/seeds
+	@cat drivers/src/*.xmq | grep ".*telegram.*=" | tr -d '_' | sed 's|.*telegram = ||' > $(BUILD)/seeds
 	@mkdir -p fuzz_testcases/telegrams
 	@rm -f fuzz_testcases/telegrams/seed_*
 	@SEED=1; while read -r line; do echo "$${line}" | xxd -r -p - > "fuzz_testcases/telegrams/seed_$${SEED}"; SEED=$$((SEED + 1)); done < $(BUILD)/seeds; echo "Extracted $${SEED} seeds from simulations."
