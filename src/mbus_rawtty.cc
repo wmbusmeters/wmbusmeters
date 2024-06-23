@@ -105,13 +105,13 @@ void MBusRawTTY::deviceReset()
     buf.resize(5);
     buf[0] = 0x10; // Start
     buf[1] = 0x40; // SND_NKE
-    buf[2] = 0x00; // address 0
+    buf[2] = 0xff; // broadcast address 255
     uchar cs = 0;
     for (int i=1; i<3; ++i) cs += buf[i];
     buf[3] = cs; // checksum
     buf[4] = 0x16; // Stop
 
-    verbose("Sending NKE to mbus %s\n", busAlias().c_str());
+    verbose("Sending broadcast NKE to mbus %s\n", busAlias().c_str());
     serial()->send(buf);
 
     sleep(1);
