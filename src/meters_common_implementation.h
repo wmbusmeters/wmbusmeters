@@ -252,6 +252,9 @@ protected:
     std::map<std::string,StringField> string_values_;
     // Used to block next poll, until this poll has received a respones.
     Semaphore waiting_for_poll_response_sem_;
+    // If the telegram ends with 0x1f then set this to true, and the poll
+    // code will poll again with 0x7b instead of 0x5b.
+    bool more_records_follow_;
 };
 
 #endif
