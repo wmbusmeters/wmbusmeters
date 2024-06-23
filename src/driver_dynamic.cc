@@ -35,7 +35,7 @@ PrintProperties check_print_properties(const char *print_properties_s, DriverDyn
 string get_translation(XMQDoc *doc, XMQNode *node, string name, string lang);
 string check_calculate(const char *formula, DriverDynamic *dd);
 Unit check_display_unit(const char *display_unit, DriverDynamic *dd);
-double check_force_scale(double force_scale, DriverDynamic *dd);
+double check_force_scale(const char *force_scale, DriverDynamic *dd);
 
 bool checked_set_difvifkey(const char *difvifkey_s, FieldMatcher *fm, DriverDynamic *dd);
 void checked_set_measurement_type(const char *measurement_type_s, FieldMatcher *fm, DriverDynamic *dd);
@@ -286,8 +286,9 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
     // The display unit is usually based on the quantity. But you can override it.
     Unit display_unit = check_display_unit(xmqGetStringRel(doc, "display_unit", field), dd);
 
-    // A field can force a scale factor. Defaults to 1.0
-    double force_scale = check_force_scale(xmqGetDoubleRel(doc, "force_scale", field), dd);
+    // A field can force a scale factor. Defaults to 1.0 but you can override
+    // with 1.123 or 1/32 or 0.33333 or 3.14/2.5
+    double force_scale = check_force_scale(xmqGetStringRel(doc, "force_scale", field), dd);
 
     // Now find all matchers.
     FieldMatcher match = FieldMatcher::build();
@@ -752,12 +753,71 @@ Unit check_display_unit(const char *display_unit_s, DriverDynamic *dd)
     return u;
 }
 
-double check_force_scale(double force_scale, DriverDynamic *dd)
+double check_force_scale(const char *force_scale, DriverDynamic *dd)
 {
-    // TODO improve error detection.
     if (force_scale == 0) return 1.0;
 
-    return force_scale;
+    const char *start = force_scale;
+    const char *stop = force_scale+strlen(force_scale);
+    while (start < stop && (*start == ' ' || *start == '\n')) start++;
+    while (start < stop && (*stop == ' ' || *stop == '\n')) stop--;
+
+    const char *slash = strchr(force_scale, '/');
+    if (slash == NULL)
+    {
+        char *end;
+        double d = strtod(start, &end);
+        if (end != stop)
+        {
+            warning("(driver) error in %s, unparseable force_scale: %s\n"
+                    "You can force scales such as:\n"
+                    "3.14\n"
+                    "2/3\n"
+                    "12.5\n"
+                    "12.5/5.3\n",
+                    dd->fileName().c_str(),
+                    force_scale);
+            throw 1;
+        }
+        return d;
+    }
+
+    const char *numerator_stop = slash;
+    const char *denominator_start = slash+1;
+    while (start < numerator_stop && (*numerator_stop == ' ' || *numerator_stop == '\n')) numerator_stop--;
+    while (denominator_start < stop && (*denominator_start == ' ' || *denominator_start == '\n')) denominator_start++;
+
+    char *end;
+    double num = strtod(start, &end);
+    if (end != numerator_stop)
+    {
+        warning("(driver) error in %s, unparseable numerator in force_scale: %s\n"
+                "You can force scales such as:\n"
+                "3.14\n"
+                "2/3\n"
+                "12.5\n"
+                "12.5/5.3\n",
+                dd->fileName().c_str(),
+                force_scale);
+        throw 1;
+    }
+
+    double denom = strtod(denominator_start, &end);
+    if (end != stop)
+    {
+        warning("(driver) error in %s, unparseable denominator in force_scale: %s\n"
+                "You can force scales such as:\n"
+                "3.14\n"
+                "2/3\n"
+                "12.5\n"
+                "12.5/5.3\n",
+                dd->fileName().c_str(),
+                force_scale);
+        throw 1;
+    }
+
+    double d = num / denom;
+    return d;
 }
 
 bool checked_set_difvifkey(const char *difvifkey_s, FieldMatcher *fm, DriverDynamic *dd)
