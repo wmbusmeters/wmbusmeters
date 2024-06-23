@@ -6,8 +6,10 @@ driver {
     detect {
         mvt = IME,55,08
     }
+
+    // Telegram 1 fields
     field {
-        name     = 'total'
+        name     = 'positive_total_active_energy'
         quantity = Energy
         info     = 'Positive Three-phase Active Energy (Total).'
         vif_scaling    = None
@@ -17,9 +19,555 @@ driver {
             difvifkey = 849010FF80843B
         }
     }
+    field {
+        name     = 'negative_total_active_energy'
+        quantity = Energy
+        info     = 'Negative Three-phase Active Energy (Total).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kwh
+        match {
+            difvifkey = 849010FF80843C
+        }
+    }
+    field {
+        name     = 'positive_total_reactive_energy'
+        quantity = Energy
+        info     = 'Positive Three-phase Reactive Energy (Total).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kvarh
+        match {
+            difvifkey = 849010FF81843B
+        }
+    }
+    field {
+        name     = 'negative_total_reactive_energy'
+        quantity = Energy
+        info     = 'Negative Three-phase Reactive Energy (Total).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kvarh
+        match {
+            difvifkey = 849010FF81843C
+        }
+    }
+    field {
+        name     = 'positive_tariff1_active_energy'
+        quantity = Energy
+        info     = 'Positive Three-phase Active Energy (Tariff 1).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kwh
+        match {
+            difvifkey = 8410FF80843B
+        }
+    }
+    field {
+        name     = 'positive_tariff2_active_energy'
+        quantity = Energy
+        info     = 'Positive Three-phase Active Energy (Tariff 2).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kwh
+        match {
+            difvifkey = 8420FF80843B
+        }
+    }
+    field {
+        name     = 'negative_tariff1_active_energy'
+        quantity = Energy
+        info     = 'Negative Three-phase Active Energy (Tariff 1).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kwh
+        match {
+            difvifkey = 8410FF80843C
+        }
+    }
+    field {
+        name     = 'negative_tariff2_active_energy'
+        quantity = Energy
+        info     = 'Negative Three-phase Active Energy (Tariff 2).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kwh
+        match {
+            difvifkey = 8420FF80843C
+        }
+    }
+    field {
+        name     = 'positive_tariff1_reactive_energy'
+        quantity = Energy
+        info     = 'Positive Three-phase Reactive Energy (Tariff 1).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kvarh
+        match {
+            difvifkey = 8410FF81843B
+        }
+    }
+    field {
+        name     = 'positive_tariff2_reactive_energy'
+        quantity = Energy
+        info     = 'Positive Three-phase Reactive Energy (Tariff 2).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kvarh
+        match {
+            difvifkey = 8420FF81843B
+        }
+    }
+    field {
+        name     = 'negative_tariff1_reactive_energy'
+        quantity = Energy
+        info     = 'Negative Three-phase Reactive Energy (Tariff 1).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kvarh
+        match {
+            difvifkey = 8410FF81843C
+        }
+    }
+    field {
+        name     = 'negative_tariff2_reactive_energy'
+        quantity = Energy
+        info     = 'Negative Three-phase Reactive Energy (Tariff 2).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kvarh
+        match {
+            difvifkey = 8420FF81843C
+        }
+    }
+    field {
+        name     = 'partial_positive_active_energy'
+        quantity = Energy
+        info     = 'Partial Positive Three-phase Active Energy.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kwh
+        match {
+            difvifkey = 84A010FF80843B
+        }
+    }
+    field {
+        name     = 'partial_negative_active_energy'
+        quantity = Energy
+        info     = 'Partial Negative Three-phase Active Energy.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kwh
+        match {
+            difvifkey = 84A010FF80843C
+        }
+    }
+    field {
+        name     = 'partial_positive_reactive_energy'
+        quantity = Energy
+        info     = 'Partial Positive Three-phase Reactive Energy.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kvarh
+        match {
+            difvifkey = 84A010FF81843B
+        }
+    }
+    field {
+        name     = 'partial_negative_reactive_energy'
+        quantity = Energy
+        info     = 'Partial Negative Three-phase Reactive Energy.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = kvarh
+        match {
+            difvifkey = 84A010FF81843C
+        }
+    }
+    field {
+        name     = 'pulse_input'
+        quantity = Energy
+        info     = 'Pulse Input.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = counter
+        match {
+            difvifkey = 04FF9029
+        }
+    }
+    field {
+        name     = 'pulse_unit'
+        quantity = Energy
+        info     = 'Pulse Unit.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = counter
+        match {
+            difvifkey = 02FF912B
+        }
+    }
+    field {
+        name     = 'kta'
+        quantity = Text
+        info     = 'Current Transformer Ratio (KTA).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = txt
+        match {
+            difvifkey = 02FF922B
+        }
+    }
+    field {
+        name     = 'ktv'
+        quantity = Text
+        info     = 'Voltage Transformer Ratio (KTV).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = txt
+        match {
+            difvifkey = 02FF9329
+        }
+    }
+
+    // Telegram 2 fields
+    field {
+        name     = 'three_phase_total_active_power'
+        quantity = Power
+        info     = 'Three-phase Total Active Power.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = w
+        match {
+            difvifkey = 84B010FF842B
+        }
+    }
+    field {
+        name     = 'active_power_l1'
+        quantity = Power
+        info     = 'Active Power L1.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = w
+        match {
+            difvifkey = 848020FF842B
+        }
+    }
+    field {
+        name     = 'active_power_l2'
+        quantity = Power
+        info     = 'Active Power L2.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = w
+        match {
+            difvifkey = 849020FF842B
+        }
+    }
+    field {
+        name     = 'active_power_l3'
+        quantity = Power
+        info     = 'Active Power L3.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = w
+        match {
+            difvifkey = 84A020FF842B
+        }
+    }
+    field {
+        name     = 'three_phase_total_reactive_power'
+        quantity = Power
+        info     = 'Three-phase Total Reactive Power.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = var
+        match {
+            difvifkey = 84B010FF852B
+        }
+    }
+    field {
+        name     = 'reactive_power_l1'
+        quantity = Power
+        info     = 'Reactive Power L1.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = var
+        match {
+            difvifkey = 848020FF852B
+        }
+    }
+    field {
+        name     = 'reactive_power_l2'
+        quantity = Power
+        info     = 'Reactive Power L2.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = var
+        match {
+            difvifkey = 849020FF852B
+        }
+    }
+    field {
+        name     = 'reactive_power_l3'
+        quantity = Power
+        info     = 'Reactive Power L3.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = var
+        match {
+            difvifkey = 84A020FF852B
+        }
+    }
+    field {
+        name     = 'three_phase_total_apparent_power'
+        quantity = Power
+        info     = 'Three-phase Total Apparent Power.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = va
+        match {
+            difvifkey = 84B010FF862B
+        }
+    }
+    field {
+        name     = 'apparent_power_l1'
+        quantity = Power
+        info     = 'Apparent Power L1.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = va
+        match {
+            difvifkey = 848020FF862B
+        }
+    }
+    field {
+        name     = 'apparent_power_l2'
+        quantity = Power
+        info     = 'Apparent Power L2.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = va
+        match {
+            difvifkey = 849020FF862B
+        }
+    }
+    field {
+        name     = 'apparent_power_l3'
+        quantity = Power
+        info     = 'Apparent Power L3.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = va
+        match {
+            difvifkey = 84A020FF862B
+        }
+    }
+
+    // Telegram 3 fields
+    field {
+        name     = 'voltage_1_n'
+        quantity = Voltage
+        info     = '1-N Voltage.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = v
+        match {
+            difvifkey = 848020FF8748
+        }
+    }
+    field {
+        name     = 'voltage_2_n'
+        quantity = Voltage
+        info     = '2-N Voltage.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = v
+        match {
+            difvifkey = 849020FF8748
+        }
+    }
+    field {
+        name     = 'voltage_3_n'
+        quantity = Voltage
+        info     = '3-N Voltage.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = v
+        match {
+            difvifkey = 84A020FF8748
+        }
+    }
+    field {
+        name     = 'voltage_1_2'
+        quantity = Voltage
+        info     = '1-2 Voltage.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = v
+        match {
+            difvifkey = 848020FF8848
+        }
+    }
+    field {
+        name     = 'voltage_2_3'
+        quantity = Voltage
+        info     = '2-3 Voltage.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = v
+        match {
+            difvifkey = 849020FF8848
+        }
+    }
+    field {
+        name     = 'voltage_3_1'
+        quantity = Voltage
+        info     = '3-1 Voltage.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = v
+        match {
+            difvifkey = 84A020FF8848
+        }
+    }
+    field {
+        name     = 'current_l1'
+        quantity = Current
+        info     = 'Phase 1 Current Value.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = a
+        match {
+            difvifkey = 848020FF8959
+        }
+    }
+    field {
+        name     = 'current_l2'
+        quantity = Current
+        info     = 'Phase 2 Current Value.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = a
+        match {
+            difvifkey = 849020FF8959
+        }
+    }
+    field {
+        name     = 'current_l3'
+        quantity = Current
+        info     = 'Phase 3 Current Value.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = a
+        match {
+            difvifkey = 84A020FF8959
+        }
+    }
+    field {
+        name     = 'frequency'
+        quantity = Frequency
+        info     = 'Frequency.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = Hz
+        match {
+            difvifkey = 02FF8A48
+        }
+    }
+
+    // Telegram 4 fields
+    field {
+        name     = 'three_phase_power_factor'
+        quantity = PowerFactor
+        info     = 'Three-phase Power Factor (PF).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = none
+        match {
+            difvifkey = 82B010FF8B28
+        }
+    }
+    field {
+        name     = 'power_factor_sector'
+        quantity = PowerFactor
+        info     = 'Power Factor (PF) sector.'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = none
+        match {
+            difvifkey = 82B010FF8C2B
+        }
+    }
+    field {
+        name     = 'total_active_power_requirement'
+        quantity = Power
+        info     = 'Total Active Power Requirement (MD).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = w
+        match {
+            difvifkey = 8410FF8D2B
+        }
+    }
+    field {
+        name     = 'max_total_active_power_tariff1'
+        quantity = Power
+        info     = 'Maximum Total Active Power Requirement Tariff 1 (PMD T1).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = w
+        match {
+            difvifkey = 8410FF8E2B
+        }
+    }
+    field {
+        name     = 'max_total_active_power_tariff2'
+        quantity = Power
+        info     = 'Maximum Total Active Power Requirement Tariff 2 (PMD T2).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = w
+        match {
+            difvifkey = 8420FF8E2B
+        }
+    }
+    field {
+        name     = 'run_hour_meter_total'
+        quantity = Time
+        info     = 'Run hour meter (TOT).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = min
+        match {
+            difvifkey = 84B010FF8F21
+        }
+    }
+    field {
+        name     = 'run_hour_meter_tariff1'
+        quantity = Time
+        info     = 'Run hour meter (Tariff 1).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = min
+        match {
+            difvifkey = 8410FF8F21
+        }
+    }
+    field {
+        name     = 'run_hour_meter_tariff2'
+        quantity = Time
+        info     = 'Run hour meter (Tariff 2).'
+        vif_scaling    = None
+        dif_signedness = Unsigned
+        display_unit   = min
+        match {
+            difvifkey = 8420FF8F21
+        }
+    }
+
     test {
         args     = 'MyMeter ime 12345678 NOKEY'
-        telegram = 68CBCB6808017278563412A525660200000000_849010FF80843BC1010C00849010FF80843C00000000849010FF81843BD73B0700849010FF81843C050000008410FF80843B89F00B008420FF80843B381100008410FF80843C000000008420FF80843C000000008410FF81843B3F2F07008420FF81843B980C00008410FF81843C050000008420FF81843C0000000084A010FF80843BC1010C0084A010FF80843C0000000084A010FF81843BD73B070084A010FF81843C0500000004FF90290000000002FF912B00001F00000000004C16
+        telegram = 68CBCB6808017278563412A525660267000000849010FF80843B7A820700849010FF80843C00000000849010FF81843BF35B0400849010FF81843C010000008410FF80843B427107008420FF80843B381100008410FF80843C000000008420FF80843C000000008410FF81843B5A4F04008420FF81843B980C00008410FF81843C010000008420FF81843C0000000084A010FF80843B7A82070084A010FF80843C0000000084A010FF81843BF35B040084A010FF81843C0100000004FF90290000000002FF912B00001F0000000000
         json     = '{"media":"electricity","meter":"ime","name":"MyMeter","id":"12345678","total_kwh":786881,"timestamp":"1111-11-11T11:11:11Z"}'
         fields   = 'MyMeter;12345678;786881;1111-11-11 11:11.11'
     }
