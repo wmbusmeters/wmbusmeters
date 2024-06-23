@@ -849,6 +849,8 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
         }
         if (!more_records_follow_) break;
         next_telegram = true;
+        // Sleep 500ms before polling for the next telegram.
+        usleep(1000*500);
     }
 }
 
