@@ -2099,6 +2099,32 @@ LIST_OF_QUANTITIES
 
     check_units_tested(from_set, to_set, Quantity::Power);
 
+    // Test reactive power kvar unit: kvar
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Reactive_Power);
+    fill_with_units_from(Quantity::Reactive_Power, &from_set);
+    fill_with_units_from(Quantity::Reactive_Power, &to_set);
+
+    // 1 kvar is 1kw
+    test_si_convert(1.0, 1.0, Unit::KVAR, "kvar", Unit::KW, "kvar", Quantity::Reactive_Power, &from_set, &to_set);
+    test_si_convert(1.0, 1.0, Unit::KW, "kvar", Unit::KVAR, "kvar", Quantity::Reactive_Power, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Reactive_Power);
+
+    // Test apparent power kva unit: kva
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    q_set.erase(Quantity::Apparent_Power);
+    fill_with_units_from(Quantity::Apparent_Power, &from_set);
+    fill_with_units_from(Quantity::Apparent_Power, &to_set);
+
+    // 1 kva is 1kw
+    test_si_convert(1.0, 1.0, Unit::KVA, "kva", Unit::KW, "kva", Quantity::Apparent_Power, &from_set, &to_set);
+    test_si_convert(1.0, 1.0, Unit::KW, "kva", Unit::KVA, "kva", Quantity::Apparent_Power, &from_set, &to_set);
+
+    check_units_tested(from_set, to_set, Quantity::Apparent_Power);
+
     // Test volume flow units: m3h lh
     /////////////////////////////////////////////////////////////////////////////////////////////////////
 
