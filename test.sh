@@ -93,6 +93,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 tests/test_conversions.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
+tests/test_conversions_more.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
 tests/test_calculate.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
@@ -198,6 +201,9 @@ if [ "$?" != "0" ]; then RC="1"; fi
 if [ "$?" != "0" ]; then RC="1"; fi
 
 ./tests/test_loadable_drivers.sh $PROG
+if [ "$?" != "0" ]; then RC="1"; fi
+
+./tests/test_dyndriver_key_with_date.sh $PROG
 if [ "$?" != "0" ]; then RC="1"; fi
 
 ./tests/test_bad_driver.sh $PROG

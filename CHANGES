@@ -1,4 +1,25 @@
 
+ATTENTION! The sensostar driver has some incompatible changes in the order of the default fields
+and the energy_consumption_at_reporting_date_kwh is changed to target_kwh, target_date etc.
+
+Supaklass fixed the sensostar historical data setup. Thanks Supaklass!
+
+Added the new drivers aquastream and supercal.
+
+Andreas Horrer added the itronheat driver. Thanks Andreas!
+Andreas also added a workaround for borked meters with strange mfct fields (aPT and iWT)
+
+Arthur van Dorp added the istahead driver. Thanks Arthur!
+
+holigo1 fixed an izar driver issue for meters built 2000 or later. Thanks holigo1!
+
+Michael Ott added w and wh units. Thanks Michael!
+
+Roman Masse added a new mvt triplet detection for apator08 telegrams. Thanks Roman!
+
+Alexander Streit added the eltako driver! Thanks Alexander!
+This was also the first xmq driver not developed by me. A milestone!
+
 Fixed long standing confusion wether the DIF binary values are by
 default signed or unsigned. It turns out that they are signed!
 Thank you Mathias (Zeppelin500) and KaVauA for sorting this out!

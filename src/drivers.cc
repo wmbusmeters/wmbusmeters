@@ -100,7 +100,12 @@ void loadAllBuiltinDrivers()
 const char *findBuiltinDriver(uint16_t mfct, uchar ver, uchar type)
 {
     uint32_t key = mfct << 16  | ver << 8 | type;
-    if (builtins_mvt_lookup_.count(key) == 0) return NULL;
+    if (builtins_mvt_lookup_.count(key) == 0)
+    {
+        // Workaround for weird aPT and iTW mfcts.
+        key = (mfct & 0x7fff) << 16  | ver << 8 | type;
+        if (builtins_mvt_lookup_.count(key) == 0) return NULL;
+    }
     return builtins_mvt_lookup_[key];
 }
 

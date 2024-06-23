@@ -42,7 +42,7 @@ Copyright: 2019 Jacek Tomasiak
 License: GPL-3+
 
 Files: src/driver_kamheat.cc
-Copyright: 2022 Fredrik Öhrström
+Copyright: 2024 Fredrik Öhrström
            2020 Eric Bus
            2022 thecem
 License: GPL-3+
@@ -91,6 +91,11 @@ Files: src/sha256.h
 Copyright: 2013 Tom St Denis <tomstdenis@gmail.com>
            2013 WaterJuice <waterjuice.org>
 License: CC0
+
+Files: drivers/src/istaheat.xmq
+Copyright: 2024 Fredrik Öhrström
+           2024 Arthur van Dorp
+License: GPL-3+
 
 License: GPL-3+
  This program is free software; you can redistribute it and/or modify

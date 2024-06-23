@@ -451,6 +451,11 @@ string manufacturer(int m_field) {
     for (auto &m : manufacturers_) {
 	if (m.m_field == m_field) return m.name;
     }
+    // Some weird meters send the first char in lower case aPT iTW. Fix and try again.
+    m_field &= 0x7fff;
+    for (auto &m : manufacturers_) {
+	if (m.m_field == m_field) return m.name;
+    }
     return "Unknown";
 }
 
@@ -5734,6 +5739,17 @@ const char *toString(FrameType ft)
     case FrameType::WMBUS: return "wmbus";
     case FrameType::MBUS: return "mbus";
     case FrameType::HAN: return "han";
+    }
+    return "?";
+}
+
+const char *toString(FrameStatus fs)
+{
+    switch (fs) {
+    case FrameStatus::PartialFrame: return "PartialFrame";
+    case FrameStatus::FullFrame: return "FullFrame";
+    case FrameStatus::ErrorInFrame: return "ErrorInFrame";
+    case FrameStatus::TextAndNotFrame: return "TextAndNotFrame";
     }
     return "?";
 }

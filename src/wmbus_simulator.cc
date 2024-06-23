@@ -213,6 +213,18 @@ void WMBusSimulator::simulate()
 
             handleTelegram(about, payload);
         }
+
+        if (!is_mbus && !is_wmbus)
+        {
+            // Rerun test again with only_test = false to have the errors in the (w)mbus format to be printed.
+            debug("(simulator) Rerunning mbus frame check...\n");
+            FrameStatus ms = checkMBusFrame(payload, &frame_length, &payload_len, &payload_offset, false);
+            debug("(simulator) Rerunning wmbus frame check...\n");
+            FrameStatus wms = checkWMBusFrame(payload, &frame_length, &payload_len, &payload_offset, false);
+
+            debug("(simulator) failed both tests for mbus/wmbus mbus=%s wmbus=%s\n",
+                  toString(ms), toString(wms));
+        }
     }
     manager_->stop();
 }

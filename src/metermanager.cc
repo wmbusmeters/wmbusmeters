@@ -369,6 +369,7 @@ public:
 
             debug("Testing driver %s...\n", driver_name.c_str());
             mi.driver_name = driver_name;
+            mi.poll_interval = 1000*1000*1000;  // Fake a high value to silence warning about poll inteval.
 
             auto meter = createMeter(&mi);
 
@@ -482,7 +483,7 @@ public:
         }
 
         mi.driver_name = using_driver;
-
+        mi.poll_interval = 1000*1000*1000;  // Fake a high value to silence warning about poll inteval.
         auto meter = createMeter(&mi);
 
         assert(meter != NULL);
@@ -548,9 +549,9 @@ public:
             auto_driver = "not found!";
         }
 
-        printf("Auto driver  : %s\n", auto_driver.c_str());
-        printf("Best driver  : %s %02d/%02d\n", best_driver.c_str(), best_understood, best_length);
-        printf("Using driver : %s %02d/%02d\n", using_driver.c_str(), using_understood, using_length);
+        printf("Auto driver    : %s\n", auto_driver.c_str());
+        printf("Similar driver : %s %02d/%02d\n", best_driver.c_str(), best_understood, best_length);
+        printf("Using driver   : %s %02d/%02d\n", using_driver.c_str(), using_understood, using_length);
 
         printf("%s\n", output.c_str());
 

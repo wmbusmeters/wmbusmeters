@@ -34,9 +34,9 @@ TESTNAME="Test analyze encrypted (no-key) ctr full telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
-Auto driver  : multical21
-Best driver  : unknown 00/00
-Using driver : multical21 00/00
+Auto driver    : multical21
+Similar driver : unknown 00/00
+Using driver   : multical21 00/00
 000   : 2a length (42 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -71,9 +71,9 @@ TESTNAME="Test analyze encrypted (no-key) ctr compact telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
-Auto driver  : multical21
-Best driver  : unknown 00/00
-Using driver : multical21 00/00
+Auto driver    : multical21
+Similar driver : unknown 00/00
+Using driver   : multical21 00/00
 000   : 23 length (35 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -108,9 +108,9 @@ TESTNAME="Test analyze encrypted (with-key) ctr full telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
-Auto driver  : multical21
-Best driver  : multical21 12/12
-Using driver : multical21 00/00
+Auto driver    : multical21
+Similar driver : multical21 12/12
+Using driver   : multical21 00/00
 000   : 2a length (42 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)
@@ -171,9 +171,9 @@ TESTNAME="Test analyze encrypted (no-key) ctr compact telegram"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected.txt <<EOF
-Auto driver  : multical21
-Best driver  : multical21 12/12
-Using driver : multical21 00/00
+Auto driver    : multical21
+Similar driver : multical21 12/12
+Using driver   : multical21 00/00
 000   : 23 length (35 bytes)
 001   : 44 dll-c (from meter SND_NR)
 002   : 2d2c dll-mfct (KAM)

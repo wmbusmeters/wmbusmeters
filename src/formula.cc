@@ -581,7 +581,8 @@ bool FormulaImplementation::tokenize()
     if (i < formula_.length())
     {
         Token tok(TokenType::SPACE, i, 0);
-        errors_.push_back(tostrprintf("Unknown token!\n"+tok.withMarker(formula_)));
+        string s = string("Unknown token!\n")+tok.withMarker(formula_);
+        errors_.push_back(s);
         valid_ = false;
         return false;
     }
@@ -1196,6 +1197,11 @@ NumericFormula * FormulaImplementation::top2Op()
     return op_stack_[op_stack_.size()-2].get();
 }
 
+SIUnit &FormulaImplementation::siUnit()
+{
+    return topOp()->siunit();
+}
+
 string Token::withMarker(const string& formula)
 {
     string indent;
@@ -1221,7 +1227,7 @@ StringInterpolatorImplementation::~StringInterpolatorImplementation()
 {
 }
 
-bool StringInterpolatorImplementation::parse(const std::string &f)
+bool StringInterpolatorImplementation::parse(Meter *m, const std::string &f)
 {
     strings_.clear();
     formulas_.clear();
@@ -1242,7 +1248,7 @@ bool StringInterpolatorImplementation::parse(const std::string &f)
         string formula = f.substr(next_start_brace+1, next_end_brace - next_start_brace - 1);
 
         formulas_.push_back(unique_ptr<Formula>(newFormula()));
-        bool ok = formulas_.back()->parse(NULL, formula);
+        bool ok = formulas_.back()->parse(m, formula);
         if (!ok) return false;
 
         prev_string_start = next_end_brace+1;
@@ -1260,7 +1266,7 @@ bool StringInterpolatorImplementation::parse(const std::string &f)
     return true;
 }
 
-string StringInterpolatorImplementation::apply(DVEntry *dve)
+string StringInterpolatorImplementation::apply(Meter *m, DVEntry *dve)
 {
     string result;
     size_t s = 0;
@@ -1278,9 +1284,20 @@ string StringInterpolatorImplementation::apply(DVEntry *dve)
 
         if (f < formulas_.size())
         {
+            Formula *ff = formulas_[f].get();
             if (dve != NULL)
             {
-                result += tostrprintf("%g", formulas_[f]->calculate(Unit::COUNTER, dve));
+                Unit u = ff->siUnit().asUnit(Quantity::PointInTime);
+                if (u == Unit::UnixTimestamp)
+                {
+                    double pt = ff->calculate(Unit::UnixTimestamp, dve, m);
+                    // Print as DateLT
+                    result += strdate(pt);
+                }
+                else
+                {
+                    result += tostrprintf("%g", ff->calculate(Unit::COUNTER, dve, m));
+                }
             }
             else
             {

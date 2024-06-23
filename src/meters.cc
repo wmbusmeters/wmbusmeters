@@ -112,7 +112,10 @@ bool DriverInfo::detect(uint16_t mfct, uchar type, uchar version)
     for (auto &dd : detect_)
     {
         if (dd.mfct == 0 && dd.type == 0 && dd.version == 0) continue; // Ignore drivers with no detection.
-        if (dd.mfct == mfct && dd.type == type && dd.version == version) return true;
+        // Some weird meters (aptor08 and itronheat) send a mfct where the first character is lower case,
+        // which results in mfct which are bigger than 32767, therefore restrict mfct to correct range
+        // and the normal check will work.
+        if (dd.mfct == (mfct & 0x7fff) && dd.type == type && dd.version == version) return true;
     }
     return false;
 }
@@ -482,7 +485,8 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                   NULL,
                   NULL,
                   NoLookup, /* Lookup table */
-                  NULL /* Formula */
+                  NULL, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -522,7 +526,8 @@ void MeterCommonImplementation::addNumericFieldWithCalculator(string vname,
                   NULL,
                   NULL,
                   NoLookup, /* Lookup table */
-                  f /* Formula */
+                  f, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -563,7 +568,8 @@ void MeterCommonImplementation::addNumericFieldWithCalculatorAndMatcher(string v
                   NULL,
                   NULL,
                   NoLookup, /* Lookup table */
-                  f /* Formula */
+                  f, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -591,7 +597,8 @@ void MeterCommonImplementation::addNumericField(
                   NULL, // setValueFunc
                   NULL,
                   NoLookup, /* Lookup table */
-                  NULL /* Formula */
+                  NULL, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -616,7 +623,8 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
                   NULL,
                   NULL,
                   NoLookup, /* Lookup table */
-                  NULL /* Formula */
+                  NULL, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -642,7 +650,8 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
                   NULL,
                   NULL,
                   lookup,
-                  NULL /* Formula */
+                  NULL, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -666,7 +675,8 @@ void MeterCommonImplementation::addStringField(string vname,
                   NULL,
                   NULL,
                   NoLookup, /* Lookup table */
-                  NULL /* Formula */
+                  NULL, /* Formula */
+                  this /* Meter */
             ));
 }
 
@@ -995,7 +1005,9 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
         if (isVerboseEnabled() || isDebugEnabled() || !warned_for_telegram_before(t, t->dll_a))
         {
             string possible_drivers = t->autoDetectPossibleDrivers();
-            if (t->beingAnalyzed() == false && driver_name != "auto")
+            if (t->beingAnalyzed() == false && // Do not warn when analyzing.
+                driver_name != "auto" && // Do not warn when driver is auto. We can expecte errors then.
+                t->dll_mfct != 0) // Do not warn if dll_mfct == 0 because this is primary mbus address.
             {
                 warning("(meter) %s: meter detection did not match the selected driver %s! correct driver is: %s\n"
                         "(meter) Not printing this warning again for id: %02x%02x%02x%02x mfct: (%s) %s (0x%02x) type: %s (0x%02x) ver: 0x%02x\n",
@@ -1495,7 +1507,7 @@ void MeterCommonImplementation::setNumericValue(FieldInfo *fi, DVEntry *dve, Uni
     }
     else
     {
-        field_name_no_unit = fi->generateFieldNameNoUnit(dve);
+        field_name_no_unit = fi->generateFieldNameNoUnit(this, dve);
         numeric_values_[pair<string,Unit>(field_name_no_unit, fi->displayUnit())] = NumericField(u, v, fi, *dve);
     }
 }
@@ -1564,7 +1576,7 @@ void MeterCommonImplementation::setStringValue(FieldInfo *fi, string v, DVEntry 
     }
     else
     {
-        field_name_no_unit = fi->generateFieldNameNoUnit(dve);
+        field_name_no_unit = fi->generateFieldNameNoUnit(this, dve);
         string_values_[field_name_no_unit] = StringField(v, fi);
     }
 }
@@ -1688,7 +1700,8 @@ FieldInfo::FieldInfo(int index,
                      function<void(Unit,double)> set_numeric_value_override,
                      function<void(string)> set_string_value_override,
                      Translate::Lookup lookup,
-                     Formula *formula
+                     Formula *formula,
+                     Meter *m
         ) :
         index_(index),
         vname_(vname),
@@ -1707,7 +1720,7 @@ FieldInfo::FieldInfo(int index,
         lookup_(lookup),
         formula_(formula),
         field_name_(newStringInterpolator()),
-        valid_field_name_(field_name_->parse(vname))
+        valid_field_name_(field_name_->parse(m, vname))
 {
     if (!valid_field_name_)
     {
@@ -1725,24 +1738,24 @@ string FieldInfo::renderJsonText(Meter *m, DVEntry *dve)
     return renderJson(m, dve);
 }
 
-string FieldInfo::generateFieldNameNoUnit(DVEntry *dve)
+string FieldInfo::generateFieldNameNoUnit(Meter *m, DVEntry *dve)
 {
     if (!valid_field_name_) return "bad_field_name";
 
-    return field_name_->apply(dve);
+    return field_name_->apply(m, dve);
 }
 
-string FieldInfo::generateFieldNameWithUnit(DVEntry *dve)
+string FieldInfo::generateFieldNameWithUnit(Meter *m, DVEntry *dve)
 {
     if (!valid_field_name_) return "bad_field_name";
 
     if (xuantity_ == Quantity::Text)
     {
-        return field_name_->apply(dve);
+        return field_name_->apply(m, dve);
     }
 
     string display_unit_s = unitToStringLowerCase(displayUnit());
-    string var = field_name_->apply(dve);
+    string var = field_name_->apply(m, dve);
 
     return var+"_"+display_unit_s;
 }
@@ -1753,7 +1766,7 @@ string FieldInfo::renderJson(Meter *m, DVEntry *dve)
     string s;
 
     string display_unit_s = unitToStringLowerCase(displayUnit());
-    string field_name = generateFieldNameNoUnit(dve);
+    string field_name = generateFieldNameNoUnit(m, dve);
 
     if (xuantity() == Quantity::Text)
     {
@@ -2149,7 +2162,7 @@ string MeterInfo::str()
     }
     r += ":";
     if (bus != "") r += bus+":";
-    if (bps != 0) r += bps+":";
+    if (bps != 0) r += to_string(bps)+":";
     if (!link_modes.empty()) r += link_modes.hr()+":";
     if (r.size() > 0) r.pop_back();
 
@@ -2342,7 +2355,7 @@ bool FieldInfo::extractNumeric(Meter *m, Telegram *t, DVEntry *dve)
     string field_name;
     if (isDebugEnabled())
     {
-        field_name = generateFieldNameWithUnit(dve);
+        field_name = generateFieldNameWithUnit(m, dve);
     }
 
     double extracted_double_value = NAN;
@@ -2496,7 +2509,7 @@ bool FieldInfo::extractString(Meter *m, Telegram *t, DVEntry *dve)
     assert(key == "" || dve->dif_vif_key.str() == key);
 
     // Generate the json field name:
-    string field_name = generateFieldNameNoUnit(dve);
+    string field_name = generateFieldNameNoUnit(m, dve);
 
     uint64_t extracted_bits {};
     if (lookup_.hasLookups() || (print_properties_.hasINCLUDETPLSTATUS()))

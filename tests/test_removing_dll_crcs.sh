@@ -10,7 +10,7 @@ TESTRESULT="ERROR"
 cat > $TEST/test_expected.txt <<EOF
 No meters configured. Printing id:s of all telegrams heard!
 Received telegram from: 000bc37c
-          manufacturer: (APT) Unknown (0x8614)
+          manufacturer: (APT) Apator, Poland (0x8614)
                   type: Gas meter (0x03)
                    ver: 0x03
                 driver: apator08
