@@ -836,6 +836,7 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
     // The next fcb bit should therefore be 1 to make sure we send a fresh telegram.
     uchar fcb = 1;
     bool next_telegram = false;
+    int num_repolls = 0;
     for (;;)
     {
         if (ae.mbus_primary)
@@ -860,8 +861,16 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
         // Toggle fcb
         if (fcb == 0) fcb = 1;
         else          fcb = 0;
-        debug("(meter) found 0x1f record, polling again with fcb=%u for more data\n", fcb);
+        num_repolls++;
+        debug("(meter) found 0x1f record, polling again (%d) with fcb=%u for more data\n",
+              num_repolls,
+              fcb);
 
+        if (num_repolls > 10)
+        {
+            warning("(meter) repolling more than 10 times and no 0x0f found yet! Giving up!\n");
+            break;
+        }
         // Sleep 50ms before polling for the next telegram.
         usleep(1000*50);
     }
