@@ -707,7 +707,7 @@ bool send_primary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, b
     buf[3] = cs; // checksum
     buf[4] = 0x16; // Stop
 
-    verbose("(meter) polling %s%s %s (primary) with req ud2 fcb=%ud on bus %s\n",
+    verbose("(meter) polling %s%s %s (primary) with req ud2 fcb=%u on bus %s\n",
             again,
             m->name().c_str(),
             ae->id.c_str(),
@@ -781,7 +781,7 @@ bool send_secondary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae,
     buf[3] = cs; // checksum
     buf[4] = 0x16; // Stop
 
-    verbose("(meter) polling %s%s %s (secondary) with req ud2 fcb=%ud bus %s\n",
+    verbose("(meter) polling %s%s %s (secondary) with req ud2 fcb=%u bus %s\n",
             again,
             m->name().c_str(),
             ae->id.c_str(),
@@ -860,10 +860,10 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
         // Toggle fcb
         if (fcb == 0) fcb = 1;
         else          fcb = 0;
-        debug("(meter) found 0x1f record, polling again with fcb=%ud for more data\n", fcb);
+        debug("(meter) found 0x1f record, polling again with fcb=%u for more data\n", fcb);
 
-        // Sleep 500ms before polling for the next telegram.
-        usleep(1000*500);
+        // Sleep 50ms before polling for the next telegram.
+        usleep(1000*50);
     }
 }
 
