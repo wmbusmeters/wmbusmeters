@@ -681,7 +681,7 @@ void MeterCommonImplementation::addStringField(string vname,
             ));
 }
 
-bool send_primary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, bool next_telegram)
+bool send_primary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, bool next_telegram, uchar fcb)
 {
     const char *again;
 
@@ -699,8 +699,8 @@ bool send_primary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, b
     vector<uchar> buf;
     buf.resize(5);
     buf[0] = 0x10; // Start
-    buf[1] = 0x5b; // REQ_UD2
-    if (next_telegram) buf[1] = 0x7b; // REQ_UD2 but next telegram in sequence
+    buf[1] = 0x5b; // REQ_UD2 fcb==0
+    if (fcb) buf[1] = 0x7b; // REQ_UD2 fcb==1
     buf[2] = idnum & 0xff;
     uchar cs = 0;
     for (int i=1; i<3; ++i) cs += buf[i];
@@ -717,7 +717,7 @@ bool send_primary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, b
     return true;
 }
 
-bool send_secondary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, bool next_telegram)
+bool send_secondary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, bool next_telegram, uchar fcb)
 {
     // A full secondary address 12345678 was specified.
     const char *again;
@@ -772,8 +772,8 @@ bool send_secondary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae,
     vector<uchar> buf;
     buf.resize(5);
     buf[0] = 0x10; // Start
-    buf[1] = 0x5b; // REQ_UD2
-    if (next_telegram) buf[1] = 0x7b; // REQ_UD2 for next telegram in sequence.
+    buf[1] = 0x5b; // REQ_UD2 fcb==0
+    if (fcb) buf[1] = 0x7b; // REQ_UD2 fcb==1
     buf[2] = 0xfd; // Address 253 previously primed with the secondary address.
     uchar cs = 0;
     for (int i=1; i<3; ++i) cs += buf[i];
@@ -827,17 +827,18 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
         return;
     }
 
+    uchar fcb = 0;
     bool next_telegram = false;
     for (;;)
     {
         if (ae.mbus_primary)
         {
-            bool ok = send_primary_poll(this, bus_device, &ae, next_telegram);
+            bool ok = send_primary_poll(this, bus_device, &ae, next_telegram, fcb);
             if (!ok) return;
         }
         else
         {
-            bool ok = send_secondary_poll(this, bus_device, &ae, next_telegram);
+            bool ok = send_secondary_poll(this, bus_device, &ae, next_telegram, fcb);
             if (!ok) return;
         }
 
@@ -849,6 +850,8 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
         }
         if (!more_records_follow_) break;
         next_telegram = true;
+        // Toggle fcb
+        fcb = fcb?0:1;
         // Sleep 500ms before polling for the next telegram.
         usleep(1000*500);
     }
