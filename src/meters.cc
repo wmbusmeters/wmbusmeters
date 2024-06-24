@@ -699,19 +699,20 @@ bool send_primary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, b
     vector<uchar> buf;
     buf.resize(5);
     buf[0] = 0x10; // Start
-    buf[1] = 0x5b; // REQ_UD2 fcb==0
-    if (fcb) buf[1] = 0x7b; // REQ_UD2 fcb==1
+    if (fcb == 0) buf[1] = 0x5b; // REQ_UD2 fcb==0
+    else          buf[1] = 0x7b; // REQ_UD2 fcb==1
     buf[2] = idnum & 0xff;
     uchar cs = 0;
     for (int i=1; i<3; ++i) cs += buf[i];
     buf[3] = cs; // checksum
     buf[4] = 0x16; // Stop
 
-    verbose("(meter) polling %s%s %s (primary) with req ud2 on bus %s\n",
+    verbose("(meter) polling %s%s %s (primary) with req ud2 fcb=%ud on bus %s\n",
             again,
             m->name().c_str(),
             ae->id.c_str(),
-            bus_device->busAlias().c_str(),ae->id.c_str());
+            fcb,
+            bus_device->busAlias().c_str());
     bus_device->serial()->send(buf);
 
     return true;
@@ -772,18 +773,19 @@ bool send_secondary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae,
     vector<uchar> buf;
     buf.resize(5);
     buf[0] = 0x10; // Start
-    buf[1] = 0x5b; // REQ_UD2 fcb==0
-    if (fcb) buf[1] = 0x7b; // REQ_UD2 fcb==1
+    if (fcb == 0) buf[1] = 0x5b; // REQ_UD2 fcb==0
+    else          buf[1] = 0x7b; // REQ_UD2 fcb==1
     buf[2] = 0xfd; // Address 253 previously primed with the secondary address.
     uchar cs = 0;
     for (int i=1; i<3; ++i) cs += buf[i];
     buf[3] = cs; // checksum
     buf[4] = 0x16; // Stop
 
-    verbose("(meter) polling %s%s %s (secondary) with req ud2 bus %s\n",
+    verbose("(meter) polling %s%s %s (secondary) with req ud2 fcb=%ud bus %s\n",
             again,
             m->name().c_str(),
             ae->id.c_str(),
+            fcb,
             bus_device->busAlias().c_str());
     bus_device->serial()->send(buf);
 
@@ -856,7 +858,10 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
         if (!more_records_follow_) break;
         next_telegram = true;
         // Toggle fcb
-        fcb = fcb?0:1;
+        if (fcb == 0) fcb = 1;
+        else          fcb = 0;
+        debug("(meter) found 0x1f record, polling again with fcb=%ud for more data\n", fcb);
+
         // Sleep 500ms before polling for the next telegram.
         usleep(1000*500);
     }
