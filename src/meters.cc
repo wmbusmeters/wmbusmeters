@@ -827,7 +827,12 @@ void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
         return;
     }
 
-    uchar fcb = 0;
+    // Reading the mbus spec:
+    // https://m-bus.com/documentation-wired/05-data-link-layer
+    // https://m-bus.com/documentation-wired/07-network-layer
+    // A valid secondary selection command will force the fcb bit in the meter to 0.
+    // The next fcb bit should therefore be 1 to make sure we send a fresh telegram.
+    uchar fcb = 1;
     bool next_telegram = false;
     for (;;)
     {
