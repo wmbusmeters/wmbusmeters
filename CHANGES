@@ -1,4 +1,9 @@
 
+Send mbus NKE to broadcast primary address 255 when mbus raw tty device reset.
+Support fractions for force_scale=1/3
+Add units for apparent (kva) and reactive (kvar) power.
+Poll mbus meter again if 0x1b found in telegram. Failsafe give up after 10 telegrams with 0x1f in a row.
+
 ATTENTION! The sensostar driver has some incompatible changes in the order of the default fields
 and the energy_consumption_at_reporting_date_kwh is changed to target_kwh, target_date etc.
 
