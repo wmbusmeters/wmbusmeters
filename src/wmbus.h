@@ -517,6 +517,7 @@ public:
     int header_size {}; // Size of headers before the APL content.
     int suffix_size {}; // Size of suffix after the APL content. Usually empty, but can be MACs!
     int mfct_0f_index = -1; // -1 if not found, else index of the 0f byte, if found, inside the difvif data after the header.
+    int mfct_1f_index = -1; // -1 if not found, else index of the 1f byte, if found, then there are more records in the next telegram.
     int force_mfct_index = -1; // Force all data after this offset to be mfct specific. Used for meters not using 0f.
     void extractFrame(vector<uchar> *fr); // Extract to full frame.
     void extractPayload(vector<uchar> *pl); // Extract frame data containing the measurements, after the header and not the suffix.

@@ -336,7 +336,8 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     name_(mi.name),
     mfct_tpl_status_bits_(di.mfctTPLStatusBits()),
     has_process_content_(di.hasProcessContent()),
-    waiting_for_poll_response_sem_("waiting_for_poll_response")
+    waiting_for_poll_response_sem_("waiting_for_poll_response"),
+    more_records_follow_(false)
 {
     address_expressions_ = mi.address_expressions;
     identity_mode_ = mi.identity_mode;
@@ -680,134 +681,198 @@ void MeterCommonImplementation::addStringField(string vname,
             ));
 }
 
+bool send_primary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, bool next_telegram, uchar fcb)
+{
+    const char *again;
+
+    again = "";
+    if (next_telegram) again = "again ";
+
+    int idnum = atoi(ae->id.c_str()+1);
+
+    if (idnum < 0 || idnum > 250)
+    {
+        warning("(meter) not polling from bad id \"%s\"\n", ae->id.c_str());
+        return false;
+    }
+
+    vector<uchar> buf;
+    buf.resize(5);
+    buf[0] = 0x10; // Start
+    if (fcb == 0) buf[1] = 0x5b; // REQ_UD2 fcb==0
+    else          buf[1] = 0x7b; // REQ_UD2 fcb==1
+    buf[2] = idnum & 0xff;
+    uchar cs = 0;
+    for (int i=1; i<3; ++i) cs += buf[i];
+    buf[3] = cs; // checksum
+    buf[4] = 0x16; // Stop
+
+    verbose("(meter) polling %s%s %s (primary) with req ud2 fcb=%u on bus %s\n",
+            again,
+            m->name().c_str(),
+            ae->id.c_str(),
+            fcb,
+            bus_device->busAlias().c_str());
+    bus_device->serial()->send(buf);
+
+    return true;
+}
+
+bool send_secondary_poll(Meter *m, BusDevice *bus_device, AddressExpression *ae, bool next_telegram, uchar fcb)
+{
+    // A full secondary address 12345678 was specified.
+    const char *again;
+
+    again = "";
+    if (next_telegram) again = "again ";
+
+    if (!next_telegram)
+    {
+        // Only send the setup secondary address for the first UD_REQ2.
+        vector<uchar> idhex;
+        bool ok = hex2bin(ae->id, &idhex);
+
+        if (!ok || idhex.size() != 4)
+        {
+            warning("(meter) not polling from bad id \"%s\"\n", ae->id.c_str());
+            return false;
+        }
+
+        vector<uchar> buf;
+        buf.resize(17);
+        buf[0] = 0x68;
+        buf[1] = 0x0b;
+        buf[2] = 0x0b;
+        buf[3] = 0x68;
+        buf[4] = 0x73; // SND_UD
+        buf[5] = 0xfd; // address 253
+        buf[6] = 0x52; // ci 52
+        // Assuming we send id 12345678
+        buf[7] = idhex[3]; // id 78
+        buf[8] = idhex[2]; // id 56
+        buf[9] = idhex[1]; // id 34
+        buf[10] = idhex[0]; // id 12
+        buf[11] = ae->mfct & 0xff; // mfct
+        buf[12] = (ae->mfct >> 8) & 0xff; // use 0xff as a wildcard
+        buf[13] = ae->version; // version/generation
+        buf[14] = ae->type; // type/media/device
+
+        uchar cs = 0;
+        for (int i=4; i<15; ++i) cs += buf[i];
+        buf[15] = cs; // checksum
+        buf[16] = 0x16; // Stop
+
+        debug("(meter) secondary addressing bus %s to address %s\n",
+              bus_device->busAlias().c_str(),
+              ae->id.c_str());
+        bus_device->serial()->send(buf);
+
+        usleep(1000*500);
+    }
+
+    vector<uchar> buf;
+    buf.resize(5);
+    buf[0] = 0x10; // Start
+    if (fcb == 0) buf[1] = 0x5b; // REQ_UD2 fcb==0
+    else          buf[1] = 0x7b; // REQ_UD2 fcb==1
+    buf[2] = 0xfd; // Address 253 previously primed with the secondary address.
+    uchar cs = 0;
+    for (int i=1; i<3; ++i) cs += buf[i];
+    buf[3] = cs; // checksum
+    buf[4] = 0x16; // Stop
+
+    verbose("(meter) polling %s%s %s (secondary) with req ud2 fcb=%u bus %s\n",
+            again,
+            m->name().c_str(),
+            ae->id.c_str(),
+            fcb,
+            bus_device->busAlias().c_str());
+    bus_device->serial()->send(buf);
+
+    return true;
+}
+
 void MeterCommonImplementation::poll(shared_ptr<BusManager> bus_manager)
 {
-    if (usesPolling())
+    if (!usesPolling()) return;
+
+    // An valid poll interval must have been set!
+    if (pollInterval() <= 0) return;
+
+    time_t now = time(NULL);
+    time_t next_poll_time = datetime_of_poll_+pollInterval();
+    if (now < next_poll_time)
     {
-        // An valid poll interval must have been set!
-        if (pollInterval() <= 0) return;
+        // Not yet time to poll this meter.
+        return;
+    }
 
-        time_t now = time(NULL);
-        time_t next_poll_time = datetime_of_poll_+pollInterval();
-        if (now < next_poll_time)
-        {
-            // Not yet time to poll this meter.
-            return;
-        }
+    BusDevice *bus_device = bus_manager->findBus(bus());
 
-        BusDevice *bus_device = bus_manager->findBus(bus());
+    if (!bus_device)
+    {
+        string aesc = AddressExpression::concat(addressExpressions());
+        warning("(meter) warning! no bus specified for meter %s %s\n", name().c_str(), aesc.c_str());
+        return;
+    }
 
-        if (!bus_device)
-        {
-            string aesc = AddressExpression::concat(addressExpressions());
-            warning("(meter) warning! no bus specified for meter %s %s\n", name().c_str(), aesc.c_str());
-            return;
-        }
+    if (addressExpressions().size() == 0)
+    {
+        warning("(meter) not polling from \"%s\" since no valid id\n", name().c_str());
+        return;
+    }
 
-        if (addressExpressions().size() == 0)
-        {
-            warning("(meter) not polling from \"%s\" since no valid id\n", name().c_str());
-            return;
-        }
+    AddressExpression &ae = addressExpressions().back();
+    if (ae.has_wildcard)
+    {
+        warning("(meter) not polling from id \"%s\" since poll id must not have a wildcard\n", ae.id.c_str());
+        return;
+    }
 
-        AddressExpression &ae = addressExpressions().back();
-        if (ae.has_wildcard)
-        {
-            warning("(meter) not polling from id \"%s\" since poll id must not have a wildcard\n", ae.id.c_str());
-            return;
-        }
-
+    // Reading the mbus spec:
+    // https://m-bus.com/documentation-wired/05-data-link-layer
+    // https://m-bus.com/documentation-wired/07-network-layer
+    // A valid secondary selection command will force the fcb bit in the meter to 0.
+    // The next fcb bit should therefore be 1 to make sure we send a fresh telegram.
+    uchar fcb = 1;
+    bool next_telegram = false;
+    int num_repolls = 0;
+    for (;;)
+    {
         if (ae.mbus_primary)
         {
-            int idnum = atoi(ae.id.c_str()+1);
-
-            if (idnum < 0 || idnum > 250)
-            {
-                warning("(meter) not polling from bad id \"%s\"\n", ae.id.c_str());
-                return;
-            }
-
-            vector<uchar> buf;
-            buf.resize(5);
-            buf[0] = 0x10; // Start
-            buf[1] = 0x5b; // REQ_UD2
-            buf[2] = idnum & 0xff;
-            uchar cs = 0;
-            for (int i=1; i<3; ++i) cs += buf[i];
-            buf[3] = cs; // checksum
-            buf[4] = 0x16; // Stop
-
-            verbose("(meter) polling %s %s (primary) with req ud2 on bus %s\n",
-                    name().c_str(),
-                    ae.id.c_str(),
-                    bus_device->busAlias().c_str(),ae.id.c_str());
-            bus_device->serial()->send(buf);
+            bool ok = send_primary_poll(this, bus_device, &ae, next_telegram, fcb);
+            if (!ok) return;
         }
-
-        if (!ae.mbus_primary)
+        else
         {
-            // A full secondary address 12345678 was specified.
-
-            vector<uchar> idhex;
-            bool ok = hex2bin(ae.id, &idhex);
-
-            if (!ok || idhex.size() != 4)
-            {
-                warning("(meter) not polling from bad id \"%s\"\n", ae.id.c_str());
-                return;
-            }
-
-            vector<uchar> buf;
-            buf.resize(17);
-            buf[0] = 0x68;
-            buf[1] = 0x0b;
-            buf[2] = 0x0b;
-            buf[3] = 0x68;
-            buf[4] = 0x73; // SND_UD
-            buf[5] = 0xfd; // address 253
-            buf[6] = 0x52; // ci 52
-            // Assuming we send id 12345678
-            buf[7] = idhex[3]; // id 78
-            buf[8] = idhex[2]; // id 56
-            buf[9] = idhex[1]; // id 34
-            buf[10] = idhex[0]; // id 12
-            buf[11] = ae.mfct & 0xff; // mfct
-            buf[12] = (ae.mfct >> 8) & 0xff; // use 0xff as a wildcard
-            buf[13] = ae.version; // version/generation
-            buf[14] = ae.type; // type/media/device
-
-            uchar cs = 0;
-            for (int i=4; i<15; ++i) cs += buf[i];
-            buf[15] = cs; // checksum
-            buf[16] = 0x16; // Stop
-
-            debug("(meter) secondary addressing bus %s to address %s\n",
-                  bus_device->busAlias().c_str(),
-                  ae.id.c_str());
-            bus_device->serial()->send(buf);
-
-            usleep(1000*500);
-
-            buf.resize(5);
-            buf[0] = 0x10; // Start
-            buf[1] = 0x5b; // REQ_UD2
-            buf[2] = 0xfd; // 00 or address 253 previously setup
-            cs = 0;
-            for (int i=1; i<3; ++i) cs += buf[i];
-            buf[3] = cs; // checksum
-            buf[4] = 0x16; // Stop
-
-            verbose("(meter) polling %s %s (secondary) with req ud2 bus %s\n",
-                    name().c_str(),
-                    ae.id.c_str(),
-                    bus_device->busAlias().c_str());
-            bus_device->serial()->send(buf);
+            bool ok = send_secondary_poll(this, bus_device, &ae, next_telegram, fcb);
+            if (!ok) return;
         }
+
         bool ok = waiting_for_poll_response_sem_.wait();
         if (!ok)
         {
             warning("(meter) %s %s did not send a response!\n", name().c_str(), ae.id.c_str());
+            break;
         }
+        if (!more_records_follow_) break;
+        next_telegram = true;
+        // Toggle fcb
+        if (fcb == 0) fcb = 1;
+        else          fcb = 0;
+        num_repolls++;
+        debug("(meter) found 0x1f record, polling again (%d) with fcb=%u for more data\n",
+              num_repolls,
+              fcb);
+
+        if (num_repolls > 10)
+        {
+            warning("(meter) repolling more than 10 times and no 0x0f found yet! Giving up!\n");
+            break;
+        }
+        // Sleep 50ms before polling for the next telegram.
+        usleep(1000*50);
     }
 }
 
@@ -1303,6 +1368,9 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
 
     if (usesPolling())
     {
+        // Did the parser find a 0x1b record? If so, then we should poll again for the next
+        // telegram using REQ_UD2 0x7b instead of 0x5b.
+        more_records_follow_ = (t.mfct_1f_index != -1);
         waiting_for_poll_response_sem_.notify();
     }
 

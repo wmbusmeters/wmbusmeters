@@ -264,6 +264,8 @@ Energy
 Reactive_Energy
 Apparent_Energy
 Power
+Reactive_Power
+Apparent_Power
 Volume
 Flow
 Voltage
@@ -307,6 +309,8 @@ Energy
 Reactive_Energy
 Apparent_Energy
 Power
+Reactive_Power
+Apparent_Power
 Volume
 Flow
 Voltage

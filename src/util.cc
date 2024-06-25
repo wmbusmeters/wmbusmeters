@@ -813,7 +813,7 @@ void logTelegram(vector<uchar> &original, vector<uchar> &parsed, int header_size
             assert((suffix_size*2) < (int)content.size());
             string content2 = content.substr(0, content.size()-suffix_size*2);
             string suffix = content.substr(content.size()-suffix_size*2);
-            notice_always("telegram=|%s|%s|%s|+%ld\n",
+            notice_always("telegram=|%s_%s_%s|+%ld\n",
                    header.c_str(), content2.c_str(), suffix.c_str(), diff);
         }
     }

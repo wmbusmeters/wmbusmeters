@@ -41,6 +41,8 @@
     X(Reactive_Energy,KVARH)  \
     X(Apparent_Energy,KVAH)   \
     X(Power,KW)               \
+    X(Reactive_Power,KVAR)    \
+    X(Apparent_Power,KVA)     \
     \
     X(Volume,M3)              \
     X(Flow,M3H)               \
@@ -89,6 +91,8 @@ LIST_OF_QUANTITIES
     \
     X(W,w,"W",Power,"Watt")                                             \
     X(KW,kw,"kW",Power,"kilo Watt")                                     \
+    X(KVAR,kvar,"kVAR",Reactive_Power,"kilo volt amperes reactive")     \
+    X(KVA,kva,"kVA",Apparent_Power,"kilo volt amperes")                 \
     X(M3CH,m3ch,"m³°C/h",Power,"cubic meter celsius per hour")          \
     \
     X(M3,m3,"m³",Volume,"cubic meter")                                  \

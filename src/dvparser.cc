@@ -275,6 +275,7 @@ bool parseDV(Telegram *t,
                 datalen = std::distance(data,data_end);
                 string value = bin2hex(data+1, data_end, datalen-1);
                 t->mfct_0f_index = 1+std::distance(data_start, data);
+                t->mfct_1f_index = 1+std::distance(data_start, data);
                 assert(t->mfct_0f_index >= 0);
                 t->addExplanationAndIncrementPos(data, datalen, KindOfData::CONTENT, Understanding::FULL, "%02X more data in next telegram %s", dif, value.c_str());
                 break;
