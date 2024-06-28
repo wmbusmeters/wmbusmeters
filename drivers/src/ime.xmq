@@ -12,7 +12,7 @@ driver {
     default_fields = name,id,positive_total_active_energy_kwh,timestamp
     meter_type     = ElectricityMeter
     detect {
-        mvt = IME,55,08
+        mvt = IME,66,02
     }
 
     field {
