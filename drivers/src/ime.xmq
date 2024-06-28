@@ -1,6 +1,14 @@
-// Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
+/* Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
+
+   Warning! This meter is seriously bonkers!
+   Do not use or buy it! The meter implements its own scaling system for
+   all Note 1 values (like positive_total_active_energy)
+   If you are lucky you will get zeroes when the scale factor is unknown.
+   If you are unlucky you will get brokenly scaled values.
+*/
 driver {
     name           = ime
+    info           = 'This meter uses a seriously bonkers violation of the wmbus protocol. Avoid at all cost!'
     default_fields = name,id,positive_total_active_energy_kwh,timestamp
     meter_type     = ElectricityMeter
     detect {
