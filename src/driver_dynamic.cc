@@ -450,6 +450,8 @@ XMQProceed DriverDynamic::add_lookup(XMQDoc *doc, XMQNode *lookup, DriverDynamic
     uint64_t mask_bits = checked_mask_bits(xmqGetStringRel(doc, "mask_bits", lookup), dd);
     const char *default_message = xmqGetStringRel(doc, "default_message", lookup);
 
+    if (default_message == NULL) default_message = "";
+
     Translate::Rule rule = Translate::Rule(name, map_type);
     dd->tmp_rule_ = &rule;
 
