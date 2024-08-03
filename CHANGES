@@ -1,4 +1,8 @@
 
+Sajicek improved the hydrodigit driver! Thanks Sajicek!
+
+Stepniskir helped create the ime driver! Thanks stepniskir!
+
 Send mbus NKE to broadcast primary address 255 when mbus raw tty device reset.
 Support fractions for force_scale=1/3
 Add units for apparent (kva) and reactive (kvar) power.
