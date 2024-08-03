@@ -259,7 +259,7 @@ namespace {
 				bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3],
 				backflow);
 		setNumericValue("backflow", Unit::M3, backflow);
-		
+
 		i += 4;
 
 		double monthData;
@@ -298,10 +298,24 @@ namespace {
 
 // Test: HydrodigitWater hydrodigit 86868686 NOKEY
 // telegram=|4E44B4098686868613077AF0004005_2F2F0C1366380000046D27287E2A0F150E00000000C10000D10000E60000FD00000C01002F0100410100540100680100890000A00000B30000002F2F2F2F2F2F|
-// {"media":"water","meter":"hydrodigit","name":"HydrodigitWater","id":"86868686","total_m3":3.866,"meter_datetime":"2019-10-30 08:39","timestamp":"1111-11-11T11:11:11Z"}
+// {"April_total_m3": 2.53,"August_total_m3": 3.4,"December_total_m3": 1.79,"February_total_m3": 2.09,"January_total_m3": 1.93,"July_total_m3": 3.21,"June_total_m3": 3.03,"March_total_m3": 2.3,"May_total_m3": 2.68,"November_total_m3": 1.6,"October_total_m3": 1.37,"September_total_m3": 3.6,"backflow_m3": 0,"contents": "Backflow, alarms and monthly data","id": "86868686","media": "water","meter": "hydrodigit","meter_datetime": "2019-10-30 08:39","name": "HydrodigitWater","timestamp": "1111-11-11T11:11:11Z","total_m3": 3.866,"voltage_v": 3.7}
 // |HydrodigitWater;86868686;3.866;2019-10-30 08:39;1111-11-11 11:11.11
 
 // Test: HydridigitWaterr hydrodigit 03245501 NOKEY
 // telegram=|2444B4090155240317068C00487AC0000000_0C1335670000046D172EEA280F030000000000|
-// {"id": "03245501","media": "warm water","meter": "hydrodigit","meter_datetime": "2023-08-10 14:23","name": "HydridigitWaterr","timestamp": "1111-11-11T11:11:11Z","total_m3": 6.735}
+// {"contents": "unknown, please open issue with this telegram for driver improvement","id": "03245501","media": "warm water","meter": "hydrodigit","meter_datetime": "2023-08-10 14:23","name": "HydridigitWaterr","timestamp": "1111-11-11T11:11:11Z","total_m3": 6.735}
 // |HydridigitWaterr;03245501;6.735;2023-08-10 14:23;1111-11-11 11:11.11
+
+
+// Test: Hydro3 hydrodigit 87654321 NOKEY
+// Comment: This is a nice one to showcase the backflow encoding.
+// telegram=|4644B4092143658713077A9C000000_0C1364390400_046D212F1635_0F152A0F000000440F00C00F00511000D51000B20B00180C007C0C00E60C00560D00D10D00400E00C60E0000|
+// {"media":"water","meter":"hydrodigit","name":"Hydro3","id":"87654321","April_total_m3":43.09,"August_total_m3":33.02,"December_total_m3":37.82,"February_total_m3":40.32,"January_total_m3":39.08,"July_total_m3":31.96,"June_total_m3":30.96,"March_total_m3":41.77,"May_total_m3":29.94,"November_total_m3":36.48,"October_total_m3":35.37,"September_total_m3":34.14,"backflow_m3":0.015,"meter_datetime":"2024-05-22 15:33","total_m3":43.964,"voltage_v":3.05,"contents":"Backflow, alarms and monthly data","timestamp":"1111-11-11T11:11:11Z"}
+// |Hydro3;87654321;43.964;2024-05-22 15:33;1111-11-11 11:11.11
+
+
+// Test: Hydro4 hydrodigit 87654322 NOKEY
+// Comment: This one adds a leak date to the definition, plus shows how the monthly data looks before module installation.
+// telegram=|4944B4092243658713077A7F000000_0C1363020400_046D242C1236_0F950A24042507000000A405006E0700850900CA0B004A0E00FFFFFFFFFFFF020000020000250000B3010095030000|
+// {"media":"water","meter":"hydrodigit","name":"Hydro4","id":"87654322","April_total_m3":30.18,"August_total_m3":0.02,"December_total_m3":9.17,"February_total_m3":19.02,"January_total_m3":14.44,"July_total_m3":0,"June_total_m3":0,"March_total_m3":24.37,"May_total_m3":36.58,"November_total_m3":4.35,"October_total_m3":0.37,"September_total_m3":0.02,"backflow_m3":0.007,"meter_datetime":"2024-06-18 12:36","total_m3":40.263,"voltage_v":3.05,"contents":"Backflow, leak date, alarms and monthly data","leak_date":"25.04.2024","timestamp":"1111-11-11T11:11:11Z"}
+// |Hydro4;87654322;40.263;2024-06-18 12:36;1111-11-11 11:11.11
