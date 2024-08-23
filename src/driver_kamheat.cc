@@ -359,3 +359,8 @@ namespace
 // telegram=|5e442d2c4024418535047ae10050252f2f04fB091300000004167500000004ff2200000000043ca301000002599c1d025dB00e844014000000008480401400000000042eB9000000026c0534426c013444fB0900000000543c000000002f2f|
 // {"id": "85412440","media": "heat","meter": "kamheat","meter_date": "2024-04-05","name": "KMHEAT","power_kw": 185,"status": "OK","t1_temperature_c": 75.8,"t2_temperature_c": 37.6,"target_date": "2024-04-01","target_energy_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 5277.777778,"total_volume_m3": 117,"volume_flow_m3h": 4.19}
 // |KMHEAT;85412440;5277.777778;117;OK;1111-11-11 11:11.11
+
+// Test: KM2 kamheat 85007420 NOKEY
+// telegram=|689f9f68081472207400852d2c350cad00000004fb08c304000004ff07f21c000004ff084d1100000415fe29000084401400000000848040140000000004228829000034220a00000002598511025dab100261da00042d00000000142d08000000043b00000000143b6000000004ff2200000000046d0d2c0238542dc9010000543be1050000426c013102ff1a011b0c782074008504ff16850b200004ff17c9ff0e01cb16|
+// {"fabrication_no": "85007420","flow_return_temperature_difference_c": 2.18,"forward_energy_m3c": 7410,"id": "85007420","max_flow_m3h": 0.096,"max_power_kw": 0.8,"media": "heat volume at inlet","meter": "kamheat","meter_datetime": "2024-08-02 12:13","name": "KM2","on_time_at_error_h": 10,"on_time_h": 10632,"power_kw": 0,"return_energy_m3c": 4429,"status": "OK","t1_temperature_c": 44.85,"t2_temperature_c": 42.67,"target_date": "2024-01-01","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 33861.111111,"total_volume_m3": 1075,"volume_flow_m3h": 0}
+// |KM2;85007420;33861.111111;1075;OK;1111-11-11 11:11.11

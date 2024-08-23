@@ -48,7 +48,7 @@
     X(FabricationNo,0x78,0x78, Quantity::Text, Unit::TXT) \
     X(EnhancedIdentification,0x79,0x79, Quantity::Text, Unit::TXT) \
     X(EnergyMWh,0x7B00,0x7B01, Quantity::Energy, Unit::KWH) \
-    X(EnergyGJ,0x7B09,0x7B0A, Quantity::Energy, Unit::MJ) \
+    X(EnergyGJ,0x7B08,0x7B09, Quantity::Energy, Unit::MJ) \
     X(RelativeHumidity,0x7B1A,0x7B1B, Quantity::RH, Unit::RH) \
     X(AccessNumber,0x7D08,0x7D08, Quantity::Counter, Unit::COUNTER) \
     X(Medium,0x7D09,0x7D09, Quantity::Text, Unit::TXT) \
