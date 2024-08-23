@@ -1,4 +1,4 @@
-// Generated 2024-06-28_11:05
+// Generated 2024-08-23_08:50
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -104,6 +104,13 @@ test {
     telegram = 32442D2C1703007701188D280080E39322DB8F78_22696600126967000269660005FF091954A33A05FF0A99BD823A02FD170800
     json     = '{"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","status":"LOW","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"alfa_counter":0.001246,"beta_counter":0.000997,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Pressing;77000317;LOW;1.02;1.03;1.02;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyRelHCA relhca 00000104 NOKEY'
+    comment  = 'Telegram 1'
+    telegram = 682f2f6808687204010000ac484100b30000000c6e41648401046d9c021732426cff2c4c6e4164840142ec7e1f3c0fc101010c6d16
+    json     = '{"consumption_hca": 1846441,"id": "00000104","media": "other","meter": "relhca","meter_datetime": "2024-02-23 02:28","target_hca": 1846441,"name": "MyRelHCA","next_target_date": "2024-12-31","target_date": "2023-12-31","timestamp": "1111-11-11T11:11:11Z"}'
+    fields   = 'MyRelHCA;00000104;1846441;1111-11-11 11:11.11'
 }
 test {
     args     = 'XYZ sensostar 21750444 NOKEY'

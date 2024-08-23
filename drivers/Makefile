@@ -1,7 +1,7 @@
 
 $(shell mkdir -p build/test)
 
-PROG?=wmbusmeters
+PROG?=../build/wmbusmeters
 
 database:
 	@./generate.sh $(PROG)

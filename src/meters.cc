@@ -3107,6 +3107,22 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             );
     }
 
+    if (checkIf(fields,"target_hca"))
+    {
+        addNumericFieldWithExtractor(
+            "target",
+            "The heat cost allocation recorded by this meter at the target date.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::HCA,
+            VifScaling::Auto,
+            DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::HeatCostAllocation)
+            .set(StorageNr(1))
+            );
+    }
+
     if (!checkFieldsEmpty(fields, name()))
     {
         return false;
