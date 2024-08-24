@@ -1,4 +1,6 @@
 
+Correctly decode GJ first VIF extension.
+
 Sajicek improved the hydrodigit driver! Thanks Sajicek!
 
 Stepniskir helped create the ime driver! Thanks stepniskir!
@@ -13,7 +15,7 @@ and the energy_consumption_at_reporting_date_kwh is changed to target_kwh, targe
 
 Supaklass fixed the sensostar historical data setup. Thanks Supaklass!
 
-Added the new drivers aquastream and supercal.
+Added the new drivers aquastream, supercal and relhca.
 
 Andreas Horrer added the itronheat driver. Thanks Andreas!
 Andreas also added a workaround for borked meters with strange mfct fields (aPT and iWT)

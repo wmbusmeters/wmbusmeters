@@ -328,6 +328,15 @@ lcov:
 test: build/xmq
 	@./test.sh build/wmbusmeters
 
+
+# To run the debug build with asan we need to disable security address randomization
+# or we will get AddressSanitizer:DEADLYSIGNAL
+disable_address_randomization:
+	echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
+
+enable_address_randomization:
+	echo 2 | sudo tee /proc/sys/kernel/randomize_va_space
+
 testd: build/xmq
 	@./test.sh build_debug/wmbusmeters
 
