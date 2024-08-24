@@ -1,6 +1,9 @@
+Version 1.17.1-RC1 2024-08-24
+
+Fix ha addon build process.
+
 Version 1.17.0 2024-08-24
 Version 1.17.0-RC1 2024-08-24
-
 
 Correctly decode GJ first VIF extension.
 
