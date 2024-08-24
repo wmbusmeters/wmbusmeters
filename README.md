@@ -33,6 +33,41 @@ or into json:
 Wmbusmeters can collect telegrams from radio using hardware dongles or rtl-sdr software radio dongles,
 or from m-bus meters using serial ports, or from files/pipes.
 
+# You can now write new meter drivers without recompiling wmbusmeters!
+
+What is a driver and why is it needed?
+
+The (w)mbus meters can be very complicated. Even though
+the protocol is self-describing and you can automatically
+decode a 32 bit signed binary word representing a volume in m3
+stored in storage slot 1.
+
+What does this measurement mean? Is it last months final measurement
+that will be used for water billing? Is it the amount of gas
+delivered last year?
+
+The driver creates mapping rules from Type,Unit,StorageNr,SubUnitNr,TariffNr
+into for example `heat_consumption_at_set_date_kwh`.
+
+For example:
+```
+field {
+    name = target
+    info = 'Water consumption at the end of last month.'
+    quantity = Volume
+    match {
+        measurement_type = Instantaneous
+        vif_range = Volume
+        storage_nr = 20
+    }
+}
+```
+
+Will create a mapping rule that looks for a Instantaneous,Volume,20,0,0 value
+and, if found, then generate `"target_m3": 1234` json key-value in the decoded output.
+
+[Drivers](https://github.com/wmbusmeters/wmbusmeters/tree/master/drivers/src)
+
 [FAQ/WIKI/MANUAL pages](https://wmbusmeters.github.io/wmbusmeters-wiki/)
 
 The program runs on GNU/Linux, MacOSX, FreeBSD, and Raspberry Pi.
