@@ -384,8 +384,11 @@ bool parseDV(Telegram *t,
         }
 
         // Grabbing a variable length vif. This does not currently work
-        // with the compact format.
-        if (vif == 0x7c)
+        // with the compact format. Should the high bit be set here?
+        // One meter (qsmoke) does not set the high bit, since the next byte is not strictly a vife, it is a length byte.
+        // Another meter does set the hight bit....
+        // We accept both hear, I do not yet know what the standard says.
+        if (vif == 0x7c || vif == 0xfc)
         {
             DEBUG_PARSER("(dvparser debug) variable length vif found\n");
             if (*format == format_end) { debug("(dvparser) warning: unexpected end of data (vif varlen expected)\n"); break; }
