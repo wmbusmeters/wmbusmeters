@@ -115,7 +115,7 @@ bool DriverInfo::detect(uint16_t mfct, uchar type, uchar version)
         // Some weird meters (aptor08 and itronheat) send a mfct where the first character is lower case,
         // which results in mfct which are bigger than 32767, therefore restrict mfct to correct range
         // and the normal check will work.
-        if (dd.mfct == (mfct & 0x7fff) && dd.type == type && dd.version == version) return true;
+        if ((dd.mfct & 0x7fff) == (mfct & 0x7fff) && dd.type == type && dd.version == version) return true;
     }
     return false;
 }
