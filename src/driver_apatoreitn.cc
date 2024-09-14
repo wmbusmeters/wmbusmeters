@@ -36,8 +36,8 @@ namespace
         di.setName("apatoreitn");
         di.setDefaultFields("name,id,current_hca,previous_hca,current_date,season_start_date,esb_date,temp_room_avg_c,temp_room_prev_avg_c,timestamp");
         di.setMeterType(MeterType::HeatCostAllocationMeter);
-        di.addDetection(0x8614 /* APT? */, 0x08,  0x04);
-        di.addDetection(0x8601 /* APA? */, 0x08,  0x04);
+        di.addDetection(MANUFACTURER_APA, 0x08,  0x04);
+        di.addDetection(MANUFACTURER_APT, 0x08,  0x04);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
