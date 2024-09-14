@@ -33,6 +33,11 @@ namespace
         di.addDetection(MANUFACTURER_APA,  0x02,  0x02);
         di.addDetection(MANUFACTURER_DEV,  0x37,  0x02);
         di.addDetection(MANUFACTURER_DEV,  0x02,  0x00);
+        // Apator Otus 1/3 seems to use both, depending on a frame.
+        // Frames with APA are successfully decoded by this driver
+        // Frames with APT are not - and their content is unknown - perhaps it broadcasts two data formats?
+        di.addDetection(MANUFACTURER_APA,  0x02,  0x01);
+        //di.addDetection(MANUFACTURER_APT,  0x02,  0x01);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
@@ -215,3 +220,9 @@ namespace
 // telegram=|804401066448068602027A000070052F2F_066D1E5C11DA21400C78644806868E10036110012500008E20038106531800008E10833C9949000000008E20833C8606000000001B2B5228020B2B3217000BAB3C0000000AFDC9FC0131020AFDC9FC0225020AFDC9FC0331020BABC8FC100000002F2F2F2F2F2F2F2F2F2F2F2F2FDE47|
 // {"media":"electricity","meter":"amiplus","name":"MyElectricity3","id":"86064864","current_power_consumption_kw":1.732,"current_power_production_kw":0,"voltage_at_phase_1_v":231,"voltage_at_phase_2_v":225,"voltage_at_phase_3_v":231,"device_date_time":"2022-01-26 17:28:30","total_energy_consumption_tariff_1_kwh":25011.061,"total_energy_consumption_tariff_2_kwh":18530.681,"total_energy_production_tariff_1_kwh":4.999,"total_energy_production_tariff_2_kwh":0.686,"max_power_consumption_kw":22.852,"timestamp":"1111-11-11T11:11:11Z"}
 // |MyElectricity3;86064864;null;1.732;null;0;231;225;231;25011.061;18530.681;null;4.999;0.686;null;1111-11-11 11:11.11
+
+// Test: MyElectricity4 amiplus 55090884 NOKEY
+// Comment: amiplus/apator electricity meter with single phase voltage - Otus 1
+// telegram=|7E4401068408095501027A7C1070052F2F_066DDE5E150D39800C78840809550AFDC9FC0139028E30833C0000000000008E20833C0000000000008E10833C4301000000000BABC8FC100000008E10035336420200008E20030000000000008E30030000000000000B2B9502000BAB3C0000002F2F2F2F2F2F2F2F2F2F2F2F2F|
+// {"media":"electricity","meter":"amiplus","name":"MyElectricity4","id":"55090884","current_power_consumption_kw":0.295,"current_power_production_kw":0,"total_energy_consumption_tariff_1_kwh":2423.653,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_tariff_1_kwh":0.143,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"voltage_at_phase_1_v":239,"device_date_time":"2024-09-13 21:30:30","timestamp":"1111-11-11T11:11:11Z"}
+// |MyElectricity4;55090884;null;0.295;null;0;239;null;null;2423.653;0;0;0.143;0;0;1111-11-11 11:11.11
