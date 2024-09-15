@@ -1,0 +1,138 @@
+// Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = elf2
+    meter_type     = HeatMeter
+    default_fields = name,id,status,total_kwh,target_kwh,timestamp
+    detect {
+        mvt = APA,42,04
+    }
+    use = fabrication_no
+    use = on_time_h
+    use = on_time_at_error_h
+    field {
+        name     = total
+        quantity = Energy
+        info     = 'The total heat energy consumption recorded by this meter.'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = AnyEnergyVIF
+        }
+    }
+    field {
+        name     = status
+        quantity = Text
+        info     = status_and_error_flags
+        match {
+            measurement_type = Instantaneous
+            vif_range        = ErrorFlags
+        }
+        lookup {
+            name            = ERROR_FLAGS
+            map_type        = BitToString
+            mask_bits       = 0xffff
+            default_message = OK
+            map {
+                name  = MINIMUM_FLOW
+                info  = 'Average minute flow is below the minimum flow and higher than the starting flow.'
+                value = 0x01
+                test  = Set
+            }
+            map {
+                name  = FLOW_METER_FAILURE
+                info  = 'No flow detected and temperature diff is higher than threshold.'
+                value = 0x02
+                test  = Set
+            }
+            map {
+                name  = RETURN_TEMPERATURE_ERROR
+                info  = 'Temperature is out of measurement range or the sensor is broken.'
+                value = 0x04
+                test  = Set
+            }
+            map {
+                name  = SUPPLY_TEMPERATURE_ERROR
+                info  = 'Temperature is out of measurement range or the sensor is broken.'
+                value = 0x08
+                test  = Set
+            }
+            map {
+                name  = DIFFERENTIAL_TEMPERATURE_ERROR
+                info  = 'The temperature differences (eg supply-return) exceeds a threshold.'
+                value = 0x10
+                test  = Set
+            }
+            map {
+                name  = MAXIMUM_FLOW
+                info  = 'Average minute flow Qs is higher than Qp and equal to or lower than 2Qp (Qp < Qs ≤ 2 * Qp).'
+                value = 0x20
+                test  = Set
+            }
+            map {
+                name  = MEMORY_FAILURE
+                info  = 'Critical internal error.'
+                value = 0x40
+                test  = Set
+            }
+            map {
+                name  = LOW_BATTERY_VOLTAGE
+                info  = 'Low battery voltage.'
+                value = 0x80
+                test  = Set
+            }
+            map {
+                name  = DAILY_ABNORMAL_NOMINAL_FLOW
+                info  = 'Nominal flow is detected at Q > Qp for 1 h per day (24 h)
+                         where one day is measured from the moment the overrun is detected.'
+                value = 0x100
+                test  = Set
+            }
+            map {
+                name  = ANNUAL_ABNORMAL_NOMINAL_FLOW
+                info  = 'Nominal flow is detected at Q > Qp for 200 h in 1 year
+                         where one year is calculated from the start of billing period n to
+                         the start of billing period n+1 (which is when the annual data is saved to the archive).'
+                value = 0x200
+                test  = Set
+            }
+            map {
+                name  = DIFFERENTIAL_TEMPERATURE_TOO_LOW
+                info  = 'The volume count is incremented in 3 consecutive integration cycles while
+                         the differential temperature is below the configured differential temperature
+                         insensitivity threshold.'
+                value = 0x400
+                test  = Set
+            }
+            map {
+                name  = CRC_ERROR
+                info  = 'Critical internal error in firmware vs saved model.'
+                value = 0x800
+                test  = Set
+            }
+            map {
+                name  = FLASH_ERROR
+                info  = 'Critical internal error when reading non-volatile flash memory.'
+                value = 0x1000
+                test  = Set
+            }
+            map {
+                name  = CRITICAL_BATTERY_VOLTAGE
+                info  = 'Critical low battery voltage.'
+                value = 0x2000
+                test  = Set
+            }
+            map {
+                name  = CPU_OVERTEMPERATURE
+                info  = 'CPU is overheating.'
+                value = 0x4000
+                test  = Set
+            }
+            map {
+                name  = UART_LIMIT_OVERRUN
+                info  = 'Sent and received bytes exceeds the byte count limit.'
+                value = 0x8000
+                test  = Set
+            }
+
+        }
+    }
+}
