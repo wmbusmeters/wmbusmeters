@@ -2,7 +2,7 @@
 driver {
     name           = elf2
     meter_type     = HeatMeter
-    default_fields = name,id,status,total_kwh,target_kwh,timestamp
+    default_fields = name,id,status,total_energy_kwh,timestamp
     detect {
         mvt = APA,42,04
     }
@@ -10,7 +10,62 @@ driver {
     use = on_time_h
     use = on_time_at_error_h
     field {
-        name     = total
+        name         = meter
+        quantity     = PointInTime
+        info         = 'Meter date when telegram was sent.'
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+        }
+    }
+    field {
+        name     = t2_temperature
+        quantity = Temperature
+        info     = 'Temperature of returned water.'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = ReturnTemperature
+        }
+    }
+    field {
+        name     = t1_temperature
+        quantity = Temperature
+        info     = 'Temperature of incoming water.'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = FlowTemperature
+        }
+    }
+    field {
+        name     = current_power
+        quantity = Power
+        info     = 'Instantaneous power consumed.'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = AnyPowerVIF
+        }
+    }
+    field {
+        name     = current_volume_flow
+        quantity = Flow
+        info     = 'Instantaneous water flow.'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = VolumeFlow
+        }
+    }
+    field {
+        name     = total_volume
+        quantity = Volume
+        info     = 'Total volume of water used.'
+        match {
+            measurement_type = Instantaneous
+            vif_range        = AnyVolumeVIF
+        }
+    }
+    field {
+        name     = total_energy
         quantity = Energy
         info     = 'The total heat energy consumption recorded by this meter.'
         match {
@@ -132,7 +187,12 @@ driver {
                 value = 0x8000
                 test  = Set
             }
-
         }
+    }
+    test {
+        args     = 'Heato elf2 23170428 NOKEY'
+        telegram = 684E4E68080172280417230106420455000000_0C7828041723026C103902FD1700000E0A6342693401000C13634630000A3B00000A2D00000A5A49020A5E44020C22762101003C2215000000047E17090000_4116
+        json     = '{"current_power_kw": 0,"current_volume_flow_m3h": 0,"fabrication_no": "23170428","id": "23170428","media": "heat","meter": "elf2","meter_date": "2024-09-16","name": "Heato","on_time_at_error_h": 15,"on_time_h": 12176,"status": "OK","t1_temperature_c": 24.9,"t2_temperature_c": 24.4,"timestamp": "1111-11-11T11:11:11Z","total_energy_kwh": 3741.507306,"total_volume_m3": 304.663}'
+        fields   = 'Heato;23170428;OK;3741.507306;1111-11-11 11:11.11'
     }
 }
