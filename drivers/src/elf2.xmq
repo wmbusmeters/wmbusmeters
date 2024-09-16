@@ -76,7 +76,8 @@ driver {
     field {
         name     = status
         quantity = Text
-        info     = status_and_error_flags
+        info     = 'Status and error flags.'
+        attributes = INCLUDE_TPL_STATUS
         match {
             measurement_type = Instantaneous
             vif_range        = ErrorFlags
