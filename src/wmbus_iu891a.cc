@@ -501,10 +501,14 @@ bool WMBusIU891A::deviceSetLinkModes(LinkModeSet lms)
 
 void WMBusIU891A::extractFrame(vector<uchar> &payload, int *rssi_dbm, vector<uchar> *frame)
 {
+    // Serial data from dongle:
+    // C0_09_20_9F436D38_00_00_02_E7_1844AE4C4455223368077A55000000041389E20100023B0000_AF59_C0
+    // Payload:
+    //          9F436D38_00_00_02_E7_1844AE4C4455223368077A55000000041389E20100023B0000
     if (payload.size() < 10) return;
-    *rssi_dbm = (int8_t)payload[6];
+    *rssi_dbm = (int8_t)payload[7];
     frame->clear();
-    frame->insert(frame->begin(), payload.begin()+7, payload.end());
+    frame->insert(frame->begin(), payload.begin()+8, payload.end());
 }
 
 FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
@@ -539,6 +543,15 @@ FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
 
     int payload_offset = 3;
     int payload_len = msg.size()-2;
+
+    if (*endpoint_id_out == SAP_WMBUSGW_ID &&
+        *msg_id_out == WMBUSGW_RX_MESSAGE_IND)
+    {
+        // The INDicator notification async messages when telegrams are received
+        // do NOT have the status byte. So adjust this here.
+        payload_offset = 2;
+    }
+
     out.clear();
     out.insert(out.end(), msg.begin()+payload_offset, msg.begin()+payload_len);
 
