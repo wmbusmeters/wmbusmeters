@@ -502,9 +502,9 @@ bool WMBusIU891A::deviceSetLinkModes(LinkModeSet lms)
 void WMBusIU891A::extractFrame(vector<uchar> &payload, int *rssi_dbm, vector<uchar> *frame)
 {
     if (payload.size() < 10) return;
-    *rssi_dbm = (int8_t)payload[7];
+    *rssi_dbm = (int8_t)payload[6];
     frame->clear();
-    frame->insert(frame->begin(), payload.begin()+8, payload.end());
+    frame->insert(frame->begin(), payload.begin()+7, payload.end());
 }
 
 FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
