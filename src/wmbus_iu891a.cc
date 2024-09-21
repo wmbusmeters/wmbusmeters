@@ -113,17 +113,17 @@ struct Config_IU891A
         if (option_bits & 0x01) s += "RCV_FILTER ";
         else s += "RCV_ALL ";
 
-        if (option_bits & 0x02) s += "RCV_NOTIFICATION ";
-        if (option_bits & 0x04) s += "SND_NOTIFICATION ";
-        if (option_bits & 0x08) s += "RADIO_RECALIB ";
+        if (option_bits & 0x02) s += "RCV_IND ";
+        if (option_bits & 0x04) s += "SND_IND ";
+        if (option_bits & 0x08) s += "RECALIB ";
 
         if (ui_option_bits & 0x01) s += "ASSERT_PIN24_ON_TELEGRAM_ARRIVAL ";
         if (ui_option_bits & 0x02) s += "PIN24_POLARITY_REVERSED ";
         if (ui_option_bits & 0x04) s += "ASSERT_PIN25_ON_TELEGRAM_SENT ";
         if (ui_option_bits & 0x08) s += "PIN25_POLARITY_REVERSED ";
 
-        s += tostrprintf("LED_FLASH_%d_MS ", led_flash_timing);
-        s += tostrprintf("RECALIBRATE_IN_%d_MS ", recalibrate_in_ms);
+        s += tostrprintf("led flash: %d ms ", led_flash_timing);
+        s += tostrprintf("recalibrate: %d ms ", recalibrate_in_ms);
 
         s.pop_back();
         return s;
