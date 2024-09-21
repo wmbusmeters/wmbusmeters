@@ -177,6 +177,7 @@ PROG_OBJS:=\
 	$(BUILD)/wmbus.o \
 	$(BUILD)/wmbus_amb8465.o \
 	$(BUILD)/wmbus_im871a.o \
+	$(BUILD)/wmbus_iu891a.o \
 	$(BUILD)/wmbus_cul.o \
 	$(BUILD)/wmbus_rtlwmbus.o \
 	$(BUILD)/wmbus_rtl433.o \

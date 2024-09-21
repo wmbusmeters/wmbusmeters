@@ -90,7 +90,7 @@ Read the wiki for more info on how to use the snap: https://wmbusmeters.github.i
 
 Building and installing from source is easy and recommended since the
 development progresses quickly.  First remove the wmbus dongle
-(im871a,amb8465(metis),amb3665,cul,rc1180) or the generic rtlsdr dongle (RTL2832U)
+(im871a,iu891a,amb8465(metis),amb3665,cul,rc1180) or the generic rtlsdr dongle (RTL2832U)
 from your computer. Then do:
 
 `./configure; make; sudo make install` will install wmbusmeters as a daemon.
@@ -98,7 +98,7 @@ from your computer. Then do:
 # Usage
 
 Check the contents of your `/etc/wmbusmeters.conf` file, assuming it
-has `device=auto:t1` and you are using a im871a,amb8465(metis),amb3665,rc1180,cul or rtlsdr device,
+has `device=auto:t1` and you are using a im871a,iu891a,amb8465(metis),amb3665,rc1180,cul or rtlsdr device,
 then you can now start the daemon with `sudo systemctl start wmbusmeters`
 or you can try it from the command line `wmbusmeters auto:t1`
 
@@ -108,11 +108,11 @@ several dongle types, the scan can take some time!
 
 Use `auto` for testing and to find your dongle. For production it is very much
 recommended that you change `auto:t1` to the device name with the full device path
-(eg `/dev/ttyUSB0:im871a:c1,t1`). This will skip the slow probing for all possible
+(eg `/dev/ttyAMA0:iu891:c1,t1`). This will skip the slow probing for all possible
 wmbus dongles when wmbusmeters startup.
 
-If the serial device (ttyUSB0) might change you can also use `device=im871a:c1,t1`
-which will probe all serial devices but only scans for im871a which also speeds it up.
+If the serial device (ttyUSB0) might change you can also use `device=iu891:c1,t1`
+which will probe all serial devices but only scans for im891a which also speeds it up.
 
 Note that the rtl-sdr devices are not found under the tty devices (e.g. `/dev/tty...`).
 Instead the rtl-sdr devices are accessed through character device special files named `/dev/swradio0` to `/dev/swradio255`[^kernel_docs_sdr]. Wmbusmeters uses librtsldr to probe these devices.
@@ -139,26 +139,26 @@ When using useconfig, the files/dir should be:
 `/home/me/.config/wmbusmeters/wmbusmeters.d`
 
 Check the config file /etc/wmbusmeters.conf and edit the device. For example:
-`/dev/ttyUSB1:amb8465:c1,t1` or `im871a:c1,t1` or `im871a[457200101056]:t1`.
+`/dev/ttyUSB1:amb8465:c1,t1` or `iu891:c1,t1` or `iu891a[457200101056]:t1`.
 
-Adding a device like auto or im871a will trigger an automatic probe of all serial ttys
-to auto find or to find on which tty the im871a resides.
+Adding a device like auto or iu891a will trigger an automatic probe of all serial ttys
+to auto find or to find on which tty the iu891a resides.
 
-If you specify a full device path like `/dev/ttyUSB0:im871a:c1` or `rtlwmbus` or `rtl433`
+If you specify a full device path like `/dev/ttyUSB0:iu891a:c1` or `rtlwmbus` or `rtl433`
 then it will not probe the serial devices. If you must be really sure that it will not probe something
 you can add `donotprobe=/dev/ttyUSB0` or `donotprobe=all`.
 
 You can specify combinations like: `device=rc1180:t1` `device=auto:c1`
 to set the rc1180 dongle to t1 but any other auto-detected dongle to c1.
 
-Some dongles have identifiers (im871a,amb8465(metis),amb3665 and rtlsdrs) (for example: rtlsdr can be set with `rtl_eeprom -s myname`)
+Some dongles have identifiers (im871a,iu891a,amb8465(metis),amb3665 and rtlsdrs) (for example: rtlsdr can be set with `rtl_eeprom -s myname`)
 You might have two rtlsdr dongles, one attached to an antenna tuned to 433MHz and the other
 attached to an antenna tuned for 868.95MHz, then a more complicated setup could look like this:
 
 ```
 device=rtlwmbus[555555]:433M
 device=rtlwmbus[112233]
-device=/dev/ttyUSB0:im871a[00102759]:c1,t1
+device=/dev/ttyUSB0:iu891a[00102759]:c1,t1
 device=/dev/ttyUSB1:rc1180:t1
 ```
 
@@ -169,9 +169,9 @@ here we pick the bus alias MAIN for the mbus using 2400 bps for all meters on th
 ```
 MAIN=/dev/ttyUSB0:mbus:2400
 ```
-and here we pick the bus alias RADIOMAIN for an im871a dongle:
+and here we pick the bus alias RADIOMAIN for an iu891a dongle:
 ```
-RADIOMAIN=/dev/ttyUSB1:im871a:c2
+RADIOMAIN=/dev/ttyUSB1:iu891a:c2
 ```
 
 The bus alias is then used in the meter driver specification to specify which
@@ -192,7 +192,7 @@ wmbusmeters --pollinterval=60s MAIN=/dev/ttyUSB0:mbus:2400 MyTempMeter piigth:MA
 loglevel=normal
 # You can use auto:t1 to find the device you have connected to your system.
 # But do not use auto here since it will cause unnecessary and slow probing of the serial ports.
-device=/dev/ttyUSB0:im871a:c1,t1
+device=/dev/ttyUSB0:iu891a:c1,t1
 # And mbus
 device=MAIN=/dev/ttyUSB1:mbus:2400
 # But do not probe this serial tty.
@@ -234,7 +234,7 @@ pollinterval=60s
 You can use `driver=auto` to have wmbusmeters automatically detect
 and use the best driver for your meter, but you should >not< use auto in production.
 
-You can find out which driver is recommended by running `wmbusmeters im871a:t1`.
+You can find out which driver is recommended by running `wmbusmeters iu891a:t1`.
 This will print information like:
 ```
 Received telegram from: 71727374
@@ -518,20 +518,20 @@ As {options} you can use:
 
 As device you can use:
 
-`auto:c1`, to have wmbusmeters probe for devices: im871a, amb8465(metis), amb3665, cul, rc1180 or rtlsdr (spawns rtlwmbus).
+`auto:c1`, to have wmbusmeters probe for devices: im871a, iu891a, amb8465(metis), amb3665, cul, rc1180 or rtlsdr (spawns rtlwmbus).
 
-`im871a:c1` to start all connected *im871a* devices in *c1* mode, ignore all other devices.
+`iu891a:c1` to start all connected *iu891a* devices in *c1* mode, ignore all other devices.
 
 `/dev/ttyUSB1:amb8465:c1` to start only this device on this tty. Do not probe for other devices.
 
-If you have two im871a you can supply both of them with their unique id:s and set different listening modes:
-`im871a[12345678]:c1` `im871a[11223344]:t1`
+If you have two iu891a you can supply both of them with their unique id:s and set different listening modes:
+`iu891a[12345678]:c1` `iu891a[11223344]:t1`
 
 You can also specify rtlwmbus and if you set the serial in the rtlsdr
 dongle using `rtl_eeprom -s 1234` you can also refer to a specific
 rtlsdr dongle like this `rtlwmbus[1234]`.
 
-`/dev/ttyUSB0:amb8465`, if you have an amb8465(metis) dongle assigned to ttyUSB0. Other suffixes are im871a,cul.
+`/dev/ttyUSB0:amb8465`, if you have an amb8465(metis) dongle assigned to ttyUSB0. Other suffixes are iu891a,cul.
 
 (Note that a plain `/dev/ttyUSB0` no longer works, you have to specify the device expected on the device.)
 
@@ -615,6 +615,7 @@ As meter quadruples you specify:
 ```
 Supported wmbus dongles:
 IMST 871a (im871a)
+IMST 891a (iu891a)
 Amber 8465-M/8665-M/8626-M/Metis-II (amb8465) 868MHz
 Amber 3665-M (amb3665) 169MHz
 CUL family (cul)
@@ -723,6 +724,8 @@ also listen to c1 and t1 telegrams at the same time.
 (Use `--verbose` to see your dongles firmware version.)
 If you have the older firmware you can download the upgrader here:
 https://wireless-solutions.de/downloadfile/wireless-m-bus-software/
+
+The wmbus dongle iu891a can listen to either s1, c1 or t1 or c1,t1 at the same time.
 
 The amb8465 dongle (new model name is Metis-II) can listen to either
 s1, c1 or t1.  It can also listen to c1 and t1 at the same time.
