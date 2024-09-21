@@ -295,8 +295,6 @@ private:
     WMBusAddressInfo_IU891A device_wmbus_address_ {};
     Config_IU891A device_config_ {};
 
-    uchar last_set_link_mode_ { 0x00 };
-
     vector<uchar> read_buffer_;
     vector<uchar> request_;
     vector<uchar> response_;

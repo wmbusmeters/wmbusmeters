@@ -17,6 +17,8 @@
 
 #include"meters_common_implementation.h"
 
+#include<string.h>
+
 namespace {
     struct Driver: public virtual MeterCommonImplementation {
             Driver(MeterInfo &mi, DriverInfo &di);
@@ -241,9 +243,9 @@ namespace {
                     bytes[i],
                     bytes[i + 1], bytes[i + 2], leak_day, leak_month,
                     leak_year);
-            char buffer[16];
-            sprintf(buffer, "%02X.%02X.20%02X", leak_day, leak_month,
-                    leak_year);
+            char buffer[17];
+            memset(buffer, 0, sizeof(buffer));
+            snprintf(buffer, 16, "%02X.%02X.20%02X", leak_day, leak_month, leak_year);
             setStringValue("leak_date", buffer);
 
             i += 3;
