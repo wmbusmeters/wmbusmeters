@@ -1,6 +1,6 @@
-// Copyright (C) 2017 Fredrik Öhrström (CC0-1.0)
-// Definitions from WMBus_HCI_Spec_V1_6.pdf
-// Found here: https://wireless-solutions.de/products/gateways/wirelessadapter.html
+// Copyright (C) 2017 Fredrik Öhrström (CC0-1.0) Definitions from
+// WMBus_HCI_Spec_V1_6.pdf Found here:
+// https://wireless-solutions.de/products/gateways/wirelessadapter.html
 
 #define IM871A_SERIAL_SOF 0xA5
 
