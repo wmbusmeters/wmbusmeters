@@ -100,55 +100,87 @@ struct WMBusAddressInfo_IU891A
 
 struct Config_IU891A
 {
-    // first variable group
-    uchar device_mode;
-    uchar link_mode;
-    uchar c_field;
-    uint16_t mfct;
-    uint32_t id;
-    uchar version;
-    uchar media;
-    uchar radio_channel;
-
-    // second variable group
-    uchar radio_power_level;
-    uchar radio_data_rate;
-    uchar radio_rx_window;
-    uchar auto_power_saving;
-    uchar auto_rssi;
-    uchar auto_rx_timestamp;
-    uchar led_control;
-    uchar rtc_control;
-
+    LinkModeSet link_modes;
+    uint16_t option_bits {};
+    uint16_t ui_option_bits {};
+    uint16_t led_flash_timing {};
+    uint32_t recalibrate_in_ms {};
 
     string str()
     {
-        return "prutt";
+        string s;
+
+        if (option_bits & 0x01) s += "RCV_FILTER ";
+        else s += "RCV_ALL ";
+
+        if (option_bits & 0x02) s += "RCV_NOTIFICATION ";
+        if (option_bits & 0x04) s += "SND_NOTIFICATION ";
+        if (option_bits & 0x08) s += "RADIO_RECALIB ";
+
+        if (ui_option_bits & 0x01) s += "ASSERT_PIN24_ON_TELEGRAM_ARRIVAL ";
+        if (ui_option_bits & 0x02) s += "PIN24_POLARITY_REVERSED ";
+        if (ui_option_bits & 0x04) s += "ASSERT_PIN25_ON_TELEGRAM_SENT ";
+        if (ui_option_bits & 0x08) s += "PIN25_POLARITY_REVERSED ";
+
+        s += tostrprintf("LED_FLASH_%d_MS ", led_flash_timing);
+        s += tostrprintf("RECALIBRATE_IN_%d_MS ", recalibrate_in_ms);
+
+        s.pop_back();
+        return s;
+    }
+
+    void encode(vector<uchar> &bytes, uchar lm)
+    {
+        bytes.clear();
+        bytes.resize(11);
+        size_t i = 0;
+        bytes[i++] = lm;
+        bytes[i++] = option_bits & 0xff;
+        bytes[i++] = (option_bits >> 8) & 0xff;
+        bytes[i++] = ui_option_bits & 0xff;
+        bytes[i++] = (ui_option_bits >> 8) & 0xff;
+        bytes[i++] = led_flash_timing & 0xff;
+        bytes[i++] = (led_flash_timing >> 8) & 0xff;
+        bytes[i++] = recalibrate_in_ms & 0xff;
+        bytes[i++] = (recalibrate_in_ms >> 8) & 0xff;
+        bytes[i++] = (recalibrate_in_ms >> 16) & 0xff;
+        bytes[i++] = (recalibrate_in_ms >> 24) & 0xff;
     }
 
     bool decode(vector<uchar> &bytes)
     {
-        if (bytes.size() < 2) return false;
+        if (bytes.size() < 11) return false;
         size_t i = 0;
-        uchar iiflag1 = bytes[i++]; if (i >= bytes.size()) return false;
-        if (iiflag1 & 0x01) { device_mode = bytes[i++]; } if (i >= bytes.size()) return false;
-        if (iiflag1 & 0x02) { link_mode = bytes[i++]; } if (i >= bytes.size()) return false;
-        if (iiflag1 & 0x04) { c_field = bytes[i++]; } if (i+1 >= bytes.size()) return false;
-        if (iiflag1 & 0x08) { mfct = bytes[i+1]<<8|bytes[i]; i+=2; } if (i+3 >= bytes.size()) return false;
-        if (iiflag1 & 0x10) { id = bytes[i+3]<<24|bytes[i+2]<<16|bytes[i+1]<<8|bytes[i]; i+=4; } if (i >= bytes.size()) return false;
-        if (iiflag1 & 0x20) { version = bytes[i++]; } if (i >= bytes.size()) return false;
-        if (iiflag1 & 0x40) { media = bytes[i++]; } if (i >= bytes.size()) return false;
-        if (iiflag1 & 0x80) { radio_channel = bytes[i++]; } if (i >= bytes.size()) return false;
-
-        uchar iiflag2 = bytes[i++]; if (i >= bytes.size()) return false;
-        if (iiflag2 & 0x01) { radio_power_level = bytes[i++]; } if (i >= bytes.size()) return false;
-        if (iiflag2 & 0x02) { radio_data_rate = bytes[i++]; } if (i >= bytes.size()) return false;
-        if (iiflag2 & 0x04) { radio_rx_window = bytes[i++]; } if (i >= bytes.size()) return false;
-        if (iiflag2 & 0x08) { auto_power_saving = bytes[i++]; } if (i >= bytes.size()) return false;
-        if (iiflag2 & 0x10) { auto_rssi = bytes[i++]; } if (i >= bytes.size()) return false;
-        if (iiflag2 & 0x20) { auto_rx_timestamp = bytes[i++]; } if (i >= bytes.size()) return false;
-        if (iiflag2 & 0x40) { led_control = bytes[i++]; } if (i >= bytes.size()) return false;
-        if (iiflag2 & 0x80) { rtc_control = bytes[i++]; }
+        uchar c = bytes[i++];
+        link_modes.clear();
+        if (c == LINK_MODE_OFF)
+        {
+        }
+        else if (c == LINK_MODE_S)
+        {
+            link_modes.addLinkMode(LinkMode::S1);
+        }
+        else if (c == LINK_MODE_T)
+        {
+            link_modes.addLinkMode(LinkMode::T1);
+        }
+        else if (c == LINK_MODE_CT)
+        {
+            link_modes.addLinkMode(LinkMode::C1).addLinkMode(LinkMode::T1);
+        }
+        else if (c == LINK_MODE_C)
+        {
+            link_modes.addLinkMode(LinkMode::C1);
+        }
+        option_bits = bytes[i+1]<<8 | bytes[i+0];
+        i += 2;
+        ui_option_bits = bytes[i+1]<<8 | bytes[i+0];
+        i += 2;
+        led_flash_timing = bytes[i+1]<<8 | bytes[i+0];
+        i += 2;
+        recalibrate_in_ms =
+            bytes[i+3]<<24 | bytes[i+2] <<16 |
+            bytes[i+1]<<8 | bytes[i+0];
 
         return true;
     }
@@ -209,25 +241,13 @@ struct WMBusIU891A : public virtual BusDeviceCommonImplementation
     bool deviceSetLinkModes(LinkModeSet lms);
     LinkModeSet supportedLinkModes()
     {
-        if (type() == BusDeviceType::DEVICE_IU891A)
-        {
-            return
-                C1_bit |
-                C2_bit |
-                S1_bit |
-                S1m_bit |
-                T1_bit |
-                T2_bit;
-        }
-        else
-        {
-            return N1a_bit |
-                N1b_bit |
-                N1c_bit |
-                N1d_bit |
-                N1e_bit |
-                N1f_bit;
-        }
+        return
+            C1_bit |
+            C2_bit |
+            S1_bit |
+            S1m_bit |
+            T1_bit |
+            T2_bit;
     }
 
     int numConcurrentLinkModes()
@@ -238,7 +258,17 @@ struct WMBusIU891A : public virtual BusDeviceCommonImplementation
     bool canSetLinkModes(LinkModeSet lms)
     {
         if (lms.empty()) return false;
-        return false;
+        if (!supportedLinkModes().supports(lms)) return false;
+        // Ok, the supplied link modes are compatible.
+        // For iu891a
+        if (2 == countSetBits(lms.asBits()) &&
+            lms.has(LinkMode::C1) &&
+            lms.has(LinkMode::T1))
+        {
+            return true;
+        }
+        // Otherwise its a single link mode.
+        return 1 == countSetBits(lms.asBits());
     }
     bool sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content);
 
@@ -256,6 +286,8 @@ struct WMBusIU891A : public virtual BusDeviceCommonImplementation
                                         int *msg_id_out,
                                         int *status_out,
                                         int *rssi_dbm);
+
+    static void extractFrame(vector<uchar> &payload, int *rssi_dbm, vector<uchar> *frame);
 
 private:
 
@@ -327,12 +359,10 @@ static void buildRequest(int endpoint_id, int msg_id, vector<uchar>& body, vecto
     addSlipFraming(request, out);
 }
 
-
 bool WMBusIU891A::ping()
 {
     if (serial()->readonly()) return true; // Feeding from stdin or file.
-    return false;
-
+    return true;
 }
 
 string WMBusIU891A::getDeviceId()
@@ -341,6 +371,9 @@ string WMBusIU891A::getDeviceId()
     if (cached_device_id_ != "") return cached_device_id_;
 
     bool ok = getDeviceInfo();
+    if (!ok) return "ERR";
+
+    ok = getConfig();
     if (!ok) return "ERR";
 
     cached_device_id_ = device_wmbus_address_.dongleId();
@@ -379,9 +412,10 @@ LinkModeSet WMBusIU891A::getLinkModes()
 {
     if (serial()->readonly()) { return Any_bit; }  // Feeding from stdin or file.
 
-    LinkModeSet lms;
-    lms.addLinkMode(LinkMode::UNKNOWN);
-    return lms;
+    bool ok = getConfig();
+    if (!ok) return LinkModeSet();
+
+    return device_config_.link_modes;
 }
 
 void WMBusIU891A::deviceReset()
@@ -392,14 +426,87 @@ void WMBusIU891A::deviceReset()
     // set the link modes properly.
 }
 
+uchar setupIMSTBusDeviceToReceiveTelegrams(LinkModeSet lms)
+{
+    if (lms.has(LinkMode::C1) && lms.has(LinkMode::T1))
+    {
+        return LINK_MODE_CT;
+    }
+    else if (lms.has(LinkMode::C1))
+    {
+        return LINK_MODE_C;
+    }
+    else  if (lms.has(LinkMode::C2))
+    {
+        return LINK_MODE_C;
+    }
+    else if (lms.has(LinkMode::S1))
+    {
+        return LINK_MODE_S;
+    }
+    else if (lms.has(LinkMode::S1m))
+    {
+        return LINK_MODE_S;
+    }
+    else if (lms.has(LinkMode::T1))
+    {
+        return LINK_MODE_T;
+    }
+    else if (lms.has(LinkMode::T2))
+    {
+        return LINK_MODE_T;
+    }
+    else
+    {
+        return LINK_MODE_C; // Defaults to C
+    }
+
+    assert(false);
+
+    // Error
+    return 0xff;
+}
+
 
 bool WMBusIU891A::deviceSetLinkModes(LinkModeSet lms)
 {
-    bool rc = false;
-
     if (serial()->readonly()) return true; // Feeding from stdin or file.
 
-    return rc;
+    if (!canSetLinkModes(lms))
+    {
+        string modes = lms.hr();
+        error("(iu871a) setting link mode(s) %s is not supported for iu891a\n", modes.c_str());
+    }
+
+    LOCK_WMBUS_EXECUTING_COMMAND(set_link_modes);
+
+    vector<uchar> body;
+    vector<uchar> request;
+
+    device_config_.option_bits &= 0xfffe; // forward all received telegrams to wmbusmeters.
+    device_config_.option_bits |= 0x0006; // get notified when received and sent.
+    device_config_.encode(body, setupIMSTBusDeviceToReceiveTelegrams(lms));
+
+    buildRequest(SAP_WMBUSGW_ID, WMBUSGW_SET_ACTIVE_CONFIGURATION_REQ, body, request);
+
+    verbose("(iu891a) set config\n");
+    bool sent = serial()->send(request);
+    if (!sent) return false;
+
+    bool ok = waitForResponse(WMBUSGW_SET_ACTIVE_CONFIGURATION_RSP);
+    if (!ok) return false; // timeout
+
+    verbose("(iu871a) set config to set link mode %02x\n", body[0]);
+
+    return true;
+}
+
+void WMBusIU891A::extractFrame(vector<uchar> &payload, int *rssi_dbm, vector<uchar> *frame)
+{
+    if (payload.size() < 10) return;
+    *rssi_dbm = (int8_t)payload[7];
+    frame->clear();
+    frame->insert(frame->begin(), payload.begin()+8, payload.end());
 }
 
 FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
@@ -506,7 +613,7 @@ bool WMBusIU891A::getDeviceInfo()
 
     buildRequest(SAP_DEVMGMT_ID, DEVMGMT_MSG_GET_DEVICE_INFO_REQ, body, request);
 
-    verbose("(iu891) get device info\n");
+    verbose("(iu891a) get device info\n");
     bool sent = serial()->send(request);
     if (!sent) return false; // tty overridden with stdin/file
 
@@ -542,7 +649,28 @@ bool WMBusIU891A::getConfig()
 {
     if (serial()->readonly()) return true;
 
-    return false;
+    LOCK_WMBUS_EXECUTING_COMMAND(get_config);
+
+    vector<uchar> body;
+    vector<uchar> request;
+
+    buildRequest(SAP_WMBUSGW_ID, WMBUSGW_GET_ACTIVE_CONFIGURATION_REQ, body, request);
+
+    verbose("(iu891a) get config\n");
+    bool sent = serial()->send(request);
+    if (!sent) return false; // tty overridden with stdin/file
+
+    bool ok = waitForResponse(WMBUSGW_GET_ACTIVE_CONFIGURATION_RSP);
+    if (!ok) return false; // timeout
+
+    // Now device info response is in response_ vector.
+    device_config_.decode(response_);
+
+    verbose("(iu891a) config: %s link modes: %s\n",
+            device_config_.str().c_str(),
+            device_config_.link_modes.hr().c_str());
+
+    return true;
 }
 
 bool WMBusIU891A::sendTelegram(LinkMode lm, TelegramFormat format, vector<uchar> &content)
@@ -690,6 +818,24 @@ void WMBusIU891A::handleWMbusGateway(int msgid, vector<uchar> &payload)
     switch (msgid) {
         case WMBUSGW_GET_WMBUS_ADDRESS_RSP:
             debug("(iu891a) rsp got wmbus address\n");
+            break;
+        case WMBUSGW_GET_ACTIVE_CONFIGURATION_RSP:
+            debug("(iu891a) rsp got active config\n");
+            break;
+        case WMBUSGW_SET_ACTIVE_CONFIGURATION_RSP:
+            debug("(iu891a) rsp set active config\n");
+            break;
+        case WMBUSGW_RX_MESSAGE_IND:
+        {
+            // Invoke common telegram reception code in BusDeviceCommonImplementation.
+            vector<uchar> frame;
+            int rssi_dbm;
+
+            extractFrame(payload, &rssi_dbm, &frame);
+            AboutTelegram about("iu891a["+cached_device_id_+"]", rssi_dbm, FrameType::WMBUS);
+            handleTelegram(about, frame);
+            return;
+        }
             break;
         default:
             warning("(iu891a) Unhandled wmbus gateway message %d\n", msgid);
