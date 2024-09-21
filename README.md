@@ -108,10 +108,10 @@ several dongle types, the scan can take some time!
 
 Use `auto` for testing and to find your dongle. For production it is very much
 recommended that you change `auto:t1` to the device name with the full device path
-(eg `/dev/ttyAMA0:iu891:c1,t1`). This will skip the slow probing for all possible
+(eg `/dev/ttyAMA0:iu891a:c1,t1`). This will skip the slow probing for all possible
 wmbus dongles when wmbusmeters startup.
 
-If the serial device (ttyUSB0) might change you can also use `device=iu891:c1,t1`
+If the serial device (ttyUSB0) might change you can also use `device=iu891a:c1,t1`
 which will probe all serial devices but only scans for im891a which also speeds it up.
 
 Note that the rtl-sdr devices are not found under the tty devices (e.g. `/dev/tty...`).
@@ -139,7 +139,7 @@ When using useconfig, the files/dir should be:
 `/home/me/.config/wmbusmeters/wmbusmeters.d`
 
 Check the config file /etc/wmbusmeters.conf and edit the device. For example:
-`/dev/ttyUSB1:amb8465:c1,t1` or `iu891:c1,t1` or `iu891a[457200101056]:t1`.
+`/dev/ttyUSB1:amb8465:c1,t1` or `iu891a:c1,t1` or `iu891a[457200101056]:t1`.
 
 Adding a device like auto or iu891a will trigger an automatic probe of all serial ttys
 to auto find or to find on which tty the iu891a resides.
