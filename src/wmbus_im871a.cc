@@ -731,9 +731,9 @@ bool WMBusIM871aIM170A::deviceSetLinkModes(LinkModeSet lms)
 }
 
 FrameStatus WMBusIM871aIM170A::checkIM871AFrame(vector<uchar> &data,
-                                          size_t *frame_length, int *endpoint_out, int *msgid_out,
-                                          int *payload_len_out, int *payload_offset,
-                                          int *rssi_dbm)
+                                                size_t *frame_length, int *endpoint_out, int *msgid_out,
+                                                int *payload_len_out, int *payload_offset,
+                                                int *rssi_dbm)
 {
     if (data.size() == 0) return PartialFrame;
 

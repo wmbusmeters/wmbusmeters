@@ -8,17 +8,12 @@ driver {
     }
     use = actuality_duration_s
     field {
-        name        = total
-        quantity    = Volume
+        name     = total
+        quantity = Volume
+        info     = 'The total water consumption.'
         match {
             measurement_type = Instantaneous
             vif_range        = Volume
-        }
-        about {
-            de = 'Der Gesamtwasserverbrauch.'
-            en = 'The total water consumption.'
-            fr = '''La consommation totale d'eau.'''
-            sv = 'Den totala vattenförbrukningen.'
         }
     }
     test {

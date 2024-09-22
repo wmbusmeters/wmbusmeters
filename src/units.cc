@@ -618,7 +618,8 @@ string to_superscript(int8_t n)
     string out;
 
     char buf[5];
-    sprintf(buf, "%d", n);
+    memset(buf, 0, sizeof(buf));
+    snprintf(buf, 4, "%d", n);
 
     for (int i=0; i<5; ++i)
     {

@@ -5547,6 +5547,16 @@ Detected detectBusDeviceOnTTY(string tty,
         }
     }
 
+    // Talk iu891a with it...
+    // assumes this device is configured for 115200 bps, which seems to be the default.
+    if (has_auto || probe_for.count(BusDeviceType::DEVICE_IU891A))
+    {
+        if (detectIU891A(&detected, handler) == AccessCheck::AccessOK)
+        {
+            return detected;
+        }
+    }
+
     // Talk iu880b with it...
     // assumes this device is configured for 115200 bps, which seems to be the default.
     if (has_auto || probe_for.count(BusDeviceType::DEVICE_IU880B))
