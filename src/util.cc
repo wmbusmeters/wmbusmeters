@@ -2011,6 +2011,7 @@ void removeSlipFraming(vector<uchar>& from, size_t *frame_length, vector<uchar> 
         }
         else if (esc)
         {
+            esc = false;
             if (c == SLIP_ESC_END) to.push_back(SLIP_END);
             else if (c == SLIP_ESC_ESC) to.push_back(SLIP_ESC);
             else to.push_back(c); // This is an error......
