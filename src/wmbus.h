@@ -50,7 +50,7 @@ bool trimCRCsFrameFormatB(std::vector<uchar> &payload);
     X(RC1180,rc1180,true,false,detectRC1180)         \
     X(RTL433,rtl433,false,true,detectRTL433)         \
     X(RTLWMBUS,rtlwmbus,false,true,detectRTLWMBUS)   \
-    X(IU880B,iu880b,true,false,detectIU880B)         \
+    X(IU880B,iu880b,true,false,detectSKIP)         \
     X(SIMULATION,simulation,false,false,detectSIMULATION)
 
 enum BusDeviceType {
