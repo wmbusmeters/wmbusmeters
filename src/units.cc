@@ -619,7 +619,7 @@ string to_superscript(int8_t n)
 
     char buf[5];
     memset(buf, 0, sizeof(buf));
-    snprintf(buf, 4, "%d", n);
+    snprintf(buf, 5, "%d", n);
 
     for (int i=0; i<5; ++i)
     {
