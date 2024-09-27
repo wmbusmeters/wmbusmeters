@@ -535,7 +535,7 @@ FrameStatus WMBusIU891A::checkIU891AFrame(vector<uchar> &data,
 
     if (msg[msg.size()-2] != crc_lo || msg[msg.size()-1] != crc_hi)
     {
-        debug("(iu880b) bad crc got %02x%02x expected %02x%02x\n",
+        debug("(iu891a) bad crc got %02x%02x expected %02x%02x\n",
             msg[msg.size()-1], msg[msg.size()-2], crc_hi, crc_lo);
 
         return ErrorInFrame;
