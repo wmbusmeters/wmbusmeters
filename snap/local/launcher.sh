@@ -3,6 +3,7 @@
 # Create default directories and copy initial config if it doesn't exist
 [ ! -d $SNAP_COMMON/logs/meter_readings ] && mkdir -p $SNAP_COMMON/logs/meter_readings
 [ ! -d $SNAP_COMMON/etc/wmbusmeters.d ] && mkdir -p $SNAP_COMMON/etc/wmbusmeters.d
+[ ! -d $SNAP_COMMON/etc/wmbusmeters.drivers.d ] && mkdir -p $SNAP_COMMON/etc/wmbusmeters.drivers.d
 
 if [ ! -e "$SNAP_COMMON/etc/wmbusmeters.conf" ]
 then
