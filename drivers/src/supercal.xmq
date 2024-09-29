@@ -6,64 +6,70 @@ driver {
     detect {
         mvt = SON,1b,04
     }
-    use = meter_datetime,flow_temperature_c,return_temperature_c,volume_flow_m3h
-    field {
-        name = total
-        quantity = Energy
-        match {
-            measurement_type = Instantaneous
-            vif_range = AnyEnergyVIF
+    library {
+        use = meter_datetime,flow_temperature_c,return_temperature_c,volume_flow_m3h
+    }
+    fields {
+        field {
+            name     = total
+            quantity = Energy
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name     = total
+            quantity = Volume
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name     = target
+            quantity = Energy
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 20
+            }
+        }
+        field {
+            name     = target
+            quantity = Volume
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 20
+            }
+        }
+        field {
+            name         = target
+            quantity     = PointInTime
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 20
+            }
+        }
+        field {
+            name     = power
+            quantity = Power
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+            }
         }
     }
-    field {
-        name = total
-        quantity = Volume
-        match {
-            measurement_type = Instantaneous
-            vif_range = Volume
+    tests {
+        test {
+            args     = 'sonsupercal supercal 89508019 NOKEY'
+            comment  = 'Sontex Supercal 739 test case'
+            telegram = 4444EE4D198050891B047AFB000000_046D3612E423820A6CE1F1040628010000840A060000000004144A110000840A14000000000259E30F025D2A0C023B1D01032C3A0100
+            json     = '{"flow_temperature_c": 40.67,"id": "89508019","media": "heat","meter": "supercal","meter_datetime": "2023-03-04 18:54","name": "sonsupercal","power_kw": 3.14,"return_temperature_c": 31.14,"target_date": "2127-01-01","target_kwh": 0,"target_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 296,"total_m3": 44.26,"volume_flow_m3h": 0.285}'
+            fields   = 'sonsupercal;89508019;296;1111-11-11 11:11.11'
         }
-    }
-    field {
-        name = target
-        quantity = Energy
-        match {
-            measurement_type = Instantaneous
-            vif_range = AnyEnergyVIF
-            storage_nr = 20
-        }
-    }
-    field {
-        name = target
-        quantity = Volume
-        match {
-            measurement_type = Instantaneous
-            vif_range = Volume
-            storage_nr = 20
-        }
-    }
-    field {
-        name = target
-        quantity = PointInTime
-        display_unit = date
-        match {
-            measurement_type = Instantaneous
-            vif_range = Date
-            storage_nr = 20
-        }
-    }
-    field {
-        name = power
-        quantity = Power
-        match {
-            measurement_type = Instantaneous
-            vif_range = AnyPowerVIF
-        }
-    }
-    test {
-        args = 'sonsupercal supercal 89508019 NOKEY'
-        comment = 'Sontex Supercal 739 test case'
-        telegram = 4444EE4D198050891B047AFB000000_046D3612E423820A6CE1F1040628010000840A060000000004144A110000840A14000000000259E30F025D2A0C023B1D01032C3A0100
-        json = '{"flow_temperature_c": 40.67,"id": "89508019","media": "heat","meter": "supercal","meter_datetime": "2023-03-04 18:54","name": "sonsupercal","power_kw": 3.14,"return_temperature_c": 31.14,"target_date": "2127-01-01","target_kwh": 0,"target_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 296,"total_m3": 44.26,"volume_flow_m3h": 0.285}'
-        fields = 'sonsupercal;89508019;296;1111-11-11 11:11.11'
     }
 }

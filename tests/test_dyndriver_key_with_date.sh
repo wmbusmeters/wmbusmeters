@@ -49,57 +49,58 @@ driver {
     detect {
         mvt = EFE,00,04
     }
-    field {
-        name     = total
-        quantity = Energy
-        info     = 'The total heat energy consumption recorded by this meter.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = AnyEnergyVIF
+    fields {
+        field {
+            name     = total
+            quantity = Energy
+            info     = 'The total heat energy consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
         }
-    }
-    field {
-        name     = target_water
-        quantity = Volume
-        info     = 'The total volume of heating media as recorded at the end of the billing period.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = Volume
-            storage_nr       = 1
+        field {
+            name     = target_water
+            quantity = Volume
+            info     = 'The total volume of heating media as recorded at the end of the billing period.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
         }
-    }
-    field {
-        name         = target
-        quantity     = PointInTime
-        info         = 'The reporting date of the last billing period.'
-        display_unit = date
-        match {
-            measurement_type = Instantaneous
-            vif_range        = Date
-            storage_nr       = 1
+        field {
+            name         = target
+            quantity     = PointInTime
+            info         = 'The reporting date of the last billing period.'
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
         }
-    }
-    field {
-        name     = target
-        quantity = Energy
-        info     = 'The energy consumption at the last billing period date.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = AnyEnergyVIF
-            storage_nr       = 1
+        field {
+            name     = target
+            quantity = Energy
+            info     = 'The energy consumption at the last billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+            }
         }
-    }
-    field {
-        name     = 'target_{storage_counter}_{target_date - (storage_counter * 1month)}'
-        quantity = Energy
-        match {
-            measurement_type = Instantaneous
-            vif_range        = AnyEnergyVIF
-            storage_nr       = 2,32
+        field {
+            name     = 'target_{storage_counter}_{target_date - (storage_counter * 1month)}'
+            quantity = Energy
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 2,32
+            }
         }
     }
 }
-
 EOF
 
 cat > $TEST/test_expected.txt <<EOF

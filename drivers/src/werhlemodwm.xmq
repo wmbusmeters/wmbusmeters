@@ -6,20 +6,24 @@ driver {
     detect {
         mvt = WZG,03,16
     }
-    use = meter_datetime
-    use = target_date
-    use = target_m3
-    use = total_m3
-    use = fabrication_no
-    field {
-        name         = next_target
-        quantity     = PointInTime
-        display_unit = date
-        match {
-            measurement_type = Instantaneous
-            vif_range        = Date
-            add_combinable   = FutureValue
-            storage_nr       = 1
+    library {
+        use = meter_datetime
+        use = target_date
+        use = target_m3
+        use = total_m3
+        use = fabrication_no
+    }
+    fields {
+        field {
+            name         = next_target
+            quantity     = PointInTime
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                add_combinable   = FutureValue
+                storage_nr       = 1
+            }
         }
     }
 }

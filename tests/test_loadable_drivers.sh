@@ -40,26 +40,28 @@ driver {
     detect {
         mvt = SEN,99,07
     }
-    field {
-        name        = totalitator
-        quantity    = Volume
-        match {
-            measurement_type = Instantaneous
-            vif_range        = Volume
+    fields {
+        field {
+            name     = totalitator
+            quantity = Volume
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+            about {
+                en = 'The total water consumption recorded by this meter.'
+            }
         }
-        about {
-            en = 'The total water consumption recorded by this meter.'
-        }
-    }
-    field {
-        name        = max_flowwor
-        quantity    = Flow
-        match {
-            measurement_type = Instantaneous
-            vif_range        = VolumeFlow
-        }
-        about {
-            en = 'The maximum flow recorded during previous period.'
+        field {
+            name     = max_flowwor
+            quantity = Flow
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+            }
+            about {
+                en = 'The maximum flow recorded during previous period.'
+            }
         }
     }
 }

@@ -6,7 +6,7 @@ MQTT, curled to a REST api, inserted into a database or stored in a log file.
 
 [FAQ/WIKI/MANUAL pages](https://github.com/wmbusmeters/wmbusmeters)
 
--	Supported architectures 
+-	Supported architectures
 	-	ARMv7 32-bit (`armv7`)
 	-	ARMv8 64-bit (`arm64`)
 	-	Linux x86-64 (`amd64`)
@@ -22,7 +22,7 @@ docker run -d --privileged \
     -v /etc/localtime:/etc/localtime:ro \
     -v /opt/wmbusmeters:/wmbusmeters_data \
     -v /dev/:/dev/ \
-    wmbusmeters/wmbusmeters 
+    wmbusmeters/wmbusmeters
 ```
 
 ### Command line Options
@@ -55,14 +55,6 @@ Then, `docker-compose pull` can be used to pull the latest wmbusmeters/wmbusmete
 
 If security is of concern - it is also possible to run docker container without privileged mode with non-RTLSDR dongles. For RTLSDR symlink passing to docker image is not working due to the fact that rtl_ binaries are looking for a full usb bus path in the system to identify device.
 
-Before running the command that creates the wmbusmeters docker container, udev rules must be added to create usb device symlink in order to have persistent link to device across host restarts and reconnects of usb device:
-```
-cat <<EOF > /etc/udev/rules.d/99-wmbus-usb-serial.rules
-SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="im871a", MODE="0660", GROUP="docker"
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", SYMLINK+="amb8465", MODE="0660", GROUP="docker"
-SUBSYSTEM=="usb", ATTRS{idVendor}=="2047", ATTRS{idProduct}=="0863", SYMLINK+="rfmrx2", MODE="0660", GROUP="docker"
-EOF
-```
 
 ### Command line for container download and run
 
@@ -72,8 +64,8 @@ docker run -d \
     --restart=always \
     -v /etc/localtime:/etc/localtime:ro \
     -v /opt/wmbusmeters:/wmbusmeters_data \
-    --device=/dev/im871a \
-    wmbusmeters/wmbusmeters 
+    --device=/dev/ttyUSB0 \
+    wmbusmeters/wmbusmeters
 ```
 
 ### Command line Options

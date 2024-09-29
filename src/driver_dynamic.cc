@@ -131,8 +131,8 @@ DriverDynamic::DriverDynamic(MeterInfo &mi, DriverInfo &di) :
                 di.name().str().c_str(),
                 fileName().c_str());
 
-        xmqForeach(doc, "/driver/use", (XMQNodeCallback)add_use, this);
-        xmqForeach(doc, "/driver/field", (XMQNodeCallback)add_field, this);
+        xmqForeach(doc, "/driver/library/use", (XMQNodeCallback)add_use, this);
+        xmqForeach(doc, "/driver/fields/field", (XMQNodeCallback)add_field, this);
     }
     catch(...)
     {
@@ -572,7 +572,7 @@ string check_field_name(const char *name, DriverDynamic *dd)
 {
     if (!name)
     {
-        warning("(driver) error in %s, cannot find: driver/field/name\n"
+        warning("(driver) error in %s, cannot find: driver/fields/field/name\n"
                 "%s\n"
                 "Remember to add for example: field { name = total ... }\n"
                 "%s\n",
@@ -612,7 +612,7 @@ Quantity check_field_quantity(const char *quantity_s, DriverDynamic *dd)
 {
     if (!quantity_s)
     {
-        warning("(driver) error in %s, cannot find: driver/field/quantity\n"
+        warning("(driver) error in %s, cannot find: driver/fields/field/quantity\n"
                 "%s\n"
                 "Remember to add for example: field { quantity = Volume ... }\n"
                 "Available quantities:\n%s\n"
@@ -859,7 +859,7 @@ void checked_set_measurement_type(const char *measurement_type_s, FieldMatcher *
 {
     if (!measurement_type_s)
     {
-        warning("(driver) error in %s, cannot find: driver/field/match/measurement_type\n"
+        warning("(driver) error in %s, cannot find: driver/fields/field/match/measurement_type\n"
                 "%s\n"
                 "Remember to add for example: match { measurement_type = Instantaneous ... }\n"
                 "Available measurement types:\n"
@@ -902,7 +902,7 @@ void checked_set_vif_range(const char *vif_range_s, FieldMatcher *fm, DriverDyna
 {
     if (!vif_range_s)
     {
-        warning("(driver) error in %s, cannot find: driver/field/match/vif_range\n"
+        warning("(driver) error in %s, cannot find: driver/fields/field/match/vif_range\n"
                 "%s\n"
                 "Remember to add for example: match { ... vif_range = ReturnTemperature ... }\n"
                 "Available vif ranges:\n"
@@ -1057,7 +1057,7 @@ Translate::MapType checked_map_type(const char *map_type_s, DriverDynamic *dd)
 {
     if (!map_type_s)
     {
-        warning("(driver) error in %s, cannot find: driver/field/lookup/map_type\n"
+        warning("(driver) error in %s, cannot find: driver/fields/field/lookup/map_type\n"
                 "%s\n"
                 "Remember to add for example: lookup { map_type = BitToString ... }\n"
                 "Available map types:\n"
@@ -1097,7 +1097,7 @@ uint64_t checked_mask_bits(const char *mask_bits_s, DriverDynamic *dd)
 {
     if (!mask_bits_s)
     {
-        warning("(driver) error in %s, cannot find: driver/field/lookup/mask_bitse\n"
+        warning("(driver) error in %s, cannot find: driver/fields/field/lookup/mask_bitse\n"
                 "%s\n"
                 "Remember to add for example: lookup { mask_bits = 0x00ff ... }\n"
                 "%s\n",
@@ -1116,7 +1116,7 @@ uint64_t checked_value(const char *value_s, DriverDynamic *dd)
 {
     if (!value_s)
     {
-        warning("(driver) error in %s, cannot find: driver/field/lookup/map/value\n"
+        warning("(driver) error in %s, cannot find: driver/fields/field/lookup/map/value\n"
                 "%s\n"
                 "Remember to add for example: lookup { map { ... value = 0x01 ... }}\n"
                 "%s\n",
@@ -1135,7 +1135,7 @@ TestBit checked_test_type(const char *test_s, DriverDynamic *dd)
 {
     if (!test_s)
     {
-        warning("(driver) error in %s, cannot find: driver/field/lookup/map/test\n"
+        warning("(driver) error in %s, cannot find: driver/fields/field/lookup/map/test\n"
                 "%s\n"
                 "Remember to add for example: lookup { map { test = Set }  }\n"
                 "Available test types:\n"

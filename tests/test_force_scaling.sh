@@ -17,51 +17,54 @@ driver {
     detect {
         mvt = IME,55,08
     }
-    field {
-        name           = alfa
-        quantity       = Energy
-        vif_scaling    = None
-        dif_signedness = Unsigned
-        display_unit   = kwh
-        force_scale    = 1
-        match {
-            difvifkey = 849010FF80843B
+    fields {
+        field {
+            name           = alfa
+            quantity       = Energy
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            display_unit   = kwh
+            force_scale    = 1
+            match {
+                difvifkey = 849010FF80843B
+            }
         }
-    }
-    field {
-        name           = beta
-        quantity       = Energy
-        vif_scaling    = None
-        dif_signedness = Unsigned
-        display_unit   = kwh
-        force_scale    = 1/3
-        match {
-            difvifkey = 849010FF80843B
+        field {
+            name           = beta
+            quantity       = Energy
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            display_unit   = kwh
+            force_scale    = 1/3
+            match {
+                difvifkey = 849010FF80843B
+            }
         }
-    }
-    field {
-        name           = gamma
-        quantity       = Energy
-        vif_scaling    = None
-        dif_signedness = Unsigned
-        display_unit   = kwh
-        force_scale    = 1000.0
-        match {
-            difvifkey = 849010FF80843B
+        field {
+            name           = gamma
+            quantity       = Energy
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            display_unit   = kwh
+            force_scale    = 1000.0
+            match {
+                difvifkey = 849010FF80843B
+            }
         }
-    }
-    field {
-        name           = delta
-        quantity       = Energy
-        vif_scaling    = None
-        dif_signedness = Unsigned
-        display_unit   = kwh
-        force_scale    = 3.3/3.3
-        match {
-            difvifkey = 849010FF80843B
+        field {
+            name           = delta
+            quantity       = Energy
+            vif_scaling    = None
+            dif_signedness = Unsigned
+            display_unit   = kwh
+            force_scale    = 3.3/3.3
+            match {
+                difvifkey = 849010FF80843B
+            }
         }
     }
 }
+
 EOF
 
 $PROG --format=fields \

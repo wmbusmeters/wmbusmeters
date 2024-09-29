@@ -201,12 +201,14 @@ TESTRESULT="ERROR"
 cat > $TEST/driver.xmq <<EOF
 driver { name = iffo meter_type = WaterMeter default_fields = name,id,total_m3,timestamp
     detect { mvt = SEN,99,07 }
-    field { namee = total }
+    fields {
+        field { namee = total }
+    }
 }
 EOF
 
 cat > $TEST/test_expected.txt <<EOF
-(driver) error in testoutput/driver.xmq, cannot find: driver/field/name
+(driver) error in testoutput/driver.xmq, cannot find: driver/fields/field/name
 -------------------------------------------------------------------------------
 Remember to add for example: field { name = total ... }
 -------------------------------------------------------------------------------
@@ -222,7 +224,9 @@ TESTRESULT="ERROR"
 cat > $TEST/driver.xmq <<EOF
 driver { name = iffo meter_type = WaterMeter default_fields = name,id,total_m3,timestamp
     detect { mvt = SEN,99,07 }
-    field { name = total_m3 }
+    fields {
+        field { name = total_m3 }
+    }
 }
 EOF
 
@@ -244,12 +248,14 @@ TESTRESULT="ERROR"
 cat > $TEST/driver.xmq <<EOF
 driver { name = iffo meter_type = WaterMeter default_fields = name,id,total_m3,timestamp
     detect { mvt = SEN,99,07 }
-    field { name = total }
+    fields {
+        field { name = total }
+    }
 }
 EOF
 
 cat > $TEST/test_expected.txt <<EOF
-(driver) error in testoutput/driver.xmq, cannot find: driver/field/quantity
+(driver) error in testoutput/driver.xmq, cannot find: driver/fields/field/quantity
 -------------------------------------------------------------------------------
 Remember to add for example: field { quantity = Volume ... }
 Available quantities:
@@ -290,7 +296,9 @@ TESTRESULT="ERROR"
 cat > $TEST/driver.xmq <<EOF
 driver { name = iffo meter_type = WaterMeter default_fields = name,id,total_m3,timestamp
     detect { mvt = SEN,99,07 }
-    field { name = total quantity = gurka }
+    fields {
+        field { name = total quantity = gurka }
+    }
 }
 EOF
 
@@ -335,7 +343,9 @@ TESTRESULT="ERROR"
 cat > $TEST/driver.xmq <<EOF
 driver { name = iffo meter_type = WaterMeter default_fields = name,id,total_m3,timestamp
     detect { mvt = SEN,99,07 }
-    field { name = total quantity = Volume }
+    fields {
+        field { name = total quantity = Volume }
+    }
 }
 EOF
 
@@ -353,7 +363,9 @@ TESTRESULT="ERROR"
 cat > $TEST/driver.xmq <<EOF
 driver { name = iffo meter_type = WaterMeter default_fields = name,id,total_m3,timestamp
     detect { mvt = SEN,99,07 }
-    field { name = total quantity = Volume calculate = '4711.23m3 + 0.9m3' }
+    fields {
+        field { name = total quantity = Volume calculate = '4711.23m3 + 0.9m3' }
+    }
 }
 EOF
 
@@ -370,12 +382,14 @@ TESTRESULT="ERROR"
 cat > $TEST/driver.xmq <<EOF
 driver { name = iffo meter_type = WaterMeter default_fields = name,id,total_m3,timestamp
     detect { mvt = SEN,99,07 }
-    field { name = total quantity = Volume match { } }
+    fields {
+        field { name = total quantity = Volume match { } }
+    }
 }
 EOF
 
 cat > $TEST/test_expected.txt <<EOF
-(driver) error in testoutput/driver.xmq, cannot find: driver/field/match/measurement_type
+(driver) error in testoutput/driver.xmq, cannot find: driver/fields/field/match/measurement_type
 -------------------------------------------------------------------------------
 Remember to add for example: match { measurement_type = Instantaneous ... }
 Available measurement types:
@@ -397,7 +411,9 @@ TESTRESULT="ERROR"
 cat > $TEST/driver.xmq <<EOF
 driver { name = iffo meter_type = WaterMeter default_fields = name,id,total_m3,timestamp
     detect { mvt = SEN,99,07 }
-    field { name = total quantity = Volume match { measurement_type = sdfInstantaneous } }
+    fields {
+        field { name = total quantity = Volume match { measurement_type = sdfInstantaneous } }
+    }
 }
 EOF
 
@@ -423,12 +439,14 @@ TESTRESULT="ERROR"
 cat > $TEST/driver.xmq <<EOF
 driver { name = iffo meter_type = WaterMeter default_fields = name,id,total_m3,timestamp
     detect { mvt = SEN,99,07 }
-    field { name = total quantity = Volume match { measurement_type = Instantaneous } }
+    fields {
+        field { name = total quantity = Volume match { measurement_type = Instantaneous } }
+    }
 }
 EOF
 
 cat > $TEST/test_expected.txt <<EOF
-(driver) error in testoutput/driver.xmq, cannot find: driver/field/match/vif_range
+(driver) error in testoutput/driver.xmq, cannot find: driver/fields/field/match/vif_range
 -------------------------------------------------------------------------------
 Remember to add for example: match { ... vif_range = ReturnTemperature ... }
 Available vif ranges:
@@ -491,7 +509,9 @@ TESTRESULT="ERROR"
 cat > $TEST/driver.xmq <<EOF
 driver { name = iffo meter_type = WaterMeter default_fields = name,id,total_m3,timestamp
     detect { mvt = SEN,99,07 }
-    field { name = total quantity = Volume match { measurement_type = Instantaneous vif_range = Volume } }
+    fields {
+        field { name = total quantity = Volume match { measurement_type = Instantaneous vif_range = Volume } }
+    }
 }
 EOF
 
@@ -507,10 +527,12 @@ TESTNAME="Test lookup of bits"
 TESTRESULT="ERROR"
 cat > $TEST/driver.xmq <<EOF
 driver{name=kampress meter_type=PressureSensor detect{mvt=KAM,01,18} default_fields=name,pressure,status
-    field{name=status quantity=Text match{measurement_type=Instantaneous vif_range=ErrorFlags}
-          lookup{name=ERROR_FLAGS map_type=BitToString mask_bits=0xffff default_message=OK
-                 map{name=DROP value=0x01 test=Set}map{name=LOW value=0x08 test=Set}}}
-    field{name=pressure quantity=Pressure match{measurement_type=Instantaneous vif_range=Pressure}}
+    fields {
+        field{name=status quantity=Text match{measurement_type=Instantaneous vif_range=ErrorFlags}
+              lookup{name=ERROR_FLAGS map_type=BitToString mask_bits=0xffff default_message=OK
+                     map{name=DROP value=0x01 test=Set}map{name=LOW value=0x08 test=Set}}}
+        field{name=pressure quantity=Pressure match{measurement_type=Instantaneous vif_range=Pressure}}
+    }
 }
 EOF
 

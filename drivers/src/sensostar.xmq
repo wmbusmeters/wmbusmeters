@@ -7,253 +7,259 @@ driver {
     detect {
         mvt = EFE,00,04
     }
-    use = meter_datetime,fabrication_no,model_version,on_time_h,parameter_set
-    field {
-        name       = status
-        quantity   = Text
-        info       = 'Meter status from tpl field.'
-        attributes = INCLUDE_TPL_STATUS
-        match {
-            measurement_type = Instantaneous
-            vif_range        = ErrorFlags
-        }
-        lookup {
-            name            = ERROR_FLAGS
-            map_type        = BitToString
-            mask_bits       = 0xff
-            default_message = OK
-            map {
-                name  = ERROR_TEMP_SENSOR_1_CABLE_BREAK
-                value = 0x01
-                test  = Set
+    library {
+        use = meter_datetime,fabrication_no,model_version,on_time_h,parameter_set
+    }
+    fields {
+        field {
+            name       = status
+            quantity   = Text
+            info       = 'Meter status from tpl field.'
+            attributes = INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
             }
-            map {
-                name  = ERROR_TEMP_SENSOR_1_SHORT_CIRCUIT
-                value = 0x02
-                test  = Set
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xff
+                default_message = OK
+                map {
+                    name  = ERROR_TEMP_SENSOR_1_CABLE_BREAK
+                    value = 0x01
+                    test  = Set
+                }
+                map {
+                    name  = ERROR_TEMP_SENSOR_1_SHORT_CIRCUIT
+                    value = 0x02
+                    test  = Set
+                }
+                map {
+                    name  = ERROR_TEMP_SENSOR_2_CABLE_BREAK
+                    value = 0x04
+                    test  = Set
+                }
+                map {
+                    name  = ERROR_TEMP_SENSOR_2_SHORT_CIRCUIT
+                    value = 0x08
+                    test  = Set
+                }
+                map {
+                    name  = ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR
+                    value = 0x10
+                    test  = Set
+                }
+                map {
+                    name  = ERROR_ELECTRONICS_DEFECT
+                    value = 0x20
+                    test  = Set
+                }
+                map {
+                    name  = OK_INSTRUMENT_RESET
+                    value = 0x40
+                    test  = Set
+                }
+                map {
+                    name  = OK_BATTERY_LOW
+                    value = 0x80
+                    test  = Set
+                }
             }
-            map {
-                name  = ERROR_TEMP_SENSOR_2_CABLE_BREAK
-                value = 0x04
-                test  = Set
-            }
-            map {
-                name  = ERROR_TEMP_SENSOR_2_SHORT_CIRCUIT
-                value = 0x08
-                test  = Set
-            }
-            map {
-                name  = ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR
-                value = 0x10
-                test  = Set
-            }
-            map {
-                name  = ERROR_ELECTRONICS_DEFECT
-                value = 0x20
-                test  = Set
-            }
-            map {
-                name  = OK_INSTRUMENT_RESET
-                value = 0x40
-                test  = Set
-            }
-            map {
-                name  = OK_BATTERY_LOW
-                value = 0x80
-                test  = Set
+        }
+        field {
+            name     = total
+            quantity = Energy
+            info     = 'The total heat energy consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
             }
         }
-    }
-    field {
-        name     = total
-        quantity = Energy
-        info     = 'The total heat energy consumption recorded by this meter.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = AnyEnergyVIF
+        field {
+            name     = 'total_tariff{tariff_counter}'
+            quantity = Energy
+            info     = 'The total heat energy consumption recorded by this meter on tariff 2-3.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                tariff_nr        = 2,3
+            }
+        }
+        field {
+            name     = 'total_subunit{subunit_counter}'
+            quantity = Volume
+            info     = 'The total volume consumption recorded by this meter on subunit 1-3.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                subunit_nr       = 1,3
+            }
+        }
+        field {
+            name     = total_water
+            quantity = Volume
+            info     = 'The total volume of heating media recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name     = total_water_tariff2
+            quantity = Volume
+            info     = 'The total volume of heating media recorded by this meter on tariff2.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                tariff_nr        = 2
+            }
+        }
+        field {
+            name     = target_water
+            quantity = Volume
+            info     = 'The total volume of heating media as recorded at the end of the billing period.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = power
+            quantity = Power
+            info     = 'Power consumption.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+            }
+        }
+        field {
+            name     = power_max
+            quantity = Power
+            info     = 'Power consumption.'
+            match {
+                measurement_type = Maximum
+                vif_range        = AnyPowerVIF
+            }
+        }
+        field {
+            name     = flow_water
+            quantity = Flow
+            info     = 'Flow of water.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+            }
+        }
+        field {
+            name     = flow_water_max
+            quantity = Flow
+            info     = 'Flow of water maximum.'
+            match {
+                measurement_type = Maximum
+                vif_range        = VolumeFlow
+            }
+        }
+        field {
+            name     = forward
+            quantity = Temperature
+            info     = 'Forward temperature of water.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+            }
+        }
+        field {
+            name     = return
+            quantity = Temperature
+            info     = 'Return temperature of water.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+            }
+        }
+        field {
+            name     = difference
+            quantity = Temperature
+            info     = 'Difference forward - return temperature.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = TemperatureDifference
+            }
+        }
+        field {
+            name         = target
+            quantity     = PointInTime
+            info         = 'The reporting date of the last billing period.'
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = target
+            quantity = Energy
+            info     = 'The energy consumption at the last billing period date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = 'target_tariff{tariff_counter}'
+            quantity = Energy
+            info     = 'The energy consumption at the last billing period date on tariff 2-3.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+                tariff_nr        = 2,3
+            }
+        }
+        field {
+            name     = 'target_subunit{subunit_counter}'
+            quantity = Volume
+            info     = 'The volume consumption at the last billing period date on subunit 1-3.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+                subunit_nr       = 1,3
+            }
+        }
+        field {
+            name     = 'target_{storage_counter}'
+            quantity = Energy
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 2,32
+            }
         }
     }
-    field {
-        name     = 'total_tariff{tariff_counter}'
-        quantity = Energy
-        info     = 'The total heat energy consumption recorded by this meter on tariff 2-3.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = AnyEnergyVIF
-            tariff_nr        = 2,3
+    tests {
+        test {
+            args     = 'Heat sensostar 20480057 NOKEY'
+            telegram = 68B3B36808007257004820c51400046c100000047839803801040600000000041300000000042B00000000142B00000000043B00000000143B00000000025B1400025f15000261daff02235c00046d2c2ddc24440600000000441300000000426c000001fd171003fd0c05000084200600000000c420060000000084300600000000c430060000000084401300000000c44013000000008480401300000000c48040130000000084c0401300000000c4c0401300000000a216
+            json     = '{"difference_c": -0.38,"fabrication_no": "01388039","flow_water_m3h": 0,"flow_water_max_m3h": 0,"forward_c": 20,"id": "20480057","media": "heat","meter": "sensostar","meter_datetime": "2022-04-28 13:44","model_version": "000005","name": "Heat","on_time_h": 2208,"power_kw": 0,"power_max_kw": 0,"return_c": 21,"status": "ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR TEMPORARY_ERROR","target_date": "1999-11-30","target_kwh": 0,"target_subunit1_m3": 0,"target_subunit2_m3": 0,"target_subunit3_m3": 0,"target_tariff2_kwh": 0,"target_tariff3_kwh": 0,"target_water_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 0,"total_subunit1_m3": 0,"total_subunit2_m3": 0,"total_subunit3_m3": 0,"total_tariff2_kwh": 0,"total_tariff3_kwh": 0,"total_water_m3": 0}'
+            fields   = 'Heat;20480057;ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR TEMPORARY_ERROR;0;0;1999-11-30;0;1111-11-11 11:11.11'
         }
-    }
-    field {
-        name     = 'total_subunit{subunit_counter}'
-        quantity = Volume
-        info     = 'The total volume consumption recorded by this meter on subunit 1-3.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = Volume
-            subunit_nr       = 1,3
+        test {
+            args     = 'WMZ sensostar 02752560 NOKEY'
+            comment  = 'from "Sensostar U"'
+            telegram = a444c5146025750200047ac20000202f2f046d2e26c62a040643160000041310f0050001fd1700426cbf2c4406570e00008401061f160000840206f6150000840306f5150000840406f3150000840506ea150000840606bf1500008407065214000084080692120000840906c5100000840a06570e0000840b06ca0b0000840c06da090000840d06ca080000840e06c8080000840f06c608000003fd0c05010002fd0b2111
+            json     = '{"id": "02752560","media": "heat","meter": "sensostar","meter_datetime": "2022-10-06 06:46","model_version": "000105","name": "WMZ","parameter_set": "1121","status": "OK","target_10_kwh": 5610,"target_12_kwh": 5567,"target_14_kwh": 5202,"target_16_kwh": 4754,"target_18_kwh": 4293,"target_20_kwh": 3671,"target_22_kwh": 3018,"target_24_kwh": 2522,"target_26_kwh": 2250,"target_28_kwh": 2248,"target_2_kwh": 5663,"target_30_kwh": 2246,"target_4_kwh": 5622,"target_6_kwh": 5621,"target_8_kwh": 5619,"target_date": "2021-12-31","target_kwh": 3671,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 5699,"total_water_m3": 389.136}'
+            fields   = 'WMZ;02752560;OK;5699;389.136;2021-12-31;3671;1111-11-11 11:11.11'
         }
-    }
-    field {
-        name     = total_water
-        quantity = Volume
-        info     = 'The total volume of heating media recorded by this meter.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = Volume
+        test {
+            args     = 'XYZ sensostar 21750444 NOKEY'
+            telegram = 4944C5144404752100047AC10000202F2F046D142D073404068847000001FD170004138E8A4000043BF7FFFFFF042B00000000025B3E00025F360002612F0303FD0C05010002FD0B2011
+            json     = '{"difference_c": 8.15,"flow_water_m3h": -0.009,"forward_c": 62,"id": "21750444","media": "heat","meter": "sensostar","meter_datetime": "2024-04-07 13:20","model_version": "000105","name": "XYZ","parameter_set": "1120","power_kw": 0,"return_c": 54,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 18312,"total_water_m3": 4229.774}'
+            fields   = 'XYZ;21750444;OK;18312;4229.774;null;null;1111-11-11 11:11.11'
         }
-    }
-    field {
-        name     = total_water_tariff2
-        quantity = Volume
-        info     = 'The total volume of heating media recorded by this meter on tariff2.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = Volume
-            tariff_nr        = 2
-        }
-    }
-    field {
-        name     = target_water
-        quantity = Volume
-        info     = 'The total volume of heating media as recorded at the end of the billing period.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = Volume
-            storage_nr       = 1
-        }
-    }
-    field {
-        name     = power
-        quantity = Power
-        info     = 'Power consumption.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = AnyPowerVIF
-        }
-    }
-    field {
-        name     = power_max
-        quantity = Power
-        info     = 'Power consumption.'
-        match {
-            measurement_type = Maximum
-            vif_range        = AnyPowerVIF
-        }
-    }
-    field {
-        name     = flow_water
-        quantity = Flow
-        info     = 'Flow of water.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = VolumeFlow
-        }
-    }
-    field {
-        name     = flow_water_max
-        quantity = Flow
-        info     = 'Flow of water maximum.'
-        match {
-            measurement_type = Maximum
-            vif_range        = VolumeFlow
-        }
-    }
-    field {
-        name     = forward
-        quantity = Temperature
-        info     = 'Forward temperature of water.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = FlowTemperature
-        }
-    }
-    field {
-        name     = return
-        quantity = Temperature
-        info     = 'Return temperature of water.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = ReturnTemperature
-        }
-    }
-    field {
-        name     = difference
-        quantity = Temperature
-        info     = 'Difference forward - return temperature.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = TemperatureDifference
-        }
-    }
-    field {
-        name         = target
-        quantity     = PointInTime
-        info         = 'The reporting date of the last billing period.'
-        display_unit = date
-        match {
-            measurement_type = Instantaneous
-            vif_range        = Date
-            storage_nr       = 1
-        }
-    }
-    field {
-        name     = target
-        quantity = Energy
-        info     = 'The energy consumption at the last billing period date.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = AnyEnergyVIF
-            storage_nr       = 1
-        }
-    }
-    field {
-        name     = 'target_tariff{tariff_counter}'
-        quantity = Energy
-        info     = 'The energy consumption at the last billing period date on tariff 2-3.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = AnyEnergyVIF
-            storage_nr       = 1
-            tariff_nr        = 2,3
-        }
-    }
-    field {
-        name     = 'target_subunit{subunit_counter}'
-        quantity = Volume
-        info     = 'The volume consumption at the last billing period date on subunit 1-3.'
-        match {
-            measurement_type = Instantaneous
-            vif_range        = Volume
-            storage_nr       = 1
-            subunit_nr       = 1,3
-        }
-    }
-    field {
-        name     = 'target_{storage_counter}'
-        quantity = Energy
-        match {
-            measurement_type = Instantaneous
-            vif_range        = AnyEnergyVIF
-            storage_nr       = 2,32
-        }
-    }
-    test {
-        args = 'Heat sensostar 20480057 NOKEY'
-        telegram = 68B3B36808007257004820c51400046c100000047839803801040600000000041300000000042B00000000142B00000000043B00000000143B00000000025B1400025f15000261daff02235c00046d2c2ddc24440600000000441300000000426c000001fd171003fd0c05000084200600000000c420060000000084300600000000c430060000000084401300000000c44013000000008480401300000000c48040130000000084c0401300000000c4c0401300000000a216
-        json = '{"difference_c": -0.38,"fabrication_no": "01388039","flow_water_m3h": 0,"flow_water_max_m3h": 0,"forward_c": 20,"id": "20480057","media": "heat","meter": "sensostar","meter_datetime": "2022-04-28 13:44","model_version": "000005","name": "Heat","on_time_h": 2208,"power_kw": 0,"power_max_kw": 0,"return_c": 21,"status": "ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR TEMPORARY_ERROR","target_date": "1999-11-30","target_kwh": 0,"target_subunit1_m3": 0,"target_subunit2_m3": 0,"target_subunit3_m3": 0,"target_tariff2_kwh": 0,"target_tariff3_kwh": 0,"target_water_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 0,"total_subunit1_m3": 0,"total_subunit2_m3": 0,"total_subunit3_m3": 0,"total_tariff2_kwh": 0,"total_tariff3_kwh": 0,"total_water_m3": 0}'
-        fields = 'Heat;20480057;ERROR_FLOW_MEASUREMENT_SYSTEM_ERROR TEMPORARY_ERROR;0;0;1999-11-30;0;1111-11-11 11:11.11'
-    }
-    test {
-        args = 'WMZ sensostar 02752560 NOKEY'
-        comment = 'from "Sensostar U"'
-        telegram = a444c5146025750200047ac20000202f2f046d2e26c62a040643160000041310f0050001fd1700426cbf2c4406570e00008401061f160000840206f6150000840306f5150000840406f3150000840506ea150000840606bf1500008407065214000084080692120000840906c5100000840a06570e0000840b06ca0b0000840c06da090000840d06ca080000840e06c8080000840f06c608000003fd0c05010002fd0b2111
-        json = '{"id": "02752560","media": "heat","meter": "sensostar","meter_datetime": "2022-10-06 06:46","model_version": "000105","name": "WMZ","parameter_set": "1121","status": "OK","target_10_kwh": 5610,"target_12_kwh": 5567,"target_14_kwh": 5202,"target_16_kwh": 4754,"target_18_kwh": 4293,"target_20_kwh": 3671,"target_22_kwh": 3018,"target_24_kwh": 2522,"target_26_kwh": 2250,"target_28_kwh": 2248,"target_2_kwh": 5663,"target_30_kwh": 2246,"target_4_kwh": 5622,"target_6_kwh": 5621,"target_8_kwh": 5619,"target_date": "2021-12-31","target_kwh": 3671,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 5699,"total_water_m3": 389.136}'
-        fields = 'WMZ;02752560;OK;5699;389.136;2021-12-31;3671;1111-11-11 11:11.11'
-    }
-    test {
-        args = 'XYZ sensostar 21750444 NOKEY'
-        telegram = 4944C5144404752100047AC10000202F2F046D142D073404068847000001FD170004138E8A4000043BF7FFFFFF042B00000000025B3E00025F360002612F0303FD0C05010002FD0B2011
-        json = '{"difference_c": 8.15,"flow_water_m3h": -0.009,"forward_c": 62,"id": "21750444","media": "heat","meter": "sensostar","meter_datetime": "2024-04-07 13:20","model_version": "000105","name": "XYZ","parameter_set": "1120","power_kw": 0,"return_c": 54,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_kwh": 18312,"total_water_m3": 4229.774}'
-        fields = 'XYZ;21750444;OK;18312;4229.774;null;null;1111-11-11 11:11.11'
     }
 }

@@ -14,7 +14,7 @@ web:
 tests:
 	@echo -n "// Generated " > build/generated_tests.xmq
 	@date +%Y-%m-%d_%H:%M >> build/generated_tests.xmq
-	@for i in $(wildcard src/*) ; do xmq $$i select /driver/test to-xmq >> build/generated_tests.xmq; done
+	@for i in $(wildcard src/*) ; do xmq $$i select /driver/tests/test to-xmq >> build/generated_tests.xmq; done
 
 install: database tests
 	@grep -v "// Generated " < build/generated_database.cc > build/a
@@ -25,6 +25,9 @@ install: database tests
 	@grep -v "// Generated " < ../tests/generated_tests.xmq > build/b
 	@if ! diff build/a build/b ; then \
             cp build/generated_tests.xmq ../tests/generated_tests.xmq ; echo "Installed tests." ; else echo "No changes test." ; fi
+
+pretty:
+	@for i in $(wildcard src/*.xmq) ; do xmq $$i > tmp ; mv tmp $$i ; done
 
 test:
 	@for i in $(wildcard src/*) ; do ./test.sh $(PROG) $$i ; done
