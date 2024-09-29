@@ -7,9 +7,9 @@ database:
 	@./generate.sh $(PROG)
 
 web:
-	@mkdir -p build/web
-	@for i in $(wildcard src/*) ; do xmq $$i render-html --darkbg > build/web/$$(basename $${i}).html; done
-	@./generate_index.sh > build/web/index.html
+	@mkdir -p ../build/web
+	@./generate_index.sh
+	@echo "Generated ../build/web/index.html and files."
 
 tests:
 	@echo -n "// Generated " > build/generated_tests.xmq
