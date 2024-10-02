@@ -26,11 +26,11 @@ namespace
 
     static bool ok = registerDriver([](DriverInfo&di)
     {
-        di.setName("hydrocalm3");
+        di.setName("hydrocalm4");
         di.setDefaultFields("name,id,total_heating_kwh,total_cooling_kwh,timestamp");
-        di.setMeterType(MeterType::HeatMeter);
+        di.setMeterType(MeterType::HeatCoolingMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_BMT, 0x0d,  0x0b);
+        di.addDetection(MANUFACTURER_BMT, 0x0d,  0x1a); 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
@@ -81,7 +81,9 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AnyEnergyVIF)
-            .set(IndexNr(2))
+            .set(SubUnitNr(0))
+            .set(TariffNr(1))
+            .set(StorageNr(0))
             );
 
         addNumericFieldWithExtractor(
@@ -105,7 +107,9 @@ namespace
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
-            .set(IndexNr(2))
+            .set(SubUnitNr(0))
+            .set(TariffNr(1))
+            .set(StorageNr(0))
             );
 
         addNumericFieldWithExtractor(
@@ -158,12 +162,6 @@ namespace
      }
 }
 
-// Test: HeatCool hydrocalm3 71727374 NOKEY
-// telegram=|8E44B409747372710B0D7A798080052F2F_0C0E59600100046D1D36B9290C13679947000C0E000000000C13590000000C13000000000C13000000000A5A18020A5E11020F823D06003D06003D06003D0600140600620500480400E402001601000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002F2F|
-// {"media":"heat/cooling load","meter":"hydrocalm3","name":"HeatCool","id":"71727374","status": "SABOTAGE_ENCLOSURE","total_heating_kwh":4460.833333,"total_cooling_kwh":0,"device_datetime":"2021-09-25 22:29","total_heating_m3":479.967,"total_cooling_m3":0.059,"c1_volume_m3":0,"c2_volume_m3":0,"supply_temperature_c":21.8,"return_temperature_c":21.1,"timestamp":"1111-11-11T11:11:11Z"}
-// |HeatCool;71727374;4460.833333;0;1111-11-11 11:11.11
-//
-// Test: testm4 hydrocalm3 38031627 NOKEY
-// telegram=|2C44B409271603381A0D8C208A7ACE000020_046D0CB6ED240C03267300000C13130800000F6300000000000000|
-// {"media":"heat/cooling load","meter":"hydrocalm3","name":"testm4","id":"38031627","status":"OK","total_heating_kwh":7.326,"device_datetime":"2023-04-13 22:12","total_heating_m3":0.813,"timestamp":"1111-11-11T11:11:11Z"}
-// |testm4;38031627;7.326;null;1111-11-11 11:11.11
+// Test: testm4 hydrocalm4 05171338 NOKEY
+// telegram=|3A44B409381317051A0D8C00B07A7D000000_046D05AA023A0C03000000000C13000000008C1003050000008C1013040000000F6401000000000000|
+// {"media":"heat/cooling load","meter":"hydrocalm3","name":"","id":"05171338","device_datetime":"2024-10-02 10:05","total_cooling_kwh":0.005,"total_cooling_m3":0.004,"total_heating_kwh":0,"total_heating_m3":0,"status":"OK","timestamp":"2024-10-02T08:06:16Z"}
