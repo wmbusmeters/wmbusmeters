@@ -164,5 +164,5 @@ namespace
 
 // Test: testm4 hydrocalm4 05171338 NOKEY
 // telegram=|3A44B409381317051A0D8C00B07A7D000000_046D05AA023A0C03000000000C13000000008C1003050000008C1013040000000F6401000000000000|
-// {"media":"heat/cooling load","meter":"hydrocalm3","name":"testm4","id":"05171338","device_datetime":"2024-10-02 10:05","total_cooling_kwh":0.005,"total_cooling_m3":0.004,"total_heating_kwh":0,"total_heating_m3":0,"status":"OK","timestamp":"2024-10-02T08:06:16Z"}
-// |testm4;05171338;0;0.005;2024-10-02 08:06:16
+// {"media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-02 10:05","total_cooling_kwh":0.005,"total_cooling_m3":0.004,"total_heating_kwh":0,"total_heating_m3":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+// |testm4;05171338;0;0.005;1111-11-11 11:11.11
