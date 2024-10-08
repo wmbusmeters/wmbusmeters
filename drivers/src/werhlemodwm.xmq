@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Fredrik Ă–hrstrĂ¶m (gpl-3.0-or-later)
+// Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
 driver {
     name           = werhlemodwm
     meter_type     = WaterMeter
