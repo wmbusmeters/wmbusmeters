@@ -1,4 +1,9 @@
 
+ATTENTION! Backwards incompatible change for xmq drivers source.
+The field entries must now be inside a fields { ... } group.
+The use entries must now be inside a library { ... } group.
+The test entries must now be inside a tests { ... } group.
+
 Kzajac83 added the elf2 driver. Thanks kzajac83!
 
 Version 1.17.1 2024-08-24

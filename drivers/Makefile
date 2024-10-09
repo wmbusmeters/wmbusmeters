@@ -26,6 +26,10 @@ install: database tests
 	@if ! diff build/a build/b ; then \
             cp build/generated_tests.xmq ../tests/generated_tests.xmq ; echo "Installed tests." ; else echo "No changes test." ; fi
 
+generate_ha_discovery:
+	@mkdir -p build/ha_mqtt_discovery
+	@for i in $(wildcard src/*) ; do echo $$i ; xmq $$i transform to-ha-discovery.xslq to-json | jq . > build/ha_mqtt_discovery/$$(basename $${i%%.xmq}.json); done
+
 pretty:
 	@for i in $(wildcard src/*.xmq) ; do xmq $$i > tmp ; mv tmp $$i ; done
 
