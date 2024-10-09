@@ -5,16 +5,18 @@ driver {
     default_fields = name,id,total_m3,timestamp
     detect {
         mvt = WZG,03,16
-    }
-    library {
-        use = meter_datetime
-        use = target_date
-        use = target_m3
-        use = total_m3
-        use = fabrication_no
-    }
-    fields {
-        field {
+}
+
+library {
+    use = meter_datetime
+    use = total_m3
+    use = fabrication_no
+    use = target_date
+    use = target_m3
+}
+
+fields {
+    field {
             name         = next_target
             quantity     = PointInTime
             display_unit = date
@@ -23,7 +25,301 @@ driver {
                 vif_range        = Date
                 add_combinable   = FutureValue
                 storage_nr       = 1
-            }
+                   }
+             } 
+ 
+    field {
+        name         = 1st_target
+        quantity     = Volume
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            storage_nr       = 1
+              }
+          }
+    field {
+        name         = 1st_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            storage_nr       = 1
+              }
+          }
+
+    field {
+        name         = 2nd_target
+        quantity     = Volume
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            storage_nr       = 2
+              }
+          }
+    field {
+        name         = 2nd_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            storage_nr       = 2
+              }
+          }
+
+    field {
+        name         = 3rd_target
+        quantity     = Volume
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            storage_nr       = 3
+              }
+          }
+    field {
+        name         = 3rd_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            storage_nr       = 3
+              }
+          }
+
+    field {
+        name         = 4th_target
+        quantity     = Volume
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            storage_nr       = 4
+              }
+          }
+    field {
+        name         = 4th_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            storage_nr       = 4
+              }
+          }
+
+    field {
+        name         = 5th_target
+        quantity     = Volume
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            storage_nr       = 5
+              }
+          }
+    field {
+        name         = 5th_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            storage_nr       = 5
+              }
+          }
+
+    field {
+        name         = 6th_target
+        quantity     = Volume
+        //display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            //add_combinable   = FutureValue
+            storage_nr       = 6
+              }
+          }
+    field {
+        name         = 6th_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            //add_combinable   = FutureValue
+            storage_nr       = 6
+              }
+          }
+
+    field {
+        name         = 7th_target
+        quantity     = Volume
+        //display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            //add_combinable   = FutureValue
+            storage_nr       = 7
+              }
+          }
+    field {
+        name         = 7th_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            //add_combinable   = FutureValue
+            storage_nr       = 7
+              }
+          }
+
+    field {
+        name         = 8th_target
+        quantity     = Volume
+        //display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            //add_combinable   = FutureValue
+            storage_nr       = 8
+              }
+          }
+    field {
+        name         = 8th_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            //add_combinable   = FutureValue
+            storage_nr       = 8
+              }
+          }
+
+    field {
+        name         = 9th_target
+        quantity     = Volume
+        //display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            //add_combinable   = FutureValue
+            storage_nr       = 9
+              }
+          }
+    field {
+        name         = 9th_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            //add_combinable   = FutureValue
+            storage_nr       = 9
+              }
+          }
+
+    field {
+        name         = 10th_target
+        quantity     = Volume
+        //display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            //add_combinable   = FutureValue
+            storage_nr       = 10
+              }
+          }
+    field {
+        name         = 10th_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            //add_combinable   = FutureValue
+            storage_nr       = 10
+              }
+          }
+
+    field {
+        name         = 11th_target
+        quantity     = Volume
+        //display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            //add_combinable   = FutureValue
+            storage_nr       = 11
+              }
+          }
+    field {
+        name         = 11th_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            //add_combinable   = FutureValue
+            storage_nr       = 11
+              }
+          }
+
+    field {
+        name         = 12th_target
+        quantity     = Volume
+        //display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            //add_combinable   = FutureValue
+            storage_nr       = 12
+              }
+          }
+    field {
+        name         = 12th_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            //add_combinable   = FutureValue
+            storage_nr       = 12
+              }
+          }
+
+    field {
+        name         = 13th_target
+        quantity     = Volume
+        //display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            //add_combinable   = FutureValue
+            storage_nr       = 13
+              }
+          }
+    field {
+        name         = 13th_target
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            //add_combinable   = FutureValue
+            storage_nr       = 13
+              }
+          }
+}
+
+    tests {
+        test {
+            args     = 'licznik werhlemodwm p99 NOKEY'
+            telegram = 68C4C46808637283654616475F03160C000000_041300000000046D2B030000426C992B44133D00000042EC7EB92B0C785506140082016C9E2B8401133D000000C2016C7F2CC401133D00000082026C9F218402133D000000C2026C9D22C402133D00000082036C9F238403133D000000C2036C9E24C403133D00000082046C9F258404133D000000C2046C9E26C404133D00000082056C9F278405133D000000C2056C9F28C405133D00000082066C9E298406133D000000C2066C9F2AC406133D0000000F010000_C316
+            json     = '{"media":"cold water","meter":"werhlemodwm","name":"licznik","id":"16466583","10th_target_m3":0.061,"10th_target_date":"2020-07-31","11th_target_m3":0.061,"11th_target_date":"2020-08-31","12th_target_m3":0.061,"12th_target_date":"2020-09-30","13th_target_m3":0.061,"13th_target_date":"2020-10-31","1st_target_m3":0.061,"1st_target_date":"2020-11-25","2nd_target_m3":0.061,"2nd_target_date":"2020-11-30","3rd_target_m3":0.061,"3rd_target_date":"2019-12-31","4th_target_m3":0.061,"4th_target_date":"2020-01-31","5th_target_m3":0.061,"5th_target_date":"2020-02-29","6th_target_m3":0.061,"6th_target_date":"2020-03-31","7th_target_m3":0.061,"7th_target_date":"2020-04-30","8th_target_m3":0.061,"8th_target_date":"2020-05-31","9th_target_m3":0.061,"9th_target_date":"2020-06-30","future_target_date":"2021-11-25","total_m3":0,"fabrication_no":"00140655","meter_datetime":"2000-00-00 03:43","timestamp":"2024-10-08T22:35:20Z"}'
+            fields   = 'licznik,16466583,0,2024-10-09 00:37:33'
         }
     }
 }
+
