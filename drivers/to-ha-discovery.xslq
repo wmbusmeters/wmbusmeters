@@ -1,0 +1,144 @@
+xsl:stylesheet(version                 = 1.0
+               xml:space               = preserve
+               exclude-result-prefixes = my
+               xmlns:xsl               = http://www.w3.org/1999/XSL/Transform
+               xmlns:my                = https://wmbusmeters.org)
+{
+    my:tounit {
+        entry(key = Volume) = m3
+        entry(key = Flow) = m3h
+    }
+    my:tohrunit {
+        entry(key = m3) = m³
+        entry(key = m3h) = m³/h
+    }
+    my:todeviceclass {
+        entry(key = WaterMeter) = water
+        entry(key = ElectricityMeter) = electricity
+    }
+    my:tostateclass {
+        entry(key = Volume) = total_increasing
+        entry(key = Flow) = measurement
+    }
+    xsl:template(match = /)
+    {
+        _ {
+            xsl:variable(name   = manufacturer
+                         select = driver/manufacturer)
+            xsl:variable(name   = model
+                         select = driver/model)
+            xsl:variable(name   = metertype
+                         select = driver/meter_type)
+            xsl:for-each(select = driver/fields/field)
+            {
+                xsl:variable(name   = nameb
+                             select = name)
+                xsl:variable(name   = spacedname
+                             value-of = name) // ''' translate($nameb,'_',' ') ''')
+                xsl:variable(name   = quantityb
+                             select = quantity)
+                xsl:variable(name   = unito
+                             select = 'document("")/*/my:tounit/entry[@key=$quantityb]')
+                xsl:variable(name   = hrunit
+                             select = 'document("")/*/my:tohrunit/entry[@key=$unito]')
+                xsl:variable(name   = deviceclass
+                             select = 'document("")/*/my:todeviceclass/entry[@key=$metertype]')
+                xsl:variable(name   = stateclass
+                             select = 'document("")/*/my:tostateclass/entry[@key=$quantityb]')
+                xsl:element(name = '{name}_{$unito}')
+                {
+                    component = sensor
+                    discovery_payload {
+                        device {
+                            identifiers(A)
+                            {
+                                _ = 'wmbusmeters_{id}'
+                            }
+                            manufacturer {
+                                xsl:value-of(select = $manufacturer)
+                            }
+                            model {
+                                xsl:value-of(select = $model)
+                            }
+                            name       = '{name}'
+                            hw_version = '{id}'
+                        }
+                        name {
+                            xsl:value-of(select = 'translate($nameb, "_", " ")')
+                        }
+                        unique_id             = 'wmbusmeters_{id}_{attribute}'
+                        state_topic           = 'wmbusmeters/{name}'
+                        value_template        = '{{ value_json.{attribute} }}'
+                        json_attributes_topic = 'wmbusmeters/{name}'
+                        icon                  = mdi:gauge
+                        unit_of_measurement {
+                            xsl:value-of(select = $hrunit)
+                        }
+                        state_class  {
+                            xsl:value-of(select = $stateclass)
+                        }
+                        device_class  {
+                            xsl:value-of(select = $deviceclass)
+                        }
+                        enabled_by_default = true
+                    }
+                }
+            }
+            timestamp {
+                component = sensor
+                discovery_payload {
+                    device {
+                        identifiers(A)
+                        {
+                            _ = 'wmbusmeters_{id}'
+                        }
+                        manufacturer {
+                            xsl:value-of(select = $manufacturer)
+                        }
+                        model {
+                            xsl:value-of(select = $model)
+                        }
+                        name         = '{name}'
+                        hw_version   = '{id}'
+                    }
+                    entity_category    = diagnostic
+                    name               = timestamp
+                    unique_id          = 'wmbusmeters_{id}_{attribute}'
+                    state_topic        = 'wmbusmeters/{name}'
+                    value_template     = '{{ value_json.{attribute} }}'
+                    icon               = mdi:calendar-clock
+                    enabled_by_default = false
+                }
+            }
+            rssi_dbm {
+                component = sensor
+                discovery_payload {
+                    device {
+                        identifiers(A)
+                        {
+                            _ = 'wmbusmeters_{id}'
+                        }
+                        manufacturer {
+                            xsl:value-of(select = $manufacturer)
+                        }
+                        model {
+                            xsl:value-of(select = $model)
+                        }
+                        name         = '{name}'
+                        hw_version   = '{id}'
+                    }
+                    entity_category     = diagnostic
+                    name                = rssi
+                    unique_id           = 'wmbusmeters_{id}_{attribute}'
+                    state_topic         = 'wmbusmeters/{name}'
+                    value_template      = '{{ value_json.{attribute} }}'
+                    icon                = mdi:signal
+                    unit_of_measurement = dBm
+                    device_class        = signal_strength
+                    state_class         = measurement
+                    enabled_by_default  = false
+                }
+            }
+        }
+    }
+}
