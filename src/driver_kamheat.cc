@@ -127,6 +127,18 @@ namespace
             );
 
         addNumericFieldWithExtractor(
+            "total_energy_backward",
+            "The total backwards energy consumption recorded by this meter.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Energy,
+            VifScaling::Auto, DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::AnyEnergyVIF)
+            .add(VIFCombinable::BackwardFlow)
+            );
+
+        addNumericFieldWithExtractor(
             "total_volume",
             "The volume of water (3/68/Volume V1).",
             DEFAULT_PRINT_PROPERTIES,
@@ -364,3 +376,9 @@ namespace
 // telegram=|689f9f68081472207400852d2c350cad00000004fb08c304000004ff07f21c000004ff084d1100000415fe29000084401400000000848040140000000004228829000034220a00000002598511025dab100261da00042d00000000142d08000000043b00000000143b6000000004ff2200000000046d0d2c0238542dc9010000543be1050000426c013102ff1a011b0c782074008504ff16850b200004ff17c9ff0e01cb16|
 // {"fabrication_no": "85007420","flow_return_temperature_difference_c": 2.18,"forward_energy_m3c": 7410,"id": "85007420","max_flow_m3h": 0.096,"max_power_kw": 0.8,"media": "heat volume at inlet","meter": "kamheat","meter_datetime": "2024-08-02 12:13","name": "KM2","on_time_at_error_h": 10,"on_time_h": 10632,"power_kw": 0,"return_energy_m3c": 4429,"status": "OK","t1_temperature_c": 44.85,"t2_temperature_c": 42.67,"target_date": "2024-01-01","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 33861.111111,"total_volume_m3": 1075,"volume_flow_m3h": 0}
 // |KM2;85007420;33861.111111;1075;OK;1111-11-11 11:11.11
+
+// Test: Kamstrup_MC303_Heat_AND_COOLING kamheat 30303030 NOKEY
+// telegram=|68888868083072303030302d2c400d0000000004069a00000004863c0000000004146d0f000004ff077205000004ff08ec0400000322890a0033220000000259720b025d040b02616e00022d0e00122db400023b6804123b7a0402ff22000044060000000044863c0000000044140000000044ff070000000044ff0800000000522d0000523b0000426c00006C16|
+// {"media":"heat/cooling load","meter":"kamheat","name":"Kamstrup_MC303_Heat_AND_COOLING","id":"30303030","flow_return_temperature_difference_c":1.1,"forward_energy_m3c":1394,"max_flow_m3h":1.146,"max_power_kw":18,"on_time_h":2697,"on_time_at_error_h":0,"power_kw":1.4,"return_energy_m3c":1260,"t1_temperature_c":29.3,"t2_temperature_c":28.2,"target_energy_kwh":0,"target_volume_m3":0,"total_energy_backward_kwh":0,"total_energy_consumption_kwh":154,"total_volume_m3":39.49,"volume_flow_m3h":1.128,"status":"OK","target_date":"2000-00-00","timestamp":"1111-11-11T11:11:11Z"}
+// |Kamstrup_MC303_Heat_AND_COOLING;30303030;154;39.49;OK;1111-11-11 11:11.11
+
