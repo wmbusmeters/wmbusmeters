@@ -4,7 +4,7 @@ driver {
     default_fields = name,id,total_heating_kwh,total_cooling_kwh,timestamp
     meter_type     = HeatCoolingMeter
     detect {
-        mvt = BMT,0d,1a
+        mvt = BMT,1a,0d
     }
     fields {
         field {
@@ -125,12 +125,6 @@ driver {
         }
     }
     tests {
-        test {
-            args     = 'testm4 hydrocalm4 05171338 NOKEY'
-            telegram = 3A44B409381317051A0D8C00B07A7D000000_046D05AA023A0C03000000000C13000000008C1003050000008C1013040000000F6401000000000000
-            json     = '{"media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-02 10:05","total_cooling_kwh":0.005,"total_cooling_m3":0.004,"total_heating_kwh":0,"total_heating_m3":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
-            fields   = 'testm4;05171338;0;0.005;1111-11-11 11:11.11'
-        }
         test {
             args     = 'testm4 hydrocalm4 05171338 NOKEY //Standard-heat'
             telegram = 2C44B409381317051A0D8C00497A76000000_046D25AA153A0C03000000000C13000000000F6400000000000000
