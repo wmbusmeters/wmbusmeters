@@ -123,6 +123,24 @@ driver {
                 vif_range        = ReturnTemperature
             }
         }
+        field {
+            name     = volume_flow
+            quantity = Flow
+            info     = 'The current heat media volume flow.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+            }
+        }
+        field {
+            name     = power
+            quantity = Power
+            info     = 'The current power consumption.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = PowerW
+            }
+        }
     }
     tests {
         test {
@@ -146,7 +164,7 @@ driver {
         test {
             args     = 'testm4 hydrocalm4 05171338 NOKEY //Instantaneous-heat_pulses'
             telegram = 3B44B409381317051A0D8C00497A7E000000_046D2DAA153A0C03000000000C13000000008C4013999900008C804013888800000F6403000000000000
-            json     = '{"media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","c1_volume_m3":9.999,"c2_volume_m3":8.888,"device_datetime":"2024-10-21 10:45","total_heating_kwh":0,"total_heating_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:43","power_kw":0,"return_temperature_c":25.08,"supply_temperature_c":23.3,"total_heating_kwh":0,"total_heating_m3":0,"volume_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'testm4;05171338;0;0.005;1111-11-11 11:11.11'
         }
      
