@@ -1,0 +1,21 @@
+driver {
+    name           = maddalena
+    meter_type     = WaterMeter
+    default_fields = name,id,total_m3,timestamp
+    detect {
+        mvt = MAD,01,07
+        mvt = MAD,01,06
+    }
+    library {
+        use = fabrication_no
+        use = total_m3,meter_datetime,target_m3,target_date
+    }
+    tests {
+        test {
+            args     = 'water maddalena 24018699 NOKEY'
+            telegram = 4E4424349986012401077AF2000020_2F2F0413A7000000046D0E0C163B04FD17000000000E789986012401FF441300000000426C01018401134A00000082016C1F3AD3013B470500C4016D1B14153B
+            json     = '{ "media":"water", "meter":"maddalena", "name":"", "id":"24018699", "target_m3":0, "target_date":"2000-01-01", "total_m3":0.167, "current_status":"OK", "fabrication_no":"FF0124018699", "meter_datetime":"2024-11-22 12:14", "timestamp":"2024-11-22T16:07:45Z" }'
+            fields   = ';24018699;0.167;2000-01-01'
+        }
+    }
+}
