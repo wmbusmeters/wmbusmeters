@@ -1,0 +1,172 @@
+// Copyright (C) 2024 Fredrik Öhrström (gpl-3.0-or-later)
+driver {
+    name           = hydrocalm4
+    default_fields = name,id,total_heating_kwh,total_cooling_kwh,timestamp
+    meter_type     = HeatCoolingMeter
+    detect {
+        mvt = BMT,1a,0d
+    }
+    fields {
+        field {
+            name     = status
+            quantity = Text
+            info     = status_and_error_flags
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+                map {
+                    name  = SABOTAGE
+                    info  = 'SABOTAGE_ENCLOSURE'
+                    value = 0x80
+                    test  = Set
+                }              
+            }
+        }
+        field {
+            name     = total_heating
+            quantity = Energy
+            info     = 'The total heating energy consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                index_nr         = 1
+            }
+        }
+        field {
+            name     = device
+            quantity = PointInTime
+            info     = 'The date time when the recording was made.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = DateTime
+            }
+        }
+        field {
+            name     = total_cooling
+            quantity = Energy
+            info     = 'The total cooling energy consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                subunit_nr      = 0
+                tariff_nr        = 1
+                storage_nr       = 0
+            }
+        }
+        field {
+            name        = total_heating
+            info        = 'Total heating volume of media.'
+            quantity    = Volume
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name        = total_cooling
+            info        = 'Total cooling volume of media.'
+            quantity    = Volume
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                subunit_nr      = 0
+                tariff_nr        = 1
+                storage_nr       = 0
+            }
+        }
+        field {
+            name        = c1_volume
+            info        = 'Supply c1 volume.'
+            quantity    = Volume
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume                
+                subunit_nr      = 1
+                tariff_nr        = 0
+                storage_nr       = 0
+            }
+        }
+        field {
+            name        = c2_volume
+            info        = 'Supply c2 volume.'
+            quantity    = Volume
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume                
+                subunit_nr      = 2
+                tariff_nr        = 0
+                storage_nr       = 0
+            }
+        }
+        field {
+            name        = supply_temperature
+            info        = 'The supply t1 pipe temperature.'
+            quantity    = Temperature
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+                index_nr         = 1
+            }
+        }
+        field {
+            name        = return_temperature
+            info        = 'The supply t2 pipe temperature.'
+            quantity    = Temperature
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+            }
+        }
+        field {
+            name     = volume_flow
+            quantity = Flow
+            info     = 'The current heat media volume flow.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+            }
+        }
+        field {
+            name     = power
+            quantity = Power
+            info     = 'The current power consumption.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = PowerW
+            }
+        }
+    }
+    tests {
+        test {
+            args     = 'testm4 hydrocalm4 05171338 NOKEY //Standard-heat'
+            telegram = 2C44B409381317051A0D8C00497A76000000_046D25AA153A0C03000000000C13000000000F6400000000000000
+            json     = '{"media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:37","total_heating_kwh":0,"total_heating_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'testm4;05171338;0;0.005;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'testm4 hydrocalm4 05171338 NOKEY //Combined-heat_cool'
+            telegram = 3A44B409381317051A0D8C00497A7A000000_046D29AA153A0C03000000000C13000000008C1003050000008C1013040000000F6401000000000000
+            json     = '{"media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:41","total_cooling_kwh":0.005,"total_cooling_m3":0.004,"total_heating_kwh":0,"total_heating_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'testm4;05171338;0;0.005;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'testm4 hydrocalm4 05171338 NOKEY //Instantaneous-heat_temperature'
+            telegram = 3E44B409381317051A0D8C00497A7C000000_046D2BAA153A0C03000000000C13000000000B3B0000000B280000000A5930230A5D08250F6402000000000000
+            json     = '{"media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:43","return_temperature_c":25.08,"supply_temperature_c":23.3,"total_heating_kwh":0,"total_heating_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'testm4;05171338;0;0.005;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'testm4 hydrocalm4 05171338 NOKEY //Instantaneous-heat_pulses'
+            telegram = 3B44B409381317051A0D8C00497A7E000000_046D2DAA153A0C03000000000C13000000008C4013999900008C804013888800000F6403000000000000
+            json     = '{"media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:43","power_kw":0,"return_temperature_c":25.08,"supply_temperature_c":23.3,"total_heating_kwh":0,"total_heating_m3":0,"volume_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields   = 'testm4;05171338;0;0.005;1111-11-11 11:11.11'
+        }
+     
+    }
+}
