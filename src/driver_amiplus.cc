@@ -227,3 +227,8 @@ namespace
 // telegram=|7E4401068408095501027A7C1070052F2F_066DDE5E150D39800C78840809550AFDC9FC0139028E30833C0000000000008E20833C0000000000008E10833C4301000000000BABC8FC100000008E10035336420200008E20030000000000008E30030000000000000B2B9502000BAB3C0000002F2F2F2F2F2F2F2F2F2F2F2F2F|
 // {"media":"electricity","meter":"amiplus","name":"MyElectricity4","id":"55090884","current_power_consumption_kw":0.295,"current_power_production_kw":0,"total_energy_consumption_tariff_1_kwh":2423.653,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_tariff_1_kwh":0.143,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"voltage_at_phase_1_v":239,"device_date_time":"2024-09-13 21:30:30","timestamp":"1111-11-11T11:11:11Z"}
 // |MyElectricity4;55090884;null;0.295;null;0;239;null;null;2423.653;0;0;0.143;0;0;1111-11-11 11:11.11
+
+// Test: MyElectricity4 amiplus 00320787 NOKEY
+// telegram=|3e44b6108707320001027a380030052f2f0C7830253390066D6872141239400E031891690000000E833C9265010000000B2B2602000BAB3C0000002F2F2F2F|
+//  {"current_power_consumption_kw": 0.226,"current_power_production_kw": 0,"device_date_time": "2024-09-18 20:50:40","id": "00320787","media": "electricity","meter": "amiplus","name": "MyElectricity4","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 699.118,"total_energy_production_kwh": 16.592}
+// |MyElectricity4;00320787;699.118;0.226;16.592;0;null;null;null;null;null;null;null;null;null;1111-11-11 11:11.11
