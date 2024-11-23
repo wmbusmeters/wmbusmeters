@@ -33,6 +33,7 @@ namespace
         di.addDetection(MANUFACTURER_APA,  0x02,  0x02);
         di.addDetection(MANUFACTURER_DEV,  0x37,  0x02);
         di.addDetection(MANUFACTURER_DEV,  0x02,  0x00);
+        di.addDetection(MANUFACTURER_DEV,  0x02,  0x01);
         // Apator Otus 1/3 seems to use both, depending on a frame.
         // Frames with APA are successfully decoded by this driver
         // Frames with APT are not - and their content is unknown - perhaps it broadcasts two data formats?
