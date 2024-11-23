@@ -1,4 +1,4 @@
-// Generated 2024-09-16_10:02
+// Generated 2024-11-23_16:03
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -22,6 +22,34 @@ test {
     telegram = 689292680800723612452394150102cd0000008c1004688902008c1104688902008c2004000000008c21040000000002fdc9ff01ee0002fddBff01100002acff0120008240acff010a0002fdc9ff02ef0002fddBff02110002acff0224008240acff02070002fdc9ff03ee0002fddBff030e0002acff031c008240acff03060002ff68010002acff0062008240acff00190001ff1300f416
     json     = '{"active_power_overall_kw": 0.98,"active_tariff_counter": 0,"ct_numerator_counter": 1,"current_l1_a": 1.6,"current_l2_a": 1.7,"current_l3_a": 1.4,"id": "23451236","media": "electricity","meter": "eltako","name": "Eltako","power_l1_kw": 0.32,"power_l2_kw": 0.36,"power_l3_kw": 0.28,"reactive_power_l1_kw": 0.1,"reactive_power_l2_kw": 0.07,"reactive_power_l3_kw": 0.06,"reactive_power_overall_kw": 0.25,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 289.68,"total_reactive_tariff_1_kwh": 289.68,"total_reactive_tariff_2_kwh": 0,"total_tariff_1_kwh": 289.68,"total_tariff_2_kwh": 0,"voltage_l1_n_v": 238,"voltage_l2_n_v": 239,"voltage_l3_n_v": 238}'
     fields   = 'Eltako;23451236;289.68;1111-11-11 11:11.11'
+}
+test {
+    args     = 'testm4 hydrocalm4 05171338 NOKEY'
+    comment  = Instantaneous-heat_pulses
+    telegram = 3B44B409381317051A0D8C00497A7E000000_046D2DAA153A0C03000000000C13000000008C4013999900008C804013888800000F6403000000000000
+    json     = '{"c1_volume_m3": 9.999,"c2_volume_m3": 8.888,"device_datetime": "2024-10-21 10:45","id": "05171338","media": "heat/cooling load","meter": "hydrocalm4","name": "testm4","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_heating_kwh": 0,"total_heating_m3": 0}'
+    fields   = 'testm4;05171338;OK;0;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'testm4 hydrocalm4 05171338 NOKEY'
+    comment  = Instantaneous-heat_temperature
+    telegram = 3E44B409381317051A0D8C00497A7C000000_046D2BAA153A0C03000000000C13000000000B3B0000000B280000000A5930230A5D08250F6402000000000000
+    json     = '{"media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:43","return_temperature_c":25.08,"supply_temperature_c":23.3,"total_heating_kwh":0,"total_heating_m3":0,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'testm4;05171338;OK;0;null;1111-11-11 11:11.11'
+}
+test {
+    args     = 'testm4 hydrocalm4 05171338 NOKEY'
+    comment  = Combined-heat_cool
+    telegram = 3A44B409381317051A0D8C00497A7A000000_046D29AA153A0C03000000000C13000000008C1003050000008C1013040000000F6401000000000000
+    json     = '{"media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:41","total_cooling_kwh":0.005,"total_cooling_m3":0.004,"total_heating_kwh":0,"total_heating_m3":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'testm4;05171338;OK;0;0.005;1111-11-11 11:11.11'
+}
+test {
+    args     = 'testm4 hydrocalm4 05171338 NOKEY'
+    comment  = Standard-heat
+    telegram = 2C44B409381317051A0D8C00497A76000000_046D25AA153A0C03000000000C13000000000F6400000000000000
+    json     = '{"media":"heat/cooling load","meter":"hydrocalm4","status":"OK","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:37","total_heating_kwh":0,"total_heating_m3":0,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'testm4;05171338;OK;0;null;1111-11-11 11:11.11'
 }
 test {
     args     = 'MyMeter ime 12345678 NOKEY'
@@ -110,6 +138,12 @@ test {
     telegram = 32442D2C1703007701188D280080E39322DB8F78_22696600126967000269660005FF091954A33A05FF0A99BD823A02FD170800
     json     = '{"media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","status":"LOW","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"alfa_counter":0.001246,"beta_counter":0.000997,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Pressing;77000317;LOW;1.02;1.03;1.02;1111-11-11 11:11.11'
+}
+test {
+    args     = 'mywater maddalena 24018699 NOKEY'
+    telegram = 4E4424349986012401077AF2000020_2F2F0413A7000000046D0E0C163B04FD17000000000E789986012401FF441300000000426C01018401134A00000082016C1F3AD3013B470500C4016D1B14153B
+    json     = '{ "media":"water", "meter":"maddalena", "name":"mywater", "id":"24018699", "target_m3":0, "target_date":"2000-01-01", "total_m3":0.167, "status":"OK", "fabrication_no":"FF0124018699", "meter_datetime":"2024-11-22 12:14", "timestamp":"1111-11-11T11:11:11Z" }'
+    fields   = 'mywater;24018699;OK;0.167;1111-11-11 11:11.11'
 }
 test {
     args     = 'MyRelHCA relhca 00000104 NOKEY'

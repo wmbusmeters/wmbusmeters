@@ -1,21 +1,39 @@
+// Copyright (C) 2024 the wmbusmeters project (CC0-1.0)
 driver {
     name           = maddalena
     meter_type     = WaterMeter
-    default_fields = name,id,total_m3,timestamp
+    default_fields = name,id,status,total_m3,timestamp
     detect {
         mvt = MAD,01,07
         mvt = MAD,01,06
     }
     library {
-        use = fabrication_no
-        use = total_m3,meter_datetime,target_m3,target_date
+        use = fabrication_no,meter_datetime,target_m3,target_date,total_m3
+    }
+    fields {
+        field {
+            name     = status
+            quantity = Text
+            info     = 'Status and error flags.'
+            attributes = INCLUDE_TPL_STATUS
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ErrorFlags
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+            }
+        }
     }
     tests {
         test {
-            args     = 'water maddalena 24018699 NOKEY'
+            args     = 'mywater maddalena 24018699 NOKEY'
             telegram = 4E4424349986012401077AF2000020_2F2F0413A7000000046D0E0C163B04FD17000000000E789986012401FF441300000000426C01018401134A00000082016C1F3AD3013B470500C4016D1B14153B
-            json     = '{ "media":"water", "meter":"maddalena", "name":"", "id":"24018699", "target_m3":0, "target_date":"2000-01-01", "total_m3":0.167, "current_status":"OK", "fabrication_no":"FF0124018699", "meter_datetime":"2024-11-22 12:14", "timestamp":"2024-11-22T16:07:45Z" }'
-            fields   = ';24018699;0.167;2000-01-01'
+            json     = '{ "media":"water", "meter":"maddalena", "name":"mywater", "id":"24018699", "target_m3":0, "target_date":"2000-01-01", "total_m3":0.167, "status":"OK", "fabrication_no":"FF0124018699", "meter_datetime":"2024-11-22 12:14", "timestamp":"1111-11-11T11:11:11Z" }'
+            fields   = 'mywater;24018699;OK;0.167;1111-11-11 11:11.11'
         }
     }
 }

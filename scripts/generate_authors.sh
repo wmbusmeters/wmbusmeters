@@ -4,7 +4,7 @@
 TMP=$(mktemp)
 OUT=$1
 
-(grep -rEc "Copyright \(C\) (....-)?.... [^\(]+ \(.+\)" src drivers/src  | grep :0 > $TMP)
+(grep -rEc "Copyright \(C\) (....-)?.... [^\(]+ \(.+\)" src drivers/src | grep :0 > $TMP)
 
 if [ -s $TMP ]
 then
