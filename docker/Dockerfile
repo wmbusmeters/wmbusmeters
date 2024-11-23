@@ -1,5 +1,5 @@
 FROM alpine AS build
-RUN apk add --no-cache alpine-sdk gcc linux-headers libxml2-dev cmake libusb-dev bash samurai
+RUN apk add --no-cache alpine-sdk gcc linux-headers libxml2-dev libxslt-dev cmake libusb-dev bash samurai
 
 ADD https://api.github.com/repos/wmbusmeters/wmbusmeters/git/refs/heads/master version.json
 RUN git clone --depth 1 https://github.com/steve-m/librtlsdr.git && \
