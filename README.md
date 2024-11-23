@@ -485,6 +485,7 @@ As {options} you can use:
     --listento=<mode>,<mode> listen to more than one link mode at the same time, assuming the dongle supports it
     --listenvs=<meter_driver> list the env variables available for the given meter driver
     --listfields=<meter_driver> list the fields selectable for the given meter driver
+    --printdriver=<meter_driver> print xmq driver source code
     --listmeters list all meter drivers
     --listmeters=<search> list all meter drivers containing the text <search>
     --listunits list all unit suffixes that can be used for typing values

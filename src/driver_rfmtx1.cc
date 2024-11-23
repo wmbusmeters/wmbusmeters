@@ -110,5 +110,5 @@ namespace
 
 // Test: Wasser rfmtx1 74737271 NOKEY
 // telegram=|4644B4097172737405077AA5000610_1115F78184AB0F1D1E200000005904103103208047004A4800E73C00193E00453F003E4000E64000E74100F442000144001545005B460000|
-// {"media":"water","meter":"rfmtx1","name":"Wasser","id":"74737271","total_m3":188.56,"meter_datetime":"2020-03-31 10:04:59","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"water","meter":"rfmtx1","name":"Wasser","id":"74737271","total_m3":188.56,"meter_datetime":"2020-03-31 10:04:59","timestamp":"1111-11-11T11:11:11Z"}
 // |Wasser;74737271;188.56;2020-03-31 10:04:59;1111-11-11 11:11.11

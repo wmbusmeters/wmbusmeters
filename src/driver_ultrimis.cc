@@ -102,5 +102,5 @@ namespace
 // Test: Water ultrimis 95969798 NOKEY
 // Comment:
 // telegram=|2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F|
-// {"media":"cold water","meter":"ultrimis","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"cold water","meter":"ultrimis","name":"Water","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}
 // |Water;95969798;3.122;2.337;OK;0;1111-11-11 11:11.11

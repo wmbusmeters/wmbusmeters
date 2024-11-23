@@ -402,6 +402,8 @@ struct Explanation
         pos(p), len(l), info(i), kind(k), understanding(u) {}
 };
 
+struct Meter;
+
 struct Telegram
 {
 private:
@@ -411,6 +413,8 @@ public:
     Telegram() = default;
 
     AboutTelegram about;
+
+    Meter *meter {};
 
     // If set to true then this telegram should be trigger updates.
     bool discard {};

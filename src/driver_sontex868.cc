@@ -130,5 +130,5 @@ namespace
 
 // Test: MyHeatCoster sontex868 27282728 NOKEY
 // telegram=|AF46EE4D2827282716087A80000000_046D040A9F2A036E770000426CE1F7436E660000525900008288016C61258388016E0000008D8801EE1E3533FE00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005FF2D0000803F8520FF2D0000803F0259AD0A0265D8041259AD0A8310FD3100000082106C01018110FD610082206C9F2A0BFD0F01030102FF2C000002FD66AC08|
-// {"media":"heat cost allocation","meter":"sontex868","name":"MyHeatCoster","id":"27282728","current_consumption_hca":119,"set_date":"2127-07-01","consumption_at_set_date_hca":102,"current_temp_c":27.33,"current_room_temp_c":12.4,"max_temp_c":27.33,"max_temp_previous_period_c":0,"device_date_time":"2020-10-31 10:04","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"heat cost allocation","meter":"sontex868","name":"MyHeatCoster","id":"27282728","current_consumption_hca":119,"set_date":"2127-07-01","consumption_at_set_date_hca":102,"current_temp_c":27.33,"current_room_temp_c":12.4,"max_temp_c":27.33,"max_temp_previous_period_c":0,"device_date_time":"2020-10-31 10:04","timestamp":"1111-11-11T11:11:11Z"}
 // |MyHeatCoster;27282728;119;2127-07-01;102;1111-11-11 11:11.11

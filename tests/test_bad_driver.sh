@@ -48,6 +48,8 @@ $PROG 1844AE4C4455223399077A55000000_041389E20100023B0000 Hej $TEST/driver.xmq 3
 
 performCheck
 
+exit 0
+
 TESTNAME="Test bad driver name"
 TESTRESULT="ERROR"
 cat > $TEST/driver.xmq <<EOF

@@ -84,13 +84,13 @@ namespace
 // Test: Smokey tsd2 91633569 NOKEY
 
 // telegram=|294468506935639176F0A0_019F|
-// {"media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"ERROR","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"ERROR","timestamp":"1111-11-11T11:11:11Z"}
 // |Smokey;91633569;ERROR;null;1111-11-11 11:11.11
 
 // telegram=|294468506935639176F0A0_009F2782290060822900000401D6311AF93E1BF93E008DC3009ED4000FE500|
-// {"media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"OK","prev_date":"2019-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"OK","prev_date":"2019-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
 // |Smokey;91633569;OK;2019-12-31T02:00:00Z;1111-11-11 11:11.11
 
 // telegram=|294468506935639176F0A0_019F2782290060822900000401D6311AF93E1BF93E008DC3009ED4000FE500|
-// {"media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"SMOKE","prev_date":"2019-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"SMOKE","prev_date":"2019-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
 // |Smokey;91633569;SMOKE;2019-12-31T02:00:00Z;1111-11-11 11:11.11

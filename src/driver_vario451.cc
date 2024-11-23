@@ -100,5 +100,5 @@ namespace
 
 // Test: HeatMeter vario451 58234965 NOKEY
 // telegram=|374468506549235827C3A2_129F25383300A8622600008200800A2AF862115175552877A36F26C9AB1CB24400000004000000000004908002|
-// {"media":"heat","meter":"vario451","name":"HeatMeter","id":"58234965","total_kwh":6371.666667,"current_kwh":2729.444444,"previous_kwh":3642.222222,"timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"heat","meter":"vario451","name":"HeatMeter","id":"58234965","total_kwh":6371.666667,"current_kwh":2729.444444,"previous_kwh":3642.222222,"timestamp":"1111-11-11T11:11:11Z"}
 // |HeatMeter;58234965;6371.666667;2729.444444;3642.222222;1111-11-11 11:11.11

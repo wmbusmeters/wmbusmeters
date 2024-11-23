@@ -30,8 +30,8 @@ cat > $TEST/test_expected.txt <<EOF
 EOF
 
 cat > /tmp/wmbusmeters_telegram_expected <<EOF
-METER =={"media":"cold water","meter":"multical21","name":"Water","id":"76348799","external_temperature_c":19,"flow_temperature_c":127,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}==
-METER =={"media":"cold water","meter":"multical21","name":"Water","id":"76348799","external_temperature_c":19,"flow_temperature_c":127,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}==
+METER =={"_":"telegram","media":"cold water","meter":"multical21","name":"Water","id":"76348799","external_temperature_c":19,"flow_temperature_c":127,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}==
+METER =={"_":"telegram","media":"cold water","meter":"multical21","name":"Water","id":"76348799","external_temperature_c":19,"flow_temperature_c":127,"target_m3":6.408,"total_m3":6.408,"current_status":"DRY","status":"DRY","time_bursting":"","time_dry":"22-31 days","time_leaking":"","time_reversed":"","timestamp":"1111-11-11T11:11:11Z"}==
 EOF
 
 cat > /tmp/wmbusmeters_alarm_expected <<EOF

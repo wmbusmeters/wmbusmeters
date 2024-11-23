@@ -30,7 +30,7 @@ driver {
             args     = 'MyRelHCA relhca 00000104 NOKEY'
             comment  = 'Telegram 1'
             telegram = 682f2f6808687204010000ac484100b30000000c6e41648401046d9c021732426cff2c4c6e4164840142ec7e1f3c0fc101010c6d16
-            json     = '{"consumption_hca": 1846441,"id": "00000104","media": "other","meter": "relhca","meter_datetime": "2024-02-23 02:28","target_hca": 1846441,"name": "MyRelHCA","next_target_date": "2024-12-31","target_date": "2023-12-31","timestamp": "1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","consumption_hca": 1846441,"id": "00000104","media": "other","meter": "relhca","meter_datetime": "2024-02-23 02:28","target_hca": 1846441,"name": "MyRelHCA","next_target_date": "2024-12-31","target_date": "2023-12-31","timestamp": "1111-11-11T11:11:11Z"}'
             fields   = 'MyRelHCA;00000104;1846441;1111-11-11 11:11.11'
         }
     }

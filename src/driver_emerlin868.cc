@@ -73,5 +73,5 @@ namespace
 
 // Test: Vodda emerlin868 95949392 NOKEY
 // telegram=|2E4492159293949511377ABE0020252F2F_04135515000004FD971D80800000441300000000426C000002FDFD02B300|
-// {"media":"radio converter (meter side)","meter":"emerlin868","name":"Vodda","id":"95949392","total_m3":5.461,"target_m3":0,"target_date":"2000-00-00","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"radio converter (meter side)","meter":"emerlin868","name":"Vodda","id":"95949392","total_m3":5.461,"target_m3":0,"target_date":"2000-00-00","timestamp":"1111-11-11T11:11:11Z"}
 // |Vodda;95949392;5.461;0;1111-11-11 11:11.11

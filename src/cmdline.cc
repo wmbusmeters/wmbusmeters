@@ -574,6 +574,12 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
+        if (!strncmp(argv[i], "--printdriver=", 14)) {
+            c->print_driver = true;
+            c->list_meter = string(argv[i]+14);
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--listmeters=", 13)) {
             c->list_meters = true;
             c->list_meters_search = string(argv[i]+13);
@@ -710,7 +716,8 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
         !c->list_shell_envs &&
         !c->list_fields &&
         !c->list_meters &&
-        !c->list_units)
+        !c->list_units &&
+        !c->print_driver)
     {
         error("You must supply at least one device to communicate using (w)mbus.\n");
     }

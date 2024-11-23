@@ -32,7 +32,7 @@ driver {
         test {
             args     = 'mywater maddalena 24018699 NOKEY'
             telegram = 4E4424349986012401077AF2000020_2F2F0413A7000000046D0E0C163B04FD17000000000E789986012401FF441300000000426C01018401134A00000082016C1F3AD3013B470500C4016D1B14153B
-            json     = '{ "media":"water", "meter":"maddalena", "name":"mywater", "id":"24018699", "target_m3":0, "target_date":"2000-01-01", "total_m3":0.167, "status":"OK", "fabrication_no":"FF0124018699", "meter_datetime":"2024-11-22 12:14", "timestamp":"1111-11-11T11:11:11Z" }'
+            json     = '{"_":"telegram","media":"water","meter":"maddalena","name":"mywater","id":"24018699","target_m3":0,"target_date":"2000-01-01","total_m3":0.167,"status":"OK","fabrication_no":"FF0124018699","meter_datetime":"2024-11-22 12:14","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'mywater;24018699;OK;0.167;1111-11-11 11:11.11'
         }
     }

@@ -70,11 +70,11 @@ namespace
 // Test: FOO mkradio4a 66953825 NOKEY
 // Comment: Warm water
 // telegram=|4B44685036494600953772253895662423FE064E0030052F2F_4315A10000426CBF2C0F542CF2DD8BEC869511B2DB8301C3ABA390FB4FDB6F1144DA1F3897DD55F2AD0D194F68510FF8FADFB9|
-// {"media":"warm water","meter":"mkradio4a","name":"FOO","id":"66953825","target_m3":16.1,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"warm water","meter":"mkradio4a","name":"FOO","id":"66953825","target_m3":16.1,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}
 // |FOO;66953825;16.1;2021-12-31;1111-11-11 11:11.11
 
 // Test: BAR mkradio4a 01770002 NOKEY
 // Comment: Cold water
 // telegram=|4B4468508644710095377202007701A85CFE078A0030052F2F_4315F00200426CBF2C0FEE456BF6F802216503E25EB73E9377D54F672681B76C469696E4C7BCCC9072CC79F712360FC3F57D85|
-// {"media":"water","meter":"mkradio4a","name":"BAR","id":"01770002","target_m3":75.2,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"water","meter":"mkradio4a","name":"BAR","id":"01770002","target_m3":75.2,"target_date":"2021-12-31","timestamp":"1111-11-11T11:11:11Z"}
 // |BAR;01770002;75.2;2021-12-31;1111-11-11 11:11.11

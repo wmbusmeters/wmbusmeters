@@ -1,19 +1,19 @@
 telegram=|A244EE4D785634123C067A8F000000_0C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000|
-{"media":"warm water","meter":"supercom587","name":"MyWarmWater","id":"12345678","total_m3":5.548,"software_version":"010002","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"warm water","meter":"supercom587","name":"MyWarmWater","id":"12345678","total_m3":5.548,"software_version":"010002","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |MyWarmWater;12345678;5.548;1111-11-11 11:11.11
 
 telegram=|A244EE4D111111113C077AAC000000_0C1389490000426CE1F14C130000000082046C21298C0413010000008D04931E3A3CFE0100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000001600000031130000046D0A0C5C2B03FD6C60150082206C5C290BFD0F0200018C4079629885238310FD3100000082106C01018110FD610002FD66020002FD170000|
-{"media":"water","meter":"supercom587","name":"MyColdWater","id":"11111111","total_m3":4.989,"software_version":"010002","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"supercom587","name":"MyColdWater","id":"11111111","total_m3":4.989,"software_version":"010002","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |MyColdWater;11111111;4.989;1111-11-11 11:11.11
 
 telegram=|1E44AE4C9956341268077A36001000_2F2F0413181E0000023B00002F2F2F2F|
-{"media":"water","meter":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
 |MoreWater;12345699;7.704;0;1111-11-11 11:11.11
 
 telegram=|1844AE4C4455223368077A55000000_041389E20100023B0000|
-{"media":"water","meter":"iperl","name":"WaterWater","id":"33225544","total_m3":123.529,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"iperl","name":"WaterWater","id":"33225544","total_m3":123.529,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
 |WaterWater;33225544;123.529;0;1111-11-11 11:11.11
 
 telegram=|31446850226677116980A0119F27020480048300C408F709143C003D341A2B0B2A0707000000000000062D114457563D71A1850000|
-{"media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11776622","current_hca":131,"current_date":"2020-02-08T02:00:00Z","previous_hca":1026,"previous_date":"2019-12-31T02:00:00Z","temp_room_c":22.44,"temp_radiator_c":25.51,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11776622","current_hca":131,"current_date":"2020-02-08T02:00:00Z","previous_hca":1026,"previous_date":"2019-12-31T02:00:00Z","temp_room_c":22.44,"temp_radiator_c":25.51,"timestamp":"1111-11-11T11:11:11Z"}
 |Room;11776622;131;2020-02-08T02:00:00Z;1026;2019-12-31T02:00:00Z;22.44;25.51;1111-11-11 11:11.11

@@ -173,6 +173,7 @@ private:
     bool has_process_content_ = false; // Mark this driver as having mfct specific decoding.
     XMQDoc *dynamic_driver_ {}; // Configuration loaded from driver file.
     string dynamic_file_name_; // Name of actual loaded driver file.
+    string dynamic_source_xmq_ {}; // A copy of the xmq used to create a dynamic driver.
 
 public:
     ~DriverInfo();
@@ -187,8 +188,11 @@ public:
     void addDetection(uint16_t mfct, uchar type, uchar ver) { detect_.push_back({ mfct, type, ver }); }
     void usesProcessContent() { has_process_content_ = true; }
     void setDynamic(const string &file_name, XMQDoc *driver) { dynamic_file_name_ = file_name; dynamic_driver_ = driver; }
+    void setDynamicSource(const string &content) { dynamic_source_xmq_ = content; }
+
     XMQDoc *getDynamicDriver() { return dynamic_driver_; }
     const string &getDynamicFileName() { return dynamic_file_name_; }
+    const string &getDynamicSource() { return dynamic_source_xmq_; }
 
     vector<DriverDetect> &detect() { return detect_; }
 
@@ -395,6 +399,7 @@ struct Meter
     virtual void setSelectedFields(vector<string> &f) = 0;
     virtual string name() = 0;
     virtual DriverName driverName() = 0;
+    virtual DriverInfo *driverInfo() = 0;
 
     virtual string datetimeOfUpdateHumanReadable() = 0;
     virtual string datetimeOfUpdateRobot() = 0;

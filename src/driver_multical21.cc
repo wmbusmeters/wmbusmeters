@@ -263,18 +263,18 @@ namespace
 // Test: MyTapWater multical21 76348799 NOKEY
 // Comment:
 // telegram=|2A442D2C998734761B168D2091D37CAC21576C78_02FF207100041308190000441308190000615B7F616713|
-// {"media":"cold water","meter":"multical21","name":"MyTapWater","id":"76348799","status":"DRY","total_m3":6.408,"target_m3":6.408,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"cold water","meter":"multical21","name":"MyTapWater","id":"76348799","status":"DRY","total_m3":6.408,"target_m3":6.408,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 // |MyTapWater;76348799;6.408;6.408;null;127;19;DRY;1111-11-11 11:11.11
 
 // telegram=|23442D2C998734761B168D2087D19EAD217F1779EDA86AB6_710008190000081900007F13|
-// {"media":"cold water","meter":"multical21","name":"MyTapWater","id":"76348799","status":"DRY","total_m3":6.408,"target_m3":6.408,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"cold water","meter":"multical21","name":"MyTapWater","id":"76348799","status":"DRY","total_m3":6.408,"target_m3":6.408,"flow_temperature_c":127,"external_temperature_c":19,"current_status":"DRY","time_dry":"22-31 days","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 // |MyTapWater;76348799;6.408;6.408;null;127;19;DRY;1111-11-11 11:11.11
 
 // Test: Vadden multical21 44556677 NOKEY
 // telegram=|2D442D2C776655441B168D2083B48D3A20_46887802FF20000004132F4E000092013B3D01A1015B028101E7FF0F03|
-// {"media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","status":"OK","total_m3":20.015,"flow_temperature_c":2,"external_temperature_c":3,"max_flow_m3h":0.317,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","status":"OK","total_m3":20.015,"flow_temperature_c":2,"external_temperature_c":3,"max_flow_m3h":0.317,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 // |Vadden;44556677;20.015;null;0.317;2;3;OK;1111-11-11 11:11.11
 
 // telegram=|21442D2C776655441B168D2079CC8C3A20_F4307912C40DFF00002F4E00003D010203|
-// {"media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","status":"OK","total_m3":20.015,"flow_temperature_c":2,"external_temperature_c":3,"max_flow_m3h":0.317,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"cold water","meter":"multical21","name":"Vadden","id":"44556677","status":"OK","total_m3":20.015,"flow_temperature_c":2,"external_temperature_c":3,"max_flow_m3h":0.317,"current_status":"","time_dry":"","time_reversed":"","time_leaking":"","time_bursting":"","timestamp":"1111-11-11T11:11:11Z"}
 // |Vadden;44556677;20.015;null;0.317;2;3;OK;1111-11-11 11:11.11

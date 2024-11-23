@@ -91,9 +91,9 @@ namespace
 
 // Test: Dooro lansendw 00010205 NOKEY
 // telegram=|2e44333005020100071d7ab54800002f2f02fd1b110002fd971d01000efd3a2200000000008e40fd3a000000000000|
-// {"media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"CLOSED","a_counter":22,"b_counter":0,"error_flags":"ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_40","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"CLOSED","a_counter":22,"b_counter":0,"error_flags":"ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_40","timestamp":"1111-11-11T11:11:11Z"}
 // |Dooro;00010205;CLOSED;1111-11-11 11:11.11
 
 // telegram=|2e44333005020100071d7ab66800002f2f02fd1b550002fd971d01000efd3a2300000000008e40fd3a000000000000|
-// {"media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"OPEN","a_counter":23,"b_counter":0,"error_flags":"ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_60","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"OPEN","a_counter":23,"b_counter":0,"error_flags":"ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_60","timestamp":"1111-11-11T11:11:11Z"}
 // |Dooro;00010205;OPEN;1111-11-11 11:11.11

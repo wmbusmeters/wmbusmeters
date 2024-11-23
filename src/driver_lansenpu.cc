@@ -79,15 +79,15 @@ namespace
 
 // Test: COUNTA lansenpu 00010206 NOKEY
 // telegram=|234433300602010014007a8e0400002f2f0efd3a1147000000008e40fd3a341200000000|
-// {"media":"other","meter":"lansenpu","name":"COUNTA","id":"00010206","status":"POWER_LOW","a_counter":4711,"b_counter":1234,"timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"other","meter":"lansenpu","name":"COUNTA","id":"00010206","status":"POWER_LOW","a_counter":4711,"b_counter":1234,"timestamp":"1111-11-11T11:11:11Z"}
 // |COUNTA;00010206;POWER_LOW;4711;1234;1111-11-11 11:11.11
 
 
 // Test: COUNTB lansenpu 00023750 NOKEY
 // telegram=|1A443330503702000B027AD7000020|2F2F8E40FD3A700800000000|
-// {"media":"electricity","meter":"lansenpu","name":"COUNTB","id":"00023750","status":"OK","b_counter":870,"timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"electricity","meter":"lansenpu","name":"COUNTB","id":"00023750","status":"OK","b_counter":870,"timestamp":"1111-11-11T11:11:11Z"}
 // |COUNTB;00023750;OK;null;870;1111-11-11 11:11.11
 
 // telegram=|1A443330503702000B027AD74c0020|2F2F8E40FD3A700800000000|
-// {"media":"electricity","meter":"lansenpu","name":"COUNTB","id":"00023750","status":"PERMANENT_ERROR POWER_LOW SABOTAGE_ENCLOSURE","b_counter":870,"timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"electricity","meter":"lansenpu","name":"COUNTB","id":"00023750","status":"PERMANENT_ERROR POWER_LOW SABOTAGE_ENCLOSURE","b_counter":870,"timestamp":"1111-11-11T11:11:11Z"}
 // |COUNTB;00023750;PERMANENT_ERROR POWER_LOW SABOTAGE_ENCLOSURE;null;870;1111-11-11 11:11.11

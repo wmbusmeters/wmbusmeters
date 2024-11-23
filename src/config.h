@@ -110,7 +110,8 @@ struct Configuration
     bool exit_instead_of_alarm_ {};
     bool list_shell_envs {};
     bool list_fields {};
-    bool list_meters {};
+    bool list_meters {}; // Should be renamed to drivers.
+    bool print_driver {};
     bool list_units {};
     std::string list_meters_search;
     // When asking for envs or fields, this is the meter type to list for.

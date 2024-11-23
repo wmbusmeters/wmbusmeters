@@ -11,7 +11,7 @@ TESTNAME="Test duplicates are ignored"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected_unsorted.txt <<EOF
-{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
 jq --sort-keys . $TEST/test_expected_unsorted.txt > $TEST/test_expected.txt
@@ -43,11 +43,11 @@ TESTNAME="Test duplicates are left alone"
 TESTRESULT="ERROR"
 
 cat > $TEST/test_expected_unsorted.txt <<EOF
-{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
-{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
-{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
-{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
-{"media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"smoke detector","meter":"lansensm","name":"Rummet","id":"01000273","status":"OK","async_msg_id_counter":588,"minutes_since_last_manual_test_counter":30022,"timestamp":"1111-11-11T11:11:11Z"}
 EOF
 
 jq --sort-keys .  $TEST/test_expected_unsorted.txt > $TEST/test_expected.txt

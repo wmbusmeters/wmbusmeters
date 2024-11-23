@@ -51,6 +51,7 @@ Using driver   : multical21 00/00
 019 CE: 8CDAFFCD3DC452BD802913FF7B1706CA9E355D6C2701CC24 failed decryption. Wrong key?
 
 {
+    "_":"telegram",
     "media":"cold water",
     "meter":"multical21",
     "name":"",
@@ -88,6 +89,7 @@ Using driver   : multical21 00/00
 019 CE: A1F10E1B79B5EB4B17E81F930E937EE06C failed decryption. Wrong key?
 
 {
+    "_":"telegram",
     "media":"cold water",
     "meter":"multical21",
     "name":"",
@@ -141,6 +143,7 @@ Using driver   : multical21 00/00
 042 C!: 13 ("external_temperature_c":19)
 
 {
+    "_":"telegram",
     "media":"cold water",
     "meter":"multical21",
     "name":"",
@@ -195,6 +198,7 @@ Using driver   : multical21 00/00
 035 C!: 16 ("external_temperature_c":22)
 
 {
+    "_":"telegram",
     "media":"cold water",
     "meter":"multical21",
     "name":"",

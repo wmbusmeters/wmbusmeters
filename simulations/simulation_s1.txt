@@ -2,29 +2,29 @@
 # Test a HCA WHE465 Qundis
 
 telegram=|244465323251839134087a4f0000000b6e0403004b6e660300426c9e29326cffff046d1416b921dd2f|
-{"media":"heat cost allocation","meter":"qcaloric","name":"HCA","id":"91835132","status":"OK","current_consumption_hca":304,"set_date":"2020-09-30","consumption_at_set_date_hca":366,"set_date_1":"2020-09-30","consumption_at_set_date_1_hca":366,"error_date":"2127-15-31","device_date_time":"2021-01-25 22:20","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat cost allocation","meter":"qcaloric","name":"HCA","id":"91835132","status":"OK","current_consumption_hca":304,"set_date":"2020-09-30","consumption_at_set_date_hca":366,"set_date_1":"2020-09-30","consumption_at_set_date_1_hca":366,"error_date":"2127-15-31","device_date_time":"2021-01-25 22:20","timestamp":"1111-11-11T11:11:11Z"}
 |HCA;91835132;304;2020-09-30;366;1111-11-11 11:11.11
 
 # Test another HCA from Qundis
 
 telegram=|294465324185990401087a0080000082046c7f018b046e210300046d1a0e6f0202fdac7e012301fd0c01|
-{"media":"heat cost allocation","meter":"lse_08","name":"HCA2","id":"04998541","status":"UNKNOWN_80","set_date":"2003-01-31","consumption_at_set_date_hca":321,"device_date_time":"2003-02-15 14:26","duration_since_readout_h":2.489167,"model_version":"01","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat cost allocation","meter":"lse_08","name":"HCA2","id":"04998541","status":"UNKNOWN_80","set_date":"2003-01-31","consumption_at_set_date_hca":321,"device_date_time":"2003-02-15 14:26","duration_since_readout_h":2.489167,"model_version":"01","timestamp":"1111-11-11T11:11:11Z"}
 |HCA2;04998541;2003-01-31;321;1111-11-11 11:11.11
 
 # Test Qundis QWater5.5 S1 meter.
 
 telegram=|2D4465327663341317077AAA0000000C13044001004C1340620000426C9F2C02BB560000326CFFFF046D180DA924|
-{"media":"water","meter":"lse_07_17","name":"QW","id":"13346376","total_m3":14.004,"due_date_m3":6.24,"due_date":"2020-12-31","error_code":"OK","error_date":"2127-15-31","device_date_time":"2021-04-09 13:24","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"lse_07_17","name":"QW","id":"13346376","total_m3":14.004,"due_date_m3":6.24,"due_date":"2020-12-31","error_code":"OK","error_date":"2127-15-31","device_date_time":"2021-04-09 13:24","timestamp":"1111-11-11T11:11:11Z"}
 |QW;13346376;14.004;6.24;2020-12-31;OK;2127-15-31;2021-04-09 13:24;1111-11-11 11:11.11
 
 # Test another Qundis QWater5.5 meter.
 
 telegram=|2D4465321413121116077A900000000C13565906004C1336400600426C9F2C02BB560000326CFFFF046D3405BA25|
-{"media":"water","meter":"lse_07_17","name":"QWW","id":"11121314","total_m3":65.956,"due_date_m3":64.036,"due_date":"2020-12-31","error_code":"OK","error_date":"2127-15-31","device_date_time":"2021-05-26 05:52","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"lse_07_17","name":"QWW","id":"11121314","total_m3":65.956,"due_date_m3":64.036,"due_date":"2020-12-31","error_code":"OK","error_date":"2127-15-31","device_date_time":"2021-05-26 05:52","timestamp":"1111-11-11T11:11:11Z"}
 |QWW;11121314;65.956;64.036;2020-12-31;OK;2127-15-31;2021-05-26 05:52;1111-11-11 11:11.11
 
 # Test yet another Qundis QWater5.5 meter.
 
 telegram=|2D4465320877411218067A8C0000000C13122100004C1300000000426CFFFF02BB560000326CFFFF046D2104BC2B|
-{"media":"warm water","meter":"lse_07_17","name":"QWWW","id":"12417708","total_m3":2.112,"due_date_m3":0,"due_date":"2127-15-31","error_code":"OK","error_date":"2127-15-31","device_date_time":"2021-11-28 04:33","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"warm water","meter":"lse_07_17","name":"QWWW","id":"12417708","total_m3":2.112,"due_date_m3":0,"due_date":"2127-15-31","error_code":"OK","error_date":"2127-15-31","device_date_time":"2021-11-28 04:33","timestamp":"1111-11-11T11:11:11Z"}
 |QWWW;12417708;2.112;0;2127-15-31;OK;2127-15-31;2021-11-28 04:33;1111-11-11 11:11.11

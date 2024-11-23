@@ -75,7 +75,7 @@ driver {
         test {
             args     = 'AqWater aquastream 05933237 NOKEY'
             telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
-            json     = '{"id": "05933237","media": "water","meter": "aquastream","meter_datetime": "2023-11-22 16:13","name": "AqWater","status": "OK","target_date": "2023-10-31","target_m3": 6.217,"timestamp": "1111-11-11T11:11:11Z","total_m3": 16.899,"total_tariff1_m3": 0,"battery_y": 15.328767}'
+            json     = '{"_":"telegram","id": "05933237","media": "water","meter": "aquastream","meter_datetime": "2023-11-22 16:13","name": "AqWater","status": "OK","target_date": "2023-10-31","target_m3": 6.217,"timestamp": "1111-11-11T11:11:11Z","total_m3": 16.899,"total_tariff1_m3": 0,"battery_y": 15.328767}'
             fields   = 'AqWater;05933237;16.899;1111-11-11 11:11.11'
         }
     }

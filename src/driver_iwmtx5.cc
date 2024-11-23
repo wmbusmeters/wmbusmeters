@@ -50,10 +50,10 @@ namespace
 
 // Test: WaterWater iwmtx5 22917370 00000000000000000000000000000000
 // telegram=|5144b4097073912218078c00247a0308400571e9615249ede52eaae09f61908f027c3877f3330ae9079528b23173ce124bcc255393e60b173c0a9f274c42dd92e4b23c14e8a41f042903358df01dd9268ad4|
-// {"id": "22917370","media": "water","meter": "iwmtx5","meter_datetime": "2023-05-11 10:38:24","name": "WaterWater","status": "PERMANENT_ERROR","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.025}
+// {"_":"telegram","id": "22917370","media": "water","meter": "iwmtx5","meter_datetime": "2023-05-11 10:38:24","name": "WaterWater","status": "PERMANENT_ERROR","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.025}
 // |WaterWater;22917370;PERMANENT_ERROR;0.025;1111-11-11 11:11.11
 
 // Test: WarmWater2 iwmtx5 23329344 NOKEY
 // telegram=|4244B4094493322318068C005B7A1C0000000C13072000000F05170000000000000000000000000000000000000000009D0000C20000C20000C8000000000000000000|
-// {"id": "23329344","media": "warm water","meter": "iwmtx5","name": "WarmWater2","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 2.007}
+// {"_":"telegram","id": "23329344","media": "warm water","meter": "iwmtx5","name": "WarmWater2","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 2.007}
 // |WarmWater2;23329344;OK;2.007;1111-11-11 11:11.11

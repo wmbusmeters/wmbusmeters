@@ -2,16 +2,16 @@
 # Test sensostar heat meter sent over mbus.
 
 telegram=|6893936808007275404810C514000431270000#04786BF99F00046D040F632B0415E02000004415E0200000840115E02000000406A02100004406A0210000840106A021000084100600000000C410060000000084110600000000426C5F2C026C7F2C043B00000000143B08010000042B00000000142B39240000025B1800025F17000461380000000223810C01FD17000490280B0000005616|
-{"difference_c": 0.56,"target_2_kwh": 8608,"fabrication_no": "009FF96B","flow_water_m3h": 0,"flow_water_max_m3h": 0.264,"forward_c": 24,"id": "10484075","media": "heat","meter": "sensostar","meter_datetime": "2019-11-03 15:04","name": "MySenso","on_time_h": 76824,"power_kw": 0,"power_max_kw": 9.273,"return_c": 23,"status": "ALARM POWER_LOW UNKNOWN_20","target_date": "2018-12-31","target_kwh": 8608,"target_water_m3": 841.6,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 8608,"total_water_m3": 841.6}
+{"_":"telegram","difference_c": 0.56,"target_2_kwh": 8608,"fabrication_no": "009FF96B","flow_water_m3h": 0,"flow_water_max_m3h": 0.264,"forward_c": 24,"id": "10484075","media": "heat","meter": "sensostar","meter_datetime": "2019-11-03 15:04","name": "MySenso","on_time_h": 76824,"power_kw": 0,"power_max_kw": 9.273,"return_c": 23,"status": "ALARM POWER_LOW UNKNOWN_20","target_date": "2018-12-31","target_kwh": 8608,"target_water_m3": 841.6,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 8608,"total_water_m3": 841.6}
 
 
 # Test ultraheat heat meter sent over mbus.
 
 telegram=|68F8F86808007200464470A7320404270000000974040970040C0E082303000C14079519000B2D0500000B3B0808000A5B52000A5F51000A6206004C14061818004C0E490603000C7800464470891071609B102D020100DB102D0201009B103B6009009A105B78009A105F74000C22726701003C22000000007C2200000000426C01018C2006000000008C3006000000008C80100600000000CC200600000000CC300600000000CC801006000000009A115B64009A115F63009B113B5208009B112D020100BC0122000000008C010E490603008C2106000000008C3106000000008C811006000000008C011406181800046D310ACA210F21040010A0C116|
-{"media":"heat","meter":"ultraheat","name":"MyUltra","id":"70444600","heat_kwh":8974.444444,"volume_m3":1995.07,"power_kw":0.5,"flow_m3h":0.808,"flow_c":52,"return_c":51,"fabrication_no":"70444600","meter_datetime":"2022-01-10 10:49","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat","meter":"ultraheat","name":"MyUltra","id":"70444600","heat_kwh":8974.444444,"volume_m3":1995.07,"power_kw":0.5,"flow_m3h":0.808,"flow_c":52,"return_c":51,"fabrication_no":"70444600","meter_datetime":"2022-01-10 10:49","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 
 
 # Test multical 403 heat meter sent over mbus.
 
 telegram=|68464668084a72447744772d2c3404060000000406ce86000004ff073444020004ff08f8ce0100041411680300043B0f02000002593c19025da41104ff220000000004a5ff21c7d02700d916|
-{"forward_energy_m3c": 148532,"id": "77447744","media": "heat","meter": "kamheat","name": "MyKamHeat","return_energy_m3c": 118520,"status": "OK","t1_temperature_c": 64.6,"t2_temperature_c": 45.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 34510,"total_volume_m3": 2232.49,"volume_flow_m3h": 0.527,"operating_time_h": 43489.183333}
+{"_":"telegram","forward_energy_m3c": 148532,"id": "77447744","media": "heat","meter": "kamheat","name": "MyKamHeat","return_energy_m3c": 118520,"status": "OK","t1_temperature_c": 64.6,"t2_temperature_c": 45.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 34510,"total_volume_m3": 2232.49,"volume_flow_m3h": 0.527,"operating_time_h": 43489.183333}

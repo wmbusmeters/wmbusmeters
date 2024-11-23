@@ -65,6 +65,7 @@ struct MeterCommonImplementation : public virtual Meter
     vector<string> &extraConstantFields();
     string name();
     DriverName driverName();
+    DriverInfo *driverInfo();
     bool hasProcessContent();
 
     ELLSecurityMode expectedELLSecurityMode();
@@ -217,6 +218,7 @@ private:
     int index_ {};
     MeterType type_ {};
     DriverName driver_name_;
+    DriverInfo *driver_info_ {};
     string bus_ {};
     MeterKeys meter_keys_ {};
     ELLSecurityMode expected_ell_sec_mode_ {};

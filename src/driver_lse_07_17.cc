@@ -198,18 +198,18 @@ namespace
 // Test: Water lse_07_17 13963399 NOKEY
 
 // telegram=|244465329933961318067AE1000000_8C04130070000082046CBE2B01FD0C11046D010CA22C|
-// {"media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","what_date_m3":7,"what_date":"2021-11-30","device_date_time":"2021-12-02 12:01","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","what_date_m3":7,"what_date":"2021-11-30","device_date_time":"2021-12-02 12:01","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
 // |Water;13963399;null;null;null;null;null;2021-12-02 12:01;1111-11-11 11:11.11
 
 // telegram=|2A4465329933961318067AD8800000_8C04130070000082046CBE2B01FD0C11046D1800A12C02FDAC7E9B2E|
-// {"media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","what_date_m3":7,"what_date":"2021-11-30","device_date_time":"2021-12-01 00:24","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","what_date_m3":7,"what_date":"2021-11-30","device_date_time":"2021-12-01 00:24","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
 // |Water;13963399;null;null;null;null;null;2021-12-01 00:24;1111-11-11 11:11.11
 
 // telegram=|2D4465329933961318067ADA000000_0C13567100004C1300000000426CFFFF02BB560000326CFFFF046D2307A12C|
-// {"media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","total_m3":7.156,"due_date_m3":0,"due_date":"2127-15-31","what_date_m3":7,"what_date":"2021-11-30","error_code":"OK","error_date":"2127-15-31","device_date_time":"2021-12-01 07:35","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"warm water","meter":"lse_07_17","name":"Water","id":"13963399","total_m3":7.156,"due_date_m3":0,"due_date":"2127-15-31","what_date_m3":7,"what_date":"2021-11-30","error_code":"OK","error_date":"2127-15-31","device_date_time":"2021-12-01 07:35","meter_version":"11","timestamp":"1111-11-11T11:11:11Z"}
 // |Water;13963399;7.156;0;2127-15-31;OK;2127-15-31;2021-12-01 07:35;1111-11-11 11:11.11
 
 // Test: Water2 lse_07_17 09993623 NOKEY
 // telegram=|2d44653223369909d8077a80000000046d130aed2B0c13233332004c1351762700426cdf2c326cffff02BB560000|
-// {"device_date_time": "2023-11-13 10:19","due_date": "2022-12-31","due_date_m3": 277.651,"error_code": "OK","error_date": "2127-15-31","id": "09993623","media": "water","meter": "lse_07_17","name": "Water2","timestamp": "1111-11-11T11:11:11Z","total_m3": 323.323}
+// {"_":"telegram","device_date_time": "2023-11-13 10:19","due_date": "2022-12-31","due_date_m3": 277.651,"error_code": "OK","error_date": "2127-15-31","id": "09993623","media": "water","meter": "lse_07_17","name": "Water2","timestamp": "1111-11-11T11:11:11Z","total_m3": 323.323}
 // |Water2;09993623;323.323;277.651;2022-12-31;OK;2127-15-31;2023-11-13 10:19;1111-11-11 11:11.11

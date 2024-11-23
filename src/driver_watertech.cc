@@ -72,5 +72,5 @@ namespace
 
 // Test: wtt watertech 38383838 NOKEY
 // telegram=|3144945E3838383859078C20007A010020252F2F_066D1C1F0EF021000413B91E000002FD17000002FD0F4C2B2F2F2F2F2F2F|
-// {"media": "water","meter": "watertech","name": "wtt","id": "38383838","software_version" :"+L","meter_datetime": "2023-01-16 14:31:28","status": "OK","total_m3": 7.865, "timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media": "water","meter": "watertech","name": "wtt","id": "38383838","software_version" :"+L","meter_datetime": "2023-01-16 14:31:28","status": "OK","total_m3": 7.865, "timestamp":"1111-11-11T11:11:11Z"}
 // |wtt;38383838;OK;7.865;1111-11-11 11:11.11

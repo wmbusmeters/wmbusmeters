@@ -142,10 +142,10 @@ namespace
 
 // Test: QSmokeo qsmoke 45797086 NOKEY
 // telegram=|3E44934486707945211A7801FD08F081027C034955230082026CFFFF81037C034C41230082036CFFFF03FD17000000326CFFFF046D0F0ABC2B02FDAC7E1100|
-// {"media":"smoke detector","meter":"qsmoke","name":"QSmokeo","id":"45797086","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 10:15","test_button_last_date":"2127-15-31","test_button_counter":0,"transmission_counter":240,"at_error_date":"2127-15-31","some_sort_of_duration_h":0.004722,"timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"smoke detector","meter":"qsmoke","name":"QSmokeo","id":"45797086","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 10:15","test_button_last_date":"2127-15-31","test_button_counter":0,"transmission_counter":240,"at_error_date":"2127-15-31","some_sort_of_duration_h":0.004722,"timestamp":"1111-11-11T11:11:11Z"}
 // |QSmokeo;45797086;OK;2127-15-31;0;1111-11-11 11:11.11
 
 // Test: QSmokep qsmoke 48128850 NOKEY
 // telegram=|3744934450881248231A7A5C00002081027C034955230082026CFFFF81037C034C41230082036CFFFF02FD170000326CFFFF046D2514BC2B|
-// {"media":"smoke detector","meter":"qsmoke","name":"QSmokep","id":"48128850","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 20:37","test_button_last_date":"2127-15-31","test_button_counter":0,"at_error_date":"2127-15-31","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"smoke detector","meter":"qsmoke","name":"QSmokep","id":"48128850","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 20:37","test_button_last_date":"2127-15-31","test_button_counter":0,"at_error_date":"2127-15-31","timestamp":"1111-11-11T11:11:11Z"}
 // |QSmokep;48128850;OK;2127-15-31;0;1111-11-11 11:11.11

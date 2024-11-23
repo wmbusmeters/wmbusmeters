@@ -207,28 +207,28 @@ namespace
 
 // Test: MyElectricity1 amiplus 10101010 NOKEY
 // telegram=|4E4401061010101002027A00004005_2F2F0E035040691500000B2B300300066D00790C7423400C78371204860BABC8FC100000000E833C8074000000000BAB3C0000000AFDC9FC0136022F2F2F2F2F|
-// {"media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.05,"current_power_consumption_kw":0.33,"total_energy_production_kwh":7.48,"current_power_production_kw":0,"voltage_at_phase_1_v":236,"device_date_time":"2019-03-20 12:57:00","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.05,"current_power_consumption_kw":0.33,"total_energy_production_kwh":7.48,"current_power_production_kw":0,"voltage_at_phase_1_v":236,"device_date_time":"2019-03-20 12:57:00","timestamp":"1111-11-11T11:11:11Z"}
 // |MyElectricity1;10101010;15694.05;0.33;7.48;0;236;null;null;null;null;null;null;null;null;1111-11-11 11:11.11
 
 // Test: MyElectricity2 amiplus 00254358 NOKEY
 // Comment: amiplus/apator electricity meter with three phase voltages
 // telegram=|5E44B6105843250000027A2A005005_2F2F0C7835221400066D404708AC2A400E032022650900000E833C0000000000001B2B9647000B2B5510000BAB3C0000000AFDC9FC0135020AFDC9FC0245020AFDC9FC0339020BABC8FC100000002F2F|
-// {"media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"max_power_consumption_kw":4.796,"device_date_time":"2021-10-12 08:07:00","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"max_power_consumption_kw":4.796,"device_date_time":"2021-10-12 08:07:00","timestamp":"1111-11-11T11:11:11Z"}
 // |MyElectricity2;00254358;9652.22;1.055;0;0;235;245;239;null;null;null;null;null;null;1111-11-11 11:11.11
 
 // Test: MyElectricity3 amiplus 86064864 NOKEY
 // Comment: amiplus/apator electricity meter with three phase voltages and 2 tariffs.
 // telegram=|804401066448068602027A000070052F2F_066D1E5C11DA21400C78644806868E10036110012500008E20038106531800008E10833C9949000000008E20833C8606000000001B2B5228020B2B3217000BAB3C0000000AFDC9FC0131020AFDC9FC0225020AFDC9FC0331020BABC8FC100000002F2F2F2F2F2F2F2F2F2F2F2F2FDE47|
-// {"media":"electricity","meter":"amiplus","name":"MyElectricity3","id":"86064864","current_power_consumption_kw":1.732,"current_power_production_kw":0,"voltage_at_phase_1_v":231,"voltage_at_phase_2_v":225,"voltage_at_phase_3_v":231,"device_date_time":"2022-01-26 17:28:30","total_energy_consumption_tariff_1_kwh":25011.061,"total_energy_consumption_tariff_2_kwh":18530.681,"total_energy_production_tariff_1_kwh":4.999,"total_energy_production_tariff_2_kwh":0.686,"max_power_consumption_kw":22.852,"timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity3","id":"86064864","current_power_consumption_kw":1.732,"current_power_production_kw":0,"voltage_at_phase_1_v":231,"voltage_at_phase_2_v":225,"voltage_at_phase_3_v":231,"device_date_time":"2022-01-26 17:28:30","total_energy_consumption_tariff_1_kwh":25011.061,"total_energy_consumption_tariff_2_kwh":18530.681,"total_energy_production_tariff_1_kwh":4.999,"total_energy_production_tariff_2_kwh":0.686,"max_power_consumption_kw":22.852,"timestamp":"1111-11-11T11:11:11Z"}
 // |MyElectricity3;86064864;null;1.732;null;0;231;225;231;25011.061;18530.681;null;4.999;0.686;null;1111-11-11 11:11.11
 
 // Test: MyElectricity4 amiplus 55090884 NOKEY
 // Comment: amiplus/apator electricity meter with single phase voltage - Otus 1
 // telegram=|7E4401068408095501027A7C1070052F2F_066DDE5E150D39800C78840809550AFDC9FC0139028E30833C0000000000008E20833C0000000000008E10833C4301000000000BABC8FC100000008E10035336420200008E20030000000000008E30030000000000000B2B9502000BAB3C0000002F2F2F2F2F2F2F2F2F2F2F2F2F|
-// {"media":"electricity","meter":"amiplus","name":"MyElectricity4","id":"55090884","current_power_consumption_kw":0.295,"current_power_production_kw":0,"total_energy_consumption_tariff_1_kwh":2423.653,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_tariff_1_kwh":0.143,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"voltage_at_phase_1_v":239,"device_date_time":"2024-09-13 21:30:30","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity4","id":"55090884","current_power_consumption_kw":0.295,"current_power_production_kw":0,"total_energy_consumption_tariff_1_kwh":2423.653,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_tariff_1_kwh":0.143,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"voltage_at_phase_1_v":239,"device_date_time":"2024-09-13 21:30:30","timestamp":"1111-11-11T11:11:11Z"}
 // |MyElectricity4;55090884;null;0.295;null;0;239;null;null;2423.653;0;0;0.143;0;0;1111-11-11 11:11.11
 
 // Test: MyElectricity4 amiplus 00320787 NOKEY
 // telegram=|3e44b6108707320001027a380030052f2f0C7830253390066D6872141239400E031891690000000E833C9265010000000B2B2602000BAB3C0000002F2F2F2F|
-//  {"current_power_consumption_kw": 0.226,"current_power_production_kw": 0,"device_date_time": "2024-09-18 20:50:40","id": "00320787","media": "electricity","meter": "amiplus","name": "MyElectricity4","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 699.118,"total_energy_production_kwh": 16.592}
+// {"_":"telegram","current_power_consumption_kw": 0.226,"current_power_production_kw": 0,"device_date_time": "2024-09-18 20:50:40","id": "00320787","media": "electricity","meter": "amiplus","name": "MyElectricity4","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 699.118,"total_energy_production_kwh": 16.592}
 // |MyElectricity4;00320787;699.118;0.226;16.592;0;null;null;null;null;null;null;null;null;null;1111-11-11 11:11.11

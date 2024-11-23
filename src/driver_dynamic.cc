@@ -67,12 +67,21 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
 
     if (!content)
     {
-        ok = xmqParseFile(doc, file.c_str(), NULL, 0);
+        vector<char> buf;
+        ok = loadFile(file.c_str(), &buf);
+        if (!ok)
+        {
+            warning("(driver) error cannot load wmbusmeters driver file %s\n", file.c_str());
+            return false;
+        }
+        ok = xmqParseBuffer(doc, buf.data(), buf.data()+buf.size(), NULL, 0);
+        di->setDynamicSource(string(buf.begin(), buf.end()));
     }
     else
     {
         file = "builtin";
         ok = xmqParseBuffer(doc, content, content+strlen(content), NULL, 0);
+        di->setDynamicSource(content);
     }
 
     if (!ok) {

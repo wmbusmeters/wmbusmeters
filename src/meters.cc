@@ -332,6 +332,7 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
                                                      DriverInfo &di) :
     type_(di.type()),
     driver_name_(di.name()),
+    driver_info_(&di),
     bus_(mi.bus),
     name_(mi.name),
     mfct_tpl_status_bits_(di.mfctTPLStatusBits()),
@@ -443,6 +444,11 @@ vector<string> &MeterCommonImplementation::meterExtraConstantFields()
 DriverName MeterCommonImplementation::driverName()
 {
     return driver_name_;
+}
+
+DriverInfo *MeterCommonImplementation::driverInfo()
+{
+    return driver_info_;
 }
 
 void MeterCommonImplementation::setMeterType(MeterType mt)
@@ -1096,6 +1102,7 @@ bool MeterCommonImplementation::isTelegramForMeter(Telegram *t, Meter *meter, Me
     }
 
     debug("(meter) %s: yes for me\n", name.c_str());
+    t->meter = meter;
     return true;
 }
 
@@ -1941,6 +1948,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
     string s;
     s += "{"+newline;
+    s += indent+"\"_\":\"telegram\","+newline;
     s += indent+"\"media\":\""+media+"\","+newline;
     s += indent+"\"meter\":\""+driverName().str()+"\","+newline;
     s += indent+"\"name\":\""+name()+"\","+newline;
@@ -2012,6 +2020,7 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     createMeterEnv(id, envs, extra_constant_fields);
 
     envs->push_back(string("METER_JSON=")+*json);
+    envs->push_back(string("METER_DRIVER=")+driver_info_->getDynamicSource());
     envs->push_back(string("METER_MEDIA=")+media);
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
     envs->push_back(string("METER_TIMESTAMP_UTC=")+datetimeOfUpdateRobot());

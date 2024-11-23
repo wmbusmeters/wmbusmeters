@@ -1,41 +1,41 @@
 # Test Supercom587 T1 telegrams
 
 telegram=|A244EE4D785634123C067A8F000000_0C1348550000426CE1F14C130000000082046C21298C0413330000008D04931E3A3CFE3300000033000000330000003300000033000000330000003300000033000000330000003300000033000000330000004300000034180000046D0D0B5C2B03FD6C5E150082206C5C290BFD0F0200018C4079678885238310FD3100000082106C01018110FD610002FD66020002FD170000|
-{"media":"warm water","meter":"supercom587","name":"MyWarmWater","id":"12345678","total_m3":5.548,"software_version":"010002","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"warm water","meter":"supercom587","name":"MyWarmWater","id":"12345678","total_m3":5.548,"software_version":"010002","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |MyWarmWater;12345678;5.548;1111-11-11 11:11.11
 
 telegram=|A244EE4D111111113C077AAC000000_0C1389490000426CE1F14C130000000082046C21298C0413010000008D04931E3A3CFE0100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000001600000031130000046D0A0C5C2B03FD6C60150082206C5C290BFD0F0200018C4079629885238310FD3100000082106C01018110FD610002FD66020002FD170000|
-{"media":"water","meter":"supercom587","name":"MyColdWater","id":"11111111","total_m3":4.989,"software_version":"010002","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"supercom587","name":"MyColdWater","id":"11111111","total_m3":4.989,"software_version":"010002","status":"OK","timestamp":"1111-11-11T11:11:11Z"}
 |MyColdWater;11111111;4.989;1111-11-11 11:11.11
 
 # Test Sontex868 T1 telegram
 
 telegram=|AF46EE4D2827282716087A80000000_046D040A9F2A036E000000426CE1F7436E000000525900008288016C61258388016E0000008D8801EE1E3533FE00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005FF2D0000803F8520FF2D0000803F0259AD0A0265D8041259AD0A8310FD3100000082106C01018110FD610082206C9F2A0BFD0F01030102FF2C000002FD66AC08|
-{"media":"heat cost allocation","meter":"sontex868","name":"MyHeatCoster","id":"27282728","current_consumption_hca":0,"set_date":"2127-07-01","consumption_at_set_date_hca":0,"current_temp_c":27.33,"current_room_temp_c":12.4,"max_temp_c":27.33,"max_temp_previous_period_c":0,"device_date_time":"2020-10-31 10:04","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat cost allocation","meter":"sontex868","name":"MyHeatCoster","id":"27282728","current_consumption_hca":0,"set_date":"2127-07-01","consumption_at_set_date_hca":0,"current_temp_c":27.33,"current_room_temp_c":12.4,"max_temp_c":27.33,"max_temp_previous_period_c":0,"device_date_time":"2020-10-31 10:04","timestamp":"1111-11-11T11:11:11Z"}
 |MyHeatCoster;27282728;0;2127-07-01;0;1111-11-11 11:11.11
 
 # Test iPerl T1 telegram, after decryption, its got 2f2f markers.
 
 telegram=|1E44AE4C9956341268077A36001000_2F2F0413181E0000023B00002F2F2F2F|
-{"media":"water","meter":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"iperl","name":"MoreWater","id":"12345699","total_m3":7.704,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
 |MoreWater;12345699;7.704;0;1111-11-11 11:11.11
 
 # Test iPerl T1 telegram not encrypted, no 2f2f markers.
 
 telegram=|1844AE4C4455223368077A55000000_041389E20100023B0000|
-{"media":"water","meter":"iperl","name":"WaterWater","id":"33225544","total_m3":123.529,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"iperl","name":"WaterWater","id":"33225544","total_m3":123.529,"max_flow_m3h":0,"timestamp":"1111-11-11T11:11:11Z"}
 |WaterWater;33225544;123.529;0;1111-11-11 11:11.11
 
 # Test amiplus/apator electricity meter
 
 telegram=|4E4401061010101002027A00004005_2F2F0E035040691500000B2B300300066D00790C7423400C78371204860BABC8FC100000000E833C8074000000000BAB3C0000000AFDC9FC0136022F2F2F2F2F|
-{"media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.05,"current_power_consumption_kw":0.33,"total_energy_production_kwh":7.48,"current_power_production_kw":0,"voltage_at_phase_1_v":236,"device_date_time":"2019-03-20 12:57:00","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity1","id":"10101010","total_energy_consumption_kwh":15694.05,"current_power_consumption_kw":0.33,"total_energy_production_kwh":7.48,"current_power_production_kw":0,"voltage_at_phase_1_v":236,"device_date_time":"2019-03-20 12:57:00","timestamp":"1111-11-11T11:11:11Z"}
 |MyElectricity1;10101010;15694.05;0.33;7.48;0;236;null;null;null;null;null;null;null;null;1111-11-11 11:11.11
 
 # Test amiplus/apator electricity meter with three phase voltages
 
 telegram=|5E44B6105843250000027A2A005005_2F2F0C7835221400066D404708AC2A400E032022650900000E833C0000000000001B2B9647000B2B5510000BAB3C0000000AFDC9FC0135020AFDC9FC0245020AFDC9FC0339020BABC8FC100000002F2F|
-{"media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"max_power_consumption_kw":4.796,"device_date_time":"2021-10-12 08:07:00","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity2","id":"00254358","total_energy_consumption_kwh":9652.22,"current_power_consumption_kw":1.055,"total_energy_production_kwh":0,"current_power_production_kw":0,"voltage_at_phase_1_v":235,"voltage_at_phase_2_v":245,"voltage_at_phase_3_v":239,"max_power_consumption_kw":4.796,"device_date_time":"2021-10-12 08:07:00","timestamp":"1111-11-11T11:11:11Z"}
 |MyElectricity2;00254358;9652.22;1.055;0;0;235;245;239;null;null;null;null;null;null;1111-11-11 11:11.11
 
 
@@ -43,277 +43,277 @@ telegram=|5E44B6105843250000027A2A005005_2F2F0C7835221400066D404708AC2A400E03202
 # There is a problem in the decoding here, the data stored inside the telegram does not seem to properly encode/decode the year....
 # We should not report a current_date with a full year, if the year is actually not part of the telegram.
 telegram=|2F446850313233347462A2_069F255900B029310000000306060906030609070606050509050505050407040605070500|
-{"media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2024-04-27T02:00:00Z","prev_date":"2018-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"warm water","meter":"mkradio3","name":"Duschen","id":"34333231","total_m3":13.8,"target_m3":8.9,"current_date":"2024-04-27T02:00:00Z","prev_date":"2018-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
 |Duschen;34333231;13.8;8.9;2024-04-27T02:00:00Z;2018-12-31T02:00:00Z;1111-11-11 11:11.11
 
 # Test MKRadio4 T1 telegrams
 
 telegram=|2F446850200141029562A2_06702901006017030004000300000000000000000000000000000000000000000000000000|
-{"media":"warm water","meter":"mkradio4","name":"Duschagain","id":"02410120","total_m3":0.4,"target_m3":0.1,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"warm water","meter":"mkradio4","name":"Duschagain","id":"02410120","total_m3":0.4,"target_m3":0.1,"timestamp":"1111-11-11T11:11:11Z"}
 |Duschagain;02410120;0.4;0.1;1111-11-11 11:11.11
 
 # Test vario451 T1 telegrams
 telegram=|374468506549235827C3A2_129F25383300A8622600008200800A2AF862115175552877A36F26C9AB1CB24400000004000000000004908002|
-{"media":"heat","meter":"vario451","name":"HeatMeter","id":"58234965","total_kwh":6371.666667,"current_kwh":2729.444444,"previous_kwh":3642.222222,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat","meter":"vario451","name":"HeatMeter","id":"58234965","total_kwh":6371.666667,"current_kwh":2729.444444,"previous_kwh":3642.222222,"timestamp":"1111-11-11T11:11:11Z"}
 |HeatMeter;58234965;6371.666667;2729.444444;3642.222222;1111-11-11 11:11.11
 
 # Test FHKV data II/III
 # There is a problem in the decoding here, the data stored inside the telegram does not seem to properly encode/decode the year....
 # We should not report a current_date with a full year, if the year is actually not part of the telegram.
 telegram=|34446850226677116980A0119F27020480048300C408F709143C003D341A2B0B2A0707000000000000062D114457563D71A1850000|
-{"media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11776622","current_hca":131,"current_date":"2020-02-08T02:00:00Z","previous_hca":1026,"previous_date":"2019-12-31T02:00:00Z","temp_room_c":22.44,"temp_radiator_c":25.51,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11776622","current_hca":131,"current_date":"2020-02-08T02:00:00Z","previous_hca":1026,"previous_date":"2019-12-31T02:00:00Z","temp_room_c":22.44,"temp_radiator_c":25.51,"timestamp":"1111-11-11T11:11:11Z"}
 |Room;11776622;131;2020-02-08T02:00:00Z;1026;2019-12-31T02:00:00Z;22.44;25.51;1111-11-11 11:11.11
 
 # FHKV radio 4 / EHKV vario 4
 # There is a problem in the decoding here, the data stored inside the telegram does not seem to properly encode/decode the year....
 # We should not report a current_date with a full year, if the year is actually not part of the telegram.
 telegram=|33446850341211119480A2_0F9F292D005024040011BD08380904000000070000000000000000000000000001000000000003140E|
-{"media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11111234","current_hca":4,"current_date":"2021-02-05T02:00:00Z","previous_hca":45,"previous_date":"2020-12-31T02:00:00Z","temp_room_c":22.37,"temp_radiator_c":23.6,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat cost allocator","meter":"fhkvdataiii","name":"Room","id":"11111234","current_hca":4,"current_date":"2021-02-05T02:00:00Z","previous_hca":45,"previous_date":"2020-12-31T02:00:00Z","temp_room_c":22.37,"temp_radiator_c":23.6,"timestamp":"1111-11-11T11:11:11Z"}
 |Room;11111234;4;2021-02-05T02:00:00Z;45;2020-12-31T02:00:00Z;22.37;23.6;1111-11-11 11:11.11
 
 # Test FHKV data IV
 telegram=|4E4468507620541494087AAD004005089D86B62A329B3439873999738F82461ABDE3C7AC78692B363F3B41EB68607F9C9160F550769B065B6EA00A2E44346E29FF5DC5CB86283C69324AD33D137F6F|
-{"media":"heat cost allocation","meter":"fhkvdataiv","name":"Rooom","id":"14542076","status":"OK","current_consumption_hca":2,"set_date":"2020-12-31","consumption_at_set_date_hca":25,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":25,"set_date_8":"2019-10-31","consumption_at_set_date_8_hca":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat cost allocation","meter":"fhkvdataiv","name":"Rooom","id":"14542076","status":"OK","current_consumption_hca":2,"set_date":"2020-12-31","consumption_at_set_date_hca":25,"set_date_1":"2020-12-31","consumption_at_set_date_1_hca":25,"set_date_8":"2019-10-31","consumption_at_set_date_8_hca":0,"timestamp":"1111-11-11T11:11:11Z"}
 |Rooom;14542076;2;2020-12-31;25;1111-11-11 11:11.11
 
 # Test EurisII T1 telegrams
 
 telegram=|7644C52501880188550872_01880188C5255508010000002F2F0B6E332211426E110182016E1102C2016E110382026E1104C2026E110582036E1106C2036E110782046E1108C2046E110982056E1110C2056E111182066E1112C2066E111382076E1114C2076E111582086E1116C2086E111702FD172100|
-{"media":"heat cost allocation","meter":"eurisii","name":"HeatMeter","id":"88018801","status":"MEASUREMENT RESET","current_consumption_hca":112233,"consumption_at_set_date_hca":273,"consumption_at_set_date_1_hca":273,"consumption_at_set_date_2_hca":529,"consumption_at_set_date_3_hca":785,"consumption_at_set_date_4_hca":1041,"consumption_at_set_date_5_hca":1297,"consumption_at_set_date_6_hca":1553,"consumption_at_set_date_7_hca":1809,"consumption_at_set_date_8_hca":2065,"consumption_at_set_date_9_hca":2321,"consumption_at_set_date_10_hca":4113,"consumption_at_set_date_11_hca":4369,"consumption_at_set_date_12_hca":4625,"consumption_at_set_date_13_hca":4881,"consumption_at_set_date_14_hca":5137,"consumption_at_set_date_15_hca":5393,"consumption_at_set_date_16_hca":5649,"consumption_at_set_date_17_hca":5905,"error_flags":"MEASUREMENT RESET","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat cost allocation","meter":"eurisii","name":"HeatMeter","id":"88018801","status":"MEASUREMENT RESET","current_consumption_hca":112233,"consumption_at_set_date_hca":273,"consumption_at_set_date_1_hca":273,"consumption_at_set_date_2_hca":529,"consumption_at_set_date_3_hca":785,"consumption_at_set_date_4_hca":1041,"consumption_at_set_date_5_hca":1297,"consumption_at_set_date_6_hca":1553,"consumption_at_set_date_7_hca":1809,"consumption_at_set_date_8_hca":2065,"consumption_at_set_date_9_hca":2321,"consumption_at_set_date_10_hca":4113,"consumption_at_set_date_11_hca":4369,"consumption_at_set_date_12_hca":4625,"consumption_at_set_date_13_hca":4881,"consumption_at_set_date_14_hca":5137,"consumption_at_set_date_15_hca":5393,"consumption_at_set_date_16_hca":5649,"consumption_at_set_date_17_hca":5905,"error_flags":"MEASUREMENT RESET","timestamp":"1111-11-11T11:11:11Z"}
 |HeatMeter;88018801;112233;MEASUREMENT RESET;1111-11-11 11:11.11
 
 # Test Lansen smoke detector telegram
 
 telegram=|2E44333004020100031A7AC40020052F2F_02FD971D000004FD084C02000004FD3A467500002F2F2F2F2F2F2F2F2F2F|
-{"async_msg_id_counter": 588,"id": "00010204","media": "smoke detector","meter": "lansensm","minutes_since_last_manual_test_counter": 30022,"name": "Smokeo","status": "OK","timestamp": "1111-11-11T11:11:11Z"}
+{"_":"telegram","async_msg_id_counter": 588,"id": "00010204","media": "smoke detector","meter": "lansensm","minutes_since_last_manual_test_counter": 30022,"name": "Smokeo","status": "OK","timestamp": "1111-11-11T11:11:11Z"}
 |Smokeo;00010204;OK;30022;1111-11-11 11:11.11
 
 telegram=|2E44333004020100031A7ADE0020052F2F_02FD971D040004FD086502000004FD3A010000002F2F2F2F2F2F2F2F2F2F|
-{"async_msg_id_counter": 613,"id": "00010204","media": "smoke detector","meter": "lansensm","minutes_since_last_manual_test_counter": 1,"name": "Smokeo","status": "SMOKE","timestamp": "1111-11-11T11:11:11Z"}
+{"_":"telegram","async_msg_id_counter": 613,"id": "00010204","media": "smoke detector","meter": "lansensm","minutes_since_last_manual_test_counter": 1,"name": "Smokeo","status": "SMOKE","timestamp": "1111-11-11T11:11:11Z"}
 |Smokeo;00010204;SMOKE;1;1111-11-11 11:11.11
 
 # Test Lansen Temperature Hygrometer telegram
 
 telegram=|2e44333003020100071b7a634820252f2f0265840842658308820165950802fb1aae0142fb1aae018201fb1aa9012f|
-{"media":"room sensor","meter":"lansenth","name":"Tempoo","id":"00010203","status":"PERMANENT_ERROR SABOTAGE_ENCLOSURE","current_temperature_c":21.8,"current_relative_humidity_rh":43,"average_temperature_1h_c":21.79,"average_relative_humidity_1h_rh":43,"average_temperature_24h_c":21.97,"average_relative_humidity_24h_rh":42.5,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"room sensor","meter":"lansenth","name":"Tempoo","id":"00010203","status":"PERMANENT_ERROR SABOTAGE_ENCLOSURE","current_temperature_c":21.8,"current_relative_humidity_rh":43,"average_temperature_1h_c":21.79,"average_relative_humidity_1h_rh":43,"average_temperature_24h_c":21.97,"average_relative_humidity_24h_rh":42.5,"timestamp":"1111-11-11T11:11:11Z"}
 |Tempoo;00010203;21.8;43;1111-11-11 11:11.11
 
 # Test Lansen door window telegram
 
 telegram=|2e44333005020100071d7ab54800002f2f02fd1b110002fd971d01000efd3a2200000000008e40fd3a000000000000|
-{"media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"CLOSED","a_counter":22,"b_counter":0,"error_flags": "ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_40","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"CLOSED","a_counter":22,"b_counter":0,"error_flags": "ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_40","timestamp":"1111-11-11T11:11:11Z"}
 |Dooro;00010205;CLOSED;1111-11-11 11:11.11
 
 telegram=|2e44333005020100071d7ab66800002f2f02fd1b550002fd971d01000efd3a2300000000008e40fd3a000000000000|
-{"media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"OPEN","a_counter":23,"b_counter":0,"error_flags": "ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_60","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"reserved","meter":"lansendw","name":"Dooro","id":"00010205","status":"OPEN","a_counter":23,"b_counter":0,"error_flags": "ERROR_FLAGS_1 PERMANENT_ERROR UNKNOWN_60","timestamp":"1111-11-11T11:11:11Z"}
 |Dooro;00010205;OPEN;1111-11-11 11:11.11
 
 # Test Lansen pulse counter
 
 telegram=|234433300602010014007a8e0000002f2f0efd3a1147000000008e40fd3a341200000000|
-{"media":"other","meter":"lansenpu","name":"Countero","id":"00010206","status":"OK","a_counter":4711,"b_counter":1234,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"other","meter":"lansenpu","name":"Countero","id":"00010206","status":"OK","a_counter":4711,"b_counter":1234,"timestamp":"1111-11-11T11:11:11Z"}
 |Countero;00010206;OK;4711;1234;1111-11-11 11:11.11
 
 # Test BMEters RFM-AMB Temperature Hygrometer telegram
 
 telegram=|5744b40988227711101b7ab20800000265a00842658f088201659f08226589081265a0086265510852652b0902fb1aba0142fb1ab0018201fb1abd0122fb1aa90112fb1aba0162fb1aa60152fb1af501066d3b3bb36b2a00|
-{"media":"room sensor","meter":"rfmamb","name":"Rummet","id":"11772288","status":"PERMANENT_ERROR","current_temperature_c":22.08,"average_temperature_1h_c":21.91,"average_temperature_24h_c":22.07,"maximum_temperature_1h_c":22.08,"minimum_temperature_1h_c":21.85,"maximum_temperature_24h_c":23.47,"minimum_temperature_24h_c":21.29,"current_relative_humidity_rh":44.2,"average_relative_humidity_1h_rh":43.2,"average_relative_humidity_24h_rh":44.5,"minimum_relative_humidity_1h_rh":42.5,"maximum_relative_humidity_1h_rh":44.2,"maximum_relative_humidity_24h_rh":50.1,"minimum_relative_humidity_24h_rh":42.2,"device_datetime":"2019-10-11 19:59","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"room sensor","meter":"rfmamb","name":"Rummet","id":"11772288","status":"PERMANENT_ERROR","current_temperature_c":22.08,"average_temperature_1h_c":21.91,"average_temperature_24h_c":22.07,"maximum_temperature_1h_c":22.08,"minimum_temperature_1h_c":21.85,"maximum_temperature_24h_c":23.47,"minimum_temperature_24h_c":21.29,"current_relative_humidity_rh":44.2,"average_relative_humidity_1h_rh":43.2,"average_relative_humidity_24h_rh":44.5,"minimum_relative_humidity_1h_rh":42.5,"maximum_relative_humidity_1h_rh":44.2,"maximum_relative_humidity_24h_rh":50.1,"minimum_relative_humidity_24h_rh":42.2,"device_datetime":"2019-10-11 19:59","timestamp":"1111-11-11T11:11:11Z"}
 |Rummet;11772288;22.08;44.2;1111-11-11 11:11.11
 
 # Test Hydrus water meter telegram
 telegram=|4E44A5116464646470077AED004005_2F2F01FD08300C13741100007C1300000000FC101300000000FC201300000000726C00000B3B00000002FD748713025A6800C4016D3B177F2ACC011300020000|
-{"target_datetime": "2019-10-31 23:59","flow_m3h": 0,"flow_temperature_c": 10.4,"id": "64646464","media": "water","meter": "hydrus","name": "HydrusWater","remaining_battery_life_y": 13.686797,"status": "OK","timestamp": "1111-11-11T11:11:11Z","target_m3": 0.2,"total_m3": 1.174}
+{"_":"telegram","target_datetime": "2019-10-31 23:59","flow_m3h": 0,"flow_temperature_c": 10.4,"id": "64646464","media": "water","meter": "hydrus","name": "HydrusWater","remaining_battery_life_y": 13.686797,"status": "OK","timestamp": "1111-11-11T11:11:11Z","target_m3": 0.2,"total_m3": 1.174}
 |HydrusWater;64646464;1.174;null;OK;1111-11-11 11:11.11
 
 # Test Hydrus new version water meter telegram
 telegram=|3E44A5116565656570067AFB0030052F2F_0C13503400000DFD110A383731303134423032410B3B00000002FD74DC15C4016D3B178D29CC0113313400002F2F|
-{"target_datetime": "2020-09-13 23:59","customer": "A20B410178","flow_m3h": 0,"id": "65656565","media": "warm water","meter": "hydrus","name": "HydrusVater","remaining_battery_life_y": 15.321328,"status": "OK","timestamp": "1111-11-11T11:11:11Z","target_m3": 3.431,"total_m3": 3.45}
+{"_":"telegram","target_datetime": "2020-09-13 23:59","customer": "A20B410178","flow_m3h": 0,"id": "65656565","media": "warm water","meter": "hydrus","name": "HydrusVater","remaining_battery_life_y": 15.321328,"status": "OK","timestamp": "1111-11-11T11:11:11Z","target_m3": 3.431,"total_m3": 3.45}
 |HydrusVater;65656565;3.45;null;OK;1111-11-11 11:11.11
 
 # Test Hydrus with default AES encryption
 telegram=||6644242328001081640E7266567464A51170071F0050052C411A08674048DD6BA82A0DF79FFD401309179A893A1BE3CE8EDC50C2A45CD7AFEC3B4CE765820BE8056C124A17416C3722985FFFF7FCEB7094901AB3A16294B511B9A740C9F9911352B42A72FB3B0C|
-{"actuality_duration_s": 6673,"at_date": "2020-12-31","external_temperature_c": 23.9,"flow_m3h": 0,"flow_temperature_c": 24.5,"id": "64745666","media": "water","meter": "hydrus","meter_datetime": "2021-01-23 08:27","name": "HydrusAES","operating_time_h": 14678,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 128.638,"total_m3": 137.291,"total_tariff1_at_date_m3": 0,"total_tariff1_m3": 0,"total_tariff2_at_date_m3": 128.638,"total_tariff2_m3": 137.291}
+{"_":"telegram","actuality_duration_s": 6673,"at_date": "2020-12-31","external_temperature_c": 23.9,"flow_m3h": 0,"flow_temperature_c": 24.5,"id": "64745666","media": "water","meter": "hydrus","meter_datetime": "2021-01-23 08:27","name": "HydrusAES","operating_time_h": 14678,"status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 128.638,"total_m3": 137.291,"total_tariff1_at_date_m3": 0,"total_tariff1_m3": 0,"total_tariff2_at_date_m3": 128.638,"total_tariff2_m3": 137.291}
 |HydrusAES;64745666;137.291;128.638;OK;1111-11-11 11:11.11
 
 # Test BMeters HydroDigit water telegram
 telegram=|4E44B4098686868613077AF0004005_2F2F0C1366380000046D27287E2A0F150E00000000C10000D10000E60000FD00000C01002F0100410100540100680100890000A00000B30000002F2F2F2F2F2F|
-{"April_total_m3": 2.53,"August_total_m3": 3.4,"December_total_m3": 1.79,"February_total_m3": 2.09,"January_total_m3": 1.93,"July_total_m3": 3.21,"June_total_m3": 3.03,"March_total_m3": 2.3,"May_total_m3": 2.68,"November_total_m3": 1.6,"October_total_m3": 1.37,"September_total_m3": 3.6,"backflow_m3": 0,"contents": "Backflow, alarms and monthly data","id": "86868686","media": "water","meter": "hydrodigit","meter_datetime": "2019-10-30 08:39","name": "HydrodigitWater","timestamp": "1111-11-11T11:11:11Z","total_m3": 3.866,"voltage_v": 3.7}
+{"_":"telegram","April_total_m3": 2.53,"August_total_m3": 3.4,"December_total_m3": 1.79,"February_total_m3": 2.09,"January_total_m3": 1.93,"July_total_m3": 3.21,"June_total_m3": 3.03,"March_total_m3": 2.3,"May_total_m3": 2.68,"November_total_m3": 1.6,"October_total_m3": 1.37,"September_total_m3": 3.6,"backflow_m3": 0,"contents": "Backflow, alarms and monthly data","id": "86868686","media": "water","meter": "hydrodigit","meter_datetime": "2019-10-30 08:39","name": "HydrodigitWater","timestamp": "1111-11-11T11:11:11Z","total_m3": 3.866,"voltage_v": 3.7}
 |HydrodigitWater;86868686;3.866;2019-10-30 08:39;1111-11-11 11:11.11
 
 # Test another pair of BMeters HydroDigit water telegram
 telegram=|3044B4090123456713067A190020052F2F_0C1315000000046D0136A7270F050B000000002F2F2F2F2F2F2F2F2F2F2F69E5|
-{"contents": "unknown, please open issue with this telegram for driver improvement","id": "67452301","media": "warm water","meter": "hydrodigit","meter_datetime": "2021-07-07 22:01","name": "HydrodigitWater2","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.015}
+{"_":"telegram","contents": "unknown, please open issue with this telegram for driver improvement","id": "67452301","media": "warm water","meter": "hydrodigit","meter_datetime": "2021-07-07 22:01","name": "HydrodigitWater2","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.015}
 |HydrodigitWater2;67452301;0.015;2021-07-07 22:01;1111-11-11 11:11.11
 
 # Test Q400 water telegram
 telegram=|2E4409077272727210077AD71020052F2F_046D040D742C041377000000446D0000612C4413000000002F2F2F2F2F2F|
-{"media":"water","meter":"q400","name":"Q400Water","id":"72727272","meter_datetime":"2019-12-20 13:04","total_m3":0.119,"status":"TEMPORARY_ERROR","set_datetime":"2019-12-01 00:00","consumption_at_set_date_m3":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"q400","name":"Q400Water","id":"72727272","meter_datetime":"2019-12-20 13:04","total_m3":0.119,"status":"TEMPORARY_ERROR","set_datetime":"2019-12-01 00:00","consumption_at_set_date_m3":0,"timestamp":"1111-11-11T11:11:11Z"}
 |Q400Water;72727272;0.119;1111-11-11 11:11.11
 
 # Test Axioma W1 telegram with additional fields compared to the older q400 meter.
 telegram=|5E4409077372727210077A710050052F2F_046D0110A92704130000000004933B0000000004933C00000000023B000002592A0A446D0000A12744130000000044933B0000000044933C0000000001FD74622F2F2F2F2F2F2F2F2F2F2F2F2F2F|
-{"media":"water","meter":"q400","name":"AxiomaWater","id":"72727273","meter_datetime":"2021-07-09 16:01","total_m3":0,"total_forward_m3":0,"total_backward_m3":0,"flow_temperature_c":26.02,"volume_flow_m3h":0,"status":"OK","set_datetime":"2021-07-01 00:00","consumption_at_set_date_m3":0,"forward_at_set_date_m3":0,"backward_at_set_date_m3":0,"battery_pct":98,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"q400","name":"AxiomaWater","id":"72727273","meter_datetime":"2021-07-09 16:01","total_m3":0,"total_forward_m3":0,"total_backward_m3":0,"flow_temperature_c":26.02,"volume_flow_m3h":0,"status":"OK","set_datetime":"2021-07-01 00:00","consumption_at_set_date_m3":0,"forward_at_set_date_m3":0,"backward_at_set_date_m3":0,"battery_pct":98,"timestamp":"1111-11-11T11:11:11Z"}
 |AxiomaWater;72727273;0;1111-11-11 11:11.11
 
 # Test electricity meter with eBZ wMB E01.
 telegram=|5B445A149922992202378C20F6900F002C25BC9E0000BF48954821BC508D72992299225A140102F6003007102F2F040330F92A0004A9FF01FF24000004A9FF026A29000004A9FF03460600000DFD11063132333435362F2F2F2F2F2F|
-{"media":"electricity","meter":"ebzwmbe","name":"Elen1","id":"22992299","total_energy_consumption_kwh":2816.304,"current_power_consumption_phase1_kw":0.09471,"current_power_consumption_phase2_kw":0.10602,"current_power_consumption_phase3_kw":0.01606,"customer":"654321","current_power_consumption_kw":0.21679,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"electricity","meter":"ebzwmbe","name":"Elen1","id":"22992299","total_energy_consumption_kwh":2816.304,"current_power_consumption_phase1_kw":0.09471,"current_power_consumption_phase2_kw":0.10602,"current_power_consumption_phase3_kw":0.01606,"customer":"654321","current_power_consumption_kw":0.21679,"timestamp":"1111-11-11T11:11:11Z"}
 |Elen1;22992299;2816.304;0.21679;0.09471;0.10602;0.01606;1111-11-11 11:11.11
 
 # Test electricity meter with ESYS-WM20
 
 # static telegram
 telegram=|7B4479169977997730378C208B900F002C25E4EF0A002EA98E7D58B3ADC57299779977991611028B005087102F2F#0DFD090F34302e3030562030303030303030300D790E31323334353637383839595345310DFD100AAAAAAAAAAAAAAAAAAAAA0D780E31323334353637383930594553312F2F2F2F2F2F2F2F2F2F2F|
-{"media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","fabrication_no":"1SEY0987654321","enhanced_id":"1ESY9887654321","location":"AAAAAAAAAAAAAAAAAAAA","location_hex":"AAAAAAAAAAAAAAAAAAAA","version":"00000000 V00.04","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","fabrication_no":"1SEY0987654321","enhanced_id":"1ESY9887654321","location":"AAAAAAAAAAAAAAAAAAAA","location_hex":"AAAAAAAAAAAAAAAAAAAA","version":"00000000 V00.04","timestamp":"1111-11-11T11:11:11Z"}
 |Elen2;77997799;null;null;null;null;null;null;null;null;1ESY9887654321;1111-11-11 11:11.11
 
 # dynamic telegram
 telegram=|7B4479169977997730378C20F0900F002C2549EE0A0077C19D3D1A08ABCD729977997779161102F0005007102F2F#0702F5C3FA000000000007823C5407000000000000841004E081020084200415000000042938AB000004A9FF01FA0A000004A9FF02050A000004A9FF03389600002F2F2F2F2F2F2F2F2F2F2F2F2F|
-{"media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","fabrication_no":"1SEY0987654321","enhanced_id":"1ESY9887654321","location":"AAAAAAAAAAAAAAAAAAAA","location_hex":"AAAAAAAAAAAAAAAAAAAA","total_energy_consumption_kwh":1643.4165,"current_power_consumption_kw":0.43832,"total_energy_production_kwh":0.1876,"total_energy_consumption_tariff1_kwh":1643.2,"total_energy_consumption_tariff2_kwh":0.21,"current_power_consumption_phase1_kw":0.0281,"current_power_consumption_phase2_kw":0.02565,"current_power_consumption_phase3_kw":0.38456,"version":"00000000 V00.04","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"electricity","meter":"esyswm","name":"Elen2","id":"77997799","fabrication_no":"1SEY0987654321","enhanced_id":"1ESY9887654321","location":"AAAAAAAAAAAAAAAAAAAA","location_hex":"AAAAAAAAAAAAAAAAAAAA","total_energy_consumption_kwh":1643.4165,"current_power_consumption_kw":0.43832,"total_energy_production_kwh":0.1876,"total_energy_consumption_tariff1_kwh":1643.2,"total_energy_consumption_tariff2_kwh":0.21,"current_power_consumption_phase1_kw":0.0281,"current_power_consumption_phase2_kw":0.02565,"current_power_consumption_phase3_kw":0.38456,"version":"00000000 V00.04","timestamp":"1111-11-11T11:11:11Z"}
 |Elen2;77997799;1643.4165;0.43832;0.1876;1643.2;0.21;0.0281;0.02565;0.38456;1ESY9887654321;1111-11-11 11:11.11
 
 # Test electricity meter eHZ-P
 
 telegram=|5344A8159955995502028C201D900F002C250C390000ED176BBBB1591ADB7A1D003007102F2F_0700583B74020000000007803CBCD70200000000000728B070200000000000042092A406002F2F2F2F2F2F2F2F2F|
-{"media":"electricity","meter":"ehzp","name":"Elen3","id":"55995599","status":"OK","on_time_h":120.929444,"total_energy_consumption_kwh":41.1718,"current_power_consumption_kw":2.126,"total_energy_production_kwh":0.1863,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"electricity","meter":"ehzp","name":"Elen3","id":"55995599","status":"OK","on_time_h":120.929444,"total_energy_consumption_kwh":41.1718,"current_power_consumption_kw":2.126,"total_energy_production_kwh":0.1863,"timestamp":"1111-11-11T11:11:11Z"}
 |Elen3;55995599;41.1718;2.126;0.1863;1111-11-11 11:11.11
 
 # Test water meter apator08
 
 telegram=|73441486DD4444000303A0_B9E527004C4034B31CED0106FF01D093270065F022009661230054D02300EC49240018B424005F012500936D2500FFD525000E3D26001EAC26000B2027000300000000371D0B2000000000000024000000000000280000000000002C0033150C010D2F000000000000|
-{"media":"water","meter":"apator08","name":"Vatten","id":"004444dd","total_m3":871.571,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"apator08","name":"Vatten","id":"004444dd","total_m3":871.571,"timestamp":"1111-11-11T11:11:11Z"}
 |Vatten;004444dd;871.571;1111-11-11 11:11.11
 
 # Test older version of water meter rfmtx1
 
 telegram=|4644B4097172737405077AA5000610_1115F78184AB0F1D1E200000005904103103208047004A4800E73C00193E00453F003E4000E64000E74100F442000144001545005B460000|
-{"media":"water","meter":"rfmtx1","name":"Wasser","id":"74737271","total_m3":188.56,"meter_datetime":"2020-03-31 10:04:59","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"rfmtx1","name":"Wasser","id":"74737271","total_m3":188.56,"meter_datetime":"2020-03-31 10:04:59","timestamp":"1111-11-11T11:11:11Z"}
 |Wasser;74737271;188.56;2020-03-31 10:04:59;1111-11-11 11:11.11
 
 # Test waterstarm
 
 telegram=|3944FA122162092002067A3600202567C94D48D00DC47B11213E23383DB51968A705AAFA60C60E263D50CD259D7C9A03FD0C08000002FD0B0011|
-{"media":"warm water","meter":"waterstarm","name":"Woter","id":"20096221","meter_datetime":"2020-07-30 10:40","total_m3":0.106,"total_backwards_m3":0,"current_status":"OK","status":"OK","meter_version":"000008","parameter_set":"1100","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"warm water","meter":"waterstarm","name":"Woter","id":"20096221","meter_datetime":"2020-07-30 10:40","total_m3":0.106,"total_backwards_m3":0,"current_status":"OK","status":"OK","meter_version":"000008","parameter_set":"1100","timestamp":"1111-11-11T11:11:11Z"}
 |Woter;20096221;0.106;0;OK;1111-11-11 11:11.11
 
 # Test topaseskr water meter
 
 telegram=|4E44B40512345678F1077A310040052F2F_01FD08040C13991848004C1359423500CC101300000000CC201359423500426C7F2C0B3B00000002FD74DA10025AD300C4016D3B179F27CC011387124600|
-{"media":"water","meter":"topaseskr","name":"Witer","id":"78563412","total_m3":481.899,"access_counter":4,"temperature_c":21.1,"current_flow_m3h":0,"volume_year_period_m3":354.259,"reverse_volume_year_period_m3":0,"meter_year_period_end_date":"2019-12-31","volume_month_period_m3":461.287,"meter_month_period_end_datetime":"2020-07-31 23:59","battery_y":11.811331,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"topaseskr","name":"Witer","id":"78563412","total_m3":481.899,"access_counter":4,"temperature_c":21.1,"current_flow_m3h":0,"volume_year_period_m3":354.259,"reverse_volume_year_period_m3":0,"meter_year_period_end_date":"2019-12-31","volume_month_period_m3":461.287,"meter_month_period_end_datetime":"2020-07-31 23:59","battery_y":11.811331,"timestamp":"1111-11-11T11:11:11Z"}
 |Witer;78563412;481.899;21.1;0;354.259;0;2019-12-31;461.287;2020-07-31 23:59;1111-11-11 11:11.11
 
 # Test Ultrimis water meter
 telegram=|2E4401069897969501167A4B0320052F2F_0413320C000003FD1700000044132109000004933C000000002F2F2F2F2F|+0
-{"media":"cold water","meter":"ultrimis","name":"Uater","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"cold water","meter":"ultrimis","name":"Uater","id":"95969798","total_m3":3.122,"target_m3":2.337,"current_status":"OK","total_backward_flow_m3":0,"timestamp":"1111-11-11T11:11:11Z"}
 |Uater;95969798;3.122;2.337;OK;0;1111-11-11 11:11.11
 
 # Test Sensostar 2 heat meter
 telegram=|9E44C5147956341200047A7B0090052F2F_046D25248A2B04063D1F000001FD17000415265F00004406131F0000840106901E0000C40106841E0000840206841E0000C402067A1E0000840306541E0000C40306021E00008404069E1D0000C40406D71C0000840506F21B0000C40506681A00008406061E190000C40606EB1700008407061C170000C40706EE1600002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F2F|
-{"id": "12345679","media": "heat","meter": "sensostar","meter_datetime": "2020-11-10 04:37","name": "Heater","status": "OK","target_10_kwh": 7154,"target_11_kwh": 6760,"target_12_kwh": 6430,"target_13_kwh": 6123,"target_14_kwh": 5916,"target_15_kwh": 5870,"target_2_kwh": 7824,"target_3_kwh": 7812,"target_4_kwh": 7812,"target_5_kwh": 7802,"target_6_kwh": 7764,"target_7_kwh": 7682,"target_8_kwh": 7582,"target_9_kwh": 7383,"target_kwh": 7955,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 7997,"total_water_m3": 2435.8}
+{"_":"telegram","id": "12345679","media": "heat","meter": "sensostar","meter_datetime": "2020-11-10 04:37","name": "Heater","status": "OK","target_10_kwh": 7154,"target_11_kwh": 6760,"target_12_kwh": 6430,"target_13_kwh": 6123,"target_14_kwh": 5916,"target_15_kwh": 5870,"target_2_kwh": 7824,"target_3_kwh": 7812,"target_4_kwh": 7812,"target_5_kwh": 7802,"target_6_kwh": 7764,"target_7_kwh": 7682,"target_8_kwh": 7582,"target_9_kwh": 7383,"target_kwh": 7955,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 7997,"total_water_m3": 2435.8}
 |Heater;12345679;OK;7997;2435.8;null;7955;1111-11-11 11:11.11
 
 # Test Elster V200H water meter
 telegram=|2E449215303099990D077AB50820452F2F_0C12495849004C12557545000FB10445007022C50BFFFFFFFF0000FFF000|
-{"media":"water","meter":"ev200","name":"Voda","id":"99993030","total_m3":49.5849,"target_m3":45.7555,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"ev200","name":"Voda","id":"99993030","total_m3":49.5849,"target_m3":45.7555,"timestamp":"1111-11-11T11:11:11Z"}
 |Voda;99993030;49.5849;45.7555;1111-11-11 11:11.11
 
 # Test Elster Merlin 868 radio attachement
 telegram=|2E4492159293949511377ABE0020252F2F_04135515000004FD971D80800000441300000000426C000002FDFD02B300|
-{"media":"radio converter (meter side)","meter":"emerlin868","name":"Vodda","id":"95949392","total_m3":5.461,"target_m3":0,"target_date":"2000-00-00","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"radio converter (meter side)","meter":"emerlin868","name":"Vodda","id":"95949392","total_m3":5.461,"target_m3":0,"target_date":"2000-00-00","timestamp":"1111-11-11T11:11:11Z"}
 |Vodda;95949392;5.461;0;1111-11-11 11:11.11
 
 # Test Techem TSD2 smoke detector
 telegram=|294468506935639176F0A0_009F2782290060822900000401D6311AF93E1BF93E008DC3009ED4000FE500|
-{"media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"OK","prev_date":"2019-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"smoke detector","meter":"tsd2","name":"Smokey","id":"91633569","status":"OK","prev_date":"2019-12-31T02:00:00Z","timestamp":"1111-11-11T11:11:11Z"}
 |Smokey;91633569;OK;2019-12-31T02:00:00Z;1111-11-11 11:11.11
 
 # Test Techem Compact V heat meter
 telegram=|36446850626262624543A1_009F2777010060780000000A000000000000000000000000000000000000000000000000A0400000B4010000|
-{"media":"heat","meter":"compact5","name":"Heating","id":"62626262","total_kwh":495,"current_kwh":120,"previous_kwh":375,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat","meter":"compact5","name":"Heating","id":"62626262","total_kwh":495,"current_kwh":120,"previous_kwh":375,"timestamp":"1111-11-11T11:11:11Z"}
 |Heating;62626262;495;120;375;1111-11-11 11:11.11
 
 # Another Compact V heat meter
 telegram=|37446850336633663943a2_10672c866100181c01000480794435d50000000000000000000000000000000000000000000000000000000000|
-{"media":"heat","meter":"compact5","name":"Heating2","id":"66336633","total_kwh":25250,"current_kwh":284,"previous_kwh":24966,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat","meter":"compact5","name":"Heating2","id":"66336633","total_kwh":25250,"current_kwh":284,"previous_kwh":24966,"timestamp":"1111-11-11T11:11:11Z"}
 |Heating2;66336633;25250;284;24966;1111-11-11 11:11.11
 
 # Test Gran-System-S electricity meter 101
 telegram=||7844731e78610418010278046d0f13bc21040394030000841003690300008420032b00000084300300000000848010030000000084016d0000bc2184010394030000841103690300008421032b00000084310300000000848110030000000004fd482e09000004fd5b0000000002fb2d861304fd1700000201|
-{"media":"electricity","meter":"gransystems","name":"Gran101","id":"18046178","status":"OK","info":"SINGLE_PHASE_METER","total_energy_consumption_kwh":0.916,"total_energy_consumption_tariff_4_kwh":0,"total_energy_consumption_tariff_2_kwh":0.043,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_1_kwh":0.873,"target_datetime":"2021-01-28 00:00","target_energy_consumption_kwh":0.916,"target_energy_consumption_tariff_2_kwh":0.043,"target_energy_consumption_tariff_4_kwh":0,"target_energy_consumption_tariff_3_kwh":0,"target_energy_consumption_tariff_1_kwh":0.873,"device_datetime":"2021-01-28 19:15","voltage_at_phase_1_v":235,"current_at_phase_1_a":0,"frequency_hz":49.98,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"electricity","meter":"gransystems","name":"Gran101","id":"18046178","status":"OK","info":"SINGLE_PHASE_METER","total_energy_consumption_kwh":0.916,"total_energy_consumption_tariff_4_kwh":0,"total_energy_consumption_tariff_2_kwh":0.043,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_1_kwh":0.873,"target_datetime":"2021-01-28 00:00","target_energy_consumption_kwh":0.916,"target_energy_consumption_tariff_2_kwh":0.043,"target_energy_consumption_tariff_4_kwh":0,"target_energy_consumption_tariff_3_kwh":0,"target_energy_consumption_tariff_1_kwh":0.873,"device_datetime":"2021-01-28 19:15","voltage_at_phase_1_v":235,"current_at_phase_1_a":0,"frequency_hz":49.98,"timestamp":"1111-11-11T11:11:11Z"}
 |Gran101;18046178;0.916;1111-11-11 11:11.11
 
 # Test Gran-System-S electricity meter 301
 telegram=||9e44731e17011020010278046d0813bc21040300000000841003000000008420030000000084300300000000848010030000000084016d0000bc218401030000000084110300000000842103000000008431030000000084811003000000008440fd4825090000848040fd480000000084c040fd48000000008440fd5b00000000848040fd5b0000000084c040fd5b0000000002fb2d881304fd1700000101|
-{"media":"electricity","meter":"gransystems","name":"Gran301","id":"20100117","status":"OK","info":"THREE_PHASE_METER","total_energy_consumption_kwh":0,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_4_kwh":0,"total_energy_consumption_tariff_1_kwh":0,"target_datetime":"2021-01-28 00:00","target_energy_consumption_kwh":0,"target_energy_consumption_tariff_1_kwh":0,"target_energy_consumption_tariff_2_kwh":0,"target_energy_consumption_tariff_4_kwh":0,"target_energy_consumption_tariff_3_kwh":0,"device_datetime":"2021-01-28 19:08","voltage_at_phase_2_v":0,"voltage_at_phase_3_v":0,"voltage_at_phase_1_v":234.1,"current_at_phase_1_a":0,"current_at_phase_2_a":0,"current_at_phase_3_a":0,"frequency_hz":50,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"electricity","meter":"gransystems","name":"Gran301","id":"20100117","status":"OK","info":"THREE_PHASE_METER","total_energy_consumption_kwh":0,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_consumption_tariff_4_kwh":0,"total_energy_consumption_tariff_1_kwh":0,"target_datetime":"2021-01-28 00:00","target_energy_consumption_kwh":0,"target_energy_consumption_tariff_1_kwh":0,"target_energy_consumption_tariff_2_kwh":0,"target_energy_consumption_tariff_4_kwh":0,"target_energy_consumption_tariff_3_kwh":0,"device_datetime":"2021-01-28 19:08","voltage_at_phase_2_v":0,"voltage_at_phase_3_v":0,"voltage_at_phase_1_v":234.1,"current_at_phase_1_a":0,"current_at_phase_2_a":0,"current_at_phase_3_a":0,"frequency_hz":50,"timestamp":"1111-11-11T11:11:11Z"}
 |Gran301;20100117;0;1111-11-11 11:11.11
 
 
 # Test Hydrometer/Diehl Metering Sharky 774 heat meter
 telegram=|5E44A5112751617241047A8B0050052F2F0C0E000000000C13010000000B3B0000000C2B000000000A5A26020A5E18020B260321000AA6180000C2026CBE2BCC020E00000000CC021301000000DB023B000000DC022B000000002F2F2F2F2F|
-{"media":"heat","meter":"sharky774","name":"Sharky774","id":"72615127","total_energy_consumption_kwh":0,"total_volume_m3":0.001,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":22.6,"return_temperature_c":21.8,"operating_time_h":2103,"operating_time_in_error_h":0,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat","meter":"sharky774","name":"Sharky774","id":"72615127","total_energy_consumption_kwh":0,"total_volume_m3":0.001,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":22.6,"return_temperature_c":21.8,"operating_time_h":2103,"operating_time_in_error_h":0,"timestamp":"1111-11-11T11:11:11Z"}
 |Sharky774;72615127;0;null;null;1111-11-11 11:11.11
 
 # Test Hydrometer/Diehl Metering Sharky 775 heat meter
 telegram=|534424232004256092687A370045752235854DEEEA5939FAD81C25FEEF5A23C38FB9168493C563F08DB10BAF87F660FBA91296BA2397E8F4220B86D3A192FB51E0BFCF24DCE72118E0C75A9E89F43BDFE370824B|
-{"media":"heat","meter":"sharky","name":"Sharky775","id":"68926025","total_energy_consumption_kwh":2651,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":150.347,"total_volume_tariff2_m3":0.018,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":42.3,"return_temperature_c":28.1,"status":"OK","temperature_difference_c":14.1,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat","meter":"sharky","name":"Sharky775","id":"68926025","total_energy_consumption_kwh":2651,"total_energy_consumption_tariff1_kwh":0,"total_volume_m3":150.347,"total_volume_tariff2_m3":0.018,"volume_flow_m3h":0,"power_kw":0,"flow_temperature_c":42.3,"return_temperature_c":28.1,"status":"OK","temperature_difference_c":14.1,"timestamp":"1111-11-11T11:11:11Z"}
 |Sharky775;68926025;2651;0;150.347;0.018;0;0;42.3;28.1;14.1;1111-11-11 11:11.11
 
 # Test Apator Elf Heat meter
 telegram=|51440186010905001837721956880101064004DA000020026CA9220E017799241103000C13641320000A2D00000A5A90060A5E800544050E77000001FD0C010A6564370AFD4731030A274907047F00000002|
-{"media":"heat","meter":"elf","name":"Hetta","id":"01885619","status":"ERROR_FLAGS_2000000","meter_date":"2021-02-09","total_energy_consumption_kwh":3112.49977,"current_power_consumption_kw":0,"total_volume_m3":201.364,"total_energy_consumption_at_date_kwh":3047.8,"flow_temperature_c":69,"return_temperature_c":58,"external_temperature_c":37.64,"operating_time_h":17976,"version":"01","battery_v":3.31,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat","meter":"elf","name":"Hetta","id":"01885619","status":"ERROR_FLAGS_2000000","meter_date":"2021-02-09","total_energy_consumption_kwh":3112.49977,"current_power_consumption_kw":0,"total_volume_m3":201.364,"total_energy_consumption_at_date_kwh":3047.8,"flow_temperature_c":69,"return_temperature_c":58,"external_temperature_c":37.64,"operating_time_h":17976,"version":"01","battery_v":3.31,"timestamp":"1111-11-11T11:11:11Z"}
 |Hetta;01885619;3112.49977;0;201.364;69;58;37.64;ERROR_FLAGS_2000000;1111-11-11 11:11.11
 
 # Test Diehl IZAR RC I G4 water meter
 telegram=|1E44A511909192937B077A9F0010052F2F_04130347030002FD1700002F2F2F|
-{"media":"water","meter":"dme_07","name":"DigiWasser","id":"93929190","status":"OK","total_m3":214.787,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"dme_07","name":"DigiWasser","id":"93929190","status":"OK","total_m3":214.787,"timestamp":"1111-11-11T11:11:11Z"}
 |DigiWasser;93929190;214.787;OK;1111-11-11 11:11.11
 
 # Test IZAR RS 868 water meter
 telegram=|1E4424238B07797389607A8F00107D_041312170100426CBF23441344100100|
-{"at_date": "2021-03-31","id": "60897379","media": "water","meter": "hydrus","name": "HydrusIzarRS","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 69.7,"total_m3": 71.442}
+{"_":"telegram","at_date": "2021-03-31","id": "60897379","media": "water","meter": "hydrus","name": "HydrusIzarRS","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 69.7,"total_m3": 71.442}
 |HydrusIzarRS;60897379;71.442;69.7;OK;1111-11-11 11:11.11
 
 # Test IZAR RS 868 water meter warm
 telegram=|1E4424238B06204790607A2A0010D8_0413DDC00000426CBF23441382BB0000|
-{"at_date": "2021-03-31","id": "60904720","media": "warm water","meter": "hydrus","name": "HydrusIzarRSWarm","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 48.002,"total_m3": 49.373}
+{"_":"telegram","at_date": "2021-03-31","id": "60904720","media": "warm water","meter": "hydrus","name": "HydrusIzarRSWarm","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_at_date_m3": 48.002,"total_m3": 49.373}
 |HydrusIzarRSWarm;60904720;49.373;48.002;OK;1111-11-11 11:11.11
 
 # Test another Diehl branded meter with the izar protocol
 telegram=|19442423850798160018A2410100133EBBD44081053F243A82A3|
-{"media":"water","meter":"izar","name":"IzarWater4","id":"18001698","total_m3":835.689,"last_month_total_m3":820.329,"last_month_measure_date":"2021-09-01","remaining_battery_life_y":0.5,"current_alarms":"no_alarm","previous_alarms":"no_alarm","transmit_period_s":8,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"izar","name":"IzarWater4","id":"18001698","total_m3":835.689,"last_month_total_m3":820.329,"last_month_measure_date":"2021-09-01","remaining_battery_life_y":0.5,"current_alarms":"no_alarm","previous_alarms":"no_alarm","transmit_period_s":8,"timestamp":"1111-11-11T11:11:11Z"}
 |IzarWater4;18001698;null;null;835.689;820.329;2021-09-01;0.5;no_alarm;no_alarm;8;null;1111-11-11 11:11.11
 
 # Test Aventies Water Meter
 telegram=76442104710007612507727100076121042507B5006005E2E95A3C2A1279A5415E6732679B43369FD5FDDDD783EEEBB48236D34E7C94AF0A18A5FDA5F7D64111EB42D4D891622139F2952F9D12A20088DFA4CF8123871123EE1F6C1DCEA414879DDB4E05E508F1826D7EFBA6964DF804C9261EA23BBF03
-{"media":"water","meter":"aventieswm","name":"Votten","id":"61070071","status":"OK","total_m3":466.472,"consumption_at_set_date_1_m3":465.96,"consumption_at_set_date_2_m3":458.88,"consumption_at_set_date_3_m3":449.65,"consumption_at_set_date_4_m3":442.35,"consumption_at_set_date_5_m3":431.07,"consumption_at_set_date_6_m3":423.98,"consumption_at_set_date_7_m3":415.23,"consumption_at_set_date_8_m3":409.03,"consumption_at_set_date_9_m3":400.79,"consumption_at_set_date_10_m3":393.2,"consumption_at_set_date_11_m3":388.63,"consumption_at_set_date_12_m3":379.26,"consumption_at_set_date_13_m3":371.26,"consumption_at_set_date_14_m3":357.84,"error_flags":"","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"water","meter":"aventieswm","name":"Votten","id":"61070071","status":"OK","total_m3":466.472,"consumption_at_set_date_1_m3":465.96,"consumption_at_set_date_2_m3":458.88,"consumption_at_set_date_3_m3":449.65,"consumption_at_set_date_4_m3":442.35,"consumption_at_set_date_5_m3":431.07,"consumption_at_set_date_6_m3":423.98,"consumption_at_set_date_7_m3":415.23,"consumption_at_set_date_8_m3":409.03,"consumption_at_set_date_9_m3":400.79,"consumption_at_set_date_10_m3":393.2,"consumption_at_set_date_11_m3":388.63,"consumption_at_set_date_12_m3":379.26,"consumption_at_set_date_13_m3":371.26,"consumption_at_set_date_14_m3":357.84,"error_flags":"","timestamp":"1111-11-11T11:11:11Z"}
 |Votten;61070071;466.472;;1111-11-11 11:11.11
 
 # Test Unismart Gas Meter
 telegram=|6044B8059430040001037A1D005085E2B670BCF1A5C87E0C1A51DA18924EF984613DA2A9CD39D8F4C7208326C76D42DBEADF80D574192B71BD7C4F56A7F1513151768A9DB804883B28CB085CA2D0F7438C361CB9E2734712ED9BFBB2A14EF55208|
-{"media":"gas","meter":"unismart","name":"GasMeter","id":"00043094","fabrication_no":"03162296","status":"STATUS_FLAGS_CF0","other":"OTHER_FLAGS_14","total_date_time":"2021-09-15 13:18","total_m3":917,"target_date_time":"2021-09-01 06:00","target_m3":911.32,"version":"  4GGU","supplier_info":"00","parameter_set":"02","meter_timestamp":"2021-09-15 13:18:30","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"gas","meter":"unismart","name":"GasMeter","id":"00043094","fabrication_no":"03162296","status":"STATUS_FLAGS_CF0","other":"OTHER_FLAGS_14","total_date_time":"2021-09-15 13:18","total_m3":917,"target_date_time":"2021-09-01 06:00","target_m3":911.32,"version":"  4GGU","supplier_info":"00","parameter_set":"02","meter_timestamp":"2021-09-15 13:18:30","timestamp":"1111-11-11T11:11:11Z"}
 |GasMeter;00043094;917;911.32;1111-11-11 11:11.11
 
 # Test Hydrocal M3 heat/cooling meter
 telegram=|8E44B409747372710B0D7A798080052F2F_0C0E59600100046D1D36B9290C13679947000C0E000000000C13590000000C13000000000C13000000000A5A18020A5E11020F823D06003D06003D06003D0600140600620500480400E402001601000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002F2F|
-{"media":"heat/cooling load","meter":"hydrocalm3","name":"HeatCool","id":"71727374","status": "SABOTAGE_ENCLOSURE","total_heating_kwh":4460.833333,"total_cooling_kwh":0,"device_datetime":"2021-09-25 22:29","total_heating_m3":479.967,"total_cooling_m3":0.059,"c1_volume_m3":0,"c2_volume_m3":0,"supply_temperature_c":21.8,"return_temperature_c":21.1,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat/cooling load","meter":"hydrocalm3","name":"HeatCool","id":"71727374","status": "SABOTAGE_ENCLOSURE","total_heating_kwh":4460.833333,"total_cooling_kwh":0,"device_datetime":"2021-09-25 22:29","total_heating_m3":479.967,"total_cooling_m3":0.059,"c1_volume_m3":0,"c2_volume_m3":0,"supply_temperature_c":21.8,"return_temperature_c":21.1,"timestamp":"1111-11-11T11:11:11Z"}
 |HeatCool;71727374;4460.833333;0;1111-11-11 11:11.11
 
 # Test Weptech Munia temperature hygrometer
 telegram=|2E44B05C82340100021B7A460000002F2F0A6601020AFB1A570602FD971D00002F2F2F2F2F2F2F2F2F2F2F2F2F2F2F|
-{"media":"room sensor","meter":"munia","name":"TempoHygro","id":"00013482","status":"OK","current_temperature_c":20.1,"current_relative_humidity_rh":65.7,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"room sensor","meter":"munia","name":"TempoHygro","id":"00013482","status":"OK","current_temperature_c":20.1,"current_relative_humidity_rh":65.7,"timestamp":"1111-11-11T11:11:11Z"}
 |TempoHygro;00013482;20.1;65.7;1111-11-11 11:11.11
 
 # Test QHeat heat meter
 telegram=|3C449344957002372337725880226793442304DC0000200C05043900004C0500000000426C9F2CCC080551070000C2086CBE29326CFFFF046D280DB62A|
-{"media":"heat","meter":"qheat","name":"QHeato","id":"67228058","status":"OK","total_energy_consumption_kwh":390.4,"last_month_date":"2021-09-30","last_month_energy_consumption_kwh":75.1,"last_year_date":"2020-12-31","last_year_energy_consumption_kwh":0,"device_date_time":"2021-10-22 13:40","device_error_date":"2127-15-31","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"heat","meter":"qheat","name":"QHeato","id":"67228058","status":"OK","total_energy_consumption_kwh":390.4,"last_month_date":"2021-09-30","last_month_energy_consumption_kwh":75.1,"last_year_date":"2020-12-31","last_year_energy_consumption_kwh":0,"device_date_time":"2021-10-22 13:40","device_error_date":"2127-15-31","timestamp":"1111-11-11T11:11:11Z"}
 |QHeato;67228058;390.4;2021-09-30;75.1;1111-11-11 11:11.11
 
 # Test QSmoke smoke detector this one is not yet understood.
 telegram=|3E44934486707945211A7801FD08F081027C034955230082026CFFFF81037C034C41230082036CFFFF03FD17000000326CFFFF046D0F0ABC2B02FDAC7E1100|
-{"media":"smoke detector","meter":"qsmoke","name":"QSmokeo","id":"45797086","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 10:15","test_button_last_date":"2127-15-31","test_button_counter":0,"transmission_counter":240,"at_error_date":"2127-15-31","some_sort_of_duration_h":0.004722,"timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"smoke detector","meter":"qsmoke","name":"QSmokeo","id":"45797086","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 10:15","test_button_last_date":"2127-15-31","test_button_counter":0,"transmission_counter":240,"at_error_date":"2127-15-31","some_sort_of_duration_h":0.004722,"timestamp":"1111-11-11T11:11:11Z"}
 |QSmokeo;45797086;OK;2127-15-31;0;1111-11-11 11:11.11
 
 # Test another QSmoke detector, not understood either.
 telegram=|3744934450881248231A7A5C00002081027C034955230082026CFFFF81037C034C41230082036CFFFF02FD170000326CFFFF046D2514BC2B|
-{"media":"smoke detector","meter":"qsmoke","name":"QSmokep","id":"48128850","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 20:37","test_button_last_date":"2127-15-31","test_button_counter":0,"at_error_date":"2127-15-31","timestamp":"1111-11-11T11:11:11Z"}
+{"_":"telegram","media":"smoke detector","meter":"qsmoke","name":"QSmokep","id":"48128850","status":"OK","last_alarm_date":"2127-15-31","alarm_counter":0,"message_datetime":"2021-11-28 20:37","test_button_last_date":"2127-15-31","test_button_counter":0,"at_error_date":"2127-15-31","timestamp":"1111-11-11T11:11:11Z"}
 |QSmokep;48128850;OK;2127-15-31;0;1111-11-11 11:11.11

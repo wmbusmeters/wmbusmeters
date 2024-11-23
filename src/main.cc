@@ -49,6 +49,7 @@ int main(int argc, char **argv);
 shared_ptr<Printer> create_printer(Configuration *config);
 SpecifiedDevice *find_specified_device_from_detected(Configuration *c, Detected *d);
 void list_fields(Configuration *config, string meter_type);
+void print_driver(Configuration *config, string meter_type);
 void list_shell_envs(Configuration *config, string meter_type);
 void list_meters(Configuration *config);
 void list_units();
@@ -138,6 +139,12 @@ provided you with this binary. Read the full license for all details.
         exit(0);
     }
 
+    if (config->print_driver)
+    {
+        print_driver(config.get(), config->list_meter);
+        exit(0);
+    }
+
     if (config->list_meters)
     {
         list_meters(config.get());
@@ -213,6 +220,7 @@ void list_shell_envs(Configuration *config, string meter_driver)
     printf("METER_DEVICE\n"
            "METER_ID\n"
            "METER_JSON\n"
+           "METER_DRIVER\n"
            "METER_MEDIA\n"
            "METER_TYPE\n"
            "METER_NAME\n"
@@ -306,6 +314,32 @@ void list_fields(Configuration *config, string meter_driver)
 
         string fn = padLeft(name, width);
         printf("%s  %s\n", fn.c_str(), fi.help().c_str());
+    }
+}
+
+void print_driver(Configuration *config, string meter_driver)
+{
+    loadAllBuiltinDrivers();
+
+    MeterInfo mi;
+    shared_ptr<Meter> meter;
+    DriverInfo di;
+
+    mi.driver_name = meter_driver;
+    if (!lookupDriverInfo(meter_driver, &di))
+    {
+        error("info='No such driver %s'\n", meter_driver.c_str());
+    }
+    meter = di.construct(mi);
+
+    const string f = di.getDynamicFileName();
+    if (f != "")
+    {
+        printf("%s\n", di.getDynamicSource().c_str());
+    }
+    else
+    {
+        printf("info='Driver is binary only.'\n");
     }
 }
 

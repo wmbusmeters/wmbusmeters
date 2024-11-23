@@ -786,28 +786,28 @@ driver {
             args     = 'MyMeter ime 12345678 NOKEY'
             comment  = 'Telegram 1'
             telegram = 68CBCB6808017278563412A525660200000000_849010FF80843B362A0C00849010FF80843C00000000849010FF81843BD1490700849010FF81843C060000008410FF80843BFE180C008420FF80843B381100008410FF80843C000000008420FF80843C000000008410FF81843B393D07008420FF81843B980C00008410FF81843C060000008420FF81843C0000000084A010FF80843B362A0C0084A010FF80843C0000000084A010FF81843BD149070084A010FF81843C0600000004FF90290000000002FF912B00001F0000000000_4116
-            json     = '{"id": "12345678","media": "electricity","meter": "ime","name": "MyMeter","negative_tariff1_active_energy_kwh": 0,"negative_tariff1_reactive_energy_kvarh": 0.06,"negative_tariff2_active_energy_kwh": 0,"negative_tariff2_reactive_energy_kvarh": 0,"negative_total_active_energy_kwh": 0,"negative_total_reactive_energy_kvarh": 0.06,"partial_negative_active_energy_kwh": 0,"partial_negative_reactive_energy_kvarh": 0.06,"partial_positive_active_energy_kwh": 7972.38,"partial_positive_reactive_energy_kvarh": 4776.49,"positive_tariff1_active_energy_kwh": 7928.3,"positive_tariff1_reactive_energy_kvarh": 4744.25,"positive_tariff2_active_energy_kwh": 44.08,"positive_tariff2_reactive_energy_kvarh": 32.24,"positive_total_active_energy_kwh": 7972.38,"positive_total_reactive_energy_kvarh": 4776.49,"pulse_input_counter": 0,"pulse_unit": "WH","status":"OK","timestamp": "1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","id": "12345678","media": "electricity","meter": "ime","name": "MyMeter","negative_tariff1_active_energy_kwh": 0,"negative_tariff1_reactive_energy_kvarh": 0.06,"negative_tariff2_active_energy_kwh": 0,"negative_tariff2_reactive_energy_kvarh": 0,"negative_total_active_energy_kwh": 0,"negative_total_reactive_energy_kvarh": 0.06,"partial_negative_active_energy_kwh": 0,"partial_negative_reactive_energy_kvarh": 0.06,"partial_positive_active_energy_kwh": 7972.38,"partial_positive_reactive_energy_kvarh": 4776.49,"positive_tariff1_active_energy_kwh": 7928.3,"positive_tariff1_reactive_energy_kvarh": 4744.25,"positive_tariff2_active_energy_kwh": 44.08,"positive_tariff2_reactive_energy_kvarh": 32.24,"positive_total_active_energy_kwh": 7972.38,"positive_total_reactive_energy_kvarh": 4776.49,"pulse_input_counter": 0,"pulse_unit": "WH","status":"OK","timestamp": "1111-11-11T11:11:11Z"}'
             fields   = 'MyMeter;12345678;7972.38;1111-11-11 11:11.11'
         }
         test {
             args     = 'MyMeter ime 12345678 NOKEY'
             comment  = 'Telegram 2'
             telegram = 688D8D6808017278563412A525660201000000_84B010FF842B06000000848020FF842B00000000849020FF842B0600000084A020FF842B0000000084B010FF852B00000000848020FF852B00000000849020FF852B0000000084A020FF852B0000000084B010FF862B08000000848020FF862B00000000849020FF862B0800000084A020FF862B000000001F0000000000_D116
-            json     = '{"active_power_l1_kw": 0,"active_power_l2_kw": 0.006,"active_power_l3_kw": 0,"apparent_power_l1_kva": 0,"apparent_power_l2_kva": 0.008,"apparent_power_l3_kva": 0,"id": "12345678","media": "electricity","meter": "ime","name": "MyMeter","reactive_power_l1_kvar": 0,"reactive_power_l2_kvar": 0,"reactive_power_l3_kvar": 0,"three_phase_total_active_power_kw": 0.006,"three_phase_total_apparent_power_kva": 0.008,"three_phase_total_reactive_power_kvar": 0,"status":"OK","timestamp": "1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","active_power_l1_kw": 0,"active_power_l2_kw": 0.006,"active_power_l3_kw": 0,"apparent_power_l1_kva": 0,"apparent_power_l2_kva": 0.008,"apparent_power_l3_kva": 0,"id": "12345678","media": "electricity","meter": "ime","name": "MyMeter","reactive_power_l1_kvar": 0,"reactive_power_l2_kvar": 0,"reactive_power_l3_kvar": 0,"three_phase_total_active_power_kw": 0.006,"three_phase_total_apparent_power_kva": 0.008,"three_phase_total_reactive_power_kvar": 0,"status":"OK","timestamp": "1111-11-11T11:11:11Z"}'
             fields   = 'MyMeter;12345678;null;1111-11-11 11:11.11'
         }
         test {
             args     = 'MyMeter ime 12345678 NOKEY'
             comment  = 'Telegram 3'
             telegram = 6875756808017278563412A525660202000000_848020FF8748F6080000849020FF87489F08000084A020FF8748E2080000848020FF88482D0F0000849020FF8848460F000084A020FF8848640F0000848020FF895900000000849020FF89592600000084A020FF89590000000002FF8A48F4011F0000000000_B116
-            json     = '{"current_l1_a": 0,"current_l2_a": 0.038,"current_l3_a": 0,"frequency_hz": 50,"id": "12345678","media": "electricity","meter": "ime","name": "MyMeter","status":"OK","timestamp": "1111-11-11T11:11:11Z","voltage_1_2_v": 388.5,"voltage_1_n_v": 229.4,"voltage_2_3_v": 391,"voltage_2_n_v": 220.7,"voltage_3_1_v": 394,"voltage_3_n_v": 227.4}'
+            json     = '{"_":"telegram","current_l1_a": 0,"current_l2_a": 0.038,"current_l3_a": 0,"frequency_hz": 50,"id": "12345678","media": "electricity","meter": "ime","name": "MyMeter","status":"OK","timestamp": "1111-11-11T11:11:11Z","voltage_1_2_v": 388.5,"voltage_1_n_v": 229.4,"voltage_2_3_v": 391,"voltage_2_n_v": 220.7,"voltage_3_1_v": 394,"voltage_3_n_v": 227.4}'
             fields   = 'MyMeter;12345678;null;1111-11-11 11:11.11'
         }
         test {
             args     = 'MyMeter ime 12345678 NOKEY'
             comment  = 'Telegram 4'
             telegram = 685C5C6808017278563412A525660203000000_82B010FF8B28EB0282B010FF8C2B01008410FF8D2B070000008410FF8E2B691D00008420FF8E2BC50D000084B010FF8F21BB260C008410FF8F215A1C0C008420FF8F21610A00000F0000000000_6216
-            json     = '{"id": "12345678","max_total_active_power_tariff1_kw": 7.529,"max_total_active_power_tariff2_kw": 3.525,"media": "electricity","meter": "ime","name": "MyMeter","power_factor_sector": "INDUCTIVE","run_meter_tariff1_h": 13228.166667,"run_meter_tariff2_h": 44.283333,"run_meter_total_h": 13272.45,"three_phase_power_factor": 0.747,"status":"OK","timestamp": "1111-11-11T11:11:11Z","total_active_power_requirement_kw": 0.007}'
+            json     = '{"_":"telegram","id": "12345678","max_total_active_power_tariff1_kw": 7.529,"max_total_active_power_tariff2_kw": 3.525,"media": "electricity","meter": "ime","name": "MyMeter","power_factor_sector": "INDUCTIVE","run_meter_tariff1_h": 13228.166667,"run_meter_tariff2_h": 44.283333,"run_meter_total_h": 13272.45,"three_phase_power_factor": 0.747,"status":"OK","timestamp": "1111-11-11T11:11:11Z","total_active_power_requirement_kw": 0.007}'
             fields   = 'MyMeter;12345678;null;1111-11-11 11:11.11'
         }
     }
