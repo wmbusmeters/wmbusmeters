@@ -2,11 +2,12 @@ FROM alpine AS build
 RUN apk add --no-cache alpine-sdk gcc linux-headers libxml2-dev cmake libusb-dev bash samurai
 
 ADD https://api.github.com/repos/wmbusmeters/wmbusmeters/git/refs/heads/master version.json
-RUN git clone https://github.com/steve-m/librtlsdr.git && \
-    git clone https://github.com/wmbusmeters/wmbusmeters.git && \
-    git clone https://github.com/weetmuts/rtl-wmbus.git && \
-    git clone https://github.com/merbanan/rtl_433.git && \
-    git clone https://github.com/ED6E0F17/rtl_reset.git
+RUN git clone --depth 1 https://github.com/steve-m/librtlsdr.git && \
+    git clone --depth 1 https://github.com/wmbusmeters/wmbusmeters.git && \
+    git clone --depth 1 https://github.com/weetmuts/rtl-wmbus.git && \
+    git clone --depth 1 https://github.com/merbanan/rtl_433.git && \
+    git clone --depth 1 https://github.com/ED6E0F17/rtl_reset.git \
+    git clone --depth 1 https://github.com/libxmq/xmq/xmq.git \
 WORKDIR /librtlsdr
 RUN cmake -B build -G Ninja \
         -DCMAKE_BUILD_TYPE=MinSizeRel \
@@ -25,6 +26,8 @@ RUN cmake -B build -G Ninja \
     cmake --build build
 WORKDIR /rtl_reset
 RUN make
+WORKDIR /xmq
+RUN ./configure && make
 
 FROM alpine as scratch
 RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb libxml2 netcat-openbsd
@@ -36,6 +39,7 @@ COPY --from=build /wmbusmeters/build/wmbusmeters /wmbusmeters/wmbusmeters
 COPY --from=build /rtl-wmbus/build/rtl_wmbus /usr/bin/rtl_wmbus
 COPY --from=build /rtl_433/build/src/rtl_433 /usr/bin/rtl_433
 COPY --from=build /rtl_reset/rtl_reset /usr/bin/rtl_reset
+COPY --from=build /xmq/build/default/release/xmq /usr/bin/xmq
 COPY --from=build /wmbusmeters/docker/docker-entrypoint.sh /wmbusmeters/docker-entrypoint.sh
 VOLUME /wmbusmeters_data/
 CMD ["sh", "/wmbusmeters/docker-entrypoint.sh"]
