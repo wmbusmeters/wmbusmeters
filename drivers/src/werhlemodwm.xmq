@@ -5,16 +5,18 @@ driver {
     default_fields = name,id,total_m3,timestamp
     detect {
         mvt = WZG,03,16
-    }
-    library {
-        use = meter_datetime
-        use = target_date
-        use = target_m3
-        use = total_m3
-        use = fabrication_no
-    }
-    fields {
-        field {
+}
+
+library {
+    use = meter_datetime
+    use = total_m3
+    use = fabrication_no
+    use = target_date
+    use = target_m3
+}
+
+fields {
+    field {
             name         = next_target
             quantity     = PointInTime
             display_unit = date
@@ -23,7 +25,38 @@ driver {
                 vif_range        = Date
                 add_combinable   = FutureValue
                 storage_nr       = 1
-            }
+                   }
+             }
+
+    field {
+        name         = 'target_{storage_counter}'
+        quantity     = Volume
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Volume
+            storage_nr      = 1,13
+        }
+    }
+    field {
+        name         = 'target_{storage_counter}'
+        quantity     = PointInTime
+        display_unit = date
+        match {
+            measurement_type = Instantaneous
+            vif_range        = Date
+            storage_nr       = 1,13
+              }
+    }
+
+
+}
+
+    tests {
+        test {
+            args     = 'licznik werhlemodwm p99 NOKEY'
+            telegram = 68C4C46808637283654616475F03160C000000_041300000000046D2B030000426C992B44133D00000042EC7EB92B0C785506140082016C9E2B8401133D000000C2016C7F2CC401133D00000082026C9F218402133D000000C2026C9D22>
+            json     = '{"media":"cold water","meter":"werhlemodwm","name":"licznik","id":"16466583","10th_target_m3":0.061,"10th_target_date":"2020-07-31","11th_target_m3":0.061,"11th_target_date":"2020-08-31">
+            fields   = 'licznik,16466583,0,2024-10-09 00:37:33'
         }
     }
 }
