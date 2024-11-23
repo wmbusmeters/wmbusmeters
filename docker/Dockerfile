@@ -7,7 +7,8 @@ RUN git clone --depth 1 https://github.com/steve-m/librtlsdr.git && \
     git clone --depth 1 https://github.com/weetmuts/rtl-wmbus.git && \
     git clone --depth 1 https://github.com/merbanan/rtl_433.git && \
     git clone --depth 1 https://github.com/ED6E0F17/rtl_reset.git \
-    git clone --depth 1 https://github.com/libxmq/xmq/xmq.git \
+    git clone --depth 1 https://github.com/libxmq/xmq/xmq.git
+
 WORKDIR /librtlsdr
 RUN cmake -B build -G Ninja \
         -DCMAKE_BUILD_TYPE=MinSizeRel \
