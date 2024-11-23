@@ -1,4 +1,4 @@
-// Generated 2024-11-23_16:03
+// Generated 2024-11-23_16:47
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -177,4 +177,10 @@ test {
     telegram = 4444EE4D198050891B047AFB000000_046D3612E423820A6CE1F1040628010000840A060000000004144A110000840A14000000000259E30F025D2A0C023B1D01032C3A0100
     json     = '{"flow_temperature_c": 40.67,"id": "89508019","media": "heat","meter": "supercal","meter_datetime": "2023-03-04 18:54","name": "sonsupercal","power_kw": 3.14,"return_temperature_c": 31.14,"target_date": "2127-01-01","target_kwh": 0,"target_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 296,"total_m3": 44.26,"volume_flow_m3h": 0.285}'
     fields   = 'sonsupercal;89508019;296;1111-11-11 11:11.11'
+}
+test {
+    args     = 'licznik werhlemodwm 16466583 NOKEY'
+    telegram = 68C4C46808637283654616475F03160C000000_041300000000046D2B030000426C992B44133D00000042EC7EB92B0C785506140082016C9E2B8401133D000000C2016C7F2CC401133D00000082026C9F218402133D000000C2026C9D22C402133D00000082036C9F238403133D000000C2036C9E24C403133D00000082046C9F258404133D000000C2046C9E26C404133D00000082056C9F278405133D000000C2056C9F28C405133D00000082066C9E298406133D000000C2066C9F2AC406133D0000000F010000_C316
+    json     = '{"fabrication_no": "00140655","id": "16466583","media": "cold water","meter": "werhlemodwm","meter_datetime": "2000-00-00 03:43","name": "licznik","next_target_date": "2021-11-25","target_10_date": "2020-07-31","target_10_m3": 0.061,"target_11_date": "2020-08-31","target_11_m3": 0.061,"target_12_date": "2020-09-30","target_12_m3": 0.061,"target_13_date": "2020-10-31","target_13_m3": 0.061,"target_1_date": "2020-11-25","target_1_m3": 0.061,"target_2_date": "2020-11-30","target_2_m3": 0.061,"target_3_date": "2019-12-31","target_3_m3": 0.061,"target_4_date": "2020-01-31","target_4_m3": 0.061,"target_5_date": "2020-02-29","target_5_m3": 0.061,"target_6_date": "2020-03-31","target_6_m3": 0.061,"target_7_date": "2020-04-30","target_7_m3": 0.061,"target_8_date": "2020-05-31","target_8_m3": 0.061,"target_9_date": "2020-06-30","target_9_m3": 0.061,"target_date": "2020-11-25","target_m3": 0.061,"timestamp": "1111-11-11T11:11:11Z","total_m3": 0}'
+    fields   = 'licznik;16466583;0;1111-11-11 11:11.11'
 }
