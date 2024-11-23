@@ -58,7 +58,7 @@ void regular_checkup(Configuration *config);
 bool start(Configuration *config);
 void start_using_config_files(string root, bool is_daemon, ConfigOverrides overrides);
 
-void start_daemon(string pid_file, ConfigOverrides overrides);
+void start_daemon(string pid_file, string root, ConfigOverrides overrides);
 
 void setup_log_file(Configuration *config);
 void setup_meters(Configuration *config, MeterManager *manager);
@@ -161,7 +161,7 @@ provided you with this binary. Read the full license for all details.
 
     if (config->daemon)
     {
-        start_daemon(config->pid_file, config->overrides);
+        start_daemon(config->pid_file, config->config_root, config->overrides);
         exit(0);
     }
 
@@ -710,7 +710,7 @@ bool start(Configuration *config)
     return gotHupped();
 }
 
-void start_daemon(string pid_file, ConfigOverrides overrides)
+void start_daemon(string pid_file, string root, ConfigOverrides overrides)
 {
     setlogmask(LOG_UPTO (LOG_INFO));
     openlog("wmbusmetersd", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL1);
@@ -760,7 +760,7 @@ void start_daemon(string pid_file, ConfigOverrides overrides)
     if (open("/dev/null", O_RDWR) == -1) {
         error("Failed to reopen stderr while daemonising (errno=%d)",errno);
     }
-    start_using_config_files("", true, overrides);
+    start_using_config_files(root, true, overrides);
 }
 
 void start_using_config_files(string root, bool is_daemon, ConfigOverrides overrides)
