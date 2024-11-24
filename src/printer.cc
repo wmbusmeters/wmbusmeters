@@ -57,8 +57,12 @@ void Printer::print(Telegram *t, Meter *meter,
         (new_meter_shell_cmdlines_.size() >  0 || meter->shellCmdlinesMeterAdded().size() > 0))
     {
         meter->markFirstTelegramReceived();
-        envs.push_back("METER_ADDED=true");
+        envs.push_back("METER_FIRST_TELEGRAM=true");
         printNewMeterShells(meter, envs);
+    }
+    else
+    {
+        envs.push_back("METER_FIRST_TELEGRAM=false");
     }
     if (shell_cmdlines_.size() > 0 || meter->shellCmdlinesMeterUpdated().size() > 0) {
         printShells(meter, envs);
