@@ -293,6 +293,21 @@ void handleIgnoreDuplicateTelegrams(Configuration *c, string value)
     }
 }
 
+void handleDetailedFirst(Configuration *c, string value)
+{
+    if (value == "true")
+    {
+        c->detailed_first = true;
+    }
+    else if (value == "false")
+    {
+        c->detailed_first = false;
+    }
+    else {
+        warning("detailedfirst should be either true or false, not \"%s\"\n", value.c_str());
+    }
+}
+
 void handleResetAfter(Configuration *c, string s)
 {
     if (s.length() >= 1)
@@ -709,6 +724,7 @@ shared_ptr<Configuration> loadConfiguration(string root, ConfigOverrides overrid
         if (p.first == "loglevel") handleLoglevel(c, p.second);
         else if (p.first == "internaltesting") handleInternalTesting(c, p.second);
         else if (p.first == "ignoreduplicates") handleIgnoreDuplicateTelegrams(c, p.second);
+        else if (p.first == "detailedfirst") handleDetailedFirst(c, p.second);
         else if (p.first == "device") handleDeviceOrHex(c, p.second);
         else if (p.first == "donotprobe") handleDoNotProbe(c, p.second);
         else if (p.first == "listento") handleListenTo(c, p.second);

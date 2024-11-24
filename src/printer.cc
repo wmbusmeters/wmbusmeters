@@ -53,12 +53,14 @@ void Printer::print(Telegram *t, Meter *meter,
 
     meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields, pretty_print_json_);
 
-    if (!meter->hasReceivedFirstTelegram() &&
-        (new_meter_shell_cmdlines_.size() >  0 || meter->shellCmdlinesMeterAdded().size() > 0))
+    if (!meter->hasReceivedFirstTelegram())
     {
         meter->markFirstTelegramReceived();
         envs.push_back("METER_FIRST_TELEGRAM=true");
-        printNewMeterShells(meter, envs);
+        if (new_meter_shell_cmdlines_.size() >  0 || meter->shellCmdlinesMeterAdded().size() > 0)
+        {
+            printNewMeterShells(meter, envs);
+        }
     }
     else
     {

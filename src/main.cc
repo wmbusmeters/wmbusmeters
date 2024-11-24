@@ -570,7 +570,12 @@ bool start(Configuration *config)
     stderrEnabled(config->use_stderr_for_log);
     setAlarmShells(config->alarm_shells);
     setIgnoreDuplicateTelegrams(config->ignore_duplicate_telegrams);
-
+    setDetailedFirst(config->detailed_first);
+    if (config->new_meter_shells.size() > 0)
+    {
+        // We have metershells, force detailed first telegram.
+        setDetailedFirst(true);
+    }
     log_start_information(config);
 
     // Create the manager monitoring all filedescriptors and invoking callbacks.

@@ -4135,6 +4135,18 @@ void setIgnoreDuplicateTelegrams(bool idt)
     ignore_duplicate_telegrams_ = idt;
 }
 
+static bool detailed_first_ = false;
+
+void setDetailedFirst(bool df)
+{
+    detailed_first_ = df;
+}
+
+bool getDetailedFirst()
+{
+    return detailed_first_;
+}
+
 bool BusDeviceCommonImplementation::handleTelegram(AboutTelegram &about, vector<uchar> frame)
 {
     bool handled = false;

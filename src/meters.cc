@@ -1912,6 +1912,8 @@ void MeterCommonImplementation::printMeter(Telegram *t,
                                            vector<string> *selected_fields,
                                            bool pretty_print_json)
 {
+    bool first = !t->meter->hasReceivedFirstTelegram();
+
     *human_readable = concatFields(this, t, '\t', field_infos_, true, selected_fields, extra_constant_fields);
     *fields = concatFields(this, t, separator, field_infos_, false, selected_fields, extra_constant_fields);
 
@@ -1964,18 +1966,29 @@ void MeterCommonImplementation::printMeter(Telegram *t,
 
         string out = nf.field_info->renderJson(this, &nf.dv_entry);
         s += indent+out+","+newline;
+
+        if (first && getDetailedFirst())
+        {
+            size_t pos = out.find("\":");
+            if (pos != string::npos)
+            {
+                string rule = out.substr(0, pos)+"_field\":"+to_string(nf.field_info->index());
+                s += indent+rule+","+newline;
+            }
+        }
     }
 
     for (auto &p : string_values_)
     {
         string vname = p.first;
         StringField& sf = p.second;
+        string out;
 
         if (sf.field_info->printProperties().hasHIDE()) continue;
         if (sf.field_info->printProperties().hasSTATUS())
         {
             string in = getStatusField(sf.field_info);
-            string out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), in.c_str());
+            out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), in.c_str());
             s += indent+out+","+newline;
         }
         else
@@ -1983,13 +1996,22 @@ void MeterCommonImplementation::printMeter(Telegram *t,
             if (sf.value == "null")
             {
                 // The string "null" translates to actual json null.
-                string out = tostrprintf("\"%s\":null", vname.c_str());
+                out = tostrprintf("\"%s\":null", vname.c_str());
                 s += indent+out+","+newline;
             }
             else
             {
-                string out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), sf.value.c_str());
+                out = tostrprintf("\"%s\":\"%s\"", vname.c_str(), sf.value.c_str());
                 s += indent+out+","+newline;
+            }
+        }
+        if (first && getDetailedFirst())
+        {
+            size_t pos = out.find("\":");
+            if (pos != string::npos)
+            {
+                string rule = out.substr(0, pos)+"_field\":"+to_string(sf.field_info->index());
+                s += indent+rule+","+newline;
             }
         }
     }

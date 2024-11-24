@@ -86,6 +86,8 @@ const char *toLowerCaseString(BusDeviceType t);
 BusDeviceType toBusDeviceType(string &t);
 
 void setIgnoreDuplicateTelegrams(bool idt);
+void setDetailedFirst(bool df);
+bool getDetailedFirst();
 
 // In link mode S1, is used when both the transmitter and receiver are stationary.
 // It can be transmitted relatively seldom.

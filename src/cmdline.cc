@@ -504,6 +504,11 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             i++;
             continue;
         }
+        if (!strcmp(argv[i], "--detailedfirst")) {
+            c->detailed_first = true;
+            i++;
+            continue;
+        }
         if (!strncmp(argv[i], "--shell=", 8)) {
             string cmd = string(argv[i]+8);
             if (cmd == "") {
