@@ -194,7 +194,7 @@ shared_ptr<Printer> create_printer(Configuration *config)
                                            config->fields,
                                            config->separator, config->meterfiles, config->meterfiles_dir,
                                            config->use_logfile, config->logfile,
-                                           config->meter_shells,
+                                           config->new_meter_shells,
                                            config->telegram_shells,
                                            config->meterfiles_action == MeterFileType::Overwrite,
                                            config->meterfiles_naming,
@@ -603,7 +603,7 @@ bool start(Configuration *config)
     meter_manager_->whenMeterAdded(
         [&](Meter *meter)
         {
-            vector<string> *shells = &config->meter_shells;
+            vector<string> *shells = &config->new_meter_shells;
             if (meter->shellCmdlinesMeterAdded().size() > 0) {
                 shells = &meter->shellCmdlinesMeterAdded();
             }
