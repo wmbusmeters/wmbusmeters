@@ -23,6 +23,7 @@ using namespace std;
 Printer::Printer(bool json, bool pretty_print_json, bool fields, char separator,
                  bool use_meterfiles, string &meterfiles_dir,
                  bool use_logfile, string &logfile,
+                 vector<string> new_meter_shell_cmdlines,
                  vector<string> shell_cmdlines, bool overwrite,
                  MeterFileNaming naming,
                  MeterFileTimestamp timestamp)
@@ -35,6 +36,7 @@ Printer::Printer(bool json, bool pretty_print_json, bool fields, char separator,
     meterfiles_dir_ = meterfiles_dir;
     use_logfile_ = use_logfile;
     logfile_ = logfile;
+    new_meter_shell_cmdlines_ = new_meter_shell_cmdlines;
     shell_cmdlines_ = shell_cmdlines;
     overwrite_ = overwrite;
     naming_ = naming;
@@ -51,6 +53,13 @@ void Printer::print(Telegram *t, Meter *meter,
 
     meter->printMeter(t, &human_readable, &fields, separator_, &json, &envs, more_json, selected_fields, pretty_print_json_);
 
+    if (!meter->hasReceivedFirstTelegram() &&
+        (new_meter_shell_cmdlines_.size() >  0 || meter->shellCmdlinesMeterAdded().size() > 0))
+    {
+        meter->markFirstTelegramReceived();
+        envs.push_back("METER_ADDED=true");
+        printNewMeterShells(meter, envs);
+    }
     if (shell_cmdlines_.size() > 0 || meter->shellCmdlinesMeterUpdated().size() > 0) {
         printShells(meter, envs);
         printed = true;
@@ -63,6 +72,20 @@ void Printer::print(Telegram *t, Meter *meter,
         // This will print on stdout or in the logfile.
         printFiles(meter, t, human_readable, fields, json);
         fflush(stdout);
+    }
+}
+
+void Printer::printNewMeterShells(Meter *meter, vector<string> &envs)
+{
+    vector<string> *shells = &new_meter_shell_cmdlines_;
+    if (meter->shellCmdlinesMeterAdded().size() > 0) {
+        shells = &meter->shellCmdlinesMeterAdded();
+    }
+    for (auto &s : *shells) {
+        vector<string> args;
+        args.push_back("-c");
+        args.push_back(s);
+        invokeShell("/bin/sh", args, envs);
     }
 }
 

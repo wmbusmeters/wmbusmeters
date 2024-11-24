@@ -353,7 +353,7 @@ MeterCommonImplementation::MeterCommonImplementation(MeterInfo &mi,
     {
         addShellMeterUpdated(s);
     }
-    for (auto s : mi.meter_shells)
+    for (auto s : mi.new_meter_shells)
     {
         addShellMeterAdded(s);
     }
@@ -1401,9 +1401,6 @@ bool MeterCommonImplementation::handleTelegram(AboutTelegram &about, vector<ucha
     }
 
     triggerUpdate(&t);
-    /*string s = debugValues();
-
-      printf("\n\nVALUES------\n%s\n--------------\n", s.c_str());*/
 
     if (out_analyzed != NULL) *out_analyzed = t;
     return true;
@@ -1892,6 +1889,7 @@ void MeterCommonImplementation::createMeterEnv(string id,
     envs->push_back(string("METER_ID="+id));
     envs->push_back(string("METER_NAME=")+name());
     envs->push_back(string("METER_TYPE=")+driverName().str());
+    envs->push_back(string("METER_DRIVER=")+driver_info_->getDynamicSource());
 
     // If the configuration has supplied json_address=Roodroad 123
     // then the env variable METER_address will available and have the content "Roodroad 123"
@@ -2020,7 +2018,6 @@ void MeterCommonImplementation::printMeter(Telegram *t,
     createMeterEnv(id, envs, extra_constant_fields);
 
     envs->push_back(string("METER_JSON=")+*json);
-    envs->push_back(string("METER_DRIVER=")+driver_info_->getDynamicSource());
     envs->push_back(string("METER_MEDIA=")+media);
     envs->push_back(string("METER_TIMESTAMP=")+datetimeOfUpdateRobot());
     envs->push_back(string("METER_TIMESTAMP_UTC=")+datetimeOfUpdateRobot());
@@ -3236,4 +3233,14 @@ LIST_OF_METER_TYPES
     // Remove last ,
     available_meter_types_[strlen(available_meter_types_)-1] = 0;
     return available_meter_types_;
+}
+
+void MeterCommonImplementation::setMeterManager(MeterManager *mm)
+{
+    meter_manager_ = mm;
+}
+
+MeterManager *MeterCommonImplementation::meterManager()
+{
+    return meter_manager_;
 }

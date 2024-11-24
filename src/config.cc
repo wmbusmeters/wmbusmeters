@@ -59,7 +59,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
     int poll_interval = 0;
     IdentityMode identity_mode {};
     vector<string> telegram_shells;
-    vector<string> meter_shells;
+    vector<string> new_meter_shells;
     vector<string> alarm_shells;
     vector<string> extra_constant_fields;
     vector<string> extra_calculated_fields;
@@ -144,7 +144,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         }
         else
         if (p.first == "metershell") {
-            meter_shells.push_back(p.second);
+            new_meter_shells.push_back(p.second);
         }
         else
         if (p.first == "alarmshell") {
@@ -207,7 +207,7 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
         mi.extra_constant_fields = extra_constant_fields;
         mi.extra_calculated_fields = extra_calculated_fields;
         mi.shells = telegram_shells;
-        mi.meter_shells = meter_shells;
+        mi.new_meter_shells = new_meter_shells;
         mi.selected_fields = selected_fields;
         c->meters.push_back(mi);
     }
@@ -646,7 +646,7 @@ void handleShell(Configuration *c, string cmdline)
 
 void handleMeterShell(Configuration *c, string cmdline)
 {
-    c->meter_shells.push_back(cmdline);
+    c->new_meter_shells.push_back(cmdline);
 }
 
 void handleAlarmShell(Configuration *c, string cmdline)

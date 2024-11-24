@@ -96,7 +96,7 @@ struct MeterInfo
     LinkModeSet link_modes;
     int bps {};     // For mbus communication you need to know the baud rate.
     vector<string> shells;
-    vector<string> meter_shells;
+    vector<string> new_meter_shells;
     vector<string> extra_constant_fields; // Additional static fields that are added to each message.
     vector<string> extra_calculated_fields; // Additional field calculated using formulas.
     vector<string> selected_fields; // Usually set to the default fields, but can be override in meter config.
@@ -119,7 +119,7 @@ struct MeterInfo
         address_expressions = aes;
         key = k;
         shells = s;
-        meter_shells = ms;
+        new_meter_shells = ms;
         extra_constant_fields = j;
         extra_calculated_fields = calcfs;
         link_modes = lms;
@@ -133,7 +133,7 @@ struct MeterInfo
         address_expressions.clear();
         key = "";
         shells.clear();
-        meter_shells.clear();
+        new_meter_shells.clear();
         extra_constant_fields.clear();
         extra_calculated_fields.clear();
         link_modes.clear();
@@ -379,6 +379,7 @@ private:
 };
 
 struct BusManager;
+struct MeterManager;
 
 struct Meter
 {
@@ -400,6 +401,8 @@ struct Meter
     virtual string name() = 0;
     virtual DriverName driverName() = 0;
     virtual DriverInfo *driverInfo() = 0;
+    virtual bool hasReceivedFirstTelegram() = 0;
+    virtual void markFirstTelegramReceived() = 0;
 
     virtual string datetimeOfUpdateHumanReadable() = 0;
     virtual string datetimeOfUpdateRobot() = 0;
@@ -440,6 +443,8 @@ struct Meter
                                 bool simulated, std::vector<Address> *addresses,
                                 bool *id_match, Telegram *out_t = NULL) = 0;
     virtual MeterKeys *meterKeys() = 0;
+    virtual void setMeterManager(MeterManager *mm) = 0;
+    virtual MeterManager *meterManager() = 0;
 
     virtual void addExtraCalculatedField(std::string ecf) = 0;
     virtual void addShellMeterAdded(std::string cmdline) = 0;
@@ -460,7 +465,7 @@ struct MeterManager
 {
     virtual void addMeterTemplate(MeterInfo &mi) = 0;
     virtual void addMeter(shared_ptr<Meter> meter) = 0;
-    virtual void triggerMeterAdded(shared_ptr<Meter> meter) = 0;
+    virtual void triggerMeterAdded(Meter *meter) = 0;
     virtual Meter*lastAddedMeter() = 0;
     virtual void removeAllMeters() = 0;
     virtual void forEachMeter(std::function<void(Meter*)> cb) = 0;
@@ -468,7 +473,7 @@ struct MeterManager
     virtual bool hasAllMetersReceivedATelegram() = 0;
     virtual bool hasMeters() = 0;
     virtual void onTelegram(function<bool(AboutTelegram&,vector<uchar>)> cb) = 0;
-    virtual void whenMeterAdded(std::function<void(shared_ptr<Meter>)> cb) = 0;
+    virtual void whenMeterAdded(std::function<void(Meter*)> cb) = 0;
     virtual void whenMeterUpdated(std::function<void(Telegram*t,Meter*)> cb) = 0;
     virtual void pollMeters(shared_ptr<BusManager> bus) = 0;
     virtual void analyzeEnabled(bool b, OutputFormat f, string force_driver, string key, bool verbose, int profile) = 0;

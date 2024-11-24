@@ -518,7 +518,7 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
             if (cmd == "") {
                 error("The meter shell command cannot be empty.\n");
             }
-            c->meter_shells.push_back(cmd);
+            c->new_meter_shells.push_back(cmd);
             i++;
             continue;
         }

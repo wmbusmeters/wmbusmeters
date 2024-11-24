@@ -194,6 +194,7 @@ shared_ptr<Printer> create_printer(Configuration *config)
                                            config->fields,
                                            config->separator, config->meterfiles, config->meterfiles_dir,
                                            config->use_logfile, config->logfile,
+                                           config->meter_shells,
                                            config->telegram_shells,
                                            config->meterfiles_action == MeterFileType::Overwrite,
                                            config->meterfiles_naming,
@@ -578,14 +579,6 @@ bool start(Configuration *config)
     // to achive a nice shutdown.
     onExit(call(serial_manager_.get(),stop));
 
-    /*
-    Detected d;
-    d.specified_device.file = "/dev/ttyUSB0";
-    d.found_file = "/dev/ttyUSB0";
-    d.specified_device.type = BusDeviceType::DEVICE_IU880B;
-
-    detectIU880B(&d, serial_manager_);
-*/
     // Create the printer object that knows how to translate
     // telegrams into json, fields that are written into log files
     // or sent to shell invocations.
@@ -608,7 +601,7 @@ bool start(Configuration *config)
 
     // When a meter is added, print it, shell it, log it, etc.
     meter_manager_->whenMeterAdded(
-        [&](shared_ptr<Meter> meter)
+        [&](Meter *meter)
         {
             vector<string> *shells = &config->meter_shells;
             if (meter->shellCmdlinesMeterAdded().size() > 0) {

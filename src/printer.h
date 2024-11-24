@@ -28,6 +28,7 @@ struct Printer {
             char separator,
             bool meterfiles, string &meterfiles_dir,
             bool use_logfile, string &logfile,
+            vector<string> new_meter_shell_cmdlines,
             vector<string> shell_cmdlines,
             bool overwrite,
             MeterFileNaming naming,
@@ -43,11 +44,13 @@ struct Printer {
     bool use_logfile_;
     string logfile_;
     char separator_;
+    vector<string> new_meter_shell_cmdlines_;
     vector<string> shell_cmdlines_;
     bool overwrite_;
     MeterFileNaming naming_;
     MeterFileTimestamp timestamp_;
 
+    void printNewMeterShells(Meter *meter, vector<string> &envs);
     void printShells(Meter *meter, vector<string> &envs);
     void printFiles(Meter *meter, Telegram *t, string &human_readable, string &fields, string &json);
 

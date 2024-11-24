@@ -4,6 +4,13 @@ xsl:stylesheet(version                 = 1.0
                xmlns:xsl               = http://www.w3.org/1999/XSL/Transform
                xmlns:my                = https://wmbusmeters.org)
 {
+    xsl:param(name = file)
+    xsl:variable(name   = telegram
+                 select = 'document($file)')
+    xsl:variable(name = meter_id
+                 select = $telegram/telegram/id)
+    xsl:variable(name = meter_name
+                 select = $telegram/telegram/name)
     my:tounit {
         entry(key = Volume) = m3
         entry(key = Flow) = m3h
@@ -48,6 +55,11 @@ xsl:stylesheet(version                 = 1.0
                 xsl:element(name = '{name}_{$unito}')
                 {
                     component = sensor
+                    meter_name_id {
+                        xsl:value-of(select = $meter_name)
+                        '_'
+                        xsl:value-of(select = $meter_id)
+                    }
                     discovery_payload {
                         device {
                             identifiers(A)

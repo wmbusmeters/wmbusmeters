@@ -85,6 +85,8 @@ struct MeterCommonImplementation : public virtual Meter
 
     static bool isTelegramForMeter(Telegram *t, Meter *meter, MeterInfo *mi);
     MeterKeys *meterKeys();
+    void setMeterManager(MeterManager *mm);
+    MeterManager *meterManager();
 
     MeterCommonImplementation(MeterInfo &mi, DriverInfo &di);
 
@@ -212,6 +214,8 @@ protected:
     void setSelectedFields(vector<string> &f) { selected_fields_ = f; }
 
     void forceMfctIndex(int i) { force_mfct_index_  = i; }
+    bool hasReceivedFirstTelegram() {  return has_received_first_telegram_; }
+    void markFirstTelegramReceived() { has_received_first_telegram_ = true; }
 
 private:
 
@@ -238,6 +242,8 @@ private:
     Translate::Lookup mfct_tpl_status_bits_ = NoLookup;
     int force_mfct_index_ = -1;
     bool has_process_content_ = false;
+    bool has_received_first_telegram_ = false;
+    MeterManager *meter_manager_ {};
 
 protected:
 
