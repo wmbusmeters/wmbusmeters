@@ -345,6 +345,8 @@ struct FieldInfo
 
     string str();
 
+    void markAsLibrary() { from_library_ = true; index_ = -1; }
+
 private:
 
     int index_; // The field infos for a meter are ordered.
@@ -376,6 +378,9 @@ private:
 
     // If the field name template could not be parsed.
     bool valid_field_name_ {};
+
+    // If true then this field was fetched from the library.
+    bool from_library_ {};
 };
 
 struct BusManager;

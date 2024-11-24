@@ -466,6 +466,12 @@ void MeterCommonImplementation::setMfctTPLStatusBits(Translate::Lookup &lookup)
     mfct_tpl_status_bits_ = lookup;
 }
 
+void MeterCommonImplementation::markLastFieldAsLibrary()
+{
+    field_infos_.back().markAsLibrary();
+    num_driver_fields_--;
+}
+
 void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                                                              string help,
                                                              PrintProperties print_properties,
@@ -476,8 +482,9 @@ void MeterCommonImplementation::addNumericFieldWithExtractor(string vname,
                                                              Unit display_unit,
                                                              double scale)
 {
+    size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
-        FieldInfo(field_infos_.size(),
+        FieldInfo(index,
                   vname,
                   vquantity,
                   display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
@@ -517,8 +524,9 @@ void MeterCommonImplementation::addNumericFieldWithCalculator(string vname,
     }
     assert(ok);
 
+    size_t index = num_driver_fields_++;
     field_infos_.push_back(
-        FieldInfo(field_infos_.size(),
+        FieldInfo(index,
                   vname,
                   vquantity,
                   display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
@@ -559,8 +567,9 @@ void MeterCommonImplementation::addNumericFieldWithCalculatorAndMatcher(string v
     }
     assert(ok);
 
+    size_t index = num_driver_fields_++;
     field_infos_.push_back(
-        FieldInfo(field_infos_.size(),
+        FieldInfo(index,
                   vname,
                   vquantity,
                   display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
@@ -588,8 +597,9 @@ void MeterCommonImplementation::addNumericField(
     string help,
     Unit display_unit)
 {
+    size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
-        FieldInfo(field_infos_.size(),
+        FieldInfo(index,
                   vname,
                   vquantity,
                   display_unit == Unit::Unknown ? defaultUnitForQuantity(vquantity) : display_unit,
@@ -614,8 +624,9 @@ void MeterCommonImplementation::addStringFieldWithExtractor(string vname,
                                                             PrintProperties print_properties,
                                                             FieldMatcher matcher)
 {
+    size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
-        FieldInfo(field_infos_.size(),
+        FieldInfo(index,
                   vname,
                   Quantity::Text,
                   defaultUnitForQuantity(Quantity::Text),
@@ -641,8 +652,9 @@ void MeterCommonImplementation::addStringFieldWithExtractorAndLookup(string vnam
                                                                      FieldMatcher matcher,
                                                                      Translate::Lookup lookup)
 {
+    size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
-        FieldInfo(field_infos_.size(),
+        FieldInfo(index,
                   vname,
                   Quantity::Text,
                   defaultUnitForQuantity(Quantity::Text),
@@ -666,8 +678,9 @@ void MeterCommonImplementation::addStringField(string vname,
                                                string help,
                                                PrintProperties print_properties)
 {
+    size_t index = num_driver_fields_++;
     field_infos_.emplace_back(
-        FieldInfo(field_infos_.size(),
+        FieldInfo(index,
                   vname,
                   Quantity::Text,
                   defaultUnitForQuantity(Quantity::Text),
@@ -2732,6 +2745,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(VIFRange::ActualityDuration),
             Unit::Second
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields, "actuality_duration_h"))
@@ -2747,6 +2761,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ActualityDuration)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields, "fabrication_no"))
@@ -2759,6 +2774,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FabricationNo)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"enhanced_id"))
@@ -2771,6 +2787,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::EnhancedIdentification)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"software_version"))
@@ -2783,6 +2800,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::SoftwareVersion)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"manufacturer"))
@@ -2795,6 +2813,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Manufacturer)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"model_version"))
@@ -2807,6 +2826,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ModelVersion)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"firmware_version"))
@@ -2819,6 +2839,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FirmwareVersion)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"parameter_set"))
@@ -2831,6 +2852,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ParameterSet)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"customer"))
@@ -2843,6 +2865,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Customer)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"location"))
@@ -2855,6 +2878,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Location)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"operating_time_h"))
@@ -2870,6 +2894,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::OperatingTime)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"on_time_h"))
@@ -2885,6 +2910,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::OnTime)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"on_time_at_error_h"))
@@ -2900,6 +2926,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::AtError)
             .set(VIFRange::OnTime)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"meter_date"))
@@ -2912,6 +2939,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Date)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"meter_date_at_error"))
@@ -2924,6 +2952,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::AtError)
             .set(VIFRange::Date)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"meter_datetime"))
@@ -2936,6 +2965,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::DateTime)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"meter_datetime_at_error"))
@@ -2948,6 +2978,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::AtError)
             .set(VIFRange::DateTime)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"total_m3"))
@@ -2963,6 +2994,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::Volume)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"target_m3"))
@@ -2979,6 +3011,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(VIFRange::Volume)
             .set(StorageNr(1))
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"target_date"))
@@ -2996,6 +3029,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(StorageNr(1)),
             Unit::DateLT
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"total_forward_m3"))
@@ -3012,6 +3046,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(VIFRange::Volume)
             .add(VIFCombinable::ForwardFlow)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"total_backward_m3"))
@@ -3028,6 +3063,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(VIFRange::Volume)
             .add(VIFCombinable::BackwardFlow)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"flow_temperature_c"))
@@ -3043,6 +3079,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::FlowTemperature)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"external_temperature_c"))
@@ -3058,6 +3095,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ExternalTemperature)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"return_temperature_c"))
@@ -3073,6 +3111,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::ReturnTemperature)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"flow_return_temperature_difference_c"))
@@ -3088,6 +3127,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::TemperatureDifference)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"volume_flow_m3h"))
@@ -3103,6 +3143,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::VolumeFlow)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"access_counter"))
@@ -3118,6 +3159,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::AccessNumber)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"consumption_hca"))
@@ -3133,6 +3175,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(MeasurementType::Instantaneous)
             .set(VIFRange::HeatCostAllocation)
             );
+        markLastFieldAsLibrary();
     }
 
     if (checkIf(fields,"target_hca"))
@@ -3149,6 +3192,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
             .set(VIFRange::HeatCostAllocation)
             .set(StorageNr(1))
             );
+        markLastFieldAsLibrary();
     }
 
     if (!checkFieldsEmpty(fields, name()))
