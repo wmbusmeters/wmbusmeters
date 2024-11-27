@@ -1,10 +1,23 @@
+Added support for the new iu891a wmbus dongle.
 
 ATTENTION! Backwards incompatible change for xmq drivers source.
 The field entries must now be inside a fields { ... } group.
 The use entries must now be inside a library { ... } group.
 The test entries must now be inside a tests { ... } group.
 
-Kzajac83 added the elf2 driver. Thanks kzajac83!
+For variable length VIF text fields, accept both 0x7c and 0xfc as VIFE indicator.
+Make sure that a dynamic xmq driver is fully printed with --listfields=<driver>
+
+Ivaylo Ivanoc fixed a bug to allow daemon to be started with custom config. Thanks Ivaylo!
+Kajetan Krykwinski improved driver autodetection to handle odd mfct codes,
+improved the amiplus driver to handle Otus 1/3 meters and the aptoreitn driver. Thanks Kajetan!
+Josef Eisl improved driver detection for the Develco Products Electricity Meter. Thanks Josef!
+Bibo improved the docker and the snap. Thanks Bibo!
+Sergio Catalan added the hydrocalm4 driver. Thanks Sergio!
+Makischu added cooling fields for the mc303 meter to the kamhet driver. Thanks Makishu!
+Kzajac83 added the elf2 driver and improved the werhlemodwm driver. Thanks kzajac83!
+Saganos added the apator-na-1 driver. Thanks Saganos!
+Marton Czwick added the maddalena driver. Thanks Marton!
 
 Version 1.17.1 2024-08-24
 Version 1.17.1-RC1 2024-08-24
