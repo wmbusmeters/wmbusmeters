@@ -54,7 +54,7 @@ namespace
                         DEFAULT_PRINT_PROPERTIES,
                         "The total water consumption recorded at the beginning of this month.");
 
-        addNumericField("last_fev",
+        addNumericField("last_feb",
                         Quantity::Volume,
                         DEFAULT_PRINT_PROPERTIES,
                         "The total water consumption recorded at the beginning of this month.");
@@ -231,7 +231,7 @@ namespace
         }
         setNumericValue("current_month", Unit::M3, curr_month_m3);
         setNumericValue("last_jan", Unit::M3, prev_month[1]);
-        setNumericValue("last_fev", Unit::M3, prev_month[2]);
+        setNumericValue("last_feb", Unit::M3, prev_month[2]);
         setNumericValue("last_mar", Unit::M3, prev_month[3]);
         setNumericValue("last_apr", Unit::M3, prev_month[4]);
         setNumericValue("last_may", Unit::M3, prev_month[5]);
@@ -250,5 +250,5 @@ namespace
 // 102500 => 002510 : water meter value (same as digital one)
 // 2934 => 3429 : current month
 // telegram=|36446850420656625072A2_0C007C3110250000293400373A002E38000E15002F37003A39003835002F24003930001D2500312500162900|
-//{ "_":"telegram", "media":"cold water", "meter":"mkradio3a", "name":"", "id":"62560642", "current_month_m3":9.3, "last_apr_m3":8.3, "last_aug_m3":3.5, "last_dec_m3":6.3, "last_fev_m3":6.6, "last_jan_m3":8.6, "last_jul_m3":10.2, "last_jun_m3":11.5, "last_mar_m3":10.5, "last_may_m3":10.9, "last_nov_m3":9.3, "last_oct_m3":11.3, "last_sep_m3":10.2, "total_m3":948.8, "current_date":"2024-11-28T02:00:00Z", "timestamp":"2024-12-01T17:27:58Z" }
+//{ "_":"telegram", "media":"cold water", "meter":"mkradio3a", "name":"", "id":"62560642", "current_month_m3":9.3, "last_apr_m3":8.3, "last_aug_m3":3.5, "last_dec_m3":6.3, "last_feb_m3":6.6, "last_jan_m3":8.6, "last_jul_m3":10.2, "last_jun_m3":11.5, "last_mar_m3":10.5, "last_may_m3":10.9, "last_nov_m3":9.3, "last_oct_m3":11.3, "last_sep_m3":10.2, "total_m3":948.8, "current_date":"2024-11-28T02:00:00Z", "timestamp":"2024-12-01T17:27:58Z" }
 
