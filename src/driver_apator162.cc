@@ -165,7 +165,13 @@ namespace
         case 0x71: return 1+2*4; // ?
         case 0x72: return 1+3*4; // ?
         case 0x73: return 1+4*4; // Historical data
+        case 0x74: return 1+5*4; // ? guess
         case 0x75: return 1+6*4; // Historical data
+        case 0x76: return 1+7*4; // ? guess
+        case 0x77: return 1+8*4; // ? guess
+        case 0x78: return 1+9*4; // ? guess
+        case 0x79: return 1+10*4; // ? guess
+        case 0x7A: return 1+11*4; // ? guess
         case 0x7B: return 1+12*4; // Historical data
 
         case 0x80:
