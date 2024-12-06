@@ -40,6 +40,8 @@ namespace
         di.addDetection(MANUFACTURER_QDS, 0x37,  0x33);
         di.addDetection(MANUFACTURER_QDS, 0x06,  0x16);
         di.addDetection(MANUFACTURER_QDS, 0x07,  0x16);
+        di.addDetection(MANUFACTURER_QDS, 0x06,  0x17);
+        di.addDetection(MANUFACTURER_QDS, 0x07,  0x17);
         di.addDetection(MANUFACTURER_QDS, 0x06,  0x18);
         di.addDetection(MANUFACTURER_QDS, 0x07,  0x18);
         di.addDetection(MANUFACTURER_QDS, 0x07,  0x19);
