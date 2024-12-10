@@ -165,7 +165,13 @@ namespace
         case 0x71: return 1+2*4; // ?
         case 0x72: return 1+3*4; // ?
         case 0x73: return 1+4*4; // Historical data
+        case 0x74: return 1+5*4; // ? guess
         case 0x75: return 1+6*4; // Historical data
+        case 0x76: return 1+7*4; // ? guess
+        case 0x77: return 1+8*4; // ? guess
+        case 0x78: return 1+9*4; // ? guess
+        case 0x79: return 1+10*4; // ? guess
+        case 0x7A: return 1+11*4; // ? guess
         case 0x7B: return 1+12*4; // Historical data
 
         case 0x80:
@@ -329,3 +335,8 @@ namespace
 // telegram=|704401060404040405077A0E0060852F2F_0F766DFB96010000430600808F67DB8F67DB01010000102F1F01007B01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000A05F5C1804FFFFFFFFFFFFFFFFFFFF26BCD649|
 // {"_":"telegram","media":"water","meter":"apator162","name":"has80","id":"04040404","total_m3":73.519,"timestamp":"1111-11-11T11:11:11Z"}
 // |has80;04040404;73.519;1111-11-11 11:11.11
+
+// Test: has79 apator162 04960212 NOKEY
+// telegram=|5E4401061202960405077A790050852F2F0F78A599983B0200435000805771165771160103000010653A00007919321E0000620000006200000000000000000000000000000000000000000000000000000000000000A0422C6004FFFF2FBF|
+// {"_": "telegram","id": "04960212","media": "water","meter": "apator162","name": "has79","timestamp": "1111-11-11T11:11:11Z","total_m3": 14.949}
+// |has79;04960212;14.949;1111-11-11 11:11.11
