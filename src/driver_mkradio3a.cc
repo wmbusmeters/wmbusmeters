@@ -227,7 +227,7 @@ namespace
            prev_hi = content[42];
            prev_month[ (curr_date_month + 12 - 11) % 12 ] = (prev_hi+prev_lo)/10.0;
         }
-        setNumericValue("current_month", Unit::M3, curr_month_m3);
+        setNumericValue("target", Unit::M3, curr_month_m3);
         setNumericValue("last_jan", Unit::M3, prev_month[1]);
         setNumericValue("last_feb", Unit::M3, prev_month[2]);
         setNumericValue("last_mar", Unit::M3, prev_month[3]);
