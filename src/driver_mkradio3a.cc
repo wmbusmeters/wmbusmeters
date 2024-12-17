@@ -29,7 +29,7 @@ namespace
     static bool ok = registerDriver([](DriverInfo&di)
     {
         di.setName("mkradio3a");
-        di.setDefaultFields("name,id,total_m3,current_month_m3,last_jan_m3,last_feb_m3,last_mar_m3,last_apr_m3,last_may_m3,last_jun_m3,last_jul_m3,last_aug_m3,last_sep_m3,last_oct_m3,last_nov_m3,last_dec_m3,current_date,timestamp");
+        di.setDefaultFields("name,id,total_m3,target_m3,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_TCH, 0x72,  0x50);
@@ -44,7 +44,7 @@ namespace
                         DEFAULT_PRINT_PROPERTIES,
                         "The total water consumption recorded by this meter.");
 
-        addNumericField("current_month",
+        addNumericField("target",
                         Quantity::Volume,
                         DEFAULT_PRINT_PROPERTIES,
                         "The total water consumption recorded at the beginning of this month.");
@@ -109,9 +109,7 @@ namespace
                         DEFAULT_PRINT_PROPERTIES,
                         "The total water consumption recorded at the beginning of this month.");
 
-
-
-        addStringField("current_date",
+        addStringField("target_date",
                        "Date of current billing period.",
                        DEFAULT_PRINT_PROPERTIES);
     }
@@ -132,7 +130,7 @@ namespace
         uint curr_date_day = (curr_date >> 0) & 0x1F;
         uint curr_date_month = (curr_date >> 5) & 0x0F;
         uint curr_date_year = (curr_date >> 9) & 0xFF;
-        setStringValue("current_date", tostrprintf("%d-%02d-%02dT02:00:00Z", curr_date_year+2000, curr_date_month, curr_date_day));
+        setStringValue("target_date", tostrprintf("%d-%02d-%02dT02:00:00Z", curr_date_year+2000, curr_date_month, curr_date_day));
 
         // Previous consumption
         // uchar prev_lo = content[8];
@@ -250,5 +248,4 @@ namespace
 // 102500 => 002510 : water meter value (same as digital one)
 // 2934 => 3429 : current month
 // telegram=|36446850420656625072A2_0C007C3110250000293400373A002E38000E15002F37003A39003835002F24003930001D2500312500162900|
-//{ "_":"telegram", "media":"cold water", "meter":"mkradio3a", "name":"", "id":"62560642", "current_month_m3":9.3, "last_apr_m3":8.3, "last_aug_m3":3.5, "last_dec_m3":6.3, "last_feb_m3":6.6, "last_jan_m3":8.6, "last_jul_m3":10.2, "last_jun_m3":11.5, "last_mar_m3":10.5, "last_may_m3":10.9, "last_nov_m3":9.3, "last_oct_m3":11.3, "last_sep_m3":10.2, "total_m3":948.8, "current_date":"2024-11-28T02:00:00Z", "timestamp":"2024-12-01T17:27:58Z" }
-
+//{ "_":"telegram", "media":"cold water", "meter":"mkradio3a", "name":"", "id":"62560642", "target_m3":9.3, "last_apr_m3":8.3, "last_aug_m3":3.5, "last_dec_m3":6.3, "last_feb_m3":6.6, "last_jan_m3":8.6, "last_jul_m3":10.2, "last_jun_m3":11.5, "last_mar_m3":10.5, "last_may_m3":10.9, "last_nov_m3":9.3, "last_oct_m3":11.3, "last_sep_m3":10.2, "total_m3":948.8, "target_date":"2024-11-28T02:00:00Z", "timestamp":"2024-12-01T17:27:58Z" }
