@@ -309,16 +309,6 @@ XMQProceed DriverDynamic::add_field(XMQDoc *doc, XMQNode *field, DriverDynamic *
 
     // Now find all matchers.
     Translate::Lookup lookup = Translate::Lookup();
-    /*
-        .add(Translate::Rule("ERROR_FLAGS", Translate::Type::BitToString)
-        .set(MaskBits(0x000f))
-        .set(DefaultMessage("OK"))
-        .add(Translate::Map(0x01 ,"DRY", TestBit::Set))
-        .add(Translate::Map(0x02 ,"REVERSE", TestBit::Set))
-        .add(Translate::Map(0x04 ,"LEAK", TestBit::Set))
-        .add(Translate::Map(0x08 ,"BURST", TestBit::Set))
-        ));
-    */
     dd->tmp_lookup_ = &lookup;
     int num_lookups = xmqForeachRel(doc, "lookup", (XMQNodeCallback)add_lookup, dd, field);
 

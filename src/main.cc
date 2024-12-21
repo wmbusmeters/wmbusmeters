@@ -276,7 +276,10 @@ void list_fields(Configuration *config, string meter_driver)
         string name = fi.vname();
         if (fi.xuantity() != Quantity::Text)
         {
-            name += "_"+unitToStringLowerCase(defaultUnitForQuantity(fi.xuantity()));
+            Unit u = defaultUnitForQuantity(fi.xuantity());
+            Unit du = fi.displayUnit();
+            if (du != Unit::Unknown) u = du;
+            name += "_"+unitToStringLowerCase(u);
         }
 
         if ((int)name.size() > width) width = name.size();
@@ -310,7 +313,10 @@ void list_fields(Configuration *config, string meter_driver)
         string name = fi.vname();
         if (fi.xuantity() != Quantity::Text)
         {
-            name += "_"+unitToStringLowerCase(defaultUnitForQuantity(fi.xuantity()));
+            Unit u = defaultUnitForQuantity(fi.xuantity());
+            Unit du = fi.displayUnit();
+            if (du != Unit::Unknown) u = du;
+            name += "_"+unitToStringLowerCase(u);
         }
 
         string fn = padLeft(name, width);
