@@ -20,6 +20,7 @@ or into csv:
 or into json:
 ```json
 {
+    "_":"telegram",
     "media":"water",
     "meter":"iperl",
     "name":"MyTapWater",

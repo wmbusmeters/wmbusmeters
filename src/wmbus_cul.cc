@@ -471,6 +471,11 @@ AccessCheck detectCUL(Detected *detected, shared_ptr<SerialCommunicationManager>
     detected->setAsFound("", BusDeviceType::DEVICE_CUL, 38400, false, detected->specified_device.linkmodes);
 
     verbose("(cul) are you there? yes\n");
-
+    warning("If you are using the nanoCUL then please be aware that\n"
+            "it can NEVER receive longer telegrams than 148 bytes!\n"
+            "Even worse, you will get crc errors because there is\n"
+            "no way for wmbusmeters to detect that nanoCUL has truncated\n"
+            "the telegram. If you are lucky the nanoCUL generates broken hex\n"
+            "which is detected and printed in the log.\n\n");
     return AccessCheck::AccessOK;
 }
