@@ -141,7 +141,8 @@ bool isInsideVIFRange(Vif vif, VIFRange vif_range)
     if (vif_range == VIFRange::AnyPowerVIF)
     {
         // There are more power units in the standard that will be added here.
-        return isInsideVIFRange(vif, VIFRange::PowerW);
+        return isInsideVIFRange(vif, VIFRange::PowerW) ||
+               isInsideVIFRange(vif, VIFRange::PowerJh);
     }
 
 #define X(name,from,to,quantity,unit) if (VIFRange::name == vif_range) { return from <= vif.intValue() && vif.intValue() <= to; }

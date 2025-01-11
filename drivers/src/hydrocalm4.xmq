@@ -137,9 +137,9 @@ driver {
             name     = power
             quantity = Power
             info     = 'The current power consumption.'
-            dmatch {
+            match {
                 measurement_type = Instantaneous
-                vif_range        = PowerW
+                vif_range        = AnyPowerVIF
             }
         }
     }
@@ -162,7 +162,7 @@ driver {
             args     = 'testm4 hydrocalm4 05171338 NOKEY'
             comment  = 'Instantaneous-heat_temperature'
             telegram = 3E44B409381317051A0D8C00497A7C000000_046D2BAA153A0C03000000000C13000000000B3B0000000B280000000A5930230A5D08250F6402000000000000
-            json     = '{"_":"telegram","media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:43","return_temperature_c":25.08,"supply_temperature_c":23.3,"total_heating_kwh":0,"total_heating_m3":0,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:43","power_kw": 0, "return_temperature_c":25.08,"supply_temperature_c":23.3,"total_heating_kwh":0,"total_heating_m3":0,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'testm4;05171338;OK;0;null;1111-11-11 11:11.11'
         }
         test {
@@ -172,5 +172,13 @@ driver {
             json     = '{"_":"telegram","c1_volume_m3": 9.999,"c2_volume_m3": 8.888,"device_datetime": "2024-10-21 10:45","id": "05171338","media": "heat/cooling load","meter": "hydrocalm4","name": "testm4","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_heating_kwh": 0,"total_heating_m3": 0}'
             fields   = 'testm4;05171338;OK;0;null;1111-11-11 11:11.11'
         }
+        test {
+            args     = 'testm5 hydrocalm4 05128041 NOKEY'
+            comment  = 'Power unit J/h'
+            telegram = 3e44B409418012051a0d8c20f17a9d000020046d0d3126310c0a481878330c13098405000B3B0000000B301000000a5929360a5d94230f6402000000000000
+            json     = '{"_": "telegram","device_datetime": "2025-01-06 17:13","id": "05128041","media": "heat/cooling load","meter": "hydrocalm4","name": "testm5","power_kw": 3e-06,"return_temperature_c": 23.94,"status": "OK","supply_temperature_c": 36.29,"timestamp": "1111-11-11T11:11:11Z","total_heating_kwh": 938.384667,"total_heating_m3": 58.409,"volume_flow_m3h": 0}'
+            fields   = 'testm5;05128041;OK;938.384667;null;1111-11-11 11:11.11'
+        }
+
     }
 }

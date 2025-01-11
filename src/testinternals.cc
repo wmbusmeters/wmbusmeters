@@ -1745,6 +1745,8 @@ void test_units_extraction()
     test_unit("walk_counter", true, "walk", Unit::COUNTER);
     test_unit("work_kvarh", true, "work", Unit::KVARH);
 
+    test_unit("now_mjh", true, "now", Unit::MJH);
+
     test_unit("current_power_consumption_phase1_kw", true, "current_power_consumption_phase1", Unit::KW);
 }
 
@@ -2091,6 +2093,12 @@ LIST_OF_QUANTITIES
 
     test_si_convert(1, 1000, Unit::KW, "kw", Unit::W, "w", Quantity::Power, &from_set, &to_set);
     test_si_convert(1000, 1, Unit::W, "w", Unit::KW, "kw", Quantity::Power, &from_set, &to_set);
+
+    test_si_convert(1, double(1.0)/3600.0, Unit::JH, "jh", Unit::W, "w", Quantity::Power, &from_set, &to_set);
+    test_si_convert(double(1.0)/3600.0, 1, Unit::W, "w", Unit::JH, "jh", Quantity::Power, &from_set, &to_set);
+
+    test_si_convert(1, double(1000.0)/3600.0, Unit::MJH, "mjh", Unit::KW, "kw", Quantity::Power, &from_set, &to_set);
+    test_si_convert(double(1000.0)/3600.0, 1, Unit::KW, "kw", Unit::MJH, "mjh", Quantity::Power, &from_set, &to_set);
 
     // The power variant is m3ch.
     test_si_convert(99.0, 99.0, Unit::M3CH, "m3ch", Unit::M3CH, "m3ch", Quantity::Power, &from_set, &to_set);

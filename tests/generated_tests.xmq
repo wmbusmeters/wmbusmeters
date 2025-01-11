@@ -1,4 +1,4 @@
-// Generated 2024-11-23_20:38
+// Generated 2025-01-11_23:52
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -24,6 +24,13 @@ test {
     fields   = 'Eltako;23451236;289.68;1111-11-11 11:11.11'
 }
 test {
+    args     = 'testm5 hydrocalm4 05128041 NOKEY'
+    comment  = 'Power unit J/h'
+    telegram = 3e44B409418012051a0d8c20f17a9d000020046d0d3126310c0a481878330c13098405000B3B0000000B301000000a5929360a5d94230f6402000000000000
+    json     = '{"_": "telegram","device_datetime": "2025-01-06 17:13","id": "05128041","media": "heat/cooling load","meter": "hydrocalm4","name": "testm5","power_kw": 3e-06,"return_temperature_c": 23.94,"status": "OK","supply_temperature_c": 36.29,"timestamp": "1111-11-11T11:11:11Z","total_heating_kwh": 938.384667,"total_heating_m3": 58.409,"volume_flow_m3h": 0}'
+    fields   = 'testm5;05128041;OK;938.384667;null;1111-11-11 11:11.11'
+}
+test {
     args     = 'testm4 hydrocalm4 05171338 NOKEY'
     comment  = Instantaneous-heat_pulses
     telegram = 3B44B409381317051A0D8C00497A7E000000_046D2DAA153A0C03000000000C13000000008C4013999900008C804013888800000F6403000000000000
@@ -34,7 +41,7 @@ test {
     args     = 'testm4 hydrocalm4 05171338 NOKEY'
     comment  = Instantaneous-heat_temperature
     telegram = 3E44B409381317051A0D8C00497A7C000000_046D2BAA153A0C03000000000C13000000000B3B0000000B280000000A5930230A5D08250F6402000000000000
-    json     = '{"_":"telegram","media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:43","return_temperature_c":25.08,"supply_temperature_c":23.3,"total_heating_kwh":0,"total_heating_m3":0,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"heat/cooling load","meter":"hydrocalm4","name":"testm4","id":"05171338","device_datetime":"2024-10-21 10:43","power_kw": 0, "return_temperature_c":25.08,"supply_temperature_c":23.3,"total_heating_kwh":0,"total_heating_m3":0,"volume_flow_m3h":0,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'testm4;05171338;OK;0;null;1111-11-11 11:11.11'
 }
 test {

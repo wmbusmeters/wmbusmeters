@@ -91,6 +91,8 @@ LIST_OF_QUANTITIES
     \
     X(W,w,"W",Power,"Watt")                                             \
     X(KW,kw,"kW",Power,"kilo Watt")                                     \
+    X(JH,jh,"J/h",Power,"Joule per hour")                               \
+    X(MJH,mjh,"MJ/h",Power,"mega Joule per hour")                       \
     X(KVAR,kvar,"kVAR",Reactive_Power,"kilo volt amperes reactive")     \
     X(KVA,kva,"kVA",Apparent_Power,"kilo volt amperes")                 \
     X(M3CH,m3ch,"m³°C/h",Power,"cubic meter celsius per hour")          \

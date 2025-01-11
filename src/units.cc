@@ -45,10 +45,14 @@ using namespace std;
     X(KWH, GJ, {vto=vfrom*0.0036;})     \
     X(KWH, MJ, {vto=vfrom*0.0036*1000.0;})     \
     X(GJ,  KWH,{vto=vfrom/0.0036;}) \
-    X(MJ,  GJ,  {vto=vfrom/1000.0;}) \
+    X(MJ,  GJ, {vto=vfrom/1000.0;}) \
     X(MJ,  KWH,{vto=vfrom/1000.0/0.0036;}) \
-    X(GJ,  MJ,  {vto=vfrom*1000.0;}) \
+    X(GJ,  MJ, {vto=vfrom*1000.0;}) \
     X(W,   KW, {vto=vfrom/1000.0;})     \
+    X(JH,   W, {vto=vfrom/3600.0;}) \
+    X(W,   JH, {vto=vfrom*3600.0;}) \
+    X(MJH, KW, {vto=vfrom/1000.0/0.0036;}) \
+    X(KW,  MJH,{vto=vfrom*0.0036*1000.0;})\
     X(M3,  L,  {vto=vfrom*1000.0;}) \
     X(M3H, LH, {vto=vfrom*1000.0;}) \
     X(L,   M3, {vto=vfrom/1000.0;}) \
@@ -95,6 +99,8 @@ using namespace std;
     \
     X(W,      1.0,        SIExp().kg(1).m(2).s(-3))                 \
     X(KW,     1000.0,     SIExp().kg(1).m(2).s(-3))                 \
+    X(JH,     1.0/3600.0, SIExp().kg(1).m(2).s(-3))                \
+    X(MJH, 1000000.0/3600.0, SIExp().kg(1).m(2).s(-3))                \
     X(KVAR,   1000.0,     SIExp().kg(1).m(2).s(-3))                 \
     X(KVA,    1000.0,     SIExp().kg(1).m(2).s(-3))                 \
     X(M3CH,   3600.0,    SIExp().m(3).c(1).s(-1))                  \
@@ -514,6 +520,8 @@ string valueToString(double v, Unit u)
     {
         return "null";
     }
+    // This rounds the double value to 6 decimal digits.
+    // TODO this should be changed to track all double digits available.
     string s = to_string(v);
     while (s.size() > 0 && s.back() == '0') s.pop_back();
     if (s.back() == '.') {
