@@ -233,7 +233,8 @@ bool startsWith(const std::string &s, std::string &prefix);
 std::string makeQuotedJson(const std::string &s);
 
 std::string currentYear();
-std::string currentDay();
+std::string currentYearMonth();
+std::string currentYearMonthDay();
 std::string currentHour();
 std::string currentMinute();
 std::string currentSeconds();

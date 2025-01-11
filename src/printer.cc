@@ -133,8 +133,11 @@ void Printer::printFiles(Meter *meter, Telegram *t, string &human_readable, stri
         case MeterFileTimestamp::Never:
             // Append nothing.
             break;
+        case MeterFileTimestamp::Month:
+            stamp = currentYearMonth();
+            break;
         case MeterFileTimestamp::Day:
-            stamp = currentDay();
+            stamp = currentYearMonthDay();
             break;
         case MeterFileTimestamp::Hour:
             stamp = currentHour();

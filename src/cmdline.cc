@@ -415,6 +415,10 @@ static shared_ptr<Configuration> parseNormalCommandLine(Configuration *c, int ar
                 {
                     c->meterfiles_timestamp = MeterFileTimestamp::Day;
                 }
+                else if (!strncmp(argv[i]+22, "month", 5))
+                {
+                    c->meterfiles_timestamp = MeterFileTimestamp::Month;
+                }
                 else if (!strncmp(argv[i]+22, "hour", 4))
                 {
                     c->meterfiles_timestamp = MeterFileTimestamp::Hour;

@@ -534,6 +534,10 @@ void handleMeterfilesTimestamp(Configuration *c, string type)
     {
         c->meterfiles_timestamp = MeterFileTimestamp::Day;
     }
+    else if (type == "month")
+    {
+        c->meterfiles_timestamp = MeterFileTimestamp::Month;
+    }
     else if (type == "hour")
     {
         c->meterfiles_timestamp = MeterFileTimestamp::Hour;

@@ -1355,7 +1355,19 @@ string currentYear()
     return string(datetime);
 }
 
-string currentDay()
+string currentYearMonth()
+{
+    char datetime[40];
+    memset(datetime, 0, sizeof(datetime));
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    strftime(datetime, 20, "%Y-%m", localtime(&tv.tv_sec));
+    return string(datetime);
+}
+
+string currentYearMonthDay()
 {
     char datetime[40];
     memset(datetime, 0, sizeof(datetime));

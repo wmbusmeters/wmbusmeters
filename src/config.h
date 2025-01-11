@@ -39,7 +39,7 @@ enum class MeterFileNaming
 
 enum class MeterFileTimestamp
 {
-    Never, Day, Hour, Minute, Micros
+    Never, Month, Day, Hour, Minute, Micros
 };
 
 enum class LogSummary
