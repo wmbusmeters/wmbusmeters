@@ -42,6 +42,7 @@ services:
   wmbusmeters:
     image: wmbusmeters/wmbusmeters
     container_name: wmbusmeters
+    privileged: true
     restart: always
     volumes:
       - /opt/wmbusmeters:/wmbusmeters_data
