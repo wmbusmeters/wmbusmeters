@@ -1023,7 +1023,7 @@ Binary generated: `./build_arm_debug/wmbusmeters`
 `/etc/wmbusmeters.conf`
 `/usr/bin/wmbusmeters`
 `/usr/sbin/wmbusmetersd`
-`/etc/systemd/system/wmbusmeters.service`
+`/lib/systemd/system/wmbusmeters.service`
 `/etc/logrotate.d/wmbusmeters`
 
 creates these directories:
