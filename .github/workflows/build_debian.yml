@@ -11,7 +11,7 @@ jobs:
     - id: INSTALL_ADDITIONAL_BUILD_DEPENDENCIES
       run: |
          sudo apt install -y eatmydata
-         sudo eatmydata apt install -y devscripts debhelper buildessential
+         sudo eatmydata apt install -y devscripts debhelper build-essential
          sudo eatmydata apt build-dep -y . || sudo eatmydata apt install -y librtlsdr-dev  libxml2-dev libxslt1-dev adduser
     - id: PREPARE_SOURCE
       run: |
