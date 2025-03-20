@@ -672,7 +672,7 @@ BFW 240 (bfw240radio)
 
 Supported heat meters:
 Heat meter Techem Compact V / Compact Ve (compact5) (non-standard protocol)
-Heat meter Techem vario 3 type 3.2.1 (mkradio3) (see here: https://github.com/weetmuts/wmbusmeters/issues/333)
+Heat meter Techem vario 3 type 3.2.1 (compact5)
 Heat meter Techem vario 4 (vario451) (non-standard protocol)
 Heat and Cooling meters Kamstrup Multical 302,403,602,603,803 (kamheat)
 Heat meter Apator Elf (elf)
