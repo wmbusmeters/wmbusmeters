@@ -117,3 +117,9 @@ namespace
 // telegram=|37446850336633663943a2_10672c866100181c01000480794435d50000000000000000000000000000000000000000000000000000000000|
 // {"_":"telegram","media":"heat","meter":"compact5","name":"Heating2","id":"66336633","total_kwh":25250,"current_kwh":284,"previous_kwh":24966,"timestamp":"1111-11-11T11:11:11Z"}
 // |Heating2;66336633;25250;284;24966;1111-11-11 11:11.11
+
+// A telegram from a Vario 3 type 3.2.1 meter.
+// Test: vario compact5 67552079 NOKEY
+// telegram=|37446850792055673943A2_109F2F13C500608F1D00008066E8A69B26988D335F6411450C564C5145145CA0F1DA35B9DD37A1936BBF3D31D8|
+// {"_": "telegram","current_kwh": 7567,"id": "67552079","media": "heat","meter": "compact5","name": "vario","previous_kwh": 50451,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 58018}
+// |vario;67552079;58018;7567;50451;1111-11-11 11:11.11
