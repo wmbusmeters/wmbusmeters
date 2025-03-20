@@ -1,3 +1,5 @@
+Version 1.19.0-RC1 2025-03-20
+
 Add new units for power J/h MJ/h.
 Add meterfiletimestamp=month for meterfiles.
 Add big warning about nanoCUL limitation!
