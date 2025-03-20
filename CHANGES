@@ -1,3 +1,13 @@
+Add new units for power J/h MJ/h.
+Add meterfiletimestamp=month for meterfiles.
+Add big warning about nanoCUL limitation!
+Stubenh0cker improved support for Maddalena radio evo (evo868). Thanks Stubenh0cker!
+Fix bug where --listfields=elf2 (from xmq driver) did not use the selected display_unit in the driver.
+Add tests to qwater.
+Updated mkradio3.
+Handle more apator162 field lengths.
+Salaun29 added support for mkradio3a. Thanks Salaun29!
+
 Version 1.18.0 2024-11-27
 Version 1.18.0-RC1 2024-11-27
 
