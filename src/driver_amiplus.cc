@@ -116,6 +116,36 @@ namespace
             .set(DifVifKey("0AFDC9FC03"))
             );
 
+        addNumericFieldWithExtractor(
+            "voltage_at_phase_1",
+            "Voltage at phase L1.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Voltage,
+            VifScaling::None, DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(DifVifKey("0AFDC8FC01"))
+            );
+
+        addNumericFieldWithExtractor(
+            "voltage_at_phase_2",
+            "Voltage at phase L2.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Voltage,
+            VifScaling::None, DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(DifVifKey("0AFDC8FC02"))
+            );
+
+        addNumericFieldWithExtractor(
+            "voltage_at_phase_3",
+            "Voltage at phase L3.",
+            DEFAULT_PRINT_PROPERTIES,
+            Quantity::Voltage,
+            VifScaling::None, DifSignedness::Signed,
+            FieldMatcher::build()
+            .set(DifVifKey("0AFDC8FC03"))
+            );
+
         addStringFieldWithExtractor(
             "device_date_time",
             "Device date time.",
