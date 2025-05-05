@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2019-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2019-2025 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -91,9 +91,11 @@ namespace
             "Voltage at phase L1.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::None, DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
-            .set(DifVifKey("0AFDC9FC01"))
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Voltage)
+            .add(VIFCombinable::AtPhase1)
             );
 
         addNumericFieldWithExtractor(
@@ -101,9 +103,11 @@ namespace
             "Voltage at phase L2.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::None, DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
-            .set(DifVifKey("0AFDC9FC02"))
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Voltage)
+            .add(VIFCombinable::AtPhase2)
             );
 
         addNumericFieldWithExtractor(
@@ -111,9 +115,11 @@ namespace
             "Voltage at phase L3.",
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Voltage,
-            VifScaling::None, DifSignedness::Signed,
+            VifScaling::Auto, DifSignedness::Signed,
             FieldMatcher::build()
-            .set(DifVifKey("0AFDC9FC03"))
+            .set(MeasurementType::Instantaneous)
+            .set(VIFRange::Voltage)
+            .add(VIFCombinable::AtPhase3)
             );
 
         addStringFieldWithExtractor(
@@ -232,3 +238,8 @@ namespace
 // telegram=|3e44b6108707320001027a380030052f2f0C7830253390066D6872141239400E031891690000000E833C9265010000000B2B2602000BAB3C0000002F2F2F2F|
 // {"_":"telegram","current_power_consumption_kw": 0.226,"current_power_production_kw": 0,"device_date_time": "2024-09-18 20:50:40","id": "00320787","media": "electricity","meter": "amiplus","name": "MyElectricity4","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 699.118,"total_energy_production_kwh": 16.592}
 // |MyElectricity4;00320787;699.118;0.226;16.592;0;null;null;null;null;null;null;null;null;null;1111-11-11 11:11.11
+
+// Test: MyElectricity5 amiplus 56914504 NOKEY
+// telegram=|9e4401060445915601027a3d0390052f2f066dc076091935800c78044591560e032088300000008e10032088300000008e20030000000000008e30030000000000008e8010030000000000000e833c2702000000008e10833c2702000000008e20833c0000000000008e30833c0000000000008e8010833c0000000000000afdc8fc0136240afdc8fc0262240afdc8fc0389222f2f2f2f2f2f2f2f2f2f2f2f|
+// {"_":"telegram","media":"electricity","meter":"amiplus","name":"MyElectricity5","id":"56914504","total_energy_consumption_kwh":308.82,"total_energy_consumption_tariff_1_kwh":308.82,"total_energy_consumption_tariff_2_kwh":0,"total_energy_consumption_tariff_3_kwh":0,"total_energy_production_kwh":0.227,"total_energy_production_tariff_1_kwh":0.227,"total_energy_production_tariff_2_kwh":0,"total_energy_production_tariff_3_kwh":0,"voltage_at_phase_1_v":243.6,"voltage_at_phase_2_v":246.2,"voltage_at_phase_3_v":228.9,"device_date_time":"2024-05-25 09:54:00","timestamp":"1111-11-11T11:11:11Z"}
+// |MyElectricity5;56914504;308.82;null;0.227;null;243.6;246.2;228.9;308.82;0;0;0.227;0;0;1111-11-11 11:11.11
