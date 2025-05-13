@@ -1,8 +1,27 @@
 #!/bin/sh
+set -e
 
-[ ! -d /wmbusmeters_data/logs/meter_readings ] && mkdir -p /wmbusmeters_data/logs/meter_readings
-[ ! -d /wmbusmeters_data/etc/wmbusmeters.d ] && mkdir -p /wmbusmeters_data/etc/wmbusmeters.d
-[ ! -d /wmbusmeters_data/etc/wmbusmeters.drivers.d ] && mkdir -p /wmbusmeters_data/etc/wmbusmeters.drivers.d
-[ ! -f /wmbusmeters_data/etc/wmbusmeters.conf ] && echo -e "loglevel=normal\ndevice=auto:t1\ndonotprobe=/dev/ttyAMA0\nlogtelegrams=false\nformat=json\nmeterfiles=/wmbusmeters_data/logs/meter_readings\nmeterfilesaction=overwrite\nlogfile=/wmbusmeters_data/logs/wmbusmeters.log" > /wmbusmeters_data/etc/wmbusmeters.conf
+: ${WMBUSMETERS_DATA:=/wmbusmeters_data}
+: ${LOGS_DIR:=${WMBUSMETERS_DATA}/logs}
+: ${READINGS_DIR:=${WMBUSMETERS_DATA}/readings}
+: ${ETC_DIR:=${WMBUSMETERS_DATA}/etc}
 
-/wmbusmeters/wmbusmeters --useconfig=/wmbusmeters_data
+[ ! -d "$LOGS_DIR" ] && mkdir -p "$LOGS_DIR"
+[ ! -d "$READINGS_DIR" ] && mkdir -p "$READINGS_DIR"
+[ ! -d "$ETC_DIR/wmbusmeters.d" ] && mkdir -p "$ETC_DIR/wmbusmeters.d"
+[ ! -d "$ETC_DIR/wmbusmeters.drivers.d" ] && mkdir -p "$ETC_DIR/wmbusmeters.drivers.d"
+
+if [ ! -f "$ETC_DIR/wmbusmeters.conf" ]; then
+  cat <<EOF > "$ETC_DIR/wmbusmeters.conf"
+loglevel=normal
+device=auto:t1
+donotprobe=/dev/ttyAMA0
+logtelegrams=false
+format=json
+meterfiles=${READINGS_DIR}
+meterfilesaction=overwrite
+logfile=${LOGS_DIR}/wmbusmeters.log
+EOF
+fi
+
+exec /wmbusmeters/wmbusmeters --useconfig="$ETC_DIR"
