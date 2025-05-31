@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2021-2022 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C) 2021-2025 Fredrik Öhrström (gpl-3.0-or-later)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -227,3 +227,15 @@ namespace
 // telegram=|5344934411345678233778077998765431934423040dff5f350082fe00005f0107c005ffff68223500df2c80253200fe24251535005c03030000000000af03f508e91e1d2efc236e1fa218fe142f046d1911f225|
 // {"_":"telegram","media":"heat","meter":"qheat","name":"Qheatoo","id":"31547698","status":"OK","total_energy_consumption_kwh":35226.8,"last_month_date":"2023-04-30","last_month_energy_consumption_kwh":35152.5,"last_year_date":"2022-12-31","last_year_energy_consumption_kwh":32258,"device_date_time":"2023-05-18 17:25","timestamp":"1111-11-11T11:11:11Z"}
 // |Qheatoo;31547698;35226.8;2023-04-30;35152.5;1111-11-11 11:11.11
+
+// Test: QQ1 qheat 37439212 NOKEY
+// Comment:
+// telegram=|_5344934412924337353778077912924337934435070DFF5F3500828A0000100007C113FFFF966600001F3C000000003E3419580000008000800080008000800080008000005A0094009C00BB002F046D010F3235|
+// {"_": "telegram","device_date_time": "2025-05-18 15:01","id": "37439212","last_month_date": "2025-04-30","last_month_energy_consumption_kwh": 581.9,"last_year_date": "2024-12-31","last_year_energy_consumption_kwh": 0,"media": "water","meter": "qheat","name": "QQ1","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 669.6}
+// |QQ1;37439212;669.6;2025-04-30;581.9;1111-11-11 11:11.11
+
+// Test: QQ2 qheat 37432649 NOKEY
+// Comment:
+// telegram=|_5344934449264337353778077949264337934435070DFF5F350082560000110007C113FFFF245300001F3C210400003E348946000000800080008000800080008000002A0066005F00730072002F046D000F3235|
+// {"_": "telegram","device_date_time": "2025-05-18 15:00","id": "37432649","last_month_date": "2025-04-30","last_month_energy_consumption_kwh": 468.9,"last_year_date": "2024-12-31","last_year_energy_consumption_kwh": 42.1,"media": "water","meter": "qheat","name": "QQ2","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 532.4}
+// |QQ2;37432649;532.4;2025-04-30;468.9;1111-11-11 11:11.11
