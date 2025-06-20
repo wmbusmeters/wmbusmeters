@@ -231,3 +231,9 @@ void Driver::processContent(Telegram *t) {
 // telegram=|_5344934449264337353778077949264337934435070DFF5F350082560000110007C113FFFF245300001F3C210400003E348946000000800080008000800080008000002A0066005F00730072002F046D000F3235|
 // {"_": "telegram","due_17_date": "2025-04-30","due_17_date_m3": 4.689,"due_date": "2024-12-31","due_date_m3": 0.421,"id": "37432649","media": "radio converter (meter side)","meter": "qwater","meter_datetime": "2025-05-18 15:00","name": "QQ2","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 5.324}
 // |QQ2;37432649;5.324;0.421;2024-12-31;OK;1111-11-11 11:11.11
+
+// Test: QQ3 qwater 60101441 NOKEY
+// Comment:
+// telegram=|39449344411410601A067ADB000020_0C13780000004C1300000000426CFFFFCC081335000000C2086C3F3502BB560000326CFFFF046D14173136|
+// {"_": "telegram","due_17_date": "2025-05-31","due_17_date_m3": 0.035,"due_date": "2128-03-31","due_date_m3": 0,"error_date": "2128-03-31","id": "60101441","media": "warm water","meter": "qwater","meter_datetime": "2025-06-17 23:20","name": "QQ3","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.078,"volume_flow_m3h": 0}
+// |QQ3;60101441;0.078;0;2128-03-31;OK;1111-11-11 11:11.11

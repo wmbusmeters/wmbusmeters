@@ -32,7 +32,8 @@ namespace
 
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_QDS, 0x07, 0x1a);
+        // di.addDetection(MANUFACTURER_QDS, 0x07, 0x1a); // Hmmm, this mvt is better handled by QWater
+        // too bad we have to example telegrams for wme5....
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
