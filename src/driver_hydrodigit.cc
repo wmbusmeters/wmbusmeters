@@ -273,7 +273,7 @@ namespace {
                     fraud_type_desc.empty() ? "no type info" : fraud_type_desc.c_str());
 
             char buffer[32];
-            snprintf(buffer, sizeof(buffer), "%02X.%02X.20%02X", fraud_day, fraud_month, fraud_year);
+            snprintf(buffer, sizeof(buffer), "20%02X-%02X-%02X", fraud_year, fraud_month, fraud_day);
             setStringValue("fraud_date", buffer);
             setStringValue("fraud_type", fraud_type_desc.empty() ? "no type info" : fraud_type_desc);
 
@@ -298,7 +298,7 @@ namespace {
                     leak_year);
             char buffer[17];
             memset(buffer, 0, sizeof(buffer));
-            snprintf(buffer, 16, "%02X.%02X.20%02X", leak_day, leak_month, leak_year);
+            snprintf(buffer, 16, "20%02X-%02X-%02X", leak_year, leak_month, leak_day);
             setStringValue("leak_date", buffer);
 
             i += 3;
@@ -372,7 +372,7 @@ namespace {
 
 // Test: HydridigitWaterr hydrodigit 03245501 NOKEY
 // telegram=|2444B4090155240317068C00487AC0000000_0C1335670000046D172EEA280F030000000000|
-// {"_":"telegram","contents": "BATTERY_VOLTAGE FRAUD_DATE","id": "03245501","media": "warm water","meter": "hydrodigit","meter_datetime": "2023-08-10 14:23","name": "HydridigitWaterr","timestamp": "1111-11-11T11:11:11Z","total_m3": 6.735, "voltage_v": 3.7, "fraud_date": "00.00.2000", "fraud_type": "no type info"}
+// {"_":"telegram","contents": "BATTERY_VOLTAGE FRAUD_DATE","id": "03245501","media": "warm water","meter": "hydrodigit","meter_datetime": "2023-08-10 14:23","name": "HydridigitWaterr","timestamp": "1111-11-11T11:11:11Z","total_m3": 6.735, "voltage_v": 3.7, "fraud_date": "2000-00-00", "fraud_type": "no type info"}
 // |HydridigitWaterr;03245501;6.735;2023-08-10 14:23;1111-11-11 11:11.11
 
 
@@ -386,7 +386,7 @@ namespace {
 // Test: Hydro4 hydrodigit 87654322 NOKEY
 // Comment: This one adds a leak date to the definition, plus shows how the monthly data looks before module installation.
 // telegram=|4944B4092243658713077A7F000000_0C1363020400_046D242C1236_0F950A24042507000000A405006E0700850900CA0B004A0E00FFFFFFFFFFFF020000020000250000B3010095030000|
-// {"_":"telegram","media":"water","meter":"hydrodigit","name":"Hydro4","id":"87654322","April_total_m3":30.18,"August_total_m3":0.02,"December_total_m3":9.17,"February_total_m3":19.02,"January_total_m3":14.44,"July_total_m3":0,"June_total_m3":0,"March_total_m3":24.37,"May_total_m3":36.58,"November_total_m3":4.35,"October_total_m3":0.37,"September_total_m3":0.02,"backflow_m3":0.007,"meter_datetime":"2024-06-18 12:36","total_m3":40.263,"voltage_v":3.05,"contents":"BATTERY_VOLTAGE LEAK_DATE BACKFLOW MONTHLY_DATA","leak_date":"25.04.2024","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"water","meter":"hydrodigit","name":"Hydro4","id":"87654322","April_total_m3":30.18,"August_total_m3":0.02,"December_total_m3":9.17,"February_total_m3":19.02,"January_total_m3":14.44,"July_total_m3":0,"June_total_m3":0,"March_total_m3":24.37,"May_total_m3":36.58,"November_total_m3":4.35,"October_total_m3":0.37,"September_total_m3":0.02,"backflow_m3":0.007,"meter_datetime":"2024-06-18 12:36","total_m3":40.263,"voltage_v":3.05,"contents":"BATTERY_VOLTAGE LEAK_DATE BACKFLOW MONTHLY_DATA","leak_date":"2024-04-25","timestamp":"1111-11-11T11:11:11Z"}
 // |Hydro4;87654322;40.263;2024-06-18 12:36;1111-11-11 11:11.11
 
 
@@ -398,5 +398,5 @@ namespace {
 
 // Test: hydro7 hydrodigit 03122061 NOKEY
 // telegram=|4C44B4096120120317077AB90000000C1330000000046D132E3E360F8F000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|
-// {"_": "telegram","backflow_m3": 0,"contents": "BATTERY_VOLTAGE FRAUD_DATE LEAK_DATE BACKFLOW","fraud_date": "00.00.2000","fraud_type": "no type info","id": "03122061","leak_date": "00.00.2000","media": "water","meter": "hydrodigit","meter_datetime": "2025-06-30 14:19","name": "hydro7","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.03,"voltage_v": 3.7}
+// {"_": "telegram","backflow_m3": 0,"contents": "BATTERY_VOLTAGE FRAUD_DATE LEAK_DATE BACKFLOW","fraud_date": "2000-00-00","fraud_type": "no type info","id": "03122061","leak_date": "2000-00-00","media": "water","meter": "hydrodigit","meter_datetime": "2025-06-30 14:19","name": "hydro7","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.03,"voltage_v": 3.7}
 // |hydro7;03122061;0.03;2025-06-30 14:19;1111-11-11 11:11.11
