@@ -395,3 +395,8 @@ namespace {
 // telegram=|2144B4099163742315077A400000000C1399999999046D092A30340F050B01000000
 // {"_":"telegram", "media":"water", "meter":"hydrodigit", "name":"HydrodigitWaterrr", "id":"23746391", "backflow_m3":0.001, "meter_datetime":"2025-04-16 10:09", "total_m3":99999.999, "voltage_v":3.2, "contents":"BATTERY_VOLTAGE BACKFLOW", "timestamp":"1111-11-11T11:11:11Z" }
 // |HydrodigitWaterrr;23746391;99999.999;2025-04-16 10:09;1111-11-11 11:11.11
+
+// Test: hydro7 hydrodigit 03122061 NOKEY
+// telegram=|4C44B4096120120317077AB90000000C1330000000046D132E3E360F8F000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000|
+// {"_": "telegram","backflow_m3": 0,"contents": "BATTERY_VOLTAGE FRAUD_DATE LEAK_DATE BACKFLOW","fraud_date": "00.00.2000","fraud_type": "no type info","id": "03122061","leak_date": "00.00.2000","media": "water","meter": "hydrodigit","meter_datetime": "2025-06-30 14:19","name": "hydro7","timestamp": "1111-11-11T11:11:11Z","total_m3": 0.03,"voltage_v": 3.7}
+// |hydro7;03122061;0.03;2025-06-30 14:19;1111-11-11 11:11.11
