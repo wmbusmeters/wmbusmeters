@@ -60,9 +60,9 @@ namespace {
                 DEFAULT_PRINT_PROPERTIES);
         addNumericField("voltage", Quantity::Voltage, DEFAULT_PRINT_PROPERTIES,
                 "Voltage of the battery inside the meter", Unit::Volt);
-        addStringField("fraud_type", "Type of fraud detected by the meter", 
+        addStringField("fraud_type", "Type of fraud detected by the meter",
                 DEFAULT_PRINT_PROPERTIES);
-        addStringField("fraud_date", "Date of fraud detected by the meter", 
+        addStringField("fraud_date", "Date of fraud detected by the meter",
                 DEFAULT_PRINT_PROPERTIES);
         addStringField("leak_date", "Date of leakage detected by meter",
                 DEFAULT_PRINT_PROPERTIES);
@@ -213,15 +213,15 @@ namespace {
             setStringValue("contents", "");
             return;
         }
-        
+
         i++;
         if (i >= len) return;
-        
+
         if (frame_identifier & MASK_BATTERY_VOLTAGE_PRESENT) {
 
-            if (!explanation.empty()) explanation += ", ";
-            explanation += "Battery voltage";
-            
+            if (!explanation.empty()) explanation += " ";
+            explanation += "BATTERY_VOLTAGE";
+
             // only the bottom half changes the voltage, top half's purpose is unknown
             // values obtained from software by changing value from 0x00-0F
             // changing the top half didn't seem to change anything, but it might require a combination with other bytes
@@ -239,15 +239,15 @@ namespace {
         if (frame_identifier & MASK_FRAUD_DATE_PRESENT) {
             if (i + 2 >= len) return;
 
-            if (!explanation.empty()) explanation += ", ";
-            explanation += "Fraud date";
+            if (!explanation.empty()) explanation += " ";
+            explanation += "FRAUD_DATE";
 
             uchar fraud_year = bytes[i];
             uchar fraud_month_raw = bytes[i + 1];
             uchar fraud_day = bytes[i + 2];
 
-            uchar fraud_month = fraud_month_raw & 0x0F;  
-            uchar fraud_flags = fraud_month_raw & 0xE0;  
+            uchar fraud_month = fraud_month_raw & 0x0F;
+            uchar fraud_flags = fraud_month_raw & 0xE0;
 
             // Vytvoření popisu typů podvodu
             std::string fraud_type_desc;
@@ -276,15 +276,15 @@ namespace {
             setStringValue("fraud_date", buffer);
             setStringValue("fraud_type", fraud_type_desc.empty() ? "no type info" : fraud_type_desc);
 
-            i += 3; 
+            i += 3;
         }
 
         if (frame_identifier & MASK_WATER_LOSS_DATE_PRESENT) {
             if (i + 2 >= len) return;
-      
-            if (!explanation.empty()) explanation += ", ";
-            explanation += "Leak date";
-        
+
+            if (!explanation.empty()) explanation += " ";
+            explanation += "LEAK_DATE";
+
             uchar leak_year = bytes[i];
             uchar leak_month = bytes[i + 1];
             uchar leak_day = bytes[i + 2];
@@ -305,10 +305,10 @@ namespace {
 
         if (frame_identifier & MASK_BACKWARD_FLOW_PRESENT) {
             if (i + 3 >= len) return;
-            
-            if (!explanation.empty()) explanation += ", ";
-            explanation += "Backflow";
-            
+
+            if (!explanation.empty()) explanation += " ";
+            explanation += "BACKFLOW";
+
             // backflow detected by the meter, has higher precision than normal values
             double backflow = fromBackflow(bytes[i], bytes[i + 1], bytes[i + 2],
                     bytes[i + 3]);
@@ -317,13 +317,13 @@ namespace {
                     bytes[i], bytes[i + 1], bytes[i + 2], bytes[i + 3],
                     backflow);
             setNumericValue("backflow", Unit::M3, backflow);
-    
+
             i += 4;
         }
 
         if (frame_identifier & MASK_DATA_HISTORY_PRESENT) {
-            if (!explanation.empty()) explanation += ", ";
-            explanation += "Monthly data";
+            if (!explanation.empty()) explanation += " ";
+            explanation += "MONTHLY_DATA";
             double monthData;
             string month_field_name;
             for (int month = 1; month <= 12; ++month) {
@@ -366,31 +366,31 @@ namespace {
 
 // Test: HydrodigitWater hydrodigit 86868686 NOKEY
 // telegram=|4E44B4098686868613077AF0004005_2F2F0C1366380000046D27287E2A0F150E00000000C10000D10000E60000FD00000C01002F0100410100540100680100890000A00000B30000002F2F2F2F2F2F|
-// {"_":"telegram","April_total_m3": 2.53,"August_total_m3": 3.4,"December_total_m3": 1.79,"February_total_m3": 2.09,"January_total_m3": 1.93,"July_total_m3": 3.21,"June_total_m3": 3.03,"March_total_m3": 2.3,"May_total_m3": 2.68,"November_total_m3": 1.6,"October_total_m3": 1.37,"September_total_m3": 3.6,"backflow_m3": 0,"contents": "Battery voltage, Backflow, Monthly data","id": "86868686","media": "water","meter": "hydrodigit","meter_datetime": "2019-10-30 08:39","name": "HydrodigitWater","timestamp": "1111-11-11T11:11:11Z","total_m3": 3.866,"voltage_v": 3.7}
+// {"_":"telegram","April_total_m3": 2.53,"August_total_m3": 3.4,"December_total_m3": 1.79,"February_total_m3": 2.09,"January_total_m3": 1.93,"July_total_m3": 3.21,"June_total_m3": 3.03,"March_total_m3": 2.3,"May_total_m3": 2.68,"November_total_m3": 1.6,"October_total_m3": 1.37,"September_total_m3": 3.6,"backflow_m3": 0,"contents": "BATTERY_VOLTAGE BACKFLOW MONTHLY_DATA","id": "86868686","media": "water","meter": "hydrodigit","meter_datetime": "2019-10-30 08:39","name": "HydrodigitWater","timestamp": "1111-11-11T11:11:11Z","total_m3": 3.866,"voltage_v": 3.7}
 // |HydrodigitWater;86868686;3.866;2019-10-30 08:39;1111-11-11 11:11.11
 
 // Test: HydridigitWaterr hydrodigit 03245501 NOKEY
 // telegram=|2444B4090155240317068C00487AC0000000_0C1335670000046D172EEA280F030000000000|
-// {"_":"telegram","contents": "Battery voltage, Fraud date","id": "03245501","media": "warm water","meter": "hydrodigit","meter_datetime": "2023-08-10 14:23","name": "HydridigitWaterr","timestamp": "1111-11-11T11:11:11Z","total_m3": 6.735, "voltage_v": 3.7, "fraud_date": "00.00.2000", "fraud_type": "no type info"}
+// {"_":"telegram","contents": "BATTERY_VOLTAGE FRAUD_DATE","id": "03245501","media": "warm water","meter": "hydrodigit","meter_datetime": "2023-08-10 14:23","name": "HydridigitWaterr","timestamp": "1111-11-11T11:11:11Z","total_m3": 6.735, "voltage_v": 3.7, "fraud_date": "00.00.2000", "fraud_type": "no type info"}
 // |HydridigitWaterr;03245501;6.735;2023-08-10 14:23;1111-11-11 11:11.11
 
 
 // Test: Hydro3 hydrodigit 87654321 NOKEY
 // Comment: This is a nice one to showcase the backflow encoding.
 // telegram=|4644B4092143658713077A9C000000_0C1364390400_046D212F1635_0F152A0F000000440F00C00F00511000D51000B20B00180C007C0C00E60C00560D00D10D00400E00C60E0000|
-// {"_":"telegram","media":"water","meter":"hydrodigit","name":"Hydro3","id":"87654321","April_total_m3":43.09,"August_total_m3":33.02,"December_total_m3":37.82,"February_total_m3":40.32,"January_total_m3":39.08,"July_total_m3":31.96,"June_total_m3":30.96,"March_total_m3":41.77,"May_total_m3":29.94,"November_total_m3":36.48,"October_total_m3":35.37,"September_total_m3":34.14,"backflow_m3":0.015,"meter_datetime":"2024-05-22 15:33","total_m3":43.964,"voltage_v":3.05,"contents":"Battery voltage, Backflow, Monthly data","timestamp":"1111-11-11T11:11:11Z"}
+// {"_":"telegram","media":"water","meter":"hydrodigit","name":"Hydro3","id":"87654321","April_total_m3":43.09,"August_total_m3":33.02,"December_total_m3":37.82,"February_total_m3":40.32,"January_total_m3":39.08,"July_total_m3":31.96,"June_total_m3":30.96,"March_total_m3":41.77,"May_total_m3":29.94,"November_total_m3":36.48,"October_total_m3":35.37,"September_total_m3":34.14,"backflow_m3":0.015,"meter_datetime":"2024-05-22 15:33","total_m3":43.964,"voltage_v":3.05,"contents":"BATTERY_VOLTAGE BACKFLOW MONTHLY_DATA","timestamp":"1111-11-11T11:11:11Z"}
 // |Hydro3;87654321;43.964;2024-05-22 15:33;1111-11-11 11:11.11
 
 
 // Test: Hydro4 hydrodigit 87654322 NOKEY
 // Comment: This one adds a leak date to the definition, plus shows how the monthly data looks before module installation.
 // telegram=|4944B4092243658713077A7F000000_0C1363020400_046D242C1236_0F950A24042507000000A405006E0700850900CA0B004A0E00FFFFFFFFFFFF020000020000250000B3010095030000|
-// {"_":"telegram","media":"water","meter":"hydrodigit","name":"Hydro4","id":"87654322","April_total_m3":30.18,"August_total_m3":0.02,"December_total_m3":9.17,"February_total_m3":19.02,"January_total_m3":14.44,"July_total_m3":0,"June_total_m3":0,"March_total_m3":24.37,"May_total_m3":36.58,"November_total_m3":4.35,"October_total_m3":0.37,"September_total_m3":0.02,"backflow_m3":0.007,"meter_datetime":"2024-06-18 11:36","total_m3":40.263,"voltage_v":3.05,"contents":"Battery voltage, Leak date, Backflow, Monthly data","leak_date":"25.04.2024","timestamp":"1111-11-11T11:11:11Z"}
-// |Hydro4;87654322;40.263;2024-06-18 11:36;1111-11-11 11:11.11
+// {"_":"telegram","media":"water","meter":"hydrodigit","name":"Hydro4","id":"87654322","April_total_m3":30.18,"August_total_m3":0.02,"December_total_m3":9.17,"February_total_m3":19.02,"January_total_m3":14.44,"July_total_m3":0,"June_total_m3":0,"March_total_m3":24.37,"May_total_m3":36.58,"November_total_m3":4.35,"October_total_m3":0.37,"September_total_m3":0.02,"backflow_m3":0.007,"meter_datetime":"2024-06-18 12:36","total_m3":40.263,"voltage_v":3.05,"contents":"BATTERY_VOLTAGE LEAK_DATE BACKFLOW MONTHLY_DATA","leak_date":"25.04.2024","timestamp":"1111-11-11T11:11:11Z"}
+// |Hydro4;87654322;40.263;2024-06-18 12:36;1111-11-11 11:11.11
 
 
 // Test: HydrodigitWaterrr hydrodigit 23746391 NOKEY
 // Comment: This one has a backflow and a leak date, but no monthly data.
 // telegram=|2144B4099163742315077A400000000C1399999999046D092A30340F050B01000000
-// {"_":"telegram", "media":"water", "meter":"hydrodigit", "name":"HydrodigitWaterrr", "id":"23746391", "backflow_m3":0.001, "meter_datetime":"2025-04-16 10:09", "total_m3":99999.999, "voltage_v":3.2, "contents":"Battery voltage, Backflow", "timestamp":"1111-11-11T11:11:11Z" }
+// {"_":"telegram", "media":"water", "meter":"hydrodigit", "name":"HydrodigitWaterrr", "id":"23746391", "backflow_m3":0.001, "meter_datetime":"2025-04-16 10:09", "total_m3":99999.999, "voltage_v":3.2, "contents":"BATTERY_VOLTAGE BACKFLOW", "timestamp":"1111-11-11T11:11:11Z" }
 // |HydrodigitWaterrr;23746391;99999.999;2025-04-16 10:09;1111-11-11 11:11.11
