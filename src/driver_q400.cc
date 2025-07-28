@@ -31,6 +31,7 @@ namespace
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addDetection(MANUFACTURER_AXI, 0x07,  0x01);
+        di.addDetection(MANUFACTURER_AXI, 0x07,  0x10);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 
@@ -120,3 +121,8 @@ namespace
 // telegram=|544409076391820510077ABF100000046D2A0DC62C0420E80F430104130000000004933B0000000004933C00000000023B00000259F0D8446D0000C12C44130000000044933B0000000044933C0000000001FD7461|
 // {"_":"telegram","backward_at_set_date_m3": 0,"battery_pct": 97,"consumption_at_set_date_m3": 0,"flow_temperature_c": -100,"forward_at_set_date_m3": 0,"id": "05829163","media": "water","meter": "q400","meter_datetime": "2022-12-06 13:42","name": "M","on_time_h": 5881.166667,"set_datetime": "2022-12-01 00:00","status": "TEMPORARY_ERROR","timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 0,"total_forward_m3": 0,"total_m3": 0,"volume_flow_m3h": 0}
 // |M;05829163;0;1111-11-11 11:11.11
+
+// Test: MM q400 06289748 NOKEY
+// telegram=|614409074897280601077AD1000000046D2C173B370420580193040413FB94000004933BFB94000004933C01000000023B02000259E306446D000021374413C08A000044933BC08A000044933C0100000034FD17000000000424BA01930401FD745B|
+// {"_": "telegram","backward_at_set_date_m3": 0.001,"battery_pct": 91,"consumption_at_set_date_m3": 35.52,"flow_temperature_c": 17.63,"forward_at_set_date_m3": 35.52,"id": "06289748","media": "water","meter": "q400","meter_datetime": "2025-07-27 23:44","name": "MM","on_time_h": 21317.5,"set_datetime": "2025-07-01 00:00","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_backward_m3": 0.001,"total_forward_m3": 38.139,"total_m3": 38.139,"volume_flow_m3h": 0.002}
+// |MM;06289748;38.139;1111-11-11 11:11.11
