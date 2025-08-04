@@ -1,4 +1,4 @@
-/* libxmq - Copyright (C) 2023-2024 Fredrik Öhrström (spdx: MIT)
+/* libxmq - Copyright (C) 2023-2025 Fredrik Öhrström (spdx: MIT)
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -23,14 +23,17 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include"xmq.h"
 
-#define BUILDING_XMQ
+// If we are concatening a single source file dist/xmq.dc then add the define BUILDING_DIST_XMQ
+#define BUILDING_DIST_XMQ
 
 // PART HEADERS //////////////////////////////////////////////////
 
-// PARTS ALWAYS ////////////////////////////////////////
+// PART H ALWAYS ////////////////////////////////////////
 
 #include<stdbool.h>
 #include<stdlib.h>
+#include<stdarg.h>
+#include<setjmp.h>
 
 struct XMQLineConfig
 {
@@ -38,9 +41,13 @@ struct XMQLineConfig
 };
 typedef struct XMQLineConfig XMQLineConfig;
 
+struct MemBuffer;
+typedef struct MemBuffer MemBuffer;
+
 extern bool xmq_trace_enabled_;
 extern bool xmq_debug_enabled_;
 extern bool xmq_verbose_enabled_;
+extern const char *xmq_log_filter_;
 extern struct XMQLineConfig xmq_log_line_config_;
 
 void error__(const char* fmt, ...);
@@ -48,13 +55,19 @@ void warning__(const char* fmt, ...);
 void verbose__(const char* fmt, ...);
 void debug__(const char* fmt, ...);
 void trace__(const char* fmt, ...);
+void debug_mb__(const char* module, MemBuffer *mb);
+void trace_mb__(const char* fmt, MemBuffer *mb);
 void check_malloc(void *a);
+
+char *buf_vsnprintf(const char *format, va_list ap);
 
 #define error(...) error__(__VA_ARGS__)
 #define warning(...) warning__(__VA_ARGS__)
 #define verbose(...) if (xmq_verbose_enabled_) { verbose__(__VA_ARGS__); }
 #define debug(...) if (xmq_debug_enabled_) {debug__(__VA_ARGS__); }
+#define debug_mb(module, mb) if (xmq_debug_enabled_) {debug_mb__(module, mb); }
 #define trace(...) if (xmq_trace_enabled_) {trace__(__VA_ARGS__); }
+#define trace_mb(module, mb) if (xmq_trace_enabled_) {trace_mb__(module, mb); }
 
 #define PRINT_ERROR(...) fprintf(stderr, __VA_ARGS__)
 #define PRINT_WARNING(...) fprintf(stderr, __VA_ARGS__)
@@ -66,11 +79,13 @@ char *strndup(const char *s, size_t l);
 // A common free function ptr to be used when freeing collections.
 typedef void(*FreeFuncPtr)(void*);
 
+char *humanReadableTwoDecimals(size_t s);
+
 #define ALWAYS_MODULE
 
-// PARTS COLORS ////////////////////////////////////////
+// PART H COLORS ////////////////////////////////////////
 
-#ifndef BUILDING_XMQ
+#ifndef BUILDING_DIST_XMQ
 #include "xmq.h"
 #endif
 
@@ -259,7 +274,7 @@ bool generate_tex_color(char *buf, size_t buf_size, XMQColorDef *def, const char
 
 #define COLORS_MODULE
 
-// PARTS CORE ////////////////////////////////////////
+// PART H CORE ////////////////////////////////////////
 
 #include<stdbool.h>
 #include<stdint.h>
@@ -272,9 +287,9 @@ bool coreParseI32(const char *s, int32_t *out);
 bool coreParseI64(const char *s, int64_t *out);
 //bool coreParseI128(const char *s, __int128 *out);
 
-// PARTS DEFAULT_THEMES ////////////////////////////////////////
+// PART H DEFAULT_THEMES ////////////////////////////////////////
 
-#ifndef BUILDING_XMQ
+#ifndef BUILDING_DIST_XMQ
 #include "xmq.h"
 #endif
 
@@ -286,7 +301,7 @@ const char *ansiWin(int i);
 
 #define DEFAULT_THEMES_MODULE
 
-// PARTS ENTITIES ////////////////////////////////////////
+// PART H ENTITIES ////////////////////////////////////////
 
 /**
     toHtmlEntity:
@@ -296,683 +311,12 @@ const char *toHtmlEntity(int uc);
 
 #define ENTITIES_MODULE
 
-// PARTS UTF8 ////////////////////////////////////////
+// PART H UTF8 ////////////////////////////////////////
 
-#ifndef BUILDING_XMQ
+#ifndef BUILDING_DIST_XMQ
 #include"xmq.h"
 #include"colors.h"
-// PARTS XMQ_INTERNALS ////////////////////////////////////////
-
-#include<assert.h>
-#include<ctype.h>
-#include<errno.h>
-#include<math.h>
-#include<setjmp.h>
-#include<stdarg.h>
-#include<stdbool.h>
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<unistd.h>
-
-#include"xmq.h"
-#include<libxml/tree.h>
-#include<libxml/parser.h>
-#include<libxml/HTMLparser.h>
-#include<libxml/HTMLtree.h>
-#include<libxml/xmlreader.h>
-#include<libxml/xpath.h>
-#include<libxml/xpathInternals.h>
-
-#ifndef BUILDING_XMQ
-#include"colors.h"
-#endif
-
-// STACK /////////////////////
-
-struct Stack;
-typedef struct Stack Stack;
-
-struct Vector;
-typedef struct Vector Vector;
-
-struct HashMap;
-typedef struct HashMap HashMap;
-
-struct HashMapIterator;
-typedef struct HashMapIterator HashMapIterator;
-
-struct MemBuffer;
-typedef struct MemBuffer MemBuffer;
-
-struct YaepParseRun;
-typedef struct YaepParseRun YaepParseRun;
-
-struct YaepGrammar;
-typedef struct YaepGrammar YaepGrammar;
-
-struct XMQParseState;
-typedef struct XMQParseState XMQParseState;
-
-// DECLARATIONS /////////////////////////////////////////////////
-
-#define LIST_OF_XMQ_TOKENS  \
-    X(whitespace)           \
-    X(equals)               \
-    X(brace_left)           \
-    X(brace_right)          \
-    X(apar_left)            \
-    X(apar_right)           \
-    X(cpar_left)            \
-    X(cpar_right)           \
-    X(quote)                \
-    X(entity)               \
-    X(comment)              \
-    X(comment_continuation) \
-    X(element_ns)           \
-    X(element_name)         \
-    X(element_key)          \
-    X(element_value_text)   \
-    X(element_value_quote)  \
-    X(element_value_entity) \
-    X(element_value_compound_quote)  \
-    X(element_value_compound_entity) \
-    X(attr_ns)             \
-    X(attr_key)            \
-    X(attr_value_text)     \
-    X(attr_value_quote)    \
-    X(attr_value_entity)   \
-    X(attr_value_compound_quote)    \
-    X(attr_value_compound_entity)   \
-    X(ns_declaration) \
-    X(ns_colon)  \
-
-#define MAGIC_COOKIE 7287528
-
-struct XMQNode
-{
-    xmlNodePtr node;
-};
-
-struct XMQDoc
-{
-    union {
-        xmlDocPtr xml;
-        htmlDocPtr html;
-    } docptr_; // Is both xmlDocPtr and htmlDocPtr.
-    const char *source_name_; // File name or url from which the documented was fetched.
-    int errno_; // A parse error is assigned a number.
-    const char *error_; // And the error is explained here.
-    XMQNode root_; // The root node.
-    XMQContentType original_content_type_; // Remember if this document was created from xmq/xml etc.
-    size_t original_size_; // Remember the original source size of the document it was loaded from.
-
-    // For now these references are here. I am not quite sure where to put them in the future.
-    // The IXML grammar can be parsed, but not actually turned into a yaep grammar until
-    // we have seen the content to be parsed, since we want to shrink the charset membership tests to a minimum.
-    // I.e. if the content only contains a:s and b:s (eg 'abbabbabaaab') then the charset test
-    // ['a'-'z'] shrinks down to ['a';'b']
-    YaepParseRun *yaep_parse_run_; // The currently executing parse variables.
-    YaepGrammar *yaep_grammar_; // The yaep grammar to be used by the run.
-    XMQParseState *yaep_parse_state_; // The parse state used to parse the ixml grammar.
-};
-
-#ifdef __cplusplus
-enum Level : short {
-#else
-enum Level {
-#endif
-    LEVEL_XMQ = 0,
-    LEVEL_ELEMENT_VALUE = 1,
-    LEVEL_ELEMENT_VALUE_COMPOUND = 2,
-    LEVEL_ATTR_VALUE = 3,
-    LEVEL_ATTR_VALUE_COMPOUND = 4
-};
-typedef enum Level Level;
-
-/**
-    XMQOutputSettings:
-    @add_indent: Default is 4. Indentation starts at 0 which means no spaces prepended.
-    @compact: Print on a single line limiting whitespace to a minimum.
-    @escape_newlines: Replace newlines with &#10; this is implied if compact is set.
-    @escape_non_7bit: Replace all chars above 126 with char entities, ie &#10;
-    @escape_tabs: Replace tabs with &#9;
-    @output_format: Print xmq/xml/html/json
-    @render_to: Render to terminal, html, tex.
-    @render_raw: If true do not write surrounding html and css colors, likewise for tex.
-    @only_style: Print only style sheet header.
-    @write_content: Write content to buffer.
-    @buffer_content: Supplied as buffer above.
-    @write_error: Write error to buffer.
-    @buffer_error: Supplied as buffer above.
-    @colorings: Map from namespace (default is the empty string) to  prefixes/postfixes to colorize the output for ANSI/HTML/TEX.
-*/
-struct XMQOutputSettings
-{
-    int  add_indent;
-    bool compact;
-    bool omit_decl;
-    bool use_color;
-    bool bg_dark_mode;
-    bool escape_newlines;
-    bool escape_non_7bit;
-    bool escape_tabs;
-
-    XMQContentType output_format;
-    XMQRenderFormat render_to;
-    bool render_raw;
-    bool only_style;
-    const char *render_theme;
-
-    XMQWriter content;
-    XMQWriter error;
-
-    // If printing to memory:
-    MemBuffer *output_buffer;
-    char **output_buffer_start;
-    char **output_buffer_stop;
-    size_t *output_skip;
-
-    const char *indentation_space; // If NULL use " " can be replaced with any other string.
-    const char *explicit_space; // If NULL use " " can be replaced with any other string.
-    const char *explicit_tab; // If NULL use "\t" can be replaced with any other string.
-    const char *explicit_cr; // If NULL use "\t" can be replaced with any other string.
-    const char *explicit_nl; // If NULL use "\n" can be replaced with any other string.
-    const char *prefix_line; // If non-NULL print this as the leader before each line.
-    const char *postfix_line; // If non-NULL print this as the ending after each line.
-
-    const char *use_id; // If non-NULL inser this id in the pre tag.
-    const char *use_class; // If non-NULL insert this class in the pre tag.
-
-    XMQTheme *theme; // The theme used to print.
-    void *free_me;
-    void *free_and_me;
-};
-typedef struct XMQOutputSettings XMQOutputSettings;
-
-enum IXMLTermType
-{
-    IXML_TERMINAL, IXML_NON_TERMINAL, IXML_CHARSET
-};
-typedef enum IXMLTermType IXMLTermType;
-
-struct IXMLCharsetPart;
-typedef struct IXMLCharsetPart IXMLCharsetPart;
-struct IXMLCharsetPart
-{
-    IXMLCharsetPart *next;
-    // A charset range [ 'a' - 'z' ]
-    // A single char is [ 'a' - 'a' ] used for each element in a string set definition, eg 'abc'
-    int from, to;
-    // A charset category [ Lc ] for lower case character or [Zs] for whitespace,
-    // stored as two characters and the null terminatr.
-    char category[3];
-};
-
-struct IXMLCharset
-{
-    // Negate the check, exclude the specified characters.
-    bool exclude;
-    // Charset contents.
-    IXMLCharsetPart *first;
-    IXMLCharsetPart *last;
-};
-typedef struct IXMLCharset IXMLCharset;
-
-struct IXMLTerminal
-{
-    char *name;
-    int code;
-};
-typedef struct IXMLTerminal IXMLTerminal;
-
-struct IXMLNonTerminal
-{
-    char *name;
-    char *alias;
-    IXMLCharset *charset; // If the rule embodies a charset.
-};
-typedef struct IXMLNonTerminal IXMLNonTerminal;
-
-struct IXMLTerm // A term is an element in the rhs vector in the rule.
-{
-    IXMLTermType type;
-    char mark; // Exclude a term in a rule's rhs: rr: -A, B;  then only the contents of A will be printed.
-    IXMLTerminal *t;
-    IXMLNonTerminal *nt;
-};
-typedef struct IXMLTerm IXMLTerm;
-
-struct IXMLRule
-{
-    IXMLNonTerminal *rule_name;
-    char mark;
-    Vector *rhs_terms;
-};
-typedef struct IXMLRule IXMLRule;
-
-struct XMQParseState
-{
-    char *source_name; // Only used for generating any error messages.
-    void *out;
-    const char *buffer_start; // Points to first byte in buffer.
-    const char *buffer_stop;   // Points to byte >after< last byte in buffer.
-    const char *i; // Current parsing position.
-    size_t line; // Current line.
-    size_t col; // Current col.
-    XMQParseError error_nr; // A standard parse error enum that maps to text.
-    const char *error_info; // Additional info printed with the error nr.
-    char *generated_error_msg; // Additional error information.
-    MemBuffer *generating_error_msg;
-    jmp_buf error_handler;
-
-    bool simulated; // When true, this is generated from JSON parser to simulate an xmq element name.
-    XMQParseCallbacks *parse;
-    XMQDoc *doq;
-    const char *implicit_root; // Assume that this is the first element name
-    Stack *element_stack; // Top is last created node
-    void *element_last; // Last added sibling to stack top node.
-    bool parsing_doctype; // True when parsing a doctype.
-    void *add_pre_node_before; // Used when retrofitting pre-root comments and doctype found in json.
-    bool root_found; // Used to decide if _// should be printed before or after root.
-    void *add_post_node_after; // Used when retrofitting post-root comments found in json.
-    bool doctype_found; // True after a doctype has been parsed.
-    bool parsing_pi; // True when parsing a processing instruction, pi.
-    bool merge_text; // Merge text nodes and character entities.
-    bool no_trim_quotes; // No trimming if quotes, used when reading json strings.
-    bool ixml_all_parses; // If IXML parse is ambiguous then print all parses.
-    bool ixml_try_to_recover; // If IXML parse fails, try to recover.
-    const char *pi_name; // Name of the pi node just started.
-    XMQOutputSettings *output_settings; // Used when coloring existing text using the tokenizer.
-    int magic_cookie; // Used to check that the state has been properly initialized.
-
-    char *element_namespace; // The element namespace is found before the element name. Remember the namespace name here.
-    char *attribute_namespace; // The attribute namespace is found before the attribute key. Remember the namespace name here.
-    bool declaring_xmlns; // Set to true when the xmlns declaration is found, the next attr value will be a href
-    void *declaring_xmlns_namespace; // The namespace to be updated with attribute value, eg. xmlns=uri or xmlns:prefix=uri
-
-    void *default_namespace; // If xmlns=http... has been set, then a pointer to the namespace object is stored here.
-
-    // These are used for better error reporting.
-    const char *last_body_start;
-    size_t last_body_start_line;
-    size_t last_body_start_col;
-    const char *last_attr_start;
-    size_t last_attr_start_line;
-    size_t last_attr_start_col;
-    const char *last_quote_start;
-    size_t last_quote_start_line;
-    size_t last_quote_start_col;
-    const char *last_compound_start;
-    size_t last_compound_start_line;
-    size_t last_compound_start_col;
-    const char *last_equals_start;
-    size_t last_equals_start_line;
-    size_t last_equals_start_col;
-    const char *last_suspicios_quote_end;
-    size_t last_suspicios_quote_end_line;
-    size_t last_suspicios_quote_end_col;
-
-    ///////// The following variables are used when parsing ixml. //////////////////////////////////
-    // Collect all unique terminals in this map from the name. #78 and 'x' is the same terminal with code 120.
-    // The name is a #hex version of unicode codepoint.
-    HashMap *ixml_terminals_map;
-    // References to non-terminals, ie rules (includes mark -^@).
-    Vector *ixml_non_terminals;
-    // Store all rules here. The rule has a rule_name which is a non-terminal ref to itself.
-    Vector *ixml_rules;
-    // Rule stack is pushed by groups (..), ?, *, **, + and ++.
-    Stack  *ixml_rule_stack;
-    // Generated rule counter. Starts at 0 and increments after each generated
-    // anonymous rule, ie (..), ? etc. The rules will have the names /0 /1 /2 etc.
-    int num_generated_rules;
-    // The ixml_rule is the current rule that we are building.
-    IXMLRule *ixml_rule;
-    // The ixml_nonterminal is the current rule reference.
-    IXMLNonTerminal *ixml_nonterminal;
-    // The ixml_tmp_terminals is the current collection of terminals, ie characters.
-    // A single ixml #78 or 'x' or "x" adds a single terminal to this vector.
-    // The string 'xy' adds two terminals to this vector, etc.
-    // These terminals are then added to the rule's rhs.
-    Vector *ixml_tmp_terminals;
-    // The ixml_tmp_terms is the current collection of terms (terminal or non-terminals),
-    // These terms are then added to the rule's rhs.
-//    Vector *ixml_rhs_tmp_terms;
-    // These are the marks @-^ for the terminals.
-    Vector *ixml_rhs_tmp_marks;
-    // The most recently parsed mark.
-    char ixml_mark;
-    // The most recently parsed encoded value #41
-    int ixml_encoded;
-    // Any charset we are currently building.
-    IXMLCharset *ixml_charset;
-    // Parsing ranges of charsets.
-    int ixml_charset_from;
-    int ixml_charset_to;
-    // When parsing the grammar, collect all charset categories that we use.
-    HashMap *ixml_found_categories;
-
-    // These are used when travergins the IXML parse tree and generating the yaep grammar build calls.
-    char **yaep_tmp_rhs_;
-    char *yaep_tmp_marks_;
-    int *yaep_tmp_transl_;
-    HashMapIterator *yaep_i_;
-    size_t yaep_j_;
-
-    // When debugging parsing of ixml, track indentation of depth here.
-    int depth;
-    // Generate xml as well.
-    bool build_xml_of_ixml;
-};
-
-/**
-   XMQPrintState:
-   @current_indent: The current_indent stores how far we have printed on the current line.
-                    0 means nothing has been printed yet.
-   @line_indent:  The line_indent stores the current indentation level from which print
-                  starts for each new line. The line_indent is 0 when we start printing the xmq.
-   @last_char: the last_char remembers the most recent printed character. or 0 if no char has been printed yet.
-   @color_pre: The active color prefix.
-   @prev_color_pre: The previous color prefix, used for restoring utf8 text after coloring unicode whitespace.
-   @restart_line: after nl_and_indent print this to restart coloring of line.
-   @ns: the last namespace reference.
-   @output_settings: the output settings.
-   @doc: The xmq document that is being printed.
-*/
-struct XMQPrintState
-{
-    size_t current_indent;
-    size_t line_indent;
-    int last_char;
-    const char *replay_active_color_pre;
-    const char *restart_line;
-    const char *last_namespace;
-    Stack *pre_nodes; // Used to remember leading comments/doctype when printing json.
-    size_t pre_post_num_comments_total; // Number of comments outside of the root element.
-    size_t pre_post_num_comments_used; // Active number of comment outside of the root element.
-    Stack *post_nodes; // Used to remember ending comments when printing json.
-    XMQOutputSettings *output_settings;
-    XMQDoc *doq;
-};
-typedef struct XMQPrintState XMQPrintState;
-
-/**
-    XMQQuoteSettings:
-    @force:           Always add single quotes. More quotes if necessary.
-    @compact:         Generate compact quote on a single line. Using &#10; and no superfluous whitespace.
-    @value_after_key: If enties are introduced by the quoting, then use compound ( ) around the content.
-
-    @indentation_space: Use this as the indentation character. If NULL default to " ".
-    @explicit_space: Use this as the explicit space/indentation character. If NULL default to " ".
-    @newline:     Use this as the newline character. If NULL default to "\n".
-    @prefix_line: Prepend each line with this. If NULL default to empty string.
-    @postfix_line Suffix each line whith this. If NULL default to empty string.
-    @prefix_entity: Prepend each entity with this. If NULL default to empty string.
-    @postfix_entity: Suffix each entity whith this. If NULL default to empty string.
-    @prefix_doublep: Prepend each ( ) with this. If NULL default to empty string.
-    @postfix_doublep: Suffix each ( ) whith this. If NULL default to empty string.
-*/
-struct XMQQuoteSettings
-{
-    bool force; // Always add single quotes. More quotes if necessary.
-    bool compact; // Generate compact quote on a single line. Using &#10; and no superfluous whitespace.
-    bool value_after_key; // If enties are introduced by the quoting, then use compound (( )) around the content.
-
-    const char *indentation_space;  // Use this as the indentation character. If NULL default to " ".
-    const char *explicit_space;  // Use this as the explicit space character inside quotes. If NULL default to " ".
-    const char *explicit_nl;      // Use this as the newline character. If NULL default to "\n".
-    const char *explicit_tab;      // Use this as the tab character. If NULL default to "\t".
-    const char *explicit_cr;      // Use this as the cr character. If NULL default to "\r".
-    const char *prefix_line;  // Prepend each line with this. If NULL default to empty string.
-    const char *postfix_line; // Append each line whith this, before any newline.
-    const char *prefix_entity;  // Prepend each entity with this. If NULL default to empty string.
-    const char *postfix_entity; // Append each entity whith this. If NULL default to empty string.
-    const char *prefix_doublep;  // Prepend each ( ) with this. If NULL default to empty string.
-    const char *postfix_doublep; // Append each ( ) whith this. If NULL default to empty string.
-};
-typedef struct XMQQuoteSettings XMQQuoteSettings;
-
-void generate_state_error_message(XMQParseState *state, XMQParseError error_nr, const char *start, const char *stop);
-
-// Text functions ////////////////
-
-bool is_all_xml_whitespace(const char *start);
-bool is_lowercase_hex(char c);
-bool is_unicode_whitespace(const char *start, const char *stop);
-size_t count_whitespace(const char *i, const char *stop);
-
-// XMQ parser utility functions //////////////////////////////////
-
-bool is_xml_whitespace(char c); // 0x9 0xa 0xd 0x20
-bool is_xmq_token_whitespace(char c); // 0xa 0xd 0x20
-bool is_xmq_attribute_key_start(char c);
-bool is_xmq_comment_start(char c, char cc);
-bool is_xmq_compound_start(char c);
-bool is_xmq_doctype_start(const char *start, const char *stop);
-bool is_xmq_pi_start(const char *start, const char *stop);
-bool is_xmq_entity_start(char c);
-bool is_xmq_quote_start(char c);
-bool is_xmq_text_value(const char *i, const char *stop);
-bool is_xmq_text_value_char(const char *i, const char *stop);
-bool unsafe_value_start(char c, char cc);
-bool is_safe_value_char(const char *i, const char *stop);
-
-size_t count_xmq_slashes(const char *i, const char *stop, bool *found_asterisk);
-size_t count_necessary_quotes(const char *start, const char *stop, bool compact, bool *add_nls, bool *add_compound);
-size_t count_necessary_slashes(const char *start, const char *stop);
-
-
-// Common parser functions ///////////////////////////////////////
-
-void increment(char c, size_t num_bytes, const char **i, size_t *line, size_t *col);
-
-Level enter_compound_level(Level l);
-XMQColor level_to_quote_color(Level l);
-XMQColor level_to_entity_color(Level l);
-void attr_strlen_name_prefix(xmlAttr *attr, const char **name, const char **prefix, size_t *total_u_len);
-void element_strlen_name_prefix(xmlNode *attr, const char **name, const char **prefix, size_t *total_u_len);
-void namespace_strlen_prefix(xmlNs *ns, const char **prefix, size_t *total_u_len);
-size_t find_attr_key_max_u_width(xmlAttr *a);
-size_t find_namespace_max_u_width(size_t max, xmlNs *ns);
-size_t find_element_key_max_width(xmlNodePtr node, xmlNodePtr *restart_find_at_node);
-bool is_hex(char c);
-unsigned char hex_value(char c);
-const char *find_word_ignore_case(const char *start, const char *stop, const char *word);
-
-XMQParseState *xmqAllocateParseState(XMQParseCallbacks *callbacks);
-void xmqFreeParseState(XMQParseState *state);
-bool xmqTokenizeBuffer(XMQParseState *state, const char *start, const char *stop);
-bool xmqTokenizeFile(XMQParseState *state, const char *file);
-
-void setup_terminal_coloring(XMQOutputSettings *os, XMQTheme *c, bool dark_mode, bool use_color, bool render_raw);
-void setup_html_coloring(XMQOutputSettings *os, XMQTheme *c, bool dark_mode, bool use_color, bool render_raw);
-void setup_tex_coloring(XMQOutputSettings *os, XMQTheme *c, bool dark_mode, bool use_color, bool render_raw);
-
-// XMQ tokenizer functions ///////////////////////////////////////////////////////////
-
-void eat_xml_whitespace(XMQParseState *state, const char **start, const char **stop);
-void eat_xmq_token_whitespace(XMQParseState *state, const char **start, const char **stop);
-void eat_xmq_entity(XMQParseState *state);
-void eat_xmq_comment_to_eol(XMQParseState *state, const char **content_start, const char **content_stop);
-void eat_xmq_comment_to_close(XMQParseState *state, const char **content_start, const char **content_stop, size_t n, bool *found_asterisk);
-void eat_xmq_text_value(XMQParseState *state);
-bool peek_xmq_next_is_equal(XMQParseState *state);
-size_t count_xmq_quotes(const char *i, const char *stop);
-void eat_xmq_quote(XMQParseState *state, const char **start, const char **stop);
-char *xmq_trim_quote(size_t indent, char space, const char *start, const char *stop);
-char *escape_xml_comment(const char *comment);
-char *unescape_xml_comment(const char *comment);
-void xmq_fixup_html_before_writeout(XMQDoc *doq);
-void xmq_fixup_comments_after_readin(XMQDoc *doq);
-
-char *xmq_comment(int indent,
-                 const char *start,
-                 const char *stop,
-                 XMQQuoteSettings *settings);
-char *xmq_un_comment(size_t indent, char space, const char *start, const char *stop);
-char *xmq_un_quote(size_t indent, char space, const char *start, const char *stop, bool remove_qs);
-
-// XMQ syntax parser functions ///////////////////////////////////////////////////////////
-
-void parse_xmq(XMQParseState *state);
-void parse_xmq_attribute(XMQParseState *state);
-void parse_xmq_attributes(XMQParseState *state);
-void parse_xmq_comment(XMQParseState *state, char cc);
-void parse_xmq_compound(XMQParseState *state, Level level);
-void parse_xmq_compound_children(XMQParseState *state, Level level);
-void parse_xmq_element_internal(XMQParseState *state, bool doctype, bool pi);
-void parse_xmq_element(XMQParseState *state);
-void parse_xmq_doctype(XMQParseState *state);
-void parse_xmq_pi(XMQParseState *state);
-void parse_xmq_entity(XMQParseState *state, Level level);
-void parse_xmq_quote(XMQParseState *state, Level level);
-void parse_xmq_text_any(XMQParseState *state);
-void parse_xmq_text_name(XMQParseState *state);
-void parse_xmq_text_value(XMQParseState *state, Level level);
-void parse_xmq_value(XMQParseState *state, Level level);
-void parse_xmq_whitespace(XMQParseState *state);
-
-// XML/HTML dom functions ///////////////////////////////////////////////////////////////
-
-xmlDtdPtr parse_doctype_raw(XMQDoc *doq, const char *start, const char *stop);
-char *xml_collapse_text(xmlNode *node);
-xmlNode *xml_first_child(xmlNode *node);
-xmlNode *xml_last_child(xmlNode *node);
-xmlNode *xml_prev_sibling(xmlNode *node);
-xmlNode *xml_next_sibling(xmlNode *node);
-xmlAttr *xml_first_attribute(xmlNode *node);
-xmlNs *xml_first_namespace_def(xmlNode *node);
-xmlNs *xml_next_namespace_def(xmlNs *ns);
-xmlAttr *xml_next_attribute(xmlAttr *attr);
-const char*xml_element_name(xmlNode *node);
-const char*xml_element_content(xmlNode *node);
-const char *xml_element_ns_prefix(const xmlNode *node);
-const char*xml_attr_key(xmlAttr *attr);
-const char*xml_namespace_href(xmlNs *ns);
-bool is_entity_node(const xmlNode *node);
-bool is_content_node(const xmlNode *node);
-bool is_doctype_node(const xmlNode *node);
-bool is_comment_node(const xmlNode *node);
-bool is_pi_node(const xmlNode *node);
-bool is_leaf_node(xmlNode *node);
-bool is_key_value_node(xmlNode *node);
-void trim_node(xmlNode *node, int flags);
-void trim_text_node(xmlNode *node, int flags);
-
-// Output buffer functions ////////////////////////////////////////////////////////
-
-const char *build_error_message(const char *fmt, ...);
-
-void node_strlen_name_prefix(xmlNode *node, const char **name, size_t *name_len, const char **prefix, size_t *prefix_len, size_t *total_len);
-
-bool need_separation_before_attribute_key(XMQPrintState *ps);
-bool need_separation_before_element_name(XMQPrintState *ps);
-bool need_separation_before_quote(XMQPrintState *ps);
-bool need_separation_before_comment(XMQPrintState *ps);
-
-void check_space_before_attribute(XMQPrintState *ps);
-void check_space_before_comment(XMQPrintState *ps);
-void check_space_before_entity_node(XMQPrintState *ps);
-void check_space_before_key(XMQPrintState *ps);
-void check_space_before_opening_brace(XMQPrintState *ps);
-void check_space_before_closing_brace(XMQPrintState *ps);
-void check_space_before_quote(XMQPrintState *ps, Level level);
-
-bool quote_needs_compounded(XMQPrintState *ps, const char *start, const char *stop);
-
-// Printing the DOM as xmq/htmq ///////////////////////////////////////////////////
-
-size_t print_char_entity(XMQPrintState *ps, XMQColor c, const char *start, const char *stop);
-void print_color_post(XMQPrintState *ps, XMQColor c);
-void print_color_pre(XMQPrintState *ps, XMQColor c);
-void print_comment_line(XMQPrintState *ps, const char *start, const char *stop, bool compact);
-void print_comment_lines(XMQPrintState *ps, const char *start, const char *stop, bool compact);
-void print_nl_and_indent(XMQPrintState *ps, const char *prefix, const char *postfix);
-void print_quote_lines_and_color_uwhitespace(XMQPrintState *ps, XMQColor c, const char *start, const char *stop);
-void print_quoted_spaces(XMQPrintState *ps, XMQColor c, int n);
-void print_quotes(XMQPrintState *ps, size_t num, XMQColor c);
-void print_slashes(XMQPrintState *ps, const char *pre, const char *post, size_t n);
-void print_white_spaces(XMQPrintState *ps, int n);
-void print_all_whitespace(XMQPrintState *ps, const char *start, const char *stop, Level level);
-
-void print_nodes(XMQPrintState *ps, xmlNode *from, xmlNode *to, size_t align);
-void print_node(XMQPrintState *ps, xmlNode *node, size_t align);
-void print_entity_node(XMQPrintState *ps, xmlNode *node);
-void print_content_node(XMQPrintState *ps, xmlNode *node);
-void print_comment_node(XMQPrintState *ps, xmlNode *node);
-void print_doctype(XMQPrintState *ps, xmlNode *node);
-void print_key_node(XMQPrintState *ps, xmlNode *node, size_t align);
-void print_leaf_node(XMQPrintState *ps, xmlNode *node);
-void print_element_with_children(XMQPrintState *ps, xmlNode *node, size_t align);
-size_t print_element_name_and_attributes(XMQPrintState *ps, xmlNode *node);
-void print_attribute(XMQPrintState *ps, xmlAttr *a, size_t align);
-void print_attributes(XMQPrintState *ps, xmlNodePtr node);
-void print_value(XMQPrintState *ps, xmlNode *node, Level level);
-void print_value_internal_text(XMQPrintState *ps, const char *start, const char *stop, Level level);
-void print_value_internal(XMQPrintState *ps, xmlNode *node, Level level);
-const char *needs_escape(XMQRenderFormat f, const char *start, const char *stop);
-size_t print_utf8_internal(XMQPrintState *ps, const char *start, const char *stop);
-size_t print_utf8(XMQPrintState *ps, XMQColor c, size_t num_pairs, ...);
-size_t print_utf8_char(XMQPrintState *ps, const char *start, const char *stop);
-void print_quote(XMQPrintState *ps, XMQColor c, const char *start, const char *stop);
-
-struct YaepGrammar;
-typedef struct YaepGrammar YaepGrammar;
-struct YaepParseRun;
-typedef struct YaepParseRun YaepParseRun;
-struct yaep_tree_node;
-
-bool xmq_parse_buffer_ixml(XMQDoc *ixml_grammar, const char *start, const char *stop, int flags);
-
-typedef void (*XMQContentCallback)(XMQParseState *state,
-                                   size_t start_line,
-                                   size_t start_col,
-                                   const char *start,
-                                   const char *stop,
-                                   const char *suffix);
-
-struct XMQParseCallbacks
-{
-#define X(TYPE) \
-    XMQContentCallback handle_##TYPE;
-LIST_OF_XMQ_TOKENS
-#undef X
-
-    void (*init)(XMQParseState*);
-    void (*done)(XMQParseState*);
-
-    int magic_cookie;
-};
-
-struct XMQPrintCallbacks
-{
-    void (*writeIndent)(int n);
-    void (*writeElementName)(char *start, char *stop);
-    void (*writeElementContent)(char *start, char *stop);
-};
-
-#define DO_CALLBACK(TYPE, state, start_line, start_col, start, stop, suffix) \
-    { if (state->parse->handle_##TYPE != NULL) state->parse->handle_##TYPE(state,start_line,start_col,start,stop,suffix); }
-
-#define DO_CALLBACK_SIM(TYPE, state, start_line, start_col, start, stop, suffix) \
-    { if (state->parse->handle_##TYPE != NULL) { state->simulated=true; state->parse->handle_##TYPE(state,start_line,start_col,start,stop,suffix); state->simulated=false; } }
-
-bool debug_enabled();
-
-void xmq_setup_parse_callbacks(XMQParseCallbacks *callbacks);
-void xmq_set_yaep_grammar(XMQDoc *doc, YaepGrammar *g);
-YaepGrammar *xmq_get_yaep_grammar(XMQDoc *doc);
-YaepParseRun *xmq_get_yaep_parse_run(XMQDoc *doc);
-XMQParseState *xmq_get_yaep_parse_state(XMQDoc *doc);
-
-void set_node_namespace(XMQParseState *state, xmlNodePtr node, const char *node_name);
-
-// Multicolor terminals like gnome-term etc.
-
-#define NOCOLOR      "\033[0m"
-
-#define XMQ_INTERNALS_MODULE
-
+#include"xmq_internals.h"
 #endif
 
 struct XMQPrintState;
@@ -987,7 +331,7 @@ size_t print_utf8(XMQPrintState *ps, XMQColor c, size_t num_pairs, ...);
 
 #define UTF8_MODULE
 
-// PARTS HASHMAP ////////////////////////////////////////
+// PART H HASHMAP ////////////////////////////////////////
 
 struct HashMap;
 typedef struct HashMap HashMap;
@@ -1013,9 +357,13 @@ void hashmap_free_iterator(HashMapIterator *i);
 
 #define HASHMAP_MODULE
 
-// PARTS IXML ////////////////////////////////////////
+// PART H IXML ////////////////////////////////////////
+
+#ifndef BUILDING_DIST_XMQ
 
 #include"xmq.h"
+
+#endif
 
 struct YaepGrammar;
 typedef struct YaepGrammar YaepGrammar;
@@ -1038,6 +386,8 @@ bool ixml_build_yaep_grammar(YaepParseRun *pr,
                              const char *content_start, // Needed to minimize charset rule sizes.
                              const char *content_stop);
 
+IXMLTerminal *new_ixml_terminal();
+IXMLNonTerminal *new_ixml_nonterminal();
 void free_ixml_rule(IXMLRule *r);
 void free_ixml_terminal(IXMLTerminal *t);
 void free_ixml_nonterminal(IXMLNonTerminal *nt);
@@ -1059,9 +409,10 @@ void ixml_print_grammar(XMQParseState *state);
 
 #define IXML_MODULE
 
-// PARTS MEMBUFFER ////////////////////////////////////////
+// PART H MEMBUFFER ////////////////////////////////////////
 
 #include<stdlib.h>
+#include<stdarg.h>
 
 /**
     MemBuffer:
@@ -1091,13 +442,17 @@ void membuffer_append_char(MemBuffer *mb, char c);
 void membuffer_append_int(MemBuffer *mb, int i);
 void membuffer_append_entity(MemBuffer *mb, char c);
 void membuffer_append_null(MemBuffer *mb);
+void membuffer_append_nl(MemBuffer *mb);
 void membuffer_drop_last_null(MemBuffer *mb);
 void membuffer_append_pointer(MemBuffer *mb, void *ptr);
+void membuffer_logf(MemBuffer *mb, const char* fmt, ...);
+void membuffer_printf(MemBuffer *mb, const char* fmt, ...);
 char membuffer_back(MemBuffer *mb);
+void membuffer_prefix_lines(MemBuffer *mb, const char *prefix);
 
 #define MEMBUFFER_MODULE
 
-// PARTS STACK ////////////////////////////////////////
+// PART H STACK ////////////////////////////////////////
 
 #include<stdlib.h>
 
@@ -1126,7 +481,7 @@ void *stack_rock(Stack *s);
 
 #define STACK_MODULE
 
-// PARTS TEXT ////////////////////////////////////////
+// PART H TEXT ////////////////////////////////////////
 
 #include<stdbool.h>
 #include<stdlib.h>
@@ -1144,15 +499,17 @@ typedef struct
     char bytes[MAX_NUM_UTF8_BYTES];
 } UTF8Char;
 
+size_t count_whitespace(const char *i, const char *stop);
 bool decode_utf8(const char *start, const char *stop, int *out_char, size_t *out_len);
 size_t encode_utf8(int uc, UTF8Char *utf8);
 const char *has_ending_nl_space(const char *start, const char *stop, size_t *only_newlines);
 const char *has_leading_space_nl(const char *start, const char *stop, size_t *only_newlines);
-bool has_leading_ending_quote(const char *start, const char *stop);
+bool has_leading_ending_different_quotes(const char *start, const char *stop);
 bool has_newlines(const char *start, const char *stop);
 bool has_must_escape_chars(const char *start, const char *stop);
 bool has_all_quotes(const char *start, const char *stop);
 bool has_all_whitespace(const char *start, const char *stop, bool *all_space, bool *only_newlines);
+void increment(char c, size_t num_bytes, const char **i, size_t *line, size_t *col);
 bool is_lowercase_hex(char c);
 bool is_xmq_token_whitespace(char c);
 bool is_xml_whitespace(char c);
@@ -1160,6 +517,9 @@ bool is_all_xml_whitespace(const char *s);
 bool is_xmq_element_name(const char *start, const char *stop, const char **colon);
 bool is_xmq_element_start(char c);
 bool is_xmq_text_name(char c);
+bool is_hex(char c);
+unsigned char hex_value(char c);
+bool is_unicode_whitespace(const char *start, const char *stop);
 size_t num_utf8_bytes(char c);
 size_t peek_utf8_char(const char *start, const char *stop, UTF8Char *uc);
 void str_b_u_len(const char *start, const char *stop, size_t *b_len, size_t *u_len);
@@ -1169,6 +529,7 @@ char *xmq_quote_as_c(const char *start, const char *stop, bool add_quotes);
 char *xmq_unquote_as_c(const char *start, const char *stop, bool remove_quotes);
 char *potentially_add_leading_ending_space(const char *start, const char *stop);
 bool find_line_col(const char *start, const char *stop, size_t at, int *line, int *col);
+const char *find_eol_or_stop(const char *start, const char *stop);
 
 // Fetch a pointer to a NULL ended array of char pointers to category parts for the given name.
 // For input "Lu" this function returns the array { "Lu", 0 }
@@ -1183,7 +544,7 @@ bool category_has_code(int code, int *cat, size_t cat_len);
 
 #define TEXT_MODULE
 
-// PARTS VECTOR ////////////////////////////////////////
+// PART H VECTOR ////////////////////////////////////////
 
 struct Vector
 {
@@ -1202,56 +563,61 @@ void *vector_element_at(Vector *v, size_t i);
 
 #define VECTOR_MODULE
 
-// PARTS XML ////////////////////////////////////////
+// PART H XML ////////////////////////////////////////
 
 #include<stdbool.h>
 #include<libxml/tree.h>
 
+int decode_entity_ref(const char *name);
 void free_xml(xmlNode * node);
-xmlNode *xml_first_child(xmlNode *node);
-xmlNode *xml_last_child(xmlNode *node);
-xmlNode *xml_next_sibling(xmlNode *node);
-xmlNode *xml_prev_sibling(xmlNode *node);
-xmlAttr *xml_first_attribute(xmlNode *node);
-xmlAttr *xml_next_attribute(xmlAttr *attr);
-xmlAttr *xml_get_attribute(xmlNode *node, const char *name);
-xmlNs *xml_first_namespace_def(xmlNode *node);
-xmlNs *xml_next_namespace_def(xmlNs *ns);
-bool xml_non_empty_namespace(xmlNs *ns);
-bool xml_has_non_empty_namespace_defs(xmlNode *node);
-const char*xml_element_name(xmlNode *node);
-const char*xml_element_content(xmlNode *node);
-const char *xml_element_ns_prefix(const xmlNode *node);
-const char *xml_attr_key(xmlAttr *attr);
-const char* xml_namespace_href(xmlNs *ns);
-bool is_entity_node(const xmlNode *node);
-bool is_content_node(const xmlNode *node);
+bool has_attributes(xmlNodePtr node);
+bool is_attribute_node(const xmlNode *node);
 bool is_comment_node(const xmlNode *node);
-bool is_pi_node(const xmlNode *node);
+bool is_content_node(const xmlNode *node);
 bool is_doctype_node(const xmlNode *node);
 bool is_element_node(const xmlNode *node);
-bool is_text_node(const xmlNode *node);
-bool is_attribute_node(const xmlNode *node);
+bool is_entity_node(const xmlNode *node);
 bool is_key_value_node(xmlNodePtr node);
-bool is_single_empty_text_node(xmlNodePtr node);
 bool is_leaf_node(xmlNode *node);
-bool has_attributes(xmlNodePtr node);
-char *xml_collapse_text(xmlNode *node);
-int decode_entity_ref(const char *name);
+bool is_pi_node(const xmlNode *node);
+bool is_single_empty_text_node(xmlNodePtr node);
+bool is_text_node(const xmlNode *node);
 void xml_add_root_child(xmlDoc *doc, xmlNode *node);
+const char *xml_attr_key(xmlAttr *attr);
+char *xml_collapse_text(xmlNode *node);
+const char *xml_element_content(xmlNode *node);
+const char *xml_element_name(xmlNode *node);
+const char *xml_element_ns_prefix(const xmlNode *node);
+xmlAttr *xml_first_attribute(xmlNode *node);
+xmlNode *xml_first_child(xmlNode *node);
+xmlNs *xml_first_namespace_def(xmlNode *node);
+xmlAttr *xml_get_attribute(xmlNode *node, const char *name);
+bool xml_has_non_empty_namespace_defs(xmlNode *node);
+xmlNode *xml_last_child(xmlNode *node);
+const char *xml_namespace_href(xmlNs *ns);
+xmlAttr *xml_next_attribute(xmlAttr *attr);
+xmlNs *xml_next_namespace_def(xmlNs *ns);
+xmlNode *xml_next_sibling(xmlNode *node);
+bool xml_non_empty_namespace(xmlNs *ns);
+xmlNode *xml_prev_sibling(xmlNode *node);
 
 #define XML_MODULE
 
-// PARTS XMQ_PARSER ////////////////////////////////////////
+// PART H XMQ_PARSER ////////////////////////////////////////
 
 struct XMQParseState;
 typedef struct XMQParseState XMQParseState;
 
 void parse_xmq(XMQParseState *state);
 
+void eat_xml_whitespace(XMQParseState *state, const char **start, const char **stop);
+bool is_xmq_text_value(const char *start, const char *stop);
+bool unsafe_value_start(char c, char cc);
+bool is_safe_value_char(const char *i, const char *stop);
+
 #define XMQ_PARSER_MODULE
 
-// PARTS XMQ_PRINTER ////////////////////////////////////////
+// PART H XMQ_PRINTER ////////////////////////////////////////
 
 struct XMQPrintState;
 typedef struct XMQPrintState XMQPrintState;
@@ -1263,12 +629,14 @@ enum Level;
 #endif
 typedef enum Level Level;
 
-size_t count_necessary_quotes(const char *start, const char *stop, bool compact, bool *add_nls, bool *add_compound);
+int count_necessary_quotes(const char *start, const char *stop, bool *add_nls, bool *add_compound, bool prefer_double_quotes, bool *use_double_quotes);
 size_t count_necessary_slashes(const char *start, const char *stop);
 
 void print_nodes(XMQPrintState *ps, xmlNode *from, xmlNode *to, size_t align);
 void print_content_node(XMQPrintState *ps, xmlNode *node);
 void print_entity_node(XMQPrintState *ps, xmlNode *node);
+void print_color_post(XMQPrintState *ps, XMQColor c);
+void print_color_pre(XMQPrintState *ps, XMQColor c);
 void print_comment_line(XMQPrintState *ps, const char *start, const char *stop, bool compact);
 void print_comment_lines(XMQPrintState *ps, const char *start, const char *stop, bool compact);
 void print_comment_node(XMQPrintState *ps, xmlNode *node);
@@ -1289,7 +657,8 @@ void print_white_spaces(XMQPrintState *ps, int num);
 void print_all_whitespace(XMQPrintState *ps, const char *start, const char *stop, Level level);
 void print_explicit_spaces(XMQPrintState *ps, XMQColor c, int num);
 void print_quoted_spaces(XMQPrintState *ps, XMQColor color, int num);
-void print_quotes(XMQPrintState *ps, size_t num, XMQColor color);
+void print_quotes(XMQPrintState *ps, int num, XMQColor color, bool use_double_quotes);
+void print_double_quote(XMQPrintState *ps, XMQColor color);
 void print_nl(XMQPrintState *ps, const char *prefix, const char *postfix);
 void print_nl_and_indent(XMQPrintState *ps, const char *prefix, const char *postfix);
 size_t print_char_entity(XMQPrintState *ps, XMQColor color, const char *start, const char *stop);
@@ -1330,12 +699,892 @@ void print_value(XMQPrintState *ps, xmlNode *node, Level level);
 
 #define XMQ_PRINTER_MODULE
 
-// PARTS YAEP ////////////////////////////////////////
+// PART H YAEP_ALLOCATE ////////////////////////////////////////
+
+#include<stddef.h>
+
+/**
+ * Type for functions behaving like standard malloc().
+ *
+ * @sa #Yaep_calloc()
+ * @sa #Yaep_realloc()
+ * @sa #Yaep_free()
+ */
+typedef void *(*Yaep_malloc) (size_t);
+
+/**
+ * Type for functions behaving like standard calloc().
+ *
+ * @sa #Yaep_malloc()
+ * @sa #Yaep_realloc()
+ * @sa #Yaep_free()
+ */
+typedef void *(*Yaep_calloc) (size_t, size_t);
+
+/**
+ * Type for functions behaving like standard realloc().
+ *
+ * @sa #Yaep_malloc()
+ * @sa #Yaep_calloc()
+ * @sa #Yaep_free()
+ */
+typedef void *(*Yaep_realloc) (void *, size_t);
+
+/**
+ * Type for functions behaving like standard free().
+ *
+ * @sa #Yaep_malloc()
+ * @sa #Yaep_calloc()
+ * @sa #Yaep_realloc()
+ */
+typedef void (*Yaep_free) (void *ptr);
+
+/**
+ * Callback type for allocation errors.
+ *
+ * It is not necessary for callbacks of this type
+ * to return to the caller.
+ *
+ * @param userptr Pointer provided earlier by the caller.
+ *
+ * @sa #yaep_alloc_geterrfunc()
+ * @sa #yaep_alloc_seterr()
+ */
+typedef void (*Yaep_alloc_error) (void *userptr);
+
+/**
+ * YAEP allocator type.
+ *
+ * @sa #yaep_alloc_new()
+ */
+typedef struct YaepAllocator YaepAllocator;
+
+/**
+ * Default error handling function.
+ *
+ * This function writes an error message to @ stderr
+ * and exits the program.
+ *
+ * @param ignored Ignored parameter.
+ *
+ * @sa #yaep_alloc_seterr()
+ */
+void yaep_alloc_defaulterrfunc (void *ignored);
+
+/**
+ * Creates a new allocator.
+ *
+ * The new allocator uses #yaep_alloc_defaulterrfunc()
+ * and a null user pointer.
+ *
+ * @param mallocf Pointer to function which behaves like @c malloc().
+ * 	If this is a null pointer, @c malloc() is used instead.
+ * @param callocf Pointer to function which behaves like @c calloc().
+ * 	If this is a null pointer, a function which behaves like @c calloc()
+ * 	and is compatible with the provided @c mallocf is used instead.
+ * @param reallocf Pointer to function which behaves analogously to
+ * 	@c realloc() with respect to @c mallocf and @c callocf.
+ * 	If this is a null pointer, and @c malloc() and @c calloc() are used
+ * 	for @c mallocf and @c callocf, respectively,
+ * 	then @c realloc() is used instead.
+ * 	Everything else is an error.
+ * @param freef Pointer to function which can free memory returned by
+ * 	@c mallocf, @c callocf, and @c reallocf.
+ * 	If this is a null pointer, and @c malloc(), @c calloc(), and
+ * 	@c realloc() are used for @c mallocf, @c callocf, and @c reallocf,
+ * 	respectively, then @c free() is used instead.
+ * 	Everything else is an error.
+ *
+ * @return On success, a pointer to the new allocator is returned.\n
+ * 	On error, a null pointer is returned.
+ *
+ * @sa #yaep_alloc_del()
+ * @sa #yaep_alloc_seterr()
+ * @sa #yaep_alloc_defaulterrfunc()
+ */
+YaepAllocator *yaep_alloc_new (Yaep_malloc mallocf, Yaep_calloc callocf,
+			       Yaep_realloc reallocf, Yaep_free freef);
+
+/**
+ * Destroys an allocator.
+ *
+ * @param allocator Pointer to allocator.
+ *
+ * @sa #yaep_alloc_new()
+ */
+void yaep_alloc_del (YaepAllocator * allocator);
+
+/**
+ * Allocates memory.
+ *
+ * @param allocator Pointer to allocator.
+ * @param size Number of bytes to allocate.
+ *
+ * @return On success, a pointer to the allocated memory is returned.
+ * 	If @c size was zero, this may be a null pointer.\n
+ * 	On error, the allocator's error function is called.
+ * 	If that function returns, a null pointer is returned.
+ *
+ * @sa #yaep_free()
+ * @sa #yaep_realloc()
+ * @sa #yaep_calloc()
+ * @sa #yaep_alloc_seterr()
+ */
+void *yaep_malloc (YaepAllocator * allocator, size_t size);
+
+/**
+ * Allocates zero-initialised memory.
+ *
+ * @param allocator Pointer to allocator.
+ * @param nmemb Number of elements to allocate.
+ * @param size Element size in bytes.
+ *
+ * @return On success, a pointer to <code>nmemb * size</code> bytes
+ * 	of newly allocated, zero-initialised  memory is returned.
+ * 	If <code>nmemb * size</code> was zero, this may be a null pointer.\n
+ * 	On error, the allocator's error function is called.
+ * 	If that function returns, a null pointer is returned.
+ *
+ * @sa #yaep_free()
+ * @sa #yaep_realloc()
+ * @sa #yaep_malloc()
+ * @sa #yaep_alloc_seterr()
+ */
+void *yaep_calloc (YaepAllocator * allocator, size_t nmemb, size_t size);
+
+/**
+ * Resizes memory.
+ *
+ * @param allocator Pointer to allocator previously used to
+ * 	allocate @c ptr.
+ * @param ptr Pointer to memory previously returned by
+ * 	#yaep_malloc(), #yaep_calloc(), or #yaep_realloc().
+ * 	If this is a null pointer, this function behaves like #yaep_malloc().
+ * @param size New memory size in bytes.
+ *
+ * @return On success, a pointer to @c size bytes of allocated memory
+ * 	is returned, the contents of which is equal to the contents of
+ * 	@c ptr immediately before the call, up to the smaller size of
+ * 	both blocks.\n
+ * 	On error, the allocator's error function is called.
+ * 	If that function returns, a null pointer is returned.
+ *
+ * @sa #yaep_free()
+ * @sa #yaep_malloc()
+ * @sa #yaep_calloc()
+ * @sa #yaep_alloc_seterr()
+ */
+void *yaep_realloc (YaepAllocator * allocator, void *ptr, size_t size);
+
+/**
+ * Frees previously allocated memory.
+ *
+ * @param allocator Pointer to allocator previously used to
+ * 	allocate @c ptr.
+ * @param ptr Pointer to memory to be freed.
+ * 	If this is a null pointer, no operation is performed.
+ *
+ * @sa #yaep_malloc()
+ * @sa #yaep_calloc()
+ * @sa #yaep_realloc()
+ */
+void yaep_free (YaepAllocator * allocator, void *ptr);
+
+/**
+ * Obtains the current error function of an allocator.
+ *
+ * @param allocator Pointer to allocator.
+ *
+ * @return On success, a pointer to the error function of the
+ * 	specified allocator is returned.
+ * 	If no error function has ever been set for this allocator,
+ * 	this is #yaep_alloc_defaulterrfunc().\n
+ * 	On error, a null pointer is returned.
+ *
+ * @sa #yaep_alloc_getuserptr()
+ * @sa #yaep_alloc_seterr()
+ * @sa #yaep_alloc_defaulterrfunc()
+ */
+Yaep_alloc_error yaep_alloc_geterrfunc (YaepAllocator * allocator);
+
+/**
+ * Obtains the current user-provided pointer.
+ *
+ * @param allocator Pointer to allocator.
+ *
+ * @return On success, the user-provided pointer of the
+ * 	specified allocator is returned.
+ * 	If no pointer has ever been set for this allocator,
+ * 	a pointer to the allocator itself is returned.\n
+ * 	On error, a null pointer is returned.
+ *
+ * @sa #yaep_alloc_seterr()
+ */
+void *yaep_alloc_getuserptr (YaepAllocator * allocator);
+
+/**
+ * Sets the error function and user-provided pointer of an allocator.
+ *
+ * The error function is called by the allocator with the user-provided
+ * pointer as argument whenever an allocation error occurs.
+ *
+ * @param allocator Pointer to allocator.
+ * @param errfunc Pointer to error function.
+ * 	If this is a null pointer, #yaep_alloc_defaulterrfunc() will be used.
+ * @param userptr User-provided pointer.
+ * 	The allocator will never attempt to dereference this pointer.
+ *
+ * @sa #yaep_alloc_geterrfunc()
+ * @sa #yaep_alloc_getuserptr()
+ */
+void yaep_alloc_seterr (YaepAllocator * allocator, Yaep_alloc_error errfunc,
+			void *userptr);
+
+#define YAEP_ALLOCATE_MODULE
+
+// PART H YAEP_HASHTAB ////////////////////////////////////////
+
+#ifndef BUILDING_DIST_XMQ
+
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include"yaep_allocate.h"
+
+#endif
+
+/* The hash table element is represented by the following type. */
+
+typedef const void *hash_table_entry_t;
+
+typedef unsigned int ( *hash_table_hash_function )(hash_table_entry_t el_ptr);
+typedef bool (*hash_table_eq_function) (hash_table_entry_t el1_ptr, hash_table_entry_t el2_ptr);
+
+
+/* Hash tables are of the following type.  The structure
+   (implementation) of this type is not needed for using the hash
+   tables.  All work with hash table should be executed only through
+   functions mentioned below. */
+
+typedef struct
+{
+  /* Current size (in entries) of the hash table */
+  size_t size;
+  /* Current number of elements including also deleted elements */
+  size_t number_of_elements;
+  /* Current number of deleted elements in the table */
+  size_t number_of_deleted_elements;
+  /* The following member is used for debugging. Its value is number
+     of all calls of `find_hash_table_entry' for the hash table. */
+  int searches;
+  /* The following member is used for debugging.  Its value is number
+     of collisions fixed for time of work with the hash table. */
+  int collisions;
+  /* Pointer to function for evaluation of hash value (any unsigned value).
+     This function has one parameter of type hash_table_entry_t. */
+  hash_table_hash_function hash_function;
+  /* Pointer to function for test on equality of hash table elements (two
+     parameter of type hash_table_entry_t. */
+  hash_table_eq_function eq_function;
+  /* Table itself */
+  hash_table_entry_t *entries;
+  /* Allocator */
+  YaepAllocator * alloc;
+} *hash_table_t;
+
+
+/* The following variable is used for debugging. Its value is number
+   of all calls of `find_hash_table_entry' for all hash tables. */
+
+//extern int all_searches;
+
+/* The following variable is used for debugging. Its value is number
+   of collisions fixed for time of work with all hash tables. */
+
+//extern int all_collisions;
+
+/* The prototypes of the package functions. */
+
+extern hash_table_t create_hash_table(YaepAllocator * allocator,
+                                      size_t size,
+                                      hash_table_hash_function hash_function,
+                                      hash_table_eq_function eq_function);
+
+extern void empty_hash_table (hash_table_t htab);
+
+extern void delete_hash_table (hash_table_t htab);
+
+extern hash_table_entry_t *find_hash_table_entry(hash_table_t htab,
+                                                 hash_table_entry_t element,
+                                                 bool reserve);
+
+extern void remove_element_from_hash_table_entry (hash_table_t htab,
+                                                  hash_table_entry_t element);
+
+extern size_t hash_table_size (hash_table_t htab);
+
+extern size_t hash_table_elements_number (hash_table_t htab);
+
+/* The following function returns number of searches during all work
+   with given hash table. */
+static inline int
+get_searches (hash_table_t htab)
+{
+  return htab->searches;
+}
+
+/* The following function returns number of occurred collisions during
+   all work with given hash table. */
+static inline int
+get_collisions (hash_table_t htab)
+{
+  return htab->collisions;
+}
+
+/* The following function returns number of searches during all work
+   with all hash tables. */
+int get_all_searches();
+/* The following function returns number of occurred collisions
+   during all work with all hash tables. */
+int get_all_collisions();
+int hash_table_collision_percentage (hash_table_t htab);
+int all_hash_table_collision_percentage (void);
+
+size_t hash_table_memusage(hash_table_t htab);
+
+#define YAEP_HASHTAB_MODULE
+
+// PART H YAEP_OBJSTACK ////////////////////////////////////////
+
+#ifndef BUILDING_DIST_XMQ
+
+#include <assert.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stddef.h>
+
+#include "yaep_allocate.h"
+
+#endif
+
+/* This auxiliary structure is used to evaluation of maximum
+   alignment for objects. */
+
+struct _os_auxiliary_struct
+{
+  char _os_character;
+  double _os_double;
+};
+
+/* This macro is auxiliary.  Its value is maximum alignment for objects. */
+
+#ifdef VMS
+/* It is necessarry for VMS C compiler. */
+#define _OS_ALIGNMENT  4
+#else
+#define _OS_ALIGNMENT offsetof (struct _os_auxiliary_struct, _os_double)
+#if 0
+#define _OS_ALIGNMENT\
+  ((char *) &((struct _os_auxiliary_struct *) 64)->_os_double - (char *) 64)
+#else
+#endif
+#endif
+
+/* This macro is auxiliary.  Its value is aligned address nearest to `a'. */
+
+#define _OS_ALIGNED_ADDRESS(a)\
+  ((void *) ((size_t) ((char *) (a) + (_OS_ALIGNMENT - 1))\
+             & (~(size_t) (_OS_ALIGNMENT - 1))))
+
+/* This macro value is default size of memory segments which will be
+   allocated for OS when the stack is created (with zero initial
+   segment size).  This is also minimal size of all segments.
+   Original value of the macros is equal to 512.  This macro can be
+   redefined in C compiler command line or with the aid of directive
+   `#undef' before any using the package macros.  */
+
+#ifndef OS_DEFAULT_SEGMENT_LENGTH
+#define OS_DEFAULT_SEGMENT_LENGTH 512
+#endif
+
+/* This internal structure describes segment of an object stack. */
+
+struct _os_segment
+{
+    struct _os_segment *os_previous_segment;
+    size_t os_segment_size; // Fredrik added this, does this change the OS_ALIGNMENT calculation? TODO.
+    char os_segment_content[_OS_ALIGNMENT];
+};
+
+/* This type describes a descriptor of stack of objects.  All work
+   with stack of objects is executed by following macros through the
+   descriptors.  Structure (implementation) of this type is not needed
+   for using stack of objects.  But it should remember that work with
+   the stack through several descriptors is not safe. */
+
+typedef struct
+{
+  /* The real length of the first memory segment. */
+  size_t initial_segment_length;
+  struct _os_segment *os_current_segment;
+
+  /* Pointer to memory currently used for storing the top object. */
+  char *os_top_object_start;
+
+  /* Pointer to first byte after the last byte of the top object. */
+  char *os_top_object_stop;
+
+  /* Pointer to first byte after the memory allocated for storing
+     the OS segment and the top object. */
+  char *os_segment_stop;
+
+  /* Pointer to allocator. */
+  YaepAllocator *os_alloc;
+} os_t;
+
+
+/* This macro creates OS which contains the single zero length object.
+   If initial length of OS segment is equal to zero the allocated
+   memory segments length is equal to `OS_DEFAULT_SEGMENT_LENGTH'.
+   But in any case the segment length is always not less than maximum
+   alignment.  OS must be created before any using other macros of the
+   package for work with given OS.  The macro has no side effects. */
+
+#define OS_CREATE( os, allocator, initial_segment_length ) \
+  do { \
+    os_t * _temp_os = &( os ); \
+    _temp_os->os_alloc = allocator; \
+    _OS_create_function( _temp_os, initial_segment_length ); \
+  } while( 0 )
+
+/* This macro is used for freeing memory allocated for OS.  Any work
+   (except for creation) with given OS is not possible after
+   evaluation of this macros.  The macro has no side effects. */
+
+#define OS_DELETE(os) _OS_delete_function (& (os))
+
+/* This macro is used for freeing memory allocated for OS except for
+   the first segment.  The macro has no side effects. */
+
+#define OS_EMPTY(os) _OS_empty_function (& (os))
+
+/* This macro makes that length of variable length object on the top
+   of OS will be equal to zero.  The macro has no side effects. */
+
+#define OS_TOP_NULLIFY(os)\
+  do\
+  {\
+    os_t *_temp_os = &(os);\
+    assert (_temp_os->os_top_object_start != NULL);\
+    _temp_os->os_top_object_stop = _temp_os->os_top_object_start;\
+  }\
+  while (0)
+
+/* The macro creates new variable length object with initial zero
+   length on the top of OS .  The work (analogous to one with variable
+   length object) with object which was on the top of OS are finished,
+   i.e. the object will never more change address.  The macro has not
+   side effects. */
+
+#define OS_TOP_FINISH(os)\
+  do\
+  {\
+    os_t *_temp_os = &(os);\
+    assert (_temp_os->os_top_object_start != NULL);\
+    _temp_os->os_top_object_start\
+        = (char *) _OS_ALIGNED_ADDRESS (_temp_os->os_top_object_stop);    \
+    _temp_os->os_top_object_stop = _temp_os->os_top_object_start;\
+  }\
+  while (0)
+
+/* This macro returns current length of variable length object on the
+   top of OS.  The macro has side effects! */
+
+#ifndef NDEBUG
+#define OS_TOP_LENGTH(os)\
+  ((os).os_top_object_start != NULL\
+   ? (os).os_top_object_stop - (os).os_top_object_start\
+   : (abort (), 0))
+#else
+#define OS_TOP_LENGTH(os)  ((os).os_top_object_stop - (os).os_top_object_start)
+#endif
+
+/* This macro returns pointer to the first byte of variable length
+   object on the top of OS.  The macro has side effects!  Remember also
+   that the top object may change own place after any addition. */
+
+#ifndef NDEBUG
+#define OS_TOP_BEGIN(os)\
+  ((os).os_top_object_start != NULL ? (void *) (os).os_top_object_start\
+                                    : (abort (), (void *) 0))
+#else
+#define OS_TOP_BEGIN(os) ((void *) (os).os_top_object_start)
+#endif
+
+/* This macro returns pointer (of type `void *') to the last byte of
+   variable length object on the top OS.  The macro has side effects!
+   Remember also that the top object may change own place after any
+   addition. */
+
+#ifndef NDEBUG
+#define OS_TOP_END(os)\
+  ((os).os_top_object_start != NULL ? (void *) ((os).os_top_object_stop - 1)\
+                                    : (abort (), (void *) 0))
+#else
+#define OS_TOP_END(os) ((void *) ((os).os_top_object_stop - 1))
+#endif
+
+/* This macro returns pointer (of type `void *') to the next byte of
+   the last byte of variable length object on the top OS.  The macro
+   has side effects!  Remember also that the top object may change own
+   place after any addition. */
+
+#ifndef NDEBUG
+#define OS_TOP_BOUND(os)\
+  ((os).os_top_object_start != NULL ? (void *) (os).os_top_object_stop\
+                                    : (abort (), (void *) 0))
+#else
+#define OS_TOP_BOUND(os) ((void *) (os).os_top_object_stop)
+#endif
+
+/* This macro removes N bytes from the end of variable length object
+   on the top of OS.  The top variable length object is nullified if
+   its length is less than N.  The macro has no side effects. */
+
+#define OS_TOP_SHORTEN(os, n)\
+  do\
+  {\
+    os_t *_temp_os = &(os);\
+    size_t _temp_n = (n);\
+    assert (_temp_os->os_top_object_start != NULL);\
+    if ((size_t) OS_TOP_LENGTH (*_temp_os) < _temp_n)\
+      _temp_os->os_top_object_stop = _temp_os->os_top_object_start;\
+    else\
+      _temp_os->os_top_object_stop -= _temp_n;\
+  }\
+  while (0)
+
+/* This macro increases length of variable length object on the top of
+   OS on given number of bytes.  The values of bytes added to the end
+   of variable length object on the top of OS will be not defined.
+   The macro has no side effects. */
+
+#define OS_TOP_EXPAND(os, length)\
+  do\
+  {\
+    os_t *_temp_os = &(os);\
+    size_t _temp_length = (length);\
+    assert (_temp_os->os_top_object_start != NULL);\
+    if (_temp_os->os_top_object_stop + _temp_length > _temp_os->os_segment_stop)\
+      _OS_expand_memory (_temp_os, _temp_length);\
+    _temp_os->os_top_object_stop += _temp_length;\
+  }\
+  while (0)
+
+/* This macro adds byte to the end of variable length object on the
+   top of OS.  The macro has no side effects. */
+
+#define OS_TOP_ADD_BYTE(os, b)\
+  do\
+  {\
+    os_t *_temp_os = &(os);\
+    assert (_temp_os->os_top_object_start != NULL);\
+    if (_temp_os->os_top_object_stop >= _temp_os->os_segment_stop)\
+      _OS_expand_memory (_temp_os, 1);\
+    *_temp_os->os_top_object_stop++ = (b);\
+  }\
+  while (0)
+
+/* This macro adds memory bytes to the end of variable length object
+   on the top of OS.  The macro has no side effects. */
+
+#define OS_TOP_ADD_MEMORY(os, str, length)\
+  do\
+  {\
+    os_t *_temp_os = &(os);\
+    size_t _temp_length = (length);\
+    assert (_temp_os->os_top_object_start != NULL);\
+    if (_temp_os->os_top_object_stop + _temp_length > _temp_os->os_segment_stop)\
+      _OS_expand_memory (_temp_os, _temp_length);\
+    memcpy( _temp_os->os_top_object_stop, ( str ), _temp_length ); \
+    _temp_os->os_top_object_stop += _temp_length;\
+  }\
+  while (0)
+
+/* This macro adds C string (with end marker '\0') to the end of
+   variable length object on the top of OS.  Before the addition the
+   macro delete last character of the object.  The last character is
+   suggested to be C string end marker '\0'.  The macro has no side
+   effects. */
+
+#define OS_TOP_ADD_STRING(os, str) _OS_add_string_function(&(os), (str))
+
+/* The following functions are to be used only by the package macros.
+   Remember that they are internal functions - all work with OS is
+   executed through the macros. */
+
+extern void _OS_create_function (os_t *os, size_t initial_segment_length);
+extern void _OS_delete_function (os_t *os);
+extern void _OS_empty_function (os_t *os);
+extern void _OS_add_string_function (os_t *os, const char *str);
+extern void _OS_expand_memory (os_t *os, size_t additional_length);
+
+/* Return total amount of memory used by this objstack. */
+size_t objstack_memusage(os_t *os);
+
+#define YAEP_OBJSTACK_MODULE
+
+// PART H YAEP_VLOBJECT ////////////////////////////////////////
+
+#ifndef BUILDING_DIST_XMQ
+
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "yaep_allocate.h"
+
+#endif
+
+/* Default initial size of memory is allocated for VLO when the object
+   is created (with zero initial size).  This macro can be redefined
+   in C compiler command line or with the aid of directive `#undef'
+   before any using the package macros. */
+
+#ifndef VLO_DEFAULT_LENGTH
+#define VLO_DEFAULT_LENGTH 512
+#endif
+
+/* This type describes a descriptor of variable length object.  All
+   work with variable length object is executed by following macros
+   through the descriptors.  Structure (implementation) of this type
+   is not needed for using variable length object.  But it should
+   remember that work with the object through several descriptors is
+   not safe. */
+
+typedef struct
+{
+  /* Pointer to memory currently used for storing the VLO. */
+  char *vlo_start;
+  /* Pointer to first byte after the last VLO byte. */
+  char *vlo_stop;
+  /* Pointer to first byte after the memory currently allocated for storing
+     the VLO. */
+  char *vlo_segment_stop;
+  /* Pointer to allocator. */
+  YaepAllocator *vlo_alloc;
+} vlo_t;
+
+
+/* This macro is used for creation of VLO with initial zero length.
+   If initial length of memory needed for the VLO is equal to 0 the
+   initial allocated memory length is equal to VLO_DEFAULT_LENGTH.
+   VLO must be created before any using other macros of the package
+   for work with given VLO.  The macro has not side effects. */
+
+#define VLO_CREATE(vlo, allocator, initial_length)\
+  do\
+  {\
+    vlo_t *_temp_vlo = &(vlo);\
+    size_t temp_initial_length = (initial_length);\
+    YaepAllocator * _temp_alloc = ( allocator ); \
+    temp_initial_length = (temp_initial_length != 0 ? temp_initial_length\
+                                                    : VLO_DEFAULT_LENGTH);\
+    _temp_vlo->vlo_start = (char*)yaep_malloc( _temp_alloc, temp_initial_length ); \
+    _temp_vlo->vlo_segment_stop = _temp_vlo->vlo_start + temp_initial_length;\
+    _temp_vlo->vlo_stop = _temp_vlo->vlo_start;\
+    _temp_vlo->vlo_alloc = _temp_alloc; \
+  }\
+  while (0)
+
+
+/* This macro is used for freeing memory allocated for VLO.  Any work
+   (except for creation) with given VLO is not possible after
+   evaluation of this macro.  The macro has not side effects. */
+
+#ifndef NDEBUG
+#define VLO_DELETE(vlo)\
+  do\
+  {\
+    vlo_t *_temp_vlo = &(vlo);\
+    assert (_temp_vlo->vlo_start != NULL);\
+    yaep_free( _temp_vlo->vlo_alloc,_temp_vlo->vlo_start );\
+    _temp_vlo->vlo_start = _temp_vlo->vlo_segment_stop = NULL;\
+  }\
+  while (0)
+#else
+#define VLO_DELETE(vlo) \
+  do { \
+    vlo_t * _temp_vlo = &( vlo ); \
+    yaep_free( _temp_vlo->vlo_alloc, _temp_vlo->vlo_start ); \
+    _temp_vlo->vlo_start = _temp_vlo->vlo_segment_stop = NULL;\
+  } while( 0 )
+#endif /* #ifndef NDEBUG */
+
+/* This macro makes that length of VLO will be equal to zero (but
+   memory for VLO is not freed and not reallocated).  The macro has
+   not side effects. */
+
+#define VLO_NULLIFY(vlo)\
+  do\
+  {\
+    vlo_t *_temp_vlo = &(vlo);\
+    assert (_temp_vlo->vlo_start != NULL);\
+    _temp_vlo->vlo_stop = _temp_vlo->vlo_start;\
+  }\
+  while (0)
+
+
+/* The following macro makes that length of memory allocated for VLO
+   becames equal to VLO length.  The macro has not side effects. */
+
+#define VLO_TAILOR(vlo) _VLO_tailor_function(&(vlo))
+
+
+/* This macro returns current length of VLO.  The macro has side effects! */
+
+#ifndef NDEBUG
+#define VLO_LENGTH(vlo) ((vlo).vlo_start != NULL\
+                         ? (vlo).vlo_stop - (vlo).vlo_start\
+                         : (abort (), 0))
+#else
+#define VLO_LENGTH(vlo) ((vlo).vlo_stop - (vlo).vlo_start)
+#endif /* #ifndef NDEBUG */
+
+
+/* This macro returns pointer (of type `void *') to the first byte of
+   the VLO.  The macro has side effects!  Remember also that the VLO
+   may change own place after any addition. */
+
+#ifndef NDEBUG
+#define VLO_BEGIN(vlo) ((vlo).vlo_start != NULL\
+                        ? (void *) (vlo).vlo_start\
+                        : (abort (), (void *) 0))
+#else
+#define VLO_BEGIN(vlo) ((void *) (vlo).vlo_start)
+#endif /* #ifndef NDEBUG */
+
+/* This macro returns pointer (of type `void *') to the last byte of
+   VLO.  The macro has side effects!  Remember also that the VLO may
+   change own place after any addition. */
+
+#ifndef NDEBUG
+#define VLO_END(vlo) ((vlo).vlo_start != NULL\
+                      ? (void *) ((vlo).vlo_stop - 1)\
+                      : (abort (), (void *) 0))
+#else
+#define VLO_END(vlo) ((void *) ((vlo).vlo_stop - 1))
+#endif /* #ifndef NDEBUG */
+
+/* This macro returns pointer (of type `void *') to the next byte of
+   the last byte of VLO.  The macro has side effects!  Remember also
+   that the VLO may change own place after any addition. */
+
+#ifndef NDEBUG
+#define VLO_BOUND(vlo) ((vlo).vlo_start != NULL\
+                        ? (void *) (vlo).vlo_stop\
+                        : (abort (), (void *) 0))
+#else
+#define VLO_BOUND(vlo) ((void *) (vlo).vlo_stop)
+#endif /* #ifndef NDEBUG */
+
+/* This macro removes N bytes from the end of VLO.  VLO is nullified
+   if its length is less than N.  The macro has not side effects. */
+
+#define VLO_SHORTEN(vlo, n)\
+  do\
+  {\
+    vlo_t *_temp_vlo = &(vlo);\
+    size_t _temp_n = (n);\
+    assert (_temp_vlo->vlo_start != NULL);\
+    if ((size_t) VLO_LENGTH (*_temp_vlo) < _temp_n)\
+      _temp_vlo->vlo_stop = _temp_vlo->vlo_start;\
+    else\
+      _temp_vlo->vlo_stop -= _temp_n;\
+  }\
+  while (0)
+
+
+/* This macro increases length of VLO.  The values of bytes added to
+   the end of VLO will be not defined.  The macro has not side
+   effects. */
+
+#define VLO_EXPAND(vlo, length)\
+  do\
+  {\
+    vlo_t *_temp_vlo = &(vlo);\
+    size_t _temp_length = (length);\
+    assert (_temp_vlo->vlo_start != NULL);\
+    if (_temp_vlo->vlo_stop + _temp_length > _temp_vlo->vlo_segment_stop)\
+      _VLO_expand_memory (_temp_vlo, _temp_length);\
+    _temp_vlo->vlo_stop += _temp_length;\
+  }\
+  while (0)
+
+
+/* This macro adds a byte to the end of VLO.  The macro has not side
+   effects. */
+
+#define VLO_ADD_BYTE(vlo, b)\
+  do\
+  {\
+    vlo_t *_temp_vlo = &(vlo);\
+    assert (_temp_vlo->vlo_start != NULL);\
+    if (_temp_vlo->vlo_stop >= _temp_vlo->vlo_segment_stop)\
+      _VLO_expand_memory (_temp_vlo, 1);\
+    *_temp_vlo->vlo_stop++ = (b);\
+  }\
+  while (0)
+
+
+/* This macro adds memory bytes to the end of VLO.  The macro has not
+   side effects. */
+
+#define VLO_ADD_MEMORY(vlo, str, length)\
+  do\
+  {\
+    vlo_t *_temp_vlo = &(vlo);\
+    size_t _temp_length = (length);\
+    assert (_temp_vlo->vlo_start != NULL);\
+    if (_temp_vlo->vlo_stop + _temp_length > _temp_vlo->vlo_segment_stop)\
+      _VLO_expand_memory (_temp_vlo, _temp_length);\
+    memcpy( _temp_vlo->vlo_stop, ( str ), _temp_length ); \
+    _temp_vlo->vlo_stop += _temp_length;\
+  }\
+  while (0)
+
+
+/* This macro adds C string (with end marker '\0') to the end of VLO.
+   Before the addition the macro delete last character of the VLO.
+   The last character is suggested to be C string end marker '\0'.
+   The macro has not side effects. */
+
+#define VLO_ADD_STRING(vlo, str) _VLO_add_string_function(&(vlo), (str))
+
+
+/* The following functions are to be used only by the package macros.
+   Remember that they are internal functions - all work with VLO is
+   executed through the macros. */
+
+extern void _VLO_tailor_function (vlo_t *vlo);
+extern void _VLO_add_string_function (vlo_t *vlo, const char *str);
+extern void _VLO_expand_memory (vlo_t *vlo, size_t additional_length);
+
+size_t vlo_memusage(vlo_t *vlo);
+
+#define YAEP_VLOBJECT_MODULE
+
+// PART H YAEP ////////////////////////////////////////
 
 #include<assert.h>
 #include<limits.h>
 #include<stdbool.h>
 #include<stdlib.h>
+
+#ifndef BUILDING_DIST_XMQ
+#include "always.h"
+#include "membuffer.h"
+#endif
 
 struct YaepGrammar;
 typedef struct YaepGrammar YaepGrammar;
@@ -1406,8 +1655,10 @@ struct YaepParseRun
     void (*parse_free)(void *mem);
     // The resulting DOM tree is stored here.
     YaepTreeNode *root;
-    // Set to 1 if the parse was ambigious.
+    // Set to true if the parse was ambigious.
     bool ambiguous_p;
+    // Set to true if the parse faild.
+    bool failed_p;
 
     // We are parsing with this grammar.
     YaepGrammar *grammar;
@@ -1417,7 +1668,7 @@ struct YaepParseRun
     bool trace;
 
     // This object continues with more data inside the implementation....
-    // Do not allocate this object yourself, use yaepNewParseRun andyaepFreeParseRun instead.
+    // Do not allocate this object yourself, use yaepNewParseRun and yaepFreeParseRun instead.
 };
 
 /* The following describes the type of parse tree node. */
@@ -1517,26 +1768,26 @@ struct YaepTreeNode
 };
 
 /* The following function creates an empty grammar. */
-YaepGrammar *yaepNewGrammar();
+extern YaepGrammar *yaepNewGrammar();
 
 /* The following function creates a parse run that uses the specified grammar.
    Each concurrent parse using the shared grammar needs a run to store the
    parse progress/state. */
-YaepParseRun *yaepNewParseRun(YaepGrammar *g);
+extern YaepParseRun *yaepNewParseRun(YaepGrammar *g);
 
 /* Set a pointer to a user structure that is available when callbacks are invoked,
    such as read_token when parsing. */
-void yaepSetUserData(YaepGrammar *g, void *data);
+extern void yaepSetUserData(YaepGrammar *g, void *data);
 
 /* Get the user data pointer from the grammar. */
-void *yaepGetUserData(YaepGrammar *g);
+extern void *yaepGetUserData(YaepGrammar *g);
 
 /* The function returns the last occurred error code for given grammar. */
-int yaep_error_code(YaepGrammar *g);
+extern int yaep_error_code(YaepGrammar *g);
 
 /* The function returns message are always contains error message
    corresponding to the last occurred error code. */
-const char *yaep_error_message(YaepGrammar *g);
+extern const char *yaep_error_message(YaepGrammar *g);
 
 /* The following function reads terminals/rules into grammar G and
    checks it depending on STRICT_P.  It returns zero if it is all ok.
@@ -1570,7 +1821,7 @@ const char *yaep_error_message(YaepGrammar *g);
    translation of the symbol in RHS given by the single array element.
    The cost of the abstract node if given is passed through
    ANODE_COST. */
-int yaep_read_grammar(YaepParseRun *ps,
+extern int yaep_read_grammar(YaepParseRun *ps,
                              YaepGrammar *g,
                              int strict_p,
                              const char *(*read_terminal) (YaepParseRun *pr,
@@ -1609,11 +1860,11 @@ int yaep_read_grammar(YaepParseRun *ps,
 
    o recovery_match means how much subsequent tokens should be
      successfully shifted to finish error recovery.  The default value is 3. */
-int yaep_set_lookahead_level(YaepGrammar *grammar, int level);
-bool yaep_set_one_parse_flag(YaepGrammar *grammar, bool flag);
-bool yaep_set_cost_flag(YaepGrammar *grammar, bool flag);
-bool yaep_set_error_recovery_flag(YaepGrammar *grammar, bool flag);
-int yaep_set_recovery_match(YaepGrammar *grammar, int n_toks);
+extern int yaep_set_lookahead_level(YaepGrammar *grammar, int level);
+extern bool yaep_set_one_parse_flag(YaepGrammar *grammar, bool flag);
+extern bool yaep_set_cost_flag(YaepGrammar *grammar, bool flag);
+extern bool yaep_set_error_recovery_flag(YaepGrammar *grammar, bool flag);
+extern int yaep_set_recovery_match(YaepGrammar *grammar, int n_toks);
 
 /* The following function parses input according read grammar.  The
    function returns the error code (which will be also in
@@ -1652,13 +1903,13 @@ int yaep_set_recovery_match(YaepGrammar *grammar, int n_toks);
    free memory allocated by PARSE_ALLOC. If PARSE_ALLOC is not NULL
    but PARSE_FREE is, the memory is not freed. In this case, the
    returned parse tree should also not be freed with yaep_free_tree(). */
-int yaepParse(YaepParseRun *ps, YaepGrammar *g);
+extern int yaepParse(YaepParseRun *ps, YaepGrammar *g);
 
 /* The following function frees memory allocated for the parse state. */
-void yaepFreeParseRun(YaepParseRun *ps);
+extern void yaepFreeParseRun(YaepParseRun *ps);
 
 /* The following function frees memory allocated for the grammar. */
-void yaepFreeGrammar(YaepParseRun *ps, YaepGrammar *g);
+extern void yaepFreeGrammar(YaepParseRun *ps, YaepGrammar *g);
 
 /* The following function frees memory allocated for the parse tree.
    It must not be called until after yaep_free_grammar() has been called.
@@ -1672,16 +1923,1028 @@ void yaepFreeGrammar(YaepParseRun *ps, YaepGrammar *g);
    exactly once for each term node in the parse tree.
    The TERMCB callback can be used by the caller
    to free the term attributes. The term node itself must not be freed. */
-void yaepFreeTree(YaepTreeNode *root,
+extern void yaepFreeTree(YaepTreeNode *root,
                          void (*parse_free)(void*),
                          void (*termcb)(YaepTerminalNode *termial));
 
 #define YAEP_MODULE
 
+// PART H YAEP_STRUCTS ////////////////////////////////////////
+
+#ifndef BUILDING_DIST_XMQ
+
+#include <stdbool.h>
+#include <setjmp.h>
+
+#include "yaep.h"
+#include "yaep_allocate.h"
+#include "yaep_hashtab.h"
+#include "yaep_objstack.h"
+#include "yaep_vlobject.h"
+
+#endif
+
+/* Terminals are stored a in term set using bits in a bit array.
+   The array consists of long ints, typedefed as terminal_bitset_el_t.
+   A long int is 8 bytes, ie 64 bits. */
+typedef long int terminal_bitset_t;
+
+/* Calculate the number of required term set elements from the number of bits we want to store. */
+#define CALC_NUM_ELEMENTS(num_bits) ((num_bits+CHAR_BIT*sizeof(terminal_bitset_t)-1)/(CHAR_BIT*sizeof(terminal_bitset_t)))
+// This calculation translates for example into ((num_bits+63)/64)
+// We round up to have enough long ints to store num_bits.
+
+#ifndef YAEP_MAX_ERROR_MESSAGE_LENGTH
+#define YAEP_MAX_ERROR_MESSAGE_LENGTH 200
+#endif
+
+/* As of Unicode 16 there are 155_063 allocated unicode code points.
+   Lets pick 200_000 as the max, it shrinks to max-min code point anyway.*/
+#define MAX_SYMB_CODE_TRANS_VECT_SIZE 200000
+
+/* The initial length of array(in tokens) in which input tokens are placed.*/
+#ifndef NUM_INITIAL_YAEP_INIT_TOKENS
+#define NUM_INITIAL_YAEP_TOKENS 10000
+#endif
+
+/* The default number of tokens sucessfully matched to stop error recovery alternative(state). */
+#define DEFAULT_RECOVERY_TOKEN_MATCHES 3
+
+/* Define this if you want to reuse already calculated state sets
+   when the matches lengths are identical. This considerably speeds up the parser. */
+#define USE_SET_HASH_TABLE
+
+/* This does not seem to be enabled by default? */
+#define USE_CORE_SYMB_HASH_TABLE
+
+/* Maximal goto sets saved for triple(set, terminal, lookahead). */
+#define MAX_CACHED_GOTO_RESULTS 3
+
+/* Prime number(79087987342985798987987) mod 32 used for hash calculations. */
+static const unsigned jauquet_prime_mod32 = 2053222611;
+
+/* Shift used for hash calculations. */
+static const unsigned hash_shift = 611;
+
+struct YaepSymbol;
+typedef struct YaepSymbol YaepSymbol;
+
+struct YaepSymbolStorage;
+typedef struct YaepSymbolStorage YaepSymbolStorage;
+
+struct YaepTerminalSet;
+typedef struct YaepTerminalSet YaepTerminalSet;
+
+struct YaepTerminalSetStorage;
+typedef struct YaepTerminalSetStorage YaepTerminalSetStorage;
+
+struct YaepRule;
+typedef struct YaepRule YaepRule;
+
+struct YaepRuleStorage;
+typedef struct YaepRuleStorage YaepRuleStorage;
+
+struct YaepVect;
+typedef struct YaepVect YaepVect;
+
+struct YaepCoreSymbToPredComps;
+typedef struct YaepCoreSymbToPredComps YaepCoreSymbToPredComps;
+
+struct YaepStateSetCore;
+typedef struct YaepStateSetCore YaepStateSetCore;
+
+struct YaepStateSet;
+typedef struct YaepStateSet YaepStateSet;
+
+struct YaepDottedRule;
+typedef struct YaepDottedRule YaepDottedRule;
+
+struct YaepInputToken;
+typedef struct YaepInputToken YaepInputToken;
+
+struct YaepStateSetTermLookAhead;
+typedef struct YaepStateSetTermLookAhead YaepStateSetTermLookAhead;
+
+struct YaepParseTreeBuildState;
+typedef struct YaepParseTreeBuildState YaepParseTreeBuildState;
+
+struct YaepTreeNodeVisit;
+typedef struct YaepTreeNodeVisit YaepTreeNodeVisit;
+
+struct YaepRecoveryState;
+typedef struct YaepRecoveryState YaepRecoveryState;
+
+// Structure definitions ////////////////////////////////////////////////////
+
+struct YaepGrammar
+{
+    /* Set to true if the grammar is undefined(you should set up the grammar
+       by yaep_read_grammar or yaep_parse_grammar) or bad(error was occured
+       in setting up the grammar). */
+    bool undefined_p;
+
+    /* This member always contains the last occurred error code for given grammar. */
+    int error_code;
+
+    /* This member contains message are always contains error message
+       corresponding to the last occurred error code. */
+    char error_message[YAEP_MAX_ERROR_MESSAGE_LENGTH + 1];
+
+    /* The grammar axiom is named $. */
+    YaepSymbol *axiom;
+
+    /* The end marker denotes EOF in the input token sequence. */
+    YaepSymbol *end_marker;
+
+    /* The term error is used for create error recovery nodes. */
+    YaepSymbol *term_error;
+
+    /* And its internal id. */
+    int term_error_id;
+
+    /* The level of usage of lookaheads:
+       0    - no usage
+       1    - statik lookaheads
+       >= 2 - dynamic lookaheads*/
+    int lookahead_level;
+
+    /* How many subsequent tokens should be successfuly shifted to finish error recovery. */
+    int recovery_token_matches;
+
+    /* If true then stop at first successful parse.
+       If false then follow all possible parses. */
+    bool one_parse_p;
+
+    /* If true then find parse with minimal cost. */
+    bool cost_p;
+
+    /* If true them try to recover from errors. */
+    bool error_recovery_p;
+
+    /* These are all the symbols used in this grammar. */
+    YaepSymbolStorage *symbs_ptr;
+
+    /* All rules used in this grammar are stored here. */
+    YaepRuleStorage *rulestorage_ptr;
+
+    /* The following terminal sets used for this grammar. */
+    YaepTerminalSetStorage *term_sets_ptr;
+
+    /* Allocator. */
+    YaepAllocator *alloc;
+
+    /* A user supplied pointer that is available to user callbacks through the grammar pointer. */
+    void *user_data;
+
+    /* Long jump here if there is an error. */
+    jmp_buf error_longjump_buff;
+};
+
+struct YaepSymbol
+{
+    /* A unique number 0,1,2... (num_terminals + num_non_terminals -1) */
+    int id;
+    /* The following is external representation of the symbol.  It
+       should be allocated by parse_alloc because the string will be
+       referred from parse tree. */
+    const char *repr;
+    char hr[7];    // #1ffff or ' ' or #78 or #0 (for eof)
+    union
+    {
+        struct
+        {
+            /* The code is a unique number per terminal type and is specified when
+               read_grammar fetches the terminals. For grammars with a lexer preprocessing
+               step, the code means 1 = "BEGIN", 2 = "END, 3 = "IDENTIFIER" etc.
+               For ixml grammars, each code is instead a unicode codepoint.
+               I.e. 65 = A, 0x1f600 = 😀  etc. */
+            int code;
+            /* Each term is given a unique integer starting from 0. If the code range
+               starts with 100 and ends with 129,then the term_ids goes from 0 to 29.
+               The term_ids are used for picking the bit in the bit arrays. */
+            int term_id;
+        } terminal;
+        struct
+        {
+            /* The following refers for all rules with the nonterminal
+               symbol is in the left hand side of the rules. */
+            YaepRule *rules;
+            /* Each nonterm is given a unique integer starting from 0. */
+            int nonterm_id;
+            /* The following value is nonzero if nonterminal may derivate
+               itself.  In other words there is a grammar loop for this
+               nonterminal. */
+            bool loop_p;
+            /* The following members are FIRST and FOLLOW sets of the nonterminal. */
+            terminal_bitset_t *first, *follow;
+        } nonterminal;
+    } u;
+    /* If true, the use terminal in union. */
+    bool is_terminal;
+    /* The following member value(if defined) is true if the symbol is
+       accessible(derivated) from the axiom. */
+    bool access_p;
+    /* The following member is true if it is a termainal/nonterminal which derives a terminal string. */
+    bool derivation_p;
+    /* The following is true if it is a nonterminal which may derive the empty string. */
+    bool empty_p;
+#ifdef USE_CORE_SYMB_HASH_TABLE
+    /* The following is used as cache for subsequent search for
+       core_symb_to_predcomps with given symb. */
+    YaepCoreSymbToPredComps *cached_core_symb_to_predcomps;
+#endif
+    /* Is it a not operator? E.g. !"CHAPTER" ![L] */
+    bool is_not_operator;
+};
+
+struct YaepSymbolStorage
+{
+    int num_terminals, num_nonterminals;
+
+    /* All symbols are placed in the following object.*/
+    os_t symbs_os;
+
+    /* All references to the symbols, terminals, nonterminals are stored
+       in the following vlos.  The indexes in the arrays are the same as
+       corresponding symbol, terminal, and nonterminal numbers.*/
+    vlo_t symbs_vlo;
+    vlo_t terminals_vlo;
+    vlo_t nonterminals_vlo;
+
+    /* The following are tables to find terminal by its code and symbol by
+       its representation.*/
+    hash_table_t map_repr_to_symb;        /* key is `repr'*/
+    hash_table_t map_code_to_symb;        /* key is `code'*/
+
+    /* If terminal symbol codes are not spared(in this case the member
+       value is not NULL, we use translation vector instead of hash table. */
+    YaepSymbol **symb_code_trans_vect;
+    int symb_code_trans_vect_start;
+    int symb_code_trans_vect_end;
+};
+
+/* A set of terminals represented as a bit array. */
+struct YaepTerminalSet
+{
+    // Set identity.
+    int id;
+
+    // Number of long ints (terminal_bitset_t) used to store the bit array.
+    int num_elements;
+
+    // The bit array itself.
+    terminal_bitset_t *set;
+};
+
+/* The following container for the abstract data.*/
+struct YaepTerminalSetStorage
+{
+    /* All terminal sets are stored in the following os. */
+    os_t terminal_bitset_os;
+
+    /* Their values are number of terminal sets and their overall size. */
+    int n_term_sets, n_term_sets_size;
+
+    /* The YaepTerminalSet objects are stored in this vlo. */
+    vlo_t terminal_bitset_vlo;
+
+    /* Hashmap from key set (a bit array) to the YaepTerminalSet object from which we use the id. */
+    hash_table_t map_terminal_bitset_to_id;
+};
+
+/* This page contains table for fast search for vector of indexes of
+   dotted_rules with symbol after dot in given set core. */
+struct YaepVect
+{
+    /* The following member is used internally.  The value is
+       nonnegative for core_symb_to_predcomps being formed.  It is index of vlo
+       in vlos array which contains the vector elements. */
+    int intern;
+
+    /* The following memebers defines array of ids of dotted_rules in a state set core. */
+    int len;
+    int *ids;
+};
+
+struct YaepCoreSymbToPredComps
+{
+    /* Unique incrementing id. Not strictly necessary but useful for debugging. */
+    int id;
+
+    /* The set core. */
+    YaepStateSetCore *core;
+
+    /* The symbol. */
+    YaepSymbol *symb;
+
+    /* The following vector contains ids of dotted_rules with given symb in dotted_rule after dot.
+       We use this to predict the next set of dotted rules to add after symb has been reach in state core. */
+    YaepVect predictions;
+
+    /* The following vector contains id of completed dotted_rule with given symb in lhs. */
+    YaepVect completions;
+};
+
+/* A StateSetCore is a state set in Earley's algorithm but without matched lengths for the dotted rules.
+   The state set cores can be reused between state sets and thus save memory. */
+struct YaepStateSetCore
+{
+    /* The following is unique number of the set core. It is defined only after forming all set. */
+    int id;
+
+    /* The state set core hash.  We save it as it is used several times. */
+    unsigned int hash;
+
+    /* The following is term shifting which resulted into this core.  It
+       is defined only after forming all set. */
+    YaepSymbol *term;
+
+    /* The variable num_dotted_rules are all dotted_rules in the set. Both starting and predicted. */
+    int num_dotted_rules;
+    int num_started_dotted_rules;
+    // num_not_yet_started_dotted_rules== num_dotted_rules-num_started_dotted_rules
+
+    /* Array of dotted_rules.  Started dotted_rules are always placed the
+       first in the order of their creation(with subsequent duplicates
+       are removed), then not_yet_started noninitial(dotted_rule with at least
+       one symbol before the dot) dotted_rules are placed and then initial
+       dotted_rules are placed.  You should access to a set dotted_rule only
+       through this member or variable `new_dotted_rules' (in other words don't
+       save the member value in another variable). */
+    YaepDottedRule **dotted_rules;
+
+    /* The following member is number of started dotted_rules and not-yet-started
+       (noninitial) dotted_rules whose matched_length is defined from a start
+       dotted_rule matched_length.  All not-yet-started initial dotted_rules have zero
+       matched_lengths.  This matched_lengths are not stored. */
+    int num_all_matched_lengths;
+
+    /* The following is an array containing the parent rule index from
+       which matched_length of dotted_rule with given index (between n_start_dotted_rules -> num_all_matched_lengths) is taken. */
+    int *to_parent_rule_index;
+};
+
+/* A YaepStateSet (aka parse list) stores chart entries (aka items) [from, to, S →  VP 🞄 NP ]
+   Scanning an input token triggers the creation of a state set. If we have n input tokens,
+   then we have n+2  state sets (we add the final eof token and a final state after eof
+   has been scanned.) */
+struct YaepStateSet
+{
+    /* The following is unique number of the state set. */
+    int id;
+
+    /* The following is set core of the set.  You should access to set
+       core only through this member or variable `new_core'(in other
+       words don't save the member value in another variable). */
+    YaepStateSetCore *core;
+
+    /* Hash of the array of matched_lengths. We save it as it is used several times. */
+    unsigned int matched_lengths_hash;
+
+    /* The following is matched_lengths only for started dotted_rules.  Not-yet-started
+       dotted_rules have their matched_lengths set to 0 implicitly.  A started dotted_rule
+       in the set core and its corresponding matched_length matched_length have the same index.
+       You should access matched_lengths only through this variable or the variable
+       new_matched_lengths, the location of the arrays can move. */
+    int *matched_lengths;
+};
+
+/* A dotted_rule stores:
+       reference to a rule,
+       current dot position in the rule,
+       lookup bitset for a quick terminal lookahead check, to see if this dotted_rule should be applied.
+
+   This is stored separately and this means that we can reuse dotted_rule objects to save memory,
+   since rule,dot,lookup is recurring often. */
+struct YaepDottedRule
+{
+    /* Unique dotted_rule identifier. Starts at 0 and increments for each new dotted_rule. */
+    int id;
+
+    /* The following is the rule being dotted. */
+    YaepRule *rule;
+
+    /* The following is position of dot in rhs of the dotted rule.
+       Starts at 0 (left of all rhs terms) and ends at rhs.len (right of all rhs terms). */
+    short dot_j;
+
+    /* The following member is true if the tail can derive empty string. */
+    bool empty_tail_p;
+
+    /* The following is number of dotted_rule dyn_lookahead_context which is number of
+       the corresponding terminal set in the table.  It is really used
+       only for dynamic lookahead. */
+    int dyn_lookahead_context;
+
+    /* The following member is the dotted_rule lookahead it is equal to
+       FIRST(the dotted_rule tail || FOLLOW(lhs)) for statik lookaheads
+       and FIRST(the dotted_rule tail || dyn_lookahead_context) for dynamic ones. */
+    terminal_bitset_t *lookahead;
+};
+
+struct YaepInputToken
+{
+    /* A symbol has a name "BEGIN",code 17, or for ixml "A",code 65. */
+    YaepSymbol *symb;
+
+    /* The token can have a provided attribute attached. This does not affect
+       the parse, but can be extracted from the final parse tree. */
+    void *attr;
+};
+
+/* The set-term-lookahead maps to goto sets. */
+struct YaepStateSetTermLookAhead
+{
+    /* Keys */
+    YaepStateSet *set;
+    YaepSymbol *term;
+    int lookahead_term; // The next terminal to be scanned.
+
+    /* Saved goto sets form a queue.  The last goto is saved at the
+       following array elements whose index is given by curr.
+       When curr reaches MAX_CACHED_GOTO_RESULTS it loops back to 0. */
+    int curr;
+
+    /* Saved goto sets to which we can go from SET by the terminal with
+       subsequent terminal LOOKAHEAD given by its code. */
+    YaepStateSet *result[MAX_CACHED_GOTO_RESULTS];
+
+    /* Corresponding places of the goto sets in the parsing list. */
+    int place[MAX_CACHED_GOTO_RESULTS];
+};
+
+struct YaepRule
+{
+    /* The following is order number of rule. */
+    int num;
+
+    /* The following is length of rhs. */
+    int rhs_len;
+
+    /* The following is the next grammar rule. */
+    YaepRule *next;
+
+    /* The following is the next grammar rule with the same nonterminal
+       in lhs of the rule. */
+    YaepRule *lhs_next;
+
+    /* The following is nonterminal in the left hand side of the rule. */
+    YaepSymbol *lhs;
+
+    /* The ixml default mark of the rule. -@^ */
+    char mark;
+
+    /* The following is symbols in the right hand side of the rule. */
+    YaepSymbol **rhs;
+
+    /* The ixml marks for all the terms in the right hand side of the rule. */
+    char *marks;
+    /* The following three members define rule translation. */
+
+    const char *anode;             /* abstract node name if any. */
+    int anode_cost;                /* the cost of the abstract node if any, otherwise 0. */
+    int trans_len;                 /* number of symbol translations in the rule translation. */
+
+    /* The following array elements correspond to element of rhs with
+       the same index.  The element value is order number of the
+       corresponding symbol translation in the rule translation.  If the
+       symbol translation is rejected, the corresponding element value is
+       negative. */
+    int *order;
+
+    /* The following member value is equal to size of all previous rule
+       lengths + number of the previous rules.  Imagine that all left
+       hand symbol and right hand size symbols of the rules are stored
+       in array.  Then the following member is index of the rule lhs in
+       the array. */
+    int rule_start_offset;
+
+    /* The following is the same string as anode but memory allocated in parse_alloc. */
+    char *caller_anode;
+
+    /* True if the rule contains any not operator. */
+    bool contains_not_operator;
+};
+
+/* The following container for the abstract data.*/
+struct YaepRuleStorage
+{
+    /* The following is number of all rules and their summary rhs length. */
+    int num_rules, n_rhs_lens;
+
+    /* The following is the first rule. */
+    YaepRule *first_rule;
+
+    /* The following is rule being formed. */
+    YaepRule *current_rule;
+
+    /* All rules are placed in the following object. */
+    os_t rules_os;
+};
+
+/* This state is used when reconstricting the parse tree from the dotted_rules. */
+struct YaepParseTreeBuildState
+{
+    /* The rule which we are processing. */
+    YaepRule *rule;
+
+    /* The source dotted rule id. */
+    YaepDottedRule *dotted_rule;
+
+    /* Current position in rule->rhs[]. */
+    int dot_j;
+
+    /* An index into input[] and is the starting point of the matched tokens for the rule. */
+    int from_i;
+
+    /* The current state set index into YaepParseState->state_sets. */
+    int state_set_k;
+
+    /* If the following value is NULL, then we do not need to create
+       translation for this rule.  If we should create abstract node
+       for this rule, the value refers for the abstract node and the
+       parent_rhs_offset is undefined.  Otherwise, the two members is
+       place into which we should place the translation of the rule.
+       The following member is used only for states in the stack. */
+    YaepParseTreeBuildState *parent_anode_state;
+
+    /* The parent anode index into input[] */
+    int parent_rhs_offset;
+
+    /* The following is used only for states in the table. */
+    YaepTreeNode *anode;
+};
+
+/* To make better traversing and don't waist tree parse memory,
+   we use the following structures to enumerate the tree node. */
+struct YaepTreeNodeVisit
+{
+    /* The following member is order number of the node.  This value is
+       negative if we did not visit the node yet. */
+    int num;
+
+    /* The tree node itself. */
+    YaepTreeNode*node;
+};
+
+/* The following strucrture describes an error recovery state(an
+   error recovery alternative.*/
+struct YaepRecoveryState
+{
+    /* The following three members define start state set used to given error
+       recovery state(alternative). */
+    /* The following members define what part of original(at the error
+       recovery start) state set will be head of error recovery state.  The
+       head will be all states from original state set with indexes in range
+       [0, last_original_state_set_el]. */
+    int last_original_state_set_el;
+    /* The following two members define tail of state set for this error recovery state. */
+    int state_set_tail_length;
+    YaepStateSet **state_set_tail;
+    /* The following member is index of start token for given error recovery state. */
+    int start_tok;
+    /* The following member value is number of tokens already ignored in
+       order to achieved given error recovery state. */
+    int backward_move_cost;
+};
+
+struct YaepParseState
+{
+    YaepParseRun run;
+    int magic_cookie; // Must be set to 736268273 when the state is created.
+
+    /* The input token array to be parsed. */
+    YaepInputToken *input;
+    int input_len;
+    vlo_t input_vlo;
+
+    /* When parsing, the current input token is incremented from 0 to len. */
+    int tok_i;
+
+    /* The following says that variables new_set and new_core are defined
+       including their members. Before new set is ready, then the access to
+       data of the set being formed is only possible through the new_dotted_rules,
+       new_matched_lenghts and new_num_dotted_rules variables. */
+    int new_set_ready_p;
+
+    /* The following variable is set being created.
+       This variable is defined only when new_set_ready_p is true. */
+    YaepStateSet *new_set;
+
+   /* The following variable is always set core of set being created.
+      Member core of new_set has always the following value.
+      This variable is defined only when new_set_ready_p is true. */
+    YaepStateSetCore *new_core;
+
+   /* To optimize code we use the following variables to access to data
+      of new set. I.e. the point into the new set if new_set_read_p.
+      Theses variables are always defined and correspondingly
+      dotted_rules, matched_lengths,
+      and the current number of started dotted_rules
+      of the set being formed. */
+    YaepDottedRule **new_dotted_rules;
+    int *new_matched_lengths;
+    int new_num_leading_dotted_rules;
+
+    /* The following are number of unique set cores and their start
+       dotted_rules, unique matched_length vectors and their summary length, and
+       number of parent indexes. */
+    int num_set_cores, num_set_core_start_dotted_rules;
+    int num_set_matched_lengths, num_set_matched_lengths_len;
+    int num_parent_dotted_rule_ids;
+
+    /* Number of state sets and their number of dotted_rules. */
+    int num_sets_total, num_dotted_rules_total;
+
+    /* Number of lookaheads (set, term, lookahead). */
+    int num_set_term_lookahead;
+
+    /* The set cores of formed sets are placed in the following os.*/
+    os_t set_cores_os;
+
+    /* The dotted_rules of formed sets are placed in the following os.*/
+    os_t set_dotted_rules_os;
+
+    /* The indexes of the parent start dotted_rules whose matched_lengths are used
+       to get matched_lengths of some not_yet_started dotted_rules are placed in the
+       following os.*/
+    os_t set_parent_dotted_rule_ids_os;
+
+    /* The matched_lengths of formed sets are placed in the following os.*/
+    os_t set_matched_lengths_os;
+
+    /* The sets themself are placed in the following os.*/
+    os_t sets_os;
+
+    /* Container for lookaheads (set, core, term, lookahead. */
+    os_t set_term_lookahead_os;
+
+    hash_table_t cache_stateset_cores;                /* key is the started dotted rules from a stateset. */
+    hash_table_t cache_stateset_matched_lengths;      /* key is matched_lengths from a stateset. */
+    hash_table_t cache_stateset_core_matched_lengths; /* key is (core, matched_lengths). */
+    hash_table_t cache_stateset_term_lookahead;       /* key is (set, term, lookeahed). */
+
+    /* The following contains current number of unique dotted_rules. */
+    int num_all_dotted_rules;
+
+    /* The following two dimensional array(the first dimension is dyn_lookahead_context
+       number, the second one is dotted_rule number) contains references to
+       all possible dotted_rules.*/
+    YaepDottedRule ***dotted_rules_table;
+
+    /* The following vlo is indexed by dotted_rule dyn_lookahead_context number and gives
+       array which is indexed by dotted_rule number
+      (dotted_rule->rule->rule_start_offset + dotted_rule->dot_j).*/
+    vlo_t dotted_rules_table_vlo;
+
+    /* All dotted_rules are placed in the following object.*/
+    os_t dotted_rules_os;
+
+    /* The set of pairs (dotted_rule,matched_length) used for test-setting such pairs
+       is implemented using a vec[dotted_rule id] -> vec[matched_length] -> generation since id
+       is unique and incrementing, we use a vector[max_id] to find another vector[max_matched_length]
+       each matched_length entry storing a generation number. To clear the set of pairs
+       we only need to increment the current generation below. Yay! No need to free, alloc, memset.*/
+    vlo_t dotted_rule_matched_length_vec_vlo;
+
+    /* The value used to check the validity of elements of check_dist structures. */
+    int dotted_rule_matched_length_vec_generation;
+
+    /* The following are number of unique(set core, symbol) pairs and
+       their summary(transitive) prediction and completed vectors length,
+       unique(transitive) prediction vectors and their summary length,
+       and unique completed vectors and their summary length. */
+    int n_core_symb_pairs, n_core_symb_to_predcomps_len;
+    int n_transition_vects, n_transition_vect_len;
+    int n_reduce_vects, n_reduce_vect_len;
+
+    /* All triples(set core, symbol, vect) are placed in the following object. */
+    os_t core_symb_to_predcomps_os;
+
+    /* Pointers to triples(set core, symbol, vect) being formed are
+       placed in the following object. */
+    vlo_t new_core_symb_to_predcomps_vlo;
+
+    /* All elements of vectors (transitive_)predictions and completions, are placed in the following os. */
+    os_t vect_ids_os;
+
+#ifdef USE_CORE_SYMB_HASH_TABLE
+    hash_table_t map_core_symb_to_predcomps;        /* key is core and symb.*/
+#else
+    /* The following two variables contains table(set core,
+       symbol)->core_symb_to_predcomps implemented as two dimensional array.*/
+    /* The following object contains pointers to the table rows for each
+       set core.*/
+    vlo_t core_symb_table_vlo;
+
+    /* The following is always start of the previous object.*/
+    YaepCoreSymbToPredComps ***core_symb_table;
+
+    /* The following contains rows of the table.  The element in the rows
+       are indexed by symbol number.*/
+    os_t core_symb_tab_rows;
+#endif
+
+    /* The following tables contains references for core_symb_to_predcomps which
+       (through(transitive) predictions and completions correspondingly)
+       refers for elements which are in the tables.  Sequence elements are
+       stored in one exemplar to save memory.*/
+    hash_table_t map_transition_to_coresymbvect;        /* key is elements.*/
+    hash_table_t map_reduce_to_coresymbvect;        /* key is elements.*/
+
+    /* Store state sets in a growing array. Even though early parser
+       specifies a new state set per token, we can reuse a state set if
+       the matched lengths are the same. This means that the
+       state_set_k can increment fewer times than tok_i. */
+    YaepStateSet **state_sets;
+    int state_set_k;
+
+    /* The following is number of created terminal, abstract, and
+       alternative nodes. */
+    int n_parse_term_nodes, n_parse_abstract_nodes, n_parse_alt_nodes;
+
+    /* All tail sets of error recovery are saved in the following os. */
+    os_t recovery_state_tail_sets;
+
+    /* The following variable values is state_set_k and tok_i at error
+       recovery start(when the original syntax error has been fixed). */
+    int recovery_start_set_k, recovery_start_tok_i;
+
+    /* The following variable value means that all error sets in pl with
+       indexes [back_state_set_frontier, recovery_start_set_k] are being processed or
+       have been processed. */
+    int back_state_set_frontier;
+
+    /* The following variable stores original state set tail in reversed order.
+       This object only grows.  The last object sets may be used to
+       restore original state set in order to try another error recovery state
+       (alternative). */
+    vlo_t original_state_set_tail_stack;
+
+    /* The following variable value is last state set element which is original
+       set(set before the error_recovery start). */
+    int original_last_state_set_el;
+
+    /* This page contains code for work with array of vlos.  It is used
+       only to implement abstract data `core_symb_to_predcomps'. */
+
+    /* All vlos being formed are placed in the following object. */
+    vlo_t vlo_array;
+
+    /* The following is current number of elements in vlo_array. */
+    int vlo_array_len;
+
+    /* The following table is used to find allocated memory which should not be freed. */
+    hash_table_t set_of_reserved_memory; // (key is memory pointer)
+
+    /* The following vlo will contain references to memory which should be
+       freed.  The same reference can be represented more on time. */
+    vlo_t tnodes_vlo;
+
+    /* The key of the following table is node itself. */
+    hash_table_t map_node_to_visit;
+
+    /* All translation visit nodes are placed in the following stack.  All
+       the nodes are in the table.*/
+    os_t node_visits_os;
+
+    /* The following value is number of translation visit nodes. */
+    int num_nodes_visits;
+
+    /* How many times we reuse Earley's sets without their recalculation. */
+    int n_goto_successes;
+
+    /* The following vlo is error recovery states stack.  The stack
+       contains error recovery state which should be investigated to find
+       the best error recovery. */
+    vlo_t recovery_state_stack;
+
+    /* The following os contains all allocated parser states. */
+    os_t parse_state_os;
+
+    /* The following variable refers to head of chain of already allocated
+       and then freed parser states. */
+    YaepParseTreeBuildState *free_parse_state;
+
+    /* The following table is used to make translation for ambiguous
+       grammar more compact.  It is used only when we want all
+       translations. */
+    hash_table_t map_rule_orig_statesetind_to_internalstate;        /* Key is rule, origin, state_set_k.*/
+
+    int core_symb_to_pred_comps_counter;
+
+    /* Jump here when error. */
+    jmp_buf error_longjump_buff;
+};
+typedef struct YaepParseState YaepParseState;
+
+#define CHECK_PARSE_STATE_MAGIC(ps) (ps->magic_cookie == 736268273)
+#define INSTALL_PARSE_STATE_MAGIC(ps) ps->magic_cookie=736268273
+
+struct StateVars;
+typedef struct StateVars StateVars;
+
+struct StateVars
+{
+    int state_id;
+    int core_id;
+    int num_started_dotted_rules;
+    int num_dotted_rules;
+    int num_all_matched_lengths;
+    YaepDottedRule **dotted_rules;
+    int *matched_lengths;
+    int *to_parent_rule_index;
+};
+
+// PART H YAEP_CSPC ////////////////////////////////////////
+
+#ifndef BUILDING_DIST_XMQ
+
+#include "yaep_structs.h"
+
+#endif
+
+YaepCoreSymbToPredComps *core_symb_to_predcomps_new(YaepParseState *ps, YaepStateSetCore*core, YaepSymbol*symb);
+void core_symb_to_predcomps_init(YaepParseState *ps);
+YaepCoreSymbToPredComps *core_symb_to_predcomps_find(YaepParseState *ps, YaepStateSetCore *core, YaepSymbol *symb);
+void free_core_symb_to_vect_lookup(YaepParseState *ps);
+void core_symb_to_predcomps_add_predict(YaepParseState *ps,
+                                        YaepCoreSymbToPredComps *core_symb_to_predcomps,
+                                        int rule_index_in_core);
+void core_symb_to_predcomps_add_complete(YaepParseState *ps,
+                                         YaepCoreSymbToPredComps *core_symb_to_predcomps,
+                                         int rule_index_in_core);
+void core_symb_to_predcomps_new_all_stop(YaepParseState *ps);
+
+#define YAEP_CSPC_MODULE
+
+// PART H YAEP_UTIL ////////////////////////////////////////
+
+#ifndef BUILDING_DIST_XMQ
+
+#include <stdio.h>
+
+#endif
+
+// Debug functions available to gdb.
+
+void dbg_breakpoint();
+
+void dbg_print_core(YaepParseState *ps, YaepStateSetCore *c);
+void dbg_print_coresymbvects(YaepParseState *ps, YaepCoreSymbToPredComps *v);
+void dbg_print_dotted_rule(YaepParseState *ps, YaepDottedRule *dotted_rule);
+void fetch_state_vars(YaepParseState *ps, YaepStateSet *state_set, StateVars *out);
+int find_matched_length(YaepParseState *ps, YaepStateSet *state_set, StateVars *vars, int dotted_rule_id);
+
+void yaep_view(YaepParseState *ps, const char *format, ...);
+void yaep_debug(YaepParseState *ps, const char *format, ...);
+void yaep_trace(YaepParseState *ps, const char *format, ...);
+
+#define YAEP_UTIL_MODULE
+
+// PART H YAEP_SYMBOLS ////////////////////////////////////////
+
+unsigned symb_repr_hash(hash_table_entry_t s);
+bool symb_repr_eq(hash_table_entry_t s1, hash_table_entry_t s2);
+unsigned symb_code_hash(hash_table_entry_t s);
+bool symb_code_eq(hash_table_entry_t s1, hash_table_entry_t s2);
+YaepSymbolStorage *symbolstorage_create(YaepGrammar *grammar);
+
+/* Return symbol(or NULL if it does not exist) whose representation is REPR.*/
+YaepSymbol *symb_find_by_repr(YaepParseState *ps, const char*repr);
+
+/* Return symbol(or NULL if it does not exist) which is terminal with CODE. */
+YaepSymbol *symb_find_by_code(YaepParseState *ps, int code);
+
+YaepSymbol *symb_find_by_term_id(YaepParseState *ps, int term_id);
+
+/* The function creates new terminal symbol and returns reference for
+   it.  The symbol should be not in the tables.  The function should
+   create own copy of name for the new symbol. */
+YaepSymbol *symb_add_terminal(YaepParseState *ps, const char*name, int code);
+
+/* The function creates new nonterminal symbol and returns reference
+   for it.  The symbol should be not in the table. The function
+   should create own copy of name for the new symbol. */
+YaepSymbol *symb_add_nonterm(YaepParseState *ps, const char *name);
+
+/* The following function return N-th symbol(if any) or NULL otherwise. */
+YaepSymbol *symb_get(YaepParseState *ps, int id);
+
+/* The following function return N-th symbol(if any) or NULL otherwise. */
+YaepSymbol *term_get(YaepParseState *ps, int n);
+
+/* The following function return N-th symbol(if any) or NULL otherwise. */
+YaepSymbol *nonterm_get(YaepParseState *ps, int n);
+
+void symb_finish_adding_terms(YaepParseState *ps);
+
+/* Free memory for symbols. */
+void symb_empty(YaepParseState *ps, YaepSymbolStorage *symbs);
+
+void symbolstorage_free(YaepParseState *ps, YaepSymbolStorage *symbs);
+
+
+#define YAEP_SYMBOLS_MODULE
+
+// PART H YAEP_TERMINAL_BITSET ////////////////////////////////////////
+
+#ifndef BUILDING_DIST_XMQ
+
+#include "yaep.h"
+#include "yaep_allocate.h"
+#include "yaep_hashtab.h"
+#include "yaep_structs.h"
+
+#endif
+
+unsigned terminal_bitset_hash(hash_table_entry_t s);
+bool terminal_bitset_eq(hash_table_entry_t s1, hash_table_entry_t s2);
+YaepTerminalSetStorage *termsetstorage_create(YaepGrammar *grammar);
+terminal_bitset_t *terminal_bitset_create(YaepParseState *ps);
+void terminal_bitset_clear(YaepParseState *ps, terminal_bitset_t* set);
+void terminal_bitset_fill(YaepParseState *ps, terminal_bitset_t* set);
+void terminal_bitset_copy(YaepParseState *ps, terminal_bitset_t *dest, terminal_bitset_t *src);
+/* Add all terminals from set OP with to SET.  Return true if SET has been changed.*/
+bool terminal_bitset_or(YaepParseState *ps, terminal_bitset_t *set, terminal_bitset_t *op);
+/* Add terminal with number NUM to SET.  Return true if SET has been changed.*/
+bool terminal_bitset_up(YaepParseState *ps, terminal_bitset_t *set, int num);
+/* Remove terminal with number NUM from SET.  Return true if SET has been changed.*/
+bool terminal_bitset_down(YaepParseState *ps, terminal_bitset_t *set, int num);
+/* Return true if terminal with number NUM is in SET. */
+int terminal_bitset_test(YaepParseState *ps, terminal_bitset_t *set, int num);
+/* The following function inserts terminal SET into the table and
+   returns its number.  If the set is already in table it returns -its
+   number - 1(which is always negative).  Don't set after
+   insertion!!! */
+int terminal_bitset_insert(YaepParseState *ps, terminal_bitset_t *set);
+/* The following function returns set which is in the table with number NUM. */
+terminal_bitset_t *terminal_bitset_from_table(YaepParseState *ps, int num);
+/* Print terminal SET into file F. */
+void terminal_bitset_print(MemBuffer *mb, YaepParseState *ps, terminal_bitset_t *set);
+/* Free memory for terminal sets. */
+void terminal_bitset_empty(YaepTerminalSetStorage *term_sets);
+void termsetstorage_free(YaepGrammar *grammar, YaepTerminalSetStorage *term_sets);
+
+#define YAEP_TERMINAL_BITSET_MODULE
+
+// PART H YAEP_TREE ////////////////////////////////////////
+
+#ifndef BUILDING_DIST_XMQ
+
+#include "yaep_structs.h"
+
+#endif
+
+/* Build the parse tree from the yaep parse. */
+YaepTreeNode *build_parse_tree(YaepParseState *ps, bool *ambiguous_p);
+
+/* Hash of translation visit node.*/
+unsigned trans_visit_node_hash(hash_table_entry_t n);
+
+/* Equality of translation visit nodes.*/
+bool trans_visit_node_eq(hash_table_entry_t n1, hash_table_entry_t n2);
+
+/* The following function returns the positive order number of node with number NUM.*/
+int canon_node_id(int id);
+
+/* The following function checks presence translation visit node with
+   given NODE in the table and if it is not present in the table, the
+   function creates the translation visit node and inserts it into
+   the table.*/
+YaepTreeNodeVisit *visit_node(YaepParseState *ps, YaepTreeNode*node);
+
+#define YAEP_TREE_MODULE
+
+// PART H YAEP_PRINT ////////////////////////////////////////
+
+#ifndef BUILDING_DIST_XMQ
+
+#include <stdio.h>
+#include "yaep_structs.h"
+
+#endif
+
+void print_core(MemBuffer*mb, YaepStateSetCore *c);
+void print_coresymbvects(MemBuffer*mb, YaepParseState *ps, YaepCoreSymbToPredComps *v);
+void print_dotted_rule(MemBuffer *mb, YaepParseState *ps, int from_i, YaepDottedRule *dotted_rule, int matched_length, int parent_id);
+void print_dotted_rule_blocked(MemBuffer *mb, YaepParseState *ps, int from_i, YaepDottedRule *dotted_rule, int matched_length, int parent_id);
+void print_matched_lenghts(MemBuffer *mb, YaepStateSet *s);
+void print_parse(YaepParseState *ps, FILE* f, YaepTreeNode*root);
+void print_rule(MemBuffer *mb, YaepParseState *ps, YaepRule *rule);
+void print_rule_with_dot(MemBuffer *mb, YaepParseState *ps, YaepRule *rule, int pos);
+void print_state_set(MemBuffer *mb, YaepParseState *ps, YaepStateSet *set, int from_i);
+void print_symbol(MemBuffer *mb, YaepSymbol *symb, bool code_p);
+void print_terminal_bitset(MemBuffer *mb, YaepParseState *ps, terminal_bitset_t *set);
+void print_yaep_node(YaepParseState *ps, FILE *f, YaepTreeNode *node);
+void rule_print(MemBuffer *mb, YaepParseState *ps, YaepRule *rule, bool trans_p);
+
+#define YAEP_PRINT_MODULE
+
 
 // XMQ STRUCTURES ////////////////////////////////////////////////
 
-// PARTS XMQ_INTERNALS ////////////////////////////////////////
+// PART H XMQ_INTERNALS ////////////////////////////////////////
 
 #include<assert.h>
 #include<ctype.h>
@@ -1704,7 +2967,7 @@ void yaepFreeTree(YaepTreeNode *root,
 #include<libxml/xpath.h>
 #include<libxml/xpathInternals.h>
 
-#ifndef BUILDING_XMQ
+#ifndef BUILDING_DIST_XMQ
 #include"colors.h"
 #endif
 
@@ -1817,6 +3080,8 @@ typedef enum Level Level;
     @escape_newlines: Replace newlines with &#10; this is implied if compact is set.
     @escape_non_7bit: Replace all chars above 126 with char entities, ie &#10;
     @escape_tabs: Replace tabs with &#9;
+    @allow_json_quotes: Allow quoting with "..." for content with no newlines but single quotes.
+    @always_json_quotes: Always quote using "..." when quoting is needed.
     @output_format: Print xmq/xml/html/json
     @render_to: Render to terminal, html, tex.
     @render_raw: If true do not write surrounding html and css colors, likewise for tex.
@@ -1834,9 +3099,12 @@ struct XMQOutputSettings
     bool omit_decl;
     bool use_color;
     bool bg_dark_mode;
+    bool prefer_double_quotes;
     bool escape_newlines;
     bool escape_non_7bit;
     bool escape_tabs;
+    bool allow_json_quotes;
+    bool always_json_quotes;
 
     XMQContentType output_format;
     XMQRenderFormat render_to;
@@ -1926,7 +3194,9 @@ typedef struct IXMLTerm IXMLTerm;
 struct IXMLRule
 {
     IXMLNonTerminal *rule_name;
-    char mark;
+    char mark; // ^@-+
+    int cost;  // 0, 1, 2 or more. I higher cost is avoided when ambiguity arises.
+    bool expected_ambiguity; // Set to true means we want the multiple parses.
     Vector *rhs_terms;
 };
 typedef struct IXMLRule IXMLRule;
@@ -1997,6 +3267,8 @@ struct XMQParseState
     // Collect all unique terminals in this map from the name. #78 and 'x' is the same terminal with code 120.
     // The name is a #hex version of unicode codepoint.
     HashMap *ixml_terminals_map;
+    // Collect all non-terminal names here, map name to non-terminal.
+    HashMap *ixml_non_terminals_map;
     // References to non-terminals, ie rules (includes mark -^@).
     Vector *ixml_non_terminals;
     // Store all rules here. The rule has a rule_name which is a non-terminal ref to itself.
@@ -2020,6 +3292,10 @@ struct XMQParseState
 //    Vector *ixml_rhs_tmp_terms;
     // These are the marks @-^ for the terminals.
     Vector *ixml_rhs_tmp_marks;
+    // Has the cost marker "=<" or ":<" or "=<<<" etc been used for a rule in this ixml grammar?
+    bool ixml_costs_enabled;
+    // Has a rule been marked with "*" which means we want all parses!
+    bool ixml_controlled_ambiguity_enabled;
     // The most recently parsed mark.
     char ixml_mark;
     // The most recently parsed encoded value #41
@@ -2032,7 +3308,7 @@ struct XMQParseState
     // When parsing the grammar, collect all charset categories that we use.
     HashMap *ixml_found_categories;
 
-    // These are used when travergins the IXML parse tree and generating the yaep grammar build calls.
+    // These are used when traversing the IXML parse tree and building the yaep grammar.
     char **yaep_tmp_rhs_;
     char *yaep_tmp_marks_;
     int *yaep_tmp_transl_;
@@ -2043,6 +3319,10 @@ struct XMQParseState
     int depth;
     // Generate xml as well.
     bool build_xml_of_ixml;
+
+    // When fixing ixml and using --lines the already added unicode chars
+    // are stored here between lines.
+    char *used_unicodes;
 };
 
 /**
@@ -2081,6 +3361,7 @@ typedef struct XMQPrintState XMQPrintState;
     @force:           Always add single quotes. More quotes if necessary.
     @compact:         Generate compact quote on a single line. Using &#10; and no superfluous whitespace.
     @value_after_key: If enties are introduced by the quoting, then use compound ( ) around the content.
+    @prefer_double_quotes: // By default xmq uses the single quote, but we can change this here.
 
     @indentation_space: Use this as the indentation character. If NULL default to " ".
     @explicit_space: Use this as the explicit space/indentation character. If NULL default to " ".
@@ -2096,7 +3377,9 @@ struct XMQQuoteSettings
 {
     bool force; // Always add single quotes. More quotes if necessary.
     bool compact; // Generate compact quote on a single line. Using &#10; and no superfluous whitespace.
-    bool value_after_key; // If enties are introduced by the quoting, then use compound (( )) around the content.
+    bool allow_json_quotes; // Permit "..." json quoting.
+    bool value_after_key; // If enties are introduced by the quoting, then use compound ( ) around the content.
+    bool prefer_double_quotes; // By default xmq uses the single quote, but we can change this here.
 
     const char *indentation_space;  // Use this as the indentation character. If NULL default to " ".
     const char *explicit_space;  // Use this as the explicit space character inside quotes. If NULL default to " ".
@@ -2114,37 +3397,7 @@ typedef struct XMQQuoteSettings XMQQuoteSettings;
 
 void generate_state_error_message(XMQParseState *state, XMQParseError error_nr, const char *start, const char *stop);
 
-// Text functions ////////////////
-
-bool is_all_xml_whitespace(const char *start);
-bool is_lowercase_hex(char c);
-bool is_unicode_whitespace(const char *start, const char *stop);
-size_t count_whitespace(const char *i, const char *stop);
-
-// XMQ parser utility functions //////////////////////////////////
-
-bool is_xml_whitespace(char c); // 0x9 0xa 0xd 0x20
-bool is_xmq_token_whitespace(char c); // 0xa 0xd 0x20
-bool is_xmq_attribute_key_start(char c);
-bool is_xmq_comment_start(char c, char cc);
-bool is_xmq_compound_start(char c);
-bool is_xmq_doctype_start(const char *start, const char *stop);
-bool is_xmq_pi_start(const char *start, const char *stop);
-bool is_xmq_entity_start(char c);
-bool is_xmq_quote_start(char c);
-bool is_xmq_text_value(const char *i, const char *stop);
-bool is_xmq_text_value_char(const char *i, const char *stop);
-bool unsafe_value_start(char c, char cc);
-bool is_safe_value_char(const char *i, const char *stop);
-
-size_t count_xmq_slashes(const char *i, const char *stop, bool *found_asterisk);
-size_t count_necessary_quotes(const char *start, const char *stop, bool compact, bool *add_nls, bool *add_compound);
-size_t count_necessary_slashes(const char *start, const char *stop);
-
-
 // Common parser functions ///////////////////////////////////////
-
-void increment(char c, size_t num_bytes, const char **i, size_t *line, size_t *col);
 
 Level enter_compound_level(Level l);
 XMQColor level_to_quote_color(Level l);
@@ -2152,17 +3405,7 @@ XMQColor level_to_entity_color(Level l);
 void attr_strlen_name_prefix(xmlAttr *attr, const char **name, const char **prefix, size_t *total_u_len);
 void element_strlen_name_prefix(xmlNode *attr, const char **name, const char **prefix, size_t *total_u_len);
 void namespace_strlen_prefix(xmlNs *ns, const char **prefix, size_t *total_u_len);
-size_t find_attr_key_max_u_width(xmlAttr *a);
-size_t find_namespace_max_u_width(size_t max, xmlNs *ns);
-size_t find_element_key_max_width(xmlNodePtr node, xmlNodePtr *restart_find_at_node);
-bool is_hex(char c);
-unsigned char hex_value(char c);
 const char *find_word_ignore_case(const char *start, const char *stop, const char *word);
-
-XMQParseState *xmqAllocateParseState(XMQParseCallbacks *callbacks);
-void xmqFreeParseState(XMQParseState *state);
-bool xmqTokenizeBuffer(XMQParseState *state, const char *start, const char *stop);
-bool xmqTokenizeFile(XMQParseState *state, const char *file);
 
 void setup_terminal_coloring(XMQOutputSettings *os, XMQTheme *c, bool dark_mode, bool use_color, bool render_raw);
 void setup_html_coloring(XMQOutputSettings *os, XMQTheme *c, bool dark_mode, bool use_color, bool render_raw);
@@ -2170,16 +3413,10 @@ void setup_tex_coloring(XMQOutputSettings *os, XMQTheme *c, bool dark_mode, bool
 
 // XMQ tokenizer functions ///////////////////////////////////////////////////////////
 
-void eat_xml_whitespace(XMQParseState *state, const char **start, const char **stop);
-void eat_xmq_token_whitespace(XMQParseState *state, const char **start, const char **stop);
-void eat_xmq_entity(XMQParseState *state);
-void eat_xmq_comment_to_eol(XMQParseState *state, const char **content_start, const char **content_stop);
-void eat_xmq_comment_to_close(XMQParseState *state, const char **content_start, const char **content_stop, size_t n, bool *found_asterisk);
-void eat_xmq_text_value(XMQParseState *state);
-bool peek_xmq_next_is_equal(XMQParseState *state);
 size_t count_xmq_quotes(const char *i, const char *stop);
 void eat_xmq_quote(XMQParseState *state, const char **start, const char **stop);
-char *xmq_trim_quote(size_t indent, char space, const char *start, const char *stop);
+size_t calculate_incidental_indent(const char *start, const char *stop);
+char *xmq_trim_quote(const char *start, const char *stop, bool is_xmq, bool is_comment);
 char *escape_xml_comment(const char *comment);
 char *unescape_xml_comment(const char *comment);
 void xmq_fixup_html_before_writeout(XMQDoc *doq);
@@ -2189,112 +3426,20 @@ char *xmq_comment(int indent,
                  const char *start,
                  const char *stop,
                  XMQQuoteSettings *settings);
-char *xmq_un_comment(size_t indent, char space, const char *start, const char *stop);
-char *xmq_un_quote(size_t indent, char space, const char *start, const char *stop, bool remove_qs);
-
-// XMQ syntax parser functions ///////////////////////////////////////////////////////////
-
-void parse_xmq(XMQParseState *state);
-void parse_xmq_attribute(XMQParseState *state);
-void parse_xmq_attributes(XMQParseState *state);
-void parse_xmq_comment(XMQParseState *state, char cc);
-void parse_xmq_compound(XMQParseState *state, Level level);
-void parse_xmq_compound_children(XMQParseState *state, Level level);
-void parse_xmq_element_internal(XMQParseState *state, bool doctype, bool pi);
-void parse_xmq_element(XMQParseState *state);
-void parse_xmq_doctype(XMQParseState *state);
-void parse_xmq_pi(XMQParseState *state);
-void parse_xmq_entity(XMQParseState *state, Level level);
-void parse_xmq_quote(XMQParseState *state, Level level);
-void parse_xmq_text_any(XMQParseState *state);
-void parse_xmq_text_name(XMQParseState *state);
-void parse_xmq_text_value(XMQParseState *state, Level level);
-void parse_xmq_value(XMQParseState *state, Level level);
-void parse_xmq_whitespace(XMQParseState *state);
+char *xmq_un_comment(const char *start, const char *stop);
+char *xmq_un_quote(const char *start, const char *stop, bool remove_qs, bool is_xmq);
 
 // XML/HTML dom functions ///////////////////////////////////////////////////////////////
 
 xmlDtdPtr parse_doctype_raw(XMQDoc *doq, const char *start, const char *stop);
-char *xml_collapse_text(xmlNode *node);
-xmlNode *xml_first_child(xmlNode *node);
-xmlNode *xml_last_child(xmlNode *node);
-xmlNode *xml_prev_sibling(xmlNode *node);
-xmlNode *xml_next_sibling(xmlNode *node);
-xmlAttr *xml_first_attribute(xmlNode *node);
-xmlNs *xml_first_namespace_def(xmlNode *node);
-xmlNs *xml_next_namespace_def(xmlNs *ns);
-xmlAttr *xml_next_attribute(xmlAttr *attr);
-const char*xml_element_name(xmlNode *node);
-const char*xml_element_content(xmlNode *node);
-const char *xml_element_ns_prefix(const xmlNode *node);
-const char*xml_attr_key(xmlAttr *attr);
-const char*xml_namespace_href(xmlNs *ns);
-bool is_entity_node(const xmlNode *node);
-bool is_content_node(const xmlNode *node);
-bool is_doctype_node(const xmlNode *node);
-bool is_comment_node(const xmlNode *node);
-bool is_pi_node(const xmlNode *node);
-bool is_leaf_node(xmlNode *node);
-bool is_key_value_node(xmlNode *node);
 void trim_node(xmlNode *node, int flags);
 void trim_text_node(xmlNode *node, int flags);
 
 // Output buffer functions ////////////////////////////////////////////////////////
 
-const char *build_error_message(const char *fmt, ...);
-
-void node_strlen_name_prefix(xmlNode *node, const char **name, size_t *name_len, const char **prefix, size_t *prefix_len, size_t *total_len);
-
-bool need_separation_before_attribute_key(XMQPrintState *ps);
-bool need_separation_before_element_name(XMQPrintState *ps);
-bool need_separation_before_quote(XMQPrintState *ps);
-bool need_separation_before_comment(XMQPrintState *ps);
-
-void check_space_before_attribute(XMQPrintState *ps);
-void check_space_before_comment(XMQPrintState *ps);
-void check_space_before_entity_node(XMQPrintState *ps);
-void check_space_before_key(XMQPrintState *ps);
-void check_space_before_opening_brace(XMQPrintState *ps);
-void check_space_before_closing_brace(XMQPrintState *ps);
-void check_space_before_quote(XMQPrintState *ps, Level level);
-
-bool quote_needs_compounded(XMQPrintState *ps, const char *start, const char *stop);
-
-// Printing the DOM as xmq/htmq ///////////////////////////////////////////////////
-
-size_t print_char_entity(XMQPrintState *ps, XMQColor c, const char *start, const char *stop);
-void print_color_post(XMQPrintState *ps, XMQColor c);
-void print_color_pre(XMQPrintState *ps, XMQColor c);
-void print_comment_line(XMQPrintState *ps, const char *start, const char *stop, bool compact);
-void print_comment_lines(XMQPrintState *ps, const char *start, const char *stop, bool compact);
-void print_nl_and_indent(XMQPrintState *ps, const char *prefix, const char *postfix);
-void print_quote_lines_and_color_uwhitespace(XMQPrintState *ps, XMQColor c, const char *start, const char *stop);
-void print_quoted_spaces(XMQPrintState *ps, XMQColor c, int n);
-void print_quotes(XMQPrintState *ps, size_t num, XMQColor c);
-void print_slashes(XMQPrintState *ps, const char *pre, const char *post, size_t n);
-void print_white_spaces(XMQPrintState *ps, int n);
-void print_all_whitespace(XMQPrintState *ps, const char *start, const char *stop, Level level);
-
-void print_nodes(XMQPrintState *ps, xmlNode *from, xmlNode *to, size_t align);
-void print_node(XMQPrintState *ps, xmlNode *node, size_t align);
-void print_entity_node(XMQPrintState *ps, xmlNode *node);
-void print_content_node(XMQPrintState *ps, xmlNode *node);
-void print_comment_node(XMQPrintState *ps, xmlNode *node);
-void print_doctype(XMQPrintState *ps, xmlNode *node);
-void print_key_node(XMQPrintState *ps, xmlNode *node, size_t align);
-void print_leaf_node(XMQPrintState *ps, xmlNode *node);
-void print_element_with_children(XMQPrintState *ps, xmlNode *node, size_t align);
-size_t print_element_name_and_attributes(XMQPrintState *ps, xmlNode *node);
-void print_attribute(XMQPrintState *ps, xmlAttr *a, size_t align);
-void print_attributes(XMQPrintState *ps, xmlNodePtr node);
-void print_value(XMQPrintState *ps, xmlNode *node, Level level);
-void print_value_internal_text(XMQPrintState *ps, const char *start, const char *stop, Level level);
-void print_value_internal(XMQPrintState *ps, xmlNode *node, Level level);
 const char *needs_escape(XMQRenderFormat f, const char *start, const char *stop);
-size_t print_utf8_internal(XMQPrintState *ps, const char *start, const char *stop);
-size_t print_utf8(XMQPrintState *ps, XMQColor c, size_t num_pairs, ...);
-size_t print_utf8_char(XMQPrintState *ps, const char *start, const char *stop);
-void print_quote(XMQPrintState *ps, XMQColor c, const char *start, const char *stop);
+
+const char *build_error_message(const char *fmt, ...);
 
 struct YaepGrammar;
 typedef struct YaepGrammar YaepGrammar;
@@ -2347,6 +3492,9 @@ XMQParseState *xmq_get_yaep_parse_state(XMQDoc *doc);
 
 void set_node_namespace(XMQParseState *state, xmlNodePtr node, const char *node_name);
 
+bool load_file(XMQDoc *doq, const char *file, size_t *out_fsize, const char **out_buffer);
+bool load_stdin(XMQDoc *doq, size_t *out_fsize, const char **out_buffer);
+
 // Multicolor terminals like gnome-term etc.
 
 #define NOCOLOR      "\033[0m"
@@ -2356,7 +3504,7 @@ void set_node_namespace(XMQParseState *state, xmlNodePtr node, const char *node_
 
 // FUNCTIONALITY /////////////////////////////////////////////////
 
-// PARTS JSON ////////////////////////////////////////
+// PART H JSON ////////////////////////////////////////
 
 #include"xmq.h"
 #include<libxml/tree.h>
@@ -2373,9 +3521,13 @@ bool xmq_tokenize_buffer_json(XMQParseState *state, const char *start, const cha
 
 #define JSON_MODULE
 
-// PARTS IXML ////////////////////////////////////////
+// PART H IXML ////////////////////////////////////////
+
+#ifndef BUILDING_DIST_XMQ
 
 #include"xmq.h"
+
+#endif
 
 struct YaepGrammar;
 typedef struct YaepGrammar YaepGrammar;
@@ -2398,6 +3550,8 @@ bool ixml_build_yaep_grammar(YaepParseRun *pr,
                              const char *content_start, // Needed to minimize charset rule sizes.
                              const char *content_stop);
 
+IXMLTerminal *new_ixml_terminal();
+IXMLNonTerminal *new_ixml_nonterminal();
 void free_ixml_rule(IXMLRule *r);
 void free_ixml_terminal(IXMLTerminal *t);
 void free_ixml_nonterminal(IXMLNonTerminal *nt);
@@ -2425,8 +3579,9 @@ void ixml_print_grammar(XMQParseState *state);
 void add_nl(XMQParseState *state);
 XMQProceed catch_single_content(XMQDoc *doc, XMQNode *node, void *user_data);
 size_t calculate_buffer_size(const char *start, const char *stop, int indent, const char *pre_line, const char *post_line);
+bool check_leading_space_nl(const char *start, const char *stop);
 void copy_and_insert(MemBuffer *mb, const char *start, const char *stop, int num_prefix_spaces, const char *implicit_indentation, const char *explicit_space, const char *newline, const char *prefix_line, const char *postfix_line);
-char *copy_lines(int num_prefix_spaces, const char *start, const char *stop, int num_quotes, bool add_nls, bool add_compound, const char *implicit_indentation, const char *explicit_space, const char *newline, const char *prefix_line, const char *postfix_line);
+char *copy_lines(int num_prefix_spaces, const char *start, const char *stop, int num_quotes, bool use_dqs, bool add_nls, bool add_compound, const char *implicit_indentation, const char *explicit_space, const char *newline, const char *prefix_line, const char *postfix_line);
 void copy_quote_settings_from_output_settings(XMQQuoteSettings *qs, XMQOutputSettings *os);
 xmlNodePtr create_entity(XMQParseState *state, size_t l, size_t c, const char *cstart, const char *cstop, const char*stop, xmlNodePtr parent);
 void create_node(XMQParseState *state, const char *start, const char *stop);
@@ -2465,11 +3620,9 @@ void do_ns_colon(XMQParseState *state, size_t line, size_t col, const char *star
 void do_quote(XMQParseState *state, size_t l, size_t col, const char *start, const char *stop, const char *suffix);
 void do_whitespace(XMQParseState *state, size_t line, size_t col, const char *start, const char *stop, const char *suffix);
 bool find_line(const char *start, const char *stop, size_t *indent, const char **after_last_non_space, const char **eol);
-const char *find_next_line_end(XMQPrintState *ps, const char *start, const char *stop);
-const char *find_next_char_that_needs_escape(XMQPrintState *ps, const char *start, const char *stop);
 void fixup_html(XMQDoc *doq, xmlNode *node, bool inside_cdata_declared);
 void fixup_comments(XMQDoc *doq, xmlNode *node, int depth);
-void generate_dom_from_yaep_node(xmlDocPtr doc, xmlNodePtr node, YaepTreeNode *n, int depth, int index);
+void generate_dom_from_yaep_node(xmlDocPtr doc, xmlNodePtr node, YaepTreeNode *n, YaepTreeNode *parent, int depth, int index);
 void handle_yaep_syntax_error(YaepParseRun *pr,
                               int err_tok_num,
                               void *err_tok_attr,
@@ -2478,15 +3631,8 @@ void handle_yaep_syntax_error(YaepParseRun *pr,
                               int start_recovered_tok_num,
                               void *start_recovered_tok_attr);
 
-bool has_leading_ending_quote(const char *start, const char *stop);
-bool is_safe_char(const char *i, const char *stop);
 size_t line_length(const char *start, const char *stop, int *numq, int *lq, int *eq);
-bool load_file(XMQDoc *doq, const char *file, size_t *out_fsize, const char **out_buffer);
-bool load_stdin(XMQDoc *doq, size_t *out_fsize, const char **out_buffer);
-bool need_separation_before_entity(XMQPrintState *ps);
 const char *node_yaep_type_to_string(YaepTreeNodeType t);
-size_t num_utf8_bytes(char c);
-void print_explicit_spaces(XMQPrintState *ps, XMQColor c, int num);
 void reset_ansi(XMQParseState *state);
 void reset_ansi_nl(XMQParseState *state);
 const char *skip_any_potential_bom(const char *start, const char *stop);
@@ -2518,9 +3664,6 @@ char *xmq_quote_default(int indent, const char *start, const char *stop, XMQQuot
 const char *xml_element_type_to_string(xmlElementType type);
 const char *indent_depth(int i);
 void free_indent_depths();
-
-xmlNode *merge_surrounding_text_nodes(xmlNode *node);
-xmlNode *merge_hex_chars_node(xmlNode *node);
 
 // Declare tokenize_whitespace tokenize_name functions etc...
 #define X(TYPE) void tokenize_##TYPE(XMQParseState*state, size_t line, size_t col,const char *start, const char *stop, const char *suffix);
@@ -3056,6 +4199,7 @@ XMQOutputSettings *xmqNewOutputSettings()
     os->explicit_cr = theme->explicit_cr = "\r";
     os->add_indent = 4;
     os->use_color = false;
+    os->allow_json_quotes = true;
 
     return os;
 }
@@ -3098,6 +4242,11 @@ void xmqSetUseColor(XMQOutputSettings *os, bool use_color)
 void xmqSetBackgroundMode(XMQOutputSettings *os, bool bg_dark_mode)
 {
     os->bg_dark_mode = bg_dark_mode;
+}
+
+void xmqSetPreferDoubleQuotes(XMQOutputSettings *os, bool prefer_double_quotes)
+{
+    os->prefer_double_quotes = prefer_double_quotes;
 }
 
 void xmqSetEscapeNewlines(XMQOutputSettings *os, bool escape_newlines)
@@ -3275,7 +4424,7 @@ XMQParseState *xmqNewParseState(XMQParseCallbacks *callbacks, XMQOutputSettings 
     return state;
 }
 
-bool xmqTokenizeBuffer(XMQParseState *state, const char *start, const char *stop)
+bool xmqTokenizeBuffer(XMQParseState *state, const char *start, const char *stopp)
 {
     if (state->magic_cookie != MAGIC_COOKIE)
     {
@@ -3284,9 +4433,14 @@ bool xmqTokenizeBuffer(XMQParseState *state, const char *start, const char *stop
         exit(1);
     }
 
-    if (!stop) stop = start + strlen(start);
+    state->buffer_start = start;
+    state->buffer_stop =  stopp?stopp:start + strlen(start);
+    state->i = start;
+    state->line = 1;
+    state->col = 1;
+    state->error_nr = XMQ_ERROR_NONE;
 
-    XMQContentType detected_ct = xmqDetectContentType(start, stop);
+    XMQContentType detected_ct = xmqDetectContentType(state->buffer_start, state->buffer_stop);
     if (detected_ct != XMQ_CONTENT_XMQ)
     {
         state->generated_error_msg = strdup("xmq: you can only tokenize the xmq format");
@@ -3294,12 +4448,6 @@ bool xmqTokenizeBuffer(XMQParseState *state, const char *start, const char *stop
         return false;
     }
 
-    state->buffer_start = start;
-    state->buffer_stop = stop;
-    state->i = start;
-    state->line = 1;
-    state->col = 1;
-    state->error_nr = XMQ_ERROR_NONE;
 
     if (state->parse->init) state->parse->init(state);
 
@@ -3327,9 +4475,9 @@ bool xmqTokenizeBuffer(XMQParseState *state, const char *start, const char *stop
         if (error_nr == XMQ_ERROR_INVALID_CHAR && state->last_suspicios_quote_end)
         {
             // Add warning about suspicious quote before the error.
-            generate_state_error_message(state, XMQ_WARNING_QUOTES_NEEDED, start, stop);
+            generate_state_error_message(state, XMQ_WARNING_QUOTES_NEEDED, state->buffer_start, state->buffer_stop);
         }
-        generate_state_error_message(state, error_nr, start, stop);
+        generate_state_error_message(state, error_nr, state->buffer_start, state->buffer_stop);
 
         return false;
     }
@@ -3599,16 +4747,9 @@ void xmqSetLogHumanReadable(bool e)
     xmq_log_line_config_.human_readable_ = e;
 }
 
-const char *build_error_message(const char* fmt, ...)
+void xmqLogFilter(const char *log_filter)
 {
-    char *buf = (char*)malloc(4096);
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(buf, 4096, fmt, args);
-    va_end(args);
-    buf[4095] = 0;
-    buf = (char*)realloc(buf, strlen(buf)+1);
-    return buf;
+    xmq_log_filter_ = log_filter;
 }
 
 /**
@@ -3628,7 +4769,7 @@ const char *build_error_message(const char* fmt, ...)
     As a special case, if both indent is 0 and space is 0, then the indent of the
     first line is picked from the second line.
 */
-char *xmq_un_quote(size_t indent, char space, const char *start, const char *stop, bool remove_qs)
+char *xmq_un_quote(const char *start, const char *stop, bool remove_qs, bool is_xmq)
 {
     if (!stop) stop = start+strlen(start);
 
@@ -3636,14 +4777,15 @@ char *xmq_un_quote(size_t indent, char space, const char *start, const char *sto
     size_t j = 0;
     if (remove_qs)
     {
-        while (*(start+j) == '\'' && *(stop-j-1) == '\'' && (start+j) < (stop-j)) j++;
+        const char q = *start;
+        assert(q == '\'' || q == '"');
+        while (*(start+j) == q && *(stop-j-1) == q && (start+j) < (stop-j)) j++;
     }
 
-    indent += j;
     start = start+j;
     stop = stop-j;
 
-    return xmq_trim_quote(indent, space, start, stop);
+    return xmq_trim_quote(start, stop, is_xmq, false);
 }
 
 /**
@@ -3656,7 +4798,7 @@ char *xmq_un_quote(size_t indent, char space, const char *start, const char *sto
     The indent is 0 if the / first on the line.
     The indent is 1 if there is a single space before the starting / etc.
 */
-char *xmq_un_comment(size_t indent, char space, const char *start, const char *stop)
+char *xmq_un_comment(const char *start, const char *stop)
 {
     assert(start < stop);
 
@@ -3666,7 +4808,7 @@ char *xmq_un_comment(size_t indent, char space, const char *start, const char *s
     if (i == stop)
     {
         // Single line all slashes. Drop the two first slashes which are the single line comment.
-        return xmq_trim_quote(indent, space, start+2, stop);
+        return xmq_trim_quote(start+2, stop, true, true);
     }
 
     if (*i != '*')
@@ -3679,7 +4821,7 @@ char *xmq_un_comment(size_t indent, char space, const char *start, const char *s
         // Remove trailing spaces.
         while (i < stop && *(stop-1) == ' ') stop--;
         assert(i <= stop);
-        return xmq_trim_quote(indent, space, i, stop);
+        return xmq_trim_quote(i, stop, true, true);
     }
 
     // There is an asterisk after the slashes. A standard /* */ comment
@@ -3687,13 +4829,11 @@ char *xmq_un_comment(size_t indent, char space, const char *start, const char *s
     size_t j = 0;
     while (*(start+j) == '/' && *(stop-j-1) == '/' && (start+j) < (stop-j)) j++;
 
-    indent += j;
     start = start+j;
     stop = stop-j;
 
     // Check that the star is there.
     assert(*start == '*' && *(stop-1) == '*');
-    indent++;
     start++;
     stop--;
 
@@ -3702,7 +4842,6 @@ char *xmq_un_comment(size_t indent, char space, const char *start, const char *s
     if (*start == ' ')
     {
         start++;
-        indent++;
     }
     if (*(stop-1) == ' ')
     {
@@ -3713,59 +4852,64 @@ char *xmq_un_comment(size_t indent, char space, const char *start, const char *s
     }
 
     assert(start <= stop);
-    char *foo = xmq_trim_quote(indent, space, start, stop);
+    char *foo = xmq_trim_quote(start, stop, true, true);
     return foo;
 }
 
-char *xmq_trim_quote(size_t indent, char space, const char *start, const char *stop)
+bool check_leading_space_nl(const char *start, const char *stop)
 {
-    // Special case, find the next indent and use as original indent.
-    if (indent == 0 && space == 0)
+    while (start < stop && *start == ' ') start++;
+    // All spaces, not space_nl.
+    if (start == stop) return false;
+    // Spaces and now nl, then it is space_nl!
+    if (*start == '\n') return true;
+    // Anything else, then it is not space_nl.
+    return false;
+}
+
+size_t calculate_incidental_indent(const char *start, const char *stop)
+{
+    size_t indent = (size_t)-1; // Maximum indentation possible.
+    const char *i = start;
+
+    // Find first newline.
+    while (i < stop && *i != 10) i++;
+
+    // No newlines?
+    if (i >= stop) return (size_t)-1; // No incidental indentation.
+
+    for (;;)
     {
-        size_t i;
-        const char *after;
-        const char *eol;
-        // Skip first line.
-        bool found_nl = find_line(start, stop, &i, &after, &eol);
-        if (found_nl && eol != stop)
+        // We have reached a newline character.
+        assert(*i == '\n');
+        i++;
+
+        const char *line_start = i;
+        // Look for content.
+        while (i < stop && *i == ' ') i++;
+        if (i >= stop) break;
+        if (*i != 10 && *i != 13)
         {
-            // Now grab the indent from the second line.
-            find_line(eol, stop, &indent, &after, &eol);
+            // We reached real content.
+            size_t ind = i-line_start;
+            if (ind < indent) indent = ind;
+        }
+        // Look for end of line.
+        while (i < stop && *i != 10) i++;
+        if (i >= stop)
+        {
+            break;
         }
     }
-    // If the first line is all spaces and a newline, then
-    // the first_indent should be ignored.
-    bool ignore_first_indent = false;
 
-    // For each found line, the found indent is the number of spaces before the first non space.
-    size_t found_indent;
+    return indent;
+}
 
-    // For each found line, this is where the line ends after trimming line ending whitespace.
-    const char *after_last_non_space;
-
-    // This is where the newline char was found.
-    const char *eol;
-
-    // Did the found line end with a newline or NULL.
-    bool has_nl = false;
-
-    // Lets examine the first line!
-    has_nl = find_line(start, stop, &found_indent, &after_last_non_space, &eol);
-
-    // We override the found indent (counting from start)
-    // with the actual source indent from the beginning of the line.
-    found_indent = indent;
-
-    if (!has_nl)
-    {
-        // No newline was found, then do not trim! Return as is.
-        char *buf = strndup(start, stop-start);
-        return buf;
-    }
-
+char *xmq_trim_quote(const char *start, const char *stop, bool is_xmq, bool is_comment)
+{
     size_t append_newlines = 0;
+    size_t last_line_spaces = (size_t)-1;
 
-    // Check if the final line is all spaces.
     if (has_ending_nl_space(start, stop, NULL))
     {
         // So it is, now trim from the end.
@@ -3773,10 +4917,16 @@ char *xmq_trim_quote(size_t indent, char space, const char *start, const char *s
         {
             char c = *(stop-1);
             if (c == '\n') append_newlines++;
+            if (c == ' ' && append_newlines == 0)
+            {
+                if (last_line_spaces == (size_t)-1) last_line_spaces = 0;
+                last_line_spaces++;
+            }
             if (c != ' ' && c != '\t' && c != '\n' && c != '\r') break;
             stop--;
         }
     }
+    // If there is one or more ending newlines, then one is dropped, but keep the rest.
     if (append_newlines > 0) append_newlines--;
 
     if (stop == start)
@@ -3789,13 +4939,75 @@ char *xmq_trim_quote(size_t indent, char space, const char *start, const char *s
         return buf;
     }
 
+    // Set to false if quote starts with 'content\n...
+    // Set to true if quote starts with '    \n....
+    bool leads_space_nl = check_leading_space_nl(start, stop);
+    // The leading space nl is used to determine the last lines incidental effect.
+    // If we have foo = 'quote
+    //                     again
+    //                   again
+    //                  '
+    // Since the quotes are aligned, then we assume that the incidental is the last line+1
+    // But if we have foo = '
+    //                      quote
+    //                        again
+    //                      again
+    //                      '
+    // Then we assume that the incidental is the last line + 0.
+    // This makes more sense when using 3 or more quotes, ie.
+    //                foo = ''''
+    //                      quote
+    //                        again
+    //                      again
+    //                      ''''
+    // and            foo = ''''quote
+    //                            again
+    //                          again
+    //                      ''''
+
+    size_t incidental = calculate_incidental_indent(start, stop);
+    if (is_xmq && last_line_spaces < incidental)
+    {
+        incidental = last_line_spaces;
+        if (!leads_space_nl)
+        {
+            incidental++;
+            if (is_comment) incidental += 2;
+        }
+    }
+
+    if (incidental == (size_t)-1)
+    {
+        // No newline was found, then do not trim, but re-add ending newlines.
+        char *buf = (char*)malloc(stop-start+append_newlines+1);
+        memcpy(buf, start, stop-start);
+        size_t i = stop-start;
+        for (size_t j = 0; j < append_newlines; ++j) buf[i++] = '\n';
+        buf[i++] = 0;
+        return buf;
+    }
+
     size_t prepend_newlines = 0;
+
+    // For each found line, this is where the line ends after trimming line ending whitespace.
+    const char *after_last_non_space;
+
+    // This is where the newline char was found.
+    const char *eol;
+
+    size_t found_indent = 0;
+
+    bool first_line = true;
+
+    // Now find the first line.
+    find_line(start, stop, &found_indent, &after_last_non_space, &eol);
 
     // Check if the first line is all spaces.
     if (has_leading_space_nl(start, stop, NULL))
     {
-        // The first line is all spaces, trim leading spaces and newlines!
-        ignore_first_indent = true;
+        // There is no first line (there was leading space/newline) thus we
+        // start removing incidental indentation immediately below.
+        first_line = false;
         // Skip the already scanned first line.
         start = eol;
         const char *i = start;
@@ -3807,89 +5019,46 @@ char *xmq_trim_quote(size_t indent, char space, const char *start, const char *s
                 start = i+1; // Restart find lines from here.
                 prepend_newlines++;
             }
-            else if (c != ' ' && c != '\t' && c != '\r') break;
+            else if (c != '\r') break;
             i++;
         }
-    }
-    size_t incidental = (size_t)-1;
-
-    if (!ignore_first_indent)
-    {
-        incidental = indent;
-    }
-
-    // Now scan remaining lines at the first line.
-    const char *i = start;
-    bool first_line = true;
-    while (i < stop)
-    {
-        has_nl = find_line(i, stop, &found_indent, &after_last_non_space, &eol);
-
-        if (after_last_non_space != i)
-        {
-            // There are non-space chars.
-            if (found_indent < incidental)  // Their indent is lesser than the so far found.
-            {
-                // Yep, remember it.
-                if (!first_line || ignore_first_indent)
-                {
-                    incidental = found_indent;
-                }
-            }
-            first_line = false;
-        }
-        i = eol; // Start at next line, or end at stop.
-    }
-
-    size_t prepend_spaces = 0;
-
-    if (!ignore_first_indent &&
-        indent >= incidental)
-    {
-        // The first indent is relevant and it is bigger than the incidental.
-        // We need to prepend the output line with spaces that are not in the source!
-        // But, only if there is more than one line with actual non spaces!
-        prepend_spaces = indent - incidental;
     }
 
     // Allocate max size of output buffer, it usually becomes smaller
     // when incidental indentation and trailing whitespace is removed.
-    size_t n = stop-start+prepend_spaces+prepend_newlines+append_newlines+1;
+    size_t n = stop-start+prepend_newlines+append_newlines+1;
     char *output = (char*)malloc(n);
     char *o = output;
-
-    // Insert any necessary prepended spaces due to source indentation of the line.
-    if (space != 0)
-    {
-        while (prepend_spaces) { *o++ = space; prepend_spaces--; }
-    }
 
     // Insert any necessary prepended newlines.
     while (prepend_newlines) { *o++ = '\n'; prepend_newlines--; }
 
-    // Start scanning the lines from the beginning again.
+    // Start scanning the lines from beginning.
     // Now use the found incidental to copy the right parts.
-    i = start;
+    const char *i = start;
 
-    first_line = true;
     while (i < stop)
     {
         bool has_nl = find_line(i, stop, &found_indent, &after_last_non_space, &eol);
 
-        if (!first_line || ignore_first_indent)
+        if (first_line)
         {
-            // For all lines except the first. And for the first line if ignore_first_indent is true.
-            // Skip the incidental indentation.
-            size_t n = incidental;
-            while (n > 0)
+            first_line = false;
+        }
+        else
+        {
+            // Skip the incidental indentation, if there is indentation to be skipped.
+            // Since empty lines do not count.
+            if (*i == ' ')
             {
-                char c = *i;
-                i++;
-                if (c == ' ') n--;
-                else if (c == '\t')
+                size_t n = incidental;
+                assert(found_indent >= incidental);
+                while (n > 0)
                 {
-                    if (n >= 8) n -= 8;
-                    else break; // safety check.
+                    char c = *i;
+                    assert(c == ' ');
+                    i++;
+                    n--;
                 }
             }
         }
@@ -3906,8 +5075,8 @@ char *xmq_trim_quote(size_t indent, char space, const char *start, const char *s
             while (i < eol) { *o++ = *i++; }
         }
         i = eol;
-        first_line = false;
     }
+
     // Insert any necessary appended newlines.
     while (append_newlines) { *o++ = '\n'; append_newlines--; }
     *o++ = 0;
@@ -3979,8 +5148,7 @@ void debug_content_quote(XMQParseState *state,
                          const char *stop,
                          const char *suffix)
 {
-    size_t indent = start_col-1;
-    char *trimmed = xmq_un_quote(indent, ' ', start, stop, true);
+    char *trimmed = xmq_un_quote(start, stop, true, true);
     char *tmp = xmq_quote_as_c(trimmed, trimmed+strlen(trimmed), false);
     WRITE_ARGS("{quote \"", NULL);
     WRITE_ARGS(tmp, NULL);
@@ -3996,8 +5164,7 @@ void debug_content_comment(XMQParseState *state,
                            const char *stop,
                            const char *suffix)
 {
-    size_t indent = start_col-1;
-    char *trimmed = xmq_un_comment(indent, ' ', start, stop);
+    char *trimmed = xmq_un_comment(start, stop);
     char *tmp = xmq_quote_as_c(trimmed, trimmed+strlen(trimmed), false);
     WRITE_ARGS("{comment \"", NULL);
     WRITE_ARGS(tmp, NULL);
@@ -4076,6 +5243,11 @@ size_t xmqGetOriginalSize(XMQDoc *doq)
     return doq->original_size_;
 }
 
+void xmqSetOriginalSize(XMQDoc *doq, size_t size)
+{
+    doq->original_size_ = size;
+}
+
 XMQNode *xmqGetRootNode(XMQDoc *doq)
 {
     return &doq->root_;
@@ -4117,12 +5289,20 @@ void xmqFreeParseState(XMQParseState *state)
     if (state->ixml_terminals_map) hashmap_free_and_values(state->ixml_terminals_map, (FreeFuncPtr)free_ixml_terminal);
     state->ixml_terminals_map = NULL;
 
+    if (state->ixml_non_terminals_map) hashmap_free(state->ixml_non_terminals_map);
+    state->ixml_non_terminals_map = NULL;
+
     if (state->ixml_non_terminals) vector_free_and_values(state->ixml_non_terminals, (FreeFuncPtr)free_ixml_nonterminal);
     state->ixml_non_terminals = NULL;
 
     if (state->ixml_rule_stack) stack_free(state->ixml_rule_stack);
     state->ixml_rule_stack = NULL;
 
+    if (state->used_unicodes)
+    {
+        free(state->used_unicodes);
+        state->used_unicodes = NULL;
+    }
     free(state);
 }
 
@@ -4304,7 +5484,7 @@ bool xmqParseFile(XMQDoc *doq, const char *file, const char *implicit_root, int 
 
 const char *xmqVersion()
 {
-    return "2.1.0";
+    return "4.0.0";
 }
 
 void do_whitespace(XMQParseState *state,
@@ -4324,8 +5504,7 @@ xmlNodePtr create_quote(XMQParseState *state,
                        const char *suffix,
                        xmlNodePtr parent)
 {
-    size_t indent = col - 1;
-    char *trimmed = (state->no_trim_quotes)?strndup(start, stop-start):xmq_un_quote(indent, ' ', start, stop, true);
+    char *trimmed = (state->no_trim_quotes)?strndup(start, stop-start):xmq_un_quote(start, stop, true, true);
     xmlNodePtr n = xmlNewDocText(state->doq->docptr_.xml, (const xmlChar *)trimmed);
     if (state->merge_text)
     {
@@ -4426,8 +5605,7 @@ void do_comment(XMQParseState*state,
                 const char *suffix)
 {
     xmlNodePtr parent = (xmlNode*)state->element_stack->top->data;
-    size_t indent = col-1;
-    char *trimmed = (state->no_trim_quotes)?strndup(start, stop-start):xmq_un_comment(indent, ' ', start, stop);
+    char *trimmed = (state->no_trim_quotes)?strndup(start, stop-start):xmq_un_comment(start, stop);
     xmlNodePtr n = xmlNewDocComment(state->doq->docptr_.xml, (const xmlChar *)trimmed);
 
     if (state->add_pre_node_before)
@@ -4464,8 +5642,7 @@ void do_comment_continuation(XMQParseState*state,
     while (i > start && *i == '/') { n++; i--; }
     // Since we know that we are invoked pointing into a buffer with /// before start, we
     // can safely do start-n.
-    size_t indent = col-1;
-    char *trimmed = xmq_un_comment(indent, ' ', start-n, stop);
+    char *trimmed = xmq_un_comment(start-n, stop);
     size_t l = strlen(trimmed);
     char *tmp = (char*)malloc(l+2);
     tmp[0] = '\n';
@@ -4524,7 +5701,7 @@ void do_element_value_quote(XMQParseState *state,
                             const char *stop,
                             const char *suffix)
 {
-    char *trimmed = (state->no_trim_quotes)?strndup(start, stop-start):xmq_un_quote(col-1, ' ', start, stop, true);
+    char *trimmed = (state->no_trim_quotes)?strndup(start, stop-start):xmq_un_quote(start, stop, true, true);
     if (state->parsing_pi)
     {
         char *content = potentially_add_leading_ending_space(trimmed, trimmed+strlen(trimmed));
@@ -4806,7 +5983,7 @@ void do_attr_value_quote(XMQParseState*state,
 {
     if (state->declaring_xmlns)
     {
-        char *trimmed = (state->no_trim_quotes)?strndup(start, stop-start):xmq_un_quote(col-1, ' ', start, stop, true);
+        char *trimmed = (state->no_trim_quotes)?strndup(start, stop-start):xmq_un_quote(start, stop, true, true);
         update_namespace_href(state, (xmlNsPtr)state->declaring_xmlns_namespace, trimmed, NULL);
         state->declaring_xmlns = false;
         state->declaring_xmlns_namespace = NULL;
@@ -5049,6 +6226,7 @@ void copy_quote_settings_from_output_settings(XMQQuoteSettings *qs, XMQOutputSet
     qs->prefix_line = os->prefix_line;
     qs->postfix_line = os->prefix_line;
     qs->compact = os->compact;
+    qs->allow_json_quotes = os->allow_json_quotes;
 }
 
 void xmq_print_xml(XMQDoc *doq, XMQOutputSettings *output_settings)
@@ -5353,6 +6531,7 @@ void xmqPrint(XMQDoc *doq, XMQOutputSettings *output_settings)
         output_settings->output_buffer_start &&
         output_settings->output_buffer_stop)
     {
+        membuffer_append_null(output_settings->output_buffer);
         size_t size = membuffer_used(output_settings->output_buffer);
         char *buffer = free_membuffer_but_return_trimmed_content(output_settings->output_buffer);
         *output_settings->output_buffer_start = buffer;
@@ -5369,10 +6548,15 @@ void xmqPrint(XMQDoc *doq, XMQOutputSettings *output_settings)
     }
 }
 
+// Use an internal bit for signaling comment trimming.
+#define TRIM_COMMENT 65536
+// Use an internal bit for signaling treating tabs as part of incidental indentation.
+#define TRIM_TABS    65536*2
+
 void trim_text_node(xmlNode *node, int flags)
 {
     // If node has whitespace preserve set, then do not trim.
-    // if (xmlNodeGetSpacePreserve (node)) return;
+    //if (xmlNodeGetSpacePreserve (node)) return;
 
     const char *content = xml_element_content(node);
     // We remove any all whitespace node.
@@ -5393,10 +6577,15 @@ void trim_text_node(xmlNode *node, int flags)
     // is the same as the second line indent! This is necessary to gracefully handle all the possible xml indentations.
     const char *start = content;
     const char *stop = start+strlen(start);
-    while (start < stop && *start == ' ') start++;
-    while (stop > start && *(stop-1) == ' ') stop--;
 
-    char *trimmed = xmq_un_quote(0, 0, start, stop, false);
+    if (flags & TRIM_COMMENT)
+    {
+        // For comments we always remove leading and ending spaces.
+        while (start < stop && *start == ' ') start++;
+        while (stop > start && *(stop-1) == ' ') stop--;
+    }
+
+    char *trimmed = xmq_un_quote(start, stop, false, false);
     if (trimmed[0] == 0)
     {
         xmlUnlinkNode(node);
@@ -5420,7 +6609,7 @@ void trim_node(xmlNode *node, int flags)
 
     if (is_comment_node(node))
     {
-        trim_text_node(node, flags);
+        trim_text_node(node, flags | TRIM_COMMENT);
         return;
     }
 
@@ -5885,6 +7074,7 @@ char *copy_lines(int num_prefix_spaces,
                  const char *start,
                  const char *stop,
                  int num_quotes,
+                 bool use_dqs,
                  bool add_nls,
                  bool add_compound,
                  const char *implicit_indentation,
@@ -5916,7 +7106,9 @@ char *copy_lines(int num_prefix_spaces,
         }
     }
 
-    for (int i = 0; i < num_quotes; ++i) membuffer_append_char(mb, '\'');
+    const char q = use_dqs?'"':'\'';
+
+    for (int i = 0; i < num_quotes; ++i) membuffer_append_char(mb, q);
     membuffer_append_region(mb, prefix_line, NULL);
     if (add_nls)
     {
@@ -5938,7 +7130,7 @@ char *copy_lines(int num_prefix_spaces,
     }
 
     membuffer_append_region(mb, postfix_line, NULL);
-    for (int i = 0; i < num_quotes; ++i) membuffer_append_char(mb, '\'');
+    for (int i = 0; i < num_quotes; ++i) membuffer_append_char(mb, q);
 
     if (add_compound)
     {
@@ -5964,19 +7156,21 @@ size_t line_length(const char *start, const char *stop, int *numq, int *lq, int 
     int llq = 0, eeq = 0;
     int num = 0, max = 0;
     // Skip line leading quotes
-    while (*i == '\'') { i++; llq++;  }
+    const char q = *i;
+    assert(q == '\'' || q == '"');
+    while (*i == q) { i++; llq++;  }
     const char *lstart = i; // Points to text after leading quotes.
     // Find end of line.
     while (i < stop && *i != '\n') i++;
     const char *eol = i;
     i--;
-    while (i > lstart && *i == '\'') { i--; eeq++; }
+    while (i > lstart && *i == q) { i--; eeq++; }
     i++;
     const char *lstop = i;
     // Mark endof text inside ending quotes.
     for (i = lstart; i < lstop; ++i)
     {
-        if (*i == '\'')
+        if (*i == q)
         {
             num++;
             if (num > max) max = num;
@@ -6035,7 +7229,9 @@ char *xmq_quote_default(int indent,
 {
     bool add_nls = false;
     bool add_compound = false;
-    int numq = count_necessary_quotes(start, stop, false, &add_nls, &add_compound);
+    bool use_double_quotes = false;
+    bool prefer_double_quotes = false;
+    int numq = count_necessary_quotes(start, stop, &add_nls, &add_compound, prefer_double_quotes, &use_double_quotes);
 
     if (numq > 0)
     {
@@ -6088,6 +7284,7 @@ char *xmq_quote_default(int indent,
                       start,
                       stop,
                       numq,
+                      use_double_quotes,
                       add_nls,
                       add_compound,
                       settings->indentation_space,
@@ -6293,8 +7490,8 @@ bool xmq_parse_buffer_xml(XMQDoc *doq, const char *start, const char *stop, int 
 
     int parse_options = XML_PARSE_NOCDATA | XML_PARSE_NONET;
     bool should_trim = false;
-    if (flags & XMQ_FLAG_TRIM_HEURISTIC ||
-        flags & XMQ_FLAG_TRIM_EXACT) should_trim = true;
+    if ((flags & XMQ_FLAG_TRIM_HEURISTIC) ||
+        (flags & XMQ_FLAG_TRIM_EXACT)) should_trim = true;
     if (flags & XMQ_FLAG_TRIM_NONE) should_trim = false;
 
     if (should_trim) parse_options |= XML_PARSE_NOBLANKS;
@@ -6331,8 +7528,8 @@ bool xmq_parse_buffer_html(XMQDoc *doq, const char *start, const char *stop, int
     int parse_options = HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING | HTML_PARSE_NONET;
 
     bool should_trim = false;
-    if (flags & XMQ_FLAG_TRIM_HEURISTIC ||
-        flags & XMQ_FLAG_TRIM_EXACT) should_trim = true;
+    if ((flags & XMQ_FLAG_TRIM_HEURISTIC) ||
+        (flags & XMQ_FLAG_TRIM_EXACT)) should_trim = true;
     if (flags & XMQ_FLAG_TRIM_NONE) should_trim = false;
 
     if (should_trim) parse_options |= HTML_PARSE_NOBLANKS;
@@ -6484,8 +7681,8 @@ exit:
     {
         bool should_trim = false;
 
-        if (flags & XMQ_FLAG_TRIM_HEURISTIC ||
-            flags & XMQ_FLAG_TRIM_EXACT) should_trim = true;
+        if ((flags & XMQ_FLAG_TRIM_HEURISTIC) ||
+            (flags & XMQ_FLAG_TRIM_EXACT)) should_trim = true;
 
         if (!(flags & XMQ_FLAG_TRIM_NONE) &&
             (ct == XMQ_CONTENT_XML ||
@@ -6498,99 +7695,6 @@ exit:
     }
 
     return ok;
-}
-
-bool load_stdin(XMQDoc *doq, size_t *out_fsize, const char **out_buffer)
-{
-    bool rc = true;
-    int blocksize = 1024;
-    char block[blocksize];
-
-    MemBuffer *mb = new_membuffer();
-
-    int fd = 0;
-    while (true) {
-        ssize_t n = read(fd, block, sizeof(block));
-        if (n == 0) {
-            break;
-        }
-        if (n == -1) {
-            if (errno == EINTR) {
-                continue;
-            }
-            PRINT_ERROR("Could not read stdin errno=%d\n", errno);
-            close(fd);
-
-            return false;
-        }
-        membuffer_append_region(mb, block, block + n);
-    }
-    close(fd);
-
-    membuffer_append_null(mb);
-
-    *out_fsize = mb->used_-1;
-    *out_buffer = free_membuffer_but_return_trimmed_content(mb);
-
-    return rc;
-}
-
-bool load_file(XMQDoc *doq, const char *file, size_t *out_fsize, const char **out_buffer)
-{
-    bool rc = false;
-    char *buffer = NULL;
-    size_t block_size = 0;
-    size_t n = 0;
-
-    FILE *f = fopen(file, "rb");
-    if (!f) {
-        doq->errno_ = XMQ_ERROR_CANNOT_READ_FILE;
-        doq->error_ = build_error_message("xmq: %s: No such file or directory\n", file);
-        return false;
-    }
-
-    fseek(f, 0, SEEK_END);
-    size_t fsize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    debug("xmq=", "file size %zu", fsize);
-
-    buffer = (char*)malloc(fsize + 1);
-    if (!buffer)
-    {
-        doq->errno_ = XMQ_ERROR_OOM;
-        doq->error_ = build_error_message("xmq: %s: File too big, out of memory\n", file);
-        goto exit;
-    }
-
-    block_size = fsize;
-    if (block_size > 10000) block_size = 10000;
-    n = 0;
-    do {
-        if (n + block_size > fsize) block_size = fsize - n;
-        size_t r = fread(buffer+n, 1, block_size, f);
-        debug("xmq=", "read %zu bytes total %zu", r, n);
-        if (!r) break;
-        n += r;
-    } while (n < fsize);
-
-    debug("xmq=", "read total %zu bytes fsize %zu bytes", n, fsize);
-
-    if (n != fsize) {
-        rc = false;
-        doq->errno_ = XMQ_ERROR_CANNOT_READ_FILE;
-        doq->error_ = build_error_message("xmq: %s: Cannot read file\n", file);
-        goto exit;
-    }
-    fclose(f);
-    buffer[fsize] = 0;
-    rc = true;
-
-exit:
-
-    *out_fsize = fsize;
-    *out_buffer = buffer;
-    return rc;
 }
 
 bool xmqParseFileWithType(XMQDoc *doq,
@@ -6838,20 +7942,41 @@ void collect_text(YaepTreeNode *n, MemBuffer *mb)
     }
 }
 
-void generate_dom_from_yaep_node(xmlDocPtr doc, xmlNodePtr node, YaepTreeNode *n, int depth, int index)
+void generate_dom_from_yaep_node(xmlDocPtr doc, xmlNodePtr node, YaepTreeNode *n, YaepTreeNode *parent, int depth, int index)
 {
     if (n == NULL) return;
+    if (n->type == YAEP_TERM && n->val.terminal.code == -1) return;
     if (n->type == YAEP_ANODE)
     {
         YaepAbstractNode *an = &n->val.anode;
 
         if (an != NULL && an->name != NULL)
         {
-            if (an->name[0] == '|' && an->name[1] == '+')
+            if (an->name[0] == '|' && an->name[1] == '!')
+            {
+                // The content is a not lookahead node. Discard it.
+            }
+            else if (an->name[0] == '|' && an->name[1] == '+')
             {
                 // The content to be inserted has been encoded in the rule name.
                 // A hack yes. Does it work? Yes!
-                xmlNodePtr new_node = xmlNewDocText(doc, (xmlChar*)an->name+2);
+                xmlNodePtr new_node = NULL;
+
+                if(an->name[2] == '/' && an->name[3] == '/')
+                {
+                    new_node = xmlNewDocComment(doc, (xmlChar*)an->name+4);
+                }
+                if(an->name[2] == '#')
+                {
+                    int value = (int)strtol(an->name+3, NULL, 16);
+                    UTF8Char c;
+                    encode_utf8(value, &c);
+                    new_node = xmlNewDocText(doc, (xmlChar*)c.bytes);
+                }
+                else
+                {
+                    new_node = xmlNewDocText(doc, (xmlChar*)an->name+2);
+                }
                 if (node == NULL)
                 {
                     xmlDocSetRootElement(doc, new_node);
@@ -6889,7 +8014,7 @@ void generate_dom_from_yaep_node(xmlDocPtr doc, xmlNodePtr node, YaepTreeNode *n
                     for (int i=0; an->children[i] != NULL; ++i)
                     {
                         YaepTreeNode *nn = an->children[i];
-                        generate_dom_from_yaep_node(doc, new_node, nn, depth+1, i);
+                        generate_dom_from_yaep_node(doc, new_node, nn, n, depth+1, i);
                     }
                 }
             }
@@ -6899,32 +8024,45 @@ void generate_dom_from_yaep_node(xmlDocPtr doc, xmlNodePtr node, YaepTreeNode *n
                 for (int i=0; an->children[i] != NULL; ++i)
                 {
                     YaepTreeNode *nn = an->children[i];
-                    generate_dom_from_yaep_node(doc, node, nn, depth+1, i);
+                    generate_dom_from_yaep_node(doc, node, nn, n, depth+1, i);
                 }
             }
         }
     }
     else if (n->type == YAEP_ALT)
     {
-        xmlNodePtr new_node = xmlNewDocNode(doc, NULL, (xmlChar*)"AMBIGUOUS", NULL);
+        xmlNodePtr new_node = NULL;
         if (node == NULL)
         {
+            new_node = xmlNewDocNode(doc, NULL, (xmlChar*)"AMBIGUOUS", NULL);
             xmlDocSetRootElement(doc, new_node);
         }
         else
         {
-            xmlAddChild(node, new_node);
+            YaepAbstractNode *an = NULL;
+
+            if (parent) an = &parent->val.anode;
+
+            if (!an || an->mark != '*')
+            {
+                new_node = xmlNewDocNode(doc, NULL, (xmlChar*)"AMBIGUOUS", NULL);
+                xmlAddChild(node, new_node);
+            }
+            else
+            {
+                new_node = node;
+            }
         }
 
         YaepTreeNode *alt = n;
 
-        generate_dom_from_yaep_node(doc, new_node, alt->val.alt.node, depth+1, 0);
+        generate_dom_from_yaep_node(doc, new_node, alt->val.alt.node, n, depth+1, 0);
 
         alt = alt->val.alt.next;
 
         while (alt && alt->type == YAEP_ALT)
         {
-            generate_dom_from_yaep_node(doc, new_node, alt->val.alt.node, depth+1, 0);
+            generate_dom_from_yaep_node(doc, new_node, alt->val.alt.node, n, depth+1, 0);
             alt = alt->val.alt.next;
         }
     }
@@ -6965,23 +8103,26 @@ bool xmqParseBufferWithIXML(XMQDoc *doc, const char *start, const char *stop, XM
 
     XMQParseState *state = xmq_get_yaep_parse_state(ixml_grammar);
 
-    // Now add all character terminals in the content (not yead added ) to the grammar.
-    // And rewrite charsets into rules with multiple choice shrunk the the actual usage of characters in the input.
+    // Now add all character terminals in the content (not yet added) to the grammar.
+    // And rewrite charsets into rules with multiple choice shrunk to the actual usage of characters in the input.
     scan_content_fixup_charsets(state, start, stop);
 
     ixml_print_grammar(state);
 
     state->yaep_i_ = hashmap_iterate(state->ixml_terminals_map);
+    state->yaep_j_ = 0;
     int rc = yaep_read_grammar(xmq_get_yaep_parse_run(ixml_grammar),
                                xmq_get_yaep_grammar(ixml_grammar),
-                               0, ixml_to_yaep_read_terminal, ixml_to_yaep_read_rule);
+                               0,
+                               ixml_to_yaep_read_terminal,
+                               ixml_to_yaep_read_rule);
     hashmap_free_iterator(state->yaep_i_);
 
     if (rc != 0)
     {
         state->error_nr = XMQ_ERROR_IXML_SYNTAX_ERROR;
         state->error_info = "internal error, yaep did not accept generated yaep grammar";
-        printf("xmq: could not parse input using ixml grammar: %s\n", yaep_error_message(xmq_get_yaep_grammar(ixml_grammar)));
+        printf("xmq: internal error generating yaep grammar from ixml grammar %s\n", yaep_error_message(xmq_get_yaep_grammar(ixml_grammar)));
         longjmp(state->error_handler, 1);
     }
 
@@ -6990,6 +8131,25 @@ bool xmqParseBufferWithIXML(XMQDoc *doc, const char *start, const char *stop, XM
 
     yaep_set_error_recovery_flag(xmq_get_yaep_grammar(ixml_grammar),
                                  (flags & XMQ_FLAG_IXML_TRY_TO_RECOVER)?1:0);
+
+    if (state->ixml_costs_enabled)
+    {
+        verbose("xmq=", "ixml rule costs are used to resolve ambigiuity");
+        // We have found =-in the grammar, ie that a rule has a certain cost. We assume this
+        // means that there can be ambiguous results.
+        // Keep parsing, finding all parses....
+        yaep_set_one_parse_flag(xmq_get_yaep_grammar(ixml_grammar), 0);
+        // Enable cost calculations...
+        yaep_set_cost_flag(xmq_get_yaep_grammar(ixml_grammar), true);
+    }
+
+    if (state->ixml_controlled_ambiguity_enabled)
+    {
+        verbose("xmq=", "ixml controlled ambiguity enabled");
+        // We have found *rule = ... the grammar, ie that a rule expects ambiguity.
+        // Keep parsing, finding all parses....
+        yaep_set_one_parse_flag(xmq_get_yaep_grammar(ixml_grammar), 0);
+    }
 
     YaepParseRun *run = xmq_get_yaep_parse_run(ixml_grammar);
     run->buffer_start = start;
@@ -7004,16 +8164,22 @@ bool xmqParseBufferWithIXML(XMQDoc *doc, const char *start, const char *stop, XM
 
     if (rc)
     {
-        printf("xmq: could not parse input using ixml grammar: %s\n", yaep_error_message(xmq_get_yaep_grammar(ixml_grammar)));
+        // Syntax error has already been printed.
         return false;
     }
 
-    if (run->ambiguous_p && !(flags & XMQ_FLAG_IXML_ALL_PARSES))
+    generate_dom_from_yaep_node(doc->docptr_.xml, NULL, run->root, NULL, 0, 0);
+
+    if (run->ambiguous_p)
     {
-        fprintf(stderr, "ixml: Warning! The input can be parsed in multiple ways, ie it is ambiguous!\n");
+        xmlNodePtr element = xmlDocGetRootElement(doc->docptr_.xml);
+        xmlNsPtr ns = xmlNewNs(element,
+                               (const xmlChar *)"http://invisiblexml.org/NS",
+                               (const xmlChar *)"ixml");
+
+        xmlSetNsProp(element, ns, (xmlChar*)"state", (xmlChar*)"ambiguous");
     }
 
-    generate_dom_from_yaep_node(doc->docptr_.xml, NULL, run->root, 0, 0);
 
     if (run->root) yaepFreeTree(run->root, NULL, NULL);
 
@@ -7085,27 +8251,20 @@ void xmqSetLineHumanReadable(XMQLineConfig *lc, bool enabled)
 
 char *xmqLineDoc(XMQLineConfig *lc, XMQDoc *doc)
 {
-    return strdup("{howdy}");
-}
+    XMQOutputSettings *settings = xmqNewOutputSettings();
+    xmqSetCompact(settings, true);
+    xmqSetEscapeNewlines(settings, true);
+    xmqSetUseColor(settings, false);
+    xmqSetOutputFormat(settings, XMQ_CONTENT_XMQ);
+    xmqSetRenderFormat(settings, XMQ_RENDER_PLAIN);
 
-char *buf_vsnprintf(const char *format, va_list ap);
-char *buf_vsnprintf(const char *format, va_list ap)
-{
-    size_t buf_size = 1024;
-    char *buf = (char*)malloc(buf_size);
+    char *start, *stop;
+    xmqSetupPrintMemory(settings, &start, &stop);
+    xmqPrint(doc, settings);
 
-    for (;;)
-    {
-        size_t n = vsnprintf(buf, buf_size, format, ap);
-        if (n < buf_size) break;
-        buf_size *= 2;
-        free(buf);
-        // Why not realloc? Well, we are goint to redo the printf anyway overwriting
-        // the buffer again. So why allow realloc to spend time copying the content before
-        // it is overwritten?
-        buf = (char*)malloc(buf_size);
-    }
-    return buf;
+    xmqFreeOutputSettings(settings);
+
+    return start;
 }
 
 char *xmq_line_vprintf_hr(XMQLineConfig *lc, const char *element_name, va_list ap);
@@ -7124,6 +8283,9 @@ char *xmq_line_vprintf_hr(XMQLineConfig *lc, const char *element_name, va_list a
 
     char c = element_name[strlen(element_name)-1];
 
+    char module[256];
+    snprintf(module, 256, "(%.*s) ", (int)strlen(element_name)-1, element_name);
+
     if (c != '{')
     {
         MemBuffer *mb = new_membuffer();
@@ -7137,21 +8299,16 @@ char *xmq_line_vprintf_hr(XMQLineConfig *lc, const char *element_name, va_list a
         else
         {
             format = va_arg(ap, const char *);
-            membuffer_append(mb, "(");
-            membuffer_append_region(mb, element_name, element_name+strlen(element_name)-1);
-            membuffer_append(mb, ") ");
         }
         char *buf = buf_vsnprintf(format, ap);
         membuffer_append(mb, buf);
         free(buf);
+        membuffer_prefix_lines(mb, module);
         membuffer_append_null(mb);
         return free_membuffer_but_return_trimmed_content(mb);
     }
 
     MemBuffer *mb = new_membuffer();
-    membuffer_append(mb, "(");
-    membuffer_append(mb, element_name);
-    membuffer_append(mb, ") ");
 
     char *buf = (char*)malloc(1024);
     size_t buf_size = 1024;
@@ -7202,6 +8359,8 @@ char *xmq_line_vprintf_hr(XMQLineConfig *lc, const char *element_name, va_list a
     }
 
     free(buf);
+
+    membuffer_prefix_lines(mb, module);
     membuffer_append_null(mb);
 
     return free_membuffer_but_return_trimmed_content(mb);
@@ -7261,7 +8420,7 @@ char *xmq_line_vprintf_xmq(XMQLineConfig *lc, const char *element_name, va_list 
 
         size_t kl = strlen(key);
         char last = membuffer_back(mb);
-        if (last != '\'' && last != '(' && last != ')'  && last != '{' && last != '}')
+        if (last != '"' && last != '\'' && last != '(' && last != ')'  && last != '{' && last != '}')
         {
             membuffer_append(mb, " ");
         }
@@ -7324,11 +8483,11 @@ char *xmqLinePrintf(XMQLineConfig *lc, const char *element_name, ...)
     return v;
 }
 
-// PARTS ALWAYS_C ////////////////////////////////////////
+#ifdef BUILDING_DIST_XMQ
+
+// PART C ALWAYS_C ////////////////////////////////////////
 
 #ifdef ALWAYS_MODULE
-
-char *xmqLogElementVA(int flags, const char *element_name, va_list ap);
 
 void check_malloc(void *a)
 {
@@ -7367,12 +8526,15 @@ void verbose__(const char* fmt, ...)
 {
     if (xmq_verbose_enabled_)
     {
-        va_list args;
-        va_start(args, fmt);
-        char *line = xmqLineVPrintf(&xmq_log_line_config_, fmt, args);
-        fprintf(stderr, "%s\n", line);
-        free(line);
-        va_end(args);
+        if (!xmq_log_filter_ || !strncmp(fmt, xmq_log_filter_, strlen(xmq_log_filter_)))
+        {
+            va_list args;
+            va_start(args, fmt);
+            char *line = xmqLineVPrintf(&xmq_log_line_config_, fmt, args);
+            fprintf(stderr, "%s\n", line);
+            free(line);
+            va_end(args);
+        }
     }
 }
 
@@ -7384,27 +8546,80 @@ void debug__(const char* fmt, ...)
 
     if (xmq_debug_enabled_)
     {
-        va_list args;
-        va_start(args, fmt);
-        char *line = xmqLineVPrintf(&xmq_log_line_config_, fmt, args);
-        fprintf(stderr, "%s\n", line);
-        free(line);
-        va_end(args);
+        if (!xmq_log_filter_ || !strncmp(fmt, xmq_log_filter_, strlen(xmq_log_filter_)))
+        {
+            va_list args;
+            va_start(args, fmt);
+            char *line = xmqLineVPrintf(&xmq_log_line_config_, fmt, args);
+            fprintf(stderr, "%s\n", line);
+            free(line);
+            va_end(args);
+        }
+    }
+}
+
+void debug_mb__(const char* module, MemBuffer *mb)
+{
+    if (xmq_debug_enabled_)
+    {
+        if (!xmq_log_filter_ || !strncmp(module, xmq_log_filter_, strlen(xmq_log_filter_)))
+        {
+            debug__(module, "%.*s", mb->used_, mb->buffer_);
+        }
     }
 }
 
 bool xmq_trace_enabled_ = false;
+const char *xmq_log_filter_ = NULL;
 
 void trace__(const char* fmt, ...)
 {
-    if (xmq_trace_enabled_) {
-        va_list args;
-        va_start(args, fmt);
-        char *line = xmqLineVPrintf(&xmq_log_line_config_, fmt, args);
-        fprintf(stderr, "%s\n", line);
-        free(line);
-        va_end(args);
+    if (xmq_trace_enabled_)
+    {
+        if (!xmq_log_filter_ || !strncmp(fmt, xmq_log_filter_, strlen(xmq_log_filter_)))
+        {
+            va_list args;
+            va_start(args, fmt);
+            char *line = xmqLineVPrintf(&xmq_log_line_config_, fmt, args);
+            fprintf(stderr, "%s\n", line);
+            free(line);
+            va_end(args);
+        }
     }
+}
+
+void trace_mb__(const char* module, MemBuffer *mb)
+{
+    if (xmq_trace_enabled_)
+    {
+        if (!xmq_log_filter_ || !strncmp(module, xmq_log_filter_, strlen(xmq_log_filter_)))
+        {
+            trace__(module, "%.*s", mb->used_, mb->buffer_);
+        }
+    }
+}
+
+char *buf_vsnprintf(const char *format, va_list ap)
+{
+    size_t buf_size = 1024;
+    char *buf = (char*)malloc(buf_size);
+
+    for (;;)
+    {
+        va_list tmp;
+        va_copy(tmp, ap);
+        size_t n = vsnprintf(buf, buf_size, format, tmp);
+        va_end(tmp);
+
+        if (n < buf_size) break;
+        buf_size = n+32;
+        free(buf);
+        // Why not realloc? Well, we are goint to redo the printf anyway overwriting
+        // the buffer again. So why allow realloc to spend time copying the content before
+        // it is overwritten?
+        buf = (char*)malloc(buf_size);
+    }
+    return buf;
 }
 
 #ifdef PLATFORM_WINAPI
@@ -7432,10 +8647,57 @@ char *strndup(const char *s, size_t l)
 }
 #endif
 
+static char *helper(size_t scale, size_t s, const char *suffix)
+{
+    size_t o = s;
+    s /= scale;
+    size_t diff = o-(s*scale);
+    if (diff == 0) {
+        char *buf = (char*)malloc(64);
+        snprintf(buf, 64, "%zu.00%s", s, suffix);
+        return buf;
+    }
+    size_t dec = (int)(100*(diff+1) / scale);
+    char *buf = (char*)malloc(64);
+    snprintf(buf, 64, "%zu.%02zu%s", s, dec, suffix);
+    return buf;
+}
+
+#define KB 1024
+
+char *humanReadableTwoDecimals(size_t s)
+{
+    if (s < KB)
+    {
+        return helper(1, s, " B");
+    }
+    if (s < KB * KB)
+    {
+        return helper(KB, s, " KiB");
+    }
+    if (s < KB * KB * KB)
+    {
+        return helper(KB*KB, s, " MiB");
+    }
+#if SIZEOF_SIZE_T == 8
+    if (s < KB * KB * KB * KB)
+    {
+     	return helper(KB*KB*KB, s, " GiB");
+    }
+    if (s < KB * KB * KB * KB * KB)
+    {
+        return helper(KB*KB*KB*KB, s, " TiB");
+    }
+    return helper(KB*KB*KB*KB*KB, s, " PiB");
+#else
+    return helper(KB*KB*KB, s, " GiB");
+#endif
+}
+
 
 #endif // ALWAYS_MODULE
 
-// PARTS COLORS_C ////////////////////////////////////////
+// PART C COLORS_C ////////////////////////////////////////
 
 #ifdef COLORS_MODULE
 
@@ -7677,7 +8939,7 @@ void setColorDef(XMQColorDef *cd, int r, int g, int b, bool bold, bool underline
 
 #endif // COLORS_MODULE
 
-// PARTS CORE_C ////////////////////////////////////////
+// PART C CORE_C ////////////////////////////////////////
 
 #ifdef CORE_MODULE
 
@@ -7730,7 +8992,7 @@ bool coreParseI64(const char *s, int64_t *out)
 
 #endif // CORE_MODULE
 
-// PARTS DEFAULT_THEMES_C ////////////////////////////////////////
+// PART C DEFAULT_THEMES_C ////////////////////////////////////////
 
 #ifdef DEFAULT_THEMES_MODULE
 
@@ -7814,7 +9076,7 @@ void installDefaultThemeColors(XMQTheme *theme)
 
 #endif // DEFAULT_THEMES_MODULE
 
-// PARTS ENTITIES_C ////////////////////////////////////////
+// PART C ENTITIES_C ////////////////////////////////////////
 
 #ifdef ENTITIES_MODULE
 
@@ -7981,7 +9243,7 @@ HTML_MISC
 
 #endif // ENTITIES_MODULE
 
-// PARTS HASHMAP_C ////////////////////////////////////////
+// PART C HASHMAP_C ////////////////////////////////////////
 
 #ifdef HASHMAP_MODULE
 
@@ -8199,7 +9461,7 @@ void hashmap_free_iterator(HashMapIterator *i)
 
 #endif // HASHMAP_MODULE
 
-// PARTS STACK_C ////////////////////////////////////////
+// PART C STACK_C ////////////////////////////////////////
 
 #ifdef STACK_MODULE
 
@@ -8295,7 +9557,7 @@ void *stack_rock(Stack *stack)
 
 #endif // STACK_MODULE
 
-// PARTS MEMBUFFER_C ////////////////////////////////////////
+// PART C MEMBUFFER_C ////////////////////////////////////////
 
 #ifdef MEMBUFFER_MODULE
 
@@ -8419,6 +9681,11 @@ void membuffer_append_null(MemBuffer *mb)
     membuffer_append_char(mb, 0);
 }
 
+void membuffer_append_nl(MemBuffer *mb)
+{
+    membuffer_append_char(mb, '\n');
+}
+
 void membuffer_drop_last_null(MemBuffer *mb)
 {
     char *buf = mb->buffer_;
@@ -8454,6 +9721,28 @@ void membuffer_append_pointer(MemBuffer *mb, void *ptr)
     mb->used_ += add;
 }
 
+void membuffer_logf(MemBuffer *mb, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    char *line = xmqLineVPrintf(&xmq_log_line_config_, fmt, args);
+    membuffer_append(mb, line);
+    free(line);
+    va_end(args);
+}
+
+void membuffer_printf(MemBuffer *mb, const char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+
+    char *buf = buf_vsnprintf(fmt, args);
+    membuffer_append(mb, buf);
+    free(buf);
+
+    va_end(args);
+}
+
 size_t membuffer_used(MemBuffer *mb)
 {
     return mb->used_;
@@ -8465,9 +9754,42 @@ char membuffer_back(MemBuffer *mb)
     return mb->buffer_[mb->used_-1];
 }
 
+void membuffer_prefix_lines(MemBuffer *mb, const char *prefix)
+{
+    MemBuffer *nb = new_membuffer();
+    const char *last = mb->buffer_;
+    const char *stop = mb->buffer_ + mb->used_;
+    const char *i = mb->buffer_;
+
+    while (i < stop)
+    {
+        if (*i == '\n')
+        {
+            membuffer_append(nb, prefix);
+            membuffer_append_region(nb, last, i+1);
+            last = i+1;
+        }
+        i++;
+    }
+    if (i > last)
+    {
+        membuffer_append(nb, prefix);
+        membuffer_append_region(nb, last, i);
+    }
+
+    free(mb->buffer_);
+    mb->max_ = nb->max_;
+    mb->used_ = nb->used_;
+    mb->buffer_ = nb->buffer_;
+    nb->buffer_ = NULL;
+    nb->used_ = 0;
+    nb->max_ = 0;
+    free(nb);
+}
+
 #endif // MEMBUFFER_MODULE
 
-// PARTS IXML_C ////////////////////////////////////////
+// PART C IXML_C ////////////////////////////////////////
 
 #ifdef IXML_MODULE
 
@@ -8512,6 +9834,8 @@ char membuffer_back(MemBuffer *mb)
 #endif
 
 void add_insertion_rule(XMQParseState *state, const char *content);
+void add_not_rule_string(XMQParseState *state, const char *content);
+void add_not_rule_charset(XMQParseState *state, IXMLNonTerminal *nt);
 void add_single_char_rule(XMQParseState *state, IXMLNonTerminal *nt, int uc, char mark, char tmark);
 
 bool is_ixml_eob(XMQParseState *state);
@@ -8528,6 +9852,7 @@ bool is_ixml_group_end(XMQParseState *state);
 bool is_ixml_hex_char(char c);
 bool is_ixml_hex_start(XMQParseState *state);
 bool is_ixml_insertion_start(XMQParseState *state);
+bool is_ixml_not_start(XMQParseState *state);
 bool is_ixml_literal_start(XMQParseState *state);
 bool is_ixml_mark_char(char c);
 bool is_ixml_name_follower(char c);
@@ -8554,13 +9879,14 @@ void parse_ixml(XMQParseState *state);
 void parse_ixml_alias(XMQParseState *state, const char **alias_start, const char **alias_stop);
 void parse_ixml_alt(XMQParseState *state);
 void parse_ixml_alts(XMQParseState *state);
-void parse_ixml_charset(XMQParseState *state);
+IXMLNonTerminal *parse_ixml_charset(XMQParseState *state, int *tmark);
 void parse_ixml_comment(XMQParseState *state);
 void parse_ixml_encoded(XMQParseState *state, bool add_terminal);
 void parse_ixml_factor(XMQParseState *state);
 void parse_ixml_group(XMQParseState *state);
 void parse_ixml_hex(XMQParseState *state, int *value);
 void parse_ixml_insertion(XMQParseState *state);
+void parse_ixml_not(XMQParseState *state);
 void parse_ixml_literal(XMQParseState *state);
 void parse_ixml_name(XMQParseState *state, const char **content_start, const char **content_stop);
 void parse_ixml_naming(XMQParseState *state,
@@ -8586,10 +9912,13 @@ void skip_whitespace(const char **i);
 
 void allocate_yaep_tmp_terminals(XMQParseState *state);
 void free_yaep_tmp_terminals(XMQParseState *state);
+void free_yaep_tmp_terminals_and_content(XMQParseState *state);
+
 bool has_ixml_tmp_terminals(XMQParseState *state);
 bool has_more_than_one_ixml_tmp_terminals(XMQParseState *state);
 void add_yaep_term_to_rule(XMQParseState *state, char mark, IXMLTerminal *t, IXMLNonTerminal *nt);
 void add_yaep_terminal(XMQParseState *state, IXMLTerminal *terminal);
+IXMLNonTerminal *lookup_yaep_nonterminal_already(XMQParseState *state, const char *name);
 void add_yaep_nonterminal(XMQParseState *state, IXMLNonTerminal *nonterminal);
 void add_yaep_tmp_term_terminal(XMQParseState *state, char *name, int code);
 // Store all state->ixml_tmp_terminals on the rule rhs.
@@ -8603,19 +9932,14 @@ void do_ixml_nonterminal(XMQParseState *state, const char *name_start, char *nam
 void do_ixml_option(XMQParseState *state);
 
 IXMLRule *new_ixml_rule();
-void free_ixml_rule(IXMLRule *r);
-IXMLTerminal *new_ixml_terminal();
 IXMLCharset *new_ixml_charset(bool exclude);
 void new_ixml_charset_part(IXMLCharset *cs, int from, int to, const char *category);
 void free_ixml_charset(IXMLCharset *cs);
-void free_ixml_terminal(IXMLTerminal *t);
-IXMLNonTerminal *new_ixml_nonterminal();
 IXMLNonTerminal *copy_ixml_nonterminal(IXMLNonTerminal *nt);
-void free_ixml_nonterminal(IXMLNonTerminal *t);
 void free_ixml_term(IXMLTerm *t);
 
 char *generate_rule_name(XMQParseState *state);
-char *generate_charset_terminal_name(IXMLCharset *cs, char mark);
+char *generate_charset_rule_name(IXMLCharset *cs, char mark);
 void make_last_term_optional(XMQParseState *state);
 void make_last_term_repeat(XMQParseState *state, char factor_mark);
 void make_last_term_repeat_zero(XMQParseState *state, char factor_mark);
@@ -8639,6 +9963,7 @@ bool is_ixml_alt_start(XMQParseState *state)
     char c = *(state->i);
     return
         c == '+' || // Insertion +"hej" or +#a
+        c == '!' || // Not lookahead !"hejsan" ![L]
         c == '#' || // encoded literal
         c == '(' || // Group ( "svej" | "hojt" )
         c == '"' || // "string"
@@ -8707,6 +10032,7 @@ bool is_ixml_factor_start(XMQParseState *state)
         is_ixml_terminal_start(state) ||
         is_ixml_nonterminal_start(state) ||
         is_ixml_insertion_start(state) ||
+        is_ixml_not_start(state) ||
         is_ixml_group_start(state);
 }
 
@@ -8723,6 +10049,11 @@ bool is_ixml_group_end(XMQParseState *state)
 bool is_ixml_insertion_start(XMQParseState *state)
 {
     return *(state->i) == '+';
+}
+
+bool is_ixml_not_start(XMQParseState *state)
+{
+    return *(state->i) == '!';
 }
 
 bool is_ixml_hex_char(char c)
@@ -8752,7 +10083,8 @@ bool is_ixml_mark_char(char c)
     return
         c == '@' || // Add as attribute.
         c == '^' || // Add as element (default but can be used to override attribute).
-        c == '-';   // Do not generate node.
+        c == '-' || // Do not generate node.
+        c == '*';   // Controlled ambiguity test.
 }
 
 bool is_ixml_name_follower(char c)
@@ -8962,16 +10294,13 @@ void parse_ixml_alt(XMQParseState *state)
             is_ixml_group_end(state) ||
             is_ixml_rule_end(c)) break;
 
-        if (c == ',')
+        if (c != ',')
         {
-            if (c != ',')
-            {
-                state->error_nr = XMQ_ERROR_IXML_SYNTAX_ERROR;
-                state->error_info = "expected , or . here";
-                longjmp(state->error_handler, 1);
-            }
-            EAT(comma, 1);
+            state->error_nr = XMQ_ERROR_IXML_SYNTAX_ERROR;
+            state->error_info = "expected , or . here";
+            longjmp(state->error_handler, 1);
         }
+        EAT(comma, 1);
 
         parse_ixml_whitespace(state);
     }
@@ -9025,6 +10354,10 @@ void parse_ixml_alts(XMQParseState *state)
         char mark = state->ixml_rule->mark;
         state->ixml_rule = new_ixml_rule();
         state->ixml_rule->rule_name->name = strdup(name->name);
+        if (name->alias)
+        {
+            state->ixml_rule->rule_name->alias = strdup(name->alias);
+        }
         state->ixml_rule->mark = mark;
         vector_push_back(state->ixml_rules, state->ixml_rule);
     }
@@ -9032,7 +10365,7 @@ void parse_ixml_alts(XMQParseState *state)
     IXML_DONE(alts, state);
 }
 
-void parse_ixml_charset(XMQParseState *state)
+IXMLNonTerminal *parse_ixml_charset(XMQParseState *state, int *out_tmark)
 {
     IXML_STEP(charset, state);
     ASSERT(is_ixml_charset_start(state));
@@ -9141,11 +10474,23 @@ void parse_ixml_charset(XMQParseState *state)
     EAT(right_bracket, 1);
     IXML_DONE(charset, state);
 
-    IXMLNonTerminal *nt = new_ixml_nonterminal();
-    nt->name = generate_charset_terminal_name(state->ixml_charset, tmark);
-    nt->charset = state->ixml_charset;
-    add_yaep_nonterminal(state, nt);
-    add_yaep_term_to_rule(state, tmark, NULL, nt);
+    char *cs_name = generate_charset_rule_name(state->ixml_charset, tmark);
+    IXMLNonTerminal *nt = lookup_yaep_nonterminal_already(state, cs_name);
+    if (!nt)
+    {
+        nt = new_ixml_nonterminal();
+        nt->name = cs_name;
+        nt->charset = state->ixml_charset;
+        add_yaep_nonterminal(state, nt);
+    }
+    else
+    {
+        free_ixml_charset(state->ixml_charset);
+        state->ixml_charset = NULL;
+        free(cs_name);
+    }
+    *out_tmark = tmark;
+    return nt;
 }
 
 void parse_ixml_comment(XMQParseState *state)
@@ -9273,6 +10618,10 @@ void parse_ixml_factor(XMQParseState *state)
     {
         parse_ixml_insertion(state);
     }
+    else  if (is_ixml_not_start(state))
+    {
+        parse_ixml_not(state);
+    }
     else if (is_ixml_group_start(state))
     {
         parse_ixml_group(state);
@@ -9382,10 +10731,14 @@ void parse_ixml_insertion(XMQParseState *state)
     }
     else if (is_ixml_encoded_start(state))
     {
+        allocate_yaep_tmp_terminals(state);
         parse_ixml_encoded(state, true);
         UTF8Char c;
         encode_utf8(state->ixml_encoded, &c);
-        add_insertion_rule(state, c.bytes);
+        char buf[16];
+        snprintf(buf, 16, "#%x", state->ixml_encoded),
+        add_insertion_rule(state, buf);
+        free_yaep_tmp_terminals_and_content(state);
     }
     else
     {
@@ -9397,6 +10750,61 @@ void parse_ixml_insertion(XMQParseState *state)
     IXML_DONE(insertion, state);
 }
 
+void parse_ixml_not(XMQParseState *state)
+{
+    IXML_STEP(insertion,state);
+
+    ASSERT(is_ixml_not_start(state));
+
+    EAT(not_bang, 1);
+
+    parse_ixml_whitespace(state);
+
+    if (is_ixml_string_start(state))
+    {
+        int *content = NULL;
+        parse_ixml_string(state, &content);
+        size_t len;
+        for (len = 0; content[len]; ++len);
+        // If all require 4 bytes of utf8, then this is the max length.
+        char *buf = (char*)malloc(len*4 + 1);
+        size_t offset = 0;
+        for (size_t i = 0; i < len; ++i)
+        {
+            UTF8Char c;
+            size_t l = encode_utf8(content[i], &c);
+            strncpy(buf+offset, c.bytes, l);
+            offset += l;
+        }
+        buf[offset] = 0;
+        add_not_rule_string(state, buf);
+        free(buf);
+        free(content);
+    }
+    else if (is_ixml_encoded_start(state))
+    {
+        allocate_yaep_tmp_terminals(state);
+        parse_ixml_encoded(state, true);
+        UTF8Char c;
+        encode_utf8(state->ixml_encoded, &c);
+        add_not_rule_string(state, c.bytes);
+        free_yaep_tmp_terminals_and_content(state);
+    }
+    else if (is_ixml_charset_start(state))
+    {
+        int tmark;
+        IXMLNonTerminal *nt = parse_ixml_charset(state, &tmark);
+        add_not_rule_charset(state, nt);
+    }
+    else
+    {
+        state->error_nr = XMQ_ERROR_IXML_SYNTAX_ERROR;
+        state->error_info = "expected string or encoded character after insertion +";
+        longjmp(state->error_handler, 1);
+    }
+
+    IXML_DONE(insertion, state);
+}
 
 void parse_ixml_literal(XMQParseState *state)
 {
@@ -9446,6 +10854,11 @@ void parse_ixml_naming(XMQParseState *state,
     {
         *mark = (*(state->i));
         EAT(naming_mark, 1);
+
+        if (*mark == '*')
+        {
+            state->ixml_controlled_ambiguity_enabled = true;
+        }
     }
     else
     {
@@ -9543,7 +10956,6 @@ void parse_ixml_prolog(XMQParseState *state)
 
     IXML_DONE(prolog, state);
 }
-
 
 void parse_ixml_range(XMQParseState *state)
 {
@@ -9652,6 +11064,12 @@ void parse_ixml_rule(XMQParseState *state)
         longjmp(state->error_handler, 1);
     }
     EAT(rule_equal, 1);
+    while (*(state->i) == '<')
+    {
+        state->ixml_rule->cost++;
+        state->i++;
+        state->ixml_costs_enabled = true;
+    }
 
     parse_ixml_whitespace(state);
 
@@ -9811,7 +11229,9 @@ void parse_ixml_terminal(XMQParseState *state)
     }
     else
     {
-        parse_ixml_charset(state);
+        int tmark;
+        IXMLNonTerminal *nt = parse_ixml_charset(state, &tmark);
+        add_yaep_term_to_rule(state, tmark, NULL, nt);
     }
 
     IXML_DONE(terminal, state);
@@ -9838,9 +11258,6 @@ void parse_ixml_whitespace(XMQParseState *state)
     IXML_DONE(ws, state);
 }
 
-const char *ixml_to_yaep_read_terminal(YaepParseRun *pr,
-                                       YaepGrammar *g,
-                                       int *code);
 
 const char *ixml_to_yaep_read_terminal(YaepParseRun *pr,
                                        YaepGrammar *g,
@@ -9868,71 +11285,62 @@ const char *ixml_to_yaep_read_rule(YaepParseRun *pr,
                                    int *cost,
                                    int **transl,
                                    char *mark,
-                                   char **marks);
-
-const char *ixml_to_yaep_read_rule(YaepParseRun *pr,
-                                   YaepGrammar *g,
-                                   const char ***rhs,
-                                   const char **abs_node,
-                                   int *cost,
-                                   int **transl,
-                                   char *mark,
                                    char **marks)
 {
     XMQParseState *state = (XMQParseState*)pr->user_data;
     if (state->yaep_j_ >= state->ixml_rules->size) return NULL;
     IXMLRule *rule = (IXMLRule*)vector_element_at(state->ixml_rules, state->yaep_j_);
 
-    // Check that the rule has not been removed when expainding charsets.
-    if (true) //FIXMErule->mark != 'X')
+    // This is a valid rule.
+    size_t num_rhs = rule->rhs_terms->size;
+
+    // Add rhs rules as translations.
+    if (state->yaep_tmp_rhs_) free(state->yaep_tmp_rhs_);
+    state->yaep_tmp_rhs_ = (char**)calloc(num_rhs+1, sizeof(char*));
+    if (state->yaep_tmp_marks_) free(state->yaep_tmp_marks_);
+    state->yaep_tmp_marks_ = (char*)calloc(num_rhs+1, sizeof(char));
+    memset(state->yaep_tmp_marks_, 0, num_rhs+1);
+
+    for (size_t i = 0; i < num_rhs; ++i)
     {
-        // This is a valid rule.
-        size_t num_rhs = rule->rhs_terms->size;
-
-        // Add rhs rules as translations.
-        if (state->yaep_tmp_rhs_) free(state->yaep_tmp_rhs_);
-        state->yaep_tmp_rhs_ = (char**)calloc(num_rhs+1, sizeof(char*));
-        if (state->yaep_tmp_marks_) free(state->yaep_tmp_marks_);
-        state->yaep_tmp_marks_ = (char*)calloc(num_rhs+1, sizeof(char));
-        memset(state->yaep_tmp_marks_, 0, num_rhs+1);
-
-        for (size_t i = 0; i < num_rhs; ++i)
+        IXMLTerm *term = (IXMLTerm*)vector_element_at(rule->rhs_terms, i);
+        state->yaep_tmp_marks_[i] = term->mark;
+        if (term->type == IXML_TERMINAL)
         {
-            IXMLTerm *term = (IXMLTerm*)vector_element_at(rule->rhs_terms, i);
-            state->yaep_tmp_marks_[i] = term->mark;
-            if (term->type == IXML_TERMINAL)
-            {
-                state->yaep_tmp_rhs_[i] = term->t->name;
-            }
-            else if (term->type == IXML_NON_TERMINAL)
-            {
-                state->yaep_tmp_rhs_[i] = term->nt->name;
-            }
-            else
-            {
-                fprintf(stderr, "Internal error %d as term type does not exist!\n", term->type);
-                assert(false);
-            }
+            state->yaep_tmp_rhs_[i] = term->t->name;
         }
-
-        *abs_node = rule->rule_name->name;
-        if (rule->rule_name->alias) *abs_node = rule->rule_name->alias;
-
-        if (state->yaep_tmp_transl_) free(state->yaep_tmp_transl_);
-        state->yaep_tmp_transl_ = (int*)calloc(num_rhs+1, sizeof(char*));
-        for (size_t i = 0; i < num_rhs; ++i)
+        else if (term->type == IXML_NON_TERMINAL)
         {
-            state->yaep_tmp_transl_[i] = (int)i;
+            state->yaep_tmp_rhs_[i] = term->nt->name;
         }
-        state->yaep_tmp_transl_[num_rhs] = -1;
-
-        state->yaep_tmp_rhs_[num_rhs] = NULL;
-        *rhs = (const char **)state->yaep_tmp_rhs_;
-        *marks = state->yaep_tmp_marks_;
-        *transl = state->yaep_tmp_transl_;
-        *cost = 1;
-        *mark = rule->mark;
+        else
+        {
+            fprintf(stderr, "Internal error %d as term type does not exist!\n", term->type);
+            assert(false);
+        }
     }
+
+    *abs_node = rule->rule_name->name;
+    if (rule->rule_name->alias)
+    {
+        *abs_node = rule->rule_name->alias;
+    }
+
+    if (state->yaep_tmp_transl_) free(state->yaep_tmp_transl_);
+    state->yaep_tmp_transl_ = (int*)calloc(num_rhs+1, sizeof(char*));
+    for (size_t i = 0; i < num_rhs; ++i)
+    {
+        state->yaep_tmp_transl_[i] = (int)i;
+    }
+    state->yaep_tmp_transl_[num_rhs] = -1;
+
+    state->yaep_tmp_rhs_[num_rhs] = NULL;
+    *rhs = (const char **)state->yaep_tmp_rhs_;
+    *marks = state->yaep_tmp_marks_;
+    *transl = state->yaep_tmp_transl_;
+    *cost = rule->cost;
+    *mark = rule->mark;
+
     state->yaep_j_++;
     return rule->rule_name->name;
 }
@@ -9956,6 +11364,7 @@ bool ixml_build_yaep_grammar(YaepParseRun *pr,
     pr->grammar = g;
     state->ixml_rules = vector_create();
     state->ixml_terminals_map = hashmap_create(256);
+    state->ixml_non_terminals_map = hashmap_create(256);
     state->ixml_non_terminals = vector_create();
     state->ixml_rule_stack = stack_create();
 
@@ -10096,9 +11505,20 @@ void add_yaep_terminal(XMQParseState *state, IXMLTerminal *terminal)
     hashmap_put(state->ixml_terminals_map, terminal->name, terminal);
 }
 
+IXMLNonTerminal *lookup_yaep_nonterminal_already(XMQParseState *state, const char *name)
+{
+    // FIXME. Replace this with a set or map for faster lookup if needed.
+    for (size_t i = 0; i < state->ixml_non_terminals->size; ++i)
+    {
+        IXMLNonTerminal *nt = (IXMLNonTerminal*)vector_element_at(state->ixml_non_terminals, i);
+        if (!strcmp(name, nt->name)) return nt;
+    }
+    return NULL;
+}
 
 void add_yaep_nonterminal(XMQParseState *state, IXMLNonTerminal *nt)
 {
+    hashmap_put(state->ixml_non_terminals_map, nt->name, nt);
     vector_push_back(state->ixml_non_terminals, nt);
 }
 
@@ -10114,6 +11534,7 @@ void add_single_char_rule(XMQParseState *state, IXMLNonTerminal *nt, int uc, cha
 {
     IXMLRule *rule = new_ixml_rule();
     rule->rule_name->name = strdup(nt->name);
+    // No need to copy alias here since this rule is used for single characters for charsets.
     rule->mark = mark;
     vector_push_back(state->ixml_rules, rule);
     char buffer[16];
@@ -10127,28 +11548,102 @@ void add_single_char_rule(XMQParseState *state, IXMLNonTerminal *nt, int uc, cha
 
 void add_insertion_rule(XMQParseState *state, const char *content)
 {
-    IXMLRule *rule = new_ixml_rule();
     // Generate a name like |+.......
     char *name = (char*)malloc(strlen(content)+3);
     name[0] = '|';
     name[1] = '+';
     strcpy(name+2, content);
+
+    IXMLNonTerminal *nt = (IXMLNonTerminal*)hashmap_get(state->ixml_non_terminals_map, name);
+    if (!nt)
+    {
+        IXMLRule *rule = new_ixml_rule();
+        rule->rule_name->name = name;
+        rule->mark = ' ';
+        vector_push_back(state->ixml_rules, rule);
+
+        nt = copy_ixml_nonterminal(rule->rule_name);
+        add_yaep_nonterminal(state, nt);
+    }
+    else
+    {
+        // This insertion rule has already been added as a non terminal.
+        free(name);
+    }
+
+    // Add nt to rule.
+    add_yaep_term_to_rule(state, 0, NULL, nt);
+}
+
+void add_not_rule_string(XMQParseState *state, const char *content)
+{
+    // Generate a name like |!S.......
+    char *name = (char*)malloc(strlen(content)+4);
+    name[0] = '|';
+    name[1] = '!';
+    name[2] = 'S';
+    strcpy(name+3, content);
+
+    IXMLNonTerminal *nt = (IXMLNonTerminal*)hashmap_get(state->ixml_non_terminals_map, name);
+    if (nt) {
+        // This not rule has already been recorded. Do not add it again.
+        free(name);
+        return;
+    }
+
+    IXMLRule *rule = new_ixml_rule();
     rule->rule_name->name = name;
     rule->mark = ' ';
     vector_push_back(state->ixml_rules, rule);
 
-    IXMLNonTerminal *nt = copy_ixml_nonterminal(rule->rule_name);
+    nt = copy_ixml_nonterminal(rule->rule_name);
     add_yaep_nonterminal(state, nt);
     add_yaep_term_to_rule(state, 0, NULL, nt);
+    hashmap_put(state->ixml_non_terminals_map, name, nt);
+}
+
+void add_not_rule_charset(XMQParseState *state, IXMLNonTerminal *cs)
+{
+    // Generate a name like |![...]
+    char *name = (char*)malloc(strlen(cs->name)+3);
+    name[0] = '|';
+    name[1] = '!';
+    strcpy(name+2, cs->name);
+
+    IXMLNonTerminal *nt = (IXMLNonTerminal*)hashmap_get(state->ixml_non_terminals_map, name);
+    if (nt) {
+        // This not rule has already been recorded. Do not add it again.
+        free(name);
+        return;
+    }
+
+    IXMLRule *rule = new_ixml_rule();
+
+    rule->rule_name->name = name;
+    rule->mark = ' ';
+    vector_push_back(state->ixml_rules, rule);
+
+    nt = copy_ixml_nonterminal(rule->rule_name);
+    add_yaep_nonterminal(state, nt);
+    add_yaep_term_to_rule(state, 0, NULL, nt);
+    hashmap_put(state->ixml_non_terminals_map, name, nt);
 }
 
 void scan_content_fixup_charsets(XMQParseState *state, const char *start, const char *stop)
 {
     const char *i = start;
-    // We allocate a byte for every possible unicode. Yes, a bit excessive, 1 megabyte. Can be fixed though.
+    // We allocate a byte for every possible unicode.
     // 17*65536 = 0x11000 = 1 MB
     char *used = (char*)malloc(0x110000);
     memset(used, 0, 0x110000);
+
+    if (state->used_unicodes == NULL)
+    {
+        state->used_unicodes = (char*)malloc(0x110000);
+        memset(state->used_unicodes, 0, 0x110000);
+    }
+
+    char *already_used = state->used_unicodes;
 
     while (i < stop)
     {
@@ -10162,19 +11657,23 @@ void scan_content_fixup_charsets(XMQParseState *state, const char *start, const 
         }
         i += len;
 
-        used[uc] = 1;
-        char buf[16];
-        snprintf(buf,16, "#%x", uc);
-        IXMLTerminal *t = (IXMLTerminal*)hashmap_get(state->ixml_terminals_map, buf);
-        if (t == NULL)
+        if (!already_used[uc])
         {
-            // Add terminal not in the grammar, but found inside the input content to be parsed.
-            // This gives us better error messages from yaep. Instead of "No such token" we
-            // get syntax error at line:col.
-            t = new_ixml_terminal();
-            t->name = strdup(buf);
-            t->code = uc;
-            add_yaep_terminal(state, t);
+            already_used[uc] = 1;
+            used[uc] = 1;
+            char buf[16];
+            snprintf(buf,16, "#%x", uc);
+            IXMLTerminal *t = (IXMLTerminal*)hashmap_get(state->ixml_terminals_map, buf);
+            if (t == NULL)
+            {
+                // Add terminal not in the grammar, but found inside the input content to be parsed.
+                // This gives us better error messages from yaep. Instead of "No such token" we
+                // get syntax error at line:col.
+                t = new_ixml_terminal();
+                t->name = strdup(buf);
+                t->code = uc;
+                add_yaep_terminal(state, t);
+            }
         }
     }
 
@@ -10331,6 +11830,13 @@ void free_yaep_tmp_terminals(XMQParseState *state)
     state->ixml_tmp_terminals = NULL;
 }
 
+void free_yaep_tmp_terminals_and_content(XMQParseState *state)
+{
+    // Free the tmp terminals themselves.
+    vector_free_and_values(state->ixml_tmp_terminals, (FreeFuncPtr)free_ixml_terminal);
+    state->ixml_tmp_terminals = NULL;
+}
+
 bool has_ixml_tmp_terminals(XMQParseState *state)
 {
     assert(state->ixml_tmp_terminals);
@@ -10392,6 +11898,8 @@ void free_ixml_nonterminal(IXMLNonTerminal *nt)
 {
     if (nt->name) free(nt->name);
     nt->name = NULL;
+    if (nt->alias) free(nt->alias);
+    nt->alias = NULL;
     if (nt->charset) free_ixml_charset(nt->charset);
     nt->charset = NULL;
     free(nt);
@@ -10451,7 +11959,7 @@ char *generate_rule_name(XMQParseState *state)
     return strdup(buf);
 }
 
-char *generate_charset_terminal_name(IXMLCharset *cs, char mark)
+char *generate_charset_rule_name(IXMLCharset *cs, char mark)
 {
     char *buf = (char*)malloc(1024);
     buf[0] = 0;
@@ -10690,7 +12198,7 @@ void make_last_term_repeat_zero_infix(XMQParseState *state, char factor_mark, ch
 
 void ixml_print_grammar(XMQParseState *state)
 {
-    if (xmq_trace_enabled_)
+    if (false && xmq_trace_enabled_)
     {
         HashMapIterator *i = hashmap_iterate(state->ixml_terminals_map);
 
@@ -10730,7 +12238,7 @@ void ixml_print_grammar(XMQParseState *state)
 
 #endif // IXML_MODULE
 
-// PARTS JSON_C ////////////////////////////////////////
+// PART C JSON_C ////////////////////////////////////////
 
 #ifdef JSON_MODULE
 
@@ -10767,8 +12275,6 @@ void json_print_comment_node(XMQPrintState *ps, xmlNodePtr node, bool prefix_ul,
 void json_print_doctype_node(XMQPrintState *ps, xmlNodePtr node);
 void json_print_entity_node(XMQPrintState *ps, xmlNodePtr node);
 void json_print_standalone_quote(XMQPrintState *ps, xmlNode *container, xmlNodePtr node, size_t total, size_t used);
-void json_print_object_nodes(XMQPrintState *ps, xmlNode *container, xmlNode *from, xmlNode *to);
-void json_print_array_nodes(XMQPrintState *ps, xmlNode *container, xmlNode *from, xmlNode *to);
 void json_print_node(XMQPrintState *ps, xmlNode *container, xmlNode *node, size_t total, size_t used);
 void json_print_value(XMQPrintState *ps, xmlNode *from, xmlNode *to, Level level, bool force_string);
 void json_print_element_name(XMQPrintState *ps, xmlNode *container, xmlNode *node, size_t total, size_t used);
@@ -10782,8 +12288,6 @@ bool json_is_keyword(const char *start);
 void json_print_leaf_node(XMQPrintState *ps, xmlNode *container, xmlNode *node, size_t total, size_t used);
 
 void trim_index_suffix(const char *key_start, const char **stop);
-
-bool xmq_tokenize_buffer_json(XMQParseState *state, const char *start, const char *stop);
 
 char equals[] = "=";
 char underline[] = "_";
@@ -10829,7 +12333,7 @@ void eat_json_quote(XMQParseState *state, char **content_start, char **content_s
         {
             increment(c, 1, &i, &line, &col);
             c = *i;
-            if (c == '"' || c == '\\' || c == 'b' || c == 'f' || c == 'n' || c == 'r' || c == 't')
+            if (c == '"' || c == '\\' || c == 'b' || c == 'f' || c == 'n' || c == 'r' || c == 't' || c == '/')
             {
                 increment(c, 1, &i, &line, &col);
                 switch(c)
@@ -10839,6 +12343,7 @@ void eat_json_quote(XMQParseState *state, char **content_start, char **content_s
                 case 'n': c = 10; break;
                 case 'r': c = 13; break;
                 case 't': c = 9; break;
+                case '/': c = '/'; break; // Silly, but actually used sometimes in json....
                 }
                 membuffer_append_char(buf, c);
                 continue;
@@ -12427,9 +13932,61 @@ void json_print_array_nodes(XMQPrintState *ps, xmlNode *container, xmlNode *from
 
 #endif // JSON_MODULE
 
-// PARTS TEXT_C ////////////////////////////////////////
+// PART C TEXT_C ////////////////////////////////////////
 
 #ifdef TEXT_MODULE
+
+size_t count_whitespace(const char *i, const char *stop)
+{
+    unsigned char c = *i;
+    if (c == ' ' || c == '\n' || c == '\t' || c == '\r')
+    {
+        return 1;
+    }
+
+    if (i+1 >= stop) return 0;
+
+    // If not a unbreakable space U+00A0 (utf8 0xc2a0)
+    // or the other unicode whitespaces (utf8 starts with 0xe2)
+    // then we have not whitespaces here.
+    if (c != 0xc2 && c != 0xe2) return 0;
+
+    unsigned char cc = *(i+1);
+
+    if (c == 0xC2 && cc == 0xA0)
+    {
+        // Unbreakable space. 0xA0
+        return 2;
+    }
+    if (c == 0xE2 && cc == 0x80)
+    {
+        if (i+2 >= stop) return 0;
+
+        unsigned char ccc = *(i+2);
+
+        if (ccc == 0x80)
+        {
+            // EN quad. &#8192; U+2000 utf8 E2 80 80
+            return 3;
+        }
+        if (ccc == 0x81)
+        {
+            // EM quad. &#8193; U+2001 utf8 E2 80 81
+            return 3;
+        }
+        if (ccc == 0x82)
+        {
+            // EN space. &#8194; U+2002 utf8 E2 80 82
+            return 3;
+        }
+        if (ccc == 0x83)
+        {
+            // EM space. &#8195; U+2003 utf8 E2 80 83
+            return 3;
+        }
+    }
+    return 0;
+}
 
 const char *has_leading_space_nl(const char *start, const char *stop, size_t *only_newlines)
 {
@@ -12516,9 +14073,12 @@ const char *has_ending_nl_space(const char *start, const char *stop, size_t *onl
     return i;
 }
 
-bool has_leading_ending_quote(const char *start, const char *stop)
+bool has_leading_ending_different_quotes(const char *start, const char *stop)
 {
-    return start < stop && ( *start == '\'' || *(stop-1) == '\'');
+    return start < stop && (
+        ( *start == '\'' && *(stop-1) == '"')
+        ||
+        ( *start == '"' && *(stop-1) == '\''));
 }
 
 bool has_newlines(const char *start, const char *stop)
@@ -12541,10 +14101,23 @@ bool has_must_escape_chars(const char *start, const char *stop)
 
 bool has_all_quotes(const char *start, const char *stop)
 {
+    if (start == stop) return false;
+    bool all_sq = true;
     for (const char *i = start; i < stop; ++i)
     {
-        if (*i != '\'') return false;
+        if (*i != '\'')
+        {
+            all_sq = false;
+            break;
+        }
     }
+    if (all_sq) return true;
+
+    for (const char *i = start; i < stop; ++i)
+    {
+        if (*i != '"') return false;
+    }
+
     return true;
 }
 
@@ -12676,6 +14249,7 @@ size_t encode_utf8(int uc, UTF8Char *utf8)
     utf8->bytes[1] = 0;
     utf8->bytes[2] = 0;
     utf8->bytes[3] = 0;
+    utf8->bytes[4] = 0;
 
     if (uc <= 0x7f)
     {
@@ -13317,9 +14891,47 @@ bool category_has_code(int code, int *cat, size_t cat_len)
     }
 }
 
+const char *find_eol_or_stop(const char *start, const char *stop)
+{
+    const char *i = start;
+
+    while (i < stop)
+    {
+        if (*i == '\n') return i;
+        i++;
+    }
+    return stop;
+}
+
+bool is_hex(char c)
+{
+    return
+        (c >= '0' && c <= '9') ||
+        (c >= 'a' && c <= 'f') ||
+        (c >= 'A' && c <= 'F');
+}
+
+unsigned char hex_value(char c)
+{
+    if (c >= '0' && c <= '9') return c-'0';
+    if (c >= 'a' && c <= 'f') return 10+c-'a';
+    if (c >= 'A' && c <= 'F') return 10+c-'A';
+    assert(false);
+    return 0;
+}
+
+bool is_unicode_whitespace(const char *start, const char *stop)
+{
+    size_t n = count_whitespace(start, stop);
+
+    // Single char whitespace is ' ' '\t' '\n' '\r'
+    // First unicode whitespace is 160 nbsp require two or more chars.
+    return n > 1;
+}
+
 #endif // TEXT_MODULE
 
-// PARTS UTF8_C ////////////////////////////////////////
+// PART C UTF8_C ////////////////////////////////////////
 
 #ifdef UTF8_MODULE
 
@@ -13486,7 +15098,7 @@ size_t print_utf8(XMQPrintState *ps, XMQColor color, size_t num_pairs, ...)
 
 #endif // UTF8_MODULE
 
-// PARTS VECTOR_C ////////////////////////////////////////
+// PART C VECTOR_C ////////////////////////////////////////
 
 #ifdef VECTOR_MODULE
 
@@ -13564,7 +15176,7 @@ void *vector_element_at(Vector *v, size_t i)
 
 #endif // VECTOR_MODULE
 
-// PARTS XML_C ////////////////////////////////////////
+// PART C XML_C ////////////////////////////////////////
 
 #ifdef XML_MODULE
 
@@ -13861,7 +15473,7 @@ void xml_add_root_child(xmlDoc *doc, xmlNode *node)
 
 #endif // XML_MODULE
 
-// PARTS XMQ_INTERNALS_C ////////////////////////////////////////
+// PART C XMQ_INTERNALS_C ////////////////////////////////////////
 
 #ifdef XMQ_INTERNALS_MODULE
 
@@ -13987,56 +15599,374 @@ void generate_state_error_message(XMQParseState *state, XMQParseError error_nr, 
     membuffer_append_null(state->generating_error_msg);
 }
 
-size_t count_whitespace(const char *i, const char *stop)
+const char *xmqParseErrorToString(XMQParseError e)
 {
-    unsigned char c = *i;
-    if (c == ' ' || c == '\n' || c == '\t' || c == '\r')
+    switch (e)
     {
-        return 1;
+    case XMQ_ERROR_NONE: return "no warning, no error";
+    case XMQ_ERROR_CANNOT_READ_FILE: return "cannot read file";
+    case XMQ_ERROR_OOM: return "out of memory";
+    case XMQ_ERROR_NOT_XMQ: return "input file is not xmq";
+    case XMQ_ERROR_QUOTE_NOT_CLOSED: return "quote is not closed";
+    case XMQ_ERROR_ENTITY_NOT_CLOSED: return "entity is not closed";
+    case XMQ_ERROR_COMMENT_NOT_CLOSED: return "comment is not closed";
+    case XMQ_ERROR_COMMENT_CLOSED_WITH_TOO_MANY_SLASHES: return "comment closed with too many slashes";
+    case XMQ_ERROR_BODY_NOT_CLOSED: return "body is not closed";
+    case XMQ_ERROR_ATTRIBUTES_NOT_CLOSED: return "attributes are not closed";
+    case XMQ_ERROR_COMPOUND_NOT_CLOSED: return "compound is not closed";
+    case XMQ_ERROR_COMPOUND_MAY_NOT_CONTAIN: return "compound may only contain quotes and entities";
+    case XMQ_ERROR_QUOTE_CLOSED_WITH_TOO_MANY_QUOTES: return "quote closed with too many quotes";
+    case XMQ_ERROR_UNEXPECTED_CLOSING_BRACE: return "unexpected closing brace";
+    case XMQ_ERROR_EXPECTED_CONTENT_AFTER_EQUALS: return "expected content after equals";
+    case XMQ_ERROR_UNEXPECTED_TAB: return "invalid tab character found, remember that tab is not allowed as a field separator, to store tab as content it must be quoted";
+    case XMQ_ERROR_INVALID_CHAR: return "unexpected character";
+    case XMQ_ERROR_BAD_DOCTYPE: return "doctype could not be parsed";
+    case XMQ_ERROR_CANNOT_HANDLE_XML: return "cannot handle xml use libxmq-all for this!";
+    case XMQ_ERROR_CANNOT_HANDLE_HTML: return "cannot handle html use libxmq-all for this!";
+    case XMQ_ERROR_CANNOT_HANDLE_JSON: return "cannot handle json use libxmq-all for this!";
+    case XMQ_ERROR_JSON_INVALID_ESCAPE: return "invalid json escape";
+    case XMQ_ERROR_JSON_INVALID_CHAR: return "unexpected json character";
+    case XMQ_ERROR_EXPECTED_XMQ: return "expected xmq source";
+    case XMQ_ERROR_EXPECTED_HTMQ: return "expected htmlq source";
+    case XMQ_ERROR_EXPECTED_XML: return "expected xml source";
+    case XMQ_ERROR_EXPECTED_HTML: return "expected html source";
+    case XMQ_ERROR_EXPECTED_JSON: return "expected json source";
+    case XMQ_ERROR_PARSING_XML: return "error parsing xml";
+    case XMQ_ERROR_PARSING_HTML: return "error parsing html";
+    case XMQ_ERROR_VALUE_CANNOT_START_WITH: return "value cannot start with = /* or //";
+    case XMQ_ERROR_IXML_SYNTAX_ERROR: return "syntax ";
+    case XMQ_WARNING_QUOTES_NEEDED: return "perhaps you need more quotes to quote this quote";
+    }
+    assert(false);
+    return "unknown error";
+}
+
+const char *needs_escape(XMQRenderFormat f, const char *start, const char *stop)
+{
+    if (f == XMQ_RENDER_HTML)
+    {
+        char c = *start;
+        if (c == '&') return "&amp;";
+        if (c == '<') return "&lt;";
+        if (c == '>') return "&gt;";
+        return NULL;
+    }
+    else if (f == XMQ_RENDER_TEX)
+    {
+        char c = *start;
+        if (c == '\\') return "\\backslash;";
+        if (c == '&') return "\\&";
+        if (c == '#') return "\\#";
+        if (c == '{') return "\\{";
+        if (c == '}') return "\\}";
+        if (c == '_') return "\\_";
+        if (c == '\'') return "{'}";
+
+        return NULL;
     }
 
-    if (i+1 >= stop) return 0;
+    return NULL;
+}
 
-    // If not a unbreakable space U+00A0 (utf8 0xc2a0)
-    // or the other unicode whitespaces (utf8 starts with 0xe2)
-    // then we have not whitespaces here.
-    if (c != 0xc2 && c != 0xe2) return 0;
+/**
+    enter_compound_level:
 
-    unsigned char cc = *(i+1);
+    When parsing a value and the parser has entered a compound value,
+    the level for the child quotes/entities are now handled as
+    tokens inside the compound.
 
-    if (c == 0xC2 && cc == 0xA0)
+    LEVEL_ELEMENT_VALUE -> LEVEL_ELEMENT_VALUE_COMPOUND
+    LEVEL_ATTR_VALUE -> LEVEL_ATTR_VALUE_COMPOUND
+*/
+Level enter_compound_level(Level l)
+{
+    assert(l != 0);
+    return (Level)(((int)l)+1);
+}
+
+XMQColor level_to_quote_color(Level level)
+{
+    switch (level)
     {
-        // Unbreakable space. 0xA0
-        return 2;
+    case LEVEL_XMQ: return COLOR_quote;
+    case LEVEL_ELEMENT_VALUE: return COLOR_element_value_quote;
+    case LEVEL_ELEMENT_VALUE_COMPOUND: return COLOR_element_value_compound_quote;
+    case LEVEL_ATTR_VALUE: return COLOR_attr_value_quote;
+    case LEVEL_ATTR_VALUE_COMPOUND: return COLOR_attr_value_compound_quote;
     }
-    if (c == 0xE2 && cc == 0x80)
+    assert(false);
+    return COLOR_none;
+}
+
+XMQColor level_to_entity_color(Level level)
+{
+    switch (level)
     {
-        if (i+2 >= stop) return 0;
+    case LEVEL_XMQ: return COLOR_entity;
+    case LEVEL_ELEMENT_VALUE: return COLOR_element_value_entity;
+    case LEVEL_ELEMENT_VALUE_COMPOUND: return COLOR_element_value_compound_entity;
+    case LEVEL_ATTR_VALUE: return COLOR_attr_value_entity;
+    case LEVEL_ATTR_VALUE_COMPOUND: return COLOR_attr_value_compound_entity;
+    }
+    assert(false);
+    return COLOR_none;
+}
 
-        unsigned char ccc = *(i+2);
+bool load_stdin(XMQDoc *doq, size_t *out_fsize, const char **out_buffer)
+{
+    bool rc = true;
+    int blocksize = 1024;
+    char block[blocksize];
 
-        if (ccc == 0x80)
-        {
-            // EN quad. &#8192; U+2000 utf8 E2 80 80
-            return 3;
+    MemBuffer *mb = new_membuffer();
+
+    int fd = 0;
+    while (true) {
+        ssize_t n = read(fd, block, sizeof(block));
+        if (n == 0) {
+            break;
         }
-        if (ccc == 0x81)
-        {
-            // EM quad. &#8193; U+2001 utf8 E2 80 81
-            return 3;
+        if (n == -1) {
+            if (errno == EINTR) {
+                continue;
+            }
+            PRINT_ERROR("Could not read stdin errno=%d\n", errno);
+            close(fd);
+
+            return false;
         }
-        if (ccc == 0x82)
+        membuffer_append_region(mb, block, block + n);
+    }
+    close(fd);
+
+    membuffer_append_null(mb);
+
+    *out_fsize = mb->used_-1;
+    *out_buffer = free_membuffer_but_return_trimmed_content(mb);
+
+    return rc;
+}
+
+bool load_file(XMQDoc *doq, const char *file, size_t *out_fsize, const char **out_buffer)
+{
+    if (file == NULL || (file[0] == '-' && file[1] == 0))
+    {
+        return load_stdin(doq, out_fsize, out_buffer);
+    }
+
+    bool rc = false;
+    char *buffer = NULL;
+    size_t block_size = 0;
+    size_t n = 0;
+
+    FILE *f = fopen(file, "rb");
+    if (!f) {
+        doq->errno_ = XMQ_ERROR_CANNOT_READ_FILE;
+        doq->error_ = build_error_message("xmq: %s: No such file or directory\n", file);
+        return false;
+    }
+
+    fseek(f, 0, SEEK_END);
+    size_t fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    debug("xmq=", "file size %zu", fsize);
+
+    buffer = (char*)malloc(fsize + 1);
+    if (!buffer)
+    {
+        doq->errno_ = XMQ_ERROR_OOM;
+        doq->error_ = build_error_message("xmq: %s: File too big, out of memory\n", file);
+        goto exit;
+    }
+
+    block_size = fsize;
+    if (block_size > 10000) block_size = 10000;
+    n = 0;
+    do {
+        if (n + block_size > fsize) block_size = fsize - n;
+        size_t r = fread(buffer+n, 1, block_size, f);
+        debug("xmq=", "read %zu bytes total %zu", r, n);
+        if (!r) break;
+        n += r;
+    } while (n < fsize);
+
+    debug("xmq=", "read total %zu bytes fsize %zu bytes", n, fsize);
+
+    if (n != fsize) {
+        rc = false;
+        doq->errno_ = XMQ_ERROR_CANNOT_READ_FILE;
+        doq->error_ = build_error_message("xmq: %s: Cannot read file\n", file);
+        goto exit;
+    }
+    fclose(f);
+    buffer[fsize] = 0;
+    rc = true;
+
+exit:
+
+    *out_fsize = fsize;
+    *out_buffer = buffer;
+    return rc;
+}
+
+const char *build_error_message(const char* fmt, ...)
+{
+    char *buf = (char*)malloc(4096);
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, 4096, fmt, args);
+    va_end(args);
+    buf[4095] = 0;
+    buf = (char*)realloc(buf, strlen(buf)+1);
+    return buf;
+}
+
+#endif // XMQ_INTERNALS_MODULE
+
+// PART C XMQ_PARSER_C ////////////////////////////////////////
+
+#ifdef XMQ_PARSER_MODULE
+
+size_t count_xmq_slashes(const char *i, const char *stop, bool *found_asterisk);
+void eat_json_quote(XMQParseState *state, char **content_start, char **content_stop);
+void eat_xmq_comment_to_close(XMQParseState *state, const char **content_start, const char **content_stop, size_t n, bool *found_asterisk);
+void eat_xmq_comment_to_eol(XMQParseState *state, const char **content_start, const char **content_stop);
+void eat_xmq_doctype(XMQParseState *state, const char **text_start, const char **text_stop);
+void eat_xmq_entity(XMQParseState *state);
+void eat_xmq_pi(XMQParseState *state, const char **text_start, const char **text_stop);
+void eat_xmq_text_name(XMQParseState *state, const char **content_start, const char **content_stop, const char **namespace_start, const char **namespace_stop);
+void eat_xmq_text_value(XMQParseState *state);
+void eat_xmq_token_whitespace(XMQParseState *state, const char **start, const char **stop);
+bool is_xmq_attribute_key_start(char c);
+bool is_xmq_comment_start(char c, char cc);
+bool is_xmq_compound_start(char c);
+bool is_xmq_doctype_start(const char *start, const char *stop);
+bool is_xmq_entity_start(char c);
+bool is_xmq_json_quote_start(char c);
+bool is_xmq_pi_start(const char *start, const char *stop);
+bool is_xmq_quote_start(char c);
+void parse_xmq_attribute(XMQParseState *state);
+void parse_xmq_attributes(XMQParseState *state);
+void parse_xmq_comment(XMQParseState *state, char cc);
+void parse_xmq_compound(XMQParseState *state, Level level);
+void parse_xmq_compound_children(XMQParseState *state, Level level);
+void parse_xmq_doctype(XMQParseState *state);
+void parse_xmq_element(XMQParseState *state);
+void parse_xmq_element_internal(XMQParseState *state, bool doctype, bool pi);
+void parse_xmq_entity(XMQParseState *state, Level level);
+void parse_xmq_json_quote(XMQParseState *state, Level level);
+void parse_xmq_pi(XMQParseState *state);
+void parse_xmq_quote(XMQParseState *state, Level level);
+void parse_xmq_text_any(XMQParseState *state);
+void parse_xmq_text_name(XMQParseState *state);
+void parse_xmq_text_value(XMQParseState *state, Level level);
+void parse_xmq_value(XMQParseState *state, Level level);
+void parse_xmq_whitespace(XMQParseState *state);
+bool peek_xmq_next_is_equal(XMQParseState *state);
+bool possibly_lost_content_after_equals(XMQParseState *state);
+bool possibly_need_more_quotes(XMQParseState *state);
+
+size_t count_xmq_quotes(const char *i, const char *stop)
+{
+    const char *start = i;
+    char c = *i;
+
+    assert(c == '\'' || c == '"');
+
+    while (i < stop && *i == c) i++;
+
+    return i-start;
+}
+
+void eat_xmq_quote(XMQParseState *state, const char **start, const char **stop)
+{
+    const char *i = state->i;
+    const char *end = state->buffer_stop;
+    const char q = *i;
+
+    assert(q == '\'' || q == '"');
+
+    size_t line = state->line;
+    size_t col = state->col;
+
+    size_t depth = count_xmq_quotes(i, end);
+    size_t count = depth;
+
+    state->last_quote_start = state->i;
+    state->last_quote_start_line = state->line;
+    state->last_quote_start_col = state->col;
+
+    *start = i;
+
+    while (count > 0)
+    {
+        increment(q, 1, &i, &line, &col);
+        count--;
+    }
+
+    if (depth == 2)
+    {
+        // The empty quote ''
+        state->i = i;
+        state->line = line;
+        state->col = col;
+        *stop = i;
+        return;
+    }
+
+    while (i < end)
+    {
+        char c = *i;
+        if (c != q)
         {
-            // EN space. &#8194; U+2002 utf8 E2 80 82
-            return 3;
+            increment(c, 1, &i, &line, &col);
+            continue;
         }
-        if (ccc == 0x83)
+        size_t count = count_xmq_quotes(i, end);
+        if (count > depth)
         {
-            // EM space. &#8195; U+2003 utf8 E2 80 83
-            return 3;
+            state->error_nr = XMQ_ERROR_QUOTE_CLOSED_WITH_TOO_MANY_QUOTES;
+            longjmp(state->error_handler, 1);
+        }
+        else
+        if (count < depth)
+        {
+            while (count > 0)
+            {
+                increment(q, 1, &i, &line, &col);
+                count--;
+            }
+            continue;
+        }
+        else
+        if (count == depth)
+        {
+            while (count > 0)
+            {
+                increment(q, 1, &i, &line, &col);
+                count--;
+            }
+            depth = 0;
+            *stop = i;
+            break;
         }
     }
-    return 0;
+    if (depth != 0)
+    {
+        state->error_nr = XMQ_ERROR_QUOTE_NOT_CLOSED;
+        longjmp(state->error_handler, 1);
+    }
+    state->i = i;
+    state->line = line;
+    state->col = col;
+
+    if (possibly_need_more_quotes(state))
+    {
+        state->last_suspicios_quote_end = state->i-1;
+        state->last_suspicios_quote_end_line = state->line;
+        state->last_suspicios_quote_end_col = state->col-1;
+    }
 }
 
 void eat_xml_whitespace(XMQParseState *state, const char **start, const char **stop)
@@ -14105,477 +16035,6 @@ void increment(char c, size_t num_bytes, const char **i, size_t *line, size_t *c
     }
     assert(num_bytes > 0);
     (*i)+=num_bytes;
-}
-
-bool is_hex(char c)
-{
-    return
-        (c >= '0' && c <= '9') ||
-        (c >= 'a' && c <= 'f') ||
-        (c >= 'A' && c <= 'F');
-}
-
-unsigned char hex_value(char c)
-{
-    if (c >= '0' && c <= '9') return c-'0';
-    if (c >= 'a' && c <= 'f') return 10+c-'a';
-    if (c >= 'A' && c <= 'F') return 10+c-'A';
-    assert(false);
-    return 0;
-}
-
-bool is_unicode_whitespace(const char *start, const char *stop)
-{
-    size_t n = count_whitespace(start, stop);
-
-    // Single char whitespace is ' ' '\t' '\n' '\r'
-    // First unicode whitespace is 160 nbsp require two or more chars.
-    return n > 1;
-}
-
-const char *needs_escape(XMQRenderFormat f, const char *start, const char *stop)
-{
-    if (f == XMQ_RENDER_HTML)
-    {
-        char c = *start;
-        if (c == '&') return "&amp;";
-        if (c == '<') return "&lt;";
-        if (c == '>') return "&gt;";
-        return NULL;
-    }
-    else if (f == XMQ_RENDER_TEX)
-    {
-        char c = *start;
-        if (c == '\\') return "\\backslash;";
-        if (c == '&') return "\\&";
-        if (c == '#') return "\\#";
-        if (c == '{') return "\\{";
-        if (c == '}') return "\\}";
-        if (c == '_') return "\\_";
-        if (c == '\'') return "{'}";
-
-        return NULL;
-    }
-
-    return NULL;
-}
-
-void print_color_pre(XMQPrintState *ps, XMQColor color)
-{
-    XMQOutputSettings *os = ps->output_settings;
-    const char *pre = NULL;
-    const char *post = NULL;
-    getThemeStrings(os, color, &pre, &post);
-
-    if (pre)
-    {
-        XMQWrite write = os->content.write;
-        void *writer_state = os->content.writer_state;
-        write(writer_state, pre, NULL);
-    }
-}
-
-void print_color_post(XMQPrintState *ps, XMQColor color)
-{
-    XMQOutputSettings *os = ps->output_settings;
-    const char *pre = NULL;
-    const char *post = NULL;
-    getThemeStrings(os, color, &pre, &post);
-
-    XMQWrite write = os->content.write;
-    void *writer_state = os->content.writer_state;
-
-    if (post)
-    {
-        write(writer_state, post, NULL);
-    }
-    else
-    {
-        write(writer_state, ps->replay_active_color_pre, NULL);
-    }
-}
-
-const char *xmqParseErrorToString(XMQParseError e)
-{
-    switch (e)
-    {
-    case XMQ_ERROR_NONE: return "no warning, no error";
-    case XMQ_ERROR_CANNOT_READ_FILE: return "cannot read file";
-    case XMQ_ERROR_OOM: return "out of memory";
-    case XMQ_ERROR_NOT_XMQ: return "input file is not xmq";
-    case XMQ_ERROR_QUOTE_NOT_CLOSED: return "quote is not closed";
-    case XMQ_ERROR_ENTITY_NOT_CLOSED: return "entity is not closed";
-    case XMQ_ERROR_COMMENT_NOT_CLOSED: return "comment is not closed";
-    case XMQ_ERROR_COMMENT_CLOSED_WITH_TOO_MANY_SLASHES: return "comment closed with too many slashes";
-    case XMQ_ERROR_BODY_NOT_CLOSED: return "body is not closed";
-    case XMQ_ERROR_ATTRIBUTES_NOT_CLOSED: return "attributes are not closed";
-    case XMQ_ERROR_COMPOUND_NOT_CLOSED: return "compound is not closed";
-    case XMQ_ERROR_COMPOUND_MAY_NOT_CONTAIN: return "compound may only contain quotes and entities";
-    case XMQ_ERROR_QUOTE_CLOSED_WITH_TOO_MANY_QUOTES: return "quote closed with too many quotes";
-    case XMQ_ERROR_UNEXPECTED_CLOSING_BRACE: return "unexpected closing brace";
-    case XMQ_ERROR_EXPECTED_CONTENT_AFTER_EQUALS: return "expected content after equals";
-    case XMQ_ERROR_UNEXPECTED_TAB: return "invalid tab character found, remember that tab is not allowed as a field separator, to store tab as content it must be quoted";
-    case XMQ_ERROR_INVALID_CHAR: return "unexpected character";
-    case XMQ_ERROR_BAD_DOCTYPE: return "doctype could not be parsed";
-    case XMQ_ERROR_CANNOT_HANDLE_XML: return "cannot handle xml use libxmq-all for this!";
-    case XMQ_ERROR_CANNOT_HANDLE_HTML: return "cannot handle html use libxmq-all for this!";
-    case XMQ_ERROR_CANNOT_HANDLE_JSON: return "cannot handle json use libxmq-all for this!";
-    case XMQ_ERROR_JSON_INVALID_ESCAPE: return "invalid json escape";
-    case XMQ_ERROR_JSON_INVALID_CHAR: return "unexpected json character";
-    case XMQ_ERROR_EXPECTED_XMQ: return "expected xmq source";
-    case XMQ_ERROR_EXPECTED_HTMQ: return "expected htmlq source";
-    case XMQ_ERROR_EXPECTED_XML: return "expected xml source";
-    case XMQ_ERROR_EXPECTED_HTML: return "expected html source";
-    case XMQ_ERROR_EXPECTED_JSON: return "expected json source";
-    case XMQ_ERROR_PARSING_XML: return "error parsing xml";
-    case XMQ_ERROR_PARSING_HTML: return "error parsing html";
-    case XMQ_ERROR_VALUE_CANNOT_START_WITH: return "value cannot start with = /* or //";
-    case XMQ_ERROR_IXML_SYNTAX_ERROR: return "syntax ";
-    case XMQ_WARNING_QUOTES_NEEDED: return "perhaps you need more quotes to quote this quote";
-    }
-    assert(false);
-    return "unknown error";
-}
-
-void node_strlen_name_prefix(xmlNode *node,
-                        const char **name, size_t *name_len,
-                        const char **prefix, size_t *prefix_len,
-                        size_t *total_len)
-{
-    *name_len = strlen((const char*)node->name);
-    *name = (const char*)node->name;
-
-    if (node->ns && node->ns->prefix)
-    {
-        *prefix = (const char*)node->ns->prefix;
-        *prefix_len = strlen((const char*)node->ns->prefix);
-        *total_len = *name_len + *prefix_len +1;
-    }
-    else
-    {
-        *prefix = NULL;
-        *prefix_len = 0;
-        *total_len = *name_len;
-    }
-    assert(*name != NULL);
-}
-
-void attr_strlen_name_prefix(xmlAttr *attr, const char **name, const char **prefix, size_t *total_u_len)
-{
-    *name = (const char*)attr->name;
-    size_t name_b_len;
-    size_t name_u_len;
-    size_t prefix_b_len;
-    size_t prefix_u_len;
-    str_b_u_len(*name, NULL, &name_b_len, &name_u_len);
-
-    if (attr->ns && attr->ns->prefix)
-    {
-        *prefix = (const char*)attr->ns->prefix;
-        str_b_u_len(*prefix, NULL, &prefix_b_len, &prefix_u_len);
-        *total_u_len = name_u_len + prefix_u_len + 1;
-    }
-    else
-    {
-        *prefix = NULL;
-        prefix_b_len = 0;
-        prefix_u_len = 0;
-        *total_u_len = name_u_len;
-    }
-    assert(*name != NULL);
-}
-
-void namespace_strlen_prefix(xmlNs *ns, const char **prefix, size_t *total_u_len)
-{
-    size_t prefix_b_len;
-    size_t prefix_u_len;
-
-    if (ns->prefix)
-    {
-        *prefix = (const char*)ns->prefix;
-        str_b_u_len(*prefix, NULL, &prefix_b_len, &prefix_u_len);
-        *total_u_len = /* xmlns */ 5  + prefix_u_len + 1;
-    }
-    else
-    {
-        *prefix = NULL;
-        prefix_b_len = 0;
-        prefix_u_len = 0;
-        *total_u_len = /* xmlns */ 5;
-    }
-}
-
-void element_strlen_name_prefix(xmlNode *element, const char **name, const char **prefix, size_t *total_u_len)
-{
-    *name = (const char*)element->name;
-    if (!*name)
-    {
-        *name = "";
-        *prefix = "";
-        *total_u_len = 0;
-        return;
-    }
-    size_t name_b_len;
-    size_t name_u_len;
-    size_t prefix_b_len;
-    size_t prefix_u_len;
-    str_b_u_len(*name, NULL, &name_b_len, &name_u_len);
-
-    if (element->ns && element->ns->prefix)
-    {
-        *prefix = (const char*)element->ns->prefix;
-        str_b_u_len(*prefix, NULL, &prefix_b_len, &prefix_u_len);
-        *total_u_len = name_u_len + prefix_u_len + 1;
-    }
-    else
-    {
-        *prefix = NULL;
-        prefix_b_len = 0;
-        prefix_u_len = 0;
-        *total_u_len = name_u_len;
-    }
-    assert(*name != NULL);
-}
-
-/**
-    enter_compound_level:
-
-    When parsing a value and the parser has entered a compound value,
-    the level for the child quotes/entities are now handled as
-    tokens inside the compound.
-
-    LEVEL_ELEMENT_VALUE -> LEVEL_ELEMENT_VALUE_COMPOUND
-    LEVEL_ATTR_VALUE -> LEVEL_ATTR_VALUE_COMPOUND
-*/
-Level enter_compound_level(Level l)
-{
-    assert(l != 0);
-    return (Level)(((int)l)+1);
-}
-
-XMQColor level_to_quote_color(Level level)
-{
-    switch (level)
-    {
-    case LEVEL_XMQ: return COLOR_quote;
-    case LEVEL_ELEMENT_VALUE: return COLOR_element_value_quote;
-    case LEVEL_ELEMENT_VALUE_COMPOUND: return COLOR_element_value_compound_quote;
-    case LEVEL_ATTR_VALUE: return COLOR_attr_value_quote;
-    case LEVEL_ATTR_VALUE_COMPOUND: return COLOR_attr_value_compound_quote;
-    }
-    assert(false);
-    return COLOR_none;
-}
-
-XMQColor level_to_entity_color(Level level)
-{
-    switch (level)
-    {
-    case LEVEL_XMQ: return COLOR_entity;
-    case LEVEL_ELEMENT_VALUE: return COLOR_element_value_entity;
-    case LEVEL_ELEMENT_VALUE_COMPOUND: return COLOR_element_value_compound_entity;
-    case LEVEL_ATTR_VALUE: return COLOR_attr_value_entity;
-    case LEVEL_ATTR_VALUE_COMPOUND: return COLOR_attr_value_compound_entity;
-    }
-    assert(false);
-    return COLOR_none;
-}
-
-/**
-  Scan the attribute names and find the max unicode character width.
-*/
-size_t find_attr_key_max_u_width(xmlAttr *a)
-{
-    size_t max = 0;
-    while (a)
-    {
-        const char *name;
-        const char *prefix;
-        size_t total_u_len;
-        attr_strlen_name_prefix(a, &name, &prefix, &total_u_len);
-
-        if (total_u_len > max) max = total_u_len;
-        a = xml_next_attribute(a);
-    }
-    return max;
-}
-
-/**
-  Scan nodes until there is a node which is not suitable for using the = sign.
-  I.e. it has multiple children or no children. This node unsuitable node is stored in
-  restart_find_at_node or NULL if all nodes were suitable.
-*/
-size_t find_element_key_max_width(xmlNodePtr element, xmlNodePtr *restart_find_at_node)
-{
-    size_t max = 0;
-    xmlNodePtr i = element;
-    while (i)
-    {
-        if (!is_key_value_node(i) || xml_first_attribute(i))
-        {
-            if (i == element) *restart_find_at_node = xml_next_sibling(i);
-            else *restart_find_at_node = i;
-            return max;
-        }
-        const char *name;
-        const char *prefix;
-        size_t total_u_len;
-        element_strlen_name_prefix(i, &name, &prefix, &total_u_len);
-
-        if (total_u_len > max) max = total_u_len;
-        i = xml_next_sibling(i);
-    }
-    *restart_find_at_node = NULL;
-    return max;
-}
-
-/**
-  Scan the namespace links and find the max unicode character width.
-*/
-size_t find_namespace_max_u_width(size_t max, xmlNs *ns)
-{
-    while (ns)
-    {
-        const char *prefix;
-        size_t total_u_len;
-        namespace_strlen_prefix(ns, &prefix, &total_u_len);
-
-        // Print only new/overriding namespaces.
-        if (total_u_len > max) max = total_u_len;
-        ns = ns->next;
-    }
-
-    return max;
-}
-
-/** Check if a value can start with these two characters. */
-bool unsafe_value_start(char c, char cc)
-{
-    return c == '=' || c == '&' || (c == '/' && (cc == '/' || cc == '*'));
-}
-
-bool is_safe_value_char(const char *i, const char *stop)
-{
-    char c = *i;
-    return !(count_whitespace(i, stop) > 0 ||
-             c == '\n' ||
-             c == '(' ||
-             c == ')' ||
-             c == '\'' ||
-             c == '\"' ||
-             c == '{' ||
-             c == '}' ||
-             c == '\t' ||
-             c == '\r');
-}
-
-
-#endif // XMQ_INTERNALS_MODULE
-
-// PARTS XMQ_PARSER_C ////////////////////////////////////////
-
-#ifdef XMQ_PARSER_MODULE
-
-void eat_xmq_doctype(XMQParseState *state, const char **text_start, const char **text_stop);
-void eat_xmq_pi(XMQParseState *state, const char **text_start, const char **text_stop);
-void eat_xmq_text_name(XMQParseState *state, const char **content_start, const char **content_stop,
-                       const char **namespace_start, const char **namespace_stop);
-bool possibly_lost_content_after_equals(XMQParseState *state);
-bool possibly_need_more_quotes(XMQParseState *state);
-
-size_t count_xmq_quotes(const char *i, const char *stop)
-{
-    const char *start = i;
-
-    while (i < stop && *i == '\'') i++;
-
-    return i-start;
-}
-
-void eat_xmq_quote(XMQParseState *state, const char **start, const char **stop)
-{
-    const char *i = state->i;
-    const char *end = state->buffer_stop;
-    size_t line = state->line;
-    size_t col = state->col;
-
-    size_t depth = count_xmq_quotes(i, end);
-    size_t count = depth;
-
-    state->last_quote_start = state->i;
-    state->last_quote_start_line = state->line;
-    state->last_quote_start_col = state->col;
-
-    *start = i;
-
-    while (count > 0)
-    {
-        increment('\'', 1, &i, &line, &col);
-        count--;
-    }
-
-    if (depth == 2)
-    {
-        // The empty quote ''
-        state->i = i;
-        state->line = line;
-        state->col = col;
-        *stop = i;
-        return;
-    }
-
-    while (i < end)
-    {
-        char c = *i;
-        if (c != '\'')
-        {
-            increment(c, 1, &i, &line, &col);
-            continue;
-        }
-        size_t count = count_xmq_quotes(i, end);
-        if (count > depth)
-        {
-            state->error_nr = XMQ_ERROR_QUOTE_CLOSED_WITH_TOO_MANY_QUOTES;
-            longjmp(state->error_handler, 1);
-        }
-        else
-        if (count < depth)
-        {
-            while (count > 0)
-            {
-                increment('\'', 1, &i, &line, &col);
-                count--;
-            }
-            continue;
-        }
-        else
-        if (count == depth)
-        {
-            while (count > 0)
-            {
-                increment('\'', 1, &i, &line, &col);
-                count--;
-            }
-            depth = 0;
-            *stop = i;
-            break;
-        }
-    }
-    if (depth != 0)
-    {
-        state->error_nr = XMQ_ERROR_QUOTE_NOT_CLOSED;
-        longjmp(state->error_handler, 1);
-    }
-    state->i = i;
-    state->line = line;
-    state->col = col;
-
-    if (possibly_need_more_quotes(state))
-    {
-        state->last_suspicios_quote_end = state->i-1;
-        state->last_suspicios_quote_end_line = state->line;
-        state->last_suspicios_quote_end_col = state->col-1;
-    }
 }
 
 void eat_xmq_entity(XMQParseState *state)
@@ -14819,7 +16278,7 @@ void eat_xmq_pi(XMQParseState *state, const char **text_start, const char **text
 
 bool is_xmq_quote_start(char c)
 {
-    return c == '\'';
+    return c == '\'' || c == '"';
 }
 
 bool is_xmq_entity_start(char c)
@@ -14887,6 +16346,29 @@ size_t count_xmq_slashes(const char *i, const char *stop, bool *found_asterisk)
     return i-start;
 }
 
+/** Check if a value can start with these two characters. */
+bool unsafe_value_start(char c, char cc)
+{
+    return c == '&' || c == '=' || (c == '/' && (cc == '/' || cc == '*'));
+}
+
+bool is_safe_value_char(const char *i, const char *stop)
+{
+    char c = *i;
+    bool is_ws = count_whitespace(i, stop) > 0 ||
+        c == '\n' ||
+        c == '\t' ||
+        c == '\r' ||
+        c == '(' ||
+        c == ')' ||
+        c == '{' ||
+        c == '}' ||
+        c == '\'' ||
+        c == '"'
+        ;
+    return !is_ws;
+}
+
 bool is_xmq_text_value(const char *start, const char *stop)
 {
     char c = *start;
@@ -14903,7 +16385,6 @@ bool is_xmq_text_value(const char *start, const char *stop)
     }
     return true;
 }
-
 
 bool peek_xmq_next_is_equal(XMQParseState *state)
 {
@@ -14986,6 +16467,39 @@ void parse_xmq_quote(XMQParseState *state, Level level)
     default:
         assert(false);
     }
+}
+
+void parse_xmq_json_quote(XMQParseState *state, Level level)
+{
+    size_t start_line = state->line;
+    size_t start_col = state->col;
+    char *start;
+    char *stop;
+
+    eat_json_quote(state, &start, &stop);
+
+    switch(level)
+    {
+    case LEVEL_XMQ:
+       DO_CALLBACK(quote, state, start_line, start_col, start, stop, stop);
+       break;
+    case LEVEL_ELEMENT_VALUE:
+        DO_CALLBACK(element_value_quote, state, start_line, start_col, start, stop, stop);
+        break;
+    case LEVEL_ELEMENT_VALUE_COMPOUND:
+        DO_CALLBACK(element_value_compound_quote, state, start_line, start_col, start, stop, stop);
+        break;
+    case LEVEL_ATTR_VALUE:
+        DO_CALLBACK(attr_value_quote, state, start_line, start_col, start, stop, stop);
+        break;
+    case LEVEL_ATTR_VALUE_COMPOUND:
+        DO_CALLBACK(attr_value_compound_quote, state, start_line, start_col, start, stop, stop);
+        break;
+    default:
+        assert(false);
+    }
+
+    free(start);
 }
 
 void parse_xmq_entity(XMQParseState *state, Level level)
@@ -15534,63 +17048,45 @@ void parse_xmq_whitespace(XMQParseState *state)
 
 #endif // XMQ_PARSER_MODULE
 
-// PARTS XMQ_PRINTER_C ////////////////////////////////////////
+// PART C XMQ_PRINTER_C ////////////////////////////////////////
 
 #ifdef XMQ_PRINTER_MODULE
 
-bool xml_has_non_empty_namespace_defs(xmlNode *node);
-bool xml_non_empty_namespace(xmlNs *ns);
+size_t find_attr_key_max_u_width(xmlAttr *a);
+size_t find_namespace_max_u_width(size_t max, xmlNs *ns);
+size_t find_element_key_max_width(xmlNodePtr node, xmlNodePtr *restart_find_at_node);
 const char *toHtmlEntity(int uc);
+void node_strlen_name_prefix(xmlNode *node, const char **name, size_t *name_len, const char **prefix, size_t *prefix_len, size_t *total_len);
+
 
 /**
     count_necessary_quotes:
     @start: Points to first byte of memory buffer to scan for quotes.
     @stop:  Points to byte after memory buffer.
-    @forbid_nl: Compact mode.
     @add_nls: Returns whether we need leading and ending newlines.
     @add_compound: Compounds ( ) is necessary.
+    @prefer_double_quotes: Set to true, will change the default to double quotes, instead of single quotes.
+    @use_double_quotese: Set to true if the quote should use double quotes.
 
     Scan the content to determine how it must be quoted, or if the content can
     remain as text without quotes. Return 0, nl_begin=nl_end=false for safe text.
     Return 1,3 or more for unsafe text with at most a single quote '.
+    Return -1 if content only contains ' apostrophes and no newlines. Print using json string "..."
     If forbid_nl is true, then we are generating xmq on a single line.
     Set add_nls to true if content starts or end with a quote and forbid_nl==false.
     Set add_compound to true if content starts or ends with spaces/newlines or if forbid_nl==true and
     content starts/ends with quotes.
 */
-size_t count_necessary_quotes(const char *start, const char *stop, bool compact, bool *add_nls, bool *add_compound)
+int count_necessary_quotes(const char *start, const char *stop, bool *add_nls, bool *add_compound, bool prefer_double_quotes, bool *use_double_quotes)
 {
-    size_t max = 0;
-    size_t curr = 0;
     bool all_safe = true;
 
     assert(stop > start);
 
     if (unsafe_value_start(*start, start+1 < stop ? *(start+1):0))
     {
-        // Content starts with = & // or /* so it must be quoted.
+        // Content starts with = & // /* or < so it must be quoted.
         all_safe = false;
-    }
-
-    if (*start == '\'' || *(stop-1) == '\'')
-    {
-        // If leading or ending quote, then add newlines both at the beginning and at the end.
-        // Strictly speaking, if only a leading quote, then only newline at beginning is needed.
-        // However to reduce visual confusion, we add newlines at beginning and end.
-        if (!compact)
-        {
-            // We quote this using:
-            // '''
-            // 'howdy'
-            // '''
-            *add_nls = true;
-        }
-        else
-        {
-            // We quote this using:
-            // ( &#39; 'howdy' &#39; )
-            *add_compound = true;
-        }
     }
 
     size_t only_prepended_newlines = 0;
@@ -15606,28 +17102,107 @@ size_t count_necessary_quotes(const char *start, const char *stop, bool compact,
         // Leading ending ws + nl, nl + ws will be trimmed, so we need a compound and entities.
         *add_compound = true;
     }
+    else
+    {
+        *add_compound = false;
+    }
+
+    size_t max_single = 0;
+    size_t curr_single = 0;
+    size_t max_double = 0;
+    size_t curr_double = 0;
 
     for (const char *i = start; i < stop; ++i)
     {
         char c = *i;
+        all_safe &= is_safe_value_char(i, stop);
         if (c == '\'')
         {
-            curr++;
-            if (curr > max) max = curr;
+            curr_single++;
+            if (curr_single > max_single) max_single = curr_single;
         }
         else
         {
-            curr = 0;
-            all_safe &= is_safe_value_char(i, stop);
+            curr_single = 0;
+            if (c == '"')
+            {
+                curr_double++;
+                if (curr_double > max_double) max_double = curr_double;
+            }
+            else
+            {
+                curr_double = 0;
+            }
         }
     }
-    // We found 3 quotes, thus we need 4 quotes to quote them.
+
+    bool leading_ending_sqs = false;
+    bool leading_ending_dqs = false;
+    // We default to using single quotes. But prefer_double_quotes can be set with --prefer-double-quotes
+    bool use_dqs = prefer_double_quotes;
+
+    if (*start == '\'' || *(stop-1) == '\'') leading_ending_sqs = true;
+    if (*start == '"' || *(stop-1) == '"') leading_ending_dqs = true;
+
+    if (leading_ending_sqs && !leading_ending_dqs)
+    {
+        // If there is leading and ending single quotes, then always use double quotes.
+        use_dqs = true;
+    }
+    else if (!leading_ending_sqs && leading_ending_dqs)
+    {
+        // If there are leading ending double quotes, then always use single quotes.
+        use_dqs = false;
+    }
+    else if (max_double > max_single && max_double > 0) use_dqs = false; // We have more doubles than singles, use single quotes.
+    else if (max_double < max_single) use_dqs = true;  // We have fewer doubles than singles, use double quotes.
+    else // max_double == max_single
+    {
+        assert(max_double == max_single);
+        if (max_double > 0)
+        {
+            // If more than one quote is needed, then always use single quotes.
+            use_dqs = false;
+        }
+    }
+
+    size_t max;
+    if (use_dqs)
+    {
+        max = max_double;
+    }
+    else
+    {
+        max = max_single;
+    }
+
+    // We found x quotes, thus we need x+1 quotes to quote them.
     if (max > 0) max++;
     // Content contains no quotes ', but has unsafe chars, a single quote is enough.
     if (max == 0 && !all_safe) max = 1;
     // Content contains two sequential '' quotes, must bump nof required quotes to 3.
     // Since two quotes means the empty string.
     if (max == 2) max = 3;
+
+    if ((use_dqs && leading_ending_dqs) || (!use_dqs && leading_ending_sqs))
+    {
+        // If leading or ending quote, then add newlines both at the beginning and at the end.
+        // Strictly speaking, if only a leading quote, then only newline at beginning is needed.
+        // However to reduce visual confusion, we add newlines at beginning and end.
+
+        // We might quote this using:
+        // '''
+        // 'howdy'
+        // '''
+        *add_nls = true;
+    }
+    else
+    {
+        *add_nls = false;
+    }
+
+    *use_double_quotes = use_dqs;
+
     return max;
 }
 
@@ -15674,6 +17249,73 @@ size_t count_necessary_slashes(const char *start, const char *stop)
     return max+1;
 }
 
+/**
+  Scan the attribute names and find the max unicode character width.
+*/
+size_t find_attr_key_max_u_width(xmlAttr *a)
+{
+    size_t max = 0;
+    while (a)
+    {
+        const char *name;
+        const char *prefix;
+        size_t total_u_len;
+        attr_strlen_name_prefix(a, &name, &prefix, &total_u_len);
+
+        if (total_u_len > max) max = total_u_len;
+        a = xml_next_attribute(a);
+    }
+    return max;
+}
+
+/**
+  Scan nodes until there is a node which is not suitable for using the = sign.
+  I.e. it has multiple children or no children. This node unsuitable node is stored in
+  restart_find_at_node or NULL if all nodes were suitable.
+*/
+size_t find_element_key_max_width(xmlNodePtr element, xmlNodePtr *restart_find_at_node)
+{
+    size_t max = 0;
+    xmlNodePtr i = element;
+    while (i)
+    {
+        if (!is_key_value_node(i) || xml_first_attribute(i))
+        {
+            if (i == element) *restart_find_at_node = xml_next_sibling(i);
+            else *restart_find_at_node = i;
+            return max;
+        }
+        const char *name;
+        const char *prefix;
+        size_t total_u_len;
+        element_strlen_name_prefix(i, &name, &prefix, &total_u_len);
+
+        if (total_u_len > max) max = total_u_len;
+        i = xml_next_sibling(i);
+    }
+    *restart_find_at_node = NULL;
+    return max;
+}
+
+/**
+  Scan the namespace links and find the max unicode character width.
+*/
+size_t find_namespace_max_u_width(size_t max, xmlNs *ns)
+{
+    while (ns)
+    {
+        const char *prefix;
+        size_t total_u_len;
+        namespace_strlen_prefix(ns, &prefix, &total_u_len);
+
+        // Print only new/overriding namespaces.
+        if (total_u_len > max) max = total_u_len;
+        ns = ns->next;
+    }
+
+    return max;
+}
+
 void print_nodes(XMQPrintState *ps, xmlNode *from, xmlNode *to, size_t align)
 {
     xmlNode *i = from;
@@ -15702,9 +17344,13 @@ void print_entity_node(XMQPrintState *ps, xmlNode *node)
 {
     check_space_before_entity_node(ps);
 
-    print_utf8(ps, COLOR_entity, 1, "&", NULL);
-    print_utf8(ps, COLOR_entity, 1, (const char*)node->name, NULL);
-    print_utf8(ps, COLOR_entity, 1, ";", NULL);
+    XMQColor c = COLOR_entity;
+
+    if (*(const char*)node->name == '_') c = COLOR_quote;
+
+    print_utf8(ps, c, 1, "&", NULL);
+    print_utf8(ps, c, 1, (const char*)node->name, NULL);
+    print_utf8(ps, c, 1, ";", NULL);
 }
 
 void print_comment_line(XMQPrintState *ps, const char *start, const char *stop, bool compact)
@@ -16098,7 +17744,30 @@ void print_quoted_spaces(XMQPrintState *ps, XMQColor color, int num)
     if (c && c->quote.post) write(writer_state, c->quote.post, NULL);
 }
 
-void print_quotes(XMQPrintState *ps, size_t num, XMQColor color)
+void print_quotes(XMQPrintState *ps, int num, XMQColor color, bool use_double_quotes)
+{
+    assert(num > 0);
+    XMQOutputSettings *os = ps->output_settings;
+    XMQWrite write = os->content.write;
+    void *writer_state = os->content.writer_state;
+
+    const char *pre = NULL;
+    const char *post = NULL;
+    getThemeStrings(os, color, &pre, &post);
+
+    if (pre) write(writer_state, pre, NULL);
+    const char *q = "'";
+    if (use_double_quotes) q = "\"";
+    for (int i=0; i<num; ++i)
+    {
+        write(writer_state, q, NULL);
+    }
+    ps->current_indent += num;
+    ps->last_char = q[0];
+    if (post) write(writer_state, post, NULL);
+}
+
+void print_double_quote(XMQPrintState *ps, XMQColor color)
 {
     XMQOutputSettings *os = ps->output_settings;
     XMQWrite write = os->content.write;
@@ -16109,12 +17778,9 @@ void print_quotes(XMQPrintState *ps, size_t num, XMQColor color)
     getThemeStrings(os, color, &pre, &post);
 
     if (pre) write(writer_state, pre, NULL);
-    for (size_t i=0; i<num; ++i)
-    {
-        write(writer_state, "'", NULL);
-    }
-    ps->current_indent += num;
-    ps->last_char = '\'';
+    write(writer_state, "\"", NULL);
+    ps->current_indent += 1;
+    ps->last_char = '"';
     if (post) write(writer_state, post, NULL);
 }
 
@@ -16225,7 +17891,7 @@ bool need_separation_before_attribute_key(XMQPrintState *ps)
     // if previous value was text, then a space is necessary, ie.
     // xyz key=
     char c = ps->last_char;
-    return c != 0 && c != '\'' && c != '(' && c != ')' && c != ';';
+    return c != 0 && c != '\'' && c != '"' && c != '(' && c != ')' && c != ';';
 }
 
 bool need_separation_before_entity(XMQPrintState *ps)
@@ -16239,7 +17905,7 @@ bool need_separation_before_entity(XMQPrintState *ps)
     // Otherwise a space is needed:
     // xyz &nbsp;
     char c = ps->last_char;
-    return c != 0 && c != '=' && c != '\'' && c != '{' && c != '}' && c != ';' && c != '(' && c != ')';
+    return c != 0 && c != '=' && c != '\'' && c != '"' && c != '{' && c != '}' && c != ';' && c != '(' && c != ')';
 }
 
 bool need_separation_before_element_name(XMQPrintState *ps)
@@ -16254,17 +17920,18 @@ bool need_separation_before_element_name(XMQPrintState *ps)
     // Otherwise a space is needed:
     // xyz key=
     char c = ps->last_char;
-    return c != 0 && c != '\'' && c != '{' && c != '}' && c != ';' && c != ')' && c != '/';
+    return c != 0 && c != '\'' && c != '"' && c != '{' && c != '}' && c != ';' && c != ')' && c != '/';
 }
 
 bool need_separation_before_quote(XMQPrintState *ps)
 {
     // If the previous node was quoted, then a space is necessary, ie
     // 'a b c' 'next quote'
+    // for simplicity we also separate "a b c" this could be improved.
     // otherwise last char is the end of a text value, and no space is necessary, ie
     // key=value'next quote'
     char c = ps->last_char;
-    return c == '\'';
+    return c == '\'' || c == '"';
 }
 
 bool need_separation_before_comment(XMQPrintState *ps)
@@ -16278,7 +17945,7 @@ bool need_separation_before_comment(XMQPrintState *ps)
     // if previous value was } or )) then no space is is needed.
     // }/*comment*/   ((...))/*comment*/
     char c = ps->last_char;
-    return c != 0 && c != '\'' && c != '{' && c != ')' && c != '}' && c != ';';
+    return c != 0 && c != '\'' && c != '"' && c != '{' && c != ')' && c != '}' && c != ';';
 }
 
 void check_space_before_attribute(XMQPrintState *ps)
@@ -16543,10 +18210,12 @@ void print_safe_leaf_quote(XMQPrintState *ps,
                            const char *start,
                            const char *stop)
 {
+    bool compact = ps->output_settings->compact;
     bool force = true;
     bool add_nls = false;
     bool add_compound = false;
-    int numq = count_necessary_quotes(start, stop, false, &add_nls, &add_compound);
+    bool use_double_quotes = false;
+    int numq = count_necessary_quotes(start, stop, &add_nls, &add_compound, ps->output_settings->prefer_double_quotes, &use_double_quotes);
     size_t indent = ps->current_indent;
 
     if (numq > 0)
@@ -16572,7 +18241,7 @@ void print_safe_leaf_quote(XMQPrintState *ps,
             {
                 // We have a nonzero indentation and number of quotes is 1 or 3.
                 // Then the actual source indentation will be +1 or +3.
-                if (numq < 4)
+                if (numq < 4 || compact)
                 {
                     // e.g. quote at 4 will have source at 5.
                     // |    'alfa beta
@@ -16584,7 +18253,7 @@ void print_safe_leaf_quote(XMQPrintState *ps,
                 }
                 else
                 {
-                    // More than 3 quotes, then we add newlines.
+                    // More than 3 quotes and not compact, then we add newlines.
                     // e.g. quote at 4 will have source at 4.
                     // |    ''''
                     // |    alfa beta '''
@@ -16595,6 +18264,7 @@ void print_safe_leaf_quote(XMQPrintState *ps,
             }
         }
     }
+
     if (numq == 0 && force) numq = 1;
 
     size_t old_line_indent = 0;
@@ -16605,7 +18275,7 @@ void print_safe_leaf_quote(XMQPrintState *ps,
         ps->line_indent = ps->current_indent;
     }
 
-    print_quotes(ps, numq, c);
+    print_quotes(ps, numq, c, use_double_quotes);
 
     if (!add_nls)
     {
@@ -16633,7 +18303,7 @@ void print_safe_leaf_quote(XMQPrintState *ps,
         print_nl_and_indent(ps, NULL, NULL);
     }
 
-    print_quotes(ps, numq, c);
+    print_quotes(ps, numq, c, use_double_quotes);
 
     if (add_nls)
     {
@@ -16713,19 +18383,13 @@ void print_value_internal_text(XMQPrintState *ps, const char *start, const char 
 
     if (has_all_quotes(start, stop))
     {
-        // A text with all single quotes, print using &apos; only.
-        // We could also be quoted using n+1 more quotes and newlines, but it seems a bit annoying:
-        // ''''''
-        // '''''
-        // ''''''
-        // compared to &apos;&apos;&apos;&apos;
-        // The &apos; solution takes a little bit more space, but works for compact too,
-        // lets use that for both normal and compact formatting.
-        check_space_before_entity_node(ps);
-        for (const char *i = start; i < stop; ++i)
-        {
-            print_utf8(ps, level_to_entity_color(level), 1, "&apos;", NULL);
-        }
+        // A text with all single quotes or all double quotes.
+        // "''''''''" or '"""""""'
+        check_space_before_quote(ps, level);
+        bool is_dq = *start == '"';
+        print_quotes(ps, 1, level_to_quote_color(level), !is_dq);
+        print_quotes(ps, stop-start, level_to_quote_color(level), is_dq);
+        print_quotes(ps, 1, level_to_quote_color(level), !is_dq);
         return;
     }
 
@@ -16813,7 +18477,8 @@ void print_value_internal_text(XMQPrintState *ps, const char *start, const char 
             bool add_nls = false;
             bool add_compound = false;
             bool compact = ps->output_settings->compact;
-            count_necessary_quotes(from, to, false, &add_nls, &add_compound);
+            bool use_double_quotes = false;
+            count_necessary_quotes(from, to, &add_nls, &add_compound, ps->output_settings->prefer_double_quotes, &use_double_quotes);
             if (!add_compound && (!add_nls || !compact))
             {
                 check_space_before_quote(ps, level);
@@ -16833,6 +18498,42 @@ void print_value_internal_text(XMQPrintState *ps, const char *start, const char 
         print_all_whitespace(ps, stop, old_stop, level);
     }
 }
+
+void print_color_pre(XMQPrintState *ps, XMQColor color)
+{
+    XMQOutputSettings *os = ps->output_settings;
+    const char *pre = NULL;
+    const char *post = NULL;
+    getThemeStrings(os, color, &pre, &post);
+
+    if (pre)
+    {
+        XMQWrite write = os->content.write;
+        void *writer_state = os->content.writer_state;
+        write(writer_state, pre, NULL);
+    }
+}
+
+void print_color_post(XMQPrintState *ps, XMQColor color)
+{
+    XMQOutputSettings *os = ps->output_settings;
+    const char *pre = NULL;
+    const char *post = NULL;
+    getThemeStrings(os, color, &pre, &post);
+
+    XMQWrite write = os->content.write;
+    void *writer_state = os->content.writer_state;
+
+    if (post)
+    {
+        write(writer_state, post, NULL);
+    }
+    else
+    {
+        write(writer_state, ps->replay_active_color_pre, NULL);
+    }
+}
+
 
 /**
    print_value_internal:
@@ -16903,7 +18604,7 @@ bool quote_needs_compounded(XMQPrintState *ps, const char *start, const char *st
         // '''
         // 'alfa'
         // '''
-        if (has_leading_ending_quote(start, stop)) return true;
+        if (has_leading_ending_different_quotes(start, stop)) return true;
     }
 
     bool newlines = ps->output_settings->escape_newlines;
@@ -16960,1388 +18661,111 @@ void print_value(XMQPrintState *ps, xmlNode *node, Level level)
     ps->line_indent = old_line_indent;
 }
 
+void node_strlen_name_prefix(xmlNode *node,
+                        const char **name, size_t *name_len,
+                        const char **prefix, size_t *prefix_len,
+                        size_t *total_len)
+{
+    *name_len = strlen((const char*)node->name);
+    *name = (const char*)node->name;
+
+    if (node->ns && node->ns->prefix)
+    {
+        *prefix = (const char*)node->ns->prefix;
+        *prefix_len = strlen((const char*)node->ns->prefix);
+        *total_len = *name_len + *prefix_len +1;
+    }
+    else
+    {
+        *prefix = NULL;
+        *prefix_len = 0;
+        *total_len = *name_len;
+    }
+    assert(*name != NULL);
+}
+
+void attr_strlen_name_prefix(xmlAttr *attr, const char **name, const char **prefix, size_t *total_u_len)
+{
+    *name = (const char*)attr->name;
+    size_t name_b_len;
+    size_t name_u_len;
+    size_t prefix_b_len;
+    size_t prefix_u_len;
+    str_b_u_len(*name, NULL, &name_b_len, &name_u_len);
+
+    if (attr->ns && attr->ns->prefix)
+    {
+        *prefix = (const char*)attr->ns->prefix;
+        str_b_u_len(*prefix, NULL, &prefix_b_len, &prefix_u_len);
+        *total_u_len = name_u_len + prefix_u_len + 1;
+    }
+    else
+    {
+        *prefix = NULL;
+        prefix_b_len = 0;
+        prefix_u_len = 0;
+        *total_u_len = name_u_len;
+    }
+    assert(*name != NULL);
+}
+
+void namespace_strlen_prefix(xmlNs *ns, const char **prefix, size_t *total_u_len)
+{
+    size_t prefix_b_len;
+    size_t prefix_u_len;
+
+    if (ns->prefix)
+    {
+        *prefix = (const char*)ns->prefix;
+        str_b_u_len(*prefix, NULL, &prefix_b_len, &prefix_u_len);
+        *total_u_len = /* xmlns */ 5  + prefix_u_len + 1;
+    }
+    else
+    {
+        *prefix = NULL;
+        prefix_b_len = 0;
+        prefix_u_len = 0;
+        *total_u_len = /* xmlns */ 5;
+    }
+}
+
+void element_strlen_name_prefix(xmlNode *element, const char **name, const char **prefix, size_t *total_u_len)
+{
+    *name = (const char*)element->name;
+    if (!*name)
+    {
+        *name = "";
+        *prefix = "";
+        *total_u_len = 0;
+        return;
+    }
+    size_t name_b_len;
+    size_t name_u_len;
+    size_t prefix_b_len;
+    size_t prefix_u_len;
+    str_b_u_len(*name, NULL, &name_b_len, &name_u_len);
+
+    if (element->ns && element->ns->prefix)
+    {
+        *prefix = (const char*)element->ns->prefix;
+        str_b_u_len(*prefix, NULL, &prefix_b_len, &prefix_u_len);
+        *total_u_len = name_u_len + prefix_u_len + 1;
+    }
+    else
+    {
+        *prefix = NULL;
+        prefix_b_len = 0;
+        prefix_u_len = 0;
+        *total_u_len = name_u_len;
+    }
+    assert(*name != NULL);
+}
+
 #endif // XMQ_PRINTER_MODULE
 
-// PARTS YAEP_C ////////////////////////////////////////
+// PART C YAEP_ALLOCATE_C ////////////////////////////////////////
 
-#ifdef YAEP_MODULE
-/*
-   YAEP (Yet Another Earley Parser)
-
-   Copyright (c) 1997-2018  Vladimir Makarov <vmakarov@gcc.gnu.org>
-
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the
-   "Software"), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-*/
-
-/**
- * @file allocate.h
- *
- * Memory allocation with error handling.
- */
-
-#ifndef YAEP_ALLOCATE_H_
-#define YAEP_ALLOCATE_H_
-
-#ifdef NOT_DEFINED
-"C"
-{
-#endif
-
-#include<stddef.h>
-
-/**
- * Type for functions behaving like standard malloc().
- *
- * @sa #Yaep_calloc()
- * @sa #Yaep_realloc()
- * @sa #Yaep_free()
- */
-typedef void *(*Yaep_malloc) (size_t);
-
-/**
- * Type for functions behaving like standard calloc().
- *
- * @sa #Yaep_malloc()
- * @sa #Yaep_realloc()
- * @sa #Yaep_free()
- */
-typedef void *(*Yaep_calloc) (size_t, size_t);
-
-/**
- * Type for functions behaving like standard realloc().
- *
- * @sa #Yaep_malloc()
- * @sa #Yaep_calloc()
- * @sa #Yaep_free()
- */
-typedef void *(*Yaep_realloc) (void *, size_t);
-
-/**
- * Type for functions behaving like standard free().
- *
- * @sa #Yaep_malloc()
- * @sa #Yaep_calloc()
- * @sa #Yaep_realloc()
- */
-typedef void (*Yaep_free) (void *ptr);
-
-/**
- * Callback type for allocation errors.
- *
- * It is not necessary for callbacks of this type
- * to return to the caller.
- *
- * @param userptr Pointer provided earlier by the caller.
- *
- * @sa #yaep_alloc_geterrfunc()
- * @sa #yaep_alloc_seterr()
- */
-typedef void (*Yaep_alloc_error) (void *userptr);
-
-/**
- * YAEP allocator type.
- *
- * @sa #yaep_alloc_new()
- */
-typedef struct YaepAllocator YaepAllocator;
-
-/**
- * Default error handling function.
- *
- * This function writes an error message to @ stderr
- * and exits the program.
- *
- * @param ignored Ignored parameter.
- *
- * @sa #yaep_alloc_seterr()
- */
-void yaep_alloc_defaulterrfunc (void *ignored);
-
-/**
- * Creates a new allocator.
- *
- * The new allocator uses #yaep_alloc_defaulterrfunc()
- * and a null user pointer.
- *
- * @param mallocf Pointer to function which behaves like @c malloc().
- * 	If this is a null pointer, @c malloc() is used instead.
- * @param callocf Pointer to function which behaves like @c calloc().
- * 	If this is a null pointer, a function which behaves like @c calloc()
- * 	and is compatible with the provided @c mallocf is used instead.
- * @param reallocf Pointer to function which behaves analogously to
- * 	@c realloc() with respect to @c mallocf and @c callocf.
- * 	If this is a null pointer, and @c malloc() and @c calloc() are used
- * 	for @c mallocf and @c callocf, respectively,
- * 	then @c realloc() is used instead.
- * 	Everything else is an error.
- * @param freef Pointer to function which can free memory returned by
- * 	@c mallocf, @c callocf, and @c reallocf.
- * 	If this is a null pointer, and @c malloc(), @c calloc(), and
- * 	@c realloc() are used for @c mallocf, @c callocf, and @c reallocf,
- * 	respectively, then @c free() is used instead.
- * 	Everything else is an error.
- *
- * @return On success, a pointer to the new allocator is returned.\n
- * 	On error, a null pointer is returned.
- *
- * @sa #yaep_alloc_del()
- * @sa #yaep_alloc_seterr()
- * @sa #yaep_alloc_defaulterrfunc()
- */
-YaepAllocator *yaep_alloc_new (Yaep_malloc mallocf, Yaep_calloc callocf,
-			       Yaep_realloc reallocf, Yaep_free freef);
-
-/**
- * Destroys an allocator.
- *
- * @param allocator Pointer to allocator.
- *
- * @sa #yaep_alloc_new()
- */
-void yaep_alloc_del (YaepAllocator * allocator);
-
-/**
- * Allocates memory.
- *
- * @param allocator Pointer to allocator.
- * @param size Number of bytes to allocate.
- *
- * @return On success, a pointer to the allocated memory is returned.
- * 	If @c size was zero, this may be a null pointer.\n
- * 	On error, the allocator's error function is called.
- * 	If that function returns, a null pointer is returned.
- *
- * @sa #yaep_free()
- * @sa #yaep_realloc()
- * @sa #yaep_calloc()
- * @sa #yaep_alloc_seterr()
- */
-void *yaep_malloc (YaepAllocator * allocator, size_t size);
-
-/**
- * Allocates zero-initialised memory.
- *
- * @param allocator Pointer to allocator.
- * @param nmemb Number of elements to allocate.
- * @param size Element size in bytes.
- *
- * @return On success, a pointer to <code>nmemb * size</code> bytes
- * 	of newly allocated, zero-initialised  memory is returned.
- * 	If <code>nmemb * size</code> was zero, this may be a null pointer.\n
- * 	On error, the allocator's error function is called.
- * 	If that function returns, a null pointer is returned.
- *
- * @sa #yaep_free()
- * @sa #yaep_realloc()
- * @sa #yaep_malloc()
- * @sa #yaep_alloc_seterr()
- */
-void *yaep_calloc (YaepAllocator * allocator, size_t nmemb, size_t size);
-
-/**
- * Resizes memory.
- *
- * @param allocator Pointer to allocator previously used to
- * 	allocate @c ptr.
- * @param ptr Pointer to memory previously returned by
- * 	#yaep_malloc(), #yaep_calloc(), or #yaep_realloc().
- * 	If this is a null pointer, this function behaves like #yaep_malloc().
- * @param size New memory size in bytes.
- *
- * @return On success, a pointer to @c size bytes of allocated memory
- * 	is returned, the contents of which is equal to the contents of
- * 	@c ptr immediately before the call, up to the smaller size of
- * 	both blocks.\n
- * 	On error, the allocator's error function is called.
- * 	If that function returns, a null pointer is returned.
- *
- * @sa #yaep_free()
- * @sa #yaep_malloc()
- * @sa #yaep_calloc()
- * @sa #yaep_alloc_seterr()
- */
-void *yaep_realloc (YaepAllocator * allocator, void *ptr, size_t size);
-
-/**
- * Frees previously allocated memory.
- *
- * @param allocator Pointer to allocator previously used to
- * 	allocate @c ptr.
- * @param ptr Pointer to memory to be freed.
- * 	If this is a null pointer, no operation is performed.
- *
- * @sa #yaep_malloc()
- * @sa #yaep_calloc()
- * @sa #yaep_realloc()
- */
-void yaep_free (YaepAllocator * allocator, void *ptr);
-
-/**
- * Obtains the current error function of an allocator.
- *
- * @param allocator Pointer to allocator.
- *
- * @return On success, a pointer to the error function of the
- * 	specified allocator is returned.
- * 	If no error function has ever been set for this allocator,
- * 	this is #yaep_alloc_defaulterrfunc().\n
- * 	On error, a null pointer is returned.
- *
- * @sa #yaep_alloc_getuserptr()
- * @sa #yaep_alloc_seterr()
- * @sa #yaep_alloc_defaulterrfunc()
- */
-Yaep_alloc_error yaep_alloc_geterrfunc (YaepAllocator * allocator);
-
-/**
- * Obtains the current user-provided pointer.
- *
- * @param allocator Pointer to allocator.
- *
- * @return On success, the user-provided pointer of the
- * 	specified allocator is returned.
- * 	If no pointer has ever been set for this allocator,
- * 	a pointer to the allocator itself is returned.\n
- * 	On error, a null pointer is returned.
- *
- * @sa #yaep_alloc_seterr()
- */
-void *yaep_alloc_getuserptr (YaepAllocator * allocator);
-
-/**
- * Sets the error function and user-provided pointer of an allocator.
- *
- * The error function is called by the allocator with the user-provided
- * pointer as argument whenever an allocation error occurs.
- *
- * @param allocator Pointer to allocator.
- * @param errfunc Pointer to error function.
- * 	If this is a null pointer, #yaep_alloc_defaulterrfunc() will be used.
- * @param userptr User-provided pointer.
- * 	The allocator will never attempt to dereference this pointer.
- *
- * @sa #yaep_alloc_geterrfunc()
- * @sa #yaep_alloc_getuserptr()
- */
-void yaep_alloc_seterr (YaepAllocator * allocator, Yaep_alloc_error errfunc,
-			void *userptr);
-
-#ifdef NOT_DEFINED
-}
-#endif
-
-#endif
-/*
-   YAEP (Yet Another Earley Parser)
-
-   Copyright (c) 1997-2018  Vladimir Makarov <vmakarov@gcc.gnu.org>
-
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the
-   "Software"), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-*/
-
-/* FILE NAME:   hashtab.h
-
-   TITLE:       Include file of package for work with variable length
-                hash tables
-
-   DESCRIPTION: This header file contains type definitions and ANSI C
-       prototype definitions of the package functions and definition of
-       external variable of the package and C++ class `hash table'.
-
-*/
-
-#ifndef __HASH_TABLE__
-#define __HASH_TABLE__
-
-#include <stdlib.h>
-
-//include"allocate.h"
-
-/* The hash table element is represented by the following type. */
-
-typedef const void *hash_table_entry_t;
-
-
-#ifndef NOT_DEFINED
-
-
-/* Hash tables are of the following type.  The structure
-   (implementation) of this type is not needed for using the hash
-   tables.  All work with hash table should be executed only through
-   functions mentioned below. */
-
-typedef struct
-{
-  /* Current size (in entries) of the hash table */
-  size_t size;
-  /* Current number of elements including also deleted elements */
-  size_t number_of_elements;
-  /* Current number of deleted elements in the table */
-  size_t number_of_deleted_elements;
-  /* The following member is used for debugging. Its value is number
-     of all calls of `find_hash_table_entry' for the hash table. */
-  int searches;
-  /* The following member is used for debugging.  Its value is number
-     of collisions fixed for time of work with the hash table. */
-  int collisions;
-  /* Pointer to function for evaluation of hash value (any unsigned value).
-     This function has one parameter of type hash_table_entry_t. */
-  unsigned (*hash_function) (hash_table_entry_t el_ptr);
-  /* Pointer to function for test on equality of hash table elements (two
-     parameter of type hash_table_entry_t. */
-  bool (*eq_function) (hash_table_entry_t el1_ptr,
-                       hash_table_entry_t el2_ptr);
-  /* Table itself */
-  hash_table_entry_t *entries;
-  /* Allocator */
-  YaepAllocator * alloc;
-} *hash_table_t;
-
-
-/* The following variable is used for debugging. Its value is number
-   of all calls of `find_hash_table_entry' for all hash tables. */
-
-//extern int all_searches;
-
-/* The following variable is used for debugging. Its value is number
-   of collisions fixed for time of work with all hash tables. */
-
-//extern int all_collisions;
-
-/* The prototypes of the package functions. */
-
-hash_table_t create_hash_table(YaepAllocator * allocator,
-                                      size_t size,
-                                      unsigned int ( *hash_function )( hash_table_entry_t el_ptr ),
-                                      bool (*eq_function)(hash_table_entry_t el1_ptr,hash_table_entry_t el2_ptr));
-
-void empty_hash_table (hash_table_t htab);
-
-void delete_hash_table (hash_table_t htab);
-
-hash_table_entry_t *find_hash_table_entry(hash_table_t htab,
-                                                 hash_table_entry_t element,
-                                                 bool reserve);
-
-void remove_element_from_hash_table_entry (hash_table_t htab,
-                                                  hash_table_entry_t element);
-
-size_t hash_table_size (hash_table_t htab);
-
-size_t hash_table_elements_number (hash_table_t htab);
-
-/* The following function returns number of searches during all work
-   with given hash table. */
-static inline int
-get_searches (hash_table_t htab)
-{
-  return htab->searches;
-}
-
-/* The following function returns number of occurred collisions during
-   all work with given hash table. */
-static inline int
-get_collisions (hash_table_t htab)
-{
-  return htab->collisions;
-}
-
-/* The following function returns number of searches during all work
-   with all hash tables. */
-static inline int
-get_all_searches (void)
-{
-    return 0; // all_searches; TODO FREDRIK
-}
-
-/* The following function returns number of occurred collisions
-   during all work with all hash tables. */
-static inline int
-get_all_collisions (void)
-{
-    return 0; // all_collisions; // TODO FREDRIK
-}
-
-int hash_table_collision_percentage (hash_table_t htab);
-
-int all_hash_table_collision_percentage (void);
-
-#else /* #ifndef NOT_DEFINED */
-
-
-
-/* Hash tables are of the following class. */
-
-class hash_table
-{
-  /* Current size (in entries) of the hash table */
-  size_t _size;
-  /* Current number of elements including also deleted elements */
-  size_t number_of_elements;
-  /* Current number of deleted elements in the table */
-  size_t number_of_deleted_elements;
-  /* The following member is used for debugging. Its value is number
-     of all calls of `find_hash_table_entry' for the hash table. */
-  int searches;
-  /* The following member is used for debugging.  Its value is number
-     of collisions fixed for time of work with the hash table. */
-  int collisions;
-  /* Pointer to function for evaluation of hash value (any unsigned value).
-     This function has one parameter of type hash_table_entry_t. */
-  unsigned (*hash_function) (hash_table_entry_t el_ptr);
-  /* Pointer to function for test on equality of hash table elements (two
-     parameter of type hash_table_entry_t. */
-  bool (*eq_function) (hash_table_entry_t el1_ptr,
-                      hash_table_entry_t el2_ptr);
-  /* Table itself */
-  hash_table_entry_t *entries;
-  /* Allocator */
-  YaepAllocator * alloc;
-
-  /* The following variable is used for debugging. Its value is number
-     of all calls of `find_hash_table_entry' for all hash tables. */
-
-  static int all_searches;
-
-  /* The following variable is used for debugging. Its value is number
-     of collisions fixed for time of work with all hash tables. */
-
-  static int all_collisions;
-
-public:
-
-  /* Constructor. */
-  hash_table( YaepAllocator * allocator, size_t size, unsigned int ( *hash_function )( hash_table_entry_t el_ptr ), bool ( *eq_function )( hash_table_entry_t el1_ptr, hash_table_entry_t el2_ptr ) );
-  /* Destructor. */
-  ~hash_table (void);
-
-  void empty (void);
-
-  hash_table_entry_t *find_entry (hash_table_entry_t element, int reserve);
-
-  void remove_element_from_entry (hash_table_entry_t element);
-
-  /* The following function returns current size of given hash
-     table. */
-
-  inline size_t size (void)
-    {
-      return _size;
-    }
-
-  /* The following function returns current number of elements in
-     given hash table. */
-
-  inline size_t elements_number (void)
-    {
-      return number_of_elements - number_of_deleted_elements;
-    }
-
-  /* The following function returns number of searches during all work
-     with given hash table. */
-
-  inline int get_searches (void)
-    {
-      return this->searches;
-    }
-
-  /* The following function returns number of occurred collisions
-     during all work with given hash table. */
-
-  inline int get_collisions (void)
-    {
-      return this->collisions;
-    }
-
-  /* The following function returns number of searches
-     during all work with all hash tables. */
-
-  static inline int get_all_searches (void)
-    {
-      return all_searches;
-    }
-
-  /* The following function returns number of occurred collisions
-     during all work with all hash tables. */
-
-  static inline int get_all_collisions (void)
-    {
-      return all_collisions;
-    }
-private:
-
-  void expand_hash_table (void);
-
-};
-
-typedef class hash_table *hash_table_t;
-
-
-#endif /* #ifndef NOT_DEFINED */
-
-#endif /* #ifndef __HASH_TABLE__ */
-/*
-   YAEP (Yet Another Earley Parser)
-
-   Copyright (c) 1997-2018  Vladimir Makarov <vmakarov@gcc.gnu.org>
-
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the
-   "Software"), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-*/
-
-/* FILE NAME:   objstack.h
-
-   TITLE:       Include file of package for work with stacks of
-                objects (OS)
-
-   DESCRIPTION: The package `objstack' implements efficient work
-       with stacks of objects (OS).  Work with the object on the stack
-       top is analogous to one with a variable length object.  One
-       motivation for the package is the problem of growing char
-       strings in symbol tables.  Memory for OS is allocated by
-       segments.  A segment may contain more one objects.  The most
-       recently allocated segment contains object on the top of OS.
-       If there is not sufficient free memory for the top object than
-       new segment is created and the top object is transferred into
-       the new segment, i.e. there is not any memory reallocation.
-       Therefore the top object may change its address.  But other
-       objects never change address.
-
-   SPECIAL CONSIDERATION:
-         Defining macro `NDEBUG' (e.g. by option `-D' in C/C++
-       compiler command line) before the package macros usage disables
-       to fix some internal errors and errors of usage of the package.
-         A file using the package can be compiled with option
-       `-DOS_DEFAULT_SEGMENT_LENGTH=...'.
-         C: Because arguments of all macros which return a result
-       (`OS_TOP_LENGTH', `OS_TOP_BEGIN', and `OS_TOP_END') may be
-       evaluated many times no side-effects should be in the
-       arguments.
-
-*/
-
-
-#ifndef __OS__
-#define __OS__
-
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
-
-//include "allocate.h"
-
-#include <assert.h>
-
-/* This auxiliary structure is used to evaluation of maximum
-   alignment for objects. */
-
-struct _os_auxiliary_struct
-{
-  char _os_character;
-  double _os_double;
-};
-
-/* This macro is auxiliary.  Its value is maximum alignment for objects. */
-
-#ifdef VMS
-/* It is necessarry for VMS C compiler. */
-#define _OS_ALIGNMENT  4
-#else
-#define _OS_ALIGNMENT offsetof (struct _os_auxiliary_struct, _os_double)
-#if 0
-#define _OS_ALIGNMENT\
-  ((char *) &((struct _os_auxiliary_struct *) 64)->_os_double - (char *) 64)
-#else
-#endif
-#endif
-
-/* This macro is auxiliary.  Its value is aligned address nearest to `a'. */
-
-#define _OS_ALIGNED_ADDRESS(a)\
-  ((void *) ((size_t) ((char *) (a) + (_OS_ALIGNMENT - 1))\
-             & (~(size_t) (_OS_ALIGNMENT - 1))))
-
-/* This macro value is default size of memory segments which will be
-   allocated for OS when the stack is created (with zero initial
-   segment size).  This is also minimal size of all segments.
-   Original value of the macros is equal to 512.  This macro can be
-   redefined in C compiler command line or with the aid of directive
-   `#undef' before any using the package macros.  */
-
-#ifndef OS_DEFAULT_SEGMENT_LENGTH
-#define OS_DEFAULT_SEGMENT_LENGTH 512
-#endif
-
-/* This internal structure describes segment of an object stack. */
-
-struct _os_segment
-{
-  struct _os_segment *os_previous_segment;
-  char os_segment_contest[_OS_ALIGNMENT];
-};
-
-/* This type describes a descriptor of stack of objects.  All work
-   with stack of objects is executed by following macros through the
-   descriptors.  Structure (implementation) of this type is not needed
-   for using stack of objects.  But it should remember that work with
-   the stack through several descriptors is not safe. */
-
-typedef struct
-{
-  /* The real length of the first memory segment. */
-  size_t initial_segment_length;
-  struct _os_segment *os_current_segment;
-
-  /* Pointer to memory currently used for storing the top object. */
-  char *os_top_object_start;
-
-  /* Pointer to first byte after the last byte of the top object. */
-  char *os_top_object_stop;
-
-  /* Pointer to first byte after the memory allocated for storing
-     the OS segment and the top object. */
-  char *os_segment_stop;
-
-  /* Pointer to allocator. */
-  YaepAllocator *os_alloc;
-} os_t;
-
-
-/* This macro creates OS which contains the single zero length object.
-   If initial length of OS segment is equal to zero the allocated
-   memory segments length is equal to `OS_DEFAULT_SEGMENT_LENGTH'.
-   But in any case the segment length is always not less than maximum
-   alignment.  OS must be created before any using other macros of the
-   package for work with given OS.  The macro has no side effects. */
-
-#define OS_CREATE( os, allocator, initial_segment_length ) \
-  do { \
-    os_t * _temp_os = &( os ); \
-    _temp_os->os_alloc = allocator; \
-    _OS_create_function( _temp_os, initial_segment_length ); \
-  } while( 0 )
-
-/* This macro is used for freeing memory allocated for OS.  Any work
-   (except for creation) with given OS is not possible after
-   evaluation of this macros.  The macro has no side effects. */
-
-#define OS_DELETE(os) _OS_delete_function (& (os))
-
-/* This macro is used for freeing memory allocated for OS except for
-   the first segment.  The macro has no side effects. */
-
-#define OS_EMPTY(os) _OS_empty_function (& (os))
-
-/* This macro makes that length of variable length object on the top
-   of OS will be equal to zero.  The macro has no side effects. */
-
-#define OS_TOP_NULLIFY(os)\
-  do\
-  {\
-    os_t *_temp_os = &(os);\
-    assert (_temp_os->os_top_object_start != NULL);\
-    _temp_os->os_top_object_stop = _temp_os->os_top_object_start;\
-  }\
-  while (0)
-
-/* The macro creates new variable length object with initial zero
-   length on the top of OS .  The work (analogous to one with variable
-   length object) with object which was on the top of OS are finished,
-   i.e. the object will never more change address.  The macro has not
-   side effects. */
-
-#define OS_TOP_FINISH(os)\
-  do\
-  {\
-    os_t *_temp_os = &(os);\
-    assert (_temp_os->os_top_object_start != NULL);\
-    _temp_os->os_top_object_start\
-        = (char *) _OS_ALIGNED_ADDRESS (_temp_os->os_top_object_stop);    \
-    _temp_os->os_top_object_stop = _temp_os->os_top_object_start;\
-  }\
-  while (0)
-
-/* This macro returns current length of variable length object on the
-   top of OS.  The macro has side effects! */
-
-#ifndef NDEBUG
-#define OS_TOP_LENGTH(os)\
-  ((os).os_top_object_start != NULL\
-   ? (os).os_top_object_stop - (os).os_top_object_start\
-   : (abort (), 0))
-#else
-#define OS_TOP_LENGTH(os)  ((os).os_top_object_stop - (os).os_top_object_start)
-#endif
-
-/* This macro returns pointer to the first byte of variable length
-   object on the top of OS.  The macro has side effects!  Remember also
-   that the top object may change own place after any addition. */
-
-#ifndef NDEBUG
-#define OS_TOP_BEGIN(os)\
-  ((os).os_top_object_start != NULL ? (void *) (os).os_top_object_start\
-                                    : (abort (), (void *) 0))
-#else
-#define OS_TOP_BEGIN(os) ((void *) (os).os_top_object_start)
-#endif
-
-/* This macro returns pointer (of type `void *') to the last byte of
-   variable length object on the top OS.  The macro has side effects!
-   Remember also that the top object may change own place after any
-   addition. */
-
-#ifndef NDEBUG
-#define OS_TOP_END(os)\
-  ((os).os_top_object_start != NULL ? (void *) ((os).os_top_object_stop - 1)\
-                                    : (abort (), (void *) 0))
-#else
-#define OS_TOP_END(os) ((void *) ((os).os_top_object_stop - 1))
-#endif
-
-/* This macro returns pointer (of type `void *') to the next byte of
-   the last byte of variable length object on the top OS.  The macro
-   has side effects!  Remember also that the top object may change own
-   place after any addition. */
-
-#ifndef NDEBUG
-#define OS_TOP_BOUND(os)\
-  ((os).os_top_object_start != NULL ? (void *) (os).os_top_object_stop\
-                                    : (abort (), (void *) 0))
-#else
-#define OS_TOP_BOUND(os) ((void *) (os).os_top_object_stop)
-#endif
-
-/* This macro removes N bytes from the end of variable length object
-   on the top of OS.  The top variable length object is nullified if
-   its length is less than N.  The macro has no side effects. */
-
-#define OS_TOP_SHORTEN(os, n)\
-  do\
-  {\
-    os_t *_temp_os = &(os);\
-    size_t _temp_n = (n);\
-    assert (_temp_os->os_top_object_start != NULL);\
-    if ((size_t) OS_TOP_LENGTH (*_temp_os) < _temp_n)\
-      _temp_os->os_top_object_stop = _temp_os->os_top_object_start;\
-    else\
-      _temp_os->os_top_object_stop -= _temp_n;\
-  }\
-  while (0)
-
-/* This macro increases length of variable length object on the top of
-   OS on given number of bytes.  The values of bytes added to the end
-   of variable length object on the top of OS will be not defined.
-   The macro has no side effects. */
-
-#define OS_TOP_EXPAND(os, length)\
-  do\
-  {\
-    os_t *_temp_os = &(os);\
-    size_t _temp_length = (length);\
-    assert (_temp_os->os_top_object_start != NULL);\
-    if (_temp_os->os_top_object_stop + _temp_length > _temp_os->os_segment_stop)\
-      _OS_expand_memory (_temp_os, _temp_length);\
-    _temp_os->os_top_object_stop += _temp_length;\
-  }\
-  while (0)
-
-/* This macro adds byte to the end of variable length object on the
-   top of OS.  The macro has no side effects. */
-
-#define OS_TOP_ADD_BYTE(os, b)\
-  do\
-  {\
-    os_t *_temp_os = &(os);\
-    assert (_temp_os->os_top_object_start != NULL);\
-    if (_temp_os->os_top_object_stop >= _temp_os->os_segment_stop)\
-      _OS_expand_memory (_temp_os, 1);\
-    *_temp_os->os_top_object_stop++ = (b);\
-  }\
-  while (0)
-
-/* This macro adds memory bytes to the end of variable length object
-   on the top of OS.  The macro has no side effects. */
-
-#define OS_TOP_ADD_MEMORY(os, str, length)\
-  do\
-  {\
-    os_t *_temp_os = &(os);\
-    size_t _temp_length = (length);\
-    assert (_temp_os->os_top_object_start != NULL);\
-    if (_temp_os->os_top_object_stop + _temp_length > _temp_os->os_segment_stop)\
-      _OS_expand_memory (_temp_os, _temp_length);\
-    memcpy( _temp_os->os_top_object_stop, ( str ), _temp_length ); \
-    _temp_os->os_top_object_stop += _temp_length;\
-  }\
-  while (0)
-
-/* This macro adds C string (with end marker '\0') to the end of
-   variable length object on the top of OS.  Before the addition the
-   macro delete last character of the object.  The last character is
-   suggested to be C string end marker '\0'.  The macro has no side
-   effects. */
-
-#define OS_TOP_ADD_STRING(os, str) _OS_add_string_function(&(os), (str))
-
-/* The following functions are to be used only by the package macros.
-   Remember that they are internal functions - all work with OS is
-   executed through the macros. */
-
-void _OS_create_function (os_t *os, size_t initial_segment_length);
-void _OS_delete_function (os_t *os);
-void _OS_empty_function (os_t *os);
-void _OS_add_string_function (os_t *os, const char *str);
-void _OS_expand_memory (os_t *os, size_t additional_length);
-
-#endif /* #ifndef __OS__ */
-/*
-   YAEP (Yet Another Earley Parser)
-
-   Copyright (c) 1997-2018  Vladimir Makarov <vmakarov@gcc.gnu.org>
-
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the
-   "Software"), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-*/
-
-/* FILE NAME:   vlobject.h
-
-   TITLE:       Include file of package for work with variable length
-                objects (VLO)
-
-   DESCRIPTION: This header file contains macros and C++ class for
-       work with variable length objects (VLO).  Any number of bytes
-       my be added to and removed from the end of VLO.  If it is
-       needed the memory allocated for storing variable length object
-       may be expanded possibly with changing the object place.  But
-       between any additions of the bytes (tailoring) the object place
-       is not changed.  To decrease number of changes of the object
-       place the memory being allocated for the object is longer than
-       the current object length.
-
-   SPECIAL CONSIDERATION:
-         Defining macro `NDEBUG' (e.g. by option `-D' in C/C++
-       compiler command line) before the package macros usage disables
-       to fix some internal errors and errors of usage of the package.
-         C: Because arguments of all macros which return a result
-       (`VLO_LENGTH', `VLO_BEGIN', and `VLO_END') may be evaluated
-       many times no side-effects should be in the arguments.  A file
-       using the package can be compiled with option
-       `-DVLO_DEFAULT_LENGTH=...'.  */
-
-
-#ifndef __VLO__
-#define __VLO__
-
-#include <stdlib.h>
-#include <string.h>
-
-//include "allocate.h"
-
-#include <assert.h>
-
-
-/* Default initial size of memory is allocated for VLO when the object
-   is created (with zero initial size).  This macro can be redefined
-   in C compiler command line or with the aid of directive `#undef'
-   before any using the package macros. */
-
-#ifndef VLO_DEFAULT_LENGTH
-#define VLO_DEFAULT_LENGTH 512
-#endif
-
-
-#ifndef NOT_DEFINED
-
-
-/* This type describes a descriptor of variable length object.  All
-   work with variable length object is executed by following macros
-   through the descriptors.  Structure (implementation) of this type
-   is not needed for using variable length object.  But it should
-   remember that work with the object through several descriptors is
-   not safe. */
-
-typedef struct
-{
-  /* Pointer to memory currently used for storing the VLO. */
-  char *vlo_start;
-  /* Pointer to first byte after the last VLO byte. */
-  char *vlo_stop;
-  /* Pointer to first byte after the memory currently allocated for storing
-     the VLO. */
-  char *vlo_segment_stop;
-  /* Pointer to allocator. */
-  YaepAllocator *vlo_alloc;
-} vlo_t;
-
-
-/* This macro is used for creation of VLO with initial zero length.
-   If initial length of memory needed for the VLO is equal to 0 the
-   initial allocated memory length is equal to VLO_DEFAULT_LENGTH.
-   VLO must be created before any using other macros of the package
-   for work with given VLO.  The macro has not side effects. */
-
-#define VLO_CREATE(vlo, allocator, initial_length)\
-  do\
-  {\
-    vlo_t *_temp_vlo = &(vlo);\
-    size_t temp_initial_length = (initial_length);\
-    YaepAllocator * _temp_alloc = ( allocator ); \
-    temp_initial_length = (temp_initial_length != 0 ? temp_initial_length\
-                                                    : VLO_DEFAULT_LENGTH);\
-    _temp_vlo->vlo_start = (char*)yaep_malloc( _temp_alloc, temp_initial_length ); \
-    _temp_vlo->vlo_segment_stop = _temp_vlo->vlo_start + temp_initial_length;\
-    _temp_vlo->vlo_stop = _temp_vlo->vlo_start;\
-    _temp_vlo->vlo_alloc = _temp_alloc; \
-  }\
-  while (0)
-
-
-/* This macro is used for freeing memory allocated for VLO.  Any work
-   (except for creation) with given VLO is not possible after
-   evaluation of this macro.  The macro has not side effects. */
-
-#ifndef NDEBUG
-#define VLO_DELETE(vlo)\
-  do\
-  {\
-    vlo_t *_temp_vlo = &(vlo);\
-    assert (_temp_vlo->vlo_start != NULL);\
-    yaep_free( _temp_vlo->vlo_alloc,_temp_vlo->vlo_start );\
-    _temp_vlo->vlo_start = NULL;\
-  }\
-  while (0)
-#else
-#define VLO_DELETE(vlo) \
-  do { \
-    vlo_t * _temp_vlo = &( vlo ); \
-    yaep_free( _temp_vlo->vlo_alloc, _temp_vlo->vlo_start ); \
-  } while( 0 )
-#endif /* #ifndef NDEBUG */
-
-/* This macro makes that length of VLO will be equal to zero (but
-   memory for VLO is not freed and not reallocated).  The macro has
-   not side effects. */
-
-#define VLO_NULLIFY(vlo)\
-  do\
-  {\
-    vlo_t *_temp_vlo = &(vlo);\
-    assert (_temp_vlo->vlo_start != NULL);\
-    _temp_vlo->vlo_stop = _temp_vlo->vlo_start;\
-  }\
-  while (0)
-
-
-/* The following macro makes that length of memory allocated for VLO
-   becames equal to VLO length.  The macro has not side effects. */
-
-#define VLO_TAILOR(vlo) _VLO_tailor_function(&(vlo))
-
-
-/* This macro returns current length of VLO.  The macro has side
-   effects! */
-
-#ifndef NDEBUG
-#define VLO_LENGTH(vlo) ((vlo).vlo_start != NULL\
-                         ? (vlo).vlo_stop - (vlo).vlo_start\
-                         : (abort (), 0))
-#else
-#define VLO_LENGTH(vlo) ((vlo).vlo_stop - (vlo).vlo_start)
-#endif /* #ifndef NDEBUG */
-
-
-/* This macro returns pointer (of type `void *') to the first byte of
-   the VLO.  The macro has side effects!  Remember also that the VLO
-   may change own place after any addition. */
-
-#ifndef NDEBUG
-#define VLO_BEGIN(vlo) ((vlo).vlo_start != NULL\
-                        ? (void *) (vlo).vlo_start\
-                        : (abort (), (void *) 0))
-#else
-#define VLO_BEGIN(vlo) ((void *) (vlo).vlo_start)
-#endif /* #ifndef NDEBUG */
-
-/* This macro returns pointer (of type `void *') to the last byte of
-   VLO.  The macro has side effects!  Remember also that the VLO may
-   change own place after any addition. */
-
-#ifndef NDEBUG
-#define VLO_END(vlo) ((vlo).vlo_start != NULL\
-                      ? (void *) ((vlo).vlo_stop - 1)\
-                      : (abort (), (void *) 0))
-#else
-#define VLO_END(vlo) ((void *) ((vlo).vlo_stop - 1))
-#endif /* #ifndef NDEBUG */
-
-/* This macro returns pointer (of type `void *') to the next byte of
-   the last byte of VLO.  The macro has side effects!  Remember also
-   that the VLO may change own place after any addition. */
-
-#ifndef NDEBUG
-#define VLO_BOUND(vlo) ((vlo).vlo_start != NULL\
-                        ? (void *) (vlo).vlo_stop\
-                        : (abort (), (void *) 0))
-#else
-#define VLO_BOUND(vlo) ((void *) (vlo).vlo_stop)
-#endif /* #ifndef NDEBUG */
-
-/* This macro removes N bytes from the end of VLO.  VLO is nullified
-   if its length is less than N.  The macro has not side effects. */
-
-#define VLO_SHORTEN(vlo, n)\
-  do\
-  {\
-    vlo_t *_temp_vlo = &(vlo);\
-    size_t _temp_n = (n);\
-    assert (_temp_vlo->vlo_start != NULL);\
-    if ((size_t) VLO_LENGTH (*_temp_vlo) < _temp_n)\
-      _temp_vlo->vlo_stop = _temp_vlo->vlo_start;\
-    else\
-      _temp_vlo->vlo_stop -= _temp_n;\
-  }\
-  while (0)
-
-
-/* This macro increases length of VLO.  The values of bytes added to
-   the end of VLO will be not defined.  The macro has not side
-   effects. */
-
-#define VLO_EXPAND(vlo, length)\
-  do\
-  {\
-    vlo_t *_temp_vlo = &(vlo);\
-    size_t _temp_length = (length);\
-    assert (_temp_vlo->vlo_start != NULL);\
-    if (_temp_vlo->vlo_stop + _temp_length > _temp_vlo->vlo_segment_stop)\
-      _VLO_expand_memory (_temp_vlo, _temp_length);\
-    _temp_vlo->vlo_stop += _temp_length;\
-  }\
-  while (0)
-
-
-/* This macro adds a byte to the end of VLO.  The macro has not side
-   effects. */
-
-#define VLO_ADD_BYTE(vlo, b)\
-  do\
-  {\
-    vlo_t *_temp_vlo = &(vlo);\
-    assert (_temp_vlo->vlo_start != NULL);\
-    if (_temp_vlo->vlo_stop >= _temp_vlo->vlo_segment_stop)\
-      _VLO_expand_memory (_temp_vlo, 1);\
-    *_temp_vlo->vlo_stop++ = (b);\
-  }\
-  while (0)
-
-
-/* This macro adds memory bytes to the end of VLO.  The macro has not
-   side effects. */
-
-#define VLO_ADD_MEMORY(vlo, str, length)\
-  do\
-  {\
-    vlo_t *_temp_vlo = &(vlo);\
-    size_t _temp_length = (length);\
-    assert (_temp_vlo->vlo_start != NULL);\
-    if (_temp_vlo->vlo_stop + _temp_length > _temp_vlo->vlo_segment_stop)\
-      _VLO_expand_memory (_temp_vlo, _temp_length);\
-    memcpy( _temp_vlo->vlo_stop, ( str ), _temp_length ); \
-    _temp_vlo->vlo_stop += _temp_length;\
-  }\
-  while (0)
-
-
-/* This macro adds C string (with end marker '\0') to the end of VLO.
-   Before the addition the macro delete last character of the VLO.
-   The last character is suggested to be C string end marker '\0'.
-   The macro has not side effects. */
-
-#define VLO_ADD_STRING(vlo, str) _VLO_add_string_function(&(vlo), (str))
-
-
-/* The following functions are to be used only by the package macros.
-   Remember that they are internal functions - all work with VLO is
-   executed through the macros. */
-
-void _VLO_tailor_function (vlo_t *vlo);
-void _VLO_add_string_function (vlo_t *vlo, const char *str);
-void _VLO_expand_memory (vlo_t *vlo, size_t additional_length);
-
-#else /* #ifndef NOT_DEFINED */
-
-
-/* This type describes a descriptor of variable length object.  It
-   should remember that work with the object through several
-   descriptors is not safe. */
-
-class vlo
-{
-  /* Pointer to memory currently used for storing the VLO. */
-  char *vlo_start;
-  /* Pointer to first byte after the last VLO byte. */
-  char *vlo_stop;
-  /* Pointer to first byte after the memory currently allocated for storing
-     the VLO. */
-  char *vlo_segment_stop;
-  /* Pointer to allocator. */
-  YaepAllocator *vlo_alloc;
-public:
-
-  /* This function is used for creation of VLO with initial zero
-     length.  If initial length of memory needed for the VLO is equal
-     to 0 the initial allocated memory length is equal to
-     VLO_DEFAULT_LENGTH. */
-
-  explicit vlo (YaepAllocator * allocator, size_t initial_length = VLO_DEFAULT_LENGTH):vlo_alloc (allocator)
-  {
-    initial_length = (initial_length != 0
-		      ? initial_length : VLO_DEFAULT_LENGTH);
-    vlo_start = (char *) yaep_malloc (vlo_alloc, initial_length);
-    vlo_segment_stop = vlo_start + initial_length;
-    vlo_stop = vlo_start;
-  }
-
-
-  /* This function is used for freeing memory allocated for VLO.  Any
-     work (except for creation) with given VLO is not possible after
-     evaluation of this function. */
-
-  inline ~ vlo (void)
-  {
-#ifndef NDEBUG
-    assert (vlo_start != NULL);
-    yaep_free (vlo_alloc, vlo_start);
-    vlo_start = NULL;
-#else
-    yaep_free (vlo_alloc, vlo_start);
-#endif /* #ifndef NDEBUG */
-  }
-
-  /* This function makes that length of VLO will be equal to zero (but
-     memory for VLO is not freed and not reallocated). */
-
-  inline void nullify (void)
-  {
-    assert (vlo_start != NULL);
-    vlo_stop = vlo_start;
-  }
-
-
-  /* The following function makes that length of memory allocated for
-     VLO becames equal to VLO length. */
-
-  void tailor (void);
-
-
-  /* This function returns current length of VLO. */
-
-  inline size_t length (void)
-  {
-    assert (vlo_start != NULL);
-    return vlo_stop - vlo_start;
-  }
-
-
-  /* This function returns pointer (of type `void *') to the first byte
-     of the VLO.  Remember also that the VLO may change own place
-     after any addition. */
-
-  inline void *begin (void)
-  {
-    assert (vlo_start != NULL);
-    return (void *) vlo_start;
-  }
-
-  /* This function returns pointer (of type `void *') to the last byte
-     of VLO.  Remember also that the VLO may change own place after
-     any addition. */
-
-  inline void *end (void)
-  {
-    assert (vlo_start != NULL);
-    return (void *) (vlo_stop - 1);
-  }
-
-  /* This function returns pointer (of type `void *') to the next byte
-     of the last byte of VLO.  Remember also that the VLO may change
-     own place after any addition. */
-
-  inline void *bound (void)
-  {
-    assert (vlo_start != NULL);
-    return (void *) vlo_stop;
-  }
-
-  /* This function removes N bytes from the end of VLO.  VLO is nullified
-     if its length is less than N. */
-
-  inline void shorten (size_t n)
-  {
-    assert (vlo_start != NULL);
-    if (length () < n)
-      vlo_stop = vlo_start;
-    else
-      vlo_stop -= n;
-  }
-
-
-  /* This function increases length of VLO.  The values of bytes added
-     to the end of VLO will be not defined. */
-
-  void expand (size_t length)
-  {
-    assert (vlo_start != NULL);
-    if (vlo_stop + length > vlo_segment_stop)
-      _VLO_expand_memory (length);
-    vlo_stop += length;
-  }
-
-
-  /* This function adds a byte to the end of VLO. */
-
-  inline void add_byte (int b)
-  {
-    assert (vlo_start != NULL);
-    if (vlo_stop >= vlo_segment_stop)
-      _VLO_expand_memory (1);
-    *vlo_stop++ = b;
-  }
-
-
-  /* This function adds memory bytes to the end of VLO. */
-
-  inline void add_memory (const void *str, size_t length)
-  {
-    assert (vlo_start != NULL);
-    if (vlo_stop + length > vlo_segment_stop)
-      _VLO_expand_memory (length);
-    memcpy (vlo_stop, str, length);
-    vlo_stop += length;
-  }
-
-
-  /* This function adds C string (with end marker '\0') to the end of
-     VLO.  Before the addition the function deletes last character of
-     the VLO.  The last character is suggested to be C string end
-     marker '\0'. */
-
-  void add_string (const char *str);
-
-private:
-
-  /* The following functions is used only by the class functions. */
-
-  void _VLO_expand_memory (size_t additional_length);
-};
-
-typedef vlo vlo_t;
-
-#endif /* #ifndef NOT_DEFINED */
-
-#endif /* #ifndef __VLO__ */
-/****************** YAEP parser single source file code **********************/
-/*
-   YAEP (Yet Another Earley Parser)
-
-   Copyright (c) 1997-2018  Vladimir Makarov <vmakarov@gcc.gnu.org>
-
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the
-   "Software"), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
-
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
-
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-*/
-
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-
-//include"allocate.h"
+#ifdef YAEP_ALLOCATE_MODULE
 
 struct YaepAllocator
 {
@@ -18516,61 +18940,395 @@ yaep_alloc_seterr (YaepAllocator * allocator, Yaep_alloc_error errfunc,
       allocator->userptr = userptr;
     }
 }
-/*
-   YAEP (Yet Another Earley Parser)
 
-   Copyright (c) 1997-2018  Vladimir Makarov <vmakarov@gcc.gnu.org>
+#endif // YAEP_ALLOCATE_MODULE
 
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the
-   "Software"), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
+// PART C YAEP_CSPC_C ////////////////////////////////////////
 
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
+#ifdef YAEP_CSPC_MODULE
 
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+/* Initialize work with array of vlos.*/
+static void vlo_array_init(YaepParseState *ps)
+{
+    VLO_CREATE(ps->vlo_array, ps->run.grammar->alloc, 4096);
+    ps->vlo_array_len = 0;
+}
 
-*/
+/* The function forms new empty vlo at the end of the array of vlos.*/
+static int vlo_array_expand(YaepParseState *ps)
+{
+    vlo_t*vlo_ptr;
 
-/* FILE NAME:   hashtab.c
+    if ((unsigned) ps->vlo_array_len >= VLO_LENGTH(ps->vlo_array) / sizeof(vlo_t))
+    {
+        VLO_EXPAND(ps->vlo_array, sizeof(vlo_t));
+        vlo_ptr = &((vlo_t*) VLO_BEGIN(ps->vlo_array))[ps->vlo_array_len];
+        VLO_CREATE(*vlo_ptr, ps->run.grammar->alloc, 64);
+    }
+    else
+    {
+        vlo_ptr = &((vlo_t*) VLO_BEGIN(ps->vlo_array))[ps->vlo_array_len];
+        VLO_NULLIFY(*vlo_ptr);
+    }
+    return ps->vlo_array_len++;
+}
 
-   TITLE:       Package for work with hash tables
+/* The function purges the array of vlos.*/
+static void vlo_array_nullify(YaepParseState *ps)
+{
+    ps->vlo_array_len = 0;
+}
 
-   DESCRIPTION: This package implements features analogous to ones of
-       public domain functions `hsearch', `hcreate' and `hdestroy'.
-       The goal of the package creation is to implement additional
-       needed features.  The abstract data permits to work
-       simultaneously with several expandable hash tables.  Besides
-       insertion and search of elements the elements from the hash
-       tables can be also removed.  The table element can be only a
-       pointer.  The size of hash tables is not fixed.  The hash table
-       will be expanded when its occupancy will became big.  The
-       abstract data implementation is based on generalized Algorithm
-       D from Knuth's book "The art of computer programming".  Hash
-       table is expanded by creation of new hash table and
-       transferring elements from the old table to the new table.
+/* The following function returns pointer to vlo with INDEX.*/
+static vlo_t *vlo_array_el(YaepParseState *ps, int index)
+{
+    assert(index >= 0 && ps->vlo_array_len > index);
+    return &((vlo_t*) VLO_BEGIN(ps->vlo_array))[index];
+}
 
-   SPECIAL CONSIDERATION:
-         Defining macro `NDEBUG' (e.g. by option `-D' in C compiler
-       command line) during the file compilation disables to fix
-       some internal errors and errors of usage of the package.
+static void free_vlo_array(YaepParseState *ps)
+{
+    vlo_t *vlo_ptr;
 
-*/
+    for (vlo_ptr = (vlo_t*)VLO_BEGIN(ps->vlo_array); (char*) vlo_ptr < (char*) VLO_BOUND(ps->vlo_array); vlo_ptr++)
+    {
+        VLO_DELETE(*vlo_ptr);
+    }
+    VLO_DELETE(ps->vlo_array);
+}
 
-//include "allocate.h"
-//include "hashtab.h"
 
-#include <assert.h>
+#ifdef USE_CORE_SYMB_HASH_TABLE
+/* Hash of core_symb_to_predcomps.*/
+static unsigned core_symb_to_predcomps_hash(YaepCoreSymbToPredComps *core_symb_to_predcomps)
+{
+    return (jauquet_prime_mod32* hash_shift+(size_t)/* was unsigned */core_symb_to_predcomps->core) * hash_shift
+        +(size_t)/* was unsigned */core_symb_to_predcomps->symb;
+}
+
+/* Equality of core_symb_to_predcomps.*/
+static bool core_symb_to_predcomps_eq(YaepCoreSymbToPredComps *core_symb_to_predcomps1, YaepCoreSymbToPredComps *core_symb_to_predcomps2)
+{
+    return core_symb_to_predcomps1->core == core_symb_to_predcomps2->core && core_symb_to_predcomps1->symb == core_symb_to_predcomps2->symb;
+}
+#endif
+
+static unsigned vect_ids_hash(YaepVect*v)
+{
+    unsigned result = jauquet_prime_mod32;
+
+    for (int i = 0; i < v->len; i++)
+    {
+        result = result* hash_shift + v->ids[i];
+    }
+    return result;
+}
+
+static bool vect_ids_eq(YaepVect *v1, YaepVect *v2)
+{
+    if (v1->len != v2->len) return false;
+
+    for (int i = 0; i < v1->len; i++)
+    {
+        if (v1->ids[i] != v2->ids[i]) return false;
+    }
+    return true;
+}
+
+static unsigned prediction_ids_hash(hash_table_entry_t t)
+{
+    return vect_ids_hash(&((YaepCoreSymbToPredComps*)t)->predictions);
+}
+
+static bool prediction_ids_eq(hash_table_entry_t t1, hash_table_entry_t t2)
+{
+    return vect_ids_eq(&((YaepCoreSymbToPredComps*)t1)->predictions,
+                       &((YaepCoreSymbToPredComps*)t2)->predictions);
+}
+
+static unsigned completion_ids_hash(hash_table_entry_t t)
+{
+    return vect_ids_hash(&((YaepCoreSymbToPredComps*)t)->completions);
+}
+
+static bool completion_ids_eq(hash_table_entry_t t1, hash_table_entry_t t2)
+{
+    return vect_ids_eq(&((YaepCoreSymbToPredComps*) t1)->completions,
+                       &((YaepCoreSymbToPredComps*) t2)->completions);
+}
+
+/* Initialize work with the triples(set core, symbol, vector).*/
+void core_symb_to_predcomps_init(YaepParseState *ps)
+{
+    OS_CREATE(ps->core_symb_to_predcomps_os, ps->run.grammar->alloc, 0);
+    VLO_CREATE(ps->new_core_symb_to_predcomps_vlo, ps->run.grammar->alloc, 0);
+    OS_CREATE(ps->vect_ids_os, ps->run.grammar->alloc, 0);
+
+    vlo_array_init(ps);
+#ifdef USE_CORE_SYMB_HASH_TABLE
+    ps->map_core_symb_to_predcomps = create_hash_table(ps->run.grammar->alloc, 3000,
+                                                       (hash_table_hash_function)core_symb_to_predcomps_hash,
+                                                       (hash_table_eq_function)core_symb_to_predcomps_eq);
+#else
+    VLO_CREATE(ps->core_symb_table_vlo, ps->run.grammar->alloc, 4096);
+    ps->core_symb_table = (YaepCoreSymbToPredComps***)VLO_BEGIN(ps->core_symb_table_vlo);
+    OS_CREATE(ps->core_symb_tab_rows, ps->run.grammar->alloc, 8192);
+#endif
+
+    ps->map_transition_to_coresymbvect = create_hash_table(ps->run.grammar->alloc, 3000,
+                                                           (hash_table_hash_function)prediction_ids_hash,
+                                                           (hash_table_eq_function)prediction_ids_eq);
+
+    ps->map_reduce_to_coresymbvect = create_hash_table(ps->run.grammar->alloc, 3000,
+                                                       (hash_table_hash_function)completion_ids_hash,
+                                                       (hash_table_eq_function)completion_ids_eq);
+
+    ps->n_core_symb_pairs = ps->n_core_symb_to_predcomps_len = 0;
+    ps->n_transition_vects = ps->n_transition_vect_len = 0;
+    ps->n_reduce_vects = ps->n_reduce_vect_len = 0;
+}
+
+
+#ifdef USE_CORE_SYMB_HASH_TABLE
+
+/* The following function returns entry in the table where pointer to
+   corresponding triple with the same keys as TRIPLE ones is
+   placed.*/
+static YaepCoreSymbToPredComps **core_symb_to_pred_comps_addr_get(YaepParseState *ps, YaepCoreSymbToPredComps *triple, int reserv_p)
+{
+    YaepCoreSymbToPredComps **result;
+
+    if (triple->symb->cached_core_symb_to_predcomps != NULL
+        && triple->symb->cached_core_symb_to_predcomps->core == triple->core)
+    {
+        return &triple->symb->cached_core_symb_to_predcomps;
+    }
+
+    result = ((YaepCoreSymbToPredComps**)find_hash_table_entry(ps->map_core_symb_to_predcomps, triple, reserv_p));
+
+    triple->symb->cached_core_symb_to_predcomps = *result;
+
+    return result;
+}
+
+#else
+
+/* The following function returns entry in the table where pointer to
+   corresponding triple with SET_CORE and SYMB is placed. */
+static YaepCoreSymbToPredComps **core_symb_to_predcomps_addr_get(YaepParseState *ps, YaepStateSetCore *set_core, YaepSymbol *symb)
+{
+    YaepCoreSymbToPredComps***core_symb_to_predcomps_ptr;
+
+    core_symb_to_predcomps_ptr = ps->core_symb_table + set_core->id;
+
+    if ((char*) core_symb_to_predcomps_ptr >=(char*) VLO_BOUND(ps->core_symb_table_vlo))
+    {
+        YaepCoreSymbToPredComps***ptr,***bound;
+        int diff, i;
+
+        diff =((char*) core_symb_to_predcomps_ptr
+                -(char*) VLO_BOUND(ps->core_symb_table_vlo));
+        diff += sizeof(YaepCoreSymbToPredComps**);
+        if (diff == sizeof(YaepCoreSymbToPredComps**))
+            diff*= 10;
+
+        VLO_EXPAND(ps->core_symb_table_vlo, diff);
+        ps->core_symb_table = (YaepCoreSymbToPredComps***) VLO_BEGIN(ps->core_symb_table_vlo);
+        core_symb_to_predcomps_ptr = ps->core_symb_table + set_core->id;
+        bound =(YaepCoreSymbToPredComps***) VLO_BOUND(ps->core_symb_table_vlo);
+
+        ptr = bound - diff / sizeof(YaepCoreSymbToPredComps**);
+        while(ptr < bound)
+        {
+            OS_TOP_EXPAND(ps->core_symb_tab_rows,
+                          (ps->run.grammar->symbs_ptr->num_terminals + ps->run.grammar->symbs_ptr->num_nonterminals)
+                          * sizeof(YaepCoreSymbToPredComps*));
+           *ptr =(YaepCoreSymbToPredComps**) OS_TOP_BEGIN(ps->core_symb_tab_rows);
+            OS_TOP_FINISH(ps->core_symb_tab_rows);
+            for(i = 0; i < ps->run.grammar->symbs_ptr->num_terminals + ps->run.grammar->symbs_ptr->num_nonterminals; i++)
+               (*ptr)[i] = NULL;
+            ptr++;
+        }
+    }
+    return &(*core_symb_to_predcomps_ptr)[symb->id];
+}
+#endif
+
+/* The following function returns the triple(if any) for given SET_CORE and SYMB. */
+YaepCoreSymbToPredComps *core_symb_to_predcomps_find(YaepParseState *ps, YaepStateSetCore *core, YaepSymbol *symb)
+{
+    YaepCoreSymbToPredComps *r;
+
+#ifdef USE_CORE_SYMB_HASH_TABLE
+    YaepCoreSymbToPredComps core_symb_to_predcomps;
+
+    core_symb_to_predcomps.core = core;
+    core_symb_to_predcomps.symb = symb;
+    r = *core_symb_to_pred_comps_addr_get(ps, &core_symb_to_predcomps, false);
+#else
+    r = *core_symb_to_predcomps_addr_get(ps, core, symb);
+#endif
+
+    return r;
+}
+
+YaepCoreSymbToPredComps *core_symb_to_predcomps_new(YaepParseState *ps, YaepStateSetCore*core, YaepSymbol*symb)
+{
+    YaepCoreSymbToPredComps*core_symb_to;
+    YaepCoreSymbToPredComps**addr;
+    vlo_t*vlo_ptr;
+
+    /* Create table element.*/
+    OS_TOP_EXPAND(ps->core_symb_to_predcomps_os, sizeof(YaepCoreSymbToPredComps));
+    core_symb_to = ((YaepCoreSymbToPredComps*) OS_TOP_BEGIN(ps->core_symb_to_predcomps_os));
+    core_symb_to->id = ps->core_symb_to_pred_comps_counter++;
+    core_symb_to->core = core;
+    core_symb_to->symb = symb;
+    OS_TOP_FINISH(ps->core_symb_to_predcomps_os);
+
+#ifdef USE_CORE_SYMB_HASH_TABLE
+    addr = core_symb_to_pred_comps_addr_get(ps, core_symb_to, true);
+#else
+    addr = core_symb_to_pred_comps_addr_get(ps, core, symb);
+#endif
+    assert(*addr == NULL);
+   *addr = core_symb_to;
+
+    core_symb_to->predictions.intern = vlo_array_expand(ps);
+    vlo_ptr = vlo_array_el(ps, core_symb_to->predictions.intern);
+    core_symb_to->predictions.len = 0;
+    core_symb_to->predictions.ids =(int*) VLO_BEGIN(*vlo_ptr);
+
+    core_symb_to->completions.intern = vlo_array_expand(ps);
+    vlo_ptr = vlo_array_el(ps, core_symb_to->completions.intern);
+    core_symb_to->completions.len = 0;
+    core_symb_to->completions.ids =(int*) VLO_BEGIN(*vlo_ptr);
+    VLO_ADD_MEMORY(ps->new_core_symb_to_predcomps_vlo, &core_symb_to,
+                    sizeof(YaepCoreSymbToPredComps*));
+    ps->n_core_symb_pairs++;
+
+    return core_symb_to;
+}
+
+static void vect_add_id(YaepParseState *ps, YaepVect *vec, int id)
+{
+    vec->len++;
+    vlo_t *vlo_ptr = vlo_array_el(ps, vec->intern);
+    VLO_ADD_MEMORY(*vlo_ptr, &id, sizeof(int));
+    vec->ids =(int*) VLO_BEGIN(*vlo_ptr);
+    ps->n_core_symb_to_predcomps_len++;
+}
+
+void core_symb_to_predcomps_add_predict(YaepParseState *ps,
+                                      YaepCoreSymbToPredComps *core_symb_to_predcomps,
+                                      int rule_index_in_core)
+{
+    vect_add_id(ps, &core_symb_to_predcomps->predictions, rule_index_in_core);
+
+    YaepDottedRule *dotted_rule = core_symb_to_predcomps->core->dotted_rules[rule_index_in_core];
+    yaep_trace(ps, "add prediction cspc%d[c%d %s] -> d%d",
+               core_symb_to_predcomps->id,
+               core_symb_to_predcomps->core->id,
+               core_symb_to_predcomps->symb->hr,
+               dotted_rule->id);
+}
+
+void core_symb_to_predcomps_add_complete(YaepParseState *ps,
+                                       YaepCoreSymbToPredComps *core_symb_to_predcomps,
+                                       int rule_index_in_core)
+{
+    vect_add_id(ps, &core_symb_to_predcomps->completions, rule_index_in_core);
+    YaepDottedRule *dotted_rule = core_symb_to_predcomps->core->dotted_rules[rule_index_in_core];
+    yaep_trace(ps, "completed d%d store in cspc%d[c%d %s]",
+               dotted_rule->id,
+               core_symb_to_predcomps->id,
+               core_symb_to_predcomps->core->id,
+               core_symb_to_predcomps->symb->hr
+               );
+
+}
+
+/* Insert vector VEC from CORE_SYMB_TO_PREDCOMPS into table TAB.  Update
+   *N_VECTS and INT*N_VECT_LEN if it is a new vector in the table. */
+static void process_core_symb_to_predcomps_el(YaepParseState *ps,
+                                      YaepCoreSymbToPredComps *core_symb_to_predcomps,
+                                      YaepVect *vec,
+                                      hash_table_t *tab,
+                                      int *n_vects,
+                                      int *n_vect_len)
+{
+    hash_table_entry_t*entry;
+
+    if (vec->len == 0)
+    {
+        vec->ids = NULL;
+    }
+    else
+    {
+        entry = find_hash_table_entry(*tab, core_symb_to_predcomps, true);
+        if (*entry != NULL)
+        {
+            vec->ids = (&core_symb_to_predcomps->predictions == vec
+                        ?((YaepCoreSymbToPredComps*)*entry)->predictions.ids
+                        :((YaepCoreSymbToPredComps*)*entry)->completions.ids);
+        }
+        else
+        {
+            *entry = (hash_table_entry_t)core_symb_to_predcomps;
+            OS_TOP_ADD_MEMORY(ps->vect_ids_os, vec->ids, vec->len* sizeof(int));
+            vec->ids =(int*) OS_TOP_BEGIN(ps->vect_ids_os);
+            OS_TOP_FINISH(ps->vect_ids_os);
+            (*n_vects)++;
+            *n_vect_len += vec->len;
+        }
+    }
+    vec->intern = -1;
+}
+
+/* Finish forming all new triples core_symb_to_predcomps.*/
+void core_symb_to_predcomps_new_all_stop(YaepParseState *ps)
+{
+    YaepCoreSymbToPredComps**triple_ptr;
+
+    for(triple_ptr =(YaepCoreSymbToPredComps**) VLO_BEGIN(ps->new_core_symb_to_predcomps_vlo);
+        (char*) triple_ptr <(char*) VLO_BOUND(ps->new_core_symb_to_predcomps_vlo);
+         triple_ptr++)
+    {
+        process_core_symb_to_predcomps_el(ps, *triple_ptr, &(*triple_ptr)->predictions,
+                                  &ps->map_transition_to_coresymbvect, &ps->n_transition_vects,
+                                  &ps->n_transition_vect_len);
+        process_core_symb_to_predcomps_el(ps, *triple_ptr, &(*triple_ptr)->completions,
+                                  &ps->map_reduce_to_coresymbvect, &ps->n_reduce_vects,
+                                  &ps->n_reduce_vect_len);
+    }
+    vlo_array_nullify(ps);
+    VLO_NULLIFY(ps->new_core_symb_to_predcomps_vlo);
+}
+
+/* Finalize work with all triples(set core, symbol, vector).*/
+void free_core_symb_to_vect_lookup(YaepParseState *ps)
+{
+    delete_hash_table(ps->map_transition_to_coresymbvect);
+    delete_hash_table(ps->map_reduce_to_coresymbvect);
+
+#ifdef USE_CORE_SYMB_HASH_TABLE
+    delete_hash_table(ps->map_core_symb_to_predcomps);
+#else
+    OS_DELETE(ps->core_symb_tab_rows);
+    VLO_DELETE(ps->core_symb_table_vlo);
+#endif
+    free_vlo_array(ps);
+    OS_DELETE(ps->vect_ids_os);
+    VLO_DELETE(ps->new_core_symb_to_predcomps_vlo);
+    OS_DELETE(ps->core_symb_to_predcomps_os);
+}
+
+
+#endif
+
+// PART C YAEP_HASHTAB_C ////////////////////////////////////////
+
+#ifdef YAEP_HASHTAB_MODULE
 
 /* This macro defines reserved value for empty table entry. */
 
@@ -18690,13 +19448,21 @@ expand_hash_table (hash_table_t htab)
 
 /* The following variable is used for debugging. Its value is number
    of all calls of `find_hash_table_entry' for all hash tables. */
-
 int all_searches = 0;
 
 /* The following variable is used for debugging. Its value is number
    of collisions fixed for time of work with all hash tables. */
-
 int all_collisions = 0;
+
+int get_all_searches ()
+{
+    return all_searches;
+}
+
+int get_all_collisions()
+{
+    return all_collisions;
+}
 
 /* This function searches for hash table entry which contains element
    equal to given value or empty entry in which given value can be
@@ -18794,55 +19560,18 @@ hash_table_elements_number (hash_table_t htab)
   assert (htab != NULL);
   return htab->number_of_elements - htab->number_of_deleted_elements;
 }
-/*
-   YAEP (Yet Another Earley Parser)
 
-   Copyright (c) 1997-2018  Vladimir Makarov <vmakarov@gcc.gnu.org>
+size_t hash_table_memusage(hash_table_t htab)
+{
+    if (!htab) return 0;
+    return htab->size*sizeof(hash_table_entry_t);
+}
 
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the
-   "Software"), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
+#endif
 
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
+// PART C YAEP_OBJSTACK_C ////////////////////////////////////////
 
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-*/
-
-/* FILE NAME:   objstack.c
-
-   TITLE:       Package for work with stacks of objects (OS)
-
-   DESCRIPTION:
-       This file implements internal functions of the package.
-
-   SPECIAL CONSIDERATION:
-       The following functions are to be used only by the package
-       macros.  Remember that they are internal functions - all work
-       with OS is executed through the macros.
-         Defining macro `NDEBUG' (e.g. by option `-D' in C compiler
-       command line) during the file compilation disables to fix
-       some internal errors and errors of usage of the package.
-
-*/
-
-#include <string.h>
-//include "allocate.h"
-
-//include "objstack.h"
-
-#include <assert.h>
+#ifdef YAEP_OBJSTACK_MODULE
 
 /* The function implements macro `OS_CREATE' (creation of stack of
    object).  OS must be created before any using other macros of the
@@ -18853,10 +19582,11 @@ _OS_create_function (os_t * os, size_t initial_segment_length)
 {
   if (initial_segment_length == 0) initial_segment_length = OS_DEFAULT_SEGMENT_LENGTH;
 
-  os->os_current_segment = (struct _os_segment*)yaep_malloc (os->os_alloc,
-                                                             initial_segment_length + sizeof (struct _os_segment));
+  size_t segment_size = initial_segment_length + sizeof (struct _os_segment);
+  os->os_current_segment = (struct _os_segment*)yaep_malloc (os->os_alloc, segment_size);
+  os->os_current_segment->os_segment_size = segment_size;
   os->os_current_segment->os_previous_segment = NULL;
-  os->os_top_object_start = (char *)_OS_ALIGNED_ADDRESS (os->os_current_segment->os_segment_contest);
+  os->os_top_object_start = (char *)_OS_ALIGNED_ADDRESS (os->os_current_segment->os_segment_content);
   os->os_top_object_stop = os->os_top_object_start;
   os->os_segment_stop = os->os_top_object_start + initial_segment_length;
   os->initial_segment_length = initial_segment_length;
@@ -18880,6 +19610,7 @@ _OS_delete_function (os_t * os)
       previous_segment = current_segment->os_previous_segment;
       yaep_free (os->os_alloc, current_segment);
     }
+  os->os_current_segment = NULL;
 }
 
 /* The following function implements macro `OS_EMPTY' (freeing memory
@@ -18902,7 +19633,7 @@ _OS_empty_function (os_t * os)
     }
   os->os_current_segment = current_segment;
   os->os_top_object_start
-    = (char *) _OS_ALIGNED_ADDRESS (current_segment->os_segment_contest);
+    = (char *) _OS_ALIGNED_ADDRESS (current_segment->os_segment_content);
   os->os_top_object_stop = os->os_top_object_start;
   os->os_segment_stop = os->os_top_object_start + os->initial_segment_length;
 }
@@ -18914,18 +19645,21 @@ _OS_empty_function (os_t * os)
 void
 _OS_add_string_function (os_t * os, const char *str)
 {
-  size_t string_length;
+    size_t string_length;
 
-  assert (os->os_top_object_start != NULL);
-  if (str == NULL)
-    return;
-  if (os->os_top_object_stop != os->os_top_object_start)
-    OS_TOP_SHORTEN (*os, 1);
-  string_length = strlen (str) + 1;
-  if (os->os_top_object_stop + string_length > os->os_segment_stop)
-    _OS_expand_memory (os, string_length);
-  memcpy( os->os_top_object_stop, str, string_length );
-  os->os_top_object_stop = os->os_top_object_stop + string_length;
+    assert (os->os_top_object_start != NULL);
+    if (str == NULL) return;
+    if (os->os_top_object_stop != os->os_top_object_start)
+    {
+        OS_TOP_SHORTEN (*os, 1);
+    }
+    string_length = strlen (str) + 1;
+    if (os->os_top_object_stop + string_length > os->os_segment_stop)
+    {
+        _OS_expand_memory (os, string_length);
+    }
+    memcpy( os->os_top_object_stop, str, string_length);
+    os->os_top_object_stop = os->os_top_object_stop + string_length;
 }
 
 /* The function creates new segment for OS.  The segment becames
@@ -18939,86 +19673,65 @@ _OS_add_string_function (os_t * os, const char *str)
 void
 _OS_expand_memory (os_t * os, size_t additional_length)
 {
-  size_t os_top_object_length, segment_length;
-  struct _os_segment *new_segment, *previous_segment;
-  char *new_os_top_object_start;
+    size_t os_top_object_length, segment_length;
+    struct _os_segment *new_segment, *previous_segment;
+    char *new_os_top_object_start;
 
-  assert (os->os_top_object_start != NULL);
-  os_top_object_length = OS_TOP_LENGTH (*os);
-  segment_length = os_top_object_length + additional_length;
-  segment_length += segment_length / 2 + 1;
-  if (segment_length < OS_DEFAULT_SEGMENT_LENGTH)
-    segment_length = OS_DEFAULT_SEGMENT_LENGTH;
-  new_segment = (struct _os_segment*)
-    yaep_malloc (os->os_alloc, segment_length + sizeof (struct _os_segment));
-  new_os_top_object_start =
-    (char *) _OS_ALIGNED_ADDRESS (new_segment->os_segment_contest);
-  memcpy (new_os_top_object_start, os->os_top_object_start,
-	      os_top_object_length);
-  if (os->os_top_object_start ==
-      (char *) _OS_ALIGNED_ADDRESS (os->os_current_segment->
-				    os_segment_contest))
+    assert (os->os_top_object_start != NULL);
+    os_top_object_length = OS_TOP_LENGTH(*os);
+
+    segment_length = os_top_object_length + additional_length;
+    segment_length += segment_length / 2 + 1;
+
+    if (segment_length < OS_DEFAULT_SEGMENT_LENGTH)
     {
-      previous_segment = os->os_current_segment->os_previous_segment;
-      yaep_free (os->os_alloc, os->os_current_segment);
+        segment_length = OS_DEFAULT_SEGMENT_LENGTH;
     }
-  else
-    previous_segment = os->os_current_segment;
-  os->os_current_segment = new_segment;
-  new_segment->os_previous_segment = previous_segment;
-  os->os_top_object_start = new_os_top_object_start;
-  os->os_top_object_stop = os->os_top_object_start + os_top_object_length;
-  os->os_segment_stop = os->os_top_object_start + segment_length;
+
+    size_t new_segment_size = segment_length + sizeof (struct _os_segment);
+    new_segment = (struct _os_segment*)yaep_malloc (os->os_alloc, new_segment_size);
+    new_segment->os_segment_size = new_segment_size;
+    new_os_top_object_start = (char *)_OS_ALIGNED_ADDRESS (new_segment->os_segment_content);
+    memcpy (new_os_top_object_start, os->os_top_object_start, os_top_object_length);
+
+    if (os->os_top_object_start == (char *)_OS_ALIGNED_ADDRESS (os->os_current_segment->os_segment_content))
+    {
+        previous_segment = os->os_current_segment->os_previous_segment;
+        yaep_free (os->os_alloc, os->os_current_segment);
+    }
+    else
+    {
+        previous_segment = os->os_current_segment;
+    }
+    os->os_current_segment = new_segment;
+    new_segment->os_previous_segment = previous_segment;
+
+    os->os_top_object_start = new_os_top_object_start;
+    os->os_top_object_stop = os->os_top_object_start + os_top_object_length;
+    os->os_segment_stop = os->os_top_object_start + segment_length;
 }
-/*
-   YAEP (Yet Another Earley Parser)
 
-   Copyright (c) 1997-2018  Vladimir Makarov <vmakarov@gcc.gnu.org>
+size_t objstack_memusage(os_t *os)
+{
+    if (!os) return 0;
 
-   Permission is hereby granted, free of charge, to any person obtaining a
-   copy of this software and associated documentation files (the
-   "Software"), to deal in the Software without restriction, including
-   without limitation the rights to use, copy, modify, merge, publish,
-   distribute, sublicense, and/or sell copies of the Software, and to
-   permit persons to whom the Software is furnished to do so, subject to
-   the following conditions:
+    size_t sum = 0;
+    struct _os_segment *curr = os->os_current_segment;
 
-   The above copyright notice and this permission notice shall be included
-   in all copies or substantial portions of the Software.
+    while (curr)
+    {
+        sum += curr->os_segment_size;
+        curr = curr->os_previous_segment;
+    }
 
-   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    return sum;
+}
 
-*/
+#endif
 
-/* FILE NAME:   vlobject.c
+// PART C YAEP_VLOBJECT_C ////////////////////////////////////////
 
-   TITLE:       Package for work with variable length objects (VLO)
-
-   DESCRIPTION:
-       This file implements internal functions of the package.
-
-   SPECIAL CONSIDERATION:
-       The following functions are to be used only by the package
-       macros.  Remember that they are internal functions - all work
-       with VLO is executed through the macros.
-         Defining macro `NDEBUG' (e.g. by option `-D' in C compiler
-       command line) during the file compilation disables to fix
-       some internal errors and errors of usage of the package.
-
-*/
-
-#include <string.h>
-
-//include "allocate.h"
-//include "vlobject.h"
-
-#include <assert.h>
+#ifdef YAEP_VLOBJECT_MODULE
 
 /* The function implements macro `VLO_TAILOR'.  Length of memory
    allocated for VLO becames equal to VLO length (but memory for zero
@@ -19087,930 +19800,167 @@ _VLO_expand_memory (vlo_t * vlo, size_t additional_length)
     }
   vlo->vlo_segment_stop = vlo->vlo_start + vlo_length;
 }
-/*
-  YAEP(Yet Another Earley Parser)
 
-  Copyright(c) 1997-2018  Vladimir Makarov <vmakarov@gcc.gnu.org>
-  Copyright(c) 2024 Fredrik Öhrström <oehrstroem@gmail.com>
-
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files(the
-  "Software"), to deal in the Software without restriction, including
-  without limitation the rights to use, copy, modify, merge, publish,
-  distribute, sublicense, and/or sell copies of the Software, and to
-  permit persons to whom the Software is furnished to do so, subject to
-  the following conditions:
-
-  The above copyright notice and this permission notice shall be included
-  in all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-*/
-
-/* 1997-2018 Vladimir Makarov
-   This file implements parsing of any context free grammar with minimal
-   error recovery and syntax directed translation.  The parser is based
-   on Earley's algorithm from 1968. The implementation is sufficiently
-   fast to be used in serious language processors.
-
-   2024 Fredrik Öhrström
-   Refactored to fit ixml use case, removed global variables, restructured
-   code, commented and renamed variables and structures, added ixml charset
-   matching. Added a lot of comments.
-
-   Terminology:
-
-   Input tokens: The content to be parsed stored as an array of symbols
-                 (with user supplied attributes attached that can be user fetched later).
-                 The tokens can be lexer symbols or unicode characters (ixml).
-                 An offset into the input tokens array is always denoted with the suffix _i.
-                 E.g. input[tok_i] (current input token being scanned), from_i, to_i, state_set_i etc.
-                 An offset inside the rhs of a rule is denoted with the suffix _j.
-
-   Rule: A grammar rule: S →  NP VP
-
-   Dotted Rule: A rule with a dot: S →  NP 🞄 VP
-                The dot symbolizes how far the rule has been matched against input.
-                The dot_pos starts at zero which means nothing has been matched.
-                A dotted rule is started if the dot_pos > 0, ie it has matched something.
-
-   Earley Item: Every input token input[tok_i] gets a state set that stores Early items (aka chart entries).
-                An early item: [from_i, to_i, S →  NP 🞄 VP]
-                The item maps a token range with a partial (or fully completed) dotted rule.
-                Since to_i == tok_i we do not need to actually store to_i, its implicit from the state set.
-                Instead we store the match_length (== to_i - from_i).
-
-                The matched lengths are stored in a separate array and are not needed for
-                parsing/recognition but are required when building the parse tree.
-
-                Because of the separate array, there is no need not have an Earley Item structure
-                in this implementation. Instead we store dotted rules and match_lengths arrays.
-
-   StateSetCore: The part of a state set that can be shared between StateSets.
-                 This is where we store the dotted rules, the dotted_rule_lenghts,
-                 and the scanned terminal that created this core.
-                 Again, the dotted_rule_lengths are only used to build the final parse tree
-                 after at least one valid parse has been found.
-                 The StateSetCores can be reused a lot.
-
-   StateSet: For each input token, we build a state set with all possible Earley items.
-             started (some match) and not-yet-started (no match yet). Theses items
-             come from the scan/complete/predict algorithm.
-
-             A started dotted_rule stores the matched length in number of tokens as matched_length.
-
-             We compress the StateSet with an immutable StateSetCore and a separate
-             array of matched_lengths corresponding to the dotted rules inside the state set core.
-*/
-
-#include <assert.h>
-
-#define TRACE_F(ps) { \
-        if (false && ps->run.trace) fprintf(stderr, "TRACE %s\n", __func__); \
-    }
-
-#define TRACEE_F(ps) { \
-        if (false && ps->run.trace) fprintf(stderr, "TRACE %-30s", __func__); \
-    }
-
-#define TRACE_FA(ps, cformat, ...) { \
-    if (false && ps->run.trace) fprintf(stderr, "TRACE %-30s" cformat "\n", __func__, __VA_ARGS__); \
+size_t vlo_memusage(vlo_t *vlo)
+{
+    if (!vlo) return 0;
+    return vlo->vlo_segment_stop - vlo->vlo_start;
 }
 
-#define TRACEE_FA(ps, cformat, ...) { \
-    if (false && ps->run.trace) fprintf(stderr, "TRACE %-30s" cformat, __func__, __VA_ARGS__); \
+#endif
+
+// PART C YAEP_UTIL_C ////////////////////////////////////////
+
+#ifdef YAEP_UTIL_MODULE
+
+void dbg_breakpoint()
+{
 }
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <setjmp.h>
-#include <stdlib.h>
-#include <string.h>
-
-//include "allocate.h"
-//include "hashtab.h"
-//include "vlobject.h"
-//include "objstack.h"
-//include "yaep.h"
-//include "xmq.h"
-//include "parts/always.h"
-//include "parts/text.h"
-
-#ifndef BUILDING_XMQ
-bool decode_utf8(const char *start, const char *stop, int *out_char, size_t *out_len);
-#endif
-
-/* Terminals are stored a in term set using bits in a bit array.
-   The array consists of long ints, typedefed as terminal_bitset_el_t.
-   A long int is 8 bytes, ie 64 bits. */
-typedef long int terminal_bitset_t;
-
-/* Calculate the number of required term set elements from the number of bits we want to store. */
-#define CALC_NUM_ELEMENTS(num_bits) ((num_bits+CHAR_BIT*sizeof(terminal_bitset_t)-1)/(CHAR_BIT*sizeof(terminal_bitset_t)))
-// This calculation translates for example into ((num_bits+63)/64)
-// We round up to have enough long ints to store num_bits.
-
-#ifndef YAEP_MAX_ERROR_MESSAGE_LENGTH
-#define YAEP_MAX_ERROR_MESSAGE_LENGTH 200
-#endif
-
-/* As of Unicode 16 there are 155_063 allocated unicode code points.
-   Lets pick 200_000 as the max, it shrinks to max-min code point anyway.*/
-#define MAX_SYMB_CODE_TRANS_VECT_SIZE 200000
-
-/* The initial length of array(in tokens) in which input tokens are placed.*/
-#ifndef NUM_INITIAL_YAEP_INIT_TOKENS
-#define NUM_INITIAL_YAEP_TOKENS 10000
-#endif
-
-/* The default number of tokens sucessfully matched to stop error recovery alternative(state). */
-#define DEFAULT_RECOVERY_TOKEN_MATCHES 3
-
-/* Define this if you want to reuse already calculated state sets
-   when the matches lengths are identical. This considerably speeds up the parser. */
-#define USE_SET_HASH_TABLE
-
-/* This does not seem to be enabled by default? */
-#define USE_CORE_SYMB_HASH_TABLE
-
-/* Maximal goto sets saved for triple(set, terminal, lookahead). */
-#define MAX_CACHED_GOTO_RESULTS 3
-
-/* Prime number(79087987342985798987987) mod 32 used for hash calculations. */
-static const unsigned jauquet_prime_mod32 = 2053222611;
-
-/* Shift used for hash calculations. */
-static const unsigned hash_shift = 611;
-
-struct YaepSymbol;
-typedef struct YaepSymbol YaepSymbol;
-
-struct YaepSymbolStorage;
-typedef struct YaepSymbolStorage YaepSymbolStorage;
-
-struct YaepTerminalSet;
-typedef struct YaepTerminalSet YaepTerminalSet;
-
-struct YaepTerminalSetStorage;
-typedef struct YaepTerminalSetStorage YaepTerminalSetStorage;
-
-struct YaepRule;
-typedef struct YaepRule YaepRule;
-
-struct YaepRuleStorage;
-typedef struct YaepRuleStorage YaepRuleStorage;
-
-struct YaepVect;
-typedef struct YaepVect YaepVect;
-
-struct YaepCoreSymbVect;
-typedef struct YaepCoreSymbVect YaepCoreSymbVect;
-
-struct YaepStateSetCore;
-typedef struct YaepStateSetCore YaepStateSetCore;
-
-struct YaepStateSet;
-typedef struct YaepStateSet YaepStateSet;
-
-struct YaepDottedRule;
-typedef struct YaepDottedRule YaepDottedRule;
-
-struct YaepInputToken;
-typedef struct YaepInputToken YaepInputToken;
-
-struct YaepStateSetTermLookAhead;
-typedef struct YaepStateSetTermLookAhead YaepStateSetTermLookAhead;
-
-struct YaepParseTreeBuildState;
-typedef struct YaepParseTreeBuildState YaepParseTreeBuildState;
-
-struct YaepTreeNodeVisit;
-typedef struct YaepTreeNodeVisit YaepTreeNodeVisit;
-
-struct YaepRecoveryState;
-typedef struct YaepRecoveryState YaepRecoveryState;
-
-// Structure definitions ////////////////////////////////////////////////////
-
-struct YaepGrammar
+void dbg_print_core(YaepParseState *ps, YaepStateSetCore *c)
 {
-    /* Set to true if the grammar is undefined(you should set up the grammar
-       by yaep_read_grammar or yaep_parse_grammar) or bad(error was occured
-       in setting up the grammar). */
-    bool undefined_p;
+    MemBuffer *mb = new_membuffer();
+    print_core(mb, c);
+    free_membuffer_and_free_content(mb);
+}
 
-    /* This member always contains the last occurred error code for given grammar. */
-    int error_code;
-
-    /* This member contains message are always contains error message
-       corresponding to the last occurred error code.*/
-    char error_message[YAEP_MAX_ERROR_MESSAGE_LENGTH + 1];
-
-    /* The grammar axiom is named $S. */
-    YaepSymbol *axiom;
-
-    /* The end marker denotes EOF in the input token sequence. */
-    YaepSymbol *end_marker;
-
-    /* The term error is used for create error recovery nodes. */
-    YaepSymbol *term_error;
-
-    /* And its internal id.*/
-    int term_error_id;
-
-    /* The level of usage of lookaheads:
-       0    - no usage
-       1    - statik lookaheads
-       >= 2 - dynamic lookaheads*/
-    int lookahead_level;
-
-    /* How many subsequent tokens should be successfuly shifted to finish error recovery. */
-    int recovery_token_matches;
-
-    /* If true then stop at first successful parse.
-       If false then follow all possible parses. */
-    bool one_parse_p;
-
-    /* If true then find parse with minimal cost. */
-    bool cost_p;
-
-    /* If true them try to recover from errors. */
-    bool error_recovery_p;
-
-    /* These are all the symbols used in this grammar. */
-    YaepSymbolStorage *symbs_ptr;
-
-    /* All rules used in this grammar are stored here. */
-    YaepRuleStorage *rulestorage_ptr;
-
-    /* The following terminal sets used for this grammar. */
-    YaepTerminalSetStorage *term_sets_ptr;
-
-    /* Allocator. */
-    YaepAllocator *alloc;
-
-    /* A user supplied pointer that is available to user callbacks through the grammar pointer. */
-    void *user_data;
-};
-
-struct YaepSymbol
+void dbg_print_coresymbvects(YaepParseState *ps, YaepCoreSymbToPredComps *v)
 {
-    /* A unique number 0,1,2... (num_terminals + num_non_terminals -1) */
-    int id;
-    /* The following is external representation of the symbol.  It
-       should be allocated by parse_alloc because the string will be
-       referred from parse tree. */
-    const char *repr;
-    char hr[7];    // #1ffff or ' ' or #78
-    union
+    MemBuffer *mb = new_membuffer();
+    print_coresymbvects(mb, ps, v);
+    free_membuffer_and_free_content(mb);
+}
+
+void dbg_print_dotted_rule(YaepParseState *ps, YaepDottedRule *dotted_rule)
+{
+    MemBuffer *mb = new_membuffer();
+    print_dotted_rule(mb, ps, 0 /*from_i*/, dotted_rule, 0, 0);
+    membuffer_append_null(mb);
+    puts(mb->buffer_);
+    free_membuffer_and_free_content(mb);
+}
+
+void fetch_state_vars(YaepParseState *ps,
+                      YaepStateSet *state_set,
+                      StateVars *out)
+{
+    if (state_set == NULL && !ps->new_set_ready_p)
     {
-        struct
-        {
-            /* The code is a unique number per terminal type and is specified when
-               read_grammar fetches the terminals. For grammars with a lexer preprocessing
-               step, the code means 1 = "BEGIN", 2 = "END, 3 = "IDENTIFIER" etc.
-               For ixml grammars, each code is instead a unicode codepoint.
-               I.e. 65 = A, 0x1f600 = 😀  etc. */
-            int code;
-            /* Each term is given a unique integer starting from 0. If the code range
-               starts with 100 and ends with 129,then the term_ids goes from 0 to 29.
-               The term_ids are used for picking the bit in the bit arrays.*/
-            int term_id;
-        } terminal;
-        struct
-        {
-            /* The following refers for all rules with the nonterminal
-               symbol is in the left hand side of the rules. */
-            YaepRule *rules;
-            /* Each nonterm is given a unique integer starting from 0. */
-            int nonterm_id;
-            /* The following value is nonzero if nonterminal may derivate
-               itself.  In other words there is a grammar loop for this
-               nonterminal.*/
-            bool loop_p;
-            /* The following members are FIRST and FOLLOW sets of the nonterminal. */
-            terminal_bitset_t *first, *follow;
-        } nonterminal;
-    } u;
-    /* If true, the use terminal in union. */
-    bool terminal_p;
-    /* The following member value(if defined) is true if the symbol is
-       accessible(derivated) from the axiom. */
-    bool access_p;
-    /* The following member is true if it is a termainal or it is a
-       nonterminal which derivates a terminal string. */
-    bool derivation_p;
-    /* The following is true if it is nonterminal which may derivate empty string. */
-    bool empty_p;
-#ifdef USE_CORE_SYMB_HASH_TABLE
-    /* The following is used as cache for subsequent search for
-       core_symb_ids with given symb. */
-    YaepCoreSymbVect *cached_core_symb_ids;
-#endif
-};
+        /* The following is necessary if we call the function from a
+           debugger.  In this case new_set, new_core and their members
+           may be not set up yet. */
+        out->state_id = -1;
+        out->core_id = -1;
+        out->num_started_dotted_rules = out->num_dotted_rules
+            = out->num_all_matched_lengths = ps->new_num_leading_dotted_rules;
+        out->dotted_rules = ps->new_dotted_rules;
+        out->matched_lengths = ps->new_matched_lengths;
+        out->to_parent_rule_index = NULL;
+        return;
+    }
 
-struct YaepSymbolStorage
+    out->state_id = state_set->id;
+    out->core_id = state_set->core->id;
+    out->num_dotted_rules = state_set->core->num_dotted_rules;
+    out->dotted_rules = state_set->core->dotted_rules;
+    out->num_started_dotted_rules = state_set->core->num_started_dotted_rules;
+    out->matched_lengths = state_set->matched_lengths;
+    out->num_all_matched_lengths = state_set->core->num_all_matched_lengths;
+    out->to_parent_rule_index = state_set->core->to_parent_rule_index;
+    out->num_started_dotted_rules = state_set->core->num_started_dotted_rules;
+}
+
+int find_matched_length(YaepParseState *ps,
+                        YaepStateSet *state_set,
+                        StateVars *vars,
+                        int rule_index_in_core)
 {
-    int num_terminals, num_nonterminals;
+    int matched_length;
 
-    /* All symbols are placed in the following object.*/
-    os_t symbs_os;
+    if (rule_index_in_core >= vars->num_all_matched_lengths)
+    {
+        // No match yet.
+        matched_length = 0;
+    }
+    else if (rule_index_in_core< vars->num_started_dotted_rules)
+    {
+        matched_length = vars->matched_lengths[rule_index_in_core];
+    }
+    else
+    {
+        matched_length = vars->matched_lengths[vars->to_parent_rule_index[rule_index_in_core]];
+    }
 
-    /* All references to the symbols, terminals, nonterminals are stored
-       in the following vlos.  The indexes in the arrays are the same as
-       corresponding symbol, terminal, and nonterminal numbers.*/
-    vlo_t symbs_vlo;
-    vlo_t terminals_vlo;
-    vlo_t nonterminals_vlo;
+    return matched_length;
+}
 
-    /* The following are tables to find terminal by its code and symbol by
-       its representation.*/
-    hash_table_t map_repr_to_symb;	/* key is `repr'*/
-    hash_table_t map_code_to_symb;	/* key is `code'*/
-
-    /* If terminal symbol codes are not spared(in this case the member
-       value is not NULL, we use translation vector instead of hash table. */
-    YaepSymbol **symb_code_trans_vect;
-    int symb_code_trans_vect_start;
-    int symb_code_trans_vect_end;
-};
-
-/* A set of terminals represented as a bit array. */
-struct YaepTerminalSet
+void yaep_debug(YaepParseState *ps, const char *format, ...)
 {
-    // Set identity.
-    int id;
+    if (!ps->run.debug) return;
 
-    // Number of long ints (terminal_bitset_t) used to store the bit array.
-    int num_elements;
+    va_list ap;
+    va_start(ap, format);
 
-    // The bit array itself.
-    terminal_bitset_t *set;
-};
+    MemBuffer *mb = new_membuffer();
+    membuffer_printf(mb, "@%d ", ps->tok_i);
 
-/* The following container for the abstract data.*/
-struct YaepTerminalSetStorage
+    char *buf = buf_vsnprintf(format, ap);
+    membuffer_append(mb, buf);
+    membuffer_append_null(mb);
+    free(buf);
+
+    debug_mb("ixml.pa.debug=", mb);
+    free_membuffer_and_free_content(mb);
+    return;
+}
+
+void yaep_trace(YaepParseState *ps, const char *format, ...)
 {
-    /* All terminal sets are stored in the following os. */
-    os_t terminal_bitset_os;
+    if (!ps->run.trace) return;
 
-    /* Their values are number of terminal sets and their overall size.*/
-    int n_term_sets, n_term_sets_size;
+    va_list ap;
+    va_start(ap, format);
 
-    /* The YaepTerminalSet objects are stored in this vlo. */
-    vlo_t terminal_bitset_vlo;
+    MemBuffer *mb = new_membuffer();
+    membuffer_printf(mb, "@%d ", ps->tok_i);
 
-    /* Hashmap from key set (a bit array) to the YaepTerminalSet object from which we use the id. */
-    hash_table_t map_terminal_bitset_to_id;
-};
+    char *buf = buf_vsnprintf(format, ap);
+    membuffer_append(mb, buf);
+    membuffer_append_null(mb);
+    free(buf);
 
-/* This page contains table for fast search for vector of indexes of
-   dotted_rules with symbol after dot in given set core. */
-struct YaepVect
+    debug_mb("ixml.pa.trace=", mb);
+    free_membuffer_and_free_content(mb);
+    return;
+}
+
+void yaep_view(YaepParseState *ps, const char *format, ...)
 {
-    /* The following member is used internally.  The value is
-       nonnegative for core_symb_ids being formed.  It is index of vlo
-       in vlos array which contains the vector elements. */
-    int intern;
+    if (!ps->run.debug) return;
 
-    /* The following memebers defines array of ids of dotted_rules in a state set core. */
-    int len;
-    int *ids;
-};
+    va_list ap;
+    va_start(ap, format);
 
-struct YaepCoreSymbVect
-{
-    /* The set core.*/
-    YaepStateSetCore *core;
+    MemBuffer *mb = new_membuffer();
+    membuffer_printf(mb, "@%d ", ps->tok_i);
 
-    /* The symbol.*/
-    YaepSymbol *symb;
+    char *buf = buf_vsnprintf(format, ap);
+    membuffer_append(mb, buf);
+    membuffer_append_null(mb);
+    free(buf);
 
-    /* The following vector contains ids of dotted_rules with given symb in dotted_rule after dot.
-       We use this to predict the next set of dotted rules to add after symb has been reach in state core. */
-    YaepVect predictions;
+    debug_mb("ixml.pa.view=", mb);
+    free_membuffer_and_free_content(mb);
+    return;
+}
 
-    /* The following vector contains id of reduce dotted_rule with given symb in lhs. */
-    YaepVect completions;
-};
-
-/* A StateSetCore is a state set in Earley's algorithm but without matched lengths for the dotted rules.
-   The state set cores can be reused between state sets and thus save memory. */
-struct YaepStateSetCore
-{
-    /* The following is unique number of the set core. It is defined only after forming all set.*/
-    int id;
-
-    /* The state set core hash.  We save it as it is used several times. */
-    unsigned int hash;
-
-    /* The following is term shifting which resulted into this core.  It
-       is defined only after forming all set.*/
-    YaepSymbol *term;
-
-    /* The variable num_dotted_rulesare all dotted_rules in the set. Both starting and predicted. */
-    int num_dotted_rules;
-    int num_started_dotted_rules;
-    // num_not_yet_started_dotted_rules== num_dotted_rules-num_started_dotted_rules
-
-    /* Array of dotted_rules.  Start dotted_rules are always placed the
-       first in the order of their creation(with subsequent duplicates
-       are removed), then not_yet_started noninitial(dotted_rule with at least
-       one symbol before the dot) dotted_rules are placed and then initial
-       dotted_rules are placed.  You should access to a set dotted_rule only
-       through this member or variable `new_dotted_rules'(in other words don't
-       save the member value in another variable).*/
-    YaepDottedRule **dotted_rules;
-
-    /* The following member is number of started dotted_rules and not-yet-started
-       (noninitial) dotted_rules whose matched_length is defined from a start
-       dotted_rule matched_length.  All not-yet-started initial dotted_rules have zero
-       matched_lengths.  This matched_lengths are not stored. */
-    int num_all_matched_lengths;
-
-    /* The following is array containing number of start dotted_rule from
-       which matched_length of(not_yet_started noninitial) dotted_rule with given
-       index(between n_start_dotted_rules -> num_all_matched_lengths) is taken. */
-    int *parent_dotted_rule_ids;
-};
-
-/* A YaepStateSet (aka parse list) stores chart entries (aka items) [from, to, S →  VP 🞄 NP ]
-   Scanning an input token triggers the creation of a state set. If we have n input tokens,
-   then we have n+2  state sets (we add the final eof token and a final state after eof
-   has been scanned.) */
-struct YaepStateSet
-{
-    /* The following is set core of the set.  You should access to set
-       core only through this member or variable `new_core'(in other
-       words don't save the member value in another variable).*/
-    YaepStateSetCore *core;
-
-    /* Hash of the array of matched_lengths. We save it as it is used several times. */
-    unsigned int matched_lengths_hash;
-
-    /* The following is matched_lengths only for started dotted_rules.  Not-yet-started
-       dotted_rules have their matched_lengths set to 0 implicitly.  A started dotted_rule
-       in the set core and its corresponding matched_length matched_length have the same index.
-       You should access matched_lengths only through this variable or the variable
-       new_matched_lengths, the location of the arrays can move. */
-    int *matched_lengths;
-};
-
-/* A dotted_rule stores:
-       reference to a rule,
-       current dot position in the rule,
-       lookup bitset for a quick terminal lookahead check, to see if this dotted_rule should be applied.
-
-   This is stored separately and this means that we can reuse dotted_rule objects to save memory,
-   since rule,dot,lookup is recurring often. */
-struct YaepDottedRule
-{
-    /* Unique dotted_rule identifier. Starts at 0 and increments for each new dotted_rule. */
-    int id;
-
-    /* The following is the rule being dotted. */
-    YaepRule *rule;
-
-    /* The following is position of dot in rhs of the dotted rule.
-       Starts at 0 (left of all rhs terms) and ends at rhs.len (right of all rhs terms). */
-    short dot_j;
-
-    /* The following member is true if the tail can derive empty string. */
-    bool empty_tail_p;
-
-    /* The following is number of dotted_rule context which is number of
-       the corresponding terminal set in the table.  It is really used
-       only for dynamic lookahead. */
-    int context;
-
-    /* The following member is the dotted_rule lookahead it is equal to
-       FIRST(the dotted_rule tail || FOLLOW(lhs)) for statik lookaheads
-       and FIRST(the dotted_rule tail || context) for dynamic ones. */
-    terminal_bitset_t *lookahead;
-};
-
-struct YaepInputToken
-{
-    /* A symbol has a name "BEGIN",code 17, or for ixml "A",code 65. */
-    YaepSymbol *symb;
-
-    /* The token can have a provided attribute attached. This does not affect
-       the parse, but can be extracted from the final parse tree. */
-    void *attr;
-};
-
-/* The triple and possible goto sets for it. */
-struct YaepStateSetTermLookAhead
-{
-    YaepStateSet*set;
-    YaepSymbol*term;
-    int lookahead;
-    /* Saved goto sets form a queue.  The last goto is saved at the
-       following array elements whose index is given by CURR. */
-    int curr;
-    /* Saved goto sets to which we can go from SET by the terminal with
-       subsequent terminal LOOKAHEAD given by its code. */
-    YaepStateSet*result[MAX_CACHED_GOTO_RESULTS];
-    /* Corresponding places of the goto sets in the parsing list. */
-    int place[MAX_CACHED_GOTO_RESULTS];
-};
-
-struct YaepRule
-{
-    /* The following is order number of rule. */
-    int num;
-
-    /* The following is length of rhs. */
-    int rhs_len;
-
-    /* The following is the next grammar rule. */
-    YaepRule *next;
-
-    /* The following is the next grammar rule with the same nonterminal
-       in lhs of the rule.*/
-    YaepRule *lhs_next;
-
-    /* The following is nonterminal in the left hand side of the rule. */
-    YaepSymbol *lhs;
-
-    /* The ixml default mark of the rule. -@^ */
-    char mark;
-
-    /* The following is symbols in the right hand side of the rule. */
-    YaepSymbol **rhs;
-
-    /* The ixml marks for all the terms in the right hand side of the rule. */
-    char *marks;
-    /* The following three members define rule translation. */
-
-    const char *anode;		/* abstract node name if any. */
-    int anode_cost;		/* the cost of the abstract node if any, otherwise 0. */
-    int trans_len;		/* number of symbol translations in the rule translation. */
-
-    /* The following array elements correspond to element of rhs with
-       the same index.  The element value is order number of the
-       corresponding symbol translation in the rule translation.  If the
-       symbol translation is rejected, the corresponding element value is
-       negative. */
-    int *order;
-
-    /* The following member value is equal to size of all previous rule
-       lengths + number of the previous rules.  Imagine that all left
-       hand symbol and right hand size symbols of the rules are stored
-       in array.  Then the following member is index of the rule lhs in
-       the array. */
-    int rule_start_offset;
-
-    /* The following is the same string as anode but memory allocated in parse_alloc. */
-    char *caller_anode;
-};
-
-/* The following container for the abstract data.*/
-struct YaepRuleStorage
-{
-    /* The following is number of all rules and their summary rhs length. */
-    int num_rules, n_rhs_lens;
-
-    /* The following is the first rule.*/
-    YaepRule *first_rule;
-
-    /* The following is rule being formed. */
-    YaepRule *current_rule;
-
-    /* All rules are placed in the following object. */
-    os_t rules_os;
-};
-
-/* This state is used when reconstricting the parse tree from the dotted_rules. */
-struct YaepParseTreeBuildState
-{
-    /* The rule which we are processing. */
-    YaepRule *rule;
-
-    /* Current position in rule->rhs[]. */
-    int dot_j;
-
-    /* An index into input[] and is the starting point of the matched tokens for the rule. */
-    int from_i;
-
-    /* The current state set index into YaepParseState->state_sets. */
-    int state_set_k;
-
-    /* If the following value is NULL, then we do not need to create
-       translation for this rule.  If we should create abstract node
-       for this rule, the value refers for the abstract node and the
-       displacement is undefined.  Otherwise, the two members is
-       place into which we should place the translation of the rule.
-       The following member is used only for states in the stack. */
-    YaepParseTreeBuildState *parent_anode_state;
-    int parent_disp;
-
-    /* The following is used only for states in the table. */
-    YaepTreeNode *anode;
-};
-
-/* To make better traversing and don't waist tree parse memory,
-   we use the following structures to enumerate the tree node. */
-struct YaepTreeNodeVisit
-{
-    /* The following member is order number of the node.  This value is
-       negative if we did not visit the node yet. */
-    int num;
-
-    /* The tree node itself. */
-    YaepTreeNode*node;
-};
-
-/* The following strucrture describes an error recovery state(an
-   error recovery alternative.*/
-struct YaepRecoveryState
-{
-    /* The following three members define start state set used to given error
-       recovery state(alternative).*/
-    /* The following members define what part of original(at the error
-       recovery start) state set will be head of error recovery state.  The
-       head will be all states from original state set with indexes in range
-       [0, last_original_state_set_el].*/
-    int last_original_state_set_el;
-    /* The following two members define tail of state set for this error recovery state.*/
-    int state_set_tail_length;
-    YaepStateSet **state_set_tail;
-    /* The following member is index of start token for given error recovery state.*/
-    int start_tok;
-    /* The following member value is number of tokens already ignored in
-       order to achieved given error recovery state.*/
-    int backward_move_cost;
-};
-
-struct YaepParseState
-{
-    YaepParseRun run;
-    int magic_cookie; // Must be set to 736268273 when the state is created.
-
-    /* The input token array to be parsed. */
-    YaepInputToken *input;
-    int input_len;
-    vlo_t input_vlo;
-
-    /* When parsing, the current input token is incremented from 0 to len. */
-    int tok_i;
-
-    /* The following says that new_set, new_core and their members are
-       defined. Before this the access to data of the set being formed
-       are possible only through the following variables. */
-    int new_set_ready_p;
-
-    /* The following variable is set being created. It is defined only when new_set_ready_p is true. */
-    YaepStateSet *new_set;
-
-   /* The following variable is always set core of set being created.
-      Member core of new_set has always the
-      following value.  It is defined only when new_set_ready_p is true. */
-    YaepStateSetCore *new_core;
-
-   /* To optimize code we use the following variables to access to data
-      of new set.  They are always defined and correspondingly
-      dotted_rules, matched_lengths, and the current number of start dotted_rules
-      of the set being formed.*/
-    YaepDottedRule **new_dotted_rules;
-    int *new_matched_lengths;
-    int new_num_started_dotted_rules;
-
-    /* The following are number of unique set cores and their start
-       dotted_rules, unique matched_length vectors and their summary length, and
-       number of parent indexes. */
-    int num_set_cores, num_set_core_start_dotted_rules;
-    int num_set_matched_lengths, num_set_matched_lengths_len;
-    int num_parent_dotted_rule_ids;
-
-    /* Number of state sets and their started dotted_rules. */
-    int n_sets, n_sets_start_dotted_rules;
-
-    /* Number unique triples(core, term, lookahead). */
-    int num_triplets_core_term_lookahead;
-
-    /* The set cores of formed sets are placed in the following os.*/
-    os_t set_cores_os;
-
-    /* The dotted_rules of formed sets are placed in the following os.*/
-    os_t set_dotted_rules_os;
-
-    /* The indexes of the parent start dotted_rules whose matched_lengths are used
-       to get matched_lengths of some not_yet_started dotted_rules are placed in the
-       following os.*/
-    os_t set_parent_dotted_rule_ids_os;
-
-    /* The matched_lengths of formed sets are placed in the following os.*/
-    os_t set_matched_lengths_os;
-
-    /* The sets themself are placed in the following os.*/
-    os_t sets_os;
-
-    /* Container for triples(set, term, lookahead. */
-    os_t triplet_core_term_lookahead_os;
-
-    /* The following 3 tables contain references for sets which refers
-       for set cores or matched_lengths or both which are in the tables.*/
-    hash_table_t set_of_cores;	/* key is only start dotted_rules.*/
-    hash_table_t set_of_matched_lengthses;	/* key is matched_lengths we have a set of matched_lengthses.*/
-    hash_table_t set_of_tuples_core_matched_lengths;	/* key is(core, matched_lengths).*/
-
-    /* Table for triplets (core, term, lookahead). */
-    hash_table_t set_of_triplets_core_term_lookahead;	/* key is (core, term, lookeahed). */
-
-    /* The following contains current number of unique dotted_rules. */
-    int num_all_dotted_rules;
-
-    /* The following two dimensional array(the first dimension is context
-       number, the second one is dotted_rule number) contains references to
-       all possible dotted_rules.*/
-    YaepDottedRule ***dotted_rules_table;
-
-    /* The following vlo is indexed by dotted_rule context number and gives
-       array which is indexed by dotted_rule number
-      (dotted_rule->rule->rule_start_offset + dotted_rule->dot_j).*/
-    vlo_t dotted_rules_table_vlo;
-
-    /* All dotted_rules are placed in the following object.*/
-    os_t dotted_rules_os;
-
-    /* The set of pairs (dotted_rule,matched_length) used for test-setting such pairs
-       is implemented using a vec[dotted_rule id] -> vec[matched_length] -> generation since id
-       is unique and incrementing, we use a vector[max_id] to find another vector[max_matched_length]
-       each matched_length entry storing a generation number. To clear the set of pairs
-       we only need to increment the current generation below. Yay! No need to free, alloc, memset.*/
-    vlo_t dotted_rule_matched_length_vec_vlo;
-
-    /* The value used to check the validity of elements of check_dist structures. */
-    int dotted_rule_matched_length_vec_generation;
-
-    /* The following are number of unique(set core, symbol) pairs and
-       their summary(transitive) prediction and reduce vectors length,
-       unique(transitive) prediction vectors and their summary length,
-       and unique reduce vectors and their summary length. */
-    int n_core_symb_pairs, n_core_symb_ids_len;
-    int n_transition_vects, n_transition_vect_len;
-    int n_reduce_vects, n_reduce_vect_len;
-
-    /* All triples(set core, symbol, vect) are placed in the following object. */
-    os_t core_symb_ids_os;
-
-    /* Pointers to triples(set core, symbol, vect) being formed are
-       placed in the following object. */
-    vlo_t new_core_symb_ids_vlo;
-
-    /* All elements of vectors (transitive_)predictions and completions, are placed in the following os. */
-    os_t vect_ids_os;
-
-#ifdef USE_CORE_SYMB_HASH_TABLE
-    hash_table_t map_core_symb_to_vect;	/* key is set_core and symb.*/
-#else
-    /* The following two variables contains table(set core,
-       symbol)->core_symb_ids implemented as two dimensional array.*/
-    /* The following object contains pointers to the table rows for each
-       set core.*/
-    vlo_t core_symb_table_vlo;
-
-    /* The following is always start of the previous object.*/
-    YaepCoreSymbVect ***core_symb_table;
-
-    /* The following contains rows of the table.  The element in the rows
-       are indexed by symbol number.*/
-    os_t core_symb_tab_rows;
 #endif
 
-    /* The following tables contains references for core_symb_ids which
-       (through(transitive) predictions and completions correspondingly)
-       refers for elements which are in the tables.  Sequence elements are
-       stored in one exemplar to save memory.*/
-    hash_table_t map_transition_to_coresymbvect;	/* key is elements.*/
-    hash_table_t map_reduce_to_coresymbvect;	/* key is elements.*/
+// PART C YAEP_SYMBOLS_C ////////////////////////////////////////
 
-    /* Store state sets in a growing array. Even though early parser
-       specifies a new state set per token, we can reuse a state set if
-       the matched lengths are the same. This means that the
-       state_set_k can increment fewer times than tok_i. */
-    YaepStateSet **state_sets;
-    int state_set_k;
+#ifdef YAEP_SYMBOLS_MODULE
 
-    /* The following is number of created terminal, abstract, and
-       alternative nodes.*/
-    int n_parse_term_nodes, n_parse_abstract_nodes, n_parse_alt_nodes;
-
-    /* All tail sets of error recovery are saved in the following os.*/
-    os_t recovery_state_tail_sets;
-
-    /* The following variable values is state_set_k and tok_i at error
-       recovery start(when the original syntax error has been fixed).*/
-    int recovery_start_set_k, recovery_start_tok_i;
-
-    /* The following variable value means that all error sets in pl with
-       indexes [back_state_set_frontier, recovery_start_set_k] are being processed or
-       have been processed.*/
-    int back_state_set_frontier;
-
-    /* The following variable stores original state set tail in reversed order.
-       This object only grows.  The last object sets may be used to
-       restore original state set in order to try another error recovery state
-       (alternative).*/
-    vlo_t original_state_set_tail_stack;
-
-    /* The following variable value is last state set element which is original
-       set(set before the error_recovery start).*/
-    int original_last_state_set_el;
-
-    /// GURKA
-
-    /* This page contains code for work with array of vlos.  It is used
-       only to implement abstract data `core_symb_ids'.*/
-
-    /* All vlos being formed are placed in the following object.*/
-    vlo_t vlo_array;
-
-    /* The following is current number of elements in vlo_array.*/
-    int vlo_array_len;
-
-    /* The following table is used to find allocated memory which should not be freed.*/
-    hash_table_t set_of_reserved_memory; // (key is memory pointer)
-
-    /* The following vlo will contain references to memory which should be
-       freed.  The same reference can be represented more on time.*/
-    vlo_t tnodes_vlo;
-
-    /* The key of the following table is node itself.*/
-    hash_table_t map_node_to_visit;
-
-    /* All translation visit nodes are placed in the following stack.  All
-       the nodes are in the table.*/
-    os_t node_visits_os;
-
-    /* The following value is number of translation visit nodes.*/
-    int num_nodes_visits;
-
-    /* How many times we reuse Earley's sets without their recalculation. */
-    int n_goto_successes;
-
-    /* The following vlo is error recovery states stack.  The stack
-       contains error recovery state which should be investigated to find
-       the best error recovery.*/
-    vlo_t recovery_state_stack;
-
-    /* The following os contains all allocated parser states.*/
-    os_t parse_state_os;
-
-    /* The following variable refers to head of chain of already allocated
-       and then freed parser states.*/
-    YaepParseTreeBuildState *free_parse_state;
-
-    /* The following table is used to make translation for ambiguous
-       grammar more compact.  It is used only when we want all
-       translations.*/
-    hash_table_t map_rule_orig_statesetind_to_internalstate;	/* Key is rule, origin, state_set_k.*/
-};
-typedef struct YaepParseState YaepParseState;
-
-#define CHECK_PARSE_STATE_MAGIC(ps) (ps->magic_cookie == 736268273)
-#define INSTALL_PARSE_STATE_MAGIC(ps) ps->magic_cookie=736268273
-
-// Declarations ///////////////////////////////////////////////////
-
-static void error_recovery(YaepParseState *ps, int *start, int *stop);
-static void error_recovery_init(YaepParseState *ps);
-static void free_error_recovery(YaepParseState *ps);
-static void read_input(YaepParseState *ps);
-static void print_yaep_node(YaepParseState *ps, FILE *f, YaepTreeNode *node);
-static void print_rule_with_dot(YaepParseState *ps, FILE *f, YaepRule *rule, int pos);
-static void rule_print(YaepParseState *ps, FILE *f, YaepRule *rule, bool trans_p);
-static void print_state_set(YaepParseState *ps,
-                            FILE* f,
-                            YaepStateSet*set,
-                            int set_dist,
-                            int print_all_dotted_rules,
-                            int lookahead_p);
-static void print_dotted_rule(YaepParseState *ps, FILE *f, const char *prefix, const char *postfix,
-                              YaepDottedRule *dotted_rule, bool lookahead_p, int origin);
-static YaepSymbolStorage *symbolstorage_create(YaepGrammar *g);
-static void symb_empty(YaepParseState *ps, YaepSymbolStorage *symbs);
-static void symb_finish_adding_terms(YaepParseState *ps);
-static void symbol_print(FILE* f, YaepSymbol *symb, bool code_p);
-static void yaep_error(YaepParseState *ps, int code, const char*format, ...);
-static int default_read_token(YaepParseRun *ps, void **attr);
-
-// Global variables /////////////////////////////////////////////////////
-
-/* Jump buffer for processing errors.*/
-jmp_buf error_longjump_buff;
-
-// Implementations ////////////////////////////////////////////////////////////////////
-
-static unsigned symb_repr_hash(hash_table_entry_t s)
+unsigned symb_repr_hash(hash_table_entry_t s)
 {
     YaepSymbol *sym = (YaepSymbol*)s;
     unsigned result = jauquet_prime_mod32;
@@ -20023,7 +19973,7 @@ static unsigned symb_repr_hash(hash_table_entry_t s)
      return result;
 }
 
-static bool symb_repr_eq(hash_table_entry_t s1, hash_table_entry_t s2)
+bool symb_repr_eq(hash_table_entry_t s1, hash_table_entry_t s2)
 {
     YaepSymbol *sym1 = (YaepSymbol*)s1;
     YaepSymbol *sym2 = (YaepSymbol*)s2;
@@ -20031,32 +19981,32 @@ static bool symb_repr_eq(hash_table_entry_t s1, hash_table_entry_t s2)
     return !strcmp(sym1->repr, sym2->repr);
 }
 
-static unsigned symb_code_hash(hash_table_entry_t s)
+unsigned symb_code_hash(hash_table_entry_t s)
 {
     YaepSymbol *sym = (YaepSymbol*)s;
 
-    assert(sym->terminal_p);
+    assert(sym->is_terminal);
 
     return sym->u.terminal.code;
 }
 
-static bool symb_code_eq(hash_table_entry_t s1, hash_table_entry_t s2)
+bool symb_code_eq(hash_table_entry_t s1, hash_table_entry_t s2)
 {
     YaepSymbol *sym1 = (YaepSymbol*)s1;
     YaepSymbol *sym2 = (YaepSymbol*)s2;
 
-    assert(sym1->terminal_p && sym2->terminal_p);
+    assert(sym1->is_terminal && sym2->is_terminal);
 
     return sym1->u.terminal.code == sym2->u.terminal.code;
 }
 
-static YaepSymbolStorage *symbolstorage_create(YaepGrammar *grammar)
+YaepSymbolStorage *symbolstorage_create(YaepGrammar *grammar)
 {
     void*mem;
     YaepSymbolStorage*result;
 
     mem = yaep_malloc(grammar->alloc, sizeof(YaepSymbolStorage));
-    result =(YaepSymbolStorage*) mem;
+    result = (YaepSymbolStorage*)mem;
     OS_CREATE(result->symbs_os, grammar->alloc, 0);
     VLO_CREATE(result->symbs_vlo, grammar->alloc, 1024);
     VLO_CREATE(result->terminals_vlo, grammar->alloc, 512);
@@ -20071,19 +20021,17 @@ static YaepSymbolStorage *symbolstorage_create(YaepGrammar *grammar)
 }
 
 /* Return symbol(or NULL if it does not exist) whose representation is REPR.*/
-static YaepSymbol *symb_find_by_repr(YaepParseState *ps, const char*repr)
+YaepSymbol *symb_find_by_repr(YaepParseState *ps, const char*repr)
 {
     YaepSymbol symb;
     symb.repr = repr;
     YaepSymbol*r = (YaepSymbol*)*find_hash_table_entry(ps->run.grammar->symbs_ptr->map_repr_to_symb, &symb, false);
 
-    TRACE_FA(ps, "%s -> %p", repr, r);
-
     return r;
 }
 
 /* Return symbol(or NULL if it does not exist) which is terminal with CODE. */
-static YaepSymbol *symb_find_by_code(YaepParseState *ps, int code)
+YaepSymbol *symb_find_by_code(YaepParseState *ps, int code)
 {
     YaepSymbol symb;
 
@@ -20091,30 +20039,31 @@ static YaepSymbol *symb_find_by_code(YaepParseState *ps, int code)
     {
         if ((code < ps->run.grammar->symbs_ptr->symb_code_trans_vect_start) ||(code >= ps->run.grammar->symbs_ptr->symb_code_trans_vect_end))
         {
-            TRACE_FA(ps, "vec '%c' -> NULL", code);
             return NULL;
         }
         else
         {
             YaepSymbol *r = ps->run.grammar->symbs_ptr->symb_code_trans_vect[code - ps->run.grammar->symbs_ptr->symb_code_trans_vect_start];
-            TRACE_FA(ps, "vec '%c' -> %p", code, r);
             return r;
         }
     }
 
-    symb.terminal_p = true;
+    symb.is_terminal = true;
     symb.u.terminal.code = code;
     YaepSymbol*r =(YaepSymbol*)*find_hash_table_entry(ps->run.grammar->symbs_ptr->map_code_to_symb, &symb, false);
 
-    TRACE_FA(ps, "hash '%c' -> %p", code, r);
-
     return r;
+}
+
+YaepSymbol *symb_find_by_term_id(YaepParseState *ps, int term_id)
+{
+    return symb_find_by_code(ps, term_id+ps->run.grammar->symbs_ptr->symb_code_trans_vect_start);
 }
 
 /* The function creates new terminal symbol and returns reference for
    it.  The symbol should be not in the tables.  The function should
    create own copy of name for the new symbol. */
-static YaepSymbol *symb_add_terminal(YaepParseState *ps, const char*name, int code)
+YaepSymbol *symb_add_terminal(YaepParseState *ps, const char*name, int code)
 {
     YaepSymbol symb, *result;
     hash_table_entry_t *repr_entry, *code_entry;
@@ -20128,12 +20077,13 @@ static YaepSymbol *symb_add_terminal(YaepParseState *ps, const char*name, int co
     {
         strncpy(symb.hr, name, 6);
     }
-    symb.terminal_p = true;
+    symb.is_terminal = true;
     // Assign the next available id.
     symb.id = ps->run.grammar->symbs_ptr->num_nonterminals + ps->run.grammar->symbs_ptr->num_terminals;
     symb.u.terminal.code = code;
     symb.u.terminal.term_id = ps->run.grammar->symbs_ptr->num_terminals++;
     symb.empty_p = false;
+    symb.is_not_operator = false;
     repr_entry = find_hash_table_entry(ps->run.grammar->symbs_ptr->map_repr_to_symb, &symb, true);
     assert(*repr_entry == NULL);
     code_entry = find_hash_table_entry(ps->run.grammar->symbs_ptr->map_code_to_symb, &symb, true);
@@ -20149,15 +20099,13 @@ static YaepSymbol *symb_add_terminal(YaepParseState *ps, const char*name, int co
     VLO_ADD_MEMORY(ps->run.grammar->symbs_ptr->symbs_vlo, &result, sizeof(YaepSymbol*));
     VLO_ADD_MEMORY(ps->run.grammar->symbs_ptr->terminals_vlo, &result, sizeof(YaepSymbol*));
 
-    TRACE_FA(ps, "%s %d -> %p", name, code, result);
-
     return result;
 }
 
 /* The function creates new nonterminal symbol and returns reference
    for it.  The symbol should be not in the table. The function
    should create own copy of name for the new symbol. */
-static YaepSymbol *symb_add_nonterm(YaepParseState *ps, const char *name)
+YaepSymbol *symb_add_nonterm(YaepParseState *ps, const char *name)
 {
     YaepSymbol symb,*result;
     hash_table_entry_t*entry;
@@ -20165,12 +20113,15 @@ static YaepSymbol *symb_add_nonterm(YaepParseState *ps, const char *name)
     symb.repr = name;
     strncpy(symb.hr, name, 6);
 
-    symb.terminal_p = false;
+    symb.is_terminal = false;
+    symb.is_not_operator = false;
     // Assign the next available id.
     symb.id = ps->run.grammar->symbs_ptr->num_nonterminals + ps->run.grammar->symbs_ptr->num_terminals;
     symb.u.nonterminal.rules = NULL;
     symb.u.nonterminal.loop_p = false;
     symb.u.nonterminal.nonterm_id = ps->run.grammar->symbs_ptr->num_nonterminals++;
+    symb.is_not_operator = (symb.repr[0] == '|' && symb.repr[1] == '!');
+
     entry = find_hash_table_entry(ps->run.grammar->symbs_ptr->map_repr_to_symb, &symb, true);
     assert(*entry == NULL);
     OS_TOP_ADD_STRING(ps->run.grammar->symbs_ptr->symbs_os, name);
@@ -20179,17 +20130,16 @@ static YaepSymbol *symb_add_nonterm(YaepParseState *ps, const char *name)
     OS_TOP_ADD_MEMORY(ps->run.grammar->symbs_ptr->symbs_os, &symb, sizeof(YaepSymbol));
     result =(YaepSymbol*) OS_TOP_BEGIN(ps->run.grammar->symbs_ptr->symbs_os);
     OS_TOP_FINISH(ps->run.grammar->symbs_ptr->symbs_os);
-   *entry =(hash_table_entry_t) result;
+    *entry =(hash_table_entry_t) result;
     VLO_ADD_MEMORY(ps->run.grammar->symbs_ptr->symbs_vlo, &result, sizeof(YaepSymbol*));
     VLO_ADD_MEMORY(ps->run.grammar->symbs_ptr->nonterminals_vlo, &result, sizeof(YaepSymbol*));
 
-    TRACE_FA(ps, "%s -> %p", name, result);
 
     return result;
 }
 
 /* The following function return N-th symbol(if any) or NULL otherwise. */
-static YaepSymbol *symb_get(YaepParseState *ps, int id)
+YaepSymbol *symb_get(YaepParseState *ps, int id)
 {
     if (id < 0 ||(VLO_LENGTH(ps->run.grammar->symbs_ptr->symbs_vlo) / sizeof(YaepSymbol*) <=(size_t) id))
     {
@@ -20199,38 +20149,36 @@ static YaepSymbol *symb_get(YaepParseState *ps, int id)
     YaepSymbol *symb = vect[id];
     assert(symb->id == id);
 
-    TRACE_FA(ps, "%d -> %s", id, symb->hr);
-
     return symb;
 }
 
 /* The following function return N-th symbol(if any) or NULL otherwise. */
-static YaepSymbol *term_get(YaepParseState *ps, int n)
+YaepSymbol *term_get(YaepParseState *ps, int n)
 {
     if (n < 0 || (VLO_LENGTH(ps->run.grammar->symbs_ptr->terminals_vlo) / sizeof(YaepSymbol*) <=(size_t) n))
     {
         return NULL;
     }
     YaepSymbol*symb =((YaepSymbol**) VLO_BEGIN(ps->run.grammar->symbs_ptr->terminals_vlo))[n];
-    assert(symb->terminal_p && symb->u.terminal.term_id == n);
+    assert(symb->is_terminal && symb->u.terminal.term_id == n);
 
     return symb;
 }
 
 /* The following function return N-th symbol(if any) or NULL otherwise. */
-static YaepSymbol *nonterm_get(YaepParseState *ps, int n)
+YaepSymbol *nonterm_get(YaepParseState *ps, int n)
 {
     if (n < 0 ||(VLO_LENGTH(ps->run.grammar->symbs_ptr->nonterminals_vlo) / sizeof(YaepSymbol*) <=(size_t) n))
     {
         return NULL;
     }
     YaepSymbol*symb =((YaepSymbol**) VLO_BEGIN(ps->run.grammar->symbs_ptr->nonterminals_vlo))[n];
-    assert(!symb->terminal_p && symb->u.nonterminal.nonterm_id == n);
+    assert(!symb->is_terminal && symb->u.nonterminal.nonterm_id == n);
 
     return symb;
 }
 
-static void symb_finish_adding_terms(YaepParseState *ps)
+void symb_finish_adding_terms(YaepParseState *ps)
 {
     int i, max_code, min_code;
     YaepSymbol *symb;
@@ -20258,11 +20206,11 @@ static void symb_finish_adding_terms(YaepParseState *ps)
         ps->run.grammar->symbs_ptr->symb_code_trans_vect[symb->u.terminal.code - min_code] = symb;
     }
 
-    TRACE_FA(ps, "num_codes=%zu size=%zu", num_codes, vec_size);
+    //debug("ixml.stats=", "num_codes=%zu offset=%d size=%zu", num_codes, ps->run.grammar->symbs_ptr->symb_code_trans_vect_start, vec_size);
 }
 
 /* Free memory for symbols. */
-static void symb_empty(YaepParseState *ps, YaepSymbolStorage *symbs)
+void symb_empty(YaepParseState *ps, YaepSymbolStorage *symbs)
 {
     if (symbs == NULL) return;
 
@@ -20279,11 +20227,9 @@ static void symb_empty(YaepParseState *ps, YaepSymbolStorage *symbs)
     VLO_NULLIFY(symbs->symbs_vlo);
     OS_EMPTY(symbs->symbs_os);
     symbs->num_nonterminals = symbs->num_terminals = 0;
-
-    TRACE_FA(ps, "%p\n" , symbs);
 }
 
-static void symbolstorage_free(YaepParseState *ps, YaepSymbolStorage *symbs)
+void symbolstorage_free(YaepParseState *ps, YaepSymbolStorage *symbs)
 {
     if (symbs == NULL) return;
 
@@ -20299,11 +20245,15 @@ static void symbolstorage_free(YaepParseState *ps, YaepSymbolStorage *symbs)
     VLO_DELETE(ps->run.grammar->symbs_ptr->symbs_vlo);
     OS_DELETE(ps->run.grammar->symbs_ptr->symbs_os);
     yaep_free(ps->run.grammar->alloc, symbs);
-
-    TRACE_FA(ps, "%p\n" , symbs);
 }
 
-static unsigned terminal_bitset_hash(hash_table_entry_t s)
+#endif
+
+// PART C YAEP_TERMINAL_BITSET_C ////////////////////////////////////////
+
+#ifdef YAEP_TERMINAL_BITSET_MODULE
+
+unsigned terminal_bitset_hash(hash_table_entry_t s)
 {
     YaepTerminalSet *ts = (YaepTerminalSet*)s;
     terminal_bitset_t *set = ts->set;
@@ -20319,7 +20269,7 @@ static unsigned terminal_bitset_hash(hash_table_entry_t s)
 }
 
 /* Equality of terminal sets. */
-static bool terminal_bitset_eq(hash_table_entry_t s1, hash_table_entry_t s2)
+bool terminal_bitset_eq(hash_table_entry_t s1, hash_table_entry_t s2)
 {
     YaepTerminalSet *ts1 = (YaepTerminalSet*)s1;
     YaepTerminalSet *ts2 = (YaepTerminalSet*)s2;
@@ -20341,7 +20291,7 @@ static bool terminal_bitset_eq(hash_table_entry_t s1, hash_table_entry_t s2)
     return true;
 }
 
-static YaepTerminalSetStorage *termsetstorage_create(YaepGrammar *grammar)
+YaepTerminalSetStorage *termsetstorage_create(YaepGrammar *grammar)
 {
     void *mem;
     YaepTerminalSetStorage *result;
@@ -20356,10 +20306,11 @@ static YaepTerminalSetStorage *termsetstorage_create(YaepGrammar *grammar)
     return result;
 }
 
-static terminal_bitset_t *terminal_bitset_create(YaepParseState *ps, int num_terminals)
+terminal_bitset_t *terminal_bitset_create(YaepParseState *ps)
 {
     int size_bytes;
     terminal_bitset_t *result;
+    int num_terminals = ps->run.grammar->symbs_ptr->num_terminals;
 
     assert(sizeof(terminal_bitset_t) <= 8);
 
@@ -20374,10 +20325,11 @@ static terminal_bitset_t *terminal_bitset_create(YaepParseState *ps, int num_ter
     return result;
 }
 
-static void terminal_bitset_clear(terminal_bitset_t* set, int num_terminals)
+void terminal_bitset_clear(YaepParseState *ps, terminal_bitset_t* set)
 {
     terminal_bitset_t*bound;
     int size;
+    int num_terminals = ps->run.grammar->symbs_ptr->num_terminals;
 
     size = CALC_NUM_ELEMENTS(num_terminals);
     bound = set + size;
@@ -20387,10 +20339,11 @@ static void terminal_bitset_clear(terminal_bitset_t* set, int num_terminals)
     }
 }
 
-static void terminal_bitset_fill(terminal_bitset_t* set, int num_terminals)
+void terminal_bitset_fill(YaepParseState *ps, terminal_bitset_t* set)
 {
     terminal_bitset_t*bound;
     int size;
+    int num_terminals = ps->run.grammar->symbs_ptr->num_terminals;
 
     size = CALC_NUM_ELEMENTS(num_terminals);
     bound = set + size;
@@ -20401,10 +20354,11 @@ static void terminal_bitset_fill(terminal_bitset_t* set, int num_terminals)
 }
 
 /* Copy SRC into DEST. */
-static void terminal_bitset_copy(terminal_bitset_t *dest, terminal_bitset_t *src, int num_terminals)
+void terminal_bitset_copy(YaepParseState *ps, terminal_bitset_t *dest, terminal_bitset_t *src)
 {
     terminal_bitset_t *bound;
     int size;
+    int num_terminals = ps->run.grammar->symbs_ptr->num_terminals;
 
     size = CALC_NUM_ELEMENTS(num_terminals);
     bound = dest + size;
@@ -20416,11 +20370,12 @@ static void terminal_bitset_copy(terminal_bitset_t *dest, terminal_bitset_t *src
 }
 
 /* Add all terminals from set OP with to SET.  Return true if SET has been changed.*/
-static bool terminal_bitset_or(terminal_bitset_t *set, terminal_bitset_t *op, int num_terminals)
+bool terminal_bitset_or(YaepParseState *ps, terminal_bitset_t *set, terminal_bitset_t *op)
 {
     terminal_bitset_t *bound;
     int size;
     bool changed_p;
+    int num_terminals = ps->run.grammar->symbs_ptr->num_terminals;
 
     size = CALC_NUM_ELEMENTS(num_terminals);
     bound = set + size;
@@ -20437,13 +20392,14 @@ static bool terminal_bitset_or(terminal_bitset_t *set, terminal_bitset_t *op, in
 }
 
 /* Add terminal with number NUM to SET.  Return true if SET has been changed.*/
-static bool terminal_bitset_up(terminal_bitset_t *set, int num, int num_terminals)
+bool terminal_bitset_up(YaepParseState *ps, terminal_bitset_t *set, int num)
 {
     const int bits_in_word = CHAR_BIT*sizeof(terminal_bitset_t);
 
     int word_offset;
     terminal_bitset_t bit_in_word;
     bool changed_p;
+    int num_terminals = ps->run.grammar->symbs_ptr->num_terminals;
 
     assert(num < num_terminals);
 
@@ -20456,13 +20412,14 @@ static bool terminal_bitset_up(terminal_bitset_t *set, int num, int num_terminal
 }
 
 /* Remove terminal with number NUM from SET.  Return true if SET has been changed.*/
-static bool terminal_bitset_down(terminal_bitset_t *set, int num, int num_terminals)
+bool terminal_bitset_down(YaepParseState *ps, terminal_bitset_t *set, int num)
 {
     const int bits_in_word = CHAR_BIT*sizeof(terminal_bitset_t);
 
     int word_offset;
     terminal_bitset_t bit_in_word;
     bool changed_p;
+    int num_terminals = ps->run.grammar->symbs_ptr->num_terminals;
 
     assert(num < num_terminals);
 
@@ -20475,12 +20432,13 @@ static bool terminal_bitset_down(terminal_bitset_t *set, int num, int num_termin
 }
 
 /* Return true if terminal with number NUM is in SET. */
-static int terminal_bitset_test(terminal_bitset_t *set, int num, int num_terminals)
+int terminal_bitset_test(YaepParseState *ps, terminal_bitset_t *set, int num)
 {
     const int bits_in_word = CHAR_BIT*sizeof(terminal_bitset_t);
 
     int word_offset;
     terminal_bitset_t bit_in_word;
+    int num_terminals = ps->run.grammar->symbs_ptr->num_terminals;
 
     assert(num < num_terminals);
 
@@ -20494,7 +20452,7 @@ static int terminal_bitset_test(terminal_bitset_t *set, int num, int num_termina
    returns its number.  If the set is already in table it returns -its
    number - 1(which is always negative).  Don't set after
    insertion!!! */
-static int terminal_bitset_insert(YaepParseState *ps, terminal_bitset_t *set)
+int terminal_bitset_insert(YaepParseState *ps, terminal_bitset_t *set)
 {
     hash_table_entry_t *entry;
     YaepTerminalSet term_set,*terminal_bitset_ptr;
@@ -20523,7 +20481,7 @@ static int terminal_bitset_insert(YaepParseState *ps, terminal_bitset_t *set)
 }
 
 /* The following function returns set which is in the table with number NUM. */
-static terminal_bitset_t *terminal_bitset_from_table(YaepParseState *ps, int num)
+terminal_bitset_t *terminal_bitset_from_table(YaepParseState *ps, int num)
 {
     assert(num >= 0);
     assert((long unsigned int)num < VLO_LENGTH(ps->run.grammar->term_sets_ptr->terminal_bitset_vlo) / sizeof(YaepTerminalSet*));
@@ -20531,42 +20489,8 @@ static terminal_bitset_t *terminal_bitset_from_table(YaepParseState *ps, int num
     return ((YaepTerminalSet**)VLO_BEGIN(ps->run.grammar->term_sets_ptr->terminal_bitset_vlo))[num]->set;
 }
 
-/* Print terminal SET into file F. */
-static void terminal_bitset_print(YaepParseState *ps, FILE *f, terminal_bitset_t *set, int num_terminals)
-{
-    bool first = true;
-    int num_set = 0;
-    for (int i = 0; i < num_terminals; i++) num_set += terminal_bitset_test(set, i, num_terminals);
-
-    if (num_set > num_terminals/2)
-    {
-        // Print the negation
-        fprintf(f, "~[");
-        for (int i = 0; i < num_terminals; i++)
-        {
-            if (!terminal_bitset_test(set, i, num_terminals))
-            {
-                if (!first) fprintf(f, " "); else first = false;
-                symbol_print(f, term_get(ps, i), false);
-            }
-        }
-        fprintf(f, "]");
-    }
-
-    fprintf(f, "[");
-    for (int i = 0; i < num_terminals; i++)
-    {
-        if (terminal_bitset_test(set, i, num_terminals))
-        {
-            if (!first) fprintf(f, " "); else first = false;
-            symbol_print(f, term_get(ps, i), false);
-        }
-    }
-    fprintf(f, "]");
-}
-
 /* Free memory for terminal sets. */
-static void terminal_bitset_empty(YaepTerminalSetStorage *term_sets)
+void terminal_bitset_empty(YaepTerminalSetStorage *term_sets)
 {
     if (term_sets == NULL) return;
 
@@ -20576,7 +20500,7 @@ static void terminal_bitset_empty(YaepTerminalSetStorage *term_sets)
     term_sets->n_term_sets = term_sets->n_term_sets_size = 0;
 }
 
-static void termsetstorage_free(YaepGrammar *grammar, YaepTerminalSetStorage *term_sets)
+void termsetstorage_free(YaepGrammar *grammar, YaepTerminalSetStorage *term_sets)
 {
     if (term_sets == NULL) return;
 
@@ -20587,6 +20511,1500 @@ static void termsetstorage_free(YaepGrammar *grammar, YaepTerminalSetStorage *te
     term_sets = NULL;
 }
 
+#endif
+
+// PART C YAEP_TREE_C ////////////////////////////////////////
+
+#ifdef YAEP_TREE_MODULE
+
+static unsigned parse_state_hash(hash_table_entry_t s)
+{
+    YaepParseTreeBuildState*state =((YaepParseTreeBuildState*) s);
+
+    /* The table contains only states with dot at the end of rule. */
+    assert(state->dot_j == state->rule->rhs_len);
+    return(((jauquet_prime_mod32* hash_shift +
+             (unsigned)(size_t) state->rule)* hash_shift +
+             state->from_i)* hash_shift + state->state_set_k);
+}
+
+static bool parse_state_eq(hash_table_entry_t s1, hash_table_entry_t s2)
+{
+    YaepParseTreeBuildState*state1 =((YaepParseTreeBuildState*) s1);
+    YaepParseTreeBuildState*state2 =((YaepParseTreeBuildState*) s2);
+
+    /* The table contains only states with dot at the end of rule.*/
+    assert(state1->dot_j == state1->rule->rhs_len
+            && state2->dot_j == state2->rule->rhs_len);
+    return(state1->rule == state2->rule && state1->from_i == state2->from_i
+            && state1->state_set_k == state2->state_set_k);
+}
+
+/* The following function initializes work with parser states.*/
+static void parse_state_init(YaepParseState *ps)
+{
+    ps->free_parse_state = NULL;
+    OS_CREATE(ps->parse_state_os, ps->run.grammar->alloc, 0);
+    if (!ps->run.grammar->one_parse_p)
+    {
+        ps->map_rule_orig_statesetind_to_internalstate =
+            create_hash_table(ps->run.grammar->alloc, ps->input_len* 2,
+                              (hash_table_hash_function)parse_state_hash,
+                              (hash_table_eq_function)parse_state_eq);
+    }
+}
+
+/* The following function returns new parser state.*/
+static YaepParseTreeBuildState *parse_state_alloc(YaepParseState *ps)
+{
+    YaepParseTreeBuildState*result;
+
+    if (ps->free_parse_state == NULL)
+    {
+        OS_TOP_EXPAND(ps->parse_state_os, sizeof(YaepParseTreeBuildState));
+        result =(YaepParseTreeBuildState*) OS_TOP_BEGIN(ps->parse_state_os);
+        OS_TOP_FINISH(ps->parse_state_os);
+    }
+    else
+    {
+        result = ps->free_parse_state;
+        ps->free_parse_state =(YaepParseTreeBuildState*) ps->free_parse_state->rule;
+    }
+    return result;
+}
+
+/* The following function frees STATE.*/
+static void parse_state_free(YaepParseState *ps, YaepParseTreeBuildState*state)
+{
+    state->rule = (YaepRule*)ps->free_parse_state;
+    ps->free_parse_state = state;
+}
+
+/* The following function searches for state in the table with the
+   same characteristics as "state".  If found, then it returns a pointer
+   to the state in the table.  Otherwise the function makes copy of
+  *STATE, inserts into the table and returns pointer to copied state.
+   In the last case, the function also sets up*NEW_P.*/
+static YaepParseTreeBuildState *parse_state_insert(YaepParseState *ps, YaepParseTreeBuildState *state, bool *new_p)
+{
+    YaepParseTreeBuildState **entry = (YaepParseTreeBuildState**)find_hash_table_entry(
+        ps->map_rule_orig_statesetind_to_internalstate,
+        state,
+        true);
+
+    *new_p = false;
+
+    if (*entry != NULL)
+    {
+        return *entry;
+    }
+
+    *new_p = true;
+
+    /* We make copy because state_set_k can be changed in further processing state. */
+    *entry = parse_state_alloc(ps);
+    **entry = *state;
+
+    return *entry;
+}
+
+static void free_parse_state(YaepParseState *ps)
+{
+    if (!ps->run.grammar->one_parse_p)
+    {
+        delete_hash_table(ps->map_rule_orig_statesetind_to_internalstate);
+    }
+    OS_DELETE(ps->parse_state_os);
+}
+
+/* The following function places translation NODE into *PLACE and
+   creates alternative nodes if it is necessary. */
+static void place_translation(YaepParseState *ps, YaepTreeNode **place, YaepTreeNode *node)
+{
+    YaepTreeNode *alt, *next_alt;
+
+    assert(place != NULL);
+    if (*place == NULL)
+    {
+        *place = node;
+        return;
+    }
+    /* We need an alternative.*/
+
+    ps->n_parse_alt_nodes++;
+
+    alt =(YaepTreeNode*)(*ps->run.parse_alloc)(sizeof(YaepTreeNode));
+    alt->type = YAEP_ALT;
+    alt->val.alt.node = node;
+    if ((*place)->type == YAEP_ALT)
+    {
+        alt->val.alt.next =*place;
+    }
+    else
+    {
+        /* We need alternative node for the 1st
+           alternative too.*/
+        ps->n_parse_alt_nodes++;
+        next_alt = alt->val.alt.next
+            =((YaepTreeNode*)
+              (*ps->run.parse_alloc)(sizeof(YaepTreeNode)));
+        next_alt->type = YAEP_ALT;
+        next_alt->val.alt.node =*place;
+        next_alt->val.alt.next = NULL;
+    }
+   *place = alt;
+}
+
+static YaepTreeNode *copy_anode(YaepParseState *ps,
+                                YaepTreeNode **place,
+                                YaepTreeNode *anode,
+                                YaepRule *rule,
+                                int rhs_offset)
+{
+    YaepTreeNode*node;
+    int i;
+
+    node = ((YaepTreeNode*)(*ps->run.parse_alloc)(sizeof(YaepTreeNode)
+                                              + sizeof(YaepTreeNode*)
+                                              *(rule->trans_len + 1)));
+   *node =*anode;
+    node->val.anode.children = ((YaepTreeNode**)((char*) node + sizeof(YaepTreeNode)));
+    for(i = 0; i <= rule->trans_len; i++)
+    {
+        node->val.anode.children[i] = anode->val.anode.children[i];
+    }
+    node->val.anode.children[rhs_offset] = NULL;
+    place_translation(ps, place, node);
+
+    return node;
+}
+
+static void loop_stack(YaepTreeNode **result,
+                       int n_candidates,
+                       YaepParseState *ps,
+                       YaepTreeNode *empty_node,
+                       YaepTreeNode *error_node,
+                       YaepStateSet *set,
+                       YaepDottedRule *dotted_rule,
+                       bool *ambiguous_p)
+{
+    YaepParseTreeBuildState root_state;
+    YaepTreeNode root_anode;
+
+    vlo_t stack, orig_states;
+
+    YaepTreeNode **term_node_array = NULL;
+
+    VLO_CREATE(stack, ps->run.grammar->alloc, 10000);
+
+    if (!ps->run.grammar->one_parse_p)
+    {
+        /* We need this array to reuse terminal nodes when building a parse tree with ALT nodes.
+           I.e. a tree with multiple possible parses. */
+        size_t term_node_array_size = ps->input_len * sizeof(YaepTreeNode*);
+        term_node_array = (YaepTreeNode**)yaep_malloc(ps->run.grammar->alloc, term_node_array_size);
+        memset(term_node_array, 0, term_node_array_size);
+        /* The following is used to check necessity to create current state with different state_set_k. */
+        VLO_CREATE(orig_states, ps->run.grammar->alloc, 0);
+    }
+
+    // The root abstract node points to the result tree pointer.
+    root_anode.val.anode.children = result;
+    // The root state pointsto the root abstract node.
+    root_state.anode = &root_anode;
+
+    // Push a new state on the stack
+    YaepParseTreeBuildState *state = parse_state_alloc(ps);
+    VLO_EXPAND(stack, sizeof(YaepParseTreeBuildState*));
+    ((YaepParseTreeBuildState**) VLO_BOUND(stack))[-1] = state;
+
+    YaepRule *rule = state->rule = dotted_rule->rule;
+    state->dotted_rule = dotted_rule;
+    state->dot_j = dotted_rule->dot_j;
+    state->from_i = 0;
+    state->state_set_k = ps->state_set_k;
+
+    // Again is state_set_k always == tok_i ????
+    assert(ps->state_set_k == ps->tok_i);
+
+    state->parent_anode_state = &root_state;
+    state->parent_rhs_offset = 0;
+    state->anode = NULL;
+
+    if (ps->run.debug)
+    {
+        // Log the starting node.
+        MemBuffer *mb = new_membuffer();
+	membuffer_printf(mb, "adding (d%d,%d-%d) ",
+                         state->dotted_rule->id,
+                         state->from_i,
+                         state->state_set_k);
+	print_rule(mb, ps, state->rule);
+        debug_mb("ixml.bt.step=", mb);
+        free_membuffer_and_free_content(mb);
+    }
+
+    while (VLO_LENGTH(stack) != 0)
+    {
+        if (ps->run.debug && state->dot_j == state->rule->rhs_len)
+        {
+            // top = (long) VLO_LENGTH(stack) / sizeof(YaepParseTreeBuildState*) - 1
+            MemBuffer *mb = new_membuffer();
+            membuffer_printf(mb, "push (s%d,d%d) [%d-%d]    ", state->state_set_k, state->dotted_rule->id, state->from_i, state->state_set_k);
+            print_rule(mb, ps, state->rule);
+            debug_mb("ixml.bt.info=", mb);
+            free_membuffer_and_free_content(mb);
+        }
+        int pos_j = --state->dot_j;
+        rule = state->rule;
+        YaepParseTreeBuildState *parent_anode_state = state->parent_anode_state;
+        YaepTreeNode *parent_anode = parent_anode_state->anode;
+        int parent_rhs_offset = state->parent_rhs_offset;
+        YaepTreeNode *anode = state->anode;
+        int rhs_offset = rule->order[pos_j];
+        int state_set_k = state->state_set_k;
+        int from_i = state->from_i;
+        if (pos_j < 0)
+        {
+            /* We've processed all rhs of the rule.*/
+            if (ps->run.debug)
+            {
+                MemBuffer *mb = new_membuffer();
+                membuffer_printf(mb, "pop ");
+                print_rule(mb, ps, state->rule);
+                debug_mb("ixml.bt.info=", mb);
+                free_membuffer_and_free_content(mb);
+            }
+            parse_state_free(ps, state);
+            VLO_SHORTEN(stack, sizeof(YaepParseTreeBuildState*));
+            if (VLO_LENGTH(stack) != 0)
+            {
+                state = ((YaepParseTreeBuildState**) VLO_BOUND(stack))[-1];
+            }
+            if (parent_anode != NULL && rule->trans_len == 0 && anode == NULL)
+            {
+                /* We do dotted_ruleuce nothing but we should. So write empty node.*/
+                place_translation(ps, parent_anode->val.anode.children + parent_rhs_offset, empty_node);
+                empty_node->val.nil.used = 1;
+            } else
+            if (anode != NULL)
+            {
+                /* Change NULLs into empty nodes.  We can not make it
+                 the first time because when building several parses
+                 the NULL means flag of absence of translations(see
+                 function `place_translation'). */
+                for (int i = 0; i < rule->trans_len; i++)
+                {
+                    if (anode->val.anode.children[i] == NULL)
+                    {
+                        anode->val.anode.children[i] = empty_node;
+                        empty_node->val.nil.used = 1;
+                    }
+                }
+            }
+
+            continue;
+        }
+        assert(pos_j >= 0);
+        YaepTreeNode *node;
+        YaepSymbol *symb = rule->rhs[pos_j];
+        if (symb->is_terminal)
+        {
+            /* Terminal before dot:*/
+            state_set_k--; /* l*/
+            /* Because of error recovery input [state_set_k].symb may be not equal to symb.*/
+            //assert(ps->input[state_set_k].symb == symb);
+            if (parent_anode != NULL && rhs_offset >= 0)
+            {
+                /* We should generate and use the translation of the terminal.  Add reference to the current node.*/
+                if (symb == ps->run.grammar->term_error)
+                {
+                    // Oups error node.
+                    node = error_node;
+                    error_node->val.error.used = 1;
+                } else
+                if (!ps->run.grammar->one_parse_p && (node = term_node_array[state_set_k]) != NULL)
+                {
+                    // Reuse existing terminal node.
+                } else
+                {
+                    // Allocate terminal node.
+                    ps->n_parse_term_nodes++;
+                    node = ((YaepTreeNode*) (*ps->run.parse_alloc)(sizeof(YaepTreeNode)));
+                    node->type = YAEP_TERM;
+                    node->val.terminal.code = symb->u.terminal.code;
+                    if (rule->marks && rule->marks[pos_j])
+                    {
+                        // Copy the ixml mark from the rhs position on to the terminal.
+                        node->val.terminal.mark = rule->marks[pos_j];
+                    }
+                    // Copy any attr from input token to parsed terminal.
+                    node->val.terminal.attr = ps->input[state_set_k].attr;
+                    if (!ps->run.grammar->one_parse_p)
+                    {
+                        term_node_array[state_set_k] = node;
+                    }
+                }
+
+                YaepTreeNode **placement = NULL;
+                if (anode)
+                {
+                    placement = anode->val.anode.children + rhs_offset;
+                } else
+                {
+                    placement = parent_anode->val.anode.children + parent_rhs_offset;
+                }
+                place_translation(ps, placement, node);
+            }
+            if (pos_j != 0)
+            {
+                state->state_set_k = state_set_k;
+            }
+            continue;
+        }
+        /* Nonterminal before dot: */
+        set = ps->state_sets[state_set_k];
+        YaepStateSetCore *set_core = set->core;
+        YaepCoreSymbToPredComps *core_symb_to_predcomps = core_symb_to_predcomps_find(ps, set_core, symb);
+        //debug("ixml.pa.c=", "core core%d symb %s -> %p", set_core->id, symb->hr, core_symb_to_predcomps);
+        if (!core_symb_to_predcomps)
+            continue;
+
+        assert(core_symb_to_predcomps->completions.len != 0);
+        n_candidates = 0;
+        YaepParseTreeBuildState *orig_state = state;
+        if (!ps->run.grammar->one_parse_p)
+        {
+            VLO_NULLIFY(orig_states);
+        }
+        for (int i = 0; i < core_symb_to_predcomps->completions.len; i++)
+        {
+            int rule_index_in_core = core_symb_to_predcomps->completions.ids[i];
+            dotted_rule = set_core->dotted_rules[rule_index_in_core];
+            int dotted_rule_from_i;
+            if (rule_index_in_core < set_core->num_started_dotted_rules)
+            {
+                // The state_set_k is the tok_i for which the state set was created.
+                // Ie, it is the to_i inside the Earley item.
+                // Now subtract the matched length from this to_i to get the from_i
+                // which is the origin.
+                dotted_rule_from_i = state_set_k - set->matched_lengths[rule_index_in_core];
+            } else
+            if (rule_index_in_core < set_core->num_all_matched_lengths)
+            {
+                // Parent??
+                dotted_rule_from_i = state_set_k - set->matched_lengths[set_core->to_parent_rule_index[rule_index_in_core]];
+            } else
+            {
+                dotted_rule_from_i = state_set_k;
+            }
+
+            YaepStateSet *check_set = ps->state_sets[dotted_rule_from_i];
+            YaepStateSetCore *check_set_core = check_set->core;
+            YaepCoreSymbToPredComps *check_core_symb_to_predcomps = core_symb_to_predcomps_find(ps, check_set_core, symb);
+            assert(check_core_symb_to_predcomps != NULL);
+            bool found = false;
+            if (ps->run.debug)
+            {
+                MemBuffer *mb = new_membuffer();
+                membuffer_printf(mb, "trying (s%d,d%d) [%d-%d]  cspc%d check_cspc%d  ",
+                                 state_set_k,
+                                 dotted_rule->id,
+                                 dotted_rule_from_i,
+                                 state_set_k,
+                                 core_symb_to_predcomps->id,
+                                 check_core_symb_to_predcomps->id);
+                print_rule(mb, ps, dotted_rule->rule);
+                debug_mb("ixml.bt.info=", mb);
+                free_membuffer_and_free_content(mb);
+            }
+            for (int j = 0; j < check_core_symb_to_predcomps->predictions.len; j++)
+            {
+                int rule_index_in_check_core = check_core_symb_to_predcomps->predictions.ids[j];
+                YaepDottedRule *check_dotted_rule = check_set->core->dotted_rules[rule_index_in_check_core];
+                if (check_dotted_rule->rule != rule || check_dotted_rule->dot_j != pos_j)
+                {
+                    continue;
+                }
+                int check_dotted_rule_from_i = dotted_rule_from_i;
+                if (rule_index_in_check_core < check_set_core->num_all_matched_lengths)
+                {
+                    if (rule_index_in_check_core < check_set_core->num_started_dotted_rules)
+                    {
+                        check_dotted_rule_from_i = dotted_rule_from_i - check_set->matched_lengths[rule_index_in_check_core];
+                    } else
+                    {
+                        check_dotted_rule_from_i = (dotted_rule_from_i
+                                        - check_set->matched_lengths[check_set_core->to_parent_rule_index[rule_index_in_check_core]]);
+                    }
+                }
+                if (check_dotted_rule_from_i == from_i)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found)
+            {
+                continue;
+            }
+            if (n_candidates != 0)
+            {
+                // Oups, n_candidates is > 0 already, this means that a previous completion matched.
+                // We have more than one parse.
+                debug("ixml.bt.info=", "n_candidates=%d -> ambiguous=true", n_candidates);
+                *ambiguous_p = true;
+                if (ps->run.grammar->one_parse_p)
+                {
+                    break;
+                }
+            }
+            YaepRule *dotted_rule_rule = dotted_rule->rule;
+            if (n_candidates == 0)
+            {
+                orig_state->state_set_k = dotted_rule_from_i;
+            }
+            if (parent_anode != NULL && rhs_offset >= 0)
+            {
+                /* We should generate and use the translation of the nonterminal. */
+                YaepParseTreeBuildState *curr_state = orig_state;
+                anode = orig_state->anode;
+                /* We need translation of the rule. */
+                if (n_candidates != 0)
+                {
+                    assert(!ps->run.grammar->one_parse_p);
+                    if (n_candidates == 1)
+                    {
+                        VLO_EXPAND(orig_states, sizeof(YaepParseTreeBuildState*));
+                        ((YaepParseTreeBuildState**) VLO_BOUND(orig_states))[-1] = orig_state;
+                    }
+                    int j = VLO_LENGTH(orig_states) / sizeof(YaepParseTreeBuildState*) - 1;
+                    while (j >= 0)
+                    {
+                        if (((YaepParseTreeBuildState**) VLO_BEGIN(orig_states))[j]->state_set_k == dotted_rule_from_i)
+                        {
+                            break;
+                        }
+                        j--;
+                    }
+                    if (j >= 0)
+                    {
+                        /* [A -> x., n] & [A -> y., n]*/
+                        curr_state = ((YaepParseTreeBuildState**) VLO_BEGIN(orig_states))[j];
+                        anode = curr_state->anode;
+                    } else
+                    {
+                        /* [A -> x., n] & [A -> y., m] where n != m.*/
+                        /* It is different from the previous ones so add
+                         it to process.*/
+                        // Push a new state on the stack.
+                        state = parse_state_alloc(ps);
+                        VLO_EXPAND(stack, sizeof(YaepParseTreeBuildState*));
+                        ((YaepParseTreeBuildState**) VLO_BOUND(stack))[-1] = state;
+                        *state = *orig_state;
+                        state->state_set_k = dotted_rule_from_i;
+                        if (anode != NULL)
+                        {
+                            state->anode = copy_anode(ps, parent_anode->val.anode.children + parent_rhs_offset, anode, rule, rhs_offset);
+                        }
+                        VLO_EXPAND(orig_states, sizeof(YaepParseTreeBuildState*));
+                        ((YaepParseTreeBuildState**) VLO_BOUND(orig_states))[-1] = state;
+                        if (ps->run.debug)
+                        {
+                            MemBuffer *mb = new_membuffer();
+                            membuffer_printf(mb, "* (f%d,d%d) add1 modified dotted_rule=", dotted_rule_from_i, state->dotted_rule->id);
+                            print_rule_with_dot(mb, ps, state->rule, state->dot_j);
+                            membuffer_printf(mb, " state->from_i=%d", state->from_i);
+                            debug_mb("ixml.bt.c=", mb);
+                            free_membuffer_and_free_content(mb);
+                            assert(false);
+                        }
+                        curr_state = state;
+                        anode = state->anode;
+                    }
+                }
+                /* WOOT? if (n_candidates != 0)*/
+                if (dotted_rule_rule->anode != NULL)
+                {
+                    /* This rule creates abstract node. */
+                    // Push a new state on the stack.
+                    state = parse_state_alloc(ps);
+                    VLO_EXPAND(stack, sizeof(YaepParseTreeBuildState*));
+                    ((YaepParseTreeBuildState**) VLO_BOUND(stack))[-1] = state;
+                    state->rule = dotted_rule_rule;
+                    state->dotted_rule = dotted_rule;
+                    state->dot_j = dotted_rule->dot_j;
+                    state->from_i = dotted_rule_from_i;
+                    state->state_set_k = state_set_k;
+                    YaepParseTreeBuildState *table_state = NULL;
+                    _Bool new_p;
+                    if (!ps->run.grammar->one_parse_p)
+                    {
+                        table_state = parse_state_insert(ps, state, &new_p);
+                    }
+                    if (table_state == NULL || new_p)
+                    {
+                        /* Allocate abtract node. */
+                        ps->n_parse_abstract_nodes++;
+                        node = ((YaepTreeNode*) (*ps->run.parse_alloc)(sizeof(YaepTreeNode) + sizeof(YaepTreeNode*) * (dotted_rule_rule->trans_len + 1)));
+                        node->type = YAEP_ANODE;
+                        state->anode = node;
+                        if (table_state != NULL)
+                        {
+                            table_state->anode = node;
+                        }
+                        if (dotted_rule_rule->caller_anode == NULL)
+                        {
+                            dotted_rule_rule->caller_anode = ((char*) (*ps->run.parse_alloc)(strlen(dotted_rule_rule->anode) + 1));
+                            strcpy(dotted_rule_rule->caller_anode, dotted_rule_rule->anode);
+                        }
+                        node->val.anode.name = dotted_rule_rule->caller_anode;
+                        node->val.anode.cost = dotted_rule_rule->anode_cost;
+                        // IXML Copy the rule name -to the generated abstract node.
+                        node->val.anode.mark = dotted_rule_rule->mark;
+                        if (rule->marks && rule->marks[pos_j])
+                        {
+                            // But override the mark with the rhs mark!
+                            node->val.anode.mark = rule->marks[pos_j];
+                        }
+                        /////////
+                        node->val.anode.children = ((YaepTreeNode**) ((char*) node + sizeof(YaepTreeNode)));
+                        for (int k = 0; k <= dotted_rule_rule->trans_len; k++)
+                        {
+                            node->val.anode.children[k] = NULL;
+                        }
+                        if (anode == NULL)
+                        {
+                            state->parent_anode_state = curr_state->parent_anode_state;
+                            state->parent_rhs_offset = parent_rhs_offset;
+                        } else
+                        {
+                            state->parent_anode_state = curr_state;
+                            state->parent_rhs_offset = rhs_offset;
+                        }
+                        if (ps->run.debug)
+                        {
+                            MemBuffer *mb = new_membuffer();
+                            membuffer_printf(mb, "adding (d%d,%d-%d) ",
+                                             state->dotted_rule->id,
+                                             state->from_i, state->state_set_k);
+                            print_rule(mb, ps, dotted_rule->rule);
+                            debug_mb("ixml.bt.step=", mb);
+                            free_membuffer_and_free_content(mb);
+                        }
+                    } else
+                    {
+                        /* We allready have the translation.*/
+                        assert(!ps->run.grammar->one_parse_p);
+                        parse_state_free(ps, state);
+                        state = ((YaepParseTreeBuildState**) VLO_BOUND(stack))[-1];
+                        node = table_state->anode;
+                        assert(node != NULL);
+                        if (ps->run.debug)
+                        {
+                            MemBuffer *mb = new_membuffer();
+                            membuffer_printf(mb, "* found prev. translation: state_set_k = %d, dotted_rule = ", state_set_k);
+                            print_dotted_rule(mb, ps, -1, dotted_rule, -1, -1);
+                            membuffer_printf(mb, ", %d\n", dotted_rule_from_i);
+                            debug_mb("ixml.bt.info=", mb);
+                            free_membuffer_and_free_content(mb);
+                            // assert(false);
+                        }
+                    }
+                    YaepTreeNode **placement = NULL;
+                    if (anode)
+                    {
+                        placement = anode->val.anode.children + rhs_offset;
+                    } else
+                    {
+                        placement = parent_anode->val.anode.children + parent_rhs_offset;
+                    }
+                    place_translation(ps, placement, node);
+                } /* if (dotted_rule_rule->anode != NULL)*/else
+                if (dotted_rule->dot_j != 0)
+                {
+                    /* We should generate and use the translation of the
+                     nonterminal.  Add state to get a translation.*/
+                    // Push a new state on the stack
+                    state = parse_state_alloc(ps);
+                    VLO_EXPAND(stack, sizeof(YaepParseTreeBuildState*));
+                    ((YaepParseTreeBuildState**) VLO_BOUND(stack))[-1] = state;
+                    state->rule = dotted_rule_rule;
+                    state->dotted_rule = dotted_rule;
+                    state->dot_j = dotted_rule->dot_j;
+                    state->from_i = dotted_rule_from_i;
+                    state->state_set_k = state_set_k;
+                    state->parent_anode_state = (anode == NULL ? curr_state->parent_anode_state : curr_state);
+                    assert(state->parent_anode_state);
+                    state->parent_rhs_offset = anode == NULL ? parent_rhs_offset : rhs_offset;
+                    state->anode = NULL;
+                    if (ps->run.debug)
+                    {
+                        MemBuffer *mb = new_membuffer();
+                        membuffer_printf(mb, "* add3   state_set_k=%d   dotted_rule_from_i=%d    ", state_set_k, dotted_rule_from_i);
+                        print_rule(mb, ps, dotted_rule->rule);
+                        debug_mb("ixml.bt.info=", mb);
+                        free_membuffer_and_free_content(mb);
+                        //assert(false);
+                    }
+                } else
+                {
+                    /* Empty rule should dotted_ruleuce something not abtract
+                     node.  So place empty node.*/
+                    place_translation(ps, anode == NULL ? parent_anode->val.anode.children + parent_rhs_offset : anode->val.anode.children + rhs_offset,
+                                    empty_node);
+                    empty_node->val.nil.used = 1;
+                }
+            }
+            /* if (parent_anode != NULL && rhs_offset >= 0)*/                // Continue with next completion.
+            n_candidates++;
+        }
+        /* For all completions of the nonterminal.*//* We should have a parse.*/
+        assert(n_candidates != 0 && (!ps->run.grammar->one_parse_p || n_candidates == 1));
+    }
+    /* For all parser states.*/
+
+    VLO_DELETE(stack);
+
+    if (!ps->run.grammar->one_parse_p)
+    {
+        VLO_DELETE(orig_states);
+        yaep_free(ps->run.grammar->alloc, term_node_array);
+    }
+}
+
+/* The hash of the memory reference. */
+static unsigned reserv_mem_hash(hash_table_entry_t m)
+{
+    return (size_t)m;
+}
+
+/* The equity of the memory reference. */
+static bool reserv_mem_eq(hash_table_entry_t m1, hash_table_entry_t m2)
+{
+    return m1 == m2;
+}
+
+/* The following function sets up minimal cost for each abstract node.
+   The function returns minimal translation corresponding to NODE.
+   The function also collects references to memory which can be
+   freed. Remeber that the translation is DAG, altenatives form lists
+   (alt node may not refer for another alternative). */
+static YaepTreeNode *prune_to_minimal(YaepParseState *ps, YaepTreeNode *node, int *cost)
+{
+    YaepTreeNode*child,*alt,*next_alt,*result = NULL;
+    int i, min_cost = INT_MAX;
+
+    assert(node != NULL);
+    switch(node->type)
+    {
+    case YAEP_NIL:
+    case YAEP_ERROR:
+    case YAEP_TERM:
+        if (ps->run.parse_free != NULL)
+        {
+            VLO_ADD_MEMORY(ps->tnodes_vlo, &node, sizeof(node));
+        }
+       *cost = 0;
+        return node;
+    case YAEP_ANODE:
+        if (node->val.anode.cost >= 0)
+        {
+            if (ps->run.parse_free != NULL)
+            {
+                VLO_ADD_MEMORY(ps->tnodes_vlo, &node, sizeof(node));
+            }
+            for (i = 0; (child = node->val.anode.children[i]) != NULL; i++)
+            {
+                node->val.anode.children[i] = prune_to_minimal(ps, child, cost);
+                if (node->val.anode.children[i] != child)
+                {
+                    //fprintf(stderr, "PRUNEDDDDDDD\n");
+                }
+                node->val.anode.cost += *cost;
+            }
+           *cost = node->val.anode.cost;
+            node->val.anode.cost = -node->val.anode.cost - 1;        /* flag of visit*/
+        }
+        return node;
+    case YAEP_ALT:
+        for(alt = node; alt != NULL; alt = next_alt)
+        {
+            if (ps->run.parse_free != NULL)
+            {
+                VLO_ADD_MEMORY(ps->tnodes_vlo, &alt, sizeof(alt));
+            }
+            next_alt = alt->val.alt.next;
+            alt->val.alt.node = prune_to_minimal(ps, alt->val.alt.node, cost);
+            if (alt == node || min_cost > *cost)
+            {
+                if (ps->run.debug)
+                {
+                    fprintf(stderr, "FOUND smaller cost %d %s\n", *cost, alt->val.alt.node->val.anode.name);
+                }
+                min_cost = *cost;
+                alt->val.alt.next = NULL;
+                result = alt;
+            }
+            else if (min_cost ==*cost && !ps->run.grammar->one_parse_p)
+            {
+                alt->val.alt.next = result;
+                result = alt;
+            }
+        }
+       *cost = min_cost;
+        return(result->val.alt.next == NULL ? result->val.alt.node : result);
+    default:
+        assert(false);
+    }
+   *cost = 0;
+    return NULL;
+}
+
+/* The following function traverses the translation collecting
+   reference to memory which may not be freed.*/
+static void traverse_pruned_translation(YaepParseState *ps, YaepTreeNode *node)
+{
+    YaepTreeNode*child;
+    hash_table_entry_t*entry;
+    int i;
+
+next:
+    assert(node != NULL);
+    if (ps->run.parse_free != NULL && *(entry = find_hash_table_entry(ps->set_of_reserved_memory, node, true)) == NULL)
+    {
+       *entry = (hash_table_entry_t)node;
+    }
+    switch(node->type)
+    {
+    case YAEP_NIL:
+    case YAEP_ERROR:
+    case YAEP_TERM:
+        break;
+    case YAEP_ANODE:
+        if (ps->run.parse_free != NULL && *(entry = find_hash_table_entry(ps->set_of_reserved_memory,
+                                                                      node->val.anode.name,
+                                                                      true)) == NULL)
+        {
+            *entry =(hash_table_entry_t) node->val.anode.name;
+        }
+        for(i = 0;(child = node->val.anode.children[i]) != NULL; i++)
+        {
+            traverse_pruned_translation(ps, child);
+        }
+        // FIXME Is this assert needed? What is its purpose?
+        // assert(node->val.anode.cost < 0);
+        node->val.anode.cost = -node->val.anode.cost - 1;
+        break;
+    case YAEP_ALT:
+        traverse_pruned_translation(ps, node->val.alt.node);
+        if ((node = node->val.alt.next) != NULL)
+            goto next;
+        break;
+    default:
+        assert(false);
+    }
+
+    return;
+}
+
+/* The function finds and returns a minimal cost parse(s). */
+static YaepTreeNode *find_minimal_translation(YaepParseState *ps, YaepTreeNode *root)
+{
+    YaepTreeNode**node_ptr;
+    int cost;
+
+    if (ps->run.parse_free != NULL)
+    {
+        ps->set_of_reserved_memory = create_hash_table(ps->run.grammar->alloc, ps->input_len* 4,
+                                                       (hash_table_hash_function)reserv_mem_hash,
+                                                       (hash_table_eq_function)reserv_mem_eq);
+
+        VLO_CREATE(ps->tnodes_vlo, ps->run.grammar->alloc, ps->input_len* 4* sizeof(void*));
+    }
+    root = prune_to_minimal(ps, root, &cost);
+
+    traverse_pruned_translation(ps, root);
+
+    if (ps->run.parse_free != NULL)
+    {
+        for(node_ptr = (YaepTreeNode**)VLO_BEGIN(ps->tnodes_vlo);
+            node_ptr <(YaepTreeNode**)VLO_BOUND(ps->tnodes_vlo);
+            node_ptr++)
+        {
+            if (*find_hash_table_entry(ps->set_of_reserved_memory,*node_ptr, true) == NULL)
+            {
+                if ((*node_ptr)->type == YAEP_ANODE
+                    &&*find_hash_table_entry(ps->set_of_reserved_memory,
+                                             (*node_ptr)->val.anode.name,
+                                             true) == NULL)
+                {
+                    // (*ps->run.parse_free)((void*)(*node_ptr)->val.anode.name);
+                }
+                //(*ps->run.parse_free)(*node_ptr);
+            }
+        }
+        VLO_DELETE(ps->tnodes_vlo);
+        delete_hash_table(ps->set_of_reserved_memory);
+    }
+
+    return root;
+}
+
+YaepTreeNode *build_parse_tree(YaepParseState *ps, bool *ambiguous_p)
+{
+    yaep_debug(ps, "build_parse_tree()");
+
+    // Number of candiate trees found.
+    int n_candidates = 0;
+
+    // The result pointer points to the final parse tree.
+    YaepTreeNode *result;
+
+    ps->n_parse_term_nodes = ps->n_parse_abstract_nodes = ps->n_parse_alt_nodes = 0;
+
+    // Pick the final state set, where we completed the axiom $.
+    YaepStateSet *set = ps->state_sets[ps->state_set_k];
+    assert(ps->run.grammar->axiom != NULL);
+
+    /* We have only one start dotted_rule: "$ : <start symb> eof .". */
+    YaepDottedRule *dotted_rule = (set->core->dotted_rules != NULL ? set->core->dotted_rules[0] : NULL);
+
+    if (dotted_rule == NULL
+        || set->matched_lengths[0] != ps->state_set_k
+        || dotted_rule->rule->lhs != ps->run.grammar->axiom || dotted_rule->dot_j != dotted_rule->rule->rhs_len)
+    {
+        /* It is possible only if error recovery is switched off.
+           Because we always adds rule `axiom: error $eof'.*/
+        assert(!ps->run.grammar->error_recovery_p);
+        return NULL;
+    }
+    bool saved_one_parse_p = ps->run.grammar->one_parse_p;
+    if (ps->run.grammar->cost_p)
+    {
+        /* We need all parses to choose the minimal one. */
+        ps->run.grammar->one_parse_p = false;
+    }
+
+    parse_state_init(ps);
+
+    // The result tree starts empty.
+    result = NULL;
+
+    /* Create empty and error node:*/
+    YaepTreeNode *empty_node = ((YaepTreeNode*)(*ps->run.parse_alloc)(sizeof(YaepTreeNode)));
+    empty_node->type = YAEP_NIL;
+    empty_node->val.nil.used = 0;
+
+    YaepTreeNode *error_node = ((YaepTreeNode*)(*ps->run.parse_alloc)(sizeof(YaepTreeNode)));
+    error_node->type = YAEP_ERROR;
+    error_node->val.error.used = 0;
+
+    verbose("ixml=", "building tree");
+
+    loop_stack(&result, n_candidates, ps, empty_node, error_node, set, dotted_rule, ambiguous_p);
+
+    free_parse_state(ps);
+    ps->run.grammar->one_parse_p = saved_one_parse_p;
+    if (ps->run.grammar->cost_p && *ambiguous_p)
+    {
+        /* We can not build minimal tree during building parsing list
+           because we have not the translation yet. We can not make it
+           during parsing because the abstract nodes are created before
+           their children. */
+        result = find_minimal_translation(ps, result);
+    }
+    if (false)
+    {
+        fprintf(stderr, "(ixml) yaep parse tree: %p\n", result);
+        print_parse(ps, stderr, result);
+        fprintf(stderr, "\n");
+    }
+    if (false)
+    {
+        // Graphviz
+        fprintf(stderr, "digraph CFG {\n");
+        fprintf(stderr, "  node [shape=ellipse, fontsize=200];\n");
+        fprintf(stderr, "  ratio=fill;\n");
+        fprintf(stderr, "  ordering=out;\n");
+        fprintf(stderr, "  page = \"8.5, 11\"; // inches\n");
+        fprintf(stderr, "  size = \"7.5, 10\"; // inches\n\n");
+        print_parse(ps, stderr, result);
+        fprintf(stderr, "}\n");
+    }
+
+
+    /* Free empty and error node if they have not been used*/
+    if (ps->run.parse_free != NULL)
+    {
+        if (!empty_node->val.nil.used)
+        {
+            ps->run.parse_free(empty_node);
+        }
+        if (!error_node->val.error.used)
+        {
+            ps->run.parse_free(error_node);
+        }
+    }
+
+    assert(result != NULL && (!ps->run.grammar->one_parse_p || ps->n_parse_alt_nodes == 0));
+
+    return result;
+}
+
+/* Hash of translation visit node.*/
+unsigned trans_visit_node_hash(hash_table_entry_t n)
+{
+    return(size_t)((YaepTreeNodeVisit*) n)->node;
+}
+
+/* Equality of translation visit nodes.*/
+bool trans_visit_node_eq(hash_table_entry_t n1, hash_table_entry_t n2)
+{
+    return(((YaepTreeNodeVisit*) n1)->node == ((YaepTreeNodeVisit*) n2)->node);
+}
+
+/* The following function returns the positive order number of node with number NUM.*/
+int canon_node_id(int id)
+{
+    return (id < 0 ? -id-1 : id);
+}
+
+/* The following function checks presence translation visit node with
+   given NODE in the table and if it is not present in the table, the
+   function creates the translation visit node and inserts it into
+   the table.*/
+YaepTreeNodeVisit *visit_node(YaepParseState *ps, YaepTreeNode*node)
+{
+    YaepTreeNodeVisit trans_visit_node;
+    hash_table_entry_t*entry;
+
+    trans_visit_node.node = node;
+    entry = find_hash_table_entry(ps->map_node_to_visit,
+                                   &trans_visit_node, true);
+
+    if (*entry == NULL)
+    {
+        /* If it is the new node, we did not visit it yet.*/
+        trans_visit_node.num = -1 - ps->num_nodes_visits;
+        ps->num_nodes_visits++;
+        OS_TOP_ADD_MEMORY(ps->node_visits_os,
+                           &trans_visit_node, sizeof(trans_visit_node));
+       *entry =(hash_table_entry_t) OS_TOP_BEGIN(ps->node_visits_os);
+        OS_TOP_FINISH(ps->node_visits_os);
+    }
+    return(YaepTreeNodeVisit*)*entry;
+}
+
+#endif
+
+// PART C YAEP_PRINT_C ////////////////////////////////////////
+
+#ifdef YAEP_PRINT_MODULE
+
+void print_core(MemBuffer*mb, YaepStateSetCore *c)
+{
+    membuffer_printf(mb, "c%d{", c->id);
+
+    for (int i = 0; i < c->num_started_dotted_rules; ++i)
+    {
+        if (i > 0) membuffer_append_char(mb, ' ');
+
+        // num_started_dotted_rules;
+        YaepDottedRule *dotted_rule = c->dotted_rules[i];
+        membuffer_printf(mb, "d%d", dotted_rule->id);
+    }
+    membuffer_printf(mb, "}");
+}
+
+void print_coresymbvects(MemBuffer*mb, YaepParseState *ps, YaepCoreSymbToPredComps *v)
+{
+    membuffer_printf(mb, "coresymbvect %d %s preds: ", v->core->id, v->symb->hr);
+    for (int i = 0; i < v->predictions.len; ++i)
+    {
+        int dotted_rule_id = v->predictions.ids[i];
+        YaepDottedRule *dotted_rule = v->core->dotted_rules[dotted_rule_id];
+        membuffer_printf(mb, " (%d)%s", dotted_rule_id, dotted_rule->rule->lhs->hr);
+    }
+    membuffer_printf(mb, " comps:");
+    for (int i = 0; i < v->completions.len; ++i)
+    {
+        int dotted_rule_id = v->completions.ids[i];
+        YaepDottedRule *dotted_rule = v->core->dotted_rules[dotted_rule_id];
+        membuffer_printf(mb, " (%d)%s", dotted_rule_id, dotted_rule->rule->lhs->hr);
+    }
+}
+
+/* The following function prints RULE with its translation(if TRANS_P) to file F.*/
+void rule_print(MemBuffer *mb, YaepParseState *ps, YaepRule *rule, bool trans_p)
+{
+    int i;
+
+    if (rule->mark != 0
+        && rule->mark != ' '
+        && rule->mark != '-'
+        && rule->mark != '@'
+        && rule->mark != '^'
+        && rule->mark != '*')
+    {
+        membuffer_append(mb, "\n(yaep) internal error bad rule: ");
+        print_symbol(mb, rule->lhs, false);
+        debug_mb("ixml=", mb);
+        free_membuffer_and_free_content(mb);
+        assert(false);
+    }
+
+    char m = rule->mark;
+    if (m >= 32 && m < 127)
+    {
+        membuffer_append_char(mb, m);
+    }
+    print_symbol(mb, rule->lhs, false);
+    if (strcmp(rule->lhs->repr, rule->anode))
+    {
+        membuffer_append_char(mb, '(');
+        membuffer_append(mb, rule->anode);
+        membuffer_append_char(mb, ')');
+    }
+    membuffer_append(mb, " → ");
+    int cost = rule->anode_cost;
+    while (cost > 0)
+    {
+        membuffer_append_char(mb, '<');
+        cost--;
+    }
+    for (i = 0; i < rule->rhs_len; i++)
+    {
+        char m = rule->marks[i];
+        if (m >= 32 && m < 127)
+        {
+            membuffer_append_char(mb, m);
+        }
+        else
+        {
+            if (!m) membuffer_append(mb, "  ");
+            else    assert(false);
+        }
+        print_symbol(mb, rule->rhs[i], false);
+    }
+    /*
+      if (false && trans_p)
+      {
+      fprintf(f, "      | ");
+      if (rule->anode != NULL)
+      {
+      fprintf(f, "%s(", rule->anode);
+      }
+      for(i = 0; i < rule->trans_len; i++)
+      {
+      for(j = 0; j < rule->rhs_len; j++)
+      {
+      if (rule->order[j] == i)
+      {
+      fprintf(f, " %d:", j);
+      // TODO symbol_print(f, rule->rhs[j], false);
+      break;
+      }
+      }
+      if (j >= rule->rhs_len)
+      {
+      fprintf(f, " nil");
+      }
+      }
+      if (rule->anode != NULL)
+      {
+      fprintf(f, " )");
+      }
+    */
+}
+
+/* The following function prints RULE to file F with dot in position pos.
+   Pos == 0 means that the dot is all the way to the left in the starting position.
+   Pos == rhs_len means that the whole rule has been matched. */
+void print_rule_with_dot(MemBuffer *mb, YaepParseState *ps, YaepRule *rule, int dot_j)
+{
+    assert(dot_j >= 0 && dot_j <= rule->rhs_len);
+
+    print_symbol(mb, rule->lhs, false);
+    membuffer_append(mb, " → ");
+    for(int j = 0; j < rule->rhs_len; j++)
+    {
+        membuffer_append(mb, j == dot_j ? " · " : " ");
+        print_symbol(mb, rule->rhs[j], false);
+    }
+
+    /*
+    if (rule->rhs_len == dot_j && rule->rhs_len == 0)
+    {
+        membuffer_append(mb, " ε");
+        }*/
+}
+
+void print_rule(MemBuffer *mb, YaepParseState *ps, YaepRule *rule)
+{
+    int i;
+
+    print_symbol(mb, rule->lhs, false);
+    membuffer_append(mb, " → ");
+    for(i = 0; i < rule->rhs_len; i++)
+    {
+        membuffer_append_char(mb, ' ');
+        print_symbol(mb, rule->rhs[i], false);
+    }
+}
+
+/* The following function prints the dotted_rule.
+   Print the lookahead set if lookahead_p is true. */
+void print_dotted_rule(MemBuffer *mb,
+                       YaepParseState *ps,
+                       int tok_i, // aka state_set_k
+                       YaepDottedRule *dotted_rule,
+                       int matched_length,
+                       int parent_id)
+{
+    char buf[256];
+
+    int from = 0;
+    int to = 0;
+
+    assert(matched_length >= 0);
+
+    if (matched_length == 0)
+    {
+        from = tok_i;
+        to = tok_i;
+    }
+    else
+    {
+        from = 1+tok_i-matched_length;
+        to = 1+tok_i;
+    }
+
+    snprintf(buf, 256, "(d%d,%d-%d) ", dotted_rule->id, from, to);
+    membuffer_append(mb, buf);
+
+    if (matched_length == 0)
+    {
+        if (dotted_rule->rule->rhs_len == dotted_rule->dot_j)
+        {
+            snprintf(buf, 256, "full/%d ", ps->input_len);
+        }
+        else
+        {
+            snprintf(buf, 256, "none/%d ", ps->input_len);
+        }
+    }
+    else if (matched_length > 0)
+    {
+        if (dotted_rule->rule->rhs_len == dotted_rule->dot_j)
+        {
+            snprintf(buf, 256, "full/%d ", ps->input_len);
+        }
+        else
+        {
+            snprintf(buf, 256, "part/%d ", ps->input_len);
+        }
+    }
+
+    membuffer_append(mb, buf);
+
+    print_rule_with_dot(mb, ps, dotted_rule->rule, dotted_rule->dot_j);
+}
+
+/* The following function prints the dotted_rule.
+   Print the lookahead set if lookahead_p is true. */
+void print_dotted_rule_blocked(MemBuffer *mb,
+                               YaepParseState *ps,
+                               int tok_i, // aka state_set_k
+                               YaepDottedRule *dotted_rule,
+                               int matched_length,
+                               int parent_id)
+{
+    char buf[256];
+
+    int from = 0;
+    int to = 0;
+
+    assert(matched_length >= 0);
+
+    if (matched_length == 0)
+    {
+        from = tok_i;
+        to = tok_i;
+    }
+    else
+    {
+        from = 1+tok_i-matched_length;
+        to = 1+tok_i;
+    }
+
+    snprintf(buf, 256, "(d%d,%d-%d) ", dotted_rule->id, from, to);
+    membuffer_append(mb, buf);
+
+    snprintf(buf, 256, "block/%d ", ps->input_len);
+    membuffer_append(mb, buf);
+
+    print_rule_with_dot(mb, ps, dotted_rule->rule, dotted_rule->dot_j);
+}
+
+void print_matched_lenghts(MemBuffer *mb, YaepStateSet *s)
+{
+    for (int i = 0; i < s->core->num_started_dotted_rules; ++i)
+    {
+        if (i > 0) membuffer_append_char(mb, ' ');
+        membuffer_printf(mb, "%d(d%d)", s->matched_lengths[i], s->core->dotted_rules[i]->id);
+    }
+}
+
+/* The following recursive function prints NODE into file F and prints
+   all its children(if debug_level < 0 output format is for graphviz).*/
+void print_yaep_node(YaepParseState *ps, FILE *f, YaepTreeNode *node)
+{
+    YaepTreeNodeVisit*trans_visit_node;
+    YaepTreeNode*child;
+    int i;
+
+    assert(node != NULL);
+    trans_visit_node = visit_node(ps, node);
+    if (trans_visit_node->num >= 0)
+    {
+        return;
+    }
+    trans_visit_node->num = -trans_visit_node->num - 1;
+    if (ps->run.debug) fprintf(f, "%7d: ", trans_visit_node->num);
+    switch(node->type)
+    {
+    case YAEP_NIL:
+        if (ps->run.debug)
+            fprintf(f, "EMPTY\n");
+        break;
+    case YAEP_ERROR:
+        if (ps->run.debug > 0)
+            fprintf(f, "ERROR\n");
+        break;
+    case YAEP_TERM:
+        if (ps->run.debug)
+            fprintf(f, "TERMINAL: code=%d, repr=%s, mark=%d %c\n", node->val.terminal.code,
+                    symb_find_by_code(ps, node->val.terminal.code)->repr, node->val.terminal.mark, node->val.terminal.mark>32?node->val.terminal.mark:' ');
+        break;
+    case YAEP_ANODE:
+        if (ps->run.debug)
+        {
+            fprintf(f, "ABSTRACT: %c%s(", node->val.anode.mark?node->val.anode.mark:' ', node->val.anode.name);
+            for(i = 0;(child = node->val.anode.children[i]) != NULL; i++)
+            {
+                fprintf(f, " %d", canon_node_id(visit_node(ps, child)->num));
+            }
+            fprintf(f, ")\n");
+        }
+        else
+        {
+            for(i = 0;(child = node->val.anode.children[i]) != NULL; i++)
+            {
+                fprintf(f, "  \"%d: %s\" -> \"%d: ", trans_visit_node->num,
+                         node->val.anode.name,
+                        canon_node_id(visit_node(ps, child)->num));
+                switch(child->type)
+                {
+                case YAEP_NIL:
+                    fprintf(f, "EMPTY");
+                    break;
+                case YAEP_ERROR:
+                    fprintf(f, "ERROR");
+                    break;
+                case YAEP_TERM:
+                    fprintf(f, "%s",
+                            symb_find_by_code(ps, child->val.terminal.code)->repr);
+                    break;
+                case YAEP_ANODE:
+                    fprintf(f, "%s", child->val.anode.name);
+                    break;
+                case YAEP_ALT:
+                    fprintf(f, "ALT");
+                    break;
+                default:
+                    assert(false);
+                }
+                fprintf(f, "\";\n");
+            }
+        }
+        for (i = 0;(child = node->val.anode.children[i]) != NULL; i++)
+        {
+            print_yaep_node(ps, f, child);
+        }
+        break;
+    case YAEP_ALT:
+        if (ps->run.debug)
+        {
+            fprintf(f, "ALTERNATIVE: node=%d, next=",
+                    canon_node_id(visit_node(ps, node->val.alt.node)->num));
+            if (node->val.alt.next != NULL)
+                fprintf(f, "%d\n",
+                        canon_node_id(visit_node(ps, node->val.alt.next)->num));
+            else
+                fprintf(f, "nil\n");
+        }
+        else
+        {
+            fprintf(f, "  \"%d: ALT\" -> \"%d: ", trans_visit_node->num,
+                    canon_node_id(visit_node(ps, node->val.alt.node)->num));
+            switch(node->val.alt.node->type)
+            {
+            case YAEP_NIL:
+                fprintf(f, "EMPTY");
+                break;
+            case YAEP_ERROR:
+                fprintf(f, "ERROR");
+                break;
+            case YAEP_TERM:
+                fprintf(f, "%s",
+                        symb_find_by_code(ps, node->val.alt.node->val.terminal.code)->
+                         repr);
+                break;
+            case YAEP_ANODE:
+                fprintf(f, "%s", node->val.alt.node->val.anode.name);
+                break;
+            case YAEP_ALT:
+                fprintf(f, "ALT");
+                break;
+            default:
+                assert(false);
+            }
+            fprintf(f, "\";\n");
+            if (node->val.alt.next != NULL)
+            {
+                fprintf(f, "  \"%d: ALT\" -> \"%d: ALT\";\n",
+                        trans_visit_node->num,
+                        canon_node_id(visit_node(ps, node->val.alt.next)->num));
+            }
+        }
+        print_yaep_node(ps, f, node->val.alt.node);
+        if (node->val.alt.next != NULL)
+        {
+            print_yaep_node(ps, f, node->val.alt.next);
+        }
+        break;
+    default:
+        assert(false);
+    }
+}
+
+/* The following function prints parse tree with ROOT.*/
+void print_parse(YaepParseState *ps, FILE* f, YaepTreeNode*root)
+{
+    ps->map_node_to_visit = create_hash_table(ps->run.grammar->alloc,
+                                              ps->input_len* 2,
+                                              trans_visit_node_hash,
+                                              trans_visit_node_eq);
+
+    ps->num_nodes_visits = 0;
+    OS_CREATE(ps->node_visits_os, ps->run.grammar->alloc, 0);
+    print_yaep_node(ps, f, root);
+    OS_DELETE(ps->node_visits_os);
+    delete_hash_table(ps->map_node_to_visit);
+}
+
+/* The following function prints SET to file F.  If NOT_YET_STARTED_P is true
+   then print all dotted_rules.  The dotted_rules are printed with the
+   lookahead set if LOOKAHEAD_P.  SET_DIST is used to print absolute
+   matched_lengths of not-yet-started dotted_rules. */
+void print_state_set(MemBuffer *mb,
+                     YaepParseState *ps,
+                     YaepStateSet *state_set,
+                     int from_i)
+{
+    StateVars vars;
+    fetch_state_vars(ps, state_set, &vars);
+
+    membuffer_printf(mb, "@%d summary s%dc%d", ps->tok_i, vars.state_id, vars.core_id);
+
+    int dotted_rule_id = 0;
+    for(; dotted_rule_id < vars.num_dotted_rules; dotted_rule_id++)
+    {
+        int matched_length = find_matched_length(ps, state_set, &vars, dotted_rule_id);
+        membuffer_append(mb, "\n");
+        print_dotted_rule(mb, ps, from_i, vars.dotted_rules[dotted_rule_id], matched_length, -1);
+    }
+}
+
+/* The following function prints symbol SYMB to file F.  Terminal is
+   printed with its code if CODE_P. */
+void print_symbol(MemBuffer *mb, YaepSymbol *symb, bool code_p)
+{
+    if (symb->is_terminal)
+    {
+        membuffer_append(mb, symb->hr);
+        return;
+    }
+    membuffer_append(mb, symb->repr);
+    if (code_p && symb->is_terminal)
+    {
+        membuffer_printf(mb, "(%d)", symb->u.terminal.code);
+    }
+}
+
+void print_terminal_bitset(MemBuffer *mb, YaepParseState *ps, terminal_bitset_t *set)
+{
+    bool first = true;
+    int num_set = 0;
+    int num_terminals = ps->run.grammar->symbs_ptr->num_terminals;
+    for (int i = 0; i < num_terminals; i++) num_set += terminal_bitset_test(ps, set, i);
+
+    if (num_set > num_terminals/2)
+    {
+        // Print the negation
+        membuffer_append(mb, "~[");
+        for (int i = 0; i < num_terminals; i++)
+        {
+            if (!terminal_bitset_test(ps, set, i))
+            {
+                if (!first) membuffer_append(mb, " "); else first = false;
+                print_symbol(mb, term_get(ps, i), false);
+            }
+        }
+        membuffer_append_char(mb, ']');
+    }
+
+    membuffer_append_char(mb, '[');
+    for (int i = 0; i < num_terminals; i++)
+    {
+        if (terminal_bitset_test(ps, set, i))
+        {
+            if (!first) membuffer_append(mb, " "); else first = false;
+            print_symbol(mb, term_get(ps, i), false);
+        }
+    }
+    membuffer_append_char(mb, ']');
+}
+
+#endif
+
+// PART C YAEP_C ////////////////////////////////////////
+
+#ifdef YAEP_MODULE
+
+// Declarations ///////////////////////////////////////////////////
+
+static bool blocked_by_lookahead(YaepParseState *ps, YaepDottedRule *dotted_rule, YaepSymbol *symb, int n, const char *info);
+static bool core_has_not_rules(YaepStateSetCore *core);
+static void check_predicted_dotted_rules(YaepParseState *ps, YaepStateSet *set, YaepVect *predictions, int lookahead_term_id, int local_lookahead_level);
+static void check_leading_dotted_rules(YaepParseState *ps, YaepStateSet *set, int lookahead_term_id, int local_lookahead_level);
+static bool has_lookahead(YaepParseState *ps, YaepSymbol *symb, int n);
+static int default_read_token(YaepParseRun *ps, void **attr);
+static void error_recovery(YaepParseState *ps, int *start, int *stop);
+static void error_recovery_init(YaepParseState *ps);
+static void free_error_recovery(YaepParseState *ps);
+static size_t memusage(YaepParseState *ps);
+static void read_input(YaepParseState *ps);
+static void set_add_dotted_rule_with_matched_length(YaepParseState *ps, YaepDottedRule *dotted_rule, int matched_length, const char *why);
+static void set_add_dotted_rule_no_match_yet(YaepParseState *ps, YaepDottedRule *dotted_rule, const char *why);
+static void set_add_dotted_rule_with_parent(YaepParseState *ps, YaepDottedRule *dotted_rule, int parent_dotted_rule_id, const char *why);
+static bool convert_leading_dotted_rules_into_new_set(YaepParseState *ps);
+static void prepare_for_leading_dotted_rules(YaepParseState *ps);
+static void verbose_stats(YaepParseState *ps);
+static void yaep_error(YaepParseState *ps, int code, const char*format, ...);
+
+// Implementations ////////////////////////////////////////////////////////////////////
 
 /* Initialize work with rules and returns pointer to rules storage. */
 static YaepRuleStorage *rulestorage_create(YaepGrammar *grammar)
@@ -20609,13 +22027,14 @@ static YaepRule *rule_new_start(YaepParseState *ps, YaepSymbol *lhs, const char 
     YaepRule *rule;
     YaepSymbol *empty;
 
-    assert(!lhs->terminal_p);
+    assert(!lhs->is_terminal);
 
     OS_TOP_EXPAND(ps->run.grammar->rulestorage_ptr->rules_os, sizeof(YaepRule));
     rule =(YaepRule*) OS_TOP_BEGIN(ps->run.grammar->rulestorage_ptr->rules_os);
     OS_TOP_FINISH(ps->run.grammar->rulestorage_ptr->rules_os);
     rule->lhs = lhs;
     rule->mark = 0;
+    rule->contains_not_operator = false;
     if (anode == NULL)
     {
         rule->anode = NULL;
@@ -20657,13 +22076,15 @@ static YaepRule *rule_new_start(YaepParseState *ps, YaepSymbol *lhs, const char 
 /* Add SYMB at the end of current rule rhs. */
 static void rule_new_symb_add(YaepParseState *ps, YaepSymbol *symb)
 {
-    YaepSymbol *empty;
+    YaepSymbol *ignore = NULL;
 
-    empty = NULL;
-    OS_TOP_ADD_MEMORY(ps->run.grammar->rulestorage_ptr->rules_os, &empty, sizeof(YaepSymbol*));
-    ps->run.grammar->rulestorage_ptr->current_rule->rhs = (YaepSymbol**)OS_TOP_BEGIN(ps->run.grammar->rulestorage_ptr->rules_os);
-    ps->run.grammar->rulestorage_ptr->current_rule->rhs[ps->run.grammar->rulestorage_ptr->current_rule->rhs_len] = symb;
-    ps->run.grammar->rulestorage_ptr->current_rule->rhs_len++;
+    OS_TOP_ADD_MEMORY(ps->run.grammar->rulestorage_ptr->rules_os, &ignore, sizeof(YaepSymbol*));
+
+    YaepRule *r = ps->run.grammar->rulestorage_ptr->current_rule;
+    r->rhs = (YaepSymbol**)OS_TOP_BEGIN(ps->run.grammar->rulestorage_ptr->rules_os);
+    r->rhs[ps->run.grammar->rulestorage_ptr->current_rule->rhs_len] = symb;
+    r->rhs_len++;
+    r->contains_not_operator |= symb->is_not_operator;
     ps->run.grammar->rulestorage_ptr->n_rhs_lens++;
 }
 
@@ -20686,6 +22107,11 @@ static void rule_new_stop(YaepParseState *ps)
     ps->run.grammar->rulestorage_ptr->current_rule->marks = (char*)OS_TOP_BEGIN(ps->run.grammar->rulestorage_ptr->rules_os);
     memset(ps->run.grammar->rulestorage_ptr->current_rule->marks, 0, ps->run.grammar->rulestorage_ptr->current_rule->rhs_len* sizeof(char));
     OS_TOP_FINISH(ps->run.grammar->rulestorage_ptr->rules_os);
+
+    /*
+    if (ps->run.grammar->rulestorage_ptr->current_rule->contains_not_operator)
+        fprintf(stderr, "NOT inside %s\n", ps->run.grammar->rulestorage_ptr->current_rule->lhs->hr);
+    */
 }
 
 /* The following function frees memory for rules.*/
@@ -20734,9 +22160,9 @@ static void free_input(YaepParseState *ps)
     VLO_DELETE(ps->input_vlo);
 }
 
-static void create_dotted_rules(YaepParseState *ps)
+static void init_dotted_rules(YaepParseState *ps)
 {
-    ps->num_all_dotted_rules= 0;
+    ps->num_all_dotted_rules = 0;
     OS_CREATE(ps->dotted_rules_os, ps->run.grammar->alloc, 0);
     VLO_CREATE(ps->dotted_rules_table_vlo, ps->run.grammar->alloc, 4096);
     ps->dotted_rules_table = (YaepDottedRule***)VLO_BEGIN(ps->dotted_rules_table_vlo);
@@ -20745,9 +22171,10 @@ static void create_dotted_rules(YaepParseState *ps)
 /* The following function sets up lookahead of dotted_rule SIT.  The
    function returns true if the dotted_rule tail may derive empty
    string.*/
-static bool dotted_rule_set_lookahead(YaepParseState *ps, YaepDottedRule *dotted_rule)
+static bool dotted_rule_calculate_lookahead(YaepParseState *ps, YaepDottedRule *dotted_rule)
 {
     YaepSymbol *symb, **symb_ptr;
+    bool found_not = false;
 
     if (ps->run.grammar->lookahead_level == 0)
     {
@@ -20755,36 +22182,45 @@ static bool dotted_rule_set_lookahead(YaepParseState *ps, YaepDottedRule *dotted
     }
     else
     {
-        dotted_rule->lookahead = terminal_bitset_create(ps, ps->run.grammar->symbs_ptr->num_terminals);
-        terminal_bitset_clear(dotted_rule->lookahead, ps->run.grammar->symbs_ptr->num_terminals);
+        dotted_rule->lookahead = terminal_bitset_create(ps);
+        terminal_bitset_clear(ps, dotted_rule->lookahead);
     }
+
+    if (dotted_rule->rule->lhs->is_not_operator) return false;
+
+    // Point to the first symbol after the dot.
     symb_ptr = &dotted_rule->rule->rhs[dotted_rule->dot_j];
-    while ((symb =*symb_ptr) != NULL)
+    while ((symb = *symb_ptr) != NULL)
     {
         if (ps->run.grammar->lookahead_level != 0)
-	{
-            if (symb->terminal_p)
+        {
+            if (symb->is_terminal)
             {
-                terminal_bitset_up(dotted_rule->lookahead, symb->u.terminal.term_id, ps->run.grammar->symbs_ptr->num_terminals);
+                terminal_bitset_up(ps, dotted_rule->lookahead, symb->u.terminal.term_id);
             }
             else
             {
-                terminal_bitset_or(dotted_rule->lookahead, symb->u.nonterminal.first, ps->run.grammar->symbs_ptr->num_terminals);
+                terminal_bitset_or(ps, dotted_rule->lookahead, symb->u.nonterminal.first);
             }
-	}
-        if (!symb->empty_p) break;
+        }
+        // Stop collecting lookahead if non-empty rule and its not a not-rule.
+        if (!symb->empty_p && !symb->is_not_operator) break;
+        if (symb->is_not_operator) found_not = true;
         symb_ptr++;
     }
+
     if (symb == NULL)
     {
+        // We reached the end of the tail and all were potentially empty.
         if (ps->run.grammar->lookahead_level == 1)
         {
-            terminal_bitset_or(dotted_rule->lookahead, dotted_rule->rule->lhs->u.nonterminal.follow, ps->run.grammar->symbs_ptr->num_terminals);
+            terminal_bitset_or(ps, dotted_rule->lookahead, dotted_rule->rule->lhs->u.nonterminal.follow);
         }
         else if (ps->run.grammar->lookahead_level != 0)
         {
-            terminal_bitset_or(dotted_rule->lookahead, terminal_bitset_from_table(ps, dotted_rule->context), ps->run.grammar->symbs_ptr->num_terminals);
+            terminal_bitset_or(ps, dotted_rule->lookahead, terminal_bitset_from_table(ps, dotted_rule->dyn_lookahead_context));
         }
+        if (found_not) return false;
         return true;
     }
     return false;
@@ -20793,21 +22229,21 @@ static bool dotted_rule_set_lookahead(YaepParseState *ps, YaepDottedRule *dotted
 /* The following function returns dotted_rules with given
    characteristics.  Remember that dotted_rules are stored in one
    exemplar. */
-static YaepDottedRule *create_dotted_rule(YaepParseState *ps, YaepRule *rule, int dot_j, int context)
+static YaepDottedRule *create_dotted_rule(YaepParseState *ps, YaepRule *rule, int dot_j, int dyn_lookahead_context)
 {
     YaepDottedRule *dotted_rule;
-    YaepDottedRule ***context_dotted_rules_table_ptr;
+    YaepDottedRule ***dyn_lookahead_context_dotted_rules_table_ptr;
 
-    assert(context >= 0);
-    context_dotted_rules_table_ptr = ps->dotted_rules_table + context;
+    assert(dyn_lookahead_context >= 0);
+    dyn_lookahead_context_dotted_rules_table_ptr = ps->dotted_rules_table + dyn_lookahead_context;
 
-    if ((char*) context_dotted_rules_table_ptr >= (char*) VLO_BOUND(ps->dotted_rules_table_vlo))
+    if ((char*) dyn_lookahead_context_dotted_rules_table_ptr >= (char*) VLO_BOUND(ps->dotted_rules_table_vlo))
     {
         YaepDottedRule***bound,***ptr;
         int i, diff;
 
-        assert((ps->run.grammar->lookahead_level <= 1 && context == 0) || (ps->run.grammar->lookahead_level > 1 && context >= 0));
-        diff = (char*) context_dotted_rules_table_ptr -(char*) VLO_BOUND(ps->dotted_rules_table_vlo);
+        assert((ps->run.grammar->lookahead_level <= 1 && dyn_lookahead_context == 0) || (ps->run.grammar->lookahead_level > 1 && dyn_lookahead_context >= 0));
+        diff = (char*) dyn_lookahead_context_dotted_rules_table_ptr -(char*) VLO_BOUND(ps->dotted_rules_table_vlo);
         diff += sizeof(YaepDottedRule**);
         if (ps->run.grammar->lookahead_level > 1 && diff == sizeof(YaepDottedRule**))
         {
@@ -20816,16 +22252,16 @@ static YaepDottedRule *create_dotted_rule(YaepParseState *ps, YaepRule *rule, in
         VLO_EXPAND(ps->dotted_rules_table_vlo, diff);
         ps->dotted_rules_table =(YaepDottedRule***) VLO_BEGIN(ps->dotted_rules_table_vlo);
         bound =(YaepDottedRule***) VLO_BOUND(ps->dotted_rules_table_vlo);
-        context_dotted_rules_table_ptr = ps->dotted_rules_table + context;
+        dyn_lookahead_context_dotted_rules_table_ptr = ps->dotted_rules_table + dyn_lookahead_context;
         ptr = bound - diff / sizeof(YaepDottedRule**);
 
-        while(ptr < bound)
-	{
+        while (ptr < bound)
+        {
             OS_TOP_EXPAND(ps->dotted_rules_os,
                           (ps->run.grammar->rulestorage_ptr->n_rhs_lens + ps->run.grammar->rulestorage_ptr->num_rules)
                           *sizeof(YaepDottedRule*));
 
-           *ptr = (YaepDottedRule**)OS_TOP_BEGIN(ps->dotted_rules_os);
+            *ptr = (YaepDottedRule**)OS_TOP_BEGIN(ps->dotted_rules_os);
             OS_TOP_FINISH(ps->dotted_rules_os);
 
             for(i = 0; i < ps->run.grammar->rulestorage_ptr->n_rhs_lens + ps->run.grammar->rulestorage_ptr->num_rules; i++)
@@ -20833,9 +22269,10 @@ static YaepDottedRule *create_dotted_rule(YaepParseState *ps, YaepRule *rule, in
                 (*ptr)[i] = NULL;
             }
             ptr++;
-	}
+        }
     }
-    if ((dotted_rule = (*context_dotted_rules_table_ptr)[rule->rule_start_offset + dot_j]) != NULL)
+
+    if ((dotted_rule = (*dyn_lookahead_context_dotted_rules_table_ptr)[rule->rule_start_offset + dot_j]) != NULL)
     {
         return dotted_rule;
     }
@@ -20846,16 +22283,12 @@ static YaepDottedRule *create_dotted_rule(YaepParseState *ps, YaepRule *rule, in
     dotted_rule->rule = rule;
     dotted_rule->dot_j = dot_j;
     dotted_rule->id = ps->num_all_dotted_rules;
-    dotted_rule->context = context;
-    dotted_rule->empty_tail_p = dotted_rule_set_lookahead(ps, dotted_rule);
-    (*context_dotted_rules_table_ptr)[rule->rule_start_offset + dot_j] = dotted_rule;
+    dotted_rule->dyn_lookahead_context = dyn_lookahead_context;
+    dotted_rule->empty_tail_p = dotted_rule_calculate_lookahead(ps, dotted_rule);
 
-    if (ps->run.trace)
-    {
-        TRACEE_F(ps);
-        print_dotted_rule(ps, stderr, "", "\n", dotted_rule, ps->run.debug, -1);
-    }
+    (*dyn_lookahead_context_dotted_rules_table_ptr)[rule->rule_start_offset + dot_j] = dotted_rule;
 
+    assert(dotted_rule->lookahead);
     return dotted_rule;
 }
 
@@ -20875,25 +22308,22 @@ static unsigned dotted_rules_hash(int num_dotted_rules, YaepDottedRule **dotted_
     return result;
 }
 
-/* Finalize work with dotted_rules. */
 static void free_dotted_rules(YaepParseState *ps)
 {
     VLO_DELETE(ps->dotted_rules_table_vlo);
     OS_DELETE(ps->dotted_rules_os);
 }
 
-/* Hash of set core. */
-static unsigned set_core_hash(hash_table_entry_t s)
+static unsigned stateset_core_hash(YaepStateSet* s)
 {
-    return ((YaepStateSet*)s)->core->hash;
+    return s->core->hash;
 }
 
-/* Equality of set cores. */
-static bool set_core_eq(hash_table_entry_t s1, hash_table_entry_t s2)
+static bool stateset_core_eq(YaepStateSet *s1, YaepStateSet *s2)
 {
-    YaepStateSetCore*set_core1 = ((YaepStateSet*) s1)->core;
-    YaepStateSetCore*set_core2 = ((YaepStateSet*) s2)->core;
     YaepDottedRule **dotted_rule_ptr1, **dotted_rule_ptr2, **dotted_rule_bound1;
+    YaepStateSetCore*set_core1 = s1->core;
+    YaepStateSetCore*set_core2 = s2->core;
 
     if (set_core1->num_started_dotted_rules != set_core2->num_started_dotted_rules)
     {
@@ -20912,22 +22342,19 @@ static bool set_core_eq(hash_table_entry_t s1, hash_table_entry_t s2)
     return true;
 }
 
-/* Hash of set matched_lengths. */
-static unsigned matched_lengths_hash(hash_table_entry_t s)
+static unsigned matched_lengths_hash(YaepStateSet *s)
 {
-    return((YaepStateSet*) s)->matched_lengths_hash;
+    return s->matched_lengths_hash;
 }
 
 /* Compare all the matched_lengths stored in the two state sets. */
-static bool matched_lengths_eq(hash_table_entry_t s1, hash_table_entry_t s2)
+static bool matched_lengths_eq(YaepStateSet *s1, YaepStateSet *s2)
 {
-    YaepStateSet *st1 = (YaepStateSet*)s1;
-    YaepStateSet *st2 = (YaepStateSet*)s2;
-    int *i = st1->matched_lengths;
-    int *j = st2->matched_lengths;
-    int num_matched_lengths = st1->core->num_started_dotted_rules;
+    int *i = s1->matched_lengths;
+    int *j = s2->matched_lengths;
+    int num_matched_lengths = s1->core->num_started_dotted_rules;
 
-    if (num_matched_lengths != st2->core->num_started_dotted_rules)
+    if (num_matched_lengths != s2->core->num_started_dotted_rules)
     {
         return false;
     }
@@ -20943,42 +22370,38 @@ static bool matched_lengths_eq(hash_table_entry_t s1, hash_table_entry_t s2)
     return true;
 }
 
-/* Hash of set core and matched_lengths. */
-static unsigned set_core_matched_lengths_hash(hash_table_entry_t s)
+static unsigned stateset_core_matched_lengths_hash(YaepStateSet *s)
 {
-    return set_core_hash(s)* hash_shift + matched_lengths_hash(s);
+    return stateset_core_hash(s) * hash_shift + matched_lengths_hash(s);
 }
 
-/* Equality of set cores and matched_lengths. */
-static bool set_core_matched_lengths_eq(hash_table_entry_t s1, hash_table_entry_t s2)
+static bool stateset_core_matched_lengths_eq(YaepStateSet *s1, YaepStateSet *s2)
 {
-    YaepStateSetCore *set_core1 = ((YaepStateSet*)s1)->core;
-    YaepStateSetCore *set_core2 = ((YaepStateSet*)s2)->core;
-    int*matched_lengths1 = ((YaepStateSet*)s1)->matched_lengths;
-    int*matched_lengths2 = ((YaepStateSet*)s2)->matched_lengths;
+    YaepStateSetCore *set_core1 = s1->core;
+    YaepStateSetCore *set_core2 = s2->core;
+    int*matched_lengths1 = s1->matched_lengths;
+    int*matched_lengths2 = s2->matched_lengths;
 
     return set_core1 == set_core2 && matched_lengths1 == matched_lengths2;
 }
 
-/* Hash of triple(set, term, lookahead). */
-static unsigned core_term_lookahead_hash(hash_table_entry_t s)
+static unsigned stateset_term_lookahead_hash(YaepStateSetTermLookAhead *s)
 {
-    YaepStateSet *set = ((YaepStateSetTermLookAhead*)s)->set;
-    YaepSymbol *term = ((YaepStateSetTermLookAhead*)s)->term;
-    int lookahead = ((YaepStateSetTermLookAhead*)s)->lookahead;
+    YaepStateSet *set = s->set;
+    YaepSymbol *term = s->term;
+    int lookahead_term = s->lookahead_term;
 
-    return ((set_core_matched_lengths_hash(set)* hash_shift + term->u.terminal.term_id)* hash_shift + lookahead);
+    return ((stateset_core_matched_lengths_hash(set)* hash_shift + term->u.terminal.term_id)* hash_shift + lookahead_term);
 }
 
-/* Equality of tripes(set, term, lookahead).*/
-static bool core_term_lookahead_eq(hash_table_entry_t s1, hash_table_entry_t s2)
+static bool stateset_term_lookahead_eq(YaepStateSetTermLookAhead *s1, YaepStateSetTermLookAhead *s2)
 {
-    YaepStateSet *set1 =((YaepStateSetTermLookAhead*)s1)->set;
-    YaepStateSet *set2 =((YaepStateSetTermLookAhead*)s2)->set;
-    YaepSymbol *term1 =((YaepStateSetTermLookAhead*)s1)->term;
-    YaepSymbol *term2 =((YaepStateSetTermLookAhead*)s2)->term;
-    int lookahead1 =((YaepStateSetTermLookAhead*)s1)->lookahead;
-    int lookahead2 =((YaepStateSetTermLookAhead*)s2)->lookahead;
+    YaepStateSet *set1 = s1->set;
+    YaepStateSet *set2 = s2->set;
+    YaepSymbol *term1 = s1->term;
+    YaepSymbol *term2 = s2->term;
+    int lookahead1 = s1->lookahead_term;
+    int lookahead2 = s2->lookahead_term;
 
     return set1 == set2 && term1 == term2 && lookahead1 == lookahead2;
 }
@@ -21070,66 +22493,182 @@ static void set_init(YaepParseState *ps, int n_input)
     OS_CREATE(ps->set_parent_dotted_rule_ids_os, ps->run.grammar->alloc, 2048);
     OS_CREATE(ps->set_matched_lengths_os, ps->run.grammar->alloc, 2048);
     OS_CREATE(ps->sets_os, ps->run.grammar->alloc, 0);
-    OS_CREATE(ps->triplet_core_term_lookahead_os, ps->run.grammar->alloc, 0);
-    ps->set_of_cores = create_hash_table(ps->run.grammar->alloc, 2000, set_core_hash, set_core_eq);
-    ps->set_of_matched_lengthses = create_hash_table(ps->run.grammar->alloc, n < 20000 ? 20000 : n, matched_lengths_hash, matched_lengths_eq);
-    ps->set_of_tuples_core_matched_lengths = create_hash_table(ps->run.grammar->alloc, n < 20000 ? 20000 : n,
-                                set_core_matched_lengths_hash, set_core_matched_lengths_eq);
-    ps->set_of_triplets_core_term_lookahead = create_hash_table(ps->run.grammar->alloc, n < 30000 ? 30000 : n,
-                                               core_term_lookahead_hash, core_term_lookahead_eq);
+    OS_CREATE(ps->set_term_lookahead_os, ps->run.grammar->alloc, 0);
+
+    ps->cache_stateset_cores = create_hash_table(ps->run.grammar->alloc, 2000,
+                                                 (hash_table_hash_function)stateset_core_hash,
+                                                 (hash_table_eq_function)stateset_core_eq);
+
+    ps->cache_stateset_matched_lengths = create_hash_table(ps->run.grammar->alloc, n < 20000 ? 20000 : n,
+                                                           (hash_table_hash_function)matched_lengths_hash,
+                                                           (hash_table_eq_function)matched_lengths_eq);
+
+    ps->cache_stateset_core_matched_lengths = create_hash_table(ps->run.grammar->alloc, n < 20000 ? 20000 : n,
+                                                                (hash_table_hash_function)stateset_core_matched_lengths_hash,
+                                                                (hash_table_eq_function)stateset_core_matched_lengths_eq);
+
+    ps->cache_stateset_term_lookahead = create_hash_table(ps->run.grammar->alloc, n < 30000 ? 30000 : n,
+                                                          (hash_table_hash_function)stateset_term_lookahead_hash,
+                                                          (hash_table_eq_function)stateset_term_lookahead_eq);
+
     ps->num_set_cores = ps->num_set_core_start_dotted_rules= 0;
     ps->num_set_matched_lengths = ps->num_set_matched_lengths_len = ps->num_parent_dotted_rule_ids = 0;
-    ps->n_sets = ps->n_sets_start_dotted_rules= 0;
-    ps->num_triplets_core_term_lookahead = 0;
+    ps->num_sets_total = ps->num_dotted_rules_total= 0;
+    ps->num_set_term_lookahead = 0;
     dotted_rule_matched_length_set_init(ps);
 }
 
-/* The following function starts forming of new set.*/
-static void set_new_start(YaepParseState *ps)
+static void debug_step(YaepParseState *ps, YaepDottedRule *dotted_rule, int matched_length, int parent_id)
 {
-    ps->new_set = NULL;
-    ps->new_core = NULL;
-    ps->new_set_ready_p = false;
-    ps->new_dotted_rules = NULL;
-    ps->new_matched_lengths = NULL;
-    ps->new_num_started_dotted_rules = 0;
+    if (!ps->run.debug) return;
+
+    MemBuffer *mb = new_membuffer();
+    membuffer_printf(mb, "@%d ", ps->tok_i);
+
+    print_dotted_rule(mb, ps, ps->tok_i, dotted_rule, matched_length, parent_id);
+
+    debug_mb("ixml.pa.step=", mb);
+    free_membuffer_and_free_content(mb);
+
 }
 
-/* Add start DOTTED_RULE with matched_length DIST at the end of the dotted_rule array
-   of the state set being formed. */
-static void set_add_dotted_rule(YaepParseState *ps, YaepDottedRule *dotted_rule, int matched_length)
+static void debug_step_blocked(YaepParseState *ps, YaepDottedRule *dotted_rule, int matched_length, int parent_id)
+{
+    if (!ps->run.debug) return;
+
+    MemBuffer *mb = new_membuffer();
+    membuffer_printf(mb, "@%d ", ps->tok_i);
+
+    print_dotted_rule_blocked(mb, ps, ps->tok_i, dotted_rule, matched_length, parent_id);
+
+    debug_mb("ixml.pa.step=", mb);
+    free_membuffer_and_free_content(mb);
+}
+
+static void append_dotted_rule_no_core_yet(YaepParseState *ps, YaepDottedRule *dotted_rule)
+{
+    assert(!ps->new_core);
+
+    OS_TOP_EXPAND(ps->set_dotted_rules_os, sizeof(YaepDottedRule*));
+    ps->new_dotted_rules = (YaepDottedRule**) OS_TOP_BEGIN(ps->set_dotted_rules_os);
+    ps->new_dotted_rules[ps->new_num_leading_dotted_rules] = dotted_rule;
+}
+
+static void append_dotted_rule_to_core(YaepParseState *ps, YaepDottedRule *dotted_rule)
+{
+    assert(ps->new_core);
+
+    OS_TOP_EXPAND(ps->set_dotted_rules_os, sizeof(YaepDottedRule*));
+    ps->new_core->dotted_rules = (YaepDottedRule**)OS_TOP_BEGIN(ps->set_dotted_rules_os);
+    ps->new_core->dotted_rules[ps->new_core->num_dotted_rules++] = dotted_rule;
+
+    // cache ptr
+    ps->new_dotted_rules = ps->new_core->dotted_rules;
+}
+
+static void append_matched_length_no_core_yet(YaepParseState *ps, int matched_length)
+{
+    assert(!ps->new_core);
+
+    OS_TOP_EXPAND(ps->set_matched_lengths_os, sizeof(int));
+    ps->new_matched_lengths = (int*)OS_TOP_BEGIN(ps->set_matched_lengths_os);
+    ps->new_matched_lengths[ps->new_num_leading_dotted_rules] = matched_length;
+}
+
+/*
+  start SIT = the leading dotted rules added first in a cycle.
+     no core yet, no set yet.
+     duplicates are not tested, do not add those!
+     set_add_dotted_rule_with_matched_length
+
+  non-start initial = new dotted rule with zero matched length (no parent)
+     core yes, set yes
+     duplicates are ignored
+     set_add_dotted_rule_no_match_yet
+
+  non-start non-initial = new dotted rule with parent pointer.
+     core yes, set yes
+     duplicates are ignored
+     set_add_dotted_rule_with_parent
+
+ */
+
+/* Add start SIT with distance DIST at the end of the situation array
+   of the set being formed.
+   set_new_add_start_sit (struct sit *sit, int dist)
+*/
+static void set_add_dotted_rule_with_matched_length(YaepParseState *ps, YaepDottedRule *dotted_rule, int matched_length, const char *why)
 {
     assert(!ps->new_set_ready_p);
-    OS_TOP_EXPAND(ps->set_matched_lengths_os, sizeof(int));
-    ps->new_matched_lengths =(int*) OS_TOP_BEGIN(ps->set_matched_lengths_os);
-    OS_TOP_EXPAND(ps->set_dotted_rules_os, sizeof(YaepDottedRule*));
-    ps->new_dotted_rules =(YaepDottedRule**) OS_TOP_BEGIN(ps->set_dotted_rules_os);
-    ps->new_dotted_rules[ps->new_num_started_dotted_rules] = dotted_rule;
-    ps->new_matched_lengths[ps->new_num_started_dotted_rules] = matched_length;
-    ps->new_num_started_dotted_rules++;
+    assert(!ps->new_set);
+    assert(!ps->new_core);
 
-    TRACE_FA(ps, "id=%d", dotted_rule->id);
+    append_dotted_rule_no_core_yet(ps, dotted_rule);
+    append_matched_length_no_core_yet(ps, matched_length);
+
+    ps->new_num_leading_dotted_rules++;
+
+    yaep_trace(ps, "%s add leading d%d len %d", why, dotted_rule->id, matched_length);
+    debug_step(ps, dotted_rule, matched_length, -1);
 }
 
-/* Add not_yet_started, noninitial DOTTED_RULE with matched_length DIST at the end of the
-   dotted_rule array of the set being formed.  If this is dotted_rule and
-   there is already the same pair(dotted_rule, the corresponding
-   matched_length), we do not add it.*/
-static void set_add_nys_dotted_rule(YaepParseState *ps,
-                                                    YaepDottedRule *dotted_rule,
-                                                    int parent_dotted_rule_id)
+/* Add non-start (initial) SIT with zero distance at the end of the
+   situation array of the set being formed.  If this is non-start
+   situation and there is already the same pair (situation, zero
+   distance), we do not add it.
+   set_new_add_initial_sit (struct sit *sit)
+*/
+static void set_add_dotted_rule_no_match_yet(YaepParseState *ps, YaepDottedRule *dotted_rule, const char *why)
 {
     assert(ps->new_set_ready_p);
+    assert(ps->new_set);
+    assert(ps->new_core);
 
     /* When we add not-yet-started dotted_rules we need to have pairs
-       (dotted_rule + parent_dotted_rule_id) without duplicates
-       because we also form core_symb_ids at that time. */
-    for(int id = ps->new_num_started_dotted_rules; id < ps->new_core->num_dotted_rules; id++)
+       (dotted_rule, the corresponding matched_length) without duplicates
+       because we also form core_symb_to_predcomps at that time. */
+    for (int i = ps->new_num_leading_dotted_rules; i < ps->new_core->num_dotted_rules; i++)
     {
-        if (ps->new_dotted_rules[id] == dotted_rule &&
-            ps->new_core->parent_dotted_rule_ids[id] == parent_dotted_rule_id)
+        // Check if already added.
+        if (ps->new_dotted_rules[i] == dotted_rule) {
+            //yaep_trace(ps, "skip d%", dotted_rule->id);
+            return;
+        }
+    }
+    /* Remember we do not store matched_length for not-yet-started dotted_rules. */
+    append_dotted_rule_to_core(ps, dotted_rule);
+
+    yaep_trace(ps, "%s add d%d to c%d", why, dotted_rule->id, ps->new_core->id);
+    debug_step(ps, dotted_rule, 0, -1);
+}
+
+/* Add nonstart, noninitial SIT with distance DIST at the end of the
+   situation array of the set being formed.  If this is situation and
+   there is already the same pair (situation, the corresponding
+   distance), we do not add it.
+   set_add_new_nonstart_sit (struct sit *sit, int parent)
+*/
+static void set_add_dotted_rule_with_parent(YaepParseState *ps,
+                                            YaepDottedRule *dotted_rule,
+                                            int parent_rule_index,
+                                            const char *why)
+{
+    assert(ps->new_set_ready_p);
+    assert(ps->new_set);
+    assert(ps->new_core);
+
+    /* When we add predicted dotted_rules we need to have pairs
+       (dotted_rule + parent_dotted_rule_id) without duplicates
+       because we also form core_symb_to_predcomps at that time. */
+    for (int rule_index_in_core = ps->new_num_leading_dotted_rules;
+         rule_index_in_core < ps->new_core->num_dotted_rules;
+         rule_index_in_core++)
+    {
+        if (ps->new_dotted_rules[rule_index_in_core] == dotted_rule &&
+            ps->new_core->to_parent_rule_index[rule_index_in_core] == parent_rule_index)
         {
-            // The dotted_rule + parent dotted rule already existed.
+            // The dotted_rule + parent dotted rule already exists.
+            yaep_trace(ps, "reusing d%d with parent rule index %d", dotted_rule->id, parent_rule_index);
             return;
         }
     }
@@ -21141,143 +22680,195 @@ static void set_add_nys_dotted_rule(YaepParseState *ps,
     // Increase the parent index vector with another int.
     // This integer points to ...?
     OS_TOP_EXPAND(ps->set_parent_dotted_rule_ids_os, sizeof(int));
-    ps->new_core->parent_dotted_rule_ids = (int*)OS_TOP_BEGIN(ps->set_parent_dotted_rule_ids_os) - ps->new_num_started_dotted_rules;
+    ps->new_core->to_parent_rule_index = (int*)OS_TOP_BEGIN(ps->set_parent_dotted_rule_ids_os) - ps->new_num_leading_dotted_rules;
 
     // Store dotted_rule into new dotted_rules.
     ps->new_dotted_rules[ps->new_core->num_dotted_rules++] = dotted_rule;
     // Store parent index. Meanst what...?
-    ps->new_core->parent_dotted_rule_ids[ps->new_core->num_all_matched_lengths++] = parent_dotted_rule_id;
+    ps->new_core->to_parent_rule_index[ps->new_core->num_all_matched_lengths++] = parent_rule_index;
     ps->num_parent_dotted_rule_ids++;
 
-    TRACE_FA(ps, "id=%d", dotted_rule->id);
+    int matched_length = ps->new_set->matched_lengths[parent_rule_index];
+
+    yaep_trace(ps, "%s add d%d with parent index %d to c%d", why, dotted_rule->id, parent_rule_index, ps->new_core->id);
+    debug_step(ps, dotted_rule, matched_length, parent_rule_index);
 }
 
-/* Add a not-yet-started dotted_rule (initial) DOTTED_RULE with zero matched_length at the end of the
-   dotted_rule array of the set being formed.  If this is not-yet-started
-   dotted_rule and there is already the same pair(dotted_rule, zero matched_length), we do not add it.*/
-static void set_add_initial_dotted_rule(YaepParseState *ps, YaepDottedRule *dotted_rule)
-{
-    assert(ps->new_set_ready_p);
-
-    /* When we add not-yet-started dotted_rules we need to have pairs
-      (dotted_rule, the corresponding matched_length) without duplicates
-       because we also form core_symb_ids at that time.*/
-    for (int i = ps->new_num_started_dotted_rules; i < ps->new_core->num_dotted_rules; i++)
-    {
-        // Check if already added.
-        if (ps->new_dotted_rules[i] == dotted_rule) return;
-    }
-    /* Remember we do not store matched_length for not-yet-started dotted_rules.*/
-    OS_TOP_ADD_MEMORY(ps->set_dotted_rules_os, &dotted_rule, sizeof(YaepDottedRule*));
-    ps->new_dotted_rules = ps->new_core->dotted_rules = (YaepDottedRule**)OS_TOP_BEGIN(ps->set_dotted_rules_os);
-    ps->new_core->num_dotted_rules++;
-}
-
-/* Set up hash of matched_lengths of set S.*/
+/* Set up hash of matched_lengths of set S. */
 static void setup_set_matched_lengths_hash(hash_table_entry_t s)
 {
-    YaepStateSet *set = ((YaepStateSet*) s);
-    int*dist_ptr = set->matched_lengths;
-    int num_matched_lengths = set->core->num_started_dotted_rules;
-    int*dist_bound;
-    unsigned result;
+    YaepStateSet *set = (YaepStateSet*)s;
 
-    dist_bound = dist_ptr + num_matched_lengths;
-    result = jauquet_prime_mod32;
-    while(dist_ptr < dist_bound)
+    int num_matched_lengths = set->core->num_started_dotted_rules;
+    unsigned result = jauquet_prime_mod32;
+
+    int *i = set->matched_lengths;
+    int *stop = i + num_matched_lengths;
+
+    while (i < stop)
     {
-        result = result* hash_shift +*dist_ptr++;
+        result = result*hash_shift + *i++;
     }
     set->matched_lengths_hash = result;
 }
 
-/* Set up hash of core of set S.*/
-static void setup_set_core_hash(hash_table_entry_t s)
+/* Set up hash of core of set S. */
+static void setup_stateset_core_hash(YaepStateSet *s)
 {
-    YaepStateSetCore*set_core =((YaepStateSet*) s)->core;
-
-    set_core->hash = dotted_rules_hash(set_core->num_started_dotted_rules, set_core->dotted_rules);
+    s->core->hash = dotted_rules_hash(s->core->num_started_dotted_rules, s->core->dotted_rules);
 }
 
-/* The new set should contain only start dotted_rules.  Sort dotted_rules,
-   remove duplicates and insert set into the set table.  If the
-   function returns true then set contains new set core(there was no
-   such core in the table). */
-static int set_insert(YaepParseState *ps)
+static void prepare_for_leading_dotted_rules(YaepParseState *ps)
 {
-    hash_table_entry_t*entry;
-    int result;
+    ps->new_set = NULL;
+    ps->new_core = NULL;
+    ps->new_set_ready_p = false;
+    ps->new_dotted_rules = NULL;
+    ps->new_matched_lengths = NULL;
+    ps->new_num_leading_dotted_rules = 0;
+
+    yaep_trace(ps, "start collecting leading rules");
+}
+
+/* The new set should contain only start dotted_rules.
+   Sort dotted_rules, remove duplicates and insert set into the set table.
+   Returns true if a new core was allocated. False if an old core was reused. */
+static bool convert_leading_dotted_rules_into_new_set(YaepParseState *ps)
+{
+    bool added;
+
+    assert(!ps->new_set_ready_p);
 
     OS_TOP_EXPAND(ps->sets_os, sizeof(YaepStateSet));
     ps->new_set = (YaepStateSet*)OS_TOP_BEGIN(ps->sets_os);
     ps->new_set->matched_lengths = ps->new_matched_lengths;
+    ps->new_set->id = ps->num_sets_total;
+
+    yaep_trace(ps, "convert leading rules into s%d", ps->new_set->id);
+
     OS_TOP_EXPAND(ps->set_cores_os, sizeof(YaepStateSetCore));
     ps->new_set->core = ps->new_core = (YaepStateSetCore*) OS_TOP_BEGIN(ps->set_cores_os);
-    ps->new_core->num_started_dotted_rules = ps->new_num_started_dotted_rules;
+    ps->new_core->num_started_dotted_rules = ps->new_num_leading_dotted_rules;
     ps->new_core->dotted_rules = ps->new_dotted_rules;
-    ps->new_set_ready_p = true;
+
 #ifdef USE_SET_HASH_TABLE
-    /* Insert matched_lengths into table. */
+    // Lookup matched_lengths from cache table.
     setup_set_matched_lengths_hash(ps->new_set);
-    entry = find_hash_table_entry(ps->set_of_matched_lengthses, ps->new_set, true);
-    if (*entry != NULL)
+    YaepStateSet **sm = (YaepStateSet**)find_hash_table_entry(ps->cache_stateset_matched_lengths, ps->new_set, true);
+    if (*sm != NULL)
     {
-        ps->new_matched_lengths = ps->new_set->matched_lengths =((YaepStateSet*)*entry)->matched_lengths;
+        // The matched lengths already existed use the cache.
+        ps->new_matched_lengths = ps->new_set->matched_lengths = (*sm)->matched_lengths;
         OS_TOP_NULLIFY(ps->set_matched_lengths_os);
+
+        if (xmq_trace_enabled_)
+        {
+            MemBuffer *mb = new_membuffer();
+            print_matched_lenghts(mb, ps->new_set);
+            membuffer_append_null(mb);
+            yaep_trace(ps, "re-using matched lengths %s", mb->buffer_);
+            free_membuffer_and_free_content(mb);
+        }
     }
     else
     {
+        // This is a new set of matched lengths.
         OS_TOP_FINISH(ps->set_matched_lengths_os);
-       *entry =(hash_table_entry_t)ps->new_set;
+        *sm = ps->new_set;
         ps->num_set_matched_lengths++;
-        ps->num_set_matched_lengths_len += ps->new_num_started_dotted_rules;
+        ps->num_set_matched_lengths_len += ps->new_num_leading_dotted_rules;
+
+        if (xmq_trace_enabled_)
+        {
+            MemBuffer *mb = new_membuffer();
+            print_matched_lenghts(mb, ps->new_set);
+            membuffer_append_null(mb);
+            yaep_trace(ps, "new matched lengths (%s)", mb->buffer_);
+            free_membuffer_and_free_content(mb);
+        }
     }
 #else
     OS_TOP_FINISH(ps->set_matched_lengths_os);
     ps->num_set_matched_lengths++;
-    ps->num_set_matched_lengths_len += ps->new_num_started_dotted_rules;
+    ps->num_set_matched_lengths_len += ps->new_num_leading_dotted_rules;
 #endif
+
     /* Insert set core into table.*/
-    setup_set_core_hash(ps->new_set);
-    entry = find_hash_table_entry(ps->set_of_cores, ps->new_set, true);
-    if (*entry != NULL)
+    setup_stateset_core_hash(ps->new_set);
+    /* We look for a core with an identical list of started dotted rules (pointer equivalence). */
+    YaepStateSet **sc = (YaepStateSet**)find_hash_table_entry(ps->cache_stateset_cores, ps->new_set, true);
+    bool reuse_core = *sc != NULL;
+    if (reuse_core)
     {
+        // We can potentially re-use this core, but lets check if there are not-operators in any of the dotted rules.
+        // If so, then we cannot re-use the core. Later on we can improve this by checking if the not rules
+        // apply to this position as well.
+        if (core_has_not_rules((*sc)->core)) reuse_core = false;
+    }
+    if (reuse_core)
+    {
+        // The core already existed, drop the core allocation.
+        // Point to the old core instead.
         OS_TOP_NULLIFY(ps->set_cores_os);
-        ps->new_set->core = ps->new_core = ((YaepStateSet*)*entry)->core;
+        ps->new_set->core = ps->new_core = (*sc)->core;
         ps->new_dotted_rules = ps->new_core->dotted_rules;
+
         OS_TOP_NULLIFY(ps->set_dotted_rules_os);
-        result = false;
+        added = false;
+
+        if (xmq_trace_enabled_)
+        {
+            MemBuffer *mb = new_membuffer();
+            print_core(mb, (*sc)->core);
+            membuffer_append_null(mb);
+            yaep_trace(ps, "re-using %s", mb->buffer_);
+            free_membuffer_and_free_content(mb);
+        }
     }
     else
     {
         OS_TOP_FINISH(ps->set_cores_os);
         ps->new_core->id = ps->num_set_cores++;
-        ps->new_core->num_dotted_rules = ps->new_num_started_dotted_rules;
-        ps->new_core->num_all_matched_lengths = ps->new_num_started_dotted_rules;
-        ps->new_core->parent_dotted_rule_ids = NULL;
-       *entry =(hash_table_entry_t)ps->new_set;
-        ps->num_set_core_start_dotted_rules+= ps->new_num_started_dotted_rules;
-        result = true;
+        ps->new_core->num_dotted_rules = ps->new_num_leading_dotted_rules;
+        ps->new_core->num_all_matched_lengths = ps->new_num_leading_dotted_rules;
+        ps->new_core->to_parent_rule_index = NULL;
+        *sc = ps->new_set;
+        ps->num_set_core_start_dotted_rules += ps->new_num_leading_dotted_rules;
+        added = true;
+
+        if (xmq_trace_enabled_)
+        {
+            MemBuffer *mb = new_membuffer();
+            print_core(mb, ps->new_set->core);
+            membuffer_append_null(mb);
+            yaep_trace(ps, "new %s", mb->buffer_);
+            free_membuffer_and_free_content(mb);
+        }
     }
+
 #ifdef USE_SET_HASH_TABLE
     /* Insert set into table.*/
-    entry = find_hash_table_entry(ps->set_of_tuples_core_matched_lengths, ps->new_set, true);
-    if (*entry == NULL)
+    YaepStateSet **scm = (YaepStateSet**)find_hash_table_entry(ps->cache_stateset_core_matched_lengths, ps->new_set, true);
+    if (*scm == NULL)
     {
-       *entry =(hash_table_entry_t)ps->new_set;
-        ps->n_sets++;
-        ps->n_sets_start_dotted_rules+= ps->new_num_started_dotted_rules;
+       *scm = ps->new_set;
+        ps->num_sets_total++;
+        ps->num_dotted_rules_total += ps->new_num_leading_dotted_rules;
         OS_TOP_FINISH(ps->sets_os);
+        yaep_trace(ps, "new s%d", ps->new_set->id);
     }
     else
     {
-        ps->new_set = (YaepStateSet*)*entry;
+        ps->new_set = *scm;
         OS_TOP_NULLIFY(ps->sets_os);
+        yaep_trace(ps, "re-using s%d", ps->new_set->id);
     }
 #else
     OS_TOP_FINISH(ps->sets_os);
 #endif
-    return result;
+
+    ps->new_set_ready_p = true;
+    return added;
 }
 
 /* The following function finishes work with set being formed.*/
@@ -21290,11 +22881,11 @@ static void set_new_core_stop(YaepParseState *ps)
 static void free_sets(YaepParseState *ps)
 {
     free_dotted_rule_matched_length_sets(ps);
-    delete_hash_table(ps->set_of_triplets_core_term_lookahead);
-    delete_hash_table(ps->set_of_tuples_core_matched_lengths);
-    delete_hash_table(ps->set_of_matched_lengthses);
-    delete_hash_table(ps->set_of_cores);
-    OS_DELETE(ps->triplet_core_term_lookahead_os);
+    delete_hash_table(ps->cache_stateset_term_lookahead);
+    delete_hash_table(ps->cache_stateset_core_matched_lengths);
+    delete_hash_table(ps->cache_stateset_matched_lengths);
+    delete_hash_table(ps->cache_stateset_cores);
+    OS_DELETE(ps->set_term_lookahead_os);
     OS_DELETE(ps->sets_os);
     OS_DELETE(ps->set_parent_dotted_rule_ids_os);
     OS_DELETE(ps->set_dotted_rules_os);
@@ -21322,375 +22913,25 @@ static void free_state_sets(YaepParseState *ps)
     if (ps->state_sets != NULL)
     {
         yaep_free(ps->run.grammar->alloc, ps->state_sets);
+        ps->state_sets = NULL;
     }
 }
 
-/* Initialize work with array of vlos.*/
-static void vlo_array_init(YaepParseState *ps)
+static void verbose_stats(YaepParseState *ps)
 {
-    VLO_CREATE(ps->vlo_array, ps->run.grammar->alloc, 4096);
-    ps->vlo_array_len = 0;
+    size_t size = memusage(ps);
+    char *siz = humanReadableTwoDecimals(size);
+    verbose("ixml=", "@%d/%d #sets=%d #cores=%d #dotted_rules=%d #matched_lengths=%d mem=%s",
+            ps->tok_i,
+            ps->input_len,
+            ps->num_sets_total,
+            ps->num_set_cores,
+            ps->num_dotted_rules_total,
+            ps->num_set_matched_lengths,
+            siz
+        );
+    free(siz);
 }
-
-/* The function forms new empty vlo at the end of the array of vlos.*/
-static int vlo_array_expand(YaepParseState *ps)
-{
-    vlo_t*vlo_ptr;
-
-    if ((unsigned) ps->vlo_array_len >= VLO_LENGTH(ps->vlo_array) / sizeof(vlo_t))
-    {
-        VLO_EXPAND(ps->vlo_array, sizeof(vlo_t));
-        vlo_ptr = &((vlo_t*) VLO_BEGIN(ps->vlo_array))[ps->vlo_array_len];
-        VLO_CREATE(*vlo_ptr, ps->run.grammar->alloc, 64);
-    }
-    else
-    {
-        vlo_ptr = &((vlo_t*) VLO_BEGIN(ps->vlo_array))[ps->vlo_array_len];
-        VLO_NULLIFY(*vlo_ptr);
-    }
-    return ps->vlo_array_len++;
-}
-
-/* The function purges the array of vlos.*/
-static void vlo_array_nullify(YaepParseState *ps)
-{
-    ps->vlo_array_len = 0;
-}
-
-/* The following function returns pointer to vlo with INDEX.*/
-static vlo_t *vlo_array_el(YaepParseState *ps, int index)
-{
-    assert(index >= 0 && ps->vlo_array_len > index);
-    return &((vlo_t*) VLO_BEGIN(ps->vlo_array))[index];
-}
-
-static void free_vlo_array(YaepParseState *ps)
-{
-    vlo_t *vlo_ptr;
-
-    for (vlo_ptr = (vlo_t*)VLO_BEGIN(ps->vlo_array); (char*) vlo_ptr < (char*) VLO_BOUND(ps->vlo_array); vlo_ptr++)
-    {
-        VLO_DELETE(*vlo_ptr);
-    }
-    VLO_DELETE(ps->vlo_array);
-}
-
-#ifdef USE_CORE_SYMB_HASH_TABLE
-/* Hash of core_symb_ids.*/
-static unsigned core_symb_ids_hash(hash_table_entry_t t)
-{
-    YaepCoreSymbVect*core_symb_ids =(YaepCoreSymbVect*) t;
-
-    return((jauquet_prime_mod32* hash_shift
-            +(size_t)/* was unsigned */core_symb_ids->core)* hash_shift
-           +(size_t)/* was unsigned */core_symb_ids->symb);
-}
-
-/* Equality of core_symb_idss.*/
-static bool core_symb_ids_eq(hash_table_entry_t t1, hash_table_entry_t t2)
-{
-    YaepCoreSymbVect*core_symb_ids1 =(YaepCoreSymbVect*) t1;
-    YaepCoreSymbVect*core_symb_ids2 =(YaepCoreSymbVect*) t2;
-
-    return(core_symb_ids1->core == core_symb_ids2->core
-            && core_symb_ids1->symb == core_symb_ids2->symb);
-}
-#endif
-
-static unsigned vect_ids_hash(YaepVect*v)
-{
-    unsigned result = jauquet_prime_mod32;
-
-    for (int i = 0; i < v->len; i++)
-    {
-        result = result* hash_shift + v->ids[i];
-    }
-    return result;
-}
-
-static bool vect_ids_eq(YaepVect *v1, YaepVect *v2)
-{
-    if (v1->len != v2->len) return false;
-
-    for (int i = 0; i < v1->len; i++)
-    {
-        if (v1->ids[i] != v2->ids[i]) return false;
-    }
-    return true;
-}
-
-static unsigned prediction_ids_hash(hash_table_entry_t t)
-{
-    return vect_ids_hash(&((YaepCoreSymbVect*)t)->predictions);
-}
-
-static bool prediction_ids_eq(hash_table_entry_t t1, hash_table_entry_t t2)
-{
-    return vect_ids_eq(&((YaepCoreSymbVect*)t1)->predictions,
-                       &((YaepCoreSymbVect*)t2)->predictions);
-}
-
-static unsigned completion_ids_hash(hash_table_entry_t t)
-{
-    return vect_ids_hash(&((YaepCoreSymbVect*)t)->completions);
-}
-
-static bool completion_ids_eq(hash_table_entry_t t1, hash_table_entry_t t2)
-{
-    return vect_ids_eq(&((YaepCoreSymbVect*) t1)->completions,
-                       &((YaepCoreSymbVect*) t2)->completions);
-}
-
-/* Initialize work with the triples(set core, symbol, vector).*/
-static void core_symb_ids_init(YaepParseState *ps)
-{
-    OS_CREATE(ps->core_symb_ids_os, ps->run.grammar->alloc, 0);
-    VLO_CREATE(ps->new_core_symb_ids_vlo, ps->run.grammar->alloc, 0);
-    OS_CREATE(ps->vect_ids_os, ps->run.grammar->alloc, 0);
-
-    vlo_array_init(ps);
-#ifdef USE_CORE_SYMB_HASH_TABLE
-    ps->map_core_symb_to_vect = create_hash_table(ps->run.grammar->alloc, 3000, core_symb_ids_hash, core_symb_ids_eq);
-#else
-    VLO_CREATE(ps->core_symb_table_vlo, ps->run.grammar->alloc, 4096);
-    ps->core_symb_table = (YaepCoreSymbVect***)VLO_BEGIN(ps->core_symb_table_vlo);
-    OS_CREATE(ps->core_symb_tab_rows, ps->run.grammar->alloc, 8192);
-#endif
-
-    ps->map_transition_to_coresymbvect = create_hash_table(ps->run.grammar->alloc, 3000, prediction_ids_hash, prediction_ids_eq);
-    ps->map_reduce_to_coresymbvect = create_hash_table(ps->run.grammar->alloc, 3000, completion_ids_hash, completion_ids_eq);
-
-    ps->n_core_symb_pairs = ps->n_core_symb_ids_len = 0;
-    ps->n_transition_vects = ps->n_transition_vect_len = 0;
-    ps->n_reduce_vects = ps->n_reduce_vect_len = 0;
-}
-
-#ifdef USE_CORE_SYMB_HASH_TABLE
-
-/* The following function returns entry in the table where pointer to
-   corresponding triple with the same keys as TRIPLE ones is
-   placed.*/
-static YaepCoreSymbVect **core_symb_ids_addr_get(YaepParseState *ps, YaepCoreSymbVect *triple, int reserv_p)
-{
-    YaepCoreSymbVect**result;
-
-    if (triple->symb->cached_core_symb_ids != NULL
-        && triple->symb->cached_core_symb_ids->core == triple->core)
-    {
-        return &triple->symb->cached_core_symb_ids;
-    }
-
-    result = ((YaepCoreSymbVect**)find_hash_table_entry(ps->map_core_symb_to_vect, triple, reserv_p));
-
-    triple->symb->cached_core_symb_ids = *result;
-
-    return result;
-}
-
-#else
-
-/* The following function returns entry in the table where pointer to
-   corresponding triple with SET_CORE and SYMB is placed. */
-static YaepCoreSymbVect **core_symb_ids_addr_get(YaepParseState *ps, YaepStateSetCore *set_core, YaepSymbol *symb)
-{
-    YaepCoreSymbVect***core_symb_ids_ptr;
-
-    core_symb_ids_ptr = ps->core_symb_table + set_core->id;
-
-    if ((char*) core_symb_ids_ptr >=(char*) VLO_BOUND(ps->core_symb_table_vlo))
-    {
-        YaepCoreSymbVect***ptr,***bound;
-        int diff, i;
-
-        diff =((char*) core_symb_ids_ptr
-                -(char*) VLO_BOUND(ps->core_symb_table_vlo));
-        diff += sizeof(YaepCoreSymbVect**);
-        if (diff == sizeof(YaepCoreSymbVect**))
-            diff*= 10;
-
-        VLO_EXPAND(ps->core_symb_table_vlo, diff);
-        ps->core_symb_table
-            =(YaepCoreSymbVect***) VLO_BEGIN(ps->core_symb_table_vlo);
-        core_symb_ids_ptr = ps->core_symb_table + set_core->id;
-        bound =(YaepCoreSymbVect***) VLO_BOUND(ps->core_symb_table_vlo);
-
-        ptr = bound - diff / sizeof(YaepCoreSymbVect**);
-        while(ptr < bound)
-        {
-            OS_TOP_EXPAND(ps->core_symb_tab_rows,
-                          (ps->run.grammar->symbs_ptr->num_terminals + ps->run.grammar->symbs_ptr->num_nonterminals)
-                          * sizeof(YaepCoreSymbVect*));
-           *ptr =(YaepCoreSymbVect**) OS_TOP_BEGIN(ps->core_symb_tab_rows);
-            OS_TOP_FINISH(ps->core_symb_tab_rows);
-            for(i = 0; i < ps->run.grammar->symbs_ptr->num_terminals + ps->run.grammar->symbs_ptr->num_nonterminals; i++)
-               (*ptr)[i] = NULL;
-            ptr++;
-        }
-    }
-    return &(*core_symb_ids_ptr)[symb->id];
-}
-#endif
-
-/* The following function returns the triple(if any) for given SET_CORE and SYMB. */
-static YaepCoreSymbVect *core_symb_ids_find(YaepParseState *ps, YaepStateSetCore *core, YaepSymbol *symb)
-{
-    YaepCoreSymbVect *r;
-
-#ifdef USE_CORE_SYMB_HASH_TABLE
-    YaepCoreSymbVect core_symb_ids;
-
-    core_symb_ids.core = core;
-    core_symb_ids.symb = symb;
-    r = *core_symb_ids_addr_get(ps, &core_symb_ids, false);
-#else
-    r = *core_symb_ids_addr_get(ps, core, symb);
-#endif
-
-    TRACE_FA(ps, "core=%d %s -> %p", core->id, symb->hr, r);
-
-    return r;
-}
-
-/* Add given triple(SET_CORE, TERM, ...) to the table and return
-   pointer to it.*/
-static YaepCoreSymbVect *core_symb_ids_new(YaepParseState *ps, YaepStateSetCore*core, YaepSymbol*symb)
-{
-    YaepCoreSymbVect*triple;
-    YaepCoreSymbVect**addr;
-    vlo_t*vlo_ptr;
-
-    /* Create table element.*/
-    OS_TOP_EXPAND(ps->core_symb_ids_os, sizeof(YaepCoreSymbVect));
-    triple =((YaepCoreSymbVect*) OS_TOP_BEGIN(ps->core_symb_ids_os));
-    triple->core = core;
-    triple->symb = symb;
-    OS_TOP_FINISH(ps->core_symb_ids_os);
-
-#ifdef USE_CORE_SYMB_HASH_TABLE
-    addr = core_symb_ids_addr_get(ps, triple, true);
-#else
-    addr = core_symb_ids_addr_get(ps, core, symb);
-#endif
-    assert(*addr == NULL);
-   *addr = triple;
-
-    triple->predictions.intern = vlo_array_expand(ps);
-    vlo_ptr = vlo_array_el(ps, triple->predictions.intern);
-    triple->predictions.len = 0;
-    triple->predictions.ids =(int*) VLO_BEGIN(*vlo_ptr);
-
-    triple->completions.intern = vlo_array_expand(ps);
-    vlo_ptr = vlo_array_el(ps, triple->completions.intern);
-    triple->completions.len = 0;
-    triple->completions.ids =(int*) VLO_BEGIN(*vlo_ptr);
-    VLO_ADD_MEMORY(ps->new_core_symb_ids_vlo, &triple,
-                    sizeof(YaepCoreSymbVect*));
-    ps->n_core_symb_pairs++;
-    return triple;
-}
-
-static void vect_add_id(YaepParseState *ps, YaepVect *vec, int id)
-{
-    vec->len++;
-    vlo_t *vlo_ptr = vlo_array_el(ps, vec->intern);
-    VLO_ADD_MEMORY(*vlo_ptr, &id, sizeof(int));
-    vec->ids =(int*) VLO_BEGIN(*vlo_ptr);
-    ps->n_core_symb_ids_len++;
-}
-
-/* Add index EL to the transition vector of CORE_SYMB_IDS being formed.*/
-static void core_symb_ids_add_predict(YaepParseState *ps,
-                                      YaepCoreSymbVect *core_symb_ids,
-                                      int id)
-{
-    vect_add_id(ps, &core_symb_ids->predictions, id);
-
-    TRACE_FA(ps, "core=%d %s --> id=%d",
-             core_symb_ids->core->id,
-             core_symb_ids->symb->hr,
-             id+1);
-}
-
-/* Add index id to the reduce vector of CORE_SYMB_IDS being formed.*/
-static void core_symb_ids_add_complete(YaepParseState *ps,
-                                       YaepCoreSymbVect *core_symb_ids,
-                                       int id)
-{
-    vect_add_id(ps, &core_symb_ids->completions, id);
-}
-
-/* Insert vector VEC from CORE_SYMB_IDS into table TAB.  Update
-   *N_VECTS and INT*N_VECT_LEN if it is a new vector in the table. */
-static void process_core_symb_ids_el(YaepParseState *ps,
-                                      YaepCoreSymbVect *core_symb_ids,
-                                      YaepVect *vec,
-                                      hash_table_t *tab,
-                                      int *n_vects,
-                                      int *n_vect_len)
-{
-    hash_table_entry_t*entry;
-
-    if (vec->len == 0)
-        vec->ids = NULL;
-    else
-    {
-        entry = find_hash_table_entry(*tab, core_symb_ids, true);
-        if (*entry != NULL)
-            vec->ids
-                =(&core_symb_ids->predictions == vec
-                   ?((YaepCoreSymbVect*)*entry)->predictions.ids
-                   :((YaepCoreSymbVect*)*entry)->completions.ids);
-        else
-	{
-           *entry =(hash_table_entry_t) core_symb_ids;
-            OS_TOP_ADD_MEMORY(ps->vect_ids_os, vec->ids, vec->len* sizeof(int));
-            vec->ids =(int*) OS_TOP_BEGIN(ps->vect_ids_os);
-            OS_TOP_FINISH(ps->vect_ids_os);
-           (*n_vects)++;
-           *n_vect_len += vec->len;
-	}
-    }
-    vec->intern = -1;
-}
-
-/* Finish forming all new triples core_symb_ids.*/
-static void core_symb_ids_new_all_stop(YaepParseState *ps)
-{
-    YaepCoreSymbVect**triple_ptr;
-
-    for(triple_ptr =(YaepCoreSymbVect**) VLO_BEGIN(ps->new_core_symb_ids_vlo);
-        (char*) triple_ptr <(char*) VLO_BOUND(ps->new_core_symb_ids_vlo);
-         triple_ptr++)
-    {
-        process_core_symb_ids_el(ps, *triple_ptr, &(*triple_ptr)->predictions,
-                                  &ps->map_transition_to_coresymbvect, &ps->n_transition_vects,
-                                  &ps->n_transition_vect_len);
-        process_core_symb_ids_el(ps, *triple_ptr, &(*triple_ptr)->completions,
-                                  &ps->map_reduce_to_coresymbvect, &ps->n_reduce_vects,
-                                  &ps->n_reduce_vect_len);
-    }
-    vlo_array_nullify(ps);
-    VLO_NULLIFY(ps->new_core_symb_ids_vlo);
-}
-
-/* Finalize work with all triples(set core, symbol, vector).*/
-static void free_core_symb_to_vect_lookup(YaepParseState *ps)
-{
-    delete_hash_table(ps->map_transition_to_coresymbvect);
-    delete_hash_table(ps->map_reduce_to_coresymbvect);
-
-#ifdef USE_CORE_SYMB_HASH_TABLE
-    delete_hash_table(ps->map_core_symb_to_vect);
-#else
-    OS_DELETE(ps->core_symb_tab_rows);
-    VLO_DELETE(ps->core_symb_table_vlo);
-#endif
-    free_vlo_array(ps);
-    OS_DELETE(ps->vect_ids_os);
-    VLO_DELETE(ps->new_core_symb_ids_vlo);
-    OS_DELETE(ps->core_symb_ids_os);
-}
-
 /* The following function stores error CODE and MESSAGE.  The function
    makes long jump after that.  So the function is designed to process
    only one error.*/
@@ -21703,7 +22944,7 @@ static void yaep_error(YaepParseState *ps, int code, const char*format, ...)
     vsprintf(ps->run.grammar->error_message, format, arguments);
     va_end(arguments);
     assert(strlen(ps->run.grammar->error_message) < YAEP_MAX_ERROR_MESSAGE_LENGTH);
-    longjmp(error_longjump_buff, code);
+    longjmp(ps->error_longjump_buff, code);
 }
 
 /* The following function processes allocation errors. */
@@ -21731,19 +22972,14 @@ YaepGrammar *yaepNewGrammar()
     grammar->alloc = allocator;
     yaep_alloc_seterr(allocator, error_func_for_allocate,
                       yaep_alloc_getuserptr(allocator));
-    if (setjmp(error_longjump_buff) != 0)
-    {
-        //yaepFreeGrammar(pr, grammar);
-        assert(0);
-        return NULL;
-    }
+
     grammar->undefined_p = true;
     grammar->error_code = 0;
    *grammar->error_message = '\0';
     grammar->lookahead_level = 1;
     grammar->one_parse_p = true;
     grammar->cost_p = false;
-    grammar->error_recovery_p = true;
+    grammar->error_recovery_p = false;
     grammar->recovery_token_matches = DEFAULT_RECOVERY_TOKEN_MATCHES;
     grammar->symbs_ptr = symbolstorage_create(grammar);
     grammar->term_sets_ptr = termsetstorage_create(grammar);
@@ -21817,17 +23053,21 @@ static void create_first_follow_sets(YaepParseState *ps)
 
     for (i = 0; (symb = nonterm_get(ps, i)) != NULL; i++)
     {
-        symb->u.nonterminal.first = terminal_bitset_create(ps, ps->run.grammar->symbs_ptr->num_terminals);
-        terminal_bitset_clear(symb->u.nonterminal.first, ps->run.grammar->symbs_ptr->num_terminals);
-        symb->u.nonterminal.follow = terminal_bitset_create(ps, ps->run.grammar->symbs_ptr->num_terminals);
-        terminal_bitset_clear(symb->u.nonterminal.follow, ps->run.grammar->symbs_ptr->num_terminals);
+        symb->u.nonterminal.first = terminal_bitset_create(ps);
+        terminal_bitset_clear(ps, symb->u.nonterminal.first);
+
+        symb->u.nonterminal.follow = terminal_bitset_create(ps);
+        terminal_bitset_clear(ps, symb->u.nonterminal.follow);
     }
+
     do
     {
         changed_p = false;
         for(i = 0;(symb = nonterm_get(ps, i)) != NULL; i++)
-            for(rule = symb->u.nonterminal.rules;
-                 rule != NULL; rule = rule->lhs_next)
+        {
+            for (rule = symb->u.nonterminal.rules;
+                 rule != NULL;
+                 rule = rule->lhs_next)
             {
                 first_continue_p = true;
                 rhs = rule->rhs;
@@ -21835,80 +23075,105 @@ static void create_first_follow_sets(YaepParseState *ps)
                 for(j = 0; j < rhs_len; j++)
                 {
                     rhs_symb = rhs[j];
-                    if (rhs_symb->terminal_p)
+                    if (rhs_symb->is_terminal)
                     {
                         if (first_continue_p)
-                            changed_p |= terminal_bitset_up(symb->u.nonterminal.first,
-                                                     rhs_symb->u.terminal.term_id,
-                                                     ps->run.grammar->symbs_ptr->num_terminals);
+                        {
+                            changed_p |= terminal_bitset_up(ps, symb->u.nonterminal.first,
+                                                            rhs_symb->u.terminal.term_id);
+                        }
                     }
                     else
                     {
                         if (first_continue_p)
-                            changed_p |= terminal_bitset_or(symb->u.nonterminal.first,
-                                                     rhs_symb->u.nonterminal.first,
-                                                     ps->run.grammar->symbs_ptr->num_terminals);
+                        {
+                            changed_p |= terminal_bitset_or(ps,
+                                                            symb->u.nonterminal.first,
+                                                            rhs_symb->u.nonterminal.first);
+                        }
                         for(k = j + 1; k < rhs_len; k++)
                         {
                             next_rhs_symb = rhs[k];
-                            if (next_rhs_symb->terminal_p)
+                            if (next_rhs_symb->is_terminal)
+                            {
                                 changed_p
-                                    |= terminal_bitset_up(rhs_symb->u.nonterminal.follow,
-                                                   next_rhs_symb->u.terminal.term_id,
-                                                   ps->run.grammar->symbs_ptr->num_terminals);
+                                    |= terminal_bitset_up(ps, rhs_symb->u.nonterminal.follow,
+                                                   next_rhs_symb->u.terminal.term_id);
+                            }
                             else
+                            {
                                 changed_p
-                                    |= terminal_bitset_or(rhs_symb->u.nonterminal.follow,
-                                                   next_rhs_symb->u.nonterminal.first,
-                                                   ps->run.grammar->symbs_ptr->num_terminals);
-                            if (!next_rhs_symb->empty_p)
+                                    |= terminal_bitset_or(ps, rhs_symb->u.nonterminal.follow,
+                                                   next_rhs_symb->u.nonterminal.first);
+                            }
+                            if (!next_rhs_symb->empty_p && !next_rhs_symb->is_not_operator)
+                            {
                                 break;
+                            }
                         }
                         if (k == rhs_len)
-                            changed_p |= terminal_bitset_or(rhs_symb->u.nonterminal.follow,
-                                                     symb->u.nonterminal.follow,
-                                                     ps->run.grammar->symbs_ptr->num_terminals);
+                        {
+                            changed_p |= terminal_bitset_or(ps, rhs_symb->u.nonterminal.follow,
+                                                     symb->u.nonterminal.follow);
+                        }
                     }
-                    if (!rhs_symb->empty_p)
+                    if (!rhs_symb->empty_p && !rhs_symb->is_not_operator)
+                    {
                         first_continue_p = false;
+                    }
                 }
             }
+        }
     }
-    while(changed_p);
+    while (changed_p);
 }
 
 /* The following function sets up flags empty_p, access_p and
    derivation_p for all grammar symbols.*/
 static void set_empty_access_derives(YaepParseState *ps)
 {
-    YaepSymbol*symb,*rhs_symb;
-    YaepRule*rule;
-    bool empty_p, derivation_p;
     bool empty_changed_p, derivation_changed_p, accessibility_change_p;
-    int i, j;
 
-    for(i = 0;(symb = symb_get(ps, i)) != NULL; i++)
+    for (int i = 0; ; i++)
     {
+        YaepSymbol *symb = symb_get(ps, i);
+        if (!symb) break;
         symb->empty_p = false;
-        symb->derivation_p = (symb->terminal_p ? true : false);
+        symb->derivation_p = (symb->is_terminal ? true : false);
         symb->access_p = false;
     }
+
     ps->run.grammar->axiom->access_p = 1;
     do
     {
         empty_changed_p = derivation_changed_p = accessibility_change_p = false;
-        for(i = 0;(symb = nonterm_get(ps, i)) != NULL; i++)
-            for(rule = symb->u.nonterminal.rules;
-                 rule != NULL; rule = rule->lhs_next)
+        for (int i = 0; ; i++)
+        {
+            YaepSymbol *symb = nonterm_get(ps, i);
+            if (!symb) break;
+
+            for (YaepRule *rule = symb->u.nonterminal.rules; rule != NULL; rule = rule->lhs_next)
             {
-                empty_p = derivation_p = 1;
-                for(j = 0; j < rule->rhs_len; j++)
+                bool empty_p = true;
+                bool derivation_p = true;
+
+                if (rule->lhs->is_not_operator)
                 {
-                    rhs_symb = rule->rhs[j];
+                    empty_p = 0;
+                }
+
+                for (int j = 0; j < rule->rhs_len; j++)
+                {
+                    YaepSymbol *rhs_symb = rule->rhs[j];
                     if (symb->access_p)
                     {
                         accessibility_change_p |= rhs_symb->access_p ^ 1;
                         rhs_symb->access_p = 1;
+                    }
+                    // A not rule forbids emptiness since it must always be checked against the input.
+                    if (rhs_symb->is_not_operator)
+                    {
+                        empty_p = 0;
                     }
                     empty_p &= rhs_symb->empty_p;
                     derivation_p &= rhs_symb->derivation_p;
@@ -21924,6 +23189,7 @@ static void set_empty_access_derives(YaepParseState *ps)
                     symb->derivation_p = derivation_p;
                 }
             }
+        }
     }
     while(empty_changed_p || derivation_changed_p || accessibility_change_p);
 
@@ -21941,7 +23207,7 @@ static void set_loop_p(YaepParseState *ps)
        strings.*/
     for(rule = ps->run.grammar->rulestorage_ptr->first_rule; rule != NULL; rule = rule->next)
         for(i = 0; i < rule->rhs_len; i++)
-            if (!(symb = rule->rhs[i])->terminal_p)
+            if (!(symb = rule->rhs[i])->is_terminal)
             {
                 for(j = 0; j < rule->rhs_len; j++)
                     if (i == j)
@@ -21964,7 +23230,7 @@ static void set_loop_p(YaepParseState *ps)
                 for(rule = lhs->u.nonterminal.rules;
                      rule != NULL; rule = rule->lhs_next)
                     for(j = 0; j < rule->rhs_len; j++)
-                        if (!(symb = rule->rhs[j])->terminal_p && symb->u.nonterminal.loop_p)
+                        if (!(symb = rule->rhs[j])->is_terminal && symb->u.nonterminal.loop_p)
                         {
                             for(k = 0; k < rule->rhs_len; k++)
                                 if (j == k)
@@ -21994,7 +23260,7 @@ static void check_grammar(YaepParseState *ps, int strict_p)
     if (strict_p)
     {
         for(i = 0;(symb = nonterm_get(ps, i)) != NULL; i++)
-	{
+        {
             if (!symb->derivation_p)
             {
                 yaep_error(ps, YAEP_NONTERM_DERIVATION,
@@ -22007,7 +23273,7 @@ static void check_grammar(YaepParseState *ps, int strict_p)
                            "nonterm `%s' is not accessible from axiom",
                            symb->repr);
             }
-	}
+        }
     }
     else if (!ps->run.grammar->axiom->derivation_p)
     {
@@ -22030,17 +23296,14 @@ static void check_grammar(YaepParseState *ps, int strict_p)
 
 /* The following are names of additional symbols.  Don't use them in
    grammars.*/
-#define AXIOM_NAME "$S"
-#define END_MARKER_NAME "$eof"
+#define AXIOM_NAME "$"
+#define END_MARKER_NAME "ω"
 #define TERM_ERROR_NAME "error"
 
 /* It should be negative.*/
 #define END_MARKER_CODE -1
 #define TERM_ERROR_CODE -2
 
-/* The following function reads terminals/rules.  The function returns
-   pointer to the grammar(or NULL if there were errors in
-   grammar).*/
 int yaep_read_grammar(YaepParseRun *pr,
                       YaepGrammar *g,
                       int strict_p,
@@ -22050,7 +23313,7 @@ int yaep_read_grammar(YaepParseRun *pr,
                                               int*anode_cost, int**transl, char*mark, char**marks))
 {
     const char*name,*lhs,**rhs,*anode;
-    YaepSymbol*symb,*start;
+    YaepSymbol*symb, *start;
     YaepRule*rule;
     int anode_cost;
     int*transl;
@@ -22062,7 +23325,7 @@ int yaep_read_grammar(YaepParseRun *pr,
     YaepParseState *ps = (YaepParseState*)pr;
     assert(CHECK_PARSE_STATE_MAGIC(ps));
 
-    if ((code = setjmp(error_longjump_buff)) != 0)
+    if ((code = setjmp(ps->error_longjump_buff)) != 0)
     {
         return code;
     }
@@ -22113,7 +23376,7 @@ int yaep_read_grammar(YaepParseRun *pr,
         {
             symb = symb_add_nonterm(ps, lhs);
         }
-        else if (symb->terminal_p)
+        else if (symb->is_terminal)
         {
             yaep_error(ps, YAEP_TERM_IN_RULE_LHS,
                         "term `%s' in the left hand side of rule", lhs);
@@ -22129,7 +23392,7 @@ int yaep_read_grammar(YaepParseRun *pr,
                         "translation for `%s' has negative cost", lhs);
         }
         if (ps->run.grammar->axiom == NULL)
-	{
+        {
             /* We made this here becuase we want that the start rule has number 0.*/
             /* Add axiom and end marker.*/
             start = symb;
@@ -22154,11 +23417,11 @@ int yaep_read_grammar(YaepParseRun *pr,
             rule_new_stop(ps);
             rule->order[0] = 0;
             rule->trans_len = 1;
-	}
+        }
         rule = rule_new_start(ps, symb, anode,(anode != NULL ? anode_cost : 0));
         size_t rhs_len = 0;
         while(*rhs != NULL)
-	{
+        {
             rhs_len++;
             symb = symb_find_by_repr(ps, *rhs);
             if (symb == NULL)
@@ -22167,16 +23430,14 @@ int yaep_read_grammar(YaepParseRun *pr,
             }
             rule_new_symb_add(ps, symb);
             rhs++;
-	}
+        }
         rule_new_stop(ps);
         // IXML
         rule->mark = mark;
         memcpy(rule->marks, marks, rhs_len);
-/*        printf("MARKS %s >", lhs);
-        for (int i=0; i<rhs_len; ++i) printf("%c", rule->marks[i]);
-        printf("<\n");*/
+
         if (transl != NULL)
-	{
+        {
             for(i = 0;(el = transl[i]) >= 0; i++)
             {
                 if (el >= rule->rhs_len)
@@ -22205,7 +23466,7 @@ int yaep_read_grammar(YaepParseRun *pr,
                 }
                 assert(i < rule->rhs_len || transl[i] < 0);
             }
-	}
+        }
     }
 
     if (ps->run.grammar->axiom == NULL)
@@ -22238,33 +23499,34 @@ int yaep_read_grammar(YaepParseRun *pr,
     if (ps->run.verbose)
     {
         /* Print rules.*/
-        fprintf(stderr, "(ixml) yaep grammar:\n");
         for(rule = ps->run.grammar->rulestorage_ptr->first_rule; rule != NULL; rule = rule->next)
-	{
-            if (rule->lhs->repr[0] != '$' && !ps->run.debug)
+        {
+            if (rule->lhs->repr[0] != '$')
             {
-                fprintf(stderr, "  ");
-                rule_print(ps, stderr, rule, true);
+                MemBuffer *mb = new_membuffer();
+                rule_print(mb, ps, rule, true);
+                debug_mb("ixml.gr=", mb);
+                free_membuffer_and_free_content(mb);
             }
-	}
-        fprintf(stderr, "\n");
-        /* Print symbol sets.*/
+        }
+        /* Print symbol sets with lookahead.*/
         if (ps->run.debug)
         {
             for(i = 0;(symb = nonterm_get(ps, i)) != NULL; i++)
             {
-                fprintf(stderr, "Nonterm %s:  Empty=%s , Access=%s, Derive=%s\n",
-                        symb->repr,(symb->empty_p ? "Yes" : "No"),
-                        (symb->access_p ? "Yes" : "No"),
-                        (symb->derivation_p ? "Yes" : "No"));
-                if (ps->run.debug)
-                {
-                    fprintf(stderr, "  First: ");
-                    terminal_bitset_print(ps, stderr, symb->u.nonterminal.first, ps->run.grammar->symbs_ptr->num_terminals);
-                    fprintf(stderr, "\n  Follow: ");
-                    terminal_bitset_print(ps, stderr, symb->u.nonterminal.follow, ps->run.grammar->symbs_ptr->num_terminals);
-                    fprintf(stderr, "\n\n");
-                }
+                MemBuffer *mb = new_membuffer();
+                membuffer_printf(mb, "%s%s%s%s%s\n",
+                                 symb->repr,
+                                 (symb->empty_p ? " CAN_BECOME_EMPTY" : ""),
+                                 (symb->is_not_operator ? " NOT_OP" : ""),
+                                 (symb->access_p ? "" : " OUPS_NOT_REACHABLE"),
+                                 (symb->derivation_p ? "" : " OUPS_NO_TEXT"));
+                membuffer_append(mb, "  1st: ");
+                print_terminal_bitset(mb, ps, symb->u.nonterminal.first);
+                membuffer_append(mb, "\n  2nd: ");
+                print_terminal_bitset(mb, ps, symb->u.nonterminal.follow);
+                debug_mb("ixml.nt=", mb);
+                free_membuffer_and_free_content(mb);
             }
         }
     }
@@ -22319,25 +23581,28 @@ int yaep_set_recovery_match(YaepGrammar *grammar, int n_input)
     return old;
 }
 
-/* The function initializes all internal data for parser for N_INPUT tokens. */
 static void yaep_parse_init(YaepParseState *ps, int n_input)
 {
     YaepRule*rule;
 
-    create_dotted_rules(ps);
+    init_dotted_rules(ps);
     set_init(ps, n_input);
-    core_symb_ids_init(ps);
+    core_symb_to_predcomps_init(ps);
 #ifdef USE_CORE_SYMB_HASH_TABLE
     {
         int i;
         YaepSymbol*symb;
 
         for(i = 0;(symb = symb_get(ps, i)) != NULL; i++)
-            symb->cached_core_symb_ids = NULL;
+        {
+            symb->cached_core_symb_to_predcomps = NULL;
+        }
     }
 #endif
     for(rule = ps->run.grammar->rulestorage_ptr->first_rule; rule != NULL; rule = rule->next)
+    {
         rule->caller_anode = NULL;
+    }
 }
 
 static void free_inside_parse_state(YaepParseState *ps)
@@ -22345,6 +23610,72 @@ static void free_inside_parse_state(YaepParseState *ps)
     free_core_symb_to_vect_lookup(ps);
     free_sets(ps);
     free_dotted_rules(ps);
+}
+
+static size_t memusage(YaepParseState *ps)
+{
+    size_t sum = 0;
+
+    // Grammar...
+
+    // Symbols, the memory usage for the symbols is static during the parse.
+    sum += objstack_memusage(&ps->run.grammar->symbs_ptr->symbs_os);
+    sum += vlo_memusage(&ps->run.grammar->symbs_ptr->symbs_vlo);
+    sum += vlo_memusage(&ps->run.grammar->symbs_ptr->terminals_vlo);
+    sum += vlo_memusage(&ps->run.grammar->symbs_ptr->nonterminals_vlo);
+    sum += hash_table_memusage(ps->run.grammar->symbs_ptr->map_repr_to_symb);
+    sum += hash_table_memusage(ps->run.grammar->symbs_ptr->map_code_to_symb);
+
+    // Rules, the memory usage is static during the parse.
+    sum += objstack_memusage(&ps->run.grammar->rulestorage_ptr->rules_os);
+
+    // Terminal bitsets static.
+    sum += objstack_memusage(&ps->run.grammar->term_sets_ptr->terminal_bitset_os);
+    sum += vlo_memusage(&ps->run.grammar->term_sets_ptr->terminal_bitset_vlo);
+    sum += hash_table_memusage(ps->run.grammar->term_sets_ptr->map_terminal_bitset_to_id);
+
+    // Parse state, increasing during parse.
+
+    sum += objstack_memusage(&ps->set_cores_os);
+    sum += objstack_memusage(&ps->set_dotted_rules_os);
+    sum += objstack_memusage(&ps->set_parent_dotted_rule_ids_os);
+    sum += objstack_memusage(&ps->set_matched_lengths_os);
+    sum += objstack_memusage(&ps->sets_os);
+    sum += objstack_memusage(&ps->set_term_lookahead_os);
+
+    sum += hash_table_memusage(ps->cache_stateset_cores);
+    sum += hash_table_memusage(ps->cache_stateset_matched_lengths);
+    sum += hash_table_memusage(ps->cache_stateset_core_matched_lengths);
+    sum += hash_table_memusage(ps->cache_stateset_term_lookahead);
+
+    sum += vlo_memusage(&ps->dotted_rules_table_vlo);
+    sum += objstack_memusage(&ps->dotted_rules_os);
+    sum += vlo_memusage(&ps->dotted_rule_matched_length_vec_vlo);
+    sum += objstack_memusage(&ps->core_symb_to_predcomps_os);
+    sum += vlo_memusage(&ps->new_core_symb_to_predcomps_vlo);
+    sum += objstack_memusage(&ps->vect_ids_os);
+
+#ifdef USE_CORE_SYMB_HASH_TABLE
+    sum += hash_table_memusage(ps->map_core_symb_to_predcomps);
+#else
+    sum += vlo_memusage(&ps->core_symb_table_vlo);
+    sum += objstack_memusage(&ps->core_symb_tab_rows);
+#endif
+
+    sum += hash_table_memusage(ps->map_transition_to_coresymbvect);
+    sum += hash_table_memusage(ps->map_reduce_to_coresymbvect);
+    sum += objstack_memusage(&ps->recovery_state_tail_sets);
+    sum += vlo_memusage(&ps->original_state_set_tail_stack);
+    sum += vlo_memusage(&ps->vlo_array);
+    sum += hash_table_memusage(ps->set_of_reserved_memory);
+    sum += vlo_memusage(&ps->tnodes_vlo);
+    sum += hash_table_memusage(ps->map_node_to_visit);
+    sum += objstack_memusage(&ps->node_visits_os);
+    sum += vlo_memusage(&ps->recovery_state_stack);
+    sum += objstack_memusage(&ps->parse_state_os);
+    sum += hash_table_memusage(ps->map_rule_orig_statesetind_to_internalstate);
+
+    return sum;
 }
 
 /* The following function reads all input tokens.*/
@@ -22357,6 +23688,7 @@ static void read_input(YaepParseState *ps)
     {
         tok_add(ps, code, attr);
     }
+
     tok_add(ps, END_MARKER_CODE, NULL);
 }
 
@@ -22364,300 +23696,514 @@ static void read_input(YaepParseState *ps)
    given start dotted_rule DOTTED_RULE with matched_length DIST by reducing symbol
    which can derivate empty string and which is placed after dot in
    given dotted_rule. */
-static void add_predicted_not_yet_started_dotted_rules(YaepParseState *ps,
-                                                       YaepDottedRule *dotted_rule,
-                                                       int dotted_rule_parent_id)
+static void complete_empty_nonterminals_in_rule(YaepParseState *ps,
+                                                YaepDottedRule *dotted_rule,
+                                                int dotted_rule_parent_id,
+                                                bool only_nots)
 {
     YaepRule *rule = dotted_rule->rule;
-    int context = dotted_rule->context;
+    int dyn_lookahead_context = dotted_rule->dyn_lookahead_context;
 
-    for(int j = dotted_rule->dot_j; rule->rhs[j] && rule->rhs[j]->empty_p; ++j)
+    for(int j = dotted_rule->dot_j; ; ++j)
     {
-        YaepDottedRule *new_dotted_rule = create_dotted_rule(ps, rule, j+1, context);
-        set_add_nys_dotted_rule(ps, new_dotted_rule, dotted_rule_parent_id);
+        if (!rule->rhs[j]) break;
+        if (rule->rhs[j]->empty_p)
+        {
+            if (!only_nots)
+            {
+                YaepDottedRule *new_dotted_rule = create_dotted_rule(ps, rule, j+1, dyn_lookahead_context);
+                set_add_dotted_rule_with_parent(ps, new_dotted_rule, dotted_rule_parent_id, "complete empty");
+            }
+        }
+        else if (rule->rhs[j]->is_not_operator)
+        {
+            if (blocked_by_lookahead(ps, dotted_rule, rule->rhs[j], 1-only_nots, "lookahead1"))
+            {
+                break;
+            }
+            else
+            {
+                YaepDottedRule *new_dotted_rule = create_dotted_rule(ps, rule, j+1, dyn_lookahead_context);
+                set_add_dotted_rule_with_parent(ps, new_dotted_rule, dotted_rule_parent_id, "complete lookahead ok pre");
+            }
+        }
+        else
+        {
+            break;
+        }
     }
 }
 
-/* The following function adds the rest(predicted not-yet-started) dotted_rules to the
-   new set and and forms triples(set core, symbol, indexes) for
-   further fast search of start dotted_rules from given core by
-   transition on given symbol(see comment for abstract data `core_symb_ids'). */
-static void expand_new_start_set(YaepParseState *ps)
+static int mmin(int a, int b)
 {
-    YaepDottedRule *dotted_rule;
-    YaepSymbol *symb;
-    YaepCoreSymbVect *core_symb_ids;
-    YaepRule *rule;
+    if (a <= b) return a;
+    return b;
+}
 
-    /* Add not yet started dotted_rules with nonzero matched_lengths. */
-    for(int id = 0; id < ps->new_num_started_dotted_rules; id++)
+static bool blocked_by_lookahead(YaepParseState *ps, YaepDottedRule *dotted_rule, YaepSymbol *symb, int n, const char *info)
+{
+    // Some empty rules encode a purpose in their names.
+    // We have +"howdy" which becomes a rule |+howdy for insertions and
+    // we have !"chapter" which becaomes a rule |!Schapter for not lookups if strings.
+    // we have !!"chapter" which becomes a rule |?Schapter for required lookups if strings.
+    // and ![L] which becomes |!CL for charsets
+    // and ![Ls;'_-'] which becomes |![Ls;'_-']
+    // and !#41 which becomes |!SA
+
+    if (!symb) return false;
+    if (!symb->is_not_operator) return false;
+
+    // The rule is a NOT lookup rule that can potentially block the completion of this empty rule if the matching lookahead exists.
+    bool is_blocked = has_lookahead(ps, symb, n);
+
+    if (ps->run.debug)
     {
-        add_predicted_not_yet_started_dotted_rules(ps, ps->new_dotted_rules[id], id);
+        MemBuffer *mb = new_membuffer();
+        int tok_i = ps->tok_i+n;
+        membuffer_printf(mb, "@%d NOT operator %s ", ps->tok_i, symb->repr);
+        membuffer_printf(mb, "%s", info);
+        if (is_blocked)
+        {
+            membuffer_printf(mb, " blocked: ");
+        }
+        else
+        {
+            membuffer_printf(mb, " ok ");
+        }
+        int to = mmin(ps->input_len, tok_i+strlen(symb->repr));
+        for (int i = tok_i; i < to; ++i)
+        {
+            membuffer_printf(mb, "%s ", ps->input[i].symb->hr);
+        }
+        membuffer_append_null(mb);
+
+        yaep_trace(ps, mb->buffer_);
+        debug_step_blocked(ps, dotted_rule, 0, 0);
+
+        free_membuffer_and_free_content(mb);
     }
 
-    /* Add not yet started dotted_rules and form predictions vectors. */
-    for(int i = 0; i < ps->new_core->num_dotted_rules; i++)
+
+    return is_blocked;
+}
+
+static bool has_lookahead(YaepParseState *ps, YaepSymbol *symb, int n)
+{
+    assert(symb->repr[0]== '|');
+    assert(symb->repr[1]== '!');
+    assert(symb->repr[2]== 'S' || symb->repr[2]== '[');
+
+    int p = ps->tok_i+n;
+
+    // End of buffer immediately returns no lookahead match.
+    if (p >= ps->input_len) return false;
+    // The last token is $eof returs no lookahead match.
+    if (!strcmp(ps->input[p].symb->hr, "$eof")) return false;
+
+    char type = symb->repr[2];
+    if (type == 'S')
     {
-        dotted_rule = ps->new_dotted_rules[i];
-        // Check that there is a symbol after the dot! */
+        // Start scanning utf8 characters after the S: |!S...
+        const char *u = symb->repr+3;
+        const char *stop = symb->repr+strlen(symb->repr);
+        for (int i = p; i < ps->input_len && u < stop; ++i)
+        {
+            YaepSymbol *next = ps->input[i].symb;
+            if (!strcmp(next->hr, "$eof")) return false;
+            int unc = 0;
+            size_t len = 0;
+            bool ok = decode_utf8(u, stop, &unc, &len);
+            if (!ok)
+            {
+                fprintf(stderr, "Illegal utf8 encoding in not lookahead >%s<\n", symb->repr);
+                exit(1);
+            }
+            if (next->u.terminal.code != unc)
+            {
+                // There is a mismatch between the lookahead and the actual content.
+                // We can stop early and report failed lookahead.
+                return false;
+            }
+            // Jump to the next character in the lookahead string.
+            u += len;
+        }
+        // All characters matched the lookahead!
+        return true;
+    }
+
+    // Charset lookahead.
+    YaepSymbol *ys = symb_find_by_repr(ps, symb->repr+2);
+    if (!ys)
+    {
+        // No charset exists, because no input characters matched this charset.
+        // Easy, no possible lookahead match.
+        return false;
+    }
+    YaepSymbol *next = ps->input[p].symb;
+    bool match = terminal_bitset_test(ps, ys->u.nonterminal.first, next->u.terminal.term_id);
+
+    return match;
+}
+
+static bool core_has_not_rules(YaepStateSetCore *c)
+{
+    for (int i = 0; i < c->num_started_dotted_rules; ++i)
+    {
+        YaepDottedRule *dotted_rule = c->dotted_rules[i];
+        if (dotted_rule->rule->contains_not_operator) return true;
+    }
+    return false;
+}
+
+/* The following function adds the rest(predicted not-yet-started) dotted_rules to the
+   new set and and forms triples(set_core, symbol, indexes) for
+   further fast search of start dotted_rules from given core by
+   transition on given symbol(see comment for abstract data `core_symb_to_predcomps'). */
+static void expand_new_set(YaepParseState *ps)
+{
+    YaepSymbol *symb;
+    YaepCoreSymbToPredComps *core_symb_to_predcomps;
+
+    /* Look for dotted rules that can be progressed because the next non-terminal
+       can be empty. I.e. we can complete the E immediately.
+       S = E, 'a'.
+       E = .
+    */
+    for (int leading_rule_index = 0;
+         leading_rule_index < ps->new_num_leading_dotted_rules;
+         leading_rule_index++)
+    {
+        YaepDottedRule *dotted_rule = ps->new_dotted_rules[leading_rule_index];
+        complete_empty_nonterminals_in_rule(ps,
+                                            dotted_rule,
+                                            leading_rule_index,
+                                            false);
+    }
+
+    for (int rule_index_in_core = 0;
+         rule_index_in_core < ps->new_core->num_dotted_rules;
+         rule_index_in_core++)
+    {
+        YaepDottedRule *dotted_rule = ps->new_dotted_rules[rule_index_in_core];
+
+        // Check that there is a symbol after the dot!
         if (dotted_rule->dot_j < dotted_rule->rule->rhs_len)
-	{
+        {
             // Yes.
             symb = dotted_rule->rule->rhs[dotted_rule->dot_j];
-            core_symb_ids = core_symb_ids_find(ps, ps->new_core, symb);
-            if (core_symb_ids == NULL)
-	    {
+            core_symb_to_predcomps = core_symb_to_predcomps_find(ps, ps->new_core, symb);
+
+            if (core_symb_to_predcomps)
+            {
+                //yaep_trace(ps, "re-using cspc%d[c%d %s]", core_symb_to_predcomps->id, ps->new_core->id, symb->hr);
+            }
+            else
+            {
                 // No vector found for this core+symb combo.
-                core_symb_ids = core_symb_ids_new(ps, ps->new_core, symb);
-                if (!symb->terminal_p)
+                // Add a new vector.
+                core_symb_to_predcomps = core_symb_to_predcomps_new(ps, ps->new_core, symb);
+                yaep_trace(ps, "new cspc%d [c%d %s]", core_symb_to_predcomps->id, ps->new_core->id, symb->hr);
+
+                if (!symb->is_terminal)
                 {
-                    for(rule = symb->u.nonterminal.rules; rule != NULL; rule = rule->lhs_next)
+                    for (YaepRule *r = symb->u.nonterminal.rules; r != NULL; r = r->lhs_next)
                     {
-                        YaepDottedRule *new_dotted_rule = create_dotted_rule(ps, rule, 0, 0);
-                        set_add_initial_dotted_rule(ps, new_dotted_rule);
-                        TRACE_FA(ps, "1 dotted rule %d", new_dotted_rule->id);
+                        YaepDottedRule *new_dotted_rule = create_dotted_rule(ps, r, 0, 0);
+                        char buf[128];
+                        snprintf(buf, 128, "d%d@%d predicts %s", dotted_rule->id, dotted_rule->dot_j, r->lhs->hr);
+                        set_add_dotted_rule_no_match_yet(ps, new_dotted_rule, buf);
                     }
                 }
-	    }
+            }
             // Add a prediction to the core+symb lookup that points to this dotted rule.
             // I.e. when we reach a certain symbol within this core, the we just find
             // a vector using the core+symb lookup. This vector stores all predicted dotted_rules
-            // that should be added for furtherparsing.
-            core_symb_ids_add_predict(ps, core_symb_ids, i);
+            // that should be added for further parsing.
+            core_symb_to_predcomps_add_predict(ps, core_symb_to_predcomps, rule_index_in_core);
 
-            if (symb->empty_p && i >= ps->new_core->num_all_matched_lengths)
+            // The non-terminal can be empty and this is a not-yet added dotted_rule.
+            if (symb->empty_p && rule_index_in_core >= ps->new_core->num_all_matched_lengths)
             {
-                YaepDottedRule *new_dotted_rule = create_dotted_rule(ps, dotted_rule->rule, dotted_rule->dot_j+1, 0);
-                set_add_initial_dotted_rule(ps, new_dotted_rule);
-                TRACE_FA(ps, "2 dotted rule %d", new_dotted_rule->id);
+                int first = 1; //ps->new_set->id == 0 ? 0 : 1;
+                if (!blocked_by_lookahead(ps, dotted_rule, dotted_rule->rule->rhs[dotted_rule->dot_j], first, "lookahead2a"))
+                {
+                    YaepDottedRule *nnnew_dotted_rule = create_dotted_rule(ps,
+                                                                           dotted_rule->rule,
+                                                                           dotted_rule->dot_j+1,
+                                                                           0);
+                    //  "complete_empty_rule_gurka");
+                    // Add new rule to be handled in next loop iteration.
+                    yaep_trace(ps, "complete empty rule %s", dotted_rule->rule->lhs->hr);
+                    set_add_dotted_rule_no_match_yet(ps, nnnew_dotted_rule, "complete empty rule");
+                }
             }
-	}
+            if (symb->is_not_operator && rule_index_in_core >= ps->new_core->num_all_matched_lengths)
+            {
+                int first = ps->new_set->id == 0 ? 0 : 1;
+                if (!blocked_by_lookahead(ps, dotted_rule, dotted_rule->rule->rhs[dotted_rule->dot_j], first, "lookahead2b"))
+                {
+                    YaepDottedRule *new_dotted_rule = create_dotted_rule(ps,
+                                                                         dotted_rule->rule,
+                                                                         dotted_rule->dot_j+1,
+                                                                         0);
+                    //"complete_lookahead_ok");
+                    yaep_trace(ps, "complete lookahead ok");
+                    set_add_dotted_rule_no_match_yet(ps, new_dotted_rule, "complete lookahead ok");
+                }
+            }
+        }
     }
 
-    /* Now forming completion vectors. */
-    for(int i = 0; i < ps->new_core->num_dotted_rules; i++)
+    for (int rule_index_in_core = 0;
+         rule_index_in_core < ps->new_core->num_dotted_rules;
+         rule_index_in_core++)
     {
-        dotted_rule = ps->new_dotted_rules[i];
-        // Check that there is NO symbol after the dot! */
-        if (dotted_rule->dot_j == dotted_rule->rule->rhs_len)
-	{
-            symb = dotted_rule->rule->lhs;
-            core_symb_ids = core_symb_ids_find(ps, ps->new_core, symb);
-            if (core_symb_ids == NULL)
-            {
-                core_symb_ids = core_symb_ids_new(ps, ps->new_core, symb);
-            }
-            core_symb_ids_add_complete(ps, core_symb_ids, i);
-	}
+        YaepDottedRule *dotted_rule = ps->new_dotted_rules[rule_index_in_core];
+
+        // Is this dotted_rule complete? I.e. the dot is at its rightmost position?
+        if (dotted_rule->dot_j != dotted_rule->rule->rhs_len) continue;
+
+        // Yes, all rhs elements have been completed/scanned.
+        symb = dotted_rule->rule->lhs;
+
+        core_symb_to_predcomps = core_symb_to_predcomps_find(ps, ps->new_core, symb);
+        if (core_symb_to_predcomps == NULL)
+        {
+            core_symb_to_predcomps = core_symb_to_predcomps_new(ps, ps->new_core, symb);
+            yaep_trace(ps, "new cspc%d [c%d %s]", core_symb_to_predcomps->id, ps->new_core->id, symb->hr);
+        }
+        core_symb_to_predcomps_add_complete(ps, core_symb_to_predcomps, rule_index_in_core);
     }
 
     if (ps->run.grammar->lookahead_level > 1)
     {
         YaepDottedRule *new_dotted_rule, *shifted_dotted_rule;
-        terminal_bitset_t *context_set;
-        int dotted_rule_id, context, j;
+        terminal_bitset_t *dyn_lookahead_context_set;
+        int dyn_lookahead_context, j;
         bool changed_p;
 
-        /* Now we have incorrect initial dotted_rules because their context is not correct. */
-        context_set = terminal_bitset_create(ps, ps->run.grammar->symbs_ptr->num_terminals);
+        /* Now we have incorrect initial dotted_rules because their dyn_lookahead_context is not correct. */
+        dyn_lookahead_context_set = terminal_bitset_create(ps);
         do
-	{
+        {
             changed_p = false;
-            for(int i = ps->new_core->num_all_matched_lengths; i < ps->new_core->num_dotted_rules; i++)
-	    {
-                terminal_bitset_clear(context_set, ps->run.grammar->symbs_ptr->num_terminals);
-                new_dotted_rule = ps->new_dotted_rules[i];
-                core_symb_ids = core_symb_ids_find(ps, ps->new_core, new_dotted_rule->rule->lhs);
-                for(j = 0; j < core_symb_ids->predictions.len; j++)
-		{
-                    dotted_rule_id = core_symb_ids->predictions.ids[j];
-                    dotted_rule = ps->new_dotted_rules[dotted_rule_id];
+            for(int new_rule_index_in_core = ps->new_core->num_all_matched_lengths;
+                new_rule_index_in_core < ps->new_core->num_dotted_rules;
+                new_rule_index_in_core++)
+            {
+                terminal_bitset_clear(ps, dyn_lookahead_context_set);
+                new_dotted_rule = ps->new_dotted_rules[new_rule_index_in_core];
+
+                core_symb_to_predcomps = core_symb_to_predcomps_find(ps, ps->new_core, new_dotted_rule->rule->lhs);
+
+                for (j = 0; j < core_symb_to_predcomps->predictions.len; j++)
+                {
+                    int rule_index_in_core = core_symb_to_predcomps->predictions.ids[j];
+                    YaepDottedRule *dotted_rule = ps->new_dotted_rules[rule_index_in_core];
                     shifted_dotted_rule = create_dotted_rule(ps,
                                                              dotted_rule->rule,
                                                              dotted_rule->dot_j+1,
-                                                             dotted_rule->context);
-                    terminal_bitset_or(context_set, shifted_dotted_rule->lookahead, ps->run.grammar->symbs_ptr->num_terminals);
-                    TRACE_FA(ps, "shifted dotted rule %d", shifted_dotted_rule->id);
-		}
-                context = terminal_bitset_insert(ps, context_set);
-                if (context >= 0)
+                                                             dotted_rule->dyn_lookahead_context);
+                    //                                                             "expand_enss3");
+                    terminal_bitset_or(ps, dyn_lookahead_context_set, shifted_dotted_rule->lookahead);
+                }
+                dyn_lookahead_context = terminal_bitset_insert(ps, dyn_lookahead_context_set);
+                if (dyn_lookahead_context >= 0)
                 {
-                    context_set = terminal_bitset_create(ps, ps->run.grammar->symbs_ptr->num_terminals);
+                    dyn_lookahead_context_set = terminal_bitset_create(ps);
                 }
                 else
                 {
-                    context = -context - 1;
+                    dyn_lookahead_context = -dyn_lookahead_context - 1;
                 }
-                dotted_rule = create_dotted_rule(ps,
-                                                 new_dotted_rule->rule,
-                                                 new_dotted_rule->dot_j,
-                                                 context);
-                TRACE_FA(ps, "added %d", new_dotted_rule->id);
+                YaepDottedRule *dotted_rule = create_dotted_rule(ps,
+                                                                 new_dotted_rule->rule,
+                                                                 new_dotted_rule->dot_j,
+                                                                 dyn_lookahead_context);
+                // "expand_enss4");
+
                 if (dotted_rule != new_dotted_rule)
-		{
-                    ps->new_dotted_rules[i] = dotted_rule;
+                {
+                    ps->new_dotted_rules[new_rule_index_in_core] = dotted_rule;
                     changed_p = true;
-		}
-	    }
-	}
+                }
+            }
+        }
         while(changed_p);
     }
+
     set_new_core_stop(ps);
-    core_symb_ids_new_all_stop(ps);
+    core_symb_to_predcomps_new_all_stop(ps);
 }
 
-/* The following function forms the 1st set. */
 static void build_start_set(YaepParseState *ps)
 {
-    int context = 0;
+    int dyn_lookahead_context = 0;
 
-    set_new_start(ps);
+    prepare_for_leading_dotted_rules(ps);
 
     if (ps->run.grammar->lookahead_level > 1)
     {
-        terminal_bitset_t *empty_context_set = terminal_bitset_create(ps, ps->run.grammar->symbs_ptr->num_terminals);
-        terminal_bitset_clear(empty_context_set, ps->run.grammar->symbs_ptr->num_terminals);
-        context = terminal_bitset_insert(ps, empty_context_set);
+        terminal_bitset_t *empty_dyn_lookahead_context_set = terminal_bitset_create(ps);
+        terminal_bitset_clear(ps, empty_dyn_lookahead_context_set);
+        dyn_lookahead_context = terminal_bitset_insert(ps, empty_dyn_lookahead_context_set);
 
-        /* Empty context in the table has always number zero.*/
-        assert(context == 0);
+        /* Empty dyn_lookahead_context in the table has always number zero. */
+        assert(dyn_lookahead_context == 0);
     }
 
     for (YaepRule *rule = ps->run.grammar->axiom->u.nonterminal.rules; rule != NULL; rule = rule->lhs_next)
     {
-        YaepDottedRule *dotted_rule = create_dotted_rule(ps, rule, 0, context);
-        set_add_dotted_rule(ps, dotted_rule, 0);
+        YaepDottedRule *new_dotted_rule = create_dotted_rule(ps, rule, 0, dyn_lookahead_context);
+        set_add_dotted_rule_with_matched_length(ps, new_dotted_rule, 0, "axiom");
     }
 
-    if (!set_insert(ps)) assert(false);
+    bool core_added = convert_leading_dotted_rules_into_new_set(ps);
+    assert(core_added);
 
-    expand_new_start_set(ps);
+    expand_new_set(ps);
     ps->state_sets[0] = ps->new_set;
 }
 
-/* The following function predicts a new state set by shifting dotted_rules
-   of SET given in CORE_SYMB_IDS with given lookahead terminal number.
-   If the number is negative, we ignore lookahead at all.*/
-static void complete_and_predict_new_state_set(YaepParseState *ps,
-                                               YaepStateSet *set,
-                                               YaepCoreSymbVect *core_symb_ids,
-                                               YaepSymbol *NEXT_TERMINAL)
+static int lookup_matched_length(YaepParseState *ps, YaepStateSet *set, int rule_index_in_core)
 {
-    YaepStateSet *prev_set;
-    YaepStateSetCore *set_core, *prev_set_core;
-    YaepDottedRule *dotted_rule, *new_dotted_rule, **prev_dotted_rules;
-    YaepCoreSymbVect *prev_core_symb_ids;
-    int local_lookahead_level, matched_length, dotted_rule_id, new_matched_length;
-    int place;
-    YaepVect *predictions;
-
-    int lookahead_term_id = NEXT_TERMINAL?NEXT_TERMINAL->u.terminal.term_id:-1;
-    local_lookahead_level = (lookahead_term_id < 0 ? 0 : ps->run.grammar->lookahead_level);
-    set_core = set->core;
-    set_new_start(ps);
-    predictions = &core_symb_ids->predictions;
-
-    clear_dotted_rule_matched_length_set(ps);
-    for(int i = 0; i < predictions->len; i++)
+    if (rule_index_in_core >= set->core->num_all_matched_lengths)
     {
-        dotted_rule_id = predictions->ids[i];
-        dotted_rule = set_core->dotted_rules[dotted_rule_id];
+        return 0;
+    }
+    if (rule_index_in_core < set->core->num_started_dotted_rules)
+    {
+        return set->matched_lengths[rule_index_in_core];
+    }
+    return set->matched_lengths[set->core->to_parent_rule_index[rule_index_in_core]];
+}
 
-        new_dotted_rule = create_dotted_rule(ps, dotted_rule->rule,
-                                             dotted_rule->dot_j+1, dotted_rule->context);
+static void trace_lookahead_predicts_no_match(YaepParseState *ps, int lookahead_term_id, YaepDottedRule *new_dotted_rule, const  char *info)
+{
+    MemBuffer *mb = new_membuffer();
+    YaepSymbol *symb = symb_find_by_term_id(ps, lookahead_term_id);
+    const char *hr = symb->hr;
+    if (!symb) hr = "?";
+    membuffer_printf(mb, "look bitset %s (%d) %s blocked by ", info, lookahead_term_id, hr);
+    print_dotted_rule(mb, ps, ps->tok_i-1, new_dotted_rule, 0, 0);
+    membuffer_append(mb, "\n");
+}
 
-        if (local_lookahead_level != 0
-            && !terminal_bitset_test(new_dotted_rule->lookahead, lookahead_term_id, ps->run.grammar->symbs_ptr->num_terminals)
-            && !terminal_bitset_test(new_dotted_rule->lookahead, ps->run.grammar->term_error_id, ps->run.grammar->symbs_ptr->num_terminals))
-        {
-            continue;
-        }
-        matched_length = 0;
-        if (dotted_rule_id >= set_core->num_all_matched_lengths)
-        {
-        }
-        else if (dotted_rule_id < set_core->num_started_dotted_rules)
-        {
-            matched_length = set->matched_lengths[dotted_rule_id];
-        }
-        else
-        {
-            matched_length = set->matched_lengths[set_core->parent_dotted_rule_ids[dotted_rule_id]];
-        }
-        matched_length++;
+void try_eat_token(const char *why, YaepParseState *ps, YaepStateSet *set,
+                   YaepDottedRule *dotted_rule, int rule_index_in_core,
+                   int lookahead_term_id, int local_lookahead_level,
+                   int add_matched_length);
+
+void try_eat_token(const char *why, YaepParseState *ps, YaepStateSet *set,
+                   YaepDottedRule *dotted_rule, int rule_index_in_core,
+                   int lookahead_term_id, int local_lookahead_level,
+                   int add_matched_length)
+{
+    YaepDottedRule *new_dotted_rule = create_dotted_rule(ps,
+                                                         dotted_rule->rule, dotted_rule->dot_j + 1,
+                                                         dotted_rule->dyn_lookahead_context);
+    if (false && local_lookahead_level != 0 &&
+        !terminal_bitset_test(ps, new_dotted_rule->lookahead, lookahead_term_id) &&
+        !terminal_bitset_test(ps, new_dotted_rule->lookahead, ps->run.grammar->term_error_id))
+    {
+        // Lookahead predicted no-match. Stop here.
+        return;
+    }
+
+    int matched_length = lookup_matched_length(ps, set, rule_index_in_core);
+    matched_length += add_matched_length;
+
+    // This combo dotted_rule + matched_length did not already exist, lets add it.
+    // But first test if there is a not lookahead that blocks....
+    if (!blocked_by_lookahead(ps, new_dotted_rule, new_dotted_rule->rule->rhs[new_dotted_rule->dot_j], 1, why))
+    {
         if (!dotted_rule_matched_length_test_and_set(ps, new_dotted_rule, matched_length))
         {
-            // This combo dotted_rule + matched_length did not already exist, lets add it.
-            set_add_dotted_rule(ps, new_dotted_rule, matched_length);
+            set_add_dotted_rule_with_matched_length(ps, new_dotted_rule, matched_length, why);
         }
     }
+}
 
-    for(int i = 0; i < ps->new_num_started_dotted_rules; i++)
+void check_predicted_dotted_rules(YaepParseState *ps,
+                                  YaepStateSet *set,
+                                  YaepVect *predictions,
+                                  int lookahead_term_id,
+                                  int local_lookahead_level)
+{
+    for (int i = 0; i < predictions->len; i++)
     {
-        new_dotted_rule = ps->new_dotted_rules[i];
-        if (new_dotted_rule->empty_tail_p)
-	{
-            int *curr_el, *bound;
+        int rule_index_in_core = predictions->ids[i];
+        YaepDottedRule *dotted_rule = set->core->dotted_rules[rule_index_in_core];
+        try_eat_token("scan", ps, set, dotted_rule, rule_index_in_core, lookahead_term_id, local_lookahead_level, 1);
+    }
+}
 
+void check_leading_dotted_rules(YaepParseState *ps, YaepStateSet *set, int lookahead_term_id, int local_lookahead_level)
+{
+    for (int i = 0; i < ps->new_num_leading_dotted_rules; i++)
+    {
+        YaepDottedRule *new_dotted_rule = ps->new_dotted_rules[i];
+        bool completed = new_dotted_rule->empty_tail_p;
+
+        YaepSymbol *sym = new_dotted_rule->rule->rhs[new_dotted_rule->dot_j];
+        if (!completed && sym && sym->is_not_operator
+            && !blocked_by_lookahead(ps, new_dotted_rule, new_dotted_rule->rule->rhs[new_dotted_rule->dot_j], 1, "lookaheadbanan"))
+        {
+            completed = true;
+        }
+
+        // Note that empty_tail_p is both true if you reached the end of the rule
+        // and if the rule can derive the empty string from the dot.
+        if (completed)
+        {
             /* All tail in new sitiation may derivate empty string so
-               make reduce and add new dotted_rules.*/
-            new_matched_length = ps->new_matched_lengths[i];
-            place = ps->state_set_k + 1 - new_matched_length;
-            prev_set = ps->state_sets[place];
-            prev_set_core = prev_set->core;
-            prev_core_symb_ids = core_symb_ids_find(ps, prev_set_core, new_dotted_rule->rule->lhs);
-            if (prev_core_symb_ids == NULL)
-	    {
+               make reduce and add new dotted_rules. */
+            int new_matched_length = ps->new_matched_lengths[i];
+            int place = ps->state_set_k + 1 - new_matched_length;
+            YaepStateSet *prev_set = ps->state_sets[place];
+            YaepCoreSymbToPredComps *prev_core_symb_to_predcomps = core_symb_to_predcomps_find(ps, prev_set->core, new_dotted_rule->rule->lhs);
+            if (prev_core_symb_to_predcomps == NULL)
+            {
                 assert(new_dotted_rule->rule->lhs == ps->run.grammar->axiom);
                 continue;
-	    }
-            curr_el = prev_core_symb_ids->predictions.ids;
-            bound = curr_el + prev_core_symb_ids->predictions.len;
-
-            assert(curr_el != NULL);
-            prev_dotted_rules= prev_set_core->dotted_rules;
-            do
-	    {
-                dotted_rule_id = *curr_el++;
-                dotted_rule = prev_dotted_rules[dotted_rule_id];
-                new_dotted_rule = create_dotted_rule(ps, dotted_rule->rule, dotted_rule->dot_j+1, dotted_rule->context);
-
-                if (local_lookahead_level != 0
-                    && !terminal_bitset_test(new_dotted_rule->lookahead, lookahead_term_id, ps->run.grammar->symbs_ptr->num_terminals)
-                    && !terminal_bitset_test(new_dotted_rule->lookahead,
-                                      ps->run.grammar->term_error_id,
-                                      ps->run.grammar->symbs_ptr->num_terminals))
-                {
-                    continue;
-                }
-                matched_length = 0;
-                if (dotted_rule_id >= prev_set_core->num_all_matched_lengths)
-                {
-                }
-                else if (dotted_rule_id < prev_set_core->num_started_dotted_rules)
-                {
-                    matched_length = prev_set->matched_lengths[dotted_rule_id];
-                }
-                else
-                {
-                    matched_length = prev_set->matched_lengths[prev_set_core->parent_dotted_rule_ids[dotted_rule_id]];
-                }
-                matched_length += new_matched_length;
-
-                if (!dotted_rule_matched_length_test_and_set(ps, new_dotted_rule, matched_length))
-                {
-                    // This combo dotted_ruled + matched_length did not already exist, lets add it.
-                    set_add_dotted_rule(ps, new_dotted_rule, matched_length);
-                }
-	    }
-            while(curr_el < bound);
-	}
+            }
+            for (int j = 0; j < prev_core_symb_to_predcomps->predictions.len; j++)
+            {
+                int rule_index_in_core = prev_core_symb_to_predcomps->predictions.ids[j];
+                YaepDottedRule *dotted_rule = prev_set->core->dotted_rules[rule_index_in_core];
+                try_eat_token("complete", ps, prev_set, dotted_rule, rule_index_in_core, lookahead_term_id, local_lookahead_level, new_matched_length);
+            }
+        }
     }
+}
 
-    if (set_insert(ps))
+/* The following function predicts a new state set by shifting dotted_rules
+   of SET given in CORE_SYMB_TO_PREDCOMPS with given lookahead terminal number.
+   If the number is negative, we ignore lookahead at all. */
+static void complete_and_predict_new_state_set(YaepParseState *ps,
+                                               YaepStateSet *set,
+                                               YaepCoreSymbToPredComps *core_symb_to_predcomps,
+                                               YaepSymbol *THE_TERMINAL,
+                                               YaepSymbol *NEXT_TERMINAL)
+{
+    int lookahead_term_id = NEXT_TERMINAL?NEXT_TERMINAL->u.terminal.term_id:-1;
+    int local_lookahead_level = (lookahead_term_id < 0 ? 0 : ps->run.grammar->lookahead_level);
+
+    prepare_for_leading_dotted_rules(ps);
+
+    YaepVect *predictions = &core_symb_to_predcomps->predictions;
+
+    clear_dotted_rule_matched_length_set(ps);
+
+    check_predicted_dotted_rules(ps, set, predictions, lookahead_term_id, local_lookahead_level);
+    check_leading_dotted_rules(ps, set, lookahead_term_id, local_lookahead_level);
+
+    bool core_added = convert_leading_dotted_rules_into_new_set(ps);
+
+    if (core_added)
     {
-        expand_new_start_set(ps);
-        ps->new_core->term = core_symb_ids->symb;
+        expand_new_set(ps);
+        ps->new_core->term = core_symb_to_predcomps->symb;
     }
 }
 
@@ -22693,23 +24239,21 @@ static void save_original_sets(YaepParseState *ps)
                         sizeof(YaepStateSet*));
 
         if (ps->run.debug)
-	{
+        {
             fprintf(stderr, "++++Save original set=%d\n", curr_pl);
-            print_state_set(ps,
+            /*print_state_set(ps,
                             stderr,
                             ps->state_sets[curr_pl],
-                            curr_pl,
-                            ps->run.debug,
-                            ps->run.debug);
+                            curr_pl);*/
             fprintf(stderr, "\n");
-	}
+        }
 
     }
     ps->original_last_state_set_el = ps->state_set_k - 1;
 }
 
 /* If it is necessary, the following function restores original pl
-   part with states in range [0, last_state_set_el].*/
+   part with states in range [0, last_state_set_el]. */
 static void restore_original_sets(YaepParseState *ps, int last_state_set_el)
 {
     assert(last_state_set_el <= ps->recovery_start_set_k
@@ -22727,12 +24271,11 @@ static void restore_original_sets(YaepParseState *ps, int last_state_set_el)
             [ps->recovery_start_set_k - ps->original_last_state_set_el];
 
         if (ps->run.debug)
-	{
+        {
             fprintf(stderr, "++++++Restore original set=%d\n", ps->original_last_state_set_el);
-            print_state_set(ps, stderr, ps->state_sets[ps->original_last_state_set_el], ps->original_last_state_set_el,
-                            ps->run.debug, ps->run.debug);
+            /*print_state_set(ps, stderr, ps->state_sets[ps->original_last_state_set_el], ps->original_last_state_set_el);*/
             fprintf(stderr, "\n");
-	}
+        }
 
         if (ps->original_last_state_set_el >= last_state_set_el)
             break;
@@ -22752,7 +24295,7 @@ static int find_error_state_set_set(YaepParseState *ps, int start_state_set_set,
     assert(start_state_set_set >= 0);
    *cost = 0;
     for(curr_pl = start_state_set_set; curr_pl >= 0; curr_pl--)
-        if (core_symb_ids_find(ps, ps->state_sets[curr_pl]->core, ps->run.grammar->term_error) != NULL)
+        if (core_symb_to_predcomps_find(ps, ps->state_sets[curr_pl]->core, ps->run.grammar->term_error) != NULL)
             break;
         else if (ps->state_sets[curr_pl]->core->term != ps->run.grammar->term_error)
            (*cost)++;
@@ -22762,7 +24305,7 @@ static int find_error_state_set_set(YaepParseState *ps, int start_state_set_set,
 
 /* The following function creates and returns new error recovery state
    with charcteristics(LAST_ORIGINAL_STATE_SET_EL, BACKWARD_MOVE_COST,
-   state_set_k, tok_i).*/
+   state_set_k, tok_i). */
 static YaepRecoveryState new_recovery_state(YaepParseState *ps, int last_original_state_set_el, int backward_move_cost)
 {
     YaepRecoveryState state;
@@ -22774,7 +24317,7 @@ static YaepRecoveryState new_recovery_state(YaepParseState *ps, int last_origina
     {
         fprintf(stderr, "++++Creating recovery state: original set=%d, tok=%d, ",
                 last_original_state_set_el, ps->tok_i);
-        symbol_print(stderr, ps->input[ps->tok_i].symb, true);
+        // TODO symbol_print(stderr, ps->input[ps->tok_i].symb, true);
         fprintf(stderr, "\n");
     }
 
@@ -22786,12 +24329,11 @@ static YaepRecoveryState new_recovery_state(YaepParseState *ps, int last_origina
         OS_TOP_ADD_MEMORY(ps->recovery_state_tail_sets, &ps->state_sets[i], sizeof(ps->state_sets[i]));
 
         if (ps->run.debug)
-	{
+        {
             fprintf(stderr, "++++++Saving set=%d\n", i);
-            print_state_set(ps, stderr, ps->state_sets[i], i, ps->run.debug,
-                            ps->run.debug);
+            /*print_state_set(ps, stderr, ps->state_sets[i], i);*/
             fprintf(stderr, "\n");
-	}
+        }
 
     }
     state.state_set_tail =(YaepStateSet**) OS_TOP_BEGIN(ps->recovery_state_tail_sets);
@@ -22813,7 +24355,7 @@ static void push_recovery_state(YaepParseState *ps, int last_original_state_set_
     {
         fprintf(stderr, "++++Push recovery state: original set=%d, tok=%d, ",
                  last_original_state_set_el, ps->tok_i);
-        symbol_print(stderr, ps->input[ps->tok_i].symb, true);
+        // TODO symbol_print(stderr, ps->input[ps->tok_i].symb, true);
         fprintf(stderr, "\n");
     }
 
@@ -22834,7 +24376,7 @@ static void set_recovery_state(YaepParseState *ps, YaepRecoveryState*state)
     {
         fprintf(stderr, "++++Set recovery state: set=%d, tok=%d, ",
                  ps->state_set_k, ps->tok_i);
-        symbol_print(stderr, ps->input[ps->tok_i].symb, true);
+        // TODO symbol_print(stderr, ps->input[ps->tok_i].symb, true);
         fprintf(stderr, "\n");
     }
 
@@ -22843,12 +24385,11 @@ static void set_recovery_state(YaepParseState *ps, YaepRecoveryState*state)
         ps->state_sets[++ps->state_set_k] = state->state_set_tail[i];
 
         if (ps->run.debug)
-	{
+        {
             fprintf(stderr, "++++++Add saved set=%d\n", ps->state_set_k);
-            print_state_set(ps, stderr, ps->state_sets[ps->state_set_k], ps->state_set_k, ps->run.debug,
-                      ps->run.debug);
+            /*print_state_set(ps, stderr, ps->state_sets[ps->state_set_k], ps->state_set_k);*/
             fprintf(stderr, "\n");
-	}
+        }
 
     }
 }
@@ -22873,7 +24414,7 @@ static YaepRecoveryState pop_recovery_state(YaepParseState *ps)
 /* Return true if goto set SET from parsing list PLACE can be used as
    the next set.  The criterium is that all origin sets of start
    dotted_rules are the same as from PLACE. */
-static bool check_cached_transition_set(YaepParseState *ps, YaepStateSet*set, int place)
+static bool can_transition_to_set(YaepParseState *ps, YaepStateSet*set, int place)
 {
     int i, dist;
     int*matched_lengths = set->matched_lengths;
@@ -22915,6 +24456,7 @@ static int try_to_recover(YaepParseState *ps)
     }
     else
     {
+        ps->run.failed_p = true;
         ps->run.syntax_error(
             (YaepParseRun*)ps,
             saved_tok_i,
@@ -22929,58 +24471,75 @@ static int try_to_recover(YaepParseState *ps)
     return 0;
 }
 
-static YaepStateSetTermLookAhead *lookup_cached_set(YaepParseState *ps,
-                                                    YaepSymbol *THE_TERMINAL,
-                                                    YaepSymbol *NEXT_TERMINAL,
-                                                    YaepStateSet *set)
+static YaepStateSetTermLookAhead *lookup_cached_set_term_lookahead(YaepParseState *ps,
+                                                                   YaepSymbol *THE_TERMINAL,
+                                                                   YaepSymbol *NEXT_TERMINAL,
+                                                                   YaepStateSet *set)
 {
-    int i;
-    hash_table_entry_t *entry;
-    YaepStateSetTermLookAhead *new_core_term_lookahead;
+    OS_TOP_EXPAND(ps->set_term_lookahead_os, sizeof(YaepStateSetTermLookAhead));
 
-    OS_TOP_EXPAND(ps->triplet_core_term_lookahead_os, sizeof(YaepStateSetTermLookAhead));
+    YaepStateSetTermLookAhead *new_set_term_lookahead = (YaepStateSetTermLookAhead*)OS_TOP_BEGIN(ps->set_term_lookahead_os);
+    new_set_term_lookahead->set = set;
+    new_set_term_lookahead->term = THE_TERMINAL;
+    new_set_term_lookahead->lookahead_term = NEXT_TERMINAL?NEXT_TERMINAL->u.terminal.term_id:-1;
 
-    new_core_term_lookahead = (YaepStateSetTermLookAhead*) OS_TOP_BEGIN(ps->triplet_core_term_lookahead_os);
-    new_core_term_lookahead->set = set;
-    new_core_term_lookahead->term = THE_TERMINAL;
-    new_core_term_lookahead->lookahead = NEXT_TERMINAL?NEXT_TERMINAL->u.terminal.term_id:-1;
+    memset(new_set_term_lookahead->result, 0, MAX_CACHED_GOTO_RESULTS*sizeof(new_set_term_lookahead->result[0]));
 
-    for(i = 0; i < MAX_CACHED_GOTO_RESULTS; i++)
-    {
-        new_core_term_lookahead->result[i] = NULL;
-    }
-    new_core_term_lookahead->curr = 0;
-    entry = find_hash_table_entry(ps->set_of_triplets_core_term_lookahead, new_core_term_lookahead, true);
+    new_set_term_lookahead->curr = 0;
+    // We write into the hashtable using the entry point! Yay!
+    // I.e. there is no write hash table entry function.....
+    YaepStateSetTermLookAhead **stlg = (YaepStateSetTermLookAhead**)find_hash_table_entry(ps->cache_stateset_term_lookahead, new_set_term_lookahead, true);
 
-    if (*entry != NULL)
+    if (*stlg != NULL)
     {
         YaepStateSet *s;
 
-        OS_TOP_NULLIFY(ps->triplet_core_term_lookahead_os);
-        for(i = 0; i < MAX_CACHED_GOTO_RESULTS; i++)
+        OS_TOP_NULLIFY(ps->set_term_lookahead_os);
+        for(int i = 0; i < MAX_CACHED_GOTO_RESULTS; i++)
         {
-            if ((s = ((YaepStateSetTermLookAhead*)*entry)->result[i]) == NULL)
-            {
-                break;
-            }
-            else if (check_cached_transition_set(ps,
-                                                 s,
-                                                 ((YaepStateSetTermLookAhead*)*entry)->place[i]))
+            s = (*stlg)->result[i];
+            if (s == NULL) break;
+            if (can_transition_to_set(ps, s, (*stlg)->place[i]))
             {
                 ps->new_set = s;
                 ps->n_goto_successes++;
+                if (xmq_trace_enabled_)
+                {
+                    YaepSymbol *lookahead_symb = symb_find_by_term_id(ps, new_set_term_lookahead->lookahead_term);
+                    const char *losymb = "";
+                    if (lookahead_symb && lookahead_symb->hr) losymb = lookahead_symb->hr;
+
+                    yaep_trace(ps, "found stlg [s%d %s %s] -> s%d",
+                               new_set_term_lookahead->set->id,
+                               new_set_term_lookahead->term->hr,
+                               losymb,
+                               ps->new_set->id);
+                }
                 break;
             }
         }
     }
     else
     {
-        OS_TOP_FINISH(ps->triplet_core_term_lookahead_os);
-        *entry =(hash_table_entry_t) new_core_term_lookahead;
-        ps->num_triplets_core_term_lookahead++;
+        OS_TOP_FINISH(ps->set_term_lookahead_os);
+        // Write the new_set_term_lookahead triplet into the hash table.
+        *stlg = new_set_term_lookahead;
+        ps->num_set_term_lookahead++;
+
+        /*
+        if (xmq_trace_enabled_)
+        {
+            YaepSymbol *lookahead_symb = symb_find_by_term_id(ps, new_set_term_lookahead->lookahead_term);
+            const char *losymb = "";
+            if (lookahead_symb && lookahead_symb->hr) losymb = lookahead_symb->hr;
+            yaep_trace(ps, "create stlg [s%d %s %s]",
+                       new_set_term_lookahead->set->id,
+                       new_set_term_lookahead->term->hr,
+                       losymb);
+                       }*/
     }
 
-    return (YaepStateSetTermLookAhead*)*entry;
+    return *stlg;
 }
 
 /* Save(set, term, lookahead) -> new_set in the table. */
@@ -22989,19 +24548,34 @@ static void save_cached_set(YaepParseState *ps, YaepStateSetTermLookAhead *entry
     int i = entry->curr;
     entry->result[i] = ps->new_set;
     entry->place[i] = ps->state_set_k;
-    entry->lookahead = NEXT_TERMINAL ? NEXT_TERMINAL->u.terminal.term_id : -1;
+    entry->lookahead_term = NEXT_TERMINAL ? NEXT_TERMINAL->u.terminal.term_id : -1;
     entry->curr = (i + 1) % MAX_CACHED_GOTO_RESULTS;
+
+    if (xmq_trace_enabled_)
+    {
+        YaepSymbol *lookahead_symb = symb_find_by_term_id(ps, entry->lookahead_term);
+        const char *losymb = "";
+        if (lookahead_symb && lookahead_symb->hr) losymb = lookahead_symb->hr;
+        yaep_trace(ps, "store stlg [s%d %s %s] -> s%d",
+                   entry->set->id,
+                   entry->term->hr,
+                   losymb,
+                   ps->new_set->id);
+    }
 }
 
 static void perform_parse(YaepParseState *ps)
 {
+    yaep_debug(ps, "perform_parse()");
     error_recovery_init(ps);
     build_start_set(ps);
 
-    if (ps->run.debug)
+    if (ps->run.trace)
     {
-        fprintf(stderr, "\n\n------ Parsing start ---------------\n\n");
-        print_state_set(ps, stderr, ps->new_set, 0, ps->run.debug, ps->run.debug);
+        MemBuffer *mb = new_membuffer();
+        print_state_set(mb, ps, ps->new_set, 0);
+        debug_mb("ixml.pa.state=", mb);
+        free_membuffer_and_free_content(mb);
     }
 
     ps->tok_i = 0;
@@ -23009,7 +24583,11 @@ static void perform_parse(YaepParseState *ps)
 
     for(; ps->tok_i < ps->input_len; ps->tok_i++)
     {
-        assert(ps->state_set_k == ps->tok_i);
+        // This assert is TODO! Theoretically the state_set_k could be less than tok_i
+        // assuming a state set has been reused.
+        // So far I have not seen that, so assume state_set_k == tok_i == index of input char.
+        assert(ps->tok_i == ps->state_set_k);
+
         YaepSymbol *THE_TERMINAL = ps->input[ps->tok_i].symb;
         YaepSymbol *NEXT_TERMINAL = NULL;
 
@@ -23018,1104 +24596,84 @@ static void perform_parse(YaepParseState *ps)
             NEXT_TERMINAL = ps->input[ps->tok_i + 1].symb;
         }
 
-        if (ps->run.debug)
-	{
-            fprintf(stderr, "\nScan input[%d]= ", ps->tok_i);
-            symbol_print(stderr, THE_TERMINAL, true);
-            fprintf(stderr, " state_set_k=%d\n\n", ps->state_set_k);
-	}
+        assert(ps->tok_i == ps->state_set_k);
+
+        if (xmq_verbose_enabled_ && ps->tok_i % 100000 == 0)
+        {
+            verbose_stats(ps);
+        }
+        debug("ixml.pa.token=", "@%d %s", ps->tok_i, THE_TERMINAL->hr);
+        if (NEXT_TERMINAL && xmq_trace_enabled_)
+        {
+            yaep_view(ps, "READ %s next %s", THE_TERMINAL->hr, NEXT_TERMINAL->hr);
+        }
+        else
+        {
+            yaep_view(ps, "READ %s", THE_TERMINAL->hr);
+        }
 
         YaepStateSet *set = ps->state_sets[ps->state_set_k];
         ps->new_set = NULL;
 
 #ifdef USE_SET_HASH_TABLE
-        YaepStateSetTermLookAhead *entry = lookup_cached_set(ps, THE_TERMINAL, NEXT_TERMINAL, set);
+        // This command also adds the set to the hashtable if it does not already exist.
+        // As a side effect it writes into ps->new_set
+        YaepStateSetTermLookAhead *entry = lookup_cached_set_term_lookahead(ps, THE_TERMINAL, NEXT_TERMINAL, set);
 #endif
 
         if (ps->new_set == NULL)
-	{
-            YaepCoreSymbVect *core_symb_ids = core_symb_ids_find(ps, set->core, THE_TERMINAL);
+        {
+            YaepCoreSymbToPredComps *core_symb_to_predcomps = core_symb_to_predcomps_find(ps, set->core, THE_TERMINAL);
 
-            if (core_symb_ids == NULL)
-	    {
+            if (core_symb_to_predcomps == NULL)
+            {
                 int c = try_to_recover(ps);
-                if (c == 1) continue;
-                else if (c == 2) break;
-	    }
+                if (c == 1)
+                {
+                    continue;
+                }
+                else if (c == 2)
+                {
+                    break;
+                }
+            }
 
-            complete_and_predict_new_state_set(ps, set, core_symb_ids, NEXT_TERMINAL);
+            /*
+            if (ps->run.debug)
+            {
+                MemBuffer *mb = new_membuffer();
+                membuffer_printf(mb, "input[%d]=", ps->tok_i);
+                print_symbol(mb, THE_TERMINAL, true);
+                membuffer_printf(mb, " s%d core%d -> csl%d", set->id, set->core->id, core_symb_to_predcomps->id);
+                debug_mb("ixml.pa.scan=", mb);
+                free_membuffer_and_free_content(mb);
+                }*/
+
+            // Do the actual predict/complete cycle.
+            complete_and_predict_new_state_set(ps, set, core_symb_to_predcomps, THE_TERMINAL, NEXT_TERMINAL);
 
 #ifdef USE_SET_HASH_TABLE
             save_cached_set(ps, entry, NEXT_TERMINAL);
 #endif
-	}
+        }
 
         ps->state_set_k++;
         ps->state_sets[ps->state_set_k] = ps->new_set;
 
-        if (ps->run.debug)
-	{
-            print_state_set(ps, stderr, ps->new_set, ps->state_set_k, ps->run.debug, ps->run.debug);
-	}
+        if (ps->run.trace)
+        {
+            MemBuffer *mb = new_membuffer();
+            print_state_set(mb, ps, ps->new_set, ps->state_set_k);
+            debug_mb("ixml.pa.state=", mb);
+            free_membuffer_and_free_content(mb);
+        }
     }
     free_error_recovery(ps);
 
-    if (ps->run.debug)
-    {
-        fprintf(stderr, "\n\n----- Parsing done -----------------\n\n\n");
-    }
-}
-
-static unsigned parse_state_hash(hash_table_entry_t s)
-{
-    YaepParseTreeBuildState*state =((YaepParseTreeBuildState*) s);
-
-    /* The table contains only states with dot at the end of rule. */
-    assert(state->dot_j == state->rule->rhs_len);
-    return(((jauquet_prime_mod32* hash_shift +
-             (unsigned)(size_t) state->rule)* hash_shift +
-             state->from_i)* hash_shift + state->state_set_k);
-}
-
-static bool parse_state_eq(hash_table_entry_t s1, hash_table_entry_t s2)
-{
-    YaepParseTreeBuildState*state1 =((YaepParseTreeBuildState*) s1);
-    YaepParseTreeBuildState*state2 =((YaepParseTreeBuildState*) s2);
-
-    /* The table contains only states with dot at the end of rule.*/
-    assert(state1->dot_j == state1->rule->rhs_len
-            && state2->dot_j == state2->rule->rhs_len);
-    return(state1->rule == state2->rule && state1->from_i == state2->from_i
-            && state1->state_set_k == state2->state_set_k);
-}
-
-/* The following function initializes work with parser states.*/
-static void parse_state_init(YaepParseState *ps)
-{
-    ps->free_parse_state = NULL;
-    OS_CREATE(ps->parse_state_os, ps->run.grammar->alloc, 0);
-    if (!ps->run.grammar->one_parse_p)
-        ps->map_rule_orig_statesetind_to_internalstate =
-            create_hash_table(ps->run.grammar->alloc, ps->input_len* 2, parse_state_hash,
-                               parse_state_eq);
-}
-
-/* The following function returns new parser state.*/
-static YaepParseTreeBuildState *parse_state_alloc(YaepParseState *ps)
-{
-    YaepParseTreeBuildState*result;
-
-    if (ps->free_parse_state == NULL)
-    {
-        OS_TOP_EXPAND(ps->parse_state_os, sizeof(YaepParseTreeBuildState));
-        result =(YaepParseTreeBuildState*) OS_TOP_BEGIN(ps->parse_state_os);
-        OS_TOP_FINISH(ps->parse_state_os);
-    }
-    else
-    {
-        result = ps->free_parse_state;
-        ps->free_parse_state =(YaepParseTreeBuildState*) ps->free_parse_state->rule;
-    }
-    return result;
-}
-
-/* The following function frees STATE.*/
-static void parse_state_free(YaepParseState *ps, YaepParseTreeBuildState*state)
-{
-    state->rule = (YaepRule*)ps->free_parse_state;
-    ps->free_parse_state = state;
-}
-
-/* The following function searches for state in the table with the
-   same characteristics as "state".  If found, then it returns a pointer
-   to the state in the table.  Otherwise the function makes copy of
-  *STATE, inserts into the table and returns pointer to copied state.
-   In the last case, the function also sets up*NEW_P.*/
-static YaepParseTreeBuildState *parse_state_insert(YaepParseState *ps, YaepParseTreeBuildState *state, bool *new_p)
-{
-    hash_table_entry_t*entry;
-
-    entry = find_hash_table_entry(ps->map_rule_orig_statesetind_to_internalstate, state, true);
-
-   *new_p = false;
-    if (*entry != NULL)
-        return(YaepParseTreeBuildState*)*entry;
-   *new_p = true;
-    /* We make copy because state_set_k can be changed in further processing state.*/
-   *entry = parse_state_alloc(ps);
-   *(YaepParseTreeBuildState*)*entry =*state;
-    return(YaepParseTreeBuildState*)*entry;
-}
-
-static void free_parse_state(YaepParseState *ps)
-{
-    if (!ps->run.grammar->one_parse_p)
-    {
-        delete_hash_table(ps->map_rule_orig_statesetind_to_internalstate);
-    }
-    OS_DELETE(ps->parse_state_os);
-}
-
-/* This page conatins code to traverse translation.*/
-
-/* Hash of translation visit node.*/
-static unsigned trans_visit_node_hash(hash_table_entry_t n)
-{
-    return(size_t)((YaepTreeNodeVisit*) n)->node;
-}
-
-/* Equality of translation visit nodes.*/
-static bool trans_visit_node_eq(hash_table_entry_t n1, hash_table_entry_t n2)
-{
-    return(((YaepTreeNodeVisit*) n1)->node == ((YaepTreeNodeVisit*) n2)->node);
-}
-
-/* The following function checks presence translation visit node with
-   given NODE in the table and if it is not present in the table, the
-   function creates the translation visit node and inserts it into
-   the table.*/
-static YaepTreeNodeVisit *visit_node(YaepParseState *ps, YaepTreeNode*node)
-{
-    YaepTreeNodeVisit trans_visit_node;
-    hash_table_entry_t*entry;
-
-    trans_visit_node.node = node;
-    entry = find_hash_table_entry(ps->map_node_to_visit,
-                                   &trans_visit_node, true);
-
-    if (*entry == NULL)
-    {
-        /* If it is the new node, we did not visit it yet.*/
-        trans_visit_node.num = -1 - ps->num_nodes_visits;
-        ps->num_nodes_visits++;
-        OS_TOP_ADD_MEMORY(ps->node_visits_os,
-                           &trans_visit_node, sizeof(trans_visit_node));
-       *entry =(hash_table_entry_t) OS_TOP_BEGIN(ps->node_visits_os);
-        OS_TOP_FINISH(ps->node_visits_os);
-    }
-    return(YaepTreeNodeVisit*)*entry;
-}
-
-/* The following function returns the positive order number of node with number NUM.*/
-static int canon_node_id(int id)
-{
-    return (id < 0 ? -id-1 : id);
-}
-
-/* The following recursive function prints NODE into file F and prints
-   all its children(if debug_level < 0 output format is for graphviz).*/
-static void print_yaep_node(YaepParseState *ps, FILE *f, YaepTreeNode *node)
-{
-    YaepTreeNodeVisit*trans_visit_node;
-    YaepTreeNode*child;
-    int i;
-
-    assert(node != NULL);
-    trans_visit_node = visit_node(ps, node);
-    if (trans_visit_node->num >= 0)
-    {
-        return;
-    }
-    trans_visit_node->num = -trans_visit_node->num - 1;
-    if (ps->run.debug) fprintf(f, "%7d: ", trans_visit_node->num);
-    switch(node->type)
-    {
-    case YAEP_NIL:
-        if (ps->run.debug)
-            fprintf(f, "EMPTY\n");
-        break;
-    case YAEP_ERROR:
-        if (ps->run.debug > 0)
-            fprintf(f, "ERROR\n");
-        break;
-    case YAEP_TERM:
-        if (ps->run.debug)
-            fprintf(f, "TERMINAL: code=%d, repr=%s, mark=%d %c\n", node->val.terminal.code,
-                    symb_find_by_code(ps, node->val.terminal.code)->repr, node->val.terminal.mark, node->val.terminal.mark>32?node->val.terminal.mark:' ');
-        break;
-    case YAEP_ANODE:
-        if (ps->run.debug)
-	{
-            fprintf(f, "ABSTRACT: %c%s(", node->val.anode.mark?node->val.anode.mark:' ', node->val.anode.name);
-            for(i = 0;(child = node->val.anode.children[i]) != NULL; i++)
-            {
-                fprintf(f, " %d", canon_node_id(visit_node(ps, child)->num));
-            }
-            fprintf(f, ")\n");
-	}
-        else
-	{
-            for(i = 0;(child = node->val.anode.children[i]) != NULL; i++)
-	    {
-                fprintf(f, "  \"%d: %s\" -> \"%d: ", trans_visit_node->num,
-                         node->val.anode.name,
-                        canon_node_id(visit_node(ps, child)->num));
-                switch(child->type)
-		{
-		case YAEP_NIL:
-                    fprintf(f, "EMPTY");
-                    break;
-		case YAEP_ERROR:
-                    fprintf(f, "ERROR");
-                    break;
-		case YAEP_TERM:
-                    fprintf(f, "%s",
-                            symb_find_by_code(ps, child->val.terminal.code)->repr);
-                    break;
-		case YAEP_ANODE:
-                    fprintf(f, "%s", child->val.anode.name);
-                    break;
-		case YAEP_ALT:
-                    fprintf(f, "ALT");
-                    break;
-		default:
-                    assert(false);
-		}
-                fprintf(f, "\";\n");
-	    }
-	}
-        for (i = 0;(child = node->val.anode.children[i]) != NULL; i++)
-        {
-            print_yaep_node(ps, f, child);
-        }
-        break;
-    case YAEP_ALT:
-        if (ps->run.debug)
-	{
-            fprintf(f, "ALTERNATIVE: node=%d, next=",
-                    canon_node_id(visit_node(ps, node->val.alt.node)->num));
-            if (node->val.alt.next != NULL)
-                fprintf(f, "%d\n",
-                        canon_node_id(visit_node(ps, node->val.alt.next)->num));
-            else
-                fprintf(f, "nil\n");
-	}
-        else
-	{
-            fprintf(f, "  \"%d: ALT\" -> \"%d: ", trans_visit_node->num,
-                    canon_node_id(visit_node(ps, node->val.alt.node)->num));
-            switch(node->val.alt.node->type)
-	    {
-	    case YAEP_NIL:
-                fprintf(f, "EMPTY");
-                break;
-	    case YAEP_ERROR:
-                fprintf(f, "ERROR");
-                break;
-	    case YAEP_TERM:
-                fprintf(f, "%s",
-                        symb_find_by_code(ps, node->val.alt.node->val.terminal.code)->
-                         repr);
-                break;
-	    case YAEP_ANODE:
-                fprintf(f, "%s", node->val.alt.node->val.anode.name);
-                break;
-	    case YAEP_ALT:
-                fprintf(f, "ALT");
-                break;
-	    default:
-                assert(false);
-	    }
-            fprintf(f, "\";\n");
-            if (node->val.alt.next != NULL)
-            {
-                fprintf(f, "  \"%d: ALT\" -> \"%d: ALT\";\n",
-                        trans_visit_node->num,
-                        canon_node_id(visit_node(ps, node->val.alt.next)->num));
-            }
-	}
-        print_yaep_node(ps, f, node->val.alt.node);
-        if (node->val.alt.next != NULL)
-        {
-            print_yaep_node(ps, f, node->val.alt.next);
-        }
-        break;
-    default:
-        assert(false);
-    }
-}
-
-/* The following function prints parse tree with ROOT.*/
-static void print_parse(YaepParseState *ps, FILE* f, YaepTreeNode*root)
-{
-    ps->map_node_to_visit = create_hash_table(ps->run.grammar->alloc,
-                                              ps->input_len* 2,
-                                              trans_visit_node_hash,
-                                              trans_visit_node_eq);
-
-    ps->num_nodes_visits = 0;
-    OS_CREATE(ps->node_visits_os, ps->run.grammar->alloc, 0);
-    print_yaep_node(ps, f, root);
-    OS_DELETE(ps->node_visits_os);
-    delete_hash_table(ps->map_node_to_visit);
+    verbose_stats(ps);
 }
 
 
-/* The following function places translation NODE into *PLACE and
-   creates alternative nodes if it is necessary. */
-static void place_translation(YaepParseState *ps, YaepTreeNode **place, YaepTreeNode *node)
-{
-    YaepTreeNode *alt, *next_alt;
-
-    assert(place != NULL);
-    if (*place == NULL)
-    {
-        TRACE_FA(ps, "immediate %p %p", place, node);
-        *place = node;
-        return;
-    }
-    /* We need an alternative.*/
-
-    ps->n_parse_alt_nodes++;
-
-    alt =(YaepTreeNode*)(*ps->run.parse_alloc)(sizeof(YaepTreeNode));
-    alt->type = YAEP_ALT;
-    alt->val.alt.node = node;
-    if ((*place)->type == YAEP_ALT)
-    {
-        alt->val.alt.next =*place;
-    }
-    else
-    {
-        /* We need alternative node for the 1st
-           alternative too.*/
-        ps->n_parse_alt_nodes++;
-        next_alt = alt->val.alt.next
-            =((YaepTreeNode*)
-              (*ps->run.parse_alloc)(sizeof(YaepTreeNode)));
-        next_alt->type = YAEP_ALT;
-        next_alt->val.alt.node =*place;
-        next_alt->val.alt.next = NULL;
-    }
-   *place = alt;
-
-   TRACE_FA(ps, "ind %p %p", place, node);
-}
-
-static YaepTreeNode *copy_anode(YaepParseState *ps,
-                                YaepTreeNode **place,
-                                YaepTreeNode *anode,
-                                YaepRule *rule,
-                                int disp)
-{
-    YaepTreeNode*node;
-    int i;
-
-    TRACE_F(ps);
-
-    node = ((YaepTreeNode*)(*ps->run.parse_alloc)(sizeof(YaepTreeNode)
-                                              + sizeof(YaepTreeNode*)
-                                              *(rule->trans_len + 1)));
-   *node =*anode;
-    node->val.anode.children = ((YaepTreeNode**)((char*) node + sizeof(YaepTreeNode)));
-    for(i = 0; i <= rule->trans_len; i++)
-    {
-        node->val.anode.children[i] = anode->val.anode.children[i];
-    }
-    node->val.anode.children[disp] = NULL;
-    place_translation(ps, place, node);
-
-    return node;
-}
-
-/* The hash of the memory reference. */
-static unsigned reserv_mem_hash(hash_table_entry_t m)
-{
-    return (size_t)m;
-}
-
-/* The equity of the memory reference. */
-static bool reserv_mem_eq(hash_table_entry_t m1, hash_table_entry_t m2)
-{
-    return m1 == m2;
-}
-
-/* The following function sets up minimal cost for each abstract node.
-   The function returns minimal translation corresponding to NODE.
-   The function also collects references to memory which can be
-   freed. Remeber that the translation is DAG, altenatives form lists
-  (alt node may not refer for another alternative).*/
-static YaepTreeNode *prune_to_minimal(YaepParseState *ps, YaepTreeNode *node, int *cost)
-{
-    YaepTreeNode*child,*alt,*next_alt,*result = NULL;
-    int i, min_cost = INT_MAX;
-
-    TRACE_F(ps);
-
-    assert(node != NULL);
-    switch(node->type)
-    {
-    case YAEP_NIL:
-    case YAEP_ERROR:
-    case YAEP_TERM:
-        if (ps->run.parse_free != NULL)
-        {
-            VLO_ADD_MEMORY(ps->tnodes_vlo, &node, sizeof(node));
-        }
-       *cost = 0;
-        return node;
-    case YAEP_ANODE:
-        if (node->val.anode.cost >= 0)
-	{
-            if (ps->run.parse_free != NULL)
-            {
-                VLO_ADD_MEMORY(ps->tnodes_vlo, &node, sizeof(node));
-            }
-            for(i = 0;(child = node->val.anode.children[i]) != NULL; i++)
-	    {
-                node->val.anode.children[i] = prune_to_minimal(ps, child, cost);
-                node->val.anode.cost +=*cost;
-	    }
-           *cost = node->val.anode.cost;
-            node->val.anode.cost = -node->val.anode.cost - 1;	/* flag of visit*/
-	}
-        return node;
-    case YAEP_ALT:
-        for(alt = node; alt != NULL; alt = next_alt)
-	{
-            if (ps->run.parse_free != NULL)
-            {
-                VLO_ADD_MEMORY(ps->tnodes_vlo, &alt, sizeof(alt));
-            }
-            next_alt = alt->val.alt.next;
-            alt->val.alt.node = prune_to_minimal(ps, alt->val.alt.node, cost);
-            if (alt == node || min_cost >*cost)
-	    {
-                min_cost =*cost;
-                alt->val.alt.next = NULL;
-                result = alt;
-	    }
-            else if (min_cost ==*cost && !ps->run.grammar->one_parse_p)
-	    {
-                alt->val.alt.next = result;
-                result = alt;
-	    }
-	}
-       *cost = min_cost;
-        return(result->val.alt.next == NULL ? result->val.alt.node : result);
-    default:
-        assert(false);
-    }
-   *cost = 0;
-    return NULL;
-}
-
-/* The following function traverses the translation collecting
-   reference to memory which may not be freed.*/
-static void traverse_pruned_translation(YaepParseState *ps, YaepTreeNode *node)
-{
-    YaepTreeNode*child;
-    hash_table_entry_t*entry;
-    int i;
-
-next:
-    assert(node != NULL);
-    if (ps->run.parse_free != NULL && *(entry = find_hash_table_entry(ps->set_of_reserved_memory, node, true)) == NULL)
-    {
-       *entry = (hash_table_entry_t)node;
-    }
-    switch(node->type)
-    {
-    case YAEP_NIL:
-    case YAEP_ERROR:
-    case YAEP_TERM:
-        break;
-    case YAEP_ANODE:
-        if (ps->run.parse_free != NULL && *(entry = find_hash_table_entry(ps->set_of_reserved_memory,
-                                                                      node->val.anode.name,
-                                                                      true)) == NULL)
-        {
-            *entry =(hash_table_entry_t) node->val.anode.name;
-        }
-        for(i = 0;(child = node->val.anode.children[i]) != NULL; i++)
-        {
-            traverse_pruned_translation(ps, child);
-        }
-        assert(node->val.anode.cost < 0);
-        node->val.anode.cost = -node->val.anode.cost - 1;
-        break;
-    case YAEP_ALT:
-        traverse_pruned_translation(ps, node->val.alt.node);
-        if ((node = node->val.alt.next) != NULL)
-            goto next;
-        break;
-    default:
-        assert(false);
-    }
-
-    TRACE_F(ps);
-
-    return;
-}
-
-/* The function finds and returns a minimal cost parse(s). */
-static YaepTreeNode *find_minimal_translation(YaepParseState *ps, YaepTreeNode *root)
-{
-    YaepTreeNode**node_ptr;
-    int cost;
-
-    if (ps->run.parse_free != NULL)
-    {
-        ps->set_of_reserved_memory = create_hash_table(ps->run.grammar->alloc, ps->input_len* 4, reserv_mem_hash,
-                                           reserv_mem_eq);
-
-        VLO_CREATE(ps->tnodes_vlo, ps->run.grammar->alloc, ps->input_len* 4* sizeof(void*));
-    }
-    root = prune_to_minimal(ps, root, &cost);
-    traverse_pruned_translation(ps, root);
-    if (ps->run.parse_free != NULL)
-    {
-        for(node_ptr = (YaepTreeNode**)VLO_BEGIN(ps->tnodes_vlo);
-            node_ptr <(YaepTreeNode**)VLO_BOUND(ps->tnodes_vlo);
-            node_ptr++)
-        {
-            if (*find_hash_table_entry(ps->set_of_reserved_memory,*node_ptr, true) == NULL)
-            {
-                if ((*node_ptr)->type == YAEP_ANODE
-                    &&*find_hash_table_entry(ps->set_of_reserved_memory,
-                                             (*node_ptr)->val.anode.name,
-                                             true) == NULL)
-                {
-                    (*ps->run.parse_free)((void*)(*node_ptr)->val.anode.name);
-                }
-                (*ps->run.parse_free)(*node_ptr);
-            }
-        }
-        VLO_DELETE(ps->tnodes_vlo);
-        delete_hash_table(ps->set_of_reserved_memory);
-    }
-
-    TRACE_F(ps);
-
-    return root;
-}
-
-/* The following function finds parse tree of parsed input.  The
-   function sets up*AMBIGUOUS_P if we found that the grammer is
-   ambigous(it works even we asked only one parse tree without
-   alternatives). */
-static YaepTreeNode *build_parse_tree(YaepParseState *ps, bool *ambiguous_p)
-{
-    YaepStateSet *set, *check_set;
-    YaepStateSetCore *set_core, *check_set_core;
-    YaepDottedRule *dotted_rule, *check_dotted_rule;
-    YaepRule *rule, *dotted_rule_rule;
-    YaepSymbol *symb;
-    YaepCoreSymbVect *core_symb_ids, *check_core_symb_ids;
-    int i, j, k, found, pos, from_i;
-    int state_set_k, n_candidates, disp;
-    int dotted_rule_id, check_dotted_rule_id;
-    int dotted_rule_from_i, check_dotted_rule_from_i;
-    bool new_p;
-    YaepParseTreeBuildState *state, *orig_state, *curr_state;
-    YaepParseTreeBuildState *table_state, *parent_anode_state;
-    YaepParseTreeBuildState root_state;
-    YaepTreeNode *result, *empty_node, *node, *error_node;
-    YaepTreeNode *parent_anode, *anode, root_anode;
-    int parent_disp;
-    bool saved_one_parse_p;
-    YaepTreeNode **term_node_array = NULL;
-    vlo_t stack, orig_states;
-
-    ps->n_parse_term_nodes = ps->n_parse_abstract_nodes = ps->n_parse_alt_nodes = 0;
-    set = ps->state_sets[ps->state_set_k];
-    assert(ps->run.grammar->axiom != NULL);
-    /* We have only one start dotted_rule: "$S : <start symb> $eof .". */
-    dotted_rule =(set->core->dotted_rules != NULL ? set->core->dotted_rules[0] : NULL);
-    if (dotted_rule == NULL
-        || set->matched_lengths[0] != ps->state_set_k
-        || dotted_rule->rule->lhs != ps->run.grammar->axiom || dotted_rule->dot_j != dotted_rule->rule->rhs_len)
-    {
-        /* It is possible only if error recovery is switched off.
-           Because we always adds rule `axiom: error $eof'.*/
-        assert(!ps->run.grammar->error_recovery_p);
-        return NULL;
-    }
-    saved_one_parse_p = ps->run.grammar->one_parse_p;
-    if (ps->run.grammar->cost_p)
-        /* We need all parses to choose the minimal one*/
-        ps->run.grammar->one_parse_p = false;
-    dotted_rule = set->core->dotted_rules[0];
-    parse_state_init(ps);
-    if (!ps->run.grammar->one_parse_p)
-    {
-        void*mem;
-
-        /* We need this array to reuse terminal nodes only for
-           generation of several parses.*/
-        mem = yaep_malloc(ps->run.grammar->alloc,
-                          sizeof(YaepTreeNode*)* ps->input_len);
-        term_node_array =(YaepTreeNode**) mem;
-        for(i = 0; i < ps->input_len; i++)
-        {
-            term_node_array[i] = NULL;
-        }
-        /* The following is used to check necessity to create current
-           state with different state_set_k.*/
-        VLO_CREATE(orig_states, ps->run.grammar->alloc, 0);
-    }
-    VLO_CREATE(stack, ps->run.grammar->alloc, 10000);
-    VLO_EXPAND(stack, sizeof(YaepParseTreeBuildState*));
-    state = parse_state_alloc(ps);
-   ((YaepParseTreeBuildState**) VLO_BOUND(stack))[-1] = state;
-    rule = state->rule = dotted_rule->rule;
-    state->dot_j = dotted_rule->dot_j;
-    state->from_i = 0;
-    state->state_set_k = ps->state_set_k;
-    result = NULL;
-    root_state.anode = &root_anode;
-    root_anode.val.anode.children = &result;
-    state->parent_anode_state = &root_state;
-    state->parent_disp = 0;
-    state->anode = NULL;
-    /* Create empty and error node:*/
-    empty_node =((YaepTreeNode*)(*ps->run.parse_alloc)(sizeof(YaepTreeNode)));
-    empty_node->type = YAEP_NIL;
-    empty_node->val.nil.used = 0;
-    error_node =((YaepTreeNode*)(*ps->run.parse_alloc)(sizeof(YaepTreeNode)));
-    error_node->type = YAEP_ERROR;
-    error_node->val.error.used = 0;
-    while(VLO_LENGTH(stack) != 0)
-    {
-        if (ps->run.debug && state->dot_j == state->rule->rhs_len)
-	{
-            fprintf(stderr, "\n\nProcessing top=%ld state_set_k=%d dotted_rule=",
-                    (long) VLO_LENGTH(stack) / sizeof(YaepParseTreeBuildState*) - 1,
-                     state->state_set_k);
-            print_rule_with_dot(ps, stderr, state->rule, state->dot_j);
-            fprintf(stderr, " state->from_i=%d\n", state->from_i);
-	}
-
-        pos = --state->dot_j;
-        rule = state->rule;
-        parent_anode_state = state->parent_anode_state;
-        parent_anode = parent_anode_state->anode;
-        parent_disp = state->parent_disp;
-        anode = state->anode;
-        disp = rule->order[pos];
-        state_set_k = state->state_set_k;
-        from_i = state->from_i;
-        if (pos < 0)
-	{
-            /* We've processed all rhs of the rule.*/
-
-            if (ps->run.debug && state->dot_j == state->rule->rhs_len)
-	    {
-                fprintf(stderr, "Popping top=%ld state_set_k=%d dotted_rule=",
-                        (long) VLO_LENGTH(stack) / sizeof(YaepParseTreeBuildState*) - 1,
-                        state->state_set_k);
-
-                print_rule_with_dot(ps, stderr, state->rule, 0);
-
-                fprintf(stderr, " state->from_i=%d\n", state->from_i);
-	    }
-
-            parse_state_free(ps, state);
-            VLO_SHORTEN(stack, sizeof(YaepParseTreeBuildState*));
-            if (VLO_LENGTH(stack) != 0)
-                state =((YaepParseTreeBuildState**) VLO_BOUND(stack))[-1];
-            if (parent_anode != NULL && rule->trans_len == 0 && anode == NULL)
-	    {
-                /* We do dotted_ruleuce nothing but we should. So write empty node.*/
-                place_translation(ps, parent_anode->val.anode.children + parent_disp, empty_node);
-                empty_node->val.nil.used = 1;
-	    }
-            else if (anode != NULL)
-	    {
-                /* Change NULLs into empty nodes.  We can not make it
-                   the first time because when building several parses
-                   the NULL means flag of absence of translations(see
-                   function `place_translation').*/
-                for(i = 0; i < rule->trans_len; i++)
-                    if (anode->val.anode.children[i] == NULL)
-                    {
-                        anode->val.anode.children[i] = empty_node;
-                        empty_node->val.nil.used = 1;
-                    }
-	    }
-            continue;
-	}
-        assert(pos >= 0);
-        if ((symb = rule->rhs[pos])->terminal_p)
-	{
-            /* Terminal before dot:*/
-            state_set_k--;		/* l*/
-            /* Because of error recovery input [state_set_k].symb may be not equal to symb.*/
-            //assert(ps->input[state_set_k].symb == symb);
-            if (parent_anode != NULL && disp >= 0)
-	    {
-                /* We should generate and use the translation of the
-                   terminal.  Add reference to the current node.*/
-                if (symb == ps->run.grammar->term_error)
-		{
-                    node = error_node;
-                    error_node->val.error.used = 1;
-		}
-                else if (!ps->run.grammar->one_parse_p
-                         &&(node = term_node_array[state_set_k]) != NULL)
-                    ;
-                else
-		{
-                    ps->n_parse_term_nodes++;
-                    node =((YaepTreeNode*)
-                           (*ps->run.parse_alloc)(sizeof(YaepTreeNode)));
-                    node->type = YAEP_TERM;
-                    node->val.terminal.code = symb->u.terminal.code;
-                    // IXML
-                    if (rule->marks && rule->marks[pos])
-                    {
-                        // Copy the mark from the rhs position on to the terminal.
-                        node->val.terminal.mark = rule->marks[pos];
-                    }
-                    node->val.terminal.attr = ps->input[state_set_k].attr;
-                    if (!ps->run.grammar->one_parse_p)
-                        term_node_array[state_set_k] = node;
-		}
-                place_translation(ps,
-                                  anode != NULL ?
-                                  anode->val.anode.children + disp
-                                  : parent_anode->val.anode.children + parent_disp, node);
-	    }
-            if (pos != 0)
-                state->state_set_k = state_set_k;
-            continue;
-	}
-        /* Nonterminal before dot:*/
-        set = ps->state_sets[state_set_k];
-        set_core = set->core;
-        core_symb_ids = core_symb_ids_find(ps, set_core, symb);
-        assert(core_symb_ids->completions.len != 0);
-        n_candidates = 0;
-        orig_state = state;
-        if (!ps->run.grammar->one_parse_p)
-        {
-            VLO_NULLIFY(orig_states);
-        }
-        for(i = 0; i < core_symb_ids->completions.len; i++)
-	{
-            dotted_rule_id = core_symb_ids->completions.ids[i];
-            dotted_rule = set_core->dotted_rules[dotted_rule_id];
-            if (dotted_rule_id < set_core->num_started_dotted_rules)
-            {
-                // The state set i is the tok_i for which the state set was created.
-                // Ie, it is the to_i inside the Earley item.
-                // Now subtract the matched length from this to_i to get the from_i
-                // which is the origin.
-                dotted_rule_from_i = state_set_k - set->matched_lengths[dotted_rule_id];
-            }
-            else if (dotted_rule_id < set_core->num_all_matched_lengths)
-            {
-                dotted_rule_from_i = state_set_k - set->matched_lengths[set_core->parent_dotted_rule_ids[dotted_rule_id]];
-            }
-            else
-            {
-                dotted_rule_from_i = state_set_k;
-            }
-
-            if (ps->run.debug)
-	    {
-                fprintf(stderr, "  Trying state_set_k=%d dotted_rule=", state_set_k);
-                print_dotted_rule(ps, stderr, "", "", dotted_rule, ps->run.debug, -1);
-                fprintf(stderr, " dotted_rule_from_i=%d\n", dotted_rule_from_i);
-	    }
-
-            check_set = ps->state_sets[dotted_rule_from_i];
-            check_set_core = check_set->core;
-            check_core_symb_ids = core_symb_ids_find(ps, check_set_core, symb);
-            assert(check_core_symb_ids != NULL);
-            found = false;
-            for(j = 0; j < check_core_symb_ids->predictions.len; j++)
-	    {
-                check_dotted_rule_id = check_core_symb_ids->predictions.ids[j];
-                check_dotted_rule = check_set->core->dotted_rules[check_dotted_rule_id];
-                if (check_dotted_rule->rule != rule || check_dotted_rule->dot_j != pos)
-                {
-                    continue;
-                }
-                check_dotted_rule_from_i = dotted_rule_from_i;
-                if (check_dotted_rule_id < check_set_core->num_all_matched_lengths)
-		{
-                    if (check_dotted_rule_id < check_set_core->num_started_dotted_rules)
-                    {
-                        check_dotted_rule_from_i = dotted_rule_from_i - check_set->matched_lengths[check_dotted_rule_id];
-                    }
-                    else
-                    {
-                        check_dotted_rule_from_i = (dotted_rule_from_i - check_set->matched_lengths[check_set_core->parent_dotted_rule_ids[check_dotted_rule_id]]);
-                    }
-		}
-                if (check_dotted_rule_from_i == from_i)
-		{
-                    found = true;
-                    break;
-		}
-	    }
-            if (!found)
-            {
-                continue;
-            }
-            if (n_candidates != 0)
-	    {
-               *ambiguous_p = true;
-                if (ps->run.grammar->one_parse_p)
-                {
-                    break;
-                }
-	    }
-            dotted_rule_rule = dotted_rule->rule;
-            if (n_candidates == 0)
-            {
-                orig_state->state_set_k = dotted_rule_from_i;
-            }
-            if (parent_anode != NULL && disp >= 0)
-	    {
-                /* We should generate and use the translation of the nonterminal. */
-                curr_state = orig_state;
-                anode = orig_state->anode;
-                /* We need translation of the rule. */
-                if (n_candidates != 0)
-		{
-                    assert(!ps->run.grammar->one_parse_p);
-                    if (n_candidates == 1)
-		    {
-                        VLO_EXPAND(orig_states, sizeof(YaepParseTreeBuildState*));
-                       ((YaepParseTreeBuildState**) VLO_BOUND(orig_states))[-1]
-                            = orig_state;
-		    }
-                    for(j =(VLO_LENGTH(orig_states)
-                              / sizeof(YaepParseTreeBuildState*) - 1); j >= 0; j--)
-                        if (((YaepParseTreeBuildState**)
-                             VLO_BEGIN(orig_states))[j]->state_set_k == dotted_rule_from_i)
-                            break;
-                    if (j >= 0)
-		    {
-                        /* [A -> x., n] & [A -> y., n]*/
-                        curr_state =((YaepParseTreeBuildState**)
-                                      VLO_BEGIN(orig_states))[j];
-                        anode = curr_state->anode;
-		    }
-                    else
-		    {
-                        /* [A -> x., n] & [A -> y., m] where n != m.*/
-                        /* It is different from the previous ones so add
-                           it to process.*/
-                        state = parse_state_alloc(ps);
-                        VLO_EXPAND(stack, sizeof(YaepParseTreeBuildState*));
-                       ((YaepParseTreeBuildState**) VLO_BOUND(stack))[-1] = state;
-                       *state =*orig_state;
-                        state->state_set_k = dotted_rule_from_i;
-                        if (anode != NULL)
-                            state->anode
-                                = copy_anode(ps, parent_anode->val.anode.children
-                                              + parent_disp, anode, rule, disp);
-                        VLO_EXPAND(orig_states, sizeof(YaepParseTreeBuildState*));
-                       ((YaepParseTreeBuildState**) VLO_BOUND(orig_states))[-1]
-                            = state;
-
-                        if (ps->run.debug)
-			{
-                            fprintf(stderr,
-                                     "  Adding top=%ld dotted_rule_from_i=%d modified dotted_rule=",
-                                    (long) VLO_LENGTH(stack) / sizeof(YaepParseTreeBuildState*) - 1,
-                                     dotted_rule_from_i);
-                            print_rule_with_dot(ps, stderr, state->rule, state->dot_j);
-                            fprintf(stderr, " state->from_i=%d\n", state->from_i);
-			}
-
-                        curr_state = state;
-                        anode = state->anode;
-		    }
-		}		/* if (n_candidates != 0)*/
-                if (dotted_rule_rule->anode != NULL)
-		{
-                    /* This rule creates abstract node. */
-                    state = parse_state_alloc(ps);
-                    state->rule = dotted_rule_rule;
-                    state->dot_j = dotted_rule->dot_j;
-                    state->from_i = dotted_rule_from_i;
-                    state->state_set_k = state_set_k;
-                    table_state = NULL;
-                    if (!ps->run.grammar->one_parse_p)
-                    {
-                        table_state = parse_state_insert(ps, state, &new_p);
-                    }
-                    if (table_state == NULL || new_p)
-		    {
-                        /* We need new abtract node.*/
-                        ps->n_parse_abstract_nodes++;
-                        node = ((YaepTreeNode*)(*ps->run.parse_alloc)(sizeof(YaepTreeNode)
-                                                                      + sizeof(YaepTreeNode*)
-                                                                      *(dotted_rule_rule->trans_len + 1)));
-                        state->anode = node;
-                        if (table_state != NULL)
-                            table_state->anode = node;
-                        node->type = YAEP_ANODE;
-                        if (dotted_rule_rule->caller_anode == NULL)
-			{
-                            dotted_rule_rule->caller_anode = ((char*)(*ps->run.parse_alloc)(strlen(dotted_rule_rule->anode) + 1));
-                            strcpy(dotted_rule_rule->caller_anode, dotted_rule_rule->anode);
-			}
-                        node->val.anode.name = dotted_rule_rule->caller_anode;
-                        node->val.anode.cost = dotted_rule_rule->anode_cost;
-                        // IXML Copy the rule name -to the generated abstract node.
-                        node->val.anode.mark = dotted_rule_rule->mark;
-                        if (rule->marks && rule->marks[pos])
-                        {
-                            // But override the mark with the rhs mark!
-                            node->val.anode.mark = rule->marks[pos];
-                        }
-                        /////////
-                        node->val.anode.children = ((YaepTreeNode**)((char*) node + sizeof(YaepTreeNode)));
-                        for(k = 0; k <= dotted_rule_rule->trans_len; k++)
-                        {
-                            node->val.anode.children[k] = NULL;
-                        }
-                        VLO_EXPAND(stack, sizeof(YaepParseTreeBuildState*));
-                        ((YaepParseTreeBuildState**) VLO_BOUND(stack))[-1] = state;
-                        if (anode == NULL)
-			{
-                            state->parent_anode_state = curr_state->parent_anode_state;
-                            state->parent_disp = parent_disp;
-			}
-                        else
-			{
-                            state->parent_anode_state = curr_state;
-                            state->parent_disp = disp;
-			}
-
-                        if (ps->run.debug)
-			{
-                            fprintf(stderr, "  Adding top %ld, state_set_k = %d, dotted_rule = ",
-                                    (long) VLO_LENGTH(stack) / sizeof(YaepParseTreeBuildState*) - 1,
-                                    state_set_k);
-                            print_dotted_rule(ps, stderr, "", "", dotted_rule, ps->run.debug, -1);
-                            fprintf(stderr, ", %d\n", dotted_rule_from_i);
-			}
-
-		    }
-                    else
-		    {
-                        /* We allready have the translation.*/
-                        assert(!ps->run.grammar->one_parse_p);
-                        parse_state_free(ps, state);
-                        state =((YaepParseTreeBuildState**) VLO_BOUND(stack))[-1];
-                        node = table_state->anode;
-                        assert(node != NULL);
-
-                        if (ps->run.debug)
-			{
-                            fprintf(stderr,
-                                     "  Found prev. translation: state_set_k = %d, dotted_rule = ",
-                                     state_set_k);
-                            print_dotted_rule(ps, stderr, "", "", dotted_rule, ps->run.debug, -1);
-                            fprintf(stderr, ", %d\n", dotted_rule_from_i);
-			}
-
-		    }
-                    place_translation(ps, anode == NULL
-                                       ? parent_anode->val.anode.children
-                                       + parent_disp
-                                       : anode->val.anode.children + disp,
-                                       node);
-		}		/* if (dotted_rule_rule->anode != NULL)*/
-                else if (dotted_rule->dot_j != 0)
-		{
-                    /* We should generate and use the translation of the
-                       nonterminal.  Add state to get a translation.*/
-                    state = parse_state_alloc(ps);
-                    VLO_EXPAND(stack, sizeof(YaepParseTreeBuildState*));
-                   ((YaepParseTreeBuildState**) VLO_BOUND(stack))[-1] = state;
-                    state->rule = dotted_rule_rule;
-                    state->dot_j = dotted_rule->dot_j;
-                    state->from_i = dotted_rule_from_i;
-                    state->state_set_k = state_set_k;
-                    state->parent_anode_state =(anode == NULL
-                                                 ? curr_state->
-                                                 parent_anode_state :
-                                                 curr_state);
-                    state->parent_disp = anode == NULL ? parent_disp : disp;
-                    state->anode = NULL;
-
-                    if (ps->run.debug)
-		    {
-                        fprintf(stderr,
-                                 "  Adding top %ld, state_set_k = %d, dotted_rule = ",
-                                (long) VLO_LENGTH(stack) / sizeof(YaepParseTreeBuildState*) - 1,
-                                state_set_k);
-                        print_dotted_rule(ps, stderr, "", "", dotted_rule, ps->run.debug, -1);
-                        fprintf(stderr, ", %d\n", dotted_rule_from_i);
-		    }
-
-		}
-                else
-		{
-                    /* Empty rule should dotted_ruleuce something not abtract
-                       node.  So place empty node.*/
-                    place_translation(ps, anode == NULL
-                                       ? parent_anode->val.anode.children
-                                       + parent_disp
-                                       : anode->val.anode.children + disp,
-                                       empty_node);
-                    empty_node->val.nil.used = 1;
-		}
-	    }			/* if (parent_anode != NULL && disp >= 0)*/
-            n_candidates++;
-	}			/* For all completions of the nonterminal.*/
-        /* We should have a parse.*/
-        assert(n_candidates != 0 && (!ps->run.grammar->one_parse_p || n_candidates == 1));
-    } /* For all parser states.*/
-    VLO_DELETE(stack);
-    if (!ps->run.grammar->one_parse_p)
-    {
-        VLO_DELETE(orig_states);
-        yaep_free(ps->run.grammar->alloc, term_node_array);
-    }
-    free_parse_state(ps);
-    ps->run.grammar->one_parse_p = saved_one_parse_p;
-    if (ps->run.grammar->cost_p && *ambiguous_p)
-        /* We can not build minimal tree during building parsing list
-           because we have not the translation yet.  We can not make it
-           during parsing because the abstract nodes are created before
-           their children.*/
-        result = find_minimal_translation(ps, result);
-
-    if (ps->run.debug)
-    {
-        fprintf(stderr, "Translation:\n");
-        print_parse(ps, stderr, result);
-        fprintf(stderr, "\n");
-    }
-    else if (ps->run.debug)
-    {
-        // Graphviz
-        fprintf(stderr, "digraph CFG {\n");
-        fprintf(stderr, "  node [shape=ellipse, fontsize=200];\n");
-        fprintf(stderr, "  ratio=fill;\n");
-        fprintf(stderr, "  ordering=out;\n");
-        fprintf(stderr, "  page = \"8.5, 11\"; // inches\n");
-        fprintf(stderr, "  size = \"7.5, 10\"; // inches\n\n");
-        print_parse(ps, stderr, result);
-        fprintf(stderr, "}\n");
-    }
-
-
-    /* Free empty and error node if they have not been used*/
-    if (ps->run.parse_free != NULL)
-    {
-        if (!empty_node->val.nil.used)
-	{
-            ps->run.parse_free(empty_node);
-	}
-        if (!error_node->val.error.used)
-	{
-            ps->run.parse_free(error_node);
-	}
-    }
-
-    assert(result != NULL && (!ps->run.grammar->one_parse_p || ps->n_parse_alt_nodes == 0));
-
-    return result;
-}
 
 static void *parse_alloc_default(int nmemb)
 {
@@ -24137,6 +24695,60 @@ static void parse_free_default(void *mem)
     free(mem);
 }
 
+static void print_statistics(YaepParseState *ps, bool *ambiguous_p, int table_searches, int table_collisions)
+{
+    if (ps->run.debug)
+    {
+        yaep_debug(ps, "print_statistics()");
+        yaep_trace(ps, "symbs_os=%zu", objstack_memusage(&ps->run.grammar->symbs_ptr->symbs_os));
+
+        yaep_trace(ps, "input_len=%d #s=%d #dotted_rules=%d",
+                   ps->input_len,
+                   ps->num_sets_total,
+                   ps->num_dotted_rules_total);
+
+        yaep_trace(ps, "#terminals=%d #nonterms=%d %s",
+                   ps->run.grammar->symbs_ptr->num_terminals,
+                   ps->run.grammar->symbs_ptr->num_nonterminals,
+                   *ambiguous_p ? "AMBIGUOUS " : "");
+
+        yaep_trace(ps, "#terminals=%d #nonterms=%d %s",
+                   ps->run.grammar->symbs_ptr->num_terminals,
+                   ps->run.grammar->symbs_ptr->num_nonterminals,
+                   *ambiguous_p ? "AMBIGUOUS " : "");
+        yaep_trace(ps, "#rules=%d lengths=%d",
+                 ps->run.grammar->rulestorage_ptr->num_rules,
+                 ps->run.grammar->rulestorage_ptr->n_rhs_lens);
+        yaep_trace(ps,  "#tokens=%d  #unique_dotted_rules=%d",
+                   ps->input_len, ps->num_all_dotted_rules);
+        yaep_trace(ps, "#terminal_sets=%d size=%d",
+                 ps->run.grammar->term_sets_ptr->n_term_sets, ps->run.grammar->term_sets_ptr->n_term_sets_size);
+        yaep_trace(ps, "#cores=%d #their start dotted_rules=%d",
+                 ps->num_set_cores, ps->num_set_core_start_dotted_rules);
+        yaep_trace(ps, "#parent indexes for some non start dotted_rules = %d",
+                 ps->num_parent_dotted_rule_ids);
+        yaep_trace(ps, "#unique set dist. vects = %d, their length = %d",
+                 ps->num_set_matched_lengths, ps->num_set_matched_lengths_len);
+        yaep_trace(ps, "#stl=%d goto_successes=%d",
+                ps->num_set_term_lookahead, ps->n_goto_successes);
+        yaep_trace(ps, "#cspc=%d cspc_vector_lengths=%d",
+                 ps->n_core_symb_pairs, ps->n_core_symb_to_predcomps_len);
+        yaep_trace(ps, "#unique transition vectors = %d, their length = %d",
+                ps->n_transition_vects, ps->n_transition_vect_len);
+        yaep_trace(ps, "#unique reduce vectors = %d, their length = %d",
+                 ps->n_reduce_vects, ps->n_reduce_vect_len);
+        yaep_trace(ps, "#term nodes = %d, #abstract nodes = %d",
+                 ps->n_parse_term_nodes, ps->n_parse_abstract_nodes);
+        yaep_trace(ps, "#alternative nodes = %d, #all nodes = %d",
+                 ps->n_parse_alt_nodes,
+                 ps->n_parse_term_nodes + ps->n_parse_abstract_nodes
+                 + ps->n_parse_alt_nodes);
+        if (table_searches == 0) table_searches++;
+        yaep_trace(ps, "#table collisions = %.2g%%(%d out of %d)",
+                 table_collisions* 100.0 / table_searches,
+                 table_collisions, table_searches);
+    }
+}
 /* The following function parses input according read grammar.
    ONE_PARSE_FLAG means build only one parse tree.  For unambiguous
    grammar the flag does not affect the result.  LA_LEVEL means usage
@@ -24147,8 +24759,8 @@ static void parse_free_default(void *mem)
    to output(it works only if we compiled without defined macro
    NO_YAEP_DEBUG_PRINT).  The function returns the error code(which
    will be also in error_code).  The function sets up
-  *AMBIGUOUS_P if we found that the grammer is ambigous(it works even
-   we asked only one parse tree without alternatives). */
+   *AMBIGUOUS_P if we found that the grammer is ambigous.
+   (It works even we asked only one parse tree without alternatives.) */
 int yaepParse(YaepParseRun *pr, YaepGrammar *g)
 {
     YaepParseState *ps = (YaepParseState*)pr;
@@ -24161,36 +24773,39 @@ int yaepParse(YaepParseRun *pr, YaepGrammar *g)
 
     int code;
     bool tok_init_p, parse_init_p;
-    int table_collisions, table_searches;
 
     /* Set up parse allocation*/
     if (ps->run.parse_alloc == NULL)
     {
         if (ps->run.parse_free != NULL)
-	{
+        {
             /* Cannot allocate memory with a null function*/
             return YAEP_NO_MEMORY;
-	}
+        }
         /* Set up defaults*/
         ps->run.parse_alloc = parse_alloc_default;
         ps->run.parse_free = parse_free_default;
     }
 
     assert(ps->run.grammar != NULL);
-   *root = NULL;
-   *ambiguous_p = false;
+    *root = NULL;
+    *ambiguous_p = false;
     pl_init(ps);
     tok_init_p = parse_init_p = false;
 
     if (!ps->run.read_token) ps->run.read_token = default_read_token;
 
-    if ((code = setjmp(error_longjump_buff)) != 0)
+    if ((code = setjmp(ps->error_longjump_buff)) != 0)
     {
         free_state_sets(ps);
         if (parse_init_p)
+        {
             free_inside_parse_state(ps);
+        }
         if (tok_init_p)
+        {
             free_input(ps);
+        }
         return code;
     }
     if (g->undefined_p)
@@ -24204,8 +24819,9 @@ int yaepParse(YaepParseRun *pr, YaepGrammar *g)
     yaep_parse_init(ps, ps->input_len);
     parse_init_p = true;
     allocate_state_sets(ps);
-    table_collisions = get_all_collisions();
-    table_searches = get_all_searches();
+
+    int table_collisions_init = get_all_collisions();
+    int table_searches_init = get_all_searches();
 
     // Perform a parse.
     perform_parse(ps);
@@ -24213,65 +24829,16 @@ int yaepParse(YaepParseRun *pr, YaepGrammar *g)
     // Reconstruct a parse tree from the state sets.
     *root = build_parse_tree(ps, ambiguous_p);
 
-    table_collisions = get_all_collisions() - table_collisions;
-    table_searches = get_all_searches() - table_searches;
+    int table_collisions = get_all_collisions() - table_collisions_init;
+    int table_searches = get_all_searches() - table_searches_init;
 
+    print_statistics(ps, ambiguous_p, table_searches, table_collisions);
 
-    if (ps->run.debug)
-    {
-        fprintf(stderr, "%sGrammar: #terms = %d, #nonterms = %d, ",
-                *ambiguous_p ? "AMBIGUOUS " : "",
-                 ps->run.grammar->symbs_ptr->num_terminals, ps->run.grammar->symbs_ptr->num_nonterminals);
-        fprintf(stderr, "#rules = %d, rules size = %d\n",
-                 ps->run.grammar->rulestorage_ptr->num_rules,
-                 ps->run.grammar->rulestorage_ptr->n_rhs_lens + ps->run.grammar->rulestorage_ptr->num_rules);
-        fprintf(stderr, "Input: #tokens = %d, #unique dotted_rules = %d\n",
-                 ps->input_len, ps->num_all_dotted_rules);
-        fprintf(stderr, "       #terminal sets = %d, their size = %d\n",
-                 ps->run.grammar->term_sets_ptr->n_term_sets, ps->run.grammar->term_sets_ptr->n_term_sets_size);
-        fprintf(stderr,
-                 "       #unique set cores = %d, #their start dotted_rules = %d\n",
-                 ps->num_set_cores, ps->num_set_core_start_dotted_rules);
-        fprintf(stderr,
-                 "       #parent indexes for some non start dotted_rules = %d\n",
-                 ps->num_parent_dotted_rule_ids);
-        fprintf(stderr,
-                 "       #unique set dist. vects = %d, their length = %d\n",
-                 ps->num_set_matched_lengths, ps->num_set_matched_lengths_len);
-        fprintf(stderr,
-                 "       #unique sets = %d, #their start dotted_rules = %d\n",
-                 ps->n_sets, ps->n_sets_start_dotted_rules);
-        fprintf(stderr,
-                 "       #unique triples(set, term, lookahead) = %d, goto successes=%d\n",
-                ps->num_triplets_core_term_lookahead, ps->n_goto_successes);
-        fprintf(stderr,
-                 "       #pairs(set core, symb) = %d, their trans+reduce vects length = %d\n",
-                 ps->n_core_symb_pairs, ps->n_core_symb_ids_len);
-        fprintf(stderr,
-                 "       #unique transition vectors = %d, their length = %d\n",
-                ps->n_transition_vects, ps->n_transition_vect_len);
-        fprintf(stderr,
-                 "       #unique reduce vectors = %d, their length = %d\n",
-                 ps->n_reduce_vects, ps->n_reduce_vect_len);
-        fprintf(stderr,
-                 "       #term nodes = %d, #abstract nodes = %d\n",
-                 ps->n_parse_term_nodes, ps->n_parse_abstract_nodes);
-        fprintf(stderr,
-                 "       #alternative nodes = %d, #all nodes = %d\n",
-                 ps->n_parse_alt_nodes,
-                 ps->n_parse_term_nodes + ps->n_parse_abstract_nodes
-                 + ps->n_parse_alt_nodes);
-        if (table_searches == 0)
-            table_searches++;
-        fprintf(stderr,
-                 "       #table collisions = %.2g%%(%d out of %d)\n",
-                 table_collisions* 100.0 / table_searches,
-                 table_collisions, table_searches);
-    }
-
+    free_state_sets(ps);
     free_inside_parse_state(ps);
     free_input(ps);
-    return 0;
+    verbose("ixml=", "done parse");
+    return pr->failed_p;
 }
 
 /* The following function frees memory allocated for the grammar.*/
@@ -24292,8 +24859,6 @@ void yaepFreeGrammar(YaepParseRun *pr, YaepGrammar *g)
         yaep_free(allocator, g);
         yaep_alloc_del(allocator);
     }
-
-    TRACE_F(ps);
 }
 
 static void free_tree_reduce(YaepTreeNode *node)
@@ -24317,63 +24882,63 @@ static void free_tree_reduce(YaepTreeNode *node)
 
     case YAEP_ANODE:
         if (node->val.anode.name[0] == '\0')
-	{
+        {
             /* We have already seen the node name*/
             node->val.anode.name = NULL;
-	}
+        }
         else
-	{
+        {
             /* Mark the node name as seen*/
             node->val._anode_name.name[0] = '\0';
-	}
+        }
         for(numChildren = 0, childp = node->val.anode.children;
             *childp != NULL; ++numChildren, ++childp)
-	{
+        {
             if ((*childp)->type & _yaep_VISITED)
-	    {
+            {
                *childp = NULL;
-	    }
+            }
             else
-	    {
+            {
                 free_tree_reduce(*childp);
-	    }
-	}
+            }
+        }
         /* Compactify children array*/
         for(freePos = 0, pos = 0; pos != numChildren; ++pos)
-	{
+        {
             if (node->val.anode.children[pos] != NULL)
-	    {
+            {
                 if (freePos < pos)
-		{
+                {
                     node->val.anode.children[freePos] =
                         node->val.anode.children[pos];
                     node->val.anode.children[pos] = NULL;
-		}
+                }
                 ++freePos;
-	    }
-	}
+            }
+        }
         break;
 
     case YAEP_ALT:
         if (node->val.alt.node->type & _yaep_VISITED)
-	{
+        {
             node->val.alt.node = NULL;
-	}
+        }
         else
-	{
+        {
             free_tree_reduce(node->val.alt.node);
-	}
+        }
         while((node->val.alt.next != NULL)
                &&(node->val.alt.next->type & _yaep_VISITED))
-	{
+        {
             assert(node->val.alt.next->type ==(YAEP_ALT | _yaep_VISITED));
             node->val.alt.next = node->val.alt.next->val.alt.next;
-	}
+        }
         if (node->val.alt.next != NULL)
-	{
+        {
             assert((node->val.alt.next->type & _yaep_VISITED) == 0);
             free_tree_reduce(node->val.alt.next);
-	}
+        }
         break;
 
     default:
@@ -24405,17 +24970,17 @@ static void free_tree_sweep(YaepTreeNode *node,
 
     case YAEP_TERM:
         if (termcb != NULL)
-	{
+        {
             termcb(&node->val.terminal);
-	}
+        }
         break;
 
     case YAEP_ANODE:
         parse_free(node->val._anode_name.name);
         for(childp = node->val.anode.children;*childp != NULL; ++childp)
-	{
+        {
             free_tree_sweep(*childp, parse_free, termcb);
-	}
+        }
         break;
 
     case YAEP_ALT:
@@ -24423,7 +24988,7 @@ static void free_tree_sweep(YaepTreeNode *node,
         next = node->val.alt.next;
         parse_free(node);
         free_tree_sweep(next, parse_free, termcb);
-        return;			/* Tail recursion*/
+        return;                        /* Tail recursion*/
 
     default:
         assert("This should not happen" == NULL);
@@ -24432,9 +24997,7 @@ static void free_tree_sweep(YaepTreeNode *node,
     parse_free(node);
 }
 
-void yaepFreeTree(YaepTreeNode *root,
-                  void(*parse_free)(void*),
-                  void(*termcb)(YaepTerminalNode*))
+void yaepFreeTree(YaepTreeNode *root, void (*parse_free)(void*), void (*termcb)(YaepTerminalNode*))
 {
     if (root == NULL)
     {
@@ -24446,209 +25009,11 @@ void yaepFreeTree(YaepTreeNode *root,
     }
 
     /* Since the parse tree is actually a DAG, we must carefully avoid
-       double free errors. Therefore, we walk the parse tree twice.
-       On the first walk, we reduce the DAG to an actual tree.
-       On the second walk, we recursively free the tree nodes. */
+     double free errors. Therefore, we walk the parse tree twice.
+     On the first walk, we reduce the DAG to an actual tree.
+     On the second walk, we recursively free the tree nodes. */
     free_tree_reduce(root);
     free_tree_sweep(root, parse_free, termcb);
-}
-
-
-/* The following function prints symbol SYMB to file F.  Terminal is
-   printed with its code if CODE_P.*/
-static void symbol_print(FILE* f, YaepSymbol*symb, bool code_p)
-{
-    if (symb->terminal_p)
-    {
-        fprintf(f, "%s", symb->hr);
-        return;
-    }
-    fprintf(f, "%s", symb->repr);
-    /*
-    if (code_p && symb->terminal_p)
-    {
-        fprintf(f, "(%d)", symb->u.terminal.code);
-    }*/
-}
-
-/* The following function prints RULE with its translation(if TRANS_P) to file F.*/
-static void rule_print(YaepParseState *ps, FILE *f, YaepRule *rule, bool trans_p)
-{
-    int i, j;
-
-    if (rule->mark != 0
-        && rule->mark != ' '
-        && rule->mark != '-'
-        && rule->mark != '@'
-        && rule->mark != '^')
-    {
-        fprintf(f, "(yaep) internal error bad rule: ");
-        symbol_print(f, rule->lhs, false);
-        fprintf(f, "\n");
-        assert(false);
-    }
-
-    char m = rule->mark;
-    if (m >= 32 && m < 127)
-    {
-        fprintf(f, "%c", m);
-    }
-    symbol_print(f, rule->lhs, false);
-    fprintf(f, " → ");
-    for(i = 0; i < rule->rhs_len; i++)
-    {
-        char m = rule->marks[i];
-        if (m >= 32 && m < 127)
-        {
-            fprintf(f, " %c", m);
-        }
-        else
-        {
-            if (!m) fprintf(f, "  ");
-            else    fprintf(f, " ?%d?", rule->marks[i]);
-        }
-        symbol_print(f, rule->rhs[i], false);
-    }
-    if (false && trans_p)
-    {
-        fprintf(f, "      | ");
-        if (rule->anode != NULL)
-        {
-            fprintf(f, "%s(", rule->anode);
-        }
-        for(i = 0; i < rule->trans_len; i++)
-	{
-            for(j = 0; j < rule->rhs_len; j++)
-            {
-                if (rule->order[j] == i)
-                {
-                    fprintf(f, " %d:", j);
-                    symbol_print(f, rule->rhs[j], false);
-                    break;
-                }
-            }
-            if (j >= rule->rhs_len)
-            {
-                fprintf(f, " nil");
-            }
-	}
-        if (rule->anode != NULL)
-        {
-            fprintf(f, " )");
-        }
-    }
-    fprintf(f, "\n");
-}
-
-/* The following function prints RULE to file F with dot in position pos.
-   Pos == 0 means that the dot is all the way to the left in the starting position.
-   Pos == rhs_len means that the whole rule has been matched. */
-static void print_rule_with_dot(YaepParseState *ps, FILE *f, YaepRule *rule, int pos)
-{
-    int i;
-
-    assert(pos >= 0 && pos <= rule->rhs_len);
-
-    symbol_print(f, rule->lhs, false);
-    fprintf(f, " → ");
-    for(i = 0; i < rule->rhs_len; i++)
-    {
-        fprintf(f, i == pos ? " 🞄 " : " ");
-        symbol_print(f, rule->rhs[i], false);
-    }
-    if (rule->rhs_len == pos)
-    {
-        fprintf(f, " 🞄 ");
-    }
-}
-
-/* The following function prints dotted_rule DOTTED_RULE to file F.  The
-   dotted_rule is printed with the lookahead set if LOOKAHEAD_P.*/
-static void print_dotted_rule(YaepParseState *ps, FILE *f,
-                              const char *prefix, const char *suffix,
-                              YaepDottedRule *dotted_rule, bool lookahead_p, int matched_length)
-{
-    if (prefix) fprintf(f, "%s", prefix);
-    fprintf(f, "(%3d)    ", dotted_rule->id);
-    print_rule_with_dot(ps, f, dotted_rule->rule, dotted_rule->dot_j);
-
-    if (matched_length > 0)
-    {
-        fprintf(f, " matched %d", matched_length);
-    }
-    if (ps->run.grammar->lookahead_level != 0 && lookahead_p && matched_length >= 0)
-    {
-        fprintf(f, "    ");
-        terminal_bitset_print(ps, f, dotted_rule->lookahead, ps->run.grammar->symbs_ptr->num_terminals);
-    }
-    if (matched_length != -1) fprintf(f, "\n");
-    if (suffix) fprintf(f, "%s", suffix);
-}
-
-/* The following function prints SET to file F.  If NOT_YET_STARTED_P is true
-   then print all dotted_rules.  The dotted_rules are printed with the
-   lookahead set if LOOKAHEAD_P.  SET_DIST is used to print absolute
-   matched_lengths of not-yet-started dotted_rules. */
-static void print_state_set(YaepParseState *ps,
-                            FILE* f,
-                            YaepStateSet *state_set,
-                            int set_dist,
-                            int print_all_dotted_rules,
-                            int lookahead_p)
-{
-    int i;
-    int num, num_started_dotted_rules, num_dotted_rules, num_all_matched_lengths;
-    YaepDottedRule **dotted_rules;
-    int*matched_lengths,*parent_dotted_rule_ids;
-
-    if (state_set == NULL && !ps->new_set_ready_p)
-    {
-        /* The following is necessary if we call the function from a
-           debugger.  In this case new_set, new_core and their members
-           may be not set up yet. */
-        num = -1;
-        num_started_dotted_rules = num_dotted_rules = num_all_matched_lengths = ps->new_num_started_dotted_rules;
-        dotted_rules = ps->new_dotted_rules;
-        matched_lengths = ps->new_matched_lengths;
-        parent_dotted_rule_ids = NULL;
-    }
-    else
-    {
-        num = state_set->core->id;
-        num_dotted_rules = state_set->core->num_dotted_rules;
-        dotted_rules = state_set->core->dotted_rules;
-        num_started_dotted_rules = state_set->core->num_started_dotted_rules;
-        matched_lengths = state_set->matched_lengths;
-        num_all_matched_lengths = state_set->core->num_all_matched_lengths;
-        parent_dotted_rule_ids = state_set->core->parent_dotted_rule_ids;
-        num_started_dotted_rules = state_set->core->num_started_dotted_rules;
-    }
-
-    fprintf(f, "  core(%d)\n", num);
-
-    for(i = 0; i < num_dotted_rules; i++)
-    {
-        fprintf(f, "    ");
-
-        int dist = 0;
-        if (i < num_started_dotted_rules) dist = matched_lengths[i];
-        else if (i < num_all_matched_lengths) dist = parent_dotted_rule_ids[i];
-        else dist = 0;
-
-        assert(dist == (i < num_started_dotted_rules ? matched_lengths[i] : i < num_all_matched_lengths ? parent_dotted_rule_ids[i] : 0));
-
-        print_dotted_rule(ps, f, "", "", dotted_rules[i], lookahead_p, dist);
-
-        if (i == num_started_dotted_rules - 1 && num_dotted_rules > num_started_dotted_rules)
-        {
-            if (!print_all_dotted_rules)
-            {
-                // We have printed the start dotted_rules. Stop here.
-                break;
-            }
-            fprintf(f, "    ----------- predictions\n");
-        }
-    }
 }
 
 static int default_read_token(YaepParseRun *ps, void **attr)
@@ -24678,7 +25043,7 @@ static int default_read_token(YaepParseRun *ps, void **attr)
 static void error_recovery(YaepParseState *ps, int *start, int *stop)
 {
     YaepStateSet*set;
-    YaepCoreSymbVect*core_symb_ids;
+    YaepCoreSymbToPredComps*core_symb_to_predcomps;
     YaepRecoveryState best_state, state;
     int best_cost, cost, num_matched_input;
     int back_to_frontier_move_cost, backward_move_cost;
@@ -24694,8 +25059,7 @@ static void error_recovery(YaepParseState *ps, int *start, int *stop)
     ps->recovery_start_set_k = ps->state_set_k;
     ps->recovery_start_tok_i = ps->tok_i;
     /* Initialize error recovery state stack.*/
-    ps->state_set_k
-        = ps->back_state_set_frontier = find_error_state_set_set(ps, ps->state_set_k, &backward_move_cost);
+    ps->state_set_k = ps->back_state_set_frontier = find_error_state_set_set(ps, ps->state_set_k, &backward_move_cost);
     back_to_frontier_move_cost = backward_move_cost;
     save_original_sets(ps);
     push_recovery_state(ps, ps->back_state_set_frontier, backward_move_cost);
@@ -24707,7 +25071,7 @@ static void error_recovery(YaepParseState *ps, int *start, int *stop)
         assert(cost >= 0);
         /* Advance back frontier.*/
         if (ps->back_state_set_frontier > 0)
-	{
+        {
             int saved_state_set_k = ps->state_set_k;
             int saved_tok_i = ps->tok_i;
 
@@ -24720,7 +25084,7 @@ static void error_recovery(YaepParseState *ps, int *start, int *stop)
                          ps->back_state_set_frontier, ps->state_set_k);
 
             if (best_cost >= back_to_frontier_move_cost + backward_move_cost)
-	    {
+            {
                 ps->back_state_set_frontier = ps->state_set_k;
                 ps->tok_i = ps->recovery_start_tok_i;
                 save_original_sets(ps);
@@ -24729,68 +25093,68 @@ static void error_recovery(YaepParseState *ps, int *start, int *stop)
                                     back_to_frontier_move_cost);
                 set_original_set_bound(ps, state.last_original_state_set_el);
                 ps->tok_i = saved_tok_i;
-	    }
+            }
             ps->state_set_k = saved_state_set_k;
-	}
+        }
         /* Advance head frontier.*/
         if (best_cost >= cost + 1)
-	{
+        {
             ps->tok_i++;
             if (ps->tok_i < ps->input_len)
-	    {
+            {
 
                 if (ps->run.debug)
-		{
+                {
                     fprintf(stderr,
                              "++++Advance head frontier(one pos): tok=%d, ",
                              ps->tok_i);
-                    symbol_print(stderr, ps->input[ps->tok_i].symb, true);
+                    // TODO symbol_print(stderr, ps->input[ps->tok_i].symb, true);
                     fprintf(stderr, "\n");
 
-		}
+                }
                 push_recovery_state(ps, state.last_original_state_set_el, cost + 1);
-	    }
+            }
             ps->tok_i--;
-	}
+        }
         set = ps->state_sets[ps->state_set_k];
 
         if (ps->run.debug)
-	{
+        {
             fprintf(stderr, "++++Trying set=%d, tok=%d, ", ps->state_set_k, ps->tok_i);
-            symbol_print(stderr, ps->input[ps->tok_i].symb, true);
+            // TODO symbol_print(stderr, ps->input[ps->tok_i].symb, true);
             fprintf(stderr, "\n");
-	}
+        }
 
         /* Shift error:*/
-        core_symb_ids = core_symb_ids_find(ps, set->core, ps->run.grammar->term_error);
-        assert(core_symb_ids != NULL);
+        core_symb_to_predcomps = core_symb_to_predcomps_find(ps, set->core, ps->run.grammar->term_error);
+        assert(core_symb_to_predcomps != NULL);
 
         if (ps->run.debug)
             fprintf(stderr, "++++Making error shift in set=%d\n", ps->state_set_k);
 
-        complete_and_predict_new_state_set(ps, set, core_symb_ids, NULL);
+        complete_and_predict_new_state_set(ps, set, core_symb_to_predcomps, NULL, NULL);
         ps->state_sets[++ps->state_set_k] = ps->new_set;
 
         if (ps->run.debug)
-	{
+        {
             fprintf(stderr, "++Trying new set=%d\n", ps->state_set_k);
-            print_state_set(ps, stderr, ps->new_set, ps->state_set_k, ps->run.debug, ps->run.debug);
+            // print_state_set(ps, stderr, ps->new_set, ps->state_set_k, ps->run.debug, ps->run.debug);
             fprintf(stderr, "\n");
-	}
+        }
 
         /* Search the first right token.*/
         while(ps->tok_i < ps->input_len)
-	{
-            core_symb_ids = core_symb_ids_find(ps, ps->new_core, ps->input[ps->tok_i].symb);
-            if (core_symb_ids != NULL)
+        {
+            core_symb_to_predcomps = core_symb_to_predcomps_find(ps, ps->new_core, ps->input[ps->tok_i].symb);
+            if (core_symb_to_predcomps != NULL)
                 break;
 
             if (ps->run.debug)
-	    {
+            {
                 fprintf(stderr, "++++++Skipping=%d ", ps->tok_i);
-                symbol_print(stderr, ps->input[ps->tok_i].symb, true);
+                // TODO symbol_print(stderr, ps->input[ps->tok_i].symb, true);
                 fprintf(stderr, "\n");
-	    }
+            }
 
             cost++;
             ps->tok_i++;
@@ -24799,9 +25163,9 @@ static void error_recovery(YaepParseState *ps, int *start, int *stop)
                 /* This state is worse.  Reject it.*/
                 break;
             }
-	}
+        }
         if (cost >= best_cost)
-	{
+        {
 
             if (ps->run.debug)
             {
@@ -24810,9 +25174,9 @@ static void error_recovery(YaepParseState *ps, int *start, int *stop)
 
             /* This state is worse.  Reject it.*/
             continue;
-	}
+        }
         if (ps->tok_i >= ps->input_len)
-	{
+        {
 
             if (ps->run.debug)
             {
@@ -24825,7 +25189,7 @@ static void error_recovery(YaepParseState *ps, int *start, int *stop)
                So we can say that state set length at most twice length of
                tokens array.*/
             continue;
-	}
+        }
 
         /* Shift the found token.*/
         YaepSymbol *NEXT_TERMINAL = NULL;
@@ -24833,28 +25197,28 @@ static void error_recovery(YaepParseState *ps, int *start, int *stop)
         {
             NEXT_TERMINAL = ps->input[ps->tok_i + 1].symb;
         }
-        complete_and_predict_new_state_set(ps, ps->new_set, core_symb_ids, NEXT_TERMINAL);
+        complete_and_predict_new_state_set(ps, ps->new_set, core_symb_to_predcomps, NULL, NEXT_TERMINAL);
         ps->state_sets[++ps->state_set_k] = ps->new_set;
 
         if (ps->run.debug)
-	{
+        {
             fprintf(stderr, "++++++++Building new set=%d\n", ps->state_set_k);
             if (ps->run.debug)
             {
-                print_state_set(ps, stderr, ps->new_set, ps->state_set_k, ps->run.debug, ps->run.debug);
+                // print_state_set(ps, stderr, ps->new_set, ps->state_set_k, ps->run.debug, ps->run.debug);
             }
-	}
+        }
 
         num_matched_input = 0;
         for(;;)
-	{
+        {
 
             if (ps->run.debug)
-	    {
+            {
                 fprintf(stderr, "++++++Matching=%d ", ps->tok_i);
-                symbol_print(stderr, ps->input[ps->tok_i].symb, true);
+                // TODO symbol_print(stderr, ps->input[ps->tok_i].symb, true);
                 fprintf(stderr, "\n");
-	    }
+            }
 
             num_matched_input++;
             if (num_matched_input >= ps->run.grammar->recovery_token_matches)
@@ -24867,20 +25231,20 @@ static void error_recovery(YaepParseState *ps, int *start, int *stop)
                 break;
             }
             /* Push secondary recovery state(with error in set).*/
-            if (core_symb_ids_find(ps, ps->new_core, ps->run.grammar->term_error) != NULL)
-	    {
+            if (core_symb_to_predcomps_find(ps, ps->new_core, ps->run.grammar->term_error) != NULL)
+            {
                 if (ps->run.debug)
-		{
+                {
                     fprintf(stderr, "++++Found secondary state: original set=%d, tok=%d, ",
                             state.last_original_state_set_el, ps->tok_i);
-                    symbol_print(stderr, ps->input[ps->tok_i].symb, true);
+                    // TODO symbol_print(stderr, ps->input[ps->tok_i].symb, true);
                     fprintf(stderr, "\n");
-		}
+                }
 
                 push_recovery_state(ps, state.last_original_state_set_el, cost);
-	    }
-            core_symb_ids = core_symb_ids_find(ps, ps->new_core, ps->input[ps->tok_i].symb);
-            if (core_symb_ids == NULL)
+            }
+            core_symb_to_predcomps = core_symb_to_predcomps_find(ps, ps->new_core, ps->input[ps->tok_i].symb);
+            if (core_symb_to_predcomps == NULL)
             {
                 break;
             }
@@ -24889,14 +25253,14 @@ static void error_recovery(YaepParseState *ps, int *start, int *stop)
             {
                 NEXT_TERMINAL = ps->input[ps->tok_i + 1].symb;
             }
-            complete_and_predict_new_state_set(ps, ps->new_set, core_symb_ids, NEXT_TERMINAL);
+            complete_and_predict_new_state_set(ps, ps->new_set, core_symb_to_predcomps, NULL, NEXT_TERMINAL);
             ps->state_sets[++ps->state_set_k] = ps->new_set;
-	}
+        }
         if (num_matched_input >= ps->run.grammar->recovery_token_matches || ps->tok_i >= ps->input_len)
-	{
+        {
             /* We found an error recovery.  Compare costs.*/
             if (best_cost > cost)
-	    {
+            {
 
                 if (ps->run.debug)
                 {
@@ -24913,13 +25277,12 @@ static void error_recovery(YaepParseState *ps, int *start, int *stop)
                                                  0);
                *start = ps->recovery_start_tok_i - state.backward_move_cost;
                *stop = *start + cost;
-	    }
+            }
             else if (ps->run.debug)
             {
                 fprintf(stderr, "++++Ignore %d tokens(worse recovery)\n", cost);
             }
-	}
-
+        }
         else if (cost < best_cost && ps->run.debug)
             fprintf(stderr, "++++No %d matched tokens  -- reject this state\n",
                      ps->run.grammar->recovery_token_matches);
@@ -24934,12 +25297,12 @@ static void error_recovery(YaepParseState *ps, int *start, int *stop)
     if (ps->run.debug)
     {
         fprintf(stderr, "\n++Error recovery end: curr token %d=", ps->tok_i);
-        symbol_print(stderr, ps->input[ps->tok_i].symb, true);
+        // TODO symbol_print(stderr, ps->input[ps->tok_i].symb, true);
         fprintf(stderr, ", Current set=%d:\n", ps->state_set_k);
         if (ps->run.debug)
         {
-            print_state_set(ps, stderr, ps->state_sets[ps->state_set_k],
-                            ps->state_set_k, ps->run.debug, ps->run.debug);
+            /*print_state_set(ps, stderr, ps->state_sets[ps->state_set_k],
+              ps->state_set_k, ps->run.debug, ps->run.debug);*/
         }
     }
 
@@ -24959,6 +25322,8 @@ static void free_error_recovery(YaepParseState *ps)
     VLO_DELETE(ps->recovery_state_stack);
     VLO_DELETE(ps->original_state_set_tail_stack);
 }
-/****************** YAEP parser single source file end **********************/
+
 #endif // YAEP_MODULE
 
+
+#endif

@@ -1,4 +1,4 @@
-/* libxmq - Copyright (C) 2023-2024 Fredrik Öhrström (spdx: MIT)
+/* libxmq - Copyright (C) 2023-2025 Fredrik Öhrström (spdx: MIT)
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -501,7 +501,7 @@ void xmqSetPrintAllParsesIXML(XMQParseState *state, bool all_parses);
    @state: the parse state.
    @try_recover: if true then try to recover a failed parse.
 
-   If the parse fails then try to recover.
+   If the parse fails then try to recover. Default is to fail.
 */
 void xmqSetTryToRecoverIXML(XMQParseState *state, bool try_recover);
 
@@ -544,6 +544,13 @@ XMQContentType xmqGetOriginalContentType(XMQDoc *doq);
     If available, return the size of the original content, ie the loaded file size.
 */
 size_t xmqGetOriginalSize(XMQDoc *doq);
+
+/**
+    xmqSetOriginalSize:
+
+    Override the original size of the document.
+*/
+void xmqSetOriginalSize(XMQDoc *doq, size_t size);
 
 /**
     xmqGetRootNode:
@@ -616,6 +623,7 @@ void xmqSetAddIndent(XMQOutputSettings *os, int add_indent);
 void xmqSetCompact(XMQOutputSettings *os, bool compact);
 void xmqSetUseColor(XMQOutputSettings *os, bool use_color);
 void xmqSetBackgroundMode(XMQOutputSettings *os, bool bg_dark_mode);
+void xmqSetPreferDoubleQuotes(XMQOutputSettings *os, bool prefer_double_quotes);
 void xmqSetEscapeNewlines(XMQOutputSettings *os, bool escape_newlines);
 void xmqSetEscapeNon7bit(XMQOutputSettings *os, bool escape_non_7bit);
 void xmqSetEscapeTabs(XMQOutputSettings *os, bool escape_tabs);
@@ -797,6 +805,13 @@ void xmqSetDebug(bool e);
     Enable/Disable tracing.
 */
 void xmqSetTrace(bool e);
+
+/**
+    xmqLogFilter
+
+    Enable/Disable debug/trace logging for certain prefixes.
+*/
+void xmqLogFilter(const char *log_filter);
 
 /**
    xmqDebugging:
