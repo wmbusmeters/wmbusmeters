@@ -30,6 +30,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // PART H ALWAYS ////////////////////////////////////////
 
+#ifdef BUILDING_DIST_XMQ
+#define STATIC static
+#else
+#define STATIC
+#endif
+
 #include<stdbool.h>
 #include<stdlib.h>
 #include<stdarg.h>
@@ -50,16 +56,16 @@ extern bool xmq_verbose_enabled_;
 extern const char *xmq_log_filter_;
 extern struct XMQLineConfig xmq_log_line_config_;
 
-void error__(const char* fmt, ...);
-void warning__(const char* fmt, ...);
-void verbose__(const char* fmt, ...);
-void debug__(const char* fmt, ...);
-void trace__(const char* fmt, ...);
-void debug_mb__(const char* module, MemBuffer *mb);
-void trace_mb__(const char* fmt, MemBuffer *mb);
-void check_malloc(void *a);
+STATIC void error__(const char* fmt, ...);
+STATIC void warning__(const char* fmt, ...);
+STATIC void verbose__(const char* fmt, ...);
+STATIC void debug__(const char* fmt, ...);
+STATIC void trace__(const char* fmt, ...);
+STATIC void debug_mb__(const char* module, MemBuffer *mb);
+STATIC void trace_mb__(const char* fmt, MemBuffer *mb);
+STATIC void check_malloc(void *a);
 
-char *buf_vsnprintf(const char *format, va_list ap);
+STATIC char *buf_vsnprintf(const char *format, va_list ap);
 
 #define error(...) error__(__VA_ARGS__)
 #define warning(...) warning__(__VA_ARGS__)
@@ -79,7 +85,7 @@ char *strndup(const char *s, size_t l);
 // A common free function ptr to be used when freeing collections.
 typedef void(*FreeFuncPtr)(void*);
 
-char *humanReadableTwoDecimals(size_t s);
+STATIC char *humanReadableTwoDecimals(size_t s);
 
 #define ALWAYS_MODULE
 
@@ -8489,7 +8495,7 @@ char *xmqLinePrintf(XMQLineConfig *lc, const char *element_name, ...)
 
 #ifdef ALWAYS_MODULE
 
-void check_malloc(void *a)
+STATIC void check_malloc(void *a)
 {
     if (!a)
     {
@@ -8500,7 +8506,7 @@ void check_malloc(void *a)
 
 XMQLineConfig xmq_log_line_config_;
 
-void error__(const char* fmt, ...)
+STATIC void error__(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -8510,7 +8516,7 @@ void error__(const char* fmt, ...)
     va_end(args);
 }
 
-void warning__(const char* fmt, ...)
+STATIC void warning__(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -8522,7 +8528,7 @@ void warning__(const char* fmt, ...)
 
 bool xmq_verbose_enabled_ = false;
 
-void verbose__(const char* fmt, ...)
+STATIC void verbose__(const char* fmt, ...)
 {
     if (xmq_verbose_enabled_)
     {
@@ -8540,7 +8546,7 @@ void verbose__(const char* fmt, ...)
 
 bool xmq_debug_enabled_ = false;
 
-void debug__(const char* fmt, ...)
+STATIC void debug__(const char* fmt, ...)
 {
     assert(fmt);
 
@@ -8558,7 +8564,7 @@ void debug__(const char* fmt, ...)
     }
 }
 
-void debug_mb__(const char* module, MemBuffer *mb)
+STATIC void debug_mb__(const char* module, MemBuffer *mb)
 {
     if (xmq_debug_enabled_)
     {
@@ -8572,7 +8578,7 @@ void debug_mb__(const char* module, MemBuffer *mb)
 bool xmq_trace_enabled_ = false;
 const char *xmq_log_filter_ = NULL;
 
-void trace__(const char* fmt, ...)
+STATIC void trace__(const char* fmt, ...)
 {
     if (xmq_trace_enabled_)
     {
@@ -8588,7 +8594,7 @@ void trace__(const char* fmt, ...)
     }
 }
 
-void trace_mb__(const char* module, MemBuffer *mb)
+STATIC void trace_mb__(const char* module, MemBuffer *mb)
 {
     if (xmq_trace_enabled_)
     {
@@ -8665,7 +8671,7 @@ static char *helper(size_t scale, size_t s, const char *suffix)
 
 #define KB 1024
 
-char *humanReadableTwoDecimals(size_t s)
+STATIC char *humanReadableTwoDecimals(size_t s)
 {
     if (s < KB)
     {
