@@ -10,7 +10,7 @@ RUN git clone --depth 1 https://github.com/steve-m/librtlsdr.git && \
     git clone --depth 1 https://github.com/libxmq/xmq.git
 
 WORKDIR /librtlsdr
-RUN cmake -B build -j `nproc` -G Ninja \
+RUN cmake -B build -G Ninja \
         -DCMAKE_BUILD_TYPE=MinSizeRel \
         -DCMAKE_INSTALL_PREFIX:PATH=/usr \
         -DDETACH_KERNEL_DRIVER=ON \
@@ -22,9 +22,9 @@ RUN make -j`nproc`
 WORKDIR /rtl-wmbus
 RUN make -j`nproc` release && chmod 755 build/rtl_wmbus
 WORKDIR /rtl_433
-RUN cmake -B build -j `nproc` -G Ninja \
+RUN cmake -B build -G Ninja \
         -DCMAKE_BUILD_TYPE=MinSizeRel && \
-    cmake --build build
+    cmake --build build -j `nproc`
 WORKDIR /rtl_reset
 RUN make
 WORKDIR /xmq
