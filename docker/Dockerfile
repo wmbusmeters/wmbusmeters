@@ -15,20 +15,20 @@ RUN cmake -B build -G Ninja \
         -DCMAKE_INSTALL_PREFIX:PATH=/usr \
         -DDETACH_KERNEL_DRIVER=ON \
         -Wno-dev && \
-    cmake --build build && \
+    cmake --build build -j `nproc` && \
     cmake --install build
 WORKDIR /wmbusmeters
-RUN make
+RUN make -j`nproc`
 WORKDIR /rtl-wmbus
-RUN make release && chmod 755 build/rtl_wmbus
+RUN make -j`nproc` release && chmod 755 build/rtl_wmbus
 WORKDIR /rtl_433
 RUN cmake -B build -G Ninja \
         -DCMAKE_BUILD_TYPE=MinSizeRel && \
-    cmake --build build
+    cmake --build build -j `nproc`
 WORKDIR /rtl_reset
 RUN make
 WORKDIR /xmq
-RUN ./configure && make
+RUN ./configure && make -j`nproc`
 
 FROM alpine as scratch
 RUN apk add --no-cache mosquitto-clients libstdc++ curl libusb libxml2 netcat-openbsd
