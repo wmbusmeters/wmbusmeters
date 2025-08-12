@@ -51,7 +51,7 @@ SpecifiedDevice *find_specified_device_from_detected(Configuration *c, Detected 
 void list_fields(Configuration *config, string meter_type);
 void print_driver(Configuration *config, string meter_type);
 void list_shell_envs(Configuration *config, string meter_type);
-void list_meters(Configuration *config);
+void list_meters(Configuration *config, bool load, bool daemon);
 void list_units();
 void log_start_information(Configuration *config);
 void oneshot_check(Configuration *config, Telegram *t, Meter *meter);
@@ -147,7 +147,7 @@ provided you with this binary. Read the full license for all details.
 
     if (config->list_meters)
     {
-        list_meters(config.get());
+        list_meters(config.get(), true, false);
         exit(0);
     }
 
@@ -350,25 +350,45 @@ void print_driver(Configuration *config, string meter_driver)
     }
 }
 
-void list_meters(Configuration *config)
+void list_meters(Configuration *config, bool load, bool daemon)
 {
-    loadAllBuiltinDrivers();
+    if (load) loadAllBuiltinDrivers();
 
     for (DriverInfo *di : allDrivers())
     {
         string mname = di->name().str();
-        const char *info = toString(di->type());
+        const char *infotxt = toString(di->type());
         const char *where = "";
         const string f = di->getDynamicFileName();
         if (f != "")
         {
             where = f.c_str();
         }
+        else
+        {
+            where = "c++";
+        }
 
         if (config->list_meters_search == "" ||                      \
-            stringFoundCaseIgnored(info, config->list_meters_search) || \
-            stringFoundCaseIgnored(mname.c_str(), config->list_meters_search)) \
-            printf("%-14s %s %s\n", mname.c_str(), info, where);
+            stringFoundCaseIgnored(infotxt, config->list_meters_search) || \
+            stringFoundCaseIgnored(mname.c_str(), config->list_meters_search))
+        {
+            if (load)
+            {
+                printf("%-14s %s %s\n", mname.c_str(), infotxt, where);
+            }
+            else
+            {
+                if (daemon)
+                {
+                    verbose("(driver) %-14s %s %s\n", mname.c_str(), infotxt, where);
+                }
+                else
+                {
+                    debug("(driver) %-14s %s %s\n", mname.c_str(), infotxt, where);
+                }
+            }
+        }
     }
 }
 
@@ -621,6 +641,8 @@ bool start(Configuration *config)
     );
 
     setup_meters(config, meter_manager_.get());
+
+    list_meters(config, false, config->daemon);
 
     bus_manager_->detectAndConfigureWmbusDevices(config, DetectionType::STDIN_FILE_SIMULATION);
 

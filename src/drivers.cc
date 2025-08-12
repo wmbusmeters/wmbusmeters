@@ -27,12 +27,16 @@ using namespace std;
 
 void loadDriversFromDir(std::string dir)
 {
-    if (!checkIfDirExists(dir.c_str())) return;
+    if (!checkIfDirExists(dir.c_str()))
+    {
+        debug("(drivers) dir did not exist: %s\n", dir.c_str());
+        return;
+    }
+
+    verbose("(drivers) scanning dir %s\n", dir.c_str());
 
     vector<string> drivers;
     listFiles(dir, &drivers);
-
-    verbose("(drivers) scanning dir %s\n", dir.c_str());
 
     for (string &file : drivers)
     {
