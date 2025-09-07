@@ -3,7 +3,7 @@ set -e
 
 : ${WMBUSMETERS_DATA:=/wmbusmeters_data}
 : ${LOGS_DIR:=${WMBUSMETERS_DATA}/logs}
-: ${READINGS_DIR:=${LOGS_DIR}/readings}
+: ${READINGS_DIR:=${LOGS_DIR}/meter_readings}
 : ${ETC_DIR:=${WMBUSMETERS_DATA}/etc}
 
 [ ! -d "$LOGS_DIR" ] && mkdir -p "$LOGS_DIR"
