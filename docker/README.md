@@ -51,6 +51,37 @@ services:
 ```
 Then, `docker-compose pull` can be used to pull the latest wmbusmeters/wmbusmeters image, `docker-compose up -d` to start the wmbusmeters container service, and `docker-compose down` to stop the wmbusmeters service and delete the container. It must be noted that those commands will also pull, start, and stop any other services defined in docker-compose.yml.
 
+## Environment variables
+
+You can override default paths inside the container with environment variables.  
+If you don’t set them, defaults are used.
+
+| Variable           | Default                     |
+|--------------------|-----------------------------|
+| `WMBUSMETERS_DATA` | `/wmbusmeters_data`         |
+| `LOGS_DIR`         | `$WMBUSMETERS_DATA/logs`    |
+| `READINGS_DIR`     | `$WMBUSMETERS_DATA/readings`|
+| `ETC_DIR`          | `$WMBUSMETERS_DATA/etc`     |
+
+### Example with docker run
+
+```bash
+docker run -v ./data:/data \
+  -e WMBUSMETERS_DATA=/data \
+  wmbusmeters/wmbusmeters
+```
+
+### Example with docker-compose
+
+```bash
+services:
+  wmbusmeters:
+    image: wmbusmeters/wmbusmeters
+    environment:
+      WMBUSMETERS_DATA: /data
+    volumes:
+      - ./data:/data
+```
 
 ## How to run docker in unprivileged mode
 
