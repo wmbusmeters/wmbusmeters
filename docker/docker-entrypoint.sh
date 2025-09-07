@@ -3,7 +3,7 @@ set -e
 
 : ${WMBUSMETERS_DATA:=/wmbusmeters_data}
 : ${LOGS_DIR:=${WMBUSMETERS_DATA}/logs}
-: ${READINGS_DIR:=${WMBUSMETERS_DATA}/readings}
+: ${READINGS_DIR:=${LOGS_DIR}/readings}
 : ${ETC_DIR:=${WMBUSMETERS_DATA}/etc}
 
 [ ! -d "$LOGS_DIR" ] && mkdir -p "$LOGS_DIR"
@@ -12,7 +12,7 @@ set -e
 [ ! -d "$ETC_DIR/wmbusmeters.drivers.d" ] && mkdir -p "$ETC_DIR/wmbusmeters.drivers.d"
 
 if [ ! -f "$ETC_DIR/wmbusmeters.conf" ]; then
-  cat <<EOF > "$ETC_DIR/wmbusmeters.conf"
+cat <<EOF > "$ETC_DIR/wmbusmeters.conf"
 loglevel=normal
 device=auto:t1
 donotprobe=/dev/ttyAMA0
