@@ -171,5 +171,12 @@ driver {
         json     = '{"_":"telegram","co2":551,"co2_avg_1h":556,"co2_avg_24h":516,"co2_last_calibration":417,"humidity":52.2,"humidity_avg_1h":51.5,"humidity_avg_24h":49.8,"id":"161485","media":"co2","meter":"lansenco2","minutes_to_calibration":27161,"name":"MyCO2Sensor","on_time_days":497,"operating_time_days":497,"software_version":62,"status":16,"temperature":21.03,"temperature_avg_1h":20.98,"temperature_avg_24h":21.14,"timestamp":"2025-09-08T15:35:00Z"}'
         fields   = 'MyCO2Sensor;161485;2025-09-08 15:35.00;21.03;52.2;551'
     }
+    test {
+        args     = 'Heato lansenco2 00161485 0DF3EC35064F8E975360A4CA5D7428CA'
+        comment  = 'Test case with full MBus/WMBus hybrid frame'
+        telegram = '6892926808fd728514160033300a2ae40000000c7861841900066d16182928390001fd71d68c4078000000008140fdf19474ff0dfd3b5f5e443330851416000a2a7a4c005025ee7914727097e45cce9a129170d610ce49dc2b674fc19862433be382b4b7d18bcb9fb94acbcec63ab45df240c49aa12e777888e5cb36f6d7e5ac1c4b879713a126da40f8ee2482440ab0762ef76a77d4a616'
+        json     = '{"_":"telegram","co2_counter":616,"co2_avg_1h_counter":619,"co2_avg_24h_counter":521,"co2_last_calibration_counter":417,"humidity_rh":54.7,"humidity_avg_1h_rh":53.8,"humidity_avg_24h_rh":50,"minutes_to_calibration_counter":616,"on_time_days_d":497,"operating_time_days_d":497,"temperature_c":21.26,"temperature_avg_1h_c":21.17,"temperature_avg_24h_c":21.15,"software_version":"003E","id":"00161485","media":"reserved","meter":"lansenco2","name":"Heato","timestamp":"2025-09-08T14:17:14Z"}'
+        fields   = 'Heato;00161485;21.26;54.7;616;2025-09-08 14:17.14'
+    }
 }
 }
