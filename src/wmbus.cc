@@ -2884,6 +2884,8 @@ double vifScale(int vif)
     case 0x7d2e: return 1.0; // Duration since readout hours
     case 0x7d2f: return (1.0/24.0); // Duration since readout days
 
+    case 0x7d3a: return 1.0; // Dimensionless (no scaling)
+
         /*
     case 0x78: // Fabrication no
     case 0x79: // Enhanced identification

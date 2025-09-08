@@ -1,4 +1,5 @@
-// Generated 2025-01-11_23:52
+-n // Generated 
+2025-09-08_19:14
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -145,6 +146,13 @@ test {
     telegram = 32442D2C1703007701188D280080E39322DB8F78_22696600126967000269660005FF091954A33A05FF0A99BD823A02FD170800
     json     = '{"_":"telegram","media":"pressure","meter":"kampress","name":"Pressing","id":"77000317","status":"LOW","pressure_bar":1.02,"max_pressure_bar":1.03,"min_pressure_bar":1.02,"alfa_counter":0.001246,"beta_counter":0.000997,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'Pressing;77000317;LOW;1.02;1.03;1.02;1111-11-11 11:11.11'
+}
+test {
+    args     = 'MyCO2Sensor lansenco2 161485 NOKEY'
+    comment  = 'Test case based on decrypted telegram'
+    telegram = 5e443330851416000a2a7a0d0000252f2f0265370842653208820165420802fB1a0a0242fB1a03028201fB1af20102fd3a270242fd3a2c028201fd3a0402c201fd3aa1018240fd3a196a0223f1010227f10102fd0f3e0001fd1B102f2f2f2f
+    json     = '{"_":"telegram","co2":551,"co2_avg_1h":556,"co2_avg_24h":516,"co2_last_calibration":417,"humidity":52.2,"humidity_avg_1h":51.5,"humidity_avg_24h":49.8,"id":"161485","media":"co2","meter":"lansenco2","minutes_to_calibration":27161,"name":"MyCO2Sensor","on_time_days":497,"operating_time_days":497,"software_version":62,"status":16,"temperature":21.03,"temperature_avg_1h":20.98,"temperature_avg_24h":21.14,"timestamp":"2025-09-08T15:35:00Z"}'
+    fields   = 'MyCO2Sensor;161485;2025-09-08 15:35.00;21.03;52.2;551'
 }
 test {
     args     = 'mywater maddalena 24018699 NOKEY'
