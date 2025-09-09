@@ -150,6 +150,17 @@ driver {
             }
         }
         field {
+            name       = radon_avg_2h
+            quantity   = Dimensionless
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Dimensionless
+                storage_nr       = 2
+                dife             = 0x40
+                subunit          = 1
+            }
+        }
+        field {
             name       = software_version
             quantity   = Text
             match {

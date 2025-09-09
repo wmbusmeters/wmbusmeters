@@ -195,14 +195,15 @@ void WMBusSimulator::simulate()
         {
             debug("(simulator) is mbus telegram.\n");
             
-            // Check if this is an MBus/WMBus hybrid frame (starts with 68 and contains 5e later)
+            // Check if this is an MBus/WMBus hybrid frame (starts with 68 and contains 5e or 4e later)
             if (payload.size() > 4 && payload[0] == 0x68 && payload[3] == 0x68)
             {
-                // Look for the WMBus application layer data starting with 5e
+                // Look for the WMBus application layer data starting with 5e44 or 4e44
                 size_t wmbus_start = 0;
                 for (size_t i = 4; i < payload.size() - 10; i++)
                 {
-                    if (payload[i] == 0x5e && payload[i+1] == 0x44)
+                    if ((payload[i] == 0x5e && payload[i+1] == 0x44) || 
+                        (payload[i] == 0x4e && payload[i+1] == 0x44))
                     {
                         wmbus_start = i;
                         break;
@@ -231,14 +232,15 @@ void WMBusSimulator::simulate()
             debug("(simulator) is wmbus telegram.\n");
             AboutTelegram about("", 0, FrameType::WMBUS);
             
-            // Check if this is an MBus/WMBus hybrid frame (starts with 68 and contains 5e later)
+            // Check if this is an MBus/WMBus hybrid frame (starts with 68 and contains 5e or 4e later)
             if (payload.size() > 4 && payload[0] == 0x68 && payload[3] == 0x68)
             {
-                // Look for the WMBus application layer data starting with 5e
+                // Look for the WMBus application layer data starting with 5e44 or 4e44
                 size_t wmbus_start = 0;
                 for (size_t i = 4; i < payload.size() - 10; i++)
                 {
-                    if (payload[i] == 0x5e && payload[i+1] == 0x44)
+                    if ((payload[i] == 0x5e && payload[i+1] == 0x44) || 
+                        (payload[i] == 0x4e && payload[i+1] == 0x44))
                     {
                         wmbus_start = i;
                         break;
