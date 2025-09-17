@@ -5032,6 +5032,7 @@ string decodeTPLStatusByteOnlyStandardBits(uchar sts)
     if ((sts & 0x04) == 0x04) s += "POWER_LOW "; // E.g. battery end of life or external power supply failure
     if ((sts & 0x08) == 0x08) s += "PERMANENT_ERROR "; // E.g. meter needs service to work again.
     if ((sts & 0x10) == 0x10) s += "TEMPORARY_ERROR ";
+    if ((sts & 0x40) == 0x40) s += "TAMPER ";
 
     while (s.size() > 0 && s.back() == ' ') s.pop_back();
     return s;
