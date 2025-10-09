@@ -1,7 +1,7 @@
 // Copyright (C) 2025 Google (gpl-3.0-or-later)
 // Driver for LAN-WMBUS-Q-RC Sensor
 driver {
-    name           = lansenqrcv3
+    name           = lansenradon
     meter_type     = TempHygroMeter
     default_fields = name,id,timestamp,temperature,humidity,co2,radon,pressure
     
