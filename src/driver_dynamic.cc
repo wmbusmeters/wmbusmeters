@@ -600,16 +600,20 @@ string check_field_name(const char *name, DriverDynamic *dd)
     Unit u;
     if (extractUnit(string(name), &vname, &u))
     {
-        warning("(driver) error in %s, bad field name %s (field names should not have units)\n"
-                "%s\n"
-                "The field name should not have a unit since units are added automatically.\n"
-                "Either indirectly based on the quantity or directly based on the display_unit.\n"
-                "%s\n",
-                dd->fileName().c_str(),
-                name,
-                line,
-                line);
-        throw 1;
+        // Special exception to allow operating_time_h
+        Quantity q = toQuantity(u);
+        if (q != Quantity::PointInTime)
+        {
+            warning("(driver) error in %s, bad field name %s (field names should not have units)\n"
+                    "%s\n"
+                    "The field name should not have a unit since units are added automatically.\n"
+                    "Either indirectly based on the quantity or directly based on the display_unit.\n"
+                    "%s\n",
+                    dd->fileName().c_str(),
+                    name,
+                    line,
+                    line);
+        }
     }
 
     return name;

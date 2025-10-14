@@ -13,7 +13,7 @@ OK=true
 
 rm -f $TEST/test_output.txt $TEST/test_expected.txt $TEST/simulation_tmp.txt
 
-echo "$HEX" | sed 's/^/telegram=/g' > $TEST/simulation_tmp.txt
+echo "$HEX" | sed 's/^/telegram=/g' | sed 's/,/\ntelegram=/g' > $TEST/simulation_tmp.txt
 
 $PROG --format=json $TEST/simulation_tmp.txt $ARGS \
     | tail -n 1 \

@@ -48,6 +48,7 @@ void loadDriversFromDir(std::string dir)
 struct BuiltinDriver
 {
     const char *name;
+    const char *aliases;
     const char *content;
     bool loaded;
 };
@@ -134,6 +135,12 @@ void prepareBuiltinDrivers()
     {
         builtins_name_lookup_[builtins_[i].name] = &builtins_[i];
         debug("(drivers) added builtin driver %s\n", builtins_[i].name);
+        vector<string> aliases = splitString(builtins_[i].aliases, ',');
+        for (string& a : aliases)
+        {
+            builtins_name_lookup_[a] = &builtins_[i];
+            debug("(drivers) added alias %s to driver %s\n", a.c_str(),builtins_[i].name);
+        }
     }
 
     for (size_t i = 0; i < num_mvts; ++i)
