@@ -178,6 +178,7 @@ public:
     void setName(std::string n) { name_ = n; }
     void addNameAlias(std::string n) { name_aliases_.push_back(n); }
     void setMeterType(MeterType t) { type_ = t; }
+    void setAliases(string f);
     void setDefaultFields(string f) { default_fields_ = splitString(f, ','); }
     void addLinkMode(LinkMode lm) { linkmodes_.addLinkMode(lm); }
     void forceMfctIndex(int i) { force_mfct_index_ = i; }

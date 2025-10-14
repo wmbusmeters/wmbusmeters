@@ -133,6 +133,17 @@ bool DriverInfo::detect(uint16_t mfct, uchar version, uchar type)
     return false;
 }
 
+void DriverInfo::setAliases(string a)
+{
+    if (a == "") return;
+
+    auto as = splitString(a, ',');
+    for (string& s : as)
+    {
+        addNameAlias(s);
+    }
+}
+
 bool DriverInfo::isValidMedia(uchar type)
 {
     for (auto &dd : mvts_)
@@ -212,7 +223,12 @@ string loadDriver(const string &file, const char *content)
     DriverInfo *existing = lookupDriver(di.name().str());
     if (existing != NULL)
     {
-        if (existing->getDynamicFileName() == "builtin")
+        if (existing->getDynamicFileName() == file)
+        {
+            // The driver has already been loaded, typically during analyze.
+            return di.name().str();
+        }
+        else if (existing->getDynamicFileName() == "builtin")
         {
             // We found a builtin xmq driver
             string exp = tostrprintf("new driver %s (%s) triggered a removal of the builtin driver with the same name.",

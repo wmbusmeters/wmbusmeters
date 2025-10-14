@@ -23,6 +23,7 @@
 #include<string.h>
 
 string check_driver_name(const char *name, string file);
+string check_aliases(const char *aliases, string file);
 MeterType check_meter_type(const char *meter_type_s, string file);
 string check_default_fields(const char *fields, string file);
 void check_detection_triplets(DriverInfo *di, string file);
@@ -97,6 +98,9 @@ bool DriverDynamic::load(DriverInfo *di, const string &file_name, const char *co
     {
         string name = check_driver_name(xmqGetString(doc, "/driver/name"), file);
         di->setName(name);
+
+        string aliases = check_aliases(xmqGetString(doc, "/driver/aliases"), file);
+        di->setAliases(aliases);
 
         MeterType meter_type = check_meter_type(xmqGetString(doc, "/driver/meter_type"), file);
         di->setMeterType(meter_type);
@@ -529,6 +533,16 @@ MeterType check_meter_type(const char *meter_type_s, string file)
     }
 
     return meter_type;
+}
+
+string check_aliases(const char *aliases, string file)
+{
+    if (!aliases)
+    {
+        return "";
+    }
+
+    return aliases;
 }
 
 string check_default_fields(const char *default_fields, string file)
