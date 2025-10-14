@@ -224,6 +224,23 @@ driver {
             }
         }
         field {
+            name     = status_narrow
+            quantity = Text
+            info     = 'Status and error flags'
+            attributes = INJECT_INTO_STATUS,HIDE
+            match {
+                measurement_type = Instantaneous
+                vif_range = ErrorFlags
+            }
+            lookup {
+                name            = NARROW_ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffff
+                default_message = OK
+            }
+        }
+
+        field {
             name     = total_energy_consumption
             quantity = Energy
             info     = 'The total energy consumption recorded by this meter.'
@@ -249,6 +266,16 @@ driver {
             match {
                 measurement_type = Instantaneous
                 vif_range        = Volume
+            }
+        }
+        field {
+            name     = 'total_volume_subunit{subunit_counter}'
+            quantity = Volume
+            info     = 'The volume of water for a subunit.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                subunit_nr       = 1,4
             }
         }
         field {
@@ -346,6 +373,18 @@ driver {
             }
         }
         field {
+            name     = 'target_volume_subunit{subunit_counter}'
+            quantity = Volume
+            info     = 'The amount of water that had passed through a subunit of the meter at the set date.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+                subunit_nr       = 1,4
+            }
+        }
+
+        field {
             name     = operating_time
             quantity = Time
             info     = 'How long the meter has been collecting data.'
@@ -355,6 +394,19 @@ driver {
                 add_combinable   = Mfct21
             }
         }
+        field {
+            name = enhanced_id
+            quantity = Text
+            match {
+                difvifkey = 02F9FF15
+            }
+         }
+         /*
+         031   : 04 dif (32 Bit Integer/Binary Instantaneous value)
+         032   : EE vif (Units for H.C.A.)
+         033   : FF combinable vif (MfctSpecific)
+         034   : 07 combinable extension vife (Mfct07)
+         035 C?: 360C0400 */
 
     }
     tests {
