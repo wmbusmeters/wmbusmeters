@@ -237,9 +237,83 @@ driver {
                 map_type        = BitToString
                 mask_bits       = 0xffff
                 default_message = OK
+                map {
+                    name  = VOLTAGE_INTERRUPTED
+                    value = 0x0001
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_T1_OUTSIDE_MEASURING_RANGE
+                    value = 0x0008
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_T2_OUTSIDE_MEASURING_RANGE
+                    value = 0x0004
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_T3_OUTSIDE_MEASURING_RANGE
+                    value = 0x0020
+                    test  = Set
+                }
+                map {
+                    name  = LEAKAGE_COLD_WATER
+                    value = 0x0040
+                    test  = Set
+                }
+                map {
+                    name  = LEAKAGE_HOT_WATER
+                    value = 0x0100
+                    test  = Set
+                }
+                map {
+                    name  = BURST_WATER_LOSS
+                    value = 0x0200
+                    test  = Set
+                }
+                map {
+                    name  = V1_COMMUNICATION_ERROR
+                    value = 0x0010
+                    test  = Set
+                }
+                map {
+                    name  = V2_COMMUNICATION_ERROR
+                    value = 0x0400
+                    test  = Set
+                }
+                map {
+                    name  = V1_WRONG_PULSE_FIGURE
+                    value = 0x0800
+                    test  = Set
+                }
+                map {
+                    name  = V2_WRONG_PULSE_FIGURE
+                    value = 0x0080
+                    test  = Set
+                }
+                map {
+                    name  = V1_AIR
+                    value = 0x1000
+                    test  = Set
+                }
+                map {
+                    name  = V2_AIR
+                    value = 0x2000
+                    test  = Set
+                }
+                map {
+                    name  = V1_WRONG_FLOW_DIRECTION
+                    value = 0x4000
+                    test  = Set
+                }
+                map {
+                    name  = V2_WRONG_FLOW_DIRECTION
+                    value = 0x8000
+                    test  = Set
+                }
             }
         }
-
         field {
             name     = total_energy_consumption
             quantity = Energy
@@ -401,13 +475,24 @@ driver {
                 difvifkey = 02F9FF15
             }
          }
-         /*
-         031   : 04 dif (32 Bit Integer/Binary Instantaneous value)
-         032   : EE vif (Units for H.C.A.)
-         033   : FF combinable vif (MfctSpecific)
-         034   : 07 combinable extension vife (Mfct07)
-         035 C?: 360C0400 */
-
+         field {
+            name = subunit1
+            quantity = Dimensionless
+            vif_scaling = None
+            display_unit = counter
+            match {
+                difvifkey = 04EEFF07
+            }
+         }
+         field {
+            name = subunit2
+            quantity = Dimensionless
+            vif_scaling = None
+            display_unit = counter
+            match {
+                difvifkey = 04EEFF08
+            }
+         }
     }
     tests {
         test {
@@ -452,31 +537,31 @@ driver {
         test {
             args = 'My403Cooling multical403 78780102 NOKEY'
             telegram = 88442D2C02017878340A8D208D529C132037FC78_040E2D0A000004FF07F8FF000004FF08401801000413C1900500844014000000008480401400000000043BED0000000259BC06025DCD07142DE7FFFFFF84100E0000000084200E0000000004FF2200000000026C9228440E5F0300004413960D0200C4401400000000C480401400000000426C8128
-            json = '{"_":"telegram","forward_energy_m3c": 65528,"id": "78780102","max_power_kw": -2.5,"media": "cooling load volume at outlet","meter": "kamheat","meter_date": "2020-08-18","name": "My403Cooling","return_energy_m3c": 71744,"status": "OK","t1_temperature_c": 17.24,"t2_temperature_c": 19.97,"target_date": "2020-08-01","target_energy_kwh": 239.722222,"target_volume_m3": 134.55,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 723.611111,"total_volume_m3": 364.737,"volume_flow_m3h": 0.237}'
+            json = '{"_":"telegram","forward_energy_m3c": 65528,"id": "78780102","max_power_kw": -2.5,"media": "cooling load volume at outlet","meter": "kamheat","meter_date": "2020-08-18","name": "My403Cooling","return_energy_m3c": 71744,"status": "OK","t1_temperature_c": 17.24,"t2_temperature_c": 19.97,"target_date": "2020-08-01","target_energy_kwh": 239.722222,"target_volume_m3": 134.55,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 723.611111,"total_volume_m3": 364.737,"volume_flow_m3h": 0.237,"target_volume_subunit1_m3": 0,"target_volume_subunit2_m3": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0,"timestamp": "1111-11-11T11:11:11Z"}'
             fields = 'My403Cooling;78780102;723.611111;364.737;OK;1111-11-11 11:11.11'
         }
         test {
             args     = 'My403Cooling multical403 78780102 NOKEY'
             telegram = 88442D2C02017878340A8D208D529C132037FC78_040E2D0A000004FF07F8FF000004FF08401801000413C1900500844014000000008480401400000000043BED0000000259BC06025DCD07142DE7FFFFFF84100E0000000084200E0000000004FF2200000000026C9228440E5F0300004413960D0200C4401400000000C480401400000000426C8128,5B442D2C02017878340A8D2096809C1320EF2B7934147ED7_2D0A0000FAFF000043180100CE9005000000000000000000EE000000BA06CB07E7FFFFFF00000000000000000000000092285F030000960D020000000000000000008128
-            json = '{"_":"telegram","forward_energy_m3c": 65530,"id": "78780102","max_power_kw": -2.5,"media": "cooling load volume at outlet","meter": "kamheat","meter_date": "2020-08-18","name": "My403Cooling","return_energy_m3c": 71747,"status": "OK","t1_temperature_c": 17.22,"t2_temperature_c": 19.95,"target_date": "2020-08-01","target_energy_kwh": 239.722222,"target_volume_m3": 134.55,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 723.611111,"total_volume_m3": 364.75,"volume_flow_m3h": 0.238}'
+            json = '{"_":"telegram","forward_energy_m3c": 65530,"id": "78780102","max_power_kw": -2.5,"media": "cooling load volume at outlet","meter": "kamheat","meter_date": "2020-08-18","name": "My403Cooling","return_energy_m3c": 71747,"status": "OK","t1_temperature_c": 17.22,"t2_temperature_c": 19.95,"target_date": "2020-08-01","target_energy_kwh": 239.722222,"target_volume_m3": 134.55,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 723.611111,"total_volume_m3": 364.75,"volume_flow_m3h": 0.238,"target_volume_subunit1_m3": 0,"target_volume_subunit2_m3": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
             fields = 'My403Cooling;78780102;723.611111;364.75;OK;1111-11-11 11:11.11'
         }
         test {
             args     = 'Heato multical602 78152801 NOKEY'
             telegram = 7A442D2C012815781C048D206450E76322344678_02F9FF1511130406690B010004EEFF07C1BC020004EEFF0890D401000414A925040084401400000000848040140000000002FD170000026CB929426CBF284406100A01004414D81A0400C4401400000000C480401400000000043B3900000002592A17025D2912
-            json  = '{"_":"telegram","id": "78152801","media": "heat","meter": "kamheat","meter_date": "2021-09-25","name": "Heato","status": "OK","t1_temperature_c": 59.3,"t2_temperature_c": 46.49,"target_date": "2021-08-31","target_energy_kwh": 68112,"target_volume_m3": 2690.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 68457,"total_volume_m3": 2717.85,"volume_flow_m3h": 0.057}'
+            json  = '{"_":"telegram","id": "78152801","media": "heat","meter": "kamheat","meter_date": "2021-09-25","name": "Heato","status": "OK","t1_temperature_c": 59.3,"t2_temperature_c": 46.49,"target_date": "2021-08-31","target_energy_kwh": 68112,"target_volume_m3": 2690.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 68457,"total_volume_m3": 2717.85,"volume_flow_m3h": 0.057, "subunit1_counter": 179393,"subunit2_counter": 119952,"enhanced_id": "1311","target_volume_subunit1_m3": 0,"target_volume_subunit2_m3": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
             fields = 'Heato;78152801;68457;2717.85;OK;1111-11-11 11:11.11'
         }
         test {
             args     = 'Heato multical602 78152801 NOKEY'
             telegram = 7A442D2C012815781C048D206450E76322344678_02F9FF1511130406690B010004EEFF07C1BC020004EEFF0890D401000414A925040084401400000000848040140000000002FD170000026CB929426CBF284406100A01004414D81A0400C4401400000000C480401400000000043B3900000002592A17025D2912,4F442D2C012815781C048D206551E76322BE767900843005_1113690B0100C1BC020090D40100A925040000000000000000000000B929BF28100A0100D81A04000000000000000000390000002A172912
-            json = '{"_":"telegram","id": "78152801","media": "heat","meter": "kamheat","meter_date": "2021-09-25","name": "Heato","status": "OK","t1_temperature_c": 59.3,"t2_temperature_c": 46.49,"target_date": "2021-08-31","target_energy_kwh": 68112,"target_volume_m3": 2690.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 68457,"total_volume_m3": 2717.85,"volume_flow_m3h": 0.057}'
+            json = '{"_":"telegram","id": "78152801","media": "heat","meter": "kamheat","meter_date": "2021-09-25","name": "Heato","status": "OK","t1_temperature_c": 59.3,"t2_temperature_c": 46.49,"target_date": "2021-08-31","target_energy_kwh": 68112,"target_volume_m3": 2690.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 68457,"total_volume_m3": 2717.85,"volume_flow_m3h": 0.057,"enhanced_id": "1311","subunit1_counter": 179393,"subunit2_counter": 119952,"target_volume_subunit1_m3": 0,"target_volume_subunit2_m3": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
             fields = 'Heato;78152801;68457;2717.85;OK;1111-11-11 11:11.11'
         }
         test {
             args = 'Heater multical803 80808081 NOKEY'
             telegram = 88442D2C8180808039048D208640513220EA7978_040FA000000004FF070200000004FF08090000000414FF000000844014000000008480401400000000043B0000000002590000025D0000142D0000000084100F0000000084200F0000000004FF2260000100026C892B440F00000000441400000000C4401400000000C480401400000000426C812B
-            json = '{"_":"telegram","forward_energy_m3c": 2,"id": "80808081","max_power_kw": 0,"media": "heat","meter": "kamheat","meter_date": "2020-11-09","name": "Heater","return_energy_m3c": 9,"status": "SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR","t1_temperature_c": 0,"t2_temperature_c": 0,"target_date": "2020-11-01","target_energy_kwh": 0,"target_volume_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 444.444444,"total_volume_m3": 2.55,"volume_flow_m3h": 0}'
+            json = '{"_":"telegram","forward_energy_m3c": 2,"id": "80808081","max_power_kw": 0,"media": "heat","meter": "kamheat","meter_date": "2020-11-09","name": "Heater","return_energy_m3c": 9,"status": "SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR","t1_temperature_c": 0,"t2_temperature_c": 0,"target_date": "2020-11-01","target_energy_kwh": 0,"target_volume_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 444.444444,"total_volume_m3": 2.55,"volume_flow_m3h": 0,"target_volume_subunit1_m3": 0,"target_volume_subunit2_m3": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
             fields = 'Heater;80808081;444.444444;2.55;SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR;1111-11-11 11:11.11'
         }
         test {
@@ -500,19 +585,19 @@ driver {
         test {
             args = 'Kamstrup_MC603_mbus kamheat 32323232 NOKEY'
             telegram = 68c9c96808e672323232322d2c35041900000004fB006083000004ff074006010004ff08299400000416984e010084401400000000848040140000000004225043000034221c0000000259c91f025d4f1102617a0e042e30020000142e65030000043c24050000143ce308000004ff2200000000046d2e2B0f3144fB00007d000044ff07Bdf9000044ff08308d00004416B73f0100c4401400000000c480401400000000542ed9020000543ce8090000426c013102ff1a011B0c783032858404ff16e5841e0004ff17c1d5B400a516
-            json = '{"_":"telegram","fabrication_no": "84853230",  "flow_return_temperature_difference_c": 37.06,  "forward_energy_m3c": 67136,  "id": "32323232",  "max_flow_m3h": 22.75,  "max_power_kw": 869,  "media": "heat",  "meter": "kamheat",  "meter_datetime": "2024-01-15 11:46",  "name": "Kamstrup_MC603_mbus",  "on_time_at_error_h": 28,  "on_time_h": 17232,  "power_kw": 560,  "return_energy_m3c": 37929,  "status": "OK",  "t1_temperature_c": 81.37,  "t2_temperature_c": 44.31,  "target_date": "2024-01-01",  "target_energy_kwh": 3200000,  "target_volume_m3": 81847,  "timestamp": "1111-11-11T11:11:11Z",  "total_energy_consumption_kwh": 3363200,  "total_volume_m3": 85656,  "volume_flow_m3h": 13.16}'
+            json = '{"_":"telegram","fabrication_no": "84853230",  "flow_return_temperature_difference_c": 37.06,  "forward_energy_m3c": 67136,  "id": "32323232",  "max_flow_m3h": 22.75,  "max_power_kw": 869,  "media": "heat",  "meter": "kamheat",  "meter_datetime": "2024-01-15 11:46",  "name": "Kamstrup_MC603_mbus",  "on_time_at_error_h": 28,  "on_time_h": 17232,  "power_kw": 560,  "return_energy_m3c": 37929,  "status": "OK",  "t1_temperature_c": 81.37,  "t2_temperature_c": 44.31,  "target_date": "2024-01-01",  "target_energy_kwh": 3200000,  "target_volume_m3": 81847,  "timestamp": "1111-11-11T11:11:11Z",  "total_energy_consumption_kwh": 3363200,  "total_volume_m3": 85656,  "volume_flow_m3h": 13.16,"target_volume_subunit1_m3": 0,"target_volume_subunit2_m3": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
             fields = 'Kamstrup_MC603_mbus;32323232;3363200;85656;OK;1111-11-11 11:11.11'
        }
        test {
            args = 'KMHEAT kamheat 85412440 NOKEY'
            telegram = 5e442d2c4024418535047ae10050252f2f04fB091300000004167500000004ff2200000000043ca301000002599c1d025dB00e844014000000008480401400000000042eB9000000026c0534426c013444fB0900000000543c000000002f2f
-           json = '{"_":"telegram","id": "85412440","media": "heat","meter": "kamheat","meter_date": "2024-04-05","name": "KMHEAT","power_kw": 185,"status": "OK","t1_temperature_c": 75.8,"t2_temperature_c": 37.6,"target_date": "2024-04-01","target_energy_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 5277.777778,"total_volume_m3": 117,"volume_flow_m3h": 4.19}'
+           json = '{"_":"telegram","id": "85412440","media": "heat","meter": "kamheat","meter_date": "2024-04-05","name": "KMHEAT","power_kw": 185,"status": "OK","t1_temperature_c": 75.8,"t2_temperature_c": 37.6,"target_date": "2024-04-01","target_energy_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 5277.777778,"total_volume_m3": 117,"volume_flow_m3h": 4.19,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
            fields = 'KMHEAT;85412440;5277.777778;117;OK;1111-11-11 11:11.11'
        }
        test {
            args = 'KM2 kamheat 85007420 NOKEY'
            telegram = 689f9f68081472207400852d2c350cad00000004fb08c304000004ff07f21c000004ff084d1100000415fe29000084401400000000848040140000000004228829000034220a00000002598511025dab100261da00042d00000000142d08000000043b00000000143b6000000004ff2200000000046d0d2c0238542dc9010000543be1050000426c013102ff1a011b0c782074008504ff16850b200004ff17c9ff0e01cb16
-           json = '{"_":"telegram","fabrication_no": "85007420","flow_return_temperature_difference_c": 2.18,"forward_energy_m3c": 7410,"id": "85007420","max_flow_m3h": 0.096,"max_power_kw": 0.8,"media": "heat volume at inlet","meter": "kamheat","meter_datetime": "2024-08-02 12:13","name": "KM2","on_time_at_error_h": 10,"on_time_h": 10632,"power_kw": 0,"return_energy_m3c": 4429,"status": "OK","t1_temperature_c": 44.85,"t2_temperature_c": 42.67,"target_date": "2024-01-01","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 33861.111111,"total_volume_m3": 1075,"volume_flow_m3h": 0}'
+           json = '{"_":"telegram","fabrication_no": "85007420","flow_return_temperature_difference_c": 2.18,"forward_energy_m3c": 7410,"id": "85007420","max_flow_m3h": 0.096,"max_power_kw": 0.8,"media": "heat volume at inlet","meter": "kamheat","meter_datetime": "2024-08-02 12:13","name": "KM2","on_time_at_error_h": 10,"on_time_h": 10632,"power_kw": 0,"return_energy_m3c": 4429,"status": "OK","t1_temperature_c": 44.85,"t2_temperature_c": 42.67,"target_date": "2024-01-01","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 33861.111111,"total_volume_m3": 1075,"volume_flow_m3h": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
            fields = 'KM2;85007420;33861.111111;1075;OK;1111-11-11 11:11.11'
       }
       test {
