@@ -2724,13 +2724,29 @@ bool checkFieldsEmpty(set<string> &fields, string driver_name)
 
 bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
 {
+    // Old C++ driver passes fields like: "target_date,target_volume_m3"
+    // New xmq driver passes single field like: "target_date|Special help for target date."
+    // or just: "target_date"
+
     set<string> fields = splitStringIntoSet(field_names, ',');
+    string help;
+    vector<string> helps = splitString(field_names, '|');
+    if (helps.size() == 2)
+    {
+        fields.clear();
+        fields.insert(helps[0]);
+        help = " "+helps[1];
+    }
+    if (helps.size() > 2)
+    {
+        error("Bad library field, only zero or one pipe | symbol is allowed: %s", field_names.c_str());
+    }
 
     if (checkIf(fields, "actuality_duration_s"))
     {
         addNumericFieldWithExtractor(
             "actuality_duration",
-            "Lapsed time between measurement and transmission.",
+            "Lapsed time between measurement and transmission."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
@@ -2747,7 +2763,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "actuality_duration",
-            "Lapsed time between measurement and transmission.",
+            "Lapsed time between measurement and transmission."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
@@ -2763,7 +2779,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addStringFieldWithExtractor(
             "fabrication_no",
-            "Fabrication number.",
+            "Fabrication number."+help,
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -2776,7 +2792,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addStringFieldWithExtractor(
             "enhanced_id",
-            "Enhanced identification number.",
+            "Enhanced identification number."+help,
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -2789,7 +2805,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addStringFieldWithExtractor(
             "software_version",
-            "Software version.",
+            "Software version."+help,
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -2802,7 +2818,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addStringFieldWithExtractor(
             "manufacturer",
-            "Meter manufacturer.",
+            "Meter manufacturer."+help,
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -2815,7 +2831,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addStringFieldWithExtractor(
             "model_version",
-            "Meter model version.",
+            "Meter model version."+help,
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -2828,7 +2844,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addStringFieldWithExtractor(
             "firmware_version",
-            "Meter firmware version.",
+            "Meter firmware version."+help,
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -2841,7 +2857,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addStringFieldWithExtractor(
             "parameter_set",
-            "Parameter set for this meter.",
+            "Parameter set for this meter."+help,
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -2854,7 +2870,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addStringFieldWithExtractor(
             "customer",
-            "Customer name.",
+            "Customer name."+help,
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -2867,7 +2883,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addStringFieldWithExtractor(
             "location",
-            "Meter installed at this customer location.",
+            "Meter installed at this customer location."+help,
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -2880,7 +2896,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "operating_time",
-            "How long the meter has been collecting data.",
+            "How long the meter has been collecting data."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
@@ -2896,7 +2912,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "on_time",
-            "How long the meter has been powered up.",
+            "How long the meter has been powered up."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
@@ -2912,7 +2928,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "on_time_at_error",
-            "How long the meter has been in an error state while powered up.",
+            "How long the meter has been in an error state while powered up."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Time,
             VifScaling::Auto,
@@ -2928,7 +2944,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addStringFieldWithExtractor(
             "meter_date",
-            "Date when the meter sent the telegram.",
+            "Date when the meter sent the telegram."+help,
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -2941,7 +2957,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addStringFieldWithExtractor(
             "meter_date_at_error",
-            "Date when the meter was in error.",
+            "Date when the meter was in error."+help,
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::AtError)
@@ -2954,7 +2970,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addStringFieldWithExtractor(
             "meter_datetime",
-            "Date and time when the meter sent the telegram.",
+            "Date and time when the meter sent the telegram."+help,
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::Instantaneous)
@@ -2967,7 +2983,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addStringFieldWithExtractor(
             "meter_datetime_at_error",
-            "Date and time when the meter was in error.",
+            "Date and time when the meter was in error."+help,
             DEFAULT_PRINT_PROPERTIES,
             FieldMatcher::build()
             .set(MeasurementType::AtError)
@@ -2980,7 +2996,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "total",
-            "The total media volume consumption recorded by this meter.",
+            "The total media volume consumption recorded by this meter."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
@@ -2996,7 +3012,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "target",
-            "The volume recorded by this meter at the target date.",
+            "The volume recorded by this meter at the target date."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
@@ -3013,7 +3029,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "target",
-            "The target date. Usually the end of the previous billing period.",
+            "The target date. Usually the end of the previous billing period."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::PointInTime,
             VifScaling::Auto,
@@ -3031,7 +3047,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "total_forward",
-            "The total media volume flowing forward.",
+            "The total media volume flowing forward."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
@@ -3048,7 +3064,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "total_backward",
-            "The total media volume flowing backward.",
+            "The total media volume flowing backward."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Volume,
             VifScaling::Auto,
@@ -3065,7 +3081,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "flow_temperature",
-            "Forward media temperature.",
+            "Forward media temperature."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
@@ -3081,7 +3097,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "external_temperature",
-            "Temperature outside of meter.",
+            "Temperature outside of meter."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
@@ -3113,7 +3129,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "flow_return_temperature_difference",
-            "The difference between flow and return media temperatures.",
+            "The difference between flow and return media temperatures."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Temperature,
             VifScaling::Auto,
@@ -3129,7 +3145,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "volume_flow",
-            "Media volume flow.",
+            "Media volume flow."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Flow,
             VifScaling::Auto,
@@ -3145,7 +3161,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "access",
-            "Meter access counter.",
+            "Meter access counter."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::Dimensionless,
             VifScaling::None,
@@ -3161,7 +3177,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "consumption",
-            "The current heat cost allocation for this meter.",
+            "The current heat cost allocation for this meter."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,
@@ -3177,7 +3193,7 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
     {
         addNumericFieldWithExtractor(
             "target",
-            "The heat cost allocation recorded by this meter at the target date.",
+            "The heat cost allocation recorded by this meter at the target date."+help,
             DEFAULT_PRINT_PROPERTIES,
             Quantity::HCA,
             VifScaling::Auto,

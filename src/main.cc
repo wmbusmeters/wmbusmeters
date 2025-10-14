@@ -822,6 +822,14 @@ void start_using_config_files(string root, bool is_daemon, ConfigOverrides overr
             list_meters(config.get(), false);
             return;
         }
+        if (overrides.listfields_override != "")
+        {
+            // We have specified a listmeters override. We want to list the meters.
+            // Otherwise avoid listing the meters since it triggers a load of all meters
+            // and this takes some time.
+            list_fields(config.get(), overrides.listfields_override);
+            return;
+        }
 
         restart = start(config.get());
         if (restart)
