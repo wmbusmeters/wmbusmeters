@@ -24,7 +24,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("em24");
         di.setDefaultFields(
@@ -35,8 +35,8 @@ namespace
             "timestamp");
         di.setMeterType(MeterType::ElectricityMeter);
         di.addLinkMode(LinkMode::C1);
-        di.addDetection(MANUFACTURER_KAM,  0x02,  0x33);
-        di.addDetection(MANUFACTURER_GAV,  0x02,  0x00);
+        di.addMVT(MANUFACTURER_KAM,  0x02,  0x33);
+        di.addMVT(MANUFACTURER_GAV,  0x02,  0x00);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

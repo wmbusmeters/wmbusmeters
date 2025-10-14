@@ -1,3 +1,36 @@
+Colin Tregenza Dancer fixed a bug that prevented
+telegrams from being received when AMB8465 was in CMD mode. Thanks Colin!
+Leif Neland updated the q400 driver. Thanks Leif!
+Karel Blavka improved the Hydrodigit driver. Thanks Karel!
+Timur Saitov also improved the Hydridigit driver. Thanks Timur!
+ZleekWolf updated the qwater driver. Thanks ZleekWolf!
+Matix2120 updated the qwater and qheat drivers. Thanks Matix2120!
+SzczepanLeon added more voltages to the amiplus driver. Thanks SzczepanLeon!
+
+Updated Hydridigit drivers fraud_date and leak_date to use standard format 2024-05-24 etc.
+Print available meters into wmbusmeters.log when running as daemon.
+This will show where a driver was loaded from. For example:
+
+(driver) wme5           HeatMeter (c++) WEH,07,fe WEH,07,03
+This means that the driver is c++ source code compiled into the binary.
+
+(driver) aquastream     WaterMeter (builtin) IMT,01,07
+This means that the driver was written in xmq but loaded from the wmbusmeters binary
+where the driver is stored.
+
+(driver) foo            WaterMeter (/etc/wmbusmeters.drivers.d/foo.xmq) SEN,68,06
+This means that the xmq driver was loaded from /etc/wmbusmeters.drivers.d/foo.xmq
+
+1) If such an xmq driver has the same name as an builtin/c++ driver, the builtin/c++ driver
+will be removed completely. 2) If such an xmq driver has one (or more) mvts that are
+registered inside a builtin/c++ drivers, then those builtin/c++ drivers will be removed completely!
+
+Note that no longer is a warning printed when using the "wrong" driver. This determination
+was only possible when the drivers were inside the c++ code entirely.
+But with the new dynamic driver xmq files, things are more complicated, an override
+or choice to use a different driver than the automatically detected one, is not
+necessarily wrong.
+
 Version 1.19.0 2025-03-21
 Version 1.19.0-RC1 2025-03-20
 

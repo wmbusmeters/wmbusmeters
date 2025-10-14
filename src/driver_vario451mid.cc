@@ -24,14 +24,14 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("vario451mid");
         di.setDefaultFields("name,id,total_energy_consumption_kwh,energy_at_old_date_kwh,energy_at_set_date_kwh,timestamp");
         di.setMeterType(MeterType::HeatMeter);
         // Mode 7
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_TCH, 0x04,  0x17);
+        di.addMVT(MANUFACTURER_TCH, 0x04,  0x17);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

@@ -2288,15 +2288,15 @@ string Telegram::analyzeParse(OutputFormat format, int *content_length, int *und
     return "ERROR";
 }
 
-void detectMeterDrivers(int manufacturer, int media, int version, std::vector<std::string> *drivers);
+void detectMeterDrivers(int manufacturer, int version, int type, std::vector<std::string> *drivers);
 
 string Telegram::autoDetectPossibleDrivers()
 {
     vector<string> drivers;
-    detectMeterDrivers(dll_mfct, dll_type, dll_version, &drivers);
+    detectMeterDrivers(dll_mfct, dll_version, dll_type, &drivers);
     if (tpl_id_found)
     {
-        detectMeterDrivers(tpl_mfct, tpl_type, tpl_version, &drivers);
+        detectMeterDrivers(tpl_mfct, tpl_version, tpl_type, &drivers);
     }
     string possibles;
     for (string d : drivers) possibles = possibles+d+" ";
@@ -4208,7 +4208,6 @@ void BusDeviceCommonImplementation::setLinkModes(LinkModeSet lms)
     link_modes_ = lms;
     retrySetLinkModes(lms);
     link_modes_configured_ = true;
-
 }
 
 void BusDeviceCommonImplementation::retrySetLinkModes(LinkModeSet lms)
@@ -4928,7 +4927,7 @@ FrameStatus checkMBusFrame(vector<uchar> &data,
     // 5E checksum
     // 16 stop
 
-    debugPayload("(mbus) checkMBUSFrame\n", data);
+    debugPayload("(mbus) checkMBUSFrame", data);
 
     if (data.size() > 0 && data[0] == 0xe5)
     {

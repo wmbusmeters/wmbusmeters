@@ -56,6 +56,7 @@ struct ConfigOverrides
     std::string exitafter_override;
     std::string oneshot_override;
     std::string logfile_override;
+    std::string listmeters_override;
 };
 
 struct Configuration

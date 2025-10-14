@@ -242,13 +242,14 @@ XMQProceed DriverDynamic::add_detect(XMQDoc *doc, XMQNode *detect, DriverInfo *d
     }
 
     string mfct_flag = manufacturerFlag(mfct_code);
-    debug("(driver) register detection %s %s %2x %02x\n",
+    debug("(driver) %s register detection from \"%s\" mvt=%s,%02x,%02x\n",
+          di->name().str().c_str(),
           di->getDynamicFileName().c_str(),
           mfct_flag.c_str(),
           version,
           type);
 
-    di->addDetection(mfct_code, type, version);
+    di->addMVT(mfct_code, type, version);
     return XMQ_CONTINUE;
 }
 
@@ -550,7 +551,7 @@ string check_default_fields(const char *default_fields, string file)
 
 void check_detection_triplets(DriverInfo *di, string file)
 {
-    if (di->detect().size() == 0)
+    if (di->mvts().size() == 0)
     {
         warning("(driver) error in %s, cannot find any detection triplets: driver/detect/mvt\n"
                 "%s\n"

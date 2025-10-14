@@ -26,18 +26,18 @@ namespace
         void processContent(Telegram *t);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("compact5");
         di.setDefaultFields("name,id,total_kwh,current_kwh,previous_kwh,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
         di.addLinkMode(LinkMode::C1);
-        di.addDetection(MANUFACTURER_TCH,  0x04,  0x45);
-        di.addDetection(MANUFACTURER_TCH,  0xc3,  0x45);
-        di.addDetection(MANUFACTURER_TCH,  0x43,  0x22);
-        di.addDetection(MANUFACTURER_TCH,  0x43,  0x45);
-        di.addDetection(MANUFACTURER_TCH,  0x43,  0x39);
+        di.addMVT(MANUFACTURER_TCH,  0x04,  0x45);
+        di.addMVT(MANUFACTURER_TCH,  0xc3,  0x45);
+        di.addMVT(MANUFACTURER_TCH,  0x43,  0x22);
+        di.addMVT(MANUFACTURER_TCH,  0x43,  0x45);
+        di.addMVT(MANUFACTURER_TCH,  0x43,  0x39);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

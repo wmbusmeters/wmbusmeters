@@ -24,7 +24,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("lse_08");
         di.setDefaultFields("name,id,set_date,consumption_at_set_date_hca,timestamp");
@@ -32,7 +32,7 @@ namespace
         di.addLinkMode(LinkMode::C1);
         di.addLinkMode(LinkMode::T1);
         di.addLinkMode(LinkMode::S1);
-        di.addDetection(MANUFACTURER_LSE, 0x08,  0x01);
+        di.addMVT(MANUFACTURER_LSE, 0x08,  0x01);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

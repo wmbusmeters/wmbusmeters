@@ -24,7 +24,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("qcaloric");
         di.addNameAlias("whe5x");
@@ -34,13 +34,13 @@ namespace
         di.addLinkMode(LinkMode::C1);
         di.addLinkMode(LinkMode::T1);
         di.addLinkMode(LinkMode::S1);
-        di.addDetection(MANUFACTURER_LSE, 0x08,  0x34);
-        di.addDetection(MANUFACTURER_LSE, 0x08,  0x35);
-        di.addDetection(MANUFACTURER_QDS, 0x08,  0x35);
-        di.addDetection(MANUFACTURER_QDS, 0x08,  0x34);
-        di.addDetection(MANUFACTURER_QDS, 0x08,  0x36);
-        di.addDetection(MANUFACTURER_LSE, 0x08,  0x18); // whe4
-        di.addDetection(MANUFACTURER_ZRI, 0x08,  0xfd);
+        di.addMVT(MANUFACTURER_LSE, 0x08,  0x34);
+        di.addMVT(MANUFACTURER_LSE, 0x08,  0x35);
+        di.addMVT(MANUFACTURER_QDS, 0x08,  0x35);
+        di.addMVT(MANUFACTURER_QDS, 0x08,  0x34);
+        di.addMVT(MANUFACTURER_QDS, 0x08,  0x36);
+        di.addMVT(MANUFACTURER_LSE, 0x08,  0x18); // whe4
+        di.addMVT(MANUFACTURER_ZRI, 0x08,  0xfd);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

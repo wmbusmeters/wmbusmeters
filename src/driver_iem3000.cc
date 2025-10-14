@@ -24,15 +24,15 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("iem3000");
         di.setDefaultFields("name,id,total_energy_consumption_kwh,timestamp");
         di.setMeterType(MeterType::ElectricityMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_SEC,  0x02,  0x13);
-        di.addDetection(MANUFACTURER_SEC,  0x02,  0x15);
-        di.addDetection(MANUFACTURER_SEC,  0x02,  0x18);
+        di.addMVT(MANUFACTURER_SEC,  0x02,  0x13);
+        di.addMVT(MANUFACTURER_SEC,  0x02,  0x15);
+        di.addMVT(MANUFACTURER_SEC,  0x02,  0x18);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

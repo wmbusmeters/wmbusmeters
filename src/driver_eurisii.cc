@@ -24,14 +24,14 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("eurisii");
         di.setDefaultFields("name,id,current_consumption_hca,status,timestamp");
         di.setMeterType(MeterType::HeatCostAllocationMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_INE,  0x08,  0x55);
-        di.addDetection(MANUFACTURER_RAM,  0x08,  0x55);
+        di.addMVT(MANUFACTURER_INE,  0x08,  0x55);
+        di.addMVT(MANUFACTURER_RAM,  0x08,  0x55);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

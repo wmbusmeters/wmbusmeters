@@ -24,12 +24,12 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("ultraheat");
         di.setDefaultFields("name,id,heat_kwh,timestamp");
         di.setMeterType(MeterType::HeatMeter);
-        di.addDetection(MANUFACTURER_LUG, 0x04,  0x04);
+        di.addMVT(MANUFACTURER_LUG, 0x04,  0x04);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

@@ -23,7 +23,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("pollucomf");
         di.setDefaultFields("name,id,status,total_kwh,total_m3,target_kwh,target_m3,timestamp");
@@ -31,7 +31,7 @@ namespace
         di.addLinkMode(LinkMode::T1);    // default
         di.addLinkMode(LinkMode::C1);
         di.addLinkMode(LinkMode::MBUS);  // optional hw module
-        di.addDetection(MANUFACTURER_SEN, 0x04,  0x1d);
+        di.addMVT(MANUFACTURER_SEN, 0x04,  0x1d);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

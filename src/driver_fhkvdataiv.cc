@@ -25,14 +25,14 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("fhkvdataiv");
         di.setDefaultFields("name,id,current_consumption_hca,set_date,consumption_at_set_date_hca,timestamp");
         di.setMeterType(MeterType::HeatCostAllocationMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_TCH,  0x08,  0x69);
-        di.addDetection(MANUFACTURER_TCH,  0x08,  0x94);
+        di.addMVT(MANUFACTURER_TCH,  0x08,  0x69);
+        di.addMVT(MANUFACTURER_TCH,  0x08,  0x94);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

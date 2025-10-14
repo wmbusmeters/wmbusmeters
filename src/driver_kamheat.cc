@@ -25,7 +25,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("kamheat");
         di.addNameAlias("multical302");
@@ -38,21 +38,21 @@ namespace
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::C1);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_KAM, 0x04,  0x30); // 302
-        di.addDetection(MANUFACTURER_KAM, 0x0d,  0x30); // 302
-        di.addDetection(MANUFACTURER_KAM, 0x0c,  0x30); // 302
-        di.addDetection(MANUFACTURER_KAM, 0x04,  0x40); // 303
-        di.addDetection(MANUFACTURER_KAM, 0x0c,  0x40); // 303
-        di.addDetection(MANUFACTURER_KAM, 0x04,  0x19); // 402
-        di.addDetection(MANUFACTURER_KAM, 0x04,  0x34); // 403
-        di.addDetection(MANUFACTURER_KAM, 0x0a,  0x34); // 403
-        di.addDetection(MANUFACTURER_KAM, 0x0b,  0x34); // 403
-        di.addDetection(MANUFACTURER_KAM, 0x0c,  0x34); // 403
-        di.addDetection(MANUFACTURER_KAM, 0x0d,  0x34); // 403
-        di.addDetection(MANUFACTURER_KAM, 0x04,  0x1c); // 602
-        di.addDetection(MANUFACTURER_KAM, 0x04,  0x35); // 603
-        di.addDetection(MANUFACTURER_KAM, 0x0c,  0x35); // 603
-        di.addDetection(MANUFACTURER_KAM, 0x04,  0x39); // 803
+        di.addMVT(MANUFACTURER_KAM, 0x04,  0x30); // 302
+        di.addMVT(MANUFACTURER_KAM, 0x0d,  0x30); // 302
+        di.addMVT(MANUFACTURER_KAM, 0x0c,  0x30); // 302
+        di.addMVT(MANUFACTURER_KAM, 0x04,  0x40); // 303
+        di.addMVT(MANUFACTURER_KAM, 0x0c,  0x40); // 303
+        di.addMVT(MANUFACTURER_KAM, 0x04,  0x19); // 402
+        di.addMVT(MANUFACTURER_KAM, 0x04,  0x34); // 403
+        di.addMVT(MANUFACTURER_KAM, 0x0a,  0x34); // 403
+        di.addMVT(MANUFACTURER_KAM, 0x0b,  0x34); // 403
+        di.addMVT(MANUFACTURER_KAM, 0x0c,  0x34); // 403
+        di.addMVT(MANUFACTURER_KAM, 0x0d,  0x34); // 403
+        di.addMVT(MANUFACTURER_KAM, 0x04,  0x1c); // 602
+        di.addMVT(MANUFACTURER_KAM, 0x04,  0x35); // 603
+        di.addMVT(MANUFACTURER_KAM, 0x0c,  0x35); // 603
+        di.addMVT(MANUFACTURER_KAM, 0x04,  0x39); // 803
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

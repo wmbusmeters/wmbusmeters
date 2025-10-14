@@ -27,7 +27,7 @@ namespace
         void processContent(Telegram *t) override;
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("qwater");
         di.setDefaultFields("name,id,total_m3,"
@@ -37,19 +37,19 @@ namespace
                             "timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::S1);
-        di.addDetection(MANUFACTURER_QDS, 0x37,  0x33);
-        di.addDetection(MANUFACTURER_QDS, 0x37,  0x35);
-        di.addDetection(MANUFACTURER_QDS, 0x06,  0x16);
-        di.addDetection(MANUFACTURER_QDS, 0x07,  0x16);
-        di.addDetection(MANUFACTURER_QDS, 0x06,  0x17);
-        di.addDetection(MANUFACTURER_QDS, 0x07,  0x17);
-        di.addDetection(MANUFACTURER_QDS, 0x06,  0x18);
-        di.addDetection(MANUFACTURER_QDS, 0x07,  0x18);
-        di.addDetection(MANUFACTURER_QDS, 0x07,  0x19);
-        di.addDetection(MANUFACTURER_QDS, 0x06,  0x1a);
-        di.addDetection(MANUFACTURER_QDS, 0x07,  0x1a);
-        di.addDetection(MANUFACTURER_QDS, 0x06,  0x35);
-        di.addDetection(MANUFACTURER_QDS, 0x07,  0x35);
+        di.addMVT(MANUFACTURER_QDS, 0x37,  0x33);
+        di.addMVT(MANUFACTURER_QDS, 0x37,  0x35);
+        di.addMVT(MANUFACTURER_QDS, 0x06,  0x16);
+        di.addMVT(MANUFACTURER_QDS, 0x07,  0x16);
+        di.addMVT(MANUFACTURER_QDS, 0x06,  0x17);
+        di.addMVT(MANUFACTURER_QDS, 0x07,  0x17);
+        di.addMVT(MANUFACTURER_QDS, 0x06,  0x18);
+        di.addMVT(MANUFACTURER_QDS, 0x07,  0x18);
+        di.addMVT(MANUFACTURER_QDS, 0x07,  0x19);
+        di.addMVT(MANUFACTURER_QDS, 0x06,  0x1a);
+        di.addMVT(MANUFACTURER_QDS, 0x07,  0x1a);
+        di.addMVT(MANUFACTURER_QDS, 0x06,  0x35);
+        di.addMVT(MANUFACTURER_QDS, 0x07,  0x35);
         di.usesProcessContent();
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });

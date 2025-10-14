@@ -44,7 +44,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("topaseskr");
         di.setDefaultFields(
@@ -53,8 +53,8 @@ namespace
             "meter_month_period_end_datetime,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_AMT, 0x06,  0xf1);
-        di.addDetection(MANUFACTURER_AMT, 0x07,  0xf1);
+        di.addMVT(MANUFACTURER_AMT, 0x06,  0xf1);
+        di.addMVT(MANUFACTURER_AMT, 0x07,  0xf1);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

@@ -24,14 +24,14 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("rfmamb");
         di.setDefaultFields("name,id,current_temperature_c,current_relative_humidity_rh,timestamp");
         di.setMeterType(MeterType::TempHygroMeter);
         di.addLinkMode(LinkMode::T1);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
-        di.addDetection(MANUFACTURER_BMT, 0x1b,  0x10);
+        di.addMVT(MANUFACTURER_BMT, 0x1b,  0x10);
     });
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
