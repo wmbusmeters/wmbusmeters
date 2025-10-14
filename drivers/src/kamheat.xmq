@@ -476,7 +476,7 @@ driver {
             }
          }
          field {
-            name = subunit1
+            name = va
             quantity = Dimensionless
             vif_scaling = None
             display_unit = counter
@@ -485,7 +485,7 @@ driver {
             }
          }
          field {
-            name = subunit2
+            name = vb
             quantity = Dimensionless
             vif_scaling = None
             display_unit = counter
@@ -549,13 +549,13 @@ driver {
         test {
             args     = 'Heato multical602 78152801 NOKEY'
             telegram = 7A442D2C012815781C048D206450E76322344678_02F9FF1511130406690B010004EEFF07C1BC020004EEFF0890D401000414A925040084401400000000848040140000000002FD170000026CB929426CBF284406100A01004414D81A0400C4401400000000C480401400000000043B3900000002592A17025D2912
-            json  = '{"_":"telegram","id": "78152801","media": "heat","meter": "kamheat","meter_date": "2021-09-25","name": "Heato","status": "OK","t1_temperature_c": 59.3,"t2_temperature_c": 46.49,"target_date": "2021-08-31","target_energy_kwh": 68112,"target_volume_m3": 2690.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 68457,"total_volume_m3": 2717.85,"volume_flow_m3h": 0.057, "subunit1_counter": 179393,"subunit2_counter": 119952,"enhanced_id": "1311","target_volume_subunit1_m3": 0,"target_volume_subunit2_m3": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
+            json  = '{"_":"telegram","id": "78152801","media": "heat","meter": "kamheat","meter_date": "2021-09-25","name": "Heato","status": "OK","t1_temperature_c": 59.3,"t2_temperature_c": 46.49,"target_date": "2021-08-31","target_energy_kwh": 68112,"target_volume_m3": 2690.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 68457,"total_volume_m3": 2717.85,"volume_flow_m3h": 0.057, "va_counter": 179393,"vb_counter": 119952,"enhanced_id": "1311","target_volume_subunit1_m3": 0,"target_volume_subunit2_m3": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
             fields = 'Heato;78152801;68457;2717.85;OK;1111-11-11 11:11.11'
         }
         test {
             args     = 'Heato multical602 78152801 NOKEY'
             telegram = 7A442D2C012815781C048D206450E76322344678_02F9FF1511130406690B010004EEFF07C1BC020004EEFF0890D401000414A925040084401400000000848040140000000002FD170000026CB929426CBF284406100A01004414D81A0400C4401400000000C480401400000000043B3900000002592A17025D2912,4F442D2C012815781C048D206551E76322BE767900843005_1113690B0100C1BC020090D40100A925040000000000000000000000B929BF28100A0100D81A04000000000000000000390000002A172912
-            json = '{"_":"telegram","id": "78152801","media": "heat","meter": "kamheat","meter_date": "2021-09-25","name": "Heato","status": "OK","t1_temperature_c": 59.3,"t2_temperature_c": 46.49,"target_date": "2021-08-31","target_energy_kwh": 68112,"target_volume_m3": 2690.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 68457,"total_volume_m3": 2717.85,"volume_flow_m3h": 0.057,"enhanced_id": "1311","subunit1_counter": 179393,"subunit2_counter": 119952,"target_volume_subunit1_m3": 0,"target_volume_subunit2_m3": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
+            json = '{"_":"telegram","id": "78152801","media": "heat","meter": "kamheat","meter_date": "2021-09-25","name": "Heato","status": "OK","t1_temperature_c": 59.3,"t2_temperature_c": 46.49,"target_date": "2021-08-31","target_energy_kwh": 68112,"target_volume_m3": 2690.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 68457,"total_volume_m3": 2717.85,"volume_flow_m3h": 0.057,"enhanced_id": "1311","va_counter": 179393,"vb_counter": 119952,"target_volume_subunit1_m3": 0,"target_volume_subunit2_m3": 0,"total_volume_subunit1_m3": 0,"total_volume_subunit2_m3": 0}'
             fields = 'Heato;78152801;68457;2717.85;OK;1111-11-11 11:11.11'
         }
         test {
