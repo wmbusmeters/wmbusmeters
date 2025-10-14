@@ -1,0 +1,473 @@
+/*
+ Copyright (C) 2018-2025 Fredrik Öhrström (gpl-3.0-or-later)
+ Copyright (C)      2020 Eric Bus (gpl-3.0-or-later)
+ Copyright (C)      2022 thecem (gpl-3.0-or-later)
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+driver {
+    name           = kamheat
+    aliases        = multical302,multical303,multical403,multical602,multical603,multical803
+    default_fields = name,id,total_energy_consumption_kwh,total_volume_m3,status,timestamp
+    meter_type     = HeatMeter
+    detect {
+        mvt = KAM,30,04 // 302
+        mvt = KAM,30,0d // 302
+        mvt = KAM,30,0c // 302
+        mvt = KAM,40,04 // 303
+        mvt = KAM,40,0c // 303
+        mvt = KAM,19,04 // 402
+        mvt = KAM,34,04 // 403
+        mvt = KAM,34,0a // 403
+        mvt = KAM,34,0b // 403
+        mvt = KAM,34,0c // 403
+        mvt = KAM,34,0d // 403
+        mvt = KAM,1c,04 // 602
+        mvt = KAM,35,04 // 603
+        mvt = KAM,35,0c // 603
+        mvt = KAM,39,04 // 803
+    }
+    library {
+        use = fabrication_no
+        use = 'meter_date|(10/348/Date and time)'
+        use = 'meter_datetime|(10/348/Date and time)'
+        use = on_time_h
+        use = on_time_at_error_h
+        use = flow_return_temperature_difference_c
+        use = 'target_date|(14/348/Date and Time logged)'
+    }
+    fields {
+        field {
+            name     = status
+            quantity = Text
+            info     = 'Status and error flags'
+            attributes = STATUS,INCLUDE_TPL_STATUS
+            match {
+                difvifkey = 04FF22
+            }
+            lookup {
+                name            = ERROR_FLAGS
+                map_type        = BitToString
+                mask_bits       = 0xffffffff
+                default_message = OK
+                map {
+                    name  = VOLTAGE_INTERRUPTED
+                    value = 0x00000001
+                    test  = Set
+                }
+                map {
+                    name  = LOW_BATTERY_LEVEL
+                    value = 0x00000002
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_ERROR
+                    value = 0x00000004
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_T1_ABOVE_MEASURING_RANGE
+                    value = 0x00000008
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_T2_ABOVE_MEASURING_RANGE
+                    value = 0x00000010
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_T1_BELOW_MEASURING_RANGE
+                    value = 0x00000020
+                    test  = Set
+                }
+                map {
+                    name  = SENSOR_T2_BELOW_MEASURING_RANGE
+                    value = 0x00000040
+                    test  = Set
+                }
+                map {
+                    name  = TEMP_DIFF_WRONG_POLARITY
+                    value = 0x00000080
+                    test  = Set
+                }
+                map {
+                    name  = FLOW_SENSOR_WEAK_OR_AIR
+                    value = 0x00000100
+                    test  = Set
+                }
+                map {
+                    name  = WRONG_FLOW_DIRECTION
+                    value = 0x00000200
+                    test  = Set
+                }
+                map {
+                    name  = RESERVED_BIT_10
+                    value = 0x00000400
+                    test  = Set
+                }
+                map {
+                    name  = FLOW_INCREASED
+                    value = 0x00000800
+                    test  = Set
+                }
+                map {
+                    name  = IN_A1_LEAKAGE_IN_THE_SYSTEM
+                    value = 0x00001000
+                    test  = Set
+                }
+                map {
+                    name  = IN_B1_LEAKAGE_IN_THE_SYSTEM
+                    value = 0x00002000
+                    test  = Set
+                }
+                map {
+                    name  = IN_A1_A2_EXTERNAL_ALARM
+                    value = 0x00004000
+                    test  = Set
+                }
+                map {
+                    name  = IN_B1_B2_EXTERNAL_ALARM
+                    value = 0x00008000
+                    test  = Set
+                }
+                map {
+                    name  = V1_COMMUNICATION_ERROR
+                    value = 0x00010000
+                    test  = Set
+                }
+                map {
+                    name  = V1_WRONG_PULSE_FIGURE
+                    value = 0x00020000
+                    test  = Set
+                }
+                map {
+                    name  = IN_A2_LEAKAGE_IN_THE_SYSTEM
+                    value = 0x00040000
+                    test  = Set
+                }
+                map {
+                    name  = IN_B2_LEAKAGE_IN_THE_SYSTEM
+                    value = 0x00080000
+                    test  = Set
+                }
+                map {
+                    name  = T3_ABOVE_MEASURING_RANGE_OR_SWITCHED_OFF
+                    value = 0x00100000
+                    test  = Set
+                }
+                map {
+                    name  = T3_BELOW_MEASURING_RANGE_OR_SWITCHED_OFF
+                    value = 0x00200000
+                    test  = Set
+                }
+                map {
+                    name  = V2_COMMUNICATION_ERROR
+                    value = 0x00400000
+                    test  = Set
+                }
+                map {
+                    name  = V2_WRONG_PULSE_FIGURE
+                    value = 0x00800000
+                    test  = Set
+                }
+                map {
+                    name  = V2_AIR
+                    value = 0x01000000
+                    test  = Set
+                }
+                map {
+                    name  = V2_WRONG_FLOW_DIRECTION
+                    value = 0x02000000
+                    test  = Set
+                }
+                map {
+                    name  = RESERVED_BIT_26
+                    value = 0x04000000
+                    test  = Set
+                }
+                map {
+                    name  = V2_INCREASED_FLOW
+                    value = 0x08000000
+                    test  = Set
+                }
+                map {
+                    name  = V1_V2_BURST_WATER_LOSS
+                    value = 0x10000000
+                    test  = Set
+                }
+                map {
+                    name  = V1_V2_BURST_WATER_PENETRATION
+                    value = 0x20000000
+                    test  = Set
+                }
+                map {
+                    name  = V1_V2_LEAKAGE_WATER_LOSS
+                    value = 0x40000000
+                    test  = Set
+                }
+                map {
+                    name  = V1_V2_LEAKAGE_WATER_PENETRATION
+                    value = 0x80000000
+                    test  = Set
+                }
+            }
+        }
+        field {
+            name     = total_energy_consumption
+            quantity = Energy
+            info     = 'The total energy consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+            }
+        }
+        field {
+            name     = total_energy_backward
+            quantity = Energy
+            info     = 'The total backwards energy consumption recorded by this meter.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                add_combinable   = BackwardFlow
+            }
+        }
+        field {
+            name     = total_volume
+            quantity = Volume
+            info     = 'The volume of water (3/68/Volume V1).'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+            }
+        }
+        field {
+            name     = volume_flow
+            quantity = Flow
+            info     = 'The actual amount of water that pass through this meter (8/74/Flow V1 actual).'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = VolumeFlow
+            }
+        }
+        field {
+            name     = power
+            quantity = Power
+            info     = 'The current power flowing.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyPowerVIF
+            }
+        }
+        field {
+            name     = max_power
+            quantity = Power
+            info     = 'The maximum power supplied.'
+            match {
+                measurement_type = Maximum
+                vif_range        = AnyPowerVIF
+            }
+        }
+        field {
+            name     = t1_temperature
+            quantity = Temperature
+            info     = 'The forward temperature of the water (6/86/t2 actual 2 decimals).'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = FlowTemperature
+            }
+        }
+        field {
+            name     = t2_temperature
+            quantity = Temperature
+            info     = 'The return temperature of the water (7/87/t2 actual 2 decimals).'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = ReturnTemperature
+            }
+        }
+        field {
+            name     = max_flow
+            quantity = Flow
+            info     = 'The maximum flow of water that passed through this meter.'
+            match {
+                measurement_type = Maximum
+                vif_range        = VolumeFlow
+            }
+        }
+        field {
+            name     = forward_energy
+            quantity = Energy
+            info     = 'The forward energy of the water (4/97/Energy E8).'
+            vif_scaling = None
+            display_unit = m3c
+            match {
+                difvifkey = 04FF07
+            }
+        }
+        field {
+            name     = return_energy
+            quantity = Energy
+            info     = 'The return energy of the water (5/110/Energy E9).'
+            vif_scaling = None
+            display_unit = m3c
+            match {
+                difvifkey = 04FF08
+            }
+        }
+        field {
+            name     = target_energy
+            quantity = Energy
+            info     = 'The energy consumption recorded by this meter at the set date (11/60/Heat energy E1/026C).'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = AnyEnergyVIF
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = target_volume
+            quantity = Volume
+            info     = 'The amount of water that had passed through this meter at the set date (13/68/Volume V1).'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Volume
+                storage_nr       = 1
+            }
+        }
+        field {
+            name     = operating_time
+            quantity = Time
+            info     = 'How long the meter has been collecting data.'
+            match {
+                measurement_type = Instantaneous
+                vif_range        = OperatingTime
+                add_combinable   = Mfct21
+            }
+        }
+
+    }
+    tests {
+        test {
+            args     = 'MyHeater multical302 67676767 NOKEY'
+            telegram = 2E442D2C6767676730048D2039D1684020_BCDB7803062C000043060000000314630000426C7F2A022D130001FF2100
+            json     = '{"_":"telegram","id": "67676767","media": "heat","meter": "kamheat","name": "MyHeater","power_kw": 1.9,"status": "OK","target_date": "2019-10-31","target_energy_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 44,"total_volume_m3": 0.99}'
+            fields   = 'MyHeater;67676767;44;0.99;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MyHeater multical302 67676767 NOKEY'
+            comment  = 'Test second compressed telegram.'
+            telegram = 2E442D2C6767676730048D2039D1684020_BCDB7803062C000043060000000314630000426C7F2A022D130001FF2100,25442D2C6767676730048D203AD2684020_D81579E7F1D5902C00000000006300007F2A130000
+            json     = '{"_":"telegram","id": "67676767","media": "heat","meter": "kamheat","name": "MyHeater","power_kw": 1.9,"status": "OK","target_date": "2019-10-31","target_energy_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 44,"total_volume_m3": 0.99}'
+            fields   = 'MyHeater;67676767;44;0.99;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MyHeaterMj multical302 46464646 NOKEY'
+            comment  = 'Using mj kwh'
+            telegram = 2E442D2C46464646300C8D207A70EA6021B1C178_030FC51000430F9210000314072B05426CBE2B022D0C0001FF2100
+            json     = '{"_":"telegram","id": "46464646","media": "heat volume at inlet","meter": "kamheat","name": "MyHeaterMj","power_kw": 1.2,"status": "OK","target_date": "2021-11-30","target_energy_kwh": 11783.333333,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 11925,"total_volume_m3": 3386.95}'
+            fields   = 'MyHeaterMj;46464646;11925;3386.95;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'MyHeaterMj multical302 46464646 NOKEY'
+            comment  = 'Test second compressed telegram.'
+            telegram = 2E442D2C46464646300C8D207A70EA6021B1C178_030FC51000430F9210000314072B05426CBE2B022D0C0001FF2100,25442D2C46464646300C8D20D3E2EB60212B6D79E26DCD65_C51000921000152B05BE2B0C0000
+            json     = '{"_":"telegram","id": "46464646","media": "heat volume at inlet","meter": "kamheat","name": "MyHeaterMj","power_kw": 1.2,"status": "OK","target_date": "2021-11-30","target_energy_kwh": 11783.333333,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 11925,"total_volume_m3": 3387.09}'
+            fields   = 'MyHeaterMj;46464646;11925;3387.09;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Heat multical603 36363636 NOKEY'
+            telegram = 42442D2C3636363635048D20E18025B62087D078_0406A500000004FF072B01000004FF089C000000041421020000043B120000000259D014025D000904FF2200000000
+            json = '{"_":"telegram","media":"heat","meter":"kamheat","name":"Heat","id":"36363636","status":"OK","total_energy_consumption_kwh":165,"total_volume_m3":5.45,"volume_flow_m3h":0.018,"t1_temperature_c":53.28,"t2_temperature_c":23.04,"forward_energy_m3c":299,"return_energy_m3c":156,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields = 'Heat;36363636;165;5.45;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args = 'HeatInlet multical603 66666666 NOKEY'
+            telegram = 5A442D2C66666666350C8D2066D0E16420C6A178_0406051C000004FF07393D000004FF08AE2400000414F7680000043B47000000042D1600000002596D14025DFD0804FF22000000000422E61A0000143B8C010000142D7C000000
+            json = '{"_":"telegram","media":"heat volume at inlet","meter":"kamheat","name":"HeatInlet","id":"66666666","on_time_h":6886,"status":"OK","total_energy_consumption_kwh":7173,"total_volume_m3":268.71,"volume_flow_m3h":0.071,"power_kw":2.2,"max_power_kw":12.4,"t1_temperature_c":52.29,"t2_temperature_c":23.01,"max_flow_m3h":0.396,"forward_energy_m3c":15673,"return_energy_m3c":9390,"timestamp":"1111-11-11T11:11:11Z"}'
+            fields = 'HeatInlet;66666666;7173;268.71;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args = 'My403Cooling multical403 78780102 NOKEY'
+            telegram = 88442D2C02017878340A8D208D529C132037FC78_040E2D0A000004FF07F8FF000004FF08401801000413C1900500844014000000008480401400000000043BED0000000259BC06025DCD07142DE7FFFFFF84100E0000000084200E0000000004FF2200000000026C9228440E5F0300004413960D0200C4401400000000C480401400000000426C8128
+            json = '{"_":"telegram","forward_energy_m3c": 65528,"id": "78780102","max_power_kw": -2.5,"media": "cooling load volume at outlet","meter": "kamheat","meter_date": "2020-08-18","name": "My403Cooling","return_energy_m3c": 71744,"status": "OK","t1_temperature_c": 17.24,"t2_temperature_c": 19.97,"target_date": "2020-08-01","target_energy_kwh": 239.722222,"target_volume_m3": 134.55,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 723.611111,"total_volume_m3": 364.737,"volume_flow_m3h": 0.237}'
+            fields = 'My403Cooling;78780102;723.611111;364.737;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'My403Cooling multical403 78780102 NOKEY'
+            telegram = 88442D2C02017878340A8D208D529C132037FC78_040E2D0A000004FF07F8FF000004FF08401801000413C1900500844014000000008480401400000000043BED0000000259BC06025DCD07142DE7FFFFFF84100E0000000084200E0000000004FF2200000000026C9228440E5F0300004413960D0200C4401400000000C480401400000000426C8128,5B442D2C02017878340A8D2096809C1320EF2B7934147ED7_2D0A0000FAFF000043180100CE9005000000000000000000EE000000BA06CB07E7FFFFFF00000000000000000000000092285F030000960D020000000000000000008128
+            json = '{"_":"telegram","forward_energy_m3c": 65530,"id": "78780102","max_power_kw": -2.5,"media": "cooling load volume at outlet","meter": "kamheat","meter_date": "2020-08-18","name": "My403Cooling","return_energy_m3c": 71747,"status": "OK","t1_temperature_c": 17.22,"t2_temperature_c": 19.95,"target_date": "2020-08-01","target_energy_kwh": 239.722222,"target_volume_m3": 134.55,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 723.611111,"total_volume_m3": 364.75,"volume_flow_m3h": 0.238}'
+            fields = 'My403Cooling;78780102;723.611111;364.75;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Heato multical602 78152801 NOKEY'
+            telegram = 7A442D2C012815781C048D206450E76322344678_02F9FF1511130406690B010004EEFF07C1BC020004EEFF0890D401000414A925040084401400000000848040140000000002FD170000026CB929426CBF284406100A01004414D81A0400C4401400000000C480401400000000043B3900000002592A17025D2912
+            json  = '{"_":"telegram","id": "78152801","media": "heat","meter": "kamheat","meter_date": "2021-09-25","name": "Heato","status": "OK","t1_temperature_c": 59.3,"t2_temperature_c": 46.49,"target_date": "2021-08-31","target_energy_kwh": 68112,"target_volume_m3": 2690.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 68457,"total_volume_m3": 2717.85,"volume_flow_m3h": 0.057}'
+            fields = 'Heato;78152801;68457;2717.85;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args     = 'Heato multical602 78152801 NOKEY'
+            telegram = 7A442D2C012815781C048D206450E76322344678_02F9FF1511130406690B010004EEFF07C1BC020004EEFF0890D401000414A925040084401400000000848040140000000002FD170000026CB929426CBF284406100A01004414D81A0400C4401400000000C480401400000000043B3900000002592A17025D2912,4F442D2C012815781C048D206551E76322BE767900843005_1113690B0100C1BC020090D40100A925040000000000000000000000B929BF28100A0100D81A04000000000000000000390000002A172912
+            json = '{"_":"telegram","id": "78152801","media": "heat","meter": "kamheat","meter_date": "2021-09-25","name": "Heato","status": "OK","t1_temperature_c": 59.3,"t2_temperature_c": 46.49,"target_date": "2021-08-31","target_energy_kwh": 68112,"target_volume_m3": 2690.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 68457,"total_volume_m3": 2717.85,"volume_flow_m3h": 0.057}'
+            fields = 'Heato;78152801;68457;2717.85;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args = 'Heater multical803 80808081 NOKEY'
+            telegram = 88442D2C8180808039048D208640513220EA7978_040FA000000004FF070200000004FF08090000000414FF000000844014000000008480401400000000043B0000000002590000025D0000142D0000000084100F0000000084200F0000000004FF2260000100026C892B440F00000000441400000000C4401400000000C480401400000000426C812B
+            json = '{"_":"telegram","forward_energy_m3c": 2,"id": "80808081","max_power_kw": 0,"media": "heat","meter": "kamheat","meter_date": "2020-11-09","name": "Heater","return_energy_m3c": 9,"status": "SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR","t1_temperature_c": 0,"t2_temperature_c": 0,"target_date": "2020-11-01","target_energy_kwh": 0,"target_volume_m3": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 444.444444,"total_volume_m3": 2.55,"volume_flow_m3h": 0}'
+            fields = 'Heater;80808081;444.444444;2.55;SENSOR_T1_BELOW_MEASURING_RANGE SENSOR_T2_BELOW_MEASURING_RANGE V1_COMMUNICATION_ERROR;1111-11-11 11:11.11'
+        }
+        test {
+            args = 'Kamstrup_303 kamheat 78787878 NOKEY'
+            telegram = 5E442D2C78787878400C7A6E0050252F2F_04056C2B000004138A0B070004FF07C657020004FF08FD36020002594B09025DFA08023B000002FF220000026CF42144052F000000441302AD0000426CE1212F2F2F2F2F2F2F2F2F2F2F2F2F2F2F
+            json = '{"_":"telegram","media":"heat volume at inlet","meter":"kamheat","name":"Kamstrup_303","id":"78787878","status":"OK","total_energy_consumption_kwh":1111.6,"total_volume_m3":461.706,"volume_flow_m3h":0,"t1_temperature_c":23.79,"t2_temperature_c":22.98,"forward_energy_m3c":153542,"return_energy_m3c":145149,"meter_date":"2023-01-20","target_energy_kwh":4.7,"target_volume_m3":44.29,"target_date":"2023-01-01","timestamp":"1111-11-11T11:11:11Z"}'
+            fields = 'Kamstrup_303;78787878;1111.6;461.706;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args = 'Kamstrup_403_mbus kamheat 77447744 NOKEY'
+            telegram = 68464668084a72447744772d2c3404060000000406ce86000004ff073444020004ff08f8ce0100041411680300043B0f02000002593c19025da41104ff220000000004a5ff21c7d02700d916
+            json  = '{"_":"telegram","forward_energy_m3c": 148532,"id": "77447744","media": "heat","meter": "kamheat","name": "Kamstrup_403_mbus","return_energy_m3c": 118520,"status": "OK","t1_temperature_c": 64.6,"t2_temperature_c": 45.16,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 34510,"total_volume_m3": 2232.49,"volume_flow_m3h": 0.527,"operating_time_h": 43489.183333}'
+            fields = 'Kamstrup_403_mbus;77447744;34510;2232.49;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args = 'Kamstrup_402_wmbus kamheat 62215006 NOKEY'
+            telegram = 40442D2C0650216219048D2083A4E1162306FF78_040F2C3F000004FF07DBA40D0004FF08860B0D000414BA33140002FD170000043B620000000259A21E025DFA1B
+            json = '{"_":"telegram","media":"heat","meter":"kamheat","name":"Kamstrup_402_wmbus","id":"62215006","forward_energy_m3c":894171,"return_energy_m3c":854918,"t1_temperature_c":78.42,"t2_temperature_c":71.62,"total_energy_consumption_kwh":44922.222222,"total_volume_m3":13239.62,"volume_flow_m3h":0.098,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+            fields = 'Kamstrup_402_wmbus;62215006;44922.222222;13239.62;OK;1111-11-11 11:11.11'
+        }
+        test {
+            args = 'Kamstrup_MC603_mbus kamheat 32323232 NOKEY'
+            telegram = 68c9c96808e672323232322d2c35041900000004fB006083000004ff074006010004ff08299400000416984e010084401400000000848040140000000004225043000034221c0000000259c91f025d4f1102617a0e042e30020000142e65030000043c24050000143ce308000004ff2200000000046d2e2B0f3144fB00007d000044ff07Bdf9000044ff08308d00004416B73f0100c4401400000000c480401400000000542ed9020000543ce8090000426c013102ff1a011B0c783032858404ff16e5841e0004ff17c1d5B400a516
+            json = '{"_":"telegram","fabrication_no": "84853230",  "flow_return_temperature_difference_c": 37.06,  "forward_energy_m3c": 67136,  "id": "32323232",  "max_flow_m3h": 22.75,  "max_power_kw": 869,  "media": "heat",  "meter": "kamheat",  "meter_datetime": "2024-01-15 11:46",  "name": "Kamstrup_MC603_mbus",  "on_time_at_error_h": 28,  "on_time_h": 17232,  "power_kw": 560,  "return_energy_m3c": 37929,  "status": "OK",  "t1_temperature_c": 81.37,  "t2_temperature_c": 44.31,  "target_date": "2024-01-01",  "target_energy_kwh": 3200000,  "target_volume_m3": 81847,  "timestamp": "1111-11-11T11:11:11Z",  "total_energy_consumption_kwh": 3363200,  "total_volume_m3": 85656,  "volume_flow_m3h": 13.16}'
+            fields = 'Kamstrup_MC603_mbus;32323232;3363200;85656;OK;1111-11-11 11:11.11'
+       }
+       test {
+           args = 'KMHEAT kamheat 85412440 NOKEY'
+           telegram = 5e442d2c4024418535047ae10050252f2f04fB091300000004167500000004ff2200000000043ca301000002599c1d025dB00e844014000000008480401400000000042eB9000000026c0534426c013444fB0900000000543c000000002f2f
+           json = '{"_":"telegram","id": "85412440","media": "heat","meter": "kamheat","meter_date": "2024-04-05","name": "KMHEAT","power_kw": 185,"status": "OK","t1_temperature_c": 75.8,"t2_temperature_c": 37.6,"target_date": "2024-04-01","target_energy_kwh": 0,"timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 5277.777778,"total_volume_m3": 117,"volume_flow_m3h": 4.19}'
+           fields = 'KMHEAT;85412440;5277.777778;117;OK;1111-11-11 11:11.11'
+       }
+       test {
+           args = 'KM2 kamheat 85007420 NOKEY'
+           telegram = 689f9f68081472207400852d2c350cad00000004fb08c304000004ff07f21c000004ff084d1100000415fe29000084401400000000848040140000000004228829000034220a00000002598511025dab100261da00042d00000000142d08000000043b00000000143b6000000004ff2200000000046d0d2c0238542dc9010000543be1050000426c013102ff1a011b0c782074008504ff16850b200004ff17c9ff0e01cb16
+           json = '{"_":"telegram","fabrication_no": "85007420","flow_return_temperature_difference_c": 2.18,"forward_energy_m3c": 7410,"id": "85007420","max_flow_m3h": 0.096,"max_power_kw": 0.8,"media": "heat volume at inlet","meter": "kamheat","meter_datetime": "2024-08-02 12:13","name": "KM2","on_time_at_error_h": 10,"on_time_h": 10632,"power_kw": 0,"return_energy_m3c": 4429,"status": "OK","t1_temperature_c": 44.85,"t2_temperature_c": 42.67,"target_date": "2024-01-01","timestamp": "1111-11-11T11:11:11Z","total_energy_consumption_kwh": 33861.111111,"total_volume_m3": 1075,"volume_flow_m3h": 0}'
+           fields = 'KM2;85007420;33861.111111;1075;OK;1111-11-11 11:11.11'
+      }
+      test {
+          args = 'Kamstrup_MC303_Heat_AND_COOLING kamheat 30303030 NOKEY'
+          telegram = 68888868083072303030302d2c400d0000000004069a00000004863c0000000004146d0f000004ff077205000004ff08ec0400000322890a0033220000000259720b025d040b02616e00022d0e00122db400023b6804123b7a0402ff22000044060000000044863c0000000044140000000044ff070000000044ff0800000000522d0000523b0000426c00006C16
+          json = '{"_":"telegram","media":"heat/cooling load","meter":"kamheat","name":"Kamstrup_MC303_Heat_AND_COOLING","id":"30303030","flow_return_temperature_difference_c":1.1,"forward_energy_m3c":1394,"max_flow_m3h":1.146,"max_power_kw":18,"on_time_h":2697,"on_time_at_error_h":0,"power_kw":1.4,"return_energy_m3c":1260,"t1_temperature_c":29.3,"t2_temperature_c":28.2,"target_energy_kwh":0,"target_volume_m3":0,"total_energy_backward_kwh":0,"total_energy_consumption_kwh":154,"total_volume_m3":39.49,"volume_flow_m3h":1.128,"status":"OK","target_date":"1999-11-30","timestamp":"1111-11-11T11:11:11Z"}'
+          fields = 'Kamstrup_MC303_Heat_AND_COOLING;30303030;154;39.49;OK;1111-11-11 11:11.11'
+        }
+    }
+}
