@@ -17,6 +17,16 @@ driver {
             name         = meter
             quantity     = PointInTime
             info         = 'Meter date when telegram was sent.'
+            display_unit = date
+            match {
+                measurement_type = Instantaneous
+                vif_range        = Date
+            }
+        }
+        field {
+            name         = meter
+            quantity     = PointInTime
+            info         = 'Meter date when telegram was sent.'
             display_unit = datetime
             match {
                 measurement_type = Instantaneous
@@ -112,7 +122,7 @@ driver {
                 measurement_type = Instantaneous
                 vif_range        = AnyEnergyVIF
             }
-        }        
+        }
         field {
             name     = total_energy_cooling
             quantity = Energy
@@ -271,11 +281,11 @@ driver {
             telegram = 684E4E68080172280417230106420455000000_0C7828041723026C103902FD1700000E0A6342693401000C13634630000A3B00000A2D00000A5A49020A5E44020C22762101003C2215000000047E17090000_4116
             json     = '{"_":"telegram","current_power_kw": 0,"current_volume_flow_m3h": 0,"fabrication_no": "23170428","id": "23170428","media": "heat","meter": "elf2","meter_date": "2024-09-16","name": "Heato","on_time_at_error_h": 15,"on_time_h": 12176,"status": "OK","t1_temperature_c": 24.9,"t2_temperature_c": 24.4,"timestamp": "1111-11-11T11:11:11Z","total_energy_kwh": 3741.507306,"total_volume_m3": 304.663}'
             fields   = 'Heato;23170428;OK;3741.507306;1111-11-11 11:11.11'
-        },
+        }
         test {
             args     = 'Heato elf2 24271170 ACA5769E7902B8A770A7118C11D5F0F6'
             telegram = 6E44010670112724420D7A35006025B2F96D0306197B34C7E4E6F45F434FCB78BCBBE8837A2C253BEC3E958B3BBBFBE6AE465214941AF544237DB8A69E6C4CE8DFB7A1F64860200BB2E995F1A4F501E7702E0A581576F60B58CBDA39E1F150F29E04D689C38FD6C430ABD05DD789E0
-            json     = '{"_":"telegram","media":"heat/cooling load","meter":"elf2","name":"","id":"24271170","current_power_kw":0,"current_volume_flow_m3h":0,"input1_volume_m3":0.002,"input2_volume_m3":0.002,"meter_datetime":"2025-10-15 14:39","t1_temperature_c":22.5,"t2_temperature_c":22.6,"total_energy_kwh":144,"total_energy_cooling_kwh":1,"total_energy_cooling_period_kwh":1,"total_energy_period_kwh":72,"total_volume_m3":17.856,"total_volume_cooling_m3":1.576,"status":"OK","timestamp":"2025-10-16T11:01:23Z"}'
+            json     = '{"_":"telegram","media":"heat/cooling load","meter":"elf2","name":"Heato","id":"24271170","current_power_kw":0,"current_volume_flow_m3h":0,"input1_volume_m3":0.002,"input2_volume_m3":0.002,"meter_datetime":"2025-10-15 14:39","t1_temperature_c":22.5,"t2_temperature_c":22.6,"total_energy_kwh":144,"total_energy_cooling_kwh":1,"total_energy_cooling_period_kwh":1,"total_energy_period_kwh":72,"total_volume_m3":17.856,"total_volume_cooling_m3":1.576,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'Heato;24271170;OK;144;1111-11-11 11:11.11'
         }
     }

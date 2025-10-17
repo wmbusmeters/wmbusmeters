@@ -1,9 +1,15 @@
-// Generated 2025-10-14_19:16
+// Generated 2025-10-17_10:58
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
     json     = '{"_":"telegram","id": "05933237","media": "water","meter": "aquastream","meter_datetime": "2023-11-22 16:13","name": "AqWater","status": "OK","target_date": "2023-10-31","target_m3": 6.217,"timestamp": "1111-11-11T11:11:11Z","total_m3": 16.899,"total_tariff1_m3": 0,"battery_y": 15.328767}'
     fields   = 'AqWater;05933237;16.899;1111-11-11 11:11.11'
+}
+test {
+    args     = 'Heato elf2 24271170 ACA5769E7902B8A770A7118C11D5F0F6'
+    telegram = 6E44010670112724420D7A35006025B2F96D0306197B34C7E4E6F45F434FCB78BCBBE8837A2C253BEC3E958B3BBBFBE6AE465214941AF544237DB8A69E6C4CE8DFB7A1F64860200BB2E995F1A4F501E7702E0A581576F60B58CBDA39E1F150F29E04D689C38FD6C430ABD05DD789E0
+    json     = '{"_":"telegram","media":"heat/cooling load","meter":"elf2","name":"Heato","id":"24271170","current_power_kw":0,"current_volume_flow_m3h":0,"input1_volume_m3":0.002,"input2_volume_m3":0.002,"meter_datetime":"2025-10-15 14:39","t1_temperature_c":22.5,"t2_temperature_c":22.6,"total_energy_kwh":144,"total_energy_cooling_kwh":1,"total_energy_cooling_period_kwh":1,"total_energy_period_kwh":72,"total_volume_m3":17.856,"total_volume_cooling_m3":1.576,"status":"OK","timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'Heato;24271170;OK;144;1111-11-11 11:11.11'
 }
 test {
     args     = 'Heato elf2 23170428 NOKEY'
@@ -22,6 +28,12 @@ test {
     telegram = 689292680800723612452394150102cd0000008c1004688902008c1104688902008c2004000000008c21040000000002fdc9ff01ee0002fddBff01100002acff0120008240acff010a0002fdc9ff02ef0002fddBff02110002acff0224008240acff02070002fdc9ff03ee0002fddBff030e0002acff031c008240acff03060002ff68010002acff0062008240acff00190001ff1300f416
     json     = '{"_":"telegram","active_power_overall_kw": 0.98,"active_tariff_counter": 0,"ct_numerator_counter": 1,"current_l1_a": 1.6,"current_l2_a": 1.7,"current_l3_a": 1.4,"id": "23451236","media": "electricity","meter": "eltako","name": "Eltako","power_l1_kw": 0.32,"power_l2_kw": 0.36,"power_l3_kw": 0.28,"reactive_power_l1_kw": 0.1,"reactive_power_l2_kw": 0.07,"reactive_power_l3_kw": 0.06,"reactive_power_overall_kw": 0.25,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 289.68,"total_reactive_tariff_1_kwh": 289.68,"total_reactive_tariff_2_kwh": 0,"total_tariff_1_kwh": 289.68,"total_tariff_2_kwh": 0,"voltage_l1_n_v": 238,"voltage_l2_n_v": 239,"voltage_l3_n_v": 238}'
     fields   = 'Eltako;23451236;289.68;1111-11-11 11:11.11'
+}
+test {
+    args     = 'fio fiowater 25016914 NOKEY'
+    telegram = 43442F191469012501078C2075900F002C257C690300FDD9AE90F019F1C07A47102007102F2F_0C1322921500046D3A2A3A390F60011907052F2F2F2F2F2F2F2F2F2F2F2F
+    json     = '{"_":"telegram","media":"water","status":"TEMPORARY_ERROR","meter":"fiowater","name":"fio","id":"25016914","meter_datetime":"2025-09-26 10:58","total_volume_m3":159.222,"timestamp":"1111-11-11T11:11:11Z"}'
+    fields   = 'fio;25016914;TEMPORARY_ERROR;159.222;1111-11-11 11:11.11'
 }
 test {
     args     = 'testm5 hydrocalm4 05128041 NOKEY'
