@@ -25,14 +25,14 @@ namespace
         void processContent(Telegram *t);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("wme5");
         di.setDefaultFields("name,id,total_m3,total_hex,timestamp");
 
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::T1);
-        // di.addDetection(MANUFACTURER_QDS, 0x07, 0x1a); // Hmmm, this mvt is better handled by QWater
+        // di.addMVT(MANUFACTURER_QDS, 0x07, 0x1a); // Hmmm, this mvt is better handled by QWater
         // too bad we have to example telegrams for wme5....
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });

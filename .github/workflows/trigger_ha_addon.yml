@@ -28,7 +28,7 @@ jobs:
 
       - name: Trigger build for edge release
         if: ${{ github.ref_name == 'master' }}
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.HA_PAT }}
           repository: wmbusmeters/wmbusmeters-ha-addon
@@ -37,7 +37,7 @@ jobs:
 
       - name: Trigger build for stable release
         if: ${{ github.ref_name != 'master' }}
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.HA_PAT }}
           repository: wmbusmeters/wmbusmeters-ha-addon

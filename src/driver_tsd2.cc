@@ -26,13 +26,13 @@ namespace
         void processContent(Telegram *t);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("tsd2");
         di.setDefaultFields("name,id,status,prev_date,timestamp");
         di.setMeterType(MeterType::SmokeDetector);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_TCH, 0xf0,  0x76);
+        di.addMVT(MANUFACTURER_TCH, 0xf0,  0x76);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

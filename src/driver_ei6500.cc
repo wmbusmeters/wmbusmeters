@@ -24,13 +24,13 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("ei6500");
         di.setDefaultFields("name,id,status,last_alarm_date,alarm_counter,timestamp");
         di.setMeterType(MeterType::SmokeDetector);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_EIE, 0x1a, 0x0c);
+        di.addMVT(MANUFACTURER_EIE, 0x1a, 0x0c);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

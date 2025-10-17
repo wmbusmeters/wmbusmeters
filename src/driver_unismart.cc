@@ -24,13 +24,13 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("unismart");
         di.setDefaultFields("name,id,total_m3,target_m3,timestamp");
         di.setMeterType(MeterType::GasMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_AMX, 0x03,  0x01);
+        di.addMVT(MANUFACTURER_AMX, 0x03,  0x01);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

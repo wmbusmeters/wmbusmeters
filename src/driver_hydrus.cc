@@ -25,19 +25,19 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("hydrus");
         di.setDefaultFields("name,id,total_m3,total_at_date_m3,status,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_DME,  0x07,  0x70);
-        di.addDetection(MANUFACTURER_DME,  0x07,  0x76);
-        di.addDetection(MANUFACTURER_HYD,  0x07,  0x24);
-        di.addDetection(MANUFACTURER_HYD,  0x07,  0x8b);
-        di.addDetection(MANUFACTURER_HYD,  0x06,  0x8b);
-        di.addDetection(MANUFACTURER_DME,  0x06,  0x70);
-        di.addDetection(MANUFACTURER_DME,  0x16,  0x70);
+        di.addMVT(MANUFACTURER_DME,  0x07,  0x70);
+        di.addMVT(MANUFACTURER_DME,  0x07,  0x76);
+        di.addMVT(MANUFACTURER_HYD,  0x07,  0x24);
+        di.addMVT(MANUFACTURER_HYD,  0x07,  0x8b);
+        di.addMVT(MANUFACTURER_HYD,  0x06,  0x8b);
+        di.addMVT(MANUFACTURER_DME,  0x06,  0x70);
+        di.addMVT(MANUFACTURER_DME,  0x16,  0x70);
 
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });

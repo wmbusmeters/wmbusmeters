@@ -26,16 +26,16 @@ namespace {
             void processContent(Telegram *t);
     };
 
-    static bool ok = registerDriver([](DriverInfo &di) {
+    static bool ok = staticRegisterDriver([](DriverInfo &di) {
         di.setName("hydrodigit");
         di.setDefaultFields("name,id,total_m3,meter_datetime,timestamp");
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_BMT, 0x06, 0x13);
-        di.addDetection(MANUFACTURER_BMT, 0x06, 0x17);
-        di.addDetection(MANUFACTURER_BMT, 0x07, 0x13);
-        di.addDetection(MANUFACTURER_BMT, 0x07, 0x15);
-        di.addDetection(MANUFACTURER_BMT, 0x07, 0x17);
+        di.addMVT(MANUFACTURER_BMT, 0x06, 0x13);
+        di.addMVT(MANUFACTURER_BMT, 0x06, 0x17);
+        di.addMVT(MANUFACTURER_BMT, 0x07, 0x13);
+        di.addMVT(MANUFACTURER_BMT, 0x07, 0x15);
+        di.addMVT(MANUFACTURER_BMT, 0x07, 0x17);
         di.usesProcessContent();
         di.setConstructor([](MeterInfo &mi, DriverInfo &di) {
             return shared_ptr<Meter>(new Driver(mi, di));

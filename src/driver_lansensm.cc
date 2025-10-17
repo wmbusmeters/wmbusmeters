@@ -24,13 +24,13 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("lansensm");
         di.setDefaultFields("name,id,status,minutes_since_last_manual_test_counter,timestamp");
         di.setMeterType(MeterType::SmokeDetector);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_LAS, 0x1a, 0x03);
+        di.addMVT(MANUFACTURER_LAS, 0x1a, 0x03);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

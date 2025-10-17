@@ -48,15 +48,9 @@ void loadDriversFromDir(std::string dir)
 struct BuiltinDriver
 {
     const char *name;
+    const char *aliases;
     const char *content;
     bool loaded;
-};
-
-struct MVT
-{
-    uint16_t mfct;
-    uchar version;
-    uchar type;
 };
 
 struct MapToDriver {
@@ -113,6 +107,25 @@ const char *findBuiltinDriver(uint16_t mfct, uchar ver, uchar type)
     return builtins_mvt_lookup_[key];
 }
 
+void removeBuiltinDriver(string name)
+{
+    builtins_name_lookup_.erase(name);
+    debug("(drivers) removed builtin driver %s\n", name.c_str());
+
+    size_t num_mvts = sizeof(builtins_mvts_) / sizeof(MapToDriver);
+
+    for (size_t i = 0; i < num_mvts; ++i)
+    {
+        uint32_t key = builtins_mvts_[i].mvt.mfct << 16 |
+            builtins_mvts_[i].mvt.version << 8 |
+            builtins_mvts_[i].mvt.type;
+        if (name == builtins_mvts_[i].name)
+        {
+            builtins_mvt_lookup_.erase(key);
+        }
+    }
+}
+
 void prepareBuiltinDrivers()
 {
     size_t num_mvts = sizeof(builtins_mvts_) / sizeof(MapToDriver);
@@ -122,7 +135,14 @@ void prepareBuiltinDrivers()
     {
         builtins_name_lookup_[builtins_[i].name] = &builtins_[i];
         debug("(drivers) added builtin driver %s\n", builtins_[i].name);
+        vector<string> aliases = splitString(builtins_[i].aliases, ',');
+        for (string& a : aliases)
+        {
+            builtins_name_lookup_[a] = &builtins_[i];
+            debug("(drivers) added alias %s to driver %s\n", a.c_str(),builtins_[i].name);
+        }
     }
+
     for (size_t i = 0; i < num_mvts; ++i)
     {
         uint32_t key = builtins_mvts_[i].mvt.mfct << 16 |

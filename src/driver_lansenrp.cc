@@ -26,13 +26,13 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("lansenrp");
         di.setDefaultFields("name,id,status,total_routed_messages_counter,used_router_slots_counter,is_repeater_listening,timestamp");
         di.setMeterType(MeterType::Repeater);
         di.addLinkMode(LinkMode::C1);
-        di.addDetection(MANUFACTURER_LAS, 0x32, 0x0b);
+        di.addMVT(MANUFACTURER_LAS, 0x32, 0x0b);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

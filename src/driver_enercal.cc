@@ -23,13 +23,13 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("enercal");
         di.setDefaultFields("name,id,status,total_kwh,target_kwh,total_m3,target_m3,timestamp");
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::MBUS);
-        di.addDetection(MANUFACTURER_GWF, 0x04,  0x08);
+        di.addMVT(MANUFACTURER_GWF, 0x04,  0x08);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

@@ -26,13 +26,13 @@ namespace
         void processContent(Telegram *t);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("bfw240radio");
         di.setDefaultFields("name,id,current_hca,prev_hca,timestamp");
         di.addLinkMode(LinkMode::T1);
         di.setMeterType(MeterType::HeatCostAllocationMeter);
-        di.addDetection(MANUFACTURER_BFW,0x08,  0x02);
+        di.addMVT(MANUFACTURER_BFW,0x08,  0x02);
         di.forceMfctIndex(2); // First two bytes are 2f2f after that its completely mfct specific.
         di.usesProcessContent();
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });

@@ -50,16 +50,16 @@ namespace
         // return_temperature_c
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("c5isf");
         di.setDefaultFields("name,id,total_energy_consumption_kwh,total_volume_m3,status,timestamp");
 
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_ZRI, 0x0d, 0x88); // Telegram type T1A1
-        di.addDetection(MANUFACTURER_ZRI, 0x07, 0x88); // Telegram type T1A2
-        di.addDetection(MANUFACTURER_ZRI, 0x04, 0x88); // Telegram type T1B
+        di.addMVT(MANUFACTURER_ZRI, 0x0d, 0x88); // Telegram type T1A1
+        di.addMVT(MANUFACTURER_ZRI, 0x07, 0x88); // Telegram type T1A2
+        di.addMVT(MANUFACTURER_ZRI, 0x04, 0x88); // Telegram type T1B
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

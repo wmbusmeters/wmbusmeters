@@ -24,15 +24,15 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("qualcosonic");
         di.setDefaultFields("name,id,status,total_heat_energy_kwh,total_cooling_energy_kwh,"
                             "power_kw,target_datetime,target_heat_energy_kwh,target_cooling_energy_kwh,timestamp");
         di.setMeterType(MeterType::HeatCoolingMeter);
         di.addLinkMode(LinkMode::C1);
-        di.addDetection(MANUFACTURER_AXI, 0x0d,  0x0b);
-        di.addDetection(MANUFACTURER_AXI, 0x0d,  0x0c);
+        di.addMVT(MANUFACTURER_AXI, 0x0d,  0x0b);
+        di.addMVT(MANUFACTURER_AXI, 0x0d,  0x0c);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

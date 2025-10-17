@@ -24,15 +24,15 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("iwmtx5");
         di.setDefaultFields("name,id,status,total_m3,timestamp");
 
         di.setMeterType(MeterType::WaterMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_BMT, 0x07, 0x18);
-        di.addDetection(MANUFACTURER_BMT, 0x06, 0x18);
+        di.addMVT(MANUFACTURER_BMT, 0x07, 0x18);
+        di.addMVT(MANUFACTURER_BMT, 0x06, 0x18);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

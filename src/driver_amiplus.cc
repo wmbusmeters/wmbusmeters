@@ -24,22 +24,22 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("amiplus");
         di.setDefaultFields("name,id,total_energy_consumption_kwh,current_power_consumption_kw,total_energy_production_kwh,current_power_production_kw,voltage_at_phase_1_v,voltage_at_phase_2_v,voltage_at_phase_3_v,total_energy_consumption_tariff_1_kwh,total_energy_consumption_tariff_2_kwh,total_energy_consumption_tariff_3_kwh,total_energy_production_tariff_1_kwh,total_energy_production_tariff_2_kwh,total_energy_production_tariff_3_kwh,timestamp");
         di.setMeterType(MeterType::ElectricityMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_APA,  0x02,  0x02);
-        di.addDetection(MANUFACTURER_DEV,  0x37,  0x02);
-        di.addDetection(MANUFACTURER_DEV,  0x02,  0x00);
-        di.addDetection(MANUFACTURER_DEV,  0x02,  0x01);
-        di.addDetection(MANUFACTURER_NES,  0x02,  0x03);
+        di.addMVT(MANUFACTURER_APA,  0x02,  0x02);
+        di.addMVT(MANUFACTURER_DEV,  0x37,  0x02);
+        di.addMVT(MANUFACTURER_DEV,  0x02,  0x00);
+        di.addMVT(MANUFACTURER_DEV,  0x02,  0x01);
+        di.addMVT(MANUFACTURER_NES,  0x02,  0x03);      
         // Apator Otus 1/3 seems to use both, depending on a frame.
         // Frames with APA are successfully decoded by this driver
         // Frames with APT are not - and their content is unknown - perhaps it broadcasts two data formats?
-        di.addDetection(MANUFACTURER_APA,  0x02,  0x01);
-        //di.addDetection(MANUFACTURER_APT,  0x02,  0x01);
+        di.addMVT(MANUFACTURER_APA,  0x02,  0x01);
+        //di.addMVT(MANUFACTURER_APT,  0x02,  0x01);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

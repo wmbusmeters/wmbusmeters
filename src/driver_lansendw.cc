@@ -24,14 +24,14 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         di.setName("lansendw");
         di.setDefaultFields("name,id,status,timestamp");
         di.setMeterType(MeterType::DoorWindowDetector);
         di.addLinkMode(LinkMode::T1);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
-        di.addDetection(MANUFACTURER_LAS,  0x1d,  0x07);
+        di.addMVT(MANUFACTURER_LAS,  0x1d,  0x07);
     });
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)

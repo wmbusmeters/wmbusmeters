@@ -25,7 +25,7 @@ namespace
         Driver(MeterInfo &mi, DriverInfo &di);
     };
 
-    static bool ok = registerDriver([](DriverInfo&di)
+    static bool ok = staticRegisterDriver([](DriverInfo&di)
     {
         // This is the sharky 775 heat meter driver, should this merge with the sharky 774 driver?
         di.setName("sharky");
@@ -34,8 +34,8 @@ namespace
                             "return_temperature_c,temperature_difference_c,timestamp");
         di.setMeterType(MeterType::HeatMeter);
         di.addLinkMode(LinkMode::T1);
-        di.addDetection(MANUFACTURER_HYD, 0x04, 0x20);
-        di.addDetection(MANUFACTURER_DME, 0x04, 0x40);
+        di.addMVT(MANUFACTURER_HYD, 0x04, 0x20);
+        di.addMVT(MANUFACTURER_DME, 0x04, 0x40);
         di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
     });
 

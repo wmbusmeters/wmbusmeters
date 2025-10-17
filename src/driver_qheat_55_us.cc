@@ -35,15 +35,15 @@ namespace
         // prev_month_kwh[13] - 13 past month readings, storagenr 2 to 14
     };
 
-    static bool ok = registerDriver([](DriverInfo &di)
+    static bool ok = staticRegisterDriver([](DriverInfo &di)
         {
             di.setName("qheat_55_us");
             di.setDefaultFields("name,id,total_energy_consumption_kwh,key_date_kwh,timestamp");
             di.setMeterType(MeterType::HeatMeter);
 
             di.addLinkMode(LinkMode::C1);
-            di.addDetection(MANUFACTURER_LUG, 0x04,  0x07);
-            di.addDetection(MANUFACTURER_LUG, 0x04,  0x0a);
+            di.addMVT(MANUFACTURER_LUG, 0x04,  0x07);
+            di.addMVT(MANUFACTURER_LUG, 0x04,  0x0a);
             di.setConstructor([](MeterInfo& mi, DriverInfo& di){ return shared_ptr<Meter>(new Driver(mi, di)); });
         });
 
