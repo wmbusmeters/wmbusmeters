@@ -2,47 +2,20 @@
 driver {
     name           = fiowater
     meter_type     = WaterMeter
-    default_fields = name,id,status,total_volume_m3,timestamp
+    default_fields = name,id,status,total_m3,timestamp
     detect {
         mvt = FIO,01,07
     }
     library {
-        use = fabrication_no
-        use = on_time_h
-        use = on_time_at_error_h
-    }
-    fields {
-        field {
-            name     = status
-            quantity = Text
-            info     = 'Status and error flags'
-            attributes = STATUS,INCLUDE_TPL_STATUS
-        }
-        field {
-            name         = meter
-            quantity     = PointInTime
-            info         = 'Meter date when telegram was sent.'
-            display_unit = datetime
-            match {
-                measurement_type = Instantaneous
-                vif_range        = DateTime
-            }
-        }
-        field {
-            name     = total_volume
-            quantity = Volume
-            info     = 'Total volume of water used for heating.'
-            match {
-                measurement_type = Instantaneous
-                vif_range        = AnyVolumeVIF
-            }
-        }
+        use = status-tpl-only
+        use = total_m3
+        use = meter_datetime
     }
     tests {
         test {
             args     = 'fio fiowater 25016914 NOKEY'
             telegram = 43442F191469012501078C2075900F002C257C690300FDD9AE90F019F1C07A47102007102F2F_0C1322921500046D3A2A3A390F60011907052F2F2F2F2F2F2F2F2F2F2F2F
-            json     = '{"_":"telegram","media":"water","status":"TEMPORARY_ERROR","meter":"fiowater","name":"fio","id":"25016914","meter_datetime":"2025-09-26 10:58","total_volume_m3":159.222,"timestamp":"1111-11-11T11:11:11Z"}'
+            json     = '{"_":"telegram","media":"water","status":"TEMPORARY_ERROR","meter":"fiowater","name":"fio","id":"25016914","meter_datetime":"2025-09-26 10:58","total_m3":159.222,"timestamp":"1111-11-11T11:11:11Z"}'
             fields   = 'fio;25016914;TEMPORARY_ERROR;159.222;1111-11-11 11:11.11'
         }
     }
