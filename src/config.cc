@@ -122,8 +122,8 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
                 warning("Found invalid meter bus \"%s\" in meter config file, skipping meter.\n", bus.c_str());
                 return;
             }
-        }
-        if (p.first == "name")
+        } 
+        else if (p.first == "name")
         {
             name = p.second;
             if (name.find(":") != string::npos)
@@ -133,79 +133,83 @@ void parseMeterConfig(Configuration *c, vector<char> &buf, string file)
                 return;
             }
         }
+        else if (p.first == "type")
+        {
+            driver = p.second;
+        }
+        else if (p.first == "driver")
+        {
+            driver = p.second;
+        }
+        else if (p.first == "id")
+        {
+            address_expressions = p.second;
+        }
+        else if (p.first == "key")
+        {
+            key = p.second;
+            debug("(config) key=<notprinted>\n");
+        }
+        else if (p.first == "pollinterval") 
+        {
+            if (poll_interval != 0)
+            {
+                error("You have already specified a poll interval for this meter!\n");
+            }
+            poll_interval = parseTime(p.second);
+
+            if (poll_interval == 0)
+            {
+                error("Poll interval must be non-zero \"%s\"!\n", p.second.c_str());
+            }
+        }
+        else if (p.first == "identitymode") 
+        {
+            identity_mode = toIdentityMode(p.second.c_str());
+
+            if (identity_mode == IdentityMode::INVALID)
+            {
+                error("Invalid identity mode: \"%s\"!\n", p.second.c_str());
+            }
+        }
+        else if (p.first == "shell") 
+        {
+            telegram_shells.push_back(p.second);
+        }
+        else if (p.first == "metershell") 
+        {
+            new_meter_shells.push_back(p.second);
+        }
+        else if (p.first == "alarmshell") 
+        {
+            alarm_shells.push_back(p.second);
+        }
+        else if (p.first == "selectedfields")
+        {
+            if (selected_fields.size() > 0)
+            {
+                warning("(warning) selectfields already used! Ignoring selectfields %s", p.second.c_str());
+                return;
+            }
+            selected_fields = splitString(p.second, ',');
+        }
+        else if (startsWith(p.first, "json_") ||
+                startsWith(p.first, "field_"))
+        {
+            int off = 5;
+            if (startsWith(p.first, "field_")) { off = 6; }
+            string keyvalue = p.first.substr(off)+"="+p.second;
+            extra_constant_fields.push_back(keyvalue);
+        }
+        else if (startsWith(p.first, "calculate_"))
+        {
+            string keyvalue = p.first.substr(10)+"="+p.second;
+            extra_calculated_fields.push_back(keyvalue);
+        }
         else
-            if (p.first == "type") driver = p.second;
-            else
-                if (p.first == "driver") driver = p.second;
-                else
-                    if (p.first == "id") address_expressions = p.second;
-                    else
-                        if (p.first == "key")
-                        {
-                            key = p.second;
-                            debug("(config) key=<notprinted>\n");
-                        }
-                        else
-                            if (p.first == "pollinterval") {
-                                if (poll_interval != 0)
-                                {
-                                    error("You have already specified a poll interval for this meter!\n");
-                                }
-                                poll_interval = parseTime(p.second);
-
-                                if (poll_interval == 0)
-                                {
-                                    error("Poll interval must be non-zero \"%s\"!\n", p.second.c_str());
-                                }
-                            }
-                            else
-                                if (p.first == "identitymode") {
-                                    identity_mode = toIdentityMode(p.second.c_str());
-
-                                    if (identity_mode == IdentityMode::INVALID)
-                                    {
-                                        error("Invalid identity mode: \"%s\"!\n", p.second.c_str());
-                                    }
-                                }
-                                else
-                                    if (p.first == "shell") {
-                                        telegram_shells.push_back(p.second);
-                                    }
-                                    else
-                                        if (p.first == "metershell") {
-                                            new_meter_shells.push_back(p.second);
-                                        }
-                                        else
-                                            if (p.first == "alarmshell") {
-                                                alarm_shells.push_back(p.second);
-                                            }
-                                            else
-                                                if (p.first == "selectedfields")
-                                                {
-                                                    if (selected_fields.size() > 0)
-                                                    {
-                                                        warning("(warning) selectfields already used! Ignoring selectfields %s", p.second.c_str());
-                                                        return;
-                                                    }
-                                                    selected_fields = splitString(p.second, ',');
-                                                }
-                                                else
-                                                    if (startsWith(p.first, "json_") ||
-                                                        startsWith(p.first, "field_"))
-                                                    {
-                                                        int off = 5;
-                                                        if (startsWith(p.first, "field_")) { off = 6; }
-                                                        string keyvalue = p.first.substr(off)+"="+p.second;
-                                                        extra_constant_fields.push_back(keyvalue);
-                                                    }
-                                                    else
-                                                        if (startsWith(p.first, "calculate_"))
-                                                        {
-                                                            string keyvalue = p.first.substr(10)+"="+p.second;
-                                                            extra_calculated_fields.push_back(keyvalue);
-                                                        }
-                                                        else
-                                                            warning("Found invalid key \"%s\" in meter config file\n", p.first.c_str());
+        {
+            warning("Found invalid key \"%s\" in meter config file\n", p.first.c_str());
+        }
 
         if (p.first != "key") {
             debug("(config) %s=%s\n", p.first.c_str(), p.second.c_str());
