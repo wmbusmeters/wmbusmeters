@@ -2742,6 +2742,15 @@ bool MeterCommonImplementation::addOptionalLibraryFields(string field_names)
         error("Bad library field, only zero or one pipe | symbol is allowed: %s", field_names.c_str());
     }
 
+    if (checkIf(fields,"status-tpl-only"))
+    {
+        addStringField(
+            "status",
+            "Status and error flags."+help,
+            STATUS | INCLUDE_TPL_STATUS);
+        markLastFieldAsLibrary();
+    }
+
     if (checkIf(fields, "actuality_duration_s"))
     {
         addNumericFieldWithExtractor(

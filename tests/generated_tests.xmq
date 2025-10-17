@@ -1,4 +1,4 @@
-// Generated 2025-10-17_10:58
+// Generated 2025-10-17_11:12
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -32,7 +32,7 @@ test {
 test {
     args     = 'fio fiowater 25016914 NOKEY'
     telegram = 43442F191469012501078C2075900F002C257C690300FDD9AE90F019F1C07A47102007102F2F_0C1322921500046D3A2A3A390F60011907052F2F2F2F2F2F2F2F2F2F2F2F
-    json     = '{"_":"telegram","media":"water","status":"TEMPORARY_ERROR","meter":"fiowater","name":"fio","id":"25016914","meter_datetime":"2025-09-26 10:58","total_volume_m3":159.222,"timestamp":"1111-11-11T11:11:11Z"}'
+    json     = '{"_":"telegram","media":"water","status":"TEMPORARY_ERROR","meter":"fiowater","name":"fio","id":"25016914","meter_datetime":"2025-09-26 10:58","total_m3":159.222,"timestamp":"1111-11-11T11:11:11Z"}'
     fields   = 'fio;25016914;TEMPORARY_ERROR;159.222;1111-11-11 11:11.11'
 }
 test {
