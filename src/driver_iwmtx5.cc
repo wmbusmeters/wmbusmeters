@@ -38,6 +38,13 @@ namespace
 
     Driver::Driver(MeterInfo &mi, DriverInfo &di) : MeterCommonImplementation(mi, di)
     {
+        setMfctTPLStatusBits(
+            Translate::Lookup()
+            .add(Translate::Rule("TPL_STS", Translate::MapType::BitToString)
+                 .set(MaskBits(0xe0))
+                 .set(DefaultMessage("OK"))
+                 .add(Translate::Map(0x40 ,"TAMPER", TestBit::Set))));
+
         addOptionalLibraryFields("meter_datetime");
         addOptionalLibraryFields("total_m3");
 
@@ -57,3 +64,8 @@ namespace
 // telegram=|4244B4094493322318068C005B7A1C0000000C13072000000F05170000000000000000000000000000000000000000009D0000C20000C20000C8000000000000000000|
 // {"_":"telegram","id": "23329344","media": "warm water","meter": "iwmtx5","name": "WarmWater2","status": "OK","timestamp": "1111-11-11T11:11:11Z","total_m3": 2.007}
 // |WarmWater2;23329344;OK;2.007;1111-11-11 11:11.11
+
+// Test: WarmWater3 iwmtx5 24360570 NOKEY
+// telegram=|4A44B4097005362418068C00647A7D400000066D210A673139000C13589402000F0582030000550200660300C004000006005407009B0800030A00C10A00000000000000010000FC000000|
+// {"_": "telegram","id": "24360570","media": "warm water","meter": "iwmtx5","meter_datetime": "2025-09-17 07:10:33","name": "WarmWater3","status": "TAMPER","timestamp": "1111-11-11T11:11:11Z","total_m3": 29.458}
+// |WarmWater3;24360570;TAMPER;29.458;1111-11-11 11:11.11
