@@ -129,7 +129,8 @@ LIST_OF_QUANTITIES
     X(COUNTER,counter,"counter",Dimensionless,"counter")                \
     X(FACTOR,factor,"factor",Dimensionless,"factor")                    \
     X(NUMBER,nr,"number",Dimensionless,"number")                        \
-    X(PERCENTAGE,pct,"percentage",Dimensionless,"percentage")                  \
+    X(PERCENTAGE,pct,"percentage",Dimensionless,"percentage")           \
+    X(PPM,ppm,"ppm",Dimensionless,"ppm")                                \
 
 enum class Unit
 {
