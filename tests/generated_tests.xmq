@@ -1,4 +1,4 @@
-// Generated 2025-10-17_11:12
+// Generated 2025-10-19_20:59
 test {
     args     = 'AqWater aquastream 05933237 NOKEY'
     telegram = 4644B42557920410050E7237329305B42501075B0030252F2F_04130342000084101300000000046D0D30F62B441349180000426CFF2A02FD17000002FD74DB152F2F2F2F2F2F2F
@@ -28,6 +28,25 @@ test {
     telegram = 689292680800723612452394150102cd0000008c1004688902008c1104688902008c2004000000008c21040000000002fdc9ff01ee0002fddBff01100002acff0120008240acff010a0002fdc9ff02ef0002fddBff02110002acff0224008240acff02070002fdc9ff03ee0002fddBff030e0002acff031c008240acff03060002ff68010002acff0062008240acff00190001ff1300f416
     json     = '{"_":"telegram","active_power_overall_kw": 0.98,"active_tariff_counter": 0,"ct_numerator_counter": 1,"current_l1_a": 1.6,"current_l2_a": 1.7,"current_l3_a": 1.4,"id": "23451236","media": "electricity","meter": "eltako","name": "Eltako","power_l1_kw": 0.32,"power_l2_kw": 0.36,"power_l3_kw": 0.28,"reactive_power_l1_kw": 0.1,"reactive_power_l2_kw": 0.07,"reactive_power_l3_kw": 0.06,"reactive_power_overall_kw": 0.25,"timestamp": "1111-11-11T11:11:11Z","total_kwh": 289.68,"total_reactive_tariff_1_kwh": 289.68,"total_reactive_tariff_2_kwh": 0,"total_tariff_1_kwh": 289.68,"total_tariff_2_kwh": 0,"voltage_l1_n_v": 238,"voltage_l2_n_v": 239,"voltage_l3_n_v": 238}'
     fields   = 'Eltako;23451236;289.68;1111-11-11 11:11.11'
+}
+test {
+    args     = 'FAKE elvsense 80008958 NOKEY'
+    comment  = 'This is a fake meter to test ppm and named vif CO2. But 300W probably looks similar.'
+    telegram = 2b44961558890080501B7aff0010252f2f_02656808_02fd46630e_02fb1a0700_027c03324f430001_0f2f2f2f2f
+    json     = '{"_": "telegram","battery_v": 3.683,"co2_ppm": 256,"humidity_rh": 0.7,"id": "80008958","media": "room sensor","meter": "elvsense","name": "FAKE","status": "OK","temperature_c": 21.52,"timestamp": "1111-11-11T11:11:11Z"}'
+    fields   = 'FAKE;80008958;21.52;0.7;256;3.683;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'ES2 elvsense 80008957 NOKEY'
+    telegram = 1e44961557890080501B7aff0010252f2f0265680802fd46630e0f2f2f2f2f
+    json     = '{"_": "telegram","battery_v": 3.683,"id": "80008957","media": "room sensor","meter": "elvsense","name": "ES2","status": "OK","temperature_c": 21.52,"timestamp": "1111-11-11T11:11:11Z"}'
+    fields   = 'ES2;80008957;21.52;null;null;3.683;OK;1111-11-11 11:11.11'
+}
+test {
+    args     = 'ES1 elvsense 80008957 NOKEY'
+    telegram = 1844961557890080501B7aea00012002656f0802fd46610e0f
+    json     = '{"_": "telegram","battery_v": 3.681,"id": "80008957","media": "room sensor","meter": "elvsense","name": "ES1","status": "OK","temperature_c": 21.59,"timestamp": "1111-11-11T11:11:11Z"}'
+    fields   = 'ES1;80008957;21.59;null;null;3.681;OK;1111-11-11 11:11.11'
 }
 test {
     args     = 'fio fiowater 25016914 NOKEY'
