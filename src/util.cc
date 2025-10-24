@@ -1807,7 +1807,7 @@ bool check_if_rtlsdr_exists_in_path()
     invokeShellCaptureOutput("/bin/sh", args, envs, &out, true);
     if (out.find("RTL2832") != string::npos)
     {
-        debug("(main) rtl_srd found in path\n");
+        debug("(main) rtl_sdr found in path\n");
         found = true;
     }
     else
