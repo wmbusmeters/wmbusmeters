@@ -6,8 +6,10 @@ Timur Saitov also improved the Hydridigit driver. Thanks Timur!
 ZleekWolf updated the qwater driver. Thanks ZleekWolf!
 Matix2120 updated the qwater and qheat drivers. Thanks Matix2120!
 SzczepanLeon added more voltages to the amiplus driver. Thanks SzczepanLeon!
-
 Updated Hydridigit drivers fraud_date and leak_date to use standard format 2024-05-24 etc.
+
+When scanning for telegrams using rtlwmbus the link mode is also displayed.
+
 Print available meters into wmbusmeters.log when running as daemon.
 This will show where a driver was loaded from. For example:
 
